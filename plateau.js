@@ -57,9 +57,17 @@ function loadCharacter() {
       const co = COUNTRIES[char.country];
       document.getElementById('char-arch-left').textContent = `${ar?.name||'?'} · ${co?.n||'?'}`;
 
-      if (char.photoUrl) {
-        document.getElementById('char-photo-left').innerHTML = `<img src="${char.photoUrl}" alt="Photo"/>`;
-        document.getElementById('char-avatar-top').innerHTML = `<img src="${char.photoUrl}" alt="Photo"/>`;
+      // Photo — stockee separement pour eviter depassement localStorage
+      try {
+        const photoSaved = localStorage.getItem('respublica_photo');
+        const photoUrl = photoSaved || char.photoUrl;
+        if (photoUrl && photoUrl.length > 10) {
+          const imgTag = `<img src="${photoUrl}" alt="Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+          document.getElementById('char-photo-left').innerHTML = imgTag;
+          document.getElementById('char-avatar-top').innerHTML = imgTag;
+        }
+      } catch(photoErr) {
+        console.warn('Photo non chargee:', photoErr);
       }
 
       if (char.stats) {
@@ -72,6 +80,8 @@ function loadCharacter() {
 
       const cur = co?.cur || 'FR';
       document.getElementById('r-arg').textContent = state.arg.toLocaleString('fr-FR') + ' ' + cur;
+
+      console.log('Personnage charge:', char.name, '| Pays:', state.country);
     }
   } catch(e) { console.warn('Erreur chargement personnage', e); }
 }
@@ -205,8 +215,6 @@ function showVueRue() {
 
   // Image de rue directe depuis data.js
   const rueImage = document.getElementById('rue-image');
-  const world = WORLD[state.country];
-  const city = world?.[state.currentCity];
   const imgUrl = city?.imageUrl;
   if (imgUrl) {
     rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%), url('${imgUrl}') center/cover no-repeat`;

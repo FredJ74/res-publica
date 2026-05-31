@@ -342,12 +342,19 @@ function validateChar(){
     country:G.country, origin:G.origin, school:G.school,
     archetype:G.archetype, career:G.career,
     stats:{}, freeStats:G.freeStats,
-    photoUrl:G.photoUrl, name:G.name, bio:G.bio, motto:G.motto,
+    name:G.name, bio:G.bio, motto:G.motto,
     arg:totalArg(), resources:resources(),
     createdAt:new Date().toISOString()
   };
   STAT_DEFS.forEach(({k})=>{char.stats[k]=Math.min(20,getBase(k)+(G.freeStats[k]||0))});
-  try{ localStorage.setItem('respublica_char', JSON.stringify(char)); }
+  try{
+    localStorage.setItem('respublica_char', JSON.stringify(char));
+    // Photo sauvegardee separement car peut etre volumineuse
+    if(G.photoUrl){
+      try{ localStorage.setItem('respublica_photo', G.photoUrl); }
+      catch(e){ console.warn('Photo trop volumineuse pour localStorage'); }
+    }
+  }
   catch(e){ console.warn('localStorage non disponible'); }
   goTo(9);
 }
