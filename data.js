@@ -96,6 +96,7 @@ const WORLD = {
   republic: {
     capitale: {
       name:'Luthecia',
+      imageUrl:'https://images.unsplash.com/photo-1431274172761-fca41d930114?w=1200&q=80',
       desc:'Capitale de Republia. Centre du pouvoir politique, judiciaire et mediatique.',
       isCapitale: true,
       districts: ['centre','quartier-nord','quartier-sud'],
@@ -103,15 +104,17 @@ const WORLD = {
     },
     ville_a: {
       name:'Port-Sainte-Marie',
+      imageUrl:'https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=1200&q=80',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public','commissariat-local','bar-des-pecheurs','terrain-a-batir-2']
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','terrain-a-batir-2']
     },
     ville_b: {
       name:'Montrouge',
+      imageUrl:'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=1200&q=80',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public','commissariat-local','siege-syndical','usine-principale','terrain-a-batir-3']
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','terrain-a-batir-3']
     }
   }
 };
@@ -135,6 +138,7 @@ const BUILDINGS = {
         image: "🏨",
         imageBg: "linear-gradient(135deg,#1a1208,#2a1c0a)",
         desc: "Le hall d'entree de l'hotel. Le concierge connait tout le monde.",
+        imageUrl: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&q=80",
         persons: [
           {name:'Gustave (Concierge)', role:'PNJ - Gestionnaire', rel:'neutral', job:'concierge'},
           {name:'Beatrice Aumont',     role:'Deputee - Parti Liberal', rel:'neutral', job:null}
@@ -150,6 +154,7 @@ const BUILDINGS = {
         image: "🍽️",
         imageBg: "linear-gradient(135deg,#1a1005,#2a1a08)",
         desc: "La salle de restaurant est bondee le midi. Tables discretes en fond de salle pour conversations privees.",
+        imageUrl: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80",
         persons: [
           {name:'Paulo (Maitre d\'hotel)', role:'PNJ - Service', rel:'neutral', job:'serveur'},
           {name:'Jean Dupont',            role:'Depute - Parti du Centre', rel:'neutral', job:null},
@@ -168,6 +173,7 @@ const BUILDINGS = {
         image: "🍺",
         imageBg: "linear-gradient(135deg,#120d05,#1e1508)",
         desc: "Le bar est ouvert jusqu'a l'aube. Langue qui se delie, secrets qui se vendent.",
+        imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80",
         persons: [
           {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman'},
           {name:'Un lobbyiste',   role:'Inconnu - Discretion de mise', rel:'neutral', job:null}
@@ -184,6 +190,7 @@ const BUILDINGS = {
         image: "🛏️",
         imageBg: "linear-gradient(135deg,#0d0a08,#181208)",
         desc: "Chambres confortables et discretes. Le meilleur endroit pour se reposer ou tenir une reunion privee.",
+        imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&q=80",
         persons: [],
         orders: [
           {fn:'dormir',         label:'Dormir (nuit complete)', pa:0, cost:80,  type:'legal', icon:'ti-moon',     successRate:100, desc:'Recuperation complete. +5 PA bonus demain.', paBonus:5},
@@ -209,6 +216,7 @@ const BUILDINGS = {
         image: "🏛️",
         imageBg: "linear-gradient(135deg,#141c10,#1e2a18)",
         desc: "Le hall monumental du Palais. Gardes republicains en faction. Acces controle.",
+        imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
         persons: [
           {name:'Garde Martineau',   role:'PNJ - Securite', rel:'neutral', job:'garde'},
           {name:'Secretaire Dupuis', role:'PNJ - Accueil officiel', rel:'neutral', job:'secretaire'}
@@ -223,6 +231,7 @@ const BUILDINGS = {
         image: "💼",
         imageBg: "linear-gradient(135deg,#0f1a0c,#182416)",
         desc: "Les bureaux des ministres et de leurs cabinets. Acces selon poste et relations.",
+        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
         persons: [
           {name:'Prefet Moreau',    role:'Prefet de la Capitale', rel:'neutral', job:'prefet'},
           {name:'Ministre Leroux',  role:'Ministre des Finances (PNJ)', rel:'neutral', job:'ministre'}
@@ -238,6 +247,7 @@ const BUILDINGS = {
         image: "🗳️",
         imageBg: "linear-gradient(135deg,#0d1a0a,#152014)",
         desc: "La salle ou se prennent les decisions du gouvernement. Acces ministeriel uniquement.",
+        imageUrl: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1200&q=80",
         persons: [
           {name:'Premier Ministre (PNJ)', role:'Chef du gouvernement', rel:'neutral', job:'pm'}
         ],
@@ -264,6 +274,7 @@ const BUILDINGS = {
         image: "🗳️",
         imageBg: "linear-gradient(135deg,#101820,#182030)",
         desc: "L'hemicycle principal. Les votes se font ici. Acces deputés uniquement pour les sessions.",
+        imageUrl: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&q=80",
         persons: [
           {name:'President Laroche', role:"President de l'Assemblee (PNJ)", rel:'neutral', job:'president'},
           {name:'Depute Martin',     role:'Groupe majoritaire (PNJ)', rel:'neutral', job:'depute'},
@@ -281,6 +292,7 @@ const BUILDINGS = {
         image: "🚶",
         imageBg: "linear-gradient(135deg,#0c1018,#141820)",
         desc: "Les couloirs de l'Assemblee. C'est ici que se font vraiment les deals.",
+        imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
         persons: [
           {name:'Lobbyiste Perrin', role:'Lobbyiste (PNJ)', rel:'neutral', job:'lobbyiste'},
           {name:'Journaliste Blanc',role:'Correspondant parlementaire (PNJ)', rel:'neutral', job:'journaliste'}
@@ -309,6 +321,7 @@ const BUILDINGS = {
         image: "⚖️",
         imageBg: "linear-gradient(135deg,#1a1408,#24180a)",
         desc: "La salle d'audience principale. Solennelle et intimidante.",
+        imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&q=80",
         persons: [
           {name:'Juge Fontaine',  role:'Presidente du Tribunal (PNJ)', rel:'neutral', job:'juge'},
           {name:'Procureur Saad', role:'Ministere public (PNJ)', rel:'neutral', job:'procureur'}
@@ -324,6 +337,7 @@ const BUILDINGS = {
         image: "📋",
         imageBg: "linear-gradient(135deg,#141008,#1c1608)",
         desc: "Les archives judiciaires. Tout y est consigne.",
+        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
         persons: [
           {name:'Greffier Petit', role:'PNJ - Greffe', rel:'neutral', job:'greffier'}
         ],
@@ -349,6 +363,7 @@ const BUILDINGS = {
         image: "🏦",
         imageBg: "linear-gradient(135deg,#100f08,#1a1a0a)",
         desc: "L'accueil de la banque nationale. Propre, froid, officiel.",
+        imageUrl: "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?w=1200&q=80",
         persons: [
           {name:'Directeur Mercier', role:"PNJ - Directeur d'agence", rel:'neutral', job:'directeur'}
         ],
@@ -376,6 +391,7 @@ const BUILDINGS = {
         image: "🔐",
         imageBg: "linear-gradient(135deg,#0d0d08,#181408)",
         desc: "Un bureau feutre ou tout se passe dans la plus grande discret.",
+        imageUrl: "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=1200&q=80",
         persons: [
           {name:'M. Fischer', role:'PNJ - Gestionnaire de patrimoine', rel:'neutral', job:'banquier'}
         ],
@@ -403,6 +419,7 @@ const BUILDINGS = {
         image: "🏥",
         imageBg: "linear-gradient(135deg,#080f10,#0c1618)",
         desc: "Reception moderne et discrete. Personnel forme a la confidentialite.",
+        imageUrl: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&q=80",
         persons: [
           {name:'Dr. Vidal', role:'PNJ - Medecin chef', rel:'neutral', job:'medecin'}
         ],
@@ -429,6 +446,8 @@ const BUILDINGS = {
         image: "⏳",
         imageBg: "linear-gradient(135deg,#081008,#0c180c)",
         desc: "La salle d'attente est bondee. Comptez plusieurs heures.",
+        imageUrl: "https://images.unsplash.com/photo-1584515933487-779824d29309?w=1200&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1584515933487-779824d29309?w=1200&q=80",
         persons: [
           {name:'Infirmiere Dupre', role:'PNJ - Soignante', rel:'neutral', job:'infirmier'}
         ],
@@ -454,6 +473,7 @@ const BUILDINGS = {
         image: "🚔",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
         desc: "L'accueil du commissariat. Atmosphere froide et surveillee.",
+        imageUrl: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=1200&q=80",
         persons: [
           {name:'Commissaire Gros', role:'PNJ - Chef de la police', rel:'neutral', job:'commissaire'},
           {name:'Agent Petit',      role:'PNJ - Officier de garde', rel:'neutral', job:'policier'}
@@ -482,6 +502,7 @@ const BUILDINGS = {
         image: "📰",
         imageBg: "linear-gradient(135deg,#100808,#1c0c0c)",
         desc: "La redaction en ebullition permanente. Telephones, claviers, tension.",
+        imageUrl: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&q=80",
         persons: [
           {name:'Romain Castel', role:'PNJ - Redacteur en chef', rel:'neutral', job:'redacteur'},
           {name:'Marie Leblanc', role:'Journaliste d\'investigation', rel:'enemy', job:'journaliste'}
@@ -511,6 +532,7 @@ const BUILDINGS = {
         image: "🔮",
         imageBg: "linear-gradient(135deg,#0f0808,#180f0f)",
         desc: "L'antichambre de la Loge. Vous n'etes pas encore membre.",
+        imageUrl: "https://images.unsplash.com/photo-1555099962-4199c345e5dd?w=1200&q=80",
         persons: [],
         orders: [
           {fn:'introduction_loge', label:"Demander une introduction", pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100}
@@ -533,6 +555,7 @@ const BUILDINGS = {
         image: "🎓",
         imageBg: "linear-gradient(135deg,#080d10,#0c1418)",
         desc: "Les conferences publiques attirent journalistes et politiques.",
+        imageUrl: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80",
         persons: [
           {name:'Professeur Blanc', role:'PNJ - Economiste influent', rel:'neutral', job:'professeur'}
         ],
@@ -559,6 +582,7 @@ const BUILDINGS = {
         image: "🔫",
         imageBg: "linear-gradient(135deg,#100a08,#181008)",
         desc: "Presentoirs d'armes legales. Le vendeur verifie les papiers.",
+        imageUrl: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=1200&q=80",
         persons: [
           {name:'Gerard (Armurier)', role:'PNJ - Vendeur', rel:'neutral', job:'armurier'}
         ],
@@ -584,6 +608,7 @@ const BUILDINGS = {
         image: "🛒",
         imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
         desc: "Bruyant, colore, vivant. Tout le monde passe par le marche.",
+        imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
         persons: [
           {name:'Fernande (Marchande)', role:'PNJ - Commercante', rel:'neutral', job:'marchande'},
           {name:'Habitant du quartier', role:'Citoyen', rel:'neutral', job:null}
@@ -611,6 +636,7 @@ const BUILDINGS = {
         image: "🏗️",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
         desc: "Un terrain de 2000m2 en friche. Enormes possibilites.",
+        imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80",
         persons: [],
         orders: [
           {fn:'acheter_terrain', label:'Acheter ce terrain',      pa:2, cost:5000, type:'legal', icon:'ti-home-plus',   successRate:100, desc:'Acquerir le terrain. Permis requis pour construire.'},
@@ -635,6 +661,7 @@ const BUILDINGS = {
         image: "🏫",
         imageBg: "linear-gradient(135deg,#121810,#1a2016)",
         desc: "L'accueil de la mairie. Guichets, formulaires et fonctionnaires.",
+        imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
         persons: [
           {name:'Secretaire Municipal', role:'PNJ - Administration', rel:'neutral', job:'secretaire'}
         ],
@@ -661,6 +688,7 @@ const BUILDINGS = {
         image: "🏨",
         imageBg: "linear-gradient(135deg,#0d1018,#141820)",
         desc: "Hall de l'hotel. Matelots, commercants et gens de passage.",
+        imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80",
         persons: [{name:'Patrone (PNJ)', role:'Gérante', rel:'neutral', job:'hotelier'}],
         orders: [
           {fn:'se_nourrir', label:'Se nourrir',     pa:0, cost:20, type:'legal', icon:'ti-soup',  successRate:100},
@@ -684,6 +712,8 @@ const BUILDINGS = {
         image: "🍺",
         imageBg: "linear-gradient(135deg,#0a0d10,#101518)",
         desc: "Atmosphere enfumee, bruit de fond. Tout se negocie ici.",
+        imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80",
         persons: [{name:'Marin (PNJ)', role:'Client habitue', rel:'neutral', job:null}],
         orders: [
           {fn:'se_nourrir', label:'Boire et manger', pa:0, cost:15,  type:'legal', icon:'ti-glass',    successRate:100},
@@ -708,6 +738,7 @@ const BUILDINGS = {
         image: "✊",
         imageBg: "linear-gradient(135deg,#100808,#180c0c)",
         desc: "Affiches militantes, reunions permanentes.",
+        imageUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200&q=80",
         persons: [{name:'Delegue Morel (PNJ)', role:'Secretaire general du syndicat', rel:'neutral', job:'syndicaliste'}],
         orders: [
           {fn:'rencontrer',   label:'Rencontrer le delegue', pa:1, cost:0,   type:'legal', icon:'ti-users',      successRate:100},
@@ -731,6 +762,7 @@ const BUILDINGS = {
         image: "🏭",
         imageBg: "linear-gradient(135deg,#0a0808,#121010)",
         desc: "Bureau de direction de l'usine.",
+        imageUrl: "https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=1200&q=80",
         persons: [{name:'Directeur Fabre (PNJ)', role:'Directeur usine', rel:'neutral', job:'directeur'}],
         orders: [
           {fn:'acheter_entreprise', label:'Racheter l\'usine', pa:3, cost:8000, type:'legal', icon:'ti-building-factory', successRate:80, desc:'Genere 200 FR/jour en revenus passifs.'},
@@ -753,6 +785,7 @@ const BUILDINGS = {
         image: "🏨",
         imageBg: "linear-gradient(135deg,#0a0808,#121010)",
         desc: "Hall simple mais propre.",
+        imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=80",
         persons: [{name:'Receptionniste (PNJ)', role:'Accueil', rel:'neutral', job:'hotelier'}],
         orders: [
           {fn:'se_nourrir', label:'Se nourrir',  pa:0, cost:15, type:'legal', icon:'ti-soup', successRate:100},
@@ -775,6 +808,7 @@ const BUILDINGS = {
         image: "🏦",
         imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
         desc: "Guichet unique. Files d'attente raisonnables.",
+        imageUrl: "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?w=1200&q=80",
         persons: [{name:'Guichetier (PNJ)', role:'Employe bancaire', rel:'neutral', job:'banquier'}],
         orders: [
           {fn:'gerer_finances', label:'Gerer mon compte', pa:0, cost:0,   type:'legal', icon:'ti-chart-bar',   successRate:100},
@@ -797,6 +831,7 @@ const BUILDINGS = {
         image: "⏳",
         imageBg: "linear-gradient(135deg,#081008,#0c180c)",
         desc: "Salle bondee. Patience requise.",
+        imageUrl: "https://images.unsplash.com/photo-1584515933487-779824d29309?w=1200&q=80",
         persons: [{name:'Infirmiere (PNJ)', role:'Soignante', rel:'neutral', job:'infirmier'}],
         orders: [
           {fn:'soins_basiques', label:'Soins basiques (gratuit)', pa:0, cost:0, type:'legal', icon:'ti-bandage', successRate:100, desc:'+10 Sante.'}
@@ -818,6 +853,7 @@ const BUILDINGS = {
         image: "🚔",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
         desc: "Accueil du commissariat.",
+        imageUrl: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=1200&q=80",
         persons: [{name:'Brigadier Local (PNJ)', role:'Officier de garde', rel:'neutral', job:'policier'}],
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
@@ -840,6 +876,7 @@ const BUILDINGS = {
         image: "🏗️",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
         desc: "Terrain de 1500m2 en bord de port.",
+        imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80",
         persons: [],
         orders: [
           {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
@@ -863,6 +900,7 @@ const BUILDINGS = {
         image: "🏗️",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
         desc: "Terrain de 3000m2 en zone industrielle.",
+        imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80",
         persons: [],
         orders: [
           {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:4000, type:'legal',   icon:'ti-home-plus', successRate:100},

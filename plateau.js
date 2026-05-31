@@ -203,15 +203,16 @@ function showVueRue() {
     document.getElementById('rue-desc').textContent = city.desc;
   }
 
-  // Image de rue Unsplash
+  // Image de rue directe depuis data.js
   const rueImage = document.getElementById('rue-image');
-  const imgUrl = PLACE_IMAGES?.rue?.[state.currentCity];
+  const world = WORLD[state.country];
+  const city = world?.[state.currentCity];
+  const imgUrl = city?.imageUrl;
   if (imgUrl) {
     rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
     rueImage.style.background = 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
-  // Supprimer ancien emoji si present
   const existing = document.getElementById('rue-emoji');
   if (existing) existing.remove();
 }
@@ -264,11 +265,10 @@ function enterRoom(buildingId, roomId, tabEl) {
     tabEl.classList.add('active');
   }
 
-  // Image de la piece via Unsplash
+  // Image de la piece
   const pieceImg = document.getElementById('piece-image');
-  const imgUrl = PLACE_IMAGES?.[buildingId]?.[roomId];
-  if (imgUrl) {
-    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.85) 100%), url('${imgUrl}') center/cover no-repeat`;
+  if (room.imageUrl) {
+    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.85) 100%), url('${room.imageUrl}') center/cover no-repeat`;
   } else {
     pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
