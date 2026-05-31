@@ -203,17 +203,17 @@ function showVueRue() {
     document.getElementById('rue-desc').textContent = city.desc;
   }
 
-  // Emoji de rue selon la ville
+  // Image de rue Unsplash
   const rueImage = document.getElementById('rue-image');
-  const emojis = {capitale:'🏛️', ville_a:'⚓', ville_b:'🏭'};
-  rueImage.style.background = 'linear-gradient(135deg,#0a0a07,#0f0d08)';
+  const imgUrl = PLACE_IMAGES?.rue?.[state.currentCity];
+  if (imgUrl) {
+    rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%), url('${imgUrl}') center/cover no-repeat`;
+  } else {
+    rueImage.style.background = 'linear-gradient(135deg,#0a0a07,#0f0d08)';
+  }
+  // Supprimer ancien emoji si present
   const existing = document.getElementById('rue-emoji');
   if (existing) existing.remove();
-  const em = document.createElement('div');
-  em.id = 'rue-emoji';
-  em.className = 'rue-emoji';
-  em.textContent = emojis[state.currentCity] || '🏙️';
-  rueImage.appendChild(em);
 }
 
 function enterBuilding(buildingId) {
@@ -264,17 +264,17 @@ function enterRoom(buildingId, roomId, tabEl) {
     tabEl.classList.add('active');
   }
 
-  // Image de la piece
+  // Image de la piece via Unsplash
   const pieceImg = document.getElementById('piece-image');
-  pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
-
-  // Emoji
+  const imgUrl = PLACE_IMAGES?.[buildingId]?.[roomId];
+  if (imgUrl) {
+    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.85) 100%), url('${imgUrl}') center/cover no-repeat`;
+  } else {
+    pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
+  }
+  // Supprimer ancien emoji si present
   const existing = pieceImg.querySelector('.piece-emoji');
   if (existing) existing.remove();
-  const em = document.createElement('div');
-  em.className = 'piece-emoji';
-  em.textContent = room.image || '🏠';
-  pieceImg.appendChild(em);
 
   document.getElementById('piece-nom').textContent = room.name;
   document.getElementById('piece-desc').textContent = room.desc;
