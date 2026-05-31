@@ -1,11 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-  <title>Res Publica</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Res Publica — Le Grand Jeu du Pouvoir</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Res Publica</h1>
-  <p>Le futur MMO politique.</p>
+
+<!-- SCREEN 0: INTRO -->
+<div id="intro" class="screen active">
+  <div class="seal"><i class="ti ti-building-bank"></i></div>
+  <div class="ititle bebas">Res Publica</div>
+  <div class="isub playfair">Le Grand Jeu du Pouvoir</div>
+  <p class="itagline">Parodie politique multijoueur &middot; 4 empires &middot; Zero scrupule</p>
+  <button class="ibtn" onclick="goTo(1)"><span>Creer mon personnage</span></button>
+</div>
+
+<!-- SCREEN 1: COUNTRY -->
+<div id="s1" class="screen">
+  <div class="sh"><div class="sn">Etape 1 / 7</div><div class="st playfair">Choisissez votre empire</div><div class="sd">Chaque empire a ses regles, ses codes, sa facon particuliere de corrompre.</div></div>
+  <div class="grid2" id="country-grid"></div>
+  <div class="nav"><button class="nbtn" onclick="goTo(0)">Retour</button><div class="dots" id="dots1"></div><button class="nbtn nnext" id="n1" disabled onclick="goTo(2)">Suivant</button></div>
+</div>
+
+<!-- SCREEN 2: ORIGIN -->
+<div id="s2" class="screen">
+  <div class="sh"><div class="sn">Etape 2 / 7</div><div class="st playfair">Origine sociale</div><div class="sd">Le milieu dans lequel vous etes ne determine votre capital de depart.</div></div>
+  <div class="grid4" id="origin-grid"></div>
+  <div class="nav"><button class="nbtn" onclick="goTo(1)">Retour</button><div class="dots" id="dots2"></div><button class="nbtn nnext" id="n2" disabled onclick="goTo(3)">Suivant</button></div>
+</div>
+
+<!-- SCREEN 3: SCHOOL -->
+<div id="s3" class="screen">
+  <div class="sh"><div class="sn">Etape 3 / 7</div><div class="st playfair">Parcours scolaire</div><div class="sd">L'education forge les competences et ouvre ou ferme des portes.</div></div>
+  <div class="grid4" id="school-grid"></div>
+  <p class="infomsg">Certaines carrieres sont reservees aux diplomes. D'autres sont inaccessibles pour qui a trop etudie.</p>
+  <div class="nav"><button class="nbtn" onclick="goTo(2)">Retour</button><div class="dots" id="dots3"></div><button class="nbtn nnext" id="n3" disabled onclick="goTo(4)">Suivant</button></div>
+</div>
+
+<!-- SCREEN 4: ARCHETYPE -->
+<div id="s4" class="screen">
+  <div class="sh"><div class="sn">Etape 4 / 7</div><div class="st playfair">Nature profonde</div><div class="sd">Qui etes-vous vraiment, independamment de votre parcours ?</div></div>
+  <div class="grid3" id="arch-grid"></div>
+  <p class="infomsg">L'archetype definit votre personnalite fondamentale, pas votre metier.</p>
+  <div class="nav"><button class="nbtn" onclick="goTo(3)">Retour</button><div class="dots" id="dots4"></div><button class="nbtn nnext" id="n4" disabled onclick="goTo(5)">Suivant</button></div>
+</div>
+
+<!-- SCREEN 5: CAREER -->
+<div id="s5" class="screen">
+  <div class="sh"><div class="sn">Etape 5 / 7</div><div class="st playfair">Carriere</div><div class="sd">Votre parcours professionnel avant d'entrer dans le grand jeu.</div></div>
+  <div class="grid3" id="career-grid"></div>
+  <p class="infomsg" id="career-info"></p>
+  <div class="nav"><button class="nbtn" onclick="goTo(4)">Retour</button><div class="dots" id="dots5"></div><button class="nbtn nnext" id="n5" disabled onclick="goTo(6)">Suivant</button></div>
+</div>
+
+<!-- SCREEN 6: STATS -->
+<div id="s6" class="screen">
+  <div class="sh"><div class="sn">Etape 6 / 7</div><div class="st playfair">Caracteristiques</div><div class="sd">Distribuez vos points libres. Les bonus acquis sont deja integres.</div></div>
+  <div style="text-align:center;margin-bottom:1rem"><div class="pool"><div class="pnum" id="pts-left">30</div><div class="plbl">Points a distribuer</div></div></div>
+  <div style="width:100%;max-width:680px" id="stats-wrap"></div>
+  <p class="infomsg">Au-dela de 12, chaque point coute 2. Plafond : 16 a la creation. Les niveaux 17-20 se debloquent en jeu.</p>
+  <div class="nav"><button class="nbtn" onclick="goTo(5)">Retour</button><div class="dots" id="dots6"></div><button class="nbtn nnext" id="n6" onclick="goTo(7)">Suivant</button></div>
+</div>
+
+<!-- SCREEN 7: IDENTITY -->
+<div id="s7" class="screen">
+  <div class="sh"><div class="sn">Etape 7 / 7</div><div class="st playfair">Identite du personnage</div><div class="sd">Donnez un visage, un nom et une histoire a votre alter ego.</div></div>
+  <div class="iform">
+    <label class="flbl">Photo de profil</label>
+    <div class="pup">
+      <input type="file" accept="image/*" onchange="handlePhoto(this)"/>
+      <div id="pprev">
+        <i class="ti ti-mask" style="font-size:2.5rem;color:#4a4030;display:block;margin-bottom:.4rem"></i>
+        <div class="phint">Telechargez une image &middot; Parodie de personnage reel bienvenue</div>
+      </div>
+    </div>
+    <label class="flbl">Nom du personnage</label>
+    <input class="finp" id="cname" type="text" placeholder="Ex: Arnold Governator, Jean-Marie Dupont-Moreau..." oninput="chkId()"/>
+    <label class="flbl">Biographie</label>
+    <textarea class="finp" id="cbio" rows="5" placeholder="L'histoire de votre personnage, son passe, ses motivations..." oninput="chkId()"></textarea>
+    <button class="aibtn" id="aibtn" onclick="genBio()"><i class="ti ti-sparkles" style="font-size:14px;vertical-align:-2px"></i> Generer une biographie avec l'IA</button>
+    <div id="aierr" class="errmsg" style="display:none"></div>
+    <label class="flbl">Devise personnelle <span style="color:#3a3020;font-size:.78rem">(optionnel)</span></label>
+    <input class="finp" id="cmotto" type="text" placeholder="Ex: Le pouvoir ne se prend pas, il se merite... ou pas."/>
+  </div>
+  <div class="nav"><button class="nbtn" onclick="goTo(6)">Retour</button><div class="dots" id="dots7"></div><button class="nbtn nnext" id="n7" disabled onclick="goTo(8)">Voir ma fiche</button></div>
+</div>
+
+<!-- SCREEN 8: REVIEW -->
+<div id="s8" class="screen">
+  <div class="sh"><div class="sn">Recapitulatif</div><div class="st playfair">Votre fiche de personnage</div></div>
+  <div class="rcard" id="rcard"></div>
+  <div style="max-width:640px;width:100%;margin-top:1.2rem;display:flex;gap:.8rem">
+    <button class="nbtn" style="flex:1" onclick="goTo(7)">Modifier</button>
+    <button class="nbtn nnext" style="flex:2" onclick="validateChar()">Valider et entrer dans le jeu</button>
+  </div>
+</div>
+
+<!-- SCREEN 9: SUCCESS -->
+<div id="s9" class="screen" style="justify-content:center;text-align:center">
+  <div style="color:#C9A84C;margin-bottom:1.2rem;animation:pulse 2s ease infinite"><i class="ti ti-trophy" style="font-size:4rem"></i></div>
+  <div class="bebas" style="font-size:2.8rem;letter-spacing:.15em;color:#C9A84C;margin-bottom:.8rem">Bienvenue dans le Grand Jeu</div>
+  <div class="playfair" style="font-style:italic;font-size:1rem;color:#8a8060;max-width:460px;line-height:1.7;margin:0 auto 1.5rem" id="sctext">Votre personnage est pret.</div>
+  <button class="ibtn" onclick="window.location.href='plateau.html'"><span>Entrer dans le jeu</span></button>
+</div>
+
+<script src="data.js"></script>
+<script src="creation.js"></script>
 </body>
 </html>
-

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Res Publica — Plateau de Jeu</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="plateau-body">
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo bebas" onclick="window.location.href='index.html'" style="cursor:pointer">Res Publica</div>
+  <div class="res-bar">
+    <div class="res">
+      <i class="ti ti-bolt res-icon" style="color:#4a8a4a"></i>
+      <div><div class="res-label">PA</div><div class="res-val" id="r-pa">18</div></div>
+      <div class="res-bar2"><div class="res-fill pa-fill" id="b-pa" style="width:75%"></div></div>
+    </div>
+    <div class="res">
+      <i class="ti ti-coins res-icon" style="color:#C9A84C"></i>
+      <div><div class="res-label">Argent</div><div class="res-val" id="r-arg">4 250 FR</div></div>
+    </div>
+    <div class="res">
+      <i class="ti ti-crown res-icon" style="color:#4a6aaa"></i>
+      <div><div class="res-label">Influence</div><div class="res-val" id="r-inf">25</div></div>
+      <div class="res-bar2"><div class="res-fill inf-fill" id="b-inf" style="width:25%"></div></div>
+    </div>
+    <div class="res">
+      <i class="ti ti-speakerphone res-icon" style="color:#aa6a4a"></i>
+      <div><div class="res-label">Popularite</div><div class="res-val" id="r-pop">30</div></div>
+      <div class="res-bar2"><div class="res-fill pop-fill" id="b-pop" style="width:30%"></div></div>
+    </div>
+    <div class="res">
+      <i class="ti ti-eye-off res-icon" style="color:#8a4aaa"></i>
+      <div><div class="res-label">Discretion</div><div class="res-val" id="r-dis">85</div></div>
+      <div class="res-bar2"><div class="res-fill dis-fill" id="b-dis" style="width:85%"></div></div>
+    </div>
+    <div class="res">
+      <i class="ti ti-heart res-icon" style="color:#aa4a4a"></i>
+      <div><div class="res-label">Sante</div><div class="res-val" id="r-hp">92</div></div>
+      <div class="res-bar2"><div class="res-fill" id="b-hp" style="width:92%;background:#aa4a4a"></div></div>
+    </div>
+    <div class="res">
+      <i class="ti ti-brain res-icon" style="color:#6a8aaa"></i>
+      <div><div class="res-label">Moral</div><div class="res-val" id="r-moral">78</div></div>
+      <div class="res-bar2"><div class="res-fill" id="b-moral" style="width:78%;background:#6a8aaa"></div></div>
+    </div>
+  </div>
+  <div class="top-right">
+    <div class="char-mini" id="char-mini-btn">
+      <div class="char-avatar"><i class="ti ti-user" style="font-size:.9rem"></i></div>
+      <div>
+        <div class="char-name-mini" id="char-name-display">Mon Personnage</div>
+        <div class="char-role-mini" id="char-role-display">Archetype &middot; Carriere</div>
+      </div>
+    </div>
+    <button class="forum-btn" onclick="showToast('Forum','Le module Forum arrive bientot !',true)">
+      <i class="ti ti-messages" style="font-size:.8rem;vertical-align:-1px"></i> Forum
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT PANEL -->
+  <div id="left">
+    <div class="panel-title">MON PERSONNAGE</div>
+    <div class="char-card">
+      <div class="char-photo" id="char-photo-left"><i class="ti ti-user" style="font-size:1.4rem"></i></div>
+      <div class="char-fullname" id="char-fullname-left">Mon Personnage</div>
+      <div class="char-archetype" id="char-arch-left">Archetype &middot; Empire</div>
+      <div class="stat-mini-grid" id="stat-mini-grid"></div>
+    </div>
+    <div class="location-info">
+      <div class="loc-name" id="loc-name">Capitale &mdash; Place publique</div>
+      <div class="loc-sub" id="loc-sub">Choisissez un batiment</div>
+    </div>
+    <div class="panel-title">MES EMPLOYES</div>
+    <div class="employees-list" id="employees-list">
+      <div style="padding:.8rem;font-size:.75rem;color:#4a4030;font-style:italic;text-align:center">Aucun employe. Recrutez dans les batiments.</div>
+    </div>
+  </div>
+
+  <!-- CENTER MAP -->
+  <div id="center">
+    <div class="map-header">
+      <div class="map-tabs">
+        <div class="map-tab active" onclick="switchCity(this,'capitale')">Capitale</div>
+        <div class="map-tab" onclick="switchCity(this,'ville-a')">Ville A</div>
+        <div class="map-tab" onclick="switchCity(this,'ville-b')">Ville B</div>
+      </div>
+      <div style="font-size:.72rem;color:#4a4030;margin-left:.5rem">
+        <i class="ti ti-clock" style="font-size:.7rem;vertical-align:-1px"></i> <span id="game-time">Jour 1 &middot; 08h00</span>
+      </div>
+      <div class="city-label" id="city-label">Luthecia, Capitale de Republia</div>
+    </div>
+
+    <div id="map-wrap">
+      <svg id="map-svg" viewBox="0 0 700 440" xmlns="http://www.w3.org/2000/svg">
+        <!-- Background -->
+        <rect width="700" height="440" fill="#0a0a07"/>
+        <!-- Streets -->
+        <line x1="0" y1="150" x2="700" y2="150" stroke="#141410" stroke-width="18"/>
+        <line x1="0" y1="290" x2="700" y2="290" stroke="#141410" stroke-width="18"/>
+        <line x1="120" y1="0" x2="120" y2="440" stroke="#141410" stroke-width="14"/>
+        <line x1="280" y1="0" x2="280" y2="440" stroke="#141410" stroke-width="14"/>
+        <line x1="440" y1="0" x2="440" y2="440" stroke="#141410" stroke-width="14"/>
+        <line x1="600" y1="0" x2="600" y2="440" stroke="#141410" stroke-width="14"/>
+        <text x="350" y="148" text-anchor="middle" font-size="7" fill="#2a2a18" font-family="Georgia" letter-spacing="3">AVENUE DE LA REPUBLIQUE</text>
+        <text x="350" y="288" text-anchor="middle" font-size="7" fill="#2a2a18" font-family="Georgia" letter-spacing="3">RUE DU COMMERCE</text>
+        <!-- Park -->
+        <rect x="450" y="155" width="140" height="130" fill="#0d1208" rx="3"/>
+        <text x="520" y="225" text-anchor="middle" font-size="8" fill="#1a2a14" font-family="Georgia" font-style="italic">Parc du Pouvoir</text>
+        <!-- River -->
+        <path d="M0,400 Q175,390 350,405 Q525,420 700,400" fill="none" stroke="#0a0f1a" stroke-width="28"/>
+        <text x="350" y="410" text-anchor="middle" font-size="7" fill="#141c2a" font-family="Georgia" font-style="italic" letter-spacing="2">FLEUVE LUTHECE</text>
+
+        <!-- BUILDINGS -->
+        <g class="bld-group" id="bld-gouvernement" onclick="openBuilding('gouvernement')">
+          <rect class="bld-rect bld-outline" x="130" y="20" width="140" height="120" fill="#141c10" stroke="#2a3a20" stroke-width="1" rx="2"/>
+          <rect x="145" y="35" width="110" height="90" fill="#0f1a0c" rx="1"/>
+          <rect x="185" y="115" width="30" height="15" fill="#1a2a14"/>
+          <text class="bld-icon-text" x="200" y="72" font-size="20" fill="#3a5a30">&#xe6c0;</text>
+          <text class="bld-label" x="200" y="105">PALAIS DU</text>
+          <text class="bld-label" x="200" y="115">GOUVERNEMENT</text>
+          <text class="bld-sublabel" x="200" y="126">Postes officiels</text>
+        </g>
+
+        <g class="bld-group" id="bld-assemblee" onclick="openBuilding('assemblee')">
+          <rect class="bld-rect bld-outline" x="290" y="20" width="140" height="120" fill="#101820" stroke="#1a2a3a" stroke-width="1" rx="2"/>
+          <rect x="305" y="35" width="110" height="90" fill="#0c1018" rx="1"/>
+          <text class="bld-icon-text" x="360" y="72" font-size="20" fill="#2a4a7a">&#xe7b9;</text>
+          <text class="bld-label" x="360" y="105" fill="#6a8aaa">ASSEMBLEE</text>
+          <text class="bld-label" x="360" y="115" fill="#6a8aaa">NATIONALE</text>
+          <text class="bld-sublabel" x="360" y="126">25 sieges</text>
+        </g>
+
+        <g class="bld-group" id="bld-tribunal" onclick="openBuilding('tribunal')">
+          <rect class="bld-rect bld-outline" x="450" y="20" width="140" height="120" fill="#1a1408" stroke="#3a2a10" stroke-width="1" rx="2"/>
+          <rect x="465" y="35" width="110" height="90" fill="#141008" rx="1"/>
+          <text class="bld-icon-text" x="520" y="72" font-size="20" fill="#7a6020">&#xea9d;</text>
+          <text class="bld-label" x="520" y="105" fill="#9a8040">TRIBUNAL</text>
+          <text class="bld-sublabel" x="520" y="115">Justice &middot; Procedures</text>
+        </g>
+
+        <g class="bld-group" id="bld-bar" onclick="openBuilding('bar')">
+          <rect class="bld-rect bld-outline" x="130" y="162" width="140" height="120" fill="#1a1208" stroke="#2a2010" stroke-width="1" rx="2"/>
+          <rect x="145" y="177" width="110" height="90" fill="#141008" rx="1"/>
+          <text class="bld-icon-text" x="200" y="222" font-size="20" fill="#8a6a20">&#xecb5;</text>
+          <text class="bld-label" x="200" y="258">LE BAR DU SENAT</text>
+          <text class="bld-sublabel" x="200" y="268">Restauration &middot; Rencontres</text>
+          <circle cx="260" cy="170" r="5" fill="#4a8a4a"/>
+          <text x="260" y="173" text-anchor="middle" font-size="6" fill="#f0ead6" font-family="Bebas Neue">3</text>
+        </g>
+
+        <g class="bld-group" id="bld-banque" onclick="openBuilding('banque')">
+          <rect class="bld-rect bld-outline" x="290" y="162" width="140" height="120" fill="#100f08" stroke="#2a2810" stroke-width="1" rx="2"/>
+          <rect x="305" y="177" width="110" height="90" fill="#0c0c06" rx="1"/>
+          <text class="bld-icon-text" x="360" y="222" font-size="20" fill="#7a7830">&#xeb41;</text>
+          <text class="bld-label" x="360" y="258">BANQUE</text>
+          <text class="bld-label" x="360" y="268">NATIONALE</text>
+          <text class="bld-sublabel" x="360" y="278">Finance &middot; Investissements</text>
+        </g>
+
+        <g class="bld-group" id="bld-clinique" onclick="openBuilding('clinique')">
+          <rect class="bld-rect bld-outline" x="450" y="162" width="130" height="120" fill="#080f10" stroke="#102020" stroke-width="1" rx="2"/>
+          <rect x="460" y="177" width="110" height="90" fill="#060c0d" rx="1"/>
+          <text class="bld-icon-text" x="515" y="222" font-size="20" fill="#206060">&#xebb5;</text>
+          <text class="bld-label" x="515" y="258">CLINIQUE PRIVEE</text>
+          <text class="bld-sublabel" x="515" y="268">Soins &middot; Discretion</text>
+        </g>
+
+        <g class="bld-group" id="bld-police" onclick="openBuilding('police')">
+          <rect class="bld-rect bld-outline" x="130" y="302" width="140" height="120" fill="#0f1018" stroke="#1a1a2a" stroke-width="1" rx="2"/>
+          <rect x="145" y="317" width="110" height="90" fill="#0c0d16" rx="1"/>
+          <text class="bld-icon-text" x="200" y="362" font-size="20" fill="#3a3a7a">&#xef3a;</text>
+          <text class="bld-label" x="200" y="398">COMMISSARIAT</text>
+          <text class="bld-sublabel" x="200" y="408">Securite &middot; Justice locale</text>
+        </g>
+
+        <g class="bld-group" id="bld-presse" onclick="openBuilding('presse')">
+          <rect class="bld-rect bld-outline" x="290" y="302" width="140" height="120" fill="#100808" stroke="#2a1010" stroke-width="1" rx="2"/>
+          <rect x="305" y="317" width="110" height="90" fill="#0c0606" rx="1"/>
+          <text class="bld-icon-text" x="360" y="362" font-size="20" fill="#7a3030">&#xeb0d;</text>
+          <text class="bld-label" x="360" y="398">LA TRIBUNE</text>
+          <text class="bld-sublabel" x="360" y="408">Medias &middot; Opinion publique</text>
+        </g>
+
+        <g class="bld-group" id="bld-loge" onclick="openBuilding('loge')">
+          <rect class="bld-rect bld-outline" x="450" y="302" width="140" height="120" fill="#0f0808" stroke="#2a1818" stroke-width="1" rx="2"/>
+          <rect x="465" y="317" width="110" height="90" fill="#0c0606" rx="1"/>
+          <text class="bld-icon-text" x="520" y="362" font-size="20" fill="#5a2a2a">&#xf0b0;</text>
+          <text class="bld-label" x="520" y="398">LOGE MACONNIQUE</text>
+          <text class="bld-sublabel" x="520" y="408">Reseau secret &middot; Invitation</text>
+          <text x="520" y="330" text-anchor="middle" font-size="8" fill="#3a2020" font-family="Georgia">ACCES RESTREINT</text>
+        </g>
+
+        <!-- Player indicator -->
+        <circle id="player-dot" cx="200" cy="197" r="4" fill="#C9A84C" opacity=".8">
+          <animate attributeName="opacity" values=".8;.3;.8" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <text id="player-label" x="200" y="193" text-anchor="middle" font-size="6" fill="#C9A84C" font-family="Bebas Neue">VOUS</text>
+
+        <!-- Compass -->
+        <g transform="translate(660,30)">
+          <circle r="16" fill="#0a0a07" stroke="#2a2010" stroke-width="1"/>
+          <text x="0" y="-5" text-anchor="middle" font-size="8" fill="#6a5a30" font-family="Bebas Neue">N</text>
+          <text x="0" y="12" text-anchor="middle" font-size="7" fill="#3a3020" font-family="Bebas Neue">S</text>
+          <text x="-11" y="4" text-anchor="middle" font-size="7" fill="#3a3020" font-family="Bebas Neue">O</text>
+          <text x="11" y="4" text-anchor="middle" font-size="7" fill="#3a3020" font-family="Bebas Neue">E</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- ACTION BAR -->
+    <div id="actionbar">
+      <div class="action-context" id="action-context">SELECTIONNEZ UN BATIMENT SUR LA MAP POUR AGIR</div>
+      <div class="actions-row" id="actions-row">
+        <div style="font-size:.78rem;color:#3a3020;font-style:italic;padding:.3rem">Cliquez sur un batiment pour voir les actions disponibles.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="right">
+    <div class="panel-title">PERSONNES PRESENTES</div>
+    <div class="persons-list" id="persons-list">
+      <div style="padding:.8rem;font-size:.75rem;color:#4a4030;font-style:italic;text-align:center">Selectionnez un batiment.</div>
+    </div>
+    <div class="panel-title">JOURNAL DES EVENEMENTS</div>
+    <div class="journal" id="journal">
+      <div class="journal-entry">
+        <span class="journal-time">Jour 1 &middot; 08h00</span>
+        <span class="journal-text event-good">Bienvenue dans le Grand Jeu. Votre aventure commence.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BUILDING MODAL -->
+<div id="modal">
+  <div id="modal-box">
+    <div id="modal-header">
+      <div id="modal-title">Batiment</div>
+      <button id="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="result-toast">
+  <div class="toast-result" id="toast-result"></div>
+  <div class="toast-sub" id="toast-sub"></div>
+</div>
+
+<script src="data.js"></script>
+<script src="plateau.js"></script>
+</body>
+</html>
