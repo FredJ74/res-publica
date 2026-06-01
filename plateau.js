@@ -614,29 +614,37 @@ function openPnjModal(encodedPnj) {
   let actionBtns = '';
   if (isPJ) {
     const inGroup = state.group && state.group.members && state.group.members.includes(pnj.name);
+    const pnjJson = encodeURIComponent(JSON.stringify(pnj));
     actionBtns = (!inGroup
-      ? '<button class="pnj-action-btn" onclick="rejoindrePJ('' + enc + '')"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
+      ? '<button class="pnj-action-btn" onclick="rejoindrePJ(decodeURIComponent(\'' + pnjJson + '\'))"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
       : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>')
-      + '<button class="pnj-action-btn" onclick='addContact(' + JSON.stringify(pnj).replace(/'/g,"\'") + ')'><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
+      + '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnj.name.replace(/'/g, '') + '\', \'' + (pnj.role||'').replace(/'/g, '') + '\', \'' + (pnj.rel||'neutral') + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
   }
   if (pnj.rel === 'enemy') {
-    actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj('' + enc + '','confrontation')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
+    actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj(\'' + enc + '\', \'confrontation\')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
   }
 
   document.getElementById('pnj-actions').innerHTML = actionBtns +
     '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
-    '<input id="pnj-question-libre" type="text" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" placeholder="Posez votre question ou dites quelque chose..." onkeydown="if(event.key==='Enter')envoyerQuestion('' + enc + '')" />' +
-    '<button onclick="envoyerQuestion('' + enc + '')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +
+    '<input id="pnj-question-libre" type="text" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" placeholder="Posez votre question..." onkeydown="handlePnjKey(event)" />' +
+    '<button onclick="envoyerQuestion()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +
     '</div>';
 
   talkToPnj(enc, 'bonjour');
 }
 
+function handlePnjKey(event) {
+  if (event.key === 'Enter') envoyerQuestion();
+}
+
 function envoyerQuestion(enc) {
-  const q = document.getElementById('pnj-question-libre') && document.getElementById('pnj-question-libre').value.trim();
+  const input = document.getElementById('pnj-question-libre');
+  if (!input) return;
+  const q = input.value.trim();
   if (!q) return;
-  document.getElementById('pnj-question-libre').value = '';
-  talkToPnj(enc, q);
+  input.value = '';
+  const encToUse = enc || state._currentPnjEnc;
+  if (encToUse) talkToPnj(encToUse, q);
 }
 
 async function talkToPnj(encodedPnj, action) {
@@ -719,6 +727,10 @@ function closePnjModal() {
 }
 
 // Ajouter un contact au repertoire
+function addContactByName(name, role, rel) {
+  addContact({ name: name, role: role, rel: rel });
+}
+
 function addContact(pnj) {
   if (!state.contacts) state.contacts = [];
   const exists = state.contacts.find(c => c.name === pnj.name);
@@ -734,7 +746,7 @@ function addContact(pnj) {
 // Loge — demander le responsable
 function logeDemanderResponsable() {
   const speech = document.getElementById('pnj-speech');
-  speech.textContent = 'Le portier disparait un instant puis revient. "Je lui transmets de ce pas votre demande. Le Venerable Maitre vous repondra des qu'il en aura pris connaissance."';
+  speech.textContent = "Le portier disparait un instant puis revient. Il dit : Je lui transmets votre demande. Le Venerable Maitre vous repondra des qu'il en aura pris connaissance.";
   addMailNotification('Loge Maconnique', "Demande d'audience", "Votre demande d'entretien avec le Venerable Maitre a ete transmise. Vous recevrez une reponse des qu'il en aura pris connaissance.");
   addJournalEntry('Vous avez demande une audience aupres du Venerable Maitre de la Loge.', 'event-info');
 }
@@ -860,18 +872,28 @@ function doConsulterRegistre() {
 // =====================
 function openMarchanderVoteModal() {
   const votes = state.votesEnCours || [];
-  if (votes.length === 0) { showToast('Aucun vote en cours', "Il n'y a pas de vote en cours a l'Assemblee.", false); return; }
+  if (votes.length === 0) {
+    showToast('Aucun vote en cours', "Aucun vote en cours a l'Assemblee.", false);
+    return;
+  }
   const bonusInf = Math.floor((state.inf / 100) * 10);
   const tauxFinal = Math.min(90, 40 + bonusInf);
   document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Marchander un vote';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux de reussite : ' + tauxFinal + '% (base 40% + ' + bonusInf + '% bonus influence). Cout : 200 FR + 1 PA en cas de succes uniquement.</div>' +
-    votes.map(function(v) {
-      return '<div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem"><div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8C97A;margin-bottom:.2rem">' + v.titre + '</div><div style="font-size:.72rem;color:#6a5a30">Pour : ' + (v.pour||0) + ' | Contre : ' + (v.contre||0) + '</div><button onclick="soumettreVoteMarchande('' + v.id + '',' + tauxFinal + ')" style="margin-top:.4rem;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Marchander ce vote</button></div>';
-    }).join('') + '</div>';
+  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux : ' + tauxFinal + '% (base 40% + ' + bonusInf + '% INF). Cout : 200 FR + 1 PA si succes.</div>';
+  votes.forEach(function(v, i) {
+    html += '<div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8C97A;margin-bottom:.2rem">' + (v.titre || 'Vote ' + i) + '</div>';
+    html += '<div style="font-size:.72rem;color:#6a5a30">Pour : ' + (v.pour||0) + ' | Contre : ' + (v.contre||0) + '</div>';
+    html += '<button onclick="state._voteIdx=' + i + ';soumettreVoteMarchande(' + tauxFinal + ')" style="margin-top:.4rem;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Marchander ce vote</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function soumettreVoteMarchande(voteId, taux) {
+function soumettreVoteMarchande(taux) {
+  const voteId = state._voteIdx !== undefined ? (state.votesEnCours || [])[state._voteIdx]?.id : null;
   document.getElementById('modal-postes').classList.remove('open');
   const cur = COUNTRIES[state.char && state.char.country ? state.char.country : 'republic'] && COUNTRIES[state.char.country].cur ? COUNTRIES[state.char.country].cur : 'FR';
   if (state.arg < 200) { showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false); return; }
@@ -1298,79 +1320,105 @@ function closeMailView() {
 
 function switchMailTab(tab, el) {
   if (el) {
-    document.querySelectorAll('#vue-mail .piece-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#vue-mail .piece-tab').forEach(function(t) { t.classList.remove('active'); });
     el.classList.add('active');
   }
-  const mails = state.mails || [];
-  const contacts = state.contacts || [];
-  const sent = state.sentMails || [];
-  const content = document.getElementById('mail-content');
-  const compose = document.getElementById('mail-compose');
+  var mails = state.mails || [];
+  var contacts = state.contacts || [];
+  var sent = state.sentMails || [];
+  var content = document.getElementById('mail-content');
+  var compose = document.getElementById('mail-compose');
+  var subtitle = document.getElementById('mail-view-subtitle');
 
   if (tab === 'inbox') {
     compose.style.display = 'none';
-    const unread = mails.filter(m => !m.read).length;
-    document.getElementById('mail-view-subtitle').textContent = 'Messages recus' + (unread > 0 ? ' (' + unread + ' non lu' + (unread > 1 ? 's' : '') + ')' : '');
-    content.innerHTML = '<div style="display:flex;justify-content:flex-end;padding:.5rem 1rem;border-bottom:1px solid #1a1810"><button onclick="switchMailTab('compose',null)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-pencil" style="font-size:.8rem"></i> Nouveau message</button></div>' +
-      (mails.length === 0
-        ? '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message recu.</div>'
-        : mails.slice().reverse().map((m, i) => {
-            const idx = mails.length - 1 - i;
-            return '<div onclick="readMailInView(' + idx + ')" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer;background:' + (m.read ? 'transparent' : '#0f0a05') + '" onmouseover="this.style.background='#121005'" onmouseout="this.style.background='' + (m.read ? 'transparent' : '#0f0a05') + ''">' +
-              '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">' +
-              '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:' + (m.read ? '#8a8060' : '#E8C97A') + ';font-weight:' + (m.read ? 'normal' : '700') + '">' + m.from + '</span>' +
-              '<span style="font-size:.65rem;color:#4a4030">Jour ' + m.day + '</span></div>' +
-              '<div style="font-size:.78rem;color:' + (m.read ? '#5a5040' : '#c0b090') + '">' + m.subject + '</div>' +
-              (!m.read ? '<span style="display:inline-block;width:6px;height:6px;background:#C9A84C;border-radius:50%;margin-top:.2rem"></span>' : '') +
-              '</div>';
-          }).join(''));
+    var unread = mails.filter(function(m) { return !m.read; }).length;
+    if (subtitle) subtitle.textContent = 'Messages recus' + (unread > 0 ? ' (' + unread + ' non lu' + (unread > 1 ? 's' : '') + ')' : '');
+    var html = "";
+    html += '<div style="text-align:right;padding:.5rem 1rem;border-bottom:1px solid #1a1810"><button onclick="openMailCompose()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">+ Nouveau message</button></div>';
+    if (mails.length === 0) {
+      html += '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message recu.</div>';
+    } else {
+      var reversed = mails.slice().reverse();
+      reversed.forEach(function(m, i) {
+        var idx = mails.length - 1 - i;
+        var bg = m.read ? 'transparent' : '#0f0a05';
+        var nameColor = m.read ? '#8a8060' : '#E8C97A';
+        var fw = m.read ? 'normal' : '700';
+        var textColor = m.read ? '#5a5040' : '#c0b090';
+        html += '<div onclick="readMailInView(' + idx + ')" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer;background:' + bg + '">';
+        html += '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">';
+        html += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:' + nameColor + ';font-weight:' + fw + '">' + (m.from || '') + '</span>';
+        html += '<span style="font-size:.65rem;color:#4a4030">Jour ' + (m.day || '') + '</span></div>';
+        html += '<div style="font-size:.78rem;color:' + textColor + '">' + (m.subject || '') + '</div>';
+        if (!m.read) html += '<span style="display:inline-block;width:6px;height:6px;background:#C9A84C;border-radius:50%;margin-top:.2rem"></span>';
+        html += '</div>';
+      });
+    }
+    content.innerHTML = html;
   } else if (tab === 'sent') {
     compose.style.display = 'none';
-    document.getElementById('mail-view-subtitle').textContent = 'Messages envoyes';
-    content.innerHTML = sent.length === 0
-      ? '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message envoye.</div>'
-      : sent.slice().reverse().map(m =>
-          '<div style="padding:.7rem 1rem;border-bottom:1px solid #1a1810">' +
-          '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">' +
-          '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#8a8060">A : ' + m.to + '</span>' +
-          '<span style="font-size:.65rem;color:#4a4030">Jour ' + m.day + '</span></div>' +
-          '<div style="font-size:.78rem;color:#5a5040">' + m.subject + '</div></div>'
-        ).join('');
+    if (subtitle) subtitle.textContent = 'Messages envoyes';
+    if (sent.length === 0) {
+      content.innerHTML = '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message envoye.</div>';
+    } else {
+      var h = '';
+      sent.slice().reverse().forEach(function(m) {
+        h += '<div style="padding:.7rem 1rem;border-bottom:1px solid #1a1810">';
+        h += '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">';
+        h += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#8a8060">A : ' + (m.to || '') + '</span>';
+        h += '<span style="font-size:.65rem;color:#4a4030">Jour ' + (m.day || '') + '</span></div>';
+        h += '<div style="font-size:.78rem;color:#5a5040">' + (m.subject || '') + '</div></div>';
+      });
+      content.innerHTML = h;
+    }
   } else if (tab === 'contacts') {
     compose.style.display = 'none';
-    document.getElementById('mail-view-subtitle').textContent = 'Repertoire';
-    content.innerHTML = contacts.length === 0
-      ? '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Repertoire vide. Rencontrez des personnages pour les ajouter.</div>'
-      : '<div style="padding:.5rem 0">' + contacts.map(c =>
-          '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border-bottom:1px solid #1a1810">' +
-          '<div><div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + c.name + '</div>' +
-          '<div style="font-size:.68rem;color:#5a5040">' + (c.role || '') + '</div></div>' +
-          '<button onclick="prefillMailTo('' + c.name + '')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.08em;padding:.2rem .5rem;border:1px solid #3a2a10;background:transparent;color:#8a7040;cursor:pointer">Ecrire</button>' +
-          '</div>'
-        ).join('') + '</div>';
+    if (subtitle) subtitle.textContent = 'Repertoire';
+    if (contacts.length === 0) {
+      content.innerHTML = '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Repertoire vide. Rencontrez des personnages pour les ajouter.</div>';
+    } else {
+      var h = '<div style="padding:.5rem 0">';
+      contacts.forEach(function(c) {
+        h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border-bottom:1px solid #1a1810">';
+        h += '<div><div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + (c.name || '') + '</div>';
+        h += '<div style="font-size:.68rem;color:#5a5040">' + (c.role || '') + '</div></div>';
+        h += '<button onclick="prefillMailTo(' + JSON.stringify(c.name) + ')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.08em;padding:.2rem .5rem;border:1px solid #3a2a10;background:transparent;color:#8a7040;cursor:pointer">Ecrire</button>';
+        h += '</div>';
+      });
+      h += '</div>';
+      content.innerHTML = h;
+    }
   } else if (tab === 'compose') {
     compose.style.display = 'block';
-    document.getElementById('mail-view-subtitle').textContent = 'Nouveau message';
+    if (subtitle) subtitle.textContent = 'Nouveau message';
     content.innerHTML = '';
   }
 }
 
+function openMailCompose() {
+  switchMailTab('compose', null);
+}
+
+
+function goBackToInbox() { switchMailTab("inbox", null); }
+
 function readMailInView(index) {
-  const mails = state.mails || [];
-  const mail = mails[index];
+  var mails = state.mails || [];
+  var mail = mails[index];
   if (!mail) return;
   mail.read = true;
   updateUI();
-  const content = document.getElementById('mail-content');
-  content.innerHTML = '<div style="padding:1rem">' +
-    '<button onclick="switchMailTab('inbox',null)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:1rem;display:flex;align-items:center;gap:.3rem"><i class="ti ti-arrow-left" style="font-size:.8rem"></i> Retour</button>' +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.2rem">DE</div>' +
-    '<div style="font-size:.9rem;color:#E8C97A;margin-bottom:.6rem">' + mail.from + '</div>' +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.2rem">OBJET</div>' +
-    '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.8rem">' + mail.subject + '</div>' +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.3rem">MESSAGE</div>' +
-    '<div style="font-size:.85rem;color:#a0a080;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #2a2010">' + mail.body + '</div>' +
-    '</div>';
+  var el = document.getElementById('mail-content');
+  var compose = document.getElementById('mail-compose');
+  if (compose) compose.style.display = 'none';
+  var h = '<div style="padding:1rem">';
+  h += '<button onclick="goBackToInbox()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:1rem">Retour</button>';
+  h += '<div style="font-size:.7rem;color:#6a5a20;margin-bottom:.2rem">DE : ' + (mail.from||'') + '</div>';
+  h += '<div style="font-size:.7rem;color:#6a5a20;margin-bottom:.6rem">OBJET : ' + (mail.subject||'') + '</div>';
+  h += '<div style="font-size:.85rem;color:#a0a080;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #2a2010">' + (mail.body||'') + '</div>';
+  h += '</div>';
+  el.innerHTML = h;
 }
 
 function prefillMailTo(name) {
