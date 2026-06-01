@@ -96,7 +96,7 @@ const WORLD = {
   republic: {
     capitale: {
       name:'Luthecia',
-      imageUrl:'https://images.unsplash.com/photo-1431274172761-fca41d930114?w=1200&q=80',
+      imageUrl:'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=80',
       desc:'Capitale de Republia. Centre du pouvoir politique, judiciaire et mediatique.',
       isCapitale: true,
       districts: ['centre','quartier-nord','quartier-sud'],
@@ -104,10 +104,10 @@ const WORLD = {
     },
     ville_a: {
       name:'Port-Sainte-Marie',
-      imageUrl:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80',
+      imageUrl:'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=1200&q=80',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','terrain-a-batir-2']
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','terrain-a-batir-2']
     },
     ville_b: {
       name:'Montrouge',
@@ -244,16 +244,45 @@ const BUILDINGS = {
       },
       salle_conseil: {
         name: "Salle du Conseil",
-        image: "🗳️",
         imageBg: "linear-gradient(135deg,#0d1a0a,#152014)",
         desc: "La salle ou se prennent les decisions du gouvernement. Acces ministeriel uniquement.",
-        imageUrl: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1200&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
         persons: [
           {name:'Premier Ministre (PNJ)', role:'Chef du gouvernement', rel:'neutral', job:'pm'}
         ],
         orders: [
-          {fn:'voter_loi',    label:'Participer au conseil', pa:2, cost:0, type:'legal',   icon:'ti-check',      successRate:100, requiresPost:true, desc:'Accessible uniquement si vous etes ministre.'},
-          {fn:'projet_loi',   label:'Soumettre une proposition', pa:3, cost:0, type:'legal', icon:'ti-file-text', successRate:70,  requiresPost:true, desc:'Proposer une loi au gouvernement.'}
+          {fn:'voter_loi',    label:'Participer au conseil',     pa:2, cost:0, type:'legal', icon:'ti-check',      successRate:100, requiresPost:true, desc:'Voter sur les propositions en cours.'},
+          {fn:'projet_loi',   label:'Soumettre une proposition', pa:3, cost:0, type:'legal', icon:'ti-file-text',  successRate:70,  requiresPost:true, desc:'Proposer une loi avec intitule et duree de vote.'}
+        ]
+      },
+      salle_presse: {
+        name: "Salle de Presse",
+        imageBg: "linear-gradient(135deg,#0f0f18,#181820)",
+        desc: "La salle de presse officielle du gouvernement. Microphones, cameras, journalistes accrédités.",
+        imageUrl: "https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1?w=1200&q=80",
+        persons: [
+          {name:'Porte-parole (PNJ)', role:'PNJ - Porte-parole du gouvernement', rel:'neutral', job:'porteparole'},
+          {name:'Journalistes accredites', role:'PNJ - Presse nationale', rel:'neutral', job:'journaliste'}
+        ],
+        orders: [
+          {fn:'conference_presse', label:'Conférence de presse',  pa:2, cost:0,    type:'legal',   icon:'ti-microphone',   successRate:100, requiresPost:true, desc:'Annonce officielle au pays entier. Fort impact POP et INF.'},
+          {fn:'annonce_officielle',label:'Annonce officielle',     pa:1, cost:0,    type:'legal',   icon:'ti-speakerphone', successRate:100, requiresPost:true, desc:'Declaration formelle au nom du gouvernement.'},
+          {fn:'propagande_etat',   label:'Campagne de propagande', pa:3, cost:500,  type:'grey',    icon:'ti-broadcast',    successRate:75,  requiresPost:true, desc:'Influence massive de l\'opinion publique. +POP important.'},
+          {fn:'dementi',           label:'Démenti officiel',       pa:2, cost:0,    type:'legal',   icon:'ti-x',            successRate:80,  requiresPost:true, desc:'Dementir une rumeur ou un scandale. Reduit l\'impact d\'un kompromat.'}
+        ]
+      },
+      archives_gouv: {
+        name: "Archives Gouvernementales",
+        imageBg: "linear-gradient(135deg,#100a08,#1a1208)",
+        desc: "Les archives secretes du gouvernement. Dossiers classifies, rapports confidentiels, secrets d'Etat.",
+        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+        persons: [
+          {name:'Archiviste Legrand (PNJ)', role:'PNJ - Archiviste en chef', rel:'neutral', job:'archiviste'}
+        ],
+        orders: [
+          {fn:'consulter_dossiers', label:'Consulter des dossiers',    pa:2, cost:0,    type:'legal',   icon:'ti-archive',    successRate:80,  requiresPost:true, desc:'Acceder a des informations confidentielles sur des personnages.'},
+          {fn:'fuite_info',         label:'Produire une fuite',        pa:3, cost:0,    type:'grey',    icon:'ti-leak',       successRate:60,  requiresPost:true, desc:'Faire fuiter un document secret. Gros impact mediatique.'},
+          {fn:'fabriquer_scandale', label:'Fabriquer un scandale',     pa:3, cost:800,  type:'illegal', icon:'ti-alert-triangle', successRate:45, requiresPost:false, desc:'Creer de fausses preuves pour nuire a un adversaire. Tres risque.'}
         ]
       }
     }
@@ -470,19 +499,32 @@ const BUILDINGS = {
     rooms: {
       accueil_police: {
         name: "Accueil",
-        image: "🚔",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
         desc: "L'accueil du commissariat. Atmosphere froide et surveillee.",
-        imageUrl: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=1200&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&q=80",
         persons: [
           {name:'Commissaire Gros', role:'PNJ - Chef de la police', rel:'neutral', job:'commissaire'},
           {name:'Agent Petit',      role:'PNJ - Officier de garde', rel:'neutral', job:'policier'}
         ],
         orders: [
-          {fn:'plainte_police',    label:'Porter plainte',          pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
-          {fn:'archives_police',   label:'Consulter les archives',  pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:90},
-          {fn:'corrompre_police',  label:'Corrompre un policier',   pa:2, cost:300, type:'illegal', icon:'ti-coins',     successRate:55},
-          {fn:'arreter',           label:"Faire arreter quelqu'un", pa:3, cost:500, type:'illegal', icon:'ti-handcuffs', successRate:50}
+          {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Contre une personne identifiee ou contre X. Reponse sous 24h.'},
+          {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:95,  desc:'Succes (95%) : liste des personnes emprisonnees les 30 derniers jours.'},
+          {fn:'corrompre_police', label:'Corrompre un policier',  pa:2, cost:300, type:'illegal', icon:'ti-coins',     successRate:55,  desc:'-Discretion. Peut bloquer une procedure en cours.'},
+          {fn:'arreter',          label:"Faire arreter quelqu'un",pa:3, cost:500, type:'illegal', icon:'ti-handcuffs', successRate:50,  desc:'Necessite un dossier. Mise en garde a vue 24h.'}
+        ]
+      },
+      prison: {
+        name: "Cellules de garde a vue",
+        imageBg: "linear-gradient(135deg,#0a0a10,#101018)",
+        desc: "Les cellules de garde a vue du commissariat. Froid, humide, deprimant.",
+        imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
+        persons: [
+          {name:'Gardien Dubois', role:'PNJ - Gardien de cellule', rel:'neutral', job:'gardien'}
+        ],
+        orders: [
+          {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},
+          {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Tentative de rebellion. Risque d\'allonger la detention.'},
+          {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:15,  desc:'Tres risque. Succes : liberte. Echec : transferement en prison.'}
         ]
       }
     }
@@ -853,12 +895,48 @@ const BUILDINGS = {
         image: "🚔",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
         desc: "Accueil du commissariat.",
-        imageUrl: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=1200&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&q=80",
         persons: [{name:'Brigadier Local (PNJ)', role:'Officier de garde', rel:'neutral', job:'policier'}],
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
           {fn:'corrompre_police', label:'Corrompre un policier',pa:2, cost:200, type:'illegal', icon:'ti-coins',     successRate:65}
         ]
+      }
+    }
+  },
+
+  // ---- IMPRIMERIE-LIBRAIRIE ----
+  'imprimerie-librairie': {
+    name: "Imprimerie-Librairie Gutenberg",
+    shortName: "Imprimerie",
+    cat: "Medias - Information",
+    icon: "ti-printer",
+    bgColor: "#0f0d08",
+    desc: "La seule imprimerie de Port-Sainte-Marie. On y imprime livres, journaux et tracts. Discrets ou non.",
+    rooms: {
+      accueil_imprimerie: {
+        name: "Accueil / Bureau",
+        imageBg: "linear-gradient(135deg,#0f0d08,#1a1608)",
+        desc: "Le bureau d'accueil de l'imprimerie. Odeur d'encre et de papier.",
+        imageUrl: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200&q=80",
+        persons: [
+          {name:'Gutenberg (Imprimeur)', role:'PNJ - Proprietaire imprimerie', rel:'neutral', job:'imprimeur'}
+        ],
+        orders: [
+          {fn:'imprimer_tracts',  label:'Faire imprimer des tracts',  pa:2, cost:150, type:'legal',   icon:'ti-file-description', successRate:100, desc:'Production de tracts. Utile pour la propagande ou la mobilisation.'},
+          {fn:'imprimer_livre',   label:'Faire imprimer un livre',    pa:3, cost:500, type:'legal',   icon:'ti-book',             successRate:100, desc:'Publication d\'un ouvrage. Augmente la notoriete intellectuelle.'},
+          {fn:'imprimer_clandestin', label:'Impression clandestine',  pa:2, cost:300, type:'illegal', icon:'ti-eye-off',          successRate:70,  desc:'Documents non officiels, faux papiers, tracts interdits.'}
+        ]
+      },
+      atelier: {
+        name: "Atelier d'Imprimerie",
+        imageBg: "linear-gradient(135deg,#0a0a08,#141208)",
+        desc: "L'atelier en activite permanente. Presses, rouleaux d'encre, odeur caracteristique.",
+        imageUrl: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=1200&q=80",
+        persons: [
+          {name:'Ouvrier typographe (PNJ)', role:'PNJ - Typographe', rel:'neutral', job:'typographe'}
+        ],
+        orders: []
       }
     }
   },
@@ -1069,3 +1147,25 @@ const SALAIRES = {
   prefet:      900,
   default:     150  // Citoyen sans poste
 };
+
+// Nouveaux ordres v6
+Object.assign(ORDER_EFFECTS, {
+  se_cacher:          {dis:5,            successRate:70},
+  organiser_blocus:   {inf:8,            successRate:40},
+  incendier:          {dis:-10,          successRate:30},
+  tentative_evasion:  {dis:-5,           successRate:15},
+  se_rebeller:        {moral:5,          successRate:30},
+  requete_avocat:     {inf:2,            successRate:100},
+  imprimer_tracts:    {pop:5,  inf:3,    successRate:100},
+  imprimer_livre:     {pop:8,  inf:5,    successRate:100},
+  imprimer_clandestin:{dis:-4,           successRate:70},
+  conference_presse:  {pop:15, inf:10,   successRate:100},
+  annonce_officielle: {pop:5,  inf:5,    successRate:100},
+  propagande_etat:    {pop:20,           successRate:75},
+  dementi:            {pop:8,            successRate:80},
+  consulter_dossiers: {inf:5,            successRate:80},
+  fuite_info:         {pop:10, inf:5,    successRate:60},
+  fabriquer_scandale: {pop:15, dis:-10,  successRate:45},
+  plainte_police:     {successRate:100},
+  archives_police:    {successRate:95}
+});

@@ -32,6 +32,8 @@ window.addEventListener('DOMContentLoaded', () => {
   updateUI();
   updateLocationDisplay();
   startClock();
+  // Fix: afficher image de rue des le chargement
+  setTimeout(() => showVueRue(), 100);
 });
 
 function loadCharacter() {
@@ -129,8 +131,11 @@ function checkMidnight() {
 
 function runMidnightUpdate() {
   state.day++;
-  state.salaireTouche = false; // Reset du salaire journalier
-  // Revenus fiscaux de la population
+  state.salaireTouche = false;
+  // Traiter les plaintes et enquetes en cours
+  traiterPlaintes();
+  traiterEnquetes();
+  // Revenus fiscaux
   const pop = CITY_POPULATION[state.country]?.[state.currentCity];
   if (pop) {
     const taxRevenue = pop.dailyTaxRevenue || 0;
@@ -140,7 +145,7 @@ function runMidnightUpdate() {
       addJournalEntry(`Mise a jour minuit : recettes fiscales de ${totalRevenue.toLocaleString('fr-FR')} versees au tresor national.`, 'event-info');
     }
   }
-  addJournalEntry(`Nouveau jour : Jour ${state.day}. La ville s'eveille.`, 'event-info');
+  addJournalEntry(`Nouveau jour : Jour ${state.day}. La ville s\'eveille.`, 'event-info');
   updateClock();
 }
 
@@ -367,15 +372,20 @@ function renderPersonsList(persons) {
       </div>
     </div>` : '';
 
-  const personCards = persons.length === 0 ? '' : persons.map(p => `
-    <div class="person-card" onclick="openPnjModal('${encodeURIComponent(JSON.stringify(p))}')">
-      <div class="person-avatar"><i class="ti ti-user" style="font-size:.75rem"></i></div>
-      <div>
-        <div class="person-name">${p.name}</div>
-        <div class="person-role">${p.role}</div>
-        <div class="person-rel" style="color:${relCol(p.rel)};font-size:.58rem">${relTxt(p.rel)}</div>
-      </div>
-    </div>`).join('');
+  const personCards = persons.length === 0 ? '' : persons.map(p => {
+    const avatarHtml = (typeof renderPnjAvatarHtml === 'function')
+      ? renderPnjAvatarHtml(p, 28)
+      : `<div class="person-avatar"><i class="ti ti-user" style="font-size:.75rem"></i></div>`;
+    return `
+      <div class="person-card" onclick="openPnjModal('${encodeURIComponent(JSON.stringify(p))}')">
+        ${avatarHtml}
+        <div>
+          <div class="person-name">${p.name}</div>
+          <div class="person-role">${p.role}</div>
+          <div class="person-rel" style="color:${relCol(p.rel)};font-size:.58rem">${relTxt(p.rel)}</div>
+        </div>
+      </div>`;
+  }).join('');
 
   document.getElementById('persons-list').innerHTML = selfCard + personCards ||
     '<div class="person-empty">Personne d\'autre ici</div>';
@@ -389,20 +399,63 @@ function renderRoomActions(room, buildingId, roomId) {
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
 
   document.getElementById('action-context-bat').textContent =
-    `${room.name.toUpperCase()} — ACTIONS DISPONIBLES`;
+    room.name.toUpperCase() + ' — ACTIONS DISPONIBLES';
 
-  document.getElementById('actions-row-bat').innerHTML = orders.map(o => {
+  // Ordres communs a tous les batiments
+  const commonOrders = [
+    {fn:'se_cacher',       label:'Se cacher',        pa:1, cost:0, type:'grey',    icon:'ti-eye-off', successRate:70,  desc:'Vous vous dissimulezdans la piece. Bonus actions illegales.'},
+    {fn:'organiser_blocus',label:'Organiser blocus',  pa:3, cost:0, type:'illegal', icon:'ti-ban',     successRate:40,  desc:'Necessite un groupe. Bloque l acces au batiment.'},
+    {fn:'incendier',       label:'Incendier',          pa:3, cost:0, type:'illegal', icon:'ti-flame',   successRate:30,  desc:'Declencher un incendie. Plus difficile si nombreux temoins.'}
+  ];
+
+  const allOrders = [...orders, ...commonOrders];
+
+  const buttons = allOrders.map(o => {
     const needsPost = o.requiresPost && !state.poste;
-    const paDisplay = TEST_MODE ? '0 PA' : `${o.pa} PA`;
-    const costDisplay = o.cost > 0 ? `${o.cost} ${cur}` : 'gratuit';
+    const paDisplay = TEST_MODE ? '0 PA' : o.pa + ' PA';
+    const costDisplay = o.cost > 0 ? o.cost.toLocaleString('fr-FR') + ' ' + cur : 'gratuit';
+    const ef = ORDER_EFFECTS[o.fn] || {};
+    const gainParts = [];
+    if (ef.hp > 0)    gainParts.push('+' + ef.hp + ' Sante');
+    if (ef.moral > 0) gainParts.push('+' + ef.moral + ' Moral');
+    if (ef.inf > 0)   gainParts.push('+' + ef.inf + ' INF');
+    if (ef.pop > 0)   gainParts.push('+' + ef.pop + ' POP');
+    if (ef.arg > 0)   gainParts.push('+' + ef.arg + ' ' + cur);
+    const gainStr = gainParts.join(' · ');
+    const riskParts = [];
+    if (ef.dis < 0)   riskParts.push(ef.dis + ' DIS');
+    if (ef.pop < 0)   riskParts.push(ef.pop + ' POP');
+    const riskStr = riskParts.join(' · ');
+    const rate = o.successRate || 70;
+    const tooltipParts = [];
+    if (o.desc) tooltipParts.push(o.desc);
+    if (gainStr) tooltipParts.push('Gain: ' + gainStr);
+    if (riskStr) tooltipParts.push('Risque: ' + riskStr);
+    tooltipParts.push('Reussite: ' + rate + '%');
+    const tooltip = tooltipParts.join(' | ');
 
-    return `<button class="action-btn ${o.type} ${needsPost ? 'blocked' : ''}"
-      onclick="${needsPost ? `showPostRequired()` : `doOrder('${o.fn}',${o.pa},${o.cost},'${o.label}','${(o.desc||'').replace(/'/g,"\\'")}',${o.successRate||70})`}"
-      title="${needsPost ? 'Poste requis' : (o.desc||'')}">
-      <i class="ti ${o.icon}" style="font-size:.82rem"></i> ${o.label}
-      <span class="pa-cost">${costDisplay} · ${paDisplay}</span>
-    </button>`;
-  }).join('') || '<div style="font-size:.75rem;color:#3a3020;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
+    let onclickFn = '';
+    if (needsPost) {
+      onclickFn = 'showPostRequired()';
+    } else if (o.fn === 'plainte_police') {
+      onclickFn = 'openPlainteModal()';
+    } else if (o.fn === 'gerer_finances') {
+      onclickFn = 'openFinancesModal()';
+    } else if (o.fn === 'postuler') {
+      onclickFn = 'openPostesModal()';
+    } else {
+      const safeLabel = o.label.replace(/'/g, ' ');
+      const safeDesc = (o.desc||'').replace(/'/g, ' ');
+      onclickFn = "doOrder('" + o.fn + "'," + o.pa + "," + o.cost + ",'" + safeLabel + "','" + safeDesc + "'," + rate + ")";
+    }
+
+    const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
+    const blockedCls = needsPost ? ' blocked' : '';
+    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltip + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + costDisplay + ' · ' + paDisplay + '</span>' + gainBadge + '</button>';
+  });
+
+  document.getElementById('actions-row-bat').innerHTML = buttons.join('') ||
+    '<div style="font-size:.75rem;color:#3a3020;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
 }
 
 // =====================
@@ -427,7 +480,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Ordres speciaux
   if (fn === 'postuler') { openPostesModal(); return; }
   if (fn === 'gerer_finances') { openFinancesModal(); return; }
-  if (fn === 'parler_pnj') { return; } // Gere par click sur person card
+  if (fn === 'plainte_police') { openPlainteModal(); return; }
+  if (fn === 'archives_police') { doArchivesPolice(); return; }
 
   // Deduire PA et argent
   if (!TEST_MODE) state.pa = Math.max(0, state.pa - pa);
@@ -717,6 +771,151 @@ async function postulerPoste(posteId, posteName) {
     showToast('Candidature refusee', `Votre demande pour le poste de ${posteName} a ete rejetee.`, false);
     addJournalEntry(`Candidature refusee : ${posteName}.`, 'event-bad');
   }
+}
+
+// =====================
+// PLAINTE MODALE
+// =====================
+function openPlainteModal() {
+  const contacts = state.contacts || [];
+  const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+
+  const modalHtml = `
+    <div style="padding:1rem">
+      <div style="font-size:.85rem;color:#8a8060;font-style:italic;margin-bottom:1rem">
+        Vous deposez une plainte. Un resultat vous sera communique par mail dans 24h.
+      </div>
+      <div style="margin-bottom:1rem">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CONTRE</div>
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer">
+            <input type="radio" name="plainte-cible" value="X" checked style="accent-color:#C9A84C"/>
+            Contre X (personne inconnue)
+          </label>
+          ${contacts.map(c => `
+            <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer">
+              <input type="radio" name="plainte-cible" value="${c.name}" style="accent-color:#C9A84C"/>
+              ${c.name} — ${c.role || ''}
+            </label>`).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom:1rem">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MOTIF</div>
+        <textarea id="plainte-motif" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:'Crimson Pro',serif;font-size:.85rem;height:70px;outline:none;resize:none" placeholder="Decrivez les faits reproches..."></textarea>
+      </div>
+      <button onclick="soumettrePlaynte()" style="font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
+        <i class="ti ti-send" style="font-size:.8rem"></i> Deposer la plainte
+      </button>
+    </div>
+  `;
+
+  document.getElementById('modal-postes').querySelector('#postes-body').innerHTML = '';
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Porter plainte';
+  document.getElementById('postes-body').innerHTML = modalHtml;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function soumettrePlaynte() {
+  const cible = document.querySelector('input[name="plainte-cible"]:checked')?.value || 'X';
+  const motif = document.getElementById('plainte-motif')?.value?.trim() || 'Motif non precise';
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const h = String(state.hour).padStart(2,'0');
+  const m = String(state.minute||0).padStart(2,'0');
+  const resultH = (state.hour + 24) % 24;
+
+  addJournalEntry(`Plainte deposee contre ${cible}. Motif : ${motif}. Vous serez informe du resultat demain a ${String(resultH).padStart(2,'0')}h${m}.`, 'event-info');
+  showToast('Plainte enregistree', `Resultat communique demain a ${String(resultH).padStart(2,'0')}h${m}.`, true);
+
+  // Simuler le resultat 24h apres (en jeu = apres l'ordre dormir)
+  if (!state.plaintesEnCours) state.plaintesEnCours = [];
+  state.plaintesEnCours.push({
+    cible, motif,
+    heure: `${String(resultH).padStart(2,'0')}h${m}`,
+    day: state.day + 1,
+    status: 'pending'
+  });
+}
+
+function traiterPlaintes() {
+  if (!state.plaintesEnCours) return;
+  const traitees = state.plaintesEnCours.filter(p => p.day <= state.day && p.status === 'pending');
+  traitees.forEach(p => {
+    p.status = 'done';
+    const roll = Math.floor(Math.random() * 100) + 1;
+    let result = '';
+    if (roll < 40) {
+      result = `Classement sans suite. La plainte contre ${p.cible} n'a pas abouti.`;
+    } else if (roll < 75) {
+      result = `Ouverture d'une enquete concernant ${p.cible}. Conclusions dans 24h.`;
+      // Programmer le resultat de l'enquete
+      if (!state.enquetesEnCours) state.enquetesEnCours = [];
+      state.enquetesEnCours.push({ cible: p.cible, day: state.day + 1, status: 'pending' });
+    } else {
+      result = `Actes illegaux confirmes pour ${p.cible}. Mise en garde a vue. Proces dans 24h.`;
+      addExternalEvent(`ACTION EXTERIEURE : ${p.cible} a ete place(e) en garde a vue suite a votre plainte. Proces prevu demain.`);
+    }
+    addMailNotification('Commissariat Central', `RE: Votre plainte du Jour ${p.day - 1}`, result);
+  });
+}
+
+function traiterEnquetes() {
+  if (!state.enquetesEnCours) return;
+  const traitees = state.enquetesEnCours.filter(e => e.day <= state.day && e.status === 'pending');
+  traitees.forEach(e => {
+    e.status = 'done';
+    const roll = Math.floor(Math.random() * 100) + 1;
+    let result = '';
+    if (roll < 50) {
+      result = `Enquete conclue : non-lieu pour ${e.cible}. Aucune preuve suffisante.`;
+    } else {
+      result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. Mise en garde a vue immediate. Proces demain.`;
+      if (!state.prisonniers) state.prisonniers = [];
+      state.prisonniers.push({ nom: e.cible, depuis: `Jour ${state.day}`, raison: 'Garde a vue suite a enquete' });
+      addExternalEvent(`${e.cible} a ete place(e) en garde a vue. Visible dans les archives du commissariat.`);
+    }
+    addMailNotification('Brigade Criminelle', `Conclusions enquete : ${e.cible}`, result);
+  });
+}
+
+// Ajouter evenement externe (rouge + gras + point clignotant)
+function addExternalEvent(text) {
+  const j = document.getElementById('journal');
+  const h = String(state.hour).padStart(2,'0');
+  const m = String(state.minute||0).padStart(2,'0');
+  const div = document.createElement('div');
+  div.className = 'journal-entry journal-external';
+  div.innerHTML = `
+    <span class="journal-time">Jour ${state.day} · ${h}h${m}</span>
+    <span class="journal-alert" onclick="this.style.display='none'" title="Cliquer pour marquer comme lu">●</span>
+    <span class="journal-text event-external"><strong>${text}</strong></span>
+  `;
+  j.insertBefore(div, j.firstChild);
+}
+
+// Archives police — liste des prisonniers
+function doArchivesPolice() {
+  const prisonniers = state.prisonniers || [];
+  const derniers30j = prisonniers.filter(p => {
+    const dayNum = parseInt(p.depuis.replace('Jour ','')) || 0;
+    return state.day - dayNum <= 30;
+  });
+
+  let msg = '';
+  if (derniers30j.length === 0) {
+    msg = 'Archives consultees : aucune personne emprisonnee au cours des 30 derniers jours.';
+  } else {
+    msg = `Archives consultees : ${derniers30j.length} personne(s) emprisonnee(s) ces 30 derniers jours : ${derniers30j.map(p => p.nom + ' (' + p.depuis + ')').join(', ')}.`;
+  }
+  showToast('Archives consultees', msg.substring(0, 80) + '...', true);
+  addJournalEntry(msg, 'event-info');
+}
+
+// Notification mail simple
+function addMailNotification(from, subject, body) {
+  if (!state.mails) state.mails = [];
+  state.mails.push({ from, subject, body, day: state.day, read: false });
+  addExternalEvent(`Nouveau mail de ${from} : "${subject}"`);
 }
 
 function showPostRequired() {
