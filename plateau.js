@@ -90,15 +90,57 @@ function loadCharacter() {
 // CLOCK
 // =====================
 function startClock() {
+  syncRealTime();
   updateClock();
+  // Mise a jour toutes les minutes
+  setInterval(() => {
+    syncRealTime();
+    updateClock();
+    checkMidnight();
+  }, 60000);
 }
+
+function syncRealTime() {
+  // Calage sur l'heure reelle francaise
+  const now = new Date();
+  const frTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  state.hour = frTime.getHours();
+  state.minute = frTime.getMinutes();
+  state.day = state.day || 1; // Le jour de jeu est incremente a minuit
+}
+
 function updateClock() {
   const h = String(state.hour).padStart(2,'0');
-  document.getElementById('game-time').textContent = `Jour ${state.day} · ${h}h00`;
+  const m = String(state.minute||0).padStart(2,'0');
+  const el = document.getElementById('game-time');
+  if (el) el.textContent = `Jour ${state.day} · ${h}h${m}`;
 }
-function advanceTime(hours = 1) {
-  state.hour += hours;
-  if (state.hour >= 24) { state.hour = 0; state.day++; }
+
+function checkMidnight() {
+  if (state.hour === 0 && state.minute < 2) {
+    if (!state.midnightDone) {
+      state.midnightDone = true;
+      runMidnightUpdate();
+    }
+  } else {
+    state.midnightDone = false;
+  }
+}
+
+function runMidnightUpdate() {
+  state.day++;
+  state.salaireTouche = false; // Reset du salaire journalier
+  // Revenus fiscaux de la population
+  const pop = CITY_POPULATION[state.country]?.[state.currentCity];
+  if (pop) {
+    const taxRevenue = pop.dailyTaxRevenue || 0;
+    const oilRevenue = pop.oilRevenue || 0;
+    const totalRevenue = taxRevenue + oilRevenue;
+    if (totalRevenue > 0 && state.poste && ['president','pm','min_fin'].includes(state.poste.id)) {
+      addJournalEntry(`Mise a jour minuit : recettes fiscales de ${totalRevenue.toLocaleString('fr-FR')} versees au tresor national.`, 'event-info');
+    }
+  }
+  addJournalEntry(`Nouveau jour : Jour ${state.day}. La ville s'eveille.`, 'event-info');
   updateClock();
 }
 
@@ -310,17 +352,33 @@ function renderPersonsList(persons) {
   const relCol = r => r === 'ally' ? '#4a8a4a' : r === 'enemy' ? '#8a3a2a' : '#6a6040';
   const relTxt = r => r === 'ally' ? 'Allie' : r === 'enemy' ? 'Hostile' : 'Neutre';
 
-  document.getElementById('persons-list').innerHTML = persons.length === 0
-    ? '<div class="person-empty">Personne ici</div>'
-    : persons.map(p => `
-        <div class="person-card" onclick="openPnjModal('${encodeURIComponent(JSON.stringify(p))}')">
-          <div class="person-avatar"><i class="ti ti-user" style="font-size:.75rem"></i></div>
-          <div>
-            <div class="person-name">${p.name}</div>
-            <div class="person-role">${p.role}</div>
-            <div class="person-rel" style="color:${relCol(p.rel)};font-size:.58rem">${relTxt(p.rel)}</div>
-          </div>
-        </div>`).join('');
+  // Ajouter le PJ lui-meme dans la liste
+  const char = state.char;
+  const ar = ARCHETYPES.find(x => x.id === char?.archetype);
+  const selfCard = char ? `
+    <div class="person-card" style="border-left:2px solid #C9A84C">
+      <div class="person-avatar" style="border-color:#C9A84C">
+        ${char.photoUrl ? `<img src="${char.photoUrl}" alt="Vous" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>` : `<i class="ti ti-user" style="font-size:.75rem;color:#C9A84C"></i>`}
+      </div>
+      <div>
+        <div class="person-name" style="color:#C9A84C">${char.name} <span style="font-size:.6rem;color:#6a5a20">(Vous)</span></div>
+        <div class="person-role">${state.poste?.name || ar?.name || 'Citoyen'}</div>
+        <div class="person-rel rel-ally">Vous-meme</div>
+      </div>
+    </div>` : '';
+
+  const personCards = persons.length === 0 ? '' : persons.map(p => `
+    <div class="person-card" onclick="openPnjModal('${encodeURIComponent(JSON.stringify(p))}')">
+      <div class="person-avatar"><i class="ti ti-user" style="font-size:.75rem"></i></div>
+      <div>
+        <div class="person-name">${p.name}</div>
+        <div class="person-role">${p.role}</div>
+        <div class="person-rel" style="color:${relCol(p.rel)};font-size:.58rem">${relTxt(p.rel)}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('persons-list').innerHTML = selfCard + personCards ||
+    '<div class="person-empty">Personne d\'autre ici</div>';
 }
 
 // =====================
@@ -417,11 +475,25 @@ function applyEffects(fn, resultType, cost) {
   if (ef.dis)   state.dis   = Math.min(100, Math.max(0, state.dis   + Math.round(ef.dis   * (ef.dis < 0 ? 1 : mult))));
   if (ef.arg)   state.arg   = Math.min(9999999, Math.max(0, state.arg + Math.round(ef.arg * mult)));
 
-  // PA bonus (dormir en hotel)
-  if (fn === 'dormir' && ef.paBonus && resultType !== 'fail') {
-    // Note pour le prochain jour
-    state.paBonus = ef.paBonus || 0;
-    addJournalEntry(`Nuit confortable. +${ef.paBonus} PA bonus demain.`, 'event-good');
+  // PA bonus (dormir en hotel) + salaire journalier
+  if (fn === 'dormir') {
+    if (ef.paBonus && resultType !== 'fail') {
+      state.paBonus = ef.paBonus || 0;
+      addJournalEntry(`Nuit confortable. +${ef.paBonus} PA bonus demain.`, 'event-good');
+    }
+    // Salaire journalier — une seule fois par jour
+    if (!state.salaireTouche) {
+      state.salaireTouche = true;
+      const posteId = state.poste?.id || 'default';
+      const salaire = SALAIRES[posteId] || SALAIRES.default;
+      state.arg += salaire;
+      state.liquide += Math.floor(salaire * 0.3);
+      state.banque += Math.ceil(salaire * 0.7);
+      addJournalEntry(`Salaire journalier verse : ${salaire.toLocaleString('fr-FR')} ${COUNTRIES[state.country]?.cur||'FR'} (${state.poste?.name || 'Citoyen'}).`, 'event-good');
+      showToast('Salaire verse', `+${salaire.toLocaleString('fr-FR')} ${COUNTRIES[state.country]?.cur||'FR'}`, true);
+    } else {
+      addJournalEntry('Vous avez deja percu votre salaire aujourd\'hui.', '');
+    }
   }
 
   // Effets speciaux
@@ -496,13 +568,19 @@ async function talkToPnj(encodedPnj, action) {
   const ar = ARCHETYPES.find(x => x.id === char?.archetype);
   const co = COUNTRIES[state.country];
   const actionDesc = {
-    'bonjour': 'salue ce personnage',
-    'information': 'demande des informations sur la situation politique',
-    'alliance': 'propose une alliance politique',
-    'confrontation': 'confronte ce personnage directement'
+    'bonjour':       'vous salue en entrant dans la piece',
+    'information':   'vous demande des informations sur la situation politique locale',
+    'alliance':      'vous propose une alliance politique discrète',
+    'confrontation': 'vous confronte directement en lui reprochant ses actions'
   }[action] || action;
 
-  const prompt = `Tu es un personnage dans un jeu de role politique parodique appele "Res Publica". Tu joues le role de : ${pnj.name}, ${pnj.role}, dans le pays fictif "${co?.n}". Ta relation avec le joueur est : ${pnj.rel === 'ally' ? 'allie' : pnj.rel === 'enemy' ? 'hostile' : 'neutre'}. Le joueur se nomme ${char?.name || 'Inconnu'} et est un ${ar?.name || 'personnage'}. Le joueur te ${actionDesc}. Reponds en 2-3 phrases maximum, de facon coherente avec ton role et ta relation, avec un ton satirique et politique. Sois precis et caracteriel. Reponds uniquement avec ta replique, sans guillemets ni introduction.`;
+  const prompt = `Tu joues un personnage dans un jeu de role politique parodique (Res Publica).
+Ton personnage : ${pnj.name}, ${pnj.role}, dans l'empire fictif "${co?.n}".
+Relation avec le joueur : ${pnj.rel === 'ally' ? 'allie de confiance' : pnj.rel === 'enemy' ? 'ennemi declare' : 'neutre / inconnu'}.
+Le joueur : ${char?.name || 'Inconnu'}, ${ar?.name || 'personnage'}, ${state.poste ? 'actuellement ' + state.poste.name : 'sans poste officiel'}.
+Action : Le joueur ${actionDesc}.
+Reponds en 2-3 phrases max. Ton : satirique, politique, caracteriel. Sois coherent avec ton role et ta relation.
+Reponds uniquement avec ta replique directe, sans guillemets, sans "je reponds", sans introduction.`;
 
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -510,18 +588,30 @@ async function talkToPnj(encodedPnj, action) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 300,
+        max_tokens: 200,
         messages: [{ role: 'user', content: prompt }]
       })
     });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-    if (data.content?.[0]?.text) {
-      speech.textContent = data.content[0].text;
+    const text = data.content?.[0]?.text;
+    if (text) {
+      speech.textContent = text;
     } else {
-      speech.textContent = 'Ce personnage ne souhaite pas s\'exprimer pour le moment.';
+      speech.textContent = pnj.rel === 'enemy'
+        ? `${pnj.name} vous regarde froidement sans repondre.`
+        : `${pnj.name} acquiesce poliment et change de sujet.`;
     }
   } catch(e) {
-    speech.textContent = '(La conversation est impossible pour le moment. Verifiez votre connexion.)';
+    console.warn('API PNJ error:', e);
+    // Reponses de secours selon la relation
+    const fallbacks = {
+      enemy:   [`Vous avez le culot de me parler ? Circulez.`, `Je n'ai rien a vous dire.`, `Votre presence ici m'importune.`],
+      ally:    [`Ah, vous voila ! J'allais justement vous chercher.`, `Toujours un plaisir. Quoi de neuf ?`, `Je suis content de vous voir. On a des choses a discuter.`],
+      neutral: [`Bonjour. Puis-je vous aider ?`, `Oui ? Que puis-je faire pour vous ?`, `Vous avez quelque chose a me dire ?`]
+    };
+    const list = fallbacks[pnj.rel] || fallbacks.neutral;
+    speech.textContent = list[Math.floor(Math.random() * list.length)];
   }
 }
 
@@ -574,20 +664,59 @@ function openPostesModal() {
 async function postulerPoste(posteId, posteName) {
   document.getElementById('modal-postes').classList.remove('open');
 
-  const isVacant = !POSTES[state.country]?.capitale?.find(p => p.id === posteId)?.holder;
-  const successRate = isVacant ? 85 : 65;
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= successRate) {
-    state.poste = { id: posteId, name: posteName };
-    state.inf = Math.min(100, state.inf + 10);
-    showToast(`Poste obtenu !`, `Vous occupez desormais le poste de ${posteName}.`, true, true);
-    addJournalEntry(`Vous avez obtenu le poste de ${posteName}. +10 Influence.`, 'event-good');
-  } else {
-    showToast(`Candidature refusee`, `Votre demande pour le poste de ${posteName} a ete rejetee.`, false);
-    addJournalEntry(`Votre candidature au poste de ${posteName} a ete rejetee.`, 'event-bad');
+  // Verifier si c'est un poste ministeriel — necessite validation du President
+  const postesMinisteriels = ['pm','min_int','min_fin','min_just','min_def','min_info','min_ae'];
+  if (postesMinisteriels.includes(posteId)) {
+    showToast('Demande transmise', `Votre candidature au poste de ${posteName} a ete transmise au President de la Republique. Vous aurez une reponse sous peu.`, true);
+    addJournalEntry(`Demande de poste envoyee : ${posteName}. En attente de reponse presidentielle.`, 'event-info');
+    // Stocker la demande en attente
+    if (!state.pendingPostRequests) state.pendingPostRequests = [];
+    state.pendingPostRequests.push({ posteId, posteName, date: `Jour ${state.day}` });
+    return;
   }
-  updateUI();
+
+  // Verifier si le joueur n'a pas deja ce poste
+  if (state.poste?.id === posteId) {
+    showToast('Poste deja occupe', `Vous occupez deja le poste de ${posteName}.`, false);
+    return;
+  }
+
+  const postes = POSTES[state.country];
+  const allPostes = [
+    ...(postes?.capitale || []),
+    ...(postes?.assemblee || []),
+    ...(postes?.[state.currentCity] || [])
+  ];
+  const poste = allPostes.find(p => p.id === posteId);
+  const isVacant = !poste?.holder;
+  const isPnjHolder = poste?.holder?.startsWith('PNJ');
+
+  const successRate = isVacant ? 90 : isPnjHolder ? 65 : 0;
+  if (successRate === 0) {
+    showToast('Poste occupe', `Ce poste est occupe par un autre joueur.`, false);
+    return;
+  }
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= successRate) {
+    // Marquer le poste comme pris
+    if (poste) poste.holder = state.char?.name || 'Joueur';
+    state.poste = { id: posteId, name: posteName };
+    state.salaireTouche = false;
+    state.inf = Math.min(100, state.inf + 15);
+    updateUI();
+    showToast('Poste obtenu !', `Vous occupez desormais le poste de ${posteName}. +15 Influence.`, true, true);
+    addJournalEntry(`Poste obtenu : ${posteName}. +15 Influence.`, 'event-good');
+    // Mettre a jour l'affichage du personnage
+    if (document.getElementById('char-arch-left')) {
+      const ar = ARCHETYPES.find(x => x.id === state.char?.archetype);
+      const co = COUNTRIES[state.country];
+      document.getElementById('char-arch-left').textContent = `${posteName} · ${co?.n||''}`;
+    }
+  } else {
+    showToast('Candidature refusee', `Votre demande pour le poste de ${posteName} a ete rejetee.`, false);
+    addJournalEntry(`Candidature refusee : ${posteName}.`, 'event-bad');
+  }
 }
 
 function showPostRequired() {
@@ -737,31 +866,10 @@ function closeCharSheet() {
 // =====================
 function openWorldMap() {
   const body = document.getElementById('world-map-body');
-  body.innerHTML = `
-    <div style="padding:.7rem 1rem;font-size:.8rem;color:#6a6050;font-style:italic;border-bottom:1px solid #1a1810">
-      Les voyages entre villes consomment des PA. Les voyages entre empires consomment davantage.
-    </div>
-    <div class="world-map-grid">
-      ${Object.entries(COUNTRIES).map(([countryId, co]) => `
-        <div class="world-country">
-          <div class="world-country-name" style="color:${co.col}">
-            <i class="ti ${co.icon}" style="font-size:.9rem;vertical-align:-2px"></i> ${co.n}
-          </div>
-          <div style="font-size:.72rem;color:#5a5040;margin-bottom:.5rem">${co.desc.substring(0,60)}...</div>
-          ${Object.entries(WORLD[countryId]||{}).map(([cityId, city]) => {
-            const isCurrent = countryId === state.country && cityId === state.currentCity;
-            const cost = countryId === state.country ? (isCurrent ? 0 : 2) : 5;
-            return `
-              <div class="world-city ${isCurrent ? 'current' : ''}"
-                onclick="${isCurrent ? '' : `closeWorldMap();travelToCity('${cityId}')`}"
-                style="${isCurrent ? 'cursor:default' : ''}">
-                <span class="world-city-name">${city.name}${city.isCapitale ? ' ★' : ''}</span>
-                <span class="world-city-cost">${isCurrent ? 'ICI' : cost + ' PA'}</span>
-              </div>`;
-          }).join('')}
-        </div>`).join('')}
-    </div>
-  `;
+  body.innerHTML = renderWorldMapSVG();
+  body.style.display = 'flex';
+  body.style.flexDirection = 'column';
+  body.style.height = '520px';
   document.getElementById('modal-world').classList.add('open');
 }
 function closeWorldMap() {
@@ -771,69 +879,10 @@ function closeWorldMap() {
 // =====================
 // FORUM
 // =====================
-const FORUM_DATA = {
-  local: [
-    {author:'CitoyenAnonyme',  time:'Jour 1 · 07h30', text:"La corruption au commissariat central est inacceptable ! Qui va agir ?"},
-    {author:'JournalisteX',    time:'Jour 1 · 06h00', text:"Sources confirment que le Prefet Moreau aurait des liens avec des fonds offshore. Enquete en cours."}
-  ],
-  regional: [
-    {author:'ElectedOfficialB', time:'Jour 1 · 05h00', text:"Le budget regional de Port-Sainte-Marie sera presente la semaine prochaine. Les syndicats se mobilisent."}
-  ],
-  national: [
-    {author:'ObservateurPolitique', time:'Jour 1 · 08h00', text:"Le gouvernement en place semble fragilise. Des elections anticipees seraient envisagees selon nos informations."}
-  ],
-  international: [
-    {author:'DiplomateEtranger', time:'Jour 1 · 04h00', text:"Les tensions entre Republia et El Estado s'intensifient autour des accords commerciaux."}
-  ],
-  prive: []
-};
-let currentForumTab = 'local';
+// Forum gere par forum.js
 
-function openForum() {
-  renderForum('local');
-  document.getElementById('modal-forum').classList.add('open');
-}
-function renderForum(tab) {
-  currentForumTab = tab;
-  const msgs = FORUM_DATA[tab] || [];
-  document.getElementById('forum-body').innerHTML = `
-    <div class="forum-tabs">
-      ${['local','regional','national','international','prive'].map(t => `
-        <div class="forum-tab ${t === tab ? 'active' : ''}" onclick="renderForum('${t}')">
-          ${t.charAt(0).toUpperCase() + t.slice(1)}
-        </div>`).join('')}
-    </div>
-    <div class="forum-content">
-      ${msgs.length === 0
-        ? '<div style="font-size:.82rem;color:#4a4030;font-style:italic;text-align:center;padding:2rem">Aucun message dans ce forum.</div>'
-        : msgs.map(m => `
-            <div class="forum-msg">
-              <div class="forum-msg-author">${m.author}</div>
-              <div class="forum-msg-text">${m.text}</div>
-              <div class="forum-msg-time">${m.time}</div>
-            </div>`).join('')}
-    </div>
-    <div class="forum-compose">
-      <input class="forum-input" id="forum-input" placeholder="Ecrire un message dans le forum ${tab}..." />
-      <button class="forum-send" onclick="postForumMsg()">Publier</button>
-    </div>
-  `;
-}
-function postForumMsg() {
-  const input = document.getElementById('forum-input');
-  const text = input.value.trim();
-  if (!text) return;
-  const char = state.char;
-  FORUM_DATA[currentForumTab].unshift({
-    author: char?.name || 'Anonyme',
-    time: `Jour ${state.day} · ${String(state.hour).padStart(2,'0')}h00`,
-    text: text
-  });
-  state.pop = Math.min(100, state.pop + 1);
-  updateUI();
-  renderForum(currentForumTab);
-  addJournalEntry(`Vous avez publie un message sur le forum ${currentForumTab}.`, 'event-info');
-}
+// openForum delegue a forum.js
+// Forum gere par forum.js — voir openForum() dans forum.js
 
 // =====================
 // INVENTORY

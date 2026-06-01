@@ -104,14 +104,14 @@ const WORLD = {
     },
     ville_a: {
       name:'Port-Sainte-Marie',
-      imageUrl:'https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=1200&q=80',
+      imageUrl:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
       buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','terrain-a-batir-2']
     },
     ville_b: {
       name:'Montrouge',
-      imageUrl:'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=1200&q=80',
+      imageUrl:'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','terrain-a-batir-3']
@@ -1005,4 +1005,67 @@ const ORDER_EFFECTS = {
   greve:              {inf:8,  pop:5,    successRate:55},
   contrebande:        {dis:-3,           successRate:55},
   deplacer:           {successRate:100}
+};
+
+// =====================
+// POPULATION PNJ
+// =====================
+const CITY_POPULATION = {
+  republic: {
+    capitale: {
+      total: 850000,
+      classes: { pauvre: 0.25, ouvriere: 0.35, bourgeoisie: 0.28, elite: 0.12 },
+      taxRate: 0.18,
+      dailyTaxRevenue: 42000, // FR par jour pour l'Etat
+      unemployment: 0.09
+    },
+    ville_a: {
+      total: 120000,
+      classes: { pauvre: 0.20, ouvriere: 0.40, bourgeoisie: 0.30, elite: 0.10 },
+      taxRate: 0.18,
+      dailyTaxRevenue: 6000,
+      unemployment: 0.07
+    },
+    ville_b: {
+      total: 95000,
+      classes: { pauvre: 0.30, ouvriere: 0.50, bourgeoisie: 0.15, elite: 0.05 },
+      taxRate: 0.18,
+      dailyTaxRevenue: 4200,
+      unemployment: 0.14
+    }
+  },
+  narco: {
+    capitale: { total: 620000, taxRate: 0.08, dailyTaxRevenue: 18000, unemployment: 0.28 },
+    ville_a:  { total: 85000,  taxRate: 0.08, dailyTaxRevenue: 2400,  unemployment: 0.32 },
+    ville_b:  { total: 70000,  taxRate: 0.08, dailyTaxRevenue: 1800,  unemployment: 0.35 }
+  },
+  soviet: {
+    capitale: { total: 1200000, taxRate: 0.35, dailyTaxRevenue: 28000, unemployment: 0.02 },
+    ville_a:  { total: 180000,  taxRate: 0.35, dailyTaxRevenue: 4200,  unemployment: 0.02 },
+    ville_b:  { total: 150000,  taxRate: 0.35, dailyTaxRevenue: 3500,  unemployment: 0.02 }
+  },
+  khalija: {
+    capitale: { total: 320000, taxRate: 0.00, dailyTaxRevenue: 0, unemployment: 0.03, oilRevenue: 85000 },
+    ville_a:  { total: 45000,  taxRate: 0.00, dailyTaxRevenue: 0, unemployment: 0.04, oilRevenue: 12000 },
+    ville_b:  { total: 38000,  taxRate: 0.00, dailyTaxRevenue: 0, unemployment: 0.04, oilRevenue: 18000 }
+  }
+};
+
+// Salaires journaliers par poste (verses lors de l'ordre Dormir)
+const SALAIRES = {
+  president:   5000,
+  pm:          3500,
+  min_int:     2800,
+  min_fin:     2800,
+  min_just:    2800,
+  min_def:     2800,
+  min_info:    2800,
+  min_ae:      2800,
+  depute:      1200,
+  senateur:    1200,
+  maire:       800,
+  adj_maire:   500,
+  gouverneur:  1500,
+  prefet:      900,
+  default:     150  // Citoyen sans poste
 };
