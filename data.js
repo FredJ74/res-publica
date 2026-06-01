@@ -96,22 +96,22 @@ const WORLD = {
   republic: {
     capitale: {
       name:'Luthecia',
-      imageUrl:'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=80',
+      imageUrl:'https://images.unsplash.com/photo-1520939817895-060bdaf4fe1b?w=1200&q=80',
       desc:'Capitale de Republia. Centre du pouvoir politique, judiciaire et mediatique.',
       isCapitale: true,
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','terrain-a-batir-1']
+      buildings: ['hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','terrain-a-batir-1']
     },
     ville_a: {
       name:'Port-Sainte-Marie',
-      imageUrl:'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=1200&q=80',
+      imageUrl:'https://images.unsplash.com/photo-1533139143976-30918502365b?w=1200&q=80',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
       buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','terrain-a-batir-2']
     },
     ville_b: {
       name:'Montrouge',
-      imageUrl:'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80',
+      imageUrl:'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=1200&q=80',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','terrain-a-batir-3']
@@ -566,18 +566,57 @@ const BUILDINGS = {
     cat: "Reseau secret",
     icon: "ti-hexagon",
     bgColor: "#0f0808",
-    locked: true,
-    desc: "Acces sur invitation uniquement. Les cercles les plus puissants de Republia s'y reunissent.",
+    locked: false,
+    desc: "Les cercles les plus puissants de Republia s'y reunissent. L'acces complet est sur invitation uniquement.",
     rooms: {
-      antichambre: {
-        name: "Antichambre",
-        image: "🔮",
+      portail: {
+        name: "Portail de la Loge",
         imageBg: "linear-gradient(135deg,#0f0808,#180f0f)",
-        desc: "L'antichambre de la Loge. Vous n'etes pas encore membre.",
+        desc: "Une lourde porte en bois sculpte. Un portier vous observe a travers un judas.",
         imageUrl: "https://images.unsplash.com/photo-1555099962-4199c345e5dd?w=1200&q=80",
+        persons: [
+          {name:'Le Portier', role:'PNJ - Gardien de la Loge', rel:'neutral', job:'portier'}
+        ],
+        orders: [
+          {fn:'demander_parler_loge', label:'Demander a parler a quelqu\'un', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:95, desc:'Frapper a la porte et demander une audience. Reussite a 95%.'}
+        ]
+      },
+      hall_loge: {
+        name: "Hall d'accueil",
+        imageBg: "linear-gradient(135deg,#100808,#1a1010)",
+        desc: "Un hall sobre et severe. Portraits de membres illustres aux murs. Vous etes surveille.",
+        imageUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200&q=80",
+        persons: [
+          {name:'Frere Gardien', role:'PNJ - Membre de la Loge', rel:'neutral', job:'membre_loge'}
+        ],
+        orders: [
+          {fn:'demander_adhesion', label:'Demander a rejoindre la Loge', pa:2, cost:0, type:'legal', icon:'ti-user-plus', successRate:50, desc:'Necessite un parrain. Sans parrain, refus automatique.'},
+          {fn:'rencontrer',        label:'Entamer une conversation',      pa:1, cost:0, type:'legal', icon:'ti-users',     successRate:100}
+        ]
+      },
+      bureau_venerable: {
+        name: "Bureau du Venerable Maitre",
+        imageBg: "linear-gradient(135deg,#0a0808,#14100a)",
+        desc: "Le bureau du chef de la Loge. Acces membres confirmes uniquement.",
+        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        locked: true,
+        persons: [
+          {name:'Venerable Maitre Duval', role:'PNJ - Chef de la Loge', rel:'neutral', job:'venerable'}
+        ],
+        orders: [
+          {fn:'negocier',           label:'Negocier un service',      pa:3, cost:500, type:'grey',    icon:'ti-handshake', successRate:60},
+          {fn:'demander_info_loge', label:'Demander des informations', pa:2, cost:0,   type:'legal',   icon:'ti-info-circle',successRate:70}
+        ]
+      },
+      salle_reunion_loge: {
+        name: "Salle de Reunion",
+        imageBg: "linear-gradient(135deg,#080808,#120808)",
+        desc: "La salle ou se tiennent les rituels et deliberations secretes.",
+        imageUrl: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1200&q=80",
+        locked: true,
         persons: [],
         orders: [
-          {fn:'introduction_loge', label:"Demander une introduction", pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100}
+          {fn:'voter_loi', label:'Participer aux deliberations', pa:2, cost:0, type:'legal', icon:'ti-check', successRate:100, requiresPost:false}
         ]
       }
     }
@@ -647,24 +686,83 @@ const BUILDINGS = {
     rooms: {
       marche_ext: {
         name: "Etals du marche",
-        image: "🛒",
         imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
         desc: "Bruyant, colore, vivant. Tout le monde passe par le marche.",
-        imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=80",
         persons: [
           {name:'Fernande (Marchande)', role:'PNJ - Commercante', rel:'neutral', job:'marchande'},
-          {name:'Habitant du quartier', role:'Citoyen', rel:'neutral', job:null}
+          {name:'Marcel',               role:'PNJ - Habitant du quartier', rel:'neutral', job:'citoyen'},
+          {name:'Yvonne',               role:'PNJ - Retraitee', rel:'neutral', job:'citoyen'}
         ],
         orders: [
-          {fn:'se_nourrir',   label:'Acheter de la nourriture',  pa:0, cost:8,  type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Repas economique. Sante maintenue.'},
-          {fn:'ecouter',      label:'Prendre le pouls populaire',pa:0, cost:0,  type:'legal', icon:'ti-ear',           successRate:100, desc:'Sentiment de la population.'},
-          {fn:'rencontrer',   label:'Rencontrer un habitant',    pa:0, cost:0,  type:'legal', icon:'ti-users',         successRate:100}
+          {fn:'se_nourrir',          label:'Acheter a manger',          pa:0, cost:8,  type:'legal',   icon:'ti-shopping-cart', successRate:100, desc:'Repas economique. +5 Sante.'},
+          {fn:'pouls_populaire',     label:'Prendre le pouls',          pa:0, cost:0,  type:'legal',   icon:'ti-ear',           successRate:85,  desc:'Sondage sur les elections ou popularite des PJ. Resultat genere par IA.'},
+          {fn:'distribuer_tract',    label:'Distribuer un tract',       pa:1, cost:0,  type:'legal',   icon:'ti-file-description',successRate:70, desc:'Necessite un tract en inventaire. Donne un vote au candidat du tract.', requiresTract:true},
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur',         pa:1, cost:0,  type:'grey',    icon:'ti-messages',      successRate:50,  desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
         ]
       }
     }
   },
 
   // ---- TERRAIN A BATIR ----
+  // ---- MAIRIE CAPITALE ----
+  'mairie-capitale': {
+    name: "Hotel de Ville de Luthecia",
+    shortName: "Hotel de Ville",
+    cat: "Administration - Candidatures",
+    icon: "ti-building-community",
+    bgColor: "#121810",
+    capitaleOnly: true,
+    desc: "L'hotel de ville de la capitale. C'est ici que se deposent les candidatures aux elections et que s'effectuent les actes officiels.",
+    rooms: {
+      hall_mairie: {
+        name: "Hall d'accueil",
+        imageBg: "linear-gradient(135deg,#121810,#1a2016)",
+        desc: "Le hall de l'hotel de ville. Guichets, formulaires, fonctionnaires municipaux.",
+        imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
+        persons: [
+          {name:'Secretaire Municipal Petit', role:'PNJ - Secretariat general', rel:'neutral', job:'secretaire'},
+          {name:'Le Maire (PNJ)',             role:'Maire de Luthecia', rel:'neutral', job:'maire'}
+        ],
+        orders: [
+          {fn:'deposer_candidature', label:'Deposer une candidature',    pa:2, cost:0,   type:'legal', icon:'ti-id-badge',   successRate:100, desc:'Vous inscrire comme candidat a une election en cours.'},
+          {fn:'consulter_elections', label:'Consulter les elections',     pa:0, cost:0,   type:'legal', icon:'ti-chart-bar',  successRate:100, desc:'Voir les elections en cours et les candidats declares.'},
+          {fn:'acte_officiel',       label:'Demander un acte officiel',  pa:1, cost:50,  type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.'},
+          {fn:'corrompre_fonct',     label:'Corrompre un fonctionnaire', pa:2, cost:300, type:'illegal',icon:'ti-coins',     successRate:60,  desc:'Obtenir un service administratif illicite.'}
+        ]
+      },
+      bureau_maire: {
+        name: "Bureau du Maire",
+        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
+        desc: "Le bureau du maire de Luthecia. Acces sur rendez-vous.",
+        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        persons: [
+          {name:'Le Maire de Luthecia (PNJ)', role:'Maire de la Capitale', rel:'neutral', job:'maire'}
+        ],
+        orders: [
+          {fn:'negocier',   label:'Negocier avec le maire',   pa:3, cost:0,   type:'legal',   icon:'ti-handshake', successRate:65, desc:'Proposer un accord ou un projet.'},
+          {fn:'postuler',   label:'Postuler comme adjoint',   pa:2, cost:0,   type:'legal',   icon:'ti-id-badge',  successRate:70, desc:'Postuler au poste de maire adjoint.'},
+          {fn:'corrompre_fonct', label:'Corrompre le maire',  pa:3, cost:800, type:'illegal', icon:'ti-coins',     successRate:45, desc:'Acheter la complicite du maire.'}
+        ]
+      },
+      salle_elections: {
+        name: "Salle des Elections",
+        imageBg: "linear-gradient(135deg,#0f1810,#142014)",
+        desc: "La salle ou sont geres les scrutins et candidatures officielles de la ville.",
+        imageUrl: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&q=80",
+        persons: [
+          {name:'Responsable Electoral (PNJ)', role:'PNJ - Commission electorale', rel:'neutral', job:'responsable_election'}
+        ],
+        orders: [
+          {fn:'deposer_candidature',  label:'Deposer ma candidature',     pa:2, cost:0,    type:'legal',   icon:'ti-id-badge',      successRate:100, desc:'Officialiser votre candidature a une election.'},
+          {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
+          {fn:'contester_resultats',  label:'Contester des resultats',    pa:3, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:40,  desc:'Contester le resultat d\'une election. Long processus.'},
+          {fn:'falsifier_docs',       label:'Falsifier une liste',        pa:3, cost:500,  type:'illegal', icon:'ti-file-x',        successRate:35,  desc:'Manipuler les listes electorales. Tres risque.'}
+        ]
+      }
+    }
+  },
+
   'terrain-a-batir-1': {
     name: "Terrain a batir - Lot 1",
     shortName: "Terrain Lot 1",

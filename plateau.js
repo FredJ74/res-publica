@@ -482,6 +482,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gerer_finances') { openFinancesModal(); return; }
   if (fn === 'plainte_police') { openPlainteModal(); return; }
   if (fn === 'archives_police') { doArchivesPolice(); return; }
+  if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
+  if (fn === 'lancer_rumeur_cible') { openRumeurModal(); return; }
+  if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
+  if (fn === 'demander_parler_loge') { doLogePortail(); return; }
+  if (fn === 'deposer_candidature') { openCandidatureModal(); return; }
+  if (fn === 'consulter_elections') { openElectionsModal(); return; }
 
   // Deduire PA et argent
   if (!TEST_MODE) state.pa = Math.max(0, state.pa - pa);
@@ -590,24 +596,40 @@ function openPnjModal(encodedPnj) {
   const speech = document.getElementById('pnj-speech');
   speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
 
-  // Actions selon relation
-  const relTxt = pnj.rel === 'ally' ? 'Allie' : pnj.rel === 'enemy' ? 'Hostile' : 'Neutre';
+  // Actions predefinies + champ libre
+  const enc = encodeURIComponent(JSON.stringify(pnj));
   document.getElementById('pnj-actions').innerHTML = `
-    <button class="pnj-action-btn" onclick="talkToPnj('${encodeURIComponent(JSON.stringify(pnj))}','bonjour')">
+    <button class="pnj-action-btn" onclick="talkToPnj('${enc}','bonjour')">
       <i class="ti ti-message" style="font-size:.85rem"></i> Engager la conversation
     </button>
-    <button class="pnj-action-btn" onclick="talkToPnj('${encodeURIComponent(JSON.stringify(pnj))}','information')">
+    <button class="pnj-action-btn" onclick="talkToPnj('${enc}','information')">
       <i class="ti ti-info-circle" style="font-size:.85rem"></i> Demander des informations
     </button>
-    ${pnj.rel !== 'enemy' ? `<button class="pnj-action-btn" onclick="talkToPnj('${encodeURIComponent(JSON.stringify(pnj))}','alliance')">
-      <i class="ti ti-handshake" style="font-size:.85rem"></i> Proposer une alliance
-    </button>` : `<button class="pnj-action-btn" onclick="talkToPnj('${encodeURIComponent(JSON.stringify(pnj))}','confrontation')">
-      <i class="ti ti-sword" style="font-size:.85rem"></i> Confronter
-    </button>`}
+    ${pnj.rel !== 'enemy'
+      ? `<button class="pnj-action-btn" onclick="talkToPnj('${enc}','alliance')">
+           <i class="ti ti-handshake" style="font-size:.85rem"></i> Proposer une alliance
+         </button>`
+      : `<button class="pnj-action-btn" onclick="talkToPnj('${enc}','confrontation')">
+           <i class="ti ti-sword" style="font-size:.85rem"></i> Confronter
+         </button>`
+    }
+    <button class="pnj-action-btn" onclick="addContact(${JSON.stringify(pnj).replace(/"/g,'&quot;')})">
+      <i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire
+    </button>
+    <div style="display:flex;gap:.4rem;margin-top:.5rem">
+      <input id="pnj-question-libre" type="text"
+        style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:'Crimson Pro',serif;font-size:.82rem;outline:none"
+        placeholder="Posez votre propre question..."
+        onkeydown="if(event.key==='Enter')talkToPnj('${enc}',document.getElementById('pnj-question-libre').value)"/>
+      <button onclick="talkToPnj('${enc}',document.getElementById('pnj-question-libre').value)"
+        style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
+        <i class="ti ti-send" style="font-size:.8rem"></i>
+      </button>
+    </div>
   `;
 
-  // Message d'accueil par defaut
-  talkToPnj(encodedPnj, 'bonjour');
+  // Message d'accueil
+  talkToPnj(enc, 'bonjour');
 }
 
 async function talkToPnj(encodedPnj, action) {
@@ -615,26 +637,48 @@ async function talkToPnj(encodedPnj, action) {
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }
   catch(e) { return; }
 
+  if (!action || action.trim() === '') return;
+
   const speech = document.getElementById('pnj-speech');
   speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
 
   const char = state.char;
   const ar = ARCHETYPES.find(x => x.id === char?.archetype);
   const co = COUNTRIES[state.country];
-  const actionDesc = {
-    'bonjour':       'vous salue en entrant dans la piece',
-    'information':   'vous demande des informations sur la situation politique locale',
-    'alliance':      'vous propose une alliance politique discrète',
-    'confrontation': 'vous confronte directement en lui reprochant ses actions'
-  }[action] || action;
 
-  const prompt = `Tu joues un personnage dans un jeu de role politique parodique (Res Publica).
-Ton personnage : ${pnj.name}, ${pnj.role}, dans l'empire fictif "${co?.n}".
-Relation avec le joueur : ${pnj.rel === 'ally' ? 'allie de confiance' : pnj.rel === 'enemy' ? 'ennemi declare' : 'neutre / inconnu'}.
-Le joueur : ${char?.name || 'Inconnu'}, ${ar?.name || 'personnage'}, ${state.poste ? 'actuellement ' + state.poste.name : 'sans poste officiel'}.
-Action : Le joueur ${actionDesc}.
-Reponds en 2-3 phrases max. Ton : satirique, politique, caracteriel. Sois coherent avec ton role et ta relation.
-Reponds uniquement avec ta replique directe, sans guillemets, sans "je reponds", sans introduction.`;
+  // Gestion speciale loge
+  if (pnj.job === 'portier' && action === 'bonjour') {
+    speech.textContent = 'Le portier vous devisage longuement a travers le judas. "Que voulez-vous ?"';
+    document.getElementById('pnj-actions').innerHTML += `
+      <div style="margin-top:.8rem;border-top:1px solid #2a2010;padding-top:.8rem">
+        <div style="font-size:.72rem;color:#6a5a20;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;margin-bottom:.4rem">REPONDRE :</div>
+        <button class="pnj-action-btn" onclick="logeDemanderResponsable()">
+          <i class="ti ti-user-star" style="font-size:.85rem"></i> Je veux parler au responsable de la loge
+        </button>
+        <button class="pnj-action-btn" onclick="logeDemanderAdhesion()">
+          <i class="ti ti-user-plus" style="font-size:.85rem"></i> Je veux faire partie des votres
+        </button>
+      </div>`;
+    return;
+  }
+
+  // Actions predefinies
+  const actionMap = {
+    'bonjour':       'vous salue a son arrivee',
+    'information':   'lui demande des informations sur la situation politique locale',
+    'alliance':      'lui propose une alliance politique discrete',
+    'confrontation': 'le confronte directement en lui reprochant ses actions'
+  };
+  const actionDesc = actionMap[action] || `lui pose la question suivante : "${action}"`;
+  const isQuestion = !actionMap[action];
+
+  const prompt = `Tu joues un personnage dans un jeu de role politique parodique satirique (Res Publica).
+Ton personnage : ${pnj.name}, ${pnj.role}, dans l'empire "${co?.n}".
+Relation avec le joueur : ${pnj.rel === 'ally' ? 'allie de confiance' : pnj.rel === 'enemy' ? 'ennemi declare' : 'neutre'}.
+Le joueur : ${char?.name || 'Inconnu'}, ${ar?.name || ''}, ${state.poste ? state.poste.name : 'sans poste'}.
+${isQuestion ? `Le joueur te pose cette question : "${action}". Reponds de facon coherente avec ton role.` : `Le joueur ${actionDesc}.`}
+Reponds en 2-3 phrases max. Ton satirique et politique. Sois caracteriel.
+Reponds UNIQUEMENT avec ta replique, sans guillemets ni introduction.`;
 
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -646,23 +690,17 @@ Reponds uniquement avec ta replique directe, sans guillemets, sans "je reponds",
         messages: [{ role: 'user', content: prompt }]
       })
     });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
     const text = data.content?.[0]?.text;
     if (text) {
       speech.textContent = text;
-    } else {
-      speech.textContent = pnj.rel === 'enemy'
-        ? `${pnj.name} vous regarde froidement sans repondre.`
-        : `${pnj.name} acquiesce poliment et change de sujet.`;
-    }
+    } else { throw new Error('no text'); }
   } catch(e) {
-    console.warn('API PNJ error:', e);
-    // Reponses de secours selon la relation
     const fallbacks = {
-      enemy:   [`Vous avez le culot de me parler ? Circulez.`, `Je n'ai rien a vous dire.`, `Votre presence ici m'importune.`],
-      ally:    [`Ah, vous voila ! J'allais justement vous chercher.`, `Toujours un plaisir. Quoi de neuf ?`, `Je suis content de vous voir. On a des choses a discuter.`],
-      neutral: [`Bonjour. Puis-je vous aider ?`, `Oui ? Que puis-je faire pour vous ?`, `Vous avez quelque chose a me dire ?`]
+      enemy:   ['Circulez, il n\'y a rien a vous dire.', 'Votre presence m\'importune.', 'Je n\'ai rien a declarer.'],
+      ally:    ['Ah, vous voila ! On a des choses a discuter.', 'Je vous attendais justement.', 'Entrons dans le vif du sujet.'],
+      neutral: ['Bonjour. Que puis-je faire pour vous ?', 'Oui ? J\'ecoute.', 'En quoi puis-je vous aider ?']
     };
     const list = fallbacks[pnj.rel] || fallbacks.neutral;
     speech.textContent = list[Math.floor(Math.random() * list.length)];
@@ -672,6 +710,35 @@ Reponds uniquement avec ta replique directe, sans guillemets, sans "je reponds",
 function closePnjModal() {
   document.getElementById('modal-pnj').classList.remove('open');
 }
+
+// Ajouter un contact au repertoire
+function addContact(pnj) {
+  if (!state.contacts) state.contacts = [];
+  const exists = state.contacts.find(c => c.name === pnj.name);
+  if (exists) {
+    showToast('Deja dans le repertoire', pnj.name + ' est deja dans vos contacts.', false);
+    return;
+  }
+  state.contacts.push({ name: pnj.name, role: pnj.role, rel: pnj.rel });
+  showToast('Contact ajoute', pnj.name + ' a ete ajoute a votre repertoire.', true);
+  addJournalEntry(pnj.name + ' ajoute au repertoire.', '');
+}
+
+// Loge — demander le responsable
+function logeDemanderResponsable() {
+  const speech = document.getElementById('pnj-speech');
+  speech.textContent = 'Le portier disparait un instant puis revient. "Je lui transmets de ce pas votre demande. Le Venerable Maitre vous repondra directement sur votre boite mail."';
+  addMailNotification('Loge Maconnique', 'Demande d\'audience', 'Votre demande d\'entretien avec le Venerable Maitre a ete transmise. Une reponse vous parviendra dans les 24 heures.');
+  addJournalEntry('Vous avez demande une audience aupres du Venerable Maitre de la Loge.', 'event-info');
+}
+
+// Loge — demander adhesion
+function logeDemanderAdhesion() {
+  const speech = document.getElementById('pnj-speech');
+  speech.textContent = '"Vous devez vous faire recommander par un parrain membre de notre Loge. Sans cela, votre demande ne peut aboutir." La porte se referme.';
+  addJournalEntry('La Loge vous a informe qu\'un parrain est necessaire pour adherer.', '');
+}
+
 
 // =====================
 // POSTES MODAL
@@ -778,7 +845,16 @@ async function postulerPoste(posteId, posteName) {
 // =====================
 function openPlainteModal() {
   const contacts = state.contacts || [];
-  const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+
+  const contactsSection = contacts.length === 0
+    ? `<div style="font-size:.8rem;color:#7a5020;font-style:italic;padding:.5rem;background:#0f0805;border:1px solid #2a1810">
+        Votre repertoire est vide. Veuillez prealablement enregistrer la personne que vous ciblez dans celui-ci.
+       </div>`
+    : contacts.map(c => `
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer;padding:.2rem 0">
+          <input type="radio" name="plainte-cible" value="${c.name}" style="accent-color:#C9A84C"/>
+          ${c.name} — ${c.role || ''}
+        </label>`).join('');
 
   const modalHtml = `
     <div style="padding:1rem">
@@ -786,18 +862,13 @@ function openPlainteModal() {
         Vous deposez une plainte. Un resultat vous sera communique par mail dans 24h.
       </div>
       <div style="margin-bottom:1rem">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CONTRE</div>
-        <div style="display:flex;flex-direction:column;gap:.4rem">
-          <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer">
-            <input type="radio" name="plainte-cible" value="X" checked style="accent-color:#C9A84C"/>
-            Contre X (personne inconnue)
-          </label>
-          ${contacts.map(c => `
-            <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer">
-              <input type="radio" name="plainte-cible" value="${c.name}" style="accent-color:#C9A84C"/>
-              ${c.name} — ${c.role || ''}
-            </label>`).join('')}
-        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CONTRE</div>
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer;margin-bottom:.6rem">
+          <input type="radio" name="plainte-cible" value="X" checked style="accent-color:#C9A84C"/>
+          Contre X (personne inconnue)
+        </label>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:.68rem;letter-spacing:.1em;color:#5a4a20;margin-bottom:.4rem">OU CONTRE UNE PERSONNE DE MON REPERTOIRE :</div>
+        ${contactsSection}
       </div>
       <div style="margin-bottom:1rem">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MOTIF</div>
@@ -809,7 +880,6 @@ function openPlainteModal() {
     </div>
   `;
 
-  document.getElementById('modal-postes').querySelector('#postes-body').innerHTML = '';
   document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Porter plainte';
   document.getElementById('postes-body').innerHTML = modalHtml;
   document.getElementById('modal-postes').classList.add('open');
@@ -879,6 +949,231 @@ function traiterEnquetes() {
 }
 
 // Ajouter evenement externe (rouge + gras + point clignotant)
+// =====================
+// MARCHE — ORDRES SPECIFIQUES
+// =====================
+async function doPoulsPopulaire() {
+  addJournalEntry('Vous interrogez les passants du marche...', '');
+  showToast('Sondage en cours', 'Les habitants parlent...', true);
+
+  // Generer un sondage via IA
+  const char = state.char;
+  const co = COUNTRIES[state.country];
+  const prompt = `Tu es un narrateur dans un jeu de role politique parodique (Res Publica, empire ${co?.n}).
+Genere un court sondage d'opinion populaire (2-3 phrases) comme si tu etais un habitant du marche.
+${state.electionsEnCours?.length > 0
+  ? `Il y a des elections en cours avec ces candidats : ${state.electionsEnCours.map(e => e.candidats?.join(', ')).join(' | ')}. Donne un resultat en pourcentages.`
+  : `Pas d'election en cours. Parle de la popularite des personnages politiques connus : ${state.pjConnus?.join(', ') || 'personne de particulier'}.`
+}
+Style : direct, populaire, parodique. Format : phrase construite du genre "D'apres ce qu'on entend, X serait le plus populaire..." Reponds uniquement avec le sondage.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const text = data.content?.[0]?.text;
+    if (text) {
+      showToast('Pouls de la population', text.substring(0, 100), true);
+      addJournalEntry('Sondage : ' + text, 'event-info');
+    }
+  } catch(e) {
+    const fallback = `D'apres les habitants, la situation politique est tendue. "On ne sait plus qui croire", dit une marchande.`;
+    showToast('Pouls de la population', fallback, true);
+    addJournalEntry('Sondage : ' + fallback, 'event-info');
+  }
+}
+
+function doDistribuerTract() {
+  const tracts = state.inventory.filter(i => i.type === 'tract');
+  if (tracts.length === 0) {
+    showToast('Aucun tract', 'Vous n\'avez pas de tract en inventaire. Faites-en imprimer a l\'imprimerie.', false);
+    return;
+  }
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= 70) {
+    state.pop = Math.min(100, state.pop + 2);
+    tracts[0].qty = (tracts[0].qty || 1) - 1;
+    if (tracts[0].qty <= 0) state.inventory = state.inventory.filter(i => i !== tracts[0]);
+    updateUI();
+    addJournalEntry('Vous avez distribue des tracts. +2 POP.', 'event-good');
+    showToast('Tracts distribues', '+2 Popularite. Les passants prennent vos tracts.', true);
+  } else {
+    addJournalEntry('Distribution de tracts peu efficace. Les passants ignorent vos tracts.', '');
+    showToast('Distribution difficile', 'Les passants ne s\'y interessent pas beaucoup.', false);
+  }
+}
+
+function openRumeurModal() {
+  const contacts = state.contacts || [];
+  if (contacts.length === 0) {
+    showToast('Repertoire vide', 'Vous n\'avez personne dans votre repertoire. Rencontrez d\'abord des personnages.', false);
+    return;
+  }
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Lancer une rumeur';
+  document.getElementById('postes-body').innerHTML = `
+    <div style="padding:1rem">
+      <div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">
+        Taux de reussite : 50%. En cas de succes : +/-5 POP sur la cible.
+      </div>
+      <div style="margin-bottom:1rem">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>
+        ${contacts.map(c => `
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:#c0b090;cursor:pointer;padding:.2rem 0">
+            <input type="radio" name="rumeur-cible" value="${c.name}" style="accent-color:#C9A84C"/>
+            ${c.name}
+          </label>`).join('')}
+      </div>
+      <div style="margin-bottom:1rem">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TYPE DE RUMEUR</div>
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:#6a9060;cursor:pointer;margin-bottom:.3rem">
+          <input type="radio" name="rumeur-type" value="positive" style="accent-color:#4a8a4a"/> Rumeur positive (+5 POP sur la cible)
+        </label>
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:#9a5040;cursor:pointer">
+          <input type="radio" name="rumeur-type" value="negative" checked style="accent-color:#8a3a2a"/> Rumeur negative (-5 POP sur la cible)
+        </label>
+      </div>
+      <button onclick="soumettreRumeur()" style="font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
+        Lancer la rumeur
+      </button>
+    </div>`;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function soumettreRumeur() {
+  const cible = document.querySelector('input[name="rumeur-cible"]:checked')?.value;
+  const type = document.querySelector('input[name="rumeur-type"]:checked')?.value || 'negative';
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!cible) { showToast('Selectionnez une cible', '', false); return; }
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= 50) {
+    const impact = type === 'positive' ? 5 : -5;
+    addJournalEntry(`Rumeur ${type} sur ${cible} lancee avec succes. Impact : ${impact > 0 ? '+' : ''}${impact} POP sur ${cible}.`, 'event-good');
+    showToast('Rumeur repandue', `La rumeur ${type} circule sur ${cible}. ${impact > 0 ? '+' : ''}${impact} POP.`, true);
+  } else {
+    addJournalEntry(`Rumeur sur ${cible} : personne n'y a cru.`, '');
+    showToast('Rumeur inefficace', 'Personne ne semble y preter attention.', false);
+  }
+}
+
+function doLogePortail() {
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= 95) {
+    // Trouver le portier de la loge
+    const portier = { name: 'Le Portier', role: 'PNJ - Gardien de la Loge', rel: 'neutral', job: 'portier' };
+    openPnjModal(encodeURIComponent(JSON.stringify(portier)));
+    addJournalEntry('Le portier de la Loge repond a votre appel.', '');
+  } else {
+    showToast('Pas de reponse', 'Personne ne repond a votre frappe. Reessayez plus tard.', false);
+    addJournalEntry('Vous avez frappe a la porte de la Loge mais personne n\'a repondu.', '');
+  }
+}
+
+function openCandidatureModal() {
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Deposer une candidature';
+  const elections = state.electionsEnCours || [];
+  document.getElementById('postes-body').innerHTML = `
+    <div style="padding:1rem">
+      ${elections.length === 0
+        ? `<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune election n'est actuellement en cours. Revenez lorsqu'une election sera declaree.</div>`
+        : elections.map(e => `
+            <div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">
+              <div style="font-family:'Playfair Display',serif;font-size:.9rem;color:#E8C97A;margin-bottom:.2rem">${e.nom}</div>
+              <div style="font-size:.72rem;color:#6a5a30">Date : ${e.date} · Candidats : ${e.candidats?.length || 0}</div>
+              <button onclick="confirmerCandidature('${e.id}')" style="margin-top:.5rem;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
+                Me declarer candidat
+              </button>
+            </div>`).join('')}
+      <div style="margin-top:.8rem;font-size:.72rem;color:#4a4030;font-style:italic">
+        Pour lancer une election, contactez le Maire ou le Responsable electoral.
+      </div>
+    </div>`;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerCandidature(electionId) {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!state.electionsEnCours) return;
+  const election = state.electionsEnCours.find(e => e.id === electionId);
+  if (!election) return;
+  if (!election.candidats) election.candidats = [];
+  const nom = state.char?.name || 'Anonyme';
+  if (election.candidats.includes(nom)) {
+    showToast('Deja candidat', 'Vous etes deja candidat a cette election.', false);
+    return;
+  }
+  election.candidats.push(nom);
+  showToast('Candidature enregistree !', 'Vous etes officiellement candidat a ' + election.nom, true, true);
+  addJournalEntry('Vous avez depose votre candidature pour : ' + election.nom, 'event-good');
+}
+
+function openElectionsModal() {
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Elections en cours';
+  const elections = state.electionsEnCours || [];
+  document.getElementById('postes-body').innerHTML = `
+    <div style="padding:1rem">
+      ${elections.length === 0
+        ? `<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune election en cours pour le moment.</div>`
+        : elections.map(e => `
+            <div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">
+              <div style="font-family:'Playfair Display',serif;font-size:.9rem;color:#E8C97A">${e.nom}</div>
+              <div style="font-size:.72rem;color:#6a5a30;margin:.2rem 0">Date limite : ${e.date}</div>
+              <div style="font-size:.78rem;color:#8a8060">Candidats declares : ${e.candidats?.join(', ') || 'Aucun'}</div>
+            </div>`).join('')}
+    </div>`;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// =====================
+// BOITE MAIL
+// =====================
+function openMailbox() {
+  const mails = state.mails || [];
+  const unread = mails.filter(m => !m.read).length;
+
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent =
+    'Boite mail' + (unread > 0 ? ' (' + unread + ' non lu' + (unread > 1 ? 's' : '') + ')' : '');
+
+  document.getElementById('postes-body').innerHTML = `
+    <div style="padding:.5rem 0">
+      ${mails.length === 0
+        ? `<div style="padding:1rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Votre boite mail est vide.</div>`
+        : mails.slice().reverse().map((m, i) => `
+            <div onclick="readMail(${mails.length - 1 - i})" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer;background:${m.read ? 'transparent' : '#0f0a05'};transition:background .2s" onmouseover="this.style.background='#121005'" onmouseout="this.style.background='${m.read ? 'transparent' : '#0f0a05'}'">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem">
+                <span style="font-family:'Playfair Display',serif;font-size:.82rem;color:${m.read ? '#8a8060' : '#E8C97A'};font-weight:${m.read ? 'normal' : '700'}">${m.from}</span>
+                <span style="font-size:.65rem;color:#4a4030">Jour ${m.day}</span>
+              </div>
+              <div style="font-size:.78rem;color:${m.read ? '#5a5040' : '#c0b090'}">${m.subject}</div>
+              ${!m.read ? '<div style="width:6px;height:6px;background:#C9A84C;border-radius:50%;display:inline-block;margin-top:.2rem"></div>' : ''}
+            </div>`).join('')}
+    </div>`;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function readMail(index) {
+  const mails = state.mails || [];
+  const mail = mails[index];
+  if (!mail) return;
+  mail.read = true;
+
+  document.getElementById('postes-body').innerHTML = `
+    <div style="padding:1rem">
+      <button onclick="openMailbox()" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:1rem;display:flex;align-items:center;gap:.3rem">
+        <i class="ti ti-arrow-left" style="font-size:.8rem"></i> Retour
+      </button>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.3rem">DE</div>
+      <div style="font-size:.9rem;color:#E8C97A;margin-bottom:.6rem">${mail.from}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.3rem">OBJET</div>
+      <div style="font-size:.85rem;color:#c0b090;margin-bottom:.8rem">${mail.subject}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.3rem">MESSAGE</div>
+      <div style="font-size:.85rem;color:#a0a080;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #2a2010">${mail.body}</div>
+    </div>`;
+}
+
 function addExternalEvent(text) {
   const j = document.getElementById('journal');
   const h = String(state.hour).padStart(2,'0');
@@ -1130,6 +1425,14 @@ function updateUI() {
   document.getElementById('b-hp').style.width   = state.hp + '%';
   document.getElementById('r-moral').textContent = state.moral;
   document.getElementById('b-moral').style.width  = state.moral + '%';
+
+  // Badge mail
+  const unread = (state.mails || []).filter(m => !m.read).length;
+  const badge = document.getElementById('mail-badge');
+  if (badge) {
+    badge.textContent = unread;
+    badge.style.display = unread > 0 ? 'inline' : 'none';
+  }
 
   // Inventaire
   document.getElementById('inv-liquide').textContent = state.liquide.toLocaleString('fr-FR') + ' ' + cur;
