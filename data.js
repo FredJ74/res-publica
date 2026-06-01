@@ -104,14 +104,14 @@ const WORLD = {
     },
     ville_a: {
       name:'Port-Sainte-Marie',
-      imageUrl:'https://images.unsplash.com/photo-1533139143976-30918502365b?w=1200&q=80',
+      imageUrl:'https://images.unsplash.com/photo-1596394723269-b2cbca4e6313?w=1200&q=80',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
       buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','terrain-a-batir-2']
     },
     ville_b: {
       name:'Montrouge',
-      imageUrl:'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=1200&q=80',
+      imageUrl:'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','terrain-a-batir-3']
@@ -313,7 +313,7 @@ const BUILDINGS = {
           {fn:'assister_session', label:'Assister a la session', pa:1, cost:0,   type:'legal', icon:'ti-building', successRate:100, desc:'Observer les debats. +1 INF.'},
           {fn:'voter_loi',        label:'Voter une loi',         pa:1, cost:0,   type:'legal', icon:'ti-check',    successRate:100, requiresPost:true, desc:'Voter uniquement si vous etes depute.'},
           {fn:'projet_loi',       label:'Deposer un projet',     pa:3, cost:0,   type:'legal', icon:'ti-file-text',successRate:70,  requiresPost:true, desc:'Deposer un projet de loi.'},
-          {fn:'marchander',       label:'Marchander un vote',    pa:2, cost:200, type:'grey',  icon:'ti-arrows-exchange', successRate:60, desc:'Negocier le vote d\'un depute.'}
+          {fn:'marchander_vote', label:'Marchander un vote', pa:0, cost:200, type:'grey', icon:'ti-arrows-exchange', successRate:40, desc:'Taux 40% + bonus INF. Ouvre la liste des votes en cours. 1 PA consomme en cas de succes uniquement.'}
         ]
       },
       couloirs: {
@@ -573,7 +573,7 @@ const BUILDINGS = {
         name: "Portail de la Loge",
         imageBg: "linear-gradient(135deg,#0f0808,#180f0f)",
         desc: "Une lourde porte en bois sculpte. Un portier vous observe a travers un judas.",
-        imageUrl: "https://images.unsplash.com/photo-1555099962-4199c345e5dd?w=1200&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80",
         persons: [
           {name:'Le Portier', role:'PNJ - Gardien de la Loge', rel:'neutral', job:'portier'}
         ],
@@ -656,20 +656,41 @@ const BUILDINGS = {
     cat: "Securite - Equipement",
     icon: "ti-shield",
     bgColor: "#100a08",
-    desc: "Vente d'armes legales et equipements de securite. Tout est tracable.",
+    desc: "Vente d'armes legales et equipements de securite. Un registre consigne toutes les ventes.",
     rooms: {
       magasin: {
         name: "Magasin",
-        image: "🔫",
         imageBg: "linear-gradient(135deg,#100a08,#181008)",
-        desc: "Presentoirs d'armes legales. Le vendeur verifie les papiers.",
+        desc: "Presentoirs d'armes. Le vendeur verifie les papiers pour les ventes legales.",
         imageUrl: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=1200&q=80",
         persons: [
           {name:'Gerard (Armurier)', role:'PNJ - Vendeur', rel:'neutral', job:'armurier'}
         ],
         orders: [
-          {fn:'acheter_arme',  label:'Acheter une arme (legale)',  pa:1, cost:400, type:'legal', icon:'ti-shield', successRate:100, desc:'Ajoute une arme a votre inventaire.'},
-          {fn:'acheter_gilet', label:'Acheter un gilet pare-balles',pa:1,cost:600, type:'legal', icon:'ti-shield', successRate:100, desc:'Protection physique +20.'}
+          {
+            fn:'acheter_arme_legale',
+            label:'Acheter une arme (legalement)',
+            pa:1, cost:400, type:'legal', icon:'ti-shield', successRate:100,
+            desc:'Vente enregistree dans le registre officiel. Tracable. Arme ajoutee a votre inventaire.'
+          },
+          {
+            fn:'acheter_arme_illegale',
+            label:'Acheter une arme (sans registre)',
+            pa:1, cost:800, type:'illegal', icon:'ti-eye-off', successRate:50,
+            desc:'Taux de reussite : 50%. 2x plus cher. Non enregistre. Echec : gratuit mais devez dormir avant de retenter.'
+          },
+          {
+            fn:'acheter_gilet',
+            label:'Acheter un gilet pare-balles',
+            pa:1, cost:600, type:'legal', icon:'ti-shield-check', successRate:100,
+            desc:'Protection physique. Enregistre dans le registre.'
+          },
+          {
+            fn:'consulter_registre_armes',
+            label:'Consulter le registre de vente',
+            pa:1, cost:0, type:'legal', icon:'ti-book', successRate:100,
+            desc:'Acces libre : Commissaire, Juge. Sinon : soudoyer l\'armurier (30%, 100 FR, +/-5 INF et POP). Ventes des 6 derniers mois.'
+          }
         ]
       }
     }

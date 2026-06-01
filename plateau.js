@@ -486,6 +486,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'lancer_rumeur_cible') { openRumeurModal(); return; }
   if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(); return; }
+    if (fn === 'acheter_arme_legale') { doAcheterArme(true); return; }
+  if (fn === 'acheter_arme_illegale') { doAcheterArme(false); return; }
+  if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
+  if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
   if (fn === 'deposer_candidature') { openCandidatureModal(); return; }
   if (fn === 'consulter_elections') { openElectionsModal(); return; }
 
@@ -494,6 +498,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (cost > 0) state.arg = Math.max(0, state.arg - cost);
 
   // Roll
+  // Ajuster le taux selon le groupe pour le blocus
+  if (fn === 'organiser_blocus') {
+    const groupBonus = getGroupSize ? getGroupSize() - 1 : 0;
+    successRate = Math.min(90, 25 + groupBonus);
+  }
+
   const roll = Math.floor(Math.random() * 100) + 1;
   const effectiveRate = successRate >= 98 ? 99 : successRate;
   let resultType;
@@ -557,6 +567,10 @@ function applyEffects(fn, resultType, cost) {
   }
 
   // Effets speciaux
+  // Blocus : 1 PA quoi qu'il arrive + bonus groupe
+  if (fn === 'organiser_blocus') {
+    if (!TEST_MODE) state.pa = Math.max(0, state.pa - 1);
+  }
   if (fn === 'acheter_arme')    addToInventory({name:'Arme de poing', icon:'ti-gun', type:'arme'});
   if (fn === 'acheter_gilet')   addToInventory({name:'Gilet pare-balles', icon:'ti-shield', type:'protection'});
   if (fn === 'acheter_terrain') addToInventory({name:'Terrain (terrain en jeu)', icon:'ti-fence', type:'bien'});
@@ -590,46 +604,39 @@ function openPnjModal(encodedPnj) {
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }
   catch(e) { return; }
 
+  const isPJ = pnj.isPJ === true;
   document.getElementById('modal-pnj').classList.add('open');
   document.getElementById('pnj-modal-title').textContent = pnj.name;
-
   const speech = document.getElementById('pnj-speech');
   speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
-
-  // Actions predefinies + champ libre
   const enc = encodeURIComponent(JSON.stringify(pnj));
-  document.getElementById('pnj-actions').innerHTML = `
-    <button class="pnj-action-btn" onclick="talkToPnj('${enc}','bonjour')">
-      <i class="ti ti-message" style="font-size:.85rem"></i> Engager la conversation
-    </button>
-    <button class="pnj-action-btn" onclick="talkToPnj('${enc}','information')">
-      <i class="ti ti-info-circle" style="font-size:.85rem"></i> Demander des informations
-    </button>
-    ${pnj.rel !== 'enemy'
-      ? `<button class="pnj-action-btn" onclick="talkToPnj('${enc}','alliance')">
-           <i class="ti ti-handshake" style="font-size:.85rem"></i> Proposer une alliance
-         </button>`
-      : `<button class="pnj-action-btn" onclick="talkToPnj('${enc}','confrontation')">
-           <i class="ti ti-sword" style="font-size:.85rem"></i> Confronter
-         </button>`
-    }
-    <button class="pnj-action-btn" onclick="addContact(${JSON.stringify(pnj).replace(/"/g,'&quot;')})">
-      <i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire
-    </button>
-    <div style="display:flex;gap:.4rem;margin-top:.5rem">
-      <input id="pnj-question-libre" type="text"
-        style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:'Crimson Pro',serif;font-size:.82rem;outline:none"
-        placeholder="Posez votre propre question..."
-        onkeydown="if(event.key==='Enter')talkToPnj('${enc}',document.getElementById('pnj-question-libre').value)"/>
-      <button onclick="talkToPnj('${enc}',document.getElementById('pnj-question-libre').value)"
-        style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
-        <i class="ti ti-send" style="font-size:.8rem"></i>
-      </button>
-    </div>
-  `;
 
-  // Message d'accueil
+  let actionBtns = '';
+  if (isPJ) {
+    const inGroup = state.group && state.group.members && state.group.members.includes(pnj.name);
+    actionBtns = (!inGroup
+      ? '<button class="pnj-action-btn" onclick="rejoindrePJ('' + enc + '')"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
+      : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>')
+      + '<button class="pnj-action-btn" onclick='addContact(' + JSON.stringify(pnj).replace(/'/g,"\'") + ')'><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
+  }
+  if (pnj.rel === 'enemy') {
+    actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj('' + enc + '','confrontation')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
+  }
+
+  document.getElementById('pnj-actions').innerHTML = actionBtns +
+    '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
+    '<input id="pnj-question-libre" type="text" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" placeholder="Posez votre question ou dites quelque chose..." onkeydown="if(event.key==='Enter')envoyerQuestion('' + enc + '')" />' +
+    '<button onclick="envoyerQuestion('' + enc + '')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +
+    '</div>';
+
   talkToPnj(enc, 'bonjour');
+}
+
+function envoyerQuestion(enc) {
+  const q = document.getElementById('pnj-question-libre') && document.getElementById('pnj-question-libre').value.trim();
+  if (!q) return;
+  document.getElementById('pnj-question-libre').value = '';
+  talkToPnj(enc, q);
 }
 
 async function talkToPnj(encodedPnj, action) {
@@ -727,18 +734,160 @@ function addContact(pnj) {
 // Loge — demander le responsable
 function logeDemanderResponsable() {
   const speech = document.getElementById('pnj-speech');
-  speech.textContent = 'Le portier disparait un instant puis revient. "Je lui transmets de ce pas votre demande. Le Venerable Maitre vous repondra directement sur votre boite mail."';
-  addMailNotification('Loge Maconnique', 'Demande d\'audience', 'Votre demande d\'entretien avec le Venerable Maitre a ete transmise. Une reponse vous parviendra dans les 24 heures.');
+  speech.textContent = 'Le portier disparait un instant puis revient. "Je lui transmets de ce pas votre demande. Le Venerable Maitre vous repondra des qu'il en aura pris connaissance."';
+  addMailNotification('Loge Maconnique', "Demande d'audience", "Votre demande d'entretien avec le Venerable Maitre a ete transmise. Vous recevrez une reponse des qu'il en aura pris connaissance.");
   addJournalEntry('Vous avez demande une audience aupres du Venerable Maitre de la Loge.', 'event-info');
 }
 
-// Loge — demander adhesion
 function logeDemanderAdhesion() {
   const speech = document.getElementById('pnj-speech');
   speech.textContent = '"Vous devez vous faire recommander par un parrain membre de notre Loge. Sans cela, votre demande ne peut aboutir." La porte se referme.';
-  addJournalEntry('La Loge vous a informe qu\'un parrain est necessaire pour adherer.', '');
+  addJournalEntry("La Loge vous a informe qu'un parrain est necessaire pour adherer.", '');
 }
 
+// =====================
+// SYSTEME DE GROUPE
+// =====================
+function rejoindrePJ(encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+  const myName = state.char && state.char.name ? state.char.name : 'Joueur';
+  if (!state.group) {
+    state.group = { leader: pnj.name, members: [pnj.name, myName] };
+  } else {
+    if (!state.group.members.includes(myName)) state.group.members.push(myName);
+  }
+  if (state.employees && state.employees.length > 0) {
+    state.employees.forEach(function(e) {
+      if (!state.group.members.includes(e.name)) state.group.members.push(e.name);
+    });
+  }
+  closePnjModal();
+  showToast('Groupe rejoint !', 'Vous avez rejoint le groupe de ' + pnj.name + '. Il est le leader.', true);
+  addJournalEntry('Vous avez rejoint le groupe de ' + pnj.name + '.', 'event-info');
+}
+
+function quitterGroupe() {
+  const myName = state.char && state.char.name ? state.char.name : 'Joueur';
+  if (!state.group) return;
+  state.group.members = state.group.members.filter(function(m) { return m !== myName; });
+  if (state.group.members.length <= 1) state.group = null;
+  closePnjModal();
+  showToast('Groupe quitte', 'Vous avez quitte le groupe.', false);
+  addJournalEntry('Vous avez quitte le groupe.', '');
+}
+
+function getGroupSize() {
+  if (!state.group) return 1 + (state.employees ? state.employees.length : 0);
+  return state.group.members.length;
+}
+
+function isGroupLeader() {
+  if (!state.group) return true;
+  return state.group.leader === (state.char && state.char.name ? state.char.name : 'Joueur');
+}
+
+// =====================
+// ARMURERIE
+// =====================
+function doAcheterArme(legal) {
+  const cur = COUNTRIES[state.char && state.char.country ? state.char.country : 'republic'] && COUNTRIES[state.char.country].cur ? COUNTRIES[state.char.country].cur : 'FR';
+  const cost = legal ? 400 : 800;
+  if (legal) {
+    if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
+    state.arg -= cost;
+    addToInventory({ name: 'Pistolet (legal)', icon: 'ti-shield', type: 'arme', legal: true });
+    if (!state.registreArmes) state.registreArmes = [];
+    state.registreArmes.push({ acheteur: state.char && state.char.name, arme: 'Pistolet', date: 'Jour ' + state.day, legal: true });
+    updateUI();
+    showToast('Arme achetee', 'Pistolet acquis legalement. Enregistre dans le registre.', true);
+    addJournalEntry('Achat arme legal. Enregistre dans le registre de l armurerie.', '');
+  } else {
+    if (state.tentativeArmeIllegale && state.tentativeArmeIllegale >= state.day) {
+      showToast('Impossible', 'Vous devez dormir avant de retenter cette approche.', false);
+      return;
+    }
+    if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
+    const roll = Math.floor(Math.random() * 100) + 1;
+    if (roll <= 50) {
+      state.arg -= cost;
+      state.dis = Math.max(0, state.dis - 5);
+      addToInventory({ name: 'Pistolet (non enregistre)', icon: 'ti-eye-off', type: 'arme', legal: false });
+      updateUI();
+      showToast('Arme obtenue !', 'Pistolet acquis sans enregistrement. -5 Discretion.', true, true);
+      addJournalEntry('Achat arme illicite reussi. Non enregistre.', '');
+    } else {
+      state.tentativeArmeIllegale = state.day;
+      showToast('Echec', "L'armurier a refuse. Reessayez apres avoir dormi.", false);
+      addJournalEntry('Tentative achat illicite echouee. Dormez avant de retenter.', 'event-bad');
+    }
+  }
+}
+
+function doConsulterRegistre() {
+  const cur = COUNTRIES[state.char && state.char.country ? state.char.country : 'republic'] && COUNTRIES[state.char.country].cur ? COUNTRIES[state.char.country].cur : 'FR';
+  const postesAutorise = ['commissaire','juge','magistrat'];
+  const hasAccess = state.poste && postesAutorise.some(function(p) { return state.poste.id && state.poste.id.includes(p); });
+  const registre = state.registreArmes || [];
+  const derniers = registre.filter(function(r) { return state.day - parseInt(r.date.replace('Jour ','')) <= 180; });
+  if (hasAccess) {
+    const msg = derniers.length === 0 ? 'Aucune vente enregistree les 6 derniers mois.' : derniers.map(function(r) { return r.acheteur + ' : ' + r.arme + ' (' + r.date + ')'; }).join(' | ');
+    showToast('Registre consulte', msg.substring(0,100), true);
+    addJournalEntry(msg, 'event-info');
+  } else {
+    const roll = Math.floor(Math.random() * 100) + 1;
+    if (roll <= 30) {
+      if (state.arg < 100) { showToast('Fonds insuffisants', '100 ' + cur + ' requis.', false); return; }
+      state.arg -= 100;
+      state.inf = Math.min(100, state.inf + 5);
+      state.pop = Math.min(100, state.pop + 5);
+      const msg = derniers.length === 0 ? 'Aucune vente.' : derniers.map(function(r) { return r.acheteur + ' : ' + r.arme; }).join(' | ');
+      updateUI();
+      showToast('Registre obtenu', '+5 INF +5 POP.', true);
+      addJournalEntry('Registre consulte apres corruption. ' + msg, 'event-info');
+    } else {
+      state.inf = Math.max(0, state.inf - 5);
+      state.pop = Math.max(0, state.pop - 5);
+      updateUI();
+      showToast('Refuse !', "L'armurier refuse et vous signale. -5 INF -5 POP.", false);
+      addJournalEntry('Corruption armurerie echouee. -5 INF -5 POP.', 'event-bad');
+    }
+  }
+}
+
+// =====================
+// MARCHANDER UN VOTE
+// =====================
+function openMarchanderVoteModal() {
+  const votes = state.votesEnCours || [];
+  if (votes.length === 0) { showToast('Aucun vote en cours', "Il n'y a pas de vote en cours a l'Assemblee.", false); return; }
+  const bonusInf = Math.floor((state.inf / 100) * 10);
+  const tauxFinal = Math.min(90, 40 + bonusInf);
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Marchander un vote';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux de reussite : ' + tauxFinal + '% (base 40% + ' + bonusInf + '% bonus influence). Cout : 200 FR + 1 PA en cas de succes uniquement.</div>' +
+    votes.map(function(v) {
+      return '<div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem"><div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8C97A;margin-bottom:.2rem">' + v.titre + '</div><div style="font-size:.72rem;color:#6a5a30">Pour : ' + (v.pour||0) + ' | Contre : ' + (v.contre||0) + '</div><button onclick="soumettreVoteMarchande('' + v.id + '',' + tauxFinal + ')" style="margin-top:.4rem;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Marchander ce vote</button></div>';
+    }).join('') + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function soumettreVoteMarchande(voteId, taux) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const cur = COUNTRIES[state.char && state.char.country ? state.char.country : 'republic'] && COUNTRIES[state.char.country].cur ? COUNTRIES[state.char.country].cur : 'FR';
+  if (state.arg < 200) { showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false); return; }
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const vote = (state.votesEnCours || []).find(function(v) { return v.id === voteId; });
+  if (roll <= taux) {
+    state.arg -= 200; state.pa = Math.max(0, state.pa - 1); state.inf = Math.min(100, state.inf + 3);
+    if (vote) vote.pour = (vote.pour || 0) + 1;
+    updateUI();
+    showToast('Vote marchande !', 'Un depute a vote dans votre sens. -200 ' + cur + ' -1 PA +3 INF.', true, true);
+    addJournalEntry('Vote marchande avec succes : ' + (vote && vote.titre ? vote.titre : voteId), 'event-good');
+  } else {
+    showToast('Refuse !', "Le depute n'a pas accepte.", false);
+    addJournalEntry('Tentative corruption depute echouee.', 'event-bad');
+  }
+}
 
 // =====================
 // POSTES MODAL
@@ -1131,48 +1280,123 @@ function openElectionsModal() {
 // BOITE MAIL
 // =====================
 function openMailbox() {
-  const mails = state.mails || [];
-  const unread = mails.filter(m => !m.read).length;
-
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent =
-    'Boite mail' + (unread > 0 ? ' (' + unread + ' non lu' + (unread > 1 ? 's' : '') + ')' : '');
-
-  document.getElementById('postes-body').innerHTML = `
-    <div style="padding:.5rem 0">
-      ${mails.length === 0
-        ? `<div style="padding:1rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Votre boite mail est vide.</div>`
-        : mails.slice().reverse().map((m, i) => `
-            <div onclick="readMail(${mails.length - 1 - i})" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer;background:${m.read ? 'transparent' : '#0f0a05'};transition:background .2s" onmouseover="this.style.background='#121005'" onmouseout="this.style.background='${m.read ? 'transparent' : '#0f0a05'}'">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem">
-                <span style="font-family:'Playfair Display',serif;font-size:.82rem;color:${m.read ? '#8a8060' : '#E8C97A'};font-weight:${m.read ? 'normal' : '700'}">${m.from}</span>
-                <span style="font-size:.65rem;color:#4a4030">Jour ${m.day}</span>
-              </div>
-              <div style="font-size:.78rem;color:${m.read ? '#5a5040' : '#c0b090'}">${m.subject}</div>
-              ${!m.read ? '<div style="width:6px;height:6px;background:#C9A84C;border-radius:50%;display:inline-block;margin-top:.2rem"></div>' : ''}
-            </div>`).join('')}
-    </div>`;
-  document.getElementById('modal-postes').classList.add('open');
+  // Afficher la boite mail a la place de l'image centrale
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  document.getElementById('vue-mail').classList.add('active');
+  switchMailTab('inbox', document.querySelector('#vue-mail .piece-tab'));
 }
 
-function readMail(index) {
+function closeMailView() {
+  document.getElementById('vue-mail').classList.remove('active');
+  // Retourner a la vue precedente
+  if (state.currentBuilding) {
+    document.getElementById('vue-batiment').classList.add('active');
+  } else {
+    document.getElementById('vue-rue').classList.add('active');
+  }
+}
+
+function switchMailTab(tab, el) {
+  if (el) {
+    document.querySelectorAll('#vue-mail .piece-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  const mails = state.mails || [];
+  const contacts = state.contacts || [];
+  const sent = state.sentMails || [];
+  const content = document.getElementById('mail-content');
+  const compose = document.getElementById('mail-compose');
+
+  if (tab === 'inbox') {
+    compose.style.display = 'none';
+    const unread = mails.filter(m => !m.read).length;
+    document.getElementById('mail-view-subtitle').textContent = 'Messages recus' + (unread > 0 ? ' (' + unread + ' non lu' + (unread > 1 ? 's' : '') + ')' : '');
+    content.innerHTML = '<div style="display:flex;justify-content:flex-end;padding:.5rem 1rem;border-bottom:1px solid #1a1810"><button onclick="switchMailTab('compose',null)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-pencil" style="font-size:.8rem"></i> Nouveau message</button></div>' +
+      (mails.length === 0
+        ? '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message recu.</div>'
+        : mails.slice().reverse().map((m, i) => {
+            const idx = mails.length - 1 - i;
+            return '<div onclick="readMailInView(' + idx + ')" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer;background:' + (m.read ? 'transparent' : '#0f0a05') + '" onmouseover="this.style.background='#121005'" onmouseout="this.style.background='' + (m.read ? 'transparent' : '#0f0a05') + ''">' +
+              '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">' +
+              '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:' + (m.read ? '#8a8060' : '#E8C97A') + ';font-weight:' + (m.read ? 'normal' : '700') + '">' + m.from + '</span>' +
+              '<span style="font-size:.65rem;color:#4a4030">Jour ' + m.day + '</span></div>' +
+              '<div style="font-size:.78rem;color:' + (m.read ? '#5a5040' : '#c0b090') + '">' + m.subject + '</div>' +
+              (!m.read ? '<span style="display:inline-block;width:6px;height:6px;background:#C9A84C;border-radius:50%;margin-top:.2rem"></span>' : '') +
+              '</div>';
+          }).join(''));
+  } else if (tab === 'sent') {
+    compose.style.display = 'none';
+    document.getElementById('mail-view-subtitle').textContent = 'Messages envoyes';
+    content.innerHTML = sent.length === 0
+      ? '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message envoye.</div>'
+      : sent.slice().reverse().map(m =>
+          '<div style="padding:.7rem 1rem;border-bottom:1px solid #1a1810">' +
+          '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">' +
+          '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#8a8060">A : ' + m.to + '</span>' +
+          '<span style="font-size:.65rem;color:#4a4030">Jour ' + m.day + '</span></div>' +
+          '<div style="font-size:.78rem;color:#5a5040">' + m.subject + '</div></div>'
+        ).join('');
+  } else if (tab === 'contacts') {
+    compose.style.display = 'none';
+    document.getElementById('mail-view-subtitle').textContent = 'Repertoire';
+    content.innerHTML = contacts.length === 0
+      ? '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Repertoire vide. Rencontrez des personnages pour les ajouter.</div>'
+      : '<div style="padding:.5rem 0">' + contacts.map(c =>
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border-bottom:1px solid #1a1810">' +
+          '<div><div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + c.name + '</div>' +
+          '<div style="font-size:.68rem;color:#5a5040">' + (c.role || '') + '</div></div>' +
+          '<button onclick="prefillMailTo('' + c.name + '')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.08em;padding:.2rem .5rem;border:1px solid #3a2a10;background:transparent;color:#8a7040;cursor:pointer">Ecrire</button>' +
+          '</div>'
+        ).join('') + '</div>';
+  } else if (tab === 'compose') {
+    compose.style.display = 'block';
+    document.getElementById('mail-view-subtitle').textContent = 'Nouveau message';
+    content.innerHTML = '';
+  }
+}
+
+function readMailInView(index) {
   const mails = state.mails || [];
   const mail = mails[index];
   if (!mail) return;
   mail.read = true;
-
-  document.getElementById('postes-body').innerHTML = `
-    <div style="padding:1rem">
-      <button onclick="openMailbox()" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:1rem;display:flex;align-items:center;gap:.3rem">
-        <i class="ti ti-arrow-left" style="font-size:.8rem"></i> Retour
-      </button>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.3rem">DE</div>
-      <div style="font-size:.9rem;color:#E8C97A;margin-bottom:.6rem">${mail.from}</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.3rem">OBJET</div>
-      <div style="font-size:.85rem;color:#c0b090;margin-bottom:.8rem">${mail.subject}</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.3rem">MESSAGE</div>
-      <div style="font-size:.85rem;color:#a0a080;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #2a2010">${mail.body}</div>
-    </div>`;
+  updateUI();
+  const content = document.getElementById('mail-content');
+  content.innerHTML = '<div style="padding:1rem">' +
+    '<button onclick="switchMailTab('inbox',null)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:1rem;display:flex;align-items:center;gap:.3rem"><i class="ti ti-arrow-left" style="font-size:.8rem"></i> Retour</button>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.2rem">DE</div>' +
+    '<div style="font-size:.9rem;color:#E8C97A;margin-bottom:.6rem">' + mail.from + '</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.2rem">OBJET</div>' +
+    '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.8rem">' + mail.subject + '</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#6a5a20;margin-bottom:.3rem">MESSAGE</div>' +
+    '<div style="font-size:.85rem;color:#a0a080;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #2a2010">' + mail.body + '</div>' +
+    '</div>';
 }
+
+function prefillMailTo(name) {
+  switchMailTab('compose', null);
+  setTimeout(() => {
+    const to = document.getElementById('mail-to');
+    if (to) to.value = name;
+  }, 50);
+}
+
+function sendMail() {
+  const to = document.getElementById('mail-to')?.value?.trim();
+  const subject = document.getElementById('mail-subject')?.value?.trim();
+  const body = document.getElementById('mail-body')?.value?.trim();
+  if (!to || !subject || !body) { showToast('Champs requis', 'Remplissez tous les champs.', false); return; }
+  if (!state.sentMails) state.sentMails = [];
+  state.sentMails.push({ to, subject, body, day: state.day });
+  document.getElementById('mail-to').value = '';
+  document.getElementById('mail-subject').value = '';
+  document.getElementById('mail-body').value = '';
+  showToast('Message envoye', 'Votre message a ete envoye a ' + to, true);
+  addJournalEntry('Vous avez envoye un mail a ' + to + ' : ' + subject, 'event-info');
+  switchMailTab('sent', null);
+}
+
+function readMail(index) { readMailInView(index); }
 
 function addExternalEvent(text) {
   const j = document.getElementById('journal');

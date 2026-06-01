@@ -166,6 +166,35 @@
       </div>
     </div>
 
+    <!-- Vue MAIL -->
+    <div id="vue-mail" class="vue">
+      <div class="batiment-header">
+        <button class="sortir-btn" onclick="closeMailView()">
+          <i class="ti ti-x"></i> Fermer
+        </button>
+        <div class="batiment-header-info">
+          <div class="batiment-nom">Boite Mail</div>
+          <div class="batiment-cat" id="mail-view-subtitle">Messages recus</div>
+        </div>
+        <div class="pieces-tabs">
+          <div class="piece-tab active" onclick="switchMailTab('inbox',this)">Messages recus</div>
+          <div class="piece-tab" onclick="switchMailTab('sent',this)">Messages envoyes</div>
+          <div class="piece-tab" onclick="switchMailTab('contacts',this)">Repertoire</div>
+        </div>
+      </div>
+      <div id="mail-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
+      <div id="mail-compose" style="display:none;padding:.7rem 1rem;border-top:1px solid #1a1810;background:#0d0b05">
+        <div style="display:flex;gap:.5rem;margin-bottom:.4rem">
+          <input id="mail-to" type="text" placeholder="Destinataire..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:'Crimson Pro',serif;font-size:.82rem;outline:none"/>
+          <input id="mail-subject" type="text" placeholder="Objet..." style="flex:2;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:'Crimson Pro',serif;font-size:.82rem;outline:none"/>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <textarea id="mail-body" rows="3" placeholder="Votre message..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:'Crimson Pro',serif;font-size:.82rem;outline:none;resize:none"></textarea>
+          <button onclick="sendMail()" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.4rem .8rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;align-self:flex-end">Envoyer</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Vue BATIMENT -->
     <div id="vue-batiment" class="vue">
       <div class="batiment-header">
