@@ -418,18 +418,17 @@ function renderRoomActions(room, buildingId, roomId) {
   document.getElementById('action-context-bat').textContent =
     room.name.toUpperCase() + ' — ACTIONS DISPONIBLES';
 
-  // Ordres communs a tous les batiments
-  const commonOrders = [
-    {fn:'se_cacher',       label:'Se cacher',        pa:1, cost:0, type:'grey',    icon:'ti-eye-off', successRate:70,  desc:'Vous vous dissimulezdans la piece. Bonus actions illegales.'},
-    {fn:'organiser_blocus',label:'Organiser blocus',  pa:3, cost:0, type:'illegal', icon:'ti-ban',     successRate:40,  desc:'Necessite un groupe. Bloque l acces au batiment.'},
-    {fn:'incendier',       label:'Incendier',          pa:3, cost:0, type:'illegal', icon:'ti-flame',   successRate:30,  desc:'Declencher un incendie. Plus difficile si nombreux temoins.'}
-  ];
-
-  const allOrders = [...orders, ...commonOrders];
+  // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
+  const allOrders = [...orders];
 
   const buttons = allOrders.map(o => {
     const needsPost = o.requiresPost && !state.poste;
     const paDisplay = TEST_MODE ? '0 PA' : o.pa + ' PA';
+    // Appliquer malus ISN sur les actes illegaux
+    let tauxAffiche = o.successRate || 70;
+    if (o.type === 'illegal') {
+      tauxAffiche = Math.max(5, tauxAffiche - getMalusISN());
+    }
     const costDisplay = o.cost > 0 ? o.cost.toLocaleString('fr-FR') + ' ' + cur : 'gratuit';
     const ef = ORDER_EFFECTS[o.fn] || {};
     const gainParts = [];
@@ -507,13 +506,43 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_arme_illegale') { doAcheterArme(false); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
-  if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour assassiner, cliquez directement sur le personnage cible dans la liste des personnes presentes.', false); return; }
+  if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour assassiner, cliquez sur le personnage cible dans la liste des personnes presentes.', false); return; }
   if (fn === 'deposer_candidature') { openCandidatureModal(); return; }
   if (fn === 'consulter_elections') { openElectionsModal(); return; }
-  if (fn === 'creer_poste_ministre')   { creerPosteMinistre(); return; }
-  if (fn === 'creer_comite')           { creerComite(); return; }
-  if (fn === 'supprimer_poste_custom') { supprimerPosteCustom(); return; }
-  if (fn === 'nommer_ministre')        { openNominerModal(); return; }
+  if (fn === 'creer_poste_ministre')    { creerPosteMinistre(); return; }
+  if (fn === 'creer_comite')            { creerComite(); return; }
+  if (fn === 'supprimer_poste_custom')  { supprimerPosteCustom(); return; }
+  if (fn === 'nommer_ministre')         { openNominerModal(); return; }
+  if (fn === 'nommer_pm')               { ouvrirModalCibleRepertoire('nommer_pm_confirm', 'Nommer un Premier Ministre'); return; }
+  if (fn === 'nommer_ministre_pm')      { ouvrirNommerMinistresModal(); return; }
+  if (fn === 'declarer_guerre_empire')  { ouvrirModalEmpireCible('declarer_guerre', 'Declarer la guerre'); return; }
+  if (fn === 'gracier_condamne')        { ouvrirModalGracier(); return; }
+  if (fn === 'decret_referendum')       { ouvrirForumPresidentCentral('referendum'); return; }
+  if (fn === 'nationaliser_entreprise') { ouvrirModalNationaliser(); return; }
+  if (fn === 'jour_deuil')              { ouvrirForumPresidentCentral('deuil'); return; }
+  if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
+  if (fn === 'etat_nation')             { ouvrirEtatNation(); return; }
+  if (fn === 'interdire_manif_cible')   { ouvrirModalTexteLibre('interdire_manif', 'Interdire une manifestation', 'Preciser le nom ou sujet de la manifestation a interdire...'); return; }
+  if (fn === 'reprimer_manif_cible')    { ouvrirModalTexteLibre('reprimer_manif', 'Ordonner la repression', 'Preciser la manifestation ou le rassemblement cible...'); return; }
+  if (fn === 'redressement_cible')      { ouvrirModalCibleRepertoire('redressement_fiscal', 'Redressement fiscal'); return; }
+  if (fn === 'subvention_cible')        { ouvrirModalCibleRepertoire('subvention', 'Accorder une subvention'); return; }
+  if (fn === 'allegemement_secteur')    { ouvrirModalSecteur(); return; }
+  if (fn === 'annuler_poursuites_cible'){ ouvrirModalAffaires('annuler'); return; }
+  if (fn === 'ouvrir_enquete_cible')    { ouvrirModalCibleRepertoire('ouvrir_enquete', 'Ouvrir une enquete sur'); return; }
+  if (fn === 'nommer_juge_cible')       { ouvrirModalNommerJuge(); return; }
+  if (fn === 'cessez_le_feu_empire')    { ouvrirModalEmpireCible('cessez_le_feu', 'Negocier un cessez-le-feu avec'); return; }
+  if (fn === 'renseignement_cible')     { ouvrirModalRenseignement(); return; }
+  if (fn === 'censurer_media_cible')    { ouvrirModalMedia(); return; }
+  if (fn === 'commanditer_sondage_cible') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet du sondage...'); return; }
+  if (fn === 'signer_traite_empire')    { ouvrirModalTraite(); return; }
+  if (fn === 'ouvrir_ambassade_empire') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
+  if (fn === 'nommer_ambassadeur_cible'){ ouvrirModalNommerAmbassadeur(); return; }
+  if (fn === 'sanctions_empire')        { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
+  if (fn === 'forum_president_conference' || fn === 'forum_president_annonce' ||
+      fn === 'forum_president_propagande' || fn === 'forum_president_dementi') {
+    ouvrirForumPresidentCentral(fn); return;
+  }
+  if (fn === 'reception_etat' || fn === 'banquet_diplo') { doReceptionAvecBonus(fn, cost); return; }
 
   // Deduire PA et argent
   if (!TEST_MODE) state.pa = Math.max(0, state.pa - pa);
@@ -2260,6 +2289,26 @@ function switchSelfTab(tab, el) {
     html += '<button onclick="doOrder(\'se_reposer\',1,0,\'Mediter\',\'Vous prenez le temps de vous recentrer.\',100);closeSelfView()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #3a2a5a;background:transparent;color:#8a6aaa;cursor:pointer">Mediter</button>';
     html += '</div>';
 
+    // Ordres tactiques
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.6rem">ACTIONS TACTIQUES</div>';
+
+    const malusISN = getMalusISN();
+    const groupSize = getGroupSize ? getGroupSize() : 1;
+    const tauxBlocus = Math.min(90, 25 + (groupSize - 1));
+
+    html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
+    html += '<button onclick="doOrder(\'se_cacher\',1,0,\'Se cacher\',\'Vous vous dissimulez dans la piece.\',70);closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #2a3a20;background:#0a0d08;color:#8a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
+    html += '<span><i class="ti ti-eye-off" style="font-size:.85rem"></i> Se cacher</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#4a6a3a">70% · 1 PA</span></button>';
+
+    html += '<button onclick="doOrder(\'organiser_blocus\',3,0,\'Organiser un blocus\',\'Le groupe bloque l\\\'acces.\','+tauxBlocus+');closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #3a1a1a;background:#0d0808;color:#9a6a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
+    html += '<span><i class="ti ti-ban" style="font-size:.85rem"></i> Organiser un blocus</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#6a3a20">' + tauxBlocus + '% · 1 PA · groupe:' + groupSize + '</span></button>';
+
+    const tauxIncendie = Math.max(5, 30 - malusISN);
+    html += '<button onclick="doOrder(\'incendier\',3,0,\'Incendier\',\'Vous mettez le feu.\','+tauxIncendie+');closeSelfView()" style="display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;border:1px solid #4a1a08;background:#100805;color:#aa5a30;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">';
+    html += '<span><i class="ti ti-flame" style="font-size:.85rem"></i> Incendier</span><span style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:#8a3a10">' + tauxIncendie + '% · 3 PA · ISN:' + (INDICES_NATIONAUX[state.country]?.ISN||30) + '</span></button>';
+    html += '</div></div>';
+
     html += '</div>';
     content.innerHTML = html;
 
@@ -2574,6 +2623,652 @@ function renderRulesContent(section) {
 // =====================
 // ORDRES PRESIDENTIELS
 // =====================
+// =====================
+// FONCTIONS PRESIDENTIELLES V13
+// =====================
+
+function solliciterAudiencePresident() {
+  const char = state.char;
+  addMailNotification('Secretariat de la Presidence', 'Demande d\'audience enregistree',
+    'Votre demande d\'audience aupres du President a ete transmise. Il vous repondra des qu\'il en aura pris connaissance.');
+  // Notifier le president par mail
+  if (state.poste?.id !== 'president') {
+    addExternalEvent('Une demande d\'audience de ' + (char?.name||'Anonyme') + ' a ete transmise au President.');
+  }
+  showToast('Demande transmise', 'Le President vous repondra par mail.', true);
+  addJournalEntry('Vous avez sollicite une audience presidentielle.', 'event-info');
+}
+
+function ouvrirEtatNation() {
+  const pays = state.country || 'republic';
+  const idx = INDICES_NATIONAUX[pays] || { ISN:30, IE:50, ID:40, IS:45 };
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById('vue-self');
+  if (!el) return;
+  el.classList.add('active');
+  document.getElementById('self-view-name').textContent = 'Etat de la Nation';
+  document.getElementById('self-view-role').textContent = COUNTRIES[pays]?.n || '';
+  const content = document.getElementById('self-content');
+
+  const indices = [
+    { k:'ISN', label:'Securite Nationale',    val:idx.ISN, col:'#4a8a4a', desc:'Impact sur les actes illegaux et leur detection.' },
+    { k:'IE',  label:'Economique',            val:idx.IE,  col:'#C9A84C', desc:'Impact sur les revenus fiscaux et les salaires.' },
+    { k:'ID',  label:'Diplomatique',          val:idx.ID,  col:'#4a6aaa', desc:'Impact sur les relations inter-empires et voyages.' },
+    { k:'IS',  label:'Social',               val:idx.IS,  col:'#aa6a4a', desc:'Impact sur la popularite des elus et risques de greve.' }
+  ];
+
+  let html = '<div style="padding:1.5rem;max-width:650px">';
+  html += '<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#C9A84C;margin-bottom:1.2rem">Indices de la Nation — ' + (COUNTRIES[pays]?.n||'') + '</div>';
+
+  indices.forEach(ind => {
+    const pct = ind.val;
+    const niveau = pct <= 20 ? 'Critique' : pct <= 40 ? 'Faible' : pct <= 60 ? 'Moyen' : pct <= 80 ? 'Bon' : 'Excellent';
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">';
+    html += '<div><span style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:' + ind.col + ';letter-spacing:.1em">Indice ' + ind.label + ' (' + ind.k + ')</span></div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:' + ind.col + '">' + pct + '/100 — ' + niveau + '</div>';
+    html += '</div>';
+    html += '<div style="height:8px;background:#1a1810;border-radius:4px;overflow:hidden;margin-bottom:.4rem">';
+    html += '<div style="height:100%;width:' + pct + '%;background:' + ind.col + ';border-radius:4px;transition:width .5s"></div></div>';
+    html += '<div style="font-size:.72rem;color:#5a5040">' + ind.desc + '</div>';
+    html += '</div>';
+  });
+
+  // Malus illegal actuel
+  const malus = getMalusIllegal ? getMalusIllegal(pays) : 0;
+  const multDet = getMultDetection ? getMultDetection(pays) : 1;
+  html += '<div style="padding:.7rem;background:#0a0805;border:1px solid #1a1810;font-size:.78rem;color:#6a5a30">';
+  html += 'ISN actuel : malus de <strong style="color:#C9A84C">-' + malus + '%</strong> sur tous les actes illegaux · taux de detection x<strong style="color:#C9A84C">' + multDet + '</strong>';
+  html += '</div>';
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+function ouvrirModalEmpireCible(action, titre) {
+  const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = titre;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir un empire cible :</div>';
+  empires.forEach(([k, co]) => {
+    html += '<button onclick="executerOrdreEmpire(\'' + action + '\',\'' + k + '\',\'' + co.n + '\')" style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">';
+    html += '<i class="ti ' + co.icon + '" style="font-size:1rem;color:' + co.col + '"></i> ' + co.n + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function executerOrdreEmpire(action, empireId, empireName) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  if (action === 'declarer_guerre') {
+    if (!state.guerres) state.guerres = [];
+    state.guerres.push({ empire: empireId, nom: empireName, depuis: 'Jour ' + state.day });
+    INDICES_NATIONAUX[state.country].ID = Math.max(0, INDICES_NATIONAUX[state.country].ID - 20);
+    addExternalEvent('GUERRE DECLAREE : ' + (COUNTRIES[state.country]?.n||'') + ' declare la guerre a ' + empireName + ' !');
+    addMailNotification('Etat-Major', 'Declaration de guerre', 'La guerre a ete declaree contre ' + empireName + '. L\'armee est en alerte maximale.');
+    showToast('Guerre declaree !', 'Conflit ouvert avec ' + empireName + '. -20 ID.', false);
+  } else if (action === 'cessez_le_feu') {
+    if (state.guerres) state.guerres = state.guerres.filter(g => g.empire !== empireId);
+    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 10);
+    showToast('Cessez-le-feu', 'Negociation en cours avec ' + empireName + '. +10 ID.', true);
+    addJournalEntry('Cessez-le-feu negocie avec ' + empireName, 'event-good');
+  } else if (action === 'ouvrir_ambassade') {
+    if (!state.ambassades) state.ambassades = [];
+    state.ambassades.push({ empire: empireId, nom: empireName });
+    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 8);
+    state.arg -= 1000;
+    updateUI();
+    showToast('Ambassade ouverte', 'Representation diplomatique etablie a ' + empireName + '. +8 ID.', true);
+  } else if (action === 'sanctions') {
+    INDICES_NATIONAUX[state.country].ID = Math.max(0, INDICES_NATIONAUX[state.country].ID - 5);
+    INDICES_NATIONAUX[empireId] = INDICES_NATIONAUX[empireId] || {};
+    showToast('Sanctions imposees', 'Sanctions economiques contre ' + empireName + '. -5 ID.', false);
+    addExternalEvent('Sanctions officielles imposees contre ' + empireName + '.');
+  } else {
+    showToast(action.replace(/_/g,' '), 'Action menee envers ' + empireName, true);
+    addJournalEntry(action.replace(/_/g,' ') + ' : ' + empireName, 'event-info');
+  }
+}
+
+function ouvrirModalGracier() {
+  const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Gracier un condamne';
+  let html = '<div style="padding:1rem">';
+  if (condamnes.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun condamne actuellement en detention.</div>';
+  } else {
+    condamnes.forEach((p, i) => {
+      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
+      html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090">' + p.nom + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">' + p.raison + ' · liberation prevue Jour ' + p.jourFin + '</div></div>';
+      html += '<button onclick="confirmerGrace(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.25rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Gracier</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerGrace(idx) {
+  const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
+  const condamne = condamnes[idx];
+  if (!condamne) return;
+  condamne.jourFin = state.day; // Liberation immediate
+  document.getElementById('modal-postes').classList.remove('open');
+  const popBonus = state.pop > 50 ? 5 : -2;
+  state.pop = Math.min(100, state.pop + popBonus);
+  updateUI();
+  showToast('Grace accordee', condamne.nom + ' est libere(e). ' + (popBonus > 0 ? '+' : '') + popBonus + ' POP.', true);
+  addExternalEvent('GRACE PRESIDENTIELLE : ' + condamne.nom + ' a ete gracie(e) par le President.');
+}
+
+function ouvrirForumPresidentCentral(type) {
+  // Ouvre le forum presidentiel en vue centrale
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  document.getElementById('vue-mail').classList.add('active'); // Reutilise la vue mail
+  document.getElementById('mail-view-subtitle').textContent = 'Forum Presidentiel';
+  document.getElementById('mail-compose').style.display = 'none';
+
+  const titres = {
+    'referendum': 'Creer un Referendum',
+    'deuil': 'Decret de Deuil National',
+    'forum_president_conference': 'Conference de Presse',
+    'forum_president_annonce': 'Annonce Officielle',
+    'forum_president_propagande': "Propagande d'Etat",
+    'forum_president_dementi': 'Dementi Officiel'
+  };
+
+  const titre = titres[type] || 'Forum Presidentiel';
+  const content = document.getElementById('mail-content');
+
+  let html = '<div style="padding:1.2rem;max-width:650px">';
+  html += '<div style="font-family:Playfair Display,serif;font-size:1rem;color:#C9A84C;margin-bottom:1rem">' + titre + '</div>';
+
+  if (type === 'referendum') {
+    html += '<div style="margin-bottom:.8rem"><div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUESTION DU REFERENDUM</div>';
+    html += '<input id="ref-question" type="text" placeholder="Quelle est la question soumise au vote ?" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.5rem"/></div>';
+    html += '<div style="margin-bottom:.8rem"><div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">REPONSES POSSIBLES (1 seul choix)</div>';
+    html += '<input id="ref-rep1" type="text" placeholder="Reponse 1 (ex: Oui)" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.3rem"/>';
+    html += '<input id="ref-rep2" type="text" placeholder="Reponse 2 (ex: Non)" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.3rem"/>';
+    html += '<input id="ref-rep3" type="text" placeholder="Reponse 3 (optionnel)" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.5rem"/>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DUREE DU VOTE</div>';
+    html += '<select id="ref-duree" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
+    html += '<option value="3">3 jours</option><option value="5">5 jours</option><option value="7">7 jours</option></select></div>';
+    html += '<button onclick="publierReferendum()" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier le referendum</button>';
+  } else {
+    html += '<div style="margin-bottom:.8rem"><div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TITRE</div>';
+    html += '<input id="forum-pres-titre" type="text" placeholder="Titre de votre message..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.5rem"/></div>';
+    html += '<div style="margin-bottom:.8rem"><div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MESSAGE</div>';
+    html += '<textarea id="forum-pres-message" rows="5" placeholder="Redigez votre message officiel..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none"></textarea></div>';
+    html += '<button onclick="publierForumPresident(\'' + type + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier</button>';
+  }
+
+  html += '<button onclick="closeMailView()" style="margin-left:.5rem;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Annuler</button>';
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+function publierReferendum() {
+  const question = document.getElementById('ref-question')?.value?.trim();
+  const rep1 = document.getElementById('ref-rep1')?.value?.trim();
+  const rep2 = document.getElementById('ref-rep2')?.value?.trim();
+  const rep3 = document.getElementById('ref-rep3')?.value?.trim();
+  const duree = parseInt(document.getElementById('ref-duree')?.value || '5');
+  if (!question || !rep1 || !rep2) { showToast('Champs requis', 'Question et au moins 2 reponses obligatoires.', false); return; }
+
+  const reponses = [rep1, rep2, ...(rep3 ? [rep3] : [])].map(r => ({ label: r, voix: 0 }));
+  if (!state.referendums) state.referendums = [];
+  state.referendums.push({ question, reponses, jourFin: state.day + duree, clos: false, auteur: state.char?.name });
+
+  // Publier dans le forum presidentiel
+  if (!FORUM_TOPICS['national']) FORUM_TOPICS['national'] = [];
+  FORUM_TOPICS['national'].unshift({
+    id: 'ref-' + Date.now(), title: '[REFERENDUM] ' + question,
+    author: state.char?.name || 'President',
+    time: 'Jour ' + state.day, views: 0, replies: 0,
+    isReferendum: true, reponses,
+    posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: 'Le President soumet ce referendum au vote populaire. Vote ouvert pendant ' + duree + ' jours.' }]
+  });
+
+  state.pop = Math.min(100, state.pop + 8);
+  updateUI();
+  closeMailView();
+  showToast('Referendum publie !', question + ' — Vote ouvert ' + duree + ' jours. +8 POP.', true, true);
+  addExternalEvent('REFERENDUM : Le President soumet au vote : "' + question + '"');
+}
+
+function publierForumPresident(type) {
+  const titre = document.getElementById('forum-pres-titre')?.value?.trim();
+  const message = document.getElementById('forum-pres-message')?.value?.trim();
+  if (!titre || !message) { showToast('Champs requis', 'Titre et message obligatoires.', false); return; }
+
+  if (!FORUM_TOPICS['national']) FORUM_TOPICS['national'] = [];
+  FORUM_TOPICS['national'].unshift({
+    id: 'pres-' + Date.now(), title: '[PRESIDENCE] ' + titre,
+    author: state.char?.name || 'President',
+    time: 'Jour ' + state.day, views: 0, replies: 0,
+    posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: message }]
+  });
+
+  const effets = {
+    'forum_president_conference': { pop: 15, inf: 10 },
+    'forum_president_annonce':    { pop: 5,  inf: 5  },
+    'forum_president_propagande': { pop: 20, inf: 0  },
+    'forum_president_dementi':    { pop: 8,  inf: 3  }
+  };
+  const ef = effets[type] || {};
+  if (ef.pop) state.pop = Math.min(100, state.pop + ef.pop);
+  if (ef.inf) state.inf = Math.min(100, state.inf + ef.inf);
+  if (type === 'jour_deuil') {
+    // Pas d'impots ce jour
+    state.deuil = state.day;
+    addExternalEvent('DEUIL NATIONAL : Journee chommee declaree par le President. Pas de recettes fiscales aujourd\'hui.');
+  }
+  updateUI();
+  closeMailView();
+  showToast('Publie !', titre + (ef.pop ? ' +' + ef.pop + ' POP' : '') + (ef.inf ? ' +' + ef.inf + ' INF' : ''), true, true);
+  addJournalEntry('Publication presidentielle : ' + titre, 'event-good');
+}
+
+function ouvrirModalNationaliser() {
+  const entreprises = ENTREPRISES_PRIVEES[state.country] || [];
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Nationaliser une entreprise';
+  let html = '<div style="padding:1rem">';
+  if (entreprises.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune entreprise privee recensee pour le moment. Les entreprises achetees par des PJ apparaitront ici.</div>';
+  } else {
+    entreprises.forEach((e, i) => {
+      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
+      html += '<div style="font-size:.85rem;color:#c0b090">' + e.nom + ' <span style="font-size:.68rem;color:#5a4030">(propriete : ' + (e.proprio||'inconnu') + ')</span></div>';
+      html += '<button onclick="confirmerNationalisation(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.25rem .6rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Nationaliser</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerNationalisation(idx) {
+  const e = ENTREPRISES_PRIVEES[state.country]?.[idx];
+  if (!e) return;
+  e.nationalise = true;
+  document.getElementById('modal-postes').classList.remove('open');
+  INDICES_NATIONAUX[state.country].IE = Math.min(100, INDICES_NATIONAUX[state.country].IE + 5);
+  showToast('Nationalisation', e.nom + ' est desormais propriete de l\'Etat. +5 IE.', true);
+  addExternalEvent('NATIONALISATION : ' + e.nom + ' placee sous controle de l\'Etat par decret presidentiel.');
+}
+
+function ouvrirModalCibleRepertoire(action, titre) {
+  const contacts = state.contacts || [];
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = titre;
+  let html = '<div style="padding:1rem">';
+  if (contacts.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Votre repertoire est vide. Enregistrez des contacts pour cibler des personnes.</div>';
+  } else {
+    html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir la cible :</div>';
+    contacts.forEach((c, i) => {
+      html += '<div onclick="executerOrdreContact(\'' + action + '\',\'' + c.name + '\')" style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer;transition:background .2s" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + c.name + '</div>';
+      html += '<div style="font-size:.68rem;color:#5a4030">' + (c.role||'') + '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function executerOrdreContact(action, nomCible) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  if (action === 'nommer_pm_confirm') {
+    addMailNotification('Presidence de la Republique', 'Nomination au poste de Premier Ministre',
+      'Par decision presidentielle, vous etes nomme(e) Premier Ministre. Prenez vos fonctions immediatement au Palais du Gouvernement.');
+    addExternalEvent('NOMINATION : ' + nomCible + ' est nomme(e) Premier Ministre par le President.');
+    showToast('PM nomme', nomCible + ' est le nouveau Premier Ministre.', true, true);
+  } else if (action === 'redressement_fiscal') {
+    const montant = 2000;
+    state.arg += montant;
+    INDICES_NATIONAUX[state.country].IE = Math.max(0, INDICES_NATIONAUX[state.country].IE - 3);
+    updateUI();
+    showToast('Redressement', 'Redressement fiscal contre ' + nomCible + '. +' + montant + ' ' + cur + ' -3 IE.', true);
+    addJournalEntry('Redressement fiscal contre ' + nomCible, 'event-info');
+    addMailNotification('Ministere des Finances', 'Notification de redressement', 'Un redressement fiscal vous a ete notifie par le Ministre des Finances.');
+  } else if (action === 'subvention') {
+    const montant = 500;
+    if (state.arg < montant) { showToast('Fonds insuffisants', '', false); return; }
+    state.arg -= montant;
+    INDICES_NATIONAUX[state.country].IS = Math.min(100, INDICES_NATIONAUX[state.country].IS + 3);
+    updateUI();
+    showToast('Subvention accordee', 'Subvention de ' + montant + ' ' + cur + ' versee a ' + nomCible + '. +3 IS.', true);
+  } else if (action === 'ouvrir_enquete') {
+    const budget = getBudgetInstitution('tribunal');
+    if (!depenseBudget('tribunal', 600)) return;
+    if (!state.enquetesEnCours) state.enquetesEnCours = [];
+    state.enquetesEnCours.push({ cible: nomCible, day: state.day + 1, status: 'pending', initiateur: 'Ministre Justice' });
+    showToast('Enquete ouverte', 'Enquete judiciaire lancee contre ' + nomCible + '. Resultat dans 24h.', true);
+    addJournalEntry('Enquete judiciaire ouverte contre ' + nomCible, 'event-info');
+  } else {
+    showToast(action.replace(/_/g,' '), 'Action menee sur ' + nomCible, true);
+    addJournalEntry(action.replace(/_/g,' ') + ' : ' + nomCible, 'event-info');
+  }
+}
+
+function ouvrirModalTexteLibre(action, titre, placeholder) {
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = titre;
+  let html = '<div style="padding:1rem">';
+  html += '<textarea id="texte-libre-input" rows="4" placeholder="' + placeholder + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.7rem"></textarea>';
+  html += '<button onclick="executerOrdreTexte(\'' + action + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function executerOrdreTexte(action) {
+  const texte = document.getElementById('texte-libre-input')?.value?.trim();
+  if (!texte) { showToast('Champ requis', 'Veuillez remplir le champ.', false); return; }
+  document.getElementById('modal-postes').classList.remove('open');
+  if (action === 'interdire_manif') {
+    INDICES_NATIONAUX[state.country].ISN = Math.min(100, INDICES_NATIONAUX[state.country].ISN + 5);
+    state.pop = Math.max(0, state.pop - 5);
+    updateUI();
+    showToast('Manifestation interdite', texte + ' — +5 ISN -5 POP.', true);
+    addExternalEvent('INTERDICTION : La manifestation "' + texte + '" a ete interdite par le Ministre de l\'Interieur.');
+  } else if (action === 'reprimer_manif') {
+    INDICES_NATIONAUX[state.country].ISN = Math.min(100, INDICES_NATIONAUX[state.country].ISN + 10);
+    state.pop = Math.max(0, state.pop - 15);
+    updateUI();
+    showToast('Repression ordonnee', texte + ' — +10 ISN -15 POP.', false);
+    addExternalEvent('REPRESSION : Ordre de dispersion force pour "' + texte + '".');
+  } else if (action === 'commanditer_sondage') {
+    state.inf = Math.min(100, state.inf + 5);
+    updateUI();
+    showToast('Sondage publie', '"' + texte + '" publie dans le forum national. +5 INF.', true);
+  } else {
+    showToast(action, texte, true);
+    addJournalEntry(action + ' : ' + texte, 'event-info');
+  }
+}
+
+function ouvrirModalSecteur() {
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Allegement fiscal sectoriel';
+  let html = '<div style="padding:1rem"><div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir le secteur beneficiaire :</div>';
+  SECTEURS.forEach(s => {
+    html += '<button onclick="appliquerAllegement(\'' + s + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">' + s + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function appliquerAllegement(secteur) {
+  document.getElementById('modal-postes').classList.remove('open');
+  INDICES_NATIONAUX[state.country].IE = Math.min(100, INDICES_NATIONAUX[state.country].IE + 5);
+  state.inf = Math.min(100, state.inf + 8);
+  updateUI();
+  showToast('Allegement accorde', secteur + ' : -taxes +5 IE +8 INF.', true);
+  addJournalEntry('Allegement fiscal accorde au secteur : ' + secteur, 'event-info');
+}
+
+function ouvrirModalAffaires(mode) {
+  const affaires = state.plaintesEnCours?.filter(p => p.status === 'pending') || [];
+  const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
+  const titre = mode === 'annuler' ? 'Annuler des poursuites' : 'Gestion judiciaire';
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = titre;
+  let html = '<div style="padding:1rem">';
+  const liste = mode === 'annuler' ? affaires : condamnes;
+  if (liste.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en cours.</div>';
+  } else {
+    liste.forEach((a, i) => {
+      html += '<div style="padding:.5rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
+      html += '<div style="font-size:.82rem;color:#c0b090">' + (a.cible||a.nom||'Inconnu') + ' <span style="font-size:.68rem;color:#5a4030">— ' + (a.motif||a.raison||'') + '</span></div>';
+      html += '<button onclick="annulerAffaire(' + i + ',\'' + mode + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.2rem .5rem;border:1px solid #8a3020;background:transparent;color:#cc4a3a;cursor:pointer">Annuler</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function annulerAffaire(idx, mode) {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (mode === 'annuler' && state.plaintesEnCours?.[idx]) {
+    state.plaintesEnCours[idx].status = 'annulee';
+    showToast('Poursuites annulees', 'La procedure a ete classee.', false);
+    addJournalEntry('Annulation de poursuites par le Ministre de la Justice.', 'event-info');
+  }
+}
+
+function ouvrirModalNommerJuge() {
+  const contacts = state.contacts || [];
+  const tribunaux = ['Tribunal de Luthecia', 'Tribunal de Port-Sainte-Marie', 'Tribunal de Montrouge'];
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Nommer un juge';
+  let html = '<div style="padding:1rem">';
+  if (contacts.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Repertoire vide. Enregistrez des contacts.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">PJ A NOMMER</div>';
+    html += '<select id="juge-contact" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
+    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+    html += '</select>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TRIBUNAL</div>';
+    html += '<select id="juge-tribunal" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
+    tribunaux.forEach(t => { html += '<option value="' + t + '">' + t + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="confirmerNommerJuge()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerNommerJuge() {
+  const contact = document.getElementById('juge-contact')?.value;
+  const tribunal = document.getElementById('juge-tribunal')?.value;
+  document.getElementById('modal-postes').classList.remove('open');
+  addMailNotification('Ministere de la Justice', 'Nomination au poste de juge', 'Vous avez ete nomme(e) juge au ' + tribunal + ' par le Ministre de la Justice.');
+  addExternalEvent('NOMINATION : ' + contact + ' nomme(e) juge au ' + tribunal + '.');
+  showToast('Juge nomme', contact + ' au ' + tribunal, true);
+}
+
+function ouvrirModalRenseignement() {
+  const contacts = state.contacts || [];
+  const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Operation de renseignement';
+  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Cible : PJ suspect ou empire etranger ?</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EMPIRES</div>';
+  empires.forEach(([k, co]) => {
+    html += '<button onclick="executerOrdreEmpire(\'renseignement\',\'' + k + '\',\'' + co.n + '\')" style="display:flex;align-items:center;gap:.5rem;width:100%;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem"><i class="ti ' + co.icon + '" style="color:' + co.col + '"></i> ' + co.n + '</button>';
+  });
+  if (contacts.length > 0) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">PJ SUSPECTS (repertoire)</div>';
+    contacts.forEach(c => {
+      html += '<button onclick="executerOrdreContact(\'renseignement_pj\',\'' + c.name + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">' + c.name + '</button>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function ouvrirModalMedia() {
+  const medias = MEDIAS[state.country] || [];
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Censurer un media';
+  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Attention : la censure peut provoquer un scandale si elle est decouverte.</div>';
+  medias.forEach((m, i) => {
+    html += '<button onclick="censurer(\'' + m + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">' + m + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function censurer(media) {
+  document.getElementById('modal-postes').classList.remove('open');
+  INDICES_NATIONAUX[state.country].IS = Math.max(0, INDICES_NATIONAUX[state.country].IS - 8);
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= 30) {
+    addExternalEvent('SCANDALE : La censure de ' + media + ' a ete revelee ! -20 POP.');
+    state.pop = Math.max(0, state.pop - 20);
+    updateUI();
+  } else {
+    showToast('Media censure', media + ' suspendu. -8 IS.', false);
+    addJournalEntry('Censure de ' + media, 'event-bad');
+  }
+}
+
+function ouvrirModalTraite() {
+  const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
+  const types = ['Commercial', 'De paix', "D'alliance militaire", 'Non-agression', 'Culturel'];
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Signer un traite';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EMPIRE</div>';
+  html += '<select id="traite-empire" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
+  empires.forEach(([k, co]) => { html += '<option value="' + k + '">' + co.n + '</option>'; });
+  html += '</select>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TYPE DE TRAITE</div>';
+  html += '<select id="traite-type" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
+  types.forEach(t => { html += '<option value="' + t + '">' + t + '</option>'; });
+  html += '</select>';
+  html += '<button onclick="signerTraite()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Signer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function signerTraite() {
+  const empireId = document.getElementById('traite-empire')?.value;
+  const type = document.getElementById('traite-type')?.value;
+  document.getElementById('modal-postes').classList.remove('open');
+  const empireName = COUNTRIES[empireId]?.n || empireId;
+  INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 12);
+  if (!state.traites) state.traites = [];
+  state.traites.push({ empire: empireId, type, jour: state.day });
+  showToast('Traite signe', 'Traite ' + type + ' avec ' + empireName + '. +12 ID.', true, true);
+  addExternalEvent('TRAITE : Accord ' + type + ' signe entre ' + (COUNTRIES[state.country]?.n||'') + ' et ' + empireName + '.');
+}
+
+function ouvrirModalNommerAmbassadeur() {
+  const contacts = state.contacts || [];
+  const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Nommer un ambassadeur';
+  let html = '<div style="padding:1rem">';
+  if (contacts.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Repertoire vide.</div>';
+  } else {
+    html += '<select id="amb-contact" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;margin-bottom:.7rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none">';
+    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+    html += '</select>';
+    html += '<select id="amb-empire" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;margin-bottom:.7rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none">';
+    empires.forEach(([k,co]) => { html += '<option value="' + k + '">' + co.n + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="confirmerAmbassadeur()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerAmbassadeur() {
+  const contact = document.getElementById('amb-contact')?.value;
+  const empireId = document.getElementById('amb-empire')?.value;
+  document.getElementById('modal-postes').classList.remove('open');
+  const empireName = COUNTRIES[empireId]?.n || empireId;
+  addMailNotification('Ministere des AE', 'Nomination comme ambassadeur', 'Vous avez ete nomme(e) ambassadeur(rice) aupres de ' + empireName + ' par le Ministre des Affaires Etrangeres.');
+  addExternalEvent('NOMINATION : ' + contact + ' nomme(e) ambassadeur(rice) aupres de ' + empireName + '.');
+  showToast('Ambassadeur nomme', contact + ' → ' + empireName, true);
+}
+
+function doReceptionAvecBonus(fn, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
+
+  // Bonus/malus selon popularite
+  const popBonus = state.pop > 20 ? Math.floor((state.pop - 20) * 1) : -Math.floor((20 - state.pop) * 1);
+  const taux = Math.min(95, Math.max(5, 80 + Math.floor(popBonus / 2)));
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  state.arg -= cost;
+  updateUI();
+
+  if (roll <= taux) {
+    state.pop = Math.min(100, state.pop + 10);
+    state.inf = Math.min(100, state.inf + 8);
+    state.moral = Math.min(100, state.moral + 5);
+    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 5);
+    updateUI();
+    showToast(fn === 'reception_etat' ? 'Reception reussie !' : 'Banquet reussi !', '+10 POP +8 INF +5 Moral +5 ID.', true, true);
+    addJournalEntry(fn === 'reception_etat' ? 'Reception d\'Etat reussie.' : 'Banquet diplomatique reussi.', 'event-good');
+  } else {
+    state.pop = Math.max(0, state.pop - 30);
+    state.inf = Math.max(0, state.inf - 30);
+    state.moral = Math.max(0, state.moral - 10);
+    updateUI();
+    showToast('Echec !', 'Les invites ont boude votre ' + (fn === 'reception_etat' ? 'reception' : 'banquet') + '. -30 POP -30 INF -10 Moral.', false);
+    addExternalEvent('HUMILIATION : La ' + (fn === 'reception_etat' ? 'reception' : 'banquet diplomatique') + ' du President s\'est soldee par un echec cuisant. -30 POP -30 INF -10 Moral.');
+  }
+}
+
+function ouvrirNommerMinistresModal() {
+  const contacts = state.contacts || [];
+  const postesMinisteriels = [
+    { id:'min_int', name:"Ministre de l'Interieur" },
+    { id:'min_fin', name:'Ministre des Finances' },
+    { id:'min_just', name:'Ministre de la Justice' },
+    { id:'min_def', name:'Ministre de la Defense' },
+    { id:'min_info', name:"Ministre de l'Information" },
+    { id:'min_ae', name:'Ministre des AE' }
+  ];
+  if (state.postesCustom?.ministre) postesMinisteriels.push({ id:'custom_ministre', name:state.postesCustom.ministre.nom });
+  if (state.postesCustom?.comite) postesMinisteriels.push({ id:'custom_comite', name:state.postesCustom.comite.nom });
+
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Nommer des ministres';
+  let html = '<div style="padding:1rem">';
+  if (contacts.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Repertoire vide. Enregistrez des contacts PJ.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">POSTE</div>';
+    html += '<select id="nommer-min-poste" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
+    postesMinisteriels.forEach(p => { html += '<option value="' + p.id + '">' + p.name + '</option>'; });
+    html += '</select>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">PJ A NOMMER</div>';
+    html += '<select id="nommer-min-contact" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="validerNominationMinistre()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function validerNominationMinistre() {
+  const posteId = document.getElementById('nommer-min-poste')?.value;
+  const contact = document.getElementById('nommer-min-contact')?.value;
+  const postesNoms = { min_int:"Ministre de l'Interieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Defense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
+  const posteNom = postesNoms[posteId] || (state.postesCustom?.ministre?.nom) || (state.postesCustom?.comite?.nom) || posteId;
+  document.getElementById('modal-postes').classList.remove('open');
+  addMailNotification('Premier Ministre', 'Nomination ministerielle', 'Par decision du Premier Ministre, vous etes nomme(e) ' + posteNom + '. Prenez vos fonctions immediatement.');
+  addExternalEvent('NOMINATION : ' + contact + ' est nomme(e) ' + posteNom + ' par le Premier Ministre.');
+  showToast('Nomination envoyee', contact + ' → ' + posteNom, true, true);
+}
+
+// Appliquer malus ISN aux actes illegaux
+function getMalusISN() {
+  const isn = INDICES_NATIONAUX[state.country]?.ISN || 30;
+  if (isn <= 20) return 0;
+  if (isn <= 40) return 5;
+  if (isn <= 60) return 10;
+  if (isn <= 80) return 15;
+  return 25;
+}
+
 function creerPosteMinistre() {
   if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
   if (state.postesCustom.ministre) {

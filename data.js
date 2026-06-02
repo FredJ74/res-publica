@@ -240,8 +240,8 @@ const BUILDINGS = {
           {name:'Garde Republicain (PNJ)', role:'PNJ - Securite presidentielle', rel:'neutral', job:'garde'}
         ],
         orders: [
-          {fn:'se_presenter',   label:'Se presenter',          pa:0, cost:0, type:'legal', icon:'ti-id-badge',   successRate:100, desc:'Etre introduit dans le Palais.'},
-          {fn:'rencontrer',     label:'Solliciter une audience',pa:2, cost:0, type:'legal', icon:'ti-users',      successRate:70,  desc:'Demander a rencontrer le President.'}
+          {fn:'solliciter_audience_president', label:'Solliciter une audience', pa:1, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Votre demande est transmise au President. Il vous repondra par mail.'},
+          {fn:'etat_nation',                   label:"Etat de la Nation",       pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Consulter les indices nationaux (securite, economie, diplomatie, social).'}
         ]
       },
       bureau_president: {
@@ -249,38 +249,36 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0a1005,#12180a)",
         desc: "Le bureau oval de la Presidence. C'est ici que se prennent les decisions les plus importantes de Republia.",
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
-        locked: false,
         persons: [
           {name:'Secretaire General (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general'}
         ],
         orders: [
-          {fn:'creer_poste_ministre',   label:'Creer un poste ministeriel',    pa:3, cost:0,    type:'legal',   icon:'ti-user-star',     successRate:100, requiresPost:'president', desc:'Creer un poste de ministre personnalise. Limite : 1 poste + 1 comite.'},
-          {fn:'creer_comite',           label:'Creer un comite',               pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'president', desc:'Creer un comite special. Limite : 1 comite.'},
-          {fn:'supprimer_poste_custom', label:'Supprimer un poste cree',       pa:0, cost:0,    type:'legal',   icon:'ti-trash',         successRate:100, requiresPost:'president', desc:'Supprimer un poste ou comite precedemment cree.'},
-          {fn:'nommer_ministre',        label:'Nommer un ministre',            pa:2, cost:0,    type:'legal',   icon:'ti-crown',         successRate:100, requiresPost:'president', desc:'Nommer un PJ a un poste ministeriel. Envoie un mail au candidat.'},
-          {fn:'etat_urgence',           label:'Declarer l\'etat d\'urgence',  pa:3, cost:0,    type:'legal',   icon:'ti-alert-triangle',successRate:100, requiresPost:'president', desc:'Suspend certaines libertes. Fort impact sur INF et POP.'},
-          {fn:'declarer_guerre',        label:'Declarer la guerre',            pa:5, cost:0,    type:'legal',   icon:'ti-sword',         successRate:100, requiresPost:'president', desc:'Declarer la guerre a un empire. Consequences majeures.'},
-          {fn:'gracier',                label:'Gracier un condamne',           pa:2, cost:0,    type:'legal',   icon:'ti-heart-handshake',successRate:100,requiresPost:'president', desc:'Liberer un prisonnier. +POP +INF selon popularite du condamne.'},
-          {fn:'dissoudre_assemblee',    label:'Dissoudre l\'Assemblee',       pa:4, cost:0,    type:'legal',   icon:'ti-ban',           successRate:100, requiresPost:'president', desc:'Declenche de nouvelles elections legislatives. Risque politique majeur.'},
-          {fn:'decret_referendum',      label:'Ordonner un referendum',        pa:3, cost:0,    type:'legal',   icon:'ti-checkbox',      successRate:100, requiresPost:'president', desc:'Soumettre une question au vote populaire.'},
-          {fn:'nationaliser',           label:'Nationaliser une entreprise',   pa:3, cost:0,    type:'legal',   icon:'ti-building-factory',successRate:80,requiresPost:'president', desc:'Placer une entreprise sous controle de l\'Etat.'},
-          {fn:'nommer_ambassadeur',     label:'Nommer un ambassadeur',         pa:2, cost:0,    type:'legal',   icon:'ti-world',         successRate:100, requiresPost:'president', desc:'Designer un representant diplomatique aupres d\'un empire.'},
-          {fn:'jour_deuil',             label:'Decret de deuil national',      pa:1, cost:0,    type:'legal',   icon:'ti-flag',          successRate:100, requiresPost:'president', desc:'Symbolique fort. +POP si populaire, -POP si conteste.'}
+          {fn:'creer_poste_ministre',   label:'Creer un poste ministeriel',  pa:3, cost:0, type:'legal',   icon:'ti-user-star',      successRate:100, requiresPost:'president', desc:'Creer un poste de ministre personnalise. Limite : 1 poste + 1 comite.'},
+          {fn:'creer_comite',           label:'Creer un comite',             pa:3, cost:0, type:'legal',   icon:'ti-users-group',    successRate:100, requiresPost:'president', desc:'Creer un comite special. Limite : 1 comite.'},
+          {fn:'supprimer_poste_custom', label:'Supprimer un poste cree',     pa:0, cost:0, type:'legal',   icon:'ti-trash',          successRate:100, requiresPost:'president', desc:'Supprimer un poste ou comite precedemment cree.'},
+          {fn:'nommer_pm',              label:'Nommer un Premier Ministre',  pa:2, cost:0, type:'legal',   icon:'ti-crown',          successRate:100, requiresPost:'president', desc:'Nommer un PJ comme Premier Ministre. Envoie un mail de nomination.'},
+          {fn:'etat_urgence',           label:"Declarer l'etat d'urgence",   pa:3, cost:0, type:'legal',   icon:'ti-alert-triangle', successRate:100, requiresPost:'president', desc:"Suspend certaines libertes. +25 ISN. Fort impact INF et POP."},
+          {fn:'declarer_guerre_empire', label:'Declarer la guerre',          pa:5, cost:0, type:'legal',   icon:'ti-sword',          successRate:100, requiresPost:'president', desc:'Choisir un empire et lui declarer la guerre. Consequences majeures.'},
+          {fn:'gracier_condamne',       label:'Gracier un condamne',         pa:2, cost:0, type:'legal',   icon:'ti-heart-handshake',successRate:100, requiresPost:'president', desc:'Ouvre la liste des condamnes. Libere un prisonnier.'},
+          {fn:'dissoudre_assemblee',    label:"Dissoudre l'Assemblee",       pa:4, cost:0, type:'legal',   icon:'ti-ban',            successRate:100, requiresPost:'president', desc:'Declenche de nouvelles elections legislatives. Risque politique majeur.'},
+          {fn:'decret_referendum',      label:'Ordonner un referendum',      pa:3, cost:0, type:'legal',   icon:'ti-checkbox',       successRate:100, requiresPost:'president', desc:'Ouvre le forum presidentiel pour rediger le referendum.'},
+          {fn:'nationaliser_entreprise',label:'Nationaliser une entreprise', pa:3, cost:0, type:'legal',   icon:'ti-building-factory',successRate:80, requiresPost:'president', desc:'Ouvre la liste des entreprises privees.'},
+          {fn:'jour_deuil',             label:'Decret de deuil national',    pa:1, cost:0, type:'legal',   icon:'ti-flag',           successRate:100, requiresPost:'president', desc:'Ouvre le forum presidentiel. +POP mais pas d impots ce jour.'}
         ]
       },
       salle_presse_elysee: {
         name: "Salle de Presse",
         imageBg: "linear-gradient(135deg,#0f0f18,#181820)",
-        desc: "La salle de presse presidentielle. Les journalistes accredites y attendent les declarations.",
+        desc: "La salle de presse presidentielle. Tous les ordres ouvrent le forum presidentiel.",
         imageUrl: "https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1?w=1200&q=80",
         persons: [
           {name:'Porte-parole presidentiel (PNJ)', role:'PNJ - Porte-parole de la presidence', rel:'neutral', job:'porteparole'}
         ],
         orders: [
-          {fn:'conference_presse',  label:'Conference de presse',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',   successRate:100, requiresPost:'president', desc:'Annonce presidentielle. Fort impact POP et INF.'},
-          {fn:'annonce_officielle', label:'Annonce officielle',     pa:1, cost:0,   type:'legal', icon:'ti-speakerphone', successRate:100, requiresPost:'president', desc:'Declaration formelle au nom de la presidence.'},
-          {fn:'propagande_etat',    label:'Propagande d\'Etat',    pa:3, cost:500, type:'grey',  icon:'ti-broadcast',    successRate:75,  requiresPost:'president', desc:'Campagne de communication massive. +POP important.'},
-          {fn:'dementi',            label:'Dementi officiel',       pa:2, cost:0,   type:'legal', icon:'ti-x',            successRate:80,  requiresPost:'president', desc:'Dementir un scandale ou une rumeur.'}
+          {fn:'forum_president_conference', label:'Conference de presse',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',   successRate:100, requiresPost:'president', desc:'Ouvre le forum presidentiel. Annonce officielle. +15 POP +10 INF.'},
+          {fn:'forum_president_annonce',    label:'Annonce officielle',    pa:1, cost:0,   type:'legal', icon:'ti-speakerphone', successRate:100, requiresPost:'president', desc:'Ouvre le forum presidentiel. Declaration formelle. +5 POP +5 INF.'},
+          {fn:'forum_president_propagande', label:"Propagande d'Etat",    pa:3, cost:500, type:'grey',  icon:'ti-broadcast',    successRate:100, requiresPost:'president', desc:'Ouvre le forum presidentiel. Campagne massive. +20 POP.'},
+          {fn:'forum_president_dementi',    label:'Dementi officiel',      pa:2, cost:0,   type:'legal', icon:'ti-x',            successRate:100, requiresPost:'president', desc:'Ouvre le forum presidentiel. Contre une rumeur ou scandale.'}
         ]
       },
       salle_reception: {
@@ -292,9 +290,8 @@ const BUILDINGS = {
           {name:'Chef du Protocole (PNJ)', role:'PNJ - Organisation des evenements', rel:'neutral', job:'protocole'}
         ],
         orders: [
-          {fn:'reception_etat',    label:'Organiser une reception',  pa:2, cost:1000, type:'legal', icon:'ti-confetti',   successRate:100, requiresPost:'president', desc:'Reception officielle. +INF +POP +relations diplomatiques.'},
-          {fn:'banquet_diplo',     label:'Banquet diplomatique',      pa:3, cost:2000, type:'legal', icon:'ti-wine',       successRate:100, requiresPost:'president', desc:'Inviter des representants etrangers. Ameliore les relations inter-empires.'},
-          {fn:'rencontrer',        label:'Rencontrer les invites',    pa:1, cost:0,    type:'legal', icon:'ti-users',      successRate:100}
+          {fn:'reception_etat',  label:'Organiser une reception',  pa:2, cost:1000, type:'legal', icon:'ti-confetti', successRate:80, requiresPost:'president', desc:'Jet 80% + bonus/malus popularite. Echec : -30 POP -30 INF -10 Moral.'},
+          {fn:'banquet_diplo',   label:'Banquet diplomatique',     pa:3, cost:2000, type:'legal', icon:'ti-wine',     successRate:80, requiresPost:'president', desc:'Jet 80% + bonus/malus popularite. Echec : -30 POP -30 INF -10 Moral.'}
         ]
       }
     }
@@ -307,11 +304,10 @@ const BUILDINGS = {
     icon: "ti-building-bank",
     bgColor: "#141c10",
     capitaleOnly: true,
-    desc: "Le coeur du pouvoir executif de Republia. Les ministres y travaillent, les carrieres s'y font et s'y defont.",
+    desc: "Le coeur du pouvoir executif de Republia. Le Premier Ministre y travaille avec ses ministres.",
     rooms: {
       hall: {
         name: "Hall d'entree",
-        image: "🏛️",
         imageBg: "linear-gradient(135deg,#141c10,#1e2a18)",
         desc: "Le hall monumental du Palais. Gardes republicains en faction. Acces controle.",
         imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
@@ -320,161 +316,24 @@ const BUILDINGS = {
           {name:'Secretaire Dupuis', role:'PNJ - Accueil officiel', rel:'neutral', job:'secretaire'}
         ],
         orders: [
-          {fn:'parler_pnj',  label:'Parler au secretaire', pa:0, cost:0, type:'legal', icon:'ti-message',    successRate:100},
-          {fn:'se_presenter',label:'Se presenter',          pa:1, cost:0, type:'legal', icon:'ti-id-badge',   successRate:100}
+          {fn:'postuler',  label:'Postuler a un poste', pa:2, cost:0, type:'legal', icon:'ti-id-badge', successRate:85, desc:'Voir les postes disponibles et postuler. PNJ : automatique. PM/President PJ : impossible. Ministre PJ : mail au PM.'}
         ]
       },
       bureaux: {
-        name: "Bureaux ministeriels",
-        image: "💼",
+        name: "Bureau du Premier Ministre",
         imageBg: "linear-gradient(135deg,#0f1a0c,#182416)",
-        desc: "Les bureaux des ministres et de leurs cabinets. Acces selon poste et relations.",
+        desc: "Le bureau du Premier Ministre. Acces PM uniquement.",
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
         persons: [
-          {name:'Prefet Moreau',    role:'Prefet de la Capitale', rel:'neutral', job:'prefet'},
-          {name:'Ministre Leroux',  role:'Ministre des Finances (PNJ)', rel:'neutral', job:'ministre'}
+          {name:'Chef de Cabinet (PNJ)', role:'PNJ - Chef de cabinet du PM', rel:'neutral', job:'chef_cabinet'}
         ],
         orders: [
-          {fn:'postuler',        label:'Postuler a un poste', pa:2, cost:0,   type:'legal',   icon:'ti-id-badge',  successRate:85, desc:'Voir les postes disponibles et postuler.'},
-          {fn:'negocier',        label:'Negocier un accord',  pa:3, cost:50,  type:'legal',   icon:'ti-handshake', successRate:70, desc:'Proposer un accord politique.'},
-          {fn:'corrompre_fonct', label:'Corrompre un fonctionnaire', pa:2, cost:500, type:'illegal', icon:'ti-coins', successRate:65, desc:'Acheter un service administratif.'}
-        ]
-      },
-      salle_conseil: {
-        name: "Salle du Conseil",
-        imageBg: "linear-gradient(135deg,#0d1a0a,#152014)",
-        desc: "La salle ou se prennent les decisions du gouvernement. Acces ministeriel uniquement.",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
-        persons: [
-          {name:'Premier Ministre (PNJ)', role:'Chef du gouvernement', rel:'neutral', job:'pm'}
-        ],
-        orders: [
-          {fn:'voter_loi',    label:'Participer au conseil',     pa:2, cost:0, type:'legal', icon:'ti-check',      successRate:100, requiresPost:true, desc:'Voter sur les propositions en cours.'},
-          {fn:'projet_loi',   label:'Soumettre une proposition', pa:3, cost:0, type:'legal', icon:'ti-file-text',  successRate:70,  requiresPost:true, desc:'Proposer une loi avec intitule et duree de vote.'}
-        ]
-      },
-      salle_presse: {
-        name: "Salle de Presse",
-        imageBg: "linear-gradient(135deg,#0f0f18,#181820)",
-        desc: "La salle de presse officielle du gouvernement. Microphones, cameras, journalistes accrédités.",
-        imageUrl: "https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1?w=1200&q=80",
-        persons: [
-          {name:'Porte-parole (PNJ)', role:'PNJ - Porte-parole du gouvernement', rel:'neutral', job:'porteparole'},
-          {name:'Journalistes accredites', role:'PNJ - Presse nationale', rel:'neutral', job:'journaliste'}
-        ],
-        orders: [
-          {fn:'conference_presse', label:'Conférence de presse',  pa:2, cost:0,    type:'legal',   icon:'ti-microphone',   successRate:100, requiresPost:true, desc:'Annonce officielle au pays entier. Fort impact POP et INF.'},
-          {fn:'annonce_officielle',label:'Annonce officielle',     pa:1, cost:0,    type:'legal',   icon:'ti-speakerphone', successRate:100, requiresPost:true, desc:'Declaration formelle au nom du gouvernement.'},
-          {fn:'propagande_etat',   label:'Campagne de propagande', pa:3, cost:500,  type:'grey',    icon:'ti-broadcast',    successRate:75,  requiresPost:true, desc:'Influence massive de l\'opinion publique. +POP important.'},
-          {fn:'dementi',           label:'Démenti officiel',       pa:2, cost:0,    type:'legal',   icon:'ti-x',            successRate:80,  requiresPost:true, desc:'Dementir une rumeur ou un scandale. Reduit l\'impact d\'un kompromat.'}
-        ]
-      },
-      archives_gouv: {
-        name: "Archives Gouvernementales",
-        imageBg: "linear-gradient(135deg,#100a08,#1a1208)",
-        desc: "Les archives secretes du gouvernement. Dossiers classifies, rapports confidentiels, secrets d'Etat.",
-        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
-        persons: [
-          {name:'Archiviste Legrand (PNJ)', role:'PNJ - Archiviste en chef', rel:'neutral', job:'archiviste'}
-        ],
-        orders: [
-          {fn:'consulter_dossiers', label:'Consulter des dossiers',    pa:2, cost:0,    type:'legal',   icon:'ti-archive',        successRate:80,  requiresPost:true, desc:'Acceder a des informations confidentielles.'},
-          {fn:'fuite_info',         label:'Produire une fuite',        pa:3, cost:0,    type:'grey',    icon:'ti-leak',           successRate:60,  requiresPost:true, desc:'Faire fuiter un document secret.'},
-          {fn:'fabriquer_scandale', label:'Fabriquer un scandale',     pa:3, cost:800,  type:'illegal', icon:'ti-alert-triangle', successRate:45,  requiresPost:false, desc:'Creer de fausses preuves. Tres risque.'}
+          {fn:'nommer_ministre_pm',  label:'Nommer des ministres',  pa:2, cost:0, type:'legal',   icon:'ti-crown',     successRate:100, requiresPost:'pm', desc:'Nommer un PJ du repertoire a un poste ministeriel.'},
+          {fn:'negocier',            label:'Negocier un accord',    pa:3, cost:50, type:'legal',   icon:'ti-handshake', successRate:70,  requiresPost:'pm', desc:'Proposer un accord politique a un autre PJ.'},
+          {fn:'corrompre_fonct',     label:'Corrompre un fonctionnaire', pa:2, cost:500, type:'illegal', icon:'ti-coins', successRate:65, desc:'Acheter un service administratif.'}
         ]
       },
 
-      // ---- BUREAUX MINISTERIELS ----
-      bureau_min_int: {
-        name: "Bureau - Ministre de l'Interieur",
-        imageBg: "linear-gradient(135deg,#100a08,#1a1005)",
-        desc: "Le bureau du Ministre de l'Interieur. Securite nationale, ordre public, police.",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
-        requiresPostId: 'min_int',
-        persons: [],
-        orders: [
-          {fn:'etat_urgence',         label:"Declarer l'etat d'urgence",    pa:3, cost:0,   type:'legal',   icon:'ti-alert-triangle', successRate:100, requiresPost:'min_int', desc:'Suspend certaines libertes civiles. Fort impact.'},
-          {fn:'mobiliser_police',     label:'Mobiliser les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield',        successRate:100, requiresPost:'min_int', desc:'Deploiement massif de police. +securite -liberte.'},
-          {fn:'interdire_manif',      label:'Interdire une manifestation',  pa:2, cost:0,   type:'legal',   icon:'ti-ban',            successRate:100, requiresPost:'min_int', desc:'Interdire un rassemblement. -POP important.'},
-          {fn:'autoriser_manif',      label:'Autoriser une manifestation',  pa:1, cost:0,   type:'legal',   icon:'ti-check',          successRate:100, requiresPost:'min_int', desc:'Lever une interdiction. +POP.'},
-          {fn:'repression_manif',     label:'Ordonner la repression',       pa:3, cost:0,   type:'grey',    icon:'ti-flame',          successRate:80,  requiresPost:'min_int', desc:'Disperser de force. -POP fort mais +autorite.'}
-        ]
-      },
-      bureau_min_fin: {
-        name: "Bureau - Ministre des Finances",
-        imageBg: "linear-gradient(135deg,#0a0f08,#101508)",
-        desc: "Le bureau du Ministre des Finances. Fiscalite, budget, politique economique.",
-        imageUrl: "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=1200&q=80",
-        requiresPostId: 'min_fin',
-        persons: [],
-        orders: [
-          {fn:'augmenter_impots',     label:'Augmenter les impots',         pa:2, cost:0,   type:'legal',   icon:'ti-trending-up',    successRate:100, requiresPost:'min_fin', desc:'Augmenter la fiscalite nationale. +recettes -POP.'},
-          {fn:'baisser_impots',       label:'Baisser les impots',           pa:2, cost:0,   type:'legal',   icon:'ti-trending-down',  successRate:100, requiresPost:'min_fin', desc:'Reduire la fiscalite. -recettes +POP.'},
-          {fn:'redressement_fiscal',  label:'Ordonner un redressement',     pa:2, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:80,  requiresPost:'min_fin', desc:'Cibler un contribuable. Genere des recettes mais cree des ennemis.'},
-          {fn:'subvention',           label:'Accorder une subvention',      pa:2, cost:500, type:'legal',   icon:'ti-coins',          successRate:100, requiresPost:'min_fin', desc:'Financer un secteur ou une association. +POP ciblé.'},
-          {fn:'allegemement_fiscal',  label:'Allegement fiscal sectoriel',  pa:2, cost:0,   type:'legal',   icon:'ti-receipt-tax',    successRate:100, requiresPost:'min_fin', desc:'Reduire les taxes d\'un secteur. +INF aupres des lobbies.'}
-        ]
-      },
-      bureau_min_just: {
-        name: "Bureau - Ministre de la Justice",
-        imageBg: "linear-gradient(135deg,#0a0808,#140f08)",
-        desc: "Le bureau du Ministre de la Justice. Magistrature, poursuites, grace presidentielle.",
-        imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&q=80",
-        requiresPostId: 'min_just',
-        persons: [],
-        orders: [
-          {fn:'annuler_poursuites',   label:'Annuler des poursuites',       pa:2, cost:0,   type:'grey',    icon:'ti-file-x',         successRate:70,  requiresPost:'min_just', desc:'Classer une affaire judiciaire. Cree une dette politique.'},
-          {fn:'ouvrir_enquete',       label:'Ouvrir une enquete',           pa:2, cost:0,   type:'legal',   icon:'ti-search',         successRate:90,  requiresPost:'min_just', desc:'Declencher une enquete judiciaire sur un individu.'},
-          {fn:'gracier',              label:'Proposer une grace',           pa:2, cost:0,   type:'legal',   icon:'ti-heart-handshake',successRate:100, requiresPost:'min_just', desc:'Recommander une grace au President.'},
-          {fn:'nommer_juge',          label:'Nommer un juge',               pa:3, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:90,  requiresPost:'min_just', desc:'Nommer un magistrat favorable. Influence les verdicts futurs.'}
-        ]
-      },
-      bureau_min_def: {
-        name: "Bureau - Ministre de la Defense",
-        imageBg: "linear-gradient(135deg,#080f08,#0f1808)",
-        desc: "Le bureau du Ministre de la Defense. Armee, securite nationale, renseignement militaire.",
-        imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
-        requiresPostId: 'min_def',
-        persons: [],
-        orders: [
-          {fn:'mobiliser_armee',      label:'Mobiliser l\'armee',          pa:4, cost:0,   type:'legal',   icon:'ti-military-rank',  successRate:100, requiresPost:'min_def', desc:'Mise en alerte des forces armees. Tres impactant diplomatiquement.'},
-          {fn:'cessez_le_feu',        label:'Negocier un cessez-le-feu',   pa:3, cost:0,   type:'legal',   icon:'ti-handshake',      successRate:60,  requiresPost:'min_def', desc:'Mettre fin a un conflit en cours.'},
-          {fn:'renseignement',        label:'Lancer une operation de renseignement', pa:3, cost:500, type:'grey', icon:'ti-spy', successRate:70, requiresPost:'min_def', desc:'Espionner un empire etranger.'}
-        ]
-      },
-      bureau_min_info: {
-        name: "Bureau - Ministre de l'Information",
-        imageBg: "linear-gradient(135deg,#0f0808,#180f08)",
-        desc: "Le bureau du Ministre de l'Information. Medias, propagande, censure.",
-        imageUrl: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&q=80",
-        requiresPostId: 'min_info',
-        persons: [],
-        orders: [
-          {fn:'propagande_etat',      label:'Campagne de propagande',       pa:3, cost:500, type:'grey',    icon:'ti-broadcast',      successRate:75,  requiresPost:'min_info', desc:'Influencer massivement l\'opinion publique. +POP.'},
-          {fn:'censurer_media',       label:'Censurer un media',            pa:2, cost:0,   type:'grey',    icon:'ti-eye-off',        successRate:70,  requiresPost:'min_info', desc:'Interdire un organe de presse. -liberte +controle.'},
-          {fn:'commanditer_sondage',  label:'Commanditer un sondage',       pa:1, cost:200, type:'legal',   icon:'ti-chart-bar',      successRate:100, requiresPost:'min_info', desc:'Publier un sondage favorable. +INF si bien fait.'},
-          {fn:'dementi',              label:'Dementi officiel',             pa:2, cost:0,   type:'legal',   icon:'ti-x',              successRate:80,  requiresPost:'min_info', desc:'Contredire une information defavorable.'}
-        ]
-      },
-      bureau_min_ae: {
-        name: "Bureau - Ministre des Affaires Etrangeres",
-        imageBg: "linear-gradient(135deg,#080a10,#0f1018)",
-        desc: "Le bureau du Ministre des AE. Diplomatie, traites, relations inter-empires.",
-        imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
-        requiresPostId: 'min_ae',
-        persons: [],
-        orders: [
-          {fn:'declarer_guerre',      label:'Recommander une declaration de guerre', pa:4, cost:0, type:'legal', icon:'ti-sword',   successRate:80,  requiresPost:'min_ae', desc:'Soumettre au President une declaration de guerre.'},
-          {fn:'signer_traite',        label:'Signer un traite',             pa:3, cost:0,   type:'legal',   icon:'ti-file-certificate', successRate:70, requiresPost:'min_ae', desc:'Accord bilateral avec un empire etranger.'},
-          {fn:'ouvrir_ambassade',     label:'Ouvrir une ambassade',         pa:2, cost:1000,type:'legal',   icon:'ti-building',       successRate:100, requiresPost:'min_ae', desc:'Etablir une representation diplomatique.'},
-          {fn:'nommer_ambassadeur',   label:'Nommer un ambassadeur',        pa:2, cost:0,   type:'legal',   icon:'ti-world',          successRate:100, requiresPost:'min_ae', desc:'Designer un diplomate aupres d\'un empire.'},
-          {fn:'sanctions_diplo',      label:'Imposer des sanctions',        pa:3, cost:0,   type:'legal',   icon:'ti-ban',            successRate:85,  requiresPost:'min_ae', desc:'Sanctions economiques ou diplomatiques.'}
-        ]
-      }
-    }
-  },
-
-  // ---- ASSEMBLEE NATIONALE (capitale uniquement) ----
   'assemblee': {
     name: "Assemblee Nationale",
     shortName: "Assemblee",
@@ -1437,11 +1296,12 @@ const BUILDINGS = {
       }
     }
   }
-};
+}}};
 
 // =====================
 // POSTES POLITIQUES
 // =====================
+
 const POSTES = {
   republic: {
     capitale: [
@@ -1707,3 +1567,47 @@ const PJ_SIMULES = [
     role: 'Agent — Services secrets'
   }
 ];
+// =====================
+// INDICES NATIONAUX V13
+// =====================
+const INDICES_NATIONAUX = {
+  republic: {
+    ISN: 30,  // Indice de Securite Nationale (0-100)
+    IE:  50,  // Indice Economique (0-100)
+    ID:  40,  // Indice Diplomatique (0-100)
+    IS:  45   // Indice Social (0-100)
+  },
+  narco:   { ISN: 15, IE: 30, ID: 20, IS: 25 },
+  soviet:  { ISN: 70, IE: 40, ID: 30, IS: 35 },
+  khalija: { ISN: 60, IE: 65, ID: 50, IS: 40 }
+};
+
+// Impact ISN sur les actes illegaux
+function getMalusIllegal(country) {
+  const isn = INDICES_NATIONAUX[country]?.ISN || 30;
+  if (isn <= 20) return 0;
+  if (isn <= 40) return 5;
+  if (isn <= 60) return 10;
+  if (isn <= 80) return 15;
+  return 25;
+}
+
+function getMultDetection(country) {
+  const isn = INDICES_NATIONAUX[country]?.ISN || 30;
+  if (isn <= 60) return 1;
+  if (isn <= 80) return 2;
+  return 3;
+}
+
+// Medias disponibles (pour censure)
+const MEDIAS = {
+  republic: ['La Tribune de Republia', 'Radio Nationale', 'Tele Publia', 'Le Moniteur Regional', 'Info-Presse Independante']
+};
+
+// Entreprises privees (pour nationalisation)
+const ENTREPRISES_PRIVEES = {
+  republic: [] // Alimentees dynamiquement quand des PJ achetent des entreprises
+};
+
+// Secteurs economiques (pour allegements)
+const SECTEURS = ['Commerce', 'Industrie lourde', 'Agriculture', 'Services financiers', 'Immobilier', 'Technologie', 'Sante privee', 'Media et communication'];
