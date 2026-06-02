@@ -135,6 +135,9 @@ function runMidnightUpdate() {
   // Traiter les plaintes et enquetes en cours
   traiterPlaintes();
   traiterEnquetes();
+  // Budget institutions et population
+  mettreAJourBudgets();
+  mettreAJourPopulation();
   // Revenus fiscaux
   const pop = CITY_POPULATION[state.country]?.[state.currentCity];
   if (pop) {
@@ -390,7 +393,18 @@ function renderPersonsList(persons) {
       '</div></div>';
   }).join('');
 
-  document.getElementById('persons-list').innerHTML = selfCard + personCards ||
+  const simules = getSimulesPresents();
+  const simuleCards = simules.map(p => {
+    const enc = encodeURIComponent(JSON.stringify({...p, isPJ: true}));
+    return '<div class="person-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid #4a6aaa">' +
+      '<div class="person-avatar" style="border-color:#4a6aaa"><i class="ti ti-user-circle" style="font-size:.75rem;color:#4a6aaa"></i></div>' +
+      '<div><div class="person-name" style="color:#8aaad0">' + p.name + ' <span style="font-size:.6rem;color:#3a5a8a">[SIM]</span></div>' +
+      '<div class="person-role">' + p.role + '</div>' +
+      '<div style="font-size:.6rem;color:#3a5a8a">INF:' + p.resources.inf + ' POP:' + p.resources.pop + '</div>' +
+      '</div></div>';
+  }).join('');
+
+  document.getElementById('persons-list').innerHTML = selfCard + simuleCards + personCards ||
     '<div class="person-empty">Personne d\'autre ici</div>';
 }
 
@@ -493,6 +507,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_arme_illegale') { doAcheterArme(false); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
+  if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour assassiner, cliquez directement sur le personnage cible dans la liste des personnes presentes.', false); return; }
   if (fn === 'deposer_candidature') { openCandidatureModal(); return; }
   if (fn === 'consulter_elections') { openElectionsModal(); return; }
   if (fn === 'creer_poste_ministre')   { creerPosteMinistre(); return; }
@@ -635,6 +650,9 @@ function openPnjModal(encodedPnj) {
   if (pnj.rel === 'enemy') {
     actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj(\'' + enc + '\', \'confrontation\')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
   }
+  // Bouton assassiner (toujours disponible sur PNJ/PJ autres)
+  const encCible = encodeURIComponent(JSON.stringify(pnj));
+  actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
 
   document.getElementById('pnj-actions').innerHTML = actionBtns +
     '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
@@ -1243,6 +1261,246 @@ function soumettreRumeur() {
     addJournalEntry(`Rumeur sur ${cible} : personne n'y a cru.`, '');
     showToast('Rumeur inefficace', 'Personne ne semble y preter attention.', false);
   }
+}
+
+// =====================
+// ASSASSINAT
+// =====================
+function ouvrirModalAssassinat(encodedCible) {
+  let cible;
+  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
+
+  const char = state.char;
+  const armes = (state.inventory||[]).filter(i => i.type === 'arme');
+  const hasBlade = armes.some(a => a.name.toLowerCase().includes('couteau') || a.name.toLowerCase().includes('arme blanche'));
+  const hasGun   = armes.some(a => a.name.toLowerCase().includes('pistolet') || a.name.toLowerCase().includes('feu'));
+
+  const vol = char?.stats?.VOL || 8;
+  const per = char?.stats?.PER || 8;
+  const dup = char?.stats?.DUP || 8;
+
+  const tauxMains = Math.min(60, 20 + Math.floor(vol * 1.5));
+  const tauxArme  = Math.min(75, 40 + Math.floor(dup * 1.2));
+  const tauxFeu   = Math.min(85, 60 + Math.floor(per * 1.0));
+
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Assassiner — ' + cible.name;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#cc4444;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0505;border:1px solid #3a1010">Acte criminel. Peine : 7 jours QHS si echec. 15 jours si decouvert ulterieurement.</div>';
+
+  // Options
+  html += '<div style="display:flex;flex-direction:column;gap:.5rem">';
+
+  html += '<button onclick="confirmerAssassinat(\'' + encodedCible + '\',\'mains\',' + tauxMains + ')" style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border:1px solid #3a2010;background:#0f0805;color:#c0a080;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem">' +
+    '<span>A mains nues</span><span style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#8a6040">' + tauxMains + '% · 2 PA</span></button>';
+
+  html += '<button onclick="confirmerAssassinat(\'' + encodedCible + '\',\'arme\',' + tauxArme + ')" ' +
+    (!hasBlade ? 'disabled style="opacity:.4;cursor:not-allowed;' : 'style="cursor:pointer;') +
+    'display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border:1px solid #4a1a08;background:#0f0805;color:' + (hasBlade ? '#c06040' : '#4a3020') + ';font-family:Crimson Pro,serif;font-size:.85rem">' +
+    '<span>Arme blanche ' + (!hasBlade ? '(aucune en inventaire)' : '') + '</span>' +
+    '<span style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#8a5030">' + tauxArme + '% · 2 PA</span></button>';
+
+  html += '<button onclick="confirmerAssassinat(\'' + encodedCible + '\',\'feu\',' + tauxFeu + ')" ' +
+    (!hasGun ? 'disabled style="opacity:.4;cursor:not-allowed;' : 'style="cursor:pointer;') +
+    'display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border:1px solid #5a1a08;background:#0f0805;color:' + (hasGun ? '#cc4444' : '#4a2020') + ';font-family:Crimson Pro,serif;font-size:.85rem">' +
+    '<span>Arme a feu ' + (!hasGun ? '(aucune en inventaire)' : '') + ' — bruit !</span>' +
+    '<span style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#8a3030">' + tauxFeu + '% · 3 PA · -20 DIS</span></button>';
+
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerAssassinat(encodedCible, mode, taux) {
+  document.getElementById('modal-postes').classList.remove('open');
+  let cible;
+  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
+
+  const paCost = mode === 'feu' ? 3 : 2;
+  if (!TEST_MODE) state.pa = Math.max(0, state.pa - paCost);
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    // Succes
+    if (mode === 'feu') state.dis = Math.max(0, state.dis - 20);
+
+    // Marquer la cible comme assassinee
+    if (!state.assassinats) state.assassinats = [];
+    state.assassinats.push({ cible: cible.name, jour: state.day, mode, decouvert: false });
+
+    // Effets sur la cible si PJ simule
+    const pjSimule = state.pjSimules?.find(p => p.name === cible.name);
+    if (pjSimule) {
+      pjSimule.resources.hp = 5;
+      pjSimule.estAssassine = { jour: state.day, ville: state.currentCity };
+    }
+
+    // Reduction population si PNJ
+    if (!cible.isPJ) {
+      const pop = CITY_POPULATION[state.country]?.[state.currentCity];
+      if (pop) pop.total = Math.max(0, pop.total - 1);
+    }
+
+    showToast('Acte commis', cible.name + ' est grièvement blesse(e). Vous n\'etes pas identifie(e).', false);
+    addJournalEntry('Vous avez attaque ' + cible.name + ' (' + mode + '). Non identifie(e) pour l\'instant.', 'event-bad');
+
+    // Detection potentielle
+    checkDetection('assassiner_' + mode, 'success');
+
+  } else {
+    // Echec — arrested
+    addExternalEvent('Tentative d\'homicide sur ' + cible.name + ' ! Vous avez ete identifie(e). Arrestation imminente.');
+    state.recherche = [{ acte: 'tentative_homicide', type: 'crime', jour: state.day }];
+    setTimeout(() => ouvrirModalArrestation('crime'), 800);
+  }
+  updateUI();
+}
+
+// =====================
+// MODE SIMULATION PJ
+// =====================
+function initSimulation() {
+  if (!state.pjSimules) {
+    state.pjSimules = JSON.parse(JSON.stringify(PJ_SIMULES));
+  }
+}
+
+function getSimulesPresents() {
+  if (!state.pjSimules) initSimulation();
+  return state.pjSimules.filter(p =>
+    p.currentCity === state.currentCity &&
+    p.currentBuilding === state.currentBuilding &&
+    !p.estAssassine
+  );
+}
+
+function ouvrirPanneauSimulation() {
+  if (!state.pjSimules) initSimulation();
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Joueurs Simules — Mode Test';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic;margin-bottom:.8rem;padding:.5rem;background:#0a0805;border:1px solid #1a1810">Mode simulation actif. Ces PJ fictifs permettent de tester les interactions multijoueur.</div>';
+
+  state.pjSimules.forEach((p, i) => {
+    const ar = ARCHETYPES.find(x => x.id === p.archetype);
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.4rem">';
+    html += '<div><div style="font-family:Playfair Display,serif;font-size:.9rem;color:#E8C97A">' + p.name + '</div>';
+    html += '<div style="font-size:.72rem;color:#6a5a30">' + p.role + '</div>';
+    html += (p.poste ? '<div style="font-size:.68rem;color:#C9A84C;margin-top:.15rem">' + p.poste.name + '</div>' : '') + '</div>';
+    html += '<div style="font-size:.68rem;color:' + (p.estAssassine ? '#cc2020' : '#4a8a4a') + '">' + (p.estAssassine ? 'Hospitalise' : 'Actif') + '</div>';
+    html += '</div>';
+
+    // Position et deplacement
+    const cityName = WORLD[p.country]?.[p.currentCity]?.name || p.currentCity;
+    html += '<div style="font-size:.72rem;color:#5a5040;margin-bottom:.5rem">Position : ' + cityName + (p.currentBuilding ? ' · ' + (BUILDINGS[p.currentBuilding]?.shortName || p.currentBuilding) : ' · Rue') + '</div>';
+
+    // Ressources
+    html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">';
+    [['INF',p.resources.inf,'#4a6aaa'],['POP',p.resources.pop,'#aa6a4a'],['DIS',p.resources.dis,'#8a4aaa'],['HP',p.resources.hp,'#aa4a4a']].forEach(([k,v,c]) => {
+      html += '<div style="font-size:.65rem;padding:.15rem .4rem;background:#0a0805;border:1px solid #1a1810"><span style="color:#4a4030">' + k + '</span> <span style="color:' + c + ';font-family:Bebas Neue,sans-serif">' + v + '</span></div>';
+    });
+    html += '</div>';
+
+    // Actions de deplacement
+    html += '<div style="display:flex;gap:.3rem;flex-wrap:wrap">';
+    Object.entries(WORLD[p.country] || {}).forEach(([cityId, city]) => {
+      if (cityId !== p.currentCity) {
+        html += '<button onclick="deplacerSimule(' + i + ',\'' + cityId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.2rem .4rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">→ ' + city.name + '</button>';
+      }
+    });
+    html += '<button onclick="deplacerSimuleBatiment(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.2rem .4rem;border:1px solid #2a4a20;background:transparent;color:#4a7a4a;cursor:pointer">Entrer ici</button>';
+    html += '</div>';
+    html += '</div>';
+  });
+
+  html += '<button onclick="actualiserSimules()" style="width:100%;margin-top:.5rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;padding:.4rem;border:1px solid #3a2a10;background:transparent;color:#8a7040;cursor:pointer">Actualiser les positions</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function deplacerSimule(idx, cityId) {
+  if (!state.pjSimules?.[idx]) return;
+  state.pjSimules[idx].currentCity = cityId;
+  state.pjSimules[idx].currentBuilding = null;
+  showToast('PJ deplace', state.pjSimules[idx].name + ' est maintenant a ' + (WORLD[state.pjSimules[idx].country]?.[cityId]?.name || cityId), true);
+  ouvrirPanneauSimulation();
+}
+
+function deplacerSimuleBatiment(idx) {
+  if (!state.pjSimules?.[idx]) return;
+  state.pjSimules[idx].currentCity = state.currentCity;
+  state.pjSimules[idx].currentBuilding = state.currentBuilding;
+  showToast('PJ deplace', state.pjSimules[idx].name + ' entre dans ce batiment.', true);
+  // Recharger les personnes presentes
+  if (state.currentBuilding && state.currentRoom) {
+    const b = BUILDINGS[state.currentBuilding];
+    const room = b?.rooms?.[state.currentRoom];
+    if (room) renderPersonsList(room.persons || []);
+  }
+  ouvrirPanneauSimulation();
+}
+
+function actualiserSimules() {
+  ouvrirPanneauSimulation();
+}
+
+// =====================
+// BUDGET INSTITUTIONS
+// =====================
+function getBudgetInstitution(institution) {
+  const budgets = BUDGETS_INSTITUTIONS[state.country]?.[state.currentCity];
+  if (!budgets) return null;
+  if (!state.budgetsActuels) state.budgetsActuels = {};
+  const key = state.currentCity + '_' + institution;
+  if (!state.budgetsActuels[key]) {
+    state.budgetsActuels[key] = { ...budgets[institution] };
+  }
+  return state.budgetsActuels[key];
+}
+
+function depenseBudget(institution, montant) {
+  const b = getBudgetInstitution(institution);
+  if (!b) return true;
+  if (b.budget < montant) {
+    showToast('Budget insuffisant', institution + ' manque de fonds. Le maire doit augmenter le budget.', false);
+    addExternalEvent('L\'institution ' + institution + ' est sous-financee. Certains services sont suspendus.');
+    return false;
+  }
+  b.budget -= montant;
+  return true;
+}
+
+function mettreAJourBudgets() {
+  if (!state.budgetsActuels) return;
+  // Recettes fiscales allouees aux institutions
+  const pop = CITY_POPULATION[state.country]?.[state.currentCity];
+  if (!pop) return;
+  const recettes = pop.dailyTaxRevenue || 0;
+  const allocation = Math.floor(recettes * 0.4); // 40% des recettes aux institutions
+  Object.keys(state.budgetsActuels).forEach(key => {
+    if (key.startsWith(state.currentCity)) {
+      state.budgetsActuels[key].budget = Math.min(
+        state.budgetsActuels[key].budget + Math.floor(allocation / 3),
+        20000
+      );
+    }
+  });
+}
+
+// =====================
+// POPULATION DYNAMIQUE
+// =====================
+function mettreAJourPopulation() {
+  Object.keys(CITY_POPULATION[state.country] || {}).forEach(cityId => {
+    const pop = CITY_POPULATION[state.country][cityId];
+    if (!pop) return;
+    // Regeneration lente : +0.1% par jour
+    const regen = Math.floor(pop.total * 0.001);
+    pop.total = Math.min(pop.totalMax || pop.total * 1.5, pop.total + regen);
+    // Recalculer les impots
+    pop.dailyTaxRevenue = Math.floor(pop.total * pop.taxRate / 365);
+  });
 }
 
 function doLogePortail() {

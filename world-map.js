@@ -157,6 +157,26 @@ function renderWorldMapSVG() {
           <text x="660" y="455" text-anchor="middle" font-size="8" fill="#c0a090"
             font-family="'Bebas Neue',sans-serif" letter-spacing="1">VILLA SANGRE</text>
         </g>
+
+        <!-- CUARTEL (Caserne El Estado) -->
+        <g class="map-city" onclick="mapClickCity('narco','caserne')" style="cursor:pointer">
+          <rect x="537" y="453" width="14" height="14" fill="#2a1a08" stroke="#8a4a20" stroke-width="1.2" rx="2"/>
+          <text x="544" y="463" text-anchor="middle" font-size="7" fill="#8a4a20" font-family="'Bebas Neue',sans-serif">✦</text>
+          <text x="544" y="477" text-anchor="middle" font-size="7.5" fill="#9a6a4a"
+            font-family="'Bebas Neue',sans-serif" letter-spacing="1">CUARTEL</text>
+          <text x="544" y="485" text-anchor="middle" font-size="6" fill="#6a4a30"
+            font-family="Georgia" font-style="italic">Militaire · 1 PA</text>
+        </g>
+
+        <!-- PRISION CENTRAL (QHS El Estado) -->
+        <g class="map-city" onclick="mapClickCity('narco','qhs')" style="cursor:pointer">
+          <rect x="617" y="373" width="14" height="14" fill="#1a0505" stroke="#8a2020" stroke-width="1.2" rx="2"/>
+          <text x="624" y="383" text-anchor="middle" font-size="7" fill="#8a2020" font-family="'Bebas Neue',sans-serif">▪</text>
+          <text x="624" y="397" text-anchor="middle" font-size="7.5" fill="#9a3a3a"
+            font-family="'Bebas Neue',sans-serif" letter-spacing="1">PRISION</text>
+          <text x="624" y="405" text-anchor="middle" font-size="6" fill="#6a2a2a"
+            font-family="Georgia" font-style="italic">Haute securite · 1 PA</text>
+        </g>
       </g>
 
       <!-- ===================== -->
@@ -207,6 +227,26 @@ function renderWorldMapSVG() {
           <text x="690" y="200" text-anchor="middle" font-size="8" fill="#c09090"
             font-family="'Bebas Neue',sans-serif" letter-spacing="1">KRASNOV</text>
         </g>
+
+        <!-- GARNISON (Caserne Sovarka) -->
+        <g class="map-city" onclick="mapClickCity('soviet','caserne')" style="cursor:pointer">
+          <rect x="537" y="138" width="14" height="14" fill="#0a1a0a" stroke="#4a2020" stroke-width="1.2" rx="2"/>
+          <text x="544" y="148" text-anchor="middle" font-size="7" fill="#6a2020" font-family="'Bebas Neue',sans-serif">✦</text>
+          <text x="544" y="162" text-anchor="middle" font-size="7.5" fill="#8a4a4a"
+            font-family="'Bebas Neue',sans-serif" letter-spacing="1">GARNISON</text>
+          <text x="544" y="170" text-anchor="middle" font-size="6" fill="#5a3030"
+            font-family="Georgia" font-style="italic">Militaire · 1 PA</text>
+        </g>
+
+        <!-- GOULAG (QHS Sovarka) -->
+        <g class="map-city" onclick="mapClickCity('soviet','qhs')" style="cursor:pointer">
+          <rect x="647" y="138" width="14" height="14" fill="#0a0505" stroke="#6a1010" stroke-width="1.2" rx="2"/>
+          <text x="654" y="148" text-anchor="middle" font-size="7" fill="#6a1010" font-family="'Bebas Neue',sans-serif">▪</text>
+          <text x="654" y="162" text-anchor="middle" font-size="7.5" fill="#8a2a2a"
+            font-family="'Bebas Neue',sans-serif" letter-spacing="1">GOULAG</text>
+          <text x="654" y="170" text-anchor="middle" font-size="6" fill="#5a2020"
+            font-family="Georgia" font-style="italic">Camp · 1 PA</text>
+        </g>
       </g>
 
       <!-- ===================== -->
@@ -256,6 +296,26 @@ function renderWorldMapSVG() {
           <circle cx="330" cy="440" r="8" fill="none" stroke="#9a7a20" stroke-width="1" opacity=".4"/>
           <text x="330" y="455" text-anchor="middle" font-size="8" fill="#c0b070"
             font-family="'Bebas Neue',sans-serif" letter-spacing="1">AL-PETROL</text>
+        </g>
+
+        <!-- FORTERESSE ROYALE (Caserne Al-Khalija) -->
+        <g class="map-city" onclick="mapClickCity('khalija','caserne')" style="cursor:pointer">
+          <rect x="192" y="393" width="14" height="14" fill="#1a1500" stroke="#8a7a10" stroke-width="1.2" rx="2"/>
+          <text x="199" y="403" text-anchor="middle" font-size="7" fill="#8a7a10" font-family="'Bebas Neue',sans-serif">✦</text>
+          <text x="199" y="417" text-anchor="middle" font-size="7" fill="#a09030"
+            font-family="'Bebas Neue',sans-serif" letter-spacing="1">FORTERESSE</text>
+          <text x="199" y="425" text-anchor="middle" font-size="6" fill="#6a6020"
+            font-family="Georgia" font-style="italic">Royale · 1 PA</text>
+        </g>
+
+        <!-- PRISON ROYALE (QHS Al-Khalija) -->
+        <g class="map-city" onclick="mapClickCity('khalija','qhs')" style="cursor:pointer">
+          <rect x="272" y="468" width="14" height="14" fill="#0a0800" stroke="#6a5010" stroke-width="1.2" rx="2"/>
+          <text x="279" y="478" text-anchor="middle" font-size="7" fill="#6a5010" font-family="'Bebas Neue',sans-serif">▪</text>
+          <text x="279" y="492" text-anchor="middle" font-size="7.5" fill="#8a6a20"
+            font-family="'Bebas Neue',sans-serif" letter-spacing="1">PRISON ROYALE</text>
+          <text x="279" y="500" text-anchor="middle" font-size="6" fill="#5a4010"
+            font-family="Georgia" font-style="italic">Haute securite · 1 PA</text>
         </g>
       </g>
 

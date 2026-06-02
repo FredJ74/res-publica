@@ -1618,3 +1618,92 @@ Object.assign(ORDER_EFFECTS, {
   plainte_police:     {successRate:100},
   archives_police:    {successRate:95}
 });
+
+// Ordres v12 — assassinat, budget institutions, population dynamique
+Object.assign(ORDER_EFFECTS, {
+  assassiner_mains:   {hp:-30, dis:-5,  successRate:20},
+  assassiner_arme:    {hp:-60, dis:-8,  successRate:40},
+  assassiner_feu:     {hp:-80, dis:-20, successRate:60},
+  greve_faim:         {hp:-5,  pop:3,   successRate:100},
+  visiter_prisonnier: {inf:2,           successRate:70},
+  interroger:         {inf:5,           successRate:75},
+  inspecter_troupes:  {inf:3,           successRate:100},
+  planifier_operation:{inf:4,           successRate:80},
+  reception_etat:     {pop:10, inf:8,   successRate:100},
+  banquet_diplo:      {inf:12, pop:5,   successRate:100}
+});
+
+// =====================
+// BUDGETS INSTITUTIONS
+// =====================
+const BUDGETS_INSTITUTIONS = {
+  republic: {
+    capitale: {
+      commissariat: { budget: 5000, coutEnquete: 500, salairesJour: 800 },
+      tribunal:     { budget: 4000, coutEnquete: 600, salairesJour: 700 },
+      mairie:       { budget: 8000, coutServices: 1000, salairesJour: 1200 }
+    },
+    ville_a: {
+      commissariat: { budget: 2000, coutEnquete: 300, salairesJour: 400 },
+      mairie:       { budget: 3000, coutServices: 500, salairesJour: 600 }
+    },
+    ville_b: {
+      commissariat: { budget: 2500, coutEnquete: 300, salairesJour: 450 },
+      mairie:       { budget: 3500, coutServices: 600, salairesJour: 700 }
+    }
+  }
+};
+
+// =====================
+// PJ SIMULATION (mode test multijoueur)
+// =====================
+const PJ_SIMULES = [
+  {
+    name: 'Alexandre Moreau',
+    archetype: 'politician',
+    career: 'civil',
+    poste: { id: 'depute_1', name: 'Depute' },
+    stats: { INT:12, CHA:13, VOL:10, PER:11, DUP:9, ENT:12 },
+    resources: { inf:45, pop:38, dis:70, hp:90, moral:75 },
+    arg: 8500,
+    country: 'republic',
+    currentCity: 'capitale',
+    currentBuilding: null,
+    isPJ: true,
+    isSimule: true,
+    rel: 'neutral',
+    role: 'Depute — Parti du Centre'
+  },
+  {
+    name: 'Sophie Leroux',
+    archetype: 'informer',
+    career: 'press',
+    poste: null,
+    stats: { INT:13, CHA:11, VOL:9, PER:14, DUP:12, ENT:10 },
+    resources: { inf:30, pop:55, dis:80, hp:95, moral:85 },
+    arg: 3200,
+    country: 'republic',
+    currentCity: 'capitale',
+    currentBuilding: null,
+    isPJ: true,
+    isSimule: true,
+    rel: 'neutral',
+    role: 'Journaliste — La Tribune'
+  },
+  {
+    name: 'Viktor Krasov',
+    archetype: 'shadow',
+    career: 'intel',
+    poste: null,
+    stats: { INT:11, CHA:8, VOL:12, PER:13, DUP:15, ENT:9 },
+    resources: { inf:20, pop:10, dis:95, hp:88, moral:60 },
+    arg: 12000,
+    country: 'republic',
+    currentCity: 'capitale',
+    currentBuilding: null,
+    isPJ: true,
+    isSimule: true,
+    rel: 'neutral',
+    role: 'Agent — Services secrets'
+  }
+];
