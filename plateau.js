@@ -492,6 +492,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
   if (fn === 'deposer_candidature') { openCandidatureModal(); return; }
   if (fn === 'consulter_elections') { openElectionsModal(); return; }
+  if (fn === 'creer_poste_ministre')   { creerPosteMinistre(); return; }
+  if (fn === 'creer_comite')           { creerComite(); return; }
+  if (fn === 'supprimer_poste_custom') { supprimerPosteCustom(); return; }
+  if (fn === 'nommer_ministre')        { openNominerModal(); return; }
 
   // Deduire PA et argent
   if (!TEST_MODE) state.pa = Math.max(0, state.pa - pa);
@@ -1246,6 +1250,47 @@ function doLogePortail() {
   }
 }
 
+function openNominerModal() {
+  const contacts = state.contacts || [];
+  const ministeres = ['min_int','min_fin','min_just','min_def','min_info','min_ae'];
+  const noms = { min_int:"Ministre de l'Interieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Defense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
+
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Nommer un ministre';
+  let html = '<div style="padding:1rem">';
+  if (contacts.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Votre repertoire est vide. Enregistrez d\'abord des contacts.</div>';
+  } else {
+    html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Le PJ selectionne recevra un mail de nomination.</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">POSTE</div>';
+    html += '<select id="nommer-poste" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
+    ministeres.forEach(m => { html += '<option value="' + m + '">' + noms[m] + '</option>'; });
+    if (state.postesCustom?.ministre) html += '<option value="custom_ministre">' + state.postesCustom.ministre.nom + '</option>';
+    if (state.postesCustom?.comite) html += '<option value="custom_comite">' + state.postesCustom.comite.nom + '</option>';
+    html += '</select>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">NOMME</div>';
+    html += '<select id="nommer-contact" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="validerNomination()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function validerNomination() {
+  const poste = document.getElementById('nommer-poste')?.value;
+  const contact = document.getElementById('nommer-contact')?.value;
+  if (!poste || !contact) return;
+  const noms = { min_int:"Ministre de l'Interieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Defense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
+  const posteNom = noms[poste] || (state.postesCustom?.ministre?.nom) || (state.postesCustom?.comite?.nom) || poste;
+  document.getElementById('modal-postes').classList.remove('open');
+  addMailNotification('Presidence de la Republique', 'Nomination ministerielle', 'Par decision presidentielle, vous etes nomme(e) au poste de ' + posteNom + '. Prenez vos fonctions immediatement.');
+  showToast('Nomination envoyee', contact + ' nomme(e) ' + posteNom, true, true);
+  addJournalEntry('Nomination de ' + contact + ' au poste de ' + posteNom, 'event-good');
+  addExternalEvent('Nomination officielle : ' + contact + ' est nomme(e) ' + posteNom + ' par le President.');
+}
+
 function openCandidatureModal() {
   document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Deposer une candidature';
   const elections = state.electionsEnCours || [];
@@ -1275,30 +1320,155 @@ function confirmerCandidature(electionId) {
   if (!election) return;
   if (!election.candidats) election.candidats = [];
   const nom = state.char?.name || 'Anonyme';
-  if (election.candidats.includes(nom)) {
+  if (election.candidats.find(c => c.nom === nom)) {
     showToast('Deja candidat', 'Vous etes deja candidat a cette election.', false);
     return;
   }
-  election.candidats.push(nom);
+  election.candidats.push({ nom, voix: 0, isPJ: true });
   showToast('Candidature enregistree !', 'Vous etes officiellement candidat a ' + election.nom, true, true);
-  addJournalEntry('Vous avez depose votre candidature pour : ' + election.nom, 'event-good');
+  addJournalEntry('Candidature deposee pour : ' + election.nom, 'event-good');
+  addMailNotification('Commission Electorale', 'Confirmation de candidature', 'Votre candidature pour le poste de ' + election.nom + ' a bien ete enregistree. La campagne electorale debute dans ' + (election.joursAvantCampagne || 0) + ' jour(s).');
 }
 
 function openElectionsModal() {
   document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Elections en cours';
-  const elections = state.electionsEnCours || [];
-  document.getElementById('postes-body').innerHTML = `
-    <div style="padding:1rem">
-      ${elections.length === 0
-        ? `<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune election en cours pour le moment.</div>`
-        : elections.map(e => `
-            <div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">
-              <div style="font-family:'Playfair Display',serif;font-size:.9rem;color:#E8C97A">${e.nom}</div>
-              <div style="font-size:.72rem;color:#6a5a30;margin:.2rem 0">Date limite : ${e.date}</div>
-              <div style="font-size:.78rem;color:#8a8060">Candidats declares : ${e.candidats?.join(', ') || 'Aucun'}</div>
-            </div>`).join('')}
-    </div>`;
+
+  // Initialiser des elections de demo si aucune
+  if (!state.electionsEnCours || state.electionsEnCours.length === 0) {
+    state.electionsEnCours = [
+      {
+        id: 'election-president-1',
+        nom: 'President de la Republique',
+        type: 'president',
+        phase: 'campagne', // candidatures | campagne | depouillement | termine
+        jourDebut: 1,
+        jourCampagne: 4,
+        jourResultat: 7,
+        joursAvantCampagne: 0,
+        candidats: [
+          { nom: 'Bertrand (PNJ)', voix: 0, isPJ: false },
+          { nom: 'Leroux (PNJ)', voix: 0, isPJ: false }
+        ],
+        tour: 1,
+        resultat: null
+      }
+    ];
+  }
+
+  const elections = state.electionsEnCours;
+  let html = '<div style="padding:1rem">';
+
+  elections.forEach(e => {
+    const phaseLabel = { candidatures: 'Depot des candidatures', campagne: 'Campagne electorale', depouillement: 'Depouillement', termine: 'Termine' }[e.phase] || e.phase;
+    const phaseColor = { candidatures: '#6a9a5a', campagne: '#C9A84C', depouillement: '#aa6a4a', termine: '#4a4030' }[e.phase] || '#8a8060';
+
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.8rem">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.9rem;color:#E8C97A">' + e.nom + '</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:' + phaseColor + ';border:1px solid;padding:.1rem .4rem">' + phaseLabel + '</div>';
+    html += '</div>';
+    html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">Tour ' + (e.tour||1) + ' · Resultats : Jour ' + e.jourResultat + '</div>';
+
+    // Candidats et voix
+    if (e.candidats && e.candidats.length > 0) {
+      const totalVoix = e.candidats.reduce((s, c) => s + (c.voix||0), 0) || 1;
+      html += '<div style="margin-bottom:.5rem">';
+      e.candidats.forEach(c => {
+        const pct = Math.round((c.voix||0) / totalVoix * 100);
+        const isMoi = c.nom === (state.char?.name);
+        html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem">';
+        html += '<div style="font-size:.75rem;color:' + (isMoi ? '#C9A84C' : '#c0b090') + ';width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + c.nom + (isMoi ? ' (Vous)' : '') + '</div>';
+        html += '<div style="flex:1;height:6px;background:#1a1810;border-radius:3px"><div style="height:100%;background:' + (isMoi ? '#C9A84C' : '#4a6a4a') + ';width:' + pct + '%;border-radius:3px"></div></div>';
+        html += '<div style="font-size:.7rem;color:#6a5a30;width:30px;text-align:right">' + pct + '%</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Boutons selon phase
+    const dejaCandidatObj = e.candidats && e.candidats.find(c => c.nom === (state.char?.name));
+    if (e.phase === 'candidatures' && !dejaCandidatObj) {
+      html += '<button onclick="confirmerCandidature(\'' + e.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;margin-right:.4rem">Me declarer candidat</button>';
+    }
+    if (e.phase === 'campagne') {
+      html += '<button onclick="voterElection(\'' + e.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6a9a6a;cursor:pointer;margin-right:.4rem">' + (state.aVote?.[e.id] ? 'Vote deja exprime' : 'Voter') + '</button>';
+    }
+    html += '</div>';
+  });
+
+  html += '<div style="font-size:.72rem;color:#4a4030;font-style:italic;margin-top:.5rem">Calendrier : candidatures semaine 1-3 · campagne semaine 4-5 · resultats dimanche soir.</div>';
+  html += '</div>';
+
+  document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+function voterElection(electionId) {
+  if (state.aVote?.[electionId]) {
+    showToast('Vote deja exprime', 'Vous avez deja vote pour cette election.', false);
+    return;
+  }
+  const election = (state.electionsEnCours||[]).find(e => e.id === electionId);
+  if (!election || !election.candidats || election.candidats.length === 0) return;
+
+  // Afficher la liste des candidats pour voter
+  document.getElementById('modal-postes').classList.remove('open');
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Voter — ' + election.nom;
+  let html = '<div style="padding:1rem"><div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Vous ne pouvez voter qu\'une seule fois.</div>';
+  election.candidats.forEach((c, i) => {
+    html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .2s" onclick="confirmerVote(\'' + electionId + '\',' + i + ')" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090">' + c.nom + '</div>';
+    html += '<div style="font-size:.7rem;color:#5a5040">' + (c.isPJ ? 'Joueur' : 'PNJ') + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerVote(electionId, candidatIdx) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const election = (state.electionsEnCours||[]).find(e => e.id === electionId);
+  if (!election) return;
+  if (!state.aVote) state.aVote = {};
+  state.aVote[electionId] = true;
+  election.candidats[candidatIdx].voix = (election.candidats[candidatIdx].voix||0) + 1;
+  // Ajouter voix aleatoires PNJ pour simulation
+  election.candidats.forEach((c, i) => {
+    if (i !== candidatIdx) c.voix = (c.voix||0) + Math.floor(Math.random() * 5);
+  });
+  showToast('Vote enregistre !', 'Vous avez vote pour ' + election.candidats[candidatIdx].nom, true, true);
+  addJournalEntry('Vote exprime pour ' + election.candidats[candidatIdx].nom + ' (' + election.nom + ')', 'event-info');
+}
+
+function calculerResultatElection(election) {
+  if (!election || !election.candidats) return;
+  const total = election.candidats.reduce((s, c) => s + (c.voix||0), 0) || 1;
+  // Ajouter voix PNJ pour simulation realiste
+  election.candidats.forEach(c => {
+    if (!c.isPJ) c.voix = (c.voix||0) + Math.floor(Math.random() * 200 + 50);
+  });
+  const sorted = [...election.candidats].sort((a,b) => (b.voix||0) - (a.voix||0));
+  const totalFinal = sorted.reduce((s,c) => s + (c.voix||0), 0);
+  const premier = sorted[0];
+  const pct = Math.round((premier.voix||0) / totalFinal * 100);
+
+  if (pct > 50) {
+    // Elu au premier tour
+    election.phase = 'termine';
+    election.resultat = { elu: premier.nom, pct, tour: 1 };
+    addExternalEvent('ELECTION : ' + premier.nom + ' elu(e) au 1er tour avec ' + pct + '% des voix (' + election.nom + ')');
+    addMailNotification('Commission Electorale', 'Resultats election : ' + election.nom, premier.nom + ' est elu(e) avec ' + pct + '% des voix. Mandat de 5 semaines.');
+  } else {
+    // Second tour entre les 2 premiers
+    const deuxieme = sorted[1];
+    election.tour = 2;
+    election.phase = 'campagne';
+    election.candidats = [sorted[0], sorted[1]].map(c => ({...c, voix: 0}));
+    election.jourResultat = election.jourResultat + 7;
+    addExternalEvent('ELECTION : Aucun candidat n\'a la majorite. Second tour entre ' + premier.nom + ' et ' + deuxieme.nom);
+    addMailNotification('Commission Electorale', '2eme tour — ' + election.nom, 'Aucun candidat n\'a obtenu la majorite absolue. Second tour entre ' + premier.nom + ' et ' + deuxieme.nom + '.');
+  }
 }
 
 // =====================
@@ -1643,6 +1813,206 @@ function openWorldMap() {
 }
 function closeWorldMap() {
   document.getElementById('modal-world').classList.remove('open');
+}
+
+// =====================
+// REGLES DU JEU
+// =====================
+const REGLES = {
+  intro: {
+    titre: 'Le Grand Jeu',
+    contenu: `Res Publica est un jeu de rôle politique parodique multijoueur. Vous incarnez un personnage qui cherche à conquérir le pouvoir dans l'un des quatre empires fictifs : Républia, El Estado, Sovarka ou Al-Khalija.
+
+Le jeu se déroule en temps réel, calé sur l'heure française. Chaque nuit à minuit, une mise à jour traite les événements en cours : résultats d'élections, enquêtes policières, revenus fiscaux.
+
+L'objectif : gravir les échelons politiques, accumuler de l'influence et de la popularité, et survivre aux trahisons de vos adversaires.`
+  },
+  personnage: {
+    titre: 'Créer son personnage',
+    contenu: `Votre personnage est défini par 4 choix fondamentaux :
+
+ORIGINE SOCIALE — Détermine votre capital de départ et vos bonus de stats.
+• Milieu défavorisé : 200 FR, +VOL +DUP
+• Classe ouvrière : 500 FR, +VOL +ENT
+• Petite bourgeoisie : 1200 FR, +INT +CHA
+• Haute société : 3000 FR, +ENT +CHA
+
+PARCOURS SCOLAIRE — Détermine les carrières accessibles et vos points de compétence.
+• Pas d'école : bloque plusieurs carrières
+• Études supérieures et Hautes écoles : toutes les carrières accessibles
+
+ARCHÉTYPE — Votre nature profonde. Définit vos bonus de ressources et votre style de jeu.
+
+CARRIÈRE — Votre activité principale. Donne des contacts, des compétences et un salaire journalier.`
+  },
+  plateau: {
+    titre: 'Le plateau de jeu',
+    contenu: `POINTS D'ACTION (PA) — Vous disposez de 24 PA par jour. Chaque ordre en consomme selon sa complexité. Certains ordres sont gratuits. En mode test, les PA sont illimités.
+
+RESSOURCES :
+• Influence (INF) — Votre poids politique
+• Popularité (POP) — Votre cote auprès du public
+• Discrétion (DIS) — Votre capacité à agir sans être détecté
+• Santé — Votre état physique (0 = hospitalisation)
+• Moral — Votre résistance psychologique
+
+ORDRES — Chaque action est résolue par un jet de dés (1-100). Le taux de réussite dépend de vos caractéristiques. Les résultats possibles : succès critique, succès, succès partiel, échec, échec critique.
+
+SALAIRE — Vous ne touchez votre salaire journalier qu'en passant l'ordre "Dormir" (une seule fois par jour).`
+  },
+  politique: {
+    titre: 'La vie politique',
+    contenu: `POSTES ET MANDATS :
+Les postes sont organisés en pyramide à 7 niveaux. En haut : le Président, le Premier Ministre, les Ministres. En bas : les élus locaux et les citoyens.
+
+ÉLECTIONS :
+• Mandat de 5-6 semaines
+• Résultats à minuit le dimanche
+• Candidatures possibles dès la 3e semaine après les dernières élections
+• Campagne électorale : 4e semaine — vote des PJ + distribution de tracts aux PNJ
+• 1er tour : >50% = élu direct, sinon 2e tour entre les 2 premiers
+• Pour les mairies/gouvernorats : 2e tour entre ceux ayant obtenu >20%
+• Députés : scrutin uninominal par circonscription, 1 tour, majorité relative
+
+NOMMER UN MINISTRE :
+Seul le Président peut nommer des ministres. La nomination se fait via un mail envoyé au candidat depuis le Bureau du Palais Présidentiel.`
+  },
+  interactions: {
+    titre: 'Les interactions',
+    contenu: `PARLER AUX PNJ/PJ — Cliquez sur un personnage présent dans une pièce pour ouvrir le dialogue. Posez n'importe quelle question dans le champ libre. Les réponses sont générées par l'IA.
+
+GROUPES — Un PJ peut rejoindre un autre PJ en cliquant sur sa fiche. Le PJ rejoint devient le leader. Seul le leader peut déplacer le groupe. La taille du groupe influence certains ordres (blocus, etc.).
+
+BOÎTE MAIL — Accessible depuis le bouton "Mail" en haut. Contient vos messages reçus, envoyés et votre répertoire de contacts.
+
+AJOUTER UN CONTACT — Cliquez sur un PJ puis "Ajouter au répertoire". Indispensable pour porter plainte, lancer une rumeur ciblée, ou envoyer un mail.`
+  },
+  economie: {
+    titre: "L'économie",
+    contenu: `ARGENT — Séparé entre argent liquide (sur vous) et argent en banque. Le salaire est versé 30% en liquide, 70% en banque.
+
+SALAIRES JOURNALIERS (versés via l'ordre Dormir) :
+• Président : 5 000 FR/jour
+• Premier Ministre : 3 500 FR/jour
+• Ministres : 2 800 FR/jour
+• Députés : 1 200 FR/jour
+• Maires : 800 FR/jour
+• Citoyen sans poste : 150 FR/jour
+
+REVENUS FISCAUX — La population PNJ génère des impôts chaque nuit à minuit. Visibles du Président et du Ministre des Finances.
+
+FREEMIUM — Le jeu est gratuit. Les abonnements premium donnent du confort mais jamais d'avantage compétitif direct.`
+  }
+};
+
+function openRulesView() {
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  document.getElementById('vue-rules').classList.add('active');
+  renderRulesContent('intro');
+}
+
+function closeRulesView() {
+  document.getElementById('vue-rules').classList.remove('active');
+  if (state.currentBuilding) {
+    document.getElementById('vue-batiment').classList.add('active');
+  } else {
+    document.getElementById('vue-rue').classList.add('active');
+  }
+}
+
+function renderRulesContent(section) {
+  const regle = REGLES[section];
+  if (!regle) return;
+
+  document.querySelectorAll('.rules-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.rules-tab').forEach(t => {
+    if (t.dataset.section === section) t.classList.add('active');
+  });
+
+  const content = document.getElementById('rules-content');
+  if (!content) return;
+  content.innerHTML = '<div style="padding:1.5rem;max-width:700px">' +
+    '<div style="font-family:Playfair Display,serif;font-size:1.3rem;color:#C9A84C;margin-bottom:1rem">' + regle.titre + '</div>' +
+    '<div style="font-size:.88rem;color:#a0a080;line-height:1.9;white-space:pre-line">' + regle.contenu + '</div>' +
+    '</div>';
+}
+
+// =====================
+// ORDRES PRESIDENTIELS
+// =====================
+function creerPosteMinistre() {
+  if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
+  if (state.postesCustom.ministre) {
+    showToast('Limite atteinte', 'Vous avez deja cree un poste ministeriel custom. Supprimez-le d\'abord.', false);
+    return;
+  }
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Creer un poste ministeriel';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem">' +
+    '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Vous pouvez creer 1 poste ministeriel et 1 comite. Salaire aligne sur les ministres (2800 FR/jour).</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">INTITULE DU POSTE</div>' +
+    '<input id="custom-poste-nom" type="text" placeholder="Ex: Ministre de la Transition Numerique" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem"/>' +
+    '<button onclick="validerCreationPoste(\'ministre\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Creer ce poste</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function creerComite() {
+  if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
+  if (state.postesCustom.comite) {
+    showToast('Limite atteinte', 'Vous avez deja cree un comite. Supprimez-le d\'abord.', false);
+    return;
+  }
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Creer un comite';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem">' +
+    '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Comite presidentiel special. Salaire aligne sur les ministres.</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">INTITULE DU COMITE</div>' +
+    '<input id="custom-poste-nom" type="text" placeholder="Ex: Comite pour la Modernisation de l\'Etat" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem"/>' +
+    '<button onclick="validerCreationPoste(\'comite\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Creer ce comite</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function validerCreationPoste(type) {
+  const nom = document.getElementById('custom-poste-nom')?.value?.trim();
+  if (!nom) { showToast('Nom requis', 'Donnez un nom a ce poste.', false); return; }
+  if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
+  state.postesCustom[type] = { nom, salaire: 2800, createur: state.char?.name, jour: state.day };
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Poste cree !', '"' + nom + '" a ete cree. Nommez quelqu\'un depuis votre bureau.', true, true);
+  addJournalEntry('Nouveau poste cree par decret presidentiel : ' + nom, 'event-good');
+  addExternalEvent('Le President a cree le poste de "' + nom + '" par decret.');
+}
+
+function supprimerPosteCustom() {
+  if (!state.postesCustom || (!state.postesCustom.ministre && !state.postesCustom.comite)) {
+    showToast('Aucun poste custom', 'Vous n\'avez pas cree de poste ou comite a supprimer.', false);
+    return;
+  }
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Supprimer un poste';
+  let html = '<div style="padding:1rem">';
+  if (state.postesCustom.ministre) {
+    html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center">';
+    html += '<div style="font-size:.85rem;color:#c0b090">' + state.postesCustom.ministre.nom + '</div>';
+    html += '<button onclick="confirmerSupprPoste(\'ministre\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.25rem .6rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Supprimer</button>';
+    html += '</div>';
+  }
+  if (state.postesCustom.comite) {
+    html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center">';
+    html += '<div style="font-size:.85rem;color:#c0b090">' + state.postesCustom.comite.nom + '</div>';
+    html += '<button onclick="confirmerSupprPoste(\'comite\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.25rem .6rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Supprimer</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerSupprPoste(type) {
+  const nom = state.postesCustom[type]?.nom || '';
+  state.postesCustom[type] = null;
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Poste supprime', '"' + nom + '" a ete supprime.', false);
+  addJournalEntry('Poste supprime par decret : ' + nom, '');
 }
 
 // =====================

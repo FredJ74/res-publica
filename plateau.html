@@ -58,6 +58,9 @@
         <div class="char-role-mini" id="char-role-display">Archetype &middot; Carriere</div>
       </div>
     </div>
+    <button class="forum-btn" onclick="openRulesView()">
+      <i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> Règles
+    </button>
     <button class="forum-btn" onclick="openMailbox()">
       <i class="ti ti-mail" style="font-size:.8rem;vertical-align:-1px"></i> Mail
       <span id="mail-badge" style="display:none;background:#cc2020;color:#fff;font-size:.6rem;padding:.1rem .3rem;border-radius:50%;margin-left:.2rem;font-family:'Bebas Neue',sans-serif">0</span>
@@ -164,6 +167,28 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- Vue REGLES -->
+    <div id="vue-rules" class="vue">
+      <div class="batiment-header">
+        <button class="sortir-btn" onclick="closeRulesView()">
+          <i class="ti ti-x"></i> Fermer
+        </button>
+        <div class="batiment-header-info">
+          <div class="batiment-nom">Règles du jeu</div>
+          <div class="batiment-cat">Res Publica — Guide du joueur</div>
+        </div>
+        <div class="pieces-tabs">
+          <div class="rules-tab piece-tab active" data-section="intro" onclick="renderRulesContent('intro');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Le Grand Jeu</div>
+          <div class="rules-tab piece-tab" data-section="personnage" onclick="renderRulesContent('personnage');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Personnage</div>
+          <div class="rules-tab piece-tab" data-section="plateau" onclick="renderRulesContent('plateau');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Plateau</div>
+          <div class="rules-tab piece-tab" data-section="politique" onclick="renderRulesContent('politique');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Politique</div>
+          <div class="rules-tab piece-tab" data-section="interactions" onclick="renderRulesContent('interactions');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Interactions</div>
+          <div class="rules-tab piece-tab" data-section="economie" onclick="renderRulesContent('economie');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Économie</div>
+        </div>
+      </div>
+      <div id="rules-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
     </div>
 
     <!-- Vue MAIL -->
