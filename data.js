@@ -248,7 +248,7 @@ const BUILDINGS = {
         name: "Bureau du President",
         imageBg: "linear-gradient(135deg,#0a1005,#12180a)",
         desc: "Le bureau oval de la Presidence. C'est ici que se prennent les decisions les plus importantes de Republia.",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-premier-ministre.png",
         persons: [
           {name:'Secretaire General (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general'}
         ],
@@ -760,7 +760,7 @@ const BUILDINGS = {
         name: "Etals du marche",
         imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
         desc: "Bruyant, colore, vivant. Tout le monde passe par le marche.",
-        imageUrl: "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marche.png",
         persons: [
           {name:'Fernande (Marchande)', role:'PNJ - Commercante', rel:'neutral', job:'marchande'},
           {name:'Marcel',               role:'PNJ - Habitant du quartier', rel:'neutral', job:'citoyen'},
