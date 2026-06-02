@@ -104,14 +104,14 @@ const WORLD = {
     },
     ville_a: {
       name:'Port-Sainte-Marie',
-      imageUrl:'https://images.unsplash.com/photo-1596394723269-b2cbca4e6313?w=1200&q=80',
+      imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
       buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','terrain-a-batir-2']
     },
     ville_b: {
       name:'Montrouge',
-      imageUrl:'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80',
+      imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge.png',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','terrain-a-batir-3']
@@ -573,7 +573,7 @@ const BUILDINGS = {
         name: "Portail de la Loge",
         imageBg: "linear-gradient(135deg,#0f0808,#180f0f)",
         desc: "Une lourde porte en bois sculpte. Un portier vous observe a travers un judas.",
-        imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/loge.png",
         persons: [
           {name:'Le Portier', role:'PNJ - Gardien de la Loge', rel:'neutral', job:'portier'}
         ],

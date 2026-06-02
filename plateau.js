@@ -630,6 +630,9 @@ function openPnjModal(encodedPnj) {
     '<button onclick="envoyerQuestion()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +
     '</div>';
 
+  // Stocker l'enc pour envoyerQuestion
+  state._currentPnjEnc = enc;
+
   talkToPnj(enc, 'bonjour');
 }
 
