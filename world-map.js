@@ -87,6 +87,26 @@ function renderWorldMapSVG() {
           <text x="310" y="125" text-anchor="middle" font-size="6.5" fill="#3a7aae"
             font-family="Georgia" font-style="italic">Industrie · Nord</text>
         </g>
+
+        <!-- CASERNE MILITAIRE -->
+        <g class="map-city" onclick="mapClickCity('republic','caserne')" style="cursor:pointer">
+          <rect x="337" y="148" width="14" height="14" fill="#2a4a2a" stroke="#4a8a4a" stroke-width="1.2" rx="2"/>
+          <text x="344" y="158" text-anchor="middle" font-size="7" fill="#4a8a4a" font-family="'Bebas Neue',sans-serif">✦</text>
+          <text x="344" y="172" text-anchor="middle" font-size="7.5" fill="#6a9a6a"
+            font-family="'Bebas Neue',sans-serif" letter-spacing="1">CASERNE</text>
+          <text x="344" y="180" text-anchor="middle" font-size="6" fill="#4a6a4a"
+            font-family="Georgia" font-style="italic">Militaire · 1 PA</text>
+        </g>
+
+        <!-- QHS -->
+        <g class="map-city" onclick="mapClickCity('republic','qhs')" style="cursor:pointer">
+          <rect x="187" y="195" width="14" height="14" fill="#1a0808" stroke="#8a2020" stroke-width="1.2" rx="2"/>
+          <text x="194" y="205" text-anchor="middle" font-size="7" fill="#8a2020" font-family="'Bebas Neue',sans-serif">▪</text>
+          <text x="194" y="219" text-anchor="middle" font-size="7.5" fill="#9a4a4a"
+            font-family="'Bebas Neue',sans-serif" letter-spacing="1">QHS</text>
+          <text x="194" y="227" text-anchor="middle" font-size="6" fill="#6a3030"
+            font-family="Georgia" font-style="italic">Haute securite · 1 PA</text>
+        </g>
       </g>
 
       <!-- ===================== -->
@@ -254,6 +274,10 @@ function renderWorldMapSVG() {
         <text x="30" y="43" font-size="7" fill="#8a8060" font-family="Georgia">Ville secondaire</text>
         <line x1="100" y1="26" x2="130" y2="26" stroke="#3a3020" stroke-width="1" stroke-dasharray="4,3"/>
         <text x="135" y="29" font-size="7" fill="#8a8060" font-family="Georgia">Province</text>
+        <rect x="100" y="35" width="8" height="8" fill="#2a4a2a" stroke="#4a8a4a" stroke-width="1" rx="1"/>
+        <text x="113" y="43" font-size="7" fill="#6a9a6a" font-family="Georgia">Caserne</text>
+        <rect x="145" y="35" width="8" height="8" fill="#1a0808" stroke="#8a2020" stroke-width="1" rx="1"/>
+        <text x="158" y="43" font-size="7" fill="#9a4a4a" font-family="Georgia">QHS</text>
       </g>
 
       <!-- Echelle -->
@@ -307,7 +331,9 @@ function zoomEmpire(empireId) {
     republic: '100 40 330 280',
     narco:    '420 270 320 270',
     soviet:   '420 30 370 230',
-    khalija:  '80 290 320 260'
+    khalija:  '80 290 320 260',
+    caserne:  '300 130 120 100',
+    qhs:      '155 170 120 100'
   };
 
   const box = zoomBoxes[empireId];
