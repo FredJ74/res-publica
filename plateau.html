@@ -169,6 +169,25 @@
       </div>
     </div>
 
+    <!-- Vue FICHE PERSONNAGE CENTRALE -->
+    <div id="vue-self" class="vue">
+      <div class="batiment-header">
+        <button class="sortir-btn" onclick="closeSelfView()">
+          <i class="ti ti-x"></i> Fermer
+        </button>
+        <div class="batiment-header-info">
+          <div class="batiment-nom" id="self-view-name">Mon Personnage</div>
+          <div class="batiment-cat" id="self-view-role">Citoyen</div>
+        </div>
+        <div class="pieces-tabs">
+          <div class="piece-tab active" onclick="switchSelfTab('actions',this)">Actions personnelles</div>
+          <div class="piece-tab" onclick="switchSelfTab('inventaire',this)">Inventaire</div>
+          <div class="piece-tab" onclick="switchSelfTab('identite',this)">Identité</div>
+        </div>
+      </div>
+      <div id="self-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
+    </div>
+
     <!-- Vue REGLES -->
     <div id="vue-rules" class="vue">
       <div class="batiment-header">

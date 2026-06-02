@@ -115,6 +115,24 @@ const WORLD = {
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','terrain-a-batir-3']
+    },
+    caserne: {
+      name:'Caserne Militaire de Republia',
+      imageUrl:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&q=80',
+      desc:'La caserne principale de l\'armee de Republia. Hors des villes, accessible en 1 PA.',
+      isCapitale: false,
+      isSpecial: true,
+      travelCost: 1,
+      buildings: ['caserne-militaire']
+    },
+    qhs: {
+      name:'Quartier Haute Securite',
+      imageUrl:'https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80',
+      desc:'La prison de haute securite de Republia. Reservee aux crimes graves. Hors des villes.',
+      isCapitale: false,
+      isSpecial: true,
+      travelCost: 1,
+      buildings: ['qhs-prison']
     }
   }
 };
@@ -858,6 +876,12 @@ const BUILDINGS = {
             label:'Consulter le registre de vente',
             pa:1, cost:0, type:'legal', icon:'ti-book', successRate:100,
             desc:'Acces libre : Commissaire, Juge. Sinon : soudoyer l\'armurier (30%, 100 FR, +/-5 INF et POP). Ventes des 6 derniers mois.'
+          },
+          {
+            fn:'acheter_bombe_illegale',
+            label:'Acheter des explosifs (marche noir)',
+            pa:2, cost:1200, type:'illegal', icon:'ti-bomb', successRate:40,
+            desc:'ILLEGAL. Taux 40%. Non enregistre. 2x prix. Echec : gratuit mais doit dormir avant retenter. Echec critique : alerte police.'
           }
         ]
       }
@@ -1262,15 +1286,153 @@ const BUILDINGS = {
     rooms: {
       terrain3: {
         name: "Terrain",
-        image: "🏗️",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
         desc: "Terrain de 3000m2 en zone industrielle.",
         imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80",
         persons: [],
         orders: [
-          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:4000, type:'legal',   icon:'ti-home-plus', successRate:100},
-          {fn:'permis_construire',label:'Demander un permis',        pa:2, cost:200,  type:'legal',   icon:'ti-file-text', successRate:65},
-          {fn:'permis_corrompu',  label:'Permis accelere (corruption)',pa:2,cost:800, type:'illegal', icon:'ti-coins',     successRate:55}
+          {fn:'acheter_terrain',   label:'Acheter ce terrain',          pa:2, cost:4000, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'permis_construire', label:'Demander un permis',          pa:2, cost:200,  type:'legal',   icon:'ti-file-text', successRate:65},
+          {fn:'permis_corrompu',   label:'Permis accelere (corruption)',pa:2, cost:800,  type:'illegal', icon:'ti-coins',     successRate:55}
+        ]
+      }
+    }
+  },
+
+  // ---- CASERNE MILITAIRE ----
+  'caserne-militaire': {
+    name: "Caserne Militaire de Republia",
+    shortName: "Caserne",
+    cat: "Militaire - Acces restreint",
+    icon: "ti-military-rank",
+    bgColor: "#081008",
+    desc: "La caserne principale des forces armees de Republia. Acces reserve aux militaires et officiers.",
+    rooms: {
+      corps_garde: {
+        name: "Corps de Garde",
+        imageBg: "linear-gradient(135deg,#081008,#0f1a0a)",
+        desc: "L'entree de la caserne. Militaires en faction. Verification des acces.",
+        imageUrl: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&q=80",
+        persons: [
+          {name:'Sergent Dubois (PNJ)', role:'PNJ - Sous-officier de garde', rel:'neutral', job:'militaire'},
+          {name:'Soldat Martin (PNJ)',  role:'PNJ - Faction',                 rel:'neutral', job:'militaire'}
+        ],
+        orders: [
+          {fn:'se_presenter',    label:'Se presenter',           pa:0, cost:0,   type:'legal',   icon:'ti-id-badge',      successRate:100},
+          {fn:'rencontrer',      label:'Parler aux militaires',  pa:1, cost:0,   type:'legal',   icon:'ti-users',         successRate:100},
+          {fn:'recruter_etud',   label:'Recruter des soldats',   pa:2, cost:500, type:'legal',   icon:'ti-user-plus',     successRate:70,  requiresPost:'min_def', desc:'Renforcer les effectifs militaires.'}
+        ]
+      },
+      salle_commandement: {
+        name: "Salle de Commandement",
+        imageBg: "linear-gradient(135deg,#060f06,#0a180a)",
+        desc: "Le centre nerveux operationnel. Cartes, ecrans, officiers. Acces officiers superieurs.",
+        imageUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&q=80",
+        requiresPostId: 'min_def',
+        persons: [
+          {name:'General Faure (PNJ)', role:'PNJ - Chef d\'etat-major', rel:'neutral', job:'general'}
+        ],
+        orders: [
+          {fn:'mobiliser_armee',     label:'Mobiliser les troupes',      pa:4, cost:0,    type:'legal',   icon:'ti-military-rank', successRate:100, requiresPost:'min_def', desc:'Mise en alerte maximale. Gros impact diplomatique.'},
+          {fn:'planifier_operation', label:'Planifier une operation',    pa:3, cost:0,    type:'legal',   icon:'ti-map',           successRate:80,  requiresPost:'min_def', desc:'Preparer une operation militaire ou de maintien de l\'ordre.'},
+          {fn:'renseignement',       label:'Operation de renseignement', pa:3, cost:500,  type:'grey',    icon:'ti-spy',           successRate:65,  requiresPost:'min_def', desc:'Espionnage d\'un empire etranger ou d\'un suspect.'},
+          {fn:'cessez_le_feu',       label:'Negocier un cessez-le-feu',  pa:3, cost:0,    type:'legal',   icon:'ti-handshake',     successRate:60,  requiresPost:'min_def', desc:'Mettre fin a un conflit en cours.'},
+          {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:1, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:'min_def', desc:'+INF aupres de l\'armee. Renforce la loyaute.'}
+        ]
+      },
+      armurerie_militaire: {
+        name: "Armurerie Militaire",
+        imageBg: "linear-gradient(135deg,#080808,#121008)",
+        desc: "L'armurerie de la caserne. Armes lourdes, equipements tactiques, explosifs reglementaires.",
+        imageUrl: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=1200&q=80",
+        requiresPostId: 'min_def',
+        persons: [
+          {name:'Armurier Militaire (PNJ)', role:'PNJ - Sergent armurier', rel:'neutral', job:'armurier_mil'}
+        ],
+        orders: [
+          {fn:'acheter_arme_militaire', label:'Obtenir equipement militaire', pa:1, cost:0,   type:'legal',   icon:'ti-shield',    successRate:100, requiresPost:'min_def', desc:'Armes et equipements reserves aux militaires.'},
+          {fn:'acheter_bombe_mil',      label:'Obtenir des explosifs',        pa:2, cost:0,   type:'legal',   icon:'ti-bomb',      successRate:100, requiresPost:'min_def', desc:'Explosifs reglementaires. Tracables. Ajoutes a l\'inventaire.'},
+          {fn:'acheter_bombe_illegale', label:'Subtiliser des explosifs',     pa:2, cost:0,   type:'illegal', icon:'ti-eye-off',   successRate:35,  desc:'Taux 35%. Echec partiel : -30 HP. Echec critique : -80 HP + alerte.'}
+        ]
+      },
+      quartier_troupes: {
+        name: "Quartier des Troupes",
+        imageBg: "linear-gradient(135deg,#080a08,#0f120a)",
+        desc: "Les dortoirs et salles de repos des soldats. Ambiance de camaraderie et discipline.",
+        imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=1200&q=80",
+        persons: [
+          {name:'Caporal Lefebvre (PNJ)', role:'PNJ - Soldat', rel:'neutral', job:'soldat'},
+          {name:'Soldat Nguyen (PNJ)',    role:'PNJ - Soldat', rel:'neutral', job:'soldat'}
+        ],
+        orders: [
+          {fn:'rencontrer',        label:'Fraterniser avec les soldats', pa:1, cost:0, type:'legal', icon:'ti-users',         successRate:100, desc:'+INF aupres des militaires.'},
+          {fn:'recruter_etud',     label:'Recruter pour un groupe',     pa:2, cost:0, type:'grey',  icon:'ti-user-plus',     successRate:65,  desc:'Constituer une milice ou un groupe arme.'}
+        ]
+      }
+    }
+  },
+
+  // ---- QHS - QUARTIER HAUTE SECURITE ----
+  'qhs-prison': {
+    name: "Quartier Haute Securite",
+    shortName: "QHS",
+    cat: "Penitentiaire - Acces restreint",
+    icon: "ti-lock",
+    bgColor: "#080808",
+    desc: "La prison de haute securite de Republia. Les criminels les plus dangereux y sont detenus. Evasion quasi impossible.",
+    rooms: {
+      entree_qhs: {
+        name: "Entree Securisee",
+        imageBg: "linear-gradient(135deg,#080808,#101010)",
+        desc: "L'entree du QHS. Trois sas de securite. Gardes armes en permanence.",
+        imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
+        persons: [
+          {name:'Directeur Penitentiaire (PNJ)', role:'PNJ - Directeur du QHS', rel:'neutral', job:'directeur_qhs'},
+          {name:'Gardien Chef (PNJ)',             role:'PNJ - Securite QHS',     rel:'neutral', job:'gardien_qhs'}
+        ],
+        orders: [
+          {fn:'visiter_prisonnier', label:'Demander une visite',         pa:1, cost:0,   type:'legal',   icon:'ti-users',    successRate:70,  desc:'Rendre visite a un detenu du QHS. Necessite autorisation.'},
+          {fn:'corrompre_fonct',   label:'Corrompre le directeur',      pa:3, cost:1500, type:'illegal', icon:'ti-coins',    successRate:25,  desc:'Taux tres faible. Consequence severe si echec.'},
+          {fn:'archives_police',   label:'Consulter le registre',       pa:1, cost:0,   type:'legal',   icon:'ti-archive',  successRate:100, requiresPost:'magistrat', desc:'Liste des detenus actuels. Acces magistrats/commissaires.'}
+        ]
+      },
+      cellules_qhs: {
+        name: "Cellules",
+        imageBg: "linear-gradient(135deg,#050505,#0a0808)",
+        desc: "Les cellules du QHS. Isolement total. Acces interdit sauf pour les detenus et gardiens.",
+        imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
+        persons: [
+          {name:'Gardien de couloir (PNJ)', role:'PNJ - Surveillance', rel:'neutral', job:'gardien_qhs'}
+        ],
+        orders: [
+          {fn:'requete_avocat',     label:'Requérir un avocat',          pa:1, cost:0,    type:'legal',   icon:'ti-scale',    successRate:100, desc:'Contacter votre defenseur. Reduit risques de condamnation.'},
+          {fn:'greve_faim',         label:'Greve de la faim',            pa:0, cost:0,    type:'legal',   icon:'ti-ban',      successRate:100, desc:'-5 HP/jour mais +POP et pression politique.'},
+          {fn:'corrompre_gardien',  label:'Corrompre un gardien',        pa:2, cost:800,  type:'illegal', icon:'ti-coins',    successRate:20,  desc:'Tres difficile. Obtenir des privileges ou informations.'},
+          {fn:'tentative_evasion',  label:'Tenter de s\'evader',        pa:3, cost:0,    type:'illegal', icon:'ti-run',      successRate:5,   desc:'Quasi impossible. Echec = peine aggravee de 7 jours.'}
+        ]
+      },
+      salle_interrogatoire: {
+        name: "Salle d'Interrogatoire",
+        imageBg: "linear-gradient(135deg,#050808,#0a1010)",
+        desc: "La salle d'interrogatoire. Lumiere crue, table metallique. Acces enqueteurs autorises.",
+        imageUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&q=80",
+        persons: [
+          {name:'Inspecteur Moreau (PNJ)', role:'PNJ - Inspecteur principal', rel:'neutral', job:'inspecteur'}
+        ],
+        orders: [
+          {fn:'interroger',        label:'Interroger un detenu',        pa:2, cost:0,    type:'legal',   icon:'ti-message-circle', successRate:75, requiresPost:'commissaire', desc:'Obtenir des informations. +INF si succes.'},
+          {fn:'corrompre_fonct',   label:'Falsifier un proces-verbal',  pa:3, cost:500,  type:'illegal', icon:'ti-file-x',         successRate:35, desc:'Modifier les declarations. Tres risque.'}
+        ]
+      },
+      promenoir: {
+        name: "Promenoir",
+        imageBg: "linear-gradient(135deg,#080808,#0f0f0f)",
+        desc: "La cour de promenade. Une heure par jour. Sous surveillance constante.",
+        imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
+        persons: [],
+        orders: [
+          {fn:'se_reposer',        label:'Prendre l\'air',              pa:0, cost:0,    type:'legal',   icon:'ti-walk',     successRate:100, desc:'+2 Moral. La seule liberte qui reste.'},
+          {fn:'rencontrer',        label:'Approcher un detenu',         pa:1, cost:0,    type:'grey',    icon:'ti-users',    successRate:70,  desc:'Echanger avec d\'autres prisonniers. Risque de represailles.'}
         ]
       }
     }

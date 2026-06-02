@@ -196,6 +196,10 @@ function travelToCity(cityId) {
   updateLocationDisplay();
 
   addJournalEntry(`Vous arrivez a ${city.name}.`, 'event-info');
+  // Verifier interception si recherche
+  if (state.recherche && state.recherche.length > 0) {
+    setTimeout(() => checkArrestationAuDeplacement(), 500);
+  }
   if (!TEST_MODE) updateUI();
 }
 
@@ -357,34 +361,33 @@ function renderPersonsList(persons) {
   const relCol = r => r === 'ally' ? '#4a8a4a' : r === 'enemy' ? '#8a3a2a' : '#6a6040';
   const relTxt = r => r === 'ally' ? 'Allie' : r === 'enemy' ? 'Hostile' : 'Neutre';
 
-  // Ajouter le PJ lui-meme dans la liste
   const char = state.char;
   const ar = ARCHETYPES.find(x => x.id === char?.archetype);
-  const selfCard = char ? `
-    <div class="person-card" style="border-left:2px solid #C9A84C">
-      <div class="person-avatar" style="border-color:#C9A84C">
-        ${char.photoUrl ? `<img src="${char.photoUrl}" alt="Vous" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>` : `<i class="ti ti-user" style="font-size:.75rem;color:#C9A84C"></i>`}
-      </div>
-      <div>
-        <div class="person-name" style="color:#C9A84C">${char.name} <span style="font-size:.6rem;color:#6a5a20">(Vous)</span></div>
-        <div class="person-role">${state.poste?.name || ar?.name || 'Citoyen'}</div>
-        <div class="person-rel rel-ally">Vous-meme</div>
-      </div>
-    </div>` : '';
+
+  // Carte du PJ lui-meme — cliquable pour ouvrir la fiche personnage centrale
+  const photoHtml = char?.photoUrl
+    ? '<img src="' + char.photoUrl + '" alt="Vous" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'
+    : '<i class="ti ti-user" style="font-size:.75rem;color:#C9A84C"></i>';
+
+  const selfCard = char ? '<div class="person-card" style="border-left:2px solid #C9A84C;cursor:pointer" onclick="openSelfView()" title="Cliquer pour dormir, inventaire, fiche">' +
+    '<div class="person-avatar" style="border-color:#C9A84C">' + photoHtml + '</div>' +
+    '<div>' +
+    '<div class="person-name" style="color:#C9A84C">' + char.name + ' <span style="font-size:.6rem;color:#6a5a20">(Vous)</span></div>' +
+    '<div class="person-role">' + (state.poste?.name || ar?.name || 'Citoyen') + '</div>' +
+    '<div style="font-size:.58rem;color:#4a8a4a">Cliquer : dormir · inventaire · fiche</div>' +
+    '</div></div>' : '';
 
   const personCards = persons.length === 0 ? '' : persons.map(p => {
     const avatarHtml = (typeof renderPnjAvatarHtml === 'function')
       ? renderPnjAvatarHtml(p, 28)
-      : `<div class="person-avatar"><i class="ti ti-user" style="font-size:.75rem"></i></div>`;
-    return `
-      <div class="person-card" onclick="openPnjModal('${encodeURIComponent(JSON.stringify(p))}')">
-        ${avatarHtml}
-        <div>
-          <div class="person-name">${p.name}</div>
-          <div class="person-role">${p.role}</div>
-          <div class="person-rel" style="color:${relCol(p.rel)};font-size:.58rem">${relTxt(p.rel)}</div>
-        </div>
-      </div>`;
+      : '<div class="person-avatar"><i class="ti ti-user" style="font-size:.75rem"></i></div>';
+    return '<div class="person-card" onclick="openPnjModal(\'' + encodeURIComponent(JSON.stringify(p)) + '\')">' +
+      avatarHtml +
+      '<div>' +
+      '<div class="person-name">' + p.name + '</div>' +
+      '<div class="person-role">' + p.role + '</div>' +
+      '<div class="person-rel" style="color:' + relCol(p.rel) + ';font-size:.58rem">' + relTxt(p.rel) + '</div>' +
+      '</div></div>';
   }).join('');
 
   document.getElementById('persons-list').innerHTML = selfCard + personCards ||
@@ -527,6 +530,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   showToast(buildResultLabel(resultType, roll), msg, isGood, resultType === 'crit');
   addJournalEntry(`${label} — ${buildResultLabel(resultType, roll)}. ${msg}`,
     resultType === 'crit' || resultType === 'success' ? 'event-good' : resultType === 'crit-fail' ? 'event-bad' : '');
+
+  // Verifier detection si acte illegal
+  if (ACTES_ILLEGAUX[fn] && resultType !== 'crit-fail') {
+    checkDetection(fn, resultType);
+  }
 
   advanceTime(Math.max(0, pa));
   updateUI();
@@ -1885,7 +1893,16 @@ GROUPES — Un PJ peut rejoindre un autre PJ en cliquant sur sa fiche. Le PJ rej
 
 BOÎTE MAIL — Accessible depuis le bouton "Mail" en haut. Contient vos messages reçus, envoyés et votre répertoire de contacts.
 
-AJOUTER UN CONTACT — Cliquez sur un PJ puis "Ajouter au répertoire". Indispensable pour porter plainte, lancer une rumeur ciblée, ou envoyer un mail.`
+AJOUTER UN CONTACT — Cliquez sur un PJ puis "Ajouter au répertoire". Indispensable pour porter plainte, lancer une rumeur ciblée, ou envoyer un mail.
+
+LE FORUM — Accessible depuis le bouton "Forum" en haut. C'est l'espace de communication publique et privée du jeu. Il comporte plusieurs forums :
+• Forum Local — Discussions de votre ville
+• Forum Régional — Discussions régionales
+• Forum National — Débats politiques nationaux
+• Forum International — Relations entre empires
+• Forum Gouvernemental — Réservé au gouvernement (Président + ministres)
+• Forum Syndical — Réservé aux syndicalistes
+Pour créer un sujet : bouton "Nouveau sujet". Pour répondre : bouton "Répondre" dans le sujet. L'éditeur permet la mise en forme (gras, souligné, centrage) et l'insertion d'images. Les sujets créés sont visibles de tous les membres du forum concerné.`
   },
   economie: {
     titre: "L'économie",
@@ -1904,6 +1921,365 @@ REVENUS FISCAUX — La population PNJ génère des impôts chaque nuit à minuit
 FREEMIUM — Le jeu est gratuit. Les abonnements premium donnent du confort mais jamais d'avantage compétitif direct.`
   }
 };
+
+// =====================
+// FICHE PERSONNAGE CENTRALE
+// =====================
+function openSelfView() {
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  document.getElementById('vue-self').classList.add('active');
+  const char = state.char;
+  if (char) {
+    document.getElementById('self-view-name').textContent = char.name || 'Mon Personnage';
+    document.getElementById('self-view-role').textContent = state.poste?.name || 'Citoyen';
+  }
+  switchSelfTab('actions', document.querySelector('#vue-self .piece-tab'));
+}
+
+function closeSelfView() {
+  document.getElementById('vue-self').classList.remove('active');
+  if (state.currentBuilding) {
+    document.getElementById('vue-batiment').classList.add('active');
+  } else {
+    document.getElementById('vue-rue').classList.add('active');
+  }
+}
+
+function switchSelfTab(tab, el) {
+  if (el) {
+    document.querySelectorAll('#vue-self .piece-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  const content = document.getElementById('self-content');
+  const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+
+  if (tab === 'actions') {
+    // Determiner le confort du lieu
+    const b = state.currentBuilding ? BUILDINGS[state.currentBuilding] : null;
+    const confortMap = {
+      'hotel-republica': { label: 'Hotel de luxe', moral: 5, paBonus: 5, icon: 'ti-building-castle' },
+      'hotel-port':      { label: 'Hotel modeste', moral: 3, paBonus: 2, icon: 'ti-bed' },
+      'hotel-mineur':    { label: 'Hotel modeste', moral: 3, paBonus: 2, icon: 'ti-bed' },
+      'palais-presidentiel': { label: 'Residence officielle', moral: 8, paBonus: 8, icon: 'ti-building-monument' }
+    };
+    const confort = confortMap[state.currentBuilding] || { label: 'Lieu ordinaire', moral: 1, paBonus: 0, icon: 'ti-home' };
+
+    const dejaDormi = state.salaireTouche;
+    const salaire = (state.poste ? (SALAIRES[state.poste.id] || SALAIRES.default) : SALAIRES.default);
+
+    let html = '<div style="padding:1.2rem;max-width:600px">';
+
+    // Ordre Dormir
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
+    html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';
+    html += '<i class="ti ti-moon" style="font-size:1.2rem;color:#6a8aaa"></i>';
+    html += '<div><div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">Dormir</div>';
+    html += '<div style="font-size:.72rem;color:#6a5a30"><i class="ti ' + confort.icon + '" style="font-size:.7rem"></i> ' + confort.label + '</div></div>';
+    html += '</div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">';
+    html += (dejaDormi ? '<span style="color:#4a4030">Vous avez deja dormi aujourd\'hui.</span>' : 'Versement du salaire : <strong style="color:#C9A84C">+' + salaire.toLocaleString('fr-FR') + ' ' + cur + '</strong>') + '<br>';
+    html += '+' + confort.moral + ' Moral · ';
+    html += (confort.paBonus > 0 ? '+' + confort.paBonus + ' PA bonus demain' : 'Pas de bonus PA') + '</div>';
+    html += '<button onclick="doDormir()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid ' + (dejaDormi ? '#2a2010' : '#4a6a8a') + ';background:transparent;color:' + (dejaDormi ? '#4a4030' : '#6a8aaa') + ';cursor:' + (dejaDormi ? 'not-allowed' : 'pointer') + '"' + (dejaDormi ? ' disabled' : '') + '>Dormir maintenant</button>';
+    html += '</div>';
+
+    // Se soigner
+    const medocs = (state.inventory || []).filter(i => i.type === 'medicament');
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
+    html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';
+    html += '<i class="ti ti-first-aid-kit" style="font-size:1.2rem;color:#6a9a6a"></i>';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">Se soigner</div></div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">' + (medocs.length > 0 ? medocs.length + ' medicament(s) en inventaire. +20 HP par utilisation.' : 'Aucun medicament en inventaire.') + '</div>';
+    html += '<button onclick="doSesoigner()" ' + (medocs.length === 0 ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #2a4a20;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser un medicament</button>';
+    html += '</div>';
+
+    // Mediter
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem">';
+    html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';
+    html += '<i class="ti ti-brain" style="font-size:1.2rem;color:#8a6aaa"></i>';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A">Mediter</div></div>';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Se recentrer. +3 Moral. 1 PA.</div>';
+    html += '<button onclick="doOrder(\'se_reposer\',1,0,\'Mediter\',\'Vous prenez le temps de vous recentrer.\',100);closeSelfView()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #3a2a5a;background:transparent;color:#8a6aaa;cursor:pointer">Mediter</button>';
+    html += '</div>';
+
+    html += '</div>';
+    content.innerHTML = html;
+
+  } else if (tab === 'inventaire') {
+    const items = state.inventory || [];
+    let html = '<div style="padding:1.2rem;max-width:600px">';
+
+    // Argent
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.5rem">FINANCES</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">';
+    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#4a4030">Liquide</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + (state.liquide||0).toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#4a4030">En banque</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + (state.banque||0).toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    html += '</div></div>';
+
+    // Objets
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.5rem">OBJETS (' + items.length + ')</div>';
+    if (items.length === 0) {
+      html += '<div style="font-size:.8rem;color:#3a3020;font-style:italic">Aucun objet en votre possession.</div>';
+    } else {
+      items.forEach((item, i) => {
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem .3rem;border-bottom:1px solid #1a1810">';
+        html += '<div style="display:flex;align-items:center;gap:.4rem"><i class="ti ' + (item.icon||'ti-package') + '" style="font-size:.9rem;color:#8a6a20"></i><div>';
+        html += '<div style="font-size:.8rem;color:#c0b090">' + item.name + '</div>';
+        html += '<div style="font-size:.65rem;color:#4a4030">' + (item.legal !== undefined ? (item.legal ? 'Legal' : 'Non enregistre') : '') + '</div>';
+        html += '</div></div>';
+        html += '<button onclick="dropItem(' + i + ')" style="font-size:.65rem;color:#6a3020;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem">Jeter</button>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+    html += '</div>';
+    content.innerHTML = html;
+
+  } else if (tab === 'identite') {
+    const char = state.char;
+    const ar = ARCHETYPES.find(x => x.id === char?.archetype);
+    const ca = CAREERS.find(x => x.id === char?.career);
+    const co = COUNTRIES[state.country];
+    const photo = char?.photoUrl
+      ? '<img src="' + char.photoUrl + '" style="width:80px;height:80px;border-radius:50%;border:2px solid #8a6a20;object-fit:cover">'
+      : '<div style="width:80px;height:80px;border-radius:50%;background:#1a1508;border:2px solid #3a2a10;display:flex;align-items:center;justify-content:center;color:#C9A84C"><i class="ti ti-user" style="font-size:1.8rem"></i></div>';
+
+    let html = '<div style="padding:1.2rem;max-width:600px">';
+    html += '<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #1a1810">';
+    html += photo;
+    html += '<div><div style="font-family:Playfair Display,serif;font-size:1.2rem;font-weight:700;color:#E8C97A">' + (char?.name||'') + '</div>';
+    html += '<div style="font-size:.8rem;color:#7a7060;font-style:italic">' + (ar?.name||'') + ' · ' + (co?.n||'') + '</div>';
+    if (state.poste) html += '<div style="font-size:.75rem;color:#C9A84C;margin-top:.2rem"><i class="ti ti-briefcase" style="font-size:.7rem"></i> ' + state.poste.name + '</div>';
+    if (char?.motto) html += '<div style="font-size:.72rem;color:#5a5040;margin-top:.3rem;font-style:italic">"' + char.motto + '"</div>';
+    html += '</div></div>';
+
+    // Stats
+    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-bottom:.8rem">';
+    STAT_DEFS.forEach(s => {
+      html += '<div style="text-align:center;padding:.4rem;background:#0f0d05;border:1px solid #1a1810">';
+      html += '<div style="font-size:.6rem;color:#4a4030;text-transform:uppercase">' + s.k + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C">' + (char?.stats?.[s.k]||8) + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    if (char?.bio) html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #1a1810">' + char.bio + '</div>';
+    html += '</div>';
+    content.innerHTML = html;
+  }
+}
+
+function doDormir() {
+  if (state.salaireTouche) {
+    showToast('Deja dormi', 'Vous avez deja percu votre salaire aujourd\'hui.', false);
+    return;
+  }
+  const b = state.currentBuilding ? BUILDINGS[state.currentBuilding] : null;
+  const confortMap = {
+    'hotel-republica':    { moral: 5, paBonus: 5 },
+    'hotel-port':         { moral: 3, paBonus: 2 },
+    'hotel-mineur':       { moral: 3, paBonus: 2 },
+    'palais-presidentiel':{ moral: 8, paBonus: 8 }
+  };
+  const confort = confortMap[state.currentBuilding] || { moral: 1, paBonus: 0 };
+
+  state.salaireTouche = true;
+  const salaire = state.poste ? (SALAIRES[state.poste.id] || SALAIRES.default) : SALAIRES.default;
+  state.arg += salaire;
+  state.liquide += Math.floor(salaire * 0.3);
+  state.banque += Math.ceil(salaire * 0.7);
+  state.moral = Math.min(100, state.moral + confort.moral);
+  if (confort.paBonus > 0) state.paBonus = confort.paBonus;
+
+  updateUI();
+  const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+  showToast('Bonne nuit !', 'Salaire verse : +' + salaire.toLocaleString('fr-FR') + ' ' + cur + ' · +' + confort.moral + ' Moral', true, true);
+  addJournalEntry('Vous dormez. Salaire verse : +' + salaire.toLocaleString('fr-FR') + ' ' + cur, 'event-good');
+
+  // Traiter les evenements nocturnes
+  traiterPlaintes();
+  traiterEnquetes();
+  checkArrestationAuReveil();
+
+  // Rafraichir la vue
+  switchSelfTab('actions', null);
+}
+
+function doSesoigner() {
+  const medocs = (state.inventory || []).filter(i => i.type === 'medicament');
+  if (medocs.length === 0) { showToast('Aucun medicament', '', false); return; }
+  const idx = state.inventory.indexOf(medocs[0]);
+  state.inventory.splice(idx, 1);
+  state.hp = Math.min(100, state.hp + 20);
+  updateUI();
+  showToast('Soins', '+20 Sante. ' + (state.inventory.filter(i=>i.type==='medicament').length) + ' medicament(s) restant(s).', true);
+  switchSelfTab('inventaire', null);
+}
+
+function dropItem(index) {
+  const item = state.inventory[index];
+  if (!item) return;
+  state.inventory.splice(index, 1);
+  showToast('Objet jete', item.name + ' retire de votre inventaire.', false);
+  switchSelfTab('inventaire', null);
+}
+
+// =====================
+// SYSTEME D'ARRESTATION
+// =====================
+const PEINES = {
+  delit_mineur:   { jours: 2,  label: 'Delit mineur',   amendeBase: 500  },
+  delit_grave:    { jours: 4,  label: 'Delit grave',     amendeBase: 1500 },
+  crime:          { jours: 8,  label: 'Crime',           amendeBase: 5000 },
+  crime_etat:     { jours: 30, label: "Crime d'Etat",    amendeBase: 0    }
+};
+
+const ACTES_ILLEGAUX = {
+  corrompre_fonct:    { type: 'delit_mineur',  detectRate: 30 },
+  corrompre_police:   { type: 'delit_mineur',  detectRate: 35 },
+  corrompre_juge:     { type: 'delit_grave',   detectRate: 40 },
+  corrompre_journaliste:{ type: 'delit_mineur',detectRate: 25 },
+  blanchiment:        { type: 'delit_grave',   detectRate: 35 },
+  societe_ecran:      { type: 'delit_mineur',  detectRate: 25 },
+  falsifier_docs:     { type: 'delit_grave',   detectRate: 40 },
+  acheter_arme_illegale:{ type: 'delit_mineur',detectRate: 20 },
+  acheter_bombe_illegale:{ type: 'crime',      detectRate: 55 },
+  fabriquer_bombe:    { type: 'crime',         detectRate: 60 },
+  incendier:          { type: 'crime',         detectRate: 70 },
+  arreter:            { type: 'delit_grave',   detectRate: 40 },
+  fabriquer_scandale: { type: 'delit_grave',   detectRate: 45 },
+  fuite_info:         { type: 'delit_grave',   detectRate: 40 },
+  imprimer_clandestin:{ type: 'delit_mineur',  detectRate: 30 },
+  tentative_evasion:  { type: 'crime',         detectRate: 90 },
+  se_rebeller:        { type: 'delit_mineur',  detectRate: 60 }
+};
+
+function checkDetection(fn, resultType) {
+  const acte = ACTES_ILLEGAUX[fn];
+  if (!acte) return;
+  if (resultType === 'fail' || resultType === 'crit-fail') return; // Pas d'acte = pas de detection
+
+  // Immunite selon poste
+  const posteId = state.poste?.id;
+  if (posteId === 'president') return; // Immunite totale
+  if (['pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(posteId)) {
+    if (acte.type === 'delit_mineur') return; // Immunite partielle ministres
+  }
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const tauxDetect = Math.max(5, acte.detectRate - Math.floor(state.dis / 10));
+
+  if (roll <= tauxDetect) {
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte: fn, type: acte.type, jour: state.day });
+    addExternalEvent('ALERTE : Votre activite illegale (' + fn.replace(/_/g,' ') + ') a ete detectee. Vous etes recherche(e).');
+    state.dis = Math.max(0, state.dis - 10);
+    updateUI();
+  }
+}
+
+function checkArrestationAuDeplacement() {
+  if (!state.recherche || state.recherche.length === 0) return;
+  const alerteMax = state.recherche.reduce((max, r) => {
+    const peine = PEINES[r.type];
+    return peine && peine.jours > (PEINES[max]?.jours||0) ? r.type : max;
+  }, 'delit_mineur');
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const tauxInter = Math.max(5, 30 - Math.floor(state.dis / 5));
+
+  if (roll <= tauxInter) {
+    ouvrirModalArrestation(alerteMax);
+  }
+}
+
+function checkArrestationAuReveil() {
+  // Chance reduite d'arrestation pendant la nuit
+  if (!state.recherche || state.recherche.length === 0) return;
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= 10) {
+    const alerteMax = state.recherche[state.recherche.length - 1]?.type || 'delit_mineur';
+    addExternalEvent('La police a retrouve votre trace. Vous avez ete arrete(e) dans la nuit.');
+    procederArrestation(alerteMax, false);
+  }
+}
+
+function ouvrirModalArrestation(peineType) {
+  const peine = PEINES[peineType] || PEINES.delit_mineur;
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Interception policiere !';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.88rem;color:#cc4444;font-family:Playfair Display,serif;margin-bottom:1rem">Des policiers vous barrent la route. Chef d\'inculpation : ' + peine.label + '.</div>' +
+    '<div style="font-size:.8rem;color:#8a8060;margin-bottom:1rem">Peine encourue : ' + peine.jours + ' jour(s) d\'emprisonnement.</div>' +
+    '<div style="display:flex;flex-direction:column;gap:.5rem">' +
+    '<button onclick="procederArrestation(\'' + peineType + '\',false);document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #4a6a4a;background:transparent;color:#6a9a6a;cursor:pointer"><i class="ti ti-check" style="font-size:.8rem"></i> Se rendre</button>' +
+    '<button onclick="tenterFuite()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-run" style="font-size:.8rem"></i> Fuir (VOL+DIS)</button>' +
+    '<button onclick="tenterResistance(\'' + peineType + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-sword" style="font-size:.8rem"></i> Resister (tres risque)</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function procederArrestation(peineType, resistanceAggravante) {
+  const peine = PEINES[peineType] || PEINES.delit_mineur;
+  const jours = peine.jours + (resistanceAggravante ? 2 : 0);
+  const amende = peine.amendeBase;
+
+  state.estEmprisonne = { jours, jourFin: state.day + jours, raison: peine.label };
+  state.recherche = [];
+  if (amende > 0) state.arg = Math.max(0, state.arg - amende);
+  if (state.poste && peineType === 'crime') {
+    addExternalEvent('Votre poste de ' + state.poste.name + ' vous a ete retire suite a votre arrestation.');
+    state.poste = null;
+  }
+  updateUI();
+  addExternalEvent('Vous avez ete arrete(e) pour ' + peine.label + '. ' + jours + ' jour(s) d\'emprisonnement. Amende : ' + amende.toLocaleString('fr-FR') + ' FR.');
+  if (!state.prisonniers) state.prisonniers = [];
+  state.prisonniers.push({ nom: state.char?.name, depuis: 'Jour ' + state.day, raison: peine.label, jourFin: state.day + jours });
+}
+
+function tenterFuite() {
+  document.getElementById('modal-postes').classList.remove('open');
+  const vol = state.char?.stats?.VOL || 8;
+  const bonus = Math.floor(state.dis / 10) + Math.floor(vol / 2);
+  const taux = Math.min(70, 30 + bonus);
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    state.dis = Math.max(0, state.dis - 20);
+    updateUI();
+    showToast('Fuite reussie !', 'Vous echappez aux policiers. -20 Discretion.', true, true);
+    addJournalEntry('Vous avez pris la fuite face aux policiers. Votre discretion chute.', 'event-bad');
+  } else {
+    addExternalEvent('Tentative de fuite echouee. Arrestation avec circonstance aggravante.');
+    const peineType = state.recherche?.[0]?.type || 'delit_mineur';
+    procederArrestation(peineType, true);
+  }
+}
+
+function tenterResistance(peineType) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const vol = state.char?.stats?.VOL || 8;
+  const taux = Math.min(30, vol * 2);
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    state.dis = Math.max(0, state.dis - 30);
+    state.hp = Math.max(1, state.hp - 15);
+    updateUI();
+    showToast('Resistance reussie !', 'Vous vous echappez malgre tout. -30 DIS -15 HP.', true);
+    addJournalEntry('Vous avez resiste violemment aux forces de l\'ordre. Fortement recherche(e).', 'event-bad');
+    // Aggravation du statut
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte: 'rebellion', type: 'delit_grave', jour: state.day });
+  } else {
+    addExternalEvent('Resistance aux forces de l\'ordre. Arrestation avec chef de rebellion.');
+    procederArrestation(peineType, true);
+    state.hp = Math.max(1, state.hp - 20);
+    updateUI();
+  }
+}
 
 function openRulesView() {
   document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
