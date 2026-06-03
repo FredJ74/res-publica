@@ -28,12 +28,13 @@ let state = {
 window.addEventListener('DOMContentLoaded', () => {
   loadCharacter();
   buildCityTabs();
+  if (!state.currentCity) state.currentCity = 'capitale';
   renderMinimap('capitale');
   updateUI();
   updateLocationDisplay();
   startClock();
   // Fix: afficher image de rue des le chargement
-  setTimeout(() => showVueRue(), 100);
+  setTimeout(() => { travelToCity(state.currentCity || 'capitale'); }, 100);
 });
 
 function loadCharacter() {
@@ -494,7 +495,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   }
 
   // Ordres speciaux
-  if (fn === 'postuler') { openPostesModal(); return; }
+  if (fn === 'postuler') { ouvrirPostulerPoste(); return; }
   if (fn === 'gerer_finances') { openFinancesModal(); return; }
   if (fn === 'plainte_police') { openPlainteModal(); return; }
   if (fn === 'archives_police') { doArchivesPolice(); return; }
@@ -522,7 +523,15 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nationaliser_entreprise') { ouvrirModalNationaliser(); return; }
   if (fn === 'jour_deuil')              { ouvrirForumPresidentCentral('deuil'); return; }
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
-  if (fn === 'etat_nation')             { ouvrirEtatNation(); return; }
+  if (fn === 'etat_nation')              { ouvrirIndicesImperiaux(); return; }
+  if (fn === 'observer_debats')          { observerDebats(); return; }
+  if (fn === 'voter_loi')               { ouvrirVoteLoi(); return; }
+  if (fn === 'deposer_projet')          { ouvrirForumView('parlement'); return; }
+  if (fn === 'consulter_archives_lois') { ouvrirArchivesLois(); return; }
+  if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
+  if (fn === 'porter_plainte')          { ouvrirPorterPlainte(); return; }
+  if (fn === 'rendre_sentence')         { ouvrirRendreSentence(); return; }
+  if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
   if (fn === 'interdire_manif_cible')   { ouvrirModalTexteLibre('interdire_manif', 'Interdire une manifestation', 'Preciser le nom ou sujet de la manifestation a interdire...'); return; }
   if (fn === 'reprimer_manif_cible')    { ouvrirModalTexteLibre('reprimer_manif', 'Ordonner la repression', 'Preciser la manifestation ou le rassemblement cible...'); return; }
   if (fn === 'redressement_cible')      { ouvrirModalCibleRepertoire('redressement_fiscal', 'Redressement fiscal'); return; }
@@ -3044,14 +3053,499 @@ function renderRulesContent(section) {
 
 function solliciterAudiencePresident() {
   const char = state.char;
-  addMailNotification('Secretariat de la Presidence', 'Demande d\'audience enregistree',
-    'Votre demande d\'audience aupres du President a ete transmise. Il vous repondra des qu\'il en aura pris connaissance.');
-  // Notifier le president par mail
-  if (state.poste?.id !== 'president') {
-    addExternalEvent('Une demande d\'audience de ' + (char?.name||'Anonyme') + ' a ete transmise au President.');
-  }
-  showToast('Demande transmise', 'Le President vous repondra par mail.', true);
+  const nomDemandeur = char?.name || 'Anonyme';
+  // Message automatique au demandeur
+  showToast(
+    'Demande transmise',
+    'Je transmets votre demande à Monsieur le Président. Il vous contactera dès qu\'il en aura pris connaissance.',
+    true
+  );
   addJournalEntry('Vous avez sollicite une audience presidentielle.', 'event-info');
+  // Mail au President
+  addMailNotification(
+    'Secretariat de la Presidence',
+    'Demande d\'audience de ' + nomDemandeur,
+    nomDemandeur + ' sollicite une audience presidentielle. Vous pouvez lui repondre directement a cette adresse mail.'
+  );
+}
+
+// =====================
+// INDICES IMPERIAUX (bouton topbar)
+// =====================
+function ouvrirIndicesImperiaux() {
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById('vue-self');
+  el.classList.add('active');
+  document.getElementById('self-view-name').textContent = 'Indices Imperiaux';
+  document.getElementById('self-view-role').textContent = 'Etat des 4 empires';
+
+  const content = document.getElementById('self-content');
+  const empires = [
+    { key:'republic', name:'Républia',   col:'#4a9ade', flag:'🇫🇷' },
+    { key:'narco',    name:'El Estado',  col:'#cc4444', flag:'🔴' },
+    { key:'soviet',   name:'Sovarka',    col:'#cc2020', flag:'⭐' },
+    { key:'khalija',  name:'Al-Khalija', col:'#C9A84C', flag:'🌙' }
+  ];
+
+  let html = '<div style="padding:1.2rem;max-width:700px">';
+  html += '<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#C9A84C;margin-bottom:1rem">Indices des 4 Empires</div>';
+
+  empires.forEach(emp => {
+    const idx = (typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[emp.key] || {ISN:30,IE:50,ID:40,IS:45}) : {ISN:30,IE:50,ID:40,IS:45};
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.9rem;color:' + emp.col + ';margin-bottom:.6rem">' + emp.flag + ' ' + emp.name + '</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem">';
+    [['ISN','Securite','#4a8a4a'],['IE','Economique','#C9A84C'],['ID','Diplomatique','#4a6aaa'],['IS','Social','#aa6a4a']].forEach(([k,label,col]) => {
+      const val = idx[k] || 0;
+      html += '<div style="text-align:center;padding:.4rem;background:#0a0805;border:1px solid #1a1810">';
+      html += '<div style="font-size:.6rem;color:#4a4030;text-transform:uppercase">' + label + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:' + col + '">' + val + '</div>';
+      html += '<div style="height:4px;background:#0a0a05;margin-top:.2rem"><div style="height:100%;width:' + val + '%;background:' + col + ';opacity:.6"></div></div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+
+  html += '<div style="font-size:.72rem;color:#4a4030;font-style:italic;margin-top:.5rem">Cliquer sur "Etat de la Nation" au Palais Presidentiel pour le detail et l\'impact de chaque indice.</div>';
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+// =====================
+// ASSEMBLEE NATIONALE
+// =====================
+function observerDebats() {
+  const deputes = ['Depute Marchand (PNJ)', 'Depute Fontaine (PNJ)', 'Depute Rousseau (PNJ)', 'Depute Girard (PNJ)'];
+  const positions = ['Pour', 'Contre', 'Abstention'];
+  const loisEnCours = state.loisEnCours || [];
+
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Observer les debats';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Vous observez discretement les echanges dans la salle.</div>';
+
+  if (loisEnCours.length > 0) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">VOTES EN COURS</div>';
+    loisEnCours.forEach(loi => {
+      html += '<div style="padding:.5rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
+      html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">' + loi.titre + '</div>';
+      deputes.forEach(d => {
+        const pos = positions[Math.floor(Math.random() * positions.length)];
+        const col = pos === 'Pour' ? '#4a8a4a' : pos === 'Contre' ? '#8a3a2a' : '#6a6040';
+        html += '<div style="font-size:.72rem;color:#6a6040">' + d + ' : <span style="color:' + col + '">' + pos + '</span></div>';
+      });
+      html += '</div>';
+    });
+  } else {
+    html += '<div style="font-size:.82rem;color:#5a5030;font-style:italic">Aucune loi en cours de deliberation. La prochaine session est mercredi.</div>';
+  }
+
+  // Bonus journaliste
+  if (state.char?.career === 'press') {
+    state.inf = Math.min(100, state.inf + 1);
+    updateUI();
+    html += '<div style="font-size:.72rem;color:#C9A84C;margin-top:.5rem">+1 INF (bonus journaliste)</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function ouvrirVoteLoi() {
+  const now = new Date();
+  const isWednesday = now.getDay() === 3; // 0=dim, 3=mer
+  const isBeforeDeadline = now.getHours() < 20;
+  const loisEnCours = (state.loisEnCours || []).filter(l => l.pret);
+
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Voter une loi';
+  let html = '<div style="padding:1rem">';
+
+  if (!isWednesday || !isBeforeDeadline) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Le vote se tient uniquement le mercredi jusqu\'a 20h. Prochaine session : mercredi prochain.</div>';
+  } else if (loisEnCours.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune loi en attente de vote pour cette session.</div>';
+  } else {
+    loisEnCours.forEach((loi, i) => {
+      const dejaVote = state.votesLois?.[loi.id];
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">' + loi.titre + '</div>';
+      html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">Depose par ' + loi.auteur + ' le Jour ' + loi.jourDepot + '</div>';
+      if (dejaVote) {
+        html += '<div style="font-size:.78rem;color:#4a6a4a">Vote exprime : <strong>' + dejaVote + '</strong></div>';
+      } else {
+        html += '<div style="display:flex;gap:.5rem">';
+        ['Pour', 'Contre', 'Abstention'].forEach(choix => {
+          const col = choix === 'Pour' ? '#4a8a4a' : choix === 'Contre' ? '#8a2020' : '#6a6040';
+          html += '<button onclick="enregistrerVoteLoi(' + i + ',\'' + choix + '\')" style="flex:1;padding:.4rem;border:1px solid ' + col + ';background:transparent;color:' + col + ';cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">' + choix + '</button>';
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function enregistrerVoteLoi(loiIdx, choix) {
+  const loi = (state.loisEnCours || []).filter(l => l.pret)[loiIdx];
+  if (!loi) return;
+  if (!state.votesLois) state.votesLois = {};
+  state.votesLois[loi.id] = choix;
+  if (!loi.votes) loi.votes = [];
+  loi.votes.push({ depute: state.char?.name || 'Anonyme', choix });
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Vote enregistre', choix + ' pour : ' + loi.titre, true, true);
+  addJournalEntry('Vote : ' + choix + ' — ' + loi.titre, 'event-info');
+}
+
+function ouvrirArchivesLois() {
+  const archives = state.archivesLois || [];
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Archives de l\'Assemblee';
+  let html = '<div style="padding:1rem">';
+  if (archives.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune loi votee pour le moment.</div>';
+  } else {
+    archives.forEach((loi, i) => {
+      html += '<div onclick="ouvrirDetailLoi(' + i + ')" style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + loi.titre + '</div>';
+      const col = loi.resultat === 'Adoptee' ? '#4a8a4a' : '#8a2020';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;color:' + col + '">' + (loi.resultat||'En cours') + '</div>';
+      html += '</div>';
+      html += '<div style="font-size:.68rem;color:#5a4030">Jour ' + loi.jourVote + ' · ' + (loi.votes?.length||0) + ' votants</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function ouvrirDetailLoi(idx) {
+  const loi = (state.archivesLois||[])[idx];
+  if (!loi) return;
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = loi.titre;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.6rem">Depose par ' + loi.auteur + ' · Vote Jour ' + loi.jourVote + '</div>';
+  const col = loi.resultat === 'Adoptee' ? '#4a8a4a' : '#8a2020';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:' + col + ';margin-bottom:.8rem">' + (loi.resultat||'En cours') + '</div>';
+  if (loi.votes?.length > 0) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">VOTES NOMINATIFS</div>';
+    loi.votes.forEach(v => {
+      const vc = v.choix === 'Pour' ? '#4a8a4a' : v.choix === 'Contre' ? '#8a2020' : '#5a5040';
+      html += '<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:.2rem 0;border-bottom:1px solid #1a1810">';
+      html += '<span style="color:#c0b090">' + v.depute + '</span><span style="color:' + vc + '">' + v.choix + '</span></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// =====================
+// TRIBUNAL
+// =====================
+function ouvrirArchivesTribunal() {
+  const jugements = state.archivesJugements || [];
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Archives du Tribunal';
+  let html = '<div style="padding:1rem">';
+  if (jugements.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun jugement enregistre pour le moment.</div>';
+  } else {
+    jugements.forEach((j, i) => {
+      html += '<div onclick="ouvrirDetailJugement(' + i + ')" style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+      html += '<div style="display:flex;justify-content:space-between">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + j.accuse + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">Jour ' + j.jour + '</div>';
+      html += '</div>';
+      html += '<div style="font-size:.72rem;color:#6a5a30">' + j.motif + ' · ' + (j.peine||'En cours') + '</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function ouvrirDetailJugement(idx) {
+  const j = (state.archivesJugements||[])[idx];
+  if (!j) return;
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Jugement — ' + j.accuse;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.5rem">Date : Jour ' + j.jour + ' · Juge : ' + (j.juge||'PNJ') + '</div>';
+  html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">Motif : ' + j.motif + '</div>';
+  html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">Peine : ' + (j.peine||'N/A') + '</div>';
+  if (j.executee !== undefined) html += '<div style="font-size:.78rem;color:' + (j.executee ? '#4a8a4a' : '#8a6a20') + '">' + (j.executee ? 'Peine executee' : 'Peine en cours ou amenagee') + '</div>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+function ouvrirPorterPlainte() {
+  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Porter plainte';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Votre plainte sera deposee dans le sous-forum "Tribunal de ' + ville + '", visible uniquement par les habitants de ' + ville + '.</div>';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CONTRE QUI ?</div>';
+  html += '<div style="display:flex;gap:.5rem;margin-bottom:.7rem">';
+  html += '<button id="plainte-cible-btn" onclick="selectPlainteCible(\'cible\')" style="flex:1;padding:.3rem;border:1px solid #8a6a20;background:#0f0d05;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem">Un PJ identifie</button>';
+  html += '<button id="plainte-x-btn" onclick="selectPlainteCible(\'x\')" style="flex:1;padding:.3rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem">Contre X (inconnu)</button>';
+  html += '</div>';
+
+  html += '<div id="plainte-cible-select" style="margin-bottom:.7rem">';
+  const contacts = state.contacts || [];
+  if (contacts.length > 0) {
+    html += '<select id="plainte-cible-nom" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none">';
+    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+    html += '</select>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#5a5040">Repertoire vide. La plainte sera deposee contre X.</div>';
+  }
+  html += '</div>';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MOTIF</div>';
+  html += '<textarea id="plainte-motif" rows="4" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.7rem" placeholder="Decrivez les faits reprochés, la date, les circonstances..."></textarea>';
+  html += '<button onclick="soumettrePlainte()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Deposer la plainte</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  window._plainteCible = 'cible';
+}
+
+function selectPlainteCible(type) {
+  window._plainteCible = type;
+  document.getElementById('plainte-cible-btn').style.borderColor = type === 'cible' ? '#8a6a20' : '#2a2010';
+  document.getElementById('plainte-cible-btn').style.color = type === 'cible' ? '#C9A84C' : '#5a5040';
+  document.getElementById('plainte-x-btn').style.borderColor = type === 'x' ? '#8a6a20' : '#2a2010';
+  document.getElementById('plainte-x-btn').style.color = type === 'x' ? '#C9A84C' : '#5a5040';
+}
+
+function soumettrePlainte() {
+  const motif = document.getElementById('plainte-motif')?.value?.trim();
+  if (!motif) { showToast('Motif requis', 'Decrivez les faits.', false); return; }
+  const cibleNom = window._plainteCible === 'cible'
+    ? (document.getElementById('plainte-cible-nom')?.value || 'X')
+    : 'X (inconnu)';
+  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
+  const forumKey = 'tribunal_' + state.currentCity;
+  if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
+  FORUM_TOPICS[forumKey].unshift({
+    id: 'plainte-' + Date.now(),
+    title: '[PLAINTE] ' + (state.char?.name||'Anonyme') + ' contre ' + cibleNom,
+    author: state.char?.name || 'Anonyme',
+    time: 'Jour ' + state.day,
+    replies: 0,
+    isPlainte: true,
+    cible: cibleNom,
+    posts: [{
+      author: state.char?.name || 'Anonyme',
+      time: 'Jour ' + state.day,
+      content: '**DEPOT DE PLAINTE**\n\nPlaignant : ' + (state.char?.name||'Anonyme') + '\nMis en cause : ' + cibleNom + '\n\nFaits :\n' + motif
+    }]
+  });
+  if (!state.plaintesEnCours) state.plaintesEnCours = [];
+  state.plaintesEnCours.push({ cible: cibleNom, motif, jour: state.day, status: 'deposee' });
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Plainte deposee !', 'Visible dans le forum "Tribunal de ' + ville + '". Jugement le jeudi.', true, true);
+  addJournalEntry('Plainte deposee contre ' + cibleNom, 'event-info');
+  addExternalEvent('Une plainte a ete deposee contre ' + cibleNom + ' au Tribunal de ' + ville + '.');
+}
+
+function ouvrirRendreSentence() {
+  const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Rendre la sentence';
+  let html = '<div style="padding:1rem">';
+  if (affaires.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en attente de jugement.</div>';
+  } else {
+    affaires.forEach((a, i) => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">Affaire : ' + a.cible + '</div>';
+      html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.6rem">' + a.motif + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SENTENCE</div>';
+      html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
+      html += '<button onclick="appliquerSentence(' + i + ',\'amende\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende (montant + repartition)</button>';
+      html += '<button onclick="appliquerSentence(' + i + ',\'prison\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison (max 7 jours)</button>';
+      html += '<button onclick="appliquerSentence(' + i + ',\'amenagement\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
+      html += '<button onclick="appliquerSentence(' + i + ',\'qhs\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function appliquerSentence(idx, type) {
+  const affaire = (state.plaintesEnCours||[]).filter(p => p.status === 'deposee')[idx];
+  if (!affaire) return;
+  affaire.status = 'jugee';
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  let details = '';
+
+  if (type === 'amende') {
+    const montant = 500;
+    details = 'Amende de ' + montant + ' ' + cur;
+  } else if (type === 'prison') {
+    const duree = 3;
+    details = 'Prison ' + duree + ' jours';
+    if (!state.prisonniers) state.prisonniers = [];
+    state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + duree });
+  } else if (type === 'amenagement') {
+    details = 'Amenagement : pointage quotidien au commissariat';
+  } else if (type === 'qhs') {
+    details = 'Envoi au QHS';
+    if (!state.prisonniers) state.prisonniers = [];
+    state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + 30, qhs: true });
+  }
+
+  if (!state.archivesJugements) state.archivesJugements = [];
+  state.archivesJugements.push({
+    accuse: affaire.cible,
+    motif: affaire.motif,
+    peine: details,
+    juge: state.char?.name || 'PNJ',
+    jour: state.day,
+    executee: false
+  });
+
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Sentence rendue', affaire.cible + ' : ' + details, true, true);
+  addExternalEvent('JUGEMENT : ' + affaire.cible + ' condamne(e) a : ' + details + ' (Juge : ' + (state.char?.name||'PNJ') + ')');
+  addMailNotification('Tribunal', 'Resultat de votre affaire', 'La sentence a ete rendue : ' + details);
+}
+
+// =====================
+// FALSIFIER UN DOCUMENT
+// =====================
+const DOCUMENTS_FALSIFIABLES = [
+  { id:'fausse_identite',   name:'Fausse identite',          desc:'Change votre nom affiche dans le jeu temporairement.',     icon:'ti-id-badge' },
+  { id:'faux_casier',       name:'Faux casier judiciaire vierge', desc:'Efface vos antecedents judiciaires dans les archives.', icon:'ti-file-x' },
+  { id:'faux_permis',       name:'Faux permis de construire', desc:'Permet de construire sans passer par la mairie.',          icon:'ti-building' },
+  { id:'faux_contrat',      name:'Faux contrat commercial',   desc:'Legitime une transaction illegale ou un transfert.',       icon:'ti-file-text' },
+  { id:'fausse_convocation',name:'Fausse convocation officielle', desc:'Attire un PJ dans un lieu de votre choix.',           icon:'ti-mail' }
+];
+
+function ouvrirFalsifierDocument() {
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Falsifier un document';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illegal. Taux 45%. Echec : alerte possible. Document ajoute a votre inventaire si succes.</div>';
+  DOCUMENTS_FALSIFIABLES.forEach(doc => {
+    html += '<div onclick="confirmerFalsification(\'' + doc.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+    html += '<div style="display:flex;align-items:center;gap:.6rem">';
+    html += '<i class="ti ' + doc.icon + '" style="font-size:1rem;color:#8a6a20"></i>';
+    html += '<div><div style="font-size:.82rem;color:#c0b090">' + doc.name + '</div>';
+    html += '<div style="font-size:.68rem;color:#5a4030">' + doc.desc + '</div></div>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerFalsification(docId) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const doc = DOCUMENTS_FALSIFIABLES.find(d => d.id === docId);
+  if (!doc) return;
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const taux = Math.max(5, 45 - getMalusISN());
+
+  if (roll <= taux) {
+    if (!state.inventory) state.inventory = [];
+    state.inventory.push({
+      type: 'document_falsifie',
+      name: doc.name,
+      icon: doc.icon,
+      docId: doc.id,
+      legal: false,
+      desc: doc.desc
+    });
+    state.arg -= 300;
+    updateUI();
+    showToast('Document falsifie !', doc.name + ' ajoute a votre inventaire.', true, true);
+    addJournalEntry('Falsification : ' + doc.name, 'event-bad');
+    checkDetection('falsifier_document', 'success');
+  } else {
+    showToast('Echec !', 'La falsification a echoue. Vous etes peut-etre repere(e).', false);
+    checkDetection('falsifier_document', 'fail');
+    addJournalEntry('Tentative de falsification echouee.', 'event-bad');
+  }
+}
+
+// =====================
+// CORRIGER POSTULER
+// =====================
+function ouvrirPostulerPoste() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const postes = POSTES[pays]?.[ville] || POSTES[pays]?.capitale || [];
+
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Postuler a un poste';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Postes disponibles a ' + (WORLD[pays]?.[ville]?.name||ville) + ' :</div>';
+
+  if (postes.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040">Aucun poste disponible ici.</div>';
+  } else {
+    postes.forEach(poste => {
+      const estOccupeParPJ = poste.holder && !poste.holder.startsWith('PNJ-');
+      const estPresident = poste.id === 'president';
+      const estPM = poste.id === 'pm';
+      const isPJHolder = estOccupeParPJ;
+      const moi = state.char?.name;
+
+      // Ne pas afficher son propre poste
+      if (poste.holder === moi) return;
+
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+      html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + poste.name + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">Titulaire actuel : ' + (poste.holder || 'Vacant') + '</div></div>';
+
+      if (estPresident && isPJHolder) {
+        html += '<div style="font-size:.68rem;color:#6a3020;font-style:italic">Inaccessible</div>';
+      } else if (estPM && isPJHolder) {
+        html += '<div style="font-size:.68rem;color:#6a3020;font-style:italic">Inaccessible</div>';
+      } else if (!isPJHolder) {
+        // Poste PNJ - prise automatique
+        html += '<button onclick="prendrePoste(\'' + poste.id + '\',\'' + poste.name + '\',false)" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.25rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Prendre le poste</button>';
+      } else {
+        // Poste minister PJ - envoyer demande au PM
+        html += '<button onclick="demanderPosteAuPM(\'' + poste.id + '\',\'' + poste.name + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.25rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Postuler</button>';
+      }
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function prendrePoste(posteId, posteNom, isPJHolder) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const postes = POSTES[pays]?.[ville] || POSTES[pays]?.capitale || [];
+  const poste = postes.find(p => p.id === posteId);
+  if (poste) poste.holder = state.char?.name;
+  state.poste = { id: posteId, name: posteNom };
+  updateUI();
+  showToast('Poste pris !', 'Vous etes desormais ' + posteNom + '.', true, true);
+  addJournalEntry('Prise de poste : ' + posteNom, 'event-good');
+  addExternalEvent((state.char?.name||'Anonyme') + ' prend le poste de ' + posteNom + '.');
+}
+
+function demanderPosteAuPM(posteId, posteNom) {
+  document.getElementById('modal-postes').classList.remove('open');
+  addMailNotification(
+    'Demande de poste',
+    'Candidature : ' + posteNom,
+    (state.char?.name||'Anonyme') + ' souhaite postuler au poste de ' + posteNom + '. Vous pouvez le/la nommer depuis votre bureau.'
+  );
+  showToast('Demande envoyee', 'Le Premier Ministre a ete informe de votre candidature au poste de ' + posteNom + '.', true);
+  addJournalEntry('Candidature envoyee au PM pour : ' + posteNom, 'event-info');
 }
 
 function ouvrirEtatNation() {

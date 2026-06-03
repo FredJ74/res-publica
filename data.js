@@ -181,7 +181,6 @@ const BUILDINGS = {
         orders: [
           {fn:'se_nourrir',   label:'Se nourrir',          pa:0, cost:25,  type:'legal',  icon:'ti-soup',     successRate:100, desc:'Repas standard. Sante maintenue.'},
           {fn:'diner_affaires',label:'Diner d\'affaires',  pa:2, cost:120, type:'legal',  icon:'ti-wine',     successRate:100, desc:'Invitation d\'un contact. +Relation.'},
-          {fn:'rencontrer',   label:'Rencontrer',          pa:1, cost:0,   type:'legal',  icon:'ti-users',    successRate:100, desc:'Engager la conversation.'},
           {fn:'ecouter',      label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Collecter des informations ambiantes.'},
           {fn:'rumeur',       label:'Lancer une rumeur',   pa:1, cost:0,   type:'grey',   icon:'ti-messages', successRate:80,  desc:'Faire circuler une information.'}
         ]
@@ -198,7 +197,6 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'se_nourrir',      label:'Boire un verre',        pa:0, cost:10,  type:'legal', icon:'ti-glass',    successRate:100, desc:'Consommation. +1 Moral.'},
-          {fn:'rencontrer',      label:'Aborder quelqu\'un',    pa:1, cost:0,   type:'legal', icon:'ti-users',    successRate:100, desc:'Entrer en contact avec un inconnu.'},
           {fn:'ecouter',         label:'Ecouter le barman',     pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90,  desc:'Le barman entend tout.'},
           {fn:'recruter_info',   label:'Recruter un informateur',pa:1,cost:150, type:'grey',  icon:'ti-user-plus',successRate:75,  desc:'Faire du barman un contact regulier.'}
         ]
@@ -240,8 +238,7 @@ const BUILDINGS = {
           {name:'Garde Republicain (PNJ)', role:'PNJ - Securite presidentielle', rel:'neutral', job:'garde'}
         ],
         orders: [
-          {fn:'se_presenter',   label:'Se presenter',          pa:0, cost:0, type:'legal', icon:'ti-id-badge',   successRate:100, desc:'Etre introduit dans le Palais.'},
-          {fn:'rencontrer',     label:'Solliciter une audience',pa:2, cost:0, type:'legal', icon:'ti-users',      successRate:70,  desc:'Demander a rencontrer le President.'}
+          {fn:'solliciter_audience_president', label:'Solliciter une audience', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'0 PA. Aucun indice. Message automatique transmis au President par mail. Il vous repondra directement.'}
         ]
       },
       bureau_president: {
@@ -293,8 +290,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'reception_etat',    label:'Organiser une reception',  pa:2, cost:1000, type:'legal', icon:'ti-confetti',   successRate:100, requiresPost:'president', desc:'Reception officielle. +INF +POP +relations diplomatiques.'},
-          {fn:'banquet_diplo',     label:'Banquet diplomatique',      pa:3, cost:2000, type:'legal', icon:'ti-wine',       successRate:100, requiresPost:'president', desc:'Inviter des representants etrangers. Ameliore les relations inter-empires.'},
-          {fn:'rencontrer',        label:'Rencontrer les invites',    pa:1, cost:0,    type:'legal', icon:'ti-users',      successRate:100}
+          {fn:'banquet_diplo',     label:'Banquet diplomatique',      pa:3, cost:2000, type:'legal', icon:'ti-wine',       successRate:100, requiresPost:'president', desc:'Inviter des representants etrangers. Ameliore les relations inter-empires.'}
         ]
       }
     }
@@ -493,7 +489,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'assister_session', label:'Assister a la session', pa:1, cost:0,   type:'legal', icon:'ti-building', successRate:100, desc:'Observer les debats. +1 INF.'},
-          {fn:'voter_loi',        label:'Voter une loi',         pa:1, cost:0,   type:'legal', icon:'ti-check',    successRate:100, requiresPost:true, desc:'Voter uniquement si vous etes depute.'},
+          {fn:'observer_debats',  label:'Observer les debats',   pa:1, cost:0,   type:'legal', icon:'ti-eye',      successRate:100, desc:'Revele les positions des deputes. +1 INF pour les journalistes.'},
+          {fn:'voter_loi',         label:'Voter une loi',          pa:1, cost:0,   type:'legal', icon:'ti-check',    successRate:100, requiresPost:'depute', desc:'Mercredi jusqu\'a 20h seulement. Ouvre la liste des lois en attente de vote.'},
           {fn:'projet_loi',       label:'Deposer un projet',     pa:3, cost:0,   type:'legal', icon:'ti-file-text',successRate:70,  requiresPost:true, desc:'Deposer un projet de loi.'},
           {fn:'marchander_vote', label:'Marchander un vote', pa:0, cost:200, type:'grey', icon:'ti-arrows-exchange', successRate:40, desc:'Taux 40% + bonus INF. Ouvre la liste des votes en cours. 1 PA consomme en cas de succes uniquement.'}
         ]
@@ -509,9 +506,20 @@ const BUILDINGS = {
           {name:'Journaliste Blanc',role:'Correspondant parlementaire (PNJ)', rel:'neutral', job:'journaliste'}
         ],
         orders: [
-          {fn:'rencontrer',  label:'Aborder un depute',   pa:1, cost:0,   type:'legal', icon:'ti-users',    successRate:100},
           {fn:'marchander',  label:'Proposer un accord',  pa:2, cost:100, type:'grey',  icon:'ti-handshake',successRate:65},
           {fn:'ecouter',     label:'Ecouter les rumeurs', pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90}
+        ]
+      },
+      salle_archives_assemblee: {
+        name: "Salle des Archives",
+        imageBg: "linear-gradient(135deg,#0a0808,#120f08)",
+        desc: "Les archives de l'Assemblee Nationale. Toutes les lois votees y sont conservees pendant 3 mois.",
+        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+        persons: [
+          {name:'Archiviste Parlementaire (PNJ)', role:'PNJ - Archiviste de l\'Assemblee', rel:'neutral', job:'archiviste'}
+        ],
+        orders: [
+          {fn:'consulter_archives_lois', label:'Consulter les archives', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Liste des lois votees : titre, date, resultat, votes nominatifs. Archivage 3 mois.'}
         ]
       }
     }
@@ -539,8 +547,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'plainte',   label:'Porter plainte',        pa:1, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100},
-          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:75},
-          {fn:'corrompre_juge', label:'Corrompre le juge',pa:3, cost:1000,type:'illegal', icon:'ti-coins',   successRate:45}
+          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:75}
         ]
       },
       greffe: {
@@ -554,7 +561,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'archives',       label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive', successRate:100},
-          {fn:'falsifier_docs', label:'Falsifier un document',  pa:3, cost:500, type:'illegal', icon:'ti-file-x',  successRate:40}
+          {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Liste : fausse identite, faux casier vierge, faux permis construire, faux contrat. Cree un objet en inventaire.'}
         ]
       }
     }
@@ -772,8 +779,7 @@ const BUILDINGS = {
           {name:'Frere Gardien', role:'PNJ - Membre de la Loge', rel:'neutral', job:'membre_loge'}
         ],
         orders: [
-          {fn:'demander_adhesion', label:'Demander a rejoindre la Loge', pa:2, cost:0, type:'legal', icon:'ti-user-plus', successRate:50, desc:'Necessite un parrain. Sans parrain, refus automatique.'},
-          {fn:'rencontrer',        label:'Entamer une conversation',      pa:1, cost:0, type:'legal', icon:'ti-users',     successRate:100}
+          {fn:'demander_adhesion', label:'Demander a rejoindre la Loge', pa:2, cost:0, type:'legal', icon:'ti-user-plus', successRate:50, desc:'Necessite un parrain. Sans parrain, refus automatique.'}
         ]
       },
       bureau_venerable: {
@@ -1041,8 +1047,7 @@ const BUILDINGS = {
         persons: [{name:'Patrone (PNJ)', role:'Gérante', rel:'neutral', job:'hotelier'}],
         orders: [
           {fn:'se_nourrir', label:'Se nourrir',     pa:0, cost:20, type:'legal', icon:'ti-soup',  successRate:100},
-          {fn:'dormir',     label:'Dormir',          pa:0, cost:60, type:'legal', icon:'ti-moon',  successRate:100, desc:'+3 PA bonus demain.', paBonus:3},
-          {fn:'rencontrer', label:'Rencontrer',      pa:1, cost:0,  type:'legal', icon:'ti-users', successRate:100}
+          {fn:'dormir',     label:'Dormir',          pa:0, cost:60, type:'legal', icon:'ti-moon',  successRate:100, desc:'+3 PA bonus demain.', paBonus:3}
         ]
       }
     }
@@ -1067,7 +1072,6 @@ const BUILDINGS = {
         orders: [
           {fn:'se_nourrir', label:'Boire et manger', pa:0, cost:15,  type:'legal', icon:'ti-glass',    successRate:100},
           {fn:'ecouter',    label:'Ecouter',         pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:85},
-          {fn:'rencontrer', label:'Aborder',         pa:1, cost:0,   type:'legal', icon:'ti-users',    successRate:100},
           {fn:'contrebande',label:'Contacter reseau',pa:2, cost:100, type:'illegal',icon:'ti-package', successRate:55}
         ]
       }
@@ -1090,7 +1094,6 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200&q=80",
         persons: [{name:'Delegue Morel (PNJ)', role:'Secretaire general du syndicat', rel:'neutral', job:'syndicaliste'}],
         orders: [
-          {fn:'rencontrer',   label:'Rencontrer le delegue', pa:1, cost:0,   type:'legal', icon:'ti-users',      successRate:100},
           {fn:'mobiliser',    label:'Mobiliser les membres', pa:2, cost:0,   type:'legal', icon:'ti-speakerphone',successRate:70},
           {fn:'greve',        label:'Lancer une greve',      pa:3, cost:0,   type:'grey',  icon:'ti-ban',         successRate:55, desc:'Paralyse l\'economie locale.'}
         ]
@@ -1314,8 +1317,6 @@ const BUILDINGS = {
           {name:'Soldat Martin (PNJ)',  role:'PNJ - Faction',                 rel:'neutral', job:'militaire'}
         ],
         orders: [
-          {fn:'se_presenter',    label:'Se presenter',           pa:0, cost:0,   type:'legal',   icon:'ti-id-badge',      successRate:100},
-          {fn:'rencontrer',      label:'Parler aux militaires',  pa:1, cost:0,   type:'legal',   icon:'ti-users',         successRate:100},
           {fn:'recruter_etud',   label:'Recruter des soldats',   pa:2, cost:500, type:'legal',   icon:'ti-user-plus',     successRate:70,  requiresPost:'min_def', desc:'Renforcer les effectifs militaires.'}
         ]
       },
@@ -1361,7 +1362,6 @@ const BUILDINGS = {
           {name:'Soldat Nguyen (PNJ)',    role:'PNJ - Soldat', rel:'neutral', job:'soldat'}
         ],
         orders: [
-          {fn:'rencontrer',        label:'Fraterniser avec les soldats', pa:1, cost:0, type:'legal', icon:'ti-users',         successRate:100, desc:'+INF aupres des militaires.'},
           {fn:'recruter_etud',     label:'Recruter pour un groupe',     pa:2, cost:0, type:'grey',  icon:'ti-user-plus',     successRate:65,  desc:'Constituer une milice ou un groupe arme.'}
         ]
       }
@@ -1427,8 +1427,7 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
         persons: [],
         orders: [
-          {fn:'se_reposer',        label:'Prendre l\'air',              pa:0, cost:0,    type:'legal',   icon:'ti-walk',     successRate:100, desc:'+2 Moral. La seule liberte qui reste.'},
-          {fn:'rencontrer',        label:'Approcher un detenu',         pa:1, cost:0,    type:'grey',    icon:'ti-users',    successRate:70,  desc:'Echanger avec d\'autres prisonniers. Risque de represailles.'}
+          {fn:'se_reposer',        label:'Prendre l\'air',              pa:0, cost:0,    type:'legal',   icon:'ti-walk',     successRate:100, desc:'+2 Moral. La seule liberte qui reste.'}
         ]
       }
     }
@@ -1445,7 +1444,7 @@ const POSTES = {
       {id:'min_just',     name:'Ministre de la Justice',      niveau:5, unique:true,  holder:'PNJ-Morin',    isCapitale:true},
       {id:'min_def',      name:'Ministre de la Defense',      niveau:5, unique:true,  holder:'PNJ-Bernard',  isCapitale:true},
       {id:'min_info',     name:'Ministre de l\'Information',  niveau:5, unique:true,  holder:'PNJ-Simon',    isCapitale:true},
-      {id:'min_ae',       name:'Ministre des AE',             niveau:5, unique:true,  holder:'PNJ-Durand',   isCapitale:true},
+      {id:'min_ae',       name:'Ministre des AE',             niveau:5, unique:true,  holder:'PNJ-Durand',   isCapitale:true}
     ],
     assemblee: Array.from({length:25}, (_,i) => ({
       id:`depute_${i+1}`, name:`Depute Siege ${i+1}`, niveau:2,
