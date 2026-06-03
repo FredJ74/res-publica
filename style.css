@@ -515,8 +515,8 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    =========================== */
 
 /* Indices nationaux dans la topbar */
-.indices-bar{display:flex;gap:.3rem;padding:.2rem .5rem;background:#0a0d08;border:1px solid #1a2a18;align-items:center}
-.indice-item{display:flex;align-items:center;gap:.2rem;padding:.1rem .3rem}
+.indices-bar{display:flex;flex-direction:row;gap:.4rem;padding:.2rem .5rem;background:#0a0d08;border:1px solid #1a2a18;align-items:center;flex-wrap:nowrap}
+.indice-item{display:flex;flex-direction:row;align-items:center;gap:.2rem;padding:.1rem .3rem;white-space:nowrap}
 .indice-label{font-family:'Bebas Neue',sans-serif;font-size:.6rem;letter-spacing:.08em;color:#4a4030}
 .indice-val{font-family:'Bebas Neue',sans-serif;font-size:.82rem;color:#8a9a7a;min-width:18px;text-align:center}
 .indices-bar:hover{background:#0f1208;border-color:#2a4a20}
