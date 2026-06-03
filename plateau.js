@@ -3831,6 +3831,13 @@ function updateUI() {
   setIdx('idx-ie',  idx.IE);
   setIdx('idx-id',  idx.ID);
   setIdx('idx-is',  idx.IS);
+  // Nom de l'empire
+  const indicesBar = document.getElementById('indices-bar');
+  if (indicesBar) {
+    const nomSpan = indicesBar.querySelector('span');
+    if (nomSpan) nomSpan.textContent = COUNTRIES[pays]?.n || 'Republia';
+    indicesBar.title = 'Indices de ' + (COUNTRIES[pays]?.n || 'Republia') + ' — cliquer pour details';
+  }
 
   // Inventaire
   document.getElementById('inv-liquide').textContent = state.liquide.toLocaleString('fr-FR') + ' ' + cur;
