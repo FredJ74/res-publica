@@ -517,16 +517,20 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_ministre')         { openNominerModal(); return; }
   if (fn === 'nommer_pm')               { ouvrirModalCibleRepertoire('nommer_pm_confirm', 'Nommer un Premier Ministre'); return; }
   if (fn === 'nommer_ministre_pm')      { ouvrirNommerMinistresModal(); return; }
-  if (fn === 'declarer_guerre_empire')  { ouvrirModalEmpireCible('declarer_guerre', 'Declarer la guerre'); return; }
+  if (fn === 'declarer_guerre_empire')  { ouvrirModalGuerreEmpire(); return; }
   if (fn === 'gracier_condamne')        { ouvrirModalGracier(); return; }
-  if (fn === 'decret_referendum')       { ouvrirForumPresidentCentral('referendum'); return; }
-  if (fn === 'nationaliser_entreprise') { ouvrirModalNationaliser(); return; }
-  if (fn === 'jour_deuil')              { ouvrirForumPresidentCentral('deuil'); return; }
+  if (fn === 'decret_referendum')       { ouvrirForumNationalSousForumPresident('referendum'); return; }
+  if (fn === 'jour_deuil')             { ouvrirForumNationalSousForumPresident('deuil'); return; }
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
-  if (fn === 'etat_nation')              { ouvrirIndicesImperiaux(); return; }
-  if (fn === 'observer_debats')          { observerDebats(); return; }
-  if (fn === 'voter_loi')               { ouvrirVoteLoi(); return; }
-  if (fn === 'deposer_projet')          { ouvrirForumView('parlement'); return; }
+  if (fn === 'etat_nation')             { ouvrirIndicesImperiaux(); return; }
+  if (fn === 'observer_debats')         { observerDebats(); return; }
+  if (fn === 'voter_loi')              { ouvrirVoteLoi(); return; }
+  if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
+  if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(); return; }
+  if (fn === 'forum_president_conference')  { ouvrirForumNationalSousForumPresident('conference'); return; }
+  if (fn === 'forum_president_annonce')     { ouvrirForumNationalSousForumPresident('annonce'); return; }
+  if (fn === 'forum_president_propagande')  { ouvrirForumNationalSousForumPresident('propagande'); return; }
+  if (fn === 'forum_president_dementi')     { ouvrirForumNationalSousForumPresident('dementi'); return; }
   if (fn === 'consulter_archives_lois') { ouvrirArchivesLois(); return; }
   if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
   if (fn === 'porter_plainte')          { ouvrirPorterPlainte(); return; }
@@ -780,7 +784,7 @@ Reponds en 2-3 phrases max. Ton satirique et politique. Sois caracteriel.
 Reponds UNIQUEMENT avec ta replique, sans guillemets ni introduction.`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1223,7 +1227,7 @@ ${state.electionsEnCours?.length > 0
 Style : direct, populaire, parodique. Format : phrase construite du genre "D'apres ce qu'on entend, X serait le plus populaire..." Reponds uniquement avec le sondage.`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
@@ -3050,6 +3054,309 @@ function renderRulesContent(section) {
 // =====================
 // FONCTIONS PRESIDENTIELLES V13
 // =====================
+
+// =====================
+// FORUM NATIONAL SOUS-FORUM PRESIDENT
+// =====================
+function ouvrirForumNationalSousForumPresident(type) {
+  // Ouvre le forum en vue centrale sur le sous-forum presidentiel
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  document.getElementById('vue-forum').classList.add('active');
+
+  const titres = {
+    conference: 'Conférence de Presse',
+    annonce:    'Annonce Officielle',
+    propagande: "Propagande d'État",
+    dementi:    'Démenti Officiel',
+    referendum: 'Référendum National',
+    deuil:      'Décret de Deuil National'
+  };
+  const effets = {
+    conference: { pop:15, inf:10, isn:0, ie:0, id:0, is:5 },
+    annonce:    { pop:5,  inf:5,  isn:0, ie:0, id:0, is:2 },
+    propagande: { pop:20, inf:0,  isn:0, ie:0, id:-5,is:8 },
+    dementi:    { pop:8,  inf:5,  isn:0, ie:0, id:0, is:0 },
+    referendum: { pop:10, inf:8,  isn:0, ie:0, id:3, is:5 },
+    deuil:      { pop:15, inf:0,  isn:0, ie:-5,id:0, is:8 }
+  };
+
+  document.getElementById('forum-view-subtitle').textContent = 'Forum National — Forum Présidentiel';
+  const body = document.getElementById('forum-view-body');
+  const ef = effets[type] || {};
+  const titre = titres[type] || 'Message Présidentiel';
+
+  let efStr = [];
+  if (ef.pop) efStr.push((ef.pop > 0 ? '+' : '') + ef.pop + ' POP');
+  if (ef.inf) efStr.push((ef.inf > 0 ? '+' : '') + ef.inf + ' INF');
+  if (ef.is)  efStr.push((ef.is  > 0 ? '+' : '') + ef.is  + ' IS');
+  if (ef.id)  efStr.push((ef.id  > 0 ? '+' : '') + ef.id  + ' ID');
+  if (type === 'deuil') efStr.push('Pas d\'impôts aujourd\'hui');
+
+  let isRef = type === 'referendum';
+  let html = '<div style="display:flex;flex-direction:column;width:100%;height:100%">';
+  html += '<div style="padding:.6rem 1rem;background:#111208;border-bottom:1px solid #1a1810;display:flex;align-items:center;gap:.8rem">';
+  html += '<button onclick="closeForumView()" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a7040;cursor:pointer">← Annuler</button>';
+  html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8D880">' + titre + '</div>';
+  html += '<div style="margin-left:auto;font-size:.68rem;color:#4a8a4a">' + efStr.join(' · ') + '</div>';
+  html += '</div>';
+  html += '<div style="flex:1;overflow-y:auto;padding:1rem;max-width:700px">';
+
+  if (isRef) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUESTION DU REFERENDUM</div>';
+    html += '<input id="pres-ref-question" type="text" placeholder="Quelle est la question soumise au vote ?" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem"/>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">RÉPONSES (1 seul choix)</div>';
+    html += '<input id="pres-ref-rep1" type="text" placeholder="Réponse 1 (ex: Oui)" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.3rem"/>';
+    html += '<input id="pres-ref-rep2" type="text" placeholder="Réponse 2 (ex: Non)" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.3rem"/>';
+    html += '<input id="pres-ref-rep3" type="text" placeholder="Réponse 3 (optionnel)" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.5rem"/>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.3rem">DURÉE DU VOTE</div>';
+    html += '<select id="pres-ref-duree" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.8rem">';
+    html += '<option value="3">3 jours</option><option value="5">5 jours</option><option value="7">7 jours</option></select>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TITRE</div>';
+    html += '<input id="pres-msg-titre" type="text" placeholder="Titre de votre message officiel..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem"/>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MESSAGE</div>';
+    html += '<textarea id="pres-msg-contenu" rows="6" placeholder="Rédigez votre message officiel..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.6rem"></textarea>';
+  }
+
+  html += '<button onclick="publierMessagePresidentiel(\'' + type + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier</button>';
+  html += '</div></div>';
+  body.innerHTML = html;
+}
+
+function publierMessagePresidentiel(type) {
+  const effets = {
+    conference: { pop:15, inf:10, is:5 },
+    annonce:    { pop:5,  inf:5,  is:2 },
+    propagande: { pop:20, inf:0,  is:8, id:-5 },
+    dementi:    { pop:8,  inf:5  },
+    referendum: { pop:10, inf:8,  is:5, id:3 },
+    deuil:      { pop:15, is:8,   ie:-5 }
+  };
+  const ef = effets[type] || {};
+  const pays = state.country || 'republic';
+
+  let titre, contenu;
+  if (type === 'referendum') {
+    titre = document.getElementById('pres-ref-question')?.value?.trim();
+    const rep1 = document.getElementById('pres-ref-rep1')?.value?.trim();
+    const rep2 = document.getElementById('pres-ref-rep2')?.value?.trim();
+    const rep3 = document.getElementById('pres-ref-rep3')?.value?.trim();
+    const duree = parseInt(document.getElementById('pres-ref-duree')?.value || '5');
+    if (!titre || !rep1 || !rep2) { showToast('Champs requis', 'Question et au moins 2 réponses.', false); return; }
+    const reponses = [rep1, rep2, ...(rep3 ? [rep3] : [])].map(r => ({ label: r, voix: 0 }));
+    if (!state.referendums) state.referendums = [];
+    state.referendums.push({ question: titre, reponses, jourFin: state.day + duree, clos: false });
+    contenu = 'Le Président soumet ce référendum au vote populaire. Vote ouvert pendant ' + duree + ' jour(s).';
+    if (!FORUM_TOPICS['president']) FORUM_TOPICS['president'] = [];
+    FORUM_TOPICS['president'].unshift({
+      id: 'ref-' + Date.now(), title: '[REFERENDUM] ' + titre,
+      author: state.char?.name || 'President', time: 'Jour ' + state.day,
+      isReferendum: true, reponses,
+      posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: contenu }]
+    });
+  } else {
+    titre = document.getElementById('pres-msg-titre')?.value?.trim();
+    contenu = document.getElementById('pres-msg-contenu')?.value?.trim();
+    if (!titre || !contenu) { showToast('Champs requis', 'Titre et contenu obligatoires.', false); return; }
+    if (!FORUM_TOPICS['president']) FORUM_TOPICS['president'] = [];
+    FORUM_TOPICS['president'].unshift({
+      id: 'pres-' + Date.now(), title: '[PRESIDENCE] ' + titre,
+      author: state.char?.name || 'President', time: 'Jour ' + state.day,
+      posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: contenu }]
+    });
+  }
+
+  // Appliquer les effets
+  if (ef.pop) state.pop = Math.min(100, state.pop + ef.pop);
+  if (ef.inf) state.inf = Math.min(100, state.inf + ef.inf);
+  if (ef.is && INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IS = Math.min(100, INDICES_NATIONAUX[pays].IS + ef.is);
+  if (ef.id && INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ID = Math.max(0, INDICES_NATIONAUX[pays].ID + ef.id);
+  if (ef.ie && INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE + ef.ie);
+  if (type === 'deuil') state.deuil = state.day;
+
+  updateUI();
+  closeForumView();
+
+  const efParts = [];
+  if (ef.pop) efParts.push((ef.pop>0?'+':'')+ef.pop+' POP');
+  if (ef.inf) efParts.push((ef.inf>0?'+':'')+ef.inf+' INF');
+  showToast('Publié !', titre + (efParts.length ? ' · ' + efParts.join(' ') : ''), true, true);
+  addJournalEntry('Publication présidentielle : ' + titre, 'event-good');
+  addExternalEvent('PRESIDENCE : ' + titre + (type === 'deuil' ? ' — Journée de deuil national.' : ''));
+}
+
+// =====================
+// DECLARER LA GUERRE
+// =====================
+function ouvrirModalGuerreEmpire() {
+  const empires = Object.entries(COUNTRIES).filter(([k]) => k !== (state.country || 'republic'));
+  const guerresActives = state.guerres || [];
+
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Déclarer la guerre';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">-20 POP +10 INF · Nation : -20 ID +15 ISN. Irréversible sans cessez-le-feu.</div>';
+
+  empires.forEach(([k, co]) => {
+    const enGuerre = guerresActives.some(g => g.empire === k);
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between">';
+    html += '<div style="display:flex;align-items:center;gap:.6rem">';
+    html += '<i class="ti ' + (co.icon||'ti-flag') + '" style="font-size:1.1rem;color:' + (co.col||'#8a6a20') + '"></i>';
+    html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090">' + co.n + '</div>';
+    html += '<div style="font-size:.68rem;color:' + (enGuerre ? '#cc4444' : '#5a4030') + '">' + (enGuerre ? 'En guerre' : 'En paix') + '</div></div></div>';
+    if (!enGuerre) {
+      html += '<button onclick="confirmerGuerreEmpire(\'' + k + '\',\'' + co.n + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-sword" style="font-size:.75rem"></i> Déclarer</button>';
+    } else {
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;color:#6a2020">CONFLIT EN COURS</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerGuerreEmpire(empireId, empireName) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const pays = state.country || 'republic';
+  if (!state.guerres) state.guerres = [];
+  state.guerres.push({ empire: empireId, nom: empireName, depuis: 'Jour ' + state.day });
+  state.pop = Math.max(0, state.pop - 20);
+  state.inf = Math.min(100, state.inf + 10);
+  if (INDICES_NATIONAUX?.[pays]) {
+    INDICES_NATIONAUX[pays].ID = Math.max(0, INDICES_NATIONAUX[pays].ID - 20);
+    INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 15);
+  }
+  updateUI();
+  showToast('Guerre déclarée !', 'Conflit ouvert avec ' + empireName + '. -20 POP +10 INF -20 ID +15 ISN.', false);
+  addExternalEvent('GUERRE DÉCLARÉE : ' + (COUNTRIES[pays]?.n||'') + ' entre en guerre contre ' + empireName + ' !');
+  addMailNotification('État-Major', 'Declaration de guerre', 'La guerre a ete declaree contre ' + empireName + '. L\'armee est en alerte maximale. +15 ISN.');
+}
+
+// =====================
+// DEPOSER UN PROJET DE LOI
+// =====================
+function ouvrirDeposerProjet() {
+  // Verifier que le PJ est depute
+  const posteId = state.poste?.id;
+  const estDepute = posteId && (posteId.startsWith('depute') || posteId === 'depute_1' || posteId === 'depute_2');
+
+  if (!estDepute) {
+    showToast('Accès refusé', 'Vous n\'êtes pas député(e). Seuls les députés peuvent déposer un projet de loi.', false);
+    return;
+  }
+
+  // Ouvrir le forum parlementaire en vue centrale
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  document.getElementById('vue-forum').classList.add('active');
+  document.getElementById('forum-view-subtitle').textContent = 'Forum Parlementaire — Déposer un projet';
+
+  const body = document.getElementById('forum-view-body');
+  let html = '<div style="display:flex;flex-direction:column;width:100%;height:100%">';
+  html += '<div style="padding:.6rem 1rem;background:#111208;border-bottom:1px solid #1a1810;display:flex;align-items:center;gap:.8rem">';
+  html += '<button onclick="closeForumView()" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a7040;cursor:pointer">← Annuler</button>';
+  html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8D880">Déposer un projet de loi</div>';
+  html += '</div>';
+  html += '<div style="flex:1;overflow-y:auto;padding:1rem;max-width:700px">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem;padding:.5rem;background:#0a0a05;border:1px solid #1a1810">Le projet sera soumis au vote le mercredi suivant, à condition d\'avoir été déposé au moins 5 jours avant.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TITRE DU PROJET</div>';
+  html += '<input id="projet-titre" type="text" placeholder="Ex: Loi sur la transparence des finances publiques" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem"/>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EXPOSÉ DES MOTIFS</div>';
+  html += '<textarea id="projet-contenu" rows="6" placeholder="Décrivez votre projet, ses objectifs et ses impacts attendus..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.6rem"></textarea>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">IMPACT SOUHAITÉ</div>';
+  html += '<input id="projet-impact" type="text" placeholder="Ex: +10 IE, -5 IS, augmentation budget commissariat..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.8rem"/>';
+  html += '<button onclick="soumettreProjetLoi()" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Soumettre le projet</button>';
+  html += '</div></div>';
+  body.innerHTML = html;
+}
+
+function soumettreProjetLoi() {
+  const titre = document.getElementById('projet-titre')?.value?.trim();
+  const contenu = document.getElementById('projet-contenu')?.value?.trim();
+  const impact = document.getElementById('projet-impact')?.value?.trim();
+  if (!titre || !contenu) { showToast('Champs requis', 'Titre et exposé obligatoires.', false); return; }
+
+  const jourDepot = state.day;
+  const jourVoteMin = jourDepot + 5;
+
+  if (!FORUM_TOPICS['parlement']) FORUM_TOPICS['parlement'] = [];
+  const topic = {
+    id: 'loi-' + Date.now(),
+    title: '[PROJET] ' + titre,
+    author: state.char?.name || 'Député',
+    time: 'Jour ' + jourDepot,
+    posts: [{
+      author: state.char?.name,
+      time: 'Jour ' + jourDepot,
+      content: contenu + (impact ? '\n\nImpact attendu : ' + impact : '')
+    }]
+  };
+  FORUM_TOPICS['parlement'].unshift(topic);
+
+  if (!state.loisEnCours) state.loisEnCours = [];
+  state.loisEnCours.push({
+    id: topic.id, titre, auteur: state.char?.name,
+    jourDepot, jourVoteMin, pret: false, votes: []
+  });
+
+  closeForumView();
+  showToast('Projet soumis !', titre + ' · Vote possible à partir du Jour ' + jourVoteMin, true, true);
+  addJournalEntry('Projet de loi soumis : ' + titre, 'event-good');
+  addExternalEvent('FORUM PARLEMENTAIRE : Nouveau projet de loi déposé par ' + (state.char?.name||'Anonyme') + ' : "' + titre + '"');
+  // Mail a tous les deputes (simulation)
+  addMailNotification('Secrétariat de l\'Assemblée', 'Nouveau projet de loi', 'Un projet de loi a été déposé : "' + titre + '". Consultez le Forum Parlementaire pour le détail. Vote à partir du Jour ' + jourVoteMin + '.');
+}
+
+// =====================
+// ECOUTER LES RUMEURS (IA)
+// =====================
+async function ecouterRumeurs() {
+  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
+  const char = state.char;
+  const pnjPresents = ['Le Commissaire', 'Un député', 'Un journaliste', 'Un commerçant', 'Un inconnu'];
+  const source = pnjPresents[Math.floor(Math.random() * pnjPresents.length)];
+
+  showToast('Vous tendez l\'oreille...', 'En attente d\'une information.', false);
+
+  const context = 'Empire : ' + (COUNTRIES[state.country]?.n || 'Républia') +
+    '. Ville : ' + ville +
+    '. Votre personnage : ' + (char?.name || 'Anonyme') +
+    (state.poste ? ', ' + state.poste.name : '') +
+    '. Jour ' + state.day + '.' +
+    (state.guerres?.length ? ' Guerre en cours contre : ' + state.guerres.map(g=>g.nom).join(', ') + '.' : '') +
+    (state.electionsEnCours?.length ? ' Elections en cours.' : '');
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 200,
+        messages: [{
+          role: 'user',
+          content: 'Tu es le narrateur d\'un jeu de rôle politique parodique et satirique. Contexte : ' + context + '. Génère UNE rumeur courte (2-3 phrases max) que "' + source + '" chuchote à l\'oreille du joueur. La rumeur doit être crédible, légèrement compromettante pour un personnage politique ou une institution, et adaptée au contexte. Ton satirique et cynique. Réponds UNIQUEMENT avec la rumeur, sans introduction.'
+        }]
+      })
+    });
+    const data = await resp.json();
+    const rumeur = data.content?.[0]?.text || 'Rien d\'intéressant à rapporter aujourd\'hui.';
+
+    document.getElementById('modal-postes').querySelector('.modal-title').textContent = source + ' vous glisse à l\'oreille...';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.2rem">' +
+      '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + rumeur + '"</div>' +
+      '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem">Source : ' + source + ' · Fiabilité incertaine</div>' +
+      '</div>';
+    document.getElementById('modal-postes').classList.add('open');
+
+    state.inf = Math.min(100, state.inf + 1);
+    updateUI();
+    addJournalEntry('Rumeur entendue à ' + ville, 'event-info');
+
+  } catch(e) {
+    showToast('Silence', 'Personne ne parle aujourd\'hui.', false);
+  }
+}
 
 function solliciterAudiencePresident() {
   const char = state.char;

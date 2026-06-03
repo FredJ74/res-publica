@@ -226,7 +226,7 @@ async function genBio(){
   btn.disabled=true;
   const prompt=`Tu es le narrateur d'un jeu de role politique parodique et satirique. Genere une biographie courte (3-4 phrases, ton satirique et cynique) pour un personnage nomme "${name}". Nature profonde : ${ar?.name||'inconnue'}. Origine : ${or?.name||'inconnue'}. Scolarite : ${sc?.name||'inconnue'}. Carriere : ${ca?.name||'inconnue'}. Empire : "${co?.n||'inconnu'}" (parodie ${G.country==='republic'?'de la Ve Republique francaise':G.country==='narco'?"d'un narco-etat":G.country==='soviet'?"d'un regime communiste":"d'une monarchie petroliere"}). Style : ironique, memorable, ambitions politiques troubles. Reponds UNIQUEMENT avec la biographie, sans titre ni introduction.`;
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    const resp=await fetch('/api/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})

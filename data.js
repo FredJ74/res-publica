@@ -254,14 +254,12 @@ const BUILDINGS = {
           {fn:'creer_poste_ministre',   label:'Creer un poste ministeriel',    pa:3, cost:0,    type:'legal',   icon:'ti-user-star',     successRate:100, requiresPost:'president', desc:'Creer un poste de ministre personnalise. Limite : 1 poste + 1 comite.'},
           {fn:'creer_comite',           label:'Creer un comite',               pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'president', desc:'Creer un comite special. Limite : 1 comite.'},
           {fn:'supprimer_poste_custom', label:'Supprimer un poste cree',       pa:0, cost:0,    type:'legal',   icon:'ti-trash',         successRate:100, requiresPost:'president', desc:'Supprimer un poste ou comite precedemment cree.'},
-          {fn:'nommer_ministre',        label:'Nommer un ministre',            pa:2, cost:0,    type:'legal',   icon:'ti-crown',         successRate:100, requiresPost:'president', desc:'Nommer un PJ a un poste ministeriel. Envoie un mail au candidat.'},
+          {fn:'nommer_ministre',        label:'Nommer un Premier Ministre',            pa:2, cost:0,    type:'legal',   icon:'ti-crown',         successRate:100, requiresPost:'president', desc:'Nommer un PJ a un poste ministeriel. Envoie un mail au candidat.'},
           {fn:'etat_urgence',           label:'Declarer l\'etat d\'urgence',  pa:3, cost:0,    type:'legal',   icon:'ti-alert-triangle',successRate:100, requiresPost:'president', desc:'Suspend certaines libertes. Fort impact sur INF et POP.'},
           {fn:'declarer_guerre',        label:'Declarer la guerre',            pa:5, cost:0,    type:'legal',   icon:'ti-sword',         successRate:100, requiresPost:'president', desc:'Declarer la guerre a un empire. Consequences majeures.'},
           {fn:'gracier',                label:'Gracier un condamne',           pa:2, cost:0,    type:'legal',   icon:'ti-heart-handshake',successRate:100,requiresPost:'president', desc:'Liberer un prisonnier. +POP +INF selon popularite du condamne.'},
           {fn:'dissoudre_assemblee',    label:'Dissoudre l\'Assemblee',       pa:4, cost:0,    type:'legal',   icon:'ti-ban',           successRate:100, requiresPost:'president', desc:'Declenche de nouvelles elections legislatives. Risque politique majeur.'},
           {fn:'decret_referendum',      label:'Ordonner un referendum',        pa:3, cost:0,    type:'legal',   icon:'ti-checkbox',      successRate:100, requiresPost:'president', desc:'Soumettre une question au vote populaire.'},
-          {fn:'nationaliser',           label:'Nationaliser une entreprise',   pa:3, cost:0,    type:'legal',   icon:'ti-building-factory',successRate:80,requiresPost:'president', desc:'Placer une entreprise sous controle de l\'Etat.'},
-          {fn:'nommer_ambassadeur',     label:'Nommer un ambassadeur',         pa:2, cost:0,    type:'legal',   icon:'ti-world',         successRate:100, requiresPost:'president', desc:'Designer un representant diplomatique aupres d\'un empire.'},
           {fn:'jour_deuil',             label:'Decret de deuil national',      pa:1, cost:0,    type:'legal',   icon:'ti-flag',          successRate:100, requiresPost:'president', desc:'Symbolique fort. +POP si populaire, -POP si conteste.'}
         ]
       },
@@ -459,7 +457,6 @@ const BUILDINGS = {
           {fn:'declarer_guerre',      label:'Recommander une declaration de guerre', pa:4, cost:0, type:'legal', icon:'ti-sword',   successRate:80,  requiresPost:'min_ae', desc:'Soumettre au President une declaration de guerre.'},
           {fn:'signer_traite',        label:'Signer un traite',             pa:3, cost:0,   type:'legal',   icon:'ti-file-certificate', successRate:70, requiresPost:'min_ae', desc:'Accord bilateral avec un empire etranger.'},
           {fn:'ouvrir_ambassade',     label:'Ouvrir une ambassade',         pa:2, cost:1000,type:'legal',   icon:'ti-building',       successRate:100, requiresPost:'min_ae', desc:'Etablir une representation diplomatique.'},
-          {fn:'nommer_ambassadeur',   label:'Nommer un ambassadeur',        pa:2, cost:0,   type:'legal',   icon:'ti-world',          successRate:100, requiresPost:'min_ae', desc:'Designer un diplomate aupres d\'un empire.'},
           {fn:'sanctions_diplo',      label:'Imposer des sanctions',        pa:3, cost:0,   type:'legal',   icon:'ti-ban',            successRate:85,  requiresPost:'min_ae', desc:'Sanctions economiques ou diplomatiques.'}
         ]
       }
@@ -488,7 +485,6 @@ const BUILDINGS = {
           {name:'Depute Chen',       role:'Opposition (PNJ)', rel:'neutral', job:'depute'}
         ],
         orders: [
-          {fn:'assister_session', label:'Assister a la session', pa:1, cost:0,   type:'legal', icon:'ti-building', successRate:100, desc:'Observer les debats. +1 INF.'},
           {fn:'observer_debats',  label:'Observer les debats',   pa:1, cost:0,   type:'legal', icon:'ti-eye',      successRate:100, desc:'Revele les positions des deputes. +1 INF pour les journalistes.'},
           {fn:'voter_loi',         label:'Voter une loi',          pa:1, cost:0,   type:'legal', icon:'ti-check',    successRate:100, requiresPost:'depute', desc:'Mercredi jusqu\'a 20h seulement. Ouvre la liste des lois en attente de vote.'},
           {fn:'projet_loi',       label:'Deposer un projet',     pa:3, cost:0,   type:'legal', icon:'ti-file-text',successRate:70,  requiresPost:true, desc:'Deposer un projet de loi.'},
@@ -507,7 +503,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'marchander',  label:'Proposer un accord',  pa:2, cost:100, type:'grey',  icon:'ti-handshake',successRate:65},
-          {fn:'ecouter',     label:'Ecouter les rumeurs', pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90}
+          {fn:'ecouter_rumeurs', label:'Ecouter les rumeurs', pa:1, cost:0, type:'grey', icon:'ti-ear', successRate:70, desc:'Revele une information aléatoire sur un PJ ou PNJ de la ville. Generee par IA selon le contexte politique. Tres utile pour journalistes et espions.'}
         ]
       },
       salle_archives_assemblee: {
