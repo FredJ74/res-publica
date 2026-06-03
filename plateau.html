@@ -51,6 +51,29 @@
   </div>
   <div class="top-right">
     <div class="mode-test-badge">MODE TEST - PA illimites</div>
+    <!-- Indices nationaux -->
+    <div class="indices-bar" id="indices-bar" title="Indices nationaux - cliquer pour details" onclick="ouvrirEtatNation()" style="cursor:pointer">
+      <div class="indice-item" title="Indice de Securite Nationale">
+        <i class="ti ti-shield" style="font-size:.7rem;color:#4a8a4a"></i>
+        <span class="indice-label">ISN</span>
+        <span class="indice-val" id="idx-isn">30</span>
+      </div>
+      <div class="indice-item" title="Indice Economique">
+        <i class="ti ti-coins" style="font-size:.7rem;color:#C9A84C"></i>
+        <span class="indice-label">IE</span>
+        <span class="indice-val" id="idx-ie">50</span>
+      </div>
+      <div class="indice-item" title="Indice Diplomatique">
+        <i class="ti ti-world" style="font-size:.7rem;color:#4a6aaa"></i>
+        <span class="indice-label">ID</span>
+        <span class="indice-val" id="idx-id">40</span>
+      </div>
+      <div class="indice-item" title="Indice Social">
+        <i class="ti ti-users" style="font-size:.7rem;color:#aa6a4a"></i>
+        <span class="indice-label">IS</span>
+        <span class="indice-val" id="idx-is">45</span>
+      </div>
+    </div>
     <div class="char-mini" onclick="openCharSheet()">
       <div class="char-avatar" id="char-avatar-top"><i class="ti ti-user" style="font-size:.9rem"></i></div>
       <div>
@@ -68,8 +91,9 @@
       <i class="ti ti-mail" style="font-size:.8rem;vertical-align:-1px"></i> Mail
       <span id="mail-badge" style="display:none;background:#cc2020;color:#fff;font-size:.6rem;padding:.1rem .3rem;border-radius:50%;margin-left:.2rem;font-family:'Bebas Neue',sans-serif">0</span>
     </button>
-    <button class="forum-btn" onclick="openForum_module('local')">
+    <button class="forum-btn" onclick="openForumView('local')">
       <i class="ti ti-messages" style="font-size:.8rem;vertical-align:-1px"></i> Forum
+    </button>
     </button>
     <button class="world-btn" onclick="openWorldMap()">
       <i class="ti ti-map" style="font-size:.8rem;vertical-align:-1px"></i> Carte
@@ -211,6 +235,20 @@
         </div>
       </div>
       <div id="rules-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
+    </div>
+
+    <!-- Vue FORUM -->
+    <div id="vue-forum" class="vue">
+      <div class="batiment-header">
+        <button class="sortir-btn" onclick="closeForumView()">
+          <i class="ti ti-x"></i> Fermer
+        </button>
+        <div class="batiment-header-info">
+          <div class="batiment-nom">Forum</div>
+          <div class="batiment-cat" id="forum-view-subtitle">Forum Local</div>
+        </div>
+      </div>
+      <div id="forum-view-body" style="flex:1;overflow:hidden;display:flex"></div>
     </div>
 
     <!-- Vue MAIL -->

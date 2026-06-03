@@ -503,6 +503,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(); return; }
     if (fn === 'acheter_arme_legale') { doAcheterArme(true); return; }
+    if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(); return; }
   if (fn === 'acheter_arme_illegale') { doAcheterArme(false); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
@@ -682,6 +683,18 @@ function openPnjModal(encodedPnj) {
   // Bouton assassiner (toujours disponible sur PNJ/PJ autres)
   const encCible = encodeURIComponent(JSON.stringify(pnj));
   actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
+
+  // Boutons tracts
+  const hasTracts = (state.inventory||[]).some(i => i.type === 'tract');
+  if (hasTracts) {
+    if (pnj.isPJ) {
+      // Don de main a main a un PJ
+      actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');donnerTracts(\'' + pnj.name + '\')"><i class="ti ti-files" style="font-size:.85rem"></i> Donner des tracts</button>';
+    } else {
+      // Distribution a un PNJ
+      actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractPNJ(\'' + pnj.name + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract</button>';
+    }
+  }
 
   document.getElementById('pnj-actions').innerHTML = actionBtns +
     '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
@@ -1532,6 +1545,200 @@ function mettreAJourPopulation() {
   });
 }
 
+// =====================
+// TRACTS
+// =====================
+function ouvrirModalImprimerTracts() {
+  const contacts = state.contacts || [];
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Faire imprimer des tracts';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">150 ' + cur + ' par lot de 10 tracts.</div>';
+
+  if (contacts.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Repertoire vide. Ajoutez des contacts pour cibler un PJ.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TYPE DE TRACT</div>';
+    html += '<div style="display:flex;gap:.5rem;margin-bottom:.7rem">';
+    html += '<button id="tract-type-pour" onclick="selectTractType(\'pour\')" style="flex:1;padding:.4rem;border:1px solid #4a8a4a;background:#0a1008;color:#6a9a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">POUR un PJ</button>';
+    html += '<button id="tract-type-contre" onclick="selectTractType(\'contre\')" style="flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">CONTRE un PJ</button>';
+    html += '</div>';
+
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
+    html += '<select id="tract-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
+    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+    html += '</select>';
+
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUANTITE</div>';
+    html += '<select id="tract-quantite" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    [10,20,50,100].forEach(q => {
+      const cout = q / 10 * 150;
+      html += '<option value="' + q + '">' + q + ' tracts — ' + cout + ' ' + cur + '</option>';
+    });
+    html += '</select>';
+
+    html += '<button onclick="confirmerImpression()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  // Selectionner "pour" par defaut
+  window._tractType = 'pour';
+}
+
+function selectTractType(type) {
+  window._tractType = type;
+  const btnPour = document.getElementById('tract-type-pour');
+  const btnContre = document.getElementById('tract-type-contre');
+  if (type === 'pour') {
+    btnPour.style.cssText = 'flex:1;padding:.4rem;border:1px solid #4a8a4a;background:#0a1808;color:#6a9a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em';
+    btnContre.style.cssText = 'flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em';
+  } else {
+    btnPour.style.cssText = 'flex:1;padding:.4rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em';
+    btnContre.style.cssText = 'flex:1;padding:.4rem;border:1px solid #8a2020;background:#1a0808;color:#9a4a4a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em';
+  }
+}
+
+function confirmerImpression() {
+  const type = window._tractType || 'pour';
+  const cible = document.getElementById('tract-cible')?.value;
+  const quantite = parseInt(document.getElementById('tract-quantite')?.value || '10');
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cout = quantite / 10 * 150;
+
+  if (state.arg < cout) {
+    showToast('Fonds insuffisants', 'Il vous faut ' + cout + ' ' + cur, false);
+    return;
+  }
+
+  document.getElementById('modal-postes').classList.remove('open');
+  state.arg -= cout;
+  if (!state.inventory) state.inventory = [];
+
+  // Chercher si un lot similaire existe deja
+  const existing = state.inventory.find(i => i.type === 'tract' && i.cible === cible && i.tractType === type);
+  if (existing) {
+    existing.quantite += quantite;
+  } else {
+    state.inventory.push({
+      type: 'tract',
+      name: 'Tracts ' + (type === 'pour' ? 'POUR' : 'CONTRE') + ' ' + cible,
+      icon: 'ti-file-description',
+      tractType: type,
+      cible: cible,
+      quantite: quantite,
+      legal: true
+    });
+  }
+
+  updateUI();
+  showToast('Tracts imprimes !', quantite + ' tracts ' + type + ' ' + cible + ' ajoutes a votre inventaire. -' + cout + ' ' + cur, true, true);
+  addJournalEntry('Production de ' + quantite + ' tracts ' + type + ' ' + cible, 'event-info');
+}
+
+function donnerTracts(pjName) {
+  const tracts = (state.inventory||[]).filter(i => i.type === 'tract');
+  if (tracts.length === 0) {
+    showToast('Aucun tract', 'Vous n\'avez pas de tracts en inventaire.', false);
+    return;
+  }
+  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Donner des tracts a ' + pjName;
+  let html = '<div style="padding:1rem">';
+  tracts.forEach((t, idx) => {
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
+    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.4rem">' + t.name + ' <span style="color:#C9A84C">(' + t.quantite + ' restants)</span></div>';
+    html += '<div style="display:flex;align-items:center;gap:.5rem">';
+    html += '<input id="don-tract-' + idx + '" type="number" min="1" max="' + t.quantite + '" value="1" style="width:60px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.82rem;outline:none">';
+    html += '<button onclick="confirmerDonTracts(' + idx + ',\'' + pjName + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Donner</button>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerDonTracts(tractIdx, pjName) {
+  const tracts = (state.inventory||[]).filter(i => i.type === 'tract');
+  const tract = tracts[tractIdx];
+  if (!tract) return;
+  const quantite = parseInt(document.getElementById('don-tract-' + tractIdx)?.value || '1');
+  if (quantite < 1 || quantite > tract.quantite) {
+    showToast('Quantite invalide', 'Entre 1 et ' + tract.quantite, false);
+    return;
+  }
+  document.getElementById('modal-postes').classList.remove('open');
+  tract.quantite -= quantite;
+  if (tract.quantite <= 0) {
+    const i = state.inventory.indexOf(tract);
+    state.inventory.splice(i, 1);
+  }
+
+  // Ajouter au PJ simule si applicable
+  const pjSim = state.pjSimules?.find(p => p.name === pjName);
+  if (pjSim) {
+    if (!pjSim.inventory) pjSim.inventory = [];
+    const existing = pjSim.inventory.find(i => i.type === 'tract' && i.cible === tract.cible && i.tractType === tract.tractType);
+    if (existing) { existing.quantite += quantite; }
+    else { pjSim.inventory.push({...tract, quantite}); }
+  }
+
+  updateUI();
+  showToast('Tracts donnes', quantite + ' tracts remis a ' + pjName + '.', true);
+  addJournalEntry('Don de ' + quantite + ' tracts a ' + pjName, 'event-info');
+}
+
+function distribuerTractPNJ(pnjName) {
+  const tracts = (state.inventory||[]).filter(i => i.type === 'tract');
+  if (tracts.length === 0) {
+    showToast('Aucun tract', 'Vous n\'avez pas de tracts en inventaire.', false);
+    return;
+  }
+  // Utiliser le premier lot de tracts disponible
+  const tract = tracts[0];
+  tract.quantite -= 1;
+  if (tract.quantite <= 0) {
+    const i = state.inventory.indexOf(tract);
+    state.inventory.splice(i, 1);
+  }
+
+  // Jet 50% + bonus INF/10
+  const bonusInf = Math.floor(state.inf / 10);
+  const taux = Math.min(80, 50 + bonusInf);
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const succes = roll <= taux;
+
+  if (succes) {
+    // Verifier si periode electorale
+    const enElection = state.electionsEnCours?.some(e => e.phase === 'campagne');
+    const estCandidat = state.electionsEnCours?.some(e =>
+      e.candidats?.some(c => c.nom === tract.cible)
+    );
+
+    if (enElection && estCandidat) {
+      // +1 voix au candidat
+      state.electionsEnCours.forEach(e => {
+        const candidat = e.candidats?.find(c => c.nom === tract.cible);
+        if (candidat) candidat.voix = (candidat.voix||0) + 1;
+      });
+      showToast('Tract distribue !', pnjName + ' votera pour ' + tract.cible + '. +1 voix.', true, true);
+    } else {
+      // +/- POP sur la cible
+      if (tract.tractType === 'pour') {
+        state.pop = Math.min(100, state.pop + 2);
+        showToast('Tract distribue !', '+2 POP pour ' + tract.cible, true);
+      } else {
+        state.pop = Math.max(0, state.pop - 2);
+        showToast('Tract distribue !', '-2 POP pour ' + tract.cible, true);
+      }
+    }
+    addJournalEntry('Tract distribue a ' + pnjName + ' — succes.', 'event-good');
+  } else {
+    showToast('Sans effet', pnjName + ' n\'a pas ete convaincu(e). Tract consomme.', false);
+    addJournalEntry('Distribution de tract a ' + pnjName + ' — sans effet.', '');
+  }
+  updateUI();
+}
+
 function doLogePortail() {
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= 95) {
@@ -1774,6 +1981,214 @@ function openMailbox() {
   document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
   document.getElementById('vue-mail').classList.add('active');
   switchMailTab('inbox', document.querySelector('#vue-mail .piece-tab'));
+}
+
+// =====================
+// FORUM EN VUE CENTRALE
+// =====================
+function openForumView(forumId) {
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  document.getElementById('vue-forum').classList.add('active');
+  const labels = {
+    local:'Forum Local', regional:'Forum Regional', national:'Forum National',
+    international:'Forum International', gouv:'Forum Gouvernemental',
+    syndical:'Forum Syndical', president:'Forum Presidentiel', conseil:'Conseil des Ministres'
+  };
+  document.getElementById('forum-view-subtitle').textContent = labels[forumId] || 'Forum';
+  // Injecter le contenu forum dans la vue centrale
+  const body = document.getElementById('forum-view-body');
+  body.innerHTML = '';
+  // Creer un conteneur et appeler le module forum
+  const container = document.createElement('div');
+  container.style.cssText = 'width:100%;height:100%;overflow:hidden';
+  body.appendChild(container);
+  if (typeof renderForumInContainer === 'function') {
+    renderForumInContainer(container, forumId);
+  } else {
+    // Fallback : rendu direct
+    container.innerHTML = buildForumHTML(forumId);
+  }
+}
+
+function closeForumView() {
+  document.getElementById('vue-forum').classList.remove('active');
+  if (state.currentBuilding) {
+    document.getElementById('vue-batiment').classList.add('active');
+  } else {
+    document.getElementById('vue-rue').classList.add('active');
+  }
+}
+
+function buildForumHTML(forumId) {
+  const topics = FORUM_TOPICS[forumId] || [];
+  const labels = {
+    local:'Forum Local', regional:'Forum Regional', national:'Forum National',
+    international:'Forum International', gouv:'Forum Gouvernemental',
+    syndical:'Forum Syndical', president:'Forum Presidentiel', conseil:'Conseil des Ministres'
+  };
+
+  let html = '<div style="display:flex;height:100%">';
+
+  // Sidebar forums
+  html += '<div style="width:160px;background:#111208;border-right:1px solid #1a1a10;overflow-y:auto;flex-shrink:0">';
+  const forums = [
+    {id:'local',label:'Local'},{id:'regional',label:'Regional'},{id:'national',label:'National'},
+    {id:'international',label:'International'},{id:'president',label:'Presidentiel'},
+    {id:'conseil',label:'Conseil Min.'},{id:'gouv',label:'Gouvernemental'},{id:'syndical',label:'Syndical'}
+  ];
+  forums.forEach(f => {
+    const active = f.id === forumId;
+    html += '<div onclick="openForumView(\'' + f.id + '\')" style="padding:.5rem .7rem;cursor:pointer;' +
+      (active ? 'background:#1a1a10;border-left:2px solid #C9A84C;' : 'border-left:2px solid transparent;') +
+      'border-bottom:1px solid #1a1a10">' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;color:' +
+      (active ? '#E8C97A' : '#8a8060') + '">' + f.label + '</div>' +
+      '<div style="font-size:.6rem;color:#4a4030">' + (FORUM_TOPICS[f.id]?.length || 0) + ' sujets</div>' +
+      '</div>';
+  });
+  html += '</div>';
+
+  // Contenu principal
+  html += '<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">';
+
+  // Header
+  html += '<div style="padding:.6rem 1rem;background:#111208;border-bottom:1px solid #2a2810;display:flex;justify-content:space-between;align-items:center">';
+  html += '<div style="font-family:Playfair Display,serif;font-size:.9rem;color:#E8D880">' + (labels[forumId]||'Forum') + '</div>';
+  html += '<button onclick="ouvrirNouveauSujet(\'' + forumId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;padding:.3rem .7rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer">+ Nouveau sujet</button>';
+  html += '</div>';
+
+  // Liste des sujets
+  html += '<div style="flex:1;overflow-y:auto">';
+  if (topics.length === 0) {
+    html += '<div style="padding:2rem;text-align:center;font-size:.82rem;color:#4a4030;font-style:italic">Aucun sujet pour le moment.</div>';
+  } else {
+    // En-tete
+    html += '<div style="display:grid;grid-template-columns:1fr 80px 60px 80px;padding:.3rem .8rem;background:#0a0a05;border-bottom:1px solid #1a1808">';
+    ['Sujet','Auteur','Reponses','Date'].forEach(h => {
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.1em;color:#4a4030">' + h + '</div>';
+    });
+    html += '</div>';
+    topics.forEach((t, i) => {
+      const isRef = t.isReferendum;
+      html += '<div onclick="ouvrirSujetForum(\'' + forumId + '\',' + i + ')" style="display:grid;grid-template-columns:1fr 80px 60px 80px;padding:.5rem .8rem;background:#151208;border-bottom:1px solid #1e1a08;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#1e1a08\'" onmouseout="this.style.background=\'#151208\'">';
+      html += '<div><div style="font-size:.85rem;color:' + (isRef ? '#8ad080' : '#E0D090') + ';margin-bottom:.1rem">' +
+        (isRef ? '<i class="ti ti-checkbox" style="font-size:.75rem"></i> ' : '') + t.title + '</div>' +
+        '<div style="font-size:.68rem;color:#6a6040">' + (t.author||'Anonyme') + '</div></div>';
+      html += '<div style="font-size:.75rem;color:#9a9060;align-self:center">' + (t.author||'') + '</div>';
+      html += '<div style="font-size:.75rem;color:#6a6040;align-self:center;text-align:center">' + (t.replies||t.posts?.length||0) + '</div>';
+      html += '<div style="font-size:.72rem;color:#5a5030;align-self:center">' + (t.time||'') + '</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+function ouvrirSujetForum(forumId, topicIdx) {
+  const topic = (FORUM_TOPICS[forumId]||[])[topicIdx];
+  if (!topic) return;
+  const body = document.getElementById('forum-view-body');
+  let html = '<div style="display:flex;flex-direction:column;width:100%;height:100%">';
+  html += '<div style="padding:.5rem 1rem;background:#111208;border-bottom:1px solid #1a1810;display:flex;align-items:center;gap:.8rem">';
+  html += '<button onclick="openForumView(\'' + forumId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a7040;cursor:pointer">← Retour</button>';
+  html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8D880">' + topic.title + '</div>';
+  html += '</div>';
+  html += '<div style="flex:1;overflow-y:auto;padding:.8rem 1rem">';
+
+  // Referendum special
+  if (topic.isReferendum && topic.reponses) {
+    const dejaVote = state.refVotes?.[topic.id];
+    html += '<div style="background:#0f0d05;border:1px solid #2a3a20;padding:.8rem;margin-bottom:.8rem">';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#8ad080;margin-bottom:.6rem">REFERENDUM : ' + topic.title.replace('[REFERENDUM] ','') + '</div>';
+    topic.reponses.forEach((r, ri) => {
+      const total = topic.reponses.reduce((s, x) => s + (x.voix||0), 0) || 1;
+      const pct = Math.round((r.voix||0) / total * 100);
+      html += '<div style="margin-bottom:.4rem">';
+      if (!dejaVote) {
+        html += '<button onclick="voterReferendum(\'' + forumId + '\',' + topicIdx + ',' + ri + ')" style="width:100%;text-align:left;padding:.4rem .7rem;border:1px solid #2a3a20;background:#0a0a05;color:#c0c080;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">' + r.label + '</button>';
+      } else {
+        html += '<div style="padding:.4rem .7rem;border:1px solid #1a2810;background:#0a0a05;font-family:Crimson Pro,serif;font-size:.82rem;color:' + (dejaVote === ri ? '#8ad080' : '#5a5030') + '">';
+        html += r.label + ' <span style="float:right;font-family:Bebas Neue,sans-serif">' + pct + '%</span></div>';
+        html += '<div style="height:4px;background:#0a0a05;margin-top:.1rem"><div style="height:100%;width:' + pct + '%;background:#4a8a4a"></div></div>';
+      }
+      html += '</div>';
+    });
+    if (dejaVote !== undefined) html += '<div style="font-size:.7rem;color:#4a6a3a;margin-top:.3rem">Vote enregistre.</div>';
+    html += '</div>';
+  }
+
+  // Posts
+  (topic.posts||[]).forEach(p => {
+    html += '<div style="background:#181408;border:1px solid #2a2408;padding:.7rem;margin-bottom:.5rem">';
+    html += '<div style="display:flex;justify-content:space-between;margin-bottom:.4rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#E8C97A">' + (p.author||'Anonyme') + '</div>';
+    html += '<div style="font-size:.65rem;color:#4a4030">' + (p.time||'') + '</div>';
+    html += '</div>';
+    html += '<div style="font-size:.88rem;color:#c8c090;line-height:1.7">' + (p.content||'') + '</div>';
+    html += '</div>';
+  });
+
+  // Zone de reponse
+  html += '<div style="margin-top:.8rem;border-top:1px solid #1a1810;padding-top:.8rem">';
+  html += '<textarea id="forum-reply-text" rows="3" placeholder="Votre reponse..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#d0c890;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.4rem"></textarea>';
+  html += '<button onclick="publierReponse(\'' + forumId + '\',' + topicIdx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.4rem .9rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer">Repondre</button>';
+  html += '</div></div></div>';
+  body.innerHTML = html;
+}
+
+function voterReferendum(forumId, topicIdx, reponseIdx) {
+  const topic = (FORUM_TOPICS[forumId]||[])[topicIdx];
+  if (!topic || !topic.reponses) return;
+  if (!state.refVotes) state.refVotes = {};
+  state.refVotes[topic.id] = reponseIdx;
+  topic.reponses[reponseIdx].voix = (topic.reponses[reponseIdx].voix||0) + 1;
+  ouvrirSujetForum(forumId, topicIdx);
+  showToast('Vote enregistre', 'Vous avez vote pour : ' + topic.reponses[reponseIdx].label, true);
+}
+
+function publierReponse(forumId, topicIdx) {
+  const texte = document.getElementById('forum-reply-text')?.value?.trim();
+  if (!texte) return;
+  const topic = (FORUM_TOPICS[forumId]||[])[topicIdx];
+  if (!topic) return;
+  if (!topic.posts) topic.posts = [];
+  topic.posts.push({ author: state.char?.name||'Anonyme', time: 'Jour ' + state.day, content: texte });
+  topic.replies = (topic.replies||0) + 1;
+  ouvrirSujetForum(forumId, topicIdx);
+  showToast('Reponse publiee', '', true);
+}
+
+function ouvrirNouveauSujet(forumId) {
+  const body = document.getElementById('forum-view-body');
+  let html = '<div style="display:flex;flex-direction:column;width:100%;height:100%">';
+  html += '<div style="padding:.5rem 1rem;background:#111208;border-bottom:1px solid #1a1810;display:flex;align-items:center;gap:.8rem">';
+  html += '<button onclick="openForumView(\'' + forumId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a7040;cursor:pointer">← Annuler</button>';
+  html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8D880">Nouveau sujet</div>';
+  html += '</div>';
+  html += '<div style="flex:1;overflow-y:auto;padding:1rem">';
+  html += '<input id="new-topic-title" type="text" placeholder="Titre du sujet..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#d0c890;padding:.6rem;font-family:Crimson Pro,serif;font-size:.88rem;outline:none;margin-bottom:.6rem"/>';
+  html += '<textarea id="new-topic-content" rows="6" placeholder="Contenu du message..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#d0c890;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.6rem"></textarea>';
+  html += '<button onclick="publierNouveauSujet(\'' + forumId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier</button>';
+  html += '</div></div>';
+  body.innerHTML = html;
+}
+
+function publierNouveauSujet(forumId) {
+  const titre = document.getElementById('new-topic-title')?.value?.trim();
+  const contenu = document.getElementById('new-topic-content')?.value?.trim();
+  if (!titre || !contenu) { showToast('Champs requis', 'Titre et contenu obligatoires.', false); return; }
+  if (!FORUM_TOPICS[forumId]) FORUM_TOPICS[forumId] = [];
+  const newTopic = {
+    id: 'topic-' + Date.now(),
+    title: titre,
+    author: state.char?.name||'Anonyme',
+    time: 'Jour ' + state.day,
+    replies: 0,
+    posts: [{ author: state.char?.name||'Anonyme', time: 'Jour ' + state.day, content: contenu }]
+  };
+  FORUM_TOPICS[forumId].unshift(newTopic);
+  showToast('Sujet publie !', titre, true, true);
+  openForumView(forumId);
 }
 
 function closeMailView() {
@@ -3407,6 +3822,15 @@ function updateUI() {
     badge.textContent = unread;
     badge.style.display = unread > 0 ? 'inline' : 'none';
   }
+
+  // Indices nationaux dans topbar
+  const pays = state.country || 'republic';
+  const idx = (typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[pays] || {ISN:30,IE:50,ID:40,IS:45}) : {ISN:30,IE:50,ID:40,IS:45};
+  const setIdx = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setIdx('idx-isn', idx.ISN);
+  setIdx('idx-ie',  idx.IE);
+  setIdx('idx-id',  idx.ID);
+  setIdx('idx-is',  idx.IS);
 
   // Inventaire
   document.getElementById('inv-liquide').textContent = state.liquide.toLocaleString('fr-FR') + ' ' + cur;

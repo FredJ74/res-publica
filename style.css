@@ -509,3 +509,45 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 /* Salles gouvernementales — style specifique */
 .minimap-building.gouv-special{border-left:2px solid #C9A84C}
 .minimap-building.gouv-special .minimap-bld-name{color:#E8C97A}
+
+/* ===========================
+   V14 — INDICES TOPBAR & FORUM
+   =========================== */
+
+/* Indices nationaux dans la topbar */
+.indices-bar{display:flex;gap:.3rem;padding:.2rem .5rem;background:#0a0d08;border:1px solid #1a2a18;align-items:center}
+.indice-item{display:flex;align-items:center;gap:.2rem;padding:.1rem .3rem}
+.indice-label{font-family:'Bebas Neue',sans-serif;font-size:.6rem;letter-spacing:.08em;color:#4a4030}
+.indice-val{font-family:'Bebas Neue',sans-serif;font-size:.82rem;color:#8a9a7a;min-width:18px;text-align:center}
+.indices-bar:hover{background:#0f1208;border-color:#2a4a20}
+
+/* Forum en vue centrale — tons clairs */
+#forum-view-body .forum-layout{height:100%}
+#forum-view-body .forum-sidebar{background:#111208}
+#forum-view-body .forum-nav-item{border-bottom:1px solid #1a1a10}
+#forum-view-body .forum-nav-item.active{background:#1a1a10;border-left:2px solid var(--gold)}
+#forum-view-body .forum-nav-name{color:#d0c8a0}
+#forum-view-body .forum-main{background:#0f0d05}
+#forum-view-body .forum-header-bar{background:#111208;border-bottom:1px solid #2a2810}
+#forum-view-body .forum-title-main{color:#E8D880;font-size:1rem}
+
+/* Sujets du forum — tons plus clairs */
+#forum-view-body .forum-topic-row{background:#151208;border-bottom:1px solid #1e1a08}
+#forum-view-body .forum-topic-row:hover{background:#1e1a08}
+#forum-view-body .forum-topic-title{color:#E0D090;font-size:.85rem}
+#forum-view-body .forum-topic-author{color:#9a9060;font-size:.75rem}
+#forum-view-body .forum-topic-stat{color:#6a6040;font-size:.75rem}
+#forum-view-body .forum-topics-header{background:#0a0a05;color:#6a6030}
+
+/* Posts du forum — plus lisibles */
+#forum-view-body .forum-post{background:#181408;border:1px solid #2a2408}
+#forum-view-body .forum-post-author{color:#E8C97A}
+#forum-view-body .forum-post-content{color:#c8c090;font-size:.88rem;line-height:1.7}
+#forum-view-body .forum-post-time{color:#6a6040}
+#forum-view-body .forum-empty{color:#5a5030}
+
+/* Nouveau sujet — fond plus clair */
+#forum-view-body .forum-compose-form{background:#0f0d05}
+#forum-view-body .rich-content{background:#181408;color:#d0c890}
+#forum-view-body .rich-toolbar{background:#111208}
+#forum-view-body .forum-new-btn{border-color:#6a5a20;color:#C9A84C}
