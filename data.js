@@ -368,8 +368,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'consulter_dossiers', label:'Consulter des dossiers',    pa:2, cost:0,    type:'legal',   icon:'ti-archive',        successRate:80,  requiresPost:true, desc:'Acceder a des informations confidentielles.'},
-          {fn:'fuite_info',         label:'Produire une fuite',        pa:3, cost:0,    type:'grey',    icon:'ti-leak',           successRate:60,  requiresPost:true, desc:'Faire fuiter un document secret.'},
-          {fn:'fabriquer_scandale', label:'Fabriquer un scandale',     pa:3, cost:800,  type:'illegal', icon:'ti-alert-triangle', successRate:45,  requiresPost:false, desc:'Creer de fausses preuves. Tres risque.'}
+          {fn:'fuite_info',         label:'Produire une fuite',        pa:3, cost:0,    type:'grey',    icon:'ti-leak',           successRate:60,  requiresPost:true, desc:'Faire fuiter un document secret.'}
         ]
       },
 
@@ -382,7 +381,6 @@ const BUILDINGS = {
         requiresPostId: 'min_int',
         persons: [],
         orders: [
-          {fn:'etat_urgence',         label:"Declarer l'etat d'urgence",    pa:3, cost:0,   type:'legal',   icon:'ti-alert-triangle', successRate:100, requiresPost:'min_int', desc:'Suspend certaines libertes civiles. Fort impact.'},
           {fn:'mobiliser_police',     label:'Mobiliser les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield',        successRate:100, requiresPost:'min_int', desc:'Deploiement massif de police. +securite -liberte.'},
           {fn:'interdire_manif',      label:'Interdire une manifestation',  pa:2, cost:0,   type:'legal',   icon:'ti-ban',            successRate:100, requiresPost:'min_int', desc:'Interdire un rassemblement. -POP important.'},
           {fn:'autoriser_manif',      label:'Autoriser une manifestation',  pa:1, cost:0,   type:'legal',   icon:'ti-check',          successRate:100, requiresPost:'min_int', desc:'Lever une interdiction. +POP.'},
@@ -454,7 +452,8 @@ const BUILDINGS = {
         requiresPostId: 'min_ae',
         persons: [],
         orders: [
-          {fn:'declarer_guerre',      label:'Recommander une declaration de guerre', pa:4, cost:0, type:'legal', icon:'ti-sword',   successRate:80,  requiresPost:'min_ae', desc:'Soumettre au President une declaration de guerre.'},
+          {fn:'negocier_paix',        label:'Negocier un accord de paix',           pa:3, cost:0, type:'legal', icon:'ti-handshake',     successRate:65, requiresPost:'min_ae', desc:'Choisir un empire en guerre. +12 ID si succes.'},
+          {fn:'accord_diplomatique',  label:'Ouvrir des negociations diplomatiques', pa:2, cost:0, type:'legal', icon:'ti-building-bank', successRate:80, requiresPost:'min_ae', desc:'Etablir un canal diplomatique. +8 ID.'},
           {fn:'signer_traite',        label:'Signer un traite',             pa:3, cost:0,   type:'legal',   icon:'ti-file-certificate', successRate:70, requiresPost:'min_ae', desc:'Accord bilateral avec un empire etranger.'},
           {fn:'ouvrir_ambassade',     label:'Ouvrir une ambassade',         pa:2, cost:1000,type:'legal',   icon:'ti-building',       successRate:100, requiresPost:'min_ae', desc:'Etablir une representation diplomatique.'},
           {fn:'sanctions_diplo',      label:'Imposer des sanctions',        pa:3, cost:0,   type:'legal',   icon:'ti-ban',            successRate:85,  requiresPost:'min_ae', desc:'Sanctions economiques ou diplomatiques.'}
@@ -735,6 +734,8 @@ const BUILDINGS = {
           {name:'Marie Leblanc', role:'Journaliste d\'investigation', rel:'enemy', job:'journaliste'}
         ],
         orders: [
+          {fn:'produire_fuite',   label:'Produire une fuite',           pa:3, cost:0,   type:'illegal', icon:'ti-leak',           successRate:55,  desc:'Choisir une cible dans le repertoire. Rumeur IA dans journal. Mail a la cible. -10 INF -10 POP.'},
+          {fn:'fabriquer_scandale', label:'Fabriquer un scandale',          pa:3, cost:800, type:'illegal', icon:'ti-alert-triangle',  successRate:35,  desc:'Choisir une cible. Rediger le contenu. Bonus journaliste +15%. Si decouvert : Recherche pour diffamation.'},
           {fn:'interview',             label:'Donner une interview',          pa:1, cost:0,   type:'legal',   icon:'ti-microphone', successRate:100, desc:'Impact sur la popularite.'},
           {fn:'article',               label:'Placer un article favorable',   pa:2, cost:300, type:'grey',    icon:'ti-pencil',     successRate:70},
           {fn:'corrompre_journaliste', label:'Corrompre un journaliste',      pa:2, cost:500, type:'illegal', icon:'ti-cash',       successRate:55},

@@ -452,7 +452,25 @@ function renderRoomActions(room, buildingId, roomId) {
   const allOrders = [...orders];
 
   const buttons = allOrders.map(o => {
-    const needsPost = o.requiresPost && !state.poste;
+    // Verifier requiresPost : doit avoir le bon poste specifique
+    let needsPost = false;
+    if (o.requiresPost) {
+      if (o.requiresPost === true) {
+        // Juste avoir un poste
+        needsPost = !state.poste;
+      } else {
+        // Verifier le poste specifique
+        const posteId = state.poste?.id || '';
+        const reqPost = o.requiresPost;
+        if (reqPost === 'president') needsPost = posteId !== 'president';
+        else if (reqPost === 'pm') needsPost = posteId !== 'pm';
+        else if (reqPost === 'depute') needsPost = !posteId.startsWith('depute');
+        else if (reqPost === 'juge') needsPost = posteId !== 'juge';
+        else if (reqPost === 'magistrat') needsPost = !['juge','procureur'].includes(posteId);
+        else if (reqPost === 'commissaire') needsPost = posteId !== 'commissaire';
+        else needsPost = posteId !== reqPost;
+      }
+    }
     const paDisplay = TEST_MODE ? '0 PA' : o.pa + ' PA';
     // Appliquer malus ISN sur les actes illegaux
     let tauxAffiche = o.successRate || 70;
@@ -566,6 +584,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'rendre_sentence')         { ouvrirRendreSentence(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
+  if (fn === 'negocier_paix')        { ouvrirModalEmpireCible('negocier_paix', 'Negocier un accord de paix avec'); return; }
+  if (fn === 'accord_diplomatique')  { ouvrirModalEmpireCible('accord_diplomatique', 'Ouvrir des negociations avec'); return; }
+  if (fn === 'produire_fuite')       { ouvrirProduireFuite(); return; }
+  if (fn === 'fabriquer_scandale')   { ouvrirFabrquerScandale(); return; }
+  if (fn === 'etat_nation')          { ouvrirIndicesImperiaux(); return; }
 
   // Handlers complementaires v17
   if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_journaliste') { doCorruption(fn, cost); return; }
@@ -2461,6 +2484,10 @@ function addMailNotification(from, subject, body) {
   if (!state.mails) state.mails = [];
   state.mails.push({ from, subject, body, day: state.day, read: false });
   addExternalEvent(`Nouveau mail de ${from} : "${subject}"`);
+  // Mettre a jour le badge immediatement
+  const unread = state.mails.filter(m => !m.read).length;
+  const badge = document.getElementById('mail-badge');
+  if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'inline' : 'none'; }
 }
 
 function showPostRequired() {
@@ -3459,45 +3486,146 @@ function solliciterAudiencePresident() {
 }
 
 // =====================
-// INDICES IMPERIAUX (bouton topbar)
+// INDICES IMPERIAUX - CORRIGE
 // =====================
-function ouvrirIndicesImperiaux() {
-  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
-  const el = document.getElementById('vue-self');
-  el.classList.add('active');
-  document.getElementById('self-view-name').textContent = 'Indices Imperiaux';
-  document.getElementById('self-view-role').textContent = 'Etat des 4 empires';
-
-  const content = document.getElementById('self-content');
-  const empires = [
-    { key:'republic', name:'Républia',   col:'#4a9ade', flag:'🇫🇷' },
-    { key:'narco',    name:'El Estado',  col:'#cc4444', flag:'🔴' },
-    { key:'soviet',   name:'Sovarka',    col:'#cc2020', flag:'⭐' },
-    { key:'khalija',  name:'Al-Khalija', col:'#C9A84C', flag:'🌙' }
-  ];
-
-  let html = '<div style="padding:1.2rem;max-width:700px">';
-  html += '<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#C9A84C;margin-bottom:1rem">Indices des 4 Empires</div>';
-
-  empires.forEach(emp => {
-    const idx = (typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[emp.key] || {ISN:30,IE:50,ID:40,IS:45}) : {ISN:30,IE:50,ID:40,IS:45};
-    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.9rem;color:' + emp.col + ';margin-bottom:.6rem">' + emp.flag + ' ' + emp.name + '</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem">';
-    [['ISN','Securite','#4a8a4a'],['IE','Economique','#C9A84C'],['ID','Diplomatique','#4a6aaa'],['IS','Social','#aa6a4a']].forEach(([k,label,col]) => {
-      const val = idx[k] || 0;
-      html += '<div style="text-align:center;padding:.4rem;background:#0a0805;border:1px solid #1a1810">';
-      html += '<div style="font-size:.6rem;color:#4a4030;text-transform:uppercase">' + label + '</div>';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:' + col + '">' + val + '</div>';
-      html += '<div style="height:4px;background:#0a0a05;margin-top:.2rem"><div style="height:100%;width:' + val + '%;background:' + col + ';opacity:.6"></div></div>';
-      html += '</div>';
-    });
-    html += '</div></div>';
-  });
-
-  html += '<div style="font-size:.72rem;color:#4a4030;font-style:italic;margin-top:.5rem">Cliquer sur "Etat de la Nation" au Palais Presidentiel pour le detail et l\'impact de chaque indice.</div>';
+// =====================
+// PRODUIRE UNE FUITE
+// =====================
+async function ouvrirProduireFuite() {
+  const contacts = state.contacts || [];
+  if (contacts.length === 0) {
+    showToast('Repertoire vide', 'Ajoutez des contacts pour cibler une fuite.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Produire une fuite';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illegal. Taux 55%. Si succes : rumeur dans le journal + mail a la cible (-10 INF -10 POP).</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
+  html += '<select id="fuite-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+  contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+  html += '</select>';
+  html += '<button onclick="confirmerFuite()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer la fuite</button>';
   html += '</div>';
-  content.innerHTML = html;
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerFuite() {
+  const cible = document.getElementById('fuite-cible')?.value;
+  if (!cible) return;
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const taux = Math.max(5, 55 - getMalusISN());
+
+  if (roll <= taux) {
+    // Generer la rumeur via IA
+    try {
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 150,
+          messages: [{
+            role: 'user',
+            content: 'Tu es le narrateur d\'un jeu politique parodique. Génère une courte rumeur compromettante (2 phrases max) concernant ' + cible + ', un personnage politique fictif. Ton satirique. Commence directement par la rumeur sans introduction.'
+          }]
+        })
+      });
+      const data = await resp.json();
+      const rumeur = data.content?.[0]?.text || 'Des informations compromettantes circulent sur ' + cible + '.';
+
+      addExternalEvent('FUITE : ' + rumeur);
+      addMailNotification('Source anonyme', 'Information vous concernant', 'Des informations vous concernant ont ete divulguees : "' + rumeur + '". Votre reputation en patit. -10 INF -10 POP.');
+      showToast('Fuite reussie !', 'Rumeur publiee dans le journal des evenements.', true, true);
+      addJournalEntry('Fuite produite contre ' + cible + '.', 'event-bad');
+      checkDetection('produire_fuite', 'success');
+
+    } catch(e) {
+      addExternalEvent('FUITE : Des informations compromettantes sur ' + cible + ' circulent dans les couloirs du pouvoir.');
+      showToast('Fuite reussie !', 'Rumeur publiee.', true);
+    }
+  } else {
+    showToast('Echec', 'La fuite n\'a pas pu etre organisee.', false);
+    checkDetection('produire_fuite', 'fail');
+  }
+}
+
+// =====================
+// FABRIQUER UN SCANDALE
+// =====================
+function ouvrirFabrquerScandale() {
+  const contacts = state.contacts || [];
+  if (contacts.length === 0) {
+    showToast('Repertoire vide', 'Ajoutez des contacts pour cibler un scandale.', false);
+    return;
+  }
+  const isJournaliste = state.char?.career === 'press';
+  const isMinInfo = state.poste?.id === 'min_info';
+  const bonusCarriere = isJournaliste ? 15 : isMinInfo ? 10 : 0;
+  const taux = 35 + bonusCarriere;
+
+  document.getElementById('postes-modal-title').textContent = 'Fabriquer un scandale';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illegal. Taux ' + taux + '%' + (bonusCarriere > 0 ? ' (bonus ' + (isJournaliste ? 'journaliste' : 'MInfo') + ' +' + bonusCarriere + '%)' : '') + '. Si decouvert : Recherche pour diffamation.</div>';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
+  html += '<select id="scandale-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+  html += '</select>';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CONTENU DU SCANDALE</div>';
+  html += '<textarea id="scandale-contenu" rows="4" placeholder="Decrivez le scandale fabrique..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.8rem"></textarea>';
+  html += '<button onclick="confirmerScandale(' + taux + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier le scandale</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerScandale(taux) {
+  const cible = document.getElementById('scandale-cible')?.value;
+  const contenu = document.getElementById('scandale-contenu')?.value?.trim();
+  if (!cible || !contenu) { showToast('Champs requis', '', false); return; }
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const tauxFinal = Math.max(5, taux - getMalusISN());
+
+  if (roll <= tauxFinal) {
+    // Publier dans le forum national
+    if (!FORUM_TOPICS['national']) FORUM_TOPICS['national'] = [];
+    FORUM_TOPICS['national'].unshift({
+      id: 'scandale-' + Date.now(),
+      title: '[SCANDALE] Revelations sur ' + cible,
+      author: 'Source anonyme',
+      time: 'Jour ' + state.day,
+      posts: [{ author: 'Source anonyme', time: 'Jour ' + state.day, content: contenu }]
+    });
+
+    // Mail a la cible
+    addMailNotification('Redaction anonyme', 'Scandale vous concernant', 'Un article compromettant vous concernant vient d\'etre publie dans le forum national. -15 INF -15 POP -10 Moral.');
+    addExternalEvent('SCANDALE : Revelations compromettantes sur ' + cible + ' publiees dans le forum national !');
+    showToast('Scandale publie !', 'Article dans le forum national. -15 INF -15 POP -10 Moral sur ' + cible, true, true);
+    addJournalEntry('Scandale fabrique contre ' + cible, 'event-bad');
+
+    // Risque de decouverte (30%)
+    const rollDecouv = Math.floor(Math.random() * 100) + 1;
+    if (rollDecouv <= 30) {
+      setTimeout(() => {
+        state.recherche = [{ acte: 'diffamation', type: 'delit_grave', jour: state.day }];
+        addExternalEvent('RETOUR DE BATON : Vous avez ete identifie(e) comme l\'auteur du scandale ! Recherche pour diffamation.');
+        showToast('Decouvert !', 'Vous etes recherche(e) pour diffamation. -20 POP -15 INF.', false);
+        state.pop = Math.max(0, state.pop - 20);
+        state.inf = Math.max(0, state.inf - 15);
+        updateUI();
+      }, 1500);
+    }
+    checkDetection('fabriquer_scandale', 'success');
+  } else {
+    showToast('Echec', 'Le scandale n\'a pas pris. Personne ne l\'a cru.', false);
+    checkDetection('fabriquer_scandale', 'fail');
+  }
 }
 
 // =====================
