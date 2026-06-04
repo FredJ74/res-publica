@@ -333,7 +333,7 @@ const BUILDINGS = {
         name: "Salle du Conseil",
         imageBg: "linear-gradient(135deg,#0d1a0a,#152014)",
         desc: "La salle ou se prennent les decisions du gouvernement. Acces ministeriel uniquement.",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/conseil-ministres.png",
         persons: [
           {name:'Premier Ministre (PNJ)', role:'Chef du gouvernement', rel:'neutral', job:'pm'}
         ],
