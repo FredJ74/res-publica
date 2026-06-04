@@ -245,7 +245,7 @@ const BUILDINGS = {
         name: "Bureau du President",
         imageBg: "linear-gradient(135deg,#0a1005,#12180a)",
         desc: "Le bureau oval de la Presidence. C'est ici que se prennent les decisions les plus importantes de Republia.",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president.png",
         locked: false,
         persons: [
           {name:'Secretaire General (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general'}
@@ -326,7 +326,6 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'nommer_ministre_pm', label:'Nommer des ministres',       pa:2, cost:0,   type:'legal',   icon:'ti-crown',     successRate:100, requiresPost:'pm', desc:'Nommer un PJ a un poste ministeriel.'},
-          {fn:'negocier',           label:'Negocier un accord',         pa:3, cost:50,  type:'legal',   icon:'ti-handshake', successRate:70,  desc:'Proposer un accord politique.'},
           {fn:'corrompre_fonct',    label:'Corrompre un fonctionnaire', pa:2, cost:500, type:'illegal', icon:'ti-coins',     successRate:65,  desc:'Acheter un service administratif.'}
         ]
       },
@@ -402,6 +401,7 @@ const BUILDINGS = {
           {fn:'baisser_impots',       label:'Baisser les impots',           pa:2, cost:0,   type:'legal',   icon:'ti-trending-down',  successRate:100, requiresPost:'min_fin', desc:'Reduire la fiscalite. -recettes +POP.'},
           {fn:'redressement_fiscal',  label:'Ordonner un redressement',     pa:2, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:80,  requiresPost:'min_fin', desc:'Cibler un contribuable. Genere des recettes mais cree des ennemis.'},
           {fn:'subvention',           label:'Accorder une subvention',      pa:2, cost:500, type:'legal',   icon:'ti-coins',          successRate:100, requiresPost:'min_fin', desc:'Financer un secteur ou une association. +POP ciblé.'},
+          {fn:'fiscal',              label:'Repartition budgetaire',       pa:2, cost:0, type:'legal', icon:'ti-chart-pie',   successRate:100, requiresPost:'min_fin', desc:'Fixer la repartition des recettes fiscales entre les institutions. Prerogative exclusive du Ministre des Finances.'},
           {fn:'allegemement_fiscal',  label:'Allegement fiscal sectoriel',  pa:2, cost:0,   type:'legal',   icon:'ti-receipt-tax',    successRate:100, requiresPost:'min_fin', desc:'Reduire les taxes d\'un secteur. +INF aupres des lobbies.'}
         ]
       },
@@ -788,7 +788,6 @@ const BUILDINGS = {
           {name:'Venerable Maitre Duval', role:'PNJ - Chef de la Loge', rel:'neutral', job:'venerable'}
         ],
         orders: [
-          {fn:'negocier',           label:'Negocier un service',      pa:3, cost:500, type:'grey',    icon:'ti-handshake', successRate:60},
           {fn:'demander_info_loge', label:'Demander des informations', pa:2, cost:0,   type:'legal',   icon:'ti-info-circle',successRate:70}
         ]
       },
@@ -951,7 +950,6 @@ const BUILDINGS = {
           {name:'Le Maire de Luthecia (PNJ)', role:'Maire de la Capitale', rel:'neutral', job:'maire'}
         ],
         orders: [
-          {fn:'negocier',   label:'Negocier avec le maire',   pa:3, cost:0,   type:'legal',   icon:'ti-handshake', successRate:65, desc:'Proposer un accord ou un projet.'},
           {fn:'postuler',   label:'Postuler comme adjoint',   pa:2, cost:0,   type:'legal',   icon:'ti-id-badge',  successRate:70, desc:'Postuler au poste de maire adjoint.'},
           {fn:'corrompre_fonct', label:'Corrompre le maire',  pa:3, cost:800, type:'illegal', icon:'ti-coins',     successRate:45, desc:'Acheter la complicite du maire.'}
         ]
@@ -1113,8 +1111,7 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=1200&q=80",
         persons: [{name:'Directeur Fabre (PNJ)', role:'Directeur usine', rel:'neutral', job:'directeur'}],
         orders: [
-          {fn:'acheter_entreprise', label:'Racheter l\'usine', pa:3, cost:8000, type:'legal', icon:'ti-building-factory', successRate:80, desc:'Genere 200 FR/jour en revenus passifs.'},
-          {fn:'negocier',           label:'Negocier contrat',  pa:2, cost:0,    type:'legal', icon:'ti-handshake',        successRate:70}
+          {fn:'acheter_entreprise', label:'Racheter l\'usine', pa:3, cost:8000, type:'legal', icon:'ti-building-factory', successRate:80, desc:'Genere 200 FR/jour en revenus passifs.'}
         ]
       }
     }

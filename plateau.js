@@ -167,6 +167,7 @@ function runMidnightUpdate() {
   // Budget institutions et population
   mettreAJourBudgets();
   mettreAJourPopulation();
+  alimenterBudgets();
   // Revenus fiscaux
   const pop = CITY_POPULATION[state.country]?.[state.currentCity];
   if (pop) {
@@ -550,20 +551,73 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'decret_referendum')       { ouvrirForumNationalSousForumPresident('referendum'); return; }
   if (fn === 'jour_deuil')             { ouvrirForumNationalSousForumPresident('deuil'); return; }
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
-  if (fn === 'etat_nation')             { ouvrirIndicesImperiaux(); return; }
+  if (fn === 'etat_nation' || fn === 'etat_urgence')             { ouvrirIndicesImperiaux(); return; }
   if (fn === 'observer_debats')         { observerDebats(); return; }
   if (fn === 'voter_loi')              { ouvrirVoteLoi(); return; }
   if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
   if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(); return; }
-  if (fn === 'forum_president_conference')  { ouvrirForumNationalSousForumPresident('conference'); return; }
-  if (fn === 'forum_president_annonce')     { ouvrirForumNationalSousForumPresident('annonce'); return; }
-  if (fn === 'forum_president_propagande')  { ouvrirForumNationalSousForumPresident('propagande'); return; }
-  if (fn === 'forum_president_dementi')     { ouvrirForumNationalSousForumPresident('dementi'); return; }
+  if (fn === 'forum_president_conference' || fn === 'conference_presse' || fn === 'donner_conf')  { ouvrirForumNationalSousForumPresident('conference'); return; }
+  if (fn === 'forum_president_annonce' || fn === 'annonce_officielle')     { ouvrirForumNationalSousForumPresident('annonce'); return; }
+  if (fn === 'forum_president_propagande' || fn === 'propagande_etat')  { ouvrirForumNationalSousForumPresident('propagande'); return; }
+  if (fn === 'forum_president_dementi' || fn === 'dementi')     { ouvrirForumNationalSousForumPresident('dementi'); return; }
   if (fn === 'consulter_archives_lois') { ouvrirArchivesLois(); return; }
   if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
   if (fn === 'porter_plainte')          { ouvrirPorterPlainte(); return; }
   if (fn === 'rendre_sentence')         { ouvrirRendreSentence(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
+  if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
+
+  // Handlers complementaires v17
+  if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_journaliste') { doCorruption(fn, cost); return; }
+  if (fn === 'se_reposer' || fn === 'se_nourrir') { doSeReposer(fn); return; }
+  if (fn === 'soins' || fn === 'soins_basiques' || fn === 'soins_discrets' || fn === 'soins_urgence') { doSesoigner(); return; }
+  if (fn === 'requete_avocat') { doRequeteAvocat(); return; }
+  if (fn === 'greve_faim') { doGreveFaim(); return; }
+  if (fn === 'tentative_evasion') { doTentativeEvasion(); return; }
+  if (fn === 'visiter_prisonnier') { doVisiterPrisonnier(); return; }
+  if (fn === 'se_renseigner') { doSeRenseigner(); return; }
+  if (fn === 'reserver') { doReserver(); return; }
+  if (fn === 'interview') { doInterview(); return; }
+  if (fn === 'article') { doArticle(); return; }
+  if (fn === 'etouffer') { doEtouffer(); return; }
+  if (fn === 'archives') { ouvrirArchivesTribunal(); return; }
+  if (fn === 'consulter_dossiers') { ouvrirArchivesTribunal(); return; }
+  if (fn === 'demander_info_loge') { doLogeInfo(); return; }
+  if (fn === 'se_former') { doSeFormer(); return; }
+  if (fn === 'recruter_info') { doRecruterInfo(); return; }
+  if (fn === 'mobiliser_police') { doMobiliserPolice(); return; }
+  if (fn === 'mobiliser_armee') { doMobiliserArmee(); return; }
+  if (fn === 'etat_urgence') { doEtatUrgence(); return; }
+  if (fn === 'inspecter_troupes') { doInspecterTroupes(); return; }
+  if (fn === 'ouvrir_enquete') { ouvrirModalCibleRepertoire('ouvrir_enquete', 'Ouvrir une enquete sur'); return; }
+  if (fn === 'annuler_poursuites') { ouvrirModalAffaires('annuler'); return; }
+  if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
+  if (fn === 'censurer_media') { ouvrirModalMedia(); return; }
+  if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
+  if (fn === 'cessez_le_feu') { ouvrirModalEmpireCible('cessez_le_feu', 'Negocier un cessez-le-feu avec'); return; }
+  if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
+  if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
+  if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
+  if (fn === 'subvention') { ouvrirModalCibleRepertoire('subvention', 'Accorder une subvention a'); return; }
+  if (fn === 'redressement_fiscal') { ouvrirModalCibleRepertoire('redressement_fiscal', 'Redressement fiscal contre'); return; }
+  if (fn === 'augmenter_impots') { doAugmenterImpots(true); return; }
+  if (fn === 'baisser_impots') { doAugmenterImpots(false); return; }
+  if (fn === 'allegemement_fiscal') { ouvrirModalSecteur(); return; }
+  if (fn === 'interdire_manif') { ouvrirModalTexteLibre('interdire_manif', 'Interdire une manifestation', 'Nom ou sujet de la manifestation...'); return; }
+  if (fn === 'repression_manif') { ouvrirModalTexteLibre('reprimer_manif', 'Ordonner la repression', 'Manifestation ou rassemblement cible...'); return; }
+  if (fn === 'autoriser_manif') { doAutoriserManif(); return; }
+  if (fn === 'renseignement') { ouvrirModalRenseignement(); return; }
+  if (fn === 'planifier_operation') { ouvrirModalTexteLibre('planifier_operation', 'Planifier une operation', 'Decrivez l\'operation...'); return; }
+  if (fn === 'mobiliser') { doMobiliserPolice(); return; }
+  if (fn === 'dissoudre_assemblee') { doDissoudreAssemblee(); return; }
+  if (fn === 'negocier') { showToast('Ordre contact', 'Utilisez les ordres contact en cliquant sur le personnage cible.', false); return; }
+  if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); return; }
+  if (fn === 'plainte') { ouvrirPorterPlainte(); return; }
+  if (fn === 'projet_loi') { ouvrirDeposerProjet(); return; }
+  if (fn === 'greve') { doGrevePNJ(); return; }
+  if (fn === 'recruter_etud') { doRecruterMilitants(); return; }
+  if (fn === 'acte_officiel') { doActeOfficiel(); return; }
+
   if (fn === 'interdire_manif_cible')   { ouvrirModalTexteLibre('interdire_manif', 'Interdire une manifestation', 'Preciser le nom ou sujet de la manifestation a interdire...'); return; }
   if (fn === 'reprimer_manif_cible')    { ouvrirModalTexteLibre('reprimer_manif', 'Ordonner la repression', 'Preciser la manifestation ou le rassemblement cible...'); return; }
   if (fn === 'redressement_cible')      { ouvrirModalCibleRepertoire('redressement_fiscal', 'Redressement fiscal'); return; }
@@ -3684,6 +3738,387 @@ function soumettrePlainte() {
   showToast('Plainte deposee !', 'Visible dans le forum "Tribunal de ' + ville + '". Jugement le jeudi.', true, true);
   addJournalEntry('Plainte deposee contre ' + cibleNom, 'event-info');
   addExternalEvent('Une plainte a ete deposee contre ' + cibleNom + ' au Tribunal de ' + ville + '.');
+}
+
+// =====================
+// FONCTIONS COMPLEMENTAIRES V17
+// =====================
+
+function doCorruption(fn, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const taux = Math.max(5, 65 - getMalusISN());
+  if (roll <= taux) {
+    state.arg -= cost;
+    state.dis = Math.max(0, state.dis - 5);
+    updateUI();
+    showToast('Corruption reussie', 'Le service a ete obtenu. -5 DIS.', true);
+    addJournalEntry('Corruption : ' + fn.replace(/_/g,' '), 'event-bad');
+    checkDetection(fn, 'success');
+  } else {
+    showToast('Echec', 'La tentative de corruption a echoue.', false);
+    checkDetection(fn, 'fail');
+  }
+}
+
+function doSeReposer(fn) {
+  state.moral = Math.min(100, state.moral + (fn === 'se_nourrir' ? 3 : 2));
+  updateUI();
+  showToast(fn === 'se_nourrir' ? 'Repas pris' : 'Repos', '+' + (fn === 'se_nourrir' ? 3 : 2) + ' Moral.', true);
+}
+
+function doRequeteAvocat() {
+  addMailNotification('Cabinet juridique', 'Prise en charge', 'Votre demande a ete enregistree. Un avocat vous assistera lors de votre comparution. Reduction de peine possible.');
+  showToast('Avocat contacte', 'Un avocat prend votre dossier en charge. Reduction de peine possible.', true);
+  addJournalEntry('Requete avocat deposee.', 'event-info');
+}
+
+function doGreveFaim() {
+  state.hp = Math.max(1, state.hp - 5);
+  state.pop = Math.min(100, state.pop + 3);
+  updateUI();
+  showToast('Greve de la faim', '-5 HP +3 POP. Pression politique sur l\'administration.', false);
+  addExternalEvent((state.char?.name||'Un detenu') + ' entame une greve de la faim. Pression politique.');
+}
+
+function doTentativeEvasion() {
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= 5) {
+    state.estEmprisonne = null;
+    state.recherche = [];
+    showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true);
+    addJournalEntry('Evasion reussie !', 'event-good');
+  } else {
+    if (state.estEmprisonne) state.estEmprisonne.jours += 7;
+    showToast('Evasion echouee', 'Tentative echouee. +7 jours de detention.', false);
+    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee.', 'event-bad');
+  }
+}
+
+function doVisiterPrisonnier() {
+  ouvrirModalCibleRepertoire('visiter_prisonnier', 'Rendre visite a un detenu');
+}
+
+function doSeRenseigner() {
+  const infos = [
+    'Vous apprenez qu\'un PJ influent a ete vu en compagnie suspecte.',
+    'Des rumeurs circulent sur un prochain remaniement ministeriel.',
+    'On parle d\'une affaire financiere qui pourrait eclabousser le gouvernement.',
+    'Quelqu\'un cherche a recruter des partisans en secret.'
+  ];
+  const info = infos[Math.floor(Math.random() * infos.length)];
+  showToast('Information', info, true);
+  addJournalEntry('Renseignement obtenu : ' + info, 'event-info');
+  state.inf = Math.min(100, state.inf + 1);
+  updateUI();
+}
+
+function doReserver() {
+  showToast('Chambre reservee', 'Vous avez acces aux chambres de cet etablissement. Passez l\'ordre Dormir depuis votre fiche personnage.', true);
+  state.chambreReservee = state.currentBuilding;
+}
+
+function doInterview() {
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const impact = roll <= 50 ? 1 : -1;
+  state.pop = Math.max(0, Math.min(100, state.pop + impact * 5));
+  updateUI();
+  showToast('Interview', (impact > 0 ? 'Bonne impression. +5 POP.' : 'Mauvaise impression. -5 POP.'), impact > 0);
+  addExternalEvent((state.char?.name||'Un personnage') + ' s\'est exprime dans la presse. Impact : ' + (impact > 0 ? '+5 POP' : '-5 POP'));
+}
+
+function doArticle() {
+  ouvrirModalCibleRepertoire('article_favorable', 'Rediger un article favorable sur');
+}
+
+function doEtouffer() {
+  showToast('Ordre contact requis', 'Cliquez sur le journaliste cible pour etouffer un article.', false);
+}
+
+function doLogeInfo() {
+  const infos = [
+    'Les freres vous revelent qu\'un elu cache des fonds offshore.',
+    'La Loge sait qui a commande l\'assassinat de la semaine derniere.',
+    'Un ministre est en negociation secrete avec un empire etranger.',
+    'Des elections anticipees se preparent dans l\'ombre.'
+  ];
+  const info = infos[Math.floor(Math.random() * infos.length)];
+  state.inf = Math.min(100, state.inf + 5);
+  updateUI();
+  showToast('Information de la Loge', info, true, true);
+  addJournalEntry('Information confidentielle obtenue de la Loge.', 'event-info');
+}
+
+function doSeFormer() {
+  const stats = ['INT','CHA','VOL','PER','DUP','ENT'];
+  document.getElementById('postes-modal-title').textContent = 'Suivre une formation';
+  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir la caracteristique a ameliorer (+1 point) :</div>';
+  stats.forEach(s => {
+    html += '<button onclick="appliquerFormation(\'' + s + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.3rem">' + s + ' (actuel : ' + (state.char?.stats?.[s]||8) + ')</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function appliquerFormation(stat) {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!state.char) return;
+  if (!state.char.stats) state.char.stats = {};
+  state.char.stats[stat] = (state.char.stats[stat]||8) + 1;
+  showToast('Formation terminee', stat + ' : ' + state.char.stats[stat] + ' (+1)', true, true);
+  addJournalEntry('Formation suivie : +1 ' + stat, 'event-good');
+}
+
+function doRecruterInfo() {
+  const contacts = state.contacts || [];
+  if (contacts.length === 0) { showToast('Repertoire vide', 'Ajoutez des contacts pour recruter.', false); return; }
+  if (!state.informateurs) state.informateurs = [];
+  document.getElementById('postes-modal-title').textContent = 'Recruter un informateur';
+  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">L\'informateur enverra des mails reguliers avec des informations utiles.</div>';
+  contacts.forEach(c => {
+    html += '<button onclick="confirmerRecrutement(\'' + c.name + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;margin-bottom:.3rem;font-family:Crimson Pro,serif;font-size:.85rem">' + c.name + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerRecrutement(nom) {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!state.informateurs) state.informateurs = [];
+  state.informateurs.push({ nom, depuis: state.day });
+  showToast('Informateur recrute', nom + ' vous enverra des informations regulierement.', true);
+  addJournalEntry('Informateur recrute : ' + nom, 'event-info');
+}
+
+function doMobiliserPolice() {
+  const pays = state.country || 'republic';
+  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 15);
+  state.pop = Math.max(0, state.pop - 5);
+  updateUI();
+  showToast('Forces de l\'ordre mobilisees', '+15 ISN -5 POP.', false);
+  addExternalEvent('Mobilisation des forces de l\'ordre. +15 ISN.');
+}
+
+function doMobiliserArmee() {
+  const pays = state.country || 'republic';
+  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 20);
+  updateUI();
+  showToast('Armee mobilisee', '+20 ISN. Alerte maximale.', false);
+  addExternalEvent('L\'armee est en etat d\'alerte maximale. +20 ISN.');
+}
+
+function doEtatUrgence() {
+  const pays = state.country || 'republic';
+  if (INDICES_NATIONAUX?.[pays]) {
+    INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 25);
+    INDICES_NATIONAUX[pays].IS  = Math.max(0,   INDICES_NATIONAUX[pays].IS  - 10);
+  }
+  state.pop = Math.max(0, state.pop - 15);
+  state.inf = Math.min(100, state.inf + 5);
+  updateUI();
+  showToast('Etat d\'urgence declare !', '+25 ISN -10 IS -15 POP +5 INF.', false);
+  addExternalEvent('ETAT D\'URGENCE declare. Libertes civiles suspendues.');
+}
+
+function doInspecterTroupes() {
+  state.inf = Math.min(100, state.inf + 3);
+  const pays = state.country || 'republic';
+  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 2);
+  updateUI();
+  showToast('Inspection terminee', '+3 INF +2 ISN. Les troupes sont impressionnees.', true);
+}
+
+function doAugmenterImpots(augmenter) {
+  const pays = state.country || 'republic';
+  const delta = augmenter ? 5 : -5;
+  state.pop = Math.max(0, Math.min(100, state.pop - (augmenter ? 8 : -5)));
+  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, Math.min(100, INDICES_NATIONAUX[pays].IE + (augmenter ? 5 : -5)));
+  if (!state.tauxImposition) state.tauxImposition = 20;
+  state.tauxImposition = Math.max(5, Math.min(50, state.tauxImposition + delta));
+  updateUI();
+  showToast(augmenter ? 'Impots augmentes' : 'Impots baisses', 'Taux : ' + state.tauxImposition + '% ' + (augmenter ? '-8 POP +5 IE' : '+5 POP -5 IE'), augmenter ? false : true);
+  addExternalEvent('FINANCES : Taux d\'imposition fixe a ' + state.tauxImposition + '% par le Ministre des Finances.');
+}
+
+function doAutoriserManif() {
+  const pays = state.country || 'republic';
+  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.max(0, INDICES_NATIONAUX[pays].ISN - 5);
+  state.pop = Math.min(100, state.pop + 5);
+  updateUI();
+  showToast('Manifestation autorisee', '+5 POP -5 ISN.', true);
+}
+
+function doDissoudreAssemblee() {
+  state.pop = Math.max(0, state.pop - 10);
+  state.inf = Math.max(0, state.inf - 5);
+  const pays = state.country || 'republic';
+  if (INDICES_NATIONAUX?.[pays]) {
+    INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 5);
+    INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE - 5);
+  }
+  updateUI();
+  showToast('Assemblee dissoute !', 'Nouvelles elections declenchees. -10 POP -5 INF.', false);
+  addExternalEvent('DISSOLUTION : L\'Assemblee Nationale est dissoute. Nouvelles elections convoquees.');
+}
+
+function doGrevePNJ() {
+  const pays = state.country || 'republic';
+  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE - 5);
+  updateUI();
+  showToast('Greve declenchee', 'Les travailleurs cessent le travail. -5 IE.', false);
+  addExternalEvent('GREVE : Mouvement social en cours. Impact economique.');
+}
+
+function doRecruterMilitants() {
+  state.inf = Math.min(100, state.inf + 3);
+  updateUI();
+  showToast('Militants recrutes', '+3 INF. Votre base de soutien se renforce.', true);
+  addJournalEntry('Recrutement de militants effectue.', 'event-info');
+}
+
+function doActeOfficiel() {
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({ type:'document', name:'Acte officiel de la mairie', icon:'ti-file-certificate', legal:true });
+  updateUI();
+  showToast('Acte delivre', 'Acte officiel ajoute a votre inventaire.', true);
+}
+
+// =====================
+// SYSTEME DE BUDGET DES INSTITUTIONS
+// =====================
+const BUDGET_DEFAULT = {
+  presidence: { solde: 50000, coutOrdre: 500 },
+  min_int:    { solde: 30000, coutOrdre: 400 },
+  min_fin:    { solde: 25000, coutOrdre: 300 },
+  min_just:   { solde: 20000, coutOrdre: 350 },
+  min_def:    { solde: 40000, coutOrdre: 600 },
+  min_info:   { solde: 15000, coutOrdre: 250 },
+  min_ae:     { solde: 20000, coutOrdre: 300 },
+  assemblee:  { solde: 35000, coutOrdre: 200 },
+  tribunal:   { solde: 20000, coutOrdre: 400 },
+  commissariat:{ solde: 25000, coutOrdre: 350 },
+  mairie:     { solde: 30000, coutOrdre: 250 }
+};
+
+// Repartition par defaut (%) - modifiable par le Ministre des Finances
+const REPARTITION_DEFAULT = {
+  presidence: 15, min_int: 8, min_fin: 6, min_just: 6,
+  min_def: 10, min_info: 5, min_ae: 6,
+  assemblee: 8, tribunal: 6, commissariat: 8, mairie: 12, reserve: 10
+};
+
+function getBudgetInstitution(inst) {
+  if (!state.budgets) state.budgets = JSON.parse(JSON.stringify(BUDGET_DEFAULT));
+  if (!state.budgets[inst]) state.budgets[inst] = { solde: 10000, coutOrdre: 300 };
+  return state.budgets[inst];
+}
+
+function verifierBudgetInstitution(inst) {
+  const b = getBudgetInstitution(inst);
+  if (b.solde < b.coutOrdre) {
+    const noms = {
+      presidence:'la Presidence', min_fin:'le Ministere des Finances',
+      min_int:'le Ministere de l\'Interieur', mairie:'la Mairie'
+    };
+    showToast('Budget insuffisant',
+      'Le budget de ' + (noms[inst]||inst) + ' est insuffisant. Le Ministre des Finances doit revoir la repartition budgetaire.',
+      false);
+    return false;
+  }
+  b.solde -= b.coutOrdre;
+  return true;
+}
+
+function alimenterBudgets() {
+  // Appele a minuit - distribue les recettes fiscales
+  const pays = state.country || 'republic';
+  const pop = CITY_POPULATION?.[pays];
+  if (!pop) return;
+  let recettesTotales = 0;
+  Object.values(pop).forEach(ville => {
+    recettesTotales += ville.dailyTaxRevenue || 0;
+  });
+
+  const rep = state.repartitionBudget || REPARTITION_DEFAULT;
+  if (!state.budgets) state.budgets = JSON.parse(JSON.stringify(BUDGET_DEFAULT));
+
+  Object.keys(rep).forEach(inst => {
+    if (inst === 'reserve') return;
+    const montant = Math.floor(recettesTotales * (rep[inst] / 100));
+    if (state.budgets[inst]) {
+      state.budgets[inst].solde = Math.min(state.budgets[inst].solde + montant, 200000);
+    }
+  });
+
+  // Reserve
+  if (!state.reserve) state.reserve = 0;
+  state.reserve += Math.floor(recettesTotales * ((rep.reserve || 10) / 100));
+}
+
+function ouvrirGestionBudget() {
+  // Reserve au Ministre des Finances
+  const rep = state.repartitionBudget || { ...REPARTITION_DEFAULT };
+  const noms = {
+    presidence:'Presidence', min_int:'Min. Interieur', min_fin:'Min. Finances',
+    min_just:'Min. Justice', min_def:'Min. Defense', min_info:'Min. Information',
+    min_ae:'Min. AE', assemblee:'Assemblee', tribunal:'Tribunal',
+    commissariat:'Commissariat', mairie:'Mairie', reserve:'Reserve'
+  };
+
+  document.getElementById('postes-modal-title').textContent = 'Repartition budgetaire';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Fixez le pourcentage des recettes fiscales attribue a chaque institution. Total doit etre 100%.</div>';
+
+  let total = Object.values(rep).reduce((s, v) => s + v, 0);
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;color:' + (total === 100 ? '#4a8a4a' : '#cc4444') + ';margin-bottom:.6rem">TOTAL : ' + total + '% (doit etre 100%)</div>';
+
+  Object.keys(rep).forEach(inst => {
+    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">';
+    html += '<div style="font-size:.78rem;color:#c0b090;width:120px">' + (noms[inst]||inst) + '</div>';
+    html += '<input type="number" min="0" max="50" value="' + rep[inst] + '" id="budget-' + inst + '" onchange="majTotalBudget()" style="width:55px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.82rem;outline:none">';
+    html += '<span style="font-size:.72rem;color:#4a4030">%</span>';
+    if (state.budgets?.[inst]) html += '<span style="font-size:.68rem;color:#5a5040;margin-left:.3rem">Solde: ' + (state.budgets[inst].solde||0).toLocaleString('fr-FR') + ' FR</span>';
+    html += '</div>';
+  });
+
+  html += '<button onclick="validerRepartitionBudget()" style="margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la repartition</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function majTotalBudget() {
+  const rep = state.repartitionBudget || { ...REPARTITION_DEFAULT };
+  let total = 0;
+  Object.keys(rep).forEach(inst => {
+    const val = parseInt(document.getElementById('budget-' + inst)?.value || '0');
+    total += val;
+  });
+  // Mettre a jour l'affichage du total
+  document.getElementById('postes-modal-title').textContent = 'Repartition — Total : ' + total + '%';
+}
+
+function validerRepartitionBudget() {
+  const rep = state.repartitionBudget || { ...REPARTITION_DEFAULT };
+  let total = 0;
+  const newRep = {};
+  Object.keys(rep).forEach(inst => {
+    const val = parseInt(document.getElementById('budget-' + inst)?.value || '0');
+    newRep[inst] = val;
+    total += val;
+  });
+  if (total !== 100) {
+    showToast('Total incorrect', 'Le total doit etre exactement 100%. Actuel : ' + total + '%.', false);
+    return;
+  }
+  state.repartitionBudget = newRep;
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Repartition validee !', 'Les nouveaux taux s\'appliqueront a partir de minuit.', true, true);
+  addJournalEntry('Repartition budgetaire modifiee par le Ministre des Finances.', 'event-info');
+  addExternalEvent('FINANCES : Nouvelle repartition budgetaire fixee par le Ministre des Finances.');
 }
 
 function ouvrirRendreSentence() {
