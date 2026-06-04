@@ -131,6 +131,22 @@ function updateClock() {
   if (el) el.textContent = `Jour ${state.day} · ${h}h${m}`;
 }
 
+function advanceTime(pa) {
+  // Chaque PA consomme environ 30 minutes de temps de jeu
+  if (!TEST_MODE && pa > 0) {
+    state.minute = (state.minute || 0) + (pa * 30);
+    while (state.minute >= 60) {
+      state.minute -= 60;
+      state.hour = (state.hour + 1) % 24;
+      if (state.hour === 0) {
+        state.day = (state.day || 1) + 1;
+        state.midnightDone = false;
+      }
+    }
+    updateClock();
+  }
+}
+
 function checkMidnight() {
   if (state.hour === 0 && state.minute < 2) {
     if (!state.midnightDone) {
