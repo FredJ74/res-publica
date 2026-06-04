@@ -100,7 +100,7 @@ const WORLD = {
       desc:'Capitale de Republia. Centre du pouvoir politique, judiciaire et mediatique.',
       isCapitale: true,
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','terrain-a-batir-1']
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','terrain-a-batir-1']
     },
     ville_a: {
       name:'Port-Sainte-Marie',
@@ -234,7 +234,7 @@ const BUILDINGS = {
         desc: "Le grand hall du Palais. Gardes republicains en grande tenue. Portraits des presidents passes.",
         imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
         persons: [
-          {name:'Chef du Protocole (PNJ)', role:'PNJ - Chef du protocole presidentiel', rel:'neutral', job:'protocole'},
+          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Chef du protocole presidentiel', rel:'neutral', job:'protocole'},
           {name:'Garde Republicain (PNJ)', role:'PNJ - Securite presidentielle', rel:'neutral', job:'garde'}
         ],
         orders: [
@@ -248,7 +248,7 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president.png",
         locked: false,
         persons: [
-          {name:'Secretaire General (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general'}
+          {name:'Huguette Papier (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general'}
         ],
         orders: [
           {fn:'creer_poste_ministre',   label:'Creer un poste ministeriel',    pa:3, cost:0,    type:'legal',   icon:'ti-user-star',     successRate:100, requiresPost:'president', desc:'Creer un poste de ministre personnalise. Limite : 1 poste + 1 comite.'},
@@ -284,7 +284,7 @@ const BUILDINGS = {
         desc: "La somptueuse salle de reception du Palais. Receptions d'Etat, banquets diplomatiques.",
         imageUrl: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80",
         persons: [
-          {name:'Chef du Protocole (PNJ)', role:'PNJ - Organisation des evenements', rel:'neutral', job:'protocole'}
+          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Organisation des evenements', rel:'neutral', job:'protocole'}
         ],
         orders: [
           {fn:'reception_etat',    label:'Organiser une reception',  pa:2, cost:1000, type:'legal', icon:'ti-confetti',   successRate:100, requiresPost:'president', desc:'Reception officielle. +INF +POP +relations diplomatiques.'},
@@ -1407,7 +1407,7 @@ const BUILDINGS = {
         desc: "La salle d'interrogatoire. Lumiere crue, table metallique. Acces enqueteurs autorises.",
         imageUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&q=80",
         persons: [
-          {name:'Inspecteur Moreau (PNJ)', role:'PNJ - Inspecteur principal', rel:'neutral', job:'inspecteur'}
+          {name:'Inspecteur Raoul Toufaud (PNJ)', role:'PNJ - Inspecteur principal', rel:'neutral', job:'inspecteur'}
         ],
         orders: [
           {fn:'interroger',        label:'Interroger un detenu',        pa:2, cost:0,    type:'legal',   icon:'ti-message-circle', successRate:75, requiresPost:'commissaire', desc:'Obtenir des informations. +INF si succes.'},
@@ -1422,6 +1422,133 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'se_reposer',        label:'Prendre l\'air',              pa:0, cost:0,    type:'legal',   icon:'ti-walk',     successRate:100, desc:'+2 Moral. La seule liberte qui reste.'}
+        ]
+      }
+    }
+  }
+,
+
+  // ---- LIEUX DE CULTE ----
+
+  'tabernacle-impots': {
+    name: "Le Tabernacle des Impôts",
+    shortName: "Tabernacle",
+    cat: "Religion - Papyrusisme",
+    icon: "ti-building-church",
+    bgColor: "#0a0808",
+    desc: "Temple sacré du Papyrusisme. On y vénère le Formulaire Sacré en 12 exemplaires. L'odeur d'encre et de tampon encreur y est divine.",
+    rooms: {
+      nef_principale: {
+        name: "Nef des Formulaires",
+        imageBg: "linear-gradient(135deg,#0a0808,#150f0a)",
+        desc: "La grande nef où les fidèles remplissent leurs actes de foi administratifs. Des piles de formulaires s'élèvent jusqu'au plafond.",
+        imageUrl: "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=1200&q=80",
+        persons: [
+          {name:'Percepteur Suprême Adolphe Taxe (PNJ)', role:'Grand Prêtre du Papyrusisme', rel:'neutral', job:'grand_pretre'},
+          {name:'Enfant de chœur Timide (PNJ)', role:'PNJ - Distributeur de formulaires', rel:'neutral', job:'clerc'}
+        ],
+        orders: [
+          {fn:'prier',           label:'Prier le Formulaire Sacré',    pa:1, cost:0,   type:'legal', icon:'ti-star',      successRate:100, desc:'+3 IP +2 Moral. Remplir un formulaire en 12 exemplaires.'},
+          {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:100, desc:'Révèle des informations au Grand Prêtre. +5 Moral mais risque de fuite.'},
+          {fn:'faire_don',       label:'Faire un don a l\'Eglise',     pa:1, cost:200, type:'legal', icon:'ti-coins',     successRate:100, desc:'+5 IP +3 POP. Le Percepteur Suprême bénit votre don.'},
+          {fn:'demander_benediction', label:'Demander une bénédiction', pa:1, cost:0,  type:'legal', icon:'ti-sparkles',  successRate:80,  desc:'+5 à un ordre de votre choix pour 24h.'},
+          {fn:'pelerin',         label:'Se déclarer pèlerin',          pa:2, cost:0,   type:'legal', icon:'ti-walk',      successRate:100, desc:'+10 DIS pendant 1 jour. Accès facilité aux lieux saints des autres empires.'}
+        ]
+      },
+      sacristie: {
+        name: "Sacristie Administrative",
+        imageBg: "linear-gradient(135deg,#080808,#100a08)",
+        desc: "La pièce secrète du Grand Prêtre. Archives des confessions. Formulaires rares et tampons bénis.",
+        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+        persons: [
+          {name:'Percepteur Suprême Adolphe Taxe (PNJ)', role:'Grand Prêtre du Papyrusisme', rel:'neutral', job:'grand_pretre'}
+        ],
+        orders: [
+          {fn:'excommunier',      label:'Excommunier un fidèle',       pa:3, cost:0,   type:'legal', icon:'ti-ban',       successRate:75, requiresPost:'grand_pretre', desc:'Cible perd -15 IP -10 POP dans l\'empire. Acte irréversible.'},
+          {fn:'benediction_etat', label:'Bénir un acte d\'Etat',      pa:2, cost:0,   type:'legal', icon:'ti-crown',     successRate:100, requiresPost:'grand_pretre', desc:'+10 IP national. +5 popularité du chef d\'Etat.'},
+          {fn:'consulter_confessions', label:'Consulter les confessions', pa:2, cost:0, type:'grey', icon:'ti-eye',      successRate:85, requiresPost:'grand_pretre', desc:'Révèle les derniers secrets confiés par les fidèles.'}
+        ]
+      }
+    }
+  },
+
+  'laboratoire-priere': {
+    name: "Le Laboratoire de Prière",
+    shortName: "Labo de Prière",
+    cat: "Religion - Cocaïsme",
+    icon: "ti-building-church",
+    bgColor: "#080a05",
+    desc: "Temple sacré du Cocaïsme à El Estado. On y vénère la Feuille Sacrée. L'ambiance y est... très énergique.",
+    rooms: {
+      salle_communion: {
+        name: "Salle de Communion",
+        imageBg: "linear-gradient(135deg,#080a05,#0f1208)",
+        desc: "La salle principale du culte. Les fidèles communient dans une atmosphère très animée.",
+        imageUrl: "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=1200&q=80",
+        persons: [
+          {name:'Padre Cocaïno (PNJ)', role:'Grand Prêtre du Cocaïsme', rel:'neutral', job:'grand_pretre'},
+          {name:'Hermano Poudre (PNJ)', role:'PNJ - Enfant de chœur très énergique', rel:'neutral', job:'clerc'}
+        ],
+        orders: [
+          {fn:'prier',           label:'Communier avec la Feuille',    pa:1, cost:0,   type:'legal', icon:'ti-star',      successRate:100, desc:'+3 IP +2 Moral. Attention aux effets secondaires.'},
+          {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:100, desc:'+5 Moral. Le Padre sait tout.'},
+          {fn:'faire_don',       label:'Faire une offrande',           pa:1, cost:200, type:'legal', icon:'ti-coins',     successRate:100, desc:'+5 IP +3 POP.'},
+          {fn:'pelerin',         label:'Se déclarer pèlerin',          pa:2, cost:0,   type:'legal', icon:'ti-walk',      successRate:100, desc:'+10 DIS pendant 1 jour.'}
+        ]
+      }
+    }
+  },
+
+  'kolkhoze-spirituel': {
+    name: "Le Kolkhoze Spirituel",
+    shortName: "Kolkhoze Spirituel",
+    cat: "Religion - Tractorisme",
+    icon: "ti-building-church",
+    bgColor: "#080808",
+    desc: "Temple sacré du Tractorisme à Sovarka. On y vénère le Tracteur Collectif. Les hymnes à la production résonnent en permanence.",
+    rooms: {
+      grange_sainte: {
+        name: "La Grange Sainte",
+        imageBg: "linear-gradient(135deg,#080808,#0f0f08)",
+        desc: "La grange principale du culte. Un tracteur trône au centre, entouré de bougies.",
+        imageUrl: "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=1200&q=80",
+        persons: [
+          {name:'Camarade Pontife Tractorenko (PNJ)', role:'Grand Prêtre du Tractorisme', rel:'neutral', job:'grand_pretre'},
+          {name:'Frère Kolkhoze (PNJ)', role:'PNJ - Enfant de chœur laborieux', rel:'neutral', job:'clerc'}
+        ],
+        orders: [
+          {fn:'prier',           label:'Chanter l\'hymne au Tracteur', pa:1, cost:0,   type:'legal', icon:'ti-star',      successRate:100, desc:'+3 IP +2 Moral. Glorifier la production collective.'},
+          {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:100, desc:'+5 Moral. Avouer ses propriétés privées.'},
+          {fn:'faire_don',       label:'Donner au Kolkhoze',           pa:1, cost:200, type:'legal', icon:'ti-coins',     successRate:100, desc:'+5 IP +3 POP.'},
+          {fn:'pelerin',         label:'Se déclarer pèlerin',          pa:2, cost:0,   type:'legal', icon:'ti-walk',      successRate:100, desc:'+10 DIS pendant 1 jour.'}
+        ]
+      }
+    }
+  },
+
+  'patisserie-sacree': {
+    name: "La Pâtisserie Sacrée",
+    shortName: "Pâtisserie Sacrée",
+    cat: "Religion - Loukoumisme",
+    icon: "ti-building-church",
+    bgColor: "#0a0808",
+    desc: "Temple sacré du Loukoumisme à Al-Khalija. On y vénère le Loukoum Divin. L'odeur de rose et de pistache y est envoûtante.",
+    rooms: {
+      salle_degustation: {
+        name: "Salle de Dégustation Divine",
+        imageBg: "linear-gradient(135deg,#0a0808,#150f08)",
+        desc: "La salle principale du culte. Des plateaux de loukoums s'étendent à perte de vue.",
+        imageUrl: "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=1200&q=80",
+        persons: [
+          {name:'Grand Confiseur Abdul Loukoum (PNJ)', role:'Grand Prêtre du Loukoumisme', rel:'neutral', job:'grand_pretre'},
+          {name:'Novice Baklava (PNJ)', role:'PNJ - Enfant de chœur en formation', rel:'neutral', job:'clerc'}
+        ],
+        orders: [
+          {fn:'prier',           label:'Communier avec le Loukoum',    pa:1, cost:0,   type:'legal', icon:'ti-star',      successRate:100, desc:'+3 IP +2 Moral. Goût pistache ou rose au choix.'},
+          {fn:'se_confesser',    label:'Se confesser',                  pa:2, cost:0,   type:'legal', icon:'ti-message',   successRate:100, desc:'+5 Moral. Le Grand Confiseur garde vos secrets... la plupart du temps.'},
+          {fn:'faire_don',       label:'Offrir des loukoums',          pa:1, cost:200, type:'legal', icon:'ti-coins',     successRate:100, desc:'+5 IP +3 POP. Péché mortel de refuser un loukoum.'},
+          {fn:'pelerin',         label:'Se déclarer pèlerin',          pa:2, cost:0,   type:'legal', icon:'ti-walk',      successRate:100, desc:'+10 DIS pendant 1 jour.'},
+          {fn:'acheter_relique', label:'Acheter une relique du Loukoum',pa:1, cost:500, type:'legal', icon:'ti-package',  successRate:100, desc:'Objet rare. +10 IP. Accès facilité aux zones réservées Al-Khalija.'}
         ]
       }
     }
@@ -1564,7 +1691,7 @@ const CITY_POPULATION = {
   }
 };
 
-// Salaires journaliers par poste (verses lors de l'ordre Dormir)
+// Salaires journaliers par poste (verses lors de l\'ordre Dormir)
 const SALAIRES = {
   president:   5000,
   pm:          3500,
@@ -1751,3 +1878,44 @@ Object.assign(ORDER_EFFECTS, {
   nationaliser_entreprise:{successRate:80},
   jour_deuil:         {pop:5,successRate:100}
 });
+
+// =====================
+// INDICE DE PIETE (IP)
+// =====================
+if (typeof INDICES_NATIONAUX !== 'undefined') {
+  Object.keys(INDICES_NATIONAUX).forEach(pays => {
+    if (!INDICES_NATIONAUX[pays].IP) INDICES_NATIONAUX[pays].IP = 40;
+  });
+}
+
+// =====================
+// OBJETS HUMORISTIQUES
+// =====================
+const OBJETS_SPECIAUX = [
+  { id:'formulaire_2847', name:'Formulaire 2847-B tamponné', icon:'ti-file-certificate', legal:true, effet:'admin+20', desc:'Augmente de 20% la réussite des ordres administratifs. En triple exemplaire.', lieu:'Mairie' },
+  { id:'loukoum_contrebande', name:'Loukoum de contrebande (pistache)', icon:'ti-package', legal:false, effet:'moral+5,dis-5', desc:'+5 Moral. -5 DIS. Goût suspect mais irrésistible.', lieu:'Bar des Pêcheurs, Marché noir' },
+  { id:'photo_compromettante', name:'Photo compromettante (sujet flou)', icon:'ti-camera', legal:false, effet:'chantage', desc:'Permet l\'ordre Chantage sur n\'importe quel PJ. Sujet identifiable malgré le flou artistique.', lieu:'La Tribune' },
+  { id:'medaille_merite', name:'Médaille du Mérite Administratif', icon:'ti-award', legal:true, effet:'inf+10_audience', desc:'+10 INF lors des audiences officielles. Bruit de cliquetis à chaque pas.', lieu:'Décernée par le Président' },
+  { id:'mallette_diplo', name:'Mallette diplomatique', icon:'ti-briefcase', legal:true, effet:'mae+15', desc:'+15% réussite ordres MAE. Fermée à double tour. Contenu mystérieux.', lieu:'Banque Privée Helvetia' },
+  { id:'faux_nez', name:'Faux nez et moustache (kit complet)', icon:'ti-mood-happy', legal:true, effet:'dis+15', desc:'+15 DIS pendant 24h. Discrétion garantie... ou presque.', lieu:'Marché Central' },
+  { id:'champagne_parlement', name:'Bouteille de Champagne Parlementaire', icon:'ti-bottle', legal:true, effet:'moral+8_groupe', desc:'+8 Moral pour tout le groupe. À consommer avant le vote.', lieu:'Hôtel-Restaurant La Républia' },
+  { id:'carnet_contacts', name:'Carnet de contacts froissé', icon:'ti-address-book', legal:true, effet:'contact_aleatoire', desc:'Révèle un contact aléatoire. Certaines pages sont tachées de café.', lieu:'Loge Maçonnique' },
+  { id:'tracteur_miniature', name:'Tracteur miniature (souvenir)', icon:'ti-tractor', legal:true, effet:'pop+5_sovarka', desc:'+5 popularité à Sovarka. Vendu à la boutique du Kolkhoze.', lieu:'Marché de Novomirsk' },
+  { id:'relique_loukoum', name:'Relique du Loukoum Sacré', icon:'ti-star', legal:true, effet:'ip+10', desc:'+10 IP. Accès facilité aux zones réservées d\'Al-Khalija.', lieu:'Pâtisserie Sacrée' }
+];
+
+// =====================
+// SCANDALES PREDEFINIS
+// =====================
+const SCANDALES_PREDEFINIS = [
+  "Le Ministre des Finances a été surpris à frauder sa propre déclaration d'impôts. Il invoque 'une erreur de formulaire en triple exemplaire'.",
+  "Le Premier Ministre a été aperçu au Laboratoire de Prière d'El Estado. Il parle d'un 'voyage diplomatique culturel intensif'.",
+  "Le Président refuse de signer un décret car il manque le tampon numéro 7. Le pays est paralysé depuis 48 heures.",
+  "Le Grand Prêtre du Papyrusisme a été surpris sans ses formulaires. Le Tabernacle est en état de choc.",
+  "Un député s'est endormi pendant le vote d\'une loi et a voté Pour et Contre simultanément. La loi est en suspens.",
+  "Le Commissaire Raoul Toufaud a perdu ses menottes. Il s'est menotté lui-même par erreur en cherchant à les retrouver.",
+  "Le Ministre de l'Information a censuré son propre communiqué de presse par inadvertance.",
+  "Un loukoum contaminé sème la panique à Al-Khalija. Le Grand Confiseur Abdul Loukoum est introuvable.",
+  "Le Camarade Pontife Tractorenko a béni un tracteur privé par erreur. L'hérésie est totale.",
+  "Le Juge Honoré Cozetoujours a condamné son propre greffier avant d'entendre l'affaire. Il 'assume pleinement'."
+];

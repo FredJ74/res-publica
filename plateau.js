@@ -168,6 +168,7 @@ function runMidnightUpdate() {
   mettreAJourBudgets();
   mettreAJourPopulation();
   alimenterBudgets();
+  checkScandale();
   // Revenus fiscaux
   const pop = CITY_POPULATION[state.country]?.[state.currentCity];
   if (pop) {
@@ -500,7 +501,23 @@ function renderRoomActions(room, buildingId, roomId) {
 
     let onclickFn = '';
     if (needsPost) {
-      onclickFn = 'showPostRequired()';
+      // Message explicatif avec le poste requis
+      const postesNoms = {
+        president: 'Président de la République',
+        pm: 'Premier Ministre',
+        depute: 'Député',
+        juge: 'Juge',
+        magistrat: 'Magistrat',
+        commissaire: 'Commissaire',
+        min_int: "Ministre de l'Intérieur",
+        min_fin: 'Ministre des Finances',
+        min_just: 'Ministre de la Justice',
+        min_def: 'Ministre de la Défense',
+        min_info: "Ministre de l'Information",
+        min_ae: 'Ministre des AE'
+      };
+      const posteRequisNom = o.requiresPost === true ? 'un poste institutionnel' : (postesNoms[o.requiresPost] || o.requiresPost);
+      onclickFn = 'showPostRequired(' + JSON.stringify(posteRequisNom) + ')';
     } else if (o.fn === 'plainte_police') {
       onclickFn = 'openPlainteModal()';
     } else if (o.fn === 'gerer_finances') {
@@ -585,6 +602,16 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
   if (fn === 'negocier_paix')        { ouvrirModalEmpireCible('negocier_paix', 'Negocier un accord de paix avec'); return; }
+  if (fn === 'prier')                { doPrier(); return; }
+  if (fn === 'se_confesser')         { doSeConfeser(); return; }
+  if (fn === 'faire_don')            { doFaireDon(cost); return; }
+  if (fn === 'demander_benediction') { doDemanderBenediction(); return; }
+  if (fn === 'pelerin')              { doPelerin(); return; }
+  if (fn === 'excommunier')          { ouvrirModalCibleRepertoire('excommunier', 'Excommunier'); return; }
+  if (fn === 'benediction_etat')     { doBenedictionEtat(); return; }
+  if (fn === 'consulter_confessions'){ doConsulterConfessions(); return; }
+  if (fn === 'acheter_relique')      { doAcheterRelique(); return; }
+  if (fn === 'scanner_aleatoire')    { declencherScandale(); return; }
   if (fn === 'accord_diplomatique')  { ouvrirModalEmpireCible('accord_diplomatique', 'Ouvrir des negociations avec'); return; }
   if (fn === 'produire_fuite')       { ouvrirProduireFuite(); return; }
   if (fn === 'fabriquer_scandale')   { ouvrirFabrquerScandale(); return; }
@@ -2490,8 +2517,11 @@ function addMailNotification(from, subject, body) {
   if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'inline' : 'none'; }
 }
 
-function showPostRequired() {
-  showToast('Poste requis', 'Vous devez occuper un poste institutionnel pour acceder a cet ordre.', false);
+function showPostRequired(posteNom) {
+  const msg = posteNom
+    ? 'Cet ordre est réservé au ' + posteNom + '. Postez votre candidature au Palais du Gouvernement.'
+    : 'Vous devez occuper un poste institutionnel pour accéder à cet ordre.';
+  showToast('Accès restreint', msg, false);
 }
 
 // =====================
@@ -2727,6 +2757,31 @@ LE FORUM — Accessible depuis le bouton "Forum" en haut. C'est l'espace de comm
 • Forum Gouvernemental — Réservé au gouvernement (Président + ministres)
 • Forum Syndical — Réservé aux syndicalistes
 Pour créer un sujet : bouton "Nouveau sujet". Pour répondre : bouton "Répondre" dans le sujet. L'éditeur permet la mise en forme (gras, souligné, centrage) et l'insertion d'images. Les sujets créés sont visibles de tous les membres du forum concerné.`
+  },
+  religion: {
+    titre: 'Les Religions',
+    contenu: `Chaque empire possède sa propre religion officielle, source de cohésion sociale et de pouvoir politique.
+
+LES 4 RELIGIONS :
+• Républia → Le Papyrusisme — Vénération du Formulaire Sacré en 12 exemplaires. Grand Prêtre : le Percepteur Suprême. Temple : le Tabernacle des Impôts. Péché mortel : rendre un formulaire incomplet.
+
+• El Estado → Le Cocaïsme — Culte de la Feuille Sacrée. Grand Prêtre : le Parrain Céleste. Temple : le Laboratoire de Prière. Communion quotidienne obligatoire.
+
+• Sovarka → Le Tractorisme — Vénération du Tracteur Collectif. Grand Prêtre : le Camarade Pontife. Temple : le Kolkhoze Spirituel. Hérésie suprême : le tracteur privé.
+
+• Al-Khalija → Le Loukoumisme — Vénération du Loukoum Divin. Grand Prêtre : le Grand Confiseur. Temple : la Pâtisserie Sacrée. Péché mortel : refuser un loukoum offert.
+
+INDICE DE PIÉTÉ (IP) :
+Chaque empire a un Indice de Piété (0-100). Plus il est élevé, plus la religion est influente. Il impacte l'Indice Social, la popularité des élus et l'ordre public.
+
+LIEUX DE CULTE :
+Chaque empire possède un lieu de culte accessible à tous. On peut y prier (+IP +Moral), se confesser (+Moral, mais le prêtre sait tout), faire des dons (+IP +POP), ou se déclarer pèlerin (+DIS).
+
+CONFESSION :
+Attention ! Tout ce que vous confiez au Grand Prêtre peut être consulté par le chef d'État. Choisissez vos aveux avec soin.
+
+LE CHEF D'ÉTAT ET LA RELIGION :
+Le Président peut nommer le Grand Prêtre depuis son bureau. Il peut aussi décréter des jours saints (impact IP et IS).`
   },
   economie: {
     titre: "L'économie",
@@ -3505,7 +3560,7 @@ function ouvrirIndicesImperiaux() {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
     html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:' + emp.col + ';margin-bottom:.5rem">' + emp.name + '</div>';
     html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem">';
-    [['ISN','Securite','#4a8a4a'],['IE','Eco','#C9A84C'],['ID','Diplo','#4a6aaa'],['IS','Social','#aa6a4a']].forEach(([k,label,col]) => {
+    [['ISN','Securite','#4a8a4a'],['IE','Eco','#C9A84C'],['ID','Diplo','#4a6aaa'],['IS','Social','#aa6a4a'],['IP','Piété','#8a4a8a']].forEach(([k,label,col]) => {
       const val = idx[k] || 0;
       html += '<div style="text-align:center;padding:.3rem;background:#0a0805;border:1px solid #1a1810">';
       html += '<div style="font-size:.58rem;color:#4a4030">' + label + '</div>';
@@ -4279,6 +4334,151 @@ function validerRepartitionBudget() {
   showToast('Repartition validee !', 'Les nouveaux taux s\'appliqueront a partir de minuit.', true, true);
   addJournalEntry('Repartition budgetaire modifiee par le Ministre des Finances.', 'event-info');
   addExternalEvent('FINANCES : Nouvelle repartition budgetaire fixee par le Ministre des Finances.');
+}
+
+// =====================
+// SYSTEME RELIGIEUX
+// =====================
+function getIP() {
+  const pays = state.country || 'republic';
+  if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
+    if (!INDICES_NATIONAUX[pays].IP) INDICES_NATIONAUX[pays].IP = 40;
+    return INDICES_NATIONAUX[pays].IP;
+  }
+  return 40;
+}
+
+function modifierIP(delta) {
+  const pays = state.country || 'republic';
+  if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
+    INDICES_NATIONAUX[pays].IP = Math.max(0, Math.min(100, (INDICES_NATIONAUX[pays].IP || 40) + delta));
+  }
+}
+
+const RELIGIONS = {
+  republic: { nom: 'Papyrusisme', grandPretre: 'Percepteur Suprême', temple: 'Tabernacle des Impôts', peche: 'rendre un formulaire incomplet' },
+  narco:    { nom: 'Cocaïsme',   grandPretre: 'Parrain Céleste',     temple: 'Laboratoire de Prière', peche: 'refuser la communion' },
+  soviet:   { nom: 'Tractorisme',grandPretre: 'Camarade Pontife',    temple: 'Kolkhoze Spirituel',    peche: 'posséder un tracteur privé' },
+  khalija:  { nom: 'Loukoumisme',grandPretre: 'Grand Confiseur',     temple: 'Pâtisserie Sacrée',     peche: 'refuser un loukoum offert' }
+};
+
+function doPrier() {
+  const pays = state.country || 'republic';
+  const religion = RELIGIONS[pays];
+  modifierIP(3);
+  state.moral = Math.min(100, state.moral + 2);
+  updateUI();
+  const msgs = {
+    republic: 'Vous remplissez un formulaire en 12 exemplaires. La grâce administrative vous envahit. +3 IP +2 Moral.',
+    narco:    'Vous communiez avec la Feuille Sacrée. Vous vous sentez soudainement très... éveillé. +3 IP +2 Moral.',
+    soviet:   'Vous chantez l\'hymne au Tracteur Collectif. Vos camarades vous applaudissent. +3 IP +2 Moral.',
+    khalija:  'Vous dégustez un loukoum divin. Goût pistache. C\'est une révélation. +3 IP +2 Moral.'
+  };
+  showToast('Prière accomplie', msgs[pays] || '+3 IP +2 Moral', true);
+  addJournalEntry('Prière au ' + (religion?.temple || 'temple'), 'event-info');
+}
+
+function doSeConfeser() {
+  const pays = state.country || 'republic';
+  const religion = RELIGIONS[pays];
+  state.moral = Math.min(100, state.moral + 5);
+  updateUI();
+  // Le pretre apprend des informations (simulation)
+  const secrets = [
+    'Vous avouez avoir corrompu un fonctionnaire. Le ' + religion?.grandPretre + ' note soigneusement.',
+    'Vous confessez vos activités illégales. Le ' + religion?.grandPretre + ' hoche la tête d\'un air entendu.',
+    'Vous révélez vos plans politiques secrets. "Intéressant", dit le ' + religion?.grandPretre + '.',
+    'Vous avouez n\'avoir jamais rempli tous vos formulaires. Le ' + religion?.grandPretre + ' est scandalisé.'
+  ];
+  const secret = secrets[Math.floor(Math.random() * secrets.length)];
+  showToast('Confession', secret + ' +5 Moral.', true);
+  addJournalEntry('Confession au ' + (religion?.temple || 'temple') + '. +5 Moral.', 'event-info');
+  // Risque de fuite (20%)
+  if (Math.random() < 0.2) {
+    setTimeout(() => addExternalEvent('RUMEUR : Des confidences faites au ' + (religion?.temple||'temple') + ' auraient été divulguées...'), 2000);
+  }
+}
+
+function doFaireDon(cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (!verifierBudgetInstitution('presidence')) {
+    if (state.arg < (cost || 200)) { showToast('Fonds insuffisants', '', false); return; }
+    state.arg -= (cost || 200);
+  }
+  modifierIP(5);
+  state.pop = Math.min(100, state.pop + 3);
+  updateUI();
+  showToast('Don effectué', '+5 IP +3 POP. Le ' + (RELIGIONS[state.country]?.grandPretre||'Grand Prêtre') + ' vous bénit.', true);
+}
+
+function doDemanderBenediction() {
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= 80) {
+    if (!state.benediction) state.benediction = {};
+    state.benediction.actif = true;
+    state.benediction.expire = state.day + 1;
+    showToast('Béni !', 'Vous bénéficiez d\'un bonus de +5% sur votre prochain ordre pendant 24h.', true, true);
+    addJournalEntry('Bénédiction reçue. +5% prochain ordre.', 'event-good');
+  } else {
+    showToast('Pas de réponse', 'Le Très-Haut est occupé. Revenez demain.', false);
+  }
+}
+
+function doPelerin() {
+  state.dis = Math.min(100, state.dis + 10);
+  if (!state.pelerinExpire) state.pelerinExpire = state.day + 1;
+  updateUI();
+  showToast('Pèlerin déclaré', '+10 DIS pendant 24h. Accès facilité aux lieux saints des autres empires.', true);
+  addJournalEntry('Statut de pèlerin déclaré.', 'event-info');
+}
+
+function doBenedictionEtat() {
+  modifierIP(10);
+  state.pop = Math.min(100, state.pop + 5);
+  updateUI();
+  showToast('Bénédiction d\'État', '+10 IP national. +5 POP pour le chef d\'État.', true, true);
+  addExternalEvent('RELIGION : Un acte d\'État a reçu la bénédiction du ' + (RELIGIONS[state.country]?.grandPretre||'Grand Prêtre') + '.');
+}
+
+function doConsulterConfessions() {
+  const confessions = [
+    'Un haut fonctionnaire a avoué détourner des fonds depuis 3 ans.',
+    'Un ministre a confessé ses contacts avec un empire étranger.',
+    'Un député a avoué avoir vendu son vote lors du dernier scrutin.',
+    'Un officier de police a confessé avoir falsifié des preuves.'
+  ];
+  const secret = confessions[Math.floor(Math.random() * confessions.length)];
+  state.inf = Math.min(100, state.inf + 8);
+  updateUI();
+  document.getElementById('postes-modal-title').textContent = 'Archives des Confessions';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem"><div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7">"' + secret + '"</div><div style="font-size:.7rem;color:#4a4030;margin-top:.6rem">Source : confessions scellées · +8 INF</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function doAcheterRelique() {
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({ type:'relique', name:'Relique du Loukoum Sacré', icon:'ti-star', legal:true, effet:'ip+10', desc:'Accès facilité aux zones réservées d\'Al-Khalija.' });
+  modifierIP(10);
+  state.arg -= 500;
+  updateUI();
+  showToast('Relique acquise !', 'Relique du Loukoum Sacré ajoutée à votre inventaire. +10 IP.', true, true);
+}
+
+// =====================
+// SCANDALES ALEATOIRES
+// =====================
+function declencherScandale() {
+  if (typeof SCANDALES_PREDEFINIS === 'undefined' || SCANDALES_PREDEFINIS.length === 0) return;
+  const scandale = SCANDALES_PREDEFINIS[Math.floor(Math.random() * SCANDALES_PREDEFINIS.length)];
+  addExternalEvent('🔴 SCANDALE : ' + scandale);
+  showToast('Scandale !', scandale.substring(0, 80) + '...', false);
+}
+
+// Declencher un scandale aleatoire de temps en temps (a minuit, 15% de chance)
+function checkScandale() {
+  if (Math.random() < 0.15) {
+    declencherScandale();
+  }
 }
 
 function ouvrirRendreSentence() {
