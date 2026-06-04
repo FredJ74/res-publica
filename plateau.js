@@ -29,12 +29,24 @@ window.addEventListener('DOMContentLoaded', () => {
   loadCharacter();
   buildCityTabs();
   if (!state.currentCity) state.currentCity = 'capitale';
-  renderMinimap('capitale');
+  renderMinimap(state.currentCity);
   updateUI();
   updateLocationDisplay();
   startClock();
-  // Fix: afficher image de rue des le chargement
-  setTimeout(() => { travelToCity(state.currentCity || 'capitale'); }, 100);
+  // Forcer l'affichage de l'image de rue apres chargement complet
+  setTimeout(() => {
+    travelToCity(state.currentCity || 'capitale');
+    // Double securite : forcer l'image directement
+    const world = WORLD[state.country || 'republic'];
+    const city = world?.[state.currentCity || 'capitale'];
+    if (city?.imageUrl) {
+      const rueImage = document.getElementById('rue-image');
+      if (rueImage) {
+        rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%), url('${city.imageUrl}') center/cover no-repeat`;
+        rueImage.style.backgroundSize = 'cover';
+      }
+    }
+  }, 300);
 });
 
 function loadCharacter() {
@@ -966,7 +978,7 @@ function openMarchanderVoteModal() {
   }
   const bonusInf = Math.floor((state.inf / 100) * 10);
   const tauxFinal = Math.min(90, 40 + bonusInf);
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Marchander un vote';
+  document.getElementById('postes-modal-title').textContent = 'Marchander un vote';
   let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux : ' + tauxFinal + '% (base 40% + ' + bonusInf + '% INF). Cout : 200 FR + 1 PA si succes.</div>';
   votes.forEach(function(v, i) {
     html += '<div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">';
@@ -1139,7 +1151,7 @@ function openPlainteModal() {
     </div>
   `;
 
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Porter plainte';
+  document.getElementById('postes-modal-title').textContent = 'Porter plainte';
   document.getElementById('postes-body').innerHTML = modalHtml;
   document.getElementById('modal-postes').classList.add('open');
 }
@@ -1271,7 +1283,7 @@ function openRumeurModal() {
     showToast('Repertoire vide', 'Vous n\'avez personne dans votre repertoire. Rencontrez d\'abord des personnages.', false);
     return;
   }
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Lancer une rumeur';
+  document.getElementById('postes-modal-title').textContent = 'Lancer une rumeur';
   document.getElementById('postes-body').innerHTML = `
     <div style="padding:1rem">
       <div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">
@@ -1338,7 +1350,7 @@ function ouvrirModalAssassinat(encodedCible) {
   const tauxArme  = Math.min(75, 40 + Math.floor(dup * 1.2));
   const tauxFeu   = Math.min(85, 60 + Math.floor(per * 1.0));
 
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Assassiner — ' + cible.name;
+  document.getElementById('postes-modal-title').textContent = 'Assassiner — ' + cible.name;
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.82rem;color:#cc4444;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0505;border:1px solid #3a1010">Acte criminel. Peine : 7 jours QHS si echec. 15 jours si decouvert ulterieurement.</div>';
 
@@ -1431,7 +1443,7 @@ function getSimulesPresents() {
 
 function ouvrirPanneauSimulation() {
   if (!state.pjSimules) initSimulation();
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Joueurs Simules — Mode Test';
+  document.getElementById('postes-modal-title').textContent = 'Joueurs Simules — Mode Test';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic;margin-bottom:.8rem;padding:.5rem;background:#0a0805;border:1px solid #1a1810">Mode simulation actif. Ces PJ fictifs permettent de tester les interactions multijoueur.</div>';
 
@@ -1564,7 +1576,7 @@ function mettreAJourPopulation() {
 function ouvrirModalImprimerTracts() {
   const contacts = state.contacts || [];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Faire imprimer des tracts';
+  document.getElementById('postes-modal-title').textContent = 'Faire imprimer des tracts';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">150 ' + cur + ' par lot de 10 tracts.</div>';
 
@@ -1655,7 +1667,7 @@ function donnerTracts(pjName) {
     showToast('Aucun tract', 'Vous n\'avez pas de tracts en inventaire.', false);
     return;
   }
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Donner des tracts a ' + pjName;
+  document.getElementById('postes-modal-title').textContent = 'Donner des tracts a ' + pjName;
   let html = '<div style="padding:1rem">';
   tracts.forEach((t, idx) => {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
@@ -1770,7 +1782,7 @@ function openNominerModal() {
   const ministeres = ['min_int','min_fin','min_just','min_def','min_info','min_ae'];
   const noms = { min_int:"Ministre de l'Interieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Defense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
 
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Nommer un ministre';
+  document.getElementById('postes-modal-title').textContent = 'Nommer un ministre';
   let html = '<div style="padding:1rem">';
   if (contacts.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Votre repertoire est vide. Enregistrez d\'abord des contacts.</div>';
@@ -1807,7 +1819,7 @@ function validerNomination() {
 }
 
 function openCandidatureModal() {
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Deposer une candidature';
+  document.getElementById('postes-modal-title').textContent = 'Deposer une candidature';
   const elections = state.electionsEnCours || [];
   document.getElementById('postes-body').innerHTML = `
     <div style="padding:1rem">
@@ -1846,7 +1858,7 @@ function confirmerCandidature(electionId) {
 }
 
 function openElectionsModal() {
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Elections en cours';
+  document.getElementById('postes-modal-title').textContent = 'Elections en cours';
 
   // Initialiser des elections de demo si aucune
   if (!state.electionsEnCours || state.electionsEnCours.length === 0) {
@@ -1928,7 +1940,7 @@ function voterElection(electionId) {
 
   // Afficher la liste des candidats pour voter
   document.getElementById('modal-postes').classList.remove('open');
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Voter — ' + election.nom;
+  document.getElementById('postes-modal-title').textContent = 'Voter — ' + election.nom;
   let html = '<div style="padding:1rem"><div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Vous ne pouvez voter qu\'une seule fois.</div>';
   election.candidats.forEach((c, i) => {
     html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .2s" onclick="confirmerVote(\'' + electionId + '\',' + i + ')" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
@@ -2943,7 +2955,7 @@ function checkArrestationAuReveil() {
 
 function ouvrirModalArrestation(peineType) {
   const peine = PEINES[peineType] || PEINES.delit_mineur;
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Interception policiere !';
+  document.getElementById('postes-modal-title').textContent = 'Interception policiere !';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
     '<div style="font-size:.88rem;color:#cc4444;font-family:Playfair Display,serif;margin-bottom:1rem">Des policiers vous barrent la route. Chef d\'inculpation : ' + peine.label + '.</div>' +
@@ -3192,7 +3204,7 @@ function ouvrirModalGuerreEmpire() {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== (state.country || 'republic'));
   const guerresActives = state.guerres || [];
 
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Déclarer la guerre';
+  document.getElementById('postes-modal-title').textContent = 'Déclarer la guerre';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">-20 POP +10 INF · Nation : -20 ID +15 ISN. Irréversible sans cessez-le-feu.</div>';
 
@@ -3341,7 +3353,7 @@ async function ecouterRumeurs() {
     const data = await resp.json();
     const rumeur = data.content?.[0]?.text || 'Rien d\'intéressant à rapporter aujourd\'hui.';
 
-    document.getElementById('modal-postes').querySelector('.modal-title').textContent = source + ' vous glisse à l\'oreille...';
+    document.getElementById('postes-modal-title').textContent = source + ' vous glisse à l\'oreille...';
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1.2rem">' +
       '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + rumeur + '"</div>' +
@@ -3426,7 +3438,7 @@ function observerDebats() {
   const positions = ['Pour', 'Contre', 'Abstention'];
   const loisEnCours = state.loisEnCours || [];
 
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Observer les debats';
+  document.getElementById('postes-modal-title').textContent = 'Observer les debats';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Vous observez discretement les echanges dans la salle.</div>';
 
@@ -3463,7 +3475,7 @@ function ouvrirVoteLoi() {
   const isBeforeDeadline = now.getHours() < 20;
   const loisEnCours = (state.loisEnCours || []).filter(l => l.pret);
 
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Voter une loi';
+  document.getElementById('postes-modal-title').textContent = 'Voter une loi';
   let html = '<div style="padding:1rem">';
 
   if (!isWednesday || !isBeforeDeadline) {
@@ -3508,7 +3520,7 @@ function enregistrerVoteLoi(loiIdx, choix) {
 
 function ouvrirArchivesLois() {
   const archives = state.archivesLois || [];
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Archives de l\'Assemblee';
+  document.getElementById('postes-modal-title').textContent = 'Archives de l\'Assemblee';
   let html = '<div style="padding:1rem">';
   if (archives.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune loi votee pour le moment.</div>';
@@ -3532,7 +3544,7 @@ function ouvrirArchivesLois() {
 function ouvrirDetailLoi(idx) {
   const loi = (state.archivesLois||[])[idx];
   if (!loi) return;
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = loi.titre;
+  document.getElementById('postes-modal-title').textContent = loi.titre;
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.6rem">Depose par ' + loi.auteur + ' · Vote Jour ' + loi.jourVote + '</div>';
   const col = loi.resultat === 'Adoptee' ? '#4a8a4a' : '#8a2020';
@@ -3554,7 +3566,7 @@ function ouvrirDetailLoi(idx) {
 // =====================
 function ouvrirArchivesTribunal() {
   const jugements = state.archivesJugements || [];
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Archives du Tribunal';
+  document.getElementById('postes-modal-title').textContent = 'Archives du Tribunal';
   let html = '<div style="padding:1rem">';
   if (jugements.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun jugement enregistre pour le moment.</div>';
@@ -3577,7 +3589,7 @@ function ouvrirArchivesTribunal() {
 function ouvrirDetailJugement(idx) {
   const j = (state.archivesJugements||[])[idx];
   if (!j) return;
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Jugement — ' + j.accuse;
+  document.getElementById('postes-modal-title').textContent = 'Jugement — ' + j.accuse;
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.5rem">Date : Jour ' + j.jour + ' · Juge : ' + (j.juge||'PNJ') + '</div>';
   html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">Motif : ' + j.motif + '</div>';
@@ -3589,7 +3601,7 @@ function ouvrirDetailJugement(idx) {
 
 function ouvrirPorterPlainte() {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Porter plainte';
+  document.getElementById('postes-modal-title').textContent = 'Porter plainte';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Votre plainte sera deposee dans le sous-forum "Tribunal de ' + ville + '", visible uniquement par les habitants de ' + ville + '.</div>';
 
@@ -3660,7 +3672,7 @@ function soumettrePlainte() {
 
 function ouvrirRendreSentence() {
   const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Rendre la sentence';
+  document.getElementById('postes-modal-title').textContent = 'Rendre la sentence';
   let html = '<div style="padding:1rem">';
   if (affaires.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en attente de jugement.</div>';
@@ -3735,7 +3747,7 @@ const DOCUMENTS_FALSIFIABLES = [
 ];
 
 function ouvrirFalsifierDocument() {
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Falsifier un document';
+  document.getElementById('postes-modal-title').textContent = 'Falsifier un document';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illegal. Taux 45%. Echec : alerte possible. Document ajoute a votre inventaire si succes.</div>';
   DOCUMENTS_FALSIFIABLES.forEach(doc => {
@@ -3789,7 +3801,7 @@ function ouvrirPostulerPoste() {
   const ville = state.currentCity || 'capitale';
   const postes = POSTES[pays]?.[ville] || POSTES[pays]?.capitale || [];
 
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Postuler a un poste';
+  document.getElementById('postes-modal-title').textContent = 'Postuler a un poste';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Postes disponibles a ' + (WORLD[pays]?.[ville]?.name||ville) + ' :</div>';
 
@@ -3902,7 +3914,7 @@ function ouvrirEtatNation() {
 
 function ouvrirModalEmpireCible(action, titre) {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = titre;
+  document.getElementById('postes-modal-title').textContent = titre;
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir un empire cible :</div>';
   empires.forEach(([k, co]) => {
@@ -3950,7 +3962,7 @@ function executerOrdreEmpire(action, empireId, empireName) {
 
 function ouvrirModalGracier() {
   const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Gracier un condamne';
+  document.getElementById('postes-modal-title').textContent = 'Gracier un condamne';
   let html = '<div style="padding:1rem">';
   if (condamnes.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun condamne actuellement en detention.</div>';
@@ -4091,7 +4103,7 @@ function publierForumPresident(type) {
 
 function ouvrirModalNationaliser() {
   const entreprises = ENTREPRISES_PRIVEES[state.country] || [];
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Nationaliser une entreprise';
+  document.getElementById('postes-modal-title').textContent = 'Nationaliser une entreprise';
   let html = '<div style="padding:1rem">';
   if (entreprises.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune entreprise privee recensee pour le moment. Les entreprises achetees par des PJ apparaitront ici.</div>';
@@ -4120,7 +4132,7 @@ function confirmerNationalisation(idx) {
 
 function ouvrirModalCibleRepertoire(action, titre) {
   const contacts = state.contacts || [];
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = titre;
+  document.getElementById('postes-modal-title').textContent = titre;
   let html = '<div style="padding:1rem">';
   if (contacts.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Votre repertoire est vide. Enregistrez des contacts pour cibler des personnes.</div>';
@@ -4175,7 +4187,7 @@ function executerOrdreContact(action, nomCible) {
 }
 
 function ouvrirModalTexteLibre(action, titre, placeholder) {
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = titre;
+  document.getElementById('postes-modal-title').textContent = titre;
   let html = '<div style="padding:1rem">';
   html += '<textarea id="texte-libre-input" rows="4" placeholder="' + placeholder + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.7rem"></textarea>';
   html += '<button onclick="executerOrdreTexte(\'' + action + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider</button>';
@@ -4211,7 +4223,7 @@ function executerOrdreTexte(action) {
 }
 
 function ouvrirModalSecteur() {
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Allegement fiscal sectoriel';
+  document.getElementById('postes-modal-title').textContent = 'Allegement fiscal sectoriel';
   let html = '<div style="padding:1rem"><div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir le secteur beneficiaire :</div>';
   SECTEURS.forEach(s => {
     html += '<button onclick="appliquerAllegement(\'' + s + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">' + s + '</button>';
@@ -4234,7 +4246,7 @@ function ouvrirModalAffaires(mode) {
   const affaires = state.plaintesEnCours?.filter(p => p.status === 'pending') || [];
   const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
   const titre = mode === 'annuler' ? 'Annuler des poursuites' : 'Gestion judiciaire';
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = titre;
+  document.getElementById('postes-modal-title').textContent = titre;
   let html = '<div style="padding:1rem">';
   const liste = mode === 'annuler' ? affaires : condamnes;
   if (liste.length === 0) {
@@ -4264,7 +4276,7 @@ function annulerAffaire(idx, mode) {
 function ouvrirModalNommerJuge() {
   const contacts = state.contacts || [];
   const tribunaux = ['Tribunal de Luthecia', 'Tribunal de Port-Sainte-Marie', 'Tribunal de Montrouge'];
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Nommer un juge';
+  document.getElementById('postes-modal-title').textContent = 'Nommer un juge';
   let html = '<div style="padding:1rem">';
   if (contacts.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Repertoire vide. Enregistrez des contacts.</div>';
@@ -4296,7 +4308,7 @@ function confirmerNommerJuge() {
 function ouvrirModalRenseignement() {
   const contacts = state.contacts || [];
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Operation de renseignement';
+  document.getElementById('postes-modal-title').textContent = 'Operation de renseignement';
   let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Cible : PJ suspect ou empire etranger ?</div>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EMPIRES</div>';
   empires.forEach(([k, co]) => {
@@ -4315,7 +4327,7 @@ function ouvrirModalRenseignement() {
 
 function ouvrirModalMedia() {
   const medias = MEDIAS[state.country] || [];
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Censurer un media';
+  document.getElementById('postes-modal-title').textContent = 'Censurer un media';
   let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Attention : la censure peut provoquer un scandale si elle est decouverte.</div>';
   medias.forEach((m, i) => {
     html += '<button onclick="censurer(\'' + m + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">' + m + '</button>';
@@ -4342,7 +4354,7 @@ function censurer(media) {
 function ouvrirModalTraite() {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
   const types = ['Commercial', 'De paix', "D'alliance militaire", 'Non-agression', 'Culturel'];
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Signer un traite';
+  document.getElementById('postes-modal-title').textContent = 'Signer un traite';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EMPIRE</div>';
   html += '<select id="traite-empire" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
@@ -4373,7 +4385,7 @@ function signerTraite() {
 function ouvrirModalNommerAmbassadeur() {
   const contacts = state.contacts || [];
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Nommer un ambassadeur';
+  document.getElementById('postes-modal-title').textContent = 'Nommer un ambassadeur';
   let html = '<div style="padding:1rem">';
   if (contacts.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Repertoire vide.</div>';
@@ -4444,7 +4456,7 @@ function ouvrirNommerMinistresModal() {
   if (state.postesCustom?.ministre) postesMinisteriels.push({ id:'custom_ministre', name:state.postesCustom.ministre.nom });
   if (state.postesCustom?.comite) postesMinisteriels.push({ id:'custom_comite', name:state.postesCustom.comite.nom });
 
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Nommer des ministres';
+  document.getElementById('postes-modal-title').textContent = 'Nommer des ministres';
   let html = '<div style="padding:1rem">';
   if (contacts.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Repertoire vide. Enregistrez des contacts PJ.</div>';
@@ -4491,7 +4503,7 @@ function creerPosteMinistre() {
     showToast('Limite atteinte', 'Vous avez deja cree un poste ministeriel custom. Supprimez-le d\'abord.', false);
     return;
   }
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Creer un poste ministeriel';
+  document.getElementById('postes-modal-title').textContent = 'Creer un poste ministeriel';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem">' +
     '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Vous pouvez creer 1 poste ministeriel et 1 comite. Salaire aligne sur les ministres (2800 FR/jour).</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">INTITULE DU POSTE</div>' +
@@ -4507,7 +4519,7 @@ function creerComite() {
     showToast('Limite atteinte', 'Vous avez deja cree un comite. Supprimez-le d\'abord.', false);
     return;
   }
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Creer un comite';
+  document.getElementById('postes-modal-title').textContent = 'Creer un comite';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem">' +
     '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Comite presidentiel special. Salaire aligne sur les ministres.</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">INTITULE DU COMITE</div>' +
@@ -4533,7 +4545,7 @@ function supprimerPosteCustom() {
     showToast('Aucun poste custom', 'Vous n\'avez pas cree de poste ou comite a supprimer.', false);
     return;
   }
-  document.getElementById('modal-postes').querySelector('.modal-title').textContent = 'Supprimer un poste';
+  document.getElementById('postes-modal-title').textContent = 'Supprimer un poste';
   let html = '<div style="padding:1rem">';
   if (state.postesCustom.ministre) {
     html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center">';
