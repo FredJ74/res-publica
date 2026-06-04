@@ -3488,6 +3488,38 @@ function solliciterAudiencePresident() {
 // =====================
 // INDICES IMPERIAUX - CORRIGE
 // =====================
+function ouvrirIndicesImperiaux() {
+  // Ouvrir dans un modal simple pour eviter les problemes de vue
+  const empires = [
+    { key:'republic', name:'Républia',   col:'#4a9ade' },
+    { key:'narco',    name:'El Estado',  col:'#cc4444' },
+    { key:'soviet',   name:'Sovarka',    col:'#cc2020' },
+    { key:'khalija',  name:'Al-Khalija', col:'#C9A84C' }
+  ];
+
+  document.getElementById('postes-modal-title').textContent = 'Indices Imperiaux';
+  let html = '<div style="padding:1rem">';
+
+  empires.forEach(emp => {
+    const idx = (typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[emp.key] || {ISN:30,IE:50,ID:40,IS:45}) : {ISN:30,IE:50,ID:40,IS:45};
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:' + emp.col + ';margin-bottom:.5rem">' + emp.name + '</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem">';
+    [['ISN','Securite','#4a8a4a'],['IE','Eco','#C9A84C'],['ID','Diplo','#4a6aaa'],['IS','Social','#aa6a4a']].forEach(([k,label,col]) => {
+      const val = idx[k] || 0;
+      html += '<div style="text-align:center;padding:.3rem;background:#0a0805;border:1px solid #1a1810">';
+      html += '<div style="font-size:.58rem;color:#4a4030">' + label + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:' + col + '">' + val + '</div>';
+      html += '<div style="height:3px;background:#0a0a05;margin-top:.15rem"><div style="height:100%;width:' + val + '%;background:' + col + ';opacity:.6"></div></div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 // =====================
 // PRODUIRE UNE FUITE
 // =====================
@@ -4994,15 +5026,13 @@ function confirmerAmbassadeur() {
 
 function doReceptionAvecBonus(fn, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
+  // Prelever sur le budget de la Presidence, pas sur l'argent personnel
+  if (!verifierBudgetInstitution('presidence')) return;
 
   // Bonus/malus selon popularite
   const popBonus = state.pop > 20 ? Math.floor((state.pop - 20) * 1) : -Math.floor((20 - state.pop) * 1);
   const taux = Math.min(95, Math.max(5, 80 + Math.floor(popBonus / 2)));
   const roll = Math.floor(Math.random() * 100) + 1;
-
-  state.arg -= cost;
-  updateUI();
 
   if (roll <= taux) {
     state.pop = Math.min(100, state.pop + 10);
