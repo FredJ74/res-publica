@@ -551,3 +551,9 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 #forum-view-body .rich-content{background:#181408;color:#d0c890}
 #forum-view-body .rich-toolbar{background:#111208}
 #forum-view-body .forum-new-btn{border-color:#6a5a20;color:#C9A84C}
+
+/* Statut RECHERCHÉ */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}

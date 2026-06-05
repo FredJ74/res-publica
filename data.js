@@ -484,6 +484,7 @@ const BUILDINGS = {
           {name:'Depute Chen',       role:'Opposition (PNJ)', rel:'neutral', job:'depute'}
         ],
         orders: [
+          {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
           {fn:'observer_debats',  label:'Observer les debats',   pa:1, cost:0,   type:'legal', icon:'ti-eye',      successRate:100, desc:'Revele les positions des deputes. +1 INF pour les journalistes.'},
           {fn:'voter_loi',         label:'Voter une loi',          pa:1, cost:0,   type:'legal', icon:'ti-check',    successRate:100, requiresPost:'depute', desc:'Mercredi jusqu\'a 20h seulement. Ouvre la liste des lois en attente de vote.'},
           {fn:'projet_loi',       label:'Deposer un projet',     pa:3, cost:0,   type:'legal', icon:'ti-file-text',successRate:70,  requiresPost:true, desc:'Deposer un projet de loi.'},
@@ -936,23 +937,26 @@ const BUILDINGS = {
           {name:'Le Maire (PNJ)',             role:'Maire de Luthecia', rel:'neutral', job:'maire'}
         ],
         orders: [
+          {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
           {fn:'deposer_candidature', label:'Deposer une candidature',    pa:2, cost:0,   type:'legal', icon:'ti-id-badge',   successRate:100, desc:'Vous inscrire comme candidat a une election en cours.'},
           {fn:'consulter_elections', label:'Consulter les elections',     pa:0, cost:0,   type:'legal', icon:'ti-chart-bar',  successRate:100, desc:'Voir les elections en cours et les candidats declares.'},
-          {fn:'acte_officiel',       label:'Demander un acte officiel',  pa:1, cost:50,  type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.'},
-          {fn:'corrompre_fonct',     label:'Corrompre un fonctionnaire', pa:2, cost:300, type:'illegal',icon:'ti-coins',     successRate:60,  desc:'Obtenir un service administratif illicite.'}
+          {fn:'acte_officiel',       label:'Demander un acte officiel',  pa:1, cost:50,  type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.'}
         ]
       },
       bureau_maire: {
         name: "Bureau du Maire",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
         desc: "Le bureau du maire de Luthecia. Acces sur rendez-vous.",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-maire.png",
         persons: [
           {name:'Le Maire de Luthecia (PNJ)', role:'Maire de la Capitale', rel:'neutral', job:'maire'}
         ],
         orders: [
-          {fn:'postuler',   label:'Postuler comme adjoint',   pa:2, cost:0,   type:'legal',   icon:'ti-id-badge',  successRate:70, desc:'Postuler au poste de maire adjoint.'},
-          {fn:'corrompre_fonct', label:'Corrompre le maire',  pa:3, cost:800, type:'illegal', icon:'ti-coins',     successRate:45, desc:'Acheter la complicite du maire.'}
+          {fn:'fixer_impots_locaux',   label:'Fixer les impôts locaux',       pa:2, cost:0, type:'legal', icon:'ti-receipt-tax',  successRate:100, requiresPost:'maire', desc:'Definir le taux de taxation locale. Impact direct sur les recettes et la popularite.'},
+          {fn:'repartition_budget_local', label:'Repartition du budget local', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Allouer le budget entre commissariat, dispensaire, voirie et services municipaux.'},
+          {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Deploiement de forces de l\'ordre supplementaires. Preleve sur budget mairie.'},
+          {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire', desc:'Choisir le type d\'acte a delivrer a un administre.'},
+          {fn:'contester_resultats',   label:'Contester des resultats',       pa:2, cost:0, type:'legal', icon:'ti-alert-triangle', successRate:70, desc:'Deposer un recours dans le sous-forum Tribunal. Delai 48h. Decision du juge.'}
         ]
       },
       salle_elections: {
@@ -964,7 +968,6 @@ const BUILDINGS = {
           {name:'Responsable Electoral (PNJ)', role:'PNJ - Commission electorale', rel:'neutral', job:'responsable_election'}
         ],
         orders: [
-          {fn:'deposer_candidature',  label:'Deposer ma candidature',     pa:2, cost:0,    type:'legal',   icon:'ti-id-badge',      successRate:100, desc:'Officialiser votre candidature a une election.'},
           {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
           {fn:'contester_resultats',  label:'Contester des resultats',    pa:3, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:40,  desc:'Contester le resultat d\'une election. Long processus.'},
           {fn:'falsifier_docs',       label:'Falsifier une liste',        pa:3, cost:500,  type:'illegal', icon:'ti-file-x',        successRate:35,  desc:'Manipuler les listes electorales. Tres risque.'}
@@ -1567,9 +1570,9 @@ const POSTES = {
       {id:'min_info',     name:'Ministre de l\'Information',  niveau:5, unique:true,  holder:'PNJ-Simon',    isCapitale:true},
       {id:'min_ae',       name:'Ministre des AE',             niveau:5, unique:true,  holder:'PNJ-Durand',   isCapitale:true}
     ],
-    assemblee: Array.from({length:25}, (_,i) => ({
+    assemblee: Array.from({length:9}, (_,i) => ({
       id:`depute_${i+1}`, name:`Depute Siege ${i+1}`, niveau:2,
-      unique:true, holder: i < 20 ? `PNJ-Depute${i+1}` : null, isCapitale:true
+      unique:true, holder: i < 7 ? `PNJ-Depute${i+1}` : null, isCapitale:true
     })),
     ville_a: [
       {id:'maire_a',    name:'Maire de Port-Sainte-Marie', niveau:3, unique:true, holder:'PNJ-Maire-A'},

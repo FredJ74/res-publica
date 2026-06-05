@@ -407,6 +407,7 @@ function renderPersonsList(persons) {
     '<div class="person-avatar" style="border-color:#C9A84C">' + photoHtml + '</div>' +
     '<div>' +
     '<div class="person-name" style="color:#C9A84C">' + char.name + ' <span style="font-size:.6rem;color:#6a5a20">(Vous)</span></div>' +
+    (state.recherche?.length > 0 ? '<div style="font-size:.62rem;color:#cc2020;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;animation:blink 1s infinite">⚠ RECHERCHÉ</div>' : '') +
     '<div class="person-role">' + (state.poste?.name || ar?.name || 'Citoyen') + '</div>' +
     '<div style="font-size:.58rem;color:#4a8a4a">Cliquer : dormir · inventaire · fiche</div>' +
     '</div></div>' : '';
@@ -587,6 +588,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'jour_deuil')             { ouvrirForumNationalSousForumPresident('deuil'); return; }
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
   if (fn === 'etat_nation' || fn === 'etat_urgence')             { ouvrirIndicesImperiaux(); return; }
+  if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocaux(); return; }
+  if (fn === 'repartition_budget_local'){ ouvrirRepartitionBudgetLocal(); return; }
+  if (fn === 'campagne_securite')      { doCampagneSecurite(); return; }
+  if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(); return; }
+  if (fn === 'contester_resultats')    { ouvrirContesterResultats(); return; }
+  if (fn === 'calendrier_elections')   { ouvrirCalendrierElections(); return; }
   if (fn === 'observer_debats')         { observerDebats(); return; }
   if (fn === 'voter_loi')              { ouvrirVoteLoi(); return; }
   if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
@@ -1939,8 +1946,14 @@ function validerNomination() {
 }
 
 function openCandidatureModal() {
-  document.getElementById('postes-modal-title').textContent = 'Deposer une candidature';
+  // Verifier que les elections sont en phase candidatures
   const elections = state.electionsEnCours || [];
+  const electionsOuvertes = elections.filter(e => e.phase === 'candidatures');
+  if (elections.length > 0 && electionsOuvertes.length === 0) {
+    showToast('Candidatures fermees', 'La periode de candidature est terminee. Les campagnes sont en cours.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Deposer une candidature';
   document.getElementById('postes-body').innerHTML = `
     <div style="padding:1rem">
       ${elections.length === 0
@@ -4271,6 +4284,215 @@ function alimenterBudgets() {
   // Reserve
   if (!state.reserve) state.reserve = 0;
   state.reserve += Math.floor(recettesTotales * ((rep.reserve || 10) / 100));
+}
+
+// =====================
+// PREROGATIVES DU MAIRE
+// =====================
+function ouvrirFixerImpotsLocaux() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const taux = state.tauxImpositionLocal || 15;
+  document.getElementById('postes-modal-title').textContent = 'Fixer les impôts locaux';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux actuel : ' + taux + '%. Impact direct sur les recettes municipales et la popularité.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">NOUVEAU TAUX (%)</div>';
+  html += '<input id="taux-local-input" type="range" min="5" max="40" value="' + taux + '" oninput="document.getElementById(\'taux-local-val\').textContent=this.value+\'%\'" style="width:100%;margin-bottom:.3rem">';
+  html += '<div id="taux-local-val" style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C;text-align:center;margin-bottom:.6rem">' + taux + '%</div>';
+  html += '<div style="font-size:.72rem;color:#5a5040;margin-bottom:.8rem">En dessous de 10% : budget serré mais populaire. Au dessus de 25% : recettes élevées mais impopulaire.</div>';
+  html += '<button onclick="validerImpotsLocaux()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function validerImpotsLocaux() {
+  const nouveauTaux = parseInt(document.getElementById('taux-local-input')?.value || '15');
+  const ancienTaux = state.tauxImpositionLocal || 15;
+  state.tauxImpositionLocal = nouveauTaux;
+  const delta = nouveauTaux - ancienTaux;
+  state.pop = Math.max(0, Math.min(100, state.pop - Math.floor(delta * 0.5)));
+  document.getElementById('modal-postes').classList.remove('open');
+  updateUI();
+  showToast('Impôts locaux fixés', 'Taux : ' + nouveauTaux + '%. ' + (delta > 0 ? '-' + Math.floor(delta*0.5) + ' POP' : '+' + Math.floor(Math.abs(delta)*0.5) + ' POP'), delta > 0 ? false : true);
+  addExternalEvent('MAIRIE : Le taux d\'imposition local est fixé à ' + nouveauTaux + '% par le Maire.');
+}
+
+function ouvrirRepartitionBudgetLocal() {
+  const institutions = { commissariat: 40, dispensaire: 30, voirie: 20, services: 10 };
+  const rep = state.budgetLocal || { ...institutions };
+  document.getElementById('postes-modal-title').textContent = 'Budget municipal';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Répartition du budget entre les services municipaux. Total doit être 100%.</div>';
+  const noms = { commissariat:'Commissariat', dispensaire:'Dispensaire', voirie:'Voirie', services:'Services municipaux' };
+  Object.keys(rep).forEach(inst => {
+    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">';
+    html += '<div style="font-size:.78rem;color:#c0b090;width:130px">' + (noms[inst]||inst) + '</div>';
+    html += '<input type="number" min="0" max="80" value="' + rep[inst] + '" id="bloc-' + inst + '" style="width:55px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.82rem;outline:none">';
+    html += '<span style="font-size:.72rem;color:#4a4030">%</span>';
+    html += '</div>';
+  });
+  html += '<button onclick="validerBudgetLocal()" style="margin-top:.7rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function validerBudgetLocal() {
+  const insts = ['commissariat','dispensaire','voirie','services'];
+  let total = 0;
+  const newRep = {};
+  insts.forEach(inst => {
+    const v = parseInt(document.getElementById('bloc-' + inst)?.value || '0');
+    newRep[inst] = v;
+    total += v;
+  });
+  if (total !== 100) { showToast('Total incorrect', 'Le total doit être 100%. Actuel : ' + total + '%.', false); return; }
+  state.budgetLocal = newRep;
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Budget validé', 'Nouvelle répartition municipale appliquée.', true);
+  addJournalEntry('Répartition du budget municipal modifiée par le Maire.', 'event-info');
+}
+
+function doCampagneSecurite() {
+  if (!verifierBudgetInstitution('mairie')) return;
+  const pays = state.country || 'republic';
+  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 10);
+  state.pop = Math.max(0, state.pop - 3);
+  updateUI();
+  showToast('Campagne de sécurité', '+10 ISN local. -3 POP. Prélevé sur budget mairie.', false);
+  addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +10 ISN.');
+}
+
+const ACTES_OFFICIELS = [
+  { id:'acte_naissance',   name:'Acte de naissance fictif',       desc:'Identité alternative. Utile pour se fondre dans la masse.' },
+  { id:'certif_residence', name:'Certificat de résidence',        desc:'+10% réussite ordres administratifs locaux.' },
+  { id:'extrait_casier',   name:'Extrait de casier vierge',       desc:'Efface vos antécédents dans les archives locales.' },
+  { id:'permis_exercer',   name:'Permis d\'exercer une activité', desc:'Autorise l\'exploitation d\'un commerce dans la ville.' },
+  { id:'laissez_passer',   name:'Laissez-passer officiel',        desc:'+15 DIS dans la ville pendant 48h.' }
+];
+
+function ouvrirActeOfficielMairie() {
+  document.getElementById('postes-modal-title').textContent = 'Délivrer un acte officiel';
+  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir l\'acte à délivrer :</div>';
+  ACTES_OFFICIELS.forEach(acte => {
+    html += '<div onclick="delivrerActe(\'' + acte.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+    html += '<div style="font-size:.82rem;color:#c0b090">' + acte.name + '</div>';
+    html += '<div style="font-size:.68rem;color:#5a4030">' + acte.desc + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function delivrerActe(acteId) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const acte = ACTES_OFFICIELS.find(a => a.id === acteId);
+  if (!acte) return;
+  if (!state.inventory) state.inventory = [];
+  // Supprimer l'ancien acte du meme type si existant
+  state.inventory = state.inventory.filter(i => i.acteId !== acteId);
+  state.inventory.push({ type:'acte_officiel', name:acte.name, icon:'ti-file-certificate', legal:true, acteId, desc:acte.desc });
+  updateUI();
+  showToast('Acte délivré', acte.name + ' ajouté à votre inventaire.', true, true);
+  addJournalEntry('Acte officiel délivré : ' + acte.name, 'event-info');
+}
+
+function ouvrirContesterResultats() {
+  const elections = state.electionsEnCours?.filter(e => e.phase === 'termine') || [];
+  document.getElementById('postes-modal-title').textContent = 'Contester des résultats';
+  let html = '<div style="padding:1rem">';
+  if (elections.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune élection récente à contester.</div>';
+  } else {
+    html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Un recours sera déposé dans le sous-forum Tribunal. Le juge tranchera dans 48h.</div>';
+    elections.forEach((e, i) => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + e.nom + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">Élu : ' + (e.resultat?.elu || 'N/A') + '</div>';
+      html += '<textarea id="motif-contestation-' + i + '" rows="3" placeholder="Motif de la contestation..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;resize:none;margin:.4rem 0"></textarea>';
+      html += '<button onclick="soumettreConte(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Contester</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function soumettreConte(idx) {
+  const e = (state.electionsEnCours||[]).filter(el => el.phase === 'termine')[idx];
+  const motif = document.getElementById('motif-contestation-' + idx)?.value?.trim();
+  if (!motif) { showToast('Motif requis', '', false); return; }
+  document.getElementById('modal-postes').classList.remove('open');
+  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
+  const forumKey = 'tribunal_' + state.currentCity;
+  if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
+  FORUM_TOPICS[forumKey].unshift({
+    id: 'contestation-' + Date.now(),
+    title: '[CONTESTATION] ' + e.nom,
+    author: state.char?.name || 'Anonyme',
+    time: 'Jour ' + state.day,
+    posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: 'RECOURS ELECTORAL\n\nElection contestée : ' + e.nom + '\nMotif : ' + motif + '\n\nLe juge est prié de statuer dans les 48 heures.' }]
+  });
+  showToast('Recours déposé', 'Contestation publiée dans le forum du Tribunal de ' + ville + '. Décision dans 48h.', true);
+  addJournalEntry('Contestation électorale déposée : ' + e.nom, 'event-info');
+  addExternalEvent('ELECTORAL : ' + (state.char?.name||'Anonyme') + ' conteste les résultats de l\'élection : ' + e.nom);
+}
+
+// =====================
+// CALENDRIER ELECTORAL
+// =====================
+function ouvrirCalendrierElections() {
+  const elections = state.electionsEnCours || [];
+  document.getElementById('postes-modal-title').textContent = 'Calendrier électoral';
+  let html = '<div style="padding:1rem">';
+
+  // Cycle electoral
+  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.8rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CYCLE ÉLECTORAL (5-6 semaines)</div>';
+  const phases = [
+    { label: 'Semaines 1-3', desc: 'Mandat en cours', col: '#4a8a4a' },
+    { label: 'Semaine 3', desc: 'Ouverture des candidatures', col: '#C9A84C' },
+    { label: 'Semaines 4-5', desc: 'Campagne électorale — vote PJ + tracts', col: '#aa6a4a' },
+    { label: 'Dimanche soir', desc: 'Résultats à minuit', col: '#6a8aaa' }
+  ];
+  phases.forEach(p => {
+    html += '<div style="display:flex;gap:.6rem;align-items:center;margin-bottom:.3rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;color:' + p.col + ';width:90px">' + p.label + '</div>';
+    html += '<div style="font-size:.75rem;color:#8a8060">' + p.desc + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Elections en cours
+  if (elections.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040;font-style:italic">Aucune élection en cours ou programmée.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">ÉLECTIONS EN COURS / À VENIR</div>';
+    elections.forEach(e => {
+      const phaseCol = { candidatures:'#4a8a4a', campagne:'#C9A84C', depouillement:'#aa6a4a', termine:'#4a4030' }[e.phase] || '#8a8060';
+      const phaseLabel = { candidatures:'Candidatures ouvertes', campagne:'Campagne en cours', depouillement:'Dépouillement', termine:'Terminée' }[e.phase] || e.phase;
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + e.nom + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;color:' + phaseCol + ';border:1px solid;padding:.1rem .3rem">' + phaseLabel + '</div>';
+      html += '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030;margin-top:.2rem">Tour ' + (e.tour||1) + ' · Résultats : Jour ' + e.jourResultat + '</div>';
+      if (e.phase === 'candidatures') {
+        html += '<div style="font-size:.7rem;color:#4a8a4a;margin-top:.2rem">✓ Candidatures encore acceptées</div>';
+      } else if (e.phase === 'campagne') {
+        html += '<div style="font-size:.7rem;color:#cc4444;margin-top:.2rem">✗ Candidatures fermées — campagne en cours</div>';
+      }
+      html += '</div>';
+    });
+  }
+
+  // Prochaines elections prevues
+  html += '<div style="font-size:.68rem;color:#4a4030;font-style:italic;margin-top:.6rem">Les candidatures ferment au début de la semaine 4. Après cette date, il n\'est plus possible de se présenter.</div>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 function ouvrirGestionBudget() {
