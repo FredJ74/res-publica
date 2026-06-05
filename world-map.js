@@ -390,7 +390,7 @@ function zoomEmpire(empireId) {
   const zoomBoxes = {
     republic: '100 40 330 280',
     narco:    '420 270 320 270',
-    soviet:   '420 30 370 230',
+    soviet:   '440 40 330 220',
     khalija:  '80 290 320 260',
     caserne:  '300 130 120 100',
     qhs:      '155 170 120 100'
