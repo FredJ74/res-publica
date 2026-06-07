@@ -304,7 +304,7 @@ function showVueRue() {
   const world = WORLD[state.country];
   const city = world?.[state.currentCity];
   if (city) {
-    document.getElementById('rue-title').textContent = city.isCapitale ? 'Avenue de la Republique' : `Rue principale de ${city.name}`;
+    document.getElementById('rue-title').textContent = city.streetName || (city.isCapitale ? 'Avenue de la République' : `Rue principale de ${city.name}`);
     document.getElementById('rue-desc').textContent = city.desc;
   }
 
