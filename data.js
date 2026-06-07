@@ -107,31 +107,141 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','terrain-a-batir-2']
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','terrain-a-batir-2']
     },
     ville_b: {
       name:'Montrouge',
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge.png',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','terrain-a-batir-3']
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3']
     },
     caserne: {
       name:'Caserne Militaire de Republia',
       imageUrl:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&q=80',
-      desc:'La caserne principale de l\'armee de Republia. Hors des villes, accessible en 1 PA.',
-      isCapitale: false,
-      isSpecial: true,
-      travelCost: 1,
+      desc:'La caserne principale de l\'armee de Republia.',
+      isCapitale: false, isSpecial: true, travelCost: 1,
       buildings: ['caserne-militaire']
     },
     qhs: {
       name:'Quartier Haute Securite',
       imageUrl:'https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80',
-      desc:'La prison de haute securite de Republia. Reservee aux crimes graves. Hors des villes.',
+      desc:'La prison de haute securite de Republia.',
+      isCapitale: false, isSpecial: true, travelCost: 1,
+      buildings: ['qhs-prison']
+    }
+  },
+
+  narco: {
+    capitale: {
+      name:'Ciudad Roja',
+      imageUrl:'https://images.unsplash.com/photo-1533050487297-09b450131914?w=1200&q=80',
+      desc:'Capitale d\'El Estado. Chaleur étouffante, corruption omniprésente, Generalissimo Gordito règne sans partage.',
+      isCapitale: true,
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','terrain-a-batir-1']
+    },
+    ville_a: {
+      name:'Puerto Oscuro',
+      imageUrl:'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1200&q=80',
+      desc:'Port chaotique d\'El Estado. Contrebande et réseaux criminels prospèrent.',
       isCapitale: false,
-      isSpecial: true,
-      travelCost: 1,
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-ciudad-roja','terrain-a-batir-2']
+    },
+    ville_b: {
+      name:'La Selva',
+      imageUrl:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80',
+      desc:'Ville de la jungle. Les laboratoires s\'étendent à perte de vue.',
+      isCapitale: false,
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3']
+    },
+    caserne: {
+      name:'Cuartel General',
+      imageUrl:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&q=80',
+      desc:'La caserne militaire d\'El Estado.',
+      isCapitale: false, isSpecial: true, travelCost: 1,
+      buildings: ['caserne-militaire']
+    },
+    qhs: {
+      name:'Prison Central',
+      imageUrl:'https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80',
+      desc:'La prison centrale d\'El Estado.',
+      isCapitale: false, isSpecial: true, travelCost: 1,
+      buildings: ['qhs-prison']
+    }
+  },
+
+  soviet: {
+    capitale: {
+      name:'Novomirsk',
+      imageUrl:'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&q=80',
+      desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
+      isCapitale: true,
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','terrain-a-batir-1']
+    },
+    ville_a: {
+      name:'Stalinova',
+      imageUrl:'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&q=80',
+      desc:'Ville industrielle de Sovarka. Les usines tournent nuit et jour pour le Parti.',
+      isCapitale: false,
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-novomirsk','terrain-a-batir-2']
+    },
+    ville_b: {
+      name:'Kolkhoz-7',
+      imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
+      desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
+      isCapitale: false,
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3']
+    },
+    caserne: {
+      name:'Garnison du Peuple',
+      imageUrl:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&q=80',
+      desc:'La garnison militaire de Sovarka.',
+      isCapitale: false, isSpecial: true, travelCost: 1,
+      buildings: ['caserne-militaire']
+    },
+    qhs: {
+      name:'Goulag de Novomirsk',
+      imageUrl:'https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80',
+      desc:'Le goulag de Sovarka. On y entre facilement.',
+      isCapitale: false, isSpecial: true, travelCost: 1,
+      buildings: ['qhs-prison']
+    }
+  },
+
+  khalija: {
+    capitale: {
+      name:'Al-Madina',
+      imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
+      desc:'Capitale d\'Al-Khalija. Or, turquoise et sable. Le Palais Royal domine tout. Le protocole est une religion.',
+      isCapitale: true,
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','terrain-a-batir-1']
+    },
+    ville_a: {
+      name:'Oasis Al-Zafar',
+      imageUrl:'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&q=80',
+      desc:'Oasis luxuriante. Commerce de luxe et trafic discret cohabitent.',
+      isCapitale: false,
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-al-madina','terrain-a-batir-2']
+    },
+    ville_b: {
+      name:'Port Al-Nour',
+      imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
+      desc:'Port pétrolier d\'Al-Khalija. Les tankers et les dhows se croisent.',
+      isCapitale: false,
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3']
+    },
+    caserne: {
+      name:'Forteresse Royale',
+      imageUrl:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&q=80',
+      desc:'La forteresse militaire royale d\'Al-Khalija.',
+      isCapitale: false, isSpecial: true, travelCost: 1,
+      buildings: ['caserne-militaire']
+    },
+    qhs: {
+      name:'Prison Royale',
+      imageUrl:'https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80',
+      desc:'La prison royale d\'Al-Khalija. Luxueuse en apparence.',
+      isCapitale: false, isSpecial: true, travelCost: 1,
       buildings: ['qhs-prison']
     }
   }
