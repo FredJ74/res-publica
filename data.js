@@ -279,55 +279,75 @@ const WORLD = {
           persons: [{"name": "El Capitan Gordo (PNJ)", "role": "Capitaine", "rel": "neutral", "job": "commissaire"}, {"name": "Consuela Silencio (PNJ)", "role": "Inspectrice", "rel": "neutral", "job": "inspecteur"}]
         },
         'tribunal': {
-          name: "Tribunal de Ciudad Roja",
+          name: 'Tribunal de Ciudad Roja',
           desc: "Les verdicts s'achètent au kilo.",
           persons: [{"name": "El Juez Manchado (PNJ)", "role": "Juge en chef", "rel": "neutral", "job": "juge"}, {"name": "Abogado Turbio (PNJ)", "role": "Avocat véreux", "rel": "neutral", "job": "avocat"}]
         },
         'banque-nationale': {
-          name: "Banco Nacional del Estado",
+          name: 'Banco Nacional del Estado',
           desc: "Les billets sentent parfois le carburant d'avion.",
           persons: [{"name": "Don Billete (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}, {"name": "Rosita Cuenta (PNJ)", "role": "Caissière", "rel": "neutral", "job": "caissier"}]
         },
         'banque-privee': {
-          name: "Banco Privado Offshore",
+          name: 'Banco Privado Offshore',
           desc: "Aucune question posée.",
           persons: [{"name": "Señor Offshore (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}]
         },
         'clinique-privee': {
-          name: "Clínica Privada",
+          name: 'Clínica Privada',
           desc: "Doctor Silencioso ne remplit aucun rapport.",
           persons: [{"name": "Doctor Silencioso (PNJ)", "role": "Médecin", "rel": "neutral", "job": "medecin"}]
         },
         'dispensaire-public': {
-          name: "Dispensario Popular",
+          name: 'Dispensario Popular',
           desc: "Bondé. Les médicaments manquent depuis six mois.",
           persons: [{"name": "Enfermera Esperanza (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
         },
         'la-tribune': {
-          name: "El Narco Times",
+          name: 'El Narco Times',
           desc: "Toutes les nouvelles qui méritent d'être blanchies.",
           persons: [{"name": "El Editor (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Periodista Miedo (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
         },
         'loge-maconnique': {
-          name: "Club de los Elegidos",
+          name: 'Club de los Elegidos',
           desc: "Membres non divulgués. Meetings non confirmés.",
           persons: [{"name": "El Gran Maestro (PNJ)", "role": "Grand Maître", "rel": "neutral", "job": "loge"}]
         },
         'universite': {
-          name: "Universidad del Partido",
+          name: 'Universidad del Partido',
           desc: "Le programme change selon les humeurs du Generalissimo.",
           persons: [{"name": "Profesor Obediente (PNJ)", "role": "Doyen", "rel": "neutral", "job": "professeur"}]
         },
         'armurerie': {
-          name: "Armería Gordito",
+          name: 'Armería Gordito',
           desc: "L'armurerie officielle. Et non officielle. Les deux.",
           persons: [{"name": "Paco Gatillo (PNJ)", "role": "Armurier", "rel": "neutral", "job": "commercant"}]
         },
         'marche': {
-          name: "Mercado Central",
+          name: 'Mercado Central',
           desc: "Tout se vend ici, absolument tout.",
           persons: [{"name": "Maria Mercado (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}, {"name": "Carlos Regateo (PNJ)", "role": "Marchand", "rel": "neutral", "job": "commercant"}]
-        }
+        },
+        'palais-presidentiel': {
+          name: 'Casa del Generalissimo',
+          desc: 'La résidence du Don. On entre par invitation uniquement. Les non-invités ne ressortent pas toujours.',
+          persons: []
+        },
+        'palais-gouvernement': {
+          name: 'Palacio del Gobierno',
+          desc: 'Le palais du gouvernement d\'El Estado. El Don surveille tout depuis son portrait au mur.',
+          persons: []
+        },
+        'assemblee': {
+          name: 'Asamblea Nacional',
+          desc: 'L\'assemblée nationale. La voluntad divina es ley. Les débats sont courts.',
+          persons: []
+        },
+        'mairie-capitale': {
+          name: 'Alcaldia de Ciudad Roja',
+          desc: 'La mairie. Bureau des permis d\'or, taxe de fidélité, service des secrets sur demande.',
+          persons: []
+        },
       },
       buildingNames: {
         'palais-presidentiel':'Casa del Generalissimo','hotel-republica':'Hotel El Cartel',
@@ -456,55 +476,75 @@ const WORLD = {
           persons: [{"name": "Camarade Borodine (PNJ)", "role": "Commissaire du Peuple", "rel": "neutral", "job": "commissaire"}, {"name": "Nadejda Formulaire (PNJ)", "role": "Secrétaire", "rel": "neutral", "job": "inspecteur"}]
         },
         'tribunal': {
-          name: "Tribunal Populaire",
+          name: 'Tribunal Populaire',
           desc: "Les verdicts sont décidés avant l'audience.",
           persons: [{"name": "Camarade Juge Pravdine (PNJ)", "role": "Juge Populaire", "rel": "neutral", "job": "juge"}, {"name": "Défenseur Collectif (PNJ)", "role": "Avocat du Peuple", "rel": "neutral", "job": "avocat"}]
         },
         'banque-nationale': {
-          name: "Banque d'État de Sovarka",
+          name: 'Banque d\'État de Sovarka',
           desc: "Tout appartient à l'État, y compris votre argent.",
           persons: [{"name": "Camarade Ruble (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}, {"name": "Natasha Compte (PNJ)", "role": "Caissière", "rel": "neutral", "job": "caissier"}]
         },
         'banque-privee': {
-          name: "Caisse Collective Spéciale",
+          name: 'Caisse Collective Spéciale',
           desc: "Officiellement pour les cadres du Parti.",
           persons: [{"name": "Camarade Privilège (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}]
         },
         'clinique-privee': {
-          name: "Clinique du Parti",
+          name: 'Clinique du Parti',
           desc: "Réservée aux membres du Parti. Docteur Stakhanov soigne selon le rang.",
           persons: [{"name": "Docteur Stakhanov (PNJ)", "role": "Médecin du Parti", "rel": "neutral", "job": "medecin"}]
         },
         'dispensaire-public': {
-          name: "Dispensaire Populaire",
+          name: 'Dispensaire Populaire',
           desc: "Longues files d'attente. Aspirine et bonne volonté.",
           persons: [{"name": "Infirmière Stoïque (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
         },
         'la-tribune': {
-          name: "La Pravdovka",
+          name: 'La Pravdovka',
           desc: "L'organe de vérité du Parti, vérifié trois fois.",
           persons: [{"name": "Rédacteur Vérité (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Correspondant Parti (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
         },
         'loge-maconnique': {
-          name: "Cercle des Camarades",
+          name: 'Cercle des Camarades',
           desc: "Officiellement un club de lecture. En réalité, le vrai pouvoir de Sovarka.",
           persons: [{"name": "Camarade Grand Maître (PNJ)", "role": "Président du Cercle", "rel": "neutral", "job": "loge"}]
         },
         'universite': {
-          name: "Université du Parti",
+          name: 'Université du Parti',
           desc: "Professeur Dialectique enseigne le marxisme-léninisme avec enthousiasme.",
           persons: [{"name": "Professeur Dialectique (PNJ)", "role": "Doyen", "rel": "neutral", "job": "professeur"}, {"name": "Assistante Propagande (PNJ)", "role": "Assistante", "rel": "neutral", "job": "professeur"}]
         },
         'armurerie': {
-          name: "Arsenal Collectif",
+          name: 'Arsenal Collectif',
           desc: "Les armes appartiennent au Peuple. Accès sur autorisation du Parti.",
           persons: [{"name": "Camarade Kalachnikov (PNJ)", "role": "Responsable Arsenal", "rel": "neutral", "job": "commercant"}]
         },
         'marche': {
-          name: "Marché d'État",
+          name: 'Marché d\'État',
           desc: "Les rayons sont souvent vides. Olga propose parfois des produits sous le manteau.",
           persons: [{"name": "Vendeur d'État (PNJ)", "role": "Vendeur collectif", "rel": "neutral", "job": "commercant"}, {"name": "Olga Marché Noir (PNJ)", "role": "Revendeuse discrète", "rel": "neutral", "job": "commercant"}]
-        }
+        },
+        'palais-presidentiel': {
+          name: 'Palais du Parti',
+          desc: 'Le cœur du pouvoir de Sovarka. Camarade Borodine reçoit sur rendez-vous uniquement, après vérification de votre dossier de loyauté.',
+          persons: []
+        },
+        'palais-gouvernement': {
+          name: 'Siège du Comité Central',
+          desc: 'Le vrai pouvoir de Sovarka. Chaque décision est votée à l\'unanimité — le Parti ne connaît pas le désaccord.',
+          persons: []
+        },
+        'assemblee': {
+          name: 'Soviet Suprême',
+          desc: 'L\'assemblée du Peuple. Tous les votes sont unanimes. Camarade Président parle, les délégués approuvent.',
+          persons: []
+        },
+        'mairie-capitale': {
+          name: 'Soviet Municipal',
+          desc: 'L\'administration locale du Parti. Formulaires en quadruple exemplaire.',
+          persons: []
+        },
       },
       buildingNames: {
         'palais-presidentiel': 'Palais du Parti',
@@ -641,55 +681,75 @@ const WORLD = {
           persons: [{"name": "Chambellan Ibn Protocole (PNJ)", "role": "Chef de la Garde", "rel": "neutral", "job": "commissaire"}, {"name": "Fatima Al-Secret (PNJ)", "role": "Inspectrice", "rel": "neutral", "job": "inspecteur"}]
         },
         'tribunal': {
-          name: "Tribunal de la Charia",
+          name: 'Tribunal de la Charia',
           desc: "Cheikh Al-Verdict rend ses décisions après consultation des textes sacrés et du Palais.",
           persons: [{"name": "Cheikh Al-Verdict (PNJ)", "role": "Grand Juge", "rel": "neutral", "job": "juge"}, {"name": "Conseiller Juridique (PNJ)", "role": "Conseiller", "rel": "neutral", "job": "avocat"}]
         },
         'banque-nationale': {
-          name: "Banque Royale Al-Khalija",
+          name: 'Banque Royale Al-Khalija',
           desc: "Les intérêts sont conformes à la loi islamique, officiellement.",
           persons: [{"name": "Directeur Al-Or (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}, {"name": "Caissière Voilée (PNJ)", "role": "Caissière", "rel": "neutral", "job": "caissier"}]
         },
         'banque-privee': {
-          name: "Banque Privée Al-Baraka",
+          name: 'Banque Privée Al-Baraka',
           desc: "Discrétion absolue et thé à la menthe offert.",
           persons: [{"name": "Cheikh Al-Discret (PNJ)", "role": "Directeur privé", "rel": "neutral", "job": "banquier"}]
         },
         'clinique-privee': {
-          name: "Clinique Royale",
+          name: 'Clinique Royale',
           desc: "Réservée aux proches du pouvoir et aux très fortunés.",
           persons: [{"name": "Docteur Al-Soin (PNJ)", "role": "Médecin Royal", "rel": "neutral", "job": "medecin"}]
         },
         'dispensaire-public': {
-          name: "Dispensaire Al-Madina",
+          name: 'Dispensaire Al-Madina',
           desc: "Pour le peuple. Moderne en apparence, sous-doté en réalité.",
           persons: [{"name": "Infirmière Al-Bien (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
         },
         'la-tribune': {
-          name: "Le Minaret Doré",
+          name: 'Le Minaret Doré',
           desc: "La parole divine, édition spéciale. Rédacteur Al-Vérité ne publie que ce que le Palais approuve.",
           persons: [{"name": "Rédacteur Al-Vérité (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Correspondant Royal (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
         },
         'loge-maconnique': {
-          name: "Cercle des Sages",
+          name: 'Cercle des Sages',
           desc: "Influence considérable sur les décisions royales.",
           persons: [{"name": "Sage Al-Ancien (PNJ)", "role": "Président du Cercle", "rel": "neutral", "job": "loge"}]
         },
         'universite': {
-          name: "Université Royale",
+          name: 'Université Royale',
           desc: "Excellence académique et loyauté royale obligatoires.",
           persons: [{"name": "Professeur Al-Savoir (PNJ)", "role": "Doyen", "rel": "neutral", "job": "professeur"}, {"name": "Assistante Al-Studieuse (PNJ)", "role": "Assistante", "rel": "neutral", "job": "professeur"}]
         },
         'armurerie': {
-          name: "Arsenaux Royaux",
+          name: 'Arsenaux Royaux',
           desc: "Accès sur autorisation royale.",
           persons: [{"name": "Gardien Al-Arsenal (PNJ)", "role": "Responsable Arsenal", "rel": "neutral", "job": "commercant"}]
         },
         'marche': {
-          name: "Souk Al-Madina",
+          name: 'Souk Al-Madina',
           desc: "Le prix affiché n'est jamais le vrai prix.",
           persons: [{"name": "Hassan Marchandage (PNJ)", "role": "Marchand principal", "rel": "neutral", "job": "commercant"}, {"name": "Yasmine Épices (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}]
-        }
+        },
+        'palais-presidentiel': {
+          name: 'Palais Royal Al-Qasr',
+          desc: 'La résidence du Sheikh. On n\'entre qu\'après triple vérification du protocole et des liens familiaux.',
+          persons: []
+        },
+        'palais-gouvernement': {
+          name: 'Diwan Gouvernemental',
+          desc: 'Le gouvernement royal. Le protocole est une religion en soi.',
+          persons: []
+        },
+        'assemblee': {
+          name: 'Conseil Consultatif Royal',
+          desc: 'Le conseil royal. Consultatif uniquement — les décisions appartiennent au Sheikh.',
+          persons: []
+        },
+        'mairie-capitale': {
+          name: 'Chambre Municipale Royale',
+          desc: 'L\'administration de la capitale. Protocole royal obligatoire.',
+          persons: []
+        },
       },
       buildingNames: {
         'palais-presidentiel':'Palais Royal Al-Qasr','hotel-republica':'Hotel Al-Nour Palace',
@@ -2485,6 +2545,13 @@ const ROOM_IMAGES_EMPIRE = {
     'centre-multinodal-luthecia': {
       'hall_gare':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gare-sovarka.png',
       'aeroport':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-sovarka.png'
+    },
+    'palais-presidentiel': {
+      'accueil_elysee':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-parti-sovarka.png',
+      'bureau_president':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-parti-sovarka.png'
+    },
+    'palais-gouvernement': {
+      'hall':              'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-parti-sovarka.png'
     }
   }
 };

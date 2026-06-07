@@ -4574,6 +4574,30 @@ function ouvrirModalTransport(mode) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+function executerVoyage(mode, empireId, villeId) {
+  const config = TRANSPORT_CONFIG[mode];
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  state.arg -= config.cost;
+  const ancienEmpire = state.country;
+  state.country = empireId;
+  state.currentCity = villeId;
+  state.currentBuilding = null;
+  state.currentRoom = null;
+  if (state.char) {
+    state.char.country = empireId;
+    state.char.currentCity = villeId;
+    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+  }
+  buildCityTabs();
+  updateUI();
+  forceRenderCity(villeId);
+  const villeName = VILLES_PAR_EMPIRE[empireId]?.find(v => v.id === villeId)?.name || villeId;
+  const empireName = EMPIRES_CONFIG[empireId]?.name || empireId;
+  showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
+  addJournalEntry('Voyage en ' + config.label + ' → ' + villeName + ' (' + empireName + ')', 'event-info');
+  addExternalEvent((state.char?.name||'Anonyme') + ' est arrivé(e) à ' + villeName + ' (' + empireName + ').');
+}
+
 function confirmerTransport(mode, empireId, villeId) {
   document.getElementById('modal-postes').classList.remove('open');
   const config = TRANSPORT_CONFIG[mode];
@@ -4586,32 +4610,39 @@ function confirmerTransport(mode, empireId, villeId) {
 
   // Controle douanes obligatoire pour avion et bateau
   if (mode === 'avion' || mode === 'bateau') {
-    if (!state.recherche?.length) {
-      // Controle routinier - afficher un toast narratif
-      const msgs = {
-        republic: 'L\'inspecteur Prosper Tampon examine vos papiers, tamponne trois formulaires et vous laisse passer.',
-        narco:    'Juanita Soborno vous sourit. Vous glissez un billet. Elle regarde ailleurs. Bonne route.',
-        soviet:   'Nadejda Contrôle fouille votre bagage méthodiquement. Tout est en ordre, Camarade.',
-        khalija:  'Le Chambellan Al-Transit incline la tête. Vos papiers sont en règle. Bienvenue.'
-      };
-      const msg = msgs[state.country] || msgs['republic'];
-      showToast('Contrôle douanier', msg, true);
-      addJournalEntry('Passage aux douanes. Contrôle routinier.', 'event-info');
+    const msgs = {
+      republic: "L'inspecteur Prosper Tampon examine vos papiers, tamponne trois formulaires et vous laisse passer.",
+      narco:    "Juanita Soborno vous sourit. Vous glissez un billet. Elle regarde ailleurs. Bonne route.",
+      soviet:   "Nadejda Contrôle fouille votre bagage méthodiquement. Tout est en ordre, Camarade.",
+      khalija:  "Le Chambellan Al-Transit incline la tête. Vos papiers sont en règle. Bienvenue."
+    };
+
+    // Si recherche : jet de detection
+    if (state.recherche?.length > 0) {
+      const dis = state.char?.stats?.DIS || 50;
+      const roll = Math.floor(Math.random() * 100) + 1;
+      const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
+      if (roll > taux) {
+        showToast('Intercepté aux douanes !', 'Votre statut de Recherché a été détecté. Vous êtes arrêté(e).', false);
+        addJournalEntry('Interception aux douanes. Arrestation.', 'event-bad');
+        addExternalEvent((state.char?.name||'Anonyme') + ' a été intercepté(e) aux douanes.');
+        return;
+      }
     }
-  }
-  // Si recherche : jet de detection
-  if ((mode === 'avion' || mode === 'bateau') && state.recherche?.length > 0) {
-    const dis = state.char?.stats?.DIS || 50;
-    const roll = Math.floor(Math.random() * 100) + 1;
-    const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
-    if (roll > taux) {
-      showToast('Intercepté aux douanes !', 'Votre statut de Recherché a été détecté. Vous êtes arrêté(e).', false);
-      addJournalEntry('Interception aux douanes. Arrestation.', 'event-bad');
-      addExternalEvent((state.char?.name||'Anonyme') + ' a été intercepté(e) aux douanes.');
-      return;
-    } else {
-      addJournalEntry('Contrôle douanier passé sans encombre.', 'event-info');
-    }
+
+    // Afficher modal douanes avant de voyager
+    const msg = msgs[state.country] || msgs['republic'];
+    document.getElementById('postes-modal-title').textContent = '🛂 Contrôle douanier';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.2rem">' +
+      '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">' + msg + '</div>' +
+      '<div style="margin-top:1rem;text-align:right">' +
+      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');executerVoyage(\'' + mode + '\',\'' + empireId + '\',\'' + villeId + '\')" ' +
+      'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Embarquer →</button>' +
+      '</div></div>';
+    document.getElementById('modal-postes').classList.add('open');
+    addJournalEntry('Passage aux douanes.', 'event-info');
+    return; // On attend la confirmation
   }
 
   // Voyage a 100% si ressources OK
