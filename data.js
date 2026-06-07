@@ -2443,7 +2443,40 @@ const BUILDINGS = {
 
 // Images de pieces par empire
 const ROOM_IMAGES_EMPIRE = {
-  narco: {"palais-gouvernement": {"accueil": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-prez-el-estado.png", "bureau_president": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-prez-el-estado.png", "salle_conseil": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/conseil-el-estado.png", "salle_presse": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-presse-el-estado.png", "bureau_min_int": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mint-el-estado.png", "bureau_min_fin": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-el-estado.png", "bureau_min_just": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mjust-el-estado.png", "bureau_min_def": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mdef-el-estado.png", "bureau_min_info": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/minfo-el-estado.png", "bureau_min_ae": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mae-el-estado.png"}, "assemblee": {"hemicycle": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/an-salle-el-estado.png", "couloirs": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/an-el-estado.png"}, "commissariat": {"accueil_commissariat": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-el-estado.png", "cellules": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cellule-el-estado.png"}, "mairie-capitale": {"hall_mairie": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-el-estado.png"}, "centre-multinodal-luthecia": {"hall_gare": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-el-estado.png"}}
+  narco: {
+    'palais-presidentiel': {
+      'accueil_elysee':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-prez-el-estado.png',
+      'bureau_president': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-prez-el-estado.png',
+      'salle_presse_elysee': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-presse-el-estado.png'
+    },
+    'palais-gouvernement': {
+      'hall':          'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-prez-el-estado.png',
+      'salle_conseil': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/conseil-el-estado.png',
+      'salle_presse':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-presse-el-estado.png',
+      'archives_gouv': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-el-estado.png',
+      'bureau_min_int':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mint-el-estado.png',
+      'bureau_min_fin':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-el-estado.png',
+      'bureau_min_just': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mjust-el-estado.png',
+      'bureau_min_def':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mdef-el-estado.png',
+      'bureau_min_info': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/minfo-el-estado.png',
+      'bureau_min_ae':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mae-el-estado.png'
+    },
+    'assemblee': {
+      'hemicycle': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/an-salle-el-estado.png',
+      'couloirs':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/an-el-estado.png'
+    },
+    'commissariat': {
+      'accueil_police': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-el-estado.png',
+      'prison':         'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cellule-el-estado.png'
+    },
+    'mairie-capitale': {
+      'hall_mairie':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-el-estado.png'
+    },
+    'centre-multinodal-luthecia': {
+      'hall_gare':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-el-estado.png',
+      'aeroport':       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-el-estado.png'
+    }
+  }
 };
 
 const POSTES = {
