@@ -383,7 +383,69 @@ function mapClickCity(countryId, cityId) {
 // Zoom sur un empire au survol
 let currentZoom = null;
 
+// Effet loupe - zoom suit le curseur
+let loupeActive = false;
+const LOUPE_FACTOR = 3; // Facteur de zoom
+const LOUPE_W = 300; // Largeur de la zone zoomée
+const LOUPE_H = 200; // Hauteur de la zone zoomée
+
+function initLoupe() {
+  const svg = document.getElementById('world-svg');
+  if (!svg) return;
+
+  // Remplacer onmouseenter par mousemove sur le SVG entier
+  svg.addEventListener('mousemove', onSvgMouseMove);
+  svg.addEventListener('mouseleave', onSvgMouseLeave);
+  svg.addEventListener('click', onSvgClick);
+}
+
+function getSvgCoords(evt) {
+  const svg = document.getElementById('world-svg');
+  const rect = svg.getBoundingClientRect();
+  const vb = svg.viewBox.baseVal;
+  const scaleX = vb.width / rect.width;
+  const scaleY = vb.height / rect.height;
+  return {
+    x: (evt.clientX - rect.left) * scaleX + vb.x,
+    y: (evt.clientY - rect.top) * scaleY + vb.y
+  };
+}
+
+function onSvgMouseMove(evt) {
+  const svg = document.getElementById('world-svg');
+  if (!svg) return;
+  const coords = getSvgCoords(evt);
+
+  // Calculer la viewBox zoomée centrée sur le curseur
+  const w = LOUPE_W;
+  const h = LOUPE_H;
+  let x = coords.x - w / 2;
+  let y = coords.y - h / 2;
+
+  // Garder dans les limites du SVG
+  x = Math.max(0, Math.min(900 - w, x));
+  y = Math.max(0, Math.min(600 - h, y));
+
+  svg.style.transition = 'none';
+  svg.setAttribute('viewBox', x + ' ' + y + ' ' + w + ' ' + h);
+  loupeActive = true;
+
+  // Bouton reset visible
+  const resetBtn = document.getElementById('map-reset-zoom');
+  if (resetBtn) resetBtn.style.display = 'block';
+}
+
+function onSvgMouseLeave() {
+  // Ne pas resetter au mouseleave - garder le zoom
+  // Reset seulement via le bouton
+}
+
+function onSvgClick(evt) {
+  // Le clic sur un empire est géré par les onclick des groupes SVG
+}
+
 function zoomEmpire(empireId) {
+  // Gardé pour compatibilité - maintenant utilisé au clic
   const svg = document.getElementById('world-svg');
   if (!svg) return;
 
@@ -397,13 +459,10 @@ function zoomEmpire(empireId) {
   };
 
   const box = zoomBoxes[empireId];
-  if (!box || currentZoom === empireId) return;
-
+  if (!box) return;
   currentZoom = empireId;
-  svg.style.transition = 'all .4s ease';
+  svg.style.transition = 'all .3s ease';
   svg.setAttribute('viewBox', box);
-
-  // Bouton reset zoom
   const resetBtn = document.getElementById('map-reset-zoom');
   if (resetBtn) resetBtn.style.display = 'block';
 }
@@ -414,6 +473,14 @@ function resetZoom() {
   svg.style.transition = 'all .4s ease';
   svg.setAttribute('viewBox', '0 0 900 600');
   currentZoom = null;
+  loupeActive = false;
   const resetBtn = document.getElementById('map-reset-zoom');
   if (resetBtn) resetBtn.style.display = 'none';
 }
+
+// Remplacer onmouseenter par onclick sur les empires
+// Init au chargement
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initLoupe, 500);
+});
+

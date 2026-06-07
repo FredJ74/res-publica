@@ -99,6 +99,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1520939817895-060bdaf4fe1b?w=1200&q=80',
       desc:'Capitale de Republia. Centre du pouvoir politique, judiciaire et mediatique.',
       isCapitale: true,
+      streetName: 'Avenue de la République',
       districts: ['centre','quartier-nord','quartier-sud'],
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','terrain-a-batir-1']
     },
@@ -135,6 +136,7 @@ const WORLD = {
   narco: {
     capitale: {
       name:'Ciudad Roja',
+      streetName: 'Avenida del Generalissimo',
       imageUrl:'https://images.unsplash.com/photo-1533050487297-09b450131914?w=1200&q=80',
       desc:'Capitale d\'El Estado. Chaleur étouffante, corruption omniprésente, Generalissimo Gordito règne sans partage.',
       isCapitale: true,
@@ -184,6 +186,7 @@ const WORLD = {
   soviet: {
     capitale: {
       name:'Novomirsk',
+      streetName: 'Prospekt du Peuple',
       imageUrl:'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&q=80',
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
@@ -243,6 +246,7 @@ const WORLD = {
   khalija: {
     capitale: {
       name:'Al-Madina',
+      streetName: 'Boulevard Royal Al-Sultani',
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Capitale d\'Al-Khalija. Or, turquoise et sable. Le Palais Royal domine tout. Le protocole est une religion.',
       isCapitale: true,
@@ -847,7 +851,6 @@ const BUILDINGS = {
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Contre une personne identifiee ou contre X. Reponse sous 24h.'},
           {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:95,  desc:'Succes (95%) : liste des personnes emprisonnees les 30 derniers jours.'},
-          {fn:'corrompre_police', label:'Corrompre un policier',  pa:2, cost:300, type:'illegal', icon:'ti-coins',     successRate:55,  desc:'-Discretion. Peut bloquer une procedure en cours.'},
           {fn:'arreter',          label:"Faire arreter quelqu'un",pa:3, cost:500, type:'illegal', icon:'ti-handcuffs', successRate:50,  desc:'Necessite un dossier. Mise en garde a vue 24h.'}
         ]
       },
@@ -1358,8 +1361,7 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&q=80",
         persons: [{name:'Brigadier Local (PNJ)', role:'Officier de garde', rel:'neutral', job:'policier'}],
         orders: [
-          {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
-          {fn:'corrompre_police', label:'Corrompre un policier',pa:2, cost:200, type:'illegal', icon:'ti-coins',     successRate:65}
+          {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100}
         ]
       }
     }
@@ -1732,7 +1734,9 @@ const BUILDINGS = {
         orders: [
           {fn:'prendre_train', label:'Prendre le train', pa:2, cost:75, type:'legal', icon:'ti-train', successRate:100, desc:'75 FR. 2 PA. Transport intra-empire vers une autre ville. Plus économique que le taxi.'},
           {fn:'prendre_bus_taxi', label:'Prendre un bus ou taxi', pa:1, cost:150, type:'legal', icon:'ti-bus', successRate:100, desc:'150 FR. 1 PA. Rapide. Transport intra-empire uniquement.'},
-          {fn:'controle_douanes', label:'Passer les douanes', pa:0, cost:0, type:'legal', icon:'ti-shield-check', successRate:85, desc:'Contrôle automatique. Si statut Recherché : jet DIS/10. Possibilité de corrompre l\'agent.'}
+          {fn:'controle_douanes', label:'Passer les douanes', pa:0, cost:0, type:'legal', icon:'ti-shield-check', successRate:85, desc:'Contrôle automatique. Si statut Recherché : jet DIS/10. Possibilité de corrompre l\'agent.'},
+          {fn:'taxi_caserne', label:'Taxi vers la Caserne', pa:1, cost:200, type:'legal', icon:'ti-military-rank', successRate:100, desc:'200 FR. 1 PA. Accès sur place conditionné : profil habilité ou laissez-passer.'},
+          {fn:'taxi_qhs', label:'Taxi vers le QHS', pa:1, cost:200, type:'legal', icon:'ti-lock', successRate:100, desc:'200 FR. 1 PA. Accès sur place conditionné : profil habilité ou ordre de visite.'}
         ]
       },
       aeroport: {

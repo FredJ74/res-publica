@@ -600,6 +600,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'etat_nation' || fn === 'etat_urgence')             { ouvrirIndicesImperiaux(); return; }
   if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocaux(); return; }
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
+  if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
+  if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs'); return; }
   if (fn === 'prendre_bus_taxi')       { ouvrirModalTransport('bus'); return; }
   if (fn === 'prendre_avion')          { ouvrirModalTransport('avion'); return; }
   if (fn === 'prendre_bateau')         { ouvrirModalTransport('bateau'); return; }
@@ -4949,10 +4951,10 @@ function confirmerAssassinat(cibleNom) {
 // EMPOISONNER
 // =====================
 const POISON_MESSAGES = {
-  republic: 'Quelque chose vous pique dans le dos. Une douleur irradie dans tout votre corps et s\'intensifie d\'heure en heure. Était-ce en lien avec cette personne qui vous a touché avec le bout de son parapluie et s\'est excusée ? Vous perdez 2 PA.',
-  narco:    'Votre esprit devient confus. Vous avez la tête qui tourne et vos sens sont perturbés. Vous avez l\'impression d\'avoir été drogué(e), mais par qui ? Vous perdez 2 PA.',
-  soviet:   'Vous vous sentez subitement faible. En passant la main dans vos cheveux, ils se décrochent par paquets de votre crâne, comme si vous aviez été mis(e) en contact avec quelque chose de radioactif. Vous perdez 2 PA.',
-  khalija:  'Vous ressentez une violente douleur au niveau du mollet. Deux petits trous douloureux et rouges sont visibles. Un serpent vous aurait-il mordu(e) ? Vous perdez 2 PA.'
+  parapluie: 'Quelque chose vous pique dans le dos. Une douleur irradie dans tout votre corps et s\'intensifie d\'heure en heure. Était-ce en lien avec cette personne qui vous a touché avec le bout de son parapluie et s\'est excusée ? Vous perdez 2 PA.',
+  ghb:       'Votre esprit devient confus. Vous avez la tête qui tourne et vos sens sont perturbés. Vous avez l\'impression d\'avoir été drogué(e), mais par qui ? Vous perdez 2 PA.',
+  polonium:  'Vous vous sentez subitement faible. En passant la main dans vos cheveux, ils se décrochent par paquets de votre crâne, comme si vous aviez été mis(e) en contact avec quelque chose de radioactif. Vous perdez 2 PA.',
+  vipere:    'Vous ressentez une violente douleur au niveau du mollet. Deux petits trous douloureux et rouges sont visibles. Un serpent vous aurait-il mordu(e) ? Vous perdez 2 PA.'
 };
 
 const POISON_STAT_PERDUE = {
@@ -5018,7 +5020,8 @@ function confirmerEmpoisonnement(cibleNom) {
     });
 
     // Message a la cible
-    const msg = POISON_MESSAGES[pays] || POISON_MESSAGES['republic'];
+    const poisonType = (state.inventory||[]).find(i => i.type === 'poison')?.poisonType || 'parapluie';
+    const msg = POISON_MESSAGES[poisonType] || POISON_MESSAGES['parapluie'];
     addMailNotification('Événement mystérieux', 'Vous vous sentez mal', msg);
     addExternalEvent('MYSTERE : ' + cibleNom + ' se sent soudainement très mal...');
 
@@ -5035,6 +5038,119 @@ function confirmerEmpoisonnement(cibleNom) {
     showToast('Échec ! Repéré(e)', 'L\'empoisonnement a échoué. Objet perdu. Recherché(e). 2 jours de prison.', false);
     addJournalEntry('Tentative d\'empoisonnement échouée. Recherché.', 'event-bad');
   }
+}
+
+// =====================
+// TAXI SPECIAL — CASERNE / QHS
+// =====================
+const ACCES_CASERNE = ['president', 'min_def', 'commissaire'];
+const ACCES_QHS = ['president', 'min_just', 'juge', 'commissaire', 'avocat'];
+
+function doTaxiSpecial(destination) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (state.arg < 200) { showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false); return; }
+
+  const label = destination === 'caserne' ? 'la Caserne' : 'le QHS';
+  const cityKey = destination === 'caserne' ? 'caserne' : 'qhs';
+
+  // Verifier acces
+  const posteId = state.poste?.id || '';
+  const accesLibres = destination === 'caserne' ? ACCES_CASERNE : ACCES_QHS;
+  const aAccesLibre = accesLibres.some(p => posteId.includes(p));
+  const aLaissezPasser = (state.inventory||[]).some(i =>
+    i.acteId === 'laissez_passer' || i.acteId === 'acte_officiel' || i.type === 'document_falsifie'
+  );
+
+  if (!aAccesLibre && !aLaissezPasser) {
+    showToast('Accès refusé', 'Vous n\'avez pas les autorisations pour vous rendre à ' + label + '. Procurez-vous un laissez-passer officiel ou un ordre de visite.', false);
+    return;
+  }
+
+  // Si faux document — jet DUP
+  const aVraiDoc = aAccesLibre || (state.inventory||[]).some(i => i.acteId === 'laissez_passer' && i.legal);
+  if (!aVraiDoc && aLaissezPasser) {
+    const dup = state.char?.stats?.DUP || 8;
+    const roll = Math.floor(Math.random() * 100) + 1;
+    const taux = Math.max(5, 50 + Math.floor(dup/10) - getMalusISN());
+    if (roll > taux) {
+      showToast('Faux document détecté !', 'La garde a reconnu le faux. Vous êtes arrêté(e).', false);
+      state.recherche = [{ acte:'faux_document', type:'delit_grave', jour:state.day, peine:4 }];
+      updateUI();
+      addJournalEntry('Faux laissez-passer détecté à l\'entrée de ' + label + '. Arrestation.', 'event-bad');
+      return;
+    }
+  }
+
+  // Voyage OK
+  state.arg -= 200;
+  state.currentCity = cityKey;
+  state.currentBuilding = null;
+  state.currentRoom = null;
+  if (state.char) {
+    state.char.currentCity = cityKey;
+    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+  }
+  buildCityTabs();
+  updateUI();
+  forceRenderCity(cityKey);
+  showToast('En route !', 'Vous arrivez à ' + label + '. -200 ' + cur, true);
+  addJournalEntry('Taxi vers ' + label, 'event-info');
+}
+
+// =====================
+// SYSTEME INFORMATEURS
+// =====================
+const INFORMATEUR_NIVEAUX = {
+  1: { label:'Informateur de rue',      cout:150, lieux:['hotel-republica','marche','bar-des-pecheurs'], desc:'Localisation approximative, rumeurs locales.' },
+  2: { label:'Informateur politique',   cout:400, lieux:['loge-maconnique','universite','siege-syndical'], desc:'Localisation précise, intentions vote, voyages.' },
+  3: { label:'Informateur criminel',    cout:700, lieux:['port-sainte-marie','bar-des-pecheurs','contrebande'], desc:'Indice empire d\'origine d\'un crime, contrebandes.' },
+  4: { label:'Taupe',                   cout:1500, lieux:['loge-maconnique'], desc:'Confessions, transactions, ordres passés 24h.' }
+};
+
+function getInfomateurInfo(niveau) {
+  const pays = state.country || 'republic';
+  const infos = {
+    1: [
+      (state.char?.name||'Anonyme') + ' a été aperçu(e) dans le quartier nord de la ville.',
+      'Un PJ inconnu a été vu entrer et sortir rapidement du commissariat.',
+      'Des rumeurs circulent sur une prochaine élection anticipée.',
+      'Quelqu\'un cherche à recruter des partisans discrètement.'
+    ],
+    2: [
+      'Un député a été vu entrer au Palais Présidentiel ce matin.',
+      'Des tractations sont en cours pour une alliance électorale secrète.',
+      'Un PJ influent a pris l\'avion hier soir vers un autre empire.',
+      'Le vote de mercredi prochain semble déjà arrangé par deux députés.'
+    ],
+    3: [
+      'L\'auteur du crime récent semble venir de ' + (['Républia','El Estado','Sovarka','Al-Khalija'][Math.floor(Math.random()*4)]) + '.',
+      'Une cargaison suspecte est attendue au port dans les prochaines 24h.',
+      'Des échanges d\'argent non déclarés ont eu lieu entre deux PJ.',
+      'Un contrat a été passé dans les milieux criminels contre un élu.'
+    ],
+    4: [
+      'Un PJ a confessé au Grand Prêtre avoir falsifié des documents électoraux.',
+      'Une transaction de 5000 FR a été effectuée entre deux PJ hier soir.',
+      'Dans les dernières 24h, un PJ a passé les ordres : Corrompre, Produire une fuite.',
+      'Un ministre prépare sa démission et contacte l\'opposition en secret.'
+    ]
+  };
+  const list = infos[niveau] || infos[1];
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function consulterInformateur(niveau) {
+  const info = getInfomateurInfo(niveau);
+  state.inf = Math.min(100, state.inf + niveau);
+  updateUI();
+  document.getElementById('postes-modal-title').textContent = 'Information reçue';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem">' +
+    '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + info + '"</div>' +
+    '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem">Source : ' + INFORMATEUR_NIVEAUX[niveau]?.label + ' · +' + niveau + ' INF · Fiabilité variable</div>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+  addJournalEntry('Information reçue de votre informateur (niveau ' + niveau + ').', 'event-info');
 }
 
 function doSeCacher() {
