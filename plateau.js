@@ -275,10 +275,10 @@ function renderMinimap(cityId) {
 function minimapCard(id) {
   const b = BUILDINGS[id];
   if (!b) return '';
-  // Nom localise selon empire actuel
+  // Nom localise : buildingContext en priorité, puis buildingNames, puis nom générique
   const world = WORLD[state.country];
   const city = world?.[state.currentCity];
-  const localName = city?.buildingNames?.[id] || b.shortName || b.name;
+  const localName = city?.buildingContext?.[id]?.name || city?.buildingNames?.[id] || b.shortName || b.name;
   const personCount = Object.values(b.rooms || {}).reduce((acc, r) => acc + (r.persons?.length || 0), 0);
   const locked = b.locked ? '<span style="font-size:.6rem;color:#5a3020">· Acces restreint</span>' : '';
   return `
