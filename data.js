@@ -2444,6 +2444,10 @@ const BUILDINGS = {
 // Images de pieces par empire
 const ROOM_IMAGES_EMPIRE = {
   narco: {
+    'centre-multinodal-luthecia': {
+      'hall_gare':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gare-el-estado.png',
+      'aeroport':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-el-estado.png'
+    },
     'palais-presidentiel': {
       'accueil_elysee':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-prez-el-estado.png',
       'bureau_president': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-prez-el-estado.png',
@@ -2475,6 +2479,12 @@ const ROOM_IMAGES_EMPIRE = {
     'centre-multinodal-luthecia': {
       'hall_gare':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-el-estado.png',
       'aeroport':       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-el-estado.png'
+    }
+  },
+  soviet: {
+    'centre-multinodal-luthecia': {
+      'hall_gare':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gare-sovarka.png',
+      'aeroport':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-sovarka.png'
     }
   }
 };
