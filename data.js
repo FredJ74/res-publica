@@ -184,16 +184,16 @@ const WORLD = {
         'palais-gouvernement': 'Siège du Comité Central',
         'assemblee': 'Soviet Suprême',
         'tribunal': 'Tribunal Populaire',
-        'banque-nationale': 'Banque d'État',
+        'banque-nationale': 'Banque d\'Etat',
         'banque-privee': 'Caisse Collective',
         'clinique-privee': 'Clinique du Parti',
         'dispensaire-public': 'Dispensaire Populaire',
         'commissariat': 'Commissariat du Peuple',
         'la-tribune': 'La Pravdovka',
         'loge-maconnique': 'Cercle des Camarades',
-        'universite': 'Université du Parti',
+        'universite': 'Universite du Parti',
         'armurerie': 'Arsenal Collectif',
-        'marche': 'Marché d'État',
+        'marche': 'Marche d\'Etat',
         'mairie-capitale': 'Soviet Municipal',
         'kolkhoze-spirituel': 'Kolkhoze Spirituel',
         'centre-multinodal-luthecia': 'Gare Centrale'
@@ -601,7 +601,7 @@ const BUILDINGS = {
     icon: "ti-building-arch",
     bgColor: "#101820",
     capitaleOnly: true,
-    desc: "Les 25 sieges de l'Assemblee Nationale de Republia. Actuellement majoritairement occupes par des PNJ.",
+    desc: "Les 25 sieges de l\'Assemblee Nationale de Republia. Actuellement majoritairement occupes par des PNJ.",
     rooms: {
       hemicycle: {
         name: "Hemicycle",
@@ -610,7 +610,7 @@ const BUILDINGS = {
         desc: "L'hemicycle principal. Les votes se font ici. Acces deputés uniquement pour les sessions.",
         imageUrl: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&q=80",
         persons: [
-          {name:'President Laroche', role:"President de l'Assemblee (PNJ)", rel:'neutral', job:'president'},
+          {name:'President Laroche', role:"President de l\'Assemblee (PNJ)", rel:'neutral', job:'president'},
           {name:'Depute Martin',     role:'Groupe majoritaire (PNJ)', rel:'neutral', job:'depute'},
           {name:'Depute Chen',       role:'Opposition (PNJ)', rel:'neutral', job:'depute'}
         ],
@@ -626,7 +626,7 @@ const BUILDINGS = {
         name: "Couloirs",
         image: "🚶",
         imageBg: "linear-gradient(135deg,#0c1018,#141820)",
-        desc: "Les couloirs de l'Assemblee. C'est ici que se font vraiment les deals.",
+        desc: "Les couloirs de l\'Assemblee. C'est ici que se font vraiment les deals.",
         imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
         persons: [
           {name:'Lobbyiste Perrin', role:'Lobbyiste (PNJ)', rel:'neutral', job:'lobbyiste'},
@@ -640,7 +640,7 @@ const BUILDINGS = {
       salle_archives_assemblee: {
         name: "Salle des Archives",
         imageBg: "linear-gradient(135deg,#0a0808,#120f08)",
-        desc: "Les archives de l'Assemblee Nationale. Toutes les lois votees y sont conservees pendant 3 mois.",
+        desc: "Les archives de l\'Assemblee Nationale. Toutes les lois votees y sont conservees pendant 3 mois.",
         imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
         persons: [
           {name:'Archiviste Parlementaire (PNJ)', role:'PNJ - Archiviste de l\'Assemblee', rel:'neutral', job:'archiviste'}
@@ -2257,7 +2257,7 @@ const OBJETS_SPECIAUX = [
   { id:'champagne_parlement', name:'Bouteille de Champagne Parlementaire', icon:'ti-bottle', legal:true, effet:'moral+8_groupe', desc:'+8 Moral pour tout le groupe. À consommer avant le vote.', lieu:'Hôtel-Restaurant La Républia' },
   { id:'carnet_contacts', name:'Carnet de contacts froissé', icon:'ti-address-book', legal:true, effet:'contact_aleatoire', desc:'Révèle un contact aléatoire. Certaines pages sont tachées de café.', lieu:'Loge Maçonnique' },
   { id:'tracteur_miniature', name:'Tracteur miniature (souvenir)', icon:'ti-tractor', legal:true, effet:'pop+5_sovarka', desc:'+5 popularité à Sovarka. Vendu à la boutique du Kolkhoze.', lieu:'Marché de Novomirsk' },
-  { id:'relique_loukoum', name:'Relique du Loukoum Sacré', icon:'ti-star', legal:true, effet:'ip+10', desc:'+10 IP. Accès facilité aux zones réservées d\'Al-Khalija.', lieu:'Pâtisserie Sacrée' }
+  { id:'relique_loukoum', name:'Relique du Loukoum Sacré', icon:'ti-star', legal:true, effet:'ip+10', desc:'+10 IP. Accès facilité aux zones réservées d\'Al-Khalija.', lieu:'Patisserie Sacree' }
 ];
 
 // =====================
