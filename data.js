@@ -348,6 +348,11 @@ const WORLD = {
           desc: 'La mairie. Bureau des permis d\'or, taxe de fidélité, service des secrets sur demande.',
           persons: []
         },
+        'centre-multinodal-luthecia': {
+          name: 'Terminal Multimodal El Estado',
+          desc: 'Taxis dorés, bus dorés, Trans-Gold Express. El Don te observe depuis ses affiches. Tout chemin mène à l\'or.',
+          persons: []
+        }
       },
       buildingNames: {
         'palais-presidentiel':'Casa del Generalissimo','hotel-republica':'Hotel El Cartel',
@@ -545,6 +550,11 @@ const WORLD = {
           desc: 'L\'administration locale du Parti. Formulaires en quadruple exemplaire.',
           persons: []
         },
+        'centre-multinodal-luthecia': {
+          name: 'Gare Centrale du Peuple',
+          desc: 'Trans-Urals Express, bus verts soviétiques, taxis collectifs. Camarade Horaire veille. Tous les chemins mènent à l\'or du Parti.',
+          persons: []
+        }
       },
       buildingNames: {
         'palais-presidentiel': 'Palais du Parti',
@@ -750,6 +760,11 @@ const WORLD = {
           desc: 'L\'administration de la capitale. Protocole royal obligatoire.',
           persons: []
         },
+        'centre-multinodal-luthecia': {
+          name: 'Aéroport International Royal',
+          desc: 'Terminal royal. Vols vers les 4 empires. Le Chambellan Al-Transit vérifie votre rang avant de vous laisser embarquer.',
+          persons: []
+        }
       },
       buildingNames: {
         'palais-presidentiel':'Palais Royal Al-Qasr','hotel-republica':'Hotel Al-Nour Palace',
