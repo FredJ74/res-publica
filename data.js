@@ -2568,6 +2568,12 @@ const ROOM_IMAGES_EMPIRE = {
     'palais-gouvernement': {
       'hall':              'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-parti-sovarka.png'
     }
+  },
+  khalija: {
+    'centre-multinodal-luthecia': {
+      'hall_gare': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gare-al-khalija.png',
+      'aeroport':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gare-al-khalija.png'
+    }
   }
 };
 
