@@ -4561,9 +4561,17 @@ function confirmerTransport(mode, empireId, villeId) {
 
   // Controle douanes obligatoire pour avion et bateau
   if (mode === 'avion' || mode === 'bateau') {
-    // Si pas recherche : controle routinier, passage automatique
     if (!state.recherche?.length) {
-      addJournalEntry('Contrôle douanier passé. Tout est en ordre.', 'event-info');
+      // Controle routinier - afficher un toast narratif
+      const msgs = {
+        republic: 'L\'inspecteur Prosper Tampon examine vos papiers, tamponne trois formulaires et vous laisse passer.',
+        narco:    'Juanita Soborno vous sourit. Vous glissez un billet. Elle regarde ailleurs. Bonne route.',
+        soviet:   'Nadejda Contrôle fouille votre bagage méthodiquement. Tout est en ordre, Camarade.',
+        khalija:  'Le Chambellan Al-Transit incline la tête. Vos papiers sont en règle. Bienvenue.'
+      };
+      const msg = msgs[state.country] || msgs['republic'];
+      showToast('Contrôle douanier', msg, true);
+      addJournalEntry('Passage aux douanes. Contrôle routinier.', 'event-info');
     }
   }
   // Si recherche : jet de detection
