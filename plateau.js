@@ -358,10 +358,15 @@ function enterBuilding(buildingId) {
 
   // Onglets pieces
   const rooms = Object.entries(b.rooms || {});
-  document.getElementById('pieces-tabs').innerHTML = rooms.map(([roomId, room], i) => `
-    <div class="piece-tab ${i === 0 ? 'active' : ''}" onclick="enterRoom('${buildingId}','${roomId}',this)">
-      ${room.name}
-    </div>`).join('');
+  document.getElementById('pieces-tabs').innerHTML = rooms.map(([roomId, room], i) => {
+    const isZoneEmb = roomId === 'zone_embarquement';
+    const locked = isZoneEmb && !state.douanePassee;
+    const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : '';
+    const icon = locked ? '🔒 ' : '';
+    return `<div class="piece-tab ${i === 0 ? 'active' : ''}" onclick="enterRoom('${buildingId}','${roomId}',this)" style="${style}">
+      ${icon}${room.name}
+    </div>`;
+  }).join('');
 
   // Entrer dans la premiere piece
   if (rooms.length > 0) {
@@ -373,6 +378,8 @@ function enterBuilding(buildingId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  // Vérifier accès zone embarquement
+  if (!checkZoneEmbarquementAcces(buildingId, roomId)) return;
   const b = BUILDINGS[buildingId];
   if (!b) return;
   const room = b.rooms?.[roomId];
@@ -422,7 +429,57 @@ function enterRoom(buildingId, roomId, tabEl) {
   document.getElementById('loc-sub').textContent = room.name;
 }
 
+// =====================
+// DOUANES AEROPORT
+// =====================
+function doPasserDouanesAeroport() {
+  const pays = state.country || 'republic';
+  const msgs = {
+    republic: "L'inspecteur Prosper Tampon examine vos papiers, tamponne trois formulaires et vous laisse passer.",
+    narco:    "Juanita Soborno vous sourit. Vous glissez un billet. Elle regarde ailleurs. Bonne route.",
+    soviet:   "Nadejda Contrôle fouille votre bagage méthodiquement. Tout est en ordre, Camarade.",
+    khalija:  "Le Chambellan Al-Transit incline la tête. Vos papiers sont en règle. Bienvenue."
+  };
+
+  // Si Recherché : jet de détection
+  if (state.recherche?.length > 0) {
+    const dis = state.char?.stats?.DIS || 50;
+    const roll = Math.floor(Math.random() * 100) + 1;
+    const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
+    if (roll > taux) {
+      showToast('Intercepté !', 'Votre statut de Recherché a été détecté. Vous êtes arrêté(e).', false);
+      addJournalEntry('Interception aux douanes. Arrestation.', 'event-bad');
+      return;
+    }
+  }
+
+  state.douanePassee = true;
+  const msg = msgs[pays] || msgs['republic'];
+  showToast('Douanes passées', msg, true);
+  addJournalEntry('Contrôle douanier passé. Accès zone embarquement autorisé.', 'event-info');
+
+  // Activer l'onglet zone embarquement
+  const tabs = document.querySelectorAll('.piece-tab');
+  tabs.forEach(t => {
+    if (t.textContent.includes('Embarquement') || t.textContent.includes('Embarque')) {
+      t.style.opacity = '1';
+      t.style.pointerEvents = 'auto';
+      t.style.color = 'var(--gold)';
+    }
+  });
+}
+
+function checkZoneEmbarquementAcces(buildingId, roomId) {
+  // Verrouiller la zone embarquement si douane non passée
+  if (roomId === 'zone_embarquement' && !state.douanePassee) {
+    showToast('Accès refusé', 'Vous devez d\'abord passer le contrôle douanier.', false);
+    return false;
+  }
+  return true;
+}
+
 function sortirBatiment() {
+  state.douanePassee = false;
   showVueRue();
   addJournalEntry(`Vous sortez du batiment.`, '');
 }
@@ -630,6 +687,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocaux(); return; }
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
+  if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs'); return; }
   if (fn === 'prendre_bus_taxi')       { ouvrirModalTransport('bus'); return; }
   if (fn === 'prendre_avion')          { ouvrirModalTransport('avion'); return; }

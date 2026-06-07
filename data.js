@@ -348,37 +348,28 @@ const WORLD = {
           desc: 'La mairie. Bureau des permis d\'or, taxe de fidélité, service des secrets sur demande.',
           persons: []
         },
-        'centre-multinodal-luthecia': {
-          name: 'Terminal Multimodal El Estado',
-          desc: 'Taxis dorés, bus dorés, Trans-Gold Express. El Don te observe depuis ses affiches. Tout chemin mène à l\'or.',
-          persons: []
-        }
-      },
-      buildingNames: {
-        'palais-presidentiel':'Casa del Generalissimo','hotel-republica':'Hotel El Cartel',
-        'palais-gouvernement':'Palacio del Gobierno','assemblee':'Asamblea Nacional',
-        'tribunal':'Tribunal de Ciudad Roja','banque-nationale':'Banco Nacional',
-        'banque-privee':'Banco Privado Offshore','clinique-privee':'Clinica Privada',
-        'dispensaire-public':'Dispensario Popular','commissariat':'Comisaria Central',
-        'la-tribune':'El Narco Times','loge-maconnique':'Club de los Elegidos',
-        'universite':'Universidad del Partido','armurerie':'Armeria Gordito',
-        'marche':'Mercado Central','mairie-capitale':'Alcaldia',
-        'laboratoire-priere':'Laboratoire de Priere','centre-multinodal-luthecia':'Terminal Multimodal'
-      }
-    },
-    ville_a: {
-      name:'Puerto Oscuro',
-      imageUrl:'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1200&q=80',
-      desc:'Port chaotique d\'El Estado. Contrebande et réseaux criminels prospèrent.',
-      isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-ciudad-roja','terrain-a-batir-2'],
-      buildingContext: {
-        'hotel-republica': {
-          name: "Posada del Puerto",
-          desc: "Les clients ne donnent pas leur vrai nom.",
-          persons: [{"name": "Ramón Oscuro (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
-        },
-        'commissariat': {
+                'centre-multinodal-luthecia': {
+          name: "Hall Principal",
+          desc: "Taxis dorés, bus dorés, Trans-Gold Express. Carlos Retraso annonce des horaires purement décoratifs. Juanita Soborno surveille les entrées.",
+          persons: [{"name": "Carlos Retraso (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Juanita Soborno (PNJ)", "role": "Agente de sécurité", "rel": "neutral", "job": "securite"}],
+          rooms: {
+          'hall_gare': {
+            name: "Hall Principal — Terminal El Estado",
+            desc: "Taxis dorés, bus dorés, Trans-Gold Express. Carlos Retraso annonce des horaires purement décoratifs. Juanita Soborno surveille les entrées.",
+            persons: [{"name": "Carlos Retraso (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Juanita Soborno (PNJ)", "role": "Agente de sécurité", "rel": "neutral", "job": "securite"}]
+          },
+          'hall_douanes': {
+            name: "Control de Fidelidad",
+            desc: "Le contrôle douanier d\\'El Estado. Juanita Soborno vous sourit. Tout s\\'arrange avec un billet.",
+            persons: [{"name": "Juanita Soborno (PNJ)", "role": "Agente des douanes", "rel": "neutral", "job": "douanier"}]
+          },
+          'zone_embarquement': {
+            name: "Zona de Embarque",
+            desc: "La zone d\\'embarquement. Vols vers les 4 empires. El Don te observe depuis l\\'affiche.",
+            persons: []
+          }
+          }
+        },        'commissariat': {
           name: "Puesto de Policía",
           desc: "Fermé le vendredi après-midi.",
           persons: [{"name": "Sargento Siesta (PNJ)", "role": "Sergent", "rel": "neutral", "job": "commissaire"}]
@@ -550,46 +541,28 @@ const WORLD = {
           desc: 'L\'administration locale du Parti. Formulaires en quadruple exemplaire.',
           persons: []
         },
-        'centre-multinodal-luthecia': {
-          name: 'Gare Centrale du Peuple',
-          desc: 'Trans-Urals Express, bus verts soviétiques, taxis collectifs. Camarade Horaire veille. Tous les chemins mènent à l\'or du Parti.',
-          persons: []
-        }
-      },
-      buildingNames: {
-        'palais-presidentiel': 'Palais du Parti',
-        'hotel-republica': 'Hotel Kollektiv',
-        'palais-gouvernement': 'Siège du Comité Central',
-        'assemblee': 'Soviet Suprême',
-        'tribunal': 'Tribunal Populaire',
-        'banque-nationale': 'Banque d\'Etat',
-        'banque-privee': 'Caisse Collective',
-        'clinique-privee': 'Clinique du Parti',
-        'dispensaire-public': 'Dispensaire Populaire',
-        'commissariat': 'Commissariat du Peuple',
-        'la-tribune': 'La Pravdovka',
-        'loge-maconnique': 'Cercle des Camarades',
-        'universite': 'Universite du Parti',
-        'armurerie': 'Arsenal Collectif',
-        'marche': 'Marche d\'Etat',
-        'mairie-capitale': 'Soviet Municipal',
-        'kolkhoze-spirituel': 'Kolkhoze Spirituel',
-        'centre-multinodal-luthecia': 'Gare Centrale'
-      }
-    },
-    ville_a: {
-      name:'Stalinova',
-      imageUrl:'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&q=80',
-      desc:'Ville industrielle de Sovarka. Les usines tournent nuit et jour pour le Parti.',
-      isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-novomirsk','terrain-a-batir-2'],
-      buildingContext: {
-        'hotel-republica': {
-          name: "Foyer Ouvrier de Stalinova",
-          desc: "Un foyer collectif. Les normes sont respectées à la lettre.",
-          persons: [{"name": "Camarade Accueil (PNJ)", "role": "Gestionnaire", "rel": "neutral", "job": "serveur"}]
-        },
-        'commissariat': {
+                'centre-multinodal-luthecia': {
+          name: "Hall Principal",
+          desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l\\'heure, c\\'est obligatoire.",
+          persons: [{"name": "Camarade Horaire (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Agente Nadejda (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}],
+          rooms: {
+          'hall_gare': {
+            name: "Hall Principal — Gare Centrale du Peuple",
+            desc: "Trans-Urals Express, taxis verts collectifs, bus du Parti. Camarade Horaire veille. Les trains arrivent à l\\'heure, c\\'est obligatoire.",
+            persons: [{"name": "Camarade Horaire (PNJ)", "role": "Chef de gare", "rel": "neutral", "job": "chef_gare"}, {"name": "Agente Nadejda (PNJ)", "role": "Agente de contrôle", "rel": "neutral", "job": "securite"}]
+          },
+          'hall_douanes': {
+            name: "Contrôle des Camarades",
+            desc: "Le contrôle douanier de Sovarka. Nadejda Contrôle fouille votre bagage méthodiquement. Tout est enregistré en triple.",
+            persons: [{"name": "Nadejda Contrôle (PNJ)", "role": "Inspectrice des douanes", "rel": "neutral", "job": "douanier"}]
+          },
+          'zone_embarquement': {
+            name: "Zone de Départ Collectif",
+            desc: "La zone d\\'embarquement du Peuple. Vols vers les 4 empires. Loyauté obligatoire.",
+            persons: []
+          }
+          }
+        },        'commissariat': {
           name: "Milice de Stalinova",
           desc: "Très attentive aux comportements déviants.",
           persons: [{"name": "Milicien Vigilant (PNJ)", "role": "Chef de milice", "rel": "neutral", "job": "commissaire"}]
@@ -760,37 +733,28 @@ const WORLD = {
           desc: 'L\'administration de la capitale. Protocole royal obligatoire.',
           persons: []
         },
-        'centre-multinodal-luthecia': {
-          name: 'Aéroport International Royal',
-          desc: 'Terminal royal. Vols vers les 4 empires. Le Chambellan Al-Transit vérifie votre rang avant de vous laisser embarquer.',
-          persons: []
-        }
-      },
-      buildingNames: {
-        'palais-presidentiel':'Palais Royal Al-Qasr','hotel-republica':'Hotel Al-Nour Palace',
-        'palais-gouvernement':'Diwan Gouvernemental','assemblee':'Conseil Consultatif Royal',
-        'tribunal':'Tribunal de la Charia','banque-nationale':'Banque Royale Al-Khalija',
-        'banque-privee':'Banque Privee Al-Baraka','clinique-privee':'Clinique Royale',
-        'dispensaire-public':'Dispensaire Al-Madina','commissariat':'Garde Royale',
-        'la-tribune':'Le Minaret Dore','loge-maconnique':'Cercle des Sages',
-        'universite':'Universite Royale','armurerie':'Arsenaux Royaux',
-        'marche':'Souk Al-Madina','mairie-capitale':'Chambre Municipale Royale',
-        'patisserie-sacree':'Patisserie Sacree','centre-multinodal-luthecia':'Aeroport International Royal'
-      }
-    },
-    ville_a: {
-      name:'Oasis Al-Zafar',
-      imageUrl:'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&q=80',
-      desc:'Oasis luxuriante. Commerce de luxe et trafic discret cohabitent.',
-      isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-al-madina','terrain-a-batir-2'],
-      buildingContext: {
-        'hotel-republica': {
-          name: "Caravansérail Al-Zafar",
-          desc: "Thé à la menthe et confidentialité.",
-          persons: [{"name": "Hôtelier Al-Zafar (PNJ)", "role": "Hôtelier", "rel": "neutral", "job": "serveur"}]
-        },
-        'commissariat': {
+                'centre-multinodal-luthecia': {
+          name: "Hall Principal",
+          desc: "TGV doré, taxis vert et or, service des VIP. Chambellan Al-Transit accueille selon votre rang. Le protocole est une religion.",
+          persons: [{"name": "Chambellan Al-Transit (PNJ)", "role": "Directeur du Hub", "rel": "neutral", "job": "chef_gare"}, {"name": "Yasmine Embarquement (PNJ)", "role": "Hôtesse royale", "rel": "neutral", "job": "hotesse"}],
+          rooms: {
+          'hall_gare': {
+            name: "Hall Principal — Hub Royal",
+            desc: "TGV doré, taxis vert et or, service des VIP. Chambellan Al-Transit accueille selon votre rang. Le protocole est une religion.",
+            persons: [{"name": "Chambellan Al-Transit (PNJ)", "role": "Directeur du Hub", "rel": "neutral", "job": "chef_gare"}, {"name": "Yasmine Embarquement (PNJ)", "role": "Hôtesse royale", "rel": "neutral", "job": "hotesse"}]
+          },
+          'hall_douanes': {
+            name: "Contrôle Douanier Royal",
+            desc: "Le contrôle douanier royal. Le Chambellan Al-Transit incline la tête. Vos papiers sont vérifiés selon le protocole royal.",
+            persons: [{"name": "Chambellan Al-Transit (PNJ)", "role": "Inspecteur royal", "rel": "neutral", "job": "douanier"}]
+          },
+          'zone_embarquement': {
+            name: "Terminal Royal d\\'Embarquement",
+            desc: "Le terminal d\\'embarquement royal. Vols vers les 4 empires. Service VIP disponible.",
+            persons: [{"name": "Yasmine Embarquement (PNJ)", "role": "Hôtesse royale", "rel": "neutral", "job": "hotesse"}]
+          }
+          }
+        },        'commissariat': {
           name: "Poste de Sécurité Royal",
           desc: "Courtois mais vigilant.",
           persons: [{"name": "Garde Al-Vigilant (PNJ)", "role": "Chef de poste", "rel": "neutral", "job": "commissaire"}]
@@ -2302,7 +2266,7 @@ const BUILDINGS = {
     desc: "Gare, aéroport international et station de bus et taxis. Le carrefour de tous les déplacements de Républia.",
     rooms: {
       hall_gare: {
-        name: "Hall de la Gare",
+        name: "Hall Principal",
         imageBg: "linear-gradient(135deg,#08090f,#101520)",
         desc: "Le hall principal. Gaston Retard annonce comme chaque matin un retard indéterminé sur la ligne Nord. Mireille Guichet sourit sans savoir.",
         imageUrl: "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=1200&q=80",
@@ -2311,24 +2275,36 @@ const BUILDINGS = {
           {name:'Mireille Guichet (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse'}
         ],
         orders: [
-          {fn:'prendre_train', label:'Prendre le train', pa:2, cost:75, type:'legal', icon:'ti-train', successRate:100, desc:'75 FR. 2 PA. Transport intra-empire vers une autre ville. Plus économique que le taxi.'},
-          {fn:'prendre_bus_taxi', label:'Prendre un bus ou taxi', pa:1, cost:150, type:'legal', icon:'ti-bus', successRate:100, desc:'150 FR. 1 PA. Rapide. Transport intra-empire uniquement.'},
-          {fn:'controle_douanes', label:'Passer les douanes', pa:0, cost:0, type:'legal', icon:'ti-shield-check', successRate:85, desc:'Contrôle automatique. Si statut Recherché : jet DIS/10. Possibilité de corrompre l\'agent.'},
-          {fn:'taxi_caserne', label:'Taxi vers la Caserne', pa:1, cost:200, type:'legal', icon:'ti-military-rank', successRate:100, desc:'200 FR. 1 PA. Accès sur place conditionné : profil habilité ou laissez-passer.'},
-          {fn:'taxi_qhs', label:'Taxi vers le QHS', pa:1, cost:200, type:'legal', icon:'ti-lock', successRate:100, desc:'200 FR. 1 PA. Accès sur place conditionné : profil habilité ou ordre de visite.'}
+          {fn:'prendre_train', label:'Prendre le train', pa:2, cost:75, type:'legal', icon:'ti-train', successRate:100, desc:'75 FR. 2 PA. Transport intra-empire vers une autre ville.'},
+          {fn:'prendre_bus_taxi', label:'Prendre un bus ou taxi', pa:1, cost:150, type:'legal', icon:'ti-bus', successRate:100, desc:'150 FR. 1 PA. Transport intra-empire uniquement.'},
+          {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Inter-empire. Disponible depuis le port.'},
+          {fn:'taxi_caserne', label:'Taxi vers la Caserne', pa:1, cost:200, type:'legal', icon:'ti-military-rank', successRate:100, desc:'200 FR. 1 PA. Accès conditionné sur place.'},
+          {fn:'taxi_qhs', label:'Taxi vers le QHS', pa:1, cost:200, type:'legal', icon:'ti-lock', successRate:100, desc:'200 FR. 1 PA. Accès conditionné sur place.'}
         ]
       },
-      aeroport: {
-        name: "Terminal Aéroport",
+      hall_douanes: {
+        name: "Hall des Douanes",
         imageBg: "linear-gradient(135deg,#08090f,#101215)",
-        desc: "Le terminal international. Vols vers les 4 empires. L'Inspecteur Prosper Tampon veille avec son tampon béni.",
+        desc: "Le contrôle douanier. Obligatoire avant tout vol international. L\'Inspecteur Prosper Tampon veille avec son tampon béni.",
         imageUrl: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80",
         persons: [
           {name:'Inspecteur Prosper Tampon (PNJ)', role:'Inspecteur des douanes', rel:'neutral', job:'douanier'}
         ],
         orders: [
-          {fn:'prendre_avion', label:'Prendre l\'avion', pa:3, cost:250, type:'legal', icon:'ti-plane', successRate:100, desc:'250 FR. 3 PA. Transport inter-empire rapide. Contrôle douanes obligatoire.'},
-          {fn:'corrompre_douanier', label:'Corrompre l\'agent des douanes', pa:1, cost:300, type:'illegal', icon:'ti-coin', successRate:55, desc:'Éviter le contrôle douanier. DUP/10 + INF/10. Zone transport +20%.'}
+          {fn:'passer_douanes_aeroport', label:'Passer le contrôle douanier', pa:0, cost:0, type:'legal', icon:'ti-shield-check', successRate:100, desc:'Obligatoire pour accéder à la zone d\'embarquement.'},
+          {fn:'corrompre_douanier', label:'Corrompre l\'agent des douanes', pa:1, cost:300, type:'illegal', icon:'ti-coin', successRate:55, desc:'Éviter le contrôle. DUP/10 + INF/10. +20% zone transport.'}
+        ]
+      },
+      zone_embarquement: {
+        name: "Zone d\'Embarquement",
+        imageBg: "linear-gradient(135deg,#05080f,#080c18)",
+        desc: "La zone d\'embarquement internationale. Accès réservé aux voyageurs ayant passé les douanes.",
+        imageUrl: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80",
+        locked: false,
+        requiresDouane: true,
+        persons: [],
+        orders: [
+          {fn:'prendre_avion', label:'Prendre l\'avion', pa:3, cost:250, type:'legal', icon:'ti-plane', successRate:100, desc:'250 FR. 3 PA. Vol vers un autre empire.'}
         ]
       }
     }
