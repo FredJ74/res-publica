@@ -2958,3 +2958,4 @@ const SCANDALES_PREDEFINIS = [
   "Le Camarade Pontife Tractorenko a béni un tracteur privé par erreur. L'hérésie est totale.",
   "Le Juge Honoré Cozetoujours a condamné son propre greffier avant d'entendre l'affaire. Il 'assume pleinement'."
 ];
+// v24-roomOverrides
