@@ -32,8 +32,8 @@ body.empire-narco {
 
 /* SOVARKA — Gris acier, rouge soviétique */
 body.empire-soviet {
-  --bg:#0e1012;--bg2:#111416;--bg3:#14181a;--bg4:#181e20;
-  --border:#2a3038;--border2:#1e2428;
+  --bg:#1a1e22;--bg2:#1e2428;--bg3:#22282e;--bg4:#262e34;
+  --border:#3a4450;--border2:#2a3240;
   --text:#d8dcd8;--text2:#9aa09a;--text3:#606860;--text4:#404840;--text5:#283028;
   --gold:#9a2020;--gold-light:#c02828;--gold-dark:#6a1010;--gold-dim:#2a0808;
   --accent:#9a2020;--accent2:#6a1010;
@@ -41,8 +41,8 @@ body.empire-soviet {
 
 /* AL-KHALIJA — Ocre sombre, turquoise doré */
 body.empire-khalija {
-  --bg:#12100a;--bg2:#16130c;--bg3:#1a160e;--bg4:#201a10;
-  --border:#38300a;--border2:#28220a;
+  --bg:#2a2210;--bg2:#302814;--bg3:#382e18;--bg4:#40341c;
+  --border:#584828;--border2:#443818;
   --text:#f0e8c8;--text2:#c0b080;--text3:#887848;--text4:#585030;--text5:#383020;
   --gold:#20a090;--gold-light:#30c0b0;--gold-dark:#107060;--gold-dim:#083828;
   --accent:#20a090;--accent2:#107060;
