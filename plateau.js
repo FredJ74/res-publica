@@ -395,13 +395,18 @@ function enterRoom(buildingId, roomId, tabEl) {
     tabEl.classList.add('active');
   }
 
+  // Contexte local : desc, PNJ et roomOverrides selon empire/ville
+  const ctx = getBuildingContext(buildingId);
+  const isFirstRoom = Object.keys(b.rooms || {})[0] === roomId;
+  const roomOverride = ctx?.roomOverrides?.[roomId];
+
   // Image de la piece — priorité : ROOM_IMAGES_EMPIRE > roomOverride > room.imageUrl
   const empireRoomImg = (typeof ROOM_IMAGES_EMPIRE !== 'undefined')
     ? ROOM_IMAGES_EMPIRE[state.country]?.[buildingId]?.[roomId]
     : null;
 
   const pieceImg = document.getElementById('piece-image');
-  const imgUrl = empireRoomImg || ctx?.roomOverrides?.[roomId]?.imageUrl || room.imageUrl;
+  const imgUrl = empireRoomImg || roomOverride?.imageUrl || room.imageUrl;
   if (imgUrl) {
     pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.85) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
@@ -410,11 +415,6 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Supprimer ancien emoji si present
   const existing = pieceImg.querySelector('.piece-emoji');
   if (existing) existing.remove();
-
-  // Contexte local : desc, PNJ et roomOverrides selon empire/ville
-  const ctx = getBuildingContext(buildingId);
-  const isFirstRoom = Object.keys(b.rooms || {})[0] === roomId;
-  const roomOverride = ctx?.roomOverrides?.[roomId];
 
   document.getElementById('piece-nom').textContent = roomOverride?.name || room.name;
   const displayDesc = (isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || '');
