@@ -320,13 +320,20 @@ function showVueRue() {
   if (existing) existing.remove();
 }
 
+function getBuildingContext(buildingId) {
+  // Retourne le contexte local du bâtiment selon l'empire et la ville actuels
+  const world = WORLD[state.country];
+  const city = world?.[state.currentCity];
+  return city?.buildingContext?.[buildingId] || null;
+}
+
 function enterBuilding(buildingId) {
   const b = BUILDINGS[buildingId];
   if (!b) return;
 
   if (b.locked) {
     showToast('Acces restreint', "Vous n'etes pas membre de cet etablissement.", false);
-    addJournalEntry(`Vous tentez d'entrer a ${b.name} mais l'acces vous est refuse.`, 'event-bad');
+    addJournalEntry(`Vous tentez d'entrer mais l'acces vous est refuse.`, 'event-bad');
     return;
   }
 
@@ -334,9 +341,14 @@ function enterBuilding(buildingId) {
   document.getElementById('vue-rue').classList.remove('active');
   document.getElementById('vue-batiment').classList.add('active');
 
+  // Utiliser le contexte local si disponible
+  const ctx = getBuildingContext(buildingId);
+  const displayName = ctx?.name || b.name;
+  const displayCat = b.cat;
+
   // Header
-  document.getElementById('bat-nom').textContent = b.name;
-  document.getElementById('bat-cat').textContent = b.cat;
+  document.getElementById('bat-nom').textContent = displayName;
+  document.getElementById('bat-cat').textContent = displayCat;
 
   // Onglets pieces
   const rooms = Object.entries(b.rooms || {});
@@ -351,7 +363,7 @@ function enterBuilding(buildingId) {
   }
 
   updateLocationDisplay();
-  addJournalEntry(`Vous entrez dans ${b.name}.`, '');
+  addJournalEntry(`Vous entrez dans ${displayName}.`, '');
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
@@ -368,9 +380,15 @@ function enterRoom(buildingId, roomId, tabEl) {
     tabEl.classList.add('active');
   }
 
-  // Image de la piece
+  // Image de la piece — verifier si une image empire specifique existe
+  const empireRoomImg = (typeof ROOM_IMAGES_EMPIRE !== 'undefined')
+    ? ROOM_IMAGES_EMPIRE[state.country]?.[buildingId]?.[roomId]
+    : null;
+
   const pieceImg = document.getElementById('piece-image');
-  if (room.imageUrl) {
+  if (empireRoomImg) {
+    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.85) 100%), url('${empireRoomImg}') center/cover no-repeat`;
+  } else if (room.imageUrl) {
     pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.85) 100%), url('${room.imageUrl}') center/cover no-repeat`;
   } else {
     pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
@@ -380,16 +398,21 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (existing) existing.remove();
 
   document.getElementById('piece-nom').textContent = room.name;
-  document.getElementById('piece-desc').textContent = room.desc;
 
-  // Personnes
-  renderPersonsList(room.persons || []);
+  // Contexte local : desc et PNJ adaptes selon empire/ville
+  const ctx = getBuildingContext(buildingId);
+  const isFirstRoom = Object.keys(b.rooms || {})[0] === roomId;
+  const displayDesc = (isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || '');
+  document.getElementById('piece-desc').textContent = displayDesc;
+  const displayPersons = (isFirstRoom && ctx?.persons) ? ctx.persons : (room.persons || []);
+  renderPersonsList(displayPersons);
 
   // Ordres
   renderRoomActions(room, buildingId, roomId);
 
   // Loc
-  document.getElementById('loc-name').textContent = b.shortName || b.name;
+  const ctxName = ctx?.name || b.shortName || b.name;
+  document.getElementById('loc-name').textContent = ctxName;
   document.getElementById('loc-sub').textContent = room.name;
 }
 

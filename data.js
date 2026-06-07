@@ -101,21 +101,147 @@ const WORLD = {
       isCapitale: true,
       streetName: 'Avenue de la République',
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','terrain-a-batir-1']
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Hôtel-Restaurant La Républia",
+          desc: "Le grand hôtel de Luthecia. Gaston Sauceblanche règne sur la salle avec un mépris souverain.",
+          persons: [{"name": "Gaston Sauceblanche (PNJ)", "role": "Maître d'hôtel", "rel": "neutral", "job": "serveur"}, {"name": "Yvette Gratinée (PNJ)", "role": "Serveuse", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Commissariat Central de Luthecia",
+          desc: "Raoul Toufaud pointe toujours dans la mauvaise direction.",
+          persons: [{"name": "Raoul Toufaud (PNJ)", "role": "Commissaire Central", "rel": "neutral", "job": "commissaire"}, {"name": "Brigitte Menottes (PNJ)", "role": "Inspectrice", "rel": "neutral", "job": "inspecteur"}]
+        },
+        'tribunal': {
+          name: "Tribunal de Luthecia",
+          desc: "Honoré Cozetoujours condamne avant d'écouter.",
+          persons: [{"name": "Honoré Cozetoujours (PNJ)", "role": "Juge en chef", "rel": "neutral", "job": "juge"}, {"name": "Maître Plaidoyer (PNJ)", "role": "Avocat commis d'office", "rel": "neutral", "job": "avocat"}]
+        },
+        'banque-nationale': {
+          name: "Banque Nationale de Républia",
+          desc: "Bernard Coffre-Fort n'a jamais ouvert un compte de sa vie.",
+          persons: [{"name": "Bernard Coffre-Fort (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}, {"name": "Simone Intérêt (PNJ)", "role": "Caissière", "rel": "neutral", "job": "caissier"}]
+        },
+        'banque-privee': {
+          name: "Banque Privée Helvetia",
+          desc: "Hans Von Discret ne confirme ni n'infirme rien.",
+          persons: [{"name": "Hans Von Discret (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}, {"name": "Ursula Offshore (PNJ)", "role": "Conseillère", "rel": "neutral", "job": "conseiller"}]
+        },
+        'clinique-privee': {
+          name: "Clinique Privée Saint-Luc",
+          desc: "Docteur Bistouri opère dans l'ordre alphabétique du portefeuille.",
+          persons: [{"name": "Docteur Bistouri (PNJ)", "role": "Chirurgien", "rel": "neutral", "job": "medecin"}, {"name": "Infirmière Piqûre (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "infirmier"}]
+        },
+        'dispensaire-public': {
+          name: "Dispensaire Public de Luthecia",
+          desc: "Docteur Aspirine prescrit du repos pour tout.",
+          persons: [{"name": "Docteur Aspirine (PNJ)", "role": "Généraliste", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "L'Autruche Entravée",
+          desc: "Le journal d'investigation de Républia.",
+          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}]
+        },
+        'loge-maconnique': {
+          name: "Loge Maçonnique de Luthecia",
+          desc: "Frère Jacques D'Equerre parle uniquement en métaphores géométriques.",
+          persons: [{"name": "Frère Jacques D'Equerre (PNJ)", "role": "Grand Maître", "rel": "neutral", "job": "loge"}, {"name": "Frère Maurice Compas (PNJ)", "role": "Trésorier", "rel": "neutral", "job": "loge"}]
+        },
+        'universite': {
+          name: "Université de Luthecia",
+          desc: "Professeur Charabia donne des cours incompréhensibles même pour lui.",
+          persons: [{"name": "Professeur Charabia (PNJ)", "role": "Doyen", "rel": "neutral", "job": "professeur"}, {"name": "Assistante Mémoire (PNJ)", "role": "Assistante", "rel": "neutral", "job": "professeur"}]
+        },
+        'armurerie': {
+          name: "Armurerie Martinon",
+          desc: "Roger Détente ne pose jamais trop de questions.",
+          persons: [{"name": "Roger Détente (PNJ)", "role": "Armurier", "rel": "neutral", "job": "commercant"}, {"name": "Simone Calibre (PNJ)", "role": "Assistante", "rel": "neutral", "job": "commercant"}]
+        },
+        'marche': {
+          name: "Marché Central de Luthecia",
+          desc: "Marcel Bidoche vend de la viande et des informations. Ginette Légume sait tout sur tout le monde.",
+          persons: [{"name": "Marcel Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant"}]
+        }
+      }
     },
     ville_a: {
       name:'Port-Sainte-Marie',
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','terrain-a-batir-2']
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','terrain-a-batir-2'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Hôtel du Port",
+          desc: "Un hôtel modeste qui sent le poisson et l'iode.",
+          persons: [{"name": "Raymond Ancre (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Commissariat de Port-Sainte-Marie",
+          desc: "Un petit commissariat de province.",
+          persons: [{"name": "Inspecteur Morue (PNJ)", "role": "Inspecteur local", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Banque Locale de Port-Sainte-Marie",
+          desc: "Une succursale modeste.",
+          persons: [{"name": "Gérard Liasse (PNJ)", "role": "Directeur local", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Dispensaire de Port-Sainte-Marie",
+          desc: "Le médecin vient deux fois par semaine.",
+          persons: [{"name": "Docteur Iodé (PNJ)", "role": "Médecin itinérant", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Imprimerie-Librairie Gutenberg",
+          desc: "Gustave Encre imprime n'importe quoi pour n'importe qui.",
+          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Marché du Port",
+          desc: "Poissons frais, rumeurs fraîches.",
+          persons: [{"name": "Marinette Hareng (PNJ)", "role": "Poissonnière", "rel": "neutral", "job": "commercant"}]
+        }
+      }
     },
     ville_b: {
       name:'Montrouge',
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge.png',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3']
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Hôtel des Mineurs",
+          desc: "Un hôtel ouvrier. Les murs sont fins, les lits durs, la solidarité forte.",
+          persons: [{"name": "Fernand Poussière (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Commissariat de Montrouge",
+          desc: "En tension permanente avec le syndicat local.",
+          persons: [{"name": "Commissaire Charbon (PNJ)", "role": "Commissaire local", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Banque Ouvrière de Montrouge",
+          desc: "La banque des travailleurs. Prêts difficiles à obtenir.",
+          persons: [{"name": "Hubert Billet (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Dispensaire de Montrouge",
+          desc: "Surpeuplé. L'attente est longue mais les soins sont gratuits.",
+          persons: [{"name": "Docteur Silicose (PNJ)", "role": "Médecin du travail", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "La Voix du Mineur",
+          desc: "Le journal syndical de Montrouge.",
+          persons: [{"name": "Rédacteur Calame (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Marché Ouvrier de Montrouge",
+          desc: "Légumes pas chers, grèves annoncées à voix haute.",
+          persons: [{"name": "Josette Betterave (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}]
+        }
+      }
     },
     caserne: {
       name:'Caserne Militaire de Republia',
@@ -137,10 +263,72 @@ const WORLD = {
     capitale: {
       name:'Ciudad Roja',
       streetName: 'Avenida del Generalissimo',
-      imageUrl:'https://images.unsplash.com/photo-1533050487297-09b450131914?w=1200&q=80',
+      imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-el-estado.png',
       desc:'Capitale d\'El Estado. Chaleur étouffante, corruption omniprésente, Generalissimo Gordito règne sans partage.',
       isCapitale: true,
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Hôtel El Cartel",
+          desc: "Le seul hôtel potable de Ciudad Roja. Les murs ont des oreilles.",
+          persons: [{"name": "Pedro Tequila (PNJ)", "role": "Barman", "rel": "neutral", "job": "serveur"}, {"name": "Lupe Cantina (PNJ)", "role": "Serveuse armée", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Comisaria Central",
+          desc: "La police d'El Estado. Corruptible mais imprévisible.",
+          persons: [{"name": "El Capitan Gordo (PNJ)", "role": "Capitaine", "rel": "neutral", "job": "commissaire"}, {"name": "Consuela Silencio (PNJ)", "role": "Inspectrice", "rel": "neutral", "job": "inspecteur"}]
+        },
+        'tribunal': {
+          name: "Tribunal de Ciudad Roja",
+          desc: "Les verdicts s'achètent au kilo.",
+          persons: [{"name": "El Juez Manchado (PNJ)", "role": "Juge en chef", "rel": "neutral", "job": "juge"}, {"name": "Abogado Turbio (PNJ)", "role": "Avocat véreux", "rel": "neutral", "job": "avocat"}]
+        },
+        'banque-nationale': {
+          name: "Banco Nacional del Estado",
+          desc: "Les billets sentent parfois le carburant d'avion.",
+          persons: [{"name": "Don Billete (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}, {"name": "Rosita Cuenta (PNJ)", "role": "Caissière", "rel": "neutral", "job": "caissier"}]
+        },
+        'banque-privee': {
+          name: "Banco Privado Offshore",
+          desc: "Aucune question posée.",
+          persons: [{"name": "Señor Offshore (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}]
+        },
+        'clinique-privee': {
+          name: "Clínica Privada",
+          desc: "Doctor Silencioso ne remplit aucun rapport.",
+          persons: [{"name": "Doctor Silencioso (PNJ)", "role": "Médecin", "rel": "neutral", "job": "medecin"}]
+        },
+        'dispensaire-public': {
+          name: "Dispensario Popular",
+          desc: "Bondé. Les médicaments manquent depuis six mois.",
+          persons: [{"name": "Enfermera Esperanza (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "El Narco Times",
+          desc: "Toutes les nouvelles qui méritent d'être blanchies.",
+          persons: [{"name": "El Editor (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Periodista Miedo (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
+        },
+        'loge-maconnique': {
+          name: "Club de los Elegidos",
+          desc: "Membres non divulgués. Meetings non confirmés.",
+          persons: [{"name": "El Gran Maestro (PNJ)", "role": "Grand Maître", "rel": "neutral", "job": "loge"}]
+        },
+        'universite': {
+          name: "Universidad del Partido",
+          desc: "Le programme change selon les humeurs du Generalissimo.",
+          persons: [{"name": "Profesor Obediente (PNJ)", "role": "Doyen", "rel": "neutral", "job": "professeur"}]
+        },
+        'armurerie': {
+          name: "Armería Gordito",
+          desc: "L'armurerie officielle. Et non officielle. Les deux.",
+          persons: [{"name": "Paco Gatillo (PNJ)", "role": "Armurier", "rel": "neutral", "job": "commercant"}]
+        },
+        'marche': {
+          name: "Mercado Central",
+          desc: "Tout se vend ici, absolument tout.",
+          persons: [{"name": "Maria Mercado (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}, {"name": "Carlos Regateo (PNJ)", "role": "Marchand", "rel": "neutral", "job": "commercant"}]
+        }
+      },
       buildingNames: {
         'palais-presidentiel':'Casa del Generalissimo','hotel-republica':'Hotel El Cartel',
         'palais-gouvernement':'Palacio del Gobierno','assemblee':'Asamblea Nacional',
@@ -158,14 +346,78 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1200&q=80',
       desc:'Port chaotique d\'El Estado. Contrebande et réseaux criminels prospèrent.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-ciudad-roja','terrain-a-batir-2']
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-ciudad-roja','terrain-a-batir-2'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Posada del Puerto",
+          desc: "Les clients ne donnent pas leur vrai nom.",
+          persons: [{"name": "Ramón Oscuro (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Puesto de Policía",
+          desc: "Fermé le vendredi après-midi.",
+          persons: [{"name": "Sargento Siesta (PNJ)", "role": "Sergent", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Sucursal Bancaria",
+          desc: "Les fonds disparaissent parfois.",
+          persons: [{"name": "Cajero Nervioso (PNJ)", "role": "Caissier", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Puesto Médico",
+          desc: "Aspirine uniquement.",
+          persons: [{"name": "Médico Rural (PNJ)", "role": "Médecin", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Imprenta Local",
+          desc: "Tracts politiques et menus de restaurant.",
+          persons: [{"name": "Impresor Manchado (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Mercado del Puerto",
+          desc: "Poissons et contrebande.",
+          persons: [{"name": "Pescadora Carmen (PNJ)", "role": "Poissonnière", "rel": "neutral", "job": "commercant"}]
+        }
+      }
     },
     ville_b: {
       name:'La Selva',
       imageUrl:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80',
       desc:'Ville de la jungle. Les laboratoires s\'étendent à perte de vue.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3']
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Refugio de la Selva",
+          desc: "Un refuge dans la jungle. Moustiques inclus.",
+          persons: [{"name": "Jefe Selva (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Control Militar",
+          desc: "Pas vraiment une police.",
+          persons: [{"name": "Teniente Bruto (PNJ)", "role": "Lieutenant", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Caja Rural",
+          desc: "Espèces uniquement.",
+          persons: [{"name": "Tesorero Local (PNJ)", "role": "Trésorier", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Clínica de Campaña",
+          desc: "Compétences variables.",
+          persons: [{"name": "Curandero (PNJ)", "role": "Guérisseur", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Hoja Clandestina",
+          desc: "Distribué de main en main.",
+          persons: [{"name": "Redactor Anónimo (PNJ)", "role": "Rédacteur", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Tianguis de la Selva",
+          desc: "Produits locaux et exotiques.",
+          persons: [{"name": "Vendedor Selva (PNJ)", "role": "Vendeur", "rel": "neutral", "job": "commercant"}]
+        }
+      }
     },
     caserne: {
       name:'Cuartel General',
@@ -192,6 +444,68 @@ const WORLD = {
       isCapitale: true,
       empireName: 'Sovarka',
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Hôtel Kollektiv",
+          desc: "Toutes les chambres sont identiques. Olga Soupe gère la cantine avec efficacité soviétique.",
+          persons: [{"name": "Olga Soupe (PNJ)", "role": "Cantinière", "rel": "neutral", "job": "serveur"}, {"name": "Boris Betterave (PNJ)", "role": "Cuisinier", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Commissariat du Peuple",
+          desc: "Nadejda Formulaire remplit des rapports en triple exemplaire pour chaque incident.",
+          persons: [{"name": "Camarade Borodine (PNJ)", "role": "Commissaire du Peuple", "rel": "neutral", "job": "commissaire"}, {"name": "Nadejda Formulaire (PNJ)", "role": "Secrétaire", "rel": "neutral", "job": "inspecteur"}]
+        },
+        'tribunal': {
+          name: "Tribunal Populaire",
+          desc: "Les verdicts sont décidés avant l'audience.",
+          persons: [{"name": "Camarade Juge Pravdine (PNJ)", "role": "Juge Populaire", "rel": "neutral", "job": "juge"}, {"name": "Défenseur Collectif (PNJ)", "role": "Avocat du Peuple", "rel": "neutral", "job": "avocat"}]
+        },
+        'banque-nationale': {
+          name: "Banque d'État de Sovarka",
+          desc: "Tout appartient à l'État, y compris votre argent.",
+          persons: [{"name": "Camarade Ruble (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}, {"name": "Natasha Compte (PNJ)", "role": "Caissière", "rel": "neutral", "job": "caissier"}]
+        },
+        'banque-privee': {
+          name: "Caisse Collective Spéciale",
+          desc: "Officiellement pour les cadres du Parti.",
+          persons: [{"name": "Camarade Privilège (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}]
+        },
+        'clinique-privee': {
+          name: "Clinique du Parti",
+          desc: "Réservée aux membres du Parti. Docteur Stakhanov soigne selon le rang.",
+          persons: [{"name": "Docteur Stakhanov (PNJ)", "role": "Médecin du Parti", "rel": "neutral", "job": "medecin"}]
+        },
+        'dispensaire-public': {
+          name: "Dispensaire Populaire",
+          desc: "Longues files d'attente. Aspirine et bonne volonté.",
+          persons: [{"name": "Infirmière Stoïque (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "La Pravdovka",
+          desc: "L'organe de vérité du Parti, vérifié trois fois.",
+          persons: [{"name": "Rédacteur Vérité (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Correspondant Parti (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
+        },
+        'loge-maconnique': {
+          name: "Cercle des Camarades",
+          desc: "Officiellement un club de lecture. En réalité, le vrai pouvoir de Sovarka.",
+          persons: [{"name": "Camarade Grand Maître (PNJ)", "role": "Président du Cercle", "rel": "neutral", "job": "loge"}]
+        },
+        'universite': {
+          name: "Université du Parti",
+          desc: "Professeur Dialectique enseigne le marxisme-léninisme avec enthousiasme.",
+          persons: [{"name": "Professeur Dialectique (PNJ)", "role": "Doyen", "rel": "neutral", "job": "professeur"}, {"name": "Assistante Propagande (PNJ)", "role": "Assistante", "rel": "neutral", "job": "professeur"}]
+        },
+        'armurerie': {
+          name: "Arsenal Collectif",
+          desc: "Les armes appartiennent au Peuple. Accès sur autorisation du Parti.",
+          persons: [{"name": "Camarade Kalachnikov (PNJ)", "role": "Responsable Arsenal", "rel": "neutral", "job": "commercant"}]
+        },
+        'marche': {
+          name: "Marché d'État",
+          desc: "Les rayons sont souvent vides. Olga propose parfois des produits sous le manteau.",
+          persons: [{"name": "Vendeur d'État (PNJ)", "role": "Vendeur collectif", "rel": "neutral", "job": "commercant"}, {"name": "Olga Marché Noir (PNJ)", "role": "Revendeuse discrète", "rel": "neutral", "job": "commercant"}]
+        }
+      },
       buildingNames: {
         'palais-presidentiel': 'Palais du Parti',
         'hotel-republica': 'Hotel Kollektiv',
@@ -218,14 +532,78 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&q=80',
       desc:'Ville industrielle de Sovarka. Les usines tournent nuit et jour pour le Parti.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-novomirsk','terrain-a-batir-2']
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-novomirsk','terrain-a-batir-2'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Foyer Ouvrier de Stalinova",
+          desc: "Un foyer collectif. Les normes sont respectées à la lettre.",
+          persons: [{"name": "Camarade Accueil (PNJ)", "role": "Gestionnaire", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Milice de Stalinova",
+          desc: "Très attentive aux comportements déviants.",
+          persons: [{"name": "Milicien Vigilant (PNJ)", "role": "Chef de milice", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Caisse d'État de Stalinova",
+          desc: "Transactions enregistrées en quadruple.",
+          persons: [{"name": "Caissier Méticuleux (PNJ)", "role": "Caissier", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Poste Médical Collectif",
+          desc: "Le médecin est là deux fois par semaine.",
+          persons: [{"name": "Docteur Collectif (PNJ)", "role": "Médecin", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Bulletin du Parti Local",
+          desc: "Nouvelles de production uniquement.",
+          persons: [{"name": "Correspondant Local (PNJ)", "role": "Correspondant", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Distribution Collective",
+          desc: "Files organisées par ordre alphabétique.",
+          persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"}]
+        }
+      }
     },
     ville_b: {
       name:'Kolkhoz-7',
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3']
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Baraquement Collectif N°7",
+          desc: "Le logement collectif du kolkhoze. Confort spartiate garanti.",
+          persons: [{"name": "Responsable Logement (PNJ)", "role": "Responsable", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Surveillance du Kolkhoze",
+          desc: "Il note tout dans son carnet.",
+          persons: [{"name": "Agent Surveillance (PNJ)", "role": "Agent", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Caisse Kolkhozienne",
+          desc: "Les bénéfices vont à l'État.",
+          persons: [{"name": "Comptable Kolkhoze (PNJ)", "role": "Comptable", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Infirmerie du Kolkhoze",
+          desc: "Pour les accidents de tracteur.",
+          persons: [{"name": "Infirmier Rural (PNJ)", "role": "Infirmier", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Affichage Mural Collectif",
+          desc: "Mises à jour hebdomadaires.",
+          persons: [{"name": "Afficheur Officiel (PNJ)", "role": "Afficheur", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Entrepôt Collectif",
+          desc: "On y prend sa ration hebdomadaire.",
+          persons: [{"name": "Gérant Entrepôt (PNJ)", "role": "Gérant", "rel": "neutral", "job": "commercant"}]
+        }
+      }
     },
     caserne: {
       name:'Garnison du Peuple',
@@ -251,6 +629,68 @@ const WORLD = {
       desc:'Capitale d\'Al-Khalija. Or, turquoise et sable. Le Palais Royal domine tout. Le protocole est une religion.',
       isCapitale: true,
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Hôtel Al-Nour Palace",
+          desc: "Cinq étoiles. Marbre, or et silence. Hassan Marchandage règle les problèmes des clients fortunés.",
+          persons: [{"name": "Hassan Marchandage (PNJ)", "role": "Concierge Royal", "rel": "neutral", "job": "serveur"}, {"name": "Yasmine Épices (PNJ)", "role": "Hôtesse", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Garde Royale",
+          desc: "Ibn Protocole veille sur l'ordre avec une politesse glaciale.",
+          persons: [{"name": "Chambellan Ibn Protocole (PNJ)", "role": "Chef de la Garde", "rel": "neutral", "job": "commissaire"}, {"name": "Fatima Al-Secret (PNJ)", "role": "Inspectrice", "rel": "neutral", "job": "inspecteur"}]
+        },
+        'tribunal': {
+          name: "Tribunal de la Charia",
+          desc: "Cheikh Al-Verdict rend ses décisions après consultation des textes sacrés et du Palais.",
+          persons: [{"name": "Cheikh Al-Verdict (PNJ)", "role": "Grand Juge", "rel": "neutral", "job": "juge"}, {"name": "Conseiller Juridique (PNJ)", "role": "Conseiller", "rel": "neutral", "job": "avocat"}]
+        },
+        'banque-nationale': {
+          name: "Banque Royale Al-Khalija",
+          desc: "Les intérêts sont conformes à la loi islamique, officiellement.",
+          persons: [{"name": "Directeur Al-Or (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}, {"name": "Caissière Voilée (PNJ)", "role": "Caissière", "rel": "neutral", "job": "caissier"}]
+        },
+        'banque-privee': {
+          name: "Banque Privée Al-Baraka",
+          desc: "Discrétion absolue et thé à la menthe offert.",
+          persons: [{"name": "Cheikh Al-Discret (PNJ)", "role": "Directeur privé", "rel": "neutral", "job": "banquier"}]
+        },
+        'clinique-privee': {
+          name: "Clinique Royale",
+          desc: "Réservée aux proches du pouvoir et aux très fortunés.",
+          persons: [{"name": "Docteur Al-Soin (PNJ)", "role": "Médecin Royal", "rel": "neutral", "job": "medecin"}]
+        },
+        'dispensaire-public': {
+          name: "Dispensaire Al-Madina",
+          desc: "Pour le peuple. Moderne en apparence, sous-doté en réalité.",
+          persons: [{"name": "Infirmière Al-Bien (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Le Minaret Doré",
+          desc: "La parole divine, édition spéciale. Rédacteur Al-Vérité ne publie que ce que le Palais approuve.",
+          persons: [{"name": "Rédacteur Al-Vérité (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Correspondant Royal (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
+        },
+        'loge-maconnique': {
+          name: "Cercle des Sages",
+          desc: "Influence considérable sur les décisions royales.",
+          persons: [{"name": "Sage Al-Ancien (PNJ)", "role": "Président du Cercle", "rel": "neutral", "job": "loge"}]
+        },
+        'universite': {
+          name: "Université Royale",
+          desc: "Excellence académique et loyauté royale obligatoires.",
+          persons: [{"name": "Professeur Al-Savoir (PNJ)", "role": "Doyen", "rel": "neutral", "job": "professeur"}, {"name": "Assistante Al-Studieuse (PNJ)", "role": "Assistante", "rel": "neutral", "job": "professeur"}]
+        },
+        'armurerie': {
+          name: "Arsenaux Royaux",
+          desc: "Accès sur autorisation royale.",
+          persons: [{"name": "Gardien Al-Arsenal (PNJ)", "role": "Responsable Arsenal", "rel": "neutral", "job": "commercant"}]
+        },
+        'marche': {
+          name: "Souk Al-Madina",
+          desc: "Le prix affiché n'est jamais le vrai prix.",
+          persons: [{"name": "Hassan Marchandage (PNJ)", "role": "Marchand principal", "rel": "neutral", "job": "commercant"}, {"name": "Yasmine Épices (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}]
+        }
+      },
       buildingNames: {
         'palais-presidentiel':'Palais Royal Al-Qasr','hotel-republica':'Hotel Al-Nour Palace',
         'palais-gouvernement':'Diwan Gouvernemental','assemblee':'Conseil Consultatif Royal',
@@ -268,14 +708,78 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&q=80',
       desc:'Oasis luxuriante. Commerce de luxe et trafic discret cohabitent.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-al-madina','terrain-a-batir-2']
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-al-madina','terrain-a-batir-2'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Caravansérail Al-Zafar",
+          desc: "Thé à la menthe et confidentialité.",
+          persons: [{"name": "Hôtelier Al-Zafar (PNJ)", "role": "Hôtelier", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Poste de Sécurité Royal",
+          desc: "Courtois mais vigilant.",
+          persons: [{"name": "Garde Al-Vigilant (PNJ)", "role": "Chef de poste", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Agence Bancaire Al-Zafar",
+          desc: "Transactions en or acceptées.",
+          persons: [{"name": "Agent Bancaire (PNJ)", "role": "Agent", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Centre Médical de l'Oasis",
+          desc: "Bien équipé pour une ville de cette taille.",
+          persons: [{"name": "Médecin Al-Zafar (PNJ)", "role": "Médecin", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Gazette de l'Oasis",
+          desc: "Nouvelles de l'oasis et éloges royaux.",
+          persons: [{"name": "Journaliste Local (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Souk de l'Oasis",
+          desc: "Épices, tapis et informations.",
+          persons: [{"name": "Marchand Al-Zafar (PNJ)", "role": "Marchand", "rel": "neutral", "job": "commercant"}]
+        }
+      }
     },
     ville_b: {
       name:'Port Al-Nour',
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Port pétrolier d\'Al-Khalija. Les tankers et les dhows se croisent.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3']
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Hôtel du Port Al-Nour",
+          desc: "Vue sur les tankers pétroliers.",
+          persons: [{"name": "Gérant Al-Nour (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Garde Portuaire Royale",
+          desc: "Contrôle les entrées et sorties.",
+          persons: [{"name": "Garde Portuaire (PNJ)", "role": "Garde", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Banque Pétrolière Al-Nour",
+          desc: "Les chiffres sont impressionnants.",
+          persons: [{"name": "Directeur Pétrolier (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Dispensaire du Port",
+          desc: "Pour les travailleurs du port. Bien équipé.",
+          persons: [{"name": "Médecin du Port (PNJ)", "role": "Médecin", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Journal Pétrolier",
+          desc: "Les nouvelles du secteur pétrolier.",
+          persons: [{"name": "Journaliste Pétrole (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Souk du Port",
+          desc: "Marchandises du monde entier.",
+          persons: [{"name": "Marchand du Port (PNJ)", "role": "Marchand", "rel": "neutral", "job": "commercant"}]
+        }
+      }
     },
     caserne: {
       name:'Forteresse Royale',
@@ -1935,6 +2439,11 @@ const BUILDINGS = {
       }
     }
   }
+};
+
+// Images de pieces par empire
+const ROOM_IMAGES_EMPIRE = {
+  narco: {"palais-gouvernement": {"accueil": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-prez-el-estado.png", "bureau_president": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-prez-el-estado.png", "salle_conseil": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/conseil-el-estado.png", "salle_presse": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-presse-el-estado.png", "bureau_min_int": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mint-el-estado.png", "bureau_min_fin": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-el-estado.png", "bureau_min_just": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mjust-el-estado.png", "bureau_min_def": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mdef-el-estado.png", "bureau_min_info": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/minfo-el-estado.png", "bureau_min_ae": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mae-el-estado.png"}, "assemblee": {"hemicycle": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/an-salle-el-estado.png", "couloirs": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/an-el-estado.png"}, "commissariat": {"accueil_commissariat": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-el-estado.png", "cellules": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cellule-el-estado.png"}, "mairie-capitale": {"hall_mairie": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-el-estado.png"}, "centre-multinodal-luthecia": {"hall_gare": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-el-estado.png"}}
 };
 
 const POSTES = {
