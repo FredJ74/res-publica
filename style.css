@@ -9,6 +9,43 @@
   --border:#2a2010;--border2:#1a1810;
   --text:#f0ead6;--text2:#c0b090;--text3:#8a8060;--text4:#6a6050;--text5:#4a4030;
   --green:#4a8a4a;--blue:#4a6aaa;--red:#8a3a2a;--purple:#8a4aaa;
+  --accent:#C9A84C;--accent2:#8a6a20;
+}
+
+/* REPUBLIA — Or et noir, tons dorés chauds */
+body.empire-republic {
+  --gold:#C9A84C;--gold-light:#E8C97A;--gold-dark:#8a6a20;--gold-dim:#3a2a10;
+  --bg:#0a0a07;--bg2:#0d0b05;--bg3:#121005;--bg4:#1a1508;
+  --border:#2a2010;--border2:#1a1810;
+  --text:#f0ead6;--text2:#c0b090;--text3:#8a8060;
+  --accent:#C9A84C;--accent2:#8a6a20;
+}
+
+/* EL ESTADO — Rouge et or sale, chaleur tropicale */
+body.empire-narco {
+  --gold:#c4842a;--gold-light:#e8a050;--gold-dark:#8a4a10;--gold-dim:#3a1a08;
+  --bg:#0d0702;--bg2:#120a03;--bg3:#180d04;--bg4:#201205;
+  --border:#3a1a08;--border2:#251005;
+  --text:#f5e0c8;--text2:#c8a080;--text3:#8a6040;
+  --accent:#c4842a;--accent2:#8a4a10;
+}
+
+/* SOVARKA — Gris acier et rouge soviétique */
+body.empire-soviet {
+  --gold:#8a9a8a;--gold-light:#aabaa8;--gold-dark:#4a5a4a;--gold-dim:#1a2a1a;
+  --bg:#080a08;--bg2:#0a0c0a;--bg3:#0d100d;--bg4:#121512;
+  --border:#1a2a1a;--border2:#121812;
+  --text:#d8e0d0;--text2:#a0b098;--text3:#607060;
+  --accent:#8a2020;--accent2:#5a1010;
+}
+
+/* AL-KHALIJA — Or, turquoise et nuit profonde */
+body.empire-khalija {
+  --gold:#b8a060;--gold-light:#d8c080;--gold-dark:#786030;--gold-dim:#302810;
+  --bg:#070808;--bg2:#090a0b;--bg3:#0c0e10;--bg4:#101418;
+  --border:#1a2830;--border2:#101820;
+  --text:#e8e0d0;--text2:#a8b8b0;--text3:#607870;
+  --accent:#208080;--accent2:#105050;
 }
 body{font-family:'Crimson Pro',Georgia,serif;background:var(--bg);color:var(--text);min-height:100vh}
 body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:column}

@@ -29,6 +29,7 @@ window.addEventListener('DOMContentLoaded', () => {
   loadCharacter();
   if (!state.currentCity) state.currentCity = 'capitale';
   if (!state.country) state.country = 'republic';
+  applyEmpireTheme(state.country);
   // Sauvegarder la position courante
   if (state.char) {
     state.char.country = state.country;
@@ -318,6 +319,11 @@ function showVueRue() {
   }
   const existing = document.getElementById('rue-emoji');
   if (existing) existing.remove();
+}
+
+function applyEmpireTheme(country) {
+  document.body.classList.remove('empire-republic','empire-narco','empire-soviet','empire-khalija');
+  document.body.classList.add('empire-' + (country || 'republic'));
 }
 
 function getBuildingContext(buildingId) {
@@ -4588,6 +4594,7 @@ function executerVoyage(mode, empireId, villeId) {
     state.char.currentCity = villeId;
     localStorage.setItem('respublica_char', JSON.stringify(state.char));
   }
+  applyEmpireTheme(empireId);
   buildCityTabs();
   updateUI();
   forceRenderCity(villeId);
