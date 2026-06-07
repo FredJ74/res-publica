@@ -176,7 +176,28 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&q=80',
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','terrain-a-batir-1']
+      empireName: 'Sovarka',
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildingNames: {
+        'palais-presidentiel': 'Palais du Parti',
+        'hotel-republica': 'Hotel Kollektiv',
+        'palais-gouvernement': 'Siège du Comité Central',
+        'assemblee': 'Soviet Suprême',
+        'tribunal': 'Tribunal Populaire',
+        'banque-nationale': 'Banque d'État',
+        'banque-privee': 'Caisse Collective',
+        'clinique-privee': 'Clinique du Parti',
+        'dispensaire-public': 'Dispensaire Populaire',
+        'commissariat': 'Commissariat du Peuple',
+        'la-tribune': 'La Pravdovka',
+        'loge-maconnique': 'Cercle des Camarades',
+        'universite': 'Université du Parti',
+        'armurerie': 'Arsenal Collectif',
+        'marche': 'Marché d'État',
+        'mairie-capitale': 'Soviet Municipal',
+        'kolkhoze-spirituel': 'Kolkhoze Spirituel',
+        'centre-multinodal-luthecia': 'Gare Centrale'
+      }
     },
     ville_a: {
       name:'Stalinova',

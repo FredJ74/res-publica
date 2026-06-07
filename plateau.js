@@ -279,13 +279,17 @@ function renderMinimap(cityId) {
 function minimapCard(id) {
   const b = BUILDINGS[id];
   if (!b) return '';
+  // Nom localise selon empire actuel
+  const world = WORLD[state.country];
+  const city = world?.[state.currentCity];
+  const localName = city?.buildingNames?.[id] || b.shortName || b.name;
   const personCount = Object.values(b.rooms || {}).reduce((acc, r) => acc + (r.persons?.length || 0), 0);
   const locked = b.locked ? '<span style="font-size:.6rem;color:#5a3020">· Acces restreint</span>' : '';
   return `
     <div class="minimap-building ${b.capitaleOnly ? 'capital-only' : ''}" onclick="enterBuilding('${id}')">
       <div class="minimap-bld-icon"><i class="ti ${b.icon}" style="font-size:.8rem"></i></div>
       <div class="minimap-bld-info">
-        <div class="minimap-bld-name">${b.shortName || b.name}</div>
+        <div class="minimap-bld-name">${localName}</div>
         <div class="minimap-bld-cat">${b.cat} ${locked}</div>
         ${personCount > 0 ? `<div class="minimap-persons">${personCount} personne${personCount > 1 ? 's' : ''}</div>` : ''}
       </div>
@@ -4560,7 +4564,14 @@ function confirmerTransport(mode, empireId, villeId) {
     return;
   }
 
-  // Controle douanes obligatoire si avion ou bateau
+  // Controle douanes obligatoire pour avion et bateau
+  if (mode === 'avion' || mode === 'bateau') {
+    // Si pas recherche : controle routinier, passage automatique
+    if (!state.recherche?.length) {
+      addJournalEntry('Contrôle douanier passé. Tout est en ordre.', 'event-info');
+    }
+  }
+  // Si recherche : jet de detection
   if ((mode === 'avion' || mode === 'bateau') && state.recherche?.length > 0) {
     const dis = state.char?.stats?.DIS || 50;
     const roll = Math.floor(Math.random() * 100) + 1;
