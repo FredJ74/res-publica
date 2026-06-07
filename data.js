@@ -100,7 +100,7 @@ const WORLD = {
       desc:'Capitale de Republia. Centre du pouvoir politique, judiciaire et mediatique.',
       isCapitale: true,
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','terrain-a-batir-1']
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','terrain-a-batir-1']
     },
     ville_a: {
       name:'Port-Sainte-Marie',
@@ -156,7 +156,7 @@ const BUILDINGS = {
         image: "🏨",
         imageBg: "linear-gradient(135deg,#1a1208,#2a1c0a)",
         desc: "Le hall d'entree de l'hotel. Le concierge connait tout le monde.",
-        imageUrl: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&q=80",
+        imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-republica.png',
         persons: [
           {name:'Gustave (Concierge)', role:'PNJ - Gestionnaire', rel:'neutral', job:'concierge'},
           {name:'Beatrice Aumont',     role:'Deputee - Parti Liberal', rel:'neutral', job:null}
@@ -333,7 +333,7 @@ const BUILDINGS = {
         name: "Salle du Conseil",
         imageBg: "linear-gradient(135deg,#0d1a0a,#152014)",
         desc: "La salle ou se prennent les decisions du gouvernement. Acces ministeriel uniquement.",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/conseil-ministres.png",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/conseil-ministres-2.png",
         persons: [
           {name:'Premier Ministre (PNJ)', role:'Chef du gouvernement', rel:'neutral', job:'pm'}
         ],
@@ -1552,6 +1552,228 @@ const BUILDINGS = {
           {fn:'faire_don',       label:'Offrir des loukoums',          pa:1, cost:200, type:'legal', icon:'ti-coins',     successRate:100, desc:'+5 IP +3 POP. Péché mortel de refuser un loukoum.'},
           {fn:'pelerin',         label:'Se déclarer pèlerin',          pa:2, cost:0,   type:'legal', icon:'ti-walk',      successRate:100, desc:'+10 DIS pendant 1 jour.'},
           {fn:'acheter_relique', label:'Acheter une relique du Loukoum',pa:1, cost:500, type:'legal', icon:'ti-package',  successRate:100, desc:'Objet rare. +10 IP. Accès facilité aux zones réservées Al-Khalija.'}
+        ]
+      }
+    }
+  },
+
+  // ---- CENTRES MULTINODAUX ----
+
+  'centre-multinodal-luthecia': {
+    name: "Centre Multinodal de Luthecia",
+    shortName: "Centre Multinodal",
+    cat: "Transport",
+    icon: "ti-building-arch",
+    bgColor: "#080a10",
+    desc: "Gare, aéroport international et station de bus et taxis. Le carrefour de tous les déplacements de Républia.",
+    rooms: {
+      hall_gare: {
+        name: "Hall de la Gare",
+        imageBg: "linear-gradient(135deg,#08090f,#101520)",
+        desc: "Le hall principal. Gaston Retard annonce comme chaque matin un retard indéterminé sur la ligne Nord. Mireille Guichet sourit sans savoir.",
+        imageUrl: "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=1200&q=80",
+        persons: [
+          {name:'Gaston Retard (PNJ)', role:'Chef de gare', rel:'neutral', job:'chef_gare'},
+          {name:'Mireille Guichet (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse'}
+        ],
+        orders: [
+          {fn:'prendre_train', label:'Prendre le train', pa:2, cost:75, type:'legal', icon:'ti-train', successRate:100, desc:'75 FR. 2 PA. Transport intra-empire vers une autre ville. Plus économique que le taxi.'},
+          {fn:'prendre_bus_taxi', label:'Prendre un bus ou taxi', pa:1, cost:150, type:'legal', icon:'ti-bus', successRate:100, desc:'150 FR. 1 PA. Rapide. Transport intra-empire uniquement.'},
+          {fn:'controle_douanes', label:'Passer les douanes', pa:0, cost:0, type:'legal', icon:'ti-shield-check', successRate:85, desc:'Contrôle automatique. Si statut Recherché : jet DIS/10. Possibilité de corrompre l\'agent.'}
+        ]
+      },
+      aeroport: {
+        name: "Terminal Aéroport",
+        imageBg: "linear-gradient(135deg,#08090f,#101215)",
+        desc: "Le terminal international. Vols vers les 4 empires. L'Inspecteur Prosper Tampon veille avec son tampon béni.",
+        imageUrl: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80",
+        persons: [
+          {name:'Inspecteur Prosper Tampon (PNJ)', role:'Inspecteur des douanes', rel:'neutral', job:'douanier'}
+        ],
+        orders: [
+          {fn:'prendre_avion', label:'Prendre l\'avion', pa:3, cost:250, type:'legal', icon:'ti-plane', successRate:100, desc:'250 FR. 3 PA. Transport inter-empire rapide. Contrôle douanes obligatoire.'},
+          {fn:'corrompre_douanier', label:'Corrompre l\'agent des douanes', pa:1, cost:300, type:'illegal', icon:'ti-coin', successRate:55, desc:'Éviter le contrôle douanier. DUP/10 + INF/10. Zone transport +20%.'}
+        ]
+      }
+    }
+  },
+
+  'centre-multinodal-port-sainte-marie': {
+    name: "Centre Multinodal de Port-Sainte-Marie",
+    shortName: "Centre Multinodal",
+    cat: "Transport",
+    icon: "ti-building-arch",
+    bgColor: "#080a10",
+    desc: "Gare et station de bus. Sans aéroport. Pour rejoindre la capitale ou Montrouge.",
+    rooms: {
+      hall_gare_psm: {
+        name: "Hall de la Gare",
+        imageBg: "linear-gradient(135deg,#08090f,#101520)",
+        desc: "Une petite gare de province. Calme. Le prochain train est dans 2 heures.",
+        imageUrl: "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=1200&q=80",
+        persons: [
+          {name:'Chef de Gare Local (PNJ)', role:'Chef de gare', rel:'neutral', job:'chef_gare'}
+        ],
+        orders: [
+          {fn:'prendre_train', label:'Prendre le train', pa:2, cost:75, type:'legal', icon:'ti-train', successRate:100, desc:'75 FR. 2 PA. Vers Luthecia ou Montrouge.'},
+          {fn:'prendre_bus_taxi', label:'Prendre un bus ou taxi', pa:1, cost:150, type:'legal', icon:'ti-bus', successRate:100, desc:'150 FR. 1 PA. Intra-empire uniquement.'}
+        ]
+      }
+    }
+  },
+
+  'centre-multinodal-montrouge': {
+    name: "Centre Multinodal de Montrouge",
+    shortName: "Centre Multinodal",
+    cat: "Transport",
+    icon: "ti-building-arch",
+    bgColor: "#080a10",
+    desc: "Gare ouvrière et station de bus. Les dockers et mineurs y passent chaque matin.",
+    rooms: {
+      hall_gare_montrouge: {
+        name: "Hall de la Gare",
+        imageBg: "linear-gradient(135deg,#08090f,#101520)",
+        desc: "Une gare industrielle. Bruyante. Les syndicats y ont leur table d\'information permanente.",
+        imageUrl: "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=1200&q=80",
+        persons: [
+          {name:'Chef de Gare Syndiqué (PNJ)', role:'Chef de gare', rel:'neutral', job:'chef_gare'},
+          {name:'Délégué Syndical (PNJ)', role:'Délégué permanent', rel:'neutral', job:'syndicaliste'}
+        ],
+        orders: [
+          {fn:'prendre_train', label:'Prendre le train', pa:2, cost:75, type:'legal', icon:'ti-train', successRate:100, desc:'75 FR. 2 PA. Vers Luthecia ou Port-Sainte-Marie.'},
+          {fn:'prendre_bus_taxi', label:'Prendre un bus ou taxi', pa:1, cost:150, type:'legal', icon:'ti-bus', successRate:100, desc:'150 FR. 1 PA. Intra-empire uniquement.'}
+        ]
+      }
+    }
+  },
+
+  // ---- PORTS ----
+
+  'port-sainte-marie': {
+    name: "Port de Port-Sainte-Marie",
+    shortName: "Port PSM",
+    cat: "Port",
+    icon: "ti-anchor",
+    bgColor: "#050810",
+    desc: "Le grand port de Républia. Commerce maritime, syndicats puissants et réseaux de contrebande discrets.",
+    rooms: {
+      quai_principal: {
+        name: "Quai Principal",
+        imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
+        desc: "Les grues bleues s\'activent. Marcel Ancre surveille les entrées. Dédé le Docker discute d\'une éventuelle grève avec ses camarades.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-republia.png",
+        persons: [
+          {name:'Marcel Ancre (PNJ)', role:'Capitaine de port', rel:'neutral', job:'capitaine_port'},
+          {name:'Dédé le Docker (PNJ)', role:'Docker syndiqué', rel:'neutral', job:'docker'},
+          {name:'Ginette Conteneur (PNJ)', role:'Agente de fret', rel:'neutral', job:'agent_fret'}
+        ],
+        orders: [
+          {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Transport inter-empire. Plus lent mais moins cher que l\'avion.'},
+          {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet de son inventaire à un PJ dans un autre empire. Délai 24h.'},
+          {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé depuis un autre empire.'},
+          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:55, desc:'Importer un objet illégal. DIS/10 + DUP/10. Zone port +15%. El Estado +25%.'},
+          {fn:'blocus_portuaire', label:'Blocus portuaire', pa:3, cost:0, type:'grey', icon:'ti-barrier-block', successRate:60, desc:'Paralyse les importations/exportations 24h. VOL/10 + ENT/10. -IE. Prérogative syndicaliste.'},
+          {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:80, requiresPost:'min_def', desc:'Révèle contrebandes en cours. INT/10 + ISN/10. Prérogative min_def ou commissaire.'}
+        ]
+      },
+      bureau_port: {
+        name: "Bureau du Port",
+        imageBg: "linear-gradient(135deg,#050810,#080d15)",
+        desc: "Le bureau administratif. Formulaires d\'entrée en 3 exemplaires. Ginette sait tout ce qui transite.",
+        imageUrl: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1200&q=80",
+        persons: [
+          {name:'Ginette Conteneur (PNJ)', role:'Agente de fret', rel:'neutral', job:'agent_fret'}
+        ],
+        orders: [
+          {fn:'consulter_manifeste', label:'Consulter le manifeste', pa:1, cost:0, type:'grey', icon:'ti-file-search', successRate:75, desc:'Liste des cargaisons déclarées. INT/10. Révèle possibles contrebandes.'},
+          {fn:'falsifier_manifeste', label:'Falsifier le manifeste', pa:2, cost:200, type:'illegal', icon:'ti-file-x', successRate:40, desc:'Faire disparaître une cargaison des registres. DUP/10.'}
+        ]
+      }
+    }
+  },
+
+  'port-novomirsk': {
+    name: "Port de Novomirsk",
+    shortName: "Port Novomirsk",
+    cat: "Port",
+    icon: "ti-anchor",
+    bgColor: "#050810",
+    desc: "Le port collectif de Sovarka. Tout est catalogué, tout est surveillé. Camarade Grue note chaque conteneur.",
+    rooms: {
+      quai_sovarka: {
+        name: "Quai du Peuple",
+        imageBg: "linear-gradient(135deg,#050810,#0a0f15)",
+        desc: "Des grues rouillées s\'activent sous un ciel gris acier. Camarade Grue surveille. Boris Docker compte les boîtes pour le troisième rapport de la journée.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sovarka.png",
+        persons: [
+          {name:'Camarade Grue (PNJ)', role:'Directeur du port', rel:'neutral', job:'capitaine_port'},
+          {name:'Boris Docker (PNJ)', role:'Docker du Parti', rel:'neutral', job:'docker'}
+        ],
+        orders: [
+          {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Transport inter-empire.'},
+          {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire. Délai 24h.'},
+          {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
+          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:35, desc:'Très risqué à Sovarka. DIS/10 + DUP/10. -20% modificateur Sovarka.'},
+          {fn:'acheter_polonium', label:'Obtenir du Polonium', pa:2, cost:600, type:'illegal', icon:'ti-radioactive', successRate:50, desc:'Objet poison de Sovarka. Usage unique. DUP/10 + DIS/10. Disponible uniquement ici.'},
+          {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:90, requiresPost:'min_def', desc:'Révèle contrebandes. Sovarka +25% efficacité surveillance.'}
+        ]
+      }
+    }
+  },
+
+  'port-ciudad-roja': {
+    name: "Port de Ciudad Roja",
+    shortName: "Port Ciudad Roja",
+    cat: "Port",
+    icon: "ti-anchor",
+    bgColor: "#050810",
+    desc: "Le port chaotique d\'El Estado. Zona Restringida. El Capitan Turbio ne pose jamais de questions.",
+    rooms: {
+      quai_el_estado: {
+        name: "Quai de la Contrebande",
+        imageBg: "linear-gradient(135deg,#100505,#180a08)",
+        desc: "Barques rouillées, conteneurs tagués, odeur de diesel et de corruption. El Capitan Turbio fume un cigare en regardant ailleurs.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-el-estado.png",
+        persons: [
+          {name:'El Capitan Turbio (PNJ)', role:'Capitaine de port', rel:'neutral', job:'capitaine_port'},
+          {name:'Paco Cargaison (PNJ)', role:'Docker spécialiste', rel:'neutral', job:'docker'}
+        ],
+        orders: [
+          {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Transport inter-empire.'},
+          {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire.'},
+          {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
+          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:75, desc:'Très facile à El Estado. DIS/10 + DUP/10. +25% modificateur El Estado.'},
+          {fn:'acheter_ghb', label:'Acheter du GHB', pa:1, cost:300, type:'illegal', icon:'ti-flask', successRate:80, desc:'Objet poison El Estado. Usage unique. DIS/10. Disponible uniquement ici.'},
+          {fn:'blocus_portuaire', label:'Blocus portuaire', pa:3, cost:0, type:'grey', icon:'ti-barrier-block', successRate:65, desc:'Paralyse commerce 24h. VOL/10 + ENT/10.'}
+        ]
+      }
+    }
+  },
+
+  'port-al-madina': {
+    name: "Port d\'Al-Madina",
+    shortName: "Port Al-Madina",
+    cat: "Port",
+    icon: "ti-anchor",
+    bgColor: "#050810",
+    desc: "Le port ultramoderne d\'Al-Khalija. Tout reluit. Cheikh Ibn Fret gère les conteneurs royaux en priorité.",
+    rooms: {
+      quai_al_khalija: {
+        name: "Terminal Royal",
+        imageBg: "linear-gradient(135deg,#080608,#0f0a10)",
+        desc: "Immense, propre, désertique. Les grues dorées s\'activent. Hassan Docker fait passer les conteneurs du Cheikh en premier, comme toujours.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-al-khalija.png",
+        persons: [
+          {name:'Cheikh Ibn Fret (PNJ)', role:'Directeur du port', rel:'neutral', job:'capitaine_port'},
+          {name:'Hassan Docker (PNJ)', role:'Chef docker', rel:'neutral', job:'docker'}
+        ],
+        orders: [
+          {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Transport inter-empire.'},
+          {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire.'},
+          {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
+          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:60, desc:'Possible mais discret. DIS/10 + DUP/10. +10% Al-Khalija.'},
+          {fn:'acheter_vipere', label:'Acheter une Vipère des sables', pa:1, cost:350, type:'grey', icon:'ti-bug', successRate:85, desc:'Objet poison Al-Khalija. Usage unique. Disponible uniquement ici.'},
+          {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:80, requiresPost:'min_def', desc:'Révèle contrebandes en cours.'}
         ]
       }
     }

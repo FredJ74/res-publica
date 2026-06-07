@@ -169,6 +169,7 @@ function runMidnightUpdate() {
   mettreAJourPopulation();
   alimenterBudgets();
   checkScandale();
+  checkEffacementCrimes();
   // Revenus fiscaux
   const pop = CITY_POPULATION[state.country]?.[state.currentCity];
   if (pop) {
@@ -589,6 +590,26 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
   if (fn === 'etat_nation' || fn === 'etat_urgence')             { ouvrirIndicesImperiaux(); return; }
   if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocaux(); return; }
+  if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
+  if (fn === 'prendre_bus_taxi')       { ouvrirModalTransport('bus'); return; }
+  if (fn === 'prendre_avion')          { ouvrirModalTransport('avion'); return; }
+  if (fn === 'prendre_bateau')         { ouvrirModalTransport('bateau'); return; }
+  if (fn === 'controle_douanes')       { doControlDouanes(); return; }
+  if (fn === 'corrompre_douanier')     { doCorrompreDoanier(); return; }
+  if (fn === 'expedier_colis')         { ouvrirExpedierColis(); return; }
+  if (fn === 'receptionner_commande')  { ouvrirReceptionnerCommande(); return; }
+  if (fn === 'contrebande_port')       { doContrebandePort(); return; }
+  if (fn === 'blocus_portuaire')       { doBlocusPortuaire(); return; }
+  if (fn === 'inspecter_cargaisons')   { doInspecterCargaisons(); return; }
+  if (fn === 'consulter_manifeste')    { doConsulterManifeste(); return; }
+  if (fn === 'falsifier_manifeste')    { doFalsifierManifeste(); return; }
+  if (fn === 'acheter_parapluie')      { doAcheterPoisonObjet('parapluie'); return; }
+  if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb'); return; }
+  if (fn === 'acheter_polonium')       { doAcheterPoisonObjet('polonium'); return; }
+  if (fn === 'acheter_vipere')         { doAcheterPoisonObjet('vipere'); return; }
+  if (fn === 'assassiner')             { ouvrirModalAssassiner(); return; }
+  if (fn === 'se_cacher')              { doSeCacher(); return; }
+  if (fn === 'empoisonner')            { ouvrirModalEmpoisonner(); return; }
   if (fn === 'repartition_budget_local'){ ouvrirRepartitionBudgetLocal(); return; }
   if (fn === 'campagne_securite')      { doCampagneSecurite(); return; }
   if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(); return; }
@@ -4443,6 +4464,542 @@ function soumettreConte(idx) {
 // =====================
 // CALENDRIER ELECTORAL
 // =====================
+// =====================
+// SYSTEME DE TRANSPORT
+// =====================
+const TRANSPORT_CONFIG = {
+  train:  { pa:2, cost:75,  label:'Train',  icon:'ti-train',  type:'intra',  desc:'Intra-empire uniquement. Plus économique.' },
+  bus:    { pa:1, cost:150, label:'Bus/Taxi',icon:'ti-bus',   type:'intra',  desc:'Intra-empire. Rapide.' },
+  avion:  { pa:3, cost:250, label:'Avion',  icon:'ti-plane', type:'inter',  desc:'Inter-empire. Contrôle douanes obligatoire.' },
+  bateau: { pa:4, cost:100, label:'Bateau', icon:'ti-ship',  type:'inter',  desc:'Inter-empire. Moins cher, plus lent.' }
+};
+
+const VILLES_PAR_EMPIRE = {
+  republic: [
+    { id:'capitale',  name:'Luthecia',          type:'capitale' },
+    { id:'ville_a',   name:'Port-Sainte-Marie',  type:'ville' },
+    { id:'ville_b',   name:'Montrouge',           type:'ville' }
+  ],
+  narco: [
+    { id:'capitale',  name:'Ciudad Roja',         type:'capitale' },
+    { id:'ville_a',   name:'Puerto Oscuro',        type:'ville' },
+    { id:'ville_b',   name:'La Selva',             type:'ville' }
+  ],
+  soviet: [
+    { id:'capitale',  name:'Novomirsk',            type:'capitale' },
+    { id:'ville_a',   name:'Stalinova',             type:'ville' },
+    { id:'ville_b',   name:'Kolkhoz-7',             type:'ville' }
+  ],
+  khalija: [
+    { id:'capitale',  name:'Al-Madina',            type:'capitale' },
+    { id:'ville_a',   name:'Oasis Al-Zafar',       type:'ville' },
+    { id:'ville_b',   name:'Port Al-Nour',          type:'ville' }
+  ]
+};
+
+const EMPIRES_CONFIG = {
+  republic: { name:'Républia', cur:'FR' },
+  narco:    { name:'El Estado', cur:'PS' },
+  soviet:   { name:'Sovarka',   cur:'RP' },
+  khalija:  { name:'Al-Khalija',cur:'DR' }
+};
+
+function ouvrirModalTransport(mode) {
+  const config = TRANSPORT_CONFIG[mode];
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const pays = state.country || 'republic';
+  const isInter = config.type === 'inter';
+
+  document.getElementById('postes-modal-title').textContent = 'Prendre le ' + config.label;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + config.pa + ' PA · ' + config.cost + ' ' + cur + ' · ' + config.desc + '</div>';
+
+  if (isInter) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION — EMPIRE</div>';
+    Object.entries(EMPIRES_CONFIG).forEach(([key, emp]) => {
+      if (key === pays) return;
+      html += '<div onclick="confirmerTransport(\'' + mode + '\',\'' + key + '\',\'capitale\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+      html += '<div style="font-size:.85rem;color:#c0b090">' + emp.name + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">Capitale</div>';
+      html += '</div>';
+    });
+  } else {
+    // Intra-empire
+    const villes = VILLES_PAR_EMPIRE[pays] || [];
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION</div>';
+    villes.forEach(ville => {
+      if (ville.id === state.currentCity) return;
+      html += '<div onclick="confirmerTransport(\'' + mode + '\',\'' + pays + '\',\'' + ville.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+      html += '<div style="font-size:.85rem;color:#c0b090">' + ville.name + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">' + (ville.type === 'capitale' ? 'Capitale' : 'Ville') + '</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerTransport(mode, empireId, villeId) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const config = TRANSPORT_CONFIG[mode];
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  if (state.arg < config.cost) {
+    showToast('Fonds insuffisants', 'Il vous faut ' + config.cost + ' ' + cur, false);
+    return;
+  }
+
+  // Controle douanes si avion/bateau et Recherche
+  if ((mode === 'avion' || mode === 'bateau') && state.recherche?.length > 0) {
+    const roll = Math.floor(Math.random() * 100) + 1;
+    const dis = state.char?.stats?.DIS || 50;
+    const taux = Math.max(5, 85 - getMalusISN() + Math.floor(dis/10));
+    if (roll > taux) {
+      showToast('Intercepté aux douanes !', 'Votre statut de Recherché a été détecté. Vous êtes arrêté(e).', false);
+      addJournalEntry('Interception aux douanes. Arrestation.', 'event-bad');
+      addExternalEvent((state.char?.name||'Anonyme') + ' a été intercepté(e) aux douanes. Arrestation.');
+      return;
+    }
+  }
+
+  state.arg -= config.cost;
+  state.country = empireId;
+  state.currentCity = villeId;
+  updateUI();
+  travelToCity(villeId);
+
+  const villeName = VILLES_PAR_EMPIRE[empireId]?.find(v => v.id === villeId)?.name || villeId;
+  const empireName = EMPIRES_CONFIG[empireId]?.name || empireId;
+  showToast('En route !', 'Vous arrivez à ' + villeName + ' (' + empireName + '). -' + config.cost + ' ' + cur, true, true);
+  addJournalEntry('Voyage en ' + config.label + ' vers ' + villeName, 'event-info');
+}
+
+function doControlDouanes() {
+  if (!state.recherche?.length) {
+    showToast('Contrôle', 'Contrôle routinier. Tout est en ordre. Bonne route.', true);
+    return;
+  }
+  const dis = state.char?.stats?.DIS || 50;
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
+  if (roll <= taux) {
+    showToast('Contrôle passé', 'L\'agent a regardé vos papiers sans trop y prêter attention. Ouf.', true);
+  } else {
+    showToast('Interception !', 'L\'agent a reconnu votre signalement. Vous êtes arrêté(e).', false);
+    addJournalEntry('Interception aux douanes.', 'event-bad');
+  }
+}
+
+function doCorrompreDoanier() {
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const dup = state.char?.stats?.DUP || 8;
+  const inf = state.inf || 0;
+  const taux = Math.max(5, 55 + Math.floor(dup/10) + Math.floor(inf/10) + 20); // +20 zone transport
+  if (roll <= taux) {
+    state.arg -= 300;
+    state.dis = Math.max(0, state.dis - 5);
+    updateUI();
+    showToast('Agent corrompu', 'L\'agent regarde ailleurs. -300 FR -5 DIS.', true);
+    addJournalEntry('Corruption douanière réussie.', 'event-bad');
+    checkDetection('corrompre_douanier', 'success');
+  } else {
+    showToast('Refus !', 'L\'agent n\'a pas mordu. Tentative notée.', false);
+    checkDetection('corrompre_douanier', 'fail');
+  }
+}
+
+// =====================
+// SYSTEME PORT
+// =====================
+function ouvrirExpedierColis() {
+  const inventaire = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
+  if (inventaire.length === 0) { showToast('Inventaire vide', 'Aucun objet à expédier.', false); return; }
+  const contacts = state.contacts || [];
+  if (contacts.length === 0) { showToast('Répertoire vide', 'Aucun destinataire disponible.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Expédier un colis';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">2 PA · 200 FR · Livraison sous 24h dans un autre empire.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">OBJET À EXPÉDIER</div>';
+  html += '<select id="exp-objet" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  inventaire.forEach((obj, i) => { html += '<option value="' + i + '">' + obj.name + '</option>'; });
+  html += '</select>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATAIRE</div>';
+  html += '<select id="exp-dest" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+  contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+  html += '</select>';
+  html += '<button onclick="confirmerExpedition()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Expédier</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerExpedition() {
+  const objIdx = parseInt(document.getElementById('exp-objet')?.value || '0');
+  const dest = document.getElementById('exp-dest')?.value;
+  const inventaire = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
+  const obj = inventaire[objIdx];
+  if (!obj || !dest) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (state.arg < 200) { showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false); return; }
+  state.arg -= 200;
+  state.inventory = state.inventory.filter(i => i !== obj);
+  updateUI();
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!state.colisEnCours) state.colisEnCours = [];
+  state.colisEnCours.push({ objet: obj, dest, jourArrivee: state.day + 1 });
+  showToast('Colis expédié !', obj.name + ' envoyé à ' + dest + '. Arrivée dans 24h.', true, true);
+  addJournalEntry('Colis expédié : ' + obj.name + ' → ' + dest, 'event-info');
+  addMailNotification('Service postal', 'Colis en route', 'Un colis (' + obj.name + ') a été expédié par ' + (state.char?.name||'Anonyme') + '. Récupérez-le au port sous 24h.');
+}
+
+function ouvrirReceptionnerCommande() {
+  const colis = (state.colisEnCours || []).filter(c => c.jourArrivee <= state.day);
+  document.getElementById('postes-modal-title').textContent = 'Réceptionner une commande';
+  let html = '<div style="padding:1rem">';
+  if (colis.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun colis en attente de réception.</div>';
+  } else {
+    colis.forEach((c, i) => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between">';
+      html += '<div><div style="font-size:.82rem;color:#c0b090">' + c.objet.name + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">Expédié par ' + (c.expediteur||'Inconnu') + '</div></div>';
+      html += '<button onclick="recupererColis(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Récupérer</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function recupererColis(idx) {
+  const colis = (state.colisEnCours || []).filter(c => c.jourArrivee <= state.day);
+  const c = colis[idx];
+  if (!c) return;
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push(c.objet);
+  state.colisEnCours = state.colisEnCours.filter(x => x !== c);
+  updateUI();
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Colis récupéré !', c.objet.name + ' ajouté à votre inventaire.', true, true);
+}
+
+function doContrebandePort() {
+  const pays = state.country || 'republic';
+  const dis = state.char?.stats?.DIS || 8;
+  const dup = state.char?.stats?.DUP || 8;
+  const empMod = { republic:0, narco:25, soviet:-20, khalija:10 }[pays] || 0;
+  const taux = Math.max(5, 55 + Math.floor(dis/10) + Math.floor(dup/10) + 15 + empMod - getMalusISN());
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    if (!state.inventory) state.inventory = [];
+    state.inventory.push({ type:'contrebande', name:'Cargaison de contrebande', icon:'ti-package-off', legal:false, desc:'Marchandises importées illégalement.' });
+    state.dis = Math.max(0, state.dis - 5);
+    updateUI();
+    showToast('Contrebande réussie !', 'Cargaison ajoutée à votre inventaire. -5 DIS.', true, true);
+    addJournalEntry('Contrebande portuaire réussie.', 'event-bad');
+    checkDetection('contrebande_port', 'success');
+  } else {
+    showToast('Échec !', 'La douane a repéré la manœuvre.', false);
+    checkDetection('contrebande_port', 'fail');
+  }
+}
+
+function doBlocusPortuaire() {
+  const vol = state.char?.stats?.VOL || 8;
+  const ent = state.char?.stats?.ENT || 8;
+  const taux = Math.max(5, 60 + Math.floor(vol/10) + Math.floor(ent/10) - getMalusISN());
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const pays = state.country || 'republic';
+
+  if (roll <= taux) {
+    if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE - 5);
+    updateUI();
+    showToast('Blocus déclenché !', 'Le port est paralysé pour 24h. -5 IE.', false);
+    addExternalEvent('GRÈVE : Blocus portuaire déclenché ! Importations/exportations suspendues 24h. -5 IE.');
+    addJournalEntry('Blocus portuaire initié.', 'event-info');
+  } else {
+    state.pop = Math.max(0, state.pop - 8);
+    updateUI();
+    showToast('Échec du blocus', 'Le mouvement n\'a pas pris. -8 POP.', false);
+    checkDetection('blocus_portuaire', 'fail');
+  }
+}
+
+function doInspecterCargaisons() {
+  const int_ = state.char?.stats?.INT || 8;
+  const pays = state.country || 'republic';
+  const isBonus = pays === 'soviet';
+  const taux = Math.max(5, 80 + Math.floor(int_/10) + (isBonus ? 15 : 0));
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    state.inf = Math.min(100, state.inf + 5);
+    updateUI();
+    const trouve = Math.random() < 0.4;
+    if (trouve) {
+      showToast('Contrebande détectée !', 'Une cargaison suspecte a été repérée. +5 INF. Ouvrir une enquête ?', true, true);
+      addExternalEvent('INSPECTION : Contrebande détectée au port par ' + (state.char?.name||'Anonyme') + '. Enquête en cours.');
+    } else {
+      showToast('Inspection terminée', 'Rien d\'anormal. +5 INF.', true);
+    }
+  } else {
+    showToast('Inspection sans résultat', 'Rien à signaler. -3 INF.', false);
+    state.inf = Math.max(0, state.inf - 3);
+    updateUI();
+  }
+}
+
+function doConsulterManifeste() {
+  const int_ = state.char?.stats?.INT || 8;
+  const taux = Math.max(5, 75 + Math.floor(int_/10));
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    state.inf = Math.min(100, state.inf + 3);
+    updateUI();
+    showToast('Manifeste consulté', 'Vous repérez des incohérences dans les registres. +3 INF.', true);
+    addJournalEntry('Manifeste portuaire consulté. Incohérences notées.', 'event-info');
+  } else {
+    showToast('Accès refusé', 'Le registre n\'est pas disponible.', false);
+  }
+}
+
+function doFalsifierManifeste() {
+  const dup = state.char?.stats?.DUP || 8;
+  const taux = Math.max(5, 40 + Math.floor(dup/10) - getMalusISN());
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    state.arg -= 200;
+    updateUI();
+    showToast('Manifeste falsifié', 'La cargaison a disparu des registres.', true, true);
+    addJournalEntry('Falsification du manifeste portuaire.', 'event-bad');
+    checkDetection('falsifier_manifeste', 'success');
+  } else {
+    showToast('Échec !', 'La falsification a échoué.', false);
+    checkDetection('falsifier_manifeste', 'fail');
+  }
+}
+
+// =====================
+// OBJETS POISON
+// =====================
+const POISON_OBJETS = {
+  parapluie: { name:'Parapluie républien', icon:'ti-umbrella',   cout:400, empire:'republic', msg:'Un accessoire élégant. Discret. La pointe contient... quelque chose.' },
+  ghb:       { name:'GHB de contrebande', icon:'ti-flask',       cout:300, empire:'narco',    msg:'Un flacon transparent. Inodore, incolore. À manier avec précaution.' },
+  polonium:  { name:'Fiole de Polonium',  icon:'ti-radioactive', cout:600, empire:'soviet',   msg:'Un petit contenant blindé. Ne pas ouvrir sans combinaison.' },
+  vipere:    { name:'Vipère des sables',  icon:'ti-bug',         cout:350, empire:'khalija',  msg:'Une petite boîte percée. On entend un léger sifflement.' }
+};
+
+function doAcheterPoisonObjet(type) {
+  const obj = POISON_OBJETS[type];
+  if (!obj) return;
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+
+  if (state.arg < obj.cout) { showToast('Fonds insuffisants', obj.cout + ' ' + cur + ' requis.', false); return; }
+
+  state.arg -= obj.cout;
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({
+    type: 'poison', name: obj.name, icon: obj.icon,
+    poisonType: type, legal: false, usageUnique: true,
+    desc: obj.msg
+  });
+  updateUI();
+  showToast('Objet acquis', obj.name + ' ajouté à votre inventaire. Usage unique.', true, true);
+  addJournalEntry('Achat : ' + obj.name, 'event-bad');
+}
+
+// =====================
+// ASSASSINER
+// =====================
+function ouvrirModalAssassiner() {
+  // Verifier prérequis : se cacher réussi
+  if (!state.estCache) {
+    showToast('Prérequis manquant', 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', false);
+    return;
+  }
+  const personnesPresentes = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
+  if (personnesPresentes.length === 0) {
+    showToast('Personne à cibler', 'Aucun PJ dans cette pièce.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Assassiner';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illégal. Prérequis : Se cacher réussi. Taux base : 35% − PER cible/10 + Bonus empire + Bonus carrière criminel +15%.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
+  personnesPresentes.forEach(p => {
+    html += '<div onclick="confirmerAssassinat(\'' + p.name + '\')" style="padding:.7rem;border:1px solid #3a1010;background:#0f0505;margin-bottom:.4rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between" onmouseover="this.style.background=\'#1a0808\'" onmouseout="this.style.background=\'#0f0505\'">';
+    html += '<div style="font-size:.85rem;color:#c0b090">' + p.name + '</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;color:#cc4444">ÉLIMINER</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerAssassinat(cibleNom) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const pays = state.country || 'republic';
+  const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
+  const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
+  const perCible = 50; // Simulation PER cible - en vrai multijoueur on lirait le localStorage cible
+  const taux = Math.max(5, 35 - Math.floor(perCible/10) + empMod + careerBonus - getMalusISN());
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    // Succes
+    state.estCache = false;
+    showToast('Assassinat réussi', cibleNom + ' est hors de combat. 0 PA 0 HP.', true, true);
+    addJournalEntry('Assassinat de ' + cibleNom + ' réussi.', 'event-bad');
+    addExternalEvent('ALERTE : ' + cibleNom + ' vient d\'être assassiné(e) ! Aucun témoin.');
+    addMailNotification('Événement', 'Vous avez été assassiné(e)', 'Quelqu\'un vous a attaqué. Vous êtes à 0 PA et 0 HP. Passez l\'ordre Dormir pour récupérer.');
+    // Enregistrer dans l'historique criminel (disparait apres 8 jours)
+    if (!state.historiqueCrimes) state.historiqueCrimes = [];
+    state.historiqueCrimes.push({ acte:'assassinat', cible:cibleNom, jour:state.day, expireJour: state.day + 8 });
+  } else {
+    // Echec
+    state.estCache = false;
+    state.recherche = [{ acte:'tentative_assassinat', type:'crime', jour:state.day, peine:2 }];
+    showToast('Échec ! Vous êtes repéré(e)', 'Tentative d\'assassinat ratée. Recherché(e). 2 jours de prison.', false);
+    addJournalEntry('Tentative d\'assassinat ratée. Statut : Recherché.', 'event-bad');
+    addExternalEvent('ALERTE : Tentative d\'assassinat sur ' + cibleNom + ' ! L\'auteur est en fuite.');
+    updateUI();
+  }
+}
+
+// =====================
+// EMPOISONNER
+// =====================
+const POISON_MESSAGES = {
+  republic: 'Quelque chose vous pique dans le dos. Une douleur irradie dans tout votre corps et s\'intensifie d\'heure en heure. Était-ce en lien avec cette personne qui vous a touché avec le bout de son parapluie et s\'est excusée ? Vous perdez 2 PA.',
+  narco:    'Votre esprit devient confus. Vous avez la tête qui tourne et vos sens sont perturbés. Vous avez l\'impression d\'avoir été drogué(e), mais par qui ? Vous perdez 2 PA.',
+  soviet:   'Vous vous sentez subitement faible. En passant la main dans vos cheveux, ils se décrochent par paquets de votre crâne, comme si vous aviez été mis(e) en contact avec quelque chose de radioactif. Vous perdez 2 PA.',
+  khalija:  'Vous ressentez une violente douleur au niveau du mollet. Deux petits trous douloureux et rouges sont visibles. Un serpent vous aurait-il mordu(e) ? Vous perdez 2 PA.'
+};
+
+const POISON_STAT_PERDUE = {
+  republic: 'VOL',
+  narco:    'PER',
+  soviet:   'INT',
+  khalija:  'CHA'
+};
+
+function ouvrirModalEmpoisonner() {
+  if (!state.estCache) {
+    showToast('Prérequis manquant', 'Vous devez d\'abord réussir l\'ordre "Se cacher" dans cette pièce.', false);
+    return;
+  }
+  const poisonInventaire = (state.inventory || []).find(i => i.type === 'poison');
+  if (!poisonInventaire) {
+    showToast('Objet manquant', 'Vous n\'avez pas d\'objet poison dans votre inventaire. Procurez-vous en dans votre empire.', false);
+    return;
+  }
+  const personnesPresentes = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
+  if (personnesPresentes.length === 0) {
+    showToast('Personne à cibler', 'Aucun PJ dans cette pièce.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Empoisonner';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illégal. Objet : ' + poisonInventaire.name + ' (usage unique). Effets progressifs sur 3 jours.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
+  personnesPresentes.forEach(p => {
+    html += '<div onclick="confirmerEmpoisonnement(\'' + p.name + '\')" style="padding:.7rem;border:1px solid #2a1a30;background:#0f050f;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a0818\'" onmouseout="this.style.background=\'#0f050f\'">';
+    html += '<div style="font-size:.85rem;color:#c0b090">' + p.name + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerEmpoisonnement(cibleNom) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const pays = state.country || 'republic';
+  const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
+  const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
+  const perCible = 50;
+  const taux = Math.max(5, 40 - Math.floor(perCible/10) + empMod + careerBonus - getMalusISN());
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  // Supprimer l'objet poison de l'inventaire (usage unique)
+  const poisonIdx = (state.inventory || []).findIndex(i => i.type === 'poison');
+  if (poisonIdx >= 0) state.inventory.splice(poisonIdx, 1);
+
+  if (roll <= taux) {
+    state.estCache = false;
+    // Enregistrer l'empoisonnement actif sur la cible
+    if (!state.empoisonnements) state.empoisonnements = [];
+    state.empoisonnements.push({
+      cible: cibleNom,
+      empireEmpoisonneur: pays,
+      jourDebut: state.day,
+      statPerdue: POISON_STAT_PERDUE[pays],
+      actif: true
+    });
+
+    // Message a la cible
+    const msg = POISON_MESSAGES[pays] || POISON_MESSAGES['republic'];
+    addMailNotification('Événement mystérieux', 'Vous vous sentez mal', msg);
+    addExternalEvent('MYSTERE : ' + cibleNom + ' se sent soudainement très mal...');
+
+    if (!state.historiqueCrimes) state.historiqueCrimes = [];
+    state.historiqueCrimes.push({ acte:'empoisonnement', cible:cibleNom, jour:state.day, expireJour: state.day + 8 });
+
+    updateUI();
+    showToast('Poison administré', cibleNom + ' commencera à ressentir les effets. Objet utilisé.', true, true);
+    addJournalEntry('Empoisonnement de ' + cibleNom + '.', 'event-bad');
+  } else {
+    state.estCache = false;
+    state.recherche = [{ acte:'tentative_empoisonnement', type:'crime', jour:state.day, peine:2 }];
+    updateUI();
+    showToast('Échec ! Repéré(e)', 'L\'empoisonnement a échoué. Objet perdu. Recherché(e). 2 jours de prison.', false);
+    addJournalEntry('Tentative d\'empoisonnement échouée. Recherché.', 'event-bad');
+  }
+}
+
+function doSeCacher() {
+  const dis = state.char?.stats?.DIS || state.dis || 50;
+  const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN() + 15); // +15 zone transport
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= taux) {
+    state.estCache = true;
+    showToast('Vous êtes caché(e)', 'Personne ne vous voit. Vous pouvez maintenant passer l\'ordre Assassiner ou Empoisonner.', true, true);
+    addJournalEntry('Ordre Se cacher réussi. Prêt(e) pour action discrète.', 'event-info');
+    // Se cache se reinitialise apres changement de piece
+  } else {
+    state.estCache = false;
+    showToast('Échec', 'Vous n\'avez pas réussi à vous dissimuler suffisamment.', false);
+  }
+}
+
+function getCurrentRoomPersons() {
+  const building = BUILDINGS[state.currentBuilding];
+  if (!building) return [];
+  const room = building.rooms?.[state.currentRoom];
+  return room?.persons || [];
+}
+
+// Verifier effacement automatique des crimes
+function checkEffacementCrimes() {
+  if (!state.historiqueCrimes) return;
+  const avant = state.historiqueCrimes.length;
+  state.historiqueCrimes = state.historiqueCrimes.filter(c => c.expireJour > state.day);
+  const apres = state.historiqueCrimes.length;
+  if (avant > apres) {
+    addJournalEntry('Les preuves matérielles de votre crime ont disparu. Vous ne pouvez plus être inquiété(e) pour ceci.', 'event-good');
+  }
+}
+
 function ouvrirCalendrierElections() {
   const elections = state.electionsEnCours || [];
   document.getElementById('postes-modal-title').textContent = 'Calendrier électoral';
