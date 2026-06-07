@@ -41,27 +41,7 @@ window.addEventListener('DOMContentLoaded', () => {
   startClock();
   // Forcer le rendu complet au chargement
   setTimeout(() => {
-    const world = WORLD[state.country || 'republic'];
-    const city = world?.[state.currentCity || 'capitale'];
-    if (city) {
-      // Image de rue
-      if (city.imageUrl) {
-        const rueImage = document.getElementById('rue-image');
-        if (rueImage) {
-          rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%), url('${city.imageUrl}') center/cover no-repeat`;
-          rueImage.style.backgroundSize = 'cover';
-        }
-      }
-      // Titre de la rue
-      const rueTitle = document.getElementById('rue-title');
-      if (rueTitle) rueTitle.textContent = city.isCapitale ? 'Avenue de la République' : 'Rue principale de ' + city.name;
-      const rueDesc = document.getElementById('rue-desc');
-      if (rueDesc) rueDesc.textContent = city.desc || '';
-    }
-    // Minimap des batiments
-    renderMinimap(state.currentCity || 'capitale');
-    // Personnes presentes
-    if (city?.persons) renderPersonsList(city.persons);
+    forceRenderCity(state.currentCity || 'capitale');
   }, 300);
 });
 
@@ -218,7 +198,11 @@ function buildCityTabs() {
 }
 
 function travelToCity(cityId) {
-  if (cityId === state.currentCity) return;
+  if (cityId === state.currentCity) {
+    // Meme ville mais forcer le rendu quand meme
+    forceRenderCity(cityId);
+    return;
+  }
   const isSameCountry = true;
   const cost = isSameCountry ? 2 : 5;
   if (!TEST_MODE && state.pa < cost) {
@@ -230,9 +214,15 @@ function travelToCity(cityId) {
   state.currentCity = cityId;
   state.currentBuilding = null;
   state.currentRoom = null;
+  forceRenderCity(cityId);
+  addJournalEntry(`Vous arrivez a ${WORLD[state.country]?.[cityId]?.name || cityId}.`, 'event-info');
+}
 
+function forceRenderCity(cityId) {
   const world = WORLD[state.country];
+  if (!world) return;
   const city = world[cityId];
+  if (!city) return;
 
   // Mise a jour tabs
   document.querySelectorAll('.city-tab').forEach(t => t.classList.remove('active'));
@@ -240,14 +230,12 @@ function travelToCity(cityId) {
     if (t.textContent === city.name) t.classList.add('active');
   });
 
-  document.getElementById('city-name-display').textContent = `${city.name}, ${city.isCapitale ? 'Capitale de ' : ''}${COUNTRIES[state.country].n}`;
+  document.getElementById('city-name-display').textContent = `${city.name}, ${city.isCapitale ? 'Capitale de ' : ''}${COUNTRIES[state.country]?.n || ''}`;
 
   // Vue rue
   showVueRue();
   renderMinimap(cityId);
   updateLocationDisplay();
-
-  addJournalEntry(`Vous arrivez a ${city.name}.`, 'event-info');
   // Verifier interception si recherche
   if (state.recherche && state.recherche.length > 0) {
     setTimeout(() => checkArrestationAuDeplacement(), 500);
