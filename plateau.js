@@ -4586,6 +4586,7 @@ function confirmerTransport(mode, empireId, villeId) {
   buildCityTabs();
   updateUI();
   updateLocationDisplay();
+  renderMinimap(villeId);
 
   // Forcer le rechargement de la vue rue dans le nouvel empire
   const world = WORLD[empireId];
