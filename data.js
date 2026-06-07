@@ -138,7 +138,18 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1533050487297-09b450131914?w=1200&q=80',
       desc:'Capitale d\'El Estado. Chaleur étouffante, corruption omniprésente, Generalissimo Gordito règne sans partage.',
       isCapitale: true,
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','terrain-a-batir-1']
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildingNames: {
+        'palais-presidentiel':'Casa del Generalissimo','hotel-republica':'Hotel El Cartel',
+        'palais-gouvernement':'Palacio del Gobierno','assemblee':'Asamblea Nacional',
+        'tribunal':'Tribunal de Ciudad Roja','banque-nationale':'Banco Nacional',
+        'banque-privee':'Banco Privado Offshore','clinique-privee':'Clinica Privada',
+        'dispensaire-public':'Dispensario Popular','commissariat':'Comisaria Central',
+        'la-tribune':'El Narco Times','loge-maconnique':'Club de los Elegidos',
+        'universite':'Universidad del Partido','armurerie':'Armeria Gordito',
+        'marche':'Mercado Central','mairie-capitale':'Alcaldia',
+        'laboratoire-priere':'Laboratoire de Priere','centre-multinodal-luthecia':'Terminal Multimodal'
+      }
     },
     ville_a: {
       name:'Puerto Oscuro',
@@ -235,7 +246,18 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Capitale d\'Al-Khalija. Or, turquoise et sable. Le Palais Royal domine tout. Le protocole est une religion.',
       isCapitale: true,
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','terrain-a-batir-1']
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildingNames: {
+        'palais-presidentiel':'Palais Royal Al-Qasr','hotel-republica':'Hotel Al-Nour Palace',
+        'palais-gouvernement':'Diwan Gouvernemental','assemblee':'Conseil Consultatif Royal',
+        'tribunal':'Tribunal de la Charia','banque-nationale':'Banque Royale Al-Khalija',
+        'banque-privee':'Banque Privee Al-Baraka','clinique-privee':'Clinique Royale',
+        'dispensaire-public':'Dispensaire Al-Madina','commissariat':'Garde Royale',
+        'la-tribune':'Le Minaret Dore','loge-maconnique':'Cercle des Sages',
+        'universite':'Universite Royale','armurerie':'Arsenaux Royaux',
+        'marche':'Souk Al-Madina','mairie-capitale':'Chambre Municipale Royale',
+        'patisserie-sacree':'Patisserie Sacree','centre-multinodal-luthecia':'Aeroport International Royal'
+      }
     },
     ville_a: {
       name:'Oasis Al-Zafar',
