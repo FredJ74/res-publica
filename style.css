@@ -12,40 +12,40 @@
   --accent:#C9A84C;--accent2:#8a6a20;
 }
 
-/* REPUBLIA — Or et noir, tons dorés chauds */
+/* REPUBLIA — Noir profond, or républicain */
 body.empire-republic {
-  --gold:#C9A84C;--gold-light:#E8C97A;--gold-dark:#8a6a20;--gold-dim:#3a2a10;
   --bg:#0a0a07;--bg2:#0d0b05;--bg3:#121005;--bg4:#1a1508;
   --border:#2a2010;--border2:#1a1810;
-  --text:#f0ead6;--text2:#c0b090;--text3:#8a8060;
+  --text:#f0ead6;--text2:#c0b090;--text3:#8a8060;--text4:#6a6050;--text5:#3a3020;
+  --gold:#C9A84C;--gold-light:#E8C97A;--gold-dark:#8a6a20;--gold-dim:#3a2a10;
   --accent:#C9A84C;--accent2:#8a6a20;
 }
 
-/* EL ESTADO — Rouge et or sale, chaleur tropicale */
+/* EL ESTADO — Brun chaud, orange brûlé */
 body.empire-narco {
-  --gold:#c4842a;--gold-light:#e8a050;--gold-dark:#8a4a10;--gold-dim:#3a1a08;
-  --bg:#0d0702;--bg2:#120a03;--bg3:#180d04;--bg4:#201205;
-  --border:#3a1a08;--border2:#251005;
-  --text:#f5e0c8;--text2:#c8a080;--text3:#8a6040;
-  --accent:#c4842a;--accent2:#8a4a10;
+  --bg:#1a0e06;--bg2:#200f06;--bg3:#271207;--bg4:#301508;
+  --border:#4a2208;--border2:#351808;
+  --text:#f5dfc0;--text2:#c89868;--text3:#906040;--text4:#604028;--text5:#402818;
+  --gold:#d4862a;--gold-light:#e8a850;--gold-dark:#904a10;--gold-dim:#401e06;
+  --accent:#d4862a;--accent2:#904a10;
 }
 
-/* SOVARKA — Gris acier et rouge soviétique */
+/* SOVARKA — Gris acier, rouge soviétique */
 body.empire-soviet {
-  --gold:#8a9a8a;--gold-light:#aabaa8;--gold-dark:#4a5a4a;--gold-dim:#1a2a1a;
-  --bg:#080a08;--bg2:#0a0c0a;--bg3:#0d100d;--bg4:#121512;
-  --border:#1a2a1a;--border2:#121812;
-  --text:#d8e0d0;--text2:#a0b098;--text3:#607060;
-  --accent:#8a2020;--accent2:#5a1010;
+  --bg:#0e1012;--bg2:#111416;--bg3:#14181a;--bg4:#181e20;
+  --border:#2a3038;--border2:#1e2428;
+  --text:#d8dcd8;--text2:#9aa09a;--text3:#606860;--text4:#404840;--text5:#283028;
+  --gold:#9a2020;--gold-light:#c02828;--gold-dark:#6a1010;--gold-dim:#2a0808;
+  --accent:#9a2020;--accent2:#6a1010;
 }
 
-/* AL-KHALIJA — Or, turquoise et nuit profonde */
+/* AL-KHALIJA — Ocre sombre, turquoise doré */
 body.empire-khalija {
-  --gold:#b8a060;--gold-light:#d8c080;--gold-dark:#786030;--gold-dim:#302810;
-  --bg:#070808;--bg2:#090a0b;--bg3:#0c0e10;--bg4:#101418;
-  --border:#1a2830;--border2:#101820;
-  --text:#e8e0d0;--text2:#a8b8b0;--text3:#607870;
-  --accent:#208080;--accent2:#105050;
+  --bg:#12100a;--bg2:#16130c;--bg3:#1a160e;--bg4:#201a10;
+  --border:#38300a;--border2:#28220a;
+  --text:#f0e8c8;--text2:#c0b080;--text3:#887848;--text4:#585030;--text5:#383020;
+  --gold:#20a090;--gold-light:#30c0b0;--gold-dark:#107060;--gold-dim:#083828;
+  --accent:#20a090;--accent2:#107060;
 }
 body{font-family:'Crimson Pro',Georgia,serif;background:var(--bg);color:var(--text);min-height:100vh}
 body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:column}
