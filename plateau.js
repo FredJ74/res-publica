@@ -89,7 +89,10 @@ function applyCharToState(char) {
   const ar = ARCHETYPES.find(x => x.id === char.archetype);
   const ca = CAREERS.find(x => x.id === char.career);
   const roleEl = document.getElementById('char-role-display');
-  if (roleEl) roleEl.textContent = `${ar?.name||'?'} · ${ca?.name||'?'}`;
+  const posteLabel = state.poste?.name || null;
+  if (roleEl) roleEl.textContent = posteLabel
+    ? `${posteLabel} · ${ar?.name||'?'}`
+    : `${ar?.name||'?'} · ${ca?.name||'?'}`;
   const fullnameEl = document.getElementById('char-fullname-left');
   if (fullnameEl) fullnameEl.textContent = char.name || 'Mon Personnage';
   const co = COUNTRIES[char.country];
@@ -715,6 +718,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
+  if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
   if (fn === 'recruter_informateur_1') { consulterInformateur(1); return; }
   if (fn === 'recruter_informateur_2') { consulterInformateur(2); return; }
   if (fn === 'recruter_informateur_3') { consulterInformateur(3); return; }
@@ -1390,12 +1394,54 @@ function openPostesModal() {
         </div>
         ${!p.holder
           ? `<button class="poste-btn" onclick="postulerPoste('${p.id}','${p.name}')">Postuler</button>`
-          : p.holder.startsWith('PNJ')
-            ? `<button class="poste-btn pnj" onclick="postulerPoste('${p.id}','${p.name}')">Deloger le PNJ</button>`
-            : `<button class="poste-btn" style="opacity:.4;cursor:default">Occupe</button>`
+          : p.holder === state.char?.name
+            ? `<button class="poste-btn" style="opacity:.4;cursor:default;color:#C9A84C">Votre poste</button>`
+            : p.holder.startsWith('PNJ')
+              ? `<button class="poste-btn pnj" onclick="postulerPoste('${p.id}','${p.name}')">Deloger le PNJ</button>`
+              : `<button class="poste-btn" style="opacity:.4;cursor:default">Occupe</button>`
         }
       </div>`).join('')}
   `;
+
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+
+// =====================
+// ORGANIGRAMME
+// =====================
+function ouvrirOrganigramme() {
+  const postes = POSTES[state.country];
+  if (!postes) return;
+  const co = COUNTRIES[state.country];
+  const myName = state.char?.name || '';
+
+  const sections = [
+    { title: 'Exécutif', postes: postes.capitale || [] },
+    { title: 'Assemblée', postes: postes.assemblee || [] },
+    { title: 'Villes', postes: [
+      ...(postes.ville_a || []),
+      ...(postes.ville_b || [])
+    ]}
+  ].filter(s => s.postes.length > 0);
+
+  document.getElementById('postes-modal-title').textContent = `Organigramme — ${co?.n || 'Empire'}`;
+  document.getElementById('postes-body').innerHTML = sections.map(s => `
+    <div style="padding:.5rem 1rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;border-bottom:1px solid #2a2010;margin-top:.3rem">${s.title}</div>
+    ${s.postes.map(p => {
+      const isPJ = p.holder && !p.holder.startsWith('PNJ');
+      const isMe = p.holder === myName;
+      const holderLabel = !p.holder
+        ? '<span style="color:#4a4030;font-style:italic">Vacant</span>'
+        : p.holder.startsWith('PNJ')
+          ? '<span style="color:#4a4030">PNJ</span>'
+          : `<span style="color:${isMe ? '#C9A84C' : '#4a8a4a'}">${p.holder}${isMe ? ' ✦' : ''}</span>`;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 1rem;border-bottom:1px solid #1a1810">
+        <div style="font-size:.78rem;color:#c0b090">${p.name}</div>
+        <div style="font-size:.75rem">${holderLabel}</div>
+      </div>`;
+    }).join('')}
+  `).join('');
 
   document.getElementById('modal-postes').classList.add('open');
 }
