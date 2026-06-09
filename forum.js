@@ -119,14 +119,17 @@ let editingTopicId = null;
 // =====================
 // MODAL PRINCIPALE
 // =====================
-async function openForum_module(forumId) {
+function openForum_module(forumId) {
   forumId = forumId || 'local';
   currentForumId = forumId;
   currentTopicId = null;
   forumView = 'list';
-  await loadForumTopicsFromSB(forumId);
   renderForumModal();
   document.getElementById('modal-forum').classList.add('open');
+  // Charger depuis Supabase en arrière-plan et rafraîchir
+  loadForumTopicsFromSB(forumId).then(() => {
+    document.getElementById('forum-main').innerHTML = renderForumContent();
+  }).catch(() => {});
 }
 
 function renderForumModal() {
@@ -172,19 +175,23 @@ function canAccessForum(forumId) {
   return true;
 }
 
-async function switchForum(id) {
+function switchForum(id) {
   currentForumId = id;
   currentTopicId = null;
   forumView = 'list';
-  await loadForumTopicsFromSB(id);
   renderForumModal();
+  loadForumTopicsFromSB(id).then(() => {
+    document.getElementById('forum-main').innerHTML = renderForumContent();
+  }).catch(() => {});
 }
 
-async function switchToMail() {
+function switchToMail() {
   forumView = 'mail';
   mailView = 'inbox';
-  await loadMailsFromSB();
   renderForumModal();
+  loadMailsFromSB().then(() => {
+    renderForumModal();
+  }).catch(() => {});
 }
 
 function renderForumContent() {
@@ -529,12 +536,16 @@ function showReplyForm()    { forumView = 'reply';     document.getElementById('
 function backToList()       { forumView = 'list'; currentTopicId = null; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 function backToTopic()      { forumView = 'topic'; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 
-async function openTopic(topicId) {
+function openTopic(topicId) {
   currentTopicId = topicId;
   forumView = 'topic';
-  await loadForumPostsFromSB(topicId);
-  if (typeof sbIncrementViews === 'function') sbIncrementViews(topicId);
+  // Afficher d'abord les posts locaux
   document.getElementById('forum-main').innerHTML = renderForumContent();
+  // Puis charger depuis Supabase
+  loadForumPostsFromSB(topicId).then(() => {
+    if (typeof sbIncrementViews === 'function') sbIncrementViews(topicId);
+    document.getElementById('forum-main').innerHTML = renderForumContent();
+  }).catch(() => {});
 }
 
 async function submitNewTopic() {
