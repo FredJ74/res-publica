@@ -533,8 +533,10 @@ function renderPersonsList(persons) {
   const ar = ARCHETYPES.find(x => x.id === char?.archetype);
 
   // Carte du PJ lui-meme — cliquable pour ouvrir la fiche personnage centrale
-  const photoHtml = char?.photoUrl
-    ? '<img src="' + char.photoUrl + '" alt="Vous" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'
+  const savedPhoto = localStorage.getItem('respublica_photo');
+  const photoUrl = savedPhoto || char?.photoUrl;
+  const photoHtml = photoUrl
+    ? '<img src="' + photoUrl + '" alt="Vous" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'
     : '<i class="ti ti-user" style="font-size:.75rem;color:#C9A84C"></i>';
 
   const selfCard = char ? '<div class="person-card" style="border-left:2px solid #C9A84C;cursor:pointer" onclick="openSelfView()" title="Cliquer pour dormir, inventaire, fiche">' +
@@ -1423,6 +1425,84 @@ function openPostesModal() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+
+
+// =====================
+// RÉPERTOIRE PJ
+// =====================
+async function ouvrirRepertoirePJ() {
+  document.getElementById('postes-modal-title').textContent = 'Répertoire des Joueurs';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const myName = state.char?.name || '';
+  const empireColors = { republic:'#C9A84C', narco:'#d4862a', soviet:'#9a2020', khalija:'#20a090' };
+  const empireNames  = { republic:'Républia', narco:'El Estado', soviet:'Sovarka', khalija:'Al-Khalija' };
+
+  // Charger depuis Supabase
+  let joueurs = [];
+  if (typeof sbListPersonnages === 'function') {
+    try { joueurs = await sbListPersonnages() || []; } catch(e) {}
+  }
+
+  // Ajouter soi-même si pas dans la liste
+  if (myName && !joueurs.find(j => j.name === myName)) {
+    joueurs.unshift({ name: myName, country: state.country, archetype: state.char?.archetype, current_city: state.currentCity, poste: state.poste });
+  }
+
+  if (joueurs.length === 0) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#4a4030;font-style:italic">Aucun joueur enregistre pour l\'instant.</div>';
+    return;
+  }
+
+  // Grouper par empire
+  const byEmpire = {};
+  joueurs.forEach(j => {
+    if (!byEmpire[j.country]) byEmpire[j.country] = [];
+    byEmpire[j.country].push(j);
+  });
+
+  const html = Object.entries(byEmpire).map(([country, pjs]) => {
+    const col = empireColors[country] || '#C9A84C';
+    const empName = empireNames[country] || country;
+    return `
+      <div style="padding:.4rem 1rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:${col};border-bottom:1px solid #2a2010;margin-top:.3rem">
+        ${empName} — ${pjs.length} joueur(s)
+      </div>
+      ${pjs.map(j => {
+        const isMe = j.name === myName;
+        const ar = ARCHETYPES.find(x => x.id === j.archetype);
+        const posteLabel = j.poste?.name || '';
+        const cityLabel = j.current_city || 'capitale';
+        return `
+          <div style="display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;border-bottom:1px solid #1a1810;${isMe ? 'background:rgba(201,168,76,0.05)' : ''}">
+            <div style="width:32px;height:32px;border-radius:50%;border:1px solid ${isMe ? col : '#2a2010'};background:#0a0a07;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="ti ti-user" style="font-size:.75rem;color:${isMe ? col : '#4a4030'}"></i>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:.82rem;color:${isMe ? col : '#f0ead6'};font-weight:${isMe ? 'bold' : 'normal'}">
+                ${j.name}${isMe ? ' ✦' : ''}
+              </div>
+              <div style="font-size:.68rem;color:#6a5a30">
+                ${posteLabel ? posteLabel + ' · ' : ''}${ar?.name || '?'} · ${cityLabel}
+              </div>
+            </div>
+            ${!isMe ? `<button onclick="composerMailPour('${j.name}')" style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">
+              <i class="ti ti-mail" style="font-size:.65rem"></i>
+            </button>` : ''}
+          </div>`;
+      }).join('')}
+    `;
+  }).join('');
+
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+function composerMailPour(destinataire) {
+  document.getElementById('modal-postes').classList.remove('open');
+  openForum_module('local');
+  setTimeout(() => { switchToMail(); setTimeout(() => { mailView = 'compose'; document.getElementById('forum-main').innerHTML = renderMailCompose(destinataire); }, 200); }, 300);
+}
 
 // =====================
 // ORGANIGRAMME
