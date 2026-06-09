@@ -691,6 +691,14 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
+  if (fn === 'recruter_informateur_1') { consulterInformateur(1); return; }
+  if (fn === 'recruter_informateur_2') { consulterInformateur(2); return; }
+  if (fn === 'recruter_informateur_3') { consulterInformateur(3); return; }
+  if (fn === 'recruter_informateur_4') { consulterInformateur(4); return; }
+  if (fn === 'interroger_informateur_1'){ interrogerInformateur(1); return; }
+  if (fn === 'interroger_informateur_2'){ interrogerInformateur(2); return; }
+  if (fn === 'interroger_informateur_3'){ interrogerInformateur(3); return; }
+  if (fn === 'interroger_informateur_4'){ interrogerInformateur(4); return; }
   if (fn === 'recruter_info')          { ouvrirRecruterInformateur(1); return; }
   if (fn === 'recruter_info_2')        { ouvrirRecruterInformateur(2); return; }
   if (fn === 'recruter_info_3')        { ouvrirRecruterInformateur(3); return; }
@@ -887,11 +895,16 @@ function applyEffects(fn, resultType, cost) {
 
   // PA bonus (dormir en hotel) + salaire journalier
   if (fn === 'dormir') {
+    const cur = COUNTRIES[state.country]?.cur || 'FR';
+    const msgs = [];
+
+    // 1. PA bonus selon hotel
     if (ef.paBonus && resultType !== 'fail') {
       state.paBonus = ef.paBonus || 0;
-      addJournalEntry(`Nuit confortable. +${ef.paBonus} PA bonus demain.`, 'event-good');
+      msgs.push(`+${ef.paBonus} PA bonus demain`);
     }
-    // Salaire journalier — une seule fois par jour
+
+    // 2. Salaire journalier
     if (!state.salaireTouche) {
       state.salaireTouche = true;
       const posteId = state.poste?.id || 'default';
@@ -899,11 +912,63 @@ function applyEffects(fn, resultType, cost) {
       state.arg += salaire;
       state.liquide += Math.floor(salaire * 0.3);
       state.banque += Math.ceil(salaire * 0.7);
-      addJournalEntry(`Salaire journalier verse : ${salaire.toLocaleString('fr-FR')} ${COUNTRIES[state.country]?.cur||'FR'} (${state.poste?.name || 'Citoyen'}).`, 'event-good');
-      showToast('Salaire verse', `+${salaire.toLocaleString('fr-FR')} ${COUNTRIES[state.country]?.cur||'FR'}`, true);
+      msgs.push(`Salaire : +${salaire.toLocaleString('fr-FR')} ${cur}`);
+      addJournalEntry(`Salaire journalier versé : ${salaire.toLocaleString('fr-FR')} ${cur} (${state.poste?.name || 'Citoyen'}).`, 'event-good');
     } else {
-      addJournalEntry('Vous avez deja percu votre salaire aujourd\'hui.', '');
+      addJournalEntry("Vous avez déjà perçu votre salaire aujourd'hui.", '');
     }
+
+    // 3. Effets poison progressifs
+    if (state.poisonActif) {
+      const poison = state.poisonActif;
+      const jourPoison = (state.day || 1) - (poison.jourDebut || 1);
+      if (jourPoison === 0) {
+        state.pa = Math.max(0, state.pa - 2);
+        const msgPoison = poison.message || 'Vous vous réveillez avec une douleur inexpliquée. -2 PA.';
+        msgs.push('⚠️ ' + msgPoison);
+        addJournalEntry(msgPoison, 'event-bad');
+        const statPerdue = {'republic':'VOL','narco':'PER','soviet':'INT','khalija':'CHA'}[poison.empireSource] || 'VOL';
+        if (state.char?.stats?.[statPerdue]) {
+          state.char.stats[statPerdue] = Math.max(1, state.char.stats[statPerdue] - 2);
+          addJournalEntry(`Votre ${statPerdue} diminue de 2 points.`, 'event-bad');
+        }
+      } else if (jourPoison === 1) {
+        state.hp = Math.max(1, Math.floor(state.hp / 2));
+        msgs.push("⚠️ Votre état empire. HP divisés par 2.");
+        addJournalEntry("L'empoisonnement progresse. Vos HP sont divisés par 2.", 'event-bad');
+      } else {
+        state.poisonActif = null;
+        msgs.push('Vous semblez vous remettre de votre malaise.');
+        addJournalEntry('Les effets du poison se dissipent.', 'event-good');
+      }
+    }
+
+    // 4. Paiement des informateurs
+    if (state.informateurs?.length > 0) {
+      const toRemove = [];
+      state.informateurs.forEach((inf, i) => {
+        const cout = INFORMATEUR_NIVEAUX[inf.niveau]?.cout || 150;
+        if (state.arg >= cout) {
+          state.arg -= cout;
+          addJournalEntry(`Informateur niveau ${inf.niveau} payé : -${cout} ${cur}.`, 'event-info');
+        } else {
+          toRemove.push(i);
+          addJournalEntry(`Fonds insuffisants. Votre informateur niveau ${inf.niveau} vous quitte.`, 'event-bad');
+        }
+      });
+      toRemove.reverse().forEach(i => state.informateurs.splice(i, 1));
+    }
+
+    // 5. Effacement automatique des crimes
+    checkEffacementCrimes();
+
+    // 6. Avancement du jour + reset
+    state.salaireTouche = false;
+    state.day = (state.day || 1) + 1;
+    state.douanePassee = false;
+
+    if (msgs.length > 0) showToast('Bonne nuit !', msgs.join(' · '), true, true);
+    updateUI();
   }
 
   // Effets speciaux
@@ -5333,26 +5398,82 @@ function payerInformateurs() {
 }
 
 function consulterInformateur(niveau) {
-  const cfg = INFORMATEUR_NIVEAUX[niveau];
-  // Verifier que l'informateur est actif
-  if (!state.informateurs?.find(i => i.niveau === niveau)) {
-    showToast('Informateur inactif', 'Vous n\'avez pas d\'informateur de niveau ' + niveau + '. Recrutez-en un d\'abord.', false);
+  if (!state.informateurs) state.informateurs = [];
+
+  // Max 2 informateurs simultanés
+  if (state.informateurs.length >= 2) {
+    showToast('Limite atteinte', 'Vous avez deja 2 informateurs actifs. Licenciez-en un avant d\'en recruter un autre.', false);
     return;
   }
 
+  // Vérifier si niveau déjà actif
+  if (state.informateurs.find(i => i.niveau === niveau)) {
+    showToast('Déjà actif', `Vous avez déjà un informateur de niveau ${niveau}.`, false);
+    return;
+  }
+
+  const config = INFORMATEUR_NIVEAUX[niveau];
+  if (!config) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  // Vérifier les fonds pour le premier paiement
+  if (state.arg < config.cout) {
+    showToast('Fonds insuffisants', `${config.cout} ${cur} requis pour recruter cet informateur.`, false);
+    return;
+  }
+
+  // Premier paiement immédiat
+  state.arg -= config.cout;
+  state.informateurs.push({ niveau, jourRecrutement: state.day || 1 });
+
+  // Obtenir une info immédiatement
   const info = getInfomateurInfo(niveau);
-  state.inf = Math.min(100, state.inf + niveau);
+  state.inf = Math.min(100, (state.inf || 0) + niveau);
   updateUI();
-  document.getElementById('postes-modal-title').textContent = 'Information reçue — Niveau ' + niveau;
+
+  addJournalEntry(`Informateur niveau ${niveau} recruté. -${config.cout} ${cur}.`, 'event-info');
+
+  document.getElementById('postes-modal-title').textContent = `Informateur Niveau ${niveau} — ${config.label}`;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1.2rem">' +
-    '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">"' + info + '"</div>' +
-    '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem">Source : ' + cfg?.label + ' · +' + niveau + ' INF · Fiabilité variable</div>' +
-    '</div>';
+    '<div style="font-size:.75rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;margin-bottom:.6rem">INFORMATION REÇUE</div>' +
+    '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">"' + info + '"</div>' +
+    '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem;border-top:1px solid #2a2010;padding-top:.6rem">' +
+    'Source : ' + config.label + ' · +' + niveau + ' INF · Coût : ' + config.cout + ' ' + cur + '/jour · Paye lors de l\'ordre Dormir</div>' +
+    '<div style="margin-top:.8rem;display:flex;gap:.5rem">' +
+    '<button onclick="licencierInformateur(' + niveau + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Licencier</button>' +
+    '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #4a4030;background:transparent;color:#8a8060;cursor:pointer">Fermer</button>' +
+    '</div></div>';
   document.getElementById('modal-postes').classList.add('open');
-  addJournalEntry('Information reçue de votre informateur (niveau ' + niveau + ').', 'event-info');
 }
 
+function licencierInformateur(niveau) {
+  if (!state.informateurs) return;
+  state.informateurs = state.informateurs.filter(i => i.niveau !== niveau);
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Informateur licencié', `Votre informateur niveau ${niveau} est congédié.`, true);
+  addJournalEntry(`Informateur niveau ${niveau} licencié.`, 'event-info');
+}
+
+function interrogerInformateur(niveau) {
+  // Obtenir une nouvelle info d'un informateur déjà recruté
+  if (!state.informateurs?.find(i => i.niveau === niveau)) {
+    showToast('Pas d\'informateur', `Vous n'avez pas d'informateur de niveau ${niveau} actif.`, false);
+    return;
+  }
+  const info = getInfomateurInfo(niveau);
+  state.inf = Math.min(100, (state.inf || 0) + Math.ceil(niveau / 2));
+  updateUI();
+
+  document.getElementById('postes-modal-title').textContent = `Rapport — Informateur Niveau ${niveau}`;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem">' +
+    '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">"' + info + '"</div>' +
+    '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem">+' + Math.ceil(niveau/2) + ' INF · ' + INFORMATEUR_NIVEAUX[niveau]?.label + '</div>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+  addJournalEntry(`Rapport reçu de votre informateur niveau ${niveau}.`, 'event-info');
+}
 function ouvrirGestionInformateurs() {
   const infos = state.informateurs || [];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -5385,19 +5506,6 @@ function congediерInformateur(idx) {
   addJournalEntry('Informateur niveau ' + inf.niveau + ' congédié.', 'event-info');
 }
 
-function consulterInformateur(niveau) {
-  const info = getInfomateurInfo(niveau);
-  state.inf = Math.min(100, state.inf + niveau);
-  updateUI();
-  document.getElementById('postes-modal-title').textContent = 'Information reçue';
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1.2rem">' +
-    '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + info + '"</div>' +
-    '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem">Source : ' + INFORMATEUR_NIVEAUX[niveau]?.label + ' · +' + niveau + ' INF · Fiabilité variable</div>' +
-    '</div>';
-  document.getElementById('modal-postes').classList.add('open');
-  addJournalEntry('Information reçue de votre informateur (niveau ' + niveau + ').', 'event-info');
-}
 
 function doSeCacher() {
   const dis = state.char?.stats?.DIS || state.dis || 50;
