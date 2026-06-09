@@ -97,7 +97,8 @@ function applyCharToState(char) {
   if (fullnameEl) fullnameEl.textContent = char.name || 'Mon Personnage';
   const co = COUNTRIES[char.country];
   const archEl = document.getElementById('char-arch-left');
-  if (archEl) archEl.textContent = `${ar?.name||'?'} · ${co?.n||'?'}`;
+  const posteStr = state.poste?.name ? `${state.poste.name} · ` : '';
+  if (archEl) archEl.textContent = `${posteStr}${ar?.name||'?'} · ${co?.n||'?'}`;
 
   // Photo
   try {
@@ -1429,13 +1430,15 @@ function ouvrirOrganigramme() {
   document.getElementById('postes-body').innerHTML = sections.map(s => `
     <div style="padding:.5rem 1rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;border-bottom:1px solid #2a2010;margin-top:.3rem">${s.title}</div>
     ${s.postes.map(p => {
-      const isPJ = p.holder && !p.holder.startsWith('PNJ');
-      const isMe = p.holder === myName;
-      const holderLabel = !p.holder
+      // Vérifier si le joueur courant occupe ce poste
+      const isMe = state.poste?.id === p.id;
+      const holderName = isMe ? myName : p.holder;
+      const isPJ = holderName && !holderName.startsWith('PNJ');
+      const holderLabel = !holderName
         ? '<span style="color:#4a4030;font-style:italic">Vacant</span>'
-        : p.holder.startsWith('PNJ')
+        : holderName.startsWith('PNJ')
           ? '<span style="color:#4a4030">PNJ</span>'
-          : `<span style="color:${isMe ? '#C9A84C' : '#4a8a4a'}">${p.holder}${isMe ? ' ✦' : ''}</span>`;
+          : `<span style="color:${isMe ? '#C9A84C' : '#4a8a4a'}">${holderName}${isMe ? ' ✦' : ''}</span>`;
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 1rem;border-bottom:1px solid #1a1810">
         <div style="font-size:.78rem;color:#c0b090">${p.name}</div>
         <div style="font-size:.75rem">${holderLabel}</div>
@@ -1484,8 +1487,13 @@ async function postulerPoste(posteId, posteName) {
 
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= successRate) {
-    // Marquer le poste comme pris
+    // Marquer le poste comme pris dans POSTES
     if (poste) poste.holder = state.char?.name || 'Joueur';
+    // Libérer l'ancien poste si applicable
+    if (state.poste?.id && state.poste.id !== posteId) {
+      const oldPoste = [...(POSTES[state.country]?.capitale||[]), ...(POSTES[state.country]?.assemblee||[])].find(p => p.id === state.poste.id);
+      if (oldPoste && oldPoste.holder === (state.char?.name || 'Joueur')) oldPoste.holder = null;
+    }
     state.poste = { id: posteId, name: posteName };
     state.salaireTouche = false;
     state.inf = Math.min(100, state.inf + 15);
