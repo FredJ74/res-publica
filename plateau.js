@@ -314,7 +314,7 @@ function showVueRue() {
   const rueImage = document.getElementById('rue-image');
   const imgUrl = city?.imageUrl;
   if (imgUrl) {
-    rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%), url('${imgUrl}') center/cover no-repeat`;
+    rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
     rueImage.style.background = 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
@@ -409,7 +409,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   const pieceImg = document.getElementById('piece-image');
   const imgUrl = empireRoomImg || roomOverride?.imageUrl || room.imageUrl;
   if (imgUrl) {
-    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.85) 100%), url('${imgUrl}') center/cover no-repeat`;
+    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.5) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
     pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
@@ -4761,7 +4761,7 @@ function confirmerTransport(mode, empireId, villeId) {
     // Mettre a jour l'image de la rue
     const rueImage = document.getElementById('rue-image');
     if (rueImage && city.imageUrl) {
-      rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%), url('${city.imageUrl}') center/cover no-repeat`;
+      rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url('${city.imageUrl}') center/cover no-repeat`;
       rueImage.style.backgroundSize = 'cover';
     }
     // Afficher la vue rue
