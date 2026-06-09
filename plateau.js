@@ -936,7 +936,7 @@ function applyEffects(fn, resultType, cost) {
     const today = state.day || 1;
 
     // Vérifier si déjà dormi aujourd'hui
-    if (state.dernierDormir === today) {
+    if (state.dernierDormir === (state.day || 1)) {
       showToast('Déjà dormi', 'Vous avez déjà dormi aujourd\'hui. Attendez demain.', false);
       return;
     }
@@ -1006,12 +1006,11 @@ function applyEffects(fn, resultType, cost) {
     checkEffacementCrimes();
 
     // 6. Avancement du jour + reset
-    state.dernierDormir = today;
     state.salaireTouche = false;
     state.day = (state.day || 1) + 1;
+    state.dernierDormir = state.day; // Bloque le jour suivant
     state.douanePassee = false;
-    // Persister dans localStorage
-    localStorage.setItem('respublica_dormir', JSON.stringify({dernierDormir: today, day: state.day}));
+    localStorage.setItem('respublica_dormir', JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
 
     if (msgs.length > 0) showToast('Bonne nuit !', msgs.join(' · '), true, true);
     updateUI();
@@ -3270,10 +3269,10 @@ function doDormir() {
   const confort = confortMap[state.currentBuilding] || { moral: 1, paBonus: 0 };
 
   state.salaireTouche = true;
-  state.dernierDormir = today;
   state.day = today + 1;
+  state.dernierDormir = state.day; // Bloque le jour suivant
   state.douanePassee = false;
-  localStorage.setItem('respublica_dormir', JSON.stringify({dernierDormir: today, day: state.day}));
+  localStorage.setItem('respublica_dormir', JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
   const salaire = state.poste ? (SALAIRES[state.poste.id] || SALAIRES.default) : SALAIRES.default;
   state.arg += salaire;
   state.liquide += Math.floor(salaire * 0.3);
