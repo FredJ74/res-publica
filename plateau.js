@@ -3118,7 +3118,7 @@ function switchSelfTab(tab, el) {
     };
     const confort = confortMap[state.currentBuilding] || { label: 'Lieu ordinaire', moral: 1, paBonus: 0, icon: 'ti-home' };
 
-    const dejaDormi = state.salaireTouche;
+    const dejaDormi = state.dernierDormir === (state.day || 1);
     const salaire = (state.poste ? (SALAIRES[state.poste.id] || SALAIRES.default) : SALAIRES.default);
 
     let html = '<div style="padding:1.2rem;max-width:600px">';
