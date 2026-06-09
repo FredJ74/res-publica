@@ -2581,10 +2581,23 @@ const ROOM_IMAGES_EMPIRE = {
     },
     'palais-presidentiel': {
       'accueil_elysee':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-parti-sovarka.png',
-      'bureau_president':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-parti-sovarka.png'
+      'bureau_president':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-gouv-sovarka.png'
     },
     'palais-gouvernement': {
-      'hall':              'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-parti-sovarka.png'
+      'hall':              'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-parti-sovarka.png',
+      'bureaux':           'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-gouv-sovarka.png',
+      'salle_conseil':     'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/conseil-ministres-sovarka.png',
+      'bureau_min_fin':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/meco-sovarka.png',
+      'bureau_min_def':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mdef-sovarka.png'
+    },
+    'tribunal': {
+      'salle_audience': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-sovarka.png',
+      'greffe':         'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-sovarka.png'
+    },
+    'mairie-capitale': {
+      'hall_mairie':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-sovarka.png',
+      'bureau_maire':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-sovarka.png',
+      'salle_elections':'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-sovarka.png'
     }
   },
   khalija: {
