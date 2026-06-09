@@ -354,6 +354,18 @@ function validateChar(){
       try{ localStorage.setItem('respublica_photo', G.photoUrl); }
       catch(e){ console.warn('Photo trop volumineuse pour localStorage'); }
     }
+    // Sauvegarde Supabase
+    if (typeof sbSavePersonnage === 'function') {
+      const tempState = {
+        char, country: char.country, currentCity: 'capitale',
+        arg: char.arg || 0, liquide: Math.floor((char.arg||0)*0.15),
+        banque: Math.ceil((char.arg||0)*0.85),
+        inf: char.resources?.inf || 25, pop: char.resources?.pop || 30,
+        dis: char.resources?.dis || 85, hp: 100, pa: 10, moral: 75,
+        poste: null, inventory: [], informateurs: [], day: 1, recherche: []
+      };
+      sbSavePersonnage(tempState).catch(e => console.warn('Supabase save error', e));
+    }
   }
   catch(e){ console.warn('localStorage non disponible'); }
   goTo(9);

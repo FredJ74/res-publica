@@ -53,52 +53,74 @@ function loadCharacter() {
     const saved = localStorage.getItem('respublica_char');
     if (saved) {
       const char = JSON.parse(saved);
-      state.char = char;
-      state.country = char.country || 'republic';
-      state.currentCity = char.currentCity || 'capitale';
-      state.arg = char.arg || 4250;
-      state.liquide = Math.floor(state.arg * 0.15);
-      state.banque = state.arg - state.liquide;
-      state.inf = char.resources?.inf || 25;
-      state.pop = char.resources?.pop || 30;
-      state.dis = char.resources?.dis || 85;
-
-      // UI
-      document.getElementById('char-name-display').textContent = char.name || 'Mon Personnage';
-      const ar = ARCHETYPES.find(x => x.id === char.archetype);
-      const ca = CAREERS.find(x => x.id === char.career);
-      document.getElementById('char-role-display').textContent = `${ar?.name||'?'} · ${ca?.name||'?'}`;
-      document.getElementById('char-fullname-left').textContent = char.name || 'Mon Personnage';
-      const co = COUNTRIES[char.country];
-      document.getElementById('char-arch-left').textContent = `${ar?.name||'?'} · ${co?.n||'?'}`;
-
-      // Photo — stockee separement pour eviter depassement localStorage
-      try {
-        const photoSaved = localStorage.getItem('respublica_photo');
-        const photoUrl = photoSaved || char.photoUrl;
-        if (photoUrl && photoUrl.length > 10) {
-          const imgTag = `<img src="${photoUrl}" alt="Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
-          document.getElementById('char-photo-left').innerHTML = imgTag;
-          document.getElementById('char-avatar-top').innerHTML = imgTag;
-        }
-      } catch(photoErr) {
-        console.warn('Photo non chargee:', photoErr);
+      applyCharToState(char);
+      console.log('Personnage charge (local):', char.name, '| Pays:', state.country);
+      // Synchroniser depuis Supabase en arrière-plan
+      if (char.name && typeof sbLoadPersonnage === 'function') {
+        sbLoadPersonnage(char.name).then(sbState => {
+          if (sbState) {
+            // Fusionner les données Supabase (plus récentes)
+            Object.assign(state, sbState);
+            applyCharToState(state.char);
+            updateUI();
+            console.log('Personnage synchronisé depuis Supabase:', char.name);
+          }
+        }).catch(() => {});
       }
-
-      if (char.stats) {
-        document.getElementById('stat-mini-grid').innerHTML = STAT_DEFS.map(({k}) => `
-          <div class="stat-mini">
-            <div class="stat-mini-name">${k}</div>
-            <div class="stat-mini-val">${char.stats[k]||8}</div>
-          </div>`).join('');
-      }
-
-      const cur = co?.cur || 'FR';
-      document.getElementById('r-arg').textContent = state.arg.toLocaleString('fr-FR') + ' ' + cur;
-
-      console.log('Personnage charge:', char.name, '| Pays:', state.country);
     }
   } catch(e) { console.warn('Erreur chargement personnage', e); }
+}
+
+function applyCharToState(char) {
+  if (!char) return;
+  state.char = char;
+  state.country = char.country || 'republic';
+  state.currentCity = char.currentCity || 'capitale';
+  state.arg = char.arg || 4250;
+  state.liquide = Math.floor(state.arg * 0.15);
+  state.banque = state.arg - state.liquide;
+  state.inf = char.resources?.inf || 25;
+  state.pop = char.resources?.pop || 30;
+  state.dis = char.resources?.dis || 85;
+
+  // UI
+  const nameEl = document.getElementById('char-name-display');
+  if (nameEl) nameEl.textContent = char.name || 'Mon Personnage';
+  const ar = ARCHETYPES.find(x => x.id === char.archetype);
+  const ca = CAREERS.find(x => x.id === char.career);
+  const roleEl = document.getElementById('char-role-display');
+  if (roleEl) roleEl.textContent = `${ar?.name||'?'} · ${ca?.name||'?'}`;
+  const fullnameEl = document.getElementById('char-fullname-left');
+  if (fullnameEl) fullnameEl.textContent = char.name || 'Mon Personnage';
+  const co = COUNTRIES[char.country];
+  const archEl = document.getElementById('char-arch-left');
+  if (archEl) archEl.textContent = `${ar?.name||'?'} · ${co?.n||'?'}`;
+
+  // Photo
+  try {
+    const photoSaved = localStorage.getItem('respublica_photo');
+    const photoUrl = photoSaved || char.photoUrl;
+    if (photoUrl && photoUrl.length > 10) {
+      const imgTag = `<img src="${photoUrl}" alt="Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+      const photoEl = document.getElementById('char-photo-left');
+      const avatarEl = document.getElementById('char-avatar-top');
+      if (photoEl) photoEl.innerHTML = imgTag;
+      if (avatarEl) avatarEl.innerHTML = imgTag;
+    }
+  } catch(photoErr) { console.warn('Photo non chargee:', photoErr); }
+
+  if (char.stats) {
+    const statGrid = document.getElementById('stat-mini-grid');
+    if (statGrid) statGrid.innerHTML = STAT_DEFS.map(({k}) => `
+      <div class="stat-mini">
+        <div class="stat-mini-name">${k}</div>
+        <div class="stat-mini-val">${char.stats[k]||8}</div>
+      </div>`).join('');
+  }
+
+  const cur = co?.cur || 'FR';
+  const argEl = document.getElementById('r-arg');
+  if (argEl) argEl.textContent = state.arg.toLocaleString('fr-FR') + ' ' + cur;
 }
 
 // =====================
