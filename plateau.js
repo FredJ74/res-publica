@@ -3246,8 +3246,9 @@ function switchSelfTab(tab, el) {
 }
 
 function doDormir() {
-  if (state.salaireTouche) {
-    showToast('Deja dormi', 'Vous avez deja percu votre salaire aujourd\'hui.', false);
+  const today = state.day || 1;
+  if (state.dernierDormir === today) {
+    showToast('Deja dormi', 'Vous avez deja dormi aujourd\'hui. Attendez demain.', false);
     return;
   }
   const b = state.currentBuilding ? BUILDINGS[state.currentBuilding] : null;
@@ -3260,6 +3261,9 @@ function doDormir() {
   const confort = confortMap[state.currentBuilding] || { moral: 1, paBonus: 0 };
 
   state.salaireTouche = true;
+  state.dernierDormir = today;
+  state.day = today + 1;
+  state.douanePassee = false;
   const salaire = state.poste ? (SALAIRES[state.poste.id] || SALAIRES.default) : SALAIRES.default;
   state.arg += salaire;
   state.liquide += Math.floor(salaire * 0.3);
