@@ -119,11 +119,12 @@ let editingTopicId = null;
 // =====================
 // MODAL PRINCIPALE
 // =====================
-function openForum_module(forumId) {
+async function openForum_module(forumId) {
   forumId = forumId || 'local';
   currentForumId = forumId;
   currentTopicId = null;
   forumView = 'list';
+  await loadForumTopicsFromSB(forumId);
   renderForumModal();
   document.getElementById('modal-forum').classList.add('open');
 }
@@ -171,16 +172,18 @@ function canAccessForum(forumId) {
   return true;
 }
 
-function switchForum(id) {
+async function switchForum(id) {
   currentForumId = id;
   currentTopicId = null;
   forumView = 'list';
+  await loadForumTopicsFromSB(id);
   renderForumModal();
 }
 
-function switchToMail() {
+async function switchToMail() {
   forumView = 'mail';
   mailView = 'inbox';
+  await loadMailsFromSB();
   renderForumModal();
 }
 
@@ -526,11 +529,11 @@ function showReplyForm()    { forumView = 'reply';     document.getElementById('
 function backToList()       { forumView = 'list'; currentTopicId = null; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 function backToTopic()      { forumView = 'topic'; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 
-function openTopic(topicId) {
+async function openTopic(topicId) {
   currentTopicId = topicId;
   forumView = 'topic';
-  const t = (FORUM_TOPICS[currentForumId]||[]).find(x => x.id === topicId);
-  if (t) t.views++;
+  await loadForumPostsFromSB(topicId);
+  if (typeof sbIncrementViews === 'function') sbIncrementViews(topicId);
   document.getElementById('forum-main').innerHTML = renderForumContent();
 }
 
@@ -650,6 +653,69 @@ function renderMailInbox() {
 }
 
 let currentMailId = null;
+// =====================
+// CHARGEMENT DEPUIS SUPABASE
+// =====================
+async function loadForumTopicsFromSB(forumId) {
+  if (typeof sbLoadForumTopics !== 'function') return;
+  try {
+    const rows = await sbLoadForumTopics(forumId);
+    if (!rows || rows.length === 0) return;
+    // Fusionner avec les topics locaux existants
+    if (!FORUM_TOPICS[forumId]) FORUM_TOPICS[forumId] = [];
+    rows.forEach(row => {
+      const existing = FORUM_TOPICS[forumId].find(t => t.id === row.id);
+      if (!existing) {
+        FORUM_TOPICS[forumId].unshift({
+          id: row.id, title: row.title, author: row.author,
+          time: row.time, views: row.views, replies: row.replies,
+          posts: []
+        });
+      } else {
+        existing.views = row.views;
+        existing.replies = row.replies;
+      }
+    });
+    // Trier par date décroissante
+    FORUM_TOPICS[forumId].sort((a, b) => b.id.localeCompare(a.id));
+  } catch(e) { console.warn('loadForumTopicsFromSB error', e); }
+}
+
+async function loadForumPostsFromSB(topicId) {
+  if (typeof sbLoadForumPosts !== 'function') return;
+  try {
+    const rows = await sbLoadForumPosts(topicId);
+    if (!rows || rows.length === 0) return;
+    const topic = Object.values(FORUM_TOPICS).flat().find(t => t.id === topicId);
+    if (!topic) return;
+    // Remplacer les posts locaux par ceux de Supabase
+    topic.posts = rows.map(r => ({
+      id: r.id, author: r.author, content: r.content,
+      time: r.time, edited: r.edited
+    }));
+    topic.replies = Math.max(0, topic.posts.length - 1);
+  } catch(e) { console.warn('loadForumPostsFromSB error', e); }
+}
+
+async function loadMailsFromSB() {
+  if (typeof sbGetMailsFor !== 'function') return;
+  const name = state.char?.name;
+  if (!name) return;
+  try {
+    const rows = await sbGetMailsFor(name);
+    if (!rows) return;
+    // Fusionner avec localStorage
+    const local = getMails();
+    const sbIds = new Set(rows.map(r => r.id));
+    const merged = [
+      ...rows.map(r => ({ id: r.id, from: r.from_player, to: r.to_player,
+        subject: r.subject, body: r.body, time: r.time, read: r.read })),
+      ...local.filter(m => !sbIds.has(m.id))
+    ];
+    saveMails(merged);
+  } catch(e) { console.warn('loadMailsFromSB error', e); }
+}
+
 function readMail(mailId) {
   currentMailId = mailId;
   markMailRead(mailId);
