@@ -19,7 +19,8 @@ let state = {
   char: null,
   inventory: [],
   poste: null,
-  employees: []
+  employees: [],
+  dernierDormir: 0
 };
 
 // =====================
@@ -27,6 +28,12 @@ let state = {
 // =====================
 window.addEventListener('DOMContentLoaded', () => {
   loadCharacter();
+  // Restaurer dernierDormir depuis localStorage
+  try {
+    const dormirData = JSON.parse(localStorage.getItem('respublica_dormir') || '{}');
+    if (dormirData.dernierDormir) state.dernierDormir = dormirData.dernierDormir;
+    if (dormirData.day) state.day = Math.max(state.day, dormirData.day);
+  } catch(e) {}
   if (!state.currentCity) state.currentCity = 'capitale';
   if (!state.country) state.country = 'republic';
   applyEmpireTheme(state.country);
@@ -1003,6 +1010,8 @@ function applyEffects(fn, resultType, cost) {
     state.salaireTouche = false;
     state.day = (state.day || 1) + 1;
     state.douanePassee = false;
+    // Persister dans localStorage
+    localStorage.setItem('respublica_dormir', JSON.stringify({dernierDormir: today, day: state.day}));
 
     if (msgs.length > 0) showToast('Bonne nuit !', msgs.join(' · '), true, true);
     updateUI();
@@ -3264,6 +3273,7 @@ function doDormir() {
   state.dernierDormir = today;
   state.day = today + 1;
   state.douanePassee = false;
+  localStorage.setItem('respublica_dormir', JSON.stringify({dernierDormir: today, day: state.day}));
   const salaire = state.poste ? (SALAIRES[state.poste.id] || SALAIRES.default) : SALAIRES.default;
   state.arg += salaire;
   state.liquide += Math.floor(salaire * 0.3);
