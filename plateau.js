@@ -926,6 +926,13 @@ function applyEffects(fn, resultType, cost) {
   if (fn === 'dormir') {
     const cur = COUNTRIES[state.country]?.cur || 'FR';
     const msgs = [];
+    const today = state.day || 1;
+
+    // Vérifier si déjà dormi aujourd'hui
+    if (state.dernierDormir === today) {
+      showToast('Déjà dormi', 'Vous avez déjà dormi aujourd\'hui. Attendez demain.', false);
+      return;
+    }
 
     // 1. PA bonus selon hotel
     if (ef.paBonus && resultType !== 'fail') {
@@ -992,6 +999,7 @@ function applyEffects(fn, resultType, cost) {
     checkEffacementCrimes();
 
     // 6. Avancement du jour + reset
+    state.dernierDormir = today;
     state.salaireTouche = false;
     state.day = (state.day || 1) + 1;
     state.douanePassee = false;
