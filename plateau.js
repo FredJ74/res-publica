@@ -40,6 +40,8 @@ window.addEventListener('DOMContentLoaded', () => {
   updateUI();
   updateLocationDisplay();
   startClock();
+  // Init Supabase
+  if (typeof sbInit === 'function') sbInit();
   // Forcer le rendu complet au chargement
   setTimeout(() => {
     forceRenderCity(state.currentCity || 'capitale');
@@ -2341,27 +2343,7 @@ function openMailbox() {
 // FORUM EN VUE CENTRALE
 // =====================
 function openForumView(forumId) {
-  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
-  document.getElementById('vue-forum').classList.add('active');
-  const labels = {
-    local:'Forum Local', regional:'Forum Regional', national:'Forum National',
-    international:'Forum International', gouv:'Forum Gouvernemental',
-    syndical:'Forum Syndical', president:'Forum Presidentiel', conseil:'Conseil des Ministres'
-  };
-  document.getElementById('forum-view-subtitle').textContent = labels[forumId] || 'Forum';
-  // Injecter le contenu forum dans la vue centrale
-  const body = document.getElementById('forum-view-body');
-  body.innerHTML = '';
-  // Creer un conteneur et appeler le module forum
-  const container = document.createElement('div');
-  container.style.cssText = 'width:100%;height:100%;overflow:hidden';
-  body.appendChild(container);
-  if (typeof renderForumInContainer === 'function') {
-    renderForumInContainer(container, forumId);
-  } else {
-    // Fallback : rendu direct
-    container.innerHTML = buildForumHTML(forumId);
-  }
+  openForum_module(forumId || 'local');
 }
 
 function closeForumView() {
@@ -6742,6 +6724,8 @@ function toggleInventaire() {
 // =====================
 function updateUI() {
   const cur = state.char ? (COUNTRIES[state.char.country]?.cur || 'FR') : 'FR';
+  // Sauvegarde auto Supabase
+  if (typeof sbAutoSave === 'function' && state?.char?.name) sbAutoSave();
   document.getElementById('r-pa').textContent   = TEST_MODE ? '∞' : state.pa;
   document.getElementById('b-pa').style.width   = TEST_MODE ? '100%' : (state.pa / state.paMax * 100) + '%';
   document.getElementById('r-arg').textContent  = state.arg.toLocaleString('fr-FR') + ' ' + cur;
