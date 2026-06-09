@@ -2609,6 +2609,9 @@ const ROOM_IMAGES_EMPIRE = {
       'hall_hotel':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-hotel-khalija.png',
       'chambre':       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/chambre-hotel-khalija.png',
       'restaurant':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-hotel-khalija.png'
+    },
+    'marche': {
+      'marche_ext': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/souk-al-khalija.png'
     }
   }
 };
