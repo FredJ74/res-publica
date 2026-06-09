@@ -62,12 +62,19 @@ function getMyMails() {
   if (!name) return [];
   return getMails().filter(m => m.to === name || m.from === name);
 }
-function sendMail(to, subject, body) {
+async function sendMail(to, subject, body) {
   const from = state.char?.name || 'Anonyme';
-  const mails = getMails();
   const h = String(state.hour || 8).padStart(2,'0');
-  mails.push({ id: 'mail-' + Date.now(), from, to, subject, body,
-    time: `Jour ${state.day} · ${h}h`, read: false });
+  const time = `Jour ${state.day} · ${h}h`;
+
+  // Supabase
+  if (typeof sbSendMail === 'function') {
+    await sbSendMail(from, to, subject, body, time);
+  }
+
+  // Local aussi
+  const mails = getMails();
+  mails.push({ id: 'mail-' + Date.now(), from, to, subject, body, time, read: false });
   saveMails(mails);
   addJournalEntry(`Mail envoyé à ${to} : "${subject}".`, 'event-info');
   showToast('Mail envoyé', `À ${to} — "${subject}"`, true);
@@ -527,7 +534,7 @@ function openTopic(topicId) {
   document.getElementById('forum-main').innerHTML = renderForumContent();
 }
 
-function submitNewTopic() {
+async function submitNewTopic() {
   const titleEl = document.getElementById('new-topic-title');
   const contentEl = document.getElementById('new-topic-content');
   const title = titleEl?.value?.trim();
@@ -535,10 +542,20 @@ function submitNewTopic() {
   if (!title || !content) { showToast('Champs requis','Remplissez le titre et le message.',false); return; }
   const char = state.char;
   const h = String(state.hour||8).padStart(2,'0');
+  const time = `Jour ${state.day} · ${h}h`;
+
+  // Supabase
+  let topicId;
+  if (typeof sbCreateTopic === 'function') {
+    topicId = await sbCreateTopic(currentForumId, title, char?.name||'Anonyme', state.country, time);
+    if (topicId) await sbCreatePost(topicId, char?.name||'Anonyme', content, time);
+  }
+
+  // Local aussi pour affichage immédiat
   const newTopic = {
-    id: 'topic-' + Date.now(), title, author: char?.name||'Anonyme',
-    time: `Jour ${state.day} · ${h}h`, views: 1, replies: 0,
-    posts: [{ id:'p-'+Date.now(), author: char?.name||'Anonyme', time: `Jour ${state.day} · ${h}h`, content }]
+    id: topicId || 'topic-' + Date.now(), title, author: char?.name||'Anonyme',
+    time, views: 1, replies: 0,
+    posts: [{ id:'p-'+Date.now(), author: char?.name||'Anonyme', time, content }]
   };
   if (!FORUM_TOPICS[currentForumId]) FORUM_TOPICS[currentForumId] = [];
   FORUM_TOPICS[currentForumId].unshift(newTopic);
@@ -549,15 +566,23 @@ function submitNewTopic() {
   addJournalEntry(`Vous avez créé le sujet "${title}" sur le forum.`, 'event-info');
 }
 
-function submitReply() {
+async function submitReply() {
   const contentEl = document.getElementById('reply-content');
   const content = contentEl?.innerHTML?.trim();
   if (!content) { showToast('Message vide','Écrivez votre réponse avant de publier.',false); return; }
   const char = state.char;
   const h = String(state.hour||8).padStart(2,'0');
+  const time = `Jour ${state.day} · ${h}h`;
   const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === currentTopicId);
   if (!topic) return;
-  topic.posts.push({ id:'p-'+Date.now(), author: char?.name||'Anonyme', time: `Jour ${state.day} · ${h}h`, content });
+
+  // Supabase
+  if (typeof sbCreatePost === 'function') {
+    await sbCreatePost(topic.id, char?.name||'Anonyme', content, time);
+  }
+
+  // Local
+  topic.posts.push({ id:'p-'+Date.now(), author: char?.name||'Anonyme', time, content });
   topic.replies = topic.posts.length - 1;
   state.pop = Math.min(100, (state.pop||0) + 1);
   updateUI();
