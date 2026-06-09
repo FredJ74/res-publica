@@ -746,7 +746,7 @@ const WORLD = {
           persons: [],
           roomOverrides: {
             'hemicycle':                { name: "Salle du Conseil Royal",      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/assemblee-khalija.png' },
-            'couloirs':                 { name: "Couloirs du Conseil",         imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/assemblee-khalija.png' },
+            'couloirs':                 { name: "Couloirs du Conseil",         imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/couloirs-conseil-khalija.png' },
             'salle_archives_assemblee': { name: "Archives Royales",            imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-an-republic.png' }
           }
         },
@@ -2592,7 +2592,7 @@ const ROOM_IMAGES_EMPIRE = {
     },
     'assemblee': {
       'hemicycle':              'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/assemblee-khalija.png',
-      'couloirs':               'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/assemblee-khalija.png',
+      'couloirs':               'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/couloirs-conseil-khalija.png',
       'salle_archives_assemblee': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-an-republic.png'
     },
     'tribunal': {
