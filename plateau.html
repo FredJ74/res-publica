@@ -54,13 +54,6 @@
     <button class="forum-btn" onclick="ouvrirIndicesImperiaux()" title="Indices des 4 empires" style="white-space:nowrap;font-size:.65rem;letter-spacing:.08em">
       <i class="ti ti-chart-bar" style="font-size:.75rem;vertical-align:-1px"></i> INDICES IMPERIAUX
     </button>
-    <div class="char-mini" onclick="openCharSheet()">
-      <div class="char-avatar" id="char-avatar-top"><i class="ti ti-user" style="font-size:.9rem"></i></div>
-      <div>
-        <div class="char-name-mini" id="char-name-display">Mon Personnage</div>
-        <div class="char-role-mini" id="char-role-display">Archetype &middot; Carriere</div>
-      </div>
-    </div>
     <button class="forum-btn" onclick="openRulesView()">
       <i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> Règles
     </button>
@@ -400,5 +393,10 @@
 <script src="supabase.js"></script>
 <script src="forum.js"></script>
 <script src="plateau.js"></script>
+<div style="display:none">
+  <div id="char-avatar-top"></div>
+  <div id="char-name-display"></div>
+  <div id="char-role-display"></div>
+</div>
 </body>
 </html>
