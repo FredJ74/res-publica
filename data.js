@@ -920,7 +920,7 @@ const BUILDINGS = {
         orders: [
           {fn:'se_nourrir',      label:'Boire un verre',        pa:0, cost:10,  type:'legal', icon:'ti-glass',    successRate:100, desc:'Consommation. +1 Moral.'},
           {fn:'ecouter',         label:'Ecouter le barman',     pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90,  desc:'Le barman entend tout.'},
-          {fn:'recruter_info',   label:'Recruter un informateur',pa:1,cost:150, type:'grey',  icon:'ti-user-plus',successRate:75,  desc:'Faire du barman un contact regulier.'}
+          {fn:'recruter_info',   label:'Recruter un informateur N1',pa:1,cost:150, type:'grey',  icon:'ti-user-plus',successRate:75,  desc:'150 FR/jour. Localisation approximative, rumeurs locales.'}
         ]
       },
       chambres: {
@@ -1511,7 +1511,10 @@ const BUILDINGS = {
           {name:'Venerable Maitre Duval', role:'PNJ - Chef de la Loge', rel:'neutral', job:'venerable'}
         ],
         orders: [
-          {fn:'demander_info_loge', label:'Demander des informations', pa:2, cost:0,   type:'legal',   icon:'ti-info-circle',successRate:70}
+          {fn:'demander_info_loge', label:'Demander des informations', pa:2, cost:0,   type:'legal',   icon:'ti-info-circle',successRate:70},
+          {fn:'recruter_info_4', label:'Recruter une Taupe N4', pa:3, cost:0, type:'grey', icon:'ti-spy', successRate:50, desc:'1500 FR/jour. Confessions, transactions, ordres passés 24h.'},
+          {fn:'consulter_info_4', label:'Consulter la Taupe N4', pa:1, cost:0, type:'grey', icon:'ti-eye', successRate:100, desc:'Obtenir une information de votre taupe niveau 4.'},
+          {fn:'gerer_informateurs', label:'Gérer mes informateurs', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir et gérer vos informateurs actifs.'}
         ]
       },
       salle_reunion_loge: {
@@ -1791,7 +1794,9 @@ const BUILDINGS = {
         orders: [
           {fn:'se_nourrir', label:'Boire et manger', pa:0, cost:15,  type:'legal', icon:'ti-glass',    successRate:100},
           {fn:'ecouter',    label:'Ecouter',         pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:85},
-          {fn:'contrebande',label:'Contacter reseau',pa:2, cost:100, type:'illegal',icon:'ti-package', successRate:55}
+          {fn:'contrebande',label:'Contacter reseau',pa:2, cost:100, type:'illegal',icon:'ti-package', successRate:55},
+          {fn:'recruter_info_3', label:'Recruter informateur N3', pa:2, cost:0, type:'grey', icon:'ti-user-secret', successRate:60, desc:'700 FR/jour. Indice empire origine d\'un crime, contrebandes en cours.'},
+          {fn:'consulter_info_3', label:'Consulter informateur N3', pa:1, cost:0, type:'grey', icon:'ti-eye', successRate:100, desc:'Obtenir une information de votre informateur niveau 3.'},
         ]
       }
     }
@@ -2517,6 +2522,18 @@ const BUILDINGS = {
 
 // Images de pieces par empire
 const ROOM_IMAGES_EMPIRE = {
+  republic: {
+    'centre-multinodal-luthecia': {
+      'hall_gare':        'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-republic.png',
+      'hall_douanes':     'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-republic.png',
+      'zone_embarquement':'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-republic.png'
+    },
+    'assemblee': {
+      'hemicycle':                'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/couloirs-an-republic.png',
+      'couloirs':                 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/couloirs-an-republic.png',
+      'salle_archives_assemblee': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-an-republic.png'
+    }
+  },
   narco: {
     'centre-multinodal-luthecia': {
       'hall_gare':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gare-el-estado.png',
@@ -2958,4 +2975,3 @@ const SCANDALES_PREDEFINIS = [
   "Le Camarade Pontife Tractorenko a béni un tracteur privé par erreur. L'hérésie est totale.",
   "Le Juge Honoré Cozetoujours a condamné son propre greffier avant d'entendre l'affaire. Il 'assume pleinement'."
 ];
-// v24-roomOverrides

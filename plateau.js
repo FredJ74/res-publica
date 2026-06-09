@@ -168,6 +168,7 @@ function runMidnightUpdate() {
   alimenterBudgets();
   checkScandale();
   checkEffacementCrimes();
+  payerInformateurs();
   // Revenus fiscaux
   const pop = CITY_POPULATION[state.country]?.[state.currentCity];
   if (pop) {
@@ -690,6 +691,15 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
+  if (fn === 'recruter_info')          { ouvrirRecruterInformateur(1); return; }
+  if (fn === 'recruter_info_2')        { ouvrirRecruterInformateur(2); return; }
+  if (fn === 'recruter_info_3')        { ouvrirRecruterInformateur(3); return; }
+  if (fn === 'recruter_info_4')        { ouvrirRecruterInformateur(4); return; }
+  if (fn === 'consulter_info')         { consulterInformateur(1); return; }
+  if (fn === 'consulter_info_2')       { consulterInformateur(2); return; }
+  if (fn === 'consulter_info_3')       { consulterInformateur(3); return; }
+  if (fn === 'consulter_info_4')       { consulterInformateur(4); return; }
+  if (fn === 'gerer_informateurs')     { ouvrirGestionInformateurs(); return; }
   if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs'); return; }
   if (fn === 'prendre_bus_taxi')       { ouvrirModalTransport('bus'); return; }
   if (fn === 'prendre_avion')          { ouvrirModalTransport('avion'); return; }
@@ -5258,6 +5268,121 @@ function getInfomateurInfo(niveau) {
   };
   const list = infos[niveau] || infos[1];
   return list[Math.floor(Math.random() * list.length)];
+}
+
+function ouvrirRecruterInformateur(niveau) {
+  const cfg = INFORMATEUR_NIVEAUX[niveau];
+  if (!cfg) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  // Verifier max 2 informateurs
+  if (!state.informateurs) state.informateurs = [];
+  if (state.informateurs.length >= 2) {
+    showToast('Maximum atteint', 'Vous ne pouvez avoir que 2 informateurs simultanément.', false);
+    return;
+  }
+  // Verifier si niveau deja actif
+  if (state.informateurs.find(i => i.niveau === niveau)) {
+    showToast('Déjà actif', 'Vous avez déjà un informateur de niveau ' + niveau + '.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Recruter un informateur — Niveau ' + niveau;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem">' +
+    '<div style="font-size:.85rem;color:#c0b090;line-height:1.7;font-family:Crimson Pro,serif;margin-bottom:.8rem">' + cfg.desc + '</div>' +
+    '<div style="font-size:.75rem;color:#8a6a20;margin-bottom:1rem">Coût : <strong>' + cfg.cout + ' ' + cur + '/jour</strong> · Prélevé à chaque Dormir · Max 2 informateurs simultanés</div>' +
+    '<button onclick="confirmerRecrutementInformateur(' + niveau + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerRecrutementInformateur(niveau) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const cfg = INFORMATEUR_NIVEAUX[niveau];
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (state.arg < cfg.cout) {
+    showToast('Fonds insuffisants', cfg.cout + ' ' + cur + ' requis.', false);
+    return;
+  }
+  state.arg -= cfg.cout;
+  if (!state.informateurs) state.informateurs = [];
+  state.informateurs.push({ niveau, label: cfg.label, cout: cfg.cout, actif: true, joursActif: 0 });
+  updateUI();
+  showToast('Informateur recruté !', cfg.label + ' est maintenant actif. -' + cfg.cout + ' ' + cur + '/jour via Dormir.', true);
+  addJournalEntry('Informateur niveau ' + niveau + ' recruté : ' + cfg.label, 'event-info');
+}
+
+function payerInformateurs() {
+  if (!state.informateurs?.length) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  let total = 0;
+  state.informateurs = state.informateurs.filter(inf => {
+    if (state.arg >= inf.cout) {
+      state.arg -= inf.cout;
+      total += inf.cout;
+      inf.joursActif++;
+      return true;
+    } else {
+      addJournalEntry('Votre informateur niveau ' + inf.niveau + ' (' + inf.label + ') a quitté faute de paiement.', 'event-bad');
+      showToast('Informateur parti', inf.label + ' est parti — fonds insuffisants.', false);
+      return false;
+    }
+  });
+  if (total > 0) addJournalEntry('Salaires informateurs : -' + total + ' ' + cur, 'event-info');
+}
+
+function consulterInformateur(niveau) {
+  const cfg = INFORMATEUR_NIVEAUX[niveau];
+  // Verifier que l'informateur est actif
+  if (!state.informateurs?.find(i => i.niveau === niveau)) {
+    showToast('Informateur inactif', 'Vous n\'avez pas d\'informateur de niveau ' + niveau + '. Recrutez-en un d\'abord.', false);
+    return;
+  }
+
+  const info = getInfomateurInfo(niveau);
+  state.inf = Math.min(100, state.inf + niveau);
+  updateUI();
+  document.getElementById('postes-modal-title').textContent = 'Information reçue — Niveau ' + niveau;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem">' +
+    '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">"' + info + '"</div>' +
+    '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem">Source : ' + cfg?.label + ' · +' + niveau + ' INF · Fiabilité variable</div>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+  addJournalEntry('Information reçue de votre informateur (niveau ' + niveau + ').', 'event-info');
+}
+
+function ouvrirGestionInformateurs() {
+  const infos = state.informateurs || [];
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Mes Informateurs';
+  let html = '<div style="padding:1rem">';
+  if (infos.length === 0) {
+    html += '<div style="font-size:.82rem;color:#6a6040;font-style:italic">Aucun informateur actif. Recrutez-en depuis les bâtiments appropriés.</div>';
+  } else {
+    infos.forEach((inf, i) => {
+      html += '<div style="border:1px solid var(--border);background:var(--bg2);padding:.7rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between">';
+      html += '<div><div style="font-size:.82rem;color:#c0b090">Niveau ' + inf.niveau + ' — ' + inf.label + '</div>';
+      html += '<div style="font-size:.68rem;color:#6a6040">-' + inf.cout + ' ' + cur + '/jour · Actif depuis ' + inf.joursActif + ' jour(s)</div></div>';
+      html += '<button onclick="congediерInformateur(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.25rem .5rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Congédier</button>';
+      html += '</div>';
+    });
+  }
+  html += '<div style="font-size:.7rem;color:#4a4030;margin-top:.8rem">Maximum 2 informateurs simultanés.</div>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function congediерInformateur(idx) {
+  if (!state.informateurs) return;
+  const inf = state.informateurs[idx];
+  if (!inf) return;
+  state.informateurs.splice(idx, 1);
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Informateur congédié', inf.label + ' ne travaille plus pour vous.', true);
+  addJournalEntry('Informateur niveau ' + inf.niveau + ' congédié.', 'event-info');
 }
 
 function consulterInformateur(niveau) {
