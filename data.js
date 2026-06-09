@@ -2596,8 +2596,8 @@ const ROOM_IMAGES_EMPIRE = {
       'salle_archives_assemblee': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-an-republic.png'
     },
     'tribunal': {
-      'audience':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-khalija.png',
-      'deliberation':'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-khalija.png'
+      'salle_audience': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-khalija.png',
+      'greffe':         'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-khalija.png'
     },
     'palais-presidentiel': {
       'accueil_elysee':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-hotel-khalija.png',
