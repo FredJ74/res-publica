@@ -1,3 +1,52 @@
+
+// =====================
+// RETROUVER MON PERSONNAGE
+// =====================
+function retrouverPersonnage() {
+  const panel = document.getElementById('retrouver-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+async function chargerPersonnageParNom() {
+  const nom = document.getElementById('retrouver-nom')?.value?.trim();
+  const msg = document.getElementById('retrouver-msg');
+  if (!nom) { msg.textContent = 'Entrez votre nom de personnage.'; return; }
+
+  msg.style.color = '#8a8060';
+  msg.textContent = 'Recherche en cours...';
+
+  // Chercher dans Supabase
+  if (typeof sbLoadPersonnage !== 'function') {
+    msg.style.color = '#8a3a2a';
+    msg.textContent = 'Connexion Supabase non disponible.';
+    return;
+  }
+
+  try {
+    const sbState = await sbLoadPersonnage(nom);
+    if (!sbState) {
+      msg.style.color = '#8a3a2a';
+      msg.textContent = 'Personnage introuvable. Verifiez l\'orthographe.';
+      return;
+    }
+
+    // Sauvegarder dans localStorage
+    localStorage.setItem('respublica_char', JSON.stringify(sbState.char));
+    if (sbState.char?.photoUrl) {
+      localStorage.setItem('respublica_photo', sbState.char.photoUrl);
+    }
+
+    msg.style.color = '#4a8a4a';
+    msg.textContent = `Personnage "${nom}" trouvé ! Redirection...`;
+
+    setTimeout(() => { window.location.href = 'plateau.html'; }, 1000);
+
+  } catch(e) {
+    msg.style.color = '#8a3a2a';
+    msg.textContent = 'Erreur de connexion. Réessayez.';
+  }
+}
+
 /* ===========================
    RES PUBLICA — CREATION.JS
    =========================== */

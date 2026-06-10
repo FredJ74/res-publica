@@ -17,6 +17,20 @@
   <div class="isub playfair">Le Grand Jeu du Pouvoir</div>
   <p class="itagline">Parodie politique multijoueur &middot; 4 empires &middot; Zero scrupule</p>
   <button class="ibtn" onclick="goTo(1)"><span>Creer mon personnage</span></button>
+  <div style="margin-top:1rem">
+    <button onclick="retrouverPersonnage()" style="font-family:'Bebas Neue',sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem 1.2rem;border:1px solid #4a4030;background:transparent;color:#8a8060;cursor:pointer">
+      <i class="ti ti-search" style="font-size:.8rem;vertical-align:-1px"></i> Retrouver mon personnage
+    </button>
+  </div>
+  <div id="retrouver-panel" style="display:none;margin-top:1rem;max-width:320px;margin-left:auto;margin-right:auto">
+    <input id="retrouver-nom" type="text" placeholder="Votre nom de personnage..." 
+      style="width:100%;padding:.5rem .8rem;background:#0a0a07;border:1px solid #4a4030;color:#f0ead6;font-family:'Crimson Pro',Georgia,serif;font-size:.9rem;box-sizing:border-box"/>
+    <button onclick="chargerPersonnageParNom()" 
+      style="width:100%;margin-top:.4rem;font-family:'Bebas Neue',sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">
+      Charger ce personnage
+    </button>
+    <div id="retrouver-msg" style="font-size:.75rem;color:#8a3a2a;margin-top:.4rem;text-align:center"></div>
+  </div>
 </div>
 
 <!-- SCREEN 1: COUNTRY -->
@@ -109,6 +123,7 @@
 </div>
 
 <script src="data.js"></script>
+<script src="supabase.js"></script>
 <script src="creation.js"></script>
 </body>
 </html>
