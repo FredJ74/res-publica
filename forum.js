@@ -808,10 +808,12 @@ function renderMailCompose(defaultTo = '', defaultSubject = '') {
 }
 
 function submitMail() {
-  const to = document.getElementById('mail-to')?.value?.trim();
-  const subject = document.getElementById('mail-subject')?.value?.trim();
-  // Chercher le dernier mail-body dans le DOM (évite les doublons)
+  // Prendre toujours le dernier élément en cas de doublons dans le DOM
+  const toEls = document.querySelectorAll('#mail-to');
+  const subjectEls = document.querySelectorAll('#mail-subject');
   const bodyEls = document.querySelectorAll('#compose-body');
+  const to = toEls[toEls.length - 1]?.value?.trim();
+  const subject = subjectEls[subjectEls.length - 1]?.value?.trim();
   const bodyEl = bodyEls[bodyEls.length - 1];
   const body = bodyEl?.innerHTML?.trim();
   const bodyText = bodyEl?.innerText?.trim();
