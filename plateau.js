@@ -1051,6 +1051,56 @@ function buildResultMsg(fn, type, desc, label) {
 // =====================
 // PNJ INTERACTION
 // =====================
+
+// =====================
+// FICHES PERSONNALITÉ PNJ
+// =====================
+const PNJ_PERSONALITIES = {
+  // RÉPUBLIA
+  'Gaston Retard': { trait: "Fonctionnaire depuis 34 ans. N'a jamais annoncé un train à l'heure. Le considère comme une forme d'art. Parle de lui-même à la troisième personne quand il est stressé.", style: "bureaucratique épuisé, cynique poli, fier de son inefficacité" },
+  'Mireille Guichet': { trait: "Sourit en permanence sans raison. Répond à tout par 'C'est noté' sans jamais noter quoi que ce soit.", style: "serviable de façade, passive-agressive, adore les formulaires" },
+  'Raoul Toufaud': { trait: "Commissaire qui pointe toujours dans la mauvaise direction. Confond régulièrement les suspects et les témoins. A résolu exactement 0 affaire.", style: "autoritaire incompétent, se vexe facilement, cite le règlement sans le connaître" },
+  'Brigitte Menottes': { trait: "Inspectrice qui menotterait sa propre ombre si elle pouvait. Zèle inversement proportionnel à son efficacité.", style: "zélée et inutile, parle en jargon policier inventé" },
+  'Honoré Cozetoujours': { trait: "Juge qui condamne avant d'écouter. A condamné son greffier par erreur trois fois.", style: "sentencieux, cite des lois inventées, tape du marteau de façon aléatoire" },
+  'Bernard Coffre-Fort': { trait: "Directeur de banque qui n'a jamais ouvert un compte de sa vie. Confond les débits et les crédits.", style: "solennel et incompétent, parle en chiffres qui ne correspondent à rien" },
+  'Hans Von Discret': { trait: "Banquier suisse qui confirme uniquement par un silence pesant. Sa discrétion est telle qu'il nie son propre nom.", style: "mutisme calculé, réponses en non-dits, accent suisse exagéré" },
+  'Frère Jacques D\'Equerre': { trait: "Grand Maître qui parle uniquement en métaphores géométriques. Le triangle est sa réponse à tout.", style: "énigmatique pompeux, métaphores maçonniques absurdes, clin d'œil permanent" },
+
+  // EL ESTADO
+  'Pedro Tequila': { trait: "Barman philosophe qui mélange les cocktails et les théories politiques. Chaque verre est une leçon de vie qu'on ne demandait pas.", style: "jovial menaçant, proverbes inventés en espagnol approximatif, toujours un couteau sur le comptoir" },
+  'Lupe Cantina': { trait: "Serveuse armée qui prend les commandes avec un revolver à la ceinture. Le pourboire est obligatoire.", style: "souriante dangereuse, mélange espagnol et français au hasard, mentionne El Don sans raison" },
+  'El Capitan Gordo': { trait: "Incorruptible jusqu'à 500 pesos. Après, tout est négociable. A un portrait d'El Don derrière lui en permanence.", style: "autoritaire jovial, corruption assumée, cite El Don à tout moment" },
+  'Consuela Silencio': { trait: "Inspectrice qui tire sa force du silence absolu. Peut rester immobile 4 heures en vous fixant.", style: "intimidation par le silence, parle rare et percutant, regard qui tue" },
+  'El Juez Manchado': { trait: "Juge dont les verdicts se vendent au kilo. Propose une grille tarifaire officieuse après chaque audience.", style: "corruption institutionnalisée, formules juridiques espagnoles inventées, sourire gras" },
+  'Carlos Retraso': { trait: "Chef de gare qui annonce des horaires purement décoratifs. Les trains partent quand El Don le décide.", style: "bureaucrate tropical, délais assumés, chaleur étouffante dans chaque phrase" },
+  'Juanita Soborno': { trait: "Agente des douanes qui fait passer les colis avec un sourire si on glisse un billet dans le passeport.", style: "corruption charmante, regard complice, formules douanières inventées" },
+
+  // SOVARKA
+  'Olga Soupe': { trait: "Cantinière qui sert la même soupe depuis 1952. Considère la variété culinaire comme une déviation bourgeoise.", style: "stoïcisme soviétique, fierté de la betterave, citations du Parti dans chaque phrase" },
+  'Boris Betterave': { trait: "Cuisinier qui n'a jamais vu une épice. La betterave est son seul ingrédient et il en est fier.", style: "enthousiasme soviétique pour le vide, compare tout à la betterave" },
+  'Camarade Borodine': { trait: "Commissaire du Peuple qui remplit des rapports en triple sur les rapports qu'il vient de remplir. Voit des contre-révolutionnaires partout.", style: "paranoïa douce, camarade à tout bout de champ, formulaires comme religion" },
+  'Nadejda Formulaire': { trait: "Secrétaire qui sourit uniquement en remplissant des formulaires. Considère la joie comme contre-révolutionnaire.", style: "robotique administrative, formulaires en quadruple, bonheur dans la paperasse" },
+  'Camarade Horaire': { trait: "Chef de gare qui pense que les trains arrivent à l'heure parce que le Parti l'a décrété. La réalité est un détail.", style: "idéologique inflexible, nie l'évidence, cite des statistiques inventées" },
+  'Nadejda Contrôle': { trait: "Inspectrice des douanes qui fouille les bagages méthodiquement en enregistrant tout en triple. A trouvé une fois un livre non approuvé. C'est son plus grand fait d'armes.", style: "zèle procédurier, méfiance systématique, fierté du protocole" },
+
+  // AL-KHALIJA
+  'Hassan Marchandage': { trait: "Marchand dont le premier prix affiché est une insulte à la négociation. Le vrai prix n'apparaît qu'après 40 minutes de marchandage rituel.", style: "protocole du marchandage sacré, bénédictions du Loukoum Divin entre chaque offre" },
+  'Yasmine Épices': { trait: "Marchande qui connaît le prix de chaque secret de la ville. Les épices sont son prétexte, les informations son commerce.", style: "mystérieuse parfumée, double sens permanent, cite le Loukoum Divin en cas de doute" },
+  'Chambellan Ibn Protocole': { trait: "Chef de la Garde qui ne parle qu'en troisième personne. Considère le tutoiement comme un crime de lèse-majesté.", style: "protocole excessif, troisième personne, bénédictions du Sheikh imbriquées" },
+  'Fatima Al-Secret': { trait: "Inspectrice dont les interrogatoires consistent à servir du thé en silence jusqu'à ce que l'interlocuteur avoue spontanément.", style: "douceur menaçante, thé comme arme, patience infinie" },
+  'Chambellan Al-Transit': { trait: "Directeur du Hub Royal qui accueille selon le rang. Un visa en or pour les notables, une heure d'attente pour les autres.", style: "protocole hiérarchique absolu, bénédictions Royal, troisième personne" },
+  'Yasmine Embarquement': { trait: "Hôtesse royale qui sourit avec une précision chirurgicale calculée au millimètre par le protocole.", style: "perfection froide, formules royales mémorisées, sourire mécanique parfait" },
+  'Cheikh Al-Verdict': { trait: "Grand Juge dont les verdicts s'inspirent des textes sacrés et des instructions discrètes du Palais. Le Loukoum Divin guide sa main.", style: "sentences solennelles, citations du Loukoum Divin, justice royale assumée" }
+};
+
+// Traits génériques par empire si PNJ non répertorié
+const EMPIRE_STYLES = {
+  republic: { tone: "bureaucratique français épuisé, cynique poli", religion: "le Tabernacle des Impôts", currency: "FR", leader: "le Président" },
+  narco:    { tone: "jovial menaçant, corruption assumée, espagnol de bazar", religion: "le Laboratoire de Prière", currency: "PS", leader: "El Don" },
+  soviet:   { tone: "idéologique soviétique, formulaires sacrés, Camarade partout", religion: "le Kolkhoze Spirituel", currency: "RP", leader: "le Parti" },
+  khalija:  { tone: "protocole royal excessif, Loukoum Divin omniprésent, bénédictions imbriquées", religion: "la Pâtisserie Sacrée", currency: "DR", leader: "le Sheikh" }
+};
+
 function openPnjModal(encodedPnj) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }
@@ -1157,13 +1207,45 @@ async function talkToPnj(encodedPnj, action) {
   const actionDesc = actionMap[action] || `lui pose la question suivante : "${action}"`;
   const isQuestion = !actionMap[action];
 
-  const prompt = `Tu joues un personnage dans un jeu de role politique parodique satirique (Res Publica).
-Ton personnage : ${pnj.name}, ${pnj.role}, dans l'empire "${co?.n}".
-Relation avec le joueur : ${pnj.rel === 'ally' ? 'allie de confiance' : pnj.rel === 'enemy' ? 'ennemi declare' : 'neutre'}.
-Le joueur : ${char?.name || 'Inconnu'}, ${ar?.name || ''}, ${state.poste ? state.poste.name : 'sans poste'}.
-${isQuestion ? `Le joueur te pose cette question : "${action}". Reponds de facon coherente avec ton role.` : `Le joueur ${actionDesc}.`}
-Reponds en 2-3 phrases max. Ton satirique et politique. Sois caracteriel.
-Reponds UNIQUEMENT avec ta replique, sans guillemets ni introduction.`;
+  // Fiche personnalité du PNJ
+  const pnjKey = pnj.name?.replace(' (PNJ)', '').trim();
+  const perso = PNJ_PERSONALITIES[pnjKey];
+  const empireStyle = EMPIRE_STYLES[state.country] || EMPIRE_STYLES.republic;
+
+  // Récupérer les derniers posts du forum local pour le contexte
+  const recentPosts = (FORUM_TOPICS['local'] || []).slice(0, 2).map(t =>
+    `"${t.title}" (par ${t.author})`).join(', ');
+  const forumContext = recentPosts ? `Actualité du forum local : ${recentPosts}.` : '';
+
+  // Événements politiques
+  const politicalContext = state.poste
+    ? `Le joueur occupe le poste de ${state.poste.name}.`
+    : 'Le joueur n\'a pas de poste officiel.';
+  const recherchéContext = state.recherche?.length > 0
+    ? 'ATTENTION : le joueur est recherché par les autorités.'
+    : '';
+
+  const prompt = `Tu joues un personnage dans Res Publica, un jeu de rôle politique parodique et satirique.
+L'empire est ${co?.n} (${empireStyle.tone}).
+La religion locale est ${empireStyle.religion}. Le chef suprême est ${empireStyle.leader}.
+
+Ton personnage : ${pnj.name?.replace(' (PNJ)', '')}, ${pnj.role}.
+${perso ? `Ta personnalité : ${perso.trait}` : `Tu es un PNJ typique de ${co?.n}.`}
+${perso ? `Ton style : ${perso.style}` : ''}
+Relation avec le joueur : ${pnj.rel === 'ally' ? 'allié de confiance' : pnj.rel === 'enemy' ? 'ennemi déclaré' : 'neutre'}.
+
+Le joueur : ${char?.name || 'Inconnu'}, ${ar?.name || 'citoyen'}.
+${politicalContext} ${recherchéContext}
+${forumContext}
+
+${isQuestion ? `Le joueur te pose cette question : "${action}". Réponds en restant dans ton personnage.` : `Le joueur ${actionDesc}.`}
+
+RÈGLES ABSOLUES :
+- 2 phrases maximum, jamais plus
+- Reste dans ton personnage parodique
+- Intègre naturellement les éléments de l'empire (religion locale, monnaie ${empireStyle.currency}, ambiance)
+- Jamais de vrais noms de dieux ou religions réelles
+- Réponds UNIQUEMENT avec ta réplique, sans guillemets ni introduction`;
 
   try {
     const resp = await fetch('/api/chat', {
@@ -3475,17 +3557,103 @@ function checkArrestationAuReveil() {
 
 function ouvrirModalArrestation(peineType) {
   const peine = PEINES[peineType] || PEINES.delit_mineur;
-  document.getElementById('postes-modal-title').textContent = 'Interception policiere !';
+  const country = state.country || 'republic';
+
+  // Répliques situationnelles par empire
+  const repliques = {
+    republic: [
+      "Veuillez me suivre, s'il vous plaît. Formulaire 47-B à remplir au commissariat. En triple.",
+      "Vous êtes en état d'arrestation. Votre droit au silence est garanti — personne ne vous écoutera de toute façon.",
+      "J'ai un mandat. Enfin, j'ai quelque chose. C'est peut-être mon ticket de métro. Suivez-moi quand même."
+    ],
+    narco: [
+      "Dura lex, cède ta Rolex. ¡Vámonos!",
+      "El Don dit que la loi s'applique à tout le monde. Sauf à ceux qui paient. Vous payez ?",
+      "Alto ! Police d'El Estado. Vos mains, votre portefeuille, dans l'ordre que vous préférez."
+    ],
+    soviet: [
+      "Camarade, vous êtes en état d'arrestation révolutionnaire. Formulaire B-47 en quadruple exemplaire.",
+      "Le Parti a été informé de vos activités déviantes. Veuillez nous suivre pour rééducation volontaire obligatoire.",
+      "Halte au nom du Peuple ! Vos papiers, votre loyauté, votre betterave du jour."
+    ],
+    khalija: [
+      "Que la grâce du Loukoum Divin soit sur vous, mais pas sur vos activités. Veuillez nous suivre.",
+      "Le Sheikh, dans son infinie sagesse pâtissière, a ordonné votre arrestation. C'est un honneur.",
+      "Par décret royal et au nom du Loukoum Sacré, vous êtes arrêté(e). Le protocole l'exige."
+    ]
+  };
+
+  const replique = repliques[country][Math.floor(Math.random() * 3)];
+
+  // Coût corruption selon empire
+  const coutCorruption = { republic: 500, narco: 200, soviet: 800, khalija: 600 };
+  const cout = coutCorruption[country] || 500;
+  const cur = (window.COUNTRIES?.[country]?.cur) || 'FR';
+  const tauxCorruption = { republic: 45, narco: 75, soviet: 20, khalija: 50 };
+  const taux = tauxCorruption[country] || 45;
+
+  document.getElementById('postes-modal-title').textContent = 'Interception policière !';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
-    '<div style="font-size:.88rem;color:#cc4444;font-family:Playfair Display,serif;margin-bottom:1rem">Des policiers vous barrent la route. Chef d\'inculpation : ' + peine.label + '.</div>' +
-    '<div style="font-size:.8rem;color:#8a8060;margin-bottom:1rem">Peine encourue : ' + peine.jours + ' jour(s) d\'emprisonnement.</div>' +
+    '<div style="font-size:.82rem;color:#8a8060;font-style:italic;font-family:Crimson Pro,Georgia,serif;border-left:2px solid #8a3a2a;padding-left:.6rem;margin-bottom:.8rem">"' + replique + '"</div>' +
+    '<div style="font-size:.88rem;color:#cc4444;font-family:Playfair Display,serif;margin-bottom:.4rem">Chef d\'inculpation : ' + peine.label + '</div>' +
+    '<div style="font-size:.78rem;color:#8a8060;margin-bottom:1rem">Peine encourue : ' + peine.jours + ' jour(s) d\'emprisonnement.</div>' +
     '<div style="display:flex;flex-direction:column;gap:.5rem">' +
     '<button onclick="procederArrestation(\'' + peineType + '\',false);document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #4a6a4a;background:transparent;color:#6a9a6a;cursor:pointer"><i class="ti ti-check" style="font-size:.8rem"></i> Se rendre</button>' +
-    '<button onclick="tenterFuite()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-run" style="font-size:.8rem"></i> Fuir (VOL+DIS)</button>' +
-    '<button onclick="tenterResistance(\'' + peineType + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-sword" style="font-size:.8rem"></i> Resister (tres risque)</button>' +
+    '<button onclick="tenterCorruptionArrestation(\'' + peineType + '\',' + cout + ',' + taux + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-coin" style="font-size:.8rem"></i> Corrompre l\'agent (' + cout + ' ' + cur + ' · ' + taux + '%)</button>' +
+    '<button onclick="tenterFuite()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a6a20;background:transparent;color:#8a8060;cursor:pointer"><i class="ti ti-run" style="font-size:.8rem"></i> Fuir (VOL+DIS)</button>' +
+    '<button onclick="tenterResistance(\'' + peineType + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-sword" style="font-size:.8rem"></i> Résister (très risqué)</button>' +
     '</div></div>';
   document.getElementById('modal-postes').classList.add('open');
+}
+
+function tenterCorruptionArrestation(peineType, cout, taux) {
+  const country = state.country || 'republic';
+  const cur = (window.COUNTRIES?.[country]?.cur) || 'FR';
+
+  if (state.arg < cout) {
+    showToast('Fonds insuffisants', `Il vous faut ${cout} ${cur} pour corrompre l'agent.`, false);
+    return;
+  }
+
+  state.arg -= cout;
+  const dup = state.char?.stats?.DUP || 8;
+  const bonus = Math.floor(dup / 10) * 5;
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const tauxFinal = Math.min(85, taux + bonus);
+
+  // Répliques succès/échec par empire
+  const succesRepliques = {
+    republic: "Très bien. Je n'ai rien vu. Je ne vois d'ailleurs jamais rien le mercredi.",
+    narco:    "¡Excelente! El Don dit que la générosité est une vertu. Bonne journée, señor.",
+    soviet:   "Le formulaire d'arrestation se sera... égaré. Ça arrive. Bonne journée, Camarade.",
+    khalija:  "Que le Loukoum Divin bénisse votre générosité. Le Chambellan n'a rien remarqué."
+  };
+  const echecRepliques = {
+    republic: "Comment osez-vous ? Ajoutez 'tentative de corruption' au dossier. Et doublez la mise.",
+    narco:    "¡Dios mío! Vous croyez que je suis corruptible ? Doublez et on en reparle.",
+    soviet:   "Trahison contre-révolutionnaire ! Formulaire de corruption en quadruple. Plus deux ans.",
+    khalija:  "Ô impudent ! Ceci est une insulte au protocole royal. Et le montant était insuffisant."
+  };
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (roll <= tauxFinal) {
+    state.dis = Math.max(0, state.dis - 10);
+    updateUI();
+    const rep = succesRepliques[country] || succesRepliques.republic;
+    showToast('Corruption réussie !', `"${rep}"`, true, true);
+    addJournalEntry(`Corruption réussie. -${cout} ${cur} · -10 DIS. Vous êtes libre.`, 'event-good');
+    // Effacer une infraction
+    if (state.recherche?.length > 0) state.recherche.pop();
+  } else {
+    state.dis = Math.max(0, state.dis - 15);
+    updateUI();
+    const rep = echecRepliques[country] || echecRepliques.republic;
+    showToast('Corruption ratée !', `"${rep}"`, false);
+    addJournalEntry(`Tentative de corruption échouée. -${cout} ${cur} · -15 DIS. Arrestation aggravée.`, 'event-bad');
+    procederArrestation(peineType, true);
+  }
 }
 
 function procederArrestation(peineType, resistanceAggravante) {
