@@ -49,6 +49,13 @@ window.addEventListener('DOMContentLoaded', () => {
   startClock();
   // Init Supabase
   if (typeof sbInit === 'function') sbInit();
+  // Réaction journaliste au chargement (une fois par session)
+  if (!sessionStorage.getItem('journaliste_done')) {
+    setTimeout(() => {
+      afficherReactionJournaliste();
+      sessionStorage.setItem('journaliste_done', '1');
+    }, 3000);
+  }
   // Forcer le rendu complet au chargement
   setTimeout(() => {
     forceRenderCity(state.currentCity || 'capitale');
@@ -1207,8 +1214,19 @@ async function talkToPnj(encodedPnj, action) {
   const actionDesc = actionMap[action] || `lui pose la question suivante : "${action}"`;
   const isQuestion = !actionMap[action];
 
-  // Fiche personnalité du PNJ
+  // Si c'est un journaliste, générer une réaction au forum
   const pnjKey = pnj.name?.replace(' (PNJ)', '').trim();
+  const isJournaliste = pnj.job === 'journaliste' || pnj.job === 'redacteur';
+  if (isJournaliste && !action) {
+    const reaction = await genererReactionJournaliste();
+    if (reaction) {
+      const speech = document.getElementById('pnj-speech');
+      if (speech) speech.textContent = reaction.texte;
+      return;
+    }
+  }
+
+  // Fiche personnalité du PNJ
   const perso = PNJ_PERSONALITIES[pnjKey];
   const empireStyle = EMPIRE_STYLES[state.country] || EMPIRE_STYLES.republic;
 
@@ -1508,6 +1526,91 @@ function openPostesModal() {
 }
 
 
+
+
+// =====================
+// JOURNALISTES PNJ RÉACTIFS
+// =====================
+const JOURNALISTES_PNJ = {
+  republic: {
+    name: 'Gustave Encre',
+    journal: "L'Autruche Entravée",
+    trait: "Journaliste d'investigation alcoolique. Déterre les scandales par accident en cherchant ses clés. A une source dans chaque ministère mais ne sait plus lequel.",
+    style: "cynique désabusé, métaphores journalistiques épuisées, boit du café tiède depuis 1987"
+  },
+  narco: {
+    name: 'El Editor',
+    journal: 'El Narco Times',
+    trait: "Rédacteur en chef qui blanchit les nouvelles comme El Don blanchit l'argent. Chaque article est une œuvre de fiction assumée.",
+    style: "propagandiste jovial, español aproximativo, cite El Don dans chaque paragraphe"
+  },
+  soviet: {
+    name: 'Rédacteur Vérité',
+    journal: 'La Pravdovka',
+    trait: "Journaliste du Parti qui vérifie trois fois si une information est approuvée avant de la publier. A publié le même article depuis 1973 avec des noms différents.",
+    style: "zèle idéologique mécanique, vérité = ce que dit le Parti, enthousiasme performatif"
+  },
+  khalija: {
+    name: 'Rédacteur Al-Vérité',
+    journal: 'Le Minaret Doré',
+    trait: "Journaliste royal qui ne publie que ce que le Palais approuve. Ses éditoriaux commencent tous par une bénédiction du Sheikh et finissent par une autre.",
+    style: "déférence royale absolue, Loukoum Divin dans chaque titre, vérité = volonté du Sheikh"
+  }
+};
+
+async function genererReactionJournaliste() {
+  const journaliste = JOURNALISTES_PNJ[state.country];
+  if (!journaliste) return null;
+
+  // Récupérer les derniers topics du forum local
+  const topics = FORUM_TOPICS[state.country === 'republic' ? 'local' : 'local'] || [];
+  const recentTopics = topics.slice(0, 3);
+  if (recentTopics.length === 0) return null;
+
+  const topicsText = recentTopics.map(t =>
+    `"${t.title}" (par ${t.author})`
+  ).join(', ');
+
+  const co = COUNTRIES[state.country];
+  const empireStyle = EMPIRE_STYLES[state.country] || EMPIRE_STYLES.republic;
+
+  const prompt = `Tu es ${journaliste.name}, journaliste de "${journaliste.journal}" dans l'empire ${co?.n}.
+Ta personnalité : ${journaliste.trait}
+Ton style : ${journaliste.style}
+Religion locale : ${empireStyle.religion}. Chef suprême : ${empireStyle.leader}.
+
+Sujets récents sur le forum local : ${topicsText}
+
+Rédige UNE courte réaction journalistique (2-3 phrases max) à ces actualités.
+Style parodique et satirique. Intègre les éléments de l'empire naturellement.
+PAS de vrais dieux ou religions. Réponds UNIQUEMENT avec ta réaction, sans introduction.`;
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 150,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return { journaliste, texte: data.content?.[0]?.text };
+  } catch(e) { return null; }
+}
+
+async function afficherReactionJournaliste() {
+  const reaction = await genererReactionJournaliste();
+  if (!reaction) return;
+
+  // Afficher dans le journal des événements
+  addJournalEntry(
+    `📰 ${reaction.journaliste.journal} — ${reaction.journaliste.name} : "${reaction.texte}"`,
+    'event-info'
+  );
+}
 
 // =====================
 // RÉPERTOIRE PJ
