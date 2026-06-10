@@ -736,6 +736,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
+  if (fn === 'escort_infos')           { doEscortInfos(); return; }
+  if (fn === 'escort_piege')           { doEscortPiege(); return; }
   if (fn === 'recruter_informateur_1') { consulterInformateur(1); return; }
   if (fn === 'recruter_informateur_2') { consulterInformateur(2); return; }
   if (fn === 'recruter_informateur_3') { consulterInformateur(3); return; }
@@ -1115,7 +1117,21 @@ function openPnjModal(encodedPnj) {
 
   const isPJ = pnj.isPJ === true;
   document.getElementById('modal-pnj').classList.add('open');
-  document.getElementById('pnj-modal-title').textContent = pnj.name;
+  document.getElementById('pnj-modal-title').textContent = pnj.name?.replace(' (PNJ)', '') || 'Inconnu';
+
+  // Avatar CSS par type de PNJ
+  const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
+  const avatarHtml = typeof getPnjAvatar === 'function' ? getPnjAvatar(pnj, empireCol) : '';
+  const avatarEl = document.getElementById('pnj-avatar-container');
+  if (avatarEl) avatarEl.innerHTML = avatarHtml;
+
+  // Rôle et trait de personnalité
+  const roleEl = document.getElementById('pnj-role-display');
+  if (roleEl) roleEl.textContent = pnj.role?.replace(' (PNJ)', '') || '';
+  const traitEl = document.getElementById('pnj-trait-display');
+  const pnjKey = pnj.name?.replace(' (PNJ)', '').trim();
+  const perso = typeof PNJ_PERSONALITIES !== 'undefined' ? PNJ_PERSONALITIES[pnjKey] : null;
+  if (traitEl) traitEl.textContent = perso?.trait || '';
   const speech = document.getElementById('pnj-speech');
   speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
   const enc = encodeURIComponent(JSON.stringify(pnj));
@@ -1610,6 +1626,103 @@ async function afficherReactionJournaliste() {
     `📰 ${reaction.journaliste.journal} — ${reaction.journaliste.name} : "${reaction.texte}"`,
     'event-info'
   );
+}
+
+
+// =====================
+// ESCORTS — INFORMATIONS ET PIÈGE
+// =====================
+async function doEscortInfos() {
+  const cibles = getAllPJsAndPNJs().filter(c => c.name !== state.char?.name);
+  if (cibles.length === 0) { showToast('Personne à cibler', 'Aucune cible disponible.', false); return; }
+
+  const co = COUNTRIES[state.country];
+  const cur = co?.cur || 'FR';
+
+  if (state.arg < 300) { showToast('Fonds insuffisants', `300 ${cur} requis.`, false); return; }
+  state.arg -= 300;
+
+  // Choisir une cible au hasard parmi les PJ/PNJ connus
+  const cible = cibles[Math.floor(Math.random() * Math.min(3, cibles.length))];
+
+  const prompt = `Tu joues dans Res Publica, jeu politique parodique.
+Une escort de luxe (${state.country === 'republic' ? 'Roxane Velours' : state.country === 'narco' ? 'Lola Discreta' : 'Natasha Privilege'}) a recueilli des informations compromettantes sur ${cible.name} (${cible.role || 'personnage politique'}) dans l'empire ${co?.n}.
+Génère UNE révélation compromettante, parodique et drôle (2 phrases max). Style scandale politique. Pas de vrais noms de personnes réelles. Pas de religions réelles.`;
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const info = data.content?.[0]?.text || 'Information confidentielle obtenue.';
+
+    // Créer un kompromat dans l'inventaire
+    if (!state.inventory) state.inventory = [];
+    state.inventory.push({
+      id: 'kompromat-' + Date.now(),
+      name: `Kompromat sur ${cible.name}`,
+      icon: 'ti-file-shredder',
+      desc: info,
+      type: 'kompromat',
+      cible: cible.name,
+      legal: false
+    });
+
+    state.inf = Math.min(100, (state.inf || 0) + 5);
+    updateUI();
+    addJournalEntry(`Information compromettante obtenue sur ${cible.name}. Ajoutée à votre inventaire.`, 'event-info');
+    showToast('Information obtenue !', info.substring(0, 80) + '...', true, true);
+
+  } catch(e) {
+    showToast('Erreur', 'Impossible d\'obtenir l\'information.', false);
+  }
+}
+
+async function doEscortPiege() {
+  const co = COUNTRIES[state.country];
+  const cur = co?.cur || 'FR';
+
+  if (state.arg < 800) { showToast('Fonds insuffisants', `800 ${cur} requis.`, false); return; }
+  state.arg -= 800;
+
+  const dup = state.char?.stats?.DUP || 8;
+  const taux = Math.min(75, 35 + Math.floor(dup / 2));
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    // Succès — générer un scandale
+    const prompt = `Tu joues dans Res Publica, jeu politique parodique dans l'empire ${co?.n}.
+Un politicien adverse a été piégé dans un scandale impliquant une escort. 
+Génère UN titre de scandale parodique et drôle (1 phrase). Style journal à scandales.`;
+
+    try {
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 80, messages: [{ role: 'user', content: prompt }] })
+      });
+      const data = await resp.json();
+      const scandale = data.content?.[0]?.text || 'Scandale de mœurs secoue la classe politique.';
+
+      state.inf = Math.min(100, (state.inf || 0) + 10);
+      state.pop = Math.min(100, (state.pop || 0) + 5);
+      updateUI();
+      addExternalEvent(`📰 SCANDALE : ${scandale}`);
+      addJournalEntry(`Piège réussi. Scandale déclenché : "${scandale}"`, 'event-good');
+      showToast('Piège réussi !', scandale, true, true);
+    } catch(e) {
+      showToast('Piège réussi', 'Scandale déclenché avec succès.', true);
+    }
+
+  } else {
+    // Échec — retournement de situation
+    state.dis = Math.max(0, (state.dis || 50) - 15);
+    updateUI();
+    addJournalEntry('Le piege a echoue. Votre implication risque d\'etre revelee. -15 DIS.', 'event-bad');
+    showToast('Piege rate !', 'La cible a evente la manoeuvre. Votre reputation est menacee.', false);
+  }
 }
 
 // =====================

@@ -317,8 +317,16 @@
       <button class="modal-close" onclick="closePnjModal()"><i class="ti ti-x"></i></button>
     </div>
     <div id="pnj-modal-body">
-      <div class="pnj-portrait">
-        <i class="ti ti-user" style="font-size:2rem;color:#C9A84C"></i>
+      <div style="display:flex;gap:.8rem;align-items:flex-start;padding:.6rem 0;margin-bottom:.4rem">
+        <div id="pnj-avatar-container">
+          <div style="width:56px;height:56px;border-radius:50%;border:2px solid #C9A84C;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center">
+            <i class="ti ti-user" style="font-size:1.4rem;color:#C9A84C"></i>
+          </div>
+        </div>
+        <div style="flex:1">
+          <div id="pnj-role-display" style="font-size:.7rem;color:#8a6a20;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;margin-bottom:.2rem"></div>
+          <div id="pnj-trait-display" style="font-size:.75rem;color:#6a5a30;font-style:italic;line-height:1.5"></div>
+        </div>
       </div>
       <div class="pnj-speech" id="pnj-speech">...</div>
       <div class="pnj-actions" id="pnj-actions"></div>

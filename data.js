@@ -271,7 +271,7 @@ const WORLD = {
         'hotel-republica': {
           name: "Hôtel El Cartel",
           desc: "Le seul hôtel potable de Ciudad Roja. Les murs ont des oreilles.",
-          persons: [{"name": "Pedro Tequila (PNJ)", "role": "Barman", "rel": "neutral", "job": "serveur"}, {"name": "Lupe Cantina (PNJ)", "role": "Serveuse armée", "rel": "neutral", "job": "serveur"}]
+          persons: [{"name": "Pedro Tequila (PNJ)", "role": "Barman", "rel": "neutral", "job": "serveur"}, {"name": "Lupe Cantina (PNJ)", "role": "Serveuse armée", "rel": "neutral", "job": "serveur"}, {"name": "Lola Discreta (PNJ)", "role": "Informatrice double jeu", "rel": "neutral", "job": "escort"}]
         },
         'commissariat': {
           name: "Comisaria Central",
@@ -464,7 +464,7 @@ const WORLD = {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
           desc: "Toutes les chambres sont identiques. Olga Soupe gère la cantine avec efficacité soviétique.",
-          persons: [{"name": "Olga Soupe (PNJ)", "role": "Cantinière", "rel": "neutral", "job": "serveur"}, {"name": "Boris Betterave (PNJ)", "role": "Cuisinier", "rel": "neutral", "job": "serveur"}]
+          persons: [{"name": "Olga Soupe (PNJ)", "role": "Cantinière", "rel": "neutral", "job": "serveur"}, {"name": "Boris Betterave (PNJ)", "role": "Cuisinier", "rel": "neutral", "job": "serveur"}, {"name": "Natasha Privilege (PNJ)", "role": "Réservée aux cadres du Parti", "rel": "neutral", "job": "escort"}]
         },
         'commissariat': {
           name: "Commissariat du Peuple",
@@ -915,12 +915,15 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80",
         persons: [
           {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman'},
+          {name:'Roxane Velours (PNJ)', role:'Escort de luxe', rel:'neutral', job:'escort'},
           {name:'Un lobbyiste',   role:'Inconnu - Discretion de mise', rel:'neutral', job:null}
         ],
         orders: [
           {fn:'se_nourrir',      label:'Boire un verre',        pa:0, cost:10,  type:'legal', icon:'ti-glass',    successRate:100, desc:'Consommation. +1 Moral.'},
           {fn:'ecouter',         label:'Ecouter le barman',     pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90,  desc:'Le barman entend tout.'},
-          {fn:'recruter_info',   label:'Recruter un informateur N1',pa:1,cost:150, type:'grey',  icon:'ti-user-plus',successRate:75,  desc:'150 FR/jour. Localisation approximative, rumeurs locales.'}
+          {fn:'recruter_info',   label:'Recruter un informateur N1',pa:1,cost:150, type:'grey',  icon:'ti-user-plus',successRate:75,  desc:'150 FR/jour. Localisation approximative, rumeurs locales.'},
+          {fn:'escort_infos',    label:'Recueillir des informations', pa:2, cost:300, type:'grey', icon:'ti-ear', successRate:75, desc:'Roxane collecte des confidences. Génère un kompromat sur une cible.'},
+          {fn:'escort_piege',    label:'Organiser une rencontre piège', pa:3, cost:800, type:'illegal', icon:'ti-spy', successRate:55, desc:'Piéger un adversaire politique. Risque de scandale.'}
         ]
       },
       chambres: {
