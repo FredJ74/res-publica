@@ -1035,7 +1035,8 @@ const BUILDINGS = {
           {name:'Secretaire Dupuis', role:'PNJ - Accueil officiel', rel:'neutral', job:'secretaire'}
         ],
         orders: [
-          {fn:'postuler', label:'Postuler a un poste', pa:2, cost:0, type:'legal', icon:'ti-id-badge', successRate:85, desc:'PNJ : automatique. PM/President PJ : impossible.'}
+          {fn:'postuler', label:'Postuler a un poste', pa:2, cost:0, type:'legal', icon:'ti-id-badge', successRate:85, desc:'PNJ : automatique. PM/President PJ : impossible.'},
+          {fn:'organigramme', label:'Organigramme du pays', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Voir qui occupe chaque poste dans votre empire.'}
         ]
       },
       bureaux: {
@@ -1663,6 +1664,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
+          {fn:'organigramme', label:'Organigramme du pays', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Voir qui occupe chaque poste dans votre empire. PJ en vert, PNJ en gris.'},
           {fn:'deposer_candidature', label:'Deposer une candidature',    pa:2, cost:0,   type:'legal', icon:'ti-id-badge',   successRate:100, desc:'Vous inscrire comme candidat a une election en cours.'},
           {fn:'consulter_elections', label:'Consulter les elections',     pa:0, cost:0,   type:'legal', icon:'ti-chart-bar',  successRate:100, desc:'Voir les elections en cours et les candidats declares.'},
           {fn:'acte_officiel',       label:'Demander un acte officiel',  pa:1, cost:50,  type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.'}
@@ -2531,7 +2533,7 @@ const ROOM_IMAGES_EMPIRE = {
       'zone_embarquement':'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-republic.png'
     },
     'assemblee': {
-      'hemicycle':                'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/couloirs-an-republic.png',
+      'hemicycle':                'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&q=80',
       'couloirs':                 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/couloirs-an-republic.png',
       'salle_archives_assemblee': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-an-republic.png'
     }
