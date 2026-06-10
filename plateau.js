@@ -1863,13 +1863,16 @@ async function ouvrirRepertoirePJ() {
 
 function composerMailPour(destinataire) {
   document.getElementById('modal-postes').classList.remove('open');
-  // Passer le destinataire via variable globale du forum
   if (typeof mailDefaultTo !== 'undefined') mailDefaultTo = destinataire;
   if (typeof forumView !== 'undefined') forumView = 'mail';
   if (typeof mailView !== 'undefined') mailView = 'compose';
-  // Ouvrir le modal forum directement
   if (typeof renderForumModal === 'function') renderForumModal();
   document.getElementById('modal-forum').classList.add('open');
+  // Forcer le destinataire après rendu
+  setTimeout(() => {
+    const toEl = document.getElementById('mail-to');
+    if (toEl && destinataire) toEl.value = destinataire;
+  }, 100);
 }
 
 // =====================
