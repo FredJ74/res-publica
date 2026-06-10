@@ -10,27 +10,7 @@ const COUNTRIES = {
     bases:{INT:8,CHA:7,VOL:6,PER:7,DUP:7,ENT:7},
     capitaleName:'Luthecia'
   },
-  republic: {
-    'palais-presidentiel': {
-      'accueil_elysee':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-palais-president-republic.png',
-      'bureau_president':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president.png'
-    },
-    'palais-gouvernement': {
-      'archives_gouv':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-gouv-republic.png',
-      'bureau_min_int':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-int-republic.png',
-      'bureau_min_ae':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-ae-republic.png',
-      'bureau_min_def':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-def-republic.png'
-    },
-    'mairie-capitale': {
-      'hall_mairie':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'bureau_maire':     'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'salle_elections':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png'
-    },
-    'mairie': {
-      'accueil_mairie':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-port-sainte-marie.png'
-    }
-  },
-  narco: {
+    narco: {
     n:'El Estado', col:'#cc6644', cur:'PS', icon:'ti-skull',
     desc:'Democratie de facade, cartels, elections achetees. La violence est une langue politique.',
     tags:['Violent','Corruption'],
@@ -279,27 +259,7 @@ const WORLD = {
     }
   },
 
-  republic: {
-    'palais-presidentiel': {
-      'accueil_elysee':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-palais-president-republic.png',
-      'bureau_president':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president.png'
-    },
-    'palais-gouvernement': {
-      'archives_gouv':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-gouv-republic.png',
-      'bureau_min_int':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-int-republic.png',
-      'bureau_min_ae':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-ae-republic.png',
-      'bureau_min_def':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-def-republic.png'
-    },
-    'mairie-capitale': {
-      'hall_mairie':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'bureau_maire':     'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'salle_elections':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png'
-    },
-    'mairie': {
-      'accueil_mairie':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-port-sainte-marie.png'
-    }
-  },
-  narco: {
+    narco: {
     capitale: {
       name:'Ciudad Roja',
       streetName: 'Avenida del Generalissimo',
@@ -2577,26 +2537,6 @@ const ROOM_IMAGES_EMPIRE = {
       'couloirs':                 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/couloirs-an-republic.png',
       'salle_archives_assemblee': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-an-republic.png'
     },
-    'palais-presidentiel': {
-      'accueil_elysee':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-palais-president-republic.png',
-      'bureau_president':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president.png'
-    },
-    'palais-gouvernement': {
-      'archives_gouv':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-gouv-republic.png',
-      'bureau_min_int':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-int-republic.png',
-      'bureau_min_ae':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-ae-republic.png',
-      'bureau_min_def':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-def-republic.png'
-    },
-    'mairie-capitale': {
-      'hall_mairie':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'bureau_maire':     'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'salle_elections':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png'
-    },
-    'mairie': {
-      'accueil_mairie':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-port-sainte-marie.png'
-    }
-  },
-  republic: {
     'palais-presidentiel': {
       'accueil_elysee':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-palais-president-republic.png',
       'bureau_president':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president.png'
