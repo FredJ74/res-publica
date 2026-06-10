@@ -1865,9 +1865,11 @@ function composerMailPour(destinataire) {
   document.getElementById('modal-postes').classList.remove('open');
   // Passer le destinataire via variable globale du forum
   if (typeof mailDefaultTo !== 'undefined') mailDefaultTo = destinataire;
-  forumView = 'mail';
-  mailView = 'compose';
-  openForum_module('local');
+  if (typeof forumView !== 'undefined') forumView = 'mail';
+  if (typeof mailView !== 'undefined') mailView = 'compose';
+  // Ouvrir le modal forum directement
+  if (typeof renderForumModal === 'function') renderForumModal();
+  document.getElementById('modal-forum').classList.add('open');
 }
 
 // =====================

@@ -114,7 +114,6 @@ let currentTopicId = null;
 let forumView = 'list';
 let mailView = 'inbox'; // 'inbox' | 'compose' | 'read'
 let mailDefaultTo = ''; // Destinataire pré-rempli depuis répertoire PJ
-let mailDefaultTo = ''; // Destinataire pré-rempli
 let editingPostId = null;
 let editingTopicId = null;
 
