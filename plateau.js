@@ -1850,7 +1850,7 @@ async function ouvrirRepertoirePJ() {
                 ${posteLabel ? posteLabel + ' · ' : ''}${ar?.name || '?'} · ${cityLabel}
               </div>
             </div>
-            ${!isMe ? `<button onclick="composerMailPour('${j.name}')" style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">
+            ${!isMe ? `<button onclick="composerMailPour(this.dataset.name)" data-name="${j.name}" style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">
               <i class="ti ti-mail" style="font-size:.65rem"></i>
             </button>` : ''}
           </div>`;
