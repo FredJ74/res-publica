@@ -798,7 +798,7 @@ function renderMailCompose(defaultTo = '', defaultSubject = '') {
       </div>
       <div class="forum-field">
         <label class="forum-field-label">Message</label>
-        ${renderRichEditor('mail-body')}
+        ${renderRichEditor('compose-body')}
       </div>
       <button class="forum-submit-btn" onclick="submitMail()">
         <i class="ti ti-send"></i> Envoyer
@@ -811,7 +811,7 @@ function submitMail() {
   const to = document.getElementById('mail-to')?.value?.trim();
   const subject = document.getElementById('mail-subject')?.value?.trim();
   // Chercher le dernier mail-body dans le DOM (évite les doublons)
-  const bodyEls = document.querySelectorAll('#mail-body');
+  const bodyEls = document.querySelectorAll('#compose-body');
   const bodyEl = bodyEls[bodyEls.length - 1];
   const body = bodyEl?.innerHTML?.trim();
   const bodyText = bodyEl?.innerText?.trim();
