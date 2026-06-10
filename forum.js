@@ -113,6 +113,8 @@ let currentForumId = 'local';
 let currentTopicId = null;
 let forumView = 'list';
 let mailView = 'inbox'; // 'inbox' | 'compose' | 'read'
+let mailDefaultTo = ''; // Destinataire pré-rempli depuis répertoire PJ
+let mailDefaultTo = ''; // Destinataire pré-rempli
 let editingPostId = null;
 let editingTopicId = null;
 
@@ -610,7 +612,7 @@ async function submitReply() {
 // =====================
 function renderMailView() {
   if (mailView === 'inbox')   return renderMailInbox();
-  if (mailView === 'compose') return renderMailCompose();
+  if (mailView === 'compose') return renderMailCompose(mailDefaultTo);
   if (mailView === 'read')    return renderMailRead();
   return renderMailInbox();
 }
@@ -816,6 +818,7 @@ function submitMail() {
   const bodyText = bodyEl?.innerText?.trim();
   if (!to || !subject || !bodyText) { showToast('Champs requis','Remplissez tous les champs.',false); return; }
   sendMail(to, subject, body);
+  mailDefaultTo = '';
   mailView = 'inbox';
   renderForumModal();
 }
