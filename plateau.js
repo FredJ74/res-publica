@@ -1252,7 +1252,7 @@ RÈGLES ABSOLUES :
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 200,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -1821,7 +1821,7 @@ Style : direct, populaire, parodique. Format : phrase construite du genre "D'apr
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await resp.json();
     const text = data.content?.[0]?.text;
@@ -4030,7 +4030,7 @@ async function ecouterRumeurs() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 200,
         messages: [{
           role: 'user',
@@ -4148,7 +4148,7 @@ async function confirmerFuite() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-5',
           max_tokens: 150,
           messages: [{
             role: 'user',
