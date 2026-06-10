@@ -30,8 +30,15 @@ async function chargerPersonnageParNom() {
       return;
     }
 
-    // Sauvegarder dans localStorage
-    localStorage.setItem('respublica_char', JSON.stringify(sbState.char));
+    // Sauvegarder dans localStorage avec position complète
+    const charData = {
+      ...sbState.char,
+      country: sbState.country,
+      currentCity: sbState.currentCity,
+      arg: sbState.arg,
+      resources: { inf: sbState.inf, pop: sbState.pop, dis: sbState.dis }
+    };
+    localStorage.setItem('respublica_char', JSON.stringify(charData));
     if (sbState.char?.photoUrl) {
       localStorage.setItem('respublica_photo', sbState.char.photoUrl);
     }
