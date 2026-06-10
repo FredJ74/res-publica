@@ -129,7 +129,7 @@ function openForum_module(forumId) {
   document.getElementById('modal-forum').classList.add('open');
   // Charger depuis Supabase en arrière-plan et rafraîchir
   loadForumTopicsFromSB(forumId).then(() => {
-    document.getElementById('forum-main').innerHTML = renderForumContent();
+    if (mailView !== 'compose') document.getElementById('forum-main').innerHTML = renderForumContent();
   }).catch(() => {});
 }
 
@@ -191,7 +191,7 @@ function switchToMail() {
   mailView = 'inbox';
   renderForumModal();
   loadMailsFromSB().then(() => {
-    renderForumModal();
+    if (mailView !== 'compose') renderForumModal();
   }).catch(() => {});
 }
 
