@@ -809,8 +809,12 @@ function renderMailCompose(defaultTo = '', defaultSubject = '') {
 function submitMail() {
   const to = document.getElementById('mail-to')?.value?.trim();
   const subject = document.getElementById('mail-subject')?.value?.trim();
-  const body = document.getElementById('mail-body')?.innerHTML?.trim();
-  if (!to || !subject || !body) { showToast('Champs requis','Remplissez tous les champs.',false); return; }
+  // Chercher le dernier mail-body dans le DOM (évite les doublons)
+  const bodyEls = document.querySelectorAll('#mail-body');
+  const bodyEl = bodyEls[bodyEls.length - 1];
+  const body = bodyEl?.innerHTML?.trim();
+  const bodyText = bodyEl?.innerText?.trim();
+  if (!to || !subject || !bodyText) { showToast('Champs requis','Remplissez tous les champs.',false); return; }
   sendMail(to, subject, body);
   mailView = 'inbox';
   renderForumModal();
