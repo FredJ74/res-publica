@@ -141,7 +141,7 @@ const WORLD = {
         'la-tribune': {
           name: "L'Autruche Entravée",
           desc: "Le journal d'investigation de Républia.",
-          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}]
+          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png"}]
         },
         'loge-maconnique': {
           name: "Loge Maçonnique de Luthecia",
@@ -160,8 +160,8 @@ const WORLD = {
         },
         'marche': {
           name: "Marché Central de Luthecia",
-          desc: "Marcel Bidoche vend de la viande et des informations. Ginette Légume sait tout sur tout le monde.",
-          persons: [{"name": "Marcel Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant"}]
+          desc: "Marcel Bidoche vend de la viande et des informations. Ginette Légume sait tout sur tout le monde. Jodie Moitout tend son micro à n'importe qui.",
+          persons: [{"name": "Marcel Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png"}]
         }
       }
     },

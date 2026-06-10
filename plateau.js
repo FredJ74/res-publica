@@ -1099,7 +1099,15 @@ const PNJ_PERSONALITIES = {
   'Fatima Al-Secret': { trait: "Inspectrice dont les interrogatoires consistent à servir du thé en silence jusqu'à ce que l'interlocuteur avoue spontanément.", style: "douceur menaçante, thé comme arme, patience infinie" },
   'Chambellan Al-Transit': { trait: "Directeur du Hub Royal qui accueille selon le rang. Un visa en or pour les notables, une heure d'attente pour les autres.", style: "protocole hiérarchique absolu, bénédictions Royal, troisième personne" },
   'Yasmine Embarquement': { trait: "Hôtesse royale qui sourit avec une précision chirurgicale calculée au millimètre par le protocole.", style: "perfection froide, formules royales mémorisées, sourire mécanique parfait" },
-  'Cheikh Al-Verdict': { trait: "Grand Juge dont les verdicts s'inspirent des textes sacrés et des instructions discrètes du Palais. Le Loukoum Divin guide sa main.", style: "sentences solennelles, citations du Loukoum Divin, justice royale assumée" }
+  'Cheikh Al-Verdict': { trait: "Grand Juge dont les verdicts s'inspirent des textes sacrés et des instructions discrètes du Palais. Le Loukoum Divin guide sa main.", style: "sentences solennelles, citations du Loukoum Divin, justice royale assumée" },
+
+  // Escorts
+  'Roxane Velours':    { trait: "Escort de luxe dont le carnet d'adresses vaut plus que celui du Premier Ministre. Chaque confidence lui appartient. Elle sourit toujours — c'est inclus dans le tarif.", style: "charme discret, double sens constant, connait tous les secrets des couloirs du pouvoir" },
+  'Lola Discreta':     { trait: "Informatrice double jeu a Ciudad Roja. Travaille officiellement pour El Don. Et pour deux autres personnes. Elle-meme ne sait plus tres bien pour qui.", style: "mysterieuse enjouee, proverbes espagnols inventes, revele toujours un peu plus qu'elle ne devrait" },
+  'Natasha Privilege': { trait: "Reservee aux cadres du Parti. Tres bien informee sur les deliberations internes. Ce qu'elle entend reste confidentiel — sauf si on lui demande poliment.", style: "distinction sovietique, formules du Parti recyclees, discretion absolue sur demande express" },
+
+  // Reporters
+  'Jodie Moitout':     { trait: "Journaliste micro-trottoir de L'Autruche Entravee. Tend son micro a n'importe qui, n'importe ou, n'importe quand. Les gens lui disent tout sans savoir pourquoi. Son sourire est une arme.", style: "enthousiasme journalistique communicatif, questions anodines aux reponses explosives, micro tendu en permanence" }
 };
 
 // Traits génériques par empire si PNJ non répertorié
@@ -1109,6 +1117,63 @@ const EMPIRE_STYLES = {
   soviet:   { tone: "idéologique soviétique, formulaires sacrés, Camarade partout", religion: "le Kolkhoze Spirituel", currency: "RP", leader: "le Parti" },
   khalija:  { tone: "protocole royal excessif, Loukoum Divin omniprésent, bénédictions imbriquées", religion: "la Pâtisserie Sacrée", currency: "DR", leader: "le Sheikh" }
 };
+
+
+// =====================
+// AVATARS CSS PNJ
+// =====================
+const PNJ_AVATAR = {
+  commissaire:   { icon: 'ti-shield-lock',       color: '#4a6aaa' },
+  inspecteur:    { icon: 'ti-search',             color: '#4a6aaa' },
+  policier:      { icon: 'ti-shield',             color: '#4a6aaa' },
+  gardien:       { icon: 'ti-lock',               color: '#6a6060' },
+  juge:          { icon: 'ti-gavel',              color: '#C9A84C' },
+  avocat:        { icon: 'ti-scale',              color: '#8a8060' },
+  journaliste:   { icon: 'ti-news',               color: '#8a4a20' },
+  redacteur:     { icon: 'ti-pencil',             color: '#8a4a20' },
+  banquier:      { icon: 'ti-building-bank',      color: '#4a8a4a' },
+  medecin:       { icon: 'ti-stethoscope',        color: '#4a9a9a' },
+  infirmier:     { icon: 'ti-heart-rate-monitor', color: '#4a9a9a' },
+  serveur:       { icon: 'ti-bowl',               color: '#8a6a40' },
+  hotelier:      { icon: 'ti-building-castle',    color: '#8a6a40' },
+  barman:        { icon: 'ti-glass',              color: '#8a6a40' },
+  militaire:     { icon: 'ti-military-rank',      color: '#4a6a4a' },
+  general:       { icon: 'ti-medal',              color: '#C9A84C' },
+  maire:         { icon: 'ti-building-community', color: '#C9A84C' },
+  secretaire:    { icon: 'ti-file-certificate',   color: '#8a8060' },
+  professeur:    { icon: 'ti-school',             color: '#6a4a8a' },
+  loge:          { icon: 'ti-hexagon',            color: '#8a2020' },
+  armurier:      { icon: 'ti-shield',             color: '#6a6060' },
+  commercant:    { icon: 'ti-building-store',     color: '#8a6a40' },
+  syndicaliste:  { icon: 'ti-users-group',        color: '#8a2020' },
+  douanier:      { icon: 'ti-clipboard-check',    color: '#4a6aaa' },
+  chef_gare:     { icon: 'ti-train',              color: '#6a6060' },
+  hotesse:       { icon: 'ti-user-heart',         color: '#8a4a6a' },
+  grand_pretre:  { icon: 'ti-star',               color: '#C9A84C' },
+  escort:        { icon: 'ti-heart',              color: '#aa4a6a' },
+  capitaine_port:{ icon: 'ti-anchor',             color: '#4a6aaa' },
+  protocole:     { icon: 'ti-crown',              color: '#C9A84C' },
+  garde:         { icon: 'ti-shield',             color: '#4a6aaa' },
+  porteparole:   { icon: 'ti-speakerphone',       color: '#8a4a20' },
+  archiviste:    { icon: 'ti-archive',            color: '#8a8060' },
+  directeur:     { icon: 'ti-briefcase',          color: '#C9A84C' },
+  citoyen:       { icon: 'ti-user',               color: '#6a6060' },
+  depute:        { icon: 'ti-building-arch',      color: '#C9A84C' },
+  default:       { icon: 'ti-user',               color: '#6a6060' }
+};
+
+function getPnjAvatar(pnj, empireColor) {
+  if (pnj.photoUrl) {
+    return `<div style="width:56px;height:56px;border-radius:50%;border:2px solid ${empireColor || '#C9A84C'};overflow:hidden;flex-shrink:0">
+      <img src="${pnj.photoUrl}" alt="${pnj.name}" style="width:100%;height:100%;object-fit:cover;object-position:top"/>
+    </div>`;
+  }
+  const av = PNJ_AVATAR[pnj.job] || PNJ_AVATAR.default;
+  const col = empireColor || av.color;
+  return `<div style="width:56px;height:56px;border-radius:50%;border:2px solid ${col};background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+    <i class="ti ${av.icon}" style="font-size:1.4rem;color:${col}"></i>
+  </div>`;
+}
 
 function openPnjModal(encodedPnj) {
   let pnj;
