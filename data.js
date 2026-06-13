@@ -2614,7 +2614,14 @@ const ROOM_IMAGES_EMPIRE = {
     },
     'mairie': {
       'accueil_mairie':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-port-sainte-marie.png'
-    }
+    },
+    'terrain-a-batir-1': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-2': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-3': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-4': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-5': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-6': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' }
   },
   narco: {
     'centre-multinodal-luthecia': {
@@ -2652,7 +2659,14 @@ const ROOM_IMAGES_EMPIRE = {
     'centre-multinodal-luthecia': {
       'hall_gare':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-el-estado.png',
       'aeroport':       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-el-estado.png'
-    }
+    },
+    'terrain-a-batir-1': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' },
+    'terrain-a-batir-2': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' },
+    'terrain-a-batir-3': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' },
+    'terrain-a-batir-4': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' },
+    'terrain-a-batir-5': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' },
+    'terrain-a-batir-6': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' },
+    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' }
   },
   soviet: {
     'centre-multinodal-luthecia': {
@@ -2678,7 +2692,14 @@ const ROOM_IMAGES_EMPIRE = {
       'hall_mairie':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-sovarka.png',
       'bureau_maire':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-sovarka.png',
       'salle_elections':'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-sovarka.png'
-    }
+    },
+    'terrain-a-batir-1': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' },
+    'terrain-a-batir-2': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' },
+    'terrain-a-batir-3': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' },
+    'terrain-a-batir-4': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' },
+    'terrain-a-batir-5': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' },
+    'terrain-a-batir-6': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' },
+    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' }
   },
   khalija: {
     'centre-multinodal-luthecia': {
@@ -2710,7 +2731,14 @@ const ROOM_IMAGES_EMPIRE = {
       'hall_mairie':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-al-khalija.png',
       'bureau_maire':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-al-khalija.png',
       'salle_elections':'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-al-khalija.png'
-    }
+    },
+    'terrain-a-batir-1': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' },
+    'terrain-a-batir-2': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' },
+    'terrain-a-batir-3': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' },
+    'terrain-a-batir-4': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' },
+    'terrain-a-batir-5': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' },
+    'terrain-a-batir-6': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' },
+    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' }
   }
 };
 
@@ -2851,7 +2879,14 @@ const CITY_POPULATION = {
     },
     'mairie': {
       'accueil_mairie':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-port-sainte-marie.png'
-    }
+    },
+    'terrain-a-batir-1': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-2': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-3': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-4': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-5': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-6': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' }
   },
   narco: {
     capitale: { total: 620000, taxRate: 0.08, dailyTaxRevenue: 18000, unemployment: 0.28 },

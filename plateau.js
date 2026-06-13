@@ -745,6 +745,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
+  if (fn === 'racheter_terrain')       { doRacheterTerrain(); return; }
+  if (fn === 'commanditer_sondage')    { commanderSondage(); return; }
+  if (fn === 'racheter_terrain')       { doRacheterTerrain(); return; }
+  if (fn === 'commanditer_sondage')    { commanderSondage(); return; }
   if (fn === 'escort_infos')           { doEscortInfos(); return; }
   if (fn === 'escort_piege')           { doEscortPiege(); return; }
   if (fn === 'recruter_informateur_1') { consulterInformateur(1); return; }
@@ -2083,6 +2087,169 @@ function ouvrirMinimapLectureSeule_old(countryId, cityId) {
     '</div>' +
     cardsHtml;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+
+// =====================
+// RACHAT DE TERRAIN ENTRE PJ
+// =====================
+function doRacheterTerrain() {
+  const building = state.currentBuilding;
+  const b = BUILDINGS[building];
+  if (!b) return;
+
+  // Vérifier si le terrain appartient à quelqu'un
+  const proprietaire = state.terrainsAchetes?.[building];
+  if (!proprietaire) {
+    showToast('Terrain libre', 'Ce terrain n\'est pas encore propriété privée. Vous pouvez l\'acheter directement.', false);
+    return;
+  }
+  if (proprietaire === state.char?.name) {
+    showToast('Votre terrain', 'Ce terrain vous appartient déjà.', false);
+    return;
+  }
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  // Ouvrir modal pour saisir le prix
+  document.getElementById('postes-modal-title').textContent = 'Offre de rachat';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.82rem;color:#a09060;margin-bottom:.8rem">Ce terrain appartient à <strong style="color:#C9A84C">' + proprietaire + '</strong>.<br>Proposez un prix de rachat. Un mail lui sera envoyé automatiquement.</div>' +
+    '<input id="rachat-prix" type="number" min="1000" step="500" placeholder="Prix proposé en ' + cur + '..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
+    '<button onclick="confirmerRachat(this)" data-building="' + building + '" data-proprio="' + proprietaire + '" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;width:100%">Envoyer l\'offre</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerRachat(btn) {
+  const buildingId = btn?.dataset?.building || btn;
+  const proprietaire = btn?.dataset?.proprio || arguments[1];
+  const prix = parseInt(document.getElementById('rachat-prix')?.value || 0);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const b = BUILDINGS[buildingId];
+  const localName = b?.shortName || b?.name || buildingId;
+
+  if (!prix || prix < 1000) {
+    showToast('Prix invalide', 'Proposez au moins 1000 ' + cur + '.', false);
+    return;
+  }
+  if (state.arg < prix) {
+    showToast('Fonds insuffisants', 'Vous n\'avez pas ' + prix.toLocaleString('fr-FR') + ' ' + cur + '.', false);
+    return;
+  }
+
+  // Envoyer un mail au propriétaire
+  const from = state.char?.name || 'Anonyme';
+  const subject = 'Offre de rachat — ' + localName;
+  const body = from + ' vous propose de racheter votre terrain "' + localName + '" pour <strong>' + prix.toLocaleString('fr-FR') + ' ' + cur + '</strong>.<br><br>Pour accepter, répondez à ce mail en indiquant "J\'accepte". Le transfert sera effectué par la mairie.';
+
+  if (typeof sendMail === 'function') {
+    await sendMail(proprietaire, subject, body);
+  }
+
+  document.getElementById('modal-postes').classList.remove('open');
+  addJournalEntry('Offre de rachat envoyée à ' + proprietaire + ' pour ' + prix.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
+  showToast('Offre envoyée !', proprietaire + ' a reçu votre proposition.', true);
+}
+
+function accepterRachat(acheteur, buildingId, prix) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const b = BUILDINGS[buildingId];
+  const localName = b?.shortName || b?.name || buildingId;
+
+  // Transférer le terrain
+  if (!state.terrainsAchetes) state.terrainsAchetes = {};
+  state.terrainsAchetes[buildingId] = acheteur;
+  state.arg += prix;
+  updateUI();
+
+  addJournalEntry('Terrain "' + localName + '" vendu à ' + acheteur + ' pour ' + prix.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
+  showToast('Terrain vendu !', '+' + prix.toLocaleString('fr-FR') + ' ' + cur, true);
+
+  // Notifier l'acheteur
+  if (typeof sendMail === 'function') {
+    sendMail(acheteur, 'Transfert de propriété — ' + localName,
+      'Votre offre a été acceptée. Le terrain "' + localName + '" vous appartient désormais.');
+  }
+}
+
+// =====================
+// SONDAGES ABSURDES
+// =====================
+async function commanderSondage() {
+  const co = COUNTRIES[state.country];
+  const cur = co?.cur || 'FR';
+
+  if (state.arg < 200) {
+    showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false);
+    return;
+  }
+  state.arg -= 200;
+
+  const sujets = [
+    'la popularité du fromage local comme symbole national',
+    'l\'opportunité de renommer la capitale',
+    'l\'instauration d\'une journée nationale obligatoire de sieste',
+    'la privatisation de la météo',
+    'l\'élection du PNJ le plus sympathique de la ville',
+    'l\'interdiction des réunions de plus de 3 personnes le lundi matin',
+    'la construction d\'une statue du fondateur de l\'empire',
+    'la légalisation du troc comme monnaie officielle',
+    'l\'obligation de porter un chapeau dans les institutions',
+    'la semaine de travail à 2 jours'
+  ];
+  const sujet = sujets[Math.floor(Math.random() * sujets.length)];
+  const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
+
+  const prompt = 'Tu travailles dans un institut de sondage parodique dans l\'empire ' + (co?.n || 'inconnu') + '. ' +
+    'Style : ' + empireStyle.tone + '. Religion locale : ' + empireStyle.religion + '. Chef suprême : ' + empireStyle.leader + '. ' +
+    'Génère un sondage absurde et parodique sur : ' + sujet + '. ' +
+    'Format : 1 question + 4 choix de réponse + 1 résultat fictif avec pourcentages. ' +
+    'Maximum 6 lignes. Très drôle et dans le style de l\'empire. Pas de vrais dieux.';
+
+  document.getElementById('postes-modal-title').textContent = 'Sondage en cours...';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Institut de Sondage au travail...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 250, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const resultat = data.content?.[0]?.text || 'Sondage indisponible.';
+
+    document.getElementById('postes-modal-title').textContent = '📊 Sondage Officiel';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem">' +
+      '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.6rem;font-style:italic">Commandé par ' + (state.char?.name || 'Anonyme') + ' · Coût : 200 ' + cur + '</div>' +
+      '<div style="font-size:.85rem;color:#c0a060;line-height:1.8;white-space:pre-line;font-family:Crimson Pro,Georgia,serif">' + resultat + '</div>' +
+      '<div style="margin-top:.8rem;display:flex;gap:.5rem">' +
+      '<button onclick="publierSondage(this.dataset.txt)" data-txt="' + resultat.replace(/"/g, '&quot;') + '"" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-news" style="font-size:.7rem"></i> Publier sur le forum</button>' +
+      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>' +
+      '</div></div>';
+
+    state.inf = Math.min(100, (state.inf || 0) + 3);
+    updateUI();
+    addJournalEntry('Sondage commandé sur : ' + sujet + '. -200 ' + cur, 'event-info');
+
+  } catch(e) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a3a20">Erreur lors de la génération du sondage.</div>';
+  }
+}
+
+async function publierSondage(texte) {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (typeof sbCreateTopic === 'function') {
+    const from = state.char?.name || 'Anonyme';
+    await sbCreateTopic('local', '📊 Sondage : ' + texte.substring(0, 50) + '...', texte, from);
+    showToast('Sondage publié !', 'Visible sur le forum local.', true);
+    addJournalEntry('Sondage publié sur le forum.', 'event-info');
+  } else {
+    showToast('Forum indisponible', 'Impossible de publier.', false);
+  }
 }
 
 // =====================
