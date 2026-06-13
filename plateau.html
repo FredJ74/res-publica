@@ -389,6 +389,33 @@
   </div>
 </div>
 
+<!-- MODAL COMPOSE MAIL -->
+<div id="modal-compose-mail" class="modal-overlay">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title">Nouveau message</div>
+      <button class="modal-close" onclick="fermerComposeMail()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="padding:.8rem 1rem;display:flex;flex-direction:column;gap:.6rem">
+      <div>
+        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem">À</label>
+        <input id="compose-mail-to" type="text" placeholder="Destinataire..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box"/>
+      </div>
+      <div>
+        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem">Sujet</label>
+        <input id="compose-mail-subject" type="text" placeholder="Objet du message..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box"/>
+      </div>
+      <div>
+        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem">Message</label>
+        <textarea id="compose-mail-body" rows="6" placeholder="Votre message..." style="width:100%;padding:.5rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
+      </div>
+      <button onclick="envoyerComposeMail()" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;align-self:flex-end">
+        <i class="ti ti-send" style="font-size:.8rem"></i> Envoyer
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="result-toast">
   <div class="toast-result" id="toast-result"></div>

@@ -1862,17 +1862,39 @@ async function ouvrirRepertoirePJ() {
 }
 
 function composerMailPour(destinataire) {
+  // Fermer les autres modaux
   document.getElementById('modal-postes').classList.remove('open');
-  if (typeof mailDefaultTo !== 'undefined') mailDefaultTo = destinataire;
-  if (typeof forumView !== 'undefined') forumView = 'mail';
-  if (typeof mailView !== 'undefined') mailView = 'compose';
-  if (typeof renderForumModal === 'function') renderForumModal();
-  document.getElementById('modal-forum').classList.add('open');
-  // Forcer le destinataire après rendu
-  setTimeout(() => {
-    const toEl = document.getElementById('mail-to');
-    if (toEl && destinataire) toEl.value = destinataire;
-  }, 100);
+  // Ouvrir le modal de composition indépendant
+  document.getElementById('compose-mail-to').value = destinataire || '';
+  document.getElementById('compose-mail-subject').value = '';
+  document.getElementById('compose-mail-body').value = '';
+  document.getElementById('modal-compose-mail').classList.add('open');
+}
+
+function fermerComposeMail() {
+  document.getElementById('modal-compose-mail').classList.remove('open');
+}
+
+async function envoyerComposeMail() {
+  const to = document.getElementById('compose-mail-to').value.trim();
+  const subject = document.getElementById('compose-mail-subject').value.trim();
+  const body = document.getElementById('compose-mail-body').value.trim();
+  if (!to || !subject || !body) {
+    showToast('Champs requis', 'Remplissez tous les champs.', false);
+    return;
+  }
+  if (typeof sendMail === 'function') {
+    await sendMail(to, subject, body);
+  } else {
+    // Fallback direct Supabase
+    const from = state.char?.name || 'Anonyme';
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    if (typeof sbSendMail === 'function') await sbSendMail(from, to, subject, body, time);
+    addJournalEntry('Mail envoyé à ' + to + ' : "' + subject + '".', 'event-info');
+    showToast('Mail envoyé', 'À ' + to + ' — "' + subject + '"', true);
+  }
+  fermerComposeMail();
 }
 
 // =====================
