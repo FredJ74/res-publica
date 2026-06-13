@@ -7,6 +7,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="style.css">
+<style>
+/* Tooltip minimap */
+.has-tooltip { position: relative; }
+.minimap-tooltip {
+  display: none;
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  z-index: 999;
+  background: #0f0e08;
+  border: 1px solid #3a2a10;
+  border-left: 2px solid #C9A84C;
+  padding: .6rem .8rem;
+  width: 220px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.6);
+  pointer-events: none;
+}
+.has-tooltip:hover .minimap-tooltip { display: block; }
+.mtt-title { font-family: 'Bebas Neue', sans-serif; font-size: .78rem; letter-spacing: .08em; color: #C9A84C; margin-bottom: .3rem; }
+.mtt-desc { font-size: .7rem; color: #9a8a60; line-height: 1.45; margin-bottom: .35rem; }
+.mtt-pnj { margin-bottom: .3rem; }
+.mtt-actions { font-size: .65rem; color: #4a7a4a; border-top: 1px solid #2a2010; padding-top: .3rem; margin-top: .2rem; }
+</style>
 </head>
 <body class="plateau-body">
 

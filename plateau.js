@@ -318,21 +318,44 @@ function renderMinimap(cityId) {
 function minimapCard(id) {
   const b = BUILDINGS[id];
   if (!b) return '';
-  // Nom localise : buildingContext en priorité, puis buildingNames, puis nom générique
   const world = WORLD[state.country];
   const city = world?.[state.currentCity];
-  const localName = city?.buildingContext?.[id]?.name || city?.buildingNames?.[id] || b.shortName || b.name;
-  const personCount = Object.values(b.rooms || {}).reduce((acc, r) => acc + (r.persons?.length || 0), 0);
-  const locked = b.locked ? '<span style="font-size:.6rem;color:#5a3020">· Acces restreint</span>' : '';
-  return `
-    <div class="minimap-building ${b.capitaleOnly ? 'capital-only' : ''}" onclick="enterBuilding('${id}')">
-      <div class="minimap-bld-icon"><i class="ti ${b.icon}" style="font-size:.8rem"></i></div>
-      <div class="minimap-bld-info">
-        <div class="minimap-bld-name">${localName}</div>
-        <div class="minimap-bld-cat">${b.cat} ${locked}</div>
-        ${personCount > 0 ? `<div class="minimap-persons">${personCount} personne${personCount > 1 ? 's' : ''}</div>` : ''}
-      </div>
-    </div>`;
+  const ctx = city?.buildingContext?.[id];
+  const localName = ctx?.name || city?.buildingNames?.[id] || b.shortName || b.name;
+  const localDesc = ctx?.desc || b.desc || '';
+
+  // PNJ présents
+  const pnjList = ctx?.persons?.length > 0 ? ctx.persons :
+    Object.values(b.rooms || {}).flatMap(r => r.persons || []);
+  const personCount = pnjList.length;
+
+  // Actions principales (3 max depuis la première pièce)
+  const firstRoom = Object.values(b.rooms || {})[0];
+  const actions = (firstRoom?.orders || []).slice(0, 3).map(o => o.label).join(' · ');
+
+  const locked = b.locked ? '<span style="font-size:.6rem;color:#5a3020">· Accès restreint</span>' : '';
+
+  // Noms des PNJ pour le tooltip
+  const pnjHtml = pnjList.slice(0, 4).map(p =>
+    '<div style="font-size:.68rem;color:#8a8060">· ' + (p.name||'').replace(' (PNJ)','') + '</div>'
+  ).join('');
+
+  const tooltip = '<div class="minimap-tooltip">' +
+    '<div class="mtt-title">' + localName + '</div>' +
+    (localDesc ? '<div class="mtt-desc">' + localDesc.substring(0,110) + (localDesc.length > 110 ? '...' : '') + '</div>' : '') +
+    (pnjHtml ? '<div class="mtt-pnj">' + pnjHtml + '</div>' : '') +
+    (actions ? '<div class="mtt-actions">Actions : ' + actions + '</div>' : '') +
+    '</div>';
+
+  return '<div class="minimap-building ' + (b.capitaleOnly ? 'capital-only' : '') + ' has-tooltip" onclick="enterBuilding(\'' + id + '\')">' +
+    '<div class="minimap-bld-icon"><i class="ti ' + b.icon + '" style="font-size:.8rem"></i></div>' +
+    '<div class="minimap-bld-info">' +
+      '<div class="minimap-bld-name">' + localName + '</div>' +
+      '<div class="minimap-bld-cat">' + b.cat + ' ' + locked + '</div>' +
+      (personCount > 0 ? '<div class="minimap-persons">' + personCount + ' personne' + (personCount > 1 ? 's' : '') + '</div>' : '') +
+    '</div>' +
+    tooltip +
+  '</div>';
 }
 
 // =====================
