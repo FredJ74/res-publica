@@ -1800,10 +1800,93 @@ Génère UN titre de scandale parodique et drôle (1 phrase). Style journal à s
 }
 
 
+
+// =====================
+// PLAN VISUEL DE LA VILLE
+// =====================
+function ouvrirPlanVille(countryId, cityId, readOnly) {
+  countryId = countryId || state.country;
+  cityId = cityId || state.currentCity;
+  readOnly = readOnly || false;
+
+  const co = COUNTRIES[countryId];
+  const world = WORLD[countryId];
+  const city = world?.[cityId];
+  if (!city) return;
+
+  const empireColor = co?.col || '#C9A84C';
+  const buildings = city.buildings || [];
+
+  // Catégories pour regrouper les bâtiments
+  const cats = {
+    'Institutions': ['palais-presidentiel','palais-gouvernement','assemblee','tribunal','mairie-capitale','mairie'],
+    'Sécurité': ['commissariat','commissariat-local','caserne-militaire','qhs-prison'],
+    'Finance': ['banque-nationale','banque-privee','banque-locale'],
+    'Hôtellerie': ['hotel-republica','hotel-port','hotel-mineur'],
+    'Santé': ['clinique-privee','dispensaire-public','dispensaire-public-v'],
+    'Médias & Culture': ['la-tribune','imprimerie-librairie','universite','loge-maconnique'],
+    'Commerce': ['marche','armurerie','siege-syndical','usine-principale'],
+    'Transport': ['centre-multinodal-luthecia','centre-multinodal-port-sainte-marie','centre-multinodal-montrouge','port-sainte-marie','port-novomirsk','port-ciudad-roja','port-al-madina'],
+    'Divers': ['tabernacle-impots','laboratoire-priere','kolkhoze-spirituel','patisserie-sacree','terrain-a-batir-1','terrain-a-batir-2','terrain-a-batir-3']
+  };
+
+  // Regrouper les bâtiments de la ville par catégorie
+  const grouped = {};
+  buildings.forEach(id => {
+    const b = BUILDINGS[id];
+    if (!b) return;
+    let cat = 'Divers';
+    for (const [c, ids] of Object.entries(cats)) {
+      if (ids.includes(id)) { cat = c; break; }
+    }
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(id);
+  });
+
+  const html = Object.entries(grouped).map(([cat, ids]) => {
+    const cards = ids.map(id => {
+      const b = BUILDINGS[id];
+      if (!b) return '';
+      const ctx = city.buildingContext?.[id];
+      const localName = ctx?.name || b.shortName || b.name;
+      const pnjList = ctx?.persons || Object.values(b.rooms || {}).flatMap(r => r.persons || []);
+      const personCount = pnjList.length;
+      const isHere = id === state.currentBuilding && countryId === state.country;
+
+      return '<div onclick="' + (readOnly ? '' : 'document.getElementById(\'modal-minimap-ville\').classList.remove(\'open\');enterBuilding(\'' + id + '\')') + '" ' +
+        'style="display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.6rem .4rem;' +
+        'background:' + (isHere ? 'rgba(201,168,76,0.15)' : '#0a0907') + ';' +
+        'border:1px solid ' + (isHere ? empireColor : '#2a2010') + ';' +
+        'border-radius:4px;cursor:' + (readOnly ? 'default' : 'pointer') + ';' +
+        'transition:background .15s;width:90px;text-align:center" ' +
+        (readOnly ? '' : 'onmouseover="this.style.background=\'rgba(201,168,76,0.08)\'" onmouseout="this.style.background=\'#0a0907\'";') + '>' +
+        '<i class="ti ' + b.icon + '" style="font-size:1.2rem;color:' + (isHere ? empireColor : '#6a5a30') + '"></i>' +
+        '<div style="font-size:.6rem;color:' + (isHere ? empireColor : '#c0a060') + ';line-height:1.3;word-break:break-word">' + localName + '</div>' +
+        (personCount > 0 ? '<div style="font-size:.58rem;color:#4a8a4a">' + personCount + ' PNJ</div>' : '') +
+        '</div>';
+    }).join('');
+
+    return '<div style="margin-bottom:.8rem">' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.12em;color:#6a5a30;padding:.2rem .4rem;border-bottom:1px solid #2a2010;margin-bottom:.4rem">' + cat + '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:.4rem;padding:0 .2rem">' + cards + '</div>' +
+      '</div>';
+  }).join('');
+
+  const title = city.name + (readOnly ? ' — ' + co?.n + ' (info)' : ' — ' + co?.n);
+  document.getElementById('minimap-ville-title').textContent = title;
+  document.getElementById('minimap-ville-body').innerHTML =
+    (readOnly ? '<div style="padding:.4rem .6rem .6rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.4rem"><i class="ti ti-info-circle" style="font-size:.7rem"></i> Utilisez l\'aeroport ou le port pour vous rendre dans cet empire.</div>' : '') +
+    html;
+  document.getElementById('modal-minimap-ville').classList.add('open');
+}
+
 // =====================
 // MINIMAP LECTURE SEULE (villes étrangères)
 // =====================
 function ouvrirMinimapLectureSeule(countryId, cityId) {
+  ouvrirPlanVille(countryId, cityId, true);
+}
+function ouvrirMinimapLectureSeule_old(countryId, cityId) {
   const co = COUNTRIES[countryId];
   const world = WORLD[countryId];
   const city = world?.[cityId];
