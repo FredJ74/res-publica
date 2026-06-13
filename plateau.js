@@ -1802,8 +1802,100 @@ Génère UN titre de scandale parodique et drôle (1 phrase). Style journal à s
 
 
 // =====================
-// PLAN VISUEL DE LA VILLE (SVG procédural)
+// PLAN VISUEL DE LA VILLE
 // =====================
+
+// Disposition des bâtiments sur le plan (x, y, w, h)
+const PLAN_LAYOUTS = {
+  capitale: {
+    'palais-presidentiel':          [14,  12, 104, 60],
+    'assemblee':                    [14,  80, 104, 58],
+    'tribunal':                    [152,  12,  96, 60],
+    'palais-gouvernement':         [152,  80,  96, 58],
+    'banque-nationale':            [286,  12,  80, 60],
+    'banque-privee':               [376,  12,  72, 60],
+    'hotel-republica':             [286,  80, 162, 58],
+    'la-tribune':                  [488,  12,  84, 60],
+    'loge-maconnique':             [582,  12,  84, 60],
+    'universite':                  [488,  80,  88, 58],
+    'clinique-privee':             [584,  80,  82, 58],
+    'commissariat':                 [14, 168, 104,110],
+    'armurerie':                   [148, 168, 100, 52],
+    'dispensaire-public':          [148, 228, 100, 50],
+    'marche':                      [286, 168, 168,110],
+    'tabernacle-impots':           [488, 168,  84, 52],
+    'mairie-capitale':             [582, 168,  84,110],
+    'terrain-a-batir-1':           [488, 228,  84, 50],
+    'centre-multinodal-luthecia':  [ 14, 330, 104,104],
+    'siege-syndical':              [148, 330, 100, 52],
+    'usine-principale':            [148, 390, 100, 52],
+    'terrain-a-batir-2':           [286, 330,  76,104],
+    'terrain-a-batir-3':           [372, 330,  76,104],
+    'port-sainte-marie':           [488, 330, 178,104],
+    'qhs-prison':                  [ 14, 476, 104, 96],
+    'caserne-militaire':           [148, 476, 100, 96],
+    'terrain-a-batir-4':           [286, 476,  76, 96],
+    'terrain-a-batir-5':           [372, 476,  76, 96],
+    'terrain-a-batir-6':           [488, 476,  84, 96],
+    'terrain-a-batir-7':           [582, 476,  84, 96],
+  },
+  ville_a: {
+    'hotel-port':                  [ 14,  12, 100, 60],
+    'mairie':                      [ 14,  80, 100, 58],
+    'banque-locale':               [152,  12,  96, 60],
+    'dispensaire-public-v':        [152,  80,  96, 58],
+    'commissariat-local':          [286,  12,  80, 60],
+    'bar-des-pecheurs':            [376,  12,  72, 60],
+    'imprimerie-librairie':        [286,  80, 162, 58],
+    'centre-multinodal-port-sainte-marie': [14, 168, 120, 100],
+    'port-sainte-marie':           [152, 168, 130, 100],
+    'terrain-a-batir-2':           [298, 168,  76, 100],
+    'terrain-a-batir-3':           [384, 168,  76, 100],
+    'terrain-a-batir-4':           [470, 168,  76, 100],
+    'terrain-a-batir-5':           [556, 168,  76, 100],
+  },
+  ville_b: {
+    'hotel-mineur':                [ 14,  12, 100, 60],
+    'mairie':                      [ 14,  80, 100, 58],
+    'banque-locale':               [152,  12,  96, 60],
+    'dispensaire-public-v':        [152,  80,  96, 58],
+    'commissariat-local':          [286,  12,  80, 60],
+    'siege-syndical':              [376,  12,  72, 60],
+    'usine-principale':            [286,  80, 162, 58],
+    'centre-multinodal-montrouge': [ 14, 168, 120, 100],
+    'terrain-a-batir-3':           [152, 168,  76, 100],
+    'terrain-a-batir-4':           [238, 168,  76, 100],
+    'terrain-a-batir-5':           [324, 168,  76, 100],
+    'terrain-a-batir-6':           [410, 168,  76, 100],
+    'terrain-a-batir-7':           [496, 168,  76, 100],
+  }
+};
+
+// Icônes emoji par bâtiment
+const PLAN_ICONS = {
+  'palais-presidentiel': '🏛', 'palais-gouvernement': '🏛',
+  'assemblee': '⚖', 'tribunal': '⚖',
+  'banque-nationale': '🏦', 'banque-privee': '🔐', 'banque-locale': '🏦',
+  'hotel-republica': '🏨', 'hotel-port': '🏨', 'hotel-mineur': '🏨',
+  'clinique-privee': '🏥', 'dispensaire-public': '🏥', 'dispensaire-public-v': '🏥',
+  'commissariat': '🛡', 'commissariat-local': '🛡',
+  'la-tribune': '📰', 'imprimerie-librairie': '🖨',
+  'loge-maconnique': '⬡', 'universite': '🎓',
+  'marche': '🛒', 'armurerie': '🛡',
+  'siege-syndical': '👥', 'usine-principale': '🏭',
+  'mairie-capitale': '🏫', 'mairie': '🏫',
+  'tabernacle-impots': '⛪', 'laboratoire-priere': '⛪',
+  'kolkhoze-spirituel': '🚜', 'patisserie-sacree': '🧁',
+  'centre-multinodal-luthecia': '🚉',
+  'centre-multinodal-port-sainte-marie': '🚉',
+  'centre-multinodal-montrouge': '🚉',
+  'port-sainte-marie': '⚓', 'port-novomirsk': '⚓',
+  'port-ciudad-roja': '⚓', 'port-al-madina': '⚓',
+  'bar-des-pecheurs': '🐟', 'caserne-militaire': '🎖',
+  'qhs-prison': '🔒',
+  'default': '🏢'
+};
+
 function ouvrirPlanVille(countryId, cityId, readOnly) {
   countryId = countryId || state.country;
   cityId = cityId || state.currentCity;
@@ -1815,110 +1907,92 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   if (!city) return;
 
   const empireColor = co?.col || '#C9A84C';
-  const buildings = (city.buildings || []).filter(id => BUILDINGS[id]);
+  const layout = PLAN_LAYOUTS[cityId] || PLAN_LAYOUTS.capitale;
+  const buildings = city.buildings || [];
 
-  // Disposition des bâtiments en blocs sur le plan
-  // Grille : chaque bâtiment occupe une case, on trace des rues entre eux
-  const COLS = 4;
-  const W = 640, H = 480;
-  const MARGIN = 40;
-  const STREET_W = 18;
-  const CELL_W = (W - MARGIN*2 - STREET_W*3) / COLS;
-  const ROWS = Math.ceil(buildings.length / COLS);
-  const CELL_H = Math.min(80, (H - MARGIN*2 - STREET_W*(ROWS-1)) / Math.max(ROWS,1));
+  // Rues : définies par les espaces entre îlots
+  const SVG_W = 680, SVG_H = 600;
 
-  // Couleurs par catégorie
-  const catColor = {
-    'palais-presidentiel': '#4a6a3a', 'palais-gouvernement': '#4a6a3a',
-    'assemblee': '#4a6a3a', 'tribunal': '#6a4a3a', 'mairie-capitale': '#4a5a6a',
-    'mairie': '#4a5a6a', 'commissariat': '#3a3a6a', 'commissariat-local': '#3a3a6a',
-    'banque-nationale': '#4a6a4a', 'banque-privee': '#4a6a4a', 'banque-locale': '#4a6a4a',
-    'hotel-republica': '#6a5a3a', 'hotel-port': '#6a5a3a', 'hotel-mineur': '#6a5a3a',
-    'clinique-privee': '#3a6a6a', 'dispensaire-public': '#3a6a6a', 'dispensaire-public-v': '#3a6a6a',
-    'la-tribune': '#6a3a3a', 'universite': '#5a3a6a', 'loge-maconnique': '#3a2a2a',
-    'marche': '#6a5a2a', 'armurerie': '#5a4a3a',
-    'centre-multinodal-luthecia': '#3a5a6a', 'centre-multinodal-port-sainte-marie': '#3a5a6a',
-    'centre-multinodal-montrouge': '#3a5a6a', 'port-sainte-marie': '#2a4a6a',
-    'port-novomirsk': '#2a4a6a', 'port-ciudad-roja': '#2a4a6a', 'port-al-madina': '#2a4a6a',
-  };
+  let svg = '<svg viewBox="0 0 ' + SVG_W + ' ' + SVG_H + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">';
 
-  // Générer le SVG
-  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">';
+  // Style animation
+  svg += '<defs><style>@keyframes pulse{0%,100%{r:5;opacity:1}50%{r:9;opacity:.3}}.pd{animation:pulse 1.4s ease-in-out infinite}</style></defs>';
 
-  // Fond de la ville
-  svg += '<rect width="' + W + '" height="' + H + '" fill="#0a0907"/>';
+  // Fond
+  svg += '<rect width="' + SVG_W + '" height="' + SVG_H + '" fill="#111008"/>';
 
-  // Parc central (décoration)
-  svg += '<rect x="' + (W/2-40) + '" y="' + (H/2-30) + '" width="80" height="60" rx="8" fill="#0f1a0a" stroke="#1a2a10" stroke-width="1"/>';
-  svg += '<text x="' + W/2 + '" y="' + (H/2+5) + '" text-anchor="middle" font-size="8" fill="#2a4a20" font-family="serif">Parc</text>';
+  // Rues principales
+  svg += '<rect x="0" y="290" width="' + SVG_W + '" height="24" fill="#1e1c10"/>';
+  svg += '<rect x="258" y="0" width="20" height="' + SVG_H + '" fill="#1e1c10"/>';
+  svg += '<rect x="0" y="148" width="' + SVG_W + '" height="14" fill="#1a1810"/>';
+  svg += '<rect x="0" y="448" width="' + SVG_W + '" height="14" fill="#1a1810"/>';
+  svg += '<rect x="128" y="0" width="12" height="' + SVG_H + '" fill="#1a1810"/>';
+  svg += '<rect x="468" y="0" width="12" height="' + SVG_H + '" fill="#1a1810"/>';
 
-  // Rues principales (horizontal et vertical)
-  svg += '<rect x="0" y="' + (H/2-9) + '" width="' + W + '" height="18" fill="#151208" opacity=".8"/>';
-  svg += '<rect x="' + (W/2-9) + '" y="0" width="18" height="' + H + '" fill="#151208" opacity=".8"/>';
-  // Lignes de rue
-  svg += '<line x1="0" y1="' + (H/2) + '" x2="' + W + '" y2="' + (H/2) + '" stroke="#2a2010" stroke-width=".5" stroke-dasharray="4,4"/>';
-  svg += '<line x1="' + (W/2) + '" y1="0" x2="' + (W/2) + '" y2="' + H + '" stroke="#2a2010" stroke-width=".5" stroke-dasharray="4,4"/>';
+  // Tirets
+  svg += '<line x1="0" y1="302" x2="' + SVG_W + '" y2="302" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+  svg += '<line x1="268" y1="0" x2="268" y2="' + SVG_H + '" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
 
-  // Rues secondaires
-  const streetPositions = [W*0.25, W*0.75, H*0.3, H*0.7];
-  svg += '<line x1="' + (W*0.25) + '" y1="0" x2="' + (W*0.25) + '" y2="' + H + '" stroke="#1a1808" stroke-width="6"/>';
-  svg += '<line x1="' + (W*0.75) + '" y1="0" x2="' + (W*0.75) + '" y2="' + H + '" stroke="#1a1808" stroke-width="6"/>';
-  svg += '<line x1="0" y1="' + (H*0.3) + '" x2="' + W + '" y2="' + (H*0.3) + '" stroke="#1a1808" stroke-width="6"/>';
-  svg += '<line x1="0" y1="' + (H*0.7) + '" x2="' + W + '" y2="' + (H*0.7) + '" stroke="#1a1808" stroke-width="6"/>';
+  // Parc central
+  svg += '<rect x="282" y="168" width="74" height="110" rx="5" fill="#0d1807"/>';
+  svg += '<ellipse cx="302" cy="196" rx="13" ry="11" fill="#122010"/>';
+  svg += '<ellipse cx="326" cy="185" rx="11" ry="10" fill="#162812"/>';
+  svg += '<ellipse cx="314" cy="212" rx="10" ry="9" fill="#142210"/>';
+  svg += '<ellipse cx="336" cy="205" rx="10" ry="9" fill="#122010"/>';
 
-  // Disposition des bâtiments en quadrants
-  const quadrants = [
-    { x: MARGIN, y: MARGIN, w: W/2-MARGIN-12, h: H*0.27, label: 'Nord-Ouest' },
-    { x: W/2+12, y: MARGIN, w: W/2-MARGIN-12, h: H*0.27, label: 'Nord-Est' },
-    { x: MARGIN, y: H*0.32, w: W/2-MARGIN-12, h: H*0.35, label: 'Centre-Ouest' },
-    { x: W/2+12, y: H*0.32, w: W/2-MARGIN-12, h: H*0.35, label: 'Centre-Est' },
-    { x: MARGIN, y: H*0.72, w: W/2-MARGIN-12, h: H*0.26-MARGIN/2, label: 'Sud-Ouest' },
-    { x: W/2+12, y: H*0.72, w: W/2-MARGIN-12, h: H*0.26-MARGIN/2, label: 'Sud-Est' },
-  ];
-
-  // Distribuer les bâtiments dans les quadrants
-  const bldPerQuad = Math.ceil(buildings.length / quadrants.length);
-  buildings.forEach((id, i) => {
+  // Bâtiments
+  buildings.forEach(id => {
+    const pos = layout[id];
+    if (!pos) return;
     const b = BUILDINGS[id];
     if (!b) return;
+    const [bx, by, bw, bh] = pos;
     const ctx = city.buildingContext?.[id];
-    const localName = (ctx?.name || b.shortName || b.name).substring(0, 16);
-    const q = quadrants[Math.min(Math.floor(i / bldPerQuad), quadrants.length-1)];
-    const posInQ = i % bldPerQuad;
-    const qCols = Math.ceil(Math.sqrt(bldPerQuad * (q.w/q.h)));
-    const col = posInQ % qCols;
-    const row = Math.floor(posInQ / qCols);
-    const cellW = q.w / qCols;
-    const cellH = q.h / Math.ceil(bldPerQuad / qCols);
-    const cx = q.x + col * cellW + cellW/2;
-    const cy = q.y + row * cellH + cellH/2;
-    const bw = Math.min(cellW - 6, 60);
-    const bh = Math.min(cellH - 6, 44);
-
-    const fillCol = catColor[id] || '#2a2010';
+    const localName = ctx?.name || b.shortName || b.name || id;
+    const icon = PLAN_ICONS[id] || PLAN_ICONS.default;
     const isHere = id === state.currentBuilding && countryId === state.country;
-    const borderCol = isHere ? empireColor : (fillCol);
-    const clickFn = readOnly ? '' : 'document.getElementById(\'modal-minimap-ville\').classList.remove(\'open\');enterBuilding(\'' + id + '\')';
+    const isTerrain = id.startsWith('terrain-a-batir');
+    const cx = bx + bw/2;
 
-    svg += '<g onclick="' + clickFn + '" style="cursor:' + (readOnly ? 'default' : 'pointer') + '" class="plan-bld">';
-    // Bâtiment
-    svg += '<rect x="' + (cx-bw/2) + '" y="' + (cy-bh/2) + '" width="' + bw + '" height="' + bh + '" rx="3"';
-    svg += ' fill="' + fillCol + '" fill-opacity=".7" stroke="' + borderCol + '" stroke-width="' + (isHere ? '2' : '1') + '"/>';
-    // Icône (simulée avec texte Unicode)
-    svg += '<text x="' + cx + '" y="' + (cy-4) + '" text-anchor="middle" font-size="11" fill="' + (isHere ? empireColor : '#c0a060') + '" font-family="tabler-icons">' +
-      getIconUnicode(b.icon) + '</text>';
-    // Nom
-    svg += '<text x="' + cx + '" y="' + (cy+bh/2-5) + '" text-anchor="middle" font-size="6.5" fill="' + (isHere ? empireColor : '#a08050') + '" font-family="sans-serif">' +
-      localName + '</text>';
+    const borderColor = isHere ? empireColor : (isTerrain ? '#3a3020' : '#2a2818');
+    const borderW = isHere ? 2 : 1;
+    const bgColor = isTerrain ? '#0e0e08' : '#141208';
+    const textColor = isHere ? empireColor : (isTerrain ? '#4a4030' : '#a09060');
+    const dashAttr = isTerrain ? ' stroke-dasharray="5,3"' : '';
+    const clickFn = readOnly ? '' : 'onclick="document.getElementById(\'modal-minimap-ville\').classList.remove(\'open\');enterBuilding(\'' + id + '\')"';
+
+    svg += '<g ' + clickFn + ' style="cursor:' + (readOnly ? 'default' : 'pointer') + '">';
+    svg += '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="3"';
+    svg += ' fill="' + bgColor + '" stroke="' + borderColor + '" stroke-width="' + borderW + '"' + dashAttr + '/>';
+
+    // Icône
+    const iconY = by + Math.max(18, bh * 0.38);
+    svg += '<text x="' + cx + '" y="' + iconY + '" text-anchor="middle" font-size="' + (bh > 70 ? 20 : 15) + '" fill="' + textColor + '">' + icon + '</text>';
+
+    // Nom (1 ou 2 lignes selon largeur)
+    const name1 = localName.length > 14 && bw < 100
+      ? localName.substring(0, 13) + '…'
+      : localName;
+    const nameY = by + bh - 10;
+    svg += '<text x="' + cx + '" y="' + nameY + '" text-anchor="middle" font-size="8" fill="' + textColor + '" font-family="sans-serif">' + name1 + '</text>';
+
     svg += '</g>';
 
-    // Tooltip SVG au survol (foreignObject)
-    svg += '<title>' + localName + (ctx?.desc ? ' — ' + ctx.desc.substring(0,60) : '') + '</title>';
+    // Point rouge clignotant si joueur ici
+    if (isHere) {
+      const pcx = bx + bw - 8;
+      const pcy = by + 8;
+      svg += '<circle cx="' + pcx + '" cy="' + pcy + '" r="9" fill="#cc2020" opacity="0.2" class="pd"/>';
+      svg += '<circle cx="' + pcx + '" cy="' + pcy + '" r="5" fill="#ff3333" stroke="#fff" stroke-width="1.2" class="pd"/>';
+    }
   });
 
-  // Nom de la ville
-  svg += '<text x="' + W/2 + '" y="' + (H-8) + '" text-anchor="middle" font-size="9" fill="#3a3020" font-family="Bebas Neue,sans-serif" letter-spacing="2">' +
-    city.name.toUpperCase() + ' — ' + co?.n?.toUpperCase() + '</text>';
+  // Titre
+  svg += '<text x="340" y="590" text-anchor="middle" font-size="8" fill="#3a3520" font-family="sans-serif" letter-spacing="2">' + city.name.toUpperCase() + ' — ' + (co?.n || '').toUpperCase() + '</text>';
+
+  // Légende
+  svg += '<circle cx="16" cy="595" r="4" fill="#ff3333"/>';
+  svg += '<text x="26" y="599" font-size="7.5" fill="#8a6a6a" font-family="sans-serif">Vous êtes ici</text>';
 
   svg += '</svg>';
 
@@ -1926,26 +2000,9 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   document.getElementById('minimap-ville-title').textContent = title;
   document.getElementById('minimap-ville-body').innerHTML =
     (readOnly ? '<div style="padding:.4rem .6rem .6rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.4rem"><i class="ti ti-info-circle"></i> Utilisez l\'aeroport ou le port pour vous rendre dans cet empire.</div>' : '') +
-    '<div style="padding:.4rem">' + svg + '</div>' +
-    '<div style="padding:.4rem .6rem;font-size:.68rem;color:#4a4030;text-align:center">Cliquez sur un bâtiment pour y entrer</div>';
+    '<div style="padding:.4rem">' + svg + '</div>';
 
   document.getElementById('modal-minimap-ville').classList.add('open');
-}
-
-function getIconUnicode(iconClass) {
-  // Retourner un caractère simple selon le type de bâtiment
-  const map = {
-    'ti-building-monument': '🏛', 'ti-building-bank': '🏦', 'ti-building-arch': '🏛',
-    'ti-gavel': '⚖', 'ti-shield-lock': '🛡', 'ti-building-community': '🏫',
-    'ti-building-castle': '🏨', 'ti-heart-rate-monitor': '🏥', 'ti-first-aid-kit': '🏥',
-    'ti-news': '📰', 'ti-school': '🎓', 'ti-hexagon': '⬡',
-    'ti-building-store': '🏪', 'ti-shield': '🛡', 'ti-building-arch': '🏛',
-    'ti-building-factory': '🏭', 'ti-anchor': '⚓', 'ti-train': '🚉',
-    'ti-safe': '🔐', 'ti-users-group': '👥', 'ti-building': '🏢',
-    'ti-fence': '🏗', 'ti-printer': '🖨', 'ti-building-church': '⛪',
-    'ti-military-rank': '🎖', 'ti-lock': '🔒', 'ti-fish': '🐟',
-  };
-  return map[iconClass] || '🏢';
 }
 
 

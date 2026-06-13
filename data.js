@@ -101,7 +101,7 @@ const WORLD = {
       isCapitale: true,
       streetName: 'Avenue de la République',
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel-Restaurant La Républia",
@@ -266,7 +266,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-el-estado.png',
       desc:'Capitale d\'El Estado. Chaleur étouffante, corruption omniprésente, Generalissimo Gordito règne sans partage.',
       isCapitale: true,
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel El Cartel",
@@ -459,7 +459,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -651,7 +651,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Capitale d\'Al-Khalija. Or, turquoise et sable. Le Palais Royal domine tout. Le protocole est une religion.',
       isCapitale: true,
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','terrain-a-batir-1'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Al-Nour Palace",
@@ -1706,6 +1706,63 @@ const BUILDINGS = {
     }
   },
 
+  'terrain-a-batir-4': {
+    name: "Terrain a batir - Lot 4",
+    shortName: "Terrain Lot 4",
+    cat: "Immobilier",
+    icon: "ti-fence",
+    bgColor: "#0a0a05",
+    desc: "Terrain disponible a la construction. Quartier Est.",
+    rooms: {
+      terrain: {
+        name: "Terrain vague",
+        imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
+        desc: "Un terrain en friche. Enormes possibilites.",
+        imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80",
+        persons: [],
+        orders: [
+          {fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:5000, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'permis_construire', label:'Demander un permis', pa:2, cost:200, type:'legal', icon:'ti-file-text', successRate:70},
+          {fn:'permis_corrompu', label:'Permis accelere', pa:2, cost:1000, type:'illegal', icon:'ti-coins', successRate:60}
+        ]
+      }
+    }
+  },
+  'terrain-a-batir-5': {
+    name: "Terrain a batir - Lot 5", shortName: "Terrain Lot 5", cat: "Immobilier", icon: "ti-fence", bgColor: "#0a0a05",
+    desc: "Terrain disponible. Quartier Nord.",
+    rooms: { terrain: { name: "Terrain vague", imageBg: "linear-gradient(135deg,#0a0a05,#12120a)", desc: "Terrain en friche.", imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80", persons: [], orders: [{fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:5000, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'permis_construire', label:'Demander un permis', pa:2, cost:200, type:'legal', icon:'ti-file-text', successRate:70}] } }
+  },
+  'terrain-a-batir-6': {
+    name: "Terrain a batir - Lot 6", shortName: "Terrain Lot 6", cat: "Immobilier", icon: "ti-fence", bgColor: "#0a0a05",
+    desc: "Terrain disponible. Quartier Sud.",
+    rooms: { terrain: { name: "Terrain vague", imageBg: "linear-gradient(135deg,#0a0a05,#12120a)", desc: "Terrain en friche.", imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80", persons: [], orders: [{fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:5000, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'permis_construire', label:'Demander un permis', pa:2, cost:200, type:'legal', icon:'ti-file-text', successRate:70}] } }
+  },
+  'terrain-a-batir-7': {
+    name: "Terrain a batir - Lot 7", shortName: "Terrain Lot 7", cat: "Immobilier", icon: "ti-fence", bgColor: "#0a0a05",
+    desc: "Terrain disponible. Quartier Ouest.",
+    rooms: { terrain: { name: "Terrain vague", imageBg: "linear-gradient(135deg,#0a0a05,#12120a)", desc: "Terrain en friche.", imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80", persons: [], orders: [{fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:5000, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'permis_construire', label:'Demander un permis', pa:2, cost:200, type:'legal', icon:'ti-file-text', successRate:70}] } }
+  },
+  'terrain-a-batir-4': {
+    name: "Terrain a batir - Lot 4", shortName: "Terrain Lot 4", cat: "Immobilier", icon: "ti-fence", bgColor: "#0a0a05",
+    desc: "Terrain disponible. Quartier Est.",
+    rooms: { terrain: { name: "Terrain vague", imageBg: "linear-gradient(135deg,#0a0a05,#12120a)", desc: "Terrain en friche.", imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80", persons: [], orders: [{fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:5000, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'permis_construire', label:'Demander un permis', pa:2, cost:200, type:'legal', icon:'ti-file-text', successRate:70},{fn:'permis_corrompu', label:'Permis accelere', pa:2, cost:1000, type:'illegal', icon:'ti-coins', successRate:60}] } }
+  },
+  'terrain-a-batir-5': {
+    name: "Terrain a batir - Lot 5", shortName: "Terrain Lot 5", cat: "Immobilier", icon: "ti-fence", bgColor: "#0a0a05",
+    desc: "Terrain disponible. Quartier Nord.",
+    rooms: { terrain: { name: "Terrain vague", imageBg: "linear-gradient(135deg,#0a0a05,#12120a)", desc: "Terrain en friche.", imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80", persons: [], orders: [{fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:5000, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'permis_construire', label:'Demander un permis', pa:2, cost:200, type:'legal', icon:'ti-file-text', successRate:70},{fn:'permis_corrompu', label:'Permis accelere', pa:2, cost:1000, type:'illegal', icon:'ti-coins', successRate:60}] } }
+  },
+  'terrain-a-batir-6': {
+    name: "Terrain a batir - Lot 6", shortName: "Terrain Lot 6", cat: "Immobilier", icon: "ti-fence", bgColor: "#0a0a05",
+    desc: "Terrain disponible. Quartier Sud.",
+    rooms: { terrain: { name: "Terrain vague", imageBg: "linear-gradient(135deg,#0a0a05,#12120a)", desc: "Terrain en friche.", imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80", persons: [], orders: [{fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:5000, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'permis_construire', label:'Demander un permis', pa:2, cost:200, type:'legal', icon:'ti-file-text', successRate:70},{fn:'permis_corrompu', label:'Permis accelere', pa:2, cost:1000, type:'illegal', icon:'ti-coins', successRate:60}] } }
+  },
+  'terrain-a-batir-7': {
+    name: "Terrain a batir - Lot 7", shortName: "Terrain Lot 7", cat: "Immobilier", icon: "ti-fence", bgColor: "#0a0a05",
+    desc: "Terrain disponible. Quartier Ouest.",
+    rooms: { terrain: { name: "Terrain vague", imageBg: "linear-gradient(135deg,#0a0a05,#12120a)", desc: "Terrain en friche.", imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80", persons: [], orders: [{fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:5000, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'permis_construire', label:'Demander un permis', pa:2, cost:200, type:'legal', icon:'ti-file-text', successRate:70},{fn:'permis_corrompu', label:'Permis accelere', pa:2, cost:1000, type:'illegal', icon:'ti-coins', successRate:60}] } }
+  },
   'terrain-a-batir-1': {
     name: "Terrain a batir - Lot 1",
     shortName: "Terrain Lot 1",
