@@ -1802,7 +1802,7 @@ Génère UN titre de scandale parodique et drôle (1 phrase). Style journal à s
 
 
 // =====================
-// PLAN VISUEL DE LA VILLE
+// PLAN VISUEL DE LA VILLE (SVG procédural)
 // =====================
 function ouvrirPlanVille(countryId, cityId, readOnly) {
   countryId = countryId || state.country;
@@ -1815,70 +1815,139 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   if (!city) return;
 
   const empireColor = co?.col || '#C9A84C';
-  const buildings = city.buildings || [];
+  const buildings = (city.buildings || []).filter(id => BUILDINGS[id]);
 
-  // Catégories pour regrouper les bâtiments
-  const cats = {
-    'Institutions': ['palais-presidentiel','palais-gouvernement','assemblee','tribunal','mairie-capitale','mairie'],
-    'Sécurité': ['commissariat','commissariat-local','caserne-militaire','qhs-prison'],
-    'Finance': ['banque-nationale','banque-privee','banque-locale'],
-    'Hôtellerie': ['hotel-republica','hotel-port','hotel-mineur'],
-    'Santé': ['clinique-privee','dispensaire-public','dispensaire-public-v'],
-    'Médias & Culture': ['la-tribune','imprimerie-librairie','universite','loge-maconnique'],
-    'Commerce': ['marche','armurerie','siege-syndical','usine-principale'],
-    'Transport': ['centre-multinodal-luthecia','centre-multinodal-port-sainte-marie','centre-multinodal-montrouge','port-sainte-marie','port-novomirsk','port-ciudad-roja','port-al-madina'],
-    'Divers': ['tabernacle-impots','laboratoire-priere','kolkhoze-spirituel','patisserie-sacree','terrain-a-batir-1','terrain-a-batir-2','terrain-a-batir-3']
+  // Disposition des bâtiments en blocs sur le plan
+  // Grille : chaque bâtiment occupe une case, on trace des rues entre eux
+  const COLS = 4;
+  const W = 640, H = 480;
+  const MARGIN = 40;
+  const STREET_W = 18;
+  const CELL_W = (W - MARGIN*2 - STREET_W*3) / COLS;
+  const ROWS = Math.ceil(buildings.length / COLS);
+  const CELL_H = Math.min(80, (H - MARGIN*2 - STREET_W*(ROWS-1)) / Math.max(ROWS,1));
+
+  // Couleurs par catégorie
+  const catColor = {
+    'palais-presidentiel': '#4a6a3a', 'palais-gouvernement': '#4a6a3a',
+    'assemblee': '#4a6a3a', 'tribunal': '#6a4a3a', 'mairie-capitale': '#4a5a6a',
+    'mairie': '#4a5a6a', 'commissariat': '#3a3a6a', 'commissariat-local': '#3a3a6a',
+    'banque-nationale': '#4a6a4a', 'banque-privee': '#4a6a4a', 'banque-locale': '#4a6a4a',
+    'hotel-republica': '#6a5a3a', 'hotel-port': '#6a5a3a', 'hotel-mineur': '#6a5a3a',
+    'clinique-privee': '#3a6a6a', 'dispensaire-public': '#3a6a6a', 'dispensaire-public-v': '#3a6a6a',
+    'la-tribune': '#6a3a3a', 'universite': '#5a3a6a', 'loge-maconnique': '#3a2a2a',
+    'marche': '#6a5a2a', 'armurerie': '#5a4a3a',
+    'centre-multinodal-luthecia': '#3a5a6a', 'centre-multinodal-port-sainte-marie': '#3a5a6a',
+    'centre-multinodal-montrouge': '#3a5a6a', 'port-sainte-marie': '#2a4a6a',
+    'port-novomirsk': '#2a4a6a', 'port-ciudad-roja': '#2a4a6a', 'port-al-madina': '#2a4a6a',
   };
 
-  // Regrouper les bâtiments de la ville par catégorie
-  const grouped = {};
-  buildings.forEach(id => {
+  // Générer le SVG
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">';
+
+  // Fond de la ville
+  svg += '<rect width="' + W + '" height="' + H + '" fill="#0a0907"/>';
+
+  // Parc central (décoration)
+  svg += '<rect x="' + (W/2-40) + '" y="' + (H/2-30) + '" width="80" height="60" rx="8" fill="#0f1a0a" stroke="#1a2a10" stroke-width="1"/>';
+  svg += '<text x="' + W/2 + '" y="' + (H/2+5) + '" text-anchor="middle" font-size="8" fill="#2a4a20" font-family="serif">Parc</text>';
+
+  // Rues principales (horizontal et vertical)
+  svg += '<rect x="0" y="' + (H/2-9) + '" width="' + W + '" height="18" fill="#151208" opacity=".8"/>';
+  svg += '<rect x="' + (W/2-9) + '" y="0" width="18" height="' + H + '" fill="#151208" opacity=".8"/>';
+  // Lignes de rue
+  svg += '<line x1="0" y1="' + (H/2) + '" x2="' + W + '" y2="' + (H/2) + '" stroke="#2a2010" stroke-width=".5" stroke-dasharray="4,4"/>';
+  svg += '<line x1="' + (W/2) + '" y1="0" x2="' + (W/2) + '" y2="' + H + '" stroke="#2a2010" stroke-width=".5" stroke-dasharray="4,4"/>';
+
+  // Rues secondaires
+  const streetPositions = [W*0.25, W*0.75, H*0.3, H*0.7];
+  svg += '<line x1="' + (W*0.25) + '" y1="0" x2="' + (W*0.25) + '" y2="' + H + '" stroke="#1a1808" stroke-width="6"/>';
+  svg += '<line x1="' + (W*0.75) + '" y1="0" x2="' + (W*0.75) + '" y2="' + H + '" stroke="#1a1808" stroke-width="6"/>';
+  svg += '<line x1="0" y1="' + (H*0.3) + '" x2="' + W + '" y2="' + (H*0.3) + '" stroke="#1a1808" stroke-width="6"/>';
+  svg += '<line x1="0" y1="' + (H*0.7) + '" x2="' + W + '" y2="' + (H*0.7) + '" stroke="#1a1808" stroke-width="6"/>';
+
+  // Disposition des bâtiments en quadrants
+  const quadrants = [
+    { x: MARGIN, y: MARGIN, w: W/2-MARGIN-12, h: H*0.27, label: 'Nord-Ouest' },
+    { x: W/2+12, y: MARGIN, w: W/2-MARGIN-12, h: H*0.27, label: 'Nord-Est' },
+    { x: MARGIN, y: H*0.32, w: W/2-MARGIN-12, h: H*0.35, label: 'Centre-Ouest' },
+    { x: W/2+12, y: H*0.32, w: W/2-MARGIN-12, h: H*0.35, label: 'Centre-Est' },
+    { x: MARGIN, y: H*0.72, w: W/2-MARGIN-12, h: H*0.26-MARGIN/2, label: 'Sud-Ouest' },
+    { x: W/2+12, y: H*0.72, w: W/2-MARGIN-12, h: H*0.26-MARGIN/2, label: 'Sud-Est' },
+  ];
+
+  // Distribuer les bâtiments dans les quadrants
+  const bldPerQuad = Math.ceil(buildings.length / quadrants.length);
+  buildings.forEach((id, i) => {
     const b = BUILDINGS[id];
     if (!b) return;
-    let cat = 'Divers';
-    for (const [c, ids] of Object.entries(cats)) {
-      if (ids.includes(id)) { cat = c; break; }
-    }
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(id);
+    const ctx = city.buildingContext?.[id];
+    const localName = (ctx?.name || b.shortName || b.name).substring(0, 16);
+    const q = quadrants[Math.min(Math.floor(i / bldPerQuad), quadrants.length-1)];
+    const posInQ = i % bldPerQuad;
+    const qCols = Math.ceil(Math.sqrt(bldPerQuad * (q.w/q.h)));
+    const col = posInQ % qCols;
+    const row = Math.floor(posInQ / qCols);
+    const cellW = q.w / qCols;
+    const cellH = q.h / Math.ceil(bldPerQuad / qCols);
+    const cx = q.x + col * cellW + cellW/2;
+    const cy = q.y + row * cellH + cellH/2;
+    const bw = Math.min(cellW - 6, 60);
+    const bh = Math.min(cellH - 6, 44);
+
+    const fillCol = catColor[id] || '#2a2010';
+    const isHere = id === state.currentBuilding && countryId === state.country;
+    const borderCol = isHere ? empireColor : (fillCol);
+    const clickFn = readOnly ? '' : 'document.getElementById(\'modal-minimap-ville\').classList.remove(\'open\');enterBuilding(\'' + id + '\')';
+
+    svg += '<g onclick="' + clickFn + '" style="cursor:' + (readOnly ? 'default' : 'pointer') + '" class="plan-bld">';
+    // Bâtiment
+    svg += '<rect x="' + (cx-bw/2) + '" y="' + (cy-bh/2) + '" width="' + bw + '" height="' + bh + '" rx="3"';
+    svg += ' fill="' + fillCol + '" fill-opacity=".7" stroke="' + borderCol + '" stroke-width="' + (isHere ? '2' : '1') + '"/>';
+    // Icône (simulée avec texte Unicode)
+    svg += '<text x="' + cx + '" y="' + (cy-4) + '" text-anchor="middle" font-size="11" fill="' + (isHere ? empireColor : '#c0a060') + '" font-family="tabler-icons">' +
+      getIconUnicode(b.icon) + '</text>';
+    // Nom
+    svg += '<text x="' + cx + '" y="' + (cy+bh/2-5) + '" text-anchor="middle" font-size="6.5" fill="' + (isHere ? empireColor : '#a08050') + '" font-family="sans-serif">' +
+      localName + '</text>';
+    svg += '</g>';
+
+    // Tooltip SVG au survol (foreignObject)
+    svg += '<title>' + localName + (ctx?.desc ? ' — ' + ctx.desc.substring(0,60) : '') + '</title>';
   });
 
-  const html = Object.entries(grouped).map(([cat, ids]) => {
-    const cards = ids.map(id => {
-      const b = BUILDINGS[id];
-      if (!b) return '';
-      const ctx = city.buildingContext?.[id];
-      const localName = ctx?.name || b.shortName || b.name;
-      const pnjList = ctx?.persons || Object.values(b.rooms || {}).flatMap(r => r.persons || []);
-      const personCount = pnjList.length;
-      const isHere = id === state.currentBuilding && countryId === state.country;
+  // Nom de la ville
+  svg += '<text x="' + W/2 + '" y="' + (H-8) + '" text-anchor="middle" font-size="9" fill="#3a3020" font-family="Bebas Neue,sans-serif" letter-spacing="2">' +
+    city.name.toUpperCase() + ' — ' + co?.n?.toUpperCase() + '</text>';
 
-      return '<div onclick="' + (readOnly ? '' : 'document.getElementById(\'modal-minimap-ville\').classList.remove(\'open\');enterBuilding(\'' + id + '\')') + '" ' +
-        'style="display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.6rem .4rem;' +
-        'background:' + (isHere ? 'rgba(201,168,76,0.15)' : '#0a0907') + ';' +
-        'border:1px solid ' + (isHere ? empireColor : '#2a2010') + ';' +
-        'border-radius:4px;cursor:' + (readOnly ? 'default' : 'pointer') + ';' +
-        'transition:background .15s;width:90px;text-align:center" ' +
-        (readOnly ? '' : 'onmouseover="this.style.background=\'rgba(201,168,76,0.08)\'" onmouseout="this.style.background=\'#0a0907\'";') + '>' +
-        '<i class="ti ' + b.icon + '" style="font-size:1.2rem;color:' + (isHere ? empireColor : '#6a5a30') + '"></i>' +
-        '<div style="font-size:.6rem;color:' + (isHere ? empireColor : '#c0a060') + ';line-height:1.3;word-break:break-word">' + localName + '</div>' +
-        (personCount > 0 ? '<div style="font-size:.58rem;color:#4a8a4a">' + personCount + ' PNJ</div>' : '') +
-        '</div>';
-    }).join('');
+  svg += '</svg>';
 
-    return '<div style="margin-bottom:.8rem">' +
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.12em;color:#6a5a30;padding:.2rem .4rem;border-bottom:1px solid #2a2010;margin-bottom:.4rem">' + cat + '</div>' +
-      '<div style="display:flex;flex-wrap:wrap;gap:.4rem;padding:0 .2rem">' + cards + '</div>' +
-      '</div>';
-  }).join('');
-
-  const title = city.name + (readOnly ? ' — ' + co?.n + ' (info)' : ' — ' + co?.n);
+  const title = city.name + (readOnly ? ' — ' + co?.n + ' (information)' : ' — ' + co?.n);
   document.getElementById('minimap-ville-title').textContent = title;
   document.getElementById('minimap-ville-body').innerHTML =
-    (readOnly ? '<div style="padding:.4rem .6rem .6rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.4rem"><i class="ti ti-info-circle" style="font-size:.7rem"></i> Utilisez l\'aeroport ou le port pour vous rendre dans cet empire.</div>' : '') +
-    html;
+    (readOnly ? '<div style="padding:.4rem .6rem .6rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.4rem"><i class="ti ti-info-circle"></i> Utilisez l\'aeroport ou le port pour vous rendre dans cet empire.</div>' : '') +
+    '<div style="padding:.4rem">' + svg + '</div>' +
+    '<div style="padding:.4rem .6rem;font-size:.68rem;color:#4a4030;text-align:center">Cliquez sur un bâtiment pour y entrer</div>';
+
   document.getElementById('modal-minimap-ville').classList.add('open');
 }
+
+function getIconUnicode(iconClass) {
+  // Retourner un caractère simple selon le type de bâtiment
+  const map = {
+    'ti-building-monument': '🏛', 'ti-building-bank': '🏦', 'ti-building-arch': '🏛',
+    'ti-gavel': '⚖', 'ti-shield-lock': '🛡', 'ti-building-community': '🏫',
+    'ti-building-castle': '🏨', 'ti-heart-rate-monitor': '🏥', 'ti-first-aid-kit': '🏥',
+    'ti-news': '📰', 'ti-school': '🎓', 'ti-hexagon': '⬡',
+    'ti-building-store': '🏪', 'ti-shield': '🛡', 'ti-building-arch': '🏛',
+    'ti-building-factory': '🏭', 'ti-anchor': '⚓', 'ti-train': '🚉',
+    'ti-safe': '🔐', 'ti-users-group': '👥', 'ti-building': '🏢',
+    'ti-fence': '🏗', 'ti-printer': '🖨', 'ti-building-church': '⛪',
+    'ti-military-rank': '🎖', 'ti-lock': '🔒', 'ti-fish': '🐟',
+  };
+  return map[iconClass] || '🏢';
+}
+
 
 // =====================
 // MINIMAP LECTURE SEULE (villes étrangères)
