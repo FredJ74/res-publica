@@ -1128,6 +1128,36 @@ const EMPIRE_STYLES = {
 };
 
 
+
+// =====================
+// MENU MESSAGES (Forum + Mail)
+// =====================
+function ouvrirMenuMessages() {
+  const menu = document.getElementById('menu-messages');
+  if (!menu) return;
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  // Fermer au clic dehors
+  if (menu.style.display === 'block') {
+    setTimeout(() => {
+      document.addEventListener('click', fermerMenuMessagesOutside, { once: true });
+    }, 10);
+  }
+}
+
+function fermerMenuMessages() {
+  const menu = document.getElementById('menu-messages');
+  if (menu) menu.style.display = 'none';
+}
+
+function fermerMenuMessagesOutside(e) {
+  const btn = document.getElementById('btn-messages');
+  const menu = document.getElementById('menu-messages');
+  if (!menu) return;
+  if (!btn?.contains(e.target) && !menu.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+}
+
 // =====================
 // AVATARS CSS PNJ
 // =====================
@@ -3702,6 +3732,43 @@ function closeWorldMap() {
 // REGLES DU JEU
 // =====================
 const REGLES = {
+  tuto: {
+    titre: '🎓 Tutoriel — Premiers pas',
+    contenu: `Bienvenue dans Res Publica ! Voici comment commencer en 5 étapes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 1 — Créer votre personnage
+━━━━━━━━━━━━━━━━━━━━━━━━
+Choisissez votre empire, votre archétype et votre carrière. Chaque combinaison donne des bonus différents. Le criminel est rapide à l'argent, le fonctionnaire est stable, le journaliste accumule de l'influence.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 2 — Explorer la ville
+━━━━━━━━━━━━━━━━━━━━━━━━
+Utilisez le bouton "Plan" pour voir la carte de votre ville. Cliquez sur un bâtiment pour y entrer. Chaque bâtiment contient des pièces et des PNJ avec qui vous pouvez interagir.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 3 — Parler aux PNJ
+━━━━━━━━━━━━━━━━━━━━━━━━
+Cliquez sur un PNJ pour lui parler. Les PNJ répondent en fonction de leur personnalité et de l'actualité du forum. Certains ont des informations, d'autres des services.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 4 — Passer des ordres
+━━━━━━━━━━━━━━━━━━━━━━━━
+Chaque pièce propose des ordres (boutons en bas). Certains coûtent des PA (Points d'Action), d'autres de l'argent. Les ordres légaux sont sans risque, les ordres gris sont risqués, les illégaux peuvent vous valoir une arrestation.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 5 — Dormir pour progresser
+━━━━━━━━━━━━━━━━━━━━━━━━
+Dormez une fois par jour dans un hôtel ou via votre fiche personnage. Cela vous verse votre salaire, restaure vos PA et fait avancer le temps. Sans sommeil, pas de revenus !
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+CONSEILS
+━━━━━━━━━━━━━━━━━━━━━━━━
+• Postez sur le forum — c'est le cœur de la vie politique
+• Envoyez des mails aux autres joueurs via le bouton Messages
+• Consultez l'organigramme à la mairie pour voir les postes disponibles
+• Pour voyager, rendez-vous au Centre Multinodal`
+  },
   intro: {
     titre: 'Le Grand Jeu',
     contenu: `Res Publica est un jeu de rôle politique parodique multijoueur. Vous incarnez un personnage qui cherche à conquérir le pouvoir dans l'un des quatre empires fictifs : Républia, El Estado, Sovarka ou Al-Khalija.
