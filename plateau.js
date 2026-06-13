@@ -229,16 +229,8 @@ function runMidnightUpdate() {
 // CITY TABS
 // =====================
 function buildCityTabs() {
-  const co = COUNTRIES[state.country];
-  if (!co) return;
-  const world = WORLD[state.country];
-  if (!world) return;
-
   const tabs = document.getElementById('city-tabs');
-  tabs.innerHTML = Object.entries(world).map(([cityId, city]) => `
-    <div class="city-tab ${cityId === state.currentCity ? 'active' : ''}"
-      onclick="travelToCity('${cityId}')">${city.name}</div>
-  `).join('');
+  if (!tabs) return; // Supprimé de l'UI, on ne fait rien
 }
 
 function travelToCity(cityId) {
