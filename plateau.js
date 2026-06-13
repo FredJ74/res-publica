@@ -1218,16 +1218,38 @@ const PNJ_AVATAR = {
 
 function getPnjAvatar(pnj, empireColor) {
   if (pnj.photoUrl) {
-    return `<div style="width:56px;height:56px;border-radius:50%;border:2px solid ${empireColor || '#C9A84C'};overflow:hidden;flex-shrink:0">
-      <img src="${pnj.photoUrl}" alt="${pnj.name}" style="width:100%;height:100%;object-fit:cover;object-position:top"/>
-    </div>`;
+    const col = empireColor || '#C9A84C';
+    const safeName = (pnj.name || '').replace(' (PNJ)', '');
+    return '<div style="flex-shrink:0;text-align:center">' +
+      '<div onclick="ouvrirPhotoPleinEcran(this)" data-url="' + pnj.photoUrl + '" data-nom="' + safeName + '" ' +
+      'style="width:90px;height:90px;border-radius:6px;border:2px solid ' + col + ';overflow:hidden;cursor:pointer;position:relative">' +
+      '<img src="' + pnj.photoUrl + '" style="width:100%;height:100%;object-fit:cover;object-position:top"/>' +
+      '<div style="position:absolute;bottom:0;right:0;background:rgba(0,0,0,.6);padding:2px 4px;font-size:9px;color:' + col + '">🔍</div>' +
+      '</div></div>';
   }
   const av = PNJ_AVATAR[pnj.job] || PNJ_AVATAR.default;
   const col = empireColor || av.color;
-  return `<div style="width:56px;height:56px;border-radius:50%;border:2px solid ${col};background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-    <i class="ti ${av.icon}" style="font-size:1.4rem;color:${col}"></i>
-  </div>`;
+  return '<div style="width:56px;height:56px;border-radius:50%;border:2px solid ' + col + ';background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+    '<i class="ti ' + av.icon + '" style="font-size:1.4rem;color:' + col + '"></i>' +
+    '</div>';
 }
+
+
+function ouvrirPhotoPleinEcran(el) {
+  const url = el.dataset?.url || el;
+  const nom = el.dataset?.nom || '';
+  // Créer overlay plein écran
+  const overlay = document.createElement('div');
+  overlay.id = 'photo-overlay';
+  overlay.onclick = () => overlay.remove();
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer';
+  overlay.innerHTML =
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;color:#C9A84C;margin-bottom:.8rem">' + nom.replace(' (PNJ)','') + '</div>' +
+    '<img src="' + url + '" style="max-width:90vw;max-height:85vh;object-fit:contain;border:1px solid #3a2a10"/>' +
+    '<div style="font-size:.65rem;color:#4a4030;margin-top:.6rem">Cliquer pour fermer</div>';
+  document.body.appendChild(overlay);
+}
+
 
 function openPnjModal(encodedPnj) {
   let pnj;
