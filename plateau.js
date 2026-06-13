@@ -243,23 +243,17 @@ function buildCityTabs() {
 
 function travelToCity(cityId) {
   if (cityId === state.currentCity) {
-    // Meme ville mais forcer le rendu quand meme
     forceRenderCity(cityId);
     return;
   }
-  const isSameCountry = true;
-  const cost = isSameCountry ? 2 : 5;
-  if (!TEST_MODE && state.pa < cost) {
-    showToast('PA insuffisants', `Le voyage coute ${cost} PA.`, false);
+  // Villes spéciales (caserne, QHS) — accès conditionné sur place, pas depuis la carte
+  const specialCities = ['caserne', 'qhs'];
+  if (specialCities.includes(cityId)) {
+    showToast('Accès restreint', 'Cette zone n\'est accessible que via un taxi depuis le centre multinodal.', false);
     return;
   }
-  if (!TEST_MODE) state.pa -= cost;
-
-  state.currentCity = cityId;
-  state.currentBuilding = null;
-  state.currentRoom = null;
-  forceRenderCity(cityId);
-  addJournalEntry(`Vous arrivez a ${WORLD[state.country]?.[cityId]?.name || cityId}.`, 'event-info');
+  // Voyage inter-villes bloqué — doit passer par le centre multinodal
+  showToast('Transport requis', 'Pour voyager entre les villes, rendez-vous au Centre Multinodal.', false);
 }
 
 function forceRenderCity(cityId) {
@@ -1811,6 +1805,53 @@ Génère UN titre de scandale parodique et drôle (1 phrase). Style journal à s
     addJournalEntry('Le piege a echoue. Votre implication risque d\'etre revelee. -15 DIS.', 'event-bad');
     showToast('Piege rate !', 'La cible a evente la manoeuvre. Votre reputation est menacee.', false);
   }
+}
+
+
+// =====================
+// MINIMAP LECTURE SEULE (villes étrangères)
+// =====================
+function ouvrirMinimapLectureSeule(countryId, cityId) {
+  const co = COUNTRIES[countryId];
+  const world = WORLD[countryId];
+  const city = world?.[cityId];
+  if (!city) return;
+
+  const buildings = city.buildings || [];
+  const empireColor = co?.col || '#C9A84C';
+
+  const cardsHtml = buildings.map(id => {
+    const b = BUILDINGS[id];
+    if (!b) return '';
+    const ctx = city.buildingContext?.[id];
+    const localName = ctx?.name || b.shortName || b.name;
+    const localDesc = ctx?.desc || b.desc || '';
+    const pnjList = ctx?.persons || Object.values(b.rooms || {}).flatMap(r => r.persons || []);
+    const pnjHtml = pnjList.slice(0,3).map(p =>
+      '<span style="font-size:.68rem;color:#8a8060">· ' + (p.name||'').replace(' (PNJ)','') + '</span>'
+    ).join('<br>');
+
+    return '<div style="display:flex;gap:.6rem;align-items:flex-start;padding:.5rem .8rem;border-bottom:1px solid #1a1810;cursor:default">' +
+      '<div style="width:28px;height:28px;border-radius:4px;background:#0a0a07;border:1px solid #2a2010;display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+        '<i class="ti ' + b.icon + '" style="font-size:.75rem;color:' + empireColor + '"></i>' +
+      '</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:.78rem;color:#f0ead6;margin-bottom:.1rem">' + localName + '</div>' +
+        '<div style="font-size:.68rem;color:#6a5a30;margin-bottom:.2rem">' + localDesc.substring(0,80) + (localDesc.length > 80 ? '...' : '') + '</div>' +
+        (pnjHtml ? '<div>' + pnjHtml + '</div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('postes-modal-title').textContent =
+    city.name + ' — ' + co?.n + ' (lecture seule)';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.5rem .8rem;font-size:.72rem;color:#8a3a20;border-bottom:1px solid #2a1010;margin-bottom:.2rem">' +
+      '<i class="ti ti-lock" style="font-size:.7rem"></i> ' +
+      'Vous ne pouvez pas vous rendre ici sans passer par l\'aeroport ou le port.' +
+    '</div>' +
+    cardsHtml;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 // =====================

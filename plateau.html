@@ -110,11 +110,19 @@
       <div class="stat-mini-grid" id="stat-mini-grid"></div>
     </div>
 
-    <!-- INVENTAIRE -->
-    <div class="panel-title" style="cursor:pointer" onclick="toggleInventaire()">
-      INVENTAIRE <i class="ti ti-chevron-down" id="inv-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
+    <!-- LOCATION -->
+    <div class="panel-title">LOCALISATION</div>
+    <div class="location-info">
+      <div class="loc-city" id="loc-city">Luthecia, Capitale</div>
+      <div class="loc-name" id="loc-name">La rue</div>
+      <div class="loc-sub" id="loc-sub">Selectionnez un batiment</div>
     </div>
-    <div id="inventaire-panel">
+
+    <!-- INVENTAIRE (fermé par défaut) -->
+    <div class="panel-title" style="cursor:pointer" onclick="toggleInventaire()">
+      INVENTAIRE <i class="ti ti-chevron-right" id="inv-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
+    </div>
+    <div id="inventaire-panel" style="display:none">
       <div class="inv-section">
         <div class="inv-label">Argent liquide</div>
         <div class="inv-val" id="inv-liquide">500 FR</div>
@@ -126,14 +134,6 @@
       <div class="inv-items" id="inv-items">
         <div class="inv-item-empty">Aucun objet</div>
       </div>
-    </div>
-
-    <!-- LOCATION -->
-    <div class="panel-title">LOCALISATION</div>
-    <div class="location-info">
-      <div class="loc-city" id="loc-city">Luthecia, Capitale</div>
-      <div class="loc-name" id="loc-name">La rue</div>
-      <div class="loc-sub" id="loc-sub">Selectionnez un batiment</div>
     </div>
 
     <!-- EMPLOYES -->
@@ -151,7 +151,6 @@
     <!-- Vue RUE (defaut) -->
     <div id="vue-rue" class="vue active">
       <div class="city-header">
-        <div class="city-tabs" id="city-tabs"></div>
         <div class="city-name-display" id="city-name-display">Luthecia, Capitale de Republia</div>
         <div class="game-time-display">
           <i class="ti ti-clock" style="font-size:.7rem;vertical-align:-1px"></i>

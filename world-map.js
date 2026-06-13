@@ -354,20 +354,13 @@ function renderWorldMapSVG() {
 }
 
 function mapClickCity(countryId, cityId) {
-  // Si meme pays, voyage direct dans la ville
   if (countryId === state.country) {
-    closeWorldMap();
-    travelToCity(cityId);
+    // Même empire — voyage via transport uniquement
+    const city = WORLD[countryId]?.[cityId];
+    showToast('Transport requis', `Pour aller à ${city?.name || cityId}, utilisez le Centre Multinodal.`, false);
   } else {
-    // Voyage inter-empire interdit depuis la carte — afficher infos seulement
-    const co = COUNTRIES[countryId];
-    const world = WORLD[countryId];
-    const city = world?.[cityId];
-    showToast(
-      city?.name || cityId,
-      `${co?.n || countryId} — Utilisez l'aéroport ou le port pour vous y rendre.`,
-      false
-    );
+    // Empire étranger — afficher minimap en lecture seule
+    ouvrirMinimapLectureSeule(countryId, cityId);
   }
 }
 
