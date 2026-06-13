@@ -49,6 +49,18 @@ window.addEventListener('DOMContentLoaded', () => {
   startClock();
   // Init Supabase
   if (typeof sbInit === 'function') sbInit();
+  // Météo politique et événement aléatoire au chargement
+  setTimeout(() => {
+    genererMeteoPolitique();
+    setTimeout(() => genererEvenementAleatoire(), 2000);
+  }, 4000);
+
+  // Météo politique et événement aléatoire au chargement
+  setTimeout(() => {
+    genererMeteoPolitique();
+    setTimeout(() => genererEvenementAleatoire(), 2000);
+  }, 4000);
+
   // Réaction journaliste au chargement (une fois par session)
   if (!sessionStorage.getItem('journaliste_done')) {
     setTimeout(() => {
@@ -746,8 +758,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
   if (fn === 'racheter_terrain')       { doRacheterTerrain(); return; }
-  if (fn === 'commanditer_sondage')    { commanderSondage(); return; }
-  if (fn === 'racheter_terrain')       { doRacheterTerrain(); return; }
+  if (fn === 'decret_inutile')         { signerDecretInutile(); return; }
   if (fn === 'commanditer_sondage')    { commanderSondage(); return; }
   if (fn === 'escort_infos')           { doEscortInfos(); return; }
   if (fn === 'escort_piege')           { doEscortPiege(); return; }
@@ -2089,6 +2100,180 @@ function ouvrirMinimapLectureSeule_old(countryId, cityId) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+
+
+// =====================
+// MÉTÉO POLITIQUE QUOTIDIENNE
+// =====================
+async function genererMeteoPolitique() {
+  if (sessionStorage.getItem('meteo_done_' + (state.day || 1))) return;
+
+  const co = COUNTRIES[state.country];
+  const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
+  const president = POSTES[state.country]?.capitale?.find(p => p.id === 'president');
+  const presidentNom = president?.holder || 'Personne';
+  const topics = (typeof FORUM_TOPICS !== 'undefined' ? (FORUM_TOPICS['local'] || []) : []).slice(0, 2).map(t => t.title).join(', ');
+
+  const prompt = 'Tu es le météorologue politique de ' + (co?.n || 'l\'empire') + ' dans Res Publica, jeu parodique. ' +
+    'Style : ' + empireStyle.tone + '. Religion : ' + empireStyle.religion + '. Chef : ' + empireStyle.leader + '. ' +
+    'Président actuel : ' + presidentNom + '. ' +
+    (topics ? 'Actualités récentes : ' + topics + '. ' : '') +
+    'Génère un bulletin météo POLITIQUE absurde et drôle pour aujourd\'hui (Jour ' + (state.day || 1) + '). ' +
+    '3 lignes max. Style bulletin météo détourné. Ex: "Risque d\'orage institutionnel au nord, prévoir parapluie et avocat." ' +
+    'Pas de vrais dieux. Répondre UNIQUEMENT avec le bulletin, sans introduction.';
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 120, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const meteo = data.content?.[0]?.text;
+    if (meteo) {
+      addJournalEntry('🌦 MÉTÉO POLITIQUE — Jour ' + (state.day || 1) + ' : ' + meteo, 'event-info');
+      sessionStorage.setItem('meteo_done_' + (state.day || 1), '1');
+    }
+  } catch(e) {}
+}
+
+// =====================
+// ÉVÉNEMENTS ALÉATOIRES
+// =====================
+const EVENEMENTS_TYPES = [
+  { id: 'scandale', label: 'Scandale', prob: 0.25 },
+  { id: 'greve', label: 'Grève surprise', prob: 0.15 },
+  { id: 'visite', label: 'Visite diplomatique', prob: 0.10 },
+  { id: 'panne', label: 'Panne administrative', prob: 0.20 },
+  { id: 'bonne_nouvelle', label: 'Bonne nouvelle', prob: 0.15 },
+  { id: 'rumeur', label: 'Rumeur persistante', prob: 0.15 },
+];
+
+async function genererEvenementAleatoire() {
+  if (sessionStorage.getItem('event_done_' + (state.day || 1))) return;
+
+  // Probabilité globale de 40% d'avoir un événement
+  if (Math.random() > 0.4) return;
+
+  const roll = Math.random();
+  let cumul = 0;
+  let type = EVENEMENTS_TYPES[0];
+  for (const e of EVENEMENTS_TYPES) {
+    cumul += e.prob;
+    if (roll <= cumul) { type = e; break; }
+  }
+
+  const co = COUNTRIES[state.country];
+  const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
+
+  const prompts = {
+    scandale: 'Génère un titre de scandale politique absurde et parodique dans ' + (co?.n || 'l\'empire') + '. Style : ' + empireStyle.tone + '. 1 phrase. Pas de vrais dieux.',
+    greve: 'Génère une annonce de grève surprise absurde dans ' + (co?.n || 'l\'empire') + '. Corps de métier inattendu. Style : ' + empireStyle.tone + '. 1 phrase.',
+    visite: 'Génère une annonce de visite diplomatique absurde dans ' + (co?.n || 'l\'empire') + '. Visiteur improbable. Style : ' + empireStyle.tone + '. 1 phrase.',
+    panne: 'Génère une annonce de panne administrative absurde dans ' + (co?.n || 'l\'empire') + '. Service inattendu en panne. Style : ' + empireStyle.tone + '. 1 phrase.',
+    bonne_nouvelle: 'Génère une bonne nouvelle politique absurde dans ' + (co?.n || 'l\'empire') + '. Style : ' + empireStyle.tone + '. 1 phrase. Religion locale : ' + empireStyle.religion + '.',
+    rumeur: 'Génère une rumeur politique absurde qui circule dans ' + (co?.n || 'l\'empire') + '. Style : ' + empireStyle.tone + '. 1 phrase.',
+  };
+
+  const emojis = { scandale: '🔥', greve: '✊', visite: '🤝', panne: '⚠️', bonne_nouvelle: '🎉', rumeur: '👂' };
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 100, messages: [{ role: 'user', content: prompts[type.id] }] })
+    });
+    const data = await resp.json();
+    const texte = data.content?.[0]?.text;
+    if (texte) {
+      const emoji = emojis[type.id] || '📢';
+      addJournalEntry(emoji + ' ' + type.label.toUpperCase() + ' : ' + texte, 'event-' + (type.id === 'bonne_nouvelle' ? 'good' : type.id === 'scandale' ? 'bad' : 'info'));
+      addExternalEvent(emoji + ' ' + texte);
+      sessionStorage.setItem('event_done_' + (state.day || 1), '1');
+    }
+  } catch(e) {}
+}
+
+// =====================
+// DÉCRETS PRÉSIDENTIELS
+// =====================
+async function signerDecretInutile() {
+  if (state.poste?.id !== 'president') {
+    showToast('Accès refusé', 'Seul le Président peut signer des décrets.', false);
+    return;
+  }
+
+  const co = COUNTRIES[state.country];
+  const cur = co?.cur || 'FR';
+  const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
+
+  const sujets = [
+    'la couleur officielle des formulaires administratifs',
+    'l\'heure légale de la sieste nationale',
+    'l\'obligation de saluer le portrait du président en entrant dans les bâtiments',
+    'la taxe sur les soupirs excessifs dans les couloirs officiels',
+    'la nomination d\'un Commissaire aux Bonnes Nouvelles',
+    'l\'interdiction des réunions se terminant sans conclusion',
+    'la journée nationale du silence administratif',
+    'l\'instauration d\'une prime à la loyauté inconditionnelle',
+    'la mise en place d\'un formulaire pour contester les formulaires',
+    'l\'obligation de finir chaque discours par une citation du Président'
+  ];
+  const sujet = sujets[Math.floor(Math.random() * sujets.length)];
+
+  document.getElementById('postes-modal-title').textContent = 'Rédaction du Décret...';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">La plume présidentielle est à l\'œuvre...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const prompt = 'Tu es le rédacteur des décrets présidentiels dans ' + (co?.n || 'l\'empire') + ', jeu parodique. ' +
+    'Style : ' + empireStyle.tone + '. Religion : ' + empireStyle.religion + '. ' +
+    'Rédige un décret présidentiel ABSURDE et PARODIQUE sur : ' + sujet + '. ' +
+    'Format : Titre officiel + Article 1 + Article 2 + Effet parodique sur la population. ' +
+    'Max 6 lignes. Très drôle. Pas de vrais dieux ni religions réelles.';
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 250, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const decret = data.content?.[0]?.text || 'Décret indisponible.';
+
+    // Effets gameplay
+    const popEffect = Math.floor(Math.random() * 20) - 5; // -5 à +15
+    const infEffect = Math.floor(Math.random() * 10) + 2;
+    state.pop = Math.max(0, Math.min(100, (state.pop || 50) + popEffect));
+    state.inf = Math.min(100, (state.inf || 0) + infEffect);
+    updateUI();
+
+    document.getElementById('postes-modal-title').textContent = '📜 Décret Présidentiel';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem">' +
+      '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.6rem;border-bottom:1px solid #2a2010;padding-bottom:.4rem">Signé par ' + (state.char?.name || 'Le Président') + ' · Jour ' + (state.day || 1) + '</div>' +
+      '<div style="font-size:.85rem;color:#c0a060;line-height:1.9;white-space:pre-line;font-family:Crimson Pro,Georgia,serif">' + decret + '</div>' +
+      '<div style="margin-top:.8rem;font-size:.72rem;color:' + (popEffect >= 0 ? '#4a8a4a' : '#8a3a2a') + '">' +
+        (popEffect >= 0 ? '+' : '') + popEffect + ' POP · +' + infEffect + ' INF</div>' +
+      '<div style="margin-top:.6rem;display:flex;gap:.5rem">' +
+      '<button onclick="publierDecret(this.dataset.txt)" data-txt="' + decret.replace(/"/g, '&quot;') + '" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-speakerphone" style="font-size:.7rem"></i> Publier</button>' +
+      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>' +
+      '</div></div>';
+
+    addJournalEntry('📜 Décret signé sur : ' + sujet + '. ' + (popEffect >= 0 ? '+' : '') + popEffect + ' POP · +' + infEffect + ' INF.', 'event-info');
+
+  } catch(e) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a3a20">Erreur de rédaction. La plume est fatiguée.</div>';
+  }
+}
+
+async function publierDecret(texte) {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (typeof sbCreateTopic === 'function') {
+    const from = state.char?.name || 'Le Président';
+    await sbCreateTopic('local', '📜 Décret Présidentiel', texte, from);
+    showToast('Décret publié !', 'Visible sur le forum national.', true);
+  }
+}
 
 // =====================
 // RACHAT DE TERRAIN ENTRE PJ
