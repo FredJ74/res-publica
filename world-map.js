@@ -36,7 +36,7 @@ function renderWorldMapSVG() {
       <!-- ===================== -->
       <!-- REPUBLIA              -->
       <!-- ===================== -->
-      <g id="empire-republic" onmouseenter="zoomEmpire('republic')" style="cursor:pointer">
+      <g id="empire-republic" onclick="zoomEmpire('republic')" style="cursor:pointer">
         <!-- Territoire principal -->
         <path d="M150,80 L320,60 L380,90 L400,180 L370,250 L300,290 L220,280 L160,240 L130,170 Z"
           fill="#0d1f35" stroke="#2a4a70" stroke-width="1.5"/>
@@ -112,7 +112,7 @@ function renderWorldMapSVG() {
       <!-- ===================== -->
       <!-- EL ESTADO             -->
       <!-- ===================== -->
-      <g id="empire-narco" onmouseenter="zoomEmpire('narco')" style="cursor:pointer">
+      <g id="empire-narco" onclick="zoomEmpire('narco')" style="cursor:pointer">
         <path d="M480,320 L620,300 L680,340 L700,430 L650,490 L550,500 L470,460 L450,390 Z"
           fill="#1a0a05" stroke="#4a2010" stroke-width="1.5"/>
         <text x="575" y="400" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="14"
@@ -182,7 +182,7 @@ function renderWorldMapSVG() {
       <!-- ===================== -->
       <!-- SOVARKA               -->
       <!-- ===================== -->
-      <g id="empire-soviet" onmouseenter="zoomEmpire('soviet')" style="cursor:pointer">
+      <g id="empire-soviet" onclick="zoomEmpire('soviet')" style="cursor:pointer">
         <path d="M480,60 L680,50 L750,100 L730,200 L660,240 L560,230 L480,200 L450,130 Z"
           fill="#0d0505" stroke="#4a1010" stroke-width="1.5"/>
         <text x="600" y="145" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="14"
@@ -252,7 +252,7 @@ function renderWorldMapSVG() {
       <!-- ===================== -->
       <!-- AL-KHALIJA            -->
       <!-- ===================== -->
-      <g id="empire-khalija" onmouseenter="zoomEmpire('khalija')" style="cursor:pointer">
+      <g id="empire-khalija" onclick="zoomEmpire('khalija')" style="cursor:pointer">
         <path d="M150,320 L320,310 L380,360 L360,460 L280,510 L180,500 L120,440 L110,370 Z"
           fill="#0d0d00" stroke="#4a3a00" stroke-width="1.5"/>
         <text x="245" y="415" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="13"
@@ -354,98 +354,27 @@ function renderWorldMapSVG() {
 }
 
 function mapClickCity(countryId, cityId) {
-  closeWorldMap();
-  // Si meme pays, voyage direct
+  // Si meme pays, voyage direct dans la ville
   if (countryId === state.country) {
+    closeWorldMap();
     travelToCity(cityId);
   } else {
-    // Voyage inter-empire
-    if (!TEST_MODE && state.pa < 5) {
-      showToast('PA insuffisants', 'Un voyage international coute 5 PA.', false);
-      return;
-    }
-    state.country = countryId;
-    state.currentCity = cityId;
-    state.currentBuilding = null;
-    state.currentRoom = null;
-    if (!TEST_MODE) state.pa -= 5;
-    buildCityTabs();
-    renderMinimap(cityId);
-    showVueRue();
-    updateUI();
+    // Voyage inter-empire interdit depuis la carte — afficher infos seulement
     const co = COUNTRIES[countryId];
     const world = WORLD[countryId];
     const city = world?.[cityId];
-    addJournalEntry(`Vous voyagez vers ${city?.name || cityId}, ${co?.n || countryId}.`, 'event-info');
+    showToast(
+      city?.name || cityId,
+      `${co?.n || countryId} — Utilisez l'aéroport ou le port pour vous y rendre.`,
+      false
+    );
   }
 }
 
 // Zoom sur un empire au survol
 let currentZoom = null;
 
-// Effet loupe - zoom suit le curseur
-let loupeActive = false;
-const LOUPE_FACTOR = 3; // Facteur de zoom
-const LOUPE_W = 300; // Largeur de la zone zoomée
-const LOUPE_H = 200; // Hauteur de la zone zoomée
-
-function initLoupe() {
-  const svg = document.getElementById('world-svg');
-  if (!svg) return;
-
-  // Remplacer onmouseenter par mousemove sur le SVG entier
-  svg.addEventListener('mousemove', onSvgMouseMove);
-  svg.addEventListener('mouseleave', onSvgMouseLeave);
-  svg.addEventListener('click', onSvgClick);
-}
-
-function getSvgCoords(evt) {
-  const svg = document.getElementById('world-svg');
-  const rect = svg.getBoundingClientRect();
-  const vb = svg.viewBox.baseVal;
-  const scaleX = vb.width / rect.width;
-  const scaleY = vb.height / rect.height;
-  return {
-    x: (evt.clientX - rect.left) * scaleX + vb.x,
-    y: (evt.clientY - rect.top) * scaleY + vb.y
-  };
-}
-
-function onSvgMouseMove(evt) {
-  const svg = document.getElementById('world-svg');
-  if (!svg) return;
-  const coords = getSvgCoords(evt);
-
-  // Calculer la viewBox zoomée centrée sur le curseur
-  const w = LOUPE_W;
-  const h = LOUPE_H;
-  let x = coords.x - w / 2;
-  let y = coords.y - h / 2;
-
-  // Garder dans les limites du SVG
-  x = Math.max(0, Math.min(900 - w, x));
-  y = Math.max(0, Math.min(600 - h, y));
-
-  svg.style.transition = 'none';
-  svg.setAttribute('viewBox', x + ' ' + y + ' ' + w + ' ' + h);
-  loupeActive = true;
-
-  // Bouton reset visible
-  const resetBtn = document.getElementById('map-reset-zoom');
-  if (resetBtn) resetBtn.style.display = 'block';
-}
-
-function onSvgMouseLeave() {
-  // Ne pas resetter au mouseleave - garder le zoom
-  // Reset seulement via le bouton
-}
-
-function onSvgClick(evt) {
-  // Le clic sur un empire est géré par les onclick des groupes SVG
-}
-
 function zoomEmpire(empireId) {
-  // Gardé pour compatibilité - maintenant utilisé au clic
   const svg = document.getElementById('world-svg');
   if (!svg) return;
 
@@ -459,10 +388,13 @@ function zoomEmpire(empireId) {
   };
 
   const box = zoomBoxes[empireId];
-  if (!box) return;
+  if (!box || currentZoom === empireId) return;
+
   currentZoom = empireId;
-  svg.style.transition = 'all .3s ease';
+  svg.style.transition = 'all .4s ease';
   svg.setAttribute('viewBox', box);
+
+  // Bouton reset zoom
   const resetBtn = document.getElementById('map-reset-zoom');
   if (resetBtn) resetBtn.style.display = 'block';
 }
@@ -473,14 +405,6 @@ function resetZoom() {
   svg.style.transition = 'all .4s ease';
   svg.setAttribute('viewBox', '0 0 900 600');
   currentZoom = null;
-  loupeActive = false;
   const resetBtn = document.getElementById('map-reset-zoom');
   if (resetBtn) resetBtn.style.display = 'none';
 }
-
-// Remplacer onmouseenter par onclick sur les empires
-// Init au chargement
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(initLoupe, 500);
-});
-
