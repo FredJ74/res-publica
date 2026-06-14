@@ -38,40 +38,18 @@
 <div id="topbar">
   <div class="logo bebas" onclick="window.location.href='index.html'" style="cursor:pointer" title="Retour accueil">Res Publica</div>
   <div class="res-bar">
-    <div class="res" title="Points d'Action - ILLIMITES EN MODE TEST">
-      <i class="ti ti-bolt res-icon" style="color:#4a8a4a"></i>
-      <div><div class="res-label">PA</div><div class="res-val" id="r-pa">∞</div></div>
-      <div class="res-bar2"><div class="res-fill pa-fill" id="b-pa" style="width:100%"></div></div>
-    </div>
-    <div class="res" title="Argent disponible (liquide + banque)">
-      <i class="ti ti-coins res-icon" style="color:#C9A84C"></i>
-      <div><div class="res-label">Argent</div><div class="res-val" id="r-arg">4 250 FR</div></div>
-    </div>
-    <div class="res" title="Influence politique">
-      <i class="ti ti-crown res-icon" style="color:#4a6aaa"></i>
-      <div><div class="res-label">Influence</div><div class="res-val" id="r-inf">25</div></div>
-      <div class="res-bar2"><div class="res-fill inf-fill" id="b-inf" style="width:25%"></div></div>
-    </div>
-    <div class="res" title="Popularite publique">
-      <i class="ti ti-speakerphone res-icon" style="color:#aa6a4a"></i>
-      <div><div class="res-label">Popularite</div><div class="res-val" id="r-pop">30</div></div>
-      <div class="res-bar2"><div class="res-fill pop-fill" id="b-pop" style="width:30%"></div></div>
-    </div>
-    <div class="res" title="Discretion - capacite d'agir sans etre detecte">
-      <i class="ti ti-eye-off res-icon" style="color:#8a4aaa"></i>
-      <div><div class="res-label">Discretion</div><div class="res-val" id="r-dis">85</div></div>
-      <div class="res-bar2"><div class="res-fill dis-fill" id="b-dis" style="width:85%"></div></div>
-    </div>
-    <div class="res" title="Sante physique">
-      <i class="ti ti-heart res-icon" style="color:#aa4a4a"></i>
-      <div><div class="res-label">Sante</div><div class="res-val" id="r-hp">92</div></div>
-      <div class="res-bar2"><div class="res-fill" id="b-hp" style="width:92%;background:#aa4a4a"></div></div>
-    </div>
-    <div class="res" title="Moral - resistance psychologique">
-      <i class="ti ti-brain res-icon" style="color:#6a8aaa"></i>
-      <div><div class="res-label">Moral</div><div class="res-val" id="r-moral">78</div></div>
-      <div class="res-bar2"><div class="res-fill" id="b-moral" style="width:78%;background:#6a8aaa"></div></div>
-    </div>
+
+    <!-- Stats cachées — mises à jour par JS, lues par updateUI -->
+    <div style="display:none" id="r-inf">25</div>
+    <div style="display:none" id="r-pop">30</div>
+    <div style="display:none" id="r-dis">85</div>
+    <div style="display:none" id="r-hp">92</div>
+    <div style="display:none" id="r-moral">78</div>
+    <div style="display:none"><div id="b-inf" style="width:25%"></div></div>
+    <div style="display:none"><div id="b-pop" style="width:30%"></div></div>
+    <div style="display:none"><div id="b-dis" style="width:85%"></div></div>
+    <div style="display:none"><div id="b-hp" style="width:92%"></div></div>
+    <div style="display:none"><div id="b-moral" style="width:78%"></div></div>
   </div>
   <div class="top-right">
     <button class="forum-btn" onclick="ouvrirIndicesImperiaux()" title="Indices des 4 empires" style="white-space:nowrap;font-size:.65rem;letter-spacing:.08em">
@@ -119,6 +97,31 @@
       <div class="char-archetype" id="char-arch-left">Archetype &middot; Empire</div>
       <div class="stat-mini-grid" id="stat-mini-grid"></div>
     </div>
+    <!-- PA et Argent sous l'avatar -->
+    <div style="display:flex;gap:.4rem;margin:.4rem 0;padding:0 .2rem">
+      <div style="flex:1;background:#0a0a07;border:1px solid #2a1a08;border-radius:3px;padding:.3rem .5rem;text-align:center">
+        <div style="font-size:.58rem;color:#4a8a4a;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em">PA</div>
+        <div style="font-size:.85rem;color:#6ada6a;font-family:'Bebas Neue',sans-serif" id="r-pa">∞</div>
+        <div style="height:3px;background:#1a2a1a;border-radius:2px;margin-top:2px">
+          <div id="b-pa" style="height:100%;background:#4a8a4a;border-radius:2px;width:100%"></div>
+        </div>
+      </div>
+      <div style="flex:1;background:#0a0a07;border:1px solid #2a1a08;border-radius:3px;padding:.3rem .5rem;text-align:center">
+        <div style="font-size:.58rem;color:#C9A84C;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em">ARGENT</div>
+        <div style="font-size:.75rem;color:#C9A84C;font-family:'Bebas Neue',sans-serif" id="r-arg">4 250 FR</div>
+      </div>
+    </div>
+
+    <!-- BOUTON STATS -->
+    <button onclick="ouvrirStatsPerso()" style="width:100%;margin:.3rem 0;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.35rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem">
+      <i class="ti ti-chart-bar" style="font-size:.75rem"></i> Mes Statistiques
+    </button>
+
+    <!-- LOCATION -->
+    <!-- BOUTON STATS -->
+    <button onclick="ouvrirStatsPerso()" style="width:100%;margin:.3rem 0;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.35rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem">
+      <i class="ti ti-chart-bar" style="font-size:.75rem"></i> Mes Statistiques
+    </button>
 
     <!-- LOCATION -->
     <div class="panel-title">LOCALISATION</div>
