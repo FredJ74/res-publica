@@ -415,6 +415,25 @@ function enterBuilding(buildingId) {
   // Générer PNJ aléatoire si terrain à bâtir
   if (buildingId?.startsWith('terrain-a-batir')) {
     chargerPnjTerrain(buildingId);
+    // Le PNJ est maintenant dans sessionStorage — forcer re-rendu après
+    setTimeout(() => {
+      if (state.currentRoom && state.currentBuilding === buildingId) {
+        const room = BUILDINGS[buildingId]?.rooms?.[state.currentRoom];
+        if (room) {
+          let persons = [...(room.persons || [])];
+          const stored = sessionStorage.getItem('terrain_pnj_' + buildingId);
+          if (stored) {
+            try {
+              const pnjTerrain = JSON.parse(stored);
+              if (pnjTerrain.name && !persons.find(p => p.name === pnjTerrain.name)) {
+                persons = [...persons, pnjTerrain];
+              }
+            } catch(e) {}
+          }
+          renderPersonsList(persons);
+        }
+      }
+    }, 100);
   }
   document.getElementById('vue-rue').classList.remove('active');
   document.getElementById('vue-batiment').classList.add('active');
@@ -1397,6 +1416,15 @@ function openPnjModal(encodedPnj) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }
   catch(e) { return; }
+
+  // Cadavre — photo plein écran uniquement, pas de dialogue
+  if (pnj.terrainPnjId === 'cadavre') {
+    ouvrirPhotoCadavre(JSON.stringify({
+      photoUrl: pnj.photoUrl, photoPos: pnj.photoPos,
+      role: pnj.role, trait: pnj.trait
+    }));
+    return;
+  }
 
   const isPJ = pnj.isPJ === true;
   document.getElementById('modal-pnj').classList.add('open');
