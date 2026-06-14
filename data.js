@@ -2805,6 +2805,7 @@ const TERRAIN_PNJ_PROFILES = {
     { id:'agent',       name:'Yasmine Al-Vente',      role:'Agente immobilière',     job:'commercant',  rel:'neutral', prob:0.20, agressif:false,
       trait:'Élégante, efficace, commission à 15%. Connaît tous les membres influents de la cour.' },
     { id:'squatter_cool',name:'Famille Al-Bédouin',  role:'Bédouins de passage',    job:'citoyen',     rel:'ally',    prob:0.06, agressif:false,
+      photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bedouin-khalija.png', photoPos: '45% 25%',
       trait:'Campent ici depuis des générations. Très hospitaliers. Offrent du thé et des dattes. Bougent si on leur demande poliment.' },
     { id:'squatter_agr', name:'Clan Al-Résistant',   role:'Bédouins territoriaux',  job:'citoyen',     rel:'enemy',   prob:0.03, agressif:true,
       trait:'Ce terrain appartient à leur clan depuis 400 ans. Ils ont des arguments historiques et des épées.' },

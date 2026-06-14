@@ -2265,6 +2265,123 @@ function ouvrirBureauDeVoteBtn(el) { ouvrirBureauDeVote(el.dataset.poste, el.dat
 function deposerCandidatureBtn(el) { deposerCandidature(el.dataset.poste, el.dataset.country, state.currentCity); }
 function fermerModalPostes() { document.getElementById('modal-postes').classList.remove('open'); }
 
+
+// =====================
+// CALENDRIER ÉLECTORAL
+// =====================
+function ouvrirCalendrierElectoral() {
+  const country = state.country;
+  const co = COUNTRIES[country];
+  const now = Date.now();
+  const semaine = 7 * 24 * 60 * 60 * 1000;
+
+  const formatDate = ts => {
+    const d = new Date(ts);
+    return d.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' }) +
+      ' à ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  };
+
+  const diffJours = ts => {
+    const diff = ts - now;
+    if (diff < 0) return '<span style="color:#8a3a2a">Passé</span>';
+    const j = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    if (j > 0) return '<span style="color:#4a8a4a">Dans ' + j + 'j ' + h + 'h</span>';
+    return '<span style="color:#C9A84C">Dans ' + h + 'h</span>';
+  };
+
+  const postes = [
+    ...POSTES_ELECTIFS.national,
+    ...POSTES_ELECTIFS.departemental,
+    ...POSTES_ELECTIFS.local
+  ];
+
+  // Initialiser les cycles manquants
+  if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
+  postes.forEach(p => {
+    if (!CYCLES_ELECTORAUX[country][p.id]) initCycleElectoral(country, p.id);
+  });
+
+  const lignes = postes.map(p => {
+    const cycle = CYCLES_ELECTORAUX[country][p.id];
+    const phase = getPhaseActuelle(country, p.id);
+    const nbCandidats = cycle?.candidats?.length || 0;
+    const titulaire = cycle?.eluId || (state.postes?.[country]?.[p.id]) || null;
+
+    const phaseStyle = {
+      [PHASES_ELECTORALES.CANDIDATURES]: { col: '#4a6aaa', label: 'Candidatures' },
+      [PHASES_ELECTORALES.CAMPAGNE]:     { col: '#aa8a4a', label: 'Campagne' },
+      [PHASES_ELECTORALES.VOTE]:         { col: '#4a8a4a', label: '🗳 Vote' },
+      [PHASES_ELECTORALES.SECOND_TOUR]:  { col: '#8a6a4a', label: 'Campagne 2nd tour' },
+      [PHASES_ELECTORALES.VOTE2]:        { col: '#4a8a4a', label: '🗳 2nd tour' },
+      [PHASES_ELECTORALES.VACANT]:       { col: '#8a3a2a', label: 'Vacant' },
+    }[phase] || { col: '#6a5a30', label: '?' };
+
+    // Prochaines échéances
+    const echeances = [];
+    if (cycle) {
+      if (cycle.dateDebutCandidatures && cycle.dateDebutCandidatures > now)
+        echeances.push({ label: 'Ouverture candidatures', date: cycle.dateDebutCandidatures });
+      if (cycle.dateDebutCampagne && cycle.dateDebutCampagne > now)
+        echeances.push({ label: 'Début campagne', date: cycle.dateDebutCampagne });
+      if (cycle.dateVote && cycle.dateVote > now)
+        echeances.push({ label: '🗳 Vote', date: cycle.dateVote });
+      if (cycle.dateResultats && cycle.dateResultats > now)
+        echeances.push({ label: 'Résultats', date: cycle.dateResultats });
+    }
+    const prochaine = echeances.length > 0 ? echeances[0] : null;
+
+    return '<div style="padding:.6rem .4rem;border-bottom:1px solid #1a1810">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem">' +
+        '<div>' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#c0b090">' + p.name + '</div>' +
+          '<div style="font-size:.65rem;color:#6a5a30">' +
+            (titulaire ? '✦ ' + titulaire : 'Poste vacant') +
+          '</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:.68rem;font-family:Bebas Neue,sans-serif;color:' + phaseStyle.col + ';letter-spacing:.06em">' + phaseStyle.label + '</div>' +
+          '<div style="font-size:.62rem;color:#4a4030">' + nbCandidats + ' candidat(s)</div>' +
+        '</div>' +
+      '</div>' +
+      // Échéances
+      (echeances.length > 0
+        ? '<div style="background:#0a0907;border:1px solid #1a1810;border-radius:3px;padding:.35rem .5rem;margin-top:.3rem">' +
+          echeances.slice(0,3).map(e =>
+            '<div style="display:flex;justify-content:space-between;font-size:.65rem;margin-bottom:.15rem">' +
+              '<span style="color:#8a8060">' + e.label + '</span>' +
+              '<span>' + diffJours(e.date) + ' <span style="color:#4a4030">(' + formatDate(e.date) + ')</span></span>' +
+            '</div>'
+          ).join('') +
+          '</div>'
+        : '') +
+      // Boutons action
+      '<div style="display:flex;gap:.4rem;margin-top:.4rem">' +
+        '<button onclick="ouvrirBureauDeVoteBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" style="font-size:.62rem;font-family:Bebas Neue,sans-serif;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">Détails →</button>' +
+        (phase === PHASES_ELECTORALES.CANDIDATURES
+          ? '<button onclick="deposerCandidatureBtn2Btn(this)" data-poste="' + p.id + '" data-country="' + country + '" style="font-size:.62rem;font-family:Bebas Neue,sans-serif;padding:.2rem .5rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer">📋 Candidater</button>'
+          : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('postes-modal-title').textContent = '📅 Calendrier Électoral — ' + (co?.n || country);
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.2rem .4rem">' +
+    '<div style="font-size:.65rem;color:#4a4030;padding:.3rem .4rem;margin-bottom:.3rem;font-style:italic">' +
+      'Mandat : 5-6 semaines · Candidatures : J-7 avant campagne · Second tour si aucun candidat ne dépasse 50%+1' +
+    '</div>' +
+    lignes +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function deposerCandidatureBtn2Btn(el) { deposerCandidatureBtn2(el.dataset.poste, el.dataset.country); }
+function deposerCandidatureBtn2(posteId, country) {
+  fermerModalPostes();
+  deposerCandidature(posteId, country, state.currentCity);
+}
+
 // =====================
 // MOTEUR ÉLECTORAL
 // =====================
