@@ -141,7 +141,7 @@ const WORLD = {
         'la-tribune': {
           name: "L'Autruche Entravée",
           desc: "Le journal d'investigation de Républia.",
-          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png"}]
+          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png", "photoPos": "62% 20%"}]
         },
         'loge-maconnique': {
           name: "Loge Maçonnique de Luthecia",
@@ -161,7 +161,7 @@ const WORLD = {
         'marche': {
           name: "Marché Central de Luthecia",
           desc: "Marcel Bidoche vend de la viande et des informations. Ginette Légume sait tout sur tout le monde. Jodie Moitout tend son micro à n'importe qui.",
-          persons: [{"name": "Jean-Pierre Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-bidoche.png"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ginette-legume.png"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png"}]
+          persons: [{"name": "Jean-Pierre Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-bidoche.png", "photoPos": "65% 30%"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ginette-legume.png", "photoPos": "65% 25%"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png", "photoPos": "62% 20%"}]
         }
       }
     },
@@ -200,7 +200,7 @@ const WORLD = {
         'marche': {
           name: "Marché du Port",
           desc: "Poissons frais, rumeurs fraîches.",
-          persons: [{"name": "Marinette Hareng (PNJ)", "role": "Poissonnière", "rel": "neutral", "job": "commercant", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marinette-hareng.png"}]
+          persons: [{"name": "Marinette Hareng (PNJ)", "role": "Poissonnière", "rel": "neutral", "job": "commercant", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marinette-hareng.png", "photoPos": "65% 35%"}]
         }
       }
     },
