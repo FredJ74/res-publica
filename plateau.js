@@ -806,7 +806,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
-  if (fn === 'racheter_terrain')       { doRacheterTerrain(); return; }
+  if (fn === 'verifier_terrain')        { doVerifierTerrain(); return; }
+  if (fn === 'appeler_police_terrain')  { doAppelerPoliceTerrain(); return; }
+  if (fn === 'faire_disparaitre_cadavre') { doFaireDisparaitreCadavre(); return; }
+  if (fn === 'negocier_squatteurs')     { doNegocierSquatteurs(); return; }
+  if (fn === 'signer_compromis')        { doSignerCompromis(); return; }
+  if (fn === 'acheter_terrain')         { doAcheterTerrain(); return; }
+  if (fn === 'racheter_terrain')        { doRacheterTerrain(); return; }
   if (fn === 'decret_inutile')         { signerDecretInutile(); return; }
   if (fn === 'elections_tableau')      { ouvrirTableauElectoral(); return; }
   if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
@@ -3514,21 +3520,315 @@ function soudoyerGardienTerrain(montant) {
 // Appeler au chargement d'un terrain
 function chargerPnjTerrain(buildingId) {
   if (!buildingId?.startsWith('terrain-a-batir')) return;
-  const pnj = genererPnjTerrain(buildingId);
-  if (!pnj) return; // Terrain vide
 
-  // Injecter le PNJ dans la liste des personnes présentes
-  const pnjObj = {
-    name: pnj.name + ' (PNJ)',
-    role: pnj.role,
-    job: pnj.job,
-    rel: pnj.rel,
-    trait: pnj.trait,
-    terrainPnjId: pnj.id
-  };
+  // Vérifier si état persistant existe déjà
+  const ts = getTerrainState(buildingId);
 
-  // Stocker pour la session (même PNJ pendant toute la visite)
-  sessionStorage.setItem('terrain_pnj_' + buildingId, JSON.stringify(pnjObj));
+  // Si police est intervenue, vider le PNJ
+  if (ts.policeInterventionAt && Date.now() > ts.policeInterventionAt && ts.pnj) {
+    setTerrainState(buildingId, { pnj: null, pnjData: null, policeAppellee: null, policeInterventionAt: null });
+    sessionStorage.removeItem('terrain_pnj_' + buildingId);
+    showToast('Terrain libéré', 'La police est intervenue.', true);
+    return;
+  }
+
+  // Utiliser le PNJ persistant si disponible
+  if (ts.pnjData) {
+    sessionStorage.setItem('terrain_pnj_' + buildingId, JSON.stringify({
+      name: ts.pnjData.name + ' (PNJ)',
+      role: ts.pnjData.role,
+      job: ts.pnjData.job,
+      rel: ts.pnjData.rel,
+      trait: ts.pnjData.trait,
+      photoUrl: ts.pnjData.photoUrl,
+      photoPos: ts.pnjData.photoPos,
+      terrainPnjId: ts.pnjData.id
+    }));
+    return;
+  }
+
+  // Pas encore de PNJ généré — attendre l'inspection
+  sessionStorage.removeItem('terrain_pnj_' + buildingId);
+}
+
+
+// =====================
+// GESTION TERRAIN — HIÉRARCHIE DES ORDRES
+// =====================
+
+// État persistant des terrains (Supabase + localStorage)
+function getTerrainState(buildingId) {
+  const key = 'terrain_state_' + state.country + '_' + buildingId;
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : {};
+  } catch(e) { return {}; }
+}
+
+function setTerrainState(buildingId, updates) {
+  const key = 'terrain_state_' + state.country + '_' + buildingId;
+  const current = getTerrainState(buildingId);
+  const newState = { ...current, ...updates };
+  try { localStorage.setItem(key, JSON.stringify(newState)); } catch(e) {}
+
+  // Synchroniser avec Supabase si disponible
+  if (typeof sbSetTerrainState === 'function') {
+    sbSetTerrainState(state.country, buildingId, newState).catch(() => {});
+  }
+  return newState;
+}
+
+// Vérifier si un ordre terrain est disponible selon l'état du terrain
+function terrainOrdreDisponible(fn, buildingId) {
+  const ts = getTerrainState(buildingId);
+  const pnj = ts.pnj; // PNJ persistant sur ce terrain
+
+  // Ordres bloqués si cadavre présent
+  if (pnj === 'cadavre') {
+    const bloques = ['signer_compromis', 'permis_construire', 'permis_corrompu', 'acheter_terrain'];
+    if (bloques.includes(fn)) return { ok: false, raison: 'Un cadavre bloque les démarches administratives. Résolvez la situation d\'abord.' };
+  }
+
+  // Ordres bloqués si squatteurs présents
+  if (pnj === 'squatter_agr' || pnj === 'squatter_cool') {
+    if (fn === 'signer_compromis') return { ok: false, raison: 'Des squatteurs occupent le terrain. Faites intervenir la police ou négociez leur départ.' };
+  }
+
+  // Ordre cadavre seulement si cadavre présent
+  if (fn === 'faire_disparaitre_cadavre' && pnj !== 'cadavre')
+    return { ok: false, raison: 'Aucun cadavre sur ce terrain.' };
+
+  // Ordre négociation seulement si squatteurs présents
+  if (fn === 'negocier_squatteurs' && pnj !== 'squatter_agr' && pnj !== 'squatter_cool')
+    return { ok: false, raison: 'Aucun squatteur à négocier.' };
+
+  // Compromis requis avant permis
+  if (fn === 'permis_construire' || fn === 'permis_corrompu') {
+    if (!ts.compromis) return { ok: false, raison: 'Signez d\'abord un compromis de vente.' };
+  }
+
+  return { ok: true };
+}
+
+// Inspecter le terrain — déclenche la génération du PNJ persistant
+function doVerifierTerrain() {
+  const id = state.currentBuilding;
+  let ts = getTerrainState(id);
+
+  if (!ts.pnj) {
+    // Générer et persister le PNJ
+    const pnjObj = genererPnjTerrain(id);
+    ts = setTerrainState(id, {
+      pnj: pnjObj ? pnjObj.id : null,
+      pnjData: pnjObj || null,
+      dateGeneration: Date.now()
+    });
+    // Mettre à jour le sessionStorage aussi pour l'affichage
+    if (pnjObj) {
+      sessionStorage.setItem('terrain_pnj_' + id, JSON.stringify({
+        name: pnjObj.name + ' (PNJ)', role: pnjObj.role, job: pnjObj.job,
+        rel: pnjObj.rel, trait: pnjObj.trait, terrainPnjId: pnjObj.id,
+        photoUrl: pnjObj.photoUrl, photoPos: pnjObj.photoPos
+      }));
+    } else {
+      sessionStorage.removeItem('terrain_pnj_' + id);
+    }
+  }
+
+  const pnj = ts.pnjData;
+  if (!pnj) {
+    addJournalEntry('Terrain inspecté. Rien à signaler.', 'event-info');
+    showToast('Terrain libre', 'Aucun obstacle. Vous pouvez procéder aux démarches.', true);
+  } else {
+    addJournalEntry('Terrain inspecté. ' + (pnj.role || 'Présence') + ' détectée.', 'event-info');
+    showToast(pnj.role || 'Obstacle détecté', pnj.trait || '', pnj.rel !== 'enemy');
+  }
+
+  // Recharger la liste des personnes
+  const room = BUILDINGS[id]?.rooms?.[state.currentRoom];
+  if (room) renderPersonsList(room.persons || []);
+}
+
+// Appeler la police sur un terrain
+function doAppelerPoliceTerrain() {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30 };
+  const isn = indices.ISN || 30;
+
+  // Délai selon ISN
+  const delaiH = Math.max(1, Math.round(72 - isn * 0.5));
+  const pnj = ts.pnjData;
+
+  addJournalEntry('Police appelée sur le terrain. Intervention prévue dans ' + delaiH + 'h.', 'event-info');
+  showToast('Police alertée', 'Intervention dans ' + delaiH + 'h. Le terrain sera libéré.', true);
+
+  // Programmer la résolution
+  setTerrainState(id, {
+    policeAppellee: Date.now(),
+    policeInterventionAt: Date.now() + delaiH * 3600000
+  });
+}
+
+// Faire disparaître le cadavre
+function doFaireDisparaitreCadavre() {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30, ID: 40 };
+  const isn = indices.ISN || 30;
+  const id_idx = indices.ID || 40;
+
+  const dis = state.dis || 50;
+  const cha = state.char?.stats?.CHA || 8;
+  const taux = Math.min(75, Math.floor(dis/2 + cha/2) - Math.floor(isn/5));
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    // Succès — cadavre disparu
+    const prescriptionJours = Math.max(7, Math.round(id_idx * 0.6));
+    setTerrainState(id, {
+      pnj: null, pnjData: null,
+      cadavreDisparuAt: Date.now(),
+      prescriptionAt: Date.now() + prescriptionJours * 86400000,
+      actesIllegaux: [...(ts.actesIllegaux || []), {
+        type: 'cadavre_dissimule',
+        auteur: state.char?.name,
+        date: Date.now(),
+        prescriptionAt: Date.now() + prescriptionJours * 86400000
+      }]
+    });
+    sessionStorage.removeItem('terrain_pnj_' + id);
+    state.dis = Math.max(0, (state.dis || 50) - 5);
+    updateUI();
+    addJournalEntry('Cadavre dissimulé avec succès. Jet ' + roll + '/' + taux + '%. Prescription dans ' + prescriptionJours + ' jours.', 'event-good');
+    showToast('Cadavre dissimulé !', 'Terrain libre. Prescription dans ' + prescriptionJours + ' jours. -5 DIS.', true);
+  } else {
+    // Échec — garde à vue
+    state.dis = Math.max(0, (state.dis || 50) - 20);
+    state.hp = Math.max(0, (state.hp || 100) - 5);
+    updateUI();
+    addJournalEntry('Flagrant délit ! Garde à vue de 24h. Jet ' + roll + '/' + taux + '%. -20 DIS · -5 HP.', 'event-bad');
+    showToast('Arrêté !', 'Garde à vue 24h. -20 DIS · -5 HP. (Jet ' + roll + '/' + taux + '%)', false);
+    // Bloquer le joueur 24h
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ type: 'suspicion_cadavre', terrain: id, debut: Date.now(), fin: Date.now() + 86400000 });
+    addExternalEvent('🚨 ' + (state.char?.name) + ' a été arrêté pour suspicion de dissimulation de cadavre à ' + (WORLD[state.country]?.[state.currentCity]?.name || 'la ville') + '.');
+  }
+}
+
+// Négocier avec les squatteurs
+function doNegocierSquatteurs() {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const pnj = ts.pnjData;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  const minMontant = pnj?.id === 'squatter_agr' ? 500 : 0;
+
+  document.getElementById('postes-modal-title').textContent = 'Négocier le départ';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.6rem;font-style:italic">"' + (pnj?.trait || '') + '"</div>' +
+    (minMontant > 0 ? '<div style="font-size:.7rem;color:#8a3a2a;margin-bottom:.5rem">Ces squatteurs refuseront toute offre inférieure à ' + minMontant + ' ' + cur + '.</div>' : '') +
+    '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">Chaque 100 ' + cur + ' supplémentaires améliorent vos chances de +1%.</div>' +
+    '<input id="negoc-montant" type="number" min="' + minMontant + '" step="100" placeholder="Montant proposé..." ' +
+    'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
+    '<button onclick="confirmerNegociation()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Négocier</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerNegociation() {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const pnj = ts.pnjData;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const montant = parseInt(document.getElementById('negoc-montant')?.value || 0);
+  const indices = INDICES_NATIONAUX?.[state.country] || { IS: 45 };
+  const is = indices.IS || 45;
+
+  if (!montant || montant < (pnj?.id === 'squatter_agr' ? 500 : 0)) {
+    showToast('Montant insuffisant', 'Les squatteurs refusent.', false);
+    return;
+  }
+  if (state.arg < montant) {
+    showToast('Fonds insuffisants', 'Vous n\'avez pas ' + montant + ' ' + cur + '.', false);
+    return;
+  }
+
+  const cha = state.char?.stats?.CHA || 8;
+  const bonusArgent = Math.min(40, Math.floor(montant / 100));
+  const taux = Math.min(80, Math.floor(cha * 3 + is / 5) + bonusArgent);
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  state.arg -= montant;
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (roll <= taux) {
+    setTerrainState(id, { pnj: null, pnjData: null });
+    sessionStorage.removeItem('terrain_pnj_' + id);
+    updateUI();
+    addJournalEntry('Squatteurs convaincus pour ' + montant + ' ' + cur + '. Jet ' + roll + '/' + taux + '%.', 'event-good');
+    showToast('Terrain libéré !', 'Les squatteurs sont partis. -' + montant + ' ' + cur, true);
+  } else {
+    updateUI();
+    addJournalEntry('Négociation échouée. ' + montant + ' ' + cur + ' perdus. Jet ' + roll + '/' + taux + '%.', 'event-bad');
+    showToast('Refus !', 'Ils ont pris l\'argent mais restent. -' + montant + ' ' + cur, false);
+  }
+}
+
+// Signer un compromis de vente
+function doSignerCompromis() {
+  const id = state.currentBuilding;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  const dispo = terrainOrdreDisponible('signer_compromis', id);
+  if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
+
+  setTerrainState(id, {
+    compromis: true,
+    compromisAt: Date.now(),
+    compromisExpireAt: Date.now() + 7 * 86400000
+  });
+  state.arg -= 500;
+  updateUI();
+  addJournalEntry('Compromis de vente signé pour 500 ' + cur + '. Valable 7 jours.', 'event-good');
+  showToast('Compromis signé !', 'Terrain réservé 7 jours. -500 ' + cur, true);
+}
+
+// Acheter le terrain (modifié pour tenir compte du permis)
+function doAcheterTerrain() {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const b = BUILDINGS[id];
+  const localName = b?.shortName || b?.name || id;
+
+  const dispo = terrainOrdreDisponible('acheter_terrain', id);
+  if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
+
+  const prix = 5000;
+  if (state.arg < prix) { showToast('Fonds insuffisants', prix + ' ' + cur + ' requis.', false); return; }
+
+  state.arg -= prix;
+  if (!state.terrainsAchetes) state.terrainsAchetes = {};
+  state.terrainsAchetes[id] = state.char?.name;
+
+  const aPermis = ts.permis;
+  setTerrainState(id, {
+    proprietaire: state.char?.name,
+    acheteAt: Date.now(),
+    constructionAutorisee: !!aPermis
+  });
+
+  updateUI();
+  if (!aPermis) {
+    addJournalEntry('Terrain ' + localName + ' acheté pour ' + prix + ' ' + cur + '. SANS permis — construction bloquée jusqu\'autorisation du maire.', 'event-info');
+    showToast('Terrain acheté !', 'Sans permis : construction bloquée. Demandez l\'autorisation au maire.', true);
+  } else {
+    addJournalEntry('Terrain ' + localName + ' acheté pour ' + prix + ' ' + cur + '. Permis valide.', 'event-good');
+    showToast('Terrain acheté !', 'Avec permis. Construction autorisée.', true);
+  }
 }
 
 // =====================
