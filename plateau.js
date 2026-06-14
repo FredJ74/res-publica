@@ -805,7 +805,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
-  if (fn === 'verifier_terrain')        { doVerifierTerrain(); return; }
   if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(); return; }
   if (fn === 'appeler_police_terrain')  { doAppelerPoliceTerrain(); return; }
   if (fn === 'expulsion_legale')        { doExpulsionLegale(); return; }
@@ -3990,6 +3989,24 @@ async function publierDecret(texte) {
 }
 
 
+
+function ouvrirPhotoCadavre(jsonStr) {
+  try {
+    const pnj = JSON.parse(jsonStr);
+    const overlay = document.createElement('div');
+    overlay.onclick = () => overlay.remove();
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer';
+    const photoHtml = pnj.photoUrl
+      ? '<img src="' + pnj.photoUrl + '" style="max-width:85vw;max-height:70vh;object-fit:contain;border:1px solid #3a2a10;margin-bottom:.8rem"/>'
+      : '<div style="font-size:4rem;margin-bottom:.8rem">💀</div>';
+    overlay.innerHTML = photoHtml +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.12em;color:#8a3a2a;margin-bottom:.4rem">' + (pnj.role || 'Cadavre') + '</div>' +
+      '<div style="font-size:.78rem;color:#6a5a30;font-style:italic;max-width:400px;text-align:center;padding:0 1rem">' + (pnj.trait || '') + '</div>' +
+      '<div style="font-size:.62rem;color:#3a3020;margin-top:1rem">Cliquer pour fermer</div>';
+    document.body.appendChild(overlay);
+  } catch(e) {}
+}
+
 // =====================
 // PNJ ALÉATOIRES SUR LES TERRAINS
 // =====================
@@ -4191,8 +4208,18 @@ function chargerPnjTerrain(buildingId) {
     return;
   }
 
-  // Pas encore de PNJ généré — attendre l'inspection
-  sessionStorage.removeItem('terrain_pnj_' + buildingId);
+  // Générer automatiquement au premier passage
+  const pnjObj = genererPnjTerrain(buildingId);
+  if (pnjObj) {
+    setTerrainState(buildingId, { pnj: pnjObj.id, pnjData: pnjObj, dateGeneration: Date.now() });
+    sessionStorage.setItem('terrain_pnj_' + buildingId, JSON.stringify({
+      name: pnjObj.name + ' (PNJ)', role: pnjObj.role, job: pnjObj.job,
+      rel: pnjObj.rel, trait: pnjObj.trait, photoUrl: pnjObj.photoUrl,
+      photoPos: pnjObj.photoPos, terrainPnjId: pnjObj.id
+    }));
+  } else {
+    sessionStorage.removeItem('terrain_pnj_' + buildingId);
+  }
 }
 
 
