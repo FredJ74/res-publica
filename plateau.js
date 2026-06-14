@@ -3644,9 +3644,10 @@ function doVerifierTerrain() {
     showToast(pnj.role || 'Obstacle détecté', pnj.trait || '', pnj.rel !== 'enemy');
   }
 
-  // Recharger la liste des personnes
-  const room = BUILDINGS[id]?.rooms?.[state.currentRoom];
-  if (room) renderPersonsList(room.persons || []);
+  // Recharger la pièce complète pour afficher le PNJ
+  if (state.currentRoom && state.currentBuilding) {
+    enterRoom(state.currentBuilding, state.currentRoom);
+  }
 }
 
 // Appeler la police sur un terrain
