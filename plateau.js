@@ -49,29 +49,26 @@ window.addEventListener('DOMContentLoaded', () => {
   startClock();
   // Init Supabase
   if (typeof sbInit === 'function') sbInit();
-  // Journal du matin au chargement
-  setTimeout(() => afficherJournalDuMatin(), 2000);
 
-  // Journal du matin au chargement
-  setTimeout(() => afficherJournalDuMatin(), 2000);
+  // Synchroniser les cycles électoraux depuis Supabase
+  setTimeout(() => syncCyclesDepuisSupabase(), 2000);
 
   // Vérification mails toutes les 2 minutes
   verifierNouveauxMails();
   setInterval(verifierNouveauxMails, 120000);
 
-  // Météo politique et événement aléatoire au chargement
+  // Séquence de chargement espacée pour éviter les conflits de modaux
+  setTimeout(() => genererMeteoPolitique(), 1000);
+  setTimeout(() => genererEvenementAleatoire(), 3000);
   setTimeout(() => {
-    genererMeteoPolitique();
-    setTimeout(() => genererEvenementAleatoire(), 2000);
-  }, 4000);
-
-  // Réaction journaliste au chargement (une fois par session)
-  if (!sessionStorage.getItem('journaliste_done')) {
-    setTimeout(() => {
+    if (!sessionStorage.getItem('journaliste_done')) {
       afficherReactionJournaliste();
       sessionStorage.setItem('journaliste_done', '1');
-    }, 3000);
-  }
+    }
+  }, 5000);
+  // Journal du matin en dernier — après tous les autres
+  setTimeout(() => afficherJournalDuMatin(), 8000);
+
   // Forcer le rendu complet au chargement
   setTimeout(() => {
     forceRenderCity(state.currentCity || 'capitale');
@@ -2396,6 +2393,98 @@ function deposerCandidatureBtn2(posteId, country) {
   deposerCandidature(posteId, country, state.currentCity);
 }
 
+
+// =====================
+// PERSISTANCE ÉLECTORALE SUPABASE
+// =====================
+async function sbSaveCycleElectoral(country, posteId, cycle) {
+  if (typeof sbInsert !== 'function') return;
+  try {
+    await sbInsert('cycles_electoraux', {
+      id: country + '_' + posteId,
+      country, poste_id: posteId,
+      data: JSON.stringify(cycle),
+      updated_at: new Date().toISOString()
+    });
+  } catch(e) {}
+}
+
+async function sbLoadCyclesElectoraux(country) {
+  if (typeof sbGet !== 'function') return null;
+  try {
+    const rows = await sbGet('cycles_electoraux', 'country=eq.' + country);
+    if (!rows || !rows.length) return null;
+    const result = {};
+    rows.forEach(r => {
+      result[r.poste_id] = JSON.parse(r.data);
+    });
+    return result;
+  } catch(e) { return null; }
+}
+
+async function sbVoterPour(country, posteId, votant, candidat) {
+  if (typeof sbInsert !== 'function') return;
+  try {
+    await sbInsert('votes_electoraux', {
+      id: country + '_' + posteId + '_' + votant,
+      country, poste_id: posteId, votant, candidat,
+      created_at: new Date().toISOString()
+    });
+  } catch(e) {}
+}
+
+async function sbGetVotes(country, posteId) {
+  if (typeof sbGet !== 'function') return [];
+  try {
+    return await sbGet('votes_electoraux', 'country=eq.' + country + '&poste_id=eq.' + posteId) || [];
+  } catch(e) { return []; }
+}
+
+async function sbDeposerCandidature(country, posteId, candidat) {
+  if (typeof sbInsert !== 'function') return;
+  try {
+    await sbInsert('candidatures', {
+      id: country + '_' + posteId + '_' + candidat.nom,
+      country, poste_id: posteId,
+      nom: candidat.nom, programme: candidat.programme,
+      archetype: candidat.archetype,
+      created_at: new Date().toISOString()
+    });
+  } catch(e) {}
+}
+
+async function sbGetCandidatures(country, posteId) {
+  if (typeof sbGet !== 'function') return [];
+  try {
+    return await sbGet('candidatures', 'country=eq.' + country + '&poste_id=eq.' + posteId) || [];
+  } catch(e) { return []; }
+}
+
+async function syncCyclesDepuisSupabase() {
+  const country = state.country;
+  const cycles = await sbLoadCyclesElectoraux(country);
+  if (cycles) {
+    CYCLES_ELECTORAUX[country] = cycles;
+  }
+  // Charger votes et candidatures
+  const postes = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.departemental, ...POSTES_ELECTIFS.local];
+  for (const p of postes) {
+    if (!CYCLES_ELECTORAUX[country]?.[p.id]) continue;
+    const votes = await sbGetVotes(country, p.id);
+    const candidatures = await sbGetCandidatures(country, p.id);
+    if (votes.length) {
+      CYCLES_ELECTORAUX[country][p.id].votes = {};
+      votes.forEach(v => { CYCLES_ELECTORAUX[country][p.id].votes[v.votant] = v.candidat; });
+    }
+    if (candidatures.length) {
+      CYCLES_ELECTORAUX[country][p.id].candidats = candidatures.map(c => ({
+        nom: c.nom, programme: c.programme, archetype: c.archetype,
+        prospectusDistribues: 0
+      }));
+    }
+  }
+}
+
 // =====================
 // MOTEUR ÉLECTORAL
 // =====================
@@ -2511,14 +2600,17 @@ function confirmerCandidature(el) {
   if (!programme) { showToast('Programme requis', 'Décrivez votre programme.', false); return; }
 
   const cycle = CYCLES_ELECTORAUX[country][posteId];
-  cycle.candidats.push({
-    nom,
-    programme,
+  const nouveauCandidat = {
+    nom, programme,
     archetype: state.char?.archetype,
     posteActuel: state.poste?.name || null,
     prospectusDistribues: 0,
     dateInscription: Date.now(),
-  });
+  };
+  cycle.candidats.push(nouveauCandidat);
+  // Persister en Supabase
+  sbDeposerCandidature(country, posteId, nouveauCandidat).catch(() => {});
+  sbSaveCycleElectoral(country, posteId, cycle).catch(() => {});
 
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Candidature enregistrée !', 'Vous êtes candidat à ' + posteId + '.', true);
@@ -2560,6 +2652,9 @@ function voterPour(candidatNom, posteId, country) {
   }
 
   cycle.votes[votant] = candidatNom;
+  // Persister en Supabase
+  sbVoterPour(country, posteId, votant, candidatNom).catch(() => {});
+  sbSaveCycleElectoral(country, posteId, cycle).catch(() => {});
   showToast('Vote enregistré !', 'Vous avez voté pour ' + candidatNom + '.', true);
   addJournalEntry('🗳️ Vote enregistré pour ' + candidatNom + '.', 'event-info');
 }
@@ -3486,7 +3581,7 @@ function afficherObjectifsSecrets() {
       '<div style="font-size:1rem">' + (done ? '✅' : '⬜') + '</div>' +
       '<div style="flex:1">' +
         '<div style="font-size:.78rem;color:' + (done ? '#4a8a4a' : '#c0b090') + '">' + o.desc + '</div>' +
-        '<div style="font-size:.65rem;color:#6a5a30">' + o.points + ' points</div>' +
+        '<div style="font-size:.65rem;color:#8a7050">' + o.points + ' points</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -3498,26 +3593,36 @@ function afficherObjectifsSecrets() {
       'Score : ' + totalPoints + ' / ' + maxPoints + ' points' +
     '</div>' +
     html +
-    '<div style="font-size:.65rem;color:#4a4030;margin-top:.6rem;font-style:italic">Ces objectifs sont secrets — les autres joueurs ne les voient pas.</div>' +
+    '<div style="font-size:.65rem;color:#8a7050;margin-top:.6rem;font-style:italic">Ces objectifs sont secrets — les autres joueurs ne les voient pas.</div>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
 // Vérifier objectifs à chaque updateUI
+let _verifyingObjectifs = false;
 function verifierObjectifs() {
+  if (_verifyingObjectifs) return;
   const archetype = state.char?.archetype;
   if (!archetype || !OBJECTIFS_SECRETS[archetype]) return;
   const obj = OBJECTIFS_SECRETS[archetype];
   const completed = state.objectifs_completes || [];
+  let changed = false;
   obj.objectifs.forEach(o => {
-    if (!completed.includes(o.id) && o.condition(state)) {
-      completed.push(o.id);
-      state.objectifs_completes = completed;
-      state.inf = Math.min(100, (state.inf||0) + Math.floor(o.points/5));
-      showToast('🎯 Objectif accompli !', o.desc, true);
-      addJournalEntry('🎯 ' + o.desc, 'event-good');
-    }
+    try {
+      if (!completed.includes(o.id) && o.condition(state)) {
+        completed.push(o.id);
+        state.objectifs_completes = completed;
+        changed = true;
+        showToast('🎯 Objectif accompli !', o.desc, true);
+        addJournalEntry('🎯 ' + o.desc, 'event-good');
+      }
+    } catch(e) {} // Condition peut échouer si state incomplet
   });
+  if (changed) {
+    _verifyingObjectifs = true;
+    state.inf = Math.min(100, (state.inf||0) + 2);
+    _verifyingObjectifs = false;
+  }
 }
 
 // =====================
