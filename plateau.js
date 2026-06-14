@@ -1267,7 +1267,7 @@ function ouvrirStatsPerso() {
   document.getElementById('postes-modal-title').textContent = 'Statistiques — ' + (char?.name || 'Mon Personnage');
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.6rem 1rem">' +
-      '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.8rem;font-style:italic">' +
+      '<div style="font-size:.7rem;color:#8a8060;margin-bottom:.8rem;font-style:italic">' +
         (ar?.name || '') + ' · ' + (co?.n || '') +
         (state.poste?.name ? ' · ' + state.poste.name : '') +
       '</div>' +
@@ -2937,29 +2937,37 @@ function ouvrirCreationOrga(type) {
   const check = peutRejoindreOrga(type);
   if (!check.ok) { showToast('Impossible', check.raison, false); return; }
 
-  // Vérifier siège social
+  // Vérifier présence physique dans un bâtiment en propriété ou location
   const biensProprio = Object.entries(state.terrainsAchetes || {})
     .filter(([, v]) => v === state.char?.name)
-    .map(([k]) => BUILDINGS[k]?.shortName || k);
-  const biensLoues = (state.locations || [])
-    .map(l => BUILDINGS[l.buildingId]?.shortName || l.buildingId);
-  const siegesDispo = [...biensProprio, ...biensLoues];
+    .map(([k]) => k);
+  const biensLoues = (state.locations || []).map(l => l.buildingId);
+  const tousLesBiens = [...biensProprio, ...biensLoues];
+
+  if (!state.currentBuilding || !tousLesBiens.includes(state.currentBuilding)) {
+    showToast('Siège requis',
+      'Vous devez vous trouver dans un bâtiment vous appartenant ou loué pour y fonder une organisation.',
+      false);
+    return;
+  }
+
+  const siegeActuel = BUILDINGS[state.currentBuilding]?.shortName || state.currentBuilding;
+  const siegesDispo = tousLesBiens.map(k => BUILDINGS[k]?.shortName || k);
 
   document.getElementById('postes-modal-title').textContent = 'Créer : ' + def.label;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.8rem;font-style:italic">' +
+    '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.8rem;font-style:italic">' +
       Object.entries(def.requis).map(([k,v]) => k.toUpperCase() + ' ' + v + ' requis').join(' · ') +
     '</div>' +
     '<input id="orga-nom" placeholder="Nom de l\'organisation..." ' +
     'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;margin-bottom:.5rem;box-sizing:border-box"/>' +
     '<input id="orga-slogan" placeholder="Slogan ou description courte..." ' +
     'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;margin-bottom:.5rem;box-sizing:border-box"/>' +
-    (siegesDispo.length > 0
-      ? '<select id="orga-siege" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;margin-bottom:.5rem">' +
-        siegesDispo.map(s => '<option>' + s + '</option>').join('') + '</select>'
-      : '<div style="font-size:.7rem;color:#8a3a2a;margin-bottom:.5rem">⚠️ Aucun siège disponible. Achetez ou louez un bâtiment d\'abord.</div>') +
-    '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.5rem">Cotisations :</div>' +
+    '<div style="font-size:.72rem;color:#a09060;margin-bottom:.5rem;padding:.3rem .5rem;background:#0a0f0a;border:1px solid #2a3a2a">' +
+    '📍 Siège : <strong style="color:#c0b090">' + siegeActuel + '</strong> (bâtiment actuel)</div>' +
+    '<input type="hidden" id="orga-siege" value="' + siegeActuel + '"/>' +
+    '<div style="font-size:.7rem;color:#a09060;margin-bottom:.5rem">Cotisations :</div>' +
     '<div style="display:flex;gap:.5rem;margin-bottom:.5rem">' +
     '<label style="font-size:.72rem;color:#c0b090;cursor:pointer"><input type="radio" name="cotis" value="volontaire" checked> Volontaires</label>' +
     '<label style="font-size:.72rem;color:#c0b090;cursor:pointer"><input type="radio" name="cotis" value="obligatoire"> Obligatoires</label>' +
@@ -3188,7 +3196,7 @@ function ouvrirTableauOrganisations() {
     ? '<div style="display:flex;flex-wrap:wrap;gap:.3rem;padding:.3rem 0">' +
       bonusActifs.map(b => '<span style="font-size:.65rem;color:#4a8a4a;background:#0a1a0a;border:1px solid #1a3a1a;padding:.1rem .4rem;border-radius:2px">' + b + '</span>').join('') +
       '</div>'
-    : '<div style="font-size:.68rem;color:#4a4030;font-style:italic">Montez en grade pour activer les bonus.</div>';
+    : '<div style="font-size:.68rem;color:#8a8060;font-style:italic">Montez en grade pour activer les bonus.</div>';
 
   // Types disponibles à créer/rejoindre
   const typesDispoHtml = Object.entries(ORGANISATIONS_DEF).map(([type, def]) => {
@@ -3209,16 +3217,16 @@ function ouvrirTableauOrganisations() {
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.4rem .6rem">' +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#4a4030;margin-bottom:.3rem">MES ORGANISATIONS</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#c0b090;margin-bottom:.3rem">MES ORGANISATIONS</div>' +
     mesOrgasHtml +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#4a4030;margin:.6rem 0 .3rem">SYNERGIES ACTIVES</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#c0b090;margin:.6rem 0 .3rem">SYNERGIES ACTIVES</div>' +
     synergiesHtml +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#4a4030;margin:.6rem 0 .3rem">BONUS ACTIFS</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#c0b090;margin:.6rem 0 .3rem">BONUS ACTIFS</div>' +
     bonusHtml +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#4a4030;margin:.6rem 0 .3rem">CRÉER UNE ORGANISATION</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#c0b090;margin:.6rem 0 .3rem">CRÉER UNE ORGANISATION</div>' +
     '<div style="display:flex;flex-direction:column;gap:.3rem">' + typesDispoHtml + '</div>' +
 
     '</div>';
@@ -3254,7 +3262,7 @@ function ouvrirGestionOrga(orgaId) {
   document.getElementById('postes-modal-title').textContent = '⚙️ ' + orga.nom;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.6rem 1rem">' +
-    '<div style="font-size:.68rem;color:#6a5a30;margin-bottom:.6rem">' + (orga.slogan || '') + '</div>' +
+    '<div style="font-size:.68rem;color:#8a8060;margin-bottom:.6rem">' + (orga.slogan || '') + '</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.1em;color:#4a4030;margin-bottom:.3rem">MEMBRES (' + orga.membres.length + ')</div>' +
     membresHtml +
     '</div>';
@@ -7639,7 +7647,7 @@ function ouvrirDetailLoi(idx) {
   if (!loi) return;
   document.getElementById('postes-modal-title').textContent = loi.titre;
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.6rem">Depose par ' + loi.auteur + ' · Vote Jour ' + loi.jourVote + '</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Depose par ' + loi.auteur + ' · Vote Jour ' + loi.jourVote + '</div>';
   const col = loi.resultat === 'Adoptee' ? '#4a8a4a' : '#8a2020';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:' + col + ';margin-bottom:.8rem">' + (loi.resultat||'En cours') + '</div>';
   if (loi.votes?.length > 0) {
@@ -9409,7 +9417,7 @@ function ouvrirRendreSentence() {
     affaires.forEach((a, i) => {
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">Affaire : ' + a.cible + '</div>';
-      html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.6rem">' + a.motif + '</div>';
+      html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">' + a.motif + '</div>';
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SENTENCE</div>';
       html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
       html += '<button onclick="appliquerSentence(' + i + ',\'amende\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende (montant + repartition)</button>';
