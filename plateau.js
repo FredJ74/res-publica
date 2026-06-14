@@ -554,6 +554,7 @@ function sortirBatiment() {
 // PERSONS LIST
 // =====================
 function renderPersonsList(persons) {
+  persons = [...(persons || [])]; // mutable copy
   const relCol = r => r === 'ally' ? '#4a8a4a' : r === 'enemy' ? '#8a3a2a' : '#6a6040';
   const relTxt = r => r === 'ally' ? 'Allie' : r === 'enemy' ? 'Hostile' : 'Neutre';
 
@@ -593,6 +594,30 @@ function renderPersonsList(persons) {
       '</div></div>';
   }).join('');
 
+  // Ajouter PNJ terrain si on est sur un terrain
+  if (state.currentBuilding?.startsWith('terrain-a-batir')) {
+    const stored = sessionStorage.getItem('terrain_pnj_' + state.currentBuilding);
+    if (stored) {
+      try {
+        const pnjTerrain = JSON.parse(stored);
+        if (pnjTerrain.name && !persons.find(p => p.name === pnjTerrain.name)) {
+          persons = [...persons, pnjTerrain];
+        }
+      } catch(e) {}
+    }
+  }
+  // Ajouter PNJ terrain si on est sur un terrain
+  if (state.currentBuilding?.startsWith('terrain-a-batir')) {
+    const stored = sessionStorage.getItem('terrain_pnj_' + state.currentBuilding);
+    if (stored) {
+      try {
+        const pnjTerrain = JSON.parse(stored);
+        if (pnjTerrain.name && !persons.find(p => p.name === pnjTerrain.name)) {
+          persons = [...persons, pnjTerrain];
+        }
+      } catch(e) {}
+    }
+  }
   const simules = getSimulesPresents();
   const simuleCards = simules.map(p => {
     const enc = encodeURIComponent(JSON.stringify({...p, isPJ: true}));
@@ -2375,6 +2400,198 @@ async function publierDecret(texte) {
     await sbCreateTopic('local', '📜 Décret Présidentiel', texte, from);
     showToast('Décret publié !', 'Visible sur le forum national.', true);
   }
+}
+
+
+// =====================
+// PNJ ALÉATOIRES SUR LES TERRAINS
+// =====================
+function genererPnjTerrain(buildingId) {
+  const country = state.country || 'republic';
+  const profiles = (typeof TERRAIN_PNJ_PROFILES !== 'undefined')
+    ? TERRAIN_PNJ_PROFILES[country] || TERRAIN_PNJ_PROFILES.republic
+    : [];
+  if (!profiles.length) return null;
+
+  // Indices impériaux modifient les probabilités
+  const indices = INDICES_NATIONAUX?.[country] || { ISN:30, IE:50, ID:40, IS:45 };
+  const isn = indices.ISN || 30;
+  const ie  = indices.IE  || 50;
+  const id  = indices.ID  || 40;
+  const is  = indices.IS  || 45;
+
+  // Ajuster les probabilités selon indices
+  const adjustedProfiles = profiles.map(p => {
+    let prob = p.prob;
+    if (p.id === 'squatter_agr')  prob = Math.max(0.01, prob - isn/200 - is/200);
+    if (p.id === 'squatter_cool') prob = Math.max(0.02, prob - isn/300);
+    if (p.id === 'cadavre')       prob = Math.max(0.005, prob + (100-id)/500);
+    if (p.id === 'promoteur')     prob = Math.max(0.03, prob + ie/400);
+    if (p.id === 'inspecteur')    prob = Math.max(0.05, prob + isn/300);
+    if (p.id === 'vide')          prob = Math.max(0.05, prob + isn/200);
+    return { ...p, prob };
+  });
+
+  // Normaliser et tirer au sort
+  const total = adjustedProfiles.reduce((s, p) => s + p.prob, 0);
+  let roll = Math.random() * total;
+  for (const p of adjustedProfiles) {
+    roll -= p.prob;
+    if (roll <= 0) return p.id === 'vide' ? null : p;
+  }
+  return null;
+}
+
+async function interagirPnjTerrain(pnjId) {
+  const country = state.country || 'republic';
+  const profiles = TERRAIN_PNJ_PROFILES?.[country] || TERRAIN_PNJ_PROFILES?.republic || [];
+  const pnj = profiles.find(p => p.id === pnjId);
+  if (!pnj) return;
+
+  const indices = INDICES_NATIONAUX?.[country] || { ISN:30, IE:50, ID:40, IS:45 };
+  const is = indices.IS || 45;
+  const cha = state.char?.stats?.CHA || 8;
+  const cur = COUNTRIES[country]?.cur || 'FR';
+
+  // Squatteurs agressifs — jet CHA + IS
+  if (pnj.agressif) {
+    const bonusCHA = Math.floor(cha / 2);
+    const bonusIS  = Math.floor(is / 10);
+    const taux = Math.min(80, 20 + bonusCHA + bonusIS);
+    const roll = Math.floor(Math.random() * 100) + 1;
+
+    if (roll <= taux) {
+      // Succès — CHA évite l'agression
+      state.inf = Math.min(100, (state.inf||0) + 2);
+      updateUI();
+      addJournalEntry('Vous avez calmé les squatteurs par votre charisme. +2 INF.', 'event-good');
+      showToast('Tension désamorcée !', 'Votre charisme a évité la bagarre. (Jet ' + roll + '/' + taux + '%)', true);
+    } else {
+      // Échec — bagarre
+      const degats = Math.floor(Math.random() * 15) + 10;
+      state.hp = Math.max(0, (state.hp||100) - degats);
+      state.dis = Math.max(0, (state.dis||50) - 5);
+      updateUI();
+      addJournalEntry('Vous avez été attaqué par des squatteurs. -' + degats + ' HP. -5 DIS.', 'event-bad');
+      showToast('Bagarre !', '-' + degats + ' HP · -5 DIS (Jet ' + roll + '/' + taux + '%)', false);
+    }
+    return;
+  }
+
+  // Squatteurs cools — bière et côtelette
+  if (pnj.id === 'squatter_cool') {
+    const hpBonus = Math.floor(Math.random() * 8) + 5;
+    const moralBonus = Math.floor(Math.random() * 8) + 5;
+    state.hp = Math.min(100, (state.hp||100) + hpBonus);
+    state.moral = Math.min(100, (state.moral||50) + moralBonus);
+    // Info gratuite parfois
+    const infoBonus = Math.random() > 0.5;
+    if (infoBonus) state.inf = Math.min(100, (state.inf||0) + 3);
+    updateUI();
+    addJournalEntry('Les squatteurs vous offrent bière et côtelette. +' + hpBonus + ' HP · +' + moralBonus + ' Moral' + (infoBonus ? ' · +3 INF' : '') + '.', 'event-good');
+    showToast('Accueil chaleureux !', '+' + hpBonus + ' HP · +' + moralBonus + ' Moral' + (infoBonus ? ' · +3 INF (tuyau)' : ''), true);
+    return;
+  }
+
+  // Cadavre — blocage administratif
+  if (pnj.id === 'cadavre') {
+    const id_idx = indices.ID || 40;
+    const delai = Math.max(1, Math.round(5 - id_idx/25));
+    state.dis = Math.max(0, (state.dis||50) - 10);
+    updateUI();
+    addJournalEntry('Cadavre découvert sur le terrain ! Enquête obligatoire. Blocage administratif : ' + delai + ' jour(s). -10 DIS.', 'event-bad');
+    showToast('Cadavre découvert !', 'Enquête requise. Formalités bloquées ' + delai + ' jour(s). -10 DIS.', false);
+    // Signaler à la police
+    if (!state.recherche) state.recherche = [];
+    addExternalEvent('🚨 Cadavre découvert sur un terrain à ' + (WORLD[country]?.[state.currentCity]?.name || 'la ville') + '. Enquête en cours.');
+    return;
+  }
+
+  // Promoteur — propose rachat à prix gonflé
+  if (pnj.id === 'promoteur') {
+    const prixGonfle = Math.floor(Math.random() * 5000) + 6000;
+    addJournalEntry(pnj.name + ' vous propose de racheter ce terrain pour ' + prixGonfle.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
+    showToast(pnj.name, 'Offre de rachat : ' + prixGonfle.toLocaleString('fr-FR') + ' ' + cur + '. Intéressant ?', true);
+    return;
+  }
+
+  // Gardien — peut être soudoyé
+  if (pnj.id === 'gardien') {
+    const pot = Math.floor(isn / 5) * 10 + 100;
+    document.getElementById('postes-modal-title').textContent = pnj.name + ' — Gardien';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem">' +
+      '<div style="font-size:.82rem;color:#a09060;margin-bottom:.8rem;font-style:italic">"' + (pnj.trait || '') + '"</div>' +
+      '<button onclick="soudoyerGardienTerrain(' + pot + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" ' +
+      'style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;display:block;margin-bottom:.4rem;width:100%">' +
+      '<i class="ti ti-coin"></i> Soudoyer (' + pot + ' ' + cur + ')</button>' +
+      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" ' +
+      'style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer;width:100%">Partir</button>' +
+      '</div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+
+  // Inspecteur — vérifie les permis
+  if (pnj.id === 'inspecteur') {
+    const aPermis = state.inventory?.find(i => i.type === 'permis' && i.building === state.currentBuilding);
+    if (aPermis) {
+      addJournalEntry(pnj.name + ' vérifie vos permis. Tout est en ordre.', 'event-info');
+      showToast('Contrôle passé', 'Vos permis sont valides.', true);
+    } else {
+      state.dis = Math.max(0, (state.dis||50) - 8);
+      updateUI();
+      addJournalEntry(pnj.name + ' vous demande un permis de construire. Vous n\'en avez pas. -8 DIS.', 'event-bad');
+      showToast('Contrôle raté !', 'Permis manquant. -8 DIS.', false);
+    }
+    return;
+  }
+
+  // Par défaut — juste parler
+  showToast(pnj.name, pnj.trait || 'Un personnage mystérieux.', true);
+}
+
+function soudoyerGardienTerrain(montant) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (state.arg < montant) {
+    showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false);
+    return;
+  }
+  const dup = state.char?.stats?.DUP || 8;
+  const taux = Math.min(80, 40 + Math.floor(dup/2));
+  const roll = Math.floor(Math.random() * 100) + 1;
+  state.arg -= montant;
+  if (roll <= taux) {
+    state.dis = Math.min(100, (state.dis||50) + 5);
+    updateUI();
+    showToast('Gardien soudoyé !', 'Il regarde ailleurs. +5 DIS.', true);
+    addJournalEntry('Gardien soudoyé pour ' + montant + ' ' + cur + '. -' + montant + ' ' + cur + ' · +5 DIS.', 'event-good');
+  } else {
+    state.dis = Math.max(0, (state.dis||50) - 10);
+    updateUI();
+    showToast('Refus !', 'Il n\'a pas accepté. -10 DIS.', false);
+    addJournalEntry('Tentative de corruption du gardien refusée. -' + montant + ' ' + cur + ' · -10 DIS.', 'event-bad');
+  }
+}
+
+// Appeler au chargement d'un terrain
+function chargerPnjTerrain(buildingId) {
+  if (!buildingId?.startsWith('terrain-a-batir')) return;
+  const pnj = genererPnjTerrain(buildingId);
+  if (!pnj) return; // Terrain vide
+
+  // Injecter le PNJ dans la liste des personnes présentes
+  const pnjObj = {
+    name: pnj.name + ' (PNJ)',
+    role: pnj.role,
+    job: pnj.job,
+    rel: pnj.rel,
+    trait: pnj.trait,
+    terrainPnjId: pnj.id
+  };
+
+  // Stocker pour la session (même PNJ pendant toute la visite)
+  sessionStorage.setItem('terrain_pnj_' + buildingId, JSON.stringify(pnjObj));
 }
 
 // =====================

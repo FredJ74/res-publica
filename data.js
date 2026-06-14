@@ -2743,6 +2743,81 @@ const ROOM_IMAGES_EMPIRE = {
   }
 };
 
+
+// =====================
+// PNJ ALÉATOIRES SUR LES TERRAINS À BÂTIR
+// =====================
+const TERRAIN_PNJ_PROFILES = {
+  republic: [
+    { id:'promoteur',   name:'Gérard Spéculos',      role:'Promoteur immobilier',   job:'commercant',  rel:'neutral', prob:0.20, agressif:false,
+      trait:'Costume brillant, dents plus brillantes encore. Propose toujours 20% sous le prix du marché en souriant.' },
+    { id:'agent',       name:'Nathalie Parpaing',     role:'Agent immobilière',      job:'commercant',  rel:'neutral', prob:0.15, agressif:false,
+      trait:'Porte des talons hauts sur un chantier. A vendu le même terrain trois fois cette année.' },
+    { id:'squatter_cool',name:'Les Gars du Bas',      role:'Squatteurs sympas',      job:'citoyen',     rel:'ally',    prob:0.18, agressif:false,
+      trait:'Ont installé un barbecue, un canapé et une télé sur le terrain. Très accueillants.' },
+    { id:'squatter_agr', name:'La Bande à Rotule',    role:'Squatteurs menaçants',   job:'citoyen',     rel:'enemy',   prob:0.12, agressif:true,
+      trait:'Regardent fixement. Le plus grand tient un tuyau. Pas le genre à parlementer.' },
+    { id:'inspecteur',  name:'Maurice Formulaire',    role:'Inspecteur municipal',   job:'inspecteur',  rel:'neutral', prob:0.15, agressif:false,
+      trait:'Venu vérifier 47 points de conformité. En a trouvé 43 manquants. Souriant mais intransigeant.' },
+    { id:'gardien',     name:'Robert Cadenas',        role:'Gardien de chantier',    job:'gardien',     rel:'neutral', prob:0.10, agressif:false,
+      trait:'Dort debout. Peut être soudoyé pour 150 FR. Après il dort ailleurs.' },
+    { id:'cadavre',     name:'Individu non identifié',role:'Cadavre mystérieux',     job:'default',     rel:'neutral', prob:0.04, agressif:false,
+      trait:'Personne ne sait qui c\'est ni comment il est arrivé là. Les formalités vont prendre du temps.' },
+    { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.06, agressif:false, trait:null },
+  ],
+  narco: [
+    { id:'promoteur',   name:'Don Ladrillo',          role:'Promoteur (blanchiment)', job:'commercant', rel:'neutral', prob:0.22, agressif:false,
+      trait:'Propose cash. Beaucoup de cash. Ne pose pas de questions. Déconseille d\'en poser.' },
+    { id:'agent',       name:'Consuelo Escritura',    role:'Agente immobilière',     job:'commercant',  rel:'neutral', prob:0.10, agressif:false,
+      trait:'Ses contrats ont des clauses en petits caractères très petits. Très, très petits.' },
+    { id:'squatter_cool',name:'Los Relajados',        role:'Squatteurs détendus',    job:'citoyen',     rel:'ally',    prob:0.14, agressif:false,
+      trait:'Font des grillades permanentes. Offrent une bière et une côtelette. Savent des choses.' },
+    { id:'squatter_agr', name:'Los Violentos',        role:'Squatteurs armés',       job:'citoyen',     rel:'enemy',   prob:0.22, agressif:true,
+      trait:'Armés. Territorieux. El Don lui-même les évite. Jet CHA difficile.' },
+    { id:'inspecteur',  name:'Oficial Mordida',       role:'Inspecteur corruptible', job:'inspecteur',  rel:'neutral', prob:0.08, agressif:false,
+      trait:'Venu vérifier. Repart avec une enveloppe. Tout est conforme.' },
+    { id:'gardien',     name:'Paco Vigilancia',       role:'Gardien armé',           job:'gardien',     rel:'neutral', prob:0.12, agressif:false,
+      trait:'Armé. Sérieux. Travaille pour quelqu\'un. On ne sait pas trop qui.' },
+    { id:'cadavre',     name:'Inconnu',               role:'Cadavre (banal ici)',    job:'default',     rel:'neutral', prob:0.08, agressif:false,
+      trait:'Troisième cette semaine sur ce terrain. La police est blasée. Les formalités aussi.' },
+    { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.04, agressif:false, trait:null },
+  ],
+  soviet: [
+    { id:'promoteur',   name:'Camarade Bâtissov',     role:'Directeur de construction', job:'commercant', rel:'neutral', prob:0.08, agressif:false,
+      trait:'Construit pour le Parti. Uniquement pour le Parti. Vous pouvez toujours demander.' },
+    { id:'agent',       name:'Nadejda Attribution',   role:'Agente d\'attribution',  job:'commercant',  rel:'neutral', prob:0.05, agressif:false,
+      trait:'Le terrain est déjà attribué. Par le Parti. Formulaire B-12 en quadruple.' },
+    { id:'squatter_cool',name:'Famille Kolkhozov',    role:'Occupants collectifs',   job:'citoyen',     rel:'ally',    prob:0.08, agressif:false,
+      trait:'Ont obtenu une autorisation provisoire du soviet local. En triple exemplaire.' },
+    { id:'squatter_agr', name:'Miliciens Zélés',      role:'Miliciens territoriaux', job:'commissaire', rel:'enemy',   prob:0.05, agressif:true,
+      trait:'Défendent le terrain au nom du Parti. Toute présence non autorisée est contre-révolutionnaire.' },
+    { id:'inspecteur',  name:'Camarade Conformité',   role:'Inspecteur du Parti',    job:'inspecteur',  rel:'neutral', prob:0.35, agressif:false,
+      trait:'Vérifie 127 points de conformité idéologique. Systématique. Inévitable.' },
+    { id:'gardien',     name:'Sentinelle du Peuple',  role:'Gardien collectif',      job:'gardien',     rel:'neutral', prob:0.25, agressif:false,
+      trait:'Surveille au nom du Parti. Incorruptible. Ou presque, avec beaucoup de roubles.' },
+    { id:'cadavre',     name:'Camarade Inconnu',      role:'Incident classifié',     job:'default',     rel:'neutral', prob:0.02, agressif:false,
+      trait:'Le Parti nie. Les formulaires d\'enquête existent en 8 exemplaires. Délai : indéterminé.' },
+    { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.12, agressif:false, trait:null },
+  ],
+  khalija: [
+    { id:'promoteur',   name:'Cheikh Al-Bâtisseur',  role:'Promoteur royal',        job:'commercant',  rel:'neutral', prob:0.25, agressif:false,
+      trait:'Représente un membre de la famille royale. Offre généreuse mais conditions opaques.' },
+    { id:'agent',       name:'Yasmine Al-Vente',      role:'Agente immobilière',     job:'commercant',  rel:'neutral', prob:0.20, agressif:false,
+      trait:'Élégante, efficace, commission à 15%. Connaît tous les membres influents de la cour.' },
+    { id:'squatter_cool',name:'Famille Al-Bédouin',  role:'Bédouins de passage',    job:'citoyen',     rel:'ally',    prob:0.06, agressif:false,
+      trait:'Campent ici depuis des générations. Très hospitaliers. Offrent du thé et des dattes. Bougent si on leur demande poliment.' },
+    { id:'squatter_agr', name:'Clan Al-Résistant',   role:'Bédouins territoriaux',  job:'citoyen',     rel:'enemy',   prob:0.03, agressif:true,
+      trait:'Ce terrain appartient à leur clan depuis 400 ans. Ils ont des arguments historiques et des épées.' },
+    { id:'inspecteur',  name:'Chambellan Al-Permis',  role:'Inspecteur royal',       job:'inspecteur',  rel:'neutral', prob:0.18, agressif:false,
+      trait:'Vérifie la conformité avec le plan d\'urbanisme royal. Très courtois. Très exigeant.' },
+    { id:'gardien',     name:'Garde Al-Terrain',      role:'Garde royal',            job:'gardien',     rel:'neutral', prob:0.20, agressif:false,
+      trait:'Posté par le Palais. Peut être contourné avec le bon protocole — ou le bon billet.' },
+    { id:'cadavre',     name:'Inconnu',               role:'Affaire discrète',       job:'default',     rel:'neutral', prob:0.01, agressif:false,
+      trait:'Le Palais préfère que ça reste discret. Les formalités seront expéditives — dans un sens ou dans l\'autre.' },
+    { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.07, agressif:false, trait:null },
+  ]
+};
+
 const POSTES = {
   republic: {
     capitale: [
