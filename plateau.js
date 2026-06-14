@@ -51,7 +51,9 @@ window.addEventListener('DOMContentLoaded', () => {
   if (typeof sbInit === 'function') sbInit();
 
   // Synchroniser les cycles électoraux depuis Supabase
-  setTimeout(() => syncCyclesDepuisSupabase(), 2000);
+  setTimeout(() => {
+    syncCyclesDepuisSupabase().then(() => verifierPostesVacants());
+  }, 2000);
 
   // Vérification mails toutes les 2 minutes
   verifierNouveauxMails();
@@ -1109,6 +1111,8 @@ function applyEffects(fn, resultType, cost) {
 
     // Revenus passifs des organisations
     appliquerRevenusPassifsOrga();
+    // Vérifier postes vacants
+    verifierPostesVacants();
 
     if (msgs.length > 0) showToast('Bonne nuit !', msgs.join(' · '), true, true);
     updateUI();
@@ -2393,6 +2397,71 @@ function deposerCandidatureBtn2(posteId, country) {
   deposerCandidature(posteId, country, state.currentCity);
 }
 
+
+
+// =====================
+// PNJ ADMINISTRATEUR (poste vacant)
+// =====================
+const PNJ_ADMINISTRATEURS = {
+  president: {
+    republic: { name: 'Gaston Intérim',     role: 'Président par intérim', trait: 'Nommé faute de candidat. Signe des décrets sans les lire. Facile à déloger.' },
+    narco:    { name: 'Don Provisional',    role: 'Président par intérim', trait: 'Personne ne sait comment il est arrivé là. Donne des ordres au hasard.' },
+    soviet:   { name: 'Camarade Provisoire',role: 'Administrateur du Parti',trait: 'Le Parti l\'a nommé. Le Parti peut l\'enlever. Très facile à déloger.' },
+    khalija:  { name: 'Wali Al-Niyaba',     role: 'Régent intérimaire',    trait: 'Nommé par le Palais en attendant mieux. N\'a aucune ambition personnelle.' },
+  },
+  maire: {
+    republic: { name: 'Hubert Gestionnaire', role: 'Maire administrateur', trait: 'Ancien chef de bureau. Gère les poubelles. Rien d\'autre.' },
+    narco:    { name: 'El Temporal',         role: 'Maire par défaut',     trait: 'Là par accident. Part dès qu\'on lui demande.' },
+    soviet:   { name: 'Camarade Local',      role: 'Administrateur local', trait: 'Nommé d\'office. Applique les directives. Toutes les directives.' },
+    khalija:  { name: 'Moudir Al-Waqt',      role: 'Administrateur royal', trait: 'Le Palais gère directement. Pour l\'instant.' },
+  },
+  depute: {
+    republic: { name: 'Suppléant Dubois',    role: 'Député suppléant',     trait: 'Remplace le siège vide. Vote blanc à chaque session.' },
+    narco:    { name: 'El Suplente',         role: 'Député intérimaire',   trait: 'Là pour les apparences.' },
+    soviet:   { name: 'Délégué du Peuple',   role: 'Représentant collectif',trait: 'Le Parti représente déjà le peuple. C\'est une formalité.' },
+    khalija:  { name: 'Wakil Al-Sha\'b',    role: 'Représentant intérimaire',trait: 'Nommé par le Cheikh en attendant.' },
+  }
+};
+
+function nommerAdministrateurSiVacant(country, posteId) {
+  if (!CYCLES_ELECTORAUX[country]?.[posteId]) return;
+  const cycle = CYCLES_ELECTORAUX[country][posteId];
+
+  // Ne nommer que si poste vraiment vacant (pas d'élu, phase VACANT)
+  if (cycle.eluId || cycle.administrateur) return;
+  if (getPhaseActuelle(country, posteId) !== PHASES_ELECTORALES.VACANT) return;
+
+  const adminDef = PNJ_ADMINISTRATEURS[posteId]?.[country];
+  if (!adminDef) return;
+
+  cycle.administrateur = {
+    ...adminDef,
+    nommeLeJour: state.day || 1,
+    facileADeloger: true
+  };
+  cycle.eluId = adminDef.name + ' (Admin)';
+
+  addJournalEntry('🏛 ' + adminDef.name + ' nommé ' + adminDef.role + ' — poste vacant.', 'event-info');
+  addExternalEvent('🏛 ' + adminDef.name + ' prend les rênes de ' + (POSTES_ELECTIFS.national.concat(POSTES_ELECTIFS.local).find(p=>p.id===posteId)?.name || posteId) + ' à ' + (COUNTRIES[country]?.n || country) + '.');
+
+  // Publier sur le forum
+  if (typeof sbCreateTopic === 'function') {
+    sbCreateTopic('local',
+      '🏛 Nomination : ' + adminDef.name,
+      'Faute de candidat, ' + adminDef.name + ' est nommé ' + adminDef.role + '.\n\n"' + adminDef.trait + '"\n\nIl peut être destitué par un vote de l\'assemblée ou une candidature au prochain cycle.',
+      'Système'
+    );
+  }
+}
+
+// Vérifier tous les postes vacants au chargement et au réveil
+function verifierPostesVacants() {
+  const country = state.country;
+  if (!CYCLES_ELECTORAUX[country]) return;
+  Object.keys(CYCLES_ELECTORAUX[country]).forEach(posteId => {
+    nommerAdministrateurSiVacant(country, posteId);
+  });
+}
 
 // =====================
 // PERSISTANCE ÉLECTORALE SUPABASE
