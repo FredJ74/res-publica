@@ -577,9 +577,13 @@ function renderPersonsList(persons) {
     '</div></div>' : '';
 
   const personCards = persons.length === 0 ? '' : persons.map(p => {
-    const avatarHtml = (typeof renderPnjAvatarHtml === 'function')
-      ? renderPnjAvatarHtml(p, 28)
-      : '<div class="person-avatar"><i class="ti ti-user" style="font-size:.75rem"></i></div>';
+    const av = PNJ_AVATAR[p.job] || PNJ_AVATAR.default;
+    const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
+    const avatarHtml = p.photoUrl
+      ? '<div class="person-avatar" style="overflow:hidden;border-color:' + (av.color || empireCol) + '">' +
+        '<img src="' + p.photoUrl + '" style="width:160%;height:160%;object-fit:cover;object-position:20% 8%;margin-left:-30%;margin-top:-5%"/>' +
+        '</div>'
+      : '<div class="person-avatar"><i class="ti ' + av.icon + '" style="font-size:.75rem;color:' + (av.color || '#8a8060') + '"></i></div>';
     return '<div class="person-card" onclick="openPnjModal(\'' + encodeURIComponent(JSON.stringify(p)) + '\')">' +
       avatarHtml +
       '<div>' +
@@ -1223,7 +1227,7 @@ function getPnjAvatar(pnj, empireColor) {
     return '<div style="flex-shrink:0;text-align:center">' +
       '<div onclick="ouvrirPhotoPleinEcran(this)" data-url="' + pnj.photoUrl + '" data-nom="' + safeName + '" ' +
       'style="width:90px;height:90px;border-radius:6px;border:2px solid ' + col + ';overflow:hidden;cursor:pointer;position:relative">' +
-      '<img src="' + pnj.photoUrl + '" style="width:100%;height:100%;object-fit:cover;object-position:top"/>' +
+      '<img src="' + pnj.photoUrl + '" style="width:160%;height:160%;object-fit:cover;object-position:20% 8%;margin-left:-30%;margin-top:-5%"/>' +
       '<div style="position:absolute;bottom:0;right:0;background:rgba(0,0,0,.6);padding:2px 4px;font-size:9px;color:' + col + '">🔍</div>' +
       '</div></div>';
   }
