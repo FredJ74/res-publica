@@ -49,11 +49,15 @@ window.addEventListener('DOMContentLoaded', () => {
   startClock();
   // Init Supabase
   if (typeof sbInit === 'function') sbInit();
-  // Météo politique et événement aléatoire au chargement
-  setTimeout(() => {
-    genererMeteoPolitique();
-    setTimeout(() => genererEvenementAleatoire(), 2000);
-  }, 4000);
+  // Journal du matin au chargement
+  setTimeout(() => afficherJournalDuMatin(), 2000);
+
+  // Journal du matin au chargement
+  setTimeout(() => afficherJournalDuMatin(), 2000);
+
+  // Vérification mails toutes les 2 minutes
+  verifierNouveauxMails();
+  setInterval(verifierNouveauxMails, 120000);
 
   // Météo politique et événement aléatoire au chargement
   setTimeout(() => {
@@ -2245,6 +2249,349 @@ function ouvrirMinimapLectureSeule_old(countryId, cityId) {
 }
 
 
+
+
+
+
+// =====================
+// ALLIANCES ENTRE PJ
+// =====================
+function ouvrirMenuAlliances() {
+  if (typeof sbListPersonnages !== 'function') {
+    showToast('Indisponible', 'Connexion Supabase requise.', false);
+    return;
+  }
+
+  const alliances = state.alliances || [];
+  const demandesRecues = state.demandes_alliance || [];
+
+  sbListPersonnages().then(joueurs => {
+    const autres = (joueurs || []).filter(j => j.name !== state.char?.name);
+    const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+    const alliancesHtml = alliances.length > 0
+      ? '<div style="margin-bottom:.8rem">' +
+        '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.12em;color:#4a8a4a;margin-bottom:.4rem">VOS ALLIANCES ACTIVES</div>' +
+        alliances.map(a =>
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem .4rem;border-bottom:1px solid #1a1810">' +
+          '<span style="font-size:.78rem;color:#c0b090">' + a.nom + '</span>' +
+          '<span style="font-size:.65rem;color:#4a8a4a">' + a.type + '</span>' +
+          '<button onclick="rompreAlliance(this)" data-nom="' + a.nom + '" style="font-size:.6rem;color:#8a3a2a;background:none;border:none;cursor:pointer">Rompre</button>' +
+          '</div>'
+        ).join('') +
+        '</div>'
+      : '<div style="font-size:.72rem;color:#4a4030;margin-bottom:.8rem;font-style:italic">Aucune alliance active.</div>';
+
+    const demandesHtml = demandesRecues.length > 0
+      ? '<div style="margin-bottom:.8rem">' +
+        '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.12em;color:#C9A84C;margin-bottom:.4rem">DEMANDES REÇUES</div>' +
+        demandesRecues.map(d =>
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem .4rem;border-bottom:1px solid #1a1810">' +
+          '<span style="font-size:.78rem;color:#c0b090">' + d.de + ' → ' + d.type + '</span>' +
+          '<div style="display:flex;gap:.4rem">' +
+          '<button onclick="accepterAlliance(this)" data-de="' + d.de + '" data-type="' + d.type + '" style="font-size:.65rem;color:#4a8a4a;background:none;border:1px solid #2a5a2a;padding:.2rem .4rem;cursor:pointer">✓ Accepter</button>' +
+          '<button onclick="refuserAlliance(this)" data-de="' + d.de + '" style="font-size:.65rem;color:#8a3a2a;background:none;border:1px solid #5a2a2a;padding:.2rem .4rem;cursor:pointer">✗ Refuser</button>' +
+          '</div></div>'
+        ).join('') +
+        '</div>'
+      : '';
+
+    const proposerHtml = autres.length > 0
+      ? '<div>' +
+        '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.12em;color:#6a5a30;margin-bottom:.4rem">PROPOSER UNE ALLIANCE</div>' +
+        '<select id="alliance-joueur" style="width:100%;background:#0a0a07;border:1px solid #2a2010;color:#c0b090;padding:.3rem;margin-bottom:.4rem;font-family:Crimson Pro,Georgia,serif">' +
+        autres.map(j => '<option value="' + j.name + '">' + j.name + '</option>').join('') +
+        '</select>' +
+        '<select id="alliance-type" style="width:100%;background:#0a0a07;border:1px solid #2a2010;color:#c0b090;padding:.3rem;margin-bottom:.4rem;font-family:Crimson Pro,Georgia,serif">' +
+        '<option value="Non-agression">Pacte de non-agression</option>' +
+        '<option value="Coalition électorale">Coalition électorale</option>' +
+        '<option value="Partage d\'informateurs">Partage d\'informateurs</option>' +
+        '<option value="Alliance économique">Alliance économique</option>' +
+        '</select>' +
+        '<button onclick="proposerAlliance()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la proposition</button>' +
+        '</div>'
+      : '<div style="font-size:.72rem;color:#4a4030;font-style:italic">Aucun autre joueur disponible.</div>';
+
+    document.getElementById('postes-modal-title').textContent = '🤝 Alliances';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:.6rem 1rem">' + alliancesHtml + demandesHtml + proposerHtml + '</div>';
+    document.getElementById('modal-postes').classList.add('open');
+  }).catch(() => showToast('Erreur', 'Impossible de charger les joueurs.', false));
+}
+
+async function proposerAlliance() {
+  const joueur = document.getElementById('alliance-joueur')?.value;
+  const type   = document.getElementById('alliance-type')?.value;
+  if (!joueur || !type) return;
+
+  const from = state.char?.name || 'Anonyme';
+  const sujet = '🤝 Proposition d\'alliance : ' + type;
+  const corps = from + ' vous propose une alliance de type <strong>' + type + '</strong>.<br><br>' +
+    'Pour accepter, répondez à ce mail avec "J\'accepte". Pour refuser, répondez "Je refuse".';
+
+  if (typeof sendMail === 'function') await sendMail(joueur, sujet, corps);
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Proposition envoyée !', joueur + ' a reçu votre demande d\'alliance.', true);
+  addJournalEntry('Proposition d\'alliance (' + type + ') envoyée à ' + joueur + '.', 'event-info');
+}
+
+function accepterAlliance(el) {
+  const de = el?.dataset?.de || el;
+  const type = el?.dataset?.type || arguments[1];
+  if (!state.alliances) state.alliances = [];
+  state.alliances.push({ nom: de, type: type, depuis: state.day || 1 });
+  state.demandes_alliance = (state.demandes_alliance || []).filter(d => d.de !== de);
+  if (typeof sendMail === 'function') {
+    sendMail(de, '✅ Alliance acceptée', state.char?.name + ' accepte votre proposition d\'alliance : ' + type + '.');
+  }
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Alliance conclue !', 'Avec ' + de + ' — ' + type, true);
+  addJournalEntry('Alliance conclue avec ' + de + ' : ' + type + '.', 'event-good');
+}
+
+function refuserAlliance(el) {
+  const de = el?.dataset?.de || el;
+  state.demandes_alliance = (state.demandes_alliance || []).filter(d => d.de !== de);
+  if (typeof sendMail === 'function') {
+    sendMail(de, '❌ Alliance refusée', state.char?.name + ' décline votre proposition d\'alliance.');
+  }
+  ouvrirMenuAlliances();
+}
+
+function rompreAlliance(el) {
+  const nom = el?.dataset?.nom || el;
+  state.alliances = (state.alliances || []).filter(a => a.nom !== nom);
+  if (typeof sendMail === 'function') {
+    sendMail(nom, '⚠️ Alliance rompue', state.char?.name + ' met fin à votre alliance.');
+  }
+  showToast('Alliance rompue', 'Avec ' + nom, false);
+  addJournalEntry('Alliance rompue avec ' + nom + '.', 'event-bad');
+  ouvrirMenuAlliances();
+}
+
+// =====================
+// OBJECTIFS SECRETS PAR ARCHÉTYPE
+// =====================
+const OBJECTIFS_SECRETS = {
+  ambitieux: {
+    label: 'L\'Ambitieux',
+    objectifs: [
+      { id: 'obj_president',   desc: 'Devenir Président de votre empire',          condition: s => s.poste?.id === 'president',                                          points: 50 },
+      { id: 'obj_inf80',       desc: 'Atteindre 80 points d\'Influence',           condition: s => (s.inf||0) >= 80,                                                     points: 20 },
+      { id: 'obj_poste_haut',  desc: 'Occuper un poste ministériel',               condition: s => s.poste && !['citoyen','depute'].includes(s.poste.id),                 points: 15 },
+      { id: 'obj_argent_50k',  desc: 'Accumuler 50 000 FR en banque',              condition: s => (s.banque||0) >= 50000,                                               points: 25 },
+    ]
+  },
+  criminel: {
+    label: 'Le Criminel',
+    objectifs: [
+      { id: 'obj_blanchir',    desc: 'Blanchir 20 000 FR via des activités louches', condition: s => (s.argent_blanchi||0) >= 20000,                                    points: 40 },
+      { id: 'obj_dis90',       desc: 'Maintenir une Discrétion supérieure à 90',  condition: s => (s.dis||0) >= 90,                                                      points: 20 },
+      { id: 'obj_informateur', desc: 'Recruter 2 informateurs simultanément',      condition: s => (s.informateurs||[]).length >= 2,                                     points: 15 },
+      { id: 'obj_jamais_arrete',desc: 'Ne jamais être arrêté pendant 10 jours',   condition: s => (s.jours_libres||0) >= 10,                                            points: 30 },
+    ]
+  },
+  journaliste: {
+    label: 'Le Journaliste',
+    objectifs: [
+      { id: 'obj_scandales',   desc: 'Publier 5 scandales sur le forum',           condition: s => (s.scandales_publies||0) >= 5,                                        points: 30 },
+      { id: 'obj_sondages',    desc: 'Commander 3 sondages absurdes',              condition: s => (s.sondages_commandes||0) >= 3,                                       points: 15 },
+      { id: 'obj_micro',       desc: 'Interviewer 5 PNJ différents',               condition: s => (s.pnj_interviewes||[]).length >= 5,                                  points: 20 },
+      { id: 'obj_forum_actif', desc: 'Publier 10 posts sur le forum',              condition: s => (s.posts_forum||0) >= 10,                                             points: 25 },
+    ]
+  },
+  fonctionnaire: {
+    label: 'Le Fonctionnaire',
+    objectifs: [
+      { id: 'obj_poste_stable', desc: 'Conserver le même poste 7 jours',           condition: s => (s.jours_meme_poste||0) >= 7,                                        points: 25 },
+      { id: 'obj_formulaires',  desc: 'Remplir 10 demandes administratives',       condition: s => (s.formulaires_remplis||0) >= 10,                                    points: 15 },
+      { id: 'obj_corruption',   desc: 'Corrompre 3 fonctionnaires',                condition: s => (s.fonctionnaires_corrompus||0) >= 3,                                 points: 20 },
+      { id: 'obj_banque_stable', desc: 'Avoir 15 000 FR en banque pendant 5 jours',condition: s => (s.jours_banque_15k||0) >= 5,                                        points: 30 },
+    ]
+  },
+  militaire: {
+    label: 'Le Militaire',
+    objectifs: [
+      { id: 'obj_caserne',      desc: 'Visiter la caserne 5 fois',                 condition: s => (s.visites_caserne||0) >= 5,                                         points: 15 },
+      { id: 'obj_ordre',        desc: 'Faire appel à la police 3 fois',            condition: s => (s.appels_police||0) >= 3,                                           points: 20 },
+      { id: 'obj_hp_max',       desc: 'Maintenir 100 HP pendant 5 jours',          condition: s => (s.jours_hp_max||0) >= 5,                                            points: 25 },
+      { id: 'obj_ministre_def', desc: 'Devenir Ministre de la Défense',            condition: s => s.poste?.id === 'ministre_defense',                                  points: 40 },
+    ]
+  },
+  religieux: {
+    label: 'Le Religieux',
+    objectifs: [
+      { id: 'obj_pop80',        desc: 'Atteindre 80 de Popularité',                condition: s => (s.pop||0) >= 80,                                                    points: 25 },
+      { id: 'obj_moral_max',    desc: 'Maintenir 100 de Moral pendant 5 jours',   condition: s => (s.jours_moral_max||0) >= 5,                                         points: 20 },
+      { id: 'obj_pelerinage',   desc: 'Visiter 3 empires différents',              condition: s => (s.empires_visites||[]).length >= 3,                                  points: 30 },
+      { id: 'obj_sermons',      desc: 'Publier 5 messages inspirants sur le forum',condition: s => (s.sermons_publies||0) >= 5,                                         points: 20 },
+    ]
+  }
+};
+
+function afficherObjectifsSecrets() {
+  const archetype = state.char?.archetype || 'ambitieux';
+  const obj = OBJECTIFS_SECRETS[archetype] || OBJECTIFS_SECRETS.ambitieux;
+  const completed = state.objectifs_completes || [];
+
+  // Vérifier nouvelles complétion
+  obj.objectifs.forEach(o => {
+    if (!completed.includes(o.id) && o.condition(state)) {
+      completed.push(o.id);
+      state.objectifs_completes = completed;
+      state.inf = Math.min(100, (state.inf||0) + Math.floor(o.points/5));
+      showToast('🎯 Objectif accompli !', o.desc + ' (+' + o.points + ' pts)', true);
+      addJournalEntry('🎯 Objectif secret accompli : ' + o.desc, 'event-good');
+    }
+  });
+
+  const totalPoints = obj.objectifs.reduce((s,o) => s + (completed.includes(o.id) ? o.points : 0), 0);
+  const maxPoints   = obj.objectifs.reduce((s,o) => s + o.points, 0);
+
+  const html = obj.objectifs.map(o => {
+    const done = completed.includes(o.id);
+    return '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .4rem;border-bottom:1px solid #1a1810">' +
+      '<div style="font-size:1rem">' + (done ? '✅' : '⬜') + '</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:.78rem;color:' + (done ? '#4a8a4a' : '#c0b090') + '">' + o.desc + '</div>' +
+        '<div style="font-size:.65rem;color:#6a5a30">' + o.points + ' points</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('postes-modal-title').textContent = '🎯 Objectifs — ' + obj.label;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.6rem 1rem">' +
+    '<div style="font-size:.7rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;margin-bottom:.6rem">' +
+      'Score : ' + totalPoints + ' / ' + maxPoints + ' points' +
+    '</div>' +
+    html +
+    '<div style="font-size:.65rem;color:#4a4030;margin-top:.6rem;font-style:italic">Ces objectifs sont secrets — les autres joueurs ne les voient pas.</div>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Vérifier objectifs à chaque updateUI
+function verifierObjectifs() {
+  const archetype = state.char?.archetype;
+  if (!archetype || !OBJECTIFS_SECRETS[archetype]) return;
+  const obj = OBJECTIFS_SECRETS[archetype];
+  const completed = state.objectifs_completes || [];
+  obj.objectifs.forEach(o => {
+    if (!completed.includes(o.id) && o.condition(state)) {
+      completed.push(o.id);
+      state.objectifs_completes = completed;
+      state.inf = Math.min(100, (state.inf||0) + Math.floor(o.points/5));
+      showToast('🎯 Objectif accompli !', o.desc, true);
+      addJournalEntry('🎯 ' + o.desc, 'event-good');
+    }
+  });
+}
+
+// =====================
+// JOURNAL DU MATIN
+// =====================
+async function afficherJournalDuMatin() {
+  const today = state.day || 1;
+  const sessionKey = 'journal_matin_day_' + today;
+  if (sessionStorage.getItem(sessionKey)) return;
+  sessionStorage.setItem(sessionKey, '1');
+
+  const co = COUNTRIES[state.country];
+  const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
+  const president = POSTES[state.country]?.capitale?.find(p => p.id === 'president');
+  const presidentNom = president?.holder || 'Poste vacant';
+  const topics = (typeof FORUM_TOPICS !== 'undefined' ? (FORUM_TOPICS['local'] || []) : []).slice(0, 3).map(t => '"' + t.title + '" (par ' + t.author + ')').join(', ');
+
+  // Résumé des actions passées depuis Supabase
+  let resumeActions = '';
+  if (typeof sbListPersonnages === 'function') {
+    try {
+      const joueurs = await sbListPersonnages() || [];
+      const autres = joueurs.filter(j => j.name !== state.char?.name);
+      if (autres.length > 0) {
+        resumeActions = autres.slice(0,3).map(j => j.name + ' (' + (j.current_city || 'quelque part') + ')').join(', ');
+      }
+    } catch(e) {}
+  }
+
+  const prompt = 'Tu es le rédacteur du journal du matin dans ' + (co?.n || 'l\'empire') + ', jeu politique parodique. ' +
+    'Style : ' + empireStyle.tone + '. Religion : ' + empireStyle.religion + '. Chef : ' + empireStyle.leader + '. ' +
+    'Président actuel : ' + presidentNom + '. Jour : ' + today + '. ' +
+    (topics ? 'Sujets chauds du forum : ' + topics + '. ' : '') +
+    (resumeActions ? 'Joueurs actifs : ' + resumeActions + '. ' : '') +
+    'Rédige un bref journal du matin parodique : 1 titre accrocheur + 3 brèves courtes et drôles. ' +
+    'Maximum 6 lignes. Très parodique. Pas de vrais dieux ni personnes réelles.';
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 200, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const journal = data.content?.[0]?.text;
+    if (!journal) return;
+
+    // Afficher dans un modal dédié
+    document.getElementById('postes-modal-title').textContent = '📰 Journal du Matin — Jour ' + today;
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:.8rem 1rem">' +
+      '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.6rem;font-family:Bebas Neue,sans-serif;letter-spacing:.08em">' +
+        co?.n?.toUpperCase() + ' · ÉDITION DU JOUR ' + today +
+      '</div>' +
+      '<div style="font-size:.85rem;color:#c0b090;line-height:1.9;white-space:pre-line;font-family:Crimson Pro,Georgia,serif;border-left:2px solid #3a2a10;padding-left:.8rem">' +
+        journal +
+      '</div>' +
+      '<div style="margin-top:.8rem;display:flex;gap:.5rem">' +
+        '<button onclick="publierJournal(this.dataset.txt)" data-txt="' + journal.replace(/"/g,'&quot;') + '" ' +
+        'style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">' +
+        '<i class="ti ti-news" style="font-size:.7rem"></i> Publier sur le forum</button>' +
+        '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" ' +
+        'style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>' +
+      '</div></div>';
+    document.getElementById('modal-postes').classList.add('open');
+
+    addJournalEntry('📰 Journal du matin disponible — Jour ' + today, 'event-info');
+  } catch(e) {}
+}
+
+async function publierJournal(texte) {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (typeof sbCreateTopic === 'function') {
+    const from = state.char?.name || 'Rédaction';
+    await sbCreateTopic('local', '📰 Journal du Matin — Jour ' + (state.day||1), texte, from);
+    showToast('Journal publié !', 'Visible sur le forum local.', true);
+  }
+}
+
+// =====================
+// NOTIFICATIONS MAILS
+// =====================
+async function verifierNouveauxMails() {
+  if (typeof sbGetMailsFor !== 'function') return;
+  const nom = state.char?.name;
+  if (!nom) return;
+  try {
+    const mails = await sbGetMailsFor(nom);
+    const nonLus = (mails || []).filter(m => !m.read).length;
+    const badge = document.getElementById('mail-badge');
+    if (badge) {
+      if (nonLus > 0) {
+        badge.textContent = nonLus;
+        badge.style.display = 'inline';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    // Mettre à jour le titre de la page
+    if (nonLus > 0) {
+      document.title = '(' + nonLus + ') Res Publica';
+    } else {
+      document.title = 'Res Publica';
+    }
+  } catch(e) {}
+}
 
 // =====================
 // MÉTÉO POLITIQUE QUOTIDIENNE
@@ -8399,6 +8746,7 @@ function toggleInventaire() {
 // UI UPDATE
 // =====================
 function updateUI() {
+  verifierObjectifs();
   const cur = state.char ? (COUNTRIES[state.char.country]?.cur || 'FR') : 'FR';
   // Sauvegarde auto Supabase
   if (typeof sbAutoSave === 'function' && state?.char?.name) sbAutoSave();
