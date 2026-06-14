@@ -408,6 +408,11 @@ function enterBuilding(buildingId) {
   }
 
   state.currentBuilding = buildingId;
+
+  // Générer PNJ aléatoire si terrain à bâtir
+  if (buildingId?.startsWith('terrain-a-batir')) {
+    chargerPnjTerrain(buildingId);
+  }
   document.getElementById('vue-rue').classList.remove('active');
   document.getElementById('vue-batiment').classList.add('active');
 
