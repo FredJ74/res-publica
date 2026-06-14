@@ -788,7 +788,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
   if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour assassiner, cliquez sur le personnage cible dans la liste des personnes presentes.', false); return; }
-  if (fn === 'deposer_candidature') { openCandidatureModal(); return; }
   if (fn === 'consulter_elections') { openElectionsModal(); return; }
   if (fn === 'creer_poste_ministre')    { creerPosteMinistre(); return; }
   if (fn === 'creer_comite')            { creerComite(); return; }
@@ -809,6 +808,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
   if (fn === 'racheter_terrain')       { doRacheterTerrain(); return; }
   if (fn === 'decret_inutile')         { signerDecretInutile(); return; }
+  if (fn === 'elections_tableau')      { ouvrirTableauElectoral(); return; }
+  if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
+  if (fn === 'deposer_candidature')    { deposerCandidature(buildingId, state.country, state.currentCity); return; }
   if (fn === 'commanditer_sondage')    { commanderSondage(); return; }
   if (fn === 'escort_infos')           { doEscortInfos(); return; }
   if (fn === 'escort_piege')           { doEscortPiege(); return; }
@@ -2252,6 +2254,443 @@ function ouvrirMinimapLectureSeule_old(countryId, cityId) {
 
 
 
+
+
+
+// Wrappers pour les onclick électoraux
+function voterPourCandidat(el) { voterPour(el.dataset.nom, el.dataset.poste, el.dataset.country); ouvrirBureauDeVote(el.dataset.poste, el.dataset.country); }
+function distribuerProspectusModalBtn(el) { distribuerProspectusModal(el.dataset.nom, el.dataset.poste, el.dataset.country); }
+function distribuerProspectusBtn(el) { distribuerProspectus(el.dataset.pnj, el.dataset.nom, el.dataset.poste, el.dataset.country); ouvrirBureauDeVote(el.dataset.poste, el.dataset.country); }
+function ouvrirBureauDeVoteBtn(el) { ouvrirBureauDeVote(el.dataset.poste, el.dataset.country); }
+function deposerCandidatureBtn(el) { deposerCandidature(el.dataset.poste, el.dataset.country, state.currentCity); }
+function fermerModalPostes() { document.getElementById('modal-postes').classList.remove('open'); }
+
+// =====================
+// MOTEUR ÉLECTORAL
+// =====================
+
+// Initialiser le cycle électoral pour un empire/poste
+function initCycleElectoral(country, posteId) {
+  if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
+  if (CYCLES_ELECTORAUX[country][posteId]) return;
+
+  const now = Date.now();
+  const semaine = 7 * 24 * 60 * 60 * 1000;
+  CYCLES_ELECTORAUX[country][posteId] = {
+    phase: PHASES_ELECTORALES.CANDIDATURES,
+    dateDebutCandidatures: now,
+    dateDebutCampagne: now + semaine,
+    dateVote: now + 2 * semaine,
+    dateResultats: now + 2 * semaine + 24 * 60 * 60 * 1000,
+    candidats: [],
+    votes: {},       // { nomPJ: nomCandidat }
+    votesPNJ: {},    // { pnjId: nomCandidat }
+    tour: 1,
+    eluId: null,
+  };
+}
+
+// Obtenir la phase actuelle d'un cycle
+function getPhaseActuelle(country, posteId) {
+  const cycle = CYCLES_ELECTORAUX[country]?.[posteId];
+  if (!cycle) return null;
+  const now = Date.now();
+  if (now < cycle.dateDebutCampagne) return PHASES_ELECTORALES.CANDIDATURES;
+  if (now < cycle.dateVote) return PHASES_ELECTORALES.CAMPAGNE;
+  if (now < cycle.dateResultats) return PHASES_ELECTORALES.VOTE;
+  return PHASES_ELECTORALES.VACANT;
+}
+
+// Déposer une candidature
+function deposerCandidature(posteId, country, city) {
+  const nom = state.char?.name;
+  if (!nom) return;
+
+  // Vérifier domiciliation
+  const domicile = state.domicile;
+  if (!domicile || domicile.country !== (country || state.country)) {
+    showToast('Non domicilié', 'Vous devez être domicilié dans cet empire pour vous présenter.', false);
+    return;
+  }
+
+  const poste = [...(POSTES_ELECTIFS.national), ...(POSTES_ELECTIFS.departemental), ...(POSTES_ELECTIFS.local)]
+    .find(p => p.id === posteId);
+  if (!poste) return;
+
+  // Vérifier niveau d'influence requis
+  if ((state.inf || 0) < (poste.minInf || 0)) {
+    showToast('Influence insuffisante', 'Il faut ' + poste.minInf + ' INF minimum pour ce poste.', false);
+    return;
+  }
+
+  // Vérifier cumul des mandats
+  if (state.poste && state.poste.id !== posteId) {
+    const interdits = [['president','maire'],['president','depute'],['maire','depute']];
+    const conflict = interdits.some(pair =>
+      pair.includes(state.poste.id) && pair.includes(posteId)
+    );
+    if (conflict) {
+      showToast('Cumul interdit', 'Vous ne pouvez pas cumuler ' + state.poste.name + ' et ' + poste.name + '.', false);
+      return;
+    }
+  }
+
+  const c = country || state.country;
+  if (!CYCLES_ELECTORAUX[c]) CYCLES_ELECTORAUX[c] = {};
+  if (!CYCLES_ELECTORAUX[c][posteId]) initCycleElectoral(c, posteId);
+
+  const cycle = CYCLES_ELECTORAUX[c][posteId];
+  if (getPhaseActuelle(c, posteId) !== PHASES_ELECTORALES.CANDIDATURES) {
+    showToast('Hors délai', 'Les candidatures ne sont pas ouvertes pour ce poste.', false);
+    return;
+  }
+
+  if (cycle.candidats.find(ca => ca.nom === nom)) {
+    showToast('Déjà candidat', 'Vous êtes déjà candidat à ce poste.', false);
+    return;
+  }
+
+  // Ouvrir modal pour programme
+  ouvrirModalCandidature(posteId, c, poste, cycle);
+}
+
+function ouvrirModalCandidature(posteId, country, poste, cycle) {
+  const nom = state.char?.name;
+  document.getElementById('postes-modal-title').textContent = '🗳️ Candidature — ' + poste.name;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.8rem">Présentez votre programme en quelques mots. Il sera visible de tous les électeurs.</div>' +
+    '<textarea id="prog-texte" rows="4" placeholder="Mon programme..." ' +
+    'style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>' +
+    '<div style="display:flex;gap:.5rem;margin-top:.6rem">' +
+    '<button onclick="confirmerCandidature(this)" data-poste="' + posteId + '" data-country="' + country + '" ' +
+    'style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">' +
+    '🗳️ Déposer ma candidature</button>' +
+    '<button onclick="fermerModalPostes()" ' +
+    'style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Annuler</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerCandidature(el) {
+  const posteId = el?.dataset?.poste || el;
+  const country = el?.dataset?.country || arguments[1];
+  const nom = state.char?.name;
+  const programme = document.getElementById('prog-texte')?.value?.trim() || '';
+  if (!programme) { showToast('Programme requis', 'Décrivez votre programme.', false); return; }
+
+  const cycle = CYCLES_ELECTORAUX[country][posteId];
+  cycle.candidats.push({
+    nom,
+    programme,
+    archetype: state.char?.archetype,
+    posteActuel: state.poste?.name || null,
+    prospectusDistribues: 0,
+    dateInscription: Date.now(),
+  });
+
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Candidature enregistrée !', 'Vous êtes candidat à ' + posteId + '.', true);
+  addJournalEntry('📋 Candidature déposée au poste : ' + posteId + '.', 'event-info');
+
+  // Publier sur le forum
+  if (typeof sbCreateTopic === 'function') {
+    sbCreateTopic('local',
+      '🗳️ Candidature de ' + nom + ' — ' + POSTES_ELECTIFS.national.concat(POSTES_ELECTIFS.local).concat(POSTES_ELECTIFS.departemental).find(p=>p.id===posteId)?.name,
+      nom + ' se présente aux élections.\n\nProgramme :\n' + programme,
+      nom
+    );
+  }
+}
+
+// Vote PJ
+function voterPour(candidatNom, posteId, country) {
+  const votant = state.char?.name;
+  if (!votant) return;
+
+  const domicile = state.domicile;
+  if (!domicile || domicile.country !== country) {
+    showToast('Non domicilié', 'Vous ne pouvez pas voter dans cet empire.', false);
+    return;
+  }
+
+  const cycle = CYCLES_ELECTORAUX[country]?.[posteId];
+  if (!cycle) return;
+
+  if (getPhaseActuelle(country, posteId) !== PHASES_ELECTORALES.VOTE &&
+      getPhaseActuelle(country, posteId) !== PHASES_ELECTORALES.VOTE2) {
+    showToast('Vote fermé', 'Le vote n\'est pas ouvert actuellement.', false);
+    return;
+  }
+
+  if (cycle.votes[votant]) {
+    showToast('Déjà voté', 'Vous avez déjà voté pour ce poste.', false);
+    return;
+  }
+
+  cycle.votes[votant] = candidatNom;
+  showToast('Vote enregistré !', 'Vous avez voté pour ' + candidatNom + '.', true);
+  addJournalEntry('🗳️ Vote enregistré pour ' + candidatNom + '.', 'event-info');
+}
+
+// Distribuer un prospectus à un PNJ
+function distribuerProspectus(pnjId, candidatNom, posteId, country) {
+  const cycle = CYCLES_ELECTORAUX[country]?.[posteId];
+  if (!cycle) return;
+
+  if (state.pa < 1) { showToast('PA insuffisants', '1 PA requis.', false); return; }
+  if (state.arg < 50) { showToast('Fonds insuffisants', '50 FR requis par prospectus.', false); return; }
+
+  // Un PNJ ne peut recevoir qu'un seul prospectus
+  if (cycle.votesPNJ[pnjId]) {
+    showToast('Déjà converti', 'Ce PNJ a déjà reçu un prospectus.', false);
+    return;
+  }
+
+  const phase = getPhaseActuelle(country, posteId);
+  if (phase !== PHASES_ELECTORALES.CAMPAGNE && phase !== PHASES_ELECTORALES.CAMPAGNE) {
+    showToast('Hors campagne', 'Les prospectus ne se distribuent que pendant la campagne.', false);
+    return;
+  }
+
+  state.pa -= 1;
+  state.arg -= 50;
+  cycle.votesPNJ[pnjId] = candidatNom;
+
+  // Trouver le candidat et incrémenter son compteur
+  const candidat = cycle.candidats.find(c => c.nom === candidatNom);
+  if (candidat) candidat.prospectusDistribues++;
+
+  updateUI();
+  showToast('Prospectus distribué !', pnjId + ' votera pour ' + candidatNom + '. -1 PA · -50 FR', true);
+  addJournalEntry('📄 Prospectus distribué à ' + pnjId + ' pour ' + candidatNom + '.', 'event-info');
+}
+
+// Calculer les résultats
+function calculerResultats(posteId, country) {
+  const cycle = CYCLES_ELECTORAUX[country]?.[posteId];
+  if (!cycle) return null;
+
+  const scores = {};
+  cycle.candidats.forEach(c => { scores[c.nom] = 0; });
+
+  // Votes PJ
+  Object.values(cycle.votes).forEach(nom => {
+    if (scores[nom] !== undefined) scores[nom]++;
+  });
+
+  // Votes PNJ
+  Object.values(cycle.votesPNJ).forEach(nom => {
+    if (scores[nom] !== undefined) scores[nom]++;
+  });
+
+  const totalVoix = Object.values(scores).reduce((s, v) => s + v, 0);
+  if (totalVoix === 0) return { scores, totalVoix: 0, elu: null, secondTour: [] };
+
+  // Vérifier majorité absolue
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const premier = sorted[0];
+
+  if (premier[1] > totalVoix / 2) {
+    return { scores, totalVoix, elu: premier[0], secondTour: [] };
+  }
+
+  // Second tour — candidats > 15%
+  const qualifies = sorted.filter(([, v]) => v / totalVoix >= 0.15).map(([n]) => n);
+  return { scores, totalVoix, elu: null, secondTour: qualifies };
+}
+
+// Afficher le bureau de vote
+function ouvrirBureauDeVote(posteId, country) {
+  const cycle = CYCLES_ELECTORAUX[country]?.[posteId];
+  if (!cycle || !cycle.candidats.length) {
+    showToast('Aucun candidat', 'Personne ne s\'est présenté.', false);
+    return;
+  }
+
+  const phase = getPhaseActuelle(country, posteId);
+  const poste = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.local, ...POSTES_ELECTIFS.departemental]
+    .find(p => p.id === posteId);
+  const monVote = cycle.votes[state.char?.name];
+  const co = COUNTRIES[country];
+
+  const candidatsHtml = cycle.candidats.map(ca => {
+    const aVote = monVote === ca.nom;
+    return '<div style="padding:.6rem .4rem;border-bottom:1px solid #1a1810">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">' +
+        '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:' + (aVote ? '#C9A84C' : '#c0b090') + '">' +
+          ca.nom + (aVote ? ' ✦ (votre vote)' : '') +
+        '</div>' +
+        (phase === PHASES_ELECTORALES.VOTE || phase === PHASES_ELECTORALES.VOTE2
+          ? (!monVote
+            ? '<button onclick="voterPourCandidat(this)" data-nom="' + ca.nom + '" data-poste="' + posteId + '" data-country="' + country + '" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.25rem .6rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Voter</button>'
+            : '') : '') +
+      '</div>' +
+      '<div style="font-size:.72rem;color:#8a8060;font-style:italic;margin-bottom:.2rem">' + ca.programme + '</div>' +
+      (phase === PHASES_ELECTORALES.CAMPAGNE || phase === PHASES_ELECTORALES.SECOND_TOUR
+        ? '<button onclick="distribuerProspectusModalBtn(this)" data-nom="' + ca.nom + '" data-poste="' + posteId + '" data-country="' + country + '" style="font-size:.65rem;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #3a5a3a;background:transparent;color:#4a8a4a;cursor:pointer">📄 Distribuer prospectus (1 PA · 50 ' + (co?.cur||'FR') + ')</button>'
+        : '') +
+    '</div>';
+  }).join('');
+
+  const phaseLabel = {
+    [PHASES_ELECTORALES.CANDIDATURES]: '📋 Candidatures ouvertes',
+    [PHASES_ELECTORALES.CAMPAGNE]:     '📢 Campagne électorale',
+    [PHASES_ELECTORALES.VOTE]:         '🗳️ Vote en cours',
+    [PHASES_ELECTORALES.SECOND_TOUR]:  '📢 Campagne — Second tour',
+    [PHASES_ELECTORALES.VOTE2]:        '🗳️ Second tour',
+  }[phase] || '❓ Phase inconnue';
+
+  document.getElementById('postes-modal-title').textContent = '🗳️ ' + (poste?.name || posteId) + ' — ' + (co?.n || country);
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.6rem 1rem">' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#6a8a6a;margin-bottom:.6rem">' + phaseLabel + '</div>' +
+    candidatsHtml +
+    (phase === PHASES_ELECTORALES.CANDIDATURES
+      ? '<button onclick="deposerCandidatureBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" style="width:100%;margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">📋 Déposer ma candidature</button>'
+      : '') +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function distribuerProspectusModal(candidatNom, posteId, country) {
+  // Récupérer les PNJ présents dans la pièce courante
+  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const persons = room?.persons || [];
+  if (!persons.length) {
+    showToast('Personne ici', 'Aucun PNJ à qui distribuer un prospectus.', false);
+    return;
+  }
+
+  const cycle = CYCLES_ELECTORAUX[country]?.[posteId];
+  const disponibles = persons.filter(p => !cycle?.votesPNJ[p.name]);
+
+  if (!disponibles.length) {
+    showToast('Déjà convaincus', 'Tous les PNJ présents ont déjà reçu un prospectus.', false);
+    return;
+  }
+
+  const html = disponibles.map(p =>
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .2rem;border-bottom:1px solid #1a1810">' +
+    '<span style="font-size:.78rem;color:#c0b090">' + p.name.replace(' (PNJ)','') + '</span>' +
+    '<button onclick="distribuerProspectusBtn(this)" data-pnj="' + p.name + '" data-nom="' + candidatNom + '" data-poste="' + posteId + '" data-country="' + country + '" ' +
+    'style="font-size:.65rem;font-family:Bebas Neue,sans-serif;padding:.2rem .5rem;border:1px solid #3a5a3a;background:transparent;color:#4a8a4a;cursor:pointer">Distribuer</button>' +
+    '</div>'
+  ).join('');
+
+  document.getElementById('postes-modal-title').textContent = '📄 Distribuer pour ' + candidatNom;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:.6rem 1rem">' + html + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Consulter les résultats via informateur
+function consulterResultatsInformateur(posteId, country) {
+  if (!state.informateurs?.length) {
+    showToast('Informateur requis', 'Recrutez un informateur pour connaître les résultats en temps réel.', false);
+    return;
+  }
+
+  const res = calculerResultats(posteId, country);
+  if (!res) return;
+
+  const sorted = Object.entries(res.scores).sort((a,b) => b[1]-a[1]);
+  const html = sorted.map(([nom, voix]) => {
+    const pct = res.totalVoix > 0 ? Math.round(voix/res.totalVoix*100) : 0;
+    return '<div style="margin-bottom:.4rem">' +
+      '<div style="display:flex;justify-content:space-between;font-size:.78rem;color:#c0b090;margin-bottom:.15rem">' +
+        '<span>' + nom + '</span><span>' + voix + ' voix (' + pct + '%)</span>' +
+      '</div>' +
+      '<div style="height:4px;background:#1a1810;border-radius:2px">' +
+        '<div style="height:100%;width:' + pct + '%;background:#C9A84C;border-radius:2px"></div>' +
+      '</div></div>';
+  }).join('');
+
+  document.getElementById('postes-modal-title').textContent = '🕵️ Résultats en temps réel';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.6rem 1rem">' +
+    '<div style="font-size:.68rem;color:#6a5a30;margin-bottom:.6rem;font-style:italic">Source : informateur. ' + res.totalVoix + ' voix comptabilisées.</div>' +
+    html +
+    (res.elu ? '<div style="margin-top:.6rem;font-size:.78rem;color:#4a8a4a">→ Majorité atteinte : ' + res.elu + ' élu(e) si le vote clôture maintenant.</div>' : '') +
+    (res.secondTour.length ? '<div style="margin-top:.6rem;font-size:.78rem;color:#aa8a4a">→ Second tour probable entre : ' + res.secondTour.join(', ') + '.</div>' : '') +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Afficher le tableau de bord électoral complet
+function ouvrirTableauElectoral() {
+  const country = state.country;
+  const co = COUNTRIES[country];
+
+  if (!CYCLES_ELECTORAUX[country]) {
+    // Initialiser les cycles si besoin
+    POSTES_ELECTIFS.national.forEach(p => initCycleElectoral(country, p.id));
+  }
+
+  const postes = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.departemental, ...POSTES_ELECTIFS.local];
+  const html = postes.map(p => {
+    const cycle = CYCLES_ELECTORAUX[country]?.[p.id];
+    const phase = cycle ? getPhaseActuelle(country, p.id) : 'Non initialisé';
+    const nbCandidats = cycle?.candidats.length || 0;
+    const titulaire = state.postes?.[country]?.[p.id] || 'Vacant';
+
+    const phaseCol = {
+      [PHASES_ELECTORALES.CANDIDATURES]: '#4a6aaa',
+      [PHASES_ELECTORALES.CAMPAGNE]:     '#aa8a4a',
+      [PHASES_ELECTORALES.VOTE]:         '#4a8a4a',
+      [PHASES_ELECTORALES.SECOND_TOUR]:  '#8a6a4a',
+      [PHASES_ELECTORALES.VOTE2]:        '#4a8a4a',
+      [PHASES_ELECTORALES.VACANT]:       '#8a3a2a',
+    }[phase] || '#6a5a30';
+
+    return '<div style="padding:.5rem .4rem;border-bottom:1px solid #1a1810">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center">' +
+        '<div>' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#c0b090">' + p.name + '</div>' +
+          '<div style="font-size:.65rem;color:#6a5a30">' + titulaire + '</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:.65rem;color:' + phaseCol + ';font-family:Bebas Neue,sans-serif">' + (phase || 'N/A') + '</div>' +
+          '<div style="font-size:.62rem;color:#4a4030">' + nbCandidats + ' candidat(s)</div>' +
+        '</div>' +
+      '</div>' +
+    '<button onclick="ouvrirBureauDeVoteBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" ' +
+      'style="margin-top:.3rem;font-size:.65rem;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">Voir détails →</button>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('postes-modal-title').textContent = '🗳️ Élections — ' + (co?.n || country);
+  document.getElementById('postes-body').innerHTML = '<div style="padding:.4rem .6rem">' + html + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Changer de domicile (depuis la mairie)
+function changerDomicile(newCountry, newCity) {
+  const co = COUNTRIES[newCountry];
+  const cur = co?.cur || 'FR';
+  const cout = 200;
+
+  if (state.arg < cout) {
+    showToast('Fonds insuffisants', cout + ' ' + cur + ' requis pour changer de domicile.', false);
+    return;
+  }
+
+  state.arg -= cout;
+  const ancienDomicile = state.domicile;
+  state.domicile = { country: newCountry, city: newCity, depuis: state.day || 1 };
+
+  // Perdre les postes liés à l'ancienne domiciliation
+  if (state.poste) {
+    const postesLocaux = ['maire', 'depute'];
+    if (postesLocaux.includes(state.poste.id)) {
+      addJournalEntry('⚠️ Changement de domicile : vous perdez votre poste de ' + state.poste.name + '.', 'event-bad');
+      state.poste = null;
+    }
+  }
+
+  updateUI();
+  showToast('Domicile changé !', newCity + ', ' + co?.n + '. -' + cout + ' ' + cur, true);
+  addJournalEntry('🏠 Nouveau domicile : ' + newCity + ', ' + (co?.n || newCountry) + '.', 'event-info');
+}
 
 // =====================
 // ALLIANCES ENTRE PJ

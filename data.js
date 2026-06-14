@@ -2818,6 +2818,104 @@ const TERRAIN_PNJ_PROFILES = {
   ]
 };
 
+
+// =====================
+// SYSTÈME ÉLECTORAL
+// =====================
+
+// Postes électifs par empire et ville
+const POSTES_ELECTIFS = {
+  national: [
+    { id: 'president',      name: 'Président',           niveau: 'national', mandatSemaines: 5, deputesRequis: 0,  minInf: 10 },
+    { id: 'chef_syndicat',  name: 'Chef Syndical',        niveau: 'national', mandatSemaines: 5, deputesRequis: 0,  minInf: 5  },
+  ],
+  departemental: [
+    { id: 'depute',         name: 'Député',               niveau: 'ville',    mandatSemaines: 5, deputesRequis: 0,  minInf: 5,  nbParVille: 3 },
+  ],
+  local: [
+    { id: 'maire',          name: 'Maire',                niveau: 'ville',    mandatSemaines: 5, deputesRequis: 0,  minInf: 3  },
+  ]
+};
+
+// Cycle électoral — état global par empire
+// Structure : CYCLES_ELECTORAUX[country][posteId] = { phase, dateDebut, dateFin, candidats, votes, tour }
+const CYCLES_ELECTORAUX = {};
+
+// Phases du cycle
+const PHASES_ELECTORALES = {
+  MANDAT:        'mandat',        // Poste occupé, mandat en cours
+  CANDIDATURES:  'candidatures',  // Ouverture des candidatures (J-7 avant campagne)
+  CAMPAGNE:      'campagne',      // Campagne électorale (1 semaine)
+  VOTE:          'vote',          // Jour du vote (dimanche 20h-24h)
+  SECOND_TOUR:   'second_tour',   // Campagne second tour (1 semaine)
+  VOTE2:         'vote2',         // Second tour
+  VACANT:        'vacant',        // Poste vacant — PNJ administrateur nommé
+};
+
+// Résultats électoraux archivés
+const HISTORIQUE_ELECTIONS = {};
+
+// =====================
+// DOMICILIATION
+// =====================
+// Stockée dans state.domicile = { country, city, depuis (jour) }
+// Modifiable à la mairie
+
+// =====================
+// ORGANISATIONS
+// =====================
+const TYPES_ORGANISATIONS = {
+  criminelle: {
+    label: 'Organisation Criminelle',
+    secret: true,
+    requis: { dis: 60 },
+    grades: {
+      republic: ['Affilié', 'Soldat', 'Capo', 'Parrain'],
+      narco:    ['Sicario', 'Teniente', 'Comandante', 'El Jefe'],
+      soviet:   ['Homme de main', 'Brigadier', 'Vor', 'Pakhan'],
+      khalija:  ['Sbire', 'Lieutnant', 'Émir de l\'ombre', 'Calife de l\'obscurité'],
+    },
+    maxParEmpire: null, // Plusieurs possibles
+  },
+  religieuse: {
+    label: 'Organisation Religieuse',
+    secret: false,
+    requis: { inf: 20, pop: 15 },
+    grades: {
+      republic: ['Novice', 'Diacre', 'Prêtre', 'Grand Pontife'],
+      narco:    ['Croyant', 'Révérend', 'Archevêque', 'El Profeta'],
+      soviet:   ['Camarade Croyant', 'Lecteur du Parti', 'Prophète du Kolkhoze', 'Grand Oracle'],
+      khalija:  ['Étudiant', 'Imam', 'Grand Mufti', 'Ayatollah Suprême'],
+    },
+    maxParEmpire: null,
+  },
+  economique: {
+    label: 'Organisation Économique',
+    secret: false,
+    requis: { inf: 15, arg: 10000 },
+    grades: {
+      republic: ['Actionnaire', 'Directeur', 'PDG', 'Président du Conseil'],
+      narco:    ['Investisseur', 'Gérant', 'Patron', 'El Patrón Económico'],
+      soviet:   ['Coopérateur', 'Directeur de Plan', 'Commissaire Économique', 'Ministre de l\'Abondance'],
+      khalija:  ['Associé', 'Directeur', 'Cheikh des Affaires', 'Sultan Économique'],
+    },
+    maxParEmpire: null,
+  },
+  loge: {
+    label: 'Loge Maçonnique',
+    secret: false,
+    requis: { inf: 25 },
+    grades: {
+      republic: ['Apprenti', 'Compagnon', 'Maître', 'Grand Maître'],
+      narco:    ['Iniciado', 'Hermano', 'Maestro', 'Gran Maestro'],
+      soviet:   ['Apprenti du Parti', 'Frère Collectif', 'Maître Soviétique', 'Grand Architecte'],
+      khalija:  ['Murid', 'Ikhwan', 'Sheikh', 'Grand Sheikh'],
+    },
+    maxParEmpire: 1, // Une seule loge par empire
+    cycleElection: 30, // Jours réels entre chaque élection interne
+  }
+};
+
 const POSTES = {
   republic: {
     capitale: [

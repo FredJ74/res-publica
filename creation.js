@@ -418,7 +418,11 @@ function validateChar(){
         banque: Math.ceil((char.arg||0)*0.85),
         inf: char.resources?.inf || 25, pop: char.resources?.pop || 30,
         dis: char.resources?.dis || 85, hp: 100, pa: 10, moral: 75,
-        poste: null, inventory: [], informateurs: [], day: 1, recherche: []
+        poste: null, inventory: [], informateurs: [], day: 1, recherche: [],
+        domicile: { country: char.country, city: 'capitale', depuis: 1 },
+        organisations: [],
+        objectifs_completes: [],
+        votes_pnj: {},
       };
       sbSavePersonnage(tempState).catch(e => console.warn('Supabase save error', e));
     }
