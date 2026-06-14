@@ -488,7 +488,19 @@ function enterRoom(buildingId, roomId, tabEl) {
   document.getElementById('piece-nom').textContent = roomOverride?.name || room.name;
   const displayDesc = (isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || '');
   document.getElementById('piece-desc').textContent = displayDesc;
-  const displayPersons = (isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []);
+  let displayPersons = (isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []);
+
+  // Injecter PNJ terrain si applicable
+  if (buildingId?.startsWith('terrain-a-batir')) {
+    const stored = sessionStorage.getItem('terrain_pnj_' + buildingId);
+    if (stored) {
+      try {
+        const pnjTerrain = JSON.parse(stored);
+        if (pnjTerrain.name) displayPersons = [...displayPersons, pnjTerrain];
+      } catch(e) {}
+    }
+  }
+
   renderPersonsList(displayPersons);
 
   // Ordres
