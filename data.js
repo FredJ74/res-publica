@@ -2843,6 +2843,226 @@ const TERRAIN_PNJ_PROFILES = {
 // =====================
 
 // Postes électifs par empire et ville
+
+// =====================
+// ORGANISATIONS — DÉFINITIONS COMPLÈTES
+// =====================
+
+const ORGANISATIONS_DEF = {
+  criminelle: {
+    label: 'Organisation Criminelle',
+    labelCourt: 'Crime',
+    secret: true,
+    icon: 'ti-skull',
+    color: '#8a3a2a',
+    requis: { dis: 60 },
+    maxParEmpire: null,
+    grades: {
+      republic: ['Affilié', 'Soldat', 'Capo', 'Parrain'],
+      narco:    ['Sicario', 'Teniente', 'Comandante', 'El Jefe'],
+      soviet:   ['Homme de main', 'Brigadier', 'Vor', 'Pakhan'],
+      khalija:  ['Sbire', 'Lieutenant de l\'ombre', 'Émir Noir', 'Sultan des Ombres'],
+    },
+    bonus: [
+      { grade: 0, stat: 'dis',    valeur: 5,  desc: '+5 DIS passive' },
+      { grade: 1, stat: 'dis',    valeur: 10, desc: '+10 DIS passive' },
+      { grade: 2, stat: 'dis',    valeur: 15, desc: '+15 DIS passive' },
+      { grade: 3, stat: 'dis',    valeur: 20, desc: '+20 DIS passive' },
+      { grade: 1, stat: 'corruption_bonus', valeur: 15, desc: '+15% réussite corruption' },
+      { grade: 2, stat: 'corruption_bonus', valeur: 25, desc: '+25% réussite corruption' },
+      { grade: 3, stat: 'corruption_bonus', valeur: 35, desc: '+35% réussite corruption' },
+      { grade: 2, stat: 'info_cost',        valeur: -30, desc: '-30% coût informateurs' },
+      { grade: 3, stat: 'arrest_resist',    valeur: 30, desc: '+30% résistance arrestation' },
+      { grade: 3, stat: 'tracking',         valeur: true, desc: 'Suivi des mouvements PJ' },
+    ]
+  },
+  religieuse: {
+    label: 'Organisation Religieuse',
+    labelCourt: 'Religion',
+    secret: false,
+    icon: 'ti-star',
+    color: '#C9A84C',
+    requis: { inf: 20, pop: 15 },
+    maxParEmpire: null,
+    grades: {
+      republic: ['Novice', 'Diacre', 'Prêtre', 'Grand Pontife'],
+      narco:    ['Croyant', 'Révérend', 'Archevêque', 'El Profeta'],
+      soviet:   ['Initié du Kolkhoze', 'Lecteur', 'Prophète', 'Grand Oracle'],
+      khalija:  ['Étudiant', 'Imam', 'Grand Mufti', 'Ayatollah Suprême'],
+    },
+    bonus: [
+      { grade: 0, stat: 'pop',          valeur: 5,   desc: '+5 POP passive' },
+      { grade: 1, stat: 'pop',          valeur: 10,  desc: '+10 POP passive' },
+      { grade: 2, stat: 'pop',          valeur: 15,  desc: '+15 POP passive' },
+      { grade: 3, stat: 'pop',          valeur: 20,  desc: '+20 POP passive' },
+      { grade: 0, stat: 'moral_drain',  valeur: -50, desc: 'Perte de Moral réduite de 50%' },
+      { grade: 1, stat: 'forum_inf',    valeur: 2,   desc: '+2 INF par post forum' },
+      { grade: 2, stat: 'forum_inf',    valeur: 4,   desc: '+4 INF par post forum' },
+      { grade: 2, stat: 'soin_gratuit', valeur: true,desc: 'Soins gratuits au dispensaire' },
+      { grade: 3, stat: 'benedir',      valeur: 10,  desc: 'Bénédiction candidat : +10 POP' },
+      { grade: 3, stat: 'forum_inf',    valeur: 6,   desc: '+6 INF par post forum' },
+    ]
+  },
+  economique: {
+    label: 'Organisation Économique',
+    labelCourt: 'Économie',
+    secret: false,
+    icon: 'ti-building-bank',
+    color: '#4a8a4a',
+    requis: { inf: 15, arg: 10000 },
+    maxParEmpire: null,
+    grades: {
+      republic: ['Actionnaire', 'Directeur', 'PDG', 'Président du Conseil'],
+      narco:    ['Investisseur', 'Gérant', 'Patron', 'El Patrón Económico'],
+      soviet:   ['Coopérateur', 'Dir. de Plan', 'Commissaire Éco.', 'Min. de l\'Abondance'],
+      khalija:  ['Associé', 'Directeur', 'Cheikh des Affaires', 'Sultan Économique'],
+    },
+    bonus: [
+      { grade: 0, stat: 'revenus_passifs', valeur: 100,  desc: '+100 FR/jour passif' },
+      { grade: 1, stat: 'revenus_passifs', valeur: 300,  desc: '+300 FR/jour passif' },
+      { grade: 2, stat: 'revenus_passifs', valeur: 700,  desc: '+700 FR/jour passif' },
+      { grade: 3, stat: 'revenus_passifs', valeur: 1500, desc: '+1500 FR/jour passif' },
+      { grade: 1, stat: 'terrain_discount',valeur: 15,   desc: '-15% prix terrains et permis' },
+      { grade: 2, stat: 'terrain_discount',valeur: 25,   desc: '-25% prix terrains et permis' },
+      { grade: 1, stat: 'nego_cha',        valeur: 10,   desc: '+10% jets de négociation' },
+      { grade: 2, stat: 'nego_cha',        valeur: 20,   desc: '+20% jets de négociation' },
+      { grade: 3, stat: 'nego_cha',        valeur: 30,   desc: '+30% jets de négociation' },
+      { grade: 2, stat: 'market_info',     valeur: true, desc: 'Prix terrains en temps réel' },
+      { grade: 3, stat: 'finance_campagne',valeur: true, desc: 'Financement campagne électorale' },
+    ]
+  },
+  syndicale: {
+    label: 'Organisation Syndicale',
+    labelCourt: 'Syndicat',
+    secret: false,
+    icon: 'ti-users-group',
+    color: '#4a6aaa',
+    requis: { inf: 10, pop: 20 },
+    maxParEmpire: null,
+    grades: {
+      republic: ['Adhérent', 'Délégué', 'Secrétaire Général', 'Confédéral'],
+      narco:    ['Miembro', 'Delegado', 'Secretario', 'El Capo Sindical'],
+      soviet:   ['Travailleur Uni', 'Délégué du Peuple', 'Commissaire Syndical', 'Grand Camarade'],
+      khalija:  ['Membre', 'Représentant', 'Directeur Syndical', 'Grand Cheikh Ouvrier'],
+    },
+    bonus: [
+      { grade: 0, stat: 'pop_pnj',      valeur: 5,   desc: '+5 POP auprès des PNJ travailleurs' },
+      { grade: 1, stat: 'pop_pnj',      valeur: 10,  desc: '+10 POP auprès des PNJ travailleurs' },
+      { grade: 2, stat: 'pop_pnj',      valeur: 15,  desc: '+15 POP auprès des PNJ travailleurs' },
+      { grade: 3, stat: 'pop_pnj',      valeur: 20,  desc: '+20 POP auprès des PNJ travailleurs' },
+      { grade: 1, stat: 'nego_cha',     valeur: 15,  desc: '+15% jets négociation squatteurs/travailleurs' },
+      { grade: 2, stat: 'nego_cha',     valeur: 25,  desc: '+25% jets négociation' },
+      { grade: 2, stat: 'greve',        valeur: true,desc: 'Peut déclencher une grève (-IE empire)' },
+      { grade: 2, stat: 'postes_info',  valeur: true,desc: 'Réseau : postes disponibles visibles' },
+      { grade: 3, stat: 'motion',       valeur: true,desc: 'Motion de mécontentement auto sur forum' },
+      { grade: 3, stat: 'vote_bonus',   valeur: 5,   desc: '+5 votes PNJ automatiques aux élections' },
+    ]
+  },
+  loge: {
+    label: 'Loge Maçonnique',
+    labelCourt: 'Loge',
+    secret: false,
+    icon: 'ti-hexagon',
+    color: '#8a6aaa',
+    requis: { inf: 25 },
+    maxParEmpire: 1,
+    cycleElection: 30,
+    grades: {
+      republic: ['Apprenti', 'Compagnon', 'Maître', 'Grand Maître'],
+      narco:    ['Iniciado', 'Hermano', 'Maestro', 'Gran Maestro'],
+      soviet:   ['Apprenti Collectif', 'Frère du Plan', 'Maître Soviétique', 'Grand Architecte'],
+      khalija:  ['Murid', 'Ikhwan', 'Sheikh', 'Grand Sheikh'],
+    },
+    bonus: [
+      { grade: 0, stat: 'admin_delay',  valeur: -20, desc: '-20% délais administratifs' },
+      { grade: 1, stat: 'admin_delay',  valeur: -35, desc: '-35% délais administratifs' },
+      { grade: 2, stat: 'admin_delay',  valeur: -50, desc: '-50% délais administratifs' },
+      { grade: 3, stat: 'admin_delay',  valeur: -70, desc: '-70% délais administratifs' },
+      { grade: 1, stat: 'inf',          valeur: 5,   desc: '+5 INF passive' },
+      { grade: 2, stat: 'inf',          valeur: 10,  desc: '+10 INF passive' },
+      { grade: 3, stat: 'inf',          valeur: 15,  desc: '+15 INF passive' },
+      { grade: 2, stat: 'dis',          valeur: 10,  desc: '+10 DIS passive' },
+      { grade: 2, stat: 'pol_info',     valeur: true,desc: 'Infos politiques exclusives' },
+      { grade: 3, stat: 'cooptation',   valeur: true,desc: 'Cooptation : accès poste sans élection' },
+      { grade: 3, stat: 'vote_bonus',   valeur: 3,   desc: '+3 votes PNJ coalitions électorales' },
+    ]
+  }
+};
+
+// =====================
+// SYNERGIES D'ORGANISATIONS
+// =====================
+const SYNERGIES_ORGA = [
+  {
+    combo: ['criminelle', 'economique'],
+    label: 'Blanchiment',
+    desc: 'Crime + Économie : revenus passifs doublés, -50% risque détection transactions louches',
+    bonus: { revenus_passifs_mult: 2, detection_risk: -50 }
+  },
+  {
+    combo: ['criminelle', 'loge'],
+    label: 'Réseau de l\'Ombre',
+    desc: 'Crime + Loge : +15 DIS supplémentaire, accès aux informations politiques secrètes',
+    bonus: { dis: 15, pol_info_secret: true }
+  },
+  {
+    combo: ['economique', 'loge'],
+    label: 'Capitalisme Discret',
+    desc: 'Économie + Loge : délais administratifs réduits à zéro pour les terrains, +500 FR/jour',
+    bonus: { terrain_delay: 0, revenus_passifs: 500 }
+  },
+  {
+    combo: ['religieuse', 'syndicale'],
+    label: 'Front Populaire',
+    desc: 'Religion + Syndicat : +15 POP supplémentaire, prospectus comptent double aux élections',
+    bonus: { pop: 15, prospectus_mult: 2 }
+  },
+  {
+    combo: ['religieuse', 'loge'],
+    label: 'Ordre Mystique',
+    desc: 'Religion + Loge : moral jamais en dessous de 50, +10 INF permanente',
+    bonus: { moral_floor: 50, inf: 10 }
+  },
+  {
+    combo: ['syndicale', 'economique'],
+    label: 'Partenariat Social',
+    desc: 'Syndicat + Économie : grèves impossibles contre vos entreprises, +10 POP travailleurs',
+    bonus: { greve_immune: true, pop_pnj: 10 }
+  },
+  {
+    combo: ['criminelle', 'syndicale'],
+    label: 'Syndicat Mafieux',
+    desc: 'Crime + Syndicat : intimidation des PNJ sans jet, squatteurs partent toujours au 1er tour',
+    bonus: { intimidation_auto: true, squatter_exit: true }
+  },
+  {
+    combo: ['criminelle', 'religieuse'],
+    label: 'Mafia Pieuse',
+    desc: 'Crime + Religion : corruption acceptée sans jet si PNJ est croyant, +10 POP malgré activités illicites',
+    bonus: { corruption_croyant: true, pop: 10 }
+  },
+  {
+    combo: ['economique', 'syndicale'],
+    label: 'Oligarque Bienveillant',
+    desc: 'Économie + Syndicat : -20% coût terrains supplémentaire, votes PNJ travailleurs automatiques',
+    bonus: { terrain_discount: 20, vote_travailleur_auto: true }
+  },
+  {
+    combo: ['criminelle', 'economique', 'loge'],
+    label: 'Maître du Monde',
+    desc: 'Crime + Économie + Loge : triple synergie — +30 DIS, revenus x3, cooptation garantie',
+    bonus: { dis: 30, revenus_passifs_mult: 3, cooptation_garanti: true },
+    triple: true
+  },
+  {
+    combo: ['religieuse', 'syndicale', 'loge'],
+    label: 'Mouvement Populaire',
+    desc: 'Religion + Syndicat + Loge : triple synergie — +30 POP, victoire électorale facilitée, motion auto',
+    bonus: { pop: 30, election_bonus: 10, motion_auto: true },
+    triple: true
+  },
+];
+
 const POSTES_ELECTIFS = {
   national: [
     { id: 'president',      name: 'Président',           niveau: 'national', mandatSemaines: 5, deputesRequis: 0,  minInf: 10 },

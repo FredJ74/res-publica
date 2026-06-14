@@ -1110,6 +1110,9 @@ function applyEffects(fn, resultType, cost) {
     state.douanePassee = false;
     localStorage.setItem('respublica_dormir', JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
 
+    // Revenus passifs des organisations
+    appliquerRevenusPassifsOrga();
+
     if (msgs.length > 0) showToast('Bonne nuit !', msgs.join(' · '), true, true);
     updateUI();
   }
@@ -2820,6 +2823,460 @@ function changerDomicile(newCountry, newCity) {
   addJournalEntry('🏠 Nouveau domicile : ' + newCity + ', ' + (co?.n || newCountry) + '.', 'event-info');
 }
 
+
+
+function confirmerCreationOrgaBtn(el) { confirmerCreationOrga(el.dataset.type); }
+function ouvrirForumOrgaBtn(el) { ouvrirForumOrga(el.dataset.id); }
+function ouvrirGestionOrgaBtn(el) { ouvrirGestionOrga(el.dataset.id); }
+function posterMessageOrgaBtn(el) { posterMessageOrga(el.dataset.id); }
+function ouvrirCreationOrgaBtn(el) { ouvrirCreationOrga(el.dataset.type); }
+
+// =====================
+// MOTEUR DES ORGANISATIONS
+// =====================
+
+// Obtenir les organisations du joueur
+function getMesOrganisations() {
+  return state.organisations || [];
+}
+
+// Obtenir le grade dans une organisation
+function getMonGrade(orgaId) {
+  const orga = getMesOrganisations().find(o => o.id === orgaId);
+  return orga ? orga.grade : -1;
+}
+
+// Calculer tous les bonus actifs du joueur (organisations + synergies)
+function calculerBonusOrga() {
+  const mes = getMesOrganisations();
+  const types = mes.map(o => o.type);
+  const bonus = {
+    dis: 0, inf: 0, pop: 0, pop_pnj: 0,
+    corruption_bonus: 0, nego_cha: 0,
+    revenus_passifs: 0, revenus_passifs_mult: 1,
+    terrain_discount: 0, admin_delay: 0,
+    moral_drain: 0, forum_inf: 0,
+    arrest_resist: 0, vote_bonus: 0,
+    // Booléens
+    tracking: false, soin_gratuit: false, benedir: false,
+    market_info: false, finance_campagne: false,
+    greve: false, postes_info: false, motion: false,
+    pol_info: false, cooptation: false,
+    // Synergies
+    greve_immune: false, intimidation_auto: false,
+    squatter_exit: false, corruption_croyant: false,
+    vote_travailleur_auto: false, cooptation_garanti: false,
+    motion_auto: false, election_bonus: 0,
+    moral_floor: 0, detection_risk: 0,
+    prospectus_mult: 1, terrain_delay: null,
+  };
+
+  // Bonus des grades
+  mes.forEach(o => {
+    const def = ORGANISATIONS_DEF[o.type];
+    if (!def) return;
+    def.bonus.forEach(b => {
+      if (b.grade <= o.grade) {
+        if (typeof b.valeur === 'boolean') {
+          bonus[b.stat] = true;
+        } else {
+          bonus[b.stat] = (bonus[b.stat] || 0) + b.valeur;
+        }
+      }
+    });
+  });
+
+  // Synergies
+  if (typeof SYNERGIES_ORGA !== 'undefined') {
+    SYNERGIES_ORGA.forEach(syn => {
+      const actif = syn.combo.every(t => types.includes(t));
+      if (actif) {
+        Object.entries(syn.bonus).forEach(([k, v]) => {
+          if (typeof v === 'boolean') bonus[k] = true;
+          else if (k.endsWith('_mult')) bonus[k] = (bonus[k] || 1) * v;
+          else bonus[k] = (bonus[k] || 0) + v;
+        });
+      }
+    });
+  }
+
+  // Appliquer multiplicateur revenus
+  bonus.revenus_passifs = Math.floor((bonus.revenus_passifs || 0) * (bonus.revenus_passifs_mult || 1));
+  return bonus;
+}
+
+// Obtenir les synergies actives
+function getSynergiesActives() {
+  const types = getMesOrganisations().map(o => o.type);
+  return (SYNERGIES_ORGA || []).filter(s => s.combo.every(t => types.includes(t)));
+}
+
+// Vérifier si on peut créer/rejoindre une organisation
+function peutRejoindreOrga(type) {
+  const def = ORGANISATIONS_DEF[type];
+  if (!def) return { ok: false, raison: 'Type inconnu.' };
+  const mes = getMesOrganisations();
+
+  // Déjà dans une orga de ce type
+  if (mes.find(o => o.type === type)) return { ok: false, raison: 'Vous êtes déjà dans une organisation de ce type.' };
+
+  // Prérequis stats
+  const r = def.requis;
+  if (r.dis  && (state.dis  || 0) < r.dis)  return { ok: false, raison: 'Discrétion insuffisante (' + r.dis + ' requis).' };
+  if (r.inf  && (state.inf  || 0) < r.inf)  return { ok: false, raison: 'Influence insuffisante (' + r.inf + ' requis).' };
+  if (r.pop  && (state.pop  || 0) < r.pop)  return { ok: false, raison: 'Popularité insuffisante (' + r.pop + ' requis).' };
+  if (r.arg  && (state.arg  || 0) < r.arg)  return { ok: false, raison: 'Fonds insuffisants (' + r.arg + ' FR requis).' };
+  return { ok: true };
+}
+
+// Créer une organisation
+function ouvrirCreationOrga(type) {
+  const def = ORGANISATIONS_DEF[type];
+  if (!def) return;
+
+  const check = peutRejoindreOrga(type);
+  if (!check.ok) { showToast('Impossible', check.raison, false); return; }
+
+  // Vérifier siège social
+  const biensProprio = Object.entries(state.terrainsAchetes || {})
+    .filter(([, v]) => v === state.char?.name)
+    .map(([k]) => BUILDINGS[k]?.shortName || k);
+  const biensLoues = (state.locations || [])
+    .map(l => BUILDINGS[l.buildingId]?.shortName || l.buildingId);
+  const siegesDispo = [...biensProprio, ...biensLoues];
+
+  document.getElementById('postes-modal-title').textContent = 'Créer : ' + def.label;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.8rem;font-style:italic">' +
+      Object.entries(def.requis).map(([k,v]) => k.toUpperCase() + ' ' + v + ' requis').join(' · ') +
+    '</div>' +
+    '<input id="orga-nom" placeholder="Nom de l\'organisation..." ' +
+    'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;margin-bottom:.5rem;box-sizing:border-box"/>' +
+    '<input id="orga-slogan" placeholder="Slogan ou description courte..." ' +
+    'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;margin-bottom:.5rem;box-sizing:border-box"/>' +
+    (siegesDispo.length > 0
+      ? '<select id="orga-siege" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;margin-bottom:.5rem">' +
+        siegesDispo.map(s => '<option>' + s + '</option>').join('') + '</select>'
+      : '<div style="font-size:.7rem;color:#8a3a2a;margin-bottom:.5rem">⚠️ Aucun siège disponible. Achetez ou louez un bâtiment d\'abord.</div>') +
+    '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.5rem">Cotisations :</div>' +
+    '<div style="display:flex;gap:.5rem;margin-bottom:.5rem">' +
+    '<label style="font-size:.72rem;color:#c0b090;cursor:pointer"><input type="radio" name="cotis" value="volontaire" checked> Volontaires</label>' +
+    '<label style="font-size:.72rem;color:#c0b090;cursor:pointer"><input type="radio" name="cotis" value="obligatoire"> Obligatoires</label>' +
+    '</div>' +
+    '<input id="orga-cotis" type="number" min="0" step="50" placeholder="Montant cotisation (0 = gratuit)..." ' +
+    'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;margin-bottom:.6rem;box-sizing:border-box"/>' +
+    '<button onclick="confirmerCreationOrgaBtn(this)" data-type="' + type + '" ' +
+    'style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid ' + def.color + ';background:transparent;color:' + def.color + ';cursor:pointer">' +
+    def.icon.replace('ti-','') + ' Fonder l\'organisation</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerCreationOrga(type) {
+  const def = ORGANISATIONS_DEF[type];
+  const nom = document.getElementById('orga-nom')?.value?.trim();
+  const slogan = document.getElementById('orga-slogan')?.value?.trim() || '';
+  const cotisType = document.querySelector('input[name="cotis"]:checked')?.value || 'volontaire';
+  const cotisVal = parseInt(document.getElementById('orga-cotis')?.value || 0);
+  const siege = document.getElementById('orga-siege')?.value || 'Aucun';
+
+  if (!nom) { showToast('Nom requis', 'Donnez un nom à votre organisation.', false); return; }
+
+  const orgaId = 'orga_' + Date.now();
+  const nouvelleOrga = {
+    id: orgaId, type, nom, slogan, siege,
+    chef: state.char?.name,
+    country: state.country,
+    city: state.currentCity,
+    grade: 3, // Le fondateur est chef (grade max)
+    membres: [{ nom: state.char?.name, grade: 3, depuis: state.day || 1 }],
+    cotisType, cotisVal,
+    dateCreation: Date.now(),
+    photoUrl: null,
+    forum: [],
+  };
+
+  if (!state.organisations) state.organisations = [];
+  state.organisations.push(nouvelleOrga);
+
+  // Enregistrer globalement
+  if (!state.orgasEmpire) state.orgasEmpire = {};
+  if (!state.orgasEmpire[state.country]) state.orgasEmpire[state.country] = [];
+  state.orgasEmpire[state.country].push(nouvelleOrga);
+
+  document.getElementById('modal-postes').classList.remove('open');
+  updateUI();
+  addJournalEntry('🏛 Organisation fondée : ' + nom + ' (' + def.label + '). Siège : ' + siege + '.', 'event-good');
+  showToast('Organisation fondée !', nom + ' — vous en êtes le chef.', true);
+
+  // Publier si publique
+  if (!def.secret && typeof sbCreateTopic === 'function') {
+    sbCreateTopic('local',
+      '🏛 Nouvelle organisation : ' + nom,
+      'Une nouvelle ' + def.label + ' vient de voir le jour : **' + nom + '**\n\n' + slogan + '\n\nSiège : ' + siege,
+      state.char?.name
+    );
+  }
+}
+
+// Rejoindre une organisation existante
+function rejoindreOrga(orgaId) {
+  const orgas = state.orgasEmpire?.[state.country] || [];
+  const orga = orgas.find(o => o.id === orgaId);
+  if (!orga) return;
+
+  const check = peutRejoindreOrga(orga.type);
+  if (!check.ok) { showToast('Impossible', check.raison, false); return; }
+
+  // Envoyer demande au chef
+  if (typeof sendMail === 'function') {
+    sendMail(orga.chef,
+      '📋 Demande d\'adhésion — ' + orga.nom,
+      state.char?.name + ' souhaite rejoindre ' + orga.nom + '. Répondez "J\'accepte" ou "Je refuse".'
+    );
+  }
+  showToast('Demande envoyée !', 'Le chef de ' + orga.nom + ' a reçu votre demande.', true);
+}
+
+// Accepter un membre
+function accepterMembre(orgaId, nomMembre) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga || orga.chef !== state.char?.name) return;
+
+  if (!orga.membres.find(m => m.nom === nomMembre)) {
+    orga.membres.push({ nom: nomMembre, grade: 0, depuis: state.day || 1 });
+    const def = ORGANISATIONS_DEF[orga.type];
+    const gradeLabel = def?.grades?.[state.country]?.[0] || 'Membre';
+    if (typeof sendMail === 'function') {
+      sendMail(nomMembre, '✅ Bienvenue dans ' + orga.nom,
+        'Votre adhésion à ' + orga.nom + ' est acceptée. Grade : ' + gradeLabel + '.');
+    }
+    showToast('Membre accepté !', nomMembre + ' rejoint ' + orga.nom + '.', true);
+  }
+}
+
+// Expulser un membre
+function expulserMembre(orgaId, nomMembre) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga || orga.chef !== state.char?.name) return;
+  orga.membres = orga.membres.filter(m => m.nom !== nomMembre);
+  if (typeof sendMail === 'function') {
+    sendMail(nomMembre, '❌ Expulsion de ' + orga.nom, 'Vous avez été expulsé de ' + orga.nom + '.');
+  }
+  showToast('Membre expulsé', nomMembre + ' a été exclu.', false);
+}
+
+// Promouvoir un membre
+function promouvroirMembre(orgaId, nomMembre) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga || orga.chef !== state.char?.name) return;
+  const membre = orga.membres.find(m => m.nom === nomMembre);
+  if (!membre || membre.grade >= 3) return;
+  membre.grade++;
+  const def = ORGANISATIONS_DEF[orga.type];
+  const gradeLabel = def?.grades?.[state.country]?.[membre.grade] || 'Grade ' + membre.grade;
+  if (typeof sendMail === 'function') {
+    sendMail(nomMembre, '🎖 Promotion dans ' + orga.nom, 'Nouveau grade : ' + gradeLabel + '.');
+  }
+  showToast('Promotion !', nomMembre + ' → ' + gradeLabel, true);
+}
+
+// Forum interne de l'organisation
+function ouvrirForumOrga(orgaId) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const def = ORGANISATIONS_DEF[orga.type];
+  const estChef = orga.chef === state.char?.name;
+
+  const messagesHtml = (orga.forum || []).slice(-20).reverse().map(m => {
+    const auteurVisible = estChef ? m.auteurReel : m.auteur;
+    return '<div style="padding:.4rem .4rem;border-bottom:1px solid #1a1810">' +
+      '<div style="display:flex;justify-content:space-between;font-size:.65rem;color:#4a4030;margin-bottom:.2rem">' +
+        '<span style="color:' + def.color + '">' + auteurVisible + '</span>' +
+        '<span>' + new Date(m.date).toLocaleDateString('fr-FR') + '</span>' +
+      '</div>' +
+      '<div style="font-size:.78rem;color:#c0b090">' + m.texte + '</div>' +
+    '</div>';
+  }).join('') || '<div style="font-size:.72rem;color:#4a4030;font-style:italic;padding:.6rem">Aucun message.</div>';
+
+  document.getElementById('postes-modal-title').textContent = '💬 ' + orga.nom;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.4rem .6rem">' +
+    '<div style="max-height:260px;overflow-y:auto;margin-bottom:.6rem">' + messagesHtml + '</div>' +
+    '<textarea id="orga-msg" rows="3" placeholder="Votre message (anonyme pour les membres)..." ' +
+    'style="width:100%;padding:.4rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.82rem;box-sizing:border-box;resize:none"></textarea>' +
+    '<div style="display:flex;gap:.4rem;margin-top:.4rem">' +
+    '<button onclick="posterMessageOrga(this)" data-id="' + orgaId + '"" ' +
+    'style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem;border:1px solid ' + def.color + ';background:transparent;color:' + def.color + ';cursor:pointer">Envoyer</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function posterMessageOrga(orgaId) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const texte = document.getElementById('orga-msg')?.value?.trim();
+  if (!texte) return;
+
+  const def = ORGANISATIONS_DEF[orga.type];
+  const nom = state.char?.name;
+  // Nom affiché : anonyme pour orga secrète ou choix du membre
+  const auteur = def?.secret ? 'Membre anonyme' : nom;
+
+  if (!orga.forum) orga.forum = [];
+  orga.forum.push({ auteur, auteurReel: nom, texte, date: Date.now() });
+
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Message envoyé', def.secret ? 'Publié anonymement.' : 'Publié sous votre nom.', true);
+}
+
+// Tableau de bord des organisations
+function ouvrirTableauOrganisations() {
+  const country = state.country;
+  const co = COUNTRIES[country];
+  const mesOrgas = getMesOrganisations();
+  const synergies = getSynergiesActives();
+  const bonus = calculerBonusOrga();
+
+  // Bonus actifs
+  const bonusActifs = Object.entries(bonus)
+    .filter(([k, v]) => v && v !== 0 && v !== 1 && v !== false && v !== null)
+    .map(([k, v]) => {
+      const labels = {
+        dis: 'DIS +' + v, inf: 'INF +' + v, pop: 'POP +' + v,
+        pop_pnj: 'POP PNJ +' + v, revenus_passifs: '+' + v + ' FR/jour',
+        corruption_bonus: 'Corruption +' + v + '%', nego_cha: 'Négo +' + v + '%',
+        terrain_discount: 'Terrains -' + v + '%', admin_delay: 'Admin ' + v + '%',
+        arrest_resist: 'Arrestation -' + v + '%', forum_inf: 'Forum +' + v + ' INF',
+        vote_bonus: 'Votes +' + v, election_bonus: 'Élection +' + v,
+      };
+      return labels[k] || null;
+    }).filter(Boolean);
+
+  const mesOrgasHtml = mesOrgas.length > 0
+    ? mesOrgas.map(o => {
+        const def = ORGANISATIONS_DEF[o.type];
+        const grades = def?.grades?.[country] || ['Membre'];
+        const gradeLabel = grades[Math.min(o.grade, grades.length-1)];
+        return '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .4rem;border-bottom:1px solid #1a1810">' +
+          '<i class="ti ' + (def?.icon || 'ti-building') + '" style="font-size:1.1rem;color:' + (def?.color || '#C9A84C') + '"></i>' +
+          '<div style="flex:1">' +
+            '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#c0b090">' + o.nom + '</div>' +
+            '<div style="font-size:.65rem;color:' + (def?.color || '#6a5a30') + '">' + gradeLabel + ' · ' + def?.label + '</div>' +
+          '</div>' +
+          '<div style="display:flex;gap:.3rem">' +
+          '<button onclick="ouvrirForumOrga(this)" data-id="' + o.id + '"" style="font-size:.6rem;font-family:Bebas Neue,sans-serif;padding:.2rem .4rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">💬</button>' +
+          '<button onclick="ouvrirGestionOrga(this)" data-id="' + o.id + '"" style="font-size:.6rem;font-family:Bebas Neue,sans-serif;padding:.2rem .4rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">⚙️</button>' +
+          '</div>' +
+        '</div>';
+      }).join('')
+    : '<div style="font-size:.72rem;color:#4a4030;font-style:italic;padding:.4rem">Aucune organisation. Fondez-en une ou rejoignez-en une.</div>';
+
+  const synergiesHtml = synergies.length > 0
+    ? synergies.map(s =>
+        '<div style="padding:.4rem .4rem;border-bottom:1px solid #1a1810">' +
+        '<div style="font-size:.75rem;color:#C9A84C;font-family:Bebas Neue,sans-serif">' +
+          (s.triple ? '⭐⭐⭐ ' : '⭐ ') + s.label +
+        '</div>' +
+        '<div style="font-size:.68rem;color:#8a8060">' + s.desc + '</div>' +
+        '</div>'
+      ).join('')
+    : '<div style="font-size:.68rem;color:#4a4030;font-style:italic;padding:.4rem">Aucune synergie active. Rejoignez d\'autres organisations pour débloquer des combos !</div>';
+
+  const bonusHtml = bonusActifs.length > 0
+    ? '<div style="display:flex;flex-wrap:wrap;gap:.3rem;padding:.3rem 0">' +
+      bonusActifs.map(b => '<span style="font-size:.65rem;color:#4a8a4a;background:#0a1a0a;border:1px solid #1a3a1a;padding:.1rem .4rem;border-radius:2px">' + b + '</span>').join('') +
+      '</div>'
+    : '<div style="font-size:.68rem;color:#4a4030;font-style:italic">Montez en grade pour activer les bonus.</div>';
+
+  // Types disponibles à créer/rejoindre
+  const typesDispoHtml = Object.entries(ORGANISATIONS_DEF).map(([type, def]) => {
+    const dejaPresent = mesOrgas.find(o => o.type === type);
+    if (dejaPresent) return '';
+    const check = peutRejoindreOrga(type);
+    return '<button onclick="ouvrirCreationOrga(this)" data-type="' + type + '"" ' +
+      (check.ok ? '' : 'disabled title="' + check.raison + '" ') +
+      'style="display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;border:1px solid ' +
+      (check.ok ? def.color : '#2a2010') + ';background:transparent;color:' +
+      (check.ok ? def.color : '#3a3020') + ';font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;cursor:' +
+      (check.ok ? 'pointer' : 'not-allowed') + ';width:100%;text-align:left">' +
+      '<i class="ti ' + def.icon + '" style="font-size:.85rem"></i>' + def.label +
+      (check.ok ? '' : ' — ' + check.raison) + '</button>';
+  }).join('');
+
+  document.getElementById('postes-modal-title').textContent = '🏛 Mes Organisations';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.4rem .6rem">' +
+
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#4a4030;margin-bottom:.3rem">MES ORGANISATIONS</div>' +
+    mesOrgasHtml +
+
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#4a4030;margin:.6rem 0 .3rem">SYNERGIES ACTIVES</div>' +
+    synergiesHtml +
+
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#4a4030;margin:.6rem 0 .3rem">BONUS ACTIFS</div>' +
+    bonusHtml +
+
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.12em;color:#4a4030;margin:.6rem 0 .3rem">CRÉER UNE ORGANISATION</div>' +
+    '<div style="display:flex;flex-direction:column;gap:.3rem">' + typesDispoHtml + '</div>' +
+
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Gestion d'une organisation (vue chef)
+function ouvrirGestionOrga(orgaId) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const def = ORGANISATIONS_DEF[orga.type];
+  const estChef = orga.chef === state.char?.name;
+  const grades = def?.grades?.[state.country] || ['Membre','','','Chef'];
+
+  const membresHtml = orga.membres.map(m => {
+    const gradeLabel = grades[Math.min(m.grade, grades.length-1)];
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem .2rem;border-bottom:1px solid #1a1810">' +
+      '<div>' +
+        '<div style="font-size:.78rem;color:#c0b090">' + m.nom + '</div>' +
+        '<div style="font-size:.62rem;color:' + (def?.color || '#6a5a30') + '">' + gradeLabel + '</div>' +
+      '</div>' +
+      (estChef && m.nom !== orga.chef
+        ? '<div style="display:flex;gap:.3rem">' +
+          '<button onclick="promouvroirMembreBtn(this)" data-orga="' + orgaId + '" data-nom="' + m.nom + '" ' +
+          'style="font-size:.6rem;padding:.15rem .35rem;border:1px solid #3a5a3a;background:transparent;color:#4a8a4a;cursor:pointer" title="Promouvoir">↑</button>' +
+          '<button onclick="expulserMembreBtn(this)" data-orga="' + orgaId + '" data-nom="' + m.nom + '" ' +
+          'style="font-size:.6rem;padding:.15rem .35rem;border:1px solid #5a2a2a;background:transparent;color:#8a3a2a;cursor:pointer" title="Expulser">✕</button>' +
+          '</div>'
+        : '') +
+    '</div>';
+  }).join('');
+
+  document.getElementById('postes-modal-title').textContent = '⚙️ ' + orga.nom;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.6rem 1rem">' +
+    '<div style="font-size:.68rem;color:#6a5a30;margin-bottom:.6rem">' + (orga.slogan || '') + '</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.1em;color:#4a4030;margin-bottom:.3rem">MEMBRES (' + orga.membres.length + ')</div>' +
+    membresHtml +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function expulserMembreBtn(el) { expulserMembre(el.dataset.orga, el.dataset.nom); ouvrirGestionOrga(el.dataset.orga); }
+function promouvroirMembreBtn(el) { promouvroirMembre(el.dataset.orga, el.dataset.nom); ouvrirGestionOrga(el.dataset.orga); }
+
+// Appliquer les bonus d'organisations au réveil (revenus passifs)
+function appliquerRevenusPassifsOrga() {
+  const bonus = calculerBonusOrga();
+  if (bonus.revenus_passifs > 0) {
+    state.arg = (state.arg || 0) + bonus.revenus_passifs;
+    addJournalEntry('💼 Revenus passifs organisations : +' + bonus.revenus_passifs + ' ' + (COUNTRIES[state.country]?.cur || 'FR') + '.', 'event-good');
+  }
+  // Appliquer moral_floor
+  if (bonus.moral_floor > 0 && (state.moral || 0) < bonus.moral_floor) {
+    state.moral = bonus.moral_floor;
+  }
+}
+
 // =====================
 // ALLIANCES ENTRE PJ
 // =====================
@@ -3726,7 +4183,8 @@ function doFaireDisparaitreCadavre() {
 
   const dis = state.dis || 50;
   const cha = state.char?.stats?.CHA || 8;
-  const taux = Math.min(75, Math.floor(dis/2 + cha/2) - Math.floor(isn/5));
+  const bonusOrga = calculerBonusOrga();
+  const taux = Math.min(85, Math.floor(dis/2 + cha/2) - Math.floor(isn/5) + (bonusOrga.dis || 0) / 3);
   const roll = Math.floor(Math.random() * 100) + 1;
 
   if (roll <= taux) {
@@ -3804,7 +4262,8 @@ function confirmerNegociation() {
 
   const cha = state.char?.stats?.CHA || 8;
   const bonusArgent = Math.min(40, Math.floor(montant / 100));
-  const taux = Math.min(80, Math.floor(cha * 3 + is / 5) + bonusArgent);
+  const bonusOrga2 = calculerBonusOrga();
+  const taux = Math.min(90, Math.floor(cha * 3 + is / 5) + bonusArgent + (bonusOrga2.nego_cha || 0));
   const roll = Math.floor(Math.random() * 100) + 1;
 
   state.arg -= montant;
