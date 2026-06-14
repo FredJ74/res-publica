@@ -2499,29 +2499,46 @@ async function afficherJournalDuMatin() {
 
   const co = COUNTRIES[state.country];
   const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
-  const president = POSTES[state.country]?.capitale?.find(p => p.id === 'president');
-  const presidentNom = president?.holder || 'Poste vacant';
-  const topics = (typeof FORUM_TOPICS !== 'undefined' ? (FORUM_TOPICS['local'] || []) : []).slice(0, 3).map(t => '"' + t.title + '" (par ' + t.author + ')').join(', ');
-
-  // Résumé des actions passées depuis Supabase
+  // Récupérer la vraie situation politique depuis Supabase
+  let presidentNom = 'Poste vacant';
+  let autresPostes = [];
   let resumeActions = '';
+  let topics = '';
+
   if (typeof sbListPersonnages === 'function') {
     try {
       const joueurs = await sbListPersonnages() || [];
+      const memeEmpire = joueurs.filter(j => j.country === state.country);
+      const president = memeEmpire.find(j => j.poste && j.poste.id === 'president');
+      presidentNom = president?.name || 'Poste vacant';
+      autresPostes = memeEmpire
+        .filter(j => j.poste && j.poste.id !== 'president' && j.name !== state.char?.name)
+        .map(j => j.name + ' (' + j.poste.name + ')')
+        .slice(0, 3);
       const autres = joueurs.filter(j => j.name !== state.char?.name);
       if (autres.length > 0) {
-        resumeActions = autres.slice(0,3).map(j => j.name + ' (' + (j.current_city || 'quelque part') + ')').join(', ');
+        resumeActions = autres.slice(0,3).map(j => j.name + ' vu à ' + (j.current_city || 'lieu inconnu')).join(', ');
       }
     } catch(e) {}
   }
 
+  if (typeof FORUM_TOPICS !== 'undefined') {
+    topics = (FORUM_TOPICS['local'] || []).slice(0, 3).map(t => '"' + t.title + '" (par ' + t.author + ')').join(', ');
+  }
+
+  const contextePolitique = presidentNom !== 'Poste vacant'
+    ? presidentNom + ' occupe la présidence.'
+    : 'Le fauteuil présidentiel est vacant.';
+  const contextPostes = autresPostes.length > 0 ? 'Autres postes : ' + autresPostes.join(', ') + '.' : '';
+
   const prompt = 'Tu es le rédacteur du journal du matin dans ' + (co?.n || 'l\'empire') + ', jeu politique parodique. ' +
-    'Style : ' + empireStyle.tone + '. Religion : ' + empireStyle.religion + '. Chef : ' + empireStyle.leader + '. ' +
-    'Président actuel : ' + presidentNom + '. Jour : ' + today + '. ' +
-    (topics ? 'Sujets chauds du forum : ' + topics + '. ' : '') +
+    'Style : ' + empireStyle.tone + '. Religion : ' + empireStyle.religion + '. ' +
+    'SITUATION RÉELLE DU JOUR : ' + contextePolitique + ' ' + contextPostes + ' ' +
     (resumeActions ? 'Joueurs actifs : ' + resumeActions + '. ' : '') +
-    'Rédige un bref journal du matin parodique : 1 titre accrocheur + 3 brèves courtes et drôles. ' +
-    'Maximum 6 lignes. Très parodique. Pas de vrais dieux ni personnes réelles.';
+    (topics ? 'Sujets du forum : ' + topics + '. ' : '') +
+    'Jour ' + today + '. ' +
+    'Rédige un bref journal du matin parodique COHÉRENT avec cette situation réelle : 1 titre + 3 brèves drôles. ' +
+    'Si un président est nommé, ne dis PAS que le fauteuil est vide. Pas de vrais dieux. Max 6 lignes.';
 
   try {
     const resp = await fetch('/api/chat', {
