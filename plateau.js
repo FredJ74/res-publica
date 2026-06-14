@@ -624,6 +624,22 @@ function renderPersonsList(persons) {
         '<img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover;object-position:' + (p.photoPos || '50% 15%') + '"/>' +
         '</div>'
       : '<div class="person-avatar"><i class="ti ' + av.icon + '" style="font-size:.75rem;color:' + (av.color || '#8a8060') + '"></i></div>';
+
+    // Cadavre : onclick spécial via data-attributes
+    if (p.terrainPnjId === 'cadavre') {
+      return '<div class="person-card" onclick="ouvrirCadavreListe(this)" ' +
+        'data-photo="' + (p.photoUrl || '') + '" ' +
+        'data-pos="' + (p.photoPos || '50% 40%') + '" ' +
+        'data-role="' + (p.role || 'Cadavre') + '" ' +
+        'data-trait="' + (p.trait || '').replace(/"/g, '&quot;') + '">' +
+        avatarHtml +
+        '<div>' +
+        '<div class="person-name">' + p.name + '</div>' +
+        '<div class="person-role">' + p.role + '</div>' +
+        '<div class="person-rel" style="color:#8a3a2a;font-size:.58rem">⚠ Décédé</div>' +
+        '</div></div>';
+    }
+
     return '<div class="person-card" onclick="openPnjModal(\'' + encodeURIComponent(JSON.stringify(p)) + '\')">' +
       avatarHtml +
       '<div>' +
@@ -4017,6 +4033,14 @@ async function publierDecret(texte) {
 }
 
 
+
+function ouvrirCadavreListe(el) {
+  const photo = el.dataset.photo;
+  const pos   = el.dataset.pos || '50% 40%';
+  const role  = el.dataset.role || 'Cadavre';
+  const trait = el.dataset.trait || '';
+  ouvrirPhotoCadavre(JSON.stringify({ photoUrl: photo, photoPos: pos, role, trait }));
+}
 
 function ouvrirPhotoCadavre(jsonStr) {
   try {
