@@ -1780,9 +1780,16 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80",
         persons: [],
         orders: [
-          {fn:'acheter_terrain', label:'Acheter ce terrain',      pa:2, cost:5000, type:'legal', icon:'ti-home-plus',   successRate:100, desc:'Acquerir le terrain. Permis requis pour construire.'},
-          {fn:'permis_construire',label:'Demander un permis',     pa:2, cost:200,  type:'legal', icon:'ti-file-text',   successRate:70,  desc:'Obtenir l\'autorisation de construire.'},
-          {fn:'permis_corrompu', label:'Obtenir permis rapidement',pa:2,cost:1000, type:'illegal',icon:'ti-coins',      successRate:60,  desc:'Corrompre pour obtenir le permis en 24h.'}
+          {fn:'verifier_terrain', label:'Inspecter le terrain', pa:0, cost:0, type:'legal', icon:'ti-search', successRate:100},
+          {fn:'appeler_police_terrain', label:'Appeler la police', pa:1, cost:0, type:'legal', icon:'ti-shield', successRate:100},
+          {fn:'faire_disparaitre_cadavre', label:'Faire disparaitre le corps', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:0, requiresCadavre:true},
+          {fn:'negocier_squatteurs', label:'Negocier le depart', pa:1, cost:0, type:'legal', icon:'ti-messages', successRate:0, requiresSquatteurs:true},
+          {fn:'donner_argent_pnj', label:'Donner de l\'argent', pa:1, cost:0, type:'legal', icon:'ti-coins', successRate:0, desc:'Offrir une somme a un PNJ present. Effet immediat selon sa personnalite.'},
+          {fn:'signer_compromis', label:'Signer un compromis', pa:2, cost:500, type:'legal', icon:'ti-file-certificate', successRate:100},
+          {fn:'permis_construire', label:'Demander un permis', pa:2, cost:200, type:'legal', icon:'ti-file-text', successRate:70},
+          {fn:'permis_corrompu', label:'Permis accelere', pa:2, cost:1000, type:'illegal', icon:'ti-coins', successRate:60},
+          {fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:5000, type:'legal', icon:'ti-home-plus', successRate:100},
+          {fn:'racheter_terrain', label:'Offre de rachat', pa:2, cost:0, type:'legal', icon:'ti-arrows-exchange', successRate:100}
         ]
       }
     }
@@ -2750,18 +2757,26 @@ const ROOM_IMAGES_EMPIRE = {
 const TERRAIN_PNJ_PROFILES = {
   republic: [
     { id:'promoteur',   name:'Gérard Spéculos',      role:'Promoteur immobilier',   job:'commercant',  rel:'neutral', prob:0.20, agressif:false,
+      photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/promoteur-republic.png', photoPos: '45% 18%',
       trait:'Costume brillant, dents plus brillantes encore. Propose toujours 20% sous le prix du marché en souriant.' },
     { id:'agent',       name:'Nathalie Parpaing',     role:'Agent immobilière',      job:'commercant',  rel:'neutral', prob:0.15, agressif:false,
       trait:'Porte des talons hauts sur un chantier. A vendu le même terrain trois fois cette année.' },
     { id:'squatter_cool',name:'Les Gars du Bas',      role:'Squatteurs sympas',      job:'citoyen',     rel:'ally',    prob:0.18, agressif:false,
+      photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/squatteur-cool-republic.png', photoPos: '40% 25%',
       trait:'Ont installé un barbecue, un canapé et une télé sur le terrain. Très accueillants.' },
     { id:'squatter_agr', name:'La Bande à Rotule',    role:'Squatteurs menaçants',   job:'citoyen',     rel:'enemy',   prob:0.12, agressif:true,
+      photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/squatteur-agressif-republic.png', photoPos: '45% 20%',
       trait:'Regardent fixement. Le plus grand tient un tuyau. Pas le genre à parlementer.' },
     { id:'inspecteur',  name:'Maurice Formulaire',    role:'Inspecteur municipal',   job:'inspecteur',  rel:'neutral', prob:0.15, agressif:false,
+      photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/inspecteur-republic.png', photoPos: '50% 20%',
       trait:'Venu vérifier 47 points de conformité. En a trouvé 43 manquants. Souriant mais intransigeant.' },
     { id:'gardien',     name:'Robert Cadenas',        role:'Gardien de chantier',    job:'gardien',     rel:'neutral', prob:0.10, agressif:false,
       trait:'Dort debout. Peut être soudoyé pour 150 FR. Après il dort ailleurs.' },
+    { id:'inspecteur_police', name:'L\'Inspecteur Lardasse', role:'Inspecteur de police',   job:'commissaire', rel:'neutral', prob:0, agressif:false,
+      photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/inspecteur-police-republic.png', photoPos: '50% 15%',
+      trait:'Arrive quand on l\'appelle. Cigare aux lèvres. Peut accélérer l\'expulsion contre un petit arrangement.' },
     { id:'cadavre',     name:'Individu non identifié',role:'Cadavre mystérieux',     job:'default',     rel:'neutral', prob:0.04, agressif:false,
+      photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadavre-republic.png', photoPos: '50% 40%',
       trait:'Personne ne sait qui c\'est ni comment il est arrivé là. Les formalités vont prendre du temps.' },
     { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.06, agressif:false, trait:null },
   ],
@@ -2808,12 +2823,15 @@ const TERRAIN_PNJ_PROFILES = {
       photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bedouin-khalija.png', photoPos: '45% 25%',
       trait:'Campent ici depuis des générations. Très hospitaliers. Offrent du thé et des dattes. Bougent si on leur demande poliment.' },
     { id:'squatter_agr', name:'Clan Al-Résistant',   role:'Bédouins territoriaux',  job:'citoyen',     rel:'enemy',   prob:0.03, agressif:true,
+      photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bedouin-agressif-khalija.png', photoPos: '45% 20%',
       trait:'Ce terrain appartient à leur clan depuis 400 ans. Ils ont des arguments historiques et des épées.' },
     { id:'inspecteur',  name:'Chambellan Al-Permis',  role:'Inspecteur royal',       job:'inspecteur',  rel:'neutral', prob:0.18, agressif:false,
+      photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/inspecteur-khalija.png', photoPos: '50% 15%',
       trait:'Vérifie la conformité avec le plan d\'urbanisme royal. Très courtois. Très exigeant.' },
     { id:'gardien',     name:'Garde Al-Terrain',      role:'Garde royal',            job:'gardien',     rel:'neutral', prob:0.20, agressif:false,
       trait:'Posté par le Palais. Peut être contourné avec le bon protocole — ou le bon billet.' },
     { id:'cadavre',     name:'Inconnu',               role:'Affaire discrète',       job:'default',     rel:'neutral', prob:0.01, agressif:false,
+      photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadavre-khalija.png', photoPos: '50% 35%',
       trait:'Le Palais préfère que ça reste discret. Les formalités seront expéditives — dans un sens ou dans l\'autre.' },
     { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.07, agressif:false, trait:null },
   ]

@@ -406,7 +406,7 @@ function enterBuilding(buildingId) {
   if (!b) return;
 
   if (b.locked) {
-    showToast('Acces restreint', "Vous n'etes pas membre de cet etablissement.", false);
+    showToast('Acces restreint', "Vous n'tes pas membre de cet etablissement.", false);
     addJournalEntry(`Vous tentez d'entrer mais l'acces vous est refuse.`, 'event-bad');
     return;
   }
@@ -807,6 +807,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
   if (fn === 'verifier_terrain')        { doVerifierTerrain(); return; }
+  if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(); return; }
+  if (fn === 'appeler_police_terrain')  { doAppelerPoliceTerrain(); return; }
+  if (fn === 'expulsion_legale')        { doExpulsionLegale(); return; }
+  if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(); return; }
+  if (fn === 'expulsion_legale')         { doExpulsionLegale(); return; }
   if (fn === 'appeler_police_terrain')  { doAppelerPoliceTerrain(); return; }
   if (fn === 'faire_disparaitre_cadavre') { doFaireDisparaitreCadavre(); return; }
   if (fn === 'negocier_squatteurs')     { doNegocierSquatteurs(); return; }
@@ -1051,7 +1056,7 @@ function applyEffects(fn, resultType, cost) {
       msgs.push(`Salaire : +${salaire.toLocaleString('fr-FR')} ${cur}`);
       addJournalEntry(`Salaire journalier versé : ${salaire.toLocaleString('fr-FR')} ${cur} (${state.poste?.name || 'Citoyen'}).`, 'event-good');
     } else {
-      addJournalEntry("Vous avez déjà perçu votre salaire aujourd'hui.", '');
+      addJournalEntry("Vous avez déjà perçu votre salaire aujourd'ui.", '');
     }
 
     // 3. Effets poison progressifs
@@ -1767,7 +1772,7 @@ function soumettreVoteMarchande(taux) {
     showToast('Vote marchande !', 'Un depute a vote dans votre sens. -200 ' + cur + ' -1 PA +3 INF.', true, true);
     addJournalEntry('Vote marchande avec succes : ' + (vote && vote.titre ? vote.titre : voteId), 'event-good');
   } else {
-    showToast('Refuse !', "Le depute n'a pas accepte.", false);
+    showToast('Refuse !', "Le depute n' pas accepte.", false);
     addJournalEntry('Tentative corruption depute echouee.', 'event-bad');
   }
 }
@@ -3650,25 +3655,65 @@ function doVerifierTerrain() {
   }
 }
 
-// Appeler la police sur un terrain
+// Appeler la police sur un terrain — ouvre le choix
 function doAppelerPoliceTerrain() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
+  const pnj = ts.pnjData;
   const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30 };
   const isn = indices.ISN || 30;
+  const delaiH = Math.max(6, Math.round(96 - isn * 0.6));
+  const delaiRapideH = Math.max(1, Math.round(delaiH / 4));
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const coutSoudoiement = Math.floor(100 + isn * 3);
 
-  // Délai selon ISN
-  const delaiH = Math.max(1, Math.round(72 - isn * 0.5));
-  const pnj = ts.pnjData;
+  document.getElementById('postes-modal-title').textContent = '🚔 Appeler la police';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.8rem">' +
+      (pnj ? 'Présence détectée : <strong>' + pnj.role + '</strong>.' : 'Terrain occupé.') +
+    '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:.5rem">' +
+    '<button onclick="doExpulsionLegale();fermerModalPostes()" ' +
+    'style="text-align:left;padding:.6rem .8rem;border:1px solid #3a5a3a;background:#0a0f0a;color:#6ada6a;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;cursor:pointer">' +
+    '⚖️ Expulsion légale — délai ' + delaiH + 'h (gratuit)</button>' +
+    '<button onclick="doExpulsionAcceleree(' + coutSoudoiement + ');fermerModalPostes()" ' +
+    'style="text-align:left;padding:.6rem .8rem;border:1px solid #5a5a20;background:#0a0f00;color:#C9A84C;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;cursor:pointer">' +
+    '💰 Soudoyer l\'inspecteur — ' + coutSoudoiement + ' ' + cur + ' · délai ' + delaiRapideH + 'h</button>' +
+    '<button onclick="fermerModalPostes()" ' +
+    'style="padding:.4rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;font-family:Bebas Neue,sans-serif;font-size:.68rem;cursor:pointer">Annuler</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
 
-  addJournalEntry('Police appelée sur le terrain. Intervention prévue dans ' + delaiH + 'h.', 'event-info');
-  showToast('Police alertée', 'Intervention dans ' + delaiH + 'h. Le terrain sera libéré.', true);
+function doExpulsionAcceleree(cout) {
+  const id = state.currentBuilding;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30 };
+  const isn = indices.ISN || 30;
+  const delaiRapideH = Math.max(1, Math.round((96 - isn * 0.6) / 4));
+  const dup = state.char?.stats?.DUP || 8;
+  const taux = Math.min(80, 40 + Math.floor(dup * 2));
+  const roll = Math.floor(Math.random() * 100) + 1;
 
-  // Programmer la résolution
-  setTerrainState(id, {
-    policeAppellee: Date.now(),
-    policeInterventionAt: Date.now() + delaiH * 3600000
-  });
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false); return; }
+
+  state.arg -= cout;
+  if (roll <= taux) {
+    setTerrainState(id, {
+      policeAppellee: Date.now(),
+      policeInterventionAt: Date.now() + delaiRapideH * 3600000
+    });
+    state.dis = Math.max(0, (state.dis || 50) - 5);
+    updateUI();
+    addJournalEntry('Inspecteur soudoyé pour ' + cout + ' ' + cur + '. Expulsion dans ' + delaiRapideH + 'h. -5 DIS.', 'event-good');
+    showToast('Arrangé !', 'Expulsion dans ' + delaiRapideH + 'h. -' + cout + ' ' + cur + ' · -5 DIS.', true);
+  } else {
+    state.dis = Math.max(0, (state.dis || 50) - 15);
+    updateUI();
+    addJournalEntry('Tentative de corruption refusée. -' + cout + ' ' + cur + ' · -15 DIS.', 'event-bad');
+    showToast('Refus !', 'L\'inspecteur a refusé. -' + cout + ' ' + cur + ' · -15 DIS.', false);
+  }
 }
 
 // Faire disparaître le cadavre
@@ -3830,6 +3875,222 @@ function doAcheterTerrain() {
     addJournalEntry('Terrain ' + localName + ' acheté pour ' + prix + ' ' + cur + '. Permis valide.', 'event-good');
     showToast('Terrain acheté !', 'Avec permis. Construction autorisée.', true);
   }
+}
+
+
+// =====================
+// DONNER DE L'ARGENT À UN PNJ
+// =====================
+function doDonnerArgentPnj() {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const pnj = ts.pnjData;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  if (!pnj) {
+    showToast('Personne ici', 'Aucun PNJ à qui donner quelque chose.', false);
+    return;
+  }
+
+  const indices = INDICES_NATIONAUX?.[state.country] || { ISN:30, IE:50, ID:40, IS:45 };
+  const isn = indices.ISN || 30;
+
+  // Seuil minimum selon type de PNJ et ISN
+  const seuils = {
+    inspecteur: Math.floor(100 + isn * 2),
+    gardien: Math.floor(50 + isn),
+    squatter_agr: 500,
+    squatter_cool: 0,
+    promoteur: 0,
+    cadavre: 0,
+    default: 0
+  };
+  const seuilMin = seuils[pnj.id] || seuils.default;
+
+  // PNJ incorruptibles selon ISN (inspecteur en Sovarka)
+  const tauxRefus = Math.max(0, isn - 50) / 2;
+
+  document.getElementById('postes-modal-title').textContent = 'Donner à ' + (pnj.name || 'ce PNJ');
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.6rem;font-style:italic">"' + (pnj.trait || '') + '"</div>' +
+    (seuilMin > 0
+      ? '<div style="font-size:.7rem;color:#8a6a30;margin-bottom:.5rem">Montant minimum suggéré : ' + seuilMin + ' ' + cur + '</div>'
+      : '') +
+    (tauxRefus > 0
+      ? '<div style="font-size:.68rem;color:#8a3a2a;margin-bottom:.5rem">Risque de refus : ' + Math.round(tauxRefus) + '% (empire sécurisé)</div>'
+      : '') +
+    '<input id="don-montant" type="number" min="0" step="50" placeholder="Montant en ' + cur + '..." ' +
+    'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
+    '<button onclick="confirmerDonArgent()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💰 Donner</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerDonArgent() {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const pnj = ts.pnjData;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const montant = parseInt(document.getElementById('don-montant')?.value || 0);
+  const indices = INDICES_NATIONAUX?.[state.country] || { ISN:30, IE:50, IS:45 };
+  const isn = indices.ISN || 30;
+
+  if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
+  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
+
+  const dup = state.char?.stats?.DUP || 8;
+  const dis = state.dis || 50;
+
+  // Jet de refus selon ISN
+  const tauxRefus = Math.max(0, isn - 50) / 2;
+  const rollRefus = Math.floor(Math.random() * 100) + 1;
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (rollRefus <= tauxRefus) {
+    // Refus — pénalité DIS
+    state.dis = Math.max(0, (state.dis || 50) - 10);
+    updateUI();
+    addJournalEntry('Don refusé par ' + (pnj?.name || 'le PNJ') + '. -10 DIS. (Refus ' + rollRefus + '/' + Math.round(tauxRefus) + '%)', 'event-bad');
+    showToast('Refus !', (pnj?.name || 'Le PNJ') + ' a refusé avec indignation. -10 DIS.', false);
+    return;
+  }
+
+  // Don accepté — effets selon type de PNJ
+  state.arg -= montant;
+
+  const effets = {
+    inspecteur: () => {
+      // Corruption inspecteur — ferme les yeux sur les manquements
+      const taux = Math.min(85, Math.floor(dup * 3 + montant / 50));
+      const roll = Math.floor(Math.random() * 100) + 1;
+      if (roll <= taux) {
+        setTerrainState(id, { inspecteurCorrompu: true, permisImplicite: true });
+        state.dis = Math.max(0, (state.dis || 50) - 5);
+        updateUI();
+        addJournalEntry('Inspecteur corrompu pour ' + montant + ' ' + cur + '. Manquements ignorés. -5 DIS.', 'event-good');
+        showToast('Arrangement conclu !', 'L\'inspecteur regarde ailleurs. -5 DIS.', true);
+        // Retirer le PNJ
+        setTerrainState(id, { pnj: null, pnjData: null });
+        sessionStorage.removeItem('terrain_pnj_' + id);
+        if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
+      } else {
+        state.dis = Math.max(0, (state.dis || 50) - 15);
+        updateUI();
+        addJournalEntry('Tentative de corruption échouée. -' + montant + ' ' + cur + ' · -15 DIS.', 'event-bad');
+        showToast('Refus indigné !', 'L\'inspecteur menace de faire un rapport. -15 DIS.', false);
+      }
+    },
+    gardien: () => {
+      setTerrainState(id, { pnj: null, pnjData: null });
+      sessionStorage.removeItem('terrain_pnj_' + id);
+      state.dis = Math.min(100, (state.dis || 50) + 3);
+      updateUI();
+      addJournalEntry('Gardien soudoyé pour ' + montant + ' ' + cur + '. +3 DIS.', 'event-good');
+      showToast('Gardien convaincu !', 'Il regarde ailleurs. +3 DIS.', true);
+      if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
+    },
+    squatter_cool: () => {
+      const bonus = Math.min(40, Math.floor(montant / 100));
+      const cha = state.char?.stats?.CHA || 8;
+      const taux = Math.min(85, cha * 3 + bonus);
+      const roll = Math.floor(Math.random() * 100) + 1;
+      if (roll <= taux) {
+        setTerrainState(id, { pnj: null, pnjData: null });
+        sessionStorage.removeItem('terrain_pnj_' + id);
+        updateUI();
+        addJournalEntry('Squatteurs partis pour ' + montant + ' ' + cur + '. Jet ' + roll + '/' + taux + '%.', 'event-good');
+        showToast('Ils s\'en vont !', '"Ok on se casse. Ciao." -' + montant + ' ' + cur, true);
+        if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
+      } else {
+        updateUI();
+        showToast('Ils prennent l\'argent mais restent...', '-' + montant + ' ' + cur, false);
+        addJournalEntry('Squatteurs ont pris ' + montant + ' ' + cur + ' mais refusent de partir. Jet ' + roll + '/' + taux + '%.', 'event-bad');
+      }
+    },
+    squatter_agr: () => {
+      if (montant < 500) {
+        state.arg += montant; // Rembourser
+        showToast('Insulté !', 'Ils ont jeté vos billets. Minimum 500 ' + cur + '.', false);
+        return;
+      }
+      const bonus = Math.min(40, Math.floor(montant / 100));
+      const taux = Math.min(70, 15 + bonus);
+      const roll = Math.floor(Math.random() * 100) + 1;
+      if (roll <= taux) {
+        setTerrainState(id, { pnj: null, pnjData: null });
+        sessionStorage.removeItem('terrain_pnj_' + id);
+        updateUI();
+        addJournalEntry('Squatteurs agressifs partis pour ' + montant + ' ' + cur + '. Jet ' + roll + '/' + taux + '%.', 'event-good');
+        showToast('Ils partent !', '"On se casse. Cette fois." -' + montant + ' ' + cur, true);
+        if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
+      } else {
+        state.hp = Math.max(0, (state.hp || 100) - 10);
+        updateUI();
+        addJournalEntry('Squatteurs ont pris ' + montant + ' ' + cur + ' et vous ont frappé. -10 HP.', 'event-bad');
+        showToast('Volés et tabassés !', '-' + montant + ' ' + cur + ' · -10 HP.', false);
+      }
+    },
+    promoteur: () => {
+      // Le promoteur révèle des infos
+      state.inf = Math.min(100, (state.inf || 0) + 5);
+      updateUI();
+      addJournalEntry('Gérard Spéculos vous donne des infos sur le marché pour ' + montant + ' ' + cur + '. +5 INF.', 'event-good');
+      showToast('Info obtenue !', '+5 INF. Il sait des choses sur ce quartier.', true);
+    },
+    default: () => {
+      updateUI();
+      addJournalEntry('Don de ' + montant + ' ' + cur + ' accepté.', 'event-info');
+      showToast('Don accepté', (pnj?.name || 'Le PNJ') + ' apprécie le geste.', true);
+    }
+  };
+
+  (effets[pnj?.id] || effets.default)();
+}
+
+// Expulsion légale via police (sans soudoiement)
+function doExpulsionLegale() {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const indices = INDICES_NATIONAUX?.[state.country] || { ISN:30 };
+  const isn = indices.ISN || 30;
+
+  // Délai selon ISN — plus ISN est élevé, plus c'est rapide
+  const delaiH = Math.max(6, Math.round(96 - isn * 0.6));
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  // Ajouter l'inspecteur de police comme PNJ visible
+  const pnjPolice = (TERRAIN_PNJ_PROFILES?.[state.country] || TERRAIN_PNJ_PROFILES?.republic || [])
+    .find(p => p.id === 'inspecteur_police') || {
+      name: 'L\'Inspecteur', role: 'Inspecteur de police', job: 'commissaire',
+      rel: 'neutral', trait: 'Arrive quand on l\'appelle. Prend note. Repart.'
+    };
+
+  // Stocker la demande d'expulsion
+  setTerrainState(id, {
+    expulsionDemandeeAt: Date.now(),
+    expulsionAt: Date.now() + delaiH * 3600000,
+    pnjPolice: pnjPolice
+  });
+
+  // Afficher l'inspecteur de police dans la pièce temporairement
+  const pnjPoliceSession = {
+    name: pnjPolice.name + ' (PNJ)',
+    role: pnjPolice.role,
+    job: pnjPolice.job,
+    rel: pnjPolice.rel,
+    trait: pnjPolice.trait,
+    photoUrl: pnjPolice.photoUrl,
+    photoPos: pnjPolice.photoPos,
+    terrainPnjId: 'inspecteur_police'
+  };
+  sessionStorage.setItem('terrain_pnj_police_' + id, JSON.stringify(pnjPoliceSession));
+
+  addJournalEntry('Expulsion légale demandée. L\'inspecteur est sur place. Résolution dans ' + delaiH + 'h.', 'event-info');
+  showToast('Police sur place', 'Expulsion dans ' + delaiH + 'h. Soudoyez l\'inspecteur pour accélérer.', true);
+
+  if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
 }
 
 // =====================
@@ -4419,7 +4680,7 @@ function soumettreRumeur() {
     addJournalEntry(`Rumeur ${type} sur ${cible} lancee avec succes. Impact : ${impact > 0 ? '+' : ''}${impact} POP sur ${cible}.`, 'event-good');
     showToast('Rumeur repandue', `La rumeur ${type} circule sur ${cible}. ${impact > 0 ? '+' : ''}${impact} POP.`, true);
   } else {
-    addJournalEntry(`Rumeur sur ${cible} : personne n'y a cru.`, '');
+    addJournalEntry(`Rumeur sur ${cible} : personne n' a cru.`, '');
     showToast('Rumeur inefficace', 'Personne ne semble y preter attention.', false);
   }
 }
@@ -6164,7 +6425,7 @@ function tenterCorruptionArrestation(peineType, cout, taux) {
   const cur = (window.COUNTRIES?.[country]?.cur) || 'FR';
 
   if (state.arg < cout) {
-    showToast('Fonds insuffisants', `Il vous faut ${cout} ${cur} pour corrompre l'agent.`, false);
+    showToast('Fonds insuffisants', `Il vous faut ${cout} ${cur} pour corrompre l'gent.`, false);
     return;
   }
 
@@ -8337,7 +8598,7 @@ function licencierInformateur(niveau) {
 function interrogerInformateur(niveau) {
   // Obtenir une nouvelle info d'un informateur déjà recruté
   if (!state.informateurs?.find(i => i.niveau === niveau)) {
-    showToast('Pas d\'informateur', `Vous n'avez pas d'informateur de niveau ${niveau} actif.`, false);
+    showToast('Pas d\'informateur', `Vous n'vez pas d'nformateur de niveau ${niveau} actif.`, false);
     return;
   }
   const info = getInfomateurInfo(niveau);
