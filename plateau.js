@@ -1464,32 +1464,52 @@ function openPnjModal(encodedPnj) {
   const enc = encodeURIComponent(JSON.stringify(pnj));
 
   let actionBtns = '';
+
+  // PJ : groupe + répertoire
   if (isPJ) {
     const inGroup = state.group && state.group.members && state.group.members.includes(pnj.name);
     const pnjJson = encodeURIComponent(JSON.stringify(pnj));
-    actionBtns = (!inGroup
+    actionBtns += (!inGroup
       ? '<button class="pnj-action-btn" onclick="rejoindrePJ(decodeURIComponent(\'' + pnjJson + '\'))"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
-      : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>')
-      + '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnj.name.replace(/'/g, '') + '\', \'' + (pnj.role||'').replace(/'/g, '') + '\', \'' + (pnj.rel||'neutral') + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
+      : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>');
+    actionBtns += '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnj.name.replace(/'/g, '') + '\', \'' + (pnj.role||''\').replace(/'/g, '') + '\', \'' + (pnj.rel||'neutral') + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
   }
-  if (pnj.rel === 'enemy') {
-    actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj(\'' + enc + '\', \'confrontation\')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
-  }
-  // Bouton assassiner (toujours disponible sur PNJ/PJ autres)
-  const encCible = encodeURIComponent(JSON.stringify(pnj));
-  actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
 
-  // Boutons tracts
-  const hasTracts = (state.inventory||[]).some(i => i.type === 'tract');
-  if (hasTracts) {
-    if (pnj.isPJ) {
-      // Don de main a main a un PJ
+  // PNJ fixe : ajouter au répertoire si absent
+  if (!isPJ) {
+    const dejaDansRep = (state.contacts || []).some(c => c.name === pnj.name);
+    if (!dejaDansRep) {
+      actionBtns += '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnj.name.replace(/'/g, '') + '\', \'' + (pnj.role||''\').replace(/'/g, '') + '\', \'' + (pnj.rel||'neutral') + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
+    }
+  }
+
+  // Donner de l'argent (toujours)
+  actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonPnjModal(\'' + enc + '\')"><i class="ti ti-coins" style="font-size:.85rem"></i> Donner de l\'argent</button>';
+
+  // Donner un objet (si inventaire non vide)
+  const objetsDispos = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
+  if (objetsDispos.length > 0) {
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonObjetPnjModal(\'' + enc + '\')"><i class="ti ti-package" style="font-size:.85rem"></i> Donner un objet</button>';
+  }
+
+  // Distribuer un tract (si tracts en inventaire)
+  const tractsDispos = (state.inventory || []).filter(i => i.type === 'tract');
+  if (tractsDispos.length > 0) {
+    if (isPJ) {
       actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');donnerTracts(\'' + pnj.name + '\')"><i class="ti ti-files" style="font-size:.85rem"></i> Donner des tracts</button>';
     } else {
-      // Distribution a un PNJ
       actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractPNJ(\'' + pnj.name + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract</button>';
     }
   }
+
+  // Confronter (si hostile)
+  if (pnj.rel === 'enemy') {
+    actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj(\'' + enc + '\', \'confrontation\')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
+  }
+
+  // Assassiner (toujours)
+  const encCible = encodeURIComponent(JSON.stringify(pnj));
+  actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
 
   document.getElementById('pnj-actions').innerHTML = actionBtns +
     '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
@@ -10685,6 +10705,437 @@ function addJournalEntry(text, cls) {
 }
 
 // Close modals on overlay click
+
+// =====================
+// V27 — DON D'ARGENT A UN PNJ
+// =====================
+function ouvrirDonPnjModal(encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const job = pnj.job || 'default';
+
+  const jobLabels = {
+    serveur:     'Un pourboire genereux. Il pourrait vous glisser une info utile.',
+    hotelier:    'Un pourboire. Il se souviendra de vous lors de votre prochain sejour.',
+    barman:      'Il entend tout. Arroser le barman, c\'est investir dans le renseignement.',
+    commissaire: 'Risque. Mais parfois ca passe. Jet de DUP.',
+    policier:    'Risque. Mais parfois ca passe. Jet de DUP.',
+    inspecteur:  'Risque. Mais parfois ca passe. Jet de DUP.',
+    journaliste: 'Un geste editorial. Peut generer un article favorable.',
+    redacteur:   'Le redacteur a des besoins. Vous avez de l\'argent. A voir.',
+    banquier:    'Un service discret. Il fera passer votre transaction sans questions.',
+    medecin:     'Des soins off-record. Pas de trace medicale.',
+    infirmier:   'Des soins discrets. Sans paperasse.',
+    commercant:  'Ca fait du bien a la reputation locale.',
+    marchande:   'Les marchandes savent tout. Quelques billets, et elles parlent.',
+    juge:        'Delicat. Un juge corruptible peut classer une affaire. Jet de DUP eleve.',
+    avocat:      'L\'avocat peut faire accelerer une procedure... ou la ralentir.',
+    loge:        'Un don a la Loge. Le reseau se souviendra.',
+    venerable:   'Le Venerable apprecie les gestes symboliques... et financiers.',
+    militaire:   'Un soldat qui boit mieux travaille. Parfois.',
+    general:     'Un general reconnaissant peut regarder ailleurs sur certaines operations.',
+    professeur:  'La science avance mieux avec des subsides.',
+    syndicaliste:'Un don au syndicat. La solidarite a un prix.',
+    douanier:    'Le douanier regarde ailleurs si on l\'aide a voir mieux.',
+    chef_gare:   'Le chef de gare peut faire partir votre train... ou le retarder.',
+    grand_pretre:'+IP et benediction. Le Tres-Haut aime les donateurs.',
+    escort:      'Informations exclusives. Elle connait tous les secrets des couloirs du pouvoir.',
+    porteparole: 'Un porte-parole bien dispose peut arranger une conference favorable.',
+    secretaire:  'La secretaire voit tout passer. Un billet, et elle partage.',
+    default:     'Un geste de bonne volonte. Effets variables.'
+  };
+
+  document.getElementById('modal-pnj').classList.remove('open');
+  document.getElementById('postes-modal-title').textContent = 'Donner de l\'argent a ' + pnj.name.replace(' (PNJ)', '');
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' + (jobLabels[job] || jobLabels.default) + '</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MONTANT (' + cur + ')</div>' +
+    '<input id="don-pnj-montant" type="number" min="10" step="50" placeholder="Ex: 200" ' +
+    'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.7rem"/>' +
+    '<button onclick="confirmerDonPnj(\'' + encodedPnj.replace(/\'/g, '\\\'') + '\')" ' +
+    'style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💰 Donner</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerDonPnj(encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+
+  const montant = parseInt(document.getElementById('don-pnj-montant')?.value || 0);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const job = pnj.job || 'default';
+  const isn = INDICES_NATIONAUX?.[state.country]?.ISN || 30;
+
+  if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
+  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
+
+  document.getElementById('modal-postes').classList.remove('open');
+  state.arg -= montant;
+
+  const dup = state.char?.stats?.DUP || 8;
+  const nomCourt = pnj.name.replace(' (PNJ)','');
+
+  // Taux de refus selon ISN pour les jobs sensibles
+  const jobsRisques = ['commissaire','policier','inspecteur','juge'];
+  const tauxRefus = jobsRisques.includes(job) ? Math.max(0, isn - 30) / 2 : 0;
+  const rollRefus = Math.floor(Math.random() * 100) + 1;
+
+  if (tauxRefus > 0 && rollRefus <= tauxRefus) {
+    state.arg += montant; // Remboursement
+    state.dis = Math.max(0, (state.dis || 50) - 15);
+    updateUI();
+    addJournalEntry('Don refuse par ' + nomCourt + '. -15 DIS.', 'event-bad');
+    showToast('Refus indigne !', nomCourt + ' a refuse et vous regarde fixement. -15 DIS.', false);
+    return;
+  }
+
+  const effets = {
+    serveur: () => {
+      state.moral = Math.min(100, (state.moral||50) + 5);
+      state.inf = Math.min(100, (state.inf||0) + 2);
+      showToast('Pourboire verse !', '+5 Moral +2 INF. Il vous glisse : "Revenez quand vous voulez... et evitez la table du fond ce soir."', true);
+      addJournalEntry('Pourboire a ' + nomCourt + '. +5 Moral +2 INF.', 'event-good');
+    },
+    hotelier: () => {
+      state.moral = Math.min(100, (state.moral||50) + 3);
+      addToInventory({ name:'Chambre reservee (priorite)', icon:'ti-key', type:'document', legal:true, desc:'Acces prioritaire. +2 PA bonus si vous dormez ici.' });
+      showToast('Pourboire au gerant !', '+3 Moral. Il vous reserve sa meilleure chambre.', true);
+      addJournalEntry('Pourboire a ' + nomCourt + '. +3 Moral. Chambre prioritaire.', 'event-good');
+    },
+    barman: () => {
+      state.inf = Math.min(100, (state.inf||0) + 5);
+      const rumeurs = [
+        'Un homme influent passe ses nuits ici depuis une semaine. Tres discret. Trop discret.',
+        'Quelqu\'un a commande la meme chose trois fois ce soir : du courage liquide avant une grosse decision.',
+        'Deux PJ se sont retrouves discretement au fond du bar hier. Ils parlaient a voix basse.'
+      ];
+      const rumeur = rumeurs[Math.floor(Math.random() * rumeurs.length)];
+      showToast('Le barman apprecie !', '+5 INF. Il murmure : "' + rumeur + '"', true, true);
+      addJournalEntry('Don au barman. +5 INF. Info : ' + rumeur, 'event-good');
+    },
+    commissaire: () => {
+      const taux = Math.min(70, 30 + Math.floor(dup * 2));
+      const roll = Math.floor(Math.random() * 100) + 1;
+      if (roll <= taux) {
+        state.dis = Math.max(0, (state.dis||50) - 5);
+        const plainte = (state.plaintesEnCours||[]).find(p => p.status === 'pending');
+        if (plainte) plainte.status = 'classee';
+        showToast('Arrangement discret', 'Le commissaire hoche la tete. Une affaire se classe... -5 DIS.', true);
+        addJournalEntry('Corruption commissaire reussie. -5 DIS.', 'event-bad');
+        checkDetection('corrompre_police', 'success');
+      } else {
+        state.dis = Math.max(0, (state.dis||50) - 20);
+        showToast('Refus categorique !', 'Il a repousse votre enveloppe. Vous etes repere(e). -20 DIS.', false);
+        addJournalEntry('Tentative corruption commissaire echouee. -20 DIS.', 'event-bad');
+        checkDetection('corrompre_police', 'fail');
+      }
+    },
+    policier: () => {
+      const taux = Math.min(65, 25 + Math.floor(dup * 2) - Math.floor(isn / 10));
+      const roll = Math.floor(Math.random() * 100) + 1;
+      if (roll <= taux) {
+        state.dis = Math.max(0, (state.dis||50) - 3);
+        showToast('Il regarde ailleurs.', 'Le policier n\'a rien vu. -3 DIS.', true);
+        addJournalEntry('Policier soudoye. -3 DIS.', 'event-bad');
+      } else {
+        state.dis = Math.max(0, (state.dis||50) - 15);
+        showToast('Refus !', 'Il n\'a pas mordu. -15 DIS.', false);
+        checkDetection('corrompre_police', 'fail');
+      }
+    },
+    inspecteur: () => {
+      const taux = Math.min(70, 35 + Math.floor(dup * 2) - Math.floor(isn / 10));
+      const roll = Math.floor(Math.random() * 100) + 1;
+      if (roll <= taux) {
+        state.dis = Math.max(0, (state.dis||50) - 5);
+        showToast('Inspecteur convaincu !', 'Il repart sans remplir son rapport. -5 DIS.', true);
+        addJournalEntry('Inspecteur corrompu. -5 DIS.', 'event-bad');
+        checkDetection('corrompre_fonct', 'success');
+      } else {
+        state.dis = Math.max(0, (state.dis||50) - 15);
+        showToast('Refus !', 'L\'inspecteur note tout. -15 DIS.', false);
+        checkDetection('corrompre_fonct', 'fail');
+      }
+    },
+    journaliste: () => {
+      state.inf = Math.min(100, (state.inf||0) + 8);
+      state.pop = Math.min(100, (state.pop||0) + 5);
+      showToast('Article favorable !', '+8 INF +5 POP. Le journaliste prend des notes en votre faveur.', true, true);
+      addJournalEntry('Don au journaliste. +8 INF +5 POP.', 'event-good');
+      addExternalEvent((state.char?.name||'Anonyme') + ' beneficie d\'une couverture mediatique favorable.');
+    },
+    redacteur: () => {
+      state.inf = Math.min(100, (state.inf||0) + 10);
+      showToast('Le redacteur est sensible !', '+10 INF. Il peut etouffer un article ou en publier un favorable.', true, true);
+      addJournalEntry('Don au redacteur en chef. +10 INF.', 'event-good');
+    },
+    banquier: () => {
+      state.dis = Math.min(100, (state.dis||50) + 5);
+      showToast('Service discret obtenu.', '+5 DIS. Il fera passer votre prochaine transaction sans question.', true);
+      addJournalEntry('Don au banquier. +5 DIS.', 'event-good');
+    },
+    medecin: () => {
+      const soins = Math.min(25, Math.floor(montant / 10));
+      state.hp = Math.min(100, (state.hp||100) + soins);
+      showToast('Soins off-record !', '+' + soins + ' HP. Aucune trace medicale.', true);
+      addJournalEntry('Don au medecin. +' + soins + ' HP (soins discrets).', 'event-good');
+    },
+    infirmier: () => {
+      const soins = Math.min(15, Math.floor(montant / 15));
+      state.hp = Math.min(100, (state.hp||100) + soins);
+      showToast('Petits soins !', '+' + soins + ' HP. Discret et sans paperasse.', true);
+      addJournalEntry('Don a l\'infirmier. +' + soins + ' HP.', 'event-good');
+    },
+    commercant: () => {
+      state.pop = Math.min(100, (state.pop||0) + 4);
+      state.inf = Math.min(100, (state.inf||0) + 2);
+      showToast('La reputation locale s\'ameliore !', '+4 POP +2 INF.', true);
+      addJournalEntry('Don au commercant. +4 POP +2 INF.', 'event-good');
+    },
+    marchande: () => {
+      state.pop = Math.min(100, (state.pop||0) + 3);
+      state.inf = Math.min(100, (state.inf||0) + 4);
+      const infos = [
+        'Elle vous glisse : "Y\'en a un qui pose des questions sur vous depuis hier."',
+        'Elle murmure : "Le bruit court qu\'un vote se prepare dans les prochains jours."',
+        'Elle dit : "J\'ai vu quelqu\'un de louche roder autour du commissariat ce matin."'
+      ];
+      const info = infos[Math.floor(Math.random() * infos.length)];
+      showToast('Marchande bavarde !', '+3 POP +4 INF. ' + info, true, true);
+      addJournalEntry('Don a la marchande. +3 POP +4 INF.', 'event-good');
+    },
+    juge: () => {
+      const taux = Math.min(55, 20 + Math.floor(dup * 2) - Math.floor(isn / 8));
+      const roll = Math.floor(Math.random() * 100) + 1;
+      if (roll <= taux) {
+        state.dis = Math.max(0, (state.dis||50) - 8);
+        showToast('Le juge est... comprehensif.', 'Une affaire pourrait etre classee. -8 DIS.', true, true);
+        addJournalEntry('Corruption juge reussie. -8 DIS.', 'event-bad');
+        checkDetection('corrompre_juge', 'success');
+      } else {
+        state.dis = Math.max(0, (state.dis||50) - 25);
+        showToast('SCANDALE !', 'Le juge a refuse. Vous etes signale(e). -25 DIS.', false);
+        addJournalEntry('Tentative corruption juge — refus categorique. -25 DIS.', 'event-bad');
+        checkDetection('corrompre_juge', 'fail');
+      }
+    },
+    avocat: () => {
+      state.inf = Math.min(100, (state.inf||0) + 5);
+      showToast('L\'avocat note votre generosite.', '+5 INF. Il pourra accelerer certaines procedures.', true);
+      addJournalEntry('Don a l\'avocat. +5 INF.', 'event-good');
+    },
+    loge: () => {
+      state.inf = Math.min(100, (state.inf||0) + 8);
+      showToast('Don a la Loge accepte.', '+8 INF. Le reseau se souviendra.', true, true);
+      addJournalEntry('Don a la Loge maconnique. +8 INF.', 'event-good');
+    },
+    venerable: () => {
+      state.inf = Math.min(100, (state.inf||0) + 12);
+      showToast('Le Venerable vous benit.', '+12 INF. Votre nom circule dans les cercles qui comptent.', true, true);
+      addJournalEntry('Don au Venerable Maitre. +12 INF.', 'event-good');
+    },
+    grand_pretre: () => {
+      if (INDICES_NATIONAUX?.[state.country]) INDICES_NATIONAUX[state.country].IP = Math.min(100, (INDICES_NATIONAUX[state.country].IP||40) + 8);
+      state.pop = Math.min(100, (state.pop||0) + 5);
+      state.moral = Math.min(100, (state.moral||50) + 5);
+      showToast('Don beni !', '+8 IP +5 POP +5 Moral. Le Grand Pretre vous cite en exemple.', true, true);
+      addJournalEntry('Don au Grand Pretre. +8 IP +5 POP +5 Moral.', 'event-good');
+    },
+    militaire: () => {
+      state.moral = Math.min(100, (state.moral||50) + 3);
+      showToast('Le soldat apprecie.', '+3 Moral. Il pourrait rendre service un jour.', true);
+      addJournalEntry('Don au militaire. +3 Moral.', 'event-good');
+    },
+    general: () => {
+      if (INDICES_NATIONAUX?.[state.country]) INDICES_NATIONAUX[state.country].ISN = Math.max(0, (INDICES_NATIONAUX[state.country].ISN||30) - 3);
+      state.inf = Math.min(100, (state.inf||0) + 6);
+      showToast('Le general est reconnaissant.', '+6 INF -3 ISN.', true);
+      addJournalEntry('Don au general. +6 INF -3 ISN.', 'event-good');
+    },
+    syndicaliste: () => {
+      state.pop = Math.min(100, (state.pop||0) + 6);
+      showToast('Don au syndicat !', '+6 POP. La solidarite a un prix, et vous venez de le payer.', true);
+      addJournalEntry('Don au syndicaliste. +6 POP.', 'event-good');
+    },
+    professeur: () => {
+      state.inf = Math.min(100, (state.inf||0) + 4);
+      showToast('La science avance !', '+4 INF. Le professeur mentionnera votre nom dans ses cours.', true);
+      addJournalEntry('Don au professeur. +4 INF.', 'event-good');
+    },
+    douanier: () => {
+      const taux = Math.min(75, 40 + Math.floor(dup * 2) - Math.floor(isn / 8));
+      const roll = Math.floor(Math.random() * 100) + 1;
+      if (roll <= taux) {
+        state.dis = Math.max(0, (state.dis||50) - 5);
+        showToast('Le douanier regarde ailleurs.', 'Passage facilite. -5 DIS.', true);
+        addJournalEntry('Douanier corrompu. -5 DIS.', 'event-bad');
+      } else {
+        state.dis = Math.max(0, (state.dis||50) - 12);
+        showToast('Refus !', 'Il a repousse votre billet. -12 DIS.', false);
+      }
+    },
+    chef_gare: () => {
+      state.moral = Math.min(100, (state.moral||50) + 2);
+      state.inf = Math.min(100, (state.inf||0) + 3);
+      showToast('Le chef de gare sourit.', '+2 Moral +3 INF. Il sait qui passe par ici.', true);
+      addJournalEntry('Don au chef de gare. +2 Moral +3 INF.', 'event-good');
+    },
+    escort: () => {
+      state.inf = Math.min(100, (state.inf||0) + 6);
+      const infos = [
+        'Elle murmure : "Un ministre viendra ce soir. Il n\'aime pas les cameras."',
+        'Elle glisse : "Le bruit court qu\'une alliance se noue en coulisses."',
+        'Elle dit : "Quelqu\'un cherche a vous nuire. Faites attention."'
+      ];
+      const info = infos[Math.floor(Math.random() * infos.length)];
+      showToast('Information exclusive !', '+6 INF. ' + info, true, true);
+      addJournalEntry('Don a l\'escort. +6 INF. Info confidentielle obtenue.', 'event-good');
+    },
+    porteparole: () => {
+      state.inf = Math.min(100, (state.inf||0) + 5);
+      state.pop = Math.min(100, (state.pop||0) + 3);
+      showToast('Porte-parole dispose.', '+5 INF +3 POP. Une conference de presse favorable se profile.', true);
+      addJournalEntry('Don au porte-parole. +5 INF +3 POP.', 'event-good');
+    },
+    secretaire: () => {
+      state.inf = Math.min(100, (state.inf||0) + 7);
+      const infos = [
+        'La secretaire chuchote : "Un dossier compromettant a ete ouvert sur quelqu\'un pres de vous."',
+        'Elle murmure : "Une reunion secrete est prevue ce soir. Quelque chose se prepare."',
+        'Elle glisse : "Des nominations sont en cours. Votre nom a ete mentionne."'
+      ];
+      const info = infos[Math.floor(Math.random() * infos.length)];
+      showToast('La secretaire parle !', '+7 INF. ' + info, true, true);
+      addJournalEntry('Don a la secretaire. +7 INF.', 'event-good');
+    }
+  };
+
+  const effet = effets[job];
+  if (effet) {
+    effet();
+  } else {
+    const moralBonus = Math.min(8, Math.floor(montant / 50));
+    state.moral = Math.min(100, (state.moral||50) + moralBonus);
+    state.inf = Math.min(100, (state.inf||0) + 2);
+    showToast('Don accepte.', nomCourt + ' apprecie le geste. +' + moralBonus + ' Moral +2 INF.', true);
+    addJournalEntry('Don a ' + nomCourt + '. +' + moralBonus + ' Moral +2 INF.', 'event-good');
+  }
+  updateUI();
+}
+
+// =====================
+// V27 — DON D'OBJET A UN PNJ
+// =====================
+function ouvrirDonObjetPnjModal(encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+
+  const objets = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
+  if (objets.length === 0) { showToast('Inventaire vide', 'Aucun objet a donner.', false); return; }
+
+  document.getElementById('modal-pnj').classList.remove('open');
+  document.getElementById('postes-modal-title').textContent = 'Donner un objet a ' + pnj.name.replace(' (PNJ)', '');
+  let html = '<div style="padding:.8rem 1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisir l\'objet a remettre :</div>';
+
+  objets.forEach((obj, i) => {
+    const idx = state.inventory.indexOf(obj);
+    html += '<div onclick="confirmerDonObjetPnj(' + idx + ',\'' + encodedPnj.replace(/\'/g,'\\\'') + '\')" ' +
+      'style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" ' +
+      'onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+      '<i class="ti ' + (obj.icon||'ti-package') + '" style="font-size:.9rem;color:#8a6a20"></i>' +
+      '<div><div style="font-size:.8rem;color:#c0b090">' + obj.name + '</div>' +
+      '<div style="font-size:.65rem;color:#4a4030">' + (obj.desc||'') + '</div></div>' +
+      '</div>';
+  });
+
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerDonObjetPnj(objIdx, encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+
+  const obj = state.inventory[objIdx];
+  if (!obj) return;
+  const job = pnj.job || 'default';
+  const nomCourt = pnj.name.replace(' (PNJ)','');
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  let msg = '';
+  let bon = true;
+
+  if (obj.type === 'tract') {
+    obj.quantite = (obj.quantite || 1) - 1;
+    if (obj.quantite <= 0) state.inventory.splice(objIdx, 1);
+    state.pop = Math.min(100, (state.pop||0) + 2);
+    msg = nomCourt + ' prend le tract. +2 POP.';
+    addJournalEntry('Tract remis a ' + nomCourt + '. +2 POP.', 'event-good');
+
+  } else if (obj.type === 'poison') {
+    if (!state.estCache) {
+      showToast('Prerequis manquant', 'Vous devez d\'abord reussir l\'ordre "Se cacher".', false);
+      updateUI();
+      return;
+    }
+    state.inventory.splice(objIdx, 1);
+    const poisonMsg = (typeof POISON_MESSAGES !== 'undefined' && POISON_MESSAGES[obj.poisonType])
+      ? POISON_MESSAGES[obj.poisonType]
+      : 'Vous ressentez une douleur inexpliquee.';
+    addMailNotification('Evenement', 'Vous vous sentez soudainement mal...', poisonMsg);
+    addExternalEvent(nomCourt + ' se sent soudainement tres mal...');
+    msg = 'Poison administre a ' + nomCourt + '. Usage unique consomme.';
+    bon = false;
+    addJournalEntry('Empoisonnement de ' + nomCourt, 'event-bad');
+
+  } else if (obj.type === 'arme' && ['militaire','general','armurier'].includes(job)) {
+    state.inventory.splice(objIdx, 1);
+    state.inf = Math.min(100, (state.inf||0) + 5);
+    msg = 'Le ' + job + ' accepte l\'arme avec satisfaction. +5 INF.';
+    addJournalEntry('Arme donnee au ' + job + '. +5 INF.', 'event-good');
+
+  } else if (obj.type === 'document_falsifie' && ['commissaire','juge','avocat','inspecteur'].includes(job)) {
+    state.inventory.splice(objIdx, 1);
+    state.dis = Math.max(0, (state.dis||50) - 10);
+    msg = 'Document remis. Risque mais potentiellement utile. -10 DIS.';
+    bon = false;
+    addJournalEntry('Document falsifie remis a ' + nomCourt + '. -10 DIS.', 'event-bad');
+
+  } else if (obj.type === 'kompromat') {
+    if (['journaliste','redacteur'].includes(job)) {
+      state.inventory.splice(objIdx, 1);
+      state.inf = Math.min(100, (state.inf||0) + 8);
+      state.pop = Math.min(100, (state.pop||0) + 5);
+      const cible = obj.cible || 'une personnalite';
+      addExternalEvent('SCANDALE : Un kompromat sur ' + cible + ' a ete divulgue a la presse !');
+      msg = 'Le journaliste s\'empare du dossier. +8 INF +5 POP. Scandale en route contre ' + cible + '.';
+      addJournalEntry('Kompromat remis au journaliste. Scandale contre ' + cible + '.', 'event-good');
+    } else {
+      state.inventory.splice(objIdx, 1);
+      state.inf = Math.min(100, (state.inf||0) + 3);
+      msg = nomCourt + ' prend le document d\'un air interesse. +3 INF.';
+      addJournalEntry('Kompromat remis a ' + nomCourt + '. +3 INF.', 'event-good');
+    }
+
+  } else {
+    state.inventory.splice(objIdx, 1);
+    state.moral = Math.min(100, (state.moral||50) + 3);
+    state.inf = Math.min(100, (state.inf||0) + 2);
+    msg = nomCourt + ' accepte le cadeau. +3 Moral +2 INF.';
+    addJournalEntry('Objet offert a ' + nomCourt + '. +3 Moral +2 INF.', 'event-good');
+  }
+
+  updateUI();
+  showToast(bon ? 'Don effectue !' : 'Action risquee.', msg, bon);
+}
+
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('open');
