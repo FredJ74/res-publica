@@ -101,7 +101,7 @@ const WORLD = {
       isCapitale: true,
       streetName: 'Avenue de la République',
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel-Restaurant La Républia",
@@ -170,7 +170,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','terrain-a-batir-2'],
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel du Port",
@@ -209,7 +209,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge.png',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel des Mineurs",
@@ -266,7 +266,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-el-estado.png',
       desc:'Capitale d\'El Estado. Chaleur étouffante, corruption omniprésente, Generalissimo Gordito règne sans partage.',
       isCapitale: true,
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel El Cartel",
@@ -401,7 +401,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80',
       desc:'Ville de la jungle. Les laboratoires s\'étendent à perte de vue.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
       buildingContext: {
         'hotel-republica': {
           name: "Refugio de la Selva",
@@ -459,7 +459,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -594,7 +594,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
       buildingContext: {
         'hotel-republica': {
           name: "Baraquement Collectif N°7",
@@ -651,7 +651,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Capitale d\'Al-Khalija. Or, turquoise et sable. Le Palais Royal domine tout. Le protocole est une religion.',
       isCapitale: true,
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Al-Nour Palace",
@@ -808,7 +808,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Port pétrolier d\'Al-Khalija. Les tankers et les dhows se croisent.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel du Port Al-Nour",
@@ -937,6 +937,22 @@ const BUILDINGS = {
           {fn:'dormir',         label:'Dormir (nuit complete)', pa:0, cost:80,  type:'legal', icon:'ti-moon',     successRate:100, desc:'Recuperation complete. +5 PA bonus demain.', paBonus:5},
           {fn:'se_reposer',     label:'Se reposer (sieste)',    pa:0, cost:0,   type:'legal', icon:'ti-zzz',      successRate:100, desc:'+2 Moral.'},
           {fn:'reunion_privee', label:'Reunion privee',         pa:2, cost:50,  type:'grey',  icon:'ti-lock',     successRate:100, desc:'Rencontre discrete sans temoins.'}
+        ]
+      },
+      suite_privee: {
+        name: "Suite Privée — Local à louer",
+        imageBg: "linear-gradient(135deg,#1a0d10,#250f18)",
+        desc: "📋 À LOUER — Suite luxueuse et très discrète. Roxane y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
+        imageUrl: "https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1 },
+        persons: [
+          {name:'Roxane Velours (PNJ)', role:'Escort de luxe', rel:'neutral', job:'escort', photoUrl:'', trait:'Son carnet d\'adresses vaut plus que celui du Premier Ministre.'}
+        ],
+        orders: [
+          {fn:'louer_local', label:'Louer cette suite (500 FR/jour)', pa:1, cost:0, type:'grey', icon:'ti-key', successRate:100, desc:'+8 INF +10 DIS. Clients très discrets, informations très utiles.'},
+          {fn:'escort_infos', label:'Recueillir des informations', pa:2, cost:300, type:'grey', icon:'ti-ear', successRate:75, desc:'Roxane collecte des confidences. Génère un kompromat.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
     }
@@ -1314,6 +1330,20 @@ const BUILDINGS = {
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
           {fn:'fiscal',         label:'Optimisation fiscale',pa:1, cost:200,  type:'grey',  icon:'ti-calculator',  successRate:85,  desc:'Reduire sa fiscalite. Semi-legal.'}
         ]
+      },
+      coffre_privatif: {
+        name: "Coffre Privatif — Local à louer",
+        imageBg: "linear-gradient(135deg,#050810,#0a0f15)",
+        desc: "📋 À LOUER — Espace sécurisé dans les sous-sols de la banque. Accès biométrique, surveillance 24h. Le Directeur Mercier ne pose jamais de questions sur le contenu.",
+        imageUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 600, bonusPOP: 0, bonusINF: 4, bonusDIS: 12, label: 'Coffre Privatif', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce coffre (600 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 DIS +4 INF. Vos secrets en sécurité absolue.'},
+          {fn:'gerer_finances', label:'Gérer mes finances', pa:1, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100},
+          {fn:'gerer_local', label:'Gérer mon coffre', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
       }
     }
   },
@@ -1560,6 +1590,20 @@ const BUILDINGS = {
           {fn:'donner_conf',    label:'Donner une conference',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',  successRate:75,  desc:'+POP +INF selon audience.'},
           {fn:'recruter_etud',  label:'Recruter des militants', pa:2, cost:0,   type:'grey',  icon:'ti-users-group', successRate:70,  desc:'Constituer un reseau militant.'}
         ]
+      },
+      salle_reunion: {
+        name: "Salle de Réunion — Local à louer",
+        imageBg: "linear-gradient(135deg,#080d18,#0f1520)",
+        desc: "📋 À LOUER — Salle de réunion équipée, tableau blanc, projecteur. Idéal pour réunions politiques, formations militantes ou conférences discrètes.",
+        imageUrl: "https://images.unsplash.com/photo-1517502884422-41eaead166d4?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 180, bonusPOP: 4, bonusINF: 4, bonusDIS: 2, label: 'Salle de Réunion', tier: 2 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cette salle (180 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+4 POP +4 INF +2 DIS. Recrutement militant facilité.'},
+          {fn:'recruter_etud', label:'Recruter des militants', pa:2, cost:0, type:'legal', icon:'ti-users', successRate:70, desc:'Recruter depuis l\'université. +INF.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
       }
     }
   },
@@ -1739,6 +1783,175 @@ const BUILDINGS = {
     desc: "Terrain disponible. Quartier Sud.",
     rooms: { terrain: { name: "Terrain vague", imageBg: "linear-gradient(135deg,#0a0a05,#12120a)", desc: "Terrain en friche.", imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80", persons: [], orders: [{fn:'appeler_police_terrain', label:'Appeler la police', pa:1, cost:0, type:'legal', icon:'ti-shield', successRate:100},{fn:'faire_disparaitre_cadavre', label:'Faire disparaitre le corps', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:0, requiresCadavre:true},{fn:'negocier_squatteurs', label:'Negocier le depart', pa:1, cost:0, type:'legal', icon:'ti-messages', successRate:0, requiresSquatteurs:true},{fn:'signer_compromis', label:'Signer un compromis', pa:2, cost:500, type:'legal', icon:'ti-file-certificate', successRate:100},{fn:'permis_construire', label:'Demander un permis', pa:2, cost:200, type:'legal', icon:'ti-file-text', successRate:70},{fn:'permis_corrompu', label:'Permis accelere', pa:2, cost:1000, type:'illegal', icon:'ti-coins', successRate:60},{fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:5000, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'racheter_terrain', label:'Offre de rachat', pa:2, cost:0, type:'legal', icon:'ti-arrows-exchange', successRate:100}] } }
   },
+
+
+  // =====================
+  // V28A — CENTRES COMMERCIAUX / ARTISANAUX / AFFAIRES
+  // =====================
+
+  'centre-commercial': {
+    name: "Centre Commercial",
+    shortName: "Centre Commercial",
+    cat: "Commerce",
+    icon: "ti-building-store",
+    bgColor: "#0a0d10",
+    desc: "Le grand centre commercial de la ville. Boutiques, cafés, bureaux. Les affaires s'y font à la vue de tous — ou pas.",
+    rooms: {
+      vitrine_principale: {
+        name: "Vitrine Principale — Local à louer",
+        imageBg: "linear-gradient(135deg,#0a0d10,#12151a)",
+        desc: "📋 À LOUER — Emplacement premium en façade. Visibilité maximale. Prix élevé, impact fort sur la réputation de votre organisation.",
+        imageUrl: "https://images.unsplash.com/photo-1567449303078-57ad995bd17f?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 800, bonusPOP: 10, bonusINF: 5, bonusDIS: 0, label: 'Vitrine Principale', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce local (800 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Emplacement premium. +10 POP +5 INF à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Gérer votre location.'}
+        ]
+      },
+      boutique_milieu: {
+        name: "Boutique Milieu — Local à louer",
+        imageBg: "linear-gradient(135deg,#0a0d10,#12151a)",
+        desc: "📋 À LOUER — Boutique bien située, bon passage. Rapport qualité/prix intéressant.",
+        imageUrl: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 400, bonusPOP: 5, bonusINF: 3, bonusDIS: 0, label: 'Boutique Milieu', tier: 2 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce local (400 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+5 POP +3 INF à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      arriere_boutique: {
+        name: "Arrière-Boutique — Local à louer",
+        imageBg: "linear-gradient(135deg,#0a0d10,#12151a)",
+        desc: "📋 À LOUER — Arrière-boutique discrète. Pas très visible mais suffisante pour démarrer.",
+        imageUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 150, bonusPOP: 2, bonusINF: 1, bonusDIS: 0, label: 'Arrière-Boutique', tier: 3 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce local (150 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+2 POP +1 INF à votre organisation.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      cave_reserve: {
+        name: "Cave / Réserve — Local à louer",
+        imageBg: "linear-gradient(135deg,#080a08,#0f120f)",
+        desc: "📋 À LOUER — Sous-sol discret, sans fenêtre. Idéal pour les activités qu'on préfère garder secrètes.",
+        imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 80, bonusPOP: 0, bonusINF: 1, bonusDIS: 5, label: 'Cave / Réserve', tier: 4 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce local (80 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+5 DIS à votre organisation. Très discret.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      }
+    }
+  },
+
+  'centre-artisanal': {
+    name: "Centre Artisanal",
+    shortName: "Centre Artisanal",
+    cat: "Commerce",
+    icon: "ti-tools",
+    bgColor: "#0d0a08",
+    desc: "Le marché couvert artisanal. Ambiance populaire, clientèle fidèle. Idéal pour ancrer une organisation dans le quartier.",
+    rooms: {
+      echoppe_facade: {
+        name: "Échoppe Facade — Local à louer",
+        imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
+        desc: "📋 À LOUER — Échoppe en façade du marché. Fort passage, clientèle populaire. Bonus popularité.",
+        imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 600, bonusPOP: 12, bonusINF: 2, bonusDIS: 0, label: 'Échoppe Facade', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce local (600 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 POP +2 INF. Fort ancrage populaire.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      atelier_milieu: {
+        name: "Atelier Central — Local à louer",
+        imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
+        desc: "📋 À LOUER — Atelier au cœur du marché. Ambiance authentique, bons contacts locaux.",
+        imageUrl: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 300, bonusPOP: 6, bonusINF: 2, bonusDIS: 0, label: 'Atelier Central', tier: 2 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce local (300 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+6 POP +2 INF.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      reserve_arriere: {
+        name: "Réserve Arrière — Local à louer",
+        imageBg: "linear-gradient(135deg,#0d0a08,#12100a)",
+        desc: "📋 À LOUER — Petite réserve en fond de marché. Pas cher, discret, suffisant pour démarrer.",
+        imageUrl: "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 100, bonusPOP: 2, bonusINF: 1, bonusDIS: 2, label: 'Réserve Arrière', tier: 3 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce local (100 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+2 POP +1 INF +2 DIS.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      }
+    }
+  },
+
+  'centre-affaires': {
+    name: "Centre d'Affaires",
+    shortName: "Centre d'Affaires",
+    cat: "Affaires",
+    icon: "ti-building-skyscraper",
+    bgColor: "#080a10",
+    desc: "Le centre d'affaires de la ville. Bureaux feutrés, discrétion absolue, réseau huppé. On ne vient pas ici pour être vu — on vient pour avoir du pouvoir.",
+    rooms: {
+      bureau_prestige: {
+        name: "Bureau Prestige — Local à louer",
+        imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
+        desc: "📋 À LOUER — Bureau avec vue, mobilier luxueux, accès VIP. Le summum du centre d'affaires. Influence et discrétion maximales.",
+        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 1000, bonusPOP: 3, bonusINF: 12, bonusDIS: 8, label: 'Bureau Prestige', tier: 1 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce local (1000 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 INF +8 DIS +3 POP. Le bureau qui impressionne.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      bureau_standard: {
+        name: "Bureau Standard — Local à louer",
+        imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
+        desc: "📋 À LOUER — Bureau fonctionnel et discret. Bon rapport influence/coût.",
+        imageUrl: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 1, bonusINF: 6, bonusDIS: 5, label: 'Bureau Standard', tier: 2 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce local (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+6 INF +5 DIS +1 POP.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      open_space: {
+        name: "Open Space — Local à louer",
+        imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
+        desc: "📋 À LOUER — Espace partagé, ambiance start-up. Moins cher, mais moins discret.",
+        imageUrl: "https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 200, bonusPOP: 2, bonusINF: 3, bonusDIS: 1, label: 'Open Space', tier: 3 },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      }
+    }
+  },
+
   'terrain-a-batir-7': {
     name: "Terrain a batir - Lot 7", shortName: "Terrain Lot 7", cat: "Immobilier", icon: "ti-fence", bgColor: "#0a0a05",
     desc: "Terrain disponible. Quartier Ouest.",
@@ -1853,6 +2066,19 @@ const BUILDINGS = {
     bgColor: "#0a0d10",
     desc: "Bar populaire du port. Les pecheurs et contrebandiers s'y retrouvent.",
     rooms: {
+      arriere_salle: {
+        name: "Arrière-Salle — Local à louer",
+        imageBg: "linear-gradient(135deg,#0a0d10,#080c0f)",
+        desc: "📋 À LOUER — L'arrière-salle du bar. Idéal pour un tripot, des réunions discrètes ou un quartier général criminel. Personne ne pose de questions ici.",
+        imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 120, bonusPOP: 0, bonusINF: 2, bonusDIS: 8, label: 'Arrière-Salle du Bar', tier: 2, usages: ['tripot','reunion_secrete','orga_criminelle'] },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cette arrière-salle (120 FR/jour)', pa:1, cost:0, type:'grey', icon:'ti-key', successRate:100, desc:'+8 DIS +2 INF. Personne ne sait ce qui se passe là-dedans.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
       salle_bar: {
         name: "Salle du bar",
         image: "🍺",
@@ -2499,6 +2725,19 @@ const BUILDINGS = {
           {fn:'consulter_manifeste', label:'Consulter le manifeste', pa:1, cost:0, type:'grey', icon:'ti-file-search', successRate:75, desc:'Liste des cargaisons déclarées. INT/10. Révèle possibles contrebandes.'},
           {fn:'falsifier_manifeste', label:'Falsifier le manifeste', pa:2, cost:200, type:'illegal', icon:'ti-file-x', successRate:40, desc:'Faire disparaître une cargaison des registres. DUP/10.'}
         ]
+      },
+      entrepot: {
+        name: "Entrepôt — Local à louer",
+        imageBg: "linear-gradient(135deg,#050810,#08100a)",
+        desc: "📋 À LOUER — Entrepôt portuaire de 300m². Idéal pour stocker des marchandises... officielles ou non. Marcel Ancre ne regarde pas trop dans les caisses.",
+        imageUrl: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80",
+        isLocationRoom: true,
+        locationData: { prix: 350, bonusPOP: 0, bonusINF: 3, bonusDIS: 6, label: 'Entrepôt Portuaire', tier: 2, usages: ['stockage','contrebande','logistique'] },
+        persons: [],
+        orders: [
+          {fn:'louer_local', label:'Louer cet entrepôt (350 FR/jour)', pa:1, cost:0, type:'grey', icon:'ti-key', successRate:100, desc:'+6 DIS +3 INF. Stockage discret garanti.'},
+          {fn:'gerer_local', label:'Gérer mon entrepôt', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
       }
     }
   },
@@ -2780,7 +3019,7 @@ const TERRAIN_PNJ_PROFILES = {
     { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.06, agressif:false, trait:null },
   ],
   narco: [
-    { id:'promoteur',   name:'Don Ladrillo',          role:'Promoteur (blanchiment)', job:'commercant', rel:'neutral', prob:0.22, agressif:false,
+    { id:'promoteur',   name:'Don Ladrillo',          role:'Promoteur (blanchiment)', job:'commercant', rel:'neutral', prob:0.22, agressif:false, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/promoteur-narco.png', photoPos:'50% 10%',
       trait:'Propose cash. Beaucoup de cash. Ne pose pas de questions. Déconseille d\'en poser.' },
     { id:'agent',       name:'Consuelo Escritura',    role:'Agente immobilière',     job:'commercant',  rel:'neutral', prob:0.10, agressif:false,
       trait:'Ses contrats ont des clauses en petits caractères très petits. Très, très petits.' },
@@ -2788,11 +3027,11 @@ const TERRAIN_PNJ_PROFILES = {
       trait:'Font des grillades permanentes. Offrent une bière et une côtelette. Savent des choses.' },
     { id:'squatter_agr', name:'Los Violentos',        role:'Squatteurs armés',       job:'citoyen',     rel:'enemy',   prob:0.22, agressif:true,
       trait:'Armés. Territorieux. El Don lui-même les évite. Jet CHA difficile.' },
-    { id:'inspecteur',  name:'Oficial Mordida',       role:'Inspecteur corruptible', job:'inspecteur',  rel:'neutral', prob:0.08, agressif:false,
+    { id:'inspecteur',  name:'Oficial Mordida',       role:'Inspecteur corruptible', job:'inspecteur',  rel:'neutral', prob:0.08, agressif:false, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/inspecteur-narco.png', photoPos:'50% 10%',
       trait:'Venu vérifier. Repart avec une enveloppe. Tout est conforme.' },
     { id:'gardien',     name:'Paco Vigilancia',       role:'Gardien armé',           job:'gardien',     rel:'neutral', prob:0.12, agressif:false,
       trait:'Armé. Sérieux. Travaille pour quelqu\'un. On ne sait pas trop qui.' },
-    { id:'cadavre',     name:'Inconnu',               role:'Cadavre (banal ici)',    job:'default',     rel:'neutral', prob:0.08, agressif:false,
+    { id:'cadavre',     name:'Deux Inconnus',          role:'Cadavres (banal ici)',   job:'default',     rel:'neutral', prob:0.08, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadavre-narco.png', photoPos:'50% 40%', agressif:false,
       trait:'Troisième cette semaine sur ce terrain. La police est blasée. Les formalités aussi.' },
     { id:'vide',        name:null,                    role:null,                     job:null,          rel:'neutral', prob:0.04, agressif:false, trait:null },
   ],
