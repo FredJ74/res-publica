@@ -1802,6 +1802,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0a0d10,#12151a)",
         desc: "📋 À LOUER — Emplacement premium en façade. Visibilité maximale. Prix élevé, impact fort sur la réputation de votre organisation.",
         imageUrl: "https://images.unsplash.com/photo-1567449303078-57ad995bd17f?w=1200&q=80",
+        imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-republic.png',
         isLocationRoom: true,
         locationData: { prix: 800, bonusPOP: 10, bonusINF: 5, bonusDIS: 0, label: 'Vitrine Principale', tier: 1 },
         persons: [],
@@ -1865,6 +1866,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
         desc: "📋 À LOUER — Échoppe en façade du marché. Fort passage, clientèle populaire. Bonus popularité.",
         imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
+        imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-republic.png',
         isLocationRoom: true,
         locationData: { prix: 600, bonusPOP: 12, bonusINF: 2, bonusDIS: 0, label: 'Échoppe Facade', tier: 1 },
         persons: [],
@@ -1915,6 +1917,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
         desc: "📋 À LOUER — Bureau avec vue, mobilier luxueux, accès VIP. Le summum du centre d'affaires. Influence et discrétion maximales.",
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-republic.png',
         isLocationRoom: true,
         locationData: { prix: 1000, bonusPOP: 3, bonusINF: 12, bonusDIS: 8, label: 'Bureau Prestige', tier: 1 },
         persons: [],
@@ -2867,7 +2870,23 @@ const ROOM_IMAGES_EMPIRE = {
     'terrain-a-batir-4': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
     'terrain-a-batir-5': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
     'terrain-a-batir-6': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' }
+    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
+    'centre-commercial': {
+      'vitrine_principale': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-republic.png',
+      'boutique_milieu':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-republic.png',
+      'arriere_boutique':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-republic.png',
+      'cave_reserve':       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-republic.png'
+    },
+    'centre-artisanal': {
+      'echoppe_facade':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-republic.png',
+      'atelier_milieu':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-republic.png',
+      'reserve_arriere': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-republic.png'
+    },
+    'centre-affaires': {
+      'bureau_prestige': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-republic.png',
+      'bureau_standard': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-republic.png',
+      'open_space':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-republic.png'
+    },
   },
   narco: {
     'centre-multinodal-luthecia': {
@@ -2912,7 +2931,23 @@ const ROOM_IMAGES_EMPIRE = {
     'terrain-a-batir-4': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' },
     'terrain-a-batir-5': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' },
     'terrain-a-batir-6': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' },
-    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' }
+    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-narco.png' },
+    'centre-commercial': {
+      'vitrine_principale': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-narco.png',
+      'boutique_milieu':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-narco.png',
+      'arriere_boutique':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-narco.png',
+      'cave_reserve':       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-narco.png'
+    },
+    'centre-artisanal': {
+      'echoppe_facade':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-narco.png',
+      'atelier_milieu':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-narco.png',
+      'reserve_arriere': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-narco.png'
+    },
+    'centre-affaires': {
+      'bureau_prestige': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-narco.png',
+      'bureau_standard': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-narco.png',
+      'open_space':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-narco.png'
+    },
   },
   soviet: {
     'centre-multinodal-luthecia': {
@@ -2945,7 +2980,23 @@ const ROOM_IMAGES_EMPIRE = {
     'terrain-a-batir-4': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' },
     'terrain-a-batir-5': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' },
     'terrain-a-batir-6': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' },
-    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' }
+    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-soviet.png' },
+    'centre-commercial': {
+      'vitrine_principale': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-soviet.png',
+      'boutique_milieu':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-soviet.png',
+      'arriere_boutique':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-soviet.png',
+      'cave_reserve':       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-soviet.png'
+    },
+    'centre-artisanal': {
+      'echoppe_facade':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-soviet.png',
+      'atelier_milieu':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-soviet.png',
+      'reserve_arriere': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-soviet.png'
+    },
+    'centre-affaires': {
+      'bureau_prestige': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-soviet.png',
+      'bureau_standard': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-soviet.png',
+      'open_space':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-soviet.png'
+    },
   },
   khalija: {
     'centre-multinodal-luthecia': {
@@ -2984,7 +3035,23 @@ const ROOM_IMAGES_EMPIRE = {
     'terrain-a-batir-4': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' },
     'terrain-a-batir-5': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' },
     'terrain-a-batir-6': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' },
-    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' }
+    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-khalija.png' },
+    'centre-commercial': {
+      'vitrine_principale': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-khalija.png',
+      'boutique_milieu':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-khalija.png',
+      'arriere_boutique':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-khalija.png',
+      'cave_reserve':       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-commercial-khalija.png'
+    },
+    'centre-artisanal': {
+      'echoppe_facade':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-khalija.png',
+      'atelier_milieu':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-khalija.png',
+      'reserve_arriere': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-khalija.png'
+    },
+    'centre-affaires': {
+      'bureau_prestige': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-khalija.png',
+      'bureau_standard': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-khalija.png',
+      'open_space':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-affaires-khalija.png'
+    },
   }
 };
 
