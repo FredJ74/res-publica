@@ -7024,6 +7024,20 @@ function doDormir() {
     showToast('Deja dormi', 'Vous avez deja dormi aujourd\'hui. Attendez demain.', false);
     return;
   }
+
+  // Prélever le coût selon l'hôtel
+  const coutsDormir = {
+    'hotel-republica': 80, 'hotel-port': 60, 'hotel-mineur': 40,
+    'hotel-narco': 80, 'hotel-soviet': 60, 'hotel-khalija': 80
+  };
+  const coutDormir = coutsDormir[state.currentBuilding] || 0;
+  const curD = COUNTRIES[state.country]?.cur || 'FR';
+  if (coutDormir > 0 && state.arg < coutDormir) {
+    showToast('Fonds insuffisants', coutDormir + ' ' + curD + ' requis pour la nuit.', false);
+    return;
+  }
+  if (coutDormir > 0) state.arg -= coutDormir;
+
   const b = state.currentBuilding ? BUILDINGS[state.currentBuilding] : null;
   const confortMap = {
     'hotel-republica':    { moral: 5, paBonus: 5 },
@@ -8212,6 +8226,10 @@ function doArticle() {
 }
 
 function doEtouffer() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 800;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
   showToast('Ordre contact requis', 'Cliquez sur le journaliste cible pour etouffer un article.', false);
 }
 
@@ -8372,6 +8390,10 @@ function doRecruterMilitants() {
 }
 
 function doActeOfficiel() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 50;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
   if (!state.inventory) state.inventory = [];
   state.inventory.push({ type:'document', name:'Acte officiel de la mairie', icon:'ti-file-certificate', legal:true });
   updateUI();
@@ -8518,6 +8540,10 @@ function validerBudgetLocal() {
 }
 
 function doCampagneSecurite() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 500;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
   if (!verifierBudgetInstitution('mairie')) return;
   const pays = state.country || 'republic';
   if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 10);
@@ -11787,6 +11813,191 @@ function confirmerDonObjetPnj(objIdx, encodedPnj) {
   updateUI();
   showToast(bon?'Don effectue !':'Action risquee.', msg, bon);
 }
+
+
+// =====================
+// FONCTIONS MANQUANTES — avec prélèvement
+// =====================
+
+function doAcheterEntreprise() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 8000;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  state.pop = Math.min(100, (state.pop||0) + 5);
+  state.inf = Math.min(100, (state.inf||0) + 8);
+  addToInventory({ name: "Acte d'acquisition d'entreprise", icon: 'ti-building-factory', type: 'acte_officiel', legal: true, desc: 'Vous êtes propriétaire d\'une entreprise locale.' });
+  updateUI();
+  showToast('Entreprise achetée !', '-' + cost.toLocaleString('fr-FR') + ' ' + cur + '. +5 POP +8 INF.', true);
+  addJournalEntry('Achat entreprise. -' + cost.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
+}
+
+function doArreter() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 500;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  const isn = INDICES_NATIONAUX?.[state.country]?.ISN || 30;
+  INDICES_NATIONAUX[state.country] = INDICES_NATIONAUX[state.country] || {};
+  INDICES_NATIONAUX[state.country].ISN = Math.min(100, isn + 5);
+  updateUI();
+  showToast('Arrestation ordonnée', '-' + cost + ' ' + cur + '. +5 ISN.', false);
+  addJournalEntry('Ordre d\'arrestation. -' + cost + ' ' + cur + '.', 'event-bad');
+}
+
+function doCompteOffshore() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 1000;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  state.dis = Math.min(100, (state.dis||50) + 10);
+  updateUI();
+  showToast('Compte offshore ouvert', '-' + cost + ' ' + cur + '. +10 DIS. Transactions discrètes activées.', true);
+  addJournalEntry('Compte offshore ouvert. -' + cost + ' ' + cur + '.', 'event-info');
+}
+
+function doCorrompreGardien() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 800;
+  const dup = state.char?.stats?.DUP || 8;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  const taux = Math.min(80, 30 + Math.floor(dup * 3));
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= taux) {
+    state.dis = Math.max(0, (state.dis||50) - 5);
+    updateUI();
+    showToast('Gardien corrompu !', 'Il regardera ailleurs. -5 DIS.', true);
+    addJournalEntry('Gardien corrompu. -' + cost + ' ' + cur + '.', 'event-bad');
+  } else {
+    updateUI();
+    showToast('Refus du gardien !', 'Il n\'a pas accepté. Argent perdu.', false);
+    addJournalEntry('Corruption gardien échouée. -' + cost + ' ' + cur + '.', 'event-bad');
+  }
+}
+
+function doDefense() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 300;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  state.dis = Math.min(100, (state.dis||50) + 8);
+  updateUI();
+  showToast('Défense renforcée', '-' + cost + ' ' + cur + '. +8 DIS. Votre sécurité est accrue.', true);
+  addJournalEntry('Défense renforcée. -' + cost + ' ' + cur + '.', 'event-good');
+}
+
+function doDinerAffaires() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 120;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  state.inf = Math.min(100, (state.inf||0) + 4);
+  state.moral = Math.min(100, (state.moral||50) + 3);
+  updateUI();
+  showToast('Dîner d\'affaires', '-' + cost + ' ' + cur + '. +4 INF +3 Moral.', true);
+  addJournalEntry('Dîner d\'affaires. -' + cost + ' ' + cur + '.', 'event-good');
+}
+
+function doFalsifierDocs() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 500;
+  const dup = state.char?.stats?.DUP || 8;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  const taux = Math.min(75, 25 + Math.floor(dup * 3));
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= taux) {
+    addToInventory({ name: 'Document falsifié', icon: 'ti-file-x', type: 'document_falsifie', legal: false, desc: 'Document officiel falsifié.' });
+    updateUI();
+    showToast('Documents falsifiés !', '-' + cost + ' ' + cur + '. Document ajouté à l\'inventaire.', true);
+    addJournalEntry('Falsification docs réussie. -' + cost + ' ' + cur + '.', 'event-bad');
+  } else {
+    updateUI();
+    showToast('Falsification ratée !', 'Le faussaire a échoué. Argent perdu.', false);
+  }
+}
+
+function doImprimerClandestin() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 300;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  state.dis = Math.max(0, (state.dis||50) - 5);
+  addToInventory({ name: 'Publication clandestine', icon: 'ti-file-description', type: 'tract', legal: false, quantite: 20, desc: 'Pamphlet imprimé clandestinement.' });
+  updateUI();
+  showToast('Impression clandestine !', '-' + cost + ' ' + cur + '. 20 tracts clandestins. -5 DIS.', true);
+  addJournalEntry('Impression clandestine. -' + cost + ' ' + cur + '.', 'event-bad');
+}
+
+function doImprimerLivre() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 500;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  state.pop = Math.min(100, (state.pop||0) + 6);
+  state.inf = Math.min(100, (state.inf||0) + 4);
+  addToInventory({ name: 'Livre publié', icon: 'ti-book', type: 'document', legal: true, desc: 'Votre ouvrage, publié à compte d\'auteur.' });
+  updateUI();
+  showToast('Livre publié !', '-' + cost + ' ' + cur + '. +6 POP +4 INF.', true);
+  addExternalEvent((state.char?.name||'Anonyme') + ' publie un ouvrage.');
+  addJournalEntry('Publication livre. -' + cost + ' ' + cur + '.', 'event-good');
+}
+
+function doInvestir() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 500;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const gain = roll > 40 ? Math.floor(cost * (0.5 + Math.random())) : 0;
+  if (gain > 0) {
+    state.arg += gain;
+    updateUI();
+    showToast('Investissement rentable !', '-' + cost + ' +' + gain + ' ' + cur + '. Bénéfice : ' + (gain-cost) + ' ' + cur + '.', true);
+    addJournalEntry('Investissement réussi. +' + (gain-cost) + ' ' + cur + '.', 'event-good');
+  } else {
+    updateUI();
+    showToast('Investissement raté', '-' + cost + ' ' + cur + '. Tout est perdu.', false);
+    addJournalEntry('Investissement perdu. -' + cost + ' ' + cur + '.', 'event-bad');
+  }
+}
+
+function doMarchander() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 100;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  state.inf = Math.min(100, (state.inf||0) + 3);
+  state.pop = Math.min(100, (state.pop||0) + 2);
+  updateUI();
+  showToast('Marchandage réussi', '-' + cost + ' ' + cur + '. +3 INF +2 POP.', true);
+  addJournalEntry('Marchandage. -' + cost + ' ' + cur + '.', 'event-good');
+}
+
+function doReunionPrivee() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 50;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  state.inf = Math.min(100, (state.inf||0) + 5);
+  state.dis = Math.min(100, (state.dis||50) + 3);
+  updateUI();
+  showToast('Réunion discrète', '-' + cost + ' ' + cur + '. +5 INF +3 DIS.', true);
+  addJournalEntry('Réunion privée. -' + cost + ' ' + cur + '.', 'event-info');
+}
+
+function doSocieteEcran() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 500;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  state.dis = Math.min(100, (state.dis||50) + 12);
+  updateUI();
+  showToast('Société écran créée', '-' + cost + ' ' + cur + '. +12 DIS. Transactions masquées.', true);
+  addJournalEntry('Société écran créée. -' + cost + ' ' + cur + '.', 'event-info');
+}
+
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', function(e) {
