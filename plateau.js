@@ -1136,6 +1136,7 @@ function applyEffects(fn, resultType, cost) {
     if (state.informateurs?.length > 0) {
       const toRemove = [];
       state.informateurs.forEach((inf, i) => {
+        if (inf.joursActif !== undefined) inf.joursActif++;
         const cout = INFORMATEUR_NIVEAUX[inf.niveau]?.cout || 150;
         if (state.arg >= cout) {
           state.arg -= cout;
@@ -2045,16 +2046,15 @@ Génère UNE révélation compromettante, parodique et drôle (2 phrases max). S
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 60, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await resp.json();
-    const info = data.content?.[0]?.text || 'Information confidentielle obtenue.';
+    const info = data.content?.[0]?.text?.trim() || 'Information confidentielle obtenue.';
 
     // Créer un kompromat dans l'inventaire
-    if (!state.inventory) state.inventory = [];
-    state.inventory.push({
+    addToInventory({
       id: 'kompromat-' + Date.now(),
-      name: `Kompromat sur ${cible.name}`,
+      name: 'Kompromat sur ' + cible.name,
       icon: 'ti-file-shredder',
       desc: info,
       type: 'kompromat',
@@ -2064,8 +2064,8 @@ Génère UNE révélation compromettante, parodique et drôle (2 phrases max). S
 
     state.inf = Math.min(100, (state.inf || 0) + 5);
     updateUI();
-    addJournalEntry(`Information compromettante obtenue sur ${cible.name}. Ajoutée à votre inventaire.`, 'event-info');
-    showToast('Information obtenue !', info.substring(0, 80) + '...', true, true);
+    addJournalEntry('Kompromat obtenu sur ' + cible.name + '. Ajouté à l\'inventaire.', 'event-info');
+    showToast('Information obtenue !', info.substring(0, 100) + (info.length > 100 ? '...' : ''), true, true);
 
   } catch(e) {
     showToast('Erreur', 'Impossible d\'obtenir l\'information.', false);
@@ -8297,7 +8297,14 @@ function confirmerRecrutement(nom) {
   // Vérifier limite (max 2)
   if (state.informateurs.length >= 2) { showToast('Limite atteinte', 'Vous ne pouvez pas avoir plus de 2 informateurs simultanément.', false); return; }
   state.arg -= cost;
-  state.informateurs.push({ nom, niveau: 1, depuis: state.day, coutJour: cost });
+  state.informateurs.push({
+    nom, niveau: 1,
+    label: nom,
+    cout: cost,
+    coutJour: cost,
+    depuis: state.day,
+    joursActif: 0
+  });
   updateUI();
   showToast('Informateur recrute', nom + ' rejoint votre reseau. -' + cost + ' ' + cur + '/jour.', true);
   addJournalEntry('Informateur recrute : ' + nom + ' (N1). -' + cost + ' ' + cur + '/jour.', 'event-info');
