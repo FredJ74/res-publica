@@ -135,7 +135,7 @@ function applyCharToState(char) {
 
   // Photo
   try {
-    const photoSaved = localStorage.getItem('respublica_photo_' + (state.char?.name || 'default'));
+    const photoSaved = localStorage.getItem('respublica_photo_' + (state.char?.name || 'default')) || localStorage.getItem('respublica_photo');
     const photoUrl = photoSaved || char.photoUrl;
     if (photoUrl && photoUrl.length > 10) {
       const imgTag = `<img src="${photoUrl}" alt="Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
@@ -605,7 +605,7 @@ function renderPersonsList(persons) {
   const ar = ARCHETYPES.find(x => x.id === char?.archetype);
 
   // Carte du PJ lui-meme — cliquable pour ouvrir la fiche personnage centrale
-  const savedPhoto = localStorage.getItem('respublica_photo_' + (state.char?.name || 'default'));
+  const savedPhoto = localStorage.getItem('respublica_photo_' + (state.char?.name || 'default')) || localStorage.getItem('respublica_photo');
   const photoUrl = savedPhoto || char?.photoUrl;
   const photoHtml = photoUrl
     ? '<img src="' + photoUrl + '" alt="Vous" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'
