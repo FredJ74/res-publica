@@ -30,7 +30,7 @@ window.addEventListener('DOMContentLoaded', () => {
   loadCharacter();
   // Restaurer dernierDormir depuis localStorage
   try {
-    const dormirData = JSON.parse(localStorage.getItem('respublica_dormir') || '{}');
+    const dormirData = JSON.parse(localStorage.getItem('respublica_dormir_' + (state.char?.name || 'default')) || '{}');
     if (dormirData.dernierDormir) state.dernierDormir = dormirData.dernierDormir;
     if (dormirData.day) state.day = Math.max(state.day, dormirData.day);
   } catch(e) {}
@@ -41,7 +41,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (state.char) {
     state.char.country = state.country;
     state.char.currentCity = state.currentCity;
-    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
   }
   buildCityTabs();
   updateUI();
@@ -131,7 +131,7 @@ function applyCharToState(char) {
 
   // Photo
   try {
-    const photoSaved = localStorage.getItem('respublica_photo');
+    const photoSaved = localStorage.getItem('respublica_photo_' + (state.char?.name || 'default'));
     const photoUrl = photoSaved || char.photoUrl;
     if (photoUrl && photoUrl.length > 10) {
       const imgTag = `<img src="${photoUrl}" alt="Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
@@ -601,7 +601,7 @@ function renderPersonsList(persons) {
   const ar = ARCHETYPES.find(x => x.id === char?.archetype);
 
   // Carte du PJ lui-meme — cliquable pour ouvrir la fiche personnage centrale
-  const savedPhoto = localStorage.getItem('respublica_photo');
+  const savedPhoto = localStorage.getItem('respublica_photo_' + (state.char?.name || 'default'));
   const photoUrl = savedPhoto || char?.photoUrl;
   const photoHtml = photoUrl
     ? '<img src="' + photoUrl + '" alt="Vous" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'
@@ -1143,7 +1143,7 @@ function applyEffects(fn, resultType, cost) {
     state.day = (state.day || 1) + 1;
     state.dernierDormir = state.day; // Bloque le jour suivant
     state.douanePassee = false;
-    localStorage.setItem('respublica_dormir', JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
+    localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
 
     // Revenus passifs des organisations
     appliquerRevenusPassifsOrga();
@@ -6972,7 +6972,7 @@ function doDormir() {
   state.day = today + 1;
   state.dernierDormir = state.day; // Bloque le jour suivant
   state.douanePassee = false;
-  localStorage.setItem('respublica_dormir', JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
+  localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
   const salaire = state.poste ? (SALAIRES[state.poste.id] || SALAIRES.default) : SALAIRES.default;
   state.arg += salaire;
   state.liquide += Math.floor(salaire * 0.3);
@@ -8595,7 +8595,7 @@ function executerVoyage(mode, empireId, villeId) {
   if (state.char) {
     state.char.country = empireId;
     state.char.currentCity = villeId;
-    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
   }
   applyEmpireTheme(empireId);
   buildCityTabs();
@@ -8669,7 +8669,7 @@ function confirmerTransport(mode, empireId, villeId) {
   if (state.char) {
     state.char.country = empireId;
     state.char.currentCity = villeId;
-    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
   }
 
   // Reconstruire l'interface pour le nouvel empire
@@ -9152,7 +9152,7 @@ function doTaxiSpecial(destination) {
   state.currentRoom = null;
   if (state.char) {
     state.char.currentCity = cityKey;
-    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
   }
   buildCityTabs();
   updateUI();
