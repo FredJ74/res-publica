@@ -10645,6 +10645,20 @@ function updateUI() {
   const cur = state.char ? (COUNTRIES[state.char.country]?.cur || 'FR') : 'FR';
   // Sauvegarde auto Supabase
   if (typeof sbAutoSave === 'function' && state?.char?.name) sbAutoSave();
+  // Sauvegarde localStorage — sync état complet
+  if (state.char?.name) {
+    state.char.poste       = state.poste || null;
+    state.char.currentCity = state.currentCity || 'capitale';
+    state.char.arg         = state.arg || 0;
+    state.char.resources   = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
+    state.char.hp          = state.hp || 100;
+    state.char.pa          = state.pa || 10;
+    state.char.moral       = state.moral || 75;
+    try {
+      localStorage.setItem('respublica_char_' + state.char.name, JSON.stringify(state.char));
+      localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    } catch(e) {}
+  }
   document.getElementById('r-pa').textContent   = TEST_MODE ? '∞' : state.pa;
   document.getElementById('b-pa').style.width   = TEST_MODE ? '100%' : (state.pa / state.paMax * 100) + '%';
   document.getElementById('r-arg').textContent  = state.arg.toLocaleString('fr-FR') + ' ' + cur;
