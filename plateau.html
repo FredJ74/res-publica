@@ -78,7 +78,9 @@
     <button class="forum-btn" onclick="ouvrirMenuAlliances()" title="Alliances entre joueurs">
       <i class="ti ti-handshake" style="font-size:.8rem;vertical-align:-1px"></i> Alliances
     </button>
-
+    <button class="forum-btn" onclick="openSelfView();setTimeout(()=>switchSelfTab('orgas',document.querySelectorAll('#vue-self .piece-tab')[2]),50)" title="Mes organisations" style="color:#c0a0ff">
+      <i class="ti ti-building-community" style="font-size:.8rem;vertical-align:-1px"></i> Orgas
+    </button>
     <button class="forum-btn" onclick="ouvrirCalendrierElectoral()" title="Calendrier électoral" style="color:#6ada6a">
       <i class="ti ti-calendar-event" style="font-size:.8rem;vertical-align:-1px"></i> Élections
     </button>
