@@ -41,7 +41,15 @@ window.addEventListener('DOMContentLoaded', () => {
   if (state.char) {
     state.char.country = state.country;
     state.char.currentCity = state.currentCity;
+    // Inclure poste et données importantes dans state.char avant sauvegarde
+    if (state.char) {
+      state.char.poste = state.poste || null;
+      state.char.currentCity = state.currentCity || 'capitale';
+      state.char.arg = state.arg || 0;
+      state.char.resources = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
+    }
     localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
+    localStorage.setItem('respublica_char', JSON.stringify(state.char));
   }
   buildCityTabs();
   updateUI();
@@ -110,6 +118,7 @@ function applyCharToState(char) {
   state.country = char.country || 'republic';
   state.currentCity = char.currentCity || 'capitale';
   state.arg = char.arg || 4250;
+  if (char.poste) state.poste = char.poste;
   state.liquide = Math.floor(state.arg * 0.15);
   state.banque = state.arg - state.liquide;
   state.inf = char.resources?.inf || 25;
