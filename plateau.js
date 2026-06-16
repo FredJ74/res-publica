@@ -1989,6 +1989,41 @@ async function afficherReactionJournaliste() {
 // =====================
 // ESCORTS — INFORMATIONS ET PIÈGE
 // =====================
+
+// =====================
+// UTILITAIRE — Liste PJ + PNJ connus
+// =====================
+function getAllPJsAndPNJs() {
+  const result = [];
+  // PJ connus (depuis state.pjConnus ou contacts)
+  const pjConnus = state.pjConnus || [];
+  pjConnus.forEach(nom => {
+    if (!result.some(r => r.name === nom)) {
+      result.push({ name: nom, role: 'Joueur', isPJ: true });
+    }
+  });
+  // Contacts du répertoire
+  (state.contacts || []).forEach(c => {
+    if (!result.some(r => r.name === c.name)) {
+      result.push({ name: c.name, role: c.role || 'Contact', isPJ: false });
+    }
+  });
+  // PNJ du bâtiment actuel
+  if (state.currentBuilding && state.currentRoom) {
+    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+    (room?.persons || []).forEach(p => {
+      if (!result.some(r => r.name === p.name)) {
+        result.push({ name: p.name, role: p.role || 'PNJ', isPJ: false });
+      }
+    });
+  }
+  // Si toujours vide, retourner une cible générique
+  if (result.length === 0) {
+    result.push({ name: 'Un notable local', role: 'Personnage politique', isPJ: false });
+  }
+  return result;
+}
+
 async function doEscortInfos() {
   const cibles = getAllPJsAndPNJs().filter(c => c.name !== state.char?.name);
   if (cibles.length === 0) { showToast('Personne à cibler', 'Aucune cible disponible.', false); return; }
