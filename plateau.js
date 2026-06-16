@@ -79,7 +79,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function loadCharacter() {
   try {
-    const saved = localStorage.getItem('respublica_char');
+    // Lire le dernier personnage actif, puis sa clé propre
+    const lastName = localStorage.getItem('respublica_last_char');
+    const saved = lastName
+      ? (localStorage.getItem('respublica_char_' + lastName) || localStorage.getItem('respublica_char'))
+      : localStorage.getItem('respublica_char');
     if (saved) {
       const char = JSON.parse(saved);
       applyCharToState(char);

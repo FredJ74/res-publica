@@ -38,8 +38,11 @@ async function chargerPersonnageParNom() {
       arg: sbState.arg,
       resources: { inf: sbState.inf, pop: sbState.pop, dis: sbState.dis }
     };
+    localStorage.setItem('respublica_char_' + charData.name, JSON.stringify(charData));
     localStorage.setItem('respublica_char', JSON.stringify(charData));
+    localStorage.setItem('respublica_last_char', charData.name);
     if (sbState.char?.photoUrl) {
+      localStorage.setItem('respublica_photo_' + sbState.char.name, sbState.char.photoUrl);
       localStorage.setItem('respublica_photo', sbState.char.photoUrl);
     }
 
@@ -404,10 +407,17 @@ function validateChar(){
   };
   STAT_DEFS.forEach(({k})=>{char.stats[k]=Math.min(20,getBase(k)+(G.freeStats[k]||0))});
   try{
+    // Clé par nom (évite écrasement entre personnages)
+    localStorage.setItem('respublica_char_' + char.name, JSON.stringify(char));
+    // Clé générique = pointeur vers le dernier personnage actif
     localStorage.setItem('respublica_char', JSON.stringify(char));
+    localStorage.setItem('respublica_last_char', char.name);
     // Photo sauvegardee separement car peut etre volumineuse
     if(G.photoUrl){
-      try{ localStorage.setItem('respublica_photo', G.photoUrl); }
+      try{
+        localStorage.setItem('respublica_photo_' + char.name, G.photoUrl);
+        localStorage.setItem('respublica_photo', G.photoUrl);
+      }
       catch(e){ console.warn('Photo trop volumineuse pour localStorage'); }
     }
     // Sauvegarde Supabase
