@@ -3417,55 +3417,158 @@ const HISTORIQUE_ELECTIONS = {};
 // ORGANISATIONS
 // =====================
 const TYPES_ORGANISATIONS = {
-  criminelle: {
-    label: 'Organisation Criminelle',
-    secret: true,
-    requis: { dis: 60 },
+
+  // ---- POLITIQUE ----
+  politique: {
+    label: 'Organisation Politique',
+    icon: 'ti-flag',
+    secret: false,
+    requis: { pop: 20, inf: 15 },
     grades: {
-      republic: ['Affilié', 'Soldat', 'Capo', 'Parrain'],
-      narco:    ['Sicario', 'Teniente', 'Comandante', 'El Jefe'],
-      soviet:   ['Homme de main', 'Brigadier', 'Vor', 'Pakhan'],
-      khalija:  ['Sbire', 'Lieutnant', 'Émir de l\'ombre', 'Calife de l\'obscurité'],
+      republic: ['Sympathisant', 'Militant', 'Cadre', 'Secrétaire Général'],
+      narco:    ['Seguidor', 'Activista', 'Líder Local', 'Jefe Supremo'],
+      soviet:   ['Camarade', 'Activiste', 'Commissaire', 'Secrétaire du Parti'],
+      khalija:  ['Partisan', 'Conseiller', 'Vizir', 'Grand Vizir'],
     },
-    maxParEmpire: null, // Plusieurs possibles
+    maxParCreation: 1,
+    maxAdhesion: 1,
+    ordres: [
+      { fn: 'orga_petition',      label: 'Lancer une pétition',        pa: 2, cost: 0,    icon: 'ti-pencil',       desc: 'Mobilise des soutiens. +POP si succes.' },
+      { fn: 'orga_financer_cand', label: 'Financer un candidat',       pa: 2, cost: 5000, icon: 'ti-coin',         desc: 'Finance la campagne d\'un PJ allie. +votes.' },
+      { fn: 'orga_torpiller',     label: 'Torpiller un adversaire',     pa: 3, cost: 1000, icon: 'ti-bomb',         desc: 'Campagne de denigrement. -POP cible.' },
+      { fn: 'orga_meeting',       label: 'Organiser un meeting',        pa: 3, cost: 500,  icon: 'ti-speakerphone', desc: 'Rassemblement public. +POP membres +INF.' },
+      { fn: 'orga_coalition',     label: 'Proposer une coalition',      pa: 1, cost: 0,    icon: 'ti-handshake',    desc: 'Alliance avec une autre orga politique.' },
+    ]
   },
+
+  // ---- RELIGIEUSE ----
   religieuse: {
     label: 'Organisation Religieuse',
+    icon: 'ti-star',
     secret: false,
     requis: { inf: 20, pop: 15 },
     grades: {
-      republic: ['Novice', 'Diacre', 'Prêtre', 'Grand Pontife'],
-      narco:    ['Croyant', 'Révérend', 'Archevêque', 'El Profeta'],
-      soviet:   ['Camarade Croyant', 'Lecteur du Parti', 'Prophète du Kolkhoze', 'Grand Oracle'],
-      khalija:  ['Étudiant', 'Imam', 'Grand Mufti', 'Ayatollah Suprême'],
+      republic: ['Novice', 'Diacre', 'Pretre', 'Grand Pontife'],
+      narco:    ['Croyant', 'Reverend', 'Archeveque', 'El Profeta'],
+      soviet:   ['Camarade Croyant', 'Lecteur du Parti', 'Prophete du Kolkhoze', 'Grand Oracle'],
+      khalija:  ['Etudiant', 'Imam', 'Grand Mufti', 'Ayatollah Supreme'],
     },
-    maxParEmpire: null,
+    maxParCreation: 1,
+    maxAdhesion: 1,
+    ordres: [
+      { fn: 'orga_benediction',   label: 'Ceremonie de benediction',   pa: 2, cost: 200,  icon: 'ti-sun',          desc: 'Benit un PJ membre ou non. +Moral +POP cible.' },
+      { fn: 'orga_anatheme',      label: 'Ceremonie d\'anatheme',      pa: 2, cost: 200,  icon: 'ti-moon-off',     desc: 'Maudit un PJ. -Moral -POP cible. Risque retour de flamme.' },
+      { fn: 'orga_collecte',      label: 'Collecte de dons',           pa: 2, cost: 0,    icon: 'ti-heart-handshake', desc: 'Collecte aupres des fideles. +arg orga.' },
+      { fn: 'orga_pelerinage',    label: 'Organiser un pelerinage',    pa: 3, cost: 1000, icon: 'ti-road',         desc: 'Grand rassemblement. +POP tous membres +IP.' },
+      { fn: 'orga_excommunier',   label: 'Excommunier un membre',      pa: 1, cost: 0,    icon: 'ti-user-x',       desc: 'Exclure un membre. -Moral exclu. Reserve au chef.' },
+    ]
   },
+
+  // ---- ECONOMIQUE ----
   economique: {
-    label: 'Organisation Économique',
+    label: 'Organisation Economique',
+    icon: 'ti-briefcase',
     secret: false,
     requis: { inf: 15, arg: 10000 },
     grades: {
-      republic: ['Actionnaire', 'Directeur', 'PDG', 'Président du Conseil'],
-      narco:    ['Investisseur', 'Gérant', 'Patron', 'El Patrón Económico'],
-      soviet:   ['Coopérateur', 'Directeur de Plan', 'Commissaire Économique', 'Ministre de l\'Abondance'],
-      khalija:  ['Associé', 'Directeur', 'Cheikh des Affaires', 'Sultan Économique'],
+      republic: ['Actionnaire', 'Directeur', 'PDG', 'President du Conseil'],
+      narco:    ['Investisseur', 'Gerant', 'Patron', 'El Patron Economico'],
+      soviet:   ['Cooperateur', 'Directeur de Plan', 'Commissaire Economique', 'Ministre de l\'Abondance'],
+      khalija:  ['Associe', 'Directeur', 'Cheikh des Affaires', 'Sultan Economique'],
     },
-    maxParEmpire: null,
+    maxParCreation: 1,
+    maxAdhesion: 1,
+    ordres: [
+      { fn: 'orga_contrat',       label: 'Contrat exclusif',           pa: 2, cost: 2000, icon: 'ti-file-invoice', desc: 'Monopole temporaire sur un secteur. +arg passif membres.' },
+      { fn: 'orga_blocus',        label: 'Blocus commercial',          pa: 3, cost: 1000, icon: 'ti-lock',         desc: 'Bloquer les revenus d\'une orga adverse.' },
+      { fn: 'orga_dividendes',    label: 'Verser des dividendes',      pa: 1, cost: 0,    icon: 'ti-coins',        desc: 'Distribuer les benefices aux membres selon rang.' },
+      { fn: 'orga_fusion',        label: 'Proposer une fusion',        pa: 2, cost: 5000, icon: 'ti-git-merge',    desc: 'Absorber une orga economique alliee.' },
+      { fn: 'orga_audit',         label: 'Auditer un concurrent',      pa: 2, cost: 500,  icon: 'ti-search',       desc: 'Revele les finances d\'une orga. +INF.' },
+    ]
   },
+
+  // ---- CRIMINELLE ----
+  criminelle: {
+    label: 'Organisation Criminelle',
+    icon: 'ti-skull',
+    secret: true,
+    requis: { dis: 60 },
+    grades: {
+      republic: ['Affilie', 'Soldat', 'Capo', 'Parrain'],
+      narco:    ['Sicario', 'Teniente', 'Comandante', 'El Jefe'],
+      soviet:   ['Homme de main', 'Brigadier', 'Vor', 'Pakhan'],
+      khalija:  ['Sbire', 'Lieutenant', 'Emir de l\'ombre', 'Calife de l\'obscurite'],
+    },
+    maxParCreation: 1,
+    maxAdhesion: 1,
+    ordres: [
+      { fn: 'orga_racket',        label: 'Racket',                     pa: 2, cost: 0,    icon: 'ti-hand-stop',    desc: 'Extorquer un commerce ou PJ. +arg, risque arrestation.' },
+      { fn: 'orga_contrebande',   label: 'Contrebande',                pa: 3, cost: 500,  icon: 'ti-package-import', desc: 'Faire passer une cargaison illicite. +arg +DIS.' },
+      { fn: 'orga_intimidation',  label: 'Intimidation',               pa: 2, cost: 0,    icon: 'ti-user-exclamation', desc: 'Faire pression sur un PJ. -Moral cible, risque conflit.' },
+      { fn: 'orga_blanchiment',   label: 'Blanchiment',                pa: 2, cost: 0,    icon: 'ti-wash',         desc: 'Convertir des fonds sales en fonds propres. -DIS risque.' },
+      { fn: 'orga_coup_force',    label: 'Coup de force',              pa: 4, cost: 2000, icon: 'ti-bolt',         desc: 'Action violente coordonnee. Risque eleve, impact fort.' },
+    ]
+  },
+
+  // ---- LOGE ----
   loge: {
-    label: 'Loge Maçonnique',
-    secret: false,
+    label: 'Loge Maconnique',
+    icon: 'ti-triangle',
+    secret: true,
     requis: { inf: 25 },
     grades: {
-      republic: ['Apprenti', 'Compagnon', 'Maître', 'Grand Maître'],
+      republic: ['Apprenti', 'Compagnon', 'Maitre', 'Grand Maitre'],
       narco:    ['Iniciado', 'Hermano', 'Maestro', 'Gran Maestro'],
-      soviet:   ['Apprenti du Parti', 'Frère Collectif', 'Maître Soviétique', 'Grand Architecte'],
+      soviet:   ['Apprenti du Parti', 'Frere Collectif', 'Maitre Sovietique', 'Grand Architecte'],
       khalija:  ['Murid', 'Ikhwan', 'Sheikh', 'Grand Sheikh'],
     },
-    maxParEmpire: 1, // Une seule loge par empire
-    cycleElection: 30, // Jours réels entre chaque élection interne
-  }
+    maxParCreation: 1,
+    maxAdhesion: 1,
+    maxParEmpire: 1,
+    cycleElection: 30,
+    ordres: [
+      { fn: 'orga_cooptation',    label: 'Cooptation discrete',        pa: 2, cost: 1000, icon: 'ti-user-check',   desc: 'Proposer un poste a un PJ sans election. Reserve Grand Maitre.' },
+      { fn: 'orga_rituel',        label: 'Rituel d\'initiation',       pa: 2, cost: 500,  icon: 'ti-eye',          desc: 'Initier un nouveau membre. +INF nouveau +loyalty.' },
+      { fn: 'orga_kompromat_loge',label: 'Kompromat collectif',        pa: 3, cost: 0,    icon: 'ti-file-shredder',desc: 'Utiliser les secrets de la Loge contre un PJ. -DIS cible.' },
+      { fn: 'orga_election_loge', label: 'Election du Grand Maitre',   pa: 1, cost: 0,    icon: 'ti-crown',        desc: 'Organiser l\'election interne. Tous les 30 jours.' },
+      { fn: 'orga_reseau',        label: 'Activer le reseau',          pa: 2, cost: 300,  icon: 'ti-network',      desc: 'Obtenir une information exclusive via le reseau. +INF.' },
+    ]
+  },
+
+  // ---- MEDIATIQUE ----
+  mediatique: {
+    label: 'Organisation Mediatique',
+    icon: 'ti-news',
+    secret: false,
+    requis: { inf: 30, pop: 10 },
+    grades: {
+      republic: ['Correspondant', 'Journaliste', 'Redacteur en chef', 'Directeur de Publication'],
+      narco:    ['Informateur', 'Reporter', 'Editeur', 'Patron des Medias'],
+      soviet:   ['Propagandiste', 'Redacteur', 'Chef de la Pravda', 'Commissaire a l\'Information'],
+      khalija:  ['Conteur', 'Chroniqueur', 'Editorialiste', 'Grand Orateur du Sheikh'],
+    },
+    maxParCreation: 1,
+    maxAdhesion: 1,
+    ordres: [
+      { fn: 'orga_campagne_presse',label: 'Campagne de presse',        pa: 2, cost: 500,  icon: 'ti-speakerphone', desc: 'Article favorable sur un PJ allie. +POP +INF cible.' },
+      { fn: 'orga_fake_news',      label: 'Fake news',                 pa: 2, cost: 300,  icon: 'ti-news-off',     desc: 'Rumeur contre un PJ. -POP cible. Risque retournement.' },
+      { fn: 'orga_rehabilitation', label: 'Rehabilitation d\'image',   pa: 3, cost: 1000, icon: 'ti-refresh',      desc: 'Redorer le blason d\'un PJ. +POP +DIS cible.' },
+      { fn: 'orga_scoop',          label: 'Publier un scoop',          pa: 2, cost: 0,    icon: 'ti-alert',        desc: 'Reveler un secret. +INF orga, scandale public.' },
+      { fn: 'orga_silence',        label: 'Etouffer une affaire',      pa: 3, cost: 2000, icon: 'ti-eye-off',      desc: 'Supprimer une information nuisible. +DIS beneficiaire.' },
+    ]
+  },
+
+};
+
+
+// Rang minimum pour certains ordres (index dans le tableau grades)
+const ORGA_ORDRE_RANG_MIN = {
+  orga_cooptation:    3, // Grand Maitre seulement
+  orga_election_loge: 3, // Grand Maitre seulement
+  orga_excommunier:   3, // Chef seulement
+  orga_fusion:        3, // President seulement
+  orga_coup_force:    2, // Capo/Comandante minimum
+  orga_blanchiment:   1, // Soldat minimum
 };
 
 const POSTES = {

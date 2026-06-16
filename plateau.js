@@ -6916,6 +6916,9 @@ function switchSelfTab(tab, el) {
     html += '</div>';
     content.innerHTML = html;
 
+  } else if (tab === 'orgas') {
+    content.innerHTML = '<div style="padding:.8rem 1rem">' + renderOngletOrgas() + '</div>';
+
   } else if (tab === 'identite') {
     const char = state.char;
     const ar = ARCHETYPES.find(x => x.id === char?.archetype);
@@ -10864,6 +10867,9 @@ function ouvrirModalGererLocal() {
     '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.4rem">Loué depuis le Jour ' + location.depuis + ' · ' + (location.batimentLabel || '') + '</div>' +
     '<div style="font-size:.72rem;color:' + (orgaActuelle ? '#4a8a4a' : '#6a5a30') + ';margin-bottom:.5rem">Organisation : ' + (orgaActuelle ? orgaActuelle.nom : 'Aucune') + '</div>' +
     orgaSelect +
+    '<div style="margin-bottom:.6rem">' +
+      '<button onclick="ouvrirCreerOrga()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #4a6a4a;background:transparent;color:#6a9a6a;cursor:pointer"><i class=\"ti ti-building\" style=\"font-size:.8rem\"></i> Créer une organisation ici</button>' +
+    '</div>' +
     '<div style="display:flex;gap:.4rem;margin-top:.6rem">' +
       '<button onclick="toggleVisibiliteLocation()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.35rem;border:1px solid #3a4a5a;background:transparent;color:#6a8aaa;cursor:pointer">' +
         (location.visible ? '👁 Masquer' : '👁 Afficher') + ' sur le plan' +
@@ -11048,6 +11054,461 @@ function ouvrirMesLocations() {
     html + '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
+
+
+// =====================
+// V29B — SYSTÈME D'ORGANISATIONS
+// =====================
+
+// ------ CRÉATION ------
+
+function ouvrirCreerOrga() {
+  const mesOrgas = state.orgasEmpire?.[state.country] || [];
+  const typesDispos = Object.entries(TYPES_ORGANISATIONS).filter(([type, def]) => {
+    // Vérifier qu'on n'a pas déjà créé une orga de ce type
+    return !mesOrgas.some(o => o.type === type && o.fondateur === state.char?.name);
+  });
+
+  if (typesDispos.length === 0) {
+    showToast('Maximum atteint', 'Vous avez déjà fondé une organisation de chaque type.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = '🏛 Créer une Organisation';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le type d\'organisation à fonder. Vous ne pouvez fonder qu\'une organisation de chaque type.</div>' +
+    typesDispos.map(([type, def]) =>
+      '<div onclick="ouvrirFormulaireOrga(\'' + type + '\')" style="display:flex;align-items:center;gap:.8rem;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+        '<i class="ti ' + def.icon + '" style="font-size:1.1rem;color:#C9A84C;flex-shrink:0"></i>' +
+        '<div>' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#E8C97A;letter-spacing:.06em">' + def.label + '</div>' +
+          '<div style="font-size:.68rem;color:#4a4030">' + (def.secret ? '🔒 Secrète · ' : '') + 'Requis : ' + formatReqOrga(def.requis) + '</div>' +
+        '</div>' +
+      '</div>'
+    ).join('') +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function formatReqOrga(requis) {
+  if (!requis) return 'Aucun';
+  return Object.entries(requis).map(([k, v]) => {
+    if (k === 'arg') return v.toLocaleString('fr-FR') + ' FR';
+    return k.toUpperCase() + ' ≥ ' + v;
+  }).join(', ');
+}
+
+function ouvrirFormulaireOrga(type) {
+  const def = TYPES_ORGANISATIONS[type];
+  if (!def) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  // Vérifier conditions
+  const requis = def.requis || {};
+  let blocage = null;
+  if (requis.pop && (state.pop || 0) < requis.pop) blocage = 'POP insuffisante (' + (state.pop||0) + '/' + requis.pop + ')';
+  if (requis.inf && (state.inf || 0) < requis.inf) blocage = 'INF insuffisante (' + (state.inf||0) + '/' + requis.inf + ')';
+  if (requis.dis && (state.dis || 0) < requis.dis) blocage = 'DIS insuffisante (' + (state.dis||0) + '/' + requis.dis + ')';
+  if (requis.arg && state.arg < requis.arg) blocage = 'Fonds insuffisants (' + state.arg.toLocaleString('fr-FR') + '/' + requis.arg.toLocaleString('fr-FR') + ' ' + cur + ')';
+
+  document.getElementById('postes-modal-title').textContent = 'Fonder : ' + def.label;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    (blocage ? '<div style="background:#1a0808;border:1px solid #5a1a1a;padding:.6rem;margin-bottom:.7rem;font-size:.78rem;color:#cc4444">⛔ ' + blocage + '</div>' : '') +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">NOM DE L\'ORGANISATION</div>' +
+    '<input id="orga-nom-input" type="text" maxlength="40" placeholder="Ex: Loge du Grand Nord, Parti du Progrès..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">DESCRIPTION (optionnel)</div>' +
+    '<textarea id="orga-desc-input" maxlength="200" placeholder="Décrivez votre organisation en quelques mots..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;resize:none;height:60px;margin-bottom:.7rem"></textarea>' +
+    '<button onclick="confirmerCreationOrga(\'' + type + '\')" ' + (blocage ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🏛 Fonder cette organisation</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerCreationOrga(type) {
+  const def = TYPES_ORGANISATIONS[type];
+  if (!def) return;
+  const nom = document.getElementById('orga-nom-input')?.value?.trim();
+  const desc = document.getElementById('orga-desc-input')?.value?.trim() || '';
+
+  if (!nom || nom.length < 2) { showToast('Nom requis', 'Donnez un nom à votre organisation.', false); return; }
+
+  const id = 'orga_' + Date.now();
+  const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
+  const monGrade = grades[grades.length - 1]; // Fondateur = grade max
+
+  if (!state.orgasEmpire) state.orgasEmpire = {};
+  if (!state.orgasEmpire[state.country]) state.orgasEmpire[state.country] = [];
+
+  const nouvelleOrga = {
+    id, type, nom, desc,
+    fondateur: state.char?.name,
+    chef: state.char?.name,
+    country: state.country,
+    creeLe: state.day || 1,
+    membres: [{ nom: state.char?.name, grade: monGrade, gradeIdx: grades.length - 1, rejointLe: state.day || 1 }],
+    demandesAdhesion: [],
+    bonusLocaux: { pop: 0, inf: 0, dis: 0 },
+    caisse: 0,
+    localId: state.currentBuilding + ':' + state.currentRoom,
+    visible: !def.secret,
+  };
+
+  state.orgasEmpire[state.country].push(nouvelleOrga);
+
+  // Lier au local en cours si on vient de gerer_local
+  const location = (state.locationsActives || []).find(l =>
+    l.buildingId === state.currentBuilding && l.locataire === state.char?.name
+  );
+  if (location) location.orgaId = id;
+
+  document.getElementById('modal-postes').classList.remove('open');
+  updateUI();
+  showToast('Organisation fondée !', '"' + nom + '" est née. Vous en êtes le ' + monGrade + '.', true, true);
+  addJournalEntry('Fondation de "' + nom + '" (' + def.label + ').', 'event-good');
+  addExternalEvent('🏛 ' + (state.char?.name || 'Anonyme') + ' fonde "' + nom + '", une nouvelle ' + def.label + '.');
+}
+
+// ------ ONGLET ORGAS ------
+
+function renderOngletOrgas() {
+  const mesOrgas = (state.orgasEmpire?.[state.country] || []).filter(o =>
+    o.membres?.some(m => m.nom === state.char?.name)
+  );
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  if (mesOrgas.length === 0) {
+    return '<div style="padding:1.2rem;text-align:center;color:#4a4030;font-style:italic;font-size:.85rem">' +
+      'Vous n\'appartenez à aucune organisation.<br><span style="font-size:.75rem">Louez un local et créez votre organisation depuis "Gérer mon local".</span>' +
+      '</div>';
+  }
+
+  return mesOrgas.map(orga => {
+    const def = TYPES_ORGANISATIONS[orga.type] || {};
+    const estChef = orga.chef === state.char?.name;
+    const monMembre = orga.membres?.find(m => m.nom === state.char?.name);
+    const grades = def.grades?.[state.country] || ['Membre'];
+    const demandesCount = orga.demandesAdhesion?.length || 0;
+
+    return '<div style="border:1px solid #2a2010;background:#0f0d05;margin-bottom:.7rem">' +
+
+      // Header orga
+      '<div style="padding:.7rem 1rem;border-bottom:1px solid #1a1208;display:flex;align-items:center;gap:.6rem">' +
+        '<i class="ti ' + (def.icon || 'ti-users') + '" style="font-size:1.1rem;color:#C9A84C"></i>' +
+        '<div style="flex:1">' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#E8C97A;letter-spacing:.06em">' + orga.nom + '</div>' +
+          '<div style="font-size:.68rem;color:#6a5a30">' + def.label + ' · ' + (monMembre?.grade || '') + (estChef ? ' 👑' : '') + '</div>' +
+        '</div>' +
+        '<div style="font-size:.68rem;color:#4a4030">' + (orga.membres?.length || 0) + ' membres</div>' +
+      '</div>' +
+
+      // Caisse
+      '<div style="padding:.4rem 1rem;border-bottom:1px solid #1a1208;display:flex;justify-content:space-between;align-items:center">' +
+        '<span style="font-size:.7rem;color:#6a5a30">Caisse de l\'organisation</span>' +
+        '<span style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#C9A84C">' + (orga.caisse||0).toLocaleString('fr-FR') + ' ' + cur + '</span>' +
+      '</div>' +
+
+      // Actions
+      '<div style="padding:.6rem 1rem;display:flex;flex-wrap:wrap;gap:.4rem">' +
+        '<button onclick="ouvrirGestionMembres(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a3a2a;background:transparent;color:#6a9a6a;cursor:pointer"><i class="ti ti-users" style="font-size:.7rem"></i> Membres</button>' +
+        (demandesCount > 0 && estChef ? '<button onclick="ouvrirDemandesAdhesion(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">📨 Demandes (' + demandesCount + ')</button>' : '') +
+        '<button onclick="ouvrirOrdresOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a2a3a;background:transparent;color:#6a6aaa;cursor:pointer"><i class="ti ti-bolt" style="font-size:.7rem"></i> Actions</button>' +
+        '<button onclick="ouvrirForumDepuisOrga()" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a3a1a;background:transparent;color:#4a7a4a;cursor:pointer"><i class="ti ti-message" style="font-size:.7rem"></i> Forum</button>' +
+        (estChef ? '<button onclick="ouvrirOptionsOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a6a20;cursor:pointer"><i class="ti ti-settings" style="font-size:.7rem"></i> Options</button>' : '') +
+        '<button onclick="quitterOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a1a1a;background:transparent;color:#6a3a2a;cursor:pointer">Quitter</button>' +
+      '</div>' +
+
+    '</div>';
+  }).join('');
+}
+
+// ------ MEMBRES ------
+
+function ouvrirGestionMembres(orgaId) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const def = TYPES_ORGANISATIONS[orga.type] || {};
+  const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
+  const estChef = orga.chef === state.char?.name;
+
+  document.getElementById('postes-modal-title').textContent = '👥 ' + orga.nom + ' — Membres';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.6rem 1rem">' +
+    orga.membres.map(m =>
+      '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid #1a1208">' +
+        '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20;flex-shrink:0"></i>' +
+        '<div style="flex:1">' +
+          '<div style="font-size:.82rem;color:#c0b090">' + m.nom + (m.nom === orga.chef ? ' 👑' : '') + '</div>' +
+          '<div style="font-size:.65rem;color:#6a5a30">' + m.grade + ' · Depuis Jour ' + m.rejointLe + '</div>' +
+        '</div>' +
+        (estChef && m.nom !== state.char?.name ?
+          '<div style="display:flex;gap:.3rem">' +
+            '<button onclick="monterGrade(\'' + orgaId + '\',\'' + m.nom + '\')" title="Monter en grade" style="background:none;border:1px solid #2a3a2a;color:#4a8a4a;cursor:pointer;padding:.2rem .4rem;font-size:.65rem">▲</button>' +
+            '<button onclick="descendreGrade(\'' + orgaId + '\',\'' + m.nom + '\')" title="Descendre en grade" style="background:none;border:1px solid #3a2a1a;color:#8a4a2a;cursor:pointer;padding:.2rem .4rem;font-size:.65rem">▼</button>' +
+            '<button onclick="exclureMembre(\'' + orgaId + '\',\'' + m.nom + '\')" title="Exclure" style="background:none;border:1px solid #3a1a1a;color:#cc4444;cursor:pointer;padding:.2rem .4rem;font-size:.65rem">✕</button>' +
+          '</div>'
+        : '') +
+      '</div>'
+    ).join('') +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function monterGrade(orgaId, nomMembre) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const def = TYPES_ORGANISATIONS[orga.type] || {};
+  const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
+  const membre = orga.membres.find(m => m.nom === nomMembre);
+  if (!membre || membre.gradeIdx >= grades.length - 1) return;
+  membre.gradeIdx++;
+  membre.grade = grades[membre.gradeIdx];
+  showToast('Grade attribué', nomMembre + ' est maintenant ' + membre.grade + '.', true);
+  ouvrirGestionMembres(orgaId);
+}
+
+function descendreGrade(orgaId, nomMembre) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const def = TYPES_ORGANISATIONS[orga.type] || {};
+  const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
+  const membre = orga.membres.find(m => m.nom === nomMembre);
+  if (!membre || membre.gradeIdx <= 0) return;
+  membre.gradeIdx--;
+  membre.grade = grades[membre.gradeIdx];
+  showToast('Grade retiré', nomMembre + ' est maintenant ' + membre.grade + '.', false);
+  ouvrirGestionMembres(orgaId);
+}
+
+function exclureMembre(orgaId, nomMembre) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  orga.membres = orga.membres.filter(m => m.nom !== nomMembre);
+  showToast('Membre exclu', nomMembre + ' a été exclu de ' + orga.nom + '.', false);
+  addJournalEntry(nomMembre + ' exclu de "' + orga.nom + '".', 'event-bad');
+  ouvrirGestionMembres(orgaId);
+}
+
+// ------ DEMANDES D'ADHÉSION ------
+
+function demanderAdhesion(orgaId) {
+  // Cherche l'orga dans tous les empires
+  let orga = null;
+  for (const pays of Object.keys(state.orgasEmpire || {})) {
+    orga = (state.orgasEmpire[pays] || []).find(o => o.id === orgaId);
+    if (orga) break;
+  }
+  if (!orga) return;
+  const def = TYPES_ORGANISATIONS[orga.type] || {};
+
+  // Vérif : déjà membre ?
+  if (orga.membres?.some(m => m.nom === state.char?.name)) {
+    showToast('Déjà membre', 'Vous êtes déjà membre de cette organisation.', false); return;
+  }
+  // Vérif : déjà une orga de ce type en adhésion ?
+  const mesOrgas = state.orgasEmpire?.[state.country] || [];
+  const dejaType = mesOrgas.some(o => o.type === orga.type && o.membres?.some(m => m.nom === state.char?.name));
+  if (dejaType) {
+    showToast('Limite atteinte', 'Vous appartenez déjà à une organisation de type ' + def.label + '.', false); return;
+  }
+  // Vérif : demande déjà en cours ?
+  if (orga.demandesAdhesion?.some(d => d.nom === state.char?.name)) {
+    showToast('Demande en cours', 'Votre demande est déjà en attente.', false); return;
+  }
+
+  if (!orga.demandesAdhesion) orga.demandesAdhesion = [];
+  orga.demandesAdhesion.push({ nom: state.char?.name, date: state.day || 1 });
+  showToast('Demande envoyée', 'Votre demande d\'adhésion à "' + orga.nom + '" a été envoyée.', true);
+  addJournalEntry('Demande d\'adhésion à "' + orga.nom + '".', '');
+}
+
+function ouvrirDemandesAdhesion(orgaId) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const def = TYPES_ORGANISATIONS[orga.type] || {};
+  const grades = def.grades?.[state.country] || ['Membre'];
+
+  document.getElementById('postes-modal-title').textContent = '📨 Demandes — ' + orga.nom;
+  const demandes = orga.demandesAdhesion || [];
+
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.6rem 1rem">' +
+    (demandes.length === 0 ? '<div style="color:#4a4030;font-style:italic;font-size:.82rem">Aucune demande en attente.</div>' :
+      demandes.map(d =>
+        '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid #1a1208">' +
+          '<div style="flex:1"><div style="font-size:.82rem;color:#c0b090">' + d.nom + '</div><div style="font-size:.65rem;color:#4a4030">Demande du Jour ' + d.date + '</div></div>' +
+          '<button onclick="accepterAdhesion(\'' + orgaId + '\',\'' + d.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.25rem .5rem;border:1px solid #2a4a2a;background:transparent;color:#4a8a4a;cursor:pointer;margin-right:.3rem">✓ Accepter</button>' +
+          '<button onclick="refuserAdhesion(\'' + orgaId + '\',\'' + d.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.25rem .5rem;border:1px solid #3a1a1a;background:transparent;color:#aa4444;cursor:pointer">✕ Refuser</button>' +
+        '</div>'
+      ).join('')
+    ) +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function accepterAdhesion(orgaId, nomCandidat) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const def = TYPES_ORGANISATIONS[orga.type] || {};
+  const grades = def.grades?.[state.country] || ['Membre'];
+
+  orga.demandesAdhesion = (orga.demandesAdhesion || []).filter(d => d.nom !== nomCandidat);
+  orga.membres.push({ nom: nomCandidat, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1 });
+  showToast('Membre accepté', nomCandidat + ' rejoint "' + orga.nom + '" comme ' + grades[0] + '.', true);
+  addJournalEntry(nomCandidat + ' accepté dans "' + orga.nom + '".', 'event-good');
+  ouvrirDemandesAdhesion(orgaId);
+}
+
+function refuserAdhesion(orgaId, nomCandidat) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  orga.demandesAdhesion = (orga.demandesAdhesion || []).filter(d => d.nom !== nomCandidat);
+  showToast('Demande refusée', nomCandidat + ' a été refusé.', false);
+  ouvrirDemandesAdhesion(orgaId);
+}
+
+// ------ ORDRES SPÉCIFIQUES ------
+
+function ouvrirOrdresOrga(orgaId) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const def = TYPES_ORGANISATIONS[orga.type] || {};
+  const ordres = def.ordres || [];
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const monMembre = orga.membres?.find(m => m.nom === state.char?.name);
+  const monGradeIdx = monMembre?.gradeIdx || 0;
+
+  document.getElementById('postes-modal-title').textContent = '⚡ Actions — ' + orga.nom;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.6rem 1rem">' +
+    ordres.map(ordre => {
+      const rangMin = (typeof ORGA_ORDRE_RANG_MIN !== 'undefined' && ORGA_ORDRE_RANG_MIN[ordre.fn]) || 0;
+      const disabled = monGradeIdx < rangMin;
+      return '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.4rem' + (disabled ? ';opacity:.4' : '') + '">' +
+        '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem">' +
+          '<i class="ti ' + ordre.icon + '" style="font-size:.9rem;color:#C9A84C"></i>' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#E8C97A">' + ordre.label + '</div>' +
+          '<div style="margin-left:auto;font-size:.65rem;color:#8a6a20">' + ordre.pa + ' PA' + (ordre.cost > 0 ? ' · ' + ordre.cost.toLocaleString('fr-FR') + ' ' + cur : '') + '</div>' +
+        '</div>' +
+        '<div style="font-size:.68rem;color:#6a5a30;margin-bottom:.4rem">' + ordre.desc + '</div>' +
+        (disabled ?
+          '<div style="font-size:.65rem;color:#5a3a2a">Rang insuffisant pour cet ordre.</div>' :
+          '<button onclick="executerOrdreOrga(\'' + orgaId + '\',\'' + ordre.fn + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.25rem .6rem;border:1px solid #3a2a10;background:transparent;color:#C9A84C;cursor:pointer">Exécuter</button>'
+        ) +
+      '</div>';
+    }).join('') +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function executerOrdreOrga(orgaId, fn) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const def = TYPES_ORGANISATIONS[orga.type] || {};
+  const ordre = (def.ordres || []).find(o => o.fn === fn);
+  if (!ordre) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  // Vérifs PA et coût
+  if ((state.pa || 0) < ordre.pa) { showToast('PA insuffisants', ordre.pa + ' PA requis.', false); return; }
+  if (ordre.cost > 0 && state.arg < ordre.cost) { showToast('Fonds insuffisants', ordre.cost + ' ' + cur + ' requis.', false); return; }
+
+  state.pa -= ordre.pa;
+  if (ordre.cost > 0) state.arg -= ordre.cost;
+
+  // Effets selon fonction
+  const effets = {
+    orga_petition:       () => { const gain = Math.floor(Math.random()*8)+3; state.pop = Math.min(100,(state.pop||0)+gain); showToast('Pétition lancée !','+'+gain+' POP.',true); addJournalEntry('Pétition de "'+orga.nom+'". +'+gain+' POP.','event-good'); addExternalEvent('📋 "'+orga.nom+'" lance une pétition publique.'); },
+    orga_meeting:        () => { state.pop=Math.min(100,(state.pop||0)+5); state.inf=Math.min(100,(state.inf||0)+3); showToast('Meeting !','+5 POP +3 INF.',true,true); addJournalEntry('Meeting de "'+orga.nom+'".','event-good'); addExternalEvent('📢 "'+orga.nom+'" organise un meeting.'); },
+    orga_collecte:       () => { const don=Math.floor(Math.random()*500)+200; orga.caisse=(orga.caisse||0)+don; showToast('Collecte réussie !','+'+don+' '+cur+' dans la caisse.',true); addJournalEntry('Collecte "'+orga.nom+'". +'+don+' '+cur+'.','event-good'); },
+    orga_dividendes:     () => { const part=Math.floor((orga.caisse||0)*0.3); if(part<10){showToast('Caisse vide','Pas assez de fonds à distribuer.',false);return;} orga.caisse-=part; state.arg+=part; showToast('Dividendes versés !','+'+part+' '+cur+'.',true); addJournalEntry('Dividendes reçus de "'+orga.nom+'". +'+part+' '+cur+'.','event-good'); },
+    orga_benediction:    () => { state.moral=Math.min(100,(state.moral||50)+10); state.pop=Math.min(100,(state.pop||0)+5); showToast('Bénédiction !','Cérémonie en votre honneur. +10 Moral +5 POP.',true,true); addJournalEntry('Bénédiction de "'+orga.nom+'".','event-good'); addExternalEvent('✨ "'+orga.nom+'" organise une cérémonie de bénédiction.'); },
+    orga_anatheme:       () => { state.moral=Math.max(0,(state.moral||50)-15); state.pop=Math.max(0,(state.pop||0)-10); showToast('Anathème !','Cérémonie contre un PJ. -15 Moral -10 POP à la cible.',false); addJournalEntry('Anathème prononcé par "'+orga.nom+'".','event-bad'); addExternalEvent('⛧ "'+orga.nom+'" prononce un anathème public.'); },
+    orga_pelerinage:     () => { state.pop=Math.min(100,(state.pop||0)+8); showToast('Pèlerinage !','+8 POP. Grand rassemblement.',true,true); addExternalEvent('🕊 "'+orga.nom+'" organise un grand pèlerinage.'); },
+    orga_blanchiment:    () => { const s=Math.floor(Math.random()*100)+1; if(s<=40){state.dis=Math.max(0,(state.dis||50)-10);showToast('Blanchiment raté !','-10 DIS.',false);}else{const gain=Math.floor(Math.random()*2000)+500;state.arg+=gain;showToast('Blanchiment réussi !','+'+gain+' '+cur+'.',true);} addJournalEntry('Blanchiment via "'+orga.nom+'".','event-bad'); },
+    orga_racket:         () => { const s=Math.floor(Math.random()*100)+1; if(s<=30){state.dis=Math.max(0,(state.dis||50)-15);showToast('Racket raté !','Arrestation risquée. -15 DIS.',false);}else{const gain=Math.floor(Math.random()*1000)+300;state.arg+=gain;showToast('Racket réussi !','+'+gain+' '+cur+'.',true);} },
+    orga_contrebande:    () => { const s=Math.floor(Math.random()*100)+1; if(s<=35){state.dis=Math.max(0,(state.dis||50)-20);showToast('Cargaison saisie !','-20 DIS.',false);}else{const gain=Math.floor(Math.random()*3000)+1000;state.arg+=gain;showToast('Contrebande réussie !','+'+gain+' '+cur+'.',true);} },
+    orga_campagne_presse:() => { state.pop=Math.min(100,(state.pop||0)+6); state.inf=Math.min(100,(state.inf||0)+5); showToast('Article favorable !','+6 POP +5 INF.',true,true); addExternalEvent('📰 "'+orga.nom+'" publie une campagne de presse favorable.'); },
+    orga_scoop:          () => { state.inf=Math.min(100,(state.inf||0)+10); showToast('Scoop publié !','+10 INF. Scandale public.',true,true); addExternalEvent('🔥 "'+orga.nom+'" publie un scoop explosif !'); },
+    orga_rituel:         () => { state.inf=Math.min(100,(state.inf||0)+6); showToast('Rituel accompli.','+6 INF. Nouveau membre initié.',true); },
+    orga_reseau:         () => { state.inf=Math.min(100,(state.inf||0)+8); showToast('Réseau activé.','+8 INF. Information exclusive obtenue.',true,true); addJournalEntry('Réseau de la Loge activé. +8 INF.','event-good'); },
+    orga_cooptation:     () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('Cooptation discrète.','Un poste peut être attribué sans élection.',true); },
+  };
+
+  const effet = effets[fn];
+  if (effet) { effet(); }
+  else { showToast('Action exécutée.', ordre.label + ' accompli.', true); addJournalEntry(ordre.label + ' via "' + orga.nom + '".', ''); }
+
+  document.getElementById('modal-postes').classList.remove('open');
+  updateUI();
+}
+
+// ------ OPTIONS CHEF ------
+
+function ouvrirOptionsOrga(orgaId) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga || orga.chef !== state.char?.name) return;
+
+  document.getElementById('postes-modal-title').textContent = '⚙️ Options — ' + orga.nom;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">RENOMMER</div>' +
+    '<input id="orga-rename-input" type="text" maxlength="40" value="' + orga.nom + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.4rem"/>' +
+    '<button onclick="renommerOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #3a2a10;background:transparent;color:#C9A84C;cursor:pointer;margin-bottom:.8rem">Renommer</button>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem;margin-top:.4rem">VISIBILITÉ</div>' +
+    '<div style="font-size:.75rem;color:#6a5a30;margin-bottom:.4rem">' + (orga.visible ? 'Visible de tous' : 'Secrète') + '</div>' +
+    '<button onclick="toggleVisibiliteOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #3a4a5a;background:transparent;color:#6a8aaa;cursor:pointer;margin-bottom:.8rem">' + (orga.visible ? 'Rendre secrète' : 'Rendre visible') + '</button>' +
+    '<div style="margin-top:.6rem"><button onclick="dissoudreOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #5a1a1a;background:transparent;color:#cc4444;cursor:pointer">Dissoudre l\'organisation</button></div>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function renommerOrga(orgaId) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  const newNom = document.getElementById('orga-rename-input')?.value?.trim();
+  if (!newNom || newNom.length < 2) return;
+  orga.nom = newNom;
+  showToast('Organisation renommée', '"' + newNom + '"', true);
+  document.getElementById('modal-postes').classList.remove('open');
+  switchSelfTab('orgas', null);
+}
+
+function toggleVisibiliteOrga(orgaId) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  orga.visible = !orga.visible;
+  showToast(orga.visible ? 'Organisation visible' : 'Organisation secrète', '', true);
+  document.getElementById('modal-postes').classList.remove('open');
+}
+
+function dissoudreOrga(orgaId) {
+  if (!state.orgasEmpire?.[state.country]) return;
+  const orga = state.orgasEmpire[state.country].find(o => o.id === orgaId);
+  if (!orga) return;
+  state.orgasEmpire[state.country] = state.orgasEmpire[state.country].filter(o => o.id !== orgaId);
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Organisation dissoute', '"' + orga.nom + '" n\'existe plus.', false);
+  addJournalEntry('"' + orga.nom + '" dissoute.', 'event-bad');
+  switchSelfTab('orgas', null);
+}
+
+function quitterOrga(orgaId) {
+  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  if (!orga) return;
+  if (orga.chef === state.char?.name) { showToast('Impossible', 'Dissolvez l\'organisation ou transmettez la direction avant de partir.', false); return; }
+  orga.membres = orga.membres.filter(m => m.nom !== state.char?.name);
+  showToast('Vous avez quitté', '"' + orga.nom + '"', false);
+  addJournalEntry('Départ de "' + orga.nom + '".', '');
+  switchSelfTab('orgas', null);
+}
+
+function ouvrirForumDepuisOrga() {
+  document.getElementById('modal-postes').classList.remove('open');
+  document.getElementById('vue-self').classList.remove('active');
+  openForum();
+}
+
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', function(e) {
