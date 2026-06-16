@@ -3052,6 +3052,7 @@ function changerDomicile(newCountry, newCity) {
     if (postesLocaux.includes(state.poste.id)) {
       addJournalEntry('⚠️ Changement de domicile : vous perdez votre poste de ' + state.poste.name + '.', 'event-bad');
       state.poste = null;
+    if (state.char) state.char.poste = null;
     }
   }
 
@@ -5199,6 +5200,7 @@ async function postulerPoste(posteId, posteName) {
       if (oldPoste && oldPoste.holder === (state.char?.name || 'Joueur')) oldPoste.holder = null;
     }
     state.poste = { id: posteId, name: posteName };
+    if (state.char) state.char.poste = state.poste;
     state.salaireTouche = false;
     state.inf = Math.min(100, state.inf + 15);
     updateUI();
@@ -7236,6 +7238,7 @@ function procederArrestation(peineType, resistanceAggravante) {
   if (state.poste && peineType === 'crime') {
     addExternalEvent('Votre poste de ' + state.poste.name + ' vous a ete retire suite a votre arrestation.');
     state.poste = null;
+    if (state.char) state.char.poste = null;
   }
   updateUI();
   addExternalEvent('Vous avez ete arrete(e) pour ' + peine.label + '. ' + jours + ' jour(s) d\'emprisonnement. Amende : ' + amende.toLocaleString('fr-FR') + ' FR.');
@@ -9876,6 +9879,7 @@ function prendrePoste(posteId, posteNom, isPJHolder) {
   const poste = postes.find(p => p.id === posteId);
   if (poste) poste.holder = state.char?.name;
   state.poste = { id: posteId, name: posteNom };
+  if (state.char) state.char.poste = state.poste;
   updateUI();
   showToast('Poste pris !', 'Vous etes desormais ' + posteNom + '.', true, true);
   addJournalEntry('Prise de poste : ' + posteNom, 'event-good');
