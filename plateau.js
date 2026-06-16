@@ -2072,48 +2072,115 @@ Génère UNE révélation compromettante, parodique et drôle (2 phrases max). S
   }
 }
 
-async function doEscortPiege() {
+function doEscortPiege() {
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
+  const cost = 800;
 
-  if (state.arg < 800) { showToast('Fonds insuffisants', `800 ${cur} requis.`, false); return; }
-  state.arg -= 800;
+  // Sélectionner une cible PJ dans le répertoire
+  const pjContacts = (state.contacts || []).filter(c => c.isPJ || c.type === 'pj');
+  if (pjContacts.length === 0) {
+    showToast('Aucune cible', 'Vous devez avoir des PJ dans votre répertoire pour organiser un piège.', false);
+    return;
+  }
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
 
+  // Modal de sélection de cible
+  document.getElementById('postes-modal-title').textContent = '🕵 Choisir une cible';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Sélectionnez le PJ à piéger. Coût : ' + cost + ' ' + cur + '.</div>' +
+    pjContacts.map(c =>
+      '<div onclick="confirmerEscortPiege(\'' + c.name.replace(/'/g,'') + '\')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+        '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20"></i>' +
+        '<div><div style="font-size:.82rem;color:#c0b090">' + c.name + '</div>' +
+        '<div style="font-size:.65rem;color:#4a4030">' + (c.role||'PJ') + '</div></div>' +
+      '</div>'
+    ).join('') +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerEscortPiege(nomCible) {
+  const co = COUNTRIES[state.country];
+  const cur = co?.cur || 'FR';
+  const cost = 800;
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+
+  // Stats commanditaire
   const dup = state.char?.stats?.DUP || 8;
-  const taux = Math.min(75, 35 + Math.floor(dup / 2));
+  const dis = state.dis || 50;
+
+  // On simule les stats de la cible (on ne les a pas côté client)
+  const cibleDUP = Math.floor(Math.random() * 6) + 6; // entre 6 et 12
+  const cibleDIS = Math.floor(Math.random() * 40) + 30; // entre 30 et 70
+
+  // Jet de succès
+  const taux = Math.min(80, 30 + Math.floor(dup * 2) - Math.floor(cibleDUP * 1.5));
   const roll = Math.floor(Math.random() * 100) + 1;
 
   if (roll <= taux) {
-    // Succès — générer un scandale
-    const prompt = `Tu joues dans Res Publica, jeu politique parodique dans l'empire ${co?.n}.
-Un politicien adverse a été piégé dans un scandale impliquant une escort. 
-Génère UN titre de scandale parodique et drôle (1 phrase). Style journal à scandales.`;
-
+    // SUCCÈS
+    const prompt = 'Res Publica, jeu politique parodique. ' + nomCible + ' vient d\'être piégé(e) par une escort dans un scandale compromettant. Génère UN titre de scandale parodique (1 phrase max, style journal à scandales).';
+    let scandale = nomCible + ' impliqué(e) dans un scandale compromettant avec une escort.';
     try {
       const resp = await fetch('/api/chat', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 80, messages: [{ role: 'user', content: prompt }] })
+        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 60, messages: [{ role: 'user', content: prompt }] })
       });
       const data = await resp.json();
-      const scandale = data.content?.[0]?.text || 'Scandale de mœurs secoue la classe politique.';
+      scandale = data.content?.[0]?.text?.trim() || scandale;
+    } catch(e) {}
 
-      state.inf = Math.min(100, (state.inf || 0) + 10);
-      state.pop = Math.min(100, (state.pop || 0) + 5);
-      updateUI();
-      addExternalEvent(`📰 SCANDALE : ${scandale}`);
-      addJournalEntry(`Piège réussi. Scandale déclenché : "${scandale}"`, 'event-good');
-      showToast('Piège réussi !', scandale, true, true);
-    } catch(e) {
-      showToast('Piège réussi', 'Scandale déclenché avec succès.', true);
-    }
+    // Effets sur commanditaire
+    state.inf = Math.min(100, (state.inf||0) + 10);
+    state.pop = Math.min(100, (state.pop||0) + 5);
+
+    // Kompromat généré
+    addToInventory({
+      name: 'Kompromat sur ' + nomCible,
+      icon: 'ti-file-shredder',
+      type: 'kompromat',
+      cible: nomCible,
+      desc: scandale,
+      legal: false,
+      expireDay: (state.day||1) + 10
+    });
+
+    updateUI();
+    addExternalEvent('📰 SCANDALE : ' + scandale);
+    addJournalEntry('Piège réussi sur ' + nomCible + '. Scandale : "' + scandale.substring(0,60) + '"', 'event-good');
+    showToast('Piège réussi !', scandale, true, true);
 
   } else {
-    // Échec — retournement de situation
-    state.dis = Math.max(0, (state.dis || 50) - 15);
+    // ÉCHEC — argent perdu, la cible peut enquêter
     updateUI();
-    addJournalEntry('Le piege a echoue. Votre implication risque d\'etre revelee. -15 DIS.', 'event-bad');
-    showToast('Piege rate !', 'La cible a evente la manoeuvre. Votre reputation est menacee.', false);
+    addJournalEntry('Piège raté sur ' + nomCible + '. -' + cost + ' ' + cur + ' perdus.', 'event-bad');
+    showToast('Piège raté', nomCible + ' a éventé la manœuvre. Argent perdu.', false);
+
+    // Jet d\'enquête de la cible contre le commanditaire
+    const tauxEnquete = Math.min(70, Math.floor(cibleDUP * 4) + Math.floor(cibleDIS / 10));
+    const rollEnquete = Math.floor(Math.random() * 100) + 1;
+    if (rollEnquete <= tauxEnquete) {
+      // Cible trouve le commanditaire
+      const tauxIdentif = Math.min(80, tauxEnquete - Math.floor(dup * 2) - Math.floor(dis / 10));
+      const rollIdentif = Math.floor(Math.random() * 100) + 1;
+      if (rollIdentif <= tauxIdentif) {
+        state.pop = Math.max(0, (state.pop||0) - 15);
+        state.dis = Math.max(0, (state.dis||50) - 10);
+        updateUI();
+        addExternalEvent('📰 ' + nomCible + ' révèle avoir été la cible d\'un complot orchestré par ' + (state.char?.name||'un personnage politique') + ' !');
+        addJournalEntry('Enquête de ' + nomCible + ' : vous avez été identifié(e). -15 POP -10 DIS.', 'event-bad');
+        showToast('Identifié(e) !', nomCible + ' vous a démasqué(e). -15 POP -10 DIS.', false);
+      } else {
+        addJournalEntry('La cible enquête mais ne vous retrouve pas.', 'event-info');
+      }
+    }
   }
 }
 
@@ -7066,6 +7133,8 @@ function doDormir() {
 
   // Payer les loyers des locations actives
   payerLocations();
+  // Payer les escorts actives
+  payerEscorts();
 
   // Traiter les evenements nocturnes
   traiterPlaintes();
@@ -8182,18 +8251,37 @@ function doVisiterPrisonnier() {
   ouvrirModalCibleRepertoire('visiter_prisonnier', 'Rendre visite a un detenu');
 }
 
-function doSeRenseigner() {
-  const infos = [
-    'Vous apprenez qu\'un PJ influent a ete vu en compagnie suspecte.',
-    'Des rumeurs circulent sur un prochain remaniement ministeriel.',
-    'On parle d\'une affaire financiere qui pourrait eclabousser le gouvernement.',
-    'Quelqu\'un cherche a recruter des partisans en secret.'
-  ];
-  const info = infos[Math.floor(Math.random() * infos.length)];
-  showToast('Information', info, true);
-  addJournalEntry('Renseignement obtenu : ' + info, 'event-info');
-  state.inf = Math.min(100, state.inf + 1);
-  updateUI();
+async function doSeRenseigner() {
+  const co = COUNTRIES[state.country];
+  const pjConnus = (state.pjConnus || []).join(', ') || 'des personnages politiques locaux';
+  const ville = state.currentCity || 'la capitale';
+  const prompt = 'Res Publica, jeu parodique politique. Empire : ' + (co?.n||'inconnu') + '. Ville : ' + ville + '. Le barman murmure une rumeur croustillante sur la vie politique locale, impliquant si possible un de ces personnages : ' + pjConnus + '. 1 phrase max, ton parodique et cynique.';
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 60, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    const info = data.content?.[0]?.text?.trim() || 'Le barman hausse les épaules. Rien de neuf ce soir.';
+    state.inf = Math.min(100, (state.inf||0) + 3);
+    updateUI();
+    showToast('Le barman murmure...', info, true, true);
+    addJournalEntry('Barman : "' + info.substring(0,80) + '"', 'event-info');
+    addExternalEvent('🍺 Une rumeur court dans les bars de ' + ville + ' : ' + info);
+  } catch(e) {
+    const infos = [
+      'Un élu local aurait été vu sortir du casino à 4h du matin.',
+      'Des rumeurs courent sur un remaniement imminent.',
+      'Quelqu\'un cherche à acheter des votes dans le quartier.',
+      'Une affaire financière menace d\'éclabousser le gouvernement.'
+    ];
+    const info = infos[Math.floor(Math.random() * infos.length)];
+    state.inf = Math.min(100, (state.inf||0) + 2);
+    updateUI();
+    showToast('Le barman murmure...', info, true, true);
+    addJournalEntry('Barman : "' + info + '"', 'event-info');
+  }
 }
 
 function doReserver() {
@@ -10720,12 +10808,25 @@ function addToInventory(item) {
 function renderInventory() {
   const el = document.getElementById('inv-items');
   if (!el) return;
-  el.innerHTML = state.inventory.length === 0
-    ? '<div class="inv-item-empty">Aucun objet</div>'
-    : state.inventory.map(item => `
-        <div class="inv-item">
-          <i class="ti ${item.icon}" style="font-size:.8rem;color:#8a6a20"></i> ${item.name}
-        </div>`).join('');
+  if (state.inventory.length === 0) {
+    el.innerHTML = '<div class="inv-item-empty">Aucun objet</div>';
+    return;
+  }
+  el.innerHTML = state.inventory.map((item, idx) => {
+    const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.6rem"> ⚠ Illégal</span>' : '';
+    const expiry = item.expireDay ? '<div style="font-size:.6rem;color:#6a5030">Expire jour ' + item.expireDay + '</div>' : '';
+    return '<div class="inv-item" style="display:flex;align-items:center;justify-content:space-between;gap:.4rem">' +
+      '<div style="display:flex;align-items:center;gap:.4rem;flex:1;min-width:0">' +
+        '<i class="ti ' + (item.icon||'ti-package') + '" style="font-size:.85rem;color:#8a6a20;flex-shrink:0"></i>' +
+        '<div style="min-width:0">' +
+          '<div style="font-size:.78rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + legal + '</div>' +
+          (item.desc ? '<div style="font-size:.62rem;color:#4a4030;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.desc.substring(0,60) + (item.desc.length>60?'...':'') + '</div>' : '') +
+          expiry +
+        '</div>' +
+      '</div>' +
+      '<button onclick="supprimerItemInventaire(' + idx + ')" title="Supprimer" style="flex-shrink:0;background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .35rem;font-size:.65rem;font-family:Bebas Neue,sans-serif">✕</button>' +
+    '</div>';
+  }).join('');
 }
 function toggleInventaire() {
   const panel = document.getElementById('inventaire-panel');
@@ -11704,7 +11805,7 @@ function ouvrirDonPnjModal(encodedPnj) {
     escort:'Informations exclusives.',
     default:'Un geste de bonne volonte. Effets variables.'
   };
-  document.getElementById('modal-pnj').classList.remove('open');
+  // modal-pnj reste ouvert
   document.getElementById('postes-modal-title').textContent = 'Donner de l\'argent a ' + pnj.name.replace(' (PNJ)', '');
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
@@ -11775,7 +11876,7 @@ function ouvrirDonObjetPnjModal(encodedPnj) {
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
   const objets = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
   if (objets.length === 0) { showToast('Inventaire vide', 'Aucun objet a donner.', false); return; }
-  document.getElementById('modal-pnj').classList.remove('open');
+  // modal-pnj reste ouvert
   document.getElementById('postes-modal-title').textContent = 'Donner un objet a ' + pnj.name.replace(' (PNJ)', '');
   let html = '<div style="padding:.8rem 1rem"><div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisir l\'objet a remettre :</div>';
   objets.forEach((obj, i) => {
@@ -12003,6 +12104,111 @@ function doSocieteEcran() {
   updateUI();
   showToast('Société écran créée', '-' + cost + ' ' + cur + '. +12 DIS. Transactions masquées.', true);
   addJournalEntry('Société écran créée. -' + cost + ' ' + cur + '.', 'event-info');
+}
+
+
+
+function supprimerItemInventaire(idx) {
+  if (!state.inventory[idx]) return;
+  const item = state.inventory[idx];
+  state.inventory.splice(idx, 1);
+  renderInventory();
+  showToast('Objet supprimé', item.name + ' retiré de l\'inventaire.', false);
+}
+
+
+// =====================
+// ROXANNE VELOURS — Recrutement escort
+// =====================
+function ouvrirRecrutementEscort(nomEscort) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const tarifHeure = 500;
+
+  document.getElementById('modal-pnj').classList.remove('open');
+  document.getElementById('postes-modal-title').textContent = '💋 ' + nomEscort;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' +
+      '"Mon tarif est de ' + tarifHeure + ' ' + cur + '/heure. Pour une nuit complète, vous savez ce que ça vaut."' +
+    '</div>' +
+    '<div style="font-size:.75rem;color:#6a5030;margin-bottom:.8rem">Elle rejoint votre groupe. Vous serez débité(e) de <strong style="color:#C9A84C">' + tarifHeure + ' ' + cur + '</strong> à chaque réveil. En cas de non-paiement, une plainte sera déposée et la presse informée.</div>' +
+    '<div style="display:flex;gap:.5rem">' +
+      '<button onclick="confirmerRecrutementEscort(\'' + nomEscort.replace(/'/g,'') + '\',' + tarifHeure + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
+      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#6a5030;cursor:pointer">Décliner</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerRecrutementEscort(nomEscort, tarif) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (state.arg < tarif) {
+    showToast('Fonds insuffisants', tarif + ' ' + cur + ' requis pour la première heure.', false);
+    return;
+  }
+  state.arg -= tarif;
+
+  // Rejoindre le groupe
+  if (!state.group) state.group = { leader: state.char?.name, members: [state.char?.name] };
+  if (!state.group.members.includes(nomEscort)) state.group.members.push(nomEscort);
+
+  // Enregistrer l'escort active
+  if (!state.escortActive) state.escortActive = [];
+  state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1 });
+
+  // Générer une remplaçante dans la pièce
+  const remplacantes = ['Sophia Midnight', 'Elena Prestige', 'Camille Discrétion', 'Nina Velours'];
+  const remplacante = remplacantes[Math.floor(Math.random() * remplacantes.length)];
+  if (!state.escortRemplacante) state.escortRemplacante = {};
+  state.escortRemplacante[state.currentBuilding + '_' + state.currentRoom] = {
+    name: remplacante + ' (PNJ)',
+    role: 'Escort de luxe',
+    job: 'escort',
+    rel: 'neutral'
+  };
+
+  // Trace enquête (10 jours)
+  if (!state.tracesEnquete) state.tracesEnquete = [];
+  state.tracesEnquete.push({
+    type: 'recrutement_escort',
+    desc: (state.char?.name||'Anonyme') + ' a recruté ' + nomEscort + ' comme escort personnelle.',
+    jour: state.day || 1,
+    expireJour: (state.day || 1) + 10
+  });
+
+  updateUI();
+  showToast('Escort recrutée !', nomEscort + ' rejoint votre groupe. -' + tarif + ' ' + cur + '/réveil.', true, true);
+  addJournalEntry('Recrutement escort : ' + nomEscort + '. -' + tarif + ' ' + cur + '/réveil.', 'event-info');
+  addExternalEvent('👀 ' + (state.char?.name||'Anonyme') + ' est vu(e) accompagné(e) de ' + nomEscort + '.');
+}
+
+function payerEscorts() {
+  if (!state.escortActive?.length) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const toRemove = [];
+
+  state.escortActive.forEach((escort, i) => {
+    if (state.arg >= escort.tarif) {
+      state.arg -= escort.tarif;
+      addJournalEntry('Escort ' + escort.nom + ' payée. -' + escort.tarif + ' ' + cur + '.', 'event-info');
+    } else {
+      // Non-paiement — esclandre
+      toRemove.push(i);
+      state.pop = Math.max(0, (state.pop||0) - 20);
+      state.dis = Math.max(0, (state.dis||50) - 15);
+      addMailNotification('Tribunal', 'Plainte déposée par ' + escort.nom,
+        escort.nom + ' a déposé une plainte pour non-paiement de services. -20 POP -15 DIS. La presse a été informée.');
+      addExternalEvent('📰 SCANDALE : ' + (state.char?.name||'Anonyme') + ' accusé(e) de non-paiement par ' + escort.nom + ' !');
+      addJournalEntry('Non-paiement escort. Plainte + article presse. -20 POP -15 DIS.', 'event-bad');
+      // Retirer du groupe
+      if (state.group?.members) {
+        state.group.members = state.group.members.filter(m => m !== escort.nom);
+      }
+    }
+  });
+
+  toRemove.reverse().forEach(i => state.escortActive.splice(i, 1));
 }
 
 

@@ -78,7 +78,7 @@
     <button class="forum-btn" onclick="ouvrirMenuAlliances()" title="Alliances entre joueurs">
       <i class="ti ti-handshake" style="font-size:.8rem;vertical-align:-1px"></i> Alliances
     </button>
-    <button class="forum-btn" onclick="openSelfView();setTimeout(()=>switchSelfTab('orgas',document.querySelectorAll('#vue-self .piece-tab')[2]),50)" title="Mes organisations" style="color:#c0a0ff">
+    <button class="forum-btn" onclick="ouvrirTableauOrganisations()" title="Mes organisations" style="color:#c0a0ff">
       <i class="ti ti-building-community" style="font-size:.8rem;vertical-align:-1px"></i> Orgas
     </button>
     <button class="forum-btn" onclick="ouvrirCalendrierElectoral()" title="Calendrier électoral" style="color:#6ada6a">
@@ -128,14 +128,6 @@
     <button onclick="afficherObjectifsSecrets()" style="width:100%;margin:.2rem 0 .4rem;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.35rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem">
       <i class="ti ti-target" style="font-size:.75rem"></i> Mes Objectifs 🎯
     </button>
-
-    <!-- LOCATION -->
-    <div class="panel-title">LOCALISATION</div>
-    <div class="location-info">
-      <div class="loc-city" id="loc-city">Luthecia, Capitale</div>
-      <div class="loc-name" id="loc-name">La rue</div>
-      <div class="loc-sub" id="loc-sub">Selectionnez un batiment</div>
-    </div>
 
     <!-- INVENTAIRE (fermé par défaut) -->
     <div class="panel-title" style="cursor:pointer" onclick="toggleInventaire()">
@@ -215,7 +207,6 @@
         <div class="pieces-tabs">
           <div class="piece-tab active" onclick="switchSelfTab('actions',this)">Actions personnelles</div>
           <div class="piece-tab" onclick="switchSelfTab('inventaire',this)">Inventaire</div>
-          <div class="piece-tab" onclick="switchSelfTab('orgas',this)">Organisations</div>
           <div class="piece-tab" onclick="switchSelfTab('identite',this)">Identité</div>
         </div>
       </div>
