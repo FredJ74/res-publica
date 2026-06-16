@@ -1470,33 +1470,48 @@ function openPnjModal(encodedPnj) {
   const enc = encodeURIComponent(JSON.stringify(pnj));
 
   let actionBtns = '';
+  const pnjSafeName = pnj.name.replace(/'/g, '');
+  const pnjSafeRole = (pnj.role||'').replace(/'/g, '');
+  const pnjRel = pnj.rel || 'neutral';
+
   if (isPJ) {
     const inGroup = state.group && state.group.members && state.group.members.includes(pnj.name);
     const pnjJson = encodeURIComponent(JSON.stringify(pnj));
-    actionBtns = (!inGroup
+    actionBtns += (!inGroup
       ? '<button class="pnj-action-btn" onclick="rejoindrePJ(decodeURIComponent(\'' + pnjJson + '\'))"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
-      : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>')
-      + '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnj.name.replace(/'/g, '') + '\', \'' + (pnj.role||'').replace(/'/g, '') + '\', \'' + (pnj.rel||'neutral') + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
+      : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>');
+    actionBtns += '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnjSafeName + '\',\'' + pnjSafeRole + '\',\'' + pnjRel + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
   }
-  if (pnj.rel === 'enemy') {
-    actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj(\'' + enc + '\', \'confrontation\')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
-  }
-  // Bouton assassiner (toujours disponible sur PNJ/PJ autres)
-  const encCible = encodeURIComponent(JSON.stringify(pnj));
-  actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
 
-  // Boutons tracts
-  const hasTracts = (state.inventory||[]).some(i => i.type === 'tract');
-  if (hasTracts) {
-    if (pnj.isPJ) {
-      // Don de main a main a un PJ
-      actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');donnerTracts(\'' + pnj.name + '\')"><i class="ti ti-files" style="font-size:.85rem"></i> Donner des tracts</button>';
-    } else {
-      // Distribution a un PNJ
-      actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractPNJ(\'' + pnj.name + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract</button>';
+  if (!isPJ) {
+    const dejaDansRep = (state.contacts || []).some(c => c.name === pnj.name);
+    if (!dejaDansRep) {
+      actionBtns += '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnjSafeName + '\',\'' + pnjSafeRole + '\',\'' + pnjRel + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
     }
   }
 
+  actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonPnjModal(\'' + enc + '\')"><i class="ti ti-coins" style="font-size:.85rem"></i> Donner de l\'argent</button>';
+
+  const objetsDispos = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
+  if (objetsDispos.length > 0) {
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonObjetPnjModal(\'' + enc + '\')"><i class="ti ti-package" style="font-size:.85rem"></i> Donner un objet</button>';
+  }
+
+  const tractsDispos = (state.inventory || []).filter(i => i.type === 'tract');
+  if (tractsDispos.length > 0) {
+    if (isPJ) {
+      actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');donnerTracts(\'' + pnjSafeName + '\')"><i class="ti ti-files" style="font-size:.85rem"></i> Donner des tracts</button>';
+    } else {
+      actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractPNJ(\'' + pnjSafeName + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract</button>';
+    }
+  }
+
+  if (pnj.rel === 'enemy') {
+    actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj(\'' + enc + '\', \'confrontation\')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
+  }
+
+  const encCible = encodeURIComponent(JSON.stringify(pnj));
+  actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
   document.getElementById('pnj-actions').innerHTML = actionBtns +
     '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
     '<input id="pnj-question-libre" type="text" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" placeholder="Posez votre question..." onkeydown="handlePnjKey(event)" />' +
@@ -11533,6 +11548,149 @@ function ouvrirForumDepuisOrga() {
   openForum();
 }
 
+
+
+// =====================
+// V27 — DON D'ARGENT A UN PNJ
+// =====================
+function ouvrirDonPnjModal(encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const job = pnj.job || 'default';
+  const jobLabels = {
+    serveur:'Un pourboire genereux. Il pourrait vous glisser une info utile.',
+    barman:'Il entend tout. Arroser le barman, c\'est investir dans le renseignement.',
+    commissaire:'Risque. Mais parfois ca passe. Jet de DUP.',
+    policier:'Risque. Mais parfois ca passe. Jet de DUP.',
+    inspecteur:'Risque. Mais parfois ca passe. Jet de DUP.',
+    journaliste:'Un geste editorial. Peut generer un article favorable.',
+    banquier:'Un service discret. Il fera passer votre transaction sans questions.',
+    medecin:'Des soins off-record. Pas de trace medicale.',
+    commercant:'Ca fait du bien a la reputation locale.',
+    juge:'Delicat. Un juge corruptible peut classer une affaire.',
+    avocat:'L\'avocat peut faire accelerer une procedure.',
+    loge:'Un don a la Loge. Le reseau se souviendra.',
+    grand_pretre:'+IP et benediction.',
+    escort:'Informations exclusives.',
+    default:'Un geste de bonne volonte. Effets variables.'
+  };
+  document.getElementById('modal-pnj').classList.remove('open');
+  document.getElementById('postes-modal-title').textContent = 'Donner de l\'argent a ' + pnj.name.replace(' (PNJ)', '');
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' + (jobLabels[job] || jobLabels.default) + '</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MONTANT (' + cur + ')</div>' +
+    '<input id="don-pnj-montant" type="number" min="10" step="50" placeholder="Ex: 200" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.7rem"/>' +
+    '<button onclick="confirmerDonPnj(\'' + encodedPnj + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💰 Donner</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerDonPnj(encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+  const montant = parseInt(document.getElementById('don-pnj-montant')?.value || 0);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const job = pnj.job || 'default';
+  const isn = INDICES_NATIONAUX?.[state.country]?.ISN || 30;
+  if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
+  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
+  document.getElementById('modal-postes').classList.remove('open');
+  state.arg -= montant;
+  const dup = state.char?.stats?.DUP || 8;
+  const nomCourt = pnj.name.replace(' (PNJ)','');
+  const jobsRisques = ['commissaire','policier','inspecteur','juge'];
+  const tauxRefus = jobsRisques.includes(job) ? Math.max(0, isn - 30) / 2 : 0;
+  const rollRefus = Math.floor(Math.random() * 100) + 1;
+  if (tauxRefus > 0 && rollRefus <= tauxRefus) {
+    state.arg += montant;
+    state.dis = Math.max(0, (state.dis||50) - 15);
+    updateUI();
+    addJournalEntry('Don refuse par ' + nomCourt + '. -15 DIS.', 'event-bad');
+    showToast('Refus indigne !', nomCourt + ' a refuse. -15 DIS.', false);
+    return;
+  }
+  const effets = {
+    serveur:     () => { state.moral=Math.min(100,(state.moral||50)+5); state.inf=Math.min(100,(state.inf||0)+2); showToast('Pourboire verse !','+5 Moral +2 INF.',true); addJournalEntry('Pourboire a '+nomCourt+'. +5 Moral +2 INF.','event-good'); },
+    barman:      () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('Le barman apprecie !','+5 INF.',true,true); addJournalEntry('Don barman. +5 INF.','event-good'); },
+    commissaire: () => { const t=Math.min(70,30+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-5);showToast('Arrangement discret','-5 DIS.',true);addJournalEntry('Corruption commissaire. -5 DIS.','event-bad');}else{state.dis=Math.max(0,(state.dis||50)-20);showToast('Refus !','-20 DIS.',false);} },
+    policier:    () => { const t=Math.min(65,25+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-3);showToast('Il regarde ailleurs.','-3 DIS.',true);}else{state.dis=Math.max(0,(state.dis||50)-15);showToast('Refus !','-15 DIS.',false);} },
+    inspecteur:  () => { const t=Math.min(70,35+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-5);showToast('Inspecteur convaincu !','-5 DIS.',true);}else{state.dis=Math.max(0,(state.dis||50)-15);showToast('Refus !','-15 DIS.',false);} },
+    journaliste: () => { state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5); showToast('Article favorable !','+8 INF +5 POP.',true,true); addExternalEvent((state.char?.name||'Anonyme')+' beneficie d\'une couverture favorable.'); },
+    banquier:    () => { state.dis=Math.min(100,(state.dis||50)+5); showToast('Service discret.','+5 DIS.',true); },
+    medecin:     () => { const s=Math.min(25,Math.floor(montant/10)); state.hp=Math.min(100,(state.hp||100)+s); showToast('Soins off-record !','+'+s+' HP.',true); },
+    commercant:  () => { state.pop=Math.min(100,(state.pop||0)+4); state.inf=Math.min(100,(state.inf||0)+2); showToast('Reputation locale !','+4 POP +2 INF.',true); },
+    juge:        () => { const t=Math.min(55,20+Math.floor(dup*2)); const r=Math.floor(Math.random()*100)+1; if(r<=t){state.dis=Math.max(0,(state.dis||50)-8);showToast('Le juge est comprehensif.','-8 DIS.',true,true);}else{state.dis=Math.max(0,(state.dis||50)-25);showToast('SCANDALE !','-25 DIS.',false);} },
+    avocat:      () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('L\'avocat note votre generosite.','+5 INF.',true); },
+    loge:        () => { state.inf=Math.min(100,(state.inf||0)+8); showToast('Don a la Loge.','+8 INF.',true,true); },
+    grand_pretre:() => { state.pop=Math.min(100,(state.pop||0)+5); state.moral=Math.min(100,(state.moral||50)+5); showToast('Don beni !','+5 POP +5 Moral.',true,true); },
+    escort:      () => { state.inf=Math.min(100,(state.inf||0)+6); showToast('Information exclusive !','+6 INF.',true,true); },
+  };
+  const effet = effets[job];
+  if (effet) { effet(); }
+  else {
+    const moralBonus = Math.min(8, Math.floor(montant / 50));
+    state.moral = Math.min(100,(state.moral||50)+moralBonus);
+    showToast('Don accepte.', nomCourt+' apprecie. +'+moralBonus+' Moral.', true);
+    addJournalEntry('Don a '+nomCourt+'.','event-good');
+  }
+  updateUI();
+}
+
+// =====================
+// V27 — DON D'OBJET A UN PNJ
+// =====================
+function ouvrirDonObjetPnjModal(encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+  const objets = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
+  if (objets.length === 0) { showToast('Inventaire vide', 'Aucun objet a donner.', false); return; }
+  document.getElementById('modal-pnj').classList.remove('open');
+  document.getElementById('postes-modal-title').textContent = 'Donner un objet a ' + pnj.name.replace(' (PNJ)', '');
+  let html = '<div style="padding:.8rem 1rem"><div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisir l\'objet a remettre :</div>';
+  objets.forEach((obj, i) => {
+    const idx = state.inventory.indexOf(obj);
+    html += '<div onclick="confirmerDonObjetPnj('+idx+',\''+encodedPnj+'\')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'"><i class="ti '+(obj.icon||'ti-package')+'" style="font-size:.9rem;color:#8a6a20"></i><div><div style="font-size:.8rem;color:#c0b090">'+obj.name+'</div><div style="font-size:.65rem;color:#4a4030">'+(obj.desc||'')+'</div></div></div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerDonObjetPnj(objIdx, encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+  const obj = state.inventory[objIdx];
+  if (!obj) return;
+  const job = pnj.job || 'default';
+  const nomCourt = pnj.name.replace(' (PNJ)','');
+  document.getElementById('modal-postes').classList.remove('open');
+  let msg = '', bon = true;
+  if (obj.type === 'tract') {
+    obj.quantite = (obj.quantite||1) - 1;
+    if (obj.quantite <= 0) state.inventory.splice(objIdx, 1);
+    state.pop = Math.min(100,(state.pop||0)+2);
+    msg = nomCourt + ' prend le tract. +2 POP.';
+    addJournalEntry('Tract remis a '+nomCourt+'.','event-good');
+  } else if (obj.type === 'kompromat') {
+    if (['journaliste','redacteur'].includes(job)) {
+      state.inventory.splice(objIdx,1); state.inf=Math.min(100,(state.inf||0)+8); state.pop=Math.min(100,(state.pop||0)+5);
+      const cible=obj.cible||'une personnalite';
+      addExternalEvent('SCANDALE : Un kompromat sur '+cible+' a ete divulgue !');
+      msg='Le journaliste s\'empare du dossier. +8 INF +5 POP.';
+    } else {
+      state.inventory.splice(objIdx,1); state.inf=Math.min(100,(state.inf||0)+3);
+      msg=nomCourt+' prend le document. +3 INF.';
+    }
+  } else {
+    state.inventory.splice(objIdx,1); state.moral=Math.min(100,(state.moral||50)+3); state.inf=Math.min(100,(state.inf||0)+2);
+    msg=nomCourt+' accepte le cadeau. +3 Moral +2 INF.';
+    addJournalEntry('Objet offert a '+nomCourt+'.','event-good');
+  }
+  updateUI();
+  showToast(bon?'Don effectue !':'Action risquee.', msg, bon);
+}
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', function(e) {
