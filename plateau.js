@@ -8086,9 +8086,19 @@ function doCorruption(fn, cost) {
 }
 
 function doSeReposer(fn) {
-  state.moral = Math.min(100, state.moral + (fn === 'se_nourrir' ? 3 : 2));
-  updateUI();
-  showToast(fn === 'se_nourrir' ? 'Repas pris' : 'Repos', '+' + (fn === 'se_nourrir' ? 3 : 2) + ' Moral.', true);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (fn === 'se_nourrir') {
+    const cost = 10;
+    if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+    state.arg -= cost;
+    state.moral = Math.min(100, state.moral + 3);
+    updateUI();
+    showToast('Verre pris', '+3 Moral. -' + cost + ' ' + cur + '.', true);
+  } else {
+    state.moral = Math.min(100, state.moral + 2);
+    updateUI();
+    showToast('Repos', '+2 Moral.', true);
+  }
 }
 
 function doRequeteAvocat() {
@@ -8138,8 +8148,14 @@ function doSeRenseigner() {
 }
 
 function doReserver() {
-  showToast('Chambre reservee', 'Vous avez acces aux chambres de cet etablissement. Passez l\'ordre Dormir depuis votre fiche personnage.', true);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 80;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
   state.chambreReservee = state.currentBuilding;
+  updateUI();
+  showToast('Chambre reservee', 'Chambre reservee. -' + cost + ' ' + cur + '. Passez l\'ordre Dormir depuis votre fiche.', true);
+  addJournalEntry('Chambre reservee. -' + cost + ' ' + cur + '.', 'event-info');
 }
 
 function doInterview() {
@@ -8152,6 +8168,11 @@ function doInterview() {
 }
 
 function doArticle() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 300;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  updateUI();
   ouvrirModalCibleRepertoire('article_favorable', 'Rediger un article favorable sur');
 }
 
@@ -8174,6 +8195,10 @@ function doLogeInfo() {
 }
 
 function doSeFormer() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 100;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
   const stats = ['INT','CHA','VOL','PER','DUP','ENT'];
   document.getElementById('postes-modal-title').textContent = 'Suivre une formation';
   let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir la caracteristique a ameliorer (+1 point) :</div>';
@@ -8209,11 +8234,20 @@ function doRecruterInfo() {
 }
 
 function confirmerRecrutement(nom) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 150;
   document.getElementById('modal-postes').classList.remove('open');
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis pour recruter.', false); return; }
+  // Vérifier pas déjà informateur
   if (!state.informateurs) state.informateurs = [];
-  state.informateurs.push({ nom, depuis: state.day });
-  showToast('Informateur recrute', nom + ' vous enverra des informations regulierement.', true);
-  addJournalEntry('Informateur recrute : ' + nom, 'event-info');
+  if (state.informateurs.some(i => i.nom === nom)) { showToast('Déjà informateur', nom + ' est déjà dans votre réseau.', false); return; }
+  // Vérifier limite (max 2)
+  if (state.informateurs.length >= 2) { showToast('Limite atteinte', 'Vous ne pouvez pas avoir plus de 2 informateurs simultanément.', false); return; }
+  state.arg -= cost;
+  state.informateurs.push({ nom, niveau: 1, depuis: state.day, coutJour: cost });
+  updateUI();
+  showToast('Informateur recrute', nom + ' rejoint votre reseau. -' + cost + ' ' + cur + '/jour.', true);
+  addJournalEntry('Informateur recrute : ' + nom + ' (N1). -' + cost + ' ' + cur + '/jour.', 'event-info');
 }
 
 function doMobiliserPolice() {
