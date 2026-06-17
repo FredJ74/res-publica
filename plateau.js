@@ -1576,7 +1576,21 @@ function openPnjModal(encodedPnj) {
   // Stocker l'enc pour envoyerQuestion
   state._currentPnjEnc = enc;
 
-  talkToPnj(enc, 'bonjour');
+  // Recharger l'historique de la conversation du jour
+  const pnjNameClean = pnj.name?.replace(' (PNJ)', '').trim();
+  const convKeyOpen = 'conv_' + (pnjNameClean||'pnj') + '_day' + (state.day||1);
+  const histOpen = state.pnjConversations?.[convKeyOpen] || [];
+
+  if (histOpen.length >= 2) {
+    // Afficher le dernier échange
+    const lastReply = histOpen.filter(h => h.role === 'assistant').slice(-1)[0];
+    if (lastReply) {
+      const speechEl = document.getElementById('pnj-speech');
+      if (speechEl) speechEl.textContent = lastReply.content;
+    }
+  } else {
+    talkToPnj(enc, 'bonjour');
+  }
 }
 
 function handlePnjKey(event) {
@@ -1684,14 +1698,32 @@ RÈGLES ABSOLUES :
 - Jamais de vrais noms de dieux ou religions réelles
 - Réponds UNIQUEMENT avec ta réplique, sans guillemets ni introduction`;
 
+  // Récupérer l'historique de la conversation du jour
+  const pnjKey2 = pnj.name?.replace(' (PNJ)', '').trim();
+  const convKey = 'conv_' + (pnjKey2||'pnj') + '_day' + (state.day||1);
+  if (!state.pnjConversations) state.pnjConversations = {};
+  if (!state.pnjConversations[convKey]) state.pnjConversations[convKey] = [];
+  const history = state.pnjConversations[convKey];
+
+  // Construire les messages avec historique
+  const messages = [
+    { role: 'user', content: prompt }
+  ];
+  // Ajouter les échanges précédents (max 6 pour rester léger)
+  const recentHistory = history.slice(-6);
+  if (recentHistory.length > 0) {
+    messages[0].content = prompt + '\n\nHistorique du jour :\n' +
+      recentHistory.map(h => (h.role === 'user' ? 'Joueur: ' : pnjKey2 + ': ') + h.content).join('\n');
+  }
+
   try {
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 200,
-        messages: [{ role: 'user', content: prompt }]
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 150,
+        messages
       })
     });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -1699,6 +1731,10 @@ RÈGLES ABSOLUES :
     const text = data.content?.[0]?.text;
     if (text) {
       speech.textContent = text;
+      // Sauvegarder dans l'historique
+      history.push({ role: 'user', content: action });
+      history.push({ role: 'assistant', content: text });
+      state.pnjConversations[convKey] = history;
     } else { throw new Error('no text'); }
   } catch(e) {
     const fallbacks = {
@@ -12245,8 +12281,15 @@ function confirmerRecrutementEscort(nomEscort, tarif) {
   renderEmployesPanel();
 
   // Générer une remplaçante dans la pièce
-  const remplacantes = ['Sophia Midnight', 'Elena Prestige', 'Camille Discrétion', 'Nina Velours'];
-  const remplacante = remplacantes[Math.floor(Math.random() * remplacantes.length)];
+  const toutesMaisonEmpire = {
+    republic: ['Sophia Élégance', 'Camille Discrétion', 'Laure Prestige', 'Nina Velours', 'Clara Minuit'],
+    narco:    ['Lola Discreta', 'Carmen Silencio', 'Rosa Secreto', 'Valentina Sombra', 'Isabel Poder'],
+    soviet:   ['Natasha Privilège', 'Olga Silence', 'Irina Distinction', 'Vera Konspiratsiya', 'Anya Nuit'],
+    khalija:  ['Yasmin Al-Sirr', 'Fatima Al-Layl', 'Noor Al-Khafia', 'Hana Al-Majd', 'Rima Al-Asrar'],
+  };
+  const listePossibles = (toutesMaisonEmpire[state.country] || toutesMaisonEmpire.republic)
+    .filter(n => n !== nomEscort);
+  const remplacante = listePossibles[Math.floor(Math.random() * listePossibles.length)];
   if (!state.escortRemplacante) state.escortRemplacante = {};
   state.escortRemplacante[state.currentBuilding + '_' + state.currentRoom] = {
     name: remplacante + ' (PNJ)',
@@ -12580,10 +12623,10 @@ function renderEmployesPanel() {
       '</div>' +
       '<div style="display:flex;gap:.2rem">' +
         (emp.inGroupe
-          ? '<button onclick="laisserPnjEnPlace(\'' + emp.nom.replace(/'/g,'') + '\')" title="Laisser ici" style="background:none;border:1px solid #2a3a2a;color:#4a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">📍</button>'
-          : '<button onclick="recupererPnjDansGroupe(\'' + emp.nom.replace(/'/g,'') + '\')" title="Récupérer" style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">🔄</button>'
+          ? '<button onclick="laisserPnjEnPlace(\'' + emp.nom.replace(/'/g,'') + '\')" title="Laisser dans cette piece — sort du groupe mais reste votre employe" style="background:none;border:1px solid #2a3a2a;color:#4a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">📍</button>'
+          : '<button onclick="recupererPnjDansGroupe(\'' + emp.nom.replace(/'/g,'') + '\')" title="Faire rejoindre votre groupe" style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">🔄</button>'
         ) +
-        '<button onclick="licencierPnj(\'' + emp.nom.replace(/'/g,'') + '\')" title="Licencier" style="background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">✕</button>' +
+        '<button onclick="licencierPnj(\'' + emp.nom.replace(/'/g,'') + '\')" title="Renvoyer cet employe — arret du contrat et du salaire" style="background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">✕</button>' +
       '</div>' +
     '</div>';
   }).join('');
