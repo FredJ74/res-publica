@@ -954,6 +954,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'tentative_evasion') { doTentativeEvasion(); return; }
   if (fn === 'visiter_prisonnier') { doVisiterPrisonnier(); return; }
   if (fn === 'se_renseigner') { doSeRenseigner(); return; }
+  if (fn === 'ecouter')        { doSeRenseigner(); return; }
   if (fn === 'reserver') { doReserver(); return; }
   if (fn === 'interview') { doInterview(); return; }
   if (fn === 'article') { doArticle(); return; }
@@ -1410,7 +1411,18 @@ const PNJ_AVATAR = {
 };
 
 function getPnjAvatar(pnj, empireColor) {
-  if (pnj.photoUrl) {
+  // Photo escort selon empire si pas de photoUrl
+  if (!pnj.photoUrl && pnj.job === 'escort') {
+    const escortPhotos = {
+      republic: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-republic.png',
+      narco:    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-narco.png',
+      soviet:   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-soviet.png',
+      khalija:  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-khalija.png',
+    };
+    pnj.photoUrl = escortPhotos[state.country] || '';
+    pnj.photoPos = '50% 10%';
+  }
+    if (pnj.photoUrl) {
     const col = empireColor || '#C9A84C';
     const safeName = (pnj.name || '').replace(' (PNJ)', '');
     return '<div style="flex-shrink:0;text-align:center">' +
@@ -1518,6 +1530,13 @@ function openPnjModal(encodedPnj) {
 
   if (pnj.rel === 'enemy') {
     actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj(\'' + enc + '\', \'confrontation\')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
+  }
+
+
+  // Recruter escort
+  if (pnj.job === 'escort') {
+    const escortNom = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort</button>';
   }
 
   const encCible = encodeURIComponent(JSON.stringify(pnj));
@@ -4310,7 +4329,7 @@ async function interagirPnjTerrain(pnjId) {
     document.getElementById('postes-modal-title').textContent = pnj.name + ' — Gardien';
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1rem">' +
-      '<div style="font-size:.82rem;color:#a09060;margin-bottom:.8rem;font-style:italic">"' + (pnj.trait || '') + '"</div>' +
+      '<div style="font-size:.82rem;color:#a09060;margin-bottom:.8rem;font-style:italic">"' + (pnj.trait || (pnj.job === 'escort' ? 'Je connais tous les secrets de cette ville. Mon tarif : 500 ' + (COUNTRIES[state.country]?.cur || 'FR') + '/réveil.' : 'Un personnage discret.')) + '"</div>' +
       '<button onclick="soudoyerGardienTerrain(' + pot + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" ' +
       'style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;display:block;margin-bottom:.4rem;width:100%">' +
       '<i class="ti ti-coin"></i> Soudoyer (' + pot + ' ' + cur + ')</button>' +
