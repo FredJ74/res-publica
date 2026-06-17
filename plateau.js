@@ -702,7 +702,11 @@ function renderPersonsList(persons) {
       '</div></div>';
   }).join('');
 
-  document.getElementById('persons-list').innerHTML = selfCard + simuleCards + personCards ||
+  // Ajouter les employés du groupe présents dans cette pièce
+  const groupeHtml = getGroupeHtmlPourPiece(state.currentBuilding, state.currentRoom);
+
+  const finalContent = selfCard + groupeHtml + simuleCards + personCards;
+  document.getElementById('persons-list').innerHTML = finalContent ||
     '<div class="person-empty">Personne d\'autre ici</div>';
 }
 
@@ -12604,35 +12608,38 @@ function deplacerGroupeAvecPj(buildingId, roomId, cityId) {
 // =====================
 function getGroupeHtmlPourPiece(buildingId, roomId) {
   const employes = getEmployes();
-  const iciGroupe = employes.filter(e => e.inGroupe && e.buildingId === buildingId && e.roomId === roomId);
+  // Les employés inGroupe sont TOUJOURS avec le PJ, peu importe la pièce
+  const iciGroupe = employes.filter(e => e.inGroupe);
   const iciFaction = employes.filter(e => !e.inGroupe && e.buildingId === buildingId && e.roomId === roomId);
 
   if (iciGroupe.length === 0 && iciFaction.length === 0) return '';
 
-  const renderEmp = (emp, inGroupe) =>
-    '<div style="display:flex;align-items:center;gap:.4rem;padding:.25rem 0">' +
-    (emp.photoUrl
-      ? '<img src="' + emp.photoUrl + '" style="width:24px;height:24px;border-radius:50%;object-fit:cover;object-position:' + (emp.photoPos||'50% 15%') + ';border:1px solid ' + (inGroupe ? '#C9A84C' : '#3a2a10') + '"/>'
-      : '<div style="width:24px;height:24px;border-radius:50%;background:#1a1208;border:1px solid ' + (inGroupe ? '#C9A84C':'#2a1a08') + ';display:flex;align-items:center;justify-content:center"><i class="ti ti-user" style="font-size:.65rem;color:#8a6a20"></i></div>'
-    ) +
-    '<div>' +
-      '<div style="font-size:.68rem;color:#c0b090">' + emp.nom + '</div>' +
-      '<div style="font-size:.58rem;color:#4a4030">' + (emp.role||'Employé') + (inGroupe ? ' · Groupe' : ' · Ici') + '</div>' +
-    '</div></div>';
+  const renderEmpCard = (emp, inGroupe) => {
+    const borderCol = inGroupe ? '#C9A84C' : '#3a2a10';
+    const avatarHtml = emp.photoUrl
+      ? '<div class="person-avatar" style="overflow:hidden;border-color:' + borderCol + '">' +
+        '<img src="' + emp.photoUrl + '" style="width:100%;height:100%;object-fit:cover;object-position:' + (emp.photoPos||'50% 15%') + '"/>' +
+        '</div>'
+      : '<div class="person-avatar" style="border-color:' + borderCol + '"><i class="ti ti-user" style="font-size:.75rem;color:#8a6a20"></i></div>';
+
+    const encEmp = encodeURIComponent(JSON.stringify({ name: emp.nomComplet || emp.nom + ' (PNJ)', role: emp.role, job: emp.job, photoUrl: emp.photoUrl, photoPos: emp.photoPos, rel: 'ally' }));
+    return '<div class="person-card" style="border-left:2px solid ' + borderCol + ';cursor:pointer" onclick="openPnjModal(\'' + encEmp + '\')">' +
+      avatarHtml +
+      '<div>' +
+        '<div class="person-name" style="color:' + (inGroupe ? '#C9A84C' : '#a09060') + '">' + emp.nom + '</div>' +
+        '<div class="person-role">' + (emp.role || 'Employé') + '</div>' +
+        '<div style="font-size:.58rem;color:' + (inGroupe ? '#4a6a20' : '#4a4030') + '">' + (inGroupe ? '🟢 Dans votre groupe' : '📍 En faction ici') + '</div>' +
+      '</div>' +
+    '</div>';
+  };
 
   let html = '';
-
   if (iciGroupe.length > 0) {
-    html += '<div style="border:1px solid #4a3a10;background:#0d0a03;padding:.4rem .6rem;margin-bottom:.4rem;border-radius:2px">' +
-      '<div style="font-size:.6rem;font-family:Bebas Neue;letter-spacing:.1em;color:#8a6a20;margin-bottom:.2rem">VOTRE GROUPE</div>' +
-      iciGroupe.map(e => renderEmp(e, true)).join('') +
-    '</div>';
+    html += iciGroupe.map(e => renderEmpCard(e, true)).join('');
   }
-
   if (iciFaction.length > 0) {
-    html += iciFaction.map(e => renderEmp(e, false)).join('');
+    html += iciFaction.map(e => renderEmpCard(e, false)).join('');
   }
-
   return html;
 }
 
