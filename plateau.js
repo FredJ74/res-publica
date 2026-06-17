@@ -658,7 +658,8 @@ function renderPersonsList(persons) {
         '</div></div>';
     }
 
-    return '<div class="person-card" onclick="openPnjModal(\'' + encodeURIComponent(JSON.stringify(p)) + '\')">' +
+    const pData = encodeURIComponent(JSON.stringify(p));
+    return '<div class="person-card" onclick="openPnjModal(this.dataset.enc)" data-enc="' + pData + '">' +
       avatarHtml +
       '<div>' +
       '<div class="person-name">' + p.name + '</div>' +
@@ -694,7 +695,7 @@ function renderPersonsList(persons) {
   const simules = getSimulesPresents();
   const simuleCards = simules.map(p => {
     const enc = encodeURIComponent(JSON.stringify({...p, isPJ: true}));
-    return '<div class="person-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid #4a6aaa">' +
+    return '<div class="person-card" onclick="openPnjModal(this.dataset.enc)" data-enc="' + enc + '" style="border-left:2px solid #4a6aaa">' +
       '<div class="person-avatar" style="border-color:#4a6aaa"><i class="ti ti-user-circle" style="font-size:.75rem;color:#4a6aaa"></i></div>' +
       '<div><div class="person-name" style="color:#8aaad0">' + p.name + ' <span style="font-size:.6rem;color:#3a5a8a">[SIM]</span></div>' +
       '<div class="person-role">' + p.role + '</div>' +
@@ -12441,9 +12442,23 @@ function confirmerRecrutPnj(encodedPnj, cout) {
   state.employes.push(employe);
   updateUI();
   renderEmployesPanel();
+  // Afficher immédiatement dans la pièce actuelle
+  if (state.currentBuilding && state.currentRoom) {
+    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+    const world = WORLD[state.country];
+    const city = world?.[state.currentCity];
+    const ctx = city?.buildingContext?.[state.currentBuilding];
+    const displayPersons = (ctx?.persons?.length > 0) ? ctx.persons : (room?.persons || []);
+    renderPersonsList(displayPersons);
+  }
 
   showToast(nomCourt + ' recruté(e) !', '-' + cout + ' ' + cur + '/jour. Il/elle rejoint votre groupe.', true);
   addJournalEntry('Recrutement : ' + nomCourt + ' (' + (pnj.role||'PNJ') + '). -' + cout + ' ' + cur + '/jour.', 'event-good');
+
+  // Remplaçant générique pour le PNJ recruté
+  if (typeof genererPnjRemplacant === 'function') {
+    genererPnjRemplacant(pnj, employe);
+  }
 
   // Trace enquête
   if (!state.tracesEnquete) state.tracesEnquete = [];
@@ -12490,9 +12505,24 @@ function laisserPnjEnPlace(nomPnj) {
   emp.buildingId = state.currentBuilding;
   emp.roomId = state.currentRoom;
   emp.city = state.currentCity;
+
+  // Compter combien de PNJ sont déjà laissés dans cette pièce
+  const memeEndroit = getEmployes().filter(e =>
+    !e.inGroupe && e.buildingId === state.currentBuilding && e.roomId === state.currentRoom && e.nom !== nomPnj
+  );
+  const msgGroupe = memeEndroit.length > 0
+    ? ' Il/elle rejoint ' + memeEndroit.map(e => e.nom).join(', ') + ' sur place.'
+    : ' Il/elle reste seul(e) dans cette pièce.';
+
   updateUI();
   renderEmployesPanel();
-  showToast(nomPnj + ' laissé(e) ici', 'Il/elle reste dans cette pièce. Vous pouvez le/la récupérer.', false);
+  // Rafraîchir la liste des personnes
+  if (state.currentBuilding && state.currentRoom) {
+    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+    const ctx = WORLD[state.country]?.[state.currentCity]?.buildingContext?.[state.currentBuilding];
+    renderPersonsList((ctx?.persons?.length > 0) ? ctx.persons : (room?.persons || []));
+  }
+  showToast(nomPnj + ' laissé(e) ici', 'Vous pouvez le/la récupérer à tout moment.' + msgGroupe, false);
 }
 
 function recupererPnjDansGroupe(nomPnj) {
@@ -12697,6 +12727,45 @@ function calculerBonusCombatGroupe() {
     Object.keys(cb).forEach(k => { if (bonus[k] !== undefined) bonus[k] += cb[k]; });
   });
   return bonus;
+}
+
+
+
+// =====================
+// REMPLAÇANT PNJ RECRUTÉ
+// =====================
+const PNJ_NOMS_REMPLACEMENT = {
+  serveur:     { republic: ['Marcel Fricassée','Hervé Couverture','Denis Nappe','Robert Plateau'], narco: ['Carlos Servicio','Miguel Plato','Juan Mesa','Pedro Vino'], soviet: ['Igor Traktir','Boris Bufet','Alexei Stol','Dmitri Stolovaya'], khalija: ['Hamid Khadim','Samir Sofra','Tariq Khidma','Walid Sufra'] },
+  barman:      { republic: ['Gérard Cocktail','Philippe Mojito','Bernard Whisky','Alain Pression'], narco: ['Chuy Tequila','Nacho Mezcal','Beto Cerveza','Lalo Pulque'], soviet: ['Vadim Vodka','Yuri Stakan','Pavel Naliv','Kostya Bochka'], khalija: ['Rashid Chai','Karim Qahwa','Nasser Shay','Ziad Ahwa'] },
+  hotelier:    { republic: ['Édouard Velours','Gaston Parquet','Maurice Couloir','Lucien Clef'], narco: ['Roberto Lujoso','Ernesto Suite','Alfonso Lobby','Gonzalo Hall'], soviet: ['Anatoly Gostinitsa','Viktor Nomer','Semyon Klyuch','Filipp Etazh'], khalija: ['Khalid Funduq','Mazen Ghurfa','Jamal Miftah','Faris Rudha'] },
+  escort:      { republic: ['Sophie Élégance','Camille Velours','Laure Minuit','Clara Prestige'], narco: ['Lola Discreta','Carmen Sombra','Rosa Secreto','Valentina Poder'], soviet: ['Natasha Nuit','Olga Privilege','Irina Tayna','Vera Noch'], khalija: ['Yasmin Sirr','Fatima Layl','Noor Khafia','Hana Majd'] },
+  default:     { republic: ['Jean Quelconque','Pierre Dudule','Henri Tartempion','Louis Machin'], narco: ['José Cualquiera','Manuel Fulano','Diego Mengano','Ramón Perengano'], soviet: ['Ivan Prostoy','Nikita Obychny','Georgy Ryad','Sasha Prosto'], khalija: ['Ali Adi','Omar Aadi','Hassan Adi','Youssef Basit'] },
+};
+
+function genererPnjRemplacant(pnjOriginal, employe) {
+  const job = pnjOriginal.job || 'default';
+  const pays = state.country || 'republic';
+  const nomsDispos = (PNJ_NOMS_REMPLACEMENT[job] || PNJ_NOMS_REMPLACEMENT.default)[pays] || PNJ_NOMS_REMPLACEMENT.default.republic;
+  const nomOriginal = employe.nom;
+  const candidats = nomsDispos.filter(n => n !== nomOriginal);
+  const nouveauNom = candidats[Math.floor(Math.random() * candidats.length)];
+
+  // Mettre à jour le PNJ dans la room ou buildingContext
+  const world = WORLD[pays];
+  const city = world?.[state.currentCity];
+  const ctx = city?.buildingContext?.[state.currentBuilding];
+  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+
+  const sources = [];
+  if (ctx?.persons) sources.push(ctx.persons);
+  if (room?.persons) sources.push(room.persons);
+
+  sources.forEach(list => {
+    const idx = list.findIndex(p => p.name === pnjOriginal.name);
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], name: nouveauNom + ' (PNJ)' };
+    }
+  });
 }
 
 
