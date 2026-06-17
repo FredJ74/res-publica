@@ -427,6 +427,7 @@ function enterBuilding(buildingId) {
   }
 
   state.currentBuilding = buildingId;
+  deplacerGroupeAvecPj(buildingId, null, state.currentCity);
 
   // Générer PNJ aléatoire si terrain à bâtir
   if (buildingId?.startsWith('terrain-a-batir')) {
@@ -495,6 +496,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (!room) return;
 
   state.currentRoom = roomId;
+  deplacerGroupeAvecPj(buildingId, roomId, state.currentCity);
 
   // Update tabs
   if (tabEl) {
@@ -12193,6 +12195,16 @@ function confirmerRecrutementEscort(nomEscort, tarif) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('modal-postes').classList.remove('open');
 
+  // Vérifier doublon
+  if ((state.employes || []).some(e => e.job === 'escort')) {
+    showToast('Escort déjà recrutée', 'Vous avez déjà une escort dans votre groupe.', false);
+    return;
+  }
+  if ((state.employes || []).length >= MAX_EMPLOYES) {
+    showToast('Limite atteinte', 'Maximum ' + MAX_EMPLOYES + ' employés.', false);
+    return;
+  }
+
   if (state.arg < tarif) {
     showToast('Fonds insuffisants', tarif + ' ' + cur + ' requis pour la première heure.', false);
     return;
@@ -12206,6 +12218,27 @@ function confirmerRecrutementEscort(nomEscort, tarif) {
   // Enregistrer l'escort active
   if (!state.escortActive) state.escortActive = [];
   state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1 });
+
+  // Ajouter dans state.employes pour affichage panel
+  if (!state.employes) state.employes = [];
+  const escortPhotos = {
+    republic: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-republic.png',
+    narco:    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-narco.png',
+    soviet:   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-soviet.png',
+    khalija:  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-khalija.png',
+  };
+  state.employes.push({
+    nom: nomEscort, role: 'Escort de luxe', job: 'escort',
+    photoUrl: escortPhotos[state.country] || '',
+    photoPos: '50% 10%',
+    cout: tarif, inGroupe: true,
+    buildingId: state.currentBuilding,
+    roomId: state.currentRoom,
+    city: state.currentCity,
+    depuis: state.day || 1,
+    stats: typeof PNJ_STATS_PAR_JOB !== 'undefined' ? PNJ_STATS_PAR_JOB.escort : {}
+  });
+  renderEmployesPanel();
 
   // Générer une remplaçante dans la pièce
   const remplacantes = ['Sophia Midnight', 'Elena Prestige', 'Camille Discrétion', 'Nina Velours'];
@@ -12518,9 +12551,16 @@ function renderEmployesPanel() {
   const employes = getEmployes();
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
+  const panel = document.getElementById('employes-panel');
   if (employes.length === 0) {
     el.innerHTML = '<div style="font-size:.72rem;color:#3a3020;font-style:italic;padding:.3rem 0">Aucun employé</div>';
     return;
+  }
+  // Ouvrir le panel automatiquement si employés présents
+  if (panel && panel.style.display === 'none') {
+    panel.style.display = 'block';
+    const chev = document.getElementById('emp-chevron');
+    if (chev) chev.style.transform = 'rotate(90deg)';
   }
 
   el.innerHTML = employes.map(emp => {
