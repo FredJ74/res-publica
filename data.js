@@ -862,6 +862,67 @@ const WORLD = {
 // =====================
 // BUILDINGS DEFINITION
 // =====================
+
+// =====================
+// V31 — STATS PNJ PAR JOB (valeurs par défaut)
+// =====================
+const PNJ_STATS_PAR_JOB = {
+  // FOR=Force/combat, CHA=Charisme, DUP=Duplicité, INT=Intelligence, loyaute=0-100
+  serveur:          { FOR:2,  CHA:6,  DUP:4,  INT:5,  loyaute:50, recrutCout:100,  recrutLabel:'Serveur',         combatBonus:{ moral:2 } },
+  hotelier:         { FOR:2,  CHA:7,  DUP:5,  INT:6,  loyaute:55, recrutCout:150,  recrutLabel:'Hôtelier',        combatBonus:{ moral:2 } },
+  barman:           { FOR:4,  CHA:7,  DUP:5,  INT:6,  loyaute:40, recrutCout:120,  recrutLabel:'Barman',          combatBonus:{ inf:3 } },
+  escort:           { FOR:2,  CHA:10, DUP:8,  INT:7,  loyaute:25, recrutCout:500,  recrutLabel:'Escort',          combatBonus:{ dis:-5, inf:5 } },
+  commissaire:      { FOR:7,  CHA:5,  DUP:6,  INT:7,  loyaute:65, recrutCout:800,  recrutLabel:'Commissaire',     combatBonus:{ dis:-10 } },
+  policier:         { FOR:8,  CHA:4,  DUP:4,  INT:5,  loyaute:60, recrutCout:400,  recrutLabel:'Policier',        combatBonus:{ for:5 } },
+  inspecteur:       { FOR:6,  CHA:5,  DUP:5,  INT:8,  loyaute:55, recrutCout:600,  recrutLabel:'Inspecteur',      combatBonus:{ inf:5 } },
+  militaire:        { FOR:9,  CHA:4,  DUP:3,  INT:5,  loyaute:80, recrutCout:500,  recrutLabel:'Militaire',       combatBonus:{ for:8 } },
+  soldat:           { FOR:8,  CHA:3,  DUP:3,  INT:4,  loyaute:75, recrutCout:300,  recrutLabel:'Soldat',          combatBonus:{ for:6 } },
+  garde:            { FOR:9,  CHA:3,  DUP:3,  INT:4,  loyaute:80, recrutCout:350,  recrutLabel:'Garde du corps',  combatBonus:{ for:7 } },
+  general:          { FOR:8,  CHA:7,  DUP:5,  INT:8,  loyaute:70, recrutCout:2000, recrutLabel:'Général',         combatBonus:{ for:10, inf:5 } },
+  journaliste:      { FOR:2,  CHA:7,  DUP:6,  INT:8,  loyaute:35, recrutCout:400,  recrutLabel:'Journaliste',     combatBonus:{ pop:5, inf:5 } },
+  redacteur:        { FOR:2,  CHA:6,  DUP:6,  INT:8,  loyaute:40, recrutCout:350,  recrutLabel:'Rédacteur',       combatBonus:{ inf:5 } },
+  medecin:          { FOR:2,  CHA:7,  DUP:4,  INT:9,  loyaute:60, recrutCout:800,  recrutLabel:'Médecin',         combatBonus:{ hp:15 } },
+  infirmier:        { FOR:3,  CHA:6,  DUP:3,  INT:7,  loyaute:55, recrutCout:300,  recrutLabel:'Infirmier',       combatBonus:{ hp:8 } },
+  avocat:           { FOR:2,  CHA:8,  DUP:7,  INT:9,  loyaute:45, recrutCout:1000, recrutLabel:'Avocat',          combatBonus:{ dis:8 } },
+  juge:             { FOR:2,  CHA:6,  DUP:5,  INT:9,  loyaute:65, recrutCout:2000, recrutLabel:'Juge',            combatBonus:{ dis:10 } },
+  banquier:         { FOR:2,  CHA:7,  DUP:7,  INT:9,  loyaute:50, recrutCout:1500, recrutLabel:'Banquier',        combatBonus:{ arg:500 } },
+  commercant:       { FOR:3,  CHA:7,  DUP:6,  INT:6,  loyaute:40, recrutCout:200,  recrutLabel:'Commerçant',      combatBonus:{ pop:3 } },
+  marchande:        { FOR:3,  CHA:7,  DUP:5,  INT:6,  loyaute:45, recrutCout:150,  recrutLabel:'Marchande',       combatBonus:{ inf:3 } },
+  journaliste:      { FOR:2,  CHA:7,  DUP:6,  INT:8,  loyaute:35, recrutCout:400,  recrutLabel:'Journaliste',     combatBonus:{ pop:5, inf:5 } },
+  professeur:       { FOR:2,  CHA:6,  DUP:4,  INT:10, loyaute:55, recrutCout:500,  recrutLabel:'Professeur',      combatBonus:{ inf:6 } },
+  syndicaliste:     { FOR:5,  CHA:8,  DUP:5,  INT:7,  loyaute:50, recrutCout:300,  recrutLabel:'Syndicaliste',    combatBonus:{ pop:8 } },
+  loge:             { FOR:3,  CHA:7,  DUP:8,  INT:8,  loyaute:60, recrutCout:1000, recrutLabel:'Membre de Loge',  combatBonus:{ inf:8, dis:5 } },
+  venerable:        { FOR:2,  CHA:8,  DUP:8,  INT:9,  loyaute:70, recrutCout:2000, recrutLabel:'Vénérable',       combatBonus:{ inf:12, dis:8 } },
+  grand_pretre:     { FOR:2,  CHA:9,  DUP:6,  INT:8,  loyaute:65, recrutCout:1500, recrutLabel:'Grand Prêtre',    combatBonus:{ moral:10, pop:8 } },
+  douanier:         { FOR:5,  CHA:4,  DUP:6,  INT:5,  loyaute:45, recrutCout:300,  recrutLabel:'Douanier',        combatBonus:{ dis:5 } },
+  docker:           { FOR:8,  CHA:4,  DUP:3,  INT:4,  loyaute:50, recrutCout:200,  recrutLabel:'Docker',          combatBonus:{ for:6 } },
+  portier:          { FOR:7,  CHA:5,  DUP:3,  INT:4,  loyaute:65, recrutCout:250,  recrutLabel:'Portier',         combatBonus:{ for:5 } },
+  secretaire:       { FOR:2,  CHA:7,  DUP:5,  INT:8,  loyaute:55, recrutCout:400,  recrutLabel:'Secrétaire',      combatBonus:{ inf:6 } },
+  lobbyiste:        { FOR:2,  CHA:8,  DUP:8,  INT:7,  loyaute:30, recrutCout:800,  recrutLabel:'Lobbyiste',       combatBonus:{ inf:6, pop:4 } },
+  hotesse:          { FOR:2,  CHA:8,  DUP:5,  INT:6,  loyaute:45, recrutCout:200,  recrutLabel:'Hôtesse',         combatBonus:{ cha:4 } },
+  default:          { FOR:3,  CHA:5,  DUP:4,  INT:5,  loyaute:45, recrutCout:150,  recrutLabel:'PNJ',             combatBonus:{} },
+};
+
+// Stats spécifiques pour PNJ nommés (surcharge les valeurs du job)
+const PNJ_STATS_NOMMES = {
+  'Roxane Velours':         { FOR:2,  CHA:10, DUP:9,  INT:8,  loyaute:20 },
+  'Marco (Barman)':         { FOR:5,  CHA:8,  DUP:6,  INT:7,  loyaute:45 },
+  'Hans Von Discret':       { FOR:2,  CHA:7,  DUP:9,  INT:10, loyaute:70 },
+  'Frère Jacques D\'Equerre': { FOR:3, CHA:8, DUP:8, INT:9,  loyaute:75 },
+  'Raoul Toufaud':          { FOR:6,  CHA:6,  DUP:7,  INT:7,  loyaute:60 },
+  'Brigitte Menottes':      { FOR:7,  CHA:6,  DUP:5,  INT:8,  loyaute:65 },
+  'Docteur Bistouri':       { FOR:2,  CHA:7,  DUP:4,  INT:10, loyaute:65 },
+  'Ginette Légume':         { FOR:3,  CHA:8,  DUP:6,  INT:6,  loyaute:40 },
+  'Jean-Pierre Bidoche':    { FOR:5,  CHA:6,  DUP:5,  INT:5,  loyaute:50 },
+};
+
+function getPnjStats(pnj) {
+  const nomCourt = (pnj.name || '').replace(' (PNJ)', '').trim();
+  const statsNom = PNJ_STATS_NOMMES[nomCourt];
+  const statsJob = PNJ_STATS_PAR_JOB[pnj.job || 'default'] || PNJ_STATS_PAR_JOB.default;
+  return { ...statsJob, ...(statsNom || {}) };
+}
+
 const BUILDINGS = {
 
   // ---- HOTEL-RESTAURANT LA REPUBLICA ----

@@ -20,6 +20,9 @@ let state = {
   inventory: [],
   poste: null,
   employees: [],
+  employes: [],
+  escortActive: [],
+  tracesEnquete: [],
   dernierDormir: 0
 };
 
@@ -1532,6 +1535,23 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj(\'' + enc + '\', \'confrontation\')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
   }
 
+
+  // Recruter comme employé (tous PNJ sauf escort qui a son propre bouton)
+  if (!isPJ && pnj.job !== 'escort') {
+    const nomCourt = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
+    const dejEmploye = (state.employes || []).some(e => e.nom === nomCourt);
+    if (!dejEmploye) {
+      actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalRecrutPnj(\'' + enc + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Recruter comme employé</button>';
+    } else {
+      const empData = (state.employes || []).find(e => e.nom === nomCourt);
+      if (empData && !empData.inGroupe && empData.buildingId === state.currentBuilding && empData.roomId === state.currentRoom) {
+        actionBtns += '<button class="pnj-action-btn" onclick="recupererPnjDansGroupe(\'' + nomCourt + '\')"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre le groupe</button>';
+      }
+      if (empData && empData.inGroupe) {
+        actionBtns += '<button class="pnj-action-btn" onclick="laisserPnjEnPlace(\'' + nomCourt + '\')"><i class="ti ti-map-pin" style="font-size:.85rem"></i> Laisser ici</button>';
+      }
+    }
+  }
 
   // Recruter escort
   if (pnj.job === 'escort') {
@@ -7154,6 +7174,7 @@ function doDormir() {
   payerLocations();
   // Payer les escorts actives
   payerEscorts();
+  payerEmployes();
 
   // Traiter les evenements nocturnes
   traiterPlaintes();
@@ -10847,6 +10868,15 @@ function renderInventory() {
     '</div>';
   }).join('');
 }
+function toggleSection(panelId, chevronId) {
+  const panel = document.getElementById(panelId);
+  const chev = document.getElementById(chevronId);
+  if (!panel) return;
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
+}
+
 function toggleInventaire() {
   const panel = document.getElementById('inventaire-panel');
   const chevron = document.getElementById('inv-chevron');
@@ -10867,6 +10897,7 @@ function updateUI() {
   const cur = state.char ? (COUNTRIES[state.char.country]?.cur || 'FR') : 'FR';
   // Sauvegarde auto Supabase
   if (typeof sbAutoSave === 'function' && state?.char?.name) sbAutoSave();
+  renderEmployesPanel();
   // Sauvegarde localStorage — sync état complet
   if (state.char?.name) {
     state.char.poste       = state.poste || null;
@@ -12228,6 +12259,354 @@ function payerEscorts() {
   });
 
   toRemove.reverse().forEach(i => state.escortActive.splice(i, 1));
+}
+
+
+
+// =====================
+// V31 — SYSTÈME DE GROUPE & EMPLOYÉS PNJ
+// =====================
+
+const MAX_EMPLOYES = 10;
+
+function getEmployes() {
+  if (!state.employes) state.employes = [];
+  return state.employes;
+}
+
+function isEmploye(nomPnj) {
+  return getEmployes().some(e => e.nom === nomPnj);
+}
+
+function isInGroupe(nomPnj) {
+  return getEmployes().some(e => e.nom === nomPnj && e.inGroupe);
+}
+
+// =====================
+// RECRUTER UN PNJ
+// =====================
+function ouvrirModalRecrutPnj(encodedPnj) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+
+  const nomCourt = pnj.name.replace(' (PNJ)', '');
+  if (isEmploye(nomCourt)) {
+    showToast('Déjà employé', nomCourt + ' travaille déjà pour vous.', false);
+    return;
+  }
+  if (getEmployes().length >= MAX_EMPLOYES) {
+    showToast('Limite atteinte', 'Vous ne pouvez pas recruter plus de ' + MAX_EMPLOYES + ' PNJ simultanément.', false);
+    return;
+  }
+
+  const stats = getPnjStats(pnj);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cout = pnj.job === 'escort' ? 500 : (stats.recrutCout || 150);
+
+  document.getElementById('postes-modal-title').textContent = 'Recruter — ' + nomCourt;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' +
+      (pnj.trait || 'Un PNJ disponible pour vos missions.') +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem;margin-bottom:.7rem">' +
+      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.55rem;color:#4a4030">FOR</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.FOR + '</div></div>' +
+      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.55rem;color:#4a4030">CHA</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.CHA + '</div></div>' +
+      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.55rem;color:#4a4030">DUP</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.DUP + '</div></div>' +
+      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.55rem;color:#4a4030">LOY</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.loyaute + '</div></div>' +
+    '</div>' +
+    '<div style="font-size:.72rem;color:#6a5030;margin-bottom:.7rem">Coût : <strong style="color:#C9A84C">' + cout + ' ' + cur + '/jour</strong> · ' + (MAX_EMPLOYES - getEmployes().length) + ' place(s) restante(s)</div>' +
+    '<button onclick="confirmerRecrutPnj(\'' + encodeURIComponent(JSON.stringify(pnj)) + '\',' + cout + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerRecrutPnj(encodedPnj, cout) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+
+  const nomCourt = pnj.name.replace(' (PNJ)', '');
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (state.arg < cout) {
+    showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false);
+    return;
+  }
+  if (getEmployes().length >= MAX_EMPLOYES) {
+    showToast('Limite atteinte', 'Maximum ' + MAX_EMPLOYES + ' PNJ.', false);
+    return;
+  }
+
+  state.arg -= cout;
+
+  const stats = getPnjStats(pnj);
+  const employe = {
+    nom: nomCourt,
+    nomComplet: pnj.name,
+    role: pnj.role || '',
+    job: pnj.job || 'default',
+    photoUrl: pnj.photoUrl || '',
+    photoPos: pnj.photoPos || '50% 15%',
+    stats,
+    cout,
+    inGroupe: true,
+    buildingId: state.currentBuilding,
+    roomId: state.currentRoom,
+    city: state.currentCity,
+    depuis: state.day || 1,
+  };
+
+  state.employes.push(employe);
+  updateUI();
+  renderEmployesPanel();
+
+  showToast(nomCourt + ' recruté(e) !', '-' + cout + ' ' + cur + '/jour. Il/elle rejoint votre groupe.', true);
+  addJournalEntry('Recrutement : ' + nomCourt + ' (' + (pnj.role||'PNJ') + '). -' + cout + ' ' + cur + '/jour.', 'event-good');
+
+  // Trace enquête
+  if (!state.tracesEnquete) state.tracesEnquete = [];
+  state.tracesEnquete.push({
+    type: 'recrutement_pnj',
+    desc: (state.char?.name||'Anonyme') + ' a recruté ' + nomCourt + '.',
+    jour: state.day || 1,
+    expireJour: (state.day || 1) + 10
+  });
+}
+
+// =====================
+// PAIEMENT DES EMPLOYÉS AU RÉVEIL
+// =====================
+function payerEmployes() {
+  const employes = getEmployes();
+  if (employes.length === 0) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const toFire = [];
+
+  employes.forEach((emp, i) => {
+    if (state.arg >= emp.cout) {
+      state.arg -= emp.cout;
+      addJournalEntry('Salaire ' + emp.nom + '. -' + emp.cout + ' ' + cur + '.', 'event-info');
+    } else {
+      toFire.push(i);
+      addMailNotification('Ressources Humaines', emp.nom + ' a quitté votre service',
+        emp.nom + ' n\'a pas été payé(e). Il/elle quitte votre groupe immédiatement.');
+      addJournalEntry(emp.nom + ' non payé(e). Départ.', 'event-bad');
+      showToast('Départ de ' + emp.nom, 'Fonds insuffisants. -1 employé.', false);
+    }
+  });
+
+  toFire.reverse().forEach(i => state.employes.splice(i, 1));
+}
+
+// =====================
+// LAISSER UN PNJ EN PLACE / RÉCUPÉRER
+// =====================
+function laisserPnjEnPlace(nomPnj) {
+  const emp = getEmployes().find(e => e.nom === nomPnj);
+  if (!emp) return;
+  emp.inGroupe = false;
+  emp.buildingId = state.currentBuilding;
+  emp.roomId = state.currentRoom;
+  emp.city = state.currentCity;
+  updateUI();
+  renderEmployesPanel();
+  showToast(nomPnj + ' laissé(e) ici', 'Il/elle reste dans cette pièce. Vous pouvez le/la récupérer.', false);
+}
+
+function recupererPnjDansGroupe(nomPnj) {
+  const emp = getEmployes().find(e => e.nom === nomPnj);
+  if (!emp) return;
+  // Vérifier que le PJ est dans la même pièce
+  if (emp.buildingId !== state.currentBuilding || emp.roomId !== state.currentRoom) {
+    showToast('Absent(e)', nomPnj + ' n\'est pas dans cette pièce.', false);
+    return;
+  }
+  emp.inGroupe = true;
+  updateUI();
+  renderEmployesPanel();
+  showToast(nomPnj + ' rejoint le groupe !', '', true);
+}
+
+function licencierPnj(nomPnj) {
+  const idx = state.employes?.findIndex(e => e.nom === nomPnj);
+  if (idx < 0) return;
+  state.employes.splice(idx, 1);
+  updateUI();
+  renderEmployesPanel();
+  showToast(nomPnj + ' licencié(e)', 'Il/elle retourne à ses activités.', false);
+  addJournalEntry('Licenciement : ' + nomPnj + '.', 'event-info');
+}
+
+// =====================
+// DÉBAUCHAGE PAR UN AUTRE PJ
+// =====================
+function tentativeDebauchage(nomPnj) {
+  const emp = getEmployes ? null : null; // cherche dans state global
+  // Cette fonction sera appelée depuis le modal PNJ d'un PNJ qui appartient à un autre PJ
+  // Pour l'instant on ouvre un modal de confirmation
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Débaucher ' + nomPnj;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem">Tenter de débaucher ce PNJ. Le résultat dépend de vos statistiques, de celles du PNJ, et de celles de son employeur actuel.</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">POT-DE-VIN (' + cur + ')</div>' +
+    '<input id="debauche-montant" type="number" min="100" step="100" placeholder="Ex: 500" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.7rem"/>' +
+    '<button onclick="confirmerDebauchage(\'' + nomPnj.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Tenter le débauchage</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerDebauchage(nomPnj) {
+  const montant = parseInt(document.getElementById('debauche-montant')?.value || 0);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (!montant || montant < 100) { showToast('Montant insuffisant', 'Minimum 100 ' + cur + '.', false); return; }
+  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
+
+  state.arg -= montant;
+
+  // Stats du débaucheur
+  const chaDeb = state.char?.stats?.CHA || 8;
+  const infDeb = state.inf || 30;
+
+  // On simule les stats du PNJ et de l'employeur (inconnu côté client)
+  // En multiplayer réel, on irait chercher dans Supabase
+  const loyaute = 50; // valeur simulée
+  const chaEmp = 8;   // employeur simulé
+  const infEmp = 30;
+
+  // Jet complexe
+  const scoreDebauche = Math.floor(chaDeb * 3) + Math.floor(infDeb / 5) + Math.floor(montant / 100);
+  const scoreDefense = Math.floor(loyaute * 1.5) + Math.floor(chaEmp * 2) + Math.floor(infEmp / 5);
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const taux = Math.min(70, Math.max(10, 35 + scoreDebauche - scoreDefense));
+
+  if (roll <= taux) {
+    // Succès — le PNJ change d'employeur
+    if (!state.employes) state.employes = [];
+    state.employes.push({
+      nom: nomPnj, role: 'PNJ débauché', job: 'default',
+      cout: Math.floor(montant / 3), inGroupe: true,
+      buildingId: state.currentBuilding, roomId: state.currentRoom,
+      city: state.currentCity, depuis: state.day || 1,
+      stats: PNJ_STATS_PAR_JOB.default,
+    });
+    updateUI();
+    renderEmployesPanel();
+    showToast('Débauchage réussi !', nomPnj + ' rejoint votre groupe. -' + montant + ' ' + cur, true);
+    addJournalEntry('Débauchage réussi : ' + nomPnj + '.', 'event-good');
+    addExternalEvent('💼 ' + nomPnj + ' a changé d\'employeur !');
+  } else {
+    // Échec — l'employeur est notifié
+    updateUI();
+    showToast('Débauchage raté', '-' + montant + ' ' + cur + ' perdus. L\'employeur a été informé.', false);
+    addJournalEntry('Débauchage raté de ' + nomPnj + '. -' + montant + ' ' + cur + '.', 'event-bad');
+    // Notification à l'employeur (via Supabase en multijoueur)
+    addExternalEvent('⚠️ Quelqu\'un a tenté de débaucher ' + nomPnj + ' !');
+  }
+}
+
+// =====================
+// AFFICHAGE PANEL EMPLOYÉS
+// =====================
+function renderEmployesPanel() {
+  const el = document.getElementById('employes-list');
+  if (!el) return;
+  const employes = getEmployes();
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  if (employes.length === 0) {
+    el.innerHTML = '<div style="font-size:.72rem;color:#3a3020;font-style:italic;padding:.3rem 0">Aucun employé</div>';
+    return;
+  }
+
+  el.innerHTML = employes.map(emp => {
+    const avatar = emp.photoUrl
+      ? '<img src="' + emp.photoUrl + '" style="width:28px;height:28px;border-radius:50%;object-fit:cover;object-position:' + (emp.photoPos||'50% 15%') + ';border:1px solid ' + (emp.inGroupe ? '#C9A84C' : '#3a2a10') + ';flex-shrink:0"/>'
+      : '<div style="width:28px;height:28px;border-radius:50%;background:#1a1208;display:flex;align-items:center;justify-content:center;border:1px solid ' + (emp.inGroupe ? '#C9A84C' : '#2a1a08') + ';flex-shrink:0"><i class="ti ti-user" style="font-size:.7rem;color:#8a6a20"></i></div>';
+
+    return '<div style="display:flex;align-items:center;gap:.4rem;padding:.3rem 0;border-bottom:1px solid #1a1208">' +
+      avatar +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:.72rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + emp.nom + '</div>' +
+        '<div style="font-size:.6rem;color:#4a4030">' + (emp.inGroupe ? '🟢 En groupe' : '📍 En faction') + ' · ' + emp.cout + ' ' + cur + '/j</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:.2rem">' +
+        (emp.inGroupe
+          ? '<button onclick="laisserPnjEnPlace(\'' + emp.nom.replace(/'/g,'') + '\')" title="Laisser ici" style="background:none;border:1px solid #2a3a2a;color:#4a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">📍</button>'
+          : '<button onclick="recupererPnjDansGroupe(\'' + emp.nom.replace(/'/g,'') + '\')" title="Récupérer" style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">🔄</button>'
+        ) +
+        '<button onclick="licencierPnj(\'' + emp.nom.replace(/'/g,'') + '\')" title="Licencier" style="background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// =====================
+// DÉPLACEMENT — PNJ en groupe suivent le PJ
+// =====================
+function deplacerGroupeAvecPj(buildingId, roomId, cityId) {
+  const employes = getEmployes();
+  employes.forEach(emp => {
+    if (emp.inGroupe) {
+      emp.buildingId = buildingId;
+      emp.roomId = roomId;
+      emp.city = cityId || state.currentCity;
+    }
+  });
+}
+
+// =====================
+// AFFICHAGE GROUPE DANS LA PIÈCE
+// =====================
+function getGroupeHtmlPourPiece(buildingId, roomId) {
+  const employes = getEmployes();
+  const iciGroupe = employes.filter(e => e.inGroupe && e.buildingId === buildingId && e.roomId === roomId);
+  const iciFaction = employes.filter(e => !e.inGroupe && e.buildingId === buildingId && e.roomId === roomId);
+
+  if (iciGroupe.length === 0 && iciFaction.length === 0) return '';
+
+  const renderEmp = (emp, inGroupe) =>
+    '<div style="display:flex;align-items:center;gap:.4rem;padding:.25rem 0">' +
+    (emp.photoUrl
+      ? '<img src="' + emp.photoUrl + '" style="width:24px;height:24px;border-radius:50%;object-fit:cover;object-position:' + (emp.photoPos||'50% 15%') + ';border:1px solid ' + (inGroupe ? '#C9A84C' : '#3a2a10') + '"/>'
+      : '<div style="width:24px;height:24px;border-radius:50%;background:#1a1208;border:1px solid ' + (inGroupe ? '#C9A84C':'#2a1a08') + ';display:flex;align-items:center;justify-content:center"><i class="ti ti-user" style="font-size:.65rem;color:#8a6a20"></i></div>'
+    ) +
+    '<div>' +
+      '<div style="font-size:.68rem;color:#c0b090">' + emp.nom + '</div>' +
+      '<div style="font-size:.58rem;color:#4a4030">' + (emp.role||'Employé') + (inGroupe ? ' · Groupe' : ' · Ici') + '</div>' +
+    '</div></div>';
+
+  let html = '';
+
+  if (iciGroupe.length > 0) {
+    html += '<div style="border:1px solid #4a3a10;background:#0d0a03;padding:.4rem .6rem;margin-bottom:.4rem;border-radius:2px">' +
+      '<div style="font-size:.6rem;font-family:Bebas Neue;letter-spacing:.1em;color:#8a6a20;margin-bottom:.2rem">VOTRE GROUPE</div>' +
+      iciGroupe.map(e => renderEmp(e, true)).join('') +
+    '</div>';
+  }
+
+  if (iciFaction.length > 0) {
+    html += iciFaction.map(e => renderEmp(e, false)).join('');
+  }
+
+  return html;
+}
+
+// =====================
+// BONUS COMBAT avec PNJ
+// =====================
+function calculerBonusCombatGroupe() {
+  const employes = getEmployes().filter(e => e.inGroupe);
+  const bonus = { for: 0, hp: 0, pop: 0, inf: 0, dis: 0, moral: 0, arg: 0 };
+  employes.forEach(emp => {
+    const cb = emp.stats?.combatBonus || {};
+    Object.keys(cb).forEach(k => { if (bonus[k] !== undefined) bonus[k] += cb[k]; });
+  });
+  return bonus;
 }
 
 
