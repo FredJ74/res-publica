@@ -106,7 +106,7 @@ const WORLD = {
         'hotel-republica': {
           name: "Hôtel-Restaurant La Républia",
           desc: "Le grand hôtel de Luthecia. Gaston Sauceblanche règne sur la salle avec un mépris souverain.",
-          persons: [{"name": "Gaston Sauceblanche (PNJ)", "role": "Maître d'hôtel", "rel": "neutral", "job": "serveur"}, {"name": "Yvette Gratinée (PNJ)", "role": "Serveuse", "rel": "neutral", "job": "serveur"}]
+          persons: [{"name": "Gaston Sauceblanche (PNJ)", "role": "Maître d'hôtel", "rel": "neutral", "job": "serveur", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gaston-sauceblanche.png", "photoPos": "50% 15%"}, {"name": "Yvette Gratinée (PNJ)", "role": "Serveuse", "rel": "neutral", "job": "serveur", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/yvette-gratinee.png", "photoPos": "50% 15%"}]
         },
         'commissariat': {
           name: "Commissariat Central de Luthecia",
@@ -914,6 +914,10 @@ const PNJ_STATS_NOMMES = {
   'Docteur Bistouri':       { FOR:2,  CHA:7,  DUP:4,  INT:10, loyaute:65 },
   'Ginette Légume':         { FOR:3,  CHA:8,  DUP:6,  INT:6,  loyaute:40 },
   'Jean-Pierre Bidoche':    { FOR:5,  CHA:6,  DUP:5,  INT:5,  loyaute:50 },
+  'Gaston Sauceblanche':    { FOR:3,  CHA:8,  DUP:6,  INT:7,  loyaute:55, recrutCout:120 },
+  'Yvette Gratinée':        { FOR:2,  CHA:8,  DUP:5,  INT:6,  loyaute:50, recrutCout:100 },
+  'Jean Dupont':            { FOR:2,  CHA:7,  DUP:6,  INT:8,  loyaute:45, recrutCout:300 },
+  'Marie Leblanc':          { FOR:2,  CHA:8,  DUP:7,  INT:9,  loyaute:30, recrutCout:400 },
 };
 
 function getPnjStats(pnj) {
@@ -957,9 +961,9 @@ const BUILDINGS = {
         desc: "La salle de restaurant est bondee le midi. Tables discretes en fond de salle pour conversations privees.",
         imageUrl: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80",
         persons: [
-          {name:'Paulo (Maitre d\'hotel)', role:'PNJ - Service', rel:'neutral', job:'serveur'},
-          {name:'Jean Dupont',            role:'Depute - Parti du Centre', rel:'neutral', job:null},
-          {name:'Marie Leblanc',          role:'Journaliste - La Tribune', rel:'enemy', job:null}
+          {name:'Paulo (Maitre d\'hotel)', role:'PNJ - Service', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gaston-sauceblanche.png', photoPos:'50% 15%'},
+          {name:'Jean Dupont (PNJ)',       role:'Depute - Parti du Centre', rel:'neutral', job:'commercant', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'20% 30%'},
+          {name:'Marie Leblanc (PNJ)',    role:'Journaliste - La Tribune', rel:'enemy',  job:'journaliste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'70% 30%'}
         ],
         orders: [
           {fn:'se_nourrir',   label:'Se nourrir',          pa:0, cost:25,  type:'legal',  icon:'ti-soup',     successRate:100, desc:'Repas standard. Sante maintenue.'},
