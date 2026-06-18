@@ -6322,7 +6322,16 @@ function closeForumView() {
 }
 
 function buildForumHTML(forumId) {
-  const topics = FORUM_TOPICS[forumId] || [];
+  let topics = FORUM_TOPICS[forumId] || [];
+  // Charger depuis Supabase si forum tribunal
+  if (forumId.startsWith('tribunal_') && typeof sbLoadForumTopics === 'function') {
+    sbLoadForumTopics(forumId).then(rows => {
+      if (rows?.length) {
+        FORUM_TOPICS[forumId] = rows;
+        renderForumTopics(forumId);
+      }
+    }).catch(()=>{});
+  }
   const labels = {
     local:'Forum Local', regional:'Forum Regional', national:'Forum National',
     international:'Forum International', gouv:'Forum Gouvernemental',
@@ -8259,9 +8268,23 @@ function soumettrePlainte() {
   if (!state.plaintesEnCours) state.plaintesEnCours = [];
   state.plaintesEnCours.push({ cible: cibleNom, motif, jour: state.day, status: 'deposee' });
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Plainte deposee !', 'Visible dans le forum "Tribunal de ' + ville + '". Jugement le jeudi.', true, true);
+
+  // Publier sur Supabase dans le forum tribunal
+  const textePost = '**DÉPÔT DE PLAINTE OFFICIEL**\n\nPlaignant : ' + (state.char?.name||'Anonyme') + '\nMis en cause : ' + cibleNom + '\n\nFaits déclarés :\n' + motif + '\n\n_Jugement prévu le prochain jeudi._';
+  const auteur = state.char?.name || 'Anonyme';
+  const heure = 'Jour ' + (state.day||1);
+  if (typeof sbCreateTopic === 'function') {
+    sbCreateTopic(forumKey, '📜 [PLAINTE] ' + auteur + ' c/ ' + cibleNom, auteur, state.country, heure)
+      .then(topicId => {
+        if (topicId && typeof sbCreatePost === 'function') {
+          sbCreatePost(topicId, auteur, textePost, heure);
+        }
+      }).catch(e => console.warn('Erreur forum plainte:', e));
+  }
+
+  showToast('Plainte deposee !', 'Visible dans le forum Tribunal de ' + ville + '. Jugement le jeudi.', true, true);
   addJournalEntry('Plainte deposee contre ' + cibleNom, 'event-info');
-  addExternalEvent('Une plainte a ete deposee contre ' + cibleNom + ' au Tribunal de ' + ville + '.');
+  addExternalEvent('⚖️ Une plainte a ete deposee contre ' + cibleNom + ' au Tribunal de ' + ville + '.');
 }
 
 // =====================
