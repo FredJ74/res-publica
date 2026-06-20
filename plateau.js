@@ -6342,10 +6342,13 @@ function buildForumHTML(forumId) {
 
   // Sidebar forums
   html += '<div style="width:160px;background:#111208;border-right:1px solid #1a1a10;overflow-y:auto;flex-shrink:0">';
+  const tribunalKey = 'tribunal_' + (state.currentCity || 'capitale');
+  const villeNomForum = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const forums = [
     {id:'local',label:'Local'},{id:'regional',label:'Regional'},{id:'national',label:'National'},
     {id:'international',label:'International'},{id:'president',label:'Presidentiel'},
-    {id:'conseil',label:'Conseil Min.'},{id:'gouv',label:'Gouvernemental'},{id:'syndical',label:'Syndical'}
+    {id:'conseil',label:'Conseil Min.'},{id:'gouv',label:'Gouvernemental'},{id:'syndical',label:'Syndical'},
+    {id:tribunalKey,label:'⚖️ Tribunal — ' + villeNomForum}
   ];
   forums.forEach(f => {
     const active = f.id === forumId;
