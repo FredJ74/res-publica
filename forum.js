@@ -3,7 +3,7 @@
    Éditeur riche, mails, emojis
    =========================== */
 
-const FORUMS = {
+const FORUMS_BASE = {
   local:         { name: 'Forum Local',          icon: 'ti-home',          desc: 'Discussions de votre ville', private: false },
   regional:      { name: 'Forum Régional',        icon: 'ti-map',           desc: 'Discussions de votre région', private: false },
   national:      { name: 'Forum National',        icon: 'ti-flag',          desc: 'Débats politiques nationaux', private: false },
@@ -12,6 +12,32 @@ const FORUMS = {
   presse:        { name: 'Presse & Médias',        icon: 'ti-news',          desc: 'Réservé aux journalistes', private: true },
   syndicats:     { name: 'Forum Syndical',         icon: 'ti-users-group',   desc: 'Réservé aux syndicalistes', private: true }
 };
+
+// Getter dynamique — ajoute le forum Tribunal de la ville courante
+function getForums() {
+  const villeId = (typeof state !== 'undefined' && state.currentCity) || 'capitale';
+  const tribunalKey = 'tribunal_' + villeId;
+  const villeNom = (typeof WORLD !== 'undefined' && typeof state !== 'undefined')
+    ? (WORLD[state.country]?.[villeId]?.name || villeId)
+    : villeId;
+  return {
+    ...FORUMS_BASE,
+    [tribunalKey]: { name: '⚖️ Tribunal — ' + villeNom, icon: 'ti-gavel', desc: 'Plaintes et affaires judiciaires de ' + villeNom, private: false }
+  };
+}
+
+// Alias retro-compatible : FORUMS devient un Proxy qui appelle getForums() dynamiquement
+const FORUMS = new Proxy({}, {
+  get(target, prop) {
+    if (prop === Symbol.iterator || typeof prop === 'symbol') return FORUMS_BASE[prop];
+    return getForums()[prop];
+  },
+  ownKeys() { return Object.keys(getForums()); },
+  getOwnPropertyDescriptor(target, prop) {
+    return { enumerable: true, configurable: true, value: getForums()[prop] };
+  },
+  has(target, prop) { return prop in getForums(); }
+});
 
 const FORUM_TOPICS = {
   local: [
