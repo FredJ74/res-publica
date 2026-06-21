@@ -6264,11 +6264,24 @@ function prefillMailTo(name) {
   }, 50);
 }
 
-function sendMail() {
+async function sendMail() {
   const to = document.getElementById('mail-to')?.value?.trim();
   const subject = document.getElementById('mail-subject')?.value?.trim();
   const body = document.getElementById('mail-body')?.value?.trim();
   if (!to || !subject || !body) { showToast('Champs requis', 'Remplissez tous les champs.', false); return; }
+
+  const from = state.char?.name || 'Anonyme';
+  const h = String(state.hour || 8).padStart(2,'0');
+  const time = 'Jour ' + state.day + ' · ' + h + 'h';
+
+  // Envoi reel via Supabase (sinon le destinataire ne recoit jamais rien)
+  if (typeof sbSendMail === 'function') {
+    await sbSendMail(from, to, subject, body, time).catch(() => {});
+  } else {
+    showToast('Erreur', 'Service mail indisponible.', false);
+    return;
+  }
+
   if (!state.sentMails) state.sentMails = [];
   state.sentMails.push({ to, subject, body, day: state.day });
   document.getElementById('mail-to').value = '';
