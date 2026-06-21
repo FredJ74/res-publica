@@ -752,11 +752,16 @@ async function chargerVraisJoueursPresents() {
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
     const html = window._vraisJoueursPresents.map(p => {
       const enc = encodeURIComponent(JSON.stringify(p));
-      return '<div class="person-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid ' + empireCol + '" title="Interagir">' +
+      return '<div class="person-card vrai-joueur-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid ' + empireCol + '" title="Interagir">' +
       '<div class="person-avatar" style="border-color:' + empireCol + '"><i class="ti ti-user" style="font-size:.75rem;color:' + empireCol + '"></i></div>' +
       '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.6rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
       '<div class="person-role">Présent ici</div></div></div>';
     }).join('');
+
+    // Retirer les anciennes cartes joueur avant d'inserer les nouvelles (evite les doublons au rafraichissement)
+    const list0 = document.getElementById('persons-list');
+    if (list0) list0.querySelectorAll('.vrai-joueur-card').forEach(el => el.remove());
+
     if (html) {
       const list = document.getElementById('persons-list');
       const empty = list.querySelector('.person-empty');
