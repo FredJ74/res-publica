@@ -178,6 +178,24 @@ async function sbDeleteMail(mailId) {
   return sbDelete('mails', `id=eq.${encodeURIComponent(mailId)}`);
 }
 
+
+// =====================
+// ÉVÉNEMENTS GLOBAUX (journal partagé entre joueurs)
+// =====================
+async function sbAddEvenementGlobal(country, city, texte, jour) {
+  const id = 'evt-' + Date.now();
+  return sbInsert('evenements_globaux', { country, city, texte, jour });
+}
+
+async function sbGetEvenementsRecents(country, city) {
+  // Récupère les événements nationaux (city null) + ceux de la ville courante, 50 derniers
+  const filterCountry = `country=eq.${encodeURIComponent(country)}`;
+  const rows = await sbGet('evenements_globaux', `${filterCountry}&order=created_at.desc&limit=50`);
+  if (!rows) return [];
+  // Filtrer côté client : national (city null) OU ville du joueur
+  return rows.filter(r => !r.city || r.city === city);
+}
+
 // =====================
 // SAUVEGARDE AUTO
 // =====================

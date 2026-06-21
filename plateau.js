@@ -70,6 +70,10 @@ window.addEventListener('DOMContentLoaded', () => {
   verifierNouveauxMails();
   setInterval(verifierNouveauxMails, 120000);
 
+  // Événements partagés (journal global) — au chargement puis toutes les 90 secondes
+  setTimeout(() => chargerEvenementsPartages(), 1500);
+  setInterval(chargerEvenementsPartages, 90000);
+
   // Séquence de chargement espacée pour éviter les conflits de modaux
   setTimeout(() => genererMeteoPolitique(), 1000);
   setTimeout(() => genererEvenementAleatoire(), 3000);
@@ -6181,7 +6185,7 @@ function sendMail() {
 
 function readMail(index) { readMailInView(index); }
 
-function addExternalEvent(text) {
+function addExternalEvent(text, scope) {
   const j = document.getElementById('journal');
   const h = String(state.hour).padStart(2,'0');
   const m = String(state.minute||0).padStart(2,'0');
@@ -6193,6 +6197,37 @@ function addExternalEvent(text) {
     <span class="journal-text event-external"><strong>${text}</strong></span>
   `;
   j.insertBefore(div, j.firstChild);
+
+  // Partager via Supabase — scope 'local' = visible uniquement dans la ville courante, sinon national
+  if (typeof sbAddEvenementGlobal === 'function') {
+    const city = scope === 'local' ? (state.currentCity || null) : null;
+    sbAddEvenementGlobal(state.country || 'republic', city, text, state.day || 1).catch(() => {});
+  }
+}
+
+// Charger les événements partagés depuis Supabase et les insérer dans le journal local
+let _evenementsCharges = new Set();
+async function chargerEvenementsPartages() {
+  if (typeof sbGetEvenementsRecents !== 'function') return;
+  try {
+    const rows = await sbGetEvenementsRecents(state.country || 'republic', state.currentCity || 'capitale');
+    if (!rows || rows.length === 0) return;
+    const j = document.getElementById('journal');
+    if (!j) return;
+    // Trier du plus ancien au plus récent pour insertion cohérente
+    const nouveaux = rows.filter(r => !_evenementsCharges.has(r.id)).sort((a,b) => a.id - b.id);
+    nouveaux.forEach(r => {
+      _evenementsCharges.add(r.id);
+      const div = document.createElement('div');
+      div.className = 'journal-entry journal-external';
+      div.innerHTML = `
+        <span class="journal-time">Jour ${r.jour || '?'}</span>
+        <span class="journal-alert" onclick="this.style.display='none'" title="Cliquer pour marquer comme lu">●</span>
+        <span class="journal-text event-external"><strong>${r.texte}</strong></span>
+      `;
+      j.insertBefore(div, j.firstChild);
+    });
+  } catch(e) { console.warn('chargerEvenementsPartages error', e); }
 }
 
 // Archives police — liste des prisonniers
