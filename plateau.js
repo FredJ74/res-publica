@@ -510,6 +510,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   state.currentRoom = roomId;
   deplacerGroupeAvecPj(buildingId, roomId, state.currentCity);
 
+  // Réinitialiser le cache des vrais joueurs (on change de pièce, l'ancien cache est obsolète)
+  window._vraisJoueursPresents = [];
+
   // Publier sa présence pour que les autres joueurs nous voient (multijoueur temps réel)
   if (typeof sbUpdatePresence === 'function' && state.char?.name) {
     sbUpdatePresence(state.char.name, state.country, state.currentCity, buildingId, roomId).catch(() => {});
@@ -740,13 +743,20 @@ async function chargerVraisJoueursPresents() {
     const presents = await sbGetPresencesInRoom(state.country, state.currentCity, buildingId, roomId);
     if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
     const autres = presents.filter(p => p.name !== moi);
+
+    // Mettre en cache pour getCurrentRoomPersons() (utilisé par assassinat, dons, etc.)
+    window._vraisJoueursPresents = autres.map(p => ({
+      name: p.name, role: 'Joueur', rel: 'neutral', isPJ: true, job: null
+    }));
+
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
-    const html = autres.map(p =>
-      '<div class="person-card" onclick="composerMailPour(\'' + p.name + '\')" style="border-left:2px solid ' + empireCol + '" title="Envoyer un mail">' +
+    const html = window._vraisJoueursPresents.map(p => {
+      const enc = encodeURIComponent(JSON.stringify(p));
+      return '<div class="person-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid ' + empireCol + '" title="Interagir">' +
       '<div class="person-avatar" style="border-color:' + empireCol + '"><i class="ti ti-user" style="font-size:.75rem;color:' + empireCol + '"></i></div>' +
       '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.6rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
-      '<div class="person-role">Présent ici</div></div></div>'
-    ).join('');
+      '<div class="person-role">Présent ici</div></div></div>';
+    }).join('');
     if (html) {
       const list = document.getElementById('persons-list');
       const empty = list.querySelector('.person-empty');
@@ -1559,6 +1569,7 @@ function openPnjModal(encodedPnj) {
       ? '<button class="pnj-action-btn" onclick="rejoindrePJ(decodeURIComponent(\'' + pnjJson + '\'))"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
       : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>');
     actionBtns += '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnjSafeName + '\',\'' + pnjSafeRole + '\',\'' + pnjRel + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
+    actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');composerMailPour(\'' + pnjSafeName + '\')"><i class="ti ti-mail" style="font-size:.85rem"></i> Envoyer un mail</button>';
   }
 
   if (!isPJ) {
@@ -9392,7 +9403,10 @@ function getCurrentRoomPersons() {
   const building = BUILDINGS[state.currentBuilding];
   if (!building) return [];
   const room = building.rooms?.[state.currentRoom];
-  return room?.persons || [];
+  const pnjStatiques = room?.persons || [];
+  // Inclure les vrais joueurs presents (mis en cache par chargerVraisJoueursPresents)
+  const vraisJoueurs = window._vraisJoueursPresents || [];
+  return [...pnjStatiques, ...vraisJoueurs];
 }
 
 // Verifier effacement automatique des crimes
