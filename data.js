@@ -1350,8 +1350,9 @@ const BUILDINGS = {
           {name:'Procureur Saad', role:'Ministere public (PNJ)', rel:'neutral', job:'procureur'}
         ],
         orders: [
-          {fn:'plainte',   label:'Porter plainte',        pa:1, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100},
-          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:75}
+          {fn:'plainte',   label:'Consulter les affaires', pa:0, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir les affaires transmises par la police, en attente de jugement.'},
+          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:75},
+          {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire transmise par le commissariat. Amende, prison, amenagement ou QHS.'}
         ]
       },
       greffe: {

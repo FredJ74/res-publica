@@ -5080,12 +5080,14 @@ function traiterPlaintes() {
       result = `Classement sans suite. La plainte contre ${p.cible} n'a pas abouti.`;
     } else if (roll < 75) {
       result = `Ouverture d'une enquete concernant ${p.cible}. Conclusions dans 24h.`;
-      // Programmer le resultat de l'enquete
+      // Programmer le resultat de l'enquete (motif transporte pour le tribunal)
       if (!state.enquetesEnCours) state.enquetesEnCours = [];
-      state.enquetesEnCours.push({ cible: p.cible, day: state.day + 1, status: 'pending' });
+      state.enquetesEnCours.push({ cible: p.cible, motif: p.motif, day: state.day + 1, status: 'pending' });
     } else {
       result = `Actes illegaux confirmes pour ${p.cible}. Mise en garde a vue. Proces dans 24h.`;
-      addExternalEvent(`ACTION EXTERIEURE : ${p.cible} a ete place(e) en garde a vue suite a votre plainte. Proces prevu demain.`);
+      addExternalEvent(`ACTION EXTERIEURE : ${p.cible} a ete place(e) en garde a vue suite a votre plainte. Proces prevu demain.`, 'local');
+      // Transmettre directement au tribunal — l'affaire est mure pour jugement
+      transmettreAffaireAuTribunal(p.cible, p.motif || 'Plainte initiale confirmee par les forces de l\'ordre.');
     }
     addMailNotification('Commissariat Central', `RE: Votre plainte du Jour ${p.day - 1}`, result);
   });
@@ -5101,13 +5103,58 @@ function traiterEnquetes() {
     if (roll < 50) {
       result = `Enquete conclue : non-lieu pour ${e.cible}. Aucune preuve suffisante.`;
     } else {
-      result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. Mise en garde a vue immediate. Proces demain.`;
+      result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. Mise en garde a vue immediate. Affaire transmise au tribunal pour jugement.`;
       if (!state.prisonniers) state.prisonniers = [];
       state.prisonniers.push({ nom: e.cible, depuis: `Jour ${state.day}`, raison: 'Garde a vue suite a enquete' });
-      addExternalEvent(`${e.cible} a ete place(e) en garde a vue. Visible dans les archives du commissariat.`);
+      addExternalEvent(`${e.cible} a ete place(e) en garde a vue. Affaire transmise au tribunal.`, 'local');
+      // Transmettre au tribunal pour jugement public
+      transmettreAffaireAuTribunal(e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.');
     }
     addMailNotification('Brigade Criminelle', `Conclusions enquete : ${e.cible}`, result);
   });
+}
+
+// =====================
+// PONT COMMISSARIAT → TRIBUNAL
+// Transmet une affaire confirmee pour jugement public (forum + file d'attente du juge)
+// =====================
+function transmettreAffaireAuTribunal(cible, motif) {
+  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
+  const forumKey = 'tribunal_' + state.currentCity;
+
+  // Ajouter à la file d'attente du juge (statut lu par ouvrirRendreSentence)
+  if (!state.plaintesEnCours) state.plaintesEnCours = [];
+  state.plaintesEnCours.push({ cible, motif, jour: state.day, status: 'deposee' });
+
+  // Publier sur le forum tribunal local (visible de tous, transparence judiciaire)
+  if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
+  FORUM_TOPICS[forumKey].unshift({
+    id: 'affaire-' + Date.now(),
+    title: '[AFFAIRE TRANSMISE] ' + cible,
+    author: 'Brigade Criminelle',
+    time: 'Jour ' + (state.day || 1),
+    replies: 0,
+    isPlainte: true,
+    cible,
+    posts: [{
+      author: 'Brigade Criminelle',
+      time: 'Jour ' + (state.day || 1),
+      content: '**AFFAIRE TRANSMISE AU TRIBUNAL**\n\nMis en cause : ' + cible + '\n\nMotif :\n' + motif + '\n\n_En attente de jugement par un magistrat._'
+    }]
+  });
+
+  // Publier aussi sur Supabase pour que tous les joueurs de la ville le voient
+  if (typeof sbCreateTopic === 'function') {
+    const auteur = 'Brigade Criminelle';
+    const heure = 'Jour ' + (state.day || 1);
+    const textePost = '**AFFAIRE TRANSMISE AU TRIBUNAL**\n\nMis en cause : ' + cible + '\n\nMotif :\n' + motif + '\n\n_En attente de jugement par un magistrat._';
+    sbCreateTopic(forumKey, '⚖️ [AFFAIRE] ' + cible, auteur, state.country, heure)
+      .then(topicId => {
+        if (topicId && typeof sbCreatePost === 'function') {
+          sbCreatePost(topicId, auteur, textePost, heure);
+        }
+      }).catch(e => console.warn('Erreur transmission tribunal:', e));
+  }
 }
 
 // Ajouter evenement externe (rouge + gras + point clignotant)
@@ -7827,90 +7874,35 @@ function ouvrirDetailJugement(idx) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// Le tribunal ne sert plus a deposer une plainte (role du commissariat),
+// mais a CONSULTER les affaires transmises par la police et en attente de jugement.
 function ouvrirPorterPlainte() {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  document.getElementById('postes-modal-title').textContent = 'Porter plainte';
+  const affairesEnAttente = (state.plaintesEnCours || []).filter(p => p.status === 'deposee');
+
+  document.getElementById('postes-modal-title').textContent = 'Affaires du Tribunal de ' + ville;
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Votre plainte sera deposee dans le sous-forum "Tribunal de ' + ville + '", visible uniquement par les habitants de ' + ville + '.</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' +
+    'Pour porter plainte, rendez-vous au commissariat. Le tribunal ne traite que les affaires transmises par les forces de l\'ordre suite a une enquete concluante.</div>';
 
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CONTRE QUI ?</div>';
-  html += '<div style="display:flex;gap:.5rem;margin-bottom:.7rem">';
-  html += '<button id="plainte-cible-btn" onclick="selectPlainteCible(\'cible\')" style="flex:1;padding:.3rem;border:1px solid #8a6a20;background:#0f0d05;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem">Un PJ identifie</button>';
-  html += '<button id="plainte-x-btn" onclick="selectPlainteCible(\'x\')" style="flex:1;padding:.3rem;border:1px solid #2a2010;background:#0f0d05;color:#5a5040;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem">Contre X (inconnu)</button>';
-  html += '</div>';
-
-  html += '<div id="plainte-cible-select" style="margin-bottom:.7rem">';
-  const contacts = state.contacts || [];
-  if (contacts.length > 0) {
-    html += '<select id="plainte-cible-nom" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none">';
-    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
-    html += '</select>';
+  if (affairesEnAttente.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040">Aucune affaire en attente de jugement pour le moment.</div>';
   } else {
-    html += '<div style="font-size:.78rem;color:#5a5040">Repertoire vide. La plainte sera deposee contre X.</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EN ATTENTE DE JUGEMENT</div>';
+    affairesEnAttente.forEach(a => {
+      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + a.cible + '</div>';
+      html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + (a.motif||'') + '</div>';
+      html += '<div style="font-size:.65rem;color:#4a4030;margin-top:.3rem">Transmise le Jour ' + a.jour + '</div>';
+      html += '</div>';
+    });
   }
-  html += '</div>';
-
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MOTIF</div>';
-  html += '<textarea id="plainte-motif" rows="4" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.7rem" placeholder="Decrivez les faits reprochés, la date, les circonstances..."></textarea>';
-  html += '<button onclick="soumettrePlainte()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Deposer la plainte</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
-  window._plainteCible = 'cible';
 }
 
-function selectPlainteCible(type) {
-  window._plainteCible = type;
-  document.getElementById('plainte-cible-btn').style.borderColor = type === 'cible' ? '#8a6a20' : '#2a2010';
-  document.getElementById('plainte-cible-btn').style.color = type === 'cible' ? '#C9A84C' : '#5a5040';
-  document.getElementById('plainte-x-btn').style.borderColor = type === 'x' ? '#8a6a20' : '#2a2010';
-  document.getElementById('plainte-x-btn').style.color = type === 'x' ? '#C9A84C' : '#5a5040';
-}
 
-function soumettrePlainte() {
-  const motif = document.getElementById('plainte-motif')?.value?.trim();
-  if (!motif) { showToast('Motif requis', 'Decrivez les faits.', false); return; }
-  const cibleNom = window._plainteCible === 'cible'
-    ? (document.getElementById('plainte-cible-nom')?.value || 'X')
-    : 'X (inconnu)';
-  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  const forumKey = 'tribunal_' + state.currentCity;
-  if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
-  FORUM_TOPICS[forumKey].unshift({
-    id: 'plainte-' + Date.now(),
-    title: '[PLAINTE] ' + (state.char?.name||'Anonyme') + ' contre ' + cibleNom,
-    author: state.char?.name || 'Anonyme',
-    time: 'Jour ' + state.day,
-    replies: 0,
-    isPlainte: true,
-    cible: cibleNom,
-    posts: [{
-      author: state.char?.name || 'Anonyme',
-      time: 'Jour ' + state.day,
-      content: '**DEPOT DE PLAINTE**\n\nPlaignant : ' + (state.char?.name||'Anonyme') + '\nMis en cause : ' + cibleNom + '\n\nFaits :\n' + motif
-    }]
-  });
-  if (!state.plaintesEnCours) state.plaintesEnCours = [];
-  state.plaintesEnCours.push({ cible: cibleNom, motif, jour: state.day, status: 'deposee' });
-  document.getElementById('modal-postes').classList.remove('open');
-
-  // Publier sur Supabase dans le forum tribunal
-  const textePost = '**DÉPÔT DE PLAINTE OFFICIEL**\n\nPlaignant : ' + (state.char?.name||'Anonyme') + '\nMis en cause : ' + cibleNom + '\n\nFaits déclarés :\n' + motif + '\n\n_Jugement prévu le prochain jeudi._';
-  const auteur = state.char?.name || 'Anonyme';
-  const heure = 'Jour ' + (state.day||1);
-  if (typeof sbCreateTopic === 'function') {
-    sbCreateTopic(forumKey, '📜 [PLAINTE] ' + auteur + ' c/ ' + cibleNom, auteur, state.country, heure)
-      .then(topicId => {
-        if (topicId && typeof sbCreatePost === 'function') {
-          sbCreatePost(topicId, auteur, textePost, heure);
-        }
-      }).catch(e => console.warn('Erreur forum plainte:', e));
-  }
-
-  showToast('Plainte deposee !', 'Visible dans le forum Tribunal de ' + ville + '. Jugement le jeudi.', true, true);
-  addJournalEntry('Plainte deposee contre ' + cibleNom, 'event-info');
-  addExternalEvent('⚖️ Une plainte a ete deposee contre ' + cibleNom + ' au Tribunal de ' + ville + '.');
-}
 
 // =====================
 // FONCTIONS COMPLEMENTAIRES V17
