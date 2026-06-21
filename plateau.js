@@ -845,7 +845,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
   if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour assassiner, cliquez sur le personnage cible dans la liste des personnes presentes.', false); return; }
-  if (fn === 'consulter_elections') { openElectionsModal(); return; }
+  if (fn === 'consulter_elections') { ouvrirTableauElectoral(); return; }
   if (fn === 'creer_poste_ministre')    { creerPosteMinistre(); return; }
   if (fn === 'creer_comite')            { creerComite(); return; }
   if (fn === 'supprimer_poste_custom')  { supprimerPosteCustom(); return; }
