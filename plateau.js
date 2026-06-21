@@ -985,6 +985,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'ouvrir_enquete') { ouvrirModalCibleRepertoire('ouvrir_enquete', 'Ouvrir une enquete sur'); return; }
   if (fn === 'annuler_poursuites') { ouvrirModalAffaires('annuler'); return; }
   if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
+  if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }
   if (fn === 'censurer_media') { ouvrirModalMedia(); return; }
   if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
   if (fn === 'cessez_le_feu') { ouvrirModalEmpireCible('cessez_le_feu', 'Negocier un cessez-le-feu avec'); return; }
@@ -10224,35 +10225,19 @@ function annulerAffaire(idx, mode) {
 }
 
 function ouvrirModalNommerJuge() {
-  const contacts = state.contacts || [];
-  const tribunaux = ['Tribunal de Luthecia', 'Tribunal de Port-Sainte-Marie', 'Tribunal de Montrouge'];
-  document.getElementById('postes-modal-title').textContent = 'Nommer un juge';
-  let html = '<div style="padding:1rem">';
-  if (contacts.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Repertoire vide. Enregistrez des contacts.</div>';
-  } else {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">PJ A NOMMER</div>';
-    html += '<select id="juge-contact" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
-    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
-    html += '</select>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TRIBUNAL</div>';
-    html += '<select id="juge-tribunal" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
-    tribunaux.forEach(t => { html += '<option value="' + t + '">' + t + '</option>'; });
-    html += '</select>';
-    html += '<button onclick="confirmerNommerJuge()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer</button>';
+  if (state.poste?.id !== 'min_just') {
+    showToast('Accès refusé', 'Seul le Ministre de la Justice peut nommer un juge.', false);
+    return;
   }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  ouvrirNominerPosteNomme('juge');
 }
 
-function confirmerNommerJuge() {
-  const contact = document.getElementById('juge-contact')?.value;
-  const tribunal = document.getElementById('juge-tribunal')?.value;
-  document.getElementById('modal-postes').classList.remove('open');
-  addMailNotification('Ministere de la Justice', 'Nomination au poste de juge', 'Vous avez ete nomme(e) juge au ' + tribunal + ' par le Ministre de la Justice.');
-  addExternalEvent('NOMINATION : ' + contact + ' nomme(e) juge au ' + tribunal + '.');
-  showToast('Juge nomme', contact + ' au ' + tribunal, true);
+function ouvrirModalNommerCommissaire() {
+  if (state.poste?.id !== 'maire') {
+    showToast('Accès refusé', 'Seul le Maire peut nommer un commissaire.', false);
+    return;
+  }
+  ouvrirNominerPosteNomme('commissaire');
 }
 
 function ouvrirModalRenseignement() {
@@ -12413,6 +12398,126 @@ function genererPnjRemplacant(pnjOriginal, employe) {
       list[idx] = { ...list[idx], name: nouveauNom + ' (PNJ)' };
     }
   });
+}
+
+
+
+// =====================
+// SYSTÈME GÉNÉRIQUE — NOMINATION DE POSTES (juge, commissaire)
+// =====================
+
+// Vérifie si un PJ peut accepter ce poste (règles de cumul strict)
+function peutAccepterPosteNomme(posteId) {
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+  if (!regle) return { ok: true };
+  if (!state.poste) return { ok: true };
+  if (regle.compatibles.includes(state.poste.id)) return { ok: true };
+  return { ok: false, raison: 'Vous occupez déjà le poste de ' + (state.poste.name || state.poste.id) + ', incompatible avec ' + regle.label + '.' };
+}
+
+// Liste des habitants éligibles — ville pour commissaire, pays entier pour juge
+async function listerHabitantsEligibles(posteId) {
+  if (typeof sbListPersonnages !== 'function') return [];
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+  if (!regle) return [];
+  try {
+    const joueurs = await sbListPersonnages() || [];
+    return joueurs.filter(j => {
+      if (j.country !== state.country) return false;
+      if (regle.scope === 'ville' && j.current_city !== state.currentCity) return false;
+      return true;
+    });
+  } catch(e) { return []; }
+}
+
+// Ouvre le modal de sélection pour nommer un juge ou un commissaire
+async function ouvrirNominerPosteNomme(posteId) {
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+  if (!regle) return;
+
+  document.getElementById('postes-modal-title').textContent = 'Nommer un ' + regle.label.toLowerCase();
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Recherche des habitants éligibles...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const habitants = await listerHabitantsEligibles(posteId);
+  const villeNom = regle.scope === 'ville' ? (WORLD[state.country]?.[state.currentCity]?.name || state.currentCity) : null;
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' +
+    (regle.scope === 'ville'
+      ? 'Habitants domiciliés à ' + villeNom + '.'
+      : 'Habitants domiciliés dans ' + (COUNTRIES[state.country]?.n || 'cet empire') + '.') +
+    ' Le poste de ' + regle.label + ' est incompatible avec tout autre poste sauf Député.</div>';
+
+  if (habitants.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040">Aucun habitant éligible trouvé.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CANDIDAT</div>';
+    html += '<select id="nomme-poste-contact" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    habitants.forEach(h => { html += '<option value="' + h.name + '">' + h.name + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="envoyerNominationPosteNomme(\'' + posteId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// Envoie le mail de nomination avec bouton d'acceptation intégré
+async function envoyerNominationPosteNomme(posteId) {
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+  const destinataire = document.getElementById('nomme-poste-contact')?.value;
+  if (!destinataire || !regle) return;
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const nommeurNom = state.char?.name || 'Anonyme';
+  const villeNom = regle.scope === 'ville' ? (WORLD[state.country]?.[state.currentCity]?.name || state.currentCity) : null;
+  const sujet = 'Nomination au poste de ' + regle.label;
+
+  const corps = nommeurNom + ' vous propose le poste de <strong>' + regle.label + '</strong>' +
+    (villeNom ? ' pour la ville de ' + villeNom : ' pour ' + (COUNTRIES[state.country]?.n || "l'empire")) + '.<br><br>' +
+    '<em>Ce poste est incompatible avec tout autre poste, sauf Député.</em><br><br>' +
+    '<button onclick="accepterNominationPosteNomme(\'' + posteId + '\',\'' + (villeNom ? state.currentCity : '') + '\',\'' + state.country + '\',\'' + nommeurNom.replace(/'/g,'') + '\')" ' +
+    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem">✓ Accepter le poste</button>';
+
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    await sbSendMail(nommeurNom, destinataire, sujet, corps, time);
+    showToast('Nomination envoyée', destinataire + ' a reçu votre proposition.', true);
+    addJournalEntry('Nomination de ' + destinataire + ' au poste de ' + regle.label + ' proposée.', 'event-info');
+  } else {
+    showToast('Erreur', 'Système de mail indisponible.', false);
+  }
+}
+
+// Appelée quand le destinataire clique "Accepter le poste" dans le mail
+function accepterNominationPosteNomme(posteId, city, country, nommeurNom) {
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+  if (!regle) return;
+
+  const check = peutAccepterPosteNomme(posteId);
+  if (!check.ok) {
+    showToast('Impossible', check.raison, false);
+    return;
+  }
+
+  state.poste = { id: posteId, name: regle.label, city: city || null };
+  if (state.char) state.char.poste = state.poste;
+  state.salaireTouche = false;
+  updateUI();
+
+  showToast('Poste accepté !', 'Vous êtes désormais ' + regle.label + (city ? ' de ' + (WORLD[country]?.[city]?.name || city) : '') + '.', true, true);
+  addJournalEntry('Vous avez accepté le poste de ' + regle.label + '.', 'event-good');
+  addExternalEvent('🏛 ' + (state.char?.name || 'Anonyme') + ' est nommé(e) ' + regle.label + (city ? ' de ' + (WORLD[country]?.[city]?.name || city) : '') + '.', city ? 'local' : 'national');
+
+  // Notifier le nommeur
+  if (typeof sbSendMail === 'function' && nommeurNom) {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    sbSendMail(state.char?.name || 'Anonyme', nommeurNom, 'Nomination acceptée',
+      (state.char?.name || 'Le candidat') + ' a accepté le poste de ' + regle.label + '.', time).catch(() => {});
+  }
 }
 
 
