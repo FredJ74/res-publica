@@ -113,12 +113,13 @@ export default async function handler(req, res) {
         cycle.resultatsTraites = true;
         cycle.phase = 'vacant'; // sera réinitialisé au prochain cycle
 
-        const texte = `🗳️ RÉSULTATS : ${resultat.elu} est élu(e) ${posteNom} avec ${Math.round((resultat.scores[resultat.elu]/resultat.totalVoix)*100)}% des voix.`;
+        const villeLabel = row.city ? ` (${row.city})` : '';
+        const texte = `🗳️ RÉSULTATS : ${resultat.elu} est élu(e) ${posteNom}${villeLabel} avec ${Math.round((resultat.scores[resultat.elu]/resultat.totalVoix)*100)}% des voix.`;
         await sbInsert('evenements_globaux', {
           country, city: scope === 'local' ? (row.city || null) : null,
           texte, jour: null
         });
-        results.push({ poste: posteId, country, statut: 'elu', gagnant: resultat.elu });
+        results.push({ poste: posteId, country, city: row.city || null, statut: 'elu', gagnant: resultat.elu });
       } else if (resultat.secondTour.length >= 2) {
         // Second tour
         const semaine = 7 * 24 * 60 * 60 * 1000;
@@ -131,12 +132,13 @@ export default async function handler(req, res) {
         cycle.dateResultats = now.getTime() + semaine + 24*60*60*1000;
         cycle.phase = 'second_tour';
 
-        const texte = `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}. Second tour entre ${resultat.secondTour.join(' et ')}.`;
+        const villeLabel2 = row.city ? ` (${row.city})` : '';
+        const texte = `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}${villeLabel2}. Second tour entre ${resultat.secondTour.join(' et ')}.`;
         await sbInsert('evenements_globaux', {
           country, city: scope === 'local' ? (row.city || null) : null,
           texte, jour: null
         });
-        results.push({ poste: posteId, country, statut: 'second_tour', candidats: resultat.secondTour });
+        results.push({ poste: posteId, country, city: row.city || null, statut: 'second_tour', candidats: resultat.secondTour });
       } else {
         // Pas de résultat exploitable (0 candidat ou 0 vote) — poste vacant
         cycle.resultatsTraites = true;
