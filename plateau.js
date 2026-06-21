@@ -744,16 +744,29 @@ async function chargerVraisJoueursPresents() {
     if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
     const autres = presents.filter(p => p.name !== moi);
 
+    // Recuperer les photos depuis l'annuaire des personnages (presences n'a pas de photo)
+    let photosParNom = {};
+    if (typeof sbListPersonnages === 'function') {
+      try {
+        const joueurs = await sbListPersonnages() || [];
+        joueurs.forEach(j => { if (j.photo_url) photosParNom[j.name] = j.photo_url; });
+      } catch(e) {}
+    }
+
     // Mettre en cache pour getCurrentRoomPersons() (utilisé par assassinat, dons, etc.)
     window._vraisJoueursPresents = autres.map(p => ({
-      name: p.name, role: 'Joueur', rel: 'neutral', isPJ: true, job: null
+      name: p.name, role: 'Joueur', rel: 'neutral', isPJ: true, job: null,
+      photoUrl: photosParNom[p.name] || null
     }));
 
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
     const html = window._vraisJoueursPresents.map(p => {
       const enc = encodeURIComponent(JSON.stringify(p));
+      const avatarHtml = p.photoUrl
+        ? '<div class="person-avatar" style="overflow:hidden;border-color:' + empireCol + '"><img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover"/></div>'
+        : '<div class="person-avatar" style="border-color:' + empireCol + '"><i class="ti ti-user" style="font-size:.75rem;color:' + empireCol + '"></i></div>';
       return '<div class="person-card vrai-joueur-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid ' + empireCol + '" title="Interagir">' +
-      '<div class="person-avatar" style="border-color:' + empireCol + '"><i class="ti ti-user" style="font-size:.75rem;color:' + empireCol + '"></i></div>' +
+      avatarHtml +
       '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.6rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
       '<div class="person-role">Présent ici</div></div></div>';
     }).join('');
@@ -1631,10 +1644,12 @@ function openPnjModal(encodedPnj) {
   const encCible = encodeURIComponent(JSON.stringify(pnj));
   actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
   document.getElementById('pnj-actions').innerHTML = actionBtns +
-    '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
-    '<input id="pnj-question-libre" type="text" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" placeholder="Posez votre question..." onkeydown="handlePnjKey(event)" />' +
-    '<button onclick="envoyerQuestion()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +
-    '</div>';
+    (isPJ
+      ? '<div style="margin-top:.6rem;font-size:.7rem;color:#6a5a30;font-style:italic">C\'est un vrai joueur — utilisez le mail pour lui parler, l\'IA ne repond pas a sa place.</div>'
+      : '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
+        '<input id="pnj-question-libre" type="text" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" placeholder="Posez votre question..." onkeydown="handlePnjKey(event)" />' +
+        '<button onclick="envoyerQuestion()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +
+        '</div>');
 
   // Stocker l'enc pour envoyerQuestion
   state._currentPnjEnc = enc;
@@ -1831,11 +1846,47 @@ function addContact(pnj) {
   addJournalEntry(pnj.name + ' ajoute au repertoire.', '');
 }
 
+
+// =====================
+// COMMUNICATION RÉELLE ENTRE JOUEURS (remplace les fausses notifications locales)
+// =====================
+
+// Trouve le nom du PJ qui occupe reellement un poste donne (via Supabase, pas le state local)
+async function getTitulairePoste(posteId) {
+  if (typeof sbListPersonnages !== 'function') return null;
+  try {
+    const joueurs = await sbListPersonnages() || [];
+    const titulaire = joueurs.find(j => j.country === state.country && j.poste?.id === posteId);
+    return titulaire?.name || null;
+  } catch(e) { return null; }
+}
+
+// Trouve le responsable de la loge maçonnique (chef d'organisation type 'loge')
+function getResponsableLoge() {
+  const orgas = state.orgasEmpire?.[state.country] || [];
+  const loge = orgas.find(o => o.type === 'loge');
+  return loge?.chef || null;
+}
+
+// Envoie une vraie notification a un autre joueur (mail Supabase). Si destinataire inconnu/absent, notifie le joueur courant a la place pour ne pas perdre l'information.
+async function envoyerNotificationVraiJoueur(destinataire, sujet, corps) {
+  const from = 'Système';
+  const h = String(state.hour || 8).padStart(2,'0');
+  const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+
+  if (destinataire && typeof sbSendMail === 'function') {
+    await sbSendMail(from, destinataire, sujet, corps, time).catch(() => {});
+  } else {
+    // Pas de titulaire connu — on garde une trace locale pour ne pas perdre l'info
+    addMailNotification('Système', sujet + ' (en attente de titulaire)', corps);
+  }
+}
+
 // Loge — demander le responsable
 function logeDemanderResponsable() {
   const speech = document.getElementById('pnj-speech');
   speech.textContent = "Le portier disparait un instant puis revient. Il dit : Je lui transmets votre demande. Le Venerable Maitre vous repondra des qu'il en aura pris connaissance.";
-  addMailNotification('Loge Maconnique', "Demande d'audience", "Votre demande d'entretien avec le Venerable Maitre a ete transmise. Vous recevrez une reponse des qu'il en aura pris connaissance.");
+  envoyerNotificationVraiJoueur(getResponsableLoge?.() || null, 'Demande d\'audience', (state.char?.name||'Anonyme') + ' sollicite un entretien avec le Venerable Maitre de la Loge.');
   addJournalEntry('Vous avez demande une audience aupres du Venerable Maitre de la Loge.', 'event-info');
 }
 
@@ -5791,14 +5842,14 @@ function openNominerModal() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function validerNomination() {
+async function validerNomination() {
   const poste = document.getElementById('nommer-poste')?.value;
   const contact = document.getElementById('nommer-contact')?.value;
   if (!poste || !contact) return;
   const noms = { min_int:"Ministre de l'Interieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Defense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
   const posteNom = noms[poste] || (state.postesCustom?.ministre?.nom) || (state.postesCustom?.comite?.nom) || poste;
   document.getElementById('modal-postes').classList.remove('open');
-  addMailNotification('Presidence de la Republique', 'Nomination ministerielle', 'Par decision presidentielle, vous etes nomme(e) au poste de ' + posteNom + '. Prenez vos fonctions immediatement.');
+  await envoyerNotificationVraiJoueur(contact, 'Nomination ministerielle', 'Par decision presidentielle, vous etes nomme(e) au poste de ' + posteNom + '. Prenez vos fonctions immediatement.');
   showToast('Nomination envoyee', contact + ' nomme(e) ' + posteNom, true, true);
   addJournalEntry('Nomination de ' + contact + ' au poste de ' + posteNom, 'event-good');
   addExternalEvent('Nomination officielle : ' + contact + ' est nomme(e) ' + posteNom + ' par le President.');
@@ -7582,7 +7633,7 @@ async function ecouterRumeurs() {
   }
 }
 
-function solliciterAudiencePresident() {
+async function solliciterAudiencePresident() {
   const char = state.char;
   const nomDemandeur = char?.name || 'Anonyme';
   // Message automatique au demandeur
@@ -7592,12 +7643,10 @@ function solliciterAudiencePresident() {
     true
   );
   addJournalEntry('Vous avez sollicite une audience presidentielle.', 'event-info');
-  // Mail au President
-  addMailNotification(
-    'Secretariat de la Presidence',
-    'Demande d\'audience de ' + nomDemandeur,
-    nomDemandeur + ' sollicite une audience presidentielle. Vous pouvez lui repondre directement a cette adresse mail.'
-  );
+  // Mail au President (vrai titulaire recherche via Supabase)
+  const titulaire = await getTitulairePoste('president');
+  await envoyerNotificationVraiJoueur(titulaire, 'Demande d\'audience de ' + nomDemandeur,
+    nomDemandeur + ' sollicite une audience presidentielle. Vous pouvez lui repondre directement par mail.');
 }
 
 // =====================
@@ -10170,7 +10219,7 @@ function executerOrdreContact(action, nomCible) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   if (action === 'nommer_pm_confirm') {
-    addMailNotification('Presidence de la Republique', 'Nomination au poste de Premier Ministre',
+    envoyerNotificationVraiJoueur(nomCible, 'Nomination au poste de Premier Ministre',
       'Par decision presidentielle, vous etes nomme(e) Premier Ministre. Prenez vos fonctions immediatement au Palais du Gouvernement.');
     addExternalEvent('NOMINATION : ' + nomCible + ' est nomme(e) Premier Ministre par le President.');
     showToast('PM nomme', nomCible + ' est le nouveau Premier Ministre.', true, true);
@@ -10408,7 +10457,7 @@ function confirmerAmbassadeur() {
   const empireId = document.getElementById('amb-empire')?.value;
   document.getElementById('modal-postes').classList.remove('open');
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  addMailNotification('Ministere des AE', 'Nomination comme ambassadeur', 'Vous avez ete nomme(e) ambassadeur(rice) aupres de ' + empireName + ' par le Ministre des Affaires Etrangeres.');
+  envoyerNotificationVraiJoueur(contact, 'Nomination comme ambassadeur', 'Vous avez ete nomme(e) ambassadeur(rice) aupres de ' + empireName + ' par le Ministre des Affaires Etrangeres.');
   addExternalEvent('NOMINATION : ' + contact + ' nomme(e) ambassadeur(rice) aupres de ' + empireName + '.');
   showToast('Ambassadeur nomme', contact + ' → ' + empireName, true);
 }
@@ -10480,7 +10529,7 @@ function validerNominationMinistre() {
   const postesNoms = { min_int:"Ministre de l'Interieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Defense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
   const posteNom = postesNoms[posteId] || (state.postesCustom?.ministre?.nom) || (state.postesCustom?.comite?.nom) || posteId;
   document.getElementById('modal-postes').classList.remove('open');
-  addMailNotification('Premier Ministre', 'Nomination ministerielle', 'Par decision du Premier Ministre, vous etes nomme(e) ' + posteNom + '. Prenez vos fonctions immediatement.');
+  envoyerNotificationVraiJoueur(contact, 'Nomination ministerielle', 'Par decision du Premier Ministre, vous etes nomme(e) ' + posteNom + '. Prenez vos fonctions immediatement.');
   addExternalEvent('NOMINATION : ' + contact + ' est nomme(e) ' + posteNom + ' par le Premier Ministre.');
   showToast('Nomination envoyee', contact + ' → ' + posteNom, true, true);
 }
