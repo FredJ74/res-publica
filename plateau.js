@@ -74,6 +74,14 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => chargerEvenementsPartages(), 1500);
   setInterval(chargerEvenementsPartages, 90000);
 
+  // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
+  setInterval(() => {
+    if (typeof sbUpdatePresence === 'function' && state.char?.name && state.currentBuilding && state.currentRoom) {
+      sbUpdatePresence(state.char.name, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
+    }
+    if (typeof chargerVraisJoueursPresents === 'function') chargerVraisJoueursPresents();
+  }, 30000);
+
   // Séquence de chargement espacée pour éviter les conflits de modaux
   setTimeout(() => genererMeteoPolitique(), 1000);
   setTimeout(() => genererEvenementAleatoire(), 3000);
@@ -502,6 +510,11 @@ function enterRoom(buildingId, roomId, tabEl) {
   state.currentRoom = roomId;
   deplacerGroupeAvecPj(buildingId, roomId, state.currentCity);
 
+  // Publier sa présence pour que les autres joueurs nous voient (multijoueur temps réel)
+  if (typeof sbUpdatePresence === 'function' && state.char?.name) {
+    sbUpdatePresence(state.char.name, state.country, state.currentCity, buildingId, roomId).catch(() => {});
+  }
+
   // Update tabs
   if (tabEl) {
     document.querySelectorAll('.piece-tab').forEach(t => t.classList.remove('active'));
@@ -713,6 +726,34 @@ function renderPersonsList(persons) {
   const finalContent = selfCard + groupeHtml + simuleCards + personCards;
   document.getElementById('persons-list').innerHTML = finalContent ||
     '<div class="person-empty">Personne d\'autre ici</div>';
+
+  // Charger les VRAIS joueurs présents dans cette pièce (Supabase) — async, ajouté après coup
+  chargerVraisJoueursPresents();
+}
+
+// Affiche les autres PJ réellement présents dans la pièce courante (rafraîchi périodiquement)
+async function chargerVraisJoueursPresents() {
+  if (typeof sbGetPresencesInRoom !== 'function') return;
+  const buildingId = state.currentBuilding, roomId = state.currentRoom;
+  const moi = state.char?.name;
+  try {
+    const presents = await sbGetPresencesInRoom(state.country, state.currentCity, buildingId, roomId);
+    if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
+    const autres = presents.filter(p => p.name !== moi);
+    const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
+    const html = autres.map(p =>
+      '<div class="person-card" onclick="composerMailPour(\'' + p.name + '\')" style="border-left:2px solid ' + empireCol + '" title="Envoyer un mail">' +
+      '<div class="person-avatar" style="border-color:' + empireCol + '"><i class="ti ti-user" style="font-size:.75rem;color:' + empireCol + '"></i></div>' +
+      '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.6rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
+      '<div class="person-role">Présent ici</div></div></div>'
+    ).join('');
+    if (html) {
+      const list = document.getElementById('persons-list');
+      const empty = list.querySelector('.person-empty');
+      if (empty) empty.remove();
+      list.insertAdjacentHTML('beforeend', html);
+    }
+  } catch(e) { console.warn('chargerVraisJoueursPresents error', e); }
 }
 
 // =====================

@@ -196,6 +196,36 @@ async function sbGetEvenementsRecents(country, city) {
   return rows.filter(r => !r.city || r.city === city);
 }
 
+
+// =====================
+// PRÉSENCE EN PIÈCE (multijoueur temps réel)
+// =====================
+async function sbUpdatePresence(name, country, city, buildingId, roomId) {
+  if (!name) return;
+  // Upsert — name est cle primaire, on remplace la ligne existante (sinon conflit silencieux)
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/presences`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify({
+        name, country, city, building_id: buildingId, room_id: roomId,
+        updated_at: new Date().toISOString()
+      })
+    });
+    if (!res.ok) { console.error('sbUpdatePresence error', await res.text()); return null; }
+    return res.json();
+  } catch(e) { return null; }
+}
+
+async function sbGetPresencesInRoom(country, city, buildingId, roomId) {
+  const filtre = `country=eq.${encodeURIComponent(country)}&city=eq.${encodeURIComponent(city)}&building_id=eq.${encodeURIComponent(buildingId)}&room_id=eq.${encodeURIComponent(roomId)}`;
+  const rows = await sbGet('presences', filtre);
+  if (!rows) return [];
+  // Filtrer les présences trop anciennes (>5 min = probablement déconnecté)
+  const now = Date.now();
+  return rows.filter(r => (now - new Date(r.updated_at).getTime()) < 5 * 60 * 1000);
+}
+
 // =====================
 // SAUVEGARDE AUTO
 // =====================
