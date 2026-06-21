@@ -72,7 +72,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Événements partagés (journal global) — au chargement puis toutes les 90 secondes
   setTimeout(() => chargerEvenementsPartages(), 1500);
+  setTimeout(() => recupererDonsEnAttente(), 2000);
   setInterval(chargerEvenementsPartages, 90000);
+  setInterval(recupererDonsEnAttente, 90000);
 
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
   setInterval(() => {
@@ -1654,20 +1656,25 @@ function openPnjModal(encodedPnj) {
   // Stocker l'enc pour envoyerQuestion
   state._currentPnjEnc = enc;
 
-  // Recharger l'historique de la conversation du jour
-  const pnjNameClean = pnj.name?.replace(' (PNJ)', '').trim();
-  const convKeyOpen = 'conv_' + (pnjNameClean||'pnj') + '_day' + (state.day||1);
-  const histOpen = state.pnjConversations?.[convKeyOpen] || [];
+  // Recharger l'historique de la conversation du jour (uniquement pour les PNJ — jamais pour un vrai joueur)
+  if (!isPJ) {
+    const pnjNameClean = pnj.name?.replace(' (PNJ)', '').trim();
+    const convKeyOpen = 'conv_' + (pnjNameClean||'pnj') + '_day' + (state.day||1);
+    const histOpen = state.pnjConversations?.[convKeyOpen] || [];
 
-  if (histOpen.length >= 2) {
-    // Afficher le dernier échange
-    const lastReply = histOpen.filter(h => h.role === 'assistant').slice(-1)[0];
-    if (lastReply) {
-      const speechEl = document.getElementById('pnj-speech');
-      if (speechEl) speechEl.textContent = lastReply.content;
+    if (histOpen.length >= 2) {
+      // Afficher le dernier échange
+      const lastReply = histOpen.filter(h => h.role === 'assistant').slice(-1)[0];
+      if (lastReply) {
+        const speechEl = document.getElementById('pnj-speech');
+        if (speechEl) speechEl.textContent = lastReply.content;
+      }
+    } else {
+      talkToPnj(enc, 'bonjour');
     }
   } else {
-    talkToPnj(enc, 'bonjour');
+    const speechEl = document.getElementById('pnj-speech');
+    if (speechEl) speechEl.textContent = '';
   }
 }
 
@@ -6367,8 +6374,19 @@ function readMailInView(mailId) {
   h += '<div style="font-size:.7rem;color:#6a5a20;margin-bottom:.2rem">DE : ' + (mail.from||'') + '</div>';
   h += '<div style="font-size:.7rem;color:#6a5a20;margin-bottom:.6rem">OBJET : ' + (mail.subject||'') + '</div>';
   h += '<div style="font-size:.85rem;color:#a0a080;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #2a2010">' + (mail.body||'') + '</div>';
+  h += '<button onclick="repondreAuMail(' + JSON.stringify(mail.from) + ',' + JSON.stringify(mail.subject) + ')" style="margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-arrow-back-up" style="font-size:.75rem"></i> Repondre</button>';
   h += '</div>';
   el.innerHTML = h;
+}
+
+function repondreAuMail(destinataire, sujetOriginal) {
+  switchMailTab('compose', null);
+  setTimeout(() => {
+    const toEl = document.getElementById('mail-to');
+    const subjEl = document.getElementById('mail-subject');
+    if (toEl) toEl.value = destinataire || '';
+    if (subjEl) subjEl.value = 'RE: ' + (sujetOriginal || '');
+  }, 50);
 }
 
 function prefillMailTo(name) {
@@ -6451,6 +6469,29 @@ async function chargerEvenementsPartages() {
       j.insertBefore(div, j.firstChild);
     });
   } catch(e) { console.warn('chargerEvenementsPartages error', e); }
+}
+
+// Récupère et crédite les dons d'argent reçus de la part d'autres joueurs (depuis Supabase)
+async function recupererDonsEnAttente() {
+  if (typeof sbRecupererDonsEnAttente !== 'function') return;
+  const moi = state.char?.name;
+  if (!moi) return;
+  try {
+    const dons = await sbRecupererDonsEnAttente(moi);
+    if (!dons || dons.length === 0) return;
+    const cur = COUNTRIES[state.country]?.cur || 'FR';
+    let total = 0;
+    for (const don of dons) {
+      total += don.montant;
+      if (typeof sbMarquerDonTraite === 'function') await sbMarquerDonTraite(don.id).catch(() => {});
+    }
+    if (total > 0) {
+      state.arg = (state.arg || 0) + total;
+      updateUI();
+      addJournalEntry('💰 Vous avez reçu ' + total + ' ' + cur + ' en dons.', 'event-good');
+      showToast('Dons reçus !', '+' + total + ' ' + cur + ' crédité(s) sur votre compte.', true, true);
+    }
+  } catch(e) { console.warn('recupererDonsEnAttente error', e); }
 }
 
 // Archives police — liste des prisonniers
@@ -11662,7 +11703,7 @@ function ouvrirDonPnjModal(encodedPnj) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerDonPnj(encodedPnj) {
+async function confirmerDonPnj(encodedPnj) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
   const montant = parseInt(document.getElementById('don-pnj-montant')?.value || 0);
@@ -11673,6 +11714,25 @@ function confirmerDonPnj(encodedPnj) {
   if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
   state.arg -= montant;
+  updateUI();
+
+  // Don a un VRAI joueur — depot reel via Supabase, credite automatiquement a sa prochaine connexion
+  if (pnj.isPJ) {
+    const nomCourt = pnj.name.replace(' (PNJ)','');
+    const expediteur = state.char?.name || 'Anonyme';
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    if (typeof sbDeposerDon === 'function') {
+      await sbDeposerDon(nomCourt, montant, expediteur).catch(() => {});
+    }
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail(expediteur, nomCourt, 'Don d\'argent recu',
+        expediteur + ' vous a fait don de ' + montant + ' ' + cur + '. La somme sera automatiquement creditee sur votre compte a votre prochaine connexion.', time).catch(() => {});
+    }
+    addJournalEntry('Vous avez donne ' + montant + ' ' + cur + ' a ' + nomCourt + '.', 'event-good');
+    showToast('Don envoye', nomCourt + ' recevra ' + montant + ' ' + cur + ' automatiquement.', true, true);
+    return;
+  }
   const dup = state.char?.stats?.DUP || 8;
   const nomCourt = pnj.name.replace(' (PNJ)','');
   const jobsRisques = ['commissaire','policier','inspecteur','juge'];

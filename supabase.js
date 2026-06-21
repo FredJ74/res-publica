@@ -255,3 +255,19 @@ async function sbInit() {
     return false;
   }
 }
+
+// =====================
+// DONS D'ARGENT ENTRE JOUEURS (en attente de credit)
+// =====================
+async function sbDeposerDon(destinataire, montant, expediteur) {
+  return sbInsert('dons_en_attente', { destinataire, montant, expediteur, traite: false });
+}
+
+async function sbRecupererDonsEnAttente(destinataire) {
+  const filtre = `destinataire=eq.${encodeURIComponent(destinataire)}&traite=eq.false`;
+  return await sbGet('dons_en_attente', filtre) || [];
+}
+
+async function sbMarquerDonTraite(donId) {
+  return sbUpdate('dons_en_attente', `id=eq.${donId}`, { traite: true });
+}
