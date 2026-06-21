@@ -6266,55 +6266,63 @@ function switchMailTab(tab, el) {
     document.querySelectorAll('#vue-mail .piece-tab').forEach(function(t) { t.classList.remove('active'); });
     el.classList.add('active');
   }
-  var mails = state.mails || [];
   var contacts = state.contacts || [];
-  var sent = state.sentMails || [];
   var content = document.getElementById('mail-content');
   var compose = document.getElementById('mail-compose');
   var subtitle = document.getElementById('mail-view-subtitle');
 
   if (tab === 'inbox') {
     compose.style.display = 'none';
-    var unread = mails.filter(function(m) { return !m.read; }).length;
-    if (subtitle) subtitle.textContent = 'Messages recus' + (unread > 0 ? ' (' + unread + ' non lu' + (unread > 1 ? 's' : '') + ')' : '');
-    var html = "";
-    html += '<div style="text-align:right;padding:.5rem 1rem;border-bottom:1px solid #1a1810"><button onclick="openMailCompose()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">+ Nouveau message</button></div>';
-    if (mails.length === 0) {
-      html += '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message recu.</div>';
-    } else {
-      var reversed = mails.slice().reverse();
-      reversed.forEach(function(m, i) {
-        var idx = mails.length - 1 - i;
-        var bg = m.read ? 'transparent' : '#0f0a05';
-        var nameColor = m.read ? '#8a8060' : '#E8C97A';
-        var fw = m.read ? 'normal' : '700';
-        var textColor = m.read ? '#5a5040' : '#c0b090';
-        html += '<div onclick="readMailInView(' + idx + ')" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer;background:' + bg + '">';
-        html += '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">';
-        html += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:' + nameColor + ';font-weight:' + fw + '">' + (m.from || '') + '</span>';
-        html += '<span style="font-size:.65rem;color:#4a4030">Jour ' + (m.day || '') + '</span></div>';
-        html += '<div style="font-size:.78rem;color:' + textColor + '">' + (m.subject || '') + '</div>';
-        if (!m.read) html += '<span style="display:inline-block;width:6px;height:6px;background:#C9A84C;border-radius:50%;margin-top:.2rem"></span>';
-        html += '</div>';
-      });
-    }
-    content.innerHTML = html;
+    content.innerHTML = '<div style="padding:2rem;text-align:center;color:#6a5a30;font-style:italic">Chargement des messages...</div>';
+    // Charger les vrais mails depuis Supabase avant d'afficher
+    (typeof loadMailsFromSB === 'function' ? loadMailsFromSB() : Promise.resolve()).then(function() {
+      var myName = state.char?.name;
+      var mails = (typeof getMails === 'function' ? getMails() : []).filter(function(m) { return m.to === myName; });
+      var unread = mails.filter(function(m) { return !m.read; }).length;
+      if (subtitle) subtitle.textContent = 'Messages recus' + (unread > 0 ? ' (' + unread + ' non lu' + (unread > 1 ? 's' : '') + ')' : '');
+      var html = "";
+      html += '<div style="text-align:right;padding:.5rem 1rem;border-bottom:1px solid #1a1810"><button onclick="openMailCompose()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">+ Nouveau message</button></div>';
+      if (mails.length === 0) {
+        html += '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message recu.</div>';
+      } else {
+        var reversed = mails.slice().reverse();
+        reversed.forEach(function(m) {
+          var bg = m.read ? 'transparent' : '#0f0a05';
+          var nameColor = m.read ? '#8a8060' : '#E8C97A';
+          var fw = m.read ? 'normal' : '700';
+          var textColor = m.read ? '#5a5040' : '#c0b090';
+          html += '<div onclick="readMailInView(' + JSON.stringify(m.id) + ')" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer;background:' + bg + '">';
+          html += '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">';
+          html += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:' + nameColor + ';font-weight:' + fw + '">' + (m.from || '') + '</span>';
+          html += '<span style="font-size:.65rem;color:#4a4030">' + (m.time || '') + '</span></div>';
+          html += '<div style="font-size:.78rem;color:' + textColor + '">' + (m.subject || '') + '</div>';
+          if (!m.read) html += '<span style="display:inline-block;width:6px;height:6px;background:#C9A84C;border-radius:50%;margin-top:.2rem"></span>';
+          html += '</div>';
+        });
+      }
+      content.innerHTML = html;
+    });
   } else if (tab === 'sent') {
     compose.style.display = 'none';
     if (subtitle) subtitle.textContent = 'Messages envoyes';
-    if (sent.length === 0) {
-      content.innerHTML = '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message envoye.</div>';
-    } else {
-      var h = '';
-      sent.slice().reverse().forEach(function(m) {
-        h += '<div style="padding:.7rem 1rem;border-bottom:1px solid #1a1810">';
-        h += '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">';
-        h += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#8a8060">A : ' + (m.to || '') + '</span>';
-        h += '<span style="font-size:.65rem;color:#4a4030">Jour ' + (m.day || '') + '</span></div>';
-        h += '<div style="font-size:.78rem;color:#5a5040">' + (m.subject || '') + '</div></div>';
-      });
-      content.innerHTML = h;
-    }
+    content.innerHTML = '<div style="padding:2rem;text-align:center;color:#6a5a30;font-style:italic">Chargement...</div>';
+    (typeof loadMailsFromSB === 'function' ? loadMailsFromSB() : Promise.resolve()).then(function() {
+      var myName = state.char?.name;
+      var sent = (typeof getMails === 'function' ? getMails() : []).filter(function(m) { return m.from === myName; });
+      if (sent.length === 0) {
+        content.innerHTML = '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message envoye.</div>';
+      } else {
+        var h = '';
+        sent.slice().reverse().forEach(function(m) {
+          h += '<div style="padding:.7rem 1rem;border-bottom:1px solid #1a1810">';
+          h += '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">';
+          h += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#8a8060">A : ' + (m.to || '') + '</span>';
+          h += '<span style="font-size:.65rem;color:#4a4030">' + (m.time || '') + '</span></div>';
+          h += '<div style="font-size:.78rem;color:#5a5040">' + (m.subject || '') + '</div></div>';
+        });
+        content.innerHTML = h;
+      }
+    });
   } else if (tab === 'contacts') {
     compose.style.display = 'none';
     if (subtitle) subtitle.textContent = 'Repertoire';
@@ -6346,12 +6354,11 @@ function openMailCompose() {
 
 function goBackToInbox() { switchMailTab("inbox", null); }
 
-function readMailInView(index) {
-  var mails = state.mails || [];
-  var mail = mails[index];
+function readMailInView(mailId) {
+  var mails = (typeof getMails === 'function' ? getMails() : []);
+  var mail = mails.find(function(m) { return m.id === mailId; });
   if (!mail) return;
-  mail.read = true;
-  updateUI();
+  if (typeof markMailRead === 'function') markMailRead(mailId);
   var el = document.getElementById('mail-content');
   var compose = document.getElementById('mail-compose');
   if (compose) compose.style.display = 'none';
@@ -6400,7 +6407,6 @@ async function sendMail() {
   switchMailTab('sent', null);
 }
 
-function readMail(index) { readMailInView(index); }
 
 function addExternalEvent(text, scope) {
   const j = document.getElementById('journal');
