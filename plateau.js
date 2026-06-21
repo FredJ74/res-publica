@@ -6298,7 +6298,7 @@ function switchMailTab(tab, el) {
           var nameColor = m.read ? '#8a8060' : '#E8C97A';
           var fw = m.read ? 'normal' : '700';
           var textColor = m.read ? '#5a5040' : '#c0b090';
-          html += '<div onclick="readMailInView(' + JSON.stringify(m.id) + ')" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer;background:' + bg + '">';
+          html += '<div onclick="readMailInView(&quot;' + m.id + '&quot;)" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer;background:' + bg + '">';
           html += '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">';
           html += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:' + nameColor + ';font-weight:' + fw + '">' + (m.from || '') + '</span>';
           html += '<span style="font-size:.65rem;color:#4a4030">' + (m.time || '') + '</span></div>';
@@ -6361,6 +6361,10 @@ function openMailCompose() {
 
 function goBackToInbox() { switchMailTab("inbox", null); }
 
+function escapeHtmlAttr(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function readMailInView(mailId) {
   var mails = (typeof getMails === 'function' ? getMails() : []);
   var mail = mails.find(function(m) { return m.id === mailId; });
@@ -6374,7 +6378,7 @@ function readMailInView(mailId) {
   h += '<div style="font-size:.7rem;color:#6a5a20;margin-bottom:.2rem">DE : ' + (mail.from||'') + '</div>';
   h += '<div style="font-size:.7rem;color:#6a5a20;margin-bottom:.6rem">OBJET : ' + (mail.subject||'') + '</div>';
   h += '<div style="font-size:.85rem;color:#a0a080;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #2a2010">' + (mail.body||'') + '</div>';
-  h += '<button onclick="repondreAuMail(' + JSON.stringify(mail.from) + ',' + JSON.stringify(mail.subject) + ')" style="margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-arrow-back-up" style="font-size:.75rem"></i> Repondre</button>';
+  h += '<button onclick="repondreAuMail(&quot;' + escapeHtmlAttr(mail.from) + '&quot;,&quot;' + escapeHtmlAttr(mail.subject) + '&quot;)" style="margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-arrow-back-up" style="font-size:.75rem"></i> Repondre</button>';
   h += '</div>';
   el.innerHTML = h;
 }
