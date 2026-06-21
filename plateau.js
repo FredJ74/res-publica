@@ -1171,7 +1171,7 @@ function applyEffects(fn, resultType, cost) {
     localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
 
     // Revenus passifs des organisations
-    appliquerRevenusPassifsOrga();
+    // appliquerRevenusPassifsOrga(); // V1 obsolète — remplacée par appliquerBonusLocation() dans payerLocations()
     // Vérifier postes vacants
     verifierPostesVacants();
 
