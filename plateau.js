@@ -50,6 +50,8 @@ window.addEventListener('DOMContentLoaded', () => {
       state.char.currentCity = state.currentCity || 'capitale';
       state.char.arg = state.arg || 0;
       state.char.resources = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
+      state.char.currentBuilding = state.currentBuilding || null;
+      state.char.currentRoom = state.currentRoom || null;
     }
     localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
     localStorage.setItem('respublica_char', JSON.stringify(state.char));
@@ -113,6 +115,8 @@ function loadCharacter() {
       const char = JSON.parse(saved);
       applyCharToState(char);
       console.log('Personnage charge (local):', char.name, '| Pays:', state.country);
+      // Restaurer la position exacte (piece) ou la personne se trouvait avant le rafraichissement
+      restaurerPositionApresChargement(char);
       // Synchroniser depuis Supabase en arrière-plan
       if (char.name && typeof sbLoadPersonnage === 'function') {
         sbLoadPersonnage(char.name).then(sbState => {
@@ -127,6 +131,18 @@ function loadCharacter() {
       }
     }
   } catch(e) { console.warn('Erreur chargement personnage', e); }
+}
+
+// Si le joueur etait dans un batiment/piece avant de rafraichir, on l'y replace directement
+function restaurerPositionApresChargement(char) {
+  if (!char.currentBuilding || !char.currentRoom) return;
+  if (!BUILDINGS[char.currentBuilding] || !BUILDINGS[char.currentBuilding].rooms?.[char.currentRoom]) return;
+  setTimeout(() => {
+    try {
+      enterBuilding(char.currentBuilding);
+      enterRoom(char.currentBuilding, char.currentRoom, null);
+    } catch(e) { console.warn('Erreur restauration position', e); }
+  }, 300);
 }
 
 function applyCharToState(char) {
@@ -1427,32 +1443,6 @@ function ouvrirStatsPerso() {
 // =====================
 // MENU MESSAGES (Forum + Mail)
 // =====================
-function ouvrirMenuMessages() {
-  const menu = document.getElementById('menu-messages');
-  if (!menu) return;
-  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-  // Fermer au clic dehors
-  if (menu.style.display === 'block') {
-    setTimeout(() => {
-      document.addEventListener('click', fermerMenuMessagesOutside, { once: true });
-    }, 10);
-  }
-}
-
-function fermerMenuMessages() {
-  const menu = document.getElementById('menu-messages');
-  if (menu) menu.style.display = 'none';
-}
-
-function fermerMenuMessagesOutside(e) {
-  const btn = document.getElementById('btn-messages');
-  const menu = document.getElementById('menu-messages');
-  if (!menu) return;
-  if (!btn?.contains(e.target) && !menu.contains(e.target)) {
-    menu.style.display = 'none';
-  }
-}
-
 // =====================
 // AVATARS CSS PNJ
 // =====================
