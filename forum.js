@@ -113,6 +113,10 @@ function markMailRead(mailId) {
 function deleteMail(mailId) {
   const mails = getMails().filter(x => x.id !== mailId);
   saveMails(mails);
+  // Supprimer aussi cote Supabase, sinon le mail reapparait a la prochaine synchro
+  if (typeof sbDeleteMail === 'function') {
+    sbDeleteMail(mailId).catch(() => {});
+  }
 }
 
 // Emojis par catégorie

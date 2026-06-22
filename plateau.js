@@ -6052,10 +6052,13 @@ function calculerResultatElection(election) {
 // BOITE MAIL
 // =====================
 function openMailbox() {
-  // Afficher la boite mail a la place de l'image centrale
-  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
-  document.getElementById('vue-mail').classList.add('active');
-  switchMailTab('inbox', document.querySelector('#vue-mail .piece-tab'));
+  // Unifie avec le module forum — une seule vraie implementation de la messagerie
+  if (typeof switchToMail === 'function') {
+    switchToMail();
+    document.getElementById('modal-forum').classList.add('open');
+  } else {
+    showToast('Erreur', 'Messagerie indisponible.', false);
+  }
 }
 
 // =====================
@@ -6268,138 +6271,6 @@ function closeMailView() {
   }
 }
 
-function switchMailTab(tab, el) {
-  if (el) {
-    document.querySelectorAll('#vue-mail .piece-tab').forEach(function(t) { t.classList.remove('active'); });
-    el.classList.add('active');
-  }
-  var contacts = state.contacts || [];
-  var content = document.getElementById('mail-content');
-  var compose = document.getElementById('mail-compose');
-  var subtitle = document.getElementById('mail-view-subtitle');
-
-  if (tab === 'inbox') {
-    compose.style.display = 'none';
-    content.innerHTML = '<div style="padding:2rem;text-align:center;color:#6a5a30;font-style:italic">Chargement des messages...</div>';
-    // Charger les vrais mails depuis Supabase avant d'afficher
-    (typeof loadMailsFromSB === 'function' ? loadMailsFromSB() : Promise.resolve()).then(function() {
-      var myName = state.char?.name;
-      var mails = (typeof getMails === 'function' ? getMails() : []).filter(function(m) { return m.to === myName; });
-      var unread = mails.filter(function(m) { return !m.read; }).length;
-      if (subtitle) subtitle.textContent = 'Messages recus' + (unread > 0 ? ' (' + unread + ' non lu' + (unread > 1 ? 's' : '') + ')' : '');
-      var html = "";
-      html += '<div style="text-align:right;padding:.5rem 1rem;border-bottom:1px solid #1a1810"><button onclick="openMailCompose()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">+ Nouveau message</button></div>';
-      if (mails.length === 0) {
-        html += '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message recu.</div>';
-      } else {
-        var reversed = mails.slice().reverse();
-        reversed.forEach(function(m) {
-          var bg = m.read ? 'transparent' : '#0f0a05';
-          var nameColor = m.read ? '#8a8060' : '#E8C97A';
-          var fw = m.read ? 'normal' : '700';
-          var textColor = m.read ? '#5a5040' : '#c0b090';
-          html += '<div onclick="readMailInView(&quot;' + m.id + '&quot;)" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer;background:' + bg + '">';
-          html += '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">';
-          html += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:' + nameColor + ';font-weight:' + fw + '">' + (m.from || '') + '</span>';
-          html += '<span style="font-size:.65rem;color:#4a4030">' + (m.time || '') + '</span></div>';
-          html += '<div style="font-size:.78rem;color:' + textColor + '">' + (m.subject || '') + '</div>';
-          if (!m.read) html += '<span style="display:inline-block;width:6px;height:6px;background:#C9A84C;border-radius:50%;margin-top:.2rem"></span>';
-          html += '</div>';
-        });
-      }
-      content.innerHTML = html;
-    });
-  } else if (tab === 'sent') {
-    compose.style.display = 'none';
-    if (subtitle) subtitle.textContent = 'Messages envoyes';
-    content.innerHTML = '<div style="padding:2rem;text-align:center;color:#6a5a30;font-style:italic">Chargement...</div>';
-    (typeof loadMailsFromSB === 'function' ? loadMailsFromSB() : Promise.resolve()).then(function() {
-      var myName = state.char?.name;
-      var sent = (typeof getMails === 'function' ? getMails() : []).filter(function(m) { return m.from === myName; });
-      if (sent.length === 0) {
-        content.innerHTML = '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Aucun message envoye.</div>';
-      } else {
-        var h = '';
-        sent.slice().reverse().forEach(function(m) {
-          h += '<div onclick="readMailInView(&quot;' + m.id + '&quot;)" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer">';
-          h += '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">';
-          h += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#8a8060">A : ' + (m.to || '') + '</span>';
-          h += '<span style="font-size:.65rem;color:#4a4030">' + (m.time || '') + '</span></div>';
-          h += '<div style="font-size:.78rem;color:#5a5040">' + (m.subject || '') + '</div></div>';
-        });
-        content.innerHTML = h;
-      }
-    });
-  } else if (tab === 'contacts') {
-    compose.style.display = 'none';
-    if (subtitle) subtitle.textContent = 'Repertoire';
-    if (contacts.length === 0) {
-      content.innerHTML = '<div style="padding:2rem;font-size:.85rem;color:#4a4030;font-style:italic;text-align:center">Repertoire vide. Rencontrez des personnages pour les ajouter.</div>';
-    } else {
-      var h = '<div style="padding:.5rem 0">';
-      contacts.forEach(function(c) {
-        h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border-bottom:1px solid #1a1810">';
-        h += '<div><div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + (c.name || '') + '</div>';
-        h += '<div style="font-size:.68rem;color:#5a5040">' + (c.role || '') + '</div></div>';
-        h += '<button onclick="prefillMailTo(' + JSON.stringify(c.name) + ')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.08em;padding:.2rem .5rem;border:1px solid #3a2a10;background:transparent;color:#8a7040;cursor:pointer">Ecrire</button>';
-        h += '</div>';
-      });
-      h += '</div>';
-      content.innerHTML = h;
-    }
-  } else if (tab === 'compose') {
-    compose.style.display = 'block';
-    if (subtitle) subtitle.textContent = 'Nouveau message';
-    content.innerHTML = '';
-  }
-}
-
-function openMailCompose() {
-  switchMailTab('compose', null);
-}
-
-
-function goBackToInbox() { switchMailTab("inbox", null); }
-
-function escapeHtmlAttr(str) {
-  return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-
-function readMailInView(mailId) {
-  var mails = (typeof getMails === 'function' ? getMails() : []);
-  var mail = mails.find(function(m) { return m.id === mailId; });
-  if (!mail) return;
-  if (typeof markMailRead === 'function') markMailRead(mailId);
-  var el = document.getElementById('mail-content');
-  var compose = document.getElementById('mail-compose');
-  if (compose) compose.style.display = 'none';
-  var h = '<div style="padding:1rem">';
-  h += '<button onclick="goBackToInbox()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:1rem">Retour</button>';
-  h += '<div style="font-size:.7rem;color:#6a5a20;margin-bottom:.2rem">DE : ' + (mail.from||'') + '</div>';
-  h += '<div style="font-size:.7rem;color:#6a5a20;margin-bottom:.6rem">OBJET : ' + (mail.subject||'') + '</div>';
-  h += '<div style="font-size:.85rem;color:#a0a080;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #2a2010">' + (mail.body||'') + '</div>';
-  h += '<button onclick="repondreAuMail(&quot;' + escapeHtmlAttr(mail.from) + '&quot;,&quot;' + escapeHtmlAttr(mail.subject) + '&quot;)" style="margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-arrow-back-up" style="font-size:.75rem"></i> Repondre</button>';
-  h += '</div>';
-  el.innerHTML = h;
-}
-
-function repondreAuMail(destinataire, sujetOriginal) {
-  switchMailTab('compose', null);
-  setTimeout(() => {
-    const toEl = document.getElementById('mail-to');
-    const subjEl = document.getElementById('mail-subject');
-    if (toEl) toEl.value = destinataire || '';
-    if (subjEl) subjEl.value = 'RE: ' + (sujetOriginal || '');
-  }, 50);
-}
-
-function prefillMailTo(name) {
-  switchMailTab('compose', null);
-  setTimeout(() => {
-    const to = document.getElementById('mail-to');
-    if (to) to.value = name;
-  }, 50);
-}
 
 async function sendMail() {
   const to = document.getElementById('mail-to')?.value?.trim();
@@ -6451,7 +6322,24 @@ function addExternalEvent(text, scope) {
 }
 
 // Charger les événements partagés depuis Supabase et les insérer dans le journal local
-let _evenementsCharges = new Set();
+// Cache persistant (localStorage) des IDs d'evenements deja affiches, propre a chaque personnage
+function _getEvenementsChargesKey() {
+  return 'respublica_evtvus_' + (state.char?.name || 'default');
+}
+function _getEvenementsCharges() {
+  try {
+    const raw = localStorage.getItem(_getEvenementsChargesKey());
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch(e) { return new Set(); }
+}
+function _saveEvenementsCharges(set) {
+  try {
+    // Garder seulement les 300 derniers IDs pour ne pas grossir indefiniment
+    const arr = Array.from(set).slice(-300);
+    localStorage.setItem(_getEvenementsChargesKey(), JSON.stringify(arr));
+  } catch(e) {}
+}
+
 async function chargerEvenementsPartages() {
   if (typeof sbGetEvenementsRecents !== 'function') return;
   try {
@@ -6459,10 +6347,11 @@ async function chargerEvenementsPartages() {
     if (!rows || rows.length === 0) return;
     const j = document.getElementById('journal');
     if (!j) return;
+    const dejaVus = _getEvenementsCharges();
     // Trier du plus ancien au plus récent pour insertion cohérente
-    const nouveaux = rows.filter(r => !_evenementsCharges.has(r.id)).sort((a,b) => a.id - b.id);
+    const nouveaux = rows.filter(r => !dejaVus.has(r.id)).sort((a,b) => a.id - b.id);
     nouveaux.forEach(r => {
-      _evenementsCharges.add(r.id);
+      dejaVus.add(r.id);
       const div = document.createElement('div');
       div.className = 'journal-entry journal-external';
       div.innerHTML = `
@@ -6472,6 +6361,7 @@ async function chargerEvenementsPartages() {
       `;
       j.insertBefore(div, j.firstChild);
     });
+    if (nouveaux.length > 0) _saveEvenementsCharges(dejaVus);
   } catch(e) { console.warn('chargerEvenementsPartages error', e); }
 }
 
