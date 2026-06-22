@@ -221,6 +221,8 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId) {
 }
 
 async function sbGetPresencesInRoom(country, city, buildingId, roomId) {
+  // Si pas dans un batiment/piece (rue centrale), pas de presence a chercher
+  if (!buildingId || !roomId) return [];
   const filtre = `country=eq.${encodeURIComponent(country)}&city=eq.${encodeURIComponent(city)}&building_id=eq.${encodeURIComponent(buildingId)}&room_id=eq.${encodeURIComponent(roomId)}`;
   const rows = await sbGet('presences', filtre);
   if (!rows) return [];
