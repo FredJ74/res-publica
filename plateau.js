@@ -1877,7 +1877,7 @@ function getResponsableLoge() {
 
 // Envoie une vraie notification a un autre joueur (mail Supabase). Si destinataire inconnu/absent, notifie le joueur courant a la place pour ne pas perdre l'information.
 async function envoyerNotificationVraiJoueur(destinataire, sujet, corps) {
-  const from = 'Système';
+  const from = state.char?.name || 'Anonyme';
   const h = String(state.hour || 8).padStart(2,'0');
   const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
 
@@ -3770,7 +3770,7 @@ async function verifierNouveauxMails() {
   if (!nom) return;
   try {
     const mails = await sbGetMailsFor(nom);
-    const nonLus = (mails || []).filter(m => !m.read).length;
+    const nonLus = (mails || []).filter(m => !m.read && m.to_player === nom).length;
     const badge = document.getElementById('mail-badge');
     if (badge) {
       if (nonLus > 0) {
@@ -6321,7 +6321,7 @@ function switchMailTab(tab, el) {
       } else {
         var h = '';
         sent.slice().reverse().forEach(function(m) {
-          h += '<div style="padding:.7rem 1rem;border-bottom:1px solid #1a1810">';
+          h += '<div onclick="readMailInView(&quot;' + m.id + '&quot;)" style="padding:.7rem 1rem;border-bottom:1px solid #1a1810;cursor:pointer">';
           h += '<div style="display:flex;justify-content:space-between;margin-bottom:.2rem">';
           h += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#8a8060">A : ' + (m.to || '') + '</span>';
           h += '<span style="font-size:.65rem;color:#4a4030">' + (m.time || '') + '</span></div>';
