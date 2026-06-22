@@ -119,6 +119,16 @@ function deleteMail(mailId) {
   }
 }
 
+function toggleArchiveMail(mailId, archive) {
+  const mails = getMails();
+  const m = mails.find(x => x.id === mailId);
+  if (m) { m.archived = archive; saveMails(mails); }
+  if (typeof sbSetMailArchived === 'function') {
+    sbSetMailArchived(mailId, archive).catch(() => {});
+  }
+  document.getElementById('forum-main').innerHTML = renderForumContent();
+}
+
 // Emojis par catégorie
 const EMOJI_CATS = {
   'Politique': ['🏛️','👑','⚖️','🗳️','📜','🤝','🚩','🎖️','🛡️','📋','🗡️','🔏','🏆','🎗️'],
@@ -648,7 +658,9 @@ function renderMailView() {
 
 function renderMailInbox() {
   const myName = state.char?.name || '';
-  const mails = getMyMails().sort((a,b) => b.id.localeCompare(a.id));
+  const allMails = getMyMails().sort((a,b) => b.id.localeCompare(a.id));
+  const mails = allMails.filter(m => !m.archived);
+  const archives = allMails.filter(m => m.archived);
   const received = mails.filter(m => m.to === myName);
   const sent = mails.filter(m => m.from === myName);
 
@@ -691,6 +703,20 @@ function renderMailInbox() {
             <div style="font-size:.72rem;color:#6a5a30">À : ${m.to}</div>
           </div>`).join('')}
     </div>
+    ${archives.length > 0 ? `
+    <div style="margin-top:.8rem">
+      <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#6a5a30;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
+        <i class="ti ti-archive"></i> ARCHIVES (${archives.length}) — conservées indéfiniment
+      </div>
+      ${archives.map(m => `
+        <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;opacity:.75">
+          <div style="display:flex;justify-content:space-between">
+            <div style="font-size:.82rem;color:#8a8060">${m.subject}</div>
+            <div style="font-size:.68rem;color:#4a4030">${m.time}</div>
+          </div>
+          <div style="font-size:.72rem;color:#6a5a30">${m.from === myName ? 'À : ' + m.to : 'De : ' + m.from}</div>
+        </div>`).join('')}
+    </div>` : ''}
   `;
 }
 
@@ -751,7 +777,7 @@ async function loadMailsFromSB() {
     const sbIds = new Set(rows.map(r => r.id));
     const merged = [
       ...rows.map(r => ({ id: r.id, from: r.from_player, to: r.to_player,
-        subject: r.subject, body: r.body, time: r.time, read: r.read })),
+        subject: r.subject, body: r.body, time: r.time, read: r.read, archived: r.archived || false })),
       ...local.filter(m => !sbIds.has(m.id))
     ];
     saveMails(merged);
@@ -783,16 +809,26 @@ function renderMailRead() {
         · ${mail.time}
       </div>
       <div style="font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.8;color:#f0ead6">${mail.body}</div>
-      <div style="margin-top:1rem;display:flex;gap:.5rem">
+      <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
         ${mail.to === myName ? `
           <button onclick="replyToMail('${mail.from}','${mail.subject}')" class="forum-new-btn" style="font-size:.72rem">
             <i class="ti ti-corner-down-left"></i> Répondre
           </button>` : ''}
+        ${mail.archived ? `
+          <button onclick="toggleArchiveMail('${mail.id}', false)"
+            style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer">
+            <i class="ti ti-archive-off"></i> Désarchiver
+          </button>` : `
+          <button onclick="toggleArchiveMail('${mail.id}', true)"
+            style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#8a8060;cursor:pointer">
+            <i class="ti ti-archive"></i> Archiver (conserver indéfiniment)
+          </button>`}
         <button onclick="deleteMail('${mail.id}');mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()" 
           style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">
           <i class="ti ti-trash"></i> Supprimer
         </button>
       </div>
+      ${!mail.archived ? '<div style="margin-top:.5rem;font-size:.65rem;color:#5a5040;font-style:italic">Ce message sera supprime automatiquement 14 jours apres reception, sauf archivage.</div>' : ''}
     </div>
   `;
 }

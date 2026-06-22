@@ -271,3 +271,10 @@ async function sbRecupererDonsEnAttente(destinataire) {
 async function sbMarquerDonTraite(donId) {
   return sbUpdate('dons_en_attente', `id=eq.${donId}`, { traite: true });
 }
+
+// =====================
+// ARCHIVAGE DES MAILS
+// =====================
+async function sbSetMailArchived(mailId, archived) {
+  return sbUpdate('mails', `id=eq.${encodeURIComponent(mailId)}`, { archived });
+}

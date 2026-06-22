@@ -74,6 +74,20 @@ function calculerResultatsServer(cycle) {
   return { scores, totalVoix, elu: null, secondTour: qualifies };
 }
 
+async function purgerVieuxMails() {
+  const limite = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+  try {
+    const filtre = `created_at=lt.${encodeURIComponent(limite)}&archived=eq.false`;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/mails?${filtre}`, {
+      method: 'DELETE',
+      headers: { ...HEADERS, 'Prefer': 'return=representation' }
+    });
+    if (!res.ok) { console.error('purgerVieuxMails error', await res.text()); return 0; }
+    const deleted = await res.json();
+    return Array.isArray(deleted) ? deleted.length : 0;
+  } catch(e) { console.error('purgerVieuxMails exception', e); return 0; }
+}
+
 export default async function handler(req, res) {
   // Sécurité minimale : autoriser uniquement les appels Vercel Cron ou avec un secret
   const authHeader = req.headers['authorization'];
@@ -153,7 +167,10 @@ export default async function handler(req, res) {
       });
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results });
+    // 2. Purger les mails de plus de 14 jours, non archives (recus ET envoyes)
+    const mailsSuppres = await purgerVieuxMails();
+
+    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });
