@@ -29,6 +29,13 @@ let state = {
 // =====================
 // INIT
 // =====================
+// Encode un objet PNJ en toute securite pour l'injection dans des attributs HTML —
+// encodeURIComponent seul ne touche pas aux apostrophes, ce qui casse les onclick="...('...')"
+// quand un nom de PNJ contient une apostrophe (ex: "Agent d'Entretien")
+function encodePnjSafe(obj) {
+  return encodeURIComponent(JSON.stringify(obj)).replace(/'/g, '%27');
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   loadCharacter();
   // Restaurer dernierDormir depuis localStorage
@@ -696,7 +703,7 @@ function renderPersonsList(persons) {
         '</div></div>';
     }
 
-    const pData = encodeURIComponent(JSON.stringify(p));
+    const pData = encodePnjSafe(p);
     return '<div class="person-card" onclick="openPnjModal(this.dataset.enc)" data-enc="' + pData + '">' +
       avatarHtml +
       '<div>' +
@@ -732,7 +739,7 @@ function renderPersonsList(persons) {
   }
   const simules = getSimulesPresents();
   const simuleCards = simules.map(p => {
-    const enc = encodeURIComponent(JSON.stringify({...p, isPJ: true}));
+    const enc = encodePnjSafe({...p, isPJ: true});
     return '<div class="person-card" onclick="openPnjModal(this.dataset.enc)" data-enc="' + enc + '" style="border-left:2px solid #4a6aaa">' +
       '<div class="person-avatar" style="border-color:#4a6aaa"><i class="ti ti-user-circle" style="font-size:.75rem;color:#4a6aaa"></i></div>' +
       '<div><div class="person-name" style="color:#8aaad0">' + p.name + ' <span style="font-size:.6rem;color:#3a5a8a">[SIM]</span></div>' +
@@ -805,7 +812,7 @@ async function chargerVraisJoueursPresents() {
 
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
     const html = window._vraisJoueursPresents.map(p => {
-      const enc = encodeURIComponent(JSON.stringify(p));
+      const enc = encodePnjSafe(p);
       const avatarHtml = p.photoUrl
         ? '<div class="person-avatar" style="overflow:hidden;border-color:' + empireCol + '"><img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover"/></div>'
         : '<div class="person-avatar" style="border-color:' + empireCol + '"><i class="ti ti-user" style="font-size:.75rem;color:' + empireCol + '"></i></div>';
@@ -1593,7 +1600,7 @@ function openPnjModal(encodedPnj) {
   if (traitEl) traitEl.textContent = perso?.trait || '';
   const speech = document.getElementById('pnj-speech');
   speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
-  const enc = encodeURIComponent(JSON.stringify(pnj));
+  const enc = encodePnjSafe(pnj);
 
   let actionBtns = '';
   const pnjSafeName = pnj.name.replace(/'/g, '');
@@ -1602,7 +1609,7 @@ function openPnjModal(encodedPnj) {
 
   if (isPJ) {
     const inGroup = state.group && state.group.members && state.group.members.includes(pnj.name);
-    const pnjJson = encodeURIComponent(JSON.stringify(pnj));
+    const pnjJson = encodePnjSafe(pnj);
     actionBtns += (!inGroup
       ? '<button class="pnj-action-btn" onclick="rejoindrePJ(decodeURIComponent(\'' + pnjJson + '\'))"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
       : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>');
@@ -1666,7 +1673,7 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalInterrogerAccueil()"><i class="ti ti-message-question" style="font-size:.85rem"></i> Demander des confidences</button>';
   }
 
-  const encCible = encodeURIComponent(JSON.stringify(pnj));
+  const encCible = encodePnjSafe(pnj);
   actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
   document.getElementById('pnj-actions').innerHTML = actionBtns +
     (isPJ
@@ -5836,7 +5843,7 @@ function doLogePortail() {
   if (roll <= 95) {
     // Trouver le portier de la loge
     const portier = { name: 'Le Portier', role: 'PNJ - Gardien de la Loge', rel: 'neutral', job: 'portier' };
-    openPnjModal(encodeURIComponent(JSON.stringify(portier)));
+    openPnjModal(encodePnjSafe(portier));
     addJournalEntry('Le portier de la Loge repond a votre appel.', '');
   } else {
     showToast('Pas de reponse', 'Personne ne repond a votre frappe. Reessayez plus tard.', false);
@@ -12327,7 +12334,7 @@ function ouvrirModalRecrutPnj(encodedPnj) {
       '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.55rem;color:#4a4030">LOY</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.loyaute + '</div></div>' +
     '</div>' +
     '<div style="font-size:.72rem;color:#6a5030;margin-bottom:.7rem">Coût : <strong style="color:#C9A84C">' + cout + ' ' + cur + '/jour</strong> · ' + (MAX_EMPLOYES - getEmployes().length) + ' place(s) restante(s)</div>' +
-    '<button onclick="confirmerRecrutPnj(\'' + encodeURIComponent(JSON.stringify(pnj)) + '\',' + cout + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
+    '<button onclick="confirmerRecrutPnj(\'' + encodePnjSafe(pnj) + '\',' + cout + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
@@ -12625,7 +12632,7 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
         '</div>'
       : '<div class="person-avatar" style="border-color:' + borderCol + '"><i class="ti ti-user" style="font-size:.75rem;color:#8a6a20"></i></div>';
 
-    const encEmp = encodeURIComponent(JSON.stringify({ name: emp.nomComplet || emp.nom + ' (PNJ)', role: emp.role, job: emp.job, photoUrl: emp.photoUrl, photoPos: emp.photoPos, rel: 'ally' }));
+    const encEmp = encodePnjSafe({ name: emp.nomComplet || emp.nom + ' (PNJ)', role: emp.role, job: emp.job, photoUrl: emp.photoUrl, photoPos: emp.photoPos, rel: 'ally' });
     return '<div class="person-card" style="border-left:2px solid ' + borderCol + ';cursor:pointer" onclick="openPnjModal(\'' + encEmp + '\')">' +
       avatarHtml +
       '<div>' +
