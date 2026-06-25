@@ -6949,10 +6949,15 @@ async function confirmerChangementPhoto() {
     await sbUpdatePhotoBio(state.char.name, photoFinal, undefined).catch(() => {});
   }
 
+  // Forcer la mise a jour du cache partage immediatement (sinon il faut attendre jusqu'a 60s)
+  if (window._cachePhotosJoueurs && state.char.name) {
+    window._cachePhotosJoueurs[state.char.name] = photoFinal;
+  }
+
   _photoTemp = null;
   showToast('Photo mise à jour', 'Votre nouvelle photo de profil est enregistrée.', true, true);
   // Rafraîchir l'affichage de la fiche
-  switchSelfTab('identite', document.querySelectorAll('#vue-self .piece-tab')[3] || null);
+  switchSelfTab('identite', document.querySelectorAll('#vue-self .piece-tab')[2] || null);
 }
 
 // =====================
