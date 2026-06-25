@@ -283,3 +283,37 @@ async function sbMarquerDonTraite(donId) {
 async function sbSetMailArchived(mailId, archived) {
   return sbUpdate('mails', `id=eq.${encodeURIComponent(mailId)}`, { archived });
 }
+
+// =====================
+// SUPPRESSION DE PERSONNAGE (conserve forum/mails)
+// =====================
+async function sbDeletePersonnage(name) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(name)}`, {
+      method: 'DELETE', headers: SB_HEADERS
+    });
+    await fetch(`${SUPABASE_URL}/rest/v1/presences?name=eq.${encodeURIComponent(name)}`, {
+      method: 'DELETE', headers: SB_HEADERS
+    });
+    await fetch(`${SUPABASE_URL}/rest/v1/dons_en_attente?destinataire=eq.${encodeURIComponent(name)}`, {
+      method: 'DELETE', headers: SB_HEADERS
+    });
+    await fetch(`${SUPABASE_URL}/rest/v1/votes_electoraux?votant=eq.${encodeURIComponent(name)}`, {
+      method: 'DELETE', headers: SB_HEADERS
+    });
+    await fetch(`${SUPABASE_URL}/rest/v1/candidatures?nom=eq.${encodeURIComponent(name)}`, {
+      method: 'DELETE', headers: SB_HEADERS
+    });
+    return true;
+  } catch(e) { console.error('sbDeletePersonnage error', e); return false; }
+}
+
+// =====================
+// MISE A JOUR PHOTO/BIO SEULES (depuis la fiche personnage)
+// =====================
+async function sbUpdatePhotoBio(name, photoUrl, bio) {
+  const data = {};
+  if (photoUrl !== undefined) data.photo_url = photoUrl;
+  if (bio !== undefined) data.bio = bio;
+  return sbUpdate('personnages', `name=eq.${encodeURIComponent(name)}`, data);
+}

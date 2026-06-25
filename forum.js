@@ -230,6 +230,9 @@ function switchToMail() {
   forumView = 'mail';
   mailView = 'inbox';
   renderForumModal();
+  if (typeof rafraichirCachePhotosJoueurs === 'function') {
+    rafraichirCachePhotosJoueurs().then(() => { if (mailView !== 'compose') renderForumModal(); }).catch(() => {});
+  }
   loadMailsFromSB().then(() => {
     if (mailView !== 'compose') renderForumModal();
   }).catch(() => {});
@@ -301,7 +304,7 @@ function renderTopicView() {
       ${topic.posts.map((p, i) => `
         <div class="forum-post">
           <div class="forum-post-header">
-            <div class="forum-post-avatar"><i class="ti ti-user" style="font-size:1rem;color:#C9A84C"></i></div>
+            <div class="forum-post-avatar">${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(p.author, 32) : '<i class="ti ti-user" style="font-size:1rem;color:#C9A84C"></i>'}</div>
             <div>
               <div class="forum-post-author">${p.author}</div>
               <div class="forum-post-time">${p.time}</div>
@@ -582,6 +585,12 @@ function openTopic(topicId) {
   forumView = 'topic';
   // Afficher d'abord les posts locaux
   document.getElementById('forum-main').innerHTML = renderForumContent();
+  // Charger les avatars des auteurs (cache partagé avec la presence en piece)
+  if (typeof rafraichirCachePhotosJoueurs === 'function') {
+    rafraichirCachePhotosJoueurs().then(() => {
+      document.getElementById('forum-main').innerHTML = renderForumContent();
+    }).catch(() => {});
+  }
   // Puis charger depuis Supabase
   loadForumPostsFromSB(topicId).then(() => {
     if (typeof sbIncrementViews === 'function') sbIncrementViews(topicId);
@@ -803,10 +812,13 @@ function renderMailRead() {
       <div class="forum-title-main" style="flex:1">${mail.subject}</div>
     </div>
     <div style="padding:.8rem">
-      <div style="font-size:.72rem;color:#6a5a30;margin-bottom:.8rem;padding:.5rem;border:1px solid #1a1810">
-        De : <strong style="color:#c0b090">${mail.from}</strong> 
-        → À : <strong style="color:#c0b090">${mail.to}</strong>
-        · ${mail.time}
+      <div style="display:flex;align-items:center;gap:.6rem;font-size:.72rem;color:#6a5a30;margin-bottom:.8rem;padding:.5rem;border:1px solid #1a1810">
+        ${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(mail.from, 28) : ''}
+        <div>
+          De : <strong style="color:#c0b090">${mail.from}</strong> 
+          → À : <strong style="color:#c0b090">${mail.to}</strong>
+          · ${mail.time}
+        </div>
       </div>
       <div style="font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.8;color:#f0ead6">${mail.body}</div>
       <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">

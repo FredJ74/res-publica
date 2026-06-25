@@ -752,6 +752,38 @@ function renderPersonsList(persons) {
   chargerVraisJoueursPresents();
 }
 
+// Cache partagé des photos de profil (nom -> photo_url), réutilisé pour la présence, le forum et les mails
+window._cachePhotosJoueurs = window._cachePhotosJoueurs || {};
+window._cachePhotosJoueursTimestamp = window._cachePhotosJoueursTimestamp || 0;
+async function rafraichirCachePhotosJoueurs() {
+  const maintenant = Date.now();
+  // Rafraichir au maximum toutes les 60 secondes pour éviter de spammer Supabase
+  if (maintenant - window._cachePhotosJoueursTimestamp < 60000 && Object.keys(window._cachePhotosJoueurs).length > 0) {
+    return window._cachePhotosJoueurs;
+  }
+  if (typeof sbListPersonnages === 'function') {
+    try {
+      const joueurs = await sbListPersonnages() || [];
+      const cache = {};
+      joueurs.forEach(j => { if (j.photo_url) cache[j.name] = j.photo_url; });
+      window._cachePhotosJoueurs = cache;
+      window._cachePhotosJoueursTimestamp = maintenant;
+    } catch(e) {}
+  }
+  return window._cachePhotosJoueurs;
+}
+
+// Retourne le HTML d'avatar (vraie photo si connue, sinon icone par defaut)
+function getAvatarHtmlPourNom(nom, taille, bordColor) {
+  const t = taille || 32;
+  const c = bordColor || '#C9A84C';
+  const photo = window._cachePhotosJoueurs?.[nom];
+  if (photo) {
+    return '<div style="width:' + t + 'px;height:' + t + 'px;border-radius:50%;overflow:hidden;border:1px solid ' + c + ';flex-shrink:0"><img src="' + photo + '" style="width:100%;height:100%;object-fit:cover"/></div>';
+  }
+  return '<div style="width:' + t + 'px;height:' + t + 'px;border-radius:50%;background:#1a1508;border:1px solid ' + c + ';display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-user" style="font-size:' + (t*0.45) + 'px;color:' + c + '"></i></div>';
+}
+
 // Affiche les autres PJ réellement présents dans la pièce courante (rafraîchi périodiquement)
 async function chargerVraisJoueursPresents() {
   if (typeof sbGetPresencesInRoom !== 'function') return;
@@ -763,13 +795,7 @@ async function chargerVraisJoueursPresents() {
     const autres = presents.filter(p => p.name !== moi);
 
     // Recuperer les photos depuis l'annuaire des personnages (presences n'a pas de photo)
-    let photosParNom = {};
-    if (typeof sbListPersonnages === 'function') {
-      try {
-        const joueurs = await sbListPersonnages() || [];
-        joueurs.forEach(j => { if (j.photo_url) photosParNom[j.name] = j.photo_url; });
-      } catch(e) {}
-    }
+    const photosParNom = await rafraichirCachePhotosJoueurs();
 
     // Mettre en cache pour getCurrentRoomPersons() (utilisé par assassinat, dons, etc.)
     window._vraisJoueursPresents = autres.map(p => ({
@@ -6866,9 +6892,107 @@ function switchSelfTab(tab, el) {
     html += '</div>';
 
     if (char?.bio) html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;line-height:1.7;padding:.8rem;background:#0f0d05;border:1px solid #1a1810">' + char.bio + '</div>';
+
+    html += '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">';
+    html += '<button onclick="ouvrirModalChangerPhoto()" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-camera"></i> Modifier la photo</button>';
+    html += '</div>';
+
+    html += '<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #2a1a10">';
+    html += '<button onclick="ouvrirModalDetruirePersonnage()" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a2a20;background:transparent;color:#8a4a3a;cursor:pointer"><i class="ti ti-skull"></i> Détruire mon personnage</button>';
+    html += '</div>';
+
     html += '</div>';
     content.innerHTML = html;
   }
+}
+
+// =====================
+// CHANGEMENT DE PHOTO DE PROFIL
+// =====================
+function ouvrirModalChangerPhoto() {
+  document.getElementById('postes-modal-title').textContent = 'Modifier la photo de profil';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">DEPUIS UN FICHIER</div>';
+  html += '<input type="file" id="photo-file-input" accept="image/*" onchange="handlePhotoFileChange(event)" style="width:100%;color:#c0b090;font-size:.82rem;margin-bottom:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">OU DEPUIS UNE URL</div>';
+  html += '<input type="text" id="photo-url-input" placeholder="https://..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:1rem;box-sizing:border-box">';
+  html += '<div id="photo-preview-zone" style="margin-bottom:1rem"></div>';
+  html += '<button onclick="confirmerChangementPhoto()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Enregistrer la photo</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+let _photoTemp = null;
+function handlePhotoFileChange(event) {
+  const f = event.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    _photoTemp = e.target.result;
+    document.getElementById('photo-preview-zone').innerHTML = '<img src="' + _photoTemp + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #8a6a20">';
+  };
+  r.readAsDataURL(f);
+}
+
+async function confirmerChangementPhoto() {
+  const urlInput = document.getElementById('photo-url-input')?.value?.trim();
+  const photoFinal = _photoTemp || urlInput || null;
+  if (!photoFinal) { showToast('Aucune photo', 'Choisissez un fichier ou entrez une URL.', false); return; }
+
+  if (!state.char) return;
+  state.char.photoUrl = photoFinal;
+  localStorage.setItem('respublica_photo_' + state.char.name, photoFinal);
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (typeof sbUpdatePhotoBio === 'function') {
+    await sbUpdatePhotoBio(state.char.name, photoFinal, undefined).catch(() => {});
+  }
+
+  _photoTemp = null;
+  showToast('Photo mise à jour', 'Votre nouvelle photo de profil est enregistrée.', true, true);
+  // Rafraîchir l'affichage de la fiche
+  switchSelfTab('identite', document.querySelectorAll('#vue-self .piece-tab')[3] || null);
+}
+
+// =====================
+// SUPPRESSION DE PERSONNAGE
+// =====================
+function ouvrirModalDetruirePersonnage() {
+  document.getElementById('postes-modal-title').textContent = 'Détruire mon personnage';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="color:#cc4444;font-size:.85rem;line-height:1.6;margin-bottom:1rem"><i class="ti ti-alert-triangle"></i> <strong>Action irréversible.</strong> Votre personnage (' + (state.char?.name||'') + ') sera définitivement supprimé : poste, ressources, candidatures et votes en cours seront effacés.<br><br>Vos messages sur les forums et vos mails resteront visibles, comme une trace historique.</div>';
+  html += '<input type="text" id="confirm-destroy-input" placeholder="Tapez le nom de votre personnage pour confirmer" style="width:100%;background:#121005;border:1px solid #6a2a20;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:1rem;box-sizing:border-box">';
+  html += '<button onclick="confirmerDestructionPersonnage()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Détruire définitivement</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDestructionPersonnage() {
+  const saisie = document.getElementById('confirm-destroy-input')?.value?.trim();
+  const nom = state.char?.name;
+  if (!nom || saisie !== nom) {
+    showToast('Confirmation incorrecte', 'Le nom saisi ne correspond pas.', false);
+    return;
+  }
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (typeof sbDeletePersonnage === 'function') {
+    await sbDeletePersonnage(nom).catch(() => {});
+  }
+
+  // Nettoyer le localStorage local
+  localStorage.removeItem('respublica_char_' + nom);
+  localStorage.removeItem('respublica_dormir_' + nom);
+  localStorage.removeItem('respublica_photo_' + nom);
+  localStorage.removeItem('respublica_evtvus_' + nom);
+  localStorage.removeItem('respublica_char');
+  localStorage.removeItem('respublica_last_char');
+
+  showToast('Personnage détruit', 'Vous allez être redirigé vers la création d\'un nouveau personnage.', true, true);
+  setTimeout(() => { window.location.href = 'index.html'; }, 2000);
 }
 
 function doDormir() {
