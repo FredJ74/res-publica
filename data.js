@@ -1287,7 +1287,9 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-assemblee-republic.png",
         persons: [
           {name:'Garde Republicain (PNJ)', role:'PNJ - Securite', rel:'neutral', job:'garde'},
-          {name:'Agent d\'Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage'}
+          {name:'Hotesse Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse_accueil'},
+          {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves'},
+          {name:'Agent Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage'}
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral', pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},

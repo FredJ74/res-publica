@@ -132,6 +132,8 @@ function loadCharacter() {
             Object.assign(state, sbState);
             applyCharToState(state.char);
             updateUI();
+            // Re-tenter la restauration de position avec la donnee Supabase (potentiellement plus a jour)
+            restaurerPositionApresChargement(state.char);
             console.log('Personnage synchronisé depuis Supabase:', char.name);
           }
         }).catch(() => {});
@@ -1668,8 +1670,8 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort</button>';
   }
 
-  // Interroger l'agent d'entretien sur les objets trouves
-  if (pnj.job === 'femme_menage') {
+  // Interroger l'hotesse des objets trouves sur ses souvenirs
+  if (pnj.job === 'hotesse_objets_trouves') {
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalInterrogerAccueil()"><i class="ti ti-message-question" style="font-size:.85rem"></i> Demander des confidences</button>';
   }
 
