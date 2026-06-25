@@ -537,6 +537,18 @@ function enterRoom(buildingId, roomId, tabEl) {
   state.currentRoom = roomId;
   deplacerGroupeAvecPj(buildingId, roomId, state.currentCity);
 
+  // Synchroniser la position dans state.char a CHAQUE deplacement (pas seulement au chargement de page)
+  if (state.char) {
+    state.char.currentBuilding = buildingId;
+    state.char.currentRoom = roomId;
+    localStorage.setItem('respublica_char_' + (state.char.name || 'default'), JSON.stringify(state.char));
+    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    // Pousser aussi vers Supabase pour que la position survive a un rafraichissement avant la prochaine sauvegarde periodique
+    if (typeof sbSavePersonnage === 'function') {
+      sbSavePersonnage(state).catch(() => {});
+    }
+  }
+
   // Réinitialiser le cache des vrais joueurs (on change de pièce, l'ancien cache est obsolète)
   window._vraisJoueursPresents = [];
 
