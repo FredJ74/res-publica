@@ -1113,8 +1113,8 @@ const BUILDINGS = {
       hall: {
         name: "Hall d'entree",
         imageBg: "linear-gradient(135deg,#141c10,#1e2a18)",
-        desc: "Le hall monumental du Palais. Gardes republicains en faction. Acces controle.",
-        imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
+        desc: "Le hall monumental du Palais. Rotonde a coupole, escalier d'honneur, gardes republicains en faction.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-palais-gouvernement-republic.png",
         persons: [
           {name:'Garde Martineau',   role:'PNJ - Securite', rel:'neutral', job:'garde'},
           {name:'Secretaire Dupuis', role:'PNJ - Accueil officiel', rel:'neutral', job:'secretaire'}
@@ -1280,6 +1280,21 @@ const BUILDINGS = {
     capitaleOnly: true,
     desc: "Les 25 sieges de l\'Assemblee Nationale de Republia. Actuellement majoritairement occupes par des PNJ.",
     rooms: {
+      accueil_assemblee: {
+        name: "Accueil",
+        imageBg: "linear-gradient(135deg,#181410,#1f1a14)",
+        desc: "Le hall d'accueil de l'Assemblee Nationale. Fresque murale, marbre et personnel en faction.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-assemblee-republic.png",
+        persons: [
+          {name:'Garde Republicain (PNJ)', role:'PNJ - Securite', rel:'neutral', job:'garde'},
+          {name:'Agent d\'Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage'}
+        ],
+        orders: [
+          {fn:'calendrier_elections', label:'Calendrier electoral', pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
+          {fn:'consulter_annuaire_deputes', label:'Consulter l\'annuaire des deputes', pa:0, cost:0, type:'legal', icon:'ti-address-book', successRate:100, desc:'Liste des 25 sieges et de leurs titulaires actuels (PJ ou PNJ).'},
+          {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'}
+        ]
+      },
       hemicycle: {
         name: "Hemicycle",
         image: "🗳️",
@@ -1292,7 +1307,6 @@ const BUILDINGS = {
           {name:'Depute Chen',       role:'Opposition (PNJ)', rel:'neutral', job:'depute'}
         ],
         orders: [
-          {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
           {fn:'observer_debats',  label:'Observer les debats',   pa:1, cost:0,   type:'legal', icon:'ti-eye',      successRate:100, desc:'Revele les positions des deputes. +1 INF pour les journalistes.'},
           {fn:'voter_loi',         label:'Voter une loi',          pa:1, cost:0,   type:'legal', icon:'ti-check',    successRate:100, requiresPost:'depute', desc:'Mercredi jusqu\'a 20h seulement. Ouvre la liste des lois en attente de vote.'},
           {fn:'projet_loi',       label:'Deposer un projet',     pa:3, cost:0,   type:'legal', icon:'ti-file-text',successRate:70,  requiresPost:true, desc:'Deposer un projet de loi.'},
@@ -1350,9 +1364,8 @@ const BUILDINGS = {
           {name:'Procureur Saad', role:'Ministere public (PNJ)', rel:'neutral', job:'procureur'}
         ],
         orders: [
-          {fn:'plainte',   label:'Consulter les affaires', pa:0, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir les affaires transmises par la police, en attente de jugement.'},
-          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:75},
-          {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire transmise par le commissariat. Amende, prison, amenagement ou QHS.'}
+          {fn:'plainte',   label:'Porter plainte',        pa:1, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100},
+          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:75}
         ]
       },
       greffe: {
@@ -1797,8 +1810,7 @@ const BUILDINGS = {
           {fn:'repartition_budget_local', label:'Repartition du budget local', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Allouer le budget entre commissariat, dispensaire, voirie et services municipaux.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Deploiement de forces de l\'ordre supplementaires. Preleve sur budget mairie.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire', desc:'Choisir le type d\'acte a delivrer a un administre.'},
-          {fn:'contester_resultats',   label:'Contester des resultats',       pa:2, cost:0, type:'legal', icon:'ti-alert-triangle', successRate:70, desc:'Deposer un recours dans le sous-forum Tribunal. Delai 48h. Decision du juge.'},
-          {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'}
+          {fn:'contester_resultats',   label:'Contester des resultats',       pa:2, cost:0, type:'legal', icon:'ti-alert-triangle', successRate:70, desc:'Deposer un recours dans le sous-forum Tribunal. Delai 48h. Decision du juge.'}
         ]
       },
       salle_elections: {
@@ -3813,20 +3825,11 @@ const SALAIRES = {
   min_ae:      2800,
   depute:      1200,
   senateur:    1200,
-  juge:        1800,
-  commissaire: 1000,
   maire:       800,
   adj_maire:   500,
   gouverneur:  1500,
   prefet:      900,
   default:     150  // Citoyen sans poste
-};
-
-// Postes nommés (non électifs) avec règles de cumul strictes
-// 'depute' est le SEUL poste compatible avec juge/commissaire
-const POSTES_NOMMES_EXCLUSIFS = {
-  juge:        { label: 'Juge',        nommePar: 'min_just', scope: 'pays',  compatibles: ['depute'] },
-  commissaire: { label: 'Commissaire', nommePar: 'maire',    scope: 'ville', compatibles: ['depute'] }
 };
 
 // Nouveaux ordres v6

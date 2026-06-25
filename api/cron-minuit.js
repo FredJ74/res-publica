@@ -88,6 +88,32 @@ async function purgerVieuxMails() {
   } catch(e) { console.error('purgerVieuxMails exception', e); return 0; }
 }
 
+async function traiterSouvenirsAccueil() {
+  const resultats = { fuites: 0, expires: 0 };
+  try {
+    // Recuperer tous les souvenirs non encore reveles
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/souvenirs_accueil?revele=eq.false`, { headers: HEADERS });
+    if (!res.ok) return resultats;
+    const souvenirs = await res.json();
+    const aujourdHui = Math.max(...souvenirs.map(s => s.jour_creation), 1); // approx, pas critique
+
+    for (const s of souvenirs) {
+      // Nettoyage : souvenir expire (12 jours passes) -> on ignore silencieusement, sera filtre cote client
+      // Fuite spontanee : 5-10% de chance par jour, seulement si pas deja revele
+      const chanceFuite = 0.05 + Math.random() * 0.05; // entre 5% et 10%
+      if (Math.random() < chanceFuite) {
+        await fetch(`${SUPABASE_URL}/rest/v1/souvenirs_accueil?id=eq.${s.id}`, {
+          method: 'PATCH', headers: HEADERS, body: JSON.stringify({ revele: true })
+        });
+        const texte = `📰 SCANDALE : un journaliste révèle que ${s.pj_nom} a récupéré "${s.objet_nom}" au service des objets trouvés de l'Assemblée.`;
+        await sbInsert('evenements_globaux', { country: 'republic', city: null, texte, jour: null });
+        resultats.fuites++;
+      }
+    }
+  } catch(e) { console.error('traiterSouvenirsAccueil error', e); }
+  return resultats;
+}
+
 export default async function handler(req, res) {
   // Sécurité minimale : autoriser uniquement les appels Vercel Cron ou avec un secret
   const authHeader = req.headers['authorization'];
@@ -170,7 +196,10 @@ export default async function handler(req, res) {
     // 2. Purger les mails de plus de 14 jours, non archives (recus ET envoyes)
     const mailsSuppres = await purgerVieuxMails();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres });
+    // 3. Fuites spontanees des souvenirs de l'accueil (5-10% par jour) + nettoyage des souvenirs expires
+    const fuites = await traiterSouvenirsAccueil();
+
+    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres, fuites });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

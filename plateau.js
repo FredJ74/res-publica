@@ -1043,6 +1043,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'contester_resultats')    { ouvrirContesterResultats(); return; }
   if (fn === 'calendrier_elections')   { ouvrirCalendrierElections(); return; }
   if (fn === 'observer_debats')         { observerDebats(); return; }
+  if (fn === 'consulter_annuaire_deputes') { consulterAnnuaireDeputes(); return; }
+  if (fn === 'objet_trouve')            { reclamerObjetTrouve(); return; }
   if (fn === 'voter_loi')              { ouvrirVoteLoi(); return; }
   if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
   if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(); return; }
@@ -1657,6 +1659,11 @@ function openPnjModal(encodedPnj) {
   if (pnj.job === 'escort') {
     const escortNom = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort</button>';
+  }
+
+  // Interroger l'agent d'entretien sur les objets trouves
+  if (pnj.job === 'femme_menage') {
+    actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalInterrogerAccueil()"><i class="ti ti-message-question" style="font-size:.85rem"></i> Demander des confidences</button>';
   }
 
   const encCible = encodeURIComponent(JSON.stringify(pnj));
@@ -10661,6 +10668,133 @@ function confirmerSupprPoste(type) {
 // =====================
 // INVENTORY
 // =====================
+
+// =====================
+// ANNUAIRE DES DEPUTES
+// =====================
+function consulterAnnuaireDeputes() {
+  const country = state.country;
+  const co = COUNTRIES[country];
+  const titulairesConnus = state.postes?.[country] || {};
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">25 sieges a l\'Assemblee Nationale de ' + (co?.n||country) + '.</div>';
+  for (let i = 1; i <= 25; i++) {
+    const titulaire = titulairesConnus['depute_' + i] || 'Vacant (PNJ)';
+    html += '<div style="display:flex;justify-content:space-between;padding:.4rem .2rem;border-bottom:1px solid #1a1810">';
+    html += '<span style="font-size:.78rem;color:#6a5a30">Siege ' + i + '</span>';
+    html += '<span style="font-size:.8rem;color:#c0b090">' + titulaire + '</span>';
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Annuaire des Députés';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// =====================
+// OBJET TROUVE (Accueil Assemblee) — 50% de chance, kompromat potentiel
+// =====================
+const OBJETS_TROUVES_ASSEMBLEE = [
+  { name: 'Parapluie aux couleurs du parti', icon: 'ti-umbrella', desc: 'Un parapluie noir orne du logo du parti majoritaire. Oublié dans un coin.', compromettant: false },
+  { name: 'Dossier de presse périmé', icon: 'ti-file-text', desc: 'Un vieux dossier de presse évoquant vaguement un scandale jamais éclairci.', compromettant: true },
+  { name: 'Petite culotte en dentelle', icon: 'ti-shirt', desc: 'Une petite culotte en dentelle noire, avec une carte de visite d\'escort glissée dedans.', compromettant: true },
+  { name: 'Enveloppe administrative suspecte', icon: 'ti-package', desc: 'Une enveloppe officielle mal refermée, laissant voir un sachet de poudre blanche.', compromettant: true },
+  { name: 'Boîte de préservatifs entamée', icon: 'ti-heart', desc: 'Une boîte de préservatifs entamée, un numéro de téléphone griffonné au marqueur.', compromettant: true },
+  { name: 'Agenda à codes ridicules', icon: 'ti-notebook', desc: 'Un agenda de poche listant des rendez-vous sous des noms de code grotesques.', compromettant: true },
+  { name: 'Bouteille de whisky entamée', icon: 'ti-bottle', desc: 'Une bouteille de whisky bon marché, à moitié vide, planquée derrière un radiateur.', compromettant: false }
+];
+
+function reclamerObjetTrouve() {
+  const reussite = Math.random() < 0.5;
+  if (!reussite) {
+    showToast('Service des objets trouvés', 'Rien d\'intéressant aujourd\'hui. "Repassez demain", lâche l\'agent d\'entretien.', true);
+    addJournalEntry('Vous avez fouillé le service des objets trouvés. Rien à signaler.', '');
+    return;
+  }
+
+  const objet = OBJETS_TROUVES_ASSEMBLEE[Math.floor(Math.random() * OBJETS_TROUVES_ASSEMBLEE.length)];
+  const id = 'objet-trouve-' + Date.now();
+
+  addToInventory({
+    id,
+    name: objet.name,
+    icon: objet.icon,
+    desc: objet.desc,
+    type: objet.compromettant ? 'kompromat' : 'objet',
+    cible: null,
+    legal: !objet.compromettant
+  });
+
+  // Enregistrer le souvenir du PNJ d'accueil (qui sait que CE PJ a recupere CET objet)
+  if (!state.souvenirsAccueil) state.souvenirsAccueil = [];
+  const souvenir = {
+    id: 'souv-' + Date.now(),
+    pjNom: state.char?.name || 'Anonyme',
+    objetNom: objet.name,
+    jourCreation: state.day || 1,
+    jourExpiration: (state.day || 1) + 12,
+    revele: false
+  };
+  state.souvenirsAccueil.push(souvenir);
+
+  // Persister le souvenir sur Supabase pour que les autres PJ puissent l'interroger
+  if (typeof sbAjouterSouvenirAccueil === 'function') {
+    sbAjouterSouvenirAccueil(souvenir).catch(() => {});
+  }
+
+  showToast('Objet trouvé !', 'Vous récupérez : ' + objet.name + '. L\'agent d\'entretien note discrètement votre nom dans son carnet...', true, true);
+  addJournalEntry('Objet trouvé réclamé : ' + objet.name + '.', objet.compromettant ? 'event-bad' : 'event-good');
+}
+
+// =====================
+// MODAL DE SELECTION POUR INTERROGER L'ACCUEIL
+// =====================
+async function ouvrirModalInterrogerAccueil() {
+  document.getElementById('postes-modal-title').textContent = 'Demander des confidences';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Recherche des habitants...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  let habitants = [];
+  if (typeof sbListPersonnages === 'function') {
+    try { habitants = (await sbListPersonnages() || []).filter(h => h.name !== state.char?.name); } catch(e) {}
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">"Dites-moi, qui vous intéresse ?" murmure l\'agent d\'entretien avec un sourire entendu.</div>';
+  if (habitants.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040">Aucun habitant connu pour le moment.</div>';
+  } else {
+    html += '<select id="interroger-accueil-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    habitants.forEach(h => { html += '<option value="' + h.name + '">' + h.name + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="interrogerAccueilSurObjets(document.getElementById(\'interroger-accueil-cible\').value);document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Demander</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// =====================
+// INTERROGER LE PERSONNEL D'ACCUEIL SUR LES OBJETS TROUVES
+// =====================
+async function interrogerAccueilSurObjets(cibleNom) {
+  if (typeof sbGetSouvenirsAccueilPour !== 'function') {
+    showToast('Indisponible', 'Service indisponible pour le moment.', false);
+    return;
+  }
+  const souvenirs = await sbGetSouvenirsAccueilPour(cibleNom).catch(() => []);
+  const valides = (souvenirs || []).filter(s => s.jour_expiration >= (state.day || 1));
+
+  if (valides.length === 0) {
+    showToast('Aucun souvenir', 'L\'agent d\'entretien ne se souvient de rien de particulier sur ' + cibleNom + '.', false);
+    return;
+  }
+
+  const liste = valides.map(s => '— ' + s.objet_nom + ' (Jour ' + s.jour_creation + ')').join('<br>');
+  showToast('Confidence obtenue', cibleNom + ' a récupéré : ' + valides.map(s => s.objet_nom).join(', '), true, true);
+  addJournalEntry('L\'agent d\'entretien vous confie que ' + cibleNom + ' a récupéré ces objets :<br>' + liste, 'event-info');
+}
+
 function addToInventory(item) {
   state.inventory.push(item);
   renderInventory();
