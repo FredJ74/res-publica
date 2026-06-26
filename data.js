@@ -170,7 +170,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2'],
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel du Port",
@@ -209,7 +209,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge.png',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel des Mineurs",
@@ -401,7 +401,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80',
       desc:'Ville de la jungle. Les laboratoires s\'étendent à perte de vue.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
       buildingContext: {
         'hotel-republica': {
           name: "Refugio de la Selva",
@@ -594,7 +594,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
       buildingContext: {
         'hotel-republica': {
           name: "Baraquement Collectif N°7",
@@ -808,7 +808,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Port pétrolier d\'Al-Khalija. Les tankers et les dhows se croisent.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel du Port Al-Nour",
@@ -1288,7 +1288,7 @@ const BUILDINGS = {
         persons: [
           {name:'Garde Republicain (PNJ)', role:'PNJ - Securite', rel:'neutral', job:'garde'},
           {name:'Hotesse Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse_accueil'},
-          {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotesse-objets-trouves.png'},
+          {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves'},
           {name:'Agent Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage'}
         ],
         orders: [
@@ -1812,7 +1812,8 @@ const BUILDINGS = {
           {fn:'repartition_budget_local', label:'Repartition du budget local', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Allouer le budget entre commissariat, dispensaire, voirie et services municipaux.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Deploiement de forces de l\'ordre supplementaires. Preleve sur budget mairie.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire', desc:'Choisir le type d\'acte a delivrer a un administre.'},
-          {fn:'contester_resultats',   label:'Contester des resultats',       pa:2, cost:0, type:'legal', icon:'ti-alert-triangle', successRate:70, desc:'Deposer un recours dans le sous-forum Tribunal. Delai 48h. Decision du juge.'}
+          {fn:'contester_resultats',   label:'Contester des resultats',       pa:2, cost:0, type:'legal', icon:'ti-alert-triangle', successRate:70, desc:'Deposer un recours dans le sous-forum Tribunal. Delai 48h. Decision du juge.'},
+          {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'}
         ]
       },
       salle_elections: {
@@ -2114,6 +2115,22 @@ const BUILDINGS = {
           {fn:'gerer_finances',label:'Gerer les finances locales',pa:1,cost:0,type:'legal', icon:'ti-chart-bar',  successRate:100, requiresPost:true},
           {fn:'corrompre_fonct',label:'Corrompre un employ',   pa:2, cost:200,type:'illegal',icon:'ti-coins',     successRate:65}
         ]
+      },
+      bureau_maire_local: {
+        name: "Bureau du Maire",
+        image: "🏛",
+        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
+        desc: "Le bureau du maire. Acces reserve.",
+        imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
+        persons: [
+          {name:'Le Maire (PNJ)', role:'Maire de la ville', rel:'neutral', job:'maire'}
+        ],
+        orders: [
+          {fn:'fixer_impots_locaux',   label:'Fixer les impôts locaux',       pa:2, cost:0, type:'legal', icon:'ti-receipt-tax',  successRate:100, requiresPost:'maire', desc:'Definir le taux de taxation locale.'},
+          {fn:'repartition_budget_local', label:'Repartition du budget local', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Allouer le budget entre commissariat, dispensaire, voirie et services municipaux.'},
+          {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Preleve sur budget mairie.'},
+          {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'}
+        ]
       }
     }
   },
@@ -2313,6 +2330,32 @@ const BUILDINGS = {
         persons: [{name:'Brigadier Local (PNJ)', role:'Officier de garde', rel:'neutral', job:'policier'}],
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100}
+        ]
+      }
+    }
+  },
+
+  'tribunal-local': {
+    name: "Tribunal Municipal",
+    shortName: "Tribunal",
+    cat: "Justice",
+    icon: "ti-gavel",
+    bgColor: "#1a1408",
+    desc: "Le tribunal de la ville. Plus modeste que celui de la capitale, mais tout aussi solennel.",
+    rooms: {
+      salle_audience_locale: {
+        name: "Salle d'audience",
+        image: "⚖️",
+        imageBg: "linear-gradient(135deg,#1a1408,#24180a)",
+        desc: "La salle d'audience municipale.",
+        imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&q=80",
+        persons: [
+          {name:'Juge Local (PNJ)', role:'President du Tribunal Municipal', rel:'neutral', job:'juge'}
+        ],
+        orders: [
+          {fn:'plainte',   label:'Consulter les affaires', pa:0, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir les affaires transmises par la police, en attente de jugement.'},
+          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:75},
+          {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire transmise par le commissariat. Amende, prison, amenagement ou QHS.'}
         ]
       }
     }
@@ -3827,11 +3870,20 @@ const SALAIRES = {
   min_ae:      2800,
   depute:      1200,
   senateur:    1200,
+  juge:        1800,
+  commissaire: 1000,
   maire:       800,
   adj_maire:   500,
   gouverneur:  1500,
   prefet:      900,
   default:     150  // Citoyen sans poste
+};
+
+// Postes nommes (non electifs) avec regles de cumul strictes
+// 'depute' est le SEUL poste compatible avec juge/commissaire
+const POSTES_NOMMES_EXCLUSIFS = {
+  juge:        { label: 'Juge',        nommePar: 'min_just', scope: 'pays',  compatibles: ['depute'] },
+  commissaire: { label: 'Commissaire', nommePar: 'maire',    scope: 'ville', compatibles: ['depute'] }
 };
 
 // Nouveaux ordres v6
