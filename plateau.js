@@ -5250,12 +5250,17 @@ function soumettrePlaynte() {
 
   // Simuler le resultat 24h apres (en jeu = apres l'ordre dormir)
   if (!state.plaintesEnCours) state.plaintesEnCours = [];
-  state.plaintesEnCours.push({
+  const nouvellePlainte = {
+    id: 'plainte-' + Date.now(),
+    country: state.country,
+    city: state.currentCity,
     cible, motif,
     heure: `${String(resultH).padStart(2,'0')}h${m}`,
     day: state.day + 1,
     status: 'pending'
-  });
+  };
+  state.plaintesEnCours.push(nouvellePlainte);
+  if (typeof sbSavePlainte === 'function') sbSavePlainte(nouvellePlainte).catch(() => {});
 }
 
 function traiterPlaintes() {
@@ -5279,6 +5284,7 @@ function traiterPlaintes() {
       transmettreAffaireAuTribunal(p.cible, p.motif || 'Plainte initiale confirmee par les forces de l\'ordre.');
     }
     addMailNotification('Commissariat Central', `RE: Votre plainte du Jour ${p.day - 1}`, result);
+    if (typeof sbSavePlainte === 'function') sbSavePlainte(p).catch(() => {});
   });
 }
 
@@ -5311,9 +5317,11 @@ function transmettreAffaireAuTribunal(cible, motif) {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const forumKey = 'tribunal_' + state.currentCity;
 
-  // Ajouter à la file d'attente du juge (statut lu par ouvrirRendreSentence)
+  // Ajouter à la file d'attente du juge (statut lu par ouvrirRendreSentence) — visible par TOUS les juges via Supabase
   if (!state.plaintesEnCours) state.plaintesEnCours = [];
-  state.plaintesEnCours.push({ cible, motif, jour: state.day, status: 'deposee' });
+  const affaireTransmise = { id: 'affaire-' + Date.now(), country: state.country, city: state.currentCity, cible, motif, jour: state.day, status: 'deposee' };
+  state.plaintesEnCours.push(affaireTransmise);
+  if (typeof sbSavePlainte === 'function') sbSavePlainte(affaireTransmise).catch(() => {});
 
   // Publier sur le forum tribunal local (visible de tous, transparence judiciaire)
   if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
@@ -8084,11 +8092,21 @@ function ouvrirDetailJugement(idx) {
 
 // Le tribunal ne sert plus a deposer une plainte (role du commissariat),
 // mais a CONSULTER les affaires transmises par la police et en attente de jugement.
-function ouvrirPorterPlainte() {
+async function ouvrirPorterPlainte() {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  const affairesEnAttente = (state.plaintesEnCours || []).filter(p => p.status === 'deposee');
-
   document.getElementById('postes-modal-title').textContent = 'Affaires du Tribunal de ' + ville;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  // Charger depuis Supabase pour voir les affaires de TOUS les joueurs de la ville, pas juste les siennes
+  if (typeof sbLoadPlaintes === 'function') {
+    try {
+      const toutes = await sbLoadPlaintes(state.country);
+      state.plaintesEnCours = toutes;
+    } catch(e) {}
+  }
+  const affairesEnAttente = (state.plaintesEnCours || []).filter(p => p.status === 'deposee' && p.city === state.currentCity);
+
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' +
     'Pour porter plainte, rendez-vous au commissariat. Le tribunal ne traite que les affaires transmises par les forces de l\'ordre suite a une enquete concluante.</div>';
@@ -8107,7 +8125,6 @@ function ouvrirPorterPlainte() {
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
 }
 
 
@@ -9823,33 +9840,43 @@ function checkScandale() {
   }
 }
 
-function ouvrirRendreSentence() {
-  const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];
+async function ouvrirRendreSentence() {
   document.getElementById('postes-modal-title').textContent = 'Rendre la sentence';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  // Charger depuis Supabase pour voir TOUTES les affaires transmises, par n'importe quel commissariat
+  if (typeof sbLoadPlaintes === 'function') {
+    try {
+      const toutes = await sbLoadPlaintes(state.country);
+      state.plaintesEnCours = toutes;
+    } catch(e) {}
+  }
+  const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];
+
   let html = '<div style="padding:1rem">';
   if (affaires.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en attente de jugement.</div>';
   } else {
-    affaires.forEach((a, i) => {
+    affaires.forEach((a) => {
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">Affaire : ' + a.cible + '</div>';
       html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">' + a.motif + '</div>';
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SENTENCE</div>';
       html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
-      html += '<button onclick="appliquerSentence(' + i + ',\'amende\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende (montant + repartition)</button>';
-      html += '<button onclick="appliquerSentence(' + i + ',\'prison\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison (max 7 jours)</button>';
-      html += '<button onclick="appliquerSentence(' + i + ',\'amenagement\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
-      html += '<button onclick="appliquerSentence(' + i + ',\'qhs\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amende\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende (montant + repartition)</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'prison\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison (max 7 jours)</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amenagement\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'qhs\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
       html += '</div></div>';
     });
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
 }
 
-function appliquerSentence(idx, type) {
-  const affaire = (state.plaintesEnCours||[]).filter(p => p.status === 'deposee')[idx];
+async function appliquerSentence(affaireId, type) {
+  const affaire = (state.plaintesEnCours||[]).find(p => p.id === affaireId);
   if (!affaire) return;
   affaire.status = 'jugee';
 
@@ -9882,10 +9909,16 @@ function appliquerSentence(idx, type) {
     executee: false
   });
 
+  if (typeof sbSavePlainte === 'function') await sbSavePlainte(affaire).catch(() => {});
+
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Sentence rendue', affaire.cible + ' : ' + details, true, true);
   addExternalEvent('JUGEMENT : ' + affaire.cible + ' condamne(e) a : ' + details + ' (Juge : ' + (state.char?.name||'PNJ') + ')');
-  addMailNotification('Tribunal', 'Resultat de votre affaire', 'La sentence a ete rendue : ' + details);
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    sbSendMail('Tribunal', affaire.cible, 'Resultat de votre affaire', 'La sentence a ete rendue : ' + details, time).catch(() => {});
+  }
 }
 
 // =====================
@@ -10396,34 +10429,45 @@ function appliquerAllegement(secteur) {
   addJournalEntry('Allegement fiscal accorde au secteur : ' + secteur, 'event-info');
 }
 
-function ouvrirModalAffaires(mode) {
-  const affaires = state.plaintesEnCours?.filter(p => p.status === 'pending') || [];
-  const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
+async function ouvrirModalAffaires(mode) {
   const titre = mode === 'annuler' ? 'Annuler des poursuites' : 'Gestion judiciaire';
   document.getElementById('postes-modal-title').textContent = titre;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  if (typeof sbLoadPlaintes === 'function') {
+    try { state.plaintesEnCours = await sbLoadPlaintes(state.country); } catch(e) {}
+  }
+  const affaires = state.plaintesEnCours?.filter(p => p.status === 'pending') || [];
+  const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
+
   let html = '<div style="padding:1rem">';
   const liste = mode === 'annuler' ? affaires : condamnes;
   if (liste.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en cours.</div>';
   } else {
-    liste.forEach((a, i) => {
+    liste.forEach((a) => {
+      const refId = a.id || a.nom; // prisonniers n'ont pas forcement d'id, fallback sur le nom
       html += '<div style="padding:.5rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
       html += '<div style="font-size:.82rem;color:#c0b090">' + (a.cible||a.nom||'Inconnu') + ' <span style="font-size:.68rem;color:#5a4030">— ' + (a.motif||a.raison||'') + '</span></div>';
-      html += '<button onclick="annulerAffaire(' + i + ',\'' + mode + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.2rem .5rem;border:1px solid #8a3020;background:transparent;color:#cc4a3a;cursor:pointer">Annuler</button>';
+      html += '<button onclick="annulerAffaire(&quot;' + refId + '&quot;,\'' + mode + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.2rem .5rem;border:1px solid #8a3020;background:transparent;color:#cc4a3a;cursor:pointer">Annuler</button>';
       html += '</div>';
     });
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
 }
 
-function annulerAffaire(idx, mode) {
+async function annulerAffaire(refId, mode) {
   document.getElementById('modal-postes').classList.remove('open');
-  if (mode === 'annuler' && state.plaintesEnCours?.[idx]) {
-    state.plaintesEnCours[idx].status = 'annulee';
-    showToast('Poursuites annulees', 'La procedure a ete classee.', false);
-    addJournalEntry('Annulation de poursuites par le Ministre de la Justice.', 'event-info');
+  if (mode === 'annuler') {
+    const affaire = (state.plaintesEnCours||[]).find(p => p.id === refId);
+    if (affaire) {
+      affaire.status = 'annulee';
+      if (typeof sbSavePlainte === 'function') await sbSavePlainte(affaire).catch(() => {});
+      showToast('Poursuites annulees', 'La procedure a ete classee.', false);
+      addJournalEntry('Annulation de poursuites par le Ministre de la Justice.', 'event-info');
+    }
   }
 }
 

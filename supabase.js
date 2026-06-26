@@ -378,3 +378,27 @@ async function sbLoadOrganisations() {
 async function sbDeleteOrganisation(orgaId) {
   return sbDelete('organisations', `id=eq.${encodeURIComponent(orgaId)}`);
 }
+
+// =====================
+// PLAINTES EN COURS (commissariat/tribunal, partage entre joueurs)
+// =====================
+async function sbSavePlainte(plainte) {
+  const data = { id: plainte.id, country: plainte.country || 'republic', city: plainte.city || null, data: JSON.stringify(plainte) };
+  const existing = await sbGet('plaintes_en_cours', `id=eq.${encodeURIComponent(plainte.id)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('plaintes_en_cours', `id=eq.${encodeURIComponent(plainte.id)}`, data);
+  } else {
+    return sbInsert('plaintes_en_cours', data);
+  }
+}
+
+async function sbLoadPlaintes(country) {
+  const filtre = country ? `country=eq.${encodeURIComponent(country)}` : 'select=*';
+  const rows = await sbGet('plaintes_en_cours', filtre);
+  if (!rows) return [];
+  return rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
+}
+
+async function sbDeletePlainte(plainteId) {
+  return sbDelete('plaintes_en_cours', `id=eq.${encodeURIComponent(plainteId)}`);
+}
