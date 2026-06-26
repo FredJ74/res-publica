@@ -79,6 +79,7 @@ async function sbSavePersonnage(charState) {
     current_room:     charState.currentRoom || null,
     inventory:        charState.inventory || [],
     informateurs:     charState.informateurs || [],
+    contacts:         charState.contacts || [],
     poison_actif:     charState.poisonActif || null,
     day:              charState.day || 1,
     recherche:        charState.recherche || [],
@@ -119,6 +120,7 @@ async function sbLoadPersonnage(name) {
     currentRoom:   r.current_room || null,
     inventory:     r.inventory || [],
     informateurs:  r.informateurs || [],
+    contacts:      r.contacts || [],
     poisonActif:   r.poison_actif,
     day:           r.day,
     recherche:     r.recherche || []
