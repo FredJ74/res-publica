@@ -10839,7 +10839,7 @@ function reclamerObjetTrouve() {
     sbAjouterSouvenirAccueil(souvenir).catch(() => {});
   }
 
-  showToast('Objet trouvé !', 'Vous récupérez : ' + objet.name + '. L\'agent d\'entretien note discrètement votre nom dans son carnet...', true, true);
+  showToast('Objet trouvé !', 'Vous récupérez : ' + objet.name + '. L\'hôtesse des objets trouvés note discrètement votre nom dans son carnet...', true, true);
   addJournalEntry('Objet trouvé réclamé : ' + objet.name + '.', objet.compromettant ? 'event-bad' : 'event-good');
 }
 
