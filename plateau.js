@@ -558,6 +558,9 @@ function enterRoom(buildingId, roomId, tabEl) {
     sbUpdatePresence(state.char.name, state.country, state.currentCity, buildingId, roomId).catch(() => {});
   }
 
+  // Charger les objets abandonnes visibles dans cette piece
+  if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
+
   // Update tabs
   if (tabEl) {
     document.querySelectorAll('.piece-tab').forEach(t => t.classList.remove('active'));
@@ -10795,7 +10798,7 @@ const OBJETS_TROUVES_ASSEMBLEE = [
   { name: 'Dossier de presse périmé', icon: 'ti-file-text', desc: 'Un vieux dossier de presse évoquant vaguement un scandale jamais éclairci.', compromettant: true },
   { name: 'Petite culotte en dentelle', icon: 'ti-shirt', desc: 'Une petite culotte en dentelle noire, avec une carte de visite d\'escort glissée dedans.', compromettant: true, imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/objet-culotte-dentelle.png' },
   { name: 'Enveloppe administrative suspecte', icon: 'ti-package', desc: 'Une enveloppe officielle mal refermée, laissant voir un sachet de poudre blanche.', compromettant: true, imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/objet-sachet-poudre.png' },
-  { name: 'Boîte de préservatifs entamée', icon: 'ti-heart', desc: 'Une boîte de préservatifs entamée, un numéro de téléphone griffonné au marqueur.', compromettant: true },
+  { name: 'Boîte de préservatifs entamée', icon: 'ti-heart', desc: 'Une boîte de préservatifs entamée, un numéro de téléphone griffonné au marqueur.', compromettant: true, imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/objet-preservatifs.png' },
   { name: 'Agenda à codes ridicules', icon: 'ti-notebook', desc: 'Un agenda de poche listant des rendez-vous sous des noms de code grotesques.', compromettant: true },
   { name: 'Bouteille de whisky entamée', icon: 'ti-bottle', desc: 'Une bouteille de whisky bon marché, à moitié vide, planquée derrière un radiateur.', compromettant: false, imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/objet-whisky.png' }
 ];
@@ -10993,16 +10996,56 @@ function jeterObjetInventaire(idx, abandonner) {
   document.getElementById('modal-postes').classList.remove('open');
 
   if (abandonner) {
+    // Persister l'objet dans la piece courante pour qu'un autre PJ puisse le ramasser
+    if (typeof sbAbandonnerObjet === 'function' && state.currentBuilding && state.currentRoom) {
+      sbAbandonnerObjet(item, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
+    }
     showToast('Objet abandonné', '"' + item.name + '" laissé sur place. Quelqu\'un pourrait le trouver...', true);
     addJournalEntry('Vous avez abandonné "' + item.name + '" sur place.', 'event-info');
     // Petite chance qu'un PNJ le remarque et que ca se sache (registre comique, sans gravite)
     if (Math.random() < 0.15) {
       addExternalEvent('👀 Un témoin affirme avoir vu ' + (state.char?.name||'quelqu\'un') + ' abandonner un objet suspect.', 'local');
     }
+    if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
   } else {
     showToast('Objet jeté', '"' + item.name + '" a disparu discrètement.', true);
     addJournalEntry('Vous avez jeté "' + item.name + '" discrètement.', '');
   }
+}
+
+// Charge et affiche les objets abandonnes presents dans la piece courante
+async function chargerObjetsAbandonnesDansPiece() {
+  if (typeof sbGetObjetsAbandonnesDansPiece !== 'function') return;
+  if (!state.currentBuilding || !state.currentRoom) return;
+  const buildingId = state.currentBuilding, roomId = state.currentRoom;
+  try {
+    const objets = await sbGetObjetsAbandonnesDansPiece(state.country, state.currentCity, buildingId, roomId);
+    if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
+    const zone = document.getElementById('objets-abandonnes-zone');
+    if (!zone) return;
+    if (objets.length === 0) { zone.innerHTML = ''; return; }
+    zone.innerHTML = '<div style="margin-top:.5rem;padding:.4rem;border:1px dashed #4a3a20;background:#100d06">' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.1em;color:#8a6a30;margin-bottom:.3rem">OBJETS VISIBLES ICI</div>' +
+      objets.map(o => '<div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem 0">' +
+        '<span style="font-size:.74rem;color:#a0905a"><i class="ti ' + (o.icon||'ti-package') + '" style="font-size:.7rem"></i> ' + o.name + '</span>' +
+        '<button onclick="ramasserObjetAbandonne(&quot;' + o.id + '&quot;)" style="font-size:.62rem;font-family:Bebas Neue,sans-serif;padding:.15rem .4rem;border:1px solid #4a6a30;background:transparent;color:#6a9a6a;cursor:pointer">Ramasser</button>' +
+        '</div>').join('') +
+      '</div>';
+  } catch(e) { console.warn('chargerObjetsAbandonnesDansPiece error', e); }
+}
+
+async function ramasserObjetAbandonne(objetId) {
+  if (typeof sbGetObjetsAbandonnesDansPiece !== 'function') return;
+  try {
+    const objets = await sbGetObjetsAbandonnesDansPiece(state.country, state.currentCity, state.currentBuilding, state.currentRoom);
+    const objet = objets.find(o => o.id === objetId);
+    if (!objet) { showToast('Trop tard', 'Quelqu\'un d\'autre l\'a déjà ramassé.', false); return; }
+    addToInventory(objet);
+    if (typeof sbRamasserObjetAbandonne === 'function') await sbRamasserObjetAbandonne(objetId).catch(() => {});
+    showToast('Objet ramassé', 'Vous récupérez : ' + objet.name + '.', true, true);
+    addJournalEntry('Vous avez ramassé "' + objet.name + '" trouvé sur place.', 'event-info');
+    chargerObjetsAbandonnesDansPiece();
+  } catch(e) { console.warn('ramasserObjetAbandonne error', e); }
 }
 function toggleSection(panelId, chevronId) {
   const panel = document.getElementById(panelId);
