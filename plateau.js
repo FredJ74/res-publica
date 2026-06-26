@@ -775,6 +775,8 @@ function renderPersonsList(persons) {
 
   // Charger les VRAIS joueurs présents dans cette pièce (Supabase) — async, ajouté après coup
   chargerVraisJoueursPresents();
+  // Charger les objets abandonnés visibles dans cette pièce — affichés à la suite des personnes
+  if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
 }
 
 // Cache partagé des photos de profil (nom -> photo_url), réutilisé pour la présence, le forum et les mails
@@ -10960,9 +10962,8 @@ async function ouvrirDetailObjetInventaire(idx) {
     html += '<button onclick="donnerObjetAJoueur(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-gift"></i> Donner a ce joueur</button>';
   }
 
-  html += '<button onclick="jeterObjetInventaire(' + idx + ', false)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a5a30;background:transparent;color:#8a8060;cursor:pointer"><i class="ti ti-trash"></i> Jeter discretement</button>';
-  html += '<button onclick="jeterObjetInventaire(' + idx + ', true)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a30;background:transparent;color:#a0905a;cursor:pointer"><i class="ti ti-map-pin"></i> Abandonner ici (risque que quelqu\'un le trouve)</button>';
-  html += '<button onclick="supprimerItemInventaire(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-x"></i> Supprimer</button>';
+  html += '<button onclick="jeterObjetInventaire(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a30;background:transparent;color:#a0905a;cursor:pointer"><i class="ti ti-map-pin"></i> Abandonner ici (visible par les autres joueurs)</button>';
+  html += '<button onclick="supprimerItemInventaire(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-x"></i> Supprimer (destruction definitive)</button>';
 
   html += '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -10988,29 +10989,24 @@ function donnerObjetAJoueur(idx) {
   }
 }
 
-function jeterObjetInventaire(idx, abandonner) {
+function jeterObjetInventaire(idx) {
   const item = state.inventory[idx];
   if (!item) return;
   state.inventory.splice(idx, 1);
   renderInventory();
   document.getElementById('modal-postes').classList.remove('open');
 
-  if (abandonner) {
-    // Persister l'objet dans la piece courante pour qu'un autre PJ puisse le ramasser
-    if (typeof sbAbandonnerObjet === 'function' && state.currentBuilding && state.currentRoom) {
-      sbAbandonnerObjet(item, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
-    }
-    showToast('Objet abandonné', '"' + item.name + '" laissé sur place. Quelqu\'un pourrait le trouver...', true);
-    addJournalEntry('Vous avez abandonné "' + item.name + '" sur place.', 'event-info');
-    // Petite chance qu'un PNJ le remarque et que ca se sache (registre comique, sans gravite)
-    if (Math.random() < 0.15) {
-      addExternalEvent('👀 Un témoin affirme avoir vu ' + (state.char?.name||'quelqu\'un') + ' abandonner un objet suspect.', 'local');
-    }
-    if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
-  } else {
-    showToast('Objet jeté', '"' + item.name + '" a disparu discrètement.', true);
-    addJournalEntry('Vous avez jeté "' + item.name + '" discrètement.', '');
+  // Persister l'objet dans la piece courante pour qu'un autre PJ puisse le ramasser
+  if (typeof sbAbandonnerObjet === 'function' && state.currentBuilding && state.currentRoom) {
+    sbAbandonnerObjet(item, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
   }
+  showToast('Objet abandonné', '"' + item.name + '" laissé sur place. Quelqu\'un pourrait le trouver...', true);
+  addJournalEntry('Vous avez abandonné "' + item.name + '" sur place.', 'event-info');
+  // Petite chance qu'un PNJ le remarque et que ca se sache (registre comique, sans gravite)
+  if (Math.random() < 0.15) {
+    addExternalEvent('👀 Un témoin affirme avoir vu ' + (state.char?.name||'quelqu\'un') + ' abandonner un objet suspect.', 'local');
+  }
+  if (typeof rafraichirListePersonnesEtObjets === 'function') rafraichirListePersonnesEtObjets();
 }
 
 // Charge et affiche les objets abandonnes presents dans la piece courante
@@ -11021,16 +11017,24 @@ async function chargerObjetsAbandonnesDansPiece() {
   try {
     const objets = await sbGetObjetsAbandonnesDansPiece(state.country, state.currentCity, buildingId, roomId);
     if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
-    const zone = document.getElementById('objets-abandonnes-zone');
-    if (!zone) return;
-    if (objets.length === 0) { zone.innerHTML = ''; return; }
-    zone.innerHTML = '<div style="margin-top:.5rem;padding:.4rem;border:1px dashed #4a3a20;background:#100d06">' +
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.1em;color:#8a6a30;margin-bottom:.3rem">OBJETS VISIBLES ICI</div>' +
-      objets.map(o => '<div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem 0">' +
-        '<span style="font-size:.74rem;color:#a0905a"><i class="ti ' + (o.icon||'ti-package') + '" style="font-size:.7rem"></i> ' + o.name + '</span>' +
-        '<button onclick="ramasserObjetAbandonne(&quot;' + o.id + '&quot;)" style="font-size:.62rem;font-family:Bebas Neue,sans-serif;padding:.15rem .4rem;border:1px solid #4a6a30;background:transparent;color:#6a9a6a;cursor:pointer">Ramasser</button>' +
-        '</div>').join('') +
-      '</div>';
+    const list = document.getElementById('persons-list');
+    if (!list) return;
+
+    // Retirer les anciennes cartes objet avant de reinserer (evite les doublons au rafraichissement periodique)
+    list.querySelectorAll('.objet-abandonne-card').forEach(el => el.remove());
+
+    if (objets.length === 0) return;
+    const html = objets.map(o =>
+      '<div class="person-card objet-abandonne-card" style="border-left:2px solid #8a6a30">' +
+      '<div class="person-avatar" style="border-color:#8a6a30"><i class="ti ' + (o.icon||'ti-package') + '" style="font-size:.75rem;color:#a0905a"></i></div>' +
+      '<div style="flex:1"><div class="person-name" style="color:#a0905a">' + o.name + '</div>' +
+      '<div class="person-role">Objet trouvé ici</div></div>' +
+      '<button onclick="ramasserObjetAbandonne(&quot;' + o.id + '&quot;)" style="font-size:.62rem;font-family:Bebas Neue,sans-serif;padding:.15rem .4rem;border:1px solid #4a6a30;background:transparent;color:#6a9a6a;cursor:pointer;flex-shrink:0">Ramasser</button>' +
+      '</div>'
+    ).join('');
+    const empty = list.querySelector('.person-empty');
+    if (empty) empty.remove();
+    list.insertAdjacentHTML('beforeend', html);
   } catch(e) { console.warn('chargerObjetsAbandonnesDansPiece error', e); }
 }
 
