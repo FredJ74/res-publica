@@ -83,6 +83,8 @@ async function sbSavePersonnage(charState) {
     historique_crimes: charState.historiqueCrimes || [],
     enquetes_en_cours: charState.enquetesEnCours || [],
     domicile:         charState.domicile || null,
+    employes:         charState.employes || [],
+    locations_actives: charState.locationsActives || [],
     poison_actif:     charState.poisonActif || null,
     day:              charState.day || 1,
     recherche:        charState.recherche || [],
@@ -127,6 +129,8 @@ async function sbLoadPersonnage(name) {
     historiqueCrimes: r.historique_crimes || [],
     enquetesEnCours:  r.enquetes_en_cours || [],
     domicile:      r.domicile || null,
+    employes:      r.employes || [],
+    locationsActives: r.locations_actives || [],
     poisonActif:   r.poison_actif,
     day:           r.day,
     recherche:     r.recherche || []
