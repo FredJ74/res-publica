@@ -423,3 +423,18 @@ async function sbGetObjetsAbandonnesDansPiece(country, city, buildingId, roomId)
 async function sbRamasserObjetAbandonne(objetId) {
   return sbDelete('objets_abandonnes', `id=eq.${encodeURIComponent(objetId)}`);
 }
+
+// =====================
+// DEMANDES DE NATURALISATION
+// =====================
+async function sbCreerDemandeNaturalisation(demande) {
+  return sbInsert('demandes_naturalisation', demande);
+}
+
+async function sbGetDemandesNaturalisationPour(paysVise) {
+  return sbGet('demandes_naturalisation', `pays_vise=eq.${encodeURIComponent(paysVise)}&statut=eq.pending&order=created_at.asc`);
+}
+
+async function sbTraiterDemandeNaturalisation(id, statut) {
+  return sbUpdate('demandes_naturalisation', `id=eq.${encodeURIComponent(id)}`, { statut });
+}

@@ -82,6 +82,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Événements partagés (journal global) — au chargement puis toutes les 90 secondes
   setTimeout(() => chargerEvenementsPartages(), 1500);
   setTimeout(() => chargerOrganisations(), 1800);
+  setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
   setTimeout(() => recupererDonsEnAttente(), 2000);
   setInterval(chargerEvenementsPartages, 90000);
   setInterval(recupererDonsEnAttente, 90000);
@@ -1083,6 +1084,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
   if (fn === 'porter_plainte')          { ouvrirPorterPlainte(); return; }
   if (fn === 'rendre_sentence')         { ouvrirRendreSentence(); return; }
+  if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(); return; }
+  if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
   if (fn === 'negocier_paix')        { ouvrirModalEmpireCible('negocier_paix', 'Negocier un accord de paix avec'); return; }
@@ -9844,6 +9847,185 @@ function checkScandale() {
     declencherScandale();
   }
 }
+
+async 
+// =====================
+// DEMANDE DE NATURALISATION (changement d'empire)
+// =====================
+function ouvrirModalNaturalisation() {
+  const empires = Object.keys(COUNTRIES).filter(c => c !== state.country);
+  document.getElementById('postes-modal-title').textContent = 'Demande de naturalisation';
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Votre demande sera examinee par le Ministre de l\'Interieur de l\'empire vise, apres un delai de 48h. En cas de refus, 50% du montant sera remboursé.</div>';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EMPIRE VISE</div>';
+  html += '<select id="natu-empire-vise" onchange="majCoutNaturalisation()" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  empires.forEach(c => { html += '<option value="' + c + '">' + (COUNTRIES[c]?.n || c) + '</option>'; });
+  html += '</select>';
+
+  html += '<div id="natu-cout-affiche" style="font-size:.85rem;color:#C9A84C;margin-bottom:.8rem"></div>';
+  html += '<button onclick="confirmerDemandeNaturalisation()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déposer la demande</button>';
+  html += '</div>';
+
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  majCoutNaturalisation();
+}
+
+function getCoutNaturalisation(paysVise) {
+  const ie = INDICES_NATIONAUX[paysVise]?.IE || 40;
+  return 2000 + ie * 30;
+}
+
+function majCoutNaturalisation() {
+  const paysVise = document.getElementById('natu-empire-vise')?.value;
+  if (!paysVise) return;
+  const cout = getCoutNaturalisation(paysVise);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('natu-cout-affiche').textContent = 'Coût de la demande : ' + cout + ' ' + cur;
+}
+
+async function confirmerDemandeNaturalisation() {
+  const paysVise = document.getElementById('natu-empire-vise')?.value;
+  if (!paysVise) return;
+  const cout = getCoutNaturalisation(paysVise);
+
+  if (state.arg < cout) {
+    showToast('Fonds insuffisants', cout + ' ' + (COUNTRIES[state.country]?.cur||'FR') + ' requis.', false);
+    return;
+  }
+
+  state.arg -= cout;
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const maintenant = Date.now();
+  const demande = {
+    id: 'natu-' + maintenant,
+    demandeur: state.char?.name || 'Anonyme',
+    pays_origine: state.country,
+    pays_vise: paysVise,
+    montant: cout,
+    date_demande: maintenant,
+    date_traitement_possible: maintenant + 48 * 60 * 60 * 1000,
+    statut: 'pending'
+  };
+
+  if (typeof sbCreerDemandeNaturalisation === 'function') {
+    await sbCreerDemandeNaturalisation(demande).catch(() => {});
+  }
+
+  showToast('Demande déposée', 'Votre demande de naturalisation vers ' + (COUNTRIES[paysVise]?.n||paysVise) + ' a été transmise.', true, true);
+  addJournalEntry('Demande de naturalisation déposée vers ' + (COUNTRIES[paysVise]?.n||paysVise) + ' (' + cout + ' ' + (COUNTRIES[state.country]?.cur||'FR') + ').', 'event-info');
+
+  // Notifier le Ministre de l'Interieur du pays vise
+  const ministre = (typeof sbListPersonnages === 'function')
+    ? await sbListPersonnages().then(joueurs => (joueurs||[]).find(j => j.country === paysVise && j.poste?.id === 'min_int')).catch(() => null)
+    : null;
+  if (ministre && typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    sbSendMail('Service de l\'Immigration', ministre.name, 'Demande de naturalisation',
+      (state.char?.name||'Un citoyen') + ' demande la naturalisation dans votre empire. Vous pouvez traiter sa demande depuis votre bureau, 48h apres le depot.', time).catch(() => {});
+  }
+}
+
+// =====================
+// TRAITEMENT DES DEMANDES PAR LE MINISTRE DE L'INTERIEUR
+// =====================
+async function ouvrirDemandesNaturalisation() {
+  document.getElementById('postes-modal-title').textContent = 'Demandes de naturalisation';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  let demandes = [];
+  if (typeof sbGetDemandesNaturalisationPour === 'function') {
+    try { demandes = await sbGetDemandesNaturalisationPour(state.country) || []; } catch(e) {}
+  }
+
+  const maintenant = Date.now();
+  let html = '<div style="padding:1rem">';
+  if (demandes.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040;font-style:italic">Aucune demande en attente.</div>';
+  } else {
+    demandes.forEach(d => {
+      const traitablePossible = maintenant >= d.date_traitement_possible;
+      const tempsRestant = Math.max(0, Math.ceil((d.date_traitement_possible - maintenant) / (60*60*1000)));
+      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + d.demandeur + '</div>';
+      html += '<div style="font-size:.7rem;color:#8a8060;margin:.2rem 0">Origine : ' + (COUNTRIES[d.pays_origine]?.n||d.pays_origine) + ' · Montant versé : ' + d.montant + '</div>';
+      if (!traitablePossible) {
+        html += '<div style="font-size:.7rem;color:#6a5a30">Traitable dans ' + tempsRestant + 'h</div>';
+      } else {
+        html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
+        html += '<button onclick="traiterDemandeNaturalisation(&quot;' + d.id + '&quot;,true)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer">Accepter</button>';
+        html += '<button onclick="traiterDemandeNaturalisation(&quot;' + d.id + '&quot;,false)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #4a2010;background:transparent;color:#cc4444;cursor:pointer">Refuser</button>';
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function traiterDemandeNaturalisation(demandeId, accepter) {
+  if (typeof sbGetDemandesNaturalisationPour !== 'function') return;
+  const demandes = await sbGetDemandesNaturalisationPour(state.country).catch(() => []);
+  const demande = (demandes || []).find(d => d.id === demandeId);
+  if (!demande) { showToast('Introuvable', 'Cette demande n\'existe plus.', false); return; }
+
+  const nouveauStatut = accepter ? 'acceptee' : 'refusee';
+  if (typeof sbTraiterDemandeNaturalisation === 'function') {
+    await sbTraiterDemandeNaturalisation(demandeId, nouveauStatut).catch(() => {});
+  }
+
+  const h = String(state.hour || 8).padStart(2,'0');
+  const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+
+  if (accepter) {
+    if (typeof sbSendMail === 'function') {
+      sbSendMail('Service de l\'Immigration', demande.demandeur, 'Naturalisation acceptée',
+        'Votre demande de naturalisation a été acceptée par le Ministre de l\'Intérieur. Vous êtes désormais citoyen de ' + (COUNTRIES[state.country]?.n||state.country) + '. Votre changement sera effectif à votre prochaine connexion.', time).catch(() => {});
+    }
+    showToast('Demande acceptée', demande.demandeur + ' devient citoyen de ' + (COUNTRIES[state.country]?.n||state.country) + '.', true, true);
+    addExternalEvent('🛂 ' + demande.demandeur + ' obtient la nationalité ' + (COUNTRIES[state.country]?.n||state.country) + '.', 'national');
+  } else {
+    const remboursement = Math.floor(demande.montant * 0.5);
+    if (typeof sbDeposerDon === 'function') {
+      await sbDeposerDon(demande.demandeur, remboursement, 'Service de l\'Immigration').catch(() => {});
+    }
+    if (typeof sbSendMail === 'function') {
+      sbSendMail('Service de l\'Immigration', demande.demandeur, 'Naturalisation refusée',
+        'Votre demande de naturalisation a été refusée par le Ministre de l\'Intérieur. ' + remboursement + ' ' + (COUNTRIES[state.country]?.cur||'FR') + ' vous sont remboursés.', time).catch(() => {});
+    }
+    showToast('Demande refusée', demande.demandeur + ' a été notifié(e), remboursement partiel envoyé.', false, true);
+  }
+
+  ouvrirDemandesNaturalisation();
+}
+
+// Applique le changement de nationalite reellement au prochain chargement du joueur concerne
+async function appliquerNaturalisationAcceptee() {
+  if (typeof sbGetDemandesNaturalisationPour !== 'function' || !state.char?.name) return;
+  // Chercher dans tous les empires si une demande du joueur courant a ete acceptee
+  for (const c of Object.keys(COUNTRIES)) {
+    try {
+      const rows = await sbGet('demandes_naturalisation', `demandeur=eq.${encodeURIComponent(state.char.name)}&statut=eq.acceptee&pays_vise=eq.${c}`);
+      if (rows && rows.length > 0) {
+        state.country = c;
+        state.poste = null;
+        if (state.char) { state.char.poste = null; state.char.country = c; }
+        await sbTraiterDemandeNaturalisation(rows[0].id, 'appliquee').catch(() => {});
+        showToast('Naturalisation effective', 'Vous êtes désormais citoyen de ' + (COUNTRIES[c]?.n||c) + ' !', true, true);
+        addJournalEntry('Votre naturalisation est effective. Vous êtes citoyen de ' + (COUNTRIES[c]?.n||c) + '.', 'event-good');
+        updateUI();
+        break;
+      }
+    } catch(e) {}
+  }
+}
+
 
 async function ouvrirRendreSentence() {
   document.getElementById('postes-modal-title').textContent = 'Rendre la sentence';
