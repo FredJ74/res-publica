@@ -10989,7 +10989,7 @@ function donnerObjetAJoueur(idx) {
   }
 }
 
-function jeterObjetInventaire(idx) {
+async function jeterObjetInventaire(idx) {
   const item = state.inventory[idx];
   if (!item) return;
   state.inventory.splice(idx, 1);
@@ -10998,7 +10998,7 @@ function jeterObjetInventaire(idx) {
 
   // Persister l'objet dans la piece courante pour qu'un autre PJ puisse le ramasser
   if (typeof sbAbandonnerObjet === 'function' && state.currentBuilding && state.currentRoom) {
-    sbAbandonnerObjet(item, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
+    await sbAbandonnerObjet(item, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
   }
   showToast('Objet abandonné', '"' + item.name + '" laissé sur place. Quelqu\'un pourrait le trouver...', true);
   addJournalEntry('Vous avez abandonné "' + item.name + '" sur place.', 'event-info');
@@ -11006,7 +11006,8 @@ function jeterObjetInventaire(idx) {
   if (Math.random() < 0.15) {
     addExternalEvent('👀 Un témoin affirme avoir vu ' + (state.char?.name||'quelqu\'un') + ' abandonner un objet suspect.', 'local');
   }
-  if (typeof rafraichirListePersonnesEtObjets === 'function') rafraichirListePersonnesEtObjets();
+  // Rafraichir immediatement l'affichage maintenant que la sauvegarde est confirmee
+  if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
 }
 
 // Charge et affiche les objets abandonnes presents dans la piece courante
