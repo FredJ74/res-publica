@@ -134,7 +134,8 @@ async function sbLoadPersonnage(name) {
 }
 
 async function sbListPersonnages() {
-  return sbGet('personnages', 'select=name,country,archetype,current_city,poste&order=created_at.asc');
+  // archetype (vocation) volontairement exclu - reste secret pour les autres joueurs
+  return sbGet('personnages', 'select=name,country,current_city,poste,photo_url,domicile&order=created_at.asc');
 }
 
 // =====================

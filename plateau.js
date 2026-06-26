@@ -4999,7 +4999,7 @@ async function ouvrirRepertoirePJ() {
 
   // Ajouter soi-même si pas dans la liste
   if (myName && !joueurs.find(j => j.name === myName)) {
-    joueurs.unshift({ name: myName, country: state.country, archetype: state.char?.archetype, current_city: state.currentCity, poste: state.poste });
+    joueurs.unshift({ name: myName, country: state.country, current_city: state.currentCity, poste: state.poste, domicile: state.domicile });
   }
 
   if (joueurs.length === 0) {
@@ -5023,9 +5023,9 @@ async function ouvrirRepertoirePJ() {
       </div>
       ${pjs.map(j => {
         const isMe = j.name === myName;
-        const ar = ARCHETYPES.find(x => x.id === j.archetype);
         const posteLabel = j.poste?.name || '';
-        const cityLabel = j.current_city || 'capitale';
+        const villeDomicileId = j.domicile?.city;
+        const villeDomicileNom = villeDomicileId ? (WORLD[j.country]?.[villeDomicileId]?.name || villeDomicileId) : null;
         return `
           <div style="display:flex;align-items:center;gap:.8rem;padding:.5rem 1rem;border-bottom:1px solid #1a1810;${isMe ? 'background:rgba(201,168,76,0.05)' : ''}">
             <div style="width:32px;height:32px;border-radius:50%;border:1px solid ${isMe ? col : '#2a2010'};background:#0a0a07;display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -5036,7 +5036,7 @@ async function ouvrirRepertoirePJ() {
                 ${j.name}${isMe ? ' ✦' : ''}
               </div>
               <div style="font-size:.68rem;color:#6a5a30">
-                ${posteLabel ? posteLabel + ' · ' : ''}${ar?.name || '?'} · ${cityLabel}
+                ${posteLabel ? posteLabel + ' · ' : ''}${empName}${villeDomicileNom ? ' · Domicile : ' + villeDomicileNom : ''}
               </div>
             </div>
             ${!isMe ? `<button onclick="composerMailPour(this.dataset.name)" data-name="${j.name}" style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">
