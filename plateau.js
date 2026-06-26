@@ -10759,7 +10759,7 @@ const OBJETS_TROUVES_ASSEMBLEE = [
 function reclamerObjetTrouve() {
   const reussite = Math.random() < 0.5;
   if (!reussite) {
-    showToast('Service des objets trouvés', 'Rien d\'intéressant aujourd\'hui. "Repassez demain", lâche l\'agent d\'entretien.', true);
+    showToast('Service des objets trouvés', 'Rien d\'intéressant aujourd\'hui. "Repassez demain", lâche l\'hôtesse des objets trouvés.', true);
     addJournalEntry('Vous avez fouillé le service des objets trouvés. Rien à signaler.', '');
     return;
   }
