@@ -10793,11 +10793,11 @@ function consulterAnnuaireDeputes() {
 const OBJETS_TROUVES_ASSEMBLEE = [
   { name: 'Parapluie aux couleurs du parti', icon: 'ti-umbrella', desc: 'Un parapluie noir orne du logo du parti majoritaire. Oublié dans un coin.', compromettant: false },
   { name: 'Dossier de presse périmé', icon: 'ti-file-text', desc: 'Un vieux dossier de presse évoquant vaguement un scandale jamais éclairci.', compromettant: true },
-  { name: 'Petite culotte en dentelle', icon: 'ti-shirt', desc: 'Une petite culotte en dentelle noire, avec une carte de visite d\'escort glissée dedans.', compromettant: true },
-  { name: 'Enveloppe administrative suspecte', icon: 'ti-package', desc: 'Une enveloppe officielle mal refermée, laissant voir un sachet de poudre blanche.', compromettant: true },
+  { name: 'Petite culotte en dentelle', icon: 'ti-shirt', desc: 'Une petite culotte en dentelle noire, avec une carte de visite d\'escort glissée dedans.', compromettant: true, imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/objet-culotte-dentelle.png' },
+  { name: 'Enveloppe administrative suspecte', icon: 'ti-package', desc: 'Une enveloppe officielle mal refermée, laissant voir un sachet de poudre blanche.', compromettant: true, imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/objet-sachet-poudre.png' },
   { name: 'Boîte de préservatifs entamée', icon: 'ti-heart', desc: 'Une boîte de préservatifs entamée, un numéro de téléphone griffonné au marqueur.', compromettant: true },
   { name: 'Agenda à codes ridicules', icon: 'ti-notebook', desc: 'Un agenda de poche listant des rendez-vous sous des noms de code grotesques.', compromettant: true },
-  { name: 'Bouteille de whisky entamée', icon: 'ti-bottle', desc: 'Une bouteille de whisky bon marché, à moitié vide, planquée derrière un radiateur.', compromettant: false }
+  { name: 'Bouteille de whisky entamée', icon: 'ti-bottle', desc: 'Une bouteille de whisky bon marché, à moitié vide, planquée derrière un radiateur.', compromettant: false, imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/objet-whisky.png' }
 ];
 
 function reclamerObjetTrouve() {
@@ -10818,7 +10818,8 @@ function reclamerObjetTrouve() {
     desc: objet.desc,
     type: objet.compromettant ? 'kompromat' : 'objet',
     cible: null,
-    legal: !objet.compromettant
+    legal: !objet.compromettant,
+    imageUrl: objet.imageUrl || null
   });
 
   // Enregistrer le souvenir du PNJ d'accueil (qui sait que CE PJ a recupere CET objet)
@@ -10905,7 +10906,7 @@ function renderInventory() {
     const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.6rem"> ⚠ Illégal</span>' : '';
     const expiry = item.expireDay ? '<div style="font-size:.6rem;color:#6a5030">Expire jour ' + item.expireDay + '</div>' : '';
     return '<div class="inv-item" style="display:flex;align-items:center;justify-content:space-between;gap:.4rem">' +
-      '<div style="display:flex;align-items:center;gap:.4rem;flex:1;min-width:0">' +
+      '<div style="display:flex;align-items:center;gap:.4rem;flex:1;min-width:0;cursor:pointer" onclick="ouvrirDetailObjetInventaire(' + idx + ')">' +
         '<i class="ti ' + (item.icon||'ti-package') + '" style="font-size:.85rem;color:#8a6a20;flex-shrink:0"></i>' +
         '<div style="min-width:0">' +
           '<div style="font-size:.78rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + legal + '</div>' +
@@ -10916,6 +10917,92 @@ function renderInventory() {
       '<button onclick="supprimerItemInventaire(' + idx + ')" title="Supprimer" style="flex-shrink:0;background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .35rem;font-size:.65rem;font-family:Bebas Neue,sans-serif">✕</button>' +
     '</div>';
   }).join('');
+}
+
+// =====================
+// DETAIL D'UN OBJET D'INVENTAIRE (clic) + GESTION (donner/jeter/abandonner/supprimer)
+// =====================
+async function ouvrirDetailObjetInventaire(idx) {
+  const item = state.inventory[idx];
+  if (!item) return;
+
+  document.getElementById('postes-modal-title').textContent = item.name;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.72rem"> ⚠ Objet illégal / compromettant</span>' : '';
+  const imageHtml = item.imageUrl
+    ? '<img src="' + item.imageUrl + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>'
+    : '';
+
+  // Charger les vrais joueurs presents pour l'option "donner"
+  let joueursPresents = [];
+  if (typeof sbGetPresencesInRoom === 'function' && state.currentBuilding && state.currentRoom) {
+    try {
+      const presents = await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom);
+      joueursPresents = (presents || []).filter(p => p.name !== state.char?.name);
+    } catch(e) {}
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += imageHtml;
+  html += '<div style="font-size:.85rem;color:#a0a080;line-height:1.6;margin-bottom:.8rem">' + (item.desc || '') + legal + '</div>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
+
+  if (joueursPresents.length > 0) {
+    html += '<select id="donner-objet-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
+    joueursPresents.forEach(p => { html += '<option value="' + p.name + '">' + p.name + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="donnerObjetAJoueur(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-gift"></i> Donner a ce joueur</button>';
+  }
+
+  html += '<button onclick="jeterObjetInventaire(' + idx + ', false)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a5a30;background:transparent;color:#8a8060;cursor:pointer"><i class="ti ti-trash"></i> Jeter discretement</button>';
+  html += '<button onclick="jeterObjetInventaire(' + idx + ', true)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a30;background:transparent;color:#a0905a;cursor:pointer"><i class="ti ti-map-pin"></i> Abandonner ici (risque que quelqu\'un le trouve)</button>';
+  html += '<button onclick="supprimerItemInventaire(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-x"></i> Supprimer</button>';
+
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+function donnerObjetAJoueur(idx) {
+  const item = state.inventory[idx];
+  const cible = document.getElementById('donner-objet-cible')?.value;
+  if (!item || !cible) return;
+
+  state.inventory.splice(idx, 1);
+  renderInventory();
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Objet donné', 'Vous avez donné "' + item.name + '" à ' + cible + '.', true, true);
+  addJournalEntry('Vous avez donné "' + item.name + '" à ' + cible + '.', 'event-info');
+
+  // Notifier le destinataire par mail reel
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    sbSendMail(state.char?.name || 'Anonyme', cible, 'Objet reçu',
+      (state.char?.name || 'Quelqu\'un') + ' vous a remis : "' + item.name + '". ' + (item.desc || ''), time).catch(() => {});
+  }
+}
+
+function jeterObjetInventaire(idx, abandonner) {
+  const item = state.inventory[idx];
+  if (!item) return;
+  state.inventory.splice(idx, 1);
+  renderInventory();
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (abandonner) {
+    showToast('Objet abandonné', '"' + item.name + '" laissé sur place. Quelqu\'un pourrait le trouver...', true);
+    addJournalEntry('Vous avez abandonné "' + item.name + '" sur place.', 'event-info');
+    // Petite chance qu'un PNJ le remarque et que ca se sache (registre comique, sans gravite)
+    if (Math.random() < 0.15) {
+      addExternalEvent('👀 Un témoin affirme avoir vu ' + (state.char?.name||'quelqu\'un') + ' abandonner un objet suspect.', 'local');
+    }
+  } else {
+    showToast('Objet jeté', '"' + item.name + '" a disparu discrètement.', true);
+    addJournalEntry('Vous avez jeté "' + item.name + '" discrètement.', '');
+  }
 }
 function toggleSection(panelId, chevronId) {
   const panel = document.getElementById(panelId);
