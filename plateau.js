@@ -10806,6 +10806,13 @@ const OBJETS_TROUVES_ASSEMBLEE = [
 ];
 
 function reclamerObjetTrouve() {
+  // Limite a 1 essai par jour, peu importe le resultat
+  if (state.dernierObjetTrouveJour === state.day) {
+    showToast('Deja fait aujourd\'hui', 'Vous avez deja consulte le service des objets trouves aujourd\'hui. Revenez demain.', false);
+    return;
+  }
+  state.dernierObjetTrouveJour = state.day;
+
   const reussite = Math.random() < 0.5;
   if (!reussite) {
     showToast('Service des objets trouvés', 'Rien d\'intéressant aujourd\'hui. "Repassez demain", lâche l\'hôtesse des objets trouvés.', true);
