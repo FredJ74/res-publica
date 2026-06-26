@@ -342,3 +342,26 @@ async function sbGetSouvenirsAccueilPour(pjNom) {
 async function sbMarquerSouvenirRevele(souvenirId) {
   return sbUpdate('souvenirs_accueil', `id=eq.${souvenirId}`, { revele: true });
 }
+
+// =====================
+// ORGANISATIONS (structure plate, prepare le multi-empire)
+// =====================
+async function sbSaveOrganisation(orga) {
+  const data = { id: orga.id, country_origine: orga.country_origine || orga.country, data: JSON.stringify(orga) };
+  const existing = await sbGet('organisations', `id=eq.${encodeURIComponent(orga.id)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('organisations', `id=eq.${encodeURIComponent(orga.id)}`, data);
+  } else {
+    return sbInsert('organisations', data);
+  }
+}
+
+async function sbLoadOrganisations() {
+  const rows = await sbGet('organisations', 'select=*');
+  if (!rows) return [];
+  return rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
+}
+
+async function sbDeleteOrganisation(orgaId) {
+  return sbDelete('organisations', `id=eq.${encodeURIComponent(orgaId)}`);
+}

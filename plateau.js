@@ -81,6 +81,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Événements partagés (journal global) — au chargement puis toutes les 90 secondes
   setTimeout(() => chargerEvenementsPartages(), 1500);
+  setTimeout(() => chargerOrganisations(), 1800);
   setTimeout(() => recupererDonsEnAttente(), 2000);
   setInterval(chargerEvenementsPartages, 90000);
   setInterval(recupererDonsEnAttente, 90000);
@@ -1914,7 +1915,36 @@ async function getTitulairePoste(posteId) {
 
 // Trouve le responsable de la loge maçonnique (chef d'organisation type 'loge')
 function getResponsableLoge() {
-  const orgas = state.orgasEmpire?.[state.country] || [];
+// Structure plate pour les organisations (prepare le support multi-empire futur)
+// state.organisations est une liste a plat ; country_origine = empire de creation (regles/grades)
+function getMesOrgasPays(country) {
+  return (state.organisations || []).filter(o => o.country_origine === (country || state.country));
+}
+function getOrgaById(orgaId) {
+  return (state.organisations || []).find(o => o.id === orgaId);
+}
+
+// Sauvegarde une organisation modifiee vers Supabase (appelee apres chaque action qui change son etat)
+function sauvegarderOrga(orga) {
+  if (!orga) return;
+  if (typeof sbSaveOrganisation === 'function') sbSaveOrganisation(orga).catch(() => {});
+}
+
+// Charge toutes les organisations depuis Supabase au demarrage (remplace l'ancien state.orgasEmpire local perdu au rafraichissement)
+async function chargerOrganisations() {
+  if (typeof sbLoadOrganisations !== 'function') return;
+  try {
+    const orgas = await sbLoadOrganisations();
+    state.organisations = orgas;
+    // Rafraichir l'affichage si la fiche est ouverte sur l'onglet organisations
+    const tab = document.querySelector('#vue-self .piece-tab.active');
+    if (tab && document.getElementById('vue-self')?.classList.contains('active')) {
+      switchSelfTab('orgas', null);
+    }
+  } catch(e) { console.warn('chargerOrganisations error', e); }
+}
+
+  const orgas = getMesOrgasPays();
   const loge = orgas.find(o => o.type === 'loge');
   return loge?.chef || null;
 }
@@ -11011,7 +11041,7 @@ function ouvrirModalLouerLocal() {
   const bonusStr = bonusParts.join(' · ') || 'Aucun bonus direct';
 
   // Organisations disponibles
-  const mesOrgas = (state.orgasEmpire?.[state.country] || []).filter(o =>
+  const mesOrgas = (getMesOrgasPays()).filter(o =>
     o.membres?.some(m => m.nom === state.char?.name)
   );
 
@@ -11104,7 +11134,7 @@ function ouvrirModalGererLocal() {
   }
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const mesOrgas = (state.orgasEmpire?.[state.country] || []).filter(o =>
+  const mesOrgas = (getMesOrgasPays()).filter(o =>
     o.membres?.some(m => m.nom === state.char?.name)
   );
 
@@ -11161,7 +11191,7 @@ function changerOrgaLocation() {
   if (!location) return;
   const newOrgaId = document.getElementById('gerer-orga-select')?.value || '';
   location.orgaId = newOrgaId;
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === newOrgaId);
+  const orga = getOrgaById(newOrgaId);
   showToast('Organisation mise à jour', orga ? orga.nom + ' associée à ce local.' : 'Aucune organisation associée.', true);
   addJournalEntry('Organisation du local ' + location.localLabel + ' mise à jour.', '');
 }
@@ -11246,7 +11276,7 @@ function payerLocations() {
 }
 
 function appliquerBonusLocation(loc) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === loc.orgaId);
+  const orga = getOrgaById(loc.orgaId);
   if (!orga) return;
 
   // Stocker les bonus dans l'orga
@@ -11304,7 +11334,7 @@ function ouvrirMesLocations() {
     if (loc.bonusPOP > 0) bonusParts.push('+' + loc.bonusPOP + ' POP');
     if (loc.bonusINF > 0) bonusParts.push('+' + loc.bonusINF + ' INF');
     if (loc.bonusDIS > 0) bonusParts.push('+' + loc.bonusDIS + ' DIS');
-    const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === loc.orgaId);
+    const orga = getOrgaById(loc.orgaId);
 
     return '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">' +
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem">' +
@@ -11337,7 +11367,7 @@ function ouvrirMesLocations() {
 // ------ CRÉATION ------
 
 function ouvrirCreerOrga() {
-  const mesOrgas = state.orgasEmpire?.[state.country] || [];
+  const mesOrgas = getMesOrgasPays();
   const typesDispos = Object.entries(TYPES_ORGANISATIONS).filter(([type, def]) => {
     // Vérifier qu'on n'a pas déjà créé une orga de ce type
     return !mesOrgas.some(o => o.type === type && o.fondateur === state.char?.name);
@@ -11411,14 +11441,14 @@ function confirmerCreationOrga(type) {
   const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
   const monGrade = grades[grades.length - 1]; // Fondateur = grade max
 
-  if (!state.orgasEmpire) state.orgasEmpire = {};
-  if (!state.orgasEmpire[state.country]) state.orgasEmpire[state.country] = [];
+  if (!state.organisations) state.organisations = [];
 
   const nouvelleOrga = {
     id, type, nom, desc,
     fondateur: state.char?.name,
     chef: state.char?.name,
     country: state.country,
+    country_origine: state.country,
     creeLe: state.day || 1,
     membres: [{ nom: state.char?.name, grade: monGrade, gradeIdx: grades.length - 1, rejointLe: state.day || 1 }],
     demandesAdhesion: [],
@@ -11428,7 +11458,8 @@ function confirmerCreationOrga(type) {
     visible: !def.secret,
   };
 
-  state.orgasEmpire[state.country].push(nouvelleOrga);
+  state.organisations.push(nouvelleOrga);
+  if (typeof sbSaveOrganisation === 'function') sbSaveOrganisation(nouvelleOrga).catch(() => {});
 
   // Lier au local en cours si on vient de gerer_local
   const location = (state.locationsActives || []).find(l =>
@@ -11446,7 +11477,7 @@ function confirmerCreationOrga(type) {
 // ------ ONGLET ORGAS ------
 
 function renderOngletOrgas() {
-  const mesOrgas = (state.orgasEmpire?.[state.country] || []).filter(o =>
+  const mesOrgas = (getMesOrgasPays()).filter(o =>
     o.membres?.some(m => m.nom === state.char?.name)
   );
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -11509,7 +11540,7 @@ function renderOngletOrgas() {
 // ------ MEMBRES ------
 
 function ouvrirGestionMembres(orgaId) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
@@ -11539,7 +11570,7 @@ function ouvrirGestionMembres(orgaId) {
 }
 
 function monterGrade(orgaId, nomMembre) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
@@ -11548,11 +11579,12 @@ function monterGrade(orgaId, nomMembre) {
   membre.gradeIdx++;
   membre.grade = grades[membre.gradeIdx];
   showToast('Grade attribué', nomMembre + ' est maintenant ' + membre.grade + '.', true);
+  sauvegarderOrga(orga);
   ouvrirGestionMembres(orgaId);
 }
 
 function descendreGrade(orgaId, nomMembre) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
@@ -11561,27 +11593,25 @@ function descendreGrade(orgaId, nomMembre) {
   membre.gradeIdx--;
   membre.grade = grades[membre.gradeIdx];
   showToast('Grade retiré', nomMembre + ' est maintenant ' + membre.grade + '.', false);
+  sauvegarderOrga(orga);
   ouvrirGestionMembres(orgaId);
 }
 
 function exclureMembre(orgaId, nomMembre) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   orga.membres = orga.membres.filter(m => m.nom !== nomMembre);
   showToast('Membre exclu', nomMembre + ' a été exclu de ' + orga.nom + '.', false);
   addJournalEntry(nomMembre + ' exclu de "' + orga.nom + '".', 'event-bad');
+  sauvegarderOrga(orga);
   ouvrirGestionMembres(orgaId);
 }
 
 // ------ DEMANDES D'ADHÉSION ------
 
 function demanderAdhesion(orgaId) {
-  // Cherche l'orga dans tous les empires
-  let orga = null;
-  for (const pays of Object.keys(state.orgasEmpire || {})) {
-    orga = (state.orgasEmpire[pays] || []).find(o => o.id === orgaId);
-    if (orga) break;
-  }
+  // Recherche directe dans la liste plate (fonctionne deja nativement multi-empire)
+  let orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
 
@@ -11590,7 +11620,7 @@ function demanderAdhesion(orgaId) {
     showToast('Déjà membre', 'Vous êtes déjà membre de cette organisation.', false); return;
   }
   // Vérif : déjà une orga de ce type en adhésion ?
-  const mesOrgas = state.orgasEmpire?.[state.country] || [];
+  const mesOrgas = getMesOrgasPays();
   const dejaType = mesOrgas.some(o => o.type === orga.type && o.membres?.some(m => m.nom === state.char?.name));
   if (dejaType) {
     showToast('Limite atteinte', 'Vous appartenez déjà à une organisation de type ' + def.label + '.', false); return;
@@ -11607,7 +11637,7 @@ function demanderAdhesion(orgaId) {
 }
 
 function ouvrirDemandesAdhesion(orgaId) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const grades = def.grades?.[state.country] || ['Membre'];
@@ -11631,7 +11661,7 @@ function ouvrirDemandesAdhesion(orgaId) {
 }
 
 function accepterAdhesion(orgaId, nomCandidat) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const grades = def.grades?.[state.country] || ['Membre'];
@@ -11640,21 +11670,23 @@ function accepterAdhesion(orgaId, nomCandidat) {
   orga.membres.push({ nom: nomCandidat, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1 });
   showToast('Membre accepté', nomCandidat + ' rejoint "' + orga.nom + '" comme ' + grades[0] + '.', true);
   addJournalEntry(nomCandidat + ' accepté dans "' + orga.nom + '".', 'event-good');
+  sauvegarderOrga(orga);
   ouvrirDemandesAdhesion(orgaId);
 }
 
 function refuserAdhesion(orgaId, nomCandidat) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   orga.demandesAdhesion = (orga.demandesAdhesion || []).filter(d => d.nom !== nomCandidat);
   showToast('Demande refusée', nomCandidat + ' a été refusé.', false);
+  sauvegarderOrga(orga);
   ouvrirDemandesAdhesion(orgaId);
 }
 
 // ------ ORDRES SPÉCIFIQUES ------
 
 function ouvrirOrdresOrga(orgaId) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const ordres = def.ordres || [];
@@ -11686,7 +11718,7 @@ function ouvrirOrdresOrga(orgaId) {
 }
 
 function executerOrdreOrga(orgaId, fn) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const ordre = (def.ordres || []).find(o => o.fn === fn);
@@ -11723,6 +11755,7 @@ function executerOrdreOrga(orgaId, fn) {
   if (effet) { effet(); }
   else { showToast('Action exécutée.', ordre.label + ' accompli.', true); addJournalEntry(ordre.label + ' via "' + orga.nom + '".', ''); }
 
+  sauvegarderOrga(orga);
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
 }
@@ -11730,7 +11763,7 @@ function executerOrdreOrga(orgaId, fn) {
 // ------ OPTIONS CHEF ------
 
 function ouvrirOptionsOrga(orgaId) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga || orga.chef !== state.char?.name) return;
 
   document.getElementById('postes-modal-title').textContent = 'Parametres — ' + orga.nom;
@@ -11758,29 +11791,31 @@ function ouvrirOptionsOrga(orgaId) {
 }
 
 function renommerOrga(orgaId) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   const newNom = document.getElementById('orga-rename-input')?.value?.trim();
   if (!newNom || newNom.length < 2) return;
   orga.nom = newNom;
+  sauvegarderOrga(orga);
   showToast('Organisation renommée', '"' + newNom + '"', true);
   document.getElementById('modal-postes').classList.remove('open');
   switchSelfTab('orgas', null);
 }
 
 function toggleVisibiliteOrga(orgaId) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   orga.visible = !orga.visible;
   showToast(orga.visible ? 'Organisation visible' : 'Organisation secrète', '', true);
+  sauvegarderOrga(orga);
   document.getElementById('modal-postes').classList.remove('open');
 }
 
 function dissoudreOrga(orgaId) {
-  if (!state.orgasEmpire?.[state.country]) return;
-  const orga = state.orgasEmpire[state.country].find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
-  state.orgasEmpire[state.country] = state.orgasEmpire[state.country].filter(o => o.id !== orgaId);
+  state.organisations = (state.organisations || []).filter(o => o.id !== orgaId);
+  if (typeof sbDeleteOrganisation === 'function') sbDeleteOrganisation(orgaId).catch(() => {});
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Organisation dissoute', '"' + orga.nom + '" n\'existe plus.', false);
   addJournalEntry('"' + orga.nom + '" dissoute.', 'event-bad');
@@ -11788,7 +11823,7 @@ function dissoudreOrga(orgaId) {
 }
 
 function quitterOrga(orgaId) {
-  const orga = (state.orgasEmpire?.[state.country] || []).find(o => o.id === orgaId);
+  const orga = getOrgaById(orgaId);
   if (!orga) return;
   if (orga.chef === state.char?.name) { showToast('Impossible', 'Dissolvez l\'organisation ou transmettez la direction avant de partir.', false); return; }
   orga.membres = orga.membres.filter(m => m.nom !== state.char?.name);
