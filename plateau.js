@@ -7125,6 +7125,7 @@ function doDormir() {
   // Payer les escorts actives
   payerEscorts();
   payerEmployes();
+  updateUI(); // Rafraichir apres les bonus de location (INF/POP/DIS) appliques ci-dessus
 
   // Traiter les evenements nocturnes
   traiterPlaintes();
@@ -9899,6 +9900,7 @@ async function confirmerDemandeNaturalisation() {
   }
 
   state.arg -= cout;
+  updateUI();
   document.getElementById('modal-postes').classList.remove('open');
 
   const maintenant = Date.now();
@@ -12002,6 +12004,7 @@ function demanderAdhesion(orgaId) {
 
   if (!orga.demandesAdhesion) orga.demandesAdhesion = [];
   orga.demandesAdhesion.push({ nom: state.char?.name, date: state.day || 1 });
+  sauvegarderOrga(orga);
   showToast('Demande envoyée', 'Votre demande d\'adhésion à "' + orga.nom + '" a été envoyée.', true);
   addJournalEntry('Demande d\'adhésion à "' + orga.nom + '".', '');
 }
