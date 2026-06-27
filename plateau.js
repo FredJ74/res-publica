@@ -84,8 +84,10 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => chargerOrganisations(), 1800);
   setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
   setTimeout(() => recupererDonsEnAttente(), 2000);
+  setTimeout(() => recupererVolsEnAttente(), 2200);
   setInterval(chargerEvenementsPartages, 90000);
   setInterval(recupererDonsEnAttente, 90000);
+  setInterval(recupererVolsEnAttente, 90000);
 
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
   setInterval(() => {
@@ -1697,6 +1699,7 @@ function openPnjModal(encodedPnj) {
   }
 
   const encCible = encodePnjSafe(pnj);
+  actionBtns += '<button class="pnj-action-btn" style="color:#aa7a30;border-color:#3a2810" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalVoler(\'' + encCible + '\')"><i class="ti ti-fingerprint" style="font-size:.85rem"></i> Voler</button>';
   actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
   document.getElementById('pnj-actions').innerHTML = actionBtns +
     (isPJ
@@ -5476,6 +5479,129 @@ function soumettreRumeur() {
 // =====================
 // ASSASSINAT
 // =====================
+
+// =====================
+// ORDRE VOLER (pickpocket, illegal)
+// =====================
+const BONUS_CARRIERE_VOL = {
+  criminal_c: 15, unemployed: 15, intel: 15, escort: 15,
+  magistrat: -10, lawyer: -10, officer: -10, clergy: -10, civil: -10, doctor: -10
+  // toutes les autres carrieres : 0 (neutre)
+};
+
+function ouvrirModalVoler(encodedCible) {
+  let cible;
+  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
+
+  const char = state.char;
+  const per = char?.stats?.PER || 8;
+  const cha = char?.stats?.CHA || 8;
+  const bonusCarriere = BONUS_CARRIERE_VOL[char?.career] || 0;
+  const isPays = INDICES_NATIONAUX[state.country]?.IS || 40;
+
+  // Stats de la cible — si PJ reel on n'a que des stats par defaut raisonnables (PNJ ont parfois des stats definies)
+  const perCible = cible.stats?.PER || 9;
+  const intCible = cible.stats?.INT || 9;
+
+  const tauxReussite = Math.max(5, Math.min(95, Math.round(
+    50 + (per + cha) - (perCible + intCible) + bonusCarriere - (isPays / 3)
+  )));
+  const seuilVisibilite = 90;
+
+  document.getElementById('postes-modal-title').textContent = 'Voler — ' + cible.name;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Acte illegal. En cas d\'echec, des consequences variables selon l\'empire s\'appliquent.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Chances de reussite estimees : <strong style="color:#C9A84C">' + tauxReussite + '%</strong></div>';
+  html += '<button onclick="confirmerVol(\'' + encodedCible + '\',' + tauxReussite + ',' + seuilVisibilite + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #aa7a30;background:transparent;color:#C9A84C;cursor:pointer">🤏 Tenter le vol (2 PA)</button>';
+  html += '</div>';
+
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+const CONSEQUENCES_VOL_ECHEC = {
+  republic: (nomCible) => {
+    const amende = 300;
+    state.arg = Math.max(0, state.arg - amende);
+    if (!state.historiqueCrimes) state.historiqueCrimes = [];
+    state.historiqueCrimes.push({ acte: 'vol', cible: nomCible, jour: state.day, expireJour: state.day + 8 });
+    return 'Un agent vous verbalise sur-le-champ. -' + amende + ' FR. Inscrit au registre administratif.';
+  },
+  narco: (nomCible) => {
+    const perte = Math.floor((state.arg || 0) * 0.5);
+    state.arg = Math.max(0, state.arg - perte);
+    return 'Deux messieurs interviennent sans discussion. Vous perdez ' + perte + ' liquide. "La prochaine fois, on sera moins gentils."';
+  },
+  soviet: (nomCible) => {
+    state.pop = Math.max(0, (state.pop || 0) - 10);
+    const amende = 100;
+    state.arg = Math.max(0, state.arg - amende);
+    return 'Le collectif vous denonce publiquement. -10 POP, -' + amende + ' FR (amende symbolique).';
+  },
+  khalija: (nomCible) => {
+    if (!state.historiqueCrimes) state.historiqueCrimes = [];
+    state.historiqueCrimes.push({ acte: 'vol', cible: nomCible, jour: state.day, expireJour: state.day + 15 });
+    return 'Sanction par decret. Affaire consignee pour 15 jours — la memoire du Sheikh est longue.';
+  }
+};
+
+async function confirmerVol(encodedCible, tauxReussite, seuilVisibilite) {
+  let cible;
+  try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const nomCible = cible.name.replace(' (PNJ)', '');
+  const roll = Math.random() * 100;
+
+  if (roll > tauxReussite) {
+    // ECHEC
+    const consequence = CONSEQUENCES_VOL_ECHEC[state.country] || CONSEQUENCES_VOL_ECHEC.republic;
+    const msg = consequence(nomCible);
+    updateUI();
+    showToast('Vol échoué !', msg, false, true);
+    addJournalEntry('Tentative de vol sur ' + nomCible + ' échouée. ' + msg, 'event-bad');
+    return;
+  }
+
+  // REUSSITE — determiner le butin
+  const voitButin = roll <= (tauxReussite * seuilVisibilite / 100);
+
+  if (cible.isPJ) {
+    // Vol sur un vrai joueur — montant aleatoire d'argent liquide (50-200), applique a sa prochaine connexion
+    const montantVole = Math.floor(Math.random() * 150) + 50;
+    const vol = {
+      id: 'vol-' + Date.now(),
+      victime: nomCible,
+      voleur: state.char?.name || 'Anonyme',
+      type_butin: 'argent',
+      montant: montantVole,
+      objet_id: null,
+      traite: false
+    };
+    if (typeof sbDeposerVol === 'function') {
+      await sbDeposerVol(vol).catch(() => {});
+    }
+    state.arg = (state.arg || 0) + montantVole;
+    updateUI();
+    showToast('Vol réussi !', '+' + montantVole + ' FR dérobés à ' + nomCible + '.', true, true);
+    addJournalEntry('Vol réussi sur ' + nomCible + '. +' + montantVole + ' FR.', 'event-good');
+
+    if (typeof sbSendMail === 'function') {
+      const h = String(state.hour || 8).padStart(2,'0');
+      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+      sbSendMail('Système', nomCible, 'Vous avez été volé(e)', 'Quelqu\'un vous a discrètement dérobé ' + montantVole + ' FR. Le montant a été déduit de votre trésorerie.', time).catch(() => {});
+    }
+  } else {
+    // Vol sur un PNJ — effet immediat possible
+    const butinArgent = Math.floor(Math.random() * 200) + 50;
+    state.arg = (state.arg || 0) + butinArgent;
+    updateUI();
+    showToast('Vol réussi !', '+' + butinArgent + ' FR dérobés à ' + nomCible + '.', true, true);
+    addJournalEntry('Vol réussi sur ' + nomCible + ' (PNJ). +' + butinArgent + ' FR.', 'event-good');
+  }
+}
+
+
 function ouvrirModalAssassinat(encodedCible) {
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
@@ -6447,6 +6573,31 @@ async function recupererDonsEnAttente() {
       showToast('Dons reçus !', '+' + total + ' ' + cur + ' crédité(s) sur votre compte.', true, true);
     }
   } catch(e) { console.warn('recupererDonsEnAttente error', e); }
+}
+
+// Recupere et applique les vols subis par le joueur depuis sa derniere connexion
+async function recupererVolsEnAttente() {
+  if (typeof sbRecupererVolsEnAttente !== 'function') return;
+  const moi = state.char?.name;
+  if (!moi) return;
+  try {
+    const vols = await sbRecupererVolsEnAttente(moi);
+    if (!vols || vols.length === 0) return;
+    const cur = COUNTRIES[state.country]?.cur || 'FR';
+    let totalPerdu = 0;
+    for (const vol of vols) {
+      if (vol.type_butin === 'argent') {
+        totalPerdu += vol.montant || 0;
+        state.arg = Math.max(0, (state.arg || 0) - (vol.montant || 0));
+      }
+      if (typeof sbMarquerVolTraite === 'function') await sbMarquerVolTraite(vol.id).catch(() => {});
+    }
+    if (totalPerdu > 0) {
+      updateUI();
+      addJournalEntry('🤏 On vous a discrètement dérobé ' + totalPerdu + ' ' + cur + '.', 'event-bad');
+      showToast('Vous avez été volé(e)', '-' + totalPerdu + ' ' + cur + ' dérobé(s) discrètement.', false, true);
+    }
+  } catch(e) { console.warn('recupererVolsEnAttente error', e); }
 }
 
 // Archives police — liste des prisonniers
