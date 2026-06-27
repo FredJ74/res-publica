@@ -85,9 +85,11 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
   setTimeout(() => recupererDonsEnAttente(), 2000);
   setTimeout(() => recupererVolsEnAttente(), 2200);
+  setTimeout(() => recupererImpactsEnAttente(), 2400);
   setInterval(chargerEvenementsPartages, 90000);
   setInterval(recupererDonsEnAttente, 90000);
   setInterval(recupererVolsEnAttente, 90000);
+  setInterval(recupererImpactsEnAttente, 90000);
 
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
   setInterval(() => {
@@ -5482,14 +5484,21 @@ async function confirmerFausseRumeur(cout, taux) {
     // SUCCES — la victime perd INF/POP, le lanceur en gagne un peu (discredit reussi)
     state.inf = Math.min(100, (state.inf || 0) + 3);
     state.pop = Math.min(100, (state.pop || 0) + 2);
+
+    // Deposer l'impact negatif sur la victime (applique a sa prochaine connexion)
+    if (typeof sbDeposerImpactIndice === 'function') {
+      await sbDeposerImpactIndice({ id: 'impact-' + Date.now() + '-pop', victime: cible, indice: 'pop', delta: -6, raison: 'Rumeur compromettante', traite: false }).catch(() => {});
+      await sbDeposerImpactIndice({ id: 'impact-' + Date.now() + '-inf', victime: cible, indice: 'inf', delta: -4, raison: 'Rumeur compromettante', traite: false }).catch(() => {});
+    }
+
     if (typeof sbSendMail === 'function') {
       const h = String(state.hour || 8).padStart(2,'0');
       const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
       sbSendMail('Système', cible, 'Rumeur en circulation',
-        'Une rumeur compromettante circule actuellement à votre sujet. Difficile de savoir qui en est à l\'origine.', time).catch(() => {});
+        'Une rumeur compromettante circule actuellement à votre sujet. Difficile de savoir qui en est à l\'origine. -6 POP, -4 INF.', time).catch(() => {});
     }
     updateUI();
-    showToast('Rumeur lancée', 'La rumeur sur ' + cible + ' se répand. +3 INF, +2 POP.', true, true);
+    showToast('Rumeur lancée', 'La rumeur sur ' + cible + ' se répand. +3 INF, +2 POP pour vous ; -6 POP, -4 INF pour la victime.', true, true);
     addJournalEntry('Fausse rumeur lancée sur ' + cible + '. Succès.', 'event-good');
     checkDetection('fausse_rumeur', 'success');
   } else {
@@ -6643,6 +6652,29 @@ async function recupererVolsEnAttente() {
       showToast('Vous avez été volé(e)', '-' + totalPerdu + ' ' + cur + ' dérobé(s) discrètement.', false, true);
     }
   } catch(e) { console.warn('recupererVolsEnAttente error', e); }
+}
+
+// Recupere et applique les impacts d'indices en attente (ex: consequence d'une fausse rumeur)
+async function recupererImpactsEnAttente() {
+  if (typeof sbRecupererImpactsEnAttente !== 'function') return;
+  const moi = state.char?.name;
+  if (!moi) return;
+  try {
+    const impacts = await sbRecupererImpactsEnAttente(moi);
+    if (!impacts || impacts.length === 0) return;
+    let resume = [];
+    for (const imp of impacts) {
+      if (imp.indice === 'pop') { state.pop = Math.max(0, Math.min(100, (state.pop || 0) + imp.delta)); resume.push(imp.delta + ' POP'); }
+      if (imp.indice === 'inf') { state.inf = Math.max(0, Math.min(100, (state.inf || 0) + imp.delta)); resume.push(imp.delta + ' INF'); }
+      if (imp.indice === 'dis') { state.dis = Math.max(0, Math.min(100, (state.dis || 50) + imp.delta)); resume.push(imp.delta + ' DIS'); }
+      if (typeof sbMarquerImpactTraite === 'function') await sbMarquerImpactTraite(imp.id).catch(() => {});
+    }
+    if (resume.length > 0) {
+      updateUI();
+      addJournalEntry('Des événements ont affecté vos indices : ' + resume.join(', ') + '.', 'event-bad');
+      showToast('Indices modifiés', resume.join(', '), false, true);
+    }
+  } catch(e) { console.warn('recupererImpactsEnAttente error', e); }
 }
 
 // Archives police — liste des prisonniers
