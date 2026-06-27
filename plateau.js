@@ -12638,6 +12638,7 @@ function confirmerRecrutementEscort(nomEscort, tarif) {
     depuis: state.day || 1,
     stats: typeof PNJ_STATS_PAR_JOB !== 'undefined' ? PNJ_STATS_PAR_JOB.escort : {}
   });
+  updateUI();
   renderEmployesPanel();
 
   // Générer une remplaçante dans la pièce
