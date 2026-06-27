@@ -5423,56 +5423,79 @@ function doDistribuerTract() {
   }
 }
 
-function openRumeurModal() {
-  const contacts = state.contacts || [];
-  if (contacts.length === 0) {
-    showToast('Repertoire vide', 'Vous n\'avez personne dans votre repertoire. Rencontrez d\'abord des personnages.', false);
-    return;
+const BONUS_ARCHETYPE_FAUSSE_RUMEUR = {
+  shadow: 15, criminal: 15, informer: 5
+  // tous les autres archetypes : 0
+};
+
+function getCoutFausseRumeur() {
+  const ie = INDICES_NATIONAUX[state.country]?.IE || 40;
+  return 300 + ie * 5;
+}
+
+function getTauxFausseRumeur() {
+  const dup = state.char?.stats?.DUP || 8;
+  const bonusArch = BONUS_ARCHETYPE_FAUSSE_RUMEUR[state.char?.archetype] || 0;
+  return Math.max(5, Math.min(90, 20 + dup * 2 + bonusArch));
+}
+
+async function openRumeurModal() {
+  const cout = getCoutFausseRumeur();
+  const taux = getTauxFausseRumeur();
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  let joueurs = [];
+  if (typeof sbListPersonnages === 'function') {
+    try { joueurs = (await sbListPersonnages() || []).filter(j => j.name !== state.char?.name); } catch(e) {}
   }
-  document.getElementById('postes-modal-title').textContent = 'Lancer une rumeur';
-  document.getElementById('postes-body').innerHTML = `
-    <div style="padding:1rem">
-      <div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">
-        Taux de reussite : 50%. En cas de succes : +/-5 POP sur la cible.
-      </div>
-      <div style="margin-bottom:1rem">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>
-        ${contacts.map(c => `
-          <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:#c0b090;cursor:pointer;padding:.2rem 0">
-            <input type="radio" name="rumeur-cible" value="${c.name}" style="accent-color:#C9A84C"/>
-            ${c.name}
-          </label>`).join('')}
-      </div>
-      <div style="margin-bottom:1rem">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TYPE DE RUMEUR</div>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:#6a9060;cursor:pointer;margin-bottom:.3rem">
-          <input type="radio" name="rumeur-type" value="positive" style="accent-color:#4a8a4a"/> Rumeur positive (+5 POP sur la cible)
-        </label>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:#9a5040;cursor:pointer">
-          <input type="radio" name="rumeur-type" value="negative" checked style="accent-color:#8a3a2a"/> Rumeur negative (-5 POP sur la cible)
-        </label>
-      </div>
-      <button onclick="soumettreRumeur()" style="font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
-        Lancer la rumeur
-      </button>
-    </div>`;
+
+  document.getElementById('postes-modal-title').textContent = 'Créer une fausse rumeur';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:.8rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Acte illégal. Coût : ' + cout + ' ' + cur + '. Chances de réussite : ' + taux + '%. Détectable après enquête.</div>';
+
+  if (joueurs.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040">Aucun habitant connu pour le moment.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
+    html += '<select id="fausse-rumeur-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    joueurs.forEach(j => { html += '<option value="' + j.name + '">' + j.name + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="confirmerFausseRumeur(' + cout + ',' + taux + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #aa7a30;background:transparent;color:#C9A84C;cursor:pointer">Répandre la rumeur</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function soumettreRumeur() {
-  const cible = document.querySelector('input[name="rumeur-cible"]:checked')?.value;
-  const type = document.querySelector('input[name="rumeur-type"]:checked')?.value || 'negative';
+async function confirmerFausseRumeur(cout, taux) {
+  const cible = document.getElementById('fausse-rumeur-cible')?.value;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('modal-postes').classList.remove('open');
-  if (!cible) { showToast('Selectionnez une cible', '', false); return; }
+  if (!cible) { showToast('Sélectionnez une cible', '', false); return; }
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false); return; }
+
+  state.arg -= cout;
+  updateUI();
 
   const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 50) {
-    const impact = type === 'positive' ? 5 : -5;
-    addJournalEntry(`Rumeur ${type} sur ${cible} lancee avec succes. Impact : ${impact > 0 ? '+' : ''}${impact} POP sur ${cible}.`, 'event-good');
-    showToast('Rumeur repandue', `La rumeur ${type} circule sur ${cible}. ${impact > 0 ? '+' : ''}${impact} POP.`, true);
+  if (roll <= taux) {
+    // SUCCES — la victime perd INF/POP, le lanceur en gagne un peu (discredit reussi)
+    state.inf = Math.min(100, (state.inf || 0) + 3);
+    state.pop = Math.min(100, (state.pop || 0) + 2);
+    if (typeof sbSendMail === 'function') {
+      const h = String(state.hour || 8).padStart(2,'0');
+      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+      sbSendMail('Système', cible, 'Rumeur en circulation',
+        'Une rumeur compromettante circule actuellement à votre sujet. Difficile de savoir qui en est à l\'origine.', time).catch(() => {});
+    }
+    updateUI();
+    showToast('Rumeur lancée', 'La rumeur sur ' + cible + ' se répand. +3 INF, +2 POP.', true, true);
+    addJournalEntry('Fausse rumeur lancée sur ' + cible + '. Succès.', 'event-good');
+    checkDetection('fausse_rumeur', 'success');
   } else {
-    addJournalEntry(`Rumeur sur ${cible} : personne n' a cru.`, '');
-    showToast('Rumeur inefficace', 'Personne ne semble y preter attention.', false);
+    showToast('Rumeur sans effet', 'Personne n\'a vraiment cru cette histoire.', false);
+    addJournalEntry('Tentative de fausse rumeur sur ' + cible + '. Échec.', '');
+    checkDetection('fausse_rumeur', 'fail');
   }
 }
 
@@ -7355,7 +7378,9 @@ const ACTES_ILLEGAUX = {
   fuite_info:         { type: 'delit_grave',   detectRate: 40 },
   imprimer_clandestin:{ type: 'delit_mineur',  detectRate: 30 },
   tentative_evasion:  { type: 'crime',         detectRate: 90 },
-  se_rebeller:        { type: 'delit_mineur',  detectRate: 60 }
+  se_rebeller:        { type: 'delit_mineur',  detectRate: 60 },
+  fausse_rumeur:      { type: 'delit_mineur',  detectRate: 35 },
+  vol:                { type: 'delit_mineur',  detectRate: 30 }
 };
 
 function checkDetection(fn, resultType) {
@@ -7863,6 +7888,16 @@ function soumettreProjetLoi() {
 // =====================
 // ECOUTER LES RUMEURS (IA)
 // =====================
+// Formulations evasives par type d'action tracee (jamais de detail precis : montant, raison, etc.)
+const FORMULATIONS_RUMEUR_VRAIE = {
+  don:        (a, c) => 'On a vu ' + a + ' donner quelque chose discrètement à ' + c + '.',
+  don_objet:  (a, c) => 'On raconte que ' + a + ' a remis un objet en mains propres à ' + c + ', loin des regards.',
+  vol:        (a, c) => 'Un témoin jure avoir vu ' + a + ' s\'approcher un peu trop près des affaires de ' + c + '.',
+  assassinat: (a, c) => 'On a aperçu ' + a + ' avec ' + c + ' juste avant que ce dernier ne se fasse agresser.',
+  corruption: (a, c) => 'Des rumeurs courent sur ' + a + ' qui aurait \'arrangé\' une affaire administrative contre quelques billets.',
+  escort:     (a, c) => 'Il paraîtrait que ' + a + ' fréquente assidûment certains établissements... discrets.'
+};
+
 async function ecouterRumeurs() {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const char = state.char;
@@ -7871,6 +7906,36 @@ async function ecouterRumeurs() {
 
   showToast('Vous tendez l\'oreille...', 'En attente d\'une information.', false);
 
+  // 1. Tenter d'abord une VRAIE rumeur basee sur une action reellement tracee
+  let actionsDisponibles = [];
+  if (typeof sbGetActionsTracables === 'function') {
+    try {
+      actionsDisponibles = await sbGetActionsTracables(state.country, state.currentCity, state.day || 1);
+      // Ne jamais reveler sa propre action a soi-meme
+      actionsDisponibles = actionsDisponibles.filter(a => a.auteur !== char?.name);
+    } catch(e) {}
+  }
+
+  if (actionsDisponibles.length > 0 && Math.random() < 0.6) {
+    const action = actionsDisponibles[Math.floor(Math.random() * actionsDisponibles.length)];
+    const formulateur = FORMULATIONS_RUMEUR_VRAIE[action.type_action];
+    if (formulateur) {
+      const texte = formulateur(action.auteur, action.cible || 'quelqu\'un');
+      document.getElementById('postes-modal-title').textContent = source + ' vous glisse à l\'oreille...';
+      document.getElementById('postes-body').innerHTML =
+        '<div style="padding:1.2rem">' +
+        '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + texte + '"</div>' +
+        '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem">Source : ' + source + ' · Information vérifiée</div>' +
+        '</div>';
+      document.getElementById('modal-postes').classList.add('open');
+      state.inf = Math.min(100, state.inf + 1);
+      updateUI();
+      addJournalEntry('Rumeur entendue à ' + ville, 'event-info');
+      return;
+    }
+  }
+
+  // 2. Fallback — generation IA generique si aucune vraie action disponible
   const context = 'Empire : ' + (COUNTRIES[state.country]?.n || 'Républia') +
     '. Ville : ' + ville +
     '. Votre personnage : ' + (char?.name || 'Anonyme') +
