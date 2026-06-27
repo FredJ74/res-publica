@@ -86,6 +86,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => recupererDonsEnAttente(), 2000);
   setTimeout(() => recupererVolsEnAttente(), 2200);
   setTimeout(() => recupererImpactsEnAttente(), 2400);
+  setTimeout(() => verifierLancementQuete(), 2600);
   setInterval(chargerEvenementsPartages, 90000);
   setInterval(recupererDonsEnAttente, 90000);
   setInterval(recupererVolsEnAttente, 90000);
@@ -1703,6 +1704,17 @@ function openPnjModal(encodedPnj) {
   const encCible = encodePnjSafe(pnj);
   actionBtns += '<button class="pnj-action-btn" style="color:#aa7a30;border-color:#3a2810" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalVoler(\'' + encCible + '\')"><i class="ti ti-fingerprint" style="font-size:.85rem"></i> Voler</button>';
   actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
+  actionBtns += '<div id="quete-action-zone"></div>';
+  // Verifier de facon non bloquante si ce PNJ correspond a une quete active
+  if (!isPJ && typeof getQueteActivePourPnj === 'function') {
+    const nomPnjPourQuete = pnj.name?.replace(' (PNJ)', '');
+    getQueteActivePourPnj(nomPnjPourQuete).then(quete => {
+      const zone = document.getElementById('quete-action-zone');
+      if (zone && quete) {
+        zone.innerHTML = '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20;font-weight:bold" onclick="progresserQuete(&quot;' + quete.id + '&quot;)"><i class="ti ti-search" style="font-size:.85rem"></i> 🔍 Suivre la piste (' + quete.titre + ')</button>';
+      }
+    }).catch(() => {});
+  }
   document.getElementById('pnj-actions').innerHTML = actionBtns +
     (isPJ
       ? '<div style="margin-top:.6rem;font-size:.7rem;color:#6a5a30;font-style:italic">C\'est un vrai joueur — utilisez le mail pour lui parler, l\'IA ne repond pas a sa place.</div>'
@@ -1930,6 +1942,225 @@ async function getTitulairePoste(posteId) {
 function getResponsableLoge() {
 // Structure plate pour les organisations (prepare le support multi-empire futur)
 // state.organisations est une liste a plat ; country_origine = empire de creation (regles/grades)
+
+// =====================
+// SYSTEME DE QUETES (animation plateau)
+// =====================
+const RECOMPENSES_QUETE = ['argent', 'objet', 'titre', 'dossier_surveillance']; // 'terrain' traite a part (necessite un terrain libre reel)
+
+// Construit un resume compact des lieux/PNJ disponibles dans la ville courante, pour le prompt IA
+function getLieuxDisponiblesPourQuete(country, city) {
+  const lieux = [];
+  const villeData = WORLD[country]?.[city];
+  const buildingIds = villeData?.buildings || [];
+  buildingIds.forEach(bId => {
+    const b = BUILDINGS[bId];
+    if (!b || !b.rooms) return;
+    Object.entries(b.rooms).forEach(([roomId, room]) => {
+      const persons = (room.persons || []).map(p => p.name.replace(' (PNJ)', ''));
+      if (persons.length > 0) {
+        lieux.push({ buildingId: bId, roomId, buildingName: b.name, roomName: room.name, pnjs: persons });
+      }
+    });
+  });
+  return lieux;
+}
+
+// Verifie s'il faut lancer une nouvelle quete (appelee periodiquement)
+async function verifierLancementQuete() {
+  if (typeof sbGetQueteActive !== 'function') return;
+  try {
+    const queteActive = await sbGetQueteActive(state.country);
+    if (queteActive) return; // Une quete est deja en cours, on attend sa resolution
+
+    const derniereResolue = await sbGetDerniereQueteResolue(state.country);
+    const jourActuel = state.day || 1;
+    if (derniereResolue) {
+      const joursDepuisResolution = jourActuel - (derniereResolue.jour_creation || 0);
+      if (joursDepuisResolution < 5) return; // Pas encore le moment de relancer
+    }
+
+    await lancerNouvelleQuete();
+  } catch(e) { console.warn('verifierLancementQuete error', e); }
+}
+
+async function lancerNouvelleQuete() {
+  const lieux = getLieuxDisponiblesPourQuete(state.country, state.currentCity || 'capitale');
+  if (lieux.length === 0) return;
+
+  const lieuChoisi = lieux[Math.floor(Math.random() * lieux.length)];
+  const pnjChoisi = lieuChoisi.pnjs[Math.floor(Math.random() * lieuChoisi.pnjs.length)];
+  const nbEtapes = Math.floor(Math.random() * 4) + 2; // 2 a 5 etapes
+  const recompenseType = RECOMPENSES_QUETE[Math.floor(Math.random() * RECOMPENSES_QUETE.length)];
+
+  // Generer le titre/description de la quete via IA
+  const co = COUNTRIES[state.country];
+  let titre = 'Une affaire mystérieuse', description = 'Une étrange rumeur circule dans la ville.';
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5', max_tokens: 150,
+        messages: [{ role: 'user', content: 'Jeu politique parodique dans ' + (co?.n||'un empire') + '. Genere un TITRE court (5 mots max) et une DESCRIPTION (2 phrases) pour une quete/enquete mysterieuse que les joueurs peuvent resoudre. Format : TITRE: ... DESCRIPTION: ...' }]
+      })
+    });
+    const data = await resp.json();
+    const texte = data.content?.[0]?.text || '';
+    const mTitre = texte.match(/TITRE:\\s*(.+)/);
+    const mDesc = texte.match(/DESCRIPTION:\\s*(.+)/);
+    if (mTitre) titre = mTitre[1].trim();
+    if (mDesc) description = mDesc[1].trim();
+  } catch(e) {}
+
+  const quete = {
+    id: 'quete-' + Date.now(),
+    country: state.country,
+    titre, description,
+    etape_actuelle: 1,
+    nb_etapes_total: nbEtapes,
+    building_id: lieuChoisi.buildingId,
+    room_id: lieuChoisi.roomId,
+    pnj_actif: pnjChoisi,
+    recompense_type: recompenseType,
+    recompense_detail: null,
+    cible_dossier: recompenseType === 'dossier_surveillance' ? await choisirCibleDossier(state.country) : null,
+    statut: 'active',
+    jour_creation: state.day || 1
+  };
+
+  if (typeof sbCreerQuete === 'function') {
+    await sbCreerQuete(quete).catch(() => {});
+  }
+
+  const villeNom = WORLD[state.country]?.[state.currentCity]?.name || state.currentCity;
+  addExternalEvent('🔍 ' + titre + ' — une nouvelle affaire à élucider à ' + villeNom + '.', 'national');
+}
+
+// Choisit un PJ avec poste comme cible pour la recompense "dossier de surveillance"
+async function choisirCibleDossier(country) {
+  if (typeof sbListPersonnages !== 'function') return null;
+  try {
+    const joueurs = await sbListPersonnages() || [];
+    const avecPoste = joueurs.filter(j => j.country === country && j.poste);
+    if (avecPoste.length === 0) return null;
+    return avecPoste[Math.floor(Math.random() * avecPoste.length)].name;
+  } catch(e) { return null; }
+}
+
+// =====================
+// PROGRESSION DANS UNE QUETE (clic sur le bon PNJ)
+// =====================
+
+// Verifie si le PNJ clique correspond a une quete active, et affiche le bouton si oui
+async function getQueteActivePourPnj(nomPnj) {
+  if (typeof sbGetQueteActive !== 'function') return null;
+  try {
+    const quete = await sbGetQueteActive(state.country);
+    if (!quete) return null;
+    if (quete.building_id !== state.currentBuilding || quete.room_id !== state.currentRoom) return null;
+    if (quete.pnj_actif !== nomPnj) return null;
+    return quete;
+  } catch(e) { return null; }
+}
+
+async function progresserQuete(queteId) {
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (typeof sbGetQueteActive !== 'function') return;
+  const quete = await sbGetQueteActive(state.country);
+  if (!quete || quete.id !== queteId) { showToast('Trop tard', 'Cette piste a déjà été suivie par quelqu\'un d\'autre.', false); return; }
+
+  const etapeSuivante = quete.etape_actuelle + 1;
+
+  if (etapeSuivante > quete.nb_etapes_total) {
+    // DERNIERE ETAPE — remettre la recompense
+    await remettreRecompenseQuete(quete);
+    return;
+  }
+
+  // Generer la nouvelle etape : nouveau lieu/PNJ
+  const lieux = getLieuxDisponiblesPourQuete(state.country, state.currentCity || 'capitale');
+  if (lieux.length === 0) return;
+  const lieuChoisi = lieux[Math.floor(Math.random() * lieux.length)];
+  const pnjChoisi = lieuChoisi.pnjs[Math.floor(Math.random() * lieuChoisi.pnjs.length)];
+
+  let indice = 'La piste continue ailleurs...';
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5', max_tokens: 100,
+        messages: [{ role: 'user', content: 'Jeu politique parodique. Quete en cours : "' + quete.titre + '" (' + quete.description + '). Le joueur vient de progresser. Donne UNE phrase courte d\'indice narratif sur la suite (sans reveler le lieu exact), ton mysterieux et parodique.' }]
+      })
+    });
+    const data = await resp.json();
+    indice = data.content?.[0]?.text || indice;
+  } catch(e) {}
+
+  if (typeof sbMettreAJourQuete === 'function') {
+    await sbMettreAJourQuete(quete.id, {
+      etape_actuelle: etapeSuivante,
+      building_id: lieuChoisi.buildingId,
+      room_id: lieuChoisi.roomId,
+      pnj_actif: pnjChoisi
+    }).catch(() => {});
+  }
+
+  showToast('Piste suivie !', indice, true, true);
+  addJournalEntry('Quête "' + quete.titre + '" : étape ' + etapeSuivante + '/' + quete.nb_etapes_total + ' — ' + indice, 'event-good');
+}
+
+async function remettreRecompenseQuete(quete) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  let msg = '';
+
+  if (quete.recompense_type === 'argent') {
+    const montant = Math.floor(Math.random() * 2000) + 200; // 200 a 2200, large echelle
+    state.arg = (state.arg || 0) + montant;
+    msg = '+' + montant + ' ' + cur + ' !';
+  } else if (quete.recompense_type === 'objet') {
+    const objetsPossibles = (typeof OBJETS_TROUVES_ASSEMBLEE !== 'undefined') ? OBJETS_TROUVES_ASSEMBLEE : [];
+    if (objetsPossibles.length > 0) {
+      const obj = objetsPossibles[Math.floor(Math.random() * objetsPossibles.length)];
+      addToInventory({ id: 'quete-obj-' + Date.now(), name: obj.name, icon: obj.icon, desc: obj.desc, type: obj.compromettant ? 'kompromat' : 'objet', legal: !obj.compromettant, imageUrl: obj.imageUrl || null });
+      msg = 'Vous obtenez : ' + obj.name + '.';
+    } else {
+      msg = 'Un mystérieux colis vous est remis.';
+    }
+  } else if (quete.recompense_type === 'titre') {
+    if (!state.titresHonorifiques) state.titresHonorifiques = [];
+    const titreObtenu = 'Résolveur de "' + quete.titre + '"';
+    state.titresHonorifiques.push({ titre: titreObtenu, jour: state.day || 1 });
+    msg = 'Titre honorifique obtenu : "' + titreObtenu + '" (cosmétique).';
+  } else if (quete.recompense_type === 'dossier_surveillance' && quete.cible_dossier) {
+    let actions = [];
+    if (typeof sbGetActionsTracables === 'function') {
+      try { actions = await sbGetActionsTracables(state.country, state.currentCity, state.day || 1); } catch(e) {}
+    }
+    const actionsCible = actions.filter(a => a.auteur === quete.cible_dossier);
+    const contenu = actionsCible.length > 0
+      ? actionsCible.map(a => '- ' + a.type_action + (a.cible ? ' (cible: ' + a.cible + ')' : '') + ' — Jour ' + a.jour).join('\n')
+      : 'Aucune action notable recensée récemment.';
+    addToInventory({
+      id: 'dossier-' + Date.now(), name: 'Dossier de surveillance — ' + quete.cible_dossier,
+      icon: 'ti-folder-search', desc: 'Compilation d\'actions réelles concernant ' + quete.cible_dossier + ' :\n' + contenu,
+      type: 'kompromat', legal: false
+    });
+    msg = 'Vous obtenez un dossier de surveillance complet sur ' + quete.cible_dossier + ' !';
+  }
+
+  if (typeof sbMettreAJourQuete === 'function') {
+    await sbMettreAJourQuete(quete.id, { statut: 'resolue', resolu_par: state.char?.name, recompense_detail: msg }).catch(() => {});
+  }
+
+  updateUI();
+  showToast('Affaire résolue !', msg, true, true);
+  addJournalEntry('🏆 ' + (state.char?.name||'Quelqu\'un') + ' a résolu "' + quete.titre + '" ! ' + msg, 'event-good');
+  addExternalEvent('🏆 ' + (state.char?.name||'Quelqu\'un') + ' a résolu l\'affaire "' + quete.titre + '" !', 'national');
+}
+
+
 function getMesOrgasPays(country) {
   return (state.organisations || []).filter(o => o.country_origine === (country || state.country));
 }
@@ -3792,6 +4023,15 @@ async function afficherJournalDuMatin() {
     topics = (FORUM_TOPICS['local'] || []).slice(0, 3).map(t => '"' + t.title + '" (par ' + t.author + ')').join(', ');
   }
 
+  // Mentionner la quete active, le cas echeant
+  let queteInfo = '';
+  if (typeof sbGetQueteActive === 'function') {
+    try {
+      const quete = await sbGetQueteActive(state.country);
+      if (quete) queteInfo = 'Une affaire est en cours : "' + quete.titre + '" (' + quete.description + ').';
+    } catch(e) {}
+  }
+
   const contextePolitique = presidentNom !== 'Poste vacant'
     ? presidentNom + ' occupe la présidence.'
     : 'Le fauteuil présidentiel est vacant.';
@@ -3802,6 +4042,7 @@ async function afficherJournalDuMatin() {
     'SITUATION RÉELLE DU JOUR : ' + contextePolitique + ' ' + contextPostes + ' ' +
     (resumeActions ? 'Joueurs actifs : ' + resumeActions + '. ' : '') +
     (topics ? 'Sujets du forum : ' + topics + '. ' : '') +
+    (queteInfo ? queteInfo + ' Mentionne cette affaire dans une des breves. ' : '') +
     'Jour ' + today + '. ' +
     'Rédige un bref journal du matin parodique COHÉRENT avec cette situation réelle : 1 titre + 3 brèves drôles. ' +
     'Si un président est nommé, ne dis PAS que le fauteuil est vide. Pas de vrais dieux. Max 6 lignes.';
