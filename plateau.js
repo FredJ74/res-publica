@@ -8274,6 +8274,7 @@ function doEtouffer() {
   const cost = 800;
   if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   state.arg -= cost;
+  updateUI();
   showToast('Ordre contact requis', 'Cliquez sur le journaliste cible pour etouffer un article.', false);
 }
 
@@ -8312,6 +8313,7 @@ function appliquerFormation(stat) {
   if (!state.char) return;
   if (!state.char.stats) state.char.stats = {};
   state.char.stats[stat] = (state.char.stats[stat]||8) + 1;
+  updateUI();
   showToast('Formation terminee', stat + ' : ' + state.char.stats[stat] + ' (+1)', true, true);
   addJournalEntry('Formation suivie : +1 ' + stat, 'event-good');
 }
