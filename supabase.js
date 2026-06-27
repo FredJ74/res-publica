@@ -1,16 +1,12 @@
 
 // =====================
-// VOLS EN ATTENTE (vol effectif sur un vrai joueur, applique a sa prochaine connexion)
+// ACTIONS TRACABLES (pour le systeme de rumeurs vraies)
 // =====================
-async function sbDeposerVol(vol) {
-  return sbInsert('vols_en_attente', vol);
+async function sbTracerAction(action) {
+  return sbInsert('actions_tracables', action);
 }
 
-async function sbRecupererVolsEnAttente(victime) {
-  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false`;
-  return sbGet('vols_en_attente', filtre) || [];
-}
-
-async function sbMarquerVolTraite(volId) {
-  return sbUpdate('vols_en_attente', `id=eq.${encodeURIComponent(volId)}`, { traite: true });
+async function sbGetActionsTracables(country, city, jourActuel) {
+  const filtre = `country=eq.${encodeURIComponent(country)}&city=eq.${encodeURIComponent(city)}&jour_expiration=gte.${jourActuel}`;
+  return sbGet('actions_tracables', filtre) || [];
 }

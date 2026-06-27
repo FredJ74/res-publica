@@ -5489,6 +5489,26 @@ const BONUS_CARRIERE_VOL = {
   // toutes les autres carrieres : 0 (neutre)
 };
 
+
+// =====================
+// TRACAGE DES ACTIONS (pour le systeme de rumeurs vraies)
+// =====================
+function tracerActionPourRumeur(typeAction, cibleNom) {
+  if (typeof sbTracerAction !== 'function') return;
+  const action = {
+    id: 'action-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+    auteur: state.char?.name || 'Anonyme',
+    cible: cibleNom || null,
+    type_action: typeAction,
+    country: state.country,
+    city: state.currentCity,
+    jour: state.day || 1,
+    jour_expiration: (state.day || 1) + 7
+  };
+  sbTracerAction(action).catch(() => {});
+}
+
+
 function ouvrirModalVoler(encodedCible) {
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
@@ -5585,6 +5605,7 @@ async function confirmerVol(encodedCible, tauxReussite, seuilVisibilite) {
     updateUI();
     showToast('Vol réussi !', '+' + montantVole + ' FR dérobés à ' + nomCible + '.', true, true);
     addJournalEntry('Vol réussi sur ' + nomCible + '. +' + montantVole + ' FR.', 'event-good');
+    tracerActionPourRumeur('vol', nomCible);
 
     if (typeof sbSendMail === 'function') {
       const h = String(state.hour || 8).padStart(2,'0');
@@ -5679,6 +5700,7 @@ function confirmerAssassinatArme(encodedCible, mode, taux) {
 
     showToast('Acte commis', cible.name + ' est grièvement blesse(e). Vous n\'etes pas identifie(e).', false);
     addJournalEntry('Vous avez attaque ' + cible.name + ' (' + mode + '). Non identifie(e) pour l\'instant.', 'event-bad');
+    tracerActionPourRumeur('assassinat', cible.name.replace(' (PNJ)',''));
 
     // Detection potentielle
     checkDetection('assassiner_' + mode, 'success');
@@ -8304,6 +8326,7 @@ function doCorruption(fn, cost) {
     updateUI();
     showToast('Corruption reussie', 'Le service a ete obtenu. -5 DIS.', true);
     addJournalEntry('Corruption : ' + fn.replace(/_/g,' '), 'event-bad');
+    tracerActionPourRumeur('corruption', null);
     checkDetection(fn, 'success');
   } else {
     showToast('Echec', 'La tentative de corruption a echoue.', false);
@@ -12429,6 +12452,7 @@ async function confirmerDonPnj(encodedPnj) {
     }
     addJournalEntry('Vous avez donne ' + montant + ' ' + cur + ' a ' + nomCourt + '.', 'event-good');
     showToast('Don envoye', nomCourt + ' recevra ' + montant + ' ' + cur + ' automatiquement.', true, true);
+    tracerActionPourRumeur('don', nomCourt);
     return;
   }
   const dup = state.char?.stats?.DUP || 8;
@@ -12523,6 +12547,7 @@ function confirmerDonObjetPnj(objIdx, encodedPnj) {
   }
   updateUI();
   showToast(bon?'Don effectue !':'Action risquee.', msg, bon);
+  if (pnj.isPJ) tracerActionPourRumeur('don_objet', nomCourt);
 }
 
 
@@ -12791,6 +12816,7 @@ function confirmerRecrutementEscort(nomEscort, tarif) {
   });
   updateUI();
   renderEmployesPanel();
+  tracerActionPourRumeur('escort', null);
 
   // Générer une remplaçante dans la pièce
   const toutesMaisonEmpire = {
