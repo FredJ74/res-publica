@@ -1991,7 +1991,17 @@ async function lancerNouvelleQuete() {
   const lieuChoisi = lieux[Math.floor(Math.random() * lieux.length)];
   const pnjChoisi = lieuChoisi.pnjs[Math.floor(Math.random() * lieuChoisi.pnjs.length)];
   const nbEtapes = Math.floor(Math.random() * 4) + 2; // 2 a 5 etapes
-  const recompenseType = RECOMPENSES_QUETE[Math.floor(Math.random() * RECOMPENSES_QUETE.length)];
+
+  // Tirage du "Graal" (terrain a batir) - tres rare, 5% ET seulement si un terrain est libre
+  let recompenseType;
+  let terrainGagnePotentiel = null;
+  if (Math.random() < 0.05) {
+    const terrainsLibres = await getTerrainsVraimentLibres(state.country);
+    if (terrainsLibres.length > 0) {
+      terrainGagnePotentiel = terrainsLibres[Math.floor(Math.random() * terrainsLibres.length)];
+    }
+  }
+  recompenseType = terrainGagnePotentiel ? 'terrain' : RECOMPENSES_QUETE[Math.floor(Math.random() * RECOMPENSES_QUETE.length)];
 
   // Generer le titre/description de la quete via IA
   const co = COUNTRIES[state.country];
@@ -2023,7 +2033,7 @@ async function lancerNouvelleQuete() {
     room_id: lieuChoisi.roomId,
     pnj_actif: pnjChoisi,
     recompense_type: recompenseType,
-    recompense_detail: null,
+    recompense_detail: terrainGagnePotentiel ? JSON.stringify(terrainGagnePotentiel) : null,
     cible_dossier: recompenseType === 'dossier_surveillance' ? await choisirCibleDossier(state.country) : null,
     statut: 'active',
     jour_creation: state.day || 1
@@ -2115,7 +2125,48 @@ async function remettreRecompenseQuete(quete) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   let msg = '';
 
-  if (quete.recompense_type === 'argent') {
+  if (quete.recompense_type === 'terrain') {
+    let terrainInfo = null;
+    try { terrainInfo = JSON.parse(quete.recompense_detail); } catch(e) {}
+
+    if (terrainInfo) {
+      // Re-verifier que le terrain est toujours libre (au cas ou quelqu'un l'aurait pris entre temps)
+      const terrainsLibresActuels = await getTerrainsVraimentLibres(state.country);
+      const stillLibre = terrainsLibresActuels.some(t => t.buildingId === terrainInfo.buildingId);
+
+      if (stillLibre) {
+        const profiles = TERRAIN_PNJ_PROFILES?.[state.country] || TERRAIN_PNJ_PROFILES?.republic || [];
+        const squatterProfiles = profiles.filter(p => p.id === 'squatter_cool' || p.id === 'squatter_agr');
+        const squatterChoisi = squatterProfiles[Math.floor(Math.random() * squatterProfiles.length)] || null;
+
+        const nouvelEtat = {
+          proprietaire: state.char?.name,
+          pnj: squatterChoisi?.id || null,
+          pnjData: squatterChoisi || null,
+          dateGeneration: Date.now()
+        };
+
+        if (typeof sbSetTerrainState === 'function') {
+          await sbSetTerrainState(state.country, terrainInfo.buildingId, nouvelEtat).catch(() => {});
+        }
+        // Mettre aussi a jour le localStorage local si le joueur consulte ce terrain plus tard
+        try {
+          localStorage.setItem('terrain_state_' + state.country + '_' + terrainInfo.buildingId, JSON.stringify(nouvelEtat));
+        } catch(e) {}
+
+        if (!state.terrainsAchetes) state.terrainsAchetes = {};
+        state.terrainsAchetes[terrainInfo.buildingId] = state.char?.name;
+
+        const villeNom = WORLD[state.country]?.[terrainInfo.cityId]?.name || terrainInfo.cityId;
+        msg = '🏛️ Vous gagnez un TERRAIN À BÂTIR à ' + villeNom + ' (' + terrainInfo.buildingId + ') ! Attention : des squatteurs s\'y sont déjà installés...';
+      } else {
+        // Terrain plus disponible -> fallback sur de l'argent consequent en compensation
+        const montantCompensation = 1500;
+        state.arg = (state.arg || 0) + montantCompensation;
+        msg = 'Le terrain promis a été pris entre-temps. En compensation : +' + montantCompensation + ' ' + cur + '.';
+      }
+    }
+  } else if (quete.recompense_type === 'argent') {
     const montant = Math.floor(Math.random() * 2000) + 200; // 200 a 2200, large echelle
     state.arg = (state.arg || 0) + montant;
     msg = '+' + montant + ' ' + cur + ' !';
@@ -4538,6 +4589,29 @@ function chargerPnjTerrain(buildingId) {
 // =====================
 
 // État persistant des terrains (Supabase + localStorage)
+
+// =====================
+// TERRAINS LIBRES (pour la recompense de quete "Graal")
+// =====================
+async function getTerrainsVraimentLibres(country) {
+  if (typeof sbGetTerrainsLibres !== 'function') return [];
+  try {
+    const tousLesEtats = await sbGetTerrainsLibres(country);
+    const occupes = new Set(tousLesEtats.filter(t => t.proprietaire).map(t => t.building_id));
+
+    const terrainsLibres = [];
+    const villesDuPays = WORLD[country] || {};
+    Object.entries(villesDuPays).forEach(([cityId, cityData]) => {
+      (cityData.buildings || []).forEach(bId => {
+        if (bId.startsWith('terrain-a-batir') && !occupes.has(bId)) {
+          terrainsLibres.push({ buildingId: bId, cityId });
+        }
+      });
+    });
+    return terrainsLibres;
+  } catch(e) { console.warn('getTerrainsVraimentLibres error', e); return []; }
+}
+
 function getTerrainState(buildingId) {
   const key = 'terrain_state_' + state.country + '_' + buildingId;
   try {

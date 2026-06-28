@@ -501,3 +501,33 @@ async function sbGetDerniereQueteResolue(country) {
   const rows = await sbGet('quetes_actives', `country=eq.${encodeURIComponent(country)}&statut=eq.resolue&order=created_at.desc&limit=1`);
   return (rows && rows.length > 0) ? rows[0] : null;
 }
+
+// =====================
+// ETAT DES TERRAINS A BATIR (proprietaire, squatteurs, etc.) - persiste reellement
+// =====================
+async function sbSetTerrainState(country, buildingId, etat) {
+  const data = {
+    id: country + '_' + buildingId,
+    country, building_id: buildingId,
+    proprietaire: etat.proprietaire || null,
+    data: JSON.stringify(etat),
+    updated_at: new Date().toISOString()
+  };
+  const existing = await sbGet('terrains_etat', `id=eq.${encodeURIComponent(data.id)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(data.id)}`, data);
+  } else {
+    return sbInsert('terrains_etat', data);
+  }
+}
+
+async function sbGetTerrainState(country, buildingId) {
+  const rows = await sbGet('terrains_etat', `id=eq.${encodeURIComponent(country + '_' + buildingId)}`);
+  if (!rows || rows.length === 0) return null;
+  try { return JSON.parse(rows[0].data); } catch(e) { return null; }
+}
+
+async function sbGetTerrainsLibres(country) {
+  const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(country)}`);
+  return rows || [];
+}
