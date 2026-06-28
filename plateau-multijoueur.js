@@ -866,3 +866,127 @@ function doConsulterRegistre() {
   }
 }
 
+
+// =====================
+// CHAT EN PIECE (fenetre persistante, messages ephemeres)
+// =====================
+let _chatInterval = null;
+let _chatDernierMessage = null;
+let _chatDestinataire = null; // null = salon commun de la piece
+
+function toggleChatPiece() {
+  const panel = document.getElementById('chat-piece-panel');
+  if (!panel) return;
+  const ouvert = panel.style.display !== 'none';
+  if (ouvert) {
+    panel.style.display = 'none';
+    if (_chatInterval) { clearInterval(_chatInterval); _chatInterval = null; }
+  } else {
+    panel.style.display = 'flex';
+    chargerDestinatairesChat();
+    rafraichirChatPiece(true);
+    _chatInterval = setInterval(() => rafraichirChatPiece(false), 4000);
+  }
+}
+
+// Liste deroulante des destinataires possibles (salon + chaque PJ present)
+async function chargerDestinatairesChat() {
+  const select = document.getElementById('chat-destinataire-select');
+  if (!select) return;
+
+  let presents = [];
+  if (typeof sbGetPresencesInRoom === 'function' && state.currentBuilding && state.currentRoom) {
+    try {
+      const tous = await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom);
+      presents = (tous || []).filter(p => p.name !== state.char?.name);
+    } catch(e) {}
+  }
+
+  let html = '<option value="">💬 Salon de la pièce (tout le monde)</option>';
+  presents.forEach(p => { html += '<option value="' + p.name + '">🔒 ' + p.name + ' (privé)</option>'; });
+  select.innerHTML = html;
+}
+
+function changerDestinataireChat() {
+  const select = document.getElementById('chat-destinataire-select');
+  _chatDestinataire = select?.value || null;
+  document.getElementById('chat-messages-zone').innerHTML = '';
+  _chatDernierMessage = null;
+  rafraichirChatPiece(true);
+}
+
+async function rafraichirChatPiece(reset) {
+  if (typeof sbGetMessagesChatPiece !== 'function') return;
+  if (!state.currentBuilding || !state.currentRoom) return;
+
+  try {
+    const messages = await sbGetMessagesChatPiece(
+      state.country, state.currentCity, state.currentBuilding, state.currentRoom,
+      reset ? null : _chatDernierMessage
+    );
+    if (!messages || messages.length === 0) return;
+
+    const moi = state.char?.name;
+    const zone = document.getElementById('chat-messages-zone');
+    if (!zone) return;
+
+    const pertinents = messages.filter(m => {
+      if (!m.destinataire) return true; // message de salon, visible par tous
+      // message prive : visible seulement par l'auteur et le destinataire concerne
+      return m.auteur === moi || m.destinataire === moi;
+    });
+
+    if (reset) zone.innerHTML = '';
+
+    pertinents.forEach(m => {
+      const estMoi = m.auteur === moi;
+      const estPrive = !!m.destinataire;
+      const couleurFond = estPrive ? '#1a1408' : '#0f0d05';
+      const labelPrive = estPrive ? '<span style="color:#aa7a30;font-size:.6rem"> (privé)</span>' : '';
+      zone.insertAdjacentHTML('beforeend',
+        '<div style="margin-bottom:.4rem;text-align:' + (estMoi ? 'right' : 'left') + '">' +
+        '<div style="display:inline-block;max-width:80%;padding:.35rem .6rem;border-radius:8px;background:' + couleurFond + ';border:1px solid #2a2010">' +
+        '<div style="font-size:.62rem;color:#8a6a30">' + m.auteur + labelPrive + '</div>' +
+        '<div style="font-size:.78rem;color:#e0d8c0">' + m.message + '</div>' +
+        '</div></div>'
+      );
+    });
+
+    zone.scrollTop = zone.scrollHeight;
+    _chatDernierMessage = messages[messages.length - 1].created_at;
+  } catch(e) { console.warn('rafraichirChatPiece error', e); }
+}
+
+async function envoyerMessageChatPiece() {
+  const input = document.getElementById('chat-message-input');
+  const texte = input?.value?.trim();
+  if (!texte || !state.currentBuilding || !state.currentRoom) return;
+
+  const message = {
+    id: 'chat-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+    country: state.country,
+    city: state.currentCity,
+    building_id: state.currentBuilding,
+    room_id: state.currentRoom,
+    auteur: state.char?.name || 'Anonyme',
+    destinataire: _chatDestinataire || null,
+    message: texte
+  };
+
+  input.value = '';
+  if (typeof sbEnvoyerMessageChat === 'function') {
+    await sbEnvoyerMessageChat(message).catch(() => {});
+  }
+  rafraichirChatPiece(false);
+}
+
+// Fermer le chat automatiquement au changement de piece (rien a garder)
+function reinitialiserChatPiece() {
+  const zone = document.getElementById('chat-messages-zone');
+  if (zone) zone.innerHTML = '';
+  _chatDernierMessage = null;
+  _chatDestinataire = null;
+  if (document.getElementById('chat-piece-panel')?.style.display !== 'none') {
+    chargerDestinatairesChat();
+  }
+}

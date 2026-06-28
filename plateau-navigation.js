@@ -267,6 +267,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Charger les objets abandonnes visibles dans cette piece
   if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
 
+  // Reinitialiser le chat de piece (rien a garder en changeant de piece)
+  if (typeof reinitialiserChatPiece === 'function') reinitialiserChatPiece();
+
   // Update tabs
   if (tabEl) {
     document.querySelectorAll('.piece-tab').forEach(t => t.classList.remove('active'));

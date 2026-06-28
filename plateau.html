@@ -466,5 +466,26 @@
   <div id="char-name-display"></div>
   <div id="char-role-display"></div>
 </div>
+
+<!-- CHAT EN PIECE — fenetre flottante persistante -->
+<button onclick="toggleChatPiece()" style="position:fixed;bottom:20px;right:20px;z-index:998;width:48px;height:48px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.5)">
+  <i class="ti ti-message-circle"></i>
+</button>
+
+<div id="chat-piece-panel" style="display:none;position:fixed;bottom:80px;right:20px;z-index:999;width:300px;height:380px;background:#0a0805;border:1px solid #2a2010;border-radius:8px;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,.6)">
+  <div style="padding:.5rem .7rem;border-bottom:1px solid #2a2010;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.08em;color:#C9A84C">CHAT DE LA PIÈCE</span>
+    <button onclick="toggleChatPiece()" style="background:none;border:none;color:#8a8060;cursor:pointer;font-size:.9rem">✕</button>
+  </div>
+  <select id="chat-destinataire-select" onchange="changerDestinataireChat()" style="margin:.5rem .6rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-family:Crimson Pro,serif;font-size:.72rem;outline:none">
+    <option value="">💬 Salon de la pièce (tout le monde)</option>
+  </select>
+  <div id="chat-messages-zone" style="flex:1;overflow-y:auto;padding:.4rem .6rem"></div>
+  <div style="display:flex;gap:.4rem;padding:.5rem .6rem;border-top:1px solid #2a2010">
+    <input id="chat-message-input" type="text" placeholder="Votre message..." onkeydown="if(event.key==='Enter')envoyerMessageChatPiece()" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.78rem;outline:none">
+    <button onclick="envoyerMessageChatPiece()" style="background:transparent;border:1px solid #8a6a20;color:#C9A84C;padding:.4rem .6rem;cursor:pointer;font-size:.78rem">→</button>
+  </div>
+</div>
+
 </body>
 </html>

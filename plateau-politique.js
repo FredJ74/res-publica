@@ -1487,6 +1487,15 @@ async function postulerPoste(posteId, posteName) {
     return;
   }
 
+  // VERIFICATION REELLE via Supabase — pas seulement l'etat local POTENTIELLEMENT PERIME
+  showToast('Vérification...', 'Consultation du registre national...', true);
+  const titulaireReel = (typeof getTitulairePoste === 'function') ? await getTitulairePoste(posteId) : null;
+
+  if (titulaireReel) {
+    showToast('Poste occupe', `Ce poste est deja occupe par ${titulaireReel}.`, false);
+    return;
+  }
+
   const postes = POSTES[state.country];
   const allPostes = [
     ...(postes?.capitale || []),
@@ -1494,18 +1503,14 @@ async function postulerPoste(posteId, posteName) {
     ...(postes?.[state.currentCity] || [])
   ];
   const poste = allPostes.find(p => p.id === posteId);
-  const isVacant = !poste?.holder;
   const isPnjHolder = poste?.holder?.startsWith('PNJ');
 
-  const successRate = isVacant ? 90 : isPnjHolder ? 65 : 0;
-  if (successRate === 0) {
-    showToast('Poste occupe', `Ce poste est occupe par un autre joueur.`, false);
-    return;
-  }
+  const successRate = 90; // vacance confirmee par Supabase, taux eleve par defaut
+  const successRateEffectif = isPnjHolder ? 65 : successRate;
 
   const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= successRate) {
-    // Marquer le poste comme pris dans POSTES
+  if (roll <= successRateEffectif) {
+    // Marquer le poste comme pris dans POSTES (etat local, pour affichage immediat)
     if (poste) poste.holder = state.char?.name || 'Joueur';
     // Libérer l'ancien poste si applicable
     if (state.poste?.id && state.poste.id !== posteId) {
@@ -1517,6 +1522,10 @@ async function postulerPoste(posteId, posteName) {
     state.salaireTouche = false;
     state.inf = Math.min(100, state.inf + 15);
     updateUI();
+    // Persister IMMEDIATEMENT sur Supabase pour que ce soit visible par les autres joueurs sans delai
+    if (typeof sbSavePersonnage === 'function') {
+      await sbSavePersonnage(state).catch(() => {});
+    }
     showToast('Poste obtenu !', `Vous occupez desormais le poste de ${posteName}. +15 Influence.`, true, true);
     addJournalEntry(`Poste obtenu : ${posteName}. +15 Influence.`, 'event-good');
     // Mettre a jour l'affichage du personnage

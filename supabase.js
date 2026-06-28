@@ -531,3 +531,16 @@ async function sbGetTerrainsLibres(country) {
   const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(country)}`);
   return rows || [];
 }
+
+// =====================
+// CHAT EN PIECE (messages ephemeres entre PJ presents)
+// =====================
+async function sbEnvoyerMessageChat(message) {
+  return sbInsert('chat_piece', message);
+}
+
+async function sbGetMessagesChatPiece(country, city, buildingId, roomId, depuisTimestamp) {
+  let filtre = `country=eq.${encodeURIComponent(country)}&city=eq.${encodeURIComponent(city)}&building_id=eq.${encodeURIComponent(buildingId)}&room_id=eq.${encodeURIComponent(roomId)}&order=created_at.asc`;
+  if (depuisTimestamp) filtre += `&created_at=gt.${encodeURIComponent(depuisTimestamp)}`;
+  return sbGet('chat_piece', filtre) || [];
+}
