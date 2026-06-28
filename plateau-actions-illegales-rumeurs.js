@@ -1044,12 +1044,6 @@ function checkScandale() {
     declencherScandale();
   }
 }
-
-async 
-// =====================
-
-
-
 // =====================
 // CONSTANTE BONUS CARRIERE VOL (complement)
 // =====================
