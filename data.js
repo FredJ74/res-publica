@@ -1008,7 +1008,7 @@ const BUILDINGS = {
         name: "Suite Privée — Local à louer",
         imageBg: "linear-gradient(135deg,#1a0d10,#250f18)",
         desc: "📋 À LOUER — Suite luxueuse et très discrète. Roxane y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
-        imageUrl: "https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/suite-privee-republia.png",
         isLocationRoom: true,
         locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1 },
         persons: [
