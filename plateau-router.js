@@ -133,6 +133,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'porter_plainte')          { ouvrirPorterPlainte(); return; }
   if (fn === 'rendre_sentence')         { ouvrirRendreSentence(); return; }
   if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(); return; }
+  if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(); return; }
+  if (fn === 'officialiser_mariage') { ouvrirOfficialiserMariage(); return; }
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }

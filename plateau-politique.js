@@ -2357,6 +2357,175 @@ async function appliquerNominationPosteEnAttente() {
 }
 
 
+
+// =====================
+// MARIAGE ENTRE DEUX PJ
+// =====================
+async function ouvrirModalDemandeMariage() {
+  if (typeof sbGetMariageActif === 'function') {
+    const mariageActuel = await sbGetMariageActif(state.char?.name);
+    if (mariageActuel) {
+      const conjoint = mariageActuel.conjoint1 === state.char?.name ? mariageActuel.conjoint2 : mariageActuel.conjoint1;
+      showToast('Déjà marié(e)', 'Vous êtes déjà marié(e) avec ' + conjoint + '.', false);
+      return;
+    }
+  }
+
+  let presents = [];
+  if (typeof sbGetPresencesInRoom === 'function' && state.currentBuilding && state.currentRoom) {
+    try {
+      const tous = await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom);
+      presents = (tous || []).filter(p => p.name !== state.char?.name);
+    } catch(e) {}
+  }
+
+  let joueurs = [];
+  if (typeof sbListPersonnages === 'function') {
+    try { joueurs = (await sbListPersonnages() || []).filter(j => j.name !== state.char?.name); } catch(e) {}
+  }
+  const liste = presents.length > 0 ? presents : joueurs;
+
+  document.getElementById('postes-modal-title').textContent = 'Demande en mariage';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Une demande romantique sera envoyée par mail. Si elle est acceptée, vous devrez tous deux vous rendre ensemble à la mairie pour officialiser l\'union.</div>';
+
+  if (liste.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040">Aucun habitant connu pour le moment.</div>';
+  } else {
+    html += '<select id="mariage-destinataire-select" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    liste.forEach(j => { html += '<option value="' + j.name + '">' + j.name + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="confirmerDemandeMariage()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💍 Envoyer la demande</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDemandeMariage() {
+  const destinataire = document.getElementById('mariage-destinataire-select')?.value;
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!destinataire) return;
+
+  const demande = {
+    id: 'demande-mariage-' + Date.now(),
+    demandeur: state.char?.name || 'Anonyme',
+    destinataire,
+    country: state.country,
+    statut: 'en_attente'
+  };
+
+  if (typeof sbCreerDemandeMariage === 'function') {
+    await sbCreerDemandeMariage(demande).catch(() => {});
+  }
+
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const corps = (state.char?.name || 'Quelqu\'un') + ' vous demande en mariage !<br><br>' +
+      '<button onclick="accepterDemandeMariage(&quot;' + demande.id + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-right:.5rem">💍 Accepter</button>' +
+      '<button onclick="refuserDemandeMariage(&quot;' + demande.id + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Refuser</button>';
+    await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Demande en mariage 💍', corps, time).catch(() => {});
+  }
+
+  showToast('Demande envoyée', 'Votre demande en mariage a été envoyée à ' + destinataire + '.', true, true);
+  addJournalEntry('Demande en mariage envoyée à ' + destinataire + '.', 'event-info');
+}
+
+async function accepterDemandeMariage(demandeId) {
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (typeof sbUpdateDemandeMariage === 'function') {
+    await sbUpdateDemandeMariage(demandeId, 'acceptee').catch(() => {});
+  }
+  showToast('Demande acceptée !', 'Rendez-vous tous les deux à la mairie pour officialiser votre union.', true, true);
+  addJournalEntry('Vous avez accepté la demande en mariage. Rendez-vous à la mairie pour officialiser.', 'event-good');
+}
+
+async function refuserDemandeMariage(demandeId) {
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (typeof sbUpdateDemandeMariage === 'function') {
+    await sbUpdateDemandeMariage(demandeId, 'refusee').catch(() => {});
+  }
+  showToast('Demande refusée', '', false);
+  addJournalEntry('Vous avez refusé une demande en mariage.', '');
+}
+
+// Officialiser : necessite que les DEUX futurs epoux soient physiquement presents dans la meme piece
+async function ouvrirOfficialiserMariage() {
+  if (!state.char?.name) return;
+
+  let demandesAcceptees = [];
+  if (typeof sbGetDemandesMariagePour === 'function') {
+    // Chercher les demandes ou JE suis le demandeur ET acceptees (sbGetDemandesMariagePour filtre par destinataire,
+    // donc on verifie aussi dans l'autre sens via une recherche large)
+    try {
+      const enAttentePourMoi = await sbGetDemandesMariagePour(state.char.name);
+      demandesAcceptees = enAttentePourMoi; // securite, normalement vide ici car deja traitees
+    } catch(e) {}
+  }
+
+  // Verifier qui est present dans la piece et a une demande acceptee avec moi
+  let presents = [];
+  if (typeof sbGetPresencesInRoom === 'function' && state.currentBuilding && state.currentRoom) {
+    try {
+      const tous = await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom);
+      presents = (tous || []).filter(p => p.name !== state.char?.name);
+    } catch(e) {}
+  }
+
+  if (presents.length === 0) {
+    showToast('Personne ici', 'Votre futur(e) époux/épouse doit être présent(e) dans cette pièce.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Officialiser le mariage';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Sélectionnez votre futur(e) époux/épouse présent(e). Une demande acceptée entre vous deux est requise.</div>';
+  html += '<select id="mariage-officialiser-select" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+  presents.forEach(p => { html += '<option value="' + p.name + '">' + p.name + '</option>'; });
+  html += '</select>';
+  html += '<button onclick="confirmerOfficialisationMariage()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💍 Célébrer l\'union (200 FR)</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerOfficialisationMariage() {
+  const conjoint = document.getElementById('mariage-officialiser-select')?.value;
+  if (!conjoint) return;
+
+  const cout = 200;
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' requis.', false); return; }
+
+  state.arg -= cout;
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const mariage = {
+    id: 'mariage-' + Date.now(),
+    conjoint1: state.char?.name,
+    conjoint2: conjoint,
+    country: state.country,
+    statut: 'actif',
+    jour_union: state.day || 1
+  };
+
+  if (typeof sbCreerMariage === 'function') {
+    await sbCreerMariage(mariage).catch(() => {});
+  }
+
+  updateUI();
+  showToast('Félicitations !', 'Vous êtes désormais marié(e) à ' + conjoint + ' !', true, true);
+  addJournalEntry('💍 Mariage célébré avec ' + conjoint + ' !', 'event-good');
+  addExternalEvent('💍 ' + (state.char?.name||'') + ' et ' + conjoint + ' se sont mariés !', 'local');
+
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    await sbSendMail('Mairie', conjoint, 'Mariage célébré !', 'Votre mariage avec ' + (state.char?.name||'') + ' a été officialisé. Félicitations !', time).catch(() => {});
+  }
+}
+
+
 function ouvrirPostulerPoste() {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
