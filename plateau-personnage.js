@@ -508,6 +508,72 @@ function ouvrirModalDetruirePersonnage() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Transfere les biens (argent + biens immobiliers) du defunt vers le conjoint survivant,
+// avec 33% de droits de succession preleves sur la part recue (50% du patrimoine du defunt)
+async function traiterSuccession(defunt, conjointSurvivant) {
+  const TAUX_DROITS_SUCCESSION = 0.33;
+  let montantHerite = 0;
+  let biensHerites = [];
+
+  // 1. Argent du defunt — recupere a 50% (sa part), moins 33% de droits
+  const argentDefunt = state.arg || 0;
+  const partHeritee = Math.floor(argentDefunt * 0.5);
+  const droitsArgent = Math.floor(partHeritee * TAUX_DROITS_SUCCESSION);
+  montantHerite = partHeritee - droitsArgent;
+
+  // 2. Biens immobiliers du defunt — transferer la pleine propriete au conjoint, avec droits sur sa part heritee
+  if (typeof sbGetTousLesBiensDe === 'function' && typeof sbSetTerrainState === 'function') {
+    try {
+      const biens = await sbGetTousLesBiensDe(defunt);
+      for (const bien of biens) {
+        let etat = {};
+        try { etat = JSON.parse(bien.data); } catch(e) {}
+        const valeurBien = (typeof getValeurTotaleBien === 'function') ? getValeurTotaleBien(etat) : 25000;
+        const partBienHeritee = Math.floor(valeurBien * 0.5);
+        const droitsBien = Math.floor(partBienHeritee * TAUX_DROITS_SUCCESSION);
+
+        // Le conjoint devient seul proprietaire (les deux parts fusionnent)
+        await sbSetTerrainState(bien.country, bien.building_id, {
+          ...etat,
+          proprietaire: conjointSurvivant,
+          coproprietaire: null
+        }).catch(() => {});
+
+        biensHerites.push({ buildingId: bien.building_id, valeur: valeurBien, droits: droitsBien });
+      }
+    } catch(e) { console.warn('Erreur transfert biens succession', e); }
+  }
+
+  // 2bis. Crediter reellement l'argent herite via le systeme de vols_en_attente (reutilise comme
+  // mecanisme generique de credit differe a la prochaine connexion du beneficiaire)
+  if (montantHerite > 0 && typeof sbDeposerVol === 'function') {
+    await sbDeposerVol({
+      id: 'succession-' + Date.now(),
+      victime: conjointSurvivant, // "victime" au sens technique du champ, ici beneficiaire d'un credit positif
+      voleur: 'Succession',
+      type_butin: 'argent',
+      montant: -montantHerite, // montant negatif = credit (la fonction de reprise fait state.arg -= montant)
+      objet_id: null,
+      traite: false
+    }).catch(() => {});
+  }
+
+  // 3. Notifier le conjoint survivant par mail
+  if (typeof sbSendMail === 'function') {
+    const totalDroitsBiens = biensHerites.reduce((s, b) => s + b.droits, 0);
+    let corps = (defunt) + ' a quitté ce monde. En tant que conjoint(e) survivant(e), vous héritez de :<br><br>';
+    corps += '- ' + montantHerite.toLocaleString('fr-FR') + ' FR (après ' + droitsArgent.toLocaleString('fr-FR') + ' FR de droits de succession)<br>';
+    if (biensHerites.length > 0) {
+      corps += '- ' + biensHerites.length + ' bien(s) immobilier(s), désormais en pleine propriété<br>';
+      corps += '- Droits de succession sur les biens : ' + totalDroitsBiens.toLocaleString('fr-FR') + ' FR (à régler séparément)<br>';
+    }
+    const time = 'Succession';
+    await sbSendMail('Notaire', conjointSurvivant, 'Succession — ' + defunt, corps, time).catch(() => {});
+  }
+
+  addExternalEvent('⚱️ ' + defunt + ' a quitté ce monde. Succession réglée avec ' + conjointSurvivant + '.', 'local');
+}
+
 async function confirmerDestructionPersonnage() {
   const saisie = document.getElementById('confirm-destroy-input')?.value?.trim();
   const nom = state.char?.name;
@@ -517,6 +583,20 @@ async function confirmerDestructionPersonnage() {
   }
 
   document.getElementById('modal-postes').classList.remove('open');
+
+  // Si le joueur est marie, traiter la succession AVANT de supprimer le personnage
+  if (typeof sbGetMariageActif === 'function') {
+    try {
+      const mariage = await sbGetMariageActif(nom);
+      if (mariage) {
+        const conjoint = mariage.conjoint1 === nom ? mariage.conjoint2 : mariage.conjoint1;
+        await traiterSuccession(nom, conjoint);
+        if (typeof sbDissoudreMariage === 'function') {
+          await sbDissoudreMariage(mariage.id).catch(() => {});
+        }
+      }
+    } catch(e) { console.warn('Erreur traitement succession', e); }
+  }
 
   if (typeof sbDeletePersonnage === 'function') {
     await sbDeletePersonnage(nom).catch(() => {});

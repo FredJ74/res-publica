@@ -1209,9 +1209,25 @@ function doAcheterTerrain() {
   state.terrainsAchetes[id] = state.char?.name;
 
   // Synchroniser aussi avec Supabase pour que le terrain soit reellement marque "occupe"
-  if (typeof sbSetTerrainState === 'function') {
-    sbSetTerrainState(state.country, id, { proprietaire: state.char?.name }).catch(() => {});
-  }
+  // Si le joueur est marie, son conjoint devient automatiquement coproprietaire a 50%
+  (async () => {
+    let coproprietaire = null;
+    if (typeof sbGetMariageActif === 'function') {
+      try {
+        const mariage = await sbGetMariageActif(state.char?.name);
+        if (mariage) {
+          coproprietaire = mariage.conjoint1 === state.char?.name ? mariage.conjoint2 : mariage.conjoint1;
+        }
+      } catch(e) {}
+    }
+    if (typeof sbSetTerrainState === 'function') {
+      await sbSetTerrainState(state.country, id, { proprietaire: state.char?.name, coproprietaire }).catch(() => {});
+    }
+    if (coproprietaire) {
+      showToast('Bien partagé', coproprietaire + ' devient copropriétaire à 50% de ce terrain.', true);
+      addJournalEntry('Terrain acheté en copropriété avec ' + coproprietaire + ' (50/50).', 'event-good');
+    }
+  })();
 
   const aPermis = ts.permis;
   setTerrainState(id, {
