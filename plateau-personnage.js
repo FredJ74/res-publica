@@ -512,16 +512,31 @@ function ouvrirModalDetruirePersonnage() {
 // avec 33% de droits de succession preleves sur la part recue (50% du patrimoine du defunt)
 async function traiterSuccession(defunt, conjointSurvivant) {
   const TAUX_DROITS_SUCCESSION = 0.33;
-  let montantHerite = 0;
   let biensHerites = [];
 
-  // 1. Argent du defunt — recupere a 50% (sa part), moins 33% de droits
-  const argentDefunt = state.arg || 0;
-  const partHeritee = Math.floor(argentDefunt * 0.5);
-  const droitsArgent = Math.floor(partHeritee * TAUX_DROITS_SUCCESSION);
-  montantHerite = partHeritee - droitsArgent;
+  // 1. Argent EN BANQUE du defunt — transmis a 100%, moins 33% de droits (conjoint recupere 67%)
+  const argentBanque = state.banque || 0;
+  const droitsArgent = Math.floor(argentBanque * TAUX_DROITS_SUCCESSION);
+  const montantHerite = argentBanque - droitsArgent;
 
-  // 2. Biens immobiliers du defunt — transferer la pleine propriete au conjoint, avec droits sur sa part heritee
+  // 1bis. Argent LIQUIDE du defunt — ne suit pas la succession, reste au sol dans la piece (comme un objet abandonne)
+  const argentLiquide = state.liquide || 0;
+  if (argentLiquide > 0 && typeof sbAbandonnerObjet === 'function' && state.currentBuilding && state.currentRoom) {
+    await sbAbandonnerObjet(
+      { id: 'liquide-succession-' + Date.now(), name: 'Liasse de billets', icon: 'ti-cash', desc: 'De l\'argent liquide trouvé sur place : ' + argentLiquide.toLocaleString('fr-FR') + ' FR.', type: 'argent_liquide', montant: argentLiquide, legal: true },
+      state.country, state.currentCity, state.currentBuilding, state.currentRoom
+    ).catch(() => {});
+  }
+
+  // 1ter. Objets de l'inventaire du defunt — ne suivent pas non plus la succession, restent au sol
+  if (state.inventory?.length > 0 && typeof sbAbandonnerObjet === 'function' && state.currentBuilding && state.currentRoom) {
+    for (const objet of state.inventory) {
+      await sbAbandonnerObjet(objet, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
+    }
+  }
+
+  // 2. Biens immobiliers du defunt — transferer la pleine propriete au conjoint.
+  // Droits de 33% calcules sur la MOITIE de la valeur du bien (l'autre moitie appartenait deja au conjoint)
   if (typeof sbGetTousLesBiensDe === 'function' && typeof sbSetTerrainState === 'function') {
     try {
       const biens = await sbGetTousLesBiensDe(defunt);
@@ -529,8 +544,8 @@ async function traiterSuccession(defunt, conjointSurvivant) {
         let etat = {};
         try { etat = JSON.parse(bien.data); } catch(e) {}
         const valeurBien = (typeof getValeurTotaleBien === 'function') ? getValeurTotaleBien(etat) : 25000;
-        const partBienHeritee = Math.floor(valeurBien * 0.5);
-        const droitsBien = Math.floor(partBienHeritee * TAUX_DROITS_SUCCESSION);
+        const moitieValeur = Math.floor(valeurBien * 0.5);
+        const droitsBien = Math.floor(moitieValeur * TAUX_DROITS_SUCCESSION);
 
         // Le conjoint devient seul proprietaire (les deux parts fusionnent)
         await sbSetTerrainState(bien.country, bien.building_id, {
@@ -544,7 +559,7 @@ async function traiterSuccession(defunt, conjointSurvivant) {
     } catch(e) { console.warn('Erreur transfert biens succession', e); }
   }
 
-  // 2bis. Crediter reellement l'argent herite via le systeme de vols_en_attente (reutilise comme
+  // 3. Crediter reellement l'argent de banque herite via le systeme de vols_en_attente (reutilise comme
   // mecanisme generique de credit differe a la prochaine connexion du beneficiaire)
   if (montantHerite > 0 && typeof sbDeposerVol === 'function') {
     await sbDeposerVol({
@@ -558,14 +573,17 @@ async function traiterSuccession(defunt, conjointSurvivant) {
     }).catch(() => {});
   }
 
-  // 3. Notifier le conjoint survivant par mail
+  // 4. Notifier le conjoint survivant par mail
   if (typeof sbSendMail === 'function') {
     const totalDroitsBiens = biensHerites.reduce((s, b) => s + b.droits, 0);
     let corps = (defunt) + ' a quitté ce monde. En tant que conjoint(e) survivant(e), vous héritez de :<br><br>';
-    corps += '- ' + montantHerite.toLocaleString('fr-FR') + ' FR (après ' + droitsArgent.toLocaleString('fr-FR') + ' FR de droits de succession)<br>';
+    corps += '- ' + montantHerite.toLocaleString('fr-FR') + ' FR de banque (après ' + droitsArgent.toLocaleString('fr-FR') + ' FR de droits de succession)<br>';
     if (biensHerites.length > 0) {
       corps += '- ' + biensHerites.length + ' bien(s) immobilier(s), désormais en pleine propriété<br>';
       corps += '- Droits de succession sur les biens : ' + totalDroitsBiens.toLocaleString('fr-FR') + ' FR (à régler séparément)<br>';
+    }
+    if (argentLiquide > 0) {
+      corps += '- Note : ' + argentLiquide.toLocaleString('fr-FR') + ' FR en liquide ont été laissés sur place, à récupérer physiquement si quelqu\'un ne les a pas pris avant vous.<br>';
     }
     const time = 'Succession';
     await sbSendMail('Notaire', conjointSurvivant, 'Succession — ' + defunt, corps, time).catch(() => {});
