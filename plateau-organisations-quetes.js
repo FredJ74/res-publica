@@ -13,8 +13,6 @@ async function getTitulairePoste(posteId) {
   } catch(e) { return null; }
 }
 
-// Trouve le responsable de la loge maçonnique (chef d'organisation type 'loge')
-function getResponsableLoge() {
 // Structure plate pour les organisations (prepare le support multi-empire futur)
 // state.organisations est une liste a plat ; country_origine = empire de creation (regles/grades)
 
@@ -314,6 +312,8 @@ async function chargerOrganisations() {
   } catch(e) { console.warn('chargerOrganisations error', e); }
 }
 
+// Trouve le responsable de la loge maçonnique (chef d'organisation type 'loge')
+function getResponsableLoge() {
   const orgas = getMesOrgasPays();
   const loge = orgas.find(o => o.type === 'loge');
   return loge?.chef || null;
