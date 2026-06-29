@@ -3,6 +3,41 @@
 // Fondations : state global, initialisation, horloge, mise a jour UI, toast/journal
 // =====================
 
+// Constantes partagees (utilisees par plateau-divers.js, plateau-politique.js, plateau-pnj.js)
+const EMPIRE_STYLES = {
+  republic: { tone: "bureaucratique français épuisé, cynique poli", religion: "le Tabernacle des Impôts", currency: "FR", leader: "le Président" },
+  narco:    { tone: "jovial menaçant, corruption assumée, espagnol de bazar", religion: "le Laboratoire de Prière", currency: "PS", leader: "El Don" },
+  soviet:   { tone: "idéologique soviétique, formulaires sacrés, Camarade partout", religion: "le Kolkhoze Spirituel", currency: "RP", leader: "le Parti" },
+  khalija:  { tone: "protocole royal excessif, Loukoum Divin omniprésent, bénédictions imbriquées", religion: "la Pâtisserie Sacrée", currency: "DR", leader: "le Sheikh" }
+};
+
+const JOURNALISTES_PNJ = {
+  republic: {
+    name: 'Gustave Encre',
+    journal: "L'Autruche Entravée",
+    trait: "Journaliste d'investigation alcoolique. Déterre les scandales par accident en cherchant ses clés. A une source dans chaque ministère mais ne sait plus lequel.",
+    style: "cynique désabusé, métaphores journalistiques épuisées, boit du café tiède depuis 1987"
+  },
+  narco: {
+    name: 'El Editor',
+    journal: 'El Narco Times',
+    trait: "Rédacteur en chef qui blanchit les nouvelles comme El Don blanchit l'argent. Chaque article est une œuvre de fiction assumée.",
+    style: "propagandiste jovial, español aproximativo, cite El Don dans chaque paragraphe"
+  },
+  soviet: {
+    name: 'Rédacteur Vérité',
+    journal: 'La Pravdovka',
+    trait: "Journaliste du Parti qui vérifie trois fois si une information est approuvée avant de la publier. A publié le même article depuis 1973 avec des noms différents.",
+    style: "zèle idéologique mécanique, vérité = ce que dit le Parti, enthousiasme performatif"
+  },
+  khalija: {
+    name: 'Rédacteur Al-Vérité',
+    journal: 'Le Minaret Doré',
+    trait: "Journaliste royal qui ne publie que ce que le Palais approuve. Ses éditoriaux commencent tous par une bénédiction du Sheikh et finissent par une autre.",
+    style: "déférence royale absolue, Loukoum Divin dans chaque titre, vérité = volonté du Sheikh"
+  }
+};
+
 /* ===========================
    RES PUBLICA — PLATEAU.JS v2
    =========================== */
