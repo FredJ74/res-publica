@@ -44,6 +44,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_ministre')         { openNominerModal(); return; }
   if (fn === 'nommer_pm')               { ouvrirModalCibleRepertoire('nommer_pm_confirm', 'Nommer un Premier Ministre'); return; }
   if (fn === 'nommer_ministre_pm')      { ouvrirNommerMinistresModal(); return; }
+  if (fn === 'declencher_vote_confiance') { ouvrirDeclencherVoteConfiance(); return; }
   if (fn === 'declarer_guerre_empire' || fn === 'declarer_guerre')  { ouvrirModalGuerreEmpire(); return; }
   if (fn === 'gracier_condamne' || fn === 'gracier') { ouvrirModalGracier(); return; }
   if (fn === 'decret_referendum')       { ouvrirForumNationalSousForumPresident('referendum'); return; }

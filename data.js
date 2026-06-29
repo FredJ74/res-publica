@@ -1008,7 +1008,7 @@ const BUILDINGS = {
         name: "Suite Privée — Local à louer",
         imageBg: "linear-gradient(135deg,#1a0d10,#250f18)",
         desc: "📋 À LOUER — Suite luxueuse et très discrète. Roxane y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/suite-privee-republia.png",
+        imageUrl: "https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=1200&q=80",
         isLocationRoom: true,
         locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1 },
         persons: [
@@ -1134,6 +1134,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'nommer_ministre_pm', label:'Nommer des ministres',       pa:2, cost:0,   type:'legal',   icon:'ti-crown',     successRate:100, requiresPost:'pm', desc:'Nommer un PJ a un poste ministeriel.'},
+          {fn:'declencher_vote_confiance', label:'Déclencher un vote de confiance', pa:3, cost:0, type:'legal', icon:'ti-gavel', successRate:100, requiresPost:'pm', desc:'Engager la responsabilite du gouvernement devant l\'Assemblee Nationale. Resultat sous 48h.'},
           {fn:'corrompre_fonct',    label:'Corrompre un fonctionnaire', pa:2, cost:500, type:'illegal', icon:'ti-coins',     successRate:65,  desc:'Acheter un service administratif.'}
         ]
       },

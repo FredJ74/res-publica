@@ -114,6 +114,80 @@ async function traiterSouvenirsAccueil() {
   return resultats;
 }
 
+async function cloturerVotesConfiance() {
+  const resultats = [];
+  try {
+    const now = Date.now();
+    const votes = await sbGet('votes_confiance', 'statut=eq.en_cours');
+    if (!votes) return resultats;
+
+    // jour_cloture est exprime en "jour de jeu", pas en timestamp -- on se base plutot
+    // sur le delai de 48h reel depuis la creation, plus fiable pour un cron externe
+    for (const vote of votes) {
+      const creeLe = new Date(vote.created_at).getTime();
+      const delaiEcoule = now - creeLe >= 48 * 60 * 60 * 1000;
+      if (!delaiEcoule) continue;
+
+      const joueurs = await sbGet('personnages', 'select=name,country,poste,current_city') || [];
+      const deputesPJ = joueurs.filter(j => {
+        let poste = null;
+        try { poste = typeof j.poste === 'string' ? JSON.parse(j.poste) : j.poste; } catch(e) {}
+        return j.country === vote.country && poste?.id?.startsWith('depute_');
+      });
+
+      const bulletins = await sbGet('votes_confiance_bulletins', `vote_id=eq.${vote.id}`) || [];
+
+      const INDICES_NATIONAUX = {
+        republic: 30, narco: 15, soviet: 70, khalija: 60
+      };
+      const isn = INDICES_NATIONAUX[vote.country] || 30;
+      const chanceContrePnj = Math.min(85, 30 + isn / 2);
+
+      let pour = 0, contre = 0;
+      const votantsPJ = new Set(bulletins.map(b => b.votant));
+      bulletins.forEach(b => { if (b.choix === 'pour') pour++; else contre++; });
+
+      const siegesRestants = Math.max(0, 25 - votantsPJ.size);
+      for (let i = 0; i < siegesRestants; i++) {
+        if (Math.random() * 100 < chanceContrePnj) contre++; else pour++;
+      }
+
+      const confianceAccordee = pour > contre;
+      const resultatTexte = confianceAccordee ? 'confiance' : 'censure';
+
+      await sbUpdate('votes_confiance', `id=eq.${vote.id}`, { statut: 'termine', resultat: resultatTexte });
+
+      const texte = `🏛 Vote de confiance : ${pour} POUR / ${contre} CONTRE. ` +
+        (confianceAccordee
+          ? `Le gouvernement de ${vote.pm_nom} obtient la confiance.`
+          : `Le gouvernement de ${vote.pm_nom} est CENSURÉ et doit démissionner.`);
+      await sbInsert('evenements_globaux', { country: vote.country, city: null, texte, jour: null });
+
+      if (!confianceAccordee) {
+        await sbInsert('mails', {
+          id: 'mail-' + Date.now(),
+          from_player: 'Assemblée Nationale', to_player: vote.pm_nom,
+          subject: 'Motion de censure adoptée',
+          body: `L'Assemblée Nationale a retiré sa confiance à votre gouvernement (${pour} pour / ${contre} contre). Vous devez démissionner immédiatement.`,
+          time: 'Résultat du vote',
+          read: false
+        });
+        await sbInsert('nominations_poste_attente', {
+          id: 'censure-' + Date.now(),
+          destinataire: vote.pm_nom,
+          poste_id: 'DEMISSION_FORCEE',
+          poste_name: '',
+          country: vote.country,
+          traite: false
+        });
+      }
+
+      resultats.push({ vote_id: vote.id, pm: vote.pm_nom, pour, contre, resultat: resultatTexte });
+    }
+  } catch(e) { console.error('cloturerVotesConfiance error', e); }
+  return resultats;
+}
+
 export default async function handler(req, res) {
   // Sécurité minimale : autoriser uniquement les appels Vercel Cron ou avec un secret
   const authHeader = req.headers['authorization'];
@@ -199,7 +273,10 @@ export default async function handler(req, res) {
     // 3. Fuites spontanees des souvenirs de l'accueil (5-10% par jour) + nettoyage des souvenirs expires
     const fuites = await traiterSouvenirsAccueil();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres, fuites });
+    // 4. Cloturer les votes de confiance arrives a echeance (48h)
+    const votesConfianceTraites = await cloturerVotesConfiance();
+
+    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres, fuites, votesConfianceTraites });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

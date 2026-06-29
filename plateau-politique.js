@@ -2313,12 +2313,31 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
 }
 
 // Applique une nomination en attente au chargement du jeu (comme la naturalisation)
+// Gere aussi le cas special DEMISSION_FORCEE (motion de censure adoptee contre le PM)
 async function appliquerNominationPosteEnAttente() {
   if (typeof sbGetNominationsPosteEnAttente !== 'function' || !state.char?.name) return;
   try {
     const nominations = await sbGetNominationsPosteEnAttente(state.char.name);
     if (!nominations || nominations.length === 0) return;
     const nomination = nominations[0];
+
+    if (nomination.poste_id === 'DEMISSION_FORCEE') {
+      const ancienPoste = state.poste?.name || 'votre poste';
+      state.poste = null;
+      if (state.char) state.char.poste = null;
+
+      if (typeof sbMarquerNominationTraitee === 'function') {
+        await sbMarquerNominationTraitee(nomination.id).catch(() => {});
+      }
+      if (typeof sbSavePersonnage === 'function') {
+        await sbSavePersonnage(state).catch(() => {});
+      }
+
+      updateUI();
+      showToast('Censure adoptée', 'L\'Assemblée a retiré sa confiance. Vous avez démissionné de ' + ancienPoste + '.', false, true);
+      addJournalEntry('Motion de censure adoptée contre vous. Démission forcée de ' + ancienPoste + '.', 'event-bad');
+      return;
+    }
 
     state.poste = { id: nomination.poste_id, name: nomination.poste_name };
     if (state.char) state.char.poste = state.poste;
@@ -3116,6 +3135,153 @@ function confirmerSupprPoste(type) {
 // openForum delegue a forum.js
 // Forum gere par forum.js — voir openForum() dans forum.js
 
+
+
+
+// =====================
+// VOTE DE CONFIANCE (declenchee par le PM, soumise a l'Assemblee Nationale)
+// =====================
+async function ouvrirDeclencherVoteConfiance() {
+  if (state.poste?.id !== 'pm') {
+    showToast('Accès refusé', 'Seul le Premier Ministre peut déclencher un vote de confiance.', false);
+    return;
+  }
+
+  const voteExistant = (typeof sbGetVoteConfianceEnCours === 'function') ? await sbGetVoteConfianceEnCours(state.country) : null;
+  if (voteExistant) {
+    showToast('Vote déjà en cours', 'Un vote de confiance est déjà en cours à l\'Assemblée.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Déclencher un vote de confiance';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">Vous engagez la responsabilité de votre gouvernement devant l\'Assemblée Nationale. Les 25 députés voteront sous 48h. Si la confiance n\'est pas accordée (majorité simple requise), vous devrez démissionner immédiatement.</div>' +
+    '<button onclick="confirmerDeclenchementVoteConfiance()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Engager la responsabilité du gouvernement</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDeclenchementVoteConfiance() {
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const vote = {
+    id: 'voteconf-' + Date.now(),
+    country: state.country,
+    pm_nom: state.char?.name || 'Anonyme',
+    jour_lancement: state.day || 1,
+    jour_cloture: (state.day || 1) + 2, // 48h = 2 jours en jeu
+    statut: 'en_cours',
+    resultat: null
+  };
+
+  if (typeof sbCreerVoteConfiance === 'function') {
+    await sbCreerVoteConfiance(vote).catch(() => {});
+  }
+
+  showToast('Vote de confiance déclenché', 'L\'Assemblée se prononcera dans 48h.', true, true);
+  addJournalEntry('Vote de confiance déclenché par le Premier Ministre.', 'event-info');
+  addExternalEvent('🏛 Le Premier Ministre ' + (state.char?.name||'') + ' engage la responsabilité de son gouvernement devant l\'Assemblée Nationale.', 'national');
+
+  // Notifier tous les deputes PJ pour qu'ils puissent voter
+  await notifierDeputesPourVoteConfiance(vote);
+}
+
+async function notifierDeputesPourVoteConfiance(vote) {
+  if (typeof sbListPersonnages !== 'function' || typeof sbSendMail !== 'function') return;
+  try {
+    const joueurs = await sbListPersonnages() || [];
+    const deputesPJ = joueurs.filter(j => j.country === vote.country && j.poste?.id?.startsWith('depute_'));
+
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const sujet = 'Vote de confiance — Assemblée Nationale';
+    const corps = 'Le Premier Ministre ' + vote.pm_nom + ' engage la responsabilité de son gouvernement. ' +
+      'Votez avant 48h.<br><br>' +
+      '<button onclick="voterConfiance(&quot;' + vote.id + '&quot;,&quot;pour&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer;margin-right:.5rem">✓ Confiance</button>' +
+      '<button onclick="voterConfiance(&quot;' + vote.id + '&quot;,&quot;contre&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #4a2010;background:transparent;color:#cc4444;cursor:pointer">✗ Censure</button>';
+
+    for (const dep of deputesPJ) {
+      await sbSendMail('Assemblée Nationale', dep.name, sujet, corps, time).catch(() => {});
+    }
+  } catch(e) { console.warn('notifierDeputesPourVoteConfiance error', e); }
+}
+
+// Appelee quand un depute PJ clique Pour/Contre dans le mail
+async function voterConfiance(voteId, choix) {
+  document.getElementById('modal-pnj')?.classList.remove('open');
+
+  if (!state.poste?.id?.startsWith('depute_')) {
+    showToast('Accès refusé', 'Seuls les députés peuvent voter.', false);
+    return;
+  }
+
+  const bulletin = {
+    id: 'bulletin-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+    vote_id: voteId,
+    votant: state.char?.name || 'Anonyme',
+    choix
+  };
+
+  if (typeof sbDeposerBulletinConfiance === 'function') {
+    await sbDeposerBulletinConfiance(bulletin).catch(() => {});
+  }
+
+  showToast('Vote enregistré', 'Votre vote (' + (choix === 'pour' ? 'Confiance' : 'Censure') + ') a été pris en compte.', true);
+  addJournalEntry('Vous avez voté ' + (choix === 'pour' ? 'la confiance' : 'la censure') + ' au gouvernement.', 'event-info');
+}
+
+// Calcule et applique le resultat final d'un vote de confiance arrive a echeance (appele par le cron)
+async function cloturerVoteConfiance(vote) {
+  if (typeof sbListPersonnages !== 'function' || typeof sbGetBulletinsConfiance !== 'function') return;
+
+  const joueurs = await sbListPersonnages().catch(() => []) || [];
+  const deputesPJ = joueurs.filter(j => j.country === vote.country && j.poste?.id?.startsWith('depute_'));
+  const bulletinsPJ = await sbGetBulletinsConfiance(vote.id).catch(() => []) || [];
+
+  const isn = INDICES_NATIONAUX?.[vote.country]?.ISN || 30;
+  const chanceContrePnj = Math.min(85, 30 + isn / 2);
+
+  let pour = 0, contre = 0;
+  const votantsPJ = new Set(bulletinsPJ.map(b => b.votant));
+
+  bulletinsPJ.forEach(b => { if (b.choix === 'pour') pour++; else contre++; });
+
+  // Sieges PNJ ou PJ n'ayant pas vote -> tirage aleatoire pondere par ISN
+  const siegesRestants = 25 - votantsPJ.size;
+  for (let i = 0; i < siegesRestants; i++) {
+    if (Math.random() * 100 < chanceContrePnj) contre++; else pour++;
+  }
+
+  const confianceAccordee = pour > contre;
+  const resultat = confianceAccordee ? 'confiance' : 'censure';
+
+  if (typeof sbClorVoteConfiance === 'function') {
+    await sbClorVoteConfiance(vote.id, 'termine', resultat).catch(() => {});
+  }
+
+  if (typeof addExternalEvent === 'function') {
+    addExternalEvent('🏛 Vote de confiance : ' + pour + ' POUR / ' + contre + ' CONTRE. ' +
+      (confianceAccordee ? 'Le gouvernement de ' + vote.pm_nom + ' obtient la confiance.' : 'Le gouvernement de ' + vote.pm_nom + ' est CENSURÉ et doit démissionner.'), 'national');
+  }
+
+  if (!confianceAccordee && typeof sbSendMail === 'function') {
+    const time = 'Résultat du vote';
+    await sbSendMail('Assemblée Nationale', vote.pm_nom, 'Motion de censure adoptée',
+      'L\'Assemblée Nationale a retiré sa confiance à votre gouvernement (' + pour + ' pour / ' + contre + ' contre). Vous devez démissionner immédiatement.', time).catch(() => {});
+    // Deposer une "censure en attente" pour forcer la demission a la prochaine connexion du PM
+    if (typeof sbDeposerNominationPoste === 'function') {
+      await sbDeposerNominationPoste({
+        id: 'censure-' + Date.now(),
+        destinataire: vote.pm_nom,
+        poste_id: 'DEMISSION_FORCEE',
+        poste_name: '',
+        country: vote.country,
+        traite: false
+      }).catch(() => {});
+    }
+  }
+}
 
 
 // =====================

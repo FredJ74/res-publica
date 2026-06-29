@@ -547,3 +547,27 @@ async function sbGetNominationsPosteEnAttente(destinataire) {
 async function sbMarquerNominationTraitee(id) {
   return sbUpdate('nominations_poste_attente', `id=eq.${encodeURIComponent(id)}`, { traite: true });
 }
+
+// =====================
+// VOTE DE CONFIANCE (Assemblee Nationale envers le PM)
+// =====================
+async function sbCreerVoteConfiance(vote) {
+  return sbInsert('votes_confiance', vote);
+}
+
+async function sbGetVoteConfianceEnCours(country) {
+  const rows = await sbGet('votes_confiance', `country=eq.${encodeURIComponent(country)}&statut=eq.en_cours`);
+  return (rows && rows.length > 0) ? rows[0] : null;
+}
+
+async function sbDeposerBulletinConfiance(bulletin) {
+  return sbInsert('votes_confiance_bulletins', bulletin);
+}
+
+async function sbGetBulletinsConfiance(voteId) {
+  return sbGet('votes_confiance_bulletins', `vote_id=eq.${encodeURIComponent(voteId)}`) || [];
+}
+
+async function sbClorVoteConfiance(voteId, statut, resultat) {
+  return sbUpdate('votes_confiance', `id=eq.${encodeURIComponent(voteId)}`, { statut, resultat });
+}
