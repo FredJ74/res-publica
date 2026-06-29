@@ -78,6 +78,21 @@ function closeCharSheet() {
 }
 
 // =====================
+// WORLD MAP
+// =====================
+function openWorldMap() {
+  const body = document.getElementById('world-map-body');
+  body.innerHTML = renderWorldMapSVG();
+  body.style.display = 'flex';
+  body.style.flexDirection = 'column';
+  body.style.height = '520px';
+  document.getElementById('modal-world').classList.add('open');
+}
+function closeWorldMap() {
+  document.getElementById('modal-world').classList.remove('open');
+}
+
+// =====================
 // REGLES DU JEU
 // =====================
 const REGLES = {
@@ -410,6 +425,12 @@ function switchSelfTab(tab, el) {
     html += '<button onclick="ouvrirModalChangerPhoto()" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-camera"></i> Modifier la photo</button>';
     html += '</div>';
 
+    if (state.poste) {
+      html += '<div style="margin-top:1rem">';
+      html += '<button onclick="ouvrirConfirmationDemission()" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-door-exit"></i> Démissionner de mon poste</button>';
+      html += '</div>';
+    }
+
     html += '<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #2a1a10">';
     html += '<button onclick="ouvrirModalDetruirePersonnage()" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a2a20;background:transparent;color:#8a4a3a;cursor:pointer"><i class="ti ti-skull"></i> Détruire mon personnage</button>';
     html += '</div>';
@@ -594,7 +615,6 @@ function dropItem(index) {
   switchSelfTab('inventaire', null);
 }
 
-// =====================
 
 // =====================
 // DETAIL D'UN OBJET D'INVENTAIRE (clic) + GESTION (donner/jeter/abandonner/supprimer)
@@ -745,6 +765,4 @@ function toggleInventaire() {
   }
 }
 
-
 // =====================
-

@@ -533,14 +533,17 @@ async function sbGetTerrainsLibres(country) {
 }
 
 // =====================
-// CHAT EN PIECE (messages ephemeres entre PJ presents)
+// NOMINATIONS DE POSTE EN ATTENTE (candidature acceptee, appliquee a la prochaine connexion)
 // =====================
-async function sbEnvoyerMessageChat(message) {
-  return sbInsert('chat_piece', message);
+async function sbDeposerNominationPoste(nomination) {
+  return sbInsert('nominations_poste_attente', nomination);
 }
 
-async function sbGetMessagesChatPiece(country, city, buildingId, roomId, depuisTimestamp) {
-  let filtre = `country=eq.${encodeURIComponent(country)}&city=eq.${encodeURIComponent(city)}&building_id=eq.${encodeURIComponent(buildingId)}&room_id=eq.${encodeURIComponent(roomId)}&order=created_at.asc`;
-  if (depuisTimestamp) filtre += `&created_at=gt.${encodeURIComponent(depuisTimestamp)}`;
-  return sbGet('chat_piece', filtre) || [];
+async function sbGetNominationsPosteEnAttente(destinataire) {
+  const filtre = `destinataire=eq.${encodeURIComponent(destinataire)}&traite=eq.false`;
+  return sbGet('nominations_poste_attente', filtre) || [];
+}
+
+async function sbMarquerNominationTraitee(id) {
+  return sbUpdate('nominations_poste_attente', `id=eq.${encodeURIComponent(id)}`, { traite: true });
 }

@@ -83,7 +83,7 @@ function openPostesModal() {
           : p.holder === state.char?.name
             ? `<button class="poste-btn" style="opacity:.4;cursor:default;color:#C9A84C">Votre poste</button>`
             : p.holder.startsWith('PNJ')
-              ? `<button class="poste-btn pnj" onclick="postulerPoste('${p.id}','${p.name}')">Deloger le PNJ</button>`
+              ? `<button class="poste-btn pnj" onclick="postulerPoste('${p.id}','${p.name}')">${['pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(p.id) ? 'Envoyer ma demande' : 'Deloger le PNJ'}</button>`
               : `<button class="poste-btn" style="opacity:.4;cursor:default">Occupe</button>`
         }
       </div>`).join('')}
@@ -1470,29 +1470,42 @@ function ouvrirOrganigramme() {
 async function postulerPoste(posteId, posteName) {
   document.getElementById('modal-postes').classList.remove('open');
 
-  // Verifier si c'est un poste ministeriel — necessite validation du President
-  const postesMinisteriels = ['pm','min_int','min_fin','min_just','min_def','min_info','min_ae'];
-  if (postesMinisteriels.includes(posteId)) {
-    showToast('Demande transmise', `Votre candidature au poste de ${posteName} a ete transmise au President de la Republique. Vous aurez une reponse sous peu.`, true);
-    addJournalEntry(`Demande de poste envoyee : ${posteName}. En attente de reponse presidentielle.`, 'event-info');
-    // Stocker la demande en attente
-    if (!state.pendingPostRequests) state.pendingPostRequests = [];
-    state.pendingPostRequests.push({ posteId, posteName, date: `Jour ${state.day}` });
+  // Postes nommes en cascade : le President nomme le PM, le PM nomme ses ministres
+  const posteRequiertPM = ['pm'];
+  const posteRequiertNominationParPM = ['min_int','min_fin','min_just','min_def','min_info','min_ae'];
+
+  if (posteRequiertPM.includes(posteId) || posteRequiertNominationParPM.includes(posteId)) {
+    const estPosteMinistre = posteRequiertNominationParPM.includes(posteId);
+    const idValideur = estPosteMinistre ? 'pm' : 'president';
+    const labelValideur = estPosteMinistre ? 'Premier Ministre' : 'Président de la République';
+
+    const nomValideur = (typeof getTitulairePoste === 'function') ? await getTitulairePoste(idValideur) : null;
+
+    if (!nomValideur) {
+      showToast('Poste vacant', `Le poste de ${labelValideur} est actuellement vacant. Votre candidature ne peut pas etre transmise pour le moment.`, false);
+      return;
+    }
+
+    const candidatNom = state.char?.name || 'Anonyme';
+    const sujet = 'Candidature au poste de ' + posteName;
+    const corps = candidatNom + ' postule au poste de <strong>' + posteName + '</strong>.<br><br>' +
+      '<button onclick="accepterCandidaturePoste(\'' + posteId + '\',\'' + posteName.replace(/'/g,'') + '\',\'' + candidatNom.replace(/'/g,'') + '\')" ' +
+      'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem">✓ Accepter la candidature</button>';
+
+    if (typeof sbSendMail === 'function') {
+      const h = String(state.hour || 8).padStart(2,'0');
+      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+      await sbSendMail(candidatNom, nomValideur, sujet, corps, time).catch(() => {});
+    }
+
+    showToast('Demande transmise', `Votre candidature au poste de ${posteName} a ete transmise a ${nomValideur} (${labelValideur}).`, true);
+    addJournalEntry(`Demande de poste envoyee a ${nomValideur} : ${posteName}. En attente de reponse.`, 'event-info');
     return;
   }
 
   // Verifier si le joueur n'a pas deja ce poste
   if (state.poste?.id === posteId) {
     showToast('Poste deja occupe', `Vous occupez deja le poste de ${posteName}.`, false);
-    return;
-  }
-
-  // VERIFICATION REELLE via Supabase — pas seulement l'etat local POTENTIELLEMENT PERIME
-  showToast('Vérification...', 'Consultation du registre national...', true);
-  const titulaireReel = (typeof getTitulairePoste === 'function') ? await getTitulairePoste(posteId) : null;
-
-  if (titulaireReel) {
-    showToast('Poste occupe', `Ce poste est deja occupe par ${titulaireReel}.`, false);
     return;
   }
 
@@ -1503,14 +1516,18 @@ async function postulerPoste(posteId, posteName) {
     ...(postes?.[state.currentCity] || [])
   ];
   const poste = allPostes.find(p => p.id === posteId);
+  const isVacant = !poste?.holder;
   const isPnjHolder = poste?.holder?.startsWith('PNJ');
 
-  const successRate = 90; // vacance confirmee par Supabase, taux eleve par defaut
-  const successRateEffectif = isPnjHolder ? 65 : successRate;
+  const successRate = isVacant ? 90 : isPnjHolder ? 65 : 0;
+  if (successRate === 0) {
+    showToast('Poste occupe', `Ce poste est occupe par un autre joueur.`, false);
+    return;
+  }
 
   const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= successRateEffectif) {
-    // Marquer le poste comme pris dans POSTES (etat local, pour affichage immediat)
+  if (roll <= successRate) {
+    // Marquer le poste comme pris dans POSTES
     if (poste) poste.holder = state.char?.name || 'Joueur';
     // Libérer l'ancien poste si applicable
     if (state.poste?.id && state.poste.id !== posteId) {
@@ -1522,10 +1539,6 @@ async function postulerPoste(posteId, posteName) {
     state.salaireTouche = false;
     state.inf = Math.min(100, state.inf + 15);
     updateUI();
-    // Persister IMMEDIATEMENT sur Supabase pour que ce soit visible par les autres joueurs sans delai
-    if (typeof sbSavePersonnage === 'function') {
-      await sbSavePersonnage(state).catch(() => {});
-    }
     showToast('Poste obtenu !', `Vous occupez desormais le poste de ${posteName}. +15 Influence.`, true, true);
     addJournalEntry(`Poste obtenu : ${posteName}. +15 Influence.`, 'event-good');
     // Mettre a jour l'affichage du personnage
@@ -2269,6 +2282,62 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 
 // CORRIGER POSTULER
 // =====================
+
+// Appelee quand le President/PM clique "Accepter la candidature" dans le mail
+async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
+  document.getElementById('modal-pnj')?.classList.remove('open');
+
+  // Deposer une "nomination en attente" pour le candidat, appliquee a sa prochaine connexion
+  if (typeof sbDeposerNominationPoste === 'function') {
+    await sbDeposerNominationPoste({
+      id: 'nomination-' + Date.now(),
+      destinataire: candidatNom,
+      poste_id: posteId,
+      poste_name: posteName,
+      country: state.country,
+      traite: false
+    }).catch(() => {});
+  }
+
+  // Notifier le candidat par mail (en plus de l'application directe a sa prochaine connexion)
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    await sbSendMail(state.char?.name || 'Anonyme', candidatNom, 'Candidature acceptée !',
+      'Votre candidature au poste de ' + posteName + ' a été acceptée. Le poste sera effectif à votre prochaine connexion.', time).catch(() => {});
+  }
+
+  showToast('Candidature acceptée', candidatNom + ' devient ' + posteName + '.', true, true);
+  addJournalEntry('Vous avez accepté la candidature de ' + candidatNom + ' au poste de ' + posteName + '.', 'event-good');
+  addExternalEvent('🏛 ' + candidatNom + ' est nommé(e) ' + posteName + '.', 'national');
+}
+
+// Applique une nomination en attente au chargement du jeu (comme la naturalisation)
+async function appliquerNominationPosteEnAttente() {
+  if (typeof sbGetNominationsPosteEnAttente !== 'function' || !state.char?.name) return;
+  try {
+    const nominations = await sbGetNominationsPosteEnAttente(state.char.name);
+    if (!nominations || nominations.length === 0) return;
+    const nomination = nominations[0];
+
+    state.poste = { id: nomination.poste_id, name: nomination.poste_name };
+    if (state.char) state.char.poste = state.poste;
+    state.salaireTouche = false;
+
+    if (typeof sbMarquerNominationTraitee === 'function') {
+      await sbMarquerNominationTraitee(nomination.id).catch(() => {});
+    }
+    if (typeof sbSavePersonnage === 'function') {
+      await sbSavePersonnage(state).catch(() => {});
+    }
+
+    updateUI();
+    showToast('Nomination effective !', 'Vous êtes désormais ' + nomination.poste_name + '.', true, true);
+    addJournalEntry('Votre nomination au poste de ' + nomination.poste_name + ' est effective.', 'event-good');
+  } catch(e) { console.warn('appliquerNominationPosteEnAttente error', e); }
+}
+
+
 function ouvrirPostulerPoste() {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
@@ -3048,3 +3117,40 @@ function confirmerSupprPoste(type) {
 // Forum gere par forum.js — voir openForum() dans forum.js
 
 
+
+// =====================
+// DEMISSION D'UN POSTE
+// =====================
+async function demissionnerDuPoste() {
+  if (!state.poste) {
+    showToast('Aucun poste', 'Vous n\'occupez actuellement aucun poste.', false);
+    return;
+  }
+
+  const ancienPosteNom = state.poste.name;
+  state.poste = null;
+  if (state.char) state.char.poste = null;
+  updateUI();
+
+  if (typeof sbSavePersonnage === 'function') {
+    await sbSavePersonnage(state).catch(() => {});
+  }
+
+  showToast('Démission effective', 'Vous avez quitté le poste de ' + ancienPosteNom + '.', true, true);
+  addJournalEntry('Démission du poste de ' + ancienPosteNom + '.', 'event-info');
+  addExternalEvent('📜 ' + (state.char?.name || 'Quelqu\'un') + ' démissionne du poste de ' + ancienPosteNom + '.', 'national');
+}
+
+function ouvrirConfirmationDemission() {
+  if (!state.poste) {
+    showToast('Aucun poste', 'Vous n\'occupez actuellement aucun poste.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Démissionner';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">Êtes-vous sûr(e) de vouloir démissionner du poste de <strong>' + state.poste.name + '</strong> ? Cette action est immédiate et irréversible.</div>' +
+    '<button onclick="demissionnerDuPoste();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3020;background:transparent;color:#cc4444;cursor:pointer">Confirmer la démission</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}

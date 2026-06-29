@@ -88,6 +88,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => chargerEvenementsPartages(), 1500);
   setTimeout(() => chargerOrganisations(), 1800);
   setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
+  setTimeout(() => appliquerNominationPosteEnAttente(), 2300);
   setTimeout(() => recupererDonsEnAttente(), 2000);
   setTimeout(() => recupererVolsEnAttente(), 2200);
   setTimeout(() => recupererImpactsEnAttente(), 2400);
