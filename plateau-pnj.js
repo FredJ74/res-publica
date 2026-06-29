@@ -1,70 +1,3 @@
-// =====================
-// PLATEAU-PNJ.JS
-// Interactions PNJ, fiches de personnalite, avatars, PNJ sur terrains, simulation
-// =====================
-
-// FICHES PERSONNALITÉ PNJ
-// =====================
-const PNJ_PERSONALITIES = {
-  // RÉPUBLIA
-  'Gaston Retard': { trait: "Fonctionnaire depuis 34 ans. N'a jamais annoncé un train à l'heure. Le considère comme une forme d'art. Parle de lui-même à la troisième personne quand il est stressé.", style: "bureaucratique épuisé, cynique poli, fier de son inefficacité" },
-  'Mireille Guichet': { trait: "Sourit en permanence sans raison. Répond à tout par 'C'est noté' sans jamais noter quoi que ce soit.", style: "serviable de façade, passive-agressive, adore les formulaires" },
-  'Raoul Toufaud': { trait: "Commissaire qui pointe toujours dans la mauvaise direction. Confond régulièrement les suspects et les témoins. A résolu exactement 0 affaire.", style: "autoritaire incompétent, se vexe facilement, cite le règlement sans le connaître" },
-  'Brigitte Menottes': { trait: "Inspectrice qui menotterait sa propre ombre si elle pouvait. Zèle inversement proportionnel à son efficacité.", style: "zélée et inutile, parle en jargon policier inventé" },
-  'Honoré Cozetoujours': { trait: "Juge qui condamne avant d'écouter. A condamné son greffier par erreur trois fois.", style: "sentencieux, cite des lois inventées, tape du marteau de façon aléatoire" },
-  'Bernard Coffre-Fort': { trait: "Directeur de banque qui n'a jamais ouvert un compte de sa vie. Confond les débits et les crédits.", style: "solennel et incompétent, parle en chiffres qui ne correspondent à rien" },
-  'Hans Von Discret': { trait: "Banquier suisse qui confirme uniquement par un silence pesant. Sa discrétion est telle qu'il nie son propre nom.", style: "mutisme calculé, réponses en non-dits, accent suisse exagéré" },
-  'Frère Jacques D\'Equerre': { trait: "Grand Maître qui parle uniquement en métaphores géométriques. Le triangle est sa réponse à tout.", style: "énigmatique pompeux, métaphores maçonniques absurdes, clin d'œil permanent" },
-
-  // EL ESTADO
-  'Pedro Tequila': { trait: "Barman philosophe qui mélange les cocktails et les théories politiques. Chaque verre est une leçon de vie qu'on ne demandait pas.", style: "jovial menaçant, proverbes inventés en espagnol approximatif, toujours un couteau sur le comptoir" },
-  'Lupe Cantina': { trait: "Serveuse armée qui prend les commandes avec un revolver à la ceinture. Le pourboire est obligatoire.", style: "souriante dangereuse, mélange espagnol et français au hasard, mentionne El Don sans raison" },
-  'El Capitan Gordo': { trait: "Incorruptible jusqu'à 500 pesos. Après, tout est négociable. A un portrait d'El Don derrière lui en permanence.", style: "autoritaire jovial, corruption assumée, cite El Don à tout moment" },
-  'Consuela Silencio': { trait: "Inspectrice qui tire sa force du silence absolu. Peut rester immobile 4 heures en vous fixant.", style: "intimidation par le silence, parle rare et percutant, regard qui tue" },
-  'El Juez Manchado': { trait: "Juge dont les verdicts se vendent au kilo. Propose une grille tarifaire officieuse après chaque audience.", style: "corruption institutionnalisée, formules juridiques espagnoles inventées, sourire gras" },
-  'Carlos Retraso': { trait: "Chef de gare qui annonce des horaires purement décoratifs. Les trains partent quand El Don le décide.", style: "bureaucrate tropical, délais assumés, chaleur étouffante dans chaque phrase" },
-  'Juanita Soborno': { trait: "Agente des douanes qui fait passer les colis avec un sourire si on glisse un billet dans le passeport.", style: "corruption charmante, regard complice, formules douanières inventées" },
-
-  // SOVARKA
-  'Olga Soupe': { trait: "Cantinière qui sert la même soupe depuis 1952. Considère la variété culinaire comme une déviation bourgeoise.", style: "stoïcisme soviétique, fierté de la betterave, citations du Parti dans chaque phrase" },
-  'Boris Betterave': { trait: "Cuisinier qui n'a jamais vu une épice. La betterave est son seul ingrédient et il en est fier.", style: "enthousiasme soviétique pour le vide, compare tout à la betterave" },
-  'Camarade Borodine': { trait: "Commissaire du Peuple qui remplit des rapports en triple sur les rapports qu'il vient de remplir. Voit des contre-révolutionnaires partout.", style: "paranoïa douce, camarade à tout bout de champ, formulaires comme religion" },
-  'Nadejda Formulaire': { trait: "Secrétaire qui sourit uniquement en remplissant des formulaires. Considère la joie comme contre-révolutionnaire.", style: "robotique administrative, formulaires en quadruple, bonheur dans la paperasse" },
-  'Camarade Horaire': { trait: "Chef de gare qui pense que les trains arrivent à l'heure parce que le Parti l'a décrété. La réalité est un détail.", style: "idéologique inflexible, nie l'évidence, cite des statistiques inventées" },
-  'Nadejda Contrôle': { trait: "Inspectrice des douanes qui fouille les bagages méthodiquement en enregistrant tout en triple. A trouvé une fois un livre non approuvé. C'est son plus grand fait d'armes.", style: "zèle procédurier, méfiance systématique, fierté du protocole" },
-
-  // AL-KHALIJA
-  'Hassan Marchandage': { trait: "Marchand dont le premier prix affiché est une insulte à la négociation. Le vrai prix n'apparaît qu'après 40 minutes de marchandage rituel.", style: "protocole du marchandage sacré, bénédictions du Loukoum Divin entre chaque offre" },
-  'Yasmine Épices': { trait: "Marchande qui connaît le prix de chaque secret de la ville. Les épices sont son prétexte, les informations son commerce.", style: "mystérieuse parfumée, double sens permanent, cite le Loukoum Divin en cas de doute" },
-  'Chambellan Ibn Protocole': { trait: "Chef de la Garde qui ne parle qu'en troisième personne. Considère le tutoiement comme un crime de lèse-majesté.", style: "protocole excessif, troisième personne, bénédictions du Sheikh imbriquées" },
-  'Fatima Al-Secret': { trait: "Inspectrice dont les interrogatoires consistent à servir du thé en silence jusqu'à ce que l'interlocuteur avoue spontanément.", style: "douceur menaçante, thé comme arme, patience infinie" },
-  'Chambellan Al-Transit': { trait: "Directeur du Hub Royal qui accueille selon le rang. Un visa en or pour les notables, une heure d'attente pour les autres.", style: "protocole hiérarchique absolu, bénédictions Royal, troisième personne" },
-  'Yasmine Embarquement': { trait: "Hôtesse royale qui sourit avec une précision chirurgicale calculée au millimètre par le protocole.", style: "perfection froide, formules royales mémorisées, sourire mécanique parfait" },
-  'Cheikh Al-Verdict': { trait: "Grand Juge dont les verdicts s'inspirent des textes sacrés et des instructions discrètes du Palais. Le Loukoum Divin guide sa main.", style: "sentences solennelles, citations du Loukoum Divin, justice royale assumée" },
-
-  // Escorts
-  'Roxane Velours':    { trait: "Escort de luxe dont le carnet d'adresses vaut plus que celui du Premier Ministre. Chaque confidence lui appartient. Elle sourit toujours — c'est inclus dans le tarif.", style: "charme discret, double sens constant, connait tous les secrets des couloirs du pouvoir" },
-  'Lola Discreta':     { trait: "Informatrice double jeu a Ciudad Roja. Travaille officiellement pour El Don. Et pour deux autres personnes. Elle-meme ne sait plus tres bien pour qui.", style: "mysterieuse enjouee, proverbes espagnols inventes, revele toujours un peu plus qu'elle ne devrait" },
-  'Natasha Privilege': { trait: "Reservee aux cadres du Parti. Tres bien informee sur les deliberations internes. Ce qu'elle entend reste confidentiel — sauf si on lui demande poliment.", style: "distinction sovietique, formules du Parti recyclees, discretion absolue sur demande express" },
-
-  // Reporters
-  'Jodie Moitout':     { trait: "Journaliste micro-trottoir de L'Autruche Entravee. Tend son micro a n'importe qui, n'importe ou, n'importe quand. Les gens lui disent tout sans savoir pourquoi. Son sourire est une arme.", style: "enthousiasme journalistique communicatif, questions anodines aux reponses explosives, micro tendu en permanence" }
-};
-
-// Traits génériques par empire si PNJ non répertorié
-const EMPIRE_STYLES = {
-  republic: { tone: "bureaucratique français épuisé, cynique poli", religion: "le Tabernacle des Impôts", currency: "FR", leader: "le Président" },
-  narco:    { tone: "jovial menaçant, corruption assumée, espagnol de bazar", religion: "le Laboratoire de Prière", currency: "PS", leader: "El Don" },
-  soviet:   { tone: "idéologique soviétique, formulaires sacrés, Camarade partout", religion: "le Kolkhoze Spirituel", currency: "RP", leader: "le Parti" },
-  khalija:  { tone: "protocole royal excessif, Loukoum Divin omniprésent, bénédictions imbriquées", religion: "la Pâtisserie Sacrée", currency: "DR", leader: "le Sheikh" }
-};
-
-
-
-
-// =====================
-// POP-UP STATS PERSONNAGE
-// =====================
 function ouvrirStatsPerso() {
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
@@ -137,52 +70,6 @@ function ouvrirStatsPerso() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// =====================
-// MENU MESSAGES (Forum + Mail)
-// =====================
-// =====================
-// AVATARS CSS PNJ
-// =====================
-const PNJ_AVATAR = {
-  commissaire:   { icon: 'ti-shield-lock',       color: '#4a6aaa' },
-  inspecteur:    { icon: 'ti-search',             color: '#4a6aaa' },
-  policier:      { icon: 'ti-shield',             color: '#4a6aaa' },
-  gardien:       { icon: 'ti-lock',               color: '#6a6060' },
-  juge:          { icon: 'ti-gavel',              color: '#C9A84C' },
-  avocat:        { icon: 'ti-scale',              color: '#8a8060' },
-  journaliste:   { icon: 'ti-news',               color: '#8a4a20' },
-  redacteur:     { icon: 'ti-pencil',             color: '#8a4a20' },
-  banquier:      { icon: 'ti-building-bank',      color: '#4a8a4a' },
-  medecin:       { icon: 'ti-stethoscope',        color: '#4a9a9a' },
-  infirmier:     { icon: 'ti-heart-rate-monitor', color: '#4a9a9a' },
-  serveur:       { icon: 'ti-bowl',               color: '#8a6a40' },
-  hotelier:      { icon: 'ti-building-castle',    color: '#8a6a40' },
-  barman:        { icon: 'ti-glass',              color: '#8a6a40' },
-  militaire:     { icon: 'ti-military-rank',      color: '#4a6a4a' },
-  general:       { icon: 'ti-medal',              color: '#C9A84C' },
-  maire:         { icon: 'ti-building-community', color: '#C9A84C' },
-  secretaire:    { icon: 'ti-file-certificate',   color: '#8a8060' },
-  professeur:    { icon: 'ti-school',             color: '#6a4a8a' },
-  loge:          { icon: 'ti-hexagon',            color: '#8a2020' },
-  armurier:      { icon: 'ti-shield',             color: '#6a6060' },
-  commercant:    { icon: 'ti-building-store',     color: '#8a6a40' },
-  syndicaliste:  { icon: 'ti-users-group',        color: '#8a2020' },
-  douanier:      { icon: 'ti-clipboard-check',    color: '#4a6aaa' },
-  chef_gare:     { icon: 'ti-train',              color: '#6a6060' },
-  hotesse:       { icon: 'ti-user-heart',         color: '#8a4a6a' },
-  grand_pretre:  { icon: 'ti-star',               color: '#C9A84C' },
-  escort:        { icon: 'ti-heart',              color: '#aa4a6a' },
-  capitaine_port:{ icon: 'ti-anchor',             color: '#4a6aaa' },
-  protocole:     { icon: 'ti-crown',              color: '#C9A84C' },
-  garde:         { icon: 'ti-shield',             color: '#4a6aaa' },
-  porteparole:   { icon: 'ti-speakerphone',       color: '#8a4a20' },
-  archiviste:    { icon: 'ti-archive',            color: '#8a8060' },
-  directeur:     { icon: 'ti-briefcase',          color: '#C9A84C' },
-  citoyen:       { icon: 'ti-user',               color: '#6a6060' },
-  depute:        { icon: 'ti-building-arch',      color: '#C9A84C' },
-  default:       { icon: 'ti-user',               color: '#6a6060' }
-};
-
 function getPnjAvatar(pnj, empireColor) {
   // Photo escort selon empire si pas de photoUrl
   if (!pnj.photoUrl && pnj.job === 'escort') {
@@ -212,7 +99,6 @@ function getPnjAvatar(pnj, empireColor) {
     '</div>';
 }
 
-
 function ouvrirPhotoPleinEcran(el) {
   const url = el.dataset?.url || el;
   const nom = el.dataset?.nom || '';
@@ -227,7 +113,6 @@ function ouvrirPhotoPleinEcran(el) {
     '<div style="font-size:.65rem;color:#4a4030;margin-top:.6rem">Cliquer pour fermer</div>';
   document.body.appendChild(overlay);
 }
-
 
 function openPnjModal(encodedPnj) {
   let pnj;
@@ -540,7 +425,6 @@ function closePnjModal() {
   document.getElementById('modal-pnj').classList.remove('open');
 }
 
-// Ajouter un contact au repertoire
 function addContactByName(name, role, rel) {
   addContact({ name: name, role: role, rel: rel });
 }
@@ -556,37 +440,6 @@ function addContact(pnj) {
   showToast('Contact ajoute', pnj.name + ' a ete ajoute a votre repertoire.', true);
   addJournalEntry(pnj.name + ' ajoute au repertoire.', '');
 }
-
-
-
-// JOURNALISTES PNJ RÉACTIFS
-// =====================
-const JOURNALISTES_PNJ = {
-  republic: {
-    name: 'Gustave Encre',
-    journal: "L'Autruche Entravée",
-    trait: "Journaliste d'investigation alcoolique. Déterre les scandales par accident en cherchant ses clés. A une source dans chaque ministère mais ne sait plus lequel.",
-    style: "cynique désabusé, métaphores journalistiques épuisées, boit du café tiède depuis 1987"
-  },
-  narco: {
-    name: 'El Editor',
-    journal: 'El Narco Times',
-    trait: "Rédacteur en chef qui blanchit les nouvelles comme El Don blanchit l'argent. Chaque article est une œuvre de fiction assumée.",
-    style: "propagandiste jovial, español aproximativo, cite El Don dans chaque paragraphe"
-  },
-  soviet: {
-    name: 'Rédacteur Vérité',
-    journal: 'La Pravdovka',
-    trait: "Journaliste du Parti qui vérifie trois fois si une information est approuvée avant de la publier. A publié le même article depuis 1973 avec des noms différents.",
-    style: "zèle idéologique mécanique, vérité = ce que dit le Parti, enthousiasme performatif"
-  },
-  khalija: {
-    name: 'Rédacteur Al-Vérité',
-    journal: 'Le Minaret Doré',
-    trait: "Journaliste royal qui ne publie que ce que le Palais approuve. Ses éditoriaux commencent tous par une bénédiction du Sheikh et finissent par une autre.",
-    style: "déférence royale absolue, Loukoum Divin dans chaque titre, vérité = volonté du Sheikh"
-  }
-};
 
 async function genererReactionJournaliste() {
   const journaliste = JOURNALISTES_PNJ[state.country];
@@ -642,14 +495,6 @@ async function afficherReactionJournaliste() {
   );
 }
 
-
-// =====================
-// ESCORTS — INFORMATIONS ET PIÈGE
-// =====================
-
-// =====================
-// UTILITAIRE — Liste PJ + PNJ connus
-// =====================
 function getAllPJsAndPNJs() {
   const result = [];
   // PJ connus (depuis state.pjConnus ou contacts)
@@ -840,12 +685,6 @@ async function confirmerEscortPiege(nomCible) {
   }
 }
 
-
-
-
-// =====================
-// PNJ ALÉATOIRES SUR LES TERRAINS
-// =====================
 function genererPnjTerrain(buildingId) {
   const country = state.country || 'republic';
   const profiles = (typeof TERRAIN_PNJ_PROFILES !== 'undefined')
@@ -1014,7 +853,6 @@ function soudoyerGardienTerrain(montant) {
   }
 }
 
-// Appeler au chargement d'un terrain
 function chargerPnjTerrain(buildingId) {
   if (!buildingId?.startsWith('terrain-a-batir')) return;
 
@@ -1058,16 +896,6 @@ function chargerPnjTerrain(buildingId) {
   }
 }
 
-
-// =====================
-// GESTION TERRAIN — HIÉRARCHIE DES ORDRES
-// =====================
-
-// État persistant des terrains (Supabase + localStorage)
-
-// =====================
-// TERRAINS LIBRES (pour la recompense de quete "Graal")
-// =====================
 async function getTerrainsVraimentLibres(country) {
   if (typeof sbGetTerrainsLibres !== 'function') return [];
   try {
@@ -1108,7 +936,6 @@ function setTerrainState(buildingId, updates) {
   return newState;
 }
 
-// Vérifier si un ordre terrain est disponible selon l'état du terrain
 function terrainOrdreDisponible(fn, buildingId) {
   const ts = getTerrainState(buildingId);
   const pnj = ts.pnj; // PNJ persistant sur ce terrain
@@ -1140,7 +967,6 @@ function terrainOrdreDisponible(fn, buildingId) {
   return { ok: true };
 }
 
-// Inspecter le terrain — déclenche la génération du PNJ persistant
 function doVerifierTerrain() {
   const id = state.currentBuilding;
   let ts = getTerrainState(id);
@@ -1180,7 +1006,6 @@ function doVerifierTerrain() {
   }
 }
 
-// Appeler la police sur un terrain — ouvre le choix
 function doAppelerPoliceTerrain() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
@@ -1241,7 +1066,6 @@ function doExpulsionAcceleree(cout) {
   }
 }
 
-// Faire disparaître le cadavre
 function doFaireDisparaitreCadavre() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
@@ -1288,7 +1112,6 @@ function doFaireDisparaitreCadavre() {
   }
 }
 
-// Négocier avec les squatteurs
 function doNegocierSquatteurs() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
@@ -1350,7 +1173,6 @@ function confirmerNegociation() {
   }
 }
 
-// Signer un compromis de vente
 function doSignerCompromis() {
   const id = state.currentBuilding;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -1369,7 +1191,6 @@ function doSignerCompromis() {
   showToast('Compromis signé !', 'Terrain réservé 7 jours. -500 ' + cur, true);
 }
 
-// Acheter le terrain (modifié pour tenir compte du permis)
 function doAcheterTerrain() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
@@ -1380,12 +1201,17 @@ function doAcheterTerrain() {
   const dispo = terrainOrdreDisponible('acheter_terrain', id);
   if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
 
-  const prix = 5000;
-  if (state.arg < prix) { showToast('Fonds insuffisants', prix + ' ' + cur + ' requis.', false); return; }
+  const prix = 25000;
+  if (state.arg < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis. Pensez au prêt bancaire.', false); return; }
 
   state.arg -= prix;
   if (!state.terrainsAchetes) state.terrainsAchetes = {};
   state.terrainsAchetes[id] = state.char?.name;
+
+  // Synchroniser aussi avec Supabase pour que le terrain soit reellement marque "occupe"
+  if (typeof sbSetTerrainState === 'function') {
+    sbSetTerrainState(state.country, id, { proprietaire: state.char?.name }).catch(() => {});
+  }
 
   const aPermis = ts.permis;
   setTerrainState(id, {
@@ -1404,11 +1230,6 @@ function doAcheterTerrain() {
   }
 }
 
-
-
-// =====================
-// MODE SIMULATION PJ
-// =====================
 function initSimulation() {
   if (!state.pjSimules) {
     state.pjSimules = JSON.parse(JSON.stringify(PJ_SIMULES));
@@ -1494,5 +1315,3 @@ function deplacerSimuleBatiment(idx) {
 function actualiserSimules() {
   ouvrirPanneauSimulation();
 }
-
-

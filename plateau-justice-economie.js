@@ -1,10 +1,3 @@
-// =====================
-// PLATEAU-JUSTICE-ECONOMIE.JS
-// Plaintes, tribunal, prison, terrains, locations, budget, dons, falsification
-// =====================
-
-// DONNER DE L'ARGENT À UN PNJ
-// =====================
 function doDonnerArgentPnj() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
@@ -173,7 +166,6 @@ function confirmerDonArgent() {
   (effets[pnj?.id] || effets.default)();
 }
 
-// Expulsion légale via police (sans soudoiement)
 function doExpulsionLegale() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
@@ -217,9 +209,6 @@ function doExpulsionLegale() {
   if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
 }
 
-// =====================
-// RACHAT DE TERRAIN ENTRE PJ
-// =====================
 function doRacheterTerrain() {
   const building = state.currentBuilding;
   const b = BUILDINGS[building];
@@ -301,10 +290,6 @@ function accepterRachat(acheteur, buildingId, prix) {
   }
 }
 
-// =====================
-
-// PLAINTE MODALE
-// =====================
 function openPlainteModal() {
   const contacts = state.contacts || [];
 
@@ -420,10 +405,6 @@ function traiterEnquetes() {
   });
 }
 
-// =====================
-// PONT COMMISSARIAT → TRIBUNAL
-// Transmet une affaire confirmee pour jugement public (forum + file d'attente du juge)
-// =====================
 function transmettreAffaireAuTribunal(cible, motif) {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const forumKey = 'tribunal_' + state.currentCity;
@@ -465,153 +446,6 @@ function transmettreAffaireAuTribunal(cible, motif) {
   }
 }
 
-// Ajouter evenement externe (rouge + gras + point clignotant)
-// =====================
-// MARCHE — ORDRES SPECIFIQUES
-// =====================
-async function doPoulsPopulaire() {
-  addJournalEntry('Vous interrogez les passants du marche...', '');
-  showToast('Sondage en cours', 'Les habitants parlent...', true);
-
-  // Generer un sondage via IA
-  const char = state.char;
-  const co = COUNTRIES[state.country];
-  const prompt = `Tu es un narrateur dans un jeu de role politique parodique (Res Publica, empire ${co?.n}).
-Genere un court sondage d'opinion populaire (2-3 phrases) comme si tu etais un habitant du marche.
-${state.electionsEnCours?.length > 0
-  ? `Il y a des elections en cours avec ces candidats : ${state.electionsEnCours.map(e => e.candidats?.join(', ')).join(' | ')}. Donne un resultat en pourcentages.`
-  : `Pas d'election en cours. Parle de la popularite des personnages politiques connus : ${state.pjConnus?.join(', ') || 'personne de particulier'}.`
-}
-Style : direct, populaire, parodique. Format : phrase construite du genre "D'apres ce qu'on entend, X serait le plus populaire..." Reponds uniquement avec le sondage.`;
-
-  try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    const text = data.content?.[0]?.text;
-    if (text) {
-      showToast('Pouls de la population', text.substring(0, 100), true);
-      addJournalEntry('Sondage : ' + text, 'event-info');
-    }
-  } catch(e) {
-    const fallback = `D'apres les habitants, la situation politique est tendue. "On ne sait plus qui croire", dit une marchande.`;
-    showToast('Pouls de la population', fallback, true);
-    addJournalEntry('Sondage : ' + fallback, 'event-info');
-  }
-}
-
-function doDistribuerTract() {
-  const tracts = state.inventory.filter(i => i.type === 'tract');
-  if (tracts.length === 0) {
-    showToast('Aucun tract', 'Vous n\'avez pas de tract en inventaire. Faites-en imprimer a l\'imprimerie.', false);
-    return;
-  }
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 70) {
-    state.pop = Math.min(100, state.pop + 2);
-    tracts[0].qty = (tracts[0].qty || 1) - 1;
-    if (tracts[0].qty <= 0) state.inventory = state.inventory.filter(i => i !== tracts[0]);
-    updateUI();
-    addJournalEntry('Vous avez distribue des tracts. +2 POP.', 'event-good');
-    showToast('Tracts distribues', '+2 Popularite. Les passants prennent vos tracts.', true);
-  } else {
-    addJournalEntry('Distribution de tracts peu efficace. Les passants ignorent vos tracts.', '');
-    showToast('Distribution difficile', 'Les passants ne s\'y interessent pas beaucoup.', false);
-  }
-}
-
-const BONUS_ARCHETYPE_FAUSSE_RUMEUR = {
-  shadow: 15, criminal: 15, informer: 5
-  // tous les autres archetypes : 0
-};
-
-function getCoutFausseRumeur() {
-  const ie = INDICES_NATIONAUX[state.country]?.IE || 40;
-  return 300 + ie * 5;
-}
-
-function getTauxFausseRumeur() {
-  const dup = state.char?.stats?.DUP || 8;
-  const bonusArch = BONUS_ARCHETYPE_FAUSSE_RUMEUR[state.char?.archetype] || 0;
-  return Math.max(5, Math.min(90, 20 + dup * 2 + bonusArch));
-}
-
-async function openRumeurModal() {
-  const cout = getCoutFausseRumeur();
-  const taux = getTauxFausseRumeur();
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  let joueurs = [];
-  if (typeof sbListPersonnages === 'function') {
-    try { joueurs = (await sbListPersonnages() || []).filter(j => j.name !== state.char?.name); } catch(e) {}
-  }
-
-  document.getElementById('postes-modal-title').textContent = 'Créer une fausse rumeur';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:.8rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Acte illégal. Coût : ' + cout + ' ' + cur + '. Chances de réussite : ' + taux + '%. Détectable après enquête.</div>';
-
-  if (joueurs.length === 0) {
-    html += '<div style="font-size:.85rem;color:#5a5040">Aucun habitant connu pour le moment.</div>';
-  } else {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
-    html += '<select id="fausse-rumeur-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    joueurs.forEach(j => { html += '<option value="' + j.name + '">' + j.name + '</option>'; });
-    html += '</select>';
-    html += '<button onclick="confirmerFausseRumeur(' + cout + ',' + taux + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #aa7a30;background:transparent;color:#C9A84C;cursor:pointer">Répandre la rumeur</button>';
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerFausseRumeur(cout, taux) {
-  const cible = document.getElementById('fausse-rumeur-cible')?.value;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  document.getElementById('modal-postes').classList.remove('open');
-  if (!cible) { showToast('Sélectionnez une cible', '', false); return; }
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false); return; }
-
-  state.arg -= cout;
-  updateUI();
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= taux) {
-    // SUCCES — la victime perd INF/POP, le lanceur en gagne un peu (discredit reussi)
-    state.inf = Math.min(100, (state.inf || 0) + 3);
-    state.pop = Math.min(100, (state.pop || 0) + 2);
-
-    // Deposer l'impact negatif sur la victime (applique a sa prochaine connexion)
-    if (typeof sbDeposerImpactIndice === 'function') {
-      await sbDeposerImpactIndice({ id: 'impact-' + Date.now() + '-pop', victime: cible, indice: 'pop', delta: -6, raison: 'Rumeur compromettante', traite: false }).catch(() => {});
-      await sbDeposerImpactIndice({ id: 'impact-' + Date.now() + '-inf', victime: cible, indice: 'inf', delta: -4, raison: 'Rumeur compromettante', traite: false }).catch(() => {});
-    }
-
-    if (typeof sbSendMail === 'function') {
-      const h = String(state.hour || 8).padStart(2,'0');
-      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-      sbSendMail('Système', cible, 'Rumeur en circulation',
-        'Une rumeur compromettante circule actuellement à votre sujet. Difficile de savoir qui en est à l\'origine. -6 POP, -4 INF.', time).catch(() => {});
-    }
-    updateUI();
-    showToast('Rumeur lancée', 'La rumeur sur ' + cible + ' se répand. +3 INF, +2 POP pour vous ; -6 POP, -4 INF pour la victime.', true, true);
-    addJournalEntry('Fausse rumeur lancée sur ' + cible + '. Succès.', 'event-good');
-    checkDetection('fausse_rumeur', 'success');
-  } else {
-    showToast('Rumeur sans effet', 'Personne n\'a vraiment cru cette histoire.', false);
-    addJournalEntry('Tentative de fausse rumeur sur ' + cible + '. Échec.', '');
-    checkDetection('fausse_rumeur', 'fail');
-  }
-}
-
-// =====================
-
-// BUDGET INSTITUTIONS
-// =====================
-
-
 function depenseBudget(institution, montant) {
   const b = getBudgetInstitution(institution);
   if (!b) return true;
@@ -641,9 +475,6 @@ function mettreAJourBudgets() {
   });
 }
 
-// =====================
-// POPULATION DYNAMIQUE
-// =====================
 function mettreAJourPopulation() {
   Object.keys(CITY_POPULATION[state.country] || {}).forEach(cityId => {
     const pop = CITY_POPULATION[state.country][cityId];
@@ -655,38 +486,6 @@ function mettreAJourPopulation() {
     pop.dailyTaxRevenue = Math.floor(pop.total * pop.taxRate / 365);
   });
 }
-
-
-// SYSTEME D'ARRESTATION
-// =====================
-const PEINES = {
-  delit_mineur:   { jours: 2,  label: 'Delit mineur',   amendeBase: 500  },
-  delit_grave:    { jours: 4,  label: 'Delit grave',     amendeBase: 1500 },
-  crime:          { jours: 8,  label: 'Crime',           amendeBase: 5000 },
-  crime_etat:     { jours: 30, label: "Crime d'Etat",    amendeBase: 0    }
-};
-
-const ACTES_ILLEGAUX = {
-  corrompre_fonct:    { type: 'delit_mineur',  detectRate: 30 },
-  corrompre_police:   { type: 'delit_mineur',  detectRate: 35 },
-  corrompre_juge:     { type: 'delit_grave',   detectRate: 40 },
-  corrompre_journaliste:{ type: 'delit_mineur',detectRate: 25 },
-  blanchiment:        { type: 'delit_grave',   detectRate: 35 },
-  societe_ecran:      { type: 'delit_mineur',  detectRate: 25 },
-  falsifier_docs:     { type: 'delit_grave',   detectRate: 40 },
-  acheter_arme_illegale:{ type: 'delit_mineur',detectRate: 20 },
-  acheter_bombe_illegale:{ type: 'crime',      detectRate: 55 },
-  fabriquer_bombe:    { type: 'crime',         detectRate: 60 },
-  incendier:          { type: 'crime',         detectRate: 70 },
-  arreter:            { type: 'delit_grave',   detectRate: 40 },
-  fabriquer_scandale: { type: 'delit_grave',   detectRate: 45 },
-  fuite_info:         { type: 'delit_grave',   detectRate: 40 },
-  imprimer_clandestin:{ type: 'delit_mineur',  detectRate: 30 },
-  tentative_evasion:  { type: 'crime',         detectRate: 90 },
-  se_rebeller:        { type: 'delit_mineur',  detectRate: 60 },
-  fausse_rumeur:      { type: 'delit_mineur',  detectRate: 35 },
-  vol:                { type: 'delit_mineur',  detectRate: 30 }
-};
 
 function checkDetection(fn, resultType) {
   const acte = ACTES_ILLEGAUX[fn];
@@ -900,42 +699,6 @@ function tenterResistance(peineType) {
   }
 }
 
-function openRulesView() {
-  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
-  document.getElementById('vue-rules').classList.add('active');
-  renderRulesContent('intro');
-}
-
-function closeRulesView() {
-  document.getElementById('vue-rules').classList.remove('active');
-  if (state.currentBuilding) {
-    document.getElementById('vue-batiment').classList.add('active');
-  } else {
-    document.getElementById('vue-rue').classList.add('active');
-  }
-}
-
-function renderRulesContent(section) {
-  const regle = REGLES[section];
-  if (!regle) return;
-
-  document.querySelectorAll('.rules-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.rules-tab').forEach(t => {
-    if (t.dataset.section === section) t.classList.add('active');
-  });
-
-  const content = document.getElementById('rules-content');
-  if (!content) return;
-  content.innerHTML = '<div style="padding:1.5rem;max-width:700px">' +
-    '<div style="font-family:Playfair Display,serif;font-size:1.3rem;color:#C9A84C;margin-bottom:1rem">' + regle.titre + '</div>' +
-    '<div style="font-size:.88rem;color:#a0a080;line-height:1.9;white-space:pre-line">' + regle.contenu + '</div>' +
-    '</div>';
-}
-
-// =====================
-
-// TRIBUNAL
-// =====================
 function ouvrirArchivesTribunal() {
   const jugements = state.archivesJugements || [];
   document.getElementById('postes-modal-title').textContent = 'Archives du Tribunal';
@@ -971,8 +734,6 @@ function ouvrirDetailJugement(idx) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-// Le tribunal ne sert plus a deposer une plainte (role du commissariat),
-// mais a CONSULTER les affaires transmises par la police et en attente de jugement.
 async function ouvrirPorterPlainte() {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   document.getElementById('postes-modal-title').textContent = 'Affaires du Tribunal de ' + ville;
@@ -1007,12 +768,6 @@ async function ouvrirPorterPlainte() {
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
-
-
-
-// =====================
-// FONCTIONS COMPLEMENTAIRES V17
-// =====================
 
 function doCorruption(fn, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -1081,276 +836,6 @@ function doVisiterPrisonnier() {
   ouvrirModalCibleRepertoire('visiter_prisonnier', 'Rendre visite a un detenu');
 }
 
-async function doSeRenseigner() {
-  const co = COUNTRIES[state.country];
-  const pjConnus = (state.pjConnus || []).join(', ') || 'des personnages politiques locaux';
-  const ville = state.currentCity || 'la capitale';
-  const prompt = 'Res Publica, jeu parodique politique. Empire : ' + (co?.n||'inconnu') + '. Ville : ' + ville + '. Le barman murmure une rumeur croustillante sur la vie politique locale, impliquant si possible un de ces personnages : ' + pjConnus + '. 1 phrase max, ton parodique et cynique.';
-  try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 60, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    const info = data.content?.[0]?.text?.trim() || 'Le barman hausse les épaules. Rien de neuf ce soir.';
-    state.inf = Math.min(100, (state.inf||0) + 3);
-    updateUI();
-    showToast('Le barman murmure...', info, true, true);
-    addJournalEntry('Barman : "' + info.substring(0,80) + '"', 'event-info');
-    addExternalEvent('🍺 Une rumeur court dans les bars de ' + ville + ' : ' + info);
-  } catch(e) {
-    const infos = [
-      'Un élu local aurait été vu sortir du casino à 4h du matin.',
-      'Des rumeurs courent sur un remaniement imminent.',
-      'Quelqu\'un cherche à acheter des votes dans le quartier.',
-      'Une affaire financière menace d\'éclabousser le gouvernement.'
-    ];
-    const info = infos[Math.floor(Math.random() * infos.length)];
-    state.inf = Math.min(100, (state.inf||0) + 2);
-    updateUI();
-    showToast('Le barman murmure...', info, true, true);
-    addJournalEntry('Barman : "' + info + '"', 'event-info');
-  }
-}
-
-function doReserver() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 80;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  state.chambreReservee = state.currentBuilding;
-  updateUI();
-  showToast('Chambre reservee', 'Chambre reservee. -' + cost + ' ' + cur + '. Passez l\'ordre Dormir depuis votre fiche.', true);
-  addJournalEntry('Chambre reservee. -' + cost + ' ' + cur + '.', 'event-info');
-}
-
-function doInterview() {
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const impact = roll <= 50 ? 1 : -1;
-  state.pop = Math.max(0, Math.min(100, state.pop + impact * 5));
-  updateUI();
-  showToast('Interview', (impact > 0 ? 'Bonne impression. +5 POP.' : 'Mauvaise impression. -5 POP.'), impact > 0);
-  addExternalEvent((state.char?.name||'Un personnage') + ' s\'est exprime dans la presse. Impact : ' + (impact > 0 ? '+5 POP' : '-5 POP'));
-}
-
-function doArticle() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 300;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  updateUI();
-  ouvrirModalCibleRepertoire('article_favorable', 'Rediger un article favorable sur');
-}
-
-function doEtouffer() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 800;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  updateUI();
-  showToast('Ordre contact requis', 'Cliquez sur le journaliste cible pour etouffer un article.', false);
-}
-
-function doLogeInfo() {
-  const infos = [
-    'Les freres vous revelent qu\'un elu cache des fonds offshore.',
-    'La Loge sait qui a commande l\'assassinat de la semaine derniere.',
-    'Un ministre est en negociation secrete avec un empire etranger.',
-    'Des elections anticipees se preparent dans l\'ombre.'
-  ];
-  const info = infos[Math.floor(Math.random() * infos.length)];
-  state.inf = Math.min(100, state.inf + 5);
-  updateUI();
-  showToast('Information de la Loge', info, true, true);
-  addJournalEntry('Information confidentielle obtenue de la Loge.', 'event-info');
-}
-
-function doSeFormer() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 100;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  const stats = ['INT','CHA','VOL','PER','DUP','ENT'];
-  document.getElementById('postes-modal-title').textContent = 'Suivre une formation';
-  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir la caracteristique a ameliorer (+1 point) :</div>';
-  stats.forEach(s => {
-    html += '<button onclick="appliquerFormation(\'' + s + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.3rem">' + s + ' (actuel : ' + (state.char?.stats?.[s]||8) + ')</button>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function appliquerFormation(stat) {
-  document.getElementById('modal-postes').classList.remove('open');
-  if (!state.char) return;
-  if (!state.char.stats) state.char.stats = {};
-  state.char.stats[stat] = (state.char.stats[stat]||8) + 1;
-  updateUI();
-  showToast('Formation terminee', stat + ' : ' + state.char.stats[stat] + ' (+1)', true, true);
-  addJournalEntry('Formation suivie : +1 ' + stat, 'event-good');
-}
-
-function doRecruterInfo() {
-  const contacts = state.contacts || [];
-  if (contacts.length === 0) { showToast('Repertoire vide', 'Ajoutez des contacts pour recruter.', false); return; }
-  if (!state.informateurs) state.informateurs = [];
-  document.getElementById('postes-modal-title').textContent = 'Recruter un informateur';
-  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">L\'informateur enverra des mails reguliers avec des informations utiles.</div>';
-  contacts.forEach(c => {
-    html += '<button onclick="confirmerRecrutement(\'' + c.name + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;margin-bottom:.3rem;font-family:Crimson Pro,serif;font-size:.85rem">' + c.name + '</button>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function confirmerRecrutement(nom) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 150;
-  document.getElementById('modal-postes').classList.remove('open');
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis pour recruter.', false); return; }
-  // Vérifier pas déjà informateur
-  if (!state.informateurs) state.informateurs = [];
-  if (state.informateurs.some(i => i.nom === nom)) { showToast('Déjà informateur', nom + ' est déjà dans votre réseau.', false); return; }
-  // Vérifier limite (max 2)
-  if (state.informateurs.length >= 2) { showToast('Limite atteinte', 'Vous ne pouvez pas avoir plus de 2 informateurs simultanément.', false); return; }
-  state.arg -= cost;
-  state.informateurs.push({
-    nom, niveau: 1,
-    label: nom,
-    cout: cost,
-    coutJour: cost,
-    depuis: state.day,
-    joursActif: 0
-  });
-  updateUI();
-  showToast('Informateur recrute', nom + ' rejoint votre reseau. -' + cost + ' ' + cur + '/jour.', true);
-  addJournalEntry('Informateur recrute : ' + nom + ' (N1). -' + cost + ' ' + cur + '/jour.', 'event-info');
-}
-
-function doMobiliserPolice() {
-  const pays = state.country || 'republic';
-  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 15);
-  state.pop = Math.max(0, state.pop - 5);
-  updateUI();
-  showToast('Forces de l\'ordre mobilisees', '+15 ISN -5 POP.', false);
-  addExternalEvent('Mobilisation des forces de l\'ordre. +15 ISN.');
-}
-
-function doMobiliserArmee() {
-  const pays = state.country || 'republic';
-  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 20);
-  updateUI();
-  showToast('Armee mobilisee', '+20 ISN. Alerte maximale.', false);
-  addExternalEvent('L\'armee est en etat d\'alerte maximale. +20 ISN.');
-}
-
-function doEtatUrgence() {
-  const pays = state.country || 'republic';
-  if (INDICES_NATIONAUX?.[pays]) {
-    INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 25);
-    INDICES_NATIONAUX[pays].IS  = Math.max(0,   INDICES_NATIONAUX[pays].IS  - 10);
-  }
-  state.pop = Math.max(0, state.pop - 15);
-  state.inf = Math.min(100, state.inf + 5);
-  updateUI();
-  showToast('Etat d\'urgence declare !', '+25 ISN -10 IS -15 POP +5 INF.', false);
-  addExternalEvent('ETAT D\'URGENCE declare. Libertes civiles suspendues.');
-}
-
-function doInspecterTroupes() {
-  state.inf = Math.min(100, state.inf + 3);
-  const pays = state.country || 'republic';
-  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 2);
-  updateUI();
-  showToast('Inspection terminee', '+3 INF +2 ISN. Les troupes sont impressionnees.', true);
-}
-
-function doAugmenterImpots(augmenter) {
-  const pays = state.country || 'republic';
-  const delta = augmenter ? 5 : -5;
-  state.pop = Math.max(0, Math.min(100, state.pop - (augmenter ? 8 : -5)));
-  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, Math.min(100, INDICES_NATIONAUX[pays].IE + (augmenter ? 5 : -5)));
-  if (!state.tauxImposition) state.tauxImposition = 20;
-  state.tauxImposition = Math.max(5, Math.min(50, state.tauxImposition + delta));
-  updateUI();
-  showToast(augmenter ? 'Impots augmentes' : 'Impots baisses', 'Taux : ' + state.tauxImposition + '% ' + (augmenter ? '-8 POP +5 IE' : '+5 POP -5 IE'), augmenter ? false : true);
-  addExternalEvent('FINANCES : Taux d\'imposition fixe a ' + state.tauxImposition + '% par le Ministre des Finances.');
-}
-
-function doAutoriserManif() {
-  const pays = state.country || 'republic';
-  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.max(0, INDICES_NATIONAUX[pays].ISN - 5);
-  state.pop = Math.min(100, state.pop + 5);
-  updateUI();
-  showToast('Manifestation autorisee', '+5 POP -5 ISN.', true);
-}
-
-function doDissoudreAssemblee() {
-  state.pop = Math.max(0, state.pop - 10);
-  state.inf = Math.max(0, state.inf - 5);
-  const pays = state.country || 'republic';
-  if (INDICES_NATIONAUX?.[pays]) {
-    INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 5);
-    INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE - 5);
-  }
-  updateUI();
-  showToast('Assemblee dissoute !', 'Nouvelles elections declenchees. -10 POP -5 INF.', false);
-  addExternalEvent('DISSOLUTION : L\'Assemblee Nationale est dissoute. Nouvelles elections convoquees.');
-}
-
-function doGrevePNJ() {
-  const pays = state.country || 'republic';
-  if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE - 5);
-  updateUI();
-  showToast('Greve declenchee', 'Les travailleurs cessent le travail. -5 IE.', false);
-  addExternalEvent('GREVE : Mouvement social en cours. Impact economique.');
-}
-
-function doRecruterMilitants() {
-  state.inf = Math.min(100, state.inf + 3);
-  updateUI();
-  showToast('Militants recrutes', '+3 INF. Votre base de soutien se renforce.', true);
-  addJournalEntry('Recrutement de militants effectue.', 'event-info');
-}
-
-function doActeOfficiel() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 50;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({ type:'document', name:'Acte officiel de la mairie', icon:'ti-file-certificate', legal:true });
-  updateUI();
-  showToast('Acte delivre', 'Acte officiel ajoute a votre inventaire.', true);
-}
-
-// =====================
-// SYSTEME DE BUDGET DES INSTITUTIONS
-// =====================
-const BUDGET_DEFAULT = {
-  presidence: { solde: 50000, coutOrdre: 500 },
-  min_int:    { solde: 30000, coutOrdre: 400 },
-  min_fin:    { solde: 25000, coutOrdre: 300 },
-  min_just:   { solde: 20000, coutOrdre: 350 },
-  min_def:    { solde: 40000, coutOrdre: 600 },
-  min_info:   { solde: 15000, coutOrdre: 250 },
-  min_ae:     { solde: 20000, coutOrdre: 300 },
-  assemblee:  { solde: 35000, coutOrdre: 200 },
-  tribunal:   { solde: 20000, coutOrdre: 400 },
-  commissariat:{ solde: 25000, coutOrdre: 350 },
-  mairie:     { solde: 30000, coutOrdre: 250 }
-};
-
-// Repartition par defaut (%) - modifiable par le Ministre des Finances
-const REPARTITION_DEFAULT = {
-  presidence: 15, min_int: 8, min_fin: 6, min_just: 6,
-  min_def: 10, min_info: 5, min_ae: 6,
-  assemblee: 8, tribunal: 6, commissariat: 8, mairie: 12, reserve: 10
-};
-
 function getBudgetInstitution(inst) {
   if (!state.budgets) state.budgets = JSON.parse(JSON.stringify(BUDGET_DEFAULT));
   if (!state.budgets[inst]) state.budgets[inst] = { solde: 10000, coutOrdre: 300 };
@@ -1399,9 +884,6 @@ function alimenterBudgets() {
   state.reserve += Math.floor(recettesTotales * ((rep.reserve || 10) / 100));
 }
 
-// =====================
-// PREROGATIVES DU MAIRE
-// =====================
 function ouvrirFixerImpotsLocaux() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const taux = state.tauxImpositionLocal || 15;
@@ -1480,14 +962,6 @@ function doCampagneSecurite() {
   addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +10 ISN.');
 }
 
-const ACTES_OFFICIELS = [
-  { id:'acte_naissance',   name:'Acte de naissance fictif',       desc:'Identité alternative. Utile pour se fondre dans la masse.' },
-  { id:'certif_residence', name:'Certificat de résidence',        desc:'+10% réussite ordres administratifs locaux.' },
-  { id:'extrait_casier',   name:'Extrait de casier vierge',       desc:'Efface vos antécédents dans les archives locales.' },
-  { id:'permis_exercer',   name:'Permis d\'exercer une activité', desc:'Autorise l\'exploitation d\'un commerce dans la ville.' },
-  { id:'laissez_passer',   name:'Laissez-passer officiel',        desc:'+15 DIS dans la ville pendant 48h.' }
-];
-
 function ouvrirActeOfficielMairie() {
   document.getElementById('postes-modal-title').textContent = 'Délivrer un acte officiel';
   let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir l\'acte à délivrer :</div>';
@@ -1557,12 +1031,39 @@ function soumettreConte(idx) {
   addExternalEvent('ELECTORAL : ' + (state.char?.name||'Anonyme') + ' conteste les résultats de l\'élection : ' + e.nom);
 }
 
-// =====================
+function doControlDouanes() {
+  if (!state.recherche?.length) {
+    showToast('Contrôle', 'Contrôle routinier. Tout est en ordre. Bonne route.', true);
+    return;
+  }
+  const dis = state.char?.stats?.DIS || 50;
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
+  if (roll <= taux) {
+    showToast('Contrôle passé', 'L\'agent a regardé vos papiers sans trop y prêter attention. Ouf.', true);
+  } else {
+    showToast('Interception !', 'L\'agent a reconnu votre signalement. Vous êtes arrêté(e).', false);
+    addJournalEntry('Interception aux douanes.', 'event-bad');
+  }
+}
 
-// TAXI SPECIAL — CASERNE / QHS
-// =====================
-const ACCES_CASERNE = ['president', 'min_def', 'commissaire'];
-const ACCES_QHS = ['president', 'min_just', 'juge', 'commissaire', 'avocat'];
+function doCorrompreDoanier() {
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const dup = state.char?.stats?.DUP || 8;
+  const inf = state.inf || 0;
+  const taux = Math.max(5, 55 + Math.floor(dup/10) + Math.floor(inf/10) + 20); // +20 zone transport
+  if (roll <= taux) {
+    state.arg -= 300;
+    state.dis = Math.max(0, state.dis - 5);
+    updateUI();
+    showToast('Agent corrompu', 'L\'agent regarde ailleurs. -300 FR -5 DIS.', true);
+    addJournalEntry('Corruption douanière réussie.', 'event-bad');
+    checkDetection('corrompre_douanier', 'success');
+  } else {
+    showToast('Refus !', 'L\'agent n\'a pas mordu. Tentative notée.', false);
+    checkDetection('corrompre_douanier', 'fail');
+  }
+}
 
 function doTaxiSpecial(destination) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -1615,18 +1116,6 @@ function doTaxiSpecial(destination) {
   addJournalEntry('Taxi vers ' + label, 'event-info');
 }
 
-// =====================
-
-// FALSIFIER UN DOCUMENT
-// =====================
-const DOCUMENTS_FALSIFIABLES = [
-  { id:'fausse_identite',   name:'Fausse identite',          desc:'Change votre nom affiche dans le jeu temporairement.',     icon:'ti-id-badge' },
-  { id:'faux_casier',       name:'Faux casier judiciaire vierge', desc:'Efface vos antecedents judiciaires dans les archives.', icon:'ti-file-x' },
-  { id:'faux_permis',       name:'Faux permis de construire', desc:'Permet de construire sans passer par la mairie.',          icon:'ti-building' },
-  { id:'faux_contrat',      name:'Faux contrat commercial',   desc:'Legitime une transaction illegale ou un transfert.',       icon:'ti-file-text' },
-  { id:'fausse_convocation',name:'Fausse convocation officielle', desc:'Attire un PJ dans un lieu de votre choix.',           icon:'ti-mail' }
-];
-
 function ouvrirFalsifierDocument() {
   document.getElementById('postes-modal-title').textContent = 'Falsifier un document';
   let html = '<div style="padding:1rem">';
@@ -1674,10 +1163,86 @@ function confirmerFalsification(docId) {
   }
 }
 
-// =====================
+async function ouvrirRendreSentence() {
+  document.getElementById('postes-modal-title').textContent = 'Rendre la sentence';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
 
-// V28B — SYSTÈME DE LOCATION DE LOCAUX
-// =====================
+  // Charger depuis Supabase pour voir TOUTES les affaires transmises, par n'importe quel commissariat
+  if (typeof sbLoadPlaintes === 'function') {
+    try {
+      const toutes = await sbLoadPlaintes(state.country);
+      state.plaintesEnCours = toutes;
+    } catch(e) {}
+  }
+  const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];
+
+  let html = '<div style="padding:1rem">';
+  if (affaires.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en attente de jugement.</div>';
+  } else {
+    affaires.forEach((a) => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">Affaire : ' + a.cible + '</div>';
+      html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">' + a.motif + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SENTENCE</div>';
+      html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amende\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende (montant + repartition)</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'prison\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison (max 7 jours)</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amenagement\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'qhs\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function appliquerSentence(affaireId, type) {
+  const affaire = (state.plaintesEnCours||[]).find(p => p.id === affaireId);
+  if (!affaire) return;
+  affaire.status = 'jugee';
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  let details = '';
+
+  if (type === 'amende') {
+    const montant = 500;
+    details = 'Amende de ' + montant + ' ' + cur;
+  } else if (type === 'prison') {
+    const duree = 3;
+    details = 'Prison ' + duree + ' jours';
+    if (!state.prisonniers) state.prisonniers = [];
+    state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + duree });
+  } else if (type === 'amenagement') {
+    details = 'Amenagement : pointage quotidien au commissariat';
+  } else if (type === 'qhs') {
+    details = 'Envoi au QHS';
+    if (!state.prisonniers) state.prisonniers = [];
+    state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + 30, qhs: true });
+  }
+
+  if (!state.archivesJugements) state.archivesJugements = [];
+  state.archivesJugements.push({
+    accuse: affaire.cible,
+    motif: affaire.motif,
+    peine: details,
+    juge: state.char?.name || 'PNJ',
+    jour: state.day,
+    executee: false
+  });
+
+  if (typeof sbSavePlainte === 'function') await sbSavePlainte(affaire).catch(() => {});
+
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Sentence rendue', affaire.cible + ' : ' + details, true, true);
+  addExternalEvent('JUGEMENT : ' + affaire.cible + ' condamne(e) a : ' + details + ' (Juge : ' + (state.char?.name||'PNJ') + ')');
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    sbSendMail('Tribunal', affaire.cible, 'Resultat de votre affaire', 'La sentence a ete rendue : ' + details, time).catch(() => {});
+  }
+}
 
 function getLocationsActives() {
   if (!state.locationsActives) state.locationsActives = [];
@@ -1914,7 +1479,6 @@ function confirmerResiliation(idx) {
   if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
 }
 
-// Paiement des loyers au réveil
 function payerLocations() {
   const locations = state.locationsActives || [];
   if (locations.length === 0) return;
@@ -1991,7 +1555,6 @@ function expulserLocataire(idx) {
   addJournalEntry('Expulsion : ' + loc.localLabel + ' perdu pour loyer impayé.', 'event-bad');
 }
 
-// Vue d'ensemble des locations actives
 function ouvrirMesLocations() {
   const locations = (state.locationsActives || []).filter(l => l.locataire === state.char?.name);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -2036,11 +1599,6 @@ function ouvrirMesLocations() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-
-// =====================
-
-// V27 — DON D'ARGENT A UN PNJ
-// =====================
 function ouvrirDonPnjModal(encodedPnj) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
@@ -2146,9 +1704,6 @@ async function confirmerDonPnj(encodedPnj) {
   updateUI();
 }
 
-// =====================
-// V27 — DON D'OBJET A UN PNJ
-// =====================
 function ouvrirDonObjetPnjModal(encodedPnj) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
@@ -2201,12 +1756,6 @@ function confirmerDonObjetPnj(objIdx, encodedPnj) {
   if (pnj.isPJ) tracerActionPourRumeur('don_objet', nomCourt);
 }
 
-
-// =====================
-
-// FONCTIONS MANQUANTES — avec prélèvement
-// =====================
-
 function doAcheterEntreprise() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 8000;
@@ -2218,19 +1767,6 @@ function doAcheterEntreprise() {
   updateUI();
   showToast('Entreprise achetée !', '-' + cost.toLocaleString('fr-FR') + ' ' + cur + '. +5 POP +8 INF.', true);
   addJournalEntry('Achat entreprise. -' + cost.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
-}
-
-function doArreter() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 500;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  const isn = INDICES_NATIONAUX?.[state.country]?.ISN || 30;
-  INDICES_NATIONAUX[state.country] = INDICES_NATIONAUX[state.country] || {};
-  INDICES_NATIONAUX[state.country].ISN = Math.min(100, isn + 5);
-  updateUI();
-  showToast('Arrestation ordonnée', '-' + cost + ' ' + cur + '. +5 ISN.', false);
-  addJournalEntry('Ordre d\'arrestation. -' + cost + ' ' + cur + '.', 'event-bad');
 }
 
 function doCompteOffshore() {
@@ -2262,29 +1798,6 @@ function doCorrompreGardien() {
     showToast('Refus du gardien !', 'Il n\'a pas accepté. Argent perdu.', false);
     addJournalEntry('Corruption gardien échouée. -' + cost + ' ' + cur + '.', 'event-bad');
   }
-}
-
-function doDefense() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 300;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  state.dis = Math.min(100, (state.dis||50) + 8);
-  updateUI();
-  showToast('Défense renforcée', '-' + cost + ' ' + cur + '. +8 DIS. Votre sécurité est accrue.', true);
-  addJournalEntry('Défense renforcée. -' + cost + ' ' + cur + '.', 'event-good');
-}
-
-function doDinerAffaires() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 120;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  state.inf = Math.min(100, (state.inf||0) + 4);
-  state.moral = Math.min(100, (state.moral||50) + 3);
-  updateUI();
-  showToast('Dîner d\'affaires', '-' + cost + ' ' + cur + '. +4 INF +3 Moral.', true);
-  addJournalEntry('Dîner d\'affaires. -' + cost + ' ' + cur + '.', 'event-good');
 }
 
 function doFalsifierDocs() {
@@ -2351,30 +1864,6 @@ function doInvestir() {
   }
 }
 
-function doMarchander() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 100;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  state.inf = Math.min(100, (state.inf||0) + 3);
-  state.pop = Math.min(100, (state.pop||0) + 2);
-  updateUI();
-  showToast('Marchandage réussi', '-' + cost + ' ' + cur + '. +3 INF +2 POP.', true);
-  addJournalEntry('Marchandage. -' + cost + ' ' + cur + '.', 'event-good');
-}
-
-function doReunionPrivee() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 50;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  state.inf = Math.min(100, (state.inf||0) + 5);
-  state.dis = Math.min(100, (state.dis||50) + 3);
-  updateUI();
-  showToast('Réunion discrète', '-' + cost + ' ' + cur + '. +5 INF +3 DIS.', true);
-  addJournalEntry('Réunion privée. -' + cost + ' ' + cur + '.', 'event-info');
-}
-
 function doSocieteEcran() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 500;
@@ -2387,105 +1876,243 @@ function doSocieteEcran() {
 }
 
 
+// =====================
+// SYSTEME DE CONSTRUCTION (sur un terrain deja achete avec permis)
+// =====================
+const PRIX_TERRAIN = 25000;
+const NIVEAUX_CONSTRUCTION = {
+  hangar:            { label: 'Hangar',             cout: 30000 },
+  commerce_standard: { label: 'Commerce standard',  cout: 50000 },
+  commerce_premium:  { label: 'Commerce premium',   cout: 70000 },
+  building:          { label: 'Building',           cout: 100000 }
+};
 
-function supprimerItemInventaire(idx) {
-  if (!state.inventory[idx]) return;
-  const item = state.inventory[idx];
-  state.inventory.splice(idx, 1);
-  renderInventory();
-  showToast('Objet supprimé', item.name + ' retiré de l\'inventaire.', false);
+function getValeurTotaleBien(ts) {
+  if (!ts) return PRIX_TERRAIN;
+  const niveau = NIVEAUX_CONSTRUCTION[ts.niveau_construction];
+  return PRIX_TERRAIN + (niveau ? niveau.cout : 0);
 }
 
+async function ouvrirModalConstruire() {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-// =====================
-
-// =====================
-
-
-
-// =====================
-// RENDRE LA SENTENCE (complement tribunal)
-// =====================
-
-async function ouvrirRendreSentence() {
-  document.getElementById('postes-modal-title').textContent = 'Rendre la sentence';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
-  document.getElementById('modal-postes').classList.add('open');
-
-  // Charger depuis Supabase pour voir TOUTES les affaires transmises, par n'importe quel commissariat
-  if (typeof sbLoadPlaintes === 'function') {
-    try {
-      const toutes = await sbLoadPlaintes(state.country);
-      state.plaintesEnCours = toutes;
-    } catch(e) {}
+  if (ts.proprietaire !== state.char?.name) {
+    showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false);
+    return;
   }
-  const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];
+  if (!ts.constructionAutorisee) {
+    showToast('Permis requis', 'La construction n\'est pas autorisée sur ce terrain (permis manquant).', false);
+    return;
+  }
+  if (ts.niveau_construction) {
+    showToast('Déjà construit', 'Un bâtiment de type "' + (NIVEAUX_CONSTRUCTION[ts.niveau_construction]?.label||'') + '" existe déjà ici.', false);
+    return;
+  }
 
+  document.getElementById('postes-modal-title').textContent = 'Construire sur ce terrain';
   let html = '<div style="padding:1rem">';
-  if (affaires.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en attente de jugement.</div>';
-  } else {
-    affaires.forEach((a) => {
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
-      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">Affaire : ' + a.cible + '</div>';
-      html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">' + a.motif + '</div>';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SENTENCE</div>';
-      html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amende\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende (montant + repartition)</button>';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'prison\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison (max 7 jours)</button>';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amenagement\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'qhs\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
-      html += '</div></div>';
-    });
-  }
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le type de construction. Le coût s\'ajoute à la valeur de votre terrain (' + PRIX_TERRAIN.toLocaleString('fr-FR') + ' ' + cur + ').</div>';
+  Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
+    html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
+    html += '<div><div style="font-size:.85rem;color:#c0b090">' + niv.label + '</div><div style="font-size:.68rem;color:#6a5a30">' + niv.cout.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    html += '<button onclick="confirmerConstruction(&quot;' + key + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Construire</button>';
+    html += '</div>';
+  });
+  html += '<button onclick="ouvrirModalPretBancaire()" style="width:100%;margin-top:.6rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.5rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer">🏦 Faire un prêt bancaire</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
-async function appliquerSentence(affaireId, type) {
-  const affaire = (state.plaintesEnCours||[]).find(p => p.id === affaireId);
-  if (!affaire) return;
-  affaire.status = 'jugee';
-
+async function confirmerConstruction(niveauKey) {
+  const id = state.currentBuilding;
+  const niveau = NIVEAUX_CONSTRUCTION[niveauKey];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  let details = '';
+  if (!niveau) return;
 
-  if (type === 'amende') {
-    const montant = 500;
-    details = 'Amende de ' + montant + ' ' + cur;
-  } else if (type === 'prison') {
-    const duree = 3;
-    details = 'Prison ' + duree + ' jours';
-    if (!state.prisonniers) state.prisonniers = [];
-    state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + duree });
-  } else if (type === 'amenagement') {
-    details = 'Amenagement : pointage quotidien au commissariat';
-  } else if (type === 'qhs') {
-    details = 'Envoi au QHS';
-    if (!state.prisonniers) state.prisonniers = [];
-    state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + 30, qhs: true });
+  if (state.arg < niveau.cout) {
+    showToast('Fonds insuffisants', niveau.cout.toLocaleString('fr-FR') + ' ' + cur + ' requis. Pensez au prêt bancaire.', false);
+    return;
   }
 
-  if (!state.archivesJugements) state.archivesJugements = [];
-  state.archivesJugements.push({
-    accuse: affaire.cible,
-    motif: affaire.motif,
-    peine: details,
-    juge: state.char?.name || 'PNJ',
-    jour: state.day,
-    executee: false
+  state.arg -= niveau.cout;
+  const nouvelEtat = setTerrainState(id, {
+    niveau_construction: niveauKey,
+    valeur_totale: PRIX_TERRAIN + niveau.cout
   });
 
-  if (typeof sbSavePlainte === 'function') await sbSavePlainte(affaire).catch(() => {});
+  if (typeof sbSetTerrainState === 'function') {
+    await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  }
 
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Sentence rendue', affaire.cible + ' : ' + details, true, true);
-  addExternalEvent('JUGEMENT : ' + affaire.cible + ' condamne(e) a : ' + details + ' (Juge : ' + (state.char?.name||'PNJ') + ')');
-  if (typeof sbSendMail === 'function') {
-    const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-    sbSendMail('Tribunal', affaire.cible, 'Resultat de votre affaire', 'La sentence a ete rendue : ' + details, time).catch(() => {});
-  }
+  updateUI();
+  showToast('Construction achevée !', 'Vous avez construit : ' + niveau.label + '.', true, true);
+  addJournalEntry('Construction de "' + niveau.label + '" achevée. -' + niveau.cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
 }
 
 // =====================
+// PRET BANCAIRE
+// =====================
+function getTauxPret(typeBanque) {
+  const ie = INDICES_NATIONAUX?.[state.country]?.IE || 40;
+  return typeBanque === 'privee' ? (12 + ie / 10) : (5 + ie / 10);
+}
+
+async function ouvrirModalPretBancaire(typeBanque) {
+  typeBanque = typeBanque || 'nationale';
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const taux = getTauxPret(typeBanque);
+  const estPrivee = typeBanque === 'privee';
+
+  document.getElementById('postes-modal-title').textContent = estPrivee ? 'Prêt — Banque Privée Helvetia' : 'Prêt — Banque Nationale';
+  let html = '<div style="padding:1rem">';
+  if (estPrivee) {
+    html += '<div style="font-size:.78rem;color:#aa7a30;font-style:italic;margin-bottom:.8rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Aucune vérification. Discrétion garantie. En cas d\'impayé prolongé, la méthode de recouvrement est... directe.</div>';
+  }
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux applicable : ' + taux.toFixed(1) + '% sur la durée totale du prêt.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">MONTANT EMPRUNTÉ</div>';
+  html += '<input id="pret-montant" type="number" min="1000" step="1000" placeholder="Montant en ' + cur + '..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">DURÉE DE REMBOURSEMENT</div>';
+  html += '<select id="pret-duree" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+  [10,15,20,25,30].forEach(d => { html += '<option value="' + d + '">' + d + ' jours</option>'; });
+  html += '</select>';
+  html += '<button onclick="confirmerPretBancaire(&quot;' + typeBanque + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer">Contracter le prêt</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerPretBancaire(typeBanque) {
+  const montant = parseInt(document.getElementById('pret-montant')?.value || 0);
+  const duree = parseInt(document.getElementById('pret-duree')?.value || 10);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  if (!montant || montant < 1000) { showToast('Montant invalide', 'Minimum 1000 ' + cur + '.', false); return; }
+
+  const taux = getTauxPret(typeBanque);
+  const montantTotal = Math.round(montant * (1 + taux / 100));
+  const mensualite = Math.ceil(montantTotal / duree);
+
+  const pret = {
+    id: 'pret-' + Date.now(),
+    emprunteur: state.char?.name || 'Anonyme',
+    country: state.country,
+    building_id: state.currentBuilding || 'non_specifie',
+    type_banque: typeBanque || 'nationale',
+    montant_initial: montant,
+    montant_restant: montantTotal,
+    duree_jours: duree,
+    mensualite,
+    jours_impayes: 0,
+    jour_dernier_prelevement: state.day || 1,
+    statut: 'en_cours'
+  };
+
+  if (typeof sbCreerPret === 'function') {
+    await sbCreerPret(pret).catch(() => {});
+  }
+
+  state.arg = (state.arg || 0) + montant;
+  document.getElementById('modal-postes').classList.remove('open');
+  updateUI();
+  showToast('Prêt accordé !', '+' + montant.toLocaleString('fr-FR') + ' ' + cur + '. Mensualité : ' + mensualite.toLocaleString('fr-FR') + ' ' + cur + '/jour sur ' + duree + ' jours.', true, true);
+  addJournalEntry('Prêt bancaire de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' contracté (taux ' + taux.toFixed(1) + '%) — ' + (typeBanque === 'privee' ? 'Banque Privée' : 'Banque Nationale') + '.', 'event-info');
+}
+
+// Prelevement quotidien des prets en cours (appele au reveil, doDormir)
+async function preleverPretsBancaires() {
+  if (typeof sbGetPretsEnCours !== 'function' || !state.char?.name) return;
+  try {
+    const prets = await sbGetPretsEnCours(state.char.name);
+    if (!prets || prets.length === 0) return;
+    const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+    for (const pret of prets) {
+      if (pret.montant_restant <= 0) {
+        await sbUpdatePret(pret.id, { statut: 'remboursé' }).catch(() => {});
+        continue;
+      }
+
+      const aPayer = Math.min(pret.mensualite, pret.montant_restant);
+
+      if (state.arg >= aPayer) {
+        state.arg -= aPayer;
+        const nouveauRestant = pret.montant_restant - aPayer;
+        await sbUpdatePret(pret.id, {
+          montant_restant: nouveauRestant,
+          jours_impayes: 0,
+          jour_dernier_prelevement: state.day,
+          statut: nouveauRestant <= 0 ? 'remboursé' : 'en_cours'
+        }).catch(() => {});
+        addJournalEntry('Mensualité de prêt prélevée : -' + aPayer.toLocaleString('fr-FR') + ' ' + cur + '.', '');
+      } else {
+        // Impaye
+        const nouveauxJoursImpayes = (pret.jours_impayes || 0) + 1;
+        const estPrivee = pret.type_banque === 'privee';
+
+        if (!estPrivee) {
+          // ===== BANQUE NATIONALE — procedure legale classique =====
+          if (nouveauxJoursImpayes === 1) {
+            showToast('Impayé bancaire', 'Avertissement : mensualité de prêt non payée.', false);
+            addJournalEntry('⚠️ Mensualité de prêt impayée. Avertissement de la Banque Nationale.', 'event-bad');
+          } else if (nouveauxJoursImpayes === 2) {
+            const penalite = Math.round(pret.montant_restant * 0.10);
+            await sbUpdatePret(pret.id, { montant_restant: pret.montant_restant + penalite }).catch(() => {});
+            showToast('Mise en demeure', '+' + penalite.toLocaleString('fr-FR') + ' ' + cur + ' de pénalité (10%).', false);
+            addJournalEntry('⚠️⚠️ Mise en demeure de la Banque Nationale. +' + penalite.toLocaleString('fr-FR') + ' ' + cur + ' de pénalité.', 'event-bad');
+          } else if (nouveauxJoursImpayes === 3) {
+            showToast('ULTIMATUM', 'Remboursez l\'intégralité de la dette avant minuit ou perdez le bien !', false);
+            addJournalEntry('🚨 ULTIMATUM de la Banque Nationale : remboursement intégral exigé avant minuit, sous peine de saisie.', 'event-bad');
+          } else if (nouveauxJoursImpayes >= 4) {
+            await sbUpdatePret(pret.id, { statut: 'saisi' }).catch(() => {});
+            if (typeof sbGetTerrainState === 'function' && typeof sbSetTerrainState === 'function') {
+              const etatActuel = await sbGetTerrainState(pret.country, pret.building_id).catch(() => null);
+              const valeurReelle = getValeurTotaleBien(etatActuel || {});
+              await sbSetTerrainState(pret.country, pret.building_id, {
+                ...(etatActuel || {}),
+                proprietaire: null,
+                coproprietaire: null,
+                enVenteParBanque: true,
+                prixVenteBanque: Math.round(valeurReelle * 0.7)
+              }).catch(() => {});
+            }
+            showToast('SAISIE', 'La Banque Nationale a saisi votre bien pour non-remboursement.', false, true);
+            addJournalEntry('🏦 SAISIE BANCAIRE : votre bien a été repris par la Banque Nationale et sera remis en vente.', 'event-bad');
+            addExternalEvent('🏦 Un bien a été saisi par la Banque Nationale pour défaut de paiement.', 'local');
+            continue;
+          }
+        } else {
+          // ===== BANQUE PRIVEE — intimidation puis expropriation violente =====
+          if (nouveauxJoursImpayes === 1 || nouveauxJoursImpayes === 2 || nouveauxJoursImpayes === 3) {
+            const fraisRappel = Math.round(pret.mensualite * 0.15);
+            state.arg = Math.max(0, (state.arg || 0) - fraisRappel);
+            state.moral = Math.max(0, (state.moral || 75) - 10);
+            await sbUpdatePret(pret.id, { montant_restant: pret.montant_restant + fraisRappel }).catch(() => {});
+            showToast('Visite désagréable', 'Des hommes de la Banque Privée sont passés. -' + fraisRappel.toLocaleString('fr-FR') + ' ' + cur + ', -10 Moral.', false);
+            addJournalEntry('😰 Visite d\'intimidation de la Banque Privée. -' + fraisRappel.toLocaleString('fr-FR') + ' ' + cur + ', -10 Moral.', 'event-bad');
+          } else if (nouveauxJoursImpayes >= 4) {
+            await sbUpdatePret(pret.id, { statut: 'saisi' }).catch(() => {});
+            if (typeof sbGetTerrainState === 'function' && typeof sbSetTerrainState === 'function') {
+              const etatActuel = await sbGetTerrainState(pret.country, pret.building_id).catch(() => null);
+              await sbSetTerrainState(pret.country, pret.building_id, {
+                ...(etatActuel || {}),
+                proprietaire: null,
+                coproprietaire: null,
+                enVenteParBanque: false // pas de revente publique, le bien disparait simplement
+              }).catch(() => {});
+            }
+            state.moral = Math.max(0, (state.moral || 75) - 20);
+            showToast('EXPROPRIATION', 'Des hommes se sont présentés et ont pris les clés. Le bien a disparu.', false, true);
+            addJournalEntry('🔪 La Banque Privée a procédé à une expropriation violente. Vous avez perdu le bien sans recours possible. -20 Moral.', 'event-bad');
+            continue;
+          }
+        }
+
+        await sbUpdatePret(pret.id, { jours_impayes: nouveauxJoursImpayes, jour_dernier_prelevement: state.day }).catch(() => {});
+      }
+    }
+  } catch(e) { console.warn('preleverPretsBancaires error', e); }
+}
