@@ -864,3 +864,41 @@ function toggleInventaire() {
 }
 
 // =====================
+
+
+// =====================
+// REGLES DU JEU (vues)
+// =====================
+
+function openRulesView() {
+  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
+  document.getElementById('vue-rules').classList.add('active');
+  renderRulesContent('intro');
+}
+
+function closeRulesView() {
+  document.getElementById('vue-rules').classList.remove('active');
+  if (state.currentBuilding) {
+    document.getElementById('vue-batiment').classList.add('active');
+  } else {
+    document.getElementById('vue-rue').classList.add('active');
+  }
+}
+
+function renderRulesContent(section) {
+  const regle = REGLES[section];
+  if (!regle) return;
+
+  document.querySelectorAll('.rules-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.rules-tab').forEach(t => {
+    if (t.dataset.section === section) t.classList.add('active');
+  });
+
+  const content = document.getElementById('rules-content');
+  if (!content) return;
+  content.innerHTML = '<div style="padding:1.5rem;max-width:700px">' +
+    '<div style="font-family:Playfair Display,serif;font-size:1.3rem;color:#C9A84C;margin-bottom:1rem">' + regle.titre + '</div>' +
+    '<div style="font-size:.88rem;color:#a0a080;line-height:1.9;white-space:pre-line">' + regle.contenu + '</div>' +
+    '</div>';
+}
+

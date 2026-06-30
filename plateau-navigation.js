@@ -167,9 +167,23 @@ function enterBuilding(buildingId) {
   if (!b) return;
 
   if (b.locked) {
-    showToast('Acces restreint', "Vous n'tes pas membre de cet etablissement.", false);
-    addJournalEntry(`Vous tentez d'entrer mais l'acces vous est refuse.`, 'event-bad');
+    showToast('Accès restreint', "Vous n'êtes pas membre de cet établissement.", false);
+    addJournalEntry("Vous tentez d'entrer mais l'accès vous est refusé.", 'event-bad');
     return;
+  }
+
+  // Controle acces loge maconnique — necessite d'etre membre d'une organisation de type 'loge'
+  if (b.requiresMembership === 'loge') {
+    const orgas = state.organisations || [];
+    const estMembre = orgas.some(o => o.type === 'loge' && o.statut === 'actif');
+    if (!estMembre) {
+      showToast('Accès refusé', "Vous devez être membre d'une loge pour entrer ici.", false);
+      addJournalEntry("Vous tentez d'entrer dans la loge mais un portier vous barre la route.", 'event-bad');
+      if (typeof logeDemanderAdhesion === 'function') {
+        setTimeout(() => logeDemanderAdhesion(), 500);
+      }
+      return;
+    }
   }
 
   state.currentBuilding = buildingId;
@@ -266,9 +280,6 @@ function enterRoom(buildingId, roomId, tabEl) {
 
   // Charger les objets abandonnes visibles dans cette piece
   if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
-
-  // Reinitialiser le chat de piece (rien a garder en changeant de piece)
-  if (typeof reinitialiserChatPiece === 'function') reinitialiserChatPiece();
 
   // Update tabs
   if (tabEl) {

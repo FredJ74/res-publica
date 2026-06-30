@@ -1091,3 +1091,54 @@ const BONUS_CARRIERE_VOL = {
   magistrat: -10, lawyer: -10, officer: -10, clergy: -10, civil: -10, doctor: -10
   // toutes les autres carrieres : 0 (neutre)
 };
+
+
+function checkDetection(fn, resultType) {
+  const acte = ACTES_ILLEGAUX[fn];
+  if (!acte) return;
+  if (resultType === 'fail' || resultType === 'crit-fail') return; // Pas d'acte = pas de detection
+
+  // Immunite selon poste
+  const posteId = state.poste?.id;
+  if (posteId === 'president') return; // Immunite totale
+  if (['pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(posteId)) {
+    if (acte.type === 'delit_mineur') return; // Immunite partielle ministres
+  }
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const tauxDetect = Math.max(5, acte.detectRate - Math.floor(state.dis / 10));
+
+  if (roll <= tauxDetect) {
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte: fn, type: acte.type, jour: state.day });
+    addExternalEvent('ALERTE : Votre activite illegale (' + fn.replace(/_/g,' ') + ') a ete detectee. Vous etes recherche(e).');
+    state.dis = Math.max(0, state.dis - 10);
+    updateUI();
+  }
+}
+
+function checkArrestationAuDeplacement() {
+  if (!state.recherche || state.recherche.length === 0) return;
+  const alerteMax = state.recherche.reduce((max, r) => {
+    const peine = PEINES[r.type];
+    return peine && peine.jours > (PEINES[max]?.jours||0) ? r.type : max;
+  }, 'delit_mineur');
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const tauxInter = Math.max(5, 30 - Math.floor(state.dis / 5));
+
+  if (roll <= tauxInter) {
+    ouvrirModalArrestation(alerteMax);
+  }
+}
+
+function doSesoigner() {
+  const medocs = (state.inventory || []).filter(i => i.type === 'medicament');
+  if (medocs.length === 0) { showToast('Aucun medicament', '', false); return; }
+  const idx = state.inventory.indexOf(medocs[0]);
+  state.inventory.splice(idx, 1);
+  state.hp = Math.min(100, state.hp + 20);
+  updateUI();
+  showToast('Soins', '+20 Sante. ' + (state.inventory.filter(i=>i.type==='medicament').length) + ' medicament(s) restant(s).', true);
+  switchSelfTab('inventaire', null);
+}

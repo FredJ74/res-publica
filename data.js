@@ -144,6 +144,7 @@ const WORLD = {
           persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png", "photoPos": "62% 20%"}]
         },
         'loge-maconnique': {
+          requiresMembership: 'loge',
           name: "Loge Maçonnique de Luthecia",
           desc: "Frère Jacques D'Equerre parle uniquement en métaphores géométriques.",
           persons: [{"name": "Frère Jacques D'Equerre (PNJ)", "role": "Grand Maître", "rel": "neutral", "job": "loge"}, {"name": "Frère Maurice Compas (PNJ)", "role": "Trésorier", "rel": "neutral", "job": "loge"}]
@@ -309,6 +310,7 @@ const WORLD = {
           persons: [{"name": "El Editor (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Periodista Miedo (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
         },
         'loge-maconnique': {
+          requiresMembership: 'loge',
           name: 'Club de los Elegidos',
           desc: "Membres non divulgués. Meetings non confirmés.",
           persons: [{"name": "El Gran Maestro (PNJ)", "role": "Grand Maître", "rel": "neutral", "job": "loge"}]
@@ -502,6 +504,7 @@ const WORLD = {
           persons: [{"name": "Rédacteur Vérité (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Correspondant Parti (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
         },
         'loge-maconnique': {
+          requiresMembership: 'loge',
           name: 'Cercle des Camarades',
           desc: "Officiellement un club de lecture. En réalité, le vrai pouvoir de Sovarka.",
           persons: [{"name": "Camarade Grand Maître (PNJ)", "role": "Président du Cercle", "rel": "neutral", "job": "loge"}]
@@ -705,6 +708,7 @@ const WORLD = {
           persons: [{"name": "Rédacteur Al-Vérité (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}, {"name": "Correspondant Royal (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
         },
         'loge-maconnique': {
+          requiresMembership: 'loge',
           name: 'Cercle des Sages',
           desc: "Influence considérable sur les décisions royales.",
           persons: [{"name": "Sage Al-Ancien (PNJ)", "role": "Président du Cercle", "rel": "neutral", "job": "loge"}]
@@ -1587,6 +1591,7 @@ const BUILDINGS = {
 
   // ---- LOGE MACONNIQUE ----
   'loge-maconnique': {
+    requiresMembership: 'loge',
     name: "Loge Maconnique",
     shortName: "La Loge",
     cat: "Reseau secret",

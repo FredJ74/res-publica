@@ -1429,11 +1429,27 @@ function ouvrirPhotoCadavre(jsonStr) {
 
 // ORGANIGRAMME
 // =====================
-function ouvrirOrganigramme() {
+async function ouvrirOrganigramme() {
   const postes = POSTES[state.country];
   if (!postes) return;
   const co = COUNTRIES[state.country];
   const myName = state.char?.name || '';
+
+  // Lire les vrais titulaires depuis Supabase (source de verite partagee)
+  let joueurs = [];
+  if (typeof sbListPersonnages === 'function') {
+    try { joueurs = (await sbListPersonnages() || []).filter(j => j.country === state.country); } catch(e) {}
+  }
+
+  const getTitulaire = (posteId) => {
+    if (state.poste?.id === posteId) return myName; // moi-meme
+    const j = joueurs.find(j => {
+      let p = null;
+      try { p = typeof j.poste === 'string' ? JSON.parse(j.poste) : j.poste; } catch(e) {}
+      return p?.id === posteId;
+    });
+    return j?.name || null;
+  };
 
   const sections = [
     { title: 'Exécutif', postes: postes.capitale || [] },
@@ -1448,15 +1464,11 @@ function ouvrirOrganigramme() {
   document.getElementById('postes-body').innerHTML = sections.map(s => `
     <div style="padding:.5rem 1rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;border-bottom:1px solid #2a2010;margin-top:.3rem">${s.title}</div>
     ${s.postes.map(p => {
-      // Vérifier si le joueur courant occupe ce poste
-      const isMe = state.poste?.id === p.id;
-      const holderName = isMe ? myName : p.holder;
-      const isPJ = holderName && !holderName.startsWith('PNJ');
+      const holderName = getTitulaire(p.id);
+      const isMe = holderName === myName;
       const holderLabel = !holderName
         ? '<span style="color:#4a4030;font-style:italic">Vacant</span>'
-        : holderName.startsWith('PNJ')
-          ? '<span style="color:#4a4030">PNJ</span>'
-          : `<span style="color:${isMe ? '#C9A84C' : '#4a8a4a'}">${holderName}${isMe ? ' ✦' : ''}</span>`;
+        : `<span style="color:${isMe ? '#C9A84C' : '#4a8a4a'}">${holderName}${isMe ? ' ✦' : ''}</span>`;
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 1rem;border-bottom:1px solid #1a1810">
         <div style="font-size:.78rem;color:#c0b090">${p.name}</div>
         <div style="font-size:.75rem">${holderLabel}</div>
