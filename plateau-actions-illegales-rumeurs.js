@@ -180,7 +180,7 @@ function ouvrirModalAssassinat(encodedCible) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerAssassinatArme(encodedCible, mode, taux) {
+async function confirmerAssassinatArme(encodedCible, mode, taux) {
   document.getElementById('modal-postes').classList.remove('open');
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
@@ -190,19 +190,43 @@ function confirmerAssassinatArme(encodedCible, mode, taux) {
 
   const roll = Math.floor(Math.random() * 100) + 1;
 
-  if (roll <= taux) {
-    // Succes
-    if (mode === 'feu') state.dis = Math.max(0, state.dis - 20);
+  // 4 paliers de resultat, repartis sur l'echelle du taux de reussite
+  // roll <= taux/2            -> reussite totale (PV a 0)
+  // taux/2 < roll <= taux     -> reussite partielle (PV a 25)
+  // taux < roll <= taux + (100-taux)/2  -> echec partiel, demasque (PV a 50)
+  // au-dela                  -> echec total, demasque (pas de perte de PV)
+  const seuilReussiteTotale = taux / 2;
+  const seuilReussitePartielle = taux;
+  const seuilEchecPartiel = taux + (100 - taux) / 2;
 
-    // Marquer la cible comme assassinee
+  let palier, pvCible, reussi;
+  if (roll <= seuilReussiteTotale) { palier = 'totale'; pvCible = 0; reussi = true; }
+  else if (roll <= seuilReussitePartielle) { palier = 'partielle'; pvCible = 25; reussi = true; }
+  else if (roll <= seuilEchecPartiel) { palier = 'echec_partiel'; pvCible = 50; reussi = false; }
+  else { palier = 'echec_total'; pvCible = null; reussi = false; }
+
+  if (mode === 'feu') state.dis = Math.max(0, state.dis - 20);
+
+  if (reussi) {
+    // Marquer la cible comme attaquee (cote attaquant, pour son propre suivi)
     if (!state.assassinats) state.assassinats = [];
-    state.assassinats.push({ cible: cible.name, jour: state.day, mode, decouvert: false });
+    state.assassinats.push({ cible: cible.name, jour: state.day, mode, palier, decouvert: false });
 
-    // Effets sur la cible si PJ simule
+    // Transmission REELLE des PV a la victime
+    // - PJ simule : effet direct
+    // - Vrai PJ : passe par le systeme d'impact differe (applique a sa prochaine connexion)
     const pjSimule = state.pjSimules?.find(p => p.name === cible.name);
     if (pjSimule) {
-      pjSimule.resources.hp = 5;
+      pjSimule.resources.hp = pvCible;
       pjSimule.estAssassine = { jour: state.day, ville: state.currentCity };
+    } else if (cible.isPJ && typeof sbDeposerImpactIndice === 'function') {
+      await sbDeposerImpactIndice({
+        id: 'agression-' + Date.now(),
+        victime: cible.name,
+        indice: 'hp_set',
+        delta: pvCible,
+        traite: false
+      }).catch(() => {});
     }
 
     // Reduction population si PNJ
@@ -211,15 +235,29 @@ function confirmerAssassinatArme(encodedCible, mode, taux) {
       if (pop) pop.total = Math.max(0, pop.total - 1);
     }
 
-    showToast('Acte commis', cible.name + ' est grièvement blesse(e). Vous n\'etes pas identifie(e).', false);
-    addJournalEntry('Vous avez attaque ' + cible.name + ' (' + mode + '). Non identifie(e) pour l\'instant.', 'event-bad');
+    const messagePalier = palier === 'totale'
+      ? cible.name + ' s\'effondre, gravement blesse(e). Vous n\'etes pas identifie(e).'
+      : cible.name + ' est blesse(e) mais reste consciente. Vous n\'etes pas identifie(e).';
+    showToast('Acte commis', messagePalier, false);
+    addJournalEntry('Vous avez attaque ' + cible.name + ' (' + mode + ', reussite ' + palier + '). Non identifie(e) pour l\'instant.', 'event-bad');
     tracerActionPourRumeur('assassinat', cible.name.replace(' (PNJ)',''));
 
-    // Detection potentielle
+    // Detection potentielle (peut mener a une enquete et une detention preventive en cas de decouverte)
     checkDetection('assassiner_' + mode, 'success');
 
   } else {
-    // Echec — arrested
+    if (palier === 'echec_partiel' && cible.isPJ && typeof sbDeposerImpactIndice === 'function') {
+      // Echec partiel : la cible est quand meme legerement blessee, meme si l'attaque echoue globalement
+      await sbDeposerImpactIndice({
+        id: 'agression-' + Date.now(),
+        victime: cible.name,
+        indice: 'hp_set',
+        delta: pvCible,
+        traite: false
+      }).catch(() => {});
+    }
+    // Echec — identifie sur le coup, arrestation immediate (pas de detention preventive ici,
+    // c'est une prise sur le fait, pas une enquete ulterieure)
     addExternalEvent('Tentative d\'homicide sur ' + cible.name + ' ! Vous avez ete identifie(e). Arrestation imminente.');
     state.recherche = [{ acte: 'tentative_homicide', type: 'crime', jour: state.day }];
     setTimeout(() => ouvrirModalArrestation('crime'), 800);

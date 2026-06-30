@@ -959,7 +959,7 @@ const BUILDINGS = {
         image: "🍽️",
         imageBg: "linear-gradient(135deg,#1a1005,#2a1a08)",
         desc: "La salle de restaurant est bondee le midi. Tables discretes en fond de salle pour conversations privees.",
-        imageUrl: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/banque-privee-helvetia-bureau.png",
         persons: [
           {name:'Paulo (Maitre d\'hotel)', role:'PNJ - Service', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gaston-sauceblanche.png', photoPos:'50% 15%'},
           {name:'Jean Dupont (PNJ)',       role:'Depute - Parti du Centre', rel:'neutral', job:'commercant', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'20% 30%'},
@@ -1540,9 +1540,8 @@ const BUILDINGS = {
       },
       prison: {
         name: "Cellules de garde a vue",
-        imageBg: "linear-gradient(135deg,#0a0a10,#101018)",
-        desc: "Les cellules de garde a vue du commissariat. Froid, humide, deprimant.",
-        imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
+        desc: "Les cellules de garde à vue du commissariat. Froid, humide, déprimant.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cellule-garde-a-vue-luthecia.png",
         persons: [
           {name:'Gardien Dubois', role:'PNJ - Gardien de cellule', rel:'neutral', job:'gardien'}
         ],

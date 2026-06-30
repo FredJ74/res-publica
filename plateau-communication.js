@@ -921,14 +921,35 @@ async function recupererImpactsEnAttente() {
       if (imp.indice === 'pop') { state.pop = Math.max(0, Math.min(100, (state.pop || 0) + imp.delta)); resume.push(imp.delta + ' POP'); }
       if (imp.indice === 'inf') { state.inf = Math.max(0, Math.min(100, (state.inf || 0) + imp.delta)); resume.push(imp.delta + ' INF'); }
       if (imp.indice === 'dis') { state.dis = Math.max(0, Math.min(100, (state.dis || 50) + imp.delta)); resume.push(imp.delta + ' DIS'); }
+      if (imp.indice === 'hp_set') {
+        // Attaque recue (assassinat/empoisonnement) — valeur absolue, pas un delta
+        state.hp = Math.max(0, imp.delta);
+        state.regenJour = state.day; // demarre la regeneration naturelle (+10/jour)
+        resume.push('⚔️ Agression ! PV tombés à ' + imp.delta);
+      }
       if (typeof sbMarquerImpactTraite === 'function') await sbMarquerImpactTraite(imp.id).catch(() => {});
     }
     if (resume.length > 0) {
       updateUI();
-      addJournalEntry('Des événements ont affecté vos indices : ' + resume.join(', ') + '.', 'event-bad');
-      showToast('Indices modifiés', resume.join(', '), false, true);
+      const agrappe = resume.some(r => r.includes('Agression'));
+      if (agrappe) {
+        showToast('Agression !', 'Vous avez été attaqué(e). PV : ' + state.hp + '. Récupération : +10/jour.', false, true);
+        addJournalEntry('Vous avez été victime d\'une agression. Vos PV sont tombés à ' + state.hp + '.', 'event-bad');
+      } else {
+        addJournalEntry('Des événements ont affecté vos indices : ' + resume.join(', ') + '.', 'event-bad');
+        showToast('Indices modifiés', resume.join(', '), false, true);
+      }
     }
   } catch(e) { console.warn('recupererImpactsEnAttente error', e); }
+}
+
+// Regeneration naturelle des PV (+10/jour) apres une agression — appelee a minuit dans runMidnightUpdate
+function appliquerRegenerationNaturelle() {
+  if (!state.regenJour) return;
+  if ((state.hp || 0) >= 100) { state.regenJour = null; return; }
+  state.hp = Math.min(100, (state.hp || 0) + 10);
+  if (state.hp >= 100) state.regenJour = null;
+  addJournalEntry('Régénération naturelle : +10 PV. PV actuels : ' + state.hp + '.', 'event-info');
 }
 
 // Archives police — liste des prisonniers

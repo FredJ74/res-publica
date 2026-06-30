@@ -121,7 +121,10 @@ const ACTES_ILLEGAUX = {
   tentative_evasion:  { type: 'crime',         detectRate: 90 },
   se_rebeller:        { type: 'delit_mineur',  detectRate: 60 },
   fausse_rumeur:      { type: 'delit_mineur',  detectRate: 35 },
-  vol:                { type: 'delit_mineur',  detectRate: 30 }
+  vol:                { type: 'delit_mineur',  detectRate: 30 },
+  assassiner_mains:   { type: 'crime',         detectRate: 30 },
+  assassiner_arme:    { type: 'crime',         detectRate: 40 },
+  assassiner_feu:     { type: 'crime',         detectRate: 60 }
 };
 
 const BUDGET_DEFAULT = {
@@ -479,6 +482,8 @@ function runMidnightUpdate() {
       addJournalEntry(`Mise a jour minuit : recettes fiscales de ${totalRevenue.toLocaleString('fr-FR')} versees au tresor national.`, 'event-info');
     }
   }
+  // Regeneration naturelle des PV si le joueur a ete agresse
+  if (typeof appliquerRegenerationNaturelle === 'function') appliquerRegenerationNaturelle();
   addJournalEntry(`Nouveau jour : Jour ${state.day}. La ville s'eveille.`, 'event-info');
   updateClock();
 }
