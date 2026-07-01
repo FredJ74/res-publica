@@ -375,12 +375,23 @@ function switchSelfTab(tab, el) {
       html += '<div style="font-size:.8rem;color:#3a3020;font-style:italic">Aucun objet en votre possession.</div>';
     } else {
       items.forEach((item, i) => {
-        html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem .3rem;border-bottom:1px solid #1a1810">';
-        html += '<div style="display:flex;align-items:center;gap:.4rem"><i class="ti ' + (item.icon||'ti-package') + '" style="font-size:.9rem;color:#8a6a20"></i><div>';
-        html += '<div style="font-size:.8rem;color:#c0b090">' + item.name + '</div>';
-        html += '<div style="font-size:.65rem;color:#4a4030">' + (item.legal !== undefined ? (item.legal ? 'Legal' : 'Non enregistre') : '') + '</div>';
-        html += '</div></div>';
-        html += '<button onclick="dropItem(' + i + ')" style="font-size:.65rem;color:#6a3020;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem">Jeter</button>';
+        const hasImage = item.imageUrl && item.imageUrl.length > 5;
+        html += '<div style="display:flex;align-items:center;gap:.5rem;padding:.5rem .3rem;border-bottom:1px solid #1a1810;cursor:pointer" onclick="ouvrirDetailObjet(' + i + ')">';
+        // Miniature ou icone
+        if (hasImage) {
+          html += '<div style="width:44px;height:44px;flex-shrink:0;overflow:hidden;border:1px solid #2a2010;background:#0a0805">';
+          html += '<img src="' + item.imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
+          html += '</div>';
+        } else {
+          html += '<div style="width:44px;height:44px;flex-shrink:0;background:#0a0805;border:1px solid #2a2010;display:flex;align-items:center;justify-content:center">';
+          html += '<i class="ti ' + (item.icon||'ti-package') + '" style="font-size:1.1rem;color:#8a6a20"></i>';
+          html += '</div>';
+        }
+        html += '<div style="flex:1;min-width:0">';
+        html += '<div style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + '</div>';
+        html += '<div style="font-size:.65rem;color:#4a4030">' + (item.legal !== undefined ? (item.legal ? 'Légal' : 'Non enregistré') : '') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
+        html += '</div>';
+        html += '<button onclick="event.stopPropagation();dropItem(' + i + ')" style="font-size:.65rem;color:#6a3020;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Jeter</button>';
         html += '</div>';
       });
     }
@@ -865,6 +876,43 @@ function toggleInventaire() {
 
 // =====================
 
+
+// =====================
+// DETAIL OBJET INVENTAIRE
+// =====================
+function ouvrirDetailObjet(idx) {
+  const item = (state.inventory || [])[idx];
+  if (!item) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  document.getElementById('postes-modal-title').textContent = item.name;
+  let html = '<div style="padding:0">';
+  if (item.imageUrl) {
+    html += '<div style="width:100%;height:200px;overflow:hidden;background:#0a0805">';
+    html += '<img src="' + item.imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
+    html += '</div>';
+  }
+  html += '<div style="padding:1rem">';
+  if (item.desc) {
+    html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">' + item.desc + '</div>';
+  }
+  html += '<div style="font-size:.68rem;color:#4a4030;margin-bottom:.8rem">';
+  html += (item.legal ? '✓ Légal' : '✗ Non enregistré');
+  if (item.usageUnique) html += ' · Usage unique';
+  html += '</div>';
+  html += '<div style="display:flex;gap:.5rem">';
+  if (item.type === 'poison') {
+    html += '<button onclick="ouvrirModalEmpoisonner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Utiliser</button>';
+  }
+  if (item.type === 'medicament') {
+    html += '<button onclick="doSesoigner();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Utiliser (+20 PV)</button>';
+  }
+  html += '<button onclick="dropItem(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #3a2a10;background:transparent;color:#4a4030;cursor:pointer">Jeter</button>';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>';
+  html += '</div></div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
 
 // =====================
 // REGLES DU JEU (vues)

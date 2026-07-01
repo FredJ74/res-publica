@@ -526,11 +526,57 @@ const POISON_OBJETS = {
   vipere:    { name:'Vipère des sables',  icon:'ti-bug',         cout:350, empire:'khalija',  msg:'Une petite boîte percée. On entend un léger sifflement.' }
 };
 
+// Descriptions parodiques etendues par objet pour le modal d'achat
+const POISON_DESC_PARODIQUE = {
+  parapluie: 'Roger Détente pose l\'objet sur le comptoir sans un mot. Il a la discrétion d\'un homme qui a tout vu, tout su, et surtout tout oublié. Le parapluie est noir, orné de petites têtes de mort dorées — pour le style, précise-t-il. La pointe, elle, ne se commente pas. Usage unique. Garantie non incluse.',
+  polonium: 'Camarade Kalachnikov sort le contenant d\'un tiroir blindé avec des gants en plomb. Il vous regarde avec l\'expression d\'un homme qui sait exactement ce que vous allez en faire. Il approuve. Il sourit même, légèrement. Pour la gloire du Parti, murmure-t-il. Ne pas secouer. Ne pas ouvrir. Ne pas mettre dans la même poche que votre téléphone.',
+  ghb: 'Carlos glisse le petit flacon sous le comptoir avec la dextérité d\'un prestidigitateur et l\'innocence d\'un pharmacien. Inodore. Incolore. Et surtout : parfaitement introuvable dans un verre de sangria. Il ne pose aucune question. Vous non plus. C\'est ce qui fait de vous deux de bonnes personnes.',
+  vipere: 'Hassan vous tend la boîte en carton avec un sourire aussi large que son ignorance des lois sanitaires. On entend un léger sifflement de l\'intérieur. Elle a mangé ce matin, précise-t-il en guise de garantie. Ne pas mettre dans votre poche. Ne pas laisser sans surveillance. Ne pas appeler le service après-vente.'
+};
+
 function doAcheterPoisonObjet(type) {
   const obj = POISON_OBJETS[type];
   if (!obj) return;
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
+
+  // Afficher le modal d'achat avec image et description parodique
+  const desc = POISON_DESC_PARODIQUE[type] || obj.msg;
+  const imageUrl = {
+    parapluie: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/parapluie-republicain.png',
+    polonium:  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/polonium-sovarka.png',
+    ghb:       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ghb-narco.jpg',
+    vipere:    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vipere-des-sables-khalija.png'
+  }[type] || '';
+
+  document.getElementById('postes-modal-title').textContent = obj.name;
+  let html = '<div style="padding:0">';
+  if (imageUrl) {
+    html += '<div style="width:100%;height:200px;overflow:hidden;background:#0a0805">';
+    html += '<img src="' + imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
+    html += '</div>';
+  }
+  html += '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">' + desc + '</div>';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem;background:#0a0805;border:1px solid #2a2010;margin-bottom:.8rem">';
+  html += '<span style="font-size:.75rem;color:#6a5a30">Prix</span>';
+  html += '<span style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + obj.cout.toLocaleString('fr-FR') + ' ' + cur + '</span>';
+  html += '</div>';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<button onclick="confirmerAchatPoison(&quot;' + type + '&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Acheter</button>';
+  html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#4a4030;cursor:pointer">Renoncer</button>';
+  html += '</div></div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerAchatPoison(type) {
+  const obj = POISON_OBJETS[type];
+  if (!obj) return;
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+
+  document.getElementById('modal-postes').classList.remove('open');
 
   if (state.arg < obj.cout) { showToast('Fonds insuffisants', obj.cout + ' ' + cur + ' requis.', false); return; }
 
@@ -539,7 +585,13 @@ function doAcheterPoisonObjet(type) {
   state.inventory.push({
     type: 'poison', name: obj.name, icon: obj.icon,
     poisonType: type, legal: false, usageUnique: true,
-    desc: obj.msg
+    desc: obj.msg,
+    imageUrl: {
+      parapluie: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/parapluie-republicain.png',
+      polonium:  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/polonium-sovarka.png',
+      ghb:       'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ghb-narco.jpg',
+      vipere:    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vipere-des-sables-khalija.png'
+    }[type] || ''
   });
   updateUI();
   showToast('Objet acquis', obj.name + ' ajouté à votre inventaire. Usage unique.', true, true);
