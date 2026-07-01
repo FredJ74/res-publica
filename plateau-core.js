@@ -591,6 +591,11 @@ function addJournalEntry(text, cls) {
   div.innerHTML = `<span class="journal-time">Jour ${state.day} · ${h}h00</span>
     <span class="journal-text ${cls||''}">${text}</span>`;
   j.insertBefore(div, j.firstChild);
+  // Signaler les evenements importants (mauvaises nouvelles, événements externes)
+  const important = ['event-bad', 'event-secret', 'event-external'];
+  if (important.includes(cls) && typeof signalerEvenementJournal === 'function') {
+    signalerEvenementJournal();
+  }
 }
 
 // Close modals on overlay click
