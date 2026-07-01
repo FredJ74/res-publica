@@ -58,20 +58,10 @@
     <button class="forum-btn" onclick="openRulesView()">
       <i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> Règles
     </button>
-    <div style="position:relative">
-    <button class="forum-btn" onclick="ouvrirMenuMessages()" id="btn-messages">
-      <i class="ti ti-messages" style="font-size:.8rem;vertical-align:-1px"></i> Messages
+    <button class="forum-btn" onclick="openForumView('local')" id="btn-messages" title="Messages et Forums">
+      <i class="ti ti-messages" style="font-size:.8rem;vertical-align:-1px"></i> Messages/Forums
       <span id="mail-badge" style="display:none;background:#cc2020;color:#fff;font-size:.6rem;padding:.1rem .3rem;border-radius:50%;margin-left:.2rem;font-family:'Bebas Neue',sans-serif">0</span>
     </button>
-    <div id="menu-messages" style="display:none;position:absolute;top:36px;right:0;background:#0f0d08;border:1px solid #3a2a10;z-index:999;min-width:140px">
-      <button onclick="openForumView('local');fermerMenuMessages()" style="display:block;width:100%;text-align:left;padding:.5rem .8rem;background:transparent;border:none;border-bottom:1px solid #2a1a08;color:#c0a060;font-family:'Bebas Neue',sans-serif;font-size:.78rem;letter-spacing:.08em;cursor:pointer">
-        <i class="ti ti-messages" style="font-size:.75rem"></i> Forum
-      </button>
-      <button onclick="openMailbox();fermerMenuMessages()" style="display:block;width:100%;text-align:left;padding:.5rem .8rem;background:transparent;border:none;color:#c0a060;font-family:'Bebas Neue',sans-serif;font-size:.78rem;letter-spacing:.08em;cursor:pointer">
-        <i class="ti ti-mail" style="font-size:.75rem"></i> Mes Mails
-      </button>
-    </div>
-    </div>
     <button class="forum-btn" onclick="ouvrirRepertoirePJ()" title="Liste des joueurs">
       <i class="ti ti-users" style="font-size:.8rem;vertical-align:-1px"></i> PJ
     </button>
@@ -129,12 +119,17 @@
       <i class="ti ti-target" style="font-size:.75rem"></i> Mes Objectifs 🎯
     </button>
 
-    <!-- LOCATION -->
-    <div class="panel-title">LOCALISATION</div>
-    <div class="location-info">
-      <div class="loc-city" id="loc-city">Luthecia, Capitale</div>
-      <div class="loc-name" id="loc-name">La rue</div>
-      <div class="loc-sub" id="loc-sub">Selectionnez un batiment</div>
+    <!-- LOCATION — masqué, IDs conservés pour le JS -->
+    <div id="loc-city" style="display:none"></div>
+    <div id="loc-name" style="display:none"></div>
+    <div id="loc-sub" style="display:none"></div>
+
+    <!-- EMPLOYÉS -->
+    <div class="panel-title" style="cursor:pointer" onclick="toggleSection('employes-panel','emp-chevron')">
+      MES EMPLOYÉS <i class="ti ti-chevron-right" id="emp-chevron" style="font-size:.7rem;float:right;margin-top:.1rem"></i>
+    </div>
+    <div id="employes-panel" style="display:none;padding:.3rem 0">
+      <div id="employes-list"></div>
     </div>
 
     <!-- INVENTAIRE (fermé par défaut) -->
@@ -155,13 +150,7 @@
       </div>
     </div>
 
-    <!-- EMPLOYES -->
-    <div class="panel-title">MES EMPLOYES</div>
-    <div class="employees-list" id="employees-list">
-      <div style="padding:.8rem;font-size:.75rem;color:#4a4030;font-style:italic;text-align:center">
-        Aucun employe. Recrutez dans les batiments.
-      </div>
-    </div>
+
   </div>
 
   <!-- CENTER -->
@@ -215,6 +204,7 @@
         <div class="pieces-tabs">
           <div class="piece-tab active" onclick="switchSelfTab('actions',this)">Actions personnelles</div>
           <div class="piece-tab" onclick="switchSelfTab('inventaire',this)">Inventaire</div>
+          <div class="piece-tab" onclick="switchSelfTab('orgas',this)">Organisations</div>
           <div class="piece-tab" onclick="switchSelfTab('identite',this)">Identité</div>
         </div>
       </div>
@@ -260,6 +250,7 @@
     </div>
 
     <!-- Vue MAIL -->
+    <!-- Vue MAIL : reutilisee aussi par le Forum Presidentiel (ouvrirForumPresidentCentral) comme conteneur d'affichage generique -->
     <div id="vue-mail" class="vue">
       <div class="batiment-header">
         <button class="sortir-btn" onclick="closeMailView()">
@@ -269,23 +260,9 @@
           <div class="batiment-nom">Boite Mail</div>
           <div class="batiment-cat" id="mail-view-subtitle">Messages recus</div>
         </div>
-        <div class="pieces-tabs">
-          <div class="piece-tab active" onclick="switchMailTab('inbox',this)">Messages recus</div>
-          <div class="piece-tab" onclick="switchMailTab('sent',this)">Messages envoyes</div>
-          <div class="piece-tab" onclick="switchMailTab('contacts',this)">Repertoire</div>
-        </div>
       </div>
       <div id="mail-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
-      <div id="mail-compose" style="display:none;padding:.7rem 1rem;border-top:1px solid #1a1810;background:#0d0b05">
-        <div style="display:flex;gap:.5rem;margin-bottom:.4rem">
-          <input id="mail-to" type="text" placeholder="Destinataire..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:'Crimson Pro',serif;font-size:.82rem;outline:none"/>
-          <input id="mail-subject" type="text" placeholder="Objet..." style="flex:2;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:'Crimson Pro',serif;font-size:.82rem;outline:none"/>
-        </div>
-        <div style="display:flex;gap:.5rem">
-          <textarea id="mail-body" rows="3" placeholder="Votre message..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:'Crimson Pro',serif;font-size:.82rem;outline:none;resize:none"></textarea>
-          <button onclick="sendMail()" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.4rem .8rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;align-self:flex-end">Envoyer</button>
-        </div>
-      </div>
+      <div id="mail-compose" style="display:none;padding:.7rem 1rem;border-top:1px solid #1a1810;background:#0d0b05"></div>
     </div>
 
     <!-- Vue BATIMENT -->
@@ -327,11 +304,8 @@
   </div>
 
   <!-- RIGHT PANEL -->
-  <div id="right" class="collapsed">
-    <div id="journal-toggle-btn" onclick="toggleJournal()">
-      <span class="panel-title-text">JOURNAL DES ÉVÉNEMENTS</span>
-      <i class="ti ti-chevron-left" id="journal-chevron" style="font-size:.7rem"></i>
-    </div>
+  <div id="right">
+    <div class="panel-title">JOURNAL DES EVENEMENTS</div>
     <div class="journal" id="journal">
       <div class="journal-entry">
         <span class="journal-time">Jour 1 &middot; 08h00</span>
@@ -475,35 +449,43 @@
 <script src="world-map.js"></script>
 <script src="supabase.js"></script>
 <script src="forum.js"></script>
+<script src="plateau-core.js"></script>
+<script src="plateau-navigation.js"></script>
+<script src="plateau-personnage.js"></script>
+<script src="plateau-pnj.js"></script>
+<script src="plateau-multijoueur.js"></script>
+<script src="plateau-communication.js"></script>
+<script src="plateau-politique.js"></script>
+<script src="plateau-justice-economie.js"></script>
+<script src="plateau-actions-illegales-rumeurs.js"></script>
+<script src="plateau-organisations-quetes.js"></script>
+<script src="plateau-divers.js"></script>
+<script src="plateau-router.js"></script>
 <div style="display:none">
   <div id="char-avatar-top"></div>
   <div id="char-name-display"></div>
   <div id="char-role-display"></div>
 </div>
-<script>
-function toggleJournal() {
-  const right = document.getElementById('right');
-  const chevron = document.getElementById('journal-chevron');
-  const isCollapsed = right.classList.toggle('collapsed');
-  if (chevron) {
-    chevron.className = isCollapsed ? 'ti ti-chevron-right' : 'ti ti-chevron-left';
-    chevron.style.fontSize = '.7rem';
-  }
-  // Sauvegarder la preference
-  try { localStorage.setItem('journal_collapsed', isCollapsed ? '1' : '0'); } catch(e) {}
-}
-// Restaurer la preference au chargement
-document.addEventListener('DOMContentLoaded', () => {
-  try {
-    const pref = localStorage.getItem('journal_collapsed');
-    if (pref === '0') {
-      const right = document.getElementById('right');
-      const chevron = document.getElementById('journal-chevron');
-      right.classList.remove('collapsed');
-      if (chevron) { chevron.className = 'ti ti-chevron-left'; chevron.style.fontSize = '.7rem'; }
-    }
-  } catch(e) {}
-});
-</script>
+
+<!-- CHAT EN PIECE — fenetre flottante persistante -->
+<button onclick="toggleChatPiece()" style="position:fixed;bottom:20px;right:20px;z-index:998;width:48px;height:48px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.5)">
+  <i class="ti ti-message-circle"></i>
+</button>
+
+<div id="chat-piece-panel" style="display:none;position:fixed;bottom:80px;right:20px;z-index:999;width:300px;height:380px;background:#0a0805;border:1px solid #2a2010;border-radius:8px;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,.6)">
+  <div style="padding:.5rem .7rem;border-bottom:1px solid #2a2010;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.08em;color:#C9A84C">CHAT DE LA PIÈCE</span>
+    <button onclick="toggleChatPiece()" style="background:none;border:none;color:#8a8060;cursor:pointer;font-size:.9rem">✕</button>
+  </div>
+  <select id="chat-destinataire-select" onchange="changerDestinataireChat()" style="margin:.5rem .6rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-family:Crimson Pro,serif;font-size:.72rem;outline:none">
+    <option value="">💬 Salon de la pièce (tout le monde)</option>
+  </select>
+  <div id="chat-messages-zone" style="flex:1;overflow-y:auto;padding:.4rem .6rem"></div>
+  <div style="display:flex;gap:.4rem;padding:.5rem .6rem;border-top:1px solid #2a2010">
+    <input id="chat-message-input" type="text" placeholder="Votre message..." onkeydown="if(event.key==='Enter')envoyerMessageChatPiece()" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.78rem;outline:none">
+    <button onclick="envoyerMessageChatPiece()" style="background:transparent;border:1px solid #8a6a20;color:#C9A84C;padding:.4rem .6rem;cursor:pointer;font-size:.78rem">→</button>
+  </div>
+</div>
+
 </body>
 </html>
