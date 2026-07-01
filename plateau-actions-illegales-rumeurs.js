@@ -534,6 +534,218 @@ const POISON_DESC_PARODIQUE = {
   vipere: 'Hassan vous tend la boîte en carton avec un sourire aussi large que son ignorance des lois sanitaires. On entend un léger sifflement de l\'intérieur. Elle a mangé ce matin, précise-t-il en guise de garantie. Ne pas mettre dans votre poche. Ne pas laisser sans surveillance. Ne pas appeler le service après-vente.'
 };
 
+// =====================
+// CATALOGUE D'ARMES PAR EMPIRE
+// =====================
+const ARMES_CATALOGUE = {
+  republic: [
+    {
+      id: 'couteau',
+      name: 'Couteau de poche',
+      type: 'blanche',
+      prix: 250,
+      icon: 'ti-tools-kitchen-2',
+      desc: 'Légal pour la chasse. Roger ne demande pas à qui.',
+      bonus: { stat: 'VOL', val: 5 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-couteau-republic.png'
+    },
+    {
+      id: 'revolver',
+      name: 'Revolver .38',
+      type: 'poing',
+      prix: 800,
+      icon: 'ti-crosshair',
+      desc: 'Fiable, discret, classique. Trois balles suffisent généralement.',
+      bonus: { stat: 'PER', val: 8 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-revolver-republic.png'
+    },
+    {
+      id: 'fusil_chasse',
+      name: 'Fusil de chasse',
+      type: 'carabine',
+      prix: 1800,
+      icon: 'ti-target-arrow',
+      desc: 'Pour le gibier. Gros gibier.',
+      bonus: { stat: 'PER', val: 15 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-fusil-republic.png'
+    }
+  ],
+  narco: [
+    {
+      id: 'machette',
+      name: 'Machette',
+      type: 'blanche',
+      prix: 200,
+      icon: 'ti-tools-kitchen-2',
+      desc: "L'outil universel. Multi-usages.",
+      bonus: { stat: 'VOL', val: 5 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-machette-narco.png'
+    },
+    {
+      id: 'desert_eagle',
+      name: 'Desert Eagle',
+      type: 'poing',
+      prix: 1200,
+      icon: 'ti-crosshair',
+      desc: 'El Don lui-même en possède trois.',
+      bonus: { stat: 'PER', val: 10 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-deserteagle-narco.png'
+    },
+    {
+      id: 'ak47',
+      name: 'AK-47',
+      type: 'carabine',
+      prix: 2500,
+      icon: 'ti-target-arrow',
+      desc: "Origine : inconnue. État : parfait.",
+      bonus: { stat: 'PER', val: 18 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-ak47-narco.png'
+    }
+  ],
+  soviet: [
+    {
+      id: 'baionnette',
+      name: 'Baïonnette',
+      type: 'blanche',
+      prix: 300,
+      icon: 'ti-tools-kitchen-2',
+      desc: 'Propriété du Peuple. Empruntée indéfiniment.',
+      bonus: { stat: 'VOL', val: 5 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-baionnette-soviet.png'
+    },
+    {
+      id: 'makarov',
+      name: 'Makarov',
+      type: 'poing',
+      prix: 700,
+      icon: 'ti-crosshair',
+      desc: 'Standard réglementaire. Camarade Kalachnikov détourne le regard.',
+      bonus: { stat: 'PER', val: 8 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-makarov-soviet.png'
+    },
+    {
+      id: 'kalachnikov',
+      name: 'Kalachnikov',
+      type: 'carabine',
+      prix: 2000,
+      icon: 'ti-target-arrow',
+      desc: 'Pour la défense de la Patrie. Usage personnel toléré.',
+      bonus: { stat: 'PER', val: 16 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-kalachnikov-soviet.png'
+    }
+  ],
+  khalija: [
+    {
+      id: 'jambiya',
+      name: 'Jambiya',
+      type: 'blanche',
+      prix: 350,
+      icon: 'ti-tools-kitchen-2',
+      desc: 'Lame recourbée, tradition millénaire. Hassan l\'a aiguisée ce matin.',
+      bonus: { stat: 'VOL', val: 6 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-jambiya-khalija.png'
+    },
+    {
+      id: 'pistolet_dore',
+      name: 'Pistolet doré',
+      type: 'poing',
+      prix: 1000,
+      icon: 'ti-crosshair',
+      desc: 'Serti de nacre. L\'élégance n\'exclut pas l\'efficacité.',
+      bonus: { stat: 'PER', val: 9 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-pistolet-khalija.png'
+    },
+    {
+      id: 'fusil_precision',
+      name: 'Fusil de précision',
+      type: 'carabine',
+      prix: 2200,
+      icon: 'ti-target-arrow',
+      desc: 'Pour la chasse au faucon. Très grands faucons.',
+      bonus: { stat: 'PER', val: 17 },
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-fusil-khalija.png'
+    }
+  ]
+};
+
+// =====================
+// MODAL TRIPTIQUE D'ACHAT D'ARME
+// =====================
+function ouvrirModalAcheterArme() {
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const armes = ARMES_CATALOGUE[pays] || ARMES_CATALOGUE.republic;
+
+  document.getElementById('postes-modal-title').textContent = 'Choisissez votre arme';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Sélectionnez une arme. Chaque choix est définitif — Roger ne reprend pas la marchandise.</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem">';
+
+  armes.forEach((arme, i) => {
+    const typeLabel = { blanche: 'Arme blanche', poing: 'Arme de poing', carabine: 'Carabine' }[arme.type] || arme.type;
+    html += '<div style="border:1px solid #2a2010;background:#0a0805;overflow:hidden;cursor:pointer;transition:border-color .2s" onclick="confirmerAchatArme(\'' + arme.id + '\')" onmouseover="this.style.borderColor=\'#8a6a20\'" onmouseout="this.style.borderColor=\'#2a2010\'">';
+    // Image
+    html += '<div style="width:100%;height:120px;overflow:hidden;background:#050503">';
+    if (arme.imageUrl) {
+      html += '<img src="' + arme.imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
+    } else {
+      html += '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><i class="ti ' + arme.icon + '" style="font-size:2rem;color:#3a2a10"></i></div>';
+    }
+    html += '</div>';
+    // Infos
+    html += '<div style="padding:.5rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.08em;color:#c0b090;margin-bottom:.2rem">' + arme.name + '</div>';
+    html += '<div style="font-size:.68rem;color:#5a5040;font-style:italic;margin-bottom:.4rem;line-height:1.4">' + arme.desc + '</div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+    html += '<span style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' + arme.prix.toLocaleString('fr-FR') + ' ' + cur + '</span>';
+    html += '<span style="font-size:.65rem;color:#4a8a4a">+' + arme.bonus.val + ' ' + arme.bonus.stat + '</span>';
+    html += '</div>';
+    html += '<div style="font-size:.62rem;color:#4a4030;margin-top:.2rem">' + typeLabel + '</div>';
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="margin-top:.8rem;width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#4a4030;cursor:pointer">Renoncer à l\'achat</button>';
+  html += '</div>';
+
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerAchatArme(armeId) {
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const armes = ARMES_CATALOGUE[pays] || ARMES_CATALOGUE.republic;
+  const arme = armes.find(a => a.id === armeId);
+  if (!arme) return;
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (state.arg < arme.prix) {
+    showToast('Fonds insuffisants', arme.prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
+    return;
+  }
+
+  state.arg -= arme.prix;
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({
+    id: 'arme-' + Date.now(),
+    type: 'arme',
+    sousType: arme.type,
+    name: arme.name,
+    icon: arme.icon,
+    desc: arme.desc,
+    legal: false,
+    bonus: arme.bonus,
+    imageUrl: arme.imageUrl
+  });
+
+  updateUI();
+  showToast('Arme acquise', arme.name + ' ajoutée à votre inventaire.', true, true);
+  addJournalEntry('Achat : ' + arme.name + ' (-' + arme.prix.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-bad');
+}
+
+
 function doAcheterPoisonObjet(type) {
   const obj = POISON_OBJETS[type];
   if (!obj) return;

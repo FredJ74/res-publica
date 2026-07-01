@@ -159,7 +159,7 @@ const WORLD = {
           desc: "Roger Détente ne pose jamais trop de questions.",
           persons: [{"name": "Roger Détente (PNJ)", "role": "Armurier", "rel": "neutral", "job": "commercant"}, {"name": "Simone Calibre (PNJ)", "role": "Assistante", "rel": "neutral", "job": "commercant"}],
           orders: [
-            {fn:'acheter_arme', label:'Acheter une arme', pa:1, cost:800, type:'grey', icon:'ti-sword', successRate:100, desc:'Arme blanche ou à feu. Roger ne demande pas de permis.'},
+            {fn:'choisir_arme', label:'Acheter une arme', pa:1, cost:0, type:'grey', icon:'ti-sword', successRate:100, desc:'Couteau, revolver ou carabine — Roger ne pose pas de questions.'},
             {fn:'acheter_poison_parapluie', label:'Parapluie républien', pa:1, cost:400, type:'illegal', icon:'ti-umbrella', successRate:100, desc:'Un accessoire élégant. La pointe contient... quelque chose. Usage unique.', imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/parapluie-republicain.png'}
           ]
         },
@@ -526,7 +526,7 @@ const WORLD = {
           desc: "Les armes appartiennent au Peuple. Accès sur autorisation du Parti.",
           persons: [{"name": "Camarade Kalachnikov (PNJ)", "role": "Responsable Arsenal", "rel": "neutral", "job": "commercant"}],
           orders: [
-            {fn:'acheter_arme', label:'Acheter une arme', pa:1, cost:800, type:'grey', icon:'ti-sword', successRate:100, desc:'Pour le service de la patrie. Autorisation tacite du Parti requise.'},
+            {fn:'choisir_arme', label:'Acheter une arme', pa:1, cost:0, type:'grey', icon:'ti-sword', successRate:100, desc:'Pour la défense de la Patrie. Camarade Kalachnikov vous présente le catalogue.'},
             {fn:'acheter_poison_polonium', label:'Fiole de Polonium', pa:1, cost:600, type:'illegal', icon:'ti-radioactive', successRate:100, desc:'Ne pas ouvrir sans combinaison. Camarade Kalachnikov la sort d\'un tiroir blindé. Usage unique.', imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/polonium-sovarka.png'}
           ]
         },
@@ -1729,16 +1729,10 @@ const BUILDINGS = {
         ],
         orders: [
           {
-            fn:'acheter_arme_legale',
-            label:'Acheter une arme (legalement)',
-            pa:1, cost:400, type:'legal', icon:'ti-shield', successRate:100,
-            desc:'Vente enregistree dans le registre officiel. Tracable. Arme ajoutee a votre inventaire.'
-          },
-          {
-            fn:'acheter_arme_illegale',
-            label:'Acheter une arme (sans registre)',
-            pa:1, cost:800, type:'illegal', icon:'ti-eye-off', successRate:50,
-            desc:'Taux de reussite : 50%. 2x plus cher. Non enregistre. Echec : gratuit mais devez dormir avant de retenter.'
+            fn:'choisir_arme',
+            label:'Acheter une arme',
+            pa:1, cost:0, type:'grey', icon:'ti-sword', successRate:100,
+            desc:'Couteau, revolver ou carabine — choisissez selon votre budget et vos ambitions.'
           },
           {
             fn:'acheter_gilet',
