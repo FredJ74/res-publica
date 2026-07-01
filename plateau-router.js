@@ -134,6 +134,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'rendre_sentence')         { ouvrirRendreSentence(); return; }
   if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(); return; }
   if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(); return; }
+  if (fn === 'acheter_poison_parapluie') { doAcheterPoisonObjet('parapluie'); return; }
+  if (fn === 'acheter_poison_ghb')       { doAcheterPoisonObjet('ghb'); return; }
+  if (fn === 'acheter_poison_polonium')  { doAcheterPoisonObjet('polonium'); return; }
+  if (fn === 'acheter_poison_vipere')    { doAcheterPoisonObjet('vipere'); return; }
   if (fn === 'officialiser_mariage') { ouvrirOfficialiserMariage(); return; }
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
