@@ -1227,8 +1227,14 @@ function renderRoomActions(room, buildingId, roomId) {
   document.getElementById('action-context-bat').textContent =
     room.name.toUpperCase() + ' — ACTIONS DISPONIBLES';
 
+  // Fusionner avec les ordres du buildingContext (specifiques a l'empire courant)
+  const world = WORLD[state.country];
+  const city = world?.[state.currentCity];
+  const ctx = city?.buildingContext?.[buildingId];
+  const ctxOrders = (ctx?.orders || []);
+
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
-  const allOrders = [...orders];
+  const allOrders = [...orders, ...ctxOrders];
 
   const buttons = allOrders.map(o => {
     // Verifier requiresPost : doit avoir le bon poste specifique
