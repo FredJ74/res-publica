@@ -160,7 +160,7 @@ const WORLD = {
           persons: [{"name": "Roger Détente (PNJ)", "role": "Armurier", "rel": "neutral", "job": "commercant"}, {"name": "Simone Calibre (PNJ)", "role": "Assistante", "rel": "neutral", "job": "commercant"}],
           orders: [
             {fn:'acheter_arme', label:'Acheter une arme', pa:1, cost:800, type:'grey', icon:'ti-sword', successRate:100, desc:'Arme blanche ou à feu. Roger ne demande pas de permis.'},
-            {fn:'acheter_poison_parapluie', label:'Parapluie républien', pa:1, cost:400, type:'illegal', icon:'ti-umbrella', successRate:100, desc:'Un accessoire élégant. La pointe contient... quelque chose. Usage unique.'}
+            {fn:'acheter_poison_parapluie', label:'Parapluie républien', pa:1, cost:400, type:'illegal', icon:'ti-umbrella', successRate:100, desc:'Un accessoire élégant. La pointe contient... quelque chose. Usage unique.', imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/parapluie-republicain.png'}
           ]
         },
         'marche': {
@@ -334,7 +334,7 @@ const WORLD = {
           desc: "Tout se vend ici, absolument tout.",
           persons: [{"name": "Maria Mercado (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}, {"name": "Carlos Regateo (PNJ)", "role": "Marchand", "rel": "neutral", "job": "commercant"}],
           orders: [
-            {fn:'acheter_poison_ghb', label:'GHB de contrebande', pa:1, cost:300, type:'illegal', icon:'ti-flask', successRate:100, desc:'Inodore, incolore. Carlos vous glisse le flacon sans un mot. Usage unique.'}
+            {fn:'acheter_poison_ghb', label:'GHB de contrebande', pa:1, cost:300, type:'illegal', icon:'ti-flask', successRate:100, desc:'Inodore, incolore. Carlos vous glisse le flacon sans un mot. Usage unique.', imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ghb-narco.png'}
           ]
         },
         'palais-presidentiel': {
@@ -527,7 +527,7 @@ const WORLD = {
           persons: [{"name": "Camarade Kalachnikov (PNJ)", "role": "Responsable Arsenal", "rel": "neutral", "job": "commercant"}],
           orders: [
             {fn:'acheter_arme', label:'Acheter une arme', pa:1, cost:800, type:'grey', icon:'ti-sword', successRate:100, desc:'Pour le service de la patrie. Autorisation tacite du Parti requise.'},
-            {fn:'acheter_poison_polonium', label:'Fiole de Polonium', pa:1, cost:600, type:'illegal', icon:'ti-radioactive', successRate:100, desc:'Ne pas ouvrir sans combinaison. Camarade Kalachnikov la sort d\'un tiroir blindé. Usage unique.'}
+            {fn:'acheter_poison_polonium', label:'Fiole de Polonium', pa:1, cost:600, type:'illegal', icon:'ti-radioactive', successRate:100, desc:'Ne pas ouvrir sans combinaison. Camarade Kalachnikov la sort d\'un tiroir blindé. Usage unique.', imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/polonium-sovarka.png'}
           ]
         },
         'marche': {
@@ -739,7 +739,7 @@ const WORLD = {
           desc: "Le prix affiché n'est jamais le vrai prix.",
           persons: [{"name": "Hassan Marchandage (PNJ)", "role": "Marchand principal", "rel": "neutral", "job": "commercant"}, {"name": "Yasmine Épices (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}],
           orders: [
-            {fn:'acheter_poison_vipere', label:'Vipère des sables', pa:1, cost:350, type:'illegal', icon:'ti-bug', successRate:100, desc:'Une petite boîte percée. On entend un léger sifflement. Hassan sourit. Usage unique.'}
+            {fn:'acheter_poison_vipere', label:'Vipère des sables', pa:1, cost:350, type:'illegal', icon:'ti-bug', successRate:100, desc:'Une petite boîte percée. On entend un léger sifflement. Hassan sourit. Usage unique.', imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vipere-des-sables-khalija.png'}
           ]
         },
         'palais-presidentiel': {
