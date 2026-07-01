@@ -1723,7 +1723,7 @@ const BUILDINGS = {
         name: "Magasin",
         imageBg: "linear-gradient(135deg,#100a08,#181008)",
         desc: "Presentoirs d'armes. Le vendeur verifie les papiers pour les ventes legales.",
-        imageUrl: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/armurerie-martinon-comptoir.png",
         persons: [
           {name:'Gerard (Armurier)', role:'PNJ - Vendeur', rel:'neutral', job:'armurier'}
         ],
@@ -1738,7 +1738,8 @@ const BUILDINGS = {
             fn:'acheter_gilet',
             label:'Acheter un gilet pare-balles',
             pa:1, cost:600, type:'legal', icon:'ti-shield-check', successRate:100,
-            desc:'Protection physique. Enregistre dans le registre.'
+            desc:'Protection physique. Enregistre dans le registre.',
+            imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-gilet-republic.png'
           },
           {
             fn:'consulter_registre_armes',
