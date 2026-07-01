@@ -942,11 +942,68 @@ function renderRulesContent(section) {
     if (t.dataset.section === section) t.classList.add('active');
   });
 
-  const content = document.getElementById('rules-content');
-  if (!content) return;
-  content.innerHTML = '<div style="padding:1.5rem;max-width:700px">' +
-    '<div style="font-family:Playfair Display,serif;font-size:1.3rem;color:#C9A84C;margin-bottom:1rem">' + regle.titre + '</div>' +
-    '<div style="font-size:.88rem;color:#a0a080;line-height:1.9;white-space:pre-line">' + regle.contenu + '</div>' +
+  const el = document.getElementById('rules-content');
+  if (!el) return;
+
+  // Transformer le contenu texte en HTML riche
+  function parseRulesContent(texte) {
+    let html = '';
+    const lignes = texte.split('\n');
+    let inBlock = false;
+
+    for (let i = 0; i < lignes.length; i++) {
+      const l = lignes[i];
+
+      // Separateurs ASCII → titre de section
+      if (l.match(/^━+$/)) continue;
+
+      // Ligne precedente etait un separateur → titre de bloc
+      if (i > 0 && lignes[i-1]?.match(/^━+$/) && !l.match(/^━+$/)) {
+        if (inBlock) html += '</div>';
+        html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.15em;color:#8a6a20;padding:.5rem 0 .3rem;border-bottom:1px solid #2a2010;margin:.8rem 0 .4rem">' + l + '</div>';
+        inBlock = false;
+        continue;
+      }
+
+      // Ligne en majuscules standalone (type "POSTES ET MANDATS :") → sous-titre
+      if (l.match(/^[A-ZÀÂÉÈÊÎÏÔÙÛÜ\s\(\)\/\-:•·]{6,}$/) && l.trim().length > 0 && !l.startsWith('•') && !l.startsWith('·')) {
+        html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#7a6a40;margin:.7rem 0 .2rem">' + l + '</div>';
+        continue;
+      }
+
+      // Lignes avec puce •
+      if (l.trim().startsWith('•') || l.trim().startsWith('·')) {
+        const texteItem = l.trim().replace(/^[•·]\s*/, '');
+        const parts = texteItem.split(' — ');
+        let itemHtml = '';
+        if (parts.length > 1) {
+          itemHtml = '<span style="color:#C9A84C;font-weight:600">' + parts[0] + '</span> — ' + parts.slice(1).join(' — ');
+        } else {
+          itemHtml = texteItem;
+        }
+        html += '<div style="display:flex;gap:.5rem;padding:.2rem 0;font-size:.82rem;color:#9a9070;line-height:1.6">';
+        html += '<span style="color:#8a6a20;flex-shrink:0">◆</span><span>' + itemHtml + '</span></div>';
+        continue;
+      }
+
+      // Ligne vide → espacement
+      if (l.trim() === '') {
+        html += '<div style="height:.4rem"></div>';
+        continue;
+      }
+
+      // Texte normal
+      html += '<div style="font-size:.85rem;color:#a0a080;line-height:1.8;margin:.1rem 0">' + l + '</div>';
+    }
+    if (inBlock) html += '</div>';
+    return html;
+  }
+
+  el.innerHTML =
+    '<div style="padding:1.5rem;max-width:700px;margin:0 auto">' +
+    '<div style="font-family:Playfair Display,serif;font-size:1.4rem;font-style:italic;color:#E8C97A;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:2px solid #2a2010">' +
+    regle.titre + '</div>' +
+    parseRulesContent(regle.contenu) +
     '</div>';
 }
 
