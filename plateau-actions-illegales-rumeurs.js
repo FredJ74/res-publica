@@ -653,7 +653,7 @@ function ouvrirModalEmpoisonner() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerEmpoisonnement(cibleNom) {
+async function confirmerEmpoisonnement(cibleNom) {
   document.getElementById('modal-postes').classList.remove('open');
   const pays = state.country || 'republic';
   const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
@@ -663,40 +663,69 @@ function confirmerEmpoisonnement(cibleNom) {
   const roll = Math.floor(Math.random() * 100) + 1;
 
   // Supprimer l'objet poison de l'inventaire (usage unique)
+  const poisonObj = (state.inventory || []).find(i => i.type === 'poison');
   const poisonIdx = (state.inventory || []).findIndex(i => i.type === 'poison');
   if (poisonIdx >= 0) state.inventory.splice(poisonIdx, 1);
 
-  if (roll <= taux) {
-    state.estCache = false;
-    // Enregistrer l'empoisonnement actif sur la cible
-    if (!state.empoisonnements) state.empoisonnements = [];
-    state.empoisonnements.push({
-      cible: cibleNom,
-      empireEmpoisonneur: pays,
-      jourDebut: state.day,
-      statPerdue: POISON_STAT_PERDUE[pays],
-      actif: true
-    });
+  const poisonType = poisonObj?.poisonType || 'parapluie';
 
-    // Message a la cible
-    const poisonType = (state.inventory||[]).find(i => i.type === 'poison')?.poisonType || 'parapluie';
-    const msg = POISON_MESSAGES[poisonType] || POISON_MESSAGES['parapluie'];
-    addMailNotification('Événement mystérieux', 'Vous vous sentez mal', msg);
-    addExternalEvent('MYSTERE : ' + cibleNom + ' se sent soudainement très mal...');
+  // 4 paliers identiques au systeme d'assassinat
+  const seuilReussiteTotale = taux / 2;
+  const seuilReussitePartielle = taux;
+  const seuilEchecPartiel = taux + (100 - taux) / 2;
+
+  let palier, pvCible;
+  if (roll <= seuilReussiteTotale)       { palier = 'totale';       pvCible = 0;  }
+  else if (roll <= seuilReussitePartielle) { palier = 'partielle';    pvCible = 25; }
+  else if (roll <= seuilEchecPartiel)      { palier = 'echec_partiel'; pvCible = 50; }
+  else                                     { palier = 'echec_total';   pvCible = null; }
+
+  state.estCache = false;
+
+  const reussi = palier === 'totale' || palier === 'partielle';
+
+  if (reussi || palier === 'echec_partiel') {
+    // Transmission reelle des PV a la victime via impacts_indices_attente
+    if (pvCible !== null && typeof sbDeposerImpactIndice === 'function') {
+      await sbDeposerImpactIndice({
+        id: 'poison-' + Date.now(),
+        victime: cibleNom,
+        indice: 'hp_set',
+        delta: pvCible,
+        traite: false
+      }).catch(() => {});
+    }
+
+    // Notification narrative a la victime (mail)
+    if (typeof sbSendMail === 'function') {
+      const msg = (POISON_MESSAGES && POISON_MESSAGES[poisonType]) || 'Vous vous sentez soudainement très mal...';
+      const h = String(state.hour || 8).padStart(2,'0');
+      await sbSendMail('Événement mystérieux', cibleNom, 'Vous vous sentez mal...', msg, 'Jour ' + state.day + ' · ' + h + 'h').catch(() => {});
+    }
+
+    addExternalEvent('MYSTÈRE : ' + cibleNom + ' se sent soudainement très mal...');
 
     if (!state.historiqueCrimes) state.historiqueCrimes = [];
     state.historiqueCrimes.push({ acte:'empoisonnement', cible:cibleNom, jour:state.day, expireJour: state.day + 8 });
 
-    updateUI();
-    showToast('Poison administré', cibleNom + ' commencera à ressentir les effets. Objet utilisé.', true, true);
-    addJournalEntry('Empoisonnement de ' + cibleNom + '.', 'event-bad');
+    const msgPalier = reussi
+      ? cibleNom + ' commence à ressentir les effets du poison. Objet utilisé.'
+      : cibleNom + ' ressent une légère gêne mais l\'empoisonnement est partiel.';
+    showToast('Poison administré', msgPalier, true, reussi);
+    addJournalEntry('Empoisonnement de ' + cibleNom + ' (' + palier + '). Objet utilisé.', 'event-bad');
+
+    // Detection potentielle
+    checkDetection('empoisonnement', 'success');
+
   } else {
-    state.estCache = false;
-    state.recherche = [{ acte:'tentative_empoisonnement', type:'crime', jour:state.day, peine:2 }];
-    updateUI();
-    showToast('Échec ! Repéré(e)', 'L\'empoisonnement a échoué. Objet perdu. Recherché(e). 2 jours de prison.', false);
-    addJournalEntry('Tentative d\'empoisonnement échouée. Recherché.', 'event-bad');
+    // Echec total — identifie sur le coup
+    state.recherche = [{ acte:'tentative_empoisonnement', type:'crime', jour:state.day }];
+    showToast('Échec ! Repéré(e)', 'L\'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).', false);
+    addJournalEntry('Tentative d\'empoisonnement échouée. Recherché(e).', 'event-bad');
+    setTimeout(() => ouvrirModalArrestation('crime'), 800);
   }
+
+  updateUI();
 }
 
 // =====================

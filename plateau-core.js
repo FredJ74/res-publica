@@ -124,7 +124,8 @@ const ACTES_ILLEGAUX = {
   vol:                { type: 'delit_mineur',  detectRate: 30 },
   assassiner_mains:   { type: 'crime',         detectRate: 30 },
   assassiner_arme:    { type: 'crime',         detectRate: 40 },
-  assassiner_feu:     { type: 'crime',         detectRate: 60 }
+  assassiner_feu:     { type: 'crime',         detectRate: 60 },
+  empoisonnement:     { type: 'crime',         detectRate: 25 }
 };
 
 const BUDGET_DEFAULT = {
