@@ -122,7 +122,8 @@ async function confirmerVol(encodedCible, tauxReussite, seuilVisibilite) {
 
     if (typeof sbSendMail === 'function') {
       const h = String(state.hour || 8).padStart(2,'0');
-      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+      const m = String(state.minute || 0).padStart(2,'0');
+      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h' + m;
       sbSendMail('Système', nomCible, 'Vous avez été volé(e)', 'Quelqu\'un vous a discrètement dérobé ' + montantVole + ' FR. Le montant a été déduit de votre trésorerie.', time).catch(() => {});
     }
   } else {
@@ -1212,7 +1213,8 @@ async function confirmerEmpoisonnement(cibleNom) {
     if (typeof sbSendMail === 'function') {
       const msg = (POISON_MESSAGES && POISON_MESSAGES[poisonType]) || 'Vous vous sentez soudainement très mal...';
       const h = String(state.hour || 8).padStart(2,'0');
-      await sbSendMail('Événement mystérieux', cibleNom, 'Vous vous sentez mal...', msg, 'Jour ' + state.day + ' · ' + h + 'h').catch(() => {});
+      const m = String(state.minute || 0).padStart(2,'0');
+      await sbSendMail('Événement mystérieux', cibleNom, 'Vous vous sentez mal...', msg, 'Jour ' + state.day + ' · ' + h + 'h' + m).catch(() => {});
     }
 
     addExternalEvent('MYSTÈRE : ' + cibleNom + ' se sent soudainement très mal...');

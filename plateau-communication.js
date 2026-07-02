@@ -130,7 +130,8 @@ async function envoyerComposeMail() {
     // Fallback direct Supabase
     const from = state.char?.name || 'Anonyme';
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const m = String(state.minute || 0).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h' + m;
     if (typeof sbSendMail === 'function') await sbSendMail(from, to, subject, body, time);
     addJournalEntry('Mail envoyé à ' + to + ' : "' + subject + '".', 'event-info');
     showToast('Mail envoyé', 'À ' + to + ' — "' + subject + '"', true);
@@ -740,13 +741,19 @@ function voterReferendum(forumId, topicIdx, reponseIdx) {
   showToast('Vote enregistre', 'Vous avez vote pour : ' + topic.reponses[reponseIdx].label, true);
 }
 
+function formatJourHeure() {
+  const h = String(state.hour || 0).padStart(2,'0');
+  const m = String(state.minute || 0).padStart(2,'0');
+  return 'Jour ' + (state.day || 1) + ' · ' + h + 'h' + m;
+}
+
 function publierReponse(forumId, topicIdx) {
   const texte = document.getElementById('forum-reply-text')?.value?.trim();
   if (!texte) return;
   const topic = (FORUM_TOPICS[forumId]||[])[topicIdx];
   if (!topic) return;
   if (!topic.posts) topic.posts = [];
-  topic.posts.push({ author: state.char?.name||'Anonyme', time: 'Jour ' + state.day, content: texte });
+  topic.posts.push({ author: state.char?.name||'Anonyme', time: formatJourHeure(), content: texte });
   topic.replies = (topic.replies||0) + 1;
   ouvrirSujetForum(forumId, topicIdx);
   showToast('Reponse publiee', '', true);
@@ -776,9 +783,9 @@ function publierNouveauSujet(forumId) {
     id: 'topic-' + Date.now(),
     title: titre,
     author: state.char?.name||'Anonyme',
-    time: 'Jour ' + state.day,
+    time: formatJourHeure(),
     replies: 0,
-    posts: [{ author: state.char?.name||'Anonyme', time: 'Jour ' + state.day, content: contenu }]
+    posts: [{ author: state.char?.name||'Anonyme', time: formatJourHeure(), content: contenu }]
   };
   FORUM_TOPICS[forumId].unshift(newTopic);
   showToast('Sujet publie !', titre, true, true);
@@ -973,7 +980,7 @@ function doArchivesPolice() {
 // Notification mail simple
 function addMailNotification(from, subject, body) {
   if (!state.mails) state.mails = [];
-  state.mails.push({ from, subject, body, day: state.day, read: false });
+  state.mails.push({ from, subject, body, day: state.day, time: formatJourHeure(), read: false });
   addExternalEvent(`Nouveau mail de ${from} : "${subject}"`);
   // Mettre a jour le badge immediatement
   const unread = state.mails.filter(m => !m.read).length;
