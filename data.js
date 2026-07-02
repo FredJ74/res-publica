@@ -159,7 +159,6 @@ const WORLD = {
           desc: "Roger Détente ne pose jamais trop de questions.",
           persons: [{"name": "Roger Détente (PNJ)", "role": "Armurier", "rel": "neutral", "job": "commercant"}, {"name": "Simone Calibre (PNJ)", "role": "Assistante", "rel": "neutral", "job": "commercant"}],
           orders: [
-            {fn:'choisir_arme', label:'Acheter une arme', pa:1, cost:0, type:'grey', icon:'ti-sword', successRate:100, desc:'Couteau, revolver ou carabine — Roger ne pose pas de questions.'},
             {fn:'acheter_poison_parapluie', label:'Parapluie républien', pa:1, cost:400, type:'illegal', icon:'ti-umbrella', successRate:100, desc:'Un accessoire élégant. La pointe contient... quelque chose. Usage unique.', imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/parapluie-republicain.png'}
           ]
         },
@@ -526,7 +525,6 @@ const WORLD = {
           desc: "Les armes appartiennent au Peuple. Accès sur autorisation du Parti.",
           persons: [{"name": "Camarade Kalachnikov (PNJ)", "role": "Responsable Arsenal", "rel": "neutral", "job": "commercant"}],
           orders: [
-            {fn:'choisir_arme', label:'Acheter une arme', pa:1, cost:0, type:'grey', icon:'ti-sword', successRate:100, desc:'Pour la défense de la Patrie. Camarade Kalachnikov vous présente le catalogue.'},
             {fn:'acheter_poison_polonium', label:'Fiole de Polonium', pa:1, cost:600, type:'illegal', icon:'ti-radioactive', successRate:100, desc:'Ne pas ouvrir sans combinaison. Camarade Kalachnikov la sort d\'un tiroir blindé. Usage unique.', imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/polonium-sovarka.png'}
           ]
         },
@@ -1730,7 +1728,7 @@ const BUILDINGS = {
         orders: [
           {
             fn:'choisir_arme',
-            label:'Voir les armes disponibles',
+            label:'Acheter une arme',
             pa:1, cost:0, type:'grey', icon:'ti-sword', successRate:100,
             desc:'Couteau, revolver ou carabine — achat légal (enregistré) ou marché noir (3x le prix), au choix pour chaque arme.'
           },
@@ -1751,7 +1749,7 @@ const BUILDINGS = {
             fn:'acheter_bombe_illegale',
             label:'Acheter des explosifs (marche noir)',
             pa:2, cost:1200, type:'illegal', icon:'ti-bomb', successRate:40,
-            desc:'ILLEGAL. Taux 40%. Non enregistre. 2x prix. Echec : gratuit mais doit dormir avant retenter. Echec critique : alerte police.'
+            desc:'ILLEGAL. Non enregistre. Taux de reussite 40%. Echec : le vendeur alerte la police, vous devenez recherche(e).'
           }
         ]
       }

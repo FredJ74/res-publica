@@ -34,6 +34,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
+  if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
+  if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
   if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour assassiner, cliquez sur le personnage cible dans la liste des personnes presentes.', false); return; }
   if (fn === 'consulter_elections') { ouvrirTableauElectoral(); return; }
@@ -253,7 +255,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   else { resultType = 'success'; }
 
   // Ordres a succes garanti
-  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins','soins_urgence','soins_basiques','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','plainte','plainte_police','archives','archives_police','acheter_gilet','acheter_terrain','se_presenter','rencontrer','se_former'];
+  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins','soins_urgence','soins_basiques','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','plainte','plainte_police','archives','archives_police','acheter_terrain','se_presenter','rencontrer','se_former'];
   if (alwaysSuccess.includes(fn)) resultType = roll >= 95 ? 'crit' : 'success';
 
   applyEffects(fn, resultType, cost);
@@ -387,7 +389,6 @@ function applyEffects(fn, resultType, cost) {
   if (fn === 'organiser_blocus') {
     if (!TEST_MODE) state.pa = Math.max(0, state.pa - 1);
   }
-  if (fn === 'acheter_gilet')   addToInventory({name:'Gilet pare-balles', icon:'ti-shield', type:'protection'});
   if (fn === 'acheter_terrain') addToInventory({name:'Terrain (terrain en jeu)', icon:'ti-fence', type:'bien'});
 }
 

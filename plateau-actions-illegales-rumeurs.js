@@ -684,9 +684,9 @@ function ouvrirModalAcheterArme() {
   armes.forEach((arme) => {
     const typeLabel = { blanche: 'Arme blanche', poing: 'Arme de poing', carabine: 'Carabine' }[arme.type] || arme.type;
     const prixIllegal = arme.prix * 3;
-    html += '<div style="border:1px solid #2a2010;background:#0a0805;overflow:hidden">';
+    html += '<div style="border:1px solid #2a2010;background:#0a0805;overflow:hidden;display:flex;flex-direction:column;height:100%">';
     // Image
-    html += '<div style="width:100%;height:120px;overflow:hidden;background:#050503">';
+    html += '<div style="width:100%;height:120px;overflow:hidden;background:#050503;flex-shrink:0">';
     if (arme.imageUrl) {
       html += '<img src="' + arme.imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.85"/>';
     } else {
@@ -694,12 +694,14 @@ function ouvrirModalAcheterArme() {
     }
     html += '</div>';
     // Infos
-    html += '<div style="padding:.5rem">';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.08em;color:#c0b090;margin-bottom:.2rem">' + arme.name + '</div>';
-    html += '<div style="font-size:.68rem;color:#5a5040;font-style:italic;margin-bottom:.4rem;line-height:1.4">' + arme.desc + '</div>';
-    html += '<div style="font-size:.65rem;color:#4a8a4a;margin-bottom:.5rem">+' + arme.bonus.val + ' ' + arme.bonus.stat + ' · ' + typeLabel + '</div>';
-    html += '<button onclick="confirmerAchatArme(\'' + arme.id + '\')" style="width:100%;margin-bottom:.35rem;font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em;padding:.4rem;border:1px solid #4a7a3a;background:transparent;color:#7ab868;cursor:pointer" onmouseover="this.style.background=\'#0e1a0a\'" onmouseout="this.style.background=\'transparent\'">Achat légal — ' + arme.prix.toLocaleString('fr-FR') + ' ' + cur + '</button>';
-    html += '<button onclick="confirmerAchatArmeIllegal(\'' + arme.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em;padding:.4rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer" onmouseover="this.style.background=\'#1a0a0a\'" onmouseout="this.style.background=\'transparent\'">Marché noir — ' + prixIllegal.toLocaleString('fr-FR') + ' ' + cur + '</button>';
+    html += '<div style="padding:.5rem;display:flex;flex-direction:column;flex:1">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.08em;color:#c0b090;margin-bottom:.25rem">' + arme.name + '</div>';
+    html += '<div style="font-size:.76rem;color:#b0a488;font-style:italic;margin-bottom:.5rem;line-height:1.45">' + arme.desc + '</div>';
+    html += '<div style="font-size:.72rem;color:#6ab858;margin-bottom:.6rem">+' + arme.bonus.val + ' ' + arme.bonus.stat + ' · ' + typeLabel + '</div>';
+    html += '<div style="margin-top:auto">';
+    html += '<button onclick="confirmerAchatArme(\'' + arme.id + '\')" style="width:100%;margin-bottom:.35rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.4rem;border:1px solid #4a7a3a;background:transparent;color:#7ab868;cursor:pointer" onmouseover="this.style.background=\'#0e1a0a\'" onmouseout="this.style.background=\'transparent\'">Achat légal — ' + arme.prix.toLocaleString('fr-FR') + ' ' + cur + '</button>';
+    html += '<button onclick="confirmerAchatArmeIllegal(\'' + arme.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.4rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer" onmouseover="this.style.background=\'#1a0a0a\'" onmouseout="this.style.background=\'transparent\'">Marché noir — ' + prixIllegal.toLocaleString('fr-FR') + ' ' + cur + '</button>';
+    html += '</div>';
     html += '</div></div>';
   });
 
@@ -876,6 +878,121 @@ async function doConsulterRegistre() {
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// =====================
+// GILET PARE-BALLES (achat legal, modal avec image, comme le parapluie)
+// =====================
+function doAcheterGilet() {
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const prix = 600;
+  const imageUrl = 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-gilet-republic.png';
+
+  document.getElementById('postes-modal-title').textContent = 'Gilet pare-balles';
+  let html = '<div style="padding:0">';
+  html += '<div style="width:100%;height:200px;overflow:hidden;background:#0a0805">';
+  html += '<img src="' + imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
+  html += '</div>';
+  html += '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">Protection physique standard. Vente légale, enregistrée au registre.</div>';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem;background:#0a0805;border:1px solid #2a2010;margin-bottom:.8rem">';
+  html += '<span style="font-size:.75rem;color:#6a5a30">Prix</span>';
+  html += '<span style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + prix.toLocaleString('fr-FR') + ' ' + cur + '</span>';
+  html += '</div>';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<button onclick="confirmerAchatGilet()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Acheter</button>';
+  html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#4a4030;cursor:pointer">Renoncer</button>';
+  html += '</div></div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerAchatGilet() {
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const prix = 600;
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (state.arg < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
+
+  state.arg -= prix;
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({
+    type: 'protection', name: 'Gilet pare-balles', icon: 'ti-shield-check', legal: true,
+    desc: 'Protection physique. Enregistré dans le registre.',
+    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-gilet-republic.png'
+  });
+  updateUI();
+  showToast('Objet acquis', 'Gilet pare-balles ajouté à votre inventaire.', true, true);
+  addJournalEntry('Achat légal : Gilet pare-balles (-' + prix.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-info');
+}
+
+// =====================
+// EXPLOSIFS (marche noir, modal avec image, comme le parapluie)
+// =====================
+function doAcheterExplosifs() {
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const prix = 1200;
+  const imageUrl = 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/explosifs-marche-noir.png';
+
+  document.getElementById('postes-modal-title').textContent = 'Explosifs (marché noir)';
+  let html = '<div style="padding:0">';
+  html += '<div style="width:100%;height:200px;overflow:hidden;background:#0a0805">';
+  html += '<img src="' + imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
+  html += '</div>';
+  html += '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">Non enregistré. Taux de réussite 40%. En cas d\'échec, le vendeur alerte la police.</div>';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem;background:#0a0805;border:1px solid #2a2010;margin-bottom:.8rem">';
+  html += '<span style="font-size:.75rem;color:#6a5a30">Prix</span>';
+  html += '<span style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + prix.toLocaleString('fr-FR') + ' ' + cur + '</span>';
+  html += '</div>';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<button onclick="confirmerAchatExplosifs()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer">Acheter</button>';
+  html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#4a4030;cursor:pointer">Renoncer</button>';
+  html += '</div></div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerAchatExplosifs() {
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const prix = 1200;
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (state.arg < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const taux = 40;
+
+  if (roll > taux) {
+    // ECHEC — le vendeur alerte la police, pas de debit
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte: 'acheter_bombe_illegale', type: 'crime', jour: state.day });
+    updateUI();
+    showToast('Vente refusée !', 'Le vendeur se méfie et alerte la police. Vous êtes recherché(e).', false, true);
+    addJournalEntry('Tentative d\'achat d\'explosifs échouée. Alerte donnée par le vendeur.', 'event-bad');
+    return;
+  }
+
+  // REUSSITE
+  state.arg -= prix;
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({
+    type: 'explosif', name: 'Explosifs de chantier', icon: 'ti-bomb', legal: false,
+    desc: 'Non enregistré. Usage unique.',
+    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/explosifs-marche-noir.png'
+  });
+
+  if (!state.historiqueCrimes) state.historiqueCrimes = [];
+  state.historiqueCrimes.push({ acte: 'acheter_bombe_illegale', cible: null, jour: state.day, expireJour: state.day + 8 });
+  tracerActionPourRumeur('acheter_bombe_illegale', null);
+
+  updateUI();
+  showToast('Explosifs acquis', 'Livraison discrète effectuée. Non enregistrée.', true, true);
+  addJournalEntry('Achat clandestin : Explosifs (-' + prix.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-bad');
 }
 
 function doAcheterPoisonObjet(type) {
