@@ -108,7 +108,11 @@ async function sendMail(to, subject, body) {
 function markMailRead(mailId) {
   const mails = getMails();
   const m = mails.find(x => x.id === mailId);
-  if (m) { m.read = true; saveMails(mails); }
+  if (m && !m.read) {
+    m.read = true;
+    saveMails(mails);
+    if (typeof sbMarkMailRead === 'function') sbMarkMailRead(mailId).catch(() => {});
+  }
 }
 function deleteMail(mailId) {
   const mails = getMails().filter(x => x.id !== mailId);
