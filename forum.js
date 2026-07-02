@@ -787,10 +787,19 @@ async function loadMailsFromSB() {
     if (!rows) return;
     // Fusionner avec localStorage
     const local = getMails();
+    const localById = new Map(local.map(m => [m.id, m]));
     const sbIds = new Set(rows.map(r => r.id));
     const merged = [
-      ...rows.map(r => ({ id: r.id, from: r.from_player, to: r.to_player,
-        subject: r.subject, body: r.body, time: r.time, read: r.read, archived: r.archived || false })),
+      ...rows.map(r => {
+        const dejaLuLocalement = localById.get(r.id)?.read || false;
+        const estLu = r.read || dejaLuLocalement;
+        // Si Supabase n'a pas encore le statut lu alors qu'on l'a localement, on retente la synchro
+        if (dejaLuLocalement && !r.read && typeof sbMarkMailRead === 'function') {
+          sbMarkMailRead(r.id).catch(() => {});
+        }
+        return { id: r.id, from: r.from_player, to: r.to_player,
+          subject: r.subject, body: r.body, time: r.time, read: estLu, archived: r.archived || false };
+      }),
       ...local.filter(m => !sbIds.has(m.id))
     ];
     saveMails(merged);

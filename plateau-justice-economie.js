@@ -918,9 +918,10 @@ function confirmerRequeteAvocat() {
   const roll = Math.floor(Math.random() * 100) + 1;
 
   if (roll <= taux) {
-    const reduction = Math.max(1, Math.ceil(state.estEmprisonne.jours / 2));
-    state.estEmprisonne.jours = Math.max(0, state.estEmprisonne.jours - reduction);
+    const joursRestants = Math.max(1, state.estEmprisonne.jourFin - (state.day || 1));
+    const reduction = Math.max(1, Math.ceil(joursRestants / 2));
     state.estEmprisonne.jourFin = Math.max(state.day, state.estEmprisonne.jourFin - reduction);
+    state.estEmprisonne.jours = Math.max(0, joursRestants - reduction);
     addMailNotification('Cabinet juridique', 'Réduction obtenue', 'Votre avocat a plaidé un vice de procédure. Votre peine est réduite de ' + reduction + ' jour(s).');
 
     if (state.estEmprisonne.jours <= 0 || state.day >= state.estEmprisonne.jourFin) {
