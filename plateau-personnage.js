@@ -699,6 +699,7 @@ function doDormir() {
   // Traiter les evenements nocturnes
   traiterPlaintes();
   traiterEnquetes();
+  traiterConvocations();
   checkArrestationAuReveil();
 
   // Rafraichir la vue

@@ -1551,7 +1551,8 @@ const BUILDINGS = {
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Contre une personne identifiee ou contre X. Reponse sous 24h.'},
           {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:95,  desc:'Succes (95%) : liste des personnes emprisonnees les 30 derniers jours.'},
-          {fn:'arreter',          label:"Faire arreter quelqu'un",pa:3, cost:500, type:'illegal', icon:'ti-handcuffs', successRate:50,  desc:'Necessite un dossier. Mise en garde a vue 24h.'}
+          {fn:'arreter',          label:"Faire arreter quelqu'un",pa:3, cost:500, type:'illegal', icon:'ti-handcuffs', successRate:50,  desc:'Necessite un dossier. Mise en garde a vue 24h.'},
+          {fn:'se_justifier',     label:'Se justifier (convocation)', pa:2, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation recue par mail. Leve l\'avis de recherche associe.'}
         ]
       },
       prison: {

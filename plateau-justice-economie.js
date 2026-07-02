@@ -537,6 +537,60 @@ function checkArrestationAuReveil() {
   }
 }
 
+// =====================
+// SE JUSTIFIER (suite a convocation — ex: achat d'arme illegal echoue)
+// =====================
+function doSeJustifier() {
+  const convocation = (state.convocations || []).find(c => !c.traitee);
+  if (!convocation) {
+    showToast('Rien à signaler', "Vous n'avez aucune convocation en attente.", false);
+    return;
+  }
+
+  const motifLabel = { achat_arme_illegal: "tentative d'achat d'arme non enregistrée" }[convocation.motif] || convocation.motif;
+
+  document.getElementById('postes-modal-title').textContent = 'Convocation — Se justifier';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">Vous êtes entendu(e) au sujet de : ' + motifLabel + '. L\'entretien prend du temps.</div>';
+  html += '<button onclick="confirmerSeJustifier()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Se présenter (2 PA)</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerSeJustifier() {
+  document.getElementById('modal-postes').classList.remove('open');
+  const convocation = (state.convocations || []).find(c => !c.traitee);
+  if (!convocation) { showToast('Rien à signaler', '', false); return; }
+
+  convocation.traitee = true;
+  if (!TEST_MODE) state.pa = Math.max(0, state.pa - 2);
+
+  // Lever l'avis de recherche lie a ce motif precis
+  if (state.recherche) {
+    state.recherche = state.recherche.filter(r => r.acte !== convocation.motif);
+  }
+
+  updateUI();
+  showToast('Convocation traitée', 'Vous vous êtes justifié(e). Avis de recherche levé pour ce motif.', true, true);
+  addJournalEntry('Vous vous êtes présenté(e) au commissariat suite à convocation.', 'event-info');
+}
+
+// Verification periodique (a minuit) : convocations non honorees dans le delai -> arrestation
+function traiterConvocations() {
+  if (!state.convocations) return;
+  const enRetard = state.convocations.filter(c =>
+    !c.traitee && (state.day > c.jourLimite || (state.day === c.jourLimite && (state.hour || 0) >= c.heureLimite))
+  );
+  if (enRetard.length === 0) return;
+
+  enRetard.forEach(c => { c.traitee = true; });
+
+  const peineType = ACTES_ILLEGAUX[enRetard[0].motif]?.type || 'delit_mineur';
+  procederArrestation(peineType, false);
+  addMailNotification('Commissariat', 'Non-présentation', "Vous ne vous êtes pas présenté(e) dans le délai imparti suite à votre convocation. Vous êtes arrêté(e).");
+}
+
 function ouvrirModalArrestation(peineType) {
   const peine = PEINES[peineType] || PEINES.delit_mineur;
   const country = state.country || 'republic';

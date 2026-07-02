@@ -557,7 +557,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-crosshair',
       desc: 'Fiable, discret, classique. Trois balles suffisent généralement.',
       bonus: { stat: 'PER', val: 8 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-revolver-republic.png'
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-fusil-republic.png'
     },
     {
       id: 'carabine_chasse',
@@ -567,7 +567,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-target-arrow',
       desc: 'Pour le gibier. Gros gibier.',
       bonus: { stat: 'PER', val: 15 },
-      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-fusil-republic.png'
+      imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-revolver-republic.png'
     }
   ],
   narco: [
@@ -806,11 +806,8 @@ function confirmerAchatArmeIllegal(armeId) {
       traitee: false
     });
 
-    if (typeof sbSendMail === 'function') {
-      const h = String(state.hour || 8).padStart(2,'0');
-      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-      sbSendMail('Commissariat', state.char?.name || '', 'Convocation officielle', 'L\'armurier a refusé la vente et vous a dénoncé. Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).', time).catch(() => {});
-    }
+    const commissairePays = { republic:'Raoul Toufaud', narco:'El Capitan Gordo', soviet:'Camarade Borodine', khalija:'Chambellan Ibn Protocole' }[pays] || 'Le Commissariat';
+    addMailNotification(commissairePays, 'Convocation officielle', 'L\'armurier a refusé la vente et vous a dénoncé. Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).');
 
     updateUI();
     showToast('Vente refusée !', 'L\'armurier vous dénonce. Convocation au commissariat sous 24h.', false, true);
@@ -943,7 +940,7 @@ function doAcheterExplosifs() {
   html += '<img src="' + imageUrl + '" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
   html += '</div>';
   html += '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">Non enregistré. Taux de réussite 40%. En cas d\'échec, le vendeur alerte la police.</div>';
+  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">Non enregistré. Le vendeur reste prudent — tout dépend de votre réputation et du régime en place. En cas de méfiance, il alerte la police.</div>';
   html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem;background:#0a0805;border:1px solid #2a2010;margin-bottom:.8rem">';
   html += '<span style="font-size:.75rem;color:#6a5a30">Prix</span>';
   html += '<span style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + prix.toLocaleString('fr-FR') + ' ' + cur + '</span>';
@@ -965,7 +962,9 @@ function confirmerAchatExplosifs() {
   if (state.arg < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
   const roll = Math.floor(Math.random() * 100) + 1;
-  const taux = 40;
+  const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
+  const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
+  const taux = Math.max(5, Math.min(95, 35 + empMod + careerBonus - getMalusISN()));
 
   if (roll > taux) {
     // ECHEC — le vendeur alerte la police, pas de debit

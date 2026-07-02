@@ -36,6 +36,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }
+  if (fn === 'se_justifier') { doSeJustifier(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
   if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour assassiner, cliquez sur le personnage cible dans la liste des personnes presentes.', false); return; }
   if (fn === 'consulter_elections') { ouvrirTableauElectoral(); return; }

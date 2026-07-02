@@ -281,7 +281,7 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .sortir-btn:hover{background:var(--gold-dark);color:#0a0a0a}
 .batiment-header-info{flex:1}
 .batiment-nom{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--gold-light)}
-.batiment-cat{font-size:.7rem;color:var(--text4);font-style:italic}
+.batiment-cat{font-size:.78rem;color:var(--text3);font-style:italic}
 .pieces-tabs{display:flex;gap:.25rem;flex-wrap:wrap}
 .piece-tab{font-family:'Bebas Neue',sans-serif;font-size:.86rem;letter-spacing:.08em;padding:.25rem .5rem;border:1px solid var(--border);color:#8a8060;cursor:pointer;transition:all .2s;background:transparent}
 .piece-tab.active{border-color:var(--gold);color:var(--gold);background:var(--bg4)}

@@ -466,6 +466,7 @@ function runMidnightUpdate() {
   // Traiter les plaintes et enquetes en cours
   traiterPlaintes();
   traiterEnquetes();
+  traiterConvocations();
   // Budget institutions et population
   mettreAJourBudgets();
   mettreAJourPopulation();
