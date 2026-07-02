@@ -162,13 +162,18 @@ function getBuildingContext(buildingId) {
   return city?.buildingContext?.[buildingId] || null;
 }
 
+function joursRestantsPeine() {
+  if (!state.estEmprisonne) return 0;
+  return Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
+}
+
 function enterBuilding(buildingId) {
   const b = BUILDINGS[buildingId];
   if (!b) return;
 
   // Verrou : emprisonnement — impossible de quitter le commissariat avant la fin de la peine
   if (state.estEmprisonne && buildingId !== 'commissariat') {
-    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (ou tentez une évasion).', false);
+    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
     return;
   }
 
@@ -256,7 +261,7 @@ function enterBuilding(buildingId) {
 function enterRoom(buildingId, roomId, tabEl) {
   // Verrou : emprisonnement — reste bloque en cellule, aucun changement de piece
   if (state.estEmprisonne && !(buildingId === 'commissariat' && roomId === 'prison')) {
-    showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule jusqu\'à la fin de votre peine.', false);
+    showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule. ' + joursRestantsPeine() + ' jour(s) restant(s) avant votre libération.', false);
     return;
   }
   // Vérifier accès zone embarquement
@@ -320,7 +325,11 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (existing) existing.remove();
 
   document.getElementById('piece-nom').textContent = roomOverride?.name || room.name;
-  const displayDesc = (isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || '');
+  let displayDesc = (isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || '');
+  if (state.estEmprisonne && buildingId === 'commissariat' && roomId === 'prison') {
+    const joursRestants = Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
+    displayDesc += ' — Peine : ' + state.estEmprisonne.raison + '. Temps restant : ' + joursRestants + ' jour(s) (libération au Jour ' + state.estEmprisonne.jourFin + ').';
+  }
   document.getElementById('piece-desc').textContent = displayDesc;
   let displayPersons = (isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []);
 
@@ -397,7 +406,7 @@ function checkZoneEmbarquementAcces(buildingId, roomId) {
 
 function sortirBatiment() {
   if (state.estEmprisonne) {
-    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (ou tentez une évasion).', false);
+    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
     return;
   }
   state.douanePassee = false;
@@ -733,7 +742,7 @@ const EMPIRES_CONFIG = {
 
 function ouvrirModalTransport(mode) {
   if (state.estEmprisonne) {
-    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de voyager avant la fin de votre peine.', false);
+    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de voyager avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s)).', false);
     return;
   }
   const config = TRANSPORT_CONFIG[mode];
