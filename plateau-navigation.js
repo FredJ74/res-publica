@@ -254,6 +254,11 @@ function enterBuilding(buildingId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  // Verrou : emprisonnement — reste bloque en cellule, aucun changement de piece
+  if (state.estEmprisonne && !(buildingId === 'commissariat' && roomId === 'prison')) {
+    showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule jusqu\'à la fin de votre peine.', false);
+    return;
+  }
   // Vérifier accès zone embarquement
   if (!checkZoneEmbarquementAcces(buildingId, roomId)) return;
   const b = BUILDINGS[buildingId];
