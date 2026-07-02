@@ -104,6 +104,13 @@ const PEINES = {
 
 // Baremes specifiques par acte et par empire — remplacent PEINES/ACTES_ILLEGAUX quand presents.
 // Valeurs "echec" (flagrant delit / recherche). Si demasque (decouvert apres coup via enquete), doublees automatiquement.
+// Batiments consideres comme centres de pouvoir : malus important a l'incendie et aux explosifs
+const BATIMENTS_CENTRES_POUVOIR = [
+  'palais-presidentiel', 'palais-gouvernement', 'assemblee', 'tribunal',
+  'commissariat', 'banque-nationale', 'banque-privee', 'mairie-capitale', 'mairie'
+];
+const MALUS_CENTRE_POUVOIR = 30;
+
 const PEINES_ACTES = {
   republic: {
     vol:                      { jours: 1, amende: 500,  label: 'Vol' },
@@ -145,6 +152,7 @@ const ACTES_ILLEGAUX = {
   acheter_bombe_illegale:{ type: 'crime',      detectRate: 55 },
   fabriquer_bombe:    { type: 'crime',         detectRate: 60 },
   incendier:          { type: 'crime',         detectRate: 70 },
+  utiliser_explosifs: { type: 'crime',         detectRate: 65 },
   arreter:            { type: 'delit_grave',   detectRate: 40 },
   fabriquer_scandale: { type: 'delit_grave',   detectRate: 45 },
   fuite_info:         { type: 'delit_grave',   detectRate: 40 },
@@ -294,6 +302,10 @@ window.addEventListener('DOMContentLoaded', () => {
   verifierNouveauxMails();
   setInterval(verifierNouveauxMails, 120000);
 
+  // Batiments fermes (incendie/explosifs) — au chargement puis toutes les 2 minutes
+  setTimeout(() => chargerBatimentsFermes(), 1000);
+  setInterval(chargerBatimentsFermes, 120000);
+
   // Événements partagés (journal global) — au chargement puis toutes les 90 secondes
   setTimeout(() => chargerEvenementsPartages(), 1500);
   setTimeout(() => chargerOrganisations(), 1800);
@@ -333,6 +345,23 @@ window.addEventListener('DOMContentLoaded', () => {
     forceRenderCity(state.currentCity || 'capitale');
   }, 300);
 });
+
+async function chargerBatimentsFermes() {
+  if (typeof sbChargerBatimentsFermes !== 'function') return;
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  try {
+    const rows = await sbChargerBatimentsFermes(pays, ville);
+    state.batimentsFermesCache = (rows || []).filter(r => r.jour_fin > (state.day || 1));
+  } catch(e) {}
+}
+
+function batimentEstFerme(buildingId) {
+  const ferme = (state.batimentsFermesCache || []).find(r =>
+    r.batiment_id === buildingId && r.pays === (state.country||'republic') && r.ville === (state.currentCity||'capitale') && r.jour_fin > (state.day||1)
+  );
+  return ferme || null;
+}
 
 function loadCharacter() {
   try {

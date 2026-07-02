@@ -199,6 +199,18 @@ async function sbConsulterRegistreArmes(pays) {
   return rows || [];
 }
 
+// =====================
+// BATIMENTS FERMES (incendie / explosifs)
+// =====================
+async function sbFermerBatiment(fermeture) {
+  return sbInsert('batiments_fermes', fermeture);
+}
+
+async function sbChargerBatimentsFermes(pays, ville) {
+  const rows = await sbGet('batiments_fermes', `pays=eq.${encodeURIComponent(pays)}&ville=eq.${encodeURIComponent(ville)}`);
+  return rows || [];
+}
+
 async function sbSendMail(from, to, subject, body, time) {
   const id = 'mail-' + Date.now();
   return sbInsert('mails', { id, from_player: from, to_player: to, subject, body, time, read: false });

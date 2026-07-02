@@ -37,6 +37,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }
   if (fn === 'se_justifier') { doSeJustifier(); return; }
+  if (fn === 'incendier') { doIncendier(); return; }
+  if (fn === 'utiliser_explosifs') { doUtiliserExplosifs(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
   if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour assassiner, cliquez sur le personnage cible dans la liste des personnes presentes.', false); return; }
   if (fn === 'consulter_elections') { ouvrirTableauElectoral(); return; }
@@ -346,6 +348,24 @@ function applyEffects(fn, resultType, cost) {
         state.poisonActif = null;
         msgs.push('Vous semblez vous remettre de votre malaise.');
         addJournalEntry('Les effets du poison se dissipent.', 'event-good');
+      }
+    }
+
+    // 3bis. Explosifs rates — l'auteur seul est blesse, degats progressifs
+    if (state.explosifBlesse) {
+      const jourBlessure = (state.day || 1) - (state.explosifBlesse.jourDebut || 1);
+      if (jourBlessure === 0) {
+        state.hp = Math.max(1, state.hp - 30);
+        msgs.push('⚠️ Vos blessures dues à l\'explosion vous rongent. -30 PV.');
+        addJournalEntry('Vos blessures s\'infectent après votre tentative ratée. -30 PV.', 'event-bad');
+      } else if (jourBlessure === 1) {
+        state.hp = Math.max(1, Math.floor(state.hp / 2));
+        msgs.push('⚠️ Vos blessures s\'aggravent. HP divisés par 2.');
+        addJournalEntry('Vos blessures s\'aggravent. HP divisés par 2.', 'event-bad');
+      } else {
+        state.explosifBlesse = null;
+        msgs.push('Vous vous remettez de vos blessures.');
+        addJournalEntry('Vous vous remettez de vos blessures dues à l\'explosion ratée.', 'event-good');
       }
     }
 

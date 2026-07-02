@@ -995,6 +995,166 @@ function confirmerAchatExplosifs() {
   addJournalEntry('Achat clandestin : Explosifs (-' + prix.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-bad');
 }
 
+// =====================
+// INCENDIER (bâtiment courant)
+// =====================
+function doIncendier() {
+  const b = BUILDINGS[state.currentBuilding];
+  if (!b) { showToast('Impossible', 'Vous devez être dans un bâtiment pour tenter ceci.', false); return; }
+
+  const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(state.currentBuilding) ? MALUS_CENTRE_POUVOIR : 0;
+
+  document.getElementById('postes-modal-title').textContent = 'Incendier — ' + b.name;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#cc4444;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0505;border:1px solid #3a1010">Acte criminel. Un incendie ravage ce bâtiment, le fermant temporairement (1 à 3 jours selon la réussite).' + (malusCentre ? ' Bâtiment stratégique : surveillance renforcée, malus important.' : '') + '</div>';
+  html += '<button onclick="confirmerIncendier()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a20;background:transparent;color:#cc6a44;cursor:pointer">🔥 Mettre le feu (3 PA)</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerIncendier() {
+  document.getElementById('modal-postes').classList.remove('open');
+  const buildingId = state.currentBuilding;
+  const b = BUILDINGS[buildingId];
+  if (!b) return;
+  if (!TEST_MODE) state.pa = Math.max(0, state.pa - 3);
+
+  const malusISN = getMalusISN();
+  const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
+  const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(buildingId) ? MALUS_CENTRE_POUVOIR : 0;
+  const taux = Math.max(5, 30 + careerBonus - malusISN - malusCentre);
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  let joursFermeture = 0;
+  if (roll <= taux * 0.5) joursFermeture = 3;
+  else if (roll <= taux * 0.8) joursFermeture = 2;
+  else if (roll <= taux) joursFermeture = 1;
+
+  if (joursFermeture > 0) {
+    const jourFin = state.day + joursFermeture;
+    const fermeture = { pays: state.country, ville: state.currentCity, batiment_id: buildingId, jour_fin: jourFin, motif: 'incendie', auteur: state.char?.name || 'Anonyme' };
+    if (typeof sbFermerBatiment === 'function') sbFermerBatiment(fermeture).catch(() => {});
+    if (!state.batimentsFermesCache) state.batimentsFermesCache = [];
+    state.batimentsFermesCache.push(fermeture);
+
+    addExternalEvent('INCENDIE : ' + b.name + ' ravagé par les flammes. Fermé ' + joursFermeture + ' jour(s).');
+    showToast('Incendie déclenché', b.name + ' fermé ' + joursFermeture + ' jour(s).', true, true);
+    addJournalEntry('Incendie déclenché sur ' + b.name + '. Fermeture : ' + joursFermeture + ' jour(s).', 'event-bad');
+  } else {
+    showToast('Incendie raté', 'Le feu ne prend pas. Rien ne se passe.', false);
+    addJournalEntry('Tentative d\'incendie ratée sur ' + b.name + '.', 'event-bad');
+  }
+
+  // Risque d'etre repere sur le fait, independamment du resultat de l'incendie
+  const detectRate = ACTES_ILLEGAUX['incendier']?.detectRate || 70;
+  const repere = (Math.floor(Math.random() * 100) + 1) <= detectRate;
+  if (repere) {
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte: 'incendier', type: 'crime', jour: state.day });
+    addExternalEvent('ALERTE : un témoin vous a reconnu près de l\'incendie.');
+  } else if (joursFermeture > 0) {
+    // Reussi et non repere sur le champ -> reste decouvrable plus tard via enquete
+    if (!state.historiqueCrimes) state.historiqueCrimes = [];
+    state.historiqueCrimes.push({ acte: 'incendier', cible: buildingId, jour: state.day, expireJour: state.day + 8 });
+    tracerActionPourRumeur('incendier', b.name);
+  }
+  updateUI();
+}
+
+// =====================
+// UTILISER DES EXPLOSIFS (bâtiment + occupants de la pièce)
+// =====================
+function doUtiliserExplosifs() {
+  const explosifIdx = (state.inventory || []).findIndex(i => i.type === 'explosif');
+  if (explosifIdx === -1) {
+    showToast('Objet manquant', 'Vous n\'avez pas d\'explosifs dans votre inventaire. Procurez-vous en à l\'armurerie.', false);
+    return;
+  }
+  const b = BUILDINGS[state.currentBuilding];
+  if (!b) { showToast('Impossible', 'Vous devez être dans un bâtiment pour tenter ceci.', false); return; }
+
+  const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(state.currentBuilding) ? MALUS_CENTRE_POUVOIR : 0;
+  const autresPresents = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
+
+  document.getElementById('postes-modal-title').textContent = 'Utiliser les explosifs — ' + b.name;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#cc4444;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0505;border:1px solid #3a1010">Acte criminel grave. Fermeture du bâtiment 5 jours en cas de réussite. Toute personne présente dans la pièce (hormis vous) sera blessée.' + (autresPresents.length ? ' Actuellement présent(s) : ' + autresPresents.map(p=>p.name).join(', ') + '.' : ' Personne d\'autre présent pour le moment.') + (malusCentre ? ' Bâtiment stratégique : surveillance renforcée, malus important.' : '') + ' En cas d\'échec, seul(e) vous serez blessé(e), progressivement.</div>';
+  html += '<button onclick="confirmerUtiliserExplosifs()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a20;background:transparent;color:#cc6a44;cursor:pointer">💣 Déclencher (3 PA)</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerUtiliserExplosifs() {
+  document.getElementById('modal-postes').classList.remove('open');
+  const explosifIdx = (state.inventory || []).findIndex(i => i.type === 'explosif');
+  if (explosifIdx === -1) return;
+  const buildingId = state.currentBuilding;
+  const b = BUILDINGS[buildingId];
+  if (!b) return;
+
+  // Consommer l'objet (usage unique)
+  state.inventory.splice(explosifIdx, 1);
+  if (!TEST_MODE) state.pa = Math.max(0, state.pa - 3);
+
+  const malusISN = getMalusISN();
+  const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
+  const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(buildingId) ? MALUS_CENTRE_POUVOIR : 0;
+  const taux = Math.max(5, 35 + careerBonus - malusISN - malusCentre);
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const reussi = roll <= taux;
+
+  const autresPresents = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
+
+  if (reussi) {
+    const jourFin = state.day + 5;
+    const fermeture = { pays: state.country, ville: state.currentCity, batiment_id: buildingId, jour_fin: jourFin, motif: 'explosifs', auteur: state.char?.name || 'Anonyme' };
+    if (typeof sbFermerBatiment === 'function') sbFermerBatiment(fermeture).catch(() => {});
+    if (!state.batimentsFermesCache) state.batimentsFermesCache = [];
+    state.batimentsFermesCache.push(fermeture);
+
+    // Victimes : toutes les personnes reelles presentes dans la piece, sauf l'auteur
+    for (const p of autresPresents) {
+      if (typeof sbDeposerImpactIndice === 'function') {
+        await sbDeposerImpactIndice({
+          id: 'explosion-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+          victime: p.name,
+          indice: 'hp_set',
+          delta: 15,
+          traite: false
+        }).catch(() => {});
+      }
+      if (typeof sbSendMail === 'function') {
+        sbSendMail('Événement', p.name, 'Explosion !', 'Une explosion s\'est produite dans la pièce où vous vous trouviez. Vous êtes gravement blessé(e).', formatJourHeure()).catch(() => {});
+      }
+    }
+
+    addExternalEvent('EXPLOSION : ' + b.name + ' dévasté par un attentat à l\'explosif. Fermé 5 jours.' + (autresPresents.length ? ' ' + autresPresents.length + ' blessé(s).' : ''));
+    showToast('Explosifs déclenchés', b.name + ' fermé 5 jours.' + (autresPresents.length ? ' ' + autresPresents.length + ' victime(s).' : ''), true, true);
+    addJournalEntry('Explosifs utilisés sur ' + b.name + '. Fermeture : 5 jours.', 'event-bad');
+  } else {
+    // Echec : l'auteur seul est blesse, progressivement (a partir du prochain dormir)
+    state.explosifBlesse = { jourDebut: state.day };
+    showToast('Explosifs ratés', 'Le dispositif vous explose entre les mains. Vous êtes blessé(e).', false);
+    addJournalEntry('Tentative ratée d\'utilisation d\'explosifs sur ' + b.name + '. Vous êtes blessé(e).', 'event-bad');
+  }
+
+  // Risque d'etre repere sur le fait, independamment du resultat
+  const detectRate = ACTES_ILLEGAUX['utiliser_explosifs']?.detectRate || 65;
+  const repere = (Math.floor(Math.random() * 100) + 1) <= detectRate;
+  if (repere) {
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte: 'utiliser_explosifs', type: 'crime', jour: state.day });
+    addExternalEvent('ALERTE : un témoin vous a reconnu près de l\'explosion.');
+  } else if (reussi) {
+    if (!state.historiqueCrimes) state.historiqueCrimes = [];
+    state.historiqueCrimes.push({ acte: 'utiliser_explosifs', cible: buildingId, jour: state.day, expireJour: state.day + 8 });
+    tracerActionPourRumeur('utiliser_explosifs', b.name);
+  }
+  updateUI();
+}
+
 function doAcheterPoisonObjet(type) {
   const obj = POISON_OBJETS[type];
   if (!obj) return;

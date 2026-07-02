@@ -177,6 +177,14 @@ function enterBuilding(buildingId) {
     return;
   }
 
+  // Verrou : batiment ferme suite a un incendie ou des explosifs
+  const fermeture = typeof batimentEstFerme === 'function' ? batimentEstFerme(buildingId) : null;
+  if (fermeture) {
+    const joursRestants = Math.max(1, fermeture.jour_fin - (state.day || 1));
+    showToast('Bâtiment fermé', (b.name || buildingId) + ' est fermé suite à un ' + (fermeture.motif === 'explosifs' ? 'attentat à l\'explosif' : 'incendie') + '. Réouverture dans ' + joursRestants + ' jour(s).', false);
+    return;
+  }
+
   if (b.locked) {
     showToast('Accès restreint', "Vous n'êtes pas membre de cet établissement.", false);
     addJournalEntry("Vous tentez d'entrer mais l'accès vous est refusé.", 'event-bad');
