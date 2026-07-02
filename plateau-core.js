@@ -102,6 +102,37 @@ const PEINES = {
   crime_etat:     { jours: 30, label: "Crime d'Etat",    amendeBase: 0    }
 };
 
+// Baremes specifiques par acte et par empire — remplacent PEINES/ACTES_ILLEGAUX quand presents.
+// Valeurs "echec" (flagrant delit / recherche). Si demasque (decouvert apres coup via enquete), doublees automatiquement.
+const PEINES_ACTES = {
+  republic: {
+    vol:                      { jours: 1, amende: 500,  label: 'Vol' },
+    achat_arme_illegal:       { jours: 1, amende: 500,  label: "Achat d'arme non enregistree" },
+    diffamation:              { jours: 1, amende: 500,  label: 'Diffamation' },
+    tentative_assassinat:     { jours: 2, amende: 1500, label: "Tentative d'assassinat" },
+    assassinat:               { jours: 2, amende: 1500, label: 'Assassinat' },
+    tentative_empoisonnement: { jours: 2, amende: 2000, label: "Tentative d'empoisonnement" },
+    empoisonnement:           { jours: 2, amende: 2000, label: 'Empoisonnement' },
+    acheter_bombe_illegale:   { jours: 2, amende: 2000, label: "Achat d'explosifs non enregistres" },
+    utiliser_explosifs:       { jours: 2, amende: 2000, label: "Usage d'explosifs" },
+    incendier:                { jours: 2, amende: 2000, label: 'Incendie volontaire' }
+  }
+};
+
+// Calcule la peine applicable pour un acte donne. demasque=true double jours et amende
+// (acte reussi et decouvert apres coup, plutot qu'un echec immediat).
+function getPeineParActe(acte, demasque) {
+  const pays = state.country || 'republic';
+  const specifique = PEINES_ACTES[pays]?.[acte];
+  if (specifique) {
+    const mult = demasque ? 2 : 1;
+    return { jours: specifique.jours * mult, amende: specifique.amende * mult, label: specifique.label };
+  }
+  const type = ACTES_ILLEGAUX[acte]?.type || acte || 'delit_mineur';
+  const peine = PEINES[type] || PEINES.delit_mineur;
+  return { jours: peine.jours, amende: peine.amendeBase, label: peine.label };
+}
+
 const ACTES_ILLEGAUX = {
   corrompre_fonct:    { type: 'delit_mineur',  detectRate: 30 },
   corrompre_police:   { type: 'delit_mineur',  detectRate: 35 },
@@ -468,6 +499,7 @@ function runMidnightUpdate() {
   traiterEnquetes();
   traiterConvocations();
   verifierLiberationPrisonniers();
+  verifierDecouverteCrimesPasses();
   // Budget institutions et population
   mettreAJourBudgets();
   mettreAJourPopulation();

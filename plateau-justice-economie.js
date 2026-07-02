@@ -513,16 +513,17 @@ function checkDetection(fn, resultType) {
 
 function checkArrestationAuDeplacement() {
   if (!state.recherche || state.recherche.length === 0) return;
-  const alerteMax = state.recherche.reduce((max, r) => {
-    const peine = PEINES[r.type];
-    return peine && peine.jours > (PEINES[max]?.jours||0) ? r.type : max;
-  }, 'delit_mineur');
+  const pire = state.recherche.reduce((max, r) => {
+    const pMax = getPeineParActe(max.acte, false);
+    const pR = getPeineParActe(r.acte, false);
+    return pR.jours > pMax.jours ? r : max;
+  }, state.recherche[0]);
 
   const roll = Math.floor(Math.random() * 100) + 1;
   const tauxInter = Math.max(5, 30 - Math.floor(state.dis / 5));
 
   if (roll <= tauxInter) {
-    ouvrirModalArrestation(alerteMax);
+    ouvrirModalArrestation(pire.acte);
   }
 }
 
@@ -531,9 +532,9 @@ function checkArrestationAuReveil() {
   if (!state.recherche || state.recherche.length === 0) return;
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= 10) {
-    const alerteMax = state.recherche[state.recherche.length - 1]?.type || 'delit_mineur';
+    const acteMax = state.recherche[state.recherche.length - 1]?.acte || 'delit_mineur';
     addExternalEvent('La police a retrouve votre trace. Vous avez ete arrete(e) dans la nuit.');
-    procederArrestation(alerteMax, false);
+    procederArrestation(acteMax, false, false);
   }
 }
 
@@ -586,13 +587,12 @@ function traiterConvocations() {
 
   enRetard.forEach(c => { c.traitee = true; });
 
-  const peineType = ACTES_ILLEGAUX[enRetard[0].motif]?.type || 'delit_mineur';
-  procederArrestation(peineType, false);
+  procederArrestation(enRetard[0].motif, false, false);
   addMailNotification('Commissariat', 'Non-présentation', "Vous ne vous êtes pas présenté(e) dans le délai imparti suite à votre convocation. Vous êtes arrêté(e).");
 }
 
-function ouvrirModalArrestation(peineType) {
-  const peine = PEINES[peineType] || PEINES.delit_mineur;
+function ouvrirModalArrestation(acte) {
+  const peine = getPeineParActe(acte, false);
   const country = state.country || 'republic';
 
   // Répliques situationnelles par empire
@@ -635,10 +635,10 @@ function ouvrirModalArrestation(peineType) {
     '<div style="font-size:.88rem;color:#cc4444;font-family:Playfair Display,serif;margin-bottom:.4rem">Chef d\'inculpation : ' + peine.label + '</div>' +
     '<div style="font-size:.78rem;color:#8a8060;margin-bottom:1rem">Peine encourue : ' + peine.jours + ' jour(s) d\'emprisonnement.</div>' +
     '<div style="display:flex;flex-direction:column;gap:.5rem">' +
-    '<button onclick="procederArrestation(\'' + peineType + '\',false);document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #4a6a4a;background:transparent;color:#6a9a6a;cursor:pointer"><i class="ti ti-check" style="font-size:.8rem"></i> Se rendre</button>' +
-    '<button onclick="tenterCorruptionArrestation(\'' + peineType + '\',' + cout + ',' + taux + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-coin" style="font-size:.8rem"></i> Corrompre l\'agent (' + cout + ' ' + cur + ' · ' + taux + '%)</button>' +
+    '<button onclick="procederArrestation(\'' + acte + '\',false,false);document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #4a6a4a;background:transparent;color:#6a9a6a;cursor:pointer"><i class="ti ti-check" style="font-size:.8rem"></i> Se rendre</button>' +
+    '<button onclick="tenterCorruptionArrestation(\'' + acte + '\',' + cout + ',' + taux + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-coin" style="font-size:.8rem"></i> Corrompre l\'agent (' + cout + ' ' + cur + ' · ' + taux + '%)</button>' +
     '<button onclick="tenterFuite()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a6a20;background:transparent;color:#8a8060;cursor:pointer"><i class="ti ti-run" style="font-size:.8rem"></i> Fuir (VOL+DIS)</button>' +
-    '<button onclick="tenterResistance(\'' + peineType + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-sword" style="font-size:.8rem"></i> Résister (très risqué)</button>' +
+    '<button onclick="tenterResistance(\'' + acte + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-sword" style="font-size:.8rem"></i> Résister (très risqué)</button>' +
     '</div></div>';
   document.getElementById('modal-postes').classList.add('open');
 }
@@ -688,27 +688,28 @@ function tenterCorruptionArrestation(peineType, cout, taux) {
     const rep = echecRepliques[country] || echecRepliques.republic;
     showToast('Corruption ratée !', `"${rep}"`, false);
     addJournalEntry(`Tentative de corruption échouée. -${cout} ${cur} · -15 DIS. Arrestation aggravée.`, 'event-bad');
-    procederArrestation(peineType, true);
+    procederArrestation(peineType, true, false);
   }
 }
 
-function procederArrestation(peineType, resistanceAggravante) {
-  const peine = PEINES[peineType] || PEINES.delit_mineur;
-  const jours = peine.jours + (resistanceAggravante ? 2 : 0);
-  const amende = peine.amendeBase;
+function procederArrestation(acte, resistanceAggravante, demasque) {
+  const peineCalc = getPeineParActe(acte, demasque);
+  const jours = peineCalc.jours + (resistanceAggravante ? 2 : 0);
+  const amende = peineCalc.amende;
+  const typeBase = ACTES_ILLEGAUX[acte]?.type || acte;
 
-  state.estEmprisonne = { jours, jourFin: state.day + jours, raison: peine.label };
+  state.estEmprisonne = { jours, jourFin: state.day + jours, raison: peineCalc.label };
   state.recherche = [];
   if (amende > 0) state.arg = Math.max(0, state.arg - amende);
-  if (state.poste && peineType === 'crime') {
+  if (state.poste && typeBase === 'crime') {
     addExternalEvent('Votre poste de ' + state.poste.name + ' vous a ete retire suite a votre arrestation.');
     state.poste = null;
     if (state.char) state.char.poste = null;
   }
   updateUI();
-  addExternalEvent('Vous avez ete arrete(e) pour ' + peine.label + '. ' + jours + ' jour(s) d\'emprisonnement. Amende : ' + amende.toLocaleString('fr-FR') + ' FR.');
+  addExternalEvent('Vous avez ete arrete(e) pour ' + peineCalc.label + '. ' + jours + ' jour(s) d\'emprisonnement. Amende : ' + amende.toLocaleString('fr-FR') + ' FR.');
   if (!state.prisonniers) state.prisonniers = [];
-  state.prisonniers.push({ nom: state.char?.name, depuis: 'Jour ' + state.day, raison: peine.label, jourFin: state.day + jours });
+  state.prisonniers.push({ nom: state.char?.name, depuis: 'Jour ' + state.day, raison: peineCalc.label, jourFin: state.day + jours });
 
   // Teleportation en cellule de garde a vue
   state.currentBuilding = 'commissariat';
@@ -744,8 +745,8 @@ function tenterFuite() {
     addJournalEntry('Vous avez pris la fuite face aux policiers. Votre discretion chute.', 'event-bad');
   } else {
     addExternalEvent('Tentative de fuite echouee. Arrestation avec circonstance aggravante.');
-    const peineType = state.recherche?.[0]?.type || 'delit_mineur';
-    procederArrestation(peineType, true);
+    const peineType = state.recherche?.[0]?.acte || 'delit_mineur';
+    procederArrestation(peineType, true, false);
   }
 }
 
@@ -766,7 +767,7 @@ function tenterResistance(peineType) {
     state.recherche.push({ acte: 'rebellion', type: 'delit_grave', jour: state.day });
   } else {
     addExternalEvent('Resistance aux forces de l\'ordre. Arrestation avec chef de rebellion.');
-    procederArrestation(peineType, true);
+    procederArrestation(peineType, true, false);
     state.hp = Math.max(1, state.hp - 20);
     updateUI();
   }
@@ -891,6 +892,31 @@ function doGreveFaim() {
   addExternalEvent((state.char?.name||'Un detenu') + ' entame une greve de la faim. Pression politique.');
 }
 
+// Actes pouvant faire l'objet d'une decouverte differee (succes non sanctionne sur le moment).
+// Vol est volontairement exclu : ses echecs sont deja sanctionnes immediatement (verbalisation/amende sur le champ),
+// et ses succes ne sont pas inscrits a l'historique — pas de risque de double sanction.
+const ACTES_DECOUVRABLES = ['assassinat', 'empoisonnement', 'achat_arme_illegal', 'acheter_bombe_illegale'];
+
+function verifierDecouverteCrimesPasses() {
+  if (!state.historiqueCrimes || state.historiqueCrimes.length === 0) return;
+  const candidats = state.historiqueCrimes.filter(c =>
+    ACTES_DECOUVRABLES.includes(c.acte) && c.expireJour > state.day
+  );
+  if (candidats.length === 0) return;
+
+  for (const c of candidats) {
+    const tauxDecouverte = ACTES_ILLEGAUX[c.acte]?.detectRate || 25;
+    const roll = Math.floor(Math.random() * 100) + 1;
+    if (roll <= tauxDecouverte) {
+      // Retirer l'entree decouverte de l'historique
+      state.historiqueCrimes = state.historiqueCrimes.filter(x => x !== c);
+      addMailNotification('Brigade Criminelle', 'Affaire résolue', 'Une enquête a permis de vous identifier comme responsable de : ' + (getPeineParActe(c.acte, true).label) + '. Vous êtes arrêté(e).');
+      procederArrestation(c.acte, false, true); // demasque = true -> peine doublee
+      break; // Une seule arrestation a la fois, le reste sera reexamine au prochain cycle
+    }
+  }
+}
+
 function doTentativeEvasion() {
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= 5) {
@@ -899,9 +925,15 @@ function doTentativeEvasion() {
     showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true);
     addJournalEntry('Evasion reussie !', 'event-good');
   } else {
-    if (state.estEmprisonne) state.estEmprisonne.jours += 7;
-    showToast('Evasion echouee', 'Tentative echouee. +7 jours de detention.', false);
-    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee.', 'event-bad');
+    const cur = COUNTRIES[state.country]?.cur || 'FR';
+    if (state.estEmprisonne) {
+      state.estEmprisonne.jours += 1;
+      state.estEmprisonne.jourFin += 1;
+    }
+    state.arg = Math.max(0, (state.arg || 0) - 500);
+    updateUI();
+    showToast('Evasion echouee', 'Tentative echouee. +1 jour de detention, -500 ' + cur + '.', false);
+    addJournalEntry('Tentative d\'evasion echouee. Peine aggravee de 1 jour, amende de 500 ' + cur + '.', 'event-bad');
   }
 }
 
