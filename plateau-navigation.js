@@ -391,6 +391,10 @@ function checkZoneEmbarquementAcces(buildingId, roomId) {
 }
 
 function sortirBatiment() {
+  if (state.estEmprisonne) {
+    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (ou tentez une évasion).', false);
+    return;
+  }
   state.douanePassee = false;
   showVueRue();
   addJournalEntry(`Vous sortez du batiment.`, '');
@@ -723,6 +727,10 @@ const EMPIRES_CONFIG = {
 };
 
 function ouvrirModalTransport(mode) {
+  if (state.estEmprisonne) {
+    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de voyager avant la fin de votre peine.', false);
+    return;
+  }
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const pays = state.country || 'republic';

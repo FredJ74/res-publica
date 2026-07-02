@@ -975,7 +975,6 @@ const BUILDINGS = {
         image: "🍽️",
         imageBg: "linear-gradient(135deg,#1a1005,#2a1a08)",
         desc: "La salle de restaurant est bondee le midi. Tables discretes en fond de salle pour conversations privees.",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/banque-privee-helvetia-bureau.png",
         persons: [
           {name:'Paulo (Maitre d\'hotel)', role:'PNJ - Service', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gaston-sauceblanche.png', photoPos:'50% 15%'},
           {name:'Jean Dupont (PNJ)',       role:'Depute - Parti du Centre', rel:'neutral', job:'commercant', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'20% 30%'},
