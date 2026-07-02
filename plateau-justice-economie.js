@@ -879,9 +879,64 @@ function doSeReposer(fn) {
 }
 
 function doRequeteAvocat() {
-  addMailNotification('Cabinet juridique', 'Prise en charge', 'Votre demande a ete enregistree. Un avocat vous assistera lors de votre comparution. Reduction de peine possible.');
-  showToast('Avocat contacte', 'Un avocat prend votre dossier en charge. Reduction de peine possible.', true);
-  addJournalEntry('Requete avocat deposee.', 'event-info');
+  if (!state.estEmprisonne) {
+    showToast('Inutile', "Vous n'êtes pas emprisonné(e) actuellement.", false);
+    return;
+  }
+  if (state.estEmprisonne.avocatUtilise) {
+    showToast('Déjà fait', 'Vous avez déjà consulté un avocat pour cette peine.', false);
+    return;
+  }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cout = 800;
+
+  document.getElementById('postes-modal-title').textContent = 'Requérir un avocat';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">Un avocat commis peut plaider un vice de procédure et faire réduire votre peine. Ses services ne sont pas gratuits, et le succès n\'est pas garanti. Une seule tentative par peine.</div>';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem;background:#0a0805;border:1px solid #2a2010;margin-bottom:.8rem">';
+  html += '<span style="font-size:.75rem;color:#6a5a30">Honoraires</span>';
+  html += '<span style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + cout.toLocaleString('fr-FR') + ' ' + cur + '</span>';
+  html += '</div>';
+  html += '<button onclick="confirmerRequeteAvocat()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager l\'avocat</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerRequeteAvocat() {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!state.estEmprisonne || state.estEmprisonne.avocatUtilise) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cout = 800;
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
+
+  state.arg -= cout;
+  state.estEmprisonne.avocatUtilise = true;
+
+  const dup = state.char?.stats?.DUP || 8;
+  const taux = Math.min(85, 40 + Math.floor(dup * 1.5));
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    const reduction = Math.max(1, Math.ceil(state.estEmprisonne.jours / 2));
+    state.estEmprisonne.jours = Math.max(0, state.estEmprisonne.jours - reduction);
+    state.estEmprisonne.jourFin = Math.max(state.day, state.estEmprisonne.jourFin - reduction);
+    addMailNotification('Cabinet juridique', 'Réduction obtenue', 'Votre avocat a plaidé un vice de procédure. Votre peine est réduite de ' + reduction + ' jour(s).');
+
+    if (state.estEmprisonne.jours <= 0 || state.day >= state.estEmprisonne.jourFin) {
+      state.estEmprisonne = null;
+      showToast('Libéré(e) !', 'La réduction de peine vous rend votre liberté.', true, true);
+      addJournalEntry('Vous êtes libéré(e) suite à la réduction de peine obtenue par votre avocat.', 'event-good');
+    } else {
+      showToast('Réduction obtenue !', '-' + reduction + ' jour(s) de détention.', true, true);
+      addJournalEntry('Votre avocat obtient une réduction de peine de ' + reduction + ' jour(s). -' + cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
+    }
+  } else {
+    addMailNotification('Cabinet juridique', 'Requête rejetée', 'Le juge a rejeté la demande de votre avocat. Aucune réduction de peine.');
+    showToast('Requête rejetée', "Le juge n'accorde aucune réduction.", false);
+    addJournalEntry('La requête de votre avocat est rejetée. -' + cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-bad');
+  }
+  updateUI();
 }
 
 function doGreveFaim() {
@@ -895,7 +950,7 @@ function doGreveFaim() {
 // Actes pouvant faire l'objet d'une decouverte differee (succes non sanctionne sur le moment).
 // Vol est volontairement exclu : ses echecs sont deja sanctionnes immediatement (verbalisation/amende sur le champ),
 // et ses succes ne sont pas inscrits a l'historique — pas de risque de double sanction.
-const ACTES_DECOUVRABLES = ['assassinat', 'empoisonnement', 'achat_arme_illegal', 'acheter_bombe_illegale'];
+const ACTES_DECOUVRABLES = ['assassinat', 'empoisonnement', 'achat_arme_illegal', 'acheter_bombe_illegale', 'incendier', 'utiliser_explosifs'];
 
 function verifierDecouverteCrimesPasses() {
   if (!state.historiqueCrimes || state.historiqueCrimes.length === 0) return;
