@@ -88,6 +88,7 @@ async function sbSavePersonnage(charState) {
     poison_actif:     charState.poisonActif || null,
     day:              charState.day || 1,
     recherche:        charState.recherche || [],
+    convocations:     charState.convocations || [],
     updated_at:       new Date().toISOString()
   };
 
@@ -133,7 +134,8 @@ async function sbLoadPersonnage(name) {
     locationsActives: r.locations_actives || [],
     poisonActif:   r.poison_actif,
     day:           r.day,
-    recherche:     r.recherche || []
+    recherche:     r.recherche || [],
+    convocations:  r.convocations || []
   };
 }
 
@@ -183,6 +185,18 @@ async function sbIncrementViews(topicId) {
 // =====================
 // MAILS
 // =====================
+// =====================
+// REGISTRE DE VENTE D'ARMES
+// =====================
+async function sbEnregistrerVenteArme(vente) {
+  return sbInsert('registre_ventes_armes', vente);
+}
+
+async function sbConsulterRegistreArmes(pays) {
+  const rows = await sbGet('registre_ventes_armes', `pays=eq.${encodeURIComponent(pays)}&order=created_at.desc`);
+  return rows || [];
+}
+
 async function sbSendMail(from, to, subject, body, time) {
   const id = 'mail-' + Date.now();
   return sbInsert('mails', { id, from_player: from, to_player: to, subject, body, time, read: false });
