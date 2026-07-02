@@ -709,6 +709,25 @@ function procederArrestation(peineType, resistanceAggravante) {
   addExternalEvent('Vous avez ete arrete(e) pour ' + peine.label + '. ' + jours + ' jour(s) d\'emprisonnement. Amende : ' + amende.toLocaleString('fr-FR') + ' FR.');
   if (!state.prisonniers) state.prisonniers = [];
   state.prisonniers.push({ nom: state.char?.name, depuis: 'Jour ' + state.day, raison: peine.label, jourFin: state.day + jours });
+
+  // Teleportation en cellule de garde a vue
+  state.currentBuilding = 'commissariat';
+  state.currentRoom = 'prison';
+  if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
+    enterBuilding('commissariat');
+    if (typeof enterRoom === 'function') enterRoom('commissariat', 'prison', null);
+  }
+}
+
+// Verification periodique (a minuit / au reveil) : liberation automatique en fin de peine
+function verifierLiberationPrisonniers() {
+  if (!state.estEmprisonne) return;
+  if (state.day >= state.estEmprisonne.jourFin) {
+    state.estEmprisonne = null;
+    addMailNotification('Commissariat', 'Libération', 'Votre peine est purgée. Vous êtes libre de circuler.');
+    addJournalEntry('Vous avez purgé votre peine et êtes libéré(e).', 'event-good');
+    updateUI();
+  }
 }
 
 function tenterFuite() {

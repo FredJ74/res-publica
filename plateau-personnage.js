@@ -700,6 +700,7 @@ function doDormir() {
   traiterPlaintes();
   traiterEnquetes();
   traiterConvocations();
+  verifierLiberationPrisonniers();
   checkArrestationAuReveil();
 
   // Rafraichir la vue

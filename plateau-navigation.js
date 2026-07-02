@@ -166,6 +166,12 @@ function enterBuilding(buildingId) {
   const b = BUILDINGS[buildingId];
   if (!b) return;
 
+  // Verrou : emprisonnement — impossible de quitter le commissariat avant la fin de la peine
+  if (state.estEmprisonne && buildingId !== 'commissariat') {
+    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (ou tentez une évasion).', false);
+    return;
+  }
+
   if (b.locked) {
     showToast('Accès restreint', "Vous n'êtes pas membre de cet établissement.", false);
     addJournalEntry("Vous tentez d'entrer mais l'accès vous est refusé.", 'event-bad');

@@ -89,6 +89,7 @@ async function sbSavePersonnage(charState) {
     day:              charState.day || 1,
     recherche:        charState.recherche || [],
     convocations:     charState.convocations || [],
+    est_emprisonne:   charState.estEmprisonne || null,
     updated_at:       new Date().toISOString()
   };
 
@@ -135,7 +136,8 @@ async function sbLoadPersonnage(name) {
     poisonActif:   r.poison_actif,
     day:           r.day,
     recherche:     r.recherche || [],
-    convocations:  r.convocations || []
+    convocations:  r.convocations || [],
+    estEmprisonne: r.est_emprisonne || null
   };
 }
 

@@ -467,6 +467,7 @@ function runMidnightUpdate() {
   traiterPlaintes();
   traiterEnquetes();
   traiterConvocations();
+  verifierLiberationPrisonniers();
   // Budget institutions et population
   mettreAJourBudgets();
   mettreAJourPopulation();
