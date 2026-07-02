@@ -1730,9 +1730,9 @@ const BUILDINGS = {
         orders: [
           {
             fn:'choisir_arme',
-            label:'Acheter une arme',
+            label:'Voir les armes disponibles',
             pa:1, cost:0, type:'grey', icon:'ti-sword', successRate:100,
-            desc:'Couteau, revolver ou carabine — choisissez selon votre budget et vos ambitions.'
+            desc:'Couteau, revolver ou carabine — achat légal (enregistré) ou marché noir (3x le prix), au choix pour chaque arme.'
           },
           {
             fn:'acheter_gilet',

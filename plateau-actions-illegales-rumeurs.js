@@ -560,8 +560,8 @@ const ARMES_CATALOGUE = {
       imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-revolver-republic.png'
     },
     {
-      id: 'fusil_chasse',
-      name: 'Fusil de chasse',
+      id: 'carabine_chasse',
+      name: 'Carabine de chasse',
       type: 'carabine',
       prix: 1800,
       icon: 'ti-target-arrow',
@@ -656,8 +656,8 @@ const ARMES_CATALOGUE = {
       imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-pistolet-khalija.png'
     },
     {
-      id: 'fusil_precision',
-      name: 'Fusil de précision',
+      id: 'carabine_precision',
+      name: 'Carabine de précision',
       type: 'carabine',
       prix: 2200,
       icon: 'ti-target-arrow',
@@ -678,12 +678,13 @@ function ouvrirModalAcheterArme() {
 
   document.getElementById('postes-modal-title').textContent = 'Choisissez votre arme';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Sélectionnez une arme. Chaque choix est définitif — Roger ne reprend pas la marchandise.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Achat légal : enregistré au registre de vente, prix normal. Marché noir : non enregistré, 3x le prix, risque de dénonciation par l\'armurier.</div>';
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem">';
 
-  armes.forEach((arme, i) => {
+  armes.forEach((arme) => {
     const typeLabel = { blanche: 'Arme blanche', poing: 'Arme de poing', carabine: 'Carabine' }[arme.type] || arme.type;
-    html += '<div style="border:1px solid #2a2010;background:#0a0805;overflow:hidden;cursor:pointer;transition:border-color .2s" onclick="confirmerAchatArme(\'' + arme.id + '\')" onmouseover="this.style.borderColor=\'#8a6a20\'" onmouseout="this.style.borderColor=\'#2a2010\'">';
+    const prixIllegal = arme.prix * 3;
+    html += '<div style="border:1px solid #2a2010;background:#0a0805;overflow:hidden">';
     // Image
     html += '<div style="width:100%;height:120px;overflow:hidden;background:#050503">';
     if (arme.imageUrl) {
@@ -696,11 +697,9 @@ function ouvrirModalAcheterArme() {
     html += '<div style="padding:.5rem">';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.08em;color:#c0b090;margin-bottom:.2rem">' + arme.name + '</div>';
     html += '<div style="font-size:.68rem;color:#5a5040;font-style:italic;margin-bottom:.4rem;line-height:1.4">' + arme.desc + '</div>';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center">';
-    html += '<span style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' + arme.prix.toLocaleString('fr-FR') + ' ' + cur + '</span>';
-    html += '<span style="font-size:.65rem;color:#4a8a4a">+' + arme.bonus.val + ' ' + arme.bonus.stat + '</span>';
-    html += '</div>';
-    html += '<div style="font-size:.62rem;color:#4a4030;margin-top:.2rem">' + typeLabel + '</div>';
+    html += '<div style="font-size:.65rem;color:#4a8a4a;margin-bottom:.5rem">+' + arme.bonus.val + ' ' + arme.bonus.stat + ' · ' + typeLabel + '</div>';
+    html += '<button onclick="confirmerAchatArme(\'' + arme.id + '\')" style="width:100%;margin-bottom:.35rem;font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em;padding:.4rem;border:1px solid #4a7a3a;background:transparent;color:#7ab868;cursor:pointer" onmouseover="this.style.background=\'#0e1a0a\'" onmouseout="this.style.background=\'transparent\'">Achat légal — ' + arme.prix.toLocaleString('fr-FR') + ' ' + cur + '</button>';
+    html += '<button onclick="confirmerAchatArmeIllegal(\'' + arme.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em;padding:.4rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer" onmouseover="this.style.background=\'#1a0a0a\'" onmouseout="this.style.background=\'transparent\'">Marché noir — ' + prixIllegal.toLocaleString('fr-FR') + ' ' + cur + '</button>';
     html += '</div></div>';
   });
 
@@ -719,8 +718,6 @@ function confirmerAchatArme(armeId) {
   const arme = armes.find(a => a.id === armeId);
   if (!arme) return;
 
-  document.getElementById('modal-postes').classList.remove('open');
-
   if (state.arg < arme.prix) {
     showToast('Fonds insuffisants', arme.prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
     return;
@@ -735,16 +732,151 @@ function confirmerAchatArme(armeId) {
     name: arme.name,
     icon: arme.icon,
     desc: arme.desc,
+    legal: true,
+    bonus: arme.bonus,
+    imageUrl: arme.imageUrl
+  });
+
+  // Inscription au registre officiel de vente d'armes
+  if (typeof sbEnregistrerVenteArme === 'function') {
+    sbEnregistrerVenteArme({
+      joueur: state.char?.name || 'Anonyme',
+      arme: arme.name,
+      prix: arme.prix,
+      pays: pays,
+      jour: state.day || 1,
+      heure: state.hour || 8
+    }).catch(() => {});
+  }
+
+  updateUI();
+  addJournalEntry('Achat légal : ' + arme.name + ' (-' + arme.prix.toLocaleString('fr-FR') + ' ' + cur + '). Inscrit au registre.', 'event-bad');
+
+  // Modal de confirmation "reçu officiel" avec le registre en illustration
+  document.getElementById('postes-modal-title').textContent = 'Vente enregistrée';
+  let html = '<div style="padding:0">';
+  html += '<div style="width:100%;height:200px;overflow:hidden;background:#0a0805">';
+  html += '<img src="https://raw.githubusercontent.com/FredJ74/res-publica/main/images/registre-vente-armes.png" style="width:100%;height:100%;object-fit:cover;opacity:.9"/>';
+  html += '</div>';
+  html += '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">' + arme.name + ' consignée au registre officiel des ventes. Gérard tamponne le formulaire sans lever les yeux.</div>';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #4a7a3a;background:transparent;color:#7ab868;cursor:pointer">Fermer</button>';
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerAchatArmeIllegal(armeId) {
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const armes = ARMES_CATALOGUE[pays] || ARMES_CATALOGUE.republic;
+  const arme = armes.find(a => a.id === armeId);
+  if (!arme) return;
+
+  const prixIllegal = arme.prix * 3;
+  if (state.arg < prixIllegal) {
+    showToast('Fonds insuffisants', prixIllegal.toLocaleString('fr-FR') + ' ' + cur + ' requis (marché noir).', false);
+    return;
+  }
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  // Jet de reussite — meme logique que le vol (adapte : pas de cible, achat aupres du PNJ armurier)
+  const char = state.char;
+  const bonusCarriere = BONUS_CARRIERE_VOL[char?.career] || 0;
+  const isPays = INDICES_NATIONAUX[pays]?.IS || 40;
+  const tauxReussite = Math.max(5, Math.min(95, Math.round(50 + bonusCarriere - (isPays / 3))));
+  const roll = Math.random() * 100;
+
+  if (roll > tauxReussite) {
+    // ECHEC — l'armurier refuse et denonce
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte: 'achat_arme_illegal', type: 'delit_mineur', jour: state.day });
+
+    // Convocation au commissariat — delai fixe 24h (jour+1, meme heure)
+    if (!state.convocations) state.convocations = [];
+    state.convocations.push({
+      motif: 'achat_arme_illegal',
+      jourEmission: state.day || 1,
+      heureEmission: state.hour || 8,
+      jourLimite: (state.day || 1) + 1,
+      heureLimite: state.hour || 8,
+      traitee: false
+    });
+
+    if (typeof sbSendMail === 'function') {
+      const h = String(state.hour || 8).padStart(2,'0');
+      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+      sbSendMail('Commissariat', state.char?.name || '', 'Convocation officielle', 'L\'armurier a refusé la vente et vous a dénoncé. Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).', time).catch(() => {});
+    }
+
+    updateUI();
+    showToast('Vente refusée !', 'L\'armurier vous dénonce. Convocation au commissariat sous 24h.', false, true);
+    addJournalEntry('Tentative d\'achat d\'arme au marché noir échouée. Dénoncé(e) par l\'armurier.', 'event-bad');
+    return;
+  }
+
+  // REUSSITE — arme livree, non enregistree
+  state.arg -= prixIllegal;
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({
+    id: 'arme-' + Date.now(),
+    type: 'arme',
+    sousType: arme.type,
+    name: arme.name,
+    icon: arme.icon,
+    desc: arme.desc,
     legal: false,
     bonus: arme.bonus,
     imageUrl: arme.imageUrl
   });
 
+  if (!state.historiqueCrimes) state.historiqueCrimes = [];
+  state.historiqueCrimes.push({ acte: 'achat_arme_illegal', cible: null, jour: state.day, expireJour: state.day + 8 });
+  tracerActionPourRumeur('achat_arme_illegal', null);
+
   updateUI();
-  showToast('Arme acquise', arme.name + ' ajoutée à votre inventaire.', true, true);
-  addJournalEntry('Achat : ' + arme.name + ' (-' + arme.prix.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-bad');
+  showToast('Arme acquise (marché noir)', arme.name + ' obtenue discrètement. Non enregistrée au registre.', true, true);
+  addJournalEntry('Achat clandestin : ' + arme.name + ' (-' + prixIllegal.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-bad');
 }
 
+
+async function doConsulterRegistre() {
+  const posteId = state.poste?.id;
+  const posteHabilite = ['president', 'maire', 'min_int', 'min_just', 'commissaire'].includes(posteId);
+
+  if (!posteHabilite) {
+    showToast('Accès refusé', 'Seuls le Commissaire, le Maire, le Ministre de la Justice, le Ministre de l\'Intérieur et le Président peuvent consulter le registre.', false);
+    return;
+  }
+
+  const pays = state.country || 'republic';
+  let ventes = [];
+  if (typeof sbConsulterRegistreArmes === 'function') {
+    ventes = await sbConsulterRegistreArmes(pays).catch(() => []);
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Registre de vente d\'armes';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Ventes légales enregistrées. Les ventes du marché noir n\'y figurent jamais.</div>';
+
+  if (!ventes || ventes.length === 0) {
+    html += '<div style="font-size:.8rem;color:#5a5040;text-align:center;padding:1.5rem 0">Aucune vente enregistrée.</div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:.4rem;max-height:320px;overflow-y:auto">';
+    ventes.forEach(v => {
+      html += '<div style="border:1px solid #2a2010;background:#0a0805;padding:.6rem;display:flex;justify-content:space-between;align-items:center">';
+      html += '<div><div style="font-size:.8rem;color:#c0b090">' + v.joueur + '</div><div style="font-size:.68rem;color:#5a5040">' + v.arme + ' — Jour ' + v.jour + '</div></div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#C9A84C">' + (v.prix || 0).toLocaleString('fr-FR') + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
 
 function doAcheterPoisonObjet(type) {
   const obj = POISON_OBJETS[type];
@@ -971,6 +1103,7 @@ async function confirmerEmpoisonnement(cibleNom) {
 
     if (!state.historiqueCrimes) state.historiqueCrimes = [];
     state.historiqueCrimes.push({ acte:'empoisonnement', cible:cibleNom, jour:state.day, expireJour: state.day + 8 });
+    tracerActionPourRumeur('empoisonnement', cibleNom);
 
     const msgPalier = reussi
       ? cibleNom + ' commence à ressentir les effets du poison. Objet utilisé.'
