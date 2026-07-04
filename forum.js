@@ -318,7 +318,9 @@ function renderTopicView() {
         <div class="forum-post">
           <div class="forum-post-side">
             <div class="forum-post-avatar">${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(p.author, 40) : '<i class="ti ti-user" style="font-size:1.2rem;color:#C9A84C"></i>'}</div>
-            <div class="forum-post-author">${p.author}</div>
+            ${p.authorCountry && COUNTRIES?.[p.authorCountry] ? '<div style="width:100%;height:6px;background:' + COUNTRIES[p.authorCountry].col + ';margin:.3rem 0 .1rem"></div>' : ''}
+            <div class="forum-post-author">${p.author}${p.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.7rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
+            ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">secrète</span>' : ''}
             <div class="forum-post-time">${p.time}</div>
             ${i === 0 ? `<span class="forum-post-badge">Auteur du sujet</span>` : ''}
           </div>
@@ -369,7 +371,7 @@ function renderRichEditor(id, initialContent = '') {
         <button class="rich-btn" onclick="richColor()" title="Couleur texte" style="color:#C9A84C">A</button>
         <button class="rich-btn" onclick="richInsertHR()" title="Séparateur">—</button>
         <div class="rich-sep"></div>
-        <button class="rich-btn" onclick="richInsertImage()" title="Image"><i class="ti ti-photo"></i></button>
+        <button class="rich-btn" onmousedown="saveRichSelection()" onclick="richInsertImage()" title="Image"><i class="ti ti-photo"></i></button>
         <button class="rich-btn" onclick="toggleStylePanel()" title="Styles narratifs"><i class="ti ti-layout"></i></button>
         <button class="rich-btn" onclick="toggleEmojiPanel()" title="Emojis & Symboles">😊</button>
       </div>
@@ -435,10 +437,26 @@ function richInsertHR() {
 }
 
 let _richInsertTargetId = null;
+let _richSavedRange = null;
+
+// Appele au mousedown du bouton Image (avant que le clic ne fasse perdre le focus au champ de texte),
+// pour memoriser EXACTEMENT ou etait le curseur, pas juste dans quel champ.
+function saveRichSelection() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  const node = range.commonAncestorContainer;
+  const el = node.nodeType === 1 ? node : node.parentElement;
+  const editor = el?.closest ? el.closest('.rich-content') : null;
+  if (editor) {
+    _richSavedRange = range.cloneRange();
+    _richInsertTargetId = editor.id;
+  }
+}
 
 function richInsertImage() {
-  // Utilise le dernier champ contenteditable ayant eu le focus (fiable, contrairement a :focus
-  // qui est deja perdu au moment du clic sur ce bouton de la barre d'outils)
+  // Toujours prendre le dernier champ ayant eu le focus — ne jamais garder une cible obsolete
+  // d'un formulaire precedent (sujet/reponse different), sinon l'insertion vise un element qui n'existe plus.
   _richInsertTargetId = window._lastRichEditorId || null;
 
   document.getElementById('postes-modal-title').textContent = 'Insérer une image';
@@ -491,8 +509,14 @@ function confirmerRichInsertImage() {
 
   const target = _richInsertTargetId ? document.getElementById(_richInsertTargetId) : null;
   if (target) {
+    // Insertion directe et fiable en fin de contenu (insertAdjacentHTML ne depend d'aucun
+    // Range/Selection potentiellement invalide apres le passage par la fenetre d'insertion).
+    target.insertAdjacentHTML('beforeend', wrapHtml);
     target.focus();
-    document.execCommand('insertHTML', false, wrapHtml);
+    _richSavedRange = null;
+    _richInsertTargetId = null;
+  } else {
+    showToast('Erreur', 'Impossible de retrouver le champ de texte. Cliquez dans le message avant d\'insérer une image.', false);
   }
 }
 
@@ -534,6 +558,23 @@ function switchEmojiCat(cat) {
 // =====================
 // NOUVEAU TOPIC / RÉPONSE
 // =====================
+function getMesOrganisations() {
+  return (state.organisations || []).filter(o => (o.membres || []).some(m => m.nom === state.char?.name));
+}
+
+function renderPosterEnTantQue(fieldId) {
+  const mesOrgas = getMesOrganisations();
+  if (mesOrgas.length === 0) return '';
+  let html = '<div class="forum-field"><label class="forum-field-label">Poster en tant que</label>';
+  html += '<select id="' + fieldId + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
+  html += '<option value="">' + (state.char?.name || 'Moi-même') + '</option>';
+  mesOrgas.forEach(o => {
+    html += '<option value="' + o.id + '">' + o.nom + (!o.visible ? ' (secrète)' : '') + '</option>';
+  });
+  html += '</select></div>';
+  return html;
+}
+
 function renderNewTopicForm() {
   return `
     <div class="forum-header-bar">
@@ -545,6 +586,7 @@ function renderNewTopicForm() {
         <label class="forum-field-label">Titre du sujet</label>
         <input class="forum-field-input" id="new-topic-title" type="text" placeholder="Intitulé du sujet..."/>
       </div>
+      ${renderPosterEnTantQue('new-topic-auteur')}
       <div class="forum-field">
         <label class="forum-field-label">Message</label>
         ${renderRichEditor('new-topic-content')}
@@ -564,6 +606,7 @@ function renderReplyForm() {
       <div class="forum-title-main">Répondre : ${topic?.title||''}</div>
     </div>
     <div class="forum-compose-form">
+      ${renderPosterEnTantQue('reply-auteur')}
       <div class="forum-field">
         <label class="forum-field-label">Votre réponse</label>
         ${renderRichEditor('reply-content')}
@@ -732,6 +775,13 @@ async function submitNewTopic() {
   const content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
   if (!title || !content) { showToast('Champs requis','Remplissez le titre et le message.',false); return; }
   const char = state.char;
+
+  const orgaId = document.getElementById('new-topic-auteur')?.value || '';
+  const orga = orgaId ? getMesOrganisations().find(o => o.id === orgaId) : null;
+  const authorName = orga ? orga.nom : (char?.name || 'Anonyme');
+  const authorIsOrg = !!orga;
+  const authorSecret = orga ? !orga.visible : false;
+
   const h = String(state.hour||8).padStart(2,'0');
   const m = String(state.minute||0).padStart(2,'0');
   const time = `Jour ${state.day} · ${h}h${m}`;
@@ -739,16 +789,17 @@ async function submitNewTopic() {
   // Supabase
   let topicId;
   if (typeof sbCreateTopic === 'function') {
-    topicId = await sbCreateTopic(currentForumId, title, char?.name||'Anonyme', state.country, time);
-    if (topicId) await sbCreatePost(topicId, char?.name||'Anonyme', content, time);
+    topicId = await sbCreateTopic(currentForumId, title, authorName, state.country, time, authorIsOrg, authorSecret);
+    if (topicId) await sbCreatePost(topicId, authorName, content, time, authorIsOrg, authorSecret);
   }
 
   // Local aussi pour affichage immédiat
   const newTopic = {
-    id: topicId || 'topic-' + Date.now(), title, author: char?.name||'Anonyme',
+    id: topicId || 'topic-' + Date.now(), title, author: authorName,
+    authorCountry: state.country, authorIsOrg, authorSecret,
     time, views: 1, replies: 0,
-    lastPostAuthor: char?.name||'Anonyme', lastPostTime: time,
-    posts: [{ id:'p-'+Date.now(), author: char?.name||'Anonyme', time, content }]
+    lastPostAuthor: authorName, lastPostTime: time,
+    posts: [{ id:'p-'+Date.now(), author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, time, content }]
   };
   if (!FORUM_TOPICS[currentForumId]) FORUM_TOPICS[currentForumId] = [];
   FORUM_TOPICS[currentForumId].unshift(newTopic);
@@ -764,6 +815,13 @@ async function submitReply() {
   const content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
   if (!content) { showToast('Message vide','Écrivez votre réponse avant de publier.',false); return; }
   const char = state.char;
+
+  const orgaId = document.getElementById('reply-auteur')?.value || '';
+  const orga = orgaId ? getMesOrganisations().find(o => o.id === orgaId) : null;
+  const authorName = orga ? orga.nom : (char?.name || 'Anonyme');
+  const authorIsOrg = !!orga;
+  const authorSecret = orga ? !orga.visible : false;
+
   const h = String(state.hour||8).padStart(2,'0');
   const m = String(state.minute||0).padStart(2,'0');
   const time = `Jour ${state.day} · ${h}h${m}`;
@@ -772,13 +830,13 @@ async function submitReply() {
 
   // Supabase
   if (typeof sbCreatePost === 'function') {
-    await sbCreatePost(topic.id, char?.name||'Anonyme', content, time);
+    await sbCreatePost(topic.id, authorName, content, time, authorIsOrg, authorSecret);
   }
 
   // Local
-  topic.posts.push({ id:'p-'+Date.now(), author: char?.name||'Anonyme', time, content });
+  topic.posts.push({ id:'p-'+Date.now(), author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, time, content });
   topic.replies = topic.posts.length - 1;
-  topic.lastPostAuthor = char?.name||'Anonyme';
+  topic.lastPostAuthor = authorName;
   topic.lastPostTime = time;
   state.pop = Math.min(100, (state.pop||0) + 1);
   updateUI();
@@ -880,6 +938,7 @@ async function loadForumTopicsFromSB(forumId) {
           time: row.time, views: row.views, replies: row.replies,
           lastPostAuthor: row.last_post_author || row.author,
           lastPostTime: row.last_post_time || row.time,
+          authorCountry: row.country, authorIsOrg: row.author_is_org, authorSecret: row.author_secret,
           posts: []
         });
       } else {
@@ -904,7 +963,8 @@ async function loadForumPostsFromSB(topicId) {
     // Remplacer les posts locaux par ceux de Supabase
     topic.posts = rows.map(r => ({
       id: r.id, author: r.author, content: r.content,
-      time: r.time, edited: r.edited
+      time: r.time, edited: r.edited,
+      authorCountry: topic.authorCountry || topic.country, authorIsOrg: r.author_is_org, authorSecret: r.author_secret
     }));
     topic.replies = Math.max(0, topic.posts.length - 1);
   } catch(e) { console.warn('loadForumPostsFromSB error', e); }
