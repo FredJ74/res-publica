@@ -324,7 +324,7 @@ function renderTopicView() {
               </button>
             </div>
           </div>
-          <div class="forum-post-content">${p.content}</div>
+          <div class="forum-post-content">${sanitizeRichHtml(p.content)}</div>
         </div>`).join('')}
     </div>
     <div class="forum-reply-bar">
@@ -425,18 +425,66 @@ function richInsertHR() {
   document.execCommand('insertHTML', false, '<hr style="border:none;border-top:1px solid #2a2010;margin:.8rem 0">');
 }
 
+let _richInsertTargetId = null;
+
 function richInsertImage() {
-  const pos = prompt('Position de l\'image :', 'centre (centre / gauche / droite)');
-  const url = prompt('URL de l\'image :');
-  if (!url) return;
+  // Retrouve le champ contenteditable actuellement focus pour y revenir apres la saisie
+  const focused = document.querySelector('.rich-content:focus, [contenteditable]:focus');
+  _richInsertTargetId = focused?.id || null;
+
+  document.getElementById('postes-modal-title').textContent = 'Insérer une image';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="margin-bottom:.6rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.2rem">URL de l\'image</label>';
+  html += '<input id="richimg-url" type="text" placeholder="https://..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none"/></div>';
+  html += '<div style="margin-bottom:.6rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Position</label>';
+  html += '<div style="display:flex;gap:.4rem">';
+  ['gauche','centre','droite'].forEach((pos, i) => {
+    html += '<button type="button" class="richimg-pos-btn" data-pos="' + pos + '" onclick="document.querySelectorAll(\'.richimg-pos-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" style="flex:1;padding:.4rem;border:1px solid ' + (i===1?'#C9A84C':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em">' + pos.charAt(0).toUpperCase()+pos.slice(1) + '</button>';
+  });
+  html += '</div></div>';
+  html += '<div style="margin-bottom:.8rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.2rem">Légende (optionnel)</label>';
+  html += '<input id="richimg-legend" type="text" placeholder="Légende de l\'image" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none"/></div>';
+  html += '<div id="richimg-preview" style="margin-bottom:.8rem"></div>';
+  html += '<input id="richimg-url-preview-trigger" type="hidden"/>';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<button onclick="confirmerRichInsertImage()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Insérer</button>';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Annuler</button>';
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+
+  // Aperçu live de l'image en tapant l'URL
+  const urlInput = document.getElementById('richimg-url');
+  urlInput?.addEventListener('input', () => {
+    const preview = document.getElementById('richimg-preview');
+    if (urlInput.value.trim()) {
+      preview.innerHTML = '<img src="' + urlInput.value.trim() + '" style="max-width:100%;max-height:160px;display:block;margin:0 auto;border:1px solid #2a2010" onerror="this.style.display=\'none\'"/>';
+    } else {
+      preview.innerHTML = '';
+    }
+  });
+}
+
+function confirmerRichInsertImage() {
+  const url = document.getElementById('richimg-url')?.value?.trim();
+  if (!url) { showToast('URL manquante', 'Indiquez une adresse d\'image.', false); return; }
+  const posBtn = document.querySelector('.richimg-pos-btn[style*="C9A84C"]');
+  const pos = posBtn?.dataset?.pos || 'centre';
+  const legend = document.getElementById('richimg-legend')?.value?.trim() || '';
+
   let style = 'display:block;margin:0 auto;max-width:100%';
-  let wrap = '';
-  if (pos === 'gauche') { style = 'float:left;margin:0 1rem .5rem 0;max-width:45%'; wrap = '<div style="overflow:hidden">'; }
-  if (pos === 'droite') { style = 'float:right;margin:0 0 .5rem 1rem;max-width:45%'; wrap = '<div style="overflow:hidden">'; }
-  const legend = prompt('Légende (optionnel) :') || '';
-  const legendHtml = legend ? `<div style="text-align:center;font-size:.75rem;color:#8a8060;font-style:italic;margin-top:.2rem">${legend}</div>` : '';
-  const html = (wrap || '<div>') + `<img src="${url}" style="${style}"/>${legendHtml}</div>`;
-  document.execCommand('insertHTML', false, html);
+  if (pos === 'gauche') style = 'float:left;margin:0 1rem .5rem 0;max-width:45%';
+  if (pos === 'droite') style = 'float:right;margin:0 0 .5rem 1rem;max-width:45%';
+  const legendHtml = legend ? '<div style="text-align:center;font-size:.75rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + legend + '</div>' : '';
+  const wrapHtml = '<div style="overflow:hidden"><img src="' + url + '" style="' + style + '"/>' + legendHtml + '</div>';
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const target = _richInsertTargetId ? document.getElementById(_richInsertTargetId) : null;
+  if (target) {
+    target.focus();
+    document.execCommand('insertHTML', false, wrapHtml);
+  }
 }
 
 function richInsertStyle(styleName) {
@@ -550,7 +598,7 @@ function editPost(topicId, postId) {
 
 function submitEditPost() {
   const contentEl = document.getElementById('edit-post-content');
-  const content = contentEl?.innerHTML?.trim();
+  const content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
   if (!content) return;
   const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === editingTopicId);
   if (!topic) return;
@@ -602,15 +650,75 @@ function openTopic(topicId) {
   }).catch(() => {});
 }
 
+// =====================
+// SECURITE : nettoyage du HTML genere par l'editeur riche avant sauvegarde/affichage
+// =====================
+const RICH_ALLOWED_TAGS = new Set(['P','BR','B','I','U','STRONG','EM','H2','H3','BLOCKQUOTE','DIV','SPAN','IMG','HR','UL','OL','LI','A']);
+const RICH_ALLOWED_STYLE_PROPS = new Set([
+  'color','background-color','text-align','font-style','font-weight','text-decoration','float',
+  'margin','margin-left','margin-right','margin-top','margin-bottom','max-width','max-height',
+  'width','display','border-left','border','border-top','padding','grid-template-columns','gap',
+  'text-transform','letter-spacing','font-size','line-height','overflow'
+]);
+
+function sanitizeRichStyle(styleStr) {
+  return (styleStr || '').split(';').map(r => r.trim()).filter(Boolean).filter(rule => {
+    const parts = rule.split(':');
+    const prop = parts[0]?.trim().toLowerCase();
+    const val = parts.slice(1).join(':').trim().toLowerCase();
+    if (!RICH_ALLOWED_STYLE_PROPS.has(prop)) return false;
+    if (val.includes('expression(') || val.includes('javascript:') || val.includes('url(')) return false;
+    return true;
+  }).join(';');
+}
+
+function sanitizeRichHtml(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+
+  function cleanNode(node) {
+    Array.from(node.childNodes).forEach(child => {
+      if (child.nodeType === 1) { // Element
+        const tag = child.tagName;
+        if (!RICH_ALLOWED_TAGS.has(tag)) {
+          // Deplier : on garde le contenu interne, on retire juste la balise interdite
+          while (child.firstChild) node.insertBefore(child.firstChild, child);
+          node.removeChild(child);
+          return;
+        }
+        Array.from(child.attributes).forEach(attr => {
+          const name = attr.name.toLowerCase();
+          if (name === 'style') {
+            child.setAttribute('style', sanitizeRichStyle(attr.value));
+          } else if (name === 'src' && tag === 'IMG') {
+            if (!/^https?:\/\//i.test(attr.value.trim())) child.removeAttribute('src');
+          } else if (name === 'href' && tag === 'A') {
+            if (!/^https?:\/\//i.test(attr.value.trim())) child.removeAttribute('href');
+          } else {
+            child.removeAttribute(attr.name);
+          }
+        });
+        cleanNode(child);
+      } else if (child.nodeType !== 3) { // pas du texte -> commentaires, etc.
+        node.removeChild(child);
+      }
+    });
+  }
+
+  cleanNode(tmp);
+  return tmp.innerHTML;
+}
+
 async function submitNewTopic() {
   const titleEl = document.getElementById('new-topic-title');
   const contentEl = document.getElementById('new-topic-content');
   const title = titleEl?.value?.trim();
-  const content = contentEl?.innerHTML?.trim();
+  const content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
   if (!title || !content) { showToast('Champs requis','Remplissez le titre et le message.',false); return; }
   const char = state.char;
   const h = String(state.hour||8).padStart(2,'0');
-  const time = `Jour ${state.day} · ${h}h`;
+  const m = String(state.minute||0).padStart(2,'0');
+  const time = `Jour ${state.day} · ${h}h${m}`;
 
   // Supabase
   let topicId;
@@ -636,11 +744,12 @@ async function submitNewTopic() {
 
 async function submitReply() {
   const contentEl = document.getElementById('reply-content');
-  const content = contentEl?.innerHTML?.trim();
+  const content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
   if (!content) { showToast('Message vide','Écrivez votre réponse avant de publier.',false); return; }
   const char = state.char;
   const h = String(state.hour||8).padStart(2,'0');
-  const time = `Jour ${state.day} · ${h}h`;
+  const m = String(state.minute||0).padStart(2,'0');
+  const time = `Jour ${state.day} · ${h}h${m}`;
   const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === currentTopicId);
   if (!topic) return;
 

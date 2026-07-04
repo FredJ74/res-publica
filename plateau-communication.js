@@ -590,6 +590,8 @@ function openMailbox() {
 // FORUM EN VUE CENTRALE
 // =====================
 function openForumView(forumId) {
+  // Le vrai systeme de forum (sujets, editeur riche, mail) vit dans forum.js (openForum_module).
+  // L'ancien systeme local base sur FORUM_TOPICS/buildForumHTML a ete retire d'ici (code mort, jamais utilise).
   openForum_module(forumId || 'local');
 }
 
@@ -600,196 +602,6 @@ function closeForumView() {
   } else {
     document.getElementById('vue-rue').classList.add('active');
   }
-}
-
-function buildForumHTML(forumId) {
-  let topics = FORUM_TOPICS[forumId] || [];
-  // Charger depuis Supabase si forum tribunal
-  if (forumId.startsWith('tribunal_') && typeof sbLoadForumTopics === 'function') {
-    sbLoadForumTopics(forumId).then(rows => {
-      if (rows?.length) {
-        FORUM_TOPICS[forumId] = rows;
-        renderForumTopics(forumId);
-      }
-    }).catch(()=>{});
-  }
-  const labels = {
-    local:'Forum Local', regional:'Forum Regional', national:'Forum National',
-    international:'Forum International', gouv:'Forum Gouvernemental',
-    syndical:'Forum Syndical', president:'Forum Presidentiel', conseil:'Conseil des Ministres'
-  };
-
-  let html = '<div style="display:flex;height:100%">';
-
-  // Sidebar forums
-  html += '<div style="width:160px;background:#111208;border-right:1px solid #1a1a10;overflow-y:auto;flex-shrink:0">';
-  const tribunalKey = 'tribunal_' + (state.currentCity || 'capitale');
-  const villeNomForum = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  const forums = [
-    {id:'local',label:'Local'},{id:'regional',label:'Regional'},{id:'national',label:'National'},
-    {id:'international',label:'International'},{id:'president',label:'Presidentiel'},
-    {id:'conseil',label:'Conseil Min.'},{id:'gouv',label:'Gouvernemental'},{id:'syndical',label:'Syndical'},
-    {id:tribunalKey,label:'⚖️ Tribunal — ' + villeNomForum}
-  ];
-  forums.forEach(f => {
-    const active = f.id === forumId;
-    html += '<div onclick="openForumView(\'' + f.id + '\')" style="padding:.5rem .7rem;cursor:pointer;' +
-      (active ? 'background:#1a1a10;border-left:2px solid #C9A84C;' : 'border-left:2px solid transparent;') +
-      'border-bottom:1px solid #1a1a10">' +
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;color:' +
-      (active ? '#E8C97A' : '#8a8060') + '">' + f.label + '</div>' +
-      '<div style="font-size:.6rem;color:#4a4030">' + (FORUM_TOPICS[f.id]?.length || 0) + ' sujets</div>' +
-      '</div>';
-  });
-  html += '</div>';
-
-  // Contenu principal
-  html += '<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">';
-
-  // Header
-  html += '<div style="padding:.6rem 1rem;background:#111208;border-bottom:1px solid #2a2810;display:flex;justify-content:space-between;align-items:center">';
-  html += '<div style="font-family:Playfair Display,serif;font-size:.9rem;color:#E8D880">' + (labels[forumId]||'Forum') + '</div>';
-  html += '<button onclick="ouvrirNouveauSujet(\'' + forumId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;padding:.3rem .7rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer">+ Nouveau sujet</button>';
-  html += '</div>';
-
-  // Liste des sujets
-  html += '<div style="flex:1;overflow-y:auto">';
-  if (topics.length === 0) {
-    html += '<div style="padding:2rem;text-align:center;font-size:.82rem;color:#4a4030;font-style:italic">Aucun sujet pour le moment.</div>';
-  } else {
-    // En-tete
-    html += '<div style="display:grid;grid-template-columns:1fr 80px 60px 80px;padding:.3rem .8rem;background:#0a0a05;border-bottom:1px solid #1a1808">';
-    ['Sujet','Auteur','Reponses','Date'].forEach(h => {
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.1em;color:#4a4030">' + h + '</div>';
-    });
-    html += '</div>';
-    topics.forEach((t, i) => {
-      const isRef = t.isReferendum;
-      html += '<div onclick="ouvrirSujetForum(\'' + forumId + '\',' + i + ')" style="display:grid;grid-template-columns:1fr 80px 60px 80px;padding:.5rem .8rem;background:#151208;border-bottom:1px solid #1e1a08;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#1e1a08\'" onmouseout="this.style.background=\'#151208\'">';
-      html += '<div><div style="font-size:.85rem;color:' + (isRef ? '#8ad080' : '#E0D090') + ';margin-bottom:.1rem">' +
-        (isRef ? '<i class="ti ti-checkbox" style="font-size:.75rem"></i> ' : '') + t.title + '</div>' +
-        '<div style="font-size:.68rem;color:#6a6040">' + (t.author||'Anonyme') + '</div></div>';
-      html += '<div style="font-size:.75rem;color:#9a9060;align-self:center">' + (t.author||'') + '</div>';
-      html += '<div style="font-size:.75rem;color:#6a6040;align-self:center;text-align:center">' + (t.replies||t.posts?.length||0) + '</div>';
-      html += '<div style="font-size:.72rem;color:#5a5030;align-self:center">' + (t.time||'') + '</div>';
-      html += '</div>';
-    });
-  }
-  html += '</div></div></div>';
-  return html;
-}
-
-function ouvrirSujetForum(forumId, topicIdx) {
-  const topic = (FORUM_TOPICS[forumId]||[])[topicIdx];
-  if (!topic) return;
-  const body = document.getElementById('forum-view-body');
-  let html = '<div style="display:flex;flex-direction:column;width:100%;height:100%">';
-  html += '<div style="padding:.5rem 1rem;background:#111208;border-bottom:1px solid #1a1810;display:flex;align-items:center;gap:.8rem">';
-  html += '<button onclick="openForumView(\'' + forumId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a7040;cursor:pointer">← Retour</button>';
-  html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8D880">' + topic.title + '</div>';
-  html += '</div>';
-  html += '<div style="flex:1;overflow-y:auto;padding:.8rem 1rem">';
-
-  // Referendum special
-  if (topic.isReferendum && topic.reponses) {
-    const dejaVote = state.refVotes?.[topic.id];
-    html += '<div style="background:#0f0d05;border:1px solid #2a3a20;padding:.8rem;margin-bottom:.8rem">';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#8ad080;margin-bottom:.6rem">REFERENDUM : ' + topic.title.replace('[REFERENDUM] ','') + '</div>';
-    topic.reponses.forEach((r, ri) => {
-      const total = topic.reponses.reduce((s, x) => s + (x.voix||0), 0) || 1;
-      const pct = Math.round((r.voix||0) / total * 100);
-      html += '<div style="margin-bottom:.4rem">';
-      if (!dejaVote) {
-        html += '<button onclick="voterReferendum(\'' + forumId + '\',' + topicIdx + ',' + ri + ')" style="width:100%;text-align:left;padding:.4rem .7rem;border:1px solid #2a3a20;background:#0a0a05;color:#c0c080;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">' + r.label + '</button>';
-      } else {
-        html += '<div style="padding:.4rem .7rem;border:1px solid #1a2810;background:#0a0a05;font-family:Crimson Pro,serif;font-size:.82rem;color:' + (dejaVote === ri ? '#8ad080' : '#5a5030') + '">';
-        html += r.label + ' <span style="float:right;font-family:Bebas Neue,sans-serif">' + pct + '%</span></div>';
-        html += '<div style="height:4px;background:#0a0a05;margin-top:.1rem"><div style="height:100%;width:' + pct + '%;background:#4a8a4a"></div></div>';
-      }
-      html += '</div>';
-    });
-    if (dejaVote !== undefined) html += '<div style="font-size:.7rem;color:#4a6a3a;margin-top:.3rem">Vote enregistre.</div>';
-    html += '</div>';
-  }
-
-  // Posts
-  (topic.posts||[]).forEach(p => {
-    html += '<div style="background:#181408;border:1px solid #2a2408;padding:.7rem;margin-bottom:.5rem">';
-    html += '<div style="display:flex;justify-content:space-between;margin-bottom:.4rem">';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#E8C97A">' + (p.author||'Anonyme') + '</div>';
-    html += '<div style="font-size:.65rem;color:#4a4030">' + (p.time||'') + '</div>';
-    html += '</div>';
-    html += '<div style="font-size:.88rem;color:#c8c090;line-height:1.7">' + (p.content||'') + '</div>';
-    html += '</div>';
-  });
-
-  // Zone de reponse
-  html += '<div style="margin-top:.8rem;border-top:1px solid #1a1810;padding-top:.8rem">';
-  html += '<textarea id="forum-reply-text" rows="3" placeholder="Votre reponse..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#d0c890;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.4rem"></textarea>';
-  html += '<button onclick="publierReponse(\'' + forumId + '\',' + topicIdx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;padding:.4rem .9rem;border:1px solid #6a5a20;background:transparent;color:#C9A84C;cursor:pointer">Repondre</button>';
-  html += '</div></div></div>';
-  body.innerHTML = html;
-}
-
-function voterReferendum(forumId, topicIdx, reponseIdx) {
-  const topic = (FORUM_TOPICS[forumId]||[])[topicIdx];
-  if (!topic || !topic.reponses) return;
-  if (!state.refVotes) state.refVotes = {};
-  state.refVotes[topic.id] = reponseIdx;
-  topic.reponses[reponseIdx].voix = (topic.reponses[reponseIdx].voix||0) + 1;
-  ouvrirSujetForum(forumId, topicIdx);
-  showToast('Vote enregistre', 'Vous avez vote pour : ' + topic.reponses[reponseIdx].label, true);
-}
-
-function formatJourHeure() {
-  const h = String(state.hour || 0).padStart(2,'0');
-  const m = String(state.minute || 0).padStart(2,'0');
-  return 'Jour ' + (state.day || 1) + ' · ' + h + 'h' + m;
-}
-
-function publierReponse(forumId, topicIdx) {
-  const texte = document.getElementById('forum-reply-text')?.value?.trim();
-  if (!texte) return;
-  const topic = (FORUM_TOPICS[forumId]||[])[topicIdx];
-  if (!topic) return;
-  if (!topic.posts) topic.posts = [];
-  topic.posts.push({ author: state.char?.name||'Anonyme', time: formatJourHeure(), content: texte });
-  topic.replies = (topic.replies||0) + 1;
-  ouvrirSujetForum(forumId, topicIdx);
-  showToast('Reponse publiee', '', true);
-}
-
-function ouvrirNouveauSujet(forumId) {
-  const body = document.getElementById('forum-view-body');
-  let html = '<div style="display:flex;flex-direction:column;width:100%;height:100%">';
-  html += '<div style="padding:.5rem 1rem;background:#111208;border-bottom:1px solid #1a1810;display:flex;align-items:center;gap:.8rem">';
-  html += '<button onclick="openForumView(\'' + forumId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a7040;cursor:pointer">← Annuler</button>';
-  html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8D880">Nouveau sujet</div>';
-  html += '</div>';
-  html += '<div style="flex:1;overflow-y:auto;padding:1rem">';
-  html += '<input id="new-topic-title" type="text" placeholder="Titre du sujet..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#d0c890;padding:.6rem;font-family:Crimson Pro,serif;font-size:.88rem;outline:none;margin-bottom:.6rem"/>';
-  html += '<textarea id="new-topic-content" rows="6" placeholder="Contenu du message..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#d0c890;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.6rem"></textarea>';
-  html += '<button onclick="publierNouveauSujet(\'' + forumId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier</button>';
-  html += '</div></div>';
-  body.innerHTML = html;
-}
-
-function publierNouveauSujet(forumId) {
-  const titre = document.getElementById('new-topic-title')?.value?.trim();
-  const contenu = document.getElementById('new-topic-content')?.value?.trim();
-  if (!titre || !contenu) { showToast('Champs requis', 'Titre et contenu obligatoires.', false); return; }
-  if (!FORUM_TOPICS[forumId]) FORUM_TOPICS[forumId] = [];
-  const newTopic = {
-    id: 'topic-' + Date.now(),
-    title: titre,
-    author: state.char?.name||'Anonyme',
-    time: formatJourHeure(),
-    replies: 0,
-    posts: [{ author: state.char?.name||'Anonyme', time: formatJourHeure(), content: contenu }]
-  };
-  FORUM_TOPICS[forumId].unshift(newTopic);
-  showToast('Sujet publie !', titre, true, true);
-  openForumView(forumId);
 }
 
 function closeMailView() {
@@ -988,12 +800,6 @@ function addMailNotification(from, subject, body) {
   if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'inline' : 'none'; }
 }
 
-function showPostRequired(posteNom) {
-  const msg = posteNom
-    ? 'Cet ordre est réservé au ' + posteNom + '. Postez votre candidature au Palais du Gouvernement.'
-    : 'Vous devez occuper un poste institutionnel pour accéder à cet ordre.';
-  showToast('Accès restreint', msg, false);
-}
 
 // =====================
 // FINANCES MODAL
