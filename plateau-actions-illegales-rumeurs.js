@@ -844,19 +844,62 @@ function confirmerAchatArmeIllegal(armeId) {
 async function doConsulterRegistre() {
   const posteId = state.poste?.id;
   const posteHabilite = ['president', 'maire', 'min_int', 'min_just', 'commissaire'].includes(posteId);
+  const pays = state.country || 'republic';
 
   if (!posteHabilite) {
-    showToast('Accès refusé', 'Seuls le Commissaire, le Maire, le Ministre de la Justice, le Ministre de l\'Intérieur et le Président peuvent consulter le registre.', false);
+    ouvrirModalCorruptionRegistre();
     return;
   }
 
-  const pays = state.country || 'republic';
+  await afficherRegistreArmes(pays, false);
+}
+
+function ouvrirModalCorruptionRegistre() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Registre de vente d\'armes';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">Vous n\'êtes pas habilité(e) à consulter ce registre. Vous pouvez tenter de soudoyer l\'armurier pour y avoir accès quand même — à vos risques.</div>';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem;background:#0a0805;border:1px solid #2a2010;margin-bottom:.8rem">';
+  html += '<span style="font-size:.75rem;color:#6a5a30">Pot-de-vin</span>';
+  html += '<span style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">100 ' + cur + '</span>';
+  html += '</div>';
+  html += '<button onclick="confirmerCorruptionRegistre()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Tenter la corruption</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerCorruptionRegistre() {
+  document.getElementById('modal-postes').classList.remove('open');
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cout = 100;
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= 30) {
+    state.arg -= cout;
+    state.inf = Math.min(100, (state.inf || 0) + 5);
+    state.pop = Math.min(100, (state.pop || 0) + 5);
+    updateUI();
+    showToast('Corruption réussie', 'L\'armurier accepte. +5 INF, +5 POP.', true);
+    addJournalEntry('Registre consulté après corruption de l\'armurier. -' + cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
+    await afficherRegistreArmes(state.country || 'republic', true);
+  } else {
+    state.inf = Math.max(0, (state.inf || 0) - 5);
+    state.pop = Math.max(0, (state.pop || 0) - 5);
+    updateUI();
+    showToast('Refusé !', 'L\'armurier refuse et le fait savoir. -5 INF, -5 POP.', false);
+    addJournalEntry('Tentative de corruption de l\'armurier échouée. -5 INF, -5 POP.', 'event-bad');
+  }
+}
+
+async function afficherRegistreArmes(pays, viaCorruption) {
   let ventes = [];
   if (typeof sbConsulterRegistreArmes === 'function') {
     ventes = await sbConsulterRegistreArmes(pays).catch(() => []);
   }
 
-  document.getElementById('postes-modal-title').textContent = 'Registre de vente d\'armes';
+  document.getElementById('postes-modal-title').textContent = 'Registre de vente d\'armes' + (viaCorruption ? ' (obtenu sous le manteau)' : '');
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Ventes légales enregistrées. Les ventes du marché noir n\'y figurent jamais.</div>';
 

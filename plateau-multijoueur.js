@@ -801,70 +801,9 @@ function isGroupLeader() {
 // =====================
 // ARMURERIE
 // =====================
-function doAcheterArme(legal) {
-  const cur = COUNTRIES[state.char && state.char.country ? state.char.country : 'republic'] && COUNTRIES[state.char.country].cur ? COUNTRIES[state.char.country].cur : 'FR';
-  const cost = legal ? 400 : 800;
-  if (legal) {
-    if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
-    state.arg -= cost;
-    addToInventory({ name: 'Pistolet (legal)', icon: 'ti-shield', type: 'arme', legal: true });
-    if (!state.registreArmes) state.registreArmes = [];
-    state.registreArmes.push({ acheteur: state.char && state.char.name, arme: 'Pistolet', date: 'Jour ' + state.day, legal: true });
-    updateUI();
-    showToast('Arme achetee', 'Pistolet acquis legalement. Enregistre dans le registre.', true);
-    addJournalEntry('Achat arme legal. Enregistre dans le registre de l armurerie.', '');
-  } else {
-    if (state.tentativeArmeIllegale && state.tentativeArmeIllegale >= state.day) {
-      showToast('Impossible', 'Vous devez dormir avant de retenter cette approche.', false);
-      return;
-    }
-    if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
-    const roll = Math.floor(Math.random() * 100) + 1;
-    if (roll <= 50) {
-      state.arg -= cost;
-      state.dis = Math.max(0, state.dis - 5);
-      addToInventory({ name: 'Pistolet (non enregistre)', icon: 'ti-eye-off', type: 'arme', legal: false });
-      updateUI();
-      showToast('Arme obtenue !', 'Pistolet acquis sans enregistrement. -5 Discretion.', true, true);
-      addJournalEntry('Achat arme illicite reussi. Non enregistre.', '');
-    } else {
-      state.tentativeArmeIllegale = state.day;
-      showToast('Echec', "L'armurier a refuse. Reessayez apres avoir dormi.", false);
-      addJournalEntry('Tentative achat illicite echouee. Dormez avant de retenter.', 'event-bad');
-    }
-  }
-}
-
-function doConsulterRegistre() {
-  const cur = COUNTRIES[state.char && state.char.country ? state.char.country : 'republic'] && COUNTRIES[state.char.country].cur ? COUNTRIES[state.char.country].cur : 'FR';
-  const postesAutorise = ['commissaire','juge','magistrat'];
-  const hasAccess = state.poste && postesAutorise.some(function(p) { return state.poste.id && state.poste.id.includes(p); });
-  const registre = state.registreArmes || [];
-  const derniers = registre.filter(function(r) { return state.day - parseInt(r.date.replace('Jour ','')) <= 180; });
-  if (hasAccess) {
-    const msg = derniers.length === 0 ? 'Aucune vente enregistree les 6 derniers mois.' : derniers.map(function(r) { return r.acheteur + ' : ' + r.arme + ' (' + r.date + ')'; }).join(' | ');
-    showToast('Registre consulte', msg.substring(0,100), true);
-    addJournalEntry(msg, 'event-info');
-  } else {
-    const roll = Math.floor(Math.random() * 100) + 1;
-    if (roll <= 30) {
-      if (state.arg < 100) { showToast('Fonds insuffisants', '100 ' + cur + ' requis.', false); return; }
-      state.arg -= 100;
-      state.inf = Math.min(100, state.inf + 5);
-      state.pop = Math.min(100, state.pop + 5);
-      const msg = derniers.length === 0 ? 'Aucune vente.' : derniers.map(function(r) { return r.acheteur + ' : ' + r.arme; }).join(' | ');
-      updateUI();
-      showToast('Registre obtenu', '+5 INF +5 POP.', true);
-      addJournalEntry('Registre consulte apres corruption. ' + msg, 'event-info');
-    } else {
-      state.inf = Math.max(0, state.inf - 5);
-      state.pop = Math.max(0, state.pop - 5);
-      updateUI();
-      showToast('Refuse !', "L'armurier refuse et vous signale. -5 INF -5 POP.", false);
-      addJournalEntry('Corruption armurerie echouee. -5 INF -5 POP.', 'event-bad');
-    }
-  }
-}
+// Note : l'ancien systeme d'achat d'arme generique et de consultation du registre
+// (doAcheterArme, doConsulterRegistre) a ete remplace par le triptyque d'armes par empire
+// et le registre Supabase partage, dans plateau-actions-illegales-rumeurs.js.
 
 
 // =====================
