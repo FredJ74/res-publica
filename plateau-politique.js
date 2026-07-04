@@ -269,11 +269,20 @@ function nommerAdministrateurSiVacant(country, posteId) {
 
   // Publier sur le forum
   if (typeof sbCreateTopic === 'function') {
-    sbCreateTopic('local',
-      '🏛 Nomination : ' + adminDef.name,
-      'Faute de candidat, ' + adminDef.name + ' est nommé ' + adminDef.role + '.\n\n"' + adminDef.trait + '"\n\nIl peut être destitué par un vote de l\'assemblée ou une candidature au prochain cycle.',
-      'Système'
-    );
+    const h = String(state.hour || 8).padStart(2, '0');
+    const m = String(state.minute || 0).padStart(2, '0');
+    const time = `Jour ${state.day} · ${h}h${m}`;
+    const titre = '🏛 Nomination : ' + adminDef.name;
+    const texte = 'Faute de candidat, ' + adminDef.name + ' est nommé ' + adminDef.role + '.\n\n"' + adminDef.trait + '"\n\nIl peut être destitué par un vote de l\'assemblée ou une candidature au prochain cycle.';
+    sbCreateTopic('local', titre, 'Système', country, time).then(topicId => {
+      if (topicId && typeof sbCreatePost === 'function') sbCreatePost(topicId, 'Système', texte, time);
+      if (!FORUM_TOPICS['local']) FORUM_TOPICS['local'] = [];
+      FORUM_TOPICS['local'].unshift({
+        id: topicId || 'topic-' + Date.now(), title: titre, author: 'Système',
+        time, views: 1, replies: 0, lastPostAuthor: 'Système', lastPostTime: time,
+        posts: [{ id: 'p-' + Date.now(), author: 'Système', time, content: texte }]
+      });
+    }).catch(() => {});
   }
 }
 
@@ -540,11 +549,20 @@ function confirmerCandidature(el) {
 
   // Publier sur le forum
   if (typeof sbCreateTopic === 'function') {
-    sbCreateTopic('local',
-      '🗳️ Candidature de ' + nom + ' — ' + POSTES_ELECTIFS.national.concat(POSTES_ELECTIFS.local).concat(POSTES_ELECTIFS.departemental).find(p=>p.id===posteId)?.name,
-      nom + ' se présente aux élections.\n\nProgramme :\n' + programme,
-      nom
-    );
+    const h = String(state.hour || 8).padStart(2, '0');
+    const m = String(state.minute || 0).padStart(2, '0');
+    const time = `Jour ${state.day} · ${h}h${m}`;
+    const titre = '🗳️ Candidature de ' + nom + ' — ' + POSTES_ELECTIFS.national.concat(POSTES_ELECTIFS.local).concat(POSTES_ELECTIFS.departemental).find(p=>p.id===posteId)?.name;
+    const texte = nom + ' se présente aux élections.\n\nProgramme :\n' + programme;
+    sbCreateTopic('local', titre, nom, country, time).then(topicId => {
+      if (topicId && typeof sbCreatePost === 'function') sbCreatePost(topicId, nom, texte, time);
+      if (!FORUM_TOPICS['local']) FORUM_TOPICS['local'] = [];
+      FORUM_TOPICS['local'].unshift({
+        id: topicId || 'topic-' + Date.now(), title: titre, author: nom,
+        time, views: 1, replies: 0, lastPostAuthor: nom, lastPostTime: time,
+        posts: [{ id: 'p-' + Date.now(), author: nom, time, content: texte }]
+      });
+    }).catch(() => {});
   }
 }
 
@@ -1202,11 +1220,24 @@ async function afficherJournalDuMatin() {
 
 async function publierJournal(texte) {
   document.getElementById('modal-postes').classList.remove('open');
+  const from = state.char?.name || 'Rédaction';
+  const h = String(state.hour || 8).padStart(2, '0');
+  const m = String(state.minute || 0).padStart(2, '0');
+  const time = `Jour ${state.day} · ${h}h${m}`;
+  const titre = '📰 Journal du Matin — Jour ' + (state.day||1);
+
+  let topicId = null;
   if (typeof sbCreateTopic === 'function') {
-    const from = state.char?.name || 'Rédaction';
-    await sbCreateTopic('local', '📰 Journal du Matin — Jour ' + (state.day||1), texte, from);
-    showToast('Journal publié !', 'Visible sur le forum local.', true);
+    topicId = await sbCreateTopic('local', titre, from, state.country, time);
+    if (topicId && typeof sbCreatePost === 'function') await sbCreatePost(topicId, from, texte, time);
   }
+  if (!FORUM_TOPICS['local']) FORUM_TOPICS['local'] = [];
+  FORUM_TOPICS['local'].unshift({
+    id: topicId || 'topic-' + Date.now(), title: titre, author: from,
+    time, views: 1, replies: 0, lastPostAuthor: from, lastPostTime: time,
+    posts: [{ id: 'p-' + Date.now(), author: from, time, content: texte }]
+  });
+  showToast('Journal publié !', 'Visible sur le forum local.', true);
 }
 
 // =====================
@@ -1397,11 +1428,27 @@ async function signerDecretInutile() {
 
 async function publierDecret(texte) {
   document.getElementById('modal-postes').classList.remove('open');
+  const from = state.char?.name || 'Le Président';
+  const h = String(state.hour || 8).padStart(2, '0');
+  const m = String(state.minute || 0).padStart(2, '0');
+  const time = `Jour ${state.day} · ${h}h${m}`;
+
+  let topicId = null;
   if (typeof sbCreateTopic === 'function') {
-    const from = state.char?.name || 'Le Président';
-    await sbCreateTopic('local', '📜 Décret Présidentiel', texte, from);
-    showToast('Décret publié !', 'Visible sur le forum national.', true);
+    topicId = await sbCreateTopic('local', '📜 Décret Présidentiel', from, state.country, time);
+    if (topicId && typeof sbCreatePost === 'function') {
+      await sbCreatePost(topicId, from, texte, time);
+    }
   }
+
+  if (!FORUM_TOPICS['local']) FORUM_TOPICS['local'] = [];
+  FORUM_TOPICS['local'].unshift({
+    id: topicId || 'topic-' + Date.now(), title: '📜 Décret Présidentiel', author: from,
+    time, views: 1, replies: 0, lastPostAuthor: from, lastPostTime: time,
+    posts: [{ id: 'p-' + Date.now(), author: from, time, content: texte }]
+  });
+
+  showToast('Décret publié !', 'Visible sur le forum national.', true);
 }
 
 
@@ -1675,6 +1722,7 @@ function publierMessagePresidentiel(type) {
     FORUM_TOPICS['president'].unshift({
       id: 'ref-' + Date.now(), title: '[REFERENDUM] ' + titre,
       author: state.char?.name || 'President', time: 'Jour ' + state.day,
+      views: 1, replies: 0, lastPostAuthor: state.char?.name || 'President', lastPostTime: 'Jour ' + state.day,
       isReferendum: true, reponses,
       posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: contenu }]
     });
@@ -1686,6 +1734,7 @@ function publierMessagePresidentiel(type) {
     FORUM_TOPICS['president'].unshift({
       id: 'pres-' + Date.now(), title: '[PRESIDENCE] ' + titre,
       author: state.char?.name || 'President', time: 'Jour ' + state.day,
+      views: 1, replies: 0, lastPostAuthor: state.char?.name || 'President', lastPostTime: 'Jour ' + state.day,
       posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: contenu }]
     });
   }
@@ -1808,6 +1857,7 @@ function soumettreProjetLoi() {
     title: '[PROJET] ' + titre,
     author: state.char?.name || 'Député',
     time: 'Jour ' + jourDepot,
+    views: 1, replies: 0, lastPostAuthor: state.char?.name || 'Député', lastPostTime: 'Jour ' + jourDepot,
     posts: [{
       author: state.char?.name,
       time: 'Jour ' + jourDepot,
@@ -2806,6 +2856,7 @@ function publierReferendum() {
     id: 'ref-' + Date.now(), title: '[REFERENDUM] ' + question,
     author: state.char?.name || 'President',
     time: 'Jour ' + state.day, views: 0, replies: 0,
+    lastPostAuthor: state.char?.name || 'President', lastPostTime: 'Jour ' + state.day,
     isReferendum: true, reponses,
     posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: 'Le President soumet ce referendum au vote populaire. Vote ouvert pendant ' + duree + ' jours.' }]
   });
@@ -2827,6 +2878,7 @@ function publierForumPresident(type) {
     id: 'pres-' + Date.now(), title: '[PRESIDENCE] ' + titre,
     author: state.char?.name || 'President',
     time: 'Jour ' + state.day, views: 0, replies: 0,
+    lastPostAuthor: state.char?.name || 'President', lastPostTime: 'Jour ' + state.day,
     posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: message }]
   });
 

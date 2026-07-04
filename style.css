@@ -344,6 +344,7 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 
 /* MODALS */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
+#modal-postes{z-index:150}
 .modal-overlay.open{display:flex}
 .modal-box{background:var(--bg2);border:1px solid #3a2a10;max-width:480px;width:92%;max-height:85vh;overflow-y:auto;animation:fi .3s ease}
 .modal-large{max-width:700px}
@@ -393,7 +394,7 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .forum-msg{padding:.6rem .8rem;border-bottom:1px solid var(--border2)}
 .forum-msg-author{font-family:'Playfair Display',serif;font-size:.82rem;color:var(--gold-light);margin-bottom:.2rem}
 .forum-msg-text{font-size:.8rem;color:var(--text3);line-height:1.5}
-.forum-msg-time{font-size:.74rem;color:var(--text5);margin-top:.2rem}
+.forum-msg-time{font-size:.74rem;color:var(--text3);margin-top:.2rem}
 .forum-compose{padding:.7rem 1rem;border-top:1px solid var(--border2);display:flex;gap:.5rem}
 .forum-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:.5rem .7rem;font-family:'Crimson Pro',serif;font-size:.85rem;outline:none}
 .forum-input:focus{border-color:var(--gold-dark)}
@@ -443,7 +444,7 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .forum-nav-item.active{background:var(--bg4);border-left:2px solid var(--gold)}
 .forum-nav-item.locked{opacity:.4;cursor:not-allowed}
 .forum-nav-name{font-size:.86rem;color:#c0b090;font-family:'Playfair Display',serif}
-.forum-nav-count{font-size:.74rem;color:var(--text5)}
+.forum-nav-count{font-size:.74rem;color:var(--text3)}
 .forum-main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg2)}
 .forum-header-bar{display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;border-bottom:1px solid var(--border2);background:var(--bg);flex-shrink:0}
 .forum-title-main{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--gold);display:flex;align-items:center;gap:.4rem}
@@ -454,18 +455,18 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .forum-back-btn:hover{border-color:var(--gold-dark);color:var(--gold)}
 .forum-empty{font-size:.82rem;color:#6a6050;font-style:italic;text-align:center;padding:2rem}
 .forum-topics-list{flex:1;overflow-y:auto}
-.forum-topics-header{display:grid;grid-template-columns:1fr 120px 50px 70px;padding:.4rem 1rem;font-family:'Bebas Neue',sans-serif;font-size:.76rem;letter-spacing:.1em;color:var(--text5);border-bottom:1px solid var(--border2);background:var(--bg)}
-.forum-topic-row{display:grid;grid-template-columns:1fr 120px 50px 70px;padding:.55rem 1rem;border-bottom:1px solid #0f0d05;cursor:pointer;transition:background .2s;align-items:center}
+.forum-topics-header{display:grid;grid-template-columns:1fr 150px 150px 60px 70px;padding:.4rem 1rem;font-family:'Bebas Neue',sans-serif;font-size:.76rem;letter-spacing:.1em;color:var(--text3);border-bottom:1px solid var(--border2);background:var(--bg)}
+.forum-topic-row{display:grid;grid-template-columns:1fr 150px 150px 60px 70px;padding:.55rem 1rem;border-bottom:1px solid #0f0d05;cursor:pointer;transition:background .2s;align-items:center}
 .forum-topic-row:hover{background:var(--bg3)}
 .forum-topic-title{font-size:.82rem;color:#c0b090;font-family:'Playfair Display',serif}
 .forum-topic-author{font-size:.82rem;color:var(--text4)}
-.forum-topic-stat{font-size:.82rem;color:var(--text5);text-align:center}
+.forum-topic-stat{font-size:.82rem;color:var(--text3);text-align:center}
 .forum-posts{flex:1;overflow-y:auto;padding:.8rem}
 .forum-post{background:var(--bg3);border:1px solid var(--border);margin-bottom:.7rem;padding:.8rem}
 .forum-post-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
 .forum-post-avatar{width:32px;height:32px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0}
 .forum-post-author{font-family:'Playfair Display',serif;font-size:.85rem;color:var(--gold-light)}
-.forum-post-time{font-size:.76rem;color:var(--text5)}
+.forum-post-time{font-size:.76rem;color:var(--text3)}
 .forum-post-badge{font-family:'Bebas Neue',sans-serif;font-size:.74rem;letter-spacing:.08em;padding:.1rem .4rem;border:1px solid var(--gold-dark);color:var(--gold);margin-left:auto}
 .forum-post-content{font-size:.83rem;color:#b0a080;line-height:1.65}
 .forum-post-image{margin-top:.5rem}

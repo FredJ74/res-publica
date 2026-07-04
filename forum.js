@@ -257,7 +257,9 @@ function renderForumContent() {
 // =====================
 function renderTopicList() {
   const f = FORUMS[currentForumId];
-  const topics = FORUM_TOPICS[currentForumId] || [];
+  const topics = [...(FORUM_TOPICS[currentForumId] || [])].sort((a, b) =>
+    parseGameTime(b.lastPostTime || b.time) - parseGameTime(a.lastPostTime || a.time)
+  );
   return `
     <div class="forum-header-bar">
       <div>
@@ -272,7 +274,7 @@ function renderTopicList() {
       ? `<div class="forum-empty">Aucun sujet. Soyez le premier à en créer un !</div>`
       : `<div class="forum-topics-list">
           <div class="forum-topics-header">
-            <span>Sujet</span><span>Auteur</span><span>Vues</span><span>Rép.</span>
+            <span>Sujet</span><span>Auteur</span><span>Dernier post</span><span>Vues</span><span>Rép.</span>
           </div>
           ${topics.map(t => `
             <div class="forum-topic-row" onclick="openTopic('${t.id}')">
@@ -280,7 +282,14 @@ function renderTopicList() {
                 <i class="ti ti-message-circle" style="font-size:.8rem;color:#4a6a4a;margin-right:.3rem"></i>
                 ${t.title}
               </div>
-              <div class="forum-topic-author">${t.author}</div>
+              <div class="forum-topic-author">
+                <div>${t.author}</div>
+                <div style="font-size:.68rem;color:var(--text3)">${t.time || ''}</div>
+              </div>
+              <div class="forum-topic-author">
+                <div>${t.lastPostAuthor || t.author}</div>
+                <div style="font-size:.68rem;color:var(--text3)">${t.lastPostTime || t.time || ''}</div>
+              </div>
               <div class="forum-topic-stat">${t.views}</div>
               <div class="forum-topic-stat">${t.replies}</div>
             </div>`).join('')}
@@ -709,6 +718,13 @@ function sanitizeRichHtml(html) {
   return tmp.innerHTML;
 }
 
+function parseGameTime(str) {
+  // Format attendu : "Jour X · HHhMM" -> valeur numerique triable
+  const m = /Jour\s*(\d+)\s*·\s*(\d{1,2})h(\d{2})?/.exec(str || '');
+  if (!m) return 0;
+  return parseInt(m[1]||0) * 1440 + parseInt(m[2]||0) * 60 + parseInt(m[3]||0);
+}
+
 async function submitNewTopic() {
   const titleEl = document.getElementById('new-topic-title');
   const contentEl = document.getElementById('new-topic-content');
@@ -731,6 +747,7 @@ async function submitNewTopic() {
   const newTopic = {
     id: topicId || 'topic-' + Date.now(), title, author: char?.name||'Anonyme',
     time, views: 1, replies: 0,
+    lastPostAuthor: char?.name||'Anonyme', lastPostTime: time,
     posts: [{ id:'p-'+Date.now(), author: char?.name||'Anonyme', time, content }]
   };
   if (!FORUM_TOPICS[currentForumId]) FORUM_TOPICS[currentForumId] = [];
@@ -761,6 +778,8 @@ async function submitReply() {
   // Local
   topic.posts.push({ id:'p-'+Date.now(), author: char?.name||'Anonyme', time, content });
   topic.replies = topic.posts.length - 1;
+  topic.lastPostAuthor = char?.name||'Anonyme';
+  topic.lastPostTime = time;
   state.pop = Math.min(100, (state.pop||0) + 1);
   updateUI();
   forumView = 'topic';
@@ -859,15 +878,19 @@ async function loadForumTopicsFromSB(forumId) {
         FORUM_TOPICS[forumId].unshift({
           id: row.id, title: row.title, author: row.author,
           time: row.time, views: row.views, replies: row.replies,
+          lastPostAuthor: row.last_post_author || row.author,
+          lastPostTime: row.last_post_time || row.time,
           posts: []
         });
       } else {
         existing.views = row.views;
         existing.replies = row.replies;
+        existing.lastPostAuthor = row.last_post_author || existing.lastPostAuthor || existing.author;
+        existing.lastPostTime = row.last_post_time || existing.lastPostTime || existing.time;
       }
     });
-    // Trier par date décroissante
-    FORUM_TOPICS[forumId].sort((a, b) => b.id.localeCompare(a.id));
+    // Trier par activite la plus recente (dernier post), pas par date de creation
+    FORUM_TOPICS[forumId].sort((a, b) => parseGameTime(b.lastPostTime || b.time) - parseGameTime(a.lastPostTime || a.time));
   } catch(e) { console.warn('loadForumTopicsFromSB error', e); }
 }
 

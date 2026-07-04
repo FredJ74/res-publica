@@ -159,17 +159,17 @@ async function sbLoadForumPosts(topicId) {
 
 async function sbCreateTopic(forumId, title, author, country, time) {
   const id = 'topic-' + Date.now();
-  await sbInsert('forum_topics', { id, forum_id: forumId, title, author, country, time, views: 1, replies: 0 });
+  await sbInsert('forum_topics', { id, forum_id: forumId, title, author, country, time, views: 1, replies: 0, last_post_author: author, last_post_time: time });
   return id;
 }
 
 async function sbCreatePost(topicId, author, content, time) {
   const id = 'post-' + Date.now();
   await sbInsert('forum_posts', { id, topic_id: topicId, author, content, time });
-  // Mettre à jour le compteur de réponses
+  // Mettre à jour le compteur de réponses + le dernier post (pour le tri par activité)
   const posts = await sbLoadForumPosts(topicId);
   const count = (posts?.length || 1) - 1;
-  await sbUpdate('forum_topics', `id=eq.${encodeURIComponent(topicId)}`, { replies: count });
+  await sbUpdate('forum_topics', `id=eq.${encodeURIComponent(topicId)}`, { replies: count, last_post_author: author, last_post_time: time });
   return id;
 }
 
