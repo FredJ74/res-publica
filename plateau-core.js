@@ -563,6 +563,7 @@ function updateUI() {
   // Sauvegarde auto Supabase
   if (typeof sbAutoSave === 'function' && state?.char?.name) sbAutoSave();
   renderEmployesPanel();
+  if (typeof renderInventory === 'function') renderInventory();
   // Sauvegarde localStorage — sync état complet
   if (state.char?.name) {
     state.char.poste       = state.poste || null;

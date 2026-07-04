@@ -98,27 +98,39 @@ function minimapCard(id) {
 
   const locked = b.locked ? '<span style="font-size:.6rem;color:#5a3020">· Accès restreint</span>' : '';
 
-  // Noms des PNJ pour le tooltip
-  const pnjHtml = pnjList.slice(0, 4).map(p =>
-    '<div style="font-size:.68rem;color:#8a8060">· ' + (p.name||'').replace(' (PNJ)','') + '</div>'
-  ).join('');
+  const tooltipData = JSON.stringify({
+    name: localName,
+    desc: localDesc.substring(0,140) + (localDesc.length > 140 ? '...' : ''),
+    pnj: pnjList.slice(0, 4).map(p => (p.name||'').replace(' (PNJ)','')),
+    actions: actions
+  }).replace(/"/g, '&quot;');
 
-  const tooltip = '<div class="minimap-tooltip">' +
-    '<div class="mtt-title">' + localName + '</div>' +
-    (localDesc ? '<div class="mtt-desc">' + localDesc.substring(0,110) + (localDesc.length > 110 ? '...' : '') + '</div>' : '') +
-    (pnjHtml ? '<div class="mtt-pnj">' + pnjHtml + '</div>' : '') +
-    (actions ? '<div class="mtt-actions">Actions : ' + actions + '</div>' : '') +
-    '</div>';
-
-  return '<div class="minimap-building ' + (b.capitaleOnly ? 'capital-only' : '') + ' has-tooltip" onclick="enterBuilding(\'' + id + '\')">' +
+  return '<div class="minimap-building ' + (b.capitaleOnly ? 'capital-only' : '') + '" onclick="enterBuilding(\'' + id + '\')" onmouseenter="showBuildingTooltip(' + tooltipData + ')" onmouseleave="hideBuildingTooltip()">' +
     '<div class="minimap-bld-icon"><i class="ti ' + b.icon + '" style="font-size:.8rem"></i></div>' +
     '<div class="minimap-bld-info">' +
       '<div class="minimap-bld-name">' + localName + '</div>' +
       '<div class="minimap-bld-cat">' + b.cat + ' ' + locked + '</div>' +
       (personCount > 0 ? '<div class="minimap-persons">' + personCount + ' personne' + (personCount > 1 ? 's' : '') + '</div>' : '') +
     '</div>' +
-    tooltip +
   '</div>';
+}
+
+function showBuildingTooltip(data) {
+  const el = document.getElementById('building-hover-tooltip');
+  if (!el) return;
+  let html = '<div class="mtt-title">' + data.name + '</div>';
+  if (data.desc) html += '<div class="mtt-desc">' + data.desc + '</div>';
+  if (data.pnj && data.pnj.length) {
+    html += '<div class="mtt-pnj">' + data.pnj.map(n => '<div style="font-size:.72rem;color:#8a8060">· ' + n + '</div>').join('') + '</div>';
+  }
+  if (data.actions) html += '<div class="mtt-actions">Actions : ' + data.actions + '</div>';
+  el.innerHTML = html;
+  el.classList.add('visible');
+}
+
+function hideBuildingTooltip() {
+  const el = document.getElementById('building-hover-tooltip');
+  if (el) el.classList.remove('visible');
 }
 
 // =====================
