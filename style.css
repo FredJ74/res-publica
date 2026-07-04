@@ -462,13 +462,15 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .forum-topic-author{font-size:.82rem;color:var(--text4)}
 .forum-topic-stat{font-size:.82rem;color:var(--text3);text-align:center}
 .forum-posts{flex:1;overflow-y:auto;padding:.8rem}
-.forum-post{background:var(--bg3);border:1px solid var(--border);margin-bottom:.7rem;padding:.8rem}
-.forum-post-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
-.forum-post-avatar{width:32px;height:32px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0}
-.forum-post-author{font-family:'Playfair Display',serif;font-size:.85rem;color:var(--gold-light)}
-.forum-post-time{font-size:.76rem;color:var(--text3)}
-.forum-post-badge{font-family:'Bebas Neue',sans-serif;font-size:.74rem;letter-spacing:.08em;padding:.1rem .4rem;border:1px solid var(--gold-dark);color:var(--gold);margin-left:auto}
-.forum-post-content{font-size:.83rem;color:#b0a080;line-height:1.65}
+.forum-post{background:var(--bg3);border:1px solid var(--border);margin-bottom:.7rem;display:grid;grid-template-columns:130px 1fr;align-items:start}
+.forum-post-side{padding:.9rem .6rem;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;text-align:center;gap:.3rem}
+.forum-post-avatar{width:44px;height:44px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0}
+.forum-post-author{font-family:'Playfair Display',serif;font-size:.82rem;color:var(--gold-light);word-break:break-word}
+.forum-post-time{font-size:.7rem;color:var(--text3)}
+.forum-post-badge{font-family:'Bebas Neue',sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.1rem .35rem;border:1px solid var(--gold-dark);color:var(--gold);margin-top:.2rem}
+.forum-post-main{padding:.7rem .9rem;min-width:0}
+.forum-post-toolbar{display:flex;justify-content:flex-end;gap:.2rem;margin-bottom:.2rem}
+.forum-post-content{font-size:.83rem;color:#b0a080;line-height:1.65;overflow-wrap:break-word}
 .forum-post-image{margin-top:.5rem}
 .forum-reply-bar{padding:.6rem 1rem;border-top:1px solid var(--border2);background:var(--bg);flex-shrink:0}
 .forum-compose-form{flex:1;overflow-y:auto;padding:1rem}

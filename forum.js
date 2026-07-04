@@ -316,14 +316,14 @@ function renderTopicView() {
     <div class="forum-posts">
       ${topic.posts.map((p, i) => `
         <div class="forum-post">
-          <div class="forum-post-header">
-            <div class="forum-post-avatar">${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(p.author, 32) : '<i class="ti ti-user" style="font-size:1rem;color:#C9A84C"></i>'}</div>
-            <div>
-              <div class="forum-post-author">${p.author}</div>
-              <div class="forum-post-time">${p.time}</div>
-            </div>
-            ${i === 0 ? `<span class="forum-post-badge">OP</span>` : ''}
-            <div style="margin-left:auto;display:flex;gap:.4rem;align-items:center">
+          <div class="forum-post-side">
+            <div class="forum-post-avatar">${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(p.author, 40) : '<i class="ti ti-user" style="font-size:1.2rem;color:#C9A84C"></i>'}</div>
+            <div class="forum-post-author">${p.author}</div>
+            <div class="forum-post-time">${p.time}</div>
+            ${i === 0 ? `<span class="forum-post-badge">Auteur du sujet</span>` : ''}
+          </div>
+          <div class="forum-post-main">
+            <div class="forum-post-toolbar">
               ${p.author === myName ? `
                 <button onclick="editPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Modifier">
                   <i class="ti ti-edit"></i>
@@ -332,8 +332,8 @@ function renderTopicView() {
                 <i class="ti ti-quote"></i>
               </button>
             </div>
+            <div class="forum-post-content">${sanitizeRichHtml(p.content)}</div>
           </div>
-          <div class="forum-post-content">${sanitizeRichHtml(p.content)}</div>
         </div>`).join('')}
     </div>
     <div class="forum-reply-bar">
@@ -397,7 +397,7 @@ function renderRichEditor(id, initialContent = '') {
         </div>
       </div>
 
-      <div class="rich-content" id="${id}" contenteditable="true"
+      <div class="rich-content" id="${id}" contenteditable="true" onfocus="window._lastRichEditorId=this.id"
         style="min-height:150px;padding:.8rem;outline:none;font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.7;color:#f0ead6"
         placeholder="Écrivez votre message...">${initialContent}</div>
     </div>
@@ -437,9 +437,9 @@ function richInsertHR() {
 let _richInsertTargetId = null;
 
 function richInsertImage() {
-  // Retrouve le champ contenteditable actuellement focus pour y revenir apres la saisie
-  const focused = document.querySelector('.rich-content:focus, [contenteditable]:focus');
-  _richInsertTargetId = focused?.id || null;
+  // Utilise le dernier champ contenteditable ayant eu le focus (fiable, contrairement a :focus
+  // qui est deja perdu au moment du clic sur ce bouton de la barre d'outils)
+  _richInsertTargetId = window._lastRichEditorId || null;
 
   document.getElementById('postes-modal-title').textContent = 'Insérer une image';
   let html = '<div style="padding:1rem">';
@@ -448,7 +448,7 @@ function richInsertImage() {
   html += '<div style="margin-bottom:.6rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Position</label>';
   html += '<div style="display:flex;gap:.4rem">';
   ['gauche','centre','droite'].forEach((pos, i) => {
-    html += '<button type="button" class="richimg-pos-btn" data-pos="' + pos + '" onclick="document.querySelectorAll(\'.richimg-pos-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" style="flex:1;padding:.4rem;border:1px solid ' + (i===1?'#C9A84C':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em">' + pos.charAt(0).toUpperCase()+pos.slice(1) + '</button>';
+    html += '<button type="button" class="richimg-pos-btn" data-pos="' + pos + '" data-selected="' + (i===1?'1':'0') + '" onclick="document.querySelectorAll(\'.richimg-pos-btn\').forEach(b=>{b.dataset.selected=\'0\';b.style.borderColor=\'#2a2010\'});this.dataset.selected=\'1\';this.style.borderColor=\'#C9A84C\'" style="flex:1;padding:.4rem;border:1px solid ' + (i===1?'#C9A84C':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em">' + pos.charAt(0).toUpperCase()+pos.slice(1) + '</button>';
   });
   html += '</div></div>';
   html += '<div style="margin-bottom:.8rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.2rem">Légende (optionnel)</label>';
@@ -477,7 +477,7 @@ function richInsertImage() {
 function confirmerRichInsertImage() {
   const url = document.getElementById('richimg-url')?.value?.trim();
   if (!url) { showToast('URL manquante', 'Indiquez une adresse d\'image.', false); return; }
-  const posBtn = document.querySelector('.richimg-pos-btn[style*="C9A84C"]');
+  const posBtn = document.querySelector('.richimg-pos-btn[data-selected="1"]');
   const pos = posBtn?.dataset?.pos || 'centre';
   const legend = document.getElementById('richimg-legend')?.value?.trim() || '';
 
