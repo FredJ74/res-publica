@@ -90,6 +90,9 @@ async function sbSavePersonnage(charState) {
     recherche:        charState.recherche || [],
     convocations:     charState.convocations || [],
     est_emprisonne:   charState.estEmprisonne || null,
+    motto:            charState.char?.motto || null,
+    signature_html:   charState.char?.signatureHtml || null,
+    signature_blocks: charState.char?.signatureBlocks || [],
     updated_at:       new Date().toISOString()
   };
 
@@ -110,7 +113,8 @@ async function sbLoadPersonnage(name) {
     char: { name: r.name, archetype: r.archetype, career: r.career, stats: r.stats,
              photoUrl: r.photo_url || null, bio: r.bio || null, poste: r.poste || null,
              country: r.country, currentCity: r.current_city, currentBuilding: r.current_building,
-             currentRoom: r.current_room || null },
+             currentRoom: r.current_room || null, motto: r.motto || null,
+             signatureHtml: r.signature_html || null, signatureBlocks: r.signature_blocks || [] },
     country:       r.country,
     inf:           r.resources?.inf || 0,
     pop:           r.resources?.pop || 0,

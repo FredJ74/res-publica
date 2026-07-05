@@ -61,6 +61,17 @@ function openCharSheet() {
       ${char.bio ? `<div style="font-size:.82rem;color:#8a8060;font-style:italic;line-height:1.6">${char.bio}</div>` : ''}
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
+      <div class="cs-title" style="margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">
+        <span>Signature (forum)</span>
+        <button onclick="ouvrirEditeurSignature()" style="font-family:'Bebas Neue',sans-serif;font-size:.68rem;letter-spacing:.06em;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#8a6a20;cursor:pointer">Modifier</button>
+      </div>
+      ${char.signatureHtml
+        ? `<div style="font-size:.78rem;color:#8a8060;padding:.5rem;background:#0f0d05;border:1px solid #1a1810">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(char.signatureHtml) : char.signatureHtml}</div>`
+        : (char.motto
+          ? `<div style="font-size:.78rem;color:#5a5040;font-style:italic">Pas de signature personnalisée — ta devise ("${char.motto}") sera utilisée par défaut.</div>`
+          : `<div style="font-size:.75rem;color:#3a3020;font-style:italic">Aucune signature. Elle apparaîtra automatiquement en bas de tes posts sur le forum.</div>`)}
+    </div>
+    <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
       <div class="cs-title" style="margin-bottom:.4rem">Inventaire</div>
       ${state.inventory.length === 0
         ? '<div style="font-size:.75rem;color:#3a3020;font-style:italic">Aucun objet</div>'
@@ -863,6 +874,47 @@ function toggleSection(panelId, chevronId) {
   const open = panel.style.display !== 'none';
   panel.style.display = open ? 'none' : 'block';
   if (chev) chev.style.transform = open ? '' : 'rotate(90deg)';
+}
+
+function ouvrirEditeurSignature() {
+  const char = state.char;
+  document.getElementById('postes-modal-title').textContent = 'Ma signature';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Apparaîtra automatiquement en bas de tes posts sur le forum (tu pourras décocher au cas par cas). Laisse vide pour utiliser simplement ta devise.</div>';
+  html += typeof renderRichEditor === 'function'
+    ? renderRichEditor('signature-editor', char?.signatureHtml || '')
+    : '<div contenteditable="true" id="signature-editor" style="min-height:100px;padding:.6rem;border:1px solid #2a2010;background:#121005;color:#f0ead6">' + (char?.signatureHtml || '') + '</div>';
+  html += '<div style="display:flex;gap:.5rem;margin-top:.8rem">';
+  html += '<button onclick="confirmerSignature()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Enregistrer</button>';
+  if (char?.signatureHtml) {
+    html += '<button onclick="supprimerSignature()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc6a44;cursor:pointer">Supprimer</button>';
+  }
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerSignature() {
+  const el = document.getElementById('signature-editor');
+  const raw = el?.innerHTML?.trim() || '';
+  const clean = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(raw) : raw;
+  if (!state.char) return;
+  state.char.signatureHtml = clean;
+  state.char.signatureBlocks = typeof htmlToBlocks === 'function' ? htmlToBlocks(clean) : [];
+  document.getElementById('modal-postes').classList.remove('open');
+  updateUI();
+  showToast('Signature enregistrée', '', true);
+  openCharSheet();
+}
+
+function supprimerSignature() {
+  if (!state.char) return;
+  state.char.signatureHtml = null;
+  state.char.signatureBlocks = [];
+  document.getElementById('modal-postes').classList.remove('open');
+  updateUI();
+  showToast('Signature supprimée', '', true);
+  openCharSheet();
 }
 
 function toggleInventaire() {

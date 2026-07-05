@@ -670,6 +670,19 @@ function renderPosterEnTantQue(fieldId) {
   return html;
 }
 
+function renderSignatureCheckbox(fieldId) {
+  const char = state.char;
+  if (!char?.signatureHtml && !char?.motto) return '';
+  return '<label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:#8a8060;margin:.4rem 0"><input type="checkbox" id="' + fieldId + '" checked/> Inclure ma signature</label>';
+}
+
+function getSignatureHtml() {
+  const char = state.char;
+  if (char?.signatureHtml) return '<div style="margin-top:1rem;padding-top:.5rem;border-top:1px solid #2a2010;font-size:.8rem;color:#8a8060">' + char.signatureHtml + '</div>';
+  if (char?.motto) return '<div style="margin-top:1rem;padding-top:.5rem;border-top:1px solid #2a2010;font-size:.8rem;color:#8a8060;font-style:italic">— "' + char.motto + '"</div>';
+  return '';
+}
+
 function renderNewTopicForm() {
   return `
     <div class="forum-header-bar">
@@ -686,6 +699,7 @@ function renderNewTopicForm() {
         <label class="forum-field-label">Message</label>
         ${renderRichEditor('new-topic-content')}
       </div>
+      ${renderSignatureCheckbox('new-topic-signature')}
       <button class="forum-submit-btn" onclick="submitNewTopic()">
         <i class="ti ti-send"></i> Publier le sujet
       </button>
@@ -706,6 +720,7 @@ function renderReplyForm() {
         <label class="forum-field-label">Votre réponse</label>
         ${renderRichEditor('reply-content')}
       </div>
+      ${renderSignatureCheckbox('reply-signature')}
       <button class="forum-submit-btn" onclick="submitReply()">
         <i class="ti ti-send"></i> Publier la réponse
       </button>
@@ -993,8 +1008,11 @@ async function submitNewTopic() {
   const titleEl = document.getElementById('new-topic-title');
   const contentEl = document.getElementById('new-topic-content');
   const title = titleEl?.value?.trim();
-  const content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
+  let content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
   if (!title || !content) { showToast('Champs requis','Remplissez le titre et le message.',false); return; }
+  if (document.getElementById('new-topic-signature')?.checked) {
+    content = sanitizeRichHtml(content + getSignatureHtml());
+  }
   const char = state.char;
 
   const orgaId = document.getElementById('new-topic-auteur')?.value || '';
@@ -1032,8 +1050,11 @@ async function submitNewTopic() {
 
 async function submitReply() {
   const contentEl = document.getElementById('reply-content');
-  const content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
+  let content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
   if (!content) { showToast('Message vide','Écrivez votre réponse avant de publier.',false); return; }
+  if (document.getElementById('reply-signature')?.checked) {
+    content = sanitizeRichHtml(content + getSignatureHtml());
+  }
   const char = state.char;
 
   const orgaId = document.getElementById('reply-auteur')?.value || '';
