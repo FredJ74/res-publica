@@ -445,7 +445,12 @@ function switchSelfTab(tab, el) {
 
     html += '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">';
     html += '<button onclick="ouvrirModalChangerPhoto()" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-camera"></i> Modifier la photo</button>';
+    html += '<button onclick="ouvrirEditeurSignature()" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-signature"></i> ' + (char?.signatureHtml ? 'Modifier ma signature' : 'Créer ma signature') + '</button>';
     html += '</div>';
+
+    if (char?.signatureHtml) {
+      html += '<div style="margin-top:.6rem;padding:.6rem;background:#0f0d05;border:1px solid #1a1810;font-size:.78rem;color:#8a8060">' + (typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(char.signatureHtml) : char.signatureHtml) + '</div>';
+    }
 
     if (state.poste) {
       html += '<div style="margin-top:1rem">';
@@ -894,6 +899,15 @@ function ouvrirEditeurSignature() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+function refreshApresSignature() {
+  const vueSelf = document.getElementById('vue-self');
+  if (vueSelf && vueSelf.classList.contains('active')) {
+    switchSelfTab('identite', null);
+  } else {
+    openCharSheet();
+  }
+}
+
 function confirmerSignature() {
   const el = document.getElementById('signature-editor');
   const raw = el?.innerHTML?.trim() || '';
@@ -904,7 +918,7 @@ function confirmerSignature() {
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
   showToast('Signature enregistrée', '', true);
-  openCharSheet();
+  refreshApresSignature();
 }
 
 function supprimerSignature() {
@@ -914,7 +928,7 @@ function supprimerSignature() {
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
   showToast('Signature supprimée', '', true);
-  openCharSheet();
+  refreshApresSignature();
 }
 
 function toggleInventaire() {
