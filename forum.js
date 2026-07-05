@@ -148,7 +148,7 @@ const STYLES_NARRATIFS = {
   'Communiqué officiel': `<div style="border:2px solid #C9A84C;padding:1rem;margin:.5rem 0;background:rgba(201,168,76,0.05)"><div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.15em;color:#C9A84C;border-bottom:1px solid #C9A84C;padding-bottom:.3rem;margin-bottom:.6rem">COMMUNIQUÉ OFFICIEL</div><p>Rédigez votre communiqué ici...</p></div>`,
   'Article de presse':   `<div style="border-left:3px solid #8a6a20;padding:.5rem 1rem;margin:.5rem 0"><div style="font-size:.7rem;letter-spacing:.1em;color:#8a8060;text-transform:uppercase">ARTICLE — LA TRIBUNE</div><h3 style="margin:.3rem 0;color:#f0ead6">Titre de l'article</h3><p style="font-style:italic;color:#8a8060;font-size:.8rem">Par [Auteur] · Jour [X]</p><p>Corps de l'article...</p></div>`,
   'Discours':            `<div style="text-align:center;padding:1rem;margin:.5rem 0"><div style="font-size:.7rem;letter-spacing:.2em;color:#8a8060">— DISCOURS —</div><p style="font-size:1.05rem;line-height:1.8;font-style:italic;color:#f0ead6">"Texte du discours..."</p><div style="font-size:.7rem;color:#8a6a20;margin-top:.5rem">— Nom, Titre</div></div>`,
-  'Citation':            `<blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:1.3rem 0;color:#c0b090;font-style:italic">Texte cité...</blockquote>`,
+  'Citation':            `<div style="margin:1.3rem 0"><div style="text-align:center;color:#6a5a30;font-size:.7rem;letter-spacing:.35em">— · —</div><blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:.5rem 0;color:#c0b090"><em>Texte cité...</em></blockquote><div style="text-align:center;color:#6a5a30;font-size:.7rem;letter-spacing:.35em">— · —</div></div>`,
   'Encadré':             `<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin:.5rem 0;border-radius:2px">Contenu de l'encadré...</div>`,
   '2 colonnes':          `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.5rem 0"><div>Colonne gauche...</div><div>Colonne droite...</div></div>`,
 };
@@ -803,7 +803,7 @@ function quotePost(postIndex) {
   const post = topic?.posts[postIndex];
   if (!post) return;
   const stripped = post.content.replace(/<[^>]+>/g, '').substring(0, 200);
-  const quoteHtml = `<blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:1.3rem 0;color:#c0b090;font-style:italic">${stripped}...<br><small style="color:#6a5a30">— ${post.author}</small></blockquote><p></p>`;
+  const quoteHtml = `<div style="margin:1.3rem 0"><div style="text-align:center;color:#6a5a30;font-size:.7rem;letter-spacing:.35em">— · —</div><blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:.5rem 0;color:#c0b090"><em>${stripped}...</em><br><small style="color:#6a5a30">— ${post.author}</small></blockquote><div style="text-align:center;color:#6a5a30;font-size:.7rem;letter-spacing:.35em">— · —</div></div><p></p>`;
   forumView = 'reply';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   setTimeout(() => {
@@ -945,7 +945,7 @@ function renderBlocks(blocks) {
       return '<p style="margin:0 0 .8em;clear:both">' + b.html + '</p>';
     }
     if (b.type === 'quote') {
-      return '<blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:1.3rem 0;color:#c0b090;font-style:italic;clear:both">' + b.html + '</blockquote>';
+      return '<div style="margin:1.3rem 0;clear:both"><div style="text-align:center;color:#6a5a30;font-size:.7rem;letter-spacing:.35em">— &middot; —</div><blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:.5rem 0;color:#c0b090"><em>' + b.html + '</em></blockquote><div style="text-align:center;color:#6a5a30;font-size:.7rem;letter-spacing:.35em">— &middot; —</div></div>';
     }
     if (b.type === 'separator') {
       return '<hr style="border:none;border-top:1px solid #3a2a10;margin:1rem 0;clear:both"/>';
