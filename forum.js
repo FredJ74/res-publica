@@ -148,7 +148,7 @@ const STYLES_NARRATIFS = {
   'Communiqué officiel': `<div style="border:2px solid #C9A84C;padding:1rem;margin:.5rem 0;background:rgba(201,168,76,0.05)"><div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.15em;color:#C9A84C;border-bottom:1px solid #C9A84C;padding-bottom:.3rem;margin-bottom:.6rem">COMMUNIQUÉ OFFICIEL</div><p>Rédigez votre communiqué ici...</p></div>`,
   'Article de presse':   `<div style="border-left:3px solid #8a6a20;padding:.5rem 1rem;margin:.5rem 0"><div style="font-size:.7rem;letter-spacing:.1em;color:#8a8060;text-transform:uppercase">ARTICLE — LA TRIBUNE</div><h3 style="margin:.3rem 0;color:#f0ead6">Titre de l'article</h3><p style="font-style:italic;color:#8a8060;font-size:.8rem">Par [Auteur] · Jour [X]</p><p>Corps de l'article...</p></div>`,
   'Discours':            `<div style="text-align:center;padding:1rem;margin:.5rem 0"><div style="font-size:.7rem;letter-spacing:.2em;color:#8a8060">— DISCOURS —</div><p style="font-size:1.05rem;line-height:1.8;font-style:italic;color:#f0ead6">"Texte du discours..."</p><div style="font-size:.7rem;color:#8a6a20;margin-top:.5rem">— Nom, Titre</div></div>`,
-  'Citation':            `<blockquote style="border-left:3px solid #C9A84C;padding:.5rem 1rem;margin:.5rem 0;color:#c0b090;font-style:italic">Texte cité...</blockquote>`,
+  'Citation':            `<blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:1.3rem 0;color:#c0b090;font-style:italic">Texte cité...</blockquote>`,
   'Encadré':             `<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin:.5rem 0;border-radius:2px">Contenu de l'encadré...</div>`,
   '2 colonnes':          `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.5rem 0"><div>Colonne gauche...</div><div>Colonne droite...</div></div>`,
 };
@@ -548,6 +548,24 @@ function richInsertImage() {
   // On ne s'en remet a window._lastRichEditorId que si, pour une raison quelconque, rien n'a ete capture.
   if (!_richInsertTargetId) _richInsertTargetId = window._lastRichEditorId || null;
 
+  // Poser un marqueur a la position exacte du curseur, tant que la selection est encore valide —
+  // juste avant que la fenetre d'insertion ne prenne le focus. On le remplacera par l'image plus tard
+  // via une simple recherche par id, bien plus fiable qu'une restauration de Range apres coup.
+  document.querySelectorAll('#_richimg_marker').forEach(m => m.remove());
+  if (_richSavedRange) {
+    try {
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(_richSavedRange);
+      const range = sel.getRangeAt(0);
+      const marker = document.createElement('span');
+      marker.id = '_richimg_marker';
+      marker.style.cssText = 'display:inline-block;width:0;height:0';
+      range.deleteContents();
+      range.insertNode(marker);
+    } catch(e) { /* si ca echoue, confirmerRichInsertImage retombera sur l'insertion en fin de contenu */ }
+  }
+
   document.getElementById('postes-modal-title').textContent = 'Insérer une image';
   let html = '<div style="padding:1rem">';
   html += '<div style="margin-bottom:.6rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.2rem">URL de l\'image</label>';
@@ -564,7 +582,7 @@ function richInsertImage() {
   html += '<input id="richimg-url-preview-trigger" type="hidden"/>';
   html += '<div style="display:flex;gap:.5rem">';
   html += '<button onclick="confirmerRichInsertImage()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Insérer</button>';
-  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Annuler</button>';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');document.querySelectorAll(\'#_richimg_marker\').forEach(m=>m.remove())" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Annuler</button>';
   html += '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -604,9 +622,13 @@ function confirmerRichInsertImage() {
 
   const target = _richInsertTargetId ? document.getElementById(_richInsertTargetId) : null;
   if (target) {
-    // Insertion directe et fiable en fin de contenu (insertAdjacentHTML ne depend d'aucun
-    // Range/Selection potentiellement invalide apres le passage par la fenetre d'insertion).
-    target.insertAdjacentHTML('beforeend', wrapHtml);
+    const marker = document.getElementById('_richimg_marker');
+    if (marker && target.contains(marker)) {
+      marker.outerHTML = wrapHtml;
+    } else {
+      // Repli : marqueur introuvable (selection non capturee ou perdue) -> fin de contenu
+      target.insertAdjacentHTML('beforeend', wrapHtml);
+    }
     target.focus();
     _richSavedRange = null;
     _richInsertTargetId = null;
@@ -781,7 +803,7 @@ function quotePost(postIndex) {
   const post = topic?.posts[postIndex];
   if (!post) return;
   const stripped = post.content.replace(/<[^>]+>/g, '').substring(0, 200);
-  const quoteHtml = `<blockquote style="border-left:3px solid #C9A84C;padding:.5rem 1rem;margin:.5rem 0;color:#c0b090;font-style:italic">${stripped}...<br><small style="color:#6a5a30">— ${post.author}</small></blockquote><p></p>`;
+  const quoteHtml = `<blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:1.3rem 0;color:#c0b090;font-style:italic">${stripped}...<br><small style="color:#6a5a30">— ${post.author}</small></blockquote><p></p>`;
   forumView = 'reply';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   setTimeout(() => {
@@ -923,7 +945,7 @@ function renderBlocks(blocks) {
       return '<p style="margin:0 0 .8em;clear:both">' + b.html + '</p>';
     }
     if (b.type === 'quote') {
-      return '<blockquote style="border-left:3px solid #C9A84C;padding:.5rem 1rem;margin:.5rem 0;color:#c0b090;font-style:italic;clear:both">' + b.html + '</blockquote>';
+      return '<blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:1.3rem 0;color:#c0b090;font-style:italic;clear:both">' + b.html + '</blockquote>';
     }
     if (b.type === 'separator') {
       return '<hr style="border:none;border-top:1px solid #3a2a10;margin:1rem 0;clear:both"/>';
