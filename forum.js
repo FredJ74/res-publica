@@ -418,7 +418,10 @@ function richHeading(level) {
 }
 
 function richColor() {
-  const colors = ['#C9A84C','#f0ead6','#cc4444','#4a8a4a','#4a6aaa','#aa6aaa','#8a8060'];
+  const colors = [
+    '#f0ead6','#C9A84C','#E8D880','#cc4444','#e08a8a','#4a8a4a','#7abf6a',
+    '#4a6aaa','#7a9ad0','#aa6aaa','#c98ac9','#d08a3a','#8a8060','#5a5040','#000000'
+  ];
   const panel = document.getElementById('color-panel-rich');
   if (panel) { panel.remove(); return; }
   const div = document.createElement('div');
@@ -427,7 +430,11 @@ function richColor() {
   colors.forEach(c => {
     const btn = document.createElement('button');
     btn.style.cssText = `width:20px;height:20px;background:${c};border:1px solid #2a2010;cursor:pointer`;
-    btn.onclick = () => { document.execCommand('foreColor', false, c); div.remove(); };
+    btn.onclick = () => {
+      document.execCommand('styleWithCSS', false, true);
+      document.execCommand('foreColor', false, c);
+      div.remove();
+    };
     div.appendChild(btn);
   });
   const toolbar = document.querySelector('.rich-toolbar');
@@ -531,11 +538,17 @@ function confirmerRichInsertImage() {
   const pos = posBtn?.dataset?.pos || 'centre';
   const legend = document.getElementById('richimg-legend')?.value?.trim() || '';
 
-  let style = 'display:block;margin:0 auto;max-width:100%';
-  if (pos === 'gauche') style = 'float:left;margin:0 1rem .5rem 0;max-width:45%';
-  if (pos === 'droite') style = 'float:right;margin:0 0 .5rem 1rem;max-width:45%';
-  const legendHtml = legend ? '<div style="text-align:center;font-size:.75rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + legend + '</div>' : '';
-  const wrapHtml = '<div style="overflow:hidden"><img src="' + url + '" style="' + style + '"/>' + legendHtml + '</div>';
+  const legendHtml = legend ? '<span style="display:block;text-align:center;font-size:.75rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + legend + '</span>' : '';
+
+  let wrapHtml;
+  if (pos === 'centre') {
+    wrapHtml = '<div style="text-align:center;margin:.5rem 0"><img src="' + url + '" style="display:inline-block;max-width:100%"/>' + legendHtml + '</div>';
+  } else {
+    // Pas de div englobant en overflow:hidden ici : ca emprisonnerait le flottant et empecherait
+    // le texte suivant de s'ecrire a cote de l'image (a gauche/droite).
+    const floatStyle = pos === 'gauche' ? 'float:left;margin:0 1rem .5rem 0' : 'float:right;margin:0 0 .5rem 1rem';
+    wrapHtml = '<span style="' + floatStyle + ';max-width:45%;display:inline-block"><img src="' + url + '" style="width:100%;display:block"/>' + legendHtml + '</span>';
+  }
 
   document.getElementById('modal-postes').classList.remove('open');
 
@@ -766,6 +779,15 @@ function sanitizeRichStyle(styleStr) {
 function sanitizeRichHtml(html) {
   const tmp = document.createElement('div');
   tmp.innerHTML = html || '';
+
+  // Normaliser <font color="..."> (legacy execCommand sans styleWithCSS) en <span style="color:...">
+  tmp.querySelectorAll('font').forEach(f => {
+    const span = document.createElement('span');
+    const color = f.getAttribute('color');
+    if (color) span.setAttribute('style', 'color:' + color);
+    while (f.firstChild) span.appendChild(f.firstChild);
+    f.replaceWith(span);
+  });
 
   function cleanNode(node) {
     Array.from(node.childNodes).forEach(child => {

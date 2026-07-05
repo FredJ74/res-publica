@@ -16,8 +16,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     return;
   }
 
-  // Argent check
-  if (cost > 0 && state.arg < cost) {
+  // Argent check — ignore pour les ordres finances par le budget d'une institution (pas le portefeuille personnel)
+  const ORDRES_BUDGET_INSTITUTION = ['reception_etat', 'banquet_diplo'];
+  if (cost > 0 && !ORDRES_BUDGET_INSTITUTION.includes(fn) && state.arg < cost) {
     showToast('Fonds insuffisants', `Cette action coute ${cost} ${cur}.`, false);
     return;
   }
