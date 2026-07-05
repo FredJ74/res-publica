@@ -336,7 +336,7 @@ function renderTopicView() {
                 <i class="ti ti-quote"></i>
               </button>
             </div>
-            <div class="forum-post-content">${sanitizeRichHtml(p.content)}</div>
+            <div class="forum-post-content">${(p.blocks && p.blocks.length > 0) ? sanitizeRichHtml(renderBlocks(p.blocks)) : sanitizeRichHtml(p.content)}</div>
           </div>
         </div>`).join('')}
     </div>
