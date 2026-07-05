@@ -380,11 +380,27 @@ function loadCharacter() {
       if (char.name && typeof sbLoadPersonnage === 'function') {
         sbLoadPersonnage(char.name).then(sbState => {
           if (sbState) {
-            // Fusionner les données Supabase (plus récentes)
+            // La position (bâtiment/pièce) locale est toujours écrite immédiatement et de façon fiable
+            // dès qu'on change de pièce (voir enterRoom). La sauvegarde Supabase, elle, est asynchrone :
+            // un rafraîchissement rapide après un déplacement peut arriver avant qu'elle n'ait fini de
+            // se propager. On garde donc toujours la position locale plutôt que celle de Supabase.
+            const positionLocaleBuilding = state.char?.currentBuilding;
+            const positionLocaleRoom = state.char?.currentRoom;
+
+            // Fusionner les données Supabase (plus récentes pour tout le reste : argent, inventaire, etc.)
             Object.assign(state, sbState);
+
+            if (positionLocaleBuilding) {
+              state.currentBuilding = positionLocaleBuilding;
+              if (state.char) state.char.currentBuilding = positionLocaleBuilding;
+            }
+            if (positionLocaleRoom) {
+              state.currentRoom = positionLocaleRoom;
+              if (state.char) state.char.currentRoom = positionLocaleRoom;
+            }
+
             applyCharToState(state.char);
             updateUI();
-            // Re-tenter la restauration de position avec la donnee Supabase (potentiellement plus a jour)
             restaurerPositionApresChargement(state.char);
             console.log('Personnage synchronisé depuis Supabase:', char.name);
           }
