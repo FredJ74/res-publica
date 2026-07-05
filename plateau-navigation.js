@@ -179,7 +179,7 @@ function joursRestantsPeine() {
   return Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
 }
 
-function enterBuilding(buildingId) {
+function enterBuilding(buildingId, skipAutoRoom) {
   const b = BUILDINGS[buildingId];
   if (!b) return;
 
@@ -269,8 +269,9 @@ function enterBuilding(buildingId) {
     </div>`;
   }).join('');
 
-  // Entrer dans la premiere piece
-  if (rooms.length > 0) {
+  // Entrer dans la premiere piece — sauf si on s'apprete a restaurer une position precise juste apres
+  // (sinon cette navigation automatique ecrase la bonne piece dans localStorage avant qu'on ait pu la restaurer)
+  if (!skipAutoRoom && rooms.length > 0) {
     enterRoom(buildingId, rooms[0][0], null);
   }
 
@@ -279,6 +280,7 @@ function enterBuilding(buildingId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  console.log('[DEBUG] enterRoom appele avec:', buildingId, '/', roomId, '(pile:', new Error().stack?.split('\n')[2]?.trim(), ')');
   // Verrou : emprisonnement — reste bloque en cellule, aucun changement de piece
   if (state.estEmprisonne && !(buildingId === 'commissariat' && roomId === 'prison')) {
     showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule. ' + joursRestantsPeine() + ' jour(s) restant(s) avant votre libération.', false);
