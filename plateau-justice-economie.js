@@ -715,7 +715,7 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
   state.currentBuilding = 'commissariat';
   state.currentRoom = 'prison';
   if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
-    enterBuilding('commissariat');
+    enterBuilding('commissariat', true);
     if (typeof enterRoom === 'function') enterRoom('commissariat', 'prison', null);
   }
 }

@@ -416,7 +416,7 @@ function restaurerPositionApresChargement(char) {
   if (!BUILDINGS[char.currentBuilding] || !BUILDINGS[char.currentBuilding].rooms?.[char.currentRoom]) return;
   setTimeout(() => {
     try {
-      enterBuilding(char.currentBuilding);
+      enterBuilding(char.currentBuilding, true);
       enterRoom(char.currentBuilding, char.currentRoom, null);
     } catch(e) { console.warn('Erreur restauration position', e); }
   }, 300);
