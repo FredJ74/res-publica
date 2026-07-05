@@ -477,6 +477,31 @@ function startClock() {
   }, 60000);
 }
 
+// Date/heure reelle formatee, a utiliser partout a la place de "Jour X" (peu parlant pour le joueur)
+function formatDateHeureJeu() {
+  const now = new Date();
+  const frNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  const dateStr = frNow.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const h = String(state.hour ?? frNow.getHours()).padStart(2, '0');
+  const m = String(state.minute ?? frNow.getMinutes()).padStart(2, '0');
+  return `${dateStr} · ${h}h${m}`;
+}
+
+// Affiche "Aujourd'hui" a la place de la date si elle correspond a la date du jour.
+// Les anciens messages au format "Jour X" restent affiches tels quels (retrocompatibilite).
+function formatDateAffichage(dateHeureStr) {
+  if (!dateHeureStr) return '';
+  const sep = ' · ';
+  const idx = dateHeureStr.indexOf(sep);
+  const datePart = idx >= 0 ? dateHeureStr.substring(0, idx) : dateHeureStr;
+  const restePart = idx >= 0 ? dateHeureStr.substring(idx) : '';
+  const now = new Date();
+  const frNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  const todayStr = frNow.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  if (datePart === todayStr) return "Aujourd'hui" + restePart;
+  return dateHeureStr;
+}
+
 function syncRealTime() {
   // Calage sur l'heure reelle francaise
   const now = new Date();

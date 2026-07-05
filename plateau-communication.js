@@ -792,7 +792,7 @@ function doArchivesPolice() {
 // Notification mail simple
 function addMailNotification(from, subject, body) {
   if (!state.mails) state.mails = [];
-  state.mails.push({ from, subject, body, day: state.day, time: formatJourHeure(), read: false });
+  state.mails.push({ from, subject, body, day: state.day, time: formatDateHeureJeu(), read: false });
   addExternalEvent(`Nouveau mail de ${from} : "${subject}"`);
   // Mettre a jour le badge immediatement
   const unread = state.mails.filter(m => !m.read).length;

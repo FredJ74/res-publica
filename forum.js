@@ -90,8 +90,7 @@ function getMyMails() {
 }
 async function sendMail(to, subject, body) {
   const from = state.char?.name || 'Anonyme';
-  const h = String(state.hour || 8).padStart(2,'0');
-  const time = `Jour ${state.day} · ${h}h`;
+  const time = formatDateHeureJeu();
 
   // Supabase
   if (typeof sbSendMail === 'function') {
@@ -284,11 +283,11 @@ function renderTopicList() {
               </div>
               <div class="forum-topic-author">
                 <div>${t.author}</div>
-                <div style="font-size:.68rem;color:var(--text3)">${t.time || ''}</div>
+                <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(t.time)}</div>
               </div>
               <div class="forum-topic-author">
                 <div>${t.lastPostAuthor || t.author}</div>
-                <div style="font-size:.68rem;color:var(--text3)">${t.lastPostTime || t.time || ''}</div>
+                <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(t.lastPostTime || t.time)}</div>
               </div>
               <div class="forum-topic-stat">${t.views}</div>
               <div class="forum-topic-stat">${t.replies}</div>
@@ -321,7 +320,7 @@ function renderTopicView() {
             ${p.authorCountry && COUNTRIES?.[p.authorCountry] ? '<div style="width:100%;height:6px;background:' + COUNTRIES[p.authorCountry].col + ';margin:.3rem 0 .1rem"></div>' : ''}
             <div class="forum-post-author">${p.author}${p.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.7rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
             ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">secrète</span>' : ''}
-            <div class="forum-post-time">${p.time}</div>
+            <div class="forum-post-time">${formatDateAffichage(p.time)}</div>
             ${i === 0 ? `<span class="forum-post-badge">Auteur du sujet</span>` : ''}
           </div>
           <div class="forum-post-main">
@@ -372,6 +371,7 @@ function renderRichEditor(id, initialContent = '') {
         <button class="rich-btn" onclick="richInsertHR()" title="Séparateur">—</button>
         <div class="rich-sep"></div>
         <button class="rich-btn" onmousedown="saveRichSelection()" onclick="richInsertImage()" title="Image"><i class="ti ti-photo"></i></button>
+        <button class="rich-btn" onmousedown="saveRichSelection()" onclick="richInsertPortrait()" title="Portrait d'un personnage"><i class="ti ti-user-circle"></i></button>
         <button class="rich-btn" onclick="toggleStylePanel()" title="Styles narratifs"><i class="ti ti-layout"></i></button>
         <button class="rich-btn" onclick="toggleEmojiPanel()" title="Emojis & Symboles">😊</button>
       </div>
@@ -517,6 +517,51 @@ function confirmerRichInsertImage() {
     _richInsertTargetId = null;
   } else {
     showToast('Erreur', 'Impossible de retrouver le champ de texte. Cliquez dans le message avant d\'insérer une image.', false);
+  }
+}
+
+async function richInsertPortrait() {
+  _richInsertTargetId = window._lastRichEditorId || null;
+  if (typeof rafraichirCachePhotosJoueurs === 'function') await rafraichirCachePhotosJoueurs();
+
+  const cache = window._cachePhotosJoueurs || {};
+  const noms = Object.keys(cache).sort();
+
+  document.getElementById('postes-modal-title').textContent = 'Insérer un portrait';
+  let html = '<div style="padding:1rem">';
+  if (noms.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic">Aucune photo de profil disponible pour le moment.</div>';
+  } else {
+    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">Cliquez sur un personnage pour insérer son portrait.</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;max-height:340px;overflow-y:auto">';
+    noms.forEach(nom => {
+      html += '<div onclick="confirmerRichInsertPortrait(\'' + nom.replace(/'/g,"\\'") + '\')" style="cursor:pointer;text-align:center;padding:.4rem;border:1px solid #2a2010" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'#2a2010\'">';
+      html += '<img src="' + cache[nom] + '" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:1px solid #2a2010;margin-bottom:.3rem"/>';
+      html += '<div style="font-size:.68rem;color:#c0b090;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + nom + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="width:100%;margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Annuler</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerRichInsertPortrait(nom) {
+  const cache = window._cachePhotosJoueurs || {};
+  const url = cache[nom];
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!url) return;
+
+  const wrapHtml = '<img src="' + url + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:1px solid #C9A84C;vertical-align:middle;margin:0 .4rem .2rem 0" title="' + nom + '"/>';
+  const target = _richInsertTargetId ? document.getElementById(_richInsertTargetId) : null;
+  if (target) {
+    target.insertAdjacentHTML('beforeend', wrapHtml);
+    target.focus();
+    _richInsertTargetId = null;
+  } else {
+    showToast('Erreur', 'Impossible de retrouver le champ de texte. Cliquez dans le message avant d\'insérer un portrait.', false);
   }
 }
 
@@ -709,7 +754,8 @@ const RICH_ALLOWED_TAGS = new Set(['P','BR','B','I','U','STRONG','EM','H2','H3',
 const RICH_ALLOWED_STYLE_PROPS = new Set([
   'color','background-color','text-align','font-style','font-weight','text-decoration','float',
   'margin','margin-left','margin-right','margin-top','margin-bottom','max-width','max-height',
-  'width','display','border-left','border','border-top','padding','grid-template-columns','gap',
+  'width','height','display','border-left','border','border-top','border-radius','object-fit',
+  'vertical-align','padding','grid-template-columns','gap',
   'text-transform','letter-spacing','font-size','line-height','overflow'
 ]);
 
@@ -762,10 +808,17 @@ function sanitizeRichHtml(html) {
 }
 
 function parseGameTime(str) {
-  // Format attendu : "Jour X · HHhMM" -> valeur numerique triable
-  const m = /Jour\s*(\d+)\s*·\s*(\d{1,2})h(\d{2})?/.exec(str || '');
-  if (!m) return 0;
-  return parseInt(m[1]||0) * 1440 + parseInt(m[2]||0) * 60 + parseInt(m[3]||0);
+  if (!str) return 0;
+  // Nouveau format : "DD/MM/YYYY · HHhMM"
+  const mDate = /(\d{2})\/(\d{2})\/(\d{4})\s*·\s*(\d{1,2})h(\d{2})?/.exec(str);
+  if (mDate) {
+    const [, dd, mm, yyyy, hh, mn] = mDate;
+    return new Date(parseInt(yyyy), parseInt(mm)-1, parseInt(dd), parseInt(hh), parseInt(mn||0)).getTime();
+  }
+  // Ancien format "Jour X · HHhMM" — retrocompatibilite avec les messages deja postes
+  const mJour = /Jour\s*(\d+)\s*·\s*(\d{1,2})h(\d{2})?/.exec(str);
+  if (mJour) return parseInt(mJour[1]||0) * 1440 + parseInt(mJour[2]||0) * 60 + parseInt(mJour[3]||0);
+  return 0;
 }
 
 async function submitNewTopic() {
@@ -782,9 +835,7 @@ async function submitNewTopic() {
   const authorIsOrg = !!orga;
   const authorSecret = orga ? !orga.visible : false;
 
-  const h = String(state.hour||8).padStart(2,'0');
-  const m = String(state.minute||0).padStart(2,'0');
-  const time = `Jour ${state.day} · ${h}h${m}`;
+  const time = formatDateHeureJeu();
 
   // Supabase
   let topicId;
@@ -822,9 +873,7 @@ async function submitReply() {
   const authorIsOrg = !!orga;
   const authorSecret = orga ? !orga.visible : false;
 
-  const h = String(state.hour||8).padStart(2,'0');
-  const m = String(state.minute||0).padStart(2,'0');
-  const time = `Jour ${state.day} · ${h}h${m}`;
+  const time = formatDateHeureJeu();
   const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === currentTopicId);
   if (!topic) return;
 
@@ -882,7 +931,7 @@ function renderMailInbox() {
               <div style="font-size:.82rem;color:${m.read?'#8a8060':'#f0ead6'};font-weight:${m.read?'normal':'bold'}">
                 ${!m.read?'🔵 ':''}${m.subject}
               </div>
-              <div style="font-size:.68rem;color:#4a4030">${m.time}</div>
+              <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
             <div style="font-size:.72rem;color:#6a5a30">De : ${m.from}</div>
           </div>`).join('')}
@@ -897,7 +946,7 @@ function renderMailInbox() {
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer">
             <div style="display:flex;justify-content:space-between">
               <div style="font-size:.82rem;color:#8a8060">${m.subject}</div>
-              <div style="font-size:.68rem;color:#4a4030">${m.time}</div>
+              <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
             <div style="font-size:.72rem;color:#6a5a30">À : ${m.to}</div>
           </div>`).join('')}
@@ -911,7 +960,7 @@ function renderMailInbox() {
         <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;opacity:.75">
           <div style="display:flex;justify-content:space-between">
             <div style="font-size:.82rem;color:#8a8060">${m.subject}</div>
-            <div style="font-size:.68rem;color:#4a4030">${m.time}</div>
+            <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
           </div>
           <div style="font-size:.72rem;color:#6a5a30">${m.from === myName ? 'À : ' + m.to : 'De : ' + m.from}</div>
         </div>`).join('')}
@@ -1022,7 +1071,7 @@ function renderMailRead() {
         <div>
           De : <strong style="color:#c0b090">${mail.from}</strong> 
           → À : <strong style="color:#c0b090">${mail.to}</strong>
-          · ${mail.time}
+          · ${formatDateAffichage(mail.time)}
         </div>
       </div>
       <div style="font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.8;color:#f0ead6">${mail.body}</div>
@@ -1045,7 +1094,7 @@ function renderMailRead() {
           <i class="ti ti-trash"></i> Supprimer
         </button>
       </div>
-      ${!mail.archived ? '<div style="margin-top:.5rem;font-size:.65rem;color:#5a5040;font-style:italic">Ce message sera supprime automatiquement 14 jours apres reception, sauf archivage.</div>' : ''}
+      ${!mail.archived ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">Ce message sera supprimé automatiquement 14 jours après réception, sauf archivage.</div>' : ''}
     </div>
   `;
 }
