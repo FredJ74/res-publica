@@ -593,6 +593,8 @@ function updateUI() {
   if (state.char?.name) {
     state.char.poste       = state.poste || null;
     state.char.currentCity = state.currentCity || 'capitale';
+    state.char.currentBuilding = state.currentBuilding || null;
+    state.char.currentRoom     = state.currentRoom || null;
     state.char.arg         = state.arg || 0;
     state.char.resources   = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
     state.char.hp          = state.hp || 100;

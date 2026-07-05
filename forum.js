@@ -260,18 +260,20 @@ function renderTopicList() {
   const topics = [...(FORUM_TOPICS[currentForumId] || [])].sort((a, b) =>
     parseGameTime(b.lastPostTime || b.time) - parseGameTime(a.lastPostTime || a.time)
   );
+  const peutCreerSujet = currentForumId !== 'presidence' || state.poste?.id === 'president';
   return `
     <div class="forum-header-bar">
       <div>
         <div class="forum-title-main"><i class="ti ${f.icon}"></i> ${f.name}</div>
         <div class="forum-subtitle">${f.desc}</div>
       </div>
+      ${peutCreerSujet ? `
       <button class="forum-new-btn" onclick="showNewTopicForm()">
         <i class="ti ti-pencil-plus"></i> Nouveau sujet
-      </button>
+      </button>` : ''}
     </div>
     ${topics.length === 0
-      ? `<div class="forum-empty">Aucun sujet. Soyez le premier à en créer un !</div>`
+      ? `<div class="forum-empty">Aucun sujet. ${peutCreerSujet ? 'Soyez le premier à en créer un !' : "Seul le Président peut s'exprimer ici."}</div>`
       : `<div class="forum-topics-list">
           <div class="forum-topics-header">
             <span>Sujet</span><span>Auteur</span><span>Dernier post</span><span>Vues</span><span>Rép.</span>
@@ -725,7 +727,13 @@ function quotePost(postIndex) {
   }, 100);
 }
 
-function showNewTopicForm() { forumView = 'new-topic'; document.getElementById('forum-main').innerHTML = renderForumContent(); }
+function showNewTopicForm() {
+  if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
+    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', false);
+    return;
+  }
+  forumView = 'new-topic'; document.getElementById('forum-main').innerHTML = renderForumContent();
+}
 function showReplyForm()    { forumView = 'reply';     document.getElementById('forum-main').innerHTML = renderForumContent(); }
 function backToList()       { forumView = 'list'; currentTopicId = null; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 function backToTopic()      { forumView = 'topic'; document.getElementById('forum-main').innerHTML = renderForumContent(); }
@@ -823,6 +831,10 @@ function parseGameTime(str) {
 }
 
 async function submitNewTopic() {
+  if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
+    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false);
+    return;
+  }
   const titleEl = document.getElementById('new-topic-title');
   const contentEl = document.getElementById('new-topic-content');
   const title = titleEl?.value?.trim();
