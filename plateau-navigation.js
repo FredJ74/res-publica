@@ -280,7 +280,6 @@ function enterBuilding(buildingId, skipAutoRoom) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
-  console.log('[DEBUG] enterRoom appele avec:', buildingId, '/', roomId, '(pile:', new Error().stack?.split('\n')[2]?.trim(), ')');
   // Verrou : emprisonnement — reste bloque en cellule, aucun changement de piece
   if (state.estEmprisonne && !(buildingId === 'commissariat' && roomId === 'prison')) {
     showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule. ' + joursRestantsPeine() + ' jour(s) restant(s) avant votre libération.', false);

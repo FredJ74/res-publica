@@ -280,8 +280,8 @@ window.addEventListener('DOMContentLoaded', () => {
       state.char.currentCity = state.currentCity || 'capitale';
       state.char.arg = state.arg || 0;
       state.char.resources = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
-      state.char.currentBuilding = state.currentBuilding || null;
-      state.char.currentRoom = state.currentRoom || null;
+      state.char.currentBuilding = state.currentBuilding || state.char.currentBuilding || null;
+      state.char.currentRoom = state.currentRoom || state.char.currentRoom || null;
     }
     localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
     localStorage.setItem('respublica_char', JSON.stringify(state.char));
@@ -374,21 +374,18 @@ function loadCharacter() {
       const char = JSON.parse(saved);
       applyCharToState(char);
       console.log('Personnage charge (local):', char.name, '| Pays:', state.country);
-      console.log('[DEBUG] Position au chargement local:', char.currentBuilding, '/', char.currentRoom);
       // Restaurer la position exacte (piece) ou la personne se trouvait avant le rafraichissement
       restaurerPositionApresChargement(char);
       // Synchroniser depuis Supabase en arrière-plan
       if (char.name && typeof sbLoadPersonnage === 'function') {
         sbLoadPersonnage(char.name).then(sbState => {
           if (sbState) {
-            console.log('[DEBUG] Position renvoyee par Supabase:', sbState.currentBuilding, '/', sbState.currentRoom);
             // La position (bâtiment/pièce) locale est toujours écrite immédiatement et de façon fiable
             // dès qu'on change de pièce (voir enterRoom). La sauvegarde Supabase, elle, est asynchrone :
             // un rafraîchissement rapide après un déplacement peut arriver avant qu'elle n'ait fini de
             // se propager. On garde donc toujours la position locale plutôt que celle de Supabase.
             const positionLocaleBuilding = state.char?.currentBuilding;
             const positionLocaleRoom = state.char?.currentRoom;
-            console.log('[DEBUG] Position locale juste avant fusion Supabase:', positionLocaleBuilding, '/', positionLocaleRoom);
 
             // Fusionner les données Supabase (plus récentes pour tout le reste : argent, inventaire, etc.)
             Object.assign(state, sbState);
@@ -401,7 +398,6 @@ function loadCharacter() {
               state.currentRoom = positionLocaleRoom;
               if (state.char) state.char.currentRoom = positionLocaleRoom;
             }
-            console.log('[DEBUG] Position apres correction post-fusion:', state.char?.currentBuilding, '/', state.char?.currentRoom);
 
             applyCharToState(state.char);
             updateUI();
@@ -418,13 +414,10 @@ function loadCharacter() {
 function restaurerPositionApresChargement(char) {
   if (!char.currentBuilding || !char.currentRoom) return;
   if (!BUILDINGS[char.currentBuilding] || !BUILDINGS[char.currentBuilding].rooms?.[char.currentRoom]) return;
-  console.log('[DEBUG] Restauration programmee vers:', char.currentBuilding, '/', char.currentRoom);
   setTimeout(() => {
     try {
-      console.log('[DEBUG] Restauration EXECUTEE vers:', char.currentBuilding, '/', char.currentRoom);
       enterBuilding(char.currentBuilding, true);
       enterRoom(char.currentBuilding, char.currentRoom, null);
-      console.log('[DEBUG] Apres restauration, localStorage =', JSON.parse(localStorage.getItem('respublica_char'))?.currentBuilding, '/', JSON.parse(localStorage.getItem('respublica_char'))?.currentRoom);
     } catch(e) { console.warn('Erreur restauration position', e); }
   }, 300);
 }
@@ -616,8 +609,8 @@ function updateUI() {
   if (state.char?.name) {
     state.char.poste       = state.poste || null;
     state.char.currentCity = state.currentCity || 'capitale';
-    state.char.currentBuilding = state.currentBuilding || null;
-    state.char.currentRoom     = state.currentRoom || null;
+    state.char.currentBuilding = state.currentBuilding || state.char.currentBuilding || null;
+    state.char.currentRoom     = state.currentRoom || state.char.currentRoom || null;
     state.char.arg         = state.arg || 0;
     state.char.resources   = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
     state.char.hp          = state.hp || 100;
