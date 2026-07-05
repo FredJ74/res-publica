@@ -545,7 +545,6 @@ function saveRichSelection() {
 
 function richInsertImage() {
   // saveRichSelection() (onmousedown, juste avant ce clic) a deja capture la bonne cible de facon fiable.
-  // On ne s'en remet a window._lastRichEditorId que si, pour une raison quelconque, rien n'a ete capture.
   if (!_richInsertTargetId) _richInsertTargetId = window._lastRichEditorId || null;
 
   // Poser un marqueur a la position exacte du curseur, tant que la selection est encore valide —
@@ -568,57 +567,24 @@ function richInsertImage() {
 
   document.getElementById('postes-modal-title').textContent = 'Insérer une image';
   let html = '<div style="padding:1rem">';
-  html += '<div style="margin-bottom:.6rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.2rem">URL de l\'image</label>';
-  html += '<input id="richimg-url" type="text" autocomplete="off" placeholder="https://..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none"/></div>';
-  html += '<div style="margin-bottom:.6rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Position</label>';
-  html += '<div style="display:flex;gap:.4rem">';
-  ['gauche','centre','droite'].forEach((pos, i) => {
-    html += '<button type="button" class="richimg-pos-btn" data-pos="' + pos + '" data-selected="' + (i===1?'1':'0') + '" onclick="document.querySelectorAll(\'.richimg-pos-btn\').forEach(b=>{b.dataset.selected=\'0\';b.style.borderColor=\'#2a2010\'});this.dataset.selected=\'1\';this.style.borderColor=\'#C9A84C\'" style="flex:1;padding:.4rem;border:1px solid ' + (i===1?'#C9A84C':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em">' + pos.charAt(0).toUpperCase()+pos.slice(1) + '</button>';
-  });
-  html += '</div></div>';
-  html += '<div style="margin-bottom:.8rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.2rem">Légende (optionnel)</label>';
-  html += '<input id="richimg-legend" type="text" autocomplete="off" placeholder="Légende de l\'image" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none"/></div>';
-  html += '<div id="richimg-preview" style="margin-bottom:.8rem"></div>';
-  html += '<input id="richimg-url-preview-trigger" type="hidden"/>';
-  html += '<div style="display:flex;gap:.5rem">';
-  html += '<button onclick="confirmerRichInsertImage()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Insérer</button>';
-  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');document.querySelectorAll(\'#_richimg_marker\').forEach(m=>m.remove())" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Annuler</button>';
-  html += '</div></div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Adresse de l\'image</label>';
+  html += '<input id="richimg-url" type="text" autocomplete="off" placeholder="https://..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.55rem;font-family:Crimson Pro,serif;font-size:.9rem;outline:none;box-sizing:border-box;margin-bottom:.8rem" onkeydown="if(event.key===\'Enter\'){event.preventDefault();confirmerRichInsertImage();}"/>';
+  html += '<button onclick="confirmerRichInsertImage()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Insérer</button>';
+  html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
-
-  // Aperçu live de l'image en tapant l'URL
-  const urlInput = document.getElementById('richimg-url');
-  urlInput?.addEventListener('input', () => {
-    const preview = document.getElementById('richimg-preview');
-    if (urlInput.value.trim()) {
-      preview.innerHTML = '<img src="' + urlInput.value.trim() + '" style="max-width:100%;max-height:160px;display:block;margin:0 auto;border:1px solid #2a2010" onerror="this.style.display=\'none\'"/>';
-    } else {
-      preview.innerHTML = '';
-    }
-  });
+  setTimeout(() => document.getElementById('richimg-url')?.focus(), 50);
 }
 
 function confirmerRichInsertImage() {
   const url = document.getElementById('richimg-url')?.value?.trim();
   if (!url) { showToast('URL manquante', 'Indiquez une adresse d\'image.', false); return; }
-  const posBtn = document.querySelector('.richimg-pos-btn[data-selected="1"]');
-  const pos = posBtn?.dataset?.pos || 'centre';
-  const legend = document.getElementById('richimg-legend')?.value?.trim() || '';
-
-  const legendHtml = legend ? '<span style="display:block;text-align:center;font-size:.75rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + legend + '</span>' : '';
-
-  let wrapHtml;
-  if (pos === 'centre') {
-    wrapHtml = '<div style="text-align:center;margin:.5rem 0"><img src="' + url + '" style="display:inline-block;max-width:100%"/>' + legendHtml + '</div>';
-  } else {
-    // Pas de div englobant en overflow:hidden ici : ca emprisonnerait le flottant et empecherait
-    // le texte suivant de s'ecrire a cote de l'image (a gauche/droite).
-    const floatStyle = pos === 'gauche' ? 'float:left;margin:0 1rem .5rem 0' : 'float:right;margin:0 0 .5rem 1rem';
-    wrapHtml = '<span style="' + floatStyle + ';max-width:45%;display:inline-block"><img src="' + url + '" style="width:100%;display:block"/>' + legendHtml + '</span>';
-  }
-
   document.getElementById('modal-postes').classList.remove('open');
+
+  // Insertion immediate, centree par defaut. L'alignement/legende s'ajustent ensuite
+  // en cliquant directement sur l'image une fois inseree — pas de choix a faire avant de voir le resultat.
+  const imgId = 'img-' + Date.now();
+  const wrapHtml = '<span id="' + imgId + '" data-align="centre" contenteditable="false" style="display:block;text-align:center;margin:.6rem 0;cursor:pointer" onclick="ajusterImageInseree(\'' + imgId + '\')" title="Cliquer pour ajuster"><img src="' + url + '" style="max-width:100%;display:inline-block"/></span>';
 
   const target = _richInsertTargetId ? document.getElementById(_richInsertTargetId) : null;
   if (target) {
@@ -635,6 +601,70 @@ function confirmerRichInsertImage() {
   } else {
     showToast('Erreur', 'Impossible de retrouver le champ de texte. Cliquez dans le message avant d\'insérer une image.', false);
   }
+}
+
+function ajusterImageInseree(imgId) {
+  const wrap = document.getElementById(imgId);
+  if (!wrap) return;
+  const legendEl = wrap.querySelector('.img-legend');
+  const align = wrap.dataset.align || 'centre';
+
+  document.getElementById('postes-modal-title').textContent = 'Ajuster l\'image';
+  let html = '<div style="padding:1rem">';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Position</label>';
+  html += '<div style="display:flex;gap:.4rem;margin-bottom:.8rem">';
+  ['gauche','centre','droite'].forEach(pos => {
+    const active = align === pos;
+    html += '<button type="button" onclick="appliquerAlignementImage(\'' + imgId + '\',\'' + pos + '\')" style="flex:1;padding:.4rem;border:1px solid ' + (active?'#C9A84C':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em">' + pos.charAt(0).toUpperCase()+pos.slice(1) + '</button>';
+  });
+  html += '</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Légende (optionnel)</label>';
+  html += '<input id="richimg-legend-edit" type="text" autocomplete="off" value="' + (legendEl?.textContent||'').replace(/"/g,'&quot;') + '" placeholder="Légende de l\'image" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.45rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<button onclick="appliquerLegendeImage(\'' + imgId + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider</button>';
+  html += '<button onclick="supprimerImageInseree(\'' + imgId + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc6a44;cursor:pointer">Supprimer l\'image</button>';
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function appliquerAlignementImage(imgId, pos) {
+  const wrap = document.getElementById(imgId);
+  if (!wrap) return;
+  wrap.dataset.align = pos;
+  if (pos === 'centre') {
+    wrap.style.cssText = 'display:block;text-align:center;margin:.6rem 0;cursor:pointer';
+  } else if (pos === 'gauche') {
+    wrap.style.cssText = 'float:left;margin:0 1rem .5rem 0;max-width:45%;display:inline-block;cursor:pointer';
+  } else {
+    wrap.style.cssText = 'float:right;margin:0 0 .5rem 1rem;max-width:45%;display:inline-block;cursor:pointer';
+  }
+  ajusterImageInseree(imgId); // rafraichir le panneau pour montrer la nouvelle selection
+}
+
+function appliquerLegendeImage(imgId) {
+  const wrap = document.getElementById(imgId);
+  if (!wrap) return;
+  const legendText = document.getElementById('richimg-legend-edit')?.value?.trim() || '';
+  let legendEl = wrap.querySelector('.img-legend');
+  if (legendText) {
+    if (!legendEl) {
+      legendEl = document.createElement('span');
+      legendEl.className = 'img-legend';
+      legendEl.style.cssText = 'display:block;text-align:center;font-size:.75rem;color:#8a8060;font-style:italic;margin-top:.2rem';
+      wrap.appendChild(legendEl);
+    }
+    legendEl.textContent = legendText;
+  } else if (legendEl) {
+    legendEl.remove();
+  }
+  document.getElementById('modal-postes').classList.remove('open');
+}
+
+function supprimerImageInseree(imgId) {
+  const wrap = document.getElementById(imgId);
+  if (wrap) wrap.remove();
+  document.getElementById('modal-postes').classList.remove('open');
 }
 
 function richInsertStyle(styleName) {
@@ -901,19 +931,20 @@ function htmlToBlocks(html) {
     } else if (tag === 'IMG') {
       flushParagraph();
       blocks.push({ type: 'image', url: node.getAttribute('src') || '', align: 'centre', legend: '' });
-    } else if (tag === 'SPAN' && node.style.float) {
-      // Image flottante gauche/droite (avec legende eventuelle) — voir confirmerRichInsertImage
+    } else if (tag === 'SPAN' && node.querySelector('img')) {
+      // Image inseree via le nouveau systeme (span avec data-align, cliquable pour ajuster —
+      // voir confirmerRichInsertImage/appliquerAlignementImage)
       flushParagraph();
       const img = node.querySelector('img');
-      const legendEl = node.querySelector('span');
+      const legendEl = node.querySelector('.img-legend');
       blocks.push({
         type: 'image',
         url: img?.getAttribute('src') || '',
-        align: node.style.float === 'left' ? 'gauche' : 'droite',
+        align: node.dataset?.align || (node.style.float === 'left' ? 'gauche' : node.style.float === 'right' ? 'droite' : 'centre'),
         legend: legendEl ? legendEl.textContent.trim() : ''
       });
     } else if (tag === 'DIV' && node.querySelector('img')) {
-      // Image centree (bloc dedie)
+      // Image centree (ancien format, ou bloc dedie)
       flushParagraph();
       const img = node.querySelector('img');
       const legendEl = node.querySelector('span');
