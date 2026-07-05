@@ -167,9 +167,9 @@ async function sbCreateTopic(forumId, title, author, country, time, authorIsOrg,
   return id;
 }
 
-async function sbCreatePost(topicId, author, content, time, authorIsOrg, authorSecret) {
+async function sbCreatePost(topicId, author, content, time, authorIsOrg, authorSecret, blocks) {
   const id = 'post-' + Date.now();
-  await sbInsert('forum_posts', { id, topic_id: topicId, author, content, time, author_is_org: !!authorIsOrg, author_secret: !!authorSecret });
+  await sbInsert('forum_posts', { id, topic_id: topicId, author, content, time, author_is_org: !!authorIsOrg, author_secret: !!authorSecret, content_blocks: blocks || [] });
   // Mettre à jour le compteur de réponses + le dernier post (pour le tri par activité)
   const posts = await sbLoadForumPosts(topicId);
   const count = (posts?.length || 1) - 1;

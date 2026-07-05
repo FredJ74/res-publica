@@ -752,6 +752,7 @@ function submitEditPost() {
   const post = topic.posts.find(p => (p.id||'') === editingPostId) || topic.posts[parseInt(editingPostId)];
   if (post) {
     post.content = content;
+    post.blocks = htmlToBlocks(content);
     post.edited = true;
   }
   forumView = 'topic';
@@ -824,6 +825,104 @@ function sanitizeRichStyle(styleStr) {
     if (val.includes('expression(') || val.includes('javascript:') || val.includes('url(')) return false;
     return true;
   }).join(';');
+}
+
+// =====================
+// SYSTEME DE BLOCS (fondations)
+// Un post devient une liste de blocs typés : paragraph, image, quote, separator.
+// Pour l'instant, on continue d'afficher via le HTML existant (content) ; les blocs
+// (content_blocks) sont calcules et sauvegardes en parallele pour preparer la suite
+// (edition/reorganisation par blocs), sans rien casser de ce qui fonctionne deja.
+// =====================
+
+function htmlToBlocks(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html || '';
+  const blocks = [];
+  let currentParagraphHtml = '';
+
+  function flushParagraph() {
+    const trimmed = currentParagraphHtml.trim();
+    if (trimmed) blocks.push({ type: 'paragraph', html: trimmed });
+    currentParagraphHtml = '';
+  }
+
+  Array.from(tmp.childNodes).forEach(node => {
+    if (node.nodeType === 3) { // texte brut directement au premier niveau
+      currentParagraphHtml += node.textContent;
+      return;
+    }
+    if (node.nodeType !== 1) return;
+    const tag = node.tagName;
+
+    if (tag === 'HR') {
+      flushParagraph();
+      blocks.push({ type: 'separator' });
+    } else if (tag === 'BLOCKQUOTE') {
+      flushParagraph();
+      blocks.push({ type: 'quote', html: node.innerHTML.trim() });
+    } else if (tag === 'IMG') {
+      flushParagraph();
+      blocks.push({ type: 'image', url: node.getAttribute('src') || '', align: 'centre', legend: '' });
+    } else if (tag === 'SPAN' && node.style.float) {
+      // Image flottante gauche/droite (avec legende eventuelle) — voir confirmerRichInsertImage
+      flushParagraph();
+      const img = node.querySelector('img');
+      const legendEl = node.querySelector('span');
+      blocks.push({
+        type: 'image',
+        url: img?.getAttribute('src') || '',
+        align: node.style.float === 'left' ? 'gauche' : 'droite',
+        legend: legendEl ? legendEl.textContent.trim() : ''
+      });
+    } else if (tag === 'DIV' && node.querySelector('img')) {
+      // Image centree (bloc dedie)
+      flushParagraph();
+      const img = node.querySelector('img');
+      const legendEl = node.querySelector('span');
+      blocks.push({
+        type: 'image',
+        url: img?.getAttribute('src') || '',
+        align: 'centre',
+        legend: legendEl ? legendEl.textContent.trim() : ''
+      });
+    } else if (tag === 'P' || tag === 'DIV') {
+      // Bloc paragraphe (cree via double Entree, ou paragraphe deja existant)
+      flushParagraph();
+      const inner = node.innerHTML.trim();
+      if (inner && inner !== '<br>') blocks.push({ type: 'paragraph', html: inner });
+    } else {
+      // Elements en ligne (b, i, span de couleur, etc.) restent dans le paragraphe en cours
+      currentParagraphHtml += node.outerHTML;
+    }
+  });
+  flushParagraph();
+
+  return blocks;
+}
+
+function renderBlocks(blocks) {
+  if (!Array.isArray(blocks) || blocks.length === 0) return '';
+  return blocks.map(b => {
+    if (b.type === 'paragraph') {
+      return '<p style="margin:0 0 .8em;clear:both">' + b.html + '</p>';
+    }
+    if (b.type === 'quote') {
+      return '<blockquote style="border-left:3px solid #C9A84C;padding:.5rem 1rem;margin:.5rem 0;color:#c0b090;font-style:italic;clear:both">' + b.html + '</blockquote>';
+    }
+    if (b.type === 'separator') {
+      return '<hr style="border:none;border-top:1px solid #3a2a10;margin:1rem 0;clear:both"/>';
+    }
+    if (b.type === 'image') {
+      const legendHtml = b.legend ? '<span style="display:block;text-align:center;font-size:.75rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + b.legend + '</span>' : '';
+      if (b.align === 'centre') {
+        return '<div style="text-align:center;margin:.5rem 0;clear:both"><img src="' + b.url + '" style="display:inline-block;max-width:100%"/>' + legendHtml + '</div>';
+      }
+      const floatStyle = b.align === 'gauche' ? 'float:left;margin:0 1rem .5rem 0' : 'float:right;margin:0 0 .5rem 1rem';
+      return '<span style="' + floatStyle + ';max-width:45%;display:inline-block"><img src="' + b.url + '" style="width:100%;display:block"/>' + legendHtml + '</span>';
+    }
+    return '';
+  }).join('');
 }
 
 function sanitizeRichHtml(html) {
@@ -905,12 +1004,13 @@ async function submitNewTopic() {
   const authorSecret = orga ? !orga.visible : false;
 
   const time = formatDateHeureJeu();
+  const blocks = htmlToBlocks(content);
 
   // Supabase
   let topicId;
   if (typeof sbCreateTopic === 'function') {
     topicId = await sbCreateTopic(currentForumId, title, authorName, state.country, time, authorIsOrg, authorSecret);
-    if (topicId) await sbCreatePost(topicId, authorName, content, time, authorIsOrg, authorSecret);
+    if (topicId) await sbCreatePost(topicId, authorName, content, time, authorIsOrg, authorSecret, blocks);
   }
 
   // Local aussi pour affichage immédiat
@@ -919,7 +1019,7 @@ async function submitNewTopic() {
     authorCountry: state.country, authorIsOrg, authorSecret,
     time, views: 1, replies: 0,
     lastPostAuthor: authorName, lastPostTime: time,
-    posts: [{ id:'p-'+Date.now(), author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, time, content }]
+    posts: [{ id:'p-'+Date.now(), author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, time, content, blocks }]
   };
   if (!FORUM_TOPICS[currentForumId]) FORUM_TOPICS[currentForumId] = [];
   FORUM_TOPICS[currentForumId].unshift(newTopic);
@@ -943,16 +1043,17 @@ async function submitReply() {
   const authorSecret = orga ? !orga.visible : false;
 
   const time = formatDateHeureJeu();
+  const blocks = htmlToBlocks(content);
   const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === currentTopicId);
   if (!topic) return;
 
   // Supabase
   if (typeof sbCreatePost === 'function') {
-    await sbCreatePost(topic.id, authorName, content, time, authorIsOrg, authorSecret);
+    await sbCreatePost(topic.id, authorName, content, time, authorIsOrg, authorSecret, blocks);
   }
 
   // Local
-  topic.posts.push({ id:'p-'+Date.now(), author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, time, content });
+  topic.posts.push({ id:'p-'+Date.now(), author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, time, content, blocks });
   topic.replies = topic.posts.length - 1;
   topic.lastPostAuthor = authorName;
   topic.lastPostTime = time;
@@ -1081,7 +1182,7 @@ async function loadForumPostsFromSB(topicId) {
     // Remplacer les posts locaux par ceux de Supabase
     topic.posts = rows.map(r => ({
       id: r.id, author: r.author, content: r.content,
-      time: r.time, edited: r.edited,
+      time: r.time, edited: r.edited, blocks: r.content_blocks || null,
       authorCountry: topic.authorCountry || topic.country, authorIsOrg: r.author_is_org, authorSecret: r.author_secret
     }));
     topic.replies = Math.max(0, topic.posts.length - 1);
