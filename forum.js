@@ -401,7 +401,7 @@ function renderRichEditor(id, initialContent = '') {
         </div>
       </div>
 
-      <div class="rich-content" id="${id}" contenteditable="true" onfocus="window._lastRichEditorId=this.id"
+      <div class="rich-content" id="${id}" contenteditable="true" onfocus="window._lastRichEditorId=this.id" onkeydown="handleRichEditorEnter(event)"
         style="min-height:150px;padding:.8rem;outline:none;font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.7;color:#f0ead6"
         placeholder="Écrivez votre message...">${initialContent}</div>
     </div>
@@ -478,6 +478,56 @@ let _richSavedRange = null;
 
 // Appele au mousedown du bouton Image (avant que le clic ne fasse perdre le focus au champ de texte),
 // pour memoriser EXACTEMENT ou etait le curseur, pas juste dans quel champ.
+// Entree simple = saut de ligne dans le meme bloc (utile pour rester a cote d'une image flottante).
+// Entree deux fois de suite (ligne vide) = nouveau bloc, qui repart toujours en pleine largeur
+// meme s'il restait de la place a cote d'une image flottante precedente.
+let _lastBreakNode = null;
+
+function handleRichEditorEnter(e) {
+  if (e.key !== 'Enter') { _lastBreakNode = null; return; }
+  e.preventDefault();
+
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+
+  if (_lastBreakNode && _lastBreakNode.isConnected) {
+    // Deuxieme Entree consecutive : transformer en nouveau bloc plein largeur
+    const editorEl = e.target;
+    const newP = document.createElement('p');
+    newP.style.clear = 'both';
+    newP.style.margin = '0 0 .8em';
+    newP.appendChild(document.createElement('br'));
+
+    const parentBlock = _lastBreakNode.parentNode === editorEl ? editorEl : (_lastBreakNode.closest('p, div') || editorEl);
+    _lastBreakNode.remove();
+
+    if (parentBlock !== editorEl && parentBlock.parentNode) {
+      parentBlock.parentNode.insertBefore(newP, parentBlock.nextSibling);
+    } else {
+      editorEl.appendChild(newP);
+    }
+
+    const newRange = document.createRange();
+    newRange.setStart(newP, 0);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+
+    _lastBreakNode = null;
+  } else {
+    // Premiere Entree : simple saut de ligne, on reste dans le meme bloc
+    const br = document.createElement('br');
+    range.deleteContents();
+    range.insertNode(br);
+    range.setStartAfter(br);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    _lastBreakNode = br;
+  }
+}
+
 function saveRichSelection() {
   _richInsertTargetId = null;
   _richSavedRange = null;
@@ -758,7 +808,7 @@ function openTopic(topicId) {
 // =====================
 const RICH_ALLOWED_TAGS = new Set(['P','BR','B','I','U','STRONG','EM','H2','H3','BLOCKQUOTE','DIV','SPAN','IMG','HR','UL','OL','LI','A']);
 const RICH_ALLOWED_STYLE_PROPS = new Set([
-  'color','background-color','text-align','font-style','font-weight','text-decoration','float',
+  'color','background-color','text-align','font-style','font-weight','text-decoration','float','clear',
   'margin','margin-left','margin-right','margin-top','margin-bottom','max-width','max-height',
   'width','height','display','border-left','border','border-top','border-radius','object-fit',
   'vertical-align','padding','grid-template-columns','gap',
