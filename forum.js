@@ -319,7 +319,7 @@ function renderTopicView() {
       ${topic.posts.map((p, i) => `
         <div class="forum-post">
           <div class="forum-post-side">
-            <div class="forum-post-avatar">${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(p.author, 40) : '<i class="ti ti-user" style="font-size:1.2rem;color:#C9A84C"></i>'}</div>
+            <div class="forum-post-avatar" ${!p.authorIsOrg ? `style="cursor:pointer" onclick="ouvrirFichePublique('${(p.author||'').replace(/'/g,"\\'")}')"` : ''}>${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(p.author, 40) : '<i class="ti ti-user" style="font-size:1.2rem;color:#C9A84C"></i>'}</div>
             ${p.authorCountry && COUNTRIES?.[p.authorCountry] ? '<div style="width:100%;height:6px;background:' + COUNTRIES[p.authorCountry].col + ';margin:.3rem 0 .1rem"></div>' : ''}
             <div class="forum-post-author">${p.author}${p.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.7rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
             ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">secrète</span>' : ''}
@@ -374,7 +374,6 @@ function renderRichEditor(id, initialContent = '') {
         <button class="rich-btn" onclick="richInsertHR()" title="Séparateur">—</button>
         <div class="rich-sep"></div>
         <button class="rich-btn" onmousedown="saveRichSelection()" onclick="richInsertImage()" title="Image"><i class="ti ti-photo"></i></button>
-        <button class="rich-btn" onmousedown="saveRichSelection()" onclick="richInsertPortrait()" title="Portrait d'un personnage"><i class="ti ti-user-circle"></i></button>
         <button class="rich-btn" onclick="toggleStylePanel()" title="Styles narratifs"><i class="ti ti-layout"></i></button>
         <button class="rich-btn" onclick="toggleEmojiPanel()" title="Emojis & Symboles">😊</button>
       </div>
@@ -435,6 +434,34 @@ function richColor() {
   toolbar?.parentNode?.insertBefore(div, toolbar.nextSibling);
 }
 
+async function ouvrirFichePublique(nom) {
+  if (!nom) return;
+  if (nom === state.char?.name && typeof openCharSheet === 'function') { openCharSheet(); return; }
+
+  document.getElementById('postes-modal-title').textContent = nom;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const joueurs = typeof sbListPersonnages === 'function' ? await sbListPersonnages().catch(() => []) : [];
+  const j = (joueurs || []).find(p => p.name === nom);
+
+  let html = '<div style="padding:1rem;text-align:center">';
+  const photo = j?.photo_url || window._cachePhotosJoueurs?.[nom];
+  if (photo) {
+    html += '<img src="' + photo + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:1px solid #C9A84C;margin-bottom:.6rem"/>';
+  }
+  html += '<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#E8D880;margin-bottom:.4rem">' + nom + '</div>';
+  if (j) {
+    const pays = (typeof COUNTRIES !== 'undefined' && COUNTRIES[j.country]?.n) || j.country || '';
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.2rem">' + pays + (j.current_city ? ' · ' + j.current_city : '') + '</div>';
+    if (j.poste?.name) html += '<div style="font-size:.8rem;color:#C9A84C">' + j.poste.name + '</div>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic">Personnage introuvable.</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
 function richInsertHR() {
   document.execCommand('insertHTML', false, '<hr style="border:none;border-top:1px solid #2a2010;margin:.8rem 0">');
 }
@@ -445,6 +472,8 @@ let _richSavedRange = null;
 // Appele au mousedown du bouton Image (avant que le clic ne fasse perdre le focus au champ de texte),
 // pour memoriser EXACTEMENT ou etait le curseur, pas juste dans quel champ.
 function saveRichSelection() {
+  _richInsertTargetId = null;
+  _richSavedRange = null;
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return;
   const range = sel.getRangeAt(0);
@@ -458,14 +487,14 @@ function saveRichSelection() {
 }
 
 function richInsertImage() {
-  // Toujours prendre le dernier champ ayant eu le focus — ne jamais garder une cible obsolete
-  // d'un formulaire precedent (sujet/reponse different), sinon l'insertion vise un element qui n'existe plus.
-  _richInsertTargetId = window._lastRichEditorId || null;
+  // saveRichSelection() (onmousedown, juste avant ce clic) a deja capture la bonne cible de facon fiable.
+  // On ne s'en remet a window._lastRichEditorId que si, pour une raison quelconque, rien n'a ete capture.
+  if (!_richInsertTargetId) _richInsertTargetId = window._lastRichEditorId || null;
 
   document.getElementById('postes-modal-title').textContent = 'Insérer une image';
   let html = '<div style="padding:1rem">';
   html += '<div style="margin-bottom:.6rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.2rem">URL de l\'image</label>';
-  html += '<input id="richimg-url" type="text" placeholder="https://..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none"/></div>';
+  html += '<input id="richimg-url" type="text" autocomplete="off" placeholder="https://..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none"/></div>';
   html += '<div style="margin-bottom:.6rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Position</label>';
   html += '<div style="display:flex;gap:.4rem">';
   ['gauche','centre','droite'].forEach((pos, i) => {
@@ -473,7 +502,7 @@ function richInsertImage() {
   });
   html += '</div></div>';
   html += '<div style="margin-bottom:.8rem"><label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.2rem">Légende (optionnel)</label>';
-  html += '<input id="richimg-legend" type="text" placeholder="Légende de l\'image" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none"/></div>';
+  html += '<input id="richimg-legend" type="text" autocomplete="off" placeholder="Légende de l\'image" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none"/></div>';
   html += '<div id="richimg-preview" style="margin-bottom:.8rem"></div>';
   html += '<input id="richimg-url-preview-trigger" type="hidden"/>';
   html += '<div style="display:flex;gap:.5rem">';
@@ -520,51 +549,6 @@ function confirmerRichInsertImage() {
     _richInsertTargetId = null;
   } else {
     showToast('Erreur', 'Impossible de retrouver le champ de texte. Cliquez dans le message avant d\'insérer une image.', false);
-  }
-}
-
-async function richInsertPortrait() {
-  _richInsertTargetId = window._lastRichEditorId || null;
-  if (typeof rafraichirCachePhotosJoueurs === 'function') await rafraichirCachePhotosJoueurs();
-
-  const cache = window._cachePhotosJoueurs || {};
-  const noms = Object.keys(cache).sort();
-
-  document.getElementById('postes-modal-title').textContent = 'Insérer un portrait';
-  let html = '<div style="padding:1rem">';
-  if (noms.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic">Aucune photo de profil disponible pour le moment.</div>';
-  } else {
-    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">Cliquez sur un personnage pour insérer son portrait.</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;max-height:340px;overflow-y:auto">';
-    noms.forEach(nom => {
-      html += '<div onclick="confirmerRichInsertPortrait(\'' + nom.replace(/'/g,"\\'") + '\')" style="cursor:pointer;text-align:center;padding:.4rem;border:1px solid #2a2010" onmouseover="this.style.borderColor=\'#C9A84C\'" onmouseout="this.style.borderColor=\'#2a2010\'">';
-      html += '<img src="' + cache[nom] + '" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:1px solid #2a2010;margin-bottom:.3rem"/>';
-      html += '<div style="font-size:.68rem;color:#c0b090;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + nom + '</div>';
-      html += '</div>';
-    });
-    html += '</div>';
-  }
-  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="width:100%;margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Annuler</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function confirmerRichInsertPortrait(nom) {
-  const cache = window._cachePhotosJoueurs || {};
-  const url = cache[nom];
-  document.getElementById('modal-postes').classList.remove('open');
-  if (!url) return;
-
-  const wrapHtml = '<img src="' + url + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:1px solid #C9A84C;vertical-align:middle;margin:0 .4rem .2rem 0" title="' + nom + '"/>';
-  const target = _richInsertTargetId ? document.getElementById(_richInsertTargetId) : null;
-  if (target) {
-    target.insertAdjacentHTML('beforeend', wrapHtml);
-    target.focus();
-    _richInsertTargetId = null;
-  } else {
-    showToast('Erreur', 'Impossible de retrouver le champ de texte. Cliquez dans le message avant d\'insérer un portrait.', false);
   }
 }
 
