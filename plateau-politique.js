@@ -1694,7 +1694,7 @@ function ouvrirForumNationalSousForumPresident(type) {
   body.innerHTML = html;
 }
 
-function publierMessagePresidentiel(type) {
+async function publierMessagePresidentiel(type) {
   const effets = {
     conference: { pop:15, inf:10, is:5 },
     annonce:    { pop:5,  inf:5,  is:2 },
@@ -1705,6 +1705,8 @@ function publierMessagePresidentiel(type) {
   };
   const ef = effets[type] || {};
   const pays = state.country || 'republic';
+  const auteur = state.char?.name || 'Le Président';
+  const time = formatDateHeureJeu();
 
   let titre, contenu;
   if (type === 'referendum') {
@@ -1718,26 +1720,30 @@ function publierMessagePresidentiel(type) {
     if (!state.referendums) state.referendums = [];
     state.referendums.push({ question: titre, reponses, jourFin: state.day + duree, clos: false });
     contenu = 'Le Président soumet ce référendum au vote populaire. Vote ouvert pendant ' + duree + ' jour(s).';
-    if (!FORUM_TOPICS['president']) FORUM_TOPICS['president'] = [];
-    FORUM_TOPICS['president'].unshift({
-      id: 'ref-' + Date.now(), title: '[REFERENDUM] ' + titre,
-      author: state.char?.name || 'President', time: 'Jour ' + state.day,
-      views: 1, replies: 0, lastPostAuthor: state.char?.name || 'President', lastPostTime: 'Jour ' + state.day,
-      isReferendum: true, reponses,
-      posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: contenu }]
-    });
   } else {
     titre = document.getElementById('pres-msg-titre')?.value?.trim();
     contenu = document.getElementById('pres-msg-contenu')?.value?.trim();
     if (!titre || !contenu) { showToast('Champs requis', 'Titre et contenu obligatoires.', false); return; }
-    if (!FORUM_TOPICS['president']) FORUM_TOPICS['president'] = [];
-    FORUM_TOPICS['president'].unshift({
-      id: 'pres-' + Date.now(), title: '[PRESIDENCE] ' + titre,
-      author: state.char?.name || 'President', time: 'Jour ' + state.day,
-      views: 1, replies: 0, lastPostAuthor: state.char?.name || 'President', lastPostTime: 'Jour ' + state.day,
-      posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: contenu }]
-    });
   }
+
+  const titrePrefixe = '[' + (type === 'referendum' ? 'RÉFÉRENDUM' : type.toUpperCase()) + '] ' + titre;
+
+  // Persistance reelle sur Supabase — visible par tous, pas seulement localement
+  let topicId = null;
+  if (typeof sbCreateTopic === 'function') {
+    topicId = await sbCreateTopic('presidence', titrePrefixe, auteur, pays, time);
+    if (topicId && typeof sbCreatePost === 'function') await sbCreatePost(topicId, auteur, contenu, time);
+  }
+
+  if (!FORUM_TOPICS['presidence']) FORUM_TOPICS['presidence'] = [];
+  FORUM_TOPICS['presidence'].unshift({
+    id: topicId || 'pres-' + Date.now(), title: titrePrefixe,
+    author: auteur, time, views: 1, replies: 0,
+    lastPostAuthor: auteur, lastPostTime: time,
+    isReferendum: type === 'referendum',
+    reponses: type === 'referendum' ? state.referendums[state.referendums.length-1].reponses : undefined,
+    posts: [{ author: auteur, time, content: contenu }]
+  });
 
   // Appliquer les effets
   if (ef.pop) state.pop = Math.min(100, state.pop + ef.pop);
@@ -2790,116 +2796,6 @@ function confirmerGrace(idx) {
   updateUI();
   showToast('Grace accordee', condamne.nom + ' est libere(e). ' + (popBonus > 0 ? '+' : '') + popBonus + ' POP.', true);
   addExternalEvent('GRACE PRESIDENTIELLE : ' + condamne.nom + ' a ete gracie(e) par le President.');
-}
-
-function ouvrirForumPresidentCentral(type) {
-  // Ouvre le forum presidentiel en vue centrale
-  document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
-  document.getElementById('vue-mail').classList.add('active'); // Reutilise la vue mail
-  document.getElementById('mail-view-subtitle').textContent = 'Forum Presidentiel';
-  document.getElementById('mail-compose').style.display = 'none';
-
-  const titres = {
-    'referendum': 'Creer un Referendum',
-    'deuil': 'Decret de Deuil National',
-    'forum_president_conference': 'Conference de Presse',
-    'forum_president_annonce': 'Annonce Officielle',
-    'forum_president_propagande': "Propagande d'Etat",
-    'forum_president_dementi': 'Dementi Officiel'
-  };
-
-  const titre = titres[type] || 'Forum Presidentiel';
-  const content = document.getElementById('mail-content');
-
-  let html = '<div style="padding:1.2rem;max-width:650px">';
-  html += '<div style="font-family:Playfair Display,serif;font-size:1rem;color:#C9A84C;margin-bottom:1rem">' + titre + '</div>';
-
-  if (type === 'referendum') {
-    html += '<div style="margin-bottom:.8rem"><div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">QUESTION DU REFERENDUM</div>';
-    html += '<input id="ref-question" type="text" placeholder="Quelle est la question soumise au vote ?" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.5rem"/></div>';
-    html += '<div style="margin-bottom:.8rem"><div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">REPONSES POSSIBLES (1 seul choix)</div>';
-    html += '<input id="ref-rep1" type="text" placeholder="Reponse 1 (ex: Oui)" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.3rem"/>';
-    html += '<input id="ref-rep2" type="text" placeholder="Reponse 2 (ex: Non)" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.3rem"/>';
-    html += '<input id="ref-rep3" type="text" placeholder="Reponse 3 (optionnel)" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.5rem"/>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DUREE DU VOTE</div>';
-    html += '<select id="ref-duree" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
-    html += '<option value="3">3 jours</option><option value="5">5 jours</option><option value="7">7 jours</option></select></div>';
-    html += '<button onclick="publierReferendum()" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier le referendum</button>';
-  } else {
-    html += '<div style="margin-bottom:.8rem"><div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">TITRE</div>';
-    html += '<input id="forum-pres-titre" type="text" placeholder="Titre de votre message..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.5rem"/></div>';
-    html += '<div style="margin-bottom:.8rem"><div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MESSAGE</div>';
-    html += '<textarea id="forum-pres-message" rows="5" placeholder="Redigez votre message officiel..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none"></textarea></div>';
-    html += '<button onclick="publierForumPresident(\'' + type + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier</button>';
-  }
-
-  html += '<button onclick="closeMailView()" style="margin-left:.5rem;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Annuler</button>';
-  html += '</div>';
-  content.innerHTML = html;
-}
-
-function publierReferendum() {
-  const question = document.getElementById('ref-question')?.value?.trim();
-  const rep1 = document.getElementById('ref-rep1')?.value?.trim();
-  const rep2 = document.getElementById('ref-rep2')?.value?.trim();
-  const rep3 = document.getElementById('ref-rep3')?.value?.trim();
-  const duree = parseInt(document.getElementById('ref-duree')?.value || '5');
-  if (!question || !rep1 || !rep2) { showToast('Champs requis', 'Question et au moins 2 reponses obligatoires.', false); return; }
-
-  const reponses = [rep1, rep2, ...(rep3 ? [rep3] : [])].map(r => ({ label: r, voix: 0 }));
-  if (!state.referendums) state.referendums = [];
-  state.referendums.push({ question, reponses, jourFin: state.day + duree, clos: false, auteur: state.char?.name });
-
-  // Publier dans le forum presidentiel
-  if (!FORUM_TOPICS['national']) FORUM_TOPICS['national'] = [];
-  FORUM_TOPICS['national'].unshift({
-    id: 'ref-' + Date.now(), title: '[REFERENDUM] ' + question,
-    author: state.char?.name || 'President',
-    time: 'Jour ' + state.day, views: 0, replies: 0,
-    lastPostAuthor: state.char?.name || 'President', lastPostTime: 'Jour ' + state.day,
-    isReferendum: true, reponses,
-    posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: 'Le President soumet ce referendum au vote populaire. Vote ouvert pendant ' + duree + ' jours.' }]
-  });
-
-  state.pop = Math.min(100, state.pop + 8);
-  updateUI();
-  closeMailView();
-  showToast('Referendum publie !', question + ' — Vote ouvert ' + duree + ' jours. +8 POP.', true, true);
-  addExternalEvent('REFERENDUM : Le President soumet au vote : "' + question + '"');
-}
-
-function publierForumPresident(type) {
-  const titre = document.getElementById('forum-pres-titre')?.value?.trim();
-  const message = document.getElementById('forum-pres-message')?.value?.trim();
-  if (!titre || !message) { showToast('Champs requis', 'Titre et message obligatoires.', false); return; }
-
-  if (!FORUM_TOPICS['national']) FORUM_TOPICS['national'] = [];
-  FORUM_TOPICS['national'].unshift({
-    id: 'pres-' + Date.now(), title: '[PRESIDENCE] ' + titre,
-    author: state.char?.name || 'President',
-    time: 'Jour ' + state.day, views: 0, replies: 0,
-    lastPostAuthor: state.char?.name || 'President', lastPostTime: 'Jour ' + state.day,
-    posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: message }]
-  });
-
-  const effets = {
-    'forum_president_conference': { pop: 15, inf: 10 },
-    'forum_president_annonce':    { pop: 5,  inf: 5  },
-    'forum_president_propagande': { pop: 20, inf: 0  },
-    'forum_president_dementi':    { pop: 8,  inf: 3  }
-  };
-  const ef = effets[type] || {};
-  if (ef.pop) state.pop = Math.min(100, state.pop + ef.pop);
-  if (ef.inf) state.inf = Math.min(100, state.inf + ef.inf);
-  if (type === 'jour_deuil') {
-    // Pas d'impots ce jour
-    state.deuil = state.day;
-    addExternalEvent('DEUIL NATIONAL : Journee chommee declaree par le President. Pas de recettes fiscales aujourd\'hui.');
-  }
-  updateUI();
-  closeMailView();
-  showToast('Publie !', titre + (ef.pop ? ' +' + ef.pop + ' POP' : '') + (ef.inf ? ' +' + ef.inf + ' INF' : ''), true, true);
-  addJournalEntry('Publication presidentielle : ' + titre, 'event-good');
 }
 
 function ouvrirModalNationaliser() {

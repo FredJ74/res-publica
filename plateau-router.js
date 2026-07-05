@@ -231,10 +231,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'ouvrir_ambassade_empire') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
   if (fn === 'nommer_ambassadeur_cible'){ ouvrirModalNommerAmbassadeur(); return; }
   if (fn === 'sanctions_empire')        { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
-  if (fn === 'forum_president_conference' || fn === 'forum_president_annonce' ||
-      fn === 'forum_president_propagande' || fn === 'forum_president_dementi') {
-    ouvrirForumPresidentCentral(fn); return;
-  }
   if (fn === 'reception_etat' || fn === 'banquet_diplo') { doReceptionAvecBonus(fn, cost); return; }
 
   // Deduire PA et argent
