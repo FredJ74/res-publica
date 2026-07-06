@@ -592,12 +592,36 @@ function confirmerRichInsertImage() {
   const target = _richInsertTargetId ? document.getElementById(_richInsertTargetId) : null;
   if (target) {
     const marker = document.getElementById('_richimg_marker');
+    let insertedSpan;
     if (marker && target.contains(marker)) {
       marker.outerHTML = wrapHtml;
+      insertedSpan = document.getElementById(imgId);
     } else {
       // Repli : marqueur introuvable (selection non capturee ou perdue) -> fin de contenu
       target.insertAdjacentHTML('beforeend', wrapHtml);
+      insertedSpan = document.getElementById(imgId);
     }
+
+    // Garantir un espace editable juste apres l'image (sinon, si elle est le seul contenu,
+    // il n'y a plus nulle part ou cliquer pour continuer a ecrire, l'image n'etant pas editable).
+    if (insertedSpan) {
+      const next = insertedSpan.nextSibling;
+      let brEl;
+      if (!next || (next.nodeType === 1 && next.tagName !== 'BR')) {
+        brEl = document.createElement('br');
+        insertedSpan.parentNode.insertBefore(brEl, insertedSpan.nextSibling);
+      }
+      // Placer le curseur juste apres l'image, dans l'espace editable qui suit
+      try {
+        const sel = window.getSelection();
+        const range = document.createRange();
+        range.setStartAfter(brEl || insertedSpan);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } catch(e) {}
+    }
+
     target.focus();
     _richSavedRange = null;
     _richInsertTargetId = null;
