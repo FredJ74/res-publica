@@ -103,6 +103,13 @@ const WORLD = {
       districts: ['centre','quartier-nord','quartier-sud'],
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
       buildingContext: {
+        'stade': {
+          name: "Stade de l'Olympique de Luthécia",
+          desc: "L'antre du club le plus titré de Republia. Ambiance electrique les soirs de match.",
+          roomOverrides: {
+            terrain: { name: "Terrain — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-olympique-luthecia.png" }
+          }
+        },
         'hotel-republica': {
           name: "Hôtel-Restaurant La Républia",
           desc: "Le grand hôtel de Luthecia. Gaston Sauceblanche règne sur la salle avec un mépris souverain.",
@@ -176,6 +183,13 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade'],
       buildingContext: {
+        'stade': {
+          name: "Stade de La Brise Mariannaise",
+          desc: "Face a l'ocean. Le vent du large emporte parfois plus que les ballons.",
+          roomOverrides: {
+            terrain: { name: "Terrain — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-brise-mariannaise.png" }
+          }
+        },
         'hotel-republica': {
           name: "Hôtel du Port",
           desc: "Un hôtel modeste qui sent le poisson et l'iode.",
@@ -215,6 +229,13 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
       buildingContext: {
+        'stade': {
+          name: "Stade Marcel Cazenave — Union Cheminote de Montrouge",
+          desc: "Colle aux voies ferrees. Les Cheminots jouent avec la rage des quartiers ouvriers.",
+          roomOverrides: {
+            terrain: { name: "Terrain — Union Cheminote de Montrouge", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-union-cheminote-montrouge.png" }
+          }
+        },
         'hotel-republica': {
           name: "Hôtel des Mineurs",
           desc: "Un hôtel ouvrier. Les murs sont fins, les lits durs, la solidarité forte.",
@@ -401,6 +422,45 @@ const WORLD = {
           name: "Mercado del Puerto",
           desc: "Poissons et contrebande.",
           persons: [{"name": "Pescadora Carmen (PNJ)", "role": "Poissonnière", "rel": "neutral", "job": "commercant"}]
+        }
+      }
+    },
+    ville_a: {
+      name:'Frontera Alta',
+      imageUrl:'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80',
+      desc:'Poste-frontiere perche dans les montagnes. Contrebande, douaniers corruptibles et sentiers connus des seuls inities.',
+      isCapitale: false,
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Posada de la Frontera",
+          desc: "Une auberge de passage. On y dort peu, on y ecoute beaucoup.",
+          persons: [{"name": "Posadero Silencioso (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Puesto Fronterizo",
+          desc: "Les douaniers regardent ailleurs contre un billet.",
+          persons: [{"name": "Cabo Vista Larga (PNJ)", "role": "Chef de poste", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Caja de Cambio",
+          desc: "Change toutes les devises, sans poser de questions.",
+          persons: [{"name": "Cambista Discreto (PNJ)", "role": "Changeur", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Clinica de Montana",
+          desc: "L'altitude rend tout plus difficile, meme soigner.",
+          persons: [{"name": "Medico de Altura (PNJ)", "role": "Médecin", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Radio Contrabando",
+          desc: "Emet depuis un camion. Change de frequence chaque semaine.",
+          persons: [{"name": "Locutor Fantasma (PNJ)", "role": "Animateur", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Mercado de Contrabando",
+          desc: "Tout ce qui ne passe pas la frontiere legalement finit ici.",
+          persons: [{"name": "Vendedora de Paso (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}]
         }
       }
     },
@@ -598,6 +658,45 @@ const WORLD = {
           name: "Distribution Collective",
           desc: "Files organisées par ordre alphabétique.",
           persons: [{"name": "Distributeur Équitable (PNJ)", "role": "Distributeur", "rel": "neutral", "job": "commercant"}]
+        }
+      }
+    },
+    ville_a: {
+      name:'Sibirsk-9',
+      imageUrl:'https://images.unsplash.com/photo-1483664852095-d6cc6870702d?w=1200&q=80',
+      desc:'Ville miniere glaciale aux confins de l\'empire. Le froid mord, le charbon manque rarement.',
+      isCapitale: false,
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Baraquement Sibirsk-9",
+          desc: "Le poele central chauffe a peine la piece la plus proche.",
+          persons: [{"name": "Responsable Baraquement (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Poste de Vigilance Glaciale",
+          desc: "Le registre des allees et venues est tenu avec zele.",
+          persons: [{"name": "Sergent Gel (PNJ)", "role": "Sergent", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Caisse Miniere Collective",
+          desc: "Les salaires arrivent, parfois en retard, jamais en avance.",
+          persons: [{"name": "Comptable Sibirsk (PNJ)", "role": "Comptable", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Infirmerie du Froid",
+          desc: "Engelures et poussiere de charbon, le quotidien du medecin.",
+          persons: [{"name": "Infirmiere Frimas (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Gazette du Charbon",
+          desc: "Un feuillet hebdomadaire, imprime a la mine.",
+          persons: [{"name": "Redacteur Suie (PNJ)", "role": "Rédacteur", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Cooperative Miniere",
+          desc: "Rations et outils, distribues selon le quota.",
+          persons: [{"name": "Gerant Cooperative (PNJ)", "role": "Gérant", "rel": "neutral", "job": "commercant"}]
         }
       }
     },
@@ -816,6 +915,45 @@ const WORLD = {
           name: "Souk de l'Oasis",
           desc: "Épices, tapis et informations.",
           persons: [{"name": "Marchand Al-Zafar (PNJ)", "role": "Marchand", "rel": "neutral", "job": "commercant"}]
+        }
+      }
+    },
+    ville_a: {
+      name:'Oasis Al-Baraka',
+      imageUrl:'https://images.unsplash.com/photo-1451337516015-6b6e9a44a8a3?w=1200&q=80',
+      desc:'Oasis caravaniere au coeur du desert. Les marchands s\'y arretent depuis des siecles, les secrets aussi.',
+      isCapitale: false,
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
+      buildingContext: {
+        'hotel-republica': {
+          name: "Caravanserail Al-Baraka",
+          desc: "Halte historique des routes caravanieres. Les murs ont vu passer bien des fortunes.",
+          persons: [{"name": "Maitre Caravanserail (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
+        },
+        'commissariat': {
+          name: "Garde de l'Oasis",
+          desc: "Surveille les puits autant que les caravanes.",
+          persons: [{"name": "Capitaine Oasis (PNJ)", "role": "Capitaine", "rel": "neutral", "job": "commissaire"}]
+        },
+        'banque-nationale': {
+          name: "Maison de Change du Desert",
+          desc: "Toutes les monnaies du monde y trouvent leur valeur.",
+          persons: [{"name": "Changeur du Desert (PNJ)", "role": "Changeur", "rel": "neutral", "job": "banquier"}]
+        },
+        'dispensaire-public': {
+          name: "Tente de Soins",
+          desc: "Herbes locales et remedes ancestraux.",
+          persons: [{"name": "Guerisseuse Oasis (PNJ)", "role": "Guérisseuse", "rel": "neutral", "job": "medecin"}]
+        },
+        'la-tribune': {
+          name: "Le Heraut du Desert",
+          desc: "Les nouvelles voyagent aussi vite que les caravanes.",
+          persons: [{"name": "Heraut Ambulant (PNJ)", "role": "Héraut", "rel": "neutral", "job": "journaliste"}]
+        },
+        'marche': {
+          name: "Souk de l'Oasis",
+          desc: "Epices, tissus et rumeurs venues de tres loin.",
+          persons: [{"name": "Marchand de l'Oasis (PNJ)", "role": "Marchand", "rel": "neutral", "job": "commercant"}]
         }
       }
     },
