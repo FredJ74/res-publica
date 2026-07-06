@@ -654,7 +654,7 @@ function appliquerLegendeImage(imgId) {
     if (!legendEl) {
       legendEl = document.createElement('span');
       legendEl.className = 'img-legend';
-      legendEl.style.cssText = 'display:block;text-align:center;font-size:.8rem;color:#8a8060;font-style:italic;margin-top:.2rem';
+      legendEl.style.cssText = 'display:block;text-align:center;font-size:.85rem;color:#8a8060;font-style:italic;margin-top:.2rem';
       wrap.appendChild(legendEl);
     }
     legendEl.textContent = legendText;
@@ -788,8 +788,8 @@ function renderSignatureCheckbox(fieldId) {
 
 function getSignatureHtml() {
   const char = state.char;
-  if (char?.signatureHtml) return '<div style="margin-top:1rem;padding-top:.5rem;border-top:1px solid #2a2010;font-size:.8rem;color:#8a8060"><em>' + char.signatureHtml + '</em></div>';
-  if (char?.motto) return '<div style="margin-top:1rem;padding-top:.5rem;border-top:1px solid #2a2010;font-size:.8rem;color:#8a8060"><em>— "' + char.motto + '"</em></div>';
+  if (char?.signatureHtml) return '<div style="margin-top:1rem;padding-top:.5rem;border-top:1px solid #2a2010;font-size:.9rem;color:#8a8060"><em>' + char.signatureHtml + '</em></div>';
+  if (char?.motto) return '<div style="margin-top:1rem;padding-top:.5rem;border-top:1px solid #2a2010;font-size:.9rem;color:#8a8060"><em>— "' + char.motto + '"</em></div>';
   return '';
 }
 
@@ -1040,7 +1040,7 @@ function renderBlocks(blocks) {
       return '<hr style="border:none;border-top:1px solid #3a2a10;margin:1rem 0;clear:both"/>';
     }
     if (b.type === 'image') {
-      const legendHtml = b.legend ? '<span style="display:block;text-align:center;font-size:.8rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + b.legend + '</span>' : '';
+      const legendHtml = b.legend ? '<span style="display:block;text-align:center;font-size:.85rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + b.legend + '</span>' : '';
       if (b.align === 'centre') {
         return '<div style="text-align:center;margin:.5rem 0;clear:both"><img src="' + b.url + '" style="display:inline-block;max-width:100%"/>' + legendHtml + '</div>';
       }

@@ -470,7 +470,7 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .forum-post-badge{font-family:'Bebas Neue',sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.1rem .35rem;border:1px solid var(--gold-dark);color:var(--gold);margin-top:.2rem}
 .forum-post-main{padding:.7rem .9rem;min-width:0}
 .forum-post-toolbar{display:flex;justify-content:flex-end;gap:.2rem;margin-bottom:.2rem}
-.forum-post-content{font-size:.83rem;color:#b0a080;line-height:1.65;overflow-wrap:break-word}
+.forum-post-content{font-size:.95rem;color:#b0a080;line-height:1.7;overflow-wrap:break-word}
 .forum-post-image{margin-top:.5rem}
 .forum-reply-bar{padding:.6rem 1rem;border-top:1px solid var(--border2);background:var(--bg);flex-shrink:0}
 .forum-compose-form{flex:1;overflow-y:auto;padding:1rem}
