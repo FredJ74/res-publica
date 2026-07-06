@@ -331,6 +331,9 @@ function renderTopicView() {
               ${p.author === myName ? `
                 <button onclick="editPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Modifier">
                   <i class="ti ti-edit"></i>
+                </button>
+                <button onclick="confirmerSuppressionPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Supprimer">
+                  <i class="ti ti-trash"></i>
                 </button>` : ''}
               <button onclick="quotePost(${i})" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Citer">
                 <i class="ti ti-quote"></i>
@@ -651,7 +654,7 @@ function appliquerLegendeImage(imgId) {
     if (!legendEl) {
       legendEl = document.createElement('span');
       legendEl.className = 'img-legend';
-      legendEl.style.cssText = 'display:block;text-align:center;font-size:.75rem;color:#8a8060;font-style:italic;margin-top:.2rem';
+      legendEl.style.cssText = 'display:block;text-align:center;font-size:.8rem;color:#8a8060;font-style:italic;margin-top:.2rem';
       wrap.appendChild(legendEl);
     }
     legendEl.textContent = legendText;
@@ -665,6 +668,61 @@ function supprimerImageInseree(imgId) {
   const wrap = document.getElementById(imgId);
   if (wrap) wrap.remove();
   document.getElementById('modal-postes').classList.remove('open');
+}
+
+function confirmerSuppressionPost(topicId, postId) {
+  const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === topicId);
+  if (!topic) return;
+  const idx = topic.posts.findIndex((p, i) => (p.id || i) == postId);
+  if (idx === -1) return;
+  const estPremierPost = idx === 0;
+
+  document.getElementById('postes-modal-title').textContent = 'Supprimer ce message ?';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">' +
+    (estPremierPost
+      ? "C'est le message d'origine du sujet — le supprimer supprimera l'intégralité du sujet, y compris toutes les réponses. Cette action est irréversible."
+      : "Cette action est irréversible.") +
+    '</div>';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<button onclick="executerSuppressionPost(\'' + topicId + '\',\'' + postId + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc6a44;cursor:pointer">Supprimer</button>';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Annuler</button>';
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function executerSuppressionPost(topicId, postId) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === topicId);
+  if (!topic) return;
+  const idx = topic.posts.findIndex((p, i) => (p.id || i) == postId);
+  if (idx === -1) return;
+  const estPremierPost = idx === 0;
+  const post = topic.posts[idx];
+
+  if (typeof sbDelete === 'function' && post.id) {
+    await sbDelete('forum_posts', `id=eq.${encodeURIComponent(post.id)}`).catch(() => {});
+  }
+
+  if (estPremierPost) {
+    // Supprimer le sujet entier (Supabase + local)
+    if (typeof sbDelete === 'function') {
+      await sbDelete('forum_topics', `id=eq.${encodeURIComponent(topicId)}`).catch(() => {});
+      await sbDelete('forum_posts', `topic_id=eq.${encodeURIComponent(topicId)}`).catch(() => {});
+    }
+    FORUM_TOPICS[currentForumId] = (FORUM_TOPICS[currentForumId]||[]).filter(t => t.id !== topicId);
+    showToast('Sujet supprimé', '', true);
+    backToList();
+  } else {
+    topic.posts.splice(idx, 1);
+    topic.replies = Math.max(0, topic.posts.length - 1);
+    if (typeof sbUpdate === 'function') {
+      await sbUpdate('forum_topics', `id=eq.${encodeURIComponent(topicId)}`, { replies: topic.replies }).catch(() => {});
+    }
+    showToast('Message supprimé', '', true);
+    document.getElementById('forum-main').innerHTML = renderForumContent();
+  }
 }
 
 function richInsertStyle(styleName) {
@@ -730,8 +788,8 @@ function renderSignatureCheckbox(fieldId) {
 
 function getSignatureHtml() {
   const char = state.char;
-  if (char?.signatureHtml) return '<div style="margin-top:1rem;padding-top:.5rem;border-top:1px solid #2a2010;font-size:.8rem;color:#8a8060">' + char.signatureHtml + '</div>';
-  if (char?.motto) return '<div style="margin-top:1rem;padding-top:.5rem;border-top:1px solid #2a2010;font-size:.8rem;color:#8a8060;font-style:italic">— "' + char.motto + '"</div>';
+  if (char?.signatureHtml) return '<div style="margin-top:1rem;padding-top:.5rem;border-top:1px solid #2a2010;font-size:.8rem;color:#8a8060"><em>' + char.signatureHtml + '</em></div>';
+  if (char?.motto) return '<div style="margin-top:1rem;padding-top:.5rem;border-top:1px solid #2a2010;font-size:.8rem;color:#8a8060"><em>— "' + char.motto + '"</em></div>';
   return '';
 }
 
@@ -982,7 +1040,7 @@ function renderBlocks(blocks) {
       return '<hr style="border:none;border-top:1px solid #3a2a10;margin:1rem 0;clear:both"/>';
     }
     if (b.type === 'image') {
-      const legendHtml = b.legend ? '<span style="display:block;text-align:center;font-size:.75rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + b.legend + '</span>' : '';
+      const legendHtml = b.legend ? '<span style="display:block;text-align:center;font-size:.8rem;color:#8a8060;font-style:italic;margin-top:.2rem">' + b.legend + '</span>' : '';
       if (b.align === 'centre') {
         return '<div style="text-align:center;margin:.5rem 0;clear:both"><img src="' + b.url + '" style="display:inline-block;max-width:100%"/>' + legendHtml + '</div>';
       }
