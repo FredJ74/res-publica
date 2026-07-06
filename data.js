@@ -104,10 +104,13 @@ const WORLD = {
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
       buildingContext: {
         'stade': {
-          name: "Stade de l'Olympique de Luthécia",
+          name: "Stade Gourgeot — Olympique de Luthécia",
           desc: "L'antre du club le plus titré de Republia. Ambiance electrique les soirs de match.",
           roomOverrides: {
-            terrain: { name: "Terrain — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-olympique-luthecia.png" }
+            terrain: { name: "Terrain — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-olympique-luthecia.png" },
+            vestiaires: { name: "Vestiaire — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vestiaires-luthecia.png" },
+            buvette: { name: "Boutique et Buvette — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/buvette-boutique-luthecia.png" },
+            guichet_paris: { name: "Guichet des Paris Sportifs — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/guichet-paris-luthecia.jpeg" }
           }
         },
         'hotel-republica': {
@@ -187,7 +190,11 @@ const WORLD = {
           name: "Stade de La Brise Mariannaise",
           desc: "Face a l'ocean. Le vent du large emporte parfois plus que les ballons.",
           roomOverrides: {
-            terrain: { name: "Terrain — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-brise-mariannaise.png" }
+            terrain: { name: "Terrain — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-brise-mariannaise.png" },
+            vestiaires: { name: "Vestiaire — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vestiaires-mariannaise.png" },
+            buvette: { name: "Buvette et Magasin — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/buvette-boutique-mariannaise.png" },
+            guichet_paris: { name: "Guichet des Paris — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/guichet-paris-mariannaise.jpeg" },
+            siege_supporters: { name: "Siège des Supporters — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/siege-supporters-mariannaise.png" }
           }
         },
         'hotel-republica': {
