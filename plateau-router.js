@@ -38,6 +38,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }
   if (fn === 'se_justifier') { doSeJustifier(); return; }
+  if (fn === 'observer_match') { doObserverMatch(); return; }
+  if (fn === 'consulter_palmares') { doConsulterPalmares(); return; }
+  if (fn === 'parier_match') { doParierMatch(); return; }
   if (fn === 'incendier') { doIncendier(); return; }
   if (fn === 'utiliser_explosifs') { doUtiliserExplosifs(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }

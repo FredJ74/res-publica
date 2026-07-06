@@ -3975,10 +3975,66 @@ const TYPES_ORGANISATIONS = {
     ]
   },
 
+  sportive: {
+    label: 'Club Sportif',
+    icon: 'ti-ball-football',
+    secret: false,
+    requis: { pop: 10 },
+    liePAVille: true,
+    grades: {
+      republic: ['Junior', 'Titulaire', 'Capitaine', 'Legende'],
+      narco:    ['Cadete', 'Titular', 'Capitan', 'Leyenda'],
+      soviet:   ['Espoir du Peuple', 'Titulaire', 'Capitaine du Kolkhoze', 'Legende Sportive'],
+      khalija:  ['Espoir', 'Titulaire', 'Capitaine', 'Legende du Sheikh'],
+    },
+    maxParCreation: 0,
+    maxAdhesion: 1,
+    ordres: [
+      { fn: 'entrainement', label: "S'entrainer", pa: 2, cost: 0, icon: 'ti-run', desc: 'Ameliore la contribution du joueur aux prochains matchs.' },
+    ]
+  },
+  supporters: {
+    label: 'Club de Supporters',
+    icon: 'ti-flag-3',
+    secret: false,
+    requis: { pop: 5 },
+    liePAVille: true,
+    grades: {
+      republic: ['Sympathisant', 'Membre', 'Ultra', 'Meneur'],
+      narco:    ['Simpatizante', 'Miembro', 'Ultra', 'Cabecilla'],
+      soviet:   ['Sympathisant', 'Membre du Kop', 'Ultra', 'Meneur de Foule'],
+      khalija:  ['Sympathisant', 'Membre', 'Ultra', 'Meneur'],
+    },
+    maxParCreation: 0,
+    maxAdhesion: 1,
+    ordres: [
+      { fn: 'orga_motion_supporters', label: 'Publier un communique',   pa: 1, cost: 0,   icon: 'ti-speakerphone', desc: "Prise de position du club de supporters. Vote_bonus aux elections locales." },
+      { fn: 'orga_hooliganisme',      label: 'Organiser des echauffourees', pa: 3, cost: 0, icon: 'ti-alert-triangle', desc: 'Reserve aux Meneurs. Impact sur la securite locale. Risque penal.' },
+    ]
+  },
+
 };
 
 
 // Rang minimum pour certains ordres (index dans le tableau grades)
+// =====================
+// CHAMPIONNAT SPORTIF — 12 clubs, un par ville
+// =====================
+const CLUBS_SPORTIFS = [
+  { id:'olympique-luthecia',    nom:'Olympique de Luthécia',        country:'republic', city:'capitale', stadeBuilding:'stade', valeurBase:72, vedettes:['Marco Frappesec','Julien Contrapied'] },
+  { id:'brise-mariannaise',     nom:'La Brise Mariannaise',         country:'republic', city:'ville_a',  stadeBuilding:'stade', valeurBase:60, vedettes:['Yann Ecume','Loic Maree'] },
+  { id:'cheminote-montrouge',   nom:'Union Cheminote de Montrouge', country:'republic', city:'ville_b',  stadeBuilding:'stade', valeurBase:63, vedettes:['Momo Charbon','Sami Rail'] },
+  { id:'rojos-cartel',          nom:'Rojos del Cartel',             country:'narco',    city:'capitale', stadeBuilding:'stade', valeurBase:68, vedettes:['El Pistolero','Diego Gatillo'] },
+  { id:'fronterizos-unidos',    nom:'Fronterizos Unidos',           country:'narco',    city:'ville_a',  stadeBuilding:'stade', valeurBase:58, vedettes:['Chuy Frontera','Beto Contrabando'] },
+  { id:'jaguares-selva',        nom:'Jaguares de la Selva',         country:'narco',    city:'ville_b',  stadeBuilding:'stade', valeurBase:61, vedettes:['Jaguar Rios','Tigre Verde'] },
+  { id:'dynamo-novomirsk',      nom:'Dynamo Novomirsk',             country:'soviet',   city:'capitale', stadeBuilding:'stade', valeurBase:74, vedettes:['Ivan Marteau','Boris Faucille'] },
+  { id:'spartak-sibirsk',       nom:'Spartak Sibirsk-9',            country:'soviet',   city:'ville_a',  stadeBuilding:'stade', valeurBase:57, vedettes:['Yuri Glacon','Piotr Frimas'] },
+  { id:'kolkhoze-ouvrier',      nom:'Kolkhoze Ouvrier FC',          country:'soviet',   city:'ville_b',  stadeBuilding:'stade', valeurBase:59, vedettes:['Sacha Tracteur','Vania Recolte'] },
+  { id:'nadi-al-madina',        nom:'Nadi Al-Madina',               country:'khalija',  city:'capitale', stadeBuilding:'stade', valeurBase:70, vedettes:['Karim Falcon','Youssef Sable'] },
+  { id:'al-baraka-fc',          nom:'Al-Baraka FC',                 country:'khalija',  city:'ville_a',  stadeBuilding:'stade', valeurBase:56, vedettes:['Malik Oasis','Rashid Caravane'] },
+  { id:'sharq-al-nour',         nom:'Sharq Al-Nour',                country:'khalija',  city:'ville_b',  stadeBuilding:'stade', valeurBase:62, vedettes:['Tarek Petrole','Hamza Tanker'] }
+];
+
 const ORGA_ORDRE_RANG_MIN = {
   orga_cooptation:    3, // Grand Maitre seulement
   orga_election_loge: 3, // Grand Maitre seulement

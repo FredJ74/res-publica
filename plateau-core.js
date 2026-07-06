@@ -306,6 +306,11 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => chargerBatimentsFermes(), 1000);
   setInterval(chargerBatimentsFermes, 120000);
 
+  // Championnat sportif — verifie/avance la saison au chargement puis toutes les 5 minutes
+  // (n'importe quel joueur connecte peut declencher le rattrapage, l'etat est partage sur Supabase)
+  setTimeout(() => { if (typeof verifierEtJouerJournees === 'function') verifierEtJouerJournees(); }, 2500);
+  setInterval(() => { if (typeof verifierEtJouerJournees === 'function') verifierEtJouerJournees(); }, 300000);
+
   // Événements partagés (journal global) — au chargement puis toutes les 90 secondes
   setTimeout(() => chargerEvenementsPartages(), 1500);
   setTimeout(() => chargerOrganisations(), 1800);

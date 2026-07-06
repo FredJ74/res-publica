@@ -832,5 +832,342 @@ function ouvrirForumDepuisOrga() {
 }
 
 
-
 // =====================
+// CHAMPIONNAT SPORTIF
+// =====================
+
+// Calendrier en tour simple (methode du cercle) : 12 clubs -> 11 journees de 6 matchs
+function genererCalendrierSaison() {
+  const clubs = CLUBS_SPORTIFS.map(c => c.id);
+  const n = clubs.length;
+  const journees = [];
+  let arr = clubs.slice(1);
+
+  for (let j = 0; j < n - 1; j++) {
+    const matchs = [];
+    const roundClubs = [clubs[0], ...arr];
+    const inverse = j % 2 === 1;
+    for (let i = 0; i < n / 2; i++) {
+      const home = roundClubs[i];
+      const away = roundClubs[n - 1 - i];
+      matchs.push({
+        home: inverse ? away : home, away: inverse ? home : away,
+        played: false, scoreHome: null, scoreAway: null, recit: null
+      });
+    }
+    journees.push({ numero: j + 1, matchs });
+    arr.push(arr.shift());
+  }
+  return journees;
+}
+
+function getClub(id) { return CLUBS_SPORTIFS.find(c => c.id === id); }
+
+function simulerMatch(clubHomeId, clubAwayId) {
+  const home = getClub(clubHomeId), away = getClub(clubAwayId);
+  const avantageDomicile = 5;
+  const forceHome = home.valeurBase + avantageDomicile;
+  const forceAway = away.valeurBase;
+  const buts = (force) => Math.max(0, Math.round((force / 28) + (Math.random() * 2.6 - 0.9)));
+  const scoreHome = buts(forceHome);
+  const scoreAway = buts(forceAway);
+
+  let recit;
+  if (scoreHome > scoreAway) recit = `${home.nom} s'impose ${scoreHome}-${scoreAway} face à ${away.nom} devant son public.`;
+  else if (scoreAway > scoreHome) recit = `${away.nom} s'impose ${scoreAway}-${scoreHome} sur la pelouse de ${home.nom}.`;
+  else recit = `Match nul ${scoreHome}-${scoreAway} entre ${home.nom} et ${away.nom}.`;
+
+  return { scoreHome, scoreAway, recit };
+}
+
+function calculerClassement(journeesJouees) {
+  const table = {};
+  CLUBS_SPORTIFS.forEach(c => { table[c.id] = { id:c.id, nom:c.nom, pts:0, j:0, v:0, n:0, d:0, bp:0, bc:0 }; });
+  (journeesJouees || []).forEach(journee => {
+    journee.matchs.forEach(m => {
+      if (!m.played) return;
+      const h = table[m.home], a = table[m.away];
+      if (!h || !a) return;
+      h.j++; a.j++;
+      h.bp += m.scoreHome; h.bc += m.scoreAway;
+      a.bp += m.scoreAway; a.bc += m.scoreHome;
+      if (m.scoreHome > m.scoreAway) { h.v++; h.pts += 3; a.d++; }
+      else if (m.scoreAway > m.scoreHome) { a.v++; a.pts += 3; h.d++; }
+      else { h.n++; a.n++; h.pts++; a.pts++; }
+    });
+  });
+  return Object.values(table).sort((x, y) => (y.pts - x.pts) || ((y.bp - y.bc) - (x.bp - x.bc)) || (y.bp - x.bp));
+}
+
+function choisirStadeFinale(stadesUtilises) {
+  let dispo = CLUBS_SPORTIFS.filter(c => !(stadesUtilises || []).includes(c.id));
+  if (dispo.length === 0) dispo = CLUBS_SPORTIFS.slice();
+  return dispo[Math.floor(Math.random() * dispo.length)].id;
+}
+
+// Simule un tour a elimination directe, aller-retour (score cumule)
+function simulerTourElimination(clubsQualifies) {
+  const n = clubsQualifies.length;
+  const paires = [];
+  for (let i = 0; i < n / 2; i++) paires.push([clubsQualifies[i], clubsQualifies[n - 1 - i]]);
+
+  return paires.map(([a, b]) => {
+    const aller = simulerMatch(a, b);
+    const retour = simulerMatch(b, a);
+    const totalA = aller.scoreHome + retour.scoreAway;
+    const totalB = aller.scoreAway + retour.scoreHome;
+    return {
+      home:a, away:b, aller, retour, totalA, totalB,
+      vainqueur: totalA >= totalB ? a : b,
+      recit: `${getClub(a).nom} ${totalA} - ${totalB} ${getClub(b).nom} (cumul aller-retour)`
+    };
+  });
+}
+
+async function chargerOuInitialiserSaison() {
+  if (typeof sbGetChampionnat !== 'function') return null;
+  let saison = await sbGetChampionnat().catch(() => null);
+  if (!saison) {
+    saison = {
+      numero: 1,
+      dateDebut: new Date().toISOString(),
+      phase: 'reguliere',
+      calendrier: genererCalendrierSaison(),
+      stadeFinaleClubId: choisirStadeFinale([]),
+      stadesUtilises: [],
+      resultatsFinales: null,
+      palmares: []
+    };
+    if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(saison).catch(() => {});
+  }
+  return saison;
+}
+
+function joursEcoulesDepuis(dateISO) {
+  return Math.max(0, Math.floor((Date.now() - new Date(dateISO).getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+// Fait avancer la saison selon le temps reel ecoule (1 journee par semaine).
+// Peut etre appelee par n'importe quel joueur au chargement — verifie avant de rejouer une journee deja faite.
+async function verifierEtJouerJournees() {
+  const saison = await chargerOuInitialiserSaison();
+  if (!saison || saison.phase === 'terminee') return saison;
+
+  const joursEcoules = joursEcoulesDepuis(saison.dateDebut);
+  const journeeCible = Math.min(Math.floor(joursEcoules / 7), saison.calendrier.length - 1);
+  let modifie = false;
+
+  for (let i = 0; i <= journeeCible; i++) {
+    const journee = saison.calendrier[i];
+    if (!journee) continue;
+    journee.matchs.forEach(m => {
+      if (!m.played) {
+        const res = simulerMatch(m.home, m.away);
+        Object.assign(m, { scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit, played: true });
+        modifie = true;
+      }
+    });
+  }
+
+  // Une fois la phase reguliere entierement jouee, on enchaine directement les phases finales
+  // (simplification : quarts, demies et finale sont simules en une fois, plutot que d'etaler sur d'autres semaines)
+  if (saison.phase === 'reguliere' && saison.calendrier.every(j => j.matchs.every(m => m.played))) {
+    const classement = calculerClassement(saison.calendrier);
+    const top8 = classement.slice(0, 8).map(c => c.id);
+    const quarts = simulerTourElimination(top8);
+    const demiEngages = quarts.map(q => q.vainqueur);
+    const demies = simulerTourElimination(demiEngages);
+    const finalistes = demies.map(d => d.vainqueur);
+    const finale = simulerMatch(finalistes[0], finalistes[1]);
+    const champion = finale.scoreHome >= finale.scoreAway ? finalistes[0] : finalistes[1];
+
+    saison.resultatsFinales = { quarts, demies, finale: { ...finale, home:finalistes[0], away:finalistes[1] }, champion, stadeClubId: saison.stadeFinaleClubId };
+    saison.palmares.push({
+      saison: saison.numero,
+      champion: getClub(champion).nom,
+      finaliste: getClub(finalistes[0] === champion ? finalistes[1] : finalistes[0]).nom,
+      stade: getClub(saison.stadeFinaleClubId).nom,
+      classementFinal: classement.map(c => ({ nom:c.nom, pts:c.pts }))
+    });
+    saison.phase = 'terminee';
+    modifie = true;
+  }
+
+  if (modifie && typeof sbSaveChampionnat === 'function') {
+    await sbSaveChampionnat(saison).catch(() => {});
+  }
+  return saison;
+}
+
+// Demarre une toute nouvelle saison (appelee automatiquement une fois la precedente terminee et consultee)
+async function demarrerNouvelleSaison(saisonPrecedente) {
+  const nouvelle = {
+    numero: (saisonPrecedente?.numero || 0) + 1,
+    dateDebut: new Date().toISOString(),
+    phase: 'reguliere',
+    calendrier: genererCalendrierSaison(),
+    stadeFinaleClubId: choisirStadeFinale(saisonPrecedente?.stadesUtilises || []),
+    stadesUtilises: [...(saisonPrecedente?.stadesUtilises || []), saisonPrecedente?.stadeFinaleClubId].filter(Boolean),
+    resultatsFinales: null,
+    palmares: saisonPrecedente?.palmares || []
+  };
+  if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(nouvelle).catch(() => {});
+  return nouvelle;
+}
+
+function getClubLocal() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  return CLUBS_SPORTIFS.find(c => c.country === pays && c.city === ville);
+}
+
+async function doObserverMatch() {
+  document.getElementById('postes-modal-title').textContent = 'Championnat — Résultats & Calendrier';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  let saison = await verifierEtJouerJournees();
+  const clubLocal = getClubLocal();
+
+  let html = '<div style="padding:1rem">';
+
+  if (saison.phase === 'terminee' && saison.resultatsFinales) {
+    const rf = saison.resultatsFinales;
+    html += '<div style="text-align:center;padding:.8rem;border:1px solid #C9A84C;margin-bottom:1rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.1em;color:#C9A84C">🏆 ' + getClub(rf.champion).nom + '</div>';
+    html += '<div style="font-size:.75rem;color:#8a8060;margin-top:.3rem">Champion de la saison ' + saison.numero + ' — finale au ' + getClub(rf.stadeClubId).nom + '</div>';
+    html += '<div style="font-size:.72rem;color:#6a5a30;margin-top:.3rem">' + rf.finale.recit + '</div>';
+    html += '</div>';
+    demarrerNouvelleSaison(saison);
+  } else if (clubLocal) {
+    let prochain = null, dernier = null;
+    for (const j of saison.calendrier) {
+      const m = j.matchs.find(mm => mm.home === clubLocal.id || mm.away === clubLocal.id);
+      if (!m) continue;
+      if (m.played) dernier = { journee:j.numero, m };
+      else if (!prochain) prochain = { journee:j.numero, m };
+    }
+    html += '<div style="margin-bottom:1rem"><div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.08em;color:#c0b090;margin-bottom:.3rem">' + clubLocal.nom + '</div>';
+    if (prochain) {
+      const adv = prochain.m.home === clubLocal.id ? prochain.m.away : prochain.m.home;
+      const domicile = prochain.m.home === clubLocal.id;
+      html += '<div style="font-size:.8rem;color:#8a8060">Prochain match (J' + prochain.journee + ') : ' + (domicile ? 'à domicile contre ' : 'à l\'extérieur face à ') + getClub(adv).nom + '</div>';
+    } else {
+      html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Saison terminée pour ce club.</div>';
+    }
+    if (dernier) {
+      html += '<div style="font-size:.78rem;color:#6ab858;margin-top:.4rem">Dernier résultat (J' + dernier.journee + ') : ' + dernier.m.recit + '</div>';
+    }
+    html += '</div>';
+  }
+
+  const classement = calculerClassement(saison.calendrier);
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">CLASSEMENT</div>';
+  html += '<div style="max-height:280px;overflow-y:auto">';
+  html += '<div style="display:grid;grid-template-columns:1.6rem 1fr 2rem 2rem 2rem 2rem 2.4rem;gap:.3rem;font-size:.68rem;color:#6a5a30;padding:.2rem .4rem;border-bottom:1px solid #2a2010"><span>#</span><span>Club</span><span>J</span><span>V</span><span>N</span><span>D</span><span>Pts</span></div>';
+  classement.forEach((c, i) => {
+    html += '<div style="display:grid;grid-template-columns:1.6rem 1fr 2rem 2rem 2rem 2rem 2.4rem;gap:.3rem;font-size:.74rem;color:' + (clubLocal && c.id === clubLocal.id ? '#C9A84C' : '#c0b090') + ';padding:.25rem .4rem">';
+    html += '<span>' + (i+1) + '</span><span>' + c.nom + '</span><span>' + c.j + '</span><span>' + c.v + '</span><span>' + c.n + '</span><span>' + c.d + '</span><span>' + c.pts + '</span></div>';
+  });
+  html += '</div></div>';
+
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function doConsulterPalmares() {
+  document.getElementById('postes-modal-title').textContent = 'Palmarès du Championnat';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const saison = await chargerOuInitialiserSaison();
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Historique complet et permanent des saisons passées.</div>';
+
+  if (!saison.palmares || saison.palmares.length === 0) {
+    html += '<div style="font-size:.8rem;color:#5a5040;text-align:center;padding:1.5rem 0">Saison ' + saison.numero + ' en cours. Aucun champion couronné pour l\'instant.</div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:.5rem;max-height:340px;overflow-y:auto">';
+    [...saison.palmares].reverse().forEach(p => {
+      html += '<div style="border:1px solid #2a2010;background:#0a0805;padding:.6rem">';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.08em;color:#C9A84C">Saison ' + p.saison + ' — 🏆 ' + p.champion + '</div>';
+      html += '<div style="font-size:.7rem;color:#8a8060;margin-top:.2rem">Finale au ' + p.stade + ' · Finaliste : ' + p.finaliste + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function doParierMatch() {
+  const saison = await verifierEtJouerJournees();
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+
+  let prochainMatch = null;
+  for (const j of saison.calendrier) {
+    const m = j.matchs.find(mm => (mm.home === clubLocal.id || mm.away === clubLocal.id) && !mm.played);
+    if (m) { prochainMatch = m; break; }
+  }
+  if (!prochainMatch) { showToast('Aucun pari disponible', 'Pas de match a venir pour ce club.', false); return; }
+
+  const adv = prochainMatch.home === clubLocal.id ? prochainMatch.away : prochainMatch.home;
+  const advClub = getClub(adv);
+  const domicile = prochainMatch.home === clubLocal.id;
+
+  document.getElementById('postes-modal-title').textContent = 'Parier sur le prochain match';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.8rem">' + clubLocal.nom + (domicile?' (domicile)':' (extérieur)') + ' vs ' + advClub.nom + '</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Votre pronostic</label>';
+  html += '<div style="display:flex;gap:.4rem;margin-bottom:.8rem">';
+  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'domicile\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + clubLocal.nom + '</button>';
+  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'nul\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Match nul</button>';
+  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'adversaire\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + advClub.nom + '</button>';
+  html += '</div>';
+  html += '<input type="hidden" id="pari-choix" value="domicile"/>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Mise (FR)</label>';
+  html += '<input id="pari-mise" type="number" value="100" min="10" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.9rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
+  html += '<button onclick="confirmerPariMatch(\'' + clubLocal.id + '\',\'' + adv + '\',' + (domicile?'true':'false') + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerPariMatch(clubLocalId, advId, domicile) {
+  const mise = parseInt(document.getElementById('pari-mise')?.value || '0');
+  const choix = document.getElementById('pari-choix')?.value || 'domicile';
+  if (!mise || mise < 10) { showToast('Mise invalide', 'Minimum 10 FR.', false); return; }
+  if (state.arg < mise) { showToast('Fonds insuffisants', '', false); return; }
+
+  document.getElementById('modal-postes').classList.remove('open');
+  state.arg -= mise;
+
+  // Resolution immediate via un jet reprenant la meme logique de force relative que le vrai match
+  // (pari personnel, distinct du resultat officiel qui suit le calendrier de la ligue)
+  const clubLocal = getClub(clubLocalId), adv = getClub(advId);
+  const forceLocal = clubLocal.valeurBase + (domicile ? 5 : 0);
+  const forceAdv = adv.valeurBase + (domicile ? 0 : 5);
+  const total = forceLocal + forceAdv;
+  const roll = Math.random() * 100;
+  const seuilVictoireLocal = (forceLocal / total) * 70;
+  const seuilNul = seuilVictoireLocal + 20;
+
+  let resultatReel;
+  if (roll < seuilVictoireLocal) resultatReel = 'domicile';
+  else if (roll < seuilNul) resultatReel = 'nul';
+  else resultatReel = 'adversaire';
+
+  const gains = { domicile: 2.5, nul: 3.5, adversaire: 3 };
+  if (resultatReel === choix) {
+    const gain = Math.round(mise * gains[choix]);
+    state.arg += gain;
+    updateUI();
+    showToast('Pari gagné !', '+' + gain.toLocaleString('fr-FR') + ' FR.', true, true);
+    addJournalEntry('Pari sportif gagné sur ' + clubLocal.nom + ' vs ' + adv.nom + '. +' + gain + ' FR.', 'event-good');
+  } else {
+    updateUI();
+    showToast('Pari perdu', 'Le pronostic ne s\'est pas réalisé.', false);
+    addJournalEntry('Pari sportif perdu sur ' + clubLocal.nom + ' vs ' + adv.nom + '. -' + mise + ' FR.', 'event-bad');
+  }
+}

@@ -219,6 +219,23 @@ async function sbChargerBatimentsFermes(pays, ville) {
   return rows || [];
 }
 
+// =====================
+// CHAMPIONNAT SPORTIF (etat partage, une seule ligne)
+// =====================
+async function sbGetChampionnat() {
+  const rows = await sbGet('championnat', 'id=eq.1');
+  if (!rows || rows.length === 0) return null;
+  return rows[0].data;
+}
+
+async function sbSaveChampionnat(data) {
+  const existing = await sbGet('championnat', 'id=eq.1');
+  if (existing && existing.length > 0) {
+    return sbUpdate('championnat', 'id=eq.1', { data, updated_at: new Date().toISOString() });
+  }
+  return sbInsert('championnat', { id: 1, data, updated_at: new Date().toISOString() });
+}
+
 async function sbSendMail(from, to, subject, body, time) {
   const id = 'mail-' + Date.now();
   return sbInsert('mails', { id, from_player: from, to_player: to, subject, body, time, read: false });
