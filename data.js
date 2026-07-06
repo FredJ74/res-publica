@@ -1303,10 +1303,10 @@ const BUILDINGS = {
         desc: "Le hall d'accueil de l'Assemblee Nationale. Fresque murale, marbre et personnel en faction.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-assemblee-republic.png",
         persons: [
-          {name:'Garde Republicain (PNJ)', role:'PNJ - Securite', rel:'neutral', job:'garde'},
-          {name:'Hotesse Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse_accueil'},
+          {name:'Garde Republicain (PNJ)', role:'PNJ - Securite', rel:'neutral', job:'garde', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/garde-republicain-assemblee.png'},
+          {name:'Hotesse Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse_accueil', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotesse-accueil-assemblee.png'},
           {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotesse-objets-trouves.png'},
-          {name:'Agent Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage'}
+          {name:'Agent Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/agent-entretien-assemblee.png'}
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral', pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
@@ -1321,9 +1321,9 @@ const BUILDINGS = {
         desc: "L'hemicycle principal. Les votes se font ici. Acces deputés uniquement pour les sessions.",
         imageUrl: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&q=80",
         persons: [
-          {name:'President Laroche', role:"President de l\'Assemblee (PNJ)", rel:'neutral', job:'president'},
-          {name:'Depute Martin',     role:'Groupe majoritaire (PNJ)', rel:'neutral', job:'depute'},
-          {name:'Depute Chen',       role:'Opposition (PNJ)', rel:'neutral', job:'depute'}
+          {name:'President Laroche', role:"President de l\'Assemblee (PNJ)", rel:'neutral', job:'president', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/president-assemblee-laroche.png'},
+          {name:'Depute Martin',     role:'Groupe majoritaire (PNJ)', rel:'neutral', job:'depute', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/depute-majorite-martin.png'},
+          {name:'Depute Chen',       role:'Opposition (PNJ)', rel:'neutral', job:'depute', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/depute-opposition-chen.png'}
         ],
         orders: [
           {fn:'observer_debats',  label:'Observer les debats',   pa:1, cost:0,   type:'legal', icon:'ti-eye',      successRate:100, desc:'Revele les positions des deputes. +1 INF pour les journalistes.'},
@@ -1339,8 +1339,8 @@ const BUILDINGS = {
         desc: "Les couloirs de l\'Assemblee. C'est ici que se font vraiment les deals.",
         imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
         persons: [
-          {name:'Lobbyiste Perrin', role:'Lobbyiste (PNJ)', rel:'neutral', job:'lobbyiste'},
-          {name:'Journaliste Blanc',role:'Correspondant parlementaire (PNJ)', rel:'neutral', job:'journaliste'}
+          {name:'Lobbyiste Perrin', role:'Lobbyiste (PNJ)', rel:'neutral', job:'lobbyiste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/lobbyiste-perrin.png'},
+          {name:'Journaliste Blanc',role:'Correspondant parlementaire (PNJ)', rel:'neutral', job:'journaliste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/journaliste-blanc.png'}
         ],
         orders: [
           {fn:'marchander',  label:'Proposer un accord',  pa:2, cost:100, type:'grey',  icon:'ti-handshake',successRate:65},
@@ -1353,7 +1353,7 @@ const BUILDINGS = {
         desc: "Les archives de l\'Assemblee Nationale. Toutes les lois votees y sont conservees pendant 3 mois.",
         imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
         persons: [
-          {name:'Archiviste Parlementaire (PNJ)', role:'PNJ - Archiviste de l\'Assemblee', rel:'neutral', job:'archiviste'}
+          {name:'Archiviste Parlementaire (PNJ)', role:'PNJ - Archiviste de l\'Assemblee', rel:'neutral', job:'archiviste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archiviste-parlementaire.png'}
         ],
         orders: [
           {fn:'consulter_archives_lois', label:'Consulter les archives', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Liste des lois votees : titre, date, resultat, votes nominatifs. Archivage 3 mois.'}
