@@ -101,7 +101,7 @@ const WORLD = {
       isCapitale: true,
       streetName: 'Avenue de la République',
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel-Restaurant La Républia",
@@ -174,7 +174,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2'],
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel du Port",
@@ -213,7 +213,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge.png',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel des Mineurs",
@@ -270,7 +270,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-el-estado.png',
       desc:'Capitale d\'El Estado. Chaleur étouffante, corruption omniprésente, Generalissimo Gordito règne sans partage.',
       isCapitale: true,
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','laboratoire-priere','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel El Cartel",
@@ -409,7 +409,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80',
       desc:'Ville de la jungle. Les laboratoires s\'étendent à perte de vue.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
       buildingContext: {
         'hotel-republica': {
           name: "Refugio de la Selva",
@@ -467,7 +467,7 @@ const WORLD = {
       desc:'Capitale de Sovarka. Gris acier, blocs soviétiques, surveillance permanente. Le Parti voit tout.',
       isCapitale: true,
       empireName: 'Sovarka',
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','kolkhoze-spirituel','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Kollektiv",
@@ -606,7 +606,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
       buildingContext: {
         'hotel-republica': {
           name: "Baraquement Collectif N°7",
@@ -663,7 +663,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Capitale d\'Al-Khalija. Or, turquoise et sable. Le Palais Royal domine tout. Le protocole est une religion.',
       isCapitale: true,
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','patisserie-sacree','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel Al-Nour Palace",
@@ -824,7 +824,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Port pétrolier d\'Al-Khalija. Les tankers et les dhows se croisent.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel du Port Al-Nour",
@@ -1363,6 +1363,141 @@ const BUILDINGS = {
   },
 
   // ---- TRIBUNAL ----
+  'office-notarial': {
+    name: "Office Notarial",
+    shortName: "Notaire",
+    cat: "Services - Capitale uniquement",
+    icon: "ti-stamp",
+    bgColor: "#181410",
+    capitaleOnly: true,
+    desc: "Le notaire de la nation. Ventes de terrain, successions, contrats de mariage — tout ce qui doit rester ecrit, ici, pour toujours.",
+    rooms: {
+      accueil_notaire: {
+        name: "Accueil",
+        image: "🖋️",
+        imageBg: "linear-gradient(135deg,#181410,#241c10)",
+        desc: "Le hall d'attente de l'office notarial. Boiseries sombres, silence feutre.",
+        persons: [
+          {name:'Notaire Fontenelle (PNJ)', role:'Notaire Officiel', rel:'neutral', job:'notaire'},
+          {name:'Clerc Delahaye (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
+        ],
+        orders: [
+          {fn:'presentation_office_notarial', label:'Se renseigner sur les services', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100, desc:'Ventes de terrain, successions, contrats de mariage, archives — presentation des services du notaire.'}
+        ]
+      },
+      bureau_successions: {
+        name: "Bureau des Successions",
+        image: "📜",
+        imageBg: "linear-gradient(135deg,#14100c,#1c1610)",
+        desc: "Le bureau ou se traitent les heritages. Les dossiers s'empilent, les familles se dechirent.",
+        persons: [
+          {name:'Clerc Delahaye (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
+        ],
+        orders: [
+          {fn:'redaction_testament', label:'Rediger un testament', pa:2, cost:500, type:'legal', icon:'ti-file-text', successRate:100, desc:'Designer un heritier de son choix, plutot que la devolution par defaut.'},
+          {fn:'consulter_succession', label:'Consulter une succession', pa:1, cost:100, type:'legal', icon:'ti-search', successRate:100, desc:'Verifier qui a herite de qui, et de quoi.'}
+        ]
+      },
+      bureau_contrats: {
+        name: "Bureau des Contrats",
+        image: "📝",
+        imageBg: "linear-gradient(135deg,#100e0a,#181410)",
+        desc: "Ventes de terrain, contrats de mariage — tout ce qui engage, se signe ici.",
+        persons: [
+          {name:'Notaire Fontenelle (PNJ)', role:'Notaire Officiel', rel:'neutral', job:'notaire'}
+        ],
+        orders: [
+          {fn:'acte_vente_terrain', label:'Officialiser une vente de terrain', pa:1, cost:300, type:'legal', icon:'ti-home-check', successRate:100, desc:'Le notaire authentifie la transaction. Acte de propriete delivre.'},
+          {fn:'contrat_mariage', label:'Negocier un contrat de mariage', pa:2, cost:400, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Choisir le regime matrimonial (communaute, separation de biens) plutot que la copropriete par defaut.'}
+        ]
+      },
+      archives_notariales: {
+        name: "Archives Notariales",
+        image: "🏛️",
+        imageBg: "linear-gradient(135deg,#0c0a08,#141008)",
+        desc: "La memoire ecrite de la nation. Chaque acte de propriete, chaque mariage, chaque succession, depuis l'origine. Rien ne s'efface jamais ici.",
+        persons: [
+          {name:'Archiviste Notarial (PNJ)', role:'PNJ - Gardien des Archives', rel:'neutral', job:'archiviste_notaire'}
+        ],
+        orders: [
+          {fn:'consulter_archives_notariales', label:'Consulter les archives notariales', pa:1, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent des biens, mariages et successions. Recherche par nom de personnage.'}
+        ]
+      }
+    }
+  },
+  'stade': {
+    name: "Stade Municipal",
+    shortName: "Stade",
+    cat: "Sport & Loisirs",
+    icon: "ti-ball-football",
+    bgColor: "#101812",
+    capitaleOnly: false,
+    desc: "Le stade de la ville. Le club local y joue, y gagne, y perd — et ses supporters ne l'oublient jamais.",
+    rooms: {
+      terrain: {
+        name: "Terrain",
+        image: "⚽",
+        imageBg: "linear-gradient(135deg,#0e1810,#12201a)",
+        desc: "La pelouse principale. Vide en semaine, pleine a craquer les jours de match.",
+        persons: [
+          {name:'Entraineur Local (PNJ)', role:'PNJ - Entraineur', rel:'neutral', job:'entraineur'},
+          {name:'Commentateur Sportif (PNJ)', role:'PNJ - Commentateur', rel:'neutral', job:'commentateur'}
+        ],
+        orders: [
+          {fn:'observer_match', label:'Observer le prochain match', pa:0, cost:0, type:'legal', icon:'ti-eye', successRate:100, desc:'Calendrier et resultats du championnat local.'}
+        ]
+      },
+      vestiaires: {
+        name: "Vestiaires",
+        image: "👕",
+        imageBg: "linear-gradient(135deg,#0c0e10,#141818)",
+        desc: "Reserve aux membres du club sportif. Odeur de liniment et de victoire (ou de defaite).",
+        persons: [
+          {name:'Entraineur Local (PNJ)', role:'PNJ - Entraineur', rel:'neutral', job:'entraineur'}
+        ],
+        orders: [
+          {fn:'entrainement', label:"S'entrainer", pa:2, cost:0, type:'legal', icon:'ti-run', successRate:100, requiresOrg:'sportive', desc:'Reserve aux membres du club sportif.'}
+        ]
+      },
+      buvette: {
+        name: "Buvette",
+        image: "🍺",
+        imageBg: "linear-gradient(135deg,#141008,#1c1608)",
+        desc: "On y refait le match d'avant en attendant le suivant. Biere tiede, ambiance chaude.",
+        persons: [
+          {name:'Tenancier de Buvette (PNJ)', role:'PNJ - Buvette', rel:'neutral', job:'serveur'}
+        ],
+        orders: [
+          {fn:'parler_pnj', label:'Prendre un verre', pa:1, cost:50, type:'legal', icon:'ti-beer', successRate:100, desc:'Discuter avec les habitues. Bonne source de rumeurs sportives.'}
+        ]
+      },
+      guichet_paris: {
+        name: "Guichet de Paris",
+        image: "🎫",
+        imageBg: "linear-gradient(135deg,#100c14,#181020)",
+        desc: "Ici, on parie sur tout : le score, le premier but, le carton rouge. Legal, mais pas toujours honnete.",
+        persons: [
+          {name:'Bookmaker Officiel (PNJ)', role:'PNJ - Paris Sportifs', rel:'neutral', job:'bookmaker'}
+        ],
+        orders: [
+          {fn:'parier_match', label:'Parier sur un match', pa:1, cost:0, type:'legal', icon:'ti-coin', successRate:100, desc:'Mise ton argent sur le resultat du prochain match.'}
+        ]
+      },
+      siege_supporters: {
+        name: "Siege des Supporters",
+        image: "🧣",
+        imageBg: "linear-gradient(135deg,#0e1218,#141c24)",
+        desc: "Le QG du club de supporters. Banderoles, chants appris par coeur, et une memoire collective qui ne s'efface jamais.",
+        persons: [
+          {name:'Meneur des Supporters (PNJ)', role:'PNJ - Chef de Tribune', rel:'neutral', job:'meneur_supporters'}
+        ],
+        orders: [
+          {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:0, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adherer au club de supporters de la ville.'},
+          {fn:'consulter_palmares', label:'Consulter le palmares du club', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent : resultats de chaque championnat, articles de presse marquants. Rien ne s\'efface jamais ici.'}
+        ]
+      }
+    }
+  },
   'tribunal': {
     name: "Tribunal de la Capitale",
     shortName: "Tribunal",
