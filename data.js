@@ -117,8 +117,8 @@ const WORLD = {
             },
             buvette: { name: "Boutique et Buvette — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/buvette-boutique-luthecia.png",
               persons: [
-                {name:'Justin Verre (PNJ)', role:'Tenancier de Buvette', rel:'neutral', job:'serveur'},
-                {name:'Jean Fourtout (PNJ)', role:'Vendeur de Produits Dérivés', rel:'neutral', job:'commercant'}
+                {name:'Justin Verre (PNJ)', role:'Tenancier de Buvette', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/buvette-scene-tenancier.png'},
+                {name:'Jean Fourtout (PNJ)', role:'Vendeur de Produits Dérivés', rel:'neutral', job:'commercant', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/buvette-scene-vendeur.png'}
               ]
             },
             guichet_paris: { name: "Guichet des Paris Sportifs — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/guichet-paris-luthecia.jpeg",
