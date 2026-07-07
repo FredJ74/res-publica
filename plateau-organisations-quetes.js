@@ -304,6 +304,7 @@ async function chargerOrganisations() {
   try {
     const orgas = await sbLoadOrganisations();
     state.organisations = orgas;
+    if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations();
     // Rafraichir l'affichage si la fiche est ouverte sur l'onglet organisations
     const tab = document.querySelector('#vue-self .piece-tab.active');
     if (tab && document.getElementById('vue-self')?.classList.contains('active')) {
@@ -525,6 +526,24 @@ function renderOngletOrgas() {
         '</div>'
       : '') +
 
+      ((orga.type === 'sportive' || orga.type === 'supporters') ? (
+        orga.election?.enCours ? (
+          '<div style="padding:.6rem .8rem;border-top:1px solid #1a1208;background:#0c0a06">' +
+          '<div style="font-size:.7rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.3rem">ÉLECTION — ' + (orga.election.phase === 'candidatures' ? 'Candidatures ouvertes' : 'Vote en cours') + '</div>' +
+          (orga.election.phase === 'candidatures' && !orga.election.candidats.some(c => c.nom === state.char?.name)
+            ? '<button onclick="seProsenterCandidat(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">Se présenter</button>'
+            : '') +
+          (orga.election.phase === 'vote'
+            ? orga.election.candidats.map(c => '<button onclick="voterElection(\'' + orga.id + '\',\'' + c.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + c.nom + '</button>').join('')
+            : '') +
+          '</div>'
+        ) : (
+          '<div style="padding:.5rem .8rem;border-top:1px solid #1a1208">' +
+          '<button onclick="doDeclencherElectionClub()" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.25rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">🗳 Déclencher une élection</button>' +
+          '</div>'
+        )
+      ) : '') +
+
     '</div>';
   }).join('');
 }
@@ -742,6 +761,19 @@ function executerOrdreOrga(orgaId, fn) {
     orga_rituel:         () => { state.inf=Math.min(100,(state.inf||0)+6); showToast('Rituel accompli.','+6 INF. Nouveau membre initié.',true); },
     orga_reseau:         () => { state.inf=Math.min(100,(state.inf||0)+8); showToast('Réseau activé.','+8 INF. Information exclusive obtenue.',true,true); addJournalEntry('Réseau de la Loge activé. +8 INF.','event-good'); },
     orga_cooptation:     () => { state.inf=Math.min(100,(state.inf||0)+5); showToast('Cooptation discrète.','Un poste peut être attribué sans élection.',true); },
+    orga_hooliganisme:   () => {
+      const pays = state.country || 'republic';
+      if (INDICES_NATIONAUX[pays]) {
+        INDICES_NATIONAUX[pays].ISN = Math.max(0, INDICES_NATIONAUX[pays].ISN - 5);
+        INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 5);
+      }
+      if (!state.historiqueCrimes) state.historiqueCrimes = [];
+      state.historiqueCrimes.push({ acte: 'hooliganisme', cible: null, jour: state.day, expireJour: (state.day||1) + 8 });
+      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('hooliganisme', null);
+      showToast('Échauffourées !', 'Les supporters sèment le chaos après le match. -5 Sécurité Nationale, -5 Social.', true, true);
+      addJournalEntry('Échauffourées organisées par "' + orga.nom + '". Impact sur la sécurité nationale et le climat social.', 'event-bad');
+      addExternalEvent('⚠️ Des échauffourées éclatent en marge d\'un match, attribuées aux supporters de "' + orga.nom + '".');
+    },
   };
 
   const effet = effets[fn];
@@ -1204,11 +1236,12 @@ async function doRejoindreClubSupporters() {
       type: 'supporters',
       nom: 'Club de Supporters — ' + clubLocal.nom,
       desc: 'Les fidèles du ' + clubLocal.nom + '.',
-      fondateur: 'PNJ', chef: 'PNJ',
+      fondateur: 'Alfredo Mifassole (PNJ)', chef: 'Alfredo Mifassole (PNJ)', chefEstPnj: true,
       country: pays, city: ville, country_origine: pays,
       creeLe: state.day || 1,
       membres: [], demandesAdhesion: [],
       bonusLocaux: { pop:0, inf:0, dis:0 }, caisse: 0,
+      election: null,
       visible: true
     };
     state.organisations.push(orga);
@@ -1226,6 +1259,166 @@ async function doRejoindreClubSupporters() {
   if (document.getElementById('vue-self')?.classList.contains('active')) {
     switchSelfTab('orgas', null);
   }
+}
+
+function getClubSupportersLocal() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  return (state.organisations || []).find(o => o.type === 'supporters' && o.country === pays && o.city === ville);
+}
+
+function doDeclencherElectionClub() {
+  const orga = getClubSupportersLocal();
+  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
+  const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
+  if (!estMembre) { showToast('Réservé aux membres', 'Adhérez au club pour déclencher une élection.', false); return; }
+  if (orga.election?.enCours) { showToast('Élection en cours', 'Une élection est déjà en cours pour ce club.', false); return; }
+  const jour = state.day || 1;
+  if (orga.election?.derniereElection && (jour - orga.election.derniereElection) < 7) {
+    const reste = 7 - (jour - orga.election.derniereElection);
+    showToast('Trop tôt', 'Encore ' + reste + ' jour(s) avant de pouvoir redéclencher une élection.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Déclencher une élection';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.6rem">Motivez votre décision — ce message sera publié sur le forum du championnat.</div>';
+  html += '<textarea id="election-motivation" rows="4" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem" placeholder="Pourquoi déclenchez-vous cette élection ?"></textarea>';
+  html += '<button onclick="confirmerDeclenchementElection(\'' + orga.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déclencher l\'élection</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDeclenchementElection(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) return;
+  const motivation = document.getElementById('election-motivation')?.value?.trim();
+  if (!motivation) { showToast('Motivation requise', '', false); return; }
+
+  const jour = state.day || 1;
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  orga.election = {
+    enCours: true, phase: 'candidatures',
+    motivateur: state.char?.name, motivation,
+    dateDeclenchement: jour, dateFinCandidatures: jour + 3, dateFinVote: jour + 6,
+    candidats: [], votes: {},
+    derniereElection: orga.election?.derniereElection || null
+  };
+  sauvegarderOrga(orga);
+
+  if (typeof sbCreateTopic === 'function') {
+    const titre = '🗳 Élection déclenchée — ' + orga.nom;
+    const contenu = (state.char?.name || 'Un membre') + ' déclenche une élection pour la présidence de "' + orga.nom + '" :<br><br><em>' + motivation + '</em><br><br>Les candidatures sont ouvertes pendant 3 jours, suivies de 3 jours de vote.';
+    const topicId = await sbCreateTopic('sport', titre, state.char?.name || 'Anonyme', state.country, time).catch(() => null);
+    if (topicId && typeof sbCreatePost === 'function') await sbCreatePost(topicId, state.char?.name || 'Anonyme', contenu, time).catch(() => {});
+    if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
+    FORUM_TOPICS['sport'].unshift({ id: topicId || 'election-' + Date.now(), title: titre, author: state.char?.name, time, views: 1, replies: 0, lastPostAuthor: state.char?.name, lastPostTime: time, posts: [{ author: state.char?.name, time, content: contenu }] });
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Élection déclenchée !', 'Les candidatures sont ouvertes pour 3 jours.', true, true);
+  if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
+}
+
+function seProsenterCandidat(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga?.election?.enCours || orga.election.phase !== 'candidatures') { showToast('Indisponible', 'La période de candidature est terminée.', false); return; }
+  const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
+  if (!estMembre) { showToast('Réservé aux membres', '', false); return; }
+  if (orga.election.candidats.some(c => c.nom === state.char?.name)) { showToast('Déjà candidat', '', false); return; }
+  orga.election.candidats.push({ nom: state.char?.name });
+  sauvegarderOrga(orga);
+  updateUI();
+  showToast('Candidature enregistrée !', 'Vous êtes candidat à la présidence de "' + orga.nom + '".', true, true);
+  if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
+}
+
+function voterElection(orgaId, candidatNom) {
+  const orga = getOrgaById(orgaId);
+  if (!orga?.election?.enCours || orga.election.phase !== 'vote') { showToast('Indisponible', 'Le vote n\'est pas ouvert.', false); return; }
+  const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
+  if (!estMembre) { showToast('Réservé aux membres', '', false); return; }
+  orga.election.votes[state.char?.name] = candidatNom;
+  sauvegarderOrga(orga);
+  updateUI();
+  showToast('Vote enregistré', 'Vous votez pour ' + candidatNom + '.', true);
+  if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
+}
+
+// Fait avancer toutes les elections en cours (candidatures -> vote -> depouillement).
+// Appelee par n'importe quel joueur au chargement, comme le championnat.
+function verifierElectionsOrganisations() {
+  (state.organisations || []).forEach(orga => {
+    if (!orga.election?.enCours) return;
+    const jour = state.day || 1;
+
+    if (orga.election.phase === 'candidatures' && jour >= orga.election.dateFinCandidatures) {
+      orga.election.phase = 'vote';
+      sauvegarderOrga(orga);
+    }
+
+    if (orga.election.phase === 'vote' && jour >= orga.election.dateFinVote) {
+      const decompte = {};
+      Object.values(orga.election.votes).forEach(nom => { decompte[nom] = (decompte[nom] || 0) + 1; });
+      let vainqueur = null, maxVoix = -1;
+      orga.election.candidats.forEach(c => {
+        const voix = decompte[c.nom] || 0;
+        if (voix > maxVoix) { maxVoix = voix; vainqueur = c.nom; }
+      });
+
+      if (vainqueur) {
+        orga.chef = vainqueur;
+        orga.chefEstPnj = false;
+        const def = TYPES_ORGANISATIONS[orga.type];
+        const grades = def?.grades?.[orga.country] || [];
+        const membre = orga.membres.find(m => m.nom === vainqueur);
+        if (membre && grades.length) { membre.grade = grades[grades.length - 1]; membre.gradeIdx = grades.length - 1; }
+        addExternalEvent('🗳 ' + vainqueur + ' remporte l\'élection à la présidence de "' + orga.nom + '".');
+      }
+
+      orga.election = { enCours: false, phase: null, derniereElection: jour, candidats: [], votes: {} };
+      sauvegarderOrga(orga);
+    }
+  });
+}
+
+function doConsulterOrganigrammeSupporters() {
+  const orga = getClubSupportersLocal();
+  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
+
+  const def = TYPES_ORGANISATIONS.supporters;
+  const grades = def?.grades?.[orga.country] || [];
+
+  document.getElementById('postes-modal-title').textContent = 'Organigramme — ' + orga.nom;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.2rem">' + orga.nom + (orga.chefEstPnj ? ' (poste de président vacant — assuré par PNJ)' : '') + '</div>';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Président actuel : ' + orga.chef + '</div>';
+
+  const membresTries = [...(orga.membres || [])].sort((a, b) => (b.gradeIdx || 0) - (a.gradeIdx || 0));
+  html += '<div style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:.3rem">';
+  if (membresTries.length === 0) {
+    html += '<div style="font-size:.78rem;color:#5a5040;font-style:italic">Aucun membre pour l\'instant.</div>';
+  }
+  membresTries.forEach(m => {
+    const estChef = m.nom === orga.chef;
+    html += '<div style="display:flex;justify-content:space-between;padding:.35rem .5rem;border:1px solid #2a2010;font-size:.78rem;color:' + (estChef ? '#C9A84C' : '#c0b090') + '"><span>' + m.nom + (estChef ? ' 👑' : '') + '</span><span>' + m.grade + '</span></div>';
+  });
+  html += '</div>';
+
+  if (orga.election?.enCours) {
+    html += '<div style="margin-top:1rem;padding:.6rem;border:1px solid #4a3a1a;background:#0f0d05">';
+    html += '<div style="font-size:.75rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em">ÉLECTION EN COURS — ' + (orga.election.phase === 'candidatures' ? 'Candidatures ouvertes' : 'Vote en cours') + '</div>';
+    html += '<div style="font-size:.72rem;color:#8a8060;margin-top:.3rem;font-style:italic">« ' + orga.election.motivation + ' » — ' + orga.election.motivateur + '</div>';
+    if (orga.election.candidats.length > 0) {
+      html += '<div style="font-size:.75rem;color:#c0b090;margin-top:.5rem">Candidats : ' + orga.election.candidats.map(c => c.nom).join(', ') + '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 function doChoisirAccessoireClub() {

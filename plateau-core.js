@@ -122,7 +122,8 @@ const PEINES_ACTES = {
     empoisonnement:           { jours: 2, amende: 2000, label: 'Empoisonnement' },
     acheter_bombe_illegale:   { jours: 2, amende: 2000, label: "Achat d'explosifs non enregistres" },
     utiliser_explosifs:       { jours: 2, amende: 2000, label: "Usage d'explosifs" },
-    incendier:                { jours: 2, amende: 2000, label: 'Incendie volontaire' }
+    incendier:                { jours: 2, amende: 2000, label: 'Incendie volontaire' },
+    hooliganisme:             { jours: 1, amende: 500,  label: 'Trouble a l\'ordre public (hooliganisme)' }
   }
 };
 
@@ -310,6 +311,8 @@ window.addEventListener('DOMContentLoaded', () => {
   // (n'importe quel joueur connecte peut declencher le rattrapage, l'etat est partage sur Supabase)
   setTimeout(() => { if (typeof verifierEtJouerJournees === 'function') verifierEtJouerJournees(); }, 2500);
   setInterval(() => { if (typeof verifierEtJouerJournees === 'function') verifierEtJouerJournees(); }, 300000);
+  setTimeout(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 3000);
+  setInterval(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 300000);
 
   // Événements partagés (journal global) — au chargement puis toutes les 90 secondes
   setTimeout(() => chargerEvenementsPartages(), 1500);

@@ -112,10 +112,21 @@ const WORLD = {
           ],
           roomOverrides: {
             terrain: { name: "Terrain — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-olympique-luthecia.png" },
-            vestiaires: { name: "Vestiaire — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vestiaires-luthecia.png" },
-            buvette: { name: "Boutique et Buvette — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/buvette-boutique-luthecia.png" },
-            guichet_paris: { name: "Guichet des Paris Sportifs — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/guichet-paris-luthecia.jpeg" },
-            siege_supporters: { name: "Les Vieilles Tuiles de Luthécia — Siège des Supporters", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/siege-supporters-luthecia.png" }
+            vestiaires: { name: "Vestiaire — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vestiaires-luthecia.png",
+              persons: [{name:'Alphonse Toudroit (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entraineur-adjoint-alphonse-toudroit.png'}]
+            },
+            buvette: { name: "Boutique et Buvette — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/buvette-boutique-luthecia.png",
+              persons: [
+                {name:'Justin Verre (PNJ)', role:'Tenancier de Buvette', rel:'neutral', job:'serveur'},
+                {name:'Jean Fourtout (PNJ)', role:'Vendeur de Produits Dérivés', rel:'neutral', job:'commercant'}
+              ]
+            },
+            guichet_paris: { name: "Guichet des Paris Sportifs — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/guichet-paris-luthecia.jpeg",
+              persons: [{name:'Ricardo Pif (PNJ)', role:'Bookmaker Officiel', rel:'neutral', job:'bookmaker', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bookmaker-ricardo-pif.png'}]
+            },
+            siege_supporters: { name: "Les Vieilles Tuiles de Luthécia — Siège des Supporters", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/siege-supporters-luthecia.png",
+              persons: [{name:'Alfredo Mifassole (PNJ)', role:'Meneur des Supporters', rel:'neutral', job:'meneur_supporters', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/meneur-supporters-alfredo-mifassole.png'}]
+            }
           }
         },
         'hotel-republica': {
@@ -1646,7 +1657,9 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:150, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adherer au club de supporters de la ville (150 FR/saison).'},
-          {fn:'consulter_palmares', label:'Consulter le palmares du club', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent : resultats de chaque championnat, articles de presse marquants. Rien ne s\'efface jamais ici.'}
+          {fn:'consulter_palmares', label:'Consulter le palmares du club', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent : resultats de chaque championnat, articles de presse marquants. Rien ne s\'efface jamais ici.'},
+          {fn:'consulter_organigramme_supporters', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Composition complete du club de supporters, visible de tous.'},
+          {fn:'declencher_election_club', label:'Déclencher une élection', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Reserve aux membres. 3 jours de candidatures puis 3 jours de vote.'}
         ]
       }
     }
@@ -4057,6 +4070,7 @@ const ORGA_ORDRE_RANG_MIN = {
   orga_fusion:        3, // President seulement
   orga_coup_force:    2, // Capo/Comandante minimum
   orga_blanchiment:   1, // Soldat minimum
+  orga_hooliganisme:  3, // Meneur seulement
 };
 
 const POSTES = {

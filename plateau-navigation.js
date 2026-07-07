@@ -352,7 +352,7 @@ function enterRoom(buildingId, roomId, tabEl) {
     displayDesc += ' — Peine : ' + state.estEmprisonne.raison + '. Temps restant : ' + joursRestants + ' jour(s) (libération au Jour ' + state.estEmprisonne.jourFin + ').';
   }
   document.getElementById('piece-desc').textContent = displayDesc;
-  let displayPersons = (isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []);
+  let displayPersons = roomOverride?.persons?.length > 0 ? roomOverride.persons : ((isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []));
 
   // Injecter PNJ terrain si applicable
   if (buildingId?.startsWith('terrain-a-batir')) {

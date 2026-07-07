@@ -951,7 +951,7 @@ function doGreveFaim() {
 // Actes pouvant faire l'objet d'une decouverte differee (succes non sanctionne sur le moment).
 // Vol est volontairement exclu : ses echecs sont deja sanctionnes immediatement (verbalisation/amende sur le champ),
 // et ses succes ne sont pas inscrits a l'historique — pas de risque de double sanction.
-const ACTES_DECOUVRABLES = ['assassinat', 'empoisonnement', 'achat_arme_illegal', 'acheter_bombe_illegale', 'incendier', 'utiliser_explosifs'];
+const ACTES_DECOUVRABLES = ['assassinat', 'empoisonnement', 'achat_arme_illegal', 'acheter_bombe_illegale', 'incendier', 'utiliser_explosifs', 'hooliganisme'];
 
 function verifierDecouverteCrimesPasses() {
   if (!state.historiqueCrimes || state.historiqueCrimes.length === 0) return;
