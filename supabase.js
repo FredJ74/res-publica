@@ -236,6 +236,20 @@ async function sbSaveChampionnat(data) {
   return sbInsert('championnat', { id: 1, data, updated_at: new Date().toISOString() });
 }
 
+async function sbGetBudgetMunicipal(key) {
+  const rows = await sbGet('budgets_municipaux', `id=eq.${encodeURIComponent(key)}`);
+  if (!rows || rows.length === 0) return null;
+  return rows[0].data;
+}
+
+async function sbSaveBudgetMunicipal(key, data) {
+  const existing = await sbGet('budgets_municipaux', `id=eq.${encodeURIComponent(key)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('budgets_municipaux', `id=eq.${encodeURIComponent(key)}`, { data, updated_at: new Date().toISOString() });
+  }
+  return sbInsert('budgets_municipaux', { id: key, data, updated_at: new Date().toISOString() });
+}
+
 async function sbSendMail(from, to, subject, body, time) {
   const id = 'mail-' + Date.now();
   return sbInsert('mails', { id, from_player: from, to_player: to, subject, body, time, read: false });

@@ -3455,3 +3455,115 @@ function ouvrirConfirmationDemission() {
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
+
+
+// =====================
+// INDICES LOCAUX & BUDGET MUNICIPAL
+// =====================
+const CATEGORIES_BUDGET_MAIRIE = ['securite', 'associatif', 'ecoles', 'espaces_verts'];
+const LABELS_BUDGET_MAIRIE = { securite: 'Sécurité', associatif: 'Associations sportives et culturelles', ecoles: 'Écoles', espaces_verts: 'Espaces verts' };
+const LABELS_INDICES_LOCAUX = { securite: 'Sécurité locale', associatif: 'Vie associative & sportive', ecoles: 'Éducation', espaces_verts: 'Cadre de vie' };
+
+function getVilleKey() {
+  return (state.country || 'republic') + '_' + (state.currentCity || 'capitale');
+}
+
+async function chargerBudgetMunicipal() {
+  if (typeof sbGetBudgetMunicipal !== 'function') return null;
+  const key = getVilleKey();
+  let data = await sbGetBudgetMunicipal(key).catch(() => null);
+  if (!data) {
+    data = {
+      key,
+      allocation: { securite: 25, associatif: 25, ecoles: 25, espaces_verts: 25 },
+      indices: { securite: 50, associatif: 50, ecoles: 50, espaces_verts: 50 },
+      derniereMaj: state.day || 1
+    };
+    if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(key, data).catch(() => {});
+  }
+  return data;
+}
+
+// Fait deriver les indices locaux vers leur cible (allocation x2) au fil des jours ecoules.
+// Appelee par n'importe quel joueur au chargement, comme le championnat et les elections.
+async function verifierDeriveIndicesLocaux() {
+  const data = await chargerBudgetMunicipal();
+  if (!data) return null;
+  const jour = state.day || 1;
+  const joursEcoules = jour - (data.derniereMaj || jour);
+  if (joursEcoules <= 0) return data;
+
+  CATEGORIES_BUDGET_MAIRIE.forEach(cat => {
+    const cibleIndice = Math.min(100, (data.allocation[cat] || 0) * 2);
+    for (let i = 0; i < Math.min(joursEcoules, 30); i++) { // plafond de rattrapage pour eviter une boucle demesuree
+      if (data.indices[cat] < cibleIndice) data.indices[cat] = Math.min(cibleIndice, data.indices[cat] + 2);
+      else if (data.indices[cat] > cibleIndice) data.indices[cat] = Math.max(cibleIndice, data.indices[cat] - 2);
+    }
+  });
+  data.derniereMaj = jour;
+  if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(data.key, data).catch(() => {});
+  return data;
+}
+
+async function doConsulterIndicesLocaux() {
+  document.getElementById('postes-modal-title').textContent = 'Indices locaux — ' + (WORLD[state.country]?.[state.currentCity]?.name || state.currentCity);
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const data = await verifierDeriveIndicesLocaux();
+  if (!data) { document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060">Indisponible.</div>'; return; }
+
+  let html = '<div style="padding:1rem">';
+  CATEGORIES_BUDGET_MAIRIE.forEach(cat => {
+    const val = data.indices[cat];
+    const col = val >= 60 ? '#6ab858' : val >= 35 ? '#C9A84C' : '#cc6a44';
+    html += '<div style="margin-bottom:.7rem">';
+    html += '<div style="display:flex;justify-content:space-between;font-size:.78rem;color:#c0b090;margin-bottom:.2rem"><span>' + LABELS_INDICES_LOCAUX[cat] + '</span><span style="color:' + col + '">' + val + '/100</span></div>';
+    html += '<div style="height:6px;background:#1a1208;border-radius:3px;overflow:hidden"><div style="height:100%;width:' + val + '%;background:' + col + '"></div></div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function doRepartirBudgetMunicipal() {
+  document.getElementById('postes-modal-title').textContent = 'Répartir le budget municipal';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const data = await chargerBudgetMunicipal();
+  if (!data) return;
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Répartissez 100% du budget entre les 4 postes. Un poste négligé verra son indice se dégrader avec le temps.</div>';
+  CATEGORIES_BUDGET_MAIRIE.forEach(cat => {
+    html += '<div style="margin-bottom:.6rem">';
+    html += '<label style="font-size:.75rem;color:#c0b090;display:block;margin-bottom:.2rem">' + LABELS_BUDGET_MAIRIE[cat] + '</label>';
+    html += '<input type="number" id="budget-' + cat + '" value="' + data.allocation[cat] + '" min="0" max="100" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box"/>';
+    html += '</div>';
+  });
+  html += '<div id="budget-total-warning" style="font-size:.72rem;color:#cc6a44;margin-bottom:.6rem"></div>';
+  html += '<button onclick="confirmerRepartitionBudget(\'' + data.key + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerRepartitionBudget(key) {
+  const allocation = {};
+  let total = 0;
+  CATEGORIES_BUDGET_MAIRIE.forEach(cat => {
+    const v = Math.max(0, parseInt(document.getElementById('budget-' + cat)?.value || '0'));
+    allocation[cat] = v;
+    total += v;
+  });
+  if (total !== 100) {
+    document.getElementById('budget-total-warning').textContent = 'Le total doit être exactement 100% (actuellement ' + total + '%).';
+    return;
+  }
+  const data = await sbGetBudgetMunicipal(key).catch(() => null) || await chargerBudgetMunicipal();
+  data.allocation = allocation;
+  await sbSaveBudgetMunicipal(key, data).catch(() => {});
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Budget mis à jour', 'La nouvelle répartition s\'appliquera progressivement.', true, true);
+  addJournalEntry('Nouvelle répartition du budget municipal validée.', 'event-good');
+}

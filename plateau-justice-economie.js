@@ -1073,42 +1073,6 @@ function validerImpotsLocaux() {
   addExternalEvent('MAIRIE : Le taux d\'imposition local est fixé à ' + nouveauTaux + '% par le Maire.');
 }
 
-function ouvrirRepartitionBudgetLocal() {
-  const institutions = { commissariat: 40, dispensaire: 30, voirie: 20, services: 10 };
-  const rep = state.budgetLocal || { ...institutions };
-  document.getElementById('postes-modal-title').textContent = 'Budget municipal';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Répartition du budget entre les services municipaux. Total doit être 100%.</div>';
-  const noms = { commissariat:'Commissariat', dispensaire:'Dispensaire', voirie:'Voirie', services:'Services municipaux' };
-  Object.keys(rep).forEach(inst => {
-    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">';
-    html += '<div style="font-size:.78rem;color:#c0b090;width:130px">' + (noms[inst]||inst) + '</div>';
-    html += '<input type="number" min="0" max="80" value="' + rep[inst] + '" id="bloc-' + inst + '" style="width:55px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.82rem;outline:none">';
-    html += '<span style="font-size:.72rem;color:#4a4030">%</span>';
-    html += '</div>';
-  });
-  html += '<button onclick="validerBudgetLocal()" style="margin-top:.7rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function validerBudgetLocal() {
-  const insts = ['commissariat','dispensaire','voirie','services'];
-  let total = 0;
-  const newRep = {};
-  insts.forEach(inst => {
-    const v = parseInt(document.getElementById('bloc-' + inst)?.value || '0');
-    newRep[inst] = v;
-    total += v;
-  });
-  if (total !== 100) { showToast('Total incorrect', 'Le total doit être 100%. Actuel : ' + total + '%.', false); return; }
-  state.budgetLocal = newRep;
-  document.getElementById('modal-postes').classList.remove('open');
-  showToast('Budget validé', 'Nouvelle répartition municipale appliquée.', true);
-  addJournalEntry('Répartition du budget municipal modifiée par le Maire.', 'event-info');
-}
-
 function doCampagneSecurite() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 500;

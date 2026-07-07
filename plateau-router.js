@@ -127,7 +127,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'assassiner')             { ouvrirModalAssassiner(); return; }
   if (fn === 'se_cacher')              { doSeCacher(); return; }
   if (fn === 'empoisonner')            { ouvrirModalEmpoisonner(); return; }
-  if (fn === 'repartition_budget_local'){ ouvrirRepartitionBudgetLocal(); return; }
+  if (fn === 'repartition_budget_local'){ doRepartirBudgetMunicipal(); return; }
+  if (fn === 'consulter_indices_locaux'){ doConsulterIndicesLocaux(); return; }
   if (fn === 'campagne_securite')      { doCampagneSecurite(); return; }
   if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(); return; }
   if (fn === 'contester_resultats')    { ouvrirContesterResultats(); return; }
