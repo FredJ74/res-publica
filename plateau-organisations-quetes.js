@@ -1421,10 +1421,19 @@ function doConsulterOrganigrammeSupporters() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+const PRODUITS_VISUELS_CLUB = {
+  'olympique-luthecia': {
+    echarpe: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-echarpe-luthecia.png',
+    casquette: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-casquette-luthecia.png',
+    maillot: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-tshirt-luthecia.png'
+  }
+};
+
 function doChoisirAccessoireClub() {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
 
+  const visuels = PRODUITS_VISUELS_CLUB[clubLocal.id] || {};
   const accessoires = [
     { id:'echarpe', label:'Écharpe', prix:80, icon:'ti-scarf' },
     { id:'casquette', label:'Casquette', prix:60, icon:'ti-hat' },
@@ -1432,10 +1441,14 @@ function doChoisirAccessoireClub() {
   ];
 
   document.getElementById('postes-modal-title').textContent = 'Accessoires — ' + clubLocal.nom;
-  let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.5rem">';
+  let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.6rem">';
   accessoires.forEach(a => {
-    html += '<button onclick="confirmerAchatAccessoireClub(\'' + a.id + '\',\'' + a.label + '\',' + a.prix + ')" style="display:flex;justify-content:space-between;align-items:center;padding:.6rem .8rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
-    html += '<span><i class="ti ' + a.icon + '" style="margin-right:.4rem;color:#8a6a20"></i>' + a.label + '</span><span style="color:#C9A84C">' + a.prix + ' FR</span></button>';
+    const img = visuels[a.id];
+    html += '<button onclick="confirmerAchatAccessoireClub(\'' + a.id + '\',\'' + a.label + '\',' + a.prix + ')" style="display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem;text-align:left">';
+    html += img
+      ? '<img src="' + img + '" style="width:56px;height:56px;object-fit:cover;border:1px solid #2a2010;flex-shrink:0"/>'
+      : '<i class="ti ' + a.icon + '" style="font-size:1.4rem;color:#8a6a20;width:56px;text-align:center;flex-shrink:0"></i>';
+    html += '<span style="flex:1">' + a.label + '</span><span style="color:#C9A84C">' + a.prix + ' FR</span></button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
