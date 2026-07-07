@@ -41,6 +41,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'observer_match') { doObserverMatch(); return; }
   if (fn === 'consulter_palmares') { doConsulterPalmares(); return; }
   if (fn === 'parier_match') { doParierMatch(); return; }
+  if (fn === 'regarder_live') { doRegarderLive(); return; }
   if (fn === 'incendier') { doIncendier(); return; }
   if (fn === 'utiliser_explosifs') { doUtiliserExplosifs(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }

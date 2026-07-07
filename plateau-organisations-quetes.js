@@ -863,6 +863,44 @@ function genererCalendrierSaison() {
 
 function getClub(id) { return CLUBS_SPORTIFS.find(c => c.id === id); }
 
+function genererEvenementsMatch(home, away, scoreHome, scoreAway) {
+  const events = [];
+  const minutesUtilisees = new Set();
+  function minuteLibre() {
+    let m;
+    do { m = Math.floor(Math.random() * 90) + 1; } while (minutesUtilisees.has(m));
+    minutesUtilisees.add(m);
+    return m;
+  }
+  const vedette = (club) => club.vedettes[Math.floor(Math.random() * club.vedettes.length)];
+
+  for (let i = 0; i < scoreHome; i++) {
+    events.push({ minute: minuteLibre(), texte: `BUT ! ${vedette(home)} fait trembler les filets pour ${home.nom} !`, type: 'but' });
+  }
+  for (let i = 0; i < scoreAway; i++) {
+    events.push({ minute: minuteLibre(), texte: `BUT ! ${vedette(away)} marque pour ${away.nom} !`, type: 'but' });
+  }
+  const templatesColor = [
+    (c) => `Frappe cadrée de ${c}, à côté !`,
+    (c) => `Carton jaune pour ${c}.`,
+    (c) => `Bel arrêt du gardien devant ${c}.`,
+    (c) => `Occasion manquée pour ${c}, seul face au but.`,
+    (c) => `Corner obtenu, mais rien de dangereux.`,
+    (c) => `Tacle appuyé de ${c}, l'arbitre laisse jouer.`
+  ];
+  const nbColor = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < nbColor; i++) {
+    const club = Math.random() < 0.5 ? home : away;
+    const joueur = vedette(club);
+    const t = templatesColor[Math.floor(Math.random() * templatesColor.length)];
+    events.push({ minute: minuteLibre(), texte: t(joueur), type: 'action' });
+  }
+
+  events.sort((a, b) => a.minute - b.minute);
+  events.push({ minute: 90, texte: `Coup de sifflet final. Score final : ${home.nom} ${scoreHome} - ${scoreAway} ${away.nom}.`, type: 'fin' });
+  return events;
+}
+
 function simulerMatch(clubHomeId, clubAwayId) {
   const home = getClub(clubHomeId), away = getClub(clubAwayId);
   const avantageDomicile = 5;
@@ -877,7 +915,9 @@ function simulerMatch(clubHomeId, clubAwayId) {
   else if (scoreAway > scoreHome) recit = `${away.nom} s'impose ${scoreAway}-${scoreHome} sur la pelouse de ${home.nom}.`;
   else recit = `Match nul ${scoreHome}-${scoreAway} entre ${home.nom} et ${away.nom}.`;
 
-  return { scoreHome, scoreAway, recit };
+  const evenements = genererEvenementsMatch(home, away, scoreHome, scoreAway);
+
+  return { scoreHome, scoreAway, recit, evenements };
 }
 
 function calculerClassement(journeesJouees) {
@@ -1004,7 +1044,7 @@ async function verifierEtJouerJournees() {
     journee.matchs.forEach(m => {
       if (!m.played) {
         const res = simulerMatch(m.home, m.away);
-        Object.assign(m, { scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit, played: true });
+        Object.assign(m, { scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit, evenements: res.evenements, played: true });
         modifie = true;
         journeeVientDetreJouee = true;
       }
@@ -1067,6 +1107,52 @@ function getClubLocal() {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   return CLUBS_SPORTIFS.find(c => c.country === pays && c.city === ville);
+}
+
+async function doRegarderLive() {
+  document.getElementById('postes-modal-title').textContent = 'Choisir un match à suivre';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const saison = await verifierEtJouerJournees();
+  let derniereJournee = null;
+  for (let i = saison.calendrier.length - 1; i >= 0; i--) {
+    if (saison.calendrier[i].matchs.every(m => m.played)) { derniereJournee = saison.calendrier[i]; break; }
+  }
+  if (!derniereJournee) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#5a5040;font-style:italic">Aucun match joué pour l\'instant. Revenez après la première journée.</div>';
+    return;
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Journée ' + derniereJournee.numero + '</div>';
+  derniereJournee.matchs.forEach((m, idx) => {
+    html += '<button onclick="afficherLiveMatch(' + derniereJournee.numero + ',' + idx + ')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + getClub(m.home).nom + ' <b style="color:#C9A84C">' + m.scoreHome + ' - ' + m.scoreAway + '</b> ' + getClub(m.away).nom + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function afficherLiveMatch(numeroJournee, matchIdx) {
+  const saison = await chargerOuInitialiserSaison();
+  const journee = saison.calendrier.find(j => j.numero === numeroJournee);
+  const m = journee?.matchs?.[matchIdx];
+  if (!m) return;
+
+  const home = getClub(m.home), away = getClub(m.away);
+  // Repli pour les matchs joues avant l'ajout des evenements synchronises
+  const evenements = m.evenements || genererEvenementsMatch(home, away, m.scoreHome, m.scoreAway);
+
+  document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">' + home.nom + ' ' + m.scoreHome + ' - ' + m.scoreAway + ' ' + away.nom + '</div>';
+  html += '<div style="max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:.5rem">';
+  evenements.forEach(e => {
+    const couleur = e.type === 'but' ? '#6ab858' : (e.type === 'fin' ? '#C9A84C' : '#b0a080');
+    html += '<div style="font-size:.8rem;color:' + couleur + '"><b style="color:#8a6a20">' + e.minute + '\'</b> ' + e.texte + '</div>';
+  });
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
 }
 
 async function doObserverMatch() {

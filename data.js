@@ -1590,7 +1590,8 @@ const BUILDINGS = {
           {name:'Commentateur Sportif (PNJ)', role:'PNJ - Commentateur', rel:'neutral', job:'commentateur'}
         ],
         orders: [
-          {fn:'observer_match', label:'Observer le prochain match', pa:0, cost:0, type:'legal', icon:'ti-eye', successRate:100, desc:'Calendrier et resultats du championnat local.'}
+          {fn:'observer_match', label:'Observer le prochain match', pa:0, cost:0, type:'legal', icon:'ti-eye', successRate:100, desc:'Calendrier et resultats du championnat local.'},
+          {fn:'regarder_live', label:'Regarder le live', pa:1, cost:0, type:'legal', icon:'ti-device-tv', successRate:100, desc:'Suivre le deroule minute par minute du match de votre choix parmi la derniere journee jouee.'}
         ]
       },
       vestiaires: {
