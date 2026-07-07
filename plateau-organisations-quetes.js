@@ -1155,6 +1155,55 @@ async function afficherLiveMatch(numeroJournee, matchIdx) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+async function doRejoindreClubSupporters() {
+  if (!state.organisations) state.organisations = [];
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+
+  let orga = state.organisations.find(o => o.type === 'supporters' && o.country === pays && o.city === ville);
+
+  const dejaMembre = orga?.membres?.some(m => m.nom === state.char?.name);
+  if (dejaMembre) { showToast('Déjà membre', 'Vous êtes déjà membre du club de supporters de ' + clubLocal.nom + '.', false); return; }
+
+  if (state.arg < 150) { showToast('Fonds insuffisants', '150 FR requis pour l\'adhésion.', false); return; }
+  state.arg -= 150;
+  state.pa = Math.max(0, (state.pa || 0) - 1);
+
+  const def = TYPES_ORGANISATIONS.supporters;
+  const grades = def?.grades?.[pays] || ['Sympathisant', 'Membre', 'Ultra', 'Meneur'];
+
+  if (!orga) {
+    orga = {
+      id: 'orga_supporters_' + pays + '_' + ville,
+      type: 'supporters',
+      nom: 'Club de Supporters — ' + clubLocal.nom,
+      desc: 'Les fidèles du ' + clubLocal.nom + '.',
+      fondateur: 'PNJ', chef: 'PNJ',
+      country: pays, city: ville, country_origine: pays,
+      creeLe: state.day || 1,
+      membres: [], demandesAdhesion: [],
+      bonusLocaux: { pop:0, inf:0, dis:0 }, caisse: 0,
+      visible: true
+    };
+    state.organisations.push(orga);
+  }
+
+  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1 });
+  sauvegarderOrga(orga);
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Bienvenue !', 'Vous êtes désormais ' + grades[0] + ' du club de supporters — ' + clubLocal.nom + '.', true, true);
+  addJournalEntry('Adhésion au club de supporters du ' + clubLocal.nom + ' (-150 FR).', 'event-good');
+
+  // Rafraichir immediatement l'onglet Organisations si la fiche est deja ouverte dessus
+  if (document.getElementById('vue-self')?.classList.contains('active')) {
+    switchSelfTab('orgas', null);
+  }
+}
+
 function doChoisirAccessoireClub() {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }

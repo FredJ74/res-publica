@@ -44,6 +44,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'regarder_live') { doRegarderLive(); return; }
   if (fn === 'choisir_accessoire_club') { doChoisirAccessoireClub(); return; }
   if (fn === 'acheter_accessoire_personnalise') { doAcheterAccessoirePersonnalise(); return; }
+  if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(); return; }
   if (fn === 'incendier') { doIncendier(); return; }
   if (fn === 'utiliser_explosifs') { doUtiliserExplosifs(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
