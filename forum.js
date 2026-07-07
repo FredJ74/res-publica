@@ -11,7 +11,8 @@ const FORUMS_BASE = {
   gouvernement:  { name: 'Forum Gouvernemental',  icon: 'ti-building-bank', desc: 'Réservé au gouvernement', private: true, requiredPost: ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'] },
   presidence:    { name: 'La Présidence à la Nation', icon: 'ti-flag-3',    desc: 'Discours et annonces officielles depuis la Présidence', private: false },
   presse:        { name: 'Presse & Médias',        icon: 'ti-news',          desc: 'Réservé aux journalistes', private: true },
-  syndicats:     { name: 'Forum Syndical',         icon: 'ti-users-group',   desc: 'Réservé aux syndicalistes', private: true }
+  syndicats:     { name: 'Forum Syndical',         icon: 'ti-users-group',   desc: 'Réservé aux syndicalistes', private: true },
+  sport:         { name: 'Championnat Sportif',    icon: 'ti-ball-football', desc: 'Résultats, classements et débats de supporters', private: false }
 };
 
 // Getter dynamique — ajoute le forum Tribunal de la ville courante

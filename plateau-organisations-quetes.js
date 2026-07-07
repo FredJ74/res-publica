@@ -949,6 +949,45 @@ function joursEcoulesDepuis(dateISO) {
 
 // Fait avancer la saison selon le temps reel ecoule (1 journee par semaine).
 // Peut etre appelee par n'importe quel joueur au chargement — verifie avant de rejouer une journee deja faite.
+async function publierResultatsJourneeSurForum(numeroSaison, journee) {
+  if (typeof sbCreateTopic !== 'function' || typeof formatDateHeureJeu !== 'function') return;
+  const time = formatDateHeureJeu();
+  const titre = 'Journée ' + journee.numero + ' — Saison ' + numeroSaison;
+  const contenu = journee.matchs.map(m => m.recit).join('<br>');
+
+  const topicId = await sbCreateTopic('sport', titre, 'Ligue Officielle', state.country || 'republic', time).catch(() => null);
+  if (topicId && typeof sbCreatePost === 'function') {
+    await sbCreatePost(topicId, 'Ligue Officielle', contenu, time).catch(() => {});
+  }
+  if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
+  FORUM_TOPICS['sport'].unshift({
+    id: topicId || 'sport-' + Date.now(), title: titre, author: 'Ligue Officielle',
+    time, views: 1, replies: 0, lastPostAuthor: 'Ligue Officielle', lastPostTime: time,
+    posts: [{ author: 'Ligue Officielle', time, content: contenu }]
+  });
+}
+
+async function publierPhasesFinalesSurForum(numeroSaison, rf) {
+  if (typeof sbCreateTopic !== 'function' || typeof formatDateHeureJeu !== 'function') return;
+  const time = formatDateHeureJeu();
+  const titre = '🏆 Phases finales — Saison ' + numeroSaison;
+  let contenu = '<b>Quarts de finale</b><br>' + rf.quarts.map(q => q.recit).join('<br>');
+  contenu += '<br><br><b>Demi-finales</b><br>' + rf.demies.map(d => d.recit).join('<br>');
+  contenu += '<br><br><b>Finale</b> (au ' + getClub(rf.stadeClubId).nom + ')<br>' + rf.finale.recit;
+  contenu += '<br><br><b>' + getClub(rf.champion).nom + ' est sacré champion de la saison ' + numeroSaison + ' !</b>';
+
+  const topicId = await sbCreateTopic('sport', titre, 'Ligue Officielle', state.country || 'republic', time).catch(() => null);
+  if (topicId && typeof sbCreatePost === 'function') {
+    await sbCreatePost(topicId, 'Ligue Officielle', contenu, time).catch(() => {});
+  }
+  if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
+  FORUM_TOPICS['sport'].unshift({
+    id: topicId || 'sport-finale-' + Date.now(), title: titre, author: 'Ligue Officielle',
+    time, views: 1, replies: 0, lastPostAuthor: 'Ligue Officielle', lastPostTime: time,
+    posts: [{ author: 'Ligue Officielle', time, content: contenu }]
+  });
+}
+
 async function verifierEtJouerJournees() {
   const saison = await chargerOuInitialiserSaison();
   if (!saison || saison.phase === 'terminee') return saison;
@@ -956,17 +995,25 @@ async function verifierEtJouerJournees() {
   const joursEcoules = joursEcoulesDepuis(saison.dateDebut);
   const journeeCible = Math.min(Math.floor(joursEcoules / 7), saison.calendrier.length - 1);
   let modifie = false;
+  const journeesNouvellementJouees = [];
 
   for (let i = 0; i <= journeeCible; i++) {
     const journee = saison.calendrier[i];
     if (!journee) continue;
+    let journeeVientDetreJouee = false;
     journee.matchs.forEach(m => {
       if (!m.played) {
         const res = simulerMatch(m.home, m.away);
         Object.assign(m, { scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit, played: true });
         modifie = true;
+        journeeVientDetreJouee = true;
       }
     });
+    if (journeeVientDetreJouee) journeesNouvellementJouees.push(journee);
+  }
+
+  for (const journee of journeesNouvellementJouees) {
+    await publierResultatsJourneeSurForum(saison.numero, journee);
   }
 
   // Une fois la phase reguliere entierement jouee, on enchaine directement les phases finales
@@ -990,6 +1037,7 @@ async function verifierEtJouerJournees() {
       classementFinal: classement.map(c => ({ nom:c.nom, pts:c.pts }))
     });
     saison.phase = 'terminee';
+    await publierPhasesFinalesSurForum(saison.numero, saison.resultatsFinales);
     modifie = true;
   }
 
