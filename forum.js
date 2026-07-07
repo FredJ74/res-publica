@@ -90,8 +90,10 @@ function getMyMails() {
   if (!name) return [];
   return getMails().filter(m => m.to === name || m.from === name);
 }
+let mailFromOverride = null;
+
 async function sendMail(to, subject, body) {
-  const from = state.char?.name || 'Anonyme';
+  const from = mailFromOverride || state.char?.name || 'Anonyme';
   const time = formatDateHeureJeu();
 
   // Supabase
@@ -1478,6 +1480,7 @@ function submitMail() {
   const bodyText = bodyEl?.innerText?.trim();
   if (!to || !subject || !bodyText) { showToast('Champs requis','Remplissez tous les champs.',false); return; }
   sendMail(to, subject, body);
+  mailFromOverride = null;
   mailDefaultTo = '';
   mailView = 'inbox';
   renderForumModal();

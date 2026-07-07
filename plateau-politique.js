@@ -2684,10 +2684,10 @@ function ouvrirEtatNation() {
   const content = document.getElementById('self-content');
 
   const indices = [
-    { k:'ISN', label:'Securite Nationale',    val:idx.ISN, col:'#4a8a4a', desc:'Impact sur les actes illegaux et leur detection.' },
+    { k:'ISN', label:'Securite Nationale',    val:idx.ISN, col:'#6ab858', desc:'Impact sur les actes illegaux et leur detection.' },
     { k:'IE',  label:'Economique',            val:idx.IE,  col:'#C9A84C', desc:'Impact sur les revenus fiscaux et les salaires.' },
-    { k:'ID',  label:'Diplomatique',          val:idx.ID,  col:'#4a6aaa', desc:'Impact sur les relations inter-empires et voyages.' },
-    { k:'IS',  label:'Social',               val:idx.IS,  col:'#aa6a4a', desc:'Impact sur la popularite des elus et risques de greve.' }
+    { k:'ID',  label:'Diplomatique',          val:idx.ID,  col:'#5a8ad0', desc:'Impact sur les relations inter-empires et voyages.' },
+    { k:'IS',  label:'Social',               val:idx.IS,  col:'#d4886a', desc:'Impact sur la popularite des elus et risques de greve.' }
   ];
 
   let html = '<div style="padding:1.5rem;max-width:650px">';
@@ -2703,7 +2703,7 @@ function ouvrirEtatNation() {
     html += '</div>';
     html += '<div style="height:8px;background:#1a1810;border-radius:4px;overflow:hidden;margin-bottom:.4rem">';
     html += '<div style="height:100%;width:' + pct + '%;background:' + ind.col + ';border-radius:4px;transition:width .5s"></div></div>';
-    html += '<div style="font-size:.72rem;color:#5a5040">' + ind.desc + '</div>';
+    html += '<div style="font-size:.72rem;color:#8a8060">' + ind.desc + '</div>';
     html += '</div>';
   });
 

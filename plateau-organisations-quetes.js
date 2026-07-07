@@ -496,14 +496,14 @@ function renderOngletOrgas() {
           '<div style="width:36px;height:36px;border-radius:50%;background:#1a1208;display:flex;align-items:center;justify-content:center"><i class="ti ' + (def.icon||'ti-users') + '" style="font-size:1rem;color:#C9A84C"></i></div>') +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Bebas Neue,sans-serif;font-size:.92rem;color:#E8C97A;letter-spacing:.06em">' + orga.nom + '</div>' +
-          '<div style="font-size:.68rem;color:#6a5a30">' + (def.label||'') + ' · ' + (monMembre?.grade||'') + (estChef ? ' 👑' : '') + ' · ' + (orga.membres?.length||0) + ' membres</div>' +
+          '<div style="font-size:.72rem;color:#8a8060">' + (def.label||'') + ' · ' + (monMembre?.grade||'') + (estChef ? ' 👑' : '') + ' · ' + (orga.membres?.length||0) + ' membres</div>' +
           (orga.devise ? '<div style="font-size:.65rem;color:#4a4030;font-style:italic">"' + orga.devise + '"</div>' : '') +
         '</div>' +
         '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;color:#C9A84C">' + (orga.caisse||0).toLocaleString('fr-FR') + ' ' + cur + '</div>' +
       '</div>' +
 
       '<div style="padding:.5rem .8rem;display:flex;flex-wrap:wrap;gap:.35rem;border-bottom:1px solid #1a1208">' +
-        '<button onclick="ouvrirForumDepuisOrga()" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a3a1a;background:transparent;color:#4a7a4a;cursor:pointer">📋 Forum</button>' +
+        '<button onclick="ouvrirForumDepuisOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a3a1a;background:transparent;color:#4a7a4a;cursor:pointer">📋 Forum</button>' +
         '<button onclick="ouvrirMailOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #1a2a3a;background:transparent;color:#4a6a8a;cursor:pointer">✉️ Courrier</button>' +
         '<button onclick="ouvrirOrdresOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a2a3a;background:transparent;color:#6a6aaa;cursor:pointer">⚡ Actions</button>' +
       '</div>' +
@@ -521,7 +521,7 @@ function renderOngletOrgas() {
 
       (!estChef ?
         '<div style="padding:.4rem .8rem">' +
-           '<button onclick="quitterOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.25rem .5rem;border:1px solid #3a1a1a;background:transparent;color:#6a3a2a;cursor:pointer">Quitter cette organisation</button>' +
+           '<button onclick="quitterOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #6a3a2a;background:transparent;color:#cc6a44;cursor:pointer">Quitter cette organisation</button>' +
         '</div>'
       : '') +
 
@@ -825,10 +825,34 @@ function quitterOrga(orgaId) {
   switchSelfTab('orgas', null);
 }
 
-function ouvrirForumDepuisOrga() {
-  document.getElementById('modal-postes').classList.remove('open');
-  document.getElementById('vue-self').classList.remove('active');
-  openForum();
+function titreChefOrga(type) {
+  const titres = { sportive: 'Président du club sportif', supporters: 'Président du club des supporters', syndicale: 'Secrétaire général', mediatique: 'Directeur de Publication' };
+  return titres[type] || 'Président';
+}
+
+function ouvrirMailOrga(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) return;
+  const estChef = orga.chef === state.char?.name;
+  if (!estChef) {
+    showToast('Réservé au président', 'Seul le/la ' + titreChefOrga(orga.type).toLowerCase() + ' peut envoyer du courrier officiel au nom de "' + orga.nom + '".', false);
+    return;
+  }
+  mailFromOverride = (state.char?.name || 'Anonyme') + ', ' + titreChefOrga(orga.type);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  document.getElementById('vue-self')?.classList.remove('active');
+  mailView = 'compose';
+  openForumView('local');
+  document.getElementById('forum-main').innerHTML = renderMailCompose();
+}
+
+function ouvrirForumDepuisOrga(orgaId) {
+  const orga = getOrgaById(orgaId);
+  const mapping = { sportive: 'sport', supporters: 'sport', syndicale: 'syndicats', mediatique: 'presse' };
+  const forumCible = mapping[orga?.type] || 'local';
+  document.getElementById('modal-postes')?.classList.remove('open');
+  document.getElementById('vue-self')?.classList.remove('active');
+  openForumView(forumCible);
 }
 
 
