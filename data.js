@@ -106,6 +106,10 @@ const WORLD = {
         'stade': {
           name: "Stade Gourgeot — Olympique de Luthécia",
           desc: "L'antre du club le plus titré de Republia. Ambiance electrique les soirs de match.",
+          persons: [
+            {name:'Jean-Pierre Taclojnou (PNJ)', role:'Entraineur', rel:'neutral', job:'entraineur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entraineur-jean-pierre-taclojnou.png'},
+            {name:'Michel Parlotte (PNJ)', role:'Journaliste Sportif', rel:'neutral', job:'commentateur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/journaliste-michel-parlotte.png'}
+          ],
           roomOverrides: {
             terrain: { name: "Terrain — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-olympique-luthecia.png" },
             vestiaires: { name: "Vestiaire — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vestiaires-luthecia.png" },
@@ -1615,7 +1619,9 @@ const BUILDINGS = {
           {name:'Tenancier de Buvette (PNJ)', role:'PNJ - Buvette', rel:'neutral', job:'serveur'}
         ],
         orders: [
-          {fn:'parler_pnj', label:'Prendre un verre', pa:1, cost:50, type:'legal', icon:'ti-beer', successRate:100, desc:'Discuter avec les habitues. Bonne source de rumeurs sportives.'}
+          {fn:'parler_pnj', label:'Prendre un verre', pa:1, cost:50, type:'legal', icon:'ti-beer', successRate:100, desc:'Discuter avec les habitues. Bonne source de rumeurs sportives.'},
+          {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:1, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Echarpe, casquette ou maillot du club — a choisir.'},
+          {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-lock', successRate:100, desc:'Personnalisation (nom, numero) — reserve aux comptes premium. Bientot disponible.'}
         ]
       },
       guichet_paris: {
@@ -1639,7 +1645,7 @@ const BUILDINGS = {
           {name:'Meneur des Supporters (PNJ)', role:'PNJ - Chef de Tribune', rel:'neutral', job:'meneur_supporters'}
         ],
         orders: [
-          {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:0, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adherer au club de supporters de la ville.'},
+          {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:150, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adherer au club de supporters de la ville (150 FR/saison).'},
           {fn:'consulter_palmares', label:'Consulter le palmares du club', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent : resultats de chaque championnat, articles de presse marquants. Rien ne s\'efface jamais ici.'}
         ]
       }

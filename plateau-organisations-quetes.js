@@ -1155,6 +1155,43 @@ async function afficherLiveMatch(numeroJournee, matchIdx) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+function doChoisirAccessoireClub() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+
+  const accessoires = [
+    { id:'echarpe', label:'Écharpe', prix:80, icon:'ti-scarf' },
+    { id:'casquette', label:'Casquette', prix:60, icon:'ti-hat' },
+    { id:'maillot', label:'Maillot', prix:150, icon:'ti-shirt' }
+  ];
+
+  document.getElementById('postes-modal-title').textContent = 'Accessoires — ' + clubLocal.nom;
+  let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.5rem">';
+  accessoires.forEach(a => {
+    html += '<button onclick="confirmerAchatAccessoireClub(\'' + a.id + '\',\'' + a.label + '\',' + a.prix + ')" style="display:flex;justify-content:space-between;align-items:center;padding:.6rem .8rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
+    html += '<span><i class="ti ' + a.icon + '" style="margin-right:.4rem;color:#8a6a20"></i>' + a.label + '</span><span style="color:#C9A84C">' + a.prix + ' FR</span></button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerAchatAccessoireClub(id, label, prix) {
+  const clubLocal = getClubLocal();
+  document.getElementById('modal-postes').classList.remove('open');
+  if (state.arg < prix) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
+  state.arg -= prix;
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({ type:'accessoire_sport', name: label + ' — ' + clubLocal.nom, icon:'ti-shirt', legal:true });
+  updateUI();
+  showToast('Achat effectué', label + ' du ' + clubLocal.nom + ' ajouté(e) à votre inventaire.', true, true);
+  addJournalEntry('Achat : ' + label + ' du ' + clubLocal.nom + ' (-' + prix + ' FR).', 'event-good');
+}
+
+function doAcheterAccessoirePersonnalise() {
+  showToast('Bientôt disponible', 'La personnalisation (nom, numéro) sera réservée aux comptes premium.', false);
+}
+
 async function doObserverMatch() {
   document.getElementById('postes-modal-title').textContent = 'Championnat — Résultats & Calendrier';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
@@ -1194,6 +1231,20 @@ async function doObserverMatch() {
     }
     html += '</div>';
   }
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">CALENDRIER COMPLET</div>';
+  html += '<div style="max-height:220px;overflow-y:auto;margin-bottom:1rem">';
+  saison.calendrier.forEach(j => {
+    html += '<div style="font-size:.68rem;color:#6a5a30;margin:.4rem 0 .1rem">Journée ' + j.numero + '</div>';
+    j.matchs.forEach(m => {
+      const enCours = clubLocal && (m.home === clubLocal.id || m.away === clubLocal.id);
+      const ligne = m.played
+        ? getClub(m.home).nom + ' ' + m.scoreHome + ' - ' + m.scoreAway + ' ' + getClub(m.away).nom
+        : getClub(m.home).nom + ' vs ' + getClub(m.away).nom + ' (à venir)';
+      html += '<div style="font-size:.72rem;color:' + (enCours ? '#C9A84C' : '#8a8060') + ';padding:.1rem 0">' + ligne + '</div>';
+    });
+  });
+  html += '</div>';
 
   const classement = calculerClassement(saison.calendrier);
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">CLASSEMENT</div>';
@@ -1236,33 +1287,37 @@ async function doConsulterPalmares() {
 
 async function doParierMatch() {
   const saison = await verifierEtJouerJournees();
-  const clubLocal = getClubLocal();
-  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
 
-  let prochainMatch = null;
-  for (const j of saison.calendrier) {
-    const m = j.matchs.find(mm => (mm.home === clubLocal.id || mm.away === clubLocal.id) && !mm.played);
-    if (m) { prochainMatch = m; break; }
-  }
-  if (!prochainMatch) { showToast('Aucun pari disponible', 'Pas de match a venir pour ce club.', false); return; }
+  const prochaineJournee = saison.calendrier.find(j => j.matchs.some(m => !m.played));
+  if (!prochaineJournee) { showToast('Aucun pari disponible', 'Plus aucun match à venir cette saison.', false); return; }
 
-  const adv = prochainMatch.home === clubLocal.id ? prochainMatch.away : prochainMatch.home;
-  const advClub = getClub(adv);
-  const domicile = prochainMatch.home === clubLocal.id;
-
-  document.getElementById('postes-modal-title').textContent = 'Parier sur le prochain match';
+  document.getElementById('postes-modal-title').textContent = 'Parier — Journée ' + prochaineJournee.numero;
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.8rem">' + clubLocal.nom + (domicile?' (domicile)':' (extérieur)') + ' vs ' + advClub.nom + '</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Choisissez un match</div>';
+  prochaineJournee.matchs.filter(m => !m.played).forEach(m => {
+    html += '<button onclick="ouvrirFormulairePari(\'' + m.home + '\',\'' + m.away + '\')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + getClub(m.home).nom + ' vs ' + getClub(m.away).nom + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function ouvrirFormulairePari(homeId, awayId) {
+  const homeClub = getClub(homeId), advClub = getClub(awayId);
+
+  document.getElementById('postes-modal-title').textContent = 'Parier sur ce match';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.8rem">' + homeClub.nom + ' (domicile) vs ' + advClub.nom + '</div>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Votre pronostic</label>';
   html += '<div style="display:flex;gap:.4rem;margin-bottom:.8rem">';
-  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'domicile\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + clubLocal.nom + '</button>';
+  html += '<button onclick="document.getElementById(\'pari-choix\').value=\'domicile\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + homeClub.nom + '</button>';
   html += '<button onclick="document.getElementById(\'pari-choix\').value=\'nul\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Match nul</button>';
   html += '<button onclick="document.getElementById(\'pari-choix\').value=\'adversaire\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + advClub.nom + '</button>';
   html += '</div>';
   html += '<input type="hidden" id="pari-choix" value="domicile"/>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Mise (FR)</label>';
   html += '<input id="pari-mise" type="number" value="100" min="10" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.9rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
-  html += '<button onclick="confirmerPariMatch(\'' + clubLocal.id + '\',\'' + adv + '\',' + (domicile?'true':'false') + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
+  html += '<button onclick="confirmerPariMatch(\'' + homeId + '\',\'' + awayId + '\',true)" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
