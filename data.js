@@ -1647,6 +1647,8 @@ const BUILDINGS = {
         orders: [
           {fn:'parler_pnj', label:'Prendre un verre', pa:1, cost:50, type:'legal', icon:'ti-beer', successRate:100, desc:'Discuter avec les habitues. Bonne source de rumeurs sportives.'},
           {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:1, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Echarpe, casquette ou maillot du club — a choisir.'},
+          {fn:'sponsoriser_club', label:'Sponsoriser le club', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Associer votre nom au club en echange d\'un soutien financier. Trois paliers.'},
+          {fn:'consulter_budget_club', label:'Consulter le budget du club', pa:0, cost:0, type:'legal', icon:'ti-report-money', successRate:100, desc:'Caisse et dernieres operations financieres du club.'},
           {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-lock', successRate:100, desc:'Personnalisation (nom, numero) — reserve aux comptes premium. Bientot disponible.'}
         ]
       },
@@ -1659,7 +1661,8 @@ const BUILDINGS = {
           {name:'Bookmaker Officiel (PNJ)', role:'PNJ - Paris Sportifs', rel:'neutral', job:'bookmaker'}
         ],
         orders: [
-          {fn:'parier_match', label:'Parier sur un match', pa:1, cost:0, type:'legal', icon:'ti-coin', successRate:100, desc:'Mise ton argent sur le resultat du prochain match.'}
+          {fn:'parier_match', label:'Parier sur un match', pa:1, cost:0, type:'legal', icon:'ti-coin', successRate:100, desc:'Mise ton argent sur le resultat du prochain match.'},
+          {fn:'distribuer_tracts_match', label:'Distribuer des tracts avant le match', pa:2, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Reserve aux candidats declares. Efficacite liee a la frequentation et au classement du club.'}
         ]
       },
       siege_supporters: {
@@ -1674,7 +1677,9 @@ const BUILDINGS = {
           {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:150, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adherer au club de supporters de la ville (150 FR/saison).'},
           {fn:'consulter_palmares', label:'Consulter le palmares du club', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent : resultats de chaque championnat, articles de presse marquants. Rien ne s\'efface jamais ici.'},
           {fn:'consulter_organigramme_supporters', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Composition complete du club de supporters, visible de tous.'},
-          {fn:'declencher_election_club', label:'Déclencher une élection', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Reserve aux membres. 3 jours de candidatures puis 3 jours de vote.'}
+          {fn:'declencher_election_club', label:'Déclencher une élection', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Reserve aux membres. 3 jours de candidatures puis 3 jours de vote.'},
+          {fn:'organiser_manifestation', label:'Organiser une manifestation', pa:2, cost:0, type:'legal', icon:'ti-megaphone', successRate:100, desc:'Reserve au president. Pour ou contre le maire. Intensite liee au nombre de membres.'},
+          {fn:'organiser_boycott', label:'Organiser un boycott', pa:2, cost:0, type:'legal', icon:'ti-ban', successRate:100, desc:'Reserve au president. Boycotte le prochain match a domicile.'}
         ]
       }
     }
@@ -2719,7 +2724,8 @@ const BUILDINGS = {
         orders: [
           {fn:'imprimer_tracts',  label:'Faire imprimer des tracts',  pa:2, cost:150, type:'legal',   icon:'ti-file-description', successRate:100, desc:'Choisir pour/contre + cible (repertoire) + quantite. Tracts en inventaire.'},
           {fn:'imprimer_livre',   label:'Faire imprimer un livre',    pa:3, cost:500, type:'legal',   icon:'ti-book',             successRate:100, desc:'Publication d\'un ouvrage. Augmente la notoriete intellectuelle.'},
-          {fn:'imprimer_clandestin', label:'Impression clandestine',  pa:2, cost:300, type:'illegal', icon:'ti-eye-off',          successRate:70,  desc:'Documents non officiels, faux papiers, tracts interdits.'}
+          {fn:'imprimer_clandestin', label:'Impression clandestine',  pa:2, cost:300, type:'illegal', icon:'ti-eye-off',          successRate:70,  desc:'Documents non officiels, faux papiers, tracts interdits.'},
+          {fn:'imprimer_tracts_sportifs', label:'Imprimer des tracts pour un match', pa:1, cost:0, type:'legal', icon:'ti-file-description', successRate:100, desc:'A distribuer lors d\'un prochain match. Achat par lot de 50.'}
         ]
       },
       atelier: {

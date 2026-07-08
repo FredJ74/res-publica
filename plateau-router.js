@@ -45,6 +45,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'prendre_licence_sportive') { doPrendreLicenceSportive(); return; }
   if (fn === 'tenue_entrainement') { doTenueEntrainement(); return; }
   if (fn === 'tenue_match') { doTenueMatch(); return; }
+  if (fn === 'sponsoriser_club') { doSponsoriserClub(); return; }
+  if (fn === 'consulter_budget_club') { doConsulterBudgetClub(); return; }
+  if (fn === 'imprimer_tracts_sportifs') { doImprimerTractsSportifs(); return; }
+  if (fn === 'distribuer_tracts_match') { doDistribuerTractsMatch(); return; }
+  if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
+  if (fn === 'organiser_boycott') { doOrganiserBoycott(); return; }
   if (fn === 'choisir_accessoire_club') { doChoisirAccessoireClub(); return; }
   if (fn === 'acheter_accessoire_personnalise') { doAcheterAccessoirePersonnalise(); return; }
   if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(); return; }

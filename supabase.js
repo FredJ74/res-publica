@@ -255,6 +255,20 @@ async function sbListJoueursLicencies(clubId) {
   return rows.filter(r => r.licence_sportive?.clubId === clubId);
 }
 
+async function sbGetBudgetClub(clubId) {
+  const rows = await sbGet('budgets_clubs', `id=eq.${encodeURIComponent(clubId)}`);
+  if (!rows || rows.length === 0) return null;
+  return rows[0].data;
+}
+
+async function sbSaveBudgetClub(clubId, data) {
+  const existing = await sbGet('budgets_clubs', `id=eq.${encodeURIComponent(clubId)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('budgets_clubs', `id=eq.${encodeURIComponent(clubId)}`, { data, updated_at: new Date().toISOString() });
+  }
+  return sbInsert('budgets_clubs', { id: clubId, data, updated_at: new Date().toISOString() });
+}
+
 async function sbGetBudgetMunicipal(key) {
   const rows = await sbGet('budgets_municipaux', `id=eq.${encodeURIComponent(key)}`);
   if (!rows || rows.length === 0) return null;

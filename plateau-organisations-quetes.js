@@ -957,9 +957,9 @@ function genererEvenementsMatch(home, away, scoreHome, scoreAway) {
   return events;
 }
 
-function simulerMatch(clubHomeId, clubAwayId, bonusHome, bonusAway) {
+function simulerMatch(clubHomeId, clubAwayId, bonusHome, bonusAway, boycotte) {
   const home = getClub(clubHomeId), away = getClub(clubAwayId);
-  const avantageDomicile = 5;
+  const avantageDomicile = boycotte ? -5 : 5; // un stade boycotte desavantage legerement l'equipe locale
   const forceHome = home.valeurBase + avantageDomicile + (bonusHome || 0);
   const forceAway = away.valeurBase + (bonusAway || 0);
   const buts = (force) => Math.max(0, Math.round((force / 28) + (Math.random() * 2.6 - 0.9)));
@@ -1104,7 +1104,7 @@ async function verifierEtJouerJournees() {
           calculerContributionEquipe(clubHome),
           calculerContributionEquipe(clubAway)
         ]);
-        const res = simulerMatch(m.home, m.away, contribHome.bonus, contribAway.bonus);
+        const res = simulerMatch(m.home, m.away, contribHome.bonus, contribAway.bonus, m.boycotte);
         Object.assign(m, { scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit, evenements: res.evenements, played: true,
           compositions: {
             home: { titulaires: contribHome.titulaires.map(t=>t.nom), remplacants: contribHome.remplacants.map(t=>t.nom) },
@@ -1473,6 +1473,7 @@ async function doRejoindreClubSupporters() {
   updateUI();
   showToast('Bienvenue !', 'Vous êtes désormais ' + grades[0] + ' du club de supporters — ' + clubLocal.nom + '.', true, true);
   addJournalEntry('Adhésion au club de supporters du ' + clubLocal.nom + ' (-150 FR).', 'event-good');
+  await crediterBudgetClub(clubLocal.id, 150, 'Cotisation supporter');
 
   // Rafraichir immediatement l'onglet Organisations si la fiche est deja ouverte dessus
   if (document.getElementById('vue-self')?.classList.contains('active')) {
@@ -1658,6 +1659,240 @@ const PRODUITS_VISUELS_CLUB = {
   }
 };
 
+// =====================
+// BUDGET DU CLUB SPORTIF
+// =====================
+async function chargerBudgetClub(clubId) {
+  if (typeof sbGetBudgetClub !== 'function') return null;
+  let data = await sbGetBudgetClub(clubId).catch(() => null);
+  if (!data) {
+    data = { clubId, caisse: 0, historique: [], derniereSubventionJour: state.day || 1 };
+    if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(clubId, data).catch(() => {});
+  }
+  return data;
+}
+
+async function crediterBudgetClub(clubId, montant, motif) {
+  const data = await chargerBudgetClub(clubId);
+  if (!data) return;
+  data.caisse = Math.max(0, (data.caisse || 0) + montant);
+  data.historique = data.historique || [];
+  data.historique.push({ jour: state.day || 1, montant, motif });
+  if (data.historique.length > 50) data.historique = data.historique.slice(-50); // on garde un historique recent, pas infini
+  if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(clubId, data).catch(() => {});
+  return data;
+}
+
+// Reverse une partie de l'allocation "associatif" du budget municipal vers la caisse du club local, une fois par jour
+async function verifierSubventionMairie(club) {
+  const budgetMairie = await chargerBudgetMunicipal().catch(() => null);
+  if (!budgetMairie) return;
+  const budgetClub = await chargerBudgetClub(club.id);
+  const jour = state.day || 1;
+  const joursEcoules = jour - (budgetClub.derniereSubventionJour || jour);
+  if (joursEcoules <= 0) return;
+
+  const dailyRevenue = (typeof CITY_POPULATION !== 'undefined' && CITY_POPULATION[club.country]?.[club.city]?.dailyTaxRevenue) || 2000;
+  const montantParJour = Math.round(dailyRevenue * ((budgetMairie.allocation.associatif || 0) / 100) * 0.1); // 10% de la ligne associative, par jour
+  const montantTotal = montantParJour * Math.min(joursEcoules, 14);
+
+  if (montantTotal > 0) await crediterBudgetClub(club.id, montantTotal, 'Subvention municipale');
+  budgetClub.derniereSubventionJour = jour;
+  if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(club.id, budgetClub).catch(() => {});
+}
+
+async function doConsulterBudgetClub() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Budget — ' + clubLocal.nom;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  await verifierSubventionMairie(clubLocal);
+  const data = await chargerBudgetClub(clubLocal.id);
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:#C9A84C;margin-bottom:1rem">' + (data.caisse || 0).toLocaleString('fr-FR') + ' FR</div>';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">Dernières opérations</div>';
+  html += '<div style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:.25rem">';
+  if (!data.historique || data.historique.length === 0) {
+    html += '<div style="font-size:.75rem;color:#5a5040;font-style:italic">Aucune opération pour l\'instant.</div>';
+  } else {
+    [...data.historique].reverse().forEach(h => {
+      const col = h.montant >= 0 ? '#6ab858' : '#cc6a44';
+      html += '<div style="display:flex;justify-content:space-between;font-size:.75rem;padding:.2rem 0;border-bottom:1px solid #1a1208"><span style="color:#c0b090">' + h.motif + '</span><span style="color:' + col + '">' + (h.montant>=0?'+':'') + h.montant.toLocaleString('fr-FR') + ' FR</span></div>';
+    });
+  }
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// =====================
+// SPONSORING
+// =====================
+const PALIERS_SPONSORING = [
+  { montant: 500, inf: 2, label: 'Sponsor bronze' },
+  { montant: 1500, inf: 5, label: 'Sponsor argent' },
+  { montant: 3000, inf: 10, label: 'Sponsor officiel' }
+];
+
+function doSponsoriserClub() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Sponsoriser ' + clubLocal.nom;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Votre nom sera associé au club — visibilité en échange de votre soutien financier.</div>';
+  PALIERS_SPONSORING.forEach(p => {
+    html += '<button onclick="confirmerSponsoring(' + p.montant + ',\'' + p.label + '\',' + p.inf + ')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
+    html += '<span>' + p.label + '</span><span style="color:#C9A84C">' + p.montant.toLocaleString('fr-FR') + ' FR · +' + p.inf + ' INF</span></button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerSponsoring(montant, label, inf) {
+  const clubLocal = getClubLocal();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
+  state.arg -= montant;
+  state.inf = Math.min(100, (state.inf || 0) + inf);
+  clubLocal.sponsorActuel = state.char?.name || null;
+  updateUI();
+  showToast(label + ' !', 'Votre nom est désormais associé à ' + clubLocal.nom + '. +' + inf + ' INF.', true, true);
+  addJournalEntry(label + ' de ' + clubLocal.nom + ' (-' + montant + ' FR, +' + inf + ' INF).', 'event-good');
+  await crediterBudgetClub(clubLocal.id, montant, label + ' — ' + (state.char?.name || 'Anonyme'));
+}
+
+// =====================
+// TRACTS SPORTIFS
+// =====================
+function doImprimerTractsSportifs() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Tracts pour un match';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">150 ' + cur + ' le lot de 50 tracts. Actuellement en stock : ' + (state.char?.tractsSportifs || 0) + '.</div>';
+  html += '<button onclick="confirmerImpressionTractsSportifs()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander 50 tracts (150 ' + cur + ')</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerImpressionTractsSportifs() {
+  if (state.arg < 150) { showToast('Fonds insuffisants', '150 FR requis.', false); return; }
+  state.arg -= 150;
+  if (!state.char) return;
+  state.char.tractsSportifs = (state.char.tractsSportifs || 0) + 50;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Tracts imprimés', '50 tracts ajoutés à votre stock.', true, true);
+  addJournalEntry('Impression de 50 tracts sportifs (-150 FR).', 'event-good');
+}
+
+function calculerFrequentationStade(club, position) {
+  const capacite = Math.round(club.valeurBase * 300);
+  const tauxRemplissage = Math.max(0.3, 1 - (position - 1) * 0.06);
+  return Math.round(capacite * Math.min(1, tauxRemplissage));
+}
+
+function bonusClassementTracts(position) {
+  // 1er -> x1.5, 12e -> x0.7
+  return 1.5 - (position - 1) * (0.8 / 11);
+}
+
+async function doDistribuerTractsMatch() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  const stock = state.char?.tractsSportifs || 0;
+  if (stock <= 0) { showToast('Aucun tract', 'Faites imprimer des tracts à l\'imprimerie.', false); return; }
+  if (!state.char?.candidatures?.length && !state.candidatureEnCours) {
+    showToast('Réservé aux candidats', 'Vous devez être candidat déclaré à une élection.', false);
+    return;
+  }
+
+  const saison = await verifierEtJouerJournees();
+  const classement = calculerClassement(saison.calendrier);
+  const position = classement.findIndex(c => c.id === clubLocal.id) + 1 || classement.length;
+
+  const frequentation = calculerFrequentationStade(clubLocal, position);
+  const distribues = Math.min(stock, frequentation);
+  const bonus = bonusClassementTracts(position);
+  const voixGagnees = Math.round((distribues / 10) * bonus);
+
+  state.char.tractsSportifs = stock - distribues;
+  state.pop = Math.min(100, (state.pop || 0) + Math.round(voixGagnees / 5));
+  updateUI();
+  showToast('Tracts distribués !', distribues + ' tracts distribués (' + frequentation + ' spectateurs, ' + position + 'e au classement). ~' + voixGagnees + ' électeurs convaincus.', true, true);
+  addJournalEntry('Distribution de ' + distribues + ' tracts avant le match de ' + clubLocal.nom + '. ~' + voixGagnees + ' voix gagnées.', 'event-good');
+}
+
+// =====================
+// MANIFESTATION DU CLUB DE SUPPORTERS
+// =====================
+async function doOrganiserManifestation() {
+  const orga = getClubSupportersLocal();
+  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
+  const estChef = orga.chef === state.char?.name;
+  if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut organiser une manifestation.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Organiser une manifestation';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Un moyen de pression sur le maire — pour le soutenir, ou pour le contester. L\'intensité dépend du nombre de membres du club (' + (orga.membres?.length||0) + ').</div>';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<button onclick="confirmerManifestation(\'faveur\')" style="flex:1;padding:.6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.75rem">En faveur du maire</button>';
+  html += '<button onclick="confirmerManifestation(\'defaveur\')" style="flex:1;padding:.6rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.75rem">Contre le maire</button>';
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerManifestation(sens) {
+  const orga = getClubSupportersLocal();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const nbMembres = orga.membres?.length || 1;
+  const intensite = Math.min(3, 1 + Math.floor(nbMembres / 10)); // 1 a 10 membres = x1, 11-20 = x2, 21+ = x3
+
+  const cible = POSTES?.[state.country]?.maire?.titulaire || 'Le Maire';
+  const signe = sens === 'faveur' ? 1 : -1;
+
+  // Effets sur le personnage occupant le poste de maire (CHA/DUP/legitimite), sans toucher aux indices imperiaux
+  if (state.poste?.id === 'maire') {
+    state.cha = Math.max(0, Math.min(100, (state.cha||50) + signe * 3 * intensite));
+    state.dup = Math.max(0, Math.min(100, (state.dup||50) + (signe > 0 ? 3 : -5) * intensite));
+    state.legitimite = Math.max(0, Math.min(100, (state.legitimite ?? 50) + signe * 4 * intensite));
+  }
+
+  updateUI();
+  const mot = sens === 'faveur' ? 'en soutien' : 'contre';
+  showToast('Manifestation organisée !', 'Les supporters manifestent ' + mot + ' le maire (intensité x' + intensite + ').', true, true);
+  addJournalEntry('Le club de supporters manifeste ' + mot + ' le maire.', sens === 'faveur' ? 'event-good' : 'event-bad');
+  addExternalEvent('📣 Manifestation des supporters ' + mot + ' le maire, organisée par "' + orga.nom + '".');
+}
+
+// =====================
+// BOYCOTT
+// =====================
+async function doOrganiserBoycott() {
+  const orga = getClubSupportersLocal();
+  const clubLocal = getClubLocal();
+  if (!orga || !clubLocal) { showToast('Indisponible', '', false); return; }
+  const estChef = orga.chef === state.char?.name;
+  if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut décider d\'un boycott.', false); return; }
+
+  const saison = await chargerOuInitialiserSaison();
+  const prochaineJournee = saison.calendrier.find(j => j.matchs.some(m => !m.played && m.home === clubLocal.id));
+  if (!prochaineJournee) { showToast('Aucun match à domicile', 'Pas de prochain match à domicile pour ce club.', false); return; }
+  const match = prochaineJournee.matchs.find(m => !m.played && m.home === clubLocal.id);
+  match.boycotte = true;
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Boycott décidé', 'Le prochain match à domicile de ' + clubLocal.nom + ' sera boycotté par ses supporters.', true, true);
+  addJournalEntry('Le club de supporters décide de boycotter le prochain match à domicile.', 'event-bad');
+  addExternalEvent('🚫 Le club de supporters de "' + clubLocal.nom + '" annonce un boycott du prochain match à domicile.');
+}
+
 function doChoisirAccessoireClub() {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
@@ -1684,7 +1919,7 @@ function doChoisirAccessoireClub() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerAchatAccessoireClub(id, label, prix) {
+async function confirmerAchatAccessoireClub(id, label, prix) {
   const clubLocal = getClubLocal();
   document.getElementById('modal-postes').classList.remove('open');
   if (state.arg < prix) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
@@ -1694,6 +1929,7 @@ function confirmerAchatAccessoireClub(id, label, prix) {
   updateUI();
   showToast('Achat effectué', label + ' du ' + clubLocal.nom + ' ajouté(e) à votre inventaire.', true, true);
   addJournalEntry('Achat : ' + label + ' du ' + clubLocal.nom + ' (-' + prix + ' FR).', 'event-good');
+  await crediterBudgetClub(clubLocal.id, prix, 'Vente boutique : ' + label);
 }
 
 function doAcheterAccessoirePersonnalise() {
