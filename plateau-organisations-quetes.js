@@ -1648,7 +1648,7 @@ const PRODUITS_VISUELS_CLUB = {
     maillot: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-tshirt-luthecia.png'
   },
   'cheminote-montrouge': {
-    echarpe: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produits-casquette-echarpe-montrouge.png',
+    echarpe: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-echarpe-montrouge-dediee.png',
     casquette: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produits-casquette-echarpe-montrouge.png',
     maillot: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/produit-tshirt-montrouge.png'
   },
