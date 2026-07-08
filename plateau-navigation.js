@@ -179,6 +179,16 @@ function joursRestantsPeine() {
   return Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
 }
 
+function joursEcoulesHospitalisation() {
+  if (!state.hospitalisation) return 0;
+  return (state.day || 1) - state.hospitalisation.jourDebut;
+}
+
+function batimentHospitalisation() {
+  if (!state.hospitalisation) return null;
+  return state.hospitalisation.lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
+}
+
 function enterBuilding(buildingId, skipAutoRoom) {
   const b = BUILDINGS[buildingId];
   if (!b) return;
@@ -186,6 +196,12 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // Verrou : emprisonnement — impossible de quitter le commissariat avant la fin de la peine
   if (state.estEmprisonne && buildingId !== 'commissariat') {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
+    return;
+  }
+
+  // Verrou : hospitalisation — jour 1 uniquement, aucun deplacement sauf transfert vers la clinique privee
+  if (state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation() && buildingId !== 'clinique-privee') {
+    showToast('Hospitalisé(e)', 'Vous êtes encore trop faible pour vous déplacer aujourd\'hui. Seul un transfert vers une clinique privée est possible.', false);
     return;
   }
 
@@ -285,6 +301,11 @@ function enterRoom(buildingId, roomId, tabEl) {
     showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule. ' + joursRestantsPeine() + ' jour(s) restant(s) avant votre libération.', false);
     return;
   }
+  // Verrou : hospitalisation — jour 1 uniquement, reste dans sa chambre
+  if (state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation()) {
+    showToast('Hospitalisé(e)', 'Vous êtes encore alité(e) aujourd\'hui.', false);
+    return;
+  }
   // Vérifier accès zone embarquement
   if (!checkZoneEmbarquementAcces(buildingId, roomId)) return;
   const b = BUILDINGS[buildingId];
@@ -350,6 +371,10 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (state.estEmprisonne && buildingId === 'commissariat' && roomId === 'prison') {
     const joursRestants = Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
     displayDesc += ' — Peine : ' + state.estEmprisonne.raison + '. Temps restant : ' + joursRestants + ' jour(s) (libération au Jour ' + state.estEmprisonne.jourFin + ').';
+  }
+  if (state.hospitalisation && buildingId === batimentHospitalisation()) {
+    const joursRestants = Math.max(0, state.hospitalisation.jourFin - (state.day || 1));
+    displayDesc += ' — En convalescence. Temps restant estimé : ' + joursRestants + ' jour(s).';
   }
   document.getElementById('piece-desc').textContent = displayDesc;
   let displayPersons = roomOverride?.persons?.length > 0 ? roomOverride.persons : ((isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []));

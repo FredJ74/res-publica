@@ -226,6 +226,7 @@ async function confirmerAssassinatArme(encodedCible, mode, taux) {
         victime: cible.name,
         indice: 'hp_set',
         delta: pvCible,
+        palier: palier,
         traite: false
       }).catch(() => {});
     }
@@ -254,6 +255,7 @@ async function confirmerAssassinatArme(encodedCible, mode, taux) {
         victime: cible.name,
         indice: 'hp_set',
         delta: pvCible,
+        palier: palier,
         traite: false
       }).catch(() => {});
     }
@@ -1408,6 +1410,7 @@ async function confirmerEmpoisonnement(cibleNom) {
         victime: cibleNom,
         indice: 'hp_set',
         delta: pvCible,
+        palier: palier,
         traite: false
       }).catch(() => {});
     }

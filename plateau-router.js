@@ -51,6 +51,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'distribuer_tracts_match') { doDistribuerTractsMatch(); return; }
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
   if (fn === 'organiser_boycott') { doOrganiserBoycott(); return; }
+  if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(); return; }
   if (fn === 'choisir_accessoire_club') { doChoisirAccessoireClub(); return; }
   if (fn === 'acheter_accessoire_personnalise') { doAcheterAccessoirePersonnalise(); return; }
   if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(); return; }

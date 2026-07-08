@@ -719,9 +719,43 @@ function doDormir() {
   verifierLiberationPrisonniers();
   verifierDecouverteCrimesPasses();
   checkArrestationAuReveil();
+  verifierProgressionHospitalisation();
 
   // Rafraichir la vue
   switchSelfTab('actions', null);
+}
+
+function doTransfertCliniquePrivee() {
+  if (!state.hospitalisation) { showToast('Indisponible', 'Vous n\'êtes pas hospitalisé(e).', false); return; }
+  if (state.hospitalisation.lieu === 'clinique') { showToast('Déjà en clinique privée', '', false); return; }
+  if (state.arg < 1000) { showToast('Fonds insuffisants', '1000 FR requis pour le transfert.', false); return; }
+  state.arg -= 1000;
+  state.hospitalisation.lieu = 'clinique';
+  updateUI();
+  if (typeof enterBuilding === 'function') enterBuilding('clinique-privee', true);
+  if (typeof enterRoom === 'function') enterRoom('clinique-privee', 'reception_clinique', null);
+  showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true);
+  addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
+}
+
+function verifierProgressionHospitalisation() {
+  if (!state.hospitalisation) return;
+  const jours = joursEcoulesHospitalisation();
+  const plafondBase = state.hospitalisation.lieu === 'clinique' ? 6 : 3;
+
+  if (jours >= 3) {
+    state.hospitalisation = null;
+    showToast('Rétabli(e) !', 'Vous avez retrouvé toutes vos capacités.', true, true);
+    addJournalEntry('Vous êtes complètement rétabli(e) de votre agression.', 'event-good');
+    return;
+  }
+  if (jours === 1) {
+    state.pa = Math.min(state.pa || 0, plafondBase);
+    showToast('Réveil à l\'hôpital', 'Encore faible. PA limités à ' + plafondBase + '. Déplacement impossible aujourd\'hui, sauf transfert vers une clinique privée.', false);
+  } else if (jours === 2) {
+    state.pa = Math.min(state.pa || 0, plafondBase * 2);
+    showToast('En convalescence', 'PA encore limités à ' + (plafondBase*2) + '. Vous pouvez à nouveau vous déplacer.', false);
+  }
 }
 
 function doSesoigner() {

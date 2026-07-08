@@ -590,6 +590,10 @@ function openMailbox() {
 // FORUM EN VUE CENTRALE
 // =====================
 function openForumView(forumId) {
+  if (state.hospitalisation && joursEcoulesHospitalisation() === 0) {
+    showToast('Inconscient(e)', 'Vous venez d\'être agressé(e) et n\'êtes pas en état d\'accéder au forum.', false);
+    return;
+  }
   // Le vrai systeme de forum (sujets, editeur riche, mail) vit dans forum.js (openForum_module).
   // L'ancien systeme local base sur FORUM_TOPICS/buildForumHTML a ete retire d'ici (code mort, jamais utilise).
   openForum_module(forumId || 'local');
@@ -745,6 +749,18 @@ async function recupererImpactsEnAttente() {
         state.hp = Math.max(0, imp.delta);
         state.regenJour = state.day; // demarre la regeneration naturelle (+10/jour)
         resume.push('⚔️ Agression ! PV tombés à ' + imp.delta);
+
+        // Hospitalisation — duree selon la gravite du palier subi
+        const estHautPlace = state.poste && ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(state.poste.id);
+        const lieu = estHautPlace ? 'clinique' : 'dispensaire';
+        const dureeParPalier = { totale: 3, partielle: 2, echec_partiel: 1 };
+        const duree = dureeParPalier[imp.palier] || 1;
+        state.hospitalisation = { jourDebut: state.day, palier: imp.palier || 'partielle', lieu, jourFin: state.day + duree };
+        state.pa = 0; // jour de l'agression : plus aucun ordre accessible
+        const batimentCible = lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
+        const pieceCible = lieu === 'clinique' ? 'reception_clinique' : 'salle_attente';
+        if (typeof enterBuilding === 'function') enterBuilding(batimentCible, true);
+        if (typeof enterRoom === 'function') enterRoom(batimentCible, pieceCible, null);
       }
       if (typeof sbMarquerImpactTraite === 'function') await sbMarquerImpactTraite(imp.id).catch(() => {});
     }
