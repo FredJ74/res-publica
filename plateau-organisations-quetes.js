@@ -1063,13 +1063,29 @@ async function publierResultatsJourneeSurForum(numeroSaison, journee) {
   });
 }
 
+async function publierTourPlayoffSurForum(numeroSaison, titreManche, resultats) {
+  if (typeof sbCreateTopic !== 'function' || typeof formatDateHeureJeu !== 'function') return;
+  const time = formatDateHeureJeu();
+  const titre = titreManche + ' — Saison ' + numeroSaison;
+  const contenu = resultats.map(r => r.recit).join('<br>');
+
+  const topicId = await sbCreateTopic('sport', titre, 'Ligue Officielle', state.country || 'republic', time).catch(() => null);
+  if (topicId && typeof sbCreatePost === 'function') {
+    await sbCreatePost(topicId, 'Ligue Officielle', contenu, time).catch(() => {});
+  }
+  if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
+  FORUM_TOPICS['sport'].unshift({
+    id: topicId || 'sport-playoff-' + Date.now(), title: titre, author: 'Ligue Officielle',
+    time, views: 1, replies: 0, lastPostAuthor: 'Ligue Officielle', lastPostTime: time,
+    posts: [{ author: 'Ligue Officielle', time, content: contenu }]
+  });
+}
+
 async function publierPhasesFinalesSurForum(numeroSaison, rf) {
   if (typeof sbCreateTopic !== 'function' || typeof formatDateHeureJeu !== 'function') return;
   const time = formatDateHeureJeu();
-  const titre = '🏆 Phases finales — Saison ' + numeroSaison;
-  let contenu = '<b>Quarts de finale</b><br>' + rf.quarts.map(q => q.recit).join('<br>');
-  contenu += '<br><br><b>Demi-finales</b><br>' + rf.demies.map(d => d.recit).join('<br>');
-  contenu += '<br><br><b>Finale</b> (au ' + getClub(rf.stadeClubId).nom + ')<br>' + rf.finale.recit;
+  const titre = '🏆 Sacre du champion — Saison ' + numeroSaison;
+  let contenu = '<b>Finale</b> (au ' + getClub(rf.stadeClubId).nom + ')<br>' + rf.finale.recit;
   contenu += '<br><br><b>' + getClub(rf.champion).nom + ' est sacré champion de la saison ' + numeroSaison + ' !</b>';
 
   const topicId = await sbCreateTopic('sport', titre, 'Ligue Officielle', state.country || 'republic', time).catch(() => null);
@@ -1084,9 +1100,136 @@ async function publierPhasesFinalesSurForum(numeroSaison, rf) {
   });
 }
 
+async function verifierNotificationsAvantMatch(saison) {
+  if (saison.phase !== 'reguliere') return;
+  const joursEcoules = joursEcoulesDepuis(saison.dateDebut);
+  const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
+  if (!prochaine || prochaine.notifie24h) return;
+
+  const dateResolution = (prochaine.numero - 1) * 7;
+  if (joursEcoules !== dateResolution - 1) return; // on notifie seulement la veille exacte
+
+  for (const m of prochaine.matchs) {
+    const clubHome = getClub(m.home), clubAway = getClub(m.away);
+    const [contribHome, contribAway] = await Promise.all([calculerContributionEquipe(clubHome), calculerContributionEquipe(clubAway)]);
+    await notifierConvocationAnticipee(clubHome, contribHome, clubAway);
+    await notifierConvocationAnticipee(clubAway, contribAway, clubHome);
+  }
+  prochaine.notifie24h = true;
+  if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(saison).catch(() => {});
+}
+
+async function notifierConvocationAnticipee(club, contrib, adversaire) {
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  for (const t of contrib.titulaires) {
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', t.nom, 'Convocation — ' + club.nom,
+        'Vous êtes titulaire pour le match de demain face à ' + adversaire.nom + '. Dernière chance de vous entraîner avant le coup d\'envoi !', time).catch(() => {});
+    }
+  }
+  for (const r of contrib.remplacants) {
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', r.nom, 'Convocation — ' + club.nom,
+        'Vous êtes remplaçant pour le match de demain face à ' + adversaire.nom + '.', time).catch(() => {});
+    }
+  }
+}
+
+async function jouerMatchsTour(paires, avecRetour) {
+  const resultats = [];
+  for (const [a, b] of paires) {
+    const clubA = getClub(a), clubB = getClub(b);
+    const [contribA, contribB] = await Promise.all([calculerContributionEquipe(clubA), calculerContributionEquipe(clubB)]);
+    const res = simulerMatch(a, b, contribA.bonus, contribB.bonus);
+    resultats.push({ home: a, away: b, scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit });
+    await notifierCompositionsEtBlessures(clubA, contribA, res.scoreHome, res.scoreAway);
+    await notifierCompositionsEtBlessures(clubB, contribB, res.scoreAway, res.scoreHome);
+  }
+  return resultats;
+}
+
+function determinerVainqueursAgrege(aller, retour) {
+  // retour : memes paires mais domicile/exterieur inverses (b recoit a)
+  return aller.map((m, i) => {
+    const r = retour[i];
+    const totalA = m.scoreHome + r.scoreAway; // buts de "a" sur les deux manches
+    const totalB = m.scoreAway + r.scoreHome; // buts de "b" sur les deux manches
+    return totalA >= totalB ? m.home : m.away;
+  });
+}
+
+async function progresserPlayoffs(saison) {
+  const p = saison.playoffs;
+  const jour = state.day || 1;
+  if (jour < p.prochaineDate) return false;
+
+  if (p.etape === 'quarts_aller') {
+    p.quarts.aller = await jouerMatchsTour(p.quarts.paires, false);
+    await publierTourPlayoffSurForum(saison.numero, 'Quarts de finale (aller)', p.quarts.aller);
+    p.etape = 'quarts_retour';
+    p.prochaineDate = jour + 7;
+    return true;
+  }
+  if (p.etape === 'quarts_retour') {
+    const pairesRetour = p.quarts.paires.map(([a, b]) => [b, a]);
+    p.quarts.retour = await jouerMatchsTour(pairesRetour, true);
+    await publierTourPlayoffSurForum(saison.numero, 'Quarts de finale (retour)', p.quarts.retour);
+    p.quarts.vainqueurs = determinerVainqueursAgrege(p.quarts.aller, p.quarts.retour);
+    p.demies = { paires: [[p.quarts.vainqueurs[0], p.quarts.vainqueurs[3]], [p.quarts.vainqueurs[1], p.quarts.vainqueurs[2]]], aller: null, retour: null, vainqueurs: null };
+    p.etape = 'demies_aller';
+    p.prochaineDate = jour + 7;
+    return true;
+  }
+  if (p.etape === 'demies_aller') {
+    p.demies.aller = await jouerMatchsTour(p.demies.paires, false);
+    await publierTourPlayoffSurForum(saison.numero, 'Demi-finales (aller)', p.demies.aller);
+    p.etape = 'demies_retour';
+    p.prochaineDate = jour + 7;
+    return true;
+  }
+  if (p.etape === 'demies_retour') {
+    const pairesRetour = p.demies.paires.map(([a, b]) => [b, a]);
+    p.demies.retour = await jouerMatchsTour(pairesRetour, true);
+    await publierTourPlayoffSurForum(saison.numero, 'Demi-finales (retour)', p.demies.retour);
+    p.demies.vainqueurs = determinerVainqueursAgrege(p.demies.aller, p.demies.retour);
+    p.finale = { paire: [p.demies.vainqueurs[0], p.demies.vainqueurs[1]], resultat: null };
+    p.etape = 'finale';
+    p.prochaineDate = jour + 7;
+    return true;
+  }
+  if (p.etape === 'finale') {
+    const [a, b] = p.finale.paire;
+    const [contribA, contribB] = await Promise.all([calculerContributionEquipe(getClub(a)), calculerContributionEquipe(getClub(b))]);
+    const res = simulerMatch(a, b, contribA.bonus, contribB.bonus);
+    p.finale.resultat = { home:a, away:b, scoreHome:res.scoreHome, scoreAway:res.scoreAway, recit:res.recit };
+    await notifierCompositionsEtBlessures(getClub(a), contribA, res.scoreHome, res.scoreAway);
+    await notifierCompositionsEtBlessures(getClub(b), contribB, res.scoreAway, res.scoreHome);
+
+    const champion = res.scoreHome >= res.scoreAway ? a : b;
+    const finaliste = champion === a ? b : a;
+    const classementFinal = calculerClassement(saison.calendrier);
+
+    saison.resultatsFinales = { quarts: p.quarts, demies: p.demies, finale: p.finale.resultat, champion, stadeClubId: saison.stadeFinaleClubId };
+    saison.palmares.push({
+      saison: saison.numero,
+      champion: getClub(champion).nom,
+      finaliste: getClub(finaliste).nom,
+      stade: getClub(saison.stadeFinaleClubId).nom,
+      classementFinal: classementFinal.map(c => ({ nom:c.nom, pts:c.pts }))
+    });
+    saison.phase = 'terminee';
+    p.etape = 'termine';
+    await publierPhasesFinalesSurForum(saison.numero, saison.resultatsFinales);
+    return true;
+  }
+  return false;
+}
+
 async function verifierEtJouerJournees() {
   const saison = await chargerOuInitialiserSaison();
   if (!saison || saison.phase === 'terminee') return saison;
+
+  await verifierNotificationsAvantMatch(saison);
 
   const joursEcoules = joursEcoulesDepuis(saison.dateDebut);
   const journeeCible = Math.min(Math.floor(joursEcoules / 7), saison.calendrier.length - 1);
@@ -1124,29 +1267,26 @@ async function verifierEtJouerJournees() {
     await publierResultatsJourneeSurForum(saison.numero, journee);
   }
 
-  // Une fois la phase reguliere entierement jouee, on enchaine directement les phases finales
-  // (simplification : quarts, demies et finale sont simules en une fois, plutot que d'etaler sur d'autres semaines)
+  // Une fois la phase reguliere entierement jouee, on enchaine les phases finales,
+  // etalees sur plusieurs semaines (une semaine par manche), comme la phase reguliere.
   if (saison.phase === 'reguliere' && saison.calendrier.every(j => j.matchs.every(m => m.played))) {
     const classement = calculerClassement(saison.calendrier);
     const top8 = classement.slice(0, 8).map(c => c.id);
-    const quarts = simulerTourElimination(top8);
-    const demiEngages = quarts.map(q => q.vainqueur);
-    const demies = simulerTourElimination(demiEngages);
-    const finalistes = demies.map(d => d.vainqueur);
-    const finale = simulerMatch(finalistes[0], finalistes[1]);
-    const champion = finale.scoreHome >= finale.scoreAway ? finalistes[0] : finalistes[1];
-
-    saison.resultatsFinales = { quarts, demies, finale: { ...finale, home:finalistes[0], away:finalistes[1] }, champion, stadeClubId: saison.stadeFinaleClubId };
-    saison.palmares.push({
-      saison: saison.numero,
-      champion: getClub(champion).nom,
-      finaliste: getClub(finalistes[0] === champion ? finalistes[1] : finalistes[0]).nom,
-      stade: getClub(saison.stadeFinaleClubId).nom,
-      classementFinal: classement.map(c => ({ nom:c.nom, pts:c.pts }))
-    });
-    saison.phase = 'terminee';
-    await publierPhasesFinalesSurForum(saison.numero, saison.resultatsFinales);
+    saison.phase = 'quarts';
+    saison.playoffs = {
+      top8,
+      etape: 'quarts_aller',
+      prochaineDate: (state.day || 1) + 7,
+      quarts: { paires: [[top8[0],top8[7]],[top8[3],top8[4]],[top8[1],top8[6]],[top8[2],top8[5]]], aller: null, retour: null, vainqueurs: null },
+      demies: null,
+      finale: null
+    };
     modifie = true;
+  }
+
+  if (saison.playoffs && saison.phase !== 'terminee') {
+    const rejoue = await progresserPlayoffs(saison);
+    if (rejoue) modifie = true;
   }
 
   if (modifie && typeof sbSaveChampionnat === 'function') {
