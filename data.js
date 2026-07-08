@@ -207,7 +207,12 @@ const WORLD = {
           desc: "Face a l'ocean. Le vent du large emporte parfois plus que les ballons.",
           roomOverrides: {
             terrain: { name: "Terrain — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-brise-mariannaise.png" },
-            vestiaires: { name: "Vestiaire — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vestiaires-mariannaise.png" },
+            vestiaires: { name: "Vestiaire — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/vestiaires-mariannaise.png",
+              persons: [
+                {name:'Maurice Éhault (PNJ)', role:'Entraineur', rel:'neutral', job:'entraineur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entraineur-mariannaise-ehault.png'},
+                {name:'Thibault Gosse (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entraineur-adjoint-mariannaise-gosse.png'}
+              ]
+            },
             buvette: { name: "Buvette et Magasin — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/buvette-boutique-mariannaise.png" },
             guichet_paris: { name: "Guichet des Paris — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/guichet-paris-mariannaise.jpeg" },
             siege_supporters: { name: "Siège des Supporters — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/siege-supporters-mariannaise.png" }
@@ -256,7 +261,10 @@ const WORLD = {
           name: "Stade Marcel Cazenave — Union Cheminote de Montrouge",
           desc: "Colle aux voies ferrees. Les Cheminots jouent avec la rage des quartiers ouvriers.",
           roomOverrides: {
-            terrain: { name: "Terrain — Union Cheminote de Montrouge", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-union-cheminote-montrouge.png" }
+            terrain: { name: "Terrain — Union Cheminote de Montrouge", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-union-cheminote-montrouge.png" },
+            vestiaires: { name: "Vestiaire — Union Cheminote de Montrouge",
+              persons: [{name:'Gérard Bricoleau (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entraineur-adjoint-montrouge-bricoleau.png'}]
+            }
           }
         },
         'hotel-republica': {
