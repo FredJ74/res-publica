@@ -1618,7 +1618,9 @@ const BUILDINGS = {
           {name:'Entraineur Local (PNJ)', role:'PNJ - Entraineur', rel:'neutral', job:'entraineur'}
         ],
         orders: [
-          {fn:'entrainement', label:"S'entrainer", pa:2, cost:0, type:'legal', icon:'ti-run', successRate:100, requiresOrg:'sportive', desc:'Reserve aux membres du club sportif.'}
+          {fn:'prendre_licence_sportive', label:'Prendre sa licence sportive', pa:1, cost:300, type:'legal', icon:'ti-license', successRate:100, desc:'Seule condition pour s\'entrainer ou jouer. 300 FR.'},
+          {fn:'tenue_entrainement', label:"Mettre la tenue d'entraînement", pa:2, cost:0, type:'legal', icon:'ti-run', successRate:100, desc:'S\'entrainer (Defense/Technique/Endurance). Maximum 2 par jour. Risque de blessure legere.'},
+          {fn:'tenue_match', label:'Mettre la tenue de match', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Repartir librement ses points de performance avant le prochain match.'}
         ]
       },
       buvette: {
@@ -4019,9 +4021,7 @@ const TYPES_ORGANISATIONS = {
     },
     maxParCreation: 0,
     maxAdhesion: 1,
-    ordres: [
-      { fn: 'entrainement', label: "S'entrainer", pa: 2, cost: 0, icon: 'ti-run', desc: 'Ameliore la contribution du joueur aux prochains matchs.' },
-    ]
+    ordres: []
   },
   supporters: {
     label: 'Club de Supporters',

@@ -957,11 +957,11 @@ function genererEvenementsMatch(home, away, scoreHome, scoreAway) {
   return events;
 }
 
-function simulerMatch(clubHomeId, clubAwayId) {
+function simulerMatch(clubHomeId, clubAwayId, bonusHome, bonusAway) {
   const home = getClub(clubHomeId), away = getClub(clubAwayId);
   const avantageDomicile = 5;
-  const forceHome = home.valeurBase + avantageDomicile;
-  const forceAway = away.valeurBase;
+  const forceHome = home.valeurBase + avantageDomicile + (bonusHome || 0);
+  const forceAway = away.valeurBase + (bonusAway || 0);
   const buts = (force) => Math.max(0, Math.round((force / 28) + (Math.random() * 2.6 - 0.9)));
   const scoreHome = buts(forceHome);
   const scoreAway = buts(forceAway);
@@ -1097,14 +1097,26 @@ async function verifierEtJouerJournees() {
     const journee = saison.calendrier[i];
     if (!journee) continue;
     let journeeVientDetreJouee = false;
-    journee.matchs.forEach(m => {
+    for (const m of journee.matchs) {
       if (!m.played) {
-        const res = simulerMatch(m.home, m.away);
-        Object.assign(m, { scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit, evenements: res.evenements, played: true });
+        const clubHome = getClub(m.home), clubAway = getClub(m.away);
+        const [contribHome, contribAway] = await Promise.all([
+          calculerContributionEquipe(clubHome),
+          calculerContributionEquipe(clubAway)
+        ]);
+        const res = simulerMatch(m.home, m.away, contribHome.bonus, contribAway.bonus);
+        Object.assign(m, { scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit, evenements: res.evenements, played: true,
+          compositions: {
+            home: { titulaires: contribHome.titulaires.map(t=>t.nom), remplacants: contribHome.remplacants.map(t=>t.nom) },
+            away: { titulaires: contribAway.titulaires.map(t=>t.nom), remplacants: contribAway.remplacants.map(t=>t.nom) }
+          }
+        });
         modifie = true;
         journeeVientDetreJouee = true;
+        await notifierCompositionsEtBlessures(clubHome, contribHome, m.scoreHome, m.scoreAway);
+        await notifierCompositionsEtBlessures(clubAway, contribAway, m.scoreAway, m.scoreHome);
       }
-    });
+    }
     if (journeeVientDetreJouee) journeesNouvellementJouees.push(journee);
   }
 
@@ -1157,6 +1169,213 @@ async function demarrerNouvelleSaison(saisonPrecedente) {
   };
   if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(nouvelle).catch(() => {});
   return nouvelle;
+}
+
+// =====================
+// PERFORMANCE DES JOUEURS & INDICES LOCAUX
+// =====================
+const LABELS_PERF = { defense: 'Défense', technique: 'Technique', endurance: 'Endurance' };
+// Mapping indice local -> parametre de performance
+// Securite -> Defense, Ecoles(education) -> Technique, Espaces verts(cadre de vie) -> Endurance
+// Associatif -> bonus global multiplicatif sur toute la contribution de l'equipe
+
+function multiplicateurIndice(val) {
+  // 0 -> x0.7, 50 -> x1.0, 100 -> x1.3
+  return 0.7 + ((val || 50) / 100) * 0.6;
+}
+
+async function getIndicesPourVille(country, city) {
+  const key = country + '_' + city;
+  if (typeof sbGetBudgetMunicipal !== 'function') return { securite:50, associatif:50, ecoles:50, espaces_verts:50 };
+  const data = await sbGetBudgetMunicipal(key).catch(() => null);
+  return data?.indices || { securite:50, associatif:50, ecoles:50, espaces_verts:50 };
+}
+
+const TITULAIRES_MAX = 5;
+const REMPLACANTS_MAX = 3;
+
+async function calculerContributionEquipe(club) {
+  if (typeof sbListJoueursLicencies !== 'function') return { bonus: 0, titulaires: [], remplacants: [], nonRetenus: [] };
+  const licencies = await sbListJoueursLicencies(club.id).catch(() => []);
+  const jour = state.day || 1;
+  const dispo = (licencies || []).filter(j => !(j.blessure_sportive?.jusquauJour > jour));
+
+  const withTotal = dispo.map(j => {
+    const p = j.performance_sportive || { defense:0, technique:0, endurance:0 };
+    return { nom: j.name, perf: p, total: (p.defense||0) + (p.technique||0) + (p.endurance||0) };
+  }).filter(j => j.total > club.valeurBase * 0.5); // seuil de qualification face aux PNJ du club
+
+  withTotal.sort((a, b) => b.total - a.total);
+  const titulaires = withTotal.slice(0, TITULAIRES_MAX);
+  const remplacants = withTotal.slice(TITULAIRES_MAX, TITULAIRES_MAX + REMPLACANTS_MAX);
+  const nonRetenus = withTotal.slice(TITULAIRES_MAX + REMPLACANTS_MAX);
+
+  const indices = await getIndicesPourVille(club.country, club.city);
+  let bonus = 0;
+  titulaires.forEach(t => {
+    bonus += (t.perf.defense || 0) * multiplicateurIndice(indices.securite) * 0.3;
+    bonus += (t.perf.technique || 0) * multiplicateurIndice(indices.ecoles) * 0.3;
+    bonus += (t.perf.endurance || 0) * multiplicateurIndice(indices.espaces_verts) * 0.3;
+  });
+  bonus *= multiplicateurIndice(indices.associatif);
+
+  return { bonus: Math.round(bonus), titulaires, remplacants, nonRetenus };
+}
+
+// Envoie la convocation (titulaire/remplacant/non retenu) et applique un risque de blessure aux titulaires
+async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsContre) {
+  const jour = state.day || 1;
+  const resultat = butsPour > butsContre ? 'victoire' : (butsPour < butsContre ? 'defaite' : 'match nul');
+
+  for (const t of contrib.titulaires) {
+    let messageBlessure = '';
+    const blesse = Math.random() < 0.08;
+    if (blesse) {
+      const grave = Math.random() < 0.3;
+      const duree = grave ? (7 + Math.floor(Math.random()*4)) : (2 + Math.floor(Math.random()*2));
+      const degatsPV = grave ? 30 : 15;
+      if (typeof sbAppliquerBlessureSportive === 'function') {
+        await sbAppliquerBlessureSportive(t.nom, { jusquauJour: jour + duree, gravite: grave ? 'grave' : 'legere' }, degatsPV).catch(() => {});
+      }
+      messageBlessure = '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (grave ? 'gravement' : 'légèrement') + '). Indisponible ' + duree + ' jour(s), -' + degatsPV + ' PV.';
+    }
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', t.nom, 'Vous étiez titulaire — ' + club.nom,
+        'Vous étiez titulaire lors du dernier match (' + resultat + ', ' + butsPour + '-' + butsContre + ').' + messageBlessure, formatDateHeureJeu()).catch(() => {});
+    }
+  }
+  for (const r of contrib.remplacants) {
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', r.nom, 'Vous étiez remplaçant — ' + club.nom,
+        'Vous étiez remplaçant lors du dernier match (' + resultat + ', ' + butsPour + '-' + butsContre + ').', formatDateHeureJeu()).catch(() => {});
+    }
+  }
+  for (const n of contrib.nonRetenus) {
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', n.nom, 'Non retenu(e) — ' + club.nom,
+        'Vous n\'avez pas été retenu(e) pour le dernier match. Entraînez-vous pour retrouver votre place.', formatDateHeureJeu()).catch(() => {});
+    }
+  }
+}
+
+function doPrendreLicenceSportive() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  if (state.char?.licenceSportive?.clubId === clubLocal.id) { showToast('Déjà licencié(e)', 'Vous avez déjà votre licence pour ' + clubLocal.nom + '.', false); return; }
+  if (state.arg < 300) { showToast('Fonds insuffisants', '300 FR requis.', false); return; }
+  state.arg -= 300;
+  if (!state.char) return;
+  state.char.licenceSportive = { clubId: clubLocal.id, dateAchat: state.day || 1 };
+  updateUI();
+  showToast('Licence obtenue !', 'Vous pouvez désormais vous entraîner et jouer pour ' + clubLocal.nom + '.', true, true);
+  addJournalEntry('Licence sportive prise pour ' + clubLocal.nom + ' (-300 FR).', 'event-good');
+}
+
+function verifierEtResetEntrainementsJour() {
+  if (!state.char) return;
+  if (state.char.entrainementsJour?.jour !== state.day) {
+    state.char.entrainementsJour = { jour: state.day || 1, nb: 0 };
+  }
+}
+
+function estIndisponiblePourSport() {
+  const b = state.char?.blessureSportive;
+  return b && b.jusquauJour > (state.day || 1);
+}
+
+function doTenueEntrainement() {
+  const clubLocal = getClubLocal();
+  if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive avant de vous entraîner.', false); return; }
+  if (estIndisponiblePourSport()) {
+    const reste = state.char.blessureSportive.jusquauJour - (state.day||1);
+    showToast('Blessé(e)', 'Encore ' + reste + ' jour(s) avant de pouvoir vous entraîner.', false);
+    return;
+  }
+  verifierEtResetEntrainementsJour();
+  const perf = state.char.performance || { defense:0, technique:0, endurance:0 };
+  const nb = state.char.entrainementsJour?.nb || 0;
+
+  document.getElementById('postes-modal-title').textContent = "Tenue d'entraînement";
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Entraînements aujourd\'hui : ' + nb + '/2</div>';
+  ['defense','technique','endurance'].forEach(stat => {
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;padding:.4rem .6rem;border:1px solid #2a2010">';
+    html += '<span style="font-size:.8rem;color:#c0b090">' + LABELS_PERF[stat] + ' : <b style="color:#C9A84C">' + (perf[stat]||0) + '</b></span>';
+    html += '<button ' + (nb >= 2 ? 'disabled' : '') + ' onclick="confirmerEntrainement(\'' + stat + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:' + (nb>=2?'#5a5040':'#C9A84C') + ';cursor:' + (nb>=2?'default':'pointer') + '">S\'entraîner</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerEntrainement(stat) {
+  verifierEtResetEntrainementsJour();
+  if ((state.char.entrainementsJour?.nb || 0) >= 2) { showToast('Limite atteinte', 'Maximum 2 entraînements par jour.', false); return; }
+  state.char.entrainementsJour.nb = (state.char.entrainementsJour.nb || 0) + 1;
+
+  const blesse = Math.random() < 0.05;
+  if (blesse) {
+    const grave = Math.random() < 0.3;
+    const duree = grave ? (7 + Math.floor(Math.random()*4)) : (2 + Math.floor(Math.random()*2));
+    const degatsPV = grave ? 30 : 15;
+    state.char.blessureSportive = { jusquauJour: (state.day||1) + duree, gravite: grave ? 'grave' : 'legere' };
+    state.hp = Math.max(1, (state.hp||100) - degatsPV);
+    document.getElementById('modal-postes')?.classList.remove('open');
+    updateUI();
+    showToast('Blessure à l\'entraînement !', (grave?'Grave':'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' PV.', false);
+    return;
+  }
+
+  if (!state.char.performance) state.char.performance = { defense:0, technique:0, endurance:0 };
+  state.char.performance[stat] = (state.char.performance[stat] || 0) + 2;
+  updateUI();
+  showToast('Entraînement réussi', '+2 ' + LABELS_PERF[stat] + '.', true, true);
+  doTenueEntrainement();
+}
+
+function doTenueMatch() {
+  if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive.', false); return; }
+  if (estIndisponiblePourSport()) {
+    const reste = state.char.blessureSportive.jusquauJour - (state.day||1);
+    showToast('Blessé(e)', 'Encore ' + reste + ' jour(s) avant de pouvoir jouer.', false);
+    return;
+  }
+  const perf = state.char.performance || { defense:0, technique:0, endurance:0 };
+  const total = (perf.defense||0) + (perf.technique||0) + (perf.endurance||0);
+
+  document.getElementById('postes-modal-title').textContent = 'Tenue de match';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Répartissez librement vos ' + total + ' points de performance. Modifiable jusqu\'au coup d\'envoi du prochain match.</div>';
+  ['defense','technique','endurance'].forEach(stat => {
+    html += '<div style="margin-bottom:.5rem">';
+    html += '<label style="font-size:.75rem;color:#c0b090;display:block;margin-bottom:.2rem">' + LABELS_PERF[stat] + '</label>';
+    html += '<input type="number" id="perf-' + stat + '" value="' + (perf[stat]||0) + '" min="0" max="' + total + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box"/>';
+    html += '</div>';
+  });
+  html += '<div id="perf-total-warning" style="font-size:.72rem;color:#cc6a44;margin-bottom:.6rem"></div>';
+  html += '<button onclick="confirmerReallocationPerformance(' + total + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerReallocationPerformance(total) {
+  const nouvelle = {};
+  let somme = 0;
+  ['defense','technique','endurance'].forEach(stat => {
+    const v = Math.max(0, parseInt(document.getElementById('perf-' + stat)?.value || '0'));
+    nouvelle[stat] = v;
+    somme += v;
+  });
+  if (somme !== total) {
+    document.getElementById('perf-total-warning').textContent = 'Le total doit rester égal à ' + total + ' points (actuellement ' + somme + ').';
+    return;
+  }
+  state.char.performance = nouvelle;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Répartition mise à jour', 'Votre configuration sera utilisée pour le prochain match.', true, true);
 }
 
 function getClubLocal() {

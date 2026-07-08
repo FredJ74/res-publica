@@ -42,6 +42,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_palmares') { doConsulterPalmares(); return; }
   if (fn === 'parier_match') { doParierMatch(); return; }
   if (fn === 'regarder_live') { doRegarderLive(); return; }
+  if (fn === 'prendre_licence_sportive') { doPrendreLicenceSportive(); return; }
+  if (fn === 'tenue_entrainement') { doTenueEntrainement(); return; }
+  if (fn === 'tenue_match') { doTenueMatch(); return; }
   if (fn === 'choisir_accessoire_club') { doChoisirAccessoireClub(); return; }
   if (fn === 'acheter_accessoire_personnalise') { doAcheterAccessoirePersonnalise(); return; }
   if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(); return; }

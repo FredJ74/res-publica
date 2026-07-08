@@ -91,6 +91,9 @@ async function sbSavePersonnage(charState) {
     convocations:     charState.convocations || [],
     est_emprisonne:   charState.estEmprisonne || null,
     motto:            charState.char?.motto || null,
+    licence_sportive: charState.char?.licenceSportive || null,
+    performance_sportive: charState.char?.performance || null,
+    blessure_sportive: charState.char?.blessureSportive || null,
     signature_html:   charState.char?.signatureHtml || null,
     signature_blocks: charState.char?.signatureBlocks || [],
     updated_at:       new Date().toISOString()
@@ -114,6 +117,7 @@ async function sbLoadPersonnage(name) {
              photoUrl: r.photo_url || null, bio: r.bio || null, poste: r.poste || null,
              country: r.country, currentCity: r.current_city, currentBuilding: r.current_building,
              currentRoom: r.current_room || null, motto: r.motto || null,
+             licenceSportive: r.licence_sportive || null, performance: r.performance_sportive || null, blessureSportive: r.blessure_sportive || null,
              signatureHtml: r.signature_html || null, signatureBlocks: r.signature_blocks || [] },
     country:       r.country,
     inf:           r.resources?.inf || 0,
@@ -234,6 +238,21 @@ async function sbSaveChampionnat(data) {
     return sbUpdate('championnat', 'id=eq.1', { data, updated_at: new Date().toISOString() });
   }
   return sbInsert('championnat', { id: 1, data, updated_at: new Date().toISOString() });
+}
+
+async function sbAppliquerBlessureSportive(nomJoueur, blessure, degatsPV) {
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=hp`);
+  const hpActuel = rows?.[0]?.hp ?? 100;
+  const nouveauHp = Math.max(1, hpActuel - (degatsPV || 0));
+  return sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { blessure_sportive: blessure, hp: nouveauHp });
+}
+
+async function sbListJoueursLicencies(clubId) {
+  // On recupere tous les personnages ayant une licence, puis on filtre cote client sur le clubId
+  // (les operateurs JSON de PostgREST sur des colonnes jsonb imbriquees sont plus fragiles a maintenir ici).
+  const rows = await sbGet('personnages', 'licence_sportive=not.is.null&select=name,performance_sportive,blessure_sportive,licence_sportive');
+  if (!rows) return [];
+  return rows.filter(r => r.licence_sportive?.clubId === clubId);
 }
 
 async function sbGetBudgetMunicipal(key) {
