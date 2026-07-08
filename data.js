@@ -126,7 +126,8 @@ const WORLD = {
             },
             siege_supporters: { name: "Les Vieilles Tuiles de Luthécia — Siège des Supporters", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/siege-supporters-luthecia.png",
               persons: [{name:'Alfredo Mifassole (PNJ)', role:'Meneur des Supporters', rel:'neutral', job:'meneur_supporters', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/meneur-supporters-alfredo-mifassole.png'}]
-            }
+            },
+            bureau_president: { name: "Bureau du Président — Olympique de Luthécia", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president-luthecia.png" }
           }
         },
         'hotel-republica': {
@@ -217,7 +218,8 @@ const WORLD = {
             },
             buvette: { name: "Buvette et Magasin — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/buvette-boutique-mariannaise.png" },
             guichet_paris: { name: "Guichet des Paris — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/guichet-paris-mariannaise.jpeg" },
-            siege_supporters: { name: "Siège des Supporters — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/siege-supporters-mariannaise.png" }
+            siege_supporters: { name: "Siège des Supporters — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/siege-supporters-mariannaise.png" },
+            bureau_president: { name: "Bureau du Président — La Brise Mariannaise", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president-mariannaise.png" }
           }
         },
         'hotel-republica': {
@@ -270,7 +272,8 @@ const WORLD = {
             terrain: { name: "Terrain — Union Cheminote de Montrouge", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-union-cheminote-montrouge.png" },
             vestiaires: { name: "Vestiaire — Union Cheminote de Montrouge",
               persons: [{name:'Gérard Bricoleau (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entraineur-adjoint-montrouge-bricoleau.png'}]
-            }
+            },
+            bureau_president: { name: "Bureau du Président — Union Cheminote de Montrouge", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president-montrouge.png" }
           }
         },
         'hotel-republica': {
