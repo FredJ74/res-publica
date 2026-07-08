@@ -1893,6 +1893,406 @@ async function doOrganiserBoycott() {
   addExternalEvent('🚫 Le club de supporters de "' + clubLocal.nom + '" annonce un boycott du prochain match à domicile.');
 }
 
+// =====================
+// CLASSEMENT DES JOUEURS DU CLUB
+// =====================
+async function calculerClassementClub(club) {
+  const licencies = await sbListJoueursLicencies(club.id).catch(() => []);
+  const jour = state.day || 1;
+  const dispo = (licencies || []);
+  const classement = dispo.map(j => {
+    const p = j.performance_sportive || { defense:0, technique:0, endurance:0 };
+    const total = (p.defense||0) + (p.technique||0) + (p.endurance||0);
+    const blesse = j.blessure_sportive?.jusquauJour > jour;
+    return { nom: j.name, perf: p, total, blesse };
+  }).sort((a, b) => b.total - a.total);
+
+  classement.forEach((j, i) => {
+    if (j.blesse) j.statut = 'blessé';
+    else if (j.total <= club.valeurBase * 0.5) j.statut = 'insuffisant';
+    else if (i < TITULAIRES_MAX) j.statut = 'titulaire';
+    else if (i < TITULAIRES_MAX + REMPLACANTS_MAX) j.statut = 'remplaçant';
+    else j.statut = 'non retenu';
+  });
+  return classement;
+}
+
+function getCapitaine(classement) {
+  const titulaire = classement.find(j => j.statut === 'titulaire');
+  return titulaire ? titulaire.nom : null; // null -> capitaine PNJ par defaut
+}
+
+async function doVoirMonClassement() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal || !state.char?.licenceSportive) {
+    showToast('Indisponible', 'Vous devez avoir une licence sportive dans un club.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Mon niveau — ' + clubLocal.nom;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const classement = await calculerClassementClub(clubLocal);
+  const position = classement.findIndex(j => j.nom === state.char?.name);
+  const moi = classement[position];
+  const perf = state.char.performance || { defense:0, technique:0, endurance:0 };
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="text-align:center;margin-bottom:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#C9A84C">' + (moi?.total || (perf.defense+perf.technique+perf.endurance)) + ' points</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060">Défense ' + perf.defense + ' · Technique ' + perf.technique + ' · Endurance ' + perf.endurance + '</div>';
+  html += '</div>';
+  if (position >= 0) {
+    const statutCol = { titulaire:'#6ab858', 'remplaçant':'#C9A84C', 'non retenu':'#8a8060', blessé:'#cc6a44', insuffisant:'#8a8060' };
+    html += '<div style="text-align:center;font-size:.85rem;color:' + (statutCol[moi.statut]||'#c0b090') + '">Position #' + (position+1) + ' — ' + moi.statut.toUpperCase() + '</div>';
+  } else {
+    html += '<div style="text-align:center;font-size:.8rem;color:#5a5040;font-style:italic">Aucun classement disponible pour l\'instant.</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function doConsulterClassementBookmaker() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  if (state.arg < 75) { showToast('Fonds insuffisants', '75 FR requis.', false); return; }
+  state.arg -= 75;
+  updateUI();
+
+  document.getElementById('postes-modal-title').textContent = 'Classement des joueurs — ' + clubLocal.nom;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const classement = await calculerClassementClub(clubLocal);
+  const capitaine = getCapitaine(classement);
+
+  let html = '<div style="padding:1rem">';
+  if (classement.length === 0) {
+    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Aucun joueur licencié pour l\'instant.</div>';
+  } else {
+    html += '<div style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:.25rem">';
+    classement.forEach((j, i) => {
+      const estCapitaine = j.nom === capitaine;
+      html += '<div style="display:flex;justify-content:space-between;padding:.3rem .5rem;border:1px solid #2a2010;font-size:.78rem;color:#c0b090">';
+      html += '<span>#' + (i+1) + ' ' + j.nom + (estCapitaine ? ' (C)' : '') + '</span><span style="color:#C9A84C">' + j.total + ' pts</span></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  addJournalEntry('Consultation du classement des joueurs de ' + clubLocal.nom + ' (-75 FR).', 'event-info');
+}
+
+// =====================
+// PRESIDENT DU CLUB SPORTIF
+// =====================
+async function chargerPresidentClub(clubId) {
+  if (typeof sbGetPresidentClub !== 'function') return null;
+  let data = await sbGetPresidentClub(clubId).catch(() => null);
+  if (!data) {
+    data = { president: null, dateElection: null, candidature: null };
+    if (typeof sbSavePresidentClub === 'function') await sbSavePresidentClub(clubId, data).catch(() => {});
+  }
+  return data;
+}
+
+async function getElecteursClub(club) {
+  const supporters = getClubSupportersLocal ? (state.organisations || []).find(o => o.type === 'supporters' && o.country === club.country && o.city === club.city) : null;
+  const classement = await calculerClassementClub(club);
+  const capitaine = getCapitaine(classement);
+  const maire = POSTES?.[club.country]?.maire?.titulaire || null;
+  return {
+    chefSupporters: supporters?.chef || null,
+    maire,
+    capitaine
+  };
+}
+
+async function doPostulerPresidentClub() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', '', false); return; }
+  const data = await chargerPresidentClub(clubLocal.id);
+
+  if (data.candidature) { showToast('Candidature en cours', 'Une candidature est déjà en cours de vote.', false); return; }
+  if (data.president && data.president !== state.char?.name) {
+    const jour = state.day || 1;
+    const saison = await chargerOuInitialiserSaison();
+    const midSaison = (saison.dateDebut ? joursEcoulesDepuis(saison.dateDebut) : 0) ;
+    if (data.dateElection && (jour - data.dateElection) < 8) { // ~mi-saison (saison=11 journees, protection ~ 5-6 sem)
+      showToast('Poste protégé', 'Le président en poste ne peut pas être remis en question avant la mi-saison.', false);
+      return;
+    }
+  }
+
+  const electeurs = await getElecteursClub(clubLocal);
+  const jour = state.day || 1;
+  data.candidature = {
+    candidat: state.char?.name,
+    dateDebut: jour,
+    dateLimite: jour + 2, // 48h ~ 2 jours de jeu
+    votes: {},
+    electeurs
+  };
+  await sbSavePresidentClub(clubLocal.id, data);
+
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  const votants = [electeurs.chefSupporters, electeurs.maire, electeurs.capitaine].filter(Boolean);
+  for (const v of votants) {
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', v, 'Candidature à la présidence — ' + clubLocal.nom,
+        state.char?.name + ' se porte candidat(e) à la présidence de ' + clubLocal.nom + '. Rendez-vous au bureau du président pour voter (48h, silence = accord).', time).catch(() => {});
+    }
+  }
+  showToast('Candidature déposée !', 'Les 3 votants ont été notifiés.', true, true);
+  addJournalEntry('Candidature à la présidence de ' + clubLocal.nom + ' déposée.', 'event-good');
+}
+
+async function doConsulterBureauPresident() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', '', false); return; }
+  document.getElementById('postes-modal-title').textContent = 'Bureau du Président — ' + clubLocal.nom;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  await verifierElectionPresident(clubLocal);
+  const data = await chargerPresidentClub(clubLocal.id);
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;margin-bottom:.6rem">Président actuel : ' + (data.president || 'Poste vacant') + '</div>';
+
+  if (data.candidature) {
+    const c = data.candidature;
+    html += '<div style="border:1px solid #4a3a1a;background:#0f0d05;padding:.6rem;margin-bottom:.8rem">';
+    html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.4rem">Candidat : ' + c.candidat + '</div>';
+    const votants = [
+      { role:'Chef supporters', nom: c.electeurs.chefSupporters },
+      { role:'Maire', nom: c.electeurs.maire },
+      { role:'Capitaine', nom: c.electeurs.capitaine }
+    ];
+    votants.forEach(v => {
+      const vote = v.nom ? c.votes[v.nom] : undefined;
+      const estMoi = v.nom === state.char?.name;
+      html += '<div style="display:flex;justify-content:space-between;font-size:.75rem;color:#8a8060;padding:.15rem 0">';
+      html += '<span>' + v.role + (v.nom ? ' (' + v.nom + ')' : ' — PNJ') + '</span>';
+      html += '<span>' + (vote === true ? '✅ Pour' : vote === false ? '❌ Contre' : 'En attente') + '</span></div>';
+      if (estMoi && vote === undefined) {
+        html += '<div style="display:flex;gap:.4rem;margin-top:.3rem">';
+        html += '<button onclick="voterPresidentClub(\'' + clubLocal.id + '\',true)" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.7rem">Pour</button>';
+        html += '<button onclick="voterPresidentClub(\'' + clubLocal.id + '\',false)" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-size:.7rem">Contre</button>';
+        html += '</div>';
+      }
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function voterPresidentClub(clubId, vote) {
+  const data = await chargerPresidentClub(clubId);
+  if (!data.candidature) return;
+  data.candidature.votes[state.char?.name] = vote;
+  await sbSavePresidentClub(clubId, data);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Vote enregistré', '', true, true);
+  await verifierElectionPresident(getClub(clubId));
+}
+
+async function verifierElectionPresident(club) {
+  const data = await chargerPresidentClub(club.id);
+  if (!data.candidature) return;
+  const c = data.candidature;
+  const jour = state.day || 1;
+  const votants = [c.electeurs.chefSupporters, c.electeurs.maire, c.electeurs.capitaine].filter(Boolean);
+  const tousVotes = votants.every(v => c.votes[v] !== undefined);
+  const delaiDepasse = jour >= c.dateLimite;
+
+  if (!tousVotes && !delaiDepasse) return;
+
+  // Completer les votes manquants par "oui" (silence = accord)
+  votants.forEach(v => { if (c.votes[v] === undefined) c.votes[v] = true; });
+  const pourCount = Object.values(c.votes).filter(v => v === true).length;
+  const valide = pourCount >= 2;
+
+  if (valide) {
+    data.president = c.candidat;
+    data.dateElection = jour;
+    addExternalEvent('🏛 ' + c.candidat + ' est élu(e) président(e) de "' + club.nom + '".');
+  } else {
+    addExternalEvent('🏛 La candidature de ' + c.candidat + ' à la présidence de "' + club.nom + '" a été rejetée.');
+  }
+  data.candidature = null;
+  await sbSavePresidentClub(club.id, data);
+}
+
+// =====================
+// TRANSFERTS ENTRE CLUBS
+// =====================
+async function doProposerTransfert() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', '', false); return; }
+  const dataPresident = await chargerPresidentClub(clubLocal.id);
+  if (dataPresident.president !== state.char?.name) { showToast('Réservé au président', 'Seul le président du club peut proposer un transfert.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Proposer un transfert';
+  let html = '<div style="padding:1rem">';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Nom du joueur ciblé</label>';
+  html += '<input id="transfert-joueur" type="text" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Prix proposé au club (FR)</label>';
+  html += '<input id="transfert-prix" type="number" value="1000" min="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
+  html += '<button onclick="confirmerPropositionTransfert(\'' + clubLocal.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer l\'offre</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerPropositionTransfert(clubAchatId) {
+  const nomJoueur = document.getElementById('transfert-joueur')?.value?.trim();
+  const prix = parseInt(document.getElementById('transfert-prix')?.value || '0');
+  if (!nomJoueur || prix <= 0) { showToast('Champs requis', '', false); return; }
+
+  const joueur = await sbGetJoueurClub(nomJoueur);
+  if (!joueur?.licence_sportive?.clubId) { showToast('Joueur introuvable', 'Ce joueur n\'a pas de licence sportive active.', false); return; }
+  const clubVenteId = joueur.licence_sportive.clubId;
+  if (clubVenteId === clubAchatId) { showToast('Déjà dans votre club', '', false); return; }
+
+  const clubVente = getClub(clubVenteId), clubAchat = getClub(clubAchatId);
+  const dataVente = await chargerPresidentClub(clubVenteId);
+  if (!dataVente.president) { showToast('Club sans président', 'Impossible de négocier avec un club sans président désigné.', false); return; }
+
+  const transfertId = await sbCreerTransfert({
+    joueur: nomJoueur, clubDepartId: clubVenteId, clubArriveeId: clubAchatId,
+    prixClub: prix, statut: 'propose', proposePar: state.char?.name
+  });
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  if (typeof sbSendMail === 'function') {
+    await sbSendMail('Ligue Officielle', dataVente.president, 'Offre de transfert — ' + nomJoueur,
+      clubAchat.nom + ' propose ' + prix.toLocaleString('fr-FR') + ' FR pour ' + nomJoueur + '. Rendez-vous au bureau du président de ' + clubVente.nom + ' pour répondre.', time).catch(() => {});
+  }
+  showToast('Offre envoyée', 'Le président de ' + clubVente.nom + ' a été notifié.', true, true);
+  addJournalEntry('Offre de transfert envoyée pour ' + nomJoueur + ' (' + prix + ' FR).', 'event-good');
+}
+
+async function doGererOffresTransfert() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', '', false); return; }
+  const dataPresident = await chargerPresidentClub(clubLocal.id);
+  if (dataPresident.president !== state.char?.name) { showToast('Réservé au président', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Offres de transfert reçues';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const offres = await sbGetTransfertsClubVente(clubLocal.id);
+  let html = '<div style="padding:1rem">';
+  if (offres.length === 0) {
+    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Aucune offre en attente.</div>';
+  } else {
+    offres.forEach(o => {
+      const clubAchat = getClub(o.clubArriveeId);
+      html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.6rem">';
+      html += '<div style="font-size:.8rem;color:#c0b090">' + o.joueur + ' — ' + clubAchat.nom + ' propose ' + o.prixClub.toLocaleString('fr-FR') + ' FR' + (o.statut==='contre_offre'?' (votre contre-offre en attente)':'') + '</div>';
+      if (o.statut === 'propose') {
+        html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
+        html += '<button onclick="repondreOffreTransfert(\'' + o.id + '\',\'accepte\')" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.7rem">Accepter</button>';
+        html += '<button onclick="repondreOffreTransfert(\'' + o.id + '\',\'refuse\')" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-size:.7rem">Refuser</button>';
+        html += '</div>';
+        html += '<input id="contre-' + o.id + '" type="number" placeholder="Contre-offre (FR)" style="width:100%;margin-top:.4rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.75rem;outline:none;box-sizing:border-box"/>';
+        html += '<button onclick="repondreOffreTransfert(\'' + o.id + '\',\'contre\')" style="width:100%;margin-top:.3rem;padding:.3rem;border:1px solid #4a6a8a;background:transparent;color:#5a8ad0;cursor:pointer;font-size:.7rem">Faire une contre-offre</button>';
+      }
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function repondreOffreTransfert(transfertId, action) {
+  const rows = await sbGet('transferts_clubs', `id=eq.${encodeURIComponent(transfertId)}`);
+  const t = rows?.[0]?.data;
+  if (!t) return;
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  const clubAchat = getClub(t.clubArriveeId), clubVente = getClub(t.clubDepartId);
+  const dataAchat = await chargerPresidentClub(t.clubArriveeId);
+
+  if (action === 'refuse') {
+    t.statut = 'termine';
+    await sbMajTransfert(transfertId, t);
+    if (dataAchat.president && typeof sbSendMail === 'function') await sbSendMail('Ligue Officielle', dataAchat.president, 'Transfert refusé', clubVente.nom + ' a refusé votre offre pour ' + t.joueur + '.', time).catch(() => {});
+    showToast('Offre refusée', '', true);
+  } else if (action === 'contre') {
+    const montant = parseInt(document.getElementById('contre-' + transfertId)?.value || '0');
+    if (!montant) { showToast('Montant requis', '', false); return; }
+    t.statut = 'contre_offre'; t.prixClub = montant;
+    await sbMajTransfert(transfertId, t);
+    if (dataAchat.president && typeof sbSendMail === 'function') await sbSendMail('Ligue Officielle', dataAchat.president, 'Contre-offre de transfert', clubVente.nom + ' propose une contre-offre de ' + montant.toLocaleString('fr-FR') + ' FR pour ' + t.joueur + '.', time).catch(() => {});
+    showToast('Contre-offre envoyée', '', true);
+  } else if (action === 'accepte') {
+    t.statut = 'attente_joueur';
+    await sbMajTransfert(transfertId, t);
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', t.joueur, 'Offre de transfert vous concernant',
+        clubAchat.nom + ' souhaite vous recruter (accord trouvé avec ' + clubVente.nom + ' : ' + t.prixClub.toLocaleString('fr-FR') + ' FR). Consultez vos offres de transfert dans votre fiche personnage.', time).catch(() => {});
+    }
+    showToast('Accord entre clubs !', 'Le joueur va maintenant être consulté.', true, true);
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+}
+
+async function doConsulterMesOffresTransfert() {
+  document.getElementById('postes-modal-title').textContent = 'Mes offres de transfert';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const offres = await sbGetTransfertsJoueur(state.char?.name);
+  let html = '<div style="padding:1rem">';
+  if (offres.length === 0) {
+    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Aucune offre en attente.</div>';
+  } else {
+    offres.forEach(o => {
+      const clubAchat = getClub(o.clubArriveeId), clubVente = getClub(o.clubDepartId);
+      html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.6rem">';
+      html += '<div style="font-size:.8rem;color:#c0b090">' + clubAchat.nom + ' souhaite vous recruter depuis ' + clubVente.nom + '</div>';
+      html += '<div style="font-size:.75rem;color:#8a8060;margin:.2rem 0">Prime de signature proposée : ' + (o.prixJoueur||0).toLocaleString('fr-FR') + ' FR</div>';
+      html += '<div style="display:flex;gap:.4rem">';
+      html += '<button onclick="repondreTransfertJoueur(\'' + o.id + '\',true)" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.7rem">Accepter</button>';
+      html += '<button onclick="repondreTransfertJoueur(\'' + o.id + '\',false)" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-size:.7rem">Refuser</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function repondreTransfertJoueur(transfertId, accepte) {
+  const rows = await sbGet('transferts_clubs', `id=eq.${encodeURIComponent(transfertId)}`);
+  const t = rows?.[0]?.data;
+  if (!t) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+
+  if (!accepte) {
+    t.statut = 'termine';
+    await sbMajTransfert(transfertId, t);
+    showToast('Transfert refusé', '', true);
+    return;
+  }
+
+  // Le joueur accepte : licence basculee, points d'entrainement conserves, argent reparti
+  if (state.char?.name === t.joueur) {
+    state.char.licenceSportive = { clubId: t.clubArriveeId, dateAchat: state.day || 1 };
+    state.arg += (t.prixJoueur || 0);
+    updateUI();
+  }
+  await crediterBudgetClub(t.clubDepartId, t.prixClub, 'Transfert de ' + t.joueur);
+  await crediterBudgetClub(t.clubArriveeId, -(t.prixClub), 'Transfert de ' + t.joueur);
+  t.statut = 'termine';
+  await sbMajTransfert(transfertId, t);
+  showToast('Transfert accepté !', 'Vous jouez désormais pour ' + getClub(t.clubArriveeId).nom + '.', true, true);
+  addJournalEntry('Transfert accepté vers ' + getClub(t.clubArriveeId).nom + '.', 'event-good');
+}
+
 function doChoisirAccessoireClub() {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }

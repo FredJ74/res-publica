@@ -247,6 +247,53 @@ async function sbAppliquerBlessureSportive(nomJoueur, blessure, degatsPV) {
   return sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { blessure_sportive: blessure, hp: nouveauHp });
 }
 
+async function sbGetPresidentClub(clubId) {
+  const rows = await sbGet('presidents_clubs', `id=eq.${encodeURIComponent(clubId)}`);
+  if (!rows || rows.length === 0) return null;
+  return rows[0].data;
+}
+
+async function sbSavePresidentClub(clubId, data) {
+  const existing = await sbGet('presidents_clubs', `id=eq.${encodeURIComponent(clubId)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('presidents_clubs', `id=eq.${encodeURIComponent(clubId)}`, { data, updated_at: new Date().toISOString() });
+  }
+  return sbInsert('presidents_clubs', { id: clubId, data, updated_at: new Date().toISOString() });
+}
+
+async function sbListTransfertsClub(clubId) {
+  const rows = await sbGet('transferts_clubs', 'statut=neq.termine&select=id,data');
+  if (!rows) return [];
+  return rows.filter(r => r.data?.clubDepartId === clubId || r.data?.clubArriveeId === clubId || r.data?.joueur === clubId);
+}
+
+async function sbCreerTransfert(data) {
+  const id = 'transfert-' + Date.now();
+  await sbInsert('transferts_clubs', { id, statut: data.statut, data });
+  return id;
+}
+
+async function sbMajTransfert(id, data) {
+  return sbUpdate('transferts_clubs', `id=eq.${encodeURIComponent(id)}`, { statut: data.statut, data });
+}
+
+async function sbGetTransfertsJoueur(nomJoueur) {
+  const rows = await sbGet('transferts_clubs', 'statut=neq.termine&select=id,data');
+  if (!rows) return [];
+  return rows.filter(r => r.data?.joueur === nomJoueur && r.data?.statut === 'attente_joueur').map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbGetTransfertsClubVente(clubId) {
+  const rows = await sbGet('transferts_clubs', 'statut=neq.termine&select=id,data');
+  if (!rows) return [];
+  return rows.filter(r => r.data?.clubDepartId === clubId && ['propose','contre_offre'].includes(r.data?.statut)).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbGetJoueurClub(nomJoueur) {
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=name,licence_sportive,performance_sportive`);
+  return rows?.[0] || null;
+}
+
 async function sbListJoueursLicencies(clubId) {
   // On recupere tous les personnages ayant une licence, puis on filtre cote client sur le clubId
   // (les operateurs JSON de PostgREST sur des colonnes jsonb imbriquees sont plus fragiles a maintenir ici).

@@ -52,6 +52,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
   if (fn === 'organiser_boycott') { doOrganiserBoycott(); return; }
   if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(); return; }
+  if (fn === 'consulter_classement_joueurs_club') { doConsulterClassementBookmaker(); return; }
+  if (fn === 'postuler_president_club') { doPostulerPresidentClub(); return; }
+  if (fn === 'consulter_bureau_president') { doConsulterBureauPresident(); return; }
+  if (fn === 'proposer_transfert') { doProposerTransfert(); return; }
+  if (fn === 'gerer_offres_transfert') { doGererOffresTransfert(); return; }
   if (fn === 'choisir_accessoire_club') { doChoisirAccessoireClub(); return; }
   if (fn === 'acheter_accessoire_personnalise') { doAcheterAccessoirePersonnalise(); return; }
   if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(); return; }

@@ -452,6 +452,13 @@ function switchSelfTab(tab, el) {
       html += '<div style="margin-top:.6rem;padding:.6rem;background:#0f0d05;border:1px solid #1a1810;font-size:.78rem;color:#8a8060">' + (typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(char.signatureHtml) : char.signatureHtml) + '</div>';
     }
 
+    if (char?.licenceSportive) {
+      html += '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">';
+      html += '<button onclick="doVoirMonClassement()" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-chart-bar"></i> Mon niveau sportif</button>';
+      html += '<button onclick="doConsulterMesOffresTransfert()" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-arrows-exchange"></i> Mes offres de transfert</button>';
+      html += '</div>';
+    }
+
     if (state.poste) {
       html += '<div style="margin-top:1rem">';
       html += '<button onclick="ouvrirConfirmationDemission()" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-door-exit"></i> Démissionner de mon poste</button>';

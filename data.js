@@ -1663,7 +1663,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'parier_match', label:'Parier sur un match', pa:1, cost:0, type:'legal', icon:'ti-coin', successRate:100, desc:'Mise ton argent sur le resultat du prochain match.'},
-          {fn:'distribuer_tracts_match', label:'Distribuer des tracts avant le match', pa:2, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Reserve aux candidats declares. Efficacite liee a la frequentation et au classement du club.'}
+          {fn:'distribuer_tracts_match', label:'Distribuer des tracts avant le match', pa:2, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Reserve aux candidats declares. Efficacite liee a la frequentation et au classement du club.'},
+          {fn:'consulter_classement_joueurs_club', label:'Connaître le classement des joueurs du club', pa:0, cost:75, type:'legal', icon:'ti-list-numbers', successRate:100, desc:'Classement complet des joueurs licencies de CE club. Deplacement necessaire pour consulter un club adverse.'}
         ]
       },
       siege_supporters: {
@@ -1681,6 +1682,19 @@ const BUILDINGS = {
           {fn:'declencher_election_club', label:'Déclencher une élection', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Reserve aux membres. 3 jours de candidatures puis 3 jours de vote.'},
           {fn:'organiser_manifestation', label:'Organiser une manifestation', pa:2, cost:0, type:'legal', icon:'ti-megaphone', successRate:100, desc:'Reserve au president. Pour ou contre le maire. Intensite liee au nombre de membres.'},
           {fn:'organiser_boycott', label:'Organiser un boycott', pa:2, cost:0, type:'legal', icon:'ti-ban', successRate:100, desc:'Reserve au president. Boycotte le prochain match a domicile.'}
+        ]
+      },
+      bureau_president: {
+        name: "Bureau du Président",
+        image: "🏢",
+        imageBg: "linear-gradient(135deg,#10120e,#181c14)",
+        desc: "Le bureau du president du club sportif. Vacant si personne n'a ete elu.",
+        persons: [],
+        orders: [
+          {fn:'postuler_president_club', label:'Postuler au poste de président', pa:2, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Vote a 3 (chef supporters, maire, capitaine). 48h, silence = accord.'},
+          {fn:'consulter_bureau_president', label:'Consulter le bureau', pa:0, cost:0, type:'legal', icon:'ti-building', successRate:100, desc:'President actuel, election en cours, voter si concerne.'},
+          {fn:'proposer_transfert', label:'Proposer un transfert', pa:2, cost:0, type:'legal', icon:'ti-arrows-exchange', successRate:100, desc:'Reserve au president. Debaucher un joueur d\'un autre club.'},
+          {fn:'gerer_offres_transfert', label:'Gérer les offres reçues', pa:0, cost:0, type:'legal', icon:'ti-inbox', successRate:100, desc:'Reserve au president. Accepter, refuser ou contre-offrir.'}
         ]
       }
     }
@@ -1818,7 +1832,9 @@ const BUILDINGS = {
         orders: [
           {fn:'soins',          label:'Consultation et soins',       pa:0, cost:200, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+20 Sante.'},
           {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
-          {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'}
+          {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
+          {fn:'parler_pnj', label:'Parler', pa:1, cost:0, type:'legal', icon:'ti-message-circle', successRate:100, desc:'Discuter avec le personnel soignant.'},
+          {fn:'se_nourrir', label:'Manger', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Un repas de qualite, servi au chevet.'}
         ]
       }
     }
@@ -1846,7 +1862,9 @@ const BUILDINGS = {
         orders: [
           {fn:'soins_basiques', label:'Soins basiques (gratuit)', pa:0, cost:0,  type:'legal', icon:'ti-bandage',    successRate:100, desc:'+10 Sante. Lent mais gratuit.'},
           {fn:'soins',          label:'Consultation medecin',    pa:0, cost:20,  type:'legal', icon:'ti-stethoscope',successRate:100, desc:'+15 Sante.'},
-          {fn:'transfert_clinique_privee', label:'Être transféré en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Meilleure prise en charge, convalescence plus rapide. 1000 FR.'}
+          {fn:'transfert_clinique_privee', label:'Être transféré en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Meilleure prise en charge, convalescence plus rapide. 1000 FR.'},
+          {fn:'parler_pnj', label:'Parler', pa:1, cost:0, type:'legal', icon:'ti-message-circle', successRate:100, desc:'Discuter avec le personnel soignant.'},
+          {fn:'se_nourrir', label:'Manger', pa:1, cost:15, type:'legal', icon:'ti-soup', successRate:100, desc:'Un repas simple, servi au chevet.'}
         ]
       }
     }
