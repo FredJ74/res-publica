@@ -1367,6 +1367,20 @@ async function calculerContributionEquipe(club) {
 async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsContre) {
   const jour = state.day || 1;
   const resultat = butsPour > butsContre ? 'victoire' : (butsPour < butsContre ? 'defaite' : 'match nul');
+  const victoire = butsPour > butsContre;
+
+  const budgetClub = await chargerBudgetClub(club.id);
+  const salaires = budgetClub.salaires;
+
+  for (const t of contrib.titulaires) {
+    const montant = salaires.titulaire + (victoire ? salaires.primeVictoire : 0);
+    if (montant > 0 && typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(t.nom, montant).catch(() => {});
+  }
+  for (const r of contrib.remplacants) {
+    if (salaires.remplacant > 0 && typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(r.nom, salaires.remplacant).catch(() => {});
+  }
+  const totalVerse = contrib.titulaires.length * (salaires.titulaire + (victoire ? salaires.primeVictoire : 0)) + contrib.remplacants.length * salaires.remplacant;
+  if (totalVerse > 0) await crediterBudgetClub(club.id, -totalVerse, 'Salaires des joueurs (' + resultat + ')');
 
   for (const t of contrib.titulaires) {
     let messageBlessure = '';
@@ -1382,13 +1396,13 @@ async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsCont
     }
     if (typeof sbSendMail === 'function') {
       await sbSendMail('Ligue Officielle', t.nom, 'Vous étiez titulaire — ' + club.nom,
-        'Vous étiez titulaire lors du dernier match (' + resultat + ', ' + butsPour + '-' + butsContre + ').' + messageBlessure, formatDateHeureJeu()).catch(() => {});
+        'Vous étiez titulaire lors du dernier match (' + resultat + ', ' + butsPour + '-' + butsContre + '). Salaire perçu : ' + (salaires.titulaire + (victoire ? salaires.primeVictoire : 0)).toLocaleString('fr-FR') + ' FR.' + messageBlessure, formatDateHeureJeu()).catch(() => {});
     }
   }
   for (const r of contrib.remplacants) {
     if (typeof sbSendMail === 'function') {
       await sbSendMail('Ligue Officielle', r.nom, 'Vous étiez remplaçant — ' + club.nom,
-        'Vous étiez remplaçant lors du dernier match (' + resultat + ', ' + butsPour + '-' + butsContre + ').', formatDateHeureJeu()).catch(() => {});
+        'Vous étiez remplaçant lors du dernier match (' + resultat + ', ' + butsPour + '-' + butsContre + '). Salaire perçu : ' + salaires.remplacant.toLocaleString('fr-FR') + ' FR.', formatDateHeureJeu()).catch(() => {});
     }
   }
   for (const n of contrib.nonRetenus) {
@@ -1853,9 +1867,10 @@ async function chargerBudgetClub(clubId) {
   if (typeof sbGetBudgetClub !== 'function') return null;
   let data = await sbGetBudgetClub(clubId).catch(() => null);
   if (!data) {
-    data = { clubId, caisse: 0, historique: [], derniereSubventionJour: state.day || 1 };
+    data = { clubId, caisse: 0, historique: [], derniereSubventionJour: state.day || 1, salaires: { titulaire: 100, remplacant: 50, primeVictoire: 150 } };
     if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(clubId, data).catch(() => {});
   }
+  if (!data.salaires) data.salaires = { titulaire: 100, remplacant: 50, primeVictoire: 150 };
   return data;
 }
 
@@ -2483,6 +2498,39 @@ async function repondreTransfertJoueur(transfertId, accepte) {
   addJournalEntry('Transfert accepté vers ' + getClub(t.clubArriveeId).nom + '.', 'event-good');
 }
 
+async function doGererSalairesClub() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', '', false); return; }
+  const dataPresident = await chargerPresidentClub(clubLocal.id);
+  if (dataPresident.president !== state.char?.name) { showToast('Réservé au président', '', false); return; }
+
+  const budget = await chargerBudgetClub(clubLocal.id);
+
+  document.getElementById('postes-modal-title').textContent = 'Salaires des joueurs — ' + clubLocal.nom;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.8rem">Versés automatiquement après chaque match, prélevés sur la caisse du club.</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Forfait titulaire (FR/match)</label>';
+  html += '<input id="sal-titulaire" type="number" value="' + budget.salaires.titulaire + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Forfait remplaçant (FR/match)</label>';
+  html += '<input id="sal-remplacant" type="number" value="' + budget.salaires.remplacant + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Prime de victoire (FR, titulaires uniquement)</label>';
+  html += '<input id="sal-prime" type="number" value="' + budget.salaires.primeVictoire + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
+  html += '<button onclick="confirmerSalairesClub(\'' + clubLocal.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerSalairesClub(clubId) {
+  const budget = await chargerBudgetClub(clubId);
+  budget.salaires.titulaire = Math.max(0, parseInt(document.getElementById('sal-titulaire')?.value || '0'));
+  budget.salaires.remplacant = Math.max(0, parseInt(document.getElementById('sal-remplacant')?.value || '0'));
+  budget.salaires.primeVictoire = Math.max(0, parseInt(document.getElementById('sal-prime')?.value || '0'));
+  await sbSaveBudgetClub(clubId, budget);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Salaires mis à jour', '', true, true);
+}
+
 function doChoisirAccessoireClub() {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
@@ -2524,6 +2572,12 @@ async function confirmerAchatAccessoireClub(id, label, prix) {
 
 function doAcheterAccessoirePersonnalise() {
   showToast('Bientôt disponible', 'La personnalisation (nom, numéro) sera réservée aux comptes premium.', false);
+}
+
+function formatDateJournee(saison, numero) {
+  const debut = new Date(saison.dateDebut);
+  const dateMatch = new Date(debut.getTime() + (numero - 1) * 7 * 86400000);
+  return dateMatch.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 async function doObserverMatch() {
@@ -2569,13 +2623,13 @@ async function doObserverMatch() {
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">CALENDRIER COMPLET</div>';
   html += '<div style="max-height:220px;overflow-y:auto;margin-bottom:1rem">';
   saison.calendrier.forEach(j => {
-    html += '<div style="font-size:.68rem;color:#6a5a30;margin:.4rem 0 .1rem">Journée ' + j.numero + '</div>';
+    html += '<div style="font-size:.68rem;text-align:center;color:#6a5a30;margin:.4rem 0 .1rem">Journée ' + j.numero + ' — ' + formatDateJournee(saison, j.numero) + '</div>';
     j.matchs.forEach(m => {
       const enCours = clubLocal && (m.home === clubLocal.id || m.away === clubLocal.id);
       const ligne = m.played
-        ? getClub(m.home).nom + ' ' + m.scoreHome + ' - ' + m.scoreAway + ' ' + getClub(m.away).nom
-        : getClub(m.home).nom + ' vs ' + getClub(m.away).nom + ' (à venir)';
-      html += '<div style="font-size:.72rem;color:' + (enCours ? '#C9A84C' : '#8a8060') + ';padding:.1rem 0">' + ligne + '</div>';
+        ? getClub(m.home).nom + '&nbsp;&nbsp;' + m.scoreHome + ' - ' + m.scoreAway + '&nbsp;&nbsp;' + getClub(m.away).nom
+        : getClub(m.home).nom + '&nbsp;&nbsp;vs&nbsp;&nbsp;' + getClub(m.away).nom + ' (à venir)';
+      html += '<div style="font-size:.72rem;text-align:center;color:' + (enCours ? '#C9A84C' : '#8a8060') + ';padding:.15rem 0">' + ligne + '</div>';
     });
   });
   html += '</div>';

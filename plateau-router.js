@@ -58,6 +58,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'conseil_entraineur_adjoint') { doConseilEntraineurAdjoint(); return; }
   if (fn === 'sponsoriser_club') { doSponsoriserClub(); return; }
   if (fn === 'consulter_budget_club') { doConsulterBudgetClub(); return; }
+  if (fn === 'gerer_salaires_club') { doGererSalairesClub(); return; }
   if (fn === 'imprimer_tracts_sportifs') { doImprimerTractsSportifs(); return; }
   if (fn === 'distribuer_tracts_match') { doDistribuerTractsMatch(); return; }
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
