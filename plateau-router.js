@@ -40,6 +40,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'racheter_armurerie') { doRachatArmurerie(); return; }
   if (fn === 'gerer_armurerie') { doGererArmurerie(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(); return; }
+  if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(); return; }
+  if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(); return; }
+  if (fn === 'plainte_obstruction_permis') { doPlainteObstruction(); return; }
+  if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }

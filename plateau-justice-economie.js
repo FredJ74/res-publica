@@ -951,7 +951,7 @@ function doGreveFaim() {
 // Actes pouvant faire l'objet d'une decouverte differee (succes non sanctionne sur le moment).
 // Vol est volontairement exclu : ses echecs sont deja sanctionnes immediatement (verbalisation/amende sur le champ),
 // et ses succes ne sont pas inscrits a l'historique — pas de risque de double sanction.
-const ACTES_DECOUVRABLES = ['assassinat', 'empoisonnement', 'achat_arme_illegal', 'acheter_bombe_illegale', 'incendier', 'utiliser_explosifs', 'hooliganisme'];
+const ACTES_DECOUVRABLES = ['assassinat', 'empoisonnement', 'achat_arme_illegal', 'acheter_bombe_illegale', 'incendier', 'utiliser_explosifs', 'hooliganisme', 'corruption_fonctionnaire'];
 
 function verifierDecouverteCrimesPasses() {
   if (!state.historiqueCrimes || state.historiqueCrimes.length === 0) return;
@@ -2074,6 +2074,34 @@ function getMatieresPremieresVille(country, city) {
   return MATIERES_PREMIERES_VILLE[country]?.[city] || [];
 }
 
+// Cache locale synchrone de l'etat des terrains, alimentee depuis Supabase.
+// Corrige un bug preexistant : ces deux fonctions etaient appelees partout mais n'existaient
+// nulle part, ce qui faisait planter toute tentative de construction.
+function getTerrainState(buildingId) {
+  if (!state.terrainsState) state.terrainsState = {};
+  return state.terrainsState[buildingId] || { proprietaire: null, niveau_construction: null, valeur_totale: PRIX_TERRAIN, constructionAutorisee: false, permis: null };
+}
+
+function setTerrainState(buildingId, patch) {
+  if (!state.terrainsState) state.terrainsState = {};
+  const actuel = { ...getTerrainState(buildingId), ...patch };
+  state.terrainsState[buildingId] = actuel;
+  return actuel;
+}
+
+async function chargerTerrainState(buildingId) {
+  if (typeof sbGetTerrainState !== 'function') return getTerrainState(buildingId);
+  const distant = await sbGetTerrainState(state.country, buildingId).catch(() => null);
+  if (distant) {
+    if (!state.terrainsState) state.terrainsState = {};
+    state.terrainsState[buildingId] = distant;
+  }
+  if (distant?.permis?.statut === 'instruction' && (state.day || 1) >= distant.permis.dateInstructionTerminee) {
+    await verifierInstructionPermis(buildingId);
+  }
+  return getTerrainState(buildingId);
+}
+
 function getValeurTotaleBien(ts) {
   if (!ts) return PRIX_TERRAIN;
   const niveau = NIVEAUX_CONSTRUCTION[ts.niveau_construction];
@@ -2082,6 +2110,7 @@ function getValeurTotaleBien(ts) {
 
 async function ouvrirModalConstruire() {
   const id = state.currentBuilding;
+  await chargerTerrainState(id);
   const ts = getTerrainState(id);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
@@ -2302,4 +2331,193 @@ async function preleverPretsBancaires() {
       }
     }
   } catch(e) { console.warn('preleverPretsBancaires error', e); }
+}
+
+
+// =====================
+// PERMIS DE CONSTRUIRE
+// =====================
+const DUREE_INSTRUCTION_PERMIS = {
+  hangar: 2,
+  commerce_standard: 4,
+  commerce_premium: 6,
+  building: 10
+};
+
+async function doDeposerDemandePermis() {
+  const id = state.currentBuilding;
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+  if (ts.proprietaire !== state.char?.name) { showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false); return; }
+  if (ts.niveau_construction) { showToast('Déjà construit', '', false); return; }
+  if (ts.permis?.statut === 'instruction' || ts.permis?.statut === 'attente_validation') { showToast('Demande en cours', 'Une demande de permis est déjà en instruction.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Déposer une demande de permis';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Le permis est toujours obtenu à terme — seule la durée d\'instruction varie selon l\'ampleur du projet.</div>';
+  Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
+    const duree = DUREE_INSTRUCTION_PERMIS[key];
+    html += '<button onclick="confirmerDepotPermis(\'' + key + '\')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
+    html += '<span>' + niv.label + '</span><span style="color:#8a8060">' + duree + ' jour(s) d\'instruction</span></button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDepotPermis(palierDemande) {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const jour = state.day || 1;
+  const duree = DUREE_INSTRUCTION_PERMIS[palierDemande];
+
+  const nouvelEtat = setTerrainState(id, {
+    permis: {
+      demandeur: state.char?.name,
+      palierDemande,
+      dateDepot: jour,
+      dureeInstruction: duree,
+      dateInstructionTerminee: jour + duree,
+      statut: 'instruction'
+    }
+  });
+  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Demande déposée', 'Instruction en cours (' + duree + ' jour(s)).', true, true);
+  addJournalEntry('Demande de permis de construire déposée (' + NIVEAUX_CONSTRUCTION[palierDemande].label + ').', 'event-good');
+}
+
+// A appeler en entrant sur le terrain : fait passer une demande en instruction vers l'attente de validation du maire
+async function verifierInstructionPermis(buildingId) {
+  await chargerTerrainState(buildingId);
+  const ts = getTerrainState(buildingId);
+  if (!ts.permis || ts.permis.statut !== 'instruction') return;
+  const jour = state.day || 1;
+  if (jour < ts.permis.dateInstructionTerminee) return;
+
+  ts.permis.statut = 'attente_validation';
+  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, buildingId, ts).catch(() => {});
+
+  const maireNom = POSTES?.[state.country]?.maire?.titulaire;
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  if (maireNom && typeof sbSendMail === 'function') {
+    await sbSendMail('Services municipaux', maireNom, 'Permis de construire à valider',
+      ts.permis.demandeur + ' demande un permis de construire (' + NIVEAUX_CONSTRUCTION[ts.permis.palierDemande].label + '). Rendez-vous à la mairie pour traiter les demandes.', time).catch(() => {});
+  }
+}
+
+async function doTraiterDemandesPermis() {
+  if (state.poste?.id !== 'maire') { showToast('Réservé au maire', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Demandes de permis à traiter';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(state.country)}`).catch(() => []);
+  const demandes = [];
+  (rows || []).forEach(r => {
+    try {
+      const etat = JSON.parse(r.data);
+      if (etat.permis?.statut === 'attente_validation') demandes.push({ buildingId: r.building_id, etat });
+    } catch(e) {}
+  });
+
+  let html = '<div style="padding:1rem">';
+  if (demandes.length === 0) {
+    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Aucune demande en attente.</div>';
+  } else {
+    demandes.forEach(d => {
+      const zoneOk = typeof palierAutorise === 'function' ? palierAutorise(state.country, state.currentCity, d.etat.permis.palierDemande) : true;
+      html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.6rem">';
+      html += '<div style="font-size:.8rem;color:#c0b090">' + d.etat.permis.demandeur + ' — ' + NIVEAUX_CONSTRUCTION[d.etat.permis.palierDemande].label + '</div>';
+      if (!zoneOk) html += '<div style="font-size:.7rem;color:#cc6a44;margin-top:.2rem">⚠ Hors zonage autorisé ici — un refus serait légitime.</div>';
+      html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
+      html += '<button onclick="traiterPermis(\'' + d.buildingId + '\',true)" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.7rem">Valider</button>';
+      html += '<button onclick="traiterPermis(\'' + d.buildingId + '\',false)" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-size:.7rem">Refuser</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function traiterPermis(buildingId, valide) {
+  const etat = await sbGetTerrainState(state.country, buildingId).catch(() => null);
+  if (!etat?.permis) return;
+
+  const zoneOk = typeof palierAutorise === 'function' ? palierAutorise(state.country, state.currentCity, etat.permis.palierDemande) : true;
+  etat.permis.statut = valide ? 'valide' : 'refuse';
+  etat.permis.refusLegitime = !valide ? zoneOk : null;
+  if (valide) etat.constructionAutorisee = true;
+  await sbSetTerrainState(state.country, buildingId, etat).catch(() => {});
+
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  if (typeof sbSendMail === 'function') {
+    const msg = valide
+      ? 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été validé. Vous pouvez construire.'
+      : 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été refusé' + (zoneOk ? ' sans motif de zonage — un recours pour obstruction est possible.' : ' (zonage non conforme, refus légitime).');
+    await sbSendMail('Mairie', etat.permis.demandeur, valide ? 'Permis validé' : 'Permis refusé', msg, time).catch(() => {});
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast(valide ? 'Permis validé' : 'Permis refusé', '', true, true);
+  addJournalEntry((valide ? 'Permis de construire validé' : 'Permis de construire refusé') + ' pour ' + etat.permis.demandeur + '.', valide ? 'event-good' : 'event-bad');
+}
+
+async function doPlainteObstruction() {
+  const id = state.currentBuilding;
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+  if (!ts.permis || ts.permis.statut !== 'refuse') { showToast('Indisponible', 'Aucun refus de permis à contester ici.', false); return; }
+  if (ts.permis.refusLegitime) { showToast('Refus légitime', 'Le zonage justifiait ce refus — pas de recours possible.', false); return; }
+  if (ts.permis.plainteDeposee) { showToast('Plainte déjà déposée', '', false); return; }
+
+  const maireNom = POSTES?.[state.country]?.maire?.titulaire;
+  if (maireNom && typeof sbGet === 'function') {
+    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(maireNom)}&select=pop,dis`).catch(() => []);
+    const pop = rows?.[0]?.pop ?? 50, dis = rows?.[0]?.dis ?? 50;
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(maireNom)}`, {
+      pop: Math.max(0, pop - 8), dis: Math.max(0, dis - 10)
+    }).catch(() => {});
+  }
+
+  ts.permis.plainteDeposee = true;
+  await sbSetTerrainState(state.country, id, ts).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Plainte déposée', 'La justice reconnaît l\'obstruction — le maire en subit les conséquences, mais le permis reste refusé.', true, true);
+  addJournalEntry('Plainte pour obstruction déposée contre le maire.', 'event-bad');
+  addExternalEvent('⚖️ Le maire est reconnu coupable d\'obstruction à un permis de construire légitime.');
+}
+
+async function doCorrompreFonctionnairePermis() {
+  const id = state.currentBuilding;
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+  if (!ts.permis || ts.permis.statut !== 'instruction') { showToast('Indisponible', 'Aucune instruction en cours ici.', false); return; }
+
+  const cout = 800;
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+
+  const decouvert = Math.random() < 0.25;
+  state.arg -= cout;
+
+  if (decouvert) {
+    if (!state.historiqueCrimes) state.historiqueCrimes = [];
+    state.historiqueCrimes.push({ acte: 'corruption_fonctionnaire', cible: null, jour: state.day, expireJour: (state.day||1) + 8 });
+    updateUI();
+    showToast('Corruption découverte !', 'Le fonctionnaire vous dénonce.', false);
+    if (typeof procederArrestation === 'function') procederArrestation('corruption_fonctionnaire', false, false);
+    return;
+  }
+
+  ts.permis.dureeInstruction = Math.max(1, Math.floor(ts.permis.dureeInstruction / 2));
+  ts.permis.dateInstructionTerminee = ts.permis.dateDepot + ts.permis.dureeInstruction;
+  await sbSetTerrainState(state.country, id, ts).catch(() => {});
+
+  updateUI();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Dossier accéléré', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', true, true);
+  addJournalEntry('Corruption d\'un fonctionnaire pour accélérer un permis de construire (-' + cout + ' FR).', 'event-bad');
 }

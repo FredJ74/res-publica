@@ -123,7 +123,8 @@ const PEINES_ACTES = {
     acheter_bombe_illegale:   { jours: 2, amende: 2000, label: "Achat d'explosifs non enregistres" },
     utiliser_explosifs:       { jours: 2, amende: 2000, label: "Usage d'explosifs" },
     incendier:                { jours: 2, amende: 2000, label: 'Incendie volontaire' },
-    hooliganisme:             { jours: 1, amende: 500,  label: 'Trouble a l\'ordre public (hooliganisme)' }
+    hooliganisme:             { jours: 1, amende: 500,  label: 'Trouble a l\'ordre public (hooliganisme)' },
+    corruption_fonctionnaire: { jours: 1, amende: 1000, label: 'Corruption de fonctionnaire' }
   }
 };
 
