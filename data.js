@@ -201,7 +201,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade'],
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade','zone-production'],
       buildingContext: {
         'stade': {
           name: "Stade de La Brise Mariannaise",
@@ -259,7 +259,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge.png',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production'],
       buildingContext: {
         'stade': {
           name: "Stade Marcel Cazenave — Union Cheminote de Montrouge",
@@ -470,7 +470,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80',
       desc:'Poste-frontiere perche dans les montagnes. Contrebande, douaniers corruptibles et sentiers connus des seuls inities.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production'],
       buildingContext: {
         'hotel-republica': {
           name: "Posada de la Frontera",
@@ -509,7 +509,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80',
       desc:'Ville de la jungle. Les laboratoires s\'étendent à perte de vue.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production'],
       buildingContext: {
         'hotel-republica': {
           name: "Refugio de la Selva",
@@ -706,7 +706,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1483664852095-d6cc6870702d?w=1200&q=80',
       desc:'Ville miniere glaciale aux confins de l\'empire. Le froid mord, le charbon manque rarement.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production'],
       buildingContext: {
         'hotel-republica': {
           name: "Baraquement Sibirsk-9",
@@ -745,7 +745,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80',
       desc:'Le kolkhoze collectif numéro 7. Production agricole pour la gloire du Parti.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production'],
       buildingContext: {
         'hotel-republica': {
           name: "Baraquement Collectif N°7",
@@ -963,7 +963,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1451337516015-6b6e9a44a8a3?w=1200&q=80',
       desc:'Oasis caravaniere au coeur du desert. Les marchands s\'y arretent depuis des siecles, les secrets aussi.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production'],
       buildingContext: {
         'hotel-republica': {
           name: "Caravanserail Al-Baraka",
@@ -1002,7 +1002,7 @@ const WORLD = {
       imageUrl:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200&q=80',
       desc:'Port pétrolier d\'Al-Khalija. Les tankers et les dhows se croisent.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-3','stade','zone-production'],
       buildingContext: {
         'hotel-republica': {
           name: "Hôtel du Port Al-Nour",
@@ -1698,6 +1698,27 @@ const BUILDINGS = {
           {fn:'gerer_offres_transfert', label:'Gérer les offres reçues', pa:0, cost:0, type:'legal', icon:'ti-inbox', successRate:100, desc:'Reserve au president. Accepter, refuser ou contre-offrir.'},
           {fn:'sponsoriser_club', label:'Sponsoriser le club', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Associer votre nom au club en echange d\'un soutien financier. Trois paliers.'},
           {fn:'consulter_budget_club', label:'Consulter le budget du club', pa:0, cost:0, type:'legal', icon:'ti-report-money', successRate:100, desc:'Caisse et dernieres operations financieres du club.'}
+        ]
+      }
+    }
+  },
+  'zone-production': {
+    name: "Zone de Production",
+    shortName: "Production",
+    cat: "Économie - Matières premières",
+    icon: "ti-tractor",
+    bgColor: "#0e1208",
+    capitaleOnly: false,
+    desc: "Le lieu ou la ville produit ses richesses naturelles.",
+    rooms: {
+      zone_recolte: {
+        name: "Zone de Récolte",
+        image: "🌾",
+        imageBg: "linear-gradient(135deg,#0e1208,#141c0a)",
+        desc: "Champs, mines ou forets selon la vocation de la ville. Les matieres premieres locales s'y recoltent.",
+        persons: [],
+        orders: [
+          {fn:'recolter_matiere', label:'Récolter', pa:2, cost:0, type:'legal', icon:'ti-shovel', successRate:100, desc:'Recolter une matiere premiere locale. Maximum 2 fois par jour.'}
         ]
       }
     }

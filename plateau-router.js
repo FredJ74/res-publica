@@ -39,6 +39,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'vendre_matiere_armurerie') { doVendreMatiereArmurerie(); return; }
   if (fn === 'racheter_armurerie') { doRachatArmurerie(); return; }
   if (fn === 'gerer_armurerie') { doGererArmurerie(); return; }
+  if (fn === 'recolter_matiere') { doRecolterMatiere(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }

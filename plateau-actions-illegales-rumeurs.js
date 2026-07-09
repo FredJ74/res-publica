@@ -1904,10 +1904,27 @@ function doSesoigner() {
 const PA_PAR_UT = 4; // 1 Unite de Temps = 4 PA
 
 const RECETTES_PRODUCTION = {
-  couteau:          { ut: 1, materiaux: { metal: 1 },            label: 'Couteau de poche' },
-  revolver:         { ut: 2, materiaux: { metal: 2, bois: 1 },   label: 'Revolver' },
-  carabine_chasse:  { ut: 3, materiaux: { metal: 2, bois: 2 },   label: 'Carabine de chasse' }
+  // Republic
+  couteau:            { ut: 1, materiaux: { metal: 1 },          label: 'Couteau de poche',         pays: 'republic' },
+  revolver:           { ut: 2, materiaux: { metal: 2, bois: 1 }, label: 'Revolver',                  pays: 'republic' },
+  carabine_chasse:    { ut: 3, materiaux: { metal: 2, bois: 2 }, label: 'Carabine de chasse',        pays: 'republic' },
+  // Narco
+  machette:           { ut: 1, materiaux: { metal: 1 },          label: 'Machette',                  pays: 'narco' },
+  desert_eagle:       { ut: 2, materiaux: { metal: 2 },          label: 'Desert Eagle',               pays: 'narco' },
+  ak47:               { ut: 3, materiaux: { metal: 3, bois: 1 }, label: 'AK-47',                      pays: 'narco' },
+  // Soviet
+  baionnette:         { ut: 1, materiaux: { metal: 1 },          label: 'Baïonnette',                pays: 'soviet' },
+  makarov:            { ut: 2, materiaux: { metal: 2 },          label: 'Makarov',                    pays: 'soviet' },
+  kalachnikov:        { ut: 3, materiaux: { metal: 3, bois: 1 }, label: 'Kalachnikov',                pays: 'soviet' },
+  // Khalija
+  jambiya:            { ut: 1, materiaux: { metal: 1 },          label: 'Jambiya',                   pays: 'khalija' },
+  pistolet_dore:      { ut: 2, materiaux: { metal: 2 },          label: 'Pistolet doré',              pays: 'khalija' },
+  carabine_precision: { ut: 3, materiaux: { metal: 2, bois: 2 }, label: 'Carabine de précision',      pays: 'khalija' }
 };
+
+function getRecettesPays(pays) {
+  return Object.fromEntries(Object.entries(RECETTES_PRODUCTION).filter(([, r]) => r.pays === pays));
+}
 
 const PRIX_RACHAT_ARMURERIE = 130000;
 
@@ -1925,7 +1942,15 @@ async function chargerEntreprise(id, defautFabrique) {
   return data;
 }
 
-function defautArmurerie() {
+function defautArmurerie(pays) {
+  const recettes = getRecettesPays(pays || 'republic');
+  const prixVenteDefaut = { 1: 300, 2: 800, 3: 1200 }; // par palier d'UT (simple/moyen/complexe)
+  const prixVente = {}, stockMax = {};
+  Object.entries(recettes).forEach(([id, r]) => {
+    prixVente[id] = prixVenteDefaut[r.ut] || 500;
+    stockMax[id] = r.ut === 1 ? 10 : (r.ut === 2 ? 5 : 5);
+  });
+
   return {
     id: null,
     type: 'armurerie',
@@ -1936,8 +1961,8 @@ function defautArmurerie() {
     parametres: {
       tarifHoraire: 50, // FR par UT verse au producteur
       prixAchatMatiere: { metal: 20, bois: 10 }, // FR verses au vendeur de matiere premiere
-      prixVente: { couteau: 300, revolver: 800, carabine_chasse: 1200 },
-      stockMax: { couteau: 10, revolver: 5, carabine_chasse: 5 }
+      prixVente,
+      stockMax
     },
     historique: []
   };
@@ -1946,7 +1971,7 @@ function defautArmurerie() {
 async function chargerArmurerieLocale() {
   const pays = state.country || 'republic';
   const id = getEntrepriseIdArmurerie(pays);
-  const data = await chargerEntreprise(id, defautArmurerie);
+  const data = await chargerEntreprise(id, () => defautArmurerie(pays));
   if (data) data.id = id;
   return data;
 }
@@ -1964,7 +1989,7 @@ async function doProduireArme() {
   document.getElementById('postes-modal-title').textContent = 'Produire une arme';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Salaire : ' + data.parametres.tarifHoraire + ' FR par UT (fixé par le propriétaire). 1 UT = ' + PA_PAR_UT + ' PA.</div>';
-  Object.entries(RECETTES_PRODUCTION).forEach(([id, r]) => {
+  Object.entries(getRecettesPays(state.country || 'republic')).forEach(([id, r]) => {
     const materiauxTxt = Object.entries(r.materiaux).map(([m, q]) => q + ' ' + m).join(', ');
     const stockActuel = data.stockProduits[id] || 0;
     const stockMax = data.parametres.stockMax[id] || 0;
@@ -2133,7 +2158,7 @@ async function doGererArmurerie() {
   });
 
   html += '<div style="font-size:.72rem;color:#8a8060;margin:.5rem 0 .3rem">Prix de vente et stock maximum</div>';
-  Object.keys(RECETTES_PRODUCTION).forEach(id => {
+  Object.keys(getRecettesPays(state.country || 'republic')).forEach(id => {
     html += '<div style="display:flex;gap:.4rem;margin-bottom:.3rem;align-items:center">';
     html += '<span style="flex:1;font-size:.75rem;color:#c0b090">' + RECETTES_PRODUCTION[id].label + '</span>';
     html += '<input id="gere-prix-' + id + '" type="number" value="' + (data.parametres.prixVente[id]||0) + '" placeholder="Prix" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.72rem;outline:none"/>';
@@ -2155,7 +2180,7 @@ async function confirmerGestionArmurerie(entrepriseId) {
   Object.keys(data.parametres.prixAchatMatiere).forEach(m => {
     data.parametres.prixAchatMatiere[m] = Math.max(0, parseInt(document.getElementById('gere-mat-' + m)?.value || '0'));
   });
-  Object.keys(RECETTES_PRODUCTION).forEach(id => {
+  Object.keys(getRecettesPays(state.country || 'republic')).forEach(id => {
     data.parametres.prixVente[id] = Math.max(0, parseInt(document.getElementById('gere-prix-' + id)?.value || '0'));
     data.parametres.stockMax[id] = Math.max(0, parseInt(document.getElementById('gere-max-' + id)?.value || '0'));
   });
@@ -2163,4 +2188,52 @@ async function confirmerGestionArmurerie(entrepriseId) {
   await sbSaveEntreprise(entrepriseId, data);
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Paramètres mis à jour', '', true, true);
+}
+
+
+// =====================
+// ZONES DE PRODUCTION — recolte de matieres premieres locales
+// =====================
+function verifierEtResetRecoltesJour() {
+  if (!state.char) return;
+  if (state.char.recoltesJour?.jour !== state.day) {
+    state.char.recoltesJour = { jour: state.day || 1, nb: 0 };
+  }
+}
+
+async function doRecolterMatiere() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const matieres = typeof getMatieresPremieresVille === 'function' ? getMatieresPremieresVille(pays, ville) : [];
+  if (!matieres.length) { showToast('Indisponible', 'Aucune ressource naturelle à récolter ici.', false); return; }
+
+  verifierEtResetRecoltesJour();
+  const nb = state.char.recoltesJour?.nb || 0;
+
+  document.getElementById('postes-modal-title').textContent = 'Récolter';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.7rem">Récoltes aujourd\'hui : ' + nb + '/2</div>';
+  matieres.forEach(m => {
+    html += '<button ' + (nb >= 2 ? 'disabled' : '') + ' onclick="confirmerRecolte(\'' + m + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:' + (nb>=2?'#5a5040':'#c0b090') + ';cursor:' + (nb>=2?'default':'pointer') + ';font-size:.8rem">' + m + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerRecolte(matiere) {
+  verifierEtResetRecoltesJour();
+  if ((state.char.recoltesJour?.nb || 0) >= 2) { showToast('Limite atteinte', 'Maximum 2 récoltes par jour.', false); return; }
+  state.char.recoltesJour.nb = (state.char.recoltesJour.nb || 0) + 1;
+
+  const quantite = 1 + Math.floor(Math.random() * 2); // 1 a 2 unites
+  if (!state.inventory) state.inventory = [];
+  for (let i = 0; i < quantite; i++) {
+    state.inventory.push({ type: 'matiere_premiere', matiere, name: matiere, icon: 'ti-package' });
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Récolte effectuée', '+' + quantite + ' ' + matiere + '.', true, true);
+  addJournalEntry('Récolte de ' + quantite + ' ' + matiere + '.', 'event-good');
 }
