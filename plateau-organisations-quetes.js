@@ -1265,6 +1265,7 @@ async function verifierEtJouerJournees() {
 
   for (const journee of journeesNouvellementJouees) {
     await publierResultatsJourneeSurForum(saison.numero, journee);
+    await resoudreParisJournee(saison.numero, journee);
   }
 
   // Une fois la phase reguliere entierement jouee, on enchaine les phases finales,
@@ -2579,19 +2580,20 @@ async function doParierMatch() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Choisissez un match</div>';
   prochaineJournee.matchs.filter(m => !m.played).forEach(m => {
-    html += '<button onclick="ouvrirFormulairePari(\'' + m.home + '\',\'' + m.away + '\')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + getClub(m.home).nom + ' vs ' + getClub(m.away).nom + '</button>';
+    html += '<button onclick="ouvrirFormulairePari(\'' + m.home + '\',\'' + m.away + '\',' + prochaineJournee.numero + ',' + saison.numero + ')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + getClub(m.home).nom + ' vs ' + getClub(m.away).nom + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function ouvrirFormulairePari(homeId, awayId) {
+function ouvrirFormulairePari(homeId, awayId, journeeNumero, saisonNumero) {
   const homeClub = getClub(homeId), advClub = getClub(awayId);
 
   document.getElementById('postes-modal-title').textContent = 'Parier sur ce match';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.8rem">' + homeClub.nom + ' (domicile) vs ' + advClub.nom + '</div>';
+  html += '<div style="font-size:.72rem;color:#5a5040;font-style:italic;margin-bottom:.6rem">Le pari sera tranché par le vrai résultat du match, pas avant.</div>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Votre pronostic</label>';
   html += '<div style="display:flex;gap:.4rem;margin-bottom:.8rem">';
   html += '<button onclick="document.getElementById(\'pari-choix\').value=\'domicile\';document.querySelectorAll(\'.pari-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#C9A84C\'" class="pari-btn" style="flex:1;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Victoire ' + homeClub.nom + '</button>';
@@ -2601,46 +2603,58 @@ function ouvrirFormulairePari(homeId, awayId) {
   html += '<input type="hidden" id="pari-choix" value="domicile"/>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Mise (FR)</label>';
   html += '<input id="pari-mise" type="number" value="100" min="10" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.9rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
-  html += '<button onclick="confirmerPariMatch(\'' + homeId + '\',\'' + awayId + '\',true)" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
+  html += '<button onclick="confirmerPariMatch(\'' + homeId + '\',\'' + awayId + '\',' + journeeNumero + ',' + saisonNumero + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerPariMatch(clubLocalId, advId, domicile) {
+async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero) {
   const mise = parseInt(document.getElementById('pari-mise')?.value || '0');
   const choix = document.getElementById('pari-choix')?.value || 'domicile';
   if (!mise || mise < 10) { showToast('Mise invalide', 'Minimum 10 FR.', false); return; }
   if (state.arg < mise) { showToast('Fonds insuffisants', '', false); return; }
 
-  document.getElementById('modal-postes').classList.remove('open');
+  document.getElementById('modal-postes')?.classList.remove('open');
   state.arg -= mise;
+  updateUI();
 
-  // Resolution immediate via un jet reprenant la meme logique de force relative que le vrai match
-  // (pari personnel, distinct du resultat officiel qui suit le calendrier de la ligue)
-  const clubLocal = getClub(clubLocalId), adv = getClub(advId);
-  const forceLocal = clubLocal.valeurBase + (domicile ? 5 : 0);
-  const forceAdv = adv.valeurBase + (domicile ? 0 : 5);
-  const total = forceLocal + forceAdv;
-  const roll = Math.random() * 100;
-  const seuilVictoireLocal = (forceLocal / total) * 70;
-  const seuilNul = seuilVictoireLocal + 20;
+  await sbCreerPari({
+    joueur: state.char?.name, homeId, awayId, choix, mise,
+    journeeNumero, saisonNumero
+  });
 
-  let resultatReel;
-  if (roll < seuilVictoireLocal) resultatReel = 'domicile';
-  else if (roll < seuilNul) resultatReel = 'nul';
-  else resultatReel = 'adversaire';
+  const homeClub = getClub(homeId), advClub = getClub(awayId);
+  showToast('Pari enregistré', mise + ' FR misés sur ' + homeClub.nom + ' vs ' + advClub.nom + '. Résultat au coup de sifflet final.', true, true);
+  addJournalEntry('Pari de ' + mise + ' FR sur ' + homeClub.nom + ' vs ' + advClub.nom + '.', 'event-info');
+}
+
+// Resout tous les paris en attente pour une journee qui vient d'etre jouee
+async function resoudreParisJournee(saisonNumero, journee) {
+  if (typeof sbGetParisJourneeNonResolus !== 'function') return;
+  const paris = await sbGetParisJourneeNonResolus(journee.numero, saisonNumero).catch(() => []);
+  if (!paris.length) return;
 
   const gains = { domicile: 2.5, nul: 3.5, adversaire: 3 };
-  if (resultatReel === choix) {
-    const gain = Math.round(mise * gains[choix]);
-    state.arg += gain;
-    updateUI();
-    showToast('Pari gagné !', '+' + gain.toLocaleString('fr-FR') + ' FR.', true, true);
-    addJournalEntry('Pari sportif gagné sur ' + clubLocal.nom + ' vs ' + adv.nom + '. +' + gain + ' FR.', 'event-good');
-  } else {
-    updateUI();
-    showToast('Pari perdu', 'Le pronostic ne s\'est pas réalisé.', false);
-    addJournalEntry('Pari sportif perdu sur ' + clubLocal.nom + ' vs ' + adv.nom + '. -' + mise + ' FR.', 'event-bad');
+  for (const pari of paris) {
+    const m = journee.matchs.find(mm => mm.home === pari.homeId && mm.away === pari.awayId);
+    if (!m || !m.played) continue;
+
+    let resultatReel;
+    if (m.scoreHome > m.scoreAway) resultatReel = 'domicile';
+    else if (m.scoreHome < m.scoreAway) resultatReel = 'adversaire';
+    else resultatReel = 'nul';
+
+    const gagne = resultatReel === pari.choix;
+    const gain = gagne ? Math.round(pari.mise * gains[pari.choix]) : 0;
+    await sbResoudrePari(pari.id, pari.joueur, gain);
+
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+    if (typeof sbSendMail === 'function') {
+      const msg = gagne
+        ? 'Votre pari sur ' + getClub(pari.homeId).nom + ' vs ' + getClub(pari.awayId).nom + ' est gagnant ! +' + gain.toLocaleString('fr-FR') + ' FR.'
+        : 'Votre pari sur ' + getClub(pari.homeId).nom + ' vs ' + getClub(pari.awayId).nom + ' est perdant. Mise perdue.';
+      await sbSendMail('Ligue Officielle', pari.joueur, gagne ? 'Pari gagné !' : 'Pari perdu', msg, time).catch(() => {});
+    }
   }
 }

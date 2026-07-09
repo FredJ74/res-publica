@@ -1649,10 +1649,8 @@ const BUILDINGS = {
           {name:'Tenancier de Buvette (PNJ)', role:'PNJ - Buvette', rel:'neutral', job:'serveur'}
         ],
         orders: [
-          {fn:'parler_pnj', label:'Prendre un verre', pa:1, cost:50, type:'legal', icon:'ti-beer', successRate:100, desc:'Discuter avec les habitues. Bonne source de rumeurs sportives.'},
+          {fn:'consommer_buvette', label:'Prendre un verre', pa:1, cost:50, type:'legal', icon:'ti-beer', successRate:100, desc:'Un moment convivial entre supporters. Leger gain de popularite.'},
           {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:1, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Echarpe, casquette ou maillot du club — a choisir.'},
-          {fn:'sponsoriser_club', label:'Sponsoriser le club', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Associer votre nom au club en echange d\'un soutien financier. Trois paliers.'},
-          {fn:'consulter_budget_club', label:'Consulter le budget du club', pa:0, cost:0, type:'legal', icon:'ti-report-money', successRate:100, desc:'Caisse et dernieres operations financieres du club.'},
           {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-lock', successRate:100, desc:'Personnalisation (nom, numero) — reserve aux comptes premium. Bientot disponible.'}
         ]
       },
@@ -1666,7 +1664,6 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'parier_match', label:'Parier sur un match', pa:1, cost:0, type:'legal', icon:'ti-coin', successRate:100, desc:'Mise ton argent sur le resultat du prochain match.'},
-          {fn:'distribuer_tracts_match', label:'Distribuer des tracts avant le match', pa:2, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Reserve aux candidats declares. Efficacite liee a la frequentation et au classement du club.'},
           {fn:'consulter_classement_joueurs_club', label:'Connaître le classement des joueurs du club', pa:0, cost:75, type:'legal', icon:'ti-list-numbers', successRate:100, desc:'Classement complet des joueurs licencies de CE club. Deplacement necessaire pour consulter un club adverse.'}
         ]
       },
@@ -1684,7 +1681,8 @@ const BUILDINGS = {
           {fn:'consulter_organigramme_supporters', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Composition complete du club de supporters, visible de tous.'},
           {fn:'declencher_election_club', label:'Déclencher une élection', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Reserve aux membres. 3 jours de candidatures puis 3 jours de vote.'},
           {fn:'organiser_manifestation', label:'Organiser une manifestation', pa:2, cost:0, type:'legal', icon:'ti-megaphone', successRate:100, desc:'Reserve au president. Pour ou contre le maire. Intensite liee au nombre de membres.'},
-          {fn:'organiser_boycott', label:'Organiser un boycott', pa:2, cost:0, type:'legal', icon:'ti-ban', successRate:100, desc:'Reserve au president. Boycotte le prochain match a domicile.'}
+          {fn:'organiser_boycott', label:'Organiser un boycott', pa:2, cost:0, type:'legal', icon:'ti-ban', successRate:100, desc:'Reserve au president. Boycotte le prochain match a domicile.'},
+          {fn:'distribuer_tracts_match', label:'Distribuer des tracts avant le match', pa:2, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Reserve aux candidats declares. Efficacite liee a la frequentation et au classement du club.'}
         ]
       },
       bureau_president: {
@@ -1697,7 +1695,9 @@ const BUILDINGS = {
           {fn:'postuler_president_club', label:'Postuler au poste de président', pa:2, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Vote a 3 (chef supporters, maire, capitaine). 48h, silence = accord.'},
           {fn:'consulter_bureau_president', label:'Consulter le bureau', pa:0, cost:0, type:'legal', icon:'ti-building', successRate:100, desc:'President actuel, election en cours, voter si concerne.'},
           {fn:'proposer_transfert', label:'Proposer un transfert', pa:2, cost:0, type:'legal', icon:'ti-arrows-exchange', successRate:100, desc:'Reserve au president. Debaucher un joueur d\'un autre club.'},
-          {fn:'gerer_offres_transfert', label:'Gérer les offres reçues', pa:0, cost:0, type:'legal', icon:'ti-inbox', successRate:100, desc:'Reserve au president. Accepter, refuser ou contre-offrir.'}
+          {fn:'gerer_offres_transfert', label:'Gérer les offres reçues', pa:0, cost:0, type:'legal', icon:'ti-inbox', successRate:100, desc:'Reserve au president. Accepter, refuser ou contre-offrir.'},
+          {fn:'sponsoriser_club', label:'Sponsoriser le club', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Associer votre nom au club en echange d\'un soutien financier. Trois paliers.'},
+          {fn:'consulter_budget_club', label:'Consulter le budget du club', pa:0, cost:0, type:'legal', icon:'ti-report-money', successRate:100, desc:'Caisse et dernieres operations financieres du club.'}
         ]
       }
     }

@@ -240,6 +240,27 @@ async function sbSaveChampionnat(data) {
   return sbInsert('championnat', { id: 1, data, updated_at: new Date().toISOString() });
 }
 
+async function sbCreerPari(data) {
+  const id = 'pari-' + Date.now() + '-' + Math.floor(Math.random()*10000);
+  await sbInsert('paris_sportifs', { id, resolu: false, data });
+  return id;
+}
+
+async function sbGetParisJourneeNonResolus(journeeNumero, saisonNumero) {
+  const rows = await sbGet('paris_sportifs', 'resolu=eq.false&select=id,data');
+  if (!rows) return [];
+  return rows.filter(r => r.data?.journeeNumero === journeeNumero && r.data?.saisonNumero === saisonNumero).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbResoudrePari(id, joueurNom, gain) {
+  await sbUpdate('paris_sportifs', `id=eq.${encodeURIComponent(id)}`, { resolu: true });
+  if (gain > 0) {
+    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(joueurNom)}&select=arg`);
+    const argActuel = rows?.[0]?.arg ?? 0;
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(joueurNom)}`, { arg: argActuel + gain });
+  }
+}
+
 async function sbAppliquerBlessureSportive(nomJoueur, blessure, degatsPV) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=hp`);
   const hpActuel = rows?.[0]?.hp ?? 100;
