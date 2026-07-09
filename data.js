@@ -189,6 +189,16 @@ const WORLD = {
             {fn:'acheter_poison_parapluie', label:'Parapluie républien', pa:1, cost:400, type:'illegal', icon:'ti-umbrella', successRate:100, desc:'Un accessoire élégant. La pointe contient... quelque chose. Usage unique.', imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/parapluie-republicain.png'}
           ]
         },
+        'office-notarial': {
+          name: "Office Notarial — Maître Dubois & Associés",
+          desc: "Le notaire de la nation. Ventes de terrain, successions, contrats de mariage — tout ce qui doit rester ecrit, ici, pour toujours.",
+          roomOverrides: {
+            accueil_notaire: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-notaire-luthecia.png" },
+            bureau_successions: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-successions-luthecia.png" },
+            bureau_contrats: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-contrats-luthecia.png" },
+            archives_notariales: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-notariales-luthecia.png" }
+          }
+        },
         'marche': {
           name: "Marché Central de Luthecia",
           desc: "Marcel Bidoche vend de la viande et des informations. Ginette Légume sait tout sur tout le monde. Jodie Moitout tend son micro à n'importe qui.",
