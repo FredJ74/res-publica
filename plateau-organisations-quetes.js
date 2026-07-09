@@ -1946,6 +1946,9 @@ function bonusClassementTracts(position) {
 async function doDistribuerTractsMatch() {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  const orgaSupporters = getClubSupportersLocal();
+  const estMembre = orgaSupporters?.membres?.some(m => m.nom === state.char?.name);
+  if (!estMembre) { showToast('Réservé aux membres', 'Vous devez être membre du club de supporters pour distribuer des tracts ici.', false); return; }
   const stock = state.char?.tractsSportifs || 0;
   if (stock <= 0) { showToast('Aucun tract', 'Faites imprimer des tracts à l\'imprimerie.', false); return; }
   if (!state.char?.candidatures?.length && !state.candidatureEnCours) {
