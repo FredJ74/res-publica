@@ -1632,7 +1632,7 @@ const BUILDINGS = {
           {name:'Commentateur Sportif (PNJ)', role:'PNJ - Commentateur', rel:'neutral', job:'commentateur'}
         ],
         orders: [
-          {fn:'observer_match', label:'Observer le prochain match', pa:0, cost:0, type:'legal', icon:'ti-eye', successRate:100, desc:'Calendrier et resultats du championnat local.'},
+          {fn:'observer_match', label:'Consulter le calendrier et le classement', pa:0, cost:0, type:'legal', icon:'ti-eye', successRate:100, desc:'Calendrier complet de la saison, resultats, et classement du championnat.'},
           {fn:'regarder_live', label:'Regarder le live', pa:1, cost:0, type:'legal', icon:'ti-device-tv', successRate:100, desc:'Suivre le deroule minute par minute du match de votre choix parmi la derniere journee jouee.'}
         ]
       },
@@ -1674,7 +1674,7 @@ const BUILDINGS = {
           {name:'Bookmaker Officiel (PNJ)', role:'PNJ - Paris Sportifs', rel:'neutral', job:'bookmaker'}
         ],
         orders: [
-          {fn:'parier_match', label:'Parier sur un match', pa:1, cost:0, type:'legal', icon:'ti-coin', successRate:100, desc:'Mise ton argent sur le resultat du prochain match.'},
+          {fn:'parier_match', label:'Parier sur un match', pa:1, cost:0, type:'legal', icon:'ti-coin', successRate:100, desc:'Consultation gratuite -- vous choisirez ensuite votre mise (100 FR minimum).'},
           {fn:'consulter_classement_joueurs_club', label:'Connaître le classement des joueurs du club', pa:0, cost:75, type:'legal', icon:'ti-list-numbers', successRate:100, desc:'Classement complet des joueurs licencies de CE club. Deplacement necessaire pour consulter un club adverse.'}
         ]
       },
