@@ -1283,9 +1283,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'conference_presse',  label:'Conference de presse',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',   successRate:100, requiresPost:'president', desc:'Annonce presidentielle. Fort impact POP et INF.'},
-          {fn:'annonce_officielle', label:'Annonce officielle',     pa:1, cost:0,   type:'legal', icon:'ti-speakerphone', successRate:100, requiresPost:'president', desc:'Declaration formelle au nom de la presidence.'},
           {fn:'propagande_etat',    label:'Propagande d\'Etat',    pa:3, cost:500, type:'grey',  icon:'ti-broadcast',    successRate:75,  requiresPost:'president', desc:'Campagne de communication massive. +POP important.'},
-          {fn:'dementi',            label:'Dementi officiel',       pa:2, cost:0,   type:'legal', icon:'ti-x',            successRate:80,  requiresPost:'president', desc:'Dementir un scandale ou une rumeur.'}
+          {fn:'dementi',            label:'Dementi officiel',       pa:2, cost:0,   type:'legal', icon:'ti-x',            successRate:80,  requiresPost:'president', desc:'Selectionner une rumeur active visant le president ou le gouvernement pour la dementir. Succes : rumeur effacee, POP retablie. Echec : perte de POP doublee.'}
         ]
       },
       salle_reception: {

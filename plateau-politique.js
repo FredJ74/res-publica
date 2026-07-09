@@ -3105,6 +3105,61 @@ function confirmerAmbassadeur() {
   showToast('Ambassadeur nomme', contact + ' → ' + empireName, true);
 }
 
+function ouvrirBanquetDiplomatique() {
+  const contacts = state.contacts || [];
+  if (contacts.length === 0) {
+    showToast('Répertoire vide', 'Enregistrez des contacts pour pouvoir les inviter.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Banquet diplomatique';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.8rem">Sélectionnez 1 à 3 invités. Chacun a une chance de ne pas se présenter — un banquet déserté est un fiasco.</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem">';
+  contacts.forEach((c, i) => {
+    html += '<label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#c0b090"><input type="checkbox" class="banquet-invite" value="' + c.name + '"/> ' + c.name + '</label>';
+  });
+  html += '</div>';
+  html += '<button onclick="confirmerBanquetDiplomatique()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Organiser le banquet (2000 FR)</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerBanquetDiplomatique() {
+  const invites = Array.from(document.querySelectorAll('.banquet-invite:checked')).map(el => el.value);
+  if (invites.length === 0) { showToast('Aucun invité sélectionné', '', false); return; }
+  document.getElementById('modal-postes')?.classList.remove('open');
+
+  if (!verifierBudgetInstitution('presidence')) return;
+
+  const venus = invites.filter(() => Math.random() < 0.7); // 70% de chance de presence par invite
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  if (venus.length === invites.length) {
+    state.pop = Math.min(100, state.pop + 15);
+    state.inf = Math.min(100, state.inf + 12);
+    state.moral = Math.min(100, state.moral + 5);
+    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 8);
+    updateUI();
+    showToast('Banquet réussi !', 'Tous les invités sont venus. +15 POP +12 INF +5 Moral +8 ID.', true, true);
+    addJournalEntry('Banquet diplomatique réussi — tous les invités présents.', 'event-good');
+  } else if (venus.length > 0) {
+    state.pop = Math.min(100, state.pop + 5);
+    state.inf = Math.min(100, state.inf + 5);
+    updateUI();
+    showToast('Banquet mitigé', 'Seuls ' + venus.length + '/' + invites.length + ' invités sont venus. +5 POP +5 INF.', true);
+    addJournalEntry('Banquet diplomatique mitigé (' + venus.length + '/' + invites.length + ' présents).', 'event-info');
+  } else {
+    state.pop = Math.max(0, state.pop - 25);
+    state.inf = Math.max(0, state.inf - 20);
+    state.moral = Math.max(0, state.moral - 10);
+    updateUI();
+    showToast('Fiasco !', 'Aucun invité ne s\'est présenté. -25 POP -20 INF -10 Moral.', false);
+    addJournalEntry('Fiasco du banquet diplomatique — aucun invité présent.', 'event-bad');
+    addExternalEvent('HUMILIATION : Le banquet diplomatique du Président s\'est tenu... sans aucun invité.');
+  }
+}
+
 function doReceptionAvecBonus(fn, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   // Prelever sur le budget de la Presidence, pas sur l'argent personnel
@@ -3130,6 +3185,65 @@ function doReceptionAvecBonus(fn, cost) {
     updateUI();
     showToast('Echec !', 'Les invites ont boude votre ' + (fn === 'reception_etat' ? 'reception' : 'banquet') + '. -30 POP -30 INF -10 Moral.', false);
     addExternalEvent('HUMILIATION : La ' + (fn === 'reception_etat' ? 'reception' : 'banquet diplomatique') + ' du President s\'est soldee par un echec cuisant. -30 POP -30 INF -10 Moral.');
+  }
+}
+
+async function doDementiOfficiel() {
+  if (state.poste?.id !== 'president') { showToast('Réservé au président', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Démenti officiel';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement des rumeurs en cours...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const postesGouvernement = ['president', 'pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
+  const cibles = [state.char?.name].filter(Boolean);
+  postesGouvernement.forEach(id => {
+    const titulaire = POSTES?.[state.country]?.[id]?.titulaire;
+    if (titulaire && !cibles.includes(titulaire)) cibles.push(titulaire);
+  });
+
+  let toutesRumeurs = [];
+  for (const cible of cibles) {
+    if (typeof sbGetRumeursActivesCible !== 'function') break;
+    const rumeurs = await sbGetRumeursActivesCible(cible).catch(() => []);
+    toutesRumeurs.push(...rumeurs);
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.8rem">Rumeurs actives concernant le président et le gouvernement. Un démenti réussi efface la rumeur et rétablit la popularité perdue ; un échec double la perte.</div>';
+  if (toutesRumeurs.length === 0) {
+    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Aucune rumeur active pour l\'instant.</div>';
+  } else {
+    toutesRumeurs.forEach(r => {
+      html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.78rem;color:#c0b090">Concernant <b>' + r.cible + '</b></div>';
+      html += '<div style="font-size:.72rem;color:#8a8060;font-style:italic;margin:.3rem 0">« ' + r.contenu.substring(0, 100) + (r.contenu.length > 100 ? '…' : '') + ' »</div>';
+      html += '<button onclick="confirmerDementi(\'' + r.id + '\',\'' + r.cible + '\',' + (r.popPerdu||15) + ')" style="width:100%;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem">Démentir cette rumeur</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerDementi(rumeurId, cible, popPerdu) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const taux = 80; // successRate declare sur l'ordre
+
+  if (roll <= taux) {
+    if (typeof sbResoudreRumeur === 'function') await sbResoudreRumeur(rumeurId).catch(() => {});
+    const nouveauPop = typeof sbAjusterPopJoueur === 'function' ? await sbAjusterPopJoueur(cible, popPerdu).catch(() => null) : null;
+    if (cible === state.char?.name && nouveauPop !== null) { state.pop = nouveauPop; updateUI(); }
+    showToast('Démenti réussi !', 'La rumeur est effacée, la popularité de ' + cible + ' est rétablie.', true, true);
+    addJournalEntry('Démenti officiel réussi concernant ' + cible + '.', 'event-good');
+    addExternalEvent('📢 La présidence dément officiellement les rumeurs concernant ' + cible + '.');
+  } else {
+    const nouveauPop = typeof sbAjusterPopJoueur === 'function' ? await sbAjusterPopJoueur(cible, -(popPerdu * 2)).catch(() => null) : null;
+    if (cible === state.char?.name && nouveauPop !== null) { state.pop = nouveauPop; updateUI(); }
+    showToast('Démenti raté !', 'L\'opération se retourne contre ' + cible + '. Perte de popularité doublée.', false);
+    addJournalEntry('Démenti officiel raté, la situation s\'aggrave pour ' + cible + '.', 'event-bad');
+    addExternalEvent('📢 Le démenti officiel de la présidence échoue, aggravant les soupçons sur ' + cible + '.');
   }
 }
 

@@ -363,6 +363,10 @@ async function ecouterRumeurs() {
 
 async function solliciterAudiencePresident() {
   const char = state.char;
+  if (state.poste?.id === 'president') {
+    showToast('Indisponible', 'Vous êtes déjà le/la président(e) — inutile de solliciter votre propre audience.', false);
+    return;
+  }
   const nomDemandeur = char?.name || 'Anonyme';
   // Message automatique au demandeur
   showToast(
@@ -498,6 +502,11 @@ function confirmerScandale(taux) {
     addExternalEvent('SCANDALE : Revelations compromettantes sur ' + cible + ' publiees dans le forum national !');
     showToast('Scandale publie !', 'Article dans le forum national. -15 INF -15 POP -10 Moral sur ' + cible, true, true);
     addJournalEntry('Scandale fabrique contre ' + cible, 'event-bad');
+
+    // Enregistrement partage : rend la rumeur dementable par la cible (ou son entourage) plus tard
+    if (typeof sbCreerRumeurPolitique === 'function') {
+      sbCreerRumeurPolitique({ cible, contenu, auteur: state.char?.name || 'Anonyme', jour: state.day || 1, popPerdu: 15 }).catch(() => {});
+    }
 
     // Risque de decouverte (30%)
     const rollDecouv = Math.floor(Math.random() * 100) + 1;

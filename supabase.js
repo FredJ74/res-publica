@@ -650,6 +650,30 @@ async function sbMarquerVolTraite(volId) {
 // =====================
 // ACTIONS TRACABLES (pour le systeme de rumeurs vraies)
 // =====================
+async function sbCreerRumeurPolitique(data) {
+  const id = 'rumeur-' + Date.now() + '-' + Math.floor(Math.random()*10000);
+  await sbInsert('rumeurs_actives', { id, resolu: false, data });
+  return id;
+}
+
+async function sbGetRumeursActivesCible(cible) {
+  const rows = await sbGet('rumeurs_actives', 'resolu=eq.false&select=id,data');
+  if (!rows) return [];
+  return rows.filter(r => r.data?.cible === cible).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbResoudreRumeur(id) {
+  return sbUpdate('rumeurs_actives', `id=eq.${encodeURIComponent(id)}`, { resolu: true });
+}
+
+async function sbAjusterPopJoueur(nomJoueur, delta) {
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=pop`);
+  const popActuel = rows?.[0]?.pop ?? 50;
+  const nouveauPop = Math.max(0, Math.min(100, popActuel + delta));
+  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { pop: nouveauPop });
+  return nouveauPop;
+}
+
 async function sbTracerAction(action) {
   return sbInsert('actions_tracables', action);
 }

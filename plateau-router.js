@@ -167,9 +167,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
   if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(); return; }
   if (fn === 'forum_president_conference' || fn === 'conference_presse' || fn === 'donner_conf')  { ouvrirForumNationalSousForumPresident('conference'); return; }
-  if (fn === 'forum_president_annonce' || fn === 'annonce_officielle')     { ouvrirForumNationalSousForumPresident('annonce'); return; }
   if (fn === 'forum_president_propagande' || fn === 'propagande_etat')  { ouvrirForumNationalSousForumPresident('propagande'); return; }
-  if (fn === 'forum_president_dementi' || fn === 'dementi')     { ouvrirForumNationalSousForumPresident('dementi'); return; }
+  if (fn === 'forum_president_dementi' || fn === 'dementi')     { doDementiOfficiel(); return; }
   if (fn === 'consulter_archives_lois') { ouvrirArchivesLois(); return; }
   if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
   if (fn === 'porter_plainte')          { ouvrirPorterPlainte(); return; }
@@ -269,7 +268,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'ouvrir_ambassade_empire') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
   if (fn === 'nommer_ambassadeur_cible'){ ouvrirModalNommerAmbassadeur(); return; }
   if (fn === 'sanctions_empire')        { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
-  if (fn === 'reception_etat' || fn === 'banquet_diplo') { doReceptionAvecBonus(fn, cost); return; }
+  if (fn === 'reception_etat') { doReceptionAvecBonus(fn, cost); return; }
+  if (fn === 'banquet_diplo') { ouvrirBanquetDiplomatique(); return; }
 
   // Deduire PA et argent
   if (!TEST_MODE) state.pa = Math.max(0, state.pa - pa);
