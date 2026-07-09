@@ -2012,6 +2012,68 @@ const NIVEAUX_CONSTRUCTION = {
   building:          { label: 'Building',           cout: 100000 }
 };
 
+// Zonage fixe par ville — verrouille des la conception, pour que la justice ait un critere
+// objectif face a un refus de permis du maire (voir obstruction). Pas de zonage cliquable :
+// une seule valeur "palier maximum autorise" par ville, cohérente avec son folklore.
+const PALIER_ORDRE = ['hangar', 'commerce_standard', 'commerce_premium', 'building'];
+
+const ZONAGE_VILLES = {
+  republic: {
+    capitale: { maxPalier: 'commerce_premium' },
+    ville_a:  { maxPalier: 'commerce_premium' }, // Port-Sainte-Marie — port de peche
+    ville_b:  { maxPalier: 'building' }          // Montrouge — ville ouvriere/ferroviaire
+  },
+  narco: {
+    capitale: { maxPalier: 'commerce_premium' },
+    ville_a:  { maxPalier: 'commerce_premium' }, // Frontera Alta — poste-frontiere montagnard
+    ville_b:  { maxPalier: 'building' }          // La Selva — exploitation forestiere lourde
+  },
+  soviet: {
+    capitale: { maxPalier: 'commerce_premium' },
+    ville_a:  { maxPalier: 'building' },         // Sibirsk-9 — ville miniere
+    ville_b:  { maxPalier: 'building' }          // Kolkhoz-7 — collectif agro-industriel
+  },
+  khalija: {
+    capitale: { maxPalier: 'commerce_premium' },
+    ville_a:  { maxPalier: 'commerce_premium' }, // Oasis Al-Baraka — oasis caravaniere
+    ville_b:  { maxPalier: 'building' }          // Port Al-Nour — site petrolier
+  }
+};
+
+function palierAutorise(country, city, palierDemande) {
+  const zone = ZONAGE_VILLES[country]?.[city];
+  if (!zone) return true; // pas de restriction connue -> autorise par defaut
+  const maxIdx = PALIER_ORDRE.indexOf(zone.maxPalier);
+  const demandeIdx = PALIER_ORDRE.indexOf(palierDemande);
+  if (maxIdx === -1 || demandeIdx === -1) return true;
+  return demandeIdx <= maxIdx;
+}
+
+// Matieres premieres produites par ville — fondation pour les futures zones de production
+// et le moteur d'entreprise. Les capitales restent des lieux de transformation, pas de matiere brute.
+const MATIERES_PREMIERES_VILLE = {
+  republic: {
+    ville_a: ['Poisson'],                    // Port-Sainte-Marie
+    ville_b: ['Charbon', 'Métal']             // Montrouge
+  },
+  narco: {
+    ville_a: ['Bois', 'Cuir'],                // Frontera Alta
+    ville_b: ['Bois exotique', 'Caoutchouc']  // La Selva
+  },
+  soviet: {
+    ville_a: ['Minerai de fer', 'Charbon'],   // Sibirsk-9
+    ville_b: ['Blé', 'Cuir']                  // Kolkhoz-7
+  },
+  khalija: {
+    ville_a: ['Épices', 'Coton'],             // Oasis Al-Baraka
+    ville_b: ['Pétrole', 'Poisson']           // Port Al-Nour
+  }
+};
+
+function getMatieresPremieresVille(country, city) {
+  return MATIERES_PREMIERES_VILLE[country]?.[city] || [];
+}
+
 function getValeurTotaleBien(ts) {
   if (!ts) return PRIX_TERRAIN;
   const niveau = NIVEAUX_CONSTRUCTION[ts.niveau_construction];

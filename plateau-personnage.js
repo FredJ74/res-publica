@@ -146,11 +146,13 @@ CONSEILS
   },
   intro: {
     titre: 'Le Grand Jeu',
-    contenu: `Res Publica est un jeu de rôle politique parodique multijoueur. Vous incarnez un personnage qui cherche à conquérir le pouvoir dans l'un des quatre empires fictifs : Républia, El Estado, Sovarka ou Al-Khalija.
+    contenu: `Panem et circenses — du pain et des jeux. Voilà, à quelques siècles près, ce qui faisait déjà tourner Rome, et c'est encore ce qui fait tourner le monde aujourd'hui, sous des habits neufs.
 
-Le jeu se déroule en temps réel, calé sur l'heure française. Chaque nuit à minuit, une mise à jour traite les événements en cours : résultats d'élections, enquêtes policières, revenus fiscaux.
+Res Publica est un jeu de rôle politique parodique où plusieurs mondes cohabitent, s'entremêlent et se nourrissent les uns des autres. Certains y mènent une guerre de pouvoir sans merci — élections truquées, coups d'État feutrés, alliances de circonstance. D'autres y bâtissent une fortune, terrain après terrain, entreprise après entreprise, préférant le grand livre de comptes aux tribunes de l'Assemblée. D'autres encore y trouvent leur gloire sur un terrain de foot, portés par des supporters aussi capables de vous élire en idole que de vous brûler en effigie. D'autres, enfin, choisissent l'ombre — le vol, la corruption, l'assassinat, l'art délicat de ne jamais se faire prendre.
 
-L'objectif : gravir les échelons politiques, accumuler de l'influence et de la popularité, et survivre aux trahisons de vos adversaires.`
+Comme le citoyen romain d'autrefois, vous ne serez jamais qu'une seule chose à la fois : un politique peut tomber en disgrâce et se relever entrepreneur ; un criminel peut blanchir sa fortune dans le sport ; un capitaine d'industrie peut financer, en coulisses, l'élection qui décidera de son propre avenir. Rien n'est cloisonné. Tout se répond.
+
+Choisissez qui vous voulez être. Mais sachez que dans Res Publica, comme à Rome, le pouvoir ne se donne jamais — il se prend, se négocie, ou se rachète.`
   },
   personnage: {
     titre: 'Créer son personnage',
