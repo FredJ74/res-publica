@@ -310,6 +310,32 @@ async function sbGetTransfertsClubVente(clubId) {
   return rows.filter(r => r.data?.clubDepartId === clubId && ['propose','contre_offre'].includes(r.data?.statut)).map(r => ({ id: r.id, ...r.data }));
 }
 
+async function sbGetEntreprise(id) {
+  const rows = await sbGet('entreprises', `id=eq.${encodeURIComponent(id)}`);
+  if (!rows || rows.length === 0) return null;
+  return rows[0].data;
+}
+
+async function sbSaveEntreprise(id, data) {
+  const existing = await sbGet('entreprises', `id=eq.${encodeURIComponent(id)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('entreprises', `id=eq.${encodeURIComponent(id)}`, { data, updated_at: new Date().toISOString() });
+  }
+  return sbInsert('entreprises', { id, data, updated_at: new Date().toISOString() });
+}
+
+async function sbAppliquerSalaire(nomJoueur, montant) {
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=arg`);
+  const argActuel = rows?.[0]?.arg ?? 0;
+  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { arg: argActuel + montant });
+}
+
+async function sbAppliquerRachatEntreprise(nomAcheteur, montant) {
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomAcheteur)}&select=arg`);
+  const argActuel = rows?.[0]?.arg ?? 0;
+  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomAcheteur)}`, { arg: argActuel - montant });
+}
+
 async function sbGetJoueurClub(nomJoueur) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=name,licence_sportive,performance_sportive`);
   return rows?.[0] || null;

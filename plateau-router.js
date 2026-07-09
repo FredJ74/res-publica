@@ -34,6 +34,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demander_parler_loge') { doLogePortail(); return; }
   if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
+  if (fn === 'produire_arme') { doProduireArme(); return; }
+  if (fn === 'acheter_produit_stock') { doAcheterProduitStock(); return; }
+  if (fn === 'vendre_matiere_armurerie') { doVendreMatiereArmurerie(); return; }
+  if (fn === 'racheter_armurerie') { doRachatArmurerie(); return; }
+  if (fn === 'gerer_armurerie') { doGererArmurerie(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }

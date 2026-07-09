@@ -1892,3 +1892,275 @@ function doSesoigner() {
   showToast('Soins', '+20 Sante. ' + (state.inventory.filter(i=>i.type==='medicament').length) + ' medicament(s) restant(s).', true);
   switchSelfTab('inventaire', null);
 }
+
+// =====================
+// MOTEUR D'ENTREPRISE PRIVEE (fondations)
+// L'armurerie de Republia en est la premiere application concrete.
+// Note pour Fred : ce systeme couvre pour l'instant l'armurerie de Republia uniquement.
+// Les autres empires (narco/soviet/khalija) auront besoin des memes recettes/instances
+// une fois ce premier exemple valide en jeu.
+// =====================
+
+const PA_PAR_UT = 4; // 1 Unite de Temps = 4 PA
+
+const RECETTES_PRODUCTION = {
+  couteau:          { ut: 1, materiaux: { metal: 1 },            label: 'Couteau de poche' },
+  revolver:         { ut: 2, materiaux: { metal: 2, bois: 1 },   label: 'Revolver' },
+  carabine_chasse:  { ut: 3, materiaux: { metal: 2, bois: 2 },   label: 'Carabine de chasse' }
+};
+
+const PRIX_RACHAT_ARMURERIE = 130000;
+
+function getEntrepriseIdArmurerie(country) {
+  return 'armurerie-' + country;
+}
+
+async function chargerEntreprise(id, defautFabrique) {
+  if (typeof sbGetEntreprise !== 'function') return null;
+  let data = await sbGetEntreprise(id).catch(() => null);
+  if (!data) {
+    data = defautFabrique();
+    if (typeof sbSaveEntreprise === 'function') await sbSaveEntreprise(id, data).catch(() => {});
+  }
+  return data;
+}
+
+function defautArmurerie() {
+  return {
+    id: null,
+    type: 'armurerie',
+    proprietaire: 'PNJ',
+    caisse: 20000,
+    stockMatieres: { metal: 20, bois: 10 },
+    stockProduits: {},
+    parametres: {
+      tarifHoraire: 50, // FR par UT verse au producteur
+      prixAchatMatiere: { metal: 20, bois: 10 }, // FR verses au vendeur de matiere premiere
+      prixVente: { couteau: 300, revolver: 800, carabine_chasse: 1200 },
+      stockMax: { couteau: 10, revolver: 5, carabine_chasse: 5 }
+    },
+    historique: []
+  };
+}
+
+async function chargerArmurerieLocale() {
+  const pays = state.country || 'republic';
+  const id = getEntrepriseIdArmurerie(pays);
+  const data = await chargerEntreprise(id, defautArmurerie);
+  if (data) data.id = id;
+  return data;
+}
+
+function ajouterHistoriqueEntreprise(data, montant, motif) {
+  data.historique = data.historique || [];
+  data.historique.push({ jour: state.day || 1, montant, motif });
+  if (data.historique.length > 50) data.historique = data.historique.slice(-50);
+}
+
+async function doProduireArme() {
+  const data = await chargerArmurerieLocale();
+  if (!data) { showToast('Indisponible', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Produire une arme';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Salaire : ' + data.parametres.tarifHoraire + ' FR par UT (fixé par le propriétaire). 1 UT = ' + PA_PAR_UT + ' PA.</div>';
+  Object.entries(RECETTES_PRODUCTION).forEach(([id, r]) => {
+    const materiauxTxt = Object.entries(r.materiaux).map(([m, q]) => q + ' ' + m).join(', ');
+    const stockActuel = data.stockProduits[id] || 0;
+    const stockMax = data.parametres.stockMax[id] || 0;
+    const salaire = r.ut * data.parametres.tarifHoraire;
+    html += '<button onclick="confirmerProduction(\'' + id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.5rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
+    html += '<b>' + r.label + '</b> — ' + r.ut + ' UT (' + (r.ut*PA_PAR_UT) + ' PA)<br>';
+    html += '<span style="color:#8a8060">Matériaux : ' + materiauxTxt + ' · Salaire : ' + salaire + ' FR · Stock : ' + stockActuel + '/' + stockMax + '</span>';
+    html += '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerProduction(produitId) {
+  const recette = RECETTES_PRODUCTION[produitId];
+  const data = await chargerArmurerieLocale();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!recette || !data) return;
+
+  const paRequis = recette.ut * PA_PAR_UT;
+  if ((state.pa || 0) < paRequis) { showToast('PA insuffisants', paRequis + ' PA requis.', false); return; }
+
+  const manque = Object.entries(recette.materiaux).find(([m, q]) => (data.stockMatieres[m] || 0) < q);
+  if (manque) { showToast('Matières insuffisantes', 'Il manque du ' + manque[0] + ' en stock.', false); return; }
+
+  const salaire = recette.ut * data.parametres.tarifHoraire;
+  if (data.caisse < salaire) { showToast('Caisse insuffisante', 'L\'entreprise ne peut pas payer ce travail actuellement.', false); return; }
+
+  const stockActuel = data.stockProduits[produitId] || 0;
+  const stockMax = data.parametres.stockMax[produitId] || 0;
+  if (stockActuel >= stockMax) { showToast('Stock plein', 'Le stock maximum de ce produit est atteint.', false); return; }
+
+  // Consommer
+  Object.entries(recette.materiaux).forEach(([m, q]) => { data.stockMatieres[m] -= q; });
+  data.stockProduits[produitId] = stockActuel + 1;
+  data.caisse -= salaire;
+  ajouterHistoriqueEntreprise(data, -salaire, 'Salaire de production (' + recette.label + ') — ' + (state.char?.name||'Anonyme'));
+  await sbSaveEntreprise(data.id, data);
+
+  state.pa = Math.max(0, (state.pa || 0) - paRequis);
+  state.arg = (state.arg || 0) + salaire;
+  updateUI();
+  showToast('Production réussie !', recette.label + ' fabriqué(e). +' + salaire + ' FR de salaire.', true, true);
+  addJournalEntry('Production d\'un(e) ' + recette.label + ' à l\'armurerie (+' + salaire + ' FR).', 'event-good');
+}
+
+async function doAcheterProduitStock() {
+  const data = await chargerArmurerieLocale();
+  if (!data) { showToast('Indisponible', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Acheter en stock';
+  let html = '<div style="padding:1rem">';
+  const disponibles = Object.entries(data.stockProduits).filter(([id, q]) => q > 0);
+  if (disponibles.length === 0) {
+    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Rien en stock pour l\'instant — revenez plus tard.</div>';
+  }
+  disponibles.forEach(([id, q]) => {
+    const r = RECETTES_PRODUCTION[id];
+    const prix = data.parametres.prixVente[id] || 0;
+    html += '<button onclick="confirmerAchatStock(\'' + id + '\')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
+    html += '<span>' + (r?.label||id) + ' (' + q + ' en stock)</span><span style="color:#C9A84C">' + prix + ' FR</span></button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerAchatStock(produitId) {
+  const data = await chargerArmurerieLocale();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const prix = data.parametres.prixVente[produitId] || 0;
+  if ((data.stockProduits[produitId] || 0) <= 0) { showToast('Rupture de stock', '', false); return; }
+  if (state.arg < prix) { showToast('Fonds insuffisants', '', false); return; }
+
+  state.arg -= prix;
+  data.stockProduits[produitId] -= 1;
+  data.caisse += prix;
+  ajouterHistoriqueEntreprise(data, prix, 'Vente au comptoir — ' + (RECETTES_PRODUCTION[produitId]?.label||produitId));
+  await sbSaveEntreprise(data.id, data);
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({ type: 'arme', name: RECETTES_PRODUCTION[produitId]?.label || produitId, icon: 'ti-sword', legal: true });
+  updateUI();
+  showToast('Achat effectué', (RECETTES_PRODUCTION[produitId]?.label||produitId) + ' ajouté(e) à votre inventaire.', true, true);
+  addJournalEntry('Achat en stock à l\'armurerie : ' + (RECETTES_PRODUCTION[produitId]?.label||produitId) + ' (-' + prix + ' FR).', 'event-good');
+}
+
+async function doVendreMatiereArmurerie() {
+  const data = await chargerArmurerieLocale();
+  if (!data) { showToast('Indisponible', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Vendre des matières premières';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat fixés par le propriétaire de l\'armurerie.</div>';
+  Object.entries(data.parametres.prixAchatMatiere).forEach(([m, prix]) => {
+    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
+    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + m + ' (' + prix + ' FR/unité, stock actuel : ' + (data.stockMatieres[m]||0) + ')</span>';
+    html += '<input type="number" id="vendre-qte-' + m + '" min="1" value="1" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.78rem;outline:none"/>';
+    html += '<button onclick="confirmerVenteMatiere(\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem">Vendre</button>';
+    html += '</div>';
+  });
+  html += '<div style="font-size:.7rem;color:#5a5040;font-style:italic;margin-top:.6rem">Nécessite d\'avoir ces matières dans votre inventaire (récolte à venir).</div>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVenteMatiere(matiere) {
+  const qte = parseInt(document.getElementById('vendre-qte-' + matiere)?.value || '0');
+  if (!qte || qte <= 0) { showToast('Quantité invalide', '', false); return; }
+
+  const items = (state.inventory || []).filter(i => i.type === 'matiere_premiere' && i.matiere === matiere);
+  if (items.length < qte) { showToast('Stock personnel insuffisant', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + matiere + '.', false); return; }
+
+  const data = await chargerArmurerieLocale();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const prixUnitaire = data.parametres.prixAchatMatiere[matiere] || 0;
+  const total = prixUnitaire * qte;
+  if (data.caisse < total) { showToast('Caisse insuffisante', 'L\'entreprise ne peut pas acheter cette quantité actuellement.', false); return; }
+
+  for (let i = 0; i < qte; i++) {
+    const idx = state.inventory.findIndex(it => it.type === 'matiere_premiere' && it.matiere === matiere);
+    if (idx >= 0) state.inventory.splice(idx, 1);
+  }
+  data.stockMatieres[matiere] = (data.stockMatieres[matiere] || 0) + qte;
+  data.caisse -= total;
+  ajouterHistoriqueEntreprise(data, -total, 'Achat de matière première (' + matiere + ' x' + qte + ') — ' + (state.char?.name||'Anonyme'));
+  await sbSaveEntreprise(data.id, data);
+
+  state.arg = (state.arg || 0) + total;
+  updateUI();
+  showToast('Vente effectuée', '+' + total + ' FR pour ' + qte + ' ' + matiere + '.', true, true);
+  addJournalEntry('Vente de ' + qte + ' ' + matiere + ' à l\'armurerie (+' + total + ' FR).', 'event-good');
+}
+
+async function doRachatArmurerie() {
+  const data = await chargerArmurerieLocale();
+  if (!data) { showToast('Indisponible', '', false); return; }
+  if (data.proprietaire !== 'PNJ') { showToast('Déjà rachetée', 'Cette armurerie appartient déjà à ' + data.proprietaire + '.', false); return; }
+  if (state.arg < PRIX_RACHAT_ARMURERIE) { showToast('Fonds insuffisants', PRIX_RACHAT_ARMURERIE.toLocaleString('fr-FR') + ' FR requis.', false); return; }
+
+  state.arg -= PRIX_RACHAT_ARMURERIE;
+  data.proprietaire = state.char?.name;
+  ajouterHistoriqueEntreprise(data, 0, 'Rachat de l\'entreprise par ' + state.char?.name);
+  await sbSaveEntreprise(data.id, data);
+  updateUI();
+  showToast('Félicitations !', 'Vous êtes désormais propriétaire de l\'armurerie.', true, true);
+  addJournalEntry('Rachat de l\'armurerie pour ' + PRIX_RACHAT_ARMURERIE.toLocaleString('fr-FR') + ' FR.', 'event-good');
+}
+
+async function doGererArmurerie() {
+  const data = await chargerArmurerieLocale();
+  if (!data) { showToast('Indisponible', '', false); return; }
+  if (data.proprietaire !== state.char?.name) { showToast('Réservé au propriétaire', 'Cette armurerie appartient à ' + data.proprietaire + '.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Gérer mon armurerie';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">Caisse : ' + data.caisse.toLocaleString('fr-FR') + ' FR</div>';
+
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Tarif horaire (FR par UT versé au producteur)</label>';
+  html += '<input id="gere-tarif" type="number" value="' + data.parametres.tarifHoraire + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.3rem">Prix d\'achat des matières (FR/unité)</div>';
+  Object.keys(data.parametres.prixAchatMatiere).forEach(m => {
+    html += '<div style="display:flex;gap:.4rem;margin-bottom:.3rem"><span style="flex:1;font-size:.75rem;color:#c0b090">' + m + '</span><input id="gere-mat-' + m + '" type="number" value="' + data.parametres.prixAchatMatiere[m] + '" style="width:80px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.75rem;outline:none"/></div>';
+  });
+
+  html += '<div style="font-size:.72rem;color:#8a8060;margin:.5rem 0 .3rem">Prix de vente et stock maximum</div>';
+  Object.keys(RECETTES_PRODUCTION).forEach(id => {
+    html += '<div style="display:flex;gap:.4rem;margin-bottom:.3rem;align-items:center">';
+    html += '<span style="flex:1;font-size:.75rem;color:#c0b090">' + RECETTES_PRODUCTION[id].label + '</span>';
+    html += '<input id="gere-prix-' + id + '" type="number" value="' + (data.parametres.prixVente[id]||0) + '" placeholder="Prix" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.72rem;outline:none"/>';
+    html += '<input id="gere-max-' + id + '" type="number" value="' + (data.parametres.stockMax[id]||0) + '" placeholder="Stock max" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.72rem;outline:none"/>';
+    html += '</div>';
+  });
+
+  html += '<button onclick="confirmerGestionArmurerie(\'' + data.id + '\')" style="width:100%;margin-top:.6rem;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerGestionArmurerie(entrepriseId) {
+  const data = await sbGetEntreprise(entrepriseId);
+  if (!data) return;
+
+  data.parametres.tarifHoraire = Math.max(0, parseInt(document.getElementById('gere-tarif')?.value || '0'));
+  Object.keys(data.parametres.prixAchatMatiere).forEach(m => {
+    data.parametres.prixAchatMatiere[m] = Math.max(0, parseInt(document.getElementById('gere-mat-' + m)?.value || '0'));
+  });
+  Object.keys(RECETTES_PRODUCTION).forEach(id => {
+    data.parametres.prixVente[id] = Math.max(0, parseInt(document.getElementById('gere-prix-' + id)?.value || '0'));
+    data.parametres.stockMax[id] = Math.max(0, parseInt(document.getElementById('gere-max-' + id)?.value || '0'));
+  });
+
+  await sbSaveEntreprise(entrepriseId, data);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Paramètres mis à jour', '', true, true);
+}
