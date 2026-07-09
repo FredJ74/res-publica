@@ -1332,8 +1332,8 @@ async function getIndicesPourVille(country, city) {
   return data?.indices || { securite:50, associatif:50, ecoles:50, espaces_verts:50 };
 }
 
-const TITULAIRES_MAX = 5;
-const REMPLACANTS_MAX = 3;
+const TITULAIRES_MAX = 11;
+const REMPLACANTS_MAX = 4;
 
 async function calculerContributionEquipe(club) {
   if (typeof sbListJoueursLicencies !== 'function') return { bonus: 0, titulaires: [], remplacants: [], nonRetenus: [] };
