@@ -340,9 +340,15 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
 
   // Update tabs
+  document.querySelectorAll('.piece-tab').forEach(t => t.classList.remove('active'));
   if (tabEl) {
-    document.querySelectorAll('.piece-tab').forEach(t => t.classList.remove('active'));
     tabEl.classList.add('active');
+  } else {
+    // Restauration automatique (rafraichissement de page) : pas d'onglet clique, on le retrouve par roomId
+    const roomIds = Object.keys(b.rooms || {});
+    const idx = roomIds.indexOf(roomId);
+    const tabs = document.querySelectorAll('.piece-tab');
+    if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
   }
 
   // Contexte local : desc, PNJ et roomOverrides selon empire/ville
