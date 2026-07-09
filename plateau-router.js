@@ -55,6 +55,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'prendre_licence_sportive') { doPrendreLicenceSportive(); return; }
   if (fn === 'tenue_entrainement') { doTenueEntrainement(); return; }
   if (fn === 'tenue_match') { doTenueMatch(); return; }
+  if (fn === 'conseil_entraineur_adjoint') { doConseilEntraineurAdjoint(); return; }
   if (fn === 'sponsoriser_club') { doSponsoriserClub(); return; }
   if (fn === 'consulter_budget_club') { doConsulterBudgetClub(); return; }
   if (fn === 'imprimer_tracts_sportifs') { doImprimerTractsSportifs(); return; }

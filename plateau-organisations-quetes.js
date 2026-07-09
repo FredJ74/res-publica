@@ -1475,6 +1475,52 @@ function confirmerEntrainement(stat) {
   doTenueEntrainement();
 }
 
+async function doConseilEntraineurAdjoint() {
+  if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive pour recevoir des conseils.', false); return; }
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = "Conseil de l'entraîneur adjoint";
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const classement = await calculerClassementClub(clubLocal);
+  const position = classement.findIndex(j => j.nom === state.char?.name);
+  const moi = classement[position];
+  const perf = state.char.performance || { defense:0, technique:0, endurance:0 };
+  const total = moi ? moi.total : (perf.defense + perf.technique + perf.endurance);
+
+  let html = '<div style="padding:1rem;font-size:.85rem;color:#c0b090;line-height:1.5">';
+
+  if (moi?.statut === 'titulaire') {
+    html += '"Beau travail, tu es titulaire. Continue comme ça et surveille le classement — d\'autres poussent derrière toi."';
+  } else if (moi?.statut === 'remplaçant') {
+    html += '"Tu es dans le groupe des quinze, en tant que remplaçant. Encore un effort pour viser une place de titulaire."';
+  } else if (moi?.statut === 'blessé') {
+    html += '"Repose-toi d\'abord. On reparlera entraînement une fois que tu seras remis."';
+  } else {
+    const seuilIdx = TITULAIRES_MAX + REMPLACANTS_MAX - 1; // dernier retenu (15e)
+    const dernierRetenu = classement[seuilIdx];
+    const seuilTotal = dernierRetenu ? dernierRetenu.total : Math.ceil(clubLocal.valeurBase * 0.5);
+    const manque = Math.max(1, seuilTotal - total + 1);
+
+    const indices = await getIndicesPourVille(clubLocal.country, clubLocal.city);
+    const options = [
+      { stat: 'defense', mult: multiplicateurIndice(indices.securite), label: 'Défense' },
+      { stat: 'technique', mult: multiplicateurIndice(indices.ecoles), label: 'Technique' },
+      { stat: 'endurance', mult: multiplicateurIndice(indices.espaces_verts), label: 'Endurance' }
+    ].sort((a, b) => b.mult - a.mult);
+    const meilleure = options[0];
+    const joursNecessaires = Math.ceil(manque / 4); // 2 seances/jour x +2 points = +4/jour max
+
+    html += '"Il te manque environ <b style="color:#C9A84C">' + manque + ' points</b> pour intégrer les quinze. ';
+    html += 'Avec le contexte actuel de la ville, c\'est ta <b style="color:#C9A84C">' + meilleure.label + '</b> qui te rapportera le plus. ';
+    html += 'Si tu t\'entraînes à fond dessus, compte environ <b style="color:#C9A84C">' + joursNecessaires + ' jour(s)</b>."';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
 function doTenueMatch() {
   if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive.', false); return; }
   if (estIndisponiblePourSport()) {

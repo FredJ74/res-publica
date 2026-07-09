@@ -1647,7 +1647,8 @@ const BUILDINGS = {
         orders: [
           {fn:'prendre_licence_sportive', label:'Prendre sa licence sportive', pa:1, cost:300, type:'legal', icon:'ti-license', successRate:100, desc:'Seule condition pour s\'entrainer ou jouer. 300 FR.'},
           {fn:'tenue_entrainement', label:"Mettre la tenue d'entraînement", pa:2, cost:0, type:'legal', icon:'ti-run', successRate:100, desc:'S\'entrainer (Defense/Technique/Endurance). Maximum 2 par jour. Risque de blessure legere.'},
-          {fn:'tenue_match', label:'Mettre la tenue de match', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Repartir librement ses points de performance avant le prochain match.'}
+          {fn:'tenue_match', label:'Mettre la tenue de match', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Repartir librement ses points de performance avant le prochain match.'},
+          {fn:'conseil_entraineur_adjoint', label:"Demander conseil à l'entraîneur adjoint", pa:0, cost:0, type:'legal', icon:'ti-message-2', successRate:100, desc:'Ce qu\'il vous manque pour integrer les quinze, et sur quelle qualite se concentrer.'}
         ]
       },
       buvette: {
