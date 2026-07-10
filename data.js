@@ -1401,10 +1401,9 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'fixer_impots_nationaux', label:'Fixer le taux d\'imposition national', pa:2, cost:0,   type:'legal',   icon:'ti-percentage',    successRate:100, requiresPost:'min_fin', desc:'Voir et modifier le taux d\'imposition national en vigueur.'},
-          {fn:'redressement_fiscal',  label:'Ordonner un redressement',     pa:2, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:80,  requiresPost:'min_fin', desc:'Cibler un contribuable. Genere des recettes mais cree des ennemis.'},
-          {fn:'subvention',           label:'Accorder une subvention',      pa:2, cost:500, type:'legal',   icon:'ti-coins',          successRate:100, requiresPost:'min_fin', desc:'Financer un secteur ou une association. +POP ciblé.'},
-          {fn:'fiscal',              label:'Repartition budgetaire',       pa:2, cost:0, type:'legal', icon:'ti-chart-pie',   successRate:100, requiresPost:'min_fin', desc:'Fixer la repartition des recettes fiscales entre les institutions. Prerogative exclusive du Ministre des Finances.'},
-          {fn:'allegemement_fiscal',  label:'Allegement fiscal sectoriel',  pa:2, cost:0,   type:'legal',   icon:'ti-receipt-tax',    successRate:100, requiresPost:'min_fin', desc:'Reduire les taxes d\'un secteur. +INF aupres des lobbies.'}
+          {fn:'redressement_fiscal',  label:'Ordonner un redressement',     pa:2, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:80,  requiresPost:'min_fin', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Genere des recettes pour l\'Etat mais cree des ennemis.'},
+          {fn:'subvention',           label:'Accorder une subvention',      pa:2, cost:0, type:'legal',   icon:'ti-coins',          successRate:100, requiresPost:'min_fin', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Montant a fixer ensuite (plafond 5000 FR).'},
+          {fn:'fiscal',              label:'Repartition budgetaire',       pa:2, cost:0, type:'legal', icon:'ti-chart-pie',   successRate:100, requiresPost:'min_fin', desc:'Fixer la repartition des recettes fiscales entre les institutions. Prerogative exclusive du Ministre des Finances.'}
         ]
       },
       bureau_min_just: {

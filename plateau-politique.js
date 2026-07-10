@@ -2871,6 +2871,163 @@ async function debiterCitoyenPlafonne(nomCible, montantVise) {
   return preleve;
 }
 
+// =====================
+// CIBLAGE FISCAL ÉTENDU — citoyens, clubs sportifs, entreprises, organisations
+// =====================
+function ouvrirChoixTypeCibleFiscale(action, titre) {
+  document.getElementById('postes-modal-title').textContent = titre;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir le type de cible :</div>';
+  const types = [
+    { id: 'citoyen', label: 'Un citoyen', icon: 'ti-user' },
+    { id: 'club_sportif', label: 'Un club sportif', icon: 'ti-ball-football' },
+    { id: 'entreprise', label: 'Une entreprise', icon: 'ti-building-store' },
+    { id: 'organisation', label: 'Une organisation', icon: 'ti-building-community' }
+  ];
+  types.forEach(t => {
+    html += '<button onclick="ouvrirCiblageFiscalType(\'' + action + '\',\'' + t.id + '\',\'' + titre.replace(/'/g,"\\'") + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem"><i class="ti ' + t.icon + '" style="margin-right:.4rem;color:#8a6a20"></i>' + t.label + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function ouvrirCiblageFiscalType(action, typeCible, titre) {
+  const pays = state.country || 'republic';
+  document.getElementById('postes-modal-title').textContent = titre;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  let html = '<div style="padding:1rem">';
+
+  if (typeCible === 'citoyen') {
+    let joueurs = [];
+    if (typeof sbListPersonnages === 'function') { try { joueurs = await sbListPersonnages() || []; } catch(e) {} }
+    const myName = state.char?.name;
+    const cibles = joueurs.filter(j => {
+      const domicilePays = j.domicile?.country || j.country;
+      return (domicilePays === pays || j.country === pays) && j.name !== myName;
+    });
+    if (cibles.length === 0) html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun autre citoyen pour l\'instant.</div>';
+    cibles.forEach(c => {
+      const domicilie = (c.domicile?.country || c.country) === pays;
+      html += '<div onclick="executerOrdreFiscalCible(\'' + action + '\',\'citoyen\',\'' + c.name + '\')" style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer">';
+      html += '<div style="font-size:.85rem;color:#e0d5b8">' + c.name + '</div><div style="font-size:.7rem;color:#a89870">' + (domicilie ? 'Domicilié(e)' : 'De passage') + '</div></div>';
+    });
+  } else if (typeCible === 'club_sportif') {
+    const clubs = (CLUBS_SPORTIFS || []).filter(c => c.country === pays);
+    clubs.forEach(c => {
+      html += '<div onclick="executerOrdreFiscalCible(\'' + action + '\',\'club_sportif\',\'' + c.id + '\')" style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer">';
+      html += '<div style="font-size:.85rem;color:#e0d5b8">' + c.nom + '</div></div>';
+    });
+  } else if (typeCible === 'entreprise') {
+    const id = getEntrepriseIdArmurerie(pays);
+    html += '<div onclick="executerOrdreFiscalCible(\'' + action + '\',\'entreprise\',\'' + id + '\')" style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer">';
+    html += '<div style="font-size:.85rem;color:#e0d5b8">Armurerie</div></div>';
+  } else if (typeCible === 'organisation') {
+    const orgas = (state.organisations || []).filter(o => o.country === pays);
+    if (orgas.length === 0) html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune organisation connue pour l\'instant.</div>';
+    orgas.forEach(o => {
+      html += '<div onclick="executerOrdreFiscalCible(\'' + action + '\',\'organisation\',\'' + o.id + '\')" style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer">';
+      html += '<div style="font-size:.85rem;color:#e0d5b8">' + o.nom + '</div><div style="font-size:.7rem;color:#a89870">Chef : ' + (o.chef||'?') + '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// Lit le solde actuel d'une cible, quel que soit son type
+async function getSoldeCibleFiscale(typeCible, idCible) {
+  const pays = state.country || 'republic';
+  if (typeCible === 'citoyen') {
+    if (idCible === state.char?.name) return state.arg || 0;
+    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(idCible)}&select=arg`).catch(() => []);
+    return rows?.[0]?.arg ?? 0;
+  }
+  if (typeCible === 'club_sportif') { const b = await chargerBudgetClub(idCible); return b?.caisse || 0; }
+  if (typeCible === 'entreprise') { const e = await chargerEntreprise(idCible, () => defautArmurerie(pays)); return e?.caisse || 0; }
+  if (typeCible === 'organisation') { const o = (state.organisations || []).find(x => x.id === idCible); return o?.caisse || 0; }
+  return 0;
+}
+
+// Ajuste le solde d'une cible (delta positif ou negatif), quel que soit son type. Retourne le montant reel applique.
+async function ajusterSoldeCibleFiscale(typeCible, idCible, delta) {
+  const pays = state.country || 'republic';
+  const soldeActuel = await getSoldeCibleFiscale(typeCible, idCible);
+  const montantReel = delta >= 0 ? delta : -Math.min(soldeActuel, -delta);
+
+  if (typeCible === 'citoyen') {
+    if (idCible === state.char?.name) { state.arg = (state.arg||0) + montantReel; updateUI(); }
+    else await sbUpdate('personnages', `name=eq.${encodeURIComponent(idCible)}`, { arg: soldeActuel + montantReel }).catch(() => {});
+  } else if (typeCible === 'club_sportif') {
+    await crediterBudgetClub(idCible, montantReel, montantReel >= 0 ? 'Subvention ministérielle' : 'Redressement fiscal');
+  } else if (typeCible === 'entreprise') {
+    const e = await chargerEntreprise(idCible, () => defautArmurerie(pays));
+    e.caisse = (e.caisse||0) + montantReel;
+    await sbSaveEntreprise(idCible, e).catch(() => {});
+  } else if (typeCible === 'organisation') {
+    const o = (state.organisations || []).find(x => x.id === idCible);
+    if (o) { o.caisse = Math.max(0, (o.caisse||0) + montantReel); sauvegarderOrga(o); }
+  }
+  return montantReel;
+}
+
+function nomAffichageCible(typeCible, idCible) {
+  if (typeCible === 'club_sportif') return getClub(idCible)?.nom || idCible;
+  if (typeCible === 'entreprise') return 'l\'armurerie';
+  if (typeCible === 'organisation') return (state.organisations || []).find(x => x.id === idCible)?.nom || idCible;
+  return idCible;
+}
+
+async function executerOrdreFiscalCible(action, typeCible, idCible) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const nomCible = nomAffichageCible(typeCible, idCible);
+
+  if (action === 'redressement_fiscal') {
+    document.getElementById('modal-postes')?.classList.remove('open');
+    const montantVise = 2000;
+    const montantPreleve = -(await ajusterSoldeCibleFiscale(typeCible, idCible, -montantVise));
+    const budgetNat = await chargerBudgetNational(state.country);
+    budgetNat.reserveJour = (budgetNat.reserveJour || 0) + montantPreleve;
+    await sbSaveBudgetNational(state.country, budgetNat).catch(() => {});
+    INDICES_NATIONAUX[state.country].IE = Math.max(0, INDICES_NATIONAUX[state.country].IE - 3);
+    updateUI();
+    showToast('Redressement', 'Redressement fiscal contre ' + nomCible + ' : ' + montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' prélevés pour le Trésor. -3 IE.', true, true);
+    addJournalEntry('Redressement fiscal contre ' + nomCible + ' (+' + montantPreleve + ' FR pour l\'État).', 'event-info');
+    if (typeCible === 'citoyen' && typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', idCible, 'Redressement fiscal', 'Un redressement fiscal de ' + montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' vous a été notifié et prélevé.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    return;
+  }
+
+  if (action === 'subvention') {
+    document.getElementById('postes-modal-title').textContent = 'Montant de la subvention';
+    const plafond = 5000;
+    let html = '<div style="padding:1rem">';
+    html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Bénéficiaire : ' + nomCible + '. Gratuit pour vous — prélevé sur la caisse du Palais du Gouvernement. Plafond : ' + plafond.toLocaleString('fr-FR') + ' ' + cur + '.</div>';
+    html += '<input id="montant-subvention" type="number" min="1" max="' + plafond + '" value="500" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.9rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
+    html += '<button onclick="confirmerSubventionMontant(\'' + typeCible + '\',\'' + idCible + '\',' + plafond + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Verser</button>';
+    html += '</div>';
+    document.getElementById('postes-body').innerHTML = html;
+  }
+}
+
+async function confirmerSubventionMontant(typeCible, idCible, plafond) {
+  const montant = Math.max(1, Math.min(plafond, parseInt(document.getElementById('montant-subvention')?.value || '0')));
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const nomCible = nomAffichageCible(typeCible, idCible);
+  const pays = state.country || 'republic';
+
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'palais-gouvernement', montant) : 0;
+  if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
+
+  await ajusterSoldeCibleFiscale(typeCible, idCible, montantVerse);
+  INDICES_NATIONAUX[pays].IS = Math.min(100, INDICES_NATIONAUX[pays].IS + 3);
+  updateUI();
+  showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
+  addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
+  if (typeCible === 'citoyen' && typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', idCible, 'Subvention accordée', 'Vous avez reçu une subvention de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' du Ministre des Finances.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+}
+
 async function ouvrirCiblageFiscal(action, titre) {
   document.getElementById('postes-modal-title').textContent = titre;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
