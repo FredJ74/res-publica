@@ -214,7 +214,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'article') { doArticle(); return; }
   if (fn === 'etouffer') { doEtouffer(); return; }
   if (fn === 'archives') { ouvrirArchivesTribunal(); return; }
-  if (fn === 'consulter_dossiers') { ouvrirArchivesTribunal(); return; }
+  if (fn === 'consulter_dossiers_gouv') { doConsulterDossiersGouv(); return; }
   if (fn === 'demander_info_loge') { doLogeInfo(); return; }
   if (fn === 'se_former') { doSeFormer(); return; }
   if (fn === 'recruter_info') { doRecruterInfo(); return; }
@@ -237,9 +237,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'augmenter_impots') { doAugmenterImpots(true); return; }
   if (fn === 'baisser_impots') { doAugmenterImpots(false); return; }
   if (fn === 'allegemement_fiscal') { ouvrirModalSecteur(); return; }
-  if (fn === 'interdire_manif') { ouvrirModalTexteLibre('interdire_manif', 'Interdire une manifestation', 'Nom ou sujet de la manifestation...'); return; }
-  if (fn === 'repression_manif') { ouvrirModalTexteLibre('reprimer_manif', 'Ordonner la repression', 'Manifestation ou rassemblement cible...'); return; }
-  if (fn === 'autoriser_manif') { doAutoriserManif(); return; }
+  if (fn === 'traiter_manifestations') { doTraiterManifestations(); return; }
   if (fn === 'renseignement') { ouvrirModalRenseignement(); return; }
   if (fn === 'planifier_operation') { ouvrirModalTexteLibre('planifier_operation', 'Planifier une operation', 'Decrivez l\'operation...'); return; }
   if (fn === 'mobiliser') { doMobiliserPolice(); return; }

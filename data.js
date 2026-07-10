@@ -1336,8 +1336,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'nommer_ministre_pm', label:'Nommer des ministres',       pa:2, cost:0,   type:'legal',   icon:'ti-crown',     successRate:100, requiresPost:'pm', desc:'Nommer un PJ a un poste ministeriel.'},
-          {fn:'declencher_vote_confiance', label:'Déclencher un vote de confiance', pa:3, cost:0, type:'legal', icon:'ti-gavel', successRate:100, requiresPost:'pm', desc:'Engager la responsabilite du gouvernement devant l\'Assemblee Nationale. Resultat sous 48h.'},
-          {fn:'corrompre_fonct',    label:'Corrompre un fonctionnaire', pa:2, cost:500, type:'illegal', icon:'ti-coins',     successRate:65,  desc:'Acheter un service administratif.'}
+          {fn:'declencher_vote_confiance', label:'Déclencher un vote de confiance', pa:3, cost:0, type:'legal', icon:'ti-gavel', successRate:100, requiresPost:'pm', desc:'Engager la responsabilite du gouvernement devant l\'Assemblee Nationale. Resultat sous 48h.'}
         ]
       },
       salle_conseil: {
@@ -1348,10 +1347,7 @@ const BUILDINGS = {
         persons: [
           {name:'Premier Ministre (PNJ)', role:'Chef du gouvernement', rel:'neutral', job:'pm'}
         ],
-        orders: [
-          {fn:'voter_loi',    label:'Participer au conseil',     pa:2, cost:0, type:'legal', icon:'ti-check',      successRate:100, requiresPost:true, desc:'Voter sur les propositions en cours.'},
-          {fn:'projet_loi',   label:'Soumettre une proposition', pa:3, cost:0, type:'legal', icon:'ti-file-text',  successRate:70,  requiresPost:true, desc:'Proposer une loi avec intitule et duree de vote.'}
-        ]
+        orders: []
       },
       salle_presse: {
         name: "Salle de Presse",
@@ -1364,9 +1360,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'conference_presse', label:'Conférence de presse',  pa:2, cost:0,    type:'legal',   icon:'ti-microphone',   successRate:100, requiresPost:true, desc:'Annonce officielle au pays entier. Fort impact POP et INF.'},
-          {fn:'annonce_officielle',label:'Annonce officielle',     pa:1, cost:0,    type:'legal',   icon:'ti-speakerphone', successRate:100, requiresPost:true, desc:'Declaration formelle au nom du gouvernement.'},
           {fn:'propagande_etat',   label:'Campagne de propagande', pa:3, cost:500,  type:'grey',    icon:'ti-broadcast',    successRate:75,  requiresPost:true, desc:'Influence massive de l\'opinion publique. +POP important.'},
-          {fn:'dementi',           label:'Démenti officiel',       pa:2, cost:0,    type:'legal',   icon:'ti-x',            successRate:80,  requiresPost:true, desc:'Dementir une rumeur ou un scandale. Reduit l\'impact d\'un kompromat.'}
+          {fn:'dementi',           label:'Démenti officiel',       pa:2, cost:0,    type:'legal',   icon:'ti-x',            successRate:80,  requiresPost:true, desc:'Selectionner une rumeur active visant le president ou le gouvernement pour la dementir. Succes : rumeur effacee, POP retablie. Echec : perte de POP doublee.'}
         ]
       },
       archives_gouv: {
@@ -1378,7 +1373,7 @@ const BUILDINGS = {
           {name:'Archiviste Legrand (PNJ)', role:'PNJ - Archiviste en chef', rel:'neutral', job:'archiviste'}
         ],
         orders: [
-          {fn:'consulter_dossiers', label:'Consulter des dossiers',    pa:2, cost:0,    type:'legal',   icon:'ti-archive',        successRate:80,  requiresPost:true, desc:'Acceder a des informations confidentielles.'},
+          {fn:'consulter_dossiers_gouv', label:'Consulter des dossiers',    pa:2, cost:0,    type:'legal',   icon:'ti-archive',        successRate:80,  requiresPost:true, desc:'Rapports confidentiels et notes de synthese classifiees du gouvernement.'},
           {fn:'fuite_info',         label:'Produire une fuite',        pa:3, cost:0,    type:'grey',    icon:'ti-leak',           successRate:60,  requiresPost:true, desc:'Faire fuiter un document secret.'}
         ]
       },
@@ -1392,10 +1387,8 @@ const BUILDINGS = {
         requiresPostId: 'min_int',
         persons: [],
         orders: [
-          {fn:'mobiliser_police',     label:'Mobiliser les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield',        successRate:100, requiresPost:'min_int', desc:'Deploiement massif de police. +securite -liberte.'},
-          {fn:'interdire_manif',      label:'Interdire une manifestation',  pa:2, cost:0,   type:'legal',   icon:'ti-ban',            successRate:100, requiresPost:'min_int', desc:'Interdire un rassemblement. -POP important.'},
-          {fn:'autoriser_manif',      label:'Autoriser une manifestation',  pa:1, cost:0,   type:'legal',   icon:'ti-check',          successRate:100, requiresPost:'min_int', desc:'Lever une interdiction. +POP.'},
-          {fn:'repression_manif',     label:'Ordonner la repression',       pa:3, cost:0,   type:'grey',    icon:'ti-flame',          successRate:80,  requiresPost:'min_int', desc:'Disperser de force. -POP fort mais +autorite.'},
+          {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'min_int', desc:'Choisir un type d\'intervention concrete (blocus, manifestation, quartier sensible).'},
+          {fn:'traiter_manifestations', label:'Traiter les demandes de manifestation', pa:1, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'min_int', desc:'Autoriser ou interdire un rassemblement declare.'},
           {fn:'demandes_naturalisation', label:'Demandes de naturalisation', pa:0, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_int', desc:'Examiner les demandes de naturalisation en attente (delai 48h avant traitement possible).'}
         ]
       },

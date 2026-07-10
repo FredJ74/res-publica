@@ -3188,8 +3188,93 @@ function doReceptionAvecBonus(fn, cost) {
   }
 }
 
+const DOSSIERS_GOUVERNEMENTAUX = [
+  "Note confidentielle du Ministere des Finances : les reserves de change couvrent 4,2 mois d'importations, en baisse constante depuis 3 trimestres.",
+  "Rapport classifie des services de renseignement : activite diplomatique inhabituelle detectee a la frontiere.",
+  "Synthese interne : trois hauts fonctionnaires suspectes de conflits d'interets dans l'attribution de marches publics.",
+  "Memo du cabinet : la cote de confiance du gouvernement aupres des grands industriels s'est degradee ce trimestre.",
+  "Dossier sensible : un ancien ministre aurait conserve des documents classifies apres son depart.",
+  "Rapport d'audit interne : des irregularites mineures ont ete relevees dans la gestion de deux budgets ministeriels."
+];
+
+function doConsulterDossiersGouv() {
+  const dossier = DOSSIERS_GOUVERNEMENTAUX[Math.floor(Math.random() * DOSSIERS_GOUVERNEMENTAUX.length)];
+  document.getElementById('postes-modal-title').textContent = 'Dossier confidentiel';
+  const html = '<div style="padding:1rem;font-size:.85rem;color:#c0b090;line-height:1.6;font-style:italic">« ' + dossier + ' »</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  state.inf = Math.min(100, (state.inf || 0) + 2);
+  updateUI();
+  addJournalEntry('Consultation d\'un dossier confidentiel du gouvernement. +2 INF.', 'event-info');
+}
+
+function doMobiliserPolice() {
+  const options = [
+    { id: 'blocus', label: 'Disperser un blocus routier', isn: 8, pop: -8 },
+    { id: 'encadrer', label: 'Encadrer un rassemblement (prévention)', isn: 3, pop: -2 },
+    { id: 'quartier', label: 'Renforcer un quartier sensible', isn: 5, pop: 0 },
+    { id: 'reprimer', label: 'Réprimer un rassemblement par la force', isn: 10, pop: -15 }
+  ];
+  document.getElementById('postes-modal-title').textContent = "Faire intervenir les forces de l'ordre";
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Chaque type d\'intervention a un impact different sur la securite nationale et la popularite.</div>';
+  options.forEach(o => {
+    html += '<button onclick="confirmerMobilisationPolice(\'' + o.id + '\',\'' + o.label.replace(/'/g,"\\'") + '\',' + o.isn + ',' + o.pop + ')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
+    html += '<span>' + o.label + '</span><span style="color:#8a8060">+' + o.isn + ' ISN · ' + (o.pop<=0?o.pop:'+'+o.pop) + ' POP</span></button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerMobilisationPolice(id, label, isn, pop) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + isn);
+  state.pop = Math.max(0, Math.min(100, state.pop + pop));
+  updateUI();
+  showToast('Intervention menée', label + ' — +' + isn + ' ISN, ' + (pop<=0?pop:'+'+pop) + ' POP.', pop >= 0, true);
+  addJournalEntry('Intervention des forces de l\'ordre : ' + label + '.', pop < -5 ? 'event-bad' : 'event-info');
+  addExternalEvent('🚔 Intervention des forces de l\'ordre : ' + label + '.');
+}
+
+function doTraiterManifestations() {
+  document.getElementById('postes-modal-title').textContent = 'Traiter une demande de manifestation';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Nom ou sujet du rassemblement concerné.</div>';
+  html += '<textarea id="manif-sujet" rows="3" placeholder="Ex : Rassemblement des cheminots devant la gare..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.8rem"></textarea>';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<button onclick="confirmerTraitementManifestation(true)" style="flex:1;padding:.5rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.75rem">Autoriser</button>';
+  html += '<button onclick="confirmerTraitementManifestation(false)" style="flex:1;padding:.5rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-size:.75rem">Interdire</button>';
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerTraitementManifestation(autorise) {
+  const sujet = document.getElementById('manif-sujet')?.value?.trim();
+  if (!sujet) { showToast('Champ requis', '', false); return; }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+
+  if (autorise) {
+    state.pop = Math.min(100, state.pop + 5);
+    updateUI();
+    showToast('Manifestation autorisée', sujet + ' — +5 POP.', true, true);
+    addExternalEvent('✅ Le Ministère de l\'Intérieur autorise : "' + sujet + '".');
+  } else {
+    if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 5);
+    state.pop = Math.max(0, state.pop - 5);
+    updateUI();
+    showToast('Manifestation interdite', sujet + ' — +5 ISN -5 POP.', false);
+    addExternalEvent('🚫 INTERDICTION : Le Ministère de l\'Intérieur interdit "' + sujet + '".');
+  }
+  addJournalEntry((autorise ? 'Autorisation' : 'Interdiction') + ' de manifestation : ' + sujet + '.', autorise ? 'event-good' : 'event-bad');
+}
+
 async function doDementiOfficiel() {
-  if (state.poste?.id !== 'president') { showToast('Réservé au président', '', false); return; }
+  const postesAutorisesDementi = ['president', 'pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
+  if (!postesAutorisesDementi.includes(state.poste?.id)) { showToast('Réservé au gouvernement', 'Seuls le président et les membres du gouvernement peuvent démentir officiellement.', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Démenti officiel';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement des rumeurs en cours...</div>';
