@@ -99,12 +99,19 @@ function openPostesModal() {
 // =====================
 // CALENDRIER ÉLECTORAL
 // =====================
-function ouvrirCalendrierElectoral() {
+async function ouvrirCalendrierElectoral() {
   const country = state.country;
   const co = COUNTRIES[country];
-  const now = Date.now();
-  const semaine = 7 * 24 * 60 * 60 * 1000;
   const villeCourante = state.currentCity || 'capitale';
+
+  document.getElementById('postes-modal-title').textContent = '📅 Calendrier Électoral — ' + (co?.n || country);
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement du calendrier électoral...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  // Charger l'etat reel depuis Supabase avant toute initialisation locale — evite d'ecraser un cycle deja en cours
+  if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase();
+
+  const now = Date.now();
   const villeNom = WORLD[country]?.[villeCourante]?.name || villeCourante;
 
   const formatDate = ts => {
@@ -128,13 +135,13 @@ function ouvrirCalendrierElectoral() {
     ...POSTES_ELECTIFS.local
   ];
 
-  // Initialiser les cycles manquants
+  // Initialiser les cycles manquants (seulement s'ils n'existent vraiment nulle part, ni localement ni sur Supabase)
   if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
-  postes.forEach(p => {
+  for (const p of postes) {
     const city = posteEstLocal(p.id) ? villeCourante : null;
     const cle = getCleCycle(p.id, city);
-    if (!CYCLES_ELECTORAUX[country][cle]) initCycleElectoral(country, p.id, city);
-  });
+    if (!CYCLES_ELECTORAUX[country][cle]) await initCycleElectoral(country, p.id, city);
+  }
 
   const lignes = postes.map(p => {
     const estLocal = posteEstLocal(p.id);
@@ -299,15 +306,21 @@ function verifierPostesVacants() {
 // PERSISTANCE ÉLECTORALE SUPABASE
 // =====================
 async function sbSaveCycleElectoral(country, posteId, cycle, city) {
-  if (typeof sbInsert !== 'function') return;
+  if (typeof sbInsert !== 'function' || typeof sbGet !== 'function') return;
   const cle = getCleCycle(posteId, city);
+  const id = country + '_' + cle;
   try {
-    await sbInsert('cycles_electoraux', {
-      id: country + '_' + cle,
-      country, poste_id: posteId, city: posteEstLocal(posteId) ? (city || null) : null,
+    const existing = await sbGet('cycles_electoraux', `id=eq.${encodeURIComponent(id)}`);
+    const payload = {
+      id, country, poste_id: posteId, city: posteEstLocal(posteId) ? (city || null) : null,
       data: JSON.stringify(cycle),
       updated_at: new Date().toISOString()
-    });
+    };
+    if (existing && existing.length > 0) {
+      await sbUpdate('cycles_electoraux', `id=eq.${encodeURIComponent(id)}`, payload);
+    } else {
+      await sbInsert('cycles_electoraux', payload);
+    }
   } catch(e) {}
 }
 
@@ -415,7 +428,7 @@ function getCleCycle(posteId, city) {
   return posteId;
 }
 
-function initCycleElectoral(country, posteId, city) {
+async function initCycleElectoral(country, posteId, city) {
   const cle = getCleCycle(posteId, city);
   if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
   if (CYCLES_ELECTORAUX[country][cle]) return;
@@ -435,6 +448,9 @@ function initCycleElectoral(country, posteId, city) {
     tour: 1,
     eluId: null,
   };
+  if (typeof sbSaveCycleElectoral === 'function') {
+    await sbSaveCycleElectoral(country, posteId, CYCLES_ELECTORAUX[country][cle], city).catch(() => {});
+  }
 }
 
 // Obtenir la phase actuelle d'un cycle
@@ -450,7 +466,7 @@ function getPhaseActuelle(country, posteId, city) {
 }
 
 // Déposer une candidature
-function deposerCandidature(posteId, country, city) {
+async function deposerCandidature(posteId, country, city) {
   const nom = state.char?.name;
   if (!nom) return;
 
@@ -486,7 +502,7 @@ function deposerCandidature(posteId, country, city) {
   const c = country || state.country;
   const cle = getCleCycle(posteId, city);
   if (!CYCLES_ELECTORAUX[c]) CYCLES_ELECTORAUX[c] = {};
-  if (!CYCLES_ELECTORAUX[c][cle]) initCycleElectoral(c, posteId, city);
+  if (!CYCLES_ELECTORAUX[c][cle]) await initCycleElectoral(c, posteId, city);
 
   const cycle = CYCLES_ELECTORAUX[c][cle];
   if (getPhaseActuelle(c, posteId, city) !== PHASES_ELECTORALES.CANDIDATURES) {
@@ -788,14 +804,24 @@ function consulterResultatsInformateur(posteId, country) {
 }
 
 // Afficher le tableau de bord électoral complet
-function ouvrirTableauElectoral() {
+async function ouvrirTableauElectoral() {
   const country = state.country;
   const co = COUNTRIES[country];
   const villeCourante = state.currentCity || 'capitale';
   const villeNom = WORLD[country]?.[villeCourante]?.name || villeCourante;
 
-  if (!CYCLES_ELECTORAUX[country]) {
-    POSTES_ELECTIFS.national.forEach(p => initCycleElectoral(country, p.id));
+  document.getElementById('postes-modal-title').textContent = '🗳 Tableau Électoral — ' + (co?.n || country);
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase();
+
+  const postesTous = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.departemental, ...POSTES_ELECTIFS.local];
+  if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
+  for (const p of postesTous) {
+    const city = posteEstLocal(p.id) ? villeCourante : null;
+    const cle = getCleCycle(p.id, city);
+    if (!CYCLES_ELECTORAUX[country][cle]) await initCycleElectoral(country, p.id, city);
   }
 
   const postes = [...POSTES_ELECTIFS.national, ...POSTES_ELECTIFS.departemental, ...POSTES_ELECTIFS.local];
