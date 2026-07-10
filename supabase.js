@@ -363,6 +363,34 @@ async function sbSaveBudgetClub(clubId, data) {
   return sbInsert('budgets_clubs', { id: clubId, data, updated_at: new Date().toISOString() });
 }
 
+async function sbGetCaisseBatiment(key) {
+  const rows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(key)}`);
+  if (!rows || rows.length === 0) return null;
+  return rows[0].data;
+}
+
+async function sbSaveCaisseBatiment(key, data) {
+  const existing = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(key)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(key)}`, { data, updated_at: new Date().toISOString() });
+  }
+  return sbInsert('caisses_batiments', { id: key, data, updated_at: new Date().toISOString() });
+}
+
+async function sbGetBudgetNational(pays) {
+  const rows = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`);
+  if (!rows || rows.length === 0) return null;
+  return rows[0].data;
+}
+
+async function sbSaveBudgetNational(pays, data) {
+  const existing = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`, { data, updated_at: new Date().toISOString() });
+  }
+  return sbInsert('budgets_nationaux', { id: pays, data, updated_at: new Date().toISOString() });
+}
+
 async function sbGetBudgetMunicipal(key) {
   const rows = await sbGet('budgets_municipaux', `id=eq.${encodeURIComponent(key)}`);
   if (!rows || rows.length === 0) return null;

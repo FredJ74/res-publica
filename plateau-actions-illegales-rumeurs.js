@@ -738,6 +738,14 @@ function confirmerAchatArme(armeId) {
   }
 
   state.arg -= arme.prix;
+  if (typeof appliquerTaxeTransaction === 'function' && typeof chargerEntreprise === 'function') {
+    appliquerTaxeTransaction(arme.prix).then(async ({ net }) => {
+      const id = getEntrepriseIdArmurerie(pays);
+      const data = await chargerEntreprise(id, () => defautArmurerie(pays));
+      data.caisse = (data.caisse || 0) + net;
+      await sbSaveEntreprise(id, data).catch(() => {});
+    }).catch(() => {});
+  }
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
     id: 'arme-' + Date.now(),
@@ -2076,8 +2084,9 @@ async function confirmerAchatStock(produitId) {
 
   state.arg -= prix;
   data.stockProduits[produitId] -= 1;
-  data.caisse += prix;
-  ajouterHistoriqueEntreprise(data, prix, 'Vente au comptoir — ' + (RECETTES_PRODUCTION[produitId]?.label||produitId));
+  const { net, taxeLocale, taxeNationale } = typeof appliquerTaxeTransaction === 'function' ? await appliquerTaxeTransaction(prix) : { net: prix };
+  data.caisse += net;
+  ajouterHistoriqueEntreprise(data, net, 'Vente au comptoir — ' + (RECETTES_PRODUCTION[produitId]?.label||produitId) + (taxeLocale||taxeNationale ? ' (taxes : ' + (taxeLocale+taxeNationale) + ' FR)' : ''));
   await sbSaveEntreprise(data.id, data);
   if (!state.inventory) state.inventory = [];
   state.inventory.push({ type: 'arme', name: RECETTES_PRODUCTION[produitId]?.label || produitId, icon: 'ti-sword', legal: true });
@@ -2245,4 +2254,20 @@ function confirmerRecolte(matiere) {
   updateUI();
   showToast('Récolte effectuée', '+' + quantite + ' ' + matiere + '.', true, true);
   addJournalEntry('Récolte de ' + quantite + ' ' + matiere + '.', 'event-good');
+}
+
+async function doConsommerBuvette() {
+  const cout = 50;
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+  state.arg -= cout;
+  state.pop = Math.min(100, (state.pop || 0) + 2);
+
+  if (typeof appliquerTaxeTransaction === 'function' && typeof crediterCaisseBatiment === 'function') {
+    const { net } = await appliquerTaxeTransaction(cout);
+    await crediterCaisseBatiment(state.country || 'republic', 'stade-buvette', net).catch(() => {});
+  }
+
+  updateUI();
+  showToast('Un verre entre supporters', '+2 POP.', true, true);
+  addJournalEntry('Un verre pris à la buvette (-' + cout + ' FR).', 'event-good');
 }

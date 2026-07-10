@@ -383,6 +383,14 @@ function enterRoom(buildingId, roomId, tabEl) {
     displayDesc += ' — En convalescence. Temps restant estimé : ' + joursRestants + ' jour(s).';
   }
   document.getElementById('piece-desc').textContent = displayDesc;
+  const ROOMS_AVEC_CAISSE = { 'palais-presidentiel': 'palais-presidentiel', 'palais-gouvernement': 'palais-gouvernement', 'mairie-capitale': 'mairie-capitale' };
+  const caisseBuildingId = ROOMS_AVEC_CAISSE[buildingId] || (buildingId === 'stade' && roomId === 'buvette' ? 'stade-buvette' : null);
+  if (caisseBuildingId && typeof chargerCaisseBatiment === 'function') {
+    chargerCaisseBatiment(state.country || 'republic', caisseBuildingId).then(c => {
+      const el = document.getElementById('piece-desc');
+      if (el) el.textContent = displayDesc + ' — Caisse : ' + (c.solde || 0).toLocaleString('fr-FR') + ' FR.';
+    }).catch(() => {});
+  }
   let displayPersons = roomOverride?.persons?.length > 0 ? roomOverride.persons : ((isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []));
 
   // Injecter PNJ terrain si applicable

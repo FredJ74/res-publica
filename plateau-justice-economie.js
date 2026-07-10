@@ -2521,3 +2521,185 @@ async function doCorrompreFonctionnairePermis() {
   showToast('Dossier accéléré', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', true, true);
   addJournalEntry('Corruption d\'un fonctionnaire pour accélérer un permis de construire (-' + cout + ' FR).', 'event-bad');
 }
+
+
+// =====================
+// SYSTEME FISCAL — caisses de batiment, taxes locale+nationale, salaires politiques
+// Republia uniquement pour l'instant. Les autres empires auront leurs propres subtilites
+// (ex: prix fixes par decret a Sovarka) a traiter au cas par cas plus tard.
+// =====================
+const TAUX_TAXE_DEFAUT = 5; // %, local et national
+
+const SALAIRES_POLITIQUES = {
+  president: 800, pm: 600, min_int: 500, min_fin: 500, min_just: 500,
+  min_def: 500, min_info: 500, min_ae: 500, maire: 400
+};
+
+const CAISSE_BATIMENT_POSTE = {
+  president: 'palais-presidentiel', pm: 'palais-gouvernement',
+  min_int: 'palais-gouvernement', min_fin: 'palais-gouvernement', min_just: 'palais-gouvernement',
+  min_def: 'palais-gouvernement', min_info: 'palais-gouvernement', min_ae: 'palais-gouvernement',
+  maire: 'mairie-capitale'
+};
+
+// Part quotidienne de la reserve fiscale (dailyTaxRevenue + taxes accumulees) attribuee a chaque caisse publique
+const REPARTITION_CAISSES_PUBLIQUES = {
+  'palais-presidentiel': 0.20,
+  'palais-gouvernement': 0.35,
+  'mairie-capitale': 0.15
+};
+
+async function chargerCaisseBatiment(pays, buildingId) {
+  const key = pays + '_' + buildingId;
+  if (typeof sbGetCaisseBatiment !== 'function') return { key, solde: 0 };
+  let data = await sbGetCaisseBatiment(key).catch(() => null);
+  if (!data) {
+    data = { solde: 0 };
+    await sbSaveCaisseBatiment(key, data).catch(() => {});
+  }
+  return { key, ...data };
+}
+
+async function crediterCaisseBatiment(pays, buildingId, montant) {
+  const c = await chargerCaisseBatiment(pays, buildingId);
+  c.solde = Math.max(0, (c.solde || 0) + montant);
+  if (typeof sbSaveCaisseBatiment === 'function') await sbSaveCaisseBatiment(c.key, { solde: c.solde }).catch(() => {});
+  return c.solde;
+}
+
+// Verse au maximum montantVise, plafonne par ce qui est reellement disponible (jamais de negatif)
+async function debiterCaisseBatimentPlafonne(pays, buildingId, montantVise) {
+  const c = await chargerCaisseBatiment(pays, buildingId);
+  const montantVerse = Math.min(c.solde || 0, montantVise);
+  c.solde = (c.solde || 0) - montantVerse;
+  if (typeof sbSaveCaisseBatiment === 'function') await sbSaveCaisseBatiment(c.key, { solde: c.solde }).catch(() => {});
+  return montantVerse;
+}
+
+async function chargerBudgetNational(pays) {
+  if (typeof sbGetBudgetNational !== 'function') return { tauxNational: TAUX_TAXE_DEFAUT, reserveJour: 0 };
+  let data = await sbGetBudgetNational(pays).catch(() => null);
+  if (!data) {
+    data = { tauxNational: TAUX_TAXE_DEFAUT, reserveJour: 0, derniereDistribJour: state.day || 1 };
+    await sbSaveBudgetNational(pays, data).catch(() => {});
+  }
+  if (data.tauxNational === undefined) data.tauxNational = TAUX_TAXE_DEFAUT;
+  return data;
+}
+
+// Calcule le montant net d'une vente legale apres taxe locale+nationale, alimente les deux reserves.
+// A appeler pour toute transaction commerciale legale (le gris et l'illegal ne sont jamais taxes).
+async function appliquerTaxeTransaction(montantBrut) {
+  const pays = state.country || 'republic';
+  const budgetMuni = await chargerBudgetMunicipal();
+  const budgetNat = await chargerBudgetNational(pays);
+  const tauxLocal = budgetMuni.tauxLocal ?? TAUX_TAXE_DEFAUT;
+  const tauxNational = budgetNat.tauxNational ?? TAUX_TAXE_DEFAUT;
+
+  const taxeLocale = Math.round(montantBrut * tauxLocal / 100);
+  const taxeNationale = Math.round(montantBrut * tauxNational / 100);
+  const net = montantBrut - taxeLocale - taxeNationale;
+
+  budgetMuni.caisse = (budgetMuni.caisse || 0) + taxeLocale;
+  if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(budgetMuni.key, budgetMuni).catch(() => {});
+
+  budgetNat.reserveJour = (budgetNat.reserveJour || 0) + taxeNationale;
+  if (typeof sbSaveBudgetNational === 'function') await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
+
+  return { net, taxeLocale, taxeNationale, tauxLocal, tauxNational };
+}
+
+// Verifie une fois par jour : effets du taux d'imposition total sur IS/ISN, distribution aux caisses publiques
+async function verifierEffetsEtDistributionFiscale() {
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  const jour = state.day || 1;
+  if (budgetNat.derniereDistribJour === jour) return;
+
+  const budgetMuni = await chargerBudgetMunicipal();
+  const tauxLocal = budgetMuni.tauxLocal ?? TAUX_TAXE_DEFAUT;
+  const tauxTotal = tauxLocal + (budgetNat.tauxNational ?? TAUX_TAXE_DEFAUT);
+
+  // Effets sur les indices : IS baisse au-dela d'un taux neutre (~15-20%), ISN se degrade au-dela de 25% (marche noir)
+  if (INDICES_NATIONAUX[pays]) {
+    if (tauxTotal > 18) INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - Math.min(5, Math.floor((tauxTotal - 18) * 0.5)));
+    if (tauxTotal > 25) INDICES_NATIONAUX[pays].ISN = Math.max(0, INDICES_NATIONAUX[pays].ISN - Math.min(5, Math.floor((tauxTotal - 25) * 0.6)));
+  }
+
+  // Distribution quotidienne aux caisses publiques (socle dailyTaxRevenue + taxes accumulees la veille)
+  const dailyBase = Object.values(CITY_POPULATION?.[pays] || {}).reduce((s, v) => s + (v.dailyTaxRevenue || 0), 0);
+  const totalDisponible = dailyBase + (budgetNat.reserveJour || 0);
+  for (const [buildingId, part] of Object.entries(REPARTITION_CAISSES_PUBLIQUES)) {
+    await crediterCaisseBatiment(pays, buildingId, Math.floor(totalDisponible * part));
+  }
+
+  budgetNat.reserveJour = 0;
+  budgetNat.derniereDistribJour = jour;
+  await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
+}
+
+// Verifie et verse le salaire politique du jour, plafonne par la caisse de l'institution
+async function verifierSalairePolitique() {
+  const posteId = state.poste?.id;
+  if (!posteId || !SALAIRES_POLITIQUES[posteId]) return;
+  const jour = state.day || 1;
+  if (!state.char) return;
+  if (state.char.dernierSalairePolitiqueJour === jour) return;
+
+  const pays = state.country || 'republic';
+  const buildingId = CAISSE_BATIMENT_POSTE[posteId];
+  const montantVise = SALAIRES_POLITIQUES[posteId];
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, buildingId, montantVise);
+
+  state.arg = (state.arg || 0) + montantVerse;
+  state.char.dernierSalairePolitiqueJour = jour;
+  updateUI();
+  if (montantVerse > 0) {
+    showToast('Salaire perçu', '+' + montantVerse.toLocaleString('fr-FR') + ' FR.' + (montantVerse < montantVise ? ' (caisse insuffisante pour le montant complet)' : ''), true, true);
+    addJournalEntry('Salaire politique perçu : ' + montantVerse + ' FR.', 'event-good');
+  } else {
+    showToast('Salaire impayé', 'La caisse de l\'institution est vide aujourd\'hui.', false);
+    addJournalEntry('Aucun salaire perçu : caisse de l\'institution vide.', 'event-bad');
+  }
+}
+
+// =====================
+// Reconstruction des ordres fiscaux existants (etaient locaux/casses) — Ministre des Finances et Maire
+// =====================
+async function ouvrirFixerImpotsLocauxReel() {
+  const budgetMuni = await chargerBudgetMunicipal();
+  const taux = budgetMuni.tauxLocal ?? TAUX_TAXE_DEFAUT;
+  document.getElementById('postes-modal-title').textContent = 'Fixer les impôts locaux';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux actuel : ' + taux + '%. S\'applique à toutes les transactions légales de la ville, en plus de la taxe nationale.</div>';
+  html += '<input id="taux-local-input" type="range" min="0" max="40" value="' + taux + '" oninput="document.getElementById(\'taux-local-val\').textContent=this.value+\'%\'" style="width:100%;margin-bottom:.3rem">';
+  html += '<div id="taux-local-val" style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C;text-align:center;margin-bottom:.6rem">' + taux + '%</div>';
+  html += '<div style="font-size:.72rem;color:#5a5040;margin-bottom:.8rem">Au-delà de 18-20% (total local+national), le climat social se dégrade. Au-delà de 25%, la sécurité en pâtit aussi (marché noir).</div>';
+  html += '<button onclick="validerImpotsLocauxReel(\'' + budgetMuni.key + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function validerImpotsLocauxReel(key) {
+  const nouveauTaux = parseInt(document.getElementById('taux-local-input')?.value || '5');
+  const budgetMuni = await sbGetBudgetMunicipal(key);
+  budgetMuni.tauxLocal = nouveauTaux;
+  await sbSaveBudgetMunicipal(key, budgetMuni);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Impôts locaux fixés', 'Nouveau taux : ' + nouveauTaux + '%.', true, true);
+  addExternalEvent('MAIRIE : Le taux d\'imposition local est fixé à ' + nouveauTaux + '%.');
+}
+
+async function doAugmenterImpots(hausse) {
+  if (state.poste?.id !== 'min_fin') { showToast('Réservé au Ministre des Finances', '', false); return; }
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  const ancien = budgetNat.tauxNational ?? TAUX_TAXE_DEFAUT;
+  const nouveau = Math.max(0, Math.min(40, ancien + (hausse ? 2 : -2)));
+  budgetNat.tauxNational = nouveau;
+  await sbSaveBudgetNational(pays, budgetNat);
+  showToast(hausse ? 'Impôts nationaux augmentés' : 'Impôts nationaux baissés', 'Nouveau taux national : ' + nouveau + '%.', true, true);
+  addJournalEntry('Taux d\'imposition national ajusté à ' + nouveau + '% par le Ministre des Finances.', 'event-info');
+  addExternalEvent('FINANCES : Le taux d\'imposition national passe à ' + nouveau + '%.');
+}

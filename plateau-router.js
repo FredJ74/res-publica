@@ -92,7 +92,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'jour_deuil')             { ouvrirForumNationalSousForumPresident('deuil'); return; }
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
   if (fn === 'etat_nation' || fn === 'etat_urgence')             { ouvrirIndicesImperiaux(); return; }
-  if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocaux(); return; }
+  if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocauxReel(); return; }
+  if (fn === 'consommer_buvette') { doConsommerBuvette(); return; }
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
