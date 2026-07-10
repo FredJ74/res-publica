@@ -3271,6 +3271,8 @@ async function doTraiterManifestations() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+const DELAI_EFFET_APRES_DEBUT_MIN = 90; // 1h30 apres le debut de l'evenement pour les manifestations autorisees
+
 async function traiterDemandeManifestation(id, autorise) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const demande = await sbGetDemandeManifestationParId(id);
@@ -3279,14 +3281,28 @@ async function traiterDemandeManifestation(id, autorise) {
   await sbMajDemandeManifestation(id, autorise ? 'autorisee' : 'interdite', {});
 
   if (autorise) {
-    await appliquerEffetManifestationValidee(demande);
-    showToast('Manifestation autorisée', demande.sujet, true, true);
+    showToast('Manifestation autorisée', demande.sujet + ' — effet connu 1h30 après le début.', true, true);
     addJournalEntry('Autorisation de manifestation accordée : ' + demande.sujet, 'event-good');
   } else {
     const pays = state.country || 'republic';
-    if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 5);
+    if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 5);
+    // Malus sur le Ministre de l'Interieur lui-meme (refuser un rassemblement legitime a un cout politique)
+    const minIntNom = POSTES?.[pays]?.min_int?.titulaire;
+    if (minIntNom) {
+      if (minIntNom === state.char?.name) {
+        state.pop = Math.max(0, (state.pop||0) - 8);
+        state.dis = Math.max(0, (state.dis||0) - 5);
+        updateUI();
+      } else if (typeof sbGet === 'function') {
+        const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(minIntNom)}&select=pop,dis`).catch(() => []);
+        const r = rows?.[0] || {};
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(minIntNom)}`, {
+          pop: Math.max(0, (r.pop??50) - 8), dis: Math.max(0, (r.dis??50) - 5)
+        }).catch(() => {});
+      }
+    }
     updateUI();
-    showToast('Manifestation interdite', demande.sujet + (demande.orgaType === 'sportive' ? ' — défaite par forfait (0-1).' : ''), false);
+    showToast('Manifestation interdite', demande.sujet + (demande.orgaType === 'sportive' ? ' — défaite par forfait (0-1).' : '') + ' -5 IS, -8 POP/-5 DIS pour le Ministre.', false);
     addJournalEntry('Interdiction de manifestation : ' + demande.sujet, 'event-bad');
     addExternalEvent('🚫 INTERDICTION : Le Ministère de l\'Intérieur interdit "' + demande.sujet + '".');
   }
@@ -3301,7 +3317,21 @@ async function verifierAutoValidationManifestations(pays) {
     const heuresRestantes = (new Date(d.dateEvenement) - maintenant) / (1000*60*60);
     if (heuresRestantes <= DELAI_AUTOVALIDATION_H) {
       await sbMajDemandeManifestation(d.id, 'autorisee', {});
+    }
+  }
+}
+
+// Applique l'effet des manifestations autorisees dont l'evenement a debute depuis plus de 1h30, une seule fois
+async function verifierEffetsManifestationsEcoulees(pays) {
+  if (typeof sbGetDemandesManifestationAutorisees !== 'function') return;
+  const demandes = await sbGetDemandesManifestationAutorisees(pays).catch(() => []);
+  const maintenant = Date.now();
+  for (const d of demandes) {
+    if (d.effetApplique) continue;
+    const minutesEcoulees = (maintenant - new Date(d.dateEvenement).getTime()) / (1000*60);
+    if (minutesEcoulees >= DELAI_EFFET_APRES_DEBUT_MIN) {
       await appliquerEffetManifestationValidee(d);
+      await sbMajDemandeManifestation(d.id, 'autorisee', { effetApplique: true });
     }
   }
 }

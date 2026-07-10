@@ -729,6 +729,8 @@ function doDormir() {
   verifierDecouverteCrimesPasses();
   checkArrestationAuReveil();
   verifierProgressionHospitalisation();
+  if (typeof verifierEffetsManifestationsEcoulees === 'function') verifierEffetsManifestationsEcoulees(state.country);
+  if (typeof verifierAutoValidationManifestations === 'function') verifierAutoValidationManifestations(state.country);
 
   // Rafraichir la vue
   switchSelfTab('actions', null);

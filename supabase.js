@@ -663,6 +663,12 @@ async function sbGetDemandeManifestationParId(id) {
   return { statut: rows[0].statut, ...rows[0].data };
 }
 
+async function sbGetDemandesManifestationAutorisees(pays) {
+  const rows = await sbGet('demandes_manifestation', `statut=eq.autorisee&select=id,data`);
+  if (!rows) return [];
+  return rows.filter(r => r.data?.pays === pays && !r.data?.effetApplique).map(r => ({ id: r.id, ...r.data }));
+}
+
 async function sbGetDemandesManifestationPays(pays) {
   const rows = await sbGet('demandes_manifestation', `statut=eq.attente&select=id,data`);
   if (!rows) return [];
