@@ -564,17 +564,18 @@ function confirmerCandidature(el) {
   showToast('Candidature enregistrée !', 'Vous êtes candidat à ' + posteId + (city ? ' (' + city + ')' : '') + '.', true);
   addJournalEntry('📋 Candidature déposée au poste : ' + posteId + (city ? ' — ' + city : '') + '.', 'event-info');
 
-  // Publier sur le forum
+  // Publier sur le forum — national pour un poste national, local pour un poste de ville
   if (typeof sbCreateTopic === 'function') {
     const h = String(state.hour || 8).padStart(2, '0');
     const m = String(state.minute || 0).padStart(2, '0');
     const time = `Jour ${state.day} · ${h}h${m}`;
+    const forumCible = posteEstLocal(posteId) ? 'local' : 'national';
     const titre = '🗳️ Candidature de ' + nom + ' — ' + POSTES_ELECTIFS.national.concat(POSTES_ELECTIFS.local).concat(POSTES_ELECTIFS.departemental).find(p=>p.id===posteId)?.name;
     const texte = nom + ' se présente aux élections.\n\nProgramme :\n' + programme;
-    sbCreateTopic('local', titre, nom, country, time).then(topicId => {
+    sbCreateTopic(forumCible, titre, nom, country, time).then(topicId => {
       if (topicId && typeof sbCreatePost === 'function') sbCreatePost(topicId, nom, texte, time);
-      if (!FORUM_TOPICS['local']) FORUM_TOPICS['local'] = [];
-      FORUM_TOPICS['local'].unshift({
+      if (!FORUM_TOPICS[forumCible]) FORUM_TOPICS[forumCible] = [];
+      FORUM_TOPICS[forumCible].unshift({
         id: topicId || 'topic-' + Date.now(), title: titre, author: nom,
         time, views: 1, replies: 0, lastPostAuthor: nom, lastPostTime: time,
         posts: [{ id: 'p-' + Date.now(), author: nom, time, content: texte }]
