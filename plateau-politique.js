@@ -3238,38 +3238,72 @@ function confirmerMobilisationPolice(id, label, isn, pop) {
   addExternalEvent('🚔 Intervention des forces de l\'ordre : ' + label + '.');
 }
 
-function doTraiterManifestations() {
-  document.getElementById('postes-modal-title').textContent = 'Traiter une demande de manifestation';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Nom ou sujet du rassemblement concerné.</div>';
-  html += '<textarea id="manif-sujet" rows="3" placeholder="Ex : Rassemblement des cheminots devant la gare..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.8rem"></textarea>';
-  html += '<div style="display:flex;gap:.5rem">';
-  html += '<button onclick="confirmerTraitementManifestation(true)" style="flex:1;padding:.5rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.75rem">Autoriser</button>';
-  html += '<button onclick="confirmerTraitementManifestation(false)" style="flex:1;padding:.5rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-size:.75rem">Interdire</button>';
-  html += '</div></div>';
-  document.getElementById('postes-body').innerHTML = html;
+async function doTraiterManifestations() {
+  if (state.poste?.id !== 'min_int') { showToast('Réservé au Ministre de l\'Intérieur', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Demandes de manifestation';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
+
+  await verifierAutoValidationManifestations(state.country);
+  const demandes = typeof sbGetDemandesManifestationPays === 'function' ? await sbGetDemandesManifestationPays(state.country).catch(() => []) : [];
+
+  let html = '<div style="padding:1rem">';
+  if (demandes.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040;font-style:italic">Aucune demande en attente.</div>';
+  } else {
+    const maintenant = Date.now();
+    demandes.sort((a, b) => new Date(a.dateEvenement) - new Date(b.dateEvenement));
+    demandes.forEach(d => {
+      const heuresRestantes = Math.max(0, Math.round((new Date(d.dateEvenement) - maintenant) / (1000*60*60)));
+      const heuresAvantAutoval = Math.max(0, heuresRestantes - DELAI_AUTOVALIDATION_H);
+      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">';
+      html += '<div style="font-size:.8rem;color:#c0b090">' + d.orgaNom + '</div>';
+      html += '<div style="font-size:.75rem;color:#8a8060;margin:.2rem 0">« ' + d.sujet + ' »</div>';
+      html += '<div style="font-size:.7rem;color:#6a5a30">Prévue le ' + new Date(d.dateEvenement).toLocaleString('fr-FR') + ' · Auto-validée dans ' + heuresAvantAutoval + 'h</div>';
+      html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
+      html += '<button onclick="traiterDemandeManifestation(&quot;' + d.id + '&quot;,true)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer">Autoriser</button>';
+      html += '<button onclick="traiterDemandeManifestation(&quot;' + d.id + '&quot;,false)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #4a2010;background:transparent;color:#cc4444;cursor:pointer">Interdire</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
 }
 
-function confirmerTraitementManifestation(autorise) {
-  const sujet = document.getElementById('manif-sujet')?.value?.trim();
-  if (!sujet) { showToast('Champ requis', '', false); return; }
+async function traiterDemandeManifestation(id, autorise) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  const pays = state.country || 'republic';
+  const demande = await sbGetDemandeManifestationParId(id);
+  if (!demande) return;
+
+  await sbMajDemandeManifestation(id, autorise ? 'autorisee' : 'interdite', {});
 
   if (autorise) {
-    state.pop = Math.min(100, state.pop + 5);
-    updateUI();
-    showToast('Manifestation autorisée', sujet + ' — +5 POP.', true, true);
-    addExternalEvent('✅ Le Ministère de l\'Intérieur autorise : "' + sujet + '".');
+    await appliquerEffetManifestationValidee(demande);
+    showToast('Manifestation autorisée', demande.sujet, true, true);
+    addJournalEntry('Autorisation de manifestation accordée : ' + demande.sujet, 'event-good');
   } else {
+    const pays = state.country || 'republic';
     if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 5);
-    state.pop = Math.max(0, state.pop - 5);
     updateUI();
-    showToast('Manifestation interdite', sujet + ' — +5 ISN -5 POP.', false);
-    addExternalEvent('🚫 INTERDICTION : Le Ministère de l\'Intérieur interdit "' + sujet + '".');
+    showToast('Manifestation interdite', demande.sujet + (demande.orgaType === 'sportive' ? ' — défaite par forfait (0-1).' : ''), false);
+    addJournalEntry('Interdiction de manifestation : ' + demande.sujet, 'event-bad');
+    addExternalEvent('🚫 INTERDICTION : Le Ministère de l\'Intérieur interdit "' + demande.sujet + '".');
   }
-  addJournalEntry((autorise ? 'Autorisation' : 'Interdiction') + ' de manifestation : ' + sujet + '.', autorise ? 'event-good' : 'event-bad');
+}
+
+// Verifie toutes les demandes en attente pour ce pays et auto-valide celles arrivees a 12h de l'evenement
+async function verifierAutoValidationManifestations(pays) {
+  if (typeof sbGetDemandesManifestationPays !== 'function') return;
+  const demandes = await sbGetDemandesManifestationPays(pays).catch(() => []);
+  const maintenant = Date.now();
+  for (const d of demandes) {
+    const heuresRestantes = (new Date(d.dateEvenement) - maintenant) / (1000*60*60);
+    if (heuresRestantes <= DELAI_AUTOVALIDATION_H) {
+      await sbMajDemandeManifestation(d.id, 'autorisee', {});
+      await appliquerEffetManifestationValidee(d);
+    }
+  }
 }
 
 async function doDementiOfficiel() {

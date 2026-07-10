@@ -650,6 +650,31 @@ async function sbMarquerVolTraite(volId) {
 // =====================
 // ACTIONS TRACABLES (pour le systeme de rumeurs vraies)
 // =====================
+async function sbCreerDemandeManifestation(data) {
+  const id = 'manif-' + Date.now() + '-' + Math.floor(Math.random()*10000);
+  await sbInsert('demandes_manifestation', { id, statut: 'attente', data });
+  return id;
+}
+
+async function sbGetDemandeManifestationParId(id) {
+  if (!id) return null;
+  const rows = await sbGet('demandes_manifestation', `id=eq.${encodeURIComponent(id)}`);
+  if (!rows || rows.length === 0) return null;
+  return { statut: rows[0].statut, ...rows[0].data };
+}
+
+async function sbGetDemandesManifestationPays(pays) {
+  const rows = await sbGet('demandes_manifestation', `statut=eq.attente&select=id,data`);
+  if (!rows) return [];
+  return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbMajDemandeManifestation(id, statut, patch) {
+  const rows = await sbGet('demandes_manifestation', `id=eq.${encodeURIComponent(id)}`);
+  const data = { ...(rows?.[0]?.data || {}), ...(patch || {}) };
+  return sbUpdate('demandes_manifestation', `id=eq.${encodeURIComponent(id)}`, { statut, data });
+}
+
 async function sbCreerRumeurPolitique(data) {
   const id = 'rumeur-' + Date.now() + '-' + Math.floor(Math.random()*10000);
   await sbInsert('rumeurs_actives', { id, resolu: false, data });

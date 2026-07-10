@@ -3972,6 +3972,7 @@ const TYPES_ORGANISATIONS = {
       { fn: 'orga_torpiller',     label: 'Torpiller un adversaire',     pa: 3, cost: 1000, icon: 'ti-bomb',         desc: 'Campagne de denigrement. -POP cible.' },
       { fn: 'orga_meeting',       label: 'Organiser un meeting',        pa: 3, cost: 500,  icon: 'ti-speakerphone', desc: 'Rassemblement public. +POP membres +INF.' },
       { fn: 'orga_coalition',     label: 'Proposer une coalition',      pa: 1, cost: 0,    icon: 'ti-handshake',    desc: 'Alliance avec une autre orga politique.' },
+      { fn: 'demander_autorisation_manifester', label: 'Demander une autorisation de manifester', pa: 1, cost: 0, icon: 'ti-walk', desc: 'Reserve au chef. Depot 24h avant minimum, validee automatiquement 12h avant si le Ministre de l\'Interieur ne l\'a pas interdite.' },
     ]
   },
 
@@ -3995,6 +3996,25 @@ const TYPES_ORGANISATIONS = {
       { fn: 'orga_collecte',      label: 'Collecte de dons',           pa: 2, cost: 0,    icon: 'ti-heart-handshake', desc: 'Collecte aupres des fideles. +arg orga.' },
       { fn: 'orga_pelerinage',    label: 'Organiser un pelerinage',    pa: 3, cost: 1000, icon: 'ti-road',         desc: 'Grand rassemblement. +POP tous membres +IP.' },
       { fn: 'orga_excommunier',   label: 'Excommunier un membre',      pa: 1, cost: 0,    icon: 'ti-user-x',       desc: 'Exclure un membre. -Moral exclu. Reserve au chef.' },
+      { fn: 'demander_autorisation_manifester', label: 'Demander une autorisation de manifester', pa: 1, cost: 0, icon: 'ti-walk', desc: 'Reserve au chef. Depot 24h avant minimum, validee automatiquement 12h avant si le Ministre de l\'Interieur ne l\'a pas interdite.' },
+    ]
+  },
+
+  syndicale: {
+    label: 'Organisation Syndicale',
+    icon: 'ti-users',
+    secret: false,
+    requis: { inf: 15, pop: 10 },
+    grades: {
+      republic: ['Adherent', 'Delegue', 'Secretaire Adjoint', 'Secretaire General'],
+      narco:    ['Adherent', 'Delegue', 'Secretaire Adjoint', 'Secretaire General'],
+      soviet:   ['Camarade', 'Delegue Ouvrier', 'Commissaire Syndical', 'Secretaire General'],
+      khalija:  ['Adherent', 'Delegue', 'Secretaire Adjoint', 'Secretaire General'],
+    },
+    maxParCreation: 1,
+    maxAdhesion: 1,
+    ordres: [
+      { fn: 'demander_autorisation_manifester', label: 'Demander une autorisation de manifester', pa: 1, cost: 0, icon: 'ti-walk', desc: 'Reserve au chef. Depot 24h avant minimum, validee automatiquement 12h avant si le Ministre de l\'Interieur ne l\'a pas interdite.' },
     ]
   },
 
@@ -4125,6 +4145,7 @@ const TYPES_ORGANISATIONS = {
     ordres: [
       { fn: 'orga_motion_supporters', label: 'Publier un communique',   pa: 1, cost: 0,   icon: 'ti-speakerphone', desc: "Prise de position du club de supporters. Vote_bonus aux elections locales." },
       { fn: 'orga_hooliganisme',      label: 'Organiser des echauffourees', pa: 3, cost: 0, icon: 'ti-alert-triangle', desc: 'Reserve aux Meneurs. Impact sur la securite locale. Risque penal.' },
+      { fn: 'demander_autorisation_manifester', label: 'Demander une autorisation de manifester', pa: 1, cost: 0, icon: 'ti-walk', desc: 'Reserve au chef. Depot 24h avant minimum, validee automatiquement 12h avant si le Ministre de l\'Interieur ne l\'a pas interdite.' },
     ]
   },
 

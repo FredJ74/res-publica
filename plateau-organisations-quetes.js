@@ -732,6 +732,9 @@ function ouvrirOrdresOrga(orgaId) {
 function executerOrdreOrga(orgaId, fn) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
+
+  if (fn === 'demander_autorisation_manifester') { ouvrirDemandeAutorisationManifester(orgaId); return; }
+
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const ordre = (def.ordres || []).find(o => o.fn === fn);
   if (!ordre) return;
@@ -1242,7 +1245,17 @@ async function verifierEtJouerJournees() {
     let journeeVientDetreJouee = false;
     for (const m of journee.matchs) {
       if (!m.played) {
+        const demandeMatch = m.demandeManifId ? await sbGetDemandeManifestationParId(m.demandeManifId).catch(() => null) : null;
         const clubHome = getClub(m.home), clubAway = getClub(m.away);
+
+        if (demandeMatch?.statut === 'interdite') {
+          Object.assign(m, { scoreHome: 0, scoreAway: 1, recit: 'Match interdit par le Ministère de l\'Intérieur — victoire par forfait de ' + clubAway.nom + ' (0-1).', evenements: [], played: true });
+          modifie = true;
+          journeeVientDetreJouee = true;
+          addExternalEvent('🚫 Le match ' + clubHome.nom + ' vs ' + clubAway.nom + ' est interdit par le Ministère de l\'Intérieur. Victoire par forfait de ' + clubAway.nom + '.');
+          continue;
+        }
+
         const [contribHome, contribAway] = await Promise.all([
           calculerContributionEquipe(clubHome),
           calculerContributionEquipe(clubAway)
@@ -1309,7 +1322,32 @@ async function demarrerNouvelleSaison(saisonPrecedente) {
     palmares: saisonPrecedente?.palmares || []
   };
   if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(nouvelle).catch(() => {});
+  await genererDemandesManifestationMatchs(nouvelle);
   return nouvelle;
+}
+
+// Cree automatiquement une demande de manifestation par match de la saison (dimanche 20h, calcule depuis dateDebut)
+async function genererDemandesManifestationMatchs(saison) {
+  const debut = new Date(saison.dateDebut);
+  for (const j of saison.calendrier) {
+    const dateMatch = new Date(debut.getTime() + (j.numero - 1) * 7 * 86400000);
+    dateMatch.setHours(20, 0, 0, 0);
+    for (const m of j.matchs) {
+      const clubHome = getClub(m.home), clubAway = getClub(m.away);
+      const id = await sbCreerDemandeManifestation({
+        orgaId: null, orgaNom: 'Ligue Officielle', orgaType: 'sportive',
+        pays: clubHome.country, ville: clubHome.city,
+        sujet: clubHome.nom + ' vs ' + clubAway.nom + ' (Journée ' + j.numero + ')',
+        sens: null, intensite: 0, cible: null,
+        matchInfo: { home: m.home, away: m.away, journeeNumero: j.numero, saisonNumero: saison.numero },
+        dateEvenement: dateMatch.toISOString(),
+        dateDepot: new Date().toISOString(),
+        auto: true
+      }).catch(() => null);
+      m.demandeManifId = id;
+    }
+  }
+  if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(saison).catch(() => {});
 }
 
 // =====================
@@ -2041,39 +2079,7 @@ async function doOrganiserManifestation() {
   if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
   const estChef = orga.chef === state.char?.name;
   if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut organiser une manifestation.', false); return; }
-
-  document.getElementById('postes-modal-title').textContent = 'Organiser une manifestation';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Un moyen de pression sur le maire — pour le soutenir, ou pour le contester. L\'intensité dépend du nombre de membres du club (' + (orga.membres?.length||0) + ').</div>';
-  html += '<div style="display:flex;gap:.5rem">';
-  html += '<button onclick="confirmerManifestation(\'faveur\')" style="flex:1;padding:.6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.75rem">En faveur du maire</button>';
-  html += '<button onclick="confirmerManifestation(\'defaveur\')" style="flex:1;padding:.6rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.75rem">Contre le maire</button>';
-  html += '</div></div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function confirmerManifestation(sens) {
-  const orga = getClubSupportersLocal();
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const nbMembres = orga.membres?.length || 1;
-  const intensite = Math.min(3, 1 + Math.floor(nbMembres / 10)); // 1 a 10 membres = x1, 11-20 = x2, 21+ = x3
-
-  const cible = POSTES?.[state.country]?.maire?.titulaire || 'Le Maire';
-  const signe = sens === 'faveur' ? 1 : -1;
-
-  // Effets sur le personnage occupant le poste de maire (CHA/DUP/legitimite), sans toucher aux indices imperiaux
-  if (state.poste?.id === 'maire') {
-    state.cha = Math.max(0, Math.min(100, (state.cha||50) + signe * 3 * intensite));
-    state.dup = Math.max(0, Math.min(100, (state.dup||50) + (signe > 0 ? 3 : -5) * intensite));
-    state.legitimite = Math.max(0, Math.min(100, (state.legitimite ?? 50) + signe * 4 * intensite));
-  }
-
-  updateUI();
-  const mot = sens === 'faveur' ? 'en soutien' : 'contre';
-  showToast('Manifestation organisée !', 'Les supporters manifestent ' + mot + ' le maire (intensité x' + intensite + ').', true, true);
-  addJournalEntry('Le club de supporters manifeste ' + mot + ' le maire.', sens === 'faveur' ? 'event-good' : 'event-bad');
-  addExternalEvent('📣 Manifestation des supporters ' + mot + ' le maire, organisée par "' + orga.nom + '".');
+  ouvrirDemandeAutorisationManifester(orga.id);
 }
 
 // =====================
@@ -2199,6 +2205,100 @@ async function chargerPresidentClub(clubId) {
     if (typeof sbSavePresidentClub === 'function') await sbSavePresidentClub(clubId, data).catch(() => {});
   }
   return data;
+}
+
+// =====================
+// DEMANDES D'AUTORISATION DE MANIFESTER
+// =====================
+const DELAI_DEPOT_MIN_H = 24;
+const DELAI_AUTOVALIDATION_H = 12;
+
+function ouvrirDemandeAutorisationManifester(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) return;
+  if (orga.chef !== state.char?.name) { showToast('Réservé au chef', 'Seul le chef de l\'organisation peut déposer cette demande.', false); return; }
+
+  const isSupporters = orga.type === 'supporters';
+
+  document.getElementById('postes-modal-title').textContent = 'Demander une autorisation de manifester';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Le dépôt doit se faire au moins ' + DELAI_DEPOT_MIN_H + 'h avant l\'événement. Validée automatiquement ' + DELAI_AUTOVALIDATION_H + 'h avant si le Ministre de l\'Intérieur n\'a rien décidé.</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Sujet du rassemblement</label>';
+  html += '<textarea id="manif-sujet-orga" rows="2" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;box-sizing:border-box;margin-bottom:.6rem"></textarea>';
+  if (isSupporters) {
+    html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Position vis-à-vis du maire</label>';
+    html += '<div style="display:flex;gap:.4rem;margin-bottom:.6rem">';
+    html += '<button onclick="document.getElementById(\'manif-sens\').value=\'faveur\';document.querySelectorAll(\'.sens-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#6ab858\'" class="sens-btn" style="flex:1;padding:.4rem;border:1px solid #6ab858;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">En faveur</button>';
+    html += '<button onclick="document.getElementById(\'manif-sens\').value=\'defaveur\';document.querySelectorAll(\'.sens-btn\').forEach(b=>b.style.borderColor=\'#2a2010\');this.style.borderColor=\'#cc6a44\'" class="sens-btn" style="flex:1;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.72rem">Contre</button>';
+    html += '</div><input type="hidden" id="manif-sens" value="faveur"/>';
+  }
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Date (JJ/MM/AAAA)</label>';
+  html += '<input id="manif-date" type="date" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Heure</label>';
+  html += '<input id="manif-heure" type="time" value="18:00" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
+  html += '<button onclick="confirmerDemandeManifestation(\'' + orgaId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déposer la demande</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDemandeManifestation(orgaId) {
+  const orga = getOrgaById(orgaId);
+  const sujet = document.getElementById('manif-sujet-orga')?.value?.trim();
+  const dateStr = document.getElementById('manif-date')?.value;
+  const heureStr = document.getElementById('manif-heure')?.value;
+  const sens = document.getElementById('manif-sens')?.value || null;
+  if (!sujet || !dateStr || !heureStr) { showToast('Champs requis', '', false); return; }
+
+  const dateEvenement = new Date(dateStr + 'T' + heureStr + ':00');
+  const maintenant = new Date();
+  const heuresAvant = (dateEvenement - maintenant) / (1000 * 60 * 60);
+  if (heuresAvant < DELAI_DEPOT_MIN_H) {
+    showToast('Trop tard', 'La demande doit être déposée au moins ' + DELAI_DEPOT_MIN_H + 'h avant l\'événement.', false);
+    return;
+  }
+
+  if ((state.pa || 0) < 1) { showToast('PA insuffisants', '1 PA requis.', false); return; }
+  state.pa -= 1;
+  updateUI();
+
+  const nbMembres = orga.membres?.length || 1;
+  const intensite = Math.min(3, 1 + Math.floor(nbMembres / 10));
+  const cible = orga.type === 'supporters' ? (POSTES?.[state.country]?.maire?.titulaire || null) : null;
+
+  await sbCreerDemandeManifestation({
+    orgaId, orgaNom: orga.nom, orgaType: orga.type,
+    pays: state.country, ville: state.currentCity,
+    sujet, sens, intensite, cible,
+    dateEvenement: dateEvenement.toISOString(),
+    dateDepot: maintenant.toISOString()
+  });
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const maireNom = POSTES?.[state.country]?.min_int?.titulaire;
+  if (maireNom && typeof sbSendMail === 'function') {
+    await sbSendMail('Préfecture', maireNom, 'Nouvelle demande de manifestation',
+      orga.nom + ' demande une autorisation pour : "' + sujet + '", le ' + dateEvenement.toLocaleString('fr-FR') + '.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  }
+  showToast('Demande déposée', 'Le Ministère de l\'Intérieur a été notifié.', true, true);
+  addJournalEntry('Demande d\'autorisation de manifester déposée pour "' + orga.nom + '".', 'event-good');
+}
+
+// Applique l'effet reel d'une demande validee (acceptee ou auto-validee)
+async function appliquerEffetManifestationValidee(demande) {
+  if (demande.orgaType === 'supporters' && demande.sens && demande.cible) {
+    const signe = demande.sens === 'faveur' ? 1 : -1;
+    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(demande.cible)}&select=cha,dup,legitimite`).catch(() => []);
+    const r = rows?.[0] || {};
+    const nouveauCha = Math.max(0, Math.min(100, (r.cha ?? 50) + signe * 3 * demande.intensite));
+    const nouveauDup = Math.max(0, Math.min(100, (r.dup ?? 50) + (signe > 0 ? 3 : -5) * demande.intensite));
+    const nouvelleLegitimite = Math.max(0, Math.min(100, (r.legitimite ?? 50) + signe * 4 * demande.intensite));
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(demande.cible)}`, { cha: nouveauCha, dup: nouveauDup, legitimite: nouvelleLegitimite }).catch(() => {});
+    if (demande.cible === state.char?.name) { state.cha = nouveauCha; state.dup = nouveauDup; state.legitimite = nouvelleLegitimite; updateUI(); }
+    addExternalEvent('📣 Manifestation ' + (demande.sens === 'faveur' ? 'en soutien' : 'contre') + ' le maire, organisée par "' + demande.orgaNom + '".');
+  } else {
+    addExternalEvent('📣 Manifestation autorisée : "' + demande.sujet + '" (' + demande.orgaNom + ').');
+  }
 }
 
 async function getElecteursClub(club) {
