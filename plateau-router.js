@@ -235,8 +235,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
   if (fn === 'subvention') { ouvrirModalCibleRepertoire('subvention', 'Accorder une subvention a'); return; }
   if (fn === 'redressement_fiscal') { ouvrirModalCibleRepertoire('redressement_fiscal', 'Redressement fiscal contre'); return; }
-  if (fn === 'augmenter_impots') { doAugmenterImpots(true); return; }
-  if (fn === 'baisser_impots') { doAugmenterImpots(false); return; }
+  if (fn === 'fixer_impots_nationaux') { ouvrirFixerImpotNational(); return; }
   if (fn === 'allegemement_fiscal') { ouvrirModalSecteur(); return; }
   if (fn === 'traiter_manifestations') { doTraiterManifestations(); return; }
   if (fn === 'renseignement') { ouvrirModalRenseignement(); return; }

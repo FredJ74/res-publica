@@ -2691,15 +2691,31 @@ async function validerImpotsLocauxReel(key) {
   addExternalEvent('MAIRIE : Le taux d\'imposition local est fixé à ' + nouveauTaux + '%.');
 }
 
-async function doAugmenterImpots(hausse) {
+async function ouvrirFixerImpotNational() {
   if (state.poste?.id !== 'min_fin') { showToast('Réservé au Ministre des Finances', '', false); return; }
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
-  const ancien = budgetNat.tauxNational ?? TAUX_TAXE_DEFAUT;
-  const nouveau = Math.max(0, Math.min(40, ancien + (hausse ? 2 : -2)));
-  budgetNat.tauxNational = nouveau;
+  const taux = budgetNat.tauxNational ?? TAUX_TAXE_DEFAUT;
+
+  document.getElementById('postes-modal-title').textContent = 'Fixer le taux d\'imposition national';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux actuel : ' + taux + '%. S\'applique à toutes les transactions légales du pays, en plus de la taxe locale de chaque ville.</div>';
+  html += '<input id="taux-national-input" type="range" min="0" max="40" value="' + taux + '" oninput="document.getElementById(\'taux-national-val\').textContent=this.value+\'%\'" style="width:100%;margin-bottom:.3rem">';
+  html += '<div id="taux-national-val" style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C;text-align:center;margin-bottom:.6rem">' + taux + '%</div>';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.8rem">Au-delà de 18-20% (total local+national), le climat social se dégrade. Au-delà de 25%, la sécurité en pâtit aussi (marché noir).</div>';
+  html += '<button onclick="validerImpotNational(\'' + pays + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function validerImpotNational(pays) {
+  const nouveauTaux = parseInt(document.getElementById('taux-national-input')?.value || '5');
+  const budgetNat = await chargerBudgetNational(pays);
+  budgetNat.tauxNational = nouveauTaux;
   await sbSaveBudgetNational(pays, budgetNat);
-  showToast(hausse ? 'Impôts nationaux augmentés' : 'Impôts nationaux baissés', 'Nouveau taux national : ' + nouveau + '%.', true, true);
-  addJournalEntry('Taux d\'imposition national ajusté à ' + nouveau + '% par le Ministre des Finances.', 'event-info');
-  addExternalEvent('FINANCES : Le taux d\'imposition national passe à ' + nouveau + '%.');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Impôts nationaux fixés', 'Nouveau taux : ' + nouveauTaux + '%.', true, true);
+  addJournalEntry('Taux d\'imposition national fixé à ' + nouveauTaux + '% par le Ministre des Finances.', 'event-info');
+  addExternalEvent('FINANCES : Le taux d\'imposition national est fixé à ' + nouveauTaux + '%.');
 }
