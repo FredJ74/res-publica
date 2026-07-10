@@ -730,7 +730,6 @@ function doDormir() {
   checkArrestationAuReveil();
   verifierProgressionHospitalisation();
   if (typeof verifierEffetsManifestationsEcoulees === 'function') verifierEffetsManifestationsEcoulees(state.country);
-  if (typeof verifierEffetsEtDistributionFiscale === 'function') verifierEffetsEtDistributionFiscale();
   if (typeof verifierSalairePolitique === 'function') verifierSalairePolitique();
   if (typeof verifierAutoValidationManifestations === 'function') verifierAutoValidationManifestations(state.country);
 

@@ -583,6 +583,7 @@ function runMidnightUpdate() {
   mettreAJourBudgets();
   mettreAJourPopulation();
   alimenterBudgets();
+  if (typeof verifierEffetsEtDistributionFiscale === 'function') verifierEffetsEtDistributionFiscale();
   checkScandale();
   checkEffacementCrimes();
   payerInformateurs();
