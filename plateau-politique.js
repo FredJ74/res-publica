@@ -472,7 +472,8 @@ async function deposerCandidature(posteId, country, city) {
 
   // Vérifier domiciliation
   const domicile = state.domicile;
-  if (!domicile || domicile.country !== (country || state.country)) {
+  const domicilePays = domicile?.country || state.country;
+  if (domicilePays !== (country || state.country)) {
     showToast('Non domicilié', 'Vous devez être domicilié dans cet empire pour vous présenter.', false);
     return;
   }
@@ -588,7 +589,8 @@ function voterPour(candidatNom, posteId, country, city) {
   if (!votant) return;
 
   const domicile = state.domicile;
-  if (!domicile || domicile.country !== country) {
+  const domicilePays = domicile?.country || state.country;
+  if (domicilePays !== country) {
     showToast('Non domicilié', 'Vous ne pouvez pas voter dans cet empire.', false);
     return;
   }
