@@ -1019,7 +1019,7 @@ function verifierBudgetInstitution(inst) {
   return true;
 }
 
-function alimenterBudgets() {
+async function alimenterBudgets() {
   // Appele a minuit - distribue les recettes fiscales
   const pays = state.country || 'republic';
   const pop = CITY_POPULATION?.[pays];
@@ -1029,7 +1029,8 @@ function alimenterBudgets() {
     recettesTotales += ville.dailyTaxRevenue || 0;
   });
 
-  const rep = state.repartitionBudget || REPARTITION_DEFAULT;
+  const budgetNat = typeof chargerBudgetNational === 'function' ? await chargerBudgetNational(pays) : null;
+  const rep = budgetNat?.repartition || REPARTITION_DEFAULT;
   if (!state.budgets) state.budgets = JSON.parse(JSON.stringify(BUDGET_DEFAULT));
 
   Object.keys(rep).forEach(inst => {

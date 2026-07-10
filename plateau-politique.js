@@ -2856,6 +2856,53 @@ function confirmerNationalisation(idx) {
   addExternalEvent('NATIONALISATION : ' + e.nom + ' placee sous controle de l\'Etat par decret presidentiel.');
 }
 
+async function debiterCitoyenPlafonne(nomCible, montantVise) {
+  if (nomCible === state.char?.name) {
+    const preleve = Math.min(state.arg || 0, montantVise);
+    state.arg -= preleve;
+    updateUI();
+    return preleve;
+  }
+  if (typeof sbGet !== 'function') return 0;
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomCible)}&select=arg`).catch(() => []);
+  const argActuel = rows?.[0]?.arg ?? 0;
+  const preleve = Math.min(argActuel, montantVise);
+  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomCible)}`, { arg: argActuel - preleve }).catch(() => {});
+  return preleve;
+}
+
+async function ouvrirCiblageFiscal(action, titre) {
+  document.getElementById('postes-modal-title').textContent = titre;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const pays = state.country || 'republic';
+  let joueurs = [];
+  if (typeof sbListPersonnages === 'function') {
+    try { joueurs = await sbListPersonnages() || []; } catch(e) {}
+  }
+  const myName = state.char?.name;
+  const cibles = joueurs.filter(j => {
+    const domicilePays = j.domicile?.country || j.country;
+    return (domicilePays === pays || j.country === pays) && j.name !== myName;
+  });
+
+  let html = '<div style="padding:1rem">';
+  if (cibles.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun autre citoyen domicilié ou présent sur le territoire pour l\'instant.</div>';
+  } else {
+    html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Citoyens domiciliés ou présents sur le territoire :</div>';
+    cibles.forEach(c => {
+      const domicilie = (c.domicile?.country || c.country) === pays;
+      html += '<div onclick="executerOrdreContact(\'' + action + '\',\'' + c.name + '\')" style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#e0d5b8">' + c.name + '</div>';
+      html += '<div style="font-size:.7rem;color:#a89870">' + (domicilie ? 'Domicilié(e)' : 'De passage') + (c.current_city ? ' · ' + c.current_city : '') + '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
 function ouvrirModalCibleRepertoire(action, titre) {
   const contacts = state.contacts || [];
   document.getElementById('postes-modal-title').textContent = titre;
@@ -2886,19 +2933,33 @@ function executerOrdreContact(action, nomCible) {
     showToast('PM nomme', nomCible + ' est le nouveau Premier Ministre.', true, true);
   } else if (action === 'redressement_fiscal') {
     const montant = 2000;
-    state.arg += montant;
-    INDICES_NATIONAUX[state.country].IE = Math.max(0, INDICES_NATIONAUX[state.country].IE - 3);
-    updateUI();
-    showToast('Redressement', 'Redressement fiscal contre ' + nomCible + '. +' + montant + ' ' + cur + ' -3 IE.', true);
-    addJournalEntry('Redressement fiscal contre ' + nomCible, 'event-info');
-    addMailNotification('Ministere des Finances', 'Notification de redressement', 'Un redressement fiscal vous a ete notifie par le Ministre des Finances.');
+    document.getElementById('modal-postes')?.classList.remove('open');
+    debiterCitoyenPlafonne(nomCible, montant).then(async (montantPreleve) => {
+      const budgetNat = await chargerBudgetNational(state.country);
+      budgetNat.reserveJour = (budgetNat.reserveJour || 0) + montantPreleve;
+      await sbSaveBudgetNational(state.country, budgetNat).catch(() => {});
+      INDICES_NATIONAUX[state.country].IE = Math.max(0, INDICES_NATIONAUX[state.country].IE - 3);
+      updateUI();
+      showToast('Redressement', 'Redressement fiscal contre ' + nomCible + ' : ' + montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' prélevés pour le Trésor. -3 IE.', true, true);
+      addJournalEntry('Redressement fiscal contre ' + nomCible + ' (+' + montantPreleve + ' FR pour l\'État).', 'event-info');
+      if (typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', nomCible, 'Redressement fiscal', 'Un redressement fiscal de ' + montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' vous a été notifié et prélevé par le Ministre des Finances.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    });
   } else if (action === 'subvention') {
     const montant = 500;
-    if (state.arg < montant) { showToast('Fonds insuffisants', '', false); return; }
-    state.arg -= montant;
-    INDICES_NATIONAUX[state.country].IS = Math.min(100, INDICES_NATIONAUX[state.country].IS + 3);
-    updateUI();
-    showToast('Subvention accordee', 'Subvention de ' + montant + ' ' + cur + ' versee a ' + nomCible + '. +3 IS.', true);
+    document.getElementById('modal-postes')?.classList.remove('open');
+    const pays = state.country || 'republic';
+    (async () => {
+      const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function'
+        ? await debiterCaisseBatimentPlafonne(pays, 'palais-gouvernement', montant)
+        : 0;
+      if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
+      if (typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(nomCible, montantVerse).catch(() => {});
+      INDICES_NATIONAUX[pays].IS = Math.min(100, INDICES_NATIONAUX[pays].IS + 3);
+      updateUI();
+      showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
+      addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
+      if (typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', nomCible, 'Subvention accordée', 'Vous avez reçu une subvention de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' du Ministre des Finances.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    })();
   } else if (action === 'ouvrir_enquete') {
     const budget = getBudgetInstitution('tribunal');
     if (!depenseBudget('tribunal', 600)) return;

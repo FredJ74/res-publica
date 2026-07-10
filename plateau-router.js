@@ -233,8 +233,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
   if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
-  if (fn === 'subvention') { ouvrirModalCibleRepertoire('subvention', 'Accorder une subvention a'); return; }
-  if (fn === 'redressement_fiscal') { ouvrirModalCibleRepertoire('redressement_fiscal', 'Redressement fiscal contre'); return; }
+  if (fn === 'subvention') { ouvrirCiblageFiscal('subvention', 'Accorder une subvention à'); return; }
+  if (fn === 'redressement_fiscal') { ouvrirCiblageFiscal('redressement_fiscal', 'Redressement fiscal contre'); return; }
   if (fn === 'fixer_impots_nationaux') { ouvrirFixerImpotNational(); return; }
   if (fn === 'allegemement_fiscal') { ouvrirModalSecteur(); return; }
   if (fn === 'traiter_manifestations') { doTraiterManifestations(); return; }

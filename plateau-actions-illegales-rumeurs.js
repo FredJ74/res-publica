@@ -1769,9 +1769,15 @@ function ouvrirCalendrierElections() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function ouvrirGestionBudget() {
-  // Reserve au Ministre des Finances
-  const rep = state.repartitionBudget || { ...REPARTITION_DEFAULT };
+async function ouvrirGestionBudget() {
+  if (state.poste?.id !== 'min_fin') { showToast('Réservé au Ministre des Finances', '', false); return; }
+  document.getElementById('postes-modal-title').textContent = 'Répartition budgétaire';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  const rep = budgetNat.repartition || { ...REPARTITION_DEFAULT };
   const noms = {
     presidence:'Presidence', min_int:'Min. Interieur', min_fin:'Min. Finances',
     min_just:'Min. Justice', min_def:'Min. Defense', min_info:'Min. Information',
@@ -1779,41 +1785,41 @@ function ouvrirGestionBudget() {
     commissariat:'Commissariat', mairie:'Mairie', reserve:'Reserve'
   };
 
-  document.getElementById('postes-modal-title').textContent = 'Repartition budgetaire';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Fixez le pourcentage des recettes fiscales attribue a chaque institution. Total doit etre 100%.</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Fixez le pourcentage des recettes fiscales attribué à chaque institution. Total doit être 100%. Partagé entre tous les joueurs, appliqué chaque nuit.</div>';
 
   let total = Object.values(rep).reduce((s, v) => s + v, 0);
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;color:' + (total === 100 ? '#4a8a4a' : '#cc4444') + ';margin-bottom:.6rem">TOTAL : ' + total + '% (doit etre 100%)</div>';
+  html += '<div id="budget-total-label" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:' + (total === 100 ? '#6ab858' : '#cc6a44') + ';margin-bottom:.6rem">TOTAL : ' + total + '% (doit être 100%)</div>';
 
   Object.keys(rep).forEach(inst => {
     html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">';
-    html += '<div style="font-size:.78rem;color:#c0b090;width:120px">' + (noms[inst]||inst) + '</div>';
-    html += '<input type="number" min="0" max="50" value="' + rep[inst] + '" id="budget-' + inst + '" onchange="majTotalBudget()" style="width:55px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.82rem;outline:none">';
-    html += '<span style="font-size:.72rem;color:#4a4030">%</span>';
-    if (state.budgets?.[inst]) html += '<span style="font-size:.68rem;color:#5a5040;margin-left:.3rem">Solde: ' + (state.budgets[inst].solde||0).toLocaleString('fr-FR') + ' FR</span>';
+    html += '<div style="font-size:.8rem;color:#c0b090;width:120px">' + (noms[inst]||inst) + '</div>';
+    html += '<input type="number" min="0" max="50" value="' + rep[inst] + '" id="budget-' + inst + '" onchange="majTotalBudget()" style="width:60px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem;font-size:.85rem;outline:none">';
+    html += '<span style="font-size:.75rem;color:#8a8060">%</span>';
     html += '</div>';
   });
 
-  html += '<button onclick="validerRepartitionBudget()" style="margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la repartition</button>';
+  html += '<button onclick="validerRepartitionBudget(\'' + pays + '\')" style="margin-top:.8rem;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
 }
 
 function majTotalBudget() {
-  const rep = state.repartitionBudget || { ...REPARTITION_DEFAULT };
+  const rep = REPARTITION_DEFAULT;
   let total = 0;
   Object.keys(rep).forEach(inst => {
     const val = parseInt(document.getElementById('budget-' + inst)?.value || '0');
     total += val;
   });
-  // Mettre a jour l'affichage du total
-  document.getElementById('postes-modal-title').textContent = 'Repartition — Total : ' + total + '%';
+  const label = document.getElementById('budget-total-label');
+  if (label) {
+    label.textContent = 'TOTAL : ' + total + '% (doit être 100%)';
+    label.style.color = total === 100 ? '#6ab858' : '#cc6a44';
+  }
 }
 
-function validerRepartitionBudget() {
-  const rep = state.repartitionBudget || { ...REPARTITION_DEFAULT };
+async function validerRepartitionBudget(pays) {
+  const rep = REPARTITION_DEFAULT;
   let total = 0;
   const newRep = {};
   Object.keys(rep).forEach(inst => {
@@ -1825,9 +1831,11 @@ function validerRepartitionBudget() {
     showToast('Total incorrect', 'Le total doit etre exactement 100%. Actuel : ' + total + '%.', false);
     return;
   }
-  state.repartitionBudget = newRep;
+  const budgetNat = await chargerBudgetNational(pays);
+  budgetNat.repartition = newRep;
+  await sbSaveBudgetNational(pays, budgetNat);
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Repartition validee !', 'Les nouveaux taux s\'appliqueront a partir de minuit.', true, true);
+  showToast('Répartition validée !', 'Les nouveaux taux s\'appliqueront à partir de minuit, pour tous les joueurs.', true, true);
   addJournalEntry('Repartition budgetaire modifiee par le Ministre des Finances.', 'event-info');
   addExternalEvent('FINANCES : Nouvelle repartition budgetaire fixee par le Ministre des Finances.');
 }

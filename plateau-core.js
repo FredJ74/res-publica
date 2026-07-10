@@ -570,7 +570,7 @@ function checkMidnight() {
   }
 }
 
-function runMidnightUpdate() {
+async function runMidnightUpdate() {
   state.day++;
   state.salaireTouche = false;
   // Traiter les plaintes et enquetes en cours
@@ -582,7 +582,7 @@ function runMidnightUpdate() {
   // Budget institutions et population
   mettreAJourBudgets();
   mettreAJourPopulation();
-  alimenterBudgets();
+  await alimenterBudgets();
   if (typeof verifierEffetsEtDistributionFiscale === 'function') verifierEffetsEtDistributionFiscale();
   checkScandale();
   checkEffacementCrimes();
