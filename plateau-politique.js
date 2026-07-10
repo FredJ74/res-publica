@@ -179,32 +179,32 @@ async function ouvrirCalendrierElectoral() {
     return '<div style="padding:.6rem .4rem;border-bottom:1px solid #1a1810">' +
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem">' +
         '<div>' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#c0b090">' + labelPoste + '</div>' +
-          '<div style="font-size:.65rem;color:#6a5a30">' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#e0d5b8">' + labelPoste + '</div>' +
+          '<div style="font-size:.75rem;color:#a89870">' +
             (titulaire ? '✦ ' + titulaire : 'Poste vacant') +
           '</div>' +
         '</div>' +
         '<div style="text-align:right">' +
-          '<div style="font-size:.68rem;font-family:Bebas Neue,sans-serif;color:' + phaseStyle.col + ';letter-spacing:.06em">' + phaseStyle.label + '</div>' +
-          '<div style="font-size:.62rem;color:#4a4030">' + nbCandidats + ' candidat(s)</div>' +
+          '<div style="font-size:.75rem;font-family:Bebas Neue,sans-serif;color:' + phaseStyle.col + ';letter-spacing:.06em">' + phaseStyle.label + '</div>' +
+          '<div style="font-size:.72rem;color:#a89870">' + nbCandidats + ' candidat(s)</div>' +
         '</div>' +
       '</div>' +
       // Échéances
       (echeances.length > 0
         ? '<div style="background:#0a0907;border:1px solid #1a1810;border-radius:3px;padding:.35rem .5rem;margin-top:.3rem">' +
           echeances.slice(0,3).map(e =>
-            '<div style="display:flex;justify-content:space-between;font-size:.65rem;margin-bottom:.15rem">' +
-              '<span style="color:#8a8060">' + e.label + '</span>' +
-              '<span>' + diffJours(e.date) + ' <span style="color:#4a4030">(' + formatDate(e.date) + ')</span></span>' +
+            '<div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:.15rem">' +
+              '<span style="color:#b0a080">' + e.label + '</span>' +
+              '<span style="color:#d0c5a8">' + diffJours(e.date) + ' <span style="color:#8a8060">(' + formatDate(e.date) + ')</span></span>' +
             '</div>'
           ).join('') +
           '</div>'
         : '') +
       // Boutons action
       '<div style="display:flex;gap:.4rem;margin-top:.4rem">' +
-        '<button onclick="ouvrirBureauDeVoteBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.62rem;font-family:Bebas Neue,sans-serif;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">Détails →</button>' +
+        '<button onclick="ouvrirBureauDeVoteBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#b0a080;cursor:pointer">Détails →</button>' +
         (phase === PHASES_ELECTORALES.CANDIDATURES
-          ? '<button onclick="deposerCandidatureBtn2Btn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.62rem;font-family:Bebas Neue,sans-serif;padding:.2rem .5rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer">📋 Candidater</button>'
+          ? '<button onclick="deposerCandidatureBtn2Btn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #5a7aca;background:transparent;color:#8aaaea;cursor:pointer">📋 Candidater</button>'
           : '') +
       '</div>' +
     '</div>';
@@ -213,7 +213,7 @@ async function ouvrirCalendrierElectoral() {
   document.getElementById('postes-modal-title').textContent = '📅 Calendrier Électoral — ' + (co?.n || country);
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.2rem .4rem">' +
-    '<div style="font-size:.65rem;color:#4a4030;padding:.3rem .4rem;margin-bottom:.3rem;font-style:italic">' +
+    '<div style="font-size:.72rem;color:#8a8060;padding:.3rem .4rem;margin-bottom:.3rem;font-style:italic">' +
       'Mandat : 5-6 semaines · Candidatures : J-7 avant campagne · Second tour si aucun candidat ne dépasse 50%+1' +
     '</div>' +
     lignes +
@@ -845,21 +845,21 @@ async function ouvrirTableauElectoral() {
       [PHASES_ELECTORALES.SECOND_TOUR]:  '#8a6a4a',
       [PHASES_ELECTORALES.VOTE2]:        '#4a8a4a',
       [PHASES_ELECTORALES.VACANT]:       '#8a3a2a',
-    }[phase] || '#6a5a30';
+    }[phase] || '#a89870';
 
     return '<div style="padding:.5rem .4rem;border-bottom:1px solid #1a1810">' +
       '<div style="display:flex;justify-content:space-between;align-items:center">' +
         '<div>' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#c0b090">' + labelPoste + '</div>' +
-          '<div style="font-size:.65rem;color:#6a5a30">' + titulaire + '</div>' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#e0d5b8">' + labelPoste + '</div>' +
+          '<div style="font-size:.72rem;color:#a89870">' + titulaire + '</div>' +
         '</div>' +
         '<div style="text-align:right">' +
-          '<div style="font-size:.65rem;color:' + phaseCol + ';font-family:Bebas Neue,sans-serif">' + (phase || 'N/A') + '</div>' +
-          '<div style="font-size:.62rem;color:#4a4030">' + nbCandidats + ' candidat(s)</div>' +
+          '<div style="font-size:.72rem;color:' + phaseCol + ';font-family:Bebas Neue,sans-serif">' + (phase || 'N/A') + '</div>' +
+          '<div style="font-size:.7rem;color:#a89870">' + nbCandidats + ' candidat(s)</div>' +
         '</div>' +
       '</div>' +
     '<button onclick="ouvrirBureauDeVoteBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" ' +
-      'style="margin-top:.3rem;font-size:.65rem;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">Voir détails →</button>' +
+      'style="margin-top:.3rem;font-size:.7rem;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#b0a080;cursor:pointer">Voir détails →</button>' +
     '</div>';
   }).join('');
 
