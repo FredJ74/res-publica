@@ -241,6 +241,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'voir_ma_section') { doVoirMaSection(); return; }
   if (fn === 'entrainer_section') { doEntrainerSection(); return; }
   if (fn === 'equiper_section') { doEquiperSection(); return; }
+  if (fn === 'remonter_renseignement') { ouvrirRemonterRenseignement(); return; }
   if (fn === 'demettre_lieutenant') { doDemettreLieutenant(); return; }
   if (fn === 'recruter_section') { ouvrirRecruterSection(); return; }
   if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(); return; }

@@ -2898,6 +2898,7 @@ const BUILDINGS = {
           {fn:'voir_ma_section',     label:'Voir ma section',            pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, requiresPost:'lieutenant', desc:'Fiche individuelle de vos 24 soldats (matricule, formation, equipement).'},
           {fn:'entrainer_section',   label:'Entrainer la section',       pa:2, cost:0,    type:'legal',   icon:'ti-barbell',       successRate:100, requiresPost:'lieutenant', desc:'Force, Endurance ou Tir. 12 soldats max par session.'},
           {fn:'equiper_section',     label:'Equiper les soldats ici',    pa:1, cost:0,    type:'legal',   icon:'ti-sword',         successRate:100, requiresPost:'lieutenant', desc:'Equiper les soldats presents dans cette piece.'},
+          {fn:'remonter_renseignement', label:'Faire remonter un renseignement', pa:1, cost:0, type:'legal', icon:'ti-report', successRate:100, requiresPost:'lieutenant', desc:'Transmettre un rapport de renseignement recu a votre Capitaine.'},
           {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:1, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:'min_def', desc:'+INF aupres de l\'armee. Renforce la loyaute.'},
           {fn:'gerer_budget_caserne', label:'Gérer le budget de la Caserne', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_def', desc:'Consulter la caisse, ou renoncer a son salaire au profit de la caserne.'}
         ]

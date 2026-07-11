@@ -3374,50 +3374,51 @@ async function confirmerRenseignement(empireCible, nomCible) {
   const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne', cout) : 0;
   if (montantVerse < cout) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de l\'opération (' + cout + ' FR).', false); return; }
 
-  const base = state.country === empireCible ? 30 : 45; // en territoire de la cible = plus risque, sur son propre territoire = plus sur
-  const bonus = (INDICES_NATIONAUX[pays]?.ISN || 0) / 10 + ((state.per || 0) + (state.int || 0)) / 10;
-  const malus = (INDICES_NATIONAUX[empireCible]?.ISN || 0) / 10;
-  const tauxFinal = Math.max(5, Math.min(95, Math.round(base + bonus - malus)));
+  // Choisir la section adverse ciblee AVANT le jet, puisque le jet depend des indices de son lieutenant
+  const compagniesCible = await sbGetCompagnies(empireCible).catch(() => []);
+  const sectionsPourvues = [];
+  compagniesCible.forEach(c => (c.sections||[]).forEach(s => { if (s.lieutenantNom && s.soldats.length > 0) sectionsPourvues.push(s); }));
+  if (sectionsPourvues.length === 0) { showToast('Opération annulée', 'Aucune section ennemie identifiable pour l\'instant.', false); return; }
+  const section = sectionsPourvues[Math.floor(Math.random() * sectionsPourvues.length)];
+
+  // Choisir un de nos propres lieutenants pour mener l'operation
+  const compagniesNous = await sbGetCompagnies(pays).catch(() => []);
+  const nosLieutenants = [];
+  compagniesNous.forEach(c => (c.sections||[]).forEach(s => { if (s.lieutenantNom) nosLieutenants.push(s.lieutenantNom); }));
+  if (nosLieutenants.length === 0) { showToast('Opération impossible', 'Aucun lieutenant disponible pour mener l\'opération.', false); return; }
+  const notreLieutenantNom = nosLieutenants[Math.floor(Math.random() * nosLieutenants.length)];
+
+  const rows1 = typeof sbGet === 'function' ? await sbGet('personnages', `name=eq.${encodeURIComponent(notreLieutenantNom)}&select=per,int`).catch(() => []) : [];
+  const rows2 = typeof sbGet === 'function' ? await sbGet('personnages', `name=eq.${encodeURIComponent(section.lieutenantNom)}&select=per,int`).catch(() => []) : [];
+  const notreLt = rows1?.[0] || { per:0, int:0 };
+  const leurLt = rows2?.[0] || { per:0, int:0 };
+
+  const base = state.country === empireCible ? 30 : 45;
+  const notreScore = (INDICES_NATIONAUX[pays]?.ISN || 0) + (notreLt.per||0) + (notreLt.int||0);
+  const leurScore = (INDICES_NATIONAUX[empireCible]?.ISN || 0) + (leurLt.per||0) + (leurLt.int||0);
+  const tauxFinal = Math.max(5, Math.min(95, Math.round(base + (notreScore - leurScore) / 10)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll > tauxFinal) {
     showToast('Opération échouée', 'Aucune information exploitable n\'a pu être obtenue sur ' + nomCible + ' (taux : ' + tauxFinal + '%).', false);
     addJournalEntry('Opération de renseignement ratée contre ' + nomCible + '.', 'event-bad');
+    if (typeof sbSendMail === 'function') sbSendMail('Ministère de la Défense', notreLieutenantNom, 'Opération de renseignement échouée', 'Votre opération contre ' + nomCible + ' n\'a rien donné.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
     return;
   }
 
-  // Choisir une section adverse au hasard et en reveler la moitie (12 matricules), + indices de son lieutenant
-  const compagniesCible = await sbGetCompagnies(empireCible).catch(() => []);
-  const sectionsPourvues = [];
-  compagniesCible.forEach(c => (c.sections||[]).forEach(s => { if (s.lieutenantNom && s.soldats.length > 0) sectionsPourvues.push(s); }));
-
-  if (sectionsPourvues.length === 0) {
-    showToast('Opération réussie', 'Aucune section ennemie identifiable pour l\'instant (taux : ' + tauxFinal + '%).', true, true);
-    return;
-  }
-  const section = sectionsPourvues[Math.floor(Math.random() * sectionsPourvues.length)];
   const demiSection = [...section.soldats].sort(() => Math.random() - 0.5).slice(0, 12);
+  let contenu = 'Section identifiée : Lieutenant ' + section.lieutenantNom + ' (' + nomCible + '). Indices du Lieutenant adverse — Perception : ' + (leurLt.per??'?') + ' · Intelligence : ' + (leurLt.int??'?') + '.<br><br>';
+  demiSection.forEach(s => { contenu += s.matricule + ' — FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + '<br>'; });
 
-  let lieutenantIndices = null;
-  if (typeof sbGet === 'function') {
-    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(section.lieutenantNom)}&select=per,int`).catch(() => []);
-    lieutenantIndices = rows?.[0] || null;
+  if (typeof sbCreerRapportRenseignement === 'function') {
+    await sbCreerRapportRenseignement({ pays, lieutenantNom: notreLieutenantNom, empireCible, nomCible, contenu, remonte: false });
   }
-
-  document.getElementById('postes-modal-title').textContent = 'Rapport de renseignement — ' + nomCible;
-  let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Section identifiée, Lieutenant ' + section.lieutenantNom + '. Renseignement obtenu (taux : ' + tauxFinal + '%).</div>';
-  if (lieutenantIndices) html += '<div style="font-size:.8rem;color:#e0d5b8;margin-bottom:.6rem">Indices du Lieutenant — Perception : ' + (lieutenantIndices.per??'?') + ' · Intelligence : ' + (lieutenantIndices.int??'?') + '</div>';
-  demiSection.forEach(s => {
-    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.35rem;font-size:.75rem">';
-    html += '<div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
-    html += '<div style="color:#a89870">FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + '</div>';
-    html += '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-  addJournalEntry('Opération de renseignement réussie contre ' + nomCible + '.', 'event-good');
+  if (typeof sbSendMail === 'function') {
+    await sbSendMail('Ministère de la Défense', notreLieutenantNom, 'Rapport de renseignement — ' + nomCible,
+      contenu + '<br><br><em>À vous de faire remonter ce rapport à votre Capitaine.</em>', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  }
+  showToast('Opération réussie', 'Le rapport a été transmis au Lieutenant ' + notreLieutenantNom + ' (taux : ' + tauxFinal + '%).', true, true);
+  addJournalEntry('Opération de renseignement réussie contre ' + nomCible + ', transmise à ' + notreLieutenantNom + '.', 'event-good');
 }
 
 function ouvrirModalMedia() {
@@ -4986,7 +4987,11 @@ async function verifierCombatAutomatique(buildingId, roomId) {
 }
 
 async function resoudreCombat(A, B) {
-  let soldatsA = [...A.presents], soldatsB = [...B.presents];
+  const civilsA = (A.section.civilsRequisitionnes || []).filter(c => c.statut === 'affecte')
+    .map(c => ({ matricule: 'CIVIL-' + c.nom, formation: { force: 10, endurance: 10, tir: 10 }, arme: 'corps_a_corps', pa: PA_MAX_SOLDAT, civil: true, nom: c.nom }));
+  const civilsB = (B.section.civilsRequisitionnes || []).filter(c => c.statut === 'affecte')
+    .map(c => ({ matricule: 'CIVIL-' + c.nom, formation: { force: 10, endurance: 10, tir: 10 }, arme: 'corps_a_corps', pa: PA_MAX_SOLDAT, civil: true, nom: c.nom }));
+  let soldatsA = [...A.presents, ...civilsA], soldatsB = [...B.presents, ...civilsB];
   const coefsA = await getCoefsArmesPays(A.pays);
   const coefsB = await getCoefsArmesPays(B.pays);
   let round = 0;
@@ -5026,9 +5031,17 @@ async function resoudreCombat(A, B) {
 
   const matriculesMortsA = A.presents.filter(s => soldatsA.length === 0).map(s => s.matricule);
   const matriculesMortsB = B.presents.filter(s => soldatsB.length === 0).map(s => s.matricule);
+  const civilsMortsA = civilsA.length > 0 && soldatsA.length === 0 ? civilsA.length : 0;
+  const civilsMortsB = civilsB.length > 0 && soldatsB.length === 0 ? civilsB.length : 0;
 
-  if (soldatsA.length === 0 && sectionA) sectionA.soldats = sectionA.soldats.filter(s => !A.presents.some(p => p.matricule === s.matricule));
-  if (soldatsB.length === 0 && sectionB) sectionB.soldats = sectionB.soldats.filter(s => !B.presents.some(p => p.matricule === s.matricule));
+  if (soldatsA.length === 0 && sectionA) {
+    sectionA.soldats = sectionA.soldats.filter(s => !A.presents.some(p => p.matricule === s.matricule));
+    if (sectionA.civilsRequisitionnes) sectionA.civilsRequisitionnes = sectionA.civilsRequisitionnes.filter(c => c.statut !== 'affecte');
+  }
+  if (soldatsB.length === 0 && sectionB) {
+    sectionB.soldats = sectionB.soldats.filter(s => !B.presents.some(p => p.matricule === s.matricule));
+    if (sectionB.civilsRequisitionnes) sectionB.civilsRequisitionnes = sectionB.civilsRequisitionnes.filter(c => c.statut !== 'affecte');
+  }
 
   if (compagnieA) await sbSaveCompagnie(A.compagnieId, compagnieA);
   if (compagnieB) await sbSaveCompagnie(B.compagnieId, compagnieB);
@@ -5041,8 +5054,8 @@ async function resoudreCombat(A, B) {
   if (typeof sbCreerFaitArmes === 'function') {
     await sbCreerFaitArmes({
       jour: state.day || 1,
-      campA: { pays: A.pays, sectionId: A.section.id, lieutenantNom: A.section.lieutenantNom, effectifEngage: A.presents.length, pertes: matriculesMortsA.length },
-      campB: { pays: B.pays, sectionId: B.section.id, lieutenantNom: B.section.lieutenantNom, effectifEngage: B.presents.length, pertes: matriculesMortsB.length },
+      campA: { pays: A.pays, sectionId: A.section.id, lieutenantNom: A.section.lieutenantNom, effectifEngage: A.presents.length + civilsA.length, pertes: matriculesMortsA.length + civilsMortsA },
+      campB: { pays: B.pays, sectionId: B.section.id, lieutenantNom: B.section.lieutenantNom, effectifEngage: B.presents.length + civilsB.length, pertes: matriculesMortsB.length + civilsMortsB },
       resultat, rounds: round
     }).catch(() => {});
   }
@@ -5301,7 +5314,7 @@ async function suivreEscorteAvecMoi(nouveauBuildingId) {
 // =====================
 // REQUISITION CIVILE — loterie aleatoire, doublement d'effectif, desertion publique
 // =====================
-const DELAI_REQUISITION_HEURES = 48;
+const DELAI_REQUISITION_HEURES = 36;
 
 async function ouvrirRequisitionCivile() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
@@ -5405,4 +5418,43 @@ async function verifierDesertionsQuotidien(pays) {
       }
     }
   }
+}
+
+// ---- LE LIEUTENANT FAIT REMONTER SON RAPPORT DE RENSEIGNEMENT AU CAPITAINE ----
+async function ouvrirRemonterRenseignement() {
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
+  const rapports = typeof sbGetRapportsRenseignementNonRemontes === 'function' ? await sbGetRapportsRenseignementNonRemontes(state.char?.name).catch(() => []) : [];
+
+  document.getElementById('postes-modal-title').textContent = 'Rapports de renseignement à transmettre';
+  let html = '<div style="padding:1rem">';
+  if (rapports.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun rapport en attente de transmission.</div>';
+  } else {
+    rapports.forEach(r => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.82rem;color:#e0d5b8;margin-bottom:.4rem">Rapport sur ' + r.nomCible + '</div>';
+      html += '<button onclick="confirmerRemonteeRenseignement(\'' + r.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Transmettre à mon Capitaine</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerRemonteeRenseignement(rapportId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
+  const capitaineNom = compagnie?.capitaineNom;
+  if (!capitaineNom) { showToast('Aucun Capitaine en poste', 'Impossible de transmettre pour l\'instant.', false); return; }
+
+  const rows = await sbGet('rapports_renseignement', `id=eq.${encodeURIComponent(rapportId)}`).catch(() => []);
+  const rapport = rows?.[0]?.data;
+  if (rapport && typeof sbSendMail === 'function') {
+    await sbSendMail(state.char?.name || 'Lieutenant', capitaineNom, 'Rapport de renseignement transmis — ' + rapport.nomCible,
+      rapport.contenu, typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  }
+  await sbMarquerRapportRemonte(rapportId);
+  showToast('Rapport transmis', 'Votre Capitaine a été informé.', true, true);
+  addJournalEntry('Rapport de renseignement transmis à mon Capitaine.', 'event-info');
 }

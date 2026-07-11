@@ -749,6 +749,24 @@ async function sbGetCompagnies(pays) {
   return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
 }
 
+async function sbCreerRapportRenseignement(data) {
+  const id = 'rens-' + Date.now();
+  await sbInsert('rapports_renseignement', { id, data });
+  return id;
+}
+
+async function sbGetRapportsRenseignementNonRemontes(lieutenantNom) {
+  const rows = await sbGet('rapports_renseignement', `select=id,data`);
+  if (!rows) return [];
+  return rows.filter(r => r.data?.lieutenantNom === lieutenantNom && !r.data?.remonte).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbMarquerRapportRemonte(id) {
+  const rows = await sbGet('rapports_renseignement', `id=eq.${encodeURIComponent(id)}`);
+  const data = { ...(rows?.[0]?.data || {}), remonte: true };
+  return sbUpdate('rapports_renseignement', `id=eq.${encodeURIComponent(id)}`, { data });
+}
+
 async function sbCreerFaitArmes(data) {
   const id = 'combat-' + Date.now();
   await sbInsert('faits_armes', { id, data });
