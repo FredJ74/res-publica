@@ -2539,7 +2539,7 @@ const SALAIRES_POLITIQUES = {
 const CAISSE_BATIMENT_POSTE = {
   president: 'palais-presidentiel', pm: 'palais-gouvernement',
   min_int: 'palais-gouvernement', min_fin: 'palais-gouvernement', min_just: 'palais-gouvernement',
-  min_def: 'palais-gouvernement', min_info: 'palais-gouvernement', min_ae: 'palais-gouvernement',
+  min_def: 'caserne', min_info: 'palais-gouvernement', min_ae: 'palais-gouvernement',
   maire: 'mairie-capitale'
 };
 
@@ -2646,6 +2646,7 @@ async function verifierSalairePolitique() {
   const jour = state.day || 1;
   if (!state.char) return;
   if (state.char.dernierSalairePolitiqueJour === jour) return;
+  if (posteId === 'min_def' && state.char.renonceSalaireCaserne) { state.char.dernierSalairePolitiqueJour = jour; return; }
 
   const pays = state.country || 'republic';
   const buildingId = CAISSE_BATIMENT_POSTE[posteId];

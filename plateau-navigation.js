@@ -193,6 +193,14 @@ function enterBuilding(buildingId, skipAutoRoom) {
   const b = BUILDINGS[buildingId];
   if (!b) return;
 
+  // Verrou militaire : un detachement hostile peut bloquer/attaquer l'entree (verifie en parallele, sans bloquer l'affichage)
+  if (typeof verifierMissionMilitaireEntree === 'function') {
+    const buildingPrecedent = state.currentBuilding, roomPrecedent = state.currentRoom;
+    verifierMissionMilitaireEntree(buildingId, null).then(bloque => {
+      if (bloque && buildingPrecedent) enterBuilding(buildingPrecedent, true);
+    }).catch(() => {});
+  }
+
   // Verrou : emprisonnement — impossible de quitter le commissariat avant la fin de la peine
   if (state.estEmprisonne && buildingId !== 'commissariat') {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
@@ -383,7 +391,7 @@ function enterRoom(buildingId, roomId, tabEl) {
     displayDesc += ' — En convalescence. Temps restant estimé : ' + joursRestants + ' jour(s).';
   }
   document.getElementById('piece-desc').textContent = displayDesc;
-  const ROOMS_AVEC_CAISSE = { 'palais-presidentiel': 'palais-presidentiel', 'palais-gouvernement': 'palais-gouvernement', 'mairie-capitale': 'mairie-capitale' };
+  const ROOMS_AVEC_CAISSE = { 'palais-presidentiel': 'palais-presidentiel', 'palais-gouvernement': 'palais-gouvernement', 'mairie-capitale': 'mairie-capitale', 'caserne': 'caserne' };
   const caisseBuildingId = ROOMS_AVEC_CAISSE[buildingId] || (buildingId === 'stade' && roomId === 'buvette' ? 'stade-buvette' : null);
   if (caisseBuildingId && typeof chargerCaisseBatiment === 'function') {
     chargerCaisseBatiment(state.country || 'republic', caisseBuildingId).then(c => {
@@ -405,6 +413,16 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
 
   renderPersonsList(displayPersons);
+
+  // Detachement militaire eventuellement present (asynchrone, ne bloque pas l'affichage normal)
+  if (typeof getAffichageDetachementPiece === 'function') {
+    getAffichageDetachementPiece(state.country || 'republic', buildingId, roomId).then(det => {
+      if (det && state.currentBuilding === buildingId && state.currentRoom === roomId) {
+        const missionLabel = { bloquer_acces:'Bloque l\'accès', securiser:'Sécurise la pièce', assassiner:'Ordre : neutraliser les intrus', arreter:'Ordre : arrêter les intrus', surveiller:'En surveillance', escorter:'Escorte en cours' }[det.mission] || 'Sans consigne';
+        renderPersonsList([...displayPersons, { name: det.nom, role: det.nombre + ' soldats — ' + missionLabel, rel: 'neutral', job: 'militaire' }]);
+      }
+    }).catch(() => {});
+  }
 
   // Ordres
   renderRoomActions(room, buildingId, roomId);

@@ -4630,3 +4630,73 @@ async function estImmuniteMilitaire() {
   const territoireNational = state.currentCountry === pays; // mobilisation nationale
   return enGuerreIci || territoireNational;
 }
+
+// Verifie si un detachement hostile bloque/attaque l'entree d'un joueur. Retourne true si l'entree doit etre annulee.
+async function verifierMissionMilitaireEntree(buildingId, roomId) {
+  if (typeof getAffichageDetachementPiece !== 'function') return false;
+  const det = await getAffichageDetachementPiece(state.country || 'republic', buildingId, roomId);
+  if (!det || !det.mission) return false;
+
+  // Exemption : la chaine de commandement de la meme section n'est jamais bloquee/attaquee par ses propres troupes
+  if (['lieutenant', 'capitaine', 'commandant', 'min_def'].includes(state.poste?.id)) return false;
+
+  if (det.mission === 'bloquer_acces') {
+    showToast('Accès bloqué', 'Un détachement militaire (' + det.nombre + ' soldats) interdit l\'accès.', false);
+    return true;
+  }
+  if (det.mission === 'assassiner' || det.mission === 'arreter') {
+    const chance = Math.min(90, 30 + det.nombre * 2); // plus le detachement est nombreux, plus le jet est favorable aux soldats
+    const roll = Math.floor(Math.random() * 100) + 1;
+    if (roll <= chance) {
+      if (det.mission === 'assassiner' && typeof sbDeposerImpactIndice === 'function') {
+        const palier = roll <= chance * 0.5 ? 'totale' : 'partielle';
+        const pv = palier === 'totale' ? 0 : 25;
+        state.hp = pv;
+        state.hospitalisation = { jourDebut: state.day, palier, lieu: 'dispensaire', jourFin: state.day + (palier === 'totale' ? 3 : 2) };
+        updateUI();
+        showToast('Neutralisé(e) !', 'Le détachement militaire vous a pris pour cible. PV : ' + pv + '.', false);
+      } else if (det.mission === 'arreter' && typeof procederArrestation === 'function') {
+        showToast('Arrêté(e) !', 'Le détachement militaire vous a intercepté.', false);
+        procederArrestation('intrusion_zone_militaire', false, false);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+// ---- BUDGET DE LA CASERNE (alloue par le MG) ----
+async function ouvrirGererBudgetCaserne() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  const pays = state.country || 'republic';
+  const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'caserne') : { solde: 0 };
+
+  document.getElementById('postes-modal-title').textContent = 'Budget de la Caserne';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">Caisse : ' + (caisse.solde||0).toLocaleString('fr-FR') + ' FR</div>';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Utilisez cette caisse pour recruter, financer des opérations spéciales, ou toucher votre solde. Vous pouvez aussi y renoncer entièrement.</div>';
+  html += '<button onclick="renoncerSalaireCaserne()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Renoncer à mon salaire (tout reste dans la caisse)</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function renoncerSalaireCaserne() {
+  if (!state.char) return;
+  state.char.renonceSalaireCaserne = true;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Salaire renoncé', 'Votre solde de Ministre de la Défense restera dans la caisse de la caserne.', true, true);
+}
+
+// ---- SOLDE QUOTIDIENNE DES SOLDATS (versee chaque nuit, juste apres que le MG touche sa part) ----
+async function payerSoldeQuotidienne(pays) {
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  const coutParSoldat = 20; // FR/jour/soldat
+  let totalDu = 0;
+  compagnies.forEach(c => (c.sections||[]).forEach(s => { totalDu += (s.effectifTotal||0) * coutParSoldat; }));
+  if (totalDu <= 0) return;
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne', totalDu) : 0;
+  if (montantVerse < totalDu) {
+    addExternalEvent('⚠️ La solde des troupes de ' + (COUNTRIES[pays]?.n||pays) + ' n\'a pu être versée qu\'en partie faute de budget suffisant.');
+  }
+}

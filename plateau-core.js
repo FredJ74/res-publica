@@ -583,7 +583,8 @@ async function runMidnightUpdate() {
   mettreAJourBudgets();
   mettreAJourPopulation();
   await alimenterBudgets();
-  if (typeof verifierEffetsEtDistributionFiscale === 'function') verifierEffetsEtDistributionFiscale();
+  if (typeof verifierEffetsEtDistributionFiscale === 'function') await verifierEffetsEtDistributionFiscale();
+  if (typeof payerSoldeQuotidienne === 'function') await payerSoldeQuotidienne(state.country || 'republic').catch(() => {});
   checkScandale();
   checkEffacementCrimes();
   payerInformateurs();

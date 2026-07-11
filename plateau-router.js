@@ -237,6 +237,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(); return; }
   if (fn === 'gerer_detachement') { doGererDetachement(); return; }
   if (fn === 'assigner_mission') { doAssignerMission(); return; }
+  if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetCaserne(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
   if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
