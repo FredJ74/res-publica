@@ -1389,7 +1389,8 @@ const BUILDINGS = {
         orders: [
           {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'min_int', desc:'Choisir un type d\'intervention concrete (blocus, manifestation, quartier sensible).'},
           {fn:'traiter_manifestations', label:'Traiter les demandes de manifestation', pa:1, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'min_int', desc:'Autoriser ou interdire un rassemblement declare.'},
-          {fn:'demandes_naturalisation', label:'Demandes de naturalisation', pa:0, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_int', desc:'Examiner les demandes de naturalisation en attente (delai 48h avant traitement possible).'}
+          {fn:'demandes_naturalisation', label:'Demandes de naturalisation', pa:0, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_int', desc:'Examiner les demandes de naturalisation en attente (delai 48h avant traitement possible).'},
+          {fn:'gerer_couvre_feu',    label:'Instaurer un couvre-feu',     pa:2, cost:0, type:'legal', icon:'ti-moon', successRate:100, requiresPost:'min_int', desc:'20h-6h, 2 jours maximum. Degrade IS et POP du gouvernement tant qu\'il dure.'}
         ]
       },
       bureau_min_fin: {
@@ -1432,7 +1433,8 @@ const BUILDINGS = {
           {fn:'activer_cessez_le_feu', label:'Activer un cessez-le-feu',  pa:2, cost:0,   type:'legal',   icon:'ti-handshake',      successRate:100, requiresPost:'min_def', desc:'Activer une treve deja negociee par la diplomatie. Chaque camp doit le faire de son cote.'},
           {fn:'nommer_commandant',   label:'Nommer le Commandant',       pa:2, cost:0,   type:'legal',   icon:'ti-star',           successRate:100, requiresPost:'min_def', desc:'Designer le Commandant de la Caserne.'},
           {fn:'recruter_compagnie',  label:'Recruter une compagnie',     pa:3, cost:0,   type:'legal',   icon:'ti-users-group',    successRate:100, requiresPost:'min_def', desc:'100 soldats (4 sections). Coute a la caisse de la caserne.'},
-          {fn:'renseignement',        label:'Lancer une operation de renseignement', pa:3, cost:500, type:'grey', icon:'ti-spy', successRate:70, requiresPost:'min_def', desc:'Espionner un empire etranger. (Substance a venir.)'}
+          {fn:'renseignement',        label:'Lancer une operation de renseignement', pa:3, cost:500, type:'grey', icon:'ti-spy', successRate:70, requiresPost:'min_def', desc:'Espionner un empire etranger. (Substance a venir.)'},
+          {fn:'requisition_civile',  label:'Réquisition civile',        pa:3, cost:0, type:'legal', icon:'ti-users', successRate:100, requiresPost:'min_def', desc:'Tirage au sort de 24 citoyens pour doubler l\'effectif d\'une section. Uniquement pendant une mobilisation nationale.'}
         ]
       },
       bureau_min_info: {
@@ -2874,7 +2876,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:2, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'},
-          {fn:'demettre_lieutenant', label:'Démettre un Lieutenant', pa:2, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Retirer un lieutenant juge responsable d\'un echec.'}
+          {fn:'demettre_lieutenant', label:'Démettre un Lieutenant', pa:2, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Retirer un lieutenant juge responsable d\'un echec.'},
+          {fn:'se_presenter_affectation', label:'Se présenter à mon affectation', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Reserve aux civils requisitionnes, avant expiration du delai.'}
         ]
       },
       salle_commandement: {
@@ -2888,6 +2891,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'nommer_capitaine',    label:'Nommer un Capitaine',        pa:2, cost:0,    type:'legal',   icon:'ti-star',          successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Designer un capitaine pour une compagnie.'},
+          {fn:'recherche_militaire', label:'Lancer une recherche sur l\'armement', pa:2, cost:0, type:'legal', icon:'ti-flask', successRate:100, requiresPost:'commandant', desc:'En collaboration avec un chercheur civil. Ameliore le coefficient de tir d\'une arme pour tout le pays.'},
           {fn:'recruter_section',   label:'Recompléter une section',    pa:2, cost:0,    type:'legal',   icon:'ti-user-plus',     successRate:100, requiresPost:'commandant', desc:'Recompléter une section anéantie. Les nouvelles recrues n\'ont aucune experience.'},
           {fn:'gerer_detachement',   label:'Gérer mon détachement',      pa:0, cost:0,    type:'legal',   icon:'ti-users',         successRate:100, requiresPost:'lieutenant', desc:'Deposer ou recuperer des soldats dans cette piece.'},
           {fn:'assigner_mission',    label:'Attribuer une mission',      pa:1, cost:0,    type:'legal',   icon:'ti-target',        successRate:100, requiresPost:'lieutenant', desc:'Donner une consigne au detachement present dans cette piece.'},

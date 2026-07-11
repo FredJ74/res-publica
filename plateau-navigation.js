@@ -195,6 +195,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
 
   // Verrou militaire : un detachement hostile peut bloquer/attaquer l'entree (verifie en parallele, sans bloquer l'affichage)
   if (typeof rafraichirCacheImmuniteMilitaire === 'function') rafraichirCacheImmuniteMilitaire().catch(() => {});
+  if (typeof verifierCouvreFeu === 'function') verifierCouvreFeu().catch(() => {});
+  if (typeof suivreEscorteAvecMoi === 'function') suivreEscorteAvecMoi(buildingId).catch(() => {});
   if (typeof verifierMissionMilitaireEntree === 'function') {
     const buildingPrecedent = state.currentBuilding, roomPrecedent = state.currentRoom;
     verifierMissionMilitaireEntree(buildingId, null).then(bloque => {

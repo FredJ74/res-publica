@@ -113,6 +113,7 @@ const MALUS_CENTRE_POUVOIR = 30;
 
 const PEINES_ACTES = {
   republic: {
+    violation_couvre_feu:     { jours: 1, amende: 200,  label: 'Violation du couvre-feu' },
     vol:                      { jours: 1, amende: 500,  label: 'Vol' },
     achat_arme_illegal:       { jours: 1, amende: 500,  label: "Achat d'arme non enregistree" },
     diffamation:              { jours: 1, amende: 500,  label: 'Diffamation' },
@@ -585,6 +586,9 @@ async function runMidnightUpdate() {
   await alimenterBudgets();
   if (typeof verifierEffetsEtDistributionFiscale === 'function') await verifierEffetsEtDistributionFiscale();
   if (typeof payerSoldeQuotidienne === 'function') await payerSoldeQuotidienne(state.country || 'republic').catch(() => {});
+  if (typeof verifierEffetsCouvreFeuQuotidien === 'function') await verifierEffetsCouvreFeuQuotidien(state.country || 'republic').catch(() => {});
+  if (typeof verifierRechercheMilitaireQuotidien === 'function') await verifierRechercheMilitaireQuotidien(state.country || 'republic').catch(() => {});
+  if (typeof verifierDesertionsQuotidien === 'function') await verifierDesertionsQuotidien(state.country || 'republic').catch(() => {});
   checkScandale();
   checkEffacementCrimes();
   payerInformateurs();

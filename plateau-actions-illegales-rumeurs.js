@@ -732,14 +732,15 @@ function confirmerAchatArme(armeId) {
   const arme = armes.find(a => a.id === armeId);
   if (!arme) return;
 
-  if (state.arg < arme.prix) {
-    showToast('Fonds insuffisants', arme.prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
+  const prixApplique = state.mobilisationNationaleCache ? Math.round(arme.prix / 2) : arme.prix;
+  if (state.arg < prixApplique) {
+    showToast('Fonds insuffisants', prixApplique.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
     return;
   }
 
-  state.arg -= arme.prix;
+  state.arg -= prixApplique;
   if (typeof appliquerTaxeTransaction === 'function' && typeof chargerEntreprise === 'function') {
-    appliquerTaxeTransaction(arme.prix).then(async ({ net }) => {
+    appliquerTaxeTransaction(prixApplique).then(async ({ net }) => {
       const id = getEntrepriseIdArmurerie(pays);
       const data = await chargerEntreprise(id, () => defautArmurerie(pays));
       data.caisse = (data.caisse || 0) + net;

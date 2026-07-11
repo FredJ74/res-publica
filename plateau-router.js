@@ -181,6 +181,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_poison_polonium')  { doAcheterPoisonObjet('polonium'); return; }
   if (fn === 'acheter_poison_vipere')    { doAcheterPoisonObjet('vipere'); return; }
   if (fn === 'officialiser_mariage') { ouvrirOfficialiserMariage(); return; }
+  if (fn === 'gerer_couvre_feu') { ouvrirGererCouvreFeu(); return; }
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
@@ -242,6 +243,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'equiper_section') { doEquiperSection(); return; }
   if (fn === 'demettre_lieutenant') { doDemettreLieutenant(); return; }
   if (fn === 'recruter_section') { ouvrirRecruterSection(); return; }
+  if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(); return; }
+  if (fn === 'requisition_civile') { ouvrirRequisitionCivile(); return; }
+  if (fn === 'se_presenter_affectation') { doSePresenterAffectation(); return; }
   if (fn === 'consulter_faits_armes') { ouvrirConsulterFaitsArmes(); return; }
   if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetCaserne(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(); return; }

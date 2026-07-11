@@ -3355,23 +3355,69 @@ function ouvrirModalNommerCommissaire() {
 }
 
 function ouvrirModalRenseignement() {
-  const contacts = state.contacts || [];
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
-  document.getElementById('postes-modal-title').textContent = 'Operation de renseignement';
-  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Cible : PJ suspect ou empire etranger ?</div>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EMPIRES</div>';
+  document.getElementById('postes-modal-title').textContent = 'Opération de renseignement militaire';
+  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Empire à espionner. Le taux de réussite dépend de votre localisation actuelle, de la Sécurité Nationale des deux camps, et de la Perception/Intelligence du Ministre.</div>';
   empires.forEach(([k, co]) => {
-    html += '<button onclick="executerOrdreEmpire(\'renseignement\',\'' + k + '\',\'' + co.n + '\')" style="display:flex;align-items:center;gap:.5rem;width:100%;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem"><i class="ti ' + co.icon + '" style="color:' + co.col + '"></i> ' + co.n + '</button>';
+    html += '<button onclick="confirmerRenseignement(\'' + k + '\',\'' + co.n.replace(/'/g,"\\'") + '\')" style="display:flex;align-items:center;gap:.5rem;width:100%;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem"><i class="ti ' + co.icon + '" style="color:' + co.col + '"></i> ' + co.n + '</button>';
   });
-  if (contacts.length > 0) {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">PJ SUSPECTS (repertoire)</div>';
-    contacts.forEach(c => {
-      html += '<button onclick="executerOrdreContact(\'renseignement_pj\',\'' + c.name + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">' + c.name + '</button>';
-    });
-  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerRenseignement(empireCible, nomCible) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const cout = 500;
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne', cout) : 0;
+  if (montantVerse < cout) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de l\'opération (' + cout + ' FR).', false); return; }
+
+  const base = state.country === empireCible ? 30 : 45; // en territoire de la cible = plus risque, sur son propre territoire = plus sur
+  const bonus = (INDICES_NATIONAUX[pays]?.ISN || 0) / 10 + ((state.per || 0) + (state.int || 0)) / 10;
+  const malus = (INDICES_NATIONAUX[empireCible]?.ISN || 0) / 10;
+  const tauxFinal = Math.max(5, Math.min(95, Math.round(base + bonus - malus)));
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll > tauxFinal) {
+    showToast('Opération échouée', 'Aucune information exploitable n\'a pu être obtenue sur ' + nomCible + ' (taux : ' + tauxFinal + '%).', false);
+    addJournalEntry('Opération de renseignement ratée contre ' + nomCible + '.', 'event-bad');
+    return;
+  }
+
+  // Choisir une section adverse au hasard et en reveler la moitie (12 matricules), + indices de son lieutenant
+  const compagniesCible = await sbGetCompagnies(empireCible).catch(() => []);
+  const sectionsPourvues = [];
+  compagniesCible.forEach(c => (c.sections||[]).forEach(s => { if (s.lieutenantNom && s.soldats.length > 0) sectionsPourvues.push(s); }));
+
+  if (sectionsPourvues.length === 0) {
+    showToast('Opération réussie', 'Aucune section ennemie identifiable pour l\'instant (taux : ' + tauxFinal + '%).', true, true);
+    return;
+  }
+  const section = sectionsPourvues[Math.floor(Math.random() * sectionsPourvues.length)];
+  const demiSection = [...section.soldats].sort(() => Math.random() - 0.5).slice(0, 12);
+
+  let lieutenantIndices = null;
+  if (typeof sbGet === 'function') {
+    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(section.lieutenantNom)}&select=per,int`).catch(() => []);
+    lieutenantIndices = rows?.[0] || null;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Rapport de renseignement — ' + nomCible;
+  let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Section identifiée, Lieutenant ' + section.lieutenantNom + '. Renseignement obtenu (taux : ' + tauxFinal + '%).</div>';
+  if (lieutenantIndices) html += '<div style="font-size:.8rem;color:#e0d5b8;margin-bottom:.6rem">Indices du Lieutenant — Perception : ' + (lieutenantIndices.per??'?') + ' · Intelligence : ' + (lieutenantIndices.int??'?') + '</div>';
+  demiSection.forEach(s => {
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.35rem;font-size:.75rem">';
+    html += '<div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
+    html += '<div style="color:#a89870">FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  addJournalEntry('Opération de renseignement réussie contre ' + nomCible + '.', 'event-good');
 }
 
 function ouvrirModalMedia() {
@@ -4709,6 +4755,8 @@ async function rafraichirCacheImmuniteMilitaire() {
     const det = await getAffichageDetachementPiece(state.country || 'republic', state.currentBuilding, state.currentRoom).catch(() => null);
     state.malusSecuriteMilitaire = (det?.mission === 'securiser') ? Math.min(40, 10 + det.nombre) : 0;
   }
+  const budgetNat = await chargerBudgetNational(state.country || 'republic').catch(() => null);
+  state.mobilisationNationaleCache = !!budgetNat?.mobilisationNationaleActive;
 }
 
 // Verifie si un detachement hostile bloque/attaque l'entree d'un joueur. Retourne true si l'entree doit etre annulee.
@@ -4896,11 +4944,19 @@ async function confirmerEquipementSection(compagnieId, sectionId, arme) {
 }
 
 // ---- COMBAT AUTOMATIQUE ENTRE TROUPES DE PAYS EN GUERRE ----
-function calculerPointsGroupe(soldats) {
+function calculerPointsGroupe(soldats, coefsArmes) {
+  const coefs = coefsArmes || COEF_ARME_MILITAIRE;
   const force = soldats.reduce((s, sol) => s + sol.formation.force, 0);
-  const tir = soldats.reduce((s, sol) => s + sol.formation.tir * (COEF_ARME_MILITAIRE[sol.arme] || 1), 0);
+  const tir = soldats.reduce((s, sol) => s + sol.formation.tir * (coefs[sol.arme] || 1), 0);
   const endurance = soldats.reduce((s, sol) => s + sol.formation.endurance, 0);
   return { force, tir, endurance, points: force * 3 + tir };
+}
+
+async function getCoefsArmesPays(pays) {
+  const coefs = { ...COEF_ARME_MILITAIRE };
+  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
+  Object.entries(budgetNat?.coefficientsArmesAcquis || {}).forEach(([arme, bonus]) => { coefs[arme] = (coefs[arme]||1) + bonus; });
+  return coefs;
 }
 
 // A appeler apres tout depot de troupes dans une piece (deposerSoldats) : verifie une rencontre hostile et resout le combat
@@ -4931,11 +4987,13 @@ async function verifierCombatAutomatique(buildingId, roomId) {
 
 async function resoudreCombat(A, B) {
   let soldatsA = [...A.presents], soldatsB = [...B.presents];
+  const coefsA = await getCoefsArmesPays(A.pays);
+  const coefsB = await getCoefsArmesPays(B.pays);
   let round = 0;
   while (soldatsA.length > 0 && soldatsB.length > 0 && round < 100) {
     round++;
-    const ptsA = calculerPointsGroupe(soldatsA);
-    const ptsB = calculerPointsGroupe(soldatsB);
+    const ptsA = calculerPointsGroupe(soldatsA, coefsA);
+    const ptsB = calculerPointsGroupe(soldatsB, coefsB);
 
     // Degats : mes points de groupe = dommages infliges au PA adverse
     const paTotalA = soldatsA.reduce((s, sol) => s + sol.pa, 0) - ptsB.points;
@@ -5062,4 +5120,289 @@ async function ouvrirConsulterFaitsArmes() {
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+}
+
+// =====================
+// COUVRE-FEU — 20h-6h, 2 jours max, exemption militaires/requisitionnes
+// =====================
+async function ouvrirGererCouvreFeu() {
+  if (state.poste?.id !== 'min_int') { showToast('Réservé au Ministre de l\'Intérieur', '', false); return; }
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  const cf = budgetNat.couvreFeu;
+
+  document.getElementById('postes-modal-title').textContent = 'Couvre-feu';
+  let html = '<div style="padding:1rem">';
+  if (cf?.actif) {
+    html += '<div style="font-size:.85rem;color:#cc4444;margin-bottom:.8rem">Couvre-feu actif (20h-6h) jusqu\'au Jour ' + cf.jourFin + '.</div>';
+    html += '<button onclick="confirmerCouvreFeu(false)" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;padding:.5rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Lever le couvre-feu</button>';
+  } else {
+    html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Actif de 20h à 6h, 2 jours maximum. Dégrade IS et POP du gouvernement chaque jour tant qu\'il dure. Militaires et civils réquisitionnés en sont exemptés.</div>';
+    html += '<button onclick="confirmerCouvreFeu(true)" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Instaurer le couvre-feu</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerCouvreFeu(activer) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  if (activer) {
+    budgetNat.couvreFeu = { actif: true, jourDebut: state.day || 1, jourFin: (state.day || 1) + 2 };
+    await sbSaveBudgetNational(pays, budgetNat);
+    showToast('Couvre-feu instauré', '20h-6h, jusqu\'au Jour ' + budgetNat.couvreFeu.jourFin + '.', false, true);
+    addExternalEvent('🌙 COUVRE-FEU instauré par le Ministère de l\'Intérieur, de 20h à 6h.');
+  } else {
+    budgetNat.couvreFeu = { actif: false };
+    await sbSaveBudgetNational(pays, budgetNat);
+    showToast('Couvre-feu levé', '', true, true);
+    addExternalEvent('🌙 Le couvre-feu est levé.');
+  }
+}
+
+// Verifie si le joueur est exempte de couvre-feu (militaire ou civil requisitionne)
+function estExempteCouvreFeu() {
+  if (['lieutenant', 'capitaine', 'commandant', 'min_def'].includes(state.poste?.id)) return true;
+  if (state.char?.requisition?.statut === 'convoque' || state.char?.requisition?.statut === 'affecte') return true;
+  return false;
+}
+
+// A appeler a chaque changement de batiment : verifie et applique une eventuelle violation de couvre-feu
+async function verifierCouvreFeu() {
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
+  if (!budgetNat?.couvreFeu?.actif) return;
+  if (state.day > budgetNat.couvreFeu.jourFin) {
+    budgetNat.couvreFeu.actif = false;
+    await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
+    return;
+  }
+  const heure = state.hour ?? 12;
+  const enCouvreFeu = heure >= 20 || heure < 6;
+  if (!enCouvreFeu || estExempteCouvreFeu()) return;
+
+  const chancePatrouille = 0.45;
+  if (Math.random() < chancePatrouille) {
+    const recidive = state.char?.violationsCouvreFeu > 0;
+    state.char.violationsCouvreFeu = (state.char?.violationsCouvreFeu || 0) + 1;
+    const dureeHeures = recidive ? 24 : null; // null = jusqu'a la fin du couvre-feu (6h)
+    if (typeof procederArrestation === 'function') {
+      showToast('Interpellé(e) !', 'Violation du couvre-feu' + (recidive ? ' (récidive, 24h de détention)' : ' (jusqu\'à la fin du couvre-feu)') + '.', false);
+      procederArrestation('violation_couvre_feu', false, false);
+    }
+  }
+}
+
+// Applique la degradation quotidienne d'IS/POP tant que le couvre-feu est actif
+async function verifierEffetsCouvreFeuQuotidien(pays) {
+  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
+  if (!budgetNat?.couvreFeu?.actif) return;
+  if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 3);
+  const postesGouv = ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'];
+  for (const posteId of postesGouv) {
+    const nom = await getTitulairePoste(posteId, null, pays);
+    if (!nom) continue;
+    if (nom === state.char?.name) { state.pop = Math.max(0, (state.pop||0) - 2); }
+    else if (typeof sbGet === 'function') {
+      const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=pop`).catch(() => []);
+      const pop = rows?.[0]?.pop ?? 50;
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { pop: Math.max(0, pop - 2) }).catch(() => {});
+    }
+  }
+  updateUI();
+}
+
+// =====================
+// RECHERCHE MILITAIRE — commanditee par le Commandant, associe un chercheur civil PNJ (en attendant l'universite)
+// =====================
+const DUREE_RECHERCHE_JOURS = 3;
+const COUT_RECHERCHE = 8000;
+const GAIN_COEF_RECHERCHE = 0.5;
+
+async function ouvrirRechercheMilitaire() {
+  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  const enCours = budgetNat.rechercheMilitaire?.enCours;
+
+  document.getElementById('postes-modal-title').textContent = 'Recherche militaire';
+  let html = '<div style="padding:1rem">';
+  if (enCours) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Recherche en cours sur : <strong style="color:#C9A84C">' + enCours.arme + '</strong>, achèvement Jour ' + enCours.jourFin + '.</div>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">En collaboration avec un chercheur civil, améliore durablement le coefficient de tir d\'un type d\'arme pour tout le pays. ' + DUREE_RECHERCHE_JOURS + ' jours, ' + COUT_RECHERCHE.toLocaleString('fr-FR') + ' FR (caisse de la caserne).</div>';
+    const armes = [{id:'corps_a_corps',label:'Corps à corps'},{id:'arme_de_poing',label:'Arme de poing'},{id:'mitraillette',label:'Mitraillette'}];
+    armes.forEach(a => {
+      html += '<button onclick="confirmerRechercheMilitaire(\'' + a.id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + a.label + '</button>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerRechercheMilitaire(arme) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'caserne', COUT_RECHERCHE);
+  if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de la recherche.', false); return; }
+
+  const budgetNat = await chargerBudgetNational(pays);
+  budgetNat.rechercheMilitaire = { enCours: { arme, jourDebut: state.day, jourFin: state.day + DUREE_RECHERCHE_JOURS } };
+  await sbSaveBudgetNational(pays, budgetNat);
+  showToast('Recherche lancée', 'Un chercheur civil rejoint l\'effort. Achèvement dans ' + DUREE_RECHERCHE_JOURS + ' jours.', true, true);
+  addJournalEntry('Recherche militaire lancée sur : ' + arme + ' (-' + COUT_RECHERCHE + ' FR).', 'event-info');
+  addExternalEvent('🔬 Le chercheur civil Prof. ' + PRENOMS_CHERCHEUR_MIL[Math.floor(Math.random()*PRENOMS_CHERCHEUR_MIL.length)] + ' rejoint l\'effort de recherche militaire.');
+}
+
+const PRENOMS_CHERCHEUR_MIL = ['Adalbert Cossinus', 'Hortense Ballistik', 'Théodule Percussion'];
+
+// Retourne le coefficient de tir actuel d'une arme pour un pays (defaut + ameliorations acquises)
+async function getCoefArmeMilitaire(pays, arme) {
+  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
+  const bonus = budgetNat?.coefficientsArmesAcquis?.[arme] || 0;
+  return (COEF_ARME_MILITAIRE[arme] || 1) + bonus;
+}
+
+// Verifie chaque jour si une recherche militaire en cours est terminee
+async function verifierRechercheMilitaireQuotidien(pays) {
+  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
+  const enCours = budgetNat?.rechercheMilitaire?.enCours;
+  if (!enCours || state.day < enCours.jourFin) return;
+
+  if (!budgetNat.coefficientsArmesAcquis) budgetNat.coefficientsArmesAcquis = {};
+  budgetNat.coefficientsArmesAcquis[enCours.arme] = (budgetNat.coefficientsArmesAcquis[enCours.arme] || 0) + GAIN_COEF_RECHERCHE;
+  budgetNat.rechercheMilitaire.enCours = null;
+  await sbSaveBudgetNational(pays, budgetNat);
+  addExternalEvent('🔬 Recherche militaire achevée : le coefficient de tir de "' + enCours.arme + '" est amélioré pour toute la nation.');
+  const commandantNom = await getTitulairePoste('commandant', null, pays);
+  if (commandantNom && typeof sbSendMail === 'function') sbSendMail('Chercheurs Civils', commandantNom, 'Recherche achevée', 'Le programme de recherche sur "' + enCours.arme + '" est terminé. Coefficient amélioré.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+}
+
+// Deplace automatiquement les soldats d'une section en mission "escorter" quand leur protege change de batiment
+async function suivreEscorteAvecMoi(nouveauBuildingId) {
+  const moi = state.char?.name;
+  if (!moi) return;
+  const pays = state.country || 'republic';
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  for (const c of compagnies) {
+    for (const s of (c.sections || [])) {
+      if (s.mission === 'escorter' && s.cibleEscorte === moi && s.soldats.length > 0) {
+        const premiereRoom = Object.keys(BUILDINGS[nouveauBuildingId]?.rooms || {})[0] || null;
+        s.soldats.forEach(sol => { sol.buildingId = nouveauBuildingId; sol.roomId = premiereRoom; });
+        await sbSaveCompagnie(c.id, c);
+      }
+    }
+  }
+}
+
+// =====================
+// REQUISITION CIVILE — loterie aleatoire, doublement d'effectif, desertion publique
+// =====================
+const DELAI_REQUISITION_HEURES = 48;
+
+async function ouvrirRequisitionCivile() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  if (!budgetNat.mobilisationNationaleActive) { showToast('Aucune mobilisation nationale active', 'La réquisition n\'est possible que pendant une mobilisation nationale.', false); return; }
+
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  const sections = [];
+  compagnies.forEach(c => (c.sections||[]).forEach(s => { if (s.lieutenantNom && !s.civilsRequisitionnes?.length) sections.push({ compagnieId: c.id, section: s }); }));
+
+  document.getElementById('postes-modal-title').textContent = 'Réquisition civile';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Tire au sort 24 citoyens domiciliés parmi toute la population pour doubler l\'effectif de la section choisie. Absence après ' + DELAI_REQUISITION_HEURES + 'h ⇒ statut de déserteur, public et recherché.</div>';
+  if (sections.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune section éligible (déjà réquisitionnée, ou aucune section pourvue).</div>';
+  } else {
+    sections.forEach(s => {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem">';
+      html += '<span style="font-size:.85rem;color:#e0d5b8">Section ' + s.section.numero + ' (Lt. ' + s.section.lieutenantNom + ')</span>';
+      html += '<button onclick="confirmerRequisitionCivile(\'' + s.compagnieId + '\',\'' + s.section.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Réquisitionner</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerRequisitionCivile(compagnieId, sectionId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  if (!section) return;
+
+  let civils = [];
+  if (typeof sbListPersonnages === 'function') {
+    const tous = await sbListPersonnages().catch(() => []);
+    civils = tous.filter(j => (j.domicile?.country || j.country) === pays && !['lieutenant','capitaine','commandant','min_def','president','pm','min_int','min_fin','min_just','min_info','min_ae','maire'].includes(j.poste?.id));
+  }
+  const tires = [...civils].sort(() => Math.random() - 0.5).slice(0, 24);
+  const deadline = Date.now() + DELAI_REQUISITION_HEURES * 3600000;
+
+  section.civilsRequisitionnes = tires.map(c => ({ nom: c.name, statut: 'convoque', deadline }));
+  await sbSaveCompagnie(compagnieId, compagnie);
+
+  for (const c of tires) {
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ministère de la Défense', c.name, 'CONVOCATION — Réquisition civile',
+        'Vous êtes réquisitionné(e) pour rejoindre la Section ' + section.numero + ' (Lt. ' + section.lieutenantNom + ') dans le cadre de la mobilisation nationale. Présentez-vous sous ' + DELAI_REQUISITION_HEURES + 'h, faute de quoi vous serez déclaré(e) déserteur(se).',
+        typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    }
+    if (typeof sbUpdate === 'function') {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(c.name)}`, {
+        requisition: JSON.stringify({ compagnieId, sectionId, deadline, statut: 'convoque' })
+      }).catch(() => {});
+    }
+  }
+  showToast('Réquisition lancée', '24 citoyens tirés au sort et convoqués.', true, true);
+  addExternalEvent('📯 Réquisition civile : 24 citoyens ont été convoqués pour renforcer la Section ' + section.numero + '.');
+}
+
+// Le civil convoque se presente a son affectation (doit etre physiquement a la caserne, avant le delai)
+async function doSePresenterAffectation() {
+  const req = state.char?.requisition ? (typeof state.char.requisition === 'string' ? JSON.parse(state.char.requisition) : state.char.requisition) : null;
+  if (!req || req.statut !== 'convoque') { showToast('Aucune convocation en attente', '', false); return; }
+  if (Date.now() > req.deadline) { showToast('Trop tard', 'Le délai de présentation est dépassé.', false); return; }
+  if (state.currentBuilding !== 'caserne') { showToast('Présentez-vous à la caserne', '', false); return; }
+
+  const pays = state.country || 'republic';
+  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === req.compagnieId);
+  const section = compagnie?.sections.find(s => s.id === req.sectionId);
+  const entree = section?.civilsRequisitionnes?.find(c => c.nom === state.char.name);
+  if (entree) entree.statut = 'affecte';
+  if (compagnie) await sbSaveCompagnie(req.compagnieId, compagnie);
+
+  req.statut = 'affecte';
+  state.char.requisition = req;
+  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char.name)}`, { requisition: JSON.stringify(req) }).catch(() => {});
+  showToast('Affectation confirmée', 'Vous rejoignez la Section ' + (section?.numero||'?') + ' pour la durée de la mobilisation.', true, true);
+  addJournalEntry('Présenté(e) à mon affectation militaire (réquisition civile).', 'event-good');
+}
+
+// Verifie chaque jour les convocations expirees non honorees ⇒ desertion publique
+async function verifierDesertionsQuotidien(pays) {
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  for (const c of compagnies) {
+    for (const s of (c.sections || [])) {
+      for (const entree of (s.civilsRequisitionnes || [])) {
+        if (entree.statut === 'convoque' && Date.now() > entree.deadline) {
+          entree.statut = 'deserteur';
+          await sbSaveCompagnie(c.id, c);
+          if (typeof sbUpdate === 'function') {
+            await sbUpdate('personnages', `name=eq.${encodeURIComponent(entree.nom)}`, {
+              requisition: JSON.stringify({ compagnieId: c.id, sectionId: s.id, statut: 'deserteur' })
+            }).catch(() => {});
+          }
+          addExternalEvent('🚨 ' + entree.nom + ' a été déclaré(e) DÉSERTEUR(SE) pour ne pas s\'être présenté(e) à sa réquisition.');
+        }
+      }
+    }
+  }
 }
