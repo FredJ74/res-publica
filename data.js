@@ -2913,6 +2913,18 @@ const BUILDINGS = {
           {fn:'acheter_bombe_illegale', label:'Subtiliser des explosifs',     pa:2, cost:0,   type:'illegal', icon:'ti-eye-off',   successRate:35,  desc:'Taux 35%. Echec partiel : -30 HP. Echec critique : -80 HP + alerte.'}
         ]
       },
+      salle_faits_armes: {
+        name: "Salle des Faits d'Armes",
+        imageBg: "linear-gradient(135deg,#0a0806,#14100a)",
+        desc: "Les trophees et etendards des sections. Chaque numero de section porte la memoire de ses combats, transmise d'un lieutenant a l'autre.",
+        imageUrl: "https://images.unsplash.com/photo-1569163139394-de44cb5894c8?w=1200&q=80",
+        persons: [
+          {name:'Archiviste Militaire (PNJ)', role:'PNJ - Gardien de la memoire', rel:'neutral', job:'archiviste_mil'}
+        ],
+        orders: [
+          {fn:'consulter_faits_armes', label:'Consulter les faits d\'armes', pa:0, cost:0, type:'legal', icon:'ti-medal', successRate:100, desc:'L\'histoire des combats menes par chaque section.'}
+        ]
+      },
       quartier_troupes: {
         name: "Quartier des Troupes",
         imageBg: "linear-gradient(135deg,#080a08,#0f120a)",

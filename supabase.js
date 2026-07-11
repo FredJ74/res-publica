@@ -749,6 +749,18 @@ async function sbGetCompagnies(pays) {
   return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
 }
 
+async function sbCreerFaitArmes(data) {
+  const id = 'combat-' + Date.now();
+  await sbInsert('faits_armes', { id, data });
+  return id;
+}
+
+async function sbGetFaitsArmes() {
+  const rows = await sbGet('faits_armes', 'select=id,data&order=created_at.desc&limit=30');
+  if (!rows) return [];
+  return rows.map(r => ({ id: r.id, ...r.data }));
+}
+
 async function sbSaveCompagnie(id, data) {
   const existing = await sbGet('compagnies_militaires', `id=eq.${encodeURIComponent(id)}`);
   if (existing && existing.length > 0) return sbUpdate('compagnies_militaires', `id=eq.${encodeURIComponent(id)}`, { data });

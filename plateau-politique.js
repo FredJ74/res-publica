@@ -4979,6 +4979,15 @@ async function resoudreCombat(A, B) {
     : soldatsA.length === 0 ? (COUNTRIES[B.pays]?.n||B.pays) + ' l\'emporte' : (COUNTRIES[A.pays]?.n||A.pays) + ' l\'emporte';
 
   addExternalEvent('⚔️ COMBAT : affrontement entre les troupes de ' + (COUNTRIES[A.pays]?.n||A.pays) + ' et ' + (COUNTRIES[B.pays]?.n||B.pays) + ' — ' + resultat + ' (' + round + ' rounds).');
+
+  if (typeof sbCreerFaitArmes === 'function') {
+    await sbCreerFaitArmes({
+      jour: state.day || 1,
+      campA: { pays: A.pays, sectionId: A.section.id, lieutenantNom: A.section.lieutenantNom, effectifEngage: A.presents.length, pertes: matriculesMortsA.length },
+      campB: { pays: B.pays, sectionId: B.section.id, lieutenantNom: B.section.lieutenantNom, effectifEngage: B.presents.length, pertes: matriculesMortsB.length },
+      resultat, rounds: round
+    }).catch(() => {});
+  }
   if (A.section.lieutenantNom && typeof sbSendMail === 'function') sbSendMail('État-Major', A.section.lieutenantNom, 'Rapport de combat', resultat + '. Pertes : ' + matriculesMortsA.length + ' soldats.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
   if (B.section.lieutenantNom && typeof sbSendMail === 'function') sbSendMail('État-Major', B.section.lieutenantNom, 'Rapport de combat', resultat + '. Pertes : ' + matriculesMortsB.length + ' soldats.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
 
@@ -5021,4 +5030,36 @@ async function confirmerDemissionLieutenant(compagnieId, sectionId) {
   await sbSaveCompagnie(compagnieId, compagnie);
   showToast('Lieutenant démis', ancien + ' n\'est plus en poste.', false, true);
   addJournalEntry(ancien + ' démis de son poste de Lieutenant.', 'event-bad');
+}
+
+// ---- SALLE DES FAITS D'ARMES — met en scene les meilleurs combats, section par section ----
+async function ouvrirConsulterFaitsArmes() {
+  document.getElementById('postes-modal-title').textContent = "Salle des Faits d'Armes";
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement des archives...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const combats = typeof sbGetFaitsArmes === 'function' ? await sbGetFaitsArmes().catch(() => []) : [];
+
+  let html = '<div style="padding:1rem;max-height:65vh;overflow-y:auto">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Le numéro de section porte la mémoire de ses batailles, transmise d\'un lieutenant à l\'autre au fil des affectations.</div>';
+
+  if (combats.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun combat consigné pour l\'instant. Que l\'Histoire commence.</div>';
+  } else {
+    // Trie par ampleur (effectif engage + pertes) pour mettre en avant les batailles marquantes
+    const tries = [...combats].sort((a, b) =>
+      (b.campA.effectifEngage + b.campB.effectifEngage + b.campA.pertes + b.campB.pertes) -
+      (a.campA.effectifEngage + a.campB.effectifEngage + a.campA.pertes + a.campB.pertes)
+    );
+    tries.forEach(c => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.6rem">';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#C9A84C;letter-spacing:.06em;margin-bottom:.3rem">JOUR ' + c.jour + ' — ' + c.rounds + ' ROUNDS</div>';
+      html += '<div style="font-size:.82rem;color:#e0d5b8;margin-bottom:.3rem">' + (COUNTRIES[c.campA.pays]?.n||c.campA.pays) + ' (Section ' + c.campA.sectionId.split('-').pop() + ', Lt. ' + (c.campA.lieutenantNom||'?') + ') vs ' + (COUNTRIES[c.campB.pays]?.n||c.campB.pays) + ' (Section ' + c.campB.sectionId.split('-').pop() + ', Lt. ' + (c.campB.lieutenantNom||'?') + ')</div>';
+      html += '<div style="font-size:.75rem;color:#a89870">Effectifs engagés : ' + c.campA.effectifEngage + ' vs ' + c.campB.effectifEngage + ' · Pertes : ' + c.campA.pertes + ' / ' + c.campB.pertes + '</div>';
+      html += '<div style="font-size:.78rem;color:#6ab858;margin-top:.3rem">' + c.resultat + '</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
 }

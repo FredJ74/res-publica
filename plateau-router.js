@@ -242,6 +242,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'equiper_section') { doEquiperSection(); return; }
   if (fn === 'demettre_lieutenant') { doDemettreLieutenant(); return; }
   if (fn === 'recruter_section') { ouvrirRecruterSection(); return; }
+  if (fn === 'consulter_faits_armes') { ouvrirConsulterFaitsArmes(); return; }
   if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetCaserne(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
   if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
