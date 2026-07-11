@@ -4524,7 +4524,7 @@ async function getAffichageDetachementPiece(pays, buildingId, roomId) {
   for (const c of compagnies) {
     for (const s of (c.sections || [])) {
       const d = s.detachements.find(dd => dd.buildingId === buildingId && dd.roomId === roomId && dd.nombre > 0);
-      if (d) return { nom: 'Soldats section "' + (s.lieutenantNom || '?') + '"', nombre: d.nombre, mission: d.mission, sectionId: s.id, compagnieId: c.id };
+      if (d) return { nom: 'Soldats section "' + (s.lieutenantNom || '?') + '"', lieutenantNom: s.lieutenantNom, nombre: d.nombre, mission: d.mission, sectionId: s.id, compagnieId: c.id };
     }
   }
   return null;
@@ -4605,6 +4605,12 @@ async function confirmerMobilisation() {
   Object.keys(INDICES_NATIONAUX).forEach(p => { if (p !== pays) INDICES_NATIONAUX[p].ID = Math.max(0, INDICES_NATIONAUX[p].ID - 5); });
   updateUI();
 
+  if (empireCible === pays) {
+    const budgetNat = await chargerBudgetNational(pays);
+    budgetNat.mobilisationNationaleActive = true;
+    await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
+  }
+
   const commandantNom = await getTitulairePoste('commandant');
   if (commandantNom && typeof sbSendMail === 'function') {
     await sbSendMail('Ministère de la Défense', commandantNom, 'ORDRE DE MOBILISATION — CONFIDENTIEL',
@@ -4624,11 +4630,25 @@ async function confirmerMobilisation() {
 async function estImmuniteMilitaire() {
   const posteId = state.poste?.id;
   if (!['lieutenant', 'capitaine', 'commandant'].includes(posteId)) return false;
-  const pays = state.country || 'republic';
-  const guerres = await sbGetGuerresPays(pays).catch(() => []);
-  const enGuerreIci = guerres.some(g => g.statut === 'active' && (g.attaquant === state.currentCountry || g.attaque === state.currentCountry));
-  const territoireNational = state.currentCountry === pays; // mobilisation nationale
-  return enGuerreIci || territoireNational;
+  const monEmpire = state.domicile?.country || state.country || 'republic'; // l'empire dont je sers l'armee
+  const iciEmpire = state.country || 'republic'; // le territoire ou je me trouve physiquement en ce moment
+  const guerres = await sbGetGuerresPays(monEmpire).catch(() => []);
+  const enGuerreIci = guerres.some(g => g.statut === 'active' && (
+    (g.attaquant === monEmpire && g.attaque === iciEmpire) || (g.attaque === monEmpire && g.attaquant === iciEmpire)
+  ));
+  const budgetNat = await chargerBudgetNational(monEmpire).catch(() => null);
+  const mobilisationNationale = iciEmpire === monEmpire && budgetNat?.mobilisationNationaleActive;
+  return enGuerreIci || !!mobilisationNationale;
+}
+
+// Rafraichit le cache synchrone d'immunite, consulte par procederArrestation (qui n'est pas asynchrone)
+async function rafraichirCacheImmuniteMilitaire() {
+  state.immuniteMilitaireActuelle = await estImmuniteMilitaire().catch(() => false);
+  // Malus "securiser" applicable dans la piece courante (cache pour un usage synchrone dans doOrder)
+  if (typeof getAffichageDetachementPiece === 'function') {
+    const det = await getAffichageDetachementPiece(state.country || 'republic', state.currentBuilding, state.currentRoom).catch(() => null);
+    state.malusSecuriteMilitaire = (det?.mission === 'securiser') ? Math.min(40, 10 + det.nombre) : 0;
+  }
 }
 
 // Verifie si un detachement hostile bloque/attaque l'entree d'un joueur. Retourne true si l'entree doit etre annulee.
@@ -4643,6 +4663,11 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
   if (det.mission === 'bloquer_acces') {
     showToast('Accès bloqué', 'Un détachement militaire (' + det.nombre + ' soldats) interdit l\'accès.', false);
     return true;
+  }
+  if (det.mission === 'surveiller' && det.lieutenantNom && typeof sbSendMail === 'function') {
+    sbSendMail('Détachement militaire', det.lieutenantNom, 'Rapport de surveillance',
+      (state.char?.name || 'Une personne') + ' a été vue dans la zone surveillée.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    return false;
   }
   if (det.mission === 'assassiner' || det.mission === 'arreter') {
     const chance = Math.min(90, 30 + det.nombre * 2); // plus le detachement est nombreux, plus le jet est favorable aux soldats

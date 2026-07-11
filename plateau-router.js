@@ -288,7 +288,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   }
 
   const roll = Math.floor(Math.random() * 100) + 1;
-  const effectiveRate = successRate >= 98 ? 99 : successRate;
+  const malusSecurite = state.malusSecuriteMilitaire || 0;
+  const effectiveRate = Math.max(5, (successRate >= 98 ? 99 : successRate) - malusSecurite);
   let resultType;
   if (roll <= 100 - effectiveRate) { resultType = 'crit-fail'; }
   else if (roll <= 100 - (effectiveRate * 0.7)) { resultType = 'fail'; }

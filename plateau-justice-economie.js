@@ -693,6 +693,11 @@ function tenterCorruptionArrestation(peineType, cout, taux) {
 }
 
 function procederArrestation(acte, resistanceAggravante, demasque) {
+  if (state.immuniteMilitaireActuelle) {
+    showToast('Immunité militaire', 'En tant que militaire déployé en zone de guerre ou de mobilisation nationale, vous ne pouvez pas être poursuivi(e) pour cet acte.', true);
+    addJournalEntry('Immunité militaire invoquée — aucune poursuite pour : ' + (ACTES_ILLEGAUX[acte]?.label || acte) + '.', 'event-info');
+    return;
+  }
   const peineCalc = getPeineParActe(acte, demasque);
   const jours = peineCalc.jours + (resistanceAggravante ? 2 : 0);
   const amende = peineCalc.amende;
