@@ -2831,7 +2831,7 @@ async function confirmerPropositionGrace(idx) {
 
   const pays = state.country || 'republic';
   const cout = 300;
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'palais-gouvernement', cout) : 0;
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_just', cout) : 0;
   if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).', false); return; }
 
   await sbCreerDemandeGrace({ pays, nomCondamne: condamne.nom, raison: condamne.raison, jourFin: condamne.jourFin, proposePar: state.char?.name });
@@ -3050,7 +3050,7 @@ async function executerOrdreFiscalCible(action, typeCible, idCible) {
     document.getElementById('modal-postes')?.classList.remove('open');
     const pays = state.country || 'republic';
     const cout = 400;
-    const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'palais-gouvernement', cout) : 0;
+    const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_just', cout) : 0;
     if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais d\'enquête (' + cout + ' FR).', false); return; }
 
     const reussite = Math.random() < 0.9;
@@ -3101,7 +3101,7 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   const nomCible = nomAffichageCible(typeCible, idCible);
   const pays = state.country || 'republic';
 
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'palais-gouvernement', montant) : 0;
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant) : 0;
   if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
 
   await ajusterSoldeCibleFiscale(typeCible, idCible, montantVerse);
@@ -3191,7 +3191,7 @@ function executerOrdreContact(action, nomCible) {
     const pays = state.country || 'republic';
     (async () => {
       const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function'
-        ? await debiterCaisseBatimentPlafonne(pays, 'palais-gouvernement', montant)
+        ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant)
         : 0;
       if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
       if (typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(nomCible, montantVerse).catch(() => {});
@@ -3306,7 +3306,7 @@ async function annulerAffaire(refId, mode) {
     if (affaire) {
       const pays = state.country || 'republic';
       const cout = 250;
-      const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'palais-gouvernement', cout) : 0;
+      const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_just', cout) : 0;
       if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).', false); return; }
 
       affaire.status = 'annulee';

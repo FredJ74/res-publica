@@ -391,8 +391,12 @@ function enterRoom(buildingId, roomId, tabEl) {
     displayDesc += ' — En convalescence. Temps restant estimé : ' + joursRestants + ' jour(s).';
   }
   document.getElementById('piece-desc').textContent = displayDesc;
-  const ROOMS_AVEC_CAISSE = { 'palais-presidentiel': 'palais-presidentiel', 'palais-gouvernement': 'palais-gouvernement', 'mairie-capitale': 'mairie-capitale', 'caserne': 'caserne' };
-  const caisseBuildingId = ROOMS_AVEC_CAISSE[buildingId] || (buildingId === 'stade' && roomId === 'buvette' ? 'stade-buvette' : null);
+  const ROOMS_AVEC_CAISSE_SPECIFIQUE = {
+    'bureaux': 'gouvernement-pm', 'bureau_min_int': 'gouvernement-min_int', 'bureau_min_fin': 'gouvernement-min_fin',
+    'bureau_min_just': 'gouvernement-min_just', 'bureau_min_info': 'gouvernement-min_info', 'bureau_min_ae': 'gouvernement-min_ae'
+  };
+  const ROOMS_AVEC_CAISSE = { 'palais-presidentiel': 'palais-presidentiel', 'mairie-capitale': 'mairie-capitale', 'caserne': 'caserne' };
+  const caisseBuildingId = (buildingId === 'palais-gouvernement' ? ROOMS_AVEC_CAISSE_SPECIFIQUE[roomId] : null) || ROOMS_AVEC_CAISSE[buildingId] || (buildingId === 'stade' && roomId === 'buvette' ? 'stade-buvette' : null);
   if (caisseBuildingId && typeof chargerCaisseBatiment === 'function') {
     chargerCaisseBatiment(state.country || 'republic', caisseBuildingId).then(c => {
       const el = document.getElementById('piece-desc');

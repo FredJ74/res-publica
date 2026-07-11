@@ -2537,17 +2537,19 @@ const SALAIRES_POLITIQUES = {
 };
 
 const CAISSE_BATIMENT_POSTE = {
-  president: 'palais-presidentiel', pm: 'palais-gouvernement',
-  min_int: 'palais-gouvernement', min_fin: 'palais-gouvernement', min_just: 'palais-gouvernement',
-  min_def: 'caserne', min_info: 'palais-gouvernement', min_ae: 'palais-gouvernement',
+  president: 'palais-presidentiel', pm: 'gouvernement-pm',
+  min_int: 'gouvernement-min_int', min_fin: 'gouvernement-min_fin', min_just: 'gouvernement-min_just',
+  min_def: 'caserne', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae',
   maire: 'mairie-capitale'
 };
 
 // Part quotidienne de la reserve fiscale (dailyTaxRevenue + taxes accumulees) attribuee a chaque caisse publique
-const REPARTITION_CAISSES_PUBLIQUES = {
-  'palais-presidentiel': 0.20,
-  'palais-gouvernement': 0.35,
-  'mairie-capitale': 0.15
+// Chaque poste a sa propre caisse dediee, alimentee par sa part de la repartition nationale (min_fin)
+const CAISSE_PAR_POSTE_BUDGET = {
+  presidence: 'palais-presidentiel', pm: 'gouvernement-pm',
+  min_int: 'gouvernement-min_int', min_fin: 'gouvernement-min_fin', min_just: 'gouvernement-min_just',
+  min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae', mairie: 'mairie-capitale'
+  // min_def -> caisse de la caserne, geree a part (voir payerSoldeQuotidienne / distribution dediee)
 };
 
 async function chargerCaisseBatiment(pays, buildingId) {
@@ -2627,12 +2629,17 @@ async function verifierEffetsEtDistributionFiscale() {
     if (tauxTotal > 25) INDICES_NATIONAUX[pays].ISN = Math.max(0, INDICES_NATIONAUX[pays].ISN - Math.min(5, Math.floor((tauxTotal - 25) * 0.6)));
   }
 
-  // Distribution quotidienne aux caisses publiques (socle dailyTaxRevenue + taxes accumulees la veille)
+  // Distribution quotidienne : chaque poste recoit sa propre part dans sa propre caisse
   const dailyBase = Object.values(CITY_POPULATION?.[pays] || {}).reduce((s, v) => s + (v.dailyTaxRevenue || 0), 0);
   const totalDisponible = dailyBase + (budgetNat.reserveJour || 0);
-  for (const [buildingId, part] of Object.entries(REPARTITION_CAISSES_PUBLIQUES)) {
+  const repartition = budgetNat.repartition || REPARTITION_DEFAULT;
+  for (const [posteId, buildingId] of Object.entries(CAISSE_PAR_POSTE_BUDGET)) {
+    const part = (repartition[posteId] || 0) / 100;
     await crediterCaisseBatiment(pays, buildingId, Math.floor(totalDisponible * part));
   }
+  // La Defense a sa propre caisse (la caserne), alimentee elle aussi selon sa part
+  const partDef = (repartition.min_def || 0) / 100;
+  await crediterCaisseBatiment(pays, 'caserne', Math.floor(totalDisponible * partDef));
 
   budgetNat.reserveJour = 0;
   budgetNat.derniereDistribJour = jour;

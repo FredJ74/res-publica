@@ -184,9 +184,9 @@ const BUDGET_DEFAULT = {
 };
 
 const REPARTITION_DEFAULT = {
-  presidence: 15, min_int: 8, min_fin: 6, min_just: 6,
+  presidence: 15, pm: 8, min_int: 8, min_fin: 6, min_just: 6,
   min_def: 10, min_info: 5, min_ae: 6,
-  assemblee: 8, tribunal: 6, commissariat: 8, mairie: 12, reserve: 10
+  assemblee: 8, tribunal: 6, commissariat: 8, mairie: 12, reserve: 2
 };
 
 const EMPIRE_STYLES = {
