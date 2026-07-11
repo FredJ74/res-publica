@@ -3623,7 +3623,7 @@ async function traiterDemandeManifestation(id, autorise) {
     const pays = state.country || 'republic';
     if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 5);
     // Malus sur le Ministre de l'Interieur lui-meme (refuser un rassemblement legitime a un cout politique)
-    const minIntNom = POSTES?.[pays]?.min_int?.titulaire;
+    const minIntNom = await getTitulairePoste('min_int');
     if (minIntNom) {
       if (minIntNom === state.char?.name) {
         state.pop = Math.max(0, (state.pop||0) - 8);
@@ -3682,10 +3682,10 @@ async function doDementiOfficiel() {
 
   const postesGouvernement = ['president', 'pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
   const cibles = [state.char?.name].filter(Boolean);
-  postesGouvernement.forEach(id => {
-    const titulaire = POSTES?.[state.country]?.[id]?.titulaire;
+  for (const id of postesGouvernement) {
+    const titulaire = await getTitulairePoste(id);
     if (titulaire && !cibles.includes(titulaire)) cibles.push(titulaire);
-  });
+  }
 
   let toutesRumeurs = [];
   for (const cible of cibles) {
