@@ -4986,11 +4986,27 @@ async function verifierCombatAutomatique(buildingId, roomId) {
   }
 }
 
+async function construireCivilsCombat(section) {
+  const affectes = (section.civilsRequisitionnes || []).filter(c => c.statut === 'affecte');
+  const civils = [];
+  for (const c of affectes) {
+    let stats = { int: 10, vol: 10, per: 10 };
+    if (typeof sbGet === 'function') {
+      const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(c.nom)}&select=int,vol,per`).catch(() => []);
+      if (rows?.[0]) stats = rows[0];
+    }
+    civils.push({
+      matricule: 'CIVIL-' + c.nom,
+      formation: { force: stats.int || 0, endurance: stats.vol || 0, tir: stats.per || 0 },
+      arme: 'corps_a_corps', pa: PA_MAX_SOLDAT, civil: true, nom: c.nom
+    });
+  }
+  return civils;
+}
+
 async function resoudreCombat(A, B) {
-  const civilsA = (A.section.civilsRequisitionnes || []).filter(c => c.statut === 'affecte')
-    .map(c => ({ matricule: 'CIVIL-' + c.nom, formation: { force: 10, endurance: 10, tir: 10 }, arme: 'corps_a_corps', pa: PA_MAX_SOLDAT, civil: true, nom: c.nom }));
-  const civilsB = (B.section.civilsRequisitionnes || []).filter(c => c.statut === 'affecte')
-    .map(c => ({ matricule: 'CIVIL-' + c.nom, formation: { force: 10, endurance: 10, tir: 10 }, arme: 'corps_a_corps', pa: PA_MAX_SOLDAT, civil: true, nom: c.nom }));
+  const civilsA = await construireCivilsCombat(A.section);
+  const civilsB = await construireCivilsCombat(B.section);
   let soldatsA = [...A.presents, ...civilsA], soldatsB = [...B.presents, ...civilsB];
   const coefsA = await getCoefsArmesPays(A.pays);
   const coefsB = await getCoefsArmesPays(B.pays);
