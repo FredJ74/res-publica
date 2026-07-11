@@ -3623,7 +3623,7 @@ async function traiterDemandeManifestation(id, autorise) {
     const pays = state.country || 'republic';
     if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 5);
     // Malus sur le Ministre de l'Interieur lui-meme (refuser un rassemblement legitime a un cout politique)
-    const minIntNom = await getTitulairePoste('min_int');
+    const minIntNom = POSTES?.[pays]?.min_int?.titulaire;
     if (minIntNom) {
       if (minIntNom === state.char?.name) {
         state.pop = Math.max(0, (state.pop||0) - 8);
@@ -3682,10 +3682,10 @@ async function doDementiOfficiel() {
 
   const postesGouvernement = ['president', 'pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
   const cibles = [state.char?.name].filter(Boolean);
-  for (const id of postesGouvernement) {
-    const titulaire = await getTitulairePoste(id);
+  postesGouvernement.forEach(id => {
+    const titulaire = POSTES?.[state.country]?.[id]?.titulaire;
     if (titulaire && !cibles.includes(titulaire)) cibles.push(titulaire);
-  }
+  });
 
   let toutesRumeurs = [];
   for (const cible of cibles) {
@@ -4165,4 +4165,468 @@ async function confirmerRepartitionBudget(key) {
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Budget mis à jour', 'La nouvelle répartition s\'appliquera progressivement.', true, true);
   addJournalEntry('Nouvelle répartition du budget municipal validée.', 'event-good');
+}
+
+// =====================
+// SYSTEME MILITAIRE — guerre partagee, chaine de commandement, compagnies, detachements
+// =====================
+const EFFECTIF_SECTION = 24; // + 1 lieutenant = 25 par section
+const NB_SECTIONS_COMPAGNIE = 4; // 100 hommes par compagnie
+const COUT_COMPAGNIE = 20000; // preleve sur la caisse de la caserne
+
+// ---- GUERRE PARTAGEE ----
+async function ouvrirModalGuerreEmpire() {
+  const pays = state.country || 'republic';
+  const empires = Object.entries(COUNTRIES).filter(([k]) => k !== pays);
+  document.getElementById('postes-modal-title').textContent = 'Déclarer la guerre';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const guerresActives = typeof sbGetGuerresPays === 'function' ? await sbGetGuerresPays(pays).catch(() => []) : [];
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">-20 POP +10 INF · Nation : -20 ID +15 ISN. Visible de tous, y compris l\'empire visé.</div>';
+  empires.forEach(([k, co]) => {
+    const guerre = guerresActives.find(g => (g.attaquant === pays && g.attaque === k) || (g.attaquant === k && g.attaque === pays));
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between">';
+    html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#e0d5b8">' + co.n + '</div>';
+    html += '<div style="font-size:.7rem;color:' + (guerre ? '#cc4444' : '#a89870') + '">' + (guerre ? 'En guerre depuis Jour ' + guerre.jourDebut : 'En paix') + '</div></div>';
+    if (!guerre) {
+      html += '<button onclick="confirmerGuerreEmpire(\'' + k + '\',\'' + co.n + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Déclarer</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerGuerreEmpire(empireId, empireName) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  await sbCreerGuerre({ attaquant: pays, attaque: empireId, jourDebut: state.day || 1, ceasefire: null });
+  state.pop = Math.max(0, (state.pop||0) - 20);
+  state.inf = Math.min(100, (state.inf||0) + 10);
+  INDICES_NATIONAUX[pays].ID = Math.max(0, INDICES_NATIONAUX[pays].ID - 20);
+  INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 15);
+  updateUI();
+  addExternalEvent('⚔️ GUERRE DÉCLARÉE : ' + (COUNTRIES[pays]?.n||'') + ' déclare la guerre à ' + empireName + ' !');
+  showToast('Guerre déclarée !', 'Conflit ouvert avec ' + empireName + '. Visible par tous.', false, true);
+  addJournalEntry('Guerre déclarée contre ' + empireName + '.', 'event-bad');
+}
+
+// Etape 1 : le MAE propose une treve a son homologue
+async function ouvrirProposerTreve() {
+  if (state.poste?.id !== 'min_ae') { showToast('Réservé au Ministre des Affaires Étrangères', '', false); return; }
+  const pays = state.country || 'republic';
+  const guerres = await sbGetGuerresPays(pays).catch(() => []);
+  const enCours = guerres.filter(g => g.statut === 'active' && !g.ceasefire);
+  document.getElementById('postes-modal-title').textContent = 'Proposer une trêve';
+  let html = '<div style="padding:1rem">';
+  if (enCours.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun conflit actif nécessitant une trêve.</div>';
+  } else {
+    enCours.forEach(g => {
+      const adversaire = g.attaquant === pays ? g.attaque : g.attaquant;
+      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
+      html += '<div style="font-size:.85rem;color:#e0d5b8">' + (COUNTRIES[adversaire]?.n||adversaire) + '</div>';
+      html += '<button onclick="confirmerPropositionTreve(\'' + g.id + '\',\'' + adversaire + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerPropositionTreve(guerreId, adversaire) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const maeAdversaire = await getTitulairePoste('min_ae', null, adversaire);
+  if (typeof sbSendMail === 'function') {
+    await sbSendMail('Ministère des Affaires Étrangères', maeAdversaire || 'PNJ-MAE',
+      'Proposition de trêve', (state.char?.name||'Le Ministre') + ' propose une trêve. Répondez pour l\'accepter.',
+      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  }
+  await sbMajGuerre(guerreId, { ceasefire: { proposePar: state.char?.name, accepteePar: null, actifPar: {} } });
+  showToast('Trêve proposée', 'En attente de la réponse de l\'homologue.', true, true);
+  addJournalEntry('Trêve proposée à ' + (COUNTRIES[adversaire]?.n||adversaire) + '.', 'event-info');
+}
+
+async function accepterTreve(guerreId) {
+  await sbMajGuerre(guerreId, { ceasefire: { accepteePar: state.char?.name, actifPar: {} } });
+  showToast('Trêve acceptée', 'Chaque Ministre de la Défense doit maintenant activer le cessez-le-feu de son côté.', true, true);
+  addExternalEvent('🕊️ Une trêve a été négociée entre les deux Ministères des Affaires Étrangères.');
+}
+
+// Etape 2 : chaque MG active independamment le cessez-le-feu de son cote
+async function ouvrirActiverCessezLeFeu() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  const pays = state.country || 'republic';
+  const guerres = await sbGetGuerresPays(pays).catch(() => []);
+  const negociees = guerres.filter(g => g.ceasefire?.accepteePar);
+  document.getElementById('postes-modal-title').textContent = 'Activer le cessez-le-feu';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Chaque camp doit activer le cessez-le-feu de son côté — un décalage entre les deux est possible et source de confusion.</div>';
+  if (negociees.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune trêve négociée par la diplomatie pour l\'instant.</div>';
+  } else {
+    negociees.forEach(g => {
+      const adversaire = g.attaquant === pays ? g.attaque : g.attaquant;
+      const dejaActif = g.ceasefire?.actifPar?.[pays];
+      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
+      html += '<div style="font-size:.85rem;color:#e0d5b8">' + (COUNTRIES[adversaire]?.n||adversaire) + '<div style="font-size:.7rem;color:#a89870">' + (g.ceasefire?.actifPar?.[adversaire] ? 'Adversaire : activé' : 'Adversaire : pas encore activé') + '</div></div>';
+      html += dejaActif
+        ? '<span style="font-size:.7rem;color:#6ab858">Activé de votre côté</span>'
+        : '<button onclick="confirmerActivationCessezLeFeu(\'' + g.id + '\',\'' + adversaire + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Activer</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerActivationCessezLeFeu(guerreId, adversaire) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const rows = await sbGet('guerres', `id=eq.${encodeURIComponent(guerreId)}`);
+  const g = rows?.[0]?.data;
+  if (!g) return;
+  const actifPar = { ...(g.ceasefire?.actifPar || {}), [pays]: true };
+  const tousActifs = actifPar[g.attaquant] && actifPar[g.attaque];
+  await sbMajGuerre(guerreId, { ceasefire: { ...g.ceasefire, actifPar }, statut: tousActifs ? 'terminee' : 'active' });
+
+  INDICES_NATIONAUX[pays].ID = Math.min(100, INDICES_NATIONAUX[pays].ID + 10);
+  updateUI();
+  if (tousActifs) {
+    showToast('Cessez-le-feu total !', 'Les deux camps ont activé le cessez-le-feu. Le conflit est terminé.', true, true);
+    addExternalEvent('🕊️ Cessez-le-feu total entre ' + (COUNTRIES[pays]?.n) + ' et ' + (COUNTRIES[adversaire]?.n) + '.');
+  } else {
+    showToast('Cessez-le-feu activé de votre côté', 'L\'adversaire n\'a pas encore fait de même — confusion sur le terrain probable.', true, true);
+    addExternalEvent('⚠️ ' + (COUNTRIES[pays]?.n) + ' active unilatéralement le cessez-le-feu avec ' + (COUNTRIES[adversaire]?.n) + ' — l\'autre camp n\'a pas suivi.');
+  }
+}
+
+function estEnGuerreAvec(pays1, pays2, guerresCache) {
+  return (guerresCache || []).some(g => g.statut === 'active' && ((g.attaquant === pays1 && g.attaque === pays2) || (g.attaquant === pays2 && g.attaque === pays1)));
+}
+
+// ---- CHAINE DE COMMANDEMENT ----
+async function ouvrirNommerCommandant() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  const pays = state.country || 'republic';
+  const habitants = typeof listerHabitantsEligibles === 'function' ? await listerHabitantsEligibles('commandant') : [];
+  document.getElementById('postes-modal-title').textContent = 'Nommer le Commandant de la Caserne';
+  let html = '<div style="padding:1rem">';
+  if (habitants.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040">Aucun habitant éligible trouvé.</div>';
+  } else {
+    html += '<select id="nomme-commandant" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    habitants.forEach(h => html += '<option value="' + h.name + '">' + h.name + '</option>');
+    html += '</select>';
+    html += '<button onclick="envoyerNominationCommandant()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function envoyerNominationCommandant() {
+  const destinataire = document.getElementById('nomme-commandant')?.value;
+  if (!destinataire) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  const corps = (state.char?.name||'Le Ministre') + ' vous propose le poste de <strong>Commandant de la Caserne</strong>.<br><br>' +
+    '<button onclick="accepterNominationPosteNomme(\'commandant\',\'\',\'' + state.country + '\',\'' + (state.char?.name||'').replace(/'/g,'') + '\')" ' +
+    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">✓ Accepter le poste</button>';
+  if (typeof sbSendMail === 'function') await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Nomination au poste de Commandant', corps, time).catch(() => {});
+  showToast('Nomination envoyée', destinataire + ' a reçu votre proposition.', true, true);
+}
+
+async function ouvrirNommerCapitaine() {
+  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant de la Caserne', '', false); return; }
+  const pays = state.country || 'republic';
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  const dispo = compagnies.filter(c => !c.capitaineNom);
+  if (dispo.length === 0) { showToast('Aucune compagnie disponible', 'Toutes les compagnies ont déjà un capitaine, ou aucune n\'existe.', false); return; }
+  const habitants = typeof listerHabitantsEligibles === 'function' ? await listerHabitantsEligibles('capitaine') : [];
+
+  document.getElementById('postes-modal-title').textContent = 'Nommer un Capitaine';
+  let html = '<div style="padding:1rem">';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Compagnie</label>';
+  html += '<select id="nomme-capitaine-compagnie" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  dispo.forEach(c => html += '<option value="' + c.id + '">' + c.id + '</option>');
+  html += '</select>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Candidat</label>';
+  html += '<select id="nomme-capitaine-nom" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+  habitants.forEach(h => html += '<option value="' + h.name + '">' + h.name + '</option>');
+  html += '</select>';
+  html += '<button onclick="envoyerNominationCapitaine()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function envoyerNominationCapitaine() {
+  const compagnieId = document.getElementById('nomme-capitaine-compagnie')?.value;
+  const destinataire = document.getElementById('nomme-capitaine-nom')?.value;
+  if (!compagnieId || !destinataire) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  const corps = (state.char?.name||'Le Commandant') + ' vous propose le poste de <strong>Capitaine</strong> de la compagnie ' + compagnieId + '.<br><br>' +
+    '<button onclick="accepterNominationCapitaine(\'' + compagnieId + '\',\'' + (state.char?.name||'').replace(/'/g,'') + '\')" ' +
+    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">✓ Accepter le poste</button>';
+  if (typeof sbSendMail === 'function') await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Nomination au poste de Capitaine', corps, time).catch(() => {});
+  showToast('Nomination envoyée', '', true, true);
+}
+
+async function accepterNominationCapitaine(compagnieId, nommeurNom) {
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  if (!compagnie) return;
+  compagnie.capitaineNom = state.char?.name;
+  await sbSaveCompagnie(compagnieId, compagnie);
+  state.poste = { id: 'capitaine', name: 'Capitaine', compagnieId };
+  if (state.char) state.char.poste = state.poste;
+  updateUI();
+  showToast('Poste accepté !', 'Vous êtes désormais Capitaine de la compagnie ' + compagnieId + '.', true, true);
+  addExternalEvent('🎖 ' + (state.char?.name||'Un officier') + ' est nommé Capitaine.');
+}
+
+async function ouvrirNommerLieutenant() {
+  if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
+  if (!compagnie) return;
+  const dispo = (compagnie.sections || []).filter(s => !s.lieutenantNom);
+  if (dispo.length === 0) { showToast('Aucune section disponible', 'Toutes les sections de votre compagnie ont déjà un lieutenant.', false); return; }
+  const habitants = typeof listerHabitantsEligibles === 'function' ? await listerHabitantsEligibles('lieutenant') : [];
+
+  document.getElementById('postes-modal-title').textContent = 'Nommer un Lieutenant';
+  let html = '<div style="padding:1rem">';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Section</label>';
+  html += '<select id="nomme-lieutenant-section" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  dispo.forEach(s => html += '<option value="' + s.id + '">' + s.id + '</option>');
+  html += '</select>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Candidat</label>';
+  html += '<select id="nomme-lieutenant-nom" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+  habitants.forEach(h => html += '<option value="' + h.name + '">' + h.name + '</option>');
+  html += '</select>';
+  html += '<button onclick="envoyerNominationLieutenant(\'' + compagnie.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function envoyerNominationLieutenant(compagnieId) {
+  const sectionId = document.getElementById('nomme-lieutenant-section')?.value;
+  const destinataire = document.getElementById('nomme-lieutenant-nom')?.value;
+  if (!sectionId || !destinataire) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  const corps = (state.char?.name||'Le Capitaine') + ' vous propose le poste de <strong>Lieutenant</strong> de la section ' + sectionId + '.<br><br>' +
+    '<button onclick="accepterNominationLieutenant(\'' + compagnieId + '\',\'' + sectionId + '\')" ' +
+    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">✓ Accepter le poste</button>';
+  if (typeof sbSendMail === 'function') await sbSendMail(state.char?.name || 'Anonyme', destinataire, 'Nomination au poste de Lieutenant', corps, time).catch(() => {});
+  showToast('Nomination envoyée', '', true, true);
+}
+
+async function accepterNominationLieutenant(compagnieId, sectionId) {
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  if (!compagnie) return;
+  const section = (compagnie.sections || []).find(s => s.id === sectionId);
+  if (!section) return;
+  section.lieutenantNom = state.char?.name;
+  await sbSaveCompagnie(compagnieId, compagnie);
+  state.poste = { id: 'lieutenant', name: 'Lieutenant', compagnieId, sectionId };
+  if (state.char) state.char.poste = state.poste;
+  updateUI();
+  showToast('Poste accepté !', 'Vous êtes désormais Lieutenant de la section "' + (state.char?.name) + '".', true, true);
+  addExternalEvent('🎖 ' + (state.char?.name||'Un officier') + ' est nommé Lieutenant.');
+}
+
+// ---- RECRUTEMENT (a la compagnie) ----
+async function doRecruterCompagnie() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  const pays = state.country || 'republic';
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne', COUT_COMPAGNIE) : 0;
+  if (montantVerse < COUT_COMPAGNIE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût d\'une compagnie (' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR).', false); return; }
+
+  const id = 'compagnie-' + pays + '-' + Date.now();
+  const sections = Array.from({ length: NB_SECTIONS_COMPAGNIE }, (_, i) => ({
+    id: id + '-s' + (i + 1), lieutenantNom: null, effectifTotal: EFFECTIF_SECTION,
+    detachements: [{ buildingId: 'caserne', roomId: 'corps_garde', nombre: EFFECTIF_SECTION }]
+  }));
+  await sbSaveCompagnie(id, { id, pays, capitaineNom: null, sections });
+  showToast('Compagnie recrutée !', '100 soldats (4 sections) rejoignent la caserne. -' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR.', true, true);
+  addJournalEntry('Recrutement d\'une nouvelle compagnie (' + COUT_COMPAGNIE + ' FR).', 'event-good');
+}
+
+// ---- DETACHEMENTS DE SOLDATS ----
+// Recupere le detachement present dans la piece courante pour la section du lieutenant connecte
+function getSectionDuLieutenant(compagnie) {
+  return (compagnie?.sections || []).find(s => s.lieutenantNom === state.char?.name);
+}
+
+async function doGererDetachement() {
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
+  const section = getSectionDuLieutenant(compagnie);
+  if (!section) return;
+
+  const ici = section.detachements.find(d => d.buildingId === state.currentBuilding && d.roomId === state.currentRoom);
+  const ailleurs = section.effectifTotal - (ici?.nombre || 0);
+
+  document.getElementById('postes-modal-title').textContent = 'Gérer mon détachement';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Ici : ' + (ici?.nombre || 0) + ' soldats. Ailleurs : ' + ailleurs + ' soldats.</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Nombre à déposer ici (depuis votre groupe)</label>';
+  html += '<input id="nb-deposer" type="number" min="0" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<button onclick="deposerSoldats(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;margin-bottom:.8rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déposer</button>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Nombre à récupérer ici (rejoint votre groupe)</label>';
+  html += '<input id="nb-recuperer" type="number" min="0" max="' + (ici?.nombre || 0) + '" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<button onclick="recupererSoldats(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #4a6a8a;background:transparent;color:#5a8ad0;cursor:pointer">Récupérer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function deposerSoldats(compagnieId, sectionId) {
+  const nb = parseInt(document.getElementById('nb-deposer')?.value || '0');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (nb <= 0) return;
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  if (!section) return;
+
+  let ici = section.detachements.find(d => d.buildingId === state.currentBuilding && d.roomId === state.currentRoom);
+  if (!ici) { ici = { buildingId: state.currentBuilding, roomId: state.currentRoom, nombre: 0, mission: null }; section.detachements.push(ici); }
+  ici.nombre += nb;
+
+  await sbSaveCompagnie(compagnieId, compagnie);
+  showToast('Soldats déposés', nb + ' soldats de la section "' + section.lieutenantNom + '" restent ici.', true, true);
+}
+
+async function recupererSoldats(compagnieId, sectionId) {
+  const nb = parseInt(document.getElementById('nb-recuperer')?.value || '0');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (nb <= 0) return;
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  const ici = section?.detachements.find(d => d.buildingId === state.currentBuilding && d.roomId === state.currentRoom);
+  if (!ici || ici.nombre < nb) { showToast('Effectif insuffisant ici', '', false); return; }
+  ici.nombre -= nb;
+  section.detachements = section.detachements.filter(d => d.nombre > 0);
+  await sbSaveCompagnie(compagnieId, compagnie);
+  showToast('Soldats récupérés', nb + ' soldats rejoignent votre groupe.', true, true);
+}
+
+// Retourne le libelle a afficher dans une piece pour un detachement present, ou null
+async function getAffichageDetachementPiece(pays, buildingId, roomId) {
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  for (const c of compagnies) {
+    for (const s of (c.sections || [])) {
+      const d = s.detachements.find(dd => dd.buildingId === buildingId && dd.roomId === roomId && dd.nombre > 0);
+      if (d) return { nom: 'Soldats section "' + (s.lieutenantNom || '?') + '"', nombre: d.nombre, mission: d.mission, sectionId: s.id, compagnieId: c.id };
+    }
+  }
+  return null;
+}
+
+// ---- MISSIONS DES DETACHEMENTS ----
+const MISSIONS_DETACHEMENT = [
+  { id: 'bloquer_acces', label: 'Bloquer l\'accès au bâtiment' },
+  { id: 'securiser', label: 'Sécuriser la pièce (malus actes illégaux)' },
+  { id: 'assassiner', label: 'Assassiner toute personne entrant' },
+  { id: 'arreter', label: 'Arrêter toute personne entrant' },
+  { id: 'surveiller', label: 'Surveiller (rapport passif)' },
+  { id: 'escorter', label: 'Escorter une personne précise' }
+];
+
+async function doAssignerMission() {
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
+  const section = getSectionDuLieutenant(compagnie);
+  const ici = section?.detachements.find(d => d.buildingId === state.currentBuilding && d.roomId === state.currentRoom);
+  if (!ici || ici.nombre <= 0) { showToast('Aucun soldat ici', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Attribuer une mission';
+  let html = '<div style="padding:1rem">';
+  MISSIONS_DETACHEMENT.forEach(m => {
+    html += '<button onclick="confirmerMission(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + m.id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid ' + (ici.mission===m.id?'#8a6a20':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + m.label + '</button>';
+  });
+  if (MISSIONS_DETACHEMENT.find(m=>m.id==='escorter')) {
+    html += '<input id="mission-escorte-cible" type="text" placeholder="Nom de la personne à escorter (si mission Escorter)" style="width:100%;margin-top:.4rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;box-sizing:border-box"/>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerMission(compagnieId, sectionId, missionId) {
+  const cibleEscorte = document.getElementById('mission-escorte-cible')?.value?.trim() || null;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  const ici = section?.detachements.find(d => d.buildingId === state.currentBuilding && d.roomId === state.currentRoom);
+  if (!ici) return;
+  ici.mission = missionId;
+  ici.cibleEscorte = missionId === 'escorter' ? cibleEscorte : null;
+  await sbSaveCompagnie(compagnieId, compagnie);
+  showToast('Mission attribuée', MISSIONS_DETACHEMENT.find(m=>m.id===missionId)?.label, true, true);
+}
+
+// ---- MOBILISATION ----
+async function doMobiliserArmee() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  document.getElementById('postes-modal-title').textContent = 'Mobiliser l\'armée';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.7rem">La feuille de route reste secrète — seul le Commandant de la Caserne en aura connaissance.</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Empire de destination</label>';
+  html += '<select id="mobil-empire" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  Object.entries(COUNTRIES).forEach(([k, co]) => html += '<option value="' + k + '">' + co.n + '</option>');
+  html += '</select>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Ville de destination</label>';
+  html += '<input id="mobil-ville" type="text" placeholder="ex: capitale" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Feuille de route (secrète)</label>';
+  html += '<textarea id="mobil-route" rows="4" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"></textarea>';
+  html += '<button onclick="confirmerMobilisation()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Donner l\'ordre de mobilisation</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerMobilisation() {
+  const empireCible = document.getElementById('mobil-empire')?.value;
+  const villeCible = document.getElementById('mobil-ville')?.value?.trim();
+  const route = document.getElementById('mobil-route')?.value?.trim();
+  if (!empireCible || !villeCible || !route) { showToast('Champs requis', '', false); return; }
+  document.getElementById('modal-postes')?.classList.remove('open');
+
+  const pays = state.country || 'republic';
+  INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 10);
+  Object.keys(INDICES_NATIONAUX).forEach(p => { if (p !== pays) INDICES_NATIONAUX[p].ID = Math.max(0, INDICES_NATIONAUX[p].ID - 5); });
+  updateUI();
+
+  const commandantNom = await getTitulairePoste('commandant');
+  if (commandantNom && typeof sbSendMail === 'function') {
+    await sbSendMail('Ministère de la Défense', commandantNom, 'ORDRE DE MOBILISATION — CONFIDENTIEL',
+      'Destination : ' + (COUNTRIES[empireCible]?.n||empireCible) + ' — ' + villeCible + '.<br><br>Feuille de route :<br>' + route.replace(/\n/g,'<br>'),
+      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  }
+  // Rumeur rare et peu precise, jamais la feuille de route elle-meme
+  if (Math.random() < 0.15) {
+    addExternalEvent('🔍 Rumeur : des mouvements de troupes inhabituels auraient été observés près de la frontière...');
+  }
+  showToast('Ordre de mobilisation donné', commandantNom ? 'Transmis au Commandant.' : 'Aucun Commandant en poste actuellement — l\'ordre reste sans destinataire.', true, true);
+  addJournalEntry('Ordre de mobilisation donné (destination confidentielle).', 'event-info');
+}
+
+// ---- IMMUNITE MILITAIRE ----
+// A appeler depuis le systeme d'arrestation/plainte : renvoie true si le joueur est immunise
+async function estImmuniteMilitaire() {
+  const posteId = state.poste?.id;
+  if (!['lieutenant', 'capitaine', 'commandant'].includes(posteId)) return false;
+  const pays = state.country || 'republic';
+  const guerres = await sbGetGuerresPays(pays).catch(() => []);
+  const enGuerreIci = guerres.some(g => g.statut === 'active' && (g.attaquant === state.currentCountry || g.attaque === state.currentCountry));
+  const territoireNational = state.currentCountry === pays; // mobilisation nationale
+  return enGuerreIci || territoireNational;
 }

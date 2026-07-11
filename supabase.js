@@ -725,6 +725,36 @@ async function sbMajDemandeGrace(id, statut) {
   return sbUpdate('demandes_grace', `id=eq.${encodeURIComponent(id)}`, { statut });
 }
 
+async function sbGetGuerresPays(pays) {
+  const rows = await sbGet('guerres', 'statut=neq.terminee&select=id,data');
+  if (!rows) return [];
+  return rows.filter(r => r.data?.attaquant === pays || r.data?.attaque === pays).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbCreerGuerre(data) {
+  const id = 'guerre-' + Date.now();
+  await sbInsert('guerres', { id, statut: 'active', data });
+  return id;
+}
+
+async function sbMajGuerre(id, patch) {
+  const rows = await sbGet('guerres', `id=eq.${encodeURIComponent(id)}`);
+  const data = { ...(rows?.[0]?.data || {}), ...patch };
+  return sbUpdate('guerres', `id=eq.${encodeURIComponent(id)}`, { statut: data.statut || 'active', data });
+}
+
+async function sbGetCompagnies(pays) {
+  const rows = await sbGet('compagnies_militaires', `select=id,data`);
+  if (!rows) return [];
+  return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbSaveCompagnie(id, data) {
+  const existing = await sbGet('compagnies_militaires', `id=eq.${encodeURIComponent(id)}`);
+  if (existing && existing.length > 0) return sbUpdate('compagnies_militaires', `id=eq.${encodeURIComponent(id)}`, { data });
+  return sbInsert('compagnies_militaires', { id, data });
+}
+
 async function sbCreerRumeurPolitique(data) {
   const id = 'rumeur-' + Date.now() + '-' + Math.floor(Math.random()*10000);
   await sbInsert('rumeurs_actives', { id, resolu: false, data });

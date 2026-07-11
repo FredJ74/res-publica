@@ -184,7 +184,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
-  if (fn === 'negocier_paix')        { ouvrirModalEmpireCible('negocier_paix', 'Negocier un accord de paix avec'); return; }
+  if (fn === 'proposer_treve')        { ouvrirProposerTreve(); return; }
   if (fn === 'prier')                { doPrier(); return; }
   if (fn === 'se_confesser')         { doSeConfeser(); return; }
   if (fn === 'faire_don')            { doFaireDon(cost); return; }
@@ -230,7 +230,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }
   if (fn === 'censurer_media') { ouvrirModalMedia(); return; }
   if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
-  if (fn === 'cessez_le_feu') { ouvrirModalEmpireCible('cessez_le_feu', 'Negocier un cessez-le-feu avec'); return; }
+  if (fn === 'activer_cessez_le_feu') { ouvrirActiverCessezLeFeu(); return; }
+  if (fn === 'nommer_commandant') { ouvrirNommerCommandant(); return; }
+  if (fn === 'recruter_compagnie') { doRecruterCompagnie(); return; }
+  if (fn === 'nommer_capitaine') { ouvrirNommerCapitaine(); return; }
+  if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(); return; }
+  if (fn === 'gerer_detachement') { doGererDetachement(); return; }
+  if (fn === 'assigner_mission') { doAssignerMission(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
   if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }

@@ -1428,9 +1428,11 @@ const BUILDINGS = {
         requiresPostId: 'min_def',
         persons: [],
         orders: [
-          {fn:'mobiliser_armee',      label:'Mobiliser l\'armee',          pa:4, cost:0,   type:'legal',   icon:'ti-military-rank',  successRate:100, requiresPost:'min_def', desc:'Mise en alerte des forces armees. Tres impactant diplomatiquement.'},
-          {fn:'cessez_le_feu',        label:'Negocier un cessez-le-feu',   pa:3, cost:0,   type:'legal',   icon:'ti-handshake',      successRate:60,  requiresPost:'min_def', desc:'Mettre fin a un conflit en cours.'},
-          {fn:'renseignement',        label:'Lancer une operation de renseignement', pa:3, cost:500, type:'grey', icon:'ti-spy', successRate:70, requiresPost:'min_def', desc:'Espionner un empire etranger.'}
+          {fn:'mobiliser_armee',      label:'Mobiliser l\'armee',          pa:4, cost:0,   type:'legal',   icon:'ti-military-rank',  successRate:100, requiresPost:'min_def', desc:'Choisir une destination et donner une feuille de route secrete au Commandant.'},
+          {fn:'activer_cessez_le_feu', label:'Activer un cessez-le-feu',  pa:2, cost:0,   type:'legal',   icon:'ti-handshake',      successRate:100, requiresPost:'min_def', desc:'Activer une treve deja negociee par la diplomatie. Chaque camp doit le faire de son cote.'},
+          {fn:'nommer_commandant',   label:'Nommer le Commandant',       pa:2, cost:0,   type:'legal',   icon:'ti-star',           successRate:100, requiresPost:'min_def', desc:'Designer le Commandant de la Caserne.'},
+          {fn:'recruter_compagnie',  label:'Recruter une compagnie',     pa:3, cost:0,   type:'legal',   icon:'ti-users-group',    successRate:100, requiresPost:'min_def', desc:'100 soldats (4 sections). Coute a la caisse de la caserne.'},
+          {fn:'renseignement',        label:'Lancer une operation de renseignement', pa:3, cost:500, type:'grey', icon:'ti-spy', successRate:70, requiresPost:'min_def', desc:'Espionner un empire etranger. (Substance a venir.)'}
         ]
       },
       bureau_min_info: {
@@ -1455,7 +1457,7 @@ const BUILDINGS = {
         requiresPostId: 'min_ae',
         persons: [],
         orders: [
-          {fn:'negocier_paix',        label:'Negocier un accord de paix',           pa:3, cost:0, type:'legal', icon:'ti-handshake',     successRate:65, requiresPost:'min_ae', desc:'Choisir un empire en guerre. +12 ID si succes.'},
+          {fn:'proposer_treve',       label:'Proposer une trêve',           pa:3, cost:0, type:'legal', icon:'ti-handshake',     successRate:100, requiresPost:'min_ae', desc:'Proposer une treve a l\'homologue d\'un empire en guerre. Si acceptee, chaque MG devra ensuite activer le cessez-le-feu de son cote.'},
           {fn:'accord_diplomatique',  label:'Ouvrir des negociations diplomatiques', pa:2, cost:0, type:'legal', icon:'ti-building-bank', successRate:80, requiresPost:'min_ae', desc:'Etablir un canal diplomatique. +8 ID.'},
           {fn:'signer_traite',        label:'Signer un traite',             pa:3, cost:0,   type:'legal',   icon:'ti-file-certificate', successRate:70, requiresPost:'min_ae', desc:'Accord bilateral avec un empire etranger.'},
           {fn:'ouvrir_ambassade',     label:'Ouvrir une ambassade',         pa:2, cost:1000,type:'legal',   icon:'ti-building',       successRate:100, requiresPost:'min_ae', desc:'Etablir une representation diplomatique.'},
@@ -2871,7 +2873,7 @@ const BUILDINGS = {
           {name:'Soldat Martin (PNJ)',  role:'PNJ - Faction',                 rel:'neutral', job:'militaire'}
         ],
         orders: [
-          {fn:'recruter_etud',   label:'Recruter des soldats',   pa:2, cost:500, type:'legal',   icon:'ti-user-plus',     successRate:70,  requiresPost:'min_def', desc:'Renforcer les effectifs militaires.'}
+          {fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:2, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'}
         ]
       },
       salle_commandement: {
@@ -2884,10 +2886,9 @@ const BUILDINGS = {
           {name:'General Faure (PNJ)', role:'PNJ - Chef d\'etat-major', rel:'neutral', job:'general'}
         ],
         orders: [
-          {fn:'mobiliser_armee',     label:'Mobiliser les troupes',      pa:4, cost:0,    type:'legal',   icon:'ti-military-rank', successRate:100, requiresPost:'min_def', desc:'Mise en alerte maximale. Gros impact diplomatique.'},
-          {fn:'planifier_operation', label:'Planifier une operation',    pa:3, cost:0,    type:'legal',   icon:'ti-map',           successRate:80,  requiresPost:'min_def', desc:'Preparer une operation militaire ou de maintien de l\'ordre.'},
-          {fn:'renseignement',       label:'Operation de renseignement', pa:3, cost:500,  type:'grey',    icon:'ti-spy',           successRate:65,  requiresPost:'min_def', desc:'Espionnage d\'un empire etranger ou d\'un suspect.'},
-          {fn:'cessez_le_feu',       label:'Negocier un cessez-le-feu',  pa:3, cost:0,    type:'legal',   icon:'ti-handshake',     successRate:60,  requiresPost:'min_def', desc:'Mettre fin a un conflit en cours.'},
+          {fn:'nommer_capitaine',    label:'Nommer un Capitaine',        pa:2, cost:0,    type:'legal',   icon:'ti-star',          successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Designer un capitaine pour une compagnie.'},
+          {fn:'gerer_detachement',   label:'Gérer mon détachement',      pa:0, cost:0,    type:'legal',   icon:'ti-users',         successRate:100, requiresPost:'lieutenant', desc:'Deposer ou recuperer des soldats dans cette piece.'},
+          {fn:'assigner_mission',    label:'Attribuer une mission',      pa:1, cost:0,    type:'legal',   icon:'ti-target',        successRate:100, requiresPost:'lieutenant', desc:'Donner une consigne au detachement present dans cette piece.'},
           {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:1, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:'min_def', desc:'+INF aupres de l\'armee. Renforce la loyaute.'}
         ]
       },
@@ -4367,7 +4368,8 @@ const SALAIRES = {
 // 'depute' est le SEUL poste compatible avec juge/commissaire
 const POSTES_NOMMES_EXCLUSIFS = {
   juge:        { label: 'Juge',        nommePar: 'min_just', scope: 'pays',  compatibles: ['depute'] },
-  commissaire: { label: 'Commissaire', nommePar: 'maire',    scope: 'ville', compatibles: ['depute'] }
+  commissaire: { label: 'Commissaire', nommePar: 'maire',    scope: 'ville', compatibles: ['depute'] },
+  commandant:  { label: 'Commandant de la Caserne', nommePar: 'min_def', scope: 'pays', compatibles: ['depute'] }
 };
 
 // Nouveaux ordres v6
