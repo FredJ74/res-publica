@@ -709,6 +709,22 @@ async function sbMajDemandeManifestation(id, statut, patch) {
   return sbUpdate('demandes_manifestation', `id=eq.${encodeURIComponent(id)}`, { statut, data });
 }
 
+async function sbCreerDemandeGrace(data) {
+  const id = 'grace-' + Date.now() + '-' + Math.floor(Math.random()*10000);
+  await sbInsert('demandes_grace', { id, statut: 'attente', data });
+  return id;
+}
+
+async function sbGetDemandesGracePays(pays) {
+  const rows = await sbGet('demandes_grace', 'statut=eq.attente&select=id,data');
+  if (!rows) return [];
+  return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbMajDemandeGrace(id, statut) {
+  return sbUpdate('demandes_grace', `id=eq.${encodeURIComponent(id)}`, { statut });
+}
+
 async function sbCreerRumeurPolitique(data) {
   const id = 'rumeur-' + Date.now() + '-' + Math.floor(Math.random()*10000);
   await sbInsert('rumeurs_actives', { id, resolu: false, data });

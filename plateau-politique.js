@@ -2794,18 +2794,27 @@ function executerOrdreEmpire(action, empireId, empireName) {
   }
 }
 
-function ouvrirModalGracier() {
+// Juge PNJ par defaut, tant qu'aucun PJ n'a ete nomme — regle les affaires sur des criteres parodiques
+const JUGE_PNJ_DEFAUT = { republic: 'Juge Sévère Lapeine' };
+
+async function getJugeActuel(pays) {
+  const titulaire = await getTitulairePoste('juge', null, pays);
+  return titulaire || JUGE_PNJ_DEFAUT[pays] || 'Juge (poste vacant)';
+}
+
+async function ouvrirProposerGrace() {
+  if (state.poste?.id !== 'min_just') { showToast('Réservé au Ministre de la Justice', '', false); return; }
   const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
-  document.getElementById('postes-modal-title').textContent = 'Gracier un condamne';
+  document.getElementById('postes-modal-title').textContent = 'Proposer une grâce au Président';
   let html = '<div style="padding:1rem">';
   if (condamnes.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun condamne actuellement en detention.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun condamné actuellement en détention.</div>';
   } else {
     condamnes.forEach((p, i) => {
       html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
-      html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090">' + p.nom + '</div>';
-      html += '<div style="font-size:.7rem;color:#5a4030">' + p.raison + ' · liberation prevue Jour ' + p.jourFin + '</div></div>';
-      html += '<button onclick="confirmerGrace(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.25rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Gracier</button>';
+      html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#e0d5b8">' + p.nom + '</div>';
+      html += '<div style="font-size:.72rem;color:#a89870">' + p.raison + ' · libération prévue Jour ' + p.jourFin + '</div></div>';
+      html += '<button onclick="confirmerPropositionGrace(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.25rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer</button>';
       html += '</div>';
     });
   }
@@ -2814,17 +2823,71 @@ function ouvrirModalGracier() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerGrace(idx) {
+async function confirmerPropositionGrace(idx) {
   const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
   const condamne = condamnes[idx];
   if (!condamne) return;
-  condamne.jourFin = state.day; // Liberation immediate
-  document.getElementById('modal-postes').classList.remove('open');
-  const popBonus = state.pop > 50 ? 5 : -2;
-  state.pop = Math.min(100, state.pop + popBonus);
-  updateUI();
-  showToast('Grace accordee', condamne.nom + ' est libere(e). ' + (popBonus > 0 ? '+' : '') + popBonus + ' POP.', true);
-  addExternalEvent('GRACE PRESIDENTIELLE : ' + condamne.nom + ' a ete gracie(e) par le President.');
+  document.getElementById('modal-postes')?.classList.remove('open');
+
+  const pays = state.country || 'republic';
+  const cout = 300;
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'palais-gouvernement', cout) : 0;
+  if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).', false); return; }
+
+  await sbCreerDemandeGrace({ pays, nomCondamne: condamne.nom, raison: condamne.raison, jourFin: condamne.jourFin, proposePar: state.char?.name });
+
+  const presidentNom = await getTitulairePoste('president');
+  if (presidentNom && typeof sbSendMail === 'function') {
+    await sbSendMail('Ministère de la Justice', presidentNom, 'Recommandation de grâce',
+      'Le Ministre de la Justice recommande la grâce de ' + condamne.nom + ' (' + condamne.raison + '). Rendez-vous au palais pour traiter les demandes.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  }
+  showToast('Recommandation envoyée', 'Le Président a été notifié. -' + cout + ' FR (frais de dossier).', true, true);
+  addJournalEntry('Grâce de ' + condamne.nom + ' recommandée au Président.', 'event-info');
+}
+
+async function ouvrirModalGracier() {
+  if (state.poste?.id !== 'president') { showToast('Réservé au Président', '', false); return; }
+  document.getElementById('postes-modal-title').textContent = 'Demandes de grâce en attente';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const pays = state.country || 'republic';
+  const demandes = typeof sbGetDemandesGracePays === 'function' ? await sbGetDemandesGracePays(pays).catch(() => []) : [];
+
+  let html = '<div style="padding:1rem">';
+  if (demandes.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune recommandation de grâce en attente.</div>';
+  } else {
+    demandes.forEach(d => {
+      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#e0d5b8">' + d.nomCondamne + '</div>';
+      html += '<div style="font-size:.72rem;color:#a89870">' + d.raison + ' · recommandé par ' + d.proposePar + '</div>';
+      html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
+      html += '<button onclick="confirmerGrace(&quot;' + d.id + '&quot;,&quot;' + d.nomCondamne + '&quot;,true)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Accepter</button>';
+      html += '<button onclick="confirmerGrace(&quot;' + d.id + '&quot;,&quot;' + d.nomCondamne + '&quot;,false)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer">Refuser</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerGrace(demandeId, nomCondamne, accepte) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  await sbMajDemandeGrace(demandeId, accepte ? 'acceptee' : 'refusee');
+
+  if (accepte) {
+    const condamne = (state.prisonniers || []).find(p => p.nom === nomCondamne);
+    if (condamne) condamne.jourFin = state.day;
+    const popBonus = state.pop > 50 ? 5 : -2;
+    state.pop = Math.min(100, state.pop + popBonus);
+    updateUI();
+    showToast('Grâce accordée', nomCondamne + ' est libéré(e). ' + (popBonus > 0 ? '+' : '') + popBonus + ' POP.', true, true);
+    addExternalEvent('⚖️ GRÂCE PRÉSIDENTIELLE : ' + nomCondamne + ' a été gracié(e) par le Président.');
+  } else {
+    showToast('Grâce refusée', 'La recommandation du Ministre de la Justice a été rejetée.', false);
+    addJournalEntry('Grâce de ' + nomCondamne + ' refusée par le Président.', 'event-info');
+  }
 }
 
 function ouvrirModalNationaliser() {
@@ -2982,6 +3045,27 @@ function nomAffichageCible(typeCible, idCible) {
 async function executerOrdreFiscalCible(action, typeCible, idCible) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const nomCible = nomAffichageCible(typeCible, idCible);
+
+  if (action === 'ouvrir_enquete') {
+    document.getElementById('modal-postes')?.classList.remove('open');
+    const pays = state.country || 'republic';
+    const cout = 400;
+    const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'palais-gouvernement', cout) : 0;
+    if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais d\'enquête (' + cout + ' FR).', false); return; }
+
+    const reussite = Math.random() < 0.9;
+    updateUI();
+    if (reussite) {
+      showToast('Enquête ouverte', 'Une enquête judiciaire est ouverte sur ' + nomCible + '. -' + cout + ' FR.', true, true);
+      addJournalEntry('Enquête judiciaire ouverte sur ' + nomCible + ' (-' + cout + ' FR).', 'event-info');
+      addExternalEvent('🔍 Le Ministère de la Justice ouvre une enquête sur ' + nomCible + '.');
+      if (typeCible === 'citoyen' && typeof sbSendMail === 'function') sbSendMail('Ministère de la Justice', idCible, 'Enquête ouverte', 'Une enquête judiciaire a été ouverte à votre sujet.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    } else {
+      showToast('Enquête classée sans suite', 'Aucune charge retenue contre ' + nomCible + '. -' + cout + ' FR.', false);
+      addJournalEntry('Enquête sur ' + nomCible + ' classée sans suite (-' + cout + ' FR).', 'event-info');
+    }
+    return;
+  }
 
   if (action === 'redressement_fiscal') {
     document.getElementById('modal-postes')?.classList.remove('open');
@@ -3187,7 +3271,7 @@ function appliquerAllegement(secteur) {
 }
 
 async function ouvrirModalAffaires(mode) {
-  const titre = mode === 'annuler' ? 'Annuler des poursuites' : 'Gestion judiciaire';
+  const titre = mode === 'annuler' ? 'Classer une plainte' : 'Gestion judiciaire';
   document.getElementById('postes-modal-title').textContent = titre;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -3220,10 +3304,15 @@ async function annulerAffaire(refId, mode) {
   if (mode === 'annuler') {
     const affaire = (state.plaintesEnCours||[]).find(p => p.id === refId);
     if (affaire) {
+      const pays = state.country || 'republic';
+      const cout = 250;
+      const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'palais-gouvernement', cout) : 0;
+      if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).', false); return; }
+
       affaire.status = 'annulee';
       if (typeof sbSavePlainte === 'function') await sbSavePlainte(affaire).catch(() => {});
-      showToast('Poursuites annulees', 'La procedure a ete classee.', false);
-      addJournalEntry('Annulation de poursuites par le Ministre de la Justice.', 'event-info');
+      showToast('Plainte classée', 'La procédure a été classée. -' + cout + ' FR.', false, true);
+      addJournalEntry('Classement d\'une plainte par le Ministre de la Justice (-' + cout + ' FR).', 'event-info');
     }
   }
 }

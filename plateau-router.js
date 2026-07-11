@@ -223,7 +223,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'mobiliser_armee') { doMobiliserArmee(); return; }
   if (fn === 'etat_urgence') { doEtatUrgence(); return; }
   if (fn === 'inspecter_troupes') { doInspecterTroupes(); return; }
-  if (fn === 'ouvrir_enquete') { ouvrirModalCibleRepertoire('ouvrir_enquete', 'Ouvrir une enquete sur'); return; }
+  if (fn === 'ouvrir_enquete') { ouvrirChoixTypeCibleFiscale('ouvrir_enquete', 'Ouvrir une enquête sur'); return; }
+  if (fn === 'proposer_grace') { ouvrirProposerGrace(); return; }
   if (fn === 'annuler_poursuites') { ouvrirModalAffaires('annuler'); return; }
   if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }

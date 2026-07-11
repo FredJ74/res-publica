@@ -4,11 +4,23 @@
 // =====================
 
 // Trouve le nom du PJ qui occupe reellement un poste donne (via Supabase, pas le state local)
-async function getTitulairePoste(posteId) {
+async function getTitulairePoste(posteId, ville, pays) {
   if (typeof sbListPersonnages !== 'function') return null;
   try {
     const joueurs = await sbListPersonnages() || [];
-    const titulaire = joueurs.find(j => j.country === state.country && j.poste?.id === posteId);
+    const cible = pays || state.country;
+    const titulaire = joueurs.find(j => j.country === cible && j.poste?.id === posteId && (!ville || j.poste?.city === ville));
+    return titulaire?.name || null;
+  } catch(e) { return null; }
+}
+
+// Cas particulier du maire : le posteId varie selon la ville (maire_a, maire_b...), pas de poste 'maire' generique
+async function getTitulaireMaire(pays, ville) {
+  if (typeof sbListPersonnages !== 'function') return null;
+  try {
+    const joueurs = await sbListPersonnages() || [];
+    const cible = pays || state.country;
+    const titulaire = joueurs.find(j => j.country === cible && j.poste?.id?.startsWith('maire') && (!ville || j.poste?.city === ville));
     return titulaire?.name || null;
   } catch(e) { return null; }
 }
@@ -2264,7 +2276,7 @@ async function confirmerDemandeManifestation(orgaId) {
 
   const nbMembres = orga.membres?.length || 1;
   const intensite = Math.min(3, 1 + Math.floor(nbMembres / 10));
-  const cible = orga.type === 'supporters' ? (POSTES?.[state.country]?.maire?.titulaire || null) : null;
+  const cible = orga.type === 'supporters' ? await getTitulaireMaire(state.country, state.currentCity) : null;
 
   await sbCreerDemandeManifestation({
     orgaId, orgaNom: orga.nom, orgaType: orga.type,
@@ -2275,9 +2287,9 @@ async function confirmerDemandeManifestation(orgaId) {
   });
 
   document.getElementById('modal-postes')?.classList.remove('open');
-  const maireNom = POSTES?.[state.country]?.min_int?.titulaire;
-  if (maireNom && typeof sbSendMail === 'function') {
-    await sbSendMail('Préfecture', maireNom, 'Nouvelle demande de manifestation',
+  const minIntNom = await getTitulairePoste('min_int');
+  if (minIntNom && typeof sbSendMail === 'function') {
+    await sbSendMail('Préfecture', minIntNom, 'Nouvelle demande de manifestation',
       orga.nom + ' demande une autorisation pour : "' + sujet + '", le ' + dateEvenement.toLocaleString('fr-FR') + '.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
   }
   showToast('Demande déposée', 'Le Ministère de l\'Intérieur a été notifié.', true, true);
@@ -2305,7 +2317,7 @@ async function getElecteursClub(club) {
   const supporters = getClubSupportersLocal ? (state.organisations || []).find(o => o.type === 'supporters' && o.country === club.country && o.city === club.city) : null;
   const classement = await calculerClassementClub(club);
   const capitaine = getCapitaine(classement);
-  const maire = POSTES?.[club.country]?.maire?.titulaire || null;
+  const maire = await getTitulaireMaire(club.country, club.city);
   return {
     chefSupporters: supporters?.chef || null,
     maire,
