@@ -2701,7 +2701,7 @@ function demanderPosteAuPM(posteId, posteNom) {
   addJournalEntry('Candidature envoyee au PM pour : ' + posteNom, 'event-info');
 }
 
-function ouvrirEtatNation() {
+async function ouvrirEtatNation() {
   const pays = state.country || 'republic';
   const idx = INDICES_NATIONAUX[pays] || { ISN:30, IE:50, ID:40, IS:45 };
   document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
@@ -2711,6 +2711,9 @@ function ouvrirEtatNation() {
   document.getElementById('self-view-name').textContent = 'Etat de la Nation';
   document.getElementById('self-view-role').textContent = COUNTRIES[pays]?.n || '';
   const content = document.getElementById('self-content');
+  content.innerHTML = '<div style="padding:1.5rem;color:#8a8060;font-style:italic">Chargement...</div>';
+
+  const guerres = typeof sbGetGuerresPays === 'function' ? await sbGetGuerresPays(pays).catch(() => []) : [];
 
   const indices = [
     { k:'ISN', label:'Securite Nationale',    val:idx.ISN, col:'#6ab858', desc:'Impact sur les actes illegaux et leur detection.' },
@@ -2721,6 +2724,24 @@ function ouvrirEtatNation() {
 
   let html = '<div style="padding:1.5rem;max-width:650px">';
   html += '<div style="font-family:Playfair Display,serif;font-size:1.1rem;color:#C9A84C;margin-bottom:1.2rem">Indices de la Nation — ' + (COUNTRIES[pays]?.n||'') + '</div>';
+
+  // Statut diplomatique : guerre/treve, ou paix par defaut
+  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;letter-spacing:.08em;margin-bottom:.4rem">STATUT DIPLOMATIQUE</div>';
+  if (guerres.length === 0) {
+    html += '<div style="font-size:.85rem;color:#6ab858">En paix avec tous les empires.</div>';
+  } else {
+    guerres.forEach(g => {
+      const adversaire = g.attaquant === pays ? g.attaque : g.attaquant;
+      const nomAdv = COUNTRIES[adversaire]?.n || adversaire;
+      if (g.ceasefire?.actifPar?.[pays] || g.ceasefire?.actifPar?.[adversaire]) {
+        html += '<div style="font-size:.85rem;color:#d4a850">🕊 En trêve avec ' + nomAdv + (g.ceasefire.actifPar[pays] && !g.ceasefire.actifPar[adversaire] ? ' (activée de notre côté seulement)' : '') + '</div>';
+      } else {
+        html += '<div style="font-size:.85rem;color:#cc4444">⚔ En guerre avec ' + nomAdv + '</div>';
+      }
+    });
+  }
+  html += '</div>';
 
   indices.forEach(ind => {
     const pct = ind.val;
@@ -4443,6 +4464,25 @@ async function accepterNominationLieutenant(compagnieId, sectionId) {
 }
 
 // ---- RECRUTEMENT (a la compagnie) ----
+const COEF_ARME_MILITAIRE = { corps_a_corps: 1, arme_de_poing: 2.5, mitraillette: 4 };
+const PA_MAX_SOLDAT = 12;
+const PA_BASE_ROUND = 2;
+const CAP_ENTRAINEMENT_PAR_SESSION = 12;
+
+function genererMatriculesSection(numeroSection) {
+  const now = new Date();
+  const aaaamm = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0');
+  const ss = String(numeroSection).padStart(2, '0');
+  return Array.from({ length: EFFECTIF_SECTION }, (_, i) => aaaamm + '-' + ss + '-' + String(i + 1).padStart(3, '0'));
+}
+
+function creerSoldatsSection(numeroSection) {
+  return genererMatriculesSection(numeroSection).map(matricule => ({
+    matricule, formation: { force: 0, endurance: 0, tir: 0 }, arme: 'corps_a_corps',
+    buildingId: 'caserne', roomId: 'corps_garde', pa: PA_MAX_SOLDAT
+  }));
+}
+
 async function doRecruterCompagnie() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const pays = state.country || 'republic';
@@ -4451,12 +4491,30 @@ async function doRecruterCompagnie() {
 
   const id = 'compagnie-' + pays + '-' + Date.now();
   const sections = Array.from({ length: NB_SECTIONS_COMPAGNIE }, (_, i) => ({
-    id: id + '-s' + (i + 1), lieutenantNom: null, effectifTotal: EFFECTIF_SECTION,
-    detachements: [{ buildingId: 'caserne', roomId: 'corps_garde', nombre: EFFECTIF_SECTION }]
+    id: id + '-s' + (i + 1), numero: i + 1, lieutenantNom: null,
+    soldats: creerSoldatsSection(i + 1)
   }));
   await sbSaveCompagnie(id, { id, pays, capitaineNom: null, sections });
   showToast('Compagnie recrutée !', '100 soldats (4 sections) rejoignent la caserne. -' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR.', true, true);
   addJournalEntry('Recrutement d\'une nouvelle compagnie (' + COUT_COMPAGNIE + ' FR).', 'event-good');
+}
+
+// Recompletement d'une seule section vidée (moins cher qu'une compagnie complète)
+const COUT_SECTION = Math.round(COUT_COMPAGNIE / NB_SECTIONS_COMPAGNIE);
+async function doRecruterSection(compagnieId, sectionId) {
+  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
+  const pays = state.country || 'republic';
+  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  if (!section || section.soldats.length > 0) { showToast('Section non vide ou introuvable', '', false); return; }
+
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'caserne', COUT_SECTION);
+  if (montantVerse < COUT_SECTION) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le recomplètement (' + COUT_SECTION.toLocaleString('fr-FR') + ' FR).', false); return; }
+
+  section.soldats = creerSoldatsSection(section.numero);
+  await sbSaveCompagnie(compagnieId, compagnie);
+  showToast('Section recomplétée', '24 nouvelles recrues sans expérience rejoignent la section.', true, true);
+  addJournalEntry('Section ' + sectionId + ' recomplétée (-' + COUT_SECTION + ' FR).', 'event-info');
 }
 
 // ---- DETACHEMENTS DE SOLDATS ----
@@ -4465,23 +4523,26 @@ function getSectionDuLieutenant(compagnie) {
   return (compagnie?.sections || []).find(s => s.lieutenantNom === state.char?.name);
 }
 
+const ROOM_AVEC_LIEUTENANT = '__avec_lieutenant__';
+
 async function doGererDetachement() {
   if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   const section = getSectionDuLieutenant(compagnie);
   if (!section) return;
 
-  const ici = section.detachements.find(d => d.buildingId === state.currentBuilding && d.roomId === state.currentRoom);
-  const ailleurs = section.effectifTotal - (ici?.nombre || 0);
+  const ici = section.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom).length;
+  const avecMoi = section.soldats.filter(s => s.roomId === ROOM_AVEC_LIEUTENANT).length;
+  const ailleurs = section.soldats.length - ici - avecMoi;
 
   document.getElementById('postes-modal-title').textContent = 'Gérer mon détachement';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Ici : ' + (ici?.nombre || 0) + ' soldats. Ailleurs : ' + ailleurs + ' soldats.</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Ici : ' + ici + ' · Avec vous (en déplacement) : ' + avecMoi + ' · Ailleurs : ' + ailleurs + ' soldats.</div>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Nombre à déposer ici (depuis votre groupe)</label>';
-  html += '<input id="nb-deposer" type="number" min="0" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<input id="nb-deposer" type="number" min="0" max="' + avecMoi + '" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
   html += '<button onclick="deposerSoldats(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;margin-bottom:.8rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déposer</button>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Nombre à récupérer ici (rejoint votre groupe)</label>';
-  html += '<input id="nb-recuperer" type="number" min="0" max="' + (ici?.nombre || 0) + '" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<input id="nb-recuperer" type="number" min="0" max="' + ici + '" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
   html += '<button onclick="recupererSoldats(\'' + compagnie.id + '\',\'' + section.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #4a6a8a;background:transparent;color:#5a8ad0;cursor:pointer">Récupérer</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -4496,12 +4557,13 @@ async function deposerSoldats(compagnieId, sectionId) {
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
 
-  let ici = section.detachements.find(d => d.buildingId === state.currentBuilding && d.roomId === state.currentRoom);
-  if (!ici) { ici = { buildingId: state.currentBuilding, roomId: state.currentRoom, nombre: 0, mission: null }; section.detachements.push(ici); }
-  ici.nombre += nb;
+  const disponibles = section.soldats.filter(s => s.roomId === ROOM_AVEC_LIEUTENANT);
+  if (disponibles.length < nb) { showToast('Pas assez de soldats avec vous', '', false); return; }
+  disponibles.slice(0, nb).forEach(s => { s.buildingId = state.currentBuilding; s.roomId = state.currentRoom; });
 
   await sbSaveCompagnie(compagnieId, compagnie);
   showToast('Soldats déposés', nb + ' soldats de la section "' + section.lieutenantNom + '" restent ici.', true, true);
+  if (typeof verifierCombatAutomatique === 'function') verifierCombatAutomatique(state.currentBuilding, state.currentRoom).catch(() => {});
 }
 
 async function recupererSoldats(compagnieId, sectionId) {
@@ -4510,10 +4572,9 @@ async function recupererSoldats(compagnieId, sectionId) {
   if (nb <= 0) return;
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
-  const ici = section?.detachements.find(d => d.buildingId === state.currentBuilding && d.roomId === state.currentRoom);
-  if (!ici || ici.nombre < nb) { showToast('Effectif insuffisant ici', '', false); return; }
-  ici.nombre -= nb;
-  section.detachements = section.detachements.filter(d => d.nombre > 0);
+  const ici = section?.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom) || [];
+  if (ici.length < nb) { showToast('Effectif insuffisant ici', '', false); return; }
+  ici.slice(0, nb).forEach(s => { s.buildingId = null; s.roomId = ROOM_AVEC_LIEUTENANT; });
   await sbSaveCompagnie(compagnieId, compagnie);
   showToast('Soldats récupérés', nb + ' soldats rejoignent votre groupe.', true, true);
 }
@@ -4523,8 +4584,8 @@ async function getAffichageDetachementPiece(pays, buildingId, roomId) {
   const compagnies = await sbGetCompagnies(pays).catch(() => []);
   for (const c of compagnies) {
     for (const s of (c.sections || [])) {
-      const d = s.detachements.find(dd => dd.buildingId === buildingId && dd.roomId === roomId && dd.nombre > 0);
-      if (d) return { nom: 'Soldats section "' + (s.lieutenantNom || '?') + '"', lieutenantNom: s.lieutenantNom, nombre: d.nombre, mission: d.mission, sectionId: s.id, compagnieId: c.id };
+      const presents = s.soldats.filter(sol => sol.buildingId === buildingId && sol.roomId === roomId);
+      if (presents.length > 0) return { nom: 'Soldats section "' + (s.lieutenantNom || '?') + '"', lieutenantNom: s.lieutenantNom, nombre: presents.length, mission: s.mission, sectionId: s.id, compagnieId: c.id, pays: c.pays };
     }
   }
   return null;
@@ -4544,13 +4605,13 @@ async function doAssignerMission() {
   if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   const section = getSectionDuLieutenant(compagnie);
-  const ici = section?.detachements.find(d => d.buildingId === state.currentBuilding && d.roomId === state.currentRoom);
-  if (!ici || ici.nombre <= 0) { showToast('Aucun soldat ici', '', false); return; }
+  const iciCount = section?.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom).length || 0;
+  if (iciCount <= 0) { showToast('Aucun soldat ici', '', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Attribuer une mission';
   let html = '<div style="padding:1rem">';
   MISSIONS_DETACHEMENT.forEach(m => {
-    html += '<button onclick="confirmerMission(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + m.id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid ' + (ici.mission===m.id?'#8a6a20':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + m.label + '</button>';
+    html += '<button onclick="confirmerMission(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + m.id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid ' + (section.mission===m.id?'#8a6a20':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + m.label + '</button>';
   });
   if (MISSIONS_DETACHEMENT.find(m=>m.id==='escorter')) {
     html += '<input id="mission-escorte-cible" type="text" placeholder="Nom de la personne à escorter (si mission Escorter)" style="width:100%;margin-top:.4rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;box-sizing:border-box"/>';
@@ -4565,10 +4626,9 @@ async function confirmerMission(compagnieId, sectionId, missionId) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
-  const ici = section?.detachements.find(d => d.buildingId === state.currentBuilding && d.roomId === state.currentRoom);
-  if (!ici) return;
-  ici.mission = missionId;
-  ici.cibleEscorte = missionId === 'escorter' ? cibleEscorte : null;
+  if (!section) return;
+  section.mission = missionId;
+  section.cibleEscorte = missionId === 'escorter' ? cibleEscorte : null;
   await sbSaveCompagnie(compagnieId, compagnie);
   showToast('Mission attribuée', MISSIONS_DETACHEMENT.find(m=>m.id===missionId)?.label, true, true);
 }
@@ -4724,4 +4784,241 @@ async function payerSoldeQuotidienne(pays) {
   if (montantVerse < totalDu) {
     addExternalEvent('⚠️ La solde des troupes de ' + (COUNTRIES[pays]?.n||pays) + ' n\'a pu être versée qu\'en partie faute de budget suffisant.');
   }
+}
+
+// ---- FICHE DE SECTION (reservee au lieutenant) ----
+async function ouvrirRecruterSection() {
+  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
+  const pays = state.country || 'republic';
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  const vides = [];
+  compagnies.forEach(c => (c.sections || []).forEach(s => { if (s.soldats.length === 0) vides.push({ compagnieId: c.id, section: s }); }));
+
+  document.getElementById('postes-modal-title').textContent = 'Recompléter une section';
+  let html = '<div style="padding:1rem">';
+  if (vides.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune section vide actuellement.</div>';
+  } else {
+    vides.forEach(v => {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem">';
+      html += '<span style="font-size:.85rem;color:#e0d5b8">' + v.section.id + ' (vide)</span>';
+      html += '<button onclick="doRecruterSection(\'' + v.compagnieId + '\',\'' + v.section.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Recompléter (' + COUT_SECTION.toLocaleString('fr-FR') + ' FR)</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function doVoirMaSection() {
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
+  const section = getSectionDuLieutenant(compagnie);
+  if (!section) return;
+
+  document.getElementById('postes-modal-title').textContent = 'Ma section — ' + section.soldats.length + ' soldats';
+  let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
+  const armesLabels = { corps_a_corps: 'Corps à corps', arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
+  section.soldats.forEach(s => {
+    const localisation = s.roomId === ROOM_AVEC_LIEUTENANT ? 'Avec vous' : (s.buildingId ? (BUILDINGS[s.buildingId]?.name || s.buildingId) : 'Caserne');
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.35rem;font-size:.75rem">';
+    html += '<div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
+    html += '<div style="color:#a89870">FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + ' · ' + armesLabels[s.arme] + ' · PA ' + s.pa + '/' + PA_MAX_SOLDAT + ' · ' + localisation + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// ---- ENTRAINEMENT (comme le foot : pas de plafond, assiduite recompensee, 12/24 max par session) ----
+async function doEntrainerSection() {
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
+  const section = getSectionDuLieutenant(compagnie);
+  if (!section) return;
+
+  document.getElementById('postes-modal-title').textContent = 'Entraîner la section';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Choisissez la compétence à travailler. ' + CAP_ENTRAINEMENT_PAR_SESSION + ' soldats maximum par session (les moins entraînés dans cette compétence sont sélectionnés en priorité).</div>';
+  ['force','endurance','tir'].forEach(stat => {
+    const label = { force:'Force', endurance:'Endurance', tir:'Tir' }[stat];
+    html += '<button onclick="confirmerEntrainementSection(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + stat + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + label + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerEntrainementSection(compagnieId, sectionId, stat) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  if (!section) return;
+
+  const tries = [...section.soldats].sort((a, b) => a.formation[stat] - b.formation[stat]).slice(0, CAP_ENTRAINEMENT_PAR_SESSION);
+  tries.forEach(s => { s.formation[stat] = Math.min(100, s.formation[stat] + 3); });
+  await sbSaveCompagnie(compagnieId, compagnie);
+  showToast('Entraînement terminé', tries.length + ' soldats ont progressé en ' + stat + '.', true, true);
+  addJournalEntry('Entraînement de la section "' + section.lieutenantNom + '" en ' + stat + ' (' + tries.length + ' soldats).', 'event-good');
+}
+
+// ---- EQUIPEMENT INDIVIDUEL ----
+async function doEquiperSection() {
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
+  const section = getSectionDuLieutenant(compagnie);
+  const ici = section?.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom) || [];
+  if (ici.length === 0) { showToast('Aucun soldat ici', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Équiper les soldats présents ici';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">' + ici.length + ' soldats présents ici recevront cet équipement.</div>';
+  const armes = [{id:'corps_a_corps',label:'Corps à corps (coef. 1)'},{id:'arme_de_poing',label:'Arme de poing (coef. 2,5)'},{id:'mitraillette',label:'Mitraillette (coef. 4)'}];
+  armes.forEach(a => {
+    html += '<button onclick="confirmerEquipementSection(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + a.id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + a.label + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerEquipementSection(compagnieId, sectionId, arme) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  if (!section) return;
+  const ici = section.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom);
+  ici.forEach(s => { s.arme = arme; });
+  await sbSaveCompagnie(compagnieId, compagnie);
+  showToast('Équipement distribué', ici.length + ' soldats équipés.', true, true);
+}
+
+// ---- COMBAT AUTOMATIQUE ENTRE TROUPES DE PAYS EN GUERRE ----
+function calculerPointsGroupe(soldats) {
+  const force = soldats.reduce((s, sol) => s + sol.formation.force, 0);
+  const tir = soldats.reduce((s, sol) => s + sol.formation.tir * (COEF_ARME_MILITAIRE[sol.arme] || 1), 0);
+  const endurance = soldats.reduce((s, sol) => s + sol.formation.endurance, 0);
+  return { force, tir, endurance, points: force * 3 + tir };
+}
+
+// A appeler apres tout depot de troupes dans une piece (deposerSoldats) : verifie une rencontre hostile et resout le combat
+async function verifierCombatAutomatique(buildingId, roomId) {
+  const compagniesRepublic = []; // toutes compagnies, tous pays, pour verifier les rencontres inter-empires
+  const paysListe = Object.keys(COUNTRIES);
+  let sectionsIci = [];
+  for (const p of paysListe) {
+    const compagnies = await sbGetCompagnies(p).catch(() => []);
+    compagnies.forEach(c => (c.sections || []).forEach(s => {
+      const presents = s.soldats.filter(sol => sol.buildingId === buildingId && sol.roomId === roomId);
+      if (presents.length > 0) sectionsIci.push({ pays: p, compagnieId: c.id, section: s, presents });
+    }));
+  }
+  if (sectionsIci.length < 2) return;
+
+  // Chercher une paire de pays effectivement en guerre parmi les sections presentes
+  for (let i = 0; i < sectionsIci.length; i++) {
+    for (let j = i + 1; j < sectionsIci.length; j++) {
+      const A = sectionsIci[i], B = sectionsIci[j];
+      if (A.pays === B.pays) continue;
+      const guerres = await sbGetGuerresPays(A.pays).catch(() => []);
+      const enGuerre = guerres.some(g => g.statut === 'active' && ((g.attaquant===A.pays&&g.attaque===B.pays)||(g.attaque===A.pays&&g.attaquant===B.pays)));
+      if (enGuerre) { await resoudreCombat(A, B); return; }
+    }
+  }
+}
+
+async function resoudreCombat(A, B) {
+  let soldatsA = [...A.presents], soldatsB = [...B.presents];
+  let round = 0;
+  while (soldatsA.length > 0 && soldatsB.length > 0 && round < 100) {
+    round++;
+    const ptsA = calculerPointsGroupe(soldatsA);
+    const ptsB = calculerPointsGroupe(soldatsB);
+
+    // Degats : mes points de groupe = dommages infliges au PA adverse
+    const paTotalA = soldatsA.reduce((s, sol) => s + sol.pa, 0) - ptsB.points;
+    const paTotalB = soldatsB.reduce((s, sol) => s + sol.pa, 0) - ptsA.points;
+
+    // Attrition d'endurance : base 2 PA/round/soldat, reduite selon l'avantage relatif d'endurance
+    const ecartA = ptsB.endurance > 0 ? (ptsA.endurance - ptsB.endurance) / ptsB.endurance : 0;
+    const ecartB = ptsA.endurance > 0 ? (ptsB.endurance - ptsA.endurance) / ptsA.endurance : 0;
+    const attritionA = Math.max(0, PA_BASE_ROUND * soldatsA.length * (1 - Math.max(0, ecartA)));
+    const attritionB = Math.max(0, PA_BASE_ROUND * soldatsB.length * (1 - Math.max(0, ecartB)));
+
+    const paFinalA = paTotalA - attritionA;
+    const paFinalB = paTotalB - attritionB;
+
+    if (paFinalA <= 0) { soldatsA = []; }
+    if (paFinalB <= 0) { soldatsB = []; }
+    if (paFinalA > 0 && paFinalB > 0) {
+      // Repartir les PA restants proportionnellement (simplification : pas de suivi individuel round par round)
+      const ratioA = paFinalA / (soldatsA.reduce((s, sol) => s + sol.pa, 0) || 1);
+      const ratioB = paFinalB / (soldatsB.reduce((s, sol) => s + sol.pa, 0) || 1);
+      soldatsA.forEach(s => s.pa = Math.max(0, s.pa * ratioA));
+      soldatsB.forEach(s => s.pa = Math.max(0, s.pa * ratioB));
+    }
+  }
+
+  const compagnieA = (await sbGetCompagnies(A.pays).catch(() => [])).find(c => c.id === A.compagnieId);
+  const sectionA = compagnieA?.sections.find(s => s.id === A.section.id);
+  const compagnieB = (await sbGetCompagnies(B.pays).catch(() => [])).find(c => c.id === B.compagnieId);
+  const sectionB = compagnieB?.sections.find(s => s.id === B.section.id);
+
+  const matriculesMortsA = A.presents.filter(s => soldatsA.length === 0).map(s => s.matricule);
+  const matriculesMortsB = B.presents.filter(s => soldatsB.length === 0).map(s => s.matricule);
+
+  if (soldatsA.length === 0 && sectionA) sectionA.soldats = sectionA.soldats.filter(s => !A.presents.some(p => p.matricule === s.matricule));
+  if (soldatsB.length === 0 && sectionB) sectionB.soldats = sectionB.soldats.filter(s => !B.presents.some(p => p.matricule === s.matricule));
+
+  if (compagnieA) await sbSaveCompagnie(A.compagnieId, compagnieA);
+  if (compagnieB) await sbSaveCompagnie(B.compagnieId, compagnieB);
+
+  const resultat = soldatsA.length === 0 && soldatsB.length === 0 ? 'Anéantissement mutuel'
+    : soldatsA.length === 0 ? (COUNTRIES[B.pays]?.n||B.pays) + ' l\'emporte' : (COUNTRIES[A.pays]?.n||A.pays) + ' l\'emporte';
+
+  addExternalEvent('⚔️ COMBAT : affrontement entre les troupes de ' + (COUNTRIES[A.pays]?.n||A.pays) + ' et ' + (COUNTRIES[B.pays]?.n||B.pays) + ' — ' + resultat + ' (' + round + ' rounds).');
+  if (A.section.lieutenantNom && typeof sbSendMail === 'function') sbSendMail('État-Major', A.section.lieutenantNom, 'Rapport de combat', resultat + '. Pertes : ' + matriculesMortsA.length + ' soldats.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  if (B.section.lieutenantNom && typeof sbSendMail === 'function') sbSendMail('État-Major', B.section.lieutenantNom, 'Rapport de combat', resultat + '. Pertes : ' + matriculesMortsB.length + ' soldats.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+
+  if (soldatsA.length === 0 && sectionA?.soldats.length === 0 && A.section.lieutenantNom) {
+    const commandantNom = await getTitulairePoste('commandant', null, A.pays);
+    if (commandantNom) await sbSendMail('État-Major', commandantNom, 'Section anéantie', 'La section de ' + A.section.lieutenantNom + ' a été anéantie et doit être recomplétée.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  }
+  if (soldatsB.length === 0 && sectionB?.soldats.length === 0 && B.section.lieutenantNom) {
+    const commandantNom = await getTitulairePoste('commandant', null, B.pays);
+    if (commandantNom) await sbSendMail('État-Major', commandantNom, 'Section anéantie', 'La section de ' + B.section.lieutenantNom + ' a été anéantie et doit être recomplétée.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  }
+}
+
+// ---- LE CAPITAINE PEUT DEMETTRE UN LIEUTENANT ----
+async function doDemettreLieutenant() {
+  if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
+  const pourvues = (compagnie?.sections || []).filter(s => s.lieutenantNom);
+  document.getElementById('postes-modal-title').textContent = 'Démettre un Lieutenant';
+  let html = '<div style="padding:1rem">';
+  if (pourvues.length === 0) html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun lieutenant en poste actuellement.</div>';
+  pourvues.forEach(s => {
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem">';
+    html += '<span style="font-size:.85rem;color:#e0d5b8">' + s.lieutenantNom + ' (Section ' + s.numero + ')</span>';
+    html += '<button onclick="confirmerDemissionLieutenant(\'' + compagnie.id + '\',\'' + s.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Démettre</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDemissionLieutenant(compagnieId, sectionId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  if (!section) return;
+  const ancien = section.lieutenantNom;
+  section.lieutenantNom = null;
+  await sbSaveCompagnie(compagnieId, compagnie);
+  showToast('Lieutenant démis', ancien + ' n\'est plus en poste.', false, true);
+  addJournalEntry(ancien + ' démis de son poste de Lieutenant.', 'event-bad');
 }

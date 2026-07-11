@@ -2873,7 +2873,8 @@ const BUILDINGS = {
           {name:'Soldat Martin (PNJ)',  role:'PNJ - Faction',                 rel:'neutral', job:'militaire'}
         ],
         orders: [
-          {fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:2, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'}
+          {fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:2, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'},
+          {fn:'demettre_lieutenant', label:'Démettre un Lieutenant', pa:2, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Retirer un lieutenant juge responsable d\'un echec.'}
         ]
       },
       salle_commandement: {
@@ -2887,8 +2888,12 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'nommer_capitaine',    label:'Nommer un Capitaine',        pa:2, cost:0,    type:'legal',   icon:'ti-star',          successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Designer un capitaine pour une compagnie.'},
+          {fn:'recruter_section',   label:'Recompléter une section',    pa:2, cost:0,    type:'legal',   icon:'ti-user-plus',     successRate:100, requiresPost:'commandant', desc:'Recompléter une section anéantie. Les nouvelles recrues n\'ont aucune experience.'},
           {fn:'gerer_detachement',   label:'Gérer mon détachement',      pa:0, cost:0,    type:'legal',   icon:'ti-users',         successRate:100, requiresPost:'lieutenant', desc:'Deposer ou recuperer des soldats dans cette piece.'},
           {fn:'assigner_mission',    label:'Attribuer une mission',      pa:1, cost:0,    type:'legal',   icon:'ti-target',        successRate:100, requiresPost:'lieutenant', desc:'Donner une consigne au detachement present dans cette piece.'},
+          {fn:'voir_ma_section',     label:'Voir ma section',            pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, requiresPost:'lieutenant', desc:'Fiche individuelle de vos 24 soldats (matricule, formation, equipement).'},
+          {fn:'entrainer_section',   label:'Entrainer la section',       pa:2, cost:0,    type:'legal',   icon:'ti-barbell',       successRate:100, requiresPost:'lieutenant', desc:'Force, Endurance ou Tir. 12 soldats max par session.'},
+          {fn:'equiper_section',     label:'Equiper les soldats ici',    pa:1, cost:0,    type:'legal',   icon:'ti-sword',         successRate:100, requiresPost:'lieutenant', desc:'Equiper les soldats presents dans cette piece.'},
           {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:1, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:'min_def', desc:'+INF aupres de l\'armee. Renforce la loyaute.'},
           {fn:'gerer_budget_caserne', label:'Gérer le budget de la Caserne', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_def', desc:'Consulter la caisse, ou renoncer a son salaire au profit de la caserne.'}
         ]

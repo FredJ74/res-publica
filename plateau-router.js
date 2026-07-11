@@ -91,7 +91,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'decret_referendum')       { ouvrirForumNationalSousForumPresident('referendum'); return; }
   if (fn === 'jour_deuil')             { ouvrirForumNationalSousForumPresident('deuil'); return; }
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
-  if (fn === 'etat_nation' || fn === 'etat_urgence')             { ouvrirIndicesImperiaux(); return; }
+  if (fn === 'etat_nation' || fn === 'etat_urgence')             { ouvrirEtatNation(); return; }
   if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocauxReel(); return; }
   if (fn === 'consommer_buvette') { doConsommerBuvette(); return; }
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
@@ -198,7 +198,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'accord_diplomatique')  { ouvrirModalEmpireCible('accord_diplomatique', 'Ouvrir des negociations avec'); return; }
   if (fn === 'produire_fuite')       { ouvrirProduireFuite(); return; }
   if (fn === 'fabriquer_scandale')   { ouvrirFabrquerScandale(); return; }
-  if (fn === 'etat_nation')          { ouvrirIndicesImperiaux(); return; }
+  if (fn === 'etat_nation')          { ouvrirEtatNation(); return; }
 
   // Handlers complementaires v17
   if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_journaliste') { doCorruption(fn, cost); return; }
@@ -237,6 +237,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(); return; }
   if (fn === 'gerer_detachement') { doGererDetachement(); return; }
   if (fn === 'assigner_mission') { doAssignerMission(); return; }
+  if (fn === 'voir_ma_section') { doVoirMaSection(); return; }
+  if (fn === 'entrainer_section') { doEntrainerSection(); return; }
+  if (fn === 'equiper_section') { doEquiperSection(); return; }
+  if (fn === 'demettre_lieutenant') { doDemettreLieutenant(); return; }
+  if (fn === 'recruter_section') { ouvrirRecruterSection(); return; }
   if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetCaserne(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
   if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
