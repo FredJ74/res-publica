@@ -585,6 +585,7 @@ async function runMidnightUpdate() {
   mettreAJourPopulation();
   await alimenterBudgets();
   if (typeof verifierEffetsEtDistributionFiscale === 'function') await verifierEffetsEtDistributionFiscale();
+  if (typeof traiterVirementJournalierCaserne === 'function') await traiterVirementJournalierCaserne(state.country || 'republic').catch(() => {});
   if (typeof payerSoldeQuotidienne === 'function') await payerSoldeQuotidienne(state.country || 'republic').catch(() => {});
   if (typeof verifierEffetsCouvreFeuQuotidien === 'function') await verifierEffetsCouvreFeuQuotidien(state.country || 'republic').catch(() => {});
   if (typeof verifierRechercheMilitaireQuotidien === 'function') await verifierRechercheMilitaireQuotidien(state.country || 'republic').catch(() => {});

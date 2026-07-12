@@ -251,7 +251,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'requisition_civile') { ouvrirRequisitionCivile(); return; }
   if (fn === 'se_presenter_affectation') { doSePresenterAffectation(); return; }
   if (fn === 'consulter_faits_armes') { ouvrirConsulterFaitsArmes(); return; }
-  if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetCaserne(); return; }
+  if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetMilitaire(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
   if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }

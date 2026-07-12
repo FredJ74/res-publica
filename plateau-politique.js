@@ -4800,27 +4800,73 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
 }
 
 // ---- BUDGET DE LA CASERNE (alloue par le MG) ----
-async function ouvrirGererBudgetCaserne() {
+async function ouvrirGererBudgetMilitaire() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const pays = state.country || 'republic';
-  const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'caserne-militaire') : { solde: 0 };
+  const maCaisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'gouvernement-min_def') : { solde: 0 };
+  const caisseCaserne = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'caserne-militaire') : { solde: 0 };
+  const budgetNat = await chargerBudgetNational(pays);
+  const virementActuel = budgetNat.virementJournalierCaserne || 0;
 
-  document.getElementById('postes-modal-title').textContent = 'Budget de la Caserne';
+  document.getElementById('postes-modal-title').textContent = 'Budget militaire';
   let html = '<div style="padding:1rem">';
-  html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">Caisse : ' + (caisse.solde||0).toLocaleString('fr-FR') + ' FR</div>';
-  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Utilisez cette caisse pour recruter, financer des opérations spéciales, ou toucher votre solde. Vous pouvez aussi y renoncer entièrement.</div>';
-  html += '<button onclick="renoncerSalaireCaserne()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Renoncer à mon salaire (tout reste dans la caisse)</button>';
+  html += '<div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-family:Bebas Neue,sans-serif;font-size:.95rem">';
+  html += '<span style="color:#C9A84C">Ma caisse (Ministère) : ' + (maCaisse.solde||0).toLocaleString('fr-FR') + ' FR</span>';
+  html += '<span style="color:#8a8060">Caisse de la Caserne : ' + (caisseCaserne.solde||0).toLocaleString('fr-FR') + ' FR</span>';
+  html += '</div>';
+
+  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;margin-bottom:.4rem">VIREMENT JOURNALIER AUTOMATIQUE</div>';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.5rem">Actuellement : ' + virementActuel.toLocaleString('fr-FR') + ' FR/jour, prélevé automatiquement chaque nuit sur votre caisse.</div>';
+  html += '<input id="montant-virement-journalier" type="number" min="0" value="' + virementActuel + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.5rem"/>';
+  html += '<button onclick="confirmerVirementJournalier()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Fixer ce montant</button>';
+  html += '</div>';
+
+  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;margin-bottom:.4rem">VIREMENT PONCTUEL</div>';
+  html += '<input id="montant-virement-ponctuel" type="number" min="0" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.5rem"/>';
+  html += '<button onclick="confirmerVirementPonctuel()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #5a8ad0;background:transparent;color:#5a8ad0;cursor:pointer">Transférer maintenant</button>';
+  html += '</div>';
+
+  html += '<button onclick="ouvrirRechercheMilitaireDepuisMinistere()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.06em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Financer directement la recherche militaire</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function renoncerSalaireCaserne() {
-  if (!state.char) return;
-  state.char.renonceSalaireCaserne = true;
+async function confirmerVirementJournalier() {
+  const montant = Math.max(0, parseInt(document.getElementById('montant-virement-journalier')?.value || '0'));
   document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Salaire renoncé', 'Votre solde de Ministre de la Défense restera dans la caisse de la caserne.', true, true);
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  budgetNat.virementJournalierCaserne = montant;
+  await sbSaveBudgetNational(pays, budgetNat);
+  showToast('Virement journalier fixé', montant.toLocaleString('fr-FR') + ' FR/jour vers la caserne, à partir de demain.', true, true);
+  addJournalEntry('Virement journalier vers la caserne fixé à ' + montant + ' FR.', 'event-info');
 }
+
+async function confirmerVirementPonctuel() {
+  const montant = Math.max(0, parseInt(document.getElementById('montant-virement-ponctuel')?.value || '0'));
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (montant <= 0) return;
+  const pays = state.country || 'republic';
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_def', montant);
+  if (montantVerse <= 0) { showToast('Caisse insuffisante', '', false); return; }
+  await crediterCaisseBatiment(pays, 'caserne-militaire', montantVerse);
+  showToast('Virement effectué', montantVerse.toLocaleString('fr-FR') + ' FR transférés vers la caserne.', true, true);
+  addJournalEntry('Virement ponctuel de ' + montantVerse + ' FR vers la caserne.', 'event-good');
+}
+
+// Traite le virement journalier automatique fixe par le MG (a appeler a minuit)
+async function traiterVirementJournalierCaserne(pays) {
+  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
+  const montant = budgetNat?.virementJournalierCaserne || 0;
+  if (montant <= 0) return;
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_def', montant);
+  if (montantVerse > 0) await crediterCaisseBatiment(pays, 'caserne-militaire', montantVerse);
+}
+
+
 
 // ---- SOLDE QUOTIDIENNE DES SOLDATS (versee chaque nuit, juste apres que le MG touche sa part) ----
 async function payerSoldeQuotidienne(pays) {
@@ -5594,4 +5640,39 @@ async function confirmerAffectationSection(engagementId) {
   }
   showToast('Engagé affecté', engagement.nom + ' est nommé Lieutenant de la section ' + sectionId + '.', true, true);
   addExternalEvent('🎖 ' + engagement.nom + ' est nommé Lieutenant après engagement volontaire.');
+}
+
+async function ouvrirRechercheMilitaireDepuisMinistere() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  const enCours = budgetNat.rechercheMilitaire?.enCours;
+
+  document.getElementById('postes-modal-title').textContent = 'Financer la recherche militaire';
+  let html = '<div style="padding:1rem">';
+  if (enCours) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Recherche déjà en cours sur : <strong style="color:#C9A84C">' + enCours.arme + '</strong>, achèvement Jour ' + enCours.jourFin + '.</div>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Financé directement depuis votre caisse ministérielle (sans passer par la caserne). ' + DUREE_RECHERCHE_JOURS + ' jours, ' + COUT_RECHERCHE.toLocaleString('fr-FR') + ' FR.</div>';
+    const armes = [{id:'corps_a_corps',label:'Corps à corps'},{id:'arme_de_poing',label:'Arme de poing'},{id:'mitraillette',label:'Mitraillette'}];
+    armes.forEach(a => {
+      html += '<button onclick="confirmerRechercheMilitaireDepuisMinistere(\'' + a.id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + a.label + '</button>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerRechercheMilitaireDepuisMinistere(arme) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_def', COUT_RECHERCHE);
+  if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'Votre caisse ministérielle ne couvre pas le coût de la recherche.', false); return; }
+
+  const budgetNat = await chargerBudgetNational(pays);
+  budgetNat.rechercheMilitaire = { enCours: { arme, jourDebut: state.day, jourFin: state.day + DUREE_RECHERCHE_JOURS } };
+  await sbSaveBudgetNational(pays, budgetNat);
+  showToast('Recherche lancée', 'Financée directement par le Ministère. Achèvement dans ' + DUREE_RECHERCHE_JOURS + ' jours.', true, true);
+  addJournalEntry('Recherche militaire financée par le Ministère sur : ' + arme + ' (-' + COUT_RECHERCHE + ' FR).', 'event-info');
 }

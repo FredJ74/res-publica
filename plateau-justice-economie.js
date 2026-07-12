@@ -2544,7 +2544,7 @@ const SALAIRES_POLITIQUES = {
 const CAISSE_BATIMENT_POSTE = {
   president: 'palais-presidentiel', pm: 'gouvernement-pm',
   min_int: 'gouvernement-min_int', min_fin: 'gouvernement-min_fin', min_just: 'gouvernement-min_just',
-  min_def: 'caserne-militaire', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae',
+  min_def: 'gouvernement-min_def', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae',
   maire: 'mairie-capitale'
 };
 
@@ -2553,8 +2553,7 @@ const CAISSE_BATIMENT_POSTE = {
 const CAISSE_PAR_POSTE_BUDGET = {
   presidence: 'palais-presidentiel', pm: 'gouvernement-pm',
   min_int: 'gouvernement-min_int', min_fin: 'gouvernement-min_fin', min_just: 'gouvernement-min_just',
-  min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae', mairie: 'mairie-capitale'
-  // min_def -> caisse de la caserne, geree a part (voir payerSoldeQuotidienne / distribution dediee)
+  min_def: 'gouvernement-min_def', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae', mairie: 'mairie-capitale'
 };
 
 async function chargerCaisseBatiment(pays, buildingId) {
@@ -2642,9 +2641,7 @@ async function verifierEffetsEtDistributionFiscale() {
     const part = (repartition[posteId] || 0) / 100;
     await crediterCaisseBatiment(pays, buildingId, Math.floor(totalDisponible * part));
   }
-  // La Defense a sa propre caisse (la caserne), alimentee elle aussi selon sa part
-  const partDef = (repartition.min_def || 0) / 100;
-  await crediterCaisseBatiment(pays, 'caserne-militaire', Math.floor(totalDisponible * partDef));
+  // Le virement journalier automatique vers la caserne, fixe par le MG, est traite separement (voir traiterVirementJournalierCaserne)
 
   budgetNat.reserveJour = 0;
   budgetNat.derniereDistribJour = jour;
@@ -2658,7 +2655,6 @@ async function verifierSalairePolitique() {
   const jour = state.day || 1;
   if (!state.char) return;
   if (state.char.dernierSalairePolitiqueJour === jour) return;
-  if (posteId === 'min_def' && state.char.renonceSalaireCaserne) { state.char.dernierSalairePolitiqueJour = jour; return; }
 
   const pays = state.country || 'republic';
   const buildingId = CAISSE_BATIMENT_POSTE[posteId];

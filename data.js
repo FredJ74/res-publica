@@ -2903,7 +2903,7 @@ const BUILDINGS = {
           {fn:'equiper_section',     label:'Equiper les soldats ici',    pa:1, cost:0,    type:'legal',   icon:'ti-sword',         successRate:100, requiresPost:'lieutenant', desc:'Equiper les soldats presents dans cette piece.'},
           {fn:'remonter_renseignement', label:'Faire remonter un renseignement', pa:1, cost:0, type:'legal', icon:'ti-report', successRate:100, requiresPost:'lieutenant', desc:'Transmettre un rapport de renseignement recu a votre Capitaine.'},
           {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:1, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:'min_def', desc:'+INF aupres de l\'armee. Renforce la loyaute.'},
-          {fn:'gerer_budget_caserne', label:'Gérer le budget de la Caserne', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_def', desc:'Consulter la caisse, ou renoncer a son salaire au profit de la caserne.'}
+          {fn:'gerer_budget_caserne', label:'Gérer le budget militaire', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_def', desc:'Virement journalier ou ponctuel vers la caserne, ou financer directement la recherche militaire.'}
         ]
       },
       armurerie_militaire: {
