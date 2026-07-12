@@ -359,6 +359,147 @@ async function traiterDistributionFiscale() {
 }
 
 // ===========================================================
+// PARTIE 6 — MECANISMES MILITAIRES QUOTIDIENS (nouveau)
+// Solde des troupes, recherche militaire, desertions, couvre-feu, virement journalier
+// ===========================================================
+
+const COUT_PAR_SOLDAT_JOUR = 20;
+const DELAI_REQUISITION_HEURES_SRV = 36;
+
+async function debiterCaisse(pays, buildingId, montantVise) {
+  const actuelle = await getCaisseBatiment(pays, buildingId);
+  const montantVerse = Math.min(actuelle.solde || 0, montantVise);
+  await sbUpsert('caisses_batiments', { id: `${pays}_${buildingId}`, data: { solde: (actuelle.solde||0) - montantVerse }, updated_at: new Date().toISOString() });
+  return montantVerse;
+}
+
+async function getCompagniesPays(pays) {
+  const rows = await sbGet('compagnies_militaires', 'select=id,data');
+  if (!rows) return [];
+  return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function saveCompagnie(id, data) {
+  await sbUpsert('compagnies_militaires', { id, data });
+}
+
+// --- Solde quotidienne des troupes ---
+async function payerSoldeQuotidienne(pays) {
+  const compagnies = await getCompagniesPays(pays);
+  let totalDu = 0;
+  compagnies.forEach(c => (c.sections||[]).forEach(s => { totalDu += (s.soldats?.length||0) * COUT_PAR_SOLDAT_JOUR; }));
+  if (totalDu <= 0) return { pays, du: 0 };
+  const verse = await debiterCaisse(pays, 'caserne-militaire', totalDu);
+  if (verse < totalDu) {
+    await sbInsert('evenements_globaux', { country: pays, city: null, texte: `⚠️ La solde des troupes n'a pu être versée qu'en partie faute de budget suffisant.`, jour: null });
+  }
+  return { pays, du: totalDu, verse };
+}
+
+// --- Recherche militaire : achevement base sur un vrai horodatage (dateFin) ---
+async function verifierRechercheMilitaire(pays) {
+  const budgetNat = await getBudgetNational(pays);
+  const enCours = budgetNat.rechercheMilitaire?.enCours;
+  if (!enCours || !enCours.dateFin || Date.now() < enCours.dateFin) return null;
+
+  if (!budgetNat.coefficientsArmesAcquis) budgetNat.coefficientsArmesAcquis = {};
+  budgetNat.coefficientsArmesAcquis[enCours.arme] = (budgetNat.coefficientsArmesAcquis[enCours.arme] || 0) + 0.5;
+  budgetNat.rechercheMilitaire.enCours = null;
+  await sbUpsert('budgets_nationaux', { id: pays, data: budgetNat, updated_at: new Date().toISOString() });
+  await sbInsert('evenements_globaux', { country: pays, city: null, texte: `🔬 Recherche militaire achevée : le coefficient de tir de "${enCours.arme}" est amélioré pour toute la nation.`, jour: null });
+  return { pays, arme: enCours.arme };
+}
+
+// --- Desertions des civils requisitionnes non presentes ---
+async function verifierDesertions(pays) {
+  const compagnies = await getCompagniesPays(pays);
+  const deserteurs = [];
+  for (const c of compagnies) {
+    let modifie = false;
+    for (const s of (c.sections||[])) {
+      for (const entree of (s.civilsRequisitionnes||[])) {
+        if (entree.statut === 'convoque' && entree.deadline && Date.now() > entree.deadline) {
+          entree.statut = 'deserteur';
+          modifie = true;
+          deserteurs.push(entree.nom);
+          await sbUpdate('personnages', `name=eq.${encodeURIComponent(entree.nom)}`, {
+            requisition: JSON.stringify({ compagnieId: c.id, sectionId: s.id, statut: 'deserteur' })
+          });
+          await sbInsert('evenements_globaux', { country: pays, city: null, texte: `🚨 ${entree.nom} a été déclaré(e) DÉSERTEUR(SE) pour ne pas s'être présenté(e) à sa réquisition.`, jour: null });
+        }
+      }
+    }
+    if (modifie) await saveCompagnie(c.id, c);
+  }
+  return deserteurs;
+}
+
+// --- Effets quotidiens du couvre-feu (IS/POP), et extinction automatique a echeance ---
+async function verifierCouvreFeu(pays) {
+  const budgetNat = await getBudgetNational(pays);
+  const cf = budgetNat.couvreFeu;
+  if (!cf?.actif) return null;
+
+  if (cf.dateFin && Date.now() > cf.dateFin) {
+    budgetNat.couvreFeu.actif = false;
+    await sbUpsert('budgets_nationaux', { id: pays, data: budgetNat, updated_at: new Date().toISOString() });
+    return { pays, statut: 'leve_automatiquement' };
+  }
+
+  const postesGouv = ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'];
+  for (const posteId of postesGouv) {
+    const joueurs = await sbGet('personnages', 'select=name,country,poste') || [];
+    const titulaire = joueurs.find(j => {
+      let poste = null;
+      try { poste = typeof j.poste === 'string' ? JSON.parse(j.poste) : j.poste; } catch(e) {}
+      return j.country === pays && poste?.id === posteId;
+    });
+    if (!titulaire) continue;
+    const pop = titulaire.pop ?? 50;
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(titulaire.name)}`, { pop: Math.max(0, pop - 2) });
+  }
+  return { pays, statut: 'effets_appliques' };
+}
+
+// --- Virement journalier automatique du MG vers la caserne ---
+async function traiterVirementJournalier(pays) {
+  const budgetNat = await getBudgetNational(pays);
+  const montant = budgetNat.virementJournalierCaserne || 0;
+  if (montant <= 0) return null;
+  const verse = await debiterCaisse(pays, 'gouvernement-min_def', montant);
+  if (verse > 0) await crediterCaisse(pays, 'caserne-militaire', verse);
+  return { pays, verse };
+}
+
+async function traiterMecanismesMilitaires() {
+  const nowParis = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  if (nowParis.getHours() !== 0) return { skip: true };
+  const jourStr = nowParis.toLocaleDateString('fr-CA');
+
+  const resultats = {};
+  for (const pays of PAYS_LISTE) {
+    const budgetNat = await getBudgetNational(pays);
+    if (budgetNat.derniereMecanismesMilitairesJour === jourStr) {
+      resultats[pays] = { statut: "deja fait aujourd'hui" };
+      continue;
+    }
+
+    resultats[pays] = {
+      solde: await payerSoldeQuotidienne(pays).catch(e => ({ erreur: e.message })),
+      recherche: await verifierRechercheMilitaire(pays).catch(e => ({ erreur: e.message })),
+      desertions: await verifierDesertions(pays).catch(e => ({ erreur: e.message })),
+      couvreFeu: await verifierCouvreFeu(pays).catch(e => ({ erreur: e.message })),
+      virement: await traiterVirementJournalier(pays).catch(e => ({ erreur: e.message }))
+    };
+
+    const budgetNatMaj = await getBudgetNational(pays);
+    budgetNatMaj.derniereMecanismesMilitairesJour = jourStr;
+    await sbUpsert('budgets_nationaux', { id: pays, data: budgetNatMaj, updated_at: new Date().toISOString() });
+  }
+  return { skip: false, resultats };
+}
+
+// ===========================================================
 // HANDLER PRINCIPAL
 // ===========================================================
 
@@ -376,6 +517,7 @@ export default async function handler(req, res) {
     const fuites = await traiterSouvenirsAccueil();
     const votesConfianceTraites = await cloturerVotesConfiance();
     const fiscalResults = await traiterDistributionFiscale();
+    const militaireResults = await traiterMecanismesMilitaires();
 
     return res.status(200).json({
       ok: true,
@@ -383,7 +525,8 @@ export default async function handler(req, res) {
       mailsSupprimes: mailsSuppres,
       fuites,
       votesConfianceTraites,
-      fiscal: fiscalResults
+      fiscal: fiscalResults,
+      militaire: militaireResults
     });
   } catch (e) {
     console.error('Erreur cron-minuit', e);

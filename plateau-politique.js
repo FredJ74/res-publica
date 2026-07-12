@@ -5225,7 +5225,7 @@ async function confirmerCouvreFeu(activer) {
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
   if (activer) {
-    budgetNat.couvreFeu = { actif: true, jourDebut: state.day || 1, jourFin: (state.day || 1) + 2 };
+    budgetNat.couvreFeu = { actif: true, jourDebut: state.day || 1, jourFin: (state.day || 1) + 2, dateFin: Date.now() + 2 * 86400000 };
     await sbSaveBudgetNational(pays, budgetNat);
     showToast('Couvre-feu instauré', '20h-6h, jusqu\'au Jour ' + budgetNat.couvreFeu.jourFin + '.', false, true);
     addExternalEvent('🌙 COUVRE-FEU instauré par le Ministère de l\'Intérieur, de 20h à 6h.');
@@ -5325,7 +5325,7 @@ async function confirmerRechercheMilitaire(arme) {
   if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de la recherche.', false); return; }
 
   const budgetNat = await chargerBudgetNational(pays);
-  budgetNat.rechercheMilitaire = { enCours: { arme, jourDebut: state.day, jourFin: state.day + DUREE_RECHERCHE_JOURS } };
+  budgetNat.rechercheMilitaire = { enCours: { arme, jourDebut: state.day, jourFin: state.day + DUREE_RECHERCHE_JOURS, dateFin: Date.now() + DUREE_RECHERCHE_JOURS * 86400000 } };
   await sbSaveBudgetNational(pays, budgetNat);
   showToast('Recherche lancée', 'Un chercheur civil rejoint l\'effort. Achèvement dans ' + DUREE_RECHERCHE_JOURS + ' jours.', true, true);
   addJournalEntry('Recherche militaire lancée sur : ' + arme + ' (-' + COUT_RECHERCHE + ' FR).', 'event-info');
@@ -5671,7 +5671,7 @@ async function confirmerRechercheMilitaireDepuisMinistere(arme) {
   if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'Votre caisse ministérielle ne couvre pas le coût de la recherche.', false); return; }
 
   const budgetNat = await chargerBudgetNational(pays);
-  budgetNat.rechercheMilitaire = { enCours: { arme, jourDebut: state.day, jourFin: state.day + DUREE_RECHERCHE_JOURS } };
+  budgetNat.rechercheMilitaire = { enCours: { arme, jourDebut: state.day, jourFin: state.day + DUREE_RECHERCHE_JOURS, dateFin: Date.now() + DUREE_RECHERCHE_JOURS * 86400000 } };
   await sbSaveBudgetNational(pays, budgetNat);
   showToast('Recherche lancée', 'Financée directement par le Ministère. Achèvement dans ' + DUREE_RECHERCHE_JOURS + ' jours.', true, true);
   addJournalEntry('Recherche militaire financée par le Ministère sur : ' + arme + ' (-' + COUT_RECHERCHE + ' FR).', 'event-info');
