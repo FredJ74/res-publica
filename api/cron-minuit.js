@@ -343,9 +343,8 @@ async function traiterDistributionFiscale() {
   const heureParis = nowParis.getHours();
   const jourStr = nowParis.toLocaleDateString('fr-CA');
 
-  if (heureParis !== 0) {
-    return { skip: true, raison: 'Pas minuit a Paris actuellement', heureParis };
-  }
+  // Note : le plan Vercel Hobby limite a 1 execution/jour, plus besoin de verifier l'heure exacte —
+  // le cron est fixe a 23h UTC (minuit/1h du matin a Paris selon la saison), on traite a chaque appel.
 
   const resultats = [];
   for (const pays of PAYS_LISTE) {
@@ -473,7 +472,7 @@ async function traiterVirementJournalier(pays) {
 
 async function traiterMecanismesMilitaires() {
   const nowParis = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
-  if (nowParis.getHours() !== 0) return { skip: true };
+  // Plan Hobby = 1 execution/jour, on traite a chaque appel (garde anti-doublon deja assuree plus bas)
   const jourStr = nowParis.toLocaleDateString('fr-CA');
 
   const resultats = {};
