@@ -749,6 +749,24 @@ async function sbGetCompagnies(pays) {
   return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
 }
 
+async function sbCreerPrisonnierQHS(data) {
+  const id = 'qhs-' + Date.now() + '-' + Math.floor(Math.random()*10000);
+  await sbInsert('prisonniers_qhs', { id, statut: 'detenu', data });
+  return id;
+}
+
+async function sbGetPrisonniersQHS(pays) {
+  const rows = await sbGet('prisonniers_qhs', `statut=eq.detenu&select=id,data`);
+  if (!rows) return [];
+  return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbMajPrisonnierQHS(id, statut, patch) {
+  const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(id)}`);
+  const data = { ...(rows?.[0]?.data || {}), ...(patch || {}) };
+  return sbUpdate('prisonniers_qhs', `id=eq.${encodeURIComponent(id)}`, { statut, data });
+}
+
 async function sbCreerRapportRenseignement(data) {
   const id = 'rens-' + Date.now();
   await sbInsert('rapports_renseignement', { id, data });

@@ -668,7 +668,7 @@ async function confirmerDestructionPersonnage() {
   setTimeout(() => { window.location.href = 'index.html'; }, 2000);
 }
 
-function doDormir() {
+async function doDormir() {
   const today = state.day || 1;
   if (state.dernierDormir === today) {
     showToast('Deja dormi', 'Vous avez deja dormi aujourd\'hui. Attendez demain.', false);
@@ -707,7 +707,24 @@ function doDormir() {
   state.liquide += Math.floor(salaire * 0.3);
   state.banque += Math.ceil(salaire * 0.7);
   state.moral = Math.min(100, state.moral + confort.moral);
-  if (confort.paBonus > 0) state.paBonus = confort.paBonus;
+
+  // Restauration reelle des PA — corrige un bug de fond ou la recuperation n'etait jamais appliquee
+  const PA_BASE_NORMAL = 12;
+  let plafondPA = PA_BASE_NORMAL + (confort.paBonus || 0);
+  let detentionQHS = null;
+  if (typeof sbGet === 'function' && state.char?.name) {
+    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(state.char.name)}&select=detention_qhs`).catch(() => []);
+    detentionQHS = rows?.[0]?.detention_qhs ? (typeof rows[0].detention_qhs === 'string' ? JSON.parse(rows[0].detention_qhs) : rows[0].detention_qhs) : null;
+  }
+  if (detentionQHS?.enQHS) {
+    plafondPA = detentionQHS.paLimite1Jour ? 1 : 3;
+    if (detentionQHS.paLimite1Jour) {
+      detentionQHS.paLimite1Jour = false;
+      if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char.name)}`, { detention_qhs: JSON.stringify(detentionQHS) }).catch(() => {});
+    }
+  }
+  state.pa = plafondPA;
+  state.paMax = plafondPA;
 
   updateUI();
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';

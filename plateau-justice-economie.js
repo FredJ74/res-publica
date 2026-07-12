@@ -1351,6 +1351,15 @@ async function appliquerSentence(affaireId, type) {
     details = 'Envoi au QHS';
     if (!state.prisonniers) state.prisonniers = [];
     state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + 30, qhs: true });
+    if (typeof sbCreerPrisonnierQHS === 'function') {
+      let photoUrl = null;
+      if (typeof sbGet === 'function') {
+        const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(affaire.cible)}&select=photoUrl`).catch(() => []);
+        photoUrl = rows?.[0]?.photoUrl || null;
+      }
+      await sbCreerPrisonnierQHS({ pays: state.country || 'republic', nom: affaire.cible, raison: affaire.motif, photoUrl, jourDebut: state.day, jourFin: state.day + 30 }).catch(() => {});
+      if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(affaire.cible)}`, { detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false }) }).catch(() => {});
+    }
   }
 
   if (!state.archivesJugements) state.archivesJugements = [];

@@ -226,6 +226,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'inspecter_troupes') { doInspecterTroupes(); return; }
   if (fn === 'ouvrir_enquete') { ouvrirChoixTypeCibleFiscale('ouvrir_enquete', 'Ouvrir une enquête sur'); return; }
   if (fn === 'proposer_grace') { ouvrirProposerGrace(); return; }
+  if (fn === 'gestion_qhs') { ouvrirGestionQHS(); return; }
   if (fn === 'annuler_poursuites') { ouvrirModalAffaires('annuler'); return; }
   if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }

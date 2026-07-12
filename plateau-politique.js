@@ -5676,3 +5676,176 @@ async function confirmerRechercheMilitaireDepuisMinistere(arme) {
   showToast('Recherche lancée', 'Financée directement par le Ministère. Achèvement dans ' + DUREE_RECHERCHE_JOURS + ' jours.', true, true);
   addJournalEntry('Recherche militaire financée par le Ministère sur : ' + arme + ' (-' + COUT_RECHERCHE + ' FR).', 'event-info');
 }
+
+// =====================
+// GESTION DU QHS — budget dedie, liste des prisonniers, actions (transfert/conditions/torture)
+// =====================
+async function ouvrirGestionQHS() {
+  if (state.poste?.id !== 'min_just') { showToast('Réservé au Ministre de la Justice', '', false); return; }
+  document.getElementById('postes-modal-title').textContent = 'Gestion du QHS';
+  let html = '<div style="padding:1rem">';
+  html += '<button onclick="ouvrirBudgetQHS()" style="width:100%;margin-bottom:.5rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.06em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Budget du QHS</button>';
+  html += '<button onclick="ouvrirListePrisonniersQHS()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.06em;padding:.55rem;border:1px solid #5a8ad0;background:transparent;color:#5a8ad0;cursor:pointer">Liste des prisonniers</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function ouvrirBudgetQHS() {
+  const pays = state.country || 'republic';
+  const maCaisse = await chargerCaisseBatiment(pays, 'gouvernement-min_just');
+  const caisseQHS = await chargerCaisseBatiment(pays, 'qhs-prison');
+  const budgetNat = await chargerBudgetNational(pays);
+  const virementActuel = budgetNat.virementJournalierQHS || 0;
+
+  document.getElementById('postes-modal-title').textContent = 'Budget du QHS';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-family:Bebas Neue,sans-serif;font-size:.9rem">';
+  html += '<span style="color:#C9A84C">Ma caisse (Ministère) : ' + (maCaisse.solde||0).toLocaleString('fr-FR') + ' FR</span>';
+  html += '<span style="color:#8a8060">Caisse du QHS : ' + (caisseQHS.solde||0).toLocaleString('fr-FR') + ' FR</span>';
+  html += '</div>';
+
+  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.76rem;color:#e0d5b8;margin-bottom:.4rem">VIREMENT JOURNALIER AUTOMATIQUE</div>';
+  html += '<div style="font-size:.7rem;color:#8a8060;margin-bottom:.5rem">Actuellement : ' + virementActuel.toLocaleString('fr-FR') + ' FR/jour.</div>';
+  html += '<input id="montant-virement-qhs-j" type="number" min="0" value="' + virementActuel + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.5rem"/>';
+  html += '<button onclick="confirmerVirementJournalierQHS()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Fixer ce montant</button>';
+  html += '</div>';
+
+  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.76rem;color:#e0d5b8;margin-bottom:.4rem">VIREMENT PONCTUEL</div>';
+  html += '<input id="montant-virement-qhs-p" type="number" min="0" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.5rem"/>';
+  html += '<button onclick="confirmerVirementPonctuelQHS()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #5a8ad0;background:transparent;color:#5a8ad0;cursor:pointer">Transférer maintenant</button>';
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVirementJournalierQHS() {
+  const montant = Math.max(0, parseInt(document.getElementById('montant-virement-qhs-j')?.value || '0'));
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerBudgetNational(pays);
+  budgetNat.virementJournalierQHS = montant;
+  await sbSaveBudgetNational(pays, budgetNat);
+  showToast('Virement journalier fixé', montant.toLocaleString('fr-FR') + ' FR/jour vers le QHS.', true, true);
+}
+
+async function confirmerVirementPonctuelQHS() {
+  const montant = Math.max(0, parseInt(document.getElementById('montant-virement-qhs-p')?.value || '0'));
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (montant <= 0) return;
+  const pays = state.country || 'republic';
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_just', montant);
+  if (montantVerse <= 0) { showToast('Caisse insuffisante', '', false); return; }
+  await crediterCaisseBatiment(pays, 'qhs-prison', montantVerse);
+  showToast('Virement effectué', montantVerse.toLocaleString('fr-FR') + ' FR transférés vers le QHS.', true, true);
+}
+
+async function ouvrirListePrisonniersQHS() {
+  const pays = state.country || 'republic';
+  document.getElementById('postes-modal-title').textContent = 'Prisonniers du QHS';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const prisonniers = await sbGetPrisonniersQHS(pays).catch(() => []);
+  let html = '<div style="padding:1rem">';
+  if (prisonniers.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun détenu au QHS actuellement.</div>';
+  } else {
+    prisonniers.forEach(p => {
+      html += '<div onclick="ouvrirFichePrisonnierQHS(\'' + p.id + '\')" style="display:flex;align-items:center;gap:.6rem;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem;cursor:pointer">';
+      html += p.photoUrl ? '<img src="' + p.photoUrl + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #4a3a1a"/>' : '<div style="width:36px;height:36px;border-radius:50%;background:#1a1610;display:flex;align-items:center;justify-content:center"><i class="ti ti-user" style="color:#5a5040"></i></div>';
+      html += '<div><div style="font-size:.85rem;color:#e0d5b8">' + p.nom + '</div><div style="font-size:.7rem;color:#a89870">' + p.raison + '</div></div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function ouvrirFichePrisonnierQHS(prisonnierId) {
+  const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
+  const p = rows?.[0]?.data;
+  if (!p) return;
+
+  document.getElementById('postes-modal-title').textContent = p.nom;
+  let html = '<div style="padding:1rem;text-align:center">';
+  html += p.photoUrl ? '<img src="' + p.photoUrl + '" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:2px solid #4a3a1a;margin-bottom:.7rem"/>' : '<div style="width:90px;height:90px;border-radius:50%;background:#1a1610;display:flex;align-items:center;justify-content:center;margin:0 auto .7rem"><i class="ti ti-user" style="font-size:2rem;color:#5a5040"></i></div>';
+  html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">Motif : ' + p.raison + '</div>';
+  html += '<button onclick="doTransfererPrisonNormale(\'' + prisonnierId + '\')" style="width:100%;margin-bottom:.4rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #5a8ad0;background:transparent;color:#5a8ad0;cursor:pointer">Transférer vers une prison normale</button>';
+  html += '<button onclick="doAmeliorerConditionsQHS(\'' + prisonnierId + '\')" style="width:100%;margin-bottom:.4rem;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Améliorer ses conditions de détention</button>';
+  html += '<button onclick="doTorturerPrisonnierQHS(\'' + prisonnierId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.5rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Le faire torturer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// ---- Transfert vers une prison normale (pas de reduction de peine, ouvre droit a un bonus avocat futur) ----
+async function doTransfererPrisonNormale(prisonnierId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
+  const p = rows?.[0]?.data;
+  if (!p) return;
+  await sbMajPrisonnierQHS(prisonnierId, 'transfere', {});
+  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(p.nom)}`, { detention_qhs: JSON.stringify({ enQHS: false, eligibleBonusAvocat: true }) }).catch(() => {});
+  showToast('Transfert effectué', p.nom + ' est transféré(e) vers une prison normale. Éligible à un bonus de réduction de peine via avocat.', true, true);
+  addJournalEntry(p.nom + ' transféré(e) du QHS vers une prison normale.', 'event-info');
+}
+
+// ---- Ameliorer les conditions de detention ----
+async function doAmeliorerConditionsQHS(prisonnierId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const cout = 500;
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'qhs-prison', cout);
+  if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du QHS ne couvre pas ce coût (' + cout + ' FR).', false); return; }
+
+  const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
+  const p = rows?.[0]?.data;
+  if (!p) return;
+
+  const persoRows = await sbGet('personnages', `name=eq.${encodeURIComponent(p.nom)}&select=moral`).catch(() => []);
+  const moralActuel = persoRows?.[0]?.moral ?? 50;
+  await sbUpdate('personnages', `name=eq.${encodeURIComponent(p.nom)}`, {
+    moral: Math.min(100, moralActuel + 15),
+    detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false, conditionsAmeliorees: true })
+  }).catch(() => {});
+  showToast('Conditions améliorées', p.nom + ' bénéficie de meilleures conditions. +15 Moral, PA de récupération relevés. -' + cout + ' FR.', true, true);
+  addJournalEntry('Conditions de détention améliorées pour ' + p.nom + ' (-' + cout + ' FR).', 'event-good');
+}
+
+// ---- Torture : information extraite au prix de consequences reelles pour le detenu ET le MJ ----
+async function doTorturerPrisonnierQHS(prisonnierId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
+  const p = rows?.[0]?.data;
+  if (!p) return;
+  const pays = state.country || 'republic';
+  const mjNom = state.char?.name;
+
+  // Consequences sur le detenu : perte de tous ses indices, PA plafonnes a 1 le lendemain uniquement
+  await sbUpdate('personnages', `name=eq.${encodeURIComponent(p.nom)}`, {
+    inf: 0, pop: 0, dis: 0, moral: 0,
+    detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: true })
+  }).catch(() => {});
+
+  // Sanction immediate et automatique sur le MJ : POP et INF a 10
+  state.pop = 10; state.inf = 10;
+  updateUI();
+
+  // Trace exploitable par les rumeurs et les enquetes
+  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('torture_qhs', p.nom);
+  if (typeof sbCreerRumeurPolitique === 'function') {
+    await sbCreerRumeurPolitique({ cible: mjNom, contenu: 'Le Ministre de la Justice ferait torturer des détenus au QHS.', auteur: 'Anonyme', jour: state.day || 1, popPerdu: 40 }).catch(() => {});
+  }
+
+  // Alerte automatique au president et au premier ministre si le MJ est toujours en poste
+  const presidentNom = await getTitulairePoste('president', null, pays);
+  const pmNom = await getTitulairePoste('pm', null, pays);
+  const alerte = 'Le Ministre de la Justice (' + mjNom + ') est empêtré(e) dans une affaire de torture au QHS. Sa popularité et sa légitimité sont au plus bas. À vous de décider s\'il faut le/la démettre.';
+  if (presidentNom && typeof sbSendMail === 'function') await sbSendMail('Alerte confidentielle', presidentNom, 'Affaire de torture au QHS', alerte, typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  if (pmNom && typeof sbSendMail === 'function') await sbSendMail('Alerte confidentielle', pmNom, 'Affaire de torture au QHS', alerte, typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+
+  showToast('Torture ordonnée', p.nom + ' perd tous ses indices. Votre POP/INF chutent à 10. Une trace reste exploitable.', false);
+  addJournalEntry('Torture ordonnée contre ' + p.nom + ' — conséquences lourdes.', 'event-bad');
+}
