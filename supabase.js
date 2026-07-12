@@ -767,6 +767,24 @@ async function sbMarquerRapportRemonte(id) {
   return sbUpdate('rapports_renseignement', `id=eq.${encodeURIComponent(id)}`, { data });
 }
 
+async function sbCreerEngagement(data) {
+  const id = 'engagement-' + Date.now();
+  await sbInsert('engagements_militaires', { id, statut: 'attente_commandant', data });
+  return id;
+}
+
+async function sbGetEngagementsPays(pays, statut) {
+  const rows = await sbGet('engagements_militaires', `statut=eq.${encodeURIComponent(statut)}&select=id,data`);
+  if (!rows) return [];
+  return rows.filter(r => r.data?.pays === pays).map(r => ({ id: r.id, ...r.data }));
+}
+
+async function sbMajEngagement(id, statut, patch) {
+  const rows = await sbGet('engagements_militaires', `id=eq.${encodeURIComponent(id)}`);
+  const data = { ...(rows?.[0]?.data || {}), ...(patch || {}) };
+  return sbUpdate('engagements_militaires', `id=eq.${encodeURIComponent(id)}`, { statut, data });
+}
+
 async function sbCreerFaitArmes(data) {
   const id = 'combat-' + Date.now();
   await sbInsert('faits_armes', { id, data });

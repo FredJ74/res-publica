@@ -2544,7 +2544,7 @@ const SALAIRES_POLITIQUES = {
 const CAISSE_BATIMENT_POSTE = {
   president: 'palais-presidentiel', pm: 'gouvernement-pm',
   min_int: 'gouvernement-min_int', min_fin: 'gouvernement-min_fin', min_just: 'gouvernement-min_just',
-  min_def: 'caserne', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae',
+  min_def: 'caserne-militaire', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae',
   maire: 'mairie-capitale'
 };
 
@@ -2644,7 +2644,7 @@ async function verifierEffetsEtDistributionFiscale() {
   }
   // La Defense a sa propre caisse (la caserne), alimentee elle aussi selon sa part
   const partDef = (repartition.min_def || 0) / 100;
-  await crediterCaisseBatiment(pays, 'caserne', Math.floor(totalDisponible * partDef));
+  await crediterCaisseBatiment(pays, 'caserne-militaire', Math.floor(totalDisponible * partDef));
 
   budgetNat.reserveJour = 0;
   budgetNat.derniereDistribJour = jour;

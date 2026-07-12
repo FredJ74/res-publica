@@ -398,7 +398,7 @@ function enterRoom(buildingId, roomId, tabEl) {
     'bureaux': 'gouvernement-pm', 'bureau_min_int': 'gouvernement-min_int', 'bureau_min_fin': 'gouvernement-min_fin',
     'bureau_min_just': 'gouvernement-min_just', 'bureau_min_info': 'gouvernement-min_info', 'bureau_min_ae': 'gouvernement-min_ae'
   };
-  const ROOMS_AVEC_CAISSE = { 'palais-presidentiel': 'palais-presidentiel', 'mairie-capitale': 'mairie-capitale', 'caserne': 'caserne' };
+  const ROOMS_AVEC_CAISSE = { 'palais-presidentiel': 'palais-presidentiel', 'mairie-capitale': 'mairie-capitale', 'caserne-militaire': 'caserne-militaire' };
   const caisseBuildingId = (buildingId === 'palais-gouvernement' ? ROOMS_AVEC_CAISSE_SPECIFIQUE[roomId] : null) || ROOMS_AVEC_CAISSE[buildingId] || (buildingId === 'stade' && roomId === 'buvette' ? 'stade-buvette' : null);
   if (caisseBuildingId && typeof chargerCaisseBatiment === 'function') {
     chargerCaisseBatiment(state.country || 'republic', caisseBuildingId).then(c => {

@@ -3371,7 +3371,7 @@ async function confirmerRenseignement(empireCible, nomCible) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
   const cout = 500;
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne', cout) : 0;
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', cout) : 0;
   if (montantVerse < cout) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de l\'opération (' + cout + ' FR).', false); return; }
 
   // Choisir la section adverse ciblee AVANT le jet, puisque le jet depend des indices de son lieutenant
@@ -4526,14 +4526,14 @@ function genererMatriculesSection(numeroSection) {
 function creerSoldatsSection(numeroSection) {
   return genererMatriculesSection(numeroSection).map(matricule => ({
     matricule, formation: { force: 0, endurance: 0, tir: 0 }, arme: 'corps_a_corps',
-    buildingId: 'caserne', roomId: 'corps_garde', pa: PA_MAX_SOLDAT
+    buildingId: 'caserne-militaire', roomId: 'corps_garde', pa: PA_MAX_SOLDAT
   }));
 }
 
 async function doRecruterCompagnie() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const pays = state.country || 'republic';
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne', COUT_COMPAGNIE) : 0;
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', COUT_COMPAGNIE) : 0;
   if (montantVerse < COUT_COMPAGNIE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût d\'une compagnie (' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR).', false); return; }
 
   const id = 'compagnie-' + pays + '-' + Date.now();
@@ -4555,7 +4555,7 @@ async function doRecruterSection(compagnieId, sectionId) {
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section || section.soldats.length > 0) { showToast('Section non vide ou introuvable', '', false); return; }
 
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'caserne', COUT_SECTION);
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', COUT_SECTION);
   if (montantVerse < COUT_SECTION) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le recomplètement (' + COUT_SECTION.toLocaleString('fr-FR') + ' FR).', false); return; }
 
   section.soldats = creerSoldatsSection(section.numero);
@@ -4803,7 +4803,7 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
 async function ouvrirGererBudgetCaserne() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const pays = state.country || 'republic';
-  const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'caserne') : { solde: 0 };
+  const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'caserne-militaire') : { solde: 0 };
 
   document.getElementById('postes-modal-title').textContent = 'Budget de la Caserne';
   let html = '<div style="padding:1rem">';
@@ -4829,7 +4829,7 @@ async function payerSoldeQuotidienne(pays) {
   let totalDu = 0;
   compagnies.forEach(c => (c.sections||[]).forEach(s => { totalDu += (s.effectifTotal||0) * coutParSoldat; }));
   if (totalDu <= 0) return;
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne', totalDu) : 0;
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', totalDu) : 0;
   if (montantVerse < totalDu) {
     addExternalEvent('⚠️ La solde des troupes de ' + (COUNTRIES[pays]?.n||pays) + ' n\'a pu être versée qu\'en partie faute de budget suffisant.');
   }
@@ -5275,7 +5275,7 @@ async function ouvrirRechercheMilitaire() {
 async function confirmerRechercheMilitaire(arme) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'caserne', COUT_RECHERCHE);
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', COUT_RECHERCHE);
   if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de la recherche.', false); return; }
 
   const budgetNat = await chargerBudgetNational(pays);
@@ -5399,7 +5399,7 @@ async function doSePresenterAffectation() {
   const req = state.char?.requisition ? (typeof state.char.requisition === 'string' ? JSON.parse(state.char.requisition) : state.char.requisition) : null;
   if (!req || req.statut !== 'convoque') { showToast('Aucune convocation en attente', '', false); return; }
   if (Date.now() > req.deadline) { showToast('Trop tard', 'Le délai de présentation est dépassé.', false); return; }
-  if (state.currentBuilding !== 'caserne') { showToast('Présentez-vous à la caserne', '', false); return; }
+  if (state.currentBuilding !== 'caserne-militaire') { showToast('Présentez-vous à la caserne', '', false); return; }
 
   const pays = state.country || 'republic';
   const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === req.compagnieId);
@@ -5473,4 +5473,125 @@ async function confirmerRemonteeRenseignement(rapportId) {
   await sbMarquerRapportRemonte(rapportId);
   showToast('Rapport transmis', 'Votre Capitaine a été informé.', true, true);
   addJournalEntry('Rapport de renseignement transmis à mon Capitaine.', 'event-info');
+}
+
+// =====================
+// ENGAGEMENT VOLONTAIRE COMME OFFICIER — PJ -> validation Commandant (compagnie) -> affectation Capitaine (section)
+// =====================
+async function doEngagerOfficier() {
+  if (['lieutenant','capitaine','commandant'].includes(state.poste?.id)) { showToast('Déjà officier', 'Vous occupez déjà un poste militaire.', false); return; }
+  const pays = state.country || 'republic';
+  const id = await sbCreerEngagement({ pays, nom: state.char?.name, jour: state.day || 1 });
+  const commandantNom = await getTitulairePoste('commandant', null, pays);
+  if (commandantNom && typeof sbSendMail === 'function') {
+    await sbSendMail(state.char?.name || 'Un citoyen', commandantNom, 'Demande d\'engagement comme officier',
+      state.char?.name + ' souhaite s\'engager comme officier. Rendez-vous à la Salle de Commandement pour traiter les engagements en attente.',
+      typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  }
+  showToast('Demande envoyée', commandantNom ? 'Le Commandant a été notifié.' : 'Aucun Commandant en poste actuellement — votre demande reste en attente.', true, true);
+  addJournalEntry('Demande d\'engagement comme officier envoyée.', 'event-info');
+}
+
+// Le Commandant traite les demandes d'engagement : choisit la compagnie d'affectation
+async function ouvrirTraiterEngagements() {
+  if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
+  const pays = state.country || 'republic';
+  const engagements = await sbGetEngagementsPays(pays, 'attente_commandant').catch(() => []);
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+
+  document.getElementById('postes-modal-title').textContent = 'Engagements en attente';
+  let html = '<div style="padding:1rem">';
+  if (engagements.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune demande d\'engagement en attente.</div>';
+  } else if (compagnies.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune compagnie existante pour affecter ces engagements.</div>';
+  } else {
+    engagements.forEach(e => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.85rem;color:#e0d5b8;margin-bottom:.4rem">' + e.nom + '</div>';
+      html += '<select id="compagnie-' + e.id + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;margin-bottom:.4rem">';
+      compagnies.forEach(c => html += '<option value="' + c.id + '">' + c.id + (c.capitaineNom ? ' (Cap. ' + c.capitaineNom + ')' : ' (sans capitaine)') + '</option>');
+      html += '</select>';
+      html += '<button onclick="confirmerAffectationCompagnie(\'' + e.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter à cette compagnie</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerAffectationCompagnie(engagementId) {
+  const compagnieId = document.getElementById('compagnie-' + engagementId)?.value;
+  if (!compagnieId) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === compagnieId);
+  const rows = await sbGet('engagements_militaires', `id=eq.${encodeURIComponent(engagementId)}`).catch(() => []);
+  const engagement = rows?.[0]?.data;
+  if (!engagement) return;
+
+  await sbMajEngagement(engagementId, 'attente_capitaine', { compagnieId });
+  if (compagnie?.capitaineNom && typeof sbSendMail === 'function') {
+    await sbSendMail('Commandement', compagnie.capitaineNom, 'Nouvel engagé à affecter',
+      engagement.nom + ' vous est affecté par le Commandant. Rendez-vous au Corps de Garde pour l\'installer dans une section.',
+      typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  }
+  showToast('Engagé affecté à la compagnie', compagnie?.capitaineNom ? 'Le Capitaine a été notifié.' : 'Cette compagnie n\'a pas encore de Capitaine — en attente.', true, true);
+  addJournalEntry(engagement.nom + ' affecté à la compagnie ' + compagnieId + '.', 'event-info');
+}
+
+// Le Capitaine installe un engage affecte a sa compagnie comme lieutenant d'une section
+async function ouvrirAffecterEngage() {
+  if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
+  const pays = state.country || 'republic';
+  const engagements = await sbGetEngagementsPays(pays, 'attente_capitaine').catch(() => []);
+  const mesEngagements = engagements.filter(e => e.compagnieId === state.poste.compagnieId);
+  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === state.poste.compagnieId);
+  const sectionsVacantes = (compagnie?.sections || []).filter(s => !s.lieutenantNom);
+
+  document.getElementById('postes-modal-title').textContent = 'Affecter un engagé';
+  let html = '<div style="padding:1rem">';
+  if (mesEngagements.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun engagé en attente pour votre compagnie.</div>';
+  } else if (sectionsVacantes.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Toutes vos sections ont déjà un lieutenant.</div>';
+  } else {
+    mesEngagements.forEach(e => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.85rem;color:#e0d5b8;margin-bottom:.4rem">' + e.nom + '</div>';
+      html += '<select id="section-' + e.id + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;margin-bottom:.4rem">';
+      sectionsVacantes.forEach(s => html += '<option value="' + s.id + '">' + s.id + '</option>');
+      html += '</select>';
+      html += '<button onclick="confirmerAffectationSection(\'' + e.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer Lieutenant de cette section</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerAffectationSection(engagementId) {
+  const sectionId = document.getElementById('section-' + engagementId)?.value;
+  if (!sectionId) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const rows = await sbGet('engagements_militaires', `id=eq.${encodeURIComponent(engagementId)}`).catch(() => []);
+  const engagement = rows?.[0]?.data;
+  if (!engagement) return;
+
+  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === engagement.compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  if (!section) return;
+  section.lieutenantNom = engagement.nom;
+  await sbSaveCompagnie(engagement.compagnieId, compagnie);
+  await sbMajEngagement(engagementId, 'affecte', {});
+
+  if (typeof sbSendMail === 'function') {
+    await sbSendMail('Commandement', engagement.nom, 'Nomination confirmée',
+      'Vous êtes désormais Lieutenant de la section ' + sectionId + '.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+  }
+  showToast('Engagé affecté', engagement.nom + ' est nommé Lieutenant de la section ' + sectionId + '.', true, true);
+  addExternalEvent('🎖 ' + engagement.nom + ' est nommé Lieutenant après engagement volontaire.');
 }
