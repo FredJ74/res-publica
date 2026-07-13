@@ -37,23 +37,6 @@
   pointer-events: none;
 }
 
-/* Clone recadre par batiment (voir plateau-rue-centrale.js) : invisible au repos car
-   parfaitement aligne avec .rc-image en dessous. Seul .rc-clone-zoom (ajoutee au survol)
-   le fait grossir, centre sur lui-meme — effet de zoom localise a un seul batiment. */
-.rc-clone {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-  pointer-events: none;
-  transition: transform 0.4s ease;
-  user-select: none;
-}
-.rc-clone.rc-clone-zoom {
-  transform: scale(1.15);
-}
-
 .rc-zone {
   position: absolute;
   top: 0;
