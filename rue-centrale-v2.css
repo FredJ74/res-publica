@@ -1,0 +1,114 @@
+/* ===========================================================
+   RUE CENTRALE — navigation par scenes (zoom/fondu)
+   v2 — CORRECTIF : l'image s'affiche desormais en PLEIN CADRE,
+   a sa largeur reelle, sans recadrage force (peu importe son
+   ratio : 2:1, 2,65:1, 2,93:1...). C'est ce recadrage force
+   (min-height:130% + position absolute centree) qui coupait
+   une partie de la largeur affichee et decalait les zones
+   cliquables par rapport aux facades reellement visibles.
+
+   Consequence du changement : plus d'effet de "glisse avec
+   marge" (l'image n'a plus de surplus a faire deborder), mais
+   ca correspond au choix valide : zoom/fondu plein cadre a
+   l'entree d'un batiment, sans panoramique lateral.
+
+   Les xPct des zones dans plateau-rue-centrale-FINAL.js n'ont
+   PAS besoin d'etre retouches : ils redeviennent fiables
+   automatiquement puisqu'ils correspondent maintenant a
+   l'image reellement affichee (plus jamais recadree).
+   =========================================================== */
+.rc-scene {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid #2a2010;
+  background: #000;
+  line-height: 0; /* evite un espace fantome sous l'image en display:block */
+}
+
+.rc-image {
+  display: block;
+  width: 100%;
+  height: auto;      /* jamais de recadrage : la hauteur suit le ratio reel de l'image */
+  transition: transform 1.1s ease;
+  transform-origin: center center;
+  user-select: none;
+  pointer-events: none;
+}
+
+.rc-zone {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  cursor: pointer;
+}
+.rc-zone:hover {
+  background: rgba(201, 168, 76, 0.16);
+  box-shadow: inset 0 0 0 2px rgba(201, 168, 76, 0.5);
+}
+
+.rc-fleche {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(10, 8, 6, 0.72);
+  border: 1px solid #C9A84C;
+  color: #C9A84C;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.2s;
+}
+.rc-fleche:hover { background: rgba(201, 168, 76, 0.25); }
+
+.rc-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 4, 3, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 8;
+  transition: background 1.1s ease;
+}
+.rc-overlay.actif {
+  background: rgba(5, 4, 3, 0.93);
+  pointer-events: all;
+}
+
+.rc-texte {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.12em;
+  color: #C9A84C;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.4s;
+  text-align: center;
+  padding: 0 2rem;
+}
+.rc-overlay.actif .rc-texte { opacity: 1; }
+
+.rc-tooltip {
+  position: fixed;
+  background: #14100a;
+  border: 1px solid #C9A84C;
+  color: #f0ead6;
+  padding: .5rem .9rem;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: .06em;
+  font-size: .85rem;
+  border-radius: 3px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s ease;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 14px rgba(0,0,0,.5);
+}
+.rc-tooltip.visible { opacity: 1; }
