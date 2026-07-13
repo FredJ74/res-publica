@@ -43,10 +43,6 @@
   height: 100%;
   cursor: pointer;
 }
-.rc-zone:hover {
-  background: rgba(201, 168, 76, 0.16);
-  box-shadow: inset 0 0 0 2px rgba(201, 168, 76, 0.5);
-}
 
 .rc-fleche {
   position: absolute;
