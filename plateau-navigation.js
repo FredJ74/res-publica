@@ -150,13 +150,37 @@ function showVueRue() {
     document.getElementById('rue-desc').textContent = city.desc;
   }
 
-  // Image de rue directe depuis data.js
   const rueImage = document.getElementById('rue-image');
-  const imgUrl = city?.imageUrl;
-  if (imgUrl) {
-    rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url('${imgUrl}') center/cover no-repeat`;
+  const minimap = document.getElementById('minimap');
+  const ambiance = document.getElementById('rue-ambiance');
+
+  // Nettoyer un eventuel ancien conteneur de rue centrale avant de re-rendre (evite les doublons)
+  const ancienConteneur = document.getElementById('rue-centrale-conteneur');
+  if (ancienConteneur) ancienConteneur.remove();
+
+  const noeudDepart = typeof RUE_CENTRALE_DEPART !== 'undefined' ? RUE_CENTRALE_DEPART[state.country]?.[state.currentCity] : null;
+  const rueCentraleDisponible = noeudDepart && typeof RUE_CENTRALE_NOEUDS !== 'undefined' && RUE_CENTRALE_NOEUDS[state.country]?.[noeudDepart];
+
+  if (rueCentraleDisponible) {
+    // Nouvelle navigation par scenes (zoom/fondu) — remplace l'image statique et la mini-carte
+    if (minimap) minimap.style.display = 'none';
+    if (ambiance) ambiance.style.display = 'none';
+    rueImage.style.background = 'none';
+    const conteneur = document.createElement('div');
+    conteneur.id = 'rue-centrale-conteneur';
+    conteneur.style.cssText = 'position:absolute; inset:0; z-index:0;';
+    rueImage.insertBefore(conteneur, rueImage.firstChild);
+    initialiserRueCentrale(state.country, noeudDepart);
   } else {
-    rueImage.style.background = 'linear-gradient(135deg,#0a0a07,#0f0d08)';
+    // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
+    if (minimap) minimap.style.display = '';
+    if (ambiance) ambiance.style.display = '';
+    const imgUrl = city?.imageUrl;
+    if (imgUrl) {
+      rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url('${imgUrl}') center/cover no-repeat`;
+    } else {
+      rueImage.style.background = 'linear-gradient(135deg,#0a0a07,#0f0d08)';
+    }
   }
   const existing = document.getElementById('rue-emoji');
   if (existing) existing.remove();
