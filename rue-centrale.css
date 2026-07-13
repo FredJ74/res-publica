@@ -107,3 +107,28 @@
   min-width: 0 !important;
   min-height: 0 !important;
 }
+
+/* Fix renforce : le conteneur parent (.rue-image, deja existant dans le jeu) contraint peut-etre
+   aussi la taille disponible. On force explicitement le conteneur et l'image en pixels. */
+#rue-image {
+  height: 420px !important;
+  min-height: 420px !important;
+  max-height: none !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.rc-scene {
+  width: 100% !important;
+  height: 420px !important;
+}
+.rc-image {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  height: 546px !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  transform: translate(-50%, -50%) !important;
+}
