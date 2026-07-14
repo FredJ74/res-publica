@@ -359,12 +359,30 @@ function soumettrePlaynte() {
   if (typeof sbSavePlainte === 'function') sbSavePlainte(nouvellePlainte).catch(() => {});
 }
 
-function traiterPlaintes() {
+// Verifie si une accusation repose sur une action reellement tracee (ex: torture au QHS).
+// Se base sur une simple detection du mot dans le motif — volontairement simple, en coherence
+// avec le choix de ne pas creer d'ordre dedie "porter plainte pour X".
+async function verifierPreuveReelle(country, accuse, motif) {
+  const motifLower = (motif || '').toLowerCase();
+  if (motifLower.includes('tortur')) {
+    if (typeof sbGetActionsTracablesParAuteur === 'function') {
+      const actions = await sbGetActionsTracablesParAuteur(country, accuse, 'torture_qhs', state.day || 1).catch(() => []);
+      if (actions && actions.length > 0) return true;
+    }
+  }
+  return false;
+}
+
+async function traiterPlaintes() {
   if (!state.plaintesEnCours) return;
   const traitees = state.plaintesEnCours.filter(p => p.day <= state.day && p.status === 'pending');
-  traitees.forEach(p => {
+  for (const p of traitees) {
     p.status = 'done';
-    const roll = Math.floor(Math.random() * 100) + 1;
+    let roll = Math.floor(Math.random() * 100) + 1;
+    // Preuve reelle trouvee : le resultat est quasi automatiquement a charge, peu importe le
+    // hasard du jet de base — une plainte gratuite sans preuve reste soumise a l'alea habituel.
+    const preuveReelle = await verifierPreuveReelle(p.country || state.country, p.cible, p.motif);
+    if (preuveReelle) roll = Math.max(roll, 80);
     let result = '';
     if (roll < 40) {
       result = `Classement sans suite. La plainte contre ${p.cible} n'a pas abouti.`;
@@ -372,7 +390,7 @@ function traiterPlaintes() {
       result = `Ouverture d'une enquete concernant ${p.cible}. Conclusions dans 24h.`;
       // Programmer le resultat de l'enquete (motif transporte pour le tribunal)
       if (!state.enquetesEnCours) state.enquetesEnCours = [];
-      state.enquetesEnCours.push({ cible: p.cible, motif: p.motif, day: state.day + 1, status: 'pending' });
+      state.enquetesEnCours.push({ cible: p.cible, motif: p.motif, country: p.country || state.country, day: state.day + 1, status: 'pending' });
     } else {
       result = `Actes illegaux confirmes pour ${p.cible}. Mise en garde a vue. Proces dans 24h.`;
       addExternalEvent(`ACTION EXTERIEURE : ${p.cible} a ete place(e) en garde a vue suite a votre plainte. Proces prevu demain.`, 'local');
@@ -381,15 +399,17 @@ function traiterPlaintes() {
     }
     addMailNotification('Commissariat Central', `RE: Votre plainte du Jour ${p.day - 1}`, result);
     if (typeof sbSavePlainte === 'function') sbSavePlainte(p).catch(() => {});
-  });
+  }
 }
 
-function traiterEnquetes() {
+async function traiterEnquetes() {
   if (!state.enquetesEnCours) return;
   const traitees = state.enquetesEnCours.filter(e => e.day <= state.day && e.status === 'pending');
-  traitees.forEach(e => {
+  for (const e of traitees) {
     e.status = 'done';
-    const roll = Math.floor(Math.random() * 100) + 1;
+    let roll = Math.floor(Math.random() * 100) + 1;
+    const preuveReelle = await verifierPreuveReelle(e.country || state.country, e.cible, e.motif);
+    if (preuveReelle) roll = Math.max(roll, 60);
     let result = '';
     if (roll < 50) {
       result = `Enquete conclue : non-lieu pour ${e.cible}. Aucune preuve suffisante.`;
@@ -402,7 +422,7 @@ function traiterEnquetes() {
       transmettreAffaireAuTribunal(e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.');
     }
     addMailNotification('Brigade Criminelle', `Conclusions enquete : ${e.cible}`, result);
-  });
+  }
 }
 
 function transmettreAffaireAuTribunal(cible, motif) {
@@ -1322,6 +1342,9 @@ async function ouvrirRendreSentence() {
       html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'prison\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison (max 7 jours)</button>';
       html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amenagement\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
       html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'qhs\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
+      if ((a.motif || '').toLowerCase().includes('tortur')) {
+        html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'torture\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #6a1010;background:#150505;color:#cc4444;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">⚖ Sanction torture (prison + popularité à zéro, cumulable)</button>';
+      }
       html += '</div></div>';
     });
   }
@@ -1359,6 +1382,33 @@ async function appliquerSentence(affaireId, type) {
       }
       await sbCreerPrisonnierQHS({ pays: state.country || 'republic', nom: affaire.cible, raison: affaire.motif, photoUrl, jourDebut: state.day, jourFin: state.day + 30 }).catch(() => {});
       if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(affaire.cible)}`, { detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false }) }).catch(() => {});
+    }
+  } else if (type === 'torture') {
+    // Cumul : compter les condamnations precedentes pour torture sur ce meme accuse
+    // (enregistrees comme actions tracees "condamnation_torture", jour_expiration tres eloigne
+    // pour qu'elles restent comptabilisables indefiniment).
+    let nbPrecedentes = 0;
+    if (typeof sbGetActionsTracablesParAuteur === 'function') {
+      const precedentes = await sbGetActionsTracablesParAuteur(state.country, affaire.cible, 'condamnation_torture', state.day || 1).catch(() => []);
+      nbPrecedentes = precedentes?.length || 0;
+    }
+    const duree = 3 * (nbPrecedentes + 1);
+    details = 'Prison ' + duree + ' jours + popularité à zéro' + (nbPrecedentes > 0 ? ' (peine cumulée, ' + (nbPrecedentes + 1) + 'e condamnation)' : '');
+    if (!state.prisonniers) state.prisonniers = [];
+    state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + duree });
+    // Perte totale de popularite appliquee directement au personnage reel (peut ne pas etre
+    // le joueur actuellement connecte).
+    if (typeof sbUpdate === 'function') {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(affaire.cible)}`, { pop: 0 }).catch(() => {});
+    }
+    // Enregistrer cette condamnation pour permettre le cumul des peines a l'avenir
+    if (typeof sbTracerAction === 'function') {
+      await sbTracerAction({
+        id: 'condamnation-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        auteur: affaire.cible, cible: null, type_action: 'condamnation_torture',
+        country: state.country, city: state.currentCity,
+        jour: state.day || 1, jour_expiration: (state.day || 1) + 36500
+      }).catch(() => {});
     }
   }
 
