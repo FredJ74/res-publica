@@ -2966,7 +2966,7 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
         persons: [
           {name:'Dominique Cruel (PNJ)', role:'PNJ - Directeur du QHS', rel:'neutral', job:'directeur_qhs'},
-          {name:'Philippe Cognedur (PNJ)', role:'PNJ - Securite QHS',     rel:'neutral', job:'gardien_qhs'}
+          {name:'Philippe Cognedur (PNJ)', role:'PNJ - Gardien Chef',     rel:'neutral', job:'gardien_qhs'}
         ],
         orders: [
           {fn:'visiter_prisonnier', label:'Demander une visite',         pa:1, cost:0,   type:'legal',   icon:'ti-users',    successRate:70,  desc:'Rendre visite a un detenu du QHS. Necessite autorisation.'},
@@ -2980,7 +2980,8 @@ const BUILDINGS = {
         desc: "Les cellules du QHS. Isolement total. Acces interdit sauf pour les detenus et gardiens.",
         imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
         persons: [
-          {name:'Gardien de couloir (PNJ)', role:'PNJ - Surveillance', rel:'neutral', job:'gardien_qhs'}
+          {name:'Jean Terre (PNJ)', role:'PNJ - Gardien de couloir', rel:'neutral', job:'gardien_qhs'},
+          {name:'Patrick Coule (PNJ)', role:'PNJ - Gardien de couloir', rel:'neutral', job:'gardien_qhs'}
         ],
         orders: [
           {fn:'requete_avocat',     label:'Requérir un avocat',          pa:1, cost:0,    type:'legal',   icon:'ti-scale',    successRate:100, desc:'Contacter votre defenseur. Reduit risques de condamnation.'},
@@ -2994,9 +2995,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#050808,#0a1010)",
         desc: "La salle d'interrogatoire. Lumiere crue, table metallique. Acces enqueteurs autorises.",
         imageUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&q=80",
-        persons: [
-          {name:'Inspecteur Raoul Toufaud (PNJ)', role:'PNJ - Inspecteur principal', rel:'neutral', job:'inspecteur'}
-        ],
+        persons: [],
         orders: [
           {fn:'interroger',        label:'Interroger un detenu',        pa:2, cost:0,    type:'legal',   icon:'ti-message-circle', successRate:75, requiresPost:'commissaire', desc:'Obtenir des informations. +INF si succes.'},
           {fn:'corrompre_fonct',   label:'Falsifier un proces-verbal',  pa:3, cost:500,  type:'illegal', icon:'ti-file-x',         successRate:35, desc:'Modifier les declarations. Tres risque.'}
