@@ -1211,7 +1211,7 @@ const BUILDINGS = {
         name: "Suite Privée — Local à louer",
         imageBg: "linear-gradient(135deg,#1a0d10,#250f18)",
         desc: "📋 À LOUER — Suite luxueuse et très discrète. Roxane y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
-        imageUrl: "https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-republica-suite-privee.png",
         isLocationRoom: true,
         locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1 },
         persons: [
@@ -1786,7 +1786,7 @@ const BUILDINGS = {
         image: "🏦",
         imageBg: "linear-gradient(135deg,#100f08,#1a1a0a)",
         desc: "L'accueil de la banque nationale. Propre, froid, officiel.",
-        imageUrl: "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/banque-nationale-accueil.png",
         persons: [
           {name:'Directeur Mercier', role:"PNJ - Directeur d'agence", rel:'neutral', job:'directeur'}
         ],
@@ -1801,7 +1801,7 @@ const BUILDINGS = {
         name: "Coffre Privatif — Local à louer",
         imageBg: "linear-gradient(135deg,#050810,#0a0f15)",
         desc: "📋 À LOUER — Espace sécurisé dans les sous-sols de la banque. Accès biométrique, surveillance 24h. Le Directeur Mercier ne pose jamais de questions sur le contenu.",
-        imageUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/banque-nationale-coffres.png",
         isLocationRoom: true,
         locationData: { prix: 600, bonusPOP: 0, bonusINF: 4, bonusDIS: 12, label: 'Coffre Privatif', tier: 1 },
         persons: [],
@@ -1915,7 +1915,7 @@ const BUILDINGS = {
         name: "Accueil",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
         desc: "L'accueil du commissariat. Atmosphere froide et surveillee.",
-        imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-accueil.png",
         persons: [
           {name:'Commissaire Gros', role:'PNJ - Chef de la police', rel:'neutral', job:'commissaire'},
           {name:'Agent Petit',      role:'PNJ - Officier de garde', rel:'neutral', job:'policier'}
@@ -2054,7 +2054,7 @@ const BUILDINGS = {
         image: "🎓",
         imageBg: "linear-gradient(135deg,#080d10,#0c1418)",
         desc: "Les conferences publiques attirent journalistes et politiques.",
-        imageUrl: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/universite-amphi.png",
         persons: [
           {name:'Professeur Blanc', role:'PNJ - Economiste influent', rel:'neutral', job:'professeur'}
         ],
@@ -2962,7 +2962,7 @@ const BUILDINGS = {
     rooms: {
       place: {
         name: "Place du Formulaire de la Liberté",
-        imageUrl: "",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/place-formulaire-liberte.png",
         desc: "Une vaste place pavee, encore silencieuse. Ce lieu est prevu pour accueillir de futurs rassemblements.",
         persons: [],
         orders: []
