@@ -5591,20 +5591,37 @@ function soumettrePlaynte() {
   if (typeof sbSavePlainte === 'function') sbSavePlainte(nouvellePlainte).catch(() => {});
 }
 
-function traiterPlaintes() {
+// Verifie si une accusation repose sur une action reellement tracee (ex: torture au QHS).
+// Se base sur une simple detection du mot dans le motif — volontairement simple, en coherence
+// avec le choix de ne pas creer d'ordre dedie "porter plainte pour X".
+async function verifierPreuveReelle(country, accuse, motif) {
+  const motifLower = (motif || '').toLowerCase();
+  if (motifLower.includes('tortur')) {
+    if (typeof sbGetActionsTracablesParAuteur === 'function') {
+      const actions = await sbGetActionsTracablesParAuteur(country, accuse, 'torture_qhs', state.day || 1).catch(() => []);
+      if (actions && actions.length > 0) return true;
+    }
+  }
+  return false;
+}
+
+async function traiterPlaintes() {
   if (!state.plaintesEnCours) return;
   const traitees = state.plaintesEnCours.filter(p => p.day <= state.day && p.status === 'pending');
-  traitees.forEach(p => {
+  for (const p of traitees) {
     p.status = 'done';
-    const roll = Math.floor(Math.random() * 100) + 1;
+    let roll = Math.floor(Math.random() * 100) + 1;
+    // Preuve reelle trouvee : le resultat est quasi automatiquement a charge, peu importe le
+    // hasard du jet de base — une plainte gratuite sans preuve reste soumise a l'alea habituel.
+    const preuveReelle = await verifierPreuveReelle(p.country || state.country, p.cible, p.motif);
+    if (preuveReelle) roll = Math.max(roll, 80);
     let result = '';
     if (roll < 40) {
       result = `Classement sans suite. La plainte contre ${p.cible} n'a pas abouti.`;
     } else if (roll < 75) {
       result = `Ouverture d'une enquete concernant ${p.cible}. Conclusions dans 24h.`;
-      // Programmer le resultat de l'enquete (motif transporte pour le tribunal)
       if (!state.enquetesEnCours) state.enquetesEnCours = [];
-      state.enquetesEnCours.push({ cible: p.cible, motif: p.motif, day: state.day + 1, status: 'pending' });
+      state.enquetesEnCours.push({ cible: p.cible, motif: p.motif, country: p.country || state.country, day: state.day + 1, status: 'pending' });
     } else {
       result = `Actes illegaux confirmes pour ${p.cible}. Mise en garde a vue. Proces dans 24h.`;
       addExternalEvent(`ACTION EXTERIEURE : ${p.cible} a ete place(e) en garde a vue suite a votre plainte. Proces prevu demain.`, 'local');
@@ -5613,15 +5630,17 @@ function traiterPlaintes() {
     }
     addMailNotification('Commissariat Central', `RE: Votre plainte du Jour ${p.day - 1}`, result);
     if (typeof sbSavePlainte === 'function') sbSavePlainte(p).catch(() => {});
-  });
+  }
 }
 
-function traiterEnquetes() {
+async function traiterEnquetes() {
   if (!state.enquetesEnCours) return;
   const traitees = state.enquetesEnCours.filter(e => e.day <= state.day && e.status === 'pending');
-  traitees.forEach(e => {
+  for (const e of traitees) {
     e.status = 'done';
-    const roll = Math.floor(Math.random() * 100) + 1;
+    let roll = Math.floor(Math.random() * 100) + 1;
+    const preuveReelle = await verifierPreuveReelle(e.country || state.country, e.cible, e.motif);
+    if (preuveReelle) roll = Math.max(roll, 60);
     let result = '';
     if (roll < 50) {
       result = `Enquete conclue : non-lieu pour ${e.cible}. Aucune preuve suffisante.`;
@@ -5634,7 +5653,7 @@ function traiterEnquetes() {
       transmettreAffaireAuTribunal(e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.');
     }
     addMailNotification('Brigade Criminelle', `Conclusions enquete : ${e.cible}`, result);
-  });
+  }
 }
 
 // =====================
