@@ -115,7 +115,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'elections_tableau')      { ouvrirTableauElectoral(); return; }
   if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
   if (fn === 'deposer_candidature')    { deposerCandidature(buildingId, state.country, state.currentCity); return; }
-  if (fn === 'commanditer_sondage')    { commanderSondage(); return; }
   if (fn === 'escort_infos')           { doEscortInfos(); return; }
   if (fn === 'escort_piege')           { doEscortPiege(); return; }
   if (fn === 'recruter_informateur_1') { consulterInformateur(1); return; }
