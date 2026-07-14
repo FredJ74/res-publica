@@ -1163,6 +1163,7 @@ const BUILDINGS = {
         image: "🍽️",
         imageBg: "linear-gradient(135deg,#1a1005,#2a1a08)",
         desc: "La salle de restaurant est bondee le midi. Tables discretes en fond de salle pour conversations privees.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-republica-restaurant.png",
         persons: [
           {name:'Paulo (Maitre d\'hotel)', role:'PNJ - Service', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gaston-sauceblanche.png', photoPos:'50% 15%'},
           {name:'Jean Dupont (PNJ)',       role:'Depute - Parti du Centre', rel:'neutral', job:'commercant', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'20% 30%'},
@@ -1182,7 +1183,7 @@ const BUILDINGS = {
         desc: "Le bar est ouvert jusqu'a l'aube. Langue qui se delie, secrets qui se vendent.",
         imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80",
         persons: [
-          {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman'},
+          {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marco-barman.png', photoPos:'50% 20%'},
           {name:'Roxane Velours (PNJ)', role:'Escort de luxe', rel:'neutral', job:'escort'},
           {name:'Un lobbyiste',   role:'Inconnu - Discretion de mise', rel:'neutral', job:null}
         ],
@@ -1952,6 +1953,19 @@ const BUILDINGS = {
     bgColor: "#100808",
     desc: "Le journal le plus influent de la Capitale. Marie Leblanc y officie. Elle ne vous aime pas.",
     rooms: {
+      accueil_tribune: {
+        name: "Accueil",
+        imageBg: "linear-gradient(135deg,#100808,#1c0c0c)",
+        desc: "Le hall d'entree du journal et de l'imprimerie. Une reception marbree, l'atelier d'impression visible au fond.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/la-tribune-accueil.png",
+        persons: [
+          {name:'Standardiste (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'}
+        ],
+        orders: [
+          {fn:'parler_pnj',    label:'Parler à la standardiste', pa:0, cost:0, type:'legal', icon:'ti-message', successRate:100},
+          {fn:'se_renseigner', label:'Se renseigner',            pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}
+        ]
+      },
       redaction: {
         name: "Redaction",
         image: "📰",
