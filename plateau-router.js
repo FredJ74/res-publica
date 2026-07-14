@@ -195,7 +195,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_confessions'){ doConsulterConfessions(); return; }
   if (fn === 'acheter_relique')      { doAcheterRelique(); return; }
   if (fn === 'scanner_aleatoire')    { declencherScandale(); return; }
-  if (fn === 'accord_diplomatique')  { ouvrirModalEmpireCible('accord_diplomatique', 'Ouvrir des negociations avec'); return; }
+  if (fn === 'accord_diplomatique')  { ouvrirModalNegociationDiplomatique(); return; }
   if (fn === 'produire_fuite')       { ouvrirProduireFuite(); return; }
   if (fn === 'fabriquer_scandale')   { ouvrirFabrquerScandale(); return; }
   if (fn === 'etat_nation')          { ouvrirEtatNation(); return; }

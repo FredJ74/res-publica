@@ -2898,6 +2898,23 @@ async function repondreDiplomatie(propositionId, accepte) {
   }
 }
 
+// Ouvre le choix d'empire pour les negociations diplomatiques — propose via la file d'attente
+// generique (proposerDiplomatie) au lieu de passer par executerOrdreEmpire (qui ne faisait rien
+// de reel pour cette action).
+function ouvrirModalNegociationDiplomatique() {
+  const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
+  document.getElementById('postes-modal-title').textContent = 'Ouvrir des négociations avec';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir un empire cible :</div>';
+  empires.forEach(([k, co]) => {
+    html += '<button onclick="proposerDiplomatie(&quot;negociation&quot;,&quot;' + k + '&quot;,&quot;' + co.n + '&quot;)" style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">';
+    html += '<i class="ti ' + co.icon + '" style="font-size:1rem;color:' + co.col + '"></i> ' + co.n + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 function ouvrirModalEmpireCible(action, titre) {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
   document.getElementById('postes-modal-title').textContent = titre;
@@ -2943,8 +2960,10 @@ function executerOrdreEmpire(action, empireId, empireName) {
   } else if (action === 'sanctions') {
     INDICES_NATIONAUX[state.country].ID = Math.max(0, INDICES_NATIONAUX[state.country].ID - 5);
     INDICES_NATIONAUX[empireId] = INDICES_NATIONAUX[empireId] || {};
-    showToast('Sanctions imposees', 'Sanctions economiques contre ' + empireName + '. -5 ID.', false);
-    addExternalEvent('Sanctions officielles imposees contre ' + empireName + '.');
+    const perteCible = 3 + Math.floor(Math.random() * 8); // aleatoire entre 3 et 10
+    INDICES_NATIONAUX[empireId].ID = Math.max(0, (INDICES_NATIONAUX[empireId].ID || 50) - perteCible);
+    showToast('Sanctions imposees', 'Sanctions economiques contre ' + empireName + '. -5 ID pour vous, -' + perteCible + ' ID pour ' + empireName + '.', false);
+    addExternalEvent('Sanctions officielles imposees contre ' + empireName + ' (-' + perteCible + ' ID).');
   } else {
     showToast(action.replace(/_/g,' '), 'Action menee envers ' + empireName, true);
     addJournalEntry(action.replace(/_/g,' ') + ' : ' + empireName, 'event-info');
@@ -3596,10 +3615,20 @@ function ouvrirModalTraite() {
   html += '<select id="traite-type" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
   types.forEach(t => { html += '<option value="' + t + '">' + t + '</option>'; });
   html += '</select>';
-  html += '<button onclick="signerTraite()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Signer</button>';
+  html += '<button onclick="proposerTraite()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// Propose le traite via la file d'attente diplomatique generique (voir proposerDiplomatie) —
+// remplace l'ancienne signature unilaterale de signerTraite().
+function proposerTraite() {
+  const empireId = document.getElementById('traite-empire')?.value;
+  const type = document.getElementById('traite-type')?.value;
+  document.getElementById('modal-postes').classList.remove('open');
+  const empireName = COUNTRIES[empireId]?.n || empireId;
+  proposerDiplomatie('traite', empireId, empireName, type);
 }
 
 function signerTraite() {
