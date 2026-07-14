@@ -101,7 +101,7 @@ const WORLD = {
       isCapitale: true,
       streetName: 'Avenue de la République',
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','quartier-ambassades'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','quartier-ambassades','place-formulaire-liberte'],
       buildingContext: {
         'stade': {
           name: "Stade Gourgeot — Olympique de Luthécia",
@@ -2952,6 +2952,24 @@ const BUILDINGS = {
   },
 
   // ---- QHS - QUARTIER HAUTE SECURITE ----
+  'place-formulaire-liberte': {
+    name: "Place du Formulaire de la Liberté",
+    shortName: "Place",
+    cat: "Lieu public",
+    icon: "ti-file-text",
+    bgColor: "#12100a",
+    desc: "Une place publique, au sud du Stade. Prevue pour accueillir de futures manifestations — contenu a developper.",
+    rooms: {
+      place: {
+        name: "Place du Formulaire de la Liberté",
+        imageUrl: "",
+        desc: "Une vaste place pavee, encore silencieuse. Ce lieu est prevu pour accueillir de futurs rassemblements.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+
   'quartier-ambassades': {
     name: "Quartier des Ambassades",
     shortName: "Ambassades",
