@@ -255,6 +255,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
   if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
+  if (fn === 'reponses_diplomatiques') { ouvrirReponsesDiplomatiques(); return; }
   if (fn === 'subvention') { ouvrirChoixTypeCibleFiscale('subvention', 'Accorder une subvention à'); return; }
   if (fn === 'redressement_fiscal') { ouvrirChoixTypeCibleFiscale('redressement_fiscal', 'Redressement fiscal contre'); return; }
   if (fn === 'fixer_impots_nationaux') { ouvrirFixerImpotNational(); return; }

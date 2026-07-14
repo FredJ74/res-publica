@@ -2767,6 +2767,137 @@ async function ouvrirEtatNation() {
   content.innerHTML = html;
 }
 
+// =====================
+// FILE D'ATTENTE DIPLOMATIQUE GENERIQUE
+// Reutilisee par : signer un traite, ouvrir des negociations. Schema commun :
+// proposer -> mail a l'homologue -> il accepte ou refuse -> effet bilateral (ID).
+// =====================
+const DIPLOMATIE_CONFIG = {
+  traite: {
+    label: 'Traité',
+    gainAccepte: 12,
+    perteRefus: 12,
+    genereForumSujet: false
+  },
+  negociation: {
+    label: 'Négociations diplomatiques',
+    gainAccepte: 8,
+    perteRefus: 8,
+    genereForumSujet: true
+  }
+};
+
+async function proposerDiplomatie(type, empireCibleId, empireCibleName, details) {
+  const pays = state.country || 'republic';
+  const config = DIPLOMATIE_CONFIG[type];
+  if (!config) return;
+
+  const proposeur = state.char?.name || 'Le Ministre';
+  const empireProposeurNom = COUNTRIES[pays]?.n || pays;
+  const maeAdversaire = await getTitulairePoste('min_ae', null, empireCibleId);
+
+  const data = {
+    type,
+    empireProposeur: pays,
+    empireCible: empireCibleId,
+    empireCibleNom: empireCibleName,
+    empireProposeurNom,
+    proposeur,
+    details: details || '',
+    jour: state.day || 1
+  };
+  if (typeof sbCreerPropositionDiplomatique === 'function') await sbCreerPropositionDiplomatique(data).catch(() => {});
+
+  if (typeof sbSendMail === 'function') {
+    await sbSendMail('Ministère des Affaires Étrangères', maeAdversaire || 'PNJ-MAE',
+      config.label + ' proposé(e)',
+      proposeur + ' (' + empireProposeurNom + ') propose : ' + config.label + '. Rendez-vous à votre ministère pour répondre.',
+      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  }
+
+  // Sujet forum international pour les negociations — visibilite publique de la demarche
+  if (config.genereForumSujet) {
+    const forumKey = 'international';
+    if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
+    FORUM_TOPICS[forumKey].unshift({
+      id: 'diplo-forum-' + Date.now(),
+      title: '[NÉGOCIATIONS] ' + empireProposeurNom + ' ↔ ' + empireCibleName,
+      author: 'Ministère des Affaires Étrangères',
+      time: 'Jour ' + (state.day || 1),
+      content: proposeur + ' (' + empireProposeurNom + ') ouvre des négociations diplomatiques avec ' + empireCibleName + '.'
+    });
+  }
+
+  showToast(config.label + ' proposé(e)', 'En attente de la réponse de ' + empireCibleName + '.', true, true);
+  addJournalEntry(config.label + ' proposé(e) à ' + empireCibleName + '.', 'event-info');
+}
+
+async function ouvrirReponsesDiplomatiques() {
+  if (state.poste?.id !== 'min_ae') { showToast('Réservé au Ministre des Affaires Étrangères', '', false); return; }
+  const pays = state.country || 'republic';
+  document.getElementById('postes-modal-title').textContent = 'Propositions diplomatiques';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const propositions = typeof sbGetPropositionsDiplomatiques === 'function' ? await sbGetPropositionsDiplomatiques(pays).catch(() => []) : [];
+  const recues = propositions.filter(p => p.empireCible === pays);
+
+  let html = '<div style="padding:1rem">';
+  if (recues.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune proposition en attente.</div>';
+  } else {
+    recues.forEach(p => {
+      const config = DIPLOMATIE_CONFIG[p.type] || { label: p.type };
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">' + config.label + ' — ' + p.empireProposeurNom + '</div>';
+      if (p.details) html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.5rem">' + p.details + '</div>';
+      html += '<div style="display:flex;gap:.4rem">';
+      html += '<button onclick="repondreDiplomatie(&quot;' + p.id + '&quot;,true)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Accepter</button>';
+      html += '<button onclick="repondreDiplomatie(&quot;' + p.id + '&quot;,false)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Refuser</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function repondreDiplomatie(propositionId, accepte) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const rows = typeof sbGet === 'function' ? await sbGet('propositions_diplomatiques', `id=eq.${encodeURIComponent(propositionId)}`).catch(() => []) : [];
+  const p = rows?.[0]?.data;
+  if (!p) return;
+  const config = DIPLOMATIE_CONFIG[p.type] || { gainAccepte: 0, perteRefus: 0, label: p.type };
+
+  if (typeof sbMajPropositionDiplomatique === 'function') {
+    await sbMajPropositionDiplomatique(propositionId, { statut: accepte ? 'acceptee' : 'refusee' });
+  }
+
+  if (accepte) {
+    INDICES_NATIONAUX[p.empireProposeur] = INDICES_NATIONAUX[p.empireProposeur] || {};
+    INDICES_NATIONAUX[p.empireCible] = INDICES_NATIONAUX[p.empireCible] || {};
+    INDICES_NATIONAUX[p.empireProposeur].ID = Math.min(100, (INDICES_NATIONAUX[p.empireProposeur].ID || 50) + config.gainAccepte);
+    INDICES_NATIONAUX[p.empireCible].ID = Math.min(100, (INDICES_NATIONAUX[p.empireCible].ID || 50) + config.gainAccepte);
+    if (p.type === 'traite') {
+      if (!state.traites) state.traites = [];
+      state.traites.push({ empire: p.empireProposeur, type: p.details, jour: state.day });
+    }
+    showToast(config.label + ' accepté(e)', '+' + config.gainAccepte + ' ID pour les deux camps.', true, true);
+    addExternalEvent(config.label.toUpperCase() + ' : accord conclu entre ' + p.empireProposeurNom + ' et ' + (COUNTRIES[p.empireCible]?.n || p.empireCible) + '.');
+  } else {
+    INDICES_NATIONAUX[p.empireCible] = INDICES_NATIONAUX[p.empireCible] || {};
+    INDICES_NATIONAUX[p.empireCible].ID = Math.max(0, (INDICES_NATIONAUX[p.empireCible].ID || 50) - config.perteRefus);
+    showToast(config.label + ' refusé(e)', '-' + config.perteRefus + ' ID.', false);
+    addJournalEntry(config.label + ' refusée avec ' + p.empireProposeurNom + '. -' + config.perteRefus + ' ID.', 'event-bad');
+  }
+
+  if (typeof sbSendMail === 'function') {
+    await sbSendMail('Ministère des Affaires Étrangères', p.proposeur,
+      config.label + ' : réponse reçue',
+      (COUNTRIES[p.empireCible]?.n || p.empireCible) + ' a ' + (accepte ? 'accepté' : 'refusé') + ' votre proposition.',
+      typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+  }
+}
+
 function ouvrirModalEmpireCible(action, titre) {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
   document.getElementById('postes-modal-title').textContent = titre;
@@ -5833,10 +5964,8 @@ async function doTorturerPrisonnierQHS(prisonnierId) {
   state.pop = 10; state.inf = 10;
   updateUI();
 
-  // Trace exploitable par les rumeurs et les enquetes — 90 jours (~3 mois) au lieu des 7 jours
-  // par defaut, pour que l'accusation reste fondee sur une preuve reelle assez longtemps pour
-  // survivre a un ou deux mandats.
-  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('torture_qhs', p.nom, 90);
+  // Trace exploitable par les rumeurs et les enquetes
+  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('torture_qhs', p.nom);
   if (typeof sbCreerRumeurPolitique === 'function') {
     await sbCreerRumeurPolitique({ cible: mjNom, contenu: 'Le Ministre de la Justice ferait torturer des détenus au QHS.', auteur: 'Anonyme', jour: state.day || 1, popPerdu: 40 }).catch(() => {});
   }
