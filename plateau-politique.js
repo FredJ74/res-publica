@@ -5833,8 +5833,10 @@ async function doTorturerPrisonnierQHS(prisonnierId) {
   state.pop = 10; state.inf = 10;
   updateUI();
 
-  // Trace exploitable par les rumeurs et les enquetes
-  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('torture_qhs', p.nom);
+  // Trace exploitable par les rumeurs et les enquetes — 90 jours (~3 mois) au lieu des 7 jours
+  // par defaut, pour que l'accusation reste fondee sur une preuve reelle assez longtemps pour
+  // survivre a un ou deux mandats.
+  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('torture_qhs', p.nom, 90);
   if (typeof sbCreerRumeurPolitique === 'function') {
     await sbCreerRumeurPolitique({ cible: mjNom, contenu: 'Le Ministre de la Justice ferait torturer des détenus au QHS.', auteur: 'Anonyme', jour: state.day || 1, popPerdu: 40 }).catch(() => {});
   }

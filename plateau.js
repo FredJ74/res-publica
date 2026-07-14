@@ -5840,7 +5840,7 @@ const BONUS_CARRIERE_VOL = {
 // =====================
 // TRACAGE DES ACTIONS (pour le systeme de rumeurs vraies)
 // =====================
-function tracerActionPourRumeur(typeAction, cibleNom) {
+function tracerActionPourRumeur(typeAction, cibleNom, dureeJours = 7) {
   if (typeof sbTracerAction !== 'function') return;
   const action = {
     id: 'action-' + Date.now() + '-' + Math.floor(Math.random()*1000),
@@ -5850,7 +5850,7 @@ function tracerActionPourRumeur(typeAction, cibleNom) {
     country: state.country,
     city: state.currentCity,
     jour: state.day || 1,
-    jour_expiration: (state.day || 1) + 7
+    jour_expiration: (state.day || 1) + dureeJours
   };
   sbTracerAction(action).catch(() => {});
 }

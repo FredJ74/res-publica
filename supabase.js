@@ -854,6 +854,13 @@ async function sbGetActionsTracables(country, city, jourActuel) {
   return sbGet('actions_tracables', filtre) || [];
 }
 
+// Recherche par auteur (peu importe la ville) — utilisee pour verifier si une accusation
+// (plainte/enquete) repose sur une action reellement tracee, ex: torture au QHS.
+async function sbGetActionsTracablesParAuteur(country, auteur, typeAction, jourActuel) {
+  const filtre = `country=eq.${encodeURIComponent(country)}&auteur=eq.${encodeURIComponent(auteur)}&type_action=eq.${encodeURIComponent(typeAction)}&jour_expiration=gte.${jourActuel}`;
+  return sbGet('actions_tracables', filtre) || [];
+}
+
 // =====================
 // IMPACTS D'INDICES EN ATTENTE (generique, applique a la victime a sa prochaine connexion)
 // =====================
