@@ -1959,7 +1959,9 @@ const BUILDINGS = {
         desc: "Le hall d'entree du journal et de l'imprimerie. Une reception marbree, l'atelier d'impression visible au fond.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/la-tribune-accueil.png",
         persons: [
-          {name:'Standardiste (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'}
+          {name:'Nadège Standard (PNJ)', role:'PNJ - Standardiste', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/la-tribune-accueil.png', photoPos:'50% 35%'},
+          {name:'Camille Édito (PNJ)', role:'PNJ - Journaliste', rel:'neutral', job:'journaliste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/la-tribune-accueil.png', photoPos:'20% 40%'},
+          {name:'Gustave Rotative (PNJ)', role:'PNJ - Chef d\'atelier', rel:'neutral', job:'imprimeur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/la-tribune-accueil.png', photoPos:'80% 40%'}
         ],
         orders: [
           {fn:'parler_pnj',    label:'Parler à la standardiste', pa:0, cost:0, type:'legal', icon:'ti-message', successRate:100},

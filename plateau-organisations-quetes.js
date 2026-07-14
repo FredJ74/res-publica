@@ -1463,6 +1463,17 @@ async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsCont
   }
 }
 
+// Sauvegarde immediate de state.char (local + Supabase) — necessaire pour tout changement qui
+// doit survivre a un rafraichissement de page, meme sans changement de piece/batiment.
+function sauvegarderPersonnageImmediat() {
+  if (!state.char) return;
+  try {
+    localStorage.setItem('respublica_char_' + (state.char.name || 'default'), JSON.stringify(state.char));
+    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+  } catch (e) {}
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+}
+
 function doPrendreLicenceSportive() {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
@@ -1471,6 +1482,7 @@ function doPrendreLicenceSportive() {
   state.arg -= 300;
   if (!state.char) return;
   state.char.licenceSportive = { clubId: clubLocal.id, dateAchat: state.day || 1 };
+  sauvegarderPersonnageImmediat();
   updateUI();
   showToast('Licence obtenue !', 'Vous pouvez désormais vous entraîner et jouer pour ' + clubLocal.nom + '.', true, true);
   addJournalEntry('Licence sportive prise pour ' + clubLocal.nom + ' (-300 FR).', 'event-good');
@@ -1526,6 +1538,7 @@ function confirmerEntrainement(stat) {
     const degatsPV = grave ? 30 : 15;
     state.char.blessureSportive = { jusquauJour: (state.day||1) + duree, gravite: grave ? 'grave' : 'legere' };
     state.hp = Math.max(1, (state.hp||100) - degatsPV);
+    sauvegarderPersonnageImmediat();
     document.getElementById('modal-postes')?.classList.remove('open');
     updateUI();
     showToast('Blessure à l\'entraînement !', (grave?'Grave':'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' PV.', false);
@@ -1534,6 +1547,7 @@ function confirmerEntrainement(stat) {
 
   if (!state.char.performance) state.char.performance = { defense:0, technique:0, endurance:0 };
   state.char.performance[stat] = (state.char.performance[stat] || 0) + 2;
+  sauvegarderPersonnageImmediat();
   updateUI();
   showToast('Entraînement réussi', '+2 ' + LABELS_PERF[stat] + '.', true, true);
   doTenueEntrainement();
