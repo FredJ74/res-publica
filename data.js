@@ -101,7 +101,7 @@ const WORLD = {
       isCapitale: true,
       streetName: 'Avenue de la République',
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','quartier-ambassades'],
       buildingContext: {
         'stade': {
           name: "Stade Gourgeot — Olympique de Luthécia",
@@ -2952,6 +2952,48 @@ const BUILDINGS = {
   },
 
   // ---- QHS - QUARTIER HAUTE SECURITE ----
+  'quartier-ambassades': {
+    name: "Quartier des Ambassades",
+    shortName: "Ambassades",
+    cat: "Diplomatie",
+    icon: "ti-flag",
+    bgColor: "#12100a",
+    desc: "Le quartier diplomatique de Luthecia. Trois bureaux reserves aux ambassadeurs etrangers, ouverts selon les ambassades reellement etablies.",
+    rooms: {
+      accueil_ambassades: {
+        name: "Accueil du Quartier des Ambassades",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-quartier-ambassades.png",
+        desc: "Le hall d'accueil du quartier diplomatique. Trois bureaux d'ambassadeurs, ouverts selon les relations en cours.",
+        persons: [
+          {name:'Hôtesse d\'Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'},
+          {name:'Agent de Sécurité (PNJ)', role:'PNJ - Sécurité', rel:'neutral', job:'agent_securite'}
+        ],
+        orders: []
+      },
+      bureau_al_khalija: {
+        name: "Ambassade d'Al-Khalija",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-ambassadeur-al-khalija.png",
+        desc: "Le bureau de l'ambassadeur d'Al-Khalija. Ferme tant qu'Al-Khalija n'a pas ouvert d'ambassade a Luthecia.",
+        persons: [],
+        orders: []
+      },
+      bureau_sovarka: {
+        name: "Ambassade de Sovarka",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-ambassadeur-sovarka.png",
+        desc: "Le bureau de l'ambassadeur de Sovarka. Ferme tant que Sovarka n'a pas ouvert d'ambassade a Luthecia.",
+        persons: [],
+        orders: []
+      },
+      bureau_el_estado: {
+        name: "Ambassade d'El Estado",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-ambassadeur-el-estado.png",
+        desc: "Le bureau de l'ambassadeur d'El Estado. Ferme tant qu'El Estado n'a pas ouvert d'ambassade a Luthecia.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+
   'qhs-prison': {
     name: "Quartier Haute Securite",
     shortName: "QHS",

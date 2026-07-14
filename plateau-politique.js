@@ -2934,6 +2934,11 @@ function executerOrdreEmpire(action, empireId, empireName) {
     INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 8);
     state.arg -= 1000;
     updateUI();
+    // Persistance partagee : rend le bureau accessible a tous, dans le Quartier des Ambassades
+    // du pays cible (empireId), pour l'ambassadeur de state.country.
+    if (typeof sbOuvrirAmbassade === 'function') {
+      sbOuvrirAmbassade(empireId, state.country, state.day || 1).catch(() => {});
+    }
     showToast('Ambassade ouverte', 'Representation diplomatique etablie a ' + empireName + '. +8 ID.', true);
   } else if (action === 'sanctions') {
     INDICES_NATIONAUX[state.country].ID = Math.max(0, INDICES_NATIONAUX[state.country].ID - 5);

@@ -56,9 +56,12 @@ async function sbDelete(table, filters) {
 // PERSONNAGES
 // =====================
 async function sbSavePersonnage(charState) {
+  const photoKey = 'respublica_photo_' + (charState.char?.name || 'default');
+  const savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
   const data = {
     name:             charState.char?.name,
     country:          charState.country,
+    photo_url:        savedPhoto || charState.char?.photoUrl || null,
     archetype:        charState.char?.archetype,
     career:           charState.char?.career,
     stats:            charState.char?.stats,
