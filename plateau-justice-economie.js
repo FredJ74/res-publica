@@ -835,7 +835,7 @@ function ouvrirDetailJugement(idx) {
 
 async function ouvrirPorterPlainte() {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  document.getElementById('postes-modal-title').textContent = 'Affaires du Tribunal de ' + ville;
+  document.getElementById('postes-modal-title').textContent = 'Affaires en cours — ' + ville;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
@@ -846,21 +846,42 @@ async function ouvrirPorterPlainte() {
       state.plaintesEnCours = toutes;
     } catch(e) {}
   }
-  const affairesEnAttente = (state.plaintesEnCours || []).filter(p => p.status === 'deposee' && p.city === state.currentCity);
+  const affaires = (state.plaintesEnCours || []).filter(p => p.city === state.currentCity);
+  // Note : les enquetes en cours (state.enquetesEnCours) ne sont pour l'instant pas partagees
+  // via Supabase — elles ne remontent donc que si VOUS etes a l'origine de la plainte qui a
+  // ouvert l'enquete, pas celles des autres joueurs. A corriger dans un futur passage.
+  const enquetes = (state.enquetesEnCours || []).filter(e => e.status === 'pending');
+
+  const LIBELLES_STATUT = {
+    pending: { texte: 'En attente de traitement', col: '#8a7040' },
+    done:    { texte: 'Classée sans suite',        col: '#5a5040' },
+    deposee: { texte: 'Transmise au tribunal — en attente de jugement', col: '#C9A84C' },
+    jugee:   { texte: 'Jugée',                     col: '#6a8a4a' }
+  };
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' +
-    'Pour porter plainte, rendez-vous au commissariat. Le tribunal ne traite que les affaires transmises par les forces de l\'ordre suite a une enquete concluante.</div>';
 
-  if (affairesEnAttente.length === 0) {
-    html += '<div style="font-size:.85rem;color:#5a5040">Aucune affaire en attente de jugement pour le moment.</div>';
+  if (affaires.length === 0 && enquetes.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en cours pour le moment.</div>';
   } else {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">EN ATTENTE DE JUGEMENT</div>';
-    affairesEnAttente.forEach(a => {
+    affaires.forEach(a => {
+      const statut = LIBELLES_STATUT[a.status] || { texte: a.status || 'Autre', col: '#8a8060' };
       html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
-      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + a.cible + '</div>';
-      html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + (a.motif||'') + '</div>';
-      html += '<div style="font-size:.65rem;color:#4a4030;margin-top:.3rem">Transmise le Jour ' + a.jour + '</div>';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + (a.cible || 'Affaire') + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em;color:' + statut.col + '">' + statut.texte + '</div>';
+      html += '</div>';
+      if (a.motif) html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + a.motif + '</div>';
+      html += '<div style="font-size:.65rem;color:#4a4030;margin-top:.3rem">Jour ' + a.jour + '</div>';
+      html += '</div>';
+    });
+    enquetes.forEach(e => {
+      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + (e.cible || 'Affaire') + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em;color:#8a5a2a">Enquête en cours</div>';
+      html += '</div>';
+      if (e.motif) html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + e.motif + '</div>';
       html += '</div>';
     });
   }
@@ -1356,6 +1377,7 @@ async function appliquerSentence(affaireId, type) {
   const affaire = (state.plaintesEnCours||[]).find(p => p.id === affaireId);
   if (!affaire) return;
   affaire.status = 'jugee';
+  if (typeof sbSavePlainte === 'function') sbSavePlainte(affaire).catch(() => {});
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   let details = '';

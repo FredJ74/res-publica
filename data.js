@@ -1753,7 +1753,7 @@ const BUILDINGS = {
           {name:'Procureur Saad', role:'Ministere public (PNJ)', rel:'neutral', job:'procureur'}
         ],
         orders: [
-          {fn:'plainte',   label:'Porter plainte',        pa:1, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100},
+          {fn:'plainte',   label:'Consulter les affaires en cours', pa:1, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir le statut des affaires en cours : en attente de traitement, enquete en cours, transmise au tribunal, jugee.'},
           {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:75}
         ]
       },
