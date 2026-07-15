@@ -1468,7 +1468,8 @@ const BUILDINGS = {
           {fn:'sanctions_diplo',      label:'Imposer des sanctions',        pa:3, cost:0,   type:'legal',   icon:'ti-ban',            successRate:85,  requiresPost:'min_ae', desc:'Sanctions economiques ou diplomatiques.'},
           {fn:'reponses_diplomatiques', label:'Répondre aux propositions', pa:1, cost:0,   type:'legal',   icon:'ti-inbox',          successRate:100, requiresPost:'min_ae', desc:'Consulter et repondre aux propositions diplomatiques recues (traites, negociations).'},
           {fn:'nommer_ambassadeur_cible', label:'Nommer un ambassadeur',   pa:1, cost:0,   type:'legal',   icon:'ti-user-plus',      successRate:100, requiresPost:'min_ae', desc:'Designer un contact comme ambassadeur aupres d\'un empire.'},
-          {fn:'renvoyer_ambassadeur_cible', label:'Renvoyer un ambassadeur', pa:1, cost:0, type:'legal',   icon:'ti-user-minus',     successRate:100, requiresPost:'min_ae', desc:'Mettre fin a la mission d\'un ambassadeur nomme aupres d\'un empire.'}
+          {fn:'demettre_ambassadeur_cible', label:'Démettre un ambassadeur de son poste', pa:1, cost:0, type:'legal', icon:'ti-user-minus', successRate:100, requiresPost:'min_ae', desc:'Mettre fin, avec effet immediat, a la mission de son propre ambassadeur.'},
+          {fn:'expulser_ambassadeur_cible', label:'Expulser un ambassadeur', pa:2, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_ae', desc:'Declarer persona non grata un ambassadeur etranger present sur le territoire (24h pour quitter le pays, sous peine d\'arrestation).'}
         ]
       }
     }

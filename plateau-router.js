@@ -287,7 +287,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'signer_traite_empire')    { ouvrirModalTraite(); return; }
   if (fn === 'ouvrir_ambassade_empire') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
   if (fn === 'nommer_ambassadeur_cible'){ ouvrirModalNommerAmbassadeur(); return; }
-  if (fn === 'renvoyer_ambassadeur_cible'){ ouvrirModalRenvoyerAmbassadeur(); return; }
+  if (fn === 'demettre_ambassadeur_cible'){ ouvrirModalDemettreAmbassadeur(); return; }
+  if (fn === 'expulser_ambassadeur_cible'){ ouvrirModalExpulserAmbassadeur(); return; }
   if (fn === 'relations_bilaterales') { ouvrirRelationsBilaterales(); return; }
   if (fn === 'corrompre_homologue_local') { doCorrompreHomologueLocal(); return; }
   if (fn === 'organiser_reception_diplomatique') { doOrganiserReceptionDiplomatique(); return; }

@@ -3785,26 +3785,31 @@ function confirmerAmbassadeur() {
   showToast('Ambassadeur nomme', contact + ' → ' + empireName, true);
 }
 
-// Renvoi d'un ambassadeur — perspective du pays hote (qui accueille physiquement le bureau),
-// pas du pays qui l'a nomme. Liste les ambassadeurs etrangers actuellement en poste ici.
-async function ouvrirModalRenvoyerAmbassadeur() {
+// DEMETTRE : le pays qui a nomme son propre ambassadeur met fin a sa mission — perte
+// immediate du poste, aucun delai (contrairement a l'expulsion, voir plus bas).
+async function ouvrirModalDemettreAmbassadeur() {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
-  document.getElementById('postes-modal-title').textContent = 'Renvoyer un ambassadeur';
+  document.getElementById('postes-modal-title').textContent = 'Démettre un ambassadeur de son poste';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const infos = typeof sbGetAmbassadesOuvertes === 'function' ? await sbGetAmbassadesOuvertes(state.country).catch(() => []) : [];
+  // Ici, "pays_hote" = l'empire cible (la ou notre ambassadeur est stationne), "empire" = nous.
+  const infosParEmpire = await Promise.all(empires.map(async ([k]) => {
+    const rows = typeof sbGet === 'function' ? await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(k + '-' + state.country)}`).catch(() => []) : [];
+    return { empireId: k, info: rows?.[0] || null };
+  }));
+
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Ambassadeurs actuellement en poste dans votre pays :</div>';
-  const presents = empires.filter(([k]) => infos.some(i => i.data?.empire === k && i.data?.ambassadeur));
+  html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Vos ambassadeurs actuellement en poste :</div>';
+  const presents = infosParEmpire.filter(x => x.info?.data?.ambassadeur);
   if (presents.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun ambassadeur etranger en poste actuellement.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun ambassadeur nommé actuellement.</div>';
   } else {
-    presents.forEach(([k, co]) => {
-      const info = infos.find(i => i.data?.empire === k);
+    presents.forEach(x => {
+      const co = COUNTRIES[x.empireId];
       html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.4rem">';
-      html += '<span style="font-size:.85rem">' + co.n + ' — <em>' + info.data.ambassadeur + '</em></span>';
-      html += '<button onclick="confirmerRenvoiAmbassadeur(&quot;' + k + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Renvoyer</button>';
+      html += '<span style="font-size:.85rem">' + co.n + ' — <em>' + x.info.data.ambassadeur + '</em></span>';
+      html += '<button onclick="confirmerDemissionAmbassadeur(&quot;' + x.empireId + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Démettre</button>';
       html += '</div>';
     });
   }
@@ -3812,14 +3817,62 @@ async function ouvrirModalRenvoyerAmbassadeur() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function confirmerRenvoiAmbassadeur(empireId) {
+async function confirmerDemissionAmbassadeur(empireId) {
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  if (typeof sbRenvoyerAmbassadeur === 'function') {
-    await sbRenvoyerAmbassadeur(state.country, empireId).catch(() => {});
+  const rows = typeof sbGet === 'function' ? await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(empireId + '-' + state.country)}`).catch(() => []) : [];
+  const ancienAmbassadeur = rows?.[0]?.data?.ambassadeur;
+  if (typeof sbNommerAmbassadeur === 'function') {
+    await sbNommerAmbassadeur(empireId, state.country, null).catch(() => {});
   }
   document.getElementById('modal-postes')?.classList.remove('open');
-  addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' met fin à la mission de l\'ambassadeur de ' + empireName + '.');
-  showToast('Ambassadeur renvoyé', 'La mission de l\'ambassadeur de ' + empireName + ' a pris fin.', false);
+  if (ancienAmbassadeur) {
+    envoyerNotificationVraiJoueur(ancienAmbassadeur, 'Fin de mission', 'Le Ministre des Affaires Étrangères a mis fin à votre mission d\'ambassadeur auprès de ' + empireName + '. Vous perdez ce poste avec effet immédiat.');
+  }
+  addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' démet son ambassadeur auprès de ' + empireName + '.');
+  showToast('Ambassadeur démis', 'La mission a pris fin, poste perdu avec effet immédiat.', false);
+}
+
+// EXPULSER : le pays hote expulse l'ambassadeur d'un autre pays stationne chez lui. Il garde
+// son poste mais a 24h (jour actuel + 1) pour quitter le pays, sous peine d'arrestation.
+async function ouvrirModalExpulserAmbassadeur() {
+  const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
+  document.getElementById('postes-modal-title').textContent = 'Expulser un ambassadeur';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const infos = typeof sbGetAmbassadesOuvertes === 'function' ? await sbGetAmbassadesOuvertes(state.country).catch(() => []) : [];
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Ambassadeurs étrangers actuellement en poste dans votre pays :</div>';
+  const presents = empires.filter(([k]) => infos.some(i => i.data?.empire === k && i.data?.ambassadeur && !i.data?.expulsionEcheance));
+  if (presents.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun ambassadeur étranger en poste actuellement.</div>';
+  } else {
+    presents.forEach(([k, co]) => {
+      const info = infos.find(i => i.data?.empire === k);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.4rem">';
+      html += '<span style="font-size:.85rem">' + co.n + ' — <em>' + info.data.ambassadeur + '</em></span>';
+      html += '<button onclick="confirmerExpulsionAmbassadeur(&quot;' + k + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Expulser</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerExpulsionAmbassadeur(empireId) {
+  const empireName = COUNTRIES[empireId]?.n || empireId;
+  const echeance = (state.day || 1) + 1;
+  if (typeof sbFixerEcheanceExpulsion === 'function') {
+    await sbFixerEcheanceExpulsion(state.country, empireId, echeance).catch(() => {});
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const rows = typeof sbGet === 'function' ? await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(state.country + '-' + empireId)}`).catch(() => []) : [];
+  const ambassadeurVise = rows?.[0]?.data?.ambassadeur;
+  if (ambassadeurVise) {
+    envoyerNotificationVraiJoueur(ambassadeurVise, 'Expulsion diplomatique', 'Vous êtes déclaré(e) persona non grata. Vous devez quitter ' + (COUNTRIES[state.country]?.n || state.country) + ' avant le Jour ' + echeance + ', sous peine d\'arrestation. Vous conservez votre poste jusque-là.');
+  }
+  addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' expulse l\'ambassadeur de ' + empireName + ' (delai jusqu\'au Jour ' + echeance + ').');
+  showToast('Ambassadeur expulsé', 'Délai de 24h notifié, poste conservé jusqu\'à l\'échéance.', false);
 }
 
 function ouvrirBanquetDiplomatique() {
