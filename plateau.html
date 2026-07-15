@@ -388,7 +388,7 @@
   <div class="modal-box">
     <div class="modal-header">
       <div class="modal-title" id="postes-modal-title">Postes disponibles</div>
-      <button class="modal-close" onclick="document.getElementById('modal-postes').classList.remove('open')"><i class="ti ti-x"></i></button>
+      <button class="modal-close" onclick="document.getElementById('modal-postes').classList.remove('open'); document.querySelector('#modal-postes .modal-box')?.classList.remove('modal-wide')"><i class="ti ti-x"></i></button>
     </div>
     <div id="postes-body"></div>
   </div>
