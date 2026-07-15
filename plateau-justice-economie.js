@@ -889,6 +889,65 @@ async function ouvrirPorterPlainte() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// SE DEFENDRE — formule validée avec Fred :
+// Taux = 50 (base) + (CHA-8)*3 (bonus/malus charisme) - 35 si preuve reelle contre l'accuse.
+// 4 resultats selon le jet : reussite critique (classe l'affaire), reussite simple
+// (circonstance attenuante), echec simple (rien), echec critique >90 (aggravation).
+async function doDefense() {
+  const affaire = (state.plaintesEnCours || []).find(p => p.cible === state.char?.name && p.status === 'deposee');
+  if (!affaire) {
+    showToast('Aucune affaire', "Vous n'avez aucune affaire en attente de jugement pour le moment.", false);
+    return;
+  }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cout = 300;
+  if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Vous défendre coûte ' + cout + ' ' + cur + '.', false); return; }
+  state.arg -= cout;
+
+  const cha = state.char?.stats?.CHA || 8;
+  const bonusCha = (cha - 8) * 3;
+  const preuveReelle = typeof verifierPreuveReelle === 'function'
+    ? await verifierPreuveReelle(affaire.country || state.country, affaire.cible, affaire.motif).catch(() => false)
+    : false;
+  const malusPreuve = preuveReelle ? 35 : 0;
+  const taux = Math.max(5, Math.min(90, 50 + bonusCha - malusPreuve));
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  let titre, message, journal, bon;
+
+  if (roll <= taux - 30) {
+    affaire.status = 'jugee';
+    affaire.resultatDefense = 'reussite_critique';
+    titre = 'Affaire classée !';
+    message = 'Votre défense est si convaincante que l\'affaire est classée sur le champ.';
+    journal = 'Défense réussie de façon éclatante — affaire classée (jet ' + roll + '/' + taux + '%).';
+    bon = true;
+  } else if (roll <= taux) {
+    affaire.circonstanceAttenuante = true;
+    titre = 'Défense entendue';
+    message = 'Votre défense a porté. Le juge en tiendra compte (peine réduite si prison choisie).';
+    journal = 'Défense réussie — circonstance atténuante enregistrée (jet ' + roll + '/' + taux + '%).';
+    bon = true;
+  } else if (roll > 90) {
+    affaire.aggravation = true;
+    titre = 'Aggravation';
+    message = 'Votre défense s\'est retournée contre vous. Le juge en sera informé.';
+    journal = 'Défense ratée de façon flagrante — aggravation enregistrée (jet ' + roll + '/' + taux + '%).';
+    bon = false;
+  } else {
+    titre = 'Défense infructueuse';
+    message = 'Votre défense n\'a pas convaincu. L\'affaire suit son cours normal.';
+    journal = 'Défense infructueuse — l\'affaire suit son cours (jet ' + roll + '/' + taux + '%).';
+    bon = false;
+  }
+
+  if (typeof sbSavePlainte === 'function') sbSavePlainte(affaire).catch(() => {});
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast(titre, message, bon);
+  addJournalEntry(journal, bon ? 'event-good' : 'event-bad');
+  updateUI();
+}
+
 function doCorruption(fn, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
@@ -1357,6 +1416,12 @@ async function ouvrirRendreSentence() {
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">Affaire : ' + a.cible + '</div>';
       html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">' + a.motif + '</div>';
+      if (a.circonstanceAttenuante) {
+        html += '<div style="font-size:.7rem;color:#6a9a6a;margin-bottom:.4rem;font-style:italic">✓ Défense réussie : circonstance atténuante (-1 jour si prison)</div>';
+      }
+      if (a.aggravation) {
+        html += '<div style="font-size:.7rem;color:#cc4444;margin-bottom:.4rem;font-style:italic">⚠ Défense ratée de façon flagrante : aggravation (+2 jours si prison)</div>';
+      }
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SENTENCE</div>';
       html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
       html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amende\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende (montant + repartition)</button>';
@@ -1386,8 +1451,11 @@ async function appliquerSentence(affaireId, type) {
     const montant = 500;
     details = 'Amende de ' + montant + ' ' + cur;
   } else if (type === 'prison') {
-    const duree = 3;
-    details = 'Prison ' + duree + ' jours';
+    let duree = 3;
+    let note = '';
+    if (affaire.circonstanceAttenuante) { duree = Math.max(1, duree - 1); note = ' (circonstance atténuante : -1 jour)'; }
+    if (affaire.aggravation) { duree = duree + 2; note = ' (aggravation : +2 jours)'; }
+    details = 'Prison ' + duree + ' jours' + note;
     if (!state.prisonniers) state.prisonniers = [];
     state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + duree });
   } else if (type === 'amenagement') {
