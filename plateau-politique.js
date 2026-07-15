@@ -3703,14 +3703,53 @@ function doOrganiserReceptionDiplomatique() {
   if (!empireId) return;
   const empireName = COUNTRIES[empireId]?.n || empireId;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cout = 1200;
-  if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Organiser une réception coûte ' + cout + ' ' + cur + '.', false); return; }
-  state.arg -= cout;
-  INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 5);
-  state.pop = Math.min(100, (state.pop || 50) + 5);
-  showToast('Réception organisée', 'Une réception diplomatique a été donnée dans la Salle de Réception. +5 ID, +5 POP.', true);
-  addExternalEvent('DIPLOMATIE : réception donnée à l\'ambassade de ' + empireName + '.');
-  updateUI();
+  // Verifier qu'une reservation existe bien pour aujourd'hui, au nom de cette ambassade
+  // (voir sbReserverSalleReception, ordre pris a l'accueil).
+  const jour = state.day || 1;
+  sbGetReservationSalle(state.country, jour).then(resa => {
+    if (!resa || resa.data?.empire !== empireId) {
+      showToast('Salle non réservée', "Réservez d'abord la Salle de Réception pour aujourd'hui, depuis l'accueil du Quartier des Ambassades.", false);
+      return;
+    }
+    const cout = 1200;
+    if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Organiser une réception coûte ' + cout + ' ' + cur + '.', false); return; }
+    state.arg -= cout;
+    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 5);
+    state.pop = Math.min(100, (state.pop || 50) + 5);
+    showToast('Réception organisée', 'Une réception diplomatique a été donnée dans la Salle de Réception. +5 ID, +5 POP.', true);
+    addExternalEvent('DIPLOMATIE : réception donnée à l\'ambassade de ' + empireName + '.');
+    updateUI();
+  }).catch(() => {
+    showToast('Erreur', 'Impossible de vérifier la réservation pour le moment.', false);
+  });
+}
+
+// Reservation de la Salle de Reception, prise a l'accueil. Reservee aux ambassadeurs
+// effectivement en poste ici (peu importe lequel des 3, du moment qu'il en est un) —
+// la reservation est associee a SON empire, pas au pays hote, pour rester coherente
+// avec la verification faite dans doOrganiserReceptionDiplomatique.
+async function doReserverSalleReception() {
+  const jour = state.day || 1;
+  const monAmbassade = (state.ambassadesOuvertesCache || []).find(a => a.ambassadeur === state.char?.name);
+  if (!monAmbassade) {
+    showToast('Réservation impossible', 'Seul un ambassadeur en poste ici peut réserver cette salle.', false);
+    return;
+  }
+  const resa = typeof sbGetReservationSalle === 'function' ? await sbGetReservationSalle(state.country, jour).catch(() => null) : null;
+  if (resa) {
+    const empireResa = COUNTRIES[resa.data?.empire]?.n || resa.data?.empire;
+    showToast('Salle déjà réservée', 'La Salle de Réception est déjà réservée aujourd\'hui par ' + empireResa + '.', false);
+    return;
+  }
+  const res = typeof sbReserverSalleReception === 'function'
+    ? await sbReserverSalleReception(state.country, jour, monAmbassade.empire, state.char?.name).catch(() => ({ ok: false }))
+    : { ok: false };
+  if (res.ok) {
+    showToast('Salle réservée', 'La Salle de Réception est réservée pour aujourd\'hui.', true);
+    addJournalEntry('Réservation de la Salle de Réception du Quartier des Ambassades pour aujourd\'hui.', 'event-info');
+  } else {
+    showToast('Réservation impossible', 'La salle vient d\'être réservée par un autre pays.', false);
+  }
 }
 
 function doFinancerOeuvreCulturelle() {
@@ -3861,7 +3900,7 @@ async function ouvrirModalExpulserAmbassadeur() {
 
 async function confirmerExpulsionAmbassadeur(empireId) {
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  const echeance = (state.day || 1) + 1;
+  const echeance = Date.now() + 24 * 60 * 60 * 1000; // 24h reelles, comme les autres delais du jeu (couvre-feu, recherche militaire)
   if (typeof sbFixerEcheanceExpulsion === 'function') {
     await sbFixerEcheanceExpulsion(state.country, empireId, echeance).catch(() => {});
   }
@@ -3869,9 +3908,9 @@ async function confirmerExpulsionAmbassadeur(empireId) {
   const rows = typeof sbGet === 'function' ? await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(state.country + '-' + empireId)}`).catch(() => []) : [];
   const ambassadeurVise = rows?.[0]?.data?.ambassadeur;
   if (ambassadeurVise) {
-    envoyerNotificationVraiJoueur(ambassadeurVise, 'Expulsion diplomatique', 'Vous êtes déclaré(e) persona non grata. Vous devez quitter ' + (COUNTRIES[state.country]?.n || state.country) + ' avant le Jour ' + echeance + ', sous peine d\'arrestation. Vous conservez votre poste jusque-là.');
+    envoyerNotificationVraiJoueur(ambassadeurVise, 'Expulsion diplomatique', 'Vous êtes déclaré(e) persona non grata. Vous avez 24h pour quitter ' + (COUNTRIES[state.country]?.n || state.country) + ', sous peine d\'arrestation. Vous conservez votre poste jusque-là.');
   }
-  addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' expulse l\'ambassadeur de ' + empireName + ' (delai jusqu\'au Jour ' + echeance + ').');
+  addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' expulse l\'ambassadeur de ' + empireName + ' (24h pour quitter le pays).');
   showToast('Ambassadeur expulsé', 'Délai de 24h notifié, poste conservé jusqu\'à l\'échéance.', false);
 }
 

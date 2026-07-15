@@ -295,6 +295,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'financer_oeuvre_culturelle') { doFinancerOeuvreCulturelle(); return; }
   if (fn === 'demander_audience_ambassadeur') { doDemanderAudienceAmbassadeur(); return; }
   if (fn === 'demander_asile_politique') { doDemanderAsilePolitique(); return; }
+  if (fn === 'reserver_salle_reception') { doReserverSalleReception(); return; }
   if (fn === 'sanctions_empire')        { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
   if (fn === 'reception_etat') { doReceptionAvecBonus(fn, cost); return; }
   if (fn === 'banquet_diplo') { ouvrirBanquetDiplomatique(); return; }

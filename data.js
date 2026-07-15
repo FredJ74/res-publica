@@ -3007,7 +3007,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'demander_audience_ambassadeur', label:'Demander audience à l\'ambassadeur', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:70, desc:'Tenter de rencontrer un ambassadeur present.'},
-          {fn:'demander_asile_politique',       label:'Demander l\'asile politique',       pa:2, cost:0, type:'legal', icon:'ti-shield-check', successRate:100, desc:'Deposer une demande d\'asile politique aupres de cette ambassade.'}
+          {fn:'demander_asile_politique',       label:'Demander l\'asile politique',       pa:2, cost:0, type:'legal', icon:'ti-shield-check', successRate:100, desc:'Deposer une demande d\'asile politique aupres de cette ambassade.'},
+          {fn:'reserver_salle_reception',       label:'Réserver la Salle de Réception',    pa:1, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Reserver la salle pour aujourd\'hui (reserve aux ambassadeurs en poste ici).'}
         ]
       },
       salle_reception: {
