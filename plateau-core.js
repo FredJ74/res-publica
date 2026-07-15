@@ -150,7 +150,7 @@ const ACTES_ILLEGAUX = {
   corrompre_journaliste:{ type: 'delit_mineur',detectRate: 25 },
   blanchiment:        { type: 'delit_grave',   detectRate: 35 },
   societe_ecran:      { type: 'delit_mineur',  detectRate: 25 },
-  falsifier_docs:     { type: 'delit_grave',   detectRate: 40 },
+  falsifier_document: { type: 'delit_grave',   detectRate: 40 },
   acheter_arme_illegale:{ type: 'delit_mineur',detectRate: 20 },
   acheter_bombe_illegale:{ type: 'crime',      detectRate: 55 },
   fabriquer_bombe:    { type: 'crime',         detectRate: 60 },
