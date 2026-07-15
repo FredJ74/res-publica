@@ -1529,7 +1529,7 @@ const BUILDINGS = {
           {name:'Journaliste Blanc',role:'Correspondant parlementaire (PNJ)', rel:'neutral', job:'journaliste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/journaliste-blanc.png'}
         ],
         orders: [
-          {fn:'marchander',  label:'Proposer un accord',  pa:2, cost:100, type:'grey',  icon:'ti-handshake',successRate:65},
+          {fn:'consulter_lobbyiste', label:'Consulter le Lobbyiste', pa:1, cost:300, type:'grey', icon:'ti-handshake', successRate:100, desc:'Contre paiement, le lobbyiste vous garantit un coup de pouce (+20% de reussite) sur votre prochaine tentative de marchandage de vote.'},
           {fn:'ecouter_rumeurs', label:'Ecouter les rumeurs', pa:1, cost:0, type:'grey', icon:'ti-ear', successRate:70, desc:'Revele une information aléatoire sur un PJ ou PNJ de la ville. Generee par IA selon le contexte politique. Tres utile pour journalistes et espions.'}
         ]
       },

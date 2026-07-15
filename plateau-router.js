@@ -166,6 +166,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'voter_loi')              { ouvrirVoteLoi(); return; }
   if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
   if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(); return; }
+  if (fn === 'consulter_lobbyiste')    { doConsulterLobbyiste(); return; }
   if (fn === 'forum_president_conference' || fn === 'conference_presse' || fn === 'donner_conf')  { ouvrirForumNationalSousForumPresident('conference'); return; }
   if (fn === 'forum_president_propagande' || fn === 'propagande_etat')  { ouvrirForumNationalSousForumPresident('propagande'); return; }
   if (fn === 'forum_president_dementi' || fn === 'dementi')     { doDementiOfficiel(); return; }

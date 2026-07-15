@@ -62,6 +62,7 @@ async function sbSavePersonnage(charState) {
     name:             charState.char?.name,
     country:          charState.country,
     photo_url:        savedPhoto || charState.char?.photoUrl || null,
+    bio:              charState.char?.bio || null,
     archetype:        charState.char?.archetype,
     career:           charState.char?.career,
     stats:            charState.char?.stats,
@@ -97,7 +98,9 @@ async function sbLoadPersonnage(name) {
   if (!rows || rows.length === 0) return null;
   const r = rows[0];
   return {
-    char: { name: r.name, archetype: r.archetype, career: r.career, stats: r.stats },
+    char: { name: r.name, archetype: r.archetype, career: r.career, stats: r.stats,
+             photoUrl: r.photo_url || null, bio: r.bio || null, poste: r.poste || null,
+             country: r.country, currentCity: r.current_city, currentBuilding: r.current_building },
     country:       r.country,
     inf:           r.resources?.inf || 0,
     pop:           r.resources?.pop || 0,
