@@ -1,0 +1,77 @@
+name: Ajuster automatiquement l'heure du cron (minuit Paris)
+
+on:
+  schedule:
+    # Tous les jours a 3h UTC : verifie si c'est le jour du changement d'heure europeen,
+    # et ne fait rien sinon (cout negligeable, aucune action manuelle requise).
+    - cron: '0 3 * * *'
+  workflow_dispatch: {}
+    # Permet de declencher le workflow a la main depuis l'onglet "Actions" de GitHub,
+    # utile pour tester sans attendre la vraie date de changement d'heure.
+
+jobs:
+  ajuster-cron:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verifier si c'est un jour de changement d'heure et ajuster vercel.json
+        run: |
+          python3 - <<'EOF'
+          import datetime, json, sys
+
+          today = datetime.date.today()
+
+          def dernier_dimanche(mois, annee):
+              if mois == 12:
+                  premier_jour_mois_suivant = datetime.date(annee + 1, 1, 1)
+              else:
+                  premier_jour_mois_suivant = datetime.date(annee, mois + 1, 1)
+              dernier_jour = premier_jour_mois_suivant - datetime.timedelta(days=1)
+              decalage = (dernier_jour.weekday() - 6) % 7  # 6 = dimanche
+              return dernier_jour - datetime.timedelta(days=decalage)
+
+          dernier_dim_mars = dernier_dimanche(3, today.year)
+          dernier_dim_oct = dernier_dimanche(10, today.year)
+
+          nouvelle_heure = None
+          if today == dernier_dim_mars:
+              nouvelle_heure = 22  # passage a l'heure d'ete (UTC+2) -> 22h UTC = minuit Paris
+          elif today == dernier_dim_oct:
+              nouvelle_heure = 23  # retour a l'heure d'hiver (UTC+1) -> 23h UTC = minuit Paris
+
+          if nouvelle_heure is None:
+              print("Pas un jour de changement d'heure europeen, rien a faire.")
+              sys.exit(0)
+
+          with open('vercel.json') as f:
+              config = json.load(f)
+
+          modifie = False
+          for c in config.get('crons', []):
+              if c.get('path') == '/api/cron-minuit':
+                  c['schedule'] = f"0 {nouvelle_heure} * * *"
+                  modifie = True
+
+          if modifie:
+              with open('vercel.json', 'w') as f:
+                  json.dump(config, f, indent=2)
+                  f.write('\n')
+              print(f"vercel.json mis a jour : cron regle sur {nouvelle_heure}h UTC (minuit Paris).")
+          else:
+              print("Aucune entree /api/cron-minuit trouvee dans vercel.json — rien de modifie.")
+          EOF
+
+      - name: Commit et push si vercel.json a change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet vercel.json; then
+            git add vercel.json
+            git commit -m "Ajustement automatique du cron pour l'heure d'ete/hiver (minuit Paris)"
+            git push
+          else
+            echo "Aucun changement a committer."
+          fi
