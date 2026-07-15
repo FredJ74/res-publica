@@ -2070,7 +2070,7 @@ const BUILDINGS = {
         image: "🎓",
         imageBg: "linear-gradient(135deg,#080d10,#0c1418)",
         desc: "Les conferences publiques attirent journalistes et politiques.",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/universite-amphi.png",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/universite-amphi-v2.png",
         persons: [
           {name:'Professeur Blanc', role:'PNJ - Economiste influent', rel:'neutral', job:'professeur'}
         ],
