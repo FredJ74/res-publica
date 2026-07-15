@@ -1474,6 +1474,81 @@ function sauvegarderPersonnageImmediat() {
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 }
 
+// Renvoie la valeur EFFECTIVE d'une caracteristique, en tenant compte d'un eventuel bonus
+// de formation temporaire (voir doSeFormer). A utiliser partout ou une stat compte (CHA
+// pour se defendre, etc.) au lieu de lire state.char.stats directement.
+function getStatEffective(stat) {
+  const base = state.char?.stats?.[stat] ?? 8;
+  const bonus = (state.char?.bonusFormation?.stat === stat) ? (state.char.bonusFormation.valeur || 0) : 0;
+  return base + bonus;
+}
+
+// SUIVRE UNE FORMATION (Universite, amphi) — bonus TEMPORAIRE (+2, jusqu'au prochain sommeil),
+// max 1 formation par jour, cout 100 FR.
+function doSeFormer() {
+  if (state.char?.dernierFormationJour === state.day) {
+    showToast('Déjà formé aujourd\'hui', 'Une seule formation par jour.', false);
+    return;
+  }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cost = 100;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+  const stats = ['INT','CHA','VOL','PER','DUP','ENT'];
+  document.getElementById('postes-modal-title').textContent = 'Suivre une formation';
+  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir la caractéristique à booster pour la journée (+2, effet jusqu\'à votre prochain sommeil) :</div>';
+  stats.forEach(s => {
+    html += '<button onclick="appliquerFormation(\'' + s + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.3rem">' + s + ' (actuel : ' + getStatEffective(s) + ')</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function appliquerFormation(stat) {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!state.char) return;
+  state.char.dernierFormationJour = state.day;
+  state.char.bonusFormation = { stat, valeur: 2 };
+  sauvegarderPersonnageImmediat();
+  updateUI();
+  showToast('Formation terminée', '+2 ' + stat + ' jusqu\'à votre prochain sommeil.', true, true);
+  addJournalEntry('Formation suivie à l\'université : +2 ' + stat + ' (temporaire).', 'event-good');
+}
+
+// RECRUTER DES MILITANTS (Universite, amphi) — conditionne a l'adhesion a un syndicat actif,
+// 1 recrutement/jour, plafond de 2 militants par joueur. Prepare les futures manifestations.
+async function doRecruterMilitants() {
+  const orgas = state.organisations || [];
+  const syndicat = orgas.find(o => o.type === 'syndical' && o.statut === 'actif' && o.membres?.some(m => m.nom === state.char?.name));
+  if (!syndicat) {
+    showToast('Adhésion requise', "Il faut être membre d'un syndicat étudiant actif pour recruter des militants.", false);
+    return;
+  }
+  if (state.char?.dernierRecrutementMilitant === state.day) {
+    showToast('Déjà fait aujourd\'hui', 'Un seul recrutement de militant par jour.', false);
+    return;
+  }
+  const mesMilitants = typeof sbGetMesMilitants === 'function'
+    ? await sbGetMesMilitants(state.country, state.char?.name).catch(() => [])
+    : [];
+  if (mesMilitants.length >= 2) {
+    showToast('Plafond atteint', 'Vous avez déjà 2 militants recrutés (maximum).', false);
+    return;
+  }
+  const noms = ['Sacha Fervent', 'Lila Combattante', 'Noé Insurgé', 'Maya Debout', 'Théo Rebelle', 'Zoé Militante'];
+  const nomPnj = noms[Math.floor(Math.random() * noms.length)] + ' (PNJ)';
+
+  state.char.dernierRecrutementMilitant = state.day;
+  sauvegarderPersonnageImmediat();
+  if (typeof sbRecruterMilitant === 'function') {
+    await sbRecruterMilitant(state.country, state.char?.name, nomPnj).catch(() => {});
+  }
+  updateUI();
+  showToast('Militant recruté !', nomPnj + ' rejoint votre réseau (' + (mesMilitants.length + 1) + '/2).', true);
+  addJournalEntry('Recrutement d\'un militant étudiant : ' + nomPnj + ' (syndicat : ' + syndicat.nom + ').', 'event-good');
+}
+
 function doPrendreLicenceSportive() {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }

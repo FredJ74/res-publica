@@ -904,7 +904,7 @@ async function doDefense() {
   if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Vous défendre coûte ' + cout + ' ' + cur + '.', false); return; }
   state.arg -= cout;
 
-  const cha = state.char?.stats?.CHA || 8;
+  const cha = typeof getStatEffective === 'function' ? getStatEffective('CHA') : (state.char?.stats?.CHA || 8);
   const bonusCha = (cha - 8) * 3;
   const preuveReelle = typeof verifierPreuveReelle === 'function'
     ? await verifierPreuveReelle(affaire.country || state.country, affaire.cible, affaire.motif).catch(() => false)

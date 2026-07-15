@@ -701,6 +701,11 @@ async function doDormir() {
   state.day = today + 1;
   state.dernierDormir = state.day; // Bloque le jour suivant
   state.douanePassee = false;
+  // Le bonus de formation temporaire (voir doSeFormer) expire au sommeil
+  if (state.char?.bonusFormation) {
+    state.char.bonusFormation = null;
+    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  }
   localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
   const salaire = state.poste ? (SALAIRES[state.poste.id] || SALAIRES.default) : SALAIRES.default;
   state.arg += salaire;

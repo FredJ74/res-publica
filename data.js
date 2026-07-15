@@ -2076,9 +2076,9 @@ const BUILDINGS = {
           {name:'Professeur Blanc', role:'PNJ - Economiste influent', rel:'neutral', job:'professeur'}
         ],
         orders: [
-          {fn:'se_former',      label:'Suivre une formation',   pa:2, cost:100, type:'legal', icon:'ti-book',        successRate:100, desc:'+XP competences intellectuelles.'},
-          {fn:'donner_conf',    label:'Donner une conference',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',  successRate:75,  desc:'+POP +INF selon audience.'},
-          {fn:'recruter_etud',  label:'Recruter des militants', pa:2, cost:0,   type:'grey',  icon:'ti-users-group', successRate:70,  desc:'Constituer un reseau militant.'}
+          {fn:'se_former',      label:'Suivre une formation',   pa:2, cost:100, type:'legal', icon:'ti-book',        successRate:100, desc:'Choisir une caracteristique : +2 jusqu\'au prochain sommeil. 1 formation/jour.'},
+          {fn:'donner_conf',    label:'Donner une conference',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',  successRate:100, desc:'Soutenir un candidat en campagne (3 electeurs convertis) OU sensibiliser sur un theme (+2 indice, utilisable hors campagne).'},
+          {fn:'recruter_etud',  label:'Recruter des militants', pa:2, cost:0,   type:'grey',  icon:'ti-users-group', successRate:100, desc:'Reserve aux membres d\'un syndicat etudiant actif. 1/jour, plafond 2 militants par joueur. Prepare les manifestations.'}
         ]
       },
       salle_reunion: {
@@ -4040,6 +4040,15 @@ const SYNERGIES_ORGA = [
     bonus: { pop: 30, election_bonus: 10, motion_auto: true },
     triple: true
   },
+];
+
+// Documents falsifiables au greffe du Tribunal (voir ouvrirFalsifierDocument)
+const DOCUMENTS_FALSIFIABLES = [
+  { id:'fausse_identite',   name:'Fausse identite',          desc:'Change votre nom affiche dans le jeu temporairement.',     icon:'ti-id-badge' },
+  { id:'faux_casier',       name:'Faux casier judiciaire vierge', desc:'Efface vos antecedents judiciaires dans les archives.', icon:'ti-file-x' },
+  { id:'faux_permis',       name:'Faux permis de construire', desc:'Permet de construire sans passer par la mairie.',          icon:'ti-building' },
+  { id:'faux_contrat',      name:'Faux contrat commercial',   desc:'Legitime une transaction illegale ou un transfert.',       icon:'ti-file-text' },
+  { id:'fausse_convocation',name:'Fausse convocation officielle', desc:'Attire un PJ dans un lieu de votre choix.',           icon:'ti-mail' }
 ];
 
 const POSTES_ELECTIFS = {

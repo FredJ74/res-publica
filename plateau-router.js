@@ -167,7 +167,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
   if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(); return; }
   if (fn === 'consulter_lobbyiste')    { doConsulterLobbyiste(); return; }
-  if (fn === 'forum_president_conference' || fn === 'conference_presse' || fn === 'donner_conf')  { ouvrirForumNationalSousForumPresident('conference'); return; }
+  if (fn === 'forum_president_conference' || fn === 'conference_presse')  { ouvrirForumNationalSousForumPresident('conference'); return; }
+  if (fn === 'donner_conf') { doDonnerConference(); return; }
   if (fn === 'forum_president_propagande' || fn === 'propagande_etat')  { ouvrirForumNationalSousForumPresident('propagande'); return; }
   if (fn === 'forum_president_dementi' || fn === 'dementi')     { doDementiOfficiel(); return; }
   if (fn === 'consulter_archives_lois') { ouvrirArchivesLois(); return; }
@@ -268,6 +269,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'negocier') { showToast('Ordre contact', 'Utilisez les ordres contact en cliquant sur le personnage cible.', false); return; }
   if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); return; }
   if (fn === 'plainte') { ouvrirPorterPlainte(); return; }
+  if (fn === 'defense') { doDefense(); return; }
   if (fn === 'projet_loi') { ouvrirDeposerProjet(); return; }
   if (fn === 'greve') { doGrevePNJ(); return; }
   if (fn === 'recruter_etud') { doRecruterMilitants(); return; }

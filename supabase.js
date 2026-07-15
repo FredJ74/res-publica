@@ -317,3 +317,25 @@ async function sbUpdatePhotoBio(name, photoUrl, bio) {
   if (bio !== undefined) data.bio = bio;
   return sbUpdate('personnages', `name=eq.${encodeURIComponent(name)}`, data);
 }
+
+// =====================
+// SOUVENIRS DE L'ACCUEIL (objets trouvés / kompromat potentiel)
+// =====================
+async function sbAjouterSouvenirAccueil(souvenir) {
+  return sbInsert('souvenirs_accueil', {
+    id: souvenir.id,
+    pj_nom: souvenir.pjNom,
+    objet_nom: souvenir.objetNom,
+    jour_creation: souvenir.jourCreation,
+    jour_expiration: souvenir.jourExpiration,
+    revele: false
+  });
+}
+
+async function sbGetSouvenirsAccueilPour(pjNom) {
+  return sbGet('souvenirs_accueil', `pj_nom=eq.${encodeURIComponent(pjNom)}`) || [];
+}
+
+async function sbMarquerSouvenirRevele(souvenirId) {
+  return sbUpdate('souvenirs_accueil', `id=eq.${souvenirId}`, { revele: true });
+}
