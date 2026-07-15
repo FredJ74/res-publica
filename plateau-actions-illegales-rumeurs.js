@@ -279,7 +279,14 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   vol:        (a, c) => 'Un témoin jure avoir vu ' + a + ' s\'approcher un peu trop près des affaires de ' + c + '.',
   assassinat: (a, c) => 'On a aperçu ' + a + ' avec ' + c + ' juste avant que ce dernier ne se fasse agresser.',
   corruption: (a, c) => 'Des rumeurs courent sur ' + a + ' qui aurait \'arrangé\' une affaire administrative contre quelques billets.',
-  escort:     (a, c) => 'Il paraîtrait que ' + a + ' fréquente assidûment certains établissements... discrets.'
+  escort:     (a, c) => 'Il paraîtrait que ' + a + ' fréquente assidûment certains établissements... discrets.',
+  achat_arme_illegal:     (a, c) => 'Un indic murmure que ' + a + ' se serait procuré une arme par des voies peu recommandables.',
+  acheter_bombe_illegale: (a, c) => 'On chuchote que ' + a + ' aurait mis la main sur du matériel explosif, sans qu\'on sache pourquoi.',
+  incendier:              (a, c) => 'Des témoins évoquent la silhouette de ' + a + ' rôdant près de ' + c + ' juste avant l\'incendie.',
+  utiliser_explosifs:     (a, c) => 'On raconte qu\'une explosion près de ' + c + ' ne devrait rien au hasard — et que ' + a + ' y serait pour quelque chose.',
+  empoisonnement:         (a, c) => 'Une rumeur tenace prête à ' + a + ' un geste discret dans le verre ou l\'assiette de ' + c + '.',
+  hooliganisme:           (a, c) => 'On dit que ' + a + ' aurait pris part à des débordements violents lors d\'un récent rassemblement.',
+  torture_qhs:            (a, c) => 'Des bruits de couloir évoquent des méthodes brutales employées par ' + a + ' envers un détenu du QHS.'
 };
 
 async function ecouterRumeurs() {

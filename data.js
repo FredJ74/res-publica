@@ -2199,7 +2199,7 @@ const BUILDINGS = {
         persons: [
           {name:'Secretaire Municipal Petit', role:'PNJ - Secretariat general', rel:'neutral', job:'secretaire'},
           {name:'Le Maire (PNJ)',             role:'Maire de Luthecia', rel:'neutral', job:'maire'},
-          {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves'}
+          {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotesse-objets-trouves-mairie.png'}
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
@@ -3524,8 +3524,8 @@ const ROOM_IMAGES_EMPIRE = {
     },
     'mairie-capitale': {
       'hall_mairie':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'bureau_maire':     'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'salle_elections':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png'
+      'bureau_maire':     'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-maire-luthecia.png',
+      'salle_elections':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-elections-luthecia.png'
     },
     'mairie': {
       'accueil_mairie':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-port-sainte-marie.png'
@@ -4445,8 +4445,8 @@ const CITY_POPULATION = {
     },
     'mairie-capitale': {
       'hall_mairie':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'bureau_maire':     'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'salle_elections':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png'
+      'bureau_maire':     'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-maire-luthecia.png',
+      'salle_elections':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-elections-luthecia.png'
     },
     'mairie': {
       'accueil_mairie':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-port-sainte-marie.png'
