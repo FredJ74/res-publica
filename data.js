@@ -1493,13 +1493,11 @@ const BUILDINGS = {
         persons: [
           {name:'Garde Republicain (PNJ)', role:'PNJ - Securite', rel:'neutral', job:'garde', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/garde-republicain-assemblee.png'},
           {name:'Hotesse Accueil (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse_accueil', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotesse-accueil-assemblee.png'},
-          {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotesse-objets-trouves.png'},
           {name:'Agent Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/agent-entretien-assemblee.png'}
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral', pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
-          {fn:'consulter_annuaire_deputes', label:'Consulter l\'annuaire des deputes', pa:0, cost:0, type:'legal', icon:'ti-address-book', successRate:100, desc:'Liste des 25 sieges et de leurs titulaires actuels (PJ ou PNJ).'},
-          {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'}
+          {fn:'consulter_annuaire_deputes', label:'Consulter l\'annuaire des deputes', pa:0, cost:0, type:'legal', icon:'ti-address-book', successRate:100, desc:'Liste des 25 sieges et de leurs titulaires actuels (PJ ou PNJ).'}
         ]
       },
       hemicycle: {
@@ -2200,7 +2198,8 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
         persons: [
           {name:'Secretaire Municipal Petit', role:'PNJ - Secretariat general', rel:'neutral', job:'secretaire'},
-          {name:'Le Maire (PNJ)',             role:'Maire de Luthecia', rel:'neutral', job:'maire'}
+          {name:'Le Maire (PNJ)',             role:'Maire de Luthecia', rel:'neutral', job:'maire'},
+          {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves'}
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
@@ -2211,7 +2210,8 @@ const BUILDINGS = {
           {fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, type:'legal', icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.'},
           {fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, type:'legal', icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.'},
           {fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.'},
-          {fn:'consulter_indices_locaux', label:'Consulter les indices locaux', pa:0, cost:0, type:'legal', icon:'ti-chart-histogram', successRate:100, desc:'Securite, vie associative, education, cadre de vie de la ville.'}
+          {fn:'consulter_indices_locaux', label:'Consulter les indices locaux', pa:0, cost:0, type:'legal', icon:'ti-chart-histogram', successRate:100, desc:'Securite, vie associative, education, cadre de vie de la ville.'},
+          {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'}
         ]
       },
       bureau_maire: {
