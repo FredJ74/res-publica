@@ -1747,7 +1747,7 @@ const BUILDINGS = {
         image: "⚖️",
         imageBg: "linear-gradient(135deg,#1a1408,#24180a)",
         desc: "La salle d'audience principale. Solennelle et intimidante.",
-        imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-salle-audience.png",
         persons: [
           {name:'Juge Fontaine',  role:'Presidente du Tribunal (PNJ)', rel:'neutral', job:'juge'},
           {name:'Procureur Saad', role:'Ministere public (PNJ)', rel:'neutral', job:'procureur'}
@@ -1762,7 +1762,7 @@ const BUILDINGS = {
         image: "📋",
         imageBg: "linear-gradient(135deg,#141008,#1c1608)",
         desc: "Les archives judiciaires. Tout y est consigne.",
-        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tribunal-greffe.png",
         persons: [
           {name:'Greffier Petit', role:'PNJ - Greffe', rel:'neutral', job:'greffier'}
         ],
