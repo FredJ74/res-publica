@@ -6,7 +6,7 @@
 
 // TRACAGE DES ACTIONS (pour le systeme de rumeurs vraies)
 // =====================
-function tracerActionPourRumeur(typeAction, cibleNom, dureeJours = 7) {
+function tracerActionPourRumeur(typeAction, cibleNom) {
   if (typeof sbTracerAction !== 'function') return;
   const action = {
     id: 'action-' + Date.now() + '-' + Math.floor(Math.random()*1000),
@@ -16,7 +16,7 @@ function tracerActionPourRumeur(typeAction, cibleNom, dureeJours = 7) {
     country: state.country,
     city: state.currentCity,
     jour: state.day || 1,
-    jour_expiration: (state.day || 1) + dureeJours
+    jour_expiration: (state.day || 1) + 7
   };
   sbTracerAction(action).catch(() => {});
 }
@@ -1721,7 +1721,7 @@ function checkEffacementCrimes() {
 function ouvrirCalendrierElections() {
   const elections = state.electionsEnCours || [];
   document.getElementById('postes-modal-title').textContent = 'Calendrier électoral';
-  let html = '<div style="padding:1rem">';
+  let html = '<div style="padding:1rem;min-width:520px;max-width:640px">';
 
   // Cycle electoral
   html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.8rem">';
@@ -1742,7 +1742,7 @@ function ouvrirCalendrierElections() {
 
   // Elections en cours
   if (elections.length === 0) {
-    html += '<div style="font-size:.85rem;color:#5a5040;font-style:italic">Aucune élection en cours ou programmée.</div>';
+    html += '<div style="font-size:.85rem;color:#a89878;font-style:italic">Aucune élection en cours ou programmée.</div>';
   } else {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">ÉLECTIONS EN COURS / À VENIR</div>';
     elections.forEach(e => {
@@ -1764,7 +1764,7 @@ function ouvrirCalendrierElections() {
   }
 
   // Prochaines elections prevues
-  html += '<div style="font-size:.68rem;color:#4a4030;font-style:italic;margin-top:.6rem">Les candidatures ferment au début de la semaine 4. Après cette date, il n\'est plus possible de se présenter.</div>';
+  html += '<div style="font-size:.72rem;color:#a89060;font-style:italic;margin-top:.6rem">Les candidatures ferment au début de la semaine 4. Après cette date, il n\'est plus possible de se présenter.</div>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
