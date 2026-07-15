@@ -3013,6 +3013,7 @@ const BUILDINGS = {
       salle_reception: {
         name: "Salle de Réception",
         imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ambassades-salle-reception.png",
         desc: "Une salle commune aux trois ambassades, reservee aux receptions diplomatiques organisees par les ambassadeurs.",
         persons: [],
         orders: []
@@ -3314,7 +3315,7 @@ const BUILDINGS = {
         name: "Hall de la Gare",
         imageBg: "linear-gradient(135deg,#08090f,#101520)",
         desc: "Une petite gare de province. Calme. Le prochain train est dans 2 heures.",
-        imageUrl: "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-multimodal.png",
         persons: [
           {name:'Chef de Gare Local (PNJ)', role:'Chef de gare', rel:'neutral', job:'chef_gare'}
         ],
