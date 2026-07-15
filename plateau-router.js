@@ -159,7 +159,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'campagne_securite')      { doCampagneSecurite(); return; }
   if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(); return; }
   if (fn === 'contester_resultats')    { ouvrirContesterResultats(); return; }
-  if (fn === 'calendrier_elections')   { ouvrirCalendrierElections(); return; }
+  if (fn === 'calendrier_elections')   { ouvrirCalendrierElectoral(); return; }
   if (fn === 'observer_debats')         { observerDebats(); return; }
   if (fn === 'consulter_annuaire_deputes') { consulterAnnuaireDeputes(); return; }
   if (fn === 'objet_trouve')            { reclamerObjetTrouve(); return; }

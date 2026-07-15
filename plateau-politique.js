@@ -212,7 +212,7 @@ async function ouvrirCalendrierElectoral() {
 
   document.getElementById('postes-modal-title').textContent = '📅 Calendrier Électoral — ' + (co?.n || country);
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.2rem .4rem">' +
+    '<div style="padding:.2rem .4rem;min-width:540px;max-width:680px">' +
     '<div style="font-size:.72rem;color:#8a8060;padding:.3rem .4rem;margin-bottom:.3rem;font-style:italic">' +
       'Mandat : 5-6 semaines · Candidatures : J-7 avant campagne · Second tour si aucun candidat ne dépasse 50%+1' +
     '</div>' +
