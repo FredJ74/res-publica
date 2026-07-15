@@ -287,6 +287,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'signer_traite_empire')    { ouvrirModalTraite(); return; }
   if (fn === 'ouvrir_ambassade_empire') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
   if (fn === 'nommer_ambassadeur_cible'){ ouvrirModalNommerAmbassadeur(); return; }
+  if (fn === 'renvoyer_ambassadeur_cible'){ ouvrirModalRenvoyerAmbassadeur(); return; }
+  if (fn === 'relations_bilaterales') { ouvrirRelationsBilaterales(); return; }
+  if (fn === 'corrompre_homologue_local') { doCorrompreHomologueLocal(); return; }
+  if (fn === 'organiser_reception_diplomatique') { doOrganiserReceptionDiplomatique(); return; }
+  if (fn === 'financer_oeuvre_culturelle') { doFinancerOeuvreCulturelle(); return; }
+  if (fn === 'demander_audience_ambassadeur') { doDemanderAudienceAmbassadeur(); return; }
+  if (fn === 'demander_asile_politique') { doDemanderAsilePolitique(); return; }
   if (fn === 'sanctions_empire')        { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
   if (fn === 'reception_etat') { doReceptionAvecBonus(fn, cost); return; }
   if (fn === 'banquet_diplo') { ouvrirBanquetDiplomatique(); return; }

@@ -1313,6 +1313,14 @@ function renderRoomActions(room, buildingId, roomId) {
         else if (reqPost === 'juge') needsPost = posteId !== 'juge';
         else if (reqPost === 'magistrat') needsPost = !['juge','procureur'].includes(posteId);
         else if (reqPost === 'commissaire') needsPost = posteId !== 'commissaire';
+        else if (reqPost === 'ambassadeur_local') {
+          // Restriction speciale : pas un poste classique, mais une nomination specifique
+          // a ce bureau precis (voir sbNommerAmbassadeur / cache charge dans enterBuilding).
+          const AMBASSADE_ROOM_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
+          const empireDuBureau = AMBASSADE_ROOM_EMPIRE[roomId];
+          const infoAmbassade = (state.ambassadesOuvertesCache || []).find(a => a.empire === empireDuBureau);
+          needsPost = !(infoAmbassade && infoAmbassade.ambassadeur === state.char?.name);
+        }
         else needsPost = posteId !== reqPost;
       }
     }
@@ -1358,7 +1366,8 @@ function renderRoomActions(room, buildingId, roomId) {
         min_just: 'Ministre de la Justice',
         min_def: 'Ministre de la Défense',
         min_info: "Ministre de l'Information",
-        min_ae: 'Ministre des AE'
+        min_ae: 'Ministre des AE',
+        ambassadeur_local: "l'ambassadeur nommé pour ce bureau"
       };
       const posteRequisNom = o.requiresPost === true ? 'un poste institutionnel' : (postesNoms[o.requiresPost] || o.requiresPost);
       onclickFn = 'showPostRequired(' + JSON.stringify(posteRequisNom) + ')';
@@ -3643,6 +3652,103 @@ function signerTraite() {
   addExternalEvent('TRAITE : Accord ' + type + ' signe entre ' + (COUNTRIES[state.country]?.n||'') + ' et ' + empireName + '.');
 }
 
+// =====================
+// ORDRES DU QUARTIER DES AMBASSADES
+// =====================
+const AMBASSADE_ROOM_EMPIRE_MAP = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
+
+function ouvrirRelationsBilaterales() {
+  const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
+  if (!empireId) return;
+  const empireName = COUNTRIES[empireId]?.n || empireId;
+  const idActuel = INDICES_NATIONAUX[empireId]?.ID ?? 50;
+  const traitesActifs = (state.traites || []).filter(t => t.empire === empireId);
+  document.getElementById('postes-modal-title').textContent = 'Relations bilatérales — ' + empireName;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.85rem;margin-bottom:.6rem">Indice Diplomatique actuel : <strong>' + idActuel + '</strong></div>';
+  if (traitesActifs.length === 0) {
+    html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic">Aucun traité en vigueur.</div>';
+  } else {
+    html += '<div style="font-size:.82rem;margin-bottom:.4rem">Traités en vigueur :</div>';
+    traitesActifs.forEach(t => { html += '<div style="font-size:.8rem;color:#c0b090">— ' + t.type + ' (Jour ' + t.jour + ')</div>'; });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function doCorrompreHomologueLocal() {
+  const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
+  if (!empireId) return;
+  const empireName = COUNTRIES[empireId]?.n || empireId;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cout = 800;
+  if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Corrompre un homologue coûte ' + cout + ' ' + cur + '.', false); return; }
+  state.arg -= cout;
+  const roll = Math.random() * 100;
+  if (roll < 65) {
+    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 6);
+    showToast('Faveur obtenue', 'Un homologue local vous doit une faveur. +6 ID.', true);
+    addJournalEntry('Corruption discrète d\'un homologue à l\'ambassade de ' + empireName + '. +6 ID.', 'event-info');
+  } else {
+    INDICES_NATIONAUX[state.country].ID = Math.max(0, INDICES_NATIONAUX[state.country].ID - 10);
+    showToast('Scandale', 'La tentative de corruption a été découverte. -10 ID.', false);
+    addExternalEvent('SCANDALE DIPLOMATIQUE : une tentative de corruption à l\'ambassade de ' + empireName + ' a été dévoilée.');
+  }
+  updateUI();
+}
+
+function doOrganiserReceptionDiplomatique() {
+  const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
+  if (!empireId) return;
+  const empireName = COUNTRIES[empireId]?.n || empireId;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cout = 1200;
+  if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Organiser une réception coûte ' + cout + ' ' + cur + '.', false); return; }
+  state.arg -= cout;
+  INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 5);
+  state.pop = Math.min(100, (state.pop || 50) + 5);
+  showToast('Réception organisée', 'Une réception diplomatique a été donnée dans la Salle de Réception. +5 ID, +5 POP.', true);
+  addExternalEvent('DIPLOMATIE : réception donnée à l\'ambassade de ' + empireName + '.');
+  updateUI();
+}
+
+function doFinancerOeuvreCulturelle() {
+  const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
+  if (!empireId) return;
+  const empireName = COUNTRIES[empireId]?.n || empireId;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cout = 600;
+  if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Financer une œuvre culturelle coûte ' + cout + ' ' + cur + '.', false); return; }
+  state.arg -= cout;
+  state.pop = Math.min(100, (state.pop || 50) + 8);
+  INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 3);
+  showToast('Mécénat culturel', 'Une œuvre a été financée localement. +8 POP, +3 ID.', true);
+  addExternalEvent('SOFT POWER : ' + (COUNTRIES[state.country]?.n || state.country) + ' finance une œuvre culturelle à ' + empireName + '.');
+  updateUI();
+}
+
+// Ordres de l'accueil, ouverts a tous (pas reserves a l'ambassadeur)
+async function doDemanderAudienceAmbassadeur() {
+  const roll = Math.random() * 100;
+  if (roll < 70) {
+    const pnj = { name: 'L\'Ambassadeur', role: 'PNJ - Ambassadeur', rel: 'neutral', job: 'ambassadeur' };
+    if (typeof openPnjModal === 'function') openPnjModal(typeof encodePnjSafe === 'function' ? encodePnjSafe(pnj) : pnj);
+    addJournalEntry('Vous êtes reçu(e) par l\'ambassadeur.', 'event-info');
+  } else {
+    showToast('Indisponible', "L'ambassadeur ne peut pas vous recevoir pour le moment.", false);
+  }
+}
+
+function doDemanderAsilePolitique() {
+  if (!state.char) return;
+  state.char.asilePolitique = { pays: state.country, jour: state.day || 1 };
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  showToast('Demande déposée', 'Votre demande d\'asile politique a été enregistrée.', true);
+  addExternalEvent((state.char?.name || 'Un individu') + ' a demandé l\'asile politique auprès d\'une ambassade.');
+  addJournalEntry('Demande d\'asile politique déposée.', 'event-info');
+}
+
 function ouvrirModalNommerAmbassadeur() {
   const contacts = state.contacts || [];
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
@@ -3669,9 +3775,51 @@ function confirmerAmbassadeur() {
   const empireId = document.getElementById('amb-empire')?.value;
   document.getElementById('modal-postes').classList.remove('open');
   const empireName = COUNTRIES[empireId]?.n || empireId;
+  // Persistance partagee : la nomination doit etre visible de tous, dans le Quartier des
+  // Ambassades du pays cible (empireId), pour restreindre les ordres du bureau a cette personne.
+  if (typeof sbNommerAmbassadeur === 'function') {
+    sbNommerAmbassadeur(empireId, state.country, contact).catch(() => {});
+  }
   envoyerNotificationVraiJoueur(contact, 'Nomination comme ambassadeur', 'Vous avez ete nomme(e) ambassadeur(rice) aupres de ' + empireName + ' par le Ministre des Affaires Etrangeres.');
   addExternalEvent('NOMINATION : ' + contact + ' nomme(e) ambassadeur(rice) aupres de ' + empireName + '.');
   showToast('Ambassadeur nomme', contact + ' → ' + empireName, true);
+}
+
+// Renvoi d'un ambassadeur — perspective du pays hote (qui accueille physiquement le bureau),
+// pas du pays qui l'a nomme. Liste les ambassadeurs etrangers actuellement en poste ici.
+async function ouvrirModalRenvoyerAmbassadeur() {
+  const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
+  document.getElementById('postes-modal-title').textContent = 'Renvoyer un ambassadeur';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const infos = typeof sbGetAmbassadesOuvertes === 'function' ? await sbGetAmbassadesOuvertes(state.country).catch(() => []) : [];
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Ambassadeurs actuellement en poste dans votre pays :</div>';
+  const presents = empires.filter(([k]) => infos.some(i => i.data?.empire === k && i.data?.ambassadeur));
+  if (presents.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun ambassadeur etranger en poste actuellement.</div>';
+  } else {
+    presents.forEach(([k, co]) => {
+      const info = infos.find(i => i.data?.empire === k);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.4rem">';
+      html += '<span style="font-size:.85rem">' + co.n + ' — <em>' + info.data.ambassadeur + '</em></span>';
+      html += '<button onclick="confirmerRenvoiAmbassadeur(&quot;' + k + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Renvoyer</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerRenvoiAmbassadeur(empireId) {
+  const empireName = COUNTRIES[empireId]?.n || empireId;
+  if (typeof sbRenvoyerAmbassadeur === 'function') {
+    await sbRenvoyerAmbassadeur(state.country, empireId).catch(() => {});
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' met fin à la mission de l\'ambassadeur de ' + empireName + '.');
+  showToast('Ambassadeur renvoyé', 'La mission de l\'ambassadeur de ' + empireName + ' a pris fin.', false);
 }
 
 function ouvrirBanquetDiplomatique() {
