@@ -2413,6 +2413,19 @@ const BUILDINGS = {
     bgColor: "#080a10",
     desc: "Le centre d'affaires de la ville. Bureaux feutrés, discrétion absolue, réseau huppé. On ne vient pas ici pour être vu — on vient pour avoir du pouvoir.",
     rooms: {
+      hall: {
+        name: "Hall d'Entrée",
+        imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
+        desc: "Un hall feutré, marbre noir et lumière tamisée. On y croise beaucoup de monde important qui prétend ne connaître personne.",
+        imageUrl: "https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=1200&q=80",
+        persons: [
+          {name:'Mademoiselle Discrétion (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'}
+        ],
+        orders: [
+          {fn:'parler_pnj',    label:'Parler à l\'hôtesse', pa:0, cost:0, type:'legal', icon:'ti-message', successRate:100},
+          {fn:'se_renseigner', label:'Se renseigner',       pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}
+        ]
+      },
       bureau_prestige: {
         name: "Bureau Prestige — Local à louer",
         imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
