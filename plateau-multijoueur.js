@@ -6,7 +6,8 @@
 // =====================
 // PERSONS LIST
 // =====================
-function renderPersonsList(persons) {
+function renderPersonsList(persons, targetId) {
+  targetId = targetId || 'persons-list';
   persons = [...(persons || [])]; // mutable copy
   const relCol = r => r === 'ally' ? '#4a8a4a' : r === 'enemy' ? '#8a3a2a' : '#6a6040';
   const relTxt = r => r === 'ally' ? 'Allie' : r === 'enemy' ? 'Hostile' : 'Neutre';
@@ -51,15 +52,6 @@ function renderPersonsList(persons) {
         '<div class="person-name">' + p.name + '</div>' +
         '<div class="person-role">' + p.role + '</div>' +
         '<div class="person-rel" style="color:#8a3a2a;font-size:.58rem">⚠ Décédé</div>' +
-        '</div></div>';
-    }
-
-    if (p.estJoueurReel) {
-      return '<div class="person-card" onclick="composerMailPour(\'' + p.name.replace(/'/g, "\\'") + '\')" title="Envoyer un message">' +
-        avatarHtml +
-        '<div>' +
-        '<div class="person-name">' + p.name + '</div>' +
-        '<div class="person-role" style="color:#6a9aca">Joueur — cliquer pour contacter</div>' +
         '</div></div>';
     }
 
@@ -154,13 +146,20 @@ function getAvatarHtmlPourNom(nom, taille, bordColor) {
 }
 
 // Affiche les autres PJ réellement présents dans la pièce courante (rafraîchi périodiquement)
-async function chargerVraisJoueursPresents() {
+async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetId) {
   if (typeof sbGetPresencesInRoom !== 'function') return;
-  const buildingId = state.currentBuilding, roomId = state.currentRoom;
+  const buildingId = buildingIdParam !== undefined ? buildingIdParam : state.currentBuilding;
+  const roomId = roomIdParam !== undefined ? roomIdParam : state.currentRoom;
+  targetId = targetId || 'persons-list';
   const moi = state.char?.name;
   try {
     const presents = await sbGetPresencesInRoom(state.country, state.currentCity, buildingId, roomId);
-    if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
+    // Si on a change de piece/scene entre temps (pour la rue, on verifie le noeud actuel)
+    if (buildingId === 'rue-centrale') {
+      if (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== roomId) return;
+    } else if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) {
+      return;
+    }
     const autres = presents.filter(p => p.name !== moi);
 
     // Recuperer les photos depuis l'annuaire des personnages (presences n'a pas de photo)
@@ -174,22 +173,21 @@ async function chargerVraisJoueursPresents() {
 
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
     const html = window._vraisJoueursPresents.map(p => {
-      const enc = encodePnjSafe(p);
       const avatarHtml = p.photoUrl
         ? '<div class="person-avatar" style="overflow:hidden;border-color:' + empireCol + '"><img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover"/></div>'
         : '<div class="person-avatar" style="border-color:' + empireCol + '"><i class="ti ti-user" style="font-size:.75rem;color:' + empireCol + '"></i></div>';
-      return '<div class="person-card vrai-joueur-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid ' + empireCol + '" title="Interagir">' +
+      return '<div class="person-card vrai-joueur-card" onclick="composerMailPour(\'' + p.name.replace(/'/g, "\\'") + '\')" style="border-left:2px solid ' + empireCol + '" title="Envoyer un message">' +
       avatarHtml +
       '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.6rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
-      '<div class="person-role">Présent ici</div></div></div>';
+      '<div class="person-role">Présent ici — cliquer pour contacter</div></div></div>';
     }).join('');
 
     // Retirer les anciennes cartes joueur avant d'inserer les nouvelles (evite les doublons au rafraichissement)
-    const list0 = document.getElementById('persons-list');
+    const list0 = document.getElementById(targetId);
     if (list0) list0.querySelectorAll('.vrai-joueur-card').forEach(el => el.remove());
 
     if (html) {
-      const list = document.getElementById('persons-list');
+      const list = document.getElementById(targetId);
       const empty = list.querySelector('.person-empty');
       if (empty) empty.remove();
       list.insertAdjacentHTML('beforeend', html);
