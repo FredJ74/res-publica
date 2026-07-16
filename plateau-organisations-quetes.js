@@ -442,6 +442,13 @@ function confirmerCreationOrga(type) {
 
   if (!nom || nom.length < 2) { showToast('Nom requis', 'Donnez un nom à votre organisation.', false); return; }
 
+  const localIdActuel = state.currentBuilding + ':' + state.currentRoom;
+  const orgaExistanteIci = (state.organisations || []).find(o => o.localId === localIdActuel);
+  if (orgaExistanteIci) {
+    showToast('Local déjà occupé', 'Une organisation ("' + orgaExistanteIci.nom + '") est déjà établie ici.', false);
+    return;
+  }
+
   const id = 'orga_' + Date.now();
   const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
   const monGrade = grades[grades.length - 1]; // Fondateur = grade max
@@ -1520,7 +1527,7 @@ function appliquerFormation(stat) {
 // 1 recrutement/jour, plafond de 2 militants par joueur. Prepare les futures manifestations.
 async function doRecruterMilitants() {
   const orgas = state.organisations || [];
-  const syndicat = orgas.find(o => o.type === 'syndical' && o.membres?.some(m => m.nom === state.char?.name));
+  const syndicat = orgas.find(o => o.type === 'syndicale' && o.membres?.some(m => m.nom === state.char?.name));
   if (!syndicat) {
     showToast('Adhésion requise', "Il faut être membre d'un syndicat étudiant actif pour recruter des militants.", false);
     return;
