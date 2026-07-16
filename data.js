@@ -1565,7 +1565,7 @@ const BUILDINGS = {
         desc: "Le hall d'attente de l'office notarial. Boiseries sombres, silence feutre.",
         persons: [
           {name:'Notaire Fontenelle (PNJ)', role:'Notaire Officiel', rel:'neutral', job:'notaire'},
-          {name:'Clerc Delahaye (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
+          {name:'Clerc Delhune (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
         ],
         orders: [
           {fn:'presentation_office_notarial', label:'Se renseigner sur les services', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100, desc:'Ventes de terrain, successions, contrats de mariage, archives — presentation des services du notaire.'}
@@ -1577,7 +1577,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#14100c,#1c1610)",
         desc: "Le bureau ou se traitent les heritages. Les dossiers s'empilent, les familles se dechirent.",
         persons: [
-          {name:'Clerc Delahaye (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
+          {name:'Clerc Delhune (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
         ],
         orders: [
           {fn:'redaction_testament', label:'Rediger un testament', pa:2, cost:500, type:'legal', icon:'ti-file-text', successRate:100, desc:'Designer un heritier de son choix, plutot que la devolution par defaut.'},
@@ -2303,7 +2303,10 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0a0d10,#12151a)",
         desc: "Le grand hall du centre commercial. Vitrines, passants pressés, musique d'ambiance en boucle.",
         imageUrl: "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=1200&q=80",
-        persons: [],
+        persons: [
+          {name:'Francisca Brel', role:'Voleuse', rel:'neutral', job:'criminel'},
+          {name:'Edgar Simore', role:'Magicien saltimbanque', rel:'neutral', job:'artiste'}
+        ],
         orders: [
           {fn:'se_renseigner', label:'Se renseigner', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}
         ]
@@ -2372,11 +2375,25 @@ const BUILDINGS = {
     bgColor: "#0d0a08",
     desc: "Le marché couvert artisanal. Ambiance populaire, clientèle fidèle. Idéal pour ancrer une organisation dans le quartier.",
     rooms: {
+      travees: {
+        name: "Travées",
+        imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
+        desc: "Les travées du marché couvert artisanal. Odeurs de bois, de cuir et de café, bruit de fond permanent.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/travees-centre-artisanal.png",
+        persons: [
+          {name:'Sabri Coledur', role:'Mécanicien', rel:'neutral', job:'commercant'},
+          {name:'Céd\' Labone', role:'Dealer', rel:'neutral', job:'criminel'},
+          {name:'Henrico Stot', role:'Sécurité', rel:'neutral', job:'agent_securite'}
+        ],
+        orders: [
+          {fn:'se_renseigner', label:'Se renseigner', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}
+        ]
+      },
       echoppe_facade: {
         name: "Échoppe Facade — Local à louer",
         imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
         desc: "📋 À LOUER — Échoppe en façade du marché. Fort passage, clientèle populaire. Bonus popularité.",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/travees-centre-artisanal.png",
+        imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
         imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-artisanal-republic.png',
         isLocationRoom: true,
         locationData: { prix: 600, bonusPOP: 12, bonusINF: 2, bonusDIS: 0, label: 'Échoppe Facade', tier: 1 },
@@ -2427,9 +2444,11 @@ const BUILDINGS = {
         name: "Hall d'Entrée",
         imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
         desc: "Un hall feutré, marbre noir et lumière tamisée. On y croise beaucoup de monde important qui prétend ne connaître personne.",
-        imageUrl: "https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-affaires-luthecia.png",
         persons: [
-          {name:'Mademoiselle Discrétion (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'}
+          {name:'Gretta Délieu (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-affaires-luthecia.png', photoPos:'38% 45%'},
+          {name:'Moshe Maychan', role:'Assassin', rel:'neutral', job:'criminel'},
+          {name:'Harry Cover', role:'Detective prive', rel:'neutral', job:'inspecteur'}
         ],
         orders: [
           {fn:'parler_pnj',    label:'Parler à l\'hôtesse', pa:0, cost:0, type:'legal', icon:'ti-message', successRate:100},
@@ -3006,7 +3025,9 @@ const BUILDINGS = {
         name: "Place du Formulaire de la Liberté",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/place-formulaire-liberte.png",
         desc: "Une vaste place pavee, encore silencieuse. Ce lieu est prevu pour accueillir de futurs rassemblements.",
-        persons: [],
+        persons: [
+          {name:'Pat Hounette', role:'Dealer', rel:'neutral', job:'criminel'}
+        ],
         orders: []
       }
     }
@@ -3162,7 +3183,7 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=1200&q=80",
         persons: [
           {name:'Percepteur Suprême Adolphe Taxe (PNJ)', role:'Grand Prêtre du Papyrusisme', rel:'neutral', job:'grand_pretre'},
-          {name:'Enfant de chœur Timide (PNJ)', role:'PNJ - Distributeur de formulaires', rel:'neutral', job:'clerc'}
+          {name:'Enfant de chœur Lacroix (PNJ)', role:'PNJ - Distributeur de formulaires', rel:'neutral', job:'clerc'}
         ],
         orders: [
           {fn:'prier',           label:'Prier le Formulaire Sacré',    pa:1, cost:0,   type:'legal', icon:'ti-star',      successRate:100, desc:'+3 IP +2 Moral. Remplir un formulaire en 12 exemplaires.'},
