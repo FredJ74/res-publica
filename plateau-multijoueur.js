@@ -104,7 +104,7 @@ function renderPersonsList(persons, targetId) {
   const groupeHtml = getGroupeHtmlPourPiece(state.currentBuilding, state.currentRoom);
 
   const finalContent = selfCard + groupeHtml + simuleCards + personCards;
-  document.getElementById('persons-list').innerHTML = finalContent ||
+  document.getElementById(targetId).innerHTML = finalContent ||
     '<div class="person-empty">Personne d\'autre ici</div>';
 
   // Charger les VRAIS joueurs présents dans cette pièce (Supabase) — async, ajouté après coup
