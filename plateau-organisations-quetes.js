@@ -1520,7 +1520,7 @@ function appliquerFormation(stat) {
 // 1 recrutement/jour, plafond de 2 militants par joueur. Prepare les futures manifestations.
 async function doRecruterMilitants() {
   const orgas = state.organisations || [];
-  const syndicat = orgas.find(o => o.type === 'syndical' && o.statut === 'actif' && o.membres?.some(m => m.nom === state.char?.name));
+  const syndicat = orgas.find(o => o.type === 'syndical' && o.membres?.some(m => m.nom === state.char?.name));
   if (!syndicat) {
     showToast('Adhésion requise', "Il faut être membre d'un syndicat étudiant actif pour recruter des militants.", false);
     return;
