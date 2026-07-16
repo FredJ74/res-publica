@@ -2091,7 +2091,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'louer_local', label:'Louer cette salle (180 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+4 POP +4 INF +2 DIS. Recrutement militant facilité.'},
-          {fn:'recruter_etud', label:'Recruter des militants', pa:2, cost:0, type:'legal', icon:'ti-users', successRate:70, desc:'Recruter depuis l\'université. +INF.'},
+          {fn:'recruter_etud', label:'Recruter des militants', pa:2, cost:0, type:'grey', icon:'ti-users', successRate:100, desc:'Reserve aux membres d\'un syndicat etudiant actif. 1/jour, plafond 2 militants par joueur. Prepare les manifestations.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
