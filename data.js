@@ -2372,6 +2372,16 @@ const BUILDINGS = {
     bgColor: "#0d0a08",
     desc: "Le marché couvert artisanal. Ambiance populaire, clientèle fidèle. Idéal pour ancrer une organisation dans le quartier.",
     rooms: {
+      travees: {
+        name: "Travées",
+        imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
+        desc: "Les travées du marché couvert artisanal. Odeurs de bois, de cuir et de café, bruit de fond permanent.",
+        imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
+        persons: [],
+        orders: [
+          {fn:'se_renseigner', label:'Se renseigner', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}
+        ]
+      },
       echoppe_facade: {
         name: "Échoppe Facade — Local à louer",
         imageBg: "linear-gradient(135deg,#0d0a08,#151008)",
@@ -2427,9 +2437,9 @@ const BUILDINGS = {
         name: "Hall d'Entrée",
         imageBg: "linear-gradient(135deg,#080a10,#0f1218)",
         desc: "Un hall feutré, marbre noir et lumière tamisée. On y croise beaucoup de monde important qui prétend ne connaître personne.",
-        imageUrl: "https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-affaires-luthecia.png",
         persons: [
-          {name:'Mademoiselle Discrétion (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse'}
+          {name:'Gretta Délieu (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-affaires-luthecia.png', photoPos:'38% 45%'}
         ],
         orders: [
           {fn:'parler_pnj',    label:'Parler à l\'hôtesse', pa:0, cost:0, type:'legal', icon:'ti-message', successRate:100},

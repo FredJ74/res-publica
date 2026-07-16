@@ -429,6 +429,10 @@ function ouvrirFormulaireOrga(type) {
     '<input id="orga-nom-input" type="text" maxlength="40" placeholder="Ex: Loge du Grand Nord, Parti du Progrès..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">DESCRIPTION (optionnel)</div>' +
     '<textarea id="orga-desc-input" maxlength="200" placeholder="Décrivez votre organisation en quelques mots..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;resize:none;height:60px;margin-bottom:.7rem"></textarea>' +
+    '<label style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:#c0b090;margin-bottom:.7rem;cursor:pointer">' +
+    '<input type="checkbox" id="orga-secrete-input"' + (def.secret ? ' checked disabled' : '') + '/> Garder cette organisation secrète (non listée publiquement, même via "Se renseigner")' +
+    (def.secret ? ' <span style="color:#6a5a30;font-style:italic">— déjà secrète pour ce type</span>' : '') +
+    '</label>' +
     '<button onclick="confirmerCreationOrga(\'' + type + '\')" ' + (blocage ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🏛 Fonder cette organisation</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -455,6 +459,8 @@ function confirmerCreationOrga(type) {
 
   if (!state.organisations) state.organisations = [];
 
+  const secretChoisi = document.getElementById('orga-secrete-input')?.checked || false;
+
   const nouvelleOrga = {
     id, type, nom, desc,
     fondateur: state.char?.name,
@@ -467,7 +473,7 @@ function confirmerCreationOrga(type) {
     bonusLocaux: { pop: 0, inf: 0, dis: 0 },
     caisse: 0,
     localId: state.currentBuilding + ':' + state.currentRoom,
-    visible: !def.secret,
+    visible: !def.secret && !secretChoisi,
   };
 
   state.organisations.push(nouvelleOrga);
@@ -1571,6 +1577,48 @@ async function doRecruterMilitants() {
     });
     if (typeof renderPersonsList === 'function') renderPersonsList(room.persons);
   }
+}
+
+// SE RENSEIGNER (halls de Centre d'Affaires / Centre Commercial / Travées du Centre Artisanal)
+// Liste les locaux du batiment courant : loue ou libre, et l'organisation domiciliee si elle
+// n'est pas secrete (case cochee par le fondateur, ou type d'organisation secret par defaut).
+function doSeRenseigner() {
+  const b = BUILDINGS[state.currentBuilding];
+  if (!b) return;
+  const locaux = Object.entries(b.rooms || {}).filter(([, r]) => r.isLocationRoom);
+
+  document.getElementById('postes-modal-title').textContent = 'Se renseigner';
+  let html = '<div style="padding:1rem">';
+  if (locaux.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Rien de particulier à signaler ici.</div>';
+  } else {
+    locaux.forEach(([roomId, room]) => {
+      const location = (state.locationsActives || []).find(l => l.buildingId === state.currentBuilding && l.roomId === roomId);
+      html += '<div style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+      html += '<div style="font-size:.82rem;color:#c0b090">' + (room.locationData?.label || room.name) + '</div>';
+      if (!location) {
+        html += '<div style="font-size:.7rem;color:#4a8a4a">Libre</div>';
+      } else {
+        html += '<div style="font-size:.7rem;color:#8a6a20">Loué</div>';
+      }
+      html += '</div>';
+      if (location) {
+        const orga = (state.organisations || []).find(o => o.id === location.orgaId);
+        if (orga && orga.visible) {
+          html += '<div style="font-size:.72rem;color:#a89870;margin-top:.2rem">Domicilié ici : ' + orga.nom + '</div>';
+        } else if (orga && !orga.visible) {
+          html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-top:.2rem">Une organisation y est domiciliée, mais reste discrète sur son identité.</div>';
+        } else {
+          html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-top:.2rem">Loué par ' + (location.locataire || 'un particulier') + ', sans organisation associée.</div>';
+        }
+      }
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 function doPrendreLicenceSportive() {
