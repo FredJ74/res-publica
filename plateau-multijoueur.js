@@ -211,6 +211,10 @@ function ouvrirRecrutementEscort(nomEscort) {
 }
 
 function confirmerRecrutementEscort(nomEscort, tarif) {
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Temporairement indisponible', 'Le recrutement de PNJ comme employé est en cours de refonte.', false);
+  return;
+  // Code ci-dessous desactive temporairement (duplication de PNJ en cours de refonte)
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('modal-postes').classList.remove('open');
 
@@ -383,6 +387,10 @@ function ouvrirModalRecrutPnj(encodedPnj) {
 }
 
 function confirmerRecrutPnj(encodedPnj, cout) {
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Temporairement indisponible', 'Le recrutement de PNJ comme employé est en cours de refonte.', false);
+  return;
+  // Code ci-dessous desactive temporairement (duplication de PNJ en cours de refonte)
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
 
@@ -549,6 +557,10 @@ function tentativeDebauchage(nomPnj) {
 }
 
 function confirmerDebauchage(nomPnj) {
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Temporairement indisponible', 'Le debauchage de PNJ est en cours de refonte.', false);
+  return;
+  // Code ci-dessous desactive temporairement (duplication de PNJ en cours de refonte)
   const montant = parseInt(document.getElementById('debauche-montant')?.value || 0);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('modal-postes').classList.remove('open');
