@@ -1533,6 +1533,16 @@ function getLocationPourRoom(buildingId, roomId) {
   return getLocationsActives().find(l => l.buildingId === buildingId && l.roomId === roomId);
 }
 
+// Charge toutes les locations actives depuis Supabase au demarrage (remplace l'ancien
+// state.locationsActives purement local, perdu au rafraichissement).
+async function chargerLocations() {
+  if (typeof sbLoadLocations !== 'function') return;
+  try {
+    const locations = await sbLoadLocations(state.country);
+    state.locationsActives = locations;
+  } catch (e) { console.warn('chargerLocations error', e); }
+}
+
 function ouvrirModalLouerLocal() {
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;
@@ -1629,6 +1639,9 @@ function confirmerLocation() {
     depuis: state.day || 1,
     visible: true
   });
+  if (typeof sbSaveLocation === 'function') {
+    sbSaveLocation(state.locationsActives[state.locationsActives.length - 1]).catch(() => {});
+  }
 
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
