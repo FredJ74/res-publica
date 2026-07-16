@@ -1554,6 +1554,19 @@ async function doRecruterMilitants() {
   updateUI();
   showToast('Militant recruté !', nomPnj + ' rejoint votre réseau (' + (mesMilitants.length + 1) + '/2).', true);
   addJournalEntry('Recrutement d\'un militant étudiant : ' + nomPnj + ' (syndicat : ' + syndicat.nom + ').', 'event-good');
+
+  // Afficher immediatement le militant dans la liste des personnes presentes, groupe au recruteur
+  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  if (room) {
+    if (!room.persons) room.persons = [];
+    room.persons.push({
+      name: nomPnj,
+      role: 'Militant recruté (lié à ' + (state.char?.name || 'vous') + ')',
+      rel: 'ally',
+      job: 'militant'
+    });
+    if (typeof renderPersonsList === 'function') renderPersonsList(room.persons);
+  }
 }
 
 function doPrendreLicenceSportive() {
