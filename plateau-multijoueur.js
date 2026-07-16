@@ -54,6 +54,15 @@ function renderPersonsList(persons) {
         '</div></div>';
     }
 
+    if (p.estJoueurReel) {
+      return '<div class="person-card" onclick="composerMailPour(\'' + p.name.replace(/'/g, "\\'") + '\')" title="Envoyer un message">' +
+        avatarHtml +
+        '<div>' +
+        '<div class="person-name">' + p.name + '</div>' +
+        '<div class="person-role" style="color:#6a9aca">Joueur — cliquer pour contacter</div>' +
+        '</div></div>';
+    }
+
     const pData = encodePnjSafe(p);
     return '<div class="person-card" onclick="openPnjModal(this.dataset.enc)" data-enc="' + pData + '">' +
       avatarHtml +
