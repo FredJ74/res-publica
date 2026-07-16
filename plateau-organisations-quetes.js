@@ -1551,6 +1551,10 @@ async function doRecruterMilitants() {
   if (typeof sbRecruterMilitant === 'function') {
     await sbRecruterMilitant(state.country, state.char?.name, nomPnj).catch(() => {});
   }
+  // Comptabiliser le militant comme adherent du syndicat
+  if (!syndicat.membres) syndicat.membres = [];
+  syndicat.membres.push({ nom: nomPnj, grade: 'Militant (PNJ)', rejointLe: state.day || 1, estPnj: true, recruteur: state.char?.name });
+  sauvegarderOrga(syndicat);
   updateUI();
   showToast('Militant recruté !', nomPnj + ' rejoint votre réseau (' + (mesMilitants.length + 1) + '/2).', true);
   addJournalEntry('Recrutement d\'un militant étudiant : ' + nomPnj + ' (syndicat : ' + syndicat.nom + ').', 'event-good');
@@ -1559,7 +1563,7 @@ async function doRecruterMilitants() {
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   if (room) {
     if (!room.persons) room.persons = [];
-    room.persons.push({
+    room.persons.unshift({
       name: nomPnj,
       role: 'Militant recruté (lié à ' + (state.char?.name || 'vous') + ')',
       rel: 'ally',
