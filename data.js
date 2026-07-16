@@ -2298,6 +2298,16 @@ const BUILDINGS = {
     bgColor: "#0a0d10",
     desc: "Le grand centre commercial de la ville. Boutiques, cafés, bureaux. Les affaires s'y font à la vue de tous — ou pas.",
     rooms: {
+      hall: {
+        name: "Hall d'Entrée",
+        imageBg: "linear-gradient(135deg,#0a0d10,#12151a)",
+        desc: "Le grand hall du centre commercial. Vitrines, passants pressés, musique d'ambiance en boucle.",
+        imageUrl: "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=1200&q=80",
+        persons: [],
+        orders: [
+          {fn:'se_renseigner', label:'Se renseigner', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}
+        ]
+      },
       vitrine_principale: {
         name: "Vitrine Principale — Local à louer",
         imageBg: "linear-gradient(135deg,#0a0d10,#12151a)",
