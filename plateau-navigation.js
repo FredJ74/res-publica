@@ -98,39 +98,27 @@ function minimapCard(id) {
 
   const locked = b.locked ? '<span style="font-size:.6rem;color:#5a3020">· Accès restreint</span>' : '';
 
-  const tooltipData = JSON.stringify({
-    name: localName,
-    desc: localDesc.substring(0,140) + (localDesc.length > 140 ? '...' : ''),
-    pnj: pnjList.slice(0, 4).map(p => (p.name||'').replace(' (PNJ)','')),
-    actions: actions
-  }).replace(/"/g, '&quot;');
+  // Noms des PNJ pour le tooltip
+  const pnjHtml = pnjList.slice(0, 4).map(p =>
+    '<div style="font-size:.68rem;color:#8a8060">· ' + (p.name||'').replace(' (PNJ)','') + '</div>'
+  ).join('');
 
-  return '<div class="minimap-building ' + (b.capitaleOnly ? 'capital-only' : '') + '" onclick="enterBuilding(\'' + id + '\')" onmouseenter="showBuildingTooltip(' + tooltipData + ')" onmouseleave="hideBuildingTooltip()">' +
+  const tooltip = '<div class="minimap-tooltip">' +
+    '<div class="mtt-title">' + localName + '</div>' +
+    (localDesc ? '<div class="mtt-desc">' + localDesc.substring(0,110) + (localDesc.length > 110 ? '...' : '') + '</div>' : '') +
+    (pnjHtml ? '<div class="mtt-pnj">' + pnjHtml + '</div>' : '') +
+    (actions ? '<div class="mtt-actions">Actions : ' + actions + '</div>' : '') +
+    '</div>';
+
+  return '<div class="minimap-building ' + (b.capitaleOnly ? 'capital-only' : '') + ' has-tooltip" onclick="enterBuilding(\'' + id + '\')">' +
     '<div class="minimap-bld-icon"><i class="ti ' + b.icon + '" style="font-size:.8rem"></i></div>' +
     '<div class="minimap-bld-info">' +
       '<div class="minimap-bld-name">' + localName + '</div>' +
       '<div class="minimap-bld-cat">' + b.cat + ' ' + locked + '</div>' +
       (personCount > 0 ? '<div class="minimap-persons">' + personCount + ' personne' + (personCount > 1 ? 's' : '') + '</div>' : '') +
     '</div>' +
+    tooltip +
   '</div>';
-}
-
-function showBuildingTooltip(data) {
-  const el = document.getElementById('building-hover-tooltip');
-  if (!el) return;
-  let html = '<div class="mtt-title">' + data.name + '</div>';
-  if (data.desc) html += '<div class="mtt-desc">' + data.desc + '</div>';
-  if (data.pnj && data.pnj.length) {
-    html += '<div class="mtt-pnj">' + data.pnj.map(n => '<div style="font-size:.72rem;color:#8a8060">· ' + n + '</div>').join('') + '</div>';
-  }
-  if (data.actions) html += '<div class="mtt-actions">Actions : ' + data.actions + '</div>';
-  el.innerHTML = html;
-  el.classList.add('visible');
-}
-
-function hideBuildingTooltip() {
-  const el = document.getElementById('building-hover-tooltip');
-  if (el) el.classList.remove('visible');
 }
 
 // =====================
@@ -150,37 +138,13 @@ function showVueRue() {
     document.getElementById('rue-desc').textContent = city.desc;
   }
 
+  // Image de rue directe depuis data.js
   const rueImage = document.getElementById('rue-image');
-  const minimap = document.getElementById('minimap');
-  const ambiance = document.getElementById('rue-ambiance');
-
-  // Nettoyer un eventuel ancien conteneur de rue centrale avant de re-rendre (evite les doublons)
-  const ancienConteneur = document.getElementById('rue-centrale-conteneur');
-  if (ancienConteneur) ancienConteneur.remove();
-
-  const noeudDepart = typeof RUE_CENTRALE_DEPART !== 'undefined' ? RUE_CENTRALE_DEPART[state.country]?.[state.currentCity] : null;
-  const rueCentraleDisponible = noeudDepart && typeof RUE_CENTRALE_NOEUDS !== 'undefined' && RUE_CENTRALE_NOEUDS[state.country]?.[noeudDepart];
-
-  if (rueCentraleDisponible) {
-    // Nouvelle navigation par scenes (zoom/fondu) — remplace l'image statique et la mini-carte
-    if (minimap) minimap.style.display = 'none';
-    if (ambiance) ambiance.style.display = 'none';
-    rueImage.style.background = 'none';
-    const conteneur = document.createElement('div');
-    conteneur.id = 'rue-centrale-conteneur';
-    conteneur.style.cssText = 'position:absolute; inset:0; z-index:0;';
-    rueImage.insertBefore(conteneur, rueImage.firstChild);
-    initialiserRueCentrale(state.country, noeudDepart);
+  const imgUrl = city?.imageUrl;
+  if (imgUrl) {
+    rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
-    // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
-    if (minimap) minimap.style.display = '';
-    if (ambiance) ambiance.style.display = '';
-    const imgUrl = city?.imageUrl;
-    if (imgUrl) {
-      rueImage.style.background = `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url('${imgUrl}') center/cover no-repeat`;
-    } else {
-      rueImage.style.background = 'linear-gradient(135deg,#0a0a07,#0f0d08)';
-    }
+    rueImage.style.background = 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
   const existing = document.getElementById('rue-emoji');
   if (existing) existing.remove();
@@ -198,74 +162,14 @@ function getBuildingContext(buildingId) {
   return city?.buildingContext?.[buildingId] || null;
 }
 
-function joursRestantsPeine() {
-  if (!state.estEmprisonne) return 0;
-  return Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
-}
-
-function joursEcoulesHospitalisation() {
-  if (!state.hospitalisation) return 0;
-  return (state.day || 1) - state.hospitalisation.jourDebut;
-}
-
-function batimentHospitalisation() {
-  if (!state.hospitalisation) return null;
-  return state.hospitalisation.lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
-}
-
-function enterBuilding(buildingId, skipAutoRoom) {
+function enterBuilding(buildingId) {
   const b = BUILDINGS[buildingId];
   if (!b) return;
 
-  // Verrou militaire : un detachement hostile peut bloquer/attaquer l'entree (verifie en parallele, sans bloquer l'affichage)
-  if (typeof rafraichirCacheImmuniteMilitaire === 'function') rafraichirCacheImmuniteMilitaire().catch(() => {});
-  if (typeof verifierCouvreFeu === 'function') verifierCouvreFeu().catch(() => {});
-  if (typeof suivreEscorteAvecMoi === 'function') suivreEscorteAvecMoi(buildingId).catch(() => {});
-  if (typeof verifierMissionMilitaireEntree === 'function') {
-    const buildingPrecedent = state.currentBuilding, roomPrecedent = state.currentRoom;
-    verifierMissionMilitaireEntree(buildingId, null).then(bloque => {
-      if (bloque && buildingPrecedent) enterBuilding(buildingPrecedent, true);
-    }).catch(() => {});
-  }
-
-  // Verrou : emprisonnement — impossible de quitter le commissariat avant la fin de la peine
-  if (state.estEmprisonne && buildingId !== 'commissariat') {
-    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
-    return;
-  }
-
-  // Verrou : hospitalisation — jour 1 uniquement, aucun deplacement sauf transfert vers la clinique privee
-  if (state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation() && buildingId !== 'clinique-privee') {
-    showToast('Hospitalisé(e)', 'Vous êtes encore trop faible pour vous déplacer aujourd\'hui. Seul un transfert vers une clinique privée est possible.', false);
-    return;
-  }
-
-  // Verrou : batiment ferme suite a un incendie ou des explosifs
-  const fermeture = typeof batimentEstFerme === 'function' ? batimentEstFerme(buildingId) : null;
-  if (fermeture) {
-    const joursRestants = Math.max(1, fermeture.jour_fin - (state.day || 1));
-    showToast('Bâtiment fermé', (b.name || buildingId) + ' est fermé suite à un ' + (fermeture.motif === 'explosifs' ? 'attentat à l\'explosif' : 'incendie') + '. Réouverture dans ' + joursRestants + ' jour(s).', false);
-    return;
-  }
-
   if (b.locked) {
-    showToast('Accès restreint', "Vous n'êtes pas membre de cet établissement.", false);
-    addJournalEntry("Vous tentez d'entrer mais l'accès vous est refusé.", 'event-bad');
+    showToast('Acces restreint', "Vous n'tes pas membre de cet etablissement.", false);
+    addJournalEntry(`Vous tentez d'entrer mais l'acces vous est refuse.`, 'event-bad');
     return;
-  }
-
-  // Controle acces loge maconnique — necessite d'etre membre d'une organisation de type 'loge'
-  if (b.requiresMembership === 'loge') {
-    const orgas = state.organisations || [];
-    const estMembre = orgas.some(o => o.type === 'loge' && o.statut === 'actif');
-    if (!estMembre) {
-      showToast('Accès refusé', "Vous devez être membre d'une loge pour entrer ici.", false);
-      addJournalEntry("Vous tentez d'entrer dans la loge mais un portier vous barre la route.", 'event-bad');
-      if (typeof logeDemanderAdhesion === 'function') {
-        setTimeout(() => logeDemanderAdhesion(), 500);
-      }
-      return;
-    }
   }
 
   state.currentBuilding = buildingId;
@@ -320,9 +224,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
     </div>`;
   }).join('');
 
-  // Entrer dans la premiere piece — sauf si on s'apprete a restaurer une position precise juste apres
-  // (sinon cette navigation automatique ecrase la bonne piece dans localStorage avant qu'on ait pu la restaurer)
-  if (!skipAutoRoom && rooms.length > 0) {
+  // Entrer dans la premiere piece
+  if (rooms.length > 0) {
     enterRoom(buildingId, rooms[0][0], null);
   }
 
@@ -331,16 +234,6 @@ function enterBuilding(buildingId, skipAutoRoom) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
-  // Verrou : emprisonnement — reste bloque en cellule, aucun changement de piece
-  if (state.estEmprisonne && !(buildingId === 'commissariat' && roomId === 'prison')) {
-    showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule. ' + joursRestantsPeine() + ' jour(s) restant(s) avant votre libération.', false);
-    return;
-  }
-  // Verrou : hospitalisation — jour 1 uniquement, reste dans sa chambre
-  if (state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation()) {
-    showToast('Hospitalisé(e)', 'Vous êtes encore alité(e) aujourd\'hui.', false);
-    return;
-  }
   // Vérifier accès zone embarquement
   if (!checkZoneEmbarquementAcces(buildingId, roomId)) return;
   const b = BUILDINGS[buildingId];
@@ -375,15 +268,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
 
   // Update tabs
-  document.querySelectorAll('.piece-tab').forEach(t => t.classList.remove('active'));
   if (tabEl) {
+    document.querySelectorAll('.piece-tab').forEach(t => t.classList.remove('active'));
     tabEl.classList.add('active');
-  } else {
-    // Restauration automatique (rafraichissement de page) : pas d'onglet clique, on le retrouve par roomId
-    const roomIds = Object.keys(b.rooms || {});
-    const idx = roomIds.indexOf(roomId);
-    const tabs = document.querySelectorAll('.piece-tab');
-    if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
   }
 
   // Contexte local : desc, PNJ et roomOverrides selon empire/ville
@@ -408,30 +295,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (existing) existing.remove();
 
   document.getElementById('piece-nom').textContent = roomOverride?.name || room.name;
-  let displayDesc = (isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || '');
-  if (state.estEmprisonne && buildingId === 'commissariat' && roomId === 'prison') {
-    const joursRestants = Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
-    displayDesc += ' — Peine : ' + state.estEmprisonne.raison + '. Temps restant : ' + joursRestants + ' jour(s) (libération au Jour ' + state.estEmprisonne.jourFin + ').';
-  }
-  if (state.hospitalisation && buildingId === batimentHospitalisation()) {
-    const joursRestants = Math.max(0, state.hospitalisation.jourFin - (state.day || 1));
-    displayDesc += ' — En convalescence. Temps restant estimé : ' + joursRestants + ' jour(s).';
-  }
+  const displayDesc = (isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || '');
   document.getElementById('piece-desc').textContent = displayDesc;
-  const ROOMS_AVEC_CAISSE_SPECIFIQUE = {
-    'bureaux': 'gouvernement-pm', 'bureau_min_int': 'gouvernement-min_int', 'bureau_min_fin': 'gouvernement-min_fin',
-    'bureau_min_just': 'gouvernement-min_just', 'bureau_min_info': 'gouvernement-min_info', 'bureau_min_ae': 'gouvernement-min_ae',
-    'bureau_min_def': 'gouvernement-min_def'
-  };
-  const ROOMS_AVEC_CAISSE = { 'palais-presidentiel': 'palais-presidentiel', 'mairie-capitale': 'mairie-capitale', 'caserne-militaire': 'caserne-militaire' };
-  const caisseBuildingId = (buildingId === 'palais-gouvernement' ? ROOMS_AVEC_CAISSE_SPECIFIQUE[roomId] : null) || ROOMS_AVEC_CAISSE[buildingId] || (buildingId === 'stade' && roomId === 'buvette' ? 'stade-buvette' : null);
-  if (caisseBuildingId && typeof chargerCaisseBatiment === 'function') {
-    chargerCaisseBatiment(state.country || 'republic', caisseBuildingId).then(c => {
-      const el = document.getElementById('piece-desc');
-      if (el) el.textContent = displayDesc + ' — Caisse : ' + (c.solde || 0).toLocaleString('fr-FR') + ' FR.';
-    }).catch(() => {});
-  }
-  let displayPersons = roomOverride?.persons?.length > 0 ? roomOverride.persons : ((isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []));
+  let displayPersons = (isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []);
 
   // Injecter PNJ terrain si applicable
   if (buildingId?.startsWith('terrain-a-batir')) {
@@ -445,16 +311,6 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
 
   renderPersonsList(displayPersons);
-
-  // Detachement militaire eventuellement present (asynchrone, ne bloque pas l'affichage normal)
-  if (typeof getAffichageDetachementPiece === 'function') {
-    getAffichageDetachementPiece(state.country || 'republic', buildingId, roomId).then(det => {
-      if (det && state.currentBuilding === buildingId && state.currentRoom === roomId) {
-        const missionLabel = { bloquer_acces:'Bloque l\'accès', securiser:'Sécurise la pièce', assassiner:'Ordre : neutraliser les intrus', arreter:'Ordre : arrêter les intrus', surveiller:'En surveillance', escorter:'Escorte en cours' }[det.mission] || 'Sans consigne';
-        renderPersonsList([...displayPersons, { name: det.nom, role: det.nombre + ' soldats — ' + missionLabel, rel: 'neutral', job: 'militaire' }]);
-      }
-    }).catch(() => {});
-  }
 
   // Ordres
   renderRoomActions(room, buildingId, roomId);
@@ -515,10 +371,6 @@ function checkZoneEmbarquementAcces(buildingId, roomId) {
 }
 
 function sortirBatiment() {
-  if (state.estEmprisonne) {
-    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
-    return;
-  }
   state.douanePassee = false;
   showVueRue();
   addJournalEntry(`Vous sortez du batiment.`, '');
@@ -851,10 +703,6 @@ const EMPIRES_CONFIG = {
 };
 
 function ouvrirModalTransport(mode) {
-  if (state.estEmprisonne) {
-    showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de voyager avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s)).', false);
-    return;
-  }
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const pays = state.country || 'republic';
