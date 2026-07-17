@@ -157,6 +157,7 @@ function openPnjModal(encodedPnj) {
   if (isPJ) {
     const inGroup = state.group && state.group.members && state.group.members.includes(pnj.name);
     const pnjJson = encodePnjSafe(pnj);
+    actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirConversationAvec(\'' + pnjSafeName + '\')" style="color:#6ada6a;border-color:#2a5a2a"><i class="ti ti-message-circle" style="font-size:.85rem"></i> Parler</button>';
     actionBtns += (!inGroup
       ? '<button class="pnj-action-btn" onclick="rejoindrePJ(decodeURIComponent(\'' + pnjJson + '\'))"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
       : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>');
@@ -236,7 +237,7 @@ function openPnjModal(encodedPnj) {
   }
   document.getElementById('pnj-actions').innerHTML = actionBtns +
     (isPJ
-      ? '<div style="margin-top:.6rem;font-size:.7rem;color:#6a5a30;font-style:italic">C\'est un vrai joueur — utilisez le mail pour lui parler, l\'IA ne repond pas a sa place.</div>'
+      ? '<div style="margin-top:.6rem;font-size:.7rem;color:#6a5a30;font-style:italic">C\'est un vrai joueur — utilisez "Parler" (chat en temps réel) ou le mail (asynchrone). L\'IA ne répond jamais à sa place.</div>'
       : '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
         '<input id="pnj-question-libre" type="text" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" placeholder="Posez votre question..." onkeydown="handlePnjKey(event)" />' +
         '<button onclick="envoyerQuestion()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send" style="font-size:.8rem"></i></button>' +

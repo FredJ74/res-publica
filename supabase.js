@@ -821,6 +821,100 @@ async function sbGetMesMilitants(country, recruteur) {
 }
 
 // =====================
+// MESSAGERIE PERSISTANTE (conversations privees + salons nommes)
+// Remplace le chat lie a une piece physique : ici, une conversation existe independamment
+// du lieu et de la connexion des participants. Une conversation privee est identifiee par
+// les 2 noms tries alphabetiquement ; un salon est identifie par son propre id.
+// =====================
+
+function getConversationId(nom1, nom2) {
+  return [nom1, nom2].sort().join('__');
+}
+
+async function sbEnvoyerMessageChat(conversationId, auteur, message, estSalon) {
+  const id = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+  return sbInsert('messages_chat', {
+    id, conversation_id: conversationId, auteur, message,
+    salon: !!estSalon, created_at: new Date().toISOString()
+  });
+}
+
+async function sbGetMessagesConversation(conversationId, depuis) {
+  let filtre = `conversation_id=eq.${encodeURIComponent(conversationId)}&order=created_at.asc`;
+  if (depuis) filtre += `&created_at=gt.${encodeURIComponent(depuis)}`;
+  return await sbGet('messages_chat', filtre) || [];
+}
+
+async function sbCreerSalon(nom, createur) {
+  const id = 'salon-' + nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 50) + '-' + Date.now().toString(36);
+  await sbInsert('salons_chat', { id, nom, createur, created_at: new Date().toISOString() });
+  await sbRejoindreSalon(id, createur);
+  return id;
+}
+
+async function sbRejoindreSalon(salonId, membre) {
+  const existant = await sbGet('salons_membres', `salon_id=eq.${encodeURIComponent(salonId)}&membre=eq.${encodeURIComponent(membre)}`);
+  if (existant && existant.length > 0) return;
+  return sbInsert('salons_membres', { id: salonId + '__' + membre, salon_id: salonId, membre });
+}
+
+async function sbQuitterSalon(salonId, membre) {
+  return sbDelete('salons_membres', `salon_id=eq.${encodeURIComponent(salonId)}&membre=eq.${encodeURIComponent(membre)}`);
+}
+
+async function sbGetMesSalons(membre) {
+  const memberships = await sbGet('salons_membres', `membre=eq.${encodeURIComponent(membre)}`);
+  if (!memberships || memberships.length === 0) return [];
+  const salons = [];
+  for (const m of memberships) {
+    const rows = await sbGet('salons_chat', `id=eq.${encodeURIComponent(m.salon_id)}`);
+    if (rows && rows[0]) salons.push(rows[0]);
+  }
+  return salons;
+}
+
+async function sbGetMembresSalon(salonId) {
+  const rows = await sbGet('salons_membres', `salon_id=eq.${encodeURIComponent(salonId)}`);
+  return (rows || []).map(r => r.membre);
+}
+
+// Marque une conversation comme lue jusqu'a maintenant, pour ce joueur
+async function sbMarquerConversationLue(conversationId, membre) {
+  const id = conversationId + '__' + membre;
+  const maintenant = new Date().toISOString();
+  const existant = await sbGet('lectures_chat', `id=eq.${encodeURIComponent(id)}`);
+  const data = { id, conversation_id: conversationId, membre, dernier_lu: maintenant };
+  if (existant && existant.length > 0) return sbUpdate('lectures_chat', `id=eq.${encodeURIComponent(id)}`, data);
+  return sbInsert('lectures_chat', data);
+}
+
+// Verifie s'il existe au moins un message non lu, dans une conversation privee OU un salon
+// dont le joueur fait partie — sert au point clignotant, persiste au-dela de la deconnexion.
+async function sbAMessagesNonLus(membre) {
+  try {
+    const tousMessages = await sbGet('messages_chat', `order=created_at.desc&limit=200`);
+    const mesSalons = await sbGetMesSalons(membre);
+    const idsSalons = new Set(mesSalons.map(s => s.id));
+    const mesConversations = new Set(
+      (tousMessages || [])
+        .map(m => m.conversation_id)
+        .filter(cid => cid.split('__').includes(membre) || idsSalons.has(cid))
+    );
+    for (const cid of mesConversations) {
+      const lecture = await sbGet('lectures_chat', `id=eq.${encodeURIComponent(cid + '__' + membre)}`);
+      const dernierLu = lecture?.[0]?.dernier_lu || null;
+      const messagesConv = (tousMessages || []).filter(m => m.conversation_id === cid && m.auteur !== membre);
+      if (messagesConv.length === 0) continue;
+      const dernierMessage = messagesConv[0];
+      if (!dernierLu || new Date(dernierMessage.created_at) > new Date(dernierLu)) {
+        return true;
+      }
+    }
+    return false;
+  } catch (e) { console.warn('sbAMessagesNonLus error', e); return false; }
+}
+
+// =====================
 // LOCATIONS ACTIVES (bail de salle/local) — n'avait jusqu'ici AUCUNE sauvegarde Supabase,
 // purement local et perdu au rafraichissement (contrairement aux organisations qui l'ont deja).
 // =====================

@@ -320,6 +320,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => chargerEvenementsPartages(), 1500);
   setTimeout(() => chargerOrganisations(), 1800);
   setTimeout(() => { if (typeof chargerLocations === 'function') chargerLocations(); }, 1900);
+  setTimeout(() => { if (typeof demarrerPollingNotificationChat === 'function') demarrerPollingNotificationChat(); }, 2000);
   setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
   setTimeout(() => appliquerNominationPosteEnAttente(), 2300);
   setTimeout(() => recupererDonsEnAttente(), 2000);

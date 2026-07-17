@@ -173,13 +173,14 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
 
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
     const html = window._vraisJoueursPresents.map(p => {
+      const enc = encodePnjSafe(p);
       const avatarHtml = p.photoUrl
         ? '<div class="person-avatar" style="overflow:hidden;border-color:' + empireCol + '"><img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover"/></div>'
         : '<div class="person-avatar" style="border-color:' + empireCol + '"><i class="ti ti-user" style="font-size:.75rem;color:' + empireCol + '"></i></div>';
-      return '<div class="person-card vrai-joueur-card" onclick="composerMailPour(\'' + p.name.replace(/'/g, "\\'") + '\')" style="border-left:2px solid ' + empireCol + '" title="Envoyer un message">' +
+      return '<div class="person-card vrai-joueur-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid ' + empireCol + '" title="Interagir">' +
       avatarHtml +
       '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.6rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
-      '<div class="person-role">Présent ici — cliquer pour contacter</div></div></div>';
+      '<div class="person-role">Présent ici</div></div></div>';
     }).join('');
 
     // Retirer les anciennes cartes joueur avant d'inserer les nouvelles (evite les doublons au rafraichissement)
@@ -832,6 +833,15 @@ let _chatInterval = null;
 let _chatDernierMessage = null;
 let _chatDestinataire = null; // null = salon commun de la piece
 
+// =====================
+// MESSAGERIE PERSISTANTE — remplace l'ancien chat lie a une piece physique.
+// Une conversation existe independamment du lieu : soit privee (2 personnes, id = noms
+// tries), soit un salon nomme (rejoignable/quittable librement, comme convenu avec Fred).
+// =====================
+
+let _conversationActuelle = null; // { id, type: 'prive'|'salon', label }
+let _chatNotifInterval = null;
+
 function toggleChatPiece() {
   const panel = document.getElementById('chat-piece-panel');
   if (!panel) return;
@@ -841,110 +851,162 @@ function toggleChatPiece() {
     if (_chatInterval) { clearInterval(_chatInterval); _chatInterval = null; }
   } else {
     panel.style.display = 'flex';
-    chargerDestinatairesChat();
-    rafraichirChatPiece(true);
-    _chatInterval = setInterval(() => rafraichirChatPiece(false), 4000);
+    ouvrirListeConversations();
   }
 }
 
-// Liste deroulante des destinataires possibles (salon + chaque PJ present)
-async function chargerDestinatairesChat() {
-  const select = document.getElementById('chat-destinataire-select');
-  if (!select) return;
-
-  let presents = [];
-  if (typeof sbGetPresencesInRoom === 'function' && state.currentBuilding && state.currentRoom) {
-    try {
-      const tous = await sbGetPresencesInRoom(state.country, state.currentCity, state.currentBuilding, state.currentRoom);
-      presents = (tous || []).filter(p => p.name !== state.char?.name);
-    } catch(e) {}
-  }
-
-  let html = '<option value="">💬 Salon de la pièce (tout le monde)</option>';
-  presents.forEach(p => { html += '<option value="' + p.name + '">🔒 ' + p.name + ' (privé)</option>'; });
-  select.innerHTML = html;
+// Ouvre directement une conversation privee avec quelqu'un (appele depuis le bouton
+// "Parler" de la fenetre PNJ/joueur), sans passer par la liste.
+function ouvrirConversationAvec(nom) {
+  const panel = document.getElementById('chat-piece-panel');
+  if (panel) panel.style.display = 'flex';
+  _conversationActuelle = { id: getConversationId(state.char?.name, nom), type: 'prive', label: nom };
+  afficherVueConversation();
 }
 
-function changerDestinataireChat() {
-  const select = document.getElementById('chat-destinataire-select');
-  _chatDestinataire = select?.value || null;
-  document.getElementById('chat-messages-zone').innerHTML = '';
-  _chatDernierMessage = null;
-  rafraichirChatPiece(true);
-}
+async function ouvrirListeConversations() {
+  const moi = state.char?.name;
+  document.getElementById('chat-piece-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic;font-size:.75rem">Chargement...</div>';
 
-async function rafraichirChatPiece(reset) {
-  if (typeof sbGetMessagesChatPiece !== 'function') return;
-  if (!state.currentBuilding || !state.currentRoom) return;
-
+  let conversationsPrivees = [];
+  let salons = [];
   try {
-    const messages = await sbGetMessagesChatPiece(
-      state.country, state.currentCity, state.currentBuilding, state.currentRoom,
-      reset ? null : _chatDernierMessage
-    );
-    if (!messages || messages.length === 0) return;
+    if (typeof sbGet === 'function') {
+      const tousMessages = await sbGet('messages_chat', `order=created_at.desc&limit=300`);
+      const idsVus = new Set();
+      (tousMessages || []).forEach(m => {
+        if (!m.salon && m.conversation_id.split('__').includes(moi) && !idsVus.has(m.conversation_id)) {
+          idsVus.add(m.conversation_id);
+          const autre = m.conversation_id.split('__').find(n => n !== moi);
+          conversationsPrivees.push({ id: m.conversation_id, label: autre });
+        }
+      });
+    }
+    if (typeof sbGetMesSalons === 'function') {
+      salons = await sbGetMesSalons(moi);
+    }
+  } catch(e) { console.warn('ouvrirListeConversations error', e); }
 
+  let html = '<div style="padding:.5rem .6rem;display:flex;flex-direction:column;gap:.3rem;overflow-y:auto;flex:1">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;margin-top:.2rem">CONVERSATIONS</div>';
+  if (conversationsPrivees.length === 0 && salons.length === 0) {
+    html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic">Aucune conversation pour le moment.</div>';
+  }
+  conversationsPrivees.forEach(c => {
+    html += '<div onclick="ouvrirConversationAvec(\'' + c.label.replace(/'/g,"\\'") + '\')" style="padding:.4rem .6rem;background:#121005;border:1px solid #2a2010;cursor:pointer;font-size:.78rem;color:#e0d8c0">🔒 ' + c.label + '</div>';
+  });
+  salons.forEach(s => {
+    html += '<div onclick="ouvrirSalonChat(\'' + s.id + '\',\'' + s.nom.replace(/'/g,"\\'") + '\')" style="padding:.4rem .6rem;background:#121005;border:1px solid #2a2010;cursor:pointer;font-size:.78rem;color:#e0d8c0">💬 ' + s.nom + '</div>';
+  });
+  html += '<button onclick="ouvrirCreerSalonPrompt()" style="margin-top:.4rem;font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.08em;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">+ Créer un salon</button>';
+  html += '</div>';
+  document.getElementById('chat-piece-body').innerHTML = html;
+}
+
+function ouvrirCreerSalonPrompt() {
+  const nom = prompt('Nom du salon à créer :');
+  if (!nom || !nom.trim()) return;
+  creerEtOuvrirSalon(nom.trim());
+}
+
+async function creerEtOuvrirSalon(nom) {
+  if (typeof sbCreerSalon !== 'function') return;
+  const id = await sbCreerSalon(nom, state.char?.name).catch(() => null);
+  if (id) ouvrirSalonChat(id, nom);
+}
+
+function ouvrirSalonChat(salonId, nom) {
+  _conversationActuelle = { id: salonId, type: 'salon', label: nom };
+  afficherVueConversation();
+}
+
+function retourListeConversations() {
+  if (_chatInterval) { clearInterval(_chatInterval); _chatInterval = null; }
+  _conversationActuelle = null;
+  ouvrirListeConversations();
+}
+
+function afficherVueConversation() {
+  if (!_conversationActuelle) return;
+  const estSalon = _conversationActuelle.type === 'salon';
+  let html = '<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .6rem;border-bottom:1px solid #2a2010">';
+  html += '<span style="font-size:.72rem;color:#8a8060;cursor:pointer" onclick="retourListeConversations()">← Conversations</span>';
+  html += '<span style="font-size:.78rem;color:#C9A84C">' + (estSalon ? '💬 ' : '🔒 ') + _conversationActuelle.label + '</span>';
+  html += estSalon ? '<span style="font-size:.65rem;color:#aa5050;cursor:pointer" onclick="quitterSalonActuelChat()">Quitter</span>' : '<span></span>';
+  html += '</div>';
+  html += '<div id="chat-messages-zone" style="flex:1;overflow-y:auto;padding:.4rem .6rem"></div>';
+  html += '<div style="display:flex;gap:.4rem;padding:.5rem .6rem;border-top:1px solid #2a2010">' +
+    '<input id="chat-message-input" type="text" placeholder="Votre message..." onkeydown="if(event.key===\'Enter\')envoyerMessageConversation()" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.78rem;outline:none">' +
+    '<button onclick="envoyerMessageConversation()" style="background:transparent;border:1px solid #8a6a20;color:#C9A84C;padding:.4rem .6rem;cursor:pointer;font-size:.78rem">→</button></div>';
+  document.getElementById('chat-piece-body').innerHTML = html;
+
+  _chatDernierMessage = null;
+  rafraichirConversationActuelle(true);
+  _chatInterval = setInterval(() => rafraichirConversationActuelle(false), 4000);
+}
+
+async function quitterSalonActuelChat() {
+  if (!_conversationActuelle || _conversationActuelle.type !== 'salon') return;
+  if (typeof sbQuitterSalon === 'function') {
+    await sbQuitterSalon(_conversationActuelle.id, state.char?.name).catch(() => {});
+  }
+  retourListeConversations();
+}
+
+async function rafraichirConversationActuelle(reset) {
+  if (!_conversationActuelle || typeof sbGetMessagesConversation !== 'function') return;
+  try {
+    const messages = await sbGetMessagesConversation(_conversationActuelle.id, reset ? null : _chatDernierMessage);
     const moi = state.char?.name;
     const zone = document.getElementById('chat-messages-zone');
     if (!zone) return;
-
-    const pertinents = messages.filter(m => {
-      if (!m.destinataire) return true; // message de salon, visible par tous
-      // message prive : visible seulement par l'auteur et le destinataire concerne
-      return m.auteur === moi || m.destinataire === moi;
-    });
-
+    if (!messages || messages.length === 0) {
+      if (reset && zone.children.length === 0) zone.innerHTML = '<div style="font-size:.72rem;color:#6a5a30;font-style:italic">Aucun message pour le moment.</div>';
+      return;
+    }
     if (reset) zone.innerHTML = '';
-
-    pertinents.forEach(m => {
+    messages.forEach(m => {
       const estMoi = m.auteur === moi;
-      const estPrive = !!m.destinataire;
-      const couleurFond = estPrive ? '#1a1408' : '#0f0d05';
-      const labelPrive = estPrive ? '<span style="color:#aa7a30;font-size:.6rem"> (privé)</span>' : '';
       zone.insertAdjacentHTML('beforeend',
         '<div style="margin-bottom:.4rem;text-align:' + (estMoi ? 'right' : 'left') + '">' +
-        '<div style="display:inline-block;max-width:80%;padding:.35rem .6rem;border-radius:8px;background:' + couleurFond + ';border:1px solid #2a2010">' +
-        '<div style="font-size:.62rem;color:#8a6a30">' + m.auteur + labelPrive + '</div>' +
+        '<div style="display:inline-block;max-width:80%;padding:.35rem .6rem;border-radius:8px;background:#0f0d05;border:1px solid #2a2010">' +
+        '<div style="font-size:.62rem;color:#8a6a30">' + m.auteur + '</div>' +
         '<div style="font-size:.78rem;color:#e0d8c0">' + m.message + '</div>' +
         '</div></div>'
       );
     });
-
     zone.scrollTop = zone.scrollHeight;
     _chatDernierMessage = messages[messages.length - 1].created_at;
-  } catch(e) { console.warn('rafraichirChatPiece error', e); }
+    if (typeof sbMarquerConversationLue === 'function') sbMarquerConversationLue(_conversationActuelle.id, moi).catch(() => {});
+    verifierNotificationChat();
+  } catch(e) { console.warn('rafraichirConversationActuelle error', e); }
 }
 
-async function envoyerMessageChatPiece() {
+async function envoyerMessageConversation() {
   const input = document.getElementById('chat-message-input');
   const texte = input?.value?.trim();
-  if (!texte || !state.currentBuilding || !state.currentRoom) return;
-
-  const message = {
-    id: 'chat-' + Date.now() + '-' + Math.floor(Math.random()*1000),
-    country: state.country,
-    city: state.currentCity,
-    building_id: state.currentBuilding,
-    room_id: state.currentRoom,
-    auteur: state.char?.name || 'Anonyme',
-    destinataire: _chatDestinataire || null,
-    message: texte
-  };
-
+  if (!texte || !_conversationActuelle) return;
   input.value = '';
   if (typeof sbEnvoyerMessageChat === 'function') {
-    await sbEnvoyerMessageChat(message).catch(() => {});
+    await sbEnvoyerMessageChat(_conversationActuelle.id, state.char?.name || 'Anonyme', texte, _conversationActuelle.type === 'salon').catch(() => {});
   }
-  rafraichirChatPiece(false);
+  rafraichirConversationActuelle(false);
 }
 
-// Fermer le chat automatiquement au changement de piece (rien a garder)
-function reinitialiserChatPiece() {
-  const zone = document.getElementById('chat-messages-zone');
-  if (zone) zone.innerHTML = '';
-  _chatDernierMessage = null;
-  _chatDestinataire = null;
-  if (document.getElementById('chat-piece-panel')?.style.display !== 'none') {
-    chargerDestinatairesChat();
-  }
+// Point clignotant persistant sur le bouton chat flottant, verifie regulierement
+// (survit a une deconnexion : le message reste marque non-lu tant qu'on n'a pas ouvert
+// la conversation, meme si l'auteur est reparti ou hors ligne entre temps).
+async function verifierNotificationChat() {
+  if (typeof sbAMessagesNonLus !== 'function' || !state.char?.name) return;
+  try {
+    const nonLu = await sbAMessagesNonLus(state.char.name);
+    const badge = document.getElementById('chat-notif-badge');
+    if (badge) badge.style.display = nonLu ? 'block' : 'none';
+  } catch(e) {}
+}
+
+function demarrerPollingNotificationChat() {
+  if (_chatNotifInterval) return;
+  verifierNotificationChat();
+  _chatNotifInterval = setInterval(verifierNotificationChat, 15000);
 }
