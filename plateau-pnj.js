@@ -27,39 +27,39 @@ function genererStatsHtml() {
     return '<div style="margin-bottom:.5rem">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem">' +
         '<div style="display:flex;align-items:center;gap:.4rem">' +
-          '<i class="ti ' + s.icon + '" style="font-size:.75rem;color:' + s.col + '"></i>' +
-          '<span style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;color:#a09060">' + s.label + '</span>' +
+          '<i class="ti ' + s.icon + '" style="font-size:1rem;color:' + s.col + '"></i>' +
+          '<span style="font-family:Bebas Neue,sans-serif;font-size:.95rem;letter-spacing:.08em;color:#a09060">' + s.label + '</span>' +
         '</div>' +
-        '<span style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:' + s.col + '">' + pct + '</span>' +
+        '<span style="font-family:Bebas Neue,sans-serif;font-size:1.05rem;color:' + s.col + '">' + pct + '</span>' +
       '</div>' +
       '<div style="height:4px;background:#1a1810;border-radius:2px">' +
         '<div style="height:100%;width:' + pct + '%;background:' + s.col + ';border-radius:2px;transition:width .3s"></div>' +
       '</div>' +
-      '<div style="font-size:.6rem;color:#9a8a68;margin-top:.1rem">' + s.desc + '</div>' +
+      '<div style="font-size:.8rem;color:#9a8a68;margin-top:.1rem">' + s.desc + '</div>' +
     '</div>';
   }).join('');
 
   const persoHtml = STAT_DEFS_LOCAL.map(s => {
     const val = persoStats[s.k] || 0;
     return '<div style="text-align:center">' +
-      '<div style="font-size:.62rem;color:' + s.col + ';font-family:Bebas Neue,sans-serif;letter-spacing:.06em">' + s.k + '</div>' +
+      '<div style="font-size:.82rem;color:' + s.col + ';font-family:Bebas Neue,sans-serif;letter-spacing:.06em">' + s.k + '</div>' +
       '<div style="font-size:1rem;color:#f0ead6;font-family:Bebas Neue,sans-serif">' + val + '</div>' +
-      '<div style="font-size:.58rem;color:#9a8a68">' + s.n + '</div>' +
+      '<div style="font-size:.78rem;color:#9a8a68">' + s.n + '</div>' +
     '</div>';
   }).join('');
 
   return '<div style="padding:.6rem 1rem">' +
-      '<div style="font-size:.7rem;color:#8a8060;margin-bottom:.8rem;font-style:italic">' +
+      '<div style="font-size:.9rem;color:#8a8060;margin-bottom:.8rem;font-style:italic">' +
         (ar?.name || '') + ' · ' + (co?.n || '') +
         (state.poste?.name ? ' · ' + state.poste.name : '') +
       '</div>' +
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.15em;color:#9a8a68;margin-bottom:.5rem">INDICES</div>' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.15em;color:#9a8a68;margin-bottom:.5rem">INDICES</div>' +
       barsHtml +
       '<div style="border-top:1px solid #2a2010;margin:.6rem 0"></div>' +
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.15em;color:#9a8a68;margin-bottom:.5rem">ATTRIBUTS PERSONNELS</div>' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.15em;color:#9a8a68;margin-bottom:.5rem">ATTRIBUTS PERSONNELS</div>' +
       '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:.4rem">' + persoHtml + '</div>' +
       '<div style="border-top:1px solid #2a2010;margin:.6rem 0"></div>' +
-      '<div style="display:flex;justify-content:space-between;font-size:.72rem;color:#8a8060">' +
+      '<div style="display:flex;justify-content:space-between;font-size:.92rem;color:#8a8060">' +
         '<span>💰 Liquide : <strong style="color:#C9A84C">' + (state.liquide||0).toLocaleString('fr-FR') + ' ' + cur + '</strong></span>' +
         '<span>🏦 Banque : <strong style="color:#C9A84C">' + (state.banque||0).toLocaleString('fr-FR') + ' ' + cur + '</strong></span>' +
       '</div>' +
