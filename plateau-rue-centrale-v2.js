@@ -67,7 +67,7 @@ const RUE_CENTRALE_NOEUDS = {
     // ---- INTERSECTION VERS STADE / COMMERCE ----
 
     'luthecia-intersection-stade-commercial': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-intersection-stade-commercial.jpg',
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-intersection-stade-commercial.png',
       zones: [],
       liens: { gauche: 'luthecia-centre-commercial', droite: 'luthecia-stade-multimodal', toutDroit: null, arriere: 'luthecia-imprimerie' }
     },
@@ -125,9 +125,12 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-armurerie': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-armurerie.jpg',
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-armurerie.png',
       zones: [
-        { xPct: [0, 100], nom: 'Armurerie de Luthécia', type: 'batiment', buildingId: 'armurerie' }
+        // Seule la facade de l'Armurerie Martinon (partie gauche de l'image) est cliquable —
+        // le reste de la scene (place, panneaux, marche au fond) ne mene nulle part.
+        // xPct estime a l'oeil sur l'image fournie : a ajuster si le clic tombe a cote a l'usage.
+        { xPct: [0, 27], nom: 'Armurerie Martinon', type: 'batiment', buildingId: 'armurerie' }
       ],
       liens: { gauche: null, droite: 'luthecia-terrains-artisanal', toutDroit: 'luthecia-tabernacle-impots', arriere: null }
     },

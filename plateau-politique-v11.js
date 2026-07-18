@@ -105,6 +105,7 @@ async function ouvrirCalendrierElectoral() {
   const villeCourante = state.currentCity || 'capitale';
 
   document.getElementById('postes-modal-title').textContent = '📅 Calendrier Électoral — ' + (co?.n || country);
+  document.querySelector('#modal-postes .modal-box')?.classList.add('modal-wide');
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement du calendrier électoral...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
@@ -189,6 +190,9 @@ async function ouvrirCalendrierElectoral() {
           '<div style="font-size:.72rem;color:#a89870">' + nbCandidats + ' candidat(s)</div>' +
         '</div>' +
       '</div>' +
+      (nbCandidats > 0
+        ? '<div style="font-size:.72rem;color:#c0b090;margin-bottom:.3rem">Candidats : ' + cycle.candidats.map(c => c.nom).join(', ') + '</div>'
+        : '') +
       // Échéances
       (echeances.length > 0
         ? '<div style="background:#0a0907;border:1px solid #1a1810;border-radius:3px;padding:.35rem .5rem;margin-top:.3rem">' +
@@ -2248,7 +2252,7 @@ function consulterAnnuaireDeputes() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">25 sieges a l\'Assemblee Nationale de ' + (co?.n||country) + '.</div>';
   for (let i = 1; i <= 25; i++) {
-    const titulaire = titulairesConnus['depute_' + i] || 'Vacant (PNJ)';
+    const titulaire = titulairesConnus['depute_' + i] || 'Occupé par un PNJ';
     html += '<div style="display:flex;justify-content:space-between;padding:.4rem .2rem;border-bottom:1px solid #1a1810">';
     html += '<span style="font-size:.78rem;color:#6a5a30">Siege ' + i + '</span>';
     html += '<span style="font-size:.8rem;color:#c0b090">' + titulaire + '</span>';

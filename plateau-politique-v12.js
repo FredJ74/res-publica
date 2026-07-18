@@ -105,6 +105,7 @@ async function ouvrirCalendrierElectoral() {
   const villeCourante = state.currentCity || 'capitale';
 
   document.getElementById('postes-modal-title').textContent = '📅 Calendrier Électoral — ' + (co?.n || country);
+  document.querySelector('#modal-postes .modal-box')?.classList.add('modal-wide');
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement du calendrier électoral...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
@@ -189,6 +190,9 @@ async function ouvrirCalendrierElectoral() {
           '<div style="font-size:.72rem;color:#a89870">' + nbCandidats + ' candidat(s)</div>' +
         '</div>' +
       '</div>' +
+      (nbCandidats > 0
+        ? '<div style="font-size:.72rem;color:#c0b090;margin-bottom:.3rem">Candidats : ' + cycle.candidats.map(c => c.nom).join(', ') + '</div>'
+        : '') +
       // Échéances
       (echeances.length > 0
         ? '<div style="background:#0a0907;border:1px solid #1a1810;border-radius:3px;padding:.35rem .5rem;margin-top:.3rem">' +
@@ -1942,6 +1946,18 @@ function observerDebats() {
     loisEnCours.forEach(loi => {
       html += '<div style="padding:.5rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
       html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">' + loi.titre + '</div>';
+      // Vrais votes deja exprimes par de vrais deputes (joueurs)
+      if (loi.votes && loi.votes.length > 0) {
+        html += '<div style="font-size:.68rem;color:#8a6a20;margin-bottom:.2rem">Votes exprimés (députés réels) :</div>';
+        loi.votes.forEach(v => {
+          const col = v.choix === 'Pour' ? '#4a8a4a' : v.choix === 'Contre' ? '#8a3a2a' : '#6a6040';
+          html += '<div style="font-size:.72rem;color:#c0b090">' + v.depute + ' : <span style="color:' + col + '">' + v.choix + '</span></div>';
+        });
+      } else {
+        html += '<div style="font-size:.7rem;color:#5a5030;font-style:italic;margin-bottom:.2rem">Aucun vote reel exprime pour l\'instant.</div>';
+      }
+      // Ambiance : positions supposees des deputes PNJ (non persistantes, juste indicatif)
+      html += '<div style="font-size:.68rem;color:#5a5030;margin-top:.3rem">Rumeurs de couloir sur les députés PNJ :</div>';
       deputes.forEach(d => {
         const pos = positions[Math.floor(Math.random() * positions.length)];
         const col = pos === 'Pour' ? '#4a8a4a' : pos === 'Contre' ? '#8a3a2a' : '#6a6040';
@@ -1968,7 +1984,7 @@ function ouvrirVoteLoi() {
   const now = new Date();
   const isWednesday = now.getDay() === 3; // 0=dim, 3=mer
   const isBeforeDeadline = now.getHours() < 20;
-  const loisEnCours = (state.loisEnCours || []).filter(l => l.pret);
+  const loisEnCours = (state.loisEnCours || []).filter(l => (state.day || 1) >= l.jourVoteMin);
 
   document.getElementById('postes-modal-title').textContent = 'Voter une loi';
   let html = '<div style="padding:1rem">';
@@ -2002,7 +2018,7 @@ function ouvrirVoteLoi() {
 }
 
 function enregistrerVoteLoi(loiIdx, choix) {
-  const loi = (state.loisEnCours || []).filter(l => l.pret)[loiIdx];
+  const loi = (state.loisEnCours || []).filter(l => (state.day || 1) >= l.jourVoteMin)[loiIdx];
   if (!loi) return;
   if (!state.votesLois) state.votesLois = {};
   state.votesLois[loi.id] = choix;
@@ -2248,7 +2264,7 @@ function consulterAnnuaireDeputes() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">25 sieges a l\'Assemblee Nationale de ' + (co?.n||country) + '.</div>';
   for (let i = 1; i <= 25; i++) {
-    const titulaire = titulairesConnus['depute_' + i] || 'Vacant (PNJ)';
+    const titulaire = titulairesConnus['depute_' + i] || 'Occupé par un PNJ';
     html += '<div style="display:flex;justify-content:space-between;padding:.4rem .2rem;border-bottom:1px solid #1a1810">';
     html += '<span style="font-size:.78rem;color:#6a5a30">Siege ' + i + '</span>';
     html += '<span style="font-size:.8rem;color:#c0b090">' + titulaire + '</span>';

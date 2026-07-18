@@ -321,8 +321,8 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => chargerOrganisations(), 1800);
   setTimeout(() => { if (typeof chargerLocations === 'function') chargerLocations(); }, 1900);
   setTimeout(() => { if (typeof demarrerPollingNotificationChat === 'function') demarrerPollingNotificationChat(); }, 2000);
-  setTimeout(() => { if (typeof appliquerNaturalisationAcceptee === "function") appliquerNaturalisationAcceptee(); }, 2100);
-  setTimeout(() => { if (typeof appliquerNominationPosteEnAttente === "function") appliquerNominationPosteEnAttente(); }, 2300);
+  setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
+  setTimeout(() => appliquerNominationPosteEnAttente(), 2300);
   setTimeout(() => recupererDonsEnAttente(), 2000);
   setTimeout(() => recupererVolsEnAttente(), 2200);
   setTimeout(() => recupererImpactsEnAttente(), 2400);

@@ -170,7 +170,12 @@ function showVueRue() {
     conteneur.id = 'rue-centrale-conteneur';
     conteneur.style.cssText = 'position:absolute; inset:0; z-index:0;';
     rueImage.insertBefore(conteneur, rueImage.firstChild);
-    initialiserRueCentrale(state.country, noeudDepart);
+    // Reprend le dernier noeud visite dans cette ville (ex: en sortant d'un batiment)
+    // plutot que de toujours reinitialiser sur le noeud de depart.
+    const noeudReprise = typeof obtenirNoeudRueCentraleMemorise === 'function'
+      ? obtenirNoeudRueCentraleMemorise(state.country, state.currentCity, noeudDepart)
+      : noeudDepart;
+    initialiserRueCentrale(state.country, noeudReprise);
   } else {
     // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
     if (minimap) minimap.style.display = '';
@@ -254,16 +259,16 @@ function enterBuilding(buildingId, skipAutoRoom) {
     return;
   }
 
-  // Controle acces loge maconnique — necessite d'etre membre d'une organisation de type 'loge'
+  // Controle acces loge maconnique : les membres actifs d'une loge entrent directement
+  // (pour ne pas alourdir la navigation) ; les non-membres declenchent une rencontre
+  // avec le portier (doLogePortail, avec son propre jet de chance) plutot qu'un refus sec.
   if (b.requiresMembership === 'loge') {
     const orgas = state.organisations || [];
-    const estMembre = orgas.some(o => o.type === 'loge' && o.statut === 'actif');
+    const loge = orgas.find(o => o.type === 'loge' && o.statut === 'actif');
+    const estMembre = loge?.membres?.some(m => m.nom === state.char?.name);
     if (!estMembre) {
-      showToast('Accès refusé', "Vous devez être membre d'une loge pour entrer ici.", false);
-      addJournalEntry("Vous tentez d'entrer dans la loge mais un portier vous barre la route.", 'event-bad');
-      if (typeof logeDemanderAdhesion === 'function') {
-        setTimeout(() => logeDemanderAdhesion(), 500);
-      }
+      if (typeof doLogePortail === 'function') doLogePortail();
+      else showToast('Accès refusé', "Vous devez être membre d'une loge pour entrer ici.", false);
       return;
     }
   }

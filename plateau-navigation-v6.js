@@ -170,7 +170,12 @@ function showVueRue() {
     conteneur.id = 'rue-centrale-conteneur';
     conteneur.style.cssText = 'position:absolute; inset:0; z-index:0;';
     rueImage.insertBefore(conteneur, rueImage.firstChild);
-    initialiserRueCentrale(state.country, noeudDepart);
+    // Reprend le dernier noeud visite dans cette ville (ex: en sortant d'un batiment)
+    // plutot que de toujours reinitialiser sur le noeud de depart.
+    const noeudReprise = typeof obtenirNoeudRueCentraleMemorise === 'function'
+      ? obtenirNoeudRueCentraleMemorise(state.country, state.currentCity, noeudDepart)
+      : noeudDepart;
+    initialiserRueCentrale(state.country, noeudReprise);
   } else {
     // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
     if (minimap) minimap.style.display = '';
@@ -254,22 +259,30 @@ function enterBuilding(buildingId, skipAutoRoom) {
     return;
   }
 
-  // Controle acces loge maconnique — necessite d'etre membre d'une organisation de type 'loge'
+  // Controle acces loge maconnique : les membres actifs d'une loge entrent directement
+  // (pour ne pas alourdir la navigation) ; les non-membres declenchent une rencontre
+  // avec le portier (doLogePortail, avec son propre jet de chance) plutot qu'un refus sec.
   if (b.requiresMembership === 'loge') {
     const orgas = state.organisations || [];
-    const estMembre = orgas.some(o => o.type === 'loge' && o.statut === 'actif');
+    const loge = orgas.find(o => o.type === 'loge' && o.statut === 'actif');
+    const estMembre = loge?.membres?.some(m => m.nom === state.char?.name);
     if (!estMembre) {
-      showToast('Accès refusé', "Vous devez être membre d'une loge pour entrer ici.", false);
-      addJournalEntry("Vous tentez d'entrer dans la loge mais un portier vous barre la route.", 'event-bad');
-      if (typeof logeDemanderAdhesion === 'function') {
-        setTimeout(() => logeDemanderAdhesion(), 500);
-      }
+      if (typeof doLogePortail === 'function') doLogePortail();
+      else showToast('Accès refusé', "Vous devez être membre d'une loge pour entrer ici.", false);
       return;
     }
   }
 
   state.currentBuilding = buildingId;
   deplacerGroupeAvecPj(buildingId, null, state.currentCity);
+
+  // Precharger la liste des ambassades etrangeres ouvertes ici (partagee via Supabase), pour
+  // que le controle d'acces des bureaux d'ambassadeurs (voir enterRoom) reste synchrone.
+  if (buildingId === 'quartier-ambassades' && typeof sbGetAmbassadesOuvertes === 'function') {
+    sbGetAmbassadesOuvertes(state.country).then(rows => {
+      state.ambassadesOuvertesCache = (rows || []).map(r => r.data?.empire || r.empire).filter(Boolean);
+    }).catch(() => { state.ambassadesOuvertesCache = []; });
+  }
 
   // Générer PNJ aléatoire si terrain à bâtir
   if (buildingId?.startsWith('terrain-a-batir')) {
@@ -343,6 +356,17 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   // Vérifier accès zone embarquement
   if (!checkZoneEmbarquementAcces(buildingId, roomId)) return;
+  // Vérifier accès bureau d'ambassadeur — ferme tant que l'empire concerné n'a pas ouvert
+  // son ambassade ici (voir sbOuvrirAmbassade / cache charge dans enterBuilding).
+  const AMBASSADE_ROOM_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
+  if (buildingId === 'quartier-ambassades' && AMBASSADE_ROOM_EMPIRE[roomId]) {
+    const empireRequis = AMBASSADE_ROOM_EMPIRE[roomId];
+    const ouvertes = state.ambassadesOuvertesCache || [];
+    if (!ouvertes.includes(empireRequis)) {
+      showToast('Bureau fermé', "Aucune ambassade de " + (COUNTRIES[empireRequis]?.n || empireRequis) + " n'est ouverte ici pour le moment.", false);
+      return;
+    }
+  }
   const b = BUILDINGS[buildingId];
   if (!b) return;
   const room = b.rooms?.[roomId];
@@ -520,6 +544,20 @@ function sortirBatiment() {
     return;
   }
   state.douanePassee = false;
+  state.currentBuilding = null;
+  state.currentRoom = null;
+  // Effacer et persister IMMEDIATEMENT (meme mecanisme que enterRoom), sinon un rafraichissement
+  // de la page restaure la derniere piece visitee au lieu de laisser le joueur dans la rue —
+  // restaurerPositionApresChargement() ne fait confiance qu'a ce qui est ecrit ici.
+  if (state.char) {
+    state.char.currentBuilding = null;
+    state.char.currentRoom = null;
+    localStorage.setItem('respublica_char_' + (state.char.name || 'default'), JSON.stringify(state.char));
+    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    if (typeof sbSavePersonnage === 'function') {
+      sbSavePersonnage(state).catch(() => {});
+    }
+  }
   showVueRue();
   addJournalEntry(`Vous sortez du batiment.`, '');
 }
@@ -532,36 +570,39 @@ function sortirBatiment() {
 // Disposition des bâtiments sur le plan (x, y, w, h)
 const PLAN_LAYOUTS = {
   capitale: {
-    'palais-presidentiel':          [14,  12, 104, 60],
-    'assemblee':                    [14,  80, 104, 58],
-    'tribunal':                    [152,  12,  96, 60],
-    'palais-gouvernement':         [152,  80,  96, 58],
-    'banque-nationale':            [286,  12,  80, 60],
-    'banque-privee':               [376,  12,  72, 60],
-    'hotel-republica':             [286,  80, 162, 58],
-    'la-tribune':                  [488,  12,  84, 60],
-    'loge-maconnique':             [582,  12,  84, 60],
-    'universite':                  [488,  80,  88, 58],
-    'clinique-privee':             [584,  80,  82, 58],
-    'commissariat':                 [14, 168, 104,110],
-    'armurerie':                   [148, 168, 100, 52],
-    'dispensaire-public':          [148, 228, 100, 50],
-    'marche':                      [286, 168, 168,110],
-    'tabernacle-impots':           [488, 168,  84, 52],
-    'mairie-capitale':             [582, 168,  84,110],
-    'terrain-a-batir-1':           [488, 228,  84, 50],
-    'centre-multinodal-luthecia':  [ 14, 330, 104,104],
-    'siege-syndical':              [148, 330, 100, 52],
-    'usine-principale':            [148, 390, 100, 52],
-    'terrain-a-batir-2':           [286, 330,  76,104],
-    'terrain-a-batir-3':           [372, 330,  76,104],
-    'port-sainte-marie':           [488, 330, 178,104],
-    'qhs-prison':                  [ 14, 476, 104, 96],
-    'caserne-militaire':           [148, 476, 100, 96],
-    'terrain-a-batir-4':           [286, 476,  76, 96],
-    'terrain-a-batir-5':           [372, 476,  76, 96],
-    'terrain-a-batir-6':           [488, 476,  84, 96],
-    'terrain-a-batir-7':           [582, 476,  84, 96],
+    // Plan entierement reconstruit pour correspondre aux vrais batiments actuels de Luthecia
+    // (l'ancien plan melangeait des batiments d'autres villes — siege-syndical, usine-principale,
+    // port-sainte-marie, caserne-militaire — et ne connaissait pas les ajouts recents comme le
+    // Quartier des Ambassades, le Stade, le Centre Commercial/Artisanal/Affaires, etc.)
+    'palais-presidentiel':         [ 14,  12, 120, 70],
+    'palais-gouvernement':         [148,  12, 120, 70],
+    'assemblee':                   [282,  12, 120, 70],
+    'tribunal':                    [416,  12, 120, 70],
+    'banque-nationale':            [550,  12, 120, 70],
+    'banque-privee':               [ 14,  96, 120, 70],
+    'hotel-republica':             [148,  96, 120, 70],
+    'office-notarial':             [282,  96, 120, 70],
+    'loge-maconnique':             [416,  96, 120, 70],
+    'universite':                  [550,  96, 120, 70],
+    'clinique-privee':             [ 14, 180, 120, 70],
+    'dispensaire-public':          [148, 180, 120, 70],
+    'commissariat':                [282, 180, 120, 70],
+    'la-tribune':                  [416, 180, 120, 70],
+    'armurerie':                   [550, 180, 120, 70],
+    'marche':                      [ 14, 264, 120, 70],
+    'tabernacle-impots':           [148, 264, 120, 70],
+    'mairie-capitale':             [282, 264, 120, 70],
+    'centre-multinodal-luthecia':  [416, 264, 120, 70],
+    'centre-commercial':           [550, 264, 120, 70],
+    'centre-artisanal':            [ 14, 348, 120, 70],
+    'centre-affaires':             [148, 348, 120, 70],
+    'stade':                       [282, 348, 120, 70],
+    'quartier-ambassades':         [416, 348, 120, 70],
+    'terrain-a-batir-1':           [550, 348, 120, 70],
+    'terrain-a-batir-4':           [ 14, 432, 120, 70],
+    'terrain-a-batir-5':           [148, 432, 120, 70],
+    'terrain-a-batir-6':           [282, 432, 120, 70],
+    'terrain-a-batir-7':           [416, 432, 120, 70],
   },
   ville_a: {
     'hotel-port':                  [ 14,  12, 100, 60],
@@ -613,6 +654,8 @@ const PLAN_ICONS = {
   'centre-multinodal-luthecia': '🚉',
   'centre-multinodal-port-sainte-marie': '🚉',
   'centre-multinodal-montrouge': '🚉',
+  'centre-commercial': '🛍', 'centre-artisanal': '🔨', 'centre-affaires': '💼',
+  'office-notarial': '📜', 'stade': '⚽', 'quartier-ambassades': '🏳',
   'port-sainte-marie': '⚓', 'port-novomirsk': '⚓',
   'port-ciudad-roja': '⚓', 'port-al-madina': '⚓',
   'bar-des-pecheurs': '🐟', 'caserne-militaire': '🎖',

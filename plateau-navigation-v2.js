@@ -170,7 +170,12 @@ function showVueRue() {
     conteneur.id = 'rue-centrale-conteneur';
     conteneur.style.cssText = 'position:absolute; inset:0; z-index:0;';
     rueImage.insertBefore(conteneur, rueImage.firstChild);
-    initialiserRueCentrale(state.country, noeudDepart);
+    // Reprend le dernier noeud visite dans cette ville (ex: en sortant d'un batiment)
+    // plutot que de toujours reinitialiser sur le noeud de depart.
+    const noeudReprise = typeof obtenirNoeudRueCentraleMemorise === 'function'
+      ? obtenirNoeudRueCentraleMemorise(state.country, state.currentCity, noeudDepart)
+      : noeudDepart;
+    initialiserRueCentrale(state.country, noeudReprise);
   } else {
     // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
     if (minimap) minimap.style.display = '';

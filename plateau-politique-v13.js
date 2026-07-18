@@ -7,6 +7,17 @@
 // =====================
 // MARCHANDER UN VOTE
 // =====================
+function doConsulterLobbyiste() {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const cout = 300;
+  if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Le lobbyiste demande ' + cout + ' ' + cur + '.', false); return; }
+  state.arg -= cout;
+  state.bonusLobbyisteMarchandage = (state.bonusLobbyisteMarchandage || 0) + 20;
+  updateUI();
+  showToast('Accord conclu', 'Le lobbyiste vous garantit un coup de pouce sur votre prochain marchandage de vote (+20%).', true);
+  addJournalEntry('Consultation du lobbyiste dans les couloirs de l\'Assemblée. Bonus de +20% sur le prochain marchandage.', 'event-info');
+}
+
 function openMarchanderVoteModal() {
   const votes = state.votesEnCours || [];
   if (votes.length === 0) {
@@ -14,9 +25,10 @@ function openMarchanderVoteModal() {
     return;
   }
   const bonusInf = Math.floor((state.inf / 100) * 10);
-  const tauxFinal = Math.min(90, 40 + bonusInf);
+  const bonusLobbyiste = state.bonusLobbyisteMarchandage || 0;
+  const tauxFinal = Math.min(90, 40 + bonusInf + bonusLobbyiste);
   document.getElementById('postes-modal-title').textContent = 'Marchander un vote';
-  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux : ' + tauxFinal + '% (base 40% + ' + bonusInf + '% INF). Cout : 200 FR + 1 PA si succes.</div>';
+  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux : ' + tauxFinal + '% (base 40% + ' + bonusInf + '% INF' + (bonusLobbyiste > 0 ? ' + ' + bonusLobbyiste + '% lobbyiste' : '') + '). Cout : 200 FR + 1 PA si succes.</div>';
   votes.forEach(function(v, i) {
     html += '<div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">';
     html += '<div style="font-family:Playfair Display,serif;font-size:.88rem;color:#E8C97A;margin-bottom:.2rem">' + (v.titre || 'Vote ' + i) + '</div>';
@@ -34,6 +46,7 @@ function soumettreVoteMarchande(taux) {
   document.getElementById('modal-postes').classList.remove('open');
   const cur = COUNTRIES[state.char && state.char.country ? state.char.country : 'republic'] && COUNTRIES[state.char.country].cur ? COUNTRIES[state.char.country].cur : 'FR';
   if (state.arg < 200) { showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false); return; }
+  state.bonusLobbyisteMarchandage = 0; // consomme, que la tentative reussisse ou non
   const roll = Math.floor(Math.random() * 100) + 1;
   const vote = (state.votesEnCours || []).find(function(v) { return v.id === voteId; });
   if (roll <= taux) {
@@ -105,6 +118,7 @@ async function ouvrirCalendrierElectoral() {
   const villeCourante = state.currentCity || 'capitale';
 
   document.getElementById('postes-modal-title').textContent = '📅 Calendrier Électoral — ' + (co?.n || country);
+  document.querySelector('#modal-postes .modal-box')?.classList.add('modal-wide');
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement du calendrier électoral...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
@@ -189,6 +203,9 @@ async function ouvrirCalendrierElectoral() {
           '<div style="font-size:.72rem;color:#a89870">' + nbCandidats + ' candidat(s)</div>' +
         '</div>' +
       '</div>' +
+      (nbCandidats > 0
+        ? '<div style="font-size:.72rem;color:#c0b090;margin-bottom:.3rem">Candidats : ' + cycle.candidats.map(c => c.nom).join(', ') + '</div>'
+        : '') +
       // Échéances
       (echeances.length > 0
         ? '<div style="background:#0a0907;border:1px solid #1a1810;border-radius:3px;padding:.35rem .5rem;margin-top:.3rem">' +
@@ -1916,6 +1933,16 @@ function soumettreProjetLoi() {
     jourDepot, jourVoteMin, pret: false, votes: []
   });
 
+  // Archivage partage (Supabase) — statut 'en_cours' au depot, mis a jour a chaque vote.
+  // Le resultat final (Adoptee/Rejetee) reste a calculer une fois la question du mapping
+  // jour-de-jeu / mercredi reel tranchee — voir note dans ouvrirVoteLoi.
+  if (typeof sbArchiverLoi === 'function') {
+    sbArchiverLoi(state.country, {
+      id: topic.id, titre, auteur: state.char?.name,
+      jourDepot, jourVoteMin, statut: 'en_cours', resultat: null, votes: []
+    }).catch(() => {});
+  }
+
   closeForumView();
   showToast('Projet soumis !', titre + ' · Vote possible à partir du Jour ' + jourVoteMin, true, true);
   addJournalEntry('Projet de loi soumis : ' + titre, 'event-good');
@@ -1942,6 +1969,18 @@ function observerDebats() {
     loisEnCours.forEach(loi => {
       html += '<div style="padding:.5rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
       html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">' + loi.titre + '</div>';
+      // Vrais votes deja exprimes par de vrais deputes (joueurs)
+      if (loi.votes && loi.votes.length > 0) {
+        html += '<div style="font-size:.68rem;color:#8a6a20;margin-bottom:.2rem">Votes exprimés (députés réels) :</div>';
+        loi.votes.forEach(v => {
+          const col = v.choix === 'Pour' ? '#4a8a4a' : v.choix === 'Contre' ? '#8a3a2a' : '#6a6040';
+          html += '<div style="font-size:.72rem;color:#c0b090">' + v.depute + ' : <span style="color:' + col + '">' + v.choix + '</span></div>';
+        });
+      } else {
+        html += '<div style="font-size:.7rem;color:#5a5030;font-style:italic;margin-bottom:.2rem">Aucun vote reel exprime pour l\'instant.</div>';
+      }
+      // Ambiance : positions supposees des deputes PNJ (non persistantes, juste indicatif)
+      html += '<div style="font-size:.68rem;color:#5a5030;margin-top:.3rem">Rumeurs de couloir sur les députés PNJ :</div>';
       deputes.forEach(d => {
         const pos = positions[Math.floor(Math.random() * positions.length)];
         const col = pos === 'Pour' ? '#4a8a4a' : pos === 'Contre' ? '#8a3a2a' : '#6a6040';
@@ -1968,7 +2007,7 @@ function ouvrirVoteLoi() {
   const now = new Date();
   const isWednesday = now.getDay() === 3; // 0=dim, 3=mer
   const isBeforeDeadline = now.getHours() < 20;
-  const loisEnCours = (state.loisEnCours || []).filter(l => l.pret);
+  const loisEnCours = (state.loisEnCours || []).filter(l => (state.day || 1) >= l.jourVoteMin);
 
   document.getElementById('postes-modal-title').textContent = 'Voter une loi';
   let html = '<div style="padding:1rem">';
@@ -2002,20 +2041,31 @@ function ouvrirVoteLoi() {
 }
 
 function enregistrerVoteLoi(loiIdx, choix) {
-  const loi = (state.loisEnCours || []).filter(l => l.pret)[loiIdx];
+  const loi = (state.loisEnCours || []).filter(l => (state.day || 1) >= l.jourVoteMin)[loiIdx];
   if (!loi) return;
   if (!state.votesLois) state.votesLois = {};
   state.votesLois[loi.id] = choix;
   if (!loi.votes) loi.votes = [];
   loi.votes.push({ depute: state.char?.name || 'Anonyme', choix });
+  // Mise a jour de l'archive partagee avec le vote exprime
+  if (typeof sbArchiverLoi === 'function') {
+    sbArchiverLoi(state.country, {
+      id: loi.id, titre: loi.titre, auteur: loi.auteur,
+      jourDepot: loi.jourDepot, jourVoteMin: loi.jourVoteMin,
+      statut: 'en_cours', resultat: null, votes: loi.votes
+    }).catch(() => {});
+  }
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Vote enregistre', choix + ' pour : ' + loi.titre, true, true);
   addJournalEntry('Vote : ' + choix + ' — ' + loi.titre, 'event-info');
 }
 
-function ouvrirArchivesLois() {
-  const archives = state.archivesLois || [];
+async function ouvrirArchivesLois() {
   document.getElementById('postes-modal-title').textContent = 'Archives de l\'Assemblee';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement des archives...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const archives = typeof sbGetArchivesLois === 'function' ? await sbGetArchivesLois(state.country).catch(() => []) : [];
   let html = '<div style="padding:1rem">';
   if (archives.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune loi votee pour le moment.</div>';
@@ -2024,20 +2074,20 @@ function ouvrirArchivesLois() {
       html += '<div onclick="ouvrirDetailLoi(' + i + ')" style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
       html += '<div style="display:flex;justify-content:space-between;align-items:center">';
       html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + loi.titre + '</div>';
-      const col = loi.resultat === 'Adoptee' ? '#4a8a4a' : '#8a2020';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;color:' + col + '">' + (loi.resultat||'En cours') + '</div>';
+      const col = loi.resultat === 'Adoptee' ? '#4a8a4a' : loi.resultat === 'Rejetee' ? '#8a2020' : '#6a5a30';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;color:' + col + '">' + (loi.resultat || 'En cours') + '</div>';
       html += '</div>';
-      html += '<div style="font-size:.68rem;color:#5a4030">Jour ' + loi.jourVote + ' · ' + (loi.votes?.length||0) + ' votants</div>';
+      html += '<div style="font-size:.68rem;color:#5a4030">Jour ' + loi.jourDepot + ' · ' + (loi.votes?.length||0) + ' votants</div>';
       html += '</div>';
     });
   }
   html += '</div>';
+  window._archivesLoisCache = archives;
   document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
 }
 
 function ouvrirDetailLoi(idx) {
-  const loi = (state.archivesLois||[])[idx];
+  const loi = (window._archivesLoisCache||[])[idx];
   if (!loi) return;
   document.getElementById('postes-modal-title').textContent = loi.titre;
   let html = '<div style="padding:1rem">';
@@ -2248,7 +2298,7 @@ function consulterAnnuaireDeputes() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">25 sieges a l\'Assemblee Nationale de ' + (co?.n||country) + '.</div>';
   for (let i = 1; i <= 25; i++) {
-    const titulaire = titulairesConnus['depute_' + i] || 'Vacant (PNJ)';
+    const titulaire = titulairesConnus['depute_' + i] || 'Occupé par un PNJ';
     html += '<div style="display:flex;justify-content:space-between;padding:.4rem .2rem;border-bottom:1px solid #1a1810">';
     html += '<span style="font-size:.78rem;color:#6a5a30">Siege ' + i + '</span>';
     html += '<span style="font-size:.8rem;color:#c0b090">' + titulaire + '</span>';

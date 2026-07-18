@@ -105,6 +105,7 @@ async function ouvrirCalendrierElectoral() {
   const villeCourante = state.currentCity || 'capitale';
 
   document.getElementById('postes-modal-title').textContent = '📅 Calendrier Électoral — ' + (co?.n || country);
+  document.querySelector('#modal-postes .modal-box')?.classList.add('modal-wide');
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement du calendrier électoral...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
@@ -189,6 +190,9 @@ async function ouvrirCalendrierElectoral() {
           '<div style="font-size:.72rem;color:#a89870">' + nbCandidats + ' candidat(s)</div>' +
         '</div>' +
       '</div>' +
+      (nbCandidats > 0
+        ? '<div style="font-size:.72rem;color:#c0b090;margin-bottom:.3rem">Candidats : ' + cycle.candidats.map(c => c.nom).join(', ') + '</div>'
+        : '') +
       // Échéances
       (echeances.length > 0
         ? '<div style="background:#0a0907;border:1px solid #1a1810;border-radius:3px;padding:.35rem .5rem;margin-top:.3rem">' +

@@ -170,7 +170,12 @@ function showVueRue() {
     conteneur.id = 'rue-centrale-conteneur';
     conteneur.style.cssText = 'position:absolute; inset:0; z-index:0;';
     rueImage.insertBefore(conteneur, rueImage.firstChild);
-    initialiserRueCentrale(state.country, noeudDepart);
+    // Reprend le dernier noeud visite dans cette ville (ex: en sortant d'un batiment)
+    // plutot que de toujours reinitialiser sur le noeud de depart.
+    const noeudReprise = typeof obtenirNoeudRueCentraleMemorise === 'function'
+      ? obtenirNoeudRueCentraleMemorise(state.country, state.currentCity, noeudDepart)
+      : noeudDepart;
+    initialiserRueCentrale(state.country, noeudReprise);
   } else {
     // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
     if (minimap) minimap.style.display = '';
@@ -254,22 +259,30 @@ function enterBuilding(buildingId, skipAutoRoom) {
     return;
   }
 
-  // Controle acces loge maconnique — necessite d'etre membre d'une organisation de type 'loge'
+  // Controle acces loge maconnique : les membres actifs d'une loge entrent directement
+  // (pour ne pas alourdir la navigation) ; les non-membres declenchent une rencontre
+  // avec le portier (doLogePortail, avec son propre jet de chance) plutot qu'un refus sec.
   if (b.requiresMembership === 'loge') {
     const orgas = state.organisations || [];
-    const estMembre = orgas.some(o => o.type === 'loge' && o.statut === 'actif');
+    const loge = orgas.find(o => o.type === 'loge' && o.statut === 'actif');
+    const estMembre = loge?.membres?.some(m => m.nom === state.char?.name);
     if (!estMembre) {
-      showToast('Accès refusé', "Vous devez être membre d'une loge pour entrer ici.", false);
-      addJournalEntry("Vous tentez d'entrer dans la loge mais un portier vous barre la route.", 'event-bad');
-      if (typeof logeDemanderAdhesion === 'function') {
-        setTimeout(() => logeDemanderAdhesion(), 500);
-      }
+      if (typeof doLogePortail === 'function') doLogePortail();
+      else showToast('Accès refusé', "Vous devez être membre d'une loge pour entrer ici.", false);
       return;
     }
   }
 
   state.currentBuilding = buildingId;
   deplacerGroupeAvecPj(buildingId, null, state.currentCity);
+
+  // Precharger la liste des ambassades etrangeres ouvertes ici (partagee via Supabase), pour
+  // que le controle d'acces des bureaux d'ambassadeurs (voir enterRoom) reste synchrone.
+  if (buildingId === 'quartier-ambassades' && typeof sbGetAmbassadesOuvertes === 'function') {
+    sbGetAmbassadesOuvertes(state.country).then(rows => {
+      state.ambassadesOuvertesCache = (rows || []).map(r => r.data).filter(Boolean);
+    }).catch(() => { state.ambassadesOuvertesCache = []; });
+  }
 
   // Générer PNJ aléatoire si terrain à bâtir
   if (buildingId?.startsWith('terrain-a-batir')) {
@@ -343,6 +356,17 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   // Vérifier accès zone embarquement
   if (!checkZoneEmbarquementAcces(buildingId, roomId)) return;
+  // Vérifier accès bureau d'ambassadeur — ferme tant que l'empire concerné n'a pas ouvert
+  // son ambassade ici (voir sbOuvrirAmbassade / cache charge dans enterBuilding).
+  const AMBASSADE_ROOM_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
+  if (buildingId === 'quartier-ambassades' && AMBASSADE_ROOM_EMPIRE[roomId]) {
+    const empireRequis = AMBASSADE_ROOM_EMPIRE[roomId];
+    const ouvertes = state.ambassadesOuvertesCache || [];
+    if (!ouvertes.some(a => a.empire === empireRequis)) {
+      showToast('Bureau fermé', "Aucune ambassade de " + (COUNTRIES[empireRequis]?.n || empireRequis) + " n'est ouverte ici pour le moment.", false);
+      return;
+    }
+  }
   const b = BUILDINGS[buildingId];
   if (!b) return;
   const room = b.rooms?.[roomId];
@@ -373,6 +397,28 @@ function enterRoom(buildingId, roomId, tabEl) {
 
   // Charger les objets abandonnes visibles dans cette piece
   if (typeof chargerObjetsAbandonnesDansPiece === 'function') chargerObjetsAbandonnesDansPiece();
+
+  // Charger les militants deja recrutes par CE joueur (sessions precedentes), pour qu'ils
+  // reapparaissent dans la liste des personnes presentes a l'universite.
+  if (buildingId === 'universite' && typeof sbGetMesMilitants === 'function' && state.char?.name) {
+    sbGetMesMilitants(state.country, state.char.name).then(militants => {
+      if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) return; // a quitte la piece entre temps
+      const roomActuelle = BUILDINGS[buildingId]?.rooms?.[roomId];
+      if (!roomActuelle || militants.length === 0) return;
+      if (!roomActuelle.persons) roomActuelle.persons = [];
+      militants.forEach(m => {
+        if (!roomActuelle.persons.find(p => p.name === m.nom)) {
+          roomActuelle.persons.unshift({
+            name: m.nom,
+            role: 'Militant recruté (lié à ' + state.char.name + ')',
+            rel: 'ally',
+            job: 'militant'
+          });
+        }
+      });
+      if (typeof renderPersonsList === 'function') renderPersonsList(roomActuelle.persons);
+    }).catch(() => {});
+  }
 
   // Update tabs
   document.querySelectorAll('.piece-tab').forEach(t => t.classList.remove('active'));
@@ -520,6 +566,20 @@ function sortirBatiment() {
     return;
   }
   state.douanePassee = false;
+  state.currentBuilding = null;
+  state.currentRoom = null;
+  // Effacer et persister IMMEDIATEMENT (meme mecanisme que enterRoom), sinon un rafraichissement
+  // de la page restaure la derniere piece visitee au lieu de laisser le joueur dans la rue —
+  // restaurerPositionApresChargement() ne fait confiance qu'a ce qui est ecrit ici.
+  if (state.char) {
+    state.char.currentBuilding = null;
+    state.char.currentRoom = null;
+    localStorage.setItem('respublica_char_' + (state.char.name || 'default'), JSON.stringify(state.char));
+    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    if (typeof sbSavePersonnage === 'function') {
+      sbSavePersonnage(state).catch(() => {});
+    }
+  }
   showVueRue();
   addJournalEntry(`Vous sortez du batiment.`, '');
 }
@@ -532,36 +592,53 @@ function sortirBatiment() {
 // Disposition des bâtiments sur le plan (x, y, w, h)
 const PLAN_LAYOUTS = {
   capitale: {
-    'palais-presidentiel':          [14,  12, 104, 60],
-    'assemblee':                    [14,  80, 104, 58],
-    'tribunal':                    [152,  12,  96, 60],
-    'palais-gouvernement':         [152,  80,  96, 58],
-    'banque-nationale':            [286,  12,  80, 60],
-    'banque-privee':               [376,  12,  72, 60],
-    'hotel-republica':             [286,  80, 162, 58],
-    'la-tribune':                  [488,  12,  84, 60],
-    'loge-maconnique':             [582,  12,  84, 60],
-    'universite':                  [488,  80,  88, 58],
-    'clinique-privee':             [584,  80,  82, 58],
-    'commissariat':                 [14, 168, 104,110],
-    'armurerie':                   [148, 168, 100, 52],
-    'dispensaire-public':          [148, 228, 100, 50],
-    'marche':                      [286, 168, 168,110],
-    'tabernacle-impots':           [488, 168,  84, 52],
-    'mairie-capitale':             [582, 168,  84,110],
-    'terrain-a-batir-1':           [488, 228,  84, 50],
-    'centre-multinodal-luthecia':  [ 14, 330, 104,104],
-    'siege-syndical':              [148, 330, 100, 52],
-    'usine-principale':            [148, 390, 100, 52],
-    'terrain-a-batir-2':           [286, 330,  76,104],
-    'terrain-a-batir-3':           [372, 330,  76,104],
-    'port-sainte-marie':           [488, 330, 178,104],
-    'qhs-prison':                  [ 14, 476, 104, 96],
-    'caserne-militaire':           [148, 476, 100, 96],
-    'terrain-a-batir-4':           [286, 476,  76, 96],
-    'terrain-a-batir-5':           [372, 476,  76, 96],
-    'terrain-a-batir-6':           [488, 476,  84, 96],
-    'terrain-a-batir-7':           [582, 476,  84, 96],
+    // Plan valide visuellement avec Fred (perimetre + route en croix strictement interne).
+    // Quartier des Ambassades au nord (exterieur) ; Stade/Commercial/Affaires autour de
+    // l'intersection centrale ; Centre Multimodal aligne sur le perimetre est (exterieur) ;
+    // Centre Artisanal (exterieur) et Armurerie (interieur, facade ouest) de part et d'autre
+    // de la jonction ouest ; Terrains a Bâtir + Tabernacle + Marche au sud-ouest (exterieur) ;
+    // la rue des institutions repartie de part et d'autre de l'intersection sud : Palais->
+    // Imprimerie a l'ouest (7 batiments), Hotel de Ville->Loge a l'est (8 batiments).
+
+    'quartier-ambassades':         [270,  95, 140, 50],
+
+    'centre-affaires':             [150, 270,  90, 45],
+    'centre-commercial':           [250, 270,  76, 45],
+    'stade':                       [354, 270,  90, 45],
+    'place-formulaire-liberte':    [400, 345,  90, 70],
+
+    'centre-multinodal-luthecia':  [560, 281,  70, 100],
+
+    'centre-artisanal':            [ 10, 260, 110, 45],
+    'armurerie':                   [140, 345,  70, 100],
+
+    'terrain-a-batir-1':           [ 10, 345, 110, 26],
+    'terrain-a-batir-4':           [ 10, 375, 110, 26],
+    'terrain-a-batir-5':           [ 10, 405, 110, 26],
+    'terrain-a-batir-6':           [ 10, 435, 110, 26],
+    'terrain-a-batir-7':           [ 10, 465, 110, 26],
+
+    'marche':                      [ 10, 495, 110, 30],
+    'tabernacle-impots':           [ 10, 530, 110, 40],
+
+    // Rue des institutions — ouest (Palais Presidentiel -> Imprimerie)
+    'palais-presidentiel':         [135, 470,  26, 45],
+    'palais-gouvernement':         [163, 470,  26, 45],
+    'assemblee':                   [191, 470,  26, 45],
+    'tribunal':                    [219, 470,  26, 45],
+    'universite':                  [247, 470,  26, 45],
+    'dispensaire-public':          [275, 470,  26, 45],
+    'la-tribune':                  [303, 470,  26, 45],
+
+    // Rue des institutions — est (Hotel de Ville -> Loge)
+    'mairie-capitale':             [345, 470,  22, 45],
+    'office-notarial':             [369, 470,  22, 45],
+    'hotel-republica':             [393, 470,  22, 45],
+    'banque-nationale':            [417, 470,  22, 45],
+    'banque-privee':               [441, 470,  22, 45],
+    'clinique-privee':             [465, 470,  22, 45],
+    'loge-maconnique':             [489, 470,  22, 45],
+    'commissariat':                [513, 470,  22, 45],
   },
   ville_a: {
     'hotel-port':                  [ 14,  12, 100, 60],
@@ -613,6 +690,8 @@ const PLAN_ICONS = {
   'centre-multinodal-luthecia': '🚉',
   'centre-multinodal-port-sainte-marie': '🚉',
   'centre-multinodal-montrouge': '🚉',
+  'centre-commercial': '🛍', 'centre-artisanal': '🔨', 'centre-affaires': '💼',
+  'office-notarial': '📜', 'stade': '⚽', 'quartier-ambassades': '🏳', 'place-formulaire-liberte': '📋',
   'port-sainte-marie': '⚓', 'port-novomirsk': '⚓',
   'port-ciudad-roja': '⚓', 'port-al-madina': '⚓',
   'bar-des-pecheurs': '🐟', 'caserne-militaire': '🎖',
@@ -640,29 +719,27 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   let svg = '<svg viewBox="0 0 ' + SVG_W + ' ' + SVG_H + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">';
 
   // Style animation
-  svg += '<defs><style>@keyframes pulse{0%,100%{r:5;opacity:1}50%{r:9;opacity:.3}}.pd{animation:pulse 1.4s ease-in-out infinite}</style></defs>';
+  svg += '<defs><style>@keyframes pulse{0%,100%{r:5;opacity:1}50%{r:9;opacity:.3}}.pd{animation:pulse 1.4s ease-in-out infinite}.plan-b{transition:transform .15s ease;transform-box:fill-box;transform-origin:center}.plan-b:hover{transform:scale(1.22)}</style></defs>';
 
   // Fond
   svg += '<rect width="' + SVG_W + '" height="' + SVG_H + '" fill="#111008"/>';
 
-  // Rues principales
-  svg += '<rect x="0" y="290" width="' + SVG_W + '" height="24" fill="#1e1c10"/>';
-  svg += '<rect x="258" y="0" width="20" height="' + SVG_H + '" fill="#1e1c10"/>';
-  svg += '<rect x="0" y="148" width="' + SVG_W + '" height="14" fill="#1a1810"/>';
-  svg += '<rect x="0" y="448" width="' + SVG_W + '" height="14" fill="#1a1810"/>';
-  svg += '<rect x="128" y="0" width="12" height="' + SVG_H + '" fill="#1a1810"/>';
-  svg += '<rect x="468" y="0" width="12" height="' + SVG_H + '" fill="#1a1810"/>';
+  // Perimetre (perimetrique) — rectangle qui ceinture la ville
+  svg += '<rect x="130" y="150" width="420" height="370" rx="8" fill="none" stroke="#3a3418" stroke-width="2"/>';
 
-  // Tirets
-  svg += '<line x1="0" y1="302" x2="' + SVG_W + '" y2="302" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
-  svg += '<line x1="268" y1="0" x2="268" y2="' + SVG_H + '" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+  // Route nord-sud, strictement a l'interieur du perimetre
+  svg += '<rect x="336" y="150" width="8" height="370" fill="#1e1c10"/>';
+  svg += '<line x1="340" y1="150" x2="340" y2="520" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
 
-  // Parc central
-  svg += '<rect x="282" y="168" width="74" height="110" rx="5" fill="#0d1807"/>';
-  svg += '<ellipse cx="302" cy="196" rx="13" ry="11" fill="#122010"/>';
-  svg += '<ellipse cx="326" cy="185" rx="11" ry="10" fill="#162812"/>';
-  svg += '<ellipse cx="314" cy="212" rx="10" ry="9" fill="#142210"/>';
-  svg += '<ellipse cx="336" cy="205" rx="10" ry="9" fill="#122010"/>';
+  // Route est-ouest, strictement a l'interieur du perimetre
+  svg += '<rect x="130" y="331" width="420" height="8" fill="#1e1c10"/>';
+  svg += '<line x1="130" y1="335" x2="550" y2="335" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+
+  // Batiments visibles dans la scene de rue actuelle (si on n'est pas a l'interieur d'un
+  // batiment) — permet au marqueur "vous etes ici" de fonctionner aussi dans la rue.
+  const zonesSceneActuelle = (!state.currentBuilding && typeof rueCentraleNoeudActuel !== 'undefined' && typeof RUE_CENTRALE_NOEUDS !== 'undefined')
+    ? (RUE_CENTRALE_NOEUDS[countryId]?.[rueCentraleNoeudActuel]?.zones || [])
+    : [];
 
   // Bâtiments
   buildings.forEach(id => {
@@ -685,7 +762,7 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
     const dashAttr = isTerrain ? ' stroke-dasharray="5,3"' : '';
     const clickFn = readOnly ? '' : 'onclick="document.getElementById(\'modal-minimap-ville\').classList.remove(\'open\');enterBuilding(\'' + id + '\')"';
 
-    svg += '<g ' + clickFn + ' style="cursor:' + (readOnly ? 'default' : 'pointer') + '">';
+    svg += '<g class="plan-b" ' + clickFn + ' style="cursor:' + (readOnly ? 'default' : 'pointer') + '">';
     svg += '<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="3"';
     svg += ' fill="' + bgColor + '" stroke="' + borderColor + '" stroke-width="' + borderW + '"' + dashAttr + '/>';
 
@@ -701,15 +778,32 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
     svg += '<text x="' + cx + '" y="' + nameY + '" text-anchor="middle" font-size="8" fill="' + textColor + '" font-family="sans-serif">' + name1 + '</text>';
 
     svg += '</g>';
+  });
 
-    // Point rouge clignotant si joueur ici
-    if (isHere) {
-      const pcx = bx + bw - 8;
-      const pcy = by + 8;
+  // Point rouge clignotant unique "vous etes ici" : sur le batiment si on y est entre,
+  // sinon centre sur l'ensemble des batiments de la scene de rue actuelle.
+  if (countryId === state.country) {
+    let pcx = null, pcy = null;
+    if (state.currentBuilding && layout[state.currentBuilding]) {
+      const [hx, hy, hw, hh] = layout[state.currentBuilding];
+      pcx = hx + hw - 8;
+      pcy = hy + 8;
+    } else if (zonesSceneActuelle.length > 0) {
+      const pts = zonesSceneActuelle.map(z => layout[z.buildingId]).filter(Boolean);
+      if (pts.length > 0) {
+        const minX = Math.min(...pts.map(p => p[0]));
+        const maxX = Math.max(...pts.map(p => p[0] + p[2]));
+        const minY = Math.min(...pts.map(p => p[1]));
+        const maxY = Math.max(...pts.map(p => p[1] + p[3]));
+        pcx = (minX + maxX) / 2;
+        pcy = maxY + 10;
+      }
+    }
+    if (pcx !== null) {
       svg += '<circle cx="' + pcx + '" cy="' + pcy + '" r="9" fill="#cc2020" opacity="0.2" class="pd"/>';
       svg += '<circle cx="' + pcx + '" cy="' + pcy + '" r="5" fill="#ff3333" stroke="#fff" stroke-width="1.2" class="pd"/>';
     }
-  });
+  }
 
   // Titre
   svg += '<text x="340" y="590" text-anchor="middle" font-size="8" fill="#3a3520" font-family="sans-serif" letter-spacing="2">' + city.name.toUpperCase() + ' — ' + (co?.n || '').toUpperCase() + '</text>';
