@@ -169,7 +169,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'objet_trouve')            { reclamerObjetTrouve(); return; }
   if (fn === 'voter_loi')              { ouvrirVoteLoi(); return; }
   if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
-  if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(); return; }
+  if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(successRate); return; }
   if (fn === 'consulter_lobbyiste')    { doConsulterLobbyiste(); return; }
   if (fn === 'forum_president_conference' || fn === 'conference_presse')  { ouvrirForumNationalSousForumPresident('conference'); return; }
   if (fn === 'donner_conf') { doDonnerConference(); return; }

@@ -289,7 +289,7 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   torture_qhs:            (a, c) => 'Des bruits de couloir évoquent des méthodes brutales employées par ' + a + ' envers un détenu du QHS.'
 };
 
-async function ecouterRumeurs() {
+async function ecouterRumeurs(successRate) {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const char = state.char;
   const pnjPresents = ['Le Commissaire', 'Un député', 'Un journaliste', 'Un commerçant', 'Un inconnu'];
@@ -297,9 +297,14 @@ async function ecouterRumeurs() {
 
   showToast('Vous tendez l\'oreille...', 'En attente d\'une information.', false);
 
-  // 1. Tenter d'abord une VRAIE rumeur basee sur une action reellement tracee
+  const roll = Math.random() * 100;
+  const succes = roll < (successRate ?? 70);
+
+  // Rumeurs VRAIES uniquement, basees sur une action reellement tracee.
+  // Aucun repli IA/invente : si le jet echoue ou qu'il n'y a rien a reveler,
+  // le joueur repart simplement bredouille.
   let actionsDisponibles = [];
-  if (typeof sbGetActionsTracables === 'function') {
+  if (succes && typeof sbGetActionsTracables === 'function') {
     try {
       actionsDisponibles = await sbGetActionsTracables(state.country, state.currentCity, state.day || 1);
       // Ne jamais reveler sa propre action a soi-meme
@@ -307,7 +312,7 @@ async function ecouterRumeurs() {
     } catch(e) {}
   }
 
-  if (actionsDisponibles.length > 0 && Math.random() < 0.6) {
+  if (succes && actionsDisponibles.length > 0) {
     const action = actionsDisponibles[Math.floor(Math.random() * actionsDisponibles.length)];
     const formulateur = FORMULATIONS_RUMEUR_VRAIE[action.type_action];
     if (formulateur) {
@@ -326,46 +331,13 @@ async function ecouterRumeurs() {
     }
   }
 
-  // 2. Fallback — generation IA generique si aucune vraie action disponible
-  const context = 'Empire : ' + (COUNTRIES[state.country]?.n || 'Républia') +
-    '. Ville : ' + ville +
-    '. Votre personnage : ' + (char?.name || 'Anonyme') +
-    (state.poste ? ', ' + state.poste.name : '') +
-    '. Jour ' + state.day + '.' +
-    (state.guerres?.length ? ' Guerre en cours contre : ' + state.guerres.map(g=>g.nom).join(', ') + '.' : '') +
-    (state.electionsEnCours?.length ? ' Elections en cours.' : '');
-
-  try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 200,
-        messages: [{
-          role: 'user',
-          content: 'Tu es le narrateur d\'un jeu de rôle politique parodique et satirique. Contexte : ' + context + '. Génère UNE rumeur courte (2-3 phrases max) que "' + source + '" chuchote à l\'oreille du joueur. La rumeur doit être crédible, légèrement compromettante pour un personnage politique ou une institution, et adaptée au contexte. Ton satirique et cynique. Réponds UNIQUEMENT avec la rumeur, sans introduction.'
-        }]
-      })
-    });
-    const data = await resp.json();
-    const rumeur = data.content?.[0]?.text || 'Rien d\'intéressant à rapporter aujourd\'hui.';
-
-    document.getElementById('postes-modal-title').textContent = source + ' vous glisse à l\'oreille...';
-    document.getElementById('postes-body').innerHTML =
-      '<div style="padding:1.2rem">' +
-      '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + rumeur + '"</div>' +
-      '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">Source : ' + source + ' · Fiabilité incertaine</div>' +
-      '</div>';
-    document.getElementById('modal-postes').classList.add('open');
-
-    state.inf = Math.min(100, state.inf + 1);
-    updateUI();
-    addJournalEntry('Rumeur entendue à ' + ville, 'event-info');
-
-  } catch(e) {
-    showToast('Silence', 'Personne ne parle aujourd\'hui.', false);
-  }
+  // Echec du jet ou aucune rumeur vraie disponible
+  document.getElementById('postes-modal-title').textContent = source + '...';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem">' +
+    '<div style="font-size:.85rem;color:#8a8060;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">Rien de croustillant à se mettre sous la dent aujourd\'hui.</div>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 async function solliciterAudiencePresident() {
