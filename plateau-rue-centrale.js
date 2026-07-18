@@ -184,6 +184,17 @@ function afficherNoeudRue(pays, noeudId) {
   html += '</div>';
   conteneur.innerHTML = html;
 
+  // Personnes presentes dans cette scene de rue (meme systeme que dans les batiments)
+  if (typeof renderPersonsList === 'function') {
+    renderPersonsList(noeud.persons || [], 'persons-list-rue');
+  }
+  if (typeof sbUpdatePresence === 'function' && state.char?.name) {
+    sbUpdatePresence(state.char.name, pays, state.currentCity, 'rue-centrale', noeudId).catch(() => {});
+  }
+  if (typeof chargerVraisJoueursPresents === 'function') {
+    chargerVraisJoueursPresents('rue-centrale', noeudId, 'persons-list-rue');
+  }
+
   // Zones cliquables + tooltip
   const scene = document.getElementById('rc-scene');
   noeud.zones.forEach(z => {
