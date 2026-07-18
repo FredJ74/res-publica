@@ -2618,14 +2618,23 @@ const BUILDINGS = {
     rooms: {
       hall_port: {
         name: "Hall",
-        image: "🏨",
         imageBg: "linear-gradient(135deg,#0d1018,#141820)",
         desc: "Hall de l'hotel. Matelots, commercants et gens de passage.",
-        imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-du-port-accueil.png",
         persons: [{name:'Patrone (PNJ)', role:'Gérante', rel:'neutral', job:'hotelier'}],
         orders: [
           {fn:'se_nourrir', label:'Se nourrir',     pa:0, cost:20, type:'legal', icon:'ti-soup',  successRate:100},
-          {fn:'dormir',     label:'Dormir',          pa:0, cost:60, type:'legal', icon:'ti-moon',  successRate:100, desc:'+3 PA bonus demain.', paBonus:3}
+          {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'}
+        ]
+      },
+      chambre_port: {
+        name: "Chambre",
+        imageBg: "linear-gradient(135deg,#0d1018,#141820)",
+        desc: "Une chambre modeste mais propre, avec vue sur le port.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-du-port-chambre.png",
+        persons: [],
+        orders: [
+          {fn:'dormir_chambre', label:'Dormir',       pa:0, cost:0,  type:'legal', icon:'ti-moon',  successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'}
         ]
       }
     }

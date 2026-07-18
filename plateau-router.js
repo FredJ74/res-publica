@@ -65,6 +65,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'organiser_boycott') { doOrganiserBoycott(); return; }
   if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(); return; }
   if (fn === 'centre_anti_poison') { doCentreAntiPoison(); return; }
+  if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(); return; }
+  if (fn === 'dormir_chambre') { doDormirChambre(); return; }
   if (fn === 'consulter_classement_joueurs_club') { doConsulterClassementBookmaker(); return; }
   if (fn === 'postuler_president_club') { doPostulerPresidentClub(); return; }
   if (fn === 'consulter_bureau_president') { doConsulterBureauPresident(); return; }

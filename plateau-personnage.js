@@ -712,7 +712,7 @@ async function doDormir() {
   const today = state.day || 1;
   if (state.dernierDormir === today) {
     showToast('Deja dormi', 'Vous avez deja dormi aujourd\'hui. Attendez demain.', false);
-    return;
+    return false;
   }
 
   if (state.empoisonnement?.actif) {
@@ -725,7 +725,7 @@ async function doDormir() {
       showToast('Empoisonnement fatal', 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', false, true);
       addJournalEntry('L\'empoisonnement a eu raison de vous. Hospitalisation d\'urgence.', 'event-bad');
       updateUI();
-      return;
+      return false;
     } else {
       showToast('Empoisonnement', 'Le poison progresse. PV : ' + state.hp + '.', false, true);
       addJournalEntry('L\'empoisonnement progresse pendant votre sommeil. PV : ' + state.hp + '.', 'event-bad');
@@ -739,6 +739,10 @@ async function doDormir() {
   if ((state.hp || 0) >= 100) {
     state.regenJour = null;
     if (state.statsAffaiblies) state.statsAffaiblies = null;
+  }
+
+  if (!state.empoisonnement?.actif) {
+    state.hp = Math.min(100, (state.hp || 0) + 12);
   }
 
   // Prélever le coût selon l'hôtel
@@ -823,6 +827,7 @@ async function doDormir() {
 
   // Rafraichir la vue
   switchSelfTab('actions', null);
+  return true;
 }
 
 function doTransfertCliniquePrivee() {
@@ -872,6 +877,42 @@ function doCentreAntiPoison() {
     updateUI();
     showToast('Echec du traitement', 'Le poison resiste. Reessayez, ou attendez d\'y etre force(e).', false);
     addJournalEntry('Tentative de traitement anti-poison infructueuse.', 'event-bad');
+  }
+}
+
+function doReserverChambreHotel() {
+  const confortMap = {
+    'hotel-republica': { moral: 5, paBonus: 5 },
+    'hotel-port':      { moral: 3, paBonus: 2 },
+    'hotel-mineur':    { moral: 3, paBonus: 2 },
+    'palais-presidentiel': { moral: 8, paBonus: 8 }
+  };
+  const bonus = confortMap[state.currentBuilding] || { moral: 2, paBonus: 1 };
+  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const ordre = room?.orders?.find(o => o.fn === 'reserver_chambre_hotel');
+  const cout = ordre?.cost || 60;
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+  state.arg -= cout;
+  state.reservationHotel = { buildingId: state.currentBuilding, bonus };
+  updateUI();
+  showToast('Chambre reservee', 'Vous obtiendrez un bonus de +' + bonus.paBonus + ' PA et +' + bonus.moral + ' Moral en passant l\'ordre Dormir <strong>dans cette chambre</strong>.', true, true);
+  addJournalEntry('Vous avez reserve une chambre d\'hotel. Vous obtiendrez un bonus de ' + bonus.paBonus + ' PA + ' + bonus.moral + ' moral en passant l\'ordre dormir <strong>dans cette chambre</strong>.', 'event-good');
+}
+
+async function doDormirChambre() {
+  const reservation = state.reservationHotel;
+  if (!reservation || reservation.buildingId !== state.currentBuilding) {
+    showToast('Aucune reservation', 'Vous devez d\'abord reserver une chambre a l\'accueil.', false);
+    return;
+  }
+  const reussi = await doDormir();
+  if (reussi) {
+    state.pa = (state.pa || 0) + reservation.bonus.paBonus;
+    state.moral = Math.min(100, (state.moral || 0) + reservation.bonus.moral);
+    state.reservationHotel = null;
+    updateUI();
+    showToast('Bonus de chambre applique', '+' + reservation.bonus.paBonus + ' PA, +' + reservation.bonus.moral + ' Moral.', true, true);
+    addJournalEntry('Bonus de la chambre reservee applique : +' + reservation.bonus.paBonus + ' PA, +' + reservation.bonus.moral + ' moral.', 'event-good');
   }
 }
 
