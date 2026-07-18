@@ -620,7 +620,6 @@ async function runMidnightUpdate() {
     }
   }
   // Regeneration naturelle des PV si le joueur a ete agresse
-  if (typeof appliquerRegenerationNaturelle === 'function') appliquerRegenerationNaturelle();
   addJournalEntry(`Nouveau jour : Jour ${state.day}. La ville s'eveille.`, 'event-info');
   updateClock();
 }

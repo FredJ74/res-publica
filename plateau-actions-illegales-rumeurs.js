@@ -1428,14 +1428,16 @@ async function confirmerEmpoisonnement(cibleNom) {
   const reussi = palier === 'totale' || palier === 'partielle';
 
   if (reussi || palier === 'echec_partiel') {
-    // Transmission reelle des PV a la victime via impacts_indices_attente
-    if (pvCible !== null && typeof sbDeposerImpactIndice === 'function') {
+    if (typeof sbDeposerImpactIndice === 'function') {
+      const STATS_POSSIBLES = ['INT','CHA','VOL','PER','DUP','ENT'];
+      const statsTouchees = STATS_POSSIBLES.slice().sort(() => Math.random() - 0.5).slice(0, 2);
       await sbDeposerImpactIndice({
         id: 'poison-' + Date.now(),
         victime: cibleNom,
-        indice: 'hp_set',
-        delta: pvCible,
+        indice: 'poison_start',
         palier: palier,
+        poisonType: poisonType,
+        statsTouchees: statsTouchees,
         traite: false
       }).catch(() => {});
     }

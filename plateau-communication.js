@@ -745,31 +745,35 @@ async function recupererImpactsEnAttente() {
       if (imp.indice === 'inf') { state.inf = Math.max(0, Math.min(100, (state.inf || 0) + imp.delta)); resume.push(imp.delta + ' INF'); }
       if (imp.indice === 'dis') { state.dis = Math.max(0, Math.min(100, (state.dis || 50) + imp.delta)); resume.push(imp.delta + ' DIS'); }
       if (imp.indice === 'hp_set') {
-        // Attaque recue (assassinat/empoisonnement) — valeur absolue, pas un delta
         state.hp = Math.max(0, imp.delta);
-        state.regenJour = state.day; // demarre la regeneration naturelle (+10/jour)
+        state.regenJour = state.day;
         resume.push('⚔️ Agression ! PV tombés à ' + imp.delta);
 
-        // Hospitalisation — duree selon la gravite du palier subi
-        const estHautPlace = state.poste && ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(state.poste.id);
-        const lieu = estHautPlace ? 'clinique' : 'dispensaire';
-        const dureeParPalier = { totale: 3, partielle: 2, echec_partiel: 1 };
-        const duree = dureeParPalier[imp.palier] || 1;
-        state.hospitalisation = { jourDebut: state.day, palier: imp.palier || 'partielle', lieu, jourFin: state.day + duree };
-        state.pa = 0; // jour de l'agression : plus aucun ordre accessible
-        const batimentCible = lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
-        const pieceCible = lieu === 'clinique' ? 'reception_clinique' : 'salle_attente';
-        if (typeof enterBuilding === 'function') enterBuilding(batimentCible, true);
-        if (typeof enterRoom === 'function') enterRoom(batimentCible, pieceCible, null);
+        if (!state.statsAffaiblies) state.statsAffaiblies = {};
+        const STATS_POSSIBLES = ['INT','CHA','VOL','PER','DUP','ENT'];
+        const statsTouchees = STATS_POSSIBLES.slice().sort(() => Math.random() - 0.5).slice(0, 2);
+        statsTouchees.forEach(s => { state.statsAffaiblies[s] = true; });
+
+        if (typeof declencherHospitalisation === 'function') declencherHospitalisation(imp.palier);
+      }
+      if (imp.indice === 'poison_start') {
+        state.empoisonnement = { actif: true, palier: imp.palier, poisonType: imp.poisonType };
+        if (!state.statsAffaiblies) state.statsAffaiblies = {};
+        (imp.statsTouchees || []).forEach(s => { state.statsAffaiblies[s] = true; });
+        resume.push('☠️ Empoisonnement en cours...');
       }
       if (typeof sbMarquerImpactTraite === 'function') await sbMarquerImpactTraite(imp.id).catch(() => {});
     }
     if (resume.length > 0) {
       updateUI();
       const agrappe = resume.some(r => r.includes('Agression'));
+      const empoisonne = resume.some(r => r.includes('Empoisonnement'));
       if (agrappe) {
         showToast('Agression !', 'Vous avez été attaqué(e). PV : ' + state.hp + '. Récupération : +10/jour.', false, true);
         addJournalEntry('Vous avez été victime d\'une agression. Vos PV sont tombés à ' + state.hp + '.', 'event-bad');
+      } else if (empoisonne) {
+        showToast('Malaise suspect', 'Vous ne vous sentez pas bien... quelque chose ne va pas. Soignez-vous avant votre prochain sommeil.', false, true);
+        addJournalEntry('Un malaise suspect vous gagne. Vous pourriez avoir été empoisonné(e).', 'event-bad');
       } else {
         addJournalEntry('Des événements ont affecté vos indices : ' + resume.join(', ') + '.', 'event-bad');
         showToast('Indices modifiés', resume.join(', '), false, true);
