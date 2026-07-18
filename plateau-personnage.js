@@ -31,7 +31,7 @@ function openCharSheet() {
     </div>
     <div style="display:flex;gap:.4rem;padding:.6rem 1rem;border-bottom:1px solid #1a1810">
       <button id="cs-tab-btn-identite" onclick="switchCharSheetTab('identite')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #8a6a20;background:#1a1408;color:#C9A84C;cursor:pointer">Identité</button>
-      <button id="cs-tab-btn-stats" onclick="switchCharSheetTab('stats')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">Statistiques</button>
+      <button id="cs-tab-btn-stats" onclick="switchCharSheetTab('stats')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #4a3a20;background:#12100a;color:#c0a060;cursor:pointer">Statistiques</button>
     </div>
     <div id="cs-tab-identite">
     <div class="char-sheet-grid">
@@ -98,7 +98,7 @@ function switchCharSheetTab(tab) {
   const btnIdentite = document.getElementById('cs-tab-btn-identite');
   const btnStats = document.getElementById('cs-tab-btn-stats');
   const actif = 'border:1px solid #8a6a20;background:#1a1408;color:#C9A84C;cursor:pointer';
-  const inactif = 'border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer';
+  const inactif = 'border:1px solid #4a3a20;background:#12100a;color:#c0a060;cursor:pointer';
   const base = "font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;";
   if (btnIdentite) btnIdentite.style.cssText = base + (tab === 'identite' ? actif : inactif);
   if (btnStats) btnStats.style.cssText = base + (tab === 'stats' ? actif : inactif);
