@@ -113,21 +113,24 @@ function selCountry(id){
 }
 
 function renderCityChoice(){
-  const wrap = document.getElementById('city-choice-wrap');
+  const modal = document.getElementById('modal-city');
   const grid = document.getElementById('city-grid');
-  if (!G.country || !WORLD[G.country]) { wrap.style.display='none'; return; }
-  const villes = Object.entries(WORLD[G.country]).filter(([k,v]) => v && v.isCapitale !== undefined);
-  wrap.style.display = '';
+  if (!G.country || !WORLD[G.country]) { modal.classList.remove('open'); return; }
+  const villes = Object.entries(WORLD[G.country]).filter(([k,v]) => v && v.isCapitale !== undefined && !v.isSpecial);
   grid.innerHTML = villes.map(([key,v]) => `
-    <div class="cc ${G.city===key?'sel':''}" onclick="selCity('${key}')">
-      <div class="cname">${v.name}${v.isCapitale ? ' <span style=\'font-size:.7rem;color:#8a8060\'>(Capitale)</span>' : ''}</div>
-      <div class="cdesc">${v.desc || ''}</div>
+    <div class="cc ${G.city===key?'sel':''}" onclick="selCity('${key}')" style="display:flex;gap:.9rem;align-items:center;text-align:left;padding:.8rem;cursor:pointer">
+      ${v.imageUrl ? `<img src="${v.imageUrl}" style="width:110px;height:80px;object-fit:cover;border:1px solid #3a2a10;flex-shrink:0"/>` : ''}
+      <div>
+        <div class="cname">${v.name}${v.isCapitale ? ' <span style="font-size:.7rem;color:#8a8060">(Capitale)</span>' : ''}</div>
+        <div class="cdesc">${v.desc || ''}</div>
+      </div>
     </div>`).join('');
+  modal.classList.add('open');
 }
 
 function selCity(key){
   G.city = key;
-  renderCityChoice();
+  document.getElementById('modal-city').classList.remove('open');
   document.getElementById('n1').disabled = !(G.country && G.city);
 }
 
