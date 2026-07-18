@@ -492,6 +492,8 @@ function switchSelfTab(tab, el) {
 
     html += '</div>';
     content.innerHTML = html;
+  } else if (tab === 'stats') {
+    content.innerHTML = genererStatsHtml();
   }
 }
 
