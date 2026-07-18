@@ -214,7 +214,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'tentative_evasion') { doTentativeEvasion(); return; }
   if (fn === 'visiter_prisonnier') { doVisiterPrisonnier(); return; }
   if (fn === 'se_renseigner') { doSeRenseigner(); return; }
-  if (fn === 'ecouter')        { doSeRenseigner(); return; }
   if (fn === 'reserver') { doReserver(); return; }
   if (fn === 'interview') { doInterview(); return; }
   if (fn === 'article') { doArticle(); return; }
