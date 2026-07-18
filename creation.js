@@ -104,10 +104,31 @@ function renderCountry(){
 }
 function selCountry(id){
   G.country=id;
+  G.city=null;
   G.freeStats={INT:0,CHA:0,VOL:0,PER:0,DUP:0,ENT:0};
   G.freePts=30;
   renderCountry();
-  document.getElementById('n1').disabled=false;
+  renderCityChoice();
+  document.getElementById('n1').disabled=true;
+}
+
+function renderCityChoice(){
+  const wrap = document.getElementById('city-choice-wrap');
+  const grid = document.getElementById('city-grid');
+  if (!G.country || !WORLD[G.country]) { wrap.style.display='none'; return; }
+  const villes = Object.entries(WORLD[G.country]).filter(([k,v]) => v && v.isCapitale !== undefined);
+  wrap.style.display = '';
+  grid.innerHTML = villes.map(([key,v]) => `
+    <div class="cc ${G.city===key?'sel':''}" onclick="selCity('${key}')">
+      <div class="cname">${v.name}${v.isCapitale ? ' <span style=\'font-size:.7rem;color:#8a8060\'>(Capitale)</span>' : ''}</div>
+      <div class="cdesc">${v.desc || ''}</div>
+    </div>`).join('');
+}
+
+function selCity(key){
+  G.city = key;
+  renderCityChoice();
+  document.getElementById('n1').disabled = !(G.country && G.city);
 }
 
 /* ---- Origin ---- */
@@ -423,13 +444,13 @@ function validateChar(){
     // Sauvegarde Supabase
     if (typeof sbSavePersonnage === 'function') {
       const tempState = {
-        char, country: char.country, currentCity: 'capitale',
+        char, country: char.country, currentCity: G.city || 'capitale',
         arg: char.arg || 0, liquide: Math.floor((char.arg||0)*0.15),
         banque: Math.ceil((char.arg||0)*0.85),
         inf: char.resources?.inf || 25, pop: char.resources?.pop || 30,
         dis: char.resources?.dis || 85, hp: 100, pa: 10, moral: 75,
         poste: null, inventory: [], informateurs: [], day: 1, recherche: [],
-        domicile: { country: char.country, city: 'capitale', depuis: 1 },
+        domicile: { country: char.country, city: G.city || 'capitale', depuis: 1 },
         organisations: [],
         objectifs_completes: [],
         votes_pnj: {},
