@@ -164,6 +164,8 @@ function showVueRue() {
   if (rueCentraleDisponible) {
     // Nouvelle navigation par scenes (zoom/fondu) — remplace l'image statique et la mini-carte
     if (minimap) minimap.style.display = 'none';
+    const personsSidebarRue = document.getElementById('persons-sidebar-rue');
+    if (personsSidebarRue) personsSidebarRue.style.display = '';
     if (ambiance) ambiance.style.display = 'none';
     rueImage.style.background = 'none';
     const conteneur = document.createElement('div');
@@ -174,6 +176,8 @@ function showVueRue() {
   } else {
     // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
     if (minimap) minimap.style.display = '';
+    const personsSidebarRue2 = document.getElementById('persons-sidebar-rue');
+    if (personsSidebarRue2) personsSidebarRue2.style.display = 'none';
     if (ambiance) ambiance.style.display = '';
     const imgUrl = city?.imageUrl;
     if (imgUrl) {
