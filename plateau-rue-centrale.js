@@ -116,7 +116,7 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [0, 100], nom: 'Centre Multimodal de Luthécia', type: 'batiment', buildingId: 'centre-multinodal-luthecia' }
       ],
-      liens: { gauche: null, droite: 'luthecia-loge', toutDroit: null, arriere: 'luthecia-stade-multimodal' },
+      liens: { gauche: 'luthecia-quartier-ambassades', droite: 'luthecia-loge', toutDroit: null, arriere: 'luthecia-stade-multimodal' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);'
       }
