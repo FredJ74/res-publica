@@ -205,7 +205,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Handlers complementaires v17
   if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_journaliste') { doCorruption(fn, cost); return; }
   if (fn === 'se_reposer' || fn === 'se_nourrir') { doSeReposer(fn); return; }
-  if (fn === 'soins' || fn === 'soins_basiques' || fn === 'soins_discrets' || fn === 'soins_urgence') { doSesoigner(); return; }
   if (fn === 'requete_avocat') { doRequeteAvocat(); return; }
   if (fn === 'greve_faim') { doGreveFaim(); return; }
   if (fn === 'tentative_evasion') { doTentativeEvasion(); return; }
