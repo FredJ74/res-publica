@@ -1,4 +1,4 @@
-function ouvrirStatsPerso() {
+function genererStatsHtml() {
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
   const char = state.char;
@@ -48,9 +48,7 @@ function ouvrirStatsPerso() {
     '</div>';
   }).join('');
 
-  document.getElementById('postes-modal-title').textContent = 'Statistiques — ' + (char?.name || 'Mon Personnage');
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.6rem 1rem">' +
+  return '<div style="padding:.6rem 1rem">' +
       '<div style="font-size:.7rem;color:#8a8060;margin-bottom:.8rem;font-style:italic">' +
         (ar?.name || '') + ' · ' + (co?.n || '') +
         (state.poste?.name ? ' · ' + state.poste.name : '') +
@@ -66,7 +64,12 @@ function ouvrirStatsPerso() {
         '<span>🏦 Banque : <strong style="color:#C9A84C">' + (state.banque||0).toLocaleString('fr-FR') + ' ' + cur + '</strong></span>' +
       '</div>' +
     '</div>';
+}
 
+function ouvrirStatsPerso() {
+  const char = state.char;
+  document.getElementById('postes-modal-title').textContent = 'Statistiques — ' + (char?.name || 'Mon Personnage');
+  document.getElementById('postes-body').innerHTML = genererStatsHtml();
   document.getElementById('modal-postes').classList.add('open');
 }
 

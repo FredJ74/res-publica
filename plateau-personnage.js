@@ -29,6 +29,11 @@ function openCharSheet() {
         ${char.motto ? `<div style="font-size:.75rem;color:#5a5040;margin-top:.3rem;font-style:italic">"${char.motto}"</div>` : ''}
       </div>
     </div>
+    <div style="display:flex;gap:.4rem;padding:.6rem 1rem;border-bottom:1px solid #1a1810">
+      <button id="cs-tab-btn-identite" onclick="switchCharSheetTab('identite')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #8a6a20;background:#1a1408;color:#C9A84C;cursor:pointer">Identité</button>
+      <button id="cs-tab-btn-stats" onclick="switchCharSheetTab('stats')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">Statistiques</button>
+    </div>
+    <div id="cs-tab-identite">
     <div class="char-sheet-grid">
       <div class="cs-section">
         <div class="cs-title">Caracteristiques</div>
@@ -80,9 +85,23 @@ function openCharSheet() {
               <i class="ti ${item.icon}" style="font-size:.8rem;color:#8a6a20"></i> ${item.name}
             </div>`).join('')}
     </div>
-  `;
+    </div>
+    <div id="cs-tab-stats" style="display:none">${genererStatsHtml()}</div>
+  \`;
 
   document.getElementById('modal-char').classList.add('open');
+}
+
+function switchCharSheetTab(tab) {
+  document.getElementById('cs-tab-identite').style.display = tab === 'identite' ? '' : 'none';
+  document.getElementById('cs-tab-stats').style.display = tab === 'stats' ? '' : 'none';
+  const btnIdentite = document.getElementById('cs-tab-btn-identite');
+  const btnStats = document.getElementById('cs-tab-btn-stats');
+  const actif = 'border:1px solid #8a6a20;background:#1a1408;color:#C9A84C;cursor:pointer';
+  const inactif = 'border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer';
+  const base = "font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;";
+  if (btnIdentite) btnIdentite.style.cssText = base + (tab === 'identite' ? actif : inactif);
+  if (btnStats) btnStats.style.cssText = base + (tab === 'stats' ? actif : inactif);
 }
 function closeCharSheet() {
   document.getElementById('modal-char').classList.remove('open');
