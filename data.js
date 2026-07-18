@@ -1155,7 +1155,8 @@ const BUILDINGS = {
         orders: [
           {fn:'parler_pnj',    label:'Parler au concierge',  pa:0, cost:0,   type:'legal',   icon:'ti-message', successRate:100},
           {fn:'se_renseigner', label:'Se renseigner',        pa:0, cost:0,   type:'legal',   icon:'ti-info-circle', successRate:100},
-          {fn:'reserver',      label:'Reserver une chambre', pa:1, cost:80,  type:'legal',   icon:'ti-key', successRate:100}
+          {fn:'reserver_chambre_hotel', label:'Reserver une chambre', pa:1, cost:80,  type:'legal',   icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
+          {fn:'choisir_suite', label:'Louer une suite', pa:1, cost:0, type:'legal', icon:'ti-crown', successRate:100, desc:'Choisir parmi les suites disponibles de l\'hotel.'}
         ]
       },
       restaurant: {
@@ -1204,6 +1205,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'dormir',         label:'Dormir (nuit complete)', pa:0, cost:80,  type:'legal', icon:'ti-moon',     successRate:100, desc:'Recuperation complete. +5 PA bonus demain.', paBonus:5},
+          {fn:'dormir_chambre', label:'Dormir (chambre reservee)', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'},
           {fn:'se_reposer',     label:'Se reposer (sieste)',    pa:0, cost:0,   type:'legal', icon:'ti-zzz',      successRate:100, desc:'+2 Moral.'},
           {fn:'reunion_privee', label:'Reunion privee',         pa:2, cost:50,  type:'grey',  icon:'ti-lock',     successRate:100, desc:'Rencontre discrete sans temoins.'}
         ]
@@ -1214,13 +1216,23 @@ const BUILDINGS = {
         desc: "📋 À LOUER — Suite luxueuse et très discrète. Roxane y reçoit une clientèle triée sur le volet. Informations exclusives garanties.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-republica-suite-privee.png",
         isLocationRoom: true,
-        locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1 },
+        locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1, suiteChoice: true },
         persons: [
           {name:'Roxane Velours (PNJ)', role:'Escort de luxe', rel:'neutral', job:'escort', photoUrl:'', trait:'Son carnet d\'adresses vaut plus que celui du Premier Ministre.'}
         ],
         orders: [
-          {fn:'louer_local', label:'Louer cette suite (500 FR/jour)', pa:1, cost:0, type:'grey', icon:'ti-key', successRate:100, desc:'+8 INF +10 DIS. Clients très discrets, informations très utiles.'},
-          {fn:'escort_infos', label:'Recueillir des informations', pa:2, cost:300, type:'grey', icon:'ti-ear', successRate:75, desc:'Roxane collecte des confidences. Génère un kompromat.'},
+          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+        ]
+      },
+      suite_presidentielle: {
+        name: "Suite Présidentielle — Local à louer",
+        imageBg: "linear-gradient(135deg,#181008,#20140a)",
+        desc: "📋 À LOUER — Suite d'apparat au décor XIXe, vue sur les toits de la Capitale. Le nec plus ultra pour recevoir en grande pompe.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-republica-suite-presidentielle.png",
+        isLocationRoom: true,
+        locationData: { prix: 500, bonusPOP: 8, bonusINF: 8, bonusDIS: 2, label: 'Suite Présidentielle', tier: 1, suiteChoice: true },
+        persons: [],
+        orders: [
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }

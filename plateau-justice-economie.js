@@ -1658,6 +1658,48 @@ function confirmerLocation() {
   if (state.currentRoom) enterRoom(buildingId, roomId, null);
 }
 
+function ouvrirModalChoixSuite() {
+  const buildingId = state.currentBuilding;
+  const b = BUILDINGS[buildingId];
+  if (!b) return;
+
+  const suites = Object.entries(b.rooms || {}).filter(([, r]) => r.isLocationRoom && r.locationData?.suiteChoice);
+  if (suites.length === 0) { showToast('Aucune suite', 'Aucune suite disponible ici.', false); return; }
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  document.getElementById('postes-modal-title').textContent = '👑 Louer une suite';
+  let html = '<div style="padding:.8rem 1rem">';
+  suites.forEach(([roomId, room]) => {
+    const loc = room.locationData;
+    const dejaLoue = getLocationPourRoom(buildingId, roomId);
+    const bonusParts = [];
+    if (loc.bonusPOP > 0) bonusParts.push('+' + loc.bonusPOP + ' POP');
+    if (loc.bonusINF > 0) bonusParts.push('+' + loc.bonusINF + ' INF');
+    if (loc.bonusDIS > 0) bonusParts.push('+' + loc.bonusDIS + ' DIS');
+
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.5rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' + loc.label + '</div>';
+    html += '<div style="font-size:.75rem;color:#a09060;margin:.2rem 0">' + (room.desc || '') + '</div>';
+    html += '<div style="font-size:.78rem;color:#9a8a68">' + loc.prix.toLocaleString('fr-FR') + ' ' + cur + '/jour \u00b7 ' + (bonusParts.join(' \u00b7 ') || 'Aucun bonus') + '</div>';
+    if (dejaLoue) {
+      html += '<div style="font-size:.72rem;color:#8a6a20;margin-top:.4rem">D\u00e9j\u00e0 lou\u00e9e' + (dejaLoue.locataire === state.char?.name ? ' (par vous)' : '') + '.</div>';
+    } else {
+      html += '<button onclick="entrerEtLouerSuite(\'' + buildingId + '\',\'' + roomId + '\')" style="margin-top:.4rem;width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">\ud83d\udd11 Louer cette suite</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function entrerEtLouerSuite(buildingId, roomId) {
+  document.getElementById('modal-postes').classList.remove('open');
+  enterRoom(buildingId, roomId, null);
+  ouvrirModalLouerLocal();
+}
+
 function ouvrirModalGererLocal() {
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;

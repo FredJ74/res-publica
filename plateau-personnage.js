@@ -882,7 +882,7 @@ function doCentreAntiPoison() {
 
 function doReserverChambreHotel() {
   const confortMap = {
-    'hotel-republica': { moral: 5, paBonus: 5 },
+    'hotel-republica': { moral: 3, paBonus: 2 },
     'hotel-port':      { moral: 3, paBonus: 2 },
     'hotel-mineur':    { moral: 3, paBonus: 2 },
     'palais-presidentiel': { moral: 8, paBonus: 8 }

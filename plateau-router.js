@@ -103,6 +103,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
+  if (fn === 'choisir_suite')            { ouvrirModalChoixSuite(); return; }
   if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(); return; }
   if (fn === 'appeler_police_terrain')  { doAppelerPoliceTerrain(); return; }
   if (fn === 'expulsion_legale')        { doExpulsionLegale(); return; }
