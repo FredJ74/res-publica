@@ -689,11 +689,56 @@ async function confirmerDestructionPersonnage() {
   setTimeout(() => { window.location.href = 'index.html'; }, 2000);
 }
 
+// Declenche l'hospitalisation automatique (dispensaire ou clinique selon le poste),
+// dans la ville OU SE TROUVE ACTUELLEMENT le joueur — utilisee par l'empoisonnement
+// (cote victime, meme session) et par l'assassinat (impact differe, plateau-communication.js).
+// Durees doublees : dispensaire 6/4/2 jours, clinique 3/2/1 jours selon le palier.
+function declencherHospitalisation(palier) {
+  const estHautPlace = state.poste && ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(state.poste.id);
+  const lieu = estHautPlace ? 'clinique' : 'dispensaire';
+  const dureeParPalier = lieu === 'clinique'
+    ? { totale: 3, partielle: 2, echec_partiel: 1 }
+    : { totale: 6, partielle: 4, echec_partiel: 2 };
+  const duree = dureeParPalier[palier] || (lieu === 'clinique' ? 1 : 2);
+  state.hospitalisation = { jourDebut: state.day || 1, palier: palier || 'partielle', lieu, jourFin: (state.day || 1) + duree };
+  state.pa = 0;
+  const batimentCible = lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
+  const pieceCible = lieu === 'clinique' ? 'reception_clinique' : 'salle_attente';
+  if (typeof enterBuilding === 'function') enterBuilding(batimentCible, true);
+  if (typeof enterRoom === 'function') enterRoom(batimentCible, pieceCible, null);
+}
+
 async function doDormir() {
   const today = state.day || 1;
   if (state.dernierDormir === today) {
     showToast('Deja dormi', 'Vous avez deja dormi aujourd\'hui. Attendez demain.', false);
     return;
+  }
+
+  if (state.empoisonnement?.actif) {
+    state.hp = Math.floor((state.hp || 0) / 2);
+    if (state.hp < 20) state.hp = 0;
+    if (state.hp === 0) {
+      const palierPoison = state.empoisonnement.palier || 'partielle';
+      state.empoisonnement = null;
+      declencherHospitalisation(palierPoison);
+      showToast('Empoisonnement fatal', 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', false, true);
+      addJournalEntry('L\'empoisonnement a eu raison de vous. Hospitalisation d\'urgence.', 'event-bad');
+      updateUI();
+      return;
+    } else {
+      showToast('Empoisonnement', 'Le poison progresse. PV : ' + state.hp + '.', false, true);
+      addJournalEntry('L\'empoisonnement progresse pendant votre sommeil. PV : ' + state.hp + '.', 'event-bad');
+    }
+  }
+
+  if (state.regenJour && (state.hp || 0) < 100) {
+    state.hp = Math.min(100, (state.hp || 0) + 10);
+    addJournalEntry('Regeneration naturelle : +10 PV. PV actuels : ' + state.hp + '.', 'event-info');
+  }
+  if ((state.hp || 0) >= 100) {
+    state.regenJour = null;
+    if (state.statsAffaiblies) state.statsAffaiblies = null;
   }
 
   // Prélever le coût selon l'hôtel

@@ -1493,7 +1493,12 @@ function sauvegarderPersonnageImmediat() {
 function getStatEffective(stat) {
   const base = state.char?.stats?.[stat] ?? 8;
   const bonus = (state.char?.bonusFormation?.stat === stat) ? (state.char.bonusFormation.valeur || 0) : 0;
-  return base + bonus;
+  const valeurNormale = base + bonus;
+  if (state.statsAffaiblies && state.statsAffaiblies[stat] !== undefined) {
+    const fraction = Math.max(0, Math.min(1, (state.hp || 0) / 100));
+    return Math.max(1, Math.round(valeurNormale * fraction));
+  }
+  return valeurNormale;
 }
 
 // SUIVRE UNE FORMATION (Universite, amphi) — bonus TEMPORAIRE (+2, jusqu'au prochain sommeil),
