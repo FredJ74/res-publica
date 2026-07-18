@@ -838,24 +838,56 @@ function doTransfertCliniquePrivee() {
   addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
 }
 
+function doCentreAntiPoison() {
+  if (!state.empoisonnement?.actif) {
+    showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false);
+    return;
+  }
+  const today = state.day || 1;
+  if (!state.centreAntiPoisonToday || state.centreAntiPoisonToday.jour !== today) {
+    state.centreAntiPoisonToday = { jour: today, tentatives: 0 };
+  }
+  if (state.centreAntiPoisonToday.tentatives >= 2) {
+    showToast('Limite atteinte', 'Deux tentatives maximum par jour.', false);
+    return;
+  }
+
+  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const ordre = room?.orders?.find(o => o.fn === 'centre_anti_poison');
+  const cout = ordre?.cost || 0;
+  const successRate = ordre?.successRate || 70;
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+
+  state.centreAntiPoisonToday.tentatives++;
+  state.arg -= cout;
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= successRate) {
+    state.empoisonnement = null;
+    if (state.statsAffaiblies) state.statsAffaiblies = null;
+    updateUI();
+    showToast('Gueri(e) !', 'Le poison a ete neutralise avec succes.', true, true);
+    addJournalEntry('Traitement anti-poison reussi. Vous etes gueri(e).', 'event-good');
+  } else {
+    updateUI();
+    showToast('Echec du traitement', 'Le poison resiste. Reessayez, ou attendez d\'y etre force(e).', false);
+    addJournalEntry('Tentative de traitement anti-poison infructueuse.', 'event-bad');
+  }
+}
+
 function verifierProgressionHospitalisation() {
   if (!state.hospitalisation) return;
-  const jours = joursEcoulesHospitalisation();
-  const plafondBase = state.hospitalisation.lieu === 'clinique' ? 6 : 3;
-
-  if (jours >= 3) {
+  const jourFin = state.hospitalisation.jourFin || ((state.hospitalisation.jourDebut || state.day || 1) + 1);
+  if ((state.day || 1) >= jourFin) {
     state.hospitalisation = null;
     showToast('Rétabli(e) !', 'Vous avez retrouvé toutes vos capacités.', true, true);
     addJournalEntry('Vous êtes complètement rétabli(e) de votre agression.', 'event-good');
     return;
   }
-  if (jours === 1) {
-    state.pa = Math.min(state.pa || 0, plafondBase);
-    showToast('Réveil à l\'hôpital', 'Encore faible. PA limités à ' + plafondBase + '. Déplacement impossible aujourd\'hui, sauf transfert vers une clinique privée.', false);
-  } else if (jours === 2) {
-    state.pa = Math.min(state.pa || 0, plafondBase * 2);
-    showToast('En convalescence', 'PA encore limités à ' + (plafondBase*2) + '. Vous pouvez à nouveau vous déplacer.', false);
-  }
+  const joursRestants = jourFin - (state.day || 1);
+  state.pa = 0;
+  showToast('En convalescence', 'Encore ' + joursRestants + ' jour(s) avant votre rétablissement complet. Déplacement impossible, sauf transfert vers une clinique privée.', false);
+  addJournalEntry('Convalescence en cours (' + state.hospitalisation.lieu + '). Encore ' + joursRestants + ' jour(s).', 'event-info');
 }
 
 function doSesoigner() {
