@@ -29,7 +29,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'plainte_police') { openPlainteModal(); return; }
   if (fn === 'archives_police') { doArchivesPolice(); return; }
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
-  if (fn === 'lancer_rumeur_cible') { openRumeurModal(); return; }
+  if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost, successRate); return; }
   if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(); return; }
   if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(); return; }
