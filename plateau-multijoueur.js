@@ -25,10 +25,10 @@ function renderPersonsList(persons, targetId) {
   const selfCard = char ? '<div class="person-card" style="border-left:2px solid #C9A84C;cursor:pointer" onclick="openSelfView()" title="Cliquer pour dormir, inventaire, fiche">' +
     '<div class="person-avatar" style="border-color:#C9A84C">' + photoHtml + '</div>' +
     '<div>' +
-    '<div class="person-name" style="color:#C9A84C">' + char.name + ' <span style="font-size:.6rem;color:#6a5a20">(Vous)</span></div>' +
-    (state.recherche?.length > 0 ? '<div style="font-size:.62rem;color:#cc2020;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;animation:blink 1s infinite">⚠ RECHERCHÉ</div>' : '') +
+    '<div class="person-name" style="color:#C9A84C">' + char.name + ' <span style="font-size:.8rem;color:#6a5a20">(Vous)</span></div>' +
+    (state.recherche?.length > 0 ? '<div style="font-size:.82rem;color:#cc2020;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;animation:blink 1s infinite">⚠ RECHERCHÉ</div>' : '') +
     '<div class="person-role">' + (state.poste?.name || ar?.name || 'Citoyen') + '</div>' +
-    '<div style="font-size:.58rem;color:#4a8a4a">Cliquer : dormir · inventaire · fiche</div>' +
+    '<div style="font-size:.78rem;color:#4a8a4a">Cliquer : dormir · inventaire · fiche</div>' +
     '</div></div>' : '';
 
   const personCards = persons.length === 0 ? '' : persons.map(p => {
@@ -51,7 +51,7 @@ function renderPersonsList(persons, targetId) {
         '<div>' +
         '<div class="person-name">' + p.name + '</div>' +
         '<div class="person-role">' + p.role + '</div>' +
-        '<div class="person-rel" style="color:#8a3a2a;font-size:.58rem">⚠ Décédé</div>' +
+        '<div class="person-rel" style="color:#8a3a2a;font-size:.78rem">⚠ Décédé</div>' +
         '</div></div>';
     }
 
@@ -61,7 +61,7 @@ function renderPersonsList(persons, targetId) {
       '<div>' +
       '<div class="person-name">' + p.name + '</div>' +
       '<div class="person-role">' + p.role + '</div>' +
-      '<div class="person-rel" style="color:' + relCol(p.rel) + ';font-size:.58rem">' + relTxt(p.rel) + '</div>' +
+      '<div class="person-rel" style="color:' + relCol(p.rel) + ';font-size:.78rem">' + relTxt(p.rel) + '</div>' +
       '</div></div>';
   }).join('');
 
@@ -94,9 +94,9 @@ function renderPersonsList(persons, targetId) {
     const enc = encodePnjSafe({...p, isPJ: true});
     return '<div class="person-card" onclick="openPnjModal(this.dataset.enc)" data-enc="' + enc + '" style="border-left:2px solid #4a6aaa">' +
       '<div class="person-avatar" style="border-color:#4a6aaa"><i class="ti ti-user-circle" style="font-size:.75rem;color:#4a6aaa"></i></div>' +
-      '<div><div class="person-name" style="color:#8aaad0">' + p.name + ' <span style="font-size:.6rem;color:#3a5a8a">[SIM]</span></div>' +
+      '<div><div class="person-name" style="color:#8aaad0">' + p.name + ' <span style="font-size:.8rem;color:#3a5a8a">[SIM]</span></div>' +
       '<div class="person-role">' + p.role + '</div>' +
-      '<div style="font-size:.6rem;color:#3a5a8a">INF:' + p.resources.inf + ' POP:' + p.resources.pop + '</div>' +
+      '<div style="font-size:.8rem;color:#3a5a8a">INF:' + p.resources.inf + ' POP:' + p.resources.pop + '</div>' +
       '</div></div>';
   }).join('');
 
@@ -179,7 +179,7 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
         : '<div class="person-avatar" style="border-color:' + empireCol + '"><i class="ti ti-user" style="font-size:.75rem;color:' + empireCol + '"></i></div>';
       return '<div class="person-card vrai-joueur-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid ' + empireCol + '" title="Interagir">' +
       avatarHtml +
-      '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.6rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
+      '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.8rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
       '<div class="person-role">Présent ici</div></div></div>';
     }).join('');
 
@@ -383,10 +383,10 @@ function ouvrirModalRecrutPnj(encodedPnj) {
       (pnj.trait || 'Un PNJ disponible pour vos missions.') +
     '</div>' +
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem;margin-bottom:.7rem">' +
-      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.55rem;color:#4a4030">FOR</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.FOR + '</div></div>' +
-      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.55rem;color:#4a4030">CHA</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.CHA + '</div></div>' +
-      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.55rem;color:#4a4030">DUP</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.DUP + '</div></div>' +
-      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.55rem;color:#4a4030">LOY</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.loyaute + '</div></div>' +
+      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.78rem;color:#9a8a68">FOR</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.FOR + '</div></div>' +
+      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.78rem;color:#9a8a68">CHA</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.CHA + '</div></div>' +
+      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.78rem;color:#9a8a68">DUP</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.DUP + '</div></div>' +
+      '<div style="text-align:center;background:#0a0805;border:1px solid #1a1208;padding:.4rem"><div style="font-size:.78rem;color:#9a8a68">LOY</div><div style="font-size:.85rem;color:#C9A84C;font-family:Bebas Neue">' + stats.loyaute + '</div></div>' +
     '</div>' +
     '<div style="font-size:.72rem;color:#6a5030;margin-bottom:.7rem">Coût : <strong style="color:#C9A84C">' + cout + ' ' + cur + '/jour</strong> · ' + (MAX_EMPLOYES - getEmployes().length) + ' place(s) restante(s)</div>' +
     '<button onclick="confirmerRecrutPnj(\'' + encodePnjSafe(pnj) + '\',' + cout + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
@@ -630,7 +630,7 @@ function renderEmployesPanel() {
 
   const panel = document.getElementById('employes-panel');
   if (employes.length === 0) {
-    el.innerHTML = '<div style="font-size:.72rem;color:#3a3020;font-style:italic;padding:.3rem 0">Aucun employé</div>';
+    el.innerHTML = '<div style="font-size:.72rem;color:#9a8a68;font-style:italic;padding:.3rem 0">Aucun employé</div>';
     return;
   }
   // Ouvrir le panel automatiquement si employés présents
@@ -649,14 +649,14 @@ function renderEmployesPanel() {
       avatar +
       '<div style="flex:1;min-width:0">' +
         '<div style="font-size:.72rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + emp.nom + '</div>' +
-        '<div style="font-size:.6rem;color:#4a4030">' + (emp.inGroupe ? '🟢 En groupe' : '📍 En faction') + ' · ' + emp.cout + ' ' + cur + '/j</div>' +
+        '<div style="font-size:.8rem;color:#9a8a68">' + (emp.inGroupe ? '🟢 En groupe' : '📍 En faction') + ' · ' + emp.cout + ' ' + cur + '/j</div>' +
       '</div>' +
       '<div style="display:flex;gap:.2rem">' +
         (emp.inGroupe
-          ? '<button onclick="laisserPnjEnPlace(\'' + emp.nom.replace(/'/g,'') + '\')" title="Laisser dans cette piece — sort du groupe mais reste votre employe" style="background:none;border:1px solid #2a3a2a;color:#4a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">📍</button>'
-          : '<button onclick="recupererPnjDansGroupe(\'' + emp.nom.replace(/'/g,'') + '\')" title="Faire rejoindre votre groupe" style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">🔄</button>'
+          ? '<button onclick="laisserPnjEnPlace(\'' + emp.nom.replace(/'/g,'') + '\')" title="Laisser dans cette piece — sort du groupe mais reste votre employe" style="background:none;border:1px solid #2a3a2a;color:#4a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📍</button>'
+          : '<button onclick="recupererPnjDansGroupe(\'' + emp.nom.replace(/'/g,'') + '\')" title="Faire rejoindre votre groupe" style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">🔄</button>'
         ) +
-        '<button onclick="licencierPnj(\'' + emp.nom.replace(/'/g,'') + '\')" title="Renvoyer cet employe — arret du contrat et du salaire" style="background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .3rem;font-size:.6rem">✕</button>' +
+        '<button onclick="licencierPnj(\'' + emp.nom.replace(/'/g,'') + '\')" title="Renvoyer cet employe — arret du contrat et du salaire" style="background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">✕</button>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -701,7 +701,7 @@ function getGroupeHtmlPourPiece(buildingId, roomId) {
       '<div>' +
         '<div class="person-name" style="color:' + (inGroupe ? '#C9A84C' : '#a09060') + '">' + emp.nom + '</div>' +
         '<div class="person-role">' + (emp.role || 'Employé') + '</div>' +
-        '<div style="font-size:.58rem;color:' + (inGroupe ? '#4a6a20' : '#4a4030') + '">' + (inGroupe ? '🟢 Dans votre groupe' : '📍 En faction ici') + '</div>' +
+        '<div style="font-size:.78rem;color:' + (inGroupe ? '#4a6a20' : '#4a4030') + '">' + (inGroupe ? '🟢 Dans votre groupe' : '📍 En faction ici') + '</div>' +
       '</div>' +
     '</div>';
   };
@@ -888,7 +888,7 @@ async function ouvrirListeConversations() {
   } catch(e) { console.warn('ouvrirListeConversations error', e); }
 
   let html = '<div style="padding:.5rem .6rem;display:flex;flex-direction:column;gap:.3rem;overflow-y:auto;flex:1">';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;margin-top:.2rem">CONVERSATIONS</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.1em;color:#8a6a20;margin-top:.2rem">CONVERSATIONS</div>';
   if (conversationsPrivees.length === 0 && salons.length === 0) {
     html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic">Aucune conversation pour le moment.</div>';
   }
@@ -932,7 +932,7 @@ function afficherVueConversation() {
   let html = '<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .6rem;border-bottom:1px solid #2a2010">';
   html += '<span style="font-size:.72rem;color:#8a8060;cursor:pointer" onclick="retourListeConversations()">← Conversations</span>';
   html += '<span style="font-size:.78rem;color:#C9A84C">' + (estSalon ? '💬 ' : '🔒 ') + _conversationActuelle.label + '</span>';
-  html += estSalon ? '<span style="font-size:.65rem;color:#aa5050;cursor:pointer" onclick="quitterSalonActuelChat()">Quitter</span>' : '<span></span>';
+  html += estSalon ? '<span style="font-size:.85rem;color:#aa5050;cursor:pointer" onclick="quitterSalonActuelChat()">Quitter</span>' : '<span></span>';
   html += '</div>';
   html += '<div id="chat-messages-zone" style="flex:1;overflow-y:auto;padding:.4rem .6rem"></div>';
   html += '<div style="display:flex;gap:.4rem;padding:.5rem .6rem;border-top:1px solid #2a2010">' +
@@ -970,7 +970,7 @@ async function rafraichirConversationActuelle(reset) {
       zone.insertAdjacentHTML('beforeend',
         '<div style="margin-bottom:.4rem;text-align:' + (estMoi ? 'right' : 'left') + '">' +
         '<div style="display:inline-block;max-width:80%;padding:.35rem .6rem;border-radius:8px;background:#0f0d05;border:1px solid #2a2010">' +
-        '<div style="font-size:.62rem;color:#8a6a30">' + m.auteur + '</div>' +
+        '<div style="font-size:.82rem;color:#8a6a30">' + m.auteur + '</div>' +
         '<div style="font-size:.78rem;color:#e0d8c0">' + m.message + '</div>' +
         '</div></div>'
       );

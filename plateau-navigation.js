@@ -96,7 +96,7 @@ function minimapCard(id) {
   const firstRoom = Object.values(b.rooms || {})[0];
   const actions = (firstRoom?.orders || []).slice(0, 3).map(o => o.label).join(' · ');
 
-  const locked = b.locked ? '<span style="font-size:.6rem;color:#5a3020">· Accès restreint</span>' : '';
+  const locked = b.locked ? '<span style="font-size:.8rem;color:#5a3020">· Accès restreint</span>' : '';
 
   const tooltipData = JSON.stringify({
     name: localName,

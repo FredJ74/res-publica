@@ -853,7 +853,7 @@ function ouvrirBureauDeVote(posteId, country, city) {
       '</div>' +
       '<div style="font-size:.72rem;color:#8a8060;font-style:italic;margin-bottom:.2rem">' + ca.programme + '</div>' +
       (phase === PHASES_ELECTORALES.CAMPAGNE || phase === PHASES_ELECTORALES.SECOND_TOUR
-        ? '<button onclick="distribuerProspectusModalBtn(this)" data-nom="' + ca.nom + '" data-poste="' + posteId + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.65rem;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #3a5a3a;background:transparent;color:#4a8a4a;cursor:pointer">📄 Distribuer prospectus (1 PA · 50 ' + (co?.cur||'FR') + ')</button>'
+        ? '<button onclick="distribuerProspectusModalBtn(this)" data-nom="' + ca.nom + '" data-poste="' + posteId + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.85rem;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #3a5a3a;background:transparent;color:#4a8a4a;cursor:pointer">📄 Distribuer prospectus (1 PA · 50 ' + (co?.cur||'FR') + ')</button>'
         : '') +
     '</div>';
   }).join('');
@@ -900,7 +900,7 @@ function distribuerProspectusModal(candidatNom, posteId, country, city) {
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .2rem;border-bottom:1px solid #1a1810">' +
     '<span style="font-size:.78rem;color:#c0b090">' + p.name.replace(' (PNJ)','') + '</span>' +
     '<button onclick="distribuerProspectusBtn(this)" data-pnj="' + p.name + '" data-nom="' + candidatNom + '" data-poste="' + posteId + '" data-country="' + country + '" data-city="' + (city||'') + '" ' +
-    'style="font-size:.65rem;font-family:Bebas Neue,sans-serif;padding:.2rem .5rem;border:1px solid #3a5a3a;background:transparent;color:#4a8a4a;cursor:pointer">Distribuer</button>' +
+    'style="font-size:.85rem;font-family:Bebas Neue,sans-serif;padding:.2rem .5rem;border:1px solid #3a5a3a;background:transparent;color:#4a8a4a;cursor:pointer">Distribuer</button>' +
     '</div>'
   ).join('');
 
@@ -1061,26 +1061,26 @@ function ouvrirMenuAlliances() {
 
     const alliancesHtml = alliances.length > 0
       ? '<div style="margin-bottom:.8rem">' +
-        '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.12em;color:#4a8a4a;margin-bottom:.4rem">VOS ALLIANCES ACTIVES</div>' +
+        '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#4a8a4a;margin-bottom:.4rem">VOS ALLIANCES ACTIVES</div>' +
         alliances.map(a =>
           '<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem .4rem;border-bottom:1px solid #1a1810">' +
           '<span style="font-size:.78rem;color:#c0b090">' + a.nom + '</span>' +
-          '<span style="font-size:.65rem;color:#4a8a4a">' + a.type + '</span>' +
-          '<button onclick="rompreAlliance(this)" data-nom="' + a.nom + '" style="font-size:.6rem;color:#8a3a2a;background:none;border:none;cursor:pointer">Rompre</button>' +
+          '<span style="font-size:.85rem;color:#4a8a4a">' + a.type + '</span>' +
+          '<button onclick="rompreAlliance(this)" data-nom="' + a.nom + '" style="font-size:.8rem;color:#8a3a2a;background:none;border:none;cursor:pointer">Rompre</button>' +
           '</div>'
         ).join('') +
         '</div>'
-      : '<div style="font-size:.72rem;color:#4a4030;margin-bottom:.8rem;font-style:italic">Aucune alliance active.</div>';
+      : '<div style="font-size:.72rem;color:#9a8a68;margin-bottom:.8rem;font-style:italic">Aucune alliance active.</div>';
 
     const demandesHtml = demandesRecues.length > 0
       ? '<div style="margin-bottom:.8rem">' +
-        '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.12em;color:#C9A84C;margin-bottom:.4rem">DEMANDES REÇUES</div>' +
+        '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#C9A84C;margin-bottom:.4rem">DEMANDES REÇUES</div>' +
         demandesRecues.map(d =>
           '<div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem .4rem;border-bottom:1px solid #1a1810">' +
           '<span style="font-size:.78rem;color:#c0b090">' + d.de + ' → ' + d.type + '</span>' +
           '<div style="display:flex;gap:.4rem">' +
-          '<button onclick="accepterAlliance(this)" data-de="' + d.de + '" data-type="' + d.type + '" style="font-size:.65rem;color:#4a8a4a;background:none;border:1px solid #2a5a2a;padding:.2rem .4rem;cursor:pointer">✓ Accepter</button>' +
-          '<button onclick="refuserAlliance(this)" data-de="' + d.de + '" style="font-size:.65rem;color:#8a3a2a;background:none;border:1px solid #5a2a2a;padding:.2rem .4rem;cursor:pointer">✗ Refuser</button>' +
+          '<button onclick="accepterAlliance(this)" data-de="' + d.de + '" data-type="' + d.type + '" style="font-size:.85rem;color:#4a8a4a;background:none;border:1px solid #2a5a2a;padding:.2rem .4rem;cursor:pointer">✓ Accepter</button>' +
+          '<button onclick="refuserAlliance(this)" data-de="' + d.de + '" style="font-size:.85rem;color:#8a3a2a;background:none;border:1px solid #5a2a2a;padding:.2rem .4rem;cursor:pointer">✗ Refuser</button>' +
           '</div></div>'
         ).join('') +
         '</div>'
@@ -1088,7 +1088,7 @@ function ouvrirMenuAlliances() {
 
     const proposerHtml = autres.length > 0
       ? '<div>' +
-        '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.12em;color:#6a5a30;margin-bottom:.4rem">PROPOSER UNE ALLIANCE</div>' +
+        '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#6a5a30;margin-bottom:.4rem">PROPOSER UNE ALLIANCE</div>' +
         '<select id="alliance-joueur" style="width:100%;background:#0a0a07;border:1px solid #2a2010;color:#c0b090;padding:.3rem;margin-bottom:.4rem;font-family:Crimson Pro,Georgia,serif">' +
         autres.map(j => '<option value="' + j.name + '">' + j.name + '</option>').join('') +
         '</select>' +
@@ -1100,7 +1100,7 @@ function ouvrirMenuAlliances() {
         '</select>' +
         '<button onclick="proposerAlliance()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la proposition</button>' +
         '</div>'
-      : '<div style="font-size:.72rem;color:#4a4030;font-style:italic">Aucun autre joueur disponible.</div>';
+      : '<div style="font-size:.72rem;color:#9a8a68;font-style:italic">Aucun autre joueur disponible.</div>';
 
     document.getElementById('postes-modal-title').textContent = '🤝 Alliances';
     document.getElementById('postes-body').innerHTML =
@@ -1244,7 +1244,7 @@ function afficherObjectifsSecrets() {
       '<div style="font-size:1rem">' + (done ? '✅' : '⬜') + '</div>' +
       '<div style="flex:1">' +
         '<div style="font-size:.78rem;color:' + (done ? '#4a8a4a' : '#c0b090') + '">' + o.desc + '</div>' +
-        '<div style="font-size:.65rem;color:#8a7050">' + o.points + ' points</div>' +
+        '<div style="font-size:.85rem;color:#8a7050">' + o.points + ' points</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -1256,7 +1256,7 @@ function afficherObjectifsSecrets() {
       'Score : ' + totalPoints + ' / ' + maxPoints + ' points' +
     '</div>' +
     html +
-    '<div style="font-size:.65rem;color:#8a7050;margin-top:.6rem;font-style:italic">Ces objectifs sont secrets — les autres joueurs ne les voient pas.</div>' +
+    '<div style="font-size:.85rem;color:#8a7050;margin-top:.6rem;font-style:italic">Ces objectifs sont secrets — les autres joueurs ne les voient pas.</div>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
@@ -1525,7 +1525,7 @@ function renderRoomActions(room, buildingId, roomId) {
   });
 
   document.getElementById('actions-row-bat').innerHTML = buttons.join('') ||
-    '<div style="font-size:.75rem;color:#3a3020;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
+    '<div style="font-size:.75rem;color:#9a8a68;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
 }
 
 
@@ -1647,7 +1647,7 @@ function ouvrirPhotoCadavre(jsonStr) {
     overlay.innerHTML = photoHtml +
       '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.12em;color:#8a3a2a;margin-bottom:.4rem">' + (pnj.role || 'Cadavre') + '</div>' +
       '<div style="font-size:.78rem;color:#6a5a30;font-style:italic;max-width:400px;text-align:center;padding:0 1rem">' + (pnj.trait || '') + '</div>' +
-      '<div style="font-size:.62rem;color:#3a3020;margin-top:1rem">Cliquer pour fermer</div>';
+      '<div style="font-size:.82rem;color:#9a8a68;margin-top:1rem">Cliquer pour fermer</div>';
     document.body.appendChild(overlay);
   } catch(e) {}
 }
@@ -1694,7 +1694,7 @@ async function ouvrirOrganigramme() {
       const holderName = getTitulaire(p.id);
       const isMe = holderName === myName;
       const holderLabel = !holderName
-        ? '<span style="color:#4a4030;font-style:italic">Vacant</span>'
+        ? '<span style="color:#9a8a68;font-style:italic">Vacant</span>'
         : `<span style="color:${isMe ? '#C9A84C' : '#4a8a4a'}">${holderName}${isMe ? ' ✦' : ''}</span>`;
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 1rem;border-bottom:1px solid #1a1810">
         <div style="font-size:.78rem;color:#c0b090">${p.name}</div>
@@ -1959,7 +1959,7 @@ function ouvrirModalGuerreEmpire() {
     if (!enGuerre) {
       html += '<button onclick="confirmerGuerreEmpire(\'' + k + '\',\'' + co.n + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-sword" style="font-size:.75rem"></i> Déclarer</button>';
     } else {
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;color:#6a2020">CONFLIT EN COURS</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#6a2020">CONFLIT EN COURS</div>';
     }
     html += '</div>';
   });
@@ -3642,7 +3642,7 @@ async function ouvrirModalAffaires(mode) {
       const refId = a.id || a.nom; // prisonniers n'ont pas forcement d'id, fallback sur le nom
       html += '<div style="padding:.5rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
       html += '<div style="font-size:.82rem;color:#c0b090">' + (a.cible||a.nom||'Inconnu') + ' <span style="font-size:.68rem;color:#5a4030">— ' + (a.motif||a.raison||'') + '</span></div>';
-      html += '<button onclick="annulerAffaire(&quot;' + refId + '&quot;,\'' + mode + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.2rem .5rem;border:1px solid #8a3020;background:transparent;color:#cc4a3a;cursor:pointer">Annuler</button>';
+      html += '<button onclick="annulerAffaire(&quot;' + refId + '&quot;,\'' + mode + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.2rem .5rem;border:1px solid #8a3020;background:transparent;color:#cc4a3a;cursor:pointer">Annuler</button>';
       html += '</div>';
     });
   }

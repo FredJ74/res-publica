@@ -55,7 +55,7 @@ async function ouvrirRepertoirePJ() {
   }
 
   if (joueurs.length === 0) {
-    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#4a4030;font-style:italic">Aucun joueur enregistre pour l\'instant.</div>';
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#9a8a68;font-style:italic">Aucun joueur enregistre pour l\'instant.</div>';
     return;
   }
 
@@ -91,8 +91,8 @@ async function ouvrirRepertoirePJ() {
                 ${posteLabel ? posteLabel + ' · ' : ''}${empName}${villeDomicileNom ? ' · Domicile : ' + villeDomicileNom : ''}
               </div>
             </div>
-            ${!isMe ? `<button onclick="composerMailPour(this.dataset.name)" data-name="${j.name}" style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">
-              <i class="ti ti-mail" style="font-size:.65rem"></i>
+            ${!isMe ? `<button onclick="composerMailPour(this.dataset.name)" data-name="${j.name}" style="font-family:Bebas Neue,sans-serif;font-size:.82rem;letter-spacing:.06em;padding:.2rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">
+              <i class="ti ti-mail" style="font-size:.85rem"></i>
             </button>` : ''}
           </div>`;
       }).join('')}
@@ -408,7 +408,7 @@ function openCandidatureModal() {
                 Me declarer candidat
               </button>
             </div>`).join('')}
-      <div style="margin-top:.8rem;font-size:.72rem;color:#4a4030;font-style:italic">
+      <div style="margin-top:.8rem;font-size:.72rem;color:#9a8a68;font-style:italic">
         Pour lancer une election, contactez le Maire ou le Responsable electoral.
       </div>
     </div>`;
@@ -498,7 +498,7 @@ function openElectionsModal() {
     html += '</div>';
   });
 
-  html += '<div style="font-size:.72rem;color:#4a4030;font-style:italic;margin-top:.5rem">Calendrier : candidatures semaine 1-3 · campagne semaine 4-5 · resultats dimanche soir.</div>';
+  html += '<div style="font-size:.72rem;color:#9a8a68;font-style:italic;margin-top:.5rem">Calendrier : candidatures semaine 1-3 · campagne semaine 4-5 · resultats dimanche soir.</div>';
   html += '</div>';
 
   document.getElementById('postes-body').innerHTML = html;

@@ -74,12 +74,12 @@ function openCharSheet() {
         ? `<div style="font-size:.78rem;color:#8a8060;padding:.5rem;background:#0f0d05;border:1px solid #1a1810">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(char.signatureHtml) : char.signatureHtml}</div>`
         : (char.motto
           ? `<div style="font-size:.78rem;color:#5a5040;font-style:italic">Pas de signature personnalisée — ta devise ("${char.motto}") sera utilisée par défaut.</div>`
-          : `<div style="font-size:.75rem;color:#3a3020;font-style:italic">Aucune signature. Elle apparaîtra automatiquement en bas de tes posts sur le forum.</div>`)}
+          : `<div style="font-size:.75rem;color:#9a8a68;font-style:italic">Aucune signature. Elle apparaîtra automatiquement en bas de tes posts sur le forum.</div>`)}
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
       <div class="cs-title" style="margin-bottom:.4rem">Inventaire</div>
       ${state.inventory.length === 0
-        ? '<div style="font-size:.75rem;color:#3a3020;font-style:italic">Aucun objet</div>'
+        ? '<div style="font-size:.75rem;color:#9a8a68;font-style:italic">Aucun objet</div>'
         : state.inventory.map(item => `
             <div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:#c0b090;padding:.2rem 0">
               <i class="ti ${item.icon}" style="font-size:.8rem;color:#8a6a20"></i> ${item.name}
@@ -340,7 +340,7 @@ function switchSelfTab(tab, el) {
     html += '<div style="font-size:.72rem;color:#6a5a30"><i class="ti ' + confort.icon + '" style="font-size:.7rem"></i> ' + confort.label + '</div></div>';
     html += '</div>';
     html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">';
-    html += (dejaDormi ? '<span style="color:#4a4030">Vous avez deja dormi aujourd\'hui.</span>' : 'Versement du salaire : <strong style="color:#C9A84C">+' + salaire.toLocaleString('fr-FR') + ' ' + cur + '</strong>') + '<br>';
+    html += (dejaDormi ? '<span style="color:#9a8a68">Vous avez deja dormi aujourd\'hui.</span>' : 'Versement du salaire : <strong style="color:#C9A84C">+' + salaire.toLocaleString('fr-FR') + ' ' + cur + '</strong>') + '<br>';
     html += '+' + confort.moral + ' Moral · ';
     html += (confort.paBonus > 0 ? '+' + confort.paBonus + ' PA bonus demain' : 'Pas de bonus PA') + '</div>';
     html += '<button onclick="doDormir()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid ' + (dejaDormi ? '#2a2010' : '#4a6a8a') + ';background:transparent;color:' + (dejaDormi ? '#4a4030' : '#6a8aaa') + ';cursor:' + (dejaDormi ? 'not-allowed' : 'pointer') + '"' + (dejaDormi ? ' disabled' : '') + '>Dormir maintenant</button>';
@@ -396,15 +396,15 @@ function switchSelfTab(tab, el) {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.5rem">FINANCES</div>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">';
-    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#4a4030">Liquide</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + (state.liquide||0).toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
-    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#4a4030">En banque</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + (state.banque||0).toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">Liquide</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + (state.liquide||0).toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">En banque</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + (state.banque||0).toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
     html += '</div></div>';
 
     // Objets
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem">';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.5rem">OBJETS (' + items.length + ')</div>';
     if (items.length === 0) {
-      html += '<div style="font-size:.8rem;color:#3a3020;font-style:italic">Aucun objet en votre possession.</div>';
+      html += '<div style="font-size:.8rem;color:#9a8a68;font-style:italic">Aucun objet en votre possession.</div>';
     } else {
       items.forEach((item, i) => {
         const hasImage = item.imageUrl && item.imageUrl.length > 5;
@@ -421,9 +421,9 @@ function switchSelfTab(tab, el) {
         }
         html += '<div style="flex:1;min-width:0">';
         html += '<div style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + '</div>';
-        html += '<div style="font-size:.65rem;color:#4a4030">' + (item.legal !== undefined ? (item.legal ? 'Légal' : 'Non enregistré') : '') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
+        html += '<div style="font-size:.85rem;color:#9a8a68">' + (item.legal !== undefined ? (item.legal ? 'Légal' : 'Non enregistré') : '') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
         html += '</div>';
-        html += '<button onclick="event.stopPropagation();dropItem(' + i + ')" style="font-size:.65rem;color:#6a3020;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Jeter</button>';
+        html += '<button onclick="event.stopPropagation();dropItem(' + i + ')" style="font-size:.85rem;color:#6a3020;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Jeter</button>';
         html += '</div>';
       });
     }
@@ -456,7 +456,7 @@ function switchSelfTab(tab, el) {
     html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-bottom:.8rem">';
     STAT_DEFS.forEach(s => {
       html += '<div style="text-align:center;padding:.4rem;background:#0f0d05;border:1px solid #1a1810">';
-      html += '<div style="font-size:.6rem;color:#4a4030;text-transform:uppercase">' + s.k + '</div>';
+      html += '<div style="font-size:.8rem;color:#9a8a68;text-transform:uppercase">' + s.k + '</div>';
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C">' + (char?.stats?.[s.k]||8) + '</div>';
       html += '</div>';
     });
@@ -939,7 +939,7 @@ async function chargerObjetsAbandonnesDansPiece() {
       '<div class="person-avatar" style="border-color:#8a6a30"><i class="ti ' + (o.icon||'ti-package') + '" style="font-size:.75rem;color:#a0905a"></i></div>' +
       '<div style="flex:1"><div class="person-name" style="color:#a0905a">' + o.name + '</div>' +
       '<div class="person-role">Objet trouvé ici</div></div>' +
-      '<button onclick="ramasserObjetAbandonne(&quot;' + o.id + '&quot;)" style="font-size:.62rem;font-family:Bebas Neue,sans-serif;padding:.15rem .4rem;border:1px solid #4a6a30;background:transparent;color:#6a9a6a;cursor:pointer;flex-shrink:0">Ramasser</button>' +
+      '<button onclick="ramasserObjetAbandonne(&quot;' + o.id + '&quot;)" style="font-size:.82rem;font-family:Bebas Neue,sans-serif;padding:.15rem .4rem;border:1px solid #4a6a30;background:transparent;color:#6a9a6a;cursor:pointer;flex-shrink:0">Ramasser</button>' +
       '</div>'
     ).join('');
     const empty = list.querySelector('.person-empty');
@@ -1054,7 +1054,7 @@ function ouvrirDetailObjet(idx) {
   if (item.desc) {
     html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">' + item.desc + '</div>';
   }
-  html += '<div style="font-size:.68rem;color:#4a4030;margin-bottom:.8rem">';
+  html += '<div style="font-size:.68rem;color:#9a8a68;margin-bottom:.8rem">';
   html += (item.legal ? '✓ Légal' : '✗ Non enregistré');
   if (item.usageUnique) html += ' · Usage unique';
   html += '</div>';
@@ -1068,7 +1068,7 @@ function ouvrirDetailObjet(idx) {
   if (item.type === 'explosif') {
     html += '<button onclick="doUtiliserExplosifs();document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #6a2a20;background:transparent;color:#cc6a44;cursor:pointer">Utiliser</button>';
   }
-  html += '<button onclick="dropItem(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #3a2a10;background:transparent;color:#4a4030;cursor:pointer">Jeter</button>';
+  html += '<button onclick="dropItem(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Jeter</button>';
   html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>';
   html += '</div></div></div>';
   document.getElementById('postes-body').innerHTML = html;

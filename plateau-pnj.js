@@ -113,7 +113,7 @@ function ouvrirPhotoPleinEcran(el) {
   overlay.innerHTML =
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;color:#C9A84C;margin-bottom:.8rem">' + nom.replace(' (PNJ)','') + '</div>' +
     '<img src="' + url + '" style="max-width:90vw;max-height:85vh;object-fit:contain;border:1px solid #3a2a10"/>' +
-    '<div style="font-size:.65rem;color:#4a4030;margin-top:.6rem">Cliquer pour fermer</div>';
+    '<div style="font-size:.85rem;color:#9a8a68;margin-top:.6rem">Cliquer pour fermer</div>';
   document.body.appendChild(overlay);
 }
 
@@ -599,7 +599,7 @@ function doEscortPiege() {
       '<div onclick="confirmerEscortPiege(\'' + c.name.replace(/'/g,'') + '\')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
         '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20"></i>' +
         '<div><div style="font-size:.82rem;color:#c0b090">' + c.name + '</div>' +
-        '<div style="font-size:.65rem;color:#4a4030">' + (c.role||'PJ') + '</div></div>' +
+        '<div style="font-size:.85rem;color:#9a8a68">' + (c.role||'PJ') + '</div></div>' +
       '</div>'
     ).join('') +
     '</div>';
@@ -1288,7 +1288,7 @@ function ouvrirPanneauSimulation() {
     // Ressources
     html += '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem">';
     [['INF',p.resources.inf,'#4a6aaa'],['POP',p.resources.pop,'#aa6a4a'],['DIS',p.resources.dis,'#8a4aaa'],['HP',p.resources.hp,'#aa4a4a']].forEach(([k,v,c]) => {
-      html += '<div style="font-size:.65rem;padding:.15rem .4rem;background:#0a0805;border:1px solid #1a1810"><span style="color:#4a4030">' + k + '</span> <span style="color:' + c + ';font-family:Bebas Neue,sans-serif">' + v + '</span></div>';
+      html += '<div style="font-size:.85rem;padding:.15rem .4rem;background:#0a0805;border:1px solid #1a1810"><span style="color:#9a8a68">' + k + '</span> <span style="color:' + c + ';font-family:Bebas Neue,sans-serif">' + v + '</span></div>';
     });
     html += '</div>';
 
@@ -1296,10 +1296,10 @@ function ouvrirPanneauSimulation() {
     html += '<div style="display:flex;gap:.3rem;flex-wrap:wrap">';
     Object.entries(WORLD[p.country] || {}).forEach(([cityId, city]) => {
       if (cityId !== p.currentCity) {
-        html += '<button onclick="deplacerSimule(' + i + ',\'' + cityId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.2rem .4rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">→ ' + city.name + '</button>';
+        html += '<button onclick="deplacerSimule(' + i + ',\'' + cityId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.82rem;letter-spacing:.06em;padding:.2rem .4rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer">→ ' + city.name + '</button>';
       }
     });
-    html += '<button onclick="deplacerSimuleBatiment(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.2rem .4rem;border:1px solid #2a4a20;background:transparent;color:#4a7a4a;cursor:pointer">Entrer ici</button>';
+    html += '<button onclick="deplacerSimuleBatiment(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.82rem;letter-spacing:.06em;padding:.2rem .4rem;border:1px solid #2a4a20;background:transparent;color:#4a7a4a;cursor:pointer">Entrer ici</button>';
     html += '</div>';
     html += '</div>';
   });

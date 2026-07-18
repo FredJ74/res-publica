@@ -316,7 +316,7 @@ async function ecouterRumeurs() {
       document.getElementById('postes-body').innerHTML =
         '<div style="padding:1.2rem">' +
         '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + texte + '"</div>' +
-        '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem">Source : ' + source + ' · Information vérifiée</div>' +
+        '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">Source : ' + source + ' · Information vérifiée</div>' +
         '</div>';
       document.getElementById('modal-postes').classList.add('open');
       state.inf = Math.min(100, state.inf + 1);
@@ -355,7 +355,7 @@ async function ecouterRumeurs() {
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1.2rem">' +
       '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + rumeur + '"</div>' +
-      '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem">Source : ' + source + ' · Fiabilité incertaine</div>' +
+      '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">Source : ' + source + ' · Fiabilité incertaine</div>' +
       '</div>';
     document.getElementById('modal-postes').classList.add('open');
 
@@ -725,7 +725,7 @@ function ouvrirModalAcheterArme() {
   });
 
   html += '</div>';
-  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="margin-top:.8rem;width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#4a4030;cursor:pointer">Renoncer à l\'achat</button>';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="margin-top:.8rem;width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#9a8a68;cursor:pointer">Renoncer à l\'achat</button>';
   html += '</div>';
 
   document.getElementById('postes-body').innerHTML = html;
@@ -970,7 +970,7 @@ function doAcheterGilet() {
   html += '</div>';
   html += '<div style="display:flex;gap:.5rem">';
   html += '<button onclick="confirmerAchatGilet()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Acheter</button>';
-  html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#4a4030;cursor:pointer">Renoncer</button>';
+  html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Renoncer</button>';
   html += '</div></div></div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -1018,7 +1018,7 @@ function doAcheterExplosifs() {
   html += '</div>';
   html += '<div style="display:flex;gap:.5rem">';
   html += '<button onclick="confirmerAchatExplosifs()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer">Acheter</button>';
-  html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#4a4030;cursor:pointer">Renoncer</button>';
+  html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Renoncer</button>';
   html += '</div></div></div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -1255,7 +1255,7 @@ function doAcheterPoisonObjet(type) {
   html += '</div>';
   html += '<div style="display:flex;gap:.5rem">';
   html += '<button onclick="confirmerAchatPoison(&quot;' + type + '&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Acheter</button>';
-  html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#4a4030;cursor:pointer">Renoncer</button>';
+  html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Renoncer</button>';
   html += '</div></div></div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -1311,7 +1311,7 @@ function ouvrirModalAssassiner() {
   personnesPresentes.forEach(p => {
     html += '<div onclick="confirmerAssassinat(\'' + p.name + '\')" style="padding:.7rem;border:1px solid #3a1010;background:#0f0505;margin-bottom:.4rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between" onmouseover="this.style.background=\'#1a0808\'" onmouseout="this.style.background=\'#0f0505\'">';
     html += '<div style="font-size:.85rem;color:#c0b090">' + p.name + '</div>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;color:#cc4444">ÉLIMINER</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#cc4444">ÉLIMINER</div>';
     html += '</div>';
   });
   html += '</div>';
@@ -1620,7 +1620,7 @@ function consulterInformateur(niveau) {
     '<div style="padding:1.2rem">' +
     '<div style="font-size:.75rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;margin-bottom:.6rem">INFORMATION REÇUE</div>' +
     '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">"' + info + '"</div>' +
-    '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem;border-top:1px solid #2a2010;padding-top:.6rem">' +
+    '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem;border-top:1px solid #2a2010;padding-top:.6rem">' +
     'Source : ' + config.label + ' · +' + niveau + ' INF · Coût : ' + config.cout + ' ' + cur + '/jour · Paye lors de l\'ordre Dormir</div>' +
     '<div style="margin-top:.8rem;display:flex;gap:.5rem">' +
     '<button onclick="licencierInformateur(' + niveau + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Licencier</button>' +
@@ -1651,7 +1651,7 @@ function interrogerInformateur(niveau) {
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1.2rem">' +
     '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">"' + info + '"</div>' +
-    '<div style="font-size:.68rem;color:#4a4030;margin-top:.8rem">+' + Math.ceil(niveau/2) + ' INF · ' + INFORMATEUR_NIVEAUX[niveau]?.label + '</div>' +
+    '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">+' + Math.ceil(niveau/2) + ' INF · ' + INFORMATEUR_NIVEAUX[niveau]?.label + '</div>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
   addJournalEntry(`Rapport reçu de votre informateur niveau ${niveau}.`, 'event-info');
@@ -1668,11 +1668,11 @@ function ouvrirGestionInformateurs() {
       html += '<div style="border:1px solid var(--border);background:var(--bg2);padding:.7rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between">';
       html += '<div><div style="font-size:.82rem;color:#c0b090">Niveau ' + inf.niveau + ' — ' + inf.label + '</div>';
       html += '<div style="font-size:.68rem;color:#6a6040">-' + inf.cout + ' ' + cur + '/jour · Actif depuis ' + inf.joursActif + ' jour(s)</div></div>';
-      html += '<button onclick="congediерInformateur(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.25rem .5rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Congédier</button>';
+      html += '<button onclick="congediерInformateur(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Congédier</button>';
       html += '</div>';
     });
   }
-  html += '<div style="font-size:.7rem;color:#4a4030;margin-top:.8rem">Maximum 2 informateurs simultanés.</div>';
+  html += '<div style="font-size:.7rem;color:#9a8a68;margin-top:.8rem">Maximum 2 informateurs simultanés.</div>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -1758,7 +1758,7 @@ function ouvrirCalendrierElections() {
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
       html += '<div style="display:flex;justify-content:space-between;align-items:center">';
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + e.nom + '</div>';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;color:' + phaseCol + ';border:1px solid;padding:.1rem .3rem">' + phaseLabel + '</div>';
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:' + phaseCol + ';border:1px solid;padding:.1rem .3rem">' + phaseLabel + '</div>';
       html += '</div>';
       html += '<div style="font-size:.7rem;color:#5a4030;margin-top:.2rem">Tour ' + (e.tour||1) + ' · Résultats : Jour ' + e.jourResultat + '</div>';
       if (e.phase === 'candidatures') {

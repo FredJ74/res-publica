@@ -164,7 +164,7 @@ function ouvrirIndicesImperiaux() {
     [['ISN','Securite','#4a8a4a'],['IE','Eco','#C9A84C'],['ID','Diplo','#4a6aaa'],['IS','Social','#aa6a4a'],['IP','Piété','#8a4a8a']].forEach(([k,label,col]) => {
       const val = idx[k] || 0;
       html += '<div style="text-align:center;padding:.3rem;background:#0a0805;border:1px solid #1a1810">';
-      html += '<div style="font-size:.58rem;color:#4a4030">' + label + '</div>';
+      html += '<div style="font-size:.78rem;color:#9a8a68">' + label + '</div>';
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:' + col + '">' + val + '</div>';
       html += '<div style="height:3px;background:#0a0a05;margin-top:.15rem"><div style="height:100%;width:' + val + '%;background:' + col + ';opacity:.6"></div></div>';
       html += '</div>';
@@ -292,7 +292,7 @@ function doConsulterConfessions() {
   state.inf = Math.min(100, state.inf + 8);
   updateUI();
   document.getElementById('postes-modal-title').textContent = 'Archives des Confessions';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem"><div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7">"' + secret + '"</div><div style="font-size:.7rem;color:#4a4030;margin-top:.6rem">Source : confessions scellées · +8 INF</div></div>';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem"><div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7">"' + secret + '"</div><div style="font-size:.7rem;color:#9a8a68;margin-top:.6rem">Source : confessions scellées · +8 INF</div></div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
@@ -429,18 +429,18 @@ function renderInventory() {
     return;
   }
   el.innerHTML = state.inventory.map((item, idx) => {
-    const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.6rem"> ⚠ Illégal</span>' : '';
-    const expiry = item.expireDay ? '<div style="font-size:.6rem;color:#6a5030">Expire jour ' + item.expireDay + '</div>' : '';
+    const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.8rem"> ⚠ Illégal</span>' : '';
+    const expiry = item.expireDay ? '<div style="font-size:.8rem;color:#6a5030">Expire jour ' + item.expireDay + '</div>' : '';
     return '<div class="inv-item" style="display:flex;align-items:center;justify-content:space-between;gap:.4rem">' +
       '<div style="display:flex;align-items:center;gap:.4rem;flex:1;min-width:0;cursor:pointer" onclick="ouvrirDetailObjetInventaire(' + idx + ')">' +
         '<i class="ti ' + (item.icon||'ti-package') + '" style="font-size:.85rem;color:#8a6a20;flex-shrink:0"></i>' +
         '<div style="min-width:0">' +
           '<div style="font-size:.78rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + legal + '</div>' +
-          (item.desc ? '<div style="font-size:.62rem;color:#4a4030;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.desc.substring(0,60) + (item.desc.length>60?'...':'') + '</div>' : '') +
+          (item.desc ? '<div style="font-size:.82rem;color:#9a8a68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.desc.substring(0,60) + (item.desc.length>60?'...':'') + '</div>' : '') +
           expiry +
         '</div>' +
       '</div>' +
-      '<button onclick="supprimerItemInventaire(' + idx + ')" title="Supprimer" style="flex-shrink:0;background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .35rem;font-size:.65rem;font-family:Bebas Neue,sans-serif">✕</button>' +
+      '<button onclick="supprimerItemInventaire(' + idx + ')" title="Supprimer" style="flex-shrink:0;background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .35rem;font-size:.85rem;font-family:Bebas Neue,sans-serif">✕</button>' +
     '</div>';
   }).join('');
 }

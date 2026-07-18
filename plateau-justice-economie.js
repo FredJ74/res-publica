@@ -872,7 +872,7 @@ async function ouvrirPorterPlainte() {
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em;color:' + statut.col + '">' + statut.texte + '</div>';
       html += '</div>';
       if (a.motif) html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + a.motif + '</div>';
-      html += '<div style="font-size:.65rem;color:#4a4030;margin-top:.3rem">Jour ' + a.jour + '</div>';
+      html += '<div style="font-size:.85rem;color:#9a8a68;margin-top:.3rem">Jour ' + a.jour + '</div>';
       html += '</div>';
     });
     enquetes.forEach(e => {
@@ -1577,7 +1577,7 @@ function ouvrirModalLouerLocal() {
     o.membres?.some(m => m.nom === state.char?.name)
   );
 
-  let orgaSelect = '<div style="font-size:.72rem;color:#4a4030;font-style:italic">Aucune organisation — fondez-en une pour bénéficier des bonus.</div>';
+  let orgaSelect = '<div style="font-size:.72rem;color:#9a8a68;font-style:italic">Aucune organisation — fondez-en une pour bénéficier des bonus.</div>';
   if (mesOrgas.length > 0) {
     orgaSelect = '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">ASSOCIER À UNE ORGANISATION</div>' +
       '<select id="loc-orga-select" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">' +
@@ -1592,11 +1592,11 @@ function ouvrirModalLouerLocal() {
     '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' + (room.desc || '') + '</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.7rem">' +
       '<div style="background:#0a0805;border:1px solid #1a1810;padding:.5rem;text-align:center">' +
-        '<div style="font-size:.62rem;color:#4a4030">LOYER / JOUR</div>' +
+        '<div style="font-size:.82rem;color:#9a8a68">LOYER / JOUR</div>' +
         '<div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + loc.prix.toLocaleString('fr-FR') + ' ' + cur + '</div>' +
       '</div>' +
       '<div style="background:#0a0805;border:1px solid #1a1810;padding:.5rem;text-align:center">' +
-        '<div style="font-size:.62rem;color:#4a4030">BONUS ORGANISATION</div>' +
+        '<div style="font-size:.82rem;color:#9a8a68">BONUS ORGANISATION</div>' +
         '<div style="font-size:.78rem;color:#4a8a4a;margin-top:.2rem">' + bonusStr + '</div>' +
       '</div>' +
     '</div>' +
@@ -1695,11 +1695,11 @@ function ouvrirModalGererLocal() {
     '<div style="padding:.8rem 1rem">' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.6rem">' +
       '<div style="background:#0a0805;border:1px solid #1a1810;padding:.5rem;text-align:center">' +
-        '<div style="font-size:.62rem;color:#4a4030">LOYER / JOUR</div>' +
+        '<div style="font-size:.82rem;color:#9a8a68">LOYER / JOUR</div>' +
         '<div style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + location.prix.toLocaleString('fr-FR') + ' ' + cur + '</div>' +
       '</div>' +
       '<div style="background:#0a0805;border:1px solid #1a1810;padding:.5rem;text-align:center">' +
-        '<div style="font-size:.62rem;color:#4a4030">BONUS ACTIFS</div>' +
+        '<div style="font-size:.82rem;color:#9a8a68">BONUS ACTIFS</div>' +
         '<div style="font-size:.72rem;color:#4a8a4a;margin-top:.2rem">' + (bonusParts.join(' · ') || 'Aucun') + '</div>' +
       '</div>' +
     '</div>' +
@@ -1856,7 +1856,7 @@ function ouvrirMesLocations() {
 
   if (locations.length === 0) {
     document.getElementById('postes-body').innerHTML =
-      '<div style="padding:1rem;font-size:.85rem;color:#4a4030;font-style:italic">Vous ne louez aucun local actuellement. Rendez-vous dans un Centre Commercial, Artisanal ou d\'Affaires.</div>';
+      '<div style="padding:1rem;font-size:.85rem;color:#9a8a68;font-style:italic">Vous ne louez aucun local actuellement. Rendez-vous dans un Centre Commercial, Artisanal ou d\'Affaires.</div>';
     document.getElementById('modal-postes').classList.add('open');
     return;
   }
@@ -1877,11 +1877,11 @@ function ouvrirMesLocations() {
         '</div>' +
         '<div style="text-align:right">' +
           '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#c0b090">' + loc.prix + ' ' + cur + '/jour</div>' +
-          '<div style="font-size:.65rem;color:#4a8a4a">' + (bonusParts.join(' · ') || '') + '</div>' +
+          '<div style="font-size:.85rem;color:#4a8a4a">' + (bonusParts.join(' · ') || '') + '</div>' +
         '</div>' +
       '</div>' +
       '<div style="font-size:.68rem;color:' + (orga ? '#4a8a4a' : '#4a4030') + ';margin-bottom:.4rem">Organisation : ' + (orga ? orga.nom : 'Aucune') + '</div>' +
-      '<button onclick="confirmerResiliation(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.2rem .5rem;border:1px solid #5a2a2a;background:transparent;color:#8a3a2a;cursor:pointer">Résilier</button>' +
+      '<button onclick="confirmerResiliation(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.2rem .5rem;border:1px solid #5a2a2a;background:transparent;color:#8a3a2a;cursor:pointer">Résilier</button>' +
       '</div>';
   }).join('');
 
@@ -2007,7 +2007,7 @@ function ouvrirDonObjetPnjModal(encodedPnj) {
   let html = '<div style="padding:.8rem 1rem"><div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisir l\'objet a remettre :</div>';
   objets.forEach((obj, i) => {
     const idx = state.inventory.indexOf(obj);
-    html += '<div onclick="confirmerDonObjetPnj('+idx+',\''+encodedPnj+'\')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'"><i class="ti '+(obj.icon||'ti-package')+'" style="font-size:.9rem;color:#8a6a20"></i><div><div style="font-size:.8rem;color:#c0b090">'+obj.name+'</div><div style="font-size:.65rem;color:#4a4030">'+(obj.desc||'')+'</div></div></div>';
+    html += '<div onclick="confirmerDonObjetPnj('+idx+',\''+encodedPnj+'\')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'"><i class="ti '+(obj.icon||'ti-package')+'" style="font-size:.9rem;color:#8a6a20"></i><div><div style="font-size:.8rem;color:#c0b090">'+obj.name+'</div><div style="font-size:.85rem;color:#9a8a68">'+(obj.desc||'')+'</div></div></div>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
