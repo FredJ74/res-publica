@@ -132,8 +132,7 @@ const WORLD = {
         },
         'hotel-republica': {
           name: "Hôtel-Restaurant La Républia",
-          desc: "Le grand hôtel de Luthecia. Gaston Sauceblanche règne sur la salle avec un mépris souverain.",
-          persons: [{"name": "Gaston Sauceblanche (PNJ)", "role": "Maître d'hôtel", "rel": "neutral", "job": "serveur", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gaston-sauceblanche.png", "photoPos": "50% 15%"}, {"name": "Yvette Gratinée (PNJ)", "role": "Serveuse", "rel": "neutral", "job": "serveur", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/yvette-gratinee.png", "photoPos": "50% 15%"}]
+          desc: "Le grand hôtel de Luthecia. Gaston Sauceblanche règne sur la salle avec un mépris souverain."
         },
         'commissariat': {
           name: "Commissariat Central de Luthecia",
@@ -1149,8 +1148,8 @@ const BUILDINGS = {
         desc: "Le hall d'entree de l'hotel. Le concierge connait tout le monde.",
         imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-republica.png',
         persons: [
-          {name:'Gustave (Concierge)', role:'PNJ - Gestionnaire', rel:'neutral', job:'concierge'},
-          {name:'Beatrice Aumont',     role:'Deputee - Parti Liberal', rel:'neutral', job:null}
+          {name:'Nathalie Ondor (PNJ)', role:'Réceptionniste', rel:'neutral', job:'hotelier'},
+          {name:'Isidore Trébien (PNJ)', role:'Bagagiste', rel:'neutral', job:'bagagiste'}
         ],
         orders: [
           {fn:'reserver_chambre_hotel', label:'Reserver une chambre', pa:1, cost:80,  type:'legal',   icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
@@ -1164,7 +1163,9 @@ const BUILDINGS = {
         desc: "La salle de restaurant est bondee le midi. Tables discretes en fond de salle pour conversations privees.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-republica-restaurant.png",
         persons: [
-          {name:'Paulo (Maitre d\'hotel)', role:'PNJ - Service', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gaston-sauceblanche.png', photoPos:'50% 15%'},
+          {name:'Paulo (Maitre d\'hotel)', role:'PNJ - Service', rel:'neutral', job:'serveur'},
+          {name:'Gaston Sauceblanche (PNJ)', role:'Sommelier', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gaston-sauceblanche.png', photoPos:'50% 15%'},
+          {name:'Yvette Gratinée (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/yvette-gratinee.png', photoPos:'50% 15%'},
           {name:'Jean Dupont (PNJ)',       role:'Depute - Parti du Centre', rel:'neutral', job:'commercant', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'20% 30%'},
           {name:'Marie Leblanc (PNJ)',    role:'Journaliste - La Tribune', rel:'enemy',  job:'journaliste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'70% 30%'}
         ],
