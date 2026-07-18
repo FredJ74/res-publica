@@ -87,7 +87,7 @@ function openCharSheet() {
     </div>
     </div>
     <div id="cs-tab-stats" style="display:none">${genererStatsHtml()}</div>
-  \`;
+  `;
 
   document.getElementById('modal-char').classList.add('open');
 }
