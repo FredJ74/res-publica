@@ -1153,8 +1153,6 @@ const BUILDINGS = {
           {name:'Beatrice Aumont',     role:'Deputee - Parti Liberal', rel:'neutral', job:null}
         ],
         orders: [
-          {fn:'parler_pnj',    label:'Parler au concierge',  pa:0, cost:0,   type:'legal',   icon:'ti-message', successRate:100},
-          {fn:'se_renseigner', label:'Se renseigner',        pa:0, cost:0,   type:'legal',   icon:'ti-info-circle', successRate:100},
           {fn:'reserver_chambre_hotel', label:'Reserver une chambre', pa:1, cost:80,  type:'legal',   icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
           {fn:'choisir_suite', label:'Louer une suite', pa:1, cost:0, type:'legal', icon:'ti-crown', successRate:100, desc:'Choisir parmi les suites disponibles de l\'hotel.'}
         ]
