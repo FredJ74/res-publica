@@ -354,6 +354,10 @@ async function talkToPnj(encodedPnj, action) {
     ? 'ATTENTION : le joueur est recherché par les autorités.'
     : '';
 
+  const lieuBatiment = BUILDINGS[state.currentBuilding]?.name || '';
+  const lieuPiece = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom]?.name || '';
+  const lieuTexte = lieuBatiment ? (lieuBatiment + (lieuPiece ? ' (' + lieuPiece + ')' : '')) : '';
+
   const prompt = `Tu joues un personnage dans Res Publica, un jeu de rôle politique parodique et satirique.
 L'empire est ${co?.n} (${empireStyle.tone}).
 La religion locale est ${empireStyle.religion}. Le chef suprême est ${empireStyle.leader}.
@@ -362,6 +366,7 @@ Ton personnage : ${pnj.name?.replace(' (PNJ)', '')}, ${pnj.role}.
 ${perso ? `Ta personnalité : ${perso.trait}` : `Tu es un PNJ typique de ${co?.n}.`}
 ${perso ? `Ton style : ${perso.style}` : ''}
 Relation avec le joueur : ${pnj.rel === 'ally' ? 'allié de confiance' : pnj.rel === 'enemy' ? 'ennemi déclaré' : 'neutre'}.
+${lieuTexte ? `Lieu actuel : vous vous trouvez tous les deux à ${lieuTexte}. N'évoque jamais un autre établissement (mairie, commissariat, tribunal...) comme si vous y étiez actuellement.` : ''}
 
 Le joueur : ${char?.name || 'Inconnu'}, ${ar?.name || 'citoyen'}.
 ${politicalContext} ${recherchéContext}
@@ -372,7 +377,8 @@ ${isQuestion ? `Le joueur te pose cette question : "${action}". Réponds en rest
 RÈGLES ABSOLUES :
 - 2 phrases maximum, jamais plus
 - Reste dans ton personnage parodique
-- Intègre naturellement les éléments de l'empire (religion locale, monnaie ${empireStyle.currency}, ambiance)
+- Reste physiquement à l'endroit indiqué ci-dessus, n'évoque aucun autre lieu comme si tu y étais actuellement
+- La seule monnaie existante dans cet univers est désignée par le code ${empireStyle.currency} ; n'utilise JAMAIS l'Euro, le Dollar, ni aucune devise du monde réel
 - Jamais de vrais noms de dieux ou religions réelles
 - Réponds UNIQUEMENT avec ta réplique, sans guillemets ni introduction`;
 
