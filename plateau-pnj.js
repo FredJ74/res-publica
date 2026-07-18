@@ -164,7 +164,7 @@ function openPnjModal(encodedPnj) {
     actionBtns += (!inGroup
       ? '<button class="pnj-action-btn" onclick="rejoindrePJ(decodeURIComponent(\'' + pnjJson + '\'))"><i class="ti ti-users" style="font-size:.85rem"></i> Rejoindre ce joueur</button>'
       : '<button class="pnj-action-btn" onclick="quitterGroupe()"><i class="ti ti-user-minus" style="font-size:.85rem"></i> Quitter le groupe</button>');
-    actionBtns += '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnjSafeName + '\',\'' + pnjSafeRole + '\',\'' + pnjRel + '\')"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
+    actionBtns += '<button class="pnj-action-btn" onclick="addContactByName(\'' + pnjSafeName + '\',\'' + pnjSafeRole + '\',\'' + pnjRel + '\',true)"><i class="ti ti-user-plus" style="font-size:.85rem"></i> Ajouter au repertoire</button>';
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');composerMailPour(\'' + pnjSafeName + '\')"><i class="ti ti-mail" style="font-size:.85rem"></i> Envoyer un mail</button>';
   }
 
@@ -435,8 +435,8 @@ function closePnjModal() {
   document.getElementById('modal-pnj').classList.remove('open');
 }
 
-function addContactByName(name, role, rel) {
-  addContact({ name: name, role: role, rel: rel });
+function addContactByName(name, role, rel, isPJ) {
+  addContact({ name: name, role: role, rel: rel, isPJ: !!isPJ });
 }
 
 function addContact(pnj) {
@@ -446,7 +446,7 @@ function addContact(pnj) {
     showToast('Deja dans le repertoire', pnj.name + ' est deja dans vos contacts.', false);
     return;
   }
-  state.contacts.push({ name: pnj.name, role: pnj.role, rel: pnj.rel });
+  state.contacts.push({ name: pnj.name, role: pnj.role, rel: pnj.rel, isPJ: !!pnj.isPJ });
   showToast('Contact ajoute', pnj.name + ' a ete ajoute a votre repertoire.', true);
   addJournalEntry(pnj.name + ' ajoute au repertoire.', '');
 }
