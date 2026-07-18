@@ -423,7 +423,7 @@ function switchSelfTab(tab, el) {
         html += '<div style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + '</div>';
         html += '<div style="font-size:.85rem;color:#9a8a68">' + (item.legal !== undefined ? (item.legal ? 'Légal' : 'Non enregistré') : '') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
         html += '</div>';
-        html += '<button onclick="event.stopPropagation();dropItem(' + i + ')" style="font-size:.85rem;color:#6a3020;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Jeter</button>';
+        html += '<button onclick="event.stopPropagation();dropItem(' + i + ')" style="font-size:.85rem;color:#cc5540;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Jeter</button>';
         html += '</div>';
       });
     }
