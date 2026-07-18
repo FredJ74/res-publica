@@ -272,6 +272,20 @@ window.addEventListener('DOMContentLoaded', () => {
   } catch(e) {}
   if (!state.currentCity) state.currentCity = 'capitale';
   if (!state.country) state.country = 'republic';
+
+  // Nouveau personnage jamais place nulle part : apparait dans le hall d'accueil
+  // de la mairie de sa ville de domiciliation (point de depart des quetes exploratoires)
+  if (!state.currentBuilding && !state.char?.currentBuilding) {
+    const buildingMairie = state.currentCity === 'capitale' ? 'mairie-capitale' : 'mairie';
+    const roomMairie = state.currentCity === 'capitale' ? 'hall_mairie' : 'accueil_mairie';
+    state.currentBuilding = buildingMairie;
+    state.currentRoom = roomMairie;
+    if (state.char) {
+      state.char.currentBuilding = buildingMairie;
+      state.char.currentRoom = roomMairie;
+    }
+  }
+
   applyEmpireTheme(state.country);
   // Sauvegarder la position courante
   if (state.char) {
