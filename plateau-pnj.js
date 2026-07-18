@@ -35,7 +35,7 @@ function genererStatsHtml() {
       '<div style="height:4px;background:#1a1810;border-radius:2px">' +
         '<div style="height:100%;width:' + pct + '%;background:' + s.col + ';border-radius:2px;transition:width .3s"></div>' +
       '</div>' +
-      '<div style="font-size:.6rem;color:#4a4030;margin-top:.1rem">' + s.desc + '</div>' +
+      '<div style="font-size:.6rem;color:#9a8a68;margin-top:.1rem">' + s.desc + '</div>' +
     '</div>';
   }).join('');
 
@@ -44,7 +44,7 @@ function genererStatsHtml() {
     return '<div style="text-align:center">' +
       '<div style="font-size:.62rem;color:' + s.col + ';font-family:Bebas Neue,sans-serif;letter-spacing:.06em">' + s.k + '</div>' +
       '<div style="font-size:1rem;color:#f0ead6;font-family:Bebas Neue,sans-serif">' + val + '</div>' +
-      '<div style="font-size:.58rem;color:#4a4030">' + s.n + '</div>' +
+      '<div style="font-size:.58rem;color:#9a8a68">' + s.n + '</div>' +
     '</div>';
   }).join('');
 
@@ -53,10 +53,10 @@ function genererStatsHtml() {
         (ar?.name || '') + ' · ' + (co?.n || '') +
         (state.poste?.name ? ' · ' + state.poste.name : '') +
       '</div>' +
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.15em;color:#4a4030;margin-bottom:.5rem">INDICES</div>' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.15em;color:#9a8a68;margin-bottom:.5rem">INDICES</div>' +
       barsHtml +
       '<div style="border-top:1px solid #2a2010;margin:.6rem 0"></div>' +
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.15em;color:#4a4030;margin-bottom:.5rem">ATTRIBUTS PERSONNELS</div>' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.15em;color:#9a8a68;margin-bottom:.5rem">ATTRIBUTS PERSONNELS</div>' +
       '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:.4rem">' + persoHtml + '</div>' +
       '<div style="border-top:1px solid #2a2010;margin:.6rem 0"></div>' +
       '<div style="display:flex;justify-content:space-between;font-size:.72rem;color:#8a8060">' +
