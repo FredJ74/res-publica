@@ -1570,17 +1570,23 @@ async function doRecruterMilitants() {
   showToast('Militant recruté !', nomPnj + ' rejoint votre réseau (' + (mesMilitants.length + 1) + '/2).', true);
   addJournalEntry('Recrutement d\'un militant étudiant : ' + nomPnj + ' (syndicat : ' + syndicat.nom + ').', 'event-good');
 
-  // Afficher immediatement le militant dans la liste des personnes presentes, groupe au recruteur
+  // Retour visuel immediat, SANS muter l'objet BUILDINGS global (partage par tous les
+  // joueurs). La reapparition fiable et multi-session du militant est deja assuree par
+  // enterRoom() (plateau-navigation.js), qui le recharge depuis Supabase a chaque entree
+  // dans un batiment "universite". Ecrire ici en plus dans room.persons dupliquait cette
+  // logique et laissait une entree fantome permanente, visible de tous, jamais nettoyee.
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  if (room) {
-    if (!room.persons) room.persons = [];
-    room.persons.unshift({
-      name: nomPnj,
-      role: 'Militant recruté (lié à ' + (state.char?.name || 'vous') + ')',
-      rel: 'ally',
-      job: 'militant'
-    });
-    if (typeof renderPersonsList === 'function') renderPersonsList(room.persons);
+  if (room && typeof renderPersonsList === 'function') {
+    const apercu = [
+      {
+        name: nomPnj,
+        role: 'Militant recruté (lié à ' + (state.char?.name || 'vous') + ')',
+        rel: 'ally',
+        job: 'militant'
+      },
+      ...(room.persons || [])
+    ];
+    renderPersonsList(apercu);
   }
 }
 
