@@ -291,7 +291,10 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   diner_affaires_refuse:  (a, c) => 'On raconte que ' + a + ' aurait tenté d\'inviter ' + c + ' à dîner... sans succès.',
   boire_verre_accepte:    (a, c) => 'On a vu ' + a + ' et ' + c + ' trinquer ensemble au bar. Ambiance cordiale... ou complice ?',
   boire_verre_refuse:     (a, c) => a + ' aurait tenté d\'offrir un verre à ' + c + ', qui a décliné sans un mot.',
-  nuit_escort:            (a, c) => 'Des mauvaises langues jurent avoir vu ' + a + ' quitter discrètement une chambre en compagnie d\'une professionnelle de l\'Agence Roxane Velours.'
+  nuit_escort:            (a, c) => 'Des mauvaises langues jurent avoir vu ' + a + ' quitter discrètement une chambre en compagnie d\'une professionnelle de l\'Agence Roxane Velours.',
+  plainte_sans_suite:     (a, c) => 'Une rumeur evoque une plainte deposee par ' + a + ' contre ' + c + ', finalement classee sans suite.',
+  plainte_enquete:        (a, c) => 'Une enquete viserait ' + c + ', dit-on, suite a une plainte deposee par ' + a + '.',
+  plainte_confirmee:      (a, c) => 'La rumeur veut que ' + c + ' ait ete place en garde a vue suite a une plainte de ' + a + '.'
 };
 
 async function ecouterRumeurs(successRate) {

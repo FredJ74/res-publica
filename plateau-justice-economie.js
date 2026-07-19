@@ -384,20 +384,30 @@ async function traiterPlaintes() {
     const preuveReelle = await verifierPreuveReelle(p.country || state.country, p.cible, p.motif);
     if (preuveReelle) roll = Math.max(roll, 80);
     let result = '';
+    let notifierJoueurs = true;
     if (roll < 40) {
       result = `Classement sans suite. La plainte contre ${p.cible} n'a pas abouti.`;
+      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_sans_suite', p.cible);
+      notifierJoueurs = false;
     } else if (roll < 75) {
       result = `Ouverture d'une enquete concernant ${p.cible}. Conclusions dans 24h.`;
       // Programmer le resultat de l'enquete (motif transporte pour le tribunal)
       if (!state.enquetesEnCours) state.enquetesEnCours = [];
       state.enquetesEnCours.push({ cible: p.cible, motif: p.motif, country: p.country || state.country, day: state.day + 1, status: 'pending' });
+      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_enquete', p.cible);
     } else {
       result = `Actes illegaux confirmes pour ${p.cible}. Mise en garde a vue. Proces dans 24h.`;
       addExternalEvent(`ACTION EXTERIEURE : ${p.cible} a ete place(e) en garde a vue suite a votre plainte. Proces prevu demain.`, 'local');
+      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_confirmee', p.cible);
       // Transmettre directement au tribunal — l'affaire est mure pour jugement
       transmettreAffaireAuTribunal(p.cible, p.motif || 'Plainte initiale confirmee par les forces de l\'ordre.');
     }
-    addMailNotification('Commissariat Central', `RE: Votre plainte du Jour ${p.day - 1}`, result);
+    if (notifierJoueurs) {
+      addMailNotification('Commissariat Central', `RE: Votre plainte du Jour ${p.day - 1}`, result);
+      if (p.cible && p.cible !== 'X' && typeof envoyerNotificationVraiJoueur === 'function') {
+        await envoyerNotificationVraiJoueur(p.cible, 'Convocation - Plainte a votre encontre', 'Une plainte deposee contre vous le Jour ' + (p.day - 1) + ' a evolue : ' + result);
+      }
+    }
     if (typeof sbSavePlainte === 'function') sbSavePlainte(p).catch(() => {});
   }
 }
