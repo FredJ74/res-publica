@@ -907,7 +907,7 @@ function doReserverChambreHotel() {
 async function doDormirChambre() {
   const reservation = state.reservationHotel;
   if (!reservation || reservation.buildingId !== state.currentBuilding) {
-    showToast('Aucune reservation', 'Vous devez d\'abord reserver une chambre a l\'accueil.', false);
+    showToast('Chambre non reservee', 'Vous n\'avez pas reserve la chambre. Vous devez passer l\'ordre Dormir a partir de votre fiche personnage.', false);
     return;
   }
   const reussi = await doDormir();

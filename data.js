@@ -1203,7 +1203,7 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&q=80",
         persons: [],
         orders: [
-          {fn:'dormir',         label:'Dormir (nuit complete)', pa:0, cost:80,  type:'legal', icon:'ti-moon',     successRate:100, desc:'Recuperation complete. +5 PA bonus demain. Si une chambre a ete reservee a l\'accueil, bonus supplementaire de +2 PA et +3 Moral.', paBonus:5},
+          {fn:'dormir_chambre', label:'Dormir',                  pa:0, cost:0,   type:'legal', icon:'ti-moon',     successRate:100, desc:'Reservez une chambre a l\'accueil au prealable pour beneficier du bonus. Sans reservation, passez l\'ordre Dormir depuis votre fiche personnage.'},
           {fn:'service_etage',  label:'Faire appel au service d\'etage', pa:0, cost:150, type:'legal', icon:'ti-soup', successRate:100, desc:'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.'}
         ]
       },
