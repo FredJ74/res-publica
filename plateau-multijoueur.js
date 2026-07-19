@@ -40,7 +40,6 @@ function renderPersonsList(persons, targetId) {
     '<div class="person-name" style="color:#C9A84C">' + char.name + ' <span style="font-size:.8rem;color:#6a5a20">(Vous)</span></div>' +
     (state.recherche?.length > 0 ? '<div style="font-size:.82rem;color:#cc2020;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;animation:blink 1s infinite">⚠ RECHERCHÉ</div>' : '') +
     '<div class="person-role">' + (state.poste?.name || ar?.name || 'Citoyen') + '</div>' +
-    '<div style="font-size:.78rem;color:#4a8a4a">Cliquer : dormir · inventaire · fiche</div>' +
     '</div></div>' : '';
 
   const personCards = persons.length === 0 ? '' : persons.map(p => {
@@ -621,9 +620,27 @@ function recupererPnjDansGroupe(nomPnj) {
 function licencierPnj(nomPnj) {
   const idx = state.employes?.findIndex(e => e.nom === nomPnj);
   if (idx < 0) return;
+  const emp = state.employes[idx];
   state.employes.splice(idx, 1);
+
+  // Retirer une eventuelle entree fantome dans la piece d'origine (anciens recrutements
+  // avant correctif, ou PNJ non inGroupe rattaches a une piece precise).
+  const roomOrigine = BUILDINGS[emp.buildingId]?.rooms?.[emp.roomId];
+  if (roomOrigine?.persons) {
+    const pIdx = roomOrigine.persons.findIndex(p => p.name === nomPnj);
+    if (pIdx >= 0) roomOrigine.persons.splice(pIdx, 1);
+  }
+
   updateUI();
   renderEmployesPanel();
+  // Rafraichir la liste "personnes presentes" de la piece COURANTE : un employe inGroupe
+  // apparait "Dans votre groupe" dans n'importe quelle piece, pas seulement celle ou il
+  // a ete recrute — il faut donc toujours rafraichir ici, sans quoi la carte reste
+  // affichee jusqu'a un rafraichissement complet de la page.
+  const roomCourante = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  if (roomCourante && typeof renderPersonsList === 'function') {
+    renderPersonsList(roomCourante.persons || []);
+  }
   showToast(nomPnj + ' licencié(e)', 'Il/elle retourne à ses activités.', false);
   addJournalEntry('Licenciement : ' + nomPnj + '.', 'event-info');
 }
