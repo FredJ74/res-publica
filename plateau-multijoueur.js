@@ -378,6 +378,15 @@ function getEmployes() {
   return state.employes;
 }
 
+const INFORMATEURS_CATALOGUE = [
+  { nom: 'Momo Fouine',       genre: 'H', photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/informateur-h-1-corpulent.png' },
+  { nom: 'Bernard Filature',  genre: 'H', photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/informateur-h-2-lunettes.png' },
+  { nom: 'Gaspard Renseigne', genre: 'H', photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/informateur-h-3-jeune-casquette.png' },
+  { nom: 'Lucienne Indic',    genre: 'F', photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/informateur-f-2-agee.png' },
+  { nom: 'Rita Tuyau',        genre: 'F', photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/informateur-f-3-brune.png' },
+  { nom: 'Nadège Oreille',    genre: 'F', photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/informateur-f-1-la-poste.png' }
+];
+
 async function doRecruterInformateurPNJ() {
   if (!state.employes) state.employes = [];
   if (state.employes.some(e => e.job === 'informateur')) {
@@ -394,13 +403,13 @@ async function doRecruterInformateurPNJ() {
   }
   state.arg -= cout;
 
-  const noms = ['Momo Fouine', 'Lucienne Indic', 'Bernard Filature', 'Rita Tuyau', 'Gaspard Renseigne', 'Nadège Oreille'];
-  const nomPnj = noms[Math.floor(Math.random() * noms.length)] + ' (PNJ)';
+  const infoChoisi = INFORMATEURS_CATALOGUE[Math.floor(Math.random() * INFORMATEURS_CATALOGUE.length)];
+  const nomPnj = infoChoisi.nom + ' (PNJ)';
   const perInformateur = Math.floor(Math.random() * 7) + 12; // 12 a 18
 
   state.employes.push({
     nom: nomPnj, role: 'Informateur', job: 'informateur',
-    photoUrl: '', photoPos: '50% 15%',
+    genre: infoChoisi.genre, photoUrl: infoChoisi.photoUrl, photoPos: '50% 15%',
     cout, inGroupe: true,
     buildingId: state.currentBuilding,
     roomId: state.currentRoom,
@@ -419,7 +428,9 @@ async function doRecruterInformateurPNJ() {
       name: nomPnj,
       role: 'Informateur recruté (lié à ' + (state.char?.name || 'vous') + ')',
       rel: 'ally',
-      job: 'informateur'
+      job: 'informateur',
+      photoUrl: infoChoisi.photoUrl,
+      photoPos: '50% 15%'
     });
     if (typeof renderPersonsList === 'function') renderPersonsList(room.persons);
   }
