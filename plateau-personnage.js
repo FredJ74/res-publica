@@ -1021,6 +1021,15 @@ function donnerObjetAJoueur(idx) {
   }
 }
 
+function supprimerItemInventaire(idx) {
+  const item = state.inventory[idx];
+  if (!item) return;
+  state.inventory.splice(idx, 1);
+  renderInventory();
+  showToast('Objet détruit', '"' + item.name + '" a été détruit définitivement. Aucune trace.', true);
+  addJournalEntry('Vous avez détruit "' + item.name + '" définitivement.', 'event-info');
+}
+
 async function jeterObjetInventaire(idx) {
   const item = state.inventory[idx];
   if (!item) return;
