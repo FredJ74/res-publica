@@ -143,8 +143,8 @@ function ouvrirModalAssassinat(encodedCible) {
 
   const char = state.char;
   const armes = (state.inventory||[]).filter(i => i.type === 'arme');
-  const hasBlade = armes.some(a => a.name.toLowerCase().includes('couteau') || a.name.toLowerCase().includes('arme blanche'));
-  const hasGun   = armes.some(a => a.name.toLowerCase().includes('pistolet') || a.name.toLowerCase().includes('feu'));
+  const hasBlade = armes.some(a => a.sousType === 'blanche');
+  const hasGun   = armes.some(a => a.sousType === 'poing' || a.sousType === 'carabine');
 
   const vol = char?.stats?.VOL || 8;
   const per = char?.stats?.PER || 8;
