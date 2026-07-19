@@ -6,9 +6,21 @@
 // =====================
 // PERSONS LIST
 // =====================
+function appliquerRemplacantesEscort(persons) {
+  if (!state.escortRemplacante || !state.currentBuilding || !state.currentRoom) return persons;
+  return persons.map(p => {
+    if (p.job !== 'escort' || !p.genre) return p;
+    const cle = state.currentBuilding + '_' + state.currentRoom + '_' + p.genre;
+    const remp = state.escortRemplacante[cle];
+    if (!remp) return p;
+    return { ...p, name: remp.name, role: remp.role };
+  });
+}
+
 function renderPersonsList(persons, targetId) {
   targetId = targetId || 'persons-list';
   persons = [...(persons || [])]; // mutable copy
+  persons = appliquerRemplacantesEscort(persons);
   const relCol = r => r === 'ally' ? '#4a8a4a' : r === 'enemy' ? '#8a3a2a' : '#6a6040';
   const relTxt = r => r === 'ally' ? 'Allie' : r === 'enemy' ? 'Hostile' : 'Neutre';
 
@@ -199,106 +211,106 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
 
 // ROXANNE VELOURS — Recrutement escort
 // =====================
-function ouvrirRecrutementEscort(nomEscort) {
+function ouvrirRecrutementEscort(nomEscort, genre) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const tarifHeure = 500;
+  const tarifJour = 800;
 
   document.getElementById('modal-pnj').classList.remove('open');
   document.getElementById('postes-modal-title').textContent = '💋 ' + nomEscort;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
     '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' +
-      '"Mon tarif est de ' + tarifHeure + ' ' + cur + '/heure. Pour une nuit complète, vous savez ce que ça vaut."' +
+      '"Agence Roxane Velours. Mon tarif est de ' + tarifJour + ' ' + cur + '/jour, tout compris."' +
     '</div>' +
-    '<div style="font-size:.75rem;color:#6a5030;margin-bottom:.8rem">Elle rejoint votre groupe. Vous serez débité(e) de <strong style="color:#C9A84C">' + tarifHeure + ' ' + cur + '</strong> à chaque réveil. En cas de non-paiement, une plainte sera déposée et la presse informée.</div>' +
+    '<div style="font-size:.75rem;color:#6a5030;margin-bottom:.8rem">Elle/il rejoint votre groupe. Vous serez débité(e) de <strong style="color:#C9A84C">' + tarifJour + ' ' + cur + '</strong> à chaque réveil. En cas de non-paiement, une plainte sera déposée et la presse informée.</div>' +
     '<div style="display:flex;gap:.5rem">' +
-      '<button onclick="confirmerRecrutementEscort(\'' + nomEscort.replace(/'/g,'') + '\',' + tarifHeure + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
+      '<button onclick="confirmerRecrutementEscort(\'' + nomEscort.replace(/'/g,'') + '\',' + tarifJour + ',\'' + (genre||'F') + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
       '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#6a5030;cursor:pointer">Décliner</button>' +
     '</div></div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerRecrutementEscort(nomEscort, tarif) {
+async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Temporairement indisponible', 'Le recrutement de PNJ comme employé est en cours de refonte.', false);
-  return;
-  // Code ci-dessous desactive temporairement (duplication de PNJ en cours de refonte)
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  document.getElementById('modal-postes').classList.remove('open');
 
-  // Vérifier doublon
-  if ((state.employes || []).some(e => e.job === 'escort')) {
-    showToast('Escort déjà recrutée', 'Vous avez déjà une escort dans votre groupe.', false);
+  if ((state.employes || []).some(e => e.job === 'escort' && e.genre === genre)) {
+    showToast('Déjà recrutée', 'Vous avez déjà une escort de ce type dans votre groupe.', false);
     return;
   }
   if ((state.employes || []).length >= MAX_EMPLOYES) {
     showToast('Limite atteinte', 'Maximum ' + MAX_EMPLOYES + ' employés.', false);
     return;
   }
-
   if (state.arg < tarif) {
-    showToast('Fonds insuffisants', tarif + ' ' + cur + ' requis pour la première heure.', false);
+    showToast('Fonds insuffisants', tarif + ' ' + cur + ' requis pour la première journée.', false);
     return;
   }
   state.arg -= tarif;
 
-  // Rejoindre le groupe
+  // Stats aleatoires (personnage "cheate", d'ou le salaire eleve)
+  const statsEscort = {
+    CHA: Math.floor(Math.random() * 7) + 12, // 12-18
+    DUP: Math.floor(Math.random() * 7) + 10, // 10-16
+    INT: Math.floor(Math.random() * 7) + 8   // 8-14
+  };
+
   if (!state.group) state.group = { leader: state.char?.name, members: [state.char?.name] };
   if (!state.group.members.includes(nomEscort)) state.group.members.push(nomEscort);
 
-  // Enregistrer l'escort active
   if (!state.escortActive) state.escortActive = [];
-  state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1 });
+  state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1, genre });
 
-  // Ajouter dans state.employes pour affichage panel
   if (!state.employes) state.employes = [];
-  const escortPhotos = {
-    republic: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-republic.png',
-    narco:    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-narco.png',
-    soviet:   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-soviet.png',
-    khalija:  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-khalija.png',
-  };
   state.employes.push({
-    nom: nomEscort, role: 'Escort de luxe', job: 'escort',
-    photoUrl: escortPhotos[state.country] || '',
-    photoPos: '50% 10%',
+    nom: nomEscort, role: 'Escort — Agence Roxane Velours', job: 'escort', genre,
+    photoUrl: '', photoPos: '50% 10%',
     cout: tarif, inGroupe: true,
     buildingId: state.currentBuilding,
     roomId: state.currentRoom,
     city: state.currentCity,
     depuis: state.day || 1,
-    stats: typeof PNJ_STATS_PAR_JOB !== 'undefined' ? PNJ_STATS_PAR_JOB.escort : {}
+    stats: statsEscort
   });
   updateUI();
-  renderEmployesPanel();
-  tracerActionPourRumeur('escort', null);
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
 
-  // Générer une remplaçante dans la pièce
-  const toutesMaisonEmpire = {
-    republic: ['Sophia Élégance', 'Camille Discrétion', 'Laure Prestige', 'Nina Velours', 'Clara Minuit'],
-    narco:    ['Lola Discreta', 'Carmen Silencio', 'Rosa Secreto', 'Valentina Sombra', 'Isabel Poder'],
-    soviet:   ['Natasha Privilège', 'Olga Silence', 'Irina Distinction', 'Vera Konspiratsiya', 'Anya Nuit'],
-    khalija:  ['Yasmin Al-Sirr', 'Fatima Al-Layl', 'Noor Al-Khafia', 'Hana Al-Majd', 'Rima Al-Asrar'],
+  // Tracage pour les rumeurs vraies — doublee si le PJ est marie(e)
+  if (typeof tracerActionPourRumeur === 'function') {
+    tracerActionPourRumeur('escort', null);
+    try {
+      if (typeof sbGetMariageActif === 'function') {
+        const mariage = await sbGetMariageActif(state.char?.name);
+        if (mariage) tracerActionPourRumeur('escort', null);
+      }
+    } catch(e) {}
+  }
+
+  // Generer une remplacante/remplacant du meme genre, propre a ce slot (piece + genre)
+  const poolParEmpireEtGenre = {
+    republic: { F: ['Natacha', 'Éléonore', 'Sabine', 'Camille', 'Laure', 'Nina', 'Clara'], H: ['Julien', 'Antoine', 'Maxime', 'Thibault', 'Victor', 'Hugo', 'Nathan'] },
+    narco:    { F: ['Lola Discreta', 'Carmen Silencio', 'Rosa Secreto', 'Valentina Sombra', 'Isabel Poder'], H: ['Diego Sombra', 'Rafael Secreto', 'Mateo Poder'] },
+    soviet:   { F: ['Natasha Privilège', 'Olga Silence', 'Irina Distinction', 'Vera Konspiratsiya', 'Anya Nuit'], H: ['Boris Silence', 'Igor Distinction', 'Dimitri Nuit'] },
+    khalija:  { F: ['Yasmin Al-Sirr', 'Fatima Al-Layl', 'Noor Al-Khafia', 'Hana Al-Majd', 'Rima Al-Asrar'], H: ['Karim Al-Sirr', 'Malik Al-Layl', 'Samir Al-Khafia'] }
   };
-  const listePossibles = (toutesMaisonEmpire[state.country] || toutesMaisonEmpire.republic)
-    .filter(n => n !== nomEscort);
-  const remplacante = listePossibles[Math.floor(Math.random() * listePossibles.length)];
+  const pool = (poolParEmpireEtGenre[state.country] || poolParEmpireEtGenre.republic)[genre] || poolParEmpireEtGenre.republic.F;
+  const listePossibles = pool.filter(n => n !== nomEscort);
+  const remplacante = listePossibles[Math.floor(Math.random() * listePossibles.length)] || pool[0];
+
   if (!state.escortRemplacante) state.escortRemplacante = {};
-  state.escortRemplacante[state.currentBuilding + '_' + state.currentRoom] = {
+  const cleSlot = state.currentBuilding + '_' + state.currentRoom + '_' + genre;
+  state.escortRemplacante[cleSlot] = {
     name: remplacante + ' (PNJ)',
-    role: 'Escort de luxe',
+    role: 'Escort — Agence Roxane Velours',
     job: 'escort',
-    rel: 'neutral'
+    rel: 'neutral',
+    genre
   };
 
-  // Trace enquête (10 jours)
-  if (!state.tracesEnquete) state.tracesEnquete = [];
-  state.tracesEnquete.push({
-    type: 'recrutement_escort',
-    desc: (state.char?.name||'Anonyme') + ' a recruté ' + nomEscort + ' comme escort personnelle.',
-    jour: state.day || 1,
-    expireJour: (state.day || 1) + 10
-  });
+  if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
+    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+    if (room?.persons) renderPersonsList(room.persons);
+  }
 
   updateUI();
   showToast('Escort recrutée !', nomEscort + ' rejoint votre groupe. -' + tarif + ' ' + cur + '/réveil.', true, true);

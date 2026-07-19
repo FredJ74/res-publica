@@ -290,7 +290,8 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   diner_affaires_accepte: (a, c) => a + ' a déjeuné avec ' + c + '. Que se sont-ils dit... ?',
   diner_affaires_refuse:  (a, c) => 'On raconte que ' + a + ' aurait tenté d\'inviter ' + c + ' à dîner... sans succès.',
   boire_verre_accepte:    (a, c) => 'On a vu ' + a + ' et ' + c + ' trinquer ensemble au bar. Ambiance cordiale... ou complice ?',
-  boire_verre_refuse:     (a, c) => a + ' aurait tenté d\'offrir un verre à ' + c + ', qui a décliné sans un mot.'
+  boire_verre_refuse:     (a, c) => a + ' aurait tenté d\'offrir un verre à ' + c + ', qui a décliné sans un mot.',
+  nuit_escort:            (a, c) => 'Des mauvaises langues jurent avoir vu ' + a + ' quitter discrètement une chambre en compagnie d\'une professionnelle de l\'Agence Roxane Velours.'
 };
 
 async function ecouterRumeurs(successRate) {

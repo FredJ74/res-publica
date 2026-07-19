@@ -216,8 +216,10 @@ function openPnjModal(encodedPnj) {
   // Recruter escort
   if (pnj.job === 'escort') {
     const escortNom = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
-    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort</button>';
+    const escortGenre = pnj.genre || 'F';
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\',\'' + escortGenre + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort</button>';
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalFabriquerKompromat(\'' + escortNom + '\')"><i class="ti ti-file-shredder" style="font-size:.85rem"></i> Fabriquer un kompromat (300 FR)</button>';
+    actionBtns += '<button class="pnj-action-btn" style="color:#cc6699;border-color:#4a1a30" onclick="ouvrirModalFaireLAmour(\'' + escortNom + '\')"><i class="ti ti-heart-filled" style="font-size:.85rem"></i> Faire l\'amour (300 FR)</button>';
   }
 
   // Interroger l'hotesse des objets trouves sur ses souvenirs
@@ -863,6 +865,67 @@ Génère UNE révélation compromettante, parodique et drôle (2 phrases max). S
   } catch(e) {
     state.arg += 300;
     showToast('Erreur', 'Impossible de fabriquer le kompromat pour le moment. Remboursé.', false);
+  }
+}
+
+function ouvrirModalFaireLAmour(nomEscort) {
+  const co = COUNTRIES[state.country];
+  const cur = co?.cur || 'FR';
+  const cost = 300;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = '💗 Un moment avec ' + nomEscort;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.82rem;color:#a09060;margin-bottom:1rem">Coût : ' + cost + ' ' + cur + '. Gain immédiat : +15 Moral, +5 Santé, +2 ENT.</div>' +
+    '<button onclick="confirmerFaireLAmour(\'' + nomEscort.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Confirmer</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerFaireLAmour(nomEscort) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const co = COUNTRIES[state.country];
+  const cur = co?.cur || 'FR';
+  const cost = 300;
+  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= cost;
+
+  state.moral = Math.min(100, (state.moral || 0) + 15);
+  state.hp = Math.min(100, (state.hp || 0) + 5);
+  if (state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + 2;
+
+  const prompt = `Tu es le narrateur de Res Publica, jeu politique parodique et satirique. Le joueur vient de passer un moment intime avec ${nomEscort}, une escort de l'Agence Roxane Velours. Rédige UN court récit (2-3 phrases max) qui flatte et valorise le joueur, lui donnant un sentiment de plénitude et de supériorité — mais glisse à la toute fin un doute subtil sur l'authenticité du plaisir ressenti par l'escort (professionnelle avant tout). Ton élégant, un peu ironique, jamais vulgaire ni explicite. Réponds en texte brut uniquement, sans markdown (pas de #, pas de **).`;
+
+  let recit = 'Vous passez un moment agréable avec ' + nomEscort + '.';
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    recit = data.content?.[0]?.text?.trim() || recit;
+  } catch(e) {}
+
+  updateUI();
+  document.getElementById('postes-modal-title').textContent = '💗 ' + nomEscort;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem">' +
+    '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">' + recit + '</div>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  addJournalEntry('Moment privé avec ' + nomEscort + '. +15 Moral, +5 Santé, +2 ENT. -' + cost + ' ' + cur + '.', 'event-good');
+
+  if (typeof tracerActionPourRumeur === 'function') {
+    tracerActionPourRumeur('nuit_escort', null);
+    try {
+      if (typeof sbGetMariageActif === 'function') {
+        const mariage = await sbGetMariageActif(state.char?.name);
+        if (mariage) tracerActionPourRumeur('nuit_escort', null);
+      }
+    } catch(e) {}
   }
 }
 
