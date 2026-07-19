@@ -422,18 +422,12 @@ async function doRecruterInformateurPNJ() {
   showToast('Informateur recruté !', nomPnj + ' rejoint votre groupe (PER ' + perInformateur + '). -' + cout + ' ' + cur + '.', true, true);
   addJournalEntry('Recrutement d\'un informateur : ' + nomPnj + ' (PER ' + perInformateur + ', ' + cout + ' ' + cur + '/jour).', 'event-good');
 
-  if (room) {
-    if (!room.persons) room.persons = [];
-    room.persons.unshift({
-      name: nomPnj,
-      role: 'Informateur recruté (lié à ' + (state.char?.name || 'vous') + ')',
-      rel: 'ally',
-      job: 'informateur',
-      photoUrl: infoChoisi.photoUrl,
-      photoPos: '50% 15%'
-    });
-    if (typeof renderPersonsList === 'function') renderPersonsList(room.persons);
-  }
+  // Pas d'ecriture dans room.persons (objet BUILDINGS global, partage par tous les
+  // joueurs) : l'informateur a deja ete ajoute a state.employes avec inGroupe:true
+  // ci-dessus, ce qui suffit a le faire apparaitre via la carte "Dans votre groupe"
+  // (getGroupeHtmlPourPiece, lue directement par renderPersonsList). Ecrire aussi ici
+  // produisait une deuxieme carte "Allie" permanente et dupliquee pour ce meme PNJ.
+  if (room && typeof renderPersonsList === 'function') renderPersonsList(room.persons);
 }
 
 function isEmploye(nomPnj) {
