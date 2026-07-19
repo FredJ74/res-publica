@@ -294,7 +294,9 @@ const FORMULATIONS_RUMEUR_VRAIE = {
 async function ecouterRumeurs(successRate) {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const char = state.char;
-  const pnjPresents = ['Le Commissaire', 'Un député', 'Un journaliste', 'Un commerçant', 'Un inconnu'];
+  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const ordreEcoute = room?.orders?.find(o => o.fn === 'ecouter_rumeurs');
+  const pnjPresents = ordreEcoute?.sourceOverride ? [ordreEcoute.sourceOverride] : ['Le Commissaire', 'Un député', 'Un journaliste', 'Un commerçant', 'Un inconnu'];
   const source = pnjPresents[Math.floor(Math.random() * pnjPresents.length)];
 
   showToast('Vous tendez l\'oreille...', 'En attente d\'une information.', false);

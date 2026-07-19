@@ -347,6 +347,53 @@ function getEmployes() {
   return state.employes;
 }
 
+async function doRecruterInformateurPNJ() {
+  if (!state.employes) state.employes = [];
+  if (state.employes.some(e => e.job === 'informateur')) {
+    showToast('Déjà en poste', 'Vous employez déjà un informateur. Renvoyez-le avant d\'en recruter un autre.', false);
+    return;
+  }
+  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const ordre = room?.orders?.find(o => o.fn === 'recruter_informateur_pnj');
+  const cout = ordre?.cost || 150;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (state.arg < cout) {
+    showToast('Fonds insuffisants', cout + ' ' + cur + ' requis pour la première journée.', false);
+    return;
+  }
+  state.arg -= cout;
+
+  const noms = ['Momo Fouine', 'Lucienne Indic', 'Bernard Filature', 'Rita Tuyau', 'Gaspard Renseigne', 'Nadège Oreille'];
+  const nomPnj = noms[Math.floor(Math.random() * noms.length)] + ' (PNJ)';
+  const perInformateur = Math.floor(Math.random() * 7) + 12; // 12 a 18
+
+  state.employes.push({
+    nom: nomPnj, role: 'Informateur', job: 'informateur',
+    photoUrl: '', photoPos: '50% 15%',
+    cout, inGroupe: true,
+    buildingId: state.currentBuilding,
+    roomId: state.currentRoom,
+    city: state.currentCity,
+    depuis: state.day || 1,
+    stats: { PER: perInformateur }
+  });
+
+  updateUI();
+  showToast('Informateur recruté !', nomPnj + ' rejoint votre groupe (PER ' + perInformateur + '). -' + cout + ' ' + cur + '.', true, true);
+  addJournalEntry('Recrutement d\'un informateur : ' + nomPnj + ' (PER ' + perInformateur + ', ' + cout + ' ' + cur + '/jour).', 'event-good');
+
+  if (room) {
+    if (!room.persons) room.persons = [];
+    room.persons.unshift({
+      name: nomPnj,
+      role: 'Informateur recruté (lié à ' + (state.char?.name || 'vous') + ')',
+      rel: 'ally',
+      job: 'informateur'
+    });
+    if (typeof renderPersonsList === 'function') renderPersonsList(room.persons);
+  }
+}
+
 function isEmploye(nomPnj) {
   return getEmployes().some(e => e.nom === nomPnj);
 }
