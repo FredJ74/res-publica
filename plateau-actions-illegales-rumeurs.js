@@ -288,7 +288,9 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   hooliganisme:           (a, c) => 'On dit que ' + a + ' aurait pris part à des débordements violents lors d\'un récent rassemblement.',
   torture_qhs:            (a, c) => 'Des bruits de couloir évoquent des méthodes brutales employées par ' + a + ' envers un détenu du QHS.',
   diner_affaires_accepte: (a, c) => a + ' a déjeuné avec ' + c + '. Que se sont-ils dit... ?',
-  diner_affaires_refuse:  (a, c) => 'On raconte que ' + a + ' aurait tenté d\'inviter ' + c + ' à dîner... sans succès.'
+  diner_affaires_refuse:  (a, c) => 'On raconte que ' + a + ' aurait tenté d\'inviter ' + c + ' à dîner... sans succès.',
+  boire_verre_accepte:    (a, c) => 'On a vu ' + a + ' et ' + c + ' trinquer ensemble au bar. Ambiance cordiale... ou complice ?',
+  boire_verre_refuse:     (a, c) => a + ' aurait tenté d\'offrir un verre à ' + c + ', qui a décliné sans un mot.'
 };
 
 async function ecouterRumeurs(successRate) {

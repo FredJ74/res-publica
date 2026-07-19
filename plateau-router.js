@@ -30,7 +30,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'archives_police') { doArchivesPolice(); return; }
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
   if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost, successRate); return; }
-  if (fn === 'diner_affaires') { ouvrirModalDinerAffaires(pa, cost, successRate); return; }
+  if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
+  if (fn === 'boire_verre') { ouvrirModalInvitationSociale('boire_verre', pa, cost, successRate); return; }
   if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(); return; }
   if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(); return; }

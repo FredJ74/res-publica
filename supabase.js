@@ -1084,11 +1084,11 @@ async function sbAjusterPopJoueur(nomJoueur, delta) {
 // =====================
 // INVITATIONS A DINER (diner d'affaires entre PJ presents dans la meme piece)
 // =====================
-async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingId, roomId, cout) {
+async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingId, roomId, cout, type) {
   return sbInsert('invitations_diner', {
     inviteur, invite, country, city,
     building_id: buildingId, room_id: roomId,
-    statut: 'attente', cout
+    statut: 'attente', cout, type: type || 'diner_affaires'
   });
 }
 

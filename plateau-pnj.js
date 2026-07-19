@@ -659,22 +659,29 @@ async function confirmerLancerRumeur(nomCible, pa, cost, successRate) {
   updateUI();
 }
 
-function ouvrirModalDinerAffaires(pa, cost, successRate) {
+const CONFIG_INVITATIONS_SOCIALES = {
+  diner_affaires: { verbe: 'dîner', hp: 10, inf: 5, ent: 0, paDiffere: 1, emoji: '🍽️' },
+  boire_verre:    { verbe: 'boire un verre', hp: 5, inf: 2, ent: 2, paDiffere: 0, emoji: '🍷' }
+};
+
+function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
+  const cfg = CONFIG_INVITATIONS_SOCIALES[type];
+  if (!cfg) return;
   const presents = (window._vraisJoueursPresents || []).filter(p => p.name !== state.char?.name);
   if (presents.length === 0) {
     showToast('Personne à inviter', 'Aucun autre joueur n\'est présent dans cette pièce pour l\'instant.', false);
     return;
   }
   if (state.arg < cost) {
-    showToast('Fonds insuffisants', cost + ' FR requis pour inviter quelqu\'un à dîner.', false);
+    showToast('Fonds insuffisants', cost + ' FR requis pour inviter quelqu\'un à ' + cfg.verbe + '.', false);
     return;
   }
-  document.getElementById('postes-modal-title').textContent = '🍽️ Inviter à dîner';
+  document.getElementById('postes-modal-title').textContent = cfg.emoji + ' Inviter à ' + cfg.verbe;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
     '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisissez un joueur présent. Le coût n\'est prélevé que s\'il accepte.</div>' +
     presents.map(p =>
-      '<div onclick="envoyerInvitationDiner(\'' + p.name.replace(/'/g,'') + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+      '<div onclick="envoyerInvitationSociale(\'' + type + '\',\'' + p.name.replace(/'/g,'') + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
         '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20"></i>' +
         '<div><div style="font-size:.82rem;color:#c0b090">' + p.name + '</div></div>' +
       '</div>'
@@ -683,64 +690,68 @@ function ouvrirModalDinerAffaires(pa, cost, successRate) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function envoyerInvitationDiner(nomInvite, pa, cost) {
+async function envoyerInvitationSociale(type, nomInvite, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   if (typeof sbCreerInvitationDiner !== 'function') return;
-  await sbCreerInvitationDiner(state.char?.name, nomInvite, state.country, state.currentCity, state.currentBuilding, state.currentRoom, cost).catch(() => {});
-  state._dinerEnAttente = {
-    invite: nomInvite, pa, cost,
+  await sbCreerInvitationDiner(state.char?.name, nomInvite, state.country, state.currentCity, state.currentBuilding, state.currentRoom, cost, type).catch(() => {});
+  state._invitationSocialeEnAttente = {
+    type, invite: nomInvite, pa, cost,
     country: state.country, city: state.currentCity,
     buildingId: state.currentBuilding, roomId: state.currentRoom
   };
+  const cfg = CONFIG_INVITATIONS_SOCIALES[type] || {};
   showToast('Invitation envoyée', 'En attente de la réponse de ' + nomInvite + '...', true);
-  addJournalEntry('Invitation à dîner envoyée à ' + nomInvite + '.', 'event-info');
+  addJournalEntry('Invitation à ' + (cfg.verbe || type) + ' envoyée à ' + nomInvite + '.', 'event-info');
 }
 
-async function verifierReponseInvitationDiner() {
-  if (!state._dinerEnAttente || !state.char?.name) return;
-  const infos = state._dinerEnAttente;
+async function verifierReponseInvitationSociale() {
+  if (!state._invitationSocialeEnAttente || !state.char?.name) return;
+  const infos = state._invitationSocialeEnAttente;
+  const cfg = CONFIG_INVITATIONS_SOCIALES[infos.type];
+  if (!cfg) { state._invitationSocialeEnAttente = null; return; }
 
   // Invitation caduque si l'inviteur (nous-meme) a quitte la piece d'origine
   if (state.currentBuilding !== infos.buildingId || state.currentRoom !== infos.roomId) {
-    state._dinerEnAttente = null;
+    state._invitationSocialeEnAttente = null;
     return;
   }
 
   if (typeof sbGetInvitationsDinerTraitees !== 'function') return;
   try {
     const rows = await sbGetInvitationsDinerTraitees(state.char.name, infos.invite);
-    const ligne = (rows || [])[0];
+    const ligne = (rows || []).find(r => r.type === infos.type);
     if (!ligne) return;
 
     if (ligne.statut === 'acceptee') {
       if (state.arg >= infos.cost) {
         state.arg -= infos.cost;
-        state.hp = Math.min(100, (state.hp || 0) + 10);
-        state.inf = Math.min(100, (state.inf || 0) + 5);
-        state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
-        showToast('Dîner accepté !', infos.invite + ' a accepté votre invitation. +10 Santé, +5 INF, +1 PA au prochain Dormir. -' + infos.cost + ' FR.', true, true);
-        addJournalEntry('Dîner d\'affaires avec ' + infos.invite + ' : accepté. -' + infos.cost + ' FR. +10 Santé, +5 INF, +1 PA au prochain Dormir.', 'event-good');
+        if (cfg.hp) state.hp = Math.min(100, (state.hp || 0) + cfg.hp);
+        if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
+        if (cfg.ent && state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + cfg.ent;
+        if (cfg.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + cfg.paDiffere;
+        showToast('Invitation acceptée !', infos.invite + ' a accepté votre invitation à ' + cfg.verbe + '. -' + infos.cost + ' FR.', true, true);
+        addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' : acceptée. -' + infos.cost + ' FR.', 'event-good');
         if (typeof advanceTime === 'function') advanceTime(Math.max(0, infos.pa || 0));
       } else {
-        showToast('Fonds insuffisants', infos.invite + ' a accepté, mais vous n\'avez plus les fonds pour régler l\'addition.', false);
-        addJournalEntry('Dîner d\'affaires avec ' + infos.invite + ' accepté, mais fonds insuffisants pour payer.', 'event-bad');
+        showToast('Fonds insuffisants', infos.invite + ' a accepté, mais vous n\'avez plus les fonds pour régler.', false);
+        addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' acceptée, mais fonds insuffisants pour payer.', 'event-bad');
       }
-      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('diner_affaires_accepte', infos.invite);
+      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur(infos.type + '_accepte', infos.invite);
     } else if (ligne.statut === 'refusee') {
       showToast('Invitation refusée', infos.invite + ' a décliné votre invitation.', false);
-      addJournalEntry('Dîner d\'affaires avec ' + infos.invite + ' : refusé.', 'event-info');
-      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('diner_affaires_refuse', infos.invite);
+      addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' : refusée.', 'event-info');
+      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur(infos.type + '_refuse', infos.invite);
     }
 
     if (typeof sbSupprimerInvitationDiner === 'function') sbSupprimerInvitationDiner(ligne.id).catch(() => {});
-    state._dinerEnAttente = null;
+    state._invitationSocialeEnAttente = null;
     updateUI();
   } catch(e) {}
 }
 
-async function verifierInvitationsDinerRecues() {
+async function verifierInvitationsSocialesRecues() {
   if (!state.char?.name || !state.currentBuilding || !state.currentRoom) return;
-  if (state._dinerModalOuvert) return;
+  if (state._invitationSocialeModalOuvert) return;
   if (typeof sbGetInvitationsDinerRecues !== 'function') return;
   try {
     const rows = await sbGetInvitationsDinerRecues(state.char.name);
@@ -749,42 +760,49 @@ async function verifierInvitationsDinerRecues() {
       r.building_id === state.currentBuilding && r.room_id === state.currentRoom
     );
     if (!valide) return;
-    state._dinerModalOuvert = true;
-    document.getElementById('postes-modal-title').textContent = '🍽️ Invitation à dîner';
+    const cfg = CONFIG_INVITATIONS_SOCIALES[valide.type] || { verbe: 'passer un moment', emoji: '🍽️' };
+    state._invitationSocialeModalOuvert = true;
+    state._invitationSocialeCourante = valide;
+    document.getElementById('postes-modal-title').textContent = cfg.emoji + ' Invitation';
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1.2rem">' +
-      '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">' + valide.inviteur + ' vous invite à un dîner d\'affaires, à ses frais.</div>' +
+      '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">' + valide.inviteur + ' vous invite à ' + cfg.verbe + ', à ses frais.</div>' +
       '<div style="display:flex;gap:.5rem">' +
-        '<button onclick="repondreInvitationDiner(' + valide.id + ',true,\'' + valide.inviteur.replace(/'/g,'') + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #4a8a4a;background:transparent;color:#6a9a6a;cursor:pointer">✅ Accepter</button>' +
-        '<button onclick="repondreInvitationDiner(' + valide.id + ',false,\'' + valide.inviteur.replace(/'/g,'') + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #5a2a2a;background:transparent;color:#8a3a2a;cursor:pointer">❌ Refuser</button>' +
+        '<button onclick="repondreInvitationSociale(' + valide.id + ',true,\'' + valide.inviteur.replace(/'/g,'') + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #4a8a4a;background:transparent;color:#6a9a6a;cursor:pointer">✅ Accepter</button>' +
+        '<button onclick="repondreInvitationSociale(' + valide.id + ',false,\'' + valide.inviteur.replace(/'/g,'') + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #5a2a2a;background:transparent;color:#8a3a2a;cursor:pointer">❌ Refuser</button>' +
       '</div></div>';
     document.getElementById('modal-postes').classList.add('open');
   } catch(e) {}
 }
 
-async function repondreInvitationDiner(id, accepte, nomInviteur) {
+async function repondreInvitationSociale(id, accepte, nomInviteur) {
   document.getElementById('modal-postes').classList.remove('open');
-  state._dinerModalOuvert = false;
+  state._invitationSocialeModalOuvert = false;
+  const valide = state._invitationSocialeCourante;
+  const cfg = CONFIG_INVITATIONS_SOCIALES[valide?.type] || {};
   if (typeof sbRepondreInvitationDiner === 'function') await sbRepondreInvitationDiner(id, accepte).catch(() => {});
   if (accepte) {
-    state.hp = Math.min(100, (state.hp || 0) + 10);
-    state.inf = Math.min(100, (state.inf || 0) + 5);
-    state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
+    if (cfg.hp) state.hp = Math.min(100, (state.hp || 0) + cfg.hp);
+    if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
+    if (cfg.ent && state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + cfg.ent;
+    if (cfg.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + cfg.paDiffere;
     updateUI();
-    showToast('Dîner accepté !', 'Vous rejoignez ' + nomInviteur + '. +10 Santé, +5 INF, +1 PA au prochain Dormir.', true, true);
-    addJournalEntry('Vous avez accepté l\'invitation à dîner de ' + nomInviteur + '. +10 Santé, +5 INF, +1 PA au prochain Dormir.', 'event-good');
+    showToast('Invitation acceptée !', 'Vous rejoignez ' + nomInviteur + ' pour ' + (cfg.verbe || 'un moment') + '.', true, true);
+    addJournalEntry('Vous avez accepté l\'invitation de ' + nomInviteur + ' (' + (cfg.verbe || '') + ').', 'event-good');
   } else {
     showToast('Invitation déclinée', 'Vous avez refusé l\'invitation de ' + nomInviteur + '.', false);
-    addJournalEntry('Vous avez refusé l\'invitation à dîner de ' + nomInviteur + '.', 'event-info');
+    addJournalEntry('Vous avez refusé l\'invitation à ' + (cfg.verbe || '') + ' de ' + nomInviteur + '.', 'event-info');
   }
+  state._invitationSocialeCourante = null;
 }
 
 function demarrerPollingInvitationsDiner() {
   if (window._dinerPollingActif) return;
   window._dinerPollingActif = true;
-  setInterval(() => { if (typeof verifierInvitationsDinerRecues === 'function') verifierInvitationsDinerRecues(); }, 4000);
-  setInterval(() => { if (typeof verifierReponseInvitationDiner === 'function') verifierReponseInvitationDiner(); }, 4000);
+  setInterval(() => { if (typeof verifierInvitationsSocialesRecues === 'function') verifierInvitationsSocialesRecues(); }, 4000);
+  setInterval(() => { if (typeof verifierReponseInvitationSociale === 'function') verifierReponseInvitationSociale(); }, 4000);
 }
+
 
 function doEscortPiege() {
   const co = COUNTRIES[state.country];

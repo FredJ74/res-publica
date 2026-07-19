@@ -1188,7 +1188,7 @@ const BUILDINGS = {
           {name:'Un lobbyiste',   role:'Inconnu - Discretion de mise', rel:'neutral', job:null}
         ],
         orders: [
-          {fn:'se_nourrir',      label:'Boire un verre',        pa:0, cost:10,  type:'legal', icon:'ti-glass',    successRate:100, desc:'Consommation. +1 Moral.'},
+          {fn:'boire_verre', label:'Boire un verre', pa:0, cost:50, type:'legal', icon:'ti-glass', successRate:100, desc:'Invitez un PJ present a boire un verre, a vos frais. Si accepte : +5 Sante, +2 INF, +2 ENT pour chacun. Aucun cout si refuse.'},
           {fn:'ecouter_rumeurs', label:'Ecouter le barman',     pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90,  desc:'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marco'},
           {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'150 FR/jour. Un PNJ rejoint votre groupe en permanence tant que vous le payez. Sa PER (12-18) enrichit la moyenne de PER de votre groupe pour les futurs ordres de localisation.'},
           {fn:'escort_infos',    label:'Recueillir des informations', pa:2, cost:300, type:'grey', icon:'ti-ear', successRate:75, desc:'Roxane collecte des confidences. Génère un kompromat sur une cible.'},
