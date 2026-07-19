@@ -1,145 +1,147 @@
 # Journal de session — Res Publica
 
-*Dernière mise à jour : 18 juillet 2026 (soir)*
+*Dernière mise à jour : 19 juillet 2026 (soir)*
 
-**Usage** : au début de chaque nouvelle session avec Claude, faire `cat JOURNAL-SESSION.md` et coller le résultat dans le chat.
+**Usage** : au début de chaque nouvelle session avec Claude, faire `cat JOURNAL-SESSION.md` et coller le résultat dans le chat. Envoyer aussi directement en pièce jointe les fichiers cœur qu'on réutilise presque à chaque session : `data.js`, `plateau-core.js`, `plateau-personnage.js`, `plateau-pnj.js`, `plateau-multijoueur.js`, `plateau-router.js`, `plateau-actions-illegales-rumeurs.js`. Ça évite les allers-retours `sed`/`grep` répétés en début de session.
 
 ---
 
 ## 🔒 Points de restauration Git connus comme stables
 
-- `base-saine-18juillet` — état d'avant la crise du 17-18 juillet (avant migration ?v=).
-- Le dépôt est maintenant propre et à jour (soirée du 18 juillet), tous les fichiers sont à noms définitifs, système `?v=1` en place dans `plateau.html`.
+- `base-saine-18juillet` — état d'avant la crise du 17-18 juillet.
+- `avant-hotel-republica-suites` — juste avant le chantier suites/réservation de chambre du 19 juillet.
+- `avant-diner-affaires` — juste avant le système d'invitations sociales.
+- Le dépôt est à jour au soir du 19 juillet, `?v=11` dans `plateau.html`.
 
 En cas de casse grave :
 ```bash
 cd ~/ResPublica
-git checkout base-saine-18juillet -- .
+git checkout <nom-du-tag> -- .
 ```
 
 ---
 
-## ⚠️ Règles impératives (apprises à la dure le 17-18 juillet)
+## ⚠️ Règles impératives (toujours valables)
 
-1. **Noms de fichiers définitifs, plus jamais de suffixe `-vXX`.** Livraison = toujours `cp fichier.js plateau-xxx.js` (écrase le même nom).
-2. **Cache navigateur** géré par `?v=1` dans `plateau.html` sur TOUS les scripts/styles locaux. Augmenter ce chiffre partout d'un coup pour forcer un rechargement après une modif importante.
-3. **Avant de livrer un fichier reconstruit "de mémoire"**, TOUJOURS demander à Fred un `grep`/`wc -l` de vérification sur SON fichier actuel.
-4. **Pour un petit correctif**, préférer un script Python (créé via `create_file` puis donné en copier-coller direct dans le chat, PAS en téléchargement — Fred a du mal à déplacer les fichiers téléchargés) plutôt que de renvoyer un fichier entier.
-5. **`node` n'est PAS installé** sur la machine de Fred — utiliser uniquement `grep -c` pour vérifier une modification, jamais `node --check`.
-6. **En cas de doute sur l'état d'un fichier**, faire confiance à Git (`git log -S "texte" -- fichier`, `git checkout <hash> -- fichier`).
+1. **Noms de fichiers définitifs, jamais de suffixe `-vXX`.**
+2. **Cache navigateur** géré par `?v=N` dans `plateau.html`. Toujours donner la commande `sed -i '' 's/?v=N/?v=N+1/g' plateau.html` complète — Fred ne code jamais, il ne fait que copier-coller des commandes déjà prêtes (terminal ou Supabase). Ne jamais lui dire d'« incrémenter » sans lui donner la commande.
+3. **Avant de livrer un fichier reconstruit "de mémoire"**, toujours demander un `grep`/`wc -l` de vérification sur le fichier réel de Fred. Ne jamais reconstruire un fichier entier à partir de la mémoire de conversation.
+4. **Pour un correctif**, toujours un script Python (`create_file` puis donné en copier-coller direct dans le chat via un bloc `cat > fichier.py << 'PYEOF' ... PYEOF`), jamais en téléchargement séparé. Le script doit être **testé par Claude lui-même** (bash_tool, sur une copie locale reconstituée à partir des fichiers déjà envoyés par Fred) avant d'être livré, avec vérification de l'unicité de l'ancre et de l'équilibre des accolades/crochets.
+5. **`node` n'est pas installé** chez Fred — seul `grep -c` pour vérifier une modification.
+6. **En cas de doute sur l'état d'un fichier**, faire confiance à Git plutôt qu'à la mémoire de conversation.
 7. **Avant toute action destructive**, poser un tag Git de sécurité (`git tag nom && git push origin nom`).
-8. **Vérification rapide de propreté du dépôt** :
-   ```bash
-   git ls-files | grep -E '\-v[0-9]+\.(js|css|html)$'
-   ```
-9. **`creation.js` et `index.html`** gèrent la création de personnage (Claude ne les avait jamais vus avant le 18 juillet — bien les avoir en tête pour tout ce qui touche à la création).
+8. **Chaque fichier ET chaque image livrés** doivent avoir un nom de sortie unique jamais réutilisé (suffixes `(1)` de Chrome), toujours avec la commande `mv` complète (source téléchargée → nom final dans le repo).
+9. Si Claude a besoin d'un fichier qu'il n'a pas encore vu en entier, le demander **directement en pièce jointe** plutôt qu'en `sed`/`grep` répétés — c'est beaucoup plus rapide pour tout le monde.
+10. Pour tester un correctif avant livraison, privilégier la reconstruction locale à partir des vrais fichiers déjà envoyés par Fred dans la conversation (copies successives), pas de fichiers de test inventés.
 
 ---
 
-## 🗺️ Feuille de route (donnée par Fred le 18 juillet)
+## 🗺️ Feuille de route (inchangée depuis le 18 juillet)
 
-- **Fin juillet 2026** : terminer Luthécia (tour de tous les bâtiments, ordres morts).
-- **1re quinzaine d'août** : finaliser Port-Sainte-Marie et Montrouge (les 2 autres villes de Républia).
-- **2e quinzaine d'août** : déploiement de la "base commune" vers les 3 autres empires.
-- **Fin août / début septembre** : spécificités propres à chaque empire.
+- **Fin juillet 2026** : terminer Luthécia.
+- **1re quinzaine d'août** : Port-Sainte-Marie et Montrouge.
+- **2e quinzaine d'août** : déploiement de la base commune vers les 3 autres empires.
+- **Fin août / début septembre** : spécificités par empire.
 - **Fin septembre 2026** : objectif bêta fermée.
 
 ---
 
 ## 🏛️ Tour des bâtiments de Luthécia — état exact
 
-**Terminés et vérifiés** : Mairie, Assemblée Nationale, Tribunal, Université (amphi + salle
-de réunion), Quartier des Ambassades, Centre d'Affaires (hall + Gretta Délieu), Centre
-Commercial (hall), Centre Artisanal (Travées), **Dispensaire Public** (audité le 18/07 :
-retrait de "Parler"/"Manger" hors-sujet, ajout de "Centre anti-poison").
+**Entièrement audités et fonctionnels** : Mairie, Assemblée Nationale, Tribunal, Université, Quartier des Ambassades, Centre d'Affaires, Centre Commercial, Centre Artisanal, Dispensaire Public, **Hôtel-Restaurant La Républica (Accueil, Restaurant, Bar — voir détail ci-dessous)**.
 
-**Prochain bâtiment à auditer** : Commissariat (Fred suit l'ordre de la rue, s'est arrêté
-après le Dispensaire).
+**Prochain bâtiment à auditer** : **Commissariat** (Fred suit l'ordre de la rue, toujours en attente depuis plusieurs sessions).
 
-**Encore à faire** : Palais Présidentiel, Hôtel Republica, Palais du Gouvernement (Fred dit
-les avoir déjà audités par le passé — à vérifier au cas par cas plutôt que de refaire tout
-un audit), Banque Nationale, Banque Privée, Clinique Privée, La Tribune (Imprimerie), Loge
-Maçonnique, Armurerie, Marché, Tabernacle des Impôts, Centre Multimodal, Office Notarial,
-Stade, Place du Formulaire de la Liberté.
+**Encore à faire** : Palais Présidentiel, Hôtel Republica *(déjà fait, à retirer de cette liste dans la prochaine version du fichier — erreur de ma part si encore présent)*, Palais du Gouvernement, Banque Nationale, Banque Privée, Clinique Privée, La Tribune, Loge Maçonnique, Armurerie, Marché, Tabernacle des Impôts, Centre Multimodal, Office Notarial, Stade, Place du Formulaire de la Liberté.
 
 ---
 
-## 🩹 GROS CHANTIER DU 18 JUILLET (soir) — Système d'agression complet
+## 🍽️🍸 GROS CHANTIER DU 19 JUILLET — Audit complet de l'Hôtel-Restaurant La Républica
 
-**Entièrement codé et poussé.** Résumé technique pour reprise :
+### Accueil
+- **Réservation de chambre** (`reserver_chambre_hotel`) : corrigée, bonus +2 PA/+3 Moral au prochain Dormir dans la chambre (aligné sur Port-Sainte-Marie).
+- **Louer une suite** (`choisir_suite`) : nouvelle Suite Présidentielle ajoutée à côté de la Suite Privée de Roxane, choix entre les deux à l'accueil (mix POP/INF/DIS pour la Présidentielle).
+- **"Parler au concierge"** et **"Se renseigner"** : supprimés (redondants).
+- PNJ : Nathalie Ondor (réceptionniste) et Isidore Trébien (bagagiste) remplacent Gustave/Béatrice, qui n'étaient jamais affichés à cause d'un `persons` piégé dans `buildingContext` qui écrasait la vraie pièce.
 
-- **`declencherHospitalisation(palier)`** (plateau-personnage.js) : fonction commune,
-  redirige vers `dispensaire-public` (durées 6/4/2 jours) ou `clinique-privee` (3/2/1 jours)
-  selon que le joueur a un haut poste ou non. Utilisée par empoisonnement ET assassinat.
-- **Assassinat** : mécanique instantanée inchangée (PV fixés au jet), MAIS ajoute maintenant
-  2 caractéristiques aléatoires à 0 (`state.statsAffaiblies`), remontent proportionnellement
-  aux PV via `getStatEffective()` (étendue). Durées d'hospitalisation doublées.
-- **Empoisonnement** : entièrement refondu. Ne fixe plus les PV instantanément — déclenche
-  `state.empoisonnement = {actif:true, palier, poisonType}` + notification immédiate vague
-  ("malaise suspect"). Progression uniquement via l'ordre **Dormir** : division par 2 des PV,
-  passage à 0 si <20 → hospitalisation automatique **dans la ville où se trouve la victime à
-  ce moment** (pas son domicile). 2 caractéristiques aussi affectées, division par 2 en //.
-- **"Centre anti-poison"** : nouvel ordre au dispensaire (60 FR, 65%) et à la clinique
-  (150 FR, 85%), guérit l'empoisonnement en cours, limité à 2 tentatives/jour.
-- **Régénération naturelle** (+10 PV/jour post-agression) : n'est plus automatique au cron
-  de minuit, liée à l'ordre Dormir (`state.regenJour`).
-- **`verifierProgressionHospitalisation()`** : corrigée pour utiliser `state.hospitalisation.jourFin`
-  au lieu d'une durée fixe de 3 jours codée en dur (bug trouvé en cours de route).
+### Restaurant
+- **Repas gastronomique** (`repas_gastronomique`, remplace l'ancien `se_nourrir` générique) : 120 FR, +10 Santé +1 Moral immédiats, **+1 PA différé au prochain Dormir** (nouveau mécanisme générique `state.bonusPaProchainDormir`, consommé dans `doDormir()`).
+- **Dîner d'affaires** (`diner_affaires`) : entièrement refondu. Système d'**invitation entre PJ présents dans la même pièce**, avec popup Accepter/Refuser en temps quasi-réel (sondage 4s), table Supabase `invitations_diner` (colonne `type` ajoutée). 300 FR, +10 Santé/+5 INF/+1 PA différé pour chacun si accepté, aucun coût si refusé, tracé pour les rumeurs vraies dans les deux cas.
+- **Ecouter les tables** : rebranché sur `ecouterRumeurs()` (uniquement des rumeurs vraies désormais, plus de génération IA de repli — voir section rumeurs).
+- PNJ : Gaston Sauceblanche requalifié Sommelier, Yvette Gratinée Serveuse, aux côtés de Paulo (placeholder photo retiré).
 
-**Pas encore testé en conditions réelles** — Fred attend d'avoir des bêta-testeurs pour ça.
+### Bar
+- **Boire un verre** (`boire_verre`) : généralisé sur le **même système d'invitation** que Dîner d'affaires (voir `CONFIG_INVITATIONS_SOCIALES` dans `plateau-pnj.js`). 50 FR, +5 Santé/+2 INF/+2 ENT si accepté.
+- **Ecouter le barman** : source maintenant Marco (au lieu d'un PNJ générique aléatoire), via un champ `sourceOverride` sur l'ordre.
+- **Recruter un informateur** (`recruter_informateur_pnj`) : refondu. Génère un PNJ qui rejoint le groupe (`state.employes`), PER aléatoire 12-18 (utilisée plus tard par l'ordre "localiser", moyenne de PER du groupe), toujours réussi, 150 FR/jour, max 1 informateur. Noms actuels (à retravailler, Fred trouve ça "affreux") : Momo Fouine, Lucienne Indic, Bernard Filature, Rita Tuyau, Gaspard Renseigne, Nadège Oreille.
+- **"Recueillir des informations"** (ex-Roxane) : renommé et déplacé. C'est maintenant **"Fabriquer un kompromat"**, une action contextuelle sur la fiche de tout PNJ `job:'escort'` (plus un ordre de salle), cible choisie dans le répertoire (PJ uniquement).
+- **Organiser une rencontre piège** : vérifié, fonctionne déjà bien (a servi de modèle pour tout le reste). 800 FR, cible dans le répertoire, jet DUP vs DUP/DIS simulées, kompromat en cas de succès, risque d'être démasqué (-15 POP -10 DIS) en cas d'échec si la cible enquête.
+- **Système escort entièrement refondu et réactivé** (était désactivé depuis des semaines, "Temporairement indisponible") :
+  - **Roxane Velours devient le nom de l'agence**, plus un personnage. Chaque escort a un simple prénom + rôle "Escort — Agence Roxane Velours".
+  - **Deux escorts simultanées au bar** : Natacha (F) et Julien (H), pour couvrir tous les PJ.
+  - Stats aléatoires à l'embauche : CHA 12-18, DUP 10-16, INT 8-14. Salaire 800 FR/jour (payé automatiquement via `payerEmployes()`/`payerEscorts()`).
+  - **Remplacement automatique** après recrutement (une nouvelle escort du même genre apparaît dans la pièce) — le mécanisme existait mais n'était jamais lu nulle part, corrigé via `appliquerRemplacantesEscort()` dans `renderPersonsList()`.
+  - **Banque de photos** : 3 femmes / 3 hommes intégrées et tirées au hasard indépendamment du prénom, à chaque recrutement et remplacement.
+  - **Nouvel ordre "Faire l'amour"** (contextuel sur la fiche PNJ escort) : 300 FR, +15 Moral/+5 Santé/+2 ENT, récit généré par IA (flatteur avec un doute distillé à la fin sur l'authenticité — c'était la demande précise de Fred).
+  - Recrutement ET "Faire l'amour" sont **tracés pour les rumeurs vraies**, avec la trace **dupliquée (donc 2x plus de chances d'être révélée) si le PJ est marié** (`sbGetMariageActif`).
 
----
+### Système de rumeurs (transversal, impacte tout le jeu)
+- **`ecouter_rumeurs`** (bug historique : 3 ordres "Ecouter" du jeu pointaient vers `doSeRenseigner`, une fonction de gestion de location de locaux, sans rapport) : rebranché sur la vraie fonction `ecouterRumeurs()`. **Ne révèle plus que des rumeurs vraies** (actions réellement tracées) — suppression complète du repli IA inventé. Si échec du jet ou rien à révéler : message neutre "Rien de croustillant à se mettre sous la dent."
+- **`lancer_rumeur_cible`** (bug historique : route pointait vers `openRumeurModal()`, fonction jamais écrite) : entièrement implémenté. Cible choisie dans le répertoire (PJ), succès = -5 à -20 POP sur la cible (via `sbAjusterPopJoueur`) + texte de rumeur généré par IA, échec = -5 POP/-5 DIS sur le lanceur + risque de détection.
+- **Répertoire de contacts** : bug corrigé où `isPJ` n'était jamais transmis du bouton "Ajouter au répertoire" jusqu'au stockage (`addContactByName` → `addContact`), ce qui empêchait tout filtrage "PJ uniquement" de fonctionner.
+- **Textes IA tronqués** : `max_tokens` trop bas (60-80) sur 3 générateurs (kompromat, piège escort, rumeur ciblée), coupait le texte en plein milieu ; augmenté à 120-150 partout, avec consigne explicite "texte brut, sans markdown" (le modèle générait parfois des `#`/`**` affichés tels quels).
 
-## 🛏️ Refonte du système de sommeil (18 juillet, soir)
-
-- **+12 PV de base** à chaque "Dormir" (n'existait pas avant), sauf le jour où le poison
-  progresse (la division prend le dessus ce jour-là).
-- **"Réserver une chambre d'hôtel"** (nouvel ordre, à l'accueil/hall, 60 FR) : stocke
-  `state.reservationHotel = {buildingId, bonus}`. Reste active tant qu'elle n'est pas
-  consommée (pas de limite à la journée).
-- **"Dormir" dans la Chambre elle-même** (`dormir_chambre`, nouvel ordre local, gratuit) :
-  nécessite une réservation active pour CE bâtiment précis. Applique le Dormir standard
-  + le bonus de la réservation (+2 PA/+3 Moral pour l'Hôtel du Port), consomme la réservation.
-  **Attention** : si on utilise "Dormir" ailleurs (ex: le bouton générique du panneau
-  "Actions personnelles"), on n'a QUE le +12 PV de base, jamais le bonus de la réservation.
-- Hôtel du Port (Port-Sainte-Marie) : Hall (accueil, image `hotel-du-port-accueil.png`) +
-  Chambre (image `hotel-du-port-chambre.png`), toutes deux poussées et intégrées.
-- **À faire plus tard** : généraliser à d'autres sources de bonus (nourriture, soins...) et
-  à l'Hôtel Republica de Luthécia qui aura 2 formules (normale + suite de luxe) — pas
-  encore défini, à faire au moment de l'audit de ce bâtiment. Un grand tableau de
-  cohérence des ordres est prévu par Fred pour clarifier tout ça plus tard.
+### Bugs annexes corrigés en cours de route
+- Prompt IA de dialogue PNJ (`talkToPnj`) : ne mentionnait jamais le lieu où se trouve le PNJ (d'où des PNJ qui parlaient comme s'ils étaient à la Mairie) et la consigne sur la monnaie était trop faible (un PNJ a parlé en Euro). Corrigé : lieu explicite + interdiction stricte des devises réelles.
+- Inventaire : bouton "Supprimer (destruction définitive)" appelait `supprimerItemInventaire()`, jamais écrite. Fonction ajoutée (différent de "Abandonner ici", qui laisse l'objet récupérable par d'autres joueurs).
+- `requiresCadavre`/`requiresSquatteurs` sur certains ordres : flags **jamais vérifiés nulle part** dans le code (contrairement à `requiresPost`, qui fonctionne). À garder en tête, pas corrigé cette session (hors-sujet du jour).
+- POP potentiellement stocké en deux endroits incohérents (`resources.pop` imbriqué vs colonne `pop` directe utilisée par `sbAjusterPopJoueur`) — **repéré mais pas vérifié/corrigé**, à surveiller si les effets POP sur d'autres joueurs semblent ne pas s'appliquer.
 
 ---
 
-## 🖼️ Images en attente (poussées dans `images/` mais PAS ENCORE intégrées au code)
+## 🖼️ Images poussées cette session (à vérifier/pousser si pas encore fait)
 
-- `rue-hotel-mairie-port-sainte-marie.png` — vue de rue (Hôtel du Port + Mairie + Place d'Armes).
-- `rue-capitaine-sauvage-armurerie-port-sainte-marie.png` — vue de rue (Restaurant Capitaine
-  Sauvage + Maison Le Gall Chasse & Pêche, qui devriendra l'armurerie de Port-Sainte-Marie).
-- Fred a dit qu'il enverrait encore une image de la rue du marché (déjà envoyée par le passé,
-  à vérifier si intégrée) avant de construire le maillage de navigation de rue pour
-  Port-Sainte-Marie (pas encore commencé, contrairement à Luthécia).
-- Idée notée : adapter le catalogue d'armes de l'armurerie de Port-Sainte-Marie au thème
-  "chasse & pêche" du magasin — clin d'œil qui révèle où l'arme a été achetée.
+- `armurerie-port-sainte-marie-maison-le-gall.png`
+- `hotel-republica-suite-presidentielle.png`
+- Informateurs (noms définitifs pas encore choisis, Fred trouve les noms actuels "affreux") : image homme "façon Jean Cétreau", + 4 autres (femme âgée, jeune homme casquette, homme corpulent, femme facteur/La Poste) — **pas encore intégrées au code, juste reçues**.
+- Escorts Agence Roxane Velours (intégrées et fonctionnelles) : `escort-f-1-robe-verte.png`, `escort-f-2-robe-or.png`, `escort-f-3-robe-marine.png`, `escort-h-1-costume-beige.png`, `escort-h-2-chemise-noire.png`, `escort-h-3-chemise-ouverte.png`.
 
 ---
 
-## 🏗️ Autres chantiers ouverts / en attente (non liés à la session du 18/07 soir)
+## 🆕 Remontées de toute fin de session (19 juillet, pas encore traitées)
 
-- Système de groupe/emploi de PNJ à concevoir (recrutement, hiérarchie militaire, police).
-- Système de duplication de PNJ désactivé temporairement dans `plateau-multijoueur.js`,
-  en attente d'un vrai redesign.
-- Tableau Excel des PNJ de Luthécia en cours d'enrichissement par Fred.
-- Réflexion sur la refonte de l'architecture des fichiers (4 familles : décor / cartographie
-  / contenu des lieux / systèmes de jeu) — non tranchée par Fred.
-- Système de messagerie persistante (conversations privées + salons nommés) — fonctionnel.
-- Avatars des PJ : réflexion en cours sur génération stylisée (pas de photo réelle de tiers),
-  utilité future dans le premium (affiches électorales, portraits officiels — purement
-  cosmétique, aucun impact sur les indices de jeu).
+**Hôtel Republica — Suite Privée**
+- La description mentionne encore "Roxane y reçoit une clientèle triée sur le volet" — référence à un nom propre qui n'a plus de sens depuis que Roxane Velours est devenue le nom de l'agence (pas un personnage). À généraliser.
+- Le PNJ "Roxane Velours (PNJ)" est toujours listé dans les `persons` de cette pièce (oublié lors du renommage agence) — à supprimer.
+
+**Hôtel Republica — Chambres classiques**
+- Les ordres actuels (`dormir` générique avec bonus fixe, `se_reposer`, `reunion_privee`) sont redondants avec la mécanique précise de réservation + bonus PA différé déjà codée (`reserver_chambre_hotel` à l'accueil + `dormir_chambre` dans la chambre). Fred veut **tout supprimer sauf un seul ordre "Dormir"**, correctement branché sur la mécanique de réservation (probablement `dormir_chambre` renommé simplement "Dormir" pour le joueur, sans exposer la distinction technique des `fn`).
+- `reunion_privee` : jugé inutile, à supprimer.
+- Idée à valider : ajouter **"Faire appel au service d'étage"** pour un déjeuner/repas pris en chambre.
+
+**Question de conception ouverte — chambres partagées sans dupliquer les pièces**
+Fred veut éviter de multiplier les chambres dans `data.js` (une par location) tout en gardant une impression de confidentialité entre PJ qui la louent à des moments différents, **sans que ça devienne une planque intouchable**. Piste proposée par Claude, à discuter/affiner ensemble avant implémentation :
+- Garder une seule pièce physique "Chambre" dans `data.js`.
+- Ne **jamais** filtrer `state.currentBuilding`/`state.currentRoom` (la vraie position reste toujours exacte et interrogeable par la police/les enquêtes — c'est la garantie contre la planque intouchable).
+- Filtrer uniquement **l'affichage** (`renderPersonsList`) : un PJ ne voit que les autres PJ rattachés à sa propre réservation (ex. via le même système d'invitation que Dîner d'affaires/Boire un verre), pas les autres PJ qui louent la même chambre à un autre moment.
+
+**Université**
+- Fred a repéré des bugs, **pas encore détaillés**. À préciser en tout début de la prochaine session.
+
+---
+
+## 🏗️ Chantiers ouverts / en attente
+
+- **Tableau récapitulatif des ordres** : idée validée par Fred pour la fin du codage de Luthécia — lister tous les `fn`, leurs usages multiples, coûts et effets, généré directement à partir de `data.js` plutôt que découvert au fil de l'eau (plusieurs bugs cette session venaient de `fn` génériques partagés entre bâtiments avec des comportements différents attendus).
+- **Ordre "Localiser quelqu'un/un objet"** : pas encore créé. Utilisera la moyenne de PER du groupe (joueur + informateur(s) recrutés) dans son calcul de réussite.
+- **Noms des informateurs et informatrices** : à revoir avec Fred, jugés pas assez réussis (contrairement à "Jean Cétreau").
+- **Autres empires** : le même bug de `persons` piégé dans `buildingContext` qui a cassé l'accueil de l'Hôtel Republica pourrait exister pour les hôtels des 3 autres empires (Ciudad Roja, Sovarka, Al-Khalija, etc.) — non vérifié, à surveiller quand ces empires seront travaillés.
+- **Système de duplication de PNJ** : toujours désactivé temporairement dans `plateau-multijoueur.js` (mentionné les sessions précédentes, indépendant du système d'employés/escorts qui lui a été réactivé cette session).
+- Kompromats au texte tronqué déjà générés avant le correctif (ex. celui sur Sophie Leroux) : Fred les nettoie lui-même via le bouton Supprimer maintenant fonctionnel.
 
 ---
 
 ## 💡 Idées en réserve (pas de code, juste notées)
 
 - Monétisation premium : cosmétique/confort uniquement, jamais d'avantage compétitif payant.
-- Discord, traduction, mobile : pas des priorités de lancement, à traiter bien plus tard.
+- Discord, traduction, mobile : pas des priorités de lancement.
