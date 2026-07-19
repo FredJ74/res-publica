@@ -911,6 +911,25 @@ function doReserverChambreHotel() {
   addJournalEntry('Vous avez reserve une chambre d\'hotel. Vous obtiendrez un bonus de ' + bonus.paBonus + ' PA + ' + bonus.moral + ' moral en passant l\'ordre dormir <strong>dans cette chambre</strong>.', 'event-good');
 }
 
+function doServiceEtage() {
+  const reservation = state.reservationHotel;
+  if (!reservation || reservation.buildingId !== state.currentBuilding) {
+    showToast('Chambre non reservee', 'Vous devez d\'abord reserver une chambre a l\'accueil pour beneficier du service d\'etage.', false);
+    return;
+  }
+  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const ordre = room?.orders?.find(o => o.fn === 'service_etage');
+  const cout = ordre?.cost || 150;
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+  state.arg -= cout;
+  state.hp = Math.min(100, (state.hp || 0) + 10);
+  state.moral = Math.min(100, (state.moral || 0) + 1);
+  state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
+  updateUI();
+  showToast('Service d\'etage', 'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.', true, true);
+  addJournalEntry('Service d\'etage en chambre : +10 Sante, +1 Moral, +1 PA differe au prochain Dormir.', 'event-good');
+}
+
 async function doDormirChambre() {
   const reservation = state.reservationHotel;
   if (!reservation || reservation.buildingId !== state.currentBuilding) {
