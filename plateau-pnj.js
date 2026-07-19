@@ -621,10 +621,10 @@ async function confirmerLancerRumeur(nomCible, pa, cost, successRate) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 80,
+          max_tokens: 150,
           messages: [{
             role: 'user',
-            content: 'Res Publica, jeu de rôle politique parodique et satirique. Une rumeur compromettante vient d\'être lancée contre ' + nomCible + '. Génère UNE phrase de rumeur courte (1-2 phrases max), diffamatoire mais crédible, ton satirique et cynique. Réponds UNIQUEMENT avec la rumeur, sans introduction.'
+            content: 'Res Publica, jeu de rôle politique parodique et satirique. Une rumeur compromettante vient d\'être lancée contre ' + nomCible + '. Génère UNE phrase de rumeur courte (1-2 phrases max), diffamatoire mais crédible, ton satirique et cynique. Réponds UNIQUEMENT avec la rumeur, en texte brut sans markdown (pas de #, pas de **), sans introduction.'
           }]
         })
       });
@@ -835,13 +835,13 @@ async function confirmerFabriquerKompromat(nomAgent, nomCible) {
 
   const prompt = `Tu joues dans Res Publica, jeu politique parodique.
 ${nomAgent} a recueilli des informations compromettantes sur ${nomCible} dans l'empire ${co?.n}.
-Génère UNE révélation compromettante, parodique et drôle (2 phrases max). Style scandale politique. Pas de vrais noms de personnes réelles. Pas de religions réelles.`;
+Génère UNE révélation compromettante, parodique et drôle (2 phrases max). Style scandale politique. Pas de vrais noms de personnes réelles. Pas de religions réelles. Réponds en texte brut uniquement, sans markdown (pas de #, pas de **, pas de titre).`;
 
   try {
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 60, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await resp.json();
     const info = data.content?.[0]?.text?.trim() || 'Information confidentielle obtenue.';
@@ -919,13 +919,13 @@ async function confirmerEscortPiege(nomCible) {
 
   if (roll <= taux) {
     // SUCCÈS
-    const prompt = 'Res Publica, jeu politique parodique. ' + nomCible + ' vient d\'être piégé(e) par une escort dans un scandale compromettant. Génère UN titre de scandale parodique (1 phrase max, style journal à scandales).';
+    const prompt = 'Res Publica, jeu politique parodique. ' + nomCible + ' vient d\'être piégé(e) par une escort dans un scandale compromettant. Génère UN titre de scandale parodique (1 phrase max, style journal à scandales). Réponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
     let scandale = nomCible + ' impliqué(e) dans un scandale compromettant avec une escort.';
     try {
       const resp = await fetch('/api/chat', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 60, messages: [{ role: 'user', content: prompt }] })
+        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 120, messages: [{ role: 'user', content: prompt }] })
       });
       const data = await resp.json();
       scandale = data.content?.[0]?.text?.trim() || scandale;
