@@ -832,6 +832,13 @@ async function doDormir() {
 
   // Rafraichir la vue
   switchSelfTab('actions', null);
+
+  // Sauvegarde Supabase immediate et bloquante (contourne le debounce de 3s de
+  // sbAutoSave) : le sommeil touche l'argent et les verrous anti-double-salaire
+  // (dernierDormir/salaireTouche), donc on ecrit tout de suite sur Supabase avant
+  // qu'un rafraichissement ou changement d'appareil ne puisse survenir entre-temps.
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state);
+
   return true;
 }
 
