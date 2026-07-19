@@ -6,6 +6,104 @@
 // =====================
 // PERSONS LIST
 // =====================
+const CODETENUS_CATALOGUE = [
+  { nom: 'Tristan Cabane', photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-tristan-cabane.png' },
+  { nom: 'Edgard Havu',    photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-edgard-havu.png' },
+  { nom: 'Simona Venture', photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-simona-venture.png' },
+  { nom: 'Kevin Diesel',   photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-kevin-diesel.png' }
+];
+
+function appliquerRemplacantCodetenu(persons) {
+  if (!state.codetenuRemplacant || !state.currentBuilding || !state.currentRoom) return persons;
+  return persons.map(p => {
+    if (p.job !== 'codetenu') return p;
+    const cle = state.currentBuilding + '_' + state.currentRoom;
+    const remp = state.codetenuRemplacant[cle];
+    if (!remp) return p;
+    return { ...p, name: remp.name, role: remp.role, photoUrl: remp.photoUrl || p.photoUrl, photoPos: remp.photoPos || p.photoPos };
+  });
+}
+
+function ouvrirRecrutementCodetenu(nomCodetenu) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const tarifJour = 100;
+
+  document.getElementById('modal-pnj').classList.remove('open');
+  document.getElementById('postes-modal-title').textContent = 'Codetenu - ' + nomCodetenu;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' +
+      '"On se serre les coudes ici. ' + tarifJour + ' ' + cur + '/jour, et je reste avec toi."' +
+    '</div>' +
+    '<div style="font-size:.75rem;color:#6a5030;margin-bottom:.8rem">Il rejoint votre groupe. Vous serez debite(e) de <strong style="color:#C9A84C">' + tarifJour + ' ' + cur + '</strong> a chaque reveil.</div>' +
+    '<div style="display:flex;gap:.5rem">' +
+      '<button onclick="confirmerRecrutementCodetenu(\'' + nomCodetenu.replace(/'/g,'') + '\',' + tarifJour + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
+      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #2a2010;background:transparent;color:#6a5030;cursor:pointer">Decliner</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerRecrutementCodetenu(nomCodetenu, tarif) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  if ((state.employes || []).some(e => e.job === 'codetenu')) {
+    showToast('Deja recrute', 'Vous avez deja un codetenu dans votre groupe.', false);
+    return;
+  }
+  if ((state.employes || []).length >= MAX_EMPLOYES) {
+    showToast('Limite atteinte', 'Maximum ' + MAX_EMPLOYES + ' employes.', false);
+    return;
+  }
+  if (state.arg < tarif) {
+    showToast('Fonds insuffisants', tarif + ' ' + cur + ' requis pour la premiere journee.', false);
+    return;
+  }
+  state.arg -= tarif;
+
+  const statsCodetenu = {
+    FOR: Math.floor(Math.random() * 5) + 8,
+    DUP: Math.floor(Math.random() * 5) + 8
+  };
+
+  const infoActuel = CODETENUS_CATALOGUE.find(c => c.nom === nomCodetenu) || CODETENUS_CATALOGUE[0];
+
+  if (!state.employes) state.employes = [];
+  state.employes.push({
+    nom: nomCodetenu, role: 'Codetenu', job: 'codetenu',
+    photoUrl: infoActuel.photoUrl, photoPos: '50% 15%',
+    cout: tarif, inGroupe: true,
+    buildingId: state.currentBuilding,
+    roomId: state.currentRoom,
+    city: state.currentCity,
+    depuis: state.day || 1,
+    stats: statsCodetenu
+  });
+  updateUI();
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+
+  const restants = CODETENUS_CATALOGUE.filter(c => c.nom !== nomCodetenu);
+  const autre = restants[Math.floor(Math.random() * restants.length)] || CODETENUS_CATALOGUE[0];
+  if (!state.codetenuRemplacant) state.codetenuRemplacant = {};
+  const cleSlot = state.currentBuilding + '_' + state.currentRoom;
+  state.codetenuRemplacant[cleSlot] = {
+    name: autre.nom + ' (PNJ)',
+    role: 'Detenu',
+    job: 'codetenu',
+    rel: 'neutral',
+    photoUrl: autre.photoUrl,
+    photoPos: '50% 15%'
+  };
+
+  if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
+    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+    if (room?.persons) renderPersonsList(room.persons);
+  }
+
+  showToast('Codetenu recrute !', nomCodetenu + ' rejoint votre groupe. -' + tarif + ' ' + cur + '/reveil.', true, true);
+  addJournalEntry('Recrutement codetenu : ' + nomCodetenu + '. -' + tarif + ' ' + cur + '/reveil.', 'event-info');
+}
+
 function appliquerRemplacantesEscort(persons) {
   if (!state.escortRemplacante || !state.currentBuilding || !state.currentRoom) return persons;
   return persons.map(p => {
@@ -21,6 +119,7 @@ function renderPersonsList(persons, targetId) {
   targetId = targetId || 'persons-list';
   persons = [...(persons || [])]; // mutable copy
   persons = appliquerRemplacantesEscort(persons);
+  persons = appliquerRemplacantCodetenu(persons);
   const relCol = r => r === 'ally' ? '#4a8a4a' : r === 'enemy' ? '#8a3a2a' : '#6a6040';
   const relTxt = r => r === 'ally' ? 'Allie' : r === 'enemy' ? 'Hostile' : 'Neutre';
 

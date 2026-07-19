@@ -137,7 +137,7 @@ const WORLD = {
         'commissariat': {
           name: "Commissariat Central de Luthecia",
           desc: "Raoul Toufaud pointe toujours dans la mauvaise direction.",
-          persons: [{"name": "Raoul Toufaud (PNJ)", "role": "Commissaire Central", "rel": "neutral", "job": "commissaire"}, {"name": "Brigitte Menottes (PNJ)", "role": "Inspectrice", "rel": "neutral", "job": "inspecteur"}]
+          persons: [{"name": "Raoul Toufaud (PNJ)", "role": "Commissaire Central", "rel": "neutral", "job": "commissaire", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-raoul-toufaud.png", "photoPos": "50% 15%"}, {"name": "Brigitte Menottes (PNJ)", "role": "Inspectrice", "rel": "neutral", "job": "inspecteur", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-brigitte-menottes.png", "photoPos": "50% 10%"}]
         },
         'tribunal': {
           name: "Tribunal de Luthecia",
@@ -1926,8 +1926,8 @@ const BUILDINGS = {
         desc: "L'accueil du commissariat. Atmosphere froide et surveillee.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-accueil.png",
         persons: [
-          {name:'Commissaire Gros', role:'PNJ - Chef de la police', rel:'neutral', job:'commissaire'},
-          {name:'Agent Petit',      role:'PNJ - Officier de garde', rel:'neutral', job:'policier'}
+          {name:'Raoul Toufaud (PNJ)', role:'Commissaire Central', rel:'neutral', job:'commissaire', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-raoul-toufaud.png', photoPos:'50% 15%'},
+          {name:'Brigitte Menottes (PNJ)', role:'Inspectrice', rel:'neutral', job:'inspecteur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-brigitte-menottes.png', photoPos:'50% 10%'}
         ],
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Contre une personne identifiee ou contre X. Reponse sous 24h.'},
@@ -1941,7 +1941,8 @@ const BUILDINGS = {
         desc: "Les cellules de garde à vue du commissariat. Froid, humide, déprimant.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cellule-garde-a-vue-luthecia.png",
         persons: [
-          {name:'Gardien Dubois', role:'PNJ - Gardien de cellule', rel:'neutral', job:'gardien'}
+          {name:'Gardien Dubois', role:'PNJ - Gardien de cellule', rel:'neutral', job:'gardien'},
+          {name:'Tristan Cabane (PNJ)', role:'Detenu', rel:'neutral', job:'detenu', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-tristan-cabane.png', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},

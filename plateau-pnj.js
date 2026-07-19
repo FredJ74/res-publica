@@ -197,7 +197,7 @@ function openPnjModal(encodedPnj) {
 
 
   // Recruter comme employé (tous PNJ sauf escort qui a son propre bouton)
-  if (!isPJ && pnj.job !== 'escort') {
+  if (!isPJ && pnj.job !== 'escort' && pnj.job !== 'codetenu') {
     const nomCourt = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
     const dejEmploye = (state.employes || []).some(e => e.nom === nomCourt);
     if (!dejEmploye) {
@@ -217,9 +217,15 @@ function openPnjModal(encodedPnj) {
   if (pnj.job === 'escort') {
     const escortNom = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
     const escortGenre = pnj.genre || 'F';
-    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\',\'' + escortGenre + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort</button>';
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\',\'' + escortGenre + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort (800 FR/j)</button>';
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalFabriquerKompromat(\'' + escortNom + '\')"><i class="ti ti-file-shredder" style="font-size:.85rem"></i> Fabriquer un kompromat (300 FR)</button>';
     actionBtns += '<button class="pnj-action-btn" style="color:#cc6699;border-color:#4a1a30" onclick="ouvrirModalFaireLAmour(\'' + escortNom + '\')"><i class="ti ti-heart-filled" style="font-size:.85rem"></i> Faire l\'amour (300 FR)</button>';
+  }
+
+  // Recruter codetenu
+  if (pnj.job === 'codetenu') {
+    const codetenuNom = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementCodetenu(\'' + codetenuNom + '\')"><i class="ti ti-users" style="font-size:.85rem"></i> Faire alliance (100 FR/j)</button>';
   }
 
   // Interroger l'hotesse des objets trouves sur ses souvenirs
@@ -357,6 +363,11 @@ async function talkToPnj(encodedPnj, action) {
     ? 'ATTENTION : le joueur est recherché par les autorités.'
     : '';
 
+  const autresJoueursPresents = (window._vraisJoueursPresents || []).map(p => p.name).filter(Boolean);
+  const autresJoueursTexte = autresJoueursPresents.length > 0
+    ? `D'autres personnes sont egalement presentes dans la piece en ce moment : ${autresJoueursPresents.join(', ')}. Tu peux naturellement faire reference a leur presence si c'est pertinent dans ta reponse.`
+    : '';
+
   const lieuBatiment = BUILDINGS[state.currentBuilding]?.name || '';
   const lieuPiece = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom]?.name || '';
   const lieuTexte = lieuBatiment ? (lieuBatiment + (lieuPiece ? ' (' + lieuPiece + ')' : '')) : '';
@@ -370,6 +381,7 @@ ${perso ? `Ta personnalité : ${perso.trait}` : `Tu es un PNJ typique de ${co?.n
 ${perso ? `Ton style : ${perso.style}` : ''}
 Relation avec le joueur : ${pnj.rel === 'ally' ? 'allié de confiance' : pnj.rel === 'enemy' ? 'ennemi déclaré' : 'neutre'}.
 ${lieuTexte ? `Lieu actuel : vous vous trouvez tous les deux à ${lieuTexte}. N'évoque jamais un autre établissement (mairie, commissariat, tribunal...) comme si vous y étiez actuellement.` : ''}
+${autresJoueursTexte}
 
 Le joueur : ${char?.name || 'Inconnu'}, ${ar?.name || 'citoyen'}.
 ${politicalContext} ${recherchéContext}
