@@ -1184,8 +1184,8 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80",
         persons: [
           {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marco-barman.png', photoPos:'50% 20%'},
-          {name:'Natacha (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'F'},
-          {name:'Julien (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'H'},
+          {name:'Natacha (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'F', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-f-1-robe-verte.png', photoPos:'50% 15%'},
+          {name:'Julien (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'H', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-h-1-costume-beige.png', photoPos:'50% 15%'},
           {name:'Un lobbyiste',   role:'Inconnu - Discretion de mise', rel:'neutral', job:null}
         ],
         orders: [

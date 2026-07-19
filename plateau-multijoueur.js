@@ -13,7 +13,7 @@ function appliquerRemplacantesEscort(persons) {
     const cle = state.currentBuilding + '_' + state.currentRoom + '_' + p.genre;
     const remp = state.escortRemplacante[cle];
     if (!remp) return p;
-    return { ...p, name: remp.name, role: remp.role };
+    return { ...p, name: remp.name, role: remp.role, photoUrl: remp.photoUrl || p.photoUrl, photoPos: remp.photoPos || p.photoPos };
   });
 }
 
@@ -261,10 +261,26 @@ async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
   if (!state.escortActive) state.escortActive = [];
   state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1, genre });
 
+  // Banque de photos Agence Roxane Velours (independante du prenom, tiree au hasard par genre)
+  const PHOTOS_ESCORT = {
+    F: [
+      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-f-1-robe-verte.png',
+      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-f-2-robe-or.png',
+      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-f-3-robe-marine.png'
+    ],
+    H: [
+      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-h-1-costume-beige.png',
+      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-h-2-chemise-noire.png',
+      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-h-3-chemise-ouverte.png'
+    ]
+  };
+  const poolPhotos = PHOTOS_ESCORT[genre] || PHOTOS_ESCORT.F;
+  const photoChoisie = poolPhotos[Math.floor(Math.random() * poolPhotos.length)];
+
   if (!state.employes) state.employes = [];
   state.employes.push({
     nom: nomEscort, role: 'Escort — Agence Roxane Velours', job: 'escort', genre,
-    photoUrl: '', photoPos: '50% 10%',
+    photoUrl: photoChoisie, photoPos: '50% 15%',
     cout: tarif, inGroupe: true,
     buildingId: state.currentBuilding,
     roomId: state.currentRoom,
@@ -297,6 +313,7 @@ async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
   const listePossibles = pool.filter(n => n !== nomEscort);
   const remplacante = listePossibles[Math.floor(Math.random() * listePossibles.length)] || pool[0];
 
+  const photoRemplacante = poolPhotos[Math.floor(Math.random() * poolPhotos.length)];
   if (!state.escortRemplacante) state.escortRemplacante = {};
   const cleSlot = state.currentBuilding + '_' + state.currentRoom + '_' + genre;
   state.escortRemplacante[cleSlot] = {
@@ -304,7 +321,9 @@ async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
     role: 'Escort — Agence Roxane Velours',
     job: 'escort',
     rel: 'neutral',
-    genre
+    genre,
+    photoUrl: photoRemplacante,
+    photoPos: '50% 15%'
   };
 
   if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
