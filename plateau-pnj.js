@@ -659,6 +659,133 @@ async function confirmerLancerRumeur(nomCible, pa, cost, successRate) {
   updateUI();
 }
 
+function ouvrirModalDinerAffaires(pa, cost, successRate) {
+  const presents = (window._vraisJoueursPresents || []).filter(p => p.name !== state.char?.name);
+  if (presents.length === 0) {
+    showToast('Personne à inviter', 'Aucun autre joueur n\'est présent dans cette pièce pour l\'instant.', false);
+    return;
+  }
+  if (state.arg < cost) {
+    showToast('Fonds insuffisants', cost + ' FR requis pour inviter quelqu\'un à dîner.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = '🍽️ Inviter à dîner';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisissez un joueur présent. Le coût n\'est prélevé que s\'il accepte.</div>' +
+    presents.map(p =>
+      '<div onclick="envoyerInvitationDiner(\'' + p.name.replace(/'/g,'') + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+        '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20"></i>' +
+        '<div><div style="font-size:.82rem;color:#c0b090">' + p.name + '</div></div>' +
+      '</div>'
+    ).join('') +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function envoyerInvitationDiner(nomInvite, pa, cost) {
+  document.getElementById('modal-postes').classList.remove('open');
+  if (typeof sbCreerInvitationDiner !== 'function') return;
+  await sbCreerInvitationDiner(state.char?.name, nomInvite, state.country, state.currentCity, state.currentBuilding, state.currentRoom, cost).catch(() => {});
+  state._dinerEnAttente = {
+    invite: nomInvite, pa, cost,
+    country: state.country, city: state.currentCity,
+    buildingId: state.currentBuilding, roomId: state.currentRoom
+  };
+  showToast('Invitation envoyée', 'En attente de la réponse de ' + nomInvite + '...', true);
+  addJournalEntry('Invitation à dîner envoyée à ' + nomInvite + '.', 'event-info');
+}
+
+async function verifierReponseInvitationDiner() {
+  if (!state._dinerEnAttente || !state.char?.name) return;
+  const infos = state._dinerEnAttente;
+
+  // Invitation caduque si l'inviteur (nous-meme) a quitte la piece d'origine
+  if (state.currentBuilding !== infos.buildingId || state.currentRoom !== infos.roomId) {
+    state._dinerEnAttente = null;
+    return;
+  }
+
+  if (typeof sbGetInvitationsDinerTraitees !== 'function') return;
+  try {
+    const rows = await sbGetInvitationsDinerTraitees(state.char.name, infos.invite);
+    const ligne = (rows || [])[0];
+    if (!ligne) return;
+
+    if (ligne.statut === 'acceptee') {
+      if (state.arg >= infos.cost) {
+        state.arg -= infos.cost;
+        state.hp = Math.min(100, (state.hp || 0) + 10);
+        state.inf = Math.min(100, (state.inf || 0) + 5);
+        state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
+        showToast('Dîner accepté !', infos.invite + ' a accepté votre invitation. +10 Santé, +5 INF, +1 PA au prochain Dormir. -' + infos.cost + ' FR.', true, true);
+        addJournalEntry('Dîner d\'affaires avec ' + infos.invite + ' : accepté. -' + infos.cost + ' FR. +10 Santé, +5 INF, +1 PA au prochain Dormir.', 'event-good');
+        if (typeof advanceTime === 'function') advanceTime(Math.max(0, infos.pa || 0));
+      } else {
+        showToast('Fonds insuffisants', infos.invite + ' a accepté, mais vous n\'avez plus les fonds pour régler l\'addition.', false);
+        addJournalEntry('Dîner d\'affaires avec ' + infos.invite + ' accepté, mais fonds insuffisants pour payer.', 'event-bad');
+      }
+      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('diner_affaires_accepte', infos.invite);
+    } else if (ligne.statut === 'refusee') {
+      showToast('Invitation refusée', infos.invite + ' a décliné votre invitation.', false);
+      addJournalEntry('Dîner d\'affaires avec ' + infos.invite + ' : refusé.', 'event-info');
+      if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('diner_affaires_refuse', infos.invite);
+    }
+
+    if (typeof sbSupprimerInvitationDiner === 'function') sbSupprimerInvitationDiner(ligne.id).catch(() => {});
+    state._dinerEnAttente = null;
+    updateUI();
+  } catch(e) {}
+}
+
+async function verifierInvitationsDinerRecues() {
+  if (!state.char?.name || !state.currentBuilding || !state.currentRoom) return;
+  if (state._dinerModalOuvert) return;
+  if (typeof sbGetInvitationsDinerRecues !== 'function') return;
+  try {
+    const rows = await sbGetInvitationsDinerRecues(state.char.name);
+    const valide = (rows || []).find(r =>
+      r.country === state.country && r.city === state.currentCity &&
+      r.building_id === state.currentBuilding && r.room_id === state.currentRoom
+    );
+    if (!valide) return;
+    state._dinerModalOuvert = true;
+    document.getElementById('postes-modal-title').textContent = '🍽️ Invitation à dîner';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.2rem">' +
+      '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">' + valide.inviteur + ' vous invite à un dîner d\'affaires, à ses frais.</div>' +
+      '<div style="display:flex;gap:.5rem">' +
+        '<button onclick="repondreInvitationDiner(' + valide.id + ',true,\'' + valide.inviteur.replace(/'/g,'') + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #4a8a4a;background:transparent;color:#6a9a6a;cursor:pointer">✅ Accepter</button>' +
+        '<button onclick="repondreInvitationDiner(' + valide.id + ',false,\'' + valide.inviteur.replace(/'/g,'') + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #5a2a2a;background:transparent;color:#8a3a2a;cursor:pointer">❌ Refuser</button>' +
+      '</div></div>';
+    document.getElementById('modal-postes').classList.add('open');
+  } catch(e) {}
+}
+
+async function repondreInvitationDiner(id, accepte, nomInviteur) {
+  document.getElementById('modal-postes').classList.remove('open');
+  state._dinerModalOuvert = false;
+  if (typeof sbRepondreInvitationDiner === 'function') await sbRepondreInvitationDiner(id, accepte).catch(() => {});
+  if (accepte) {
+    state.hp = Math.min(100, (state.hp || 0) + 10);
+    state.inf = Math.min(100, (state.inf || 0) + 5);
+    state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
+    updateUI();
+    showToast('Dîner accepté !', 'Vous rejoignez ' + nomInviteur + '. +10 Santé, +5 INF, +1 PA au prochain Dormir.', true, true);
+    addJournalEntry('Vous avez accepté l\'invitation à dîner de ' + nomInviteur + '. +10 Santé, +5 INF, +1 PA au prochain Dormir.', 'event-good');
+  } else {
+    showToast('Invitation déclinée', 'Vous avez refusé l\'invitation de ' + nomInviteur + '.', false);
+    addJournalEntry('Vous avez refusé l\'invitation à dîner de ' + nomInviteur + '.', 'event-info');
+  }
+}
+
+function demarrerPollingInvitationsDiner() {
+  if (window._dinerPollingActif) return;
+  window._dinerPollingActif = true;
+  setInterval(() => { if (typeof verifierInvitationsDinerRecues === 'function') verifierInvitationsDinerRecues(); }, 4000);
+  setInterval(() => { if (typeof verifierReponseInvitationDiner === 'function') verifierReponseInvitationDiner(); }, 4000);
+}
+
 function doEscortPiege() {
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';

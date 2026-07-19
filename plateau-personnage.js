@@ -800,6 +800,11 @@ async function doDormir() {
   }
   state.pa = plafondPA;
   state.paMax = plafondPA;
+  if (state.bonusPaProchainDormir) {
+    state.pa += state.bonusPaProchainDormir;
+    addJournalEntry('Bonus de repas applique : +' + state.bonusPaProchainDormir + ' PA.', 'event-good');
+    state.bonusPaProchainDormir = 0;
+  }
 
   updateUI();
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';

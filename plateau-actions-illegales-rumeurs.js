@@ -286,7 +286,9 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   utiliser_explosifs:     (a, c) => 'On raconte qu\'une explosion près de ' + c + ' ne devrait rien au hasard — et que ' + a + ' y serait pour quelque chose.',
   empoisonnement:         (a, c) => 'Une rumeur tenace prête à ' + a + ' un geste discret dans le verre ou l\'assiette de ' + c + '.',
   hooliganisme:           (a, c) => 'On dit que ' + a + ' aurait pris part à des débordements violents lors d\'un récent rassemblement.',
-  torture_qhs:            (a, c) => 'Des bruits de couloir évoquent des méthodes brutales employées par ' + a + ' envers un détenu du QHS.'
+  torture_qhs:            (a, c) => 'Des bruits de couloir évoquent des méthodes brutales employées par ' + a + ' envers un détenu du QHS.',
+  diner_affaires_accepte: (a, c) => a + ' a déjeuné avec ' + c + '. Que se sont-ils dit... ?',
+  diner_affaires_refuse:  (a, c) => 'On raconte que ' + a + ' aurait tenté d\'inviter ' + c + ' à dîner... sans succès.'
 };
 
 async function ecouterRumeurs(successRate) {

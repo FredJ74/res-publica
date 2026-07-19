@@ -1170,8 +1170,8 @@ const BUILDINGS = {
           {name:'Marie Leblanc (PNJ)',    role:'Journaliste - La Tribune', rel:'enemy',  job:'journaliste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'70% 30%'}
         ],
         orders: [
-          {fn:'se_nourrir',   label:'Se nourrir',          pa:0, cost:25,  type:'legal',  icon:'ti-soup',     successRate:100, desc:'Repas standard. Sante maintenue.'},
-          {fn:'diner_affaires',label:'Diner d\'affaires',  pa:2, cost:120, type:'legal',  icon:'ti-wine',     successRate:100, desc:'Invitation d\'un contact. +Relation.'},
+          {fn:'repas_gastronomique', label:'Se nourrir', pa:0, cost:120, type:'legal', icon:'ti-soup', successRate:100, desc:'Repas gastronomique. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.'},
+          {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:300, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : +10 Sante, +5 INF pour chacun, +1 PA au prochain Dormir. Aucun cout si refuse.'},
           {fn:'ecouter_rumeurs', label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
           {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:80, desc:'Sur un PJ de votre repertoire. Succes : -5 a -20 POP sur la cible. Echec : se retourne contre vous (-5 POP -5 DIS) + risque de detection.'}
         ]
@@ -4418,6 +4418,7 @@ const POSTES = {
 // =====================
 const ORDER_EFFECTS = {
   se_nourrir:         {hp:5,   moral:1,  successRate:100},
+  repas_gastronomique: {hp:10,  moral:1,  successRate:100},
   dormir:             {moral:5,          successRate:100, paBonus:0},
   se_reposer:         {moral:3,          successRate:100},
   soins:              {hp:20,            successRate:100},

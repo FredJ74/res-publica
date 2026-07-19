@@ -30,6 +30,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'archives_police') { doArchivesPolice(); return; }
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
   if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost, successRate); return; }
+  if (fn === 'diner_affaires') { ouvrirModalDinerAffaires(pa, cost, successRate); return; }
   if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(); return; }
   if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(); return; }
@@ -480,6 +481,9 @@ function applyEffects(fn, resultType, cost) {
     if (!TEST_MODE) state.pa = Math.max(0, state.pa - 1);
   }
   if (fn === 'acheter_terrain') addToInventory({name:'Terrain (terrain en jeu)', icon:'ti-fence', type:'bien'});
+  if (fn === 'repas_gastronomique' && resultType !== 'fail' && resultType !== 'crit-fail') {
+    state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
+  }
 }
 
 function buildResultLabel(type, roll) {

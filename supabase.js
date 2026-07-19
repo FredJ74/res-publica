@@ -1081,6 +1081,35 @@ async function sbAjusterPopJoueur(nomJoueur, delta) {
   return nouveauPop;
 }
 
+// =====================
+// INVITATIONS A DINER (diner d'affaires entre PJ presents dans la meme piece)
+// =====================
+async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingId, roomId, cout) {
+  return sbInsert('invitations_diner', {
+    inviteur, invite, country, city,
+    building_id: buildingId, room_id: roomId,
+    statut: 'attente', cout
+  });
+}
+
+async function sbGetInvitationsDinerRecues(nomJoueur) {
+  const filtre = `invite=eq.${encodeURIComponent(nomJoueur)}&statut=eq.attente`;
+  return sbGet('invitations_diner', filtre) || [];
+}
+
+async function sbGetInvitationsDinerTraitees(nomInviteur, nomInvite) {
+  const filtre = `inviteur=eq.${encodeURIComponent(nomInviteur)}&invite=eq.${encodeURIComponent(nomInvite)}&statut=neq.attente`;
+  return sbGet('invitations_diner', filtre) || [];
+}
+
+async function sbRepondreInvitationDiner(id, accepte) {
+  return sbUpdate('invitations_diner', `id=eq.${id}`, { statut: accepte ? 'acceptee' : 'refusee' });
+}
+
+async function sbSupprimerInvitationDiner(id) {
+  return sbDelete('invitations_diner', `id=eq.${id}`);
+}
+
 async function sbTracerAction(action) {
   return sbInsert('actions_tracables', action);
 }
