@@ -87,6 +87,8 @@ async function sbSavePersonnage(charState) {
     locations_actives: charState.locationsActives || [],
     poison_actif:     charState.poisonActif || null,
     day:              charState.day || 1,
+    dernier_dormir:   charState.dernierDormir || null,
+    salaire_touche:   charState.salaireTouche || false,
     recherche:        charState.recherche || [],
     convocations:     charState.convocations || [],
     est_emprisonne:   charState.estEmprisonne || null,
@@ -143,6 +145,8 @@ async function sbLoadPersonnage(name) {
     locationsActives: r.locations_actives || [],
     poisonActif:   r.poison_actif,
     day:           r.day,
+    dernierDormir: r.dernier_dormir || null,
+    salaireTouche: r.salaire_touche || false,
     recherche:     r.recherche || [],
     convocations:  r.convocations || [],
     estEmprisonne: r.est_emprisonne || null
