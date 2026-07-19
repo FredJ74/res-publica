@@ -486,6 +486,9 @@ function applyEffects(fn, resultType, cost) {
   if (fn === 'repas_gastronomique' && resultType !== 'fail' && resultType !== 'crit-fail') {
     state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
   }
+  if (fn === 'service_etage' && resultType !== 'fail' && resultType !== 'crit-fail') {
+    state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
+  }
 }
 
 function buildResultLabel(type, roll) {
