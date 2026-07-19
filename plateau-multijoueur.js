@@ -1195,12 +1195,22 @@ async function envoyerMessageConversation() {
 // Point clignotant persistant sur le bouton chat flottant, verifie regulierement
 // (survit a une deconnexion : le message reste marque non-lu tant qu'on n'a pas ouvert
 // la conversation, meme si l'auteur est reparti ou hors ligne entre temps).
+let _dernierEtatNonLuChat = false;
 async function verifierNotificationChat() {
   if (typeof sbAMessagesNonLus !== 'function' || !state.char?.name) return;
   try {
     const nonLu = await sbAMessagesNonLus(state.char.name);
     const badge = document.getElementById('chat-notif-badge');
     if (badge) badge.style.display = nonLu ? 'block' : 'none';
+
+    if (nonLu && !_dernierEtatNonLuChat) {
+      const panel = document.getElementById('chat-piece-panel');
+      if (panel && panel.style.display !== 'flex') {
+        panel.style.display = 'flex';
+        if (typeof ouvrirListeConversations === 'function') ouvrirListeConversations();
+      }
+    }
+    _dernierEtatNonLuChat = nonLu;
   } catch(e) {}
 }
 

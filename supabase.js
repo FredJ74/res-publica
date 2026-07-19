@@ -1200,7 +1200,7 @@ async function sbGetTerrainsLibres(country) {
 // =====================
 // CHAT EN PIECE (messages ephemeres entre PJ presents)
 // =====================
-async function sbEnvoyerMessageChat(message) {
+async function sbEnvoyerMessageChatPiece(message) {
   return sbInsert('chat_piece', message);
 }
 
