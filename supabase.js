@@ -87,8 +87,6 @@ async function sbSavePersonnage(charState) {
     locations_actives: charState.locationsActives || [],
     poison_actif:     charState.poisonActif || null,
     day:              charState.day || 1,
-    dernier_dormir:   charState.dernierDormir || null,
-    salaire_touche:   charState.salaireTouche || false,
     recherche:        charState.recherche || [],
     convocations:     charState.convocations || [],
     est_emprisonne:   charState.estEmprisonne || null,
@@ -145,8 +143,6 @@ async function sbLoadPersonnage(name) {
     locationsActives: r.locations_actives || [],
     poisonActif:   r.poison_actif,
     day:           r.day,
-    dernierDormir: r.dernier_dormir || null,
-    salaireTouche: r.salaire_touche || false,
     recherche:     r.recherche || [],
     convocations:  r.convocations || [],
     estEmprisonne: r.est_emprisonne || null
@@ -729,6 +725,19 @@ async function sbMajDemandeGrace(id, statut) {
   return sbUpdate('demandes_grace', `id=eq.${encodeURIComponent(id)}`, { statut });
 }
 
+async function sbGetEtatUrgence(country) {
+  const rows = await sbGet('etats_urgence', `country=eq.${encodeURIComponent(country)}`);
+  return (rows && rows[0]) || null;
+}
+
+async function sbSetEtatUrgence(country, actif, activePar, jour) {
+  const existant = await sbGetEtatUrgence(country).catch(() => null);
+  if (existant) {
+    return sbUpdate('etats_urgence', `country=eq.${encodeURIComponent(country)}`, { actif, active_par: activePar, jour_debut: jour });
+  }
+  return sbInsert('etats_urgence', { country, actif, active_par: activePar, jour_debut: jour });
+}
+
 async function sbGetGuerresPays(pays) {
   const rows = await sbGet('guerres', 'statut=neq.terminee&select=id,data');
   if (!rows) return [];
@@ -1088,12 +1097,11 @@ async function sbAjusterPopJoueur(nomJoueur, delta) {
 // =====================
 // INVITATIONS A DINER (diner d'affaires entre PJ presents dans la meme piece)
 // =====================
-async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingId, roomId, cout, type, message) {
+async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingId, roomId, cout, type) {
   return sbInsert('invitations_diner', {
     inviteur, invite, country, city,
     building_id: buildingId, room_id: roomId,
-    statut: 'attente', cout, type: type || 'diner_affaires',
-    message: message || null
+    statut: 'attente', cout, type: type || 'diner_affaires'
   });
 }
 
@@ -1107,8 +1115,8 @@ async function sbGetInvitationsDinerTraitees(nomInviteur, nomInvite) {
   return sbGet('invitations_diner', filtre) || [];
 }
 
-async function sbRepondreInvitationDiner(id, accepte, reponse) {
-  return sbUpdate('invitations_diner', `id=eq.${id}`, { statut: accepte ? 'acceptee' : 'refusee', reponse: reponse || null });
+async function sbRepondreInvitationDiner(id, accepte) {
+  return sbUpdate('invitations_diner', `id=eq.${id}`, { statut: accepte ? 'acceptee' : 'refusee' });
 }
 
 async function sbSupprimerInvitationDiner(id) {

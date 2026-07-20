@@ -70,6 +70,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'centre_anti_poison') { doCentreAntiPoison(); return; }
   if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(); return; }
   if (fn === 'dormir_chambre') { doDormirChambre(); return; }
+  if (fn === 'dormir') { doDormir(); return; }
+  if (fn === 'service_etage') { doServiceEtage(); return; }
   if (fn === 'consulter_classement_joueurs_club') { doConsulterClassementBookmaker(); return; }
   if (fn === 'postuler_president_club') { doPostulerPresidentClub(); return; }
   if (fn === 'consulter_bureau_president') { doConsulterBureauPresident(); return; }
@@ -97,7 +99,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'decret_referendum')       { ouvrirForumNationalSousForumPresident('referendum'); return; }
   if (fn === 'jour_deuil')             { ouvrirForumNationalSousForumPresident('deuil'); return; }
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
-  if (fn === 'etat_nation' || fn === 'etat_urgence')             { ouvrirEtatNation(); return; }
+  if (fn === 'etat_nation')             { ouvrirEtatNation(); return; }
   if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocauxReel(); return; }
   if (fn === 'consommer_buvette') { doConsommerBuvette(); return; }
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
@@ -366,117 +368,6 @@ function applyEffects(fn, resultType, cost) {
   if (ef.dis)   state.dis   = Math.min(100, Math.max(0, state.dis   + Math.round(ef.dis   * (ef.dis < 0 ? 1 : mult))));
   if (ef.arg)   state.arg   = Math.min(9999999, Math.max(0, state.arg + Math.round(ef.arg * mult)));
 
-  // PA bonus (dormir en hotel) + salaire journalier
-  if (fn === 'dormir') {
-    const cur = COUNTRIES[state.country]?.cur || 'FR';
-    const msgs = [];
-    const today = state.day || 1;
-
-    // Vérifier si déjà dormi aujourd'hui
-    if (state.dernierDormir === (state.day || 1)) {
-      showToast('Déjà dormi', 'Vous avez déjà dormi aujourd\'hui. Attendez demain.', false);
-      return;
-    }
-
-    // 1. PA bonus selon hotel
-    if (ef.paBonus && resultType !== 'fail') {
-      state.paBonus = ef.paBonus || 0;
-      msgs.push(`+${ef.paBonus} PA bonus demain`);
-    }
-
-    // 2. Salaire journalier
-    if (!state.salaireTouche) {
-      state.salaireTouche = true;
-      const posteId = state.poste?.id || 'default';
-      const salaire = SALAIRES[posteId] || SALAIRES.default;
-      state.arg += salaire;
-      state.liquide += Math.floor(salaire * 0.3);
-      state.banque += Math.ceil(salaire * 0.7);
-      msgs.push(`Salaire : +${salaire.toLocaleString('fr-FR')} ${cur}`);
-      addJournalEntry(`Salaire journalier versé : ${salaire.toLocaleString('fr-FR')} ${cur} (${state.poste?.name || 'Citoyen'}).`, 'event-good');
-    } else {
-      addJournalEntry("Vous avez déjà perçu votre salaire aujourd'ui.", '');
-    }
-
-    // 3. Effets poison progressifs
-    if (state.poisonActif) {
-      const poison = state.poisonActif;
-      const jourPoison = (state.day || 1) - (poison.jourDebut || 1);
-      if (jourPoison === 0) {
-        state.pa = Math.max(0, state.pa - 2);
-        const msgPoison = poison.message || 'Vous vous réveillez avec une douleur inexpliquée. -2 PA.';
-        msgs.push('⚠️ ' + msgPoison);
-        addJournalEntry(msgPoison, 'event-bad');
-        const statPerdue = {'republic':'VOL','narco':'PER','soviet':'INT','khalija':'CHA'}[poison.empireSource] || 'VOL';
-        if (state.char?.stats?.[statPerdue]) {
-          state.char.stats[statPerdue] = Math.max(1, state.char.stats[statPerdue] - 2);
-          addJournalEntry(`Votre ${statPerdue} diminue de 2 points.`, 'event-bad');
-        }
-      } else if (jourPoison === 1) {
-        state.hp = Math.max(1, Math.floor(state.hp / 2));
-        msgs.push("⚠️ Votre état empire. HP divisés par 2.");
-        addJournalEntry("L'empoisonnement progresse. Vos HP sont divisés par 2.", 'event-bad');
-      } else {
-        state.poisonActif = null;
-        msgs.push('Vous semblez vous remettre de votre malaise.');
-        addJournalEntry('Les effets du poison se dissipent.', 'event-good');
-      }
-    }
-
-    // 3bis. Explosifs rates — l'auteur seul est blesse, degats progressifs
-    if (state.explosifBlesse) {
-      const jourBlessure = (state.day || 1) - (state.explosifBlesse.jourDebut || 1);
-      if (jourBlessure === 0) {
-        state.hp = Math.max(1, state.hp - 30);
-        msgs.push('⚠️ Vos blessures dues à l\'explosion vous rongent. -30 PV.');
-        addJournalEntry('Vos blessures s\'infectent après votre tentative ratée. -30 PV.', 'event-bad');
-      } else if (jourBlessure === 1) {
-        state.hp = Math.max(1, Math.floor(state.hp / 2));
-        msgs.push('⚠️ Vos blessures s\'aggravent. HP divisés par 2.');
-        addJournalEntry('Vos blessures s\'aggravent. HP divisés par 2.', 'event-bad');
-      } else {
-        state.explosifBlesse = null;
-        msgs.push('Vous vous remettez de vos blessures.');
-        addJournalEntry('Vous vous remettez de vos blessures dues à l\'explosion ratée.', 'event-good');
-      }
-    }
-
-    // 4. Paiement des informateurs
-    if (state.informateurs?.length > 0) {
-      const toRemove = [];
-      state.informateurs.forEach((inf, i) => {
-        if (inf.joursActif !== undefined) inf.joursActif++;
-        const cout = INFORMATEUR_NIVEAUX[inf.niveau]?.cout || 150;
-        if (state.arg >= cout) {
-          state.arg -= cout;
-          addJournalEntry(`Informateur niveau ${inf.niveau} payé : -${cout} ${cur}.`, 'event-info');
-        } else {
-          toRemove.push(i);
-          addJournalEntry(`Fonds insuffisants. Votre informateur niveau ${inf.niveau} vous quitte.`, 'event-bad');
-        }
-      });
-      toRemove.reverse().forEach(i => state.informateurs.splice(i, 1));
-    }
-
-    // 5. Effacement automatique des crimes
-    checkEffacementCrimes();
-
-    // 6. Avancement du jour + reset
-    state.salaireTouche = false;
-    state.day = (state.day || 1) + 1;
-    state.dernierDormir = state.day; // Bloque le jour suivant
-    state.douanePassee = false;
-    localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
-
-    // Revenus passifs des organisations
-    // appliquerRevenusPassifsOrga(); // V1 obsolète — remplacée par appliquerBonusLocation() dans payerLocations()
-    // Vérifier postes vacants
-    verifierPostesVacants();
-
-    if (msgs.length > 0) showToast('Bonne nuit !', msgs.join(' · '), true, true);
-    updateUI();
-  }
-
   // Effets speciaux
   // Blocus : 1 PA quoi qu'il arrive + bonus groupe
   if (fn === 'organiser_blocus') {
@@ -484,9 +375,6 @@ function applyEffects(fn, resultType, cost) {
   }
   if (fn === 'acheter_terrain') addToInventory({name:'Terrain (terrain en jeu)', icon:'ti-fence', type:'bien'});
   if (fn === 'repas_gastronomique' && resultType !== 'fail' && resultType !== 'crit-fail') {
-    state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
-  }
-  if (fn === 'service_etage' && resultType !== 'fail' && resultType !== 'crit-fail') {
     state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;
   }
 }

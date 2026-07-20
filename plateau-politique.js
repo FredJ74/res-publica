@@ -2876,6 +2876,61 @@ function demanderPosteAuPM(posteId, posteNom) {
   addJournalEntry('Candidature envoyee au PM pour : ' + posteNom, 'event-info');
 }
 
+async function doEtatUrgence() {
+  if (state.poste?.id !== 'president') {
+    showToast('Acces refuse', 'Seul le President peut declarer l\'etat d\'urgence.', false);
+    return;
+  }
+  const pays = state.country;
+  const etatActuel = typeof sbGetEtatUrgence === 'function' ? await sbGetEtatUrgence(pays).catch(() => null) : null;
+  const actif = !!etatActuel?.actif;
+
+  document.getElementById('postes-modal-title').textContent = actif ? "Etat d'urgence en vigueur" : "Declarer l'etat d'urgence";
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    (actif
+      ? '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.8rem">' +
+        "L'etat d'urgence est actuellement en vigueur, declare par " + (etatActuel.active_par || 'le President') + ' le Jour ' + (etatActuel.jour_debut || '?') + '.</div>' +
+        '<button onclick="confirmerEtatUrgence(false)" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Lever l\'etat d\'urgence</button>'
+      : '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.8rem">Suspend certaines libertes publiques. Fort impact sur INF et POP. Autorise des mesures exceptionnelles (arrestations sans plainte prealable).</div>' +
+        '<button onclick="confirmerEtatUrgence(true)" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Declarer l\'etat d\'urgence</button>'
+    ) +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerEtatUrgence(activer) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const pays = state.country;
+  const from = state.char?.name || 'Le President';
+
+  if (typeof sbSetEtatUrgence === 'function') {
+    await sbSetEtatUrgence(pays, activer, from, state.day || 1).catch(() => {});
+  }
+
+  if (activer) {
+    const popEffect = -(Math.floor(Math.random() * 15) + 5);
+    const infEffect = Math.floor(Math.random() * 10) + 5;
+    state.pop = Math.max(0, Math.min(100, (state.pop || 50) + popEffect));
+    state.inf = Math.min(100, (state.inf || 0) + infEffect);
+    updateUI();
+    addExternalEvent("ETAT D'URGENCE declare par " + from + ". Certaines libertes sont suspendues jusqu'a nouvel ordre.");
+    addJournalEntry("Etat d'urgence declare. " + popEffect + ' POP, +' + infEffect + ' INF.', 'event-bad');
+    showToast("Etat d'urgence declare", 'Mesures exceptionnelles activees pour ' + (COUNTRIES[pays]?.n || pays) + '.', true);
+  } else {
+    addExternalEvent("Fin de l'etat d'urgence, annoncee par " + from + '.');
+    addJournalEntry("Etat d'urgence leve.", 'event-good');
+    showToast("Etat d'urgence leve", 'Les mesures exceptionnelles sont levees.', true);
+  }
+}
+
+// Reutilisable par de futurs controles (ex: futur ordre "Faire arreter quelqu'un")
+async function estEtatUrgenceActif(country) {
+  if (typeof sbGetEtatUrgence !== 'function') return false;
+  const etat = await sbGetEtatUrgence(country).catch(() => null);
+  return !!etat?.actif;
+}
+
 async function ouvrirEtatNation() {
   const pays = state.country || 'republic';
   const idx = INDICES_NATIONAUX[pays] || { ISN:30, IE:50, ID:40, IS:45 };
