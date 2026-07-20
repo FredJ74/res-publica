@@ -1088,11 +1088,12 @@ async function sbAjusterPopJoueur(nomJoueur, delta) {
 // =====================
 // INVITATIONS A DINER (diner d'affaires entre PJ presents dans la meme piece)
 // =====================
-async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingId, roomId, cout, type) {
+async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingId, roomId, cout, type, message) {
   return sbInsert('invitations_diner', {
     inviteur, invite, country, city,
     building_id: buildingId, room_id: roomId,
-    statut: 'attente', cout, type: type || 'diner_affaires'
+    statut: 'attente', cout, type: type || 'diner_affaires',
+    message: message || null
   });
 }
 
@@ -1106,8 +1107,8 @@ async function sbGetInvitationsDinerTraitees(nomInviteur, nomInvite) {
   return sbGet('invitations_diner', filtre) || [];
 }
 
-async function sbRepondreInvitationDiner(id, accepte) {
-  return sbUpdate('invitations_diner', `id=eq.${id}`, { statut: accepte ? 'acceptee' : 'refusee' });
+async function sbRepondreInvitationDiner(id, accepte, reponse) {
+  return sbUpdate('invitations_diner', `id=eq.${id}`, { statut: accepte ? 'acceptee' : 'refusee', reponse: reponse || null });
 }
 
 async function sbSupprimerInvitationDiner(id) {

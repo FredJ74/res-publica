@@ -695,6 +695,7 @@ function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
     '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisissez un joueur présent. Le coût n\'est prélevé que s\'il accepte.</div>' +
+    '<textarea id="invitation-message-input" placeholder="Message facultatif..." maxlength="200" style="width:100%;min-height:3.5rem;margin-bottom:.7rem;background:#0a0805;border:1px solid #2a2010;color:#c0b090;font-size:.78rem;padding:.4rem;resize:vertical"></textarea>' +
     presents.map(p =>
       '<div onclick="envoyerInvitationSociale(\'' + type + '\',\'' + p.name.replace(/'/g,'') + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
         '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20"></i>' +
@@ -706,9 +707,10 @@ function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
 }
 
 async function envoyerInvitationSociale(type, nomInvite, pa, cost) {
+  const messageEnvoye = (document.getElementById("invitation-message-input")?.value || "").trim().slice(0, 200);
   document.getElementById('modal-postes').classList.remove('open');
   if (typeof sbCreerInvitationDiner !== 'function') return;
-  await sbCreerInvitationDiner(state.char?.name, nomInvite, state.country, state.currentCity, state.currentBuilding, state.currentRoom, cost, type).catch(() => {});
+  await sbCreerInvitationDiner(state.char?.name, nomInvite, state.country, state.currentCity, state.currentBuilding, state.currentRoom, cost, type, messageEnvoye).catch(() => {});
   state._invitationSocialeEnAttente = {
     type, invite: nomInvite, pa, cost,
     country: state.country, city: state.currentCity,
@@ -744,7 +746,7 @@ async function verifierReponseInvitationSociale() {
         if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
         if (cfg.ent && state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + cfg.ent;
         if (cfg.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + cfg.paDiffere;
-        showToast('Invitation acceptée !', infos.invite + ' a accepté votre invitation à ' + cfg.verbe + '. -' + infos.cost + ' FR.', true, true);
+        showToast('Invitation acceptée !', infos.invite + ' a accepté votre invitation à ' + cfg.verbe + (ligne.reponse ? ' ("' + ligne.reponse + '")' : '') + '. -' + infos.cost + ' FR.', true, true);
         addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' : acceptée. -' + infos.cost + ' FR.', 'event-good');
         if (typeof advanceTime === 'function') advanceTime(Math.max(0, infos.pa || 0));
       } else {
@@ -753,7 +755,7 @@ async function verifierReponseInvitationSociale() {
       }
       if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur(infos.type + '_accepte', infos.invite);
     } else if (ligne.statut === 'refusee') {
-      showToast('Invitation refusée', infos.invite + ' a décliné votre invitation.', false);
+      showToast('Invitation refusée', infos.invite + ' a décliné votre invitation' + (ligne.reponse ? ' ("' + ligne.reponse + '")' : '') + '.', false);
       addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' : refusée.', 'event-info');
       if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur(infos.type + '_refuse', infos.invite);
     }
@@ -782,6 +784,8 @@ async function verifierInvitationsSocialesRecues() {
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1.2rem">' +
       '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">' + valide.inviteur + ' vous invite à ' + cfg.verbe + ', à ses frais.</div>' +
+      (valide.message ? '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.8rem;border-left:2px solid #3a2a10;padding-left:.6rem">' + valide.message + '</div>' : '') +
+      '<textarea id="invitation-reponse-input" placeholder="Reponse facultative..." maxlength="200" style="width:100%;min-height:3.5rem;margin-bottom:.7rem;background:#0a0805;border:1px solid #2a2010;color:#c0b090;font-size:.78rem;padding:.4rem;resize:vertical"></textarea>' +
       '<div style="display:flex;gap:.5rem">' +
         '<button onclick="repondreInvitationSociale(' + valide.id + ',true,\'' + valide.inviteur.replace(/'/g,'') + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #4a8a4a;background:transparent;color:#6a9a6a;cursor:pointer">✅ Accepter</button>' +
         '<button onclick="repondreInvitationSociale(' + valide.id + ',false,\'' + valide.inviteur.replace(/'/g,'') + '\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #5a2a2a;background:transparent;color:#8a3a2a;cursor:pointer">❌ Refuser</button>' +
@@ -791,11 +795,12 @@ async function verifierInvitationsSocialesRecues() {
 }
 
 async function repondreInvitationSociale(id, accepte, nomInviteur) {
+  const reponseEnvoyee = (document.getElementById("invitation-reponse-input")?.value || "").trim().slice(0, 200);
   document.getElementById('modal-postes').classList.remove('open');
   state._invitationSocialeModalOuvert = false;
   const valide = state._invitationSocialeCourante;
   const cfg = CONFIG_INVITATIONS_SOCIALES[valide?.type] || {};
-  if (typeof sbRepondreInvitationDiner === 'function') await sbRepondreInvitationDiner(id, accepte).catch(() => {});
+  if (typeof sbRepondreInvitationDiner === 'function') await sbRepondreInvitationDiner(id, accepte, reponseEnvoyee).catch(() => {});
   if (accepte) {
     if (cfg.hp) state.hp = Math.min(100, (state.hp || 0) + cfg.hp);
     if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
