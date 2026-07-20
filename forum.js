@@ -215,23 +215,31 @@ function renderForumCategorieItems(cat) {
     const parLocal = directs.filter(([id]) => id === 'local');
     const parNational = directs.filter(([id]) => id === 'national');
     const parPresse = directs.filter(([id]) => id === 'presse');
-    return parLocal.map(([id, f]) => renderForumNavItem(id, f)).join('') +
+    return `<div class="forum-categorie-items">` +
+      parLocal.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       parNational.map(([id, f]) => renderForumNavItem(id, f)).join('') +
-      (institutions.length > 0 ? `<div class="forum-sidebar-section" style="margin-top:.5rem;font-size:.68rem">FORUMS INSTITUTIONNELS</div>` +
-        institutions.map(([id, f]) => renderForumNavItem(id, f)).join('') : '') +
-      parPresse.map(([id, f]) => renderForumNavItem(id, f)).join('');
+      (institutions.length > 0 ? `<div class="forum-sousgroupe">` +
+        `<div class="forum-sousgroupe-label">Institutionnels</div>` +
+        institutions.map(([id, f]) => renderForumNavItem(id, f)).join('') +
+        `</div>` : '') +
+      parPresse.map(([id, f]) => renderForumNavItem(id, f)).join('') +
+      `</div>`;
   }
 
-  if (cat === 'prive') {
-    if (entries.length === 0) {
-      return `<div style="padding:.7rem;font-size:.75rem;color:#6a5a30;font-style:italic">Aucune organisation trouvée. Rejoignez ou fondez une organisation pour accéder à son forum privé.</div>`;
-    }
+  if (cat === 'prive' && entries.length === 0) {
+    return `<div class="forum-categorie-items"><div style="padding:.7rem .8rem;font-size:.75rem;color:#6a5a30;font-style:italic">Aucune organisation trouvée. Rejoignez ou fondez une organisation pour accéder à son forum privé.</div></div>`;
   }
 
-  return entries.map(([id, f]) => renderForumNavItem(id, f)).join('');
+  return `<div class="forum-categorie-items">` + entries.map(([id, f]) => renderForumNavItem(id, f)).join('') + `</div>`;
 }
 
-function switchCategorieForum(cat) {
+function toggleCategorieForum(cat) {
+  if (forumCategorieActive === cat && forumView !== 'mail') {
+    // Deja ouverte : simple repli, sans changer le forum affiche
+    forumCategorieActive = null;
+    renderForumModal();
+    return;
+  }
   forumCategorieActive = cat;
   forumView = 'list';
   const forums = getForums();
@@ -246,33 +254,32 @@ function switchCategorieForum(cat) {
   }
 }
 
+function renderCategorieHeader(cat, icon, label) {
+  const active = forumView !== 'mail' && forumCategorieActive === cat;
+  return `<div class="forum-categorie-header ${active ? 'active' : ''}" onclick="toggleCategorieForum('${cat}')">
+    <i class="ti ${icon}" style="font-size:.85rem"></i>
+    ${label}
+    <i class="ti ti-chevron-right forum-categorie-chevron ${active ? 'ouvert' : ''}"></i>
+  </div>
+  ${active ? renderForumCategorieItems(cat) : ''}`;
+}
+
 function renderForumModal() {
   const modal = document.getElementById('forum-body');
   const unreadCount = getMyMails().filter(m => !m.read && m.to === state.char?.name).length;
   modal.innerHTML = `
     <div class="forum-layout">
       <div class="forum-sidebar">
-        <div class="forum-nav-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
+        <div class="forum-nav-item forum-mail-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
           <i class="ti ti-mail" style="font-size:.85rem"></i>
           <div>
             <div class="forum-nav-name">Boîte Mail</div>
             <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${unreadCount} non lu(s)</span>` : 'Aucun message'}</div>
           </div>
         </div>
-        <div class="forum-sidebar-section" style="margin-top:.6rem">CATÉGORIES</div>
-        <div class="forum-nav-item ${forumView !== 'mail' && forumCategorieActive === 'intra' ? 'active' : ''}" onclick="switchCategorieForum('intra')">
-          <i class="ti ti-flag" style="font-size:.85rem"></i>
-          <div class="forum-nav-name">Forums intranationaux</div>
-        </div>
-        <div class="forum-nav-item ${forumView !== 'mail' && forumCategorieActive === 'inter' ? 'active' : ''}" onclick="switchCategorieForum('inter')">
-          <i class="ti ti-world" style="font-size:.85rem"></i>
-          <div class="forum-nav-name">Forums internationaux</div>
-        </div>
-        <div class="forum-nav-item ${forumView !== 'mail' && forumCategorieActive === 'prive' ? 'active' : ''}" onclick="switchCategorieForum('prive')">
-          <i class="ti ti-lock" style="font-size:.85rem"></i>
-          <div class="forum-nav-name">Forums privés</div>
-        </div>
-        ${forumView !== 'mail' ? `<div class="forum-sidebar-section" style="margin-top:.6rem">${forumCategorieActive === 'intra' ? 'INTRANATIONAUX' : forumCategorieActive === 'inter' ? 'INTERNATIONAUX' : 'PRIVÉS'}</div>${renderForumCategorieItems(forumCategorieActive)}` : ''}
+        ${renderCategorieHeader('intra', 'ti-flag', 'Forums intranationaux')}
+        ${renderCategorieHeader('inter', 'ti-world', 'Forums internationaux')}
+        ${renderCategorieHeader('prive', 'ti-lock', 'Forums privés')}
       </div>
       <div class="forum-main" id="forum-main">
         ${renderForumContent()}
