@@ -165,10 +165,10 @@ const STYLES_NARRATIFS = {
   '2 colonnes':          `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.5rem 0"><div>Colonne gauche...</div><div>Colonne droite...</div></div>`,
 };
 
-let currentForumId = 'local';
+let currentForumId = null;
 let currentTopicId = null;
 let forumView = 'list';
-let forumCategorieActive = 'intra'; // 'intra' | 'inter' | 'prive'
+let forumCategorieActive = null; // 'intra' | 'inter' | 'prive' | null (rien de deplie)
 let forumSousGroupeOuvert = false; // accordeon imbrique pour 'Institutionnels'
 let mailView = 'inbox'; // 'inbox' | 'compose' | 'read'
 let mailDefaultTo = ''; // Destinataire pré-rempli depuis répertoire PJ
@@ -179,18 +179,23 @@ let editingTopicId = null;
 // MODAL PRINCIPALE
 // =====================
 function openForum_module(forumId) {
-  forumId = forumId || 'local';
-  currentForumId = forumId;
+  currentForumId = forumId || null;
   currentTopicId = null;
   forumView = 'list';
-  const f = getForums()[forumId];
-  if (f?.cat) forumCategorieActive = f.cat;
+  if (forumId) {
+    const f = getForums()[forumId];
+    if (f?.cat) forumCategorieActive = f.cat;
+  } else {
+    forumCategorieActive = null;
+  }
   renderForumModal();
   document.getElementById('modal-forum').classList.add('open');
-  // Charger depuis Supabase en arrière-plan et rafraîchir
-  loadForumTopicsFromSB(forumId).then(() => {
-    if (mailView !== 'compose') document.getElementById('forum-main').innerHTML = renderForumContent();
-  }).catch(() => {});
+  if (forumId) {
+    // Charger depuis Supabase en arrière-plan et rafraîchir
+    loadForumTopicsFromSB(forumId).then(() => {
+      if (mailView !== 'compose') document.getElementById('forum-main').innerHTML = renderForumContent();
+    }).catch(() => {});
+  }
 }
 
 function renderForumNavItem(id, f) {
@@ -242,8 +247,9 @@ function toggleSousGroupeForum() {
 
 function toggleCategorieForum(cat) {
   if (forumCategorieActive === cat && forumView !== 'mail') {
-    // Deja ouverte : simple repli, sans changer le forum affiche
+    // Deja ouverte : on replie et on vide la selection (page centrale vide)
     forumCategorieActive = null;
+    currentForumId = null;
     renderForumModal();
     return;
   }
@@ -333,6 +339,7 @@ function switchToMail() {
 
 function renderForumContent() {
   if (forumView === 'mail')      return renderMailView();
+  if (forumView === 'list' && !currentForumId) return renderForumAccueil();
   if (forumView === 'list')      return renderTopicList();
   if (forumView === 'topic')     return renderTopicView();
   if (forumView === 'new-topic') return renderNewTopicForm();
@@ -344,6 +351,14 @@ function renderForumContent() {
 // =====================
 // FORUM — LISTE TOPICS
 // =====================
+function renderForumAccueil() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#6a5a30;gap:.6rem">
+    <i class="ti ti-message-2-cog" style="font-size:2.2rem;opacity:.5"></i>
+    <div style="font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.05em;color:#8a7040">Choisissez une categorie a gauche</div>
+    <div style="font-size:.78rem;max-width:260px;text-align:center">Forums intranationaux, internationaux ou prives -- deroulez une categorie pour voir ses forums.</div>
+  </div>`;
+}
+
 function renderTopicList() {
   const f = FORUMS[currentForumId];
   const topics = [...(FORUM_TOPICS[currentForumId] || [])].sort((a, b) =>
