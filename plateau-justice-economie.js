@@ -290,6 +290,76 @@ function accepterRachat(acheteur, buildingId, prix) {
   }
 }
 
+async function doArreter() {
+  const actif = typeof estEtatUrgenceActif === 'function' ? await estEtatUrgenceActif(state.country) : false;
+  if (!actif) {
+    showToast('Non autorise', "Cet ordre necessite que l'etat d'urgence soit en vigueur.", false);
+    return;
+  }
+  const posteOk = ['president','min_just','min_int','juge'].includes(state.poste?.id);
+  if (!posteOk) {
+    showToast('Acces refuse', 'Reserve au President, au Ministre de la Justice, au Ministre de l\'Interieur ou a un Juge (Commissaire a venir).', false);
+    return;
+  }
+
+  const contacts = state.contacts || [];
+  const contactsSection = contacts.length === 0
+    ? `<div style="font-size:.8rem;color:#7a5020;font-style:italic;padding:.5rem;background:#0f0805;border:1px solid #2a1810">Votre repertoire est vide. Enregistrez-y la personne visee au prealable.</div>`
+    : contacts.map(c => `
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer;padding:.2rem 0">
+          <input type="radio" name="arreter-cible" value="${c.name}" style="accent-color:#C9A84C"/>
+          ${c.name} — ${c.role || ''}
+        </label>`).join('');
+
+  document.getElementById('postes-modal-title').textContent = 'Faire arreter quelqu\'un';
+  document.getElementById('postes-body').innerHTML = `
+    <div style="padding:1rem">
+      <div style="font-size:.82rem;color:#8a3a2a;font-style:italic;margin-bottom:1rem">Mesure exceptionnelle sous etat d'urgence. Une arrestation infondee vous exposera a un lourd malus.</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE (dans votre repertoire)</div>
+      ${contactsSection}
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:1rem 0 .4rem">MOTIF DU DOSSIER</div>
+      <textarea id="arreter-motif" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:'Crimson Pro',serif;font-size:.85rem;height:70px;outline:none;resize:none" placeholder="Faits reproches..."></textarea>
+      <button onclick="confirmerArrestation()" style="margin-top:.8rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a3a2a;background:transparent;color:#c0503a;cursor:pointer">
+        <i class="ti ti-handcuffs" style="font-size:.8rem"></i> Ordonner l'arrestation
+      </button>
+    </div>
+  `;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerArrestation() {
+  const cibleInput = document.querySelector('input[name="arreter-cible"]:checked');
+  const motif = document.getElementById('arreter-motif')?.value?.trim();
+  if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne de votre repertoire.', false); return; }
+  if (!motif) { showToast('Motif requis', 'Precisez le motif du dossier.', false); return; }
+  const cible = cibleInput.value;
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const from = state.char?.name || 'Autorite';
+  const preuveReelle = await verifierPreuveReelle(state.country, cible, motif).catch(() => false);
+  let roll = Math.floor(Math.random() * 100) + 1;
+  if (preuveReelle) roll = Math.max(roll, 75);
+
+  if (roll >= 50) {
+    const jours = 2;
+    const infoArrestation = { jours, jourFin: null, raison: 'Arrestation sur ordre de ' + from + ' (' + motif + ')' };
+    if (typeof sbUpdate === 'function') {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(cible)}`, { est_emprisonne: JSON.stringify(infoArrestation) }).catch(() => {});
+    }
+    addExternalEvent('ARRESTATION : ' + cible + ' a ete place(e) en garde a vue sur ordre de ' + from + ', dans le cadre de l\'etat d\'urgence.', 'local');
+    if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('arrestation_urgence', cible);
+    addJournalEntry('Arrestation ordonnee contre ' + cible + '. Motif : ' + motif + '.', 'event-info');
+    showToast('Arrestation executee', cible + ' a ete place(e) en garde a vue.', true);
+  } else {
+    state.pop = Math.max(0, (state.pop || 50) - 10);
+    state.dis = Math.max(0, (state.dis || 0) - 8);
+    updateUI();
+    if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('arrestation_urgence_abusive', cible);
+    addJournalEntry('Tentative d\'arrestation contre ' + cible + ' rejetee (dossier juge insuffisant). -10 POP, -8 DIS.', 'event-bad');
+    showToast('Arrestation rejetee', 'Le dossier a ete juge insuffisant. -10 POP, -8 DIS.', false);
+  }
+}
+
 function openPlainteModal() {
   const contacts = state.contacts || [];
 
