@@ -4,15 +4,13 @@
    =========================== */
 
 const FORUMS_BASE = {
-  local:         { name: 'Forum Local',          icon: 'ti-home',          desc: 'Discussions de votre ville', private: false },
-  regional:      { name: 'Forum Régional',        icon: 'ti-map',           desc: 'Discussions de votre région', private: false },
-  national:      { name: 'Forum National',        icon: 'ti-flag',          desc: 'Débats politiques nationaux', private: false },
-  international: { name: 'Forum International',   icon: 'ti-world',         desc: 'Relations entre empires', private: false },
-  gouvernement:  { name: 'Forum Gouvernemental',  icon: 'ti-building-bank', desc: 'Réservé au gouvernement', private: true, requiredPost: ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'] },
-  presidence:    { name: 'La Présidence à la Nation', icon: 'ti-flag-3',    desc: 'Discours et annonces officielles depuis la Présidence', private: false },
-  presse:        { name: 'Presse & Médias',        icon: 'ti-news',          desc: 'Réservé aux journalistes', private: true },
-  syndicats:     { name: 'Forum Syndical',         icon: 'ti-users-group',   desc: 'Réservé aux syndicalistes', private: true },
-  sport:         { name: 'Championnat Sportif',    icon: 'ti-ball-football', desc: 'Résultats, classements et débats de supporters', private: false }
+  local:         { name: 'Forum Local',          icon: 'ti-home',          desc: 'Discussions de votre ville', private: false, cat: 'intra' },
+  national:      { name: 'Forum National',        icon: 'ti-flag',          desc: 'Débats politiques nationaux', private: false, cat: 'intra' },
+  presidence:    { name: 'La Présidence à la Nation', icon: 'ti-flag-3',    desc: 'Discours et annonces officielles depuis la Présidence', private: false, cat: 'intra', sousGroupe: 'institutions' },
+  gouvernement:  { name: 'Le Gouvernement à la Nation', icon: 'ti-building-bank', desc: 'Réservé au gouvernement', private: true, requiredPost: ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'], cat: 'intra', sousGroupe: 'institutions' },
+  presse:        { name: 'Presse & Médias',        icon: 'ti-news',          desc: 'Réservé aux journalistes', private: true, cat: 'intra' },
+  international: { name: 'Forum International',   icon: 'ti-world',         desc: 'Relations entre empires', private: false, cat: 'inter' },
+  sport:         { name: 'Championnat Sportif',    icon: 'ti-ball-football', desc: 'Résultats, classements et débats de supporters', private: false, cat: 'inter' }
 };
 
 // Getter dynamique — ajoute le forum Tribunal de la ville courante
@@ -22,9 +20,24 @@ function getForums() {
   const villeNom = (typeof WORLD !== 'undefined' && typeof state !== 'undefined')
     ? (WORLD[state.country]?.[villeId]?.name || villeId)
     : villeId;
+
+  const orgForums = {};
+  ((typeof state !== 'undefined' && state.organisations) || []).forEach(o => {
+    if (!o?.id) return;
+    orgForums['org_' + o.id] = {
+      name: o.nom || 'Organisation',
+      icon: 'ti-users-group',
+      desc: 'Forum privé réservé aux membres de ' + (o.nom || 'cette organisation') + '.',
+      private: true,
+      requiredOrgId: o.id,
+      cat: 'prive'
+    };
+  });
+
   return {
     ...FORUMS_BASE,
-    [tribunalKey]: { name: '⚖️ Tribunal — ' + villeNom, icon: 'ti-gavel', desc: 'Plaintes et affaires judiciaires de ' + villeNom, private: false }
+    [tribunalKey]: { name: '⚖️ Tribunal — ' + villeNom, icon: 'ti-gavel', desc: 'Plaintes et affaires judiciaires de ' + villeNom, private: false, cat: 'intra', sousGroupe: 'institutions' },
+    ...orgForums
   };
 }
 
@@ -61,10 +74,6 @@ const FORUM_TOPICS = {
       ]
     }
   ],
-  regional: [
-    { id:'topic-3', title:'Budget régional : les syndicats se mobilisent', author:'EluRegional', time:'Jour 1 · 05h00', views:67, replies:1,
-      posts:[{ id:'p6', author:'EluRegional', time:'Jour 1 · 05h00', content:'Le budget régional sera présenté la semaine prochaine. Les syndicats annoncent une mobilisation.' }] }
-  ],
   national: [
     { id:'topic-4', title:'Elections anticipées : rumeurs persistantes', author:'ObservateurPolitique', time:'Jour 1 · 08h00', views:234, replies:5,
       posts:[{ id:'p7', author:'ObservateurPolitique', time:'Jour 1 · 08h00', content:'Le gouvernement en place semble fragilisé. Des élections anticipées seraient envisagées selon nos informations.' }] }
@@ -73,7 +82,7 @@ const FORUM_TOPICS = {
     { id:'topic-5', title:'Tensions Républia / El Estado', author:'DiplomateEtranger', time:'Jour 1 · 04h00', views:89, replies:1,
       posts:[{ id:'p8', author:'DiplomateEtranger', time:'Jour 1 · 04h00', content:'Les tensions entre Républia et El Estado s\'intensifient autour des accords commerciaux.' }] }
   ],
-  gouvernement: [], presse: [], syndicats: []
+  gouvernement: [], presse: []
 };
 
 // Mails inter-joueurs
@@ -159,6 +168,7 @@ const STYLES_NARRATIFS = {
 let currentForumId = 'local';
 let currentTopicId = null;
 let forumView = 'list';
+let forumCategorieActive = 'intra'; // 'intra' | 'inter' | 'prive'
 let mailView = 'inbox'; // 'inbox' | 'compose' | 'read'
 let mailDefaultTo = ''; // Destinataire pré-rempli depuis répertoire PJ
 let editingPostId = null;
@@ -172,6 +182,8 @@ function openForum_module(forumId) {
   currentForumId = forumId;
   currentTopicId = null;
   forumView = 'list';
+  const f = getForums()[forumId];
+  if (f?.cat) forumCategorieActive = f.cat;
   renderForumModal();
   document.getElementById('modal-forum').classList.add('open');
   // Charger depuis Supabase en arrière-plan et rafraîchir
@@ -180,26 +192,66 @@ function openForum_module(forumId) {
   }).catch(() => {});
 }
 
+function renderForumNavItem(id, f) {
+  const accessible = !f.private || canAccessForum(id);
+  return `<div class="forum-nav-item ${id === currentForumId && forumView !== 'mail' ? 'active' : ''} ${!accessible ? 'locked' : ''}"
+    onclick="${accessible ? `switchForum('${id}')` : `showToast('Accès restreint','Ce forum est réservé aux membres autorisés.',false)`}">
+    <i class="ti ${f.icon}" style="font-size:.85rem"></i>
+    <div>
+      <div class="forum-nav-name">${f.name}</div>
+      <div class="forum-nav-count">${(FORUM_TOPICS[id]||[]).length} sujet(s)</div>
+    </div>
+    ${f.private ? `<i class="ti ti-lock" style="font-size:.65rem;color:#4a4030;margin-left:auto"></i>` : ''}
+  </div>`;
+}
+
+function renderForumCategorieItems(cat) {
+  const forums = getForums();
+  const entries = Object.entries(forums).filter(([id, f]) => f.cat === cat);
+
+  if (cat === 'intra') {
+    const directs = entries.filter(([id, f]) => !f.sousGroupe);
+    const institutions = entries.filter(([id, f]) => f.sousGroupe === 'institutions');
+    const parLocal = directs.filter(([id]) => id === 'local');
+    const parNational = directs.filter(([id]) => id === 'national');
+    const parPresse = directs.filter(([id]) => id === 'presse');
+    return parLocal.map(([id, f]) => renderForumNavItem(id, f)).join('') +
+      parNational.map(([id, f]) => renderForumNavItem(id, f)).join('') +
+      (institutions.length > 0 ? `<div class="forum-sidebar-section" style="margin-top:.5rem;font-size:.68rem">FORUMS INSTITUTIONNELS</div>` +
+        institutions.map(([id, f]) => renderForumNavItem(id, f)).join('') : '') +
+      parPresse.map(([id, f]) => renderForumNavItem(id, f)).join('');
+  }
+
+  if (cat === 'prive') {
+    if (entries.length === 0) {
+      return `<div style="padding:.7rem;font-size:.75rem;color:#6a5a30;font-style:italic">Aucune organisation trouvée. Rejoignez ou fondez une organisation pour accéder à son forum privé.</div>`;
+    }
+  }
+
+  return entries.map(([id, f]) => renderForumNavItem(id, f)).join('');
+}
+
+function switchCategorieForum(cat) {
+  forumCategorieActive = cat;
+  forumView = 'list';
+  const forums = getForums();
+  const premiereEntree = Object.entries(forums).find(([id, f]) => f.cat === cat);
+  currentForumId = premiereEntree ? premiereEntree[0] : null;
+  currentTopicId = null;
+  renderForumModal();
+  if (currentForumId) {
+    loadForumTopicsFromSB(currentForumId).then(() => {
+      document.getElementById('forum-main').innerHTML = renderForumContent();
+    }).catch(() => {});
+  }
+}
+
 function renderForumModal() {
   const modal = document.getElementById('forum-body');
   const unreadCount = getMyMails().filter(m => !m.read && m.to === state.char?.name).length;
   modal.innerHTML = `
     <div class="forum-layout">
       <div class="forum-sidebar">
-        <div class="forum-sidebar-section">FORUMS</div>
-        ${Object.entries(FORUMS).map(([id, f]) => {
-          const accessible = !f.private || canAccessForum(id);
-          return `<div class="forum-nav-item ${id === currentForumId && forumView !== 'mail' ? 'active' : ''} ${!accessible ? 'locked' : ''}"
-            onclick="${accessible ? `switchForum('${id}')` : `showToast('Accès restreint','Ce forum est réservé aux membres autorisés.',false)`}">
-            <i class="ti ${f.icon}" style="font-size:.85rem"></i>
-            <div>
-              <div class="forum-nav-name">${f.name}</div>
-              <div class="forum-nav-count">${(FORUM_TOPICS[id]||[]).length} sujet(s)</div>
-            </div>
-            ${f.private ? `<i class="ti ti-lock" style="font-size:.65rem;color:#4a4030;margin-left:auto"></i>` : ''}
-          </div>`;
-        }).join('')}
-        <div class="forum-sidebar-section" style="margin-top:.8rem">MESSAGERIE</div>
         <div class="forum-nav-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
           <i class="ti ti-mail" style="font-size:.85rem"></i>
           <div>
@@ -207,6 +259,20 @@ function renderForumModal() {
             <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${unreadCount} non lu(s)</span>` : 'Aucun message'}</div>
           </div>
         </div>
+        <div class="forum-sidebar-section" style="margin-top:.6rem">CATÉGORIES</div>
+        <div class="forum-nav-item ${forumView !== 'mail' && forumCategorieActive === 'intra' ? 'active' : ''}" onclick="switchCategorieForum('intra')">
+          <i class="ti ti-flag" style="font-size:.85rem"></i>
+          <div class="forum-nav-name">Forums intranationaux</div>
+        </div>
+        <div class="forum-nav-item ${forumView !== 'mail' && forumCategorieActive === 'inter' ? 'active' : ''}" onclick="switchCategorieForum('inter')">
+          <i class="ti ti-world" style="font-size:.85rem"></i>
+          <div class="forum-nav-name">Forums internationaux</div>
+        </div>
+        <div class="forum-nav-item ${forumView !== 'mail' && forumCategorieActive === 'prive' ? 'active' : ''}" onclick="switchCategorieForum('prive')">
+          <i class="ti ti-lock" style="font-size:.85rem"></i>
+          <div class="forum-nav-name">Forums privés</div>
+        </div>
+        ${forumView !== 'mail' ? `<div class="forum-sidebar-section" style="margin-top:.6rem">${forumCategorieActive === 'intra' ? 'INTRANATIONAUX' : forumCategorieActive === 'inter' ? 'INTERNATIONAUX' : 'PRIVÉS'}</div>${renderForumCategorieItems(forumCategorieActive)}` : ''}
       </div>
       <div class="forum-main" id="forum-main">
         ${renderForumContent()}
@@ -217,7 +283,11 @@ function renderForumModal() {
 
 function canAccessForum(forumId) {
   const f = FORUMS[forumId];
-  if (!f.private) return true;
+  if (!f || !f.private) return true;
+  if (f.requiredOrgId) {
+    const orga = (state.organisations || []).find(o => o.id === f.requiredOrgId);
+    return !!orga && (orga.membres || []).some(m => m.nom === state.char?.name);
+  }
   if (!state.poste) return false;
   if (f.requiredPost) return f.requiredPost.includes(state.poste.id);
   return true;
@@ -227,6 +297,8 @@ function switchForum(id) {
   currentForumId = id;
   currentTopicId = null;
   forumView = 'list';
+  const f = getForums()[id];
+  if (f?.cat) forumCategorieActive = f.cat;
   renderForumModal();
   loadForumTopicsFromSB(id).then(() => {
     document.getElementById('forum-main').innerHTML = renderForumContent();
