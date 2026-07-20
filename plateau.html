@@ -59,7 +59,7 @@
     <button class="forum-btn" onclick="openRulesView()">
       <i class="ti ti-book" style="font-size:.8rem;vertical-align:-1px"></i> Règles
     </button>
-    <button class="forum-btn" onclick="openForumView('local')" id="btn-messages" title="Messages et Forums">
+    <button class="forum-btn" onclick="openForumView()" id="btn-messages" title="Messages et Forums">
       <i class="ti ti-messages" style="font-size:.8rem;vertical-align:-1px"></i> Messages/Forums
       <span id="mail-badge" style="display:none;background:#cc2020;color:#fff;font-size:.6rem;padding:.1rem .3rem;border-radius:50%;margin-left:.2rem;font-family:'Bebas Neue',sans-serif">0</span>
     </button>
@@ -318,7 +318,7 @@
 <!-- JOURNAL FLOTTANT (store) -->
 <!-- Bouton d'ouverture flottant -->
 <button id="journal-open-btn" onclick="toggleJournalStore()" title="Journal des événements"
-  style="position:fixed;bottom:80px;right:20px;z-index:997;width:44px;height:44px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;transition:all .2s">
+  style="position:fixed;bottom:80px;left:20px;z-index:997;width:44px;height:44px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;transition:all .2s">
   <i class="ti ti-news" style="font-size:1rem"></i>
   <span id="journal-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#cc2020;border-radius:50%;animation:blink 1.2s ease infinite"></span>
 </button>
@@ -492,12 +492,12 @@
 </div>
 
 <!-- CHAT EN PIECE — fenetre flottante persistante -->
-<button onclick="toggleChatPiece()" style="position:fixed;bottom:20px;right:20px;z-index:998;width:48px;height:48px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.5)">
+<button onclick="toggleChatPiece()" style="position:fixed;bottom:20px;left:20px;z-index:998;width:48px;height:48px;border-radius:50%;background:#1a1408;border:1px solid #8a6a20;color:#C9A84C;cursor:pointer;font-size:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.5)">
   <i class="ti ti-message-circle"></i>
   <span id="chat-notif-badge" style="display:none;position:absolute;top:-3px;right:-3px;width:11px;height:11px;background:#cc2020;border-radius:50%;animation:blink 1.2s ease infinite;border:2px solid #1a1408"></span>
 </button>
 
-<div id="chat-piece-panel" style="display:none;position:fixed;bottom:80px;right:20px;z-index:999;width:300px;height:380px;background:#0a0805;border:1px solid #2a2010;border-radius:8px;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,.6)">
+<div id="chat-piece-panel" style="display:none;position:fixed;bottom:80px;left:20px;z-index:999;width:300px;height:380px;background:#0a0805;border:1px solid #2a2010;border-radius:8px;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,.6)">
   <div style="padding:.5rem .7rem;border-bottom:1px solid #2a2010;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
     <span style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.08em;color:#C9A84C">MESSAGES</span>
     <button onclick="toggleChatPiece()" style="background:none;border:none;color:#8a8060;cursor:pointer;font-size:.9rem">✕</button>

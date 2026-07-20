@@ -596,7 +596,7 @@ function openForumView(forumId) {
   }
   // Le vrai systeme de forum (sujets, editeur riche, mail) vit dans forum.js (openForum_module).
   // L'ancien systeme local base sur FORUM_TOPICS/buildForumHTML a ete retire d'ici (code mort, jamais utilise).
-  openForum_module(forumId || 'local');
+  openForum_module(forumId);
 }
 
 function closeForumView() {

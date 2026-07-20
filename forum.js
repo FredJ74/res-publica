@@ -224,9 +224,12 @@ function renderForumCategorieItems(cat) {
     return `<div class="forum-categorie-items">` +
       parLocal.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       parNational.map(([id, f]) => renderForumNavItem(id, f)).join('') +
-      (institutions.length > 0 ? `<div class="forum-sousgroupe">` +
-        `<div class="forum-sousgroupe-label" onclick="toggleSousGroupeForum()">Institutionnels` +
-        `<i class="ti ti-chevron-right forum-categorie-chevron ${forumSousGroupeOuvert ? 'ouvert' : ''}" style="margin-left:.4rem"></i></div>` +
+      (institutions.length > 0 ? `<div class="forum-nav-item" onclick="toggleSousGroupeForum()">
+        <i class="ti ti-building-bank" style="font-size:.85rem"></i>
+        <div><div class="forum-nav-name">Institutionnels</div></div>
+        <i class="ti ti-chevron-right forum-categorie-chevron ${forumSousGroupeOuvert ? 'ouvert' : ''}" style="margin-left:auto"></i>
+      </div>` +
+        `<div class="forum-sousgroupe">` +
         (forumSousGroupeOuvert ? institutions.map(([id, f]) => renderForumNavItem(id, f)).join('') : '') +
         `</div>` : '') +
       parPresse.map(([id, f]) => renderForumNavItem(id, f)).join('') +
@@ -290,7 +293,7 @@ function renderForumModal() {
             <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${unreadCount} non lu(s)</span>` : 'Aucun message'}</div>
           </div>
         </div>
-        ${renderCategorieHeader('intra', 'ti-flag', 'Forums intranationaux')}
+        ${renderCategorieHeader('intra', 'ti-flag', 'Forums intra-nationaux')}
         ${renderCategorieHeader('inter', 'ti-world', 'Forums internationaux')}
         ${renderCategorieHeader('prive', 'ti-lock', 'Forums privés')}
       </div>
@@ -355,7 +358,7 @@ function renderForumAccueil() {
   return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#6a5a30;gap:.6rem">
     <i class="ti ti-message-2-cog" style="font-size:2.2rem;opacity:.5"></i>
     <div style="font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.05em;color:#8a7040">Choisissez une categorie a gauche</div>
-    <div style="font-size:.78rem;max-width:260px;text-align:center">Forums intranationaux, internationaux ou prives -- deroulez une categorie pour voir ses forums.</div>
+    <div style="font-size:.78rem;max-width:260px;text-align:center">Forums intra-nationaux, internationaux ou prives -- deroulez une categorie pour voir ses forums.</div>
   </div>`;
 }
 
