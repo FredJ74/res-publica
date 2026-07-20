@@ -456,7 +456,8 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .forum-categorie-items{background:#0a0805}
 .forum-sidebar-section{font-family:'Bebas Neue',sans-serif;font-size:.66rem;letter-spacing:.09em;color:#6a5a30;padding:.5rem .8rem .25rem;text-transform:uppercase}
 .forum-sousgroupe{margin-left:.5rem;border-left:1px solid #2a2010;padding-left:0}
-.forum-sousgroupe-label{font-family:'Bebas Neue',sans-serif;font-size:.62rem;letter-spacing:.08em;color:#5a4a28;padding:.5rem 0 .25rem .8rem;text-transform:uppercase}
+.forum-sousgroupe-label{display:flex;align-items:center;font-family:'Bebas Neue',sans-serif;font-size:.62rem;letter-spacing:.08em;color:#5a4a28;padding:.5rem .8rem .25rem;text-transform:uppercase;cursor:pointer}
+.forum-sousgroupe-label:hover{color:#8a7040}
 .forum-sousgroupe .forum-nav-item{padding-left:1.1rem}
 .forum-main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg2)}
 .forum-header-bar{display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;border-bottom:1px solid var(--border2);background:var(--bg);flex-shrink:0}

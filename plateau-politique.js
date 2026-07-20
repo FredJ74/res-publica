@@ -1393,16 +1393,16 @@ async function publierJournal(texte) {
 
   let topicId = null;
   if (typeof sbCreateTopic === 'function') {
-    topicId = await sbCreateTopic('local', titre, from, state.country, time);
+    topicId = await sbCreateTopic('presse', titre, from, state.country, time);
     if (topicId && typeof sbCreatePost === 'function') await sbCreatePost(topicId, from, texte, time);
   }
-  if (!FORUM_TOPICS['local']) FORUM_TOPICS['local'] = [];
-  FORUM_TOPICS['local'].unshift({
+  if (!FORUM_TOPICS['presse']) FORUM_TOPICS['presse'] = [];
+  FORUM_TOPICS['presse'].unshift({
     id: topicId || 'topic-' + Date.now(), title: titre, author: from,
     time, views: 1, replies: 0, lastPostAuthor: from, lastPostTime: time,
     posts: [{ id: 'p-' + Date.now(), author: from, time, content: texte }]
   });
-  showToast('Journal publié !', 'Visible sur le forum local.', true);
+  showToast('Journal publié !', 'Visible sur Presse et Medias.', true);
 }
 
 // =====================
@@ -1609,20 +1609,20 @@ async function publierDecret(texte) {
 
   let topicId = null;
   if (typeof sbCreateTopic === 'function') {
-    topicId = await sbCreateTopic('local', '📜 Décret Présidentiel', from, state.country, time);
+    topicId = await sbCreateTopic('presidence', '📜 Décret Présidentiel', from, state.country, time);
     if (topicId && typeof sbCreatePost === 'function') {
       await sbCreatePost(topicId, from, texte, time);
     }
   }
 
-  if (!FORUM_TOPICS['local']) FORUM_TOPICS['local'] = [];
-  FORUM_TOPICS['local'].unshift({
+  if (!FORUM_TOPICS['presidence']) FORUM_TOPICS['presidence'] = [];
+  FORUM_TOPICS['presidence'].unshift({
     id: topicId || 'topic-' + Date.now(), title: '📜 Décret Présidentiel', author: from,
     time, views: 1, replies: 0, lastPostAuthor: from, lastPostTime: time,
     posts: [{ id: 'p-' + Date.now(), author: from, time, content: texte }]
   });
 
-  showToast('Décret publié !', 'Visible sur le forum national.', true);
+  showToast('Décret publié !', 'Visible sur La Presidence a la Nation.', true);
 }
 
 

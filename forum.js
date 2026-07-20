@@ -169,6 +169,7 @@ let currentForumId = 'local';
 let currentTopicId = null;
 let forumView = 'list';
 let forumCategorieActive = 'intra'; // 'intra' | 'inter' | 'prive'
+let forumSousGroupeOuvert = false; // accordeon imbrique pour 'Institutionnels'
 let mailView = 'inbox'; // 'inbox' | 'compose' | 'read'
 let mailDefaultTo = ''; // Destinataire pré-rempli depuis répertoire PJ
 let editingPostId = null;
@@ -219,8 +220,9 @@ function renderForumCategorieItems(cat) {
       parLocal.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       parNational.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       (institutions.length > 0 ? `<div class="forum-sousgroupe">` +
-        `<div class="forum-sousgroupe-label">Institutionnels</div>` +
-        institutions.map(([id, f]) => renderForumNavItem(id, f)).join('') +
+        `<div class="forum-sousgroupe-label" onclick="toggleSousGroupeForum()">Institutionnels` +
+        `<i class="ti ti-chevron-right forum-categorie-chevron ${forumSousGroupeOuvert ? 'ouvert' : ''}" style="margin-left:.4rem"></i></div>` +
+        (forumSousGroupeOuvert ? institutions.map(([id, f]) => renderForumNavItem(id, f)).join('') : '') +
         `</div>` : '') +
       parPresse.map(([id, f]) => renderForumNavItem(id, f)).join('') +
       `</div>`;
@@ -231,6 +233,11 @@ function renderForumCategorieItems(cat) {
   }
 
   return `<div class="forum-categorie-items">` + entries.map(([id, f]) => renderForumNavItem(id, f)).join('') + `</div>`;
+}
+
+function toggleSousGroupeForum() {
+  forumSousGroupeOuvert = !forumSousGroupeOuvert;
+  document.getElementById('forum-body').innerHTML && renderForumModal();
 }
 
 function toggleCategorieForum(cat) {
