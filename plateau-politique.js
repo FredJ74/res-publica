@@ -1755,14 +1755,17 @@ async function postulerPoste(posteId, posteName) {
     ...(postes?.[state.currentCity] || [])
   ];
   const poste = allPostes.find(p => p.id === posteId);
-  const isVacant = !poste?.holder;
-  const isPnjHolder = poste?.holder?.startsWith('PNJ');
 
-  const successRate = isVacant ? 90 : isPnjHolder ? 65 : 0;
-  if (successRate === 0) {
-    showToast('Poste occupe', `Ce poste est occupe par un autre joueur.`, false);
+  // Verification en direct aupres de Supabase (source de verite partagee entre tous les
+  // joueurs) plutot que du cache local POSTES, qui peut etre perime et laisser deux
+  // joueurs obtenir simultanement le meme poste unique.
+  const titulaireReel = typeof getTitulairePoste === 'function' ? await getTitulairePoste(posteId) : null;
+  if (titulaireReel && titulaireReel !== (state.char?.name || 'Joueur')) {
+    showToast('Poste occupe', `Ce poste est occupe par ${titulaireReel}.`, false);
     return;
   }
+  const isPnjHolder = !!poste?.holder && poste.holder.startsWith('PNJ');
+  const successRate = isPnjHolder ? 65 : 90;
 
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= successRate) {
@@ -1777,6 +1780,7 @@ async function postulerPoste(posteId, posteName) {
     if (state.char) state.char.poste = state.poste;
     state.salaireTouche = false;
     state.inf = Math.min(100, state.inf + 15);
+    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
     updateUI();
     showToast('Poste obtenu !', `Vous occupez desormais le poste de ${posteName}. +15 Influence.`, true, true);
     addJournalEntry(`Poste obtenu : ${posteName}. +15 Influence.`, 'event-good');
@@ -2615,6 +2619,13 @@ async function appliquerNominationPosteEnAttente() {
       showToast('Censure adoptée', 'L\'Assemblée a retiré sa confiance. Vous avez démissionné de ' + ancienPoste + '.', false, true);
       addJournalEntry('Motion de censure adoptée contre vous. Démission forcée de ' + ancienPoste + '.', 'event-bad');
       return;
+    }
+
+    // Deloger un eventuel titulaire actuel different du nomme, avant d'attribuer le poste
+    // (evite qu'un poste unique se retrouve occupe par deux joueurs en meme temps).
+    const ancienTitulaire = typeof getTitulairePoste === 'function' ? await getTitulairePoste(nomination.poste_id) : null;
+    if (ancienTitulaire && ancienTitulaire !== state.char.name && typeof sbUpdate === 'function') {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(ancienTitulaire)}`, { poste: null }).catch(() => {});
     }
 
     state.poste = { id: nomination.poste_id, name: nomination.poste_name };
