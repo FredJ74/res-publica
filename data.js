@@ -1272,6 +1272,7 @@ const BUILDINGS = {
           {fn:'creer_comite',           label:'Creer un comite',               pa:3, cost:0,    type:'legal',   icon:'ti-users-group',   successRate:100, requiresPost:'president', desc:'Creer un comite special. Limite : 1 comite.'},
           {fn:'supprimer_poste_custom', label:'Supprimer un poste cree',       pa:0, cost:0,    type:'legal',   icon:'ti-trash',         successRate:100, requiresPost:'president', desc:'Supprimer un poste ou comite precedemment cree.'},
           {fn:'nommer_ministre',        label:'Nommer un Premier Ministre',            pa:2, cost:0,    type:'legal',   icon:'ti-crown',         successRate:100, requiresPost:'president', desc:'Nommer un PJ a un poste ministeriel. Envoie un mail au candidat.'},
+          {fn:'revoquer_pm',             label:'Revoquer le Premier Ministre',          pa:1, cost:0,    type:'legal',   icon:'ti-crown-off',     successRate:100, requiresPost:'president', desc:'Retirer le poste au Premier Ministre actuel.'},
           {fn:'etat_urgence',           label:'Declarer l\'etat d\'urgence',  pa:3, cost:0,    type:'legal',   icon:'ti-alert-triangle',successRate:100, requiresPost:'president', desc:'Suspend certaines libertes. Fort impact sur INF et POP.'},
           {fn:'declarer_guerre',        label:'Declarer la guerre',            pa:5, cost:0,    type:'legal',   icon:'ti-sword',         successRate:100, requiresPost:'president', desc:'Declarer la guerre a un empire. Consequences majeures.'},
           {fn:'gracier',                label:'Traiter les demandes de grâce',           pa:2, cost:0,    type:'legal',   icon:'ti-heart-handshake',successRate:100,requiresPost:'president', desc:'Examiner les recommandations de grace du Ministre de la Justice — accepter ou refuser.'},
@@ -1344,6 +1345,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'nommer_ministre_pm', label:'Nommer des ministres',       pa:2, cost:0,   type:'legal',   icon:'ti-crown',     successRate:100, requiresPost:'pm', desc:'Nommer un PJ a un poste ministeriel.'},
+          {fn:'revoquer_ministre_pm', label:'Revoquer un ministre',       pa:1, cost:0,   type:'legal',   icon:'ti-crown-off', successRate:100, requiresPost:'pm', desc:'Retirer le poste a un ministre en fonction.'},
           {fn:'declencher_vote_confiance', label:'Déclencher un vote de confiance', pa:3, cost:0, type:'legal', icon:'ti-gavel', successRate:100, requiresPost:'pm', desc:'Engager la responsabilite du gouvernement devant l\'Assemblee Nationale. Resultat sous 48h.'}
         ]
       },
@@ -4577,7 +4579,14 @@ const SALAIRES = {
 const POSTES_NOMMES_EXCLUSIFS = {
   juge:        { label: 'Juge',        nommePar: 'min_just', scope: 'pays',  compatibles: ['depute'] },
   commissaire: { label: 'Commissaire', nommePar: 'maire',    scope: 'ville', compatibles: ['depute'] },
-  commandant:  { label: 'Commandant de la Caserne', nommePar: 'min_def', scope: 'pays', compatibles: ['depute'] }
+  commandant:  { label: 'Commandant de la Caserne', nommePar: 'min_def', scope: 'pays', compatibles: ['depute'] },
+  pm:          { label: 'Premier Ministre',              nommePar: 'president', scope: 'pays', compatibles: ['depute'] },
+  min_int:     { label: "Ministre de l'Interieur",       nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_fin:     { label: 'Ministre des Finances',         nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_just:    { label: 'Ministre de la Justice',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_def:     { label: 'Ministre de la Defense',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_info:    { label: "Ministre de l'Information",     nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_ae:      { label: 'Ministre des Affaires Etrangeres', nommePar: 'pm',     scope: 'pays', compatibles: ['depute'] }
 };
 
 // Nouveaux ordres v6

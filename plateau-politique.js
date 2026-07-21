@@ -3821,6 +3821,46 @@ function ouvrirModalNommerCommissaire() {
 
 function ouvrirModalRevoquerCommissaire() { ouvrirRevoquerPosteNomme('commissaire'); }
 
+function ouvrirModalNommerPM() {
+  if (state.poste?.id !== 'president') {
+    showToast('Acces refuse', 'Seul le President peut nommer le Premier Ministre.', false);
+    return;
+  }
+  ouvrirNominerPosteNomme('pm');
+}
+
+function ouvrirModalRevoquerPM() {
+  if (state.poste?.id !== 'president') {
+    showToast('Acces refuse', 'Seul le President peut revoquer le Premier Ministre.', false);
+    return;
+  }
+  ouvrirRevoquerPosteNomme('pm');
+}
+
+function ouvrirModalRevoquerMinistre() {
+  if (state.poste?.id !== 'pm') {
+    showToast('Acces refuse', 'Seul le Premier Ministre peut revoquer un ministre.', false);
+    return;
+  }
+  const postesMinisteriels = [
+    { id:'min_int', name:"Ministre de l'Interieur" },
+    { id:'min_fin', name:'Ministre des Finances' },
+    { id:'min_just', name:'Ministre de la Justice' },
+    { id:'min_def', name:'Ministre de la Defense' },
+    { id:'min_info', name:"Ministre de l'Information" },
+    { id:'min_ae', name:'Ministre des Affaires Etrangeres' }
+  ];
+  document.getElementById('postes-modal-title').textContent = 'Revoquer un ministre';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le ministere a revoquer.</div>';
+  postesMinisteriels.forEach(p => {
+    html += '<button onclick="ouvrirRevoquerPosteNomme(\'' + p.id + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">' + p.name + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 function ouvrirModalRenseignement() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
@@ -4509,47 +4549,28 @@ async function confirmerDementi(rumeurId, cible, popPerdu) {
 }
 
 function ouvrirNommerMinistresModal() {
-  const contacts = state.contacts || [];
+  if (state.poste?.id !== 'pm') {
+    showToast('Acces refuse', 'Seul le Premier Ministre peut nommer des ministres.', false);
+    return;
+  }
   const postesMinisteriels = [
     { id:'min_int', name:"Ministre de l'Interieur" },
     { id:'min_fin', name:'Ministre des Finances' },
     { id:'min_just', name:'Ministre de la Justice' },
     { id:'min_def', name:'Ministre de la Defense' },
     { id:'min_info', name:"Ministre de l'Information" },
-    { id:'min_ae', name:'Ministre des AE' }
+    { id:'min_ae', name:'Ministre des Affaires Etrangeres' }
   ];
-  if (state.postesCustom?.ministre) postesMinisteriels.push({ id:'custom_ministre', name:state.postesCustom.ministre.nom });
-  if (state.postesCustom?.comite) postesMinisteriels.push({ id:'custom_comite', name:state.postesCustom.comite.nom });
 
   document.getElementById('postes-modal-title').textContent = 'Nommer des ministres';
   let html = '<div style="padding:1rem">';
-  if (contacts.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Repertoire vide. Enregistrez des contacts PJ.</div>';
-  } else {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">POSTE</div>';
-    html += '<select id="nommer-min-poste" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
-    postesMinisteriels.forEach(p => { html += '<option value="' + p.id + '">' + p.name + '</option>'; });
-    html += '</select>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">PJ A NOMMER</div>';
-    html += '<select id="nommer-min-contact" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
-    html += '</select>';
-    html += '<button onclick="validerNominationMinistre()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
-  }
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le ministere a pourvoir.</div>';
+  postesMinisteriels.forEach(p => {
+    html += '<button onclick="ouvrirNominerPosteNomme(\'' + p.id + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">' + p.name + '</button>';
+  });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
-}
-
-function validerNominationMinistre() {
-  const posteId = document.getElementById('nommer-min-poste')?.value;
-  const contact = document.getElementById('nommer-min-contact')?.value;
-  const postesNoms = { min_int:"Ministre de l'Interieur", min_fin:'Ministre des Finances', min_just:'Ministre de la Justice', min_def:'Ministre de la Defense', min_info:"Ministre de l'Information", min_ae:'Ministre des AE' };
-  const posteNom = postesNoms[posteId] || (state.postesCustom?.ministre?.nom) || (state.postesCustom?.comite?.nom) || posteId;
-  document.getElementById('modal-postes').classList.remove('open');
-  envoyerNotificationVraiJoueur(contact, 'Nomination ministerielle', 'Par decision du Premier Ministre, vous etes nomme(e) ' + posteNom + '. Prenez vos fonctions immediatement.');
-  addExternalEvent('NOMINATION : ' + contact + ' est nomme(e) ' + posteNom + ' par le Premier Ministre.');
-  showToast('Nomination envoyee', contact + ' → ' + posteNom, true, true);
 }
 
 // Appliquer malus ISN aux actes illegaux
