@@ -2602,6 +2602,11 @@ function accepterNominationPosteNomme(posteId, city, country, nommeurNom) {
   if (state.char) state.char.poste = state.poste;
   state.salaireTouche = false;
   updateUI();
+  if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
+    const roomCourante = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+    if (roomCourante) renderPersonsList(roomCourante.persons || []);
+  }
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 
   showToast('Poste accepté !', 'Vous êtes désormais ' + regle.label + (city ? ' de ' + (WORLD[country]?.[city]?.name || city) : '') + '.', true, true);
   addJournalEntry('Vous avez accepté le poste de ' + regle.label + '.', 'event-good');

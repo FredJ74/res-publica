@@ -1135,7 +1135,7 @@ function afficherVueConversation() {
   html += '</div>';
   html += '<div id="chat-messages-zone" style="flex:1;overflow-y:auto;padding:.4rem .6rem"></div>';
   html += '<div style="display:flex;gap:.4rem;padding:.5rem .6rem;border-top:1px solid #2a2010">' +
-    '<input id="chat-message-input" type="text" placeholder="Votre message..." onkeydown="if(event.key===\'Enter\')envoyerMessageConversation()" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.78rem;outline:none">' +
+    '<input id="chat-message-input" type="text" placeholder="Votre message..." onkeydown="if(event.key===\'Enter\')envoyerMessageConversation()" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:1rem;outline:none">' +
     '<button onclick="envoyerMessageConversation()" style="background:transparent;border:1px solid #8a6a20;color:#C9A84C;padding:.4rem .6rem;cursor:pointer;font-size:.78rem">→</button></div>';
   document.getElementById('chat-piece-body').innerHTML = html;
 
@@ -1169,8 +1169,8 @@ async function rafraichirConversationActuelle(reset) {
       zone.insertAdjacentHTML('beforeend',
         '<div style="margin-bottom:.4rem;text-align:' + (estMoi ? 'right' : 'left') + '">' +
         '<div style="display:inline-block;max-width:80%;padding:.35rem .6rem;border-radius:8px;background:#0f0d05;border:1px solid #2a2010">' +
-        '<div style="font-size:.82rem;color:#8a6a30">' + m.auteur + '</div>' +
-        '<div style="font-size:.78rem;color:#e0d8c0">' + m.message + '</div>' +
+        '<div style="font-size:.9rem;color:#a08850">' + m.auteur + '</div>' +
+        '<div style="font-size:1rem;color:#e0d8c0">' + m.message + '</div>' +
         '</div></div>'
       );
     });
