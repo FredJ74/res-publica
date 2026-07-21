@@ -2457,7 +2457,7 @@ async function listerHabitantsEligibles(posteId) {
     const joueurs = await sbListPersonnages() || [];
     return joueurs.filter(j => {
       if (j.country !== state.country) return false;
-      if (regle.scope === 'ville' && j.current_city !== state.currentCity) return false;
+      if (regle.scope === 'ville' && (j.domicile?.city !== state.currentCity || j.domicile?.country !== state.country)) return false;
       return true;
     });
   } catch(e) { return []; }
