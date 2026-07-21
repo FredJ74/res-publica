@@ -28,6 +28,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gerer_finances') { openFinancesModal(); return; }
   if (fn === 'plainte_police') { openPlainteModal(); return; }
   if (fn === 'arreter') { doArreter(); return; }
+  if (fn === 'se_rebeller') { doSeRebeller(); return; }
   if (fn === 'archives_police') { doArchivesPolice(); return; }
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
   if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost, successRate); return; }

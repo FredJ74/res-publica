@@ -377,6 +377,20 @@ async function sbSaveCaisseBatiment(key, data) {
   return sbInsert('caisses_batiments', { id: key, data, updated_at: new Date().toISOString() });
 }
 
+async function sbGetNiveauPrison(key) {
+  const rows = await sbGet('niveaux_prison', `id=eq.${encodeURIComponent(key)}`);
+  if (!rows || rows.length === 0) return null;
+  return rows[0].data;
+}
+
+async function sbSaveNiveauPrison(key, data) {
+  const existing = await sbGet('niveaux_prison', `id=eq.${encodeURIComponent(key)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('niveaux_prison', `id=eq.${encodeURIComponent(key)}`, { data, updated_at: new Date().toISOString() });
+  }
+  return sbInsert('niveaux_prison', { id: key, data, updated_at: new Date().toISOString() });
+}
+
 async function sbGetBudgetNational(pays) {
   const rows = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(pays)}`);
   if (!rows || rows.length === 0) return null;

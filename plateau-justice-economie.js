@@ -1159,6 +1159,10 @@ function verifierDecouverteCrimesPasses() {
 }
 
 function doTentativeEvasion() {
+  if (!state.estEmprisonne) {
+    showToast('Non emprisonne', 'Vous devez etre emprisonne pour tenter de vous evader.', false);
+    return;
+  }
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= 5) {
     state.estEmprisonne = null;
@@ -1175,6 +1179,55 @@ function doTentativeEvasion() {
     updateUI();
     showToast('Evasion echouee', 'Tentative echouee. +1 jour de detention, -500 ' + cur + '.', false);
     addJournalEntry('Tentative d\'evasion echouee. Peine aggravee de 1 jour, amende de 500 ' + cur + '.', 'event-bad');
+  }
+}
+
+async function doSeRebeller() {
+  if (!state.estEmprisonne) {
+    showToast('Non emprisonne', 'Vous devez etre emprisonne pour vous rebeller.', false);
+    return;
+  }
+
+  const pays = state.country;
+  const ville = state.currentCity;
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+
+  const forBase = state.char?.stats?.FOR || 8;
+  const codetenu = (state.employes || []).find(e => e.job === 'codetenu');
+  const bonusCodetenu = codetenu?.stats?.FOR ? Math.floor(codetenu.stats.FOR / 2) : 0;
+  const taux = Math.min(60, forBase * 3 + bonusCodetenu);
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  const degats = Math.floor(Math.random() * 7) + 4;
+  if (typeof endommagerGrillePrison === 'function') await endommagerGrillePrison(pays, ville, degats).catch(() => {});
+
+  if (roll <= taux) {
+    state.dis = Math.min(100, (state.dis || 0) + 6);
+    if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
+      INDICES_NATIONAUX[pays].POP = Math.max(0, (INDICES_NATIONAUX[pays].POP || 50) - 2);
+    }
+    state.hp = Math.max(1, (state.hp || 100) - 10);
+    if (state.estEmprisonne) {
+      state.estEmprisonne.jours += 1;
+      state.estEmprisonne.jourFin += 1;
+    }
+    updateUI();
+    showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 PV.', true, true);
+    addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -10 PV.', 'event-info');
+    if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
+  } else {
+    state.hp = Math.max(1, (state.hp || 100) - 25);
+    state.dis = Math.max(0, (state.dis || 0) - 15);
+    state.estEmprisonne = null;
+    if (typeof sbCreerPrisonnierQHS === 'function') {
+      await sbCreerPrisonnierQHS({ pays, nom: state.char?.name, raison: 'Rebellion en cellule', photoUrl: state.char?.photoUrl || null, jourDebut: state.day, jourFin: (state.day || 1) + 30 }).catch(() => {});
+    }
+    if (typeof sbUpdate === 'function') {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char?.name)}`, { detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false }) }).catch(() => {});
+    }
+    updateUI();
+    showToast('Rebellion matee', 'Transfere au QHS. -25 PV, -15 DIS.', false);
+    addJournalEntry('Rebellion en cellule matee par les gardiens. Transfert au QHS. Grilles endommagees (-' + degats + ').', 'event-bad');
   }
 }
 
@@ -2839,6 +2892,68 @@ const CAISSE_PAR_POSTE_BUDGET = {
   min_int: 'gouvernement-min_int', min_fin: 'gouvernement-min_fin', min_just: 'gouvernement-min_just',
   min_def: 'gouvernement-min_def', min_info: 'gouvernement-min_info', min_ae: 'gouvernement-min_ae', mairie: 'mairie-capitale'
 };
+
+const COUT_REPARATION_GRILLE = 200; // FR par point regenere
+const REGEN_GRILLE_PAR_JOUR = 4; // points vises par jour, plafonne par le budget dispo
+
+function getBuildingIdCommissariat(ville) {
+  return ville === 'capitale' ? 'commissariat' : 'commissariat-local';
+}
+
+async function chargerNiveauPrison(pays, ville) {
+  const key = pays + '_' + ville;
+  if (typeof sbGetNiveauPrison !== 'function') return { key, niveau: 100 };
+  let data = await sbGetNiveauPrison(key).catch(() => null);
+  if (!data) {
+    data = { niveau: 100 };
+    await sbSaveNiveauPrison(key, data).catch(() => {});
+  }
+  return { key, niveau: 100, ...data };
+}
+
+async function endommagerGrillePrison(pays, ville, degats) {
+  const n = await chargerNiveauPrison(pays, ville);
+  n.niveau = Math.max(0, n.niveau - degats);
+  if (typeof sbSaveNiveauPrison === 'function') await sbSaveNiveauPrison(n.key, { niveau: n.niveau }).catch(() => {});
+  await verifierSeuilsGrillePrison(pays, ville, n.niveau);
+  return n.niveau;
+}
+
+// Regeneration quotidienne : puise sur la caisse du commissariat de la ville, s'arrete
+// des que le budget ne suffit plus (jamais de regeneration a credit).
+async function regenererGrillesPrison(pays, ville) {
+  const n = await chargerNiveauPrison(pays, ville);
+  if (n.niveau >= 100) return;
+  const pointsVises = Math.min(REGEN_GRILLE_PAR_JOUR, 100 - n.niveau);
+  const coutVise = pointsVises * COUT_REPARATION_GRILLE;
+  const buildingId = getBuildingIdCommissariat(ville);
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, buildingId, coutVise);
+  const pointsReels = Math.floor(montantVerse / COUT_REPARATION_GRILLE);
+  if (pointsReels <= 0) return;
+  n.niveau = Math.min(100, n.niveau + pointsReels);
+  if (typeof sbSaveNiveauPrison === 'function') await sbSaveNiveauPrison(n.key, { niveau: n.niveau }).catch(() => {});
+}
+
+async function verifierSeuilsGrillePrison(pays, ville, niveau) {
+  const nomVille = (typeof WORLD !== 'undefined' && WORLD[pays]?.[ville]?.name) || ville;
+  if (niveau <= 0) {
+    if (typeof addExternalEvent === 'function') {
+      addExternalEvent('INSURRECTION : les grilles des cellules de ' + nomVille + ' cedent sous la pression des detenus. Evasion collective en cours.', 'local');
+    }
+    if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
+      INDICES_NATIONAUX[pays].POP = Math.max(0, (INDICES_NATIONAUX[pays].POP || 50) - 10);
+      INDICES_NATIONAUX[pays].INF = Math.min(100, (INDICES_NATIONAUX[pays].INF || 0) + 10);
+    }
+    const key = pays + '_' + ville;
+    if (typeof sbSaveNiveauPrison === 'function') await sbSaveNiveauPrison(key, { niveau: 100 }).catch(() => {});
+  } else if (niveau <= 25) {
+    if (typeof addExternalEvent === 'function') {
+      addExternalEvent('Tensions carcerales a ' + nomVille + ' : les grilles des cellules menacent de ceder.', 'local');
+    }
+  } else if (niveau <= 50) {
+    if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('cellules_fragilisees', nomVille);
+  }
+}
 
 async function chargerCaisseBatiment(pays, buildingId) {
   const key = pays + '_' + buildingId;
