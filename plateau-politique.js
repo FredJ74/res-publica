@@ -1782,6 +1782,10 @@ async function postulerPoste(posteId, posteName) {
     state.inf = Math.min(100, state.inf + 15);
     if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
     updateUI();
+    if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
+      const roomCourante = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+      if (roomCourante) renderPersonsList(roomCourante.persons || []);
+    }
     showToast('Poste obtenu !', `Vous occupez desormais le poste de ${posteName}. +15 Influence.`, true, true);
     addJournalEntry(`Poste obtenu : ${posteName}. +15 Influence.`, 'event-good');
     // Mettre a jour l'affichage du personnage
@@ -4736,6 +4740,13 @@ async function demissionnerDuPoste() {
   state.poste = null;
   if (state.char) state.char.poste = null;
   updateUI();
+
+  // Rafraichir la carte "Personnes presentes" (self-card), qui affiche le poste et n'est
+  // pas couverte par updateUI() -- sans ca le titre reste affiche jusqu'a un F5 complet.
+  if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
+    const roomCourante = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+    if (roomCourante) renderPersonsList(roomCourante.persons || []);
+  }
 
   if (typeof sbSavePersonnage === 'function') {
     await sbSavePersonnage(state).catch(() => {});
