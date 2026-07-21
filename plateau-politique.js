@@ -2440,6 +2440,69 @@ function consulterAnnuaireDeputes() {
 // =====================
 
 // Vérifie si un PJ peut accepter ce poste (règles de cumul strict)
+async function getTitulairePosteNomme(posteId, city) {
+  if (typeof sbListPersonnages !== 'function') return null;
+  try {
+    const joueurs = await sbListPersonnages() || [];
+    const match = joueurs.find(j => {
+      let poste = j.poste;
+      if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
+      if (!poste || poste.id !== posteId) return false;
+      if (city && poste.city !== city) return false;
+      return true;
+    });
+    return match ? match.name : null;
+  } catch(e) { return null; }
+}
+
+async function ouvrirRevoquerPosteNomme(posteId) {
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+  if (!regle) return;
+  if (state.poste?.id !== regle.nommePar) {
+    showToast('Acces refuse', 'Seul(e) le/la ' + regle.nommePar + ' peut revoquer ce poste.', false);
+    return;
+  }
+
+  const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
+  const villeNom = villeCourante ? (WORLD[state.country]?.[villeCourante]?.name || villeCourante) : null;
+  const titulaire = await getTitulairePosteNomme(posteId, villeCourante);
+
+  document.getElementById('postes-modal-title').textContent = 'Revoquer le ' + regle.label.toLowerCase();
+  if (!titulaire) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;font-size:.85rem;color:#8a8060;font-style:italic">Aucun ' + regle.label.toLowerCase() + ' en poste actuellement' + (villeNom ? ' a ' + villeNom : '') + '.</div>';
+  } else {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem">' +
+      '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">' + titulaire + ' occupe actuellement le poste de ' + regle.label + (villeNom ? ' a ' + villeNom : '') + '.</div>' +
+      '<button onclick="confirmerRevocationPosteNomme(\'' + posteId + '\',\'' + titulaire.replace(/'/g,'') + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a2a;background:transparent;color:#c0503a;cursor:pointer">Revoquer</button>' +
+      '</div>';
+  }
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerRevocationPosteNomme(posteId, nomTitulaire) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+  if (!regle) return;
+
+  if (typeof sbUpdate === 'function') {
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomTitulaire)}`, { poste: null }).catch(() => {});
+  }
+
+  const revoqueurNom = state.char?.name || 'Anonyme';
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    await sbSendMail(revoqueurNom, nomTitulaire, 'Revocation de poste',
+      'Vous avez ete revoque(e) du poste de ' + regle.label + ' par ' + revoqueurNom + '.', time).catch(() => {});
+  }
+
+  const villeNom = regle.scope === 'ville' ? (WORLD[state.country]?.[state.currentCity]?.name || state.currentCity) : null;
+  addExternalEvent('🏛 ' + nomTitulaire + ' a ete revoque(e) du poste de ' + regle.label + (villeNom ? ' de ' + villeNom : '') + '.', villeNom ? 'local' : 'national');
+  addJournalEntry('Revocation de ' + nomTitulaire + ' du poste de ' + regle.label + '.', 'event-info');
+  showToast('Poste revoque', nomTitulaire + ' n\'occupe plus le poste de ' + regle.label + '.', true);
+}
+
 function peutAccepterPosteNomme(posteId) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return { ok: true };
@@ -3746,6 +3809,8 @@ function ouvrirModalNommerJuge() {
   ouvrirNominerPosteNomme('juge');
 }
 
+function ouvrirModalRevoquerJuge() { ouvrirRevoquerPosteNomme('juge'); }
+
 function ouvrirModalNommerCommissaire() {
   if (state.poste?.id !== 'maire') {
     showToast('Accès refusé', 'Seul le Maire peut nommer un commissaire.', false);
@@ -3753,6 +3818,8 @@ function ouvrirModalNommerCommissaire() {
   }
   ouvrirNominerPosteNomme('commissaire');
 }
+
+function ouvrirModalRevoquerCommissaire() { ouvrirRevoquerPosteNomme('commissaire'); }
 
 function ouvrirModalRenseignement() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }

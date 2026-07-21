@@ -239,7 +239,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gestion_qhs') { ouvrirGestionQHS(); return; }
   if (fn === 'annuler_poursuites') { ouvrirModalAffaires('annuler'); return; }
   if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
+  if (fn === 'revoquer_juge') { ouvrirModalRevoquerJuge(); return; }
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }
+  if (fn === 'revoquer_commissaire') { ouvrirModalRevoquerCommissaire(); return; }
   if (fn === 'censurer_media') { ouvrirModalMedia(); return; }
   if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
   if (fn === 'activer_cessez_le_feu') { ouvrirActiverCessezLeFeu(); return; }
