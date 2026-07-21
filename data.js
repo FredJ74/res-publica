@@ -1400,7 +1400,8 @@ const BUILDINGS = {
           {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'min_int', desc:'Choisir un type d\'intervention concrete (blocus, manifestation, quartier sensible).'},
           {fn:'traiter_manifestations', label:'Traiter les demandes de manifestation', pa:1, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'min_int', desc:'Autoriser ou interdire un rassemblement declare.'},
           {fn:'demandes_naturalisation', label:'Demandes de naturalisation', pa:0, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_int', desc:'Examiner les demandes de naturalisation en attente (delai 48h avant traitement possible).'},
-          {fn:'gerer_couvre_feu',    label:'Instaurer un couvre-feu',     pa:2, cost:0, type:'legal', icon:'ti-moon', successRate:100, requiresPost:'min_int', desc:'20h-6h, 2 jours maximum. Degrade IS et POP du gouvernement tant qu\'il dure.'}
+          {fn:'gerer_couvre_feu',    label:'Instaurer un couvre-feu',     pa:2, cost:0, type:'legal', icon:'ti-moon', successRate:100, requiresPost:'min_int', desc:'20h-6h, 2 jours maximum. Degrade IS et POP du gouvernement tant qu\'il dure.'},
+          {fn:'subvention_min_int',  label:'Allouer une subvention',      pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_int', desc:'Subventionner le commissariat de n\'importe quelle ville, ou le QHS, depuis la caisse du Ministere.'}
         ]
       },
       bureau_min_fin: {
@@ -2241,6 +2242,7 @@ const BUILDINGS = {
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'contester_resultats',   label:'Contester des resultats',       pa:2, cost:0, type:'legal', icon:'ti-alert-triangle', successRate:70, desc:'Deposer un recours dans le sous-forum Tribunal. Delai 48h. Decision du juge.'},
           {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'},
+          {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
           {fn:'revoquer_commissaire',   label:'Revoquer le commissaire',      pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste de commissaire au titulaire actuel de la ville.'}
         ]
       },
@@ -2614,6 +2616,7 @@ const BUILDINGS = {
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire', desc:'Valider ou refuser les permis de construire arrives a instruction terminee.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Preleve sur budget mairie.'},
           {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'},
+          {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
           {fn:'revoquer_commissaire',   label:'Revoquer le commissaire',      pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste de commissaire au titulaire actuel de la ville.'}
         ]
       }

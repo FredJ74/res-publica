@@ -2900,6 +2900,120 @@ function getBuildingIdCommissariat(ville) {
   return ville === 'capitale' ? 'commissariat' : 'commissariat-local';
 }
 
+function getBuildingIdCentreMultimodal(ville) {
+  const map = { 'port-sainte-marie': 'centre-multinodal-port-sainte-marie', 'montrouge': 'centre-multinodal-montrouge' };
+  return ville === 'capitale' ? 'centre-multinodal-luthecia' : (map[ville] || 'centre-multinodal-' + ville);
+}
+
+function getBuildingIdDispensaire(ville) {
+  return ville === 'capitale' ? 'dispensaire-public' : 'dispensaire-public-v';
+}
+
+function getBuildingIdTribunal(ville) {
+  return ville === 'capitale' ? 'tribunal' : 'tribunal-local';
+}
+
+// ---- FINANCEMENT COMMUNAL (Maire) : virement instantane depuis la caisse municipale ----
+async function ouvrirModalFinancerCommunal() {
+  if (state.poste?.id !== 'maire') {
+    showToast('Acces refuse', 'Reserve au Maire.', false);
+    return;
+  }
+  const ville = state.currentCity;
+  const budgetMuni = await chargerBudgetMunicipal();
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const options = [
+    { id: getBuildingIdCommissariat(ville), label: 'Commissariat' },
+    { id: getBuildingIdCentreMultimodal(ville), label: 'Centre Multimodal' },
+    { id: 'stade', label: 'Stade' },
+    { id: 'marche', label: 'Marche' },
+    { id: getBuildingIdDispensaire(ville), label: 'Dispensaire' },
+    { id: getBuildingIdTribunal(ville), label: 'Tribunal' }
+  ];
+
+  document.getElementById('postes-modal-title').textContent = 'Financer un batiment communal';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Caisse municipale disponible : <strong style="color:#C9A84C">' + (budgetMuni?.caisse || 0).toLocaleString('fr-FR') + ' ' + cur + '</strong></div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">BATIMENT</div>';
+  html += '<select id="financer-batiment-id" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
+  options.forEach(o => { html += '<option value="' + o.id + '">' + o.label + '</option>'; });
+  html += '</select>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MONTANT (' + cur + ')</div>';
+  html += '<input type="number" id="financer-montant" min="0" value="500" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem"/>';
+  html += '<button onclick="confirmerFinancementCommunal()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Virer les fonds</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerFinancementCommunal() {
+  const buildingId = document.getElementById('financer-batiment-id')?.value;
+  const montant = Math.max(0, parseInt(document.getElementById('financer-montant')?.value || '0'));
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!buildingId || montant <= 0) return;
+
+  const budgetMuni = await chargerBudgetMunicipal();
+  if (!budgetMuni || (budgetMuni.caisse || 0) < montant) {
+    showToast('Fonds insuffisants', 'La caisse municipale ne couvre pas ce montant.', false);
+    return;
+  }
+  budgetMuni.caisse -= montant;
+  if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(budgetMuni.key, budgetMuni).catch(() => {});
+  await crediterCaisseBatiment(state.country, buildingId, montant);
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  showToast('Virement effectue', montant.toLocaleString('fr-FR') + ' ' + cur + ' verses.', true, true);
+  addJournalEntry('Virement de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' de la caisse municipale vers ' + buildingId + '.', 'event-good');
+}
+
+// ---- SUBVENTION MINISTERIELLE (Ministre de l'Interieur) : commissariat de n'importe
+//      quelle ville + QHS, depuis la caisse du Ministere ----
+async function ouvrirModalFinancerMinInt() {
+  if (state.poste?.id !== 'min_int') {
+    showToast('Acces refuse', "Reserve au Ministre de l'Interieur.", false);
+    return;
+  }
+  const options = [
+    { id: 'commissariat', label: 'Commissariat de Luthecia' },
+    { id: 'commissariat-local', label: 'Commissariat (Port-Sainte-Marie / Montrouge)' },
+    { id: 'qhs', label: 'QHS' }
+  ];
+  const caisse = await chargerCaisseBatiment(state.country, 'gouvernement-min_int');
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  document.getElementById('postes-modal-title').textContent = 'Allouer une subvention';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Caisse du Ministere disponible : <strong style="color:#C9A84C">' + (caisse?.solde || 0).toLocaleString('fr-FR') + ' ' + cur + '</strong></div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION</div>';
+  html += '<select id="subvention-batiment-id" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
+  options.forEach(o => { html += '<option value="' + o.id + '">' + o.label + '</option>'; });
+  html += '</select>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MONTANT (' + cur + ')</div>';
+  html += '<input type="number" id="subvention-montant" min="0" value="500" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem"/>';
+  html += '<button onclick="confirmerSubventionMinInt()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Verser la subvention</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerSubventionMinInt() {
+  const buildingId = document.getElementById('subvention-batiment-id')?.value;
+  const montant = Math.max(0, parseInt(document.getElementById('subvention-montant')?.value || '0'));
+  document.getElementById('modal-postes').classList.remove('open');
+  if (!buildingId || montant <= 0) return;
+
+  const montantVerse = await debiterCaisseBatimentPlafonne(state.country, 'gouvernement-min_int', montant);
+  if (montantVerse <= 0) {
+    showToast('Fonds insuffisants', "La caisse du Ministere ne couvre pas ce montant.", false);
+    return;
+  }
+  await crediterCaisseBatiment(state.country, buildingId, montantVerse);
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  showToast('Subvention versee', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' verses.', true, true);
+  addJournalEntry('Subvention de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur + " du Ministere de l'Interieur vers " + buildingId + '.', 'event-good');
+}
+
 async function chargerNiveauPrison(pays, ville) {
   const key = pays + '_' + ville;
   if (typeof sbGetNiveauPrison !== 'function') return { key, niveau: 100 };

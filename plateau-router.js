@@ -196,6 +196,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_poison_vipere')    { doAcheterPoisonObjet('vipere'); return; }
   if (fn === 'officialiser_mariage') { ouvrirOfficialiserMariage(); return; }
   if (fn === 'gerer_couvre_feu') { ouvrirGererCouvreFeu(); return; }
+  if (fn === 'subvention_min_int') { ouvrirModalFinancerMinInt(); return; }
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
@@ -243,6 +244,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
   if (fn === 'revoquer_juge') { ouvrirModalRevoquerJuge(); return; }
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }
+  if (fn === 'financer_communal') { ouvrirModalFinancerCommunal(); return; }
   if (fn === 'revoquer_commissaire') { ouvrirModalRevoquerCommissaire(); return; }
   if (fn === 'censurer_media') { ouvrirModalMedia(); return; }
   if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
