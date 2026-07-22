@@ -460,7 +460,7 @@ async function sbGetEvenementsRecents(country, city) {
 // =====================
 // PRÉSENCE EN PIÈCE (multijoueur temps réel)
 // =====================
-async function sbUpdatePresence(name, country, city, buildingId, roomId) {
+async function sbUpdatePresence(name, country, city, buildingId, roomId, groupePnj) {
   if (!name) return;
   // Upsert — name est cle primaire, on remplace la ligne existante (sinon conflit silencieux)
   try {
@@ -469,6 +469,7 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId) {
       headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
       body: JSON.stringify({
         name, country, city, building_id: buildingId, room_id: roomId,
+        groupe_pnj: groupePnj || [],
         updated_at: new Date().toISOString()
       })
     });

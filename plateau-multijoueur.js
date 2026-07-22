@@ -325,17 +325,44 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
       '<div class="person-role">Présent ici</div></div></div>';
     }).join('');
 
+    // PNJ voyageant avec les autres joueurs presents (escorts, employes recrutes) --
+    // simple affichage, non interactifs, pour rendre visible ce qui ne l'etait pas.
+    const pnjDesAutres = [];
+    autres.forEach(p => {
+      (p.groupe_pnj || []).forEach(pnjInfo => {
+        pnjDesAutres.push({ nom: pnjInfo.nom, role: (pnjInfo.role || 'PNJ') + ' de ' + p.name });
+      });
+    });
+    window._pnjDesAutresJoueurs = pnjDesAutres;
+    const htmlPnjAutres = pnjDesAutres.map(p => {
+      return '<div class="person-card autre-groupe-card" style="border-left:2px solid #6a5a30" title="' + p.role + '">' +
+        '<div class="person-avatar" style="border-color:#6a5a30"><i class="ti ti-user" style="font-size:.75rem;color:#6a5a30"></i></div>' +
+        '<div><div class="person-name" style="color:#c0b090">' + p.nom + '</div>' +
+        '<div class="person-role">' + p.role + '</div></div></div>';
+    }).join('');
+
     // Retirer les anciennes cartes joueur avant d'inserer les nouvelles (evite les doublons au rafraichissement)
     const list0 = document.getElementById(targetId);
-    if (list0) list0.querySelectorAll('.vrai-joueur-card').forEach(el => el.remove());
+    if (list0) {
+      list0.querySelectorAll('.vrai-joueur-card').forEach(el => el.remove());
+      list0.querySelectorAll('.autre-groupe-card').forEach(el => el.remove());
+    }
 
-    if (html) {
+    const htmlTotal = html + htmlPnjAutres;
+    if (htmlTotal) {
       const list = document.getElementById(targetId);
       const empty = list.querySelector('.person-empty');
       if (empty) empty.remove();
-      list.insertAdjacentHTML('beforeend', html);
+      list.insertAdjacentHTML('beforeend', htmlTotal);
     }
   } catch(e) { console.warn('chargerVraisJoueursPresents error', e); }
+}
+
+function getMonGroupePNJ() {
+  const liste = [];
+  (state.escortActive || []).forEach(e => liste.push({ nom: e.nom, role: 'Escort' }));
+  (state.employes || []).filter(e => e.inGroupe).forEach(e => liste.push({ nom: e.nom, role: e.role || 'Employe' }));
+  return liste;
 }
 
 

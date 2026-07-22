@@ -350,7 +350,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
   setInterval(() => {
     if (typeof sbUpdatePresence === 'function' && state.char?.name && state.currentBuilding && state.currentRoom) {
-      sbUpdatePresence(state.char.name, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
+      sbUpdatePresence(state.char.name, state.country, state.currentCity, state.currentBuilding, state.currentRoom, typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : []).catch(() => {});
     }
     if (typeof chargerVraisJoueursPresents === 'function') chargerVraisJoueursPresents();
     if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
