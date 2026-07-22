@@ -821,6 +821,8 @@ async function doDormir() {
   if (typeof regenererGrillesPrison === 'function') regenererGrillesPrison(state.country, state.currentCity).catch(() => {});
   // Distribution quotidienne du budget municipal vers les vraies caisses des batiments communaux
   if (typeof distribuerBudgetMunicipalVersBatiments === 'function') distribuerBudgetMunicipalVersBatiments(state.country, state.currentCity).catch(() => {});
+  // Decroissance lente de la reputation criminelle si inactif
+  if (state.reputationCriminelle) state.reputationCriminelle = Math.max(0, state.reputationCriminelle - 1);
   updateUI(); // Rafraichir apres les bonus de location (INF/POP/DIS) appliques ci-dessus
 
   // Traiter les evenements nocturnes

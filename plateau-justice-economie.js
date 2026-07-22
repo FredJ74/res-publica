@@ -3309,6 +3309,94 @@ async function verifierSeuilsGrillePrison(pays, ville, niveau) {
 
 // Fonction generique et reutilisable : affiche le solde de la caisse d'un batiment
 // public quelconque. Utilisable pour n'importe quel batiment ayant une caisse.
+// ---- REPUTATION CRIMINELLE ----
+function getPalierCriminel(rep) {
+  if (rep >= 70) return { label: 'Parrain', bonus: 15 };
+  if (rep >= 40) return { label: 'Caid', bonus: 10 };
+  if (rep >= 20) return { label: 'Malfaiteur reconnu', bonus: 5 };
+  return { label: 'Petit delinquant', bonus: 0 };
+}
+
+function getBonusReputationCriminelle() {
+  return getPalierCriminel(state.reputationCriminelle || 0).bonus;
+}
+
+function augmenterReputationCriminelle(montant) {
+  const avant = getPalierCriminel(state.reputationCriminelle || 0).label;
+  state.reputationCriminelle = Math.max(0, Math.min(100, (state.reputationCriminelle || 0) + montant));
+  const apres = getPalierCriminel(state.reputationCriminelle).label;
+  if (apres !== avant) {
+    showToast('Reputation criminelle', 'Vous etes desormais considere(e) comme : ' + apres + '.', true);
+  }
+}
+
+// ---- CAMBRIOLAGE DE CAISSE (generique, reutilisable pour n'importe quel batiment) ----
+function doCambriolerCaisse(buildingId, buildingLabel) {
+  document.getElementById('postes-modal-title').textContent = 'Cambrioler la caisse — ' + buildingLabel;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.82rem;color:#a09060;margin-bottom:1rem">Tentative risquee et difficile. En cas d echec critique, vous serez demasque(e) immediatement.</div>' +
+    '<button onclick="confirmerCambriolerCaisse(\'' + buildingId + '\',\'' + buildingLabel.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Tenter le cambriolage</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const pays = state.country;
+  const dup = state.char?.stats?.DUP || 8;
+  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
+  const bonusReputation = getBonusReputationCriminelle();
+
+  let taux = 20 + (dup - 10) * 2 - (isEmpire - 45) / 3 + bonusReputation;
+  taux = Math.max(5, Math.min(60, Math.round(taux)));
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, buildingId) : { solde: 0 };
+    const pct = 0.10 + Math.random() * 0.15;
+    const montantVole = Math.floor((caisse?.solde || 0) * pct);
+    if (montantVole <= 0) {
+      showToast('Caisse vide', "Il n'y avait rien a voler.", false);
+      return;
+    }
+    if (typeof debiterCaisseBatimentPlafonne === 'function') await debiterCaisseBatimentPlafonne(pays, buildingId, montantVole);
+    state.arg = (state.arg || 0) + montantVole;
+    augmenterReputationCriminelle(8);
+    updateUI();
+    showToast('Cambriolage reussi !', '+' + montantVole.toLocaleString('fr-FR') + ' FR voles dans la caisse.', true, true);
+    addJournalEntry('Cambriolage reussi contre la caisse du ' + buildingLabel + '. +' + montantVole.toLocaleString('fr-FR') + ' FR.', 'event-good');
+    return;
+  }
+
+  const critique = (Math.floor(Math.random() * 100) + 1) <= 25;
+  if (critique) {
+    if (!state.recherche) state.recherche = [];
+    state.recherche.push({ acte: 'cambriolage_caisse', type: 'delit_grave', jour: state.day || 1 });
+    addExternalEvent((state.char?.name || 'Quelqu\'un') + ' a ete pris en flagrant delit de tentative de vol dans la caisse du ' + buildingLabel + ' !', 'local');
+    addJournalEntry('Cambriolage rate et decouvert immediatement. Avis de recherche emis contre vous.', 'event-bad');
+    showToast('Demasque !', 'Vous avez ete pris en flagrant delit. Avis de recherche emis.', false);
+  } else {
+    if (typeof sbTracerAction === 'function') {
+      await sbTracerAction({
+        id: 'cambriolage-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        auteur: state.char?.name, cible: null, type_action: 'cambriolage_caisse',
+        country: pays, city: state.currentCity,
+        jour: state.day || 1, jour_expiration: (state.day || 1) + 15
+      }).catch(() => {});
+    }
+    addExternalEvent("Quelqu'un a tente de voler dans la caisse du " + buildingLabel + ', sans succes.', 'local');
+    addJournalEntry('Cambriolage rate contre la caisse du ' + buildingLabel + '.', 'event-info');
+    showToast('Cambriolage echoue', "Vous avez echappe a la detection pour l'instant.", false);
+  }
+}
+
+function doCambriolerCaisseCommissariat() {
+  const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(state.currentCity) : 'commissariat';
+  doCambriolerCaisse(buildingId, 'Commissariat');
+}
+
 async function doConsulterCaisseBatimentGenerique(buildingId, buildingLabel) {
   const pays = state.country;
   const cur = COUNTRIES[pays]?.cur || 'FR';
