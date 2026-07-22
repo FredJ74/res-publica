@@ -325,10 +325,17 @@ function ouvrirTableauOrganisations() {
       parEmpire[emp].forEach(o => {
         const typeDef = TYPES_ORGANISATIONS[o.type] || {};
         const typeLabel = typeDef.label || o.type;
-        const buildingId = (o.localId || '').split(':')[0];
-        const roomId = (o.localId || '').split(':')[1];
-        const buildingNom = BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId || 'Siège inconnu';
-        const roomNom = BUILDINGS[buildingId]?.rooms?.[roomId]?.name || '';
+        let buildingNom, roomNom;
+        if (o.type === 'supporters') {
+          const villeCtx = WORLD[o.country_origine || o.country]?.[o.city]?.buildingContext?.['stade'];
+          buildingNom = BUILDINGS['stade']?.shortName || BUILDINGS['stade']?.name || 'Stade';
+          roomNom = villeCtx?.roomOverrides?.siege_supporters?.name || BUILDINGS['stade']?.rooms?.siege_supporters?.name || 'Siège des Supporters';
+        } else {
+          const buildingId = (o.localId || '').split(':')[0];
+          const roomId = (o.localId || '').split(':')[1];
+          buildingNom = BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId || 'Siège inconnu';
+          roomNom = BUILDINGS[buildingId]?.rooms?.[roomId]?.name || '';
+        }
         html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.5rem">' +
           '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
           '<span style="font-family:Playfair Display,serif;font-size:.95rem;color:#e0d5b8">' + o.nom + (o.visible ? '' : ' 🔒') + '</span>' +
