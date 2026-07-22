@@ -330,13 +330,16 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
     const pnjDesAutres = [];
     autres.forEach(p => {
       (p.groupe_pnj || []).forEach(pnjInfo => {
-        pnjDesAutres.push({ nom: pnjInfo.nom, role: (pnjInfo.role || 'PNJ') + ' de ' + p.name });
+        pnjDesAutres.push({ nom: pnjInfo.nom, role: (pnjInfo.role || 'PNJ') + ' de ' + p.name, photoUrl: pnjInfo.photoUrl || null });
       });
     });
     window._pnjDesAutresJoueurs = pnjDesAutres;
-    const htmlPnjAutres = pnjDesAutres.map(p => {
-      return '<div class="person-card autre-groupe-card" style="border-left:2px solid #6a5a30" title="' + p.role + '">' +
-        '<div class="person-avatar" style="border-color:#6a5a30"><i class="ti ti-user" style="font-size:.75rem;color:#6a5a30"></i></div>' +
+    const htmlPnjAutres = pnjDesAutres.map((p, idx) => {
+      const avatarHtmlAutre = p.photoUrl
+        ? '<div class="person-avatar" style="overflow:hidden;border-color:#6a5a30"><img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover"/></div>'
+        : '<div class="person-avatar" style="border-color:#6a5a30"><i class="ti ti-user" style="font-size:.75rem;color:#6a5a30"></i></div>';
+      return '<div class="person-card autre-groupe-card" onclick="ouvrirFichePnjAutreJoueur(' + idx + ')" style="border-left:2px solid #6a5a30" title="' + p.role + '">' +
+        avatarHtmlAutre +
         '<div><div class="person-name" style="color:#c0b090">' + p.nom + '</div>' +
         '<div class="person-role">' + p.role + '</div></div></div>';
     }).join('');
@@ -358,19 +361,41 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
   } catch(e) { console.warn('chargerVraisJoueursPresents error', e); }
 }
 
+function ouvrirFichePnjAutreJoueur(idx) {
+  const p = (window._pnjDesAutresJoueurs || [])[idx];
+  if (!p) return;
+  document.getElementById('pnj-modal-title').textContent = p.nom;
+  const avatarEl = document.getElementById('pnj-avatar-container');
+  if (avatarEl) {
+    avatarEl.innerHTML = p.photoUrl
+      ? '<img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'
+      : '<i class="ti ti-user" style="font-size:2rem"></i>';
+  }
+  const roleEl = document.getElementById('pnj-role-display');
+  if (roleEl) roleEl.textContent = p.role;
+  const traitEl = document.getElementById('pnj-trait-display');
+  if (traitEl) traitEl.textContent = '';
+  const speech = document.getElementById('pnj-speech');
+  if (speech) speech.textContent = "Personnage accompagnant un autre joueur. Aucune interaction directe possible.";
+  const actionsEl = document.getElementById('pnj-actions');
+  if (actionsEl) actionsEl.innerHTML = '';
+  document.getElementById('modal-pnj').classList.add('open');
+}
+
 function getMonGroupePNJ() {
   const liste = [];
-  (state.escortActive || []).forEach(e => liste.push({ nom: e.nom, role: 'Escort' }));
-  (state.employes || []).filter(e => e.inGroupe).forEach(e => liste.push({ nom: e.nom, role: e.role || 'Employe' }));
+  (state.escortActive || []).forEach(e => liste.push({ nom: e.nom, role: 'Escort', photoUrl: e.photoUrl || null }));
+  (state.employes || []).filter(e => e.inGroupe).forEach(e => liste.push({ nom: e.nom, role: e.role || 'Employe', photoUrl: e.photoUrl || null }));
   return liste;
 }
 
 
 // ROXANNE VELOURS — Recrutement escort
 // =====================
-function ouvrirRecrutementEscort(nomEscort, genre) {
+function ouvrirRecrutementEscort(nomEscort, genre, photoUrl) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const tarifJour = 800;
+  window._photoEscortEnAttente = photoUrl || null;
 
   document.getElementById('modal-pnj').classList.remove('open');
   document.getElementById('postes-modal-title').textContent = '💋 ' + nomEscort;
@@ -426,7 +451,7 @@ async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
   if (!state.group.members.includes(nomEscort)) state.group.members.push(nomEscort);
 
   if (!state.escortActive) state.escortActive = [];
-  state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1, genre, palier: 0 });
+  state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1, genre, palier: 0, photoUrl: window._photoEscortEnAttente || null });
 
   // Banque de photos Agence Roxane Velours (independante du prenom, tiree au hasard par genre)
   const PHOTOS_ESCORT = {

@@ -221,7 +221,7 @@ function openPnjModal(encodedPnj) {
     if (escortActiveInfo) {
       actionBtns += '<button class="pnj-action-btn" onclick="confirmerRenvoyerEscort(\'' + escortNom + '\')"><i class="ti ti-heart-off" style="font-size:.85rem"></i> Renvoyer</button>';
     } else {
-      actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\',\'' + escortGenre + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort (800 FR/j)</button>';
+      actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\',\'' + escortGenre + '\',\'' + (pnj.photoUrl || '') + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort (800 FR/j)</button>';
     }
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalFabriquerKompromat(\'' + escortNom + '\')"><i class="ti ti-file-shredder" style="font-size:.85rem"></i> Fabriquer un kompromat (300 FR)</button>';
     actionBtns += '<button class="pnj-action-btn" style="color:#cc6699;border-color:#4a1a30" onclick="ouvrirModalFaireLAmour(\'' + escortNom + '\')"><i class="ti ti-heart-filled" style="font-size:.85rem"></i> Faire l\'amour</button>';
