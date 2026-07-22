@@ -354,6 +354,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     if (typeof chargerVraisJoueursPresents === 'function') chargerVraisJoueursPresents();
     if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
+    // Sauvegarde automatique periodique -- filet de securite pour rattraper tout gain
+    // (INF, HP, etc.) qu'une fonction particuliere aurait omis de sauvegarder elle-meme.
+    if (typeof sbSavePersonnage === 'function' && state.char?.name) {
+      sbSavePersonnage(state).catch(() => {});
+    }
   }, 30000);
   if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
 
