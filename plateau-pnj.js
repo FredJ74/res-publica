@@ -687,7 +687,10 @@ const CONFIG_INVITATIONS_SOCIALES = {
 function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
   const cfg = CONFIG_INVITATIONS_SOCIALES[type];
   if (!cfg) return;
-  const presents = (window._vraisJoueursPresents || []).filter(p => p.name !== state.char?.name);
+  const presentsPJ = (window._vraisJoueursPresents || []).filter(p => p.name !== state.char?.name).map(p => ({ name: p.name, isPJ: true }));
+  const roomActuelle = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const presentsPNJ = (roomActuelle?.persons || []).filter(p => !p.isPJ).map(p => ({ name: p.name.replace(' (PNJ)', ''), isPJ: false }));
+  const presents = [...presentsPJ, ...presentsPNJ];
   if (presents.length === 0) {
     showToast('Personne à inviter', 'Aucun autre joueur n\'est présent dans cette pièce pour l\'instant.', false);
     return;
@@ -702,7 +705,7 @@ function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
     '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisissez un joueur présent. Le coût n\'est prélevé que s\'il accepte.</div>' +
     '<textarea id="invitation-message-input" placeholder="Message facultatif..." maxlength="200" style="width:100%;min-height:3.5rem;margin-bottom:.7rem;background:#0a0805;border:1px solid #2a2010;color:#c0b090;font-size:.78rem;padding:.4rem;resize:vertical"></textarea>' +
     presents.map(p =>
-      '<div onclick="envoyerInvitationSociale(\'' + type + '\',\'' + p.name.replace(/'/g,'') + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+      '<div onclick="envoyerInvitationSociale(\'' + type + '\',\'' + p.name.replace(/'/g,'') + '\',' + pa + ',' + cost + ',' + (p.isPJ ? 'true' : 'false') + ')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
         '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20"></i>' +
         '<div><div style="font-size:.82rem;color:#c0b090">' + p.name + '</div></div>' +
       '</div>'
@@ -711,9 +714,35 @@ function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function envoyerInvitationSociale(type, nomInvite, pa, cost) {
+async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
   const messageEnvoye = (document.getElementById("invitation-message-input")?.value || "").trim().slice(0, 200);
   document.getElementById('modal-postes').classList.remove('open');
+  const cfgPnj = CONFIG_INVITATIONS_SOCIALES[type] || {};
+
+  if (!estPJ) {
+    if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' FR requis.', false); return; }
+    const roomActuelle2 = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+    const pnjInfo = (roomActuelle2?.persons || []).find(pp => pp.name.replace(' (PNJ)', '') === nomInvite);
+    const rel = pnjInfo?.rel || 'neutral';
+    const chance = rel === 'ally' ? 85 : rel === 'enemy' ? 20 : 60;
+    const roll = Math.floor(Math.random() * 100) + 1;
+    if (roll <= chance) {
+      state.arg -= cost;
+      if (cfgPnj.hp) state.hp = Math.min(100, (state.hp || 0) + cfgPnj.hp);
+      if (cfgPnj.inf) state.inf = Math.min(100, (state.inf || 0) + cfgPnj.inf);
+      if (cfgPnj.ent && state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + cfgPnj.ent;
+      if (cfgPnj.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + cfgPnj.paDiffere;
+      updateUI();
+      showToast('Invitation acceptée !', nomInvite + ' a accepté votre invitation à ' + cfgPnj.verbe + '. -' + cost + ' FR.', true, true);
+      addJournalEntry('Invitation à ' + cfgPnj.verbe + ' avec ' + nomInvite + ' : acceptée. -' + cost + ' FR.', 'event-good');
+      if (typeof advanceTime === 'function') advanceTime(Math.max(0, pa || 0));
+    } else {
+      showToast('Invitation refusée', nomInvite + ' a décliné votre invitation.', false);
+      addJournalEntry('Invitation à ' + cfgPnj.verbe + ' avec ' + nomInvite + ' : refusée.', 'event-info');
+    }
+    return;
+  }
+
   if (typeof sbCreerInvitationDiner !== 'function') return;
   await sbCreerInvitationDiner(state.char?.name, nomInvite, state.country, state.currentCity, state.currentBuilding, state.currentRoom, cost, type, messageEnvoye).catch(() => {});
   state._invitationSocialeEnAttente = {
