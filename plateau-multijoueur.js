@@ -115,7 +115,10 @@ function appliquerRemplacantesEscort(persons) {
   });
 }
 
-const POSTES_UNIQUES_A_MASQUER = ['president','pm','maire','min_int','min_fin','min_just','min_def','min_info','min_ae','juge','commissaire','commandant'];
+const POSTES_UNIQUES_A_MASQUER = ['president','pm','maire','min_int','min_fin','min_just','min_def','min_info','min_ae'];
+// Note : commissaire/juge/commandant sont volontairement exclus -- ces PNJ restent affiches
+// en permanence pour l'ambiance du plateau, puisqu'aucune prerogative de jeu n'est encore
+// codee sur ces postes (a construire plus tard).
 
 function filtrerPnjPostesPourvus(persons) {
   const cache = window._titulairesPostes || {};
