@@ -389,7 +389,7 @@ async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
   if (!state.group.members.includes(nomEscort)) state.group.members.push(nomEscort);
 
   if (!state.escortActive) state.escortActive = [];
-  state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1, genre });
+  state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1, genre, palier: 0 });
 
   // Banque de photos Agence Roxane Velours (independante du prenom, tiree au hasard par genre)
   const PHOTOS_ESCORT = {

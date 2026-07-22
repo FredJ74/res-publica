@@ -217,8 +217,19 @@ function openPnjModal(encodedPnj) {
   if (pnj.job === 'escort') {
     const escortNom = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
     const escortGenre = pnj.genre || 'F';
+    const escortActiveInfo = (state.escortActive || []).find(e => e.nom === escortNom);
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\',\'' + escortGenre + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort (800 FR/j)</button>';
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalFabriquerKompromat(\'' + escortNom + '\')"><i class="ti ti-file-shredder" style="font-size:.85rem"></i> Fabriquer un kompromat (300 FR)</button>';
+    if (escortActiveInfo) {
+      const palierActuel = escortActiveInfo.palier || 0;
+      if (palierActuel === 0) {
+        actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalEtapeEscort(\'' + escortNom + '\',1)"><i class="ti ti-glass" style="font-size:.85rem"></i> Offrir un verre (100 FR)</button>';
+      } else if (palierActuel === 1) {
+        actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalEtapeEscort(\'' + escortNom + '\',2)"><i class="ti ti-toque" style="font-size:.85rem"></i> Inviter a diner (300 FR)</button>';
+      } else if (palierActuel === 2) {
+        actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalEtapeEscort(\'' + escortNom + '\',3)"><i class="ti ti-beach" style="font-size:.85rem"></i> Emmener voir la mer a Port-Sainte-Marie (600 FR)</button>';
+      }
+    }
     actionBtns += '<button class="pnj-action-btn" style="color:#cc6699;border-color:#4a1a30" onclick="ouvrirModalFaireLAmour(\'' + escortNom + '\')"><i class="ti ti-heart-filled" style="font-size:.85rem"></i> Faire l\'amour (300 FR)</button>';
   }
 
@@ -885,6 +896,47 @@ Génère UNE révélation compromettante, parodique et drôle (2 phrases max). S
   }
 }
 
+const ETAPES_ESCORT = {
+  1: { label: 'Offrir un verre', cost: 100, desc: "Vous invitez a boire un verre. Premiere marque d'attention." },
+  2: { label: 'Inviter a diner', cost: 300, desc: 'Un diner en tete-a-tete. La complicite grandit.' },
+  3: { label: 'Emmener voir la mer a Port-Sainte-Marie', cost: 600, desc: 'Une escapade qui sort du cadre habituel. Un vrai geste.' }
+};
+
+function ouvrirModalEtapeEscort(nomEscort, palierVise) {
+  const etape = ETAPES_ESCORT[palierVise];
+  if (!etape) return;
+  const co = COUNTRIES[state.country];
+  const cur = co?.cur || 'FR';
+  if (state.arg < etape.cost) { showToast('Fonds insuffisants', etape.cost + ' ' + cur + ' requis.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = etape.label + ' — ' + nomEscort;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.82rem;color:#a09060;margin-bottom:1rem">' + etape.desc + ' Cout : ' + etape.cost + ' ' + cur + '.</div>' +
+    '<button onclick="confirmerEtapeEscort(\'' + nomEscort.replace(/'/g,'') + '\',' + palierVise + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Confirmer</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerEtapeEscort(nomEscort, palierVise) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const etape = ETAPES_ESCORT[palierVise];
+  if (!etape) return;
+  const co = COUNTRIES[state.country];
+  const cur = co?.cur || 'FR';
+  if (state.arg < etape.cost) { showToast('Fonds insuffisants', etape.cost + ' ' + cur + ' requis.', false); return; }
+  state.arg -= etape.cost;
+
+  const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
+  if (escortInfo) escortInfo.palier = palierVise;
+  updateUI();
+
+  const petitsNoms = ['', 'grand fou', 'mon merveilleux amant', 'cheri(e)'];
+  const nouveauPetitNom = petitsNoms[palierVise];
+  showToast(etape.label + ' reussi', nomEscort + ' vous appelle desormais "' + nouveauPetitNom + '".', true, true);
+  addJournalEntry(etape.label + ' avec ' + nomEscort + '. -' + etape.cost + ' ' + cur + '. Complicite accrue.', 'event-good');
+}
+
 function ouvrirModalFaireLAmour(nomEscort) {
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
@@ -908,18 +960,35 @@ async function confirmerFaireLAmour(nomEscort) {
   if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   state.arg -= cost;
 
-  state.moral = Math.min(100, (state.moral || 0) + 15);
-  state.hp = Math.min(100, (state.hp || 0) + 5);
-  if (state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + 2;
+  const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
+  const palierActuel = escortInfo?.palier || 0;
+  const bonusParPalier = [
+    { moral: 15, hp: 5,  ent: 2 },
+    { moral: 18, hp: 6,  ent: 2 },
+    { moral: 22, hp: 7,  ent: 3 },
+    { moral: 28, hp: 10, ent: 4 }
+  ];
+  const bonus = bonusParPalier[palierActuel];
 
-  const prompt = `Tu es le narrateur de Res Publica, jeu politique parodique et satirique. Le joueur vient de passer un moment intime avec ${nomEscort}, une escort de l'Agence Roxane Velours. Rédige UN court récit (2-3 phrases max) qui flatte et valorise le joueur, lui donnant un sentiment de plénitude et de supériorité — mais glisse à la toute fin un doute subtil sur l'authenticité du plaisir ressenti par l'escort (professionnelle avant tout). Ton élégant, un peu ironique, jamais vulgaire ni explicite. Réponds en texte brut uniquement, sans markdown (pas de #, pas de **).`;
+  state.moral = Math.min(100, (state.moral || 0) + bonus.moral);
+  state.hp = Math.min(100, (state.hp || 0) + bonus.hp);
+  if (state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + bonus.ent;
+
+  const petitsNoms = ['Monsieur ou Madame', 'grand fou', 'mon merveilleux amant', 'cheri(e)'];
+  const petitNomActuel = petitsNoms[palierActuel];
+  const longueurParPalier = ['2-3 phrases', '3-4 phrases', '4-5 phrases', '5-6 phrases, ton plus passionne et intime'];
+  const longueurVisee = longueurParPalier[palierActuel];
+  const maxTokensParPalier = [150, 180, 220, 260];
+  const maxTokensVise = maxTokensParPalier[palierActuel];
+
+  const prompt = 'Tu es le narrateur de Res Publica, jeu politique parodique et satirique. Le joueur vient de passer un moment intime avec ' + nomEscort + ", une escort de l'Agence Roxane Velours. La complicite entre eux a atteint un palier ou elle l'appelle desormais " + petitNomActuel + '. Redige UN recit (' + longueurVisee + ') qui flatte et valorise le joueur, lui donnant un sentiment de plenitude et de superiorite, integrant naturellement ce petit nom dans le dialogue, mais glisse a la toute fin un doute subtil sur l authenticite du plaisir ressenti par l escort (professionnelle avant tout). Ton elegant, un peu ironique, jamais vulgaire ni explicite. Reponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
 
   let recit = 'Vous passez un moment agréable avec ' + nomEscort + '.';
   try {
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 150, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: maxTokensVise, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await resp.json();
     recit = data.content?.[0]?.text?.trim() || recit;
@@ -933,7 +1002,7 @@ async function confirmerFaireLAmour(nomEscort) {
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  addJournalEntry('Moment privé avec ' + nomEscort + '. +15 Moral, +5 Santé, +2 ENT. -' + cost + ' ' + cur + '.', 'event-good');
+  addJournalEntry('Moment privé avec ' + nomEscort + '. +' + bonus.moral + ' Moral, +' + bonus.hp + ' Santé, +' + bonus.ent + ' ENT. -' + cost + ' ' + cur + '.', 'event-good');
 
   if (typeof tracerActionPourRumeur === 'function') {
     tracerActionPourRumeur('nuit_escort', null);
