@@ -137,7 +137,7 @@ const WORLD = {
         'commissariat': {
           name: "Commissariat Central de Luthecia",
           desc: "Raoul Toufaud pointe toujours dans la mauvaise direction.",
-          persons: [{"name": "Raoul Toufaud (PNJ)", "role": "Commissaire Central", "rel": "neutral", "job": "commissaire", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-raoul-toufaud.png", "photoPos": "50% 15%"}, {"name": "Brigitte Menottes (PNJ)", "role": "Inspectrice", "rel": "neutral", "job": "inspecteur", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-brigitte-menottes.png", "photoPos": "50% 10%"}]
+          persons: [{"name": "Gardien de la Paix (PNJ)", "role": "Agent d'accueil", "rel": "neutral", "job": "gardien_paix", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-gardien-paix.png", "photoPos": "50% 15%"}]
         },
         'tribunal': {
           name: "Tribunal de Luthecia",
@@ -1930,12 +1930,11 @@ const BUILDINGS = {
         desc: "L'accueil du commissariat. Atmosphere froide et surveillee.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-accueil.png",
         persons: [
-          {name:'Raoul Toufaud (PNJ)', role:'Commissaire Central', rel:'neutral', job:'commissaire', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-raoul-toufaud.png', photoPos:'50% 15%'},
-          {name:'Brigitte Menottes (PNJ)', role:'Inspectrice', rel:'neutral', job:'inspecteur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-brigitte-menottes.png', photoPos:'50% 10%'}
+          {name:'Gardien de la Paix (PNJ)', role:'Agent d\'accueil', rel:'neutral', job:'gardien_paix', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-gardien-paix.png', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Contre une personne identifiee ou contre X. Reponse sous 24h.'},
-          {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:95,  desc:'Succes (95%) : liste des personnes emprisonnees les 30 derniers jours.'},
+          {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Registre des detentions passees et en cours, consultable par tous.'},
           {fn:'arreter',          label:"Faire arreter quelqu'un",pa:3, cost:500, type:'illegal', icon:'ti-handcuffs', successRate:50,  desc:'Necessite un dossier. Mise en garde a vue 24h.'},
           {fn:'se_justifier',     label:'Se justifier (convocation)', pa:2, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation recue par mail. Leve l\'avis de recherche associe.'}
         ]
@@ -1952,6 +1951,20 @@ const BUILDINGS = {
           {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},
           {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:15,  desc:'Tres risque. Succes : liberte. Echec : transferement en prison.'}
+        ]
+      },
+      bureau_commissaire: {
+        name: "Bureau du Commissaire",
+        desc: "Dossiers, rapports de filature et avis de recherche s'y accumulent. Acces reserve.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-bureau-commissaire.png",
+        persons: [
+          {name:'Raoul Toufaud (PNJ)', role:'Commissaire Central', rel:'neutral', job:'commissaire', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-raoul-toufaud.png', photoPos:'50% 15%'},
+          {name:'Brigitte Menottes (PNJ)', role:'Inspectrice', rel:'neutral', job:'inspecteur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-brigitte-menottes.png', photoPos:'50% 10%'}
+        ],
+        orders: [
+          {fn:'mener_enquete',          label:"Mener l'enquete",             pa:2, cost:250, type:'legal', icon:'ti-search',       successRate:35,  requiresPost:'commissaire', desc:"Enqueter sur une personne ou un lieu suite a une plainte deposee. Taux ajuste par PER, influence et securite locale."},
+          {fn:'organiser_filature',     label:'Organiser une filature',       pa:2, cost:150, type:'legal', icon:'ti-eye',          successRate:50,  requiresPost:'commissaire', desc:"Obtenir un rapport des deplacements d'un PJ sur les dernieres 24h."},
+          {fn:'organiser_chasse_homme', label:"Organiser une chasse a l'homme", pa:3, cost:300, type:'legal', icon:'ti-target-arrow', successRate:100, requiresPost:'commissaire', desc:'Localiser et arreter un PJ recherche.'}
         ]
       }
     }
