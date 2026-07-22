@@ -690,7 +690,11 @@ function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
   const presentsPJ = (window._vraisJoueursPresents || []).filter(p => p.name !== state.char?.name).map(p => ({ name: p.name, isPJ: true }));
   const roomActuelle = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const presentsPNJ = (roomActuelle?.persons || []).filter(p => !p.isPJ).map(p => ({ name: p.name.replace(' (PNJ)', ''), isPJ: false }));
-  const presents = [...presentsPJ, ...presentsPNJ];
+  const monGroupePNJ = typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : [];
+  const presentsMonGroupe = monGroupePNJ
+    .filter(g => !presentsPNJ.some(pp => pp.name === g.nom))
+    .map(g => ({ name: g.nom, isPJ: false }));
+  const presents = [...presentsPJ, ...presentsPNJ, ...presentsMonGroupe];
   if (presents.length === 0) {
     showToast('Personne à inviter', 'Aucun autre joueur n\'est présent dans cette pièce pour l\'instant.', false);
     return;
