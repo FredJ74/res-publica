@@ -773,6 +773,7 @@ async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
     country: state.country, city: state.currentCity,
     buildingId: state.currentBuilding, roomId: state.currentRoom
   };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
   const cfg = CONFIG_INVITATIONS_SOCIALES[type] || {};
   showToast('Invitation envoyée', 'En attente de la réponse de ' + nomInvite + '...', true);
   addJournalEntry('Invitation à ' + (cfg.verbe || type) + ' envoyée à ' + nomInvite + '.', 'event-info');
@@ -782,11 +783,12 @@ async function verifierReponseInvitationSociale() {
   if (!state._invitationSocialeEnAttente || !state.char?.name) return;
   const infos = state._invitationSocialeEnAttente;
   const cfg = CONFIG_INVITATIONS_SOCIALES[infos.type];
-  if (!cfg) { state._invitationSocialeEnAttente = null; return; }
+  if (!cfg) { state._invitationSocialeEnAttente = null; if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {}); return; }
 
   // Invitation caduque si l'inviteur (nous-meme) a quitte la piece d'origine
   if (state.currentBuilding !== infos.buildingId || state.currentRoom !== infos.roomId) {
     state._invitationSocialeEnAttente = null;
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
     return;
   }
 
@@ -819,6 +821,7 @@ async function verifierReponseInvitationSociale() {
 
     if (typeof sbSupprimerInvitationDiner === 'function') sbSupprimerInvitationDiner(ligne.id).catch(() => {});
     state._invitationSocialeEnAttente = null;
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
     updateUI();
   } catch(e) {}
 }

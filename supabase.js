@@ -90,6 +90,7 @@ async function sbSavePersonnage(charState) {
     recherche:        charState.recherche || [],
     reputation_criminelle: charState.reputationCriminelle || 0,
     salutations_du_jour: charState.salutationsDuJour || null,
+    invitation_sociale_en_attente: charState._invitationSocialeEnAttente || null,
     convocations:     charState.convocations || [],
     est_emprisonne:   charState.estEmprisonne || null,
     motto:            charState.char?.motto || null,
@@ -148,6 +149,7 @@ async function sbLoadPersonnage(name) {
     recherche:     r.recherche || [],
     reputationCriminelle: r.reputation_criminelle || 0,
     salutationsDuJour: r.salutations_du_jour || null,
+    _invitationSocialeEnAttente: r.invitation_sociale_en_attente || null,
     convocations:  r.convocations || [],
     estEmprisonne: r.est_emprisonne || null
   };
