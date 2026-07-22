@@ -297,6 +297,53 @@ async function remettreRecompenseQuete(quete) {
 }
 
 
+// Affiche le tableau de toutes les organisations connues, groupees par empire,
+// avec leur siege (batiment + salle). Respecte le secret des organisations non
+// visibles, sauf pour celles dont le joueur est lui-meme membre.
+function ouvrirTableauOrganisations() {
+  const toutes = state.organisations || [];
+  const suisMembreDe = (o) => (o.membres || []).some(m => m.nom === state.char?.name);
+  const visibles = toutes.filter(o => o.visible || suisMembreDe(o));
+
+  const parEmpire = {};
+  visibles.forEach(o => {
+    const emp = o.country_origine || o.country || 'republic';
+    if (!parEmpire[emp]) parEmpire[emp] = [];
+    parEmpire[emp].push(o);
+  });
+
+  document.getElementById('postes-modal-title').textContent = 'Tableau des organisations';
+  let html = '<div style="padding:1rem">';
+
+  const empireIds = Object.keys(parEmpire);
+  if (empireIds.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune organisation connue pour l\'instant.</div>';
+  } else {
+    empireIds.forEach(emp => {
+      const empireNom = COUNTRIES[emp]?.n || emp;
+      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.12em;color:#C9A84C;margin:.8rem 0 .5rem;border-bottom:1px solid #2a2010;padding-bottom:.3rem">' + empireNom + '</div>';
+      parEmpire[emp].forEach(o => {
+        const typeDef = TYPES_ORGANISATIONS[o.type] || {};
+        const typeLabel = typeDef.label || o.type;
+        const buildingId = (o.localId || '').split(':')[0];
+        const roomId = (o.localId || '').split(':')[1];
+        const buildingNom = BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId || 'Siège inconnu';
+        const roomNom = BUILDINGS[buildingId]?.rooms?.[roomId]?.name || '';
+        html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.5rem">' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+          '<span style="font-family:Playfair Display,serif;font-size:.95rem;color:#e0d5b8">' + o.nom + (o.visible ? '' : ' 🔒') + '</span>' +
+          '<span style="font-size:.7rem;color:#8a6a20">' + typeLabel + '</span>' +
+          '</div>' +
+          '<div style="font-size:.75rem;color:#8a8060;margin-top:.2rem">Chef : ' + (o.chef || o.fondateur || '?') + ' · Siège : ' + buildingNom + (roomNom ? ' (' + roomNom + ')' : '') + '</div>' +
+          '</div>';
+      });
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 function getMesOrgasPays(country) {
   return (state.organisations || []).filter(o => o.country_origine === (country || state.country));
 }
