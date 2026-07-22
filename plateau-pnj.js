@@ -929,6 +929,8 @@ function confirmerEtapeEscort(nomEscort, palierVise) {
   const nouveauPetitNom = petitsNoms[palierVise];
   showToast(etape.label + ' reussi', nomEscort + ' vous appelle desormais "' + nouveauPetitNom + '".', true, true);
   addJournalEntry(etape.label + ' avec ' + nomEscort + '. -' + etape.cost + ' ' + cur + '. Complicite accrue.', 'event-good');
+
+  confirmerFaireLAmour(nomEscort);
 }
 
 const ETAPE_SUIVANTE_ESCORT = {
@@ -937,15 +939,30 @@ const ETAPE_SUIVANTE_ESCORT = {
   2: { label: 'Emmener voir la mer a Port-Sainte-Marie', palierVise: 3 }
 };
 
+const PHRASES_ESCORT_NON_ENGAGEE = [
+  function(nom) { return 'Que vous etes presse(e), ' + nom + '. Engagez-moi si vous voulez qu on aille plus loin. A moins que vous ne soyez tres presse...'; },
+  function(nom) { return 'Doucement, ' + nom + '. On ne se donne pas comme ca, sans un minimum d engagement. A moins que le temps ne vous manque...'; },
+  function(nom) { return nom + ', vous brulez les etapes. Engagez-moi d abord, ou alors... allons droit au but si vous preferez.'; },
+  function(nom) { return 'Un instant, ' + nom + '. Il y a une facon de faire les choses. Engagez-moi, a moins que vous ne soyez presse ce soir.'; }
+];
+
+const PHRASES_ESCORT_ETAPE_SUIVANTE = [
+  function(nom, etape) { return 'Que vous etes presse(e), ' + nom + '. ' + etape + ' si vous voulez qu on aille plus loin. A moins que vous ne soyez tres presse...'; },
+  function(nom, etape) { return nom + ', un peu de patience. ' + etape + ' d abord, et la suite n en sera que meilleure. A moins que vous ne puissiez attendre...'; },
+  function(nom, etape) { return 'Toujours aussi presse(e), ' + nom + ' ? ' + etape + ', et je suis toute a vous. Ou alors, allons a l essentiel...'; },
+  function(nom, etape) { return 'On y va doucement, ' + nom + '. ' + etape + ' pour de bon, sinon je vous connais a peine.'; }
+];
+
 function ouvrirModalFaireLAmour(nomEscort) {
   const nomPJ = state.char?.name || 'vous';
   const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
 
   if (!escortInfo) {
+    const phraseFn = PHRASES_ESCORT_NON_ENGAGEE[Math.floor(Math.random() * PHRASES_ESCORT_NON_ENGAGEE.length)];
     document.getElementById('postes-modal-title').textContent = '💗 ' + nomEscort;
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1rem">' +
-      '<div style="font-size:.85rem;color:#c0b090;font-style:italic;margin-bottom:1rem;line-height:1.6">"Que vous etes presse(e), ' + nomPJ + '. Engagez-moi si vous voulez qu on aille plus loin. A moins que vous ne soyez tres presse..."</div>' +
+      '<div style="font-size:.85rem;color:#c0b090;font-style:italic;margin-bottom:1rem;line-height:1.6">"' + phraseFn(nomPJ) + '"</div>' +
       '<button onclick="ouvrirRecrutementEscort(\'' + nomEscort.replace(/'/g,'') + '\',\'F\')" style="width:100%;margin-bottom:.5rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager comme escort (800 FR/j)</button>' +
       '<button onclick="confirmerFaireLAmour(\'' + nomEscort.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Faire l amour sans engager (300 FR)</button>' +
       '</div>';
@@ -961,10 +978,11 @@ function ouvrirModalFaireLAmour(nomEscort) {
     return;
   }
 
+  const phraseFn2 = PHRASES_ESCORT_ETAPE_SUIVANTE[Math.floor(Math.random() * PHRASES_ESCORT_ETAPE_SUIVANTE.length)];
   document.getElementById('postes-modal-title').textContent = '💗 ' + nomEscort;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
-    '<div style="font-size:.85rem;color:#c0b090;font-style:italic;margin-bottom:1rem;line-height:1.6">"Que vous etes presse(e), ' + nomPJ + '. ' + etapeSuivante.label + ' si vous voulez qu on aille plus loin. A moins que vous ne soyez tres presse..."</div>' +
+    '<div style="font-size:.85rem;color:#c0b090;font-style:italic;margin-bottom:1rem;line-height:1.6">"' + phraseFn2(nomPJ, etapeSuivante.label) + '"</div>' +
     '<button onclick="ouvrirModalEtapeEscort(\'' + nomEscort.replace(/'/g,'') + '\',' + etapeSuivante.palierVise + ')" style="width:100%;margin-bottom:.5rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">' + etapeSuivante.label + '</button>' +
     '<button onclick="confirmerFaireLAmour(\'' + nomEscort.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Passer outre et faire l amour (300 FR)</button>' +
     '</div>';
