@@ -218,19 +218,13 @@ function openPnjModal(encodedPnj) {
     const escortNom = pnj.name.replace(' (PNJ)', '').replace(/'/g, '');
     const escortGenre = pnj.genre || 'F';
     const escortActiveInfo = (state.escortActive || []).find(e => e.nom === escortNom);
-    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\',\'' + escortGenre + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort (800 FR/j)</button>';
-    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalFabriquerKompromat(\'' + escortNom + '\')"><i class="ti ti-file-shredder" style="font-size:.85rem"></i> Fabriquer un kompromat (300 FR)</button>';
     if (escortActiveInfo) {
-      const palierActuel = escortActiveInfo.palier || 0;
-      if (palierActuel === 0) {
-        actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalEtapeEscort(\'' + escortNom + '\',1)"><i class="ti ti-glass" style="font-size:.85rem"></i> Offrir un verre (100 FR)</button>';
-      } else if (palierActuel === 1) {
-        actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalEtapeEscort(\'' + escortNom + '\',2)"><i class="ti ti-toque" style="font-size:.85rem"></i> Inviter a diner (300 FR)</button>';
-      } else if (palierActuel === 2) {
-        actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalEtapeEscort(\'' + escortNom + '\',3)"><i class="ti ti-beach" style="font-size:.85rem"></i> Emmener voir la mer a Port-Sainte-Marie (600 FR)</button>';
-      }
+      actionBtns += '<button class="pnj-action-btn" onclick="confirmerRenvoyerEscort(\'' + escortNom + '\')"><i class="ti ti-heart-off" style="font-size:.85rem"></i> Renvoyer</button>';
+    } else {
+      actionBtns += '<button class="pnj-action-btn" onclick="ouvrirRecrutementEscort(\'' + escortNom + '\',\'' + escortGenre + '\')"><i class="ti ti-heart" style="font-size:.85rem"></i> Recruter comme escort (800 FR/j)</button>';
     }
-    actionBtns += '<button class="pnj-action-btn" style="color:#cc6699;border-color:#4a1a30" onclick="ouvrirModalFaireLAmour(\'' + escortNom + '\')"><i class="ti ti-heart-filled" style="font-size:.85rem"></i> Faire l\'amour (300 FR)</button>';
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalFabriquerKompromat(\'' + escortNom + '\')"><i class="ti ti-file-shredder" style="font-size:.85rem"></i> Fabriquer un kompromat (300 FR)</button>';
+    actionBtns += '<button class="pnj-action-btn" style="color:#cc6699;border-color:#4a1a30" onclick="ouvrirModalFaireLAmour(\'' + escortNom + '\')"><i class="ti ti-heart-filled" style="font-size:.85rem"></i> Faire l\'amour</button>';
   }
 
   // Recruter codetenu
@@ -937,17 +931,42 @@ function confirmerEtapeEscort(nomEscort, palierVise) {
   addJournalEntry(etape.label + ' avec ' + nomEscort + '. -' + etape.cost + ' ' + cur + '. Complicite accrue.', 'event-good');
 }
 
-function ouvrirModalFaireLAmour(nomEscort) {
-  const co = COUNTRIES[state.country];
-  const cur = co?.cur || 'FR';
-  const cost = 300;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
+const ETAPE_SUIVANTE_ESCORT = {
+  0: { label: 'Offrir un verre', palierVise: 1 },
+  1: { label: 'Inviter a diner', palierVise: 2 },
+  2: { label: 'Emmener voir la mer a Port-Sainte-Marie', palierVise: 3 }
+};
 
-  document.getElementById('postes-modal-title').textContent = '💗 Un moment avec ' + nomEscort;
+function ouvrirModalFaireLAmour(nomEscort) {
+  const nomPJ = state.char?.name || 'vous';
+  const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
+
+  if (!escortInfo) {
+    document.getElementById('postes-modal-title').textContent = '💗 ' + nomEscort;
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem">' +
+      '<div style="font-size:.85rem;color:#c0b090;font-style:italic;margin-bottom:1rem;line-height:1.6">"Que vous etes presse(e), ' + nomPJ + '. Engagez-moi si vous voulez qu on aille plus loin. A moins que vous ne soyez tres presse..."</div>' +
+      '<button onclick="ouvrirRecrutementEscort(\'' + nomEscort.replace(/'/g,'') + '\',\'F\')" style="width:100%;margin-bottom:.5rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager comme escort (800 FR/j)</button>' +
+      '<button onclick="confirmerFaireLAmour(\'' + nomEscort.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Faire l amour sans engager (300 FR)</button>' +
+      '</div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+
+  const palierActuel = escortInfo.palier || 0;
+  const etapeSuivante = ETAPE_SUIVANTE_ESCORT[palierActuel];
+
+  if (!etapeSuivante) {
+    confirmerFaireLAmour(nomEscort);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = '💗 ' + nomEscort;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
-    '<div style="font-size:.82rem;color:#a09060;margin-bottom:1rem">Coût : ' + cost + ' ' + cur + '. Gain immédiat : +15 Moral, +5 Santé, +2 ENT.</div>' +
-    '<button onclick="confirmerFaireLAmour(\'' + nomEscort.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Confirmer</button>' +
+    '<div style="font-size:.85rem;color:#c0b090;font-style:italic;margin-bottom:1rem;line-height:1.6">"Que vous etes presse(e), ' + nomPJ + '. ' + etapeSuivante.label + ' si vous voulez qu on aille plus loin. A moins que vous ne soyez tres presse..."</div>' +
+    '<button onclick="ouvrirModalEtapeEscort(\'' + nomEscort.replace(/'/g,'') + '\',' + etapeSuivante.palierVise + ')" style="width:100%;margin-bottom:.5rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">' + etapeSuivante.label + '</button>' +
+    '<button onclick="confirmerFaireLAmour(\'' + nomEscort.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Passer outre et faire l amour (300 FR)</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
@@ -978,7 +997,7 @@ async function confirmerFaireLAmour(nomEscort) {
   const petitNomActuel = petitsNoms[palierActuel];
   const longueurParPalier = ['2-3 phrases', '3-4 phrases', '4-5 phrases', '5-6 phrases, ton plus passionne et intime'];
   const longueurVisee = longueurParPalier[palierActuel];
-  const maxTokensParPalier = [150, 180, 220, 260];
+  const maxTokensParPalier = [250, 320, 400, 480];
   const maxTokensVise = maxTokensParPalier[palierActuel];
 
   const prompt = 'Tu es le narrateur de Res Publica, jeu politique parodique et satirique. Le joueur vient de passer un moment intime avec ' + nomEscort + ", une escort de l'Agence Roxane Velours. La complicite entre eux a atteint un palier ou elle l'appelle desormais " + petitNomActuel + '. Redige UN recit (' + longueurVisee + ') qui flatte et valorise le joueur, lui donnant un sentiment de plenitude et de superiorite, integrant naturellement ce petit nom dans le dialogue, mais glisse a la toute fin un doute subtil sur l authenticite du plaisir ressenti par l escort (professionnelle avant tout). Ton elegant, un peu ironique, jamais vulgaire ni explicite. Reponds en texte brut uniquement, sans markdown (pas de #, pas de **).';

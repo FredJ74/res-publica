@@ -360,6 +360,16 @@ function ouvrirRecrutementEscort(nomEscort, genre) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+function confirmerRenvoyerEscort(nomEscort) {
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (!state.escortActive) state.escortActive = [];
+  state.escortActive = state.escortActive.filter(e => e.nom !== nomEscort);
+  if (state.group?.members) state.group.members = state.group.members.filter(n => n !== nomEscort);
+  updateUI();
+  showToast('Escort renvoyee', nomEscort + ' ne fait plus partie de votre groupe.', true);
+  addJournalEntry(nomEscort + ' a ete renvoyee.', 'event-info');
+}
+
 async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
   document.getElementById('modal-postes').classList.remove('open');
   const cur = COUNTRIES[state.country]?.cur || 'FR';
