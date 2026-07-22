@@ -2774,7 +2774,11 @@ async function ouvrirModalDemandeMariage() {
   const liste = (presents.length > 0 ? presents : joueurs).map(j => ({ name: j.name, isPJ: true }));
   const roomActuelleMariage = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const presentsPNJMariage = (roomActuelleMariage?.persons || []).filter(p => !p.isPJ).map(p => ({ name: p.name.replace(' (PNJ)', ''), isPJ: false }));
-  const listeComplete = [...liste, ...presentsPNJMariage];
+  const monGroupePNJMariage = typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : [];
+  const presentsMonGroupeMariage = monGroupePNJMariage
+    .filter(g => !presentsPNJMariage.some(pp => pp.name === g.nom))
+    .map(g => ({ name: g.nom, isPJ: false }));
+  const listeComplete = [...liste, ...presentsPNJMariage, ...presentsMonGroupeMariage];
 
   document.getElementById('postes-modal-title').textContent = 'Demande en mariage';
   let html = '<div style="padding:1rem">';
@@ -2801,10 +2805,11 @@ async function confirmerDemandeMariage() {
   const estPJ = estPJRaw === '1';
 
   if (!estPJ) {
+    const estDansMonGroupeMariage = typeof getMonGroupePNJ === 'function' && getMonGroupePNJ().some(g => g.nom === destinataire);
     const roomActuelleMariage2 = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
     const pnjInfoMariage = (roomActuelleMariage2?.persons || []).find(pp => pp.name.replace(' (PNJ)', '') === destinataire);
     const rel = pnjInfoMariage?.rel || 'neutral';
-    const chance = rel === 'ally' ? 70 : rel === 'enemy' ? 5 : 35;
+    const chance = estDansMonGroupeMariage ? 80 : (rel === 'ally' ? 70 : rel === 'enemy' ? 5 : 35);
     const roll = Math.floor(Math.random() * 100) + 1;
     if (roll <= chance) {
       const cout = 200;
