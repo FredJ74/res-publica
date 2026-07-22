@@ -89,6 +89,7 @@ async function sbSavePersonnage(charState) {
     day:              charState.day || 1,
     recherche:        charState.recherche || [],
     reputation_criminelle: charState.reputationCriminelle || 0,
+    salutations_du_jour: charState.salutationsDuJour || null,
     convocations:     charState.convocations || [],
     est_emprisonne:   charState.estEmprisonne || null,
     motto:            charState.char?.motto || null,
@@ -146,6 +147,7 @@ async function sbLoadPersonnage(name) {
     day:           r.day,
     recherche:     r.recherche || [],
     reputationCriminelle: r.reputation_criminelle || 0,
+    salutationsDuJour: r.salutations_du_jour || null,
     convocations:  r.convocations || [],
     estEmprisonne: r.est_emprisonne || null
   };

@@ -175,6 +175,7 @@ function openPnjModal(encodedPnj) {
     }
   }
 
+  actionBtns += '<button class="pnj-action-btn" onclick="doSaluerPersonne(\'' + pnjSafeName + '\')"><i class="ti ti-hand-stop" style="font-size:.85rem"></i> Saluer</button>';
   actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonPnjModal(\'' + enc + '\')"><i class="ti ti-coins" style="font-size:.85rem"></i> Donner de l\'argent</button>';
 
   const objetsDispos = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
@@ -677,6 +678,23 @@ async function confirmerLancerRumeur(nomCible, pa, cost, successRate) {
 
   if (typeof advanceTime === 'function') advanceTime(Math.max(0, pa || 0));
   updateUI();
+}
+
+function doSaluerPersonne(nom) {
+  const jourActuel = state.day || 1;
+  if (!state.salutationsDuJour || state.salutationsDuJour.jour !== jourActuel) {
+    state.salutationsDuJour = { jour: jourActuel, noms: [] };
+  }
+  if (state.salutationsDuJour.noms.includes(nom)) {
+    showToast('Deja salue(e)', 'Vous avez deja salue ' + nom + ' aujourd\'hui.', false);
+    return;
+  }
+  state.salutationsDuJour.noms.push(nom);
+  state.inf = Math.min(100, (state.inf || 0) + 2);
+  updateUI();
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  showToast('Salutation', 'Vous avez pris le temps d\'echanger quelques mots avec ' + nom + '. +2 INF.', true);
+  addJournalEntry('Salutation echangee avec ' + nom + '. +2 INF.', 'event-good');
 }
 
 const CONFIG_INVITATIONS_SOCIALES = {
