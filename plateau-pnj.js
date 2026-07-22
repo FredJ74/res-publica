@@ -148,6 +148,26 @@ function openPnjModal(encodedPnj) {
   const pnjKey = pnj.name?.replace(' (PNJ)', '').trim();
   const perso = typeof PNJ_PERSONALITIES !== 'undefined' ? PNJ_PERSONALITIES[pnjKey] : null;
   if (traitEl) traitEl.textContent = perso?.trait || '';
+
+  (async () => {
+    if (typeof sbGetMariageActif !== 'function') return;
+    const mariage = await sbGetMariageActif(pnjKey).catch(() => null);
+    let statutEl = document.getElementById('pnj-statut-marital');
+    if (!statutEl && traitEl) {
+      statutEl = document.createElement('div');
+      statutEl.id = 'pnj-statut-marital';
+      statutEl.style.cssText = 'font-size:.72rem;color:#9a7a50;margin-top:.2rem;font-style:italic';
+      traitEl.parentNode.insertBefore(statutEl, traitEl.nextSibling);
+    }
+    if (statutEl) {
+      if (mariage) {
+        const conjoint = mariage.conjoint1 === pnjKey ? mariage.conjoint2 : mariage.conjoint1;
+        statutEl.textContent = '💍 Marié(e) à ' + conjoint;
+      } else {
+        statutEl.textContent = '';
+      }
+    }
+  })();
   const speech = document.getElementById('pnj-speech');
   speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
   const enc = encodePnjSafe(pnj);

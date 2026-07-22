@@ -815,6 +815,32 @@ async function sbSupprimerTitulairePnj(country, posteId, city) {
   return sbDelete('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`);
 }
 
+async function sbCreerDemandeMariage(demande) {
+  return sbInsert('demandes_mariage', demande);
+}
+
+async function sbUpdateDemandeMariage(id, statut) {
+  return sbUpdate('demandes_mariage', `id=eq.${encodeURIComponent(id)}`, { statut });
+}
+
+async function sbGetDemandesMariagePour(nom) {
+  const rows = await sbGet('demandes_mariage', `destinataire=eq.${encodeURIComponent(nom)}&statut=eq.en_attente`);
+  return rows || [];
+}
+
+async function sbCreerMariage(mariage) {
+  return sbInsert('mariages', mariage);
+}
+
+async function sbGetMariageActif(nom) {
+  if (!nom) return null;
+  const rows1 = await sbGet('mariages', `conjoint1=eq.${encodeURIComponent(nom)}&statut=eq.actif`).catch(() => []);
+  if (rows1 && rows1.length > 0) return rows1[0];
+  const rows2 = await sbGet('mariages', `conjoint2=eq.${encodeURIComponent(nom)}&statut=eq.actif`).catch(() => []);
+  if (rows2 && rows2.length > 0) return rows2[0];
+  return null;
+}
+
 async function sbGetGuerresPays(pays) {
   const rows = await sbGet('guerres', 'statut=neq.terminee&select=id,data');
   if (!rows) return [];
