@@ -2744,17 +2744,20 @@ async function ouvrirModalDemandeMariage() {
   if (typeof sbListPersonnages === 'function') {
     try { joueurs = (await sbListPersonnages() || []).filter(j => j.name !== state.char?.name); } catch(e) {}
   }
-  const liste = presents.length > 0 ? presents : joueurs;
+  const liste = (presents.length > 0 ? presents : joueurs).map(j => ({ name: j.name, isPJ: true }));
+  const roomActuelleMariage = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const presentsPNJMariage = (roomActuelleMariage?.persons || []).filter(p => !p.isPJ).map(p => ({ name: p.name.replace(' (PNJ)', ''), isPJ: false }));
+  const listeComplete = [...liste, ...presentsPNJMariage];
 
   document.getElementById('postes-modal-title').textContent = 'Demande en mariage';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Une demande romantique sera envoyée par mail. Si elle est acceptée, vous devrez tous deux vous rendre ensemble à la mairie pour officialiser l\'union.</div>';
 
-  if (liste.length === 0) {
+  if (listeComplete.length === 0) {
     html += '<div style="font-size:.85rem;color:#5a5040">Aucun habitant connu pour le moment.</div>';
   } else {
     html += '<select id="mariage-destinataire-select" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    liste.forEach(j => { html += '<option value="' + j.name + '">' + j.name + '</option>'; });
+    listeComplete.forEach(j => { html += '<option value="' + j.name + '|' + (j.isPJ ? '1' : '0') + '">' + j.name + (j.isPJ ? '' : ' (PNJ)') + '</option>'; });
     html += '</select>';
     html += '<button onclick="confirmerDemandeMariage()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💍 Envoyer la demande</button>';
   }
@@ -2764,8 +2767,34 @@ async function ouvrirModalDemandeMariage() {
 }
 
 async function confirmerDemandeMariage() {
-  const destinataire = document.getElementById('mariage-destinataire-select')?.value;
+  const rawSelect = document.getElementById('mariage-destinataire-select')?.value;
   document.getElementById('modal-postes').classList.remove('open');
+  if (!rawSelect) return;
+  const [destinataire, estPJRaw] = rawSelect.split('|');
+  const estPJ = estPJRaw === '1';
+
+  if (!estPJ) {
+    const roomActuelleMariage2 = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+    const pnjInfoMariage = (roomActuelleMariage2?.persons || []).find(pp => pp.name.replace(' (PNJ)', '') === destinataire);
+    const rel = pnjInfoMariage?.rel || 'neutral';
+    const chance = rel === 'ally' ? 70 : rel === 'enemy' ? 5 : 35;
+    const roll = Math.floor(Math.random() * 100) + 1;
+    if (roll <= chance) {
+      const cout = 200;
+      if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis pour officialiser.', false); return; }
+      state.arg -= cout;
+      const mariagePnj = { id: 'mariage-' + Date.now(), conjoint1: state.char?.name, conjoint2: destinataire, country: state.country, statut: 'actif', jour_union: state.day || 1 };
+      if (typeof sbCreerMariage === 'function') await sbCreerMariage(mariagePnj).catch(() => {});
+      updateUI();
+      showToast('Félicitations !', destinataire + ' a accepté. Union officialisée sur le champ !', true, true);
+      addJournalEntry('Mariage celebre avec ' + destinataire + ' (PNJ).', 'event-good');
+      addExternalEvent((state.char?.name || '') + ' et ' + destinataire + ' se sont maries.', 'local');
+    } else {
+      showToast('Demande refusée', destinataire + ' a decline votre demande en mariage.', false);
+      addJournalEntry('Demande en mariage a ' + destinataire + ' (PNJ) refusee.', 'event-info');
+    }
+    return;
+  }
   if (!destinataire) return;
 
   const demande = {
