@@ -3119,6 +3119,139 @@ async function confirmerMenerEnquete() {
   showToast('Enquete reussie', cible + ' a ete demasque(e) et place(e) en garde a vue.', true, true);
 }
 
+function doOrganiserFilature() {
+  const contacts = (state.contacts || []).filter(c => c.isPJ);
+  const contactsSection = contacts.length === 0
+    ? '<div style="font-size:.8rem;color:#7a5020;font-style:italic;padding:.5rem;background:#0f0805;border:1px solid #2a1810">Aucun PJ enregistre dans votre repertoire.</div>'
+    : contacts.map(c => '<label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer;padding:.2rem 0"><input type="radio" name="filature-cible" value="' + c.name + '" style="accent-color:#C9A84C"/> ' + c.name + '</label>').join('');
+
+  document.getElementById('postes-modal-title').textContent = 'Organiser une filature';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Cout : 150 FR, preleves sur la caisse du commissariat. Rapport des deplacements des dernieres 24h si reussite.</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE</div>' +
+    contactsSection +
+    '<button onclick="confirmerOrganiserFilature()" style="margin-top:1rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer la filature</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerOrganiserFilature() {
+  const cibleInput = document.querySelector('input[name="filature-cible"]:checked');
+  if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); return; }
+  const cible = cibleInput.value;
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const pays = state.country;
+  const ville = state.currentCity;
+  const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, buildingId, 150) : 0;
+  if (montantVerse < 150) {
+    showToast('Caisse insuffisante', 'La caisse du commissariat ne couvre pas le cout de la filature.', false);
+    return;
+  }
+
+  const perCommissaire = state.char?.stats?.PER || 8;
+  const infCommissaire = state.inf || 0;
+  const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
+  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
+
+  let taux = 50 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isEmpire - 45) / 5;
+  taux = Math.max(10, Math.min(90, Math.round(taux)));
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll > taux) {
+    addJournalEntry('Filature de ' + cible + ' : la cible a seme la filature. -150 FR.', 'event-info');
+    showToast('Filature echouee', 'Vous avez perdu la trace de ' + cible + ' (' + taux + '% de chances).', false);
+    return;
+  }
+
+  const jourMin = Math.max(1, (state.day || 1) - 1);
+  const historique = typeof sbGetHistoriqueDeplacements === 'function' ? await sbGetHistoriqueDeplacements(cible, jourMin).catch(() => []) : [];
+
+  document.getElementById('postes-modal-title').textContent = 'Rapport de filature — ' + cible;
+  let html = '<div style="padding:1rem">';
+  if (!historique || historique.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun deplacement enregistre sur les dernieres 24h.</div>';
+  } else {
+    historique.forEach(h => {
+      html += '<div style="padding:.4rem .6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;font-size:.78rem;color:#c0b090">Jour ' + h.jour + ' ' + (h.heure || '') + ' — ' + (h.building_id || '?') + ' / ' + (h.room_id || '?') + '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+
+  addJournalEntry('Filature reussie contre ' + cible + ' (' + taux + '% de chances). -150 FR.', 'event-good');
+}
+
+function doOrganiserChasseHomme() {
+  const contacts = (state.contacts || []).filter(c => c.isPJ);
+  const contactsSection = contacts.length === 0
+    ? '<div style="font-size:.8rem;color:#7a5020;font-style:italic;padding:.5rem;background:#0f0805;border:1px solid #2a1810">Aucun PJ enregistre dans votre repertoire.</div>'
+    : contacts.map(c => '<label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer;padding:.2rem 0"><input type="radio" name="chasse-cible" value="' + c.name + '" style="accent-color:#C9A84C"/> ' + c.name + '</label>').join('');
+
+  document.getElementById('postes-modal-title').textContent = "Organiser une chasse a l'homme";
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Cout : 300 FR, preleves sur la caisse du commissariat. La cible doit faire l objet d un avis de recherche actif.</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE</div>' +
+    contactsSection +
+    '<button onclick="confirmerOrganiserChasseHomme()" style="margin-top:1rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer la chasse</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerOrganiserChasseHomme() {
+  const cibleInput = document.querySelector('input[name="chasse-cible"]:checked');
+  if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); return; }
+  const cible = cibleInput.value;
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const rechercheRows = typeof sbGet === 'function' ? await sbGet('personnages', `name=eq.${encodeURIComponent(cible)}&select=recherche`).catch(() => []) : [];
+  const recherche = rechercheRows?.[0]?.recherche || [];
+  if (!recherche || recherche.length === 0) {
+    showToast('Pas recherche', cible + " ne fait l'objet d'aucun avis de recherche actif.", false);
+    return;
+  }
+
+  const pays = state.country;
+  const ville = state.currentCity;
+  const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, buildingId, 300) : 0;
+  if (montantVerse < 300) {
+    showToast('Caisse insuffisante', 'La caisse du commissariat ne couvre pas le cout de la chasse a l homme.', false);
+    return;
+  }
+
+  const perCommissaire = state.char?.stats?.PER || 8;
+  const infCommissaire = state.inf || 0;
+  const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
+  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
+
+  let taux = 45 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isEmpire - 45) / 5;
+  taux = Math.max(10, Math.min(90, Math.round(taux)));
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll > taux) {
+    addJournalEntry('Chasse a l homme contre ' + cible + ' : localisation echouee (' + taux + '% de chances). -300 FR.', 'event-info');
+    showToast('Chasse infructueuse', cible + ' reste introuvable pour l instant.', false);
+    return;
+  }
+
+  const motif = recherche[0]?.acte || 'Avis de recherche';
+  if (typeof enregistrerDetention === 'function') await enregistrerDetention(cible, motif, (state.day || 1) + 3);
+  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(cible)}`, { recherche: [] }).catch(() => {});
+  if (typeof envoyerNotificationVraiJoueur === 'function') {
+    await envoyerNotificationVraiJoueur(cible, 'Arrestation', 'Vous avez ete localise(e) et arrete(e) suite a un avis de recherche.');
+  }
+  addExternalEvent('CHASSE A L HOMME : ' + cible + ' a ete localise(e) et arrete(e).', 'local');
+  addJournalEntry('Chasse a l homme reussie contre ' + cible + ' (' + taux + '% de chances). -300 FR.', 'event-good');
+  showToast('Chasse reussie', cible + ' a ete localise(e) et arrete(e).', true, true);
+}
+
 async function chargerNiveauPrison(pays, ville) {
   const key = pays + '_' + ville;
   if (typeof sbGetNiveauPrison !== 'function') return { key, niveau: 100 };

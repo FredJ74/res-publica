@@ -471,8 +471,21 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId) {
       })
     });
     if (!res.ok) { console.error('sbUpdatePresence error', await res.text()); return null; }
+    // Journal des deplacements (append-only, pour la filature policiere)
+    if (typeof state !== 'undefined' && buildingId && roomId) {
+      const hLog = String(state.hour || 0).padStart(2, '0');
+      fetch(`${SUPABASE_URL}/rest/v1/historique_deplacements`, {
+        method: 'POST', headers: SB_HEADERS,
+        body: JSON.stringify({ name, country, city, building_id: buildingId, room_id: roomId, jour: state.day || 1, heure: hLog + 'h' })
+      }).catch(() => {});
+    }
     return res.json();
   } catch(e) { return null; }
+}
+
+async function sbGetHistoriqueDeplacements(name, depuisJour) {
+  const filtre = `name=eq.${encodeURIComponent(name)}&jour=gte.${depuisJour}&order=created_at.desc&limit=50`;
+  return sbGet('historique_deplacements', filtre) || [];
 }
 
 async function sbGetPresencesInRoom(country, city, buildingId, roomId) {
