@@ -416,8 +416,10 @@ function confirmerRenvoyerEscort(nomEscort) {
   document.getElementById('modal-pnj')?.classList.remove('open');
   if (!state.escortActive) state.escortActive = [];
   state.escortActive = state.escortActive.filter(e => e.nom !== nomEscort);
+  if (state.employes) state.employes = state.employes.filter(e => e.nom !== nomEscort);
   if (state.group?.members) state.group.members = state.group.members.filter(n => n !== nomEscort);
   updateUI();
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
   showToast('Escort renvoyee', nomEscort + ' ne fait plus partie de votre groupe.', true);
   addJournalEntry(nomEscort + ' a ete renvoyee.', 'event-info');
 }
@@ -830,6 +832,9 @@ function licencierPnj(nomPnj) {
   // apparait "Dans votre groupe" dans n'importe quelle piece, pas seulement celle ou il
   // a ete recrute — il faut donc toujours rafraichir ici, sans quoi la carte reste
   // affichee jusqu'a un rafraichissement complet de la page.
+  if (state.escortActive) state.escortActive = state.escortActive.filter(e => e.nom !== nomPnj);
+  if (state.group?.members) state.group.members = state.group.members.filter(n => n !== nomPnj);
+
   const roomCourante = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   if (roomCourante && typeof renderPersonsList === 'function') {
     renderPersonsList(roomCourante.persons || []);
