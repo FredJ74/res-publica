@@ -269,7 +269,7 @@ function openPnjModal(encodedPnj) {
     const convKeyOpen = 'conv_' + (pnjNameClean||'pnj') + '_day' + (state.day||1);
     const histOpen = state.pnjConversations?.[convKeyOpen] || [];
 
-    if (histOpen.length >= 2) {
+    if (histOpen.length >= 2 && pnj.job !== 'escort') {
       // Afficher le dernier échange
       const lastReply = histOpen.filter(h => h.role === 'assistant').slice(-1)[0];
       if (lastReply) {
