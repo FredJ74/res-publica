@@ -1251,8 +1251,8 @@ const BUILDINGS = {
         desc: "Le grand hall du Palais. Gardes republicains en grande tenue. Portraits des presidents passes.",
         imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
         persons: [
-          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Chef du protocole presidentiel', rel:'neutral', job:'protocole'},
-          {name:'Garde Republicain (PNJ)', role:'PNJ - Securite presidentielle', rel:'neutral', job:'garde'}
+          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Chef du protocole presidentiel', rel:'neutral', job:'protocole', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gerard-tamponneau.png', photoPos:'50% 15%'},
+          {name:'Garde Republicain (PNJ)', role:'PNJ - Securite presidentielle', rel:'neutral', job:'garde', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/garde-republicain-palais-presidentiel.png', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'solliciter_audience_president', label:'Solliciter une audience', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'0 PA. Aucun indice. Message automatique transmis au President par mail. Il vous repondra directement.'}
@@ -1265,7 +1265,7 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president.png",
         locked: false,
         persons: [
-          {name:'Huguette Papier (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general'}
+          {name:'Huguette Papier (PNJ)', role:'PNJ - Secretaire general de la presidence', rel:'neutral', job:'secretaire_general', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/huguette-papier.png', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'creer_poste_ministre',   label:'Creer un poste ministeriel',    pa:3, cost:0,    type:'legal',   icon:'ti-user-star',     successRate:100, requiresPost:'president', desc:'Creer un poste de ministre personnalise. Limite : 1 poste + 1 comite.'},
@@ -1288,7 +1288,7 @@ const BUILDINGS = {
         desc: "La salle de presse presidentielle. Les journalistes accredites y attendent les declarations.",
         imageUrl: "https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1?w=1200&q=80",
         persons: [
-          {name:'Porte-parole presidentiel (PNJ)', role:'PNJ - Porte-parole de la presidence', rel:'neutral', job:'porteparole'}
+          {name:'Porte-parole presidentiel (PNJ)', role:'PNJ - Porte-parole de la presidence', rel:'neutral', job:'porteparole', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/porte-parole-presidentiel.png', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'conference_presse',  label:'Conference de presse',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',   successRate:100, requiresPost:'president', desc:'Annonce presidentielle. Fort impact POP et INF.'},
@@ -1302,7 +1302,7 @@ const BUILDINGS = {
         desc: "La somptueuse salle de reception du Palais. Receptions d'Etat, banquets diplomatiques.",
         imageUrl: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&q=80",
         persons: [
-          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Organisation des evenements', rel:'neutral', job:'protocole'}
+          {name:'Gérard Tamponneau (PNJ)', role:'PNJ - Organisation des evenements', rel:'neutral', job:'protocole', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gerard-tamponneau.png', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'reception_etat',    label:'Organiser une reception',  pa:2, cost:1000, type:'legal', icon:'ti-confetti',   successRate:100, requiresPost:'president', desc:'Reception officielle. +INF +POP +relations diplomatiques.'},
@@ -1341,7 +1341,7 @@ const BUILDINGS = {
         desc: "Le bureau du Premier Ministre. Acces PM uniquement.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-premier-ministre.png",
         persons: [
-          {name:'Chef de Cabinet (PNJ)', role:'PNJ - Chef de cabinet du PM', rel:'neutral', job:'chef_cabinet'}
+          {name:'Chef de Cabinet (PNJ)', role:'PNJ - Chef de cabinet du PM', rel:'neutral', job:'chef_cabinet', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/chef-cabinet-pm.png', photoPos:'50% 15%'}
         ],
         orders: [
           {fn:'nommer_ministre_pm', label:'Nommer des ministres',       pa:2, cost:0,   type:'legal',   icon:'ti-crown',     successRate:100, requiresPost:'pm', desc:'Nommer un PJ a un poste ministeriel.'},

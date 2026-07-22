@@ -353,7 +353,9 @@ window.addEventListener('DOMContentLoaded', () => {
       sbUpdatePresence(state.char.name, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
     }
     if (typeof chargerVraisJoueursPresents === 'function') chargerVraisJoueursPresents();
+    if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
   }, 30000);
+  if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
 
   // Séquence de chargement espacée pour éviter les conflits de modaux
   setTimeout(() => genererMeteoPolitique(), 1000);

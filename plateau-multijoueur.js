@@ -115,11 +115,40 @@ function appliquerRemplacantesEscort(persons) {
   });
 }
 
+const POSTES_UNIQUES_A_MASQUER = ['president','pm','maire','min_int','min_fin','min_just','min_def','min_info','min_ae','juge','commissaire','commandant'];
+
+function filtrerPnjPostesPourvus(persons) {
+  const cache = window._titulairesPostes || {};
+  return persons.filter(p => {
+    if (!p.job || !POSTES_UNIQUES_A_MASQUER.includes(p.job)) return true;
+    if (!p.name || !p.name.includes('(PNJ)')) return true;
+    const titulaire = cache[p.job + '_' + state.currentCity] || cache[p.job];
+    return !titulaire;
+  });
+}
+
+async function rafraichirTitulairesPostesElectifs() {
+  if (typeof sbListPersonnages !== 'function') return;
+  try {
+    const joueurs = await sbListPersonnages() || [];
+    const cache = {};
+    joueurs.forEach(j => {
+      let poste = j.poste;
+      if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
+      if (!poste || !poste.id) return;
+      const cle = poste.city ? (poste.id + '_' + poste.city) : poste.id;
+      cache[cle] = j.name;
+    });
+    window._titulairesPostes = cache;
+  } catch(e) {}
+}
+
 function renderPersonsList(persons, targetId) {
   targetId = targetId || 'persons-list';
   persons = [...(persons || [])]; // mutable copy
   persons = appliquerRemplacantesEscort(persons);
   persons = appliquerRemplacantCodetenu(persons);
+  persons = filtrerPnjPostesPourvus(persons);
   const relCol = r => r === 'ally' ? '#4a8a4a' : r === 'enemy' ? '#8a3a2a' : '#6a6040';
   const relTxt = r => r === 'ally' ? 'Allie' : r === 'enemy' ? 'Hostile' : 'Neutre';
 
