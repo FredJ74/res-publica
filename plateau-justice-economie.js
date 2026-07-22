@@ -3049,6 +3049,76 @@ async function enregistrerDetention(nom, raison, jourFin, qhs) {
   }
 }
 
+function doMenerEnquete() {
+  const contacts = state.contacts || [];
+  const contactsSection = contacts.length === 0
+    ? '<div style="font-size:.8rem;color:#7a5020;font-style:italic;padding:.5rem;background:#0f0805;border:1px solid #2a1810">Votre repertoire est vide. Enregistrez la personne visee au prealable.</div>'
+    : contacts.map(c => '<label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:#c0b090;cursor:pointer;padding:.2rem 0"><input type="radio" name="enquete-cible" value="' + c.name + '" style="accent-color:#C9A84C"/> ' + c.name + ' — ' + (c.role || '') + '</label>').join('');
+
+  document.getElementById('postes-modal-title').textContent = "Mener l'enquete";
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Cout : 250 FR, preleves sur la caisse du commissariat. Fouille le passe recent de la cible.</div>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE</div>' +
+    contactsSection +
+    '<button onclick="confirmerMenerEnquete()" style="margin-top:1rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ouvrir l enquete</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerMenerEnquete() {
+  const cibleInput = document.querySelector('input[name="enquete-cible"]:checked');
+  if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne du repertoire.', false); return; }
+  const cible = cibleInput.value;
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const pays = state.country;
+  const ville = state.currentCity;
+  const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
+  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, buildingId, 250) : 0;
+  if (montantVerse < 250) {
+    showToast('Caisse insuffisante', 'La caisse du commissariat ne couvre pas le cout de l enquete.', false);
+    return;
+  }
+
+  const perCommissaire = state.char?.stats?.PER || 8;
+  const infCommissaire = state.inf || 0;
+  const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
+  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
+
+  let taux = 35 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isEmpire - 45) / 5;
+  taux = Math.max(10, Math.min(90, Math.round(taux)));
+
+  const toutes = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
+  const candidats = (toutes || []).filter(a => a.auteur === cible && !a.decouvert);
+
+  if (candidats.length === 0) {
+    addJournalEntry('Enquete menee contre ' + cible + ' : rien de compromettant trouve. -250 FR.', 'event-info');
+    showToast('Enquete infructueuse', 'Rien de compromettant trouve sur ' + cible + '.', false);
+    return;
+  }
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll > taux) {
+    addJournalEntry('Enquete menee contre ' + cible + ' : indices insuffisants pour aboutir. -250 FR.', 'event-info');
+    showToast('Enquete infructueuse', 'Le dossier n a pas abouti cette fois (' + taux + '% de chances).', false);
+    return;
+  }
+
+  const action = candidats[0];
+  if (typeof sbUpdate === 'function') {
+    await sbUpdate('actions_tracables', 'id=eq.' + encodeURIComponent(action.id), { decouvert: true }).catch(() => {});
+  }
+  if (typeof enregistrerDetention === 'function') enregistrerDetention(cible, action.type_action || 'Acte illegal decouvert par enquete', (state.day || 1) + 2).catch(() => {});
+  if (typeof transmettreAffaireAuTribunal === 'function') transmettreAffaireAuTribunal(cible, action.type_action || 'Acte illegal decouvert par enquete');
+  if (typeof envoyerNotificationVraiJoueur === 'function') {
+    await envoyerNotificationVraiJoueur(cible, 'Enquete de police', 'Une enquete a mis en evidence un acte illegal vous concernant. Vous avez ete place en garde a vue.');
+  }
+  addExternalEvent('ENQUETE : ' + cible + ' a ete demasque(e) et place(e) en garde a vue.', 'local');
+  addJournalEntry('Enquete reussie contre ' + cible + ' (' + taux + '% de chances). Affaire transmise au tribunal. -250 FR.', 'event-good');
+  showToast('Enquete reussie', cible + ' a ete demasque(e) et place(e) en garde a vue.', true, true);
+}
+
 async function chargerNiveauPrison(pays, ville) {
   const key = pays + '_' + ville;
   if (typeof sbGetNiveauPrison !== 'function') return { key, niveau: 100 };

@@ -770,6 +770,12 @@ async function sbLoadJugements(country) {
   return sbGet('jugements', `country=eq.${encodeURIComponent(country)}&order=jour.desc`);
 }
 
+async function sbGetStatsInfluenceJoueur(nom) {
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=char,resources`).catch(() => []);
+  const r = rows?.[0];
+  return { per: r?.char?.stats?.PER || 8, inf: r?.resources?.inf || 0 };
+}
+
 async function sbGetGuerresPays(pays) {
   const rows = await sbGet('guerres', 'statut=neq.terminee&select=id,data');
   if (!rows) return [];
