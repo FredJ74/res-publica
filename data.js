@@ -1934,6 +1934,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Contre une personne identifiee ou contre X. Reponse sous 24h.'},
+          {fn:'consulter_caisse_commissariat', label:'Consulter la caisse', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Voir le solde actuel de la caisse du commissariat.'},
           {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Registre des detentions passees et en cours, consultable par tous.'},
           {fn:'arreter',          label:"Faire arreter quelqu'un",pa:3, cost:500, type:'illegal', icon:'ti-handcuffs', successRate:50,  desc:'Necessite un dossier. Mise en garde a vue 24h.'},
           {fn:'se_justifier',     label:'Se justifier (convocation)', pa:2, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation recue par mail. Leve l\'avis de recherche associe.'}

@@ -3307,6 +3307,28 @@ async function verifierSeuilsGrillePrison(pays, ville, niveau) {
   }
 }
 
+// Fonction generique et reutilisable : affiche le solde de la caisse d'un batiment
+// public quelconque. Utilisable pour n'importe quel batiment ayant une caisse.
+async function doConsulterCaisseBatimentGenerique(buildingId, buildingLabel) {
+  const pays = state.country;
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Caisse — ' + buildingLabel;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, buildingId) : { solde: 0 };
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;text-align:center">' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#C9A84C">' + (caisse?.solde || 0).toLocaleString('fr-FR') + ' ' + cur + '</div>' +
+    '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Solde actuel de la caisse.</div>' +
+    '</div>';
+}
+
+async function doConsulterCaisseCommissariat() {
+  const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(state.currentCity) : 'commissariat';
+  await doConsulterCaisseBatimentGenerique(buildingId, 'Commissariat');
+}
+
 async function chargerCaisseBatiment(pays, buildingId) {
   const key = pays + '_' + buildingId;
   if (typeof sbGetCaisseBatiment !== 'function') return { key, solde: 0 };
