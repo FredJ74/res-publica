@@ -776,6 +776,25 @@ async function sbGetStatsInfluenceJoueur(nom) {
   return { per: r?.char?.stats?.PER || 8, inf: r?.resources?.inf || 0 };
 }
 
+async function sbSetTitulairePnj(country, posteId, city, nomPnj) {
+  const id = country + '_' + posteId + '_' + (city || 'national');
+  const existing = await sbGet('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`).catch(() => []);
+  const payload = { id, country, poste_id: posteId, city: city || null, nom_pnj: nomPnj, updated_at: new Date().toISOString() };
+  if (existing && existing.length > 0) return sbUpdate('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`, payload);
+  return sbInsert('titulaires_pnj', payload);
+}
+
+async function sbGetTitulairePnj(country, posteId, city) {
+  const id = country + '_' + posteId + '_' + (city || 'national');
+  const rows = await sbGet('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`).catch(() => []);
+  return rows?.[0]?.nom_pnj || null;
+}
+
+async function sbSupprimerTitulairePnj(country, posteId, city) {
+  const id = country + '_' + posteId + '_' + (city || 'national');
+  return sbDelete('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`);
+}
+
 async function sbGetGuerresPays(pays) {
   const rows = await sbGet('guerres', 'statut=neq.terminee&select=id,data');
   if (!rows) return [];

@@ -2441,18 +2441,24 @@ function consulterAnnuaireDeputes() {
 
 // Vérifie si un PJ peut accepter ce poste (règles de cumul strict)
 async function getTitulairePosteNomme(posteId, city) {
-  if (typeof sbListPersonnages !== 'function') return null;
-  try {
-    const joueurs = await sbListPersonnages() || [];
-    const match = joueurs.find(j => {
-      let poste = j.poste;
-      if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
-      if (!poste || poste.id !== posteId) return false;
-      if (city && poste.city !== city) return false;
-      return true;
-    });
-    return match ? match.name : null;
-  } catch(e) { return null; }
+  if (typeof sbListPersonnages === 'function') {
+    try {
+      const joueurs = await sbListPersonnages() || [];
+      const match = joueurs.find(j => {
+        let poste = j.poste;
+        if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
+        if (!poste || poste.id !== posteId) return false;
+        if (city && poste.city !== city) return false;
+        return true;
+      });
+      if (match) return { nom: match.name, estPJ: true };
+    } catch(e) {}
+  }
+  if (typeof sbGetTitulairePnj === 'function') {
+    const nomPnj = await sbGetTitulairePnj(state.country, posteId, city).catch(() => null);
+    if (nomPnj) return { nom: nomPnj, estPJ: false };
+  }
+  return null;
 }
 
 async function ouvrirRevoquerPosteNomme(posteId) {
@@ -2465,36 +2471,42 @@ async function ouvrirRevoquerPosteNomme(posteId) {
 
   const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
   const villeNom = villeCourante ? (WORLD[state.country]?.[villeCourante]?.name || villeCourante) : null;
-  const titulaire = await getTitulairePosteNomme(posteId, villeCourante);
+  const titulaireInfo = await getTitulairePosteNomme(posteId, villeCourante);
 
   document.getElementById('postes-modal-title').textContent = 'Revoquer le ' + regle.label.toLowerCase();
-  if (!titulaire) {
+  if (!titulaireInfo) {
     document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;font-size:.85rem;color:#8a8060;font-style:italic">Aucun ' + regle.label.toLowerCase() + ' en poste actuellement' + (villeNom ? ' a ' + villeNom : '') + '.</div>';
   } else {
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1rem">' +
-      '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">' + titulaire + ' occupe actuellement le poste de ' + regle.label + (villeNom ? ' a ' + villeNom : '') + '.</div>' +
-      '<button onclick="confirmerRevocationPosteNomme(\'' + posteId + '\',\'' + titulaire.replace(/'/g,'') + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a2a;background:transparent;color:#c0503a;cursor:pointer">Revoquer</button>' +
+      '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">' + titulaireInfo.nom + (titulaireInfo.estPJ ? '' : ' (PNJ)') + ' occupe actuellement le poste de ' + regle.label + (villeNom ? ' a ' + villeNom : '') + '.</div>' +
+      '<button onclick="confirmerRevocationPosteNomme(\'' + posteId + '\',\'' + titulaireInfo.nom.replace(/'/g,'') + '\',' + (titulaireInfo.estPJ ? 'true' : 'false') + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a2a;background:transparent;color:#c0503a;cursor:pointer">Revoquer</button>' +
       '</div>';
   }
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerRevocationPosteNomme(posteId, nomTitulaire) {
+async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ) {
   document.getElementById('modal-postes').classList.remove('open');
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return;
+  const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
 
-  if (typeof sbUpdate === 'function') {
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomTitulaire)}`, { poste: null }).catch(() => {});
-  }
-
-  const revoqueurNom = state.char?.name || 'Anonyme';
-  if (typeof sbSendMail === 'function') {
-    const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-    await sbSendMail(revoqueurNom, nomTitulaire, 'Revocation de poste',
-      'Vous avez ete revoque(e) du poste de ' + regle.label + ' par ' + revoqueurNom + '.', time).catch(() => {});
+  if (estPJ) {
+    if (typeof sbUpdate === 'function') {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomTitulaire)}`, { poste: null }).catch(() => {});
+    }
+    const revoqueurNom = state.char?.name || 'Anonyme';
+    if (typeof sbSendMail === 'function') {
+      const h = String(state.hour || 8).padStart(2,'0');
+      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+      await sbSendMail(revoqueurNom, nomTitulaire, 'Revocation de poste',
+        'Vous avez ete revoque(e) du poste de ' + regle.label + ' par ' + revoqueurNom + '.', time).catch(() => {});
+    }
+  } else {
+    if (typeof sbSupprimerTitulairePnj === 'function') {
+      await sbSupprimerTitulairePnj(state.country, posteId, villeCourante).catch(() => {});
+    }
   }
 
   const villeNom = regle.scope === 'ville' ? (WORLD[state.country]?.[state.currentCity]?.name || state.currentCity) : null;
@@ -2535,22 +2547,25 @@ async function ouvrirNominerPosteNomme(posteId) {
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Recherche des habitants éligibles...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const habitants = await listerHabitantsEligibles(posteId);
+  const habitants = (await listerHabitantsEligibles(posteId)).map(h => ({ name: h.name, isPJ: true }));
+  const roomActuelleNomme = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const pnjPresents = (roomActuelleNomme?.persons || []).filter(pp => !pp.isPJ).map(pp => ({ name: pp.name.replace(' (PNJ)', ''), isPJ: false }));
+  const candidatsComplet = [...habitants, ...pnjPresents];
   const villeNom = regle.scope === 'ville' ? (WORLD[state.country]?.[state.currentCity]?.name || state.currentCity) : null;
 
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' +
     (regle.scope === 'ville'
-      ? 'Habitants domiciliés à ' + villeNom + '.'
-      : 'Habitants domiciliés dans ' + (COUNTRIES[state.country]?.n || 'cet empire') + '.') +
-    ' Le poste de ' + regle.label + ' est incompatible avec tout autre poste sauf Député.</div>';
+      ? 'Habitants domiciliés à ' + villeNom + ', ou PNJ present. '
+      : 'Habitants domiciliés dans ' + (COUNTRIES[state.country]?.n || 'cet empire') + ', ou PNJ present. ') +
+    'Le poste de ' + regle.label + ' est incompatible avec tout autre poste sauf Député.</div>';
 
-  if (habitants.length === 0) {
-    html += '<div style="font-size:.85rem;color:#5a5040">Aucun habitant éligible trouvé.</div>';
+  if (candidatsComplet.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040">Aucun candidat éligible trouvé.</div>';
   } else {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CANDIDAT</div>';
     html += '<select id="nomme-poste-contact" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    habitants.forEach(h => { html += '<option value="' + h.name + '">' + h.name + '</option>'; });
+    candidatsComplet.forEach(h => { html += '<option value="' + h.name + '|' + (h.isPJ ? '1' : '0') + '">' + h.name + (h.isPJ ? '' : ' (PNJ)') + '</option>'; });
     html += '</select>';
     html += '<button onclick="envoyerNominationPosteNomme(\'' + posteId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
   }
@@ -2561,14 +2576,26 @@ async function ouvrirNominerPosteNomme(posteId) {
 // Envoie le mail de nomination avec bouton d'acceptation intégré
 async function envoyerNominationPosteNomme(posteId) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
-  const destinataire = document.getElementById('nomme-poste-contact')?.value;
-  if (!destinataire || !regle) return;
+  const rawSelectNomme = document.getElementById('nomme-poste-contact')?.value;
+  if (!rawSelectNomme || !regle) return;
+  const [destinataire, estPJRawNomme] = rawSelectNomme.split('|');
+  const estPJNomme = estPJRawNomme === '1';
 
   document.getElementById('modal-postes').classList.remove('open');
 
   const nommeurNom = state.char?.name || 'Anonyme';
   const villeNom = regle.scope === 'ville' ? (WORLD[state.country]?.[state.currentCity]?.name || state.currentCity) : null;
   const sujet = 'Nomination au poste de ' + regle.label;
+
+  if (!estPJNomme) {
+    if (typeof sbSetTitulairePnj === 'function') {
+      await sbSetTitulairePnj(state.country, posteId, villeNom ? state.currentCity : null, destinataire).catch(() => {});
+    }
+    addExternalEvent('🏛 ' + destinataire + ' (PNJ) a ete nomme(e) ' + regle.label + (villeNom ? ' de ' + villeNom : '') + ' par ' + nommeurNom + '.', villeNom ? 'local' : 'national');
+    addJournalEntry('Nomination de ' + destinataire + ' (PNJ) au poste de ' + regle.label + '.', 'event-good');
+    showToast('Nomination effectuee', destinataire + ' occupe desormais le poste de ' + regle.label + '.', true, true);
+    return;
+  }
 
   const corps = nommeurNom + ' vous propose le poste de <strong>' + regle.label + '</strong>' +
     (villeNom ? ' pour la ville de ' + villeNom : ' pour ' + (COUNTRIES[state.country]?.n || "l'empire")) + '.<br><br>' +
