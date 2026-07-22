@@ -2222,7 +2222,7 @@ const BUILDINGS = {
           {fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, type:'legal', icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.'},
           {fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, type:'legal', icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.'},
           {fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.'},
-          {fn:'consulter_indices_locaux', label:'Consulter les indices locaux', pa:0, cost:0, type:'legal', icon:'ti-chart-histogram', successRate:100, desc:'Securite, vie associative, education, cadre de vie de la ville.'},
+          {fn:'consulter_indices_locaux', label:'Consulter les caisses communales', pa:0, cost:0, type:'legal', icon:'ti-chart-histogram', successRate:100, desc:'Voir le solde reel des caisses du Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal.'},
           {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'}
         ]
       },
@@ -2236,7 +2236,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'fixer_impots_locaux',   label:'Fixer les impôts locaux',       pa:2, cost:0, type:'legal', icon:'ti-receipt-tax',  successRate:100, requiresPost:'maire', desc:'Definir le taux de taxation locale. Impact direct sur les recettes et la popularite.'},
-          {fn:'repartition_budget_local', label:'Repartition du budget local', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Allouer le budget entre commissariat, dispensaire, voirie et services municipaux.'},
+          {fn:'repartition_budget_local', label:'Repartir le budget municipal', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Repartir les recettes fiscales locales entre Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal. Applique chaque nuit, credite directement leur caisse reelle.'},
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire', desc:'Valider ou refuser les permis de construire arrives a instruction terminee.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Deploiement de forces de l\'ordre supplementaires. Preleve sur budget mairie.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire', desc:'Choisir le type d\'acte a delivrer a un administre.'},
@@ -2598,7 +2598,7 @@ const BUILDINGS = {
           {fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, type:'legal', icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.'},
           {fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, type:'legal', icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.'},
           {fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.'},
-          {fn:'consulter_indices_locaux', label:'Consulter les indices locaux', pa:0, cost:0, type:'legal', icon:'ti-chart-histogram', successRate:100, desc:'Securite, vie associative, education, cadre de vie de la ville.'}
+          {fn:'consulter_indices_locaux', label:'Consulter les caisses communales', pa:0, cost:0, type:'legal', icon:'ti-chart-histogram', successRate:100, desc:'Voir le solde reel des caisses du Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal.'}
         ]
       },
       bureau_maire_local: {
@@ -2612,7 +2612,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'fixer_impots_locaux',   label:'Fixer les impôts locaux',       pa:2, cost:0, type:'legal', icon:'ti-receipt-tax',  successRate:100, requiresPost:'maire', desc:'Definir le taux de taxation locale.'},
-          {fn:'repartition_budget_local', label:'Répartir le budget municipal', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Allouer le budget entre Securite, Associations sportives et culturelles, Ecoles et Espaces verts. Chaque poste alimente son indice local correspondant.'},
+          {fn:'repartition_budget_local', label:'Répartir le budget municipal', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Repartir les recettes fiscales locales entre Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal. Applique chaque nuit, credite directement leur caisse reelle.'},
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire', desc:'Valider ou refuser les permis de construire arrives a instruction terminee.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Preleve sur budget mairie.'},
           {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'},

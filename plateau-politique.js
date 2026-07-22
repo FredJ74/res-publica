@@ -4868,9 +4868,16 @@ function ouvrirConfirmationDemission() {
 // =====================
 // INDICES LOCAUX & BUDGET MUNICIPAL
 // =====================
-const CATEGORIES_BUDGET_MAIRIE = ['securite', 'associatif', 'ecoles', 'espaces_verts'];
-const LABELS_BUDGET_MAIRIE = { securite: 'Sécurité', associatif: 'Associations sportives et culturelles', ecoles: 'Écoles', espaces_verts: 'Espaces verts' };
-const LABELS_INDICES_LOCAUX = { securite: 'Sécurité locale', associatif: 'Vie associative & sportive', ecoles: 'Éducation', espaces_verts: 'Cadre de vie' };
+const CATEGORIES_BUDGET_MAIRIE = ['commissariat', 'multimodal', 'stade', 'marche', 'dispensaire', 'tribunal'];
+const LABELS_BUDGET_MAIRIE = { commissariat: 'Commissariat', multimodal: 'Centre Multimodal', stade: 'Stade', marche: 'Marche', dispensaire: 'Dispensaire', tribunal: 'Tribunal' };
+
+function getBuildingIdPourCategorieBudget(cat, ville) {
+  if (cat === 'commissariat') return getBuildingIdCommissariat(ville);
+  if (cat === 'multimodal') return getBuildingIdCentreMultimodal(ville);
+  if (cat === 'dispensaire') return getBuildingIdDispensaire(ville);
+  if (cat === 'tribunal') return getBuildingIdTribunal(ville);
+  return cat;
+}
 
 function getVilleKey() {
   return (state.country || 'republic') + '_' + (state.currentCity || 'capitale');
@@ -4883,53 +4890,54 @@ async function chargerBudgetMunicipal() {
   if (!data) {
     data = {
       key,
-      allocation: { securite: 25, associatif: 25, ecoles: 25, espaces_verts: 25 },
-      indices: { securite: 50, associatif: 50, ecoles: 50, espaces_verts: 50 },
-      derniereMaj: state.day || 1
+      allocation: { commissariat: 20, multimodal: 15, stade: 15, marche: 15, dispensaire: 20, tribunal: 15 },
+      caisse: 0,
+      derniereDistribJour: state.day || 1
     };
     if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(key, data).catch(() => {});
   }
   return data;
 }
 
-// Fait deriver les indices locaux vers leur cible (allocation x2) au fil des jours ecoules.
-// Appelee par n'importe quel joueur au chargement, comme le championnat et les elections.
-async function verifierDeriveIndicesLocaux() {
+async function distribuerBudgetMunicipalVersBatiments(pays, ville) {
   const data = await chargerBudgetMunicipal();
-  if (!data) return null;
+  if (!data) return;
   const jour = state.day || 1;
-  const joursEcoules = jour - (data.derniereMaj || jour);
-  if (joursEcoules <= 0) return data;
+  if (data.derniereDistribJour === jour) return;
 
-  CATEGORIES_BUDGET_MAIRIE.forEach(cat => {
-    const cibleIndice = Math.min(100, (data.allocation[cat] || 0) * 2);
-    for (let i = 0; i < Math.min(joursEcoules, 30); i++) { // plafond de rattrapage pour eviter une boucle demesuree
-      if (data.indices[cat] < cibleIndice) data.indices[cat] = Math.min(cibleIndice, data.indices[cat] + 2);
-      else if (data.indices[cat] > cibleIndice) data.indices[cat] = Math.max(cibleIndice, data.indices[cat] - 2);
+  const montantAReparter = data.caisse || 0;
+  if (montantAReparter > 0) {
+    for (const cat of CATEGORIES_BUDGET_MAIRIE) {
+      const part = (data.allocation[cat] || 0) / 100;
+      const montant = Math.floor(montantAReparter * part);
+      if (montant > 0) {
+        const buildingId = getBuildingIdPourCategorieBudget(cat, ville);
+        if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(pays, buildingId, montant);
+      }
     }
-  });
-  data.derniereMaj = jour;
+  }
+  data.caisse = 0;
+  data.derniereDistribJour = jour;
   if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(data.key, data).catch(() => {});
-  return data;
 }
 
 async function doConsulterIndicesLocaux() {
-  document.getElementById('postes-modal-title').textContent = 'Indices locaux — ' + (WORLD[state.country]?.[state.currentCity]?.name || state.currentCity);
+  const ville = state.currentCity;
+  const pays = state.country;
+  document.getElementById('postes-modal-title').textContent = 'Caisses communales — ' + (WORLD[pays]?.[ville]?.name || ville);
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const data = await verifierDeriveIndicesLocaux();
-  if (!data) { document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060">Indisponible.</div>'; return; }
-
+  const cur = COUNTRIES[pays]?.cur || 'FR';
   let html = '<div style="padding:1rem">';
-  CATEGORIES_BUDGET_MAIRIE.forEach(cat => {
-    const val = data.indices[cat];
-    const col = val >= 60 ? '#6ab858' : val >= 35 ? '#C9A84C' : '#cc6a44';
-    html += '<div style="margin-bottom:.7rem">';
-    html += '<div style="display:flex;justify-content:space-between;font-size:.78rem;color:#c0b090;margin-bottom:.2rem"><span>' + LABELS_INDICES_LOCAUX[cat] + '</span><span style="color:' + col + '">' + val + '/100</span></div>';
-    html += '<div style="height:6px;background:#1a1208;border-radius:3px;overflow:hidden"><div style="height:100%;width:' + val + '%;background:' + col + '"></div></div>';
+  for (const cat of CATEGORIES_BUDGET_MAIRIE) {
+    const buildingId = getBuildingIdPourCategorieBudget(cat, ville);
+    const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, buildingId) : { solde: 0 };
+    html += '<div style="display:flex;justify-content:space-between;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
+    html += '<span style="font-size:.82rem;color:#c0b090">' + LABELS_BUDGET_MAIRIE[cat] + '</span>';
+    html += '<strong style="font-size:.82rem;color:#C9A84C">' + (caisse?.solde || 0).toLocaleString('fr-FR') + ' ' + cur + '</strong>';
     html += '</div>';
-  });
+  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
@@ -4943,7 +4951,7 @@ async function doRepartirBudgetMunicipal() {
   if (!data) return;
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Répartissez 100% du budget entre les 4 postes. Un poste négligé verra son indice se dégrader avec le temps.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Répartissez 100% des recettes fiscales locales entre les batiments communaux. Applique chaque nuit, credite directement leur caisse reelle.</div>';
   CATEGORIES_BUDGET_MAIRIE.forEach(cat => {
     html += '<div style="margin-bottom:.6rem">';
     html += '<label style="font-size:.75rem;color:#c0b090;display:block;margin-bottom:.2rem">' + LABELS_BUDGET_MAIRIE[cat] + '</label>';
@@ -4951,12 +4959,13 @@ async function doRepartirBudgetMunicipal() {
     html += '</div>';
   });
   html += '<div id="budget-total-warning" style="font-size:.72rem;color:#cc6a44;margin-bottom:.6rem"></div>';
-  html += '<button onclick="confirmerRepartitionBudget(\'' + data.key + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
+  html += '<button onclick="confirmerRepartitionBudget()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function confirmerRepartitionBudget(key) {
+async function confirmerRepartitionBudget() {
+  const key = getVilleKey();
   const allocation = {};
   let total = 0;
   CATEGORIES_BUDGET_MAIRIE.forEach(cat => {
@@ -4972,7 +4981,7 @@ async function confirmerRepartitionBudget(key) {
   data.allocation = allocation;
   await sbSaveBudgetMunicipal(key, data).catch(() => {});
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Budget mis à jour', 'La nouvelle répartition s\'appliquera progressivement.', true, true);
+  showToast('Budget mis à jour', 'La nouvelle repartition sera appliquee des le prochain reveil.', true, true);
   addJournalEntry('Nouvelle répartition du budget municipal validée.', 'event-good');
 }
 

@@ -819,6 +819,8 @@ async function doDormir() {
   // Regeneration quotidienne des grilles de prison de la ville courante (puise sur la
   // caisse du commissariat, s'arrete des que le budget est insuffisant)
   if (typeof regenererGrillesPrison === 'function') regenererGrillesPrison(state.country, state.currentCity).catch(() => {});
+  // Distribution quotidienne du budget municipal vers les vraies caisses des batiments communaux
+  if (typeof distribuerBudgetMunicipalVersBatiments === 'function') distribuerBudgetMunicipalVersBatiments(state.country, state.currentCity).catch(() => {});
   updateUI(); // Rafraichir apres les bonus de location (INF/POP/DIS) appliques ci-dessus
 
   // Traiter les evenements nocturnes
