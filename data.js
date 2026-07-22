@@ -1163,8 +1163,8 @@ const BUILDINGS = {
         desc: "La salle de restaurant est bondee le midi. Tables discretes en fond de salle pour conversations privees.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-republica-restaurant.png",
         persons: [
-          {name:'Paulo (Maitre d\'hotel)', role:'PNJ - Service', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/paulo-maitre-hotel.png', photoPos:'50% 15%'},
-          {name:'Gaston Sauceblanche (PNJ)', role:'Sommelier', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gaston-sauceblanche.png', photoPos:'50% 15%'},
+          {name:'Gaston Sauceblanche (PNJ)', role:'Maitre d\'hotel', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/paulo-maitre-hotel.png', photoPos:'50% 15%'},
+          {name:'Régis Gondasse (PNJ)', role:'Sommelier', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gaston-sauceblanche.png', photoPos:'50% 15%'},
           {name:'Yvette Gratinée (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/yvette-gratinee.png', photoPos:'50% 15%'},
           {name:'Jean Dupont (PNJ)',       role:'Depute - Parti du Centre', rel:'neutral', job:'commercant', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'20% 30%'},
           {name:'Marie Leblanc (PNJ)',    role:'Journaliste - La Tribune', rel:'enemy',  job:'journaliste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'70% 30%'}

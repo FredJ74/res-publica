@@ -721,10 +721,11 @@ async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
 
   if (!estPJ) {
     if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' FR requis.', false); return; }
+    const estDansMonGroupe = typeof getMonGroupePNJ === 'function' && getMonGroupePNJ().some(g => g.nom === nomInvite);
     const roomActuelle2 = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
     const pnjInfo = (roomActuelle2?.persons || []).find(pp => pp.name.replace(' (PNJ)', '') === nomInvite);
     const rel = pnjInfo?.rel || 'neutral';
-    const chance = rel === 'ally' ? 85 : rel === 'enemy' ? 20 : 60;
+    const chance = estDansMonGroupe ? 95 : (rel === 'ally' ? 85 : rel === 'enemy' ? 20 : 60);
     const roll = Math.floor(Math.random() * 100) + 1;
     if (roll <= chance) {
       state.arg -= cost;
