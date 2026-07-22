@@ -495,8 +495,7 @@ async function traiterEnquetes() {
       result = `Enquete conclue : non-lieu pour ${e.cible}. Aucune preuve suffisante.`;
     } else {
       result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. Mise en garde a vue immediate. Affaire transmise au tribunal pour jugement.`;
-      if (!state.prisonniers) state.prisonniers = [];
-      state.prisonniers.push({ nom: e.cible, depuis: `Jour ${state.day}`, raison: 'Garde a vue suite a enquete' });
+      await enregistrerDetention(e.cible, 'Garde a vue suite a enquete');
       addExternalEvent(`${e.cible} a ete place(e) en garde a vue. Affaire transmise au tribunal.`, 'local');
       // Transmettre au tribunal pour jugement public
       transmettreAffaireAuTribunal(e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.');
@@ -813,8 +812,7 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
   }
   updateUI();
   addExternalEvent('Vous avez ete arrete(e) pour ' + peineCalc.label + '. ' + jours + ' jour(s) d\'emprisonnement. Amende : ' + amende.toLocaleString('fr-FR') + ' FR.');
-  if (!state.prisonniers) state.prisonniers = [];
-  state.prisonniers.push({ nom: state.char?.name, depuis: 'Jour ' + state.day, raison: peineCalc.label, jourFin: state.day + jours });
+  enregistrerDetention(state.char?.name, peineCalc.label, state.day + jours).catch(() => {});
 
   // Teleportation en cellule de garde a vue
   state.currentBuilding = 'commissariat';
@@ -878,9 +876,18 @@ function tenterResistance(peineType) {
   }
 }
 
-function ouvrirArchivesTribunal() {
-  const jugements = state.archivesJugements || [];
+async function ouvrirArchivesTribunal() {
   document.getElementById('postes-modal-title').textContent = 'Archives du Tribunal';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  if (typeof sbLoadJugements === 'function') {
+    try {
+      const tous = await sbLoadJugements(state.country);
+      if (tous) state.archivesJugements = tous;
+    } catch(e) {}
+  }
+  const jugements = state.archivesJugements || [];
   let html = '<div style="padding:1rem">';
   if (jugements.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun jugement enregistre pour le moment.</div>';
@@ -897,7 +904,6 @@ function ouvrirArchivesTribunal() {
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
 }
 
 function ouvrirDetailJugement(idx) {
@@ -1589,14 +1595,12 @@ async function appliquerSentence(affaireId, type) {
     if (affaire.circonstanceAttenuante) { duree = Math.max(1, duree - 1); note = ' (circonstance atténuante : -1 jour)'; }
     if (affaire.aggravation) { duree = duree + 2; note = ' (aggravation : +2 jours)'; }
     details = 'Prison ' + duree + ' jours' + note;
-    if (!state.prisonniers) state.prisonniers = [];
-    state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + duree });
+    await enregistrerDetention(affaire.cible, affaire.motif, state.day + duree);
   } else if (type === 'amenagement') {
     details = 'Amenagement : pointage quotidien au commissariat';
   } else if (type === 'qhs') {
     details = 'Envoi au QHS';
-    if (!state.prisonniers) state.prisonniers = [];
-    state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + 30, qhs: true });
+    await enregistrerDetention(affaire.cible, affaire.motif, state.day + 30, true);
     if (typeof sbCreerPrisonnierQHS === 'function') {
       let photoUrl = null;
       if (typeof sbGet === 'function') {
@@ -1617,8 +1621,7 @@ async function appliquerSentence(affaireId, type) {
     }
     const duree = 3 * (nbPrecedentes + 1);
     details = 'Prison ' + duree + ' jours + popularité à zéro' + (nbPrecedentes > 0 ? ' (peine cumulée, ' + (nbPrecedentes + 1) + 'e condamnation)' : '');
-    if (!state.prisonniers) state.prisonniers = [];
-    state.prisonniers.push({ nom: affaire.cible, depuis: 'Jour ' + state.day, raison: affaire.motif, jourFin: state.day + duree });
+    await enregistrerDetention(affaire.cible, affaire.motif, state.day + duree);
     // Perte totale de popularite appliquee directement au personnage reel (peut ne pas etre
     // le joueur actuellement connecte).
     if (typeof sbUpdate === 'function') {
@@ -1636,14 +1639,27 @@ async function appliquerSentence(affaireId, type) {
   }
 
   if (!state.archivesJugements) state.archivesJugements = [];
-  state.archivesJugements.push({
+  const nouveauJugement = {
     accuse: affaire.cible,
     motif: affaire.motif,
     peine: details,
     juge: state.char?.name || 'PNJ',
     jour: state.day,
     executee: false
-  });
+  };
+  state.archivesJugements.push(nouveauJugement);
+  if (typeof sbCreerJugement === 'function') {
+    await sbCreerJugement({
+      country: state.country || 'republic',
+      city: state.currentCity || 'capitale',
+      accuse: nouveauJugement.accuse,
+      motif: nouveauJugement.motif,
+      peine: nouveauJugement.peine,
+      juge: nouveauJugement.juge,
+      jour: nouveauJugement.jour,
+      executee: nouveauJugement.executee
+    }).catch(() => {});
+  }
 
   if (typeof sbSavePlainte === 'function') await sbSavePlainte(affaire).catch(() => {});
 
@@ -3012,6 +3028,25 @@ async function confirmerSubventionMinInt() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   showToast('Subvention versee', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' verses.', true, true);
   addJournalEntry('Subvention de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur + " du Ministere de l'Interieur vers " + buildingId + '.', 'event-good');
+}
+
+async function enregistrerDetention(nom, raison, jourFin, qhs) {
+  if (!state.prisonniers) state.prisonniers = [];
+  const entree = { nom, depuis: 'Jour ' + (state.day || 1), raison };
+  if (jourFin !== undefined && jourFin !== null) entree.jourFin = jourFin;
+  if (qhs) entree.qhs = true;
+  state.prisonniers.push(entree);
+
+  if (typeof sbCreerDetention === 'function') {
+    await sbCreerDetention({
+      country: state.country || 'republic',
+      city: state.currentCity || 'capitale',
+      nom, raison,
+      jour_debut: state.day || 1,
+      jour_fin: jourFin !== undefined ? jourFin : null,
+      qhs: !!qhs
+    }).catch(() => {});
+  }
 }
 
 async function chargerNiveauPrison(pays, ville) {

@@ -792,21 +792,47 @@ function appliquerRegenerationNaturelle() {
 }
 
 // Archives police — liste des prisonniers
-function doArchivesPolice() {
-  const prisonniers = state.prisonniers || [];
-  const derniers30j = prisonniers.filter(p => {
-    const dayNum = parseInt(p.depuis.replace('Jour ','')) || 0;
-    return state.day - dayNum <= 30;
-  });
+async function doArchivesPolice() {
+  document.getElementById('postes-modal-title').textContent = 'Archives de Police';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
 
-  let msg = '';
-  if (derniers30j.length === 0) {
-    msg = 'Archives consultees : aucune personne emprisonnee au cours des 30 derniers jours.';
-  } else {
-    msg = `Archives consultees : ${derniers30j.length} personne(s) emprisonnee(s) ces 30 derniers jours : ${derniers30j.map(p => p.nom + ' (' + p.depuis + ')').join(', ')}.`;
+  let detentions = [];
+  if (typeof sbLoadDetentions === 'function') {
+    try {
+      detentions = await sbLoadDetentions(state.country) || [];
+    } catch(e) {}
   }
-  showToast('Archives consultees', msg.substring(0, 80) + '...', true);
-  addJournalEntry(msg, 'event-info');
+  state._detentionsAffichees = detentions;
+
+  let html = '<div style="padding:1rem">';
+  if (detentions.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune detention enregistree pour le moment.</div>';
+  } else {
+    detentions.forEach((d, i) => {
+      html += '<div onclick="ouvrirDetailDetention(' + i + ')" style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer">';
+      html += '<div style="display:flex;justify-content:space-between">';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + d.nom + (d.qhs ? ' <span style="color:#8a3a2a">(QHS)</span>' : '') + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">Jour ' + d.jour_debut + '</div>';
+      html += '</div>';
+      html += '<div style="font-size:.72rem;color:#6a5a30">' + d.raison + (d.jour_fin ? ' (fin prevue Jour ' + d.jour_fin + ')' : '') + '</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+function ouvrirDetailDetention(idx) {
+  const d = (state._detentionsAffichees || [])[idx];
+  if (!d) return;
+  document.getElementById('postes-modal-title').textContent = 'Detention — ' + d.nom;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.5rem">Depuis le Jour ' + d.jour_debut + (d.jour_fin ? ' (fin prevue Jour ' + d.jour_fin + ')' : '') + '</div>';
+  html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">Motif : ' + d.raison + '</div>';
+  if (d.qhs) html += '<div style="font-size:.78rem;color:#8a3a2a">Detention en QHS (haute securite)</div>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
 }
 
 // Notification mail simple

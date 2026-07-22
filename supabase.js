@@ -752,6 +752,24 @@ async function sbSetEtatUrgence(country, actif, activePar, jour) {
   return sbInsert('etats_urgence', { country, actif, active_par: activePar, jour_debut: jour });
 }
 
+async function sbCreerDetention(data) {
+  const id = 'det-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+  return sbInsert('detentions', { id, ...data });
+}
+
+async function sbLoadDetentions(country) {
+  return sbGet('detentions', `country=eq.${encodeURIComponent(country)}&order=jour_debut.desc`);
+}
+
+async function sbCreerJugement(data) {
+  const id = 'jug-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+  return sbInsert('jugements', { id, ...data });
+}
+
+async function sbLoadJugements(country) {
+  return sbGet('jugements', `country=eq.${encodeURIComponent(country)}&order=jour.desc`);
+}
+
 async function sbGetGuerresPays(pays) {
   const rows = await sbGet('guerres', 'statut=neq.terminee&select=id,data');
   if (!rows) return [];
