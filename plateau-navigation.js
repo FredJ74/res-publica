@@ -1000,14 +1000,16 @@ function executerVoyage(mode, empireId, villeId) {
   if (state.char) {
     state.char.country = empireId;
     state.char.currentCity = villeId;
-    state.char.currentBuilding = null;
-    state.char.currentRoom = null;
-    localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
   }
   applyEmpireTheme(empireId);
   buildCityTabs();
   updateUI();
-  forceRenderCity(villeId);
+  const buildingArriveeVoyage = typeof getBuildingIdCentreMultimodal === 'function' ? getBuildingIdCentreMultimodal(villeId) : null;
+  if (buildingArriveeVoyage && typeof enterBuilding === 'function') {
+    enterBuilding(buildingArriveeVoyage);
+  } else {
+    forceRenderCity(villeId);
+  }
   const villeName = VILLES_PAR_EMPIRE[empireId]?.find(v => v.id === villeId)?.name || villeId;
   const empireName = EMPIRES_CONFIG[empireId]?.name || empireId;
   showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
@@ -1118,6 +1120,11 @@ function confirmerTransport(mode, empireId, villeId) {
   showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
   addJournalEntry('Voyage en ' + config.label + ' → ' + villeName + ' (' + empireName + ')', 'event-info');
   addExternalEvent((state.char?.name||'Anonyme') + ' est arrivé(e) à ' + villeName + ' (' + empireName + ').');
+
+  const buildingArriveeTransport = typeof getBuildingIdCentreMultimodal === 'function' ? getBuildingIdCentreMultimodal(villeId) : null;
+  if (buildingArriveeTransport && typeof enterBuilding === 'function') {
+    enterBuilding(buildingArriveeTransport);
+  }
 }
 
 function doControlDouanes() {
