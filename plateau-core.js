@@ -424,6 +424,14 @@ function loadCharacter() {
             // Fusionner les données Supabase (plus récentes pour tout le reste : argent, inventaire, etc.)
             Object.assign(state, sbState);
 
+            // applyCharToState() ci-dessous recalcule inf/pop/dis a partir de char.resources --
+            // il faut donc synchroniser char.resources avec les valeurs fraiches qu'on vient de
+            // fusionner, sinon le second appel ecraserait silencieusement inf/pop/dis avec les
+            // anciennes valeurs restees sur l'objet char (c'etait le bug : gains perdus au F5).
+            if (state.char) {
+              state.char.resources = { inf: state.inf, pop: state.pop, dis: state.dis };
+            }
+
             if (positionLocaleBuilding) {
               state.currentBuilding = positionLocaleBuilding;
               if (state.char) state.char.currentBuilding = positionLocaleBuilding;
