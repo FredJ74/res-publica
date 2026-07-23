@@ -1265,10 +1265,11 @@ async function rafraichirConversationActuelle(reset) {
     if (reset) zone.innerHTML = '';
     messages.forEach(m => {
       const estMoi = m.auteur === moi;
+      const heureMsg = m.created_at ? new Date(m.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
       zone.insertAdjacentHTML('beforeend',
         '<div style="margin-bottom:.4rem;text-align:' + (estMoi ? 'right' : 'left') + '">' +
         '<div style="display:inline-block;max-width:80%;padding:.35rem .6rem;border-radius:8px;background:#0f0d05;border:1px solid #2a2010">' +
-        '<div style="font-size:.9rem;color:#a08850">' + m.auteur + '</div>' +
+        '<div style="font-size:.9rem;color:#a08850">' + m.auteur + ' <span style="font-size:.72rem;color:#6a5a30">' + heureMsg + '</span></div>' +
         '<div style="font-size:1rem;color:#e0d8c0">' + m.message + '</div>' +
         '</div></div>'
       );
