@@ -210,7 +210,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','stade','zone-production'],
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','cimetiere-marin','phare-psm'],
       buildingContext: {
         'stade': {
           name: "Stade de La Brise Mariannaise",
@@ -2910,6 +2910,262 @@ const BUILDINGS = {
     }
   },
 
+  'capitaine-sauvage': {
+    name: "Le Capitaine Sauvage",
+    shortName: "Capitaine Sauvage",
+    cat: "Restauration",
+    icon: "ti-anchor",
+    bgColor: "#0a0806",
+    desc: "Bar-restaurant face au port, ambiance marine et maritime.",
+    rooms: {
+      salle_principale: {
+        name: "Salle Principale",
+        image: "\u2693",
+        imageBg: "linear-gradient(135deg,#0a0806,#12100a)",
+        desc: "Tables en terrasse face aux bateaux de pêche. L'ambiance du Capitaine Sauvage.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+  'chasse-peche-psm': {
+    name: "Maison Le Gall — Chasse et Pêche",
+    shortName: "Chasse &amp; Pêche",
+    cat: "Commerce",
+    icon: "ti-fish",
+    bgColor: "#0a0c08",
+    desc: "Armurerie locale specialisee chasse et peche. Armes, munitions, appats et vetements.",
+    rooms: {
+      boutique: {
+        name: "Boutique",
+        image: "\ud83c\udfaf",
+        imageBg: "linear-gradient(135deg,#0a0c08,#10140c)",
+        desc: "Rateliers d'armes, cannes a peche et equipements de chasse.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+  'place-armes-psm': {
+    name: "Place d'Armes de Port-Sainte-Marie",
+    shortName: "Place d'Armes",
+    cat: "Institutions",
+    icon: "ti-flag",
+    bgColor: "#0a0a0c",
+    desc: "L'ancienne place fortifiee de la ville, face a la mer.",
+    rooms: {
+      place: {
+        name: "Place d'Armes",
+        image: "\ud83c\udff0",
+        imageBg: "linear-gradient(135deg,#0a0a0c,#101014)",
+        desc: "Le vent souffle sur les remparts. Vue degagee sur la mer.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+  'ecole-marine': {
+    name: "Ecole de Marine de Port-Sainte-Marie",
+    shortName: "Ecole de Marine",
+    cat: "Education",
+    icon: "ti-school",
+    bgColor: "#08090c",
+    desc: "Formation des futurs marins et officiers de la marine marchande.",
+    rooms: {
+      hall: {
+        name: "Hall d'Entree",
+        image: "\u2693",
+        imageBg: "linear-gradient(135deg,#08090c,#0d0f14)",
+        desc: "Maquettes de navires et portraits d'anciens capitaines.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+  'chantier-naval': {
+    name: "Chantier Naval de Port-Sainte-Marie",
+    shortName: "Chantier Naval",
+    cat: "Economie - Matieres premieres",
+    icon: "ti-anchor",
+    bgColor: "#0a0a08",
+    desc: "Construction et reparation de bateaux de peche et de plaisance.",
+    rooms: {
+      cale: {
+        name: "Cale Seche",
+        image: "\ud83d\udee5\ufe0f",
+        imageBg: "linear-gradient(135deg,#0a0a08,#10100c)",
+        desc: "Coques en reparation, odeur de peinture marine et de bois.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+  'notre-dame-mer': {
+    name: "Chapelle Notre-Dame de la Mer",
+    shortName: "Notre-Dame de la Mer",
+    cat: "Religion",
+    icon: "ti-building-church",
+    bgColor: "#08080a",
+    desc: "Chapelle des marins, sur une avancee rocheuse dominant la mer.",
+    rooms: {
+      nef: {
+        name: "Nef",
+        image: "\u26ea",
+        imageBg: "linear-gradient(135deg,#08080a,#0d0d10)",
+        desc: "Ex-voto de marins accroches aux murs. Silence et recueillement.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+  'cimetiere-marin': {
+    name: "Cimetiere Marin",
+    shortName: "Cimetiere Marin",
+    cat: "Religion",
+    icon: "ti-cross",
+    bgColor: "#08080a",
+    desc: "Tombes tournees vers l'horizon, sur la pointe rocheuse a cote de la chapelle.",
+    rooms: {
+      allees: {
+        name: "Allees",
+        image: "\u2693",
+        imageBg: "linear-gradient(135deg,#08080a,#0c0c0e)",
+        desc: "Le vent et le bruit des vagues en contrebas.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+  'phare-psm': {
+    name: "Phare de Port-Sainte-Marie",
+    shortName: "Phare",
+    cat: "Transport",
+    icon: "ti-lighthouse",
+    bgColor: "#08090c",
+    desc: "Le phare qui guide les bateaux depuis des generations. Un gardien y veille.",
+    rooms: {
+      base: {
+        name: "Base du Phare",
+        image: "\ud83d\uddfc",
+        imageBg: "linear-gradient(135deg,#08090c,#0d0f14)",
+        desc: "L'escalier en colimacon monte vers la lanterne.",
+        persons: [
+          {name:'Gardien du Phare (PNJ)', role:'Gardien', rel:'neutral', job:'gardien_phare'}
+        ],
+        orders: []
+      }
+    }
+  },
+  'port-plaisance-psm': {
+    name: "Port de Plaisance de Port-Sainte-Marie",
+    shortName: "Port de Plaisance",
+    cat: "Port",
+    icon: "ti-sailboat",
+    bgColor: "#050810",
+    desc: "Voiliers et bateaux de plaisance, face au retour de facade de la banque.",
+    rooms: {
+      quai: {
+        name: "Quai",
+        image: "\u26f5",
+        imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
+        desc: "Mats et coques blanches se balancent doucement.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+  'terrain-a-batir-8': {
+    name: "Terrain a batir - Lot 8",
+    shortName: "Terrain Lot 8",
+    cat: "Immobilier",
+    icon: "ti-fence",
+    bgColor: "#0a0a05",
+    desc: "Terrain a Port-Sainte-Marie.",
+    rooms: {
+      terrain8: {
+        name: "Terrain",
+        image: "\ud83c\udfd7\ufe0f",
+        imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
+        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        persons: [],
+        orders: [
+          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'},
+          {fn:'plainte_obstruction_permis', label:'Contester un refus (obstruction)', pa:1, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Si le refus n\'etait pas justifie par le zonage, le maire en subit les consequences.'}
+        ]
+      }
+    }
+  },
+  'terrain-a-batir-9': {
+    name: "Terrain a batir - Lot 9",
+    shortName: "Terrain Lot 9",
+    cat: "Immobilier",
+    icon: "ti-fence",
+    bgColor: "#0a0a05",
+    desc: "Terrain a Port-Sainte-Marie.",
+    rooms: {
+      terrain9: {
+        name: "Terrain",
+        image: "\ud83c\udfd7\ufe0f",
+        imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
+        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        persons: [],
+        orders: [
+          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'},
+          {fn:'plainte_obstruction_permis', label:'Contester un refus (obstruction)', pa:1, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Si le refus n\'etait pas justifie par le zonage, le maire en subit les consequences.'}
+        ]
+      }
+    }
+  },
+  'terrain-a-batir-10': {
+    name: "Terrain a batir - Lot 10",
+    shortName: "Terrain Lot 10",
+    cat: "Immobilier",
+    icon: "ti-fence",
+    bgColor: "#0a0a05",
+    desc: "Terrain a Port-Sainte-Marie.",
+    rooms: {
+      terrain10: {
+        name: "Terrain",
+        image: "\ud83c\udfd7\ufe0f",
+        imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
+        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        persons: [],
+        orders: [
+          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'},
+          {fn:'plainte_obstruction_permis', label:'Contester un refus (obstruction)', pa:1, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Si le refus n\'etait pas justifie par le zonage, le maire en subit les consequences.'}
+        ]
+      }
+    }
+  },
+  'terrain-a-batir-11': {
+    name: "Terrain a batir - Lot 11",
+    shortName: "Terrain Lot 11",
+    cat: "Immobilier",
+    icon: "ti-fence",
+    bgColor: "#0a0a05",
+    desc: "Terrain a Port-Sainte-Marie.",
+    rooms: {
+      terrain11: {
+        name: "Terrain",
+        image: "\ud83c\udfd7\ufe0f",
+        imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
+        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        persons: [],
+        orders: [
+          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'},
+          {fn:'plainte_obstruction_permis', label:'Contester un refus (obstruction)', pa:1, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Si le refus n\'etait pas justifie par le zonage, le maire en subit les consequences.'}
+        ]
+      }
+    }
+  },
   'terrain-a-batir-2': {
     name: "Terrain a batir - Lot 2",
     shortName: "Terrain Lot 2",
@@ -3440,8 +3696,8 @@ const BUILDINGS = {
   // ---- PORTS ----
 
   'port-sainte-marie': {
-    name: "Port de Port-Sainte-Marie",
-    shortName: "Port PSM",
+    name: "Port Industriel de Port-Sainte-Marie",
+    shortName: "Port Industriel",
     cat: "Port",
     icon: "ti-anchor",
     bgColor: "#050810",
