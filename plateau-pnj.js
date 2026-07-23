@@ -52,6 +52,7 @@ function genererStatsHtml() {
       '<div style="font-size:.9rem;color:#8a8060;margin-bottom:.8rem;font-style:italic">' +
         (ar?.name || '') + ' · ' + (co?.n || '') +
         (state.poste?.name ? ' · ' + state.poste.name : '') +
+        (state.posteDepute?.name ? ' · ' + state.posteDepute.name : '') +
       '</div>' +
       '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.15em;color:#9a8a68;margin-bottom:.5rem">INDICES</div>' +
       barsHtml +

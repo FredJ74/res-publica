@@ -505,9 +505,13 @@ async function deposerCandidature(posteId, country, city) {
     return;
   }
 
-  // Vérifier cumul des mandats
-  if (state.poste && state.poste.id !== posteId) {
-    const interdits = [['president','maire'],['president','depute'],['maire','depute']];
+  if (posteId === 'depute') {
+    if (state.posteDepute) {
+      showToast('Deja depute', 'Vous etes deja depute.', false);
+      return;
+    }
+  } else if (state.poste && state.poste.id !== posteId) {
+    const interdits = [['president','maire']];
     const conflict = interdits.some(pair =>
       pair.includes(state.poste.id) && pair.includes(posteId)
     );
@@ -3001,8 +3005,13 @@ function prendrePoste(posteId, posteNom, isPJHolder) {
   const postes = POSTES[pays]?.[ville] || POSTES[pays]?.capitale || [];
   const poste = postes.find(p => p.id === posteId);
   if (poste) poste.holder = state.char?.name;
-  state.poste = { id: posteId, name: posteNom };
-  if (state.char) state.char.poste = state.poste;
+  if (posteId === 'depute') {
+    state.posteDepute = { id: posteId, name: posteNom };
+    if (state.char) state.char.posteDepute = state.posteDepute;
+  } else {
+    state.poste = { id: posteId, name: posteNom };
+    if (state.char) state.char.poste = state.poste;
+  }
   updateUI();
   showToast('Poste pris !', 'Vous etes desormais ' + posteNom + '.', true, true);
   addJournalEntry('Prise de poste : ' + posteNom, 'event-good');

@@ -74,6 +74,7 @@ async function sbSavePersonnage(charState) {
     pa:               charState.pa || 10,
     moral:            charState.moral || 75,
     poste:            charState.poste || null,
+    poste_depute:     charState.posteDepute || null,
     current_city:     charState.currentCity || 'capitale',
     current_building: charState.currentBuilding || null,
     current_room:     charState.currentRoom || null,
@@ -117,7 +118,7 @@ async function sbLoadPersonnage(name) {
   const r = rows[0];
   return {
     char: { name: r.name, archetype: r.archetype, career: r.career, stats: r.stats,
-             photoUrl: r.photo_url || null, bio: r.bio || null, poste: r.poste || null,
+             photoUrl: r.photo_url || null, bio: r.bio || null, poste: r.poste || null, posteDepute: r.poste_depute || null,
              country: r.country, currentCity: r.current_city, currentBuilding: r.current_building,
              currentRoom: r.current_room || null, motto: r.motto || null,
              licenceSportive: r.licence_sportive || null, performance: r.performance_sportive || null, blessureSportive: r.blessure_sportive || null,
@@ -133,6 +134,7 @@ async function sbLoadPersonnage(name) {
     pa:            r.pa,
     moral:         r.moral,
     poste:         r.poste,
+    posteDepute:   r.poste_depute || null,
     currentCity:   r.current_city,
     currentBuilding: r.current_building,
     currentRoom:   r.current_room || null,

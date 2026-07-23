@@ -471,6 +471,7 @@ function applyCharToState(char) {
   state.currentCity = char.currentCity || 'capitale';
   state.arg = char.arg || 4250;
   if (char.poste) state.poste = char.poste;
+  if (char.posteDepute) state.posteDepute = char.posteDepute;
   state.liquide = Math.floor(state.arg * 0.15);
   state.banque = state.arg - state.liquide;
   state.inf = char.resources?.inf || 25;
