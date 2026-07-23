@@ -313,6 +313,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
   }
   document.getElementById('vue-rue').classList.remove('active');
   document.getElementById('vue-batiment').classList.add('active');
+  const ancienConteneurRue = document.getElementById('rue-centrale-conteneur');
+  if (ancienConteneurRue) ancienConteneurRue.remove();
 
   // Utiliser le contexte local si disponible
   const ctx = getBuildingContext(buildingId);
