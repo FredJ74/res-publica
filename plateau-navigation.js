@@ -1000,6 +1000,8 @@ function executerVoyage(mode, empireId, villeId) {
   if (state.char) {
     state.char.country = empireId;
     state.char.currentCity = villeId;
+    state.char.currentBuilding = null;
+    state.char.currentRoom = null;
     localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
   }
   applyEmpireTheme(empireId);
@@ -1074,6 +1076,8 @@ function confirmerTransport(mode, empireId, villeId) {
   if (state.char) {
     state.char.country = empireId;
     state.char.currentCity = villeId;
+    state.char.currentBuilding = null;
+    state.char.currentRoom = null;
     localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
   }
 
