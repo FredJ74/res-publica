@@ -3013,6 +3013,7 @@ const BUILDINGS = {
         image: "\u26ea",
         imageBg: "linear-gradient(135deg,#08080a,#0d0d10)",
         desc: "Ex-voto de marins accroches aux murs. Silence et recueillement.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/notre-dame-mer-nef.png",
         persons: [],
         orders: []
       }
