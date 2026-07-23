@@ -297,8 +297,8 @@ window.addEventListener('DOMContentLoaded', () => {
       state.char.currentCity = state.currentCity || 'capitale';
       state.char.arg = state.arg || 0;
       state.char.resources = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
-      state.char.currentBuilding = state.currentBuilding || state.char.currentBuilding || null;
-      state.char.currentRoom = state.currentRoom || state.char.currentRoom || null;
+      state.char.currentBuilding = state.currentBuilding || null;
+      state.char.currentRoom = state.currentRoom || null;
     }
     localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
     localStorage.setItem('respublica_char', JSON.stringify(state.char));
@@ -657,8 +657,13 @@ function updateUI() {
   if (state.char?.name) {
     state.char.poste       = state.poste || null;
     state.char.currentCity = state.currentCity || 'capitale';
-    state.char.currentBuilding = state.currentBuilding || state.char.currentBuilding || null;
-    state.char.currentRoom     = state.currentRoom || state.char.currentRoom || null;
+    // IMPORTANT : state.currentBuilding est toujours la verite vivante (mise a jour a
+    // chaque entree/sortie de batiment ou changement de ville). Le repli vers l'ancienne
+    // valeur cachee de char.currentBuilding empechait null (= dans la rue) d'etre jamais
+    // reellement sauvegarde, ce qui faisait ressurgir un ancien batiment (parfois d'une
+    // autre ville) au moindre rafraichissement de page.
+    state.char.currentBuilding = state.currentBuilding || null;
+    state.char.currentRoom     = state.currentRoom || null;
     state.char.arg         = state.arg || 0;
     state.char.resources   = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
     state.char.hp          = state.hp || 100;
