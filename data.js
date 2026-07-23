@@ -210,7 +210,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','cimetiere-marin','phare-psm'],
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','cimetiere-marin','phare-psm','marche-psm'],
       buildingContext: {
         'stade': {
           name: "Stade de La Brise Mariannaise",
@@ -2910,6 +2910,25 @@ const BUILDINGS = {
     }
   },
 
+  'marche-psm': {
+    name: "Marche de Port-Sainte-Marie",
+    shortName: "Marche",
+    cat: "Commerce",
+    icon: "ti-shopping-cart",
+    bgColor: "#0a0c08",
+    desc: "Etals de poissonniers, marchands de legumes et creperies, dans la ruelle qui remonte vers l'Hotel de Ville.",
+    rooms: {
+      etals: {
+        name: "Les Etals",
+        image: "\ud83e\udd6c",
+        imageBg: "linear-gradient(135deg,#0a0c08,#10140c)",
+        desc: "Poissons frais, legumes de saison et l'odeur du pain chaud de la boulangerie.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-marche.png",
+        persons: [],
+        orders: []
+      }
+    }
+  },
   'capitaine-sauvage': {
     name: "Le Capitaine Sauvage",
     shortName: "Capitaine Sauvage",
@@ -2923,6 +2942,7 @@ const BUILDINGS = {
         image: "\u2693",
         imageBg: "linear-gradient(135deg,#0a0806,#12100a)",
         desc: "Tables en terrasse face aux bateaux de pêche. L'ambiance du Capitaine Sauvage.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-resto-capitaine-sauvage.png",
         persons: [],
         orders: []
       }
@@ -2941,6 +2961,7 @@ const BUILDINGS = {
         image: "\ud83c\udfaf",
         imageBg: "linear-gradient(135deg,#0a0c08,#10140c)",
         desc: "Rateliers d'armes, cannes a peche et equipements de chasse.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/armurerie-port-sainte-marie-maison-le-gall.png",
         persons: [],
         orders: []
       }
@@ -2959,6 +2980,7 @@ const BUILDINGS = {
         image: "\ud83c\udff0",
         imageBg: "linear-gradient(135deg,#0a0a0c,#101014)",
         desc: "Le vent souffle sur les remparts. Vue degagee sur la mer.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-place.png",
         persons: [],
         orders: []
       }
