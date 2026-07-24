@@ -776,6 +776,15 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
     // Route est-ouest, strictement a l'interieur du perimetre
     svg += '<rect x="130" y="331" width="420" height="8" fill="#1e1c10"/>';
     svg += '<line x1="130" y1="335" x2="550" y2="335" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+  } else {
+    // Autres villes : route en croix calculee dynamiquement au centre du perimetre,
+    // coherente avec un decoupage en quadrants (nord-sud / est-ouest).
+    const routeNS_x = perimX + perimW / 2;
+    const routeEW_y = perimY + perimH / 2;
+    svg += '<rect x="' + (routeNS_x - 4) + '" y="' + perimY + '" width="8" height="' + perimH + '" fill="#1e1c10"/>';
+    svg += '<line x1="' + routeNS_x + '" y1="' + perimY + '" x2="' + routeNS_x + '" y2="' + (perimY + perimH) + '" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+    svg += '<rect x="' + perimX + '" y="' + (routeEW_y - 4) + '" width="' + perimW + '" height="8" fill="#1e1c10"/>';
+    svg += '<line x1="' + perimX + '" y1="' + routeEW_y + '" x2="' + (perimX + perimW) + '" y2="' + routeEW_y + '" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
   }
 
   // Batiments visibles dans la scene de rue actuelle (si on n'est pas a l'interieur d'un
