@@ -330,7 +330,7 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
     const pnjDesAutres = [];
     autres.forEach(p => {
       (p.groupe_pnj || []).forEach(pnjInfo => {
-        pnjDesAutres.push({ nom: pnjInfo.nom, role: (pnjInfo.role || 'PNJ') + ' de ' + p.name, photoUrl: pnjInfo.photoUrl || null });
+        pnjDesAutres.push({ nom: pnjInfo.nom, role: (pnjInfo.role || 'PNJ') + ' de ' + p.name, photoUrl: pnjInfo.photoUrl || null, job: pnjInfo.job || 'default', proprietaire: p.name });
       });
     });
     window._pnjDesAutresJoueurs = pnjDesAutres;
@@ -364,6 +364,7 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
 function ouvrirFichePnjAutreJoueur(idx) {
   const p = (window._pnjDesAutresJoueurs || [])[idx];
   if (!p) return;
+  window._pnjAutreJoueurCourant = p;
   document.getElementById('pnj-modal-title').textContent = p.nom;
   const avatarEl = document.getElementById('pnj-avatar-container');
   if (avatarEl) {
@@ -376,16 +377,39 @@ function ouvrirFichePnjAutreJoueur(idx) {
   const traitEl = document.getElementById('pnj-trait-display');
   if (traitEl) traitEl.textContent = '';
   const speech = document.getElementById('pnj-speech');
-  if (speech) speech.textContent = "Personnage accompagnant un autre joueur. Aucune interaction directe possible.";
+  if (speech) speech.textContent = "Employe(e) de " + (p.proprietaire || 'quelqu\'un') + '.';
   const actionsEl = document.getElementById('pnj-actions');
-  if (actionsEl) actionsEl.innerHTML = '';
+  if (actionsEl) {
+    actionsEl.innerHTML =
+      '<button class="pnj-action-btn" onclick="contacterPnjAutreJoueur()"><i class="ti ti-message-circle" style="font-size:.85rem"></i> Contacter</button>' +
+      '<button class="pnj-action-btn" style="color:#cc8844;border-color:#4a2a10" onclick="tentativeDebauchage(\'' + p.nom.replace(/'/g,'') + '\')"><i class="ti ti-user-question" style="font-size:.85rem"></i> Tenter de débaucher</button>';
+  }
   document.getElementById('modal-pnj').classList.add('open');
+}
+
+async function contacterPnjAutreJoueur() {
+  const p = window._pnjAutreJoueurCourant;
+  if (!p) return;
+  const speech = document.getElementById('pnj-speech');
+  if (speech) speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
+  const co = COUNTRIES[state.country];
+  const prompt = 'Tu joues ' + p.nom + ', ' + (p.role || 'un personnage') + ' au service de ' + (p.proprietaire || 'quelqu\'un') + ', dans Res Publica (jeu politique parodique, empire ' + (co?.n || '') + '). Un autre personnage t\'aborde brievement. Reponds en 1-2 phrases, dans ton personnage, avec une pointe de loyaute envers ton employeur actuel mais sans etre hostile. Texte brut uniquement.';
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 100, messages: [{ role:'user', content: prompt }] })
+    });
+    const data = await resp.json();
+    if (speech) speech.textContent = data.content?.[0]?.text?.trim() || ('Bonjour. Je suis au service de ' + (p.proprietaire||'') + '.');
+  } catch(e) {
+    if (speech) speech.textContent = 'Bonjour. Je suis au service de ' + (p.proprietaire||'') + '.';
+  }
 }
 
 function getMonGroupePNJ() {
   const liste = [];
-  (state.escortActive || []).forEach(e => liste.push({ nom: e.nom, role: 'Escort', photoUrl: e.photoUrl || null }));
-  (state.employes || []).filter(e => e.inGroupe).forEach(e => liste.push({ nom: e.nom, role: e.role || 'Employe', photoUrl: e.photoUrl || null }));
+  (state.escortActive || []).forEach(e => liste.push({ nom: e.nom, role: 'Escort', photoUrl: e.photoUrl || null, job: 'escort' }));
+  (state.employes || []).filter(e => e.inGroupe).forEach(e => liste.push({ nom: e.nom, role: e.role || 'Employe', photoUrl: e.photoUrl || null, job: e.job || 'default' }));
   return liste;
 }
 
@@ -847,73 +871,81 @@ function licencierPnj(nomPnj) {
 // DÉBAUCHAGE PAR UN AUTRE PJ
 // =====================
 function tentativeDebauchage(nomPnj) {
-  const emp = getEmployes ? null : null; // cherche dans state global
-  // Cette fonction sera appelée depuis le modal PNJ d'un PNJ qui appartient à un autre PJ
-  // Pour l'instant on ouvre un modal de confirmation
+  const p = window._pnjAutreJoueurCourant;
+  if (!p || p.nom !== nomPnj) return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('postes-modal-title').textContent = 'Débaucher ' + nomPnj;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem">Tenter de débaucher ce PNJ. Le résultat dépend de vos statistiques, de celles du PNJ, et de celles de son employeur actuel.</div>' +
+    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem">Actuellement au service de ' + (p.proprietaire || 'quelqu\'un') + '. Le résultat dépend de sa loyauté, de vos statistiques, et du pot-de-vin proposé.</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">POT-DE-VIN (' + cur + ')</div>' +
     '<input id="debauche-montant" type="number" min="100" step="100" placeholder="Ex: 500" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.7rem"/>' +
-    '<button onclick="confirmerDebauchage(\'' + nomPnj.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Tenter le débauchage</button>' +
+    '<button onclick="confirmerDebauchage()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Tenter le débauchage</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerDebauchage(nomPnj) {
+async function confirmerDebauchage() {
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Temporairement indisponible', 'Le debauchage de PNJ est en cours de refonte.', false);
-  return;
-  // Code ci-dessous desactive temporairement (duplication de PNJ en cours de refonte)
+  const p = window._pnjAutreJoueurCourant;
+  if (!p) return;
   const montant = parseInt(document.getElementById('debauche-montant')?.value || 0);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  document.getElementById('modal-postes').classList.remove('open');
 
   if (!montant || montant < 100) { showToast('Montant insuffisant', 'Minimum 100 ' + cur + '.', false); return; }
   if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
 
+  const loyaute = PNJ_STATS_PAR_JOB[p.job]?.loyaute ?? 40;
+  const dup = state.char?.stats?.DUP || 8;
+  const bonusMontant = Math.min(30, Math.floor(montant / 100));
+  let taux = Math.round((100 - loyaute) / 2 + dup + bonusMontant);
+  taux = Math.max(5, Math.min(85, taux));
+  const roll = Math.floor(Math.random() * 100) + 1;
+
   state.arg -= montant;
 
-  // Stats du débaucheur
-  const chaDeb = state.char?.stats?.CHA || 8;
-  const infDeb = state.inf || 30;
+  if (roll > taux) {
+    updateUI();
+    addJournalEntry('Tentative de débauchage de ' + p.nom + ' ratée (' + taux + '% de chances). -' + montant + ' ' + cur + '.', 'event-bad');
+    showToast('Débauchage échoué', p.nom + ' est resté(e) fidèle à ' + (p.proprietaire || 'son employeur') + '.', false);
+    document.getElementById('modal-pnj')?.classList.remove('open');
+    return;
+  }
 
-  // On simule les stats du PNJ et de l'employeur (inconnu côté client)
-  // En multiplayer réel, on irait chercher dans Supabase
-  const loyaute = 50; // valeur simulée
-  const chaEmp = 8;   // employeur simulé
-  const infEmp = 30;
+  try {
+    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(p.proprietaire)}&select=employes,escort_active`).catch(() => []);
+    const owner = rows?.[0];
+    if (owner) {
+      if (p.job === 'escort') {
+        const nouvelleListe = (owner.escort_active || []).filter(e => e.nom !== p.nom);
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(p.proprietaire)}`, { escort_active: nouvelleListe }).catch(() => {});
+      } else {
+        const nouvelleListe = (owner.employes || []).filter(e => e.nom !== p.nom);
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(p.proprietaire)}`, { employes: nouvelleListe }).catch(() => {});
+      }
+    }
+  } catch(e) {}
 
-  // Jet complexe
-  const scoreDebauche = Math.floor(chaDeb * 3) + Math.floor(infDeb / 5) + Math.floor(montant / 100);
-  const scoreDefense = Math.floor(loyaute * 1.5) + Math.floor(chaEmp * 2) + Math.floor(infEmp / 5);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const taux = Math.min(70, Math.max(10, 35 + scoreDebauche - scoreDefense));
-
-  if (roll <= taux) {
-    // Succès — le PNJ change d'employeur
+  if (p.job === 'escort') {
+    if (!state.escortActive) state.escortActive = [];
+    state.escortActive.push({ nom: p.nom, tarif: 800, depuis: state.day || 1, genre: 'F', palier: 0, photoUrl: p.photoUrl || null });
+  } else {
     if (!state.employes) state.employes = [];
     state.employes.push({
-      nom: nomPnj, role: 'PNJ débauché', job: 'default',
-      cout: Math.floor(montant / 3), inGroupe: true,
-      buildingId: state.currentBuilding, roomId: state.currentRoom,
-      city: state.currentCity, depuis: state.day || 1,
-      stats: PNJ_STATS_PAR_JOB.default,
+      nom: p.nom, role: (p.role || '').split(' de ')[0] || 'Employe', job: p.job || 'default',
+      photoUrl: p.photoUrl || '', photoPos: '50% 15%', inGroupe: true,
+      buildingId: state.currentBuilding, roomId: state.currentRoom, city: state.currentCity, depuis: state.day || 1
     });
-    updateUI();
-    renderEmployesPanel();
-    showToast('Débauchage réussi !', nomPnj + ' rejoint votre groupe. -' + montant + ' ' + cur, true);
-    addJournalEntry('Débauchage réussi : ' + nomPnj + '.', 'event-good');
-    addExternalEvent('💼 ' + nomPnj + ' a changé d\'employeur !');
-  } else {
-    // Échec — l'employeur est notifié
-    updateUI();
-    showToast('Débauchage raté', '-' + montant + ' ' + cur + ' perdus. L\'employeur a été informé.', false);
-    addJournalEntry('Débauchage raté de ' + nomPnj + '. -' + montant + ' ' + cur + '.', 'event-bad');
-    // Notification à l'employeur (via Supabase en multijoueur)
-    addExternalEvent('⚠️ Quelqu\'un a tenté de débaucher ' + nomPnj + ' !');
+  }
+
+  updateUI();
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  addJournalEntry('Débauchage réussi ! ' + p.nom + ' rejoint votre service (' + taux + '% de chances). -' + montant + ' ' + cur + '.', 'event-good');
+  showToast('Débauchage réussi !', p.nom + ' rejoint désormais votre service.', true, true);
+  if (typeof envoyerNotificationVraiJoueur === 'function') {
+    envoyerNotificationVraiJoueur(p.proprietaire, 'Débauchage', (state.char?.name || 'Quelqu\'un') + ' a débauché ' + p.nom + ' de votre service.').catch(() => {});
   }
 }
 
