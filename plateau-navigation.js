@@ -735,9 +735,27 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   const empireColor = co?.col || '#C9A84C';
   const layout = PLAN_LAYOUTS[cityId] || PLAN_LAYOUTS.capitale;
   const buildings = city.buildings || [];
+  const estLuthecia = cityId === 'capitale';
 
-  // Rues : définies par les espaces entre îlots
-  const SVG_W = 680, SVG_H = 600;
+  let SVG_W, SVG_H, perimX, perimY, perimW, perimH;
+  if (estLuthecia) {
+    // Luthecia : cadre valide visuellement avec Fred, ne pas toucher.
+    SVG_W = 680; SVG_H = 600;
+    perimX = 130; perimY = 150; perimW = 420; perimH = 370;
+  } else {
+    // Autres villes : cadre calcule dynamiquement a partir de l'etendue reelle des
+    // batiments de PLAN_LAYOUTS, pour ne jamais deborder du plan quelle que soit sa forme.
+    const positions = buildings.map(id => layout[id]).filter(Boolean);
+    const minX = positions.length ? Math.min(...positions.map(p => p[0])) : 0;
+    const maxX = positions.length ? Math.max(...positions.map(p => p[0] + p[2])) : 400;
+    const minY = positions.length ? Math.min(...positions.map(p => p[1])) : 0;
+    const maxY = positions.length ? Math.max(...positions.map(p => p[1] + p[3])) : 300;
+    const PAD = 24;
+    perimX = minX - PAD; perimY = minY - PAD;
+    perimW = (maxX - minX) + PAD * 2; perimH = (maxY - minY) + PAD * 2;
+    SVG_W = perimX + perimW + PAD;
+    SVG_H = perimY + perimH + PAD + 40; // marge basse pour titre + legende
+  }
 
   let svg = '<svg viewBox="0 0 ' + SVG_W + ' ' + SVG_H + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">';
 
@@ -748,15 +766,17 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   svg += '<rect width="' + SVG_W + '" height="' + SVG_H + '" fill="#111008"/>';
 
   // Perimetre (perimetrique) — rectangle qui ceinture la ville
-  svg += '<rect x="130" y="150" width="420" height="370" rx="8" fill="none" stroke="#3a3418" stroke-width="2"/>';
+  svg += '<rect x="' + perimX + '" y="' + perimY + '" width="' + perimW + '" height="' + perimH + '" rx="8" fill="none" stroke="#3a3418" stroke-width="2"/>';
 
-  // Route nord-sud, strictement a l'interieur du perimetre
-  svg += '<rect x="336" y="150" width="8" height="370" fill="#1e1c10"/>';
-  svg += '<line x1="340" y1="150" x2="340" y2="520" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+  if (estLuthecia) {
+    // Route nord-sud, strictement a l'interieur du perimetre
+    svg += '<rect x="336" y="150" width="8" height="370" fill="#1e1c10"/>';
+    svg += '<line x1="340" y1="150" x2="340" y2="520" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
 
-  // Route est-ouest, strictement a l'interieur du perimetre
-  svg += '<rect x="130" y="331" width="420" height="8" fill="#1e1c10"/>';
-  svg += '<line x1="130" y1="335" x2="550" y2="335" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+    // Route est-ouest, strictement a l'interieur du perimetre
+    svg += '<rect x="130" y="331" width="420" height="8" fill="#1e1c10"/>';
+    svg += '<line x1="130" y1="335" x2="550" y2="335" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+  }
 
   // Batiments visibles dans la scene de rue actuelle (si on n'est pas a l'interieur d'un
   // batiment) — permet au marqueur "vous etes ici" de fonctionner aussi dans la rue.
@@ -829,11 +849,13 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   }
 
   // Titre
-  svg += '<text x="340" y="590" text-anchor="middle" font-size="8" fill="#3a3520" font-family="sans-serif" letter-spacing="2">' + city.name.toUpperCase() + ' — ' + (co?.n || '').toUpperCase() + '</text>';
+  const titreY = SVG_H - 10;
+  svg += '<text x="' + (SVG_W / 2) + '" y="' + titreY + '" text-anchor="middle" font-size="8" fill="#3a3520" font-family="sans-serif" letter-spacing="2">' + city.name.toUpperCase() + ' — ' + (co?.n || '').toUpperCase() + '</text>';
 
   // Légende
-  svg += '<circle cx="16" cy="595" r="4" fill="#ff3333"/>';
-  svg += '<text x="26" y="599" font-size="7.5" fill="#8a6a6a" font-family="sans-serif">Vous êtes ici</text>';
+  const legendeY = SVG_H - 5;
+  svg += '<circle cx="16" cy="' + legendeY + '" r="4" fill="#ff3333"/>';
+  svg += '<text x="26" y="' + (legendeY + 4) + '" font-size="7.5" fill="#8a6a6a" font-family="sans-serif">Vous êtes ici</text>';
 
   svg += '</svg>';
 
