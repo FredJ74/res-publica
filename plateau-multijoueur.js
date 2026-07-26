@@ -522,7 +522,7 @@ async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
 
   // Generer une remplacante/remplacant du meme genre, propre a ce slot (piece + genre)
   const poolParEmpireEtGenre = {
-    republic: { F: ['Natacha', 'Éléonore', 'Sabine', 'Camille', 'Laure', 'Nina', 'Clara'], H: ['Julien', 'Antoine', 'Maxime', 'Thibault', 'Victor', 'Hugo', 'Nathan'] },
+    republic: { F: ['Natacha', 'Marlène', 'Sabine', 'Camille', 'Laure', 'Nina', 'Clara'], H: ['Julien', 'Antoine', 'Maxime', 'Thibault', 'Victor', 'Hugo', 'Nathan'] },
     narco:    { F: ['Lola Discreta', 'Carmen Silencio', 'Rosa Secreto', 'Valentina Sombra', 'Isabel Poder'], H: ['Diego Sombra', 'Rafael Secreto', 'Mateo Poder'] },
     soviet:   { F: ['Natasha Privilège', 'Olga Silence', 'Irina Distinction', 'Vera Konspiratsiya', 'Anya Nuit'], H: ['Boris Silence', 'Igor Distinction', 'Dimitri Nuit'] },
     khalija:  { F: ['Yasmin Al-Sirr', 'Fatima Al-Layl', 'Noor Al-Khafia', 'Hana Al-Majd', 'Rima Al-Asrar'], H: ['Karim Al-Sirr', 'Malik Al-Layl', 'Samir Al-Khafia'] }
