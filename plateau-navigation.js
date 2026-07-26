@@ -776,14 +776,18 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
     // Route est-ouest, strictement a l'interieur du perimetre
     svg += '<rect x="130" y="331" width="420" height="8" fill="#1e1c10"/>';
     svg += '<line x1="130" y1="335" x2="550" y2="335" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+  } else if (cityId === 'ville_a') {
+    // PSM : tracer specifique decrit par Fred, pas une simple croix automatique --
+    // segment est-ouest entre le Dispensaire et l'Ecole de Marine, sortant au nord
+    // de la Place d'Armes, puis segment nord-sud a l'est du Cimetiere/Notre-Dame/Chantier Naval.
+    const routePts = 'M 730 420 L 130 420 L 130 90';
+    svg += '<path d="' + routePts + '" fill="none" stroke="#3a3218" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>';
+    svg += '<path d="' + routePts + '" fill="none" stroke="#8a7a3a" stroke-width="1.5" stroke-dasharray="16,10" stroke-linecap="round" stroke-linejoin="round"/>';
   } else {
     // Autres villes : route en croix, positionnee dans le plus grand couloir libre
     // (sans batiment) le plus proche du centre, pour ne jamais traverser un batiment.
     const positionsRoute = buildings.map(id => layout[id]).filter(Boolean);
     const trouverCouloir = (perimStart, perimTaille, axe) => {
-      // axe 0 = x (route verticale), axe 1 = y (route horizontale)
-      // Cherche le couloir avec le moins de chevauchements possible (ideal : zero),
-      // en departageant par la proximite au centre.
       const centre = perimStart + perimTaille / 2;
       let meilleure = centre, meilleurScore = -Infinity;
       for (let pos = perimStart + 6; pos <= perimStart + perimTaille - 6; pos += 2) {
