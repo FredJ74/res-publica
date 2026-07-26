@@ -777,14 +777,28 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
     svg += '<rect x="130" y="331" width="420" height="8" fill="#1e1c10"/>';
     svg += '<line x1="130" y1="335" x2="550" y2="335" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
   } else {
-    // Autres villes : route en croix calculee dynamiquement au centre du perimetre,
-    // coherente avec un decoupage en quadrants (nord-sud / est-ouest).
-    const routeNS_x = perimX + perimW / 2;
-    const routeEW_y = perimY + perimH / 2;
-    svg += '<rect x="' + (routeNS_x - 4) + '" y="' + perimY + '" width="8" height="' + perimH + '" fill="#1e1c10"/>';
-    svg += '<line x1="' + routeNS_x + '" y1="' + perimY + '" x2="' + routeNS_x + '" y2="' + (perimY + perimH) + '" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
-    svg += '<rect x="' + perimX + '" y="' + (routeEW_y - 4) + '" width="' + perimW + '" height="8" fill="#1e1c10"/>';
-    svg += '<line x1="' + perimX + '" y1="' + routeEW_y + '" x2="' + (perimX + perimW) + '" y2="' + routeEW_y + '" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+    // Autres villes : route en croix, positionnee dans le plus grand couloir libre
+    // (sans batiment) le plus proche du centre, pour ne jamais traverser un batiment.
+    const positionsRoute = buildings.map(id => layout[id]).filter(Boolean);
+    const trouverCouloir = (perimStart, perimTaille, axe) => {
+      // axe 0 = x (route verticale), axe 1 = y (route horizontale)
+      // Cherche le couloir avec le moins de chevauchements possible (ideal : zero),
+      // en departageant par la proximite au centre.
+      const centre = perimStart + perimTaille / 2;
+      let meilleure = centre, meilleurScore = -Infinity;
+      for (let pos = perimStart + 6; pos <= perimStart + perimTaille - 6; pos += 2) {
+        const chevauchements = positionsRoute.filter(p => pos > p[axe] - 6 && pos < p[axe] + p[axe + 2] + 6).length;
+        const score = -(chevauchements * 10000) - Math.abs(pos - centre);
+        if (score > meilleurScore) { meilleurScore = score; meilleure = pos; }
+      }
+      return meilleure;
+    };
+    const routeNS_x = trouverCouloir(perimX, perimW, 0);
+    const routeEW_y = trouverCouloir(perimY, perimH, 1);
+    svg += '<rect x="' + (routeNS_x - 4) + '" y="' + perimY + '" width="8" height="' + perimH + '" fill="#2a2614"/>';
+    svg += '<line x1="' + routeNS_x + '" y1="' + perimY + '" x2="' + routeNS_x + '" y2="' + (perimY + perimH) + '" stroke="#6a5a2a" stroke-width="1.5" stroke-dasharray="16,10"/>';
+    svg += '<rect x="' + perimX + '" y="' + (routeEW_y - 4) + '" width="' + perimW + '" height="8" fill="#2a2614"/>';
+    svg += '<line x1="' + perimX + '" y1="' + routeEW_y + '" x2="' + (perimX + perimW) + '" y2="' + routeEW_y + '" stroke="#6a5a2a" stroke-width="1.5" stroke-dasharray="16,10"/>';
   }
 
   // Batiments visibles dans la scene de rue actuelle (si on n'est pas a l'interieur d'un
