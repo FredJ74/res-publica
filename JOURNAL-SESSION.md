@@ -1,3 +1,61 @@
+# Journal de session — Res Publica (28 juillet 2026)
+
+## État du dépôt
+- Session consacrée exclusivement au blockout 3D Blender pour PSM (pas de code touché, rien à committer côté `plateau.html`).
+
+---
+
+## 🎥 Blender — apprentissage et méthode validée
+
+### Interface et raccourcis clavier
+- Le clavier Mac de Fred n'a pas de pavé numérique, et plusieurs raccourcis standards (G, E, Tab pour mode édition) ne répondent pas dans son environnement. **Toujours passer par les menus** (Vue, Objet, Maillage) plutôt que par les raccourcis clavier tant que la cause n'est pas identifiée.
+- Navigation viewport au trackpad : pincement à deux doigts pour zoomer (fonctionne bien). "Cadrer sur tout" redézoome sur toute la scène (normal) ; préférer "Voir la sélection" pour rester zoomé sur un objet précis.
+- Positionner le curseur 3D : avec l'outil "Curseur 3D" actif dans la colonne d'outils à gauche, un simple clic gauche sur le viewport suffit (pas besoin de Maj+clic droit).
+- "Sélection vers curseur" (Maj+S) copie X, Y **et Z** du curseur — penser à rectifier le Z ensuite si le curseur était au sol.
+- Une caméra sélectionnée n'est pas forcément la caméra **active** de la scène (celle affichée en vue caméra) : utiliser Vue → Caméras → "Définir l'objet actif comme caméra".
+
+### Plan de ville PSM importé
+- Le plan (image de référence PSM) est un **Objet vide de type Image**, donc sans géométrie éditable (pas de mode édition possible, pas d'extrusion).
+- Échelle réelle du plan : **Taille = 6.3m** pour l'ensemble de la carte (~30 bâtiments) → chaque bâtiment individuel ne fait que 0.2 à 0.5m de large dans la scène. Point de repère essentiel pour toute la suite (échelles caméras, cubes, etc.).
+
+### Rues de PSM — nommées et tracées
+Sept rues ont été définies et tracées sur un schéma de principe (à corriger/compléter librement si besoin en avançant) :
+1. **Rue de la Corniche** — axe nord-sud, est de Notre-Dame de la Mer / Cimetière Marin
+2. **Rue Tanguy Le Roux** — axe nord-sud, sépare quartiers ouest/est
+3. **Rue des Quais** — bordure est, dessert Port Industriel et Port de Plaisance
+4. **Rue des Artisans** — axe est-ouest, sépare nord/sud
+5. **Rue de la Mairie** — quartier sud-ouest, dessert Place d'Armes/HDV
+6. **Rue du Palais** — quartier sud-est, dessert Tribunal/Banque
+7. **Rue du Marché** — diagonale, de Capitaine Sauvage/Chasse&Pêche à l'arrière de la Place d'Armes
+
+### Méthode de caméra validée — vue "place publique" (plongée)
+Pour une place avec plusieurs bâtiments cliquables à identifier (ex. Place d'Armes/HDV/Hôtel du Port), sur plan 2D plat, sans volume :
+- Position Z ≈ 4-9m, Rotation X ≈ 40-65° (plongée douce), Rotation Z ajustée à l'orientation voulue, focale à ajuster au jugé (essais de 24mm à 100mm selon le cadrage voulu).
+- **Valeurs qui ont fonctionné pour `Cam_RueMairie_01`** : Position (X=-4.5, Y=-1, Z=4), Rotation (X=40°, Y=0°, Z=285°), Focale=100mm.
+- Méthode : dupliquer une caméra existante déjà bien réglée plutôt que repartir de zéro, positionner via curseur 3D + "Sélection vers curseur", puis ajuster à la main par tâtonnement en vue caméra (plus fiable que de calculer des coordonnées a priori).
+
+### Test de vue "piéton" (corridor de rue) — en cours
+- Sur un plan 2D plat, **impossible d'obtenir une vraie vue horizontale de type corridor** (façades qui encadrent la vue) : la caméra regarde par-dessus le plan et voit l'horizon à perte de vue. Ce n'est pas un bug, c'est une conséquence de l'absence de volume.
+- Premier test de solution : ajout de deux cubes bruts (sans texture) représentant les volumes de Capitaine Sauvage et Chasse&Pêche, à l'échelle du plan (env. 0.3-0.5m de large, 8m de haut → Échelle Z=4 sur cube standard 2m).
+- Caméra piéton `Camera_RueMarche.002` positionnée entre les deux cubes, Z=1.7m (hauteur d'yeux). Premiers essais concluants pour voir les bâtiments encadrer l'espace, mais réglage encore à peaufiner (distance/reculs, angle pour voir les bâtiments "en pied" du sol jusqu'en haut) — **non finalisé, à reprendre**.
+
+### ⚠️ Décision importante sur l'usage de Blender
+Blender ne doit **pas être utilisé systématiquement** pour chaque rue/scène. Principe retenu :
+- Si le générateur d'images produit déjà un résultat satisfaisant directement (sans passer par Blender), **on garde ce résultat tel quel**, sans perdre de temps à reconstruire la géométrie dans Blender.
+- Blender n'est utile que pour les cas où le générateur d'images échoue à produire une composition cohérente (comme la Rue du Marché), ou pour garantir une géométrie stable réutilisable dans le temps (plusieurs angles/moments d'une même rue).
+- **Workflow prévu** : fournir au générateur d'images à la fois (1) le rendu Blender basique (composition/perspective/géométrie) et (2) une photo de référence de style (ambiance, architecture, lumière) pour guider le rendu final. Pas de reproduction pixel-perfect attendue, mais une approximation stylistique cohérente.
+
+---
+
+## 📝 Chantiers en attente (rappel, non traités cette session)
+- Calendrier électoral pas à jour.
+- Photo du Chef de Cabinet qui ne charge pas.
+- Réorganiser le dossier `images/` en sous-dossiers (pays/ville/PNJ/bâtiments) — actuellement tout à plat.
+- Concevoir le système de musée (local + national) plus en détail.
+- Concevoir le centre frigorifique de PSM (matières périssables, poisson).
+- Navigation rue par rue de PSM : coder tous les nœuds dans `plateau-rue-centrale.js` une fois les images prêtes (voir détail complet dans l'entrée du 27 juillet ci-dessous).
+- Rue du Marché : finaliser le test de caméra piéton avec volumes (distance, angle "en pied"), ou abandonner cette rue au profit d'un rendu direct par générateur d'images si le résultat Blender ne progresse pas rapidement.
+
 # Journal de session — Res Publica (27 juillet 2026)
 
 ## État du dépôt
