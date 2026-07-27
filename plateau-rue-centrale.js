@@ -245,7 +245,7 @@ function initialiserRueCentrale(pays, noeudDepart) {
   afficherNoeudRue(pays, noeudDepart);
 }
 
-function afficherNoeudRue(pays, noeudId) {
+function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
   if (!noeud) return;
   rueCentraleNoeudActuel = noeudId;
@@ -256,8 +256,10 @@ function afficherNoeudRue(pays, noeudId) {
   const conteneur = document.getElementById('rue-centrale-conteneur');
   if (!conteneur) return;
 
+  const imageAffichee = (noeud.imagesParArrivee && depuisNoeudId && noeud.imagesParArrivee[depuisNoeudId]) || noeud.image;
+
   let html = '<div class="rc-scene" id="rc-scene">';
-  html += '<img class="rc-image" id="rc-image" src="' + noeud.image + '">';
+  html += '<img class="rc-image" id="rc-image" src="' + imageAffichee + '">';
 
   // Fleches directionnelles — uniquement celles reellement disponibles a ce noeud.
   // Position par defaut pour chaque direction, sauf si le noeud definit un
@@ -351,6 +353,7 @@ function masquerTooltipRue() {
 
 // Deplacement d'un noeud de rue a l'autre (fondu, sans zoom — mouvement lateral/longitudinal)
 function deplacerRueCentrale(pays, direction) {
+  const noeudOrigine = rueCentraleNoeudActuel;
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[rueCentraleNoeudActuel];
   const destination = noeud?.liens?.[direction];
   if (!destination) return;
@@ -358,7 +361,7 @@ function deplacerRueCentrale(pays, direction) {
   const overlay = document.getElementById('rc-overlay');
   overlay.classList.add('actif');
   setTimeout(() => {
-    afficherNoeudRue(pays, destination);
+    afficherNoeudRue(pays, destination, noeudOrigine);
     document.getElementById('rc-overlay')?.classList.add('actif');
     requestAnimationFrame(() => document.getElementById('rc-overlay')?.classList.remove('actif'));
   }, 550);
@@ -370,6 +373,7 @@ function deplacerRueCentrale(pays, direction) {
 // mais reste dans la rue centrale au lieu d'appeler enterBuilding()
 function naviguerVersNoeudRue(pays, noeudId, nom) {
   masquerTooltipRue();
+  const noeudOrigine = rueCentraleNoeudActuel;
   const img = document.getElementById('rc-image');
   const overlay = document.getElementById('rc-overlay');
   const texte = document.getElementById('rc-texte');
@@ -380,7 +384,7 @@ function naviguerVersNoeudRue(pays, noeudId, nom) {
     overlay.classList.add('actif');
   }, 500);
   setTimeout(() => {
-    afficherNoeudRue(pays, noeudId);
+    afficherNoeudRue(pays, noeudId, noeudOrigine);
     document.getElementById('rc-overlay')?.classList.add('actif');
     requestAnimationFrame(() => document.getElementById('rc-overlay')?.classList.remove('actif'));
   }, 1000);
