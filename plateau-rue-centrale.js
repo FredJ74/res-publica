@@ -204,6 +204,61 @@ const RUE_CENTRALE_NOEUDS = {
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);'
       }
+    },
+
+    // ==================================================
+    // DONNEES — Port-Sainte-Marie (PSM)
+    // ==================================================
+
+    'psm-carrefour-musee': {
+      // Carrefour central de PSM : Musee, Centre Commercial, Centre d'Affaires.
+      // 4 images differentes selon la direction d'arrivee (imagesParArrivee), avec zones
+      // cliquables et fleches qui varient egalement selon l'arrivee (zonesParArrivee,
+      // liensParArrivee). Les IDs 'psm-centre-artisanal', 'psm-phare', 'psm-tribunal',
+      // 'psm-eglise' sont des PLACEHOLDERS : a relier aux vrais noeuds une fois ces
+      // scenes codees (voir JOURNAL-SESSION.md, scenes du 27 juillet).
+      // xPct estimes a l'oeil sur chaque image : a ajuster si le clic tombe a cote.
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-artisanal.png',
+      imagesParArrivee: {
+        'psm-centre-artisanal': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-artisanal.png',
+        'psm-phare':            'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-phare.png',
+        'psm-tribunal':         'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-tribunal.png',
+        'psm-eglise':           'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-eglise.png'
+      },
+      zones: [
+        { xPct: [0, 22],   nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
+        { xPct: [38, 60],  nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
+        { xPct: [78, 100], nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' }
+      ],
+      zonesParArrivee: {
+        'psm-centre-artisanal': [
+          { xPct: [0, 22],   nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
+          { xPct: [38, 60],  nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
+          { xPct: [78, 100], nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' }
+        ],
+        'psm-phare': [
+          { xPct: [0, 35],   nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' },
+          { xPct: [42, 58],  nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
+          { xPct: [65, 100], nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' }
+        ],
+        'psm-tribunal': [
+          { xPct: [0, 30],   nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
+          { xPct: [40, 55],  nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' },
+          { xPct: [68, 100], nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' }
+        ],
+        'psm-eglise': [
+          { xPct: [0, 32],   nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' },
+          { xPct: [50, 65],  nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
+          { xPct: [70, 100], nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' }
+        ]
+      },
+      liens: { gauche: 'psm-phare', droite: 'psm-eglise', toutDroit: 'psm-tribunal', arriere: 'psm-centre-artisanal' },
+      liensParArrivee: {
+        'psm-centre-artisanal': { gauche: 'psm-phare',            droite: 'psm-eglise',           toutDroit: 'psm-tribunal',         arriere: 'psm-centre-artisanal' },
+        'psm-phare':            { gauche: 'psm-tribunal',         droite: 'psm-centre-artisanal', toutDroit: 'psm-eglise',           arriere: 'psm-phare' },
+        'psm-tribunal':         { gauche: 'psm-eglise',           droite: 'psm-phare',            toutDroit: 'psm-centre-artisanal', arriere: 'psm-tribunal' },
+        'psm-eglise':           { gauche: 'psm-centre-artisanal', droite: 'psm-tribunal',         toutDroit: 'psm-phare',            arriere: 'psm-eglise' }
+      }
     }
   }
 };
@@ -212,6 +267,7 @@ const RUE_CENTRALE_NOEUDS = {
 // ETAT + RENDU
 // =====================
 let rueCentraleNoeudActuel = null;
+let rueCentraleDepuisNoeud = null; // memorise le noeud d'origine, pour liensParArrivee et zonesParArrivee
 
 // Memorise le dernier noeud de rue visite, par pays+ville, pour que showVueRue()
 // (dans plateau-navigation.js) puisse y revenir en sortant d'un batiment au lieu
@@ -249,6 +305,7 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
   if (!noeud) return;
   rueCentraleNoeudActuel = noeudId;
+  rueCentraleDepuisNoeud = depuisNoeudId || null;
   if (typeof state !== 'undefined' && state.currentCity) {
     memoriserNoeudRueCentrale(pays, state.currentCity, noeudId);
   }
@@ -256,7 +313,8 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
   const conteneur = document.getElementById('rue-centrale-conteneur');
   if (!conteneur) return;
 
-  const imageAffichee = (noeud.imagesParArrivee && depuisNoeudId && noeud.imagesParArrivee[depuisNoeudId]) || noeud.image;
+  const imageAffichee = (noeud.imagesParArrivee && rueCentraleDepuisNoeud && noeud.imagesParArrivee[rueCentraleDepuisNoeud]) || noeud.image;
+  const zonesAffichees = (noeud.zonesParArrivee && rueCentraleDepuisNoeud && noeud.zonesParArrivee[rueCentraleDepuisNoeud]) || noeud.zones;
 
   let html = '<div class="rc-scene" id="rc-scene">';
   html += '<img class="rc-image" id="rc-image" src="' + imageAffichee + '">';
@@ -302,7 +360,7 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
 
   // Zones cliquables + tooltip
   const scene = document.getElementById('rc-scene');
-  noeud.zones.forEach((z, i) => {
+  zonesAffichees.forEach((z, i) => {
     const div = document.createElement('div');
     div.className = 'rc-zone';
     div.style.left = z.xPct[0] + '%';
@@ -355,7 +413,8 @@ function masquerTooltipRue() {
 function deplacerRueCentrale(pays, direction) {
   const noeudOrigine = rueCentraleNoeudActuel;
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[rueCentraleNoeudActuel];
-  const destination = noeud?.liens?.[direction];
+  const liensActuels = (noeud?.liensParArrivee && rueCentraleDepuisNoeud && noeud.liensParArrivee[rueCentraleDepuisNoeud]) || noeud?.liens;
+  const destination = liensActuels?.[direction];
   if (!destination) return;
 
   const overlay = document.getElementById('rc-overlay');
