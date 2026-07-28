@@ -222,6 +222,7 @@ const RUE_CENTRALE_NOEUDS = {
       imagesParArrivee: {
         'psm-carrefour-artisanal-scierie': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-artisanal.png',
         'psm-phare':            'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-phare.png',
+        'psm-eglise-cimetiere': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-phare.png',
         'psm-tribunal-banque':         'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-tribunal.png',
         'psm-eglise':           'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-eglise.png'
       },
@@ -241,6 +242,11 @@ const RUE_CENTRALE_NOEUDS = {
           { xPct: [42, 58],  nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
           { xPct: [65, 100], nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' }
         ],
+        'psm-eglise-cimetiere': [
+          { xPct: [0, 35],   nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' },
+          { xPct: [42, 58],  nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
+          { xPct: [65, 100], nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' }
+        ],
         'psm-tribunal-banque': [
           { xPct: [0, 30],   nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
           { xPct: [40, 55],  nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' },
@@ -256,6 +262,7 @@ const RUE_CENTRALE_NOEUDS = {
       liensParArrivee: {
         'psm-carrefour-artisanal-scierie': { gauche: 'psm-phare',            droite: 'psm-eglise',           toutDroit: 'psm-tribunal-banque',         arriere: 'psm-carrefour-artisanal-scierie' },
         'psm-phare':            { gauche: 'psm-tribunal-banque',         droite: 'psm-carrefour-artisanal-scierie', toutDroit: 'psm-eglise',           arriere: 'psm-phare' },
+        'psm-eglise-cimetiere': { gauche: 'psm-tribunal-banque', droite: 'psm-carrefour-artisanal-scierie', toutDroit: 'psm-eglise', arriere: 'psm-eglise-cimetiere' },
         'psm-tribunal-banque':         { gauche: 'psm-eglise',           droite: 'psm-phare',            toutDroit: 'psm-carrefour-artisanal-scierie', arriere: 'psm-tribunal-banque' },
         'psm-eglise':           { gauche: 'psm-carrefour-artisanal-scierie', droite: 'psm-tribunal-banque',         toutDroit: 'psm-phare',            arriere: 'psm-eglise' }
       }
@@ -349,6 +356,17 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [65, 100], nom: "Place d'Armes",     type: 'batiment', buildingId: 'place-armes-psm' }
       ],
       liens: { droite: 'psm-marche-resto-chasse', gauche: 'psm-eglise-cimetiere' }
+    },
+
+    'psm-eglise-cimetiere': {
+      // 'psm-chantier-naval' est un PLACEHOLDER (scene pas encore codee).
+      // Le retour en arriere reutilise volontairement la vue "depuis le Phare" du carrefour Musee
+      // (l'eglise y est visible au loin), voir duplication dans imagesParArrivee/zonesParArrivee/liensParArrivee ci-dessous.
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-eglise-cimetiere-psm.png',
+      zones: [
+        { xPct: [15, 85], nom: 'Notre-Dame de la Mer & Cimetière Marin', type: 'batiment', buildingId: 'notre-dame-mer' }
+      ],
+      liens: { droite: 'psm-chantier-naval', gauche: 'psm-hotel-mairie-place', arriere: 'psm-carrefour-musee' }
     }
   }
 };
