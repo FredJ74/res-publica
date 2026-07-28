@@ -391,6 +391,18 @@ const RUE_CENTRALE_NOEUDS = {
       ],
       liens: { droite: 'psm-carrefour-artisanal-scierie', arriere: 'psm-chantier-naval' },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
+    },
+
+    'psm-terrains-lots': {
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-terrains-lots-detail-psm.png',
+      zones: [
+        { xPct: [10, 25], nom: 'Lot 1 (1650 m²)', type: 'batiment', buildingId: 'terrain-a-batir-2' },
+        { xPct: [30, 45], nom: 'Lot 2 (2200 m²)', type: 'batiment', buildingId: 'terrain-a-batir-8' },
+        { xPct: [58, 68], nom: 'Lot 3 (3100 m²)', type: 'batiment', buildingId: 'terrain-a-batir-9' },
+        { xPct: [48, 58], nom: 'Lot 4 (4200 m²)', type: 'batiment', buildingId: 'terrain-a-batir-10' },
+        { xPct: [78, 92], nom: 'Lot 5 (5500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-11' }
+      ],
+      liens: { arriere: 'psm-terrains-vente' }
     }
   }
 };

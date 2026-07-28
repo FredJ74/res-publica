@@ -210,7 +210,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','cimetiere-marin','phare-psm','marche-psm','musee-port-sainte-marie'],
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','phare-psm','marche-psm','musee-port-sainte-marie'],
       buildingContext: {
         'stade': {
           name: "Stade de La Brise Mariannaise",
@@ -3122,13 +3122,21 @@ const BUILDINGS = {
     }
   },
   'notre-dame-mer': {
-    name: "Chapelle Notre-Dame de la Mer",
+    name: "Notre-Dame de la Mer & Cimetière Marin",
     shortName: "Notre-Dame de la Mer",
     cat: "Religion",
     icon: "ti-building-church",
     bgColor: "#08080a",
-    desc: "Chapelle des marins, sur une avancee rocheuse dominant la mer.",
+    desc: "Chapelle des marins et son cimetiere attenant, sur une avancee rocheuse dominant la mer.",
     rooms: {
+      hall: {
+        name: "Accueil",
+        imageBg: "linear-gradient(135deg,#08080a,#0d0d10)",
+        desc: "Vestibule commun a la chapelle et au cimetiere, sur la pointe rocheuse dominant la mer.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-notre-dame-mer-psm.png",
+        persons: [],
+        orders: []
+      },
       nef: {
         name: "Nef",
         image: "\u26ea",
@@ -3137,22 +3145,12 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/notre-dame-mer-nef.png",
         persons: [],
         orders: []
-      }
-    }
-  },
-  'cimetiere-marin': {
-    name: "Cimetiere Marin",
-    shortName: "Cimetiere Marin",
-    cat: "Religion",
-    icon: "ti-cross",
-    bgColor: "#08080a",
-    desc: "Tombes tournees vers l'horizon, sur la pointe rocheuse a cote de la chapelle.",
-    rooms: {
-      allees: {
-        name: "Allees",
+      },
+      tombe: {
+        name: "Tombe",
         image: "\u2693",
         imageBg: "linear-gradient(135deg,#08080a,#0c0c0e)",
-        desc: "Le vent et le bruit des vagues en contrebas.",
+        desc: "Le vent et le bruit des vagues en contrebas. Contenu a venir.",
         persons: [],
         orders: []
       }
