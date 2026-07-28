@@ -214,13 +214,13 @@ const RUE_CENTRALE_NOEUDS = {
       // Carrefour central de PSM : Musee, Centre Commercial, Centre d'Affaires.
       // 4 images differentes selon la direction d'arrivee (imagesParArrivee), avec zones
       // cliquables et fleches qui varient egalement selon l'arrivee (zonesParArrivee,
-      // liensParArrivee). Les IDs 'psm-centre-artisanal', 'psm-phare', 'psm-tribunal',
+      // liensParArrivee). Les IDs 'psm-carrefour-artisanal-scierie', 'psm-phare', 'psm-tribunal',
       // 'psm-eglise' sont des PLACEHOLDERS : a relier aux vrais noeuds une fois ces
       // scenes codees (voir JOURNAL-SESSION.md, scenes du 27 juillet).
       // xPct estimes a l'oeil sur chaque image : a ajuster si le clic tombe a cote.
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-artisanal.png',
       imagesParArrivee: {
-        'psm-centre-artisanal': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-artisanal.png',
+        'psm-carrefour-artisanal-scierie': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-artisanal.png',
         'psm-phare':            'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-phare.png',
         'psm-tribunal':         'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-tribunal.png',
         'psm-eglise':           'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-eglise.png'
@@ -231,7 +231,7 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [78, 100], nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' }
       ],
       zonesParArrivee: {
-        'psm-centre-artisanal': [
+        'psm-carrefour-artisanal-scierie': [
           { xPct: [0, 22],   nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
           { xPct: [38, 60],  nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
           { xPct: [78, 100], nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' }
@@ -252,13 +252,25 @@ const RUE_CENTRALE_NOEUDS = {
           { xPct: [70, 100], nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' }
         ]
       },
-      liens: { gauche: 'psm-phare', droite: 'psm-eglise', toutDroit: 'psm-tribunal', arriere: 'psm-centre-artisanal' },
+      liens: { gauche: 'psm-phare', droite: 'psm-eglise', toutDroit: 'psm-tribunal', arriere: 'psm-carrefour-artisanal-scierie' },
       liensParArrivee: {
-        'psm-centre-artisanal': { gauche: 'psm-phare',            droite: 'psm-eglise',           toutDroit: 'psm-tribunal',         arriere: 'psm-centre-artisanal' },
-        'psm-phare':            { gauche: 'psm-tribunal',         droite: 'psm-centre-artisanal', toutDroit: 'psm-eglise',           arriere: 'psm-phare' },
-        'psm-tribunal':         { gauche: 'psm-eglise',           droite: 'psm-phare',            toutDroit: 'psm-centre-artisanal', arriere: 'psm-tribunal' },
-        'psm-eglise':           { gauche: 'psm-centre-artisanal', droite: 'psm-tribunal',         toutDroit: 'psm-phare',            arriere: 'psm-eglise' }
+        'psm-carrefour-artisanal-scierie': { gauche: 'psm-phare',            droite: 'psm-eglise',           toutDroit: 'psm-tribunal',         arriere: 'psm-carrefour-artisanal-scierie' },
+        'psm-phare':            { gauche: 'psm-tribunal',         droite: 'psm-carrefour-artisanal-scierie', toutDroit: 'psm-eglise',           arriere: 'psm-phare' },
+        'psm-tribunal':         { gauche: 'psm-eglise',           droite: 'psm-phare',            toutDroit: 'psm-carrefour-artisanal-scierie', arriere: 'psm-tribunal' },
+        'psm-eglise':           { gauche: 'psm-carrefour-artisanal-scierie', droite: 'psm-tribunal',         toutDroit: 'psm-phare',            arriere: 'psm-eglise' }
       }
+    },
+
+    'psm-carrefour-artisanal-scierie': {
+      // Carrefour Centre Artisanal / Scierie. Une seule entree connue pour l'instant
+      // (depuis le carrefour Musee, via son lien toutDroit quand on arrive du Tribunal).
+      // 'psm-centre-multimodal' est un PLACEHOLDER (scene 1 du 27 juillet, pas encore codee).
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-artisanal-scierie.png',
+      zones: [
+        { xPct: [0, 26],   nom: 'Centre Artisanal',       type: 'batiment', buildingId: 'centre-artisanal' },
+        { xPct: [74, 100], nom: 'Scierie Guy Tarembois',  type: 'batiment', buildingId: 'zone-production' }
+      ],
+      liens: { toutDroit: 'psm-centre-multimodal', droite: 'psm-carrefour-musee', arriere: 'psm-carrefour-musee' }
     }
   }
 };
