@@ -2358,6 +2358,7 @@ const BUILDINGS = {
         name: "Salle des Personnalites Mariannaises",
         imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
         desc: "Les figures les plus populaires et aimees de la ville, toutes generations confondues. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-personnalites-musee-psm.png",
         persons: [],
         orders: []
       },
