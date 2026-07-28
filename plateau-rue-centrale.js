@@ -214,7 +214,7 @@ const RUE_CENTRALE_NOEUDS = {
       // Carrefour central de PSM : Musee, Centre Commercial, Centre d'Affaires.
       // 4 images differentes selon la direction d'arrivee (imagesParArrivee), avec zones
       // cliquables et fleches qui varient egalement selon l'arrivee (zonesParArrivee,
-      // liensParArrivee). Les IDs 'psm-carrefour-artisanal-scierie', 'psm-phare', 'psm-tribunal',
+      // liensParArrivee). Les IDs 'psm-carrefour-artisanal-scierie', 'psm-phare', 'psm-tribunal-banque',
       // 'psm-eglise' sont des PLACEHOLDERS : a relier aux vrais noeuds une fois ces
       // scenes codees (voir JOURNAL-SESSION.md, scenes du 27 juillet).
       // xPct estimes a l'oeil sur chaque image : a ajuster si le clic tombe a cote.
@@ -222,7 +222,7 @@ const RUE_CENTRALE_NOEUDS = {
       imagesParArrivee: {
         'psm-carrefour-artisanal-scierie': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-artisanal.png',
         'psm-phare':            'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-phare.png',
-        'psm-tribunal':         'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-tribunal.png',
+        'psm-tribunal-banque':         'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-tribunal.png',
         'psm-eglise':           'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-musee-depuis-eglise.png'
       },
       zones: [
@@ -241,7 +241,7 @@ const RUE_CENTRALE_NOEUDS = {
           { xPct: [42, 58],  nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
           { xPct: [65, 100], nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' }
         ],
-        'psm-tribunal': [
+        'psm-tribunal-banque': [
           { xPct: [0, 30],   nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
           { xPct: [40, 55],  nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' },
           { xPct: [68, 100], nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' }
@@ -252,12 +252,12 @@ const RUE_CENTRALE_NOEUDS = {
           { xPct: [70, 100], nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' }
         ]
       },
-      liens: { gauche: 'psm-phare', droite: 'psm-eglise', toutDroit: 'psm-tribunal', arriere: 'psm-carrefour-artisanal-scierie' },
+      liens: { gauche: 'psm-phare', droite: 'psm-eglise', toutDroit: 'psm-tribunal-banque', arriere: 'psm-carrefour-artisanal-scierie' },
       liensParArrivee: {
-        'psm-carrefour-artisanal-scierie': { gauche: 'psm-phare',            droite: 'psm-eglise',           toutDroit: 'psm-tribunal',         arriere: 'psm-carrefour-artisanal-scierie' },
-        'psm-phare':            { gauche: 'psm-tribunal',         droite: 'psm-carrefour-artisanal-scierie', toutDroit: 'psm-eglise',           arriere: 'psm-phare' },
-        'psm-tribunal':         { gauche: 'psm-eglise',           droite: 'psm-phare',            toutDroit: 'psm-carrefour-artisanal-scierie', arriere: 'psm-tribunal' },
-        'psm-eglise':           { gauche: 'psm-carrefour-artisanal-scierie', droite: 'psm-tribunal',         toutDroit: 'psm-phare',            arriere: 'psm-eglise' }
+        'psm-carrefour-artisanal-scierie': { gauche: 'psm-phare',            droite: 'psm-eglise',           toutDroit: 'psm-tribunal-banque',         arriere: 'psm-carrefour-artisanal-scierie' },
+        'psm-phare':            { gauche: 'psm-tribunal-banque',         droite: 'psm-carrefour-artisanal-scierie', toutDroit: 'psm-eglise',           arriere: 'psm-phare' },
+        'psm-tribunal-banque':         { gauche: 'psm-eglise',           droite: 'psm-phare',            toutDroit: 'psm-carrefour-artisanal-scierie', arriere: 'psm-tribunal-banque' },
+        'psm-eglise':           { gauche: 'psm-carrefour-artisanal-scierie', droite: 'psm-tribunal-banque',         toutDroit: 'psm-phare',            arriere: 'psm-eglise' }
       }
     },
 
@@ -305,6 +305,16 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [65, 100], nom: 'Port de Plaisance',                 type: 'batiment', buildingId: 'port-plaisance-psm' }
       ],
       liens: { toutDroit: 'psm-ecole-phare', gauche: 'psm-tribunal-banque' }
+    },
+
+    'psm-tribunal-banque': {
+      // 'psm-bar-imprimerie-commissariat' est un PLACEHOLDER (scene pas encore codee).
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-tribunal-banque-psm.png',
+      zones: [
+        { xPct: [15, 55],  nom: 'Tribunal de Port Sainte Marie', type: 'batiment', buildingId: 'tribunal-local' },
+        { xPct: [58, 85],  nom: 'Banque Mariannaise',            type: 'batiment', buildingId: 'banque-locale' }
+      ],
+      liens: { droite: 'psm-dispensaire-port-plaisance', gauche: 'psm-bar-imprimerie-commissariat', toutDroit: 'psm-carrefour-musee' }
     }
   }
 };
