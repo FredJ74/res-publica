@@ -376,6 +376,16 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [15, 85], nom: 'Chantier Naval', type: 'batiment', buildingId: 'chantier-naval' }
       ],
       liens: { toutDroit: 'psm-terrains-vente', arriere: 'psm-eglise-cimetiere' }
+    },
+
+    'psm-terrains-vente': {
+      // 'psm-terrains-lots' est un PLACEHOLDER (sous-scene des 5 lots, pas encore codee,
+      // sur le modele de 'luthecia-terrains-lots').
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-terrains-vente-psm.png',
+      zones: [
+        { xPct: [55, 95], nom: 'Terrains à Bâtir', type: 'noeud', noeudId: 'psm-terrains-lots' }
+      ],
+      liens: { droite: 'psm-carrefour-artisanal-scierie', arriere: 'psm-chantier-naval' }
     }
   }
 };
