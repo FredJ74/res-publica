@@ -1,3 +1,68 @@
+# Journal de session — Res Publica (28-29 juillet 2026, nuit)
+
+## État du dépôt
+- Toutes les modifications ont été committées et poussées sur `main`.
+- **Régression identifiée en fin de session, non résolue** : positionnement des flèches directionnelles cassé sur plusieurs scènes de rue PSM, et certaines flèches ne déclenchent plus le déplacement. Semble lié à une confusion entre le système de flèches rondes (`rc-fleche`, géré par `flechesStyle`/`stylesParDefaut` dans `plateau-rue-centrale.js`) et des panneaux directionnels visibles différemment sur la capture (voir `bug.jpg` fourni par Fred). **À investiguer en priorité à la prochaine session**, potentiellement côté CSS (feuille de style qui gère `.rc-fleche` ou un système de panneaux plus récent non repéré ce soir).
+
+---
+
+## 🗺️ Navigation rue par rue de PSM — TERMINÉE (12/12 scènes)
+
+Toutes les scènes suivantes ont été codées dans `plateau-rue-centrale.js` cette nuit :
+1. `psm-carrefour-musee` (Musée/Centre Commercial/Centre d'Affaires, 4 images selon arrivée)
+2. `psm-carrefour-artisanal-scierie`
+3. `psm-centre-multimodal` (point de départ officiel `RUE_CENTRALE_DEPART.republic.ville_a`)
+4. `psm-ecole-phare`
+5. `psm-dispensaire-port-plaisance`
+6. `psm-tribunal-banque`
+7. `psm-bar-imprimerie-commissariat`
+8. `psm-marche-resto-chasse` (zone Marché → bâtiment `marche-psm`, pas une scène de rue)
+9. `psm-hotel-mairie-place`
+10. `psm-eglise-cimetiere` (zone unique → bâtiment fusionné, voir ci-dessous)
+11. `psm-chantier-naval`
+12. `psm-terrains-vente` → sous-scène `psm-terrains-lots` (5 lots, sur le modèle de `luthecia-terrains-lots`)
+
+### Bugs corrigés en cours de route
+- Zones Hôtel du Port / Place d'Armes inversées : corrigé.
+- Zone Marché qui menait à tort vers la scène de rue Église/Cimetière au lieu d'ouvrir le bâtiment `marche-psm` (déjà existant avec son propre contenu) : corrigé.
+- `notre-dame-mer` et `cimetiere-marin` étaient deux bâtiments séparés sans hall commun ; fusionnés en un seul bâtiment `notre-dame-mer` avec un hall d'accueil (nouvelle image), la salle `nef` existante, et une nouvelle salle `tombe` (placeholder, contenu à venir). `cimetiere-marin` retiré de la liste des bâtiments PSM.
+- Plusieurs `flechesStyle` ajoutés pour corriger des positions par défaut inadaptées (voir régression ci-dessus : correction possiblement incomplète ou en conflit avec autre chose).
+
+### Reste à faire
+- **Régression flèches à corriger en priorité** (voir en tête de journal).
+- Vérifier le carrefour Centre Artisanal/Scierie : accepté avec un seul retour fixe à l'origine (une seule entrée connue), mais a maintenant 2 entrées (Terrains à vendre + Musée) — vérifier la cohérence de navigation en jouant.
+- Contenu de la salle "Tombe" (cimetière) à concevoir.
+- Sous-scène des 5 lots PSM : xPct des lots posés à l'oeil, à vérifier/ajuster en jouant.
+
+---
+
+## 🏛️ Musée de Port Sainte Marie — création + contenu
+
+- Bâtiment complet créé (`musee-port-sainte-marie`) : hall d'accueil (PNJ Soizic Le Gall à l'accueil, Yvon Le Gall conservateur) + 10 salles thématiques (Criminels, Maires, Personnalités, Entrepreneurs, Organisations, Plumes, Honneur Militaire, Unions Célèbres, Dynasties, Scandales).
+- **Contexte narratif acté avec Fred** : Port-Sainte-Marie appartient historiquement à deux familles rivales, les **Le Gall** et les **Le Roux** — traité de façon parodique. Gentilé des habitants : **"Mariannais"**.
+- **Principe du musée** : immortaliser/classer les meilleurs (et pires) joueurs par catégorie, mélange de stats et de votes (mécanique de calcul à détailler plus tard, différente selon les catégories — ex: un rôliste ne se juge pas aux mêmes critères qu'un min-maxer). Historique des anciens détenteurs de chaque titre à conserver (mémoire du jeu).
+- **Images de salles reçues et intégrées ce soir** : Maires, Criminels, Personnalités. Il reste 7 salles sans image (Entrepreneurs, Organisations, Plumes, Honneur Militaire, Unions Célèbres, Dynasties, Scandales) + l'image du hall (reçue et intégrée en toute fin de session).
+- **Prévu pour plus tard** : dupliquer ce même principe de musée à Luthécia, avec deux musées distincts (ville + pays).
+
+---
+
+## 🖼️ Méthode de travail Blender — bilan de la session précédente, confirmé validé cette nuit
+
+- Décision actée : Blender n'est utilisé que ponctuellement, pour les scènes où le générateur d'images échoue à produire une composition cohérente — pas systématiquement. Confirmé efficace cette nuit : plusieurs scènes de rue PSM ont été générées directement par IA sans passer par Blender, avec de très bons résultats (ex. église/place d'armes/fortifications, carrefour Musée sous 4 angles).
+- Workflow qui fonctionne bien : donner au générateur d'images une image de référence existante + des instructions précises de repositionnement/correction, plutôt que de tout décrire depuis un prompt texte vierge à chaque fois.
+- **Piège récurrent identifié cette nuit** : les noms de fichiers réels dans `~/Downloads` de Fred diffèrent souvent de ce qu'on suppose (espaces vs underscores, accents, casse) — **toujours vérifier avec un `ls | grep` avant de lancer un `mv`** si le nom n'a pas été confirmé explicitement.
+- Autre piège identifié : une image simplement affichée dans une conversation ChatGPT (URL `blob:...`) n'est pas automatiquement enregistrée sur le disque — il faut un vrai clic droit "Enregistrer l'image sous..." avant de pouvoir la déplacer/committer.
+
+---
+
+## 📝 Chantiers en attente (rappel)
+- **Régression flèches de navigation PSM (priorité absolue prochaine session)**.
+- Calendrier électoral pas à jour.
+- Photo du Chef de Cabinet qui ne charge pas.
+- Réorganiser le dossier `images/` en sous-dossiers (pays/ville/PNJ/bâtiments) — session dédiée à prévoir.
+- Terminer les 7 salles du Musée restantes (images + éventuel contenu).
+- Concevoir le centre frigorifique de PSM (matières périssables, poisson).
+- Une fois PSM stabilisé : retour prioritaire sur **Luthécia** pour finir le tour des bâtiments (objectif principal de Fred), avant de revenir sur PSM par petites touches.
 # Journal de session — Res Publica (28 juillet 2026)
 
 ## État du dépôt
