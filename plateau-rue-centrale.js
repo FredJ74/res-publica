@@ -367,6 +367,15 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [15, 85], nom: 'Notre-Dame de la Mer & Cimetière Marin', type: 'batiment', buildingId: 'notre-dame-mer' }
       ],
       liens: { droite: 'psm-chantier-naval', gauche: 'psm-hotel-mairie-place', arriere: 'psm-carrefour-musee' }
+    },
+
+    'psm-chantier-naval': {
+      // 'psm-terrains-vente' est un PLACEHOLDER (scene pas encore codee).
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-chantier-naval-psm.png',
+      zones: [
+        { xPct: [15, 85], nom: 'Chantier Naval', type: 'batiment', buildingId: 'chantier-naval' }
+      ],
+      liens: { toutDroit: 'psm-terrains-vente', arriere: 'psm-eglise-cimetiere' }
     }
   }
 };
