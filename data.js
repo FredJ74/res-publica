@@ -2342,6 +2342,7 @@ const BUILDINGS = {
         name: "Salle des Grands Criminels Mariannais",
         imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
         desc: "Portraits et affaires des malfrats les plus tristement celebres de Port-Sainte-Marie. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-criminels-musee-psm.png",
         persons: [],
         orders: []
       },
