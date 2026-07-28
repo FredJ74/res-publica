@@ -277,7 +277,8 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [0, 26],   nom: 'Centre Artisanal',       type: 'batiment', buildingId: 'centre-artisanal' },
         { xPct: [74, 100], nom: 'Scierie Guy Tarembois',  type: 'batiment', buildingId: 'zone-production' }
       ],
-      liens: { toutDroit: 'psm-centre-multimodal', droite: 'psm-carrefour-musee', arriere: 'psm-carrefour-musee' }
+      liens: { toutDroit: 'psm-centre-multimodal', droite: 'psm-carrefour-musee', arriere: 'psm-carrefour-musee' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);', toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
     },
 
     'psm-centre-multimodal': {
@@ -301,7 +302,8 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [22, 62], nom: 'École de Marine', type: 'batiment', buildingId: 'ecole-marine' },
         { xPct: [65, 82], nom: 'Phare',            type: 'batiment', buildingId: 'phare-psm' }
       ],
-      liens: { gauche: 'psm-carrefour-musee', toutDroit: 'psm-centre-multimodal', arriere: 'psm-dispensaire-port-plaisance' }
+      liens: { gauche: 'psm-carrefour-musee', toutDroit: 'psm-centre-multimodal', arriere: 'psm-dispensaire-port-plaisance' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
 
     'psm-dispensaire-port-plaisance': {
@@ -321,7 +323,8 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [15, 55],  nom: 'Tribunal de Port Sainte Marie', type: 'batiment', buildingId: 'tribunal-local' },
         { xPct: [58, 85],  nom: 'Banque Mariannaise',            type: 'batiment', buildingId: 'banque-locale' }
       ],
-      liens: { droite: 'psm-dispensaire-port-plaisance', gauche: 'psm-bar-imprimerie-commissariat', toutDroit: 'psm-carrefour-musee' }
+      liens: { droite: 'psm-dispensaire-port-plaisance', gauche: 'psm-bar-imprimerie-commissariat', toutDroit: 'psm-carrefour-musee' },
+      flechesStyle: { toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
     },
 
     'psm-bar-imprimerie-commissariat': {
@@ -351,9 +354,9 @@ const RUE_CENTRALE_NOEUDS = {
       // ou la zone 'Marche' menait vers ce meme noeud).
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-hotel-mairie-place-psm.png',
       zones: [
-        { xPct: [0, 30],   nom: 'Hôtel du Port',     type: 'batiment', buildingId: 'hotel-port' },
+        { xPct: [0, 30],   nom: "Place d'Armes",     type: 'batiment', buildingId: 'place-armes-psm' },
         { xPct: [33, 62],  nom: "Mairie",            type: 'batiment', buildingId: 'mairie' },
-        { xPct: [65, 100], nom: "Place d'Armes",     type: 'batiment', buildingId: 'place-armes-psm' }
+        { xPct: [65, 100], nom: 'Hôtel du Port',     type: 'batiment', buildingId: 'hotel-port' }
       ],
       liens: { droite: 'psm-marche-resto-chasse', gauche: 'psm-eglise-cimetiere' }
     },
@@ -375,7 +378,8 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [15, 85], nom: 'Chantier Naval', type: 'batiment', buildingId: 'chantier-naval' }
       ],
-      liens: { toutDroit: 'psm-terrains-vente', arriere: 'psm-eglise-cimetiere' }
+      liens: { toutDroit: 'psm-terrains-vente', arriere: 'psm-eglise-cimetiere' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);', toutDroit: 'top:16px; right:16px;' }
     },
 
     'psm-terrains-vente': {
@@ -385,7 +389,8 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [55, 95], nom: 'Terrains à Bâtir', type: 'noeud', noeudId: 'psm-terrains-lots' }
       ],
-      liens: { droite: 'psm-carrefour-artisanal-scierie', arriere: 'psm-chantier-naval' }
+      liens: { droite: 'psm-carrefour-artisanal-scierie', arriere: 'psm-chantier-naval' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     }
   }
 };
