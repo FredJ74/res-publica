@@ -284,6 +284,17 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [80, 100], nom: 'Port Industriel',               type: 'batiment', buildingId: 'port-sainte-marie' }
       ],
       liens: { gauche: 'psm-carrefour-artisanal-scierie', droite: 'psm-ecole-phare' }
+    },
+
+    'psm-ecole-phare': {
+      // Le Dispensaire est visible au loin mais pas encore cliquable ici (le sera sur la scene suivante).
+      // 'psm-dispensaire-ecole' est un PLACEHOLDER (scene pas encore codee).
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-ecole-phare-psm.png',
+      zones: [
+        { xPct: [22, 62], nom: 'École de Marine', type: 'batiment', buildingId: 'ecole-marine' },
+        { xPct: [65, 82], nom: 'Phare',            type: 'batiment', buildingId: 'phare-psm' }
+      ],
+      liens: { gauche: 'psm-carrefour-musee', toutDroit: 'psm-centre-multimodal', arriere: 'psm-dispensaire-ecole' }
     }
   }
 };
