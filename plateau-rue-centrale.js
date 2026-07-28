@@ -1,6 +1,6 @@
 // Point d'entree par ville — sert a savoir si cette ville utilise la nouvelle navigation par scenes
 const RUE_CENTRALE_DEPART = {
-  republic: { capitale: 'luthecia-palais-presidentiel' }
+  republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal' }
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
 
@@ -271,6 +271,19 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [74, 100], nom: 'Scierie Guy Tarembois',  type: 'batiment', buildingId: 'zone-production' }
       ],
       liens: { toutDroit: 'psm-centre-multimodal', droite: 'psm-carrefour-musee', arriere: 'psm-carrefour-musee' }
+    },
+
+    'psm-centre-multimodal': {
+      // Point de depart officiel de la navigation exterieure de PSM (arrivee par transport).
+      // Pas de fleche arriere (entree de ville). 'psm-ecole-phare' est un PLACEHOLDER
+      // (scene Ecole/Phare, image deja recue de Fred mais pas encore codee).
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-centre-multimodal-psm.png',
+      zones: [
+        { xPct: [0, 20],   nom: 'Stade de la Brise Mariannaise', type: 'batiment', buildingId: 'stade' },
+        { xPct: [20, 78],  nom: 'Centre Multimodal',             type: 'batiment', buildingId: 'centre-multinodal-port-sainte-marie' },
+        { xPct: [80, 100], nom: 'Port Industriel',               type: 'batiment', buildingId: 'port-sainte-marie' }
+      ],
+      liens: { gauche: 'psm-carrefour-artisanal-scierie', droite: 'psm-ecole-phare' }
     }
   }
 };

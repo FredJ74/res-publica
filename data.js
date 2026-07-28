@@ -2349,6 +2349,7 @@ const BUILDINGS = {
         name: "Salle des Maires de Port-Sainte-Marie",
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "L'histoire municipale de la ville, ses meilleurs et ses pires edeciles reunis dans la meme salle. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-maires-musee-psm.png",
         persons: [],
         orders: []
       },
