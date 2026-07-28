@@ -315,6 +315,17 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [58, 85],  nom: 'Banque Mariannaise',            type: 'batiment', buildingId: 'banque-locale' }
       ],
       liens: { droite: 'psm-dispensaire-port-plaisance', gauche: 'psm-bar-imprimerie-commissariat', toutDroit: 'psm-carrefour-musee' }
+    },
+
+    'psm-bar-imprimerie-commissariat': {
+      // 'psm-marche-resto-chasse' est un PLACEHOLDER (scene Capitaine Sauvage/Marche/Chasse&Peche, pas encore codee).
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-bar-imprimerie-commissariat-psm.png',
+      zones: [
+        { xPct: [0, 32],   nom: 'Le Bar des Pêcheurs',       type: 'batiment', buildingId: 'bar-des-pecheurs' },
+        { xPct: [35, 65],  nom: "L'Encre Mariannaise",       type: 'batiment', buildingId: 'imprimerie-librairie' },
+        { xPct: [68, 100], nom: 'Commissariat de Police',    type: 'batiment', buildingId: 'commissariat-local' }
+      ],
+      liens: { droite: 'psm-tribunal-banque', gauche: 'psm-marche-resto-chasse' }
     }
   }
 };
