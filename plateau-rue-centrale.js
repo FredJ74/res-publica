@@ -288,13 +288,23 @@ const RUE_CENTRALE_NOEUDS = {
 
     'psm-ecole-phare': {
       // Le Dispensaire est visible au loin mais pas encore cliquable ici (le sera sur la scene suivante).
-      // 'psm-dispensaire-ecole' est un PLACEHOLDER (scene pas encore codee).
+      // 'psm-dispensaire-port-plaisance' est un PLACEHOLDER (scene pas encore codee).
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-ecole-phare-psm.png',
       zones: [
         { xPct: [22, 62], nom: 'École de Marine', type: 'batiment', buildingId: 'ecole-marine' },
         { xPct: [65, 82], nom: 'Phare',            type: 'batiment', buildingId: 'phare-psm' }
       ],
-      liens: { gauche: 'psm-carrefour-musee', toutDroit: 'psm-centre-multimodal', arriere: 'psm-dispensaire-ecole' }
+      liens: { gauche: 'psm-carrefour-musee', toutDroit: 'psm-centre-multimodal', arriere: 'psm-dispensaire-port-plaisance' }
+    },
+
+    'psm-dispensaire-port-plaisance': {
+      // 'psm-tribunal-banque' est un PLACEHOLDER (scene pas encore codee).
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-dispensaire-port-plaisance-psm.png',
+      zones: [
+        { xPct: [0, 30],   nom: 'Dispensaire des Marins Mariannais', type: 'batiment', buildingId: 'dispensaire-public-v' },
+        { xPct: [65, 100], nom: 'Port de Plaisance',                 type: 'batiment', buildingId: 'port-plaisance-psm' }
+      ],
+      liens: { toutDroit: 'psm-ecole-phare', gauche: 'psm-tribunal-banque' }
     }
   }
 };
