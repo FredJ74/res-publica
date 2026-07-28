@@ -337,6 +337,18 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [65, 100], nom: 'Chasse & Pêche',           type: 'batiment', buildingId: 'chasse-peche-psm' }
       ],
       liens: { droite: 'psm-bar-imprimerie-commissariat', gauche: 'psm-hotel-mairie-place' }
+    },
+
+    'psm-hotel-mairie-place': {
+      // 'psm-eglise-cimetiere' est reutilise (deja pose en placeholder depuis la scene Marche/Resto/Chasse,
+      // ou la zone 'Marche' menait vers ce meme noeud).
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-hotel-mairie-place-psm.png',
+      zones: [
+        { xPct: [0, 30],   nom: 'Hôtel du Port',     type: 'batiment', buildingId: 'hotel-port' },
+        { xPct: [33, 62],  nom: "Mairie",            type: 'batiment', buildingId: 'mairie' },
+        { xPct: [65, 100], nom: "Place d'Armes",     type: 'batiment', buildingId: 'place-armes-psm' }
+      ],
+      liens: { droite: 'psm-marche-resto-chasse', gauche: 'psm-eglise-cimetiere' }
     }
   }
 };
