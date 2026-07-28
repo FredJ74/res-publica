@@ -210,7 +210,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie.png',
       desc:'Ville portuaire a l\'ouest. Commerce, contrebande et politique locale.',
       isCapitale: false,
-      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','cimetiere-marin','phare-psm','marche-psm'],
+      buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','cimetiere-marin','phare-psm','marche-psm','musee-port-sainte-marie'],
       buildingContext: {
         'stade': {
           name: "Stade de La Brise Mariannaise",
@@ -2314,6 +2314,102 @@ const BUILDINGS = {
           {fn:'plainte_obstruction_permis', label:'Contester un refus (obstruction)', pa:1, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Si le refus n\'etait pas justifie par le zonage, le maire en subit les consequences.'},{fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:25000, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'construire_sur_terrain', label:'Construire', pa:0, cost:0, type:'legal', icon:'ti-building', successRate:100},{fn:'emprunter_construction', label:'Faire un prêt (Banque Nationale)', pa:0, cost:0, type:'legal', icon:'ti-bank', successRate:100},{fn:'racheter_terrain', label:'Offre de rachat', pa:2, cost:0, type:'legal', icon:'ti-arrows-exchange', successRate:100}] } }
   },
 
+
+  // =====================
+  // MUSEE DE PORT SAINTE MARIE
+  // =====================
+
+  'musee-port-sainte-marie': {
+    name: "Musée de Port Sainte Marie",
+    shortName: "Musée",
+    cat: "Culture",
+    icon: "ti-building-monument",
+    bgColor: "#1c160c",
+    desc: "Le musee dedie a l'histoire de Port-Sainte-Marie et de ses grandes figures. Chaque salle immortalise une categorie de Mariannais celebres, pour le meilleur et pour le pire.",
+    rooms: {
+      hall: {
+        name: "Hall d'accueil",
+        imageBg: "linear-gradient(135deg,#1c160c,#241c10)",
+        desc: "Le hall d'accueil du musee. Rosace en marqueterie au sol, maquettes de navires, vitrines d'instruments de navigation. Soizic Le Gall tient l'accueil ; Yvon Le Gall, le conservateur, veille sur les collections.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-musee-port-sainte-marie.png",
+        persons: [
+          {name:'Soizic Le Gall (PNJ)', role:'PNJ - Accueil du musee', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/soizic-le-gall.png', photoPos:'50% 20%'},
+          {name:'Yvon Le Gall (PNJ)', role:'PNJ - Conservateur du musee', rel:'neutral', job:'conservateur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/yvon-le-gall.png', photoPos:'50% 15%'}
+        ],
+        orders: []
+      },
+      salle_criminels: {
+        name: "Salle des Grands Criminels Mariannais",
+        imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
+        desc: "Portraits et affaires des malfrats les plus tristement celebres de Port-Sainte-Marie. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_maires: {
+        name: "Salle des Maires de Port-Sainte-Marie",
+        imageBg: "linear-gradient(135deg,#181408,#221c0c)",
+        desc: "L'histoire municipale de la ville, ses meilleurs et ses pires edeciles reunis dans la meme salle. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_personnalites: {
+        name: "Salle des Personnalites Mariannaises",
+        imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
+        desc: "Les figures les plus populaires et aimees de la ville, toutes generations confondues. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_entrepreneurs: {
+        name: "Salle des Grands Entrepreneurs Mariannais",
+        imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
+        desc: "Les batisseurs economiques de Port-Sainte-Marie, du petit commerce a l'empire industriel. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_organisations: {
+        name: "Salle des Organisations Mariannaises",
+        imageBg: "linear-gradient(135deg,#0e1418,#141c22)",
+        desc: "Clubs, syndicats et organisations locales : leurs plus grands representants, toutes disciplines confondues. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_plumes: {
+        name: "Salle des Plumes Mariannaises",
+        imageBg: "linear-gradient(135deg,#181018,#221824)",
+        desc: "Les plus belles diatribes, lettres ouvertes et recits qui ont marque la vie forumiale de Port-Sainte-Marie. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_honneur_militaire: {
+        name: "Salle d'Honneur Militaire",
+        imageBg: "linear-gradient(135deg,#141410,#201f18)",
+        desc: "Les faits d'armes et les soldats les plus decores originaires de Port-Sainte-Marie. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_unions: {
+        name: "Salle des Unions Celebres",
+        imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
+        desc: "Les mariages et alliances les plus marquants de l'histoire de la ville. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_dynasties: {
+        name: "Salle des Grandes Dynasties Mariannaises",
+        imageBg: "linear-gradient(135deg,#181410,#241c14)",
+        desc: "Arbre genealogique vivant des familles historiques de Port-Sainte-Marie, dont les Le Gall et les Le Roux. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_scandales: {
+        name: "Salle des Scandales et Affaires",
+        imageBg: "linear-gradient(135deg,#100c10,#181018)",
+        desc: "Les grandes crises politiques et affaires qui ont secoue Port-Sainte-Marie. Classement a venir.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
 
   // =====================
   // V28A — CENTRES COMMERCIAUX / ARTISANAUX / AFFAIRES

@@ -677,6 +677,9 @@ const PLAN_LAYOUTS = {
     'terrain-a-batir-9':           [135,   8,  50,  83],
     'terrain-a-batir-10':          [189,   8,  50,  83],
     'terrain-a-batir-11':          [244,   8,  50,  83],
+
+    // Musee : entre Centre Commercial et Dispensaire, meme rangee (voir plan Excalidraw). Position estimee, a ajuster.
+    'musee-port-sainte-marie':     [460, 423, 180,  95],
   },
   ville_b: {
     'hotel-mineur':                [ 14,  12, 100, 60],
@@ -713,6 +716,7 @@ const PLAN_ICONS = {
   'centre-multinodal-luthecia': '🚉',
   'centre-multinodal-port-sainte-marie': '🚉',
   'centre-multinodal-montrouge': '🚉',
+  'musee-port-sainte-marie': '🖼',
   'centre-commercial': '🛍', 'centre-artisanal': '🔨', 'centre-affaires': '💼',
   'office-notarial': '📜', 'stade': '⚽', 'quartier-ambassades': '🏳', 'place-formulaire-liberte': '📋',
   'port-sainte-marie': '⚓', 'port-novomirsk': '⚓',
