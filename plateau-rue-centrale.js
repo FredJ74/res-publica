@@ -459,6 +459,7 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
 
   const imageAffichee = (noeud.imagesParArrivee && rueCentraleDepuisNoeud && noeud.imagesParArrivee[rueCentraleDepuisNoeud]) || noeud.image;
   const zonesAffichees = (noeud.zonesParArrivee && rueCentraleDepuisNoeud && noeud.zonesParArrivee[rueCentraleDepuisNoeud]) || noeud.zones;
+  const liensActuels = (noeud.liensParArrivee && rueCentraleDepuisNoeud && noeud.liensParArrivee[rueCentraleDepuisNoeud]) || noeud.liens;
 
   let html = '<div class="rc-scene" id="rc-scene">';
   html += '<img class="rc-image" id="rc-image" src="' + imageAffichee + '">';
@@ -480,7 +481,7 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
     { dir: 'droite',    icon: 'ti-chevron-right' }
   ].map(f => ({ ...f, style: noeud.flechesStyle?.[f.dir] || stylesParDefaut[f.dir] }));
   fleches.forEach(f => {
-    if (noeud.liens[f.dir]) {
+    if (liensActuels[f.dir]) {
       html += '<div class="rc-fleche" style="' + f.style + '" onclick="deplacerRueCentrale(\'' + pays + '\',\'' + f.dir + '\')">' +
         '<i class="ti ' + f.icon + '"></i></div>';
     }
