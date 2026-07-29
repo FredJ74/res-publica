@@ -57,7 +57,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 5;
+  z-index: 1001;
   transition: background 0.2s;
 }
 .rc-fleche:hover { background: rgba(201, 168, 76, 0.25); }
