@@ -343,7 +343,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-marche-resto-chasse-psm.png',
       zones: [
         { xPct: [0, 30],   nom: 'Capitaine Sauvage',        type: 'batiment', buildingId: 'capitaine-sauvage' },
-        { xPct: [33, 62],  nom: 'Marché',                   type: 'noeud',    noeudId: 'psm-eglise-cimetiere' },
+        { xPct: [33, 62],  nom: 'Marché',                   type: 'batiment', buildingId: 'marche-psm' },
         { xPct: [65, 100], nom: 'Chasse & Pêche',           type: 'batiment', buildingId: 'chasse-peche-psm' }
       ],
       liens: { droite: 'psm-bar-imprimerie-commissariat', gauche: 'psm-hotel-mairie-place' }
