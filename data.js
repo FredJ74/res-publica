@@ -2334,7 +2334,8 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-musee-port-sainte-marie.png",
         persons: [
           {name:'Soizic Le Gall (PNJ)', role:'PNJ - Accueil du musee', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-musee-port-sainte-marie.png', photoPos:'18% 30%'},
-          {name:'Yvon Le Gall (PNJ)', role:'PNJ - Conservateur du musee', rel:'neutral', job:'conservateur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-musee-port-sainte-marie.png', photoPos:'42% 22%'}
+          {name:'Yvon Le Gall (PNJ)', role:'PNJ - Conservateur du musee', rel:'neutral', job:'conservateur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-musee-port-sainte-marie.png', photoPos:'42% 22%'},
+          {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'}
         ],
         orders: []
       },
@@ -2343,7 +2344,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
         desc: "Portraits et affaires des malfrats les plus tristement celebres de Port-Sainte-Marie. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-criminels-musee-psm.png",
-        persons: [],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_maires: {
@@ -2351,7 +2352,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "L'histoire municipale de la ville, ses meilleurs et ses pires edeciles reunis dans la meme salle. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-maires-musee-psm.png",
-        persons: [],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_personnalites: {
@@ -2359,56 +2360,56 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
         desc: "Les figures les plus populaires et aimees de la ville, toutes generations confondues. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-personnalites-musee-psm.png",
-        persons: [],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_entrepreneurs: {
         name: "Salle des Grands Entrepreneurs Mariannais",
         imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
         desc: "Les batisseurs economiques de Port-Sainte-Marie, du petit commerce a l'empire industriel. Classement a venir.",
-        persons: [],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_organisations: {
         name: "Salle des Organisations Mariannaises",
         imageBg: "linear-gradient(135deg,#0e1418,#141c22)",
         desc: "Clubs, syndicats et organisations locales : leurs plus grands representants, toutes disciplines confondues. Classement a venir.",
-        persons: [],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_plumes: {
         name: "Salle des Plumes Mariannaises",
         imageBg: "linear-gradient(135deg,#181018,#221824)",
         desc: "Les plus belles diatribes, lettres ouvertes et recits qui ont marque la vie forumiale de Port-Sainte-Marie. Contenu a venir.",
-        persons: [],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_honneur_militaire: {
         name: "Salle d'Honneur Militaire",
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les faits d'armes et les soldats les plus decores originaires de Port-Sainte-Marie. Classement a venir.",
-        persons: [],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_unions: {
         name: "Salle des Unions Celebres",
         imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
         desc: "Les mariages et alliances les plus marquants de l'histoire de la ville. Classement a venir.",
-        persons: [],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_dynasties: {
         name: "Salle des Grandes Dynasties Mariannaises",
         imageBg: "linear-gradient(135deg,#181410,#241c14)",
         desc: "Arbre genealogique vivant des familles historiques de Port-Sainte-Marie, dont les Le Gall et les Le Roux. Contenu a venir.",
-        persons: [],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
       salle_scandales: {
         name: "Salle des Scandales et Affaires",
         imageBg: "linear-gradient(135deg,#100c10,#181018)",
         desc: "Les grandes crises politiques et affaires qui ont secoue Port-Sainte-Marie. Classement a venir.",
-        persons: [],
+        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       }
     }
@@ -3147,10 +3148,11 @@ const BUILDINGS = {
         orders: []
       },
       tombe: {
-        name: "Tombe",
+        name: "Tombe de Yann Le Goff",
         image: "\u2693",
         imageBg: "linear-gradient(135deg,#08080a,#0c0c0e)",
-        desc: "Le vent et le bruit des vagues en contrebas. Contenu a venir.",
+        desc: "Une sobre pierre tombale, tournee vers l'horizon. Une inscription discrete rappelle qu'il croyait en la justice des hommes et en la bonte de leurs intentions.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tombe-yann-le-goff-psm.png",
         persons: [],
         orders: []
       }
