@@ -249,7 +249,7 @@ const RUE_CENTRALE_NOEUDS = {
         ],
         'psm-tribunal-banque': [
           { xPct: [0, 30],   nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
-          { xPct: [40, 55],  nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' },
+          { xPct: [40, 55], yPct: [10, 85], nom: 'Centre d\'Affaires', type: 'batiment', buildingId: 'centre-affaires' },
           { xPct: [68, 100], nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' }
         ],
         'psm-eglise-cimetiere': [
@@ -511,6 +511,10 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
     div.className = 'rc-zone';
     div.style.left = z.xPct[0] + '%';
     div.style.width = (z.xPct[1] - z.xPct[0]) + '%';
+    if (z.yPct) {
+      div.style.top = z.yPct[0] + '%';
+      div.style.height = (z.yPct[1] - z.yPct[0]) + '%';
+    }
     div.addEventListener('mousemove', (e) => afficherTooltipRue(e, z.nom));
     div.addEventListener('mouseleave', masquerTooltipRue);
     // Zoom leger sur toute l'image, mais avec le point d'origine du zoom place au centre
