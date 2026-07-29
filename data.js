@@ -2333,8 +2333,8 @@ const BUILDINGS = {
         desc: "Le hall d'accueil du musee. Rosace en marqueterie au sol, maquettes de navires, vitrines d'instruments de navigation. Soizic Le Gall tient l'accueil ; Yvon Le Gall, le conservateur, veille sur les collections.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-musee-port-sainte-marie.png",
         persons: [
-          {name:'Soizic Le Gall (PNJ)', role:'PNJ - Accueil du musee', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/soizic-le-gall.png', photoPos:'50% 20%'},
-          {name:'Yvon Le Gall (PNJ)', role:'PNJ - Conservateur du musee', rel:'neutral', job:'conservateur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/yvon-le-gall.png', photoPos:'50% 15%'}
+          {name:'Soizic Le Gall (PNJ)', role:'PNJ - Accueil du musee', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-musee-port-sainte-marie.png', photoPos:'18% 30%'},
+          {name:'Yvon Le Gall (PNJ)', role:'PNJ - Conservateur du musee', rel:'neutral', job:'conservateur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-musee-port-sainte-marie.png', photoPos:'42% 22%'}
         ],
         orders: []
       },
