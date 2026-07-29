@@ -369,7 +369,8 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [15, 85], nom: 'Notre-Dame de la Mer & Cimetière Marin', type: 'batiment', buildingId: 'notre-dame-mer' }
       ],
-      liens: { droite: 'psm-chantier-naval', gauche: 'psm-hotel-mairie-place', arriere: 'psm-carrefour-musee' }
+      liens: { droite: 'psm-chantier-naval', gauche: 'psm-hotel-mairie-place', arriere: 'psm-carrefour-musee' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
 
     'psm-chantier-naval': {
