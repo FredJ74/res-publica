@@ -262,10 +262,10 @@ const RUE_CENTRALE_NOEUDS = {
       liensParArrivee: {
         'psm-carrefour-artisanal-scierie': { gauche: 'psm-ecole-phare',            droite: 'psm-eglise-cimetiere',           toutDroit: 'psm-tribunal-banque',         arriere: 'psm-carrefour-artisanal-scierie' },
         'psm-ecole-phare':            { gauche: 'psm-tribunal-banque',         droite: 'psm-carrefour-artisanal-scierie', toutDroit: 'psm-eglise-cimetiere',           arriere: 'psm-ecole-phare' },
-        'psm-eglise-cimetiere': { gauche: 'psm-tribunal-banque', droite: 'psm-carrefour-artisanal-scierie', toutDroit: 'psm-eglise-cimetiere', arriere: 'psm-eglise-cimetiere' },
         'psm-tribunal-banque':         { gauche: 'psm-eglise-cimetiere',           droite: 'psm-ecole-phare',            toutDroit: 'psm-carrefour-artisanal-scierie', arriere: 'psm-tribunal-banque' },
         'psm-eglise-cimetiere':           { gauche: 'psm-carrefour-artisanal-scierie', droite: 'psm-tribunal-banque',         toutDroit: 'psm-ecole-phare',            arriere: 'psm-eglise-cimetiere' }
-      }
+      },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);', toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
     },
 
     'psm-carrefour-artisanal-scierie': {
