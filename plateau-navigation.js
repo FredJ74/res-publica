@@ -170,7 +170,7 @@ function showVueRue() {
     rueImage.style.background = 'none';
     const conteneur = document.createElement('div');
     conteneur.id = 'rue-centrale-conteneur';
-    conteneur.style.cssText = 'position:absolute; inset:0; z-index:0;';
+    conteneur.style.cssText = 'position:absolute; inset:0; z-index:1005;';
     rueImage.insertBefore(conteneur, rueImage.firstChild);
     // Reprend le dernier noeud visite dans cette ville (ex: en sortant d'un batiment)
     // plutot que de toujours reinitialiser sur le noeud de depart.
