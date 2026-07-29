@@ -3112,12 +3112,30 @@ const BUILDINGS = {
     bgColor: "#0a0a08",
     desc: "Construction et reparation de bateaux de peche et de plaisance.",
     rooms: {
+      hall: {
+        name: "Entrée du Chantier",
+        imageBg: "linear-gradient(135deg,#0a0a08,#10100c)",
+        desc: "L'entree du chantier naval de Port-Sainte-Marie, entre coques en reparation et bateaux en cale.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-chantier-naval-psm.png",
+        persons: [],
+        orders: []
+      },
       cale: {
         name: "Cale Seche",
         image: "\ud83d\udee5\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a08,#10100c)",
         desc: "Coques en reparation, odeur de peinture marine et de bois.",
         persons: [],
+        orders: []
+      },
+      bureau: {
+        name: "Bureau",
+        imageBg: "linear-gradient(135deg,#141008,#1c160c)",
+        desc: "Le bureau du Chantier Naval Le Roux, fonde par Yves Le Roux (1932-1987). Plans de coques, devis, souvenirs de la Brise Mariannaise aux murs.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-chantier-naval-psm.png",
+        persons: [
+          {name:'Pierrick Le Roux (PNJ)', role:'PNJ - Chef d\'entreprise du Chantier Naval', rel:'neutral', job:'chef_entreprise', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-chantier-naval-psm.png', photoPos:'62% 22%'}
+        ],
         orders: []
       }
     }
