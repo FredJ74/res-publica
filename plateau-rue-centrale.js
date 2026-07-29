@@ -248,9 +248,9 @@ const RUE_CENTRALE_NOEUDS = {
           { xPct: [65, 100], nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' }
         ],
         'psm-tribunal-banque': [
-          { xPct: [0, 30],   nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
+          { xPct: [0, 30], yPct: [22, 75],  nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
           { xPct: [40, 55], yPct: [22, 55], nom: 'Centre d\'Affaires', type: 'batiment', buildingId: 'centre-affaires' },
-          { xPct: [68, 100], nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' }
+          { xPct: [68, 100], yPct: [22, 75], nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' }
         ],
         'psm-eglise-cimetiere': [
           { xPct: [0, 32],   nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' },
