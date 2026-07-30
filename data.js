@@ -3515,6 +3515,7 @@ const BUILDINGS = {
         name: "Salle des Plumes",
         imageBg: "linear-gradient(135deg,#181018,#221824)",
         desc: "Les plus belles diatribes, lettres ouvertes et recits qui ont marque la vie forumiale de Luthecia. Contenu a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-plumes-musee-luthecia.png",
         persons: [],
         orders: []
       },
