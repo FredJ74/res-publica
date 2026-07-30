@@ -72,7 +72,21 @@ const RUE_CENTRALE_NOEUDS = {
     'luthecia-intersection-stade-commercial': {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-intersection-stade-commercial.png',
       zones: [],
-      liens: { gauche: 'luthecia-centre-commercial', droite: 'luthecia-stade-multimodal', toutDroit: 'luthecia-quartier-ambassades', arriere: 'luthecia-imprimerie' },
+      liens: { gauche: 'luthecia-centre-commercial', droite: 'luthecia-stade-multimodal', toutDroit: 'luthecia-musees', arriere: 'luthecia-imprimerie' },
+      flechesStyle: {
+        arriere:   'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // ---- MUSEES (Ville de Luthecia + National de Republia, face a face) ----
+    'luthecia-musees': {
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-musees-luthecia.png',
+      zones: [
+        { xPct: [0, 45],   nom: 'Musée de la Ville de Luthécia', type: 'batiment', buildingId: 'musee-ville-luthecia' },
+        { xPct: [55, 100], nom: 'Musée National de Republia',    type: 'batiment', buildingId: 'musee-national-republia' }
+      ],
+      liens: { toutDroit: 'luthecia-quartier-ambassades', arriere: 'luthecia-intersection-stade-commercial' },
       flechesStyle: {
         arriere:   'bottom:10px; left:50%; transform:translateX(-50%);',
         toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
@@ -89,7 +103,7 @@ const RUE_CENTRALE_NOEUDS = {
         { name: 'Jean Bonde', role: 'Espion', rel: 'neutral', job: 'inspecteur' }
       ],
       // droite (aeroport) reste en position par defaut (a droite, centre vertical) — deja ce qui est demande.
-      liens: { gauche: 'luthecia-terrains-artisanal', droite: 'luthecia-centre-multimodal', toutDroit: null, arriere: 'luthecia-intersection-stade-commercial' },
+      liens: { gauche: 'luthecia-terrains-artisanal', droite: 'luthecia-centre-multimodal', toutDroit: null, arriere: 'luthecia-musees' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);'
       }

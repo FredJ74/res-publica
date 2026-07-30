@@ -101,7 +101,7 @@ const WORLD = {
       isCapitale: true,
       streetName: 'Avenue de la République',
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','quartier-ambassades','place-formulaire-liberte'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-4','terrain-a-batir-5','terrain-a-batir-6','terrain-a-batir-7','office-notarial','stade','quartier-ambassades','place-formulaire-liberte','musee-ville-luthecia','musee-national-republia'],
       buildingContext: {
         'stade': {
           name: "Stade Gourgeot — Olympique de Luthécia",
@@ -3454,6 +3454,120 @@ const BUILDINGS = {
   },
 
   // ---- QHS - QUARTIER HAUTE SECURITE ----
+  // =====================
+  // MUSEE DE LA VILLE DE LUTHECIA
+  // =====================
+
+  'musee-ville-luthecia': {
+    name: "Musée de la Ville de Luthécia",
+    shortName: "Musée de la Ville",
+    cat: "Culture",
+    icon: "ti-building-monument",
+    bgColor: "#1c160c",
+    desc: "Le musee dedie a l'histoire de Luthecia et de ses grandes figures. Chaque salle immortalise une categorie de citoyens celebres, pour le meilleur et pour le pire.",
+    rooms: {
+      hall: {
+        name: "Hall d'accueil",
+        imageBg: "linear-gradient(135deg,#1c160c,#241c10)",
+        desc: "Le hall d'accueil du musee de la ville de Luthecia.",
+        persons: [],
+        orders: []
+      },
+      salle_criminels: {
+        name: "Salle des Grands Criminels",
+        imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
+        desc: "Portraits et affaires des malfrats les plus tristement celebres de Luthecia. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_maires: {
+        name: "Salle des Maires de Luthécia",
+        imageBg: "linear-gradient(135deg,#181408,#221c0c)",
+        desc: "L'histoire municipale de la ville, ses meilleurs et ses pires edeciles reunis dans la meme salle. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_personnalites: {
+        name: "Salle des Personnalités Luthéciennes",
+        imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
+        desc: "Les figures les plus populaires et aimees de la ville, toutes generations confondues. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_entrepreneurs: {
+        name: "Salle des Grands Entrepreneurs",
+        imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
+        desc: "Les batisseurs economiques de Luthecia, du petit commerce a l'empire industriel. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_organisations: {
+        name: "Salle des Organisations",
+        imageBg: "linear-gradient(135deg,#0e1418,#141c22)",
+        desc: "Clubs, syndicats et organisations locales : leurs plus grands representants, toutes disciplines confondues. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_plumes: {
+        name: "Salle des Plumes",
+        imageBg: "linear-gradient(135deg,#181018,#221824)",
+        desc: "Les plus belles diatribes, lettres ouvertes et recits qui ont marque la vie forumiale de Luthecia. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_honneur_militaire: {
+        name: "Salle d'Honneur Militaire",
+        imageBg: "linear-gradient(135deg,#141410,#201f18)",
+        desc: "Les faits d'armes et les soldats les plus decores originaires de Luthecia. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_unions: {
+        name: "Salle des Unions Célèbres",
+        imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
+        desc: "Les mariages et alliances les plus marquants de l'histoire de la ville. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_dynasties: {
+        name: "Salle des Grandes Dynasties",
+        imageBg: "linear-gradient(135deg,#181410,#241c14)",
+        desc: "Arbre genealogique vivant des familles historiques de Luthecia. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_scandales: {
+        name: "Salle des Scandales et Affaires",
+        imageBg: "linear-gradient(135deg,#100c10,#181018)",
+        desc: "Les grandes crises politiques et affaires qui ont secoue Luthecia. Classement a venir.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+
+  // =====================
+  // MUSEE NATIONAL DE REPUBLIA
+  // =====================
+
+  'musee-national-republia': {
+    name: "Musée National de Republia",
+    shortName: "Musée National",
+    cat: "Culture",
+    icon: "ti-building-monument",
+    bgColor: "#14100a",
+    desc: "Le grand musee national de Republia. Contenu a definir.",
+    rooms: {
+      hall: {
+        name: "Hall d'accueil",
+        imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
+        desc: "Le hall d'accueil du musee national. Contenu a venir.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+
   'place-formulaire-liberte': {
     name: "Place du Formulaire de la Liberté",
     shortName: "Place",
