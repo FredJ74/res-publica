@@ -295,7 +295,7 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 
 .piece-container{display:grid;grid-template-columns:1fr 200px;flex:1;overflow:hidden;min-height:0}
 .piece-image{position:relative;overflow:hidden;display:flex;align-items:flex-end;min-height:280px;background-size:cover!important;background-position:center!important}
-.piece-image::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,rgba(0,0,0,.88) 100%);z-index:0;pointer-events:none}
+.piece-image::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 65%,rgba(0,0,0,.35) 100%);z-index:0;pointer-events:none}
 .piece-emoji{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:6rem;opacity:.12;pointer-events:none}
 .piece-ambiance{position:relative;z-index:1;padding:1.2rem;width:100%}
 .piece-nom{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--gold-light);margin-bottom:.2rem}
