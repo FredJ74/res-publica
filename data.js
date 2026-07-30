@@ -212,6 +212,19 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-2','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','phare-psm','marche-psm','musee-port-sainte-marie'],
       buildingContext: {
+        'zone-production': {
+          name: "Scierie Guy Tarembois",
+          desc: "Bois locaux, sciage et rabotage. Rachetee par un habitant de Montrouge, elle alimente le Chantier Naval en planches et en poutres.",
+          persons: [
+            {name:'Guy Tarembois (PNJ)', role:'PNJ - Proprietaire de la Scierie', rel:'neutral', job:'proprietaire', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/atelier-scierie-guy-tarembois-psm.png', photoPos:'68% 20%'}
+          ],
+          roomOverrides: {
+            zone_recolte: {
+              name: "Atelier",
+              imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/atelier-scierie-guy-tarembois-psm.png"
+            }
+          }
+        },
         'stade': {
           name: "Stade de La Brise Mariannaise",
           desc: "Face a l'ocean. Le vent du large emporte parfois plus que les ballons.",
@@ -3117,14 +3130,6 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0a0a08,#10100c)",
         desc: "L'entree du chantier naval de Port-Sainte-Marie, entre coques en reparation et bateaux en cale.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-chantier-naval-psm.png",
-        persons: [],
-        orders: []
-      },
-      cale: {
-        name: "Cale Seche",
-        image: "\ud83d\udee5\ufe0f",
-        imageBg: "linear-gradient(135deg,#0a0a08,#10100c)",
-        desc: "Coques en reparation, odeur de peinture marine et de bois.",
         persons: [],
         orders: []
       },
