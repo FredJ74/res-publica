@@ -451,7 +451,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   const pieceImg = document.getElementById('piece-image');
   const imgUrl = empireRoomImg || roomOverride?.imageUrl || room.imageUrl;
   if (imgUrl) {
-    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.15) 100%), url('${imgUrl}') center/cover no-repeat`;
+    pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
     pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
