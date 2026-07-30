@@ -3470,6 +3470,7 @@ const BUILDINGS = {
         name: "Hall d'accueil",
         imageBg: "linear-gradient(135deg,#1c160c,#241c10)",
         desc: "Le hall d'accueil du musee de la ville de Luthecia.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-musee-ville-luthecia.png",
         persons: [],
         orders: []
       },
@@ -3556,12 +3557,83 @@ const BUILDINGS = {
     cat: "Culture",
     icon: "ti-building-monument",
     bgColor: "#14100a",
-    desc: "Le grand musee national de Republia. Contenu a definir.",
+    desc: "Le grand musee national de Republia, ou se joue la memoire de la nation toute entiere.",
     rooms: {
       hall: {
         name: "Hall d'accueil",
         imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
-        desc: "Le hall d'accueil du musee national. Contenu a venir.",
+        desc: "L'immense hall d'accueil du musee national, sous sa verriere et son escalier monumental.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-musee-national-republia.png",
+        persons: [],
+        orders: []
+      },
+      salle_presidents: {
+        name: "Salle des Présidents de Republia",
+        imageBg: "linear-gradient(135deg,#181408,#221c0c)",
+        desc: "L'histoire presidentielle de la nation, ses meilleurs et ses pires chefs d'Etat. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_peres_fondateurs: {
+        name: "Salle des Pères Fondateurs",
+        imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
+        desc: "Les figures historiques a l'origine de la nation. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      pantheon_national: {
+        name: "Panthéon National",
+        imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
+        desc: "Les personnalites les plus veneres du pays, toutes categories confondues. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_honneur_militaire_nationale: {
+        name: "Salle d'Honneur Militaire Nationale",
+        imageBg: "linear-gradient(135deg,#141410,#201f18)",
+        desc: "Les plus grands faits d'armes a l'echelle du pays. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_relations_diplomatiques: {
+        name: "Salle des Relations Diplomatiques",
+        imageBg: "linear-gradient(135deg,#0e1418,#141c22)",
+        desc: "Traites, alliances et tensions entre empires. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_tresor_national: {
+        name: "Salle du Trésor National",
+        imageBg: "linear-gradient(135deg,#181008,#221408)",
+        desc: "Regalia, objets d'Etat et symboles du pouvoir. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_reussites_economiques: {
+        name: "Salle des Grandes Réussites Économiques",
+        imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
+        desc: "Les plus grandes fortunes et entreprises a l'echelle nationale. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_scandales_etat: {
+        name: "Salle des Scandales d'État",
+        imageBg: "linear-gradient(135deg,#100c10,#181018)",
+        desc: "Les plus grandes affaires politiques nationales. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_grandes_villes: {
+        name: "Salle des Grandes Villes de Republia",
+        imageBg: "linear-gradient(135deg,#181410,#241c14)",
+        desc: "Les maires des differentes villes du pays entrent en competition pour la reconnaissance nationale de leur cite. Classement a venir.",
+        persons: [],
+        orders: []
+      },
+      salle_criminels_pays: {
+        name: "Salle des Plus Grands Criminels du Pays",
+        imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
+        desc: "Les plus grands criminels de chaque ville du pays entrent en competition pour le titre de plus grand criminel de la nation. Classement a venir.",
         persons: [],
         orders: []
       }
