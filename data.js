@@ -3892,6 +3892,43 @@ const BUILDINGS = {
           {fn:'louer_local', label:'Louer cet entrepôt (350 FR/jour)', pa:1, cost:0, type:'grey', icon:'ti-key', successRate:100, desc:'+6 DIS +3 INF. Stockage discret garanti.'},
           {fn:'gerer_local', label:'Gérer mon entrepôt', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
+      },
+      douanes: {
+        name: "Douanes",
+        imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
+        desc: "Le poste de douane du port. Controles des marchandises entrantes et sortantes. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      criee: {
+        name: "Criée",
+        imageBg: "linear-gradient(135deg,#08100c,#0c1810)",
+        desc: "La criée aux poissons, ou se negocie chaque matin la peche du jour. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      bureau_syndical_dockers: {
+        name: "Bureau Syndical des Dockers",
+        imageBg: "linear-gradient(135deg,#100a08,#180e0a)",
+        desc: "Le bureau du syndicat des dockers de Port-Sainte-Marie. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      bureau_directeur_port: {
+        name: "Bureau du Directeur du Port Maritime",
+        imageBg: "linear-gradient(135deg,#0a0c10,#0e1218)",
+        desc: "Le bureau du Directeur du Port Maritime de Port-Sainte-Marie. Contenu a venir.",
+        persons: [],
+        orders: []
+      },
+      bureau_commandant_port: {
+        name: "Bureau du Commandant de Port",
+        imageBg: "linear-gradient(135deg,#0a0810,#0e0c16)",
+        desc: "Le bureau du Commandant de Port. Contenu a venir.",
+        persons: [
+          {name:'Marcel Ancre (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}
+        ],
+        orders: []
       }
     }
   },
