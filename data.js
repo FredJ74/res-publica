@@ -3478,6 +3478,7 @@ const BUILDINGS = {
         name: "Salle des Grands Criminels",
         imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
         desc: "Portraits et affaires des malfrats les plus tristement celebres de Luthecia. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-criminels-musee-luthecia.png",
         persons: [],
         orders: []
       },
@@ -3485,6 +3486,7 @@ const BUILDINGS = {
         name: "Salle des Maires de Luthécia",
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "L'histoire municipale de la ville, ses meilleurs et ses pires edeciles reunis dans la meme salle. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-maires-musee-luthecia.png",
         persons: [],
         orders: []
       },
