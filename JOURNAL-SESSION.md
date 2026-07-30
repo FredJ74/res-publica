@@ -1,3 +1,54 @@
+# Journal de session — Res Publica (30 juillet 2026)
+
+## État du dépôt
+- Toutes les modifications ont été committées et poussées sur `main`.
+- **Changement de session prévu à la fin de ce journal** : la prochaine session reprend directement sur Luthécia (voir priorités en fin de journal).
+
+---
+
+## 🐛 Corrections diverses (poursuite du debug d'hier, sur Luthécia cette fois)
+
+1. **Voile sombre trop fort sur les images de pièces** : deux couches d'assombrissement se cumulaient — un dégradé JS dans `plateau-navigation.js` (ligne ~454, corrigé de 50% à 15% de noir en bas) ET un second voile CSS `::before` sur `.piece-image` dans `style.css` (allant jusqu'à 88% de noir, la vraie cause principale, réduit à 35% et concentré sur les 35% inférieurs de l'image). **Les deux fixes sont en place et validés par Fred ("bien mieux !").**
+2. **Image de la Place du Formulaire de la Liberté** : depuis sa création le 15 juillet, le fichier `place-formulaire-liberte.png` contenait en fait une image d'autruche entravée (erreur de `mv` à l'origine, jamais un écrasement ultérieur — un seul commit a touché ce fichier). Fred a retrouvé la vraie image dans ses téléchargements (14 juillet 22h31) et on l'a remise en place.
+
+### Leçon générale sur les erreurs de fichiers
+Deux catégories de bugs récurrents identifiées sur toute la session : (1) noms de fichiers dans `~/Downloads` qui utilisent espaces/accents/casse différents de ce que Claude suppose — toujours vérifier avec `ls | grep` avant un `mv` s'il n'a pas été confirmé explicitement ; (2) `git add` avec plusieurs fichiers échoue **intégralement** si un seul chemin n'existe pas — même les fichiers valides de la commande ne sont alors pas committés.
+
+---
+
+## 🏛️ Luthécia — Création des deux Musées (nouveau grand morceau de contenu)
+
+- **Nouvelle scène de rue** `luthecia-musees`, insérée entre le carrefour `luthecia-intersection-stade-commercial` et `luthecia-quartier-ambassades` (liens recâblés dans les deux sens). Les deux musées sont face à face sur la même rue.
+- **Musée de la Ville de Luthécia** : structure identique au Musée de Port-Sainte-Marie (hall + 10 salles thématiques : Criminels, Maires, Personnalités, Entrepreneurs, Organisations, Plumes, Honneur Militaire, Unions Célèbres, Dynasties, Scandales). Images du hall intégrées.
+- **Musée National de Republia** : structure complète également (hall + 10 salles), avec deux salles supplémentaires spécifiques au niveau national par rapport au modèle de ville :
+  - **Salle des Grandes Villes de Republia** : les maires des différentes villes du pays entrent en compétition pour la reconnaissance nationale de leur cité (méta-classement inter-villes).
+  - **Salle des Plus Grands Criminels du Pays** : même logique de compétition inter-villes côté criminalité.
+  - Plus : Salle des Présidents, Salle des Pères Fondateurs, Panthéon National, Salle d'Honneur Militaire Nationale, Salle des Relations Diplomatiques (clin d'œil : juste à côté du Quartier des Ambassades), Salle du Trésor National, Salle des Grandes Réussites Économiques, Salle des Scandales d'État.
+- Positions ajoutées à `PLAN_LAYOUTS.capitale` (entre Quartier des Ambassades et Stade, coordonnées estimées à ajuster si besoin) + icônes `PLAN_ICONS`.
+- **Aucune mécanique de classement/vote n'est codée** pour l'instant — uniquement la structure et les noms des salles, comme convenu (placeholders "Contenu à venir" / "Classement à venir").
+
+---
+
+## 🔄 GROS PIVOT ANNONCÉ EN FIN DE SESSION
+
+Fred a annoncé vouloir **terminer complètement le codage de Luthécia**, ce qui implique nécessairement de coder le **système économique complet** (production/marchés/jauges PJ/géopolitique, voir détail dans l'entrée du 29-30 juillet précédente) — bien plus large que le simple "reprendre le tour des bâtiments" évoqué initialement.
+
+**Ordre de priorité entre i18n et système économique NON tranché** — Fred avait dit vouloir faire l'i18n avant l'économie (pour éviter d'avoir à retraduire), mais n'a pas reconfirmé cet ordre au moment du pivot. **Point à trancher explicitement en début de prochaine session.**
+
+---
+
+## 📝 Chantiers en attente (mis à jour, ordre indicatif à revalider)
+1. **Décider l'ordre : i18n d'abord, ou système économique d'abord** (voir pivot ci-dessus).
+2. **Terminer Luthécia** : finir le tour des bâtiments restants (état exact non ré-audité ce soir — repartir de l'audit du 27 juillet si besoin, plusieurs sessions ont pu faire avancer les choses depuis).
+3. **Système économique de production** complet (voir détail 29-30 juillet : production par ville, marchés, jauges PJ, dimension géopolitique eau/pétrole, inspiration parodique par empire).
+4. **Système i18n** (`t("clé")` + fichiers `fr.json`/`en.json`, audit d'ampleur non fait, potentiellement des milliers de chaînes en dur).
+5. Vrai fix JS pour le mode plein écran de la navigation de rue (PSM) — fix CSS temporaire en place (`max-height: 78vh`), imparfait.
+6. Auditer les autres scènes PSM à risque de chevauchement zones/flèches (yPct) — non fait systématiquement.
+7. Quête Yann Le Goff (calendrier, mécanique de communication, récompense) — contours posés uniquement.
+8. Contenu réel des salles vides : Musée PSM (7/10 sans image), Musée National Republia (10/10 sans image), Musée Ville Luthécia (9/10 sans image), Port Industriel PSM (5 salles placeholders).
+9. Mécanique de classement/vote des musées (stats + votes, historique des anciens détenteurs) — jamais développée, juste évoquée en principe.
+10. Calendrier électoral pas à jour, photo du Chef de Cabinet qui ne charge pas, réorganisation du dossier `images/` en sous-dossiers.
+
 # Journal de session — Res Publica (28-29 juillet 2026, nuit)
 
 ## État du dépôt
