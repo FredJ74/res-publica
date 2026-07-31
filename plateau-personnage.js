@@ -289,6 +289,9 @@ FREEMIUM — Le jeu est gratuit. Les abonnements premium donnent du confort mais
 // FICHE PERSONNAGE CENTRALE
 // =====================
 function openSelfView() {
+  if (typeof state !== 'undefined' && state.char?.queteAccueil?.etape === 'attente_fiche_personnage' && typeof queteAccueilSurbrillance === 'function') {
+    queteAccueilSurbrillance('.sortir-btn', 15000);
+  }
   document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
   document.getElementById('vue-self').classList.add('active');
   const char = state.char;
