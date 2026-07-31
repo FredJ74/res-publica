@@ -63,16 +63,12 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici on sera tranquille, en plus le responsable électoral est malentendant. Ici on est au cœur du système électoral car c'est ici qu'on vote. On peut aussi voir qui est candidat aux élections par exemple. Chaque pièce est dédiée à un usage.",
+      texte: "Ici on sera tranquille, en plus le responsable électoral est malentendant. Ici on est au cœur du système électoral car c'est ici qu'on vote. On peut aussi voir qui est candidat aux élections par exemple. Chaque pièce est dédiée à un usage. À présent, on va aller en ville. On va déjà sortir de l'Hôtel de Ville.",
       suivant: function() {
-        afficherPopupQueteAccueil({
-          image: QUETE_ACCUEIL_IMAGES.jeremy,
-          titre: 'Jérémy',
-          texte: "À présent, on va aller en ville. On va déjà sortir de l'Hôtel de Ville.",
-          suivant: function() {
-            queteAccueilSurbrillance('.sortir-btn', 12000);
-          }
-        });
+        // Les deux boutons reels concernes sont mis en surbrillance en meme temps :
+        // "Voir les candidats" (bouton d'ordre de la piece) et "Sortir" (bouton de batiment).
+        queteAccueilSurbrillance('.action-btn[onclick*="consulter_elections"]', 12000);
+        queteAccueilSurbrillance('.sortir-btn', 12000);
       }
     });
   }
