@@ -2237,7 +2237,7 @@ const BUILDINGS = {
         desc: "Le hall de l'hotel de ville. Guichets, formulaires, fonctionnaires municipaux.",
         imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
         persons: [
-          {name:'Secretaire Municipal Petit', role:'PNJ - Secretariat general', rel:'neutral', job:'secretaire'},
+          {name:'Secretaire Municipal Petit', role:'PNJ - Secretariat general', rel:'neutral', job:'secretaire', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/secretaire-petit-mairie.png'},
           {name:'Le Maire (PNJ)',             role:'Maire de Luthecia', rel:'neutral', job:'maire'},
           {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotesse-objets-trouves-mairie.png'}
         ],

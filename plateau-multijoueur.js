@@ -1138,6 +1138,21 @@ function quitterGroupe() {
   addJournalEntry('Vous avez quitte le groupe.', '');
 }
 
+// Mecanique de groupe speciale pour Jeremy (quete d'accueil) : c'est le JOUEUR qui devient
+// leader (l'inverse de rejoindrePJ, ou c'est la personne rejointe qui devient leader).
+// Restreinte aux etapes actives de la quete pour eviter tout detournement hors contexte.
+function rejoindreJeremy() {
+  if (typeof state === 'undefined' || !state.char) return;
+  const etapesJeremyActif = ['jeremy_presentation', 'jeremy_groupe'];
+  if (!state.char.queteAccueil || etapesJeremyActif.indexOf(state.char.queteAccueil.etape) === -1) {
+    if (typeof showToast === 'function') showToast('Indisponible', "Jérémy n'est plus disponible.", false);
+    return;
+  }
+  const myName = state.char.name || 'Joueur';
+  state.group = { leader: myName, members: [myName, 'Jérémy'] };
+  showToast('Groupe rejoint', 'Jérémy vous accompagne desormais dans la ville. Vous etes le leader du groupe.', true);
+}
+
 function getGroupSize() {
   if (!state.group) return 1 + (state.employees ? state.employees.length : 0);
   return state.group.members.length;
