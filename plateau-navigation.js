@@ -515,6 +515,10 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Ordres
   renderRoomActions(room, buildingId, roomId);
 
+  if (typeof queteAccueilVerifierEtapeBatiment === 'function') {
+    queteAccueilVerifierEtapeBatiment(buildingId, roomId);
+  }
+
   // Loc
   const ctxName = ctx?.name || b.shortName || b.name;
   document.getElementById('loc-name').textContent = ctxName;
