@@ -469,6 +469,10 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
     memoriserNoeudRueCentrale(pays, state.currentCity, noeudId);
   }
 
+  if (typeof queteAccueilDoitDemarrer === 'function' && queteAccueilDoitDemarrer(pays, noeudId)) {
+    demarrerQueteAccueil();
+  }
+
   const conteneur = document.getElementById('rue-centrale-conteneur');
   if (!conteneur) return;
 
