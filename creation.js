@@ -38,8 +38,12 @@ async function chargerPersonnageParNom() {
       arg: sbState.arg,
       resources: { inf: sbState.inf, pop: sbState.pop, dis: sbState.dis }
     };
-    localStorage.setItem('respublica_char_' + charData.name, JSON.stringify(charData));
-    localStorage.setItem('respublica_char', JSON.stringify(charData));
+    try {
+      localStorage.setItem('respublica_char_' + charData.name, JSON.stringify(charData));
+      localStorage.setItem('respublica_char', JSON.stringify(charData));
+    } catch (e) {
+      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
+    }
     localStorage.setItem('respublica_last_char', charData.name);
     if (sbState.char?.photoUrl) {
       localStorage.setItem('respublica_photo_' + sbState.char.name, sbState.char.photoUrl);
@@ -427,15 +431,20 @@ function validateChar(){
     stats:{}, freeStats:G.freeStats,
     name:G.name, bio:G.bio, motto:G.motto,
     arg:totalArg(), resources:resources(),
-    createdAt:new Date().toISOString()
+    createdAt:new Date().toISOString(),
+    queteAccueil:{ etape:'non_commencee' }
   };
   STAT_DEFS.forEach(({k})=>{char.stats[k]=Math.min(20,getBase(k)+(G.freeStats[k]||0))});
   try{
     // Clé par nom (évite écrasement entre personnages)
-    localStorage.setItem('respublica_char_' + char.name, JSON.stringify(char));
-    // Clé générique = pointeur vers le dernier personnage actif
-    localStorage.setItem('respublica_char', JSON.stringify(char));
-    localStorage.setItem('respublica_last_char', char.name);
+    try {
+      localStorage.setItem('respublica_char_' + char.name, JSON.stringify(char));
+      // Clé générique = pointeur vers le dernier personnage actif
+      localStorage.setItem('respublica_char', JSON.stringify(char));
+      localStorage.setItem('respublica_last_char', char.name);
+    } catch (e) {
+      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
+    }
     // Photo sauvegardee separement car peut etre volumineuse
     if(G.photoUrl){
       try{

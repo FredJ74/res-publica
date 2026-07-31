@@ -385,8 +385,12 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (state.char) {
     state.char.currentBuilding = buildingId;
     state.char.currentRoom = roomId;
-    localStorage.setItem('respublica_char_' + (state.char.name || 'default'), JSON.stringify(state.char));
-    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    try {
+      localStorage.setItem('respublica_char_' + (state.char.name || 'default'), JSON.stringify(state.char));
+      localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    } catch (e) {
+      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
+    }
     // Pousser aussi vers Supabase pour que la position survive a un rafraichissement avant la prochaine sauvegarde periodique
     if (typeof sbSavePersonnage === 'function') {
       sbSavePersonnage(state).catch(() => {});
@@ -580,8 +584,12 @@ function sortirBatiment() {
   if (state.char) {
     state.char.currentBuilding = null;
     state.char.currentRoom = null;
-    localStorage.setItem('respublica_char_' + (state.char.name || 'default'), JSON.stringify(state.char));
-    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    try {
+      localStorage.setItem('respublica_char_' + (state.char.name || 'default'), JSON.stringify(state.char));
+      localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    } catch (e) {
+      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
+    }
     if (typeof sbSavePersonnage === 'function') {
       sbSavePersonnage(state).catch(() => {});
     }
@@ -1166,7 +1174,11 @@ function confirmerTransport(mode, empireId, villeId) {
     state.char.currentCity = villeId;
     state.char.currentBuilding = null;
     state.char.currentRoom = null;
-    localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
+    try {
+      localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
+    } catch (e) {
+      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
+    }
   }
 
   // Reconstruire l'interface pour le nouvel empire

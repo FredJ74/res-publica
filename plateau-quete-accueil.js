@@ -12,7 +12,7 @@ function queteAccueilDoitDemarrer(pays, noeudId) {
   if (pays !== 'republic') return false;
   if (noeudId !== 'luthecia-palais-presidentiel') return false;
   if (typeof state === 'undefined' || !state.char) return false;
-  if (state.char.queteAccueil && state.char.queteAccueil.etape) return false;
+  if (!state.char.queteAccueil || state.char.queteAccueil.etape !== 'non_commencee') return false;
   return true;
 }
 

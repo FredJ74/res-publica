@@ -303,8 +303,12 @@ window.addEventListener('DOMContentLoaded', () => {
       state.char.currentBuilding = state.currentBuilding || null;
       state.char.currentRoom = state.currentRoom || null;
     }
-    localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
-    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    try {
+      localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
+      localStorage.setItem('respublica_char', JSON.stringify(state.char));
+    } catch (e) {
+      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
+    }
   }
   buildCityTabs();
   updateUI();

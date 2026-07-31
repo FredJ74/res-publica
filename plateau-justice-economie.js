@@ -1479,7 +1479,11 @@ function doTaxiSpecial(destination) {
     state.char.currentCity = cityKey;
     state.char.currentBuilding = null;
     state.char.currentRoom = null;
-    localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
+    try {
+      localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
+    } catch (e) {
+      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
+    }
   }
   buildCityTabs();
   updateUI();
