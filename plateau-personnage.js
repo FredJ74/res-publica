@@ -104,6 +104,7 @@ function switchCharSheetTab(tab) {
   if (btnStats) btnStats.style.cssText = base + (tab === 'stats' ? actif : inactif);
 }
 function closeCharSheet() {
+  if (typeof queteAccueilApresFichePersonnage === 'function') queteAccueilApresFichePersonnage();
   document.getElementById('modal-char').classList.remove('open');
 }
 
