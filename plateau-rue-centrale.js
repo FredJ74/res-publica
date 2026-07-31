@@ -472,6 +472,9 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
   if (typeof queteAccueilDoitDemarrer === 'function' && queteAccueilDoitDemarrer(pays, noeudId)) {
     demarrerQueteAccueil();
   }
+  if (typeof queteAccueilVerifierGuidage === 'function') {
+    queteAccueilVerifierGuidage(pays, noeudId);
+  }
 
   const conteneur = document.getElementById('rue-centrale-conteneur');
   if (!conteneur) return;
