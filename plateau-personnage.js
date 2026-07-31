@@ -104,7 +104,6 @@ function switchCharSheetTab(tab) {
   if (btnStats) btnStats.style.cssText = base + (tab === 'stats' ? actif : inactif);
 }
 function closeCharSheet() {
-  if (typeof queteAccueilApresFichePersonnage === 'function') queteAccueilApresFichePersonnage();
   document.getElementById('modal-char').classList.remove('open');
 }
 
@@ -301,6 +300,7 @@ function openSelfView() {
 }
 
 function closeSelfView() {
+  if (typeof queteAccueilApresFichePersonnage === 'function') queteAccueilApresFichePersonnage();
   document.getElementById('vue-self').classList.remove('active');
   if (state.currentBuilding) {
     document.getElementById('vue-batiment').classList.add('active');

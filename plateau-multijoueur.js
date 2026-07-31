@@ -1161,6 +1161,8 @@ function rejoindreJeremy() {
       photoUrl: (typeof QUETE_ACCUEIL_IMAGES !== 'undefined' && QUETE_ACCUEIL_IMAGES.jeremy) || null,
       photoPos: '50% 20%',
       inGroupe: true,
+      cout: 0, // Stagiaire non remunere : jamais licencie par payerEmployes() (sinon comparaison a
+               // emp.cout=undefined echoue systematiquement et le vire des le premier "Dormir").
       buildingId: state.currentBuilding,
       roomId: state.currentRoom
     });
