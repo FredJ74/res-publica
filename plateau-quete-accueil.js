@@ -110,6 +110,19 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     return;
   }
 
+  if (etape === 'stade_libre' && buildingId === 'stade') {
+    // On arme le minuteur une seule fois (passage a 'stade_libre_minuteur' pour ne pas le
+    // reclencher a chaque changement de piece a l'interieur du stade).
+    state.char.queteAccueil = { etape: 'stade_libre_minuteur' };
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+    setTimeout(function() {
+      if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
+      if (state.char.queteAccueil.etape !== 'stade_libre_minuteur') return; // le joueur a deja avance autrement
+      afficherRepriseContactJeremy();
+    }, 90000);
+    return;
+  }
+
   if (etape === 'guide_stade' && buildingId === 'stade') {
     state.char.queteAccueil = { etape: 'stade_libre' };
     if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
@@ -380,6 +393,76 @@ function afficherConseilArchetypeJeremy() {
   });
 }
 
+function afficherRepriseContactJeremy() {
+  state.char.queteAccueil = { etape: 'reprise_contact' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: "Dites, vous avez encore besoin de moi pour découvrir la ville, ou vous vous sentez de continuer seul(e) ?",
+    suivant: null,
+    actionsHtml:
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilRepriseOui();">' +
+      '<i class="ti ti-check" style="font-size:.85rem"></i> Oui, encore un peu d\'aide</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilRepriseNon();">' +
+      '<i class="ti ti-x" style="font-size:.85rem"></i> Non merci, ça ira</button>'
+  });
+}
+
+function queteAccueilRepriseOui() {
+  state.char.queteAccueil = { etape: 'choix_destination' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: "Où voulez-vous aller ? Le marché, les terrains à bâtir, ou le centre multimodal ?",
+    suivant: null,
+    actionsHtml:
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilDestination(\'marche\');">Le marché</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilDestination(\'terrains\');">Les terrains à bâtir</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilDestination(\'multimodal\');">Le centre multimodal</button>'
+  });
+}
+
+const QUETE_ACCUEIL_TEXTES_DESTINATION = {
+  marche: "Le marché ? C'est plutôt vers le centre, pas très loin d'ici. Regardez le plan si besoin, en haut à droite, ça vous montrera le chemin le plus sûr.",
+  terrains: "Les terrains à bâtir sont plutôt excentrés. Consultez le plan pour vous y retrouver, c'est le plus simple.",
+  multimodal: "Le centre multimodal, c'est là où vous êtes arrivé en arrivant en ville. Le plan vous montrera comment y retourner facilement."
+};
+
+function queteAccueilDestination(dest) {
+  state.char.queteAccueil = { etape: 'quete_terminee_avec_aide' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: (QUETE_ACCUEIL_TEXTES_DESTINATION[dest] || QUETE_ACCUEIL_TEXTES_DESTINATION.marche) + " Si vous avez des questions en chemin, n'hésitez pas à me demander.",
+    suivant: function() {
+      queteAccueilSurbrillance('button[onclick*="ouvrirPlanVille"]', 12000);
+    }
+  });
+}
+
+function queteAccueilRepriseNon() {
+  state.char.queteAccueil = { etape: 'quete_terminee_sans_aide' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  if (typeof addContactByName === 'function') {
+    addContactByName('Jérémy', 'Ancien stagiaire de la Mairie', 'ally', false);
+  }
+  if (typeof quitterJeremy === 'function') quitterJeremy();
+
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: "Alors nos chemins se séparent ici. Pour le moment, bien sûr ! Si vous avez besoin de moi, envoyez-moi un mail. Je vous ai ajouté à mes contacts.",
+    suivant: null
+  });
+}
+
 function afficherPopupQueteAccueil(opts) {
   const modal = document.getElementById('modal-quete-accueil');
   if (!modal) return;
@@ -401,6 +484,9 @@ function afficherPopupQueteAccueil(opts) {
 
   if (titreEl) titreEl.textContent = opts.titre || '';
   if (texteEl) texteEl.textContent = opts.texte || '';
+
+  const actionsEl = document.getElementById('quete-accueil-actions');
+  if (actionsEl) actionsEl.innerHTML = opts.actionsHtml || '';
 
   const closeBtn = document.getElementById('quete-accueil-close');
   if (closeBtn) {

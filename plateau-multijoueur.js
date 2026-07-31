@@ -1177,6 +1177,19 @@ function rejoindreJeremy() {
   showToast('Jérémy vous accompagne', 'Il vous suit desormais dans vos deplacements.', true);
 }
 
+// Jeremy quitte le groupe a la fin de la quete d'accueil (separation, avec ou sans reprise
+// possible plus tard par mail). Symetrique de rejoindreJeremy().
+function quitterJeremy() {
+  if (typeof state === 'undefined' || !state.employes) return;
+  state.employes = state.employes.filter(function(e) { return e.nom !== 'Jérémy'; });
+  if (typeof updateUI === 'function') updateUI();
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+  const roomActuelleJeremy = (typeof BUILDINGS !== 'undefined') ? BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom] : null;
+  if (roomActuelleJeremy && typeof renderPersonsList === 'function') {
+    renderPersonsList(roomActuelleJeremy.persons || []);
+  }
+}
+
 function getGroupSize() {
   if (!state.group) return 1 + (state.employees ? state.employees.length : 0);
   return state.group.members.length;
