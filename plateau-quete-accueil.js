@@ -88,7 +88,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
   }
 
   if ((etape === 'attente_bar' || etape === 'attente_bar_apres_chambre') && buildingId === 'hotel-republica' && roomId === 'bar') {
-    state.char.queteAccueil = { etape: 'guide_stade' };
+    state.char.queteAccueil = { etape: 'attente_offre_verre' };
     if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 
     afficherPopupQueteAccueil({
@@ -97,14 +97,6 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
       texte: "Ici c'est un lieu un peu spécial, pas toujours bien fréquenté... Enfin, c'est ce qu'on m'a dit, je n'ai pas le droit de venir seul ici, seulement avec des adultes. Vous pouvez m'offrir un verre ? J'ai très soif à force de parler.",
       suivant: function() {
         queteAccueilSurbrillance('.action-btn[onclick*="boire_verre"]', 12000);
-        afficherPopupQueteAccueil({
-          image: QUETE_ACCUEIL_IMAGES.jeremy,
-          titre: 'Jérémy',
-          texte: "On va aller dans un super endroit : le stade de foot ! Pour ça il faut sortir puis aller sur la gauche, et ensuite, prendre la route perpendiculaire, puis tourner à droite. Au pire, si vous êtes perdu, vous pouvez consulter le plan, en haut à droite.",
-          suivant: function() {
-            queteAccueilSurbrillance('button[onclick*="ouvrirPlanVille"]', 12000);
-          }
-        });
       }
     });
     return;
@@ -124,14 +116,14 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
   }
 
   if (etape === 'guide_stade' && buildingId === 'stade') {
-    state.char.queteAccueil = { etape: 'stade_libre' };
+    state.char.queteAccueil = { etape: 'stade_attente_action' };
     if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ça c'est le stade de notre équipe de Luthécia ! On y est tous très attaché. Il y a 12 clubs qui s'affrontent pour savoir qui sera le meilleur. Pour connaître le classement, il suffit de le consulter. Si vous voulez intégrer l'équipe, il faut prendre sa licence dans le vestiaire et s'entraîner jusqu'à faire partie des 15 meilleurs joueurs du club. Demandez conseil à l'entraîneur adjoint, il est là pour ça. On peut boire un coup, acheter des accessoires du club, parier sur les matchs, ou encore rejoindre le club des supporters. Attention, il ne faut pas croire mais c'est bien plus qu'un endroit où l'on fait du sport. Vous verrez à l'usage, mais ici des maires ont perdu leur poste ou à l'inverse ont été réélus selon l'humeur des supporters...",
-      suivant: afficherConseilArchetypeJeremy
+      texte: "Ça c'est le stade de notre équipe de Luthécia ! On y est tous très attaché. Il y a 12 clubs qui s'affrontent pour savoir qui sera le meilleur. Pour connaître le classement, il suffit de le consulter. Si vous voulez intégrer l'équipe, il faut prendre sa licence dans le vestiaire et s'entraîner jusqu'à faire partie des 15 meilleurs joueurs du club. Demandez conseil à l'entraîneur adjoint, il est là pour ça. On peut boire un coup, acheter des accessoires du club, parier sur les matchs, ou encore rejoindre le club des supporters. Attention, il ne faut pas croire mais c'est bien plus qu'un endroit où l'on fait du sport. Vous verrez à l'usage, mais ici des maires ont perdu leur poste ou à l'inverse ont été réélus selon l'humeur des supporters... Allez-y, jetez un œil, essayez quelque chose !",
+      suivant: null
     });
     return;
   }
@@ -375,6 +367,46 @@ function afficherGuidageBatiments(noeudId) {
   });
 }
 
+// Declenchee depuis le hook ajoute au tout debut de doOrder() (plateau-router.js).
+// Recoit le nom de l'ordre (fn) que le joueur vient de cliquer, quel qu'il soit.
+function queteAccueilNotifierOrdre(fn) {
+  if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
+  const etape = state.char.queteAccueil.etape;
+
+  if (etape === 'attente_offre_verre' && fn === 'boire_verre') {
+    state.char.queteAccueil = { etape: 'guide_stade' };
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+    afficherPopupQueteAccueil({
+      image: QUETE_ACCUEIL_IMAGES.jeremy,
+      titre: 'Jérémy',
+      texte: "On va aller dans un super endroit : le stade de foot ! Pour ça il faut sortir puis aller sur la gauche, et ensuite, prendre la route perpendiculaire, puis tourner à droite. Au pire, si vous êtes perdu, vous pouvez consulter le plan, en haut à droite.",
+      suivant: function() {
+        queteAccueilSurbrillance('button[onclick*="ouvrirPlanVille"]', 12000);
+      }
+    });
+    return;
+  }
+
+  if (etape === 'stade_attente_action' && state.currentBuilding === 'stade') {
+    state.char.queteAccueil = { etape: 'stade_apres_action' };
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+    afficherConseilArchetypeJeremy();
+    return;
+  }
+}
+
+// Arme le minuteur de reprise de contact (90s). Appele a la fin de la sequence du stade,
+// pas seulement a l'entree dans le batiment (le joueur peut ne pas changer de piece apres).
+function queteAccueilArmerMinuteurStade() {
+  state.char.queteAccueil = { etape: 'stade_libre_minuteur' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  setTimeout(function() {
+    if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
+    if (state.char.queteAccueil.etape !== 'stade_libre_minuteur') return;
+    afficherRepriseContactJeremy();
+  }, 90000);
+}
+
 function afficherConseilArchetypeJeremy() {
   const archetype = state.char && state.char.archetype;
   const conseil = QUETE_ACCUEIL_CONSEILS_ARCHETYPE[archetype] || QUETE_ACCUEIL_CONSEIL_DEFAUT;
@@ -387,7 +419,7 @@ function afficherConseilArchetypeJeremy() {
         image: QUETE_ACCUEIL_IMAGES.jeremy,
         titre: 'Jérémy',
         texte: "Je vous laisse découvrir. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser.",
-        suivant: null
+        suivant: queteAccueilArmerMinuteurStade
       });
     }
   });

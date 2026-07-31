@@ -7,6 +7,7 @@
 // ORDERS SYSTEM
 // =====================
 function doOrder(fn, pa, cost, label, desc, successRate) {
+  if (typeof queteAccueilNotifierOrdre === 'function') queteAccueilNotifierOrdre(fn);
   successRate = successRate || 70;
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
 
