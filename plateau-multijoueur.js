@@ -1138,8 +1138,11 @@ function quitterGroupe() {
   addJournalEntry('Vous avez quitte le groupe.', '');
 }
 
-// Mecanique de groupe speciale pour Jeremy (quete d'accueil) : c'est le JOUEUR qui devient
-// leader (l'inverse de rejoindrePJ, ou c'est la personne rejointe qui devient leader).
+// Jeremy (quete d'accueil) rejoint le groupe via le meme systeme que les PNJ employes
+// (state.employes + inGroupe), qui gere deja l'affichage dans chaque piece et le suivi
+// automatique du joueur (voir getGroupeHtmlPourPiece / deplacerGroupeAvecPj). Pas besoin
+// de la mecanique state.group (reservee a rejoindre un AUTRE joueur) : ici, le joueur est
+// naturellement aux commandes, comme pour n'importe quel PNJ recrute.
 // Restreinte aux etapes actives de la quete pour eviter tout detournement hors contexte.
 function rejoindreJeremy() {
   if (typeof state === 'undefined' || !state.char) return;
@@ -1148,9 +1151,23 @@ function rejoindreJeremy() {
     if (typeof showToast === 'function') showToast('Indisponible', "Jérémy n'est plus disponible.", false);
     return;
   }
-  const myName = state.char.name || 'Joueur';
-  state.group = { leader: myName, members: [myName, 'Jérémy'] };
-  showToast('Groupe rejoint', 'Jérémy vous accompagne desormais dans la ville. Vous etes le leader du groupe.', true);
+  if (!state.employes) state.employes = [];
+  if (!state.employes.some(function(e) { return e.nom === 'Jérémy'; })) {
+    state.employes.push({
+      nom: 'Jérémy',
+      nomComplet: 'Jérémy (PNJ)',
+      role: 'Stagiaire pistonné - Hôtel de Ville',
+      job: 'stagiaire',
+      photoUrl: (typeof QUETE_ACCUEIL_IMAGES !== 'undefined' && QUETE_ACCUEIL_IMAGES.jeremy) || null,
+      photoPos: '50% 20%',
+      inGroupe: true,
+      buildingId: state.currentBuilding,
+      roomId: state.currentRoom
+    });
+  }
+  if (typeof updateUI === 'function') updateUI();
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+  showToast('Jérémy vous accompagne', 'Il vous suit desormais dans vos deplacements.', true);
 }
 
 function getGroupSize() {
