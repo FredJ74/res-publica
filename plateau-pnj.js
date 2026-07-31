@@ -291,7 +291,12 @@ function openPnjModal(encodedPnj) {
     const convKeyOpen = 'conv_' + (pnjNameClean||'pnj') + '_day' + (state.day||1);
     const histOpen = state.pnjConversations?.[convKeyOpen] || [];
 
-    if (histOpen.length >= 2 && pnj.job !== 'escort') {
+    if (pnjNameClean === 'Jérémy' && histOpen.length >= 2) {
+      // Ne jamais reafficher la derniere reponse pour Jeremy (peut preter a confusion selon
+      // le lieu/contexte au moment de la reouverture) : on repart sur une invitation neutre.
+      const speechElJeremy = document.getElementById('pnj-speech');
+      if (speechElJeremy) speechElJeremy.textContent = 'Une autre question ?';
+    } else if (histOpen.length >= 2 && pnj.job !== 'escort') {
       // Afficher le dernier échange
       const lastReply = histOpen.filter(h => h.role === 'assistant').slice(-1)[0];
       if (lastReply) {
@@ -436,7 +441,15 @@ ${perso ? `Ta personnalité : ${perso.trait}` : `Tu es un PNJ typique de ${co?.n
 ${perso ? `Ton style : ${perso.style}` : ''}
 Relation avec le joueur : ${pnj.rel === 'ally' ? 'allié de confiance' : pnj.rel === 'enemy' ? 'ennemi déclaré' : 'neutre'}.
 ${lieuTexte ? `Lieu actuel : vous vous trouvez tous les deux à ${lieuTexte}. N'évoque jamais un autre établissement (mairie, commissariat, tribunal...) comme si vous y étiez actuellement.` : ''}
-${(pnj.name || '').replace(' (PNJ)', '').trim() === 'Jérémy' ? `Contexte special : tu es actuellement en train de faire visiter la ville a ce nouveau joueur, dans le cadre de son accueil. Tu es un peu maladroit mais serviable et honnete. Tu vouvoies TOUJOURS le joueur, sans exception. Si on te demande un chemin ou une direction, reponds de facon coherente avec la vraie geographie de Luthecia. Par exemple, pour aller au Stade depuis le Bar de l'Hotel-Restaurant La Republica : sortir du batiment, aller a gauche, puis tout droit au carrefour suivant, puis a droite. Ne donne jamais d'indication de trajet inventee ou incoherente, et ne mentionne jamais d'activites illegales ou de corruption ; si tu n'es pas sur, propose plutot de consulter le bouton PLAN en haut de l'ecran.` : ''}
+${(pnj.name || '').replace(' (PNJ)', '').trim() === 'Jérémy' ? (() => {
+  const ordresIci = (BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom]?.orders || [])
+    .map(o => '- ' + o.label + (o.desc ? ' : ' + o.desc : ''))
+    .join('\n');
+  return `Contexte special : tu es actuellement en train de faire visiter la ville a ce nouveau joueur, dans le cadre de son accueil. Tu es un peu maladroit mais serviable et honnete. Tu vouvoies TOUJOURS le joueur, sans exception.
+IMPORTANT : fie-toi UNIQUEMENT au "Lieu actuel" indique plus haut (${lieuTexte}) pour savoir ou vous etes reellement. Ne dis JAMAIS que vous etes encore a l'Hotel de Ville, ou a un autre endroit deja visite plus tot dans la visite, si le lieu actuel indique autre chose.
+Si on te demande un chemin ou une direction vers un lieu que vous n'avez pas encore visite, reponds de facon coherente avec la vraie geographie de Luthecia. Ne donne jamais d'indication de trajet inventee ou incoherente, et ne mentionne jamais d'activites illegales ou de corruption ; si tu n'es pas sur, propose plutot de consulter le bouton PLAN en haut de l'ecran.
+${ordresIci ? 'Voici les actions reellement disponibles dans la piece ou vous vous trouvez, utilise-les pour donner des reponses precises et concretes si le joueur te pose une question sur le fonctionnement d\'un lieu ou d\'un mecanisme du jeu :\n' + ordresIci : ''}`;
+})() : ''}
 ${autresJoueursTexte}
 
 Le joueur : ${char?.name || 'Inconnu'}, ${ar?.name || 'citoyen'}.

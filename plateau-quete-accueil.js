@@ -575,6 +575,17 @@ function queteAccueilVerifierDepartJeremy() {
 function afficherPopupQueteAccueil(opts) {
   const modal = document.getElementById('modal-quete-accueil');
   if (!modal) return;
+
+  // Ne jamais ouvrir une pop-up de quete par-dessus une fenetre deja ouverte (ex: le minuteur
+  // de reprise de contact de Jeremy qui se declenche pendant que le joueur discute avec un PNJ).
+  // On reessaie regulierement jusqu'a ce que la voie soit libre.
+  const pnjModalOuverte = document.getElementById('modal-pnj')?.classList.contains('open');
+  const autreModaleOuverte = Array.from(document.querySelectorAll('.modal-overlay.open'))
+    .some(m => m.id !== 'modal-quete-accueil');
+  if (pnjModalOuverte || autreModaleOuverte) {
+    setTimeout(function() { afficherPopupQueteAccueil(opts); }, 2000);
+    return;
+  }
   const imgEl = document.getElementById('quete-accueil-image');
   const guidageEl = document.getElementById('quete-accueil-guidage');
   const titreEl = document.getElementById('quete-accueil-titre');
