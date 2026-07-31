@@ -273,21 +273,9 @@ window.addEventListener('DOMContentLoaded', () => {
   if (!state.currentCity) state.currentCity = 'capitale';
   if (!state.country) state.country = 'republic';
 
-  // Nouveau personnage jamais place nulle part : apparait dans le hall d'accueil
-  // de la mairie de sa ville de domiciliation (point de depart des quetes exploratoires).
-  // IMPORTANT : on verifie aussi l'absence de currentCity connue, sinon ce repli se
-  // declenche a tort pour un personnage existant simplement revenu dans la rue (currentBuilding
-  // null y est un etat normal et frequent depuis le fix du bug de batiment fantome).
-  if (!state.currentBuilding && !state.char?.currentBuilding && !state.char?.currentCity) {
-    const buildingMairie = state.currentCity === 'capitale' ? 'mairie-capitale' : 'mairie';
-    const roomMairie = state.currentCity === 'capitale' ? 'hall_mairie' : 'accueil_mairie';
-    state.currentBuilding = buildingMairie;
-    state.currentRoom = roomMairie;
-    if (state.char) {
-      state.char.currentBuilding = buildingMairie;
-      state.char.currentRoom = roomMairie;
-    }
-  }
+  // Ancien repli "nouveau personnage -> hall de la mairie" retire le 31 juillet 2026 :
+  // obsolete et en conflit avec la quete d'accueil, qui place desormais le nouveau
+  // personnage dans la rue devant le Palais Presidentiel (voir plateau-quete-accueil.js).
 
   applyEmpireTheme(state.country);
   // Sauvegarder la position courante

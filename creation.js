@@ -432,6 +432,7 @@ function validateChar(){
     name:G.name, bio:G.bio, motto:G.motto,
     arg:totalArg(), resources:resources(),
     createdAt:new Date().toISOString(),
+    currentCity:G.city || 'capitale',
     queteAccueil:{ etape:'non_commencee' }
   };
   STAT_DEFS.forEach(({k})=>{char.stats[k]=Math.min(20,getBase(k)+(G.freeStats[k]||0))});
