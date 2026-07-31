@@ -917,6 +917,7 @@ function doReserverChambreHotel() {
   updateUI();
   showToast('Chambre reservee', 'Vous obtiendrez un bonus de +' + bonus.paBonus + ' PA et +' + bonus.moral + ' Moral en passant l\'ordre Dormir <strong>dans cette chambre</strong>.', true, true);
   addJournalEntry('Vous avez reserve une chambre d\'hotel. Vous obtiendrez un bonus de ' + bonus.paBonus + ' PA + ' + bonus.moral + ' moral en passant l\'ordre dormir <strong>dans cette chambre</strong>.', 'event-good');
+  if (typeof queteAccueilApresReservationChambre === 'function') queteAccueilApresReservationChambre();
 }
 
 function doServiceEtage() {

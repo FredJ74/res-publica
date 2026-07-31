@@ -87,7 +87,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     return;
   }
 
-  if (etape === 'attente_bar' && buildingId === 'hotel-republica' && roomId === 'bar') {
+  if ((etape === 'attente_bar' || etape === 'attente_bar_apres_chambre') && buildingId === 'hotel-republica' && roomId === 'bar') {
     state.char.queteAccueil = { etape: 'guide_stade' };
     if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 
@@ -145,7 +145,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
       titre: 'Jérémy',
       texte: "Ici c'est le dispensaire. On peut se faire soigner gratuitement, ou à moindre frais. Bien sûr, si vous êtes riche, vous pouvez aller en hôpital privé. Chaque jour, on se fatigue au travail. Il est important de se reposer en dormant. Une fois par jour seulement. Idéalement, il vaut mieux dormir dans une chambre, on récupère mieux que si on dort n'importe où.",
       suivant: function() {
-        queteAccueilSurbrillance('.char-card', 15000);
+        queteAccueilSurbrillance('[onclick*="openSelfView"]', 15000);
       }
     });
     return;
@@ -390,6 +390,22 @@ function afficherConseilArchetypeJeremy() {
         suivant: null
       });
     }
+  });
+}
+
+// Declenchee depuis le hook ajoute dans doReserverChambreHotel() (plateau-personnage.js).
+function queteAccueilApresReservationChambre() {
+  if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
+  if (state.char.queteAccueil.etape !== 'attente_bar') return; // deja reagi, ou etape non concernee
+
+  state.char.queteAccueil = { etape: 'attente_bar_apres_chambre' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: "Parfait ! Maintenant, dès que vous passerez l'ordre Dormir dans cette chambre réservée, vous récupérerez plus de PA et de Moral que si vous dormiez n'importe où. Bon, en attendant, allons faire un tour au bar, juste à côté.",
+    suivant: null
   });
 }
 
