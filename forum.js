@@ -116,6 +116,10 @@ async function sendMail(to, subject, body) {
   saveMails(mails);
   addJournalEntry(`Mail envoyé à ${to} : "${subject}".`, 'event-info');
   showToast('Mail envoyé', `À ${to} — "${subject}"`, true);
+
+  if (to === 'Jérémy' && typeof queteAccueilGenererReponseMailJeremy === 'function') {
+    queteAccueilGenererReponseMailJeremy(subject, body);
+  }
 }
 function markMailRead(mailId) {
   const mails = getMails();
