@@ -1576,7 +1576,13 @@ function renderMailCompose(defaultTo = '', defaultSubject = '') {
   `;
 }
 
+let _mailEnvoiEnCours = false;
 function submitMail() {
+  // Verrou anti-double-envoi : quelle que soit la cause (double-clic, doublon DOM du
+  // formulaire), on ignore tout appel suivant tant que le premier n'est pas termine.
+  if (_mailEnvoiEnCours) return;
+  _mailEnvoiEnCours = true;
+
   // Prendre toujours le dernier élément en cas de doublons dans le DOM
   const toEls = document.querySelectorAll('#mail-to');
   const subjectEls = document.querySelectorAll('#mail-subject');
@@ -1586,10 +1592,15 @@ function submitMail() {
   const bodyEl = bodyEls[bodyEls.length - 1];
   const body = bodyEl?.innerHTML?.trim();
   const bodyText = bodyEl?.innerText?.trim();
-  if (!to || !subject || !bodyText) { showToast('Champs requis','Remplissez tous les champs.',false); return; }
+  if (!to || !subject || !bodyText) {
+    showToast('Champs requis','Remplissez tous les champs.',false);
+    _mailEnvoiEnCours = false;
+    return;
+  }
   sendMail(to, subject, body);
   mailFromOverride = null;
   mailDefaultTo = '';
   mailView = 'inbox';
   renderForumModal();
+  setTimeout(function() { _mailEnvoiEnCours = false; }, 1500);
 }
