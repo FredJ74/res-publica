@@ -454,7 +454,11 @@ async function queteAccueilEnvoyerReponseArchetype() {
     "Tu viens de demander au joueur ce qu'il aimerait devenir dans la ville. Il te repond : \"" + reponse.replace(/"/g, "'") + "\".\n" +
     "Reagis en 2 a 3 phrases maximum, dans ton personnage (gentil, un peu naif, honnete), en restant coherent avec sa reponse meme si elle est loufoque, vague ou indecise. Si sa reponse correspond a une orientation credible (politique, militaire, criminelle, religieuse, economique, syndicale, secrete...), oriente-le vers le type d'organisation correspondant en ville. Si sa reponse est trop vague ou farfelue, reste bienveillant et rassurant, sans te moquer de lui. Ne parle jamais d'un lieu ou tu ne te trouves pas actuellement. Reponds UNIQUEMENT avec ta replique, sans guillemets ni introduction.";
 
-  let reply = "Eh bien... intéressant ! Je suis sûr que vous trouverez votre voie en ville.";
+  // Reponse de secours si l'IA est indisponible : conseil concret par archetype, pas un
+  // texte generique creux. Base sur QUETE_ACCUEIL_CONSEILS_ARCHETYPE (voir plus haut).
+  const archetypeJoueur = state.char && state.char.archetype;
+  let reply = QUETE_ACCUEIL_CONSEILS_ARCHETYPE[archetypeJoueur] || QUETE_ACCUEIL_CONSEIL_DEFAUT;
+  let appelReussi = false;
   try {
     const resp = await fetch('/api/chat', {
       method: 'POST',
@@ -462,8 +466,14 @@ async function queteAccueilEnvoyerReponseArchetype() {
       body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await resp.json();
-    if (data.content && data.content[0] && data.content[0].text) reply = data.content[0].text;
-  } catch (e) { /* on garde la reponse de secours */ }
+    if (data.content && data.content[0] && data.content[0].text) {
+      reply = data.content[0].text;
+      appelReussi = true;
+    }
+  } catch (e) { /* on garde la reponse de secours par archetype */ }
+
+  // Dans tous les cas (IA ou secours), on oriente vers le Musee de la Ville pour approfondir.
+  reply += " Si vous voulez en savoir plus sur ce genre de carrière, faites donc un tour au Musée de la Ville — il y a plein d'informations utiles là-bas.";
 
   if (texteEl) texteEl.textContent = reply;
 
