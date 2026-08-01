@@ -1908,18 +1908,6 @@ const BUILDINGS = {
     bgColor: "#081008",
     desc: "Soins gratuits mais lents. Files d'attente, moyens limites, mais accessible a tous.",
     rooms: {
-      ehpad_tilleuls: {
-        name: "EHPAD — Résidence Les Tilleuls",
-        imageBg: "linear-gradient(135deg,#141008,#1c1810)",
-        desc: "Un salon commun paisible. Fauteuils usés, photos de famille, et des pensionnaires toujours prêts à raconter le passé de Luthécia — à condition qu'on prenne le temps de les écouter.",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ehpad-residence-tilleuls.png",
-        persons: [
-          {name:'Jeanine Dubois (PNJ)', role:'Ancienne institutrice', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jeanine-dubois-ehpad.png', photoPos:'50% 15%'},
-          {name:'Louis Chevillard (PNJ)', role:'Policier en retraite', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/louis-chevillard-ehpad.png', photoPos:'50% 15%'},
-          {name:'Noël Chauchay (PNJ)', role:'Agriculteur à la retraite', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/noel-chauchay-ehpad.png', photoPos:'50% 15%'}
-        ],
-        orders: []
-      },
       salle_attente: {
         name: "Salle d'attente",
         image: "⏳",
@@ -1936,6 +1924,18 @@ const BUILDINGS = {
           {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:60, type:'legal', icon:'ti-vaccine', successRate:65, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
           {fn:'transfert_clinique_privee', label:'Être transféré en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Meilleure prise en charge, convalescence plus rapide. 1000 FR.'}
         ]
+      },
+      ehpad_tilleuls: {
+        name: "EHPAD — Résidence Les Tilleuls",
+        imageBg: "linear-gradient(135deg,#141008,#1c1810)",
+        desc: "Un salon commun paisible. Fauteuils usés, photos de famille, et des pensionnaires toujours prêts à raconter le passé de Luthécia — à condition qu'on prenne le temps de les écouter.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ehpad-residence-tilleuls.png",
+        persons: [
+          {name:'Jeanine Dubois (PNJ)', role:'Ancienne institutrice', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jeanine-dubois-ehpad.png', photoPos:'50% 15%'},
+          {name:'Louis Chevillard (PNJ)', role:'Policier en retraite', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/louis-chevillard-ehpad.png', photoPos:'50% 15%'},
+          {name:'Noël Chauchay (PNJ)', role:'Agriculteur à la retraite', rel:'neutral', job:'pensionnaire_ehpad', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/noel-chauchay-ehpad.png', photoPos:'50% 15%'}
+        ],
+        orders: []
       }
     }
   },
