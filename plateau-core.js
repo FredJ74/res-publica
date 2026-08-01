@@ -439,6 +439,7 @@ function loadCharacter() {
             applyCharToState(state.char);
             updateUI();
             restaurerPositionApresChargement(state.char);
+            if (typeof enigme1VerifierDeclenchement === 'function') enigme1VerifierDeclenchement();
             console.log('Personnage synchronisé depuis Supabase:', char.name);
           }
         }).catch(() => {});
