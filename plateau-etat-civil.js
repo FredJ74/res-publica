@@ -161,7 +161,7 @@ function etatCivilImprimerFiche(nomPersonne) {
   if (!fiche) return;
   if (!state.inventory) state.inventory = [];
 
-  const dejaImprimee = state.inventory.some(function(item) { return item.nom === 'Fiche d\'état-civil — ' + fiche.nom; });
+  const dejaImprimee = state.inventory.some(function(item) { return item.name === 'Fiche d\'état-civil — ' + fiche.nom; });
   if (dejaImprimee) {
     if (typeof showToast === 'function') showToast('Déjà en poche', 'Vous avez déjà cette fiche dans votre inventaire.', false);
     return;
@@ -169,10 +169,12 @@ function etatCivilImprimerFiche(nomPersonne) {
 
   const texteComplet = fiche.evenements.map(function(e) { return e.texte; }).join('\\n');
   state.inventory.push({
-    nom: 'Fiche d\'état-civil — ' + fiche.nom,
+    name: 'Fiche d\'état-civil — ' + fiche.nom,
     icon: 'ti-file-text',
-    description: texteComplet
+    desc: texteComplet
   });
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(function() {});
+  if (typeof updateUI === 'function') updateUI();
+  if (typeof renderInvItemsPanel === 'function') renderInvItemsPanel();
   if (typeof showToast === 'function') showToast('Fiche imprimée', fiche.nom + ' ajouté(e) à votre inventaire.', true);
 }
