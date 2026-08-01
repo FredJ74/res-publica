@@ -2299,6 +2299,18 @@ const BUILDINGS = {
           {fn:'contester_resultats',  label:'Contester des resultats',    pa:3, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:40,  desc:'Contester le resultat d\'une election. Long processus.'},
           {fn:'falsifier_docs',       label:'Falsifier une liste',        pa:3, cost:500,  type:'illegal', icon:'ti-file-x',        successRate:35,  desc:'Manipuler les listes electorales. Tres risque.'}
         ]
+      },
+      salle_archives: {
+        name: "Salle des Archives",
+        imageBg: "linear-gradient(135deg,#100c08,#181410)",
+        desc: "L'état-civil, le cadastre et les résumés de mandats des maires successifs. Poussiéreux, mais tout y est.",
+        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+        persons: [
+          {name:'Archiviste Municipal (PNJ)', role:'PNJ - Gardien des archives', rel:'neutral', job:'archiviste'}
+        ],
+        orders: [
+          {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."}
+        ]
       }
     }
   },
