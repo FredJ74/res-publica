@@ -29,12 +29,38 @@ function etatCivilFormaterDate(jour, mois, annee) {
   return String(annee);
 }
 
+// Cache des vrais joueurs (naissance = date de creation du personnage), charge une seule
+// fois par session depuis Supabase. Permet au registre de recenser aussi les PJ, pas
+// seulement les personnages historiques de l'enigme.
+let ETAT_CIVIL_CACHE_JOUEURS = null;
+
+async function etatCivilChargerJoueurs() {
+  if (ETAT_CIVIL_CACHE_JOUEURS) return ETAT_CIVIL_CACHE_JOUEURS;
+  try {
+    const rows = (typeof sbGet === 'function') ? await sbGet('personnages', 'select=name,country,created_at') : [];
+    ETAT_CIVIL_CACHE_JOUEURS = rows || [];
+  } catch (e) {
+    ETAT_CIVIL_CACHE_JOUEURS = [];
+  }
+  return ETAT_CIVIL_CACHE_JOUEURS;
+}
+
 // Construit la liste des evenements datables d'une personne : sa naissance, son mariage,
 // la naissance de ses enfants (deduits du registre), et son deces. Tries par annee.
 function etatCivilConstruireFiche(nomPersonne) {
   const registre = ETAT_CIVIL_REGISTRE[state.country] || [];
   const p = registre.find(function(x) { return x.nom === nomPersonne; });
-  if (!p) return null;
+
+  if (!p) {
+    // Pas un personnage historique : peut-etre un vrai joueur (naissance = creation du perso).
+    const joueur = (ETAT_CIVIL_CACHE_JOUEURS || []).find(function(j) { return j.name === nomPersonne; });
+    if (joueur && joueur.created_at) {
+      const d = new Date(joueur.created_at);
+      const texte = d.getDate() + ' ' + ETAT_CIVIL_MOIS[d.getMonth()] + ' ' + d.getFullYear() + ' : naissance de ' + joueur.name + '.';
+      return { nom: joueur.name, evenements: [{ annee: d.getFullYear(), texte: texte }] };
+    }
+    return null;
+  }
 
   const evenements = [];
 
@@ -88,6 +114,19 @@ function etatCivilRechercher(nomQuery, decennieDebut) {
 
     if (resultats.indexOf(p.nom) === -1) resultats.push(p.nom);
   });
+
+  // Vrais joueurs (meme empire uniquement)
+  (ETAT_CIVIL_CACHE_JOUEURS || []).forEach(function(j) {
+    if (j.country !== state.country) return;
+    if (nomLower && j.name.toLowerCase().indexOf(nomLower) === -1) return;
+    if (decDebut !== null) {
+      if (!j.created_at) return;
+      const annee = new Date(j.created_at).getFullYear();
+      if (annee < decDebut || annee > decFin) return;
+    }
+    if (resultats.indexOf(j.name) === -1) resultats.push(j.name);
+  });
+
   return resultats;
 }
 
@@ -117,7 +156,8 @@ function etatCivilHtmlRecherche(messageErreur) {
   return html;
 }
 
-function etatCivilLancerRecherche() {
+async function etatCivilLancerRecherche() {
+  await etatCivilChargerJoueurs();
   const nomInput = document.getElementById('etat-civil-nom');
   const decennieInput = document.getElementById('etat-civil-decennie');
   const nom = nomInput ? nomInput.value : '';
