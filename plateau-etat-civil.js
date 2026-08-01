@@ -128,7 +128,7 @@ function etatCivilLancerRecherche() {
   html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
   resultats.forEach(function(nomPersonne) {
     const nomEchap = nomPersonne.replace(/'/g, "\\'");
-    html += '<div onclick="etatCivilAfficherFiche(\\'' + nomEchap + '\\')" style="cursor:pointer;padding:.4rem .6rem;border:1px solid #2a2010;font-size:.85rem;color:#c0b090">' + nomPersonne + '</div>';
+    html += '<div onclick="etatCivilAfficherFiche(\'' + nomEchap + '\')" style="cursor:pointer;padding:.4rem .6rem;border:1px solid #2a2010;font-size:.85rem;color:#c0b090">' + nomPersonne + '</div>';
   });
   html += '</div>';
   resultatsEl.innerHTML = html;
@@ -149,7 +149,7 @@ function etatCivilAfficherFiche(nomPersonne) {
   });
   html += '</div>';
   const nomEchap = fiche.nom.replace(/'/g, "\\'");
-  html += '<button class="pnj-action-btn" onclick="etatCivilImprimerFiche(\\'' + nomEchap + '\\')"><i class="ti ti-printer" style="font-size:.85rem"></i> Imprimer cette fiche</button> ';
+  html += '<button class="pnj-action-btn" onclick="etatCivilImprimerFiche(\'' + nomEchap + '\')"><i class="ti ti-printer" style="font-size:.85rem"></i> Imprimer cette fiche</button> ';
   html += '<button class="pnj-action-btn" onclick="doConsulterEtatCivil()" style="opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Nouvelle recherche</button>';
   html += '</div>';
 

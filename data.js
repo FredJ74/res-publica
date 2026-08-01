@@ -2304,7 +2304,7 @@ const BUILDINGS = {
         name: "Salle des Archives",
         imageBg: "linear-gradient(135deg,#100c08,#181410)",
         desc: "L'état-civil, le cadastre et les résumés de mandats des maires successifs. Poussiéreux, mais tout y est.",
-        imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-archives-mairie-luthecia.png",
         persons: [
           {name:'Archiviste Municipal (PNJ)', role:'PNJ - Gardien des archives', rel:'neutral', job:'archiviste'}
         ],
@@ -3578,7 +3578,7 @@ const BUILDINGS = {
         name: "Débarras",
         imageBg: "linear-gradient(135deg,#0a0806,#100c08)",
         desc: "Une porte fermée à clé, discrète, au fond du musée. Personne ne semble jamais y entrer.",
-        imageUrl: "https://images.unsplash.com/photo-1558959357-d7a08d1f7e13?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/porte-debarras-musee-luthecia.png",
         locked: true,
         persons: [],
         orders: []
