@@ -117,7 +117,7 @@ async function sendMail(to, subject, body) {
   addJournalEntry(`Mail envoyé à ${to} : "${subject}".`, 'event-info');
   showToast('Mail envoyé', `À ${to} — "${subject}"`, true);
 
-  if (to === 'Jérémy' && typeof queteAccueilGenererReponseMailJeremy === 'function') {
+  if ((to || '').replace(' (PNJ)', '').trim() === 'Jérémy' && typeof queteAccueilGenererReponseMailJeremy === 'function') {
     queteAccueilGenererReponseMailJeremy(subject, body);
   }
 }
