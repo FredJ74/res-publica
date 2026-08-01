@@ -45,7 +45,17 @@ function queteAccueilAccepterJeremy() {
 function queteAccueilSurbrillance(selector, dureeMs) {
   const els = document.querySelectorAll(selector);
   if (!els.length) return;
-  els.forEach(function(el) { el.classList.add('quete-accueil-surbrillance'); });
+  els.forEach(function(el) {
+    el.classList.add('quete-accueil-surbrillance');
+    // Retire la surbrillance des qu'on clique reellement dessus, plutot que d'attendre
+    // un delai fixe qui pouvait disparaitre avant meme que le joueur ait eu le temps de cliquer.
+    const retirerAuClic = function() {
+      el.classList.remove('quete-accueil-surbrillance');
+      el.removeEventListener('click', retirerAuClic);
+    };
+    el.addEventListener('click', retirerAuClic, { once: true });
+  });
+  // Filet de securite si le joueur ne clique jamais : on retire quand meme apres un delai.
   setTimeout(function() {
     els.forEach(function(el) { el.classList.remove('quete-accueil-surbrillance'); });
   }, dureeMs || 10000);
