@@ -116,7 +116,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
       if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
       if (state.char.queteAccueil.etape !== 'stade_libre_minuteur') return; // le joueur a deja avance autrement
       afficherRepriseContactJeremy();
-    }, 90000);
+    }, 60000);
     return;
   }
 
@@ -410,7 +410,7 @@ function queteAccueilArmerMinuteurStade() {
     if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
     if (state.char.queteAccueil.etape !== 'stade_libre_minuteur') return;
     afficherRepriseContactJeremy();
-  }, 90000);
+  }, 60000);
 }
 
 // Remplace l'ancien systeme de conseil fixe par archetype : Jeremy pose desormais une

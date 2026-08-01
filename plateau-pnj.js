@@ -524,6 +524,11 @@ function addContactByName(name, role, rel, isPJ) {
 }
 
 function addContact(pnj) {
+  if ((pnj.name || '').replace(' (PNJ)', '').trim() === 'Jérémy' && typeof queteAccueilVerifierDepartJeremy === 'function') {
+    // Depart immediat de Jeremy des qu'il est ajoute au repertoire, plutot que d'attendre
+    // le prochain deplacement du joueur.
+    queteAccueilVerifierDepartJeremy();
+  }
   if (!state.contacts) state.contacts = [];
   const exists = state.contacts.find(c => c.name === pnj.name);
   if (exists) {
