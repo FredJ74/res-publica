@@ -834,6 +834,12 @@ function recupererPnjDansGroupe(nomPnj) {
   updateUI();
   renderEmployesPanel();
   showToast(nomPnj + ' rejoint le groupe !', '', true);
+
+  // Quete d'accueil : la premiere fois qu'un joueur recupere un employe via ce systeme,
+  // on explique comment s'en separer plus tard (icone X dans Mes Employes).
+  if (nomPnj === 'Jérémy' && typeof queteAccueilExpliquerLicenciement === 'function') {
+    queteAccueilExpliquerLicenciement();
+  }
 }
 
 function licencierPnj(nomPnj) {

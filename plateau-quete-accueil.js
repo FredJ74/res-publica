@@ -638,6 +638,19 @@ async function queteAccueilGenererReponseMailJeremy(subjectRecu, bodyRecu) {
   if (typeof showToast === 'function') showToast('Nouveau mail', 'Jérémy vous a répondu !', true);
 }
 
+// Explique au joueur comment se separer d'un employe recupere (Jeremy ou n'importe quel
+// autre plus tard), la premiere fois que ce cas se presente dans le cadre de la quete.
+function queteAccueilExpliquerLicenciement() {
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: "Me revoilà ! Au fait, si un jour vous voulez vous séparer de moi (ou de n'importe quel autre employé), il suffit de cliquer sur la petite croix à côté de sa carte, dans le panneau \"Mes Employés\", à gauche.",
+    suivant: function() {
+      queteAccueilSurbrillance('#panel-employes, .panel-employes', 15000);
+    }
+  });
+}
+
 function afficherPopupQueteAccueil(opts) {
   const modal = document.getElementById('modal-quete-accueil');
   if (!modal) return;
