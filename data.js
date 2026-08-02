@@ -3722,6 +3722,7 @@ const BUILDINGS = {
         name: "Parc Botanique",
         imageBg: "linear-gradient(135deg,#0c140c,#141c14)",
         desc: "Étangs, cygnes, allées gravillonnées et pelouses (interdites). Un lieu paisible au cœur de la ville.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/parc-botanique-national.png",
         persons: [
           {name:'Florian Grès (PNJ)', role:'Jardinier', rel:'neutral', job:'jardinier', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/florian-gres-jardinier.png', photoPos:'50% 20%'}
         ],
@@ -3731,6 +3732,7 @@ const BUILDINGS = {
         name: "Serre Tropicale",
         imageBg: "linear-gradient(135deg,#0a1410,#101c18)",
         desc: "Plantes exotiques fragiles, orchidées et bassin d'ornement sous verrière. Merci de ne pas toucher les végétaux.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/serre-botanique-luthecia.png",
         persons: [
           {name:'Jean-Pierre Ciseaux (PNJ)', role:'Conservateur', rel:'neutral', job:'conservateur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-pierre-ciseaux-conservateur.png', photoPos:'50% 15%'}
         ],
