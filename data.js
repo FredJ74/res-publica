@@ -2309,7 +2309,8 @@ const BUILDINGS = {
           {name:'Archiviste Municipal (PNJ)', role:'PNJ - Gardien des archives', rel:'neutral', job:'archiviste'}
         ],
         orders: [
-          {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."}
+          {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."},
+          {fn:'consulter_mandats_maires', label:'Consulter les résumés de mandats', pa:0, cost:0, type:'legal', icon:'ti-book', successRate:100, desc:'Grands chantiers et actes majeurs des maires successifs de Luthécia.'}
         ]
       }
     }
