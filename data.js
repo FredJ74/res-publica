@@ -3614,18 +3614,10 @@ const BUILDINGS = {
         persons: [],
         orders: []
       },
-      salle_peres_fondateurs: {
-        name: "Salle des Pères Fondateurs",
-        imageBg: "linear-gradient(135deg,#14100a,#1c1610)",
-        desc: "Les figures historiques a l'origine de la nation. Contenu a venir.",
-        persons: [],
-        orders: []
-      },
-      pantheon_national: {
-        name: "Panthéon National",
+      expositions_temporaires: {
+        name: "Expositions Temporaires",
         imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
-        desc: "Les personnalites les plus veneres du pays, toutes categories confondues. Classement a venir.",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/pantheon-national-musee-national.png",
+        desc: "Une salle dediee aux expositions ponctuelles du musee. Contenu a venir.",
         persons: [],
         orders: []
       },
@@ -3679,13 +3671,6 @@ const BUILDINGS = {
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
       },
-      salle_relations_diplomatiques: {
-        name: "Salle des Relations Diplomatiques",
-        imageBg: "linear-gradient(135deg,#0e1418,#141c22)",
-        desc: "Traites, alliances et tensions entre empires. Contenu a venir.",
-        persons: [],
-        orders: []
-      },
       salle_tresor_national: {
         name: "Salle du Trésor National",
         imageBg: "linear-gradient(135deg,#181008,#221408)",
@@ -3702,13 +3687,6 @@ const BUILDINGS = {
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
         ]
-      },
-      salle_scandales_etat: {
-        name: "Salle des Scandales d'État",
-        imageBg: "linear-gradient(135deg,#100c10,#181018)",
-        desc: "Les plus grandes affaires politiques nationales. Classement a venir.",
-        persons: [],
-        orders: []
       },
       salle_grandes_villes: {
         name: "Salle des Grandes Villes de Republia",
