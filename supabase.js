@@ -103,6 +103,7 @@ async function sbSavePersonnage(charState) {
     signature_blocks: charState.char?.signatureBlocks || [],
     quete_accueil:    charState.char?.queteAccueil || null,
     enigme1:          charState.char?.enigme1 || null,
+    maxence:          charState.char?.maxence || null,
     updated_at:       new Date().toISOString()
   };
 
@@ -126,7 +127,7 @@ async function sbLoadPersonnage(name) {
              currentRoom: r.current_room || null, motto: r.motto || null,
              licenceSportive: r.licence_sportive || null, performance: r.performance_sportive || null, blessureSportive: r.blessure_sportive || null,
              signatureHtml: r.signature_html || null, signatureBlocks: r.signature_blocks || [],
-             queteAccueil: r.quete_accueil || null, enigme1: r.enigme1 || null },
+             queteAccueil: r.quete_accueil || null, enigme1: r.enigme1 || null, maxence: r.maxence || null },
     country:       r.country,
     inf:           r.resources?.inf || 0,
     pop:           r.resources?.pop || 0,

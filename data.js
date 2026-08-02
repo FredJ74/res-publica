@@ -3710,6 +3710,35 @@ const BUILDINGS = {
     }
   },
 
+  'parc-botanique-national': {
+    name: "Parc Botanique National de Républia",
+    shortName: "Parc Botanique",
+    cat: "Lieu public",
+    icon: "ti-leaf",
+    bgColor: "#0c140c",
+    desc: "Fondé en 1897, le parc botanique national accueille étangs, allées ombragées et une grande serre tropicale.",
+    rooms: {
+      parc: {
+        name: "Parc Botanique",
+        imageBg: "linear-gradient(135deg,#0c140c,#141c14)",
+        desc: "Étangs, cygnes, allées gravillonnées et pelouses (interdites). Un lieu paisible au cœur de la ville.",
+        persons: [
+          {name:'Florian Grès (PNJ)', role:'Jardinier', rel:'neutral', job:'jardinier', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/florian-gres-jardinier.png', photoPos:'50% 20%'}
+        ],
+        orders: []
+      },
+      serre: {
+        name: "Serre Tropicale",
+        imageBg: "linear-gradient(135deg,#0a1410,#101c18)",
+        desc: "Plantes exotiques fragiles, orchidées et bassin d'ornement sous verrière. Merci de ne pas toucher les végétaux.",
+        persons: [
+          {name:'Jean-Pierre Ciseaux (PNJ)', role:'Conservateur', rel:'neutral', job:'conservateur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-pierre-ciseaux-conservateur.png', photoPos:'50% 15%'}
+        ],
+        orders: []
+      }
+    }
+  },
+
   'place-formulaire-liberte': {
     name: "Place du Formulaire de la Liberté",
     shortName: "Place",

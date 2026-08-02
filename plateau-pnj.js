@@ -356,6 +356,34 @@ async function talkToPnj(encodedPnj, action) {
     return;
   }
 
+  // Maxence Monfils : limite de 2 questions avant qu'il ne detale vers l'autre lieu (parc/serre).
+  const nomCourtMaxence = (pnj.name || '').replace(' (PNJ)', '').trim();
+  if (nomCourtMaxence === 'Maxence Monfils' && action !== 'bonjour') {
+    if (!state.char.maxence) state.char.maxence = { lieu: 'parc', questions: 0 };
+    state.char.maxence.questions = (state.char.maxence.questions || 0) + 1;
+
+    if (state.char.maxence.questions > 2) {
+      speech.textContent = "Maxence n'est plus là... il a déjà détalé ailleurs.";
+      return;
+    }
+    if (state.char.maxence.questions === 2) {
+      const autreLieu = state.char.maxence.lieu === 'parc' ? 'serre' : 'parc';
+      setTimeout(function() {
+        if (!state.char.maxence) return;
+        state.char.maxence.lieu = autreLieu;
+        state.char.maxence.questions = 0;
+        if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+        if (typeof showToast === 'function') {
+          showToast('Maxence a détalé', 'Il est parti vers ' + (autreLieu === 'serre' ? 'la serre' : 'le parc') + '...', false);
+        }
+        if (typeof maxenceVerifierPresence === 'function') {
+          maxenceVerifierPresence(state.currentBuilding, state.currentRoom);
+        }
+      }, 4000);
+    }
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  }
+
   // Quete d'accueil : reponse d'accueil scriptee de Jeremy a la toute premiere ouverture de sa
   // fiche (action 'bonjour', envoyee automatiquement par openPnjModal). Pour toute question
   // reelle ensuite, on laisse l'IA repondre normalement (avec le contexte special ci-dessus).
@@ -441,6 +469,7 @@ ${perso ? `Ta personnalité : ${perso.trait}` : `Tu es un PNJ typique de ${co?.n
 ${perso ? `Ton style : ${perso.style}` : ''}
 Relation avec le joueur : ${pnj.rel === 'ally' ? 'allié de confiance' : pnj.rel === 'enemy' ? 'ennemi déclaré' : 'neutre'}.
 ${lieuTexte ? `Lieu actuel : vous vous trouvez tous les deux à ${lieuTexte}. N'évoque jamais un autre établissement (mairie, commissariat, tribunal...) comme si vous y étiez actuellement.` : ''}
+${(pnj.name || '').replace(' (PNJ)', '').trim() === 'Maxence Monfils' ? `Contexte special : tu es un enfant d'une dizaine d'annees, curieux, insaisissable et un peu mysterieux. Tu passes ton temps a observer des insectes et des plantes avec ta loupe. Tu vouvoies ou tutoies selon ton humeur (tu es un enfant, pas tenu a la politesse formelle). Tu ne reponds JAMAIS de facon claire ou directe aux questions ; reste evasif, enigmatique, parfois carrement hors sujet, sans jamais mentir grossierement ni etre desagreable. Tu ne dis jamais explicitement que tu es recherche par des organisations environnementales ni que tu arraches des ailes d'insectes, mais tu peux le suggerer de facon detournee et innocente si on te pose une question qui s'en approche. Reponds en 1 a 2 phrases maximum, jamais plus.` : ''}
 ${(pnj.name || '').replace(' (PNJ)', '').trim() === 'Jérémy' ? (() => {
   const ordresIci = (BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom]?.orders || [])
     .map(o => '- ' + o.label + (o.desc ? ' : ' + o.desc : ''))

@@ -518,6 +518,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (typeof queteAccueilVerifierEtapeBatiment === 'function') {
     queteAccueilVerifierEtapeBatiment(buildingId, roomId);
   }
+  if (typeof maxenceVerifierPresence === 'function') {
+    maxenceVerifierPresence(buildingId, roomId);
+  }
 
   // Loc
   const ctxName = ctx?.name || b.shortName || b.name;

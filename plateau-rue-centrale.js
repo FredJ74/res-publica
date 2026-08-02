@@ -84,6 +84,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-musees-luthecia.png',
       zones: [
         { xPct: [0, 45],   nom: 'Musée de la Ville de Luthécia', type: 'batiment', buildingId: 'musee-ville-luthecia' },
+        { xPct: [28, 52],  yPct: [20, 78], nom: 'Parc Botanique National', type: 'batiment', buildingId: 'parc-botanique-national' },
         { xPct: [55, 100], nom: 'Musée National de Republia',    type: 'batiment', buildingId: 'musee-national-republia' }
       ],
       liens: { toutDroit: 'luthecia-quartier-ambassades', arriere: 'luthecia-intersection-stade-commercial' },
