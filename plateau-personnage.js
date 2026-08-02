@@ -1190,22 +1190,6 @@ function supprimerSignature() {
   refreshApresSignature();
 }
 
-function renderInvItemsPanel() {
-  const el = document.getElementById('inv-items');
-  if (!el) return;
-  const items = state.inventory || [];
-  if (items.length === 0) {
-    el.innerHTML = '<div class="inv-item-empty">Aucun objet</div>';
-    return;
-  }
-  el.innerHTML = items.map(function(item, i) {
-    return '<div style="display:flex;align-items:center;gap:.4rem;padding:.3rem 0;cursor:pointer" onclick="ouvrirDetailObjet(' + i + ')">' +
-      '<i class="ti ' + (item.icon || 'ti-package') + '" style="font-size:.85rem;color:#8a6a20"></i>' +
-      '<span style="font-size:.78rem;color:#c0b090;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + '</span>' +
-      '</div>';
-  }).join('');
-}
-
 function toggleInventaire() {
   const panel = document.getElementById('inventaire-panel');
   const chevron = document.getElementById('inv-chevron');

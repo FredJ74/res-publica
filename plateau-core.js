@@ -711,7 +711,7 @@ function updateUI() {
   // Inventaire
   document.getElementById('inv-liquide').textContent = state.liquide.toLocaleString('fr-FR') + ' ' + cur;
   document.getElementById('inv-banque').textContent  = state.banque.toLocaleString('fr-FR') + ' ' + cur;
-  if (typeof renderInvItemsPanel === 'function') renderInvItemsPanel();
+  if (typeof renderInventory === 'function') renderInventory();
 }
 
 function updateLocationDisplay() {

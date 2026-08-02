@@ -227,6 +227,6 @@ function etatCivilImprimerFiche(nomPersonne) {
   });
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(function() {});
   if (typeof updateUI === 'function') updateUI();
-  if (typeof renderInvItemsPanel === 'function') renderInvItemsPanel();
+  if (typeof renderInventory === 'function') renderInventory();
   if (typeof showToast === 'function') showToast('Fiche imprimée', fiche.nom + ' ajouté(e) à votre inventaire.', true);
 }
