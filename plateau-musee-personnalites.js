@@ -56,7 +56,7 @@ function doConsulterPersonnalitesMusee() {
 
   let html = '<div style="padding:1rem">';
   if (liste.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Rien à consulter ici pour l\\'instant.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Rien à consulter ici pour l\'instant.</div>';
   } else {
     html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
     liste.forEach(function(p, i) {
