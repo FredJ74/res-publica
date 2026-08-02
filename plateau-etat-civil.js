@@ -221,6 +221,7 @@ function etatCivilImprimerFiche(nomPersonne) {
 
   const texteComplet = fiche.evenements.map(function(e) { return e.texte; }).join('<br><br>');
   state.inventory.push({
+    id: 'fiche-etat-civil-' + fiche.nom.replace(/\s+/g, '-').toLowerCase() + '-' + Date.now(),
     name: 'Fiche d\'état-civil — ' + fiche.nom,
     icon: 'ti-file-text',
     desc: texteComplet
