@@ -23,24 +23,28 @@ const ENIGME1_RUMEURS = {
 const ENIGME1_SALLES_CADRE_VIDE = {
   salle_maires: {
     imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-maires-cadre-vide-luthecia.png',
+    imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-torcieu-maire.png',
     personnage: 'Marcel Torcieu',
     dates: '1895–1958',
     texteAccroche: "Étrange qu'un portrait manque justement ici... Les archives de la Mairie permettraient sans doute d'en apprendre davantage sur cet homme."
   },
   salle_criminels: {
     imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-criminels-cadre-vide-luthecia.png',
+    imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-caillon-criminel.png',
     personnage: 'Maurice Caillon',
     dates: '1901–1954',
     texteAccroche: "Étrange qu'un portrait manque justement ici... Le Commissariat permettrait sans doute d'en apprendre davantage sur cet homme."
   },
   salle_entrepreneurs: {
     imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-entrepreneurs-cadre-vide-luthecia.png',
+    imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-moulin-entrepreneur.png',
     personnage: 'Jacques Moulin',
     dates: '1897–1965',
     texteAccroche: "Étrange qu'un portrait manque justement ici... L'Étude Notariale permettrait sans doute d'en apprendre davantage sur cet homme."
   },
   salle_plumes: {
     imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-plumes-cadre-vide-luthecia.png',
+    imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-tintabin-plume.png',
     personnage: 'Étienne Tintabin',
     dates: '1898–1969',
     texteAccroche: "Étrange qu'un portrait manque justement ici... L'Imprimerie L'Autruche Entravée permettrait sans doute d'en apprendre davantage sur cet homme."
@@ -90,6 +94,9 @@ function enigme1AfficherPopupCadreVide(roomId) {
   if (!info) return;
 
   let html = '<div style="padding:1.2rem">';
+  if (info.imageGrosPlan) {
+    html += '<img src="' + info.imageGrosPlan + '" style="width:100%;border-radius:4px;margin-bottom:.9rem;display:block" />';
+  }
   html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.05em;margin-bottom:.3rem">Un cadre vide</div>';
   html += '<div style="font-size:.9rem;color:#e0d8c0;margin-bottom:.5rem">Seule la plaque subsiste : <strong>' + info.personnage + '</strong> (' + info.dates + ').</div>';
   html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic;line-height:1.5">' + info.texteAccroche + '</div>';
