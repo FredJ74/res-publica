@@ -623,6 +623,7 @@ const PLAN_LAYOUTS = {
 
     'quartier-ambassades':         [270,  95, 140, 50],
     'musee-ville-luthecia':        [270, 175,  75,  40],
+    'parc-botanique-national':     [345, 175,  10,  40],
     'musee-national-republia':     [355, 175,  75,  40],
 
     'centre-affaires':             [150, 270,  90, 45],
@@ -743,7 +744,7 @@ const PLAN_ICONS = {
   'centre-multinodal-montrouge': '🚉',
   'musee-port-sainte-marie': '🖼',
   'centre-commercial': '🛍', 'centre-artisanal': '🔨', 'centre-affaires': '💼',
-  'office-notarial': '📜', 'stade': '⚽', 'quartier-ambassades': '🏳', 'place-formulaire-liberte': '📋', 'musee-ville-luthecia': '🖼', 'musee-national-republia': '🏛',
+  'office-notarial': '📜', 'stade': '⚽', 'quartier-ambassades': '🏳', 'place-formulaire-liberte': '📋', 'musee-ville-luthecia': '🖼', 'parc-botanique-national': '🌳', 'musee-national-republia': '🏛',
   'port-sainte-marie': '⚓', 'port-novomirsk': '⚓',
   'port-ciudad-roja': '⚓', 'port-al-madina': '⚓',
   'bar-des-pecheurs': '🐟', 'caserne-militaire': '🎖',
