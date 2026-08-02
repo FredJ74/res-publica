@@ -1,14 +1,41 @@
-// plateau-enigme-portrait.js
-// Enigme freemium n°1 de Luthecia — Le Portrait Disparu.
-// Etat sauvegarde sur le personnage : state.char.enigme1 = { etape, variante, dateDeclenchement }
-//
-// Etapes :
-//   (absent / non_commencee) -> pas encore declenchee (personnage cree il y a moins de 3 jours)
-//   declenchee               -> le mystere a ete annonce dans le journal, le joueur peut aller au musee
-//   relancee                 -> relance unique a J+6 si le joueur n'a toujours rien fait
-//   (suite a coder : resolution de l'enquete)
+#!/usr/bin/env python3
+PATH = "plateau-enigme-portrait.js"
+with open(PATH, "r", encoding="utf-8") as f:
+    content = f.read()
 
-const ENIGME1_VARIANTES = ['maire', 'criminel', 'entrepreneur', 'plume'];
+# --- 1. Rumeurs differenciees par variante (remplace le texte generique unique) ---
+old_1 = """  if (e.etape === 'non_commencee' && joursEcoules >= ENIGME1_DELAI_DECLENCHEMENT_JOURS) {
+    // Tirage aleatoire de la variante — fixe definitivement pour ce joueur. Determine
+    // uniquement le point d'entree (quel PNJ/lieu le met sur la voie en premier) : les 4
+    // salles du musee affichent de toute facon un cadre vide une fois l'enigme declenchee.
+    const variante = ENIGME1_VARIANTES[Math.floor(Math.random() * ENIGME1_VARIANTES.length)];
+    state.char.enigme1 = { etape: 'declenchee', variante: variante, dateDeclenchement: new Date().toISOString() };
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+    if (typeof addJournalEntry === 'function') {
+      addJournalEntry("Une rumeur circule en ville : il paraît qu'il y a quelque chose d'étrange au musée de la ville...", 'event-secret');
+    }
+    return;
+  }"""
+new_1 = """  if (e.etape === 'non_commencee' && joursEcoules >= ENIGME1_DELAI_DECLENCHEMENT_JOURS) {
+    // Tirage aleatoire de la variante — fixe definitivement pour ce joueur. Ne change RIEN
+    // aux salles affichees (les 4 sont toujours vides pour un joueur concerne) : sert
+    // uniquement a varier le texte de la rumeur/du journal, pour alimenter les echanges
+    // entre joueurs sans changer la mecanique de jeu.
+    const variante = ENIGME1_VARIANTES[Math.floor(Math.random() * ENIGME1_VARIANTES.length)];
+    state.char.enigme1 = { etape: 'declenchee', variante: variante, dateDeclenchement: new Date().toISOString() };
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+    if (typeof addJournalEntry === 'function') {
+      const rumeur = ENIGME1_RUMEURS[variante] || ENIGME1_RUMEURS.maire;
+      addJournalEntry(rumeur, 'event-secret');
+    }
+    return;
+  }"""
+assert content.count(old_1) == 1, f"bloc 1 : trouvé {content.count(old_1)} fois (attendu 1)"
+content = content.replace(old_1, new_1)
+
+# --- 2. Ajouter la donnee des rumeurs + tout le systeme d'affichage cadre vide ---
+old_2 = """const ENIGME1_VARIANTES = ['maire', 'criminel', 'entrepreneur', 'plume'];"""
+new_2 = """const ENIGME1_VARIANTES = ['maire', 'criminel', 'entrepreneur', 'plume'];
 
 const ENIGME1_RUMEURS = {
   maire:        "Une rumeur circule en ville : il paraît qu'on chuchote des choses étranges sur d'anciens édiles, à la mairie...",
@@ -98,46 +125,11 @@ function enigme1AfficherPopupCadreVide(roomId) {
   document.getElementById('postes-modal-title').textContent = 'Cadre vide';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
-}
-const ENIGME1_DELAI_DECLENCHEMENT_JOURS = 3;
-const ENIGME1_DELAI_RELANCE_JOURS = 6; // 3 jours apres le declenchement
+}"""
+assert content.count(old_2) == 1, f"bloc 2 : trouvé {content.count(old_2)} fois (attendu 1)"
+content = content.replace(old_2, new_2)
 
-// Appelee a chaque synchronisation du personnage (hook dans plateau-core.js). Verifie si le
-// delai est ecoule et declenche/relance le mystere du musee si besoin. Base sur la vraie date
-// de creation du personnage (createdAt), pas sur un minuteur JS ni sur state.day (qui pourrait
-// etre partage/different selon le contexte).
-function enigme1VerifierDeclenchement() {
-  if (typeof state === 'undefined' || !state.char || !state.char.createdAt) return;
+with open(PATH, "w", encoding="utf-8") as f:
+    f.write(content)
 
-  if (!state.char.enigme1) {
-    state.char.enigme1 = { etape: 'non_commencee', variante: null };
-  }
-  const e = state.char.enigme1;
-
-  const maintenant = Date.now();
-  const creation = new Date(state.char.createdAt).getTime();
-  const joursEcoules = (maintenant - creation) / (1000 * 60 * 60 * 24);
-
-  if (e.etape === 'non_commencee' && joursEcoules >= ENIGME1_DELAI_DECLENCHEMENT_JOURS) {
-    // Tirage aleatoire de la variante — fixe definitivement pour ce joueur. Ne change RIEN
-    // aux salles affichees (les 4 sont toujours vides pour un joueur concerne) : sert
-    // uniquement a varier le texte de la rumeur/du journal, pour alimenter les echanges
-    // entre joueurs sans changer la mecanique de jeu.
-    const variante = ENIGME1_VARIANTES[Math.floor(Math.random() * ENIGME1_VARIANTES.length)];
-    state.char.enigme1 = { etape: 'declenchee', variante: variante, dateDeclenchement: new Date().toISOString() };
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-    if (typeof addJournalEntry === 'function') {
-      const rumeur = ENIGME1_RUMEURS[variante] || ENIGME1_RUMEURS.maire;
-      addJournalEntry(rumeur, 'event-secret');
-    }
-    return;
-  }
-
-  if (e.etape === 'declenchee' && joursEcoules >= ENIGME1_DELAI_RELANCE_JOURS) {
-    state.char.enigme1.etape = 'relancee';
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-    if (typeof addJournalEntry === 'function') {
-      addJournalEntry("La rumeur persiste : le mystère du musée de la ville n'est toujours pas éclairci...", 'event-secret');
-    }
-  }
-}
+print("✅ Système complet d'affichage du cadre vide ajouté.")
