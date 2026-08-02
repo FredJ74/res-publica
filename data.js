@@ -3618,6 +3618,7 @@ const BUILDINGS = {
         name: "Expositions Temporaires",
         imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
         desc: "Une salle dediee aux expositions ponctuelles du musee. Contenu a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/expositions-temporaires-musee-national.png",
         persons: [],
         orders: []
       },
@@ -3674,7 +3675,8 @@ const BUILDINGS = {
       salle_tresor_national: {
         name: "Salle du Trésor National",
         imageBg: "linear-gradient(135deg,#181008,#221408)",
-        desc: "Regalia, objets d'Etat et symboles du pouvoir. Contenu a venir.",
+        desc: "Regalia, objets d'Etat et symboles du pouvoir. Acces strictement interdit — zone sous haute protection, surveillance 24h/24.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tresor-national-musee-national.png",
         persons: [],
         orders: []
       },
