@@ -3610,6 +3610,7 @@ const BUILDINGS = {
         name: "Salle des Présidents de Republia",
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "L'histoire presidentielle de la nation, ses meilleurs et ses pires chefs d'Etat. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-presidents-musee-national.png",
         persons: [],
         orders: []
       },
@@ -3624,6 +3625,7 @@ const BUILDINGS = {
         name: "Panthéon National",
         imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
         desc: "Les personnalites les plus veneres du pays, toutes categories confondues. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/pantheon-national-musee-national.png",
         persons: [],
         orders: []
       },
