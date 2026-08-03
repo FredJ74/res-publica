@@ -550,7 +550,7 @@ function enigme1AfficherRevelationGerard() {
 function enigme1RevelationEtape2() {
   let html = '<div style="padding:1.2rem;text-align:center">';
   html += '<div style="font-size:.9rem;color:#cc6644;line-height:1.6;font-style:italic;margin-bottom:1rem">La porte se referme derrière vous, dans un bruit sec.</div>';
-  html += '<img src="https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gerard-poincon-gardien-musee.png" style="width:100%;border-radius:4px;margin-bottom:.9rem;display:block;max-height:260px;object-fit:cover"/>';
+  html += '<img src="https://raw.githubusercontent.com/FredJ74/res-publica/main/images/gerard-poincon-debarras-tension.png" style="width:100%;border-radius:4px;margin-bottom:.9rem;display:block;max-height:280px;object-fit:cover"/>';
   html += '<div style="font-size:.88rem;color:#e0d8c0;line-height:1.6">Gérard Poinçon se tient là, immobile, vous observant.</div>';
   html += '<button class="pnj-action-btn" onclick="enigme1RevelationEtape3()" style="margin-top:1rem">Continuer</button>';
   html += '</div>';
