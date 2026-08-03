@@ -1618,7 +1618,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'acte_vente_terrain', label:'Officialiser une vente de terrain', pa:1, cost:300, type:'legal', icon:'ti-home-check', successRate:100, desc:'Le notaire authentifie la transaction. Acte de propriete delivre.'},
-          {fn:'contrat_mariage', label:'Negocier un contrat de mariage', pa:2, cost:400, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Choisir le regime matrimonial (communaute, separation de biens) plutot que la copropriete par defaut.'}
+          {fn:'contrat_mariage', label:'Negocier un contrat de mariage', pa:2, cost:400, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Choisir le regime matrimonial (communaute, separation de biens) plutot que la copropriete par defaut.'},
+          {fn:'demander_divorce', label:'Demander le divorce', pa:1, cost:200, type:'legal', icon:'ti-heart-broken', successRate:100, desc:'Dissout votre mariage actuel. Votre conjoint en sera informé par mail.'}
         ]
       },
       archives_notariales: {

@@ -654,6 +654,35 @@ async function traiterSuccession(defunt, conjointSurvivant) {
   addExternalEvent('⚱️ ' + defunt + ' a quitté ce monde. Succession réglée avec ' + conjointSurvivant + '.', 'local');
 }
 
+async function doDemanderDivorce() {
+  const nom = state.char?.name;
+  if (typeof sbGetMariageActif !== 'function') return;
+
+  const mariage = await sbGetMariageActif(nom);
+  if (!mariage) {
+    showToast('Non marié(e)', "Vous n'êtes pas marié(e) actuellement.", false);
+    return;
+  }
+  const conjoint = mariage.conjoint1 === nom ? mariage.conjoint2 : mariage.conjoint1;
+
+  if (typeof sbDissoudreMariage === 'function') {
+    await sbDissoudreMariage(mariage.id, 'divorce').catch(() => {});
+  }
+
+  updateUI();
+  showToast('Divorce prononcé', 'Vous êtes désormais divorcé(e) de ' + conjoint + '.', true, true);
+  addJournalEntry('💔 Divorce prononcé avec ' + conjoint + '.', 'event-info');
+  if (typeof addExternalEvent === 'function') {
+    addExternalEvent('💔 ' + nom + ' et ' + conjoint + ' ont divorcé.', 'local');
+  }
+
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2, '0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    sbSendMail(nom, conjoint, 'Divorce', nom + ' a demandé le divorce devant notaire. Votre mariage est désormais dissous.', time).catch(() => {});
+  }
+}
+
 async function confirmerDestructionPersonnage() {
   const saisie = document.getElementById('confirm-destroy-input')?.value?.trim();
   const nom = state.char?.name;
@@ -672,10 +701,16 @@ async function confirmerDestructionPersonnage() {
         const conjoint = mariage.conjoint1 === nom ? mariage.conjoint2 : mariage.conjoint1;
         await traiterSuccession(nom, conjoint);
         if (typeof sbDissoudreMariage === 'function') {
-          await sbDissoudreMariage(mariage.id).catch(() => {});
+          await sbDissoudreMariage(mariage.id, 'veuvage').catch(() => {});
         }
       }
     } catch(e) { console.warn('Erreur traitement succession', e); }
+  }
+
+  // Archive permanente du deces, pour l'etat-civil (le personnage lui-meme va etre supprime
+  // juste apres, cette trace est la seule qui subsistera).
+  if (typeof sbEnregistrerDeces === 'function') {
+    await sbEnregistrerDeces(nom, state.country).catch(() => {});
   }
 
   if (typeof sbDeletePersonnage === 'function') {
