@@ -237,7 +237,7 @@ function enigme1AfficherMandat(nomMaire) {
   html += '</div>';
 
   if (m.nom === 'Marcel Torcieu' && !dejaConsulte) {
-    html += '<div style="margin-top:1rem;padding:.6rem;border-left:2px solid #C9A84C;background:#0f0d05;font-size:.85rem;color:#c0b090;font-style:italic">"Ah, vous vous intéressez à l\'affaire Thibault. Je pense que vous devriez en parler avec les anciens qui l\'ont connu. Il doit en rester à l\'EHPAD." — l\'Archiviste Municipal</div>';
+    html += '<div style="margin-top:1rem;padding:.6rem;border-left:2px solid #C9A84C;background:#0f0d05;font-size:.85rem;color:#c0b090;font-style:italic">"Ah, vous vous intéressez à l\'affaire Thibault. Je pense que vous devriez en parler avec les anciens qui l\'ont connu. Il doit en rester à l\'EHPAD." — Christophe Bouquin, Archiviste Municipal</div>';
   }
 
   html += '<button class="pnj-action-btn" onclick="doConsulterResumesMandats()" style="margin-top:1rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Nouvelle recherche</button>';
