@@ -1901,6 +1901,18 @@ function doSignerCompromis() {
   showToast('Compromis signé !', 'Terrain réservé 7 jours. -500 ' + cur, true);
 }
 
+// Surface reelle de chaque lot (m2), source de verite unique pour le prix au m2 et pour la
+// future taxe fonciere (le cron cote serveur lira aussi cette valeur une fois stockee dans
+// l'etat du terrain — voir doAcheterTerrain ci-dessous).
+const SURFACE_TERRAINS = {
+  'terrain-a-batir-1': 2150,
+  'terrain-a-batir-2': 2300,
+  'terrain-a-batir-3': 2300,
+  'terrain-a-batir-4': 1850,
+  'terrain-a-batir-5': 2750
+};
+const PRIX_AU_M2_TERRAIN = 12;
+
 function doAcheterTerrain() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
@@ -1911,7 +1923,8 @@ function doAcheterTerrain() {
   const dispo = terrainOrdreDisponible('acheter_terrain', id);
   if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
 
-  const prix = 25000;
+  const surface = SURFACE_TERRAINS[id] || 2000;
+  const prix = surface * PRIX_AU_M2_TERRAIN;
   if (state.arg < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis. Pensez au prêt bancaire.', false); return; }
 
   state.arg -= prix;
@@ -1929,7 +1942,7 @@ function doAcheterTerrain() {
       } catch(e) {}
     }
     if (typeof sbSetTerrainState === 'function') {
-      await sbSetTerrainState(state.country, id, { proprietaire: state.char?.name, coproprietaire }).catch(() => {});
+      await sbSetTerrainState(state.country, id, { proprietaire: state.char?.name, coproprietaire, surface }).catch(() => {});
     }
     if (typeof sbEnregistrerVenteTerrain === 'function') {
       await sbEnregistrerVenteTerrain(state.country, id, state.char?.name, prix).catch(() => {});
@@ -1944,7 +1957,8 @@ function doAcheterTerrain() {
   setTerrainState(id, {
     proprietaire: state.char?.name,
     acheteAt: Date.now(),
-    constructionAutorisee: !!aPermis
+    constructionAutorisee: !!aPermis,
+    surface: surface
   });
 
   updateUI();

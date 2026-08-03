@@ -651,10 +651,10 @@ const PLAN_LAYOUTS = {
     'armurerie':                   [140, 345,  70, 100],
 
     'terrain-a-batir-1':           [ 10, 345, 110, 26],
-    'terrain-a-batir-4':           [ 10, 375, 110, 26],
-    'terrain-a-batir-5':           [ 10, 405, 110, 26],
-    'terrain-a-batir-6':           [ 10, 435, 110, 26],
-    'terrain-a-batir-7':           [ 10, 465, 110, 26],
+    'terrain-a-batir-2':           [ 10, 375, 110, 26],
+    'terrain-a-batir-3':           [ 10, 405, 110, 26],
+    'terrain-a-batir-4':           [ 10, 435, 110, 26],
+    'terrain-a-batir-5':           [ 10, 465, 110, 26],
 
     'marche':                      [ 10, 495, 110, 30],
     'tabernacle-impots':           [ 10, 530, 110, 40],
