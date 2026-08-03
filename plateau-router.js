@@ -94,6 +94,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_personnalites_musee') { doConsulterPersonnalitesMusee(); return; }
   if (fn === 'consulter_mandats_maires') { doConsulterResumesMandats(); return; }
   if (fn === 'consulter_archives_notariales') { doConsulterArchivesNotariales(); return; }
+  if (fn === 'consulter_archives_presse') { doConsulterArchivesPresse(); return; }
   if (fn === 'declencher_election_club') { doDeclencherElectionClub(); return; }
   if (fn === 'incendier') { doIncendier(); return; }
   if (fn === 'utiliser_explosifs') { doUtiliserExplosifs(); return; }

@@ -2018,7 +2018,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'parler_pnj',    label:'Parler à la standardiste', pa:0, cost:0, type:'legal', icon:'ti-message', successRate:100},
-          {fn:'se_renseigner', label:'Se renseigner',            pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}
+          {fn:'se_renseigner', label:'Se renseigner',            pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100},
+          {fn:'consulter_archives_presse', label:'Consulter les archives de presse', pa:0, cost:0, type:'legal', icon:'ti-news', successRate:100, desc:'Articles archivés publiés par le journal au fil des décennies.'}
         ]
       },
       redaction: {

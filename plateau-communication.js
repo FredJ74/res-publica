@@ -801,7 +801,7 @@ const ENIGME1_ARCHIVES_HISTORIQUES = [
     nom: 'Maurice Caillon',
     anneeDebut: 1948,
     anneeFin: 1949,
-    motif: "Assassinat d'un conseiller municipal, opposant déclaré au projet industriel sur la parcelle B-127. Le corps de la victime a été découvert enterré sur le site, alors en construction pour le compte de l'entrepreneur Jacques Moulin. Caillon résidait sur place, dans la maison de gardien du site industriel.",
+    motif: "Assassinat de Gaston Blanaz, conseiller municipal et opposant déclaré au projet industriel sur la parcelle B-127. Le corps de la victime a été découvert enterré sur le site, alors en construction pour le compte de l'entrepreneur Jacques Moulin. Caillon résidait sur place, dans la maison de gardien du site industriel.",
     issue: 'Acquitté en appel en 1949.'
   }
 ];
