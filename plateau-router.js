@@ -96,6 +96,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_archives_notariales') { doConsulterArchivesNotariales(); return; }
   if (fn === 'consulter_archives_presse') { doConsulterArchivesPresse(); return; }
   if (fn === 'demander_juge_instruction') { doDemanderJugeInstruction(); return; }
+  if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(); return; }
   if (fn === 'declencher_election_club') { doDeclencherElectionClub(); return; }
   if (fn === 'incendier') { doIncendier(); return; }
   if (fn === 'utiliser_explosifs') { doUtiliserExplosifs(); return; }
