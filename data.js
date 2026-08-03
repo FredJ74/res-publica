@@ -2665,6 +2665,19 @@ const BUILDINGS = {
           {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
+      },
+      tribune_republia: {
+        name: "La Tribune de Republia — Antenne Locale",
+        imageBg: "linear-gradient(135deg,#100808,#1c0c0c)",
+        desc: "L'antenne locale du grand journal national d'opposition. Petite rédaction, mais grande influence.",
+        persons: [
+          {name:'Correspondant Local (PNJ)', role:'PNJ - Journaliste', rel:'neutral', job:'journaliste'}
+        ],
+        orders: [
+          {fn:'produire_fuite', label:'Produire une fuite', pa:3, cost:0, type:'illegal', icon:'ti-leak', successRate:55, desc:"Choisir une cible dans le répertoire. Rumeur IA dans le journal. Mail à la cible. -10 INF -10 POP."},
+          {fn:'interview', label:'Donner une interview', pa:1, cost:0, type:'legal', icon:'ti-microphone', successRate:100, desc:'Impact sur la popularité.'},
+          {fn:'article', label:'Placer un article favorable', pa:2, cost:300, type:'grey', icon:'ti-pencil', successRate:70}
+        ]
       }
     }
   },
