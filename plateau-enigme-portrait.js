@@ -288,9 +288,21 @@ const ENIGME1_REGISTRE_SUCCESSIONS = [
   }
 ];
 
+let ETAT_CIVIL_CACHE_TERRAINS = null;
+
+async function enigme1ChargerHistoriqueTerrains() {
+  if (ETAT_CIVIL_CACHE_TERRAINS) return ETAT_CIVIL_CACHE_TERRAINS;
+  try {
+    ETAT_CIVIL_CACHE_TERRAINS = (typeof sbGetToutHistoriqueTerrains === 'function') ? await sbGetToutHistoriqueTerrains(state.country) : [];
+  } catch (e) {
+    ETAT_CIVIL_CACHE_TERRAINS = [];
+  }
+  return ETAT_CIVIL_CACHE_TERRAINS;
+}
+
 function enigme1RechercherArchivesNotariales(nomQuery) {
   const nomLower = (nomQuery || '').trim().toLowerCase();
-  if (!nomLower) return { parcelles: [], successions: [] };
+  if (!nomLower) return { parcelles: [], successions: [], terrainsReels: [] };
 
   const parcelles = ENIGME1_REGISTRE_PARCELLES.filter(function(p) {
     return p.parcelle.toLowerCase().indexOf(nomLower) !== -1 ||
@@ -299,14 +311,31 @@ function enigme1RechercherArchivesNotariales(nomQuery) {
   const successions = ENIGME1_REGISTRE_SUCCESSIONS.filter(function(s) {
     return s.defunt.toLowerCase().indexOf(nomLower) !== -1;
   });
-  return { parcelles: parcelles, successions: successions };
+
+  // Terrains reels achetes par de vrais joueurs (historique permanent, distinct des
+  // parcelles fictives de l'enigme).
+  const idsVus = [];
+  const terrainsReels = [];
+  (ETAT_CIVIL_CACHE_TERRAINS || []).forEach(function(t) {
+    if (idsVus.indexOf(t.building_id) !== -1) return;
+    const nomBatiment = (typeof BUILDINGS !== 'undefined' && BUILDINGS[t.building_id]) ? (BUILDINGS[t.building_id].name || BUILDINGS[t.building_id].shortName || t.building_id) : t.building_id;
+    const correspond = nomBatiment.toLowerCase().indexOf(nomLower) !== -1 ||
+      t.building_id.toLowerCase().indexOf(nomLower) !== -1 ||
+      t.proprietaire.toLowerCase().indexOf(nomLower) !== -1;
+    if (correspond) {
+      idsVus.push(t.building_id);
+      terrainsReels.push({ buildingId: t.building_id, nom: nomBatiment });
+    }
+  });
+
+  return { parcelles: parcelles, successions: successions, terrainsReels: terrainsReels };
 }
 
 function doConsulterArchivesNotariales() {
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.8rem">Recherchez par nom de personne, ou par numéro de parcelle (ex : B-127).</div>';
+  html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.8rem">Recherchez par nom de personne, par numéro de parcelle (ex : B-127), ou par nom de terrain.</div>';
   html += '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">';
-  html += '<input id="notariales-recherche" type="text" placeholder="Nom ou parcelle..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '<input id="notariales-recherche" type="text" placeholder="Nom, parcelle ou terrain..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
   html += '</div>';
   html += '<button class="pnj-action-btn" onclick="enigme1LancerRechercheNotariale()"><i class="ti ti-search" style="font-size:.85rem"></i> Rechercher</button>';
   html += '<div id="notariales-resultats" style="margin-top:.9rem"></div>';
@@ -315,6 +344,8 @@ function doConsulterArchivesNotariales() {
   document.getElementById('postes-modal-title').textContent = 'Archives Notariales';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+
+  if (typeof enigme1ChargerHistoriqueTerrains === 'function') enigme1ChargerHistoriqueTerrains();
 }
 
 function enigme1LancerRechercheNotariale() {
@@ -329,7 +360,7 @@ function enigme1LancerRechercheNotariale() {
   }
 
   const res = enigme1RechercherArchivesNotariales(query);
-  if (res.parcelles.length === 0 && res.successions.length === 0) {
+  if (res.parcelles.length === 0 && res.successions.length === 0 && res.terrainsReels.length === 0) {
     resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">Aucun résultat.</div>';
     return;
   }
@@ -346,8 +377,36 @@ function enigme1LancerRechercheNotariale() {
     html += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">Succession — ' + s.defunt + '</span>';
     html += '</div>';
   });
+  res.terrainsReels.forEach(function(t) {
+    html += '<div onclick="enigme1AfficherTerrainReel(\'' + t.buildingId + '\')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
+    html += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + t.nom + '</span>';
+    html += '</div>';
+  });
   html += '</div>';
   resultatsEl.innerHTML = html;
+}
+
+function enigme1AfficherTerrainReel(buildingId) {
+  const historique = (ETAT_CIVIL_CACHE_TERRAINS || []).filter(function(t) { return t.building_id === buildingId; });
+  const nomBatiment = (typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingId]) ? (BUILDINGS[buildingId].name || BUILDINGS[buildingId].shortName || buildingId) : buildingId;
+
+  let html = '<div style="padding:1.2rem">';
+  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.05em;margin-bottom:.6rem">Historique — ' + nomBatiment + '</div>';
+  if (historique.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040;font-style:italic">Aucune vente enregistrée.</div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
+    historique.forEach(function(t) {
+      const d = t.created_at ? new Date(t.created_at) : null;
+      const dateTxt = d ? (d.getDate() + ' ' + ETAT_CIVIL_MOIS[d.getMonth()] + ' ' + d.getFullYear()) : '?';
+      const prixTxt = t.prix ? (' pour ' + t.prix.toLocaleString('fr-FR') + ' FR') : '';
+      html += '<div style="font-size:.85rem;color:#e0d8c0;line-height:1.4">• ' + dateTxt + ' : acquis par ' + t.proprietaire + prixTxt + '.</div>';
+    });
+    html += '</div>';
+  }
+  html += '<button class="pnj-action-btn" onclick="doConsulterArchivesNotariales()" style="margin-top:1rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Nouvelle recherche</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
 }
 
 function enigme1AfficherParcelle(parcelle) {

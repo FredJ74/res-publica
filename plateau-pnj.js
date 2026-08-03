@@ -1949,6 +1949,9 @@ function doAcheterTerrain() {
     if (typeof sbSetTerrainState === 'function') {
       await sbSetTerrainState(state.country, id, { proprietaire: state.char?.name, coproprietaire }).catch(() => {});
     }
+    if (typeof sbEnregistrerVenteTerrain === 'function') {
+      await sbEnregistrerVenteTerrain(state.country, id, state.char?.name, prix).catch(() => {});
+    }
     if (coproprietaire) {
       showToast('Bien partagé', coproprietaire + ' devient copropriétaire à 50% de ce terrain.', true);
       addJournalEntry('Terrain acheté en copropriété avec ' + coproprietaire + ' (50/50).', 'event-good');
