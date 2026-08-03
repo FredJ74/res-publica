@@ -168,6 +168,70 @@ async function preleverTaxeFonciere() {
   return resultats;
 }
 
+// Prelevement quotidien des loyers de lots subdivises — le locataire paie, le proprietaire
+// est credite directement, meme si aucun des deux ne s'est connecte. Avertissement puis
+// expulsion en cas d'impaye (meme principe que payerLocations cote client, transpose au cron).
+async function preleverLoyersLots() {
+  const resultats = { collecte: 0, expulsions: 0 };
+  try {
+    const terrains = await sbGet('terrains_etat', '');
+    if (!terrains) return resultats;
+
+    for (const row of terrains) {
+      let etat;
+      try { etat = JSON.parse(row.data); } catch(e) { continue; }
+      const subdivisions = etat.subdivisions || [];
+      if (subdivisions.length === 0) continue;
+
+      let modifie = false;
+
+      for (const lot of subdivisions) {
+        if (!lot.locataire || !lot.loyer) continue;
+
+        const locRows = await sbGet('personnages', `name=eq.${encodeURIComponent(lot.locataire)}`);
+        const locataire = locRows && locRows[0];
+        if (!locataire) continue;
+
+        const argLocataire = locataire.arg || 0;
+
+        if (argLocataire >= lot.loyer) {
+          await sbUpdate('personnages', `name=eq.${encodeURIComponent(lot.locataire)}`, { arg: argLocataire - lot.loyer });
+          if (etat.proprietaire) {
+            const propRows = await sbGet('personnages', `name=eq.${encodeURIComponent(etat.proprietaire)}`);
+            const proprio = propRows && propRows[0];
+            if (proprio) {
+              await sbUpdate('personnages', `name=eq.${encodeURIComponent(etat.proprietaire)}`, { arg: (proprio.arg || 0) + lot.loyer });
+              resultats.collecte += lot.loyer;
+            }
+          }
+          if (lot.avertissement) { delete lot.avertissement; modifie = true; }
+        } else {
+          modifie = true;
+          if (!lot.avertissement) {
+            lot.avertissement = true;
+            await sbInsert('mails', {
+              destinataire: lot.locataire, expediteur: 'Gestionnaire immobilier',
+              sujet: 'Loyer impayé — ' + lot.label,
+              corps: 'Votre loyer de ' + lot.loyer + ' FR pour ' + lot.label + " n'a pas pu être prélevé. Régularisez sous 24h ou vous serez expulsé(e).",
+              archived: false
+            }).catch(() => {});
+          } else {
+            lot.locataire = null;
+            delete lot.avertissement;
+            resultats.expulsions++;
+          }
+        }
+      }
+
+      if (modifie) {
+        etat.subdivisions = subdivisions;
+        await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
+      }
+    }
+  } catch(e) { console.error('preleverLoyersLots error', e); }
+  return resultats;
+}
+
 async function traiterSouvenirsAccueil() {
   const resultats = { fuites: 0, expires: 0 };
   try {
@@ -282,7 +346,10 @@ export default async function handler(req, res) {
     // 4. Taxe fonciere quotidienne sur tous les terrains possedes
     const taxeFonciere = await preleverTaxeFonciere();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres, fuites, taxeFonciere });
+    // 5. Loyers des lots subdivises (locataire -> proprietaire directement)
+    const loyersLots = await preleverLoyersLots();
+
+    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

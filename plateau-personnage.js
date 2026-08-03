@@ -855,6 +855,9 @@ async function doDormir() {
   payerLocations();
   // Revenu passif + bonus INF/POP/DIS des bâtiments construits sur des terrains possédés
   if (typeof collecterRevenusConstructions === 'function') await collecterRevenusConstructions();
+  // NOTE : les loyers des lots subdivises sont desormais preleves par le cron serveur
+  // (preleverLoyersLots, api/cron-minuit.js) — pas ici, pour ne pas defavoriser le
+  // proprietaire si le locataire ne se connecte jamais.
   // Payer les escorts actives
   payerEscorts();
   payerEmployes();

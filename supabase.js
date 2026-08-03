@@ -1360,6 +1360,9 @@ async function sbGetTerrainsPossedesPar(country, nom) {
   }).filter(Boolean);
 }
 
+// NOTE : sbGetTerrainsAvecLotsLoues a ete retiree — le paiement des loyers de lots se fait
+// desormais cote serveur (preleverLoyersLots, api/cron-minuit.js), pas via ce client.
+
 async function sbGetTerrainsLibres(country) {
   const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(country)}`);
   return rows || [];

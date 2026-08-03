@@ -98,6 +98,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demander_juge_instruction') { doDemanderJugeInstruction(); return; }
   if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(); return; }
   if (fn === 'demander_divorce') { doDemanderDivorce(); return; }
+  if (fn === 'diviser_construction') { doOuvrirDivisionTerrain(); return; }
+  if (fn === 'louer_lot_ici') { doOuvrirLouerLot(); return; }
+  if (fn === 'gerer_lot_loue') { doGererLotLoue(); return; }
   if (fn === 'declencher_election_club') { doDeclencherElectionClub(); return; }
   if (fn === 'incendier') { doIncendier(); return; }
   if (fn === 'utiliser_explosifs') { doUtiliserExplosifs(); return; }
