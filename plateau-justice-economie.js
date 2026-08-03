@@ -2469,6 +2469,41 @@ async function chargerTerrainState(buildingId) {
   return getTerrainState(buildingId);
 }
 
+// Revenu passif quotidien + bonus INF/POP/DIS par niveau de construction. Applique sans
+// condition (contrairement aux bureaux loues, qui necessitent une organisation domiciliee) :
+// c'est le proprietaire lui-meme qui en profite directement, chaque nuit.
+const REVENU_CONSTRUCTION = { hangar: 50, commerce_standard: 150, commerce_premium: 300, building: 500 };
+const BONUS_CONSTRUCTION = {
+  hangar: {},
+  commerce_standard: { inf: 3 },
+  commerce_premium: { inf: 6, pop: 2 },
+  building: { inf: 10, pop: 5, dis: 3 }
+};
+
+async function collecterRevenusConstructions() {
+  if (typeof sbGetTerrainsPossedesPar !== 'function' || !state.char?.name) return;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  let terrains;
+  try {
+    terrains = await sbGetTerrainsPossedesPar(state.country, state.char.name);
+  } catch(e) { return; }
+
+  (terrains || []).forEach(function(ts) {
+    if (!ts.niveau_construction) return;
+    const revenu = REVENU_CONSTRUCTION[ts.niveau_construction] || 0;
+    const bonus = BONUS_CONSTRUCTION[ts.niveau_construction] || {};
+    const label = NIVEAUX_CONSTRUCTION[ts.niveau_construction]?.label || ts.niveau_construction;
+
+    if (revenu > 0) {
+      state.arg = (state.arg || 0) + revenu;
+      addJournalEntry('Revenu du ' + label + ' : +' + revenu + ' ' + cur, 'event-good');
+    }
+    if (bonus.pop) state.pop = Math.min(100, (state.pop || 0) + bonus.pop);
+    if (bonus.inf) state.inf = Math.min(100, (state.inf || 0) + bonus.inf);
+    if (bonus.dis) state.dis = Math.min(100, (state.dis || 50) + bonus.dis);
+  });
+}
+
 function getValeurTotaleBien(ts) {
   if (!ts) return PRIX_TERRAIN;
   const base = ts.valeur_totale || PRIX_TERRAIN; // prix reel au m2 paye a l'achat, si connu

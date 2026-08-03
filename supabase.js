@@ -1350,6 +1350,16 @@ async function sbGetTerrainState(country, buildingId) {
   try { return JSON.parse(rows[0].data); } catch(e) { return null; }
 }
 
+// Tous les terrains possedes par un joueur donne, quel que soit l'endroit ou il se trouve
+// (necessaire pour le revenu passif/bonus au moment de Dormir, qui peut se produire ailleurs
+// que sur le terrain lui-meme).
+async function sbGetTerrainsPossedesPar(country, nom) {
+  const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(country)}&proprietaire=eq.${encodeURIComponent(nom)}`);
+  return (rows || []).map(function(r) {
+    try { return { buildingId: r.building_id, ...JSON.parse(r.data) }; } catch(e) { return null; }
+  }).filter(Boolean);
+}
+
 async function sbGetTerrainsLibres(country) {
   const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(country)}`);
   return rows || [];

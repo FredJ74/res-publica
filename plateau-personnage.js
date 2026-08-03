@@ -853,6 +853,8 @@ async function doDormir() {
 
   // Payer les loyers des locations actives
   payerLocations();
+  // Revenu passif + bonus INF/POP/DIS des bâtiments construits sur des terrains possédés
+  if (typeof collecterRevenusConstructions === 'function') await collecterRevenusConstructions();
   // Payer les escorts actives
   payerEscorts();
   payerEmployes();
