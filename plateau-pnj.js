@@ -384,6 +384,33 @@ async function talkToPnj(encodedPnj, action) {
     if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
   }
 
+  // Legende urbaine de Maxence Monfils : rumeurs independantes de toute enigme, tant que
+  // le joueur mentionne son nom, aupres de quelques PNJ qui le "surveillent" sans jamais
+  // vraiment le trouver. Le mystere ne doit jamais etre tranche.
+  const nomCourtMaxenceRumeur = (pnj.name || '').replace(' (PNJ)', '').trim();
+  if (/maxence/i.test(action)) {
+    if (nomCourtMaxenceRumeur === 'Pat Hounette') {
+      speech.textContent = "Chut... si Maxence apprend qu'il y a des scarabées ici, on est mal...";
+      return;
+    }
+    if (nomCourtMaxenceRumeur === 'Florian Grès') {
+      speech.textContent = "Je le surveille depuis ce matin. Impossible de savoir où il est passé...";
+      return;
+    }
+    if (nomCourtMaxenceRumeur === 'Jean-Pierre Ciseaux') {
+      speech.textContent = "Les orchidées ne risquent rien... ce sont les insectes qui m'inquiètent.";
+      return;
+    }
+    if (nomCourtMaxenceRumeur === 'Louis Chevillard') {
+      speech.textContent = "En quarante ans de carrière, j'ai vu des braqueurs, des meurtriers... mais Maxence... celui-là me fait froid dans le dos.";
+      return;
+    }
+    if (nomCourtMaxenceRumeur === 'Garde Republicain') {
+      speech.textContent = "J'ai déjà tenu tête à des manifestants, des émeutiers, même un coup d'État... Mais si je croise Maxence Monfils dans une ruelle un jour, je change de trottoir, foi de Garde Républicain.";
+      return;
+    }
+  }
+
   // Enigme du portrait disparu : Clerc Delhune (notaire) et Directeur Mercier (banquier),
   // temoignages parles en complement des archives ecrites.
   const nomCourtEnigme = (pnj.name || '').replace(' (PNJ)', '').trim();
