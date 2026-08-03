@@ -214,8 +214,8 @@ function doRacheterTerrain() {
   const b = BUILDINGS[building];
   if (!b) return;
 
-  // Vérifier si le terrain appartient à quelqu'un
-  const proprietaire = state.terrainsAchetes?.[building];
+  // Vérifier si le terrain appartient à quelqu'un (systeme unifie, source Supabase)
+  const proprietaire = getTerrainState(building).proprietaire;
   if (!proprietaire) {
     showToast('Terrain libre', 'Ce terrain n\'est pas encore propriété privée. Vous pouvez l\'acheter directement.', false);
     return;
@@ -274,9 +274,11 @@ function accepterRachat(acheteur, buildingId, prix) {
   const b = BUILDINGS[buildingId];
   const localName = b?.shortName || b?.name || buildingId;
 
-  // Transférer le terrain
-  if (!state.terrainsAchetes) state.terrainsAchetes = {};
-  state.terrainsAchetes[buildingId] = acheteur;
+  // Transférer le terrain (systeme unifie : cache local + Supabase)
+  const nouvelEtatRachat = setTerrainState(buildingId, { proprietaire: acheteur, coproprietaire: null });
+  if (typeof sbSetTerrainState === 'function') {
+    sbSetTerrainState(state.country, buildingId, nouvelEtatRachat).catch(() => {});
+  }
   state.arg += prix;
   updateUI();
 

@@ -525,6 +525,17 @@ function enterRoom(buildingId, roomId, tabEl) {
     maxenceVerifierPresence(buildingId, roomId);
   }
 
+  // Rafraichir l'etat reel du terrain depuis Supabase (proprietaire, construction, permis) —
+  // corrige le bug ou un rafraichissement de page laissait croire qu'un terrain deja achete
+  // etait redevenu libre. Re-affiche les ordres une fois la donnee fraiche disponible.
+  if (buildingId?.startsWith('terrain-a-batir') && typeof chargerTerrainState === 'function') {
+    chargerTerrainState(buildingId).then(function() {
+      if (state.currentBuilding === buildingId && state.currentRoom === roomId) {
+        renderRoomActions(room, buildingId, roomId);
+      }
+    }).catch(function() {});
+  }
+
   // Loc
   const ctxName = ctx?.name || b.shortName || b.name;
   document.getElementById('loc-name').textContent = ctxName;

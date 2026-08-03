@@ -231,16 +231,13 @@ async function remettreRecompenseQuete(quete) {
           dateGeneration: Date.now()
         };
 
+        // Systeme unifie : cache local (state.terrainsState) + Supabase
+        if (typeof setTerrainState === 'function') {
+          setTerrainState(terrainInfo.buildingId, nouvelEtat);
+        }
         if (typeof sbSetTerrainState === 'function') {
           await sbSetTerrainState(state.country, terrainInfo.buildingId, nouvelEtat).catch(() => {});
         }
-        // Mettre aussi a jour le localStorage local si le joueur consulte ce terrain plus tard
-        try {
-          localStorage.setItem('terrain_state_' + state.country + '_' + terrainInfo.buildingId, JSON.stringify(nouvelEtat));
-        } catch(e) {}
-
-        if (!state.terrainsAchetes) state.terrainsAchetes = {};
-        state.terrainsAchetes[terrainInfo.buildingId] = state.char?.name;
 
         const villeNom = WORLD[state.country]?.[terrainInfo.cityId]?.name || terrainInfo.cityId;
         msg = '🏛️ Vous gagnez un TERRAIN À BÂTIR à ' + villeNom + ' (' + terrainInfo.buildingId + ') ! Attention : des squatteurs s\'y sont déjà installés...';

@@ -1641,26 +1641,10 @@ async function getTerrainsVraimentLibres(country) {
   } catch(e) { console.warn('getTerrainsVraimentLibres error', e); return []; }
 }
 
-function getTerrainState(buildingId) {
-  const key = 'terrain_state_' + state.country + '_' + buildingId;
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : {};
-  } catch(e) { return {}; }
-}
-
-function setTerrainState(buildingId, updates) {
-  const key = 'terrain_state_' + state.country + '_' + buildingId;
-  const current = getTerrainState(buildingId);
-  const newState = { ...current, ...updates };
-  try { localStorage.setItem(key, JSON.stringify(newState)); } catch(e) {}
-
-  // Synchroniser avec Supabase si disponible
-  if (typeof sbSetTerrainState === 'function') {
-    sbSetTerrainState(state.country, buildingId, newState).catch(() => {});
-  }
-  return newState;
-}
+// NOTE : getTerrainState/setTerrainState sont definies dans plateau-justice-economie.js
+// (systeme unifie, base sur state.terrainsState + Supabase). Une ancienne version basee sur
+// localStorage vivait ici, mais etait silencieusement ecrasee (dernier fichier charge gagne
+// en JS) — code mort supprime le 3 aout 2026 pour eviter toute confusion future.
 
 function terrainOrdreDisponible(fn, buildingId) {
   const ts = getTerrainState(buildingId);
@@ -1931,8 +1915,6 @@ function doAcheterTerrain() {
   if (state.arg < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis. Pensez au prêt bancaire.', false); return; }
 
   state.arg -= prix;
-  if (!state.terrainsAchetes) state.terrainsAchetes = {};
-  state.terrainsAchetes[id] = state.char?.name;
 
   // Synchroniser aussi avec Supabase pour que le terrain soit reellement marque "occupe"
   // Si le joueur est marie, son conjoint devient automatiquement coproprietaire a 50%
