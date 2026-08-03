@@ -492,6 +492,9 @@ function enigme1VerifierDeclenchement() {
     if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
     if (typeof updateUI === 'function') updateUI();
     if (typeof renderInventory === 'function') renderInventory();
+    if (typeof showToast === 'function') {
+      showToast("L'enquête commence", "Un calepin pour recueillir vos notes est apparu dans votre inventaire.", true);
+    }
     if (typeof addJournalEntry === 'function') {
       const rumeur = ENIGME1_RUMEURS[variante] || ENIGME1_RUMEURS.maire;
       addJournalEntry(rumeur, 'event-secret');
