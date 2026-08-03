@@ -2471,8 +2471,9 @@ async function chargerTerrainState(buildingId) {
 
 function getValeurTotaleBien(ts) {
   if (!ts) return PRIX_TERRAIN;
+  const base = ts.valeur_totale || PRIX_TERRAIN; // prix reel au m2 paye a l'achat, si connu
   const niveau = NIVEAUX_CONSTRUCTION[ts.niveau_construction];
-  return PRIX_TERRAIN + (niveau ? niveau.cout : 0);
+  return base + (niveau ? niveau.cout : 0);
 }
 
 async function ouvrirModalConstruire() {

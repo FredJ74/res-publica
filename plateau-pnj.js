@@ -1942,7 +1942,7 @@ function doAcheterTerrain() {
       } catch(e) {}
     }
     if (typeof sbSetTerrainState === 'function') {
-      await sbSetTerrainState(state.country, id, { proprietaire: state.char?.name, coproprietaire, surface }).catch(() => {});
+      await sbSetTerrainState(state.country, id, { proprietaire: state.char?.name, coproprietaire, surface, valeur_totale: prix, dette_fonciere: 0, city: state.currentCity || 'capitale' }).catch(() => {});
     }
     if (typeof sbEnregistrerVenteTerrain === 'function') {
       await sbEnregistrerVenteTerrain(state.country, id, state.char?.name, prix).catch(() => {});
@@ -1958,7 +1958,10 @@ function doAcheterTerrain() {
     proprietaire: state.char?.name,
     acheteAt: Date.now(),
     constructionAutorisee: !!aPermis,
-    surface: surface
+    surface: surface,
+    valeur_totale: prix,
+    dette_fonciere: 0,
+    city: state.currentCity || 'capitale'
   });
 
   updateUI();

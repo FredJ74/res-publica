@@ -4962,6 +4962,9 @@ async function chargerBudgetMunicipal() {
       key,
       allocation: { commissariat: 20, multimodal: 15, stade: 15, marche: 15, dispensaire: 20, tribunal: 15 },
       caisse: 0,
+      // Taxe fonciere : FR/m2/jour, prerogative du maire (min/max a definir dans le futur
+      // tableau de bord municipal, pour eviter qu'un taux abusif ruine les proprietaires).
+      tauxFoncier: 0.05,
       derniereDistribJour: state.day || 1
     };
     if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(key, data).catch(() => {});
