@@ -1002,6 +1002,11 @@ async function ouvrirDetailObjetInventaire(idx) {
   const item = state.inventory[idx];
   if (!item) return;
 
+  if (item.calepinEnigme1 && typeof enigme1AfficherCalepin === 'function') {
+    enigme1AfficherCalepin(idx);
+    return;
+  }
+
   document.getElementById('postes-modal-title').textContent = item.name;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
