@@ -461,6 +461,7 @@ function enterRoom(buildingId, roomId, tabEl) {
     pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
   if (typeof enigme1InjecterZoneCliquable === 'function') enigme1InjecterZoneCliquable(buildingId, roomId);
+  if (typeof enigme1VerifierDebarras === 'function') enigme1VerifierDebarras(buildingId, roomId);
   // Supprimer ancien emoji si present
   const existing = pieceImg.querySelector('.piece-emoji');
   if (existing) existing.remove();
