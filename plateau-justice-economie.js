@@ -3105,6 +3105,7 @@ async function verifierInstructionPermis(buildingId) {
   if (jour < ts.permis.dateInstructionTerminee) return;
 
   ts.permis.statut = 'attente_validation';
+  ts.permis.dateEntreeAttente = Date.now();
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, buildingId, ts).catch(() => {});
 
   const maireNom = await getTitulaireMaire(state.country, state.currentCity);
