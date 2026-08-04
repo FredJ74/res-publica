@@ -26,28 +26,28 @@ const ENIGME1_SALLES_CADRE_VIDE = {
     imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-torcieu-maire.png',
     personnage: 'Marcel Torcieu',
     dates: '1895–1958',
-    texteAccroche: "Étrange qu'un portrait manque justement ici... Les archives de la Mairie permettraient sans doute d'en apprendre davantage sur cet homme."
+    texteAccroche: "Étrange qu'un portrait manque justement ici... Où pourrait-on trouver des informations sur un ancien maire de la ville ?"
   },
   salle_criminels: {
     imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-criminels-cadre-vide-luthecia.png',
     imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-caillon-criminel.png',
     personnage: 'Maurice Caillon',
     dates: '1901–1954',
-    texteAccroche: "Étrange qu'un portrait manque justement ici... Le Commissariat permettrait sans doute d'en apprendre davantage sur cet homme."
+    texteAccroche: "Étrange qu'un portrait manque justement ici... Qui, en ville, garderait la mémoire des affaires criminelles d'autrefois ?"
   },
   salle_entrepreneurs: {
     imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-entrepreneurs-cadre-vide-luthecia.png',
     imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-moulin-entrepreneur.png',
     personnage: 'Jacques Moulin',
     dates: '1897–1965',
-    texteAccroche: "Étrange qu'un portrait manque justement ici... L'Étude Notariale permettrait sans doute d'en apprendre davantage sur cet homme."
+    texteAccroche: "Étrange qu'un portrait manque justement ici... Qui, en ville, garde une trace écrite de chaque terrain qui change de mains ?"
   },
   salle_plumes: {
     imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-plumes-cadre-vide-luthecia.png',
     imageGrosPlan: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/cadre-vide-tintabin-plume.png',
     personnage: 'Étienne Tintabin',
     dates: '1898–1969',
-    texteAccroche: "Étrange qu'un portrait manque justement ici... L'Imprimerie L'Autruche Entravée permettrait sans doute d'en apprendre davantage sur cet homme."
+    texteAccroche: "Étrange qu'un portrait manque justement ici... Où retrouverait-on ce que la presse d'alors a bien pu écrire sur lui ?"
   }
 };
 
