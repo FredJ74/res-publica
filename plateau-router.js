@@ -99,6 +99,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(); return; }
   if (fn === 'demander_divorce') { doDemanderDivorce(); return; }
   if (fn === 'acte_vente_terrain') { doActeVenteTerrain(); return; }
+  if (fn === 'corrompre_rdv_notaire') { doCorrompreRdvNotaire(); return; }
   if (fn === 'diviser_construction') { doOuvrirDivisionTerrain(); return; }
   if (fn === 'louer_lot_ici') { doOuvrirLouerLot(); return; }
   if (fn === 'gerer_lot_loue') { doGererLotLoue(); return; }
