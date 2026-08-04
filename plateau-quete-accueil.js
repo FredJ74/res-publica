@@ -83,6 +83,18 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
   if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
   const etape = state.char.queteAccueil.etape;
 
+  // Filet de securite : si le joueur atteint l'Hotel de Ville par un autre chemin que le
+  // nœud de rue prevu (ex: navigation directe), on effectue quand meme la transition ici,
+  // plutot que de laisser la quete bloquee sur 'guide_hdv' indefiniment (bug remonte par
+  // l'audit ChatGPT du 4 aout 2026 : Petit ne reconnaissait jamais "je suis nouveau").
+  if (etape === 'guide_hdv' && buildingId === 'mairie-capitale') {
+    state.char.queteAccueil = { etape: 'attente_entree_mairie' };
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+    if (typeof afficherGuidageBatiments === 'function') afficherGuidageBatiments('luthecia-hotel-de-ville');
+    queteAccueilSurbrillance('.person-card[data-enc*="Petit"]', 15000);
+    return;
+  }
+
   if (etape === 'attente_entree_mairie' && buildingId === 'mairie-capitale' && roomId === 'hall_mairie') {
     queteAccueilSurbrillance('.person-card[data-enc*="Petit"]', 15000);
   }
