@@ -488,6 +488,16 @@ function verifierSuccesMaxence(cle) {
     return;
   }
 
+  // Rappel de l'etape en cours de la quete d'accueil, si le joueur se sent perdu (clic trop
+  // rapide, popup fermee sans lire...). Rejoue le meme message et la meme surbrillance que
+  // ceux affiches au demarrage de l'etape en cours.
+  if (nomCourtPnjJeremy === 'Jérémy' && action !== 'bonjour' && /où en (?:étions|sommes)|rappel|perdu|que dois-je faire|je ne sais plus|c'était quoi déjà/i.test(action)) {
+    if (typeof queteAccueilRappel === 'function' && queteAccueilRappel()) {
+      speech.textContent = "Ah, vous vous êtes un peu perdu ? Pas de souci, je vous remontre.";
+      return;
+    }
+  }
+
   // Quete d'accueil : reponse scriptee du Secretaire Municipal Petit quand un nouveau joueur se presente.
   // Reponse fixe (pas d'IA) pour garantir la progression de la quete a ce moment charniere.
   if (pnj.name === 'Secretaire Municipal Petit'
