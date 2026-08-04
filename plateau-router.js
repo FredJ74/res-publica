@@ -102,6 +102,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'corrompre_rdv_notaire') { doCorrompreRdvNotaire(); return; }
   if (fn === 'transferer_compromis') { doOuvrirTransfertCompromis(); return; }
   if (fn === 'valider_transfert_compromis') { doValiderTransfertCompromis(); return; }
+  if (fn === 'payer_versement_chantier') { doPayerVersementChantier(); return; }
+  if (fn === 'corrompre_chantier') { doCorrompreChantier(); return; }
   if (fn === 'diviser_construction') { doOuvrirDivisionTerrain(); return; }
   if (fn === 'louer_lot_ici') { doOuvrirLouerLot(); return; }
   if (fn === 'gerer_lot_loue') { doGererLotLoue(); return; }

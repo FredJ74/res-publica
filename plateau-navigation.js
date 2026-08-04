@@ -454,7 +454,12 @@ function enterRoom(buildingId, roomId, tabEl) {
 
   const pieceImg = document.getElementById('piece-image');
   const enigme1Img = (typeof enigme1ImageSalleVide === 'function') ? enigme1ImageSalleVide(buildingId, roomId) : null;
-  const imgUrl = enigme1Img || empireRoomImg || roomOverride?.imageUrl || room.imageUrl;
+  let chantierImg = null;
+  if (buildingId?.startsWith('terrain-a-batir') && typeof getTerrainState === 'function') {
+    const tsChantier = getTerrainState(buildingId);
+    if (tsChantier?.chantier) chantierImg = 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/chantier-en-cours.png';
+  }
+  const imgUrl = enigme1Img || chantierImg || empireRoomImg || roomOverride?.imageUrl || room.imageUrl;
   if (imgUrl) {
     pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {

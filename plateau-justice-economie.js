@@ -3058,21 +3058,43 @@ async function ouvrirModalConstruire() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Duree de chantier (jours) par niveau — nombres pairs pour un vrai palier de mi-chantier.
+const DUREE_CHANTIER_JOURS = { hangar: 6, commerce_standard: 12, commerce_premium: 18, building: 24 };
+
 async function confirmerConstruction(niveauKey) {
   const id = state.currentBuilding;
   const niveau = NIVEAUX_CONSTRUCTION[niveauKey];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   if (!niveau) return;
 
-  if (state.arg < niveau.cout) {
-    showToast('Fonds insuffisants', niveau.cout.toLocaleString('fr-FR') + ' ' + cur + ' requis. Pensez au prêt bancaire.', false);
+  const dureeJours = DUREE_CHANTIER_JOURS[niveauKey] || 6;
+  const montant35 = Math.round(niveau.cout * 0.35);
+  const montant30 = niveau.cout - 2 * montant35; // reste, evite les arrondis qui derapent
+
+  if (state.arg < montant35) {
+    showToast('Fonds insuffisants', montant35.toLocaleString('fr-FR') + ' ' + cur + ' requis pour le premier versement (35%). Pensez au prêt de construction.', false);
     return;
   }
 
-  state.arg -= niveau.cout;
+  state.arg -= montant35;
+  const maintenant = Date.now();
+  const dateFinTheorique = maintenant + dureeJours * 86400000;
+
   const nouvelEtat = setTerrainState(id, {
-    niveau_construction: niveauKey,
-    valeur_totale: PRIX_TERRAIN + niveau.cout
+    chantier: {
+      niveau: niveauKey,
+      dureeJours: dureeJours,
+      dateDebut: maintenant,
+      dateFinTheorique: dateFinTheorique, // fixe — reference pour le demarrage du remboursement du pret
+      dateFinPrevue: dateFinTheorique,     // evolue avec les aleas/corruption
+      montantTotal: niveau.cout,
+      montant35: montant35,
+      montant30: montant30,
+      palierPaye: 1,
+      enAttentePaiement: false,
+      joursImpayes: 0,
+      evenements: []
+    }
   });
 
   if (typeof sbSetTerrainState === 'function') {
@@ -3081,8 +3103,69 @@ async function confirmerConstruction(niveauKey) {
 
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
-  showToast('Construction achevée !', 'Vous avez construit : ' + niveau.label + '.', true, true);
-  addJournalEntry('Construction de "' + niveau.label + '" achevée. -' + niveau.cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
+  const dateTxt = new Date(dateFinTheorique).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+  addJournalEntry('Chantier démarré : ' + niveau.label + '. Premier versement (35%, ' + montant35.toLocaleString('fr-FR') + ' ' + cur + ') payé. Livraison prévue le ' + dateTxt + '.', 'event-good');
+  showToast('Chantier démarré !', 'Livraison prévue le ' + dateTxt + '.', true, true);
+}
+
+async function doPayerVersementChantier() {
+  const id = state.currentBuilding;
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const ch = ts.chantier;
+
+  if (!ch || !ch.enAttentePaiement) {
+    showToast('Rien à payer', "Aucun versement n'est en attente sur ce chantier.", false);
+    return;
+  }
+
+  const montantDu = ch.palierPaye === 1 ? ch.montant35 : ch.montant30;
+  if (state.arg < montantDu) {
+    showToast('Fonds insuffisants', montantDu.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
+    return;
+  }
+
+  state.arg -= montantDu;
+  ch.palierPaye += 1;
+  ch.enAttentePaiement = false;
+  ch.joursImpayes = 0;
+
+  const nouvelEtat = setTerrainState(id, { chantier: ch });
+  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+
+  updateUI();
+  addJournalEntry('Versement de chantier payé (' + montantDu.toLocaleString('fr-FR') + ' ' + cur + '). Le chantier reprend.', 'event-good');
+  showToast('Versement payé !', 'Le chantier reprend.', true);
+}
+
+async function doCorrompreChantier() {
+  const id = state.currentBuilding;
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const ch = ts.chantier;
+
+  if (!ch) { showToast('Impossible', "Aucun chantier en cours ici.", false); return; }
+  if (ch.enAttentePaiement) { showToast('Impossible', 'Un versement est en attente — payez-le avant d\'accélérer.', false); return; }
+
+  const cout = 1500;
+  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false); return; }
+
+  const maintenant = Date.now();
+  const restant = ch.dateFinPrevue - maintenant;
+  if (restant <= 0) { showToast('Inutile', 'Le chantier est déjà arrivé à échéance.', false); return; }
+
+  state.arg -= cout;
+  ch.dateFinPrevue = maintenant + Math.floor(restant / 2);
+
+  const nouvelEtat = setTerrainState(id, { chantier: ch });
+  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+
+  const dateTxt = new Date(ch.dateFinPrevue).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+  updateUI();
+  addJournalEntry('Chantier accéléré par corruption (-' + cout + ' ' + cur + '). Nouvelle livraison prévue le ' + dateTxt + '.', 'event-info');
+  showToast('Chantier accéléré', 'Nouvelle livraison : ' + dateTxt + '.', true);
 }
 
 // =====================
