@@ -778,7 +778,10 @@ const PLAN_ICONS = {
 function ouvrirPlanVille(countryId, cityId, readOnly) {
   countryId = countryId || state.country;
   cityId = cityId || state.currentCity;
-  readOnly = readOnly || false;
+  // Le plan est une carte d'orientation, pas un moyen de deplacement (choix explicite de
+  // Fred, jamais voulu autrement) — readOnly=true par defaut desormais. Passer false
+  // explicitement pour reactiver le clic, si un jour ce choix change.
+  readOnly = readOnly === false ? false : true;
 
   const co = COUNTRIES[countryId];
   const world = WORLD[countryId];
