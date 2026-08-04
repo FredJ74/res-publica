@@ -278,6 +278,37 @@ async function resoudreCompromisExpires() {
   return resultats;
 }
 
+// Nettoie les rendez-vous d'achat direct manques (au-dela des 24h de rattrapage) : le depot
+// de garantie est perdu, le terrain redevient libre.
+async function nettoyerAchatsDirectsManques() {
+  const resultats = { manques: 0 };
+  try {
+    const terrains = await sbGet('terrains_etat', '');
+    if (!terrains) return resultats;
+
+    for (const row of terrains) {
+      let etat;
+      try { etat = JSON.parse(row.data); } catch(e) { continue; }
+      if (!etat.achatDirect || !etat.achatDirect.dateLimite) continue;
+      if (Date.now() <= etat.achatDirect.dateLimite) continue;
+
+      await sbInsert('compromis_historique', {
+        id: 'achatdirect-' + row.id + '-' + Date.now(),
+        country: row.country,
+        building_id: row.building_id,
+        demandeur: etat.achatDirect.demandeur,
+        resultat: 'perdu',
+        detail: 'Rendez-vous notarial manqué (dépôt de ' + etat.achatDirect.acompte + ' FR perdu)'
+      }).catch(() => {});
+
+      delete etat.achatDirect;
+      await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
+      resultats.manques++;
+    }
+  } catch(e) { console.error('nettoyerAchatsDirectsManques error', e); }
+  return resultats;
+}
+
 async function preleverLoyersLots() {
   const resultats = { collecte: 0, expulsions: 0 };
   try {
@@ -459,7 +490,10 @@ export default async function handler(req, res) {
     // 6. Resolution atomique des compromis arrives a echeance (permis + pret, ensemble)
     const compromisResolus = await resoudreCompromisExpires();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus });
+    // 7. Rendez-vous d'achat direct manques (depot perdu, terrain libere)
+    const achatsDirectsManques = await nettoyerAchatsDirectsManques();
+
+    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, achatsDirectsManques });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });
