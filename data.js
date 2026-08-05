@@ -5124,6 +5124,10 @@ const POSTES = {
       id:`depute_${i+1}`, name:`Depute Siege ${i+1}`, niveau:2,
       unique:true, holder: i < 7 ? `PNJ-Depute${i+1}` : null, isCapitale:true
     })),
+    ville_capitale: [
+      {id:'maire_capitale',    name:'Maire de Luthécia', niveau:3, unique:true, holder:'PNJ-Maire-Luthecia'},
+      {id:'adj_maire_capitale',name:'Maire Adjoint',      niveau:2, unique:true, holder:'PNJ-Adj-Luthecia'}
+    ],
     ville_a: [
       {id:'maire_a',    name:'Maire de Port-Sainte-Marie', niveau:3, unique:true, holder:'PNJ-Maire-A'},
       {id:'adj_maire_a',name:'Maire Adjoint',              niveau:2, unique:true, holder:'PNJ-Adj-A'}

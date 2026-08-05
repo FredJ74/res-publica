@@ -1461,6 +1461,7 @@ function renderRoomActions(room, buildingId, roomId) {
           const infoAmbassade = (state.ambassadesOuvertesCache || []).find(a => a.empire === empireDuBureau);
           needsPost = !(infoAmbassade && infoAmbassade.ambassadeur === state.char?.name);
         }
+        else if (reqPost === 'maire') needsPost = !posteId.startsWith('maire'); // maire_capitale/maire_a/maire_b — jamais litteralement 'maire'. Bug remonte le 5 aout 2026.
         else needsPost = posteId !== reqPost;
       }
     }
@@ -1686,6 +1687,7 @@ async function ouvrirOrganigramme() {
     { title: 'Exécutif', postes: postes.capitale || [] },
     { title: 'Assemblée', postes: postes.assemblee || [] },
     { title: 'Villes', postes: [
+      ...(postes.ville_capitale || []),
       ...(postes.ville_a || []),
       ...(postes.ville_b || [])
     ]}
