@@ -1678,6 +1678,20 @@ async function doRecruterMilitants() {
 // des deux leaders le renouvelle chaque jour. Delogeable par la police (doMobiliserPolice).
 // =====================
 
+// Puissance syndicale (0-100) : militants recrutes + demonstration de force en cours +
+// palmares de blocus reussis + sympathie gagnee en cas de repression violente subie.
+// Utilisee pour ameliorer les futurs blocus, et pour peser sur les indices de ville et la
+// popularite du maire tant qu'un blocus est actif (voir cron serveur).
+function calculerPuissanceSyndicale(syndicat, blocusActifQuelquePart) {
+  if (!syndicat) return 0;
+  const militants = (syndicat.membres || []).filter(m => m.estPnj).length;
+  let puissance = militants * 3;
+  if (blocusActifQuelquePart) puissance += 15;
+  puissance += (syndicat.blocusReussis || 0) * 5;
+  puissance += (syndicat.repressionsSubies || 0) * 8;
+  return Math.max(0, Math.min(100, Math.round(puissance)));
+}
+
 function getMonSyndicatEtGrade() {
   const orgas = (typeof chargerOrgas === 'function') ? chargerOrgas() : (state.orgas || []);
   const syndicat = orgas.find(o => o.type === 'syndicale' && o.membres?.some(m => m.nom === state.char?.name));
@@ -1724,8 +1738,9 @@ async function confirmerOrganiserBlocus(syndicatId) {
 
   const infos = getMonSyndicatEtGrade();
   const syndicat = infos?.syndicat;
-  const taux = Math.min(85, 10 + nbMilitants * 6);
-  const intensite = taux; // meme echelle : plus le blocus a de chances de reussir, plus il est intense une fois en place
+  const puissance = calculerPuissanceSyndicale(syndicat, false);
+  const taux = Math.min(90, 10 + nbMilitants * 6 + Math.round(puissance / 5)); // la puissance du syndicat facilite les futurs blocus
+  const intensite = Math.min(90, 10 + nbMilitants * 6); // l'intensite reste liee aux seuls militants mobilises, pas au bonus de puissance
 
   const roll = Math.floor(Math.random() * 100) + 1;
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -1735,6 +1750,10 @@ async function confirmerOrganiserBlocus(syndicatId) {
     addJournalEntry('Tentative de blocus syndical ratée.', 'event-bad');
     return;
   }
+
+  // Palmares : chaque blocus reussi renforce durablement la puissance syndicale
+  syndicat.blocusReussis = (syndicat.blocusReussis || 0) + 1;
+  if (typeof sauvegarderOrga === 'function') sauvegarderOrga(syndicat);
 
   const patch = {
     blocus: {
