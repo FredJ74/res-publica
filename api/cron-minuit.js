@@ -495,6 +495,37 @@ async function preleverPretsBancairesServeur() {
   return resultats;
 }
 
+// Fin automatique d'un blocus syndical si aucun des deux leaders (Secretaire General ou
+// Adjoint) ne l'a renouvele depuis plus de 25h (marge de securite sur le cycle de 24h) —
+// evite qu'un blocus persiste indefiniment sans intervention. Concerne tous les bâtiments
+// (pas seulement les terrains), via la table generique batiments_etat.
+async function nettoyerBlocusExpires() {
+  const resultats = { leves: 0 };
+  try {
+    const batiments = await sbGet('batiments_etat', '');
+    if (!batiments) return resultats;
+
+    for (const row of batiments) {
+      let etat;
+      try { etat = JSON.parse(row.data); } catch(e) { continue; }
+      if (!etat.blocus) continue;
+
+      const dernierRenouvellement = etat.blocus.dernierRenouvellementTimestamp || etat.blocus.lanceLe;
+      if (Date.now() - dernierRenouvellement < 25 * 3600000) continue; // encore dans les temps
+
+      await sbInsert('mails', {
+        destinataire: etat.blocus.leaderActuel, expediteur: etat.blocus.syndicatNom || 'Syndicat',
+        sujet: 'Blocus levé', corps: 'Faute de renouvellement, le blocus a été levé.', archived: false
+      }).catch(() => {});
+
+      delete etat.blocus;
+      await sbUpdate('batiments_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
+      resultats.leves++;
+    }
+  } catch(e) { console.error('nettoyerBlocusExpires error', e); }
+  return resultats;
+}
+
 async function nettoyerAchatsDirectsManques() {
   const resultats = { manques: 0 };
   try {
@@ -714,7 +745,10 @@ export default async function handler(req, res) {
     // 9. Mensualites des prets bancaires (a heure fixe, que le joueur dorme ou non)
     const prets = await preleverPretsBancairesServeur();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, achatsDirectsManques, chantiers, prets });
+    // 10. Expiration des blocus syndicaux non renouveles
+    const blocusExpires = await nettoyerBlocusExpires();
+
+    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, achatsDirectsManques, chantiers, prets, blocusExpires });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

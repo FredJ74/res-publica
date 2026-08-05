@@ -533,6 +533,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (typeof maxenceVerifierPresence === 'function') {
     maxenceVerifierPresence(buildingId, roomId);
   }
+  if (typeof verifierBlocusEntree === 'function') {
+    verifierBlocusEntree(buildingId, roomId);
+  }
 
   // Rafraichir l'etat reel du terrain depuis Supabase (proprietaire, construction, permis) —
   // corrige le bug ou un rafraichissement de page laissait croire qu'un terrain deja achete
