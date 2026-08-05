@@ -650,48 +650,48 @@ const PLAN_LAYOUTS = {
     // la rue des institutions repartie de part et d'autre de l'intersection sud : Palais->
     // Imprimerie a l'ouest (7 batiments), Hotel de Ville->Loge a l'est (8 batiments).
 
-    'quartier-ambassades':         [270,  95, 140, 50],
-    'musee-ville-luthecia':        [270, 175,  75,  40],
-    'parc-botanique-national':     [345, 175,  10,  40],
-    'musee-national-republia':     [355, 175,  75,  40],
+    'quartier-ambassades':         [378, 133, 196, 70],
+    'musee-ville-luthecia':        [378, 245, 105, 56],
+    'musee-national-republia':     [483, 245, 105, 56],
+    'parc-botanique-national':     [378, 175, 105, 56],
 
-    'centre-affaires':             [150, 270,  90, 45],
-    'centre-commercial':           [250, 270,  76, 45],
-    'stade':                       [354, 270,  90, 45],
-    'place-formulaire-liberte':    [400, 345,  90, 70],
+    'centre-affaires':             [210, 378, 126, 63],
+    'centre-commercial':           [350, 378, 106, 63],
+    'stade':                       [496, 378, 126, 63],
+    'place-formulaire-liberte':    [560, 483, 126, 98],
 
-    'centre-multinodal-luthecia':  [560, 281,  70, 100],
+    'centre-multinodal-luthecia':  [784, 393, 98, 140],
 
-    'centre-artisanal':            [ 10, 260, 110, 45],
-    'armurerie':                   [140, 345,  70, 100],
+    'centre-artisanal':            [14, 364, 154, 63],
+    'armurerie':                   [196, 483, 98, 140],
 
-    'terrain-a-batir-1':           [ 10, 345, 110, 26],
-    'terrain-a-batir-2':           [ 10, 375, 110, 26],
-    'terrain-a-batir-3':           [ 10, 405, 110, 26],
-    'terrain-a-batir-4':           [ 10, 435, 110, 26],
-    'terrain-a-batir-5':           [ 10, 465, 110, 26],
+    'terrain-a-batir-1':           [14, 483, 154, 36],
+    'terrain-a-batir-2':           [14, 525, 154, 36],
+    'terrain-a-batir-3':           [14, 567, 154, 36],
+    'terrain-a-batir-4':           [14, 609, 154, 36],
+    'terrain-a-batir-5':           [14, 651, 154, 36],
 
-    'marche':                      [ 10, 495, 110, 30],
-    'tabernacle-impots':           [ 10, 530, 110, 40],
+    'marche':                      [14, 693, 154, 42],
+    'tabernacle-impots':           [14, 742, 154, 56],
 
     // Rue des institutions — ouest (Palais Presidentiel -> Imprimerie)
-    'palais-presidentiel':         [135, 470,  26, 45],
-    'palais-gouvernement':         [163, 470,  26, 45],
-    'assemblee':                   [191, 470,  26, 45],
-    'tribunal':                    [219, 470,  26, 45],
-    'universite':                  [247, 470,  26, 45],
-    'dispensaire-public':          [275, 470,  26, 45],
-    'la-tribune':                  [303, 470,  26, 45],
+    'palais-presidentiel':         [189, 658, 36, 63],
+    'palais-gouvernement':         [228, 658, 36, 63],
+    'assemblee':                   [267, 658, 36, 63],
+    'tribunal':                    [307, 658, 36, 63],
+    'universite':                  [346, 658, 36, 63],
+    'dispensaire-public':          [385, 658, 36, 63],
+    'la-tribune':                  [424, 658, 36, 63],
 
     // Rue des institutions — est (Hotel de Ville -> Loge)
-    'mairie-capitale':             [345, 470,  22, 45],
-    'office-notarial':             [369, 470,  22, 45],
-    'hotel-republica':             [393, 470,  22, 45],
-    'banque-nationale':            [417, 470,  22, 45],
-    'banque-privee':               [441, 470,  22, 45],
-    'clinique-privee':             [465, 470,  22, 45],
-    'loge-maconnique':             [489, 470,  22, 45],
-    'commissariat':                [513, 470,  22, 45],
+    'mairie-capitale':             [483, 658, 31, 63],
+    'office-notarial':             [517, 658, 31, 63],
+    'hotel-republica':             [550, 658, 31, 63],
+    'banque-nationale':            [584, 658, 31, 63],
+    'banque-privee':               [617, 658, 31, 63],
+    'clinique-privee':             [651, 658, 31, 63],
+    'loge-maconnique':             [685, 658, 31, 63],
+    'commissariat':                [718, 658, 31, 63],
   },
   ville_a: {
     // Grille reconstruite le 30 juillet 2026 a partir du plan Excalidraw a jour de Fred.
@@ -801,9 +801,10 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
 
   let SVG_W, SVG_H, perimX, perimY, perimW, perimH;
   if (estLuthecia) {
-    // Luthecia : cadre valide visuellement avec Fred, ne pas toucher.
-    SVG_W = 680; SVG_H = 600;
-    perimX = 130; perimY = 150; perimW = 420; perimH = 370;
+    // Luthecia : cadre agrandi le 5 aout 2026 (facteur x1.4, meilleure lisibilite),
+    // disposition relative inchangee et validee avec Fred.
+    SVG_W = 952; SVG_H = 840;
+    perimX = 182; perimY = 210; perimW = 588; perimH = 518;
   } else {
     // Autres villes : cadre calcule dynamiquement a partir de l'etendue reelle des
     // batiments de PLAN_LAYOUTS, pour ne jamais deborder du plan quelle que soit sa forme.
@@ -831,13 +832,14 @@ function ouvrirPlanVille(countryId, cityId, readOnly) {
   svg += '<rect x="' + perimX + '" y="' + perimY + '" width="' + perimW + '" height="' + perimH + '" rx="8" fill="none" stroke="#3a3418" stroke-width="2"/>';
 
   if (estLuthecia) {
-    // Route nord-sud, strictement a l'interieur du perimetre
-    svg += '<rect x="336" y="150" width="8" height="370" fill="#1e1c10"/>';
-    svg += '<line x1="340" y1="150" x2="340" y2="520" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+    // Route nord-sud, strictement a l'interieur du perimetre (coordonnees x1.4, alignees sur
+    // le nouveau cadre agrandi du 5 aout 2026)
+    svg += '<rect x="470" y="210" width="11" height="518" fill="#1e1c10"/>';
+    svg += '<line x1="476" y1="210" x2="476" y2="728" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
 
-    // Route est-ouest, strictement a l'interieur du perimetre
-    svg += '<rect x="130" y="331" width="420" height="8" fill="#1e1c10"/>';
-    svg += '<line x1="130" y1="335" x2="550" y2="335" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
+    // Route est-ouest, strictement a l'interieur du perimetre (coordonnees x1.4)
+    svg += '<rect x="182" y="463" width="588" height="11" fill="#1e1c10"/>';
+    svg += '<line x1="182" y1="469" x2="770" y2="469" stroke="#2e2a14" stroke-width="1" stroke-dasharray="16,10"/>';
   } else if (cityId === 'ville_a') {
     // PSM : tracer specifique decrit par Fred, pas une simple croix automatique --
     // segment est-ouest entre le Dispensaire et l'Ecole de Marine, sortant au nord
