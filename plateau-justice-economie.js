@@ -3052,7 +3052,7 @@ async function ouvrirModalConstruire() {
     html += '<button onclick="confirmerConstruction(&quot;' + key + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Construire</button>';
     html += '</div>';
   });
-  html += '<button onclick="ouvrirModalPretBancaire()" style="width:100%;margin-top:.6rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.5rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer">🏦 Faire un prêt bancaire</button>';
+  html += '<button onclick="ouvrirModalPretBancaire(&quot;nationale&quot;,&quot;travaux&quot;)" style="width:100%;margin-top:.6rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.5rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer">🏦 Faire un prêt travaux</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -3176,38 +3176,88 @@ function getTauxPret(typeBanque) {
   return typeBanque === 'privee' ? (12 + ie / 10) : (5 + ie / 10);
 }
 
-async function ouvrirModalPretBancaire(typeBanque) {
-  typeBanque = typeBanque || 'nationale';
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const taux = getTauxPret(typeBanque);
-  const estPrivee = typeBanque === 'privee';
+// Trois types de prets, chacun avec sa propre limite d'un seul actif a la fois (pas une
+// limite globale — un joueur peut avoir un pret Travaux ET un pret Consommation en meme
+// temps, mais pas deux Travaux). Immobilier reste exclusivement accessible via le compromis
+// de vente de terrain (voir plateau-pnj.js, doConfirmerCompromis) — pas d'acces direct ici
+// tant que la revente de biens entre joueurs n'existe pas.
+const TYPES_PRET = {
+  travaux:      { label: 'Travaux',      desc: 'Financer la construction sur un terrain possédé.' },
+  consommation: { label: 'Consommation', desc: 'Petite somme, remboursement rapide, taux élevé.', montantMax: 10000, tauxFixe: 12, dureeMax: 30 }
+};
 
-  document.getElementById('postes-modal-title').textContent = estPrivee ? 'Prêt — Banque Privée Helvetia' : 'Prêt — Banque Nationale';
+async function ouvrirModalPretBancaire(typeBanque, typePret) {
+  typeBanque = typeBanque || 'nationale';
+
+  if (!typePret) {
+    let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
+    Object.entries(TYPES_PRET).forEach(([key, t]) => {
+      html += '<div onclick="ouvrirModalPretBancaire(\'' + typeBanque + '\',\'' + key + '\')" style="cursor:pointer;padding:.7rem;border:1px solid #2a2010;background:#0f0d05">';
+      html += '<div style="font-size:.85rem;color:#c0b090">' + t.label + '</div>';
+      html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + t.desc + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+    document.getElementById('postes-modal-title').textContent = typeBanque === 'privee' ? 'Prêt — Banque Privée Helvetia' : 'Prêt — Banque Nationale';
+    document.getElementById('postes-body').innerHTML = html;
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const infosType = TYPES_PRET[typePret];
+  const estPrivee = typeBanque === 'privee';
+  const estConso = typePret === 'consommation';
+  const taux = estConso ? infosType.tauxFixe : getTauxPret(typeBanque);
+
+  document.getElementById('postes-modal-title').textContent = (estPrivee ? 'Prêt — Banque Privée Helvetia' : 'Prêt — Banque Nationale') + ' · ' + infosType.label;
   let html = '<div style="padding:1rem">';
   if (estPrivee) {
     html += '<div style="font-size:.78rem;color:#aa7a30;font-style:italic;margin-bottom:.8rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Aucune vérification. Discrétion garantie. En cas d\'impayé prolongé, la méthode de recouvrement est... directe.</div>';
   }
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux applicable : ' + taux.toFixed(1) + '% sur la durée totale du prêt.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Taux applicable : ' + taux.toFixed(1) + '% sur la durée totale du prêt.' + (estConso ? ' Montant max ' + infosType.montantMax.toLocaleString('fr-FR') + ' ' + cur + ', durée max ' + infosType.dureeMax + ' jours.' : '') + '</div>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">MONTANT EMPRUNTÉ</div>';
-  html += '<input id="pret-montant" type="number" min="1000" step="1000" placeholder="Montant en ' + cur + '..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<input id="pret-montant" type="number" min="1000" ' + (estConso ? 'max="' + infosType.montantMax + '"' : '') + ' step="1000" placeholder="Montant en ' + cur + '..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">DURÉE DE REMBOURSEMENT</div>';
   html += '<select id="pret-duree" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-  [10,15,20,25,30].forEach(d => { html += '<option value="' + d + '">' + d + ' jours</option>'; });
+  const dureesDispo = estConso ? [5,10,15,20,25,30] : [10,15,20,25,30];
+  dureesDispo.forEach(d => { html += '<option value="' + d + '">' + d + ' jours</option>'; });
   html += '</select>';
-  html += '<button onclick="confirmerPretBancaire(&quot;' + typeBanque + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer">Contracter le prêt</button>';
+  html += '<button onclick="confirmerPretBancaire(&quot;' + typeBanque + '&quot;,&quot;' + typePret + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer">Contracter le prêt</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerPretBancaire(typeBanque) {
+async function confirmerPretBancaire(typeBanque, typePret) {
   const montant = parseInt(document.getElementById('pret-montant')?.value || 0);
   const duree = parseInt(document.getElementById('pret-duree')?.value || 10);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const infosType = TYPES_PRET[typePret] || TYPES_PRET.travaux;
+  const estConso = typePret === 'consommation';
 
   if (!montant || montant < 1000) { showToast('Montant invalide', 'Minimum 1000 ' + cur + '.', false); return; }
+  if (estConso && montant > infosType.montantMax) {
+    showToast('Montant trop élevé', 'Le prêt consommation est plafonné à ' + infosType.montantMax.toLocaleString('fr-FR') + ' ' + cur + '.', false);
+    return;
+  }
+  if (estConso && duree > infosType.dureeMax) {
+    showToast('Durée trop longue', 'Le prêt consommation est plafonné à ' + infosType.dureeMax + ' jours.', false);
+    return;
+  }
 
-  const taux = getTauxPret(typeBanque);
+  // Un seul pret actif PAR TYPE (pas une limite globale — Travaux et Consommation peuvent
+  // coexister, mais pas deux Travaux en meme temps). Bug de spam remonte le 5 aout 2026.
+  if (typeof sbGetPretsEnCours === 'function' && state.char?.name) {
+    const pretsActifs = await sbGetPretsEnCours(state.char.name).catch(() => []);
+    const dejaActif = (pretsActifs || []).some(p => (p.type_pret || 'travaux') === typePret);
+    if (dejaActif) {
+      showToast('Prêt refusé', 'Vous avez déjà un prêt ' + infosType.label.toLowerCase() + ' en cours. Soldez-le avant d\'en contracter un nouveau.', false);
+      return;
+    }
+  }
+
+  const taux = estConso ? infosType.tauxFixe : getTauxPret(typeBanque);
   const montantTotal = Math.round(montant * (1 + taux / 100));
   const mensualite = Math.ceil(montantTotal / duree);
 
@@ -3217,6 +3267,7 @@ async function confirmerPretBancaire(typeBanque) {
     country: state.country,
     building_id: state.currentBuilding || 'non_specifie',
     type_banque: typeBanque || 'nationale',
+    type_pret: typePret || 'travaux',
     montant_initial: montant,
     montant_restant: montantTotal,
     duree_jours: duree,
@@ -3234,7 +3285,7 @@ async function confirmerPretBancaire(typeBanque) {
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
   showToast('Prêt accordé !', '+' + montant.toLocaleString('fr-FR') + ' ' + cur + '. Mensualité : ' + mensualite.toLocaleString('fr-FR') + ' ' + cur + '/jour sur ' + duree + ' jours.', true, true);
-  addJournalEntry('Prêt bancaire de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' contracté (taux ' + taux.toFixed(1) + '%) — ' + (typeBanque === 'privee' ? 'Banque Privée' : 'Banque Nationale') + '.', 'event-info');
+  addJournalEntry('Prêt ' + infosType.label.toLowerCase() + ' de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' contracté (taux ' + taux.toFixed(1) + '%) — ' + (typeBanque === 'privee' ? 'Banque Privée' : 'Banque Nationale') + '.', 'event-info');
 }
 
 // Prelevement quotidien des prets en cours (appele au reveil, doDormir)

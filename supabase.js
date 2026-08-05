@@ -1360,6 +1360,22 @@ async function sbGetTerrainsPossedesPar(country, nom) {
   }).filter(Boolean);
 }
 
+// Trois fonctions manquantes decouvertes le 5 aout 2026 : appelees partout dans le code des
+// prets bancaires (confirmerPretBancaire, preleverPretsBancaires) mais jamais definies —
+// les prets n'etaient donc jamais reellement persistes, juste de l'argent credite en memoire.
+async function sbCreerPret(pret) {
+  return await sbInsert('prets', pret);
+}
+
+async function sbGetPretsEnCours(nom) {
+  const rows = await sbGet('prets', `emprunteur=eq.${encodeURIComponent(nom)}&statut=eq.en_cours`);
+  return rows || [];
+}
+
+async function sbUpdatePret(id, patch) {
+  return await sbUpdate('prets', `id=eq.${encodeURIComponent(id)}`, patch);
+}
+
 // NOTE : sbGetTerrainsAvecLotsLoues a ete retiree — le paiement des loyers de lots se fait
 // desormais cote serveur (preleverLoyersLots, api/cron-minuit.js), pas via ce client.
 

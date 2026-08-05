@@ -105,6 +105,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'payer_versement_chantier') { doPayerVersementChantier(); return; }
   if (fn === 'corrompre_chantier') { doCorrompreChantier(); return; }
   if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(); return; }
+  if (fn === 'emprunter_construction') { ouvrirModalPretBancaire('nationale', 'travaux'); return; }
+  if (fn === 'emprunter') {
+    const typeBanque = state.currentBuilding === 'banque-privee' ? 'privee' : 'nationale';
+    ouvrirModalPretBancaire(typeBanque);
+    return;
+  }
   if (fn === 'diviser_construction') { doOuvrirDivisionTerrain(); return; }
   if (fn === 'louer_lot_ici') { doOuvrirLouerLot(); return; }
   if (fn === 'gerer_lot_loue') { doGererLotLoue(); return; }
