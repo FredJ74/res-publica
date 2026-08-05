@@ -131,8 +131,10 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
 
   if (etape === 'stade_libre' && buildingId === 'stade') {
     // On arme le minuteur une seule fois (passage a 'stade_libre_minuteur' pour ne pas le
-    // reclencher a chaque changement de piece a l'interieur du stade).
-    state.char.queteAccueil = { etape: 'stade_libre_minuteur' };
+    // reclencher a chaque changement de piece a l'interieur du stade). minuteurDebut est un
+    // horodatage reel (pas seulement un setTimeout en memoire) pour survivre a un
+    // rafraichissement de page — bug remonte par l'audit ChatGPT du 5 aout 2026.
+    state.char.queteAccueil = { etape: 'stade_libre_minuteur', minuteurDebut: Date.now() };
     if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
     setTimeout(function() {
       if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
@@ -140,6 +142,25 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
       afficherRepriseContactJeremy();
     }, 60000);
     return;
+  }
+
+  // Filet de securite : si le joueur revient dans un batiment (ou recharge la page) alors
+  // que le minuteur du stade est toujours en attente, on verifie l'horodatage reel plutot
+  // que de compter sur le setTimeout d'origine (perdu au rafraichissement). Si les 60
+  // secondes sont deja ecoulees, on declenche immediatement ; sinon on rearme le temps
+  // restant exact.
+  if (etape === 'stade_libre_minuteur' && state.char.queteAccueil.minuteurDebut) {
+    const ecoule = Date.now() - state.char.queteAccueil.minuteurDebut;
+    if (ecoule >= 60000) {
+      afficherRepriseContactJeremy();
+    } else if (!state.char.queteAccueil.minuteurRearme) {
+      state.char.queteAccueil.minuteurRearme = true; // evite de rearmer plusieurs fois par entrees successives
+      setTimeout(function() {
+        if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
+        if (state.char.queteAccueil.etape !== 'stade_libre_minuteur') return;
+        afficherRepriseContactJeremy();
+      }, 60000 - ecoule);
+    }
   }
 
   if (etape === 'guide_stade' && buildingId === 'stade') {
@@ -649,13 +670,12 @@ async function queteAccueilGenererReponseMailJeremy(subjectRecu, bodyRecu) {
   const sujetReponse = 'Re: ' + subjectRecu;
   const heure = (typeof formatDateHeureJeu === 'function') ? formatDateHeureJeu() : new Date().toISOString();
 
+  // Fix : le mail etait envoye deux fois, via deux systemes differents (sbSendMail — le
+  // vrai systeme Supabase — ET un ancien systeme local getMails/saveMails, visiblement un
+  // reliquat d'avant la migration, jamais retire). Bug remonte par l'audit ChatGPT du 5 aout
+  // 2026 ("corriger le double envoi du courrier").
   if (typeof sbSendMail === 'function') {
     sbSendMail('Jérémy', state.char.name, sujetReponse, reply, heure).catch(function() {});
-  }
-  if (typeof getMails === 'function' && typeof saveMails === 'function') {
-    const mails = getMails();
-    mails.push({ id: 'mail-' + Date.now(), from: 'Jérémy', to: state.char.name, subject: sujetReponse, body: reply, time: heure, read: false });
-    saveMails(mails);
   }
   if (typeof showToast === 'function') showToast('Nouveau mail', 'Jérémy vous a répondu !', true);
 }
