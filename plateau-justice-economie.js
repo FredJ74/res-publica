@@ -1166,13 +1166,30 @@ function verifierDecouverteCrimesPasses() {
   }
 }
 
+// Une tentative d'evasion par jour maximum (bug de spam remonte le 4 aout 2026 : les PA
+// illimites de la phase de test permettaient de retenter indefiniment). Taux de base 10%,
+// modifie par DUP et l'indice de securite du pays — meme formule que le vol/cambriolage.
 function doTentativeEvasion() {
   if (!state.estEmprisonne) {
     showToast('Non emprisonne', 'Vous devez etre emprisonne pour tenter de vous evader.', false);
     return;
   }
+
+  const jourActuel = state.day || 1;
+  if (state.estEmprisonne.dernierJourEvasion === jourActuel) {
+    showToast('Trop tôt', 'Une seule tentative d\'évasion par jour.', false);
+    return;
+  }
+  state.estEmprisonne.dernierJourEvasion = jourActuel;
+
+  const pays = state.country;
+  const dup = state.char?.stats?.DUP || 8;
+  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
+  let taux = 10 + (dup - 10) * 2 - (isEmpire - 45) / 3;
+  taux = Math.max(2, Math.min(40, Math.round(taux)));
+
   const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 5) {
+  if (roll <= taux) {
     state.estEmprisonne = null;
     state.recherche = [];
     showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true);
