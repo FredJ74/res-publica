@@ -4705,10 +4705,10 @@ const ORGANISATIONS_DEF = {
     requis: { inf: 10, pop: 20 },
     maxParEmpire: null,
     grades: {
-      republic: ['Adhérent', 'Délégué', 'Secrétaire Général', 'Confédéral'],
-      narco:    ['Miembro', 'Delegado', 'Secretario', 'El Capo Sindical'],
-      soviet:   ['Travailleur Uni', 'Délégué du Peuple', 'Commissaire Syndical', 'Grand Camarade'],
-      khalija:  ['Membre', 'Représentant', 'Directeur Syndical', 'Grand Cheikh Ouvrier'],
+      republic: ['Adhérent', 'Secrétaire Général Adjoint', 'Secrétaire Général', 'Confédéral'],
+      narco:    ['Miembro', 'Secretario Adjunto', 'Secretario', 'El Capo Sindical'],
+      soviet:   ['Travailleur Uni', 'Commissaire Adjoint', 'Commissaire Syndical', 'Grand Camarade'],
+      khalija:  ['Membre', 'Directeur Adjoint', 'Directeur Syndical', 'Grand Cheikh Ouvrier'],
     },
     bonus: [
       { grade: 0, stat: 'pop_pnj',      valeur: 5,   desc: '+5 POP auprès des PNJ travailleurs' },
