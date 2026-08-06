@@ -660,7 +660,9 @@ const PLAN_LAYOUTS = {
     'stade':                       [496, 378, 126, 63],
     'place-formulaire-liberte':    [560, 483, 126, 98],
 
+    'usine-pharmaceutique-luthecia':[672, 393, 98, 140],
     'centre-multinodal-luthecia':  [784, 393, 98, 140],
+    'entrepot-logistique-luthecia': [896, 393, 98, 140],
 
     'centre-artisanal':            [14, 364, 154, 63],
     'armurerie':                   [196, 483, 98, 140],

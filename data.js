@@ -101,7 +101,7 @@ const WORLD = {
       isCapitale: true,
       streetName: 'Avenue de la République',
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-2','terrain-a-batir-3','terrain-a-batir-4','terrain-a-batir-5','office-notarial','stade','quartier-ambassades','place-formulaire-liberte','musee-ville-luthecia','musee-national-republia','parc-botanique-national'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-2','terrain-a-batir-3','terrain-a-batir-4','terrain-a-batir-5','office-notarial','stade','quartier-ambassades','place-formulaire-liberte','musee-ville-luthecia','musee-national-republia','parc-botanique-national','entrepot-logistique-luthecia','usine-pharmaceutique-luthecia'],
       buildingContext: {
         'stade': {
           name: "Stade Gourgeot — Olympique de Luthécia",
@@ -3998,6 +3998,68 @@ const BUILDINGS = {
   },
 
   // ---- CENTRES MULTINODAUX ----
+
+  'entrepot-logistique-luthecia': {
+    name: "Entrepôt Logistique de Luthécia",
+    shortName: "Entrepôt Logistique",
+    cat: "Économie",
+    icon: "ti-building-warehouse",
+    bgColor: "#141210",
+    desc: "L'entrepôt public de Luthécia. Réceptionne les livraisons quotidiennes de matières premières et les revend aux commerces de la ville.",
+    rooms: {
+      salle_ventes: {
+        name: "Salle des Ventes",
+        imageBg: "linear-gradient(135deg,#141210,#1c1815)",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entrepot-logistique-luthecia.png",
+        desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
+        persons: [],
+        orders: []
+      },
+      bureau_direction: {
+        name: "Bureau de Direction",
+        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
+        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
+
+  'usine-pharmaceutique-luthecia': {
+    name: "Usine Pharmaceutique Impériale de Républia",
+    shortName: "Usine Pharmaceutique",
+    cat: "Économie",
+    icon: "ti-vaccine",
+    bgColor: "#101418",
+    desc: "L'entreprise stratégique pharmaceutique de Républia. Transforme les plantes récoltées en médicaments, sous contrôle de l'État.",
+    rooms: {
+      salle_ventes: {
+        name: "Salle des Ventes",
+        imageBg: "linear-gradient(135deg,#101418,#161c22)",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/usine-pharmaceutique-luthecia.png",
+        desc: "L'accueil et la salle de vente directe des médicaments produits sur place.",
+        persons: [],
+        orders: []
+      },
+      bureau_direction: {
+        name: "Bureau de Direction",
+        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
+        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        desc: "Le bureau du directeur de l'usine. Accès sur rendez-vous.",
+        persons: [],
+        orders: []
+      },
+      salle_production: {
+        name: "Salle de Production",
+        imageBg: "linear-gradient(135deg,#0a0d10,#12161a)",
+        imageUrl: "https://images.unsplash.com/photo-1581093458791-9d42e3c9f2c1?w=1200&q=80",
+        desc: "Les lignes de production. Les plantes livrées y sont transformées en médicaments.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
 
   'centre-multinodal-luthecia': {
     name: "Centre Multinodal de Luthecia",

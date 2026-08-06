@@ -51,7 +51,7 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [50, 75], nom: 'Loge Maçonnique', type: 'batiment', buildingId: 'loge-maconnique' },
         { xPct: [75, 100],nom: 'Commissariat de Luthécia', type: 'batiment', buildingId: 'commissariat' }
       ],
-      liens: { gauche: 'luthecia-hotel-de-ville', droite: 'luthecia-centre-multimodal', toutDroit: null, arriere: null }
+      liens: { gauche: 'luthecia-hotel-de-ville', droite: 'luthecia-entrepot-logistique', toutDroit: null, arriere: null }
     },
 
     'luthecia-imprimerie': {
@@ -104,7 +104,7 @@ const RUE_CENTRALE_NOEUDS = {
         { name: 'Jean Bonde', role: 'Espion', rel: 'neutral', job: 'inspecteur' }
       ],
       // droite (aeroport) reste en position par defaut (a droite, centre vertical) — deja ce qui est demande.
-      liens: { gauche: 'luthecia-terrains-artisanal', droite: 'luthecia-centre-multimodal', toutDroit: null, arriere: 'luthecia-musees' },
+      liens: { gauche: 'luthecia-terrains-artisanal', droite: 'luthecia-usine-pharmaceutique', toutDroit: null, arriere: 'luthecia-musees' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);'
       }
@@ -126,12 +126,28 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
+    'luthecia-usine-pharmaceutique': {
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/usine-pharmaceutique-luthecia.png',
+      zones: [
+        { xPct: [0, 100], nom: 'Usine Pharmaceutique Impériale de Républia', type: 'batiment', buildingId: 'usine-pharmaceutique-luthecia' }
+      ],
+      liens: { gauche: 'luthecia-quartier-ambassades', droite: 'luthecia-centre-multimodal', toutDroit: null, arriere: null }
+    },
+
+    'luthecia-entrepot-logistique': {
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entrepot-logistique-luthecia.png',
+      zones: [
+        { xPct: [0, 100], nom: 'Entrepôt Logistique de Luthécia', type: 'batiment', buildingId: 'entrepot-logistique-luthecia' }
+      ],
+      liens: { gauche: 'luthecia-centre-multimodal', droite: 'luthecia-loge', toutDroit: null, arriere: null }
+    },
+
     'luthecia-centre-multimodal': {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-centre-multimodal.png',
       zones: [
         { xPct: [0, 100], nom: 'Centre Multimodal de Luthécia', type: 'batiment', buildingId: 'centre-multinodal-luthecia' }
       ],
-      liens: { gauche: 'luthecia-quartier-ambassades', droite: 'luthecia-loge', toutDroit: null, arriere: 'luthecia-stade-multimodal' },
+      liens: { gauche: 'luthecia-usine-pharmaceutique', droite: 'luthecia-entrepot-logistique', toutDroit: null, arriere: 'luthecia-stade-multimodal' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);'
       }
