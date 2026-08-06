@@ -179,7 +179,7 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [0, 100], nom: "Bureau National de l'Emploi", type: 'batiment', buildingId: 'bureau-national-emploi' }
       ],
-      liens: { gauche: 'luthecia-terrains-artisanal', droite: 'luthecia-quartier-ambassades', toutDroit: null, arriere: null }
+      liens: { gauche: null, droite: null, toutDroit: 'luthecia-quartier-ambassades', arriere: 'luthecia-terrains-artisanal' }
     },
 
     'luthecia-terrains-artisanal': {
