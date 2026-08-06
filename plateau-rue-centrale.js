@@ -531,7 +531,7 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
     droite:    'top:50%; right:14px; transform:translateY(-50%);'
   };
   const fleches = [
-    { dir: 'arriere',   icon: 'ti-arrow-back-up' },
+    { dir: 'arriere',   icon: 'ti-arrow-down' },
     { dir: 'gauche',    icon: 'ti-chevron-left'  },
     { dir: 'toutDroit', icon: 'ti-arrow-up'      },
     { dir: 'droite',    icon: 'ti-chevron-right' }
