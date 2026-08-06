@@ -4210,7 +4210,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#141210,#1c1815)",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entrepot-logistique-luthecia.png",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-ventes-entrepot-luthecia.png",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
         orders: []
@@ -4218,7 +4218,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-direction-entrepot-luthecia.png",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [],
         orders: []
@@ -4237,7 +4237,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#101418,#161c22)",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/usine-pharmaceutique-luthecia.png",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-ventes-usine-pharma-luthecia.png",
         desc: "L'accueil et la salle de vente directe des médicaments produits sur place.",
         persons: [],
         orders: []
@@ -4245,7 +4245,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-direction-usine-pharma-luthecia.png",
         desc: "Le bureau du directeur de l'usine. Accès sur rendez-vous.",
         persons: [],
         orders: []
@@ -4253,7 +4253,7 @@ const BUILDINGS = {
       salle_production: {
         name: "Salle de Production",
         imageBg: "linear-gradient(135deg,#0a0d10,#12161a)",
-        imageUrl: "https://images.unsplash.com/photo-1581093458791-9d42e3c9f2c1?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-production-usine-pharma-luthecia.png",
         desc: "Les lignes de production. Les plantes livrées y sont transformées en médicaments.",
         persons: [],
         orders: []
