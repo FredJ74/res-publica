@@ -429,8 +429,17 @@ const RUE_CENTRALE_NOEUDS = {
       zones: [
         { xPct: [55, 95], nom: 'Terrains à Bâtir', type: 'noeud', noeudId: 'psm-terrains-lots' }
       ],
-      liens: { droite: 'psm-carrefour-artisanal-scierie', arriere: 'psm-chantier-naval' },
+      liens: { droite: 'psm-pole-tabac-entrepot', arriere: 'psm-chantier-naval' },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
+    },
+
+    'psm-pole-tabac-entrepot': {
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entrepot-pole-tabac-psm.png',
+      zones: [
+        { xPct: [0, 45],   nom: 'Pôle Tabac & Alcools Sainte-Mariannaise', type: 'batiment', buildingId: 'pole-tabac-alcools-psm' },
+        { xPct: [55, 100], nom: 'Entrepôt Logistique de Sainte-Marie',     type: 'batiment', buildingId: 'entrepot-logistique-psm' }
+      ],
+      liens: { gauche: 'psm-terrains-vente', droite: 'psm-carrefour-artisanal-scierie', toutDroit: null, arriere: null }
     },
 
     'psm-terrains-lots': {
