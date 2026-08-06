@@ -104,7 +104,7 @@ const RUE_CENTRALE_NOEUDS = {
         { name: 'Jean Bonde', role: 'Espion', rel: 'neutral', job: 'inspecteur' }
       ],
       // droite (aeroport) reste en position par defaut (a droite, centre vertical) — deja ce qui est demande.
-      liens: { gauche: 'luthecia-terrains-artisanal', droite: 'luthecia-usine-pharmaceutique', toutDroit: null, arriere: 'luthecia-musees' },
+      liens: { gauche: 'luthecia-bureau-emploi', droite: 'luthecia-usine-pharmaceutique', toutDroit: null, arriere: 'luthecia-musees' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);'
       }
@@ -174,6 +174,14 @@ const RUE_CENTRALE_NOEUDS = {
       }
     },
 
+    'luthecia-bureau-emploi': {
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-national-emploi-luthecia.png',
+      zones: [
+        { xPct: [0, 100], nom: "Bureau National de l'Emploi", type: 'batiment', buildingId: 'bureau-national-emploi' }
+      ],
+      liens: { gauche: 'luthecia-terrains-artisanal', droite: 'luthecia-quartier-ambassades', toutDroit: null, arriere: null }
+    },
+
     'luthecia-terrains-artisanal': {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-terrains-artisanal.png',
       zones: [
@@ -181,7 +189,7 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [8, 60],   nom: 'Terrains à Bâtir',            type: 'noeud', noeudId: 'luthecia-terrains-lots' },
         { xPct: [60, 100], nom: 'Centre Artisanal de Luthécia', type: 'batiment', buildingId: 'centre-artisanal' }
       ],
-      liens: { gauche: 'luthecia-armurerie', droite: 'luthecia-quartier-ambassades', toutDroit: null, arriere: 'luthecia-centre-commercial' },
+      liens: { gauche: 'luthecia-armurerie', droite: 'luthecia-bureau-emploi', toutDroit: null, arriere: 'luthecia-centre-commercial' },
       flechesStyle: {
         arriere: 'bottom:10px; left:50%; transform:translateX(-50%);'
       }

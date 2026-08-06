@@ -101,7 +101,7 @@ const WORLD = {
       isCapitale: true,
       streetName: 'Avenue de la République',
       districts: ['centre','quartier-nord','quartier-sud'],
-      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-2','terrain-a-batir-3','terrain-a-batir-4','terrain-a-batir-5','office-notarial','stade','quartier-ambassades','place-formulaire-liberte','musee-ville-luthecia','musee-national-republia','parc-botanique-national','entrepot-logistique-luthecia','usine-pharmaceutique-luthecia'],
+      buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-2','terrain-a-batir-3','terrain-a-batir-4','terrain-a-batir-5','office-notarial','stade','quartier-ambassades','place-formulaire-liberte','musee-ville-luthecia','musee-national-republia','parc-botanique-national','entrepot-logistique-luthecia','usine-pharmaceutique-luthecia','bureau-national-emploi'],
       buildingContext: {
         'stade': {
           name: "Stade Gourgeot — Olympique de Luthécia",
@@ -3998,6 +3998,33 @@ const BUILDINGS = {
   },
 
   // ---- CENTRES MULTINODAUX ----
+
+  'bureau-national-emploi': {
+    name: "Bureau National de l'Emploi",
+    shortName: "Bureau de l'Emploi",
+    cat: "Économie",
+    icon: "ti-briefcase",
+    bgColor: "#0f1216",
+    desc: "L'office national qui recense les demandeurs d'emploi et les offres disponibles. Votre avenir, notre mission.",
+    rooms: {
+      accueil: {
+        name: "Accueil",
+        imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-national-emploi-luthecia.png",
+        desc: "Le hall d'accueil du Bureau National de l'Emploi. Offres d'emploi, accompagnement, formation, création d'activité.",
+        persons: [],
+        orders: []
+      },
+      bureau_direction: {
+        name: "Bureau de Direction",
+        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
+        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        desc: "Le bureau du directeur de l'office. Accès sur rendez-vous.",
+        persons: [],
+        orders: []
+      }
+    }
+  },
 
   'entrepot-logistique-luthecia': {
     name: "Entrepôt Logistique de Luthécia",

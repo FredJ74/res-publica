@@ -651,6 +651,7 @@ const PLAN_LAYOUTS = {
     // Imprimerie a l'ouest (7 batiments), Hotel de Ville->Loge a l'est (8 batiments).
 
     'quartier-ambassades':         [378, 133, 196, 70],
+    'bureau-national-emploi':      [14, 133, 154, 70],
     'musee-ville-luthecia':        [378, 245, 105, 56],
     'musee-national-republia':     [483, 245, 105, 56],
     'parc-botanique-national':     [378, 175, 105, 56],
