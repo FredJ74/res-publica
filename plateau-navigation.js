@@ -325,9 +325,11 @@ function enterBuilding(buildingId, skipAutoRoom) {
   document.getElementById('bat-nom').textContent = displayName;
   document.getElementById('bat-cat').textContent = displayCat;
 
-  // Onglets pieces
-  const rooms = Object.entries(b.rooms || {});
+  // Onglets pieces — fusionne les pieces de base avec d'eventuelles pieces supplementaires
+  // propres a une ville (ctx.roomsExtra), sans jamais les ajouter aux autres villes qui
+  // partagent la meme definition de batiment globale (ex: centre-affaires).
   const ctxForTabs = getBuildingContext(buildingId);
+  const rooms = Object.entries({ ...(b.rooms || {}), ...(ctxForTabs?.roomsExtra || {}) });
   document.getElementById('pieces-tabs').innerHTML = rooms.map(([roomId, room], i) => {
     const isZoneEmb = roomId === 'zone_embarquement';
     const locked = isZoneEmb && !state.douanePassee;
@@ -375,7 +377,8 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   const b = BUILDINGS[buildingId];
   if (!b) return;
-  const room = b.rooms?.[roomId];
+  const ctxRoomsExtra = getBuildingContext(buildingId)?.roomsExtra;
+  const room = b.rooms?.[roomId] || ctxRoomsExtra?.[roomId];
   if (!room) return;
 
   state.currentRoom = roomId;

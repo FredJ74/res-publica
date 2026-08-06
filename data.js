@@ -225,6 +225,20 @@ const WORLD = {
             }
           }
         },
+        'centre-affaires': {
+          // Annexe du Bureau National de l'Emploi, propre a PSM (voir roomsExtra,
+          // plateau-navigation.js). Simple salle, pas de mecanique dediee pour l'instant.
+          roomsExtra: {
+            bureau_emploi_annexe: {
+              name: "Bureau National de l'Emploi (Annexe)",
+              imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
+              imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-emploi-annexe-psm.png",
+              desc: "L'antenne locale du Bureau National de l'Emploi de Républia. Offres d'emploi, accompagnement, formation.",
+              persons: [],
+              orders: []
+            }
+          }
+        },
         'stade': {
           name: "Stade de La Brise Mariannaise",
           desc: "Face a l'ocean. Le vent du large emporte parfois plus que les ballons.",
