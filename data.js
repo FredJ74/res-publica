@@ -1832,7 +1832,7 @@ const BUILDINGS = {
         desc: "L'accueil de la banque nationale. Propre, froid, officiel.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/banque-nationale-accueil.png",
         persons: [
-          {name:'Directeur Mercier', role:"PNJ - Directeur d'agence", rel:'neutral', job:'directeur'}
+          {name:'Laurent Barre', role:"PNJ - Directeur d'agence", rel:'neutral', job:'directeur'}
         ],
         orders: [
           {fn:'gerer_finances', label:'Gerer mon compte',    pa:0, cost:0,    type:'legal', icon:'ti-chart-bar',   successRate:100, desc:'Deposer ou retirer de l\'argent. Voir son solde.'},
@@ -1845,7 +1845,7 @@ const BUILDINGS = {
       coffre_privatif: {
         name: "Coffre Privatif — Local à louer",
         imageBg: "linear-gradient(135deg,#050810,#0a0f15)",
-        desc: "📋 À LOUER — Espace sécurisé dans les sous-sols de la banque. Accès biométrique, surveillance 24h. Le Directeur Mercier ne pose jamais de questions sur le contenu.",
+        desc: "📋 À LOUER — Espace sécurisé dans les sous-sols de la banque. Accès biométrique, surveillance 24h. Le Directeur Barre ne pose jamais de questions sur le contenu.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/banque-nationale-coffres.png",
         isLocationRoom: true,
         locationData: { prix: 600, bonusPOP: 0, bonusINF: 4, bonusDIS: 12, label: 'Coffre Privatif', tier: 1 },

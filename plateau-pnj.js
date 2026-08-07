@@ -444,7 +444,7 @@ function verifierSuccesMaxence(cle) {
     }
   }
 
-  // Enigme du portrait disparu : Clerc Delhune (notaire) et Directeur Mercier (banquier),
+  // Enigme du portrait disparu : Clerc Delhune (notaire) et Laurent Barre (banquier),
   // temoignages parles en complement des archives ecrites.
   const nomCourtEnigme = (pnj.name || '').replace(' (PNJ)', '').trim();
   if (typeof enigme1EtapeActive === 'function' && enigme1EtapeActive()) {
@@ -452,7 +452,7 @@ function verifierSuccesMaxence(cle) {
       speech.textContent = "Thibault... Pierre Thibault, c'est ça ? Oui, j'ai eu le dossier de sa succession entre les mains, il y a bien longtemps. De mémoire, il y avait mention d'un coffre à la Banque Nationale, toujours actif d'ailleurs. Pour le détail exact, il faudra consulter les archives notariales.";
       return;
     }
-    if (nomCourtEnigme === 'Directeur Mercier' && /coffre|thibault/i.test(action)) {
+    if (nomCourtEnigme === 'Laurent Barre' && /coffre|thibault/i.test(action)) {
       speech.textContent = "Un coffre lié à cette succession ? Oui, la location n'a jamais été interrompue depuis... eh bien, depuis très longtemps. Mais je ne peux vous dire qui la règle aujourd'hui — secret bancaire, vous comprenez. Il vous faudrait une autorisation en bonne et due forme pour aller plus loin.";
       return;
     }

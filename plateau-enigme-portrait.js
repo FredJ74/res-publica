@@ -535,7 +535,7 @@ function doPresenterAutorisationCoffre() {
   const autorise = state.char && state.char.enigme1 && state.char.enigme1.autorisationCoffre;
 
   let html = '<div style="padding:1.2rem">';
-  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.05em;margin-bottom:.6rem">Directeur Mercier</div>';
+  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.05em;margin-bottom:.6rem">Laurent Barre</div>';
 
   if (!autorise) {
     html += '<div style="font-size:.88rem;color:#e0d8c0;line-height:1.5">« Je suis navré, mais sans une autorisation en bonne et due forme, je ne peux rien vous dire sur un quelconque coffre. »</div>';
