@@ -4054,7 +4054,7 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&q=80",
         desc: "L'accueil et la salle de vente directe du carburant produit sur place.",
         persons: [],
-        orders: []
+        orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:1, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -4143,7 +4143,7 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entrepot-pole-tabac-psm.png",
         desc: "L'accueil et la salle de vente directe, alcools et tabac confondus.",
         persons: [],
-        orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
+        orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:1, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -4240,7 +4240,7 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-ventes-usine-pharma-luthecia.png",
         desc: "L'accueil et la salle de vente directe des médicaments produits sur place.",
         persons: [],
-        orders: []
+        orders: [{fn:'vente_directe_usine', label:'Vente directe', pa:1, cost:0, type:'legal', icon:'ti-cash-register', successRate:100, desc:'Acheter la production locale, disponible en quantité limitée.'}]
       },
       bureau_direction: {
         name: "Bureau de Direction",
