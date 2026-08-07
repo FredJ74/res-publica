@@ -2131,15 +2131,54 @@ function ouvrirDonPnjModal(encodedPnj) {
     default:'Un geste de bonne volonte. Effets variables.'
   };
   // modal-pnj reste ouvert
-  document.getElementById('postes-modal-title').textContent = 'Donner de l\'argent a ' + pnj.name.replace(' (PNJ)', '');
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' + (jobLabels[job] || jobLabels.default) + '</div>' +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MONTANT (' + cur + ')</div>' +
-    '<input id="don-pnj-montant" type="number" min="10" step="50" placeholder="Ex: 200" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.7rem"/>' +
-    '<button onclick="confirmerDonPnj(\'' + encodedPnj + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💰 Donner</button>' +
-    '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Donner à ' + pnj.name.replace(' (PNJ)', '');
+  let html = '<div style="padding:.8rem 1rem">';
+  html += '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' + (jobLabels[job] || jobLabels.default) + '</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MONTANT (' + cur + ')</div>';
+  html += '<input id="don-pnj-montant" type="number" min="10" step="50" placeholder="Ex: 200" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.7rem"/>';
+  html += '<button onclick="confirmerDonPnj(\'' + encodedPnj + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💰 Donner de l\'argent</button>';
+
+  // Donner un objet — reserve aux vrais joueurs (semantique non definie pour un PNJ non
+  // employe). Pas de mail de confirmation (juste le journal), sur demande de Fred.
+  if (pnj.isPJ && (state.inventory || []).length > 0) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#8a6a20;margin:.9rem 0 .4rem">OU DONNER UN OBJET</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:.3rem;max-height:200px;overflow-y:auto">';
+    state.inventory.forEach((item, idx) => {
+      const qte = item.qty || 1;
+      html += '<button onclick="confirmerDonObjetPj(\'' + encodedPnj + '\',' + idx + ')" style="display:flex;justify-content:space-between;align-items:center;padding:.4rem .6rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem;text-align:left">';
+      html += '<span><i class="ti ' + (item.icon||'ti-package') + '" style="margin-right:.3rem"></i>' + item.name + (qte > 1 ? ' (×' + qte + ')' : '') + '</span>';
+      html += '</button>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// Donne un objet a un vrai joueur (jamais a un PNJ non employe — semantique non definie).
+// Contrairement a donnerObjetAJoueur (fiche personnage), pas de mail de confirmation : le
+// don est seulement note dans le journal, sur demande explicite de Fred le 7 aout 2026.
+async function confirmerDonObjetPj(encodedPnj, idx) {
+  let pnj;
+  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+  const item = state.inventory[idx];
+  if (!item || !pnj.isPJ) return;
+
+  const cible = pnj.name.replace(' (PNJ)', '');
+  state.inventory.splice(idx, 1);
+  renderInventory();
+  document.getElementById('modal-postes')?.classList.remove('open');
+
+  // Persistance reelle cote destinataire (corrige un trou : l'objet disparaissait avant
+  // sans jamais vraiment arriver chez l'autre joueur). Recupere a sa prochaine connexion.
+  if (typeof sbDonnerObjetJoueur === 'function') {
+    await sbDonnerObjetJoueur(item, cible, state.char?.name || 'Anonyme').catch(() => {});
+  }
+
+  showToast('Objet donné', '"' + item.name + '" donné à ' + cible + '.', true, true);
+  addJournalEntry('Vous avez donné "' + item.name + '" à ' + cible + '.', 'event-info');
 }
 
 async function confirmerDonPnj(encodedPnj) {

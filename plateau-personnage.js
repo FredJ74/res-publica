@@ -1106,7 +1106,7 @@ async function ouvrirDetailObjetInventaire(idx) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-function donnerObjetAJoueur(idx) {
+async function donnerObjetAJoueur(idx) {
   const item = state.inventory[idx];
   const cible = document.getElementById('donner-objet-cible')?.value;
   if (!item || !cible) return;
@@ -1116,6 +1116,12 @@ function donnerObjetAJoueur(idx) {
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Objet donné', 'Vous avez donné "' + item.name + '" à ' + cible + '.', true, true);
   addJournalEntry('Vous avez donné "' + item.name + '" à ' + cible + '.', 'event-info');
+
+  // Persistance reelle cote destinataire (corrige un trou : l'objet disparaissait avant
+  // sans jamais vraiment arriver chez l'autre joueur — seul le mail etait reel).
+  if (typeof sbDonnerObjetJoueur === 'function') {
+    await sbDonnerObjetJoueur(item, cible, state.char?.name || 'Anonyme').catch(() => {});
+  }
 
   // Notifier le destinataire par mail reel
   if (typeof sbSendMail === 'function') {

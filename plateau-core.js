@@ -314,6 +314,10 @@ window.addEventListener('DOMContentLoaded', () => {
   verifierNouveauxMails();
   setInterval(verifierNouveauxMails, 120000);
 
+  // Vérification des objets reçus (dons d'un autre joueur) toutes les 2 minutes
+  verifierObjetsRecus();
+  setInterval(verifierObjetsRecus, 120000);
+
   // Batiments fermes (incendie/explosifs) — au chargement puis toutes les 2 minutes
   setTimeout(() => chargerBatimentsFermes(), 1000);
   setInterval(chargerBatimentsFermes, 120000);
