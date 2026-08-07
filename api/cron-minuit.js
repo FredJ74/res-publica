@@ -566,7 +566,10 @@ async function livrerEntrepotsQuotidien() {
     for (const { buildingId, city } of ENTREPOTS_VILLES) {
       const etat = await sbGetBatimentEtat('republic', city, buildingId).catch(() => null);
       if (!etat) continue; // batiment pas encore accessible dans cette ville
-      const entrepot = etat.entrepot || { stock: {}, caisse: 0 };
+      // Dotation de depart : de quoi remplir un stock vide a son plafond au prix fournisseur
+      // (~8500 FR, calcule sur les 8 ressources livrables). Sans ca, la caisse resterait a 0
+      // et l'entrepot ne pourrait jamais payer sa toute premiere livraison.
+      const entrepot = etat.entrepot || { stock: {}, caisse: 8500 };
       const stock = entrepot.stock || {};
       let caisse = entrepot.caisse || 0;
       let unitesEntrepot = 0;
