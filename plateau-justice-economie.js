@@ -2803,13 +2803,23 @@ async function confirmerAchatEntrepot(buildingId) {
     return;
   }
 
-  // Deuxieme passe : appliquer (deduire argent+stock, crediter la reserve du joueur)
-  state.arg -= total;
-  if (!state.ressourcesPersonnelles) state.ressourcesPersonnelles = {};
-  for (const [cle, { qte }] of Object.entries(achats)) {
-    stock[cle] = (stock[cle] || 0) - qte;
-    state.ressourcesPersonnelles[cle] = (state.ressourcesPersonnelles[cle] || 0) + qte;
+  // Deuxieme passe : appliquer (deduire argent+stock, crediter l'inventaire du joueur —
+  // plafonne globalement a 100 objets, voir addToInventory/plateau-divers.js). Si la place
+  // manque en cours de route, le reste de l'achat est annule et rembourse au prorata.
+  let totalReellementPaye = 0;
+  for (const [cle, { qte, prix }] of Object.entries(achats)) {
+    const res = RESSOURCES_ECONOMIE[cle];
+    const qteAjoutee = addToInventory({
+      name: res.label, icon: res.icon, stackable: true, stackKey: cle, qty: qte,
+      desc: 'Ressource achetée à l\'entrepôt logistique.'
+    });
+    if (qteAjoutee > 0) {
+      stock[cle] = (stock[cle] || 0) - qteAjoutee;
+      totalReellementPaye += qteAjoutee * prix;
+    }
   }
+  state.arg -= totalReellementPaye;
+  total = totalReellementPaye;
 
   etat.entrepot = { ...(etat.entrepot || {}), stock };
   if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, etat).catch(() => {});
