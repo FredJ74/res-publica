@@ -466,10 +466,45 @@ async function interrogerAccueilSurObjets(cibleNom) {
   addJournalEntry('L\'agent d\'entretien vous confie que ' + cibleNom + ' a récupéré ces objets :<br>' + liste, 'event-info');
 }
 
+// Plafond total transportable par un joueur, TOUT compris (ressources empilables et objets
+// uniques comptent chacun pour leur quantite/1 vers le meme plafond) — a chacun de se
+// debarrasser des objets qui ne servent plus a rien. Decision prise avec Fred le 7 aout 2026.
+const PLAFOND_INVENTAIRE_EMPILABLE = 100;
+
+function getTotalInventaire() {
+  return (state.inventory || []).reduce((s, i) => s + (i.qty || 1), 0);
+}
+
+// Ajoute un objet a l'inventaire, plafonne globalement a PLAFOND_INVENTAIRE_EMPILABLE (tout
+// type d'objet confondu). Si item.stackable et item.stackKey correspondent a une ligne deja
+// presente, incremente sa quantite plutot que de dupliquer une ligne par unite ; sinon,
+// pousse un objet unique classique (qty implicite 1).
 function addToInventory(item) {
+  const dejaEnStock = getTotalInventaire();
+  const qteVoulue = item.qty || 1;
+  const placeDisponible = Math.max(0, PLAFOND_INVENTAIRE_EMPILABLE - dejaEnStock);
+  if (placeDisponible <= 0) {
+    if (typeof showToast === 'function') showToast('Inventaire plein', 'Plafond de ' + PLAFOND_INVENTAIRE_EMPILABLE + ' objets atteint.', false);
+    return 0;
+  }
+
+  if (item.stackable && item.stackKey) {
+    const qteReelle = Math.min(qteVoulue, placeDisponible);
+    const existant = (state.inventory || []).find(i => i.stackable && i.stackKey === item.stackKey);
+    if (existant) {
+      existant.qty = (existant.qty || 1) + qteReelle;
+    } else {
+      state.inventory.push({ ...item, qty: qteReelle });
+    }
+    renderInventory();
+    return qteReelle;
+  }
+
   state.inventory.push(item);
   renderInventory();
+  return 1;
 }
+
 function renderInventory() {
   const el = document.getElementById('inv-items');
   if (!el) return;
@@ -480,11 +515,12 @@ function renderInventory() {
   el.innerHTML = state.inventory.map((item, idx) => {
     const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.8rem"> ⚠ Illégal</span>' : '';
     const expiry = item.expireDay ? '<div style="font-size:.8rem;color:#6a5030">Expire jour ' + item.expireDay + '</div>' : '';
+    const qtyBadge = (item.stackable && item.qty > 1) ? '<span style="color:#C9A84C;font-weight:bold"> ×' + item.qty + '</span>' : '';
     return '<div class="inv-item" style="display:flex;align-items:center;justify-content:space-between;gap:.4rem">' +
       '<div style="display:flex;align-items:center;gap:.4rem;flex:1;min-width:0;cursor:pointer" onclick="ouvrirDetailObjetInventaire(' + idx + ')">' +
         '<i class="ti ' + (item.icon||'ti-package') + '" style="font-size:.85rem;color:#8a6a20;flex-shrink:0"></i>' +
         '<div style="min-width:0">' +
-          '<div style="font-size:.78rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + legal + '</div>' +
+          '<div style="font-size:.78rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + qtyBadge + legal + '</div>' +
           (item.desc ? '<div style="font-size:.82rem;color:#9a8a68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.desc.substring(0,60) + (item.desc.length>60?'...':'') + '</div>' : '') +
           expiry +
         '</div>' +
