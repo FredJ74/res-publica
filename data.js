@@ -4062,7 +4062,7 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
         desc: "Le bureau du directeur de la raffinerie. Accès sur rendez-vous.",
         persons: [],
-        orders: []
+        orders: [{fn:'nommer_directeur_raffinerie', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de la raffinerie. Poste exclusif (sauf député).'}]
       },
       salle_production: {
         name: "Salle de Production",
@@ -4151,7 +4151,7 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
         desc: "Le bureau du directeur du pôle. Accès sur rendez-vous.",
         persons: [],
-        orders: []
+        orders: [{fn:'nommer_directeur_tabac_alcools', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur du Pôle Tabac & Alcools. Poste exclusif (sauf député).'}]
       },
       distillerie: {
         name: "Distillerie",
@@ -4248,7 +4248,7 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-direction-usine-pharma-luthecia.png",
         desc: "Le bureau du directeur de l'usine. Accès sur rendez-vous.",
         persons: [],
-        orders: []
+        orders: [{fn:'nommer_directeur_pharma', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de l\'Usine Pharmaceutique. Poste exclusif (sauf député).'}]
       },
       salle_production: {
         name: "Salle de Production",
@@ -5618,7 +5618,13 @@ const POSTES_NOMMES_EXCLUSIFS = {
   min_just:    { label: 'Ministre de la Justice',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
   min_def:     { label: 'Ministre de la Defense',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
   min_info:    { label: "Ministre de l'Information",     nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
-  min_ae:      { label: 'Ministre des Affaires Etrangeres', nommePar: 'pm',     scope: 'pays', compatibles: ['depute'] }
+  min_ae:      { label: 'Ministre des Affaires Etrangeres', nommePar: 'pm',     scope: 'pays', compatibles: ['depute'] },
+
+  // Directeurs des entreprises stategiques — nommes par le Ministre des Finances, portee
+  // nationale (comme les ministres/juge), meme si physiquement rattaches a une ville precise.
+  directeur_pharma:        { label: "Directeur de l'Usine Pharmaceutique", nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
+  directeur_tabac_alcools: { label: 'Directeur du Pôle Tabac & Alcools',   nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
+  directeur_raffinerie:    { label: 'Directeur de la Raffinerie',          nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] }
 };
 
 // Nouveaux ordres v6

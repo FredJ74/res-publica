@@ -3878,6 +3878,30 @@ async function annulerAffaire(refId, mode) {
   }
 }
 
+function ouvrirModalNommerDirecteurPharma() {
+  if (state.poste?.id !== 'min_fin') {
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un directeur.', false);
+    return;
+  }
+  ouvrirNominerPosteNomme('directeur_pharma');
+}
+
+function ouvrirModalNommerDirecteurTabacAlcools() {
+  if (state.poste?.id !== 'min_fin') {
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un directeur.', false);
+    return;
+  }
+  ouvrirNominerPosteNomme('directeur_tabac_alcools');
+}
+
+function ouvrirModalNommerDirecteurRaffinerie() {
+  if (state.poste?.id !== 'min_fin') {
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un directeur.', false);
+    return;
+  }
+  ouvrirNominerPosteNomme('directeur_raffinerie');
+}
+
 function ouvrirModalNommerJuge() {
   if (state.poste?.id !== 'min_just') {
     showToast('Accès refusé', 'Seul le Ministre de la Justice peut nommer un juge.', false);

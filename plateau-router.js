@@ -128,6 +128,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(); return; }
   if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(); return; }
   if (fn === 'vente_directe_usine') { doOuvrirVenteDirecteUsine(); return; }
+  if (fn === 'nommer_directeur_pharma') { ouvrirModalNommerDirecteurPharma(); return; }
+  if (fn === 'nommer_directeur_tabac_alcools') { ouvrirModalNommerDirecteurTabacAlcools(); return; }
+  if (fn === 'nommer_directeur_raffinerie') { ouvrirModalNommerDirecteurRaffinerie(); return; }
   if (fn === 'emprunter_construction') { ouvrirModalPretBancaire('nationale', 'travaux'); return; }
   if (fn === 'emprunter') {
     const typeBanque = state.currentBuilding === 'banque-privee' ? 'privee' : 'nationale';
