@@ -210,7 +210,7 @@ const REPARTITION_DEFAULT = {
 };
 
 const EMPIRE_STYLES = {
-  republic: { tone: "bureaucratique français épuisé, cynique poli", religion: "le Tabernacle des Impôts", currency: "FR", leader: "le Président" },
+  republic: { tone: "bureaucratique français épuisé, cynique poli", religion: "le Papyrusisme", currency: "FR", leader: "le Président" },
   narco:    { tone: "jovial menaçant, corruption assumée, espagnol de bazar", religion: "le Laboratoire de Prière", currency: "PS", leader: "El Don" },
   soviet:   { tone: "idéologique soviétique, formulaires sacrés, Camarade partout", religion: "le Kolkhoze Spirituel", currency: "RP", leader: "le Parti" },
   khalija:  { tone: "protocole royal excessif, Loukoum Divin omniprésent, bénédictions imbriquées", religion: "la Pâtisserie Sacrée", currency: "DR", leader: "le Sheikh" }
