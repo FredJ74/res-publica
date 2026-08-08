@@ -308,15 +308,24 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'psm-carrefour-artisanal-scierie': {
-      // Carrefour Centre Artisanal / Scierie. Une seule entree connue pour l'instant
-      // (depuis le carrefour Musee, via son lien toutDroit quand on arrive du Tribunal).
-      // 'psm-centre-multimodal' est un PLACEHOLDER (scene 1 du 27 juillet, pas encore codee).
+      // Carrefour Centre Artisanal / Scierie. Une seule photo (pas d'imagesParArrivee : la vue
+      // ne change pas selon la provenance), mais DEUX entrees reelles depuis le 9 aout 2026 :
+      // depuis le carrefour Musee (au sud, via son lien toutDroit quand on arrive du Tribunal)
+      // ET depuis psm-pole-tabac-entrepot (a l'ouest, via son lien droite). Le retour "arriere"
+      // etait fige sur le sud dans les deux cas (bug remonte par Fred le 9 aout 2026) : un joueur
+      // arrive par l'ouest qui cliquait retour se retrouvait teleporte au carrefour sud. Corrige
+      // avec liensParArrivee, qui ne fait varier que "arriere" (droite/toutDroit inchanges, la
+      // photo ne tourne pas). 'psm-centre-multimodal' n'est plus un placeholder, deja code.
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-carrefour-artisanal-scierie.png',
       zones: [
         { xPct: [0, 26],   nom: 'Centre Artisanal',       type: 'batiment', buildingId: 'centre-artisanal' },
         { xPct: [74, 100], nom: 'Scierie Guy Tarembois',  type: 'batiment', buildingId: 'zone-production' }
       ],
       liens: { toutDroit: 'psm-centre-multimodal', droite: 'psm-carrefour-musee', arriere: 'psm-carrefour-musee' },
+      liensParArrivee: {
+        'psm-carrefour-musee':      { toutDroit: 'psm-centre-multimodal', droite: 'psm-carrefour-musee', arriere: 'psm-carrefour-musee' },
+        'psm-pole-tabac-entrepot':  { toutDroit: 'psm-centre-multimodal', droite: 'psm-carrefour-musee', arriere: 'psm-pole-tabac-entrepot' }
+      },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);', toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
     },
 
@@ -434,12 +443,21 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'psm-pole-tabac-entrepot': {
+      // Vue tres large : Pole Tabac occupe toute la moitie gauche du cadre (les cuves montent
+      // jusqu'en haut), Entrepot Logistique toute la moitie droite (bardage jusqu'en haut) —
+      // les positions par defaut de gauche/droite (top:50%, colle au bord) tombaient en plein sur
+      // les enseignes des deux batiments. Fleches deplacees en bas, sur la route/le trottoir
+      // degage entre les deux, apres inspection de l'image reelle (ajoutee le 9 aout 2026).
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entrepot-pole-tabac-psm.png',
       zones: [
         { xPct: [0, 45],   nom: 'Pôle Tabac & Alcools Sainte-Mariannaise', type: 'batiment', buildingId: 'pole-tabac-alcools-psm' },
         { xPct: [55, 100], nom: 'Entrepôt Logistique de Sainte-Marie',     type: 'batiment', buildingId: 'entrepot-logistique-psm' }
       ],
-      liens: { gauche: 'psm-terrains-vente', droite: 'psm-carrefour-artisanal-scierie', toutDroit: null, arriere: null }
+      liens: { gauche: 'psm-terrains-vente', droite: 'psm-carrefour-artisanal-scierie', toutDroit: null, arriere: null },
+      flechesStyle: {
+        gauche: 'bottom:16px; left:16px;',
+        droite: 'bottom:16px; right:16px;'
+      }
     },
 
     'psm-terrains-lots': {
