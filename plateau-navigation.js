@@ -172,12 +172,15 @@ function showVueRue() {
     conteneur.id = 'rue-centrale-conteneur';
     conteneur.style.cssText = 'position:absolute; inset:0; z-index:0;';
     rueImage.insertBefore(conteneur, rueImage.firstChild);
-    // Reprend le dernier noeud visite dans cette ville (ex: en sortant d'un batiment)
-    // plutot que de toujours reinitialiser sur le noeud de depart.
-    const noeudReprise = typeof obtenirNoeudRueCentraleMemorise === 'function'
+    // Reprend le dernier noeud visite dans cette ville (ex: en sortant d'un batiment),
+    // ainsi que sa provenance memorisee (depuisNoeudId) plutot que de toujours reinitialiser
+    // sur le noeud de depart. Sans depuisNoeudId, imagesParArrivee/zonesParArrivee/liensParArrivee
+    // ne peuvent jamais se declencher apres une visite de batiment (bug remonte le 9 aout 2026,
+    // ex: psm-carrefour-musee qui a 3 batiments cliquables).
+    const reprise = typeof obtenirNoeudRueCentraleMemorise === 'function'
       ? obtenirNoeudRueCentraleMemorise(state.country, state.currentCity, noeudDepart)
-      : noeudDepart;
-    initialiserRueCentrale(state.country, noeudReprise);
+      : { noeudId: noeudDepart, depuisNoeudId: null };
+    initialiserRueCentrale(state.country, reprise.noeudId, reprise.depuisNoeudId);
   } else {
     // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
     if (minimap) minimap.style.display = '';

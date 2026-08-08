@@ -486,6 +486,12 @@ let rueCentraleDepuisNoeud = null; // memorise le noeud d'origine, pour liensPar
 // du bug "je me retrouve toujours devant le Palais Presidentiel en sortant".
 let rueCentraleDerniersNoeuds = {};
 
+// Retourne { noeudId, depuisNoeudId }. depuisNoeudId est necessaire pour que
+// imagesParArrivee/zonesParArrivee/liensParArrivee continuent de fonctionner apres une
+// visite de batiment (bug remonte le 9 aout 2026 : seul noeudId etait memorise avant, donc
+// showVueRue() perdait systematiquement la provenance en sortant d'un batiment, ce qui
+// reinitialisait silencieusement la scene sur son cas par defaut a chaque fois — visible
+// sur tout noeud multi-entrees ayant au moins un batiment cliquable, ex: psm-carrefour-musee).
 function obtenirNoeudRueCentraleMemorise(pays, ville, noeudDepartParDefaut) {
   // Priorite 1 : memoire de la session en cours (evite une lecture localStorage inutile)
   if (rueCentraleDerniersNoeuds[pays + '|' + ville]) return rueCentraleDerniersNoeuds[pays + '|' + ville];
@@ -494,16 +500,20 @@ function obtenirNoeudRueCentraleMemorise(pays, ville, noeudDepartParDefaut) {
   try {
     const cle = 'respublica_ruecentrale_' + (typeof state !== 'undefined' && state.char?.name || 'default');
     const saved = JSON.parse(localStorage.getItem(cle) || 'null');
-    if (saved && saved.pays === pays && saved.ville === ville && saved.noeudId) return saved.noeudId;
+    // saved.depuisNoeudId absent (anciennes sauvegardes, avant le 9 aout 2026) -> null,
+    // comportement identique a avant (cas par defaut du noeud), pas de migration necessaire.
+    if (saved && saved.pays === pays && saved.ville === ville && saved.noeudId) {
+      return { noeudId: saved.noeudId, depuisNoeudId: saved.depuisNoeudId || null };
+    }
   } catch (e) {}
-  return noeudDepartParDefaut;
+  return { noeudId: noeudDepartParDefaut, depuisNoeudId: null };
 }
 
-function memoriserNoeudRueCentrale(pays, ville, noeudId) {
-  rueCentraleDerniersNoeuds[pays + '|' + ville] = noeudId;
+function memoriserNoeudRueCentrale(pays, ville, noeudId, depuisNoeudId) {
+  rueCentraleDerniersNoeuds[pays + '|' + ville] = { noeudId, depuisNoeudId: depuisNoeudId || null };
   try {
     const cle = 'respublica_ruecentrale_' + (typeof state !== 'undefined' && state.char?.name || 'default');
-    localStorage.setItem(cle, JSON.stringify({ pays, ville, noeudId }));
+    localStorage.setItem(cle, JSON.stringify({ pays, ville, noeudId, depuisNoeudId: depuisNoeudId || null }));
   } catch (e) {}
 }
 
@@ -526,9 +536,9 @@ function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
   return null;
 }
 
-function initialiserRueCentrale(pays, noeudDepart) {
+function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
   rueCentraleNoeudActuel = noeudDepart;
-  afficherNoeudRue(pays, noeudDepart);
+  afficherNoeudRue(pays, noeudDepart, depuisNoeud);
 }
 
 function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
@@ -537,7 +547,7 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
   rueCentraleNoeudActuel = noeudId;
   rueCentraleDepuisNoeud = depuisNoeudId || null;
   if (typeof state !== 'undefined' && state.currentCity) {
-    memoriserNoeudRueCentrale(pays, state.currentCity, noeudId);
+    memoriserNoeudRueCentrale(pays, state.currentCity, noeudId, rueCentraleDepuisNoeud);
   }
 
   if (typeof queteAccueilDoitDemarrer === 'function' && queteAccueilDoitDemarrer(pays, noeudId)) {
