@@ -1619,7 +1619,7 @@ const BUILDINGS = {
           {name:'Clerc Delhune (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
         ],
         orders: [
-          {fn:'redaction_testament', label:'Rediger un testament', pa:2, cost:500, type:'legal', icon:'ti-file-text', successRate:100, desc:'Designer un heritier de son choix, plutot que la devolution par defaut.'},
+          {fn:'redaction_testament', label:'Rediger un testament', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Designer un heritier de son choix, plutot que la devolution par defaut. (Gratuit temporairement — la devolution par defaut s\'applique encore dans tous les cas, audit Ordres a venir.)'},
           {fn:'consulter_succession', label:'Consulter une succession', pa:1, cost:100, type:'legal', icon:'ti-search', successRate:100, desc:'Verifier qui a herite de qui, et de quoi.'}
         ]
       },
@@ -1635,7 +1635,7 @@ const BUILDINGS = {
           {fn:'acte_vente_terrain', label:'Officialiser une vente de terrain', pa:1, cost:300, type:'legal', icon:'ti-home-check', successRate:100, desc:'Le notaire authentifie la transaction. Acte de propriete delivre.'},
           {fn:'transferer_compromis', label:'Transférer un compromis', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, desc:'Céder votre compromis en cours à un autre joueur, qui devra venir valider.'},
           {fn:'valider_transfert_compromis', label:'Valider un compromis reçu', pa:1, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Accepter un compromis qu\'un autre joueur vous a proposé de reprendre.'},
-          {fn:'contrat_mariage', label:'Negocier un contrat de mariage', pa:2, cost:400, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Choisir le regime matrimonial (communaute, separation de biens) plutot que la copropriete par defaut.'},
+          {fn:'contrat_mariage', label:'Negocier un contrat de mariage', pa:2, cost:0, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Choisir le regime matrimonial (communaute, separation de biens) plutot que la copropriete par defaut. (Gratuit temporairement — la copropriete par defaut s\'applique encore dans tous les cas, audit Ordres a venir.)'},
           {fn:'demander_divorce', label:'Demander le divorce', pa:1, cost:200, type:'legal', icon:'ti-heart-broken', successRate:100, desc:'Dissout votre mariage actuel. Votre conjoint en sera informé par mail.'}
         ]
       },
@@ -1837,7 +1837,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'gerer_finances', label:'Gerer mon compte',    pa:0, cost:0,    type:'legal', icon:'ti-chart-bar',   successRate:100, desc:'Deposer ou retirer de l\'argent. Voir son solde.'},
-          {fn:'investir',       label:'Investir',            pa:2, cost:500,  type:'legal', icon:'ti-trending-up', successRate:75,  desc:'Placer des fonds. Rendement dans 24h.'},
+          {fn:'investir',       label:'Investir',            pa:2, cost:0,  type:'legal', icon:'ti-trending-up', successRate:75,  desc:'Placer des fonds. Rendement dans 24h. (Gratuit temporairement — le vrai systeme de rendement differe n\'est pas encore code, audit Ordres a venir.)'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
           {fn:'fiscal',         label:'Optimisation fiscale',pa:1, cost:200,  type:'grey',  icon:'ti-calculator',  successRate:85,  desc:'Reduire sa fiscalite. Semi-legal.'},
           {fn:'presenter_autorisation_coffre', label:'Présenter une autorisation judiciaire', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Accéder à un coffre grâce à une autorisation du juge.'}
@@ -2095,9 +2095,11 @@ const BUILDINGS = {
         persons: [
           {name:'Frere Gardien', role:'PNJ - Membre de la Loge', rel:'neutral', job:'membre_loge'}
         ],
-        orders: [
-          {fn:'demander_adhesion', label:'Demander a rejoindre la Loge', pa:2, cost:0, type:'legal', icon:'ti-user-plus', successRate:50, desc:'Necessite un parrain. Sans parrain, refus automatique.'}
-        ]
+        // Ordre 'demander_adhesion' retire le 9 aout 2026 : aucun systeme de membres de la Loge
+        // n'existe dans le code (pas de flag d'adhesion, pas de parrain, pas d'avantage) — le bouton
+        // promettait un effet qui n'a jamais ete implemente. A reintroduire lors de l'audit Ordres
+        // avec un vrai systeme de parrainage/adhesion.
+        orders: []
       },
       bureau_venerable: {
         name: "Bureau du Venerable Maitre",

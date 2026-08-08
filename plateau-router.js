@@ -115,6 +115,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_personnalites_musee') { doConsulterPersonnalitesMusee(); return; }
   if (fn === 'consulter_mandats_maires') { doConsulterResumesMandats(); return; }
   if (fn === 'consulter_archives_notariales') { doConsulterArchivesNotariales(); return; }
+  // consulter_succession (Bureau des Successions) reutilise le meme systeme d'archives que
+  // consulter_archives_notariales (Archives Notariales) — c'etait un doublon orphelin sans handler,
+  // corrige le 9 aout 2026 (audit Ordres).
+  if (fn === 'consulter_succession') { doConsulterArchivesNotariales(); return; }
   if (fn === 'consulter_archives_presse') { doConsulterArchivesPresse(); return; }
   if (fn === 'demander_juge_instruction') { doDemanderJugeInstruction(); return; }
   if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(); return; }
@@ -141,6 +145,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     ouvrirModalPretBancaire(typeBanque);
     return;
   }
+  // emprunter_prive (Banque Privee, "sans verification, taux eleve") n'avait aucun handler —
+  // corrige le 9 aout 2026 (audit Ordres) en le routant directement vers le type de pret
+  // 'consommation' deja existant (meme profil : petite somme, remboursement rapide, taux eleve).
+  if (fn === 'emprunter_prive') { ouvrirModalPretBancaire('privee', 'consommation'); return; }
   if (fn === 'diviser_construction') { doOuvrirDivisionTerrain(); return; }
   if (fn === 'louer_lot_ici') { doOuvrirLouerLot(); return; }
   if (fn === 'gerer_lot_loue') { doGererLotLoue(); return; }
