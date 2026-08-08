@@ -1,3 +1,71 @@
+# Journal de session — Res Publica (8 août 2026)
+
+## État du dépôt
+- Toutes les modifications ont été committées et poussées sur `main` (7 commits).
+- Reste des fichiers `patch_*.py` non trackés dans le dépôt (scripts ponctuels utilisés pour appliquer certains correctifs) — sans impact, cohérent avec la pratique habituelle de la session.
+
+---
+
+## 🐛 Fix critique : cron entrepôt (bug de fond, corrigé en premier)
+- **Cause racine** : `sbGetBatimentEtat`/`sbSetBatimentEtat` manquaient dans le cron nocturne → le stock des entrepôts n'était jamais réellement alimenté malgré les livraisons programmées.
+- Corrigé (`d2a451e`). Ce bug bloquait silencieusement toute la mécanique entrepôt/production en aval — corrigé avant tout le reste de la session car les tableaux de bord Directeur en dépendaient.
+
+---
+
+## 💰 Affichage des caisses entrepôts/usines
+- Caisse (solde) désormais visible dans l'en-tête du bâtiment, pour tous les joueurs présents (`8b803c0`).
+
+---
+
+## 🏭 Tableau de bord Directeur d'usine (mode PJ, V1 complet)
+- Poste de Directeur PJ sur les 3 usines stratégiques : prix de vente directe réglable (±40% du prix de base), répartition production entrepôts/vente directe réglable, salaire quotidien plafonné (500 FR/j) par la caisse de l'usine.
+- Présence PNJ par défaut masquée dès qu'un PJ est nommé au poste (`1c0f537`).
+
+## 🏬 Tableau de bord Directeur d'entrepôt
+- Poste nommé par le Maire (local, `scope:'ville'`) : prix d'achat réglable ±40%, salaire quotidien 500 FR/j plafonné par la caisse — caisse désormais réellement alimentée par les achats des joueurs (le bug corrigé plus haut : l'argent disparaissait sans jamais créditer la caisse).
+- Affichage du directeur en poste (PJ ou PNJ) dans l'en-tête du bâtiment, appliqué aussi rétroactivement aux 3 usines.
+- Au passage, correction de 3 fonctions maire cassées depuis l'élection du maire (comparaison exacte au lieu de `startsWith`) : `nommer_commissaire`, `financer_communal`, `traiter_demandes_permis` (`ccefa84`).
+
+---
+
+## 🧠 Fondation de la fiche PNJ enrichie
+- Suite à l'audit du système de dialogue IA : nouvelle table `PNJ_PROFILS` (traits, savoirs, fonction pédagogique, secrets, objectifs, rumeurs, notes), même clé que `PNJ_PERSONALITIES`.
+- Remplissage partiel assumé — un seul PNJ enrichi pour l'instant en exemple : **Gérard Poinçon** (gardien du musée).
+- `talkToPnj` lit désormais ce profil quand il existe et l'injecte dans le prompt, avec repli gracieux total pour les PNJ non enrichis (comportement inchangé pour tous les autres). Les ~18 autres points d'appel IA restent volontairement hors périmètre pour cette session (`ea8f8b8`).
+
+---
+
+## 🖼️ Images restaurées / branchées
+- **5 images du Palais Présidentiel/Gouvernement** jamais commitées depuis le 22 juillet (chef de cabinet, protocole, garde républicain, secrétaire générale, porte-parole) — laissaient ces photos cassées en production.
+- 2 images PSM déjà existantes mais jamais reliées : Port Industriel (`quai_principal`, remplace un placeholder générique) et Port de Plaisance (`quai`, n'avait aucune image du tout) (`a18ee30`).
+
+---
+
+## 🗳️ Renouvellement du calendrier électoral + cascade de nomination automatique
+*(bugs remontés par Fred le 8 août 2026)*
+- Les mandats (5 semaines, déjà prévu dans `POSTES_ELECTIFS` mais jamais branché) déclenchent désormais un nouveau cycle de candidatures à échéance, PJ ou PNJ.
+- Bug connexe corrigé : `cycle.phase` était mis à `'vacant'` même en cas de victoire, ce qui empêchait le calendrier d'afficher correctement "Mandat en cours" ou "Campagne 2nd tour".
+- Quand un cycle conclut à "vacant" (0 candidat), un **PNJ générique prend immédiatement le poste** (résolution en un seul passage du cron), sur le périmètre président → PM → 6 ministères → juge et maire → commissaire par ville — évite qu'un poste vacant bloque indéfiniment les nominations en cascade en dessous.
+- Périmètre volontairement restreint (hors commandant/directeurs, déjà fonctionnels sans titulaire), scope Republia uniquement comme le reste du système électoral/fiscal (`43c4f1b`).
+
+---
+
+## 🧭 Fix navigation retour Luthécia/PSM (bug 3)
+- **Cause racine** : `getBuildingIdCentreMultimodal` utilisait `'port-sainte-marie'`/`'montrouge'` comme clés alors que les appelants passent toujours `'ville_a'`/`'ville_b'` — un voyage vers PSM ou Montrouge générait un id de bâtiment inexistant et `enterBuilding` échouait silencieusement (**Montrouge était donc cassé aussi, pas seulement PSM**).
+- Fonction rendue consciente de l'empire pour éviter qu'un joueur d'un autre empire entre dans un bâtiment Republia par erreur.
+- Nouvelle fonction `trouverNoeudRueCentralePourBatiment`, appelée à l'arrivée d'un voyage pour repositionner le souvenir de rue centrale sur la scène du Centre Multimodal réellement atteint, au lieu de laisser le joueur retomber sur la dernière scène visitée dans cette ville en sortant du bâtiment — parfois périmée de plusieurs jours.
+- Ajout d'un repli vers la rue si le bâtiment d'arrivée n'existe pas (`confirmerTransport` n'en avait aucun) (`8117d0d`).
+
+---
+
+## 📝 Chantiers en attente
+1. **Audit PNJ** — prévu avant la bêta, pas encore fait (état des ~18 points d'appel IA hors périmètre de la fondation `PNJ_PROFILS` posée ce soir).
+2. **Audit Ordres** — prévu avant la bêta, pas encore fait.
+3. **Tâche optionnelle** : décrets automatiques du PNJ Président (à décider si prioritaire).
+4. **Tableau Excel PNJ** à mettre à jour avec les nouveaux PNJ créés aujourd'hui (notamment ceux générés par la cascade de nomination automatique et les postes de Directeur usine/entrepôt).
+
+---
+
 # Journal de session — Res Publica (30 juillet 2026)
 
 ## État du dépôt
