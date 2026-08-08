@@ -168,6 +168,7 @@ async function ouvrirCalendrierElectoral() {
     const labelPoste = p.name + (estLocal ? ' — ' + villeNom : '');
 
     const phaseStyle = {
+      [PHASES_ELECTORALES.MANDAT]:       { col: '#4a8a4a', label: 'Mandat en cours' },
       [PHASES_ELECTORALES.CANDIDATURES]: { col: '#4a6aaa', label: 'Candidatures' },
       [PHASES_ELECTORALES.CAMPAGNE]:     { col: '#aa8a4a', label: 'Campagne' },
       [PHASES_ELECTORALES.VOTE]:         { col: '#4a8a4a', label: '🗳 Vote' },
@@ -476,9 +477,20 @@ function getPhaseActuelle(country, posteId, city) {
   const cycle = CYCLES_ELECTORAUX[country]?.[cle];
   if (!cycle) return null;
   const now = Date.now();
+
+  // Mandat en cours (PJ ou PNJ) — prioritaire sur le calcul par dates, sinon un titulaire
+  // fraichement elu/pourvu s'affichait "Vacant" une fois ses dates de cycle depassees.
+  if (cycle.phase === PHASES_ELECTORALES.MANDAT && cycle.eluId && cycle.dateFinMandat && now < cycle.dateFinMandat) {
+    return PHASES_ELECTORALES.MANDAT;
+  }
+
+  // cycle.tour est le signal le plus fiable pour detecter un second tour (cycle.phase a
+  // longtemps ete pose de façon incorrecte cote cron — corrige le 8 aout 2026, mais on
+  // garde les deux signaux par securite).
+  const enSecondTour = cycle.phase === PHASES_ELECTORALES.SECOND_TOUR || cycle.tour === 2;
   if (now < cycle.dateDebutCampagne) return PHASES_ELECTORALES.CANDIDATURES;
-  if (now < cycle.dateVote) return PHASES_ELECTORALES.CAMPAGNE;
-  if (now < cycle.dateResultats) return PHASES_ELECTORALES.VOTE;
+  if (now < cycle.dateVote) return enSecondTour ? PHASES_ELECTORALES.SECOND_TOUR : PHASES_ELECTORALES.CAMPAGNE;
+  if (now < cycle.dateResultats) return enSecondTour ? PHASES_ELECTORALES.VOTE2 : PHASES_ELECTORALES.VOTE;
   return PHASES_ELECTORALES.VACANT;
 }
 

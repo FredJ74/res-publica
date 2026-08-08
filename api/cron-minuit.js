@@ -78,6 +78,31 @@ const POSTE_SCOPE = {
   depute: 'local',
 };
 
+// Duree de mandat — commune aux 4 postes electifs aujourd'hui (voir POSTES_ELECTIFS,
+// data.js, mandatSemaines:5 partout). A dupliquer en table complete si jamais ca diverge
+// par poste un jour.
+const MANDAT_SEMAINES = 5;
+const SEMAINE_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Construit un cycle electoral frais (memes valeurs que initCycleElectoral cote client,
+// plateau-politique.js) — utilise pour renouveler un mandat echu (PJ ou PNJ).
+function construireNouveauCycleElectoral(posteId, city, now) {
+  return {
+    posteId, city: city || null,
+    phase: 'candidatures',
+    dateDebutCandidatures: now,
+    dateDebutCampagne: now + SEMAINE_MS,
+    dateVote: now + 2 * SEMAINE_MS,
+    dateResultats: now + 2 * SEMAINE_MS + 24 * 60 * 60 * 1000,
+    candidats: [],
+    votes: {},
+    votesPNJ: {},
+    tour: 1,
+    eluId: null,
+    resultatsTraites: false
+  };
+}
+
 function calculerResultatsServer(cycle) {
   const candidats = cycle.candidats || [];
   if (candidats.length === 0) return null;
@@ -864,6 +889,115 @@ async function traiterSouvenirsAccueil() {
   return resultats;
 }
 
+// =====================
+// CASCADE DE NOMINATION AUTOMATIQUE — quand un poste nomme reste vacant parce que l'autorite
+// censee le pourvoir est elle-meme absente (PJ ou PNJ), on installe le PNJ par defaut plutot
+// que de bloquer indefiniment les mecaniques qui en dependent (plan du 8 aout 2026). Perimetre
+// volontairement restreint : president->pm->[6 ministeres]->juge (via min_just), et maire->
+// commissaire (par ville). N'inclut PAS commandant ni les directeurs d'usine/entrepot, deja
+// fonctionnels sans titulaire. Republia uniquement pour l'instant, comme le reste du systeme
+// fiscal/electoral (voir meme choix dans plateau-justice-economie.js).
+// =====================
+const PAYS_CASCADE = 'republic';
+const VILLES_CASCADE = ['capitale', 'ville_a', 'ville_b'];
+
+const PNJ_PAR_DEFAUT_POSTE = {
+  president:   'Le Président (PNJ)',
+  maire:       'Le Maire (PNJ)',
+  pm:          'Le Premier Ministre (PNJ)',
+  min_int:     "Le Ministre de l'Intérieur (PNJ)",
+  min_fin:     'Le Ministre des Finances (PNJ)',
+  min_just:    'Le Ministre de la Justice (PNJ)',
+  min_def:     'Le Ministre de la Défense (PNJ)',
+  min_info:    "Le Ministre de l'Information (PNJ)",
+  min_ae:      'Le Ministre des Affaires Étrangères (PNJ)',
+  juge:        'Juge Fontaine',
+  commissaire: 'Raoul Toufaud (PNJ)'
+};
+
+// Cascade des postes nommes nationaux, dans l'ordre de dependance (chaque poste ne peut etre
+// auto-pourvu qu'une fois celui qui le nomme deja resolu, PJ ou PNJ)
+const CASCADE_NATIONALE = [
+  { posteId: 'pm',       nommePar: 'president' },
+  { posteId: 'min_int',  nommePar: 'pm' },
+  { posteId: 'min_fin',  nommePar: 'pm' },
+  { posteId: 'min_just', nommePar: 'pm' },
+  { posteId: 'min_def',  nommePar: 'pm' },
+  { posteId: 'min_info', nommePar: 'pm' },
+  { posteId: 'min_ae',   nommePar: 'pm' },
+  { posteId: 'juge',     nommePar: 'min_just' }
+];
+
+async function verifierPostesVacantsEtAutoPourvoir() {
+  const resultats = { pourvus: [] };
+  try {
+    const now = Date.now();
+
+    // Etat initial en memoire : qui occupe deja quoi (PJ), et quels PNJ sont deja enregistres.
+    // Resolution en un seul passage (choix explicite du 8 aout 2026) : la map est mise a jour
+    // au fur et a mesure des ecritures, pas relue en base entre chaque etape de la cascade.
+    const joueurs = await sbGet('personnages', `select=name,country,poste&country=eq.${PAYS_CASCADE}`) || [];
+    const titulairesPnjRows = await sbGet('titulaires_pnj', `country=eq.${PAYS_CASCADE}`) || [];
+
+    const cle = (posteId, ville) => posteId + '|' + (ville || 'national');
+    const occupePJ = new Set();
+    joueurs.forEach(j => {
+      let poste = j.poste;
+      if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
+      if (!poste?.id) return;
+      const idNormalise = poste.id.startsWith('maire') ? 'maire' : poste.id;
+      occupePJ.add(cle(idNormalise, poste.city));
+    });
+    const occupePNJ = new Set(titulairesPnjRows.filter(r => r.nom_pnj).map(r => cle(r.poste_id, r.city)));
+    const estOccupe = (posteId, ville) => occupePJ.has(cle(posteId, ville)) || occupePNJ.has(cle(posteId, ville));
+
+    async function pourvoirPnj(posteId, ville, nomPnj) {
+      const id = PAYS_CASCADE + '_' + posteId + '_' + (ville || 'national');
+      const existing = titulairesPnjRows.find(r => r.id === id);
+      const payload = { id, country: PAYS_CASCADE, poste_id: posteId, city: ville || null, nom_pnj: nomPnj, updated_at: new Date().toISOString() };
+      if (existing) await sbUpdate('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`, payload);
+      else await sbInsert('titulaires_pnj', payload);
+      occupePNJ.add(cle(posteId, ville));
+      resultats.pourvus.push({ poste: posteId, city: ville || null, pnj: nomPnj });
+    }
+
+    async function pourvoirCycleElu(posteId, ville) {
+      const filtre = ville
+        ? `country=eq.${PAYS_CASCADE}&poste_id=eq.${posteId}&city=eq.${ville}`
+        : `country=eq.${PAYS_CASCADE}&poste_id=eq.${posteId}&city=is.null`;
+      const row = (await sbGet('cycles_electoraux', filtre) || [])[0];
+      if (!row) return;
+      const cycle = JSON.parse(row.data);
+      if (!cycle.resultatsTraites || cycle.eluId) return; // pas encore echu, ou deja pourvu
+      cycle.eluId = PNJ_PAR_DEFAUT_POSTE[posteId];
+      cycle.phase = 'mandat';
+      cycle.dateFinMandat = now + MANDAT_SEMAINES * SEMAINE_MS;
+      await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(cycle), updated_at: new Date().toISOString() });
+      occupePJ.add(cle(posteId, ville));
+      resultats.pourvus.push({ poste: posteId, city: ville || null, pnj: PNJ_PAR_DEFAUT_POSTE[posteId] });
+    }
+
+    // --- President (elu, titulaire stocke dans cycle.eluId — pas dans titulaires_pnj) ---
+    if (!estOccupe('president', null)) await pourvoirCycleElu('president', null);
+
+    // --- Cascade nationale, dans l'ordre (president avant pm avant ministres avant juge) ---
+    for (const { posteId, nommePar } of CASCADE_NATIONALE) {
+      if (estOccupe(posteId, null)) continue;
+      if (!estOccupe(nommePar, null)) continue; // l'autorite au-dessus pas encore resolue
+      await pourvoirPnj(posteId, null, PNJ_PAR_DEFAUT_POSTE[posteId]);
+    }
+
+    // --- Maire (elu, par ville) + Commissaire (nomme par le maire, par ville) ---
+    for (const ville of VILLES_CASCADE) {
+      if (!estOccupe('maire', ville)) await pourvoirCycleElu('maire', ville);
+      if (!estOccupe('commissaire', ville) && estOccupe('maire', ville)) {
+        await pourvoirPnj('commissaire', ville, PNJ_PAR_DEFAUT_POSTE.commissaire);
+      }
+    }
+  } catch(e) { console.error('verifierPostesVacantsEtAutoPourvoir error', e); }
+  return resultats;
+}
+
 export default async function handler(req, res) {
   // Sécurité minimale : autoriser uniquement les appels Vercel Cron ou avec un secret
   const authHeader = req.headers['authorization'];
@@ -885,6 +1019,16 @@ export default async function handler(req, res) {
       let cycle;
       try { cycle = JSON.parse(row.data); } catch(e) { continue; }
 
+      // Renouvellement d'un mandat echu (titulaire PJ ou PNJ) — rouvre un cycle de
+      // candidatures frais. C'etait la piece manquante du systeme electoral : sans ca,
+      // un cycle resolu restait fige indefiniment (bug remonte le 8 aout 2026).
+      if (cycle.phase === 'mandat' && cycle.dateFinMandat && now.getTime() >= cycle.dateFinMandat) {
+        const nouveauCycle = construireNouveauCycleElectoral(row.poste_id, row.city, now.getTime());
+        await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycle), updated_at: now.toISOString() });
+        results.push({ poste: row.poste_id, country: row.country, city: row.city || null, statut: 'nouveau_cycle' });
+        continue;
+      }
+
       const dateResultats = cycle.dateResultats;
       if (!dateResultats || now.getTime() < dateResultats) continue; // Pas encore échu
       if (cycle.resultatsTraites) continue; // Déjà traité
@@ -898,10 +1042,12 @@ export default async function handler(req, res) {
       if (!resultat) continue;
 
       if (resultat.elu) {
-        // Élu au tour actuel
+        // Élu au tour actuel — mandat de MANDAT_SEMAINES semaines, renouvelle automatiquement
+        // a echeance (voir le bloc de renouvellement plus haut dans cette meme boucle).
         cycle.eluId = resultat.elu;
         cycle.resultatsTraites = true;
-        cycle.phase = 'vacant'; // sera réinitialisé au prochain cycle
+        cycle.phase = 'mandat';
+        cycle.dateFinMandat = now.getTime() + MANDAT_SEMAINES * SEMAINE_MS;
 
         const villeLabel = row.city ? ` (${row.city})` : '';
         const texte = `🗳️ RÉSULTATS : ${resultat.elu} est élu(e) ${posteNom}${villeLabel} avec ${Math.round((resultat.scores[resultat.elu]/resultat.totalVoix)*100)}% des voix.`;
@@ -943,6 +1089,10 @@ export default async function handler(req, res) {
       });
     }
 
+    // 1b. Cascade de nomination automatique — installe un PNJ sur les postes nommes dont
+    // l'autorite de nomination vient elle-meme d'etre resolue (voir plan du 8 aout 2026)
+    const cascadeAutoPourvoi = await verifierPostesVacantsEtAutoPourvoir();
+
     // 2. Purger les mails de plus de 14 jours, non archives (recus ET envoyes)
     const mailsSuppres = await purgerVieuxMails();
 
@@ -980,7 +1130,7 @@ export default async function handler(req, res) {
     // 13. Production quotidienne des transformateurs (mode PNJ), redistribution 60/40
     const production = await produireTransformateursQuotidien();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });
