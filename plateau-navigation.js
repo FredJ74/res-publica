@@ -325,6 +325,30 @@ function enterBuilding(buildingId, skipAutoRoom) {
   document.getElementById('bat-nom').textContent = displayName;
   document.getElementById('bat-cat').textContent = displayCat;
 
+  // Affichage de la caisse — entrepots/usines uniquement, visible de tous des l'entree
+  // (decision Fred 8 aout 2026 : transparence totale sur ces caisses economiques,
+  // contrairement aux caisses institutionnelles qui restent cachees sauf ordre dedie).
+  const BATIMENTS_CAISSE_VISIBLE = {
+    'entrepot-logistique-luthecia': 'entrepot', 'entrepot-logistique-psm': 'entrepot', 'entrepot-logistique-montrouge': 'entrepot',
+    'usine-pharmaceutique-luthecia': 'usine', 'pole-tabac-alcools-psm': 'usine', 'raffinerie-montrouge': 'usine'
+  };
+  const cleCaisse = BATIMENTS_CAISSE_VISIBLE[buildingId];
+  const elCaisse = document.getElementById('bat-caisse');
+  if (cleCaisse && elCaisse) {
+    elCaisse.style.display = 'block';
+    elCaisse.textContent = 'Caisse : ...';
+    if (typeof sbGetBatimentEtat === 'function') {
+      sbGetBatimentEtat(state.country || 'republic', state.currentCity, buildingId).then(etat => {
+        if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
+        const solde = etat?.[cleCaisse]?.caisse ?? 0;
+        const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+        elCaisse.textContent = 'Caisse : ' + solde.toLocaleString('fr-FR') + ' ' + cur;
+      }).catch(() => { elCaisse.textContent = 'Caisse : indisponible'; });
+    }
+  } else if (elCaisse) {
+    elCaisse.style.display = 'none';
+  }
+
   // Onglets pieces — fusionne les pieces de base avec d'eventuelles pieces supplementaires
   // propres a une ville (ctx.roomsExtra), sans jamais les ajouter aux autres villes qui
   // partagent la meme definition de batiment globale (ex: centre-affaires).
