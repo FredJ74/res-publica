@@ -3229,6 +3229,7 @@ const BUILDINGS = {
         image: "\u26f5",
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
         desc: "Mats et coques blanches se balancent doucement.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-plaisance.png",
         persons: [],
         orders: []
       }
@@ -4399,7 +4400,7 @@ const BUILDINGS = {
         name: "Quai Principal",
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
         desc: "Les grues bleues s\'activent. Marcel Ancre surveille les entrées. Dédé le Docker discute d\'une éventuelle grève avec ses camarades.",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-republia.png",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-industriel.png",
         persons: [
           {name:'Marcel Ancre (PNJ)', role:'Capitaine de port', rel:'neutral', job:'capitaine_port'},
           {name:'Dédé le Docker (PNJ)', role:'Docker syndiqué', rel:'neutral', job:'docker'},
