@@ -110,8 +110,13 @@ function calculerResultatsServer(cycle) {
   const scores = {};
   candidats.forEach(c => { scores[c.nom] = 0; });
 
-  (cycle.votes_pj || []).forEach(v => { if (scores[v.candidat] !== undefined) scores[v.candidat]++; });
-  (cycle.votes_pnj || []).forEach(v => { if (scores[v.candidat] !== undefined) scores[v.candidat]++; });
+  // Bug corrige le 9 aout 2026 : cette fonction lisait cycle.votes_pj/votes_pnj, des champs
+  // qui n'existent nulle part ailleurs dans le jeu (toujours undefined -> totalVoix restait
+  // a 0 -> aucune election traitee par ce cron n'a jamais pu declarer d'elu, meme a l'unanimite).
+  // Les vrais champs, ecrits partout ailleurs (plateau-politique.js, construireNouveauCycleElectoral
+  // ci-dessus), sont cycle.votes (objet votant -> nom candidat) et cycle.votesPNJ (objet pnjId -> nom candidat).
+  Object.values(cycle.votes || {}).forEach(nom => { if (scores[nom] !== undefined) scores[nom]++; });
+  Object.values(cycle.votesPNJ || {}).forEach(nom => { if (scores[nom] !== undefined) scores[nom]++; });
 
   const totalVoix = Object.values(scores).reduce((s, v) => s + v, 0);
   if (totalVoix === 0) return { scores, totalVoix: 0, elu: null, secondTour: [] };
@@ -1061,8 +1066,8 @@ export default async function handler(req, res) {
         const semaine = 7 * 24 * 60 * 60 * 1000;
         cycle.tour = 2;
         cycle.candidats = resultat.secondTour.map(nom => ({ nom, voix: 0 }));
-        cycle.votes_pj = [];
-        cycle.votes_pnj = [];
+        cycle.votes = {};
+        cycle.votesPNJ = {};
         cycle.dateDebutCampagne = now.getTime();
         cycle.dateVote = now.getTime() + semaine;
         cycle.dateResultats = now.getTime() + semaine + 24*60*60*1000;
