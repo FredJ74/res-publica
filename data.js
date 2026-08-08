@@ -4061,8 +4061,12 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
         desc: "Le bureau du directeur de la raffinerie. Accès sur rendez-vous.",
-        persons: [],
-        orders: [{fn:'nommer_directeur_raffinerie', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de la raffinerie. Poste exclusif (sauf député).'}]
+        persons: [{name:'Gustave Baril (PNJ)', role:'Directeur de la Raffinerie', rel:'neutral', job:'directeur_raffinerie'}],
+        orders: [
+          {fn:'nommer_directeur_raffinerie', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de la raffinerie. Poste exclusif (sauf député).'},
+          {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_raffinerie', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
+          {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_raffinerie', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'}
+        ]
       },
       salle_production: {
         name: "Salle de Production",
@@ -4150,8 +4154,12 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
         desc: "Le bureau du directeur du pôle. Accès sur rendez-vous.",
-        persons: [],
-        orders: [{fn:'nommer_directeur_tabac_alcools', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur du Pôle Tabac & Alcools. Poste exclusif (sauf député).'}]
+        persons: [{name:'Fernand Cendrier (PNJ)', role:'Directeur du Pôle Tabac & Alcools', rel:'neutral', job:'directeur_tabac_alcools'}],
+        orders: [
+          {fn:'nommer_directeur_tabac_alcools', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur du Pôle Tabac & Alcools. Poste exclusif (sauf député).'},
+          {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
+          {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'}
+        ]
       },
       distillerie: {
         name: "Distillerie",
@@ -4247,8 +4255,12 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-direction-usine-pharma-luthecia.png",
         desc: "Le bureau du directeur de l'usine. Accès sur rendez-vous.",
-        persons: [],
-        orders: [{fn:'nommer_directeur_pharma', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de l\'Usine Pharmaceutique. Poste exclusif (sauf député).'}]
+        persons: [{name:'Bernard Piluler (PNJ)', role:"Directeur de l'Usine Pharmaceutique", rel:'neutral', job:'directeur_pharma'}],
+        orders: [
+          {fn:'nommer_directeur_pharma', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de l\'Usine Pharmaceutique. Poste exclusif (sauf député).'},
+          {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_pharma', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
+          {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_pharma', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'}
+        ]
       },
       salle_production: {
         name: "Salle de Production",

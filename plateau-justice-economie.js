@@ -2880,6 +2880,7 @@ async function doOuvrirVenteDirecteUsine() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, buildingId) : {};
   const venteDirecte = etat.usine?.venteDirecte || {};
+  const prixManuel = etat.usine?.prixManuel || {};
   const produits = Object.keys(venteDirecte);
 
   if (produits.length === 0) {
@@ -2896,7 +2897,7 @@ async function doOuvrirVenteDirecteUsine() {
     const res = RESSOURCES_ECONOMIE[cle];
     if (!res) return;
     const enStock = venteDirecte[cle] || 0;
-    const prixActuel = getPrixRessource(cle, enStock);
+    const prixActuel = prixManuel[cle] != null ? prixManuel[cle] : getPrixRessource(cle, enStock);
     const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
     const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
     html += '<tr style="border-top:1px solid #2a2010">';
@@ -2920,6 +2921,7 @@ async function confirmerVenteDirecteUsine(buildingId) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
   const venteDirecte = etat.usine?.venteDirecte || {};
+  const prixManuel = etat.usine?.prixManuel || {};
 
   const achats = {};
   let total = 0;
@@ -2931,7 +2933,7 @@ async function confirmerVenteDirecteUsine(buildingId) {
       showToast('Stock insuffisant', 'Il ne reste que ' + enStock + ' unité(s) de ' + RESSOURCES_ECONOMIE[cle].label + '.', false);
       return;
     }
-    const prix = getPrixRessource(cle, enStock);
+    const prix = prixManuel[cle] != null ? prixManuel[cle] : getPrixRessource(cle, enStock);
     achats[cle] = { qte, prix };
     total += qte * prix;
   }
@@ -2966,6 +2968,181 @@ async function confirmerVenteDirecteUsine(buildingId) {
   updateUI();
   showToast('Achat effectué !', '-' + Math.round(totalReellementPaye) + ' ' + cur + '.', true, true);
   addJournalEntry('Achat en vente directe : ' + Object.entries(achats).map(([cle, a]) => a.qte + ' ' + RESSOURCES_ECONOMIE[cle].label).join(', ') + '.', 'event-good');
+}
+
+// =====================
+// TABLEAU DE BORD DU DIRECTEUR PJ — le directeur choisit le prix de vente directe (dans la
+// meme fourchette ±40% que les entrepots) et la repartition entrepots/vente directe de sa
+// propre usine (voir note du 7 aout 2026 dans api/cron-minuit.js). Reserve au titulaire du
+// poste, dans son propre batiment.
+// =====================
+const DIRECTEUR_USINE_INFO = {
+  directeur_pharma:        { city: 'capitale', buildingId: 'usine-pharmaceutique-luthecia', produits: ['medicaments'] },
+  directeur_tabac_alcools: { city: 'ville_a',   buildingId: 'pole-tabac-alcools-psm',        produits: ['alcool', 'tabac'] },
+  directeur_raffinerie:    { city: 'ville_b',   buildingId: 'raffinerie-montrouge',          produits: ['carburant'] }
+};
+
+async function doOuvrirFixerPrixVenteDirecte() {
+  const posteId = state.poste?.id;
+  const cfg = DIRECTEUR_USINE_INFO[posteId];
+  if (!cfg || state.currentBuilding !== cfg.buildingId) {
+    showToast('Accès refusé', 'Seul le directeur en poste peut fixer les prix de cette usine.', false);
+    return;
+  }
+  const buildingId = state.currentBuilding;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, buildingId) : {};
+  const venteDirecte = etat.usine?.venteDirecte || {};
+  const prixManuel = etat.usine?.prixManuel || {};
+
+  let html = '<div style="padding:1.2rem">';
+  html += '<div style="font-size:.95rem;color:#8a8060;margin-bottom:1rem">Prix fixé par produit, dans la fourchette autorisée. Laissez vide pour revenir au prix automatique (fonction du stock).</div>';
+  html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
+  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix auto</th><th>Prix fixé</th></tr>';
+
+  cfg.produits.forEach(cle => {
+    const res = RESSOURCES_ECONOMIE[cle];
+    if (!res) return;
+    const enStock = venteDirecte[cle] || 0;
+    const prixAuto = getPrixRessource(cle, enStock);
+    const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
+    const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
+    const prixFixe = prixManuel[cle];
+    html += '<tr style="border-top:1px solid #2a2010">';
+    html += '<td style="padding:.55rem 0"><i class="ti ' + res.icon + '" style="margin-right:.4rem;font-size:1.1rem"></i>' + res.label + '</td>';
+    html += '<td style="color:#8a8060">' + enStock + '</td>';
+    html += '<td style="color:#6a5a30">' + prixMin + '-' + prixMax + ' ' + cur + '</td>';
+    html += '<td style="color:#6a5a30">' + prixAuto + ' ' + cur + '</td>';
+    html += '<td><input type="number" min="' + prixMin + '" max="' + prixMax + '" step="0.5" id="prix-fixe-' + cle + '" placeholder="auto" value="' + (prixFixe != null ? prixFixe : '') + '" style="width:100px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:1rem" /></td>';
+    html += '</tr>';
+  });
+  html += '</table>';
+  html += '<button class="pnj-action-btn" onclick="confirmerFixerPrixVenteDirecte(\'' + buildingId + '\')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider les prix</button>';
+  html += '</div>';
+
+  document.getElementById('postes-modal-title').textContent = 'Fixer les prix de vente';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerFixerPrixVenteDirecte(buildingId) {
+  const posteId = state.poste?.id;
+  const cfg = DIRECTEUR_USINE_INFO[posteId];
+  if (!cfg || buildingId !== cfg.buildingId) return;
+  const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
+  const prixManuel = { ...(etat.usine?.prixManuel || {}) };
+
+  // Meme fourchette que la vente directe des entrepots (±40% du prix de base) — le
+  // directeur choisit ou se placer dans cette fourchette, pas une liberte totale.
+  const nouvellesValeurs = {};
+  for (const cle of cfg.produits) {
+    const res = RESSOURCES_ECONOMIE[cle];
+    const valeur = document.getElementById('prix-fixe-' + cle)?.value;
+    if (valeur === '' || valeur == null) continue;
+    const prix = parseFloat(valeur);
+    const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
+    const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
+    if (isNaN(prix) || prix < prixMin || prix > prixMax) {
+      showToast('Prix hors fourchette', res.label + ' doit être fixé entre ' + prixMin + ' et ' + prixMax + '.', false);
+      return;
+    }
+    nouvellesValeurs[cle] = Math.round(prix * 100) / 100;
+  }
+
+  for (const cle of cfg.produits) {
+    const valeur = document.getElementById('prix-fixe-' + cle)?.value;
+    if (valeur === '' || valeur == null) delete prixManuel[cle];
+    else prixManuel[cle] = nouvellesValeurs[cle];
+  }
+
+  const nouvelEtat = { ...etat, usine: { ...(etat.usine || {}), prixManuel } };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, nouvelEtat).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Prix mis à jour', 'Les nouveaux prix de vente directe sont actifs.', true, true);
+  addJournalEntry('Prix de vente directe ajustés en tant que directeur.', 'event-good');
+}
+
+async function doOuvrirFixerRepartitionProduction() {
+  const posteId = state.poste?.id;
+  const cfg = DIRECTEUR_USINE_INFO[posteId];
+  if (!cfg || state.currentBuilding !== cfg.buildingId) {
+    showToast('Accès refusé', 'Seul le directeur en poste peut répartir la production de cette usine.', false);
+    return;
+  }
+  const buildingId = state.currentBuilding;
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, buildingId) : {};
+  const repartitionActuelle = etat.usine?.repartitionEntrepots != null ? Math.round(etat.usine.repartitionEntrepots * 100) : 60;
+
+  let html = '<div style="padding:1.2rem">';
+  html += '<div style="font-size:.95rem;color:#8a8060;margin-bottom:1rem">Part de la production quotidienne envoyée aux entrepôts publics (répartie entre les 3 villes). Le reste reste ici, en vente directe.</div>';
+  html += '<div style="text-align:center;margin:1.2rem 0">';
+  html += '<input type="number" min="0" max="100" step="5" id="repartition-entrepots" value="' + repartitionActuelle + '" style="width:100px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:1.2rem;text-align:center" /> %';
+  html += '<div style="font-size:.8rem;color:#6a5a30;margin-top:.5rem">vers les entrepôts — le reste part en vente directe sur place.</div>';
+  html += '</div>';
+  html += '<button class="pnj-action-btn" onclick="confirmerFixerRepartitionProduction(\'' + buildingId + '\')" style="margin-top:.5rem;font-size:1rem;padding:.7rem">Valider la répartition</button>';
+  html += '</div>';
+
+  document.getElementById('postes-modal-title').textContent = 'Répartir la production';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerFixerRepartitionProduction(buildingId) {
+  const posteId = state.poste?.id;
+  const cfg = DIRECTEUR_USINE_INFO[posteId];
+  if (!cfg || buildingId !== cfg.buildingId) return;
+  const valeur = parseFloat(document.getElementById('repartition-entrepots')?.value);
+  if (isNaN(valeur) || valeur < 0 || valeur > 100) {
+    showToast('Valeur invalide', 'Indiquez un pourcentage entre 0 et 100.', false);
+    return;
+  }
+  const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
+  const nouvelEtat = { ...etat, usine: { ...(etat.usine || {}), repartitionEntrepots: valeur / 100 } };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, nouvelEtat).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Répartition mise à jour', valeur + '% de la production ira désormais aux entrepôts.', true, true);
+  addJournalEntry('Répartition de la production ajustée en tant que directeur.', 'event-good');
+}
+
+// Salaire quotidien du directeur, plafonne par la caisse de sa propre usine — meme principe
+// que verifierSalairePolitique, mais la caisse de l'usine vit dans sbGetBatimentEtat (etat.usine.caisse)
+// plutot que dans le systeme sbGetCaisseBatiment des institutions politiques.
+const SALAIRE_DIRECTEUR = 500;
+
+async function debiterCaisseUsinePlafonne(pays, city, buildingId, montantVise) {
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, city, buildingId).catch(() => null) : null;
+  const usine = etat?.usine || {};
+  const solde = usine.caisse || 0;
+  const montantVerse = Math.min(solde, montantVise);
+  if (typeof sbSetBatimentEtat === 'function') {
+    await sbSetBatimentEtat(pays, city, buildingId, { ...(etat || {}), usine: { ...usine, caisse: solde - montantVerse } }).catch(() => {});
+  }
+  return montantVerse;
+}
+
+async function verifierSalaireDirecteur() {
+  const posteId = state.poste?.id;
+  const cfg = DIRECTEUR_USINE_INFO[posteId];
+  if (!cfg) return;
+  const jour = state.day || 1;
+  if (!state.char) return;
+  if (state.char.dernierSalaireDirecteurJour === jour) return;
+
+  const pays = state.country || 'republic';
+  const montantVerse = await debiterCaisseUsinePlafonne(pays, cfg.city, cfg.buildingId, SALAIRE_DIRECTEUR);
+
+  state.arg = (state.arg || 0) + montantVerse;
+  state.char.dernierSalaireDirecteurJour = jour;
+  updateUI();
+  if (montantVerse > 0) {
+    showToast('Salaire perçu', '+' + montantVerse.toLocaleString('fr-FR') + ' FR.' + (montantVerse < SALAIRE_DIRECTEUR ? ' (caisse insuffisante pour le montant complet)' : ''), true, true);
+    addJournalEntry('Salaire de directeur perçu : ' + montantVerse + ' FR.', 'event-good');
+  } else {
+    showToast('Salaire impayé', 'La caisse de l\'usine est vide aujourd\'hui.', false);
+    addJournalEntry('Aucun salaire de directeur perçu : caisse de l\'usine vide.', 'event-bad');
+  }
 }
 
 // =====================

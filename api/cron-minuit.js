@@ -586,11 +586,11 @@ const NB_LIVRAISONS_JOUR = 6;
 // unites/jour, avec une vraie irregularite entre chaque livraison). Facilement migrable
 // vers un vrai cron toutes les 4h si le plan Pro est active un jour.
 // Simplification actee (note pour Fred) : le prix de la vente directe du transformateur
-// utilise la MEME formule dynamique que l'entrepot (stock eleve = prix bas), plutot qu'un
-// calcul separe "cout + 10% de marge" — evite un systeme de prix parallele, reste coherent
-// avec tout ce qu'on a deja construit. Mode PNJ uniquement pour l'instant ; le mode "PJ
-// directeur" (liberte totale sur prix et repartition 60/40) reste a construire, une fois
-// tranchee la question de savoir comment un PJ devient directeur.
+// utilise la MEME formule dynamique que l'entrepot (stock eleve = prix bas) tant qu'aucun
+// prix manuel n'est fixe — evite un systeme de prix parallele, reste coherent avec tout ce
+// qu'on a deja construit. Mode "PJ directeur" (prix reglable dans la fourchette ±40%, et
+// repartition entrepots/vente directe reglable) construit le 8 aout 2026 — voir
+// DIRECTEUR_USINE_INFO et verifierSalaireDirecteur dans plateau-justice-economie.js.
 const TRANSFORMATEURS = [
   { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', chaines: [{ matiere: 'plantes', produit: 'medicaments' }] },
   { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  chaines: [{ matiere: 'cereales', produit: 'alcool' }, { matiere: 'plantes', produit: 'tabac' }] },
@@ -617,6 +617,8 @@ async function produireTransformateursQuotidien() {
       const usine = etat.usine || { caisse: 3000, venteDirecte: {} };
       let caisse = usine.caisse ?? 3000;
       const venteDirecte = usine.venteDirecte || {};
+      // Reglable par le directeur PJ en poste (tableau de bord, aout 2026) — 0.6 par defaut (mode PNJ)
+      const partEntrepots = usine.repartitionEntrepots != null ? usine.repartitionEntrepots : PART_REDISTRIBUTION_ENTREPOTS;
 
       for (const chaine of transfo.chaines) {
         const matiereCfg = RESSOURCES_ECONOMIE_SERVEUR[chaine.matiere];
@@ -627,7 +629,7 @@ async function produireTransformateursQuotidien() {
         caisse -= coutMatiere;
 
         const uniteesProduites = Math.floor(VOLUME_MATIERE_PAR_CHAINE_JOUR / RATIO_TRANSFORMATION);
-        const versEntrepots = Math.round(uniteesProduites * PART_REDISTRIBUTION_ENTREPOTS);
+        const versEntrepots = Math.round(uniteesProduites * partEntrepots);
         const venteDirecteQte = uniteesProduites - versEntrepots;
         const parEntrepot = Math.floor(versEntrepots / ENTREPOTS_VILLES.length);
 
@@ -652,7 +654,7 @@ async function produireTransformateursQuotidien() {
         resultats.uniteesProduites += uniteesProduites;
       }
 
-      await sbSetBatimentEtat('republic', transfo.city, transfo.buildingId, { ...etat, usine: { caisse, venteDirecte } }).catch(() => {});
+      await sbSetBatimentEtat('republic', transfo.city, transfo.buildingId, { ...etat, usine: { ...usine, caisse, venteDirecte } }).catch(() => {});
       resultats.transformateurs++;
     }
   } catch(e) { console.error('produireTransformateursQuotidien error', e); }
