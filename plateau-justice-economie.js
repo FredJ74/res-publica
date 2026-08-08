@@ -4079,9 +4079,20 @@ function getBuildingIdCommissariat(ville) {
   return ville === 'capitale' ? 'commissariat' : 'commissariat-local';
 }
 
-function getBuildingIdCentreMultimodal(ville) {
-  const map = { 'port-sainte-marie': 'centre-multinodal-port-sainte-marie', 'montrouge': 'centre-multinodal-montrouge' };
-  return ville === 'capitale' ? 'centre-multinodal-luthecia' : (map[ville] || 'centre-multinodal-' + ville);
+function getBuildingIdCentreMultimodal(ville, pays) {
+  // BUG CORRIGE LE 8 AOUT 2026 : la map utilisait 'port-sainte-marie'/'montrouge' comme cles,
+  // mais les appelants (VILLES_PAR_EMPIRE, confirmerTransport/executerVoyage) passent toujours
+  // le vrai id de ville 'ville_a'/'ville_b' -> aucune correspondance, repli silencieux sur
+  // 'centre-multinodal-ville_a', batiment inexistant.
+  if (ville === 'capitale') return 'centre-multinodal-luthecia'; // hub partage, contenu par buildingContext selon l'empire
+  // Les hubs des villes secondaires ne sont construits que pour Republia pour l'instant (voir
+  // meme choix deja fait pour le systeme fiscal/electoral). Sans ce garde-fou, un joueur d'un
+  // autre empire se retrouvait a entrer dans le Centre Multimodal de Port-Sainte-Marie (le
+  // batiment existe globalement, meme s'il n'a de sens que pour Republia) plutot que de
+  // simplement rester dans sa propre rue faute d'equivalent construit.
+  if (pays && pays !== 'republic') return null;
+  const map = { 'ville_a': 'centre-multinodal-port-sainte-marie', 'ville_b': 'centre-multinodal-montrouge' };
+  return map[ville] || null;
 }
 
 function getBuildingIdDispensaire(ville) {

@@ -489,6 +489,25 @@ function memoriserNoeudRueCentrale(pays, ville, noeudId) {
   } catch (e) {}
 }
 
+// Retrouve le noeud de rue centrale dont une zone pointe vers ce batiment (ex: le Centre
+// Multimodal d'une ville) — utilise a l'arrivee d'un voyage pour repositionner le souvenir
+// de rue centrale (memoriserNoeudRueCentrale) sur le bon endroit, plutot que de laisser le
+// joueur retomber sur la derniere scene visitee dans cette ville, parfois perimee de
+// plusieurs jours (bug remonte le 8 aout 2026). Derive des donnees existantes (zones des
+// noeuds) plutot qu'une table separee "ville -> noeud d'arrivee" a maintenir en double.
+function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
+  const noeuds = typeof RUE_CENTRALE_NOEUDS !== 'undefined' ? RUE_CENTRALE_NOEUDS[pays] : null;
+  if (!noeuds || !buildingId) return null;
+  for (const [noeudId, noeud] of Object.entries(noeuds)) {
+    const zonesAVerifier = [
+      ...(noeud.zones || []),
+      ...Object.values(noeud.zonesParArrivee || {}).flat()
+    ];
+    if (zonesAVerifier.some(z => z.buildingId === buildingId)) return noeudId;
+  }
+  return null;
+}
+
 function initialiserRueCentrale(pays, noeudDepart) {
   rueCentraleNoeudActuel = noeudDepart;
   afficherNoeudRue(pays, noeudDepart);

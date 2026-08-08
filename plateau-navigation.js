@@ -1203,8 +1203,15 @@ function executerVoyage(mode, empireId, villeId) {
   applyEmpireTheme(empireId);
   buildCityTabs();
   updateUI();
-  const buildingArriveeVoyage = typeof getBuildingIdCentreMultimodal === 'function' ? getBuildingIdCentreMultimodal(villeId) : null;
-  if (buildingArriveeVoyage && typeof enterBuilding === 'function') {
+  const buildingArriveeVoyage = typeof getBuildingIdCentreMultimodal === 'function' ? getBuildingIdCentreMultimodal(villeId, empireId) : null;
+  // Repositionne le souvenir de rue centrale sur la scene du Centre Multimodal d'arrivee,
+  // sinon en sortant du batiment on retombe sur la derniere scene visitee dans cette ville —
+  // parfois perimee de plusieurs jours (bug remonte le 8 aout 2026).
+  if (buildingArriveeVoyage && typeof memoriserNoeudRueCentrale === 'function' && typeof trouverNoeudRueCentralePourBatiment === 'function') {
+    const noeudArriveeVoyage = trouverNoeudRueCentralePourBatiment(empireId, buildingArriveeVoyage);
+    if (noeudArriveeVoyage) memoriserNoeudRueCentrale(empireId, villeId, noeudArriveeVoyage);
+  }
+  if (buildingArriveeVoyage && typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingArriveeVoyage] && typeof enterBuilding === 'function') {
     enterBuilding(buildingArriveeVoyage);
   } else {
     forceRenderCity(villeId);
@@ -1324,9 +1331,17 @@ function confirmerTransport(mode, empireId, villeId) {
   addJournalEntry('Voyage en ' + config.label + ' → ' + villeName + ' (' + empireName + ')', 'event-info');
   addExternalEvent((state.char?.name||'Anonyme') + ' est arrivé(e) à ' + villeName + ' (' + empireName + ').');
 
-  const buildingArriveeTransport = typeof getBuildingIdCentreMultimodal === 'function' ? getBuildingIdCentreMultimodal(villeId) : null;
-  if (buildingArriveeTransport && typeof enterBuilding === 'function') {
+  const buildingArriveeTransport = typeof getBuildingIdCentreMultimodal === 'function' ? getBuildingIdCentreMultimodal(villeId, empireId) : null;
+  // Repositionne le souvenir de rue centrale sur la scene du Centre Multimodal d'arrivee —
+  // voir le meme correctif dans executerVoyage ci-dessus.
+  if (buildingArriveeTransport && typeof memoriserNoeudRueCentrale === 'function' && typeof trouverNoeudRueCentralePourBatiment === 'function') {
+    const noeudArriveeTransport = trouverNoeudRueCentralePourBatiment(empireId, buildingArriveeTransport);
+    if (noeudArriveeTransport) memoriserNoeudRueCentrale(empireId, villeId, noeudArriveeTransport);
+  }
+  if (buildingArriveeTransport && typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingArriveeTransport] && typeof enterBuilding === 'function') {
     enterBuilding(buildingArriveeTransport);
+  } else {
+    forceRenderCity(villeId);
   }
 }
 
