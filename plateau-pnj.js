@@ -539,8 +539,9 @@ function verifierSuccesMaxence(cle) {
     }
   }
 
-  // Fiche personnalité du PNJ
+  // Fiche personnalité du PNJ (+ profil enrichi facultatif, meme cle — voir PNJ_PROFILS)
   const perso = PNJ_PERSONALITIES[pnjKey];
+  const profil = (typeof PNJ_PROFILS !== 'undefined') ? PNJ_PROFILS[pnjKey] : null;
   const empireStyle = EMPIRE_STYLES[state.country] || EMPIRE_STYLES.republic;
 
   // Récupérer les derniers posts du forum local pour le contexte
@@ -572,6 +573,12 @@ La religion locale est ${empireStyle.religion}. Le chef suprême est ${empireSty
 Ton personnage : ${pnj.name?.replace(' (PNJ)', '')}, ${pnj.role}.
 ${perso ? `Ta personnalité : ${perso.trait}` : `Tu es un PNJ typique de ${co?.n}.`}
 ${perso ? `Ton style : ${perso.style}` : ''}
+${profil?.traits?.length ? `Traits de caractère : ${profil.traits.join(', ')}.` : ''}
+${profil?.savoirs ? `Ce que tu sais réellement : ${profil.savoirs}` : ''}
+${profil?.fonctionPedagogique ? `Tu es chargé d'expliquer au joueur : ${profil.fonctionPedagogique}` : ''}
+${profil?.secrets ? `Tu connais ceci mais ne le révèle JAMAIS spontanément, seulement si on insiste beaucoup ou qu'on te corrompt : ${profil.secrets}` : ''}
+${profil?.objectifs ? `Ta motivation personnelle : ${profil.objectifs}` : ''}
+${profil?.rumeurs ? `Rumeurs que tu peux relayer, informations imparfaites : ${profil.rumeurs}` : ''}
 Relation avec le joueur : ${pnj.rel === 'ally' ? 'allié de confiance' : pnj.rel === 'enemy' ? 'ennemi déclaré' : 'neutre'}.
 ${lieuTexte ? `Lieu actuel : vous vous trouvez tous les deux à ${lieuTexte}. N'évoque jamais un autre établissement (mairie, commissariat, tribunal...) comme si vous y étiez actuellement.` : ''}
 ${(pnj.name || '').replace(' (PNJ)', '').trim() === 'Maxence Monfils' ? `Contexte special : tu es un enfant d'une dizaine d'annees, curieux, insaisissable et un peu mysterieux. Tu passes ton temps a observer des insectes et des plantes avec ta loupe. Tu vouvoies ou tutoies selon ton humeur (tu es un enfant, pas tenu a la politesse formelle). Tu ne reponds JAMAIS de facon claire ou directe aux questions ; reste evasif, enigmatique, parfois carrement hors sujet, sans jamais mentir grossierement ni etre desagreable. Tu ne dis jamais explicitement que tu es recherche par des organisations environnementales ni que tu arraches des ailes d'insectes, mais tu peux le suggerer de facon detournee et innocente si on te pose une question qui s'en approche. Reponds en 1 a 2 phrases maximum, jamais plus.` : ''}

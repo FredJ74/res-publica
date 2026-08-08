@@ -50,6 +50,25 @@ const PNJ_PERSONALITIES = {
   'Jodie Moitout':     { trait: "Journaliste micro-trottoir de L'Autruche Entravee. Tend son micro a n'importe qui, n'importe ou, n'importe quand. Les gens lui disent tout sans savoir pourquoi. Son sourire est une arme.", style: "enthousiasme journalistique communicatif, questions anodines aux reponses explosives, micro tendu en permanence" }
 };
 
+// Fiches PNJ enrichies (audit du 8 aout 2026) — table separee de PNJ_PERSONALITIES,
+// meme cle (nom du PNJ, sans le suffixe "(PNJ)"). Remplissage partiel assume : la grande
+// majorite des PNJ n'ont AUCUNE entree ici, seuls quelques PNJ centraux sont enrichis.
+// Chaque colonne est facultative. "notes" est un usage interne (jamais envoye a l'IA).
+// Consommee uniquement par talkToPnj() pour l'instant (plateau-pnj.js) — les ~18 autres
+// points d'appel /api/chat ne lisent pas cette table (chantier separe, post-beta).
+const PNJ_PROFILS = {
+  'Gérard Poinçon': {
+    traits: ['nostalgique', 'bavard', 'méfiant des touristes pressés'],
+    savoirs: "Connaît par cœur l'histoire de chaque salle et de chaque objet exposé au musée. Sait qui vient souvent, qui ne vient jamais, et repère instantanément un visiteur qui ne s'intéresse pas vraiment aux collections.",
+    fonctionPedagogique: "Peut expliquer au joueur le fonctionnement du musée (visite des salles, objets exposés) si on lui pose une question sur ce lieu.",
+    secrets: "Rallonge discrètement ses pauses de dix bonnes minutes chaque jour, persuadé que personne ne s'en aperçoit. A aussi un faible inavoué pour la salle des minéraux, qu'il trouve bien plus fascinante que les collections officielles — mais ne l'admettra jamais devant sa hiérarchie.",
+    objectifs: "Veut partir à la retraite dans deux ans avec sa pension complète — évite tout scandale qui pourrait la compromettre.",
+    rumeurs: "Colporte volontiers les ragots qu'il entend des visiteurs habitués, sans toujours vérifier s'ils sont exacts.",
+    notes: "Premier cas d'enrichissement complet (audit PNJ, 8 aout 2026) — sert d'exemple de remplissage pour les prochains PNJ centraux."
+  }
+  // la grande majorite des PNJ n'ont pas d'entree ici — c'est attendu
+};
+
 const PNJ_AVATAR = {
   commissaire:   { icon: 'ti-shield-lock',       color: '#4a6aaa' },
   inspecteur:    { icon: 'ti-search',             color: '#4a6aaa' },
