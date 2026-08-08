@@ -1,3 +1,44 @@
+# Journal de session — Res Publica (9 août 2026)
+
+## État du dépôt
+- Toutes les modifications ont été committées et poussées sur `main` (2 commits).
+
+---
+
+## 🕍 Clarification Tabernacle des Impôts (religion vs fiscalité)
+- Inventaire du bâtiment `tabernacle-impots` (Luthécia) : tout son contenu (2 salles, 8 ordres) est en réalité **100% religieux** (mécanique de l'indice IP, Moral, POP) — le vocabulaire fiscal ("Formulaire Sacré", "Percepteur Suprême") n'est qu'un habillage. Aucun doublon avec les vrais ordres fiscaux (mairie : `fixer_impots_locaux`/`repartition_budget_local` ; Ministère des Finances : `fixer_impots_nationaux`/`redressement_fiscal`/`fiscal`).
+- Confirmé : le nom "Tabernacle des Impôts" est **canonique et volontaire** (objet `RELIGIONS`, `plateau-divers.js:248`) — la religion de Republia s'appelle le **Papyrusisme**, son temple s'appelle bien "Tabernacle des Impôts". C'est la fusion assumée religion/bureaucratie qui fait la blague (comme le Cocaïsme à El Estado, le Tractorisme à Sovarka, le Loukoumisme à Al-Khalija). **Décision : on garde le nom tel quel.**
+- Bug annexe corrigé au passage : `EMPIRE_STYLES.republic.religion` valait `"le Tabernacle des Impôts"` (nom du temple) au lieu de `"le Papyrusisme"` (nom de la religion) — incohérent avec `RELIGIONS`. Corrigé (`ac8ebc7`).
+
+---
+
+## 🔍 Audit Ordres — inventaire des 344 ordres de Luthécia (préparatoire, avant le grand audit de la semaine prochaine)
+- Classement des 344 ordres des 36 bâtiments de Luthécia en 4 catégories : **Fonction** (92, `requiresPost` renseigné), **Lieu** (212), **Rencontre** (23, cible un individu précis choisi/cliqué), **Autres** (17, actions méta ou cibles collectives). Critères détaillés et cas limites calibrés avec Fred avant classement.
+- Au passage, **7 ordres trouvés sans aucun effet mécanique réel** malgré une description ou un coût qui en promettait un (jusqu'à 500 FR facturés pour rien) — voir section suivante.
+- Niveau de vérification obtenu ce soir : seuls les **21 ordres au chemin générique** (pas de handler dédié) ont pu être vérifiés avec certitude contre `ORDER_EFFECTS`. Les **318 ordres routés vers un handler dédié** (`doOrder` → fonction spécifique) n'ont **pas** été vérifiés un par un — leur taux affiché vient de la déclaration dans `data.js`, pas d'une lecture du code réel.
+- Résultat livré à Fred sous forme d'un inventaire interactif (tableau filtrable/triable, catégorie/difficulté/statut de vérification) plutôt que dans ce journal — trop volumineux pour être utile ici.
+
+### 🐛 7 ordres sans effet réel — corrigés ce soir (`7df6a28`)
+| Ordre | Bâtiment | Correctif appliqué |
+|---|---|---|
+| `investir` | Banque Nationale | Coût remis à 0 FR (était 500 FR pour un "rendement dans 24h" qui n'existe nulle part dans le code — aucun cron ne le traite) |
+| `redaction_testament` | Office Notarial | Coût remis à 0 FR (était 500 FR — le code de succession applique toujours la dévolution par défaut, jamais un héritier désigné) |
+| `contrat_mariage` | Office Notarial | Coût remis à 0 FR (était 400 FR — même souci, le régime matrimonial choisi n'est jamais lu) |
+| `emprunter_prive` | Banque Privée | Routé vers le vrai système de prêt existant (`ouvrirModalPretBancaire('privee','consommation')`) — n'avait aucun handler avant |
+| `consulter_succession` | Office Notarial | Routé vers `doConsulterArchivesNotariales()` — doublon orphelin d'un ordre déjà fonctionnel dans la même zone |
+| `demander_adhesion` | Loge Maçonnique | Bouton retiré (`orders: []`) — aucun système de membres/parrain n'existe dans le code, le clic ne faisait jamais rien |
+| `construire_sur_terrain` (×3, terrains 1/4/5) | Terrains à bâtir | **Non touché** — coût déjà nul (0 PA, 0 FR), donc aucun joueur lésé. Pas trouvé où/si la construction démarre réellement ailleurs — à investiguer lors de l'audit Ordres plutôt que de toucher un flux mal compris. |
+
+---
+
+## 📝 Chantiers en attente (mis à jour)
+1. **Grand audit Ordres, prévu la semaine prochaine** — portée précisée ce soir : vérifier un par un les **318 handlers dédiés** non couverts par la vérification de ce soir (confirmer que chacun applique bien un effet cohérent avec sa description), plus élucider le cas `construire_sur_terrain` (flux de démarrage de chantier non identifié).
+2. **Audit PNJ** — prévu avant la bêta, pas encore fait (état des ~18 points d'appel IA hors périmètre de la fondation `PNJ_PROFILS` posée le 8 août).
+3. **Tâche optionnelle** : décrets automatiques du PNJ Président (à décider si prioritaire).
+4. **Tableau Excel PNJ** à mettre à jour avec les nouveaux PNJ créés le 8 août (cascade de nomination automatique, postes de Directeur usine/entrepôt).
+
+---
+
 # Journal de session — Res Publica (8 août 2026)
 
 ## État du dépôt
