@@ -38,6 +38,33 @@ async function sbUpdate(table, filters, data) {
   return res.json();
 }
 
+// Etat generique par batiment (id = country_city_buildingId), duplique de supabase.js
+// car le cron tourne dans un contexte serverless isole, sans acces aux fonctions client.
+// BUG CORRIGE LE 8 AOUT 2026 : ces deux fonctions etaient appelees (livrerEntrepotsQuotidien,
+// produireTransformateursQuotidien) mais jamais definies ici -> ReferenceError silencieuse,
+// avalee par le try/catch englobant -> aucune livraison, caisse jamais alimentee.
+async function sbGetBatimentEtat(country, city, buildingId) {
+  const id = country + '_' + city + '_' + buildingId;
+  const rows = await sbGet('batiments_etat', `id=eq.${encodeURIComponent(id)}`);
+  if (rows && rows[0]) {
+    try { return JSON.parse(rows[0].data); } catch(e) { return {}; }
+  }
+  return {};
+}
+
+async function sbSetBatimentEtat(country, city, buildingId, patch) {
+  const id = country + '_' + city + '_' + buildingId;
+  const actuel = await sbGetBatimentEtat(country, city, buildingId);
+  const fusion = { ...actuel, ...patch };
+  const rows = await sbGet('batiments_etat', `id=eq.${encodeURIComponent(id)}`);
+  if (rows && rows[0]) {
+    await sbUpdate('batiments_etat', `id=eq.${encodeURIComponent(id)}`, { data: JSON.stringify(fusion), updated_at: new Date().toISOString() });
+  } else {
+    await sbInsert('batiments_etat', { id, country, city, building_id: buildingId, data: JSON.stringify(fusion) });
+  }
+  return fusion;
+}
+
 // Noms des postes pour les annonces (synchronisé avec data.js POSTES_ELECTIFS)
 const POSTE_NOMS = {
   president: 'Président de la République',
