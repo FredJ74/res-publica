@@ -4352,7 +4352,7 @@ const BUILDINGS = {
         name: "Hall de la Gare",
         imageBg: "linear-gradient(135deg,#08090f,#101520)",
         desc: "Une petite gare de province. Calme. Le prochain train est dans 2 heures.",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-multimodal.png",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-multimodal-accueil.png",
         persons: [
           {name:'Chef de Gare Local (PNJ)', role:'Chef de gare', rel:'neutral', job:'chef_gare'}
         ],
