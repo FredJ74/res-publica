@@ -4034,8 +4034,11 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
-        persons: [],
-        orders: []
+        persons: [{name:'Norbert Charton (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
+        orders: [
+          {fn:'nommer_directeur_entrepot', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'maire', desc:"Nommer un PJ directeur de l'entrepôt. Poste exclusif (sauf député)."},
+          {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix d'achat", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue à l'entrepôt, dans la fourchette autorisée (±40% du prix de base)."}
+        ]
       }
     }
   },
@@ -4201,8 +4204,11 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
         imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
-        persons: [],
-        orders: []
+        persons: [{name:'Yvon Paletier (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
+        orders: [
+          {fn:'nommer_directeur_entrepot', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'maire', desc:"Nommer un PJ directeur de l'entrepôt. Poste exclusif (sauf député)."},
+          {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix d'achat", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue à l'entrepôt, dans la fourchette autorisée (±40% du prix de base)."}
+        ]
       }
     }
   },
@@ -4228,8 +4234,11 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-direction-entrepot-luthecia.png",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
-        persons: [],
-        orders: []
+        persons: [{name:'Marcel Silo (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
+        orders: [
+          {fn:'nommer_directeur_entrepot', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'maire', desc:"Nommer un PJ directeur de l'entrepôt. Poste exclusif (sauf député)."},
+          {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix d'achat", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue à l'entrepôt, dans la fourchette autorisée (±40% du prix de base)."}
+        ]
       }
     }
   },
@@ -5636,7 +5645,12 @@ const POSTES_NOMMES_EXCLUSIFS = {
   // nationale (comme les ministres/juge), meme si physiquement rattaches a une ville precise.
   directeur_pharma:        { label: "Directeur de l'Usine Pharmaceutique", nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
   directeur_tabac_alcools: { label: 'Directeur du Pôle Tabac & Alcools',   nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
-  directeur_raffinerie:    { label: 'Directeur de la Raffinerie',          nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] }
+  directeur_raffinerie:    { label: 'Directeur de la Raffinerie',          nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
+
+  // Directeur de l'entrepot logistique — nomme par le Maire (portee locale, un titulaire
+  // distinct par ville, contrairement aux directeurs d'usine nommes par le Ministre des
+  // Finances a l'echelle du pays). Meme mecanique que le commissaire.
+  directeur_entrepot:      { label: "Directeur de l'Entrepôt Logistique",  nommePar: 'maire',   scope: 'ville', compatibles: ['depute'] }
 };
 
 // Nouveaux ordres v6

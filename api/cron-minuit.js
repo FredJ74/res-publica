@@ -712,7 +712,7 @@ async function livrerEntrepotsQuotidien() {
         });
       }
 
-      await sbSetBatimentEtat('republic', city, buildingId, { ...etat, entrepot: { stock, caisse } }).catch(() => {});
+      await sbSetBatimentEtat('republic', city, buildingId, { ...etat, entrepot: { ...entrepot, stock, caisse } }).catch(() => {});
       resultats.entrepots++;
       resultats.unitesLivrees += unitesEntrepot;
       resultats.coutTotal += coutEntrepot;

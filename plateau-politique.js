@@ -3913,11 +3913,19 @@ function ouvrirModalNommerJuge() {
 function ouvrirModalRevoquerJuge() { ouvrirRevoquerPosteNomme('juge'); }
 
 function ouvrirModalNommerCommissaire() {
-  if (state.poste?.id !== 'maire') {
+  if (!state.poste?.id?.startsWith('maire')) {
     showToast('Accès refusé', 'Seul le Maire peut nommer un commissaire.', false);
     return;
   }
   ouvrirNominerPosteNomme('commissaire');
+}
+
+function ouvrirModalNommerDirecteurEntrepot() {
+  if (!state.poste?.id?.startsWith('maire')) {
+    showToast('Accès refusé', "Seul le Maire peut nommer un directeur d'entrepôt.", false);
+    return;
+  }
+  ouvrirNominerPosteNomme('directeur_entrepot');
 }
 
 function ouvrirModalRevoquerCommissaire() { ouvrirRevoquerPosteNomme('commissaire'); }

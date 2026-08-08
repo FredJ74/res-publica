@@ -133,6 +133,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_directeur_raffinerie') { ouvrirModalNommerDirecteurRaffinerie(); return; }
   if (fn === 'fixer_prix_vente_directe') { doOuvrirFixerPrixVenteDirecte(); return; }
   if (fn === 'fixer_repartition_production') { doOuvrirFixerRepartitionProduction(); return; }
+  if (fn === 'nommer_directeur_entrepot') { ouvrirModalNommerDirecteurEntrepot(); return; }
+  if (fn === 'fixer_prix_achat_entrepot') { doOuvrirFixerPrixAchatEntrepot(); return; }
   if (fn === 'emprunter_construction') { ouvrirModalPretBancaire('nationale', 'travaux'); return; }
   if (fn === 'emprunter') {
     const typeBanque = state.currentBuilding === 'banque-privee' ? 'privee' : 'nationale';

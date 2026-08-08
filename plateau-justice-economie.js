@@ -2784,6 +2784,7 @@ async function doOuvrirAchatEntrepot() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, buildingId) : {};
   const stock = etat.entrepot?.stock || {};
+  const prixManuel = etat.entrepot?.prixManuel || {};
 
   let html = '<div style="padding:1.2rem">';
   html += '<div style="font-size:.95rem;color:#8a8060;margin-bottom:1rem">Indiquez la quantité souhaitée pour chaque produit (laissez vide pour ne rien acheter). Le prix affiché varie selon le niveau du stock.</div>';
@@ -2792,7 +2793,7 @@ async function doOuvrirAchatEntrepot() {
 
   Object.entries(RESSOURCES_ECONOMIE).forEach(([cle, res]) => {
     const enStock = stock[cle] || 0;
-    const prixActuel = typeof getPrixRessource === 'function' ? getPrixRessource(cle, enStock) : res.prixBase;
+    const prixActuel = prixManuel[cle] != null ? prixManuel[cle] : (typeof getPrixRessource === 'function' ? getPrixRessource(cle, enStock) : res.prixBase);
     const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
     const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
     html += '<tr style="border-top:1px solid #2a2010">';
@@ -2816,6 +2817,7 @@ async function confirmerAchatEntrepot(buildingId) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
   const stock = etat.entrepot?.stock || {};
+  const prixManuel = etat.entrepot?.prixManuel || {};
 
   // Premiere passe : lire les quantites demandees, calculer le total, verifier stock+argent
   const achats = {};
@@ -2828,7 +2830,7 @@ async function confirmerAchatEntrepot(buildingId) {
       showToast('Stock insuffisant', 'Il ne reste que ' + enStock + ' unité(s) de ' + RESSOURCES_ECONOMIE[cle].label + '.', false);
       return;
     }
-    const prix = getPrixRessource(cle, enStock);
+    const prix = prixManuel[cle] != null ? prixManuel[cle] : getPrixRessource(cle, enStock);
     achats[cle] = { qte, prix };
     total += qte * prix;
   }
@@ -2860,13 +2862,141 @@ async function confirmerAchatEntrepot(buildingId) {
   state.arg -= totalReellementPaye;
   total = totalReellementPaye;
 
-  etat.entrepot = { ...(etat.entrepot || {}), stock };
+  // Revenu credite a la caisse de l'entrepot — corrige le 8 aout 2026 : jusque-la, l'argent
+  // paye par le joueur disparaissait sans contrepartie, la caisse ne pouvant que baisser.
+  etat.entrepot = { ...(etat.entrepot || {}), stock, caisse: (etat.entrepot?.caisse || 0) + totalReellementPaye };
   if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, etat).catch(() => {});
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
   showToast('Achat effectué !', '-' + Math.round(total) + ' ' + cur + '.', true, true);
   addJournalEntry('Achat à l\'entrepôt logistique : ' + Object.entries(achats).map(([cle, a]) => a.qte + ' ' + RESSOURCES_ECONOMIE[cle].label).join(', ') + '.', 'event-good');
+}
+
+// =====================
+// TABLEAU DE BORD DU DIRECTEUR D'ENTREPOT PJ — meme principe que le directeur d'usine
+// (nomme par le Maire au lieu du Ministre des Finances, poste local via scope:'ville').
+// Fixe le prix de vente de l'entrepot dans la meme fourchette ±40% que partout ailleurs.
+// =====================
+const ENTREPOT_PAR_VILLE = {
+  capitale: 'entrepot-logistique-luthecia',
+  ville_a:  'entrepot-logistique-psm',
+  ville_b:  'entrepot-logistique-montrouge'
+};
+
+function getBuildingIdDirecteurEntrepot() {
+  const ville = state.poste?.city;
+  return ville ? ENTREPOT_PAR_VILLE[ville] : null;
+}
+
+async function doOuvrirFixerPrixAchatEntrepot() {
+  const buildingIdAttendu = getBuildingIdDirecteurEntrepot();
+  if (state.poste?.id !== 'directeur_entrepot' || state.currentBuilding !== buildingIdAttendu) {
+    showToast('Accès refusé', 'Seul le directeur en poste peut fixer les prix de cet entrepôt.', false);
+    return;
+  }
+  const buildingId = state.currentBuilding;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, buildingId) : {};
+  const stock = etat.entrepot?.stock || {};
+  const prixManuel = etat.entrepot?.prixManuel || {};
+
+  let html = '<div style="padding:1.2rem">';
+  html += '<div style="font-size:.95rem;color:#8a8060;margin-bottom:1rem">Prix fixé par produit, dans la fourchette autorisée. Laissez vide pour revenir au prix automatique (fonction du stock).</div>';
+  html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
+  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix auto</th><th>Prix fixé</th></tr>';
+
+  Object.entries(RESSOURCES_ECONOMIE).forEach(([cle, res]) => {
+    const enStock = stock[cle] || 0;
+    const prixAuto = getPrixRessource(cle, enStock);
+    const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
+    const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
+    const prixFixe = prixManuel[cle];
+    html += '<tr style="border-top:1px solid #2a2010">';
+    html += '<td style="padding:.55rem 0"><i class="ti ' + res.icon + '" style="margin-right:.4rem;font-size:1.1rem"></i>' + res.label + '</td>';
+    html += '<td style="color:#8a8060">' + enStock + '</td>';
+    html += '<td style="color:#6a5a30">' + prixMin + '-' + prixMax + ' ' + cur + '</td>';
+    html += '<td style="color:#6a5a30">' + prixAuto + ' ' + cur + '</td>';
+    html += '<td><input type="number" min="' + prixMin + '" max="' + prixMax + '" step="0.5" id="prix-fixe-entrepot-' + cle + '" placeholder="auto" value="' + (prixFixe != null ? prixFixe : '') + '" style="width:100px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:1rem" /></td>';
+    html += '</tr>';
+  });
+  html += '</table>';
+  html += '<button class="pnj-action-btn" onclick="confirmerFixerPrixAchatEntrepot(\'' + buildingId + '\')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider les prix</button>';
+  html += '</div>';
+
+  document.getElementById('postes-modal-title').textContent = "Fixer les prix d'achat";
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerFixerPrixAchatEntrepot(buildingId) {
+  if (state.poste?.id !== 'directeur_entrepot' || buildingId !== getBuildingIdDirecteurEntrepot()) return;
+  const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
+  const prixManuel = { ...(etat.entrepot?.prixManuel || {}) };
+
+  const nouvellesValeurs = {};
+  for (const cle of Object.keys(RESSOURCES_ECONOMIE)) {
+    const res = RESSOURCES_ECONOMIE[cle];
+    const valeur = document.getElementById('prix-fixe-entrepot-' + cle)?.value;
+    if (valeur === '' || valeur == null) continue;
+    const prix = parseFloat(valeur);
+    const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
+    const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
+    if (isNaN(prix) || prix < prixMin || prix > prixMax) {
+      showToast('Prix hors fourchette', res.label + ' doit être fixé entre ' + prixMin + ' et ' + prixMax + '.', false);
+      return;
+    }
+    nouvellesValeurs[cle] = Math.round(prix * 100) / 100;
+  }
+
+  for (const cle of Object.keys(RESSOURCES_ECONOMIE)) {
+    const valeur = document.getElementById('prix-fixe-entrepot-' + cle)?.value;
+    if (valeur === '' || valeur == null) delete prixManuel[cle];
+    else prixManuel[cle] = nouvellesValeurs[cle];
+  }
+
+  const nouvelEtat = { ...etat, entrepot: { ...(etat.entrepot || {}), prixManuel } };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, nouvelEtat).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Prix mis à jour', 'Les nouveaux prix de vente sont actifs.', true, true);
+  addJournalEntry("Prix d'achat de l'entrepôt ajustés en tant que directeur.", 'event-good');
+}
+
+// Salaire quotidien du directeur d'entrepot, plafonne par la caisse de son propre entrepot —
+// meme montant et meme mecanique que le directeur d'usine (SALAIRE_DIRECTEUR, voir plus haut).
+async function debiterCaisseEntrepotPlafonne(pays, city, buildingId, montantVise) {
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, city, buildingId).catch(() => null) : null;
+  const entrepot = etat?.entrepot || {};
+  const solde = entrepot.caisse || 0;
+  const montantVerse = Math.min(solde, montantVise);
+  if (typeof sbSetBatimentEtat === 'function') {
+    await sbSetBatimentEtat(pays, city, buildingId, { ...(etat || {}), entrepot: { ...entrepot, caisse: solde - montantVerse } }).catch(() => {});
+  }
+  return montantVerse;
+}
+
+async function verifierSalaireDirecteurEntrepot() {
+  if (state.poste?.id !== 'directeur_entrepot') return;
+  const buildingId = getBuildingIdDirecteurEntrepot();
+  if (!buildingId) return;
+  const jour = state.day || 1;
+  if (!state.char) return;
+  if (state.char.dernierSalaireDirecteurEntrepotJour === jour) return;
+
+  const pays = state.country || 'republic';
+  const montantVerse = await debiterCaisseEntrepotPlafonne(pays, state.poste.city, buildingId, SALAIRE_DIRECTEUR);
+
+  state.arg = (state.arg || 0) + montantVerse;
+  state.char.dernierSalaireDirecteurEntrepotJour = jour;
+  updateUI();
+  if (montantVerse > 0) {
+    showToast('Salaire perçu', '+' + montantVerse.toLocaleString('fr-FR') + ' FR.' + (montantVerse < SALAIRE_DIRECTEUR ? ' (caisse insuffisante pour le montant complet)' : ''), true, true);
+    addJournalEntry('Salaire de directeur perçu : ' + montantVerse + ' FR.', 'event-good');
+  } else {
+    showToast('Salaire impayé', 'La caisse de l\'entrepôt est vide aujourd\'hui.', false);
+    addJournalEntry('Aucun salaire de directeur perçu : caisse de l\'entrepôt vide.', 'event-bad');
+  }
 }
 
 // =====================
@@ -3800,7 +3930,7 @@ async function verifierInstructionPermis(buildingId) {
 }
 
 async function doTraiterDemandesPermis() {
-  if (state.poste?.id !== 'maire') { showToast('Réservé au maire', '', false); return; }
+  if (!state.poste?.id?.startsWith('maire')) { showToast('Réservé au maire', '', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Demandes de permis à traiter';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
@@ -3964,7 +4094,7 @@ function getBuildingIdTribunal(ville) {
 
 // ---- FINANCEMENT COMMUNAL (Maire) : virement instantane depuis la caisse municipale ----
 async function ouvrirModalFinancerCommunal() {
-  if (state.poste?.id !== 'maire') {
+  if (!state.poste?.id?.startsWith('maire')) {
     showToast('Acces refuse', 'Reserve au Maire.', false);
     return;
   }

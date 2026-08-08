@@ -902,6 +902,7 @@ async function doDormir() {
   if (typeof verifierEffetsManifestationsEcoulees === 'function') verifierEffetsManifestationsEcoulees(state.country);
   if (typeof verifierSalairePolitique === 'function') verifierSalairePolitique();
   if (typeof verifierSalaireDirecteur === 'function') verifierSalaireDirecteur();
+  if (typeof verifierSalaireDirecteurEntrepot === 'function') verifierSalaireDirecteurEntrepot();
   if (typeof verifierAutoValidationManifestations === 'function') verifierAutoValidationManifestations(state.country);
 
   // Rafraichir la vue

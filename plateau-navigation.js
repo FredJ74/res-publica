@@ -349,6 +349,39 @@ function enterBuilding(buildingId, skipAutoRoom) {
     elCaisse.style.display = 'none';
   }
 
+  // Affichage du directeur en poste — usines et entrepots, meme logique que la caisse
+  // ci-dessus (demande Fred 8 aout 2026). Priorite au vrai titulaire PJ (via le systeme
+  // generique getTitulairePosteNomme, deja utilise pour juge/commissaire) ; a defaut, le
+  // PNJ par default du bureau de direction (jamais un flou "poste vacant" tant qu'un PNJ
+  // occupe encore la place).
+  const BATIMENTS_DIRECTEUR = {
+    'usine-pharmaceutique-luthecia': { posteId: 'directeur_pharma', city: null },
+    'pole-tabac-alcools-psm':        { posteId: 'directeur_tabac_alcools', city: null },
+    'raffinerie-montrouge':          { posteId: 'directeur_raffinerie', city: null },
+    'entrepot-logistique-luthecia':  { posteId: 'directeur_entrepot', city: 'capitale' },
+    'entrepot-logistique-psm':       { posteId: 'directeur_entrepot', city: 'ville_a' },
+    'entrepot-logistique-montrouge': { posteId: 'directeur_entrepot', city: 'ville_b' }
+  };
+  const cfgDirecteur = BATIMENTS_DIRECTEUR[buildingId];
+  const elDirecteur = document.getElementById('bat-directeur');
+  if (cfgDirecteur && elDirecteur) {
+    elDirecteur.style.display = 'block';
+    elDirecteur.textContent = 'Directeur : ...';
+    if (typeof getTitulairePosteNomme === 'function') {
+      getTitulairePosteNomme(cfgDirecteur.posteId, cfgDirecteur.city).then(titulaire => {
+        if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
+        if (titulaire) {
+          elDirecteur.textContent = 'Directeur : ' + titulaire.nom;
+        } else {
+          const pnjDefaut = (BUILDINGS[buildingId]?.rooms?.bureau_direction?.persons || []).find(p => p.job === cfgDirecteur.posteId);
+          elDirecteur.textContent = 'Directeur : ' + (pnjDefaut ? pnjDefaut.name : 'poste vacant');
+        }
+      }).catch(() => { elDirecteur.textContent = 'Directeur : indisponible'; });
+    }
+  } else if (elDirecteur) {
+    elDirecteur.style.display = 'none';
+  }
+
   // Onglets pieces — fusionne les pieces de base avec d'eventuelles pieces supplementaires
   // propres a une ville (ctx.roomsExtra), sans jamais les ajouter aux autres villes qui
   // partagent la meme definition de batiment globale (ex: centre-affaires).
