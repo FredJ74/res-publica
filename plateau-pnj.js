@@ -118,6 +118,135 @@ function ouvrirPhotoPleinEcran(el) {
   document.body.appendChild(overlay);
 }
 
+// =====================
+// QUETE CARRIERE — dispatcher des 3 referents (Pat Hounette / Jean-Lou Zeure / Laurent Barre)
+// Etat : state.char.queteCarriere = { ambition, etape, resultat, debriefVu }
+// Independant du systeme de quete/enquete generique (getQueteActivePourPnj / progresserQuete)
+// plus haut dans openPnjModal - deux mecaniques separees qui partagent juste le meme modal PNJ.
+// =====================
+const QUETE_CARRIERE_REFERENTS_NOMS = { 'Pat Hounette': 'criminel', 'Jean-Lou Zeure': 'politique', 'Laurent Barre': 'entrepreneurial' };
+
+const QUETE_CARRIERE_BRIEFS = {
+  criminel: {
+    titre: 'Pat Hounette',
+    image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/pat-hounette.png',
+    texte: "Jérémy vous envoie ? ... Il parle trop, ce garçon. Alors comme ça, vous cherchez à gagner votre vie sans forcément remplir toutes les cases du formulaire ?<br><br>Bon. J'ai un petit colis à faire passer au port. Rien de bien méchant, mais un colis ne se transporte jamais bien tout seul — pas besoin d'être des experts, juste d'être plusieurs. Allez-y, et revenez me voir après.",
+    rappel: "Le colis, toujours au port. Allez-y quand vous êtes prêt(e)."
+  },
+  politique: {
+    titre: 'Jean-Lou Zeure',
+    image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-lou-zeure.png',
+    texte: "Jean-Lou Zeure. Ancien maire de Luthécia. Ancien, oui. C'est important, le mot ancien, en politique. On vous l'ajoute généralement sans vous demander votre avis.<br><br>Tenez, un lot de tracts tout prêt — la mécanique d'impression, on la verra une autre fois. Ce qui m'intéresse aujourd'hui, c'est qui vous accompagne quand vous le distribuerez. Allez-y, et revenez me voir après.",
+    rappel: "Le tract est dans votre inventaire, prêt à être distribué. Allez-y quand vous êtes prêt(e)."
+  },
+  entrepreneurial: {
+    titre: 'Laurent Barre',
+    image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/laurent-barre.png',
+    texte: "Vous voulez devenir entrepreneur. Excellent. Combien avez-vous ?<br><br>Non. Je vous demandais combien vous êtes prêt à perdre.<br><br>Il y a un terrain squatté que la mairie n'arrive pas à récupérer — le Lot 4 de la Châtaigneraie. Allez-y. Et un bon négociateur ne se présente jamais seul s'il peut l'éviter : amenez du monde, vos chances grimperont — pas besoin d'être des experts, juste d'être plusieurs. Revenez me voir après.",
+    rappel: "Le Lot 4 de la Châtaigneraie vous attend. Allez-y quand vous êtes prêt(e)."
+  }
+};
+
+const QUETE_CARRIERE_DEBRIEFS = {
+  criminel: {
+    succes: "Vous venez de transporter quelque chose sans en connaître le contenu, pour un homme que vous ne connaissez pas. Première leçon : dans ce métier, l'information vaut parfois davantage que la marchandise.<br><br>Et remarquez : votre discrétion n'était pas qu'à vous. Qui était avec vous a compté.",
+    echec: "Repéré. Ça arrive. La discrétion, ça ne s'improvise pas tout seul — qui vous accompagne compte autant que votre propre habileté."
+  },
+  politique: {
+    succes: "Voilà. Une conviction de plus. La mobilisation, ça ne se fait jamais seul — remarquez comme votre entourage a pesé dans la balance, autant que vos propres mots.",
+    echec: "Personne n'a été convaincu, cette fois. Ne vous vexez pas — même le meilleur discours porte plus loin quand on n'est pas seul à le tenir."
+  },
+  entrepreneurial: {
+    succes: "Vous avez réussi. Remarquez : la somme seule n'explique pas tout. Qui vous accompagnait a compté au moins autant que ce que vous avez offert.",
+    echec: "Ils ont pris l'argent et sont restés. La prochaine fois, entourez-vous mieux avant d'ouvrir votre portefeuille — l'argent seul ne fait pas tout."
+  }
+};
+
+// Construit le bouton d'action de la zone carriere pour ce PNJ, ou '' s'il n'est pas concerne
+// (pas un referent, ou pas la branche d'ambition choisie par le joueur).
+function genererZoneCarriereHtml(pnj) {
+  const nomCourt = (pnj.name || '').replace(' (PNJ)', '').trim();
+  const branche = QUETE_CARRIERE_REFERENTS_NOMS[nomCourt];
+  if (!branche) return '';
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== branche) return '';
+
+  if (qc.etape === 'a_rencontrer') {
+    return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20;font-weight:bold" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirBriefCarriere(\'' + branche + '\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Discuter</button>';
+  }
+  if (qc.etape === 'en_cours') {
+    return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');rappelMissionCarriere(\'' + branche + '\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Rappel de la mission</button>';
+  }
+  if (qc.etape === 'terminee' && !qc.debriefVu) {
+    return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20;font-weight:bold" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');debriefCarriere(\'' + branche + '\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Faire le point</button>';
+  }
+  return ''; // debrief deja vu -> dialogue PNJ normal (talkToPnj), referent desormais juste consultable
+}
+
+// Ouvre le brief de mission, prepare ce qu'il faut pour l'accomplir (tract en inventaire pour
+// Jean-Lou, squatteur scripte pour Laurent Barre), puis passe la quete en 'en_cours'.
+function ouvrirBriefCarriere(branche) {
+  const b = QUETE_CARRIERE_BRIEFS[branche];
+  if (!b || typeof afficherPopupQueteAccueil !== 'function') return;
+
+  if (branche === 'politique') {
+    donnerTractMissionCarriere();
+  } else if (branche === 'entrepreneurial' && typeof demarrerMissionLaurentBarre === 'function') {
+    demarrerMissionLaurentBarre();
+  }
+
+  if (state.char.queteCarriere) {
+    state.char.queteCarriere.etape = 'en_cours';
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  }
+
+  afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.texte, suivant: null });
+}
+
+// Lot de tracts POUR le joueur lui-meme (cible toujours une vraie ligne Supabase valide, pas
+// de dependance a l'existence d'un autre joueur reel) - contourne volontairement le circuit
+// d'impression/bois de La Tribune, hors sujet de cette lecon (moyenne de groupe uniquement).
+function donnerTractMissionCarriere() {
+  if (!state.inventory) state.inventory = [];
+  const cible = state.char?.name;
+  const existant = state.inventory.find(i => i.type === 'tract' && i.cible === cible && i.tractType === 'pour');
+  if (existant) { existant.quantite = (existant.quantite || 0) + 1; }
+  else { state.inventory.push({ type:'tract', name:'Tracts POUR ' + cible, icon:'ti-file-description', tractType:'pour', cible: cible, quantite: 1, legal:true }); }
+  if (typeof updateUI === 'function') updateUI();
+}
+
+function rappelMissionCarriere(branche) {
+  const b = QUETE_CARRIERE_BRIEFS[branche];
+  if (b && typeof showToast === 'function') showToast('Rappel', b.rappel, true);
+}
+
+// Hook appele depuis les 3 ordres concernes (doContrebandePort, confirmerDistribuerTract,
+// confirmerNegociation), succes ou echec - l'echec vaut lecon aussi, la mission n'est jamais
+// bloquante. No-op si ce n'est pas la bonne branche ou si la mission n'est pas en cours (evite
+// qu'un usage ulterieur, hors mission, de ces memes ordres ne redeclenche quoi que ce soit).
+function verifierProgressionCarriere(branche, succes) {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== branche || qc.etape !== 'en_cours') return;
+  qc.etape = 'terminee';
+  qc.resultat = succes ? 'succes' : 'echec';
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+}
+
+function debriefCarriere(branche) {
+  const qc = state.char?.queteCarriere;
+  const b = QUETE_CARRIERE_BRIEFS[branche];
+  const d = QUETE_CARRIERE_DEBRIEFS[branche];
+  if (!b || !d || typeof afficherPopupQueteAccueil !== 'function') return;
+  const texte = qc?.resultat === 'succes' ? d.succes : d.echec;
+
+  if (qc) {
+    qc.debriefVu = true;
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  }
+
+  afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: texte, suivant: null });
+}
+
 function openPnjModal(encodedPnj) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }
@@ -263,6 +392,12 @@ function openPnjModal(encodedPnj) {
   const encCible = encodePnjSafe(pnj);
   actionBtns += '<button class="pnj-action-btn" style="color:#aa7a30;border-color:#3a2810" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalVoler(\'' + encCible + '\')"><i class="ti ti-fingerprint" style="font-size:.85rem"></i> Voler</button>';
   actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-skull" style="font-size:.85rem"></i> Assassiner</button>';
+  // Quete carriere (Pat Hounette / Jean-Lou Zeure / Laurent Barre) — independante du systeme
+  // de quete/enquete generique ci-dessous (state.char.queteCarriere, pas state.quetes).
+  if (!isPJ && typeof genererZoneCarriereHtml === 'function') {
+    actionBtns += genererZoneCarriereHtml(pnj);
+  }
+
   actionBtns += '<div id="quete-action-zone"></div>';
   // Verifier de facon non bloquante si ce PNJ correspond a une quete active
   if (!isPJ && typeof getQueteActivePourPnj === 'function') {
@@ -953,6 +1088,7 @@ function confirmerDistribuerTract(cible, tractType) {
     addJournalEntry('Distribution de tract ' + tractType + ' ' + cible + ' sans effet. (' + taux + '% de chances)', '');
   }
 
+  if (typeof verifierProgressionCarriere === 'function') verifierProgressionCarriere('politique', succes);
   updateUI();
 }
 
@@ -1918,6 +2054,24 @@ function doFaireDisparaitreCadavre() {
   }
 }
 
+// Formule partagee entre l'affichage en direct du modal et la resolution reelle, pour ne
+// jamais pouvoir diverger. cha via getStatEffective : reflete deja la moyenne de groupe.
+function calculerTauxNegociationSquatteurs(montant) {
+  const cha = getStatEffective('CHA');
+  const indices = INDICES_NATIONAUX?.[state.country] || { IS: 45 };
+  const is = indices.IS || 45;
+  const bonusArgent = Math.min(40, Math.floor((montant || 0) / 100));
+  const bonusOrga2 = calculerBonusOrga();
+  return Math.min(90, Math.floor(cha * 3 + is / 5) + bonusArgent + (bonusOrga2.nego_cha || 0));
+}
+
+function majTauxNegociationLive() {
+  const montant = parseInt(document.getElementById('negoc-montant')?.value || 0);
+  const taux = calculerTauxNegociationSquatteurs(montant);
+  const el = document.getElementById('negoc-taux-live');
+  if (el) el.textContent = 'Chances de succès actuelles : ' + taux + '%';
+}
+
 function doNegocierSquatteurs() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
@@ -1931,9 +2085,10 @@ function doNegocierSquatteurs() {
     '<div style="padding:.8rem 1rem">' +
     '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.6rem;font-style:italic">"' + (pnj?.trait || '') + '"</div>' +
     (minMontant > 0 ? '<div style="font-size:.7rem;color:#8a3a2a;margin-bottom:.5rem">Ces squatteurs refuseront toute offre inférieure à ' + minMontant + ' ' + cur + '.</div>' : '') +
-    '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">Chaque 100 ' + cur + ' supplémentaires améliorent vos chances de +1%.</div>' +
-    '<input id="negoc-montant" type="number" min="' + minMontant + '" step="100" placeholder="Montant proposé..." ' +
-    'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
+    '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">Chaque 100 ' + cur + ' supplémentaires améliorent vos chances de +1%. Qui vous accompagne compte aussi.</div>' +
+    '<input id="negoc-montant" type="number" min="' + minMontant + '" step="100" placeholder="Montant proposé..." oninput="majTauxNegociationLive()" ' +
+    'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.4rem"/>' +
+    '<div id="negoc-taux-live" style="font-size:.78rem;color:#C9A84C;font-weight:bold;margin-bottom:.6rem">Chances de succès actuelles : ' + calculerTauxNegociationSquatteurs(minMontant) + '%</div>' +
     '<button onclick="confirmerNegociation()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Négocier</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -1945,8 +2100,6 @@ function confirmerNegociation() {
   const pnj = ts.pnjData;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('negoc-montant')?.value || 0);
-  const indices = INDICES_NATIONAUX?.[state.country] || { IS: 45 };
-  const is = indices.IS || 45;
 
   if (!montant || montant < (pnj?.id === 'squatter_agr' ? 500 : 0)) {
     showToast('Montant insuffisant', 'Les squatteurs refusent.', false);
@@ -1957,16 +2110,16 @@ function confirmerNegociation() {
     return;
   }
 
-  const cha = getStatEffective('CHA');
-  const bonusArgent = Math.min(40, Math.floor(montant / 100));
-  const bonusOrga2 = calculerBonusOrga();
-  const taux = Math.min(90, Math.floor(cha * 3 + is / 5) + bonusArgent + (bonusOrga2.nego_cha || 0));
+  const taux = calculerTauxNegociationSquatteurs(montant);
   const roll = Math.floor(Math.random() * 100) + 1;
+  const succesNego = roll <= taux;
 
   state.arg -= montant;
   document.getElementById('modal-postes').classList.remove('open');
 
-  if (roll <= taux) {
+  if (typeof verifierProgressionCarriere === 'function') verifierProgressionCarriere('entrepreneurial', succesNego);
+
+  if (succesNego) {
     setTerrainState(id, { pnj: null, pnjData: null });
     sessionStorage.removeItem('terrain_pnj_' + id);
     updateUI();

@@ -591,6 +591,7 @@ function queteAccueilDestination(dest) {
     texte: (QUETE_ACCUEIL_TEXTES_DESTINATION[dest] || QUETE_ACCUEIL_TEXTES_DESTINATION.marche) + " Si vous avez des questions en chemin, n'hésitez pas à me demander.",
     suivant: function() {
       queteAccueilSurbrillance('button[onclick*="ouvrirPlanVille"]', 12000);
+      if (typeof queteAccueilProposerCarriere === 'function') queteAccueilProposerCarriere();
     }
   });
 }
@@ -611,8 +612,101 @@ function queteAccueilRepriseNon() {
     suivant: function() {
       queteAccueilSurbrillance(".person-card[onclick*=\"openPnjModal('\"]", 15000);
       queteAccueilSurbrillance('#btn-messages', 15000);
+      if (typeof queteAccueilProposerCarriere === 'function') queteAccueilProposerCarriere();
     }
   });
+}
+
+// =====================
+// QUETE CARRIERE — aiguillage de Jeremy vers un referent selon l'ambition choisie
+// Etat sauvegarde : state.char.queteCarriere = { ambition, etape, resultat }
+//   ambition: null | 'criminel' | 'politique' | 'entrepreneurial' | 'indecis'
+//   etape:    null | 'a_rencontrer' | 'en_cours' | 'terminee'
+//   resultat: null | 'succes' | 'echec' (rempli a la resolution de la mini-mission)
+// Chainee a la toute fin des deux sorties existantes de la quete d'accueil (avec aide et
+// sans aide) — c'est le tout dernier mot de Jeremy avant de se separer du joueur pour de bon.
+// =====================
+const QUETE_CARRIERE_REFERENTS = {
+  criminel:        { nom: 'Pat Hounette',   lieu: 'la Place du Formulaire de la Liberté' },
+  politique:       { nom: 'Jean-Lou Zeure', lieu: "le Bureau National de l'Emploi" },
+  entrepreneurial: { nom: 'Laurent Barre',  lieu: 'la Banque Nationale' }
+};
+
+function queteAccueilProposerCarriere() {
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: "Bon... vous commencez à connaître Luthécia. Mais visiter une ville, c'est une chose. S'y faire une place, c'en est une autre. Vous avez une idée de ce que vous aimeriez devenir ?",
+    suivant: null,
+    actionsHtml:
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'criminel\');">Plutôt du côté criminel</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'politique\');">Plutôt la politique</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'entrepreneurial\');">Plutôt entreprendre</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'indecis\');">Je ne sais pas encore</button>'
+  });
+}
+
+function queteAccueilChoisirAmbition(ambition) {
+  state.char.queteCarriere = {
+    ambition: ambition,
+    etape: ambition === 'indecis' ? null : 'a_rencontrer',
+    resultat: null
+  };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  const ref = QUETE_CARRIERE_REFERENTS[ambition];
+  const texte = ref
+    ? "Alors allez donc voir " + ref.nom + ". Vous le trouverez à " + ref.lieu + ". Dites-lui que c'est moi qui vous envoie."
+    : "Je comprends, ce n'est pas facile de se déterminer. Continuez à arpenter la ville et rencontrer les habitants, ça vous aidera à vous faire une idée.";
+
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: texte,
+    suivant: queteAccueilCarriereRepertoire
+  });
+}
+
+function queteAccueilCarriereRepertoire() {
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: "Au fait, tant que j'y pense : dès que vous croisez quelqu'un d'intéressant, cliquez sur sa fiche et ajoutez-le à votre répertoire — ça vous servira pour porter plainte, lancer une rumeur ciblée, ou lui envoyer un mail plus tard.",
+    suivant: queteAccueilCarriereRecontact
+  });
+}
+
+function queteAccueilCarriereRecontact() {
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: "Et si jamais vous avez encore besoin de moi après ça : ajoutez-moi au répertoire tant qu'on est encore ensemble, et envoyez-moi un mail via Messages/Forums quand vous voulez. Je vous répondrai où que je sois.",
+    suivant: queteAccueilCarriereConclusion
+  });
+  queteAccueilSurbrillance(".person-card[onclick*=\"openPnjModal('\"]", 15000);
+  queteAccueilSurbrillance('#btn-messages', 15000);
+}
+
+function queteAccueilCarriereConclusion() {
+  const ambition = state.char?.queteCarriere?.ambition;
+  const ref = QUETE_CARRIERE_REFERENTS[ambition];
+  const texte = ref
+    ? ref.nom + " saura vous aider, mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous."
+    : "Sachez en tout cas que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.";
+
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: texte,
+    suivant: fermerClotureCarriere
+  });
+}
+
+// Jeremy quitte reellement le groupe ici (retire de state.employes + re-rendu immediat de la
+// liste des personnes presentes, voir quitterJeremy) : c'est le tout dernier point de la
+// sequence de cloture, pas juste une fermeture visuelle de popup.
+function fermerClotureCarriere() {
+  if (typeof quitterJeremy === 'function') quitterJeremy();
 }
 
 // Fait quitter Jeremy du groupe reellement, au premier deplacement (rue ou batiment) suivant

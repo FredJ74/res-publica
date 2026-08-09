@@ -1466,8 +1466,11 @@ function doContrebandePort() {
   const empMod = { republic:0, narco:25, soviet:-20, khalija:10 }[pays] || 0;
   const taux = Math.max(5, 55 + Math.floor(dis/10) + Math.floor(dup/10) + 15 + empMod - getMalusISN());
   const roll = Math.floor(Math.random() * 100) + 1;
+  const succesContrebande = roll <= taux;
 
-  if (roll <= taux) {
+  if (typeof verifierProgressionCarriere === 'function') verifierProgressionCarriere('criminel', succesContrebande);
+
+  if (succesContrebande) {
     if (!state.inventory) state.inventory = [];
     state.inventory.push({ type:'contrebande', name:'Cargaison de contrebande', icon:'ti-package-off', legal:false, desc:'Marchandises importées illégalement.' });
     state.dis = Math.max(0, state.dis - 5);

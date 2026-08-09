@@ -57,6 +57,46 @@ async function getTitulaireMaire(pays, ville) {
 // Structure plate pour les organisations (prepare le support multi-empire futur)
 // state.organisations est une liste a plat ; country_origine = empire de creation (regles/grades)
 
+// Cumule les bonus de grade (ORGANISATIONS_DEF[type].bonus) de toutes les organisations dont
+// le joueur est membre, par cle de stat (ex: 'nego_cha', 'dis', 'terrain_discount'...).
+// Fix 9 aout 2026 : fonction appelee depuis plateau-pnj.js (doFaireDisparaitreCadavre,
+// confirmerNegociation) mais jamais definie nulle part - ReferenceError garantie a chaque
+// appel, donc negocier_squatteurs et faire_disparaitre_cadavre plantaient systematiquement.
+// Les donnees de bonus existaient deja completement dans ORGANISATIONS_DEF, juste jamais lues.
+function calculerBonusOrga() {
+  const bonus = {};
+  const nom = state.char?.name;
+  if (!nom || typeof ORGANISATIONS_DEF === 'undefined') return bonus;
+
+  (state.organisations || []).forEach(orga => {
+    const monMembre = (orga.membres || []).find(m => m.nom === nom);
+    if (!monMembre) return;
+    const def = ORGANISATIONS_DEF[orga.type];
+    if (!def || !def.bonus) return;
+    const monGradeIdx = monMembre.gradeIdx ?? 0;
+
+    // Par stat, ne garder que le meilleur palier debloque (les paliers d'une meme organisation
+    // sont des seuils croissants, pas des bonus cumulables entre eux - ex: grade 3 nego_cha
+    // remplace le bonus du grade 1/2, il ne s'y ajoute pas).
+    const meilleurParStat = {};
+    def.bonus.forEach(b => {
+      if (b.grade > monGradeIdx) return;
+      const actuel = meilleurParStat[b.stat];
+      if (actuel === undefined || (typeof b.valeur === 'number' && b.valeur > actuel)) {
+        meilleurParStat[b.stat] = b.valeur;
+      }
+    });
+
+    // En revanche, les bonus de plusieurs organisations DIFFERENTES sur la meme stat se cumulent.
+    Object.entries(meilleurParStat).forEach(([stat, valeur]) => {
+      if (typeof valeur === 'number') bonus[stat] = (bonus[stat] || 0) + valeur;
+      else if (bonus[stat] === undefined) bonus[stat] = valeur;
+    });
+  });
+
+  return bonus;
+}
+
 // =====================
 // SYSTEME DE QUETES (animation plateau)
 // =====================
