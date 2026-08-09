@@ -1,8 +1,8 @@
 # Journal de session — Res Publica (9 août 2026)
 
 ## État du dépôt
-- Toutes les modifications ont été committées et poussées sur `main` (16 commits).
-- Session arrêtée à 3h du matin — reprise prévue avec le résumé de fin de journal ci-dessous.
+- Toutes les modifications ont été committées et poussées sur `main` (18 commits).
+- Session arrêtée à 3h du matin (2 petits ajouts après coup : vérification Jean-Lou Zeure, puis portraits des 3 référents) — reprise prévue avec le résumé de fin de journal ci-dessous.
 
 ---
 
@@ -59,7 +59,7 @@
 
 ## 🖼️ Pat Hounette (photo) + 🏦 Laurent Barre (invisible) — deux corrections PNJ
 - **Pat Hounette** (Place du Formulaire de la Liberté) : n'avait en réalité **jamais** eu de `photoUrl` dans le code (vérifié sur tout l'historique git) — pas le même bug que les photos du Palais, juste jamais branchée. Fichier déjà présent sur le disque, jamais commité. Ajouté (`photoUrl` + `photoPos`).
-- **Laurent Barre** (Directeur d'agence, Banque Nationale) : Fred ne le trouvait plus en jeu. Cause trouvée — un `buildingContext` obsolète (`WORLD.republic.capitale.buildingContext['banque-nationale']`, avec Bernard Coffre-Fort/Simone Intérêt) écrasait silencieusement le vrai contenu de la salle via la règle de priorité sur la première salle (`plateau-navigation.js:565` et `:91` pour la minimap). Entrée obsolète supprimée, Laurent Barre redevient visible sans rien déplacer — reste cohérent avec son rôle déjà établi dans l'énigme du portrait (coffre lié à la succession Thibault, situé à la Banque Nationale).
+- **Laurent Barre** (Directeur d'agence, Banque Nationale) : Fred ne le trouvait plus en jeu. Cause trouvée — un `buildingContext` obsolète (`WORLD.republic.capitale.buildingContext['banque-nationale']`, avec Bernard Coffre-Fort/Simone Intérêt) écrasait silencieusement le vrai contenu de la salle via la règle de priorité sur la première salle (`plateau-navigation.js:565` et `:91` pour la minimap). Entrée obsolète supprimée, Laurent Barre redevient visible sans rien déplacer — reste cohérent avec son rôle déjà établi dans l'énigme du portrait (coffre lié à la succession Thibault, situé à la Banque Nationale). Photo branchée dans la foulée (`photoUrl`, n'en avait pas non plus).
 - **Même bug repéré ailleurs, pas corrigé** : `banque-privee` (Hans Von Discret masque M. Fischer), et potentiellement `commissariat`/`tribunal` (même bloc `buildingContext`, mêmes personnes issues de `PNJ_PERSONALITIES` jamais nettoyées après l'ajout des vraies salles/PNJ). À auditer.
 
 ---
@@ -67,11 +67,11 @@
 ## 🎯 Quête carrière (aiguillage par Jérémy) — script reçu et validé par Fred, pas encore codé
 Extension de la quête d'accueil : après le tour actuel, Jérémy demande au joueur ce qu'il aimerait devenir et l'oriente vers un référent selon son ambition (Criminelle / Politique / Entrepreneuriale / Indécis), chaque référent proposant une mini-mission qui fait *expérimenter* sa logique plutôt que réciter les règles.
 - **Investigation faite ce soir** : le squelette FSM de `plateau-quete-accueil.js` (`state.char.queteAccueil = {etape}`, `queteAccueilVerifierEtapeBatiment`, `afficherPopupQueteAccueil`) est directement réutilisable, y compris le motif `reprise_contact`/`choix_destination` (popup à boutons multiples) qui correspond presque exactement à l'aiguillage à 3 branches + indécis. Le "revenir plus tard" a aussi déjà un vrai précédent (`queteAccueilGenererReponseMailJeremy`, réponse IA + réapparition au Marché). Rien d'existant en revanche pour la mécanique "mini-mission avec objet à livrer" — mais `addToInventory`/`state.inventory` et le motif de `state.char.enigme1` (marqueurs de possession d'objet) donnent tout ce qu'il faut pour la construire.
-- **Noms vérifiés** :
-  - **Pat Hounette** (branche criminelle) — existe déjà, Place du Formulaire de la Liberté. Photo ajoutée ce soir (voir plus haut).
-  - **Laurent Barre** (branche entrepreneuriale) — existe déjà, **Banque Nationale** confirmé (pas "banque d'affaires" comme indiqué dans le script initial — ce bâtiment n'existe pas ; la Banque Privée Helvétia envisagée un temps a été écartée, cf. bug `buildingContext` ci-dessus qui le rendait invisible, maintenant corrigé).
-  - **Jean-Lou Zeure** (branche politique) — **nouveau, à créer**, au Bureau National de l'Emploi de Luthécia (`bureau-national-emploi`, salle `accueil`), construit ce soir et actuellement `persons: []`. Re-vérifié en fin de session (10 août, 3h) suite à une remontée de Fred : aucune trace nulle part dans le code (`grep` sur tout le dépôt) — il n'a jamais été créé, ni par erreur ni autrement. Confirmé : reste entièrement à faire, pas une régression.
-- **2 décisions de conception à trancher avant de coder** (voir chantiers en attente) : le déclenchement de l'aiguillage, et ce que "le référent reste disponible comme point de repère durable" veut dire concrètement.
+- **Noms vérifiés, les 3 référents ont maintenant leur fiche PNJ + portrait, prêts pour coder les mini-missions** :
+  - **Pat Hounette** (branche criminelle) — existait déjà, Place du Formulaire de la Liberté. Photo branchée ce soir (`photoUrl`, n'en avait jamais eu).
+  - **Laurent Barre** (branche entrepreneuriale) — existait déjà, **Banque Nationale** confirmé (pas "banque d'affaires" du script initial — bâtiment inexistant). Était invisible en jeu à cause du bug `buildingContext` ci-dessus (corrigé), et n'avait pas non plus de photo — les deux corrigés ce soir.
+  - **Jean-Lou Zeure** (branche politique) — n'existait nulle part (vérifié deux fois, y compris une re-vérification suite à une remontée de Fred). **Créé ce soir** : Bureau National de l'Emploi de Luthécia (`bureau-national-emploi`, salle `accueil`), rôle "Ancien Maire de Luthécia", avec photo. Juste la fiche PNJ pour l'instant — pas de dialogue ni de mini-mission, ça reste pour la session dédiée à la quête carrière.
+- **2 décisions de conception à trancher avant de coder les mini-missions** (voir chantiers en attente) : le déclenchement de l'aiguillage, et ce que "le référent reste disponible comme point de repère durable" veut dire concrètement.
 
 ---
 
