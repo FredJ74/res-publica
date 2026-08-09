@@ -356,6 +356,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => { if (typeof demarrerPollingInvitationsDiner === 'function') demarrerPollingInvitationsDiner(); }, 2000);
   setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
   setTimeout(() => appliquerNominationPosteEnAttente(), 2300);
+  setTimeout(() => { if (typeof appliquerVictoireElectorale === 'function') appliquerVictoireElectorale(); }, 2350);
   setTimeout(() => recupererDonsEnAttente(), 2000);
   setTimeout(() => recupererVolsEnAttente(), 2200);
   setTimeout(() => recupererImpactsEnAttente(), 2400);

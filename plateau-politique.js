@@ -2729,7 +2729,73 @@ async function appliquerNominationPosteEnAttente() {
   } catch(e) { console.warn('appliquerNominationPosteEnAttente error', e); }
 }
 
+// =====================
+// PONT ELECTION -> POUVOIR REEL (refonte des postes, 9 aout 2026)
+// Jusqu'ici, gagner une election n'ecrivait jamais que cycle.eluId (cote cron) - jamais
+// state.poste sur la fiche du gagnant. Un president/maire/depute/chef syndical elu n'avait
+// donc AUCUN acces aux ordres requiresPost correspondants tant qu'il ne passait pas par
+// l'ancien systeme POSTES (retire a l'etape 1). Applique ici au chargement du personnage,
+// meme modele que appliquerNominationPosteEnAttente : reconcilie l'etat du joueur avec le
+// cycle electoral reel, poste par poste (accorde un mandat fraichement gagne, retire un
+// mandat perime si un autre vainqueur ou une vacance a suivi).
+// =====================
+const NOMS_POSTES_ELUS = { president: 'Président de la République', chef_syndicat: 'Chef Syndical', maire: 'Maire', depute: 'Député' };
 
+async function appliquerVictoireElectorale() {
+  if (!state.char?.name || typeof sbLoadCyclesElectoraux !== 'function') return;
+  const country = state.country;
+
+  try {
+    const cycles = await sbLoadCyclesElectoraux(country);
+    if (cycles) CYCLES_ELECTORAUX[country] = { ...(CYCLES_ELECTORAUX[country]||{}), ...cycles };
+  } catch(e) { return; }
+
+  const villesConnues = Object.keys(WORLD[country] || {});
+
+  await reconcilierPosteElu('president', null);
+  await reconcilierPosteElu('chef_syndicat', null);
+  for (const ville of villesConnues) {
+    await reconcilierPosteElu('maire', ville);
+    await reconcilierPosteElu('depute', ville);
+  }
+}
+
+async function reconcilierPosteElu(posteId, city) {
+  const moi = state.char?.name;
+  if (!moi) return;
+
+  const cle = typeof getCleCycle === 'function' ? getCleCycle(posteId, city) : posteId;
+  const eluId = CYCLES_ELECTORAUX?.[state.country]?.[cle]?.eluId;
+  const champ = posteId === 'depute' ? 'posteDepute' : 'poste';
+  const posteActuel = state[champ];
+  const jeSuisElu = eluId === moi;
+  const jOccupeCePoste = posteActuel?.id === posteId && (posteActuel?.city || null) === (city || null);
+  const nomPoste = NOMS_POSTES_ELUS[posteId] || posteId;
+  const villeNom = city ? (WORLD[state.country]?.[city]?.name || city) : null;
+
+  if (jeSuisElu && !jOccupeCePoste) {
+    // Ne jamais ecraser un poste different deja detenu (ex: PM en poste qui gagne aussi une
+    // mairie) - conflit rare mais reel a resoudre manuellement plutot qu'a trancher en silence.
+    if (posteActuel && posteId !== 'depute') {
+      showToast('Élu(e), mais...', 'Vous avez gagné l\'élection de ' + nomPoste + (villeNom ? ' de ' + villeNom : '') + ', mais vous occupez déjà ' + (posteActuel.name || posteActuel.id) + '. Démissionnez d\'abord pour prendre vos nouvelles fonctions.', false);
+      return;
+    }
+    state[champ] = { id: posteId, name: nomPoste, city: city || null };
+    if (state.char) state.char[champ] = state[champ];
+    if (posteId !== 'depute') state.salaireTouche = false;
+    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+    updateUI();
+    showToast('Élu(e) !', 'Vous êtes désormais ' + nomPoste + (villeNom ? ' de ' + villeNom : '') + '. Bienvenue au pouvoir.', true, true);
+    addJournalEntry('Prise de fonction : ' + nomPoste + (villeNom ? ' de ' + villeNom : '') + ' (élu).', 'event-good');
+  } else if (!jeSuisElu && jOccupeCePoste) {
+    state[champ] = null;
+    if (state.char) state.char[champ] = null;
+    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+    updateUI();
+    showToast('Mandat terminé', 'Votre mandat de ' + nomPoste + (villeNom ? ' de ' + villeNom : '') + ' a pris fin.', false);
+    addJournalEntry('Fin de mandat : ' + nomPoste + (villeNom ? ' de ' + villeNom : '') + '.', 'event-info');
+  }
+}
 
 // =====================
 // MARIAGE ENTRE DEUX PJ
