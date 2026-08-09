@@ -122,6 +122,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(); return; }
   if (fn === 'demander_divorce') { doDemanderDivorce(); return; }
   if (fn === 'acte_vente_terrain') { doActeVenteTerrain(); return; }
+  if (fn === 'acte_rachat_entreprise') { doActeRachatEntreprise(); return; }
   if (fn === 'corrompre_rdv_notaire') { doCorrompreRdvNotaire(); return; }
   if (fn === 'transferer_compromis') { doOuvrirTransfertCompromis(); return; }
   if (fn === 'valider_transfert_compromis') { doValiderTransfertCompromis(); return; }

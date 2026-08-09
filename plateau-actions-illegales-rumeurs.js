@@ -2224,26 +2224,32 @@ const ENTREPRISES_RACHETABLES = {
   armurerie: { label: 'l\'Armurerie', prix: PRIX_RACHAT_ARMURERIE, charger: chargerArmurerieLocale }
 };
 
+// Compromis actif = reserve, non expire. ACOMPTE_COMPROMIS (1000 FR, plateau-pnj.js) reutilise
+// tel quel : meme acompte fixe que pour un terrain, independant du prix de l'entreprise.
+function compromisEntrepriseActif(data) {
+  return !!(data && data.compromis && data.compromisExpireAt && Date.now() < data.compromisExpireAt);
+}
+
 async function doRachatEntreprise() {
   const candidats = [];
   for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
     const def = ENTREPRISES_RACHETABLES[type];
     const data = await def.charger();
-    if (data && data.proprietaire === 'PNJ') candidats.push({ type, def });
+    if (data && data.proprietaire === 'PNJ' && !compromisEntrepriseActif(data)) candidats.push({ type, def });
   }
 
   if (candidats.length === 0) {
-    showToast('Aucune entreprise disponible', 'Aucune entreprise PNJ n\'est actuellement rachetable.', false);
+    showToast('Aucune entreprise disponible', 'Aucune entreprise PNJ n\'est actuellement rachetable (ou déjà sous compromis).', false);
     return;
   }
 
-  // Un seul candidat : on saute directement a l'action, comme l'acte de vente de terrain
-  // (traiterActeVente) quand un seul compromis est en cours.
-  if (candidats.length === 1) { confirmerRachatEntreprise(candidats[0].type); return; }
+  // Un seul candidat : on saute directement a l'ecran de compromis, comme l'acte de vente de
+  // terrain (traiterActeVente) quand un seul compromis est en cours.
+  if (candidats.length === 1) { doSignerCompromisEntreprise(candidats[0].type); return; }
 
   let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
   candidats.forEach(c => {
-    html += '<div onclick="confirmerRachatEntreprise(&quot;' + c.type + '&quot;)" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
+    html += '<div onclick="doSignerCompromisEntreprise(&quot;' + c.type + '&quot;)" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
     html += '<span style="font-size:.85rem;color:#c0b090">' + c.def.label + '</span>';
     html += '<span style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#C9A84C">' + c.def.prix.toLocaleString('fr-FR') + ' FR</span>';
     html += '</div>';
@@ -2254,22 +2260,119 @@ async function doRachatEntreprise() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerRachatEntreprise(type) {
+async function doSignerCompromisEntreprise(type) {
+  const def = ENTREPRISES_RACHETABLES[type];
+  if (!def) return;
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const data = await def.charger();
+  if (!data || data.proprietaire !== 'PNJ' || compromisEntrepriseActif(data)) {
+    showToast('Indisponible', 'Cette entreprise n\'est plus disponible au rachat.', false);
+    return;
+  }
+  if (state.arg < ACOMPTE_COMPROMIS) {
+    showToast('Fonds insuffisants', ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + ' requis pour l\'acompte.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Compromis de rachat';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.6rem">' + def.label + ' — ' + def.prix.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Le compromis réserve cette entreprise 7 jours. À l\'échéance, si le rachat n\'est pas finalisé chez le notaire, l\'acompte est perdu et l\'entreprise redevient disponible.</div>';
+  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem">';
+  html += '<div style="font-size:.85rem;color:#c0b090">✓ Versement de l\'acompte</div>';
+  html += '<div style="font-size:.72rem;color:#6a5a30">' + ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + ' — déduits du prix final, ou perdus si le compromis expire sans finalisation.</div>';
+  html += '</div>';
+  html += '<button onclick="confirmerSignerCompromisEntreprise(&quot;' + type + '&quot;)" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Signer le compromis</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerSignerCompromisEntreprise(type) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const def = ENTREPRISES_RACHETABLES[type];
   if (!def) return;
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   const data = await def.charger();
-  if (!data) { showToast('Indisponible', '', false); return; }
-  if (data.proprietaire !== 'PNJ') { showToast('Déjà rachetée', 'Cette entreprise appartient déjà à ' + data.proprietaire + '.', false); return; }
-  if (state.arg < def.prix) { showToast('Fonds insuffisants', def.prix.toLocaleString('fr-FR') + ' FR requis.', false); return; }
+  if (!data || data.proprietaire !== 'PNJ') { showToast('Indisponible', 'Cette entreprise n\'est plus disponible.', false); return; }
+  if (compromisEntrepriseActif(data)) { showToast('Déjà réservée', 'Un compromis est déjà en cours sur cette entreprise (' + data.compromisPar + ').', false); return; }
+  if (state.arg < ACOMPTE_COMPROMIS) { showToast('Fonds insuffisants', ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
-  state.arg -= def.prix;
-  data.proprietaire = state.char?.name;
-  ajouterHistoriqueEntreprise(data, 0, 'Rachat de l\'entreprise par ' + state.char?.name);
+  state.arg -= ACOMPTE_COMPROMIS;
+  data.compromis = true;
+  data.compromisPar = state.char?.name;
+  data.acompte = ACOMPTE_COMPROMIS;
+  data.compromisAt = Date.now();
+  data.compromisExpireAt = Date.now() + 7 * 86400000;
   await sbSaveEntreprise(data.id, data);
   updateUI();
-  showToast('Félicitations !', 'Vous êtes désormais propriétaire de ' + def.label + '.', true, true);
-  addJournalEntry('Rachat de ' + def.label + ' pour ' + def.prix.toLocaleString('fr-FR') + ' FR.', 'event-good');
+  showToast('Compromis signé !', def.label + ' réservée 7 jours. -' + ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur, true);
+  addJournalEntry('Compromis de rachat signé pour ' + def.label + ' (' + ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + ' d\'acompte). Valable 7 jours.', 'event-good');
+}
+
+// =====================
+// ACTE DE RACHAT D'ENTREPRISE (Notaire, Bureau des Contrats) — finalise un compromis actif,
+// sur le modele exact de acte_vente_terrain/traiterActeVente (doActeVenteTerrain,
+// plateau-justice-economie.js).
+// =====================
+async function doActeRachatEntreprise() {
+  const nom = state.char?.name;
+  const candidats = [];
+  for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
+    const def = ENTREPRISES_RACHETABLES[type];
+    const data = await def.charger();
+    if (data && data.compromis && data.compromisPar === nom) candidats.push({ type, def });
+  }
+
+  if (candidats.length === 0) {
+    showToast('Aucune réservation', 'Vous n\'avez aucun compromis en cours sur une entreprise.', false);
+    return;
+  }
+
+  if (candidats.length === 1) { traiterActeRachatEntreprise(candidats[0]); return; }
+
+  let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
+  candidats.forEach((c, i) => {
+    html += '<div onclick="traiterActeRachatEntrepriseParIndex(' + i + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">' + c.def.label + '</div>';
+  });
+  html += '</div></div>';
+  window._candidatsActeRachatEntreprise = candidats;
+  document.getElementById('postes-modal-title').textContent = 'Quelle entreprise ?';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function traiterActeRachatEntrepriseParIndex(i) {
+  traiterActeRachatEntreprise(window._candidatsActeRachatEntreprise[i]);
+}
+
+async function traiterActeRachatEntreprise(candidat) {
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const def = candidat.def;
+  const data = await def.charger(); // relecture fraiche, evite tout etat perime
+  if (!data || !data.compromis || data.compromisPar !== state.char?.name) {
+    showToast('Compromis introuvable', 'Ce compromis n\'est plus valide (peut-être déjà expiré).', false);
+    return;
+  }
+  const solde = def.prix - (data.acompte || 0);
+  if (state.arg < solde) {
+    showToast('Fonds insuffisants', solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false);
+    return;
+  }
+
+  state.arg -= solde;
+  data.proprietaire = state.char?.name;
+  delete data.compromis;
+  delete data.compromisPar;
+  delete data.acompte;
+  delete data.compromisAt;
+  delete data.compromisExpireAt;
+  ajouterHistoriqueEntreprise(data, 0, 'Rachat de l\'entreprise par ' + state.char?.name + ' (acte notarié)');
+  await sbSaveEntreprise(data.id, data);
+  updateUI();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Acte signé !', 'Vous êtes désormais propriétaire de ' + def.label + '.', true, true);
+  addJournalEntry('Rachat de ' + def.label + ' officialisé — ' + solde.toLocaleString('fr-FR') + ' ' + cur + ' de solde payé.', 'event-good');
 }
 
 async function doGererArmurerie() {

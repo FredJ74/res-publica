@@ -335,6 +335,45 @@ async function resoudreCompromisExpires() {
   return resultats;
 }
 
+// Resolution des compromis de rachat d'entreprise arrives a echeance (Notaire, chantier du
+// 10 aout 2026). Contrairement au terrain, aucune clause (permis/pret) n'existe ici -- l'acompte
+// est donc TOUJOURS perdu si le compromis expire sans finalisation, jamais rembourse. Balaie
+// toute la table 'entreprises' (pas une liste figee par type) pour couvrir automatiquement les
+// futures entreprises rachetables sans avoir a toucher ce cron. Table 'entreprises' stocke
+// data en jsonb natif (pas de JSON.parse/stringify, contrairement a terrains_etat).
+async function resoudreCompromisEntreprisesExpires() {
+  const resultats = { resolus: 0, perdus: 0 };
+  try {
+    const entreprises = await sbGet('entreprises', '');
+    if (!entreprises) return resultats;
+
+    for (const row of entreprises) {
+      const data = row.data;
+      if (!data || !data.compromis || !data.compromisExpireAt) continue;
+      if (Date.now() < data.compromisExpireAt) continue; // pas encore echu
+
+      await sbInsert('compromis_historique', {
+        id: 'compromis-entreprise-' + row.id + '-' + Date.now(),
+        country: (data.id || row.id || '').split('-').slice(1).join('-') || null,
+        building_id: row.id,
+        demandeur: data.compromisPar || 'inconnu',
+        resultat: 'perdu',
+        detail: 'acompte perdu (' + (data.acompte || 0) + ' FR) — compromis de rachat d\'entreprise expiré sans finalisation'
+      }).catch(() => {});
+
+      delete data.compromis;
+      delete data.compromisPar;
+      delete data.acompte;
+      delete data.compromisAt;
+      delete data.compromisExpireAt;
+      await sbUpdate('entreprises', `id=eq.${encodeURIComponent(row.id)}`, { data, updated_at: new Date().toISOString() }).catch(() => {});
+      resultats.perdus++;
+      resultats.resolus++;
+    }
+  } catch(e) { console.error('resoudreCompromisEntreprisesExpires error', e); }
+  return resultats;
+}
+
 // Nettoie les rendez-vous d'achat direct manques (au-dela des 24h de rattrapage) : le depot
 // de garantie est perdu, le terrain redevient libre.
 // Table dupliquee cote serveur (les niveaux de construction ne changent que rarement — si
@@ -1185,6 +1224,10 @@ export default async function handler(req, res) {
     // 6. Resolution atomique des compromis arrives a echeance (permis + pret, ensemble)
     const compromisResolus = await resoudreCompromisExpires();
 
+    // 6b. Meme resolution pour les compromis de rachat d'entreprise (pas de clause, acompte
+    // toujours perdu a l'echeance)
+    const compromisEntreprisesResolus = await resoudreCompromisEntreprisesExpires();
+
     // 7. Rendez-vous d'achat direct manques (depot perdu, terrain libere)
     const achatsDirectsManques = await nettoyerAchatsDirectsManques();
 
@@ -1210,7 +1253,7 @@ export default async function handler(req, res) {
     // 14. Conflits poste politique + emploi BNE (mail d'arbitrage, rien n'est tranche automatiquement)
     const conflitsBNE = await verifierConflitsEmploiBNE();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });
