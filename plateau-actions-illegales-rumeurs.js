@@ -2213,19 +2213,63 @@ async function confirmerVenteMatiere(matiere) {
   addJournalEntry('Vente de ' + qte + ' ' + matiere + ' à l\'armurerie (+' + total + ' FR).', 'event-good');
 }
 
-async function doRachatArmurerie() {
-  const data = await chargerArmurerieLocale();
-  if (!data) { showToast('Indisponible', '', false); return; }
-  if (data.proprietaire !== 'PNJ') { showToast('Déjà rachetée', 'Cette armurerie appartient déjà à ' + data.proprietaire + '.', false); return; }
-  if (state.arg < PRIX_RACHAT_ARMURERIE) { showToast('Fonds insuffisants', PRIX_RACHAT_ARMURERIE.toLocaleString('fr-FR') + ' FR requis.', false); return; }
+// =====================
+// RACHAT D'ENTREPRISE — registre generalise (Notaire, Bureau des Contrats). Une seule entree
+// aujourd'hui (Armurerie, table 'entreprises') ; les futures entreprises rachetables (une fois
+// le patron duplique sur d'autres batiments) s'ajoutent ici par une simple ligne de config, a
+// condition de suivre le meme modele proprietaire/PNJ (pas le modele directeur-nomme-par-le-
+// maire des entrepots/usines actuels, table 'batiments_etat', qui n'a pas de notion de rachat).
+// =====================
+const ENTREPRISES_RACHETABLES = {
+  armurerie: { label: 'l\'Armurerie', prix: PRIX_RACHAT_ARMURERIE, charger: chargerArmurerieLocale }
+};
 
-  state.arg -= PRIX_RACHAT_ARMURERIE;
+async function doRachatEntreprise() {
+  const candidats = [];
+  for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
+    const def = ENTREPRISES_RACHETABLES[type];
+    const data = await def.charger();
+    if (data && data.proprietaire === 'PNJ') candidats.push({ type, def });
+  }
+
+  if (candidats.length === 0) {
+    showToast('Aucune entreprise disponible', 'Aucune entreprise PNJ n\'est actuellement rachetable.', false);
+    return;
+  }
+
+  // Un seul candidat : on saute directement a l'action, comme l'acte de vente de terrain
+  // (traiterActeVente) quand un seul compromis est en cours.
+  if (candidats.length === 1) { confirmerRachatEntreprise(candidats[0].type); return; }
+
+  let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
+  candidats.forEach(c => {
+    html += '<div onclick="confirmerRachatEntreprise(&quot;' + c.type + '&quot;)" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
+    html += '<span style="font-size:.85rem;color:#c0b090">' + c.def.label + '</span>';
+    html += '<span style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#C9A84C">' + c.def.prix.toLocaleString('fr-FR') + ' FR</span>';
+    html += '</div>';
+  });
+  html += '</div></div>';
+  document.getElementById('postes-modal-title').textContent = 'Quelle entreprise ?';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerRachatEntreprise(type) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const def = ENTREPRISES_RACHETABLES[type];
+  if (!def) return;
+  const data = await def.charger();
+  if (!data) { showToast('Indisponible', '', false); return; }
+  if (data.proprietaire !== 'PNJ') { showToast('Déjà rachetée', 'Cette entreprise appartient déjà à ' + data.proprietaire + '.', false); return; }
+  if (state.arg < def.prix) { showToast('Fonds insuffisants', def.prix.toLocaleString('fr-FR') + ' FR requis.', false); return; }
+
+  state.arg -= def.prix;
   data.proprietaire = state.char?.name;
   ajouterHistoriqueEntreprise(data, 0, 'Rachat de l\'entreprise par ' + state.char?.name);
   await sbSaveEntreprise(data.id, data);
   updateUI();
-  showToast('Félicitations !', 'Vous êtes désormais propriétaire de l\'armurerie.', true, true);
-  addJournalEntry('Rachat de l\'armurerie pour ' + PRIX_RACHAT_ARMURERIE.toLocaleString('fr-FR') + ' FR.', 'event-good');
+  showToast('Félicitations !', 'Vous êtes désormais propriétaire de ' + def.label + '.', true, true);
+  addJournalEntry('Rachat de ' + def.label + ' pour ' + def.prix.toLocaleString('fr-FR') + ' FR.', 'event-good');
 }
 
 async function doGererArmurerie() {

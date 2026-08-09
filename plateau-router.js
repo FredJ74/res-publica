@@ -68,7 +68,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'acheter_produit_stock') { doAcheterProduitStock(); return; }
-  if (fn === 'racheter_armurerie') { doRachatArmurerie(); return; }
+  if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(); return; }
   if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(); return; }
   if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(); return; }
