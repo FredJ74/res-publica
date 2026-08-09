@@ -2,7 +2,7 @@
 
 ## État du dépôt
 - Toutes les modifications ont été committées et poussées sur `main`.
-- Session reprise après la clôture de 3h : mécanique "moyenne de groupe" conçue et déployée partout (voir section dédiée plus bas), 3 mini-missions de la quête carrière restent à finaliser dessus.
+- Session reprise après la clôture de 3h : mécanique "moyenne de groupe" conçue et déployée partout, `distribuer_tract` construit de zéro dessus, économie du bois de l'imprimerie La Tribune ajoutée en prérequis (voir sections dédiées plus bas). Les 3 mini-missions détaillées de la quête carrière (et la scène de clôture) restent à construire.
 
 ## ⚖️ Nouvelle mécanique : moyenne de groupe sur les caractéristiques
 - **Idée** : la caractéristique du joueur utilisée dans un calcul de taux de réussite (défense, corruption, filature, débauchage, blocus...) est désormais remplacée par la **moyenne de cette caractéristique sur le groupe** (le joueur + ses employés `inGroupe`), pas juste sa propre valeur. Un groupe bien composé fait monter le taux, un groupe mal composé le fait baisser — pas une simple somme.
@@ -10,6 +10,26 @@
 - **Cœur du système** (`4b56232`) : nouvelle fonction `getMembresGroupeAvecStat(stat)` — un employé sans valeur pour la stat demandée (les PNJ n'ont que FOR/CHA/DUP/INT via `PNJ_STATS_PAR_JOB`, jamais VOL/ENT sauf override explicite comme le PER d'un informateur) est simplement absent du calcul, jamais traité comme 0. `getStatEffective` en fait la moyenne puis applique par-dessus le bonus de formation et l'affaiblissement HP comme avant. Rétrocompatible : joueur seul = comportement strictement identique à avant.
 - **Déploiement complet** (décision de Fred : la bêta approche, un principe qui ne s'appliquerait qu'à 3 ordres sur 344 serait trompeur) — 38 sites migrés au total sur 6 fichiers, un commit par fichier : `plateau-justice-economie.js` (18), `plateau-pnj.js` (6), `plateau-actions-illegales-rumeurs.js` (5), `plateau-navigation.js` (7), `plateau-organisations-quetes.js` (1), `plateau-multijoueur.js` (1). Balayage final : plus aucune lecture directe des 6 vraies stats du joueur en dehors de `getStatEffective` (une lecture de la cible d'une filature, `supabase.js`, volontairement non touchée — ce n'est pas la stat du joueur qui agit).
 - **Prochaine étape** : ancrer les 3 mini-missions de la quête carrière sur cette mécanique désormais réelle et partout active.
+
+---
+
+## 📰 `distribuer_tract` construit de zéro (référent politique Jean-Lou Zeure)
+- Choix retenu avec Fred pour la branche politique de la quête carrière : plutôt que d'utiliser `doBlocusPortuaire` tel quel, injecter un vrai bonus CHA+ENT (via `getStatEffective`, donc conscient de la moyenne de groupe) dans `distribuer_tract` — qui était jusque-là à **taux fixe** et surtout **jamais implémenté** (`doDistribuerTract()` appelé par le routeur mais aucune définition nulle part → `ReferenceError` silencieuse au clic ; `requiresTract:true` sur sa déclaration `data.js` était donc mort deux fois).
+- Construit intégralement ce soir (`69f06cb`) : `doDistribuerTract()`/`confirmerDistribuerTract(cible, tractType)` — taux `25 + CHA×3 + ENT×3` plafonné 10-90%, consomme un lot de tracts en inventaire (choix du lot si plusieurs), effet réel à la réussite (+/-POP sur la cible via `sbAjusterPopJoueur`).
+- **Bug trouvé et corrigé en dépendance** : `sbAjusterPopJoueur` lisait/écrivait une colonne `personnages.pop` **qui n'existe pas** (vérifié en direct contre Supabase REST) au lieu du vrai champ JSON `resources.pop`. Corrigé — répare au passage `lancer_rumeur_cible`, qui utilisait le même helper cassé sans que personne ne l'ait remarqué.
+- Fix confirmé fait comme convenu la fois précédente : `getGroupSize()` lisait `state.employees` (jamais rempli, faute de frappe) au lieu de `state.employes` — le bonus de taille de groupe (`organiser_blocus` etc.) ne comptait quasiment jamais les employés recrutés (`6f1a3f2`).
+
+## 🖨️ Économie du bois à l'imprimerie La Tribune (approvisionnement de `distribuer_tract`)
+- Investigation demandée avant tout code : la fabrication de tracts n'était reliée à **aucune** consommation de matière première. Le pattern "commerce possédé par un joueur + stock de matière vendable" existait déjà et fonctionnait (Armurerie : `vendre_matiere_armurerie`/`acheter_produit_stock`), sur le même modèle que les entrepôts/usines construits plus tôt cette session. Confirmé aussi : Luthécia n'a aucune matière première récoltable localement (`MATIERES_PREMIERES_VILLE` ne couvre que PSM/Montrouge) — l'Entrepôt Logistique est donc la seule source de bois pour un joueur de la capitale.
+- Scénario complet demandé par Fred et codé tel quel (`a414969`) :
+  - Gustave Rotative (La Tribune) a désormais son propre stock de bois et sa propre caisse (`batiments_etat`, même pattern que les entrepôts/usines).
+  - `imprimer_tracts` existe pour la première fois à La Tribune (Luthécia) — jusque-là l'ordre n'existait qu'à l'imprimerie-librairie de PSM (Gutenberg), qui reste inchangée (argent seul, pas de bois). `confirmerImpression()` est devenue building-aware.
+  - Si Gustave manque de bois pour le lot demandé, il le dit en personnage et invite le joueur à lui en vendre — pas d'échec silencieux, pas de facturation sans effet.
+  - Nouvel ordre `vendre_bois_imprimerie` (sur le modèle de `vendre_matiere_armurerie`) : le joueur revend à Gustave le bois acheté à l'entrepôt, prix = cours actuel de l'entrepôt +10% (dynamique), paiement plafonné par la caisse de l'imprimerie (jamais de négatif, vente partielle si la caisse ne suit pas). Utilise la forme d'inventaire empilable (`stackKey:'bois'`) produite par l'entrepôt — distincte de la forme `matiere_premiere` de la récolte/armurerie, piège repéré avant de coder.
+  - Recette dynamique de consommation : `boisParLot = 75 FR / prix du bois`, garantissant que le coût en bois ne dépasse jamais 50% du prix de vente du lot (150 FR/10 tracts) quel que soit le cours fluctuant du bois. Pas de coût de main d'œuvre modélisé.
+  - `requiresTract:true` (mort jusque-là) est désormais satisfait fonctionnellement : `distribuer_tract` exige un vrai lot de tracts en inventaire, qui ne peut désormais exister qu'après un passage par ce circuit d'approvisionnement.
+- **Principe de conception à garder pour la suite** : les 3 référents (Pat Hounette, Jean-Lou Zeure, Laurent Barre) doivent rester des PNJ consultables en permanence, pas des points de contact à usage unique — dialogue à structurer en dispatcher extensible plus tard, pas encore construit.
+- **Reste à faire** : les 3 mini-missions détaillées (étapes, dialogues, flux d'objets) et la scène de clôture de la quête carrière (aiguillage Jérémy → référent, tutoriel répertoire, tutoriel recontact, retrait réel de la liste des contacts) — plan déjà validé avec Fred, pas encore codé.
 
 ---
 
