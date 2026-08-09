@@ -2,7 +2,14 @@
 
 ## État du dépôt
 - Toutes les modifications ont été committées et poussées sur `main`.
-- Session reprise après la clôture de 3h : chantier de la mécanique "moyenne de groupe" en cours (voir section dédiée plus bas), avant de finaliser les 3 mini-missions de la quête carrière.
+- Session reprise après la clôture de 3h : mécanique "moyenne de groupe" conçue et déployée partout (voir section dédiée plus bas), 3 mini-missions de la quête carrière restent à finaliser dessus.
+
+## ⚖️ Nouvelle mécanique : moyenne de groupe sur les caractéristiques
+- **Idée** : la caractéristique du joueur utilisée dans un calcul de taux de réussite (défense, corruption, filature, débauchage, blocus...) est désormais remplacée par la **moyenne de cette caractéristique sur le groupe** (le joueur + ses employés `inGroupe`), pas juste sa propre valeur. Un groupe bien composé fait monter le taux, un groupe mal composé le fait baisser — pas une simple somme.
+- **Constat de départ** : la mécanique était déjà *promise* dans la description de `recruter_informateur_pnj` ("sa PER enrichit la moyenne de PER de votre groupe") mais **jamais codée** — aucun consommateur nulle part. Un point d'accès central bien conçu existait déjà (`getStatEffective(stat)`, `plateau-organisations-quetes.js`) mais n'avait que 2 vrais appelants ; le reste du code lisait `state.char.stats.X` en dur, dispersé dans 6 fichiers.
+- **Cœur du système** (`4b56232`) : nouvelle fonction `getMembresGroupeAvecStat(stat)` — un employé sans valeur pour la stat demandée (les PNJ n'ont que FOR/CHA/DUP/INT via `PNJ_STATS_PAR_JOB`, jamais VOL/ENT sauf override explicite comme le PER d'un informateur) est simplement absent du calcul, jamais traité comme 0. `getStatEffective` en fait la moyenne puis applique par-dessus le bonus de formation et l'affaiblissement HP comme avant. Rétrocompatible : joueur seul = comportement strictement identique à avant.
+- **Déploiement complet** (décision de Fred : la bêta approche, un principe qui ne s'appliquerait qu'à 3 ordres sur 344 serait trompeur) — 38 sites migrés au total sur 6 fichiers, un commit par fichier : `plateau-justice-economie.js` (18), `plateau-pnj.js` (6), `plateau-actions-illegales-rumeurs.js` (5), `plateau-navigation.js` (7), `plateau-organisations-quetes.js` (1), `plateau-multijoueur.js` (1). Balayage final : plus aucune lecture directe des 6 vraies stats du joueur en dehors de `getStatEffective` (une lecture de la cible d'une filature, `supabase.js`, volontairement non touchée — ce n'est pas la stat du joueur qui agit).
+- **Prochaine étape** : ancrer les 3 mini-missions de la quête carrière sur cette mécanique désormais réelle et partout active.
 
 ---
 
