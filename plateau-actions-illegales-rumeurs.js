@@ -27,8 +27,8 @@ function ouvrirModalVoler(encodedCible) {
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
 
   const char = state.char;
-  const per = char?.stats?.PER || 8;
-  const cha = char?.stats?.CHA || 8;
+  const per = getStatEffective('PER');
+  const cha = getStatEffective('CHA');
   const bonusCarriere = BONUS_CARRIERE_VOL[char?.career] || 0;
   const isPays = INDICES_NATIONAUX[state.country]?.IS || 40;
 
@@ -146,9 +146,9 @@ function ouvrirModalAssassinat(encodedCible) {
   const hasBlade = armes.some(a => a.sousType === 'blanche');
   const hasGun   = armes.some(a => a.sousType === 'poing' || a.sousType === 'carabine');
 
-  const vol = char?.stats?.VOL || 8;
-  const per = char?.stats?.PER || 8;
-  const dup = char?.stats?.DUP || 8;
+  const vol = getStatEffective('VOL');
+  const per = getStatEffective('PER');
+  const dup = getStatEffective('DUP');
 
   const tauxMains = Math.min(60, 20 + Math.floor(vol * 1.5));
   const tauxArme  = Math.min(75, 40 + Math.floor(dup * 1.2));
