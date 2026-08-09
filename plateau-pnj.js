@@ -1356,7 +1356,7 @@ async function confirmerEscortPiege(nomCible) {
   state.arg -= cost;
 
   // Stats commanditaire
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const dis = state.dis || 50;
 
   // On simule les stats de la cible (on ne les a pas côté client)
@@ -1472,7 +1472,7 @@ async function interagirPnjTerrain(pnjId) {
 
   const indices = INDICES_NATIONAUX?.[country] || { ISN:30, IE:50, ID:40, IS:45 };
   const is = indices.IS || 45;
-  const cha = state.char?.stats?.CHA || 8;
+  const cha = getStatEffective('CHA');
   const cur = COUNTRIES[country]?.cur || 'FR';
 
   // Squatteurs agressifs — jet CHA + IS
@@ -1579,7 +1579,7 @@ function soudoyerGardienTerrain(montant) {
     showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false);
     return;
   }
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const taux = Math.min(80, 40 + Math.floor(dup/2));
   const roll = Math.floor(Math.random() * 100) + 1;
   state.arg -= montant;
@@ -1781,7 +1781,7 @@ function doExpulsionAcceleree(cout) {
   const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30 };
   const isn = indices.ISN || 30;
   const delaiRapideH = Math.max(1, Math.round((96 - isn * 0.6) / 4));
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const taux = Math.min(80, 40 + Math.floor(dup * 2));
   const roll = Math.floor(Math.random() * 100) + 1;
 
@@ -1813,7 +1813,7 @@ function doFaireDisparaitreCadavre() {
   const id_idx = indices.ID || 40;
 
   const dis = state.dis || 50;
-  const cha = state.char?.stats?.CHA || 8;
+  const cha = getStatEffective('CHA');
   const bonusOrga = calculerBonusOrga();
   const taux = Math.min(85, Math.floor(dis/2 + cha/2) - Math.floor(isn/5) + (bonusOrga.dis || 0) / 3);
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -1890,7 +1890,7 @@ function confirmerNegociation() {
     return;
   }
 
-  const cha = state.char?.stats?.CHA || 8;
+  const cha = getStatEffective('CHA');
   const bonusArgent = Math.min(40, Math.floor(montant / 100));
   const bonusOrga2 = calculerBonusOrga();
   const taux = Math.min(90, Math.floor(cha * 3 + is / 5) + bonusArgent + (bonusOrga2.nego_cha || 0));
