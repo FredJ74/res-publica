@@ -1510,7 +1510,13 @@ function renderRoomActions(room, buildingId, roomId) {
         const reqPost = o.requiresPost;
         if (reqPost === 'president') needsPost = posteId !== 'president';
         else if (reqPost === 'pm') needsPost = posteId !== 'pm';
-        else if (reqPost === 'depute') needsPost = !posteId.startsWith('depute');
+        else if (reqPost === 'depute') {
+          // Fix 9 aout 2026 : etre depute est stocke dans state.posteDepute (emplacement
+          // separe, cumulable avec un autre poste), pas dans state.poste - cette verification
+          // ne lisait que state.poste, donc aucun depute reel ne pouvait jamais voter une loi
+          // (seul ordre requiresPost:'depute' du jeu) quel que soit son chemin d'obtention.
+          needsPost = !posteId.startsWith('depute') && !state.posteDepute?.id?.startsWith('depute');
+        }
         else if (reqPost === 'juge') needsPost = posteId !== 'juge';
         else if (reqPost === 'magistrat') needsPost = !['juge','procureur'].includes(posteId);
         else if (reqPost === 'commissaire') needsPost = posteId !== 'commissaire';
@@ -2440,7 +2446,12 @@ function consulterAnnuaireDeputes() {
 async function ouvrirRevoquerPosteNomme(posteId) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return;
-  if (state.poste?.id !== regle.nommePar) {
+  // Fix 9 aout 2026 : comparaison stricte a 'maire' ne correspondait jamais a un vrai maire
+  // (id 'maire' + city desormais, ex-ids maire_capitale/maire_a/maire_b avant la refonte) -
+  // un maire pouvait nommer un commissaire (deja corrige le 8 aout, startsWith) mais jamais le
+  // revoquer. startsWith couvre aussi bien 'maire' que 'president'/'pm'/etc (correspondance exacte
+  // pour ces derniers, qui n'ont pas de variante).
+  if (!state.poste?.id?.startsWith(regle.nommePar)) {
     showToast('Acces refuse', 'Seul(e) le/la ' + regle.nommePar + ' peut revoquer ce poste.', false);
     return;
   }
