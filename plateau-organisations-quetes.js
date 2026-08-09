@@ -3,15 +3,62 @@
 // Organisations (sauvegarde/chargement), systeme de quetes, loge maconnique
 // =====================
 
-// Trouve le nom du PJ qui occupe reellement un poste donne (via Supabase, pas le state local)
-async function getTitulairePoste(posteId, ville, pays) {
-  if (typeof sbListPersonnages !== 'function') return null;
-  try {
-    const joueurs = await sbListPersonnages() || [];
-    const cible = pays || state.country;
-    const titulaire = joueurs.find(j => j.country === cible && j.poste?.id === posteId && (!ville || j.poste?.city === ville));
-    return titulaire?.name || null;
-  } catch(e) { return null; }
+// =====================
+// LOOKUP UNIQUE — qui detient reellement un poste, quel que soit son type
+// Refonte du 9 aout 2026 : remplace getTitulairePoste (aveugle aux PNJ, ne trouvait que les
+// vrais joueurs), getTitulaireMaire (idem, variante maire) et getTitulairePosteNomme (deja
+// correcte mais dupliquee) - trois fonctions qui faisaient à peu pres la meme recherche avec
+// des resultats differents. Retourne toujours {nom, estPJ} ou null si le poste est vraiment
+// vacant (ni PJ ni PNJ).
+// =====================
+async function getTitulaireActuel(posteId, city, pays) {
+  const country = pays || state.country;
+
+  if (POSTES_NOMMES_EXCLUSIFS[posteId]) {
+    // Poste nomme : vrai joueur d'abord (state.poste sur sa fiche), PNJ (titulaires_pnj) en repli.
+    if (typeof sbListPersonnages === 'function') {
+      try {
+        const joueurs = await sbListPersonnages() || [];
+        const match = joueurs.find(j => {
+          let poste = j.poste;
+          if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
+          if (j.country !== country || !poste || poste.id !== posteId) return false;
+          if (city && poste.city !== city) return false;
+          return true;
+        });
+        if (match) return { nom: match.name, estPJ: true };
+      } catch(e) {}
+    }
+    if (typeof sbGetTitulairePnj === 'function') {
+      const nomPnj = await sbGetTitulairePnj(country, posteId, city).catch(() => null);
+      if (nomPnj) return { nom: nomPnj, estPJ: false };
+    }
+    return null;
+  }
+
+  // Poste elu (POSTES_ELECTIFS) : cycle.eluId fait autorite (toujours a jour, ecrit par le
+  // cron a la resolution de chaque election — bien plus fiable que state.poste des AUTRES
+  // joueurs, qui ne se met a jour qu'a LEUR prochaine connexion, voir appliquerVictoireElectorale).
+  const villeCycle = (posteId === 'maire' || posteId === 'depute') ? (city || state.currentCity) : null;
+  const cle = typeof getCleCycle === 'function' ? getCleCycle(posteId, villeCycle) : posteId;
+  let eluId = CYCLES_ELECTORAUX?.[country]?.[cle]?.eluId;
+  if (eluId === undefined && typeof sbLoadCyclesElectoraux === 'function') {
+    const cycles = await sbLoadCyclesElectoraux(country).catch(() => null);
+    if (cycles) {
+      CYCLES_ELECTORAUX[country] = { ...(CYCLES_ELECTORAUX[country]||{}), ...cycles };
+      eluId = cycles[cle]?.eluId;
+    }
+  }
+  if (!eluId) return null;
+
+  if (typeof sbListPersonnages === 'function') {
+    try {
+      const joueurs = await sbListPersonnages() || [];
+      const estPJ = joueurs.some(j => j.country === country && j.name === eluId);
+      return { nom: eluId, estPJ };
+    } catch(e) {}
+  }
+  return { nom: eluId, estPJ: false };
 }
 
 // Presence dynamique du PNJ "Le Maire" de Luthecia, selon que le poste est occupe par un
@@ -21,9 +68,10 @@ async function getTitulairePoste(posteId, ville, pays) {
 async function verifierPresenceMaireLuthecia(buildingId, roomId) {
   if (buildingId !== 'mairie-capitale') return;
   if (roomId !== 'hall_mairie' && roomId !== 'bureau_maire') return;
-  if (typeof getTitulaireMaire !== 'function' || typeof renderPersonsList !== 'function') return;
+  if (typeof getTitulaireActuel !== 'function' || typeof renderPersonsList !== 'function') return;
 
-  const titulaire = await getTitulaireMaire(state.country, 'capitale');
+  const titulaireInfo = await getTitulaireActuel('maire', 'capitale');
+  const titulaire = titulaireInfo?.estPJ ? titulaireInfo.nom : null;
   // Le joueur a change de piece entre-temps : on n'ecrase pas un affichage devenu obsolete
   if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
 
@@ -41,17 +89,6 @@ async function verifierPresenceMaireLuthecia(buildingId, roomId) {
       renderPersonsList(autresPersonnes);
     }
   }
-}
-
-// Cas particulier du maire : le posteId varie selon la ville (maire_a, maire_b...), pas de poste 'maire' generique
-async function getTitulaireMaire(pays, ville) {
-  if (typeof sbListPersonnages !== 'function') return null;
-  try {
-    const joueurs = await sbListPersonnages() || [];
-    const cible = pays || state.country;
-    const titulaire = joueurs.find(j => j.country === cible && j.poste?.id?.startsWith('maire') && (!ville || j.poste?.city === ville));
-    return titulaire?.name || null;
-  } catch(e) { return null; }
 }
 
 // Structure plate pour les organisations (prepare le support multi-empire futur)
@@ -2818,7 +2855,8 @@ async function confirmerDemandeManifestation(orgaId) {
 
   const nbMembres = orga.membres?.length || 1;
   const intensite = Math.min(3, 1 + Math.floor(nbMembres / 10));
-  const cible = orga.type === 'supporters' ? await getTitulaireMaire(state.country, state.currentCity) : null;
+  const maireInfo = orga.type === 'supporters' ? await getTitulaireActuel('maire', state.currentCity) : null;
+  const cible = maireInfo?.estPJ ? maireInfo.nom : null;
 
   await sbCreerDemandeManifestation({
     orgaId, orgaNom: orga.nom, orgaType: orga.type,
@@ -2829,7 +2867,8 @@ async function confirmerDemandeManifestation(orgaId) {
   });
 
   document.getElementById('modal-postes')?.classList.remove('open');
-  const minIntNom = await getTitulairePoste('min_int');
+  const minIntInfo = await getTitulaireActuel('min_int');
+  const minIntNom = minIntInfo?.estPJ ? minIntInfo.nom : null;
   if (minIntNom && typeof sbSendMail === 'function') {
     await sbSendMail('Préfecture', minIntNom, 'Nouvelle demande de manifestation',
       orga.nom + ' demande une autorisation pour : "' + sujet + '", le ' + dateEvenement.toLocaleString('fr-FR') + '.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
@@ -2859,10 +2898,10 @@ async function getElecteursClub(club) {
   const supporters = getClubSupportersLocal ? (state.organisations || []).find(o => o.type === 'supporters' && o.country === club.country && o.city === club.city) : null;
   const classement = await calculerClassementClub(club);
   const capitaine = getCapitaine(classement);
-  const maire = await getTitulaireMaire(club.country, club.city);
+  const maireInfo = await getTitulaireActuel('maire', club.city, club.country);
   return {
     chefSupporters: supporters?.chef || null,
-    maire,
+    maire: maireInfo?.estPJ ? maireInfo.nom : null,
     capitaine
   };
 }

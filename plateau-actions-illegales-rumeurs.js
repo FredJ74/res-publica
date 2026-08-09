@@ -365,8 +365,9 @@ async function solliciterAudiencePresident() {
     true
   );
   addJournalEntry('Vous avez sollicite une audience presidentielle.', 'event-info');
-  // Mail au President (vrai titulaire recherche via Supabase)
-  const titulaire = await getTitulairePoste('president');
+  // Mail au President (vrai titulaire recherche via Supabase — silencieux si PNJ/vacant, comme avant)
+  const presidentInfo = await getTitulaireActuel('president');
+  const titulaire = presidentInfo?.estPJ ? presidentInfo.nom : null;
   await envoyerNotificationVraiJoueur(titulaire, 'Demande d\'audience de ' + nomDemandeur,
     nomDemandeur + ' sollicite une audience presidentielle. Vous pouvez lui repondre directement par mail.');
 }

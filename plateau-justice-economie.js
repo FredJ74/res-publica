@@ -4009,7 +4009,8 @@ async function verifierInstructionPermis(buildingId) {
   ts.permis.dateEntreeAttente = Date.now();
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, buildingId, ts).catch(() => {});
 
-  const maireNom = await getTitulaireMaire(state.country, state.currentCity);
+  const maireInfo = await getTitulaireActuel('maire', state.currentCity);
+  const maireNom = maireInfo?.estPJ ? maireInfo.nom : null;
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   if (maireNom && typeof sbSendMail === 'function') {
     await sbSendMail('Services municipaux', maireNom, 'Permis de construire à valider',
@@ -4083,7 +4084,8 @@ async function doPlainteObstruction() {
   if (ts.permis.refusLegitime) { showToast('Refus légitime', 'Le zonage justifiait ce refus — pas de recours possible.', false); return; }
   if (ts.permis.plainteDeposee) { showToast('Plainte déjà déposée', '', false); return; }
 
-  const maireNom = await getTitulaireMaire(state.country, state.currentCity);
+  const maireInfoObstruction = await getTitulaireActuel('maire', state.currentCity);
+  const maireNom = maireInfoObstruction?.estPJ ? maireInfoObstruction.nom : null;
   if (maireNom && typeof sbGet === 'function') {
     const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(maireNom)}&select=pop,dis`).catch(() => []);
     const pop = rows?.[0]?.pop ?? 50, dis = rows?.[0]?.dis ?? 50;

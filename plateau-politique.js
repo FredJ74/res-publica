@@ -94,7 +94,7 @@ async function ouvrirEcranPostes() {
   html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">POSTES NOMMÉS</div>';
   for (const p of postesNommes) {
     const villeDeCePoste = p.scope === 'ville' ? villeCourante : null;
-    const titulaire = typeof getTitulairePosteNomme === 'function' ? await getTitulairePosteNomme(p.id, villeDeCePoste) : null;
+    const titulaire = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel(p.id, villeDeCePoste) : null;
     let actionHtml;
     if (titulaire && titulaire.estPJ && titulaire.nom === state.char?.name) {
       actionHtml = '<button class="poste-btn" style="opacity:.4;cursor:default;color:#C9A84C">Votre poste</button>';
@@ -127,7 +127,7 @@ async function demanderNominationPoste(posteId, posteName) {
   if (!check.ok) { showToast('Impossible', check.raison, false); return; }
 
   const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
-  const titulaireAutorite = typeof getTitulairePosteNomme === 'function' ? await getTitulairePosteNomme(regle.nommePar, villeCourante) : null;
+  const titulaireAutorite = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel(regle.nommePar, villeCourante) : null;
 
   if (!titulaireAutorite) {
     showToast('Poste vacant', "L'autorité de nomination pour ce poste est elle-même vacante. Votre candidature ne peut pas être transmise pour le moment.", false);
@@ -1724,7 +1724,7 @@ function ouvrirPhotoCadavre(jsonStr) {
 // =====================
 // Reconstruite le 9 aout 2026 (refonte des postes) : lisait l'ancienne table statique POSTES,
 // retiree. Desormais basee sur POSTES_ELECTIFS (cycle.eluId) + POSTES_NOMMES_EXCLUSIFS
-// (joueurs reels puis titulaires_pnj en repli, via getTitulairePosteNomme).
+// (joueurs reels puis titulaires_pnj en repli, via getTitulaireActuel).
 async function ouvrirOrganigramme() {
   const co = COUNTRIES[state.country];
   const myName = state.char?.name || '';
@@ -1777,7 +1777,7 @@ async function ouvrirOrganigramme() {
         holderName = getTitulaireElu(p.id, p.city);
         estPJ = true; // cycle.eluId n'est jamais un PNJ (repli PNJ gere separement, voir cascade cron)
       } else {
-        const titulaire = typeof getTitulairePosteNomme === 'function' ? await getTitulairePosteNomme(p.id, p.city) : null;
+        const titulaire = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel(p.id, p.city) : null;
         holderName = titulaire?.nom || null;
         estPJ = titulaire?.estPJ ?? true;
       }
@@ -2433,28 +2433,9 @@ function consulterAnnuaireDeputes() {
 
 // SYSTÈME GÉNÉRIQUE — NOMINATION DE POSTES (juge, commissaire)
 // =====================
-
-// Vérifie si un PJ peut accepter ce poste (règles de cumul strict)
-async function getTitulairePosteNomme(posteId, city) {
-  if (typeof sbListPersonnages === 'function') {
-    try {
-      const joueurs = await sbListPersonnages() || [];
-      const match = joueurs.find(j => {
-        let poste = j.poste;
-        if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
-        if (!poste || poste.id !== posteId) return false;
-        if (city && poste.city !== city) return false;
-        return true;
-      });
-      if (match) return { nom: match.name, estPJ: true };
-    } catch(e) {}
-  }
-  if (typeof sbGetTitulairePnj === 'function') {
-    const nomPnj = await sbGetTitulairePnj(state.country, posteId, city).catch(() => null);
-    if (nomPnj) return { nom: nomPnj, estPJ: false };
-  }
-  return null;
-}
+// getTitulairePosteNomme (ex-fonction locale) retiree le 9 aout 2026 (refonte des postes) —
+// remplacee partout par getTitulaireActuel (plateau-organisations-quetes.js), qui couvre
+// aussi les postes elus, pas seulement les postes nommes.
 
 async function ouvrirRevoquerPosteNomme(posteId) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
@@ -2466,7 +2447,7 @@ async function ouvrirRevoquerPosteNomme(posteId) {
 
   const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
   const villeNom = villeCourante ? (WORLD[state.country]?.[villeCourante]?.name || villeCourante) : null;
-  const titulaireInfo = await getTitulairePosteNomme(posteId, villeCourante);
+  const titulaireInfo = await getTitulaireActuel(posteId, villeCourante);
 
   document.getElementById('postes-modal-title').textContent = 'Revoquer le ' + regle.label.toLowerCase();
   if (!titulaireInfo) {
@@ -2623,6 +2604,12 @@ function accepterNominationPosteNomme(posteId, city, country, nommeurNom) {
   state.poste = { id: posteId, name: regle.label, city: city || null };
   if (state.char) state.char.poste = state.poste;
   state.salaireTouche = false;
+  // Nettoie un eventuel titulaire PNJ perime (ce poste etait peut-etre auto-pourvu avant
+  // qu'un vrai joueur ne l'accepte) - sinon il resurgirait comme "occupe par un PNJ" si ce
+  // joueur quitte le poste plus tard, sans passage par la cascade cron.
+  if (typeof sbSupprimerTitulairePnj === 'function') {
+    sbSupprimerTitulairePnj(state.country, posteId, city || null).catch(() => {});
+  }
   updateUI();
   if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
     const roomCourante = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
@@ -2717,9 +2704,12 @@ async function appliquerNominationPosteEnAttente() {
 
     // Deloger un eventuel titulaire actuel different du nomme, avant d'attribuer le poste
     // (evite qu'un poste unique se retrouve occupe par deux joueurs en meme temps).
-    const ancienTitulaire = typeof getTitulairePoste === 'function' ? await getTitulairePoste(nomination.poste_id) : null;
-    if (ancienTitulaire && ancienTitulaire !== state.char.name && typeof sbUpdate === 'function') {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(ancienTitulaire)}`, { poste: null }).catch(() => {});
+    const ancienTitulaireInfo = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel(nomination.poste_id) : null;
+    if (ancienTitulaireInfo?.estPJ && ancienTitulaireInfo.nom !== state.char.name && typeof sbUpdate === 'function') {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(ancienTitulaireInfo.nom)}`, { poste: null }).catch(() => {});
+    }
+    if (typeof sbSupprimerTitulairePnj === 'function') {
+      await sbSupprimerTitulairePnj(state.country, nomination.poste_id, null).catch(() => {});
     }
 
     state.poste = { id: nomination.poste_id, name: nomination.poste_name };
@@ -3092,7 +3082,8 @@ async function proposerDiplomatie(type, empireCibleId, empireCibleName, details)
 
   const proposeur = state.char?.name || 'Le Ministre';
   const empireProposeurNom = COUNTRIES[pays]?.n || pays;
-  const maeAdversaire = await getTitulairePoste('min_ae', null, empireCibleId);
+  const maeAdversaireInfo = await getTitulaireActuel('min_ae', null, empireCibleId);
+  const maeAdversaire = maeAdversaireInfo?.estPJ ? maeAdversaireInfo.nom : null;
 
   const data = {
     type,
@@ -3272,8 +3263,8 @@ function executerOrdreEmpire(action, empireId, empireName) {
 const JUGE_PNJ_DEFAUT = { republic: 'Juge Sévère Lapeine' };
 
 async function getJugeActuel(pays) {
-  const titulaire = await getTitulairePoste('juge', null, pays);
-  return titulaire || JUGE_PNJ_DEFAUT[pays] || 'Juge (poste vacant)';
+  const titulaire = await getTitulaireActuel('juge', null, pays);
+  return titulaire?.nom || JUGE_PNJ_DEFAUT[pays] || 'Juge (poste vacant)';
 }
 
 async function ouvrirProposerGrace() {
@@ -3310,7 +3301,8 @@ async function confirmerPropositionGrace(idx) {
 
   await sbCreerDemandeGrace({ pays, nomCondamne: condamne.nom, raison: condamne.raison, jourFin: condamne.jourFin, proposePar: state.char?.name });
 
-  const presidentNom = await getTitulairePoste('president');
+  const presidentInfoGrace = await getTitulaireActuel('president');
+  const presidentNom = presidentInfoGrace?.estPJ ? presidentInfoGrace.nom : null;
   if (presidentNom && typeof sbSendMail === 'function') {
     await sbSendMail('Ministère de la Justice', presidentNom, 'Recommandation de grâce',
       'Le Ministre de la Justice recommande la grâce de ' + condamne.nom + ' (' + condamne.raison + '). Rendez-vous au palais pour traiter les demandes.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
@@ -4519,7 +4511,7 @@ async function traiterDemandeManifestation(id, autorise) {
     // Fix 9 aout 2026 : lisait POSTES?.[pays]?.min_int?.titulaire, une forme qui n'a jamais
     // existe dans la vraie structure de POSTES (jamais de cle plate par id, jamais de champ
     // .titulaire) - ce malus n'a donc jamais pu s'appliquer depuis la creation de cette fonction.
-    const minIntInfo = typeof getTitulairePosteNomme === 'function' ? await getTitulairePosteNomme('min_int', null) : null;
+    const minIntInfo = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel('min_int', null) : null;
     const minIntNom = minIntInfo?.estPJ ? minIntInfo.nom : null;
     if (minIntNom) {
       if (minIntNom === state.char?.name) {
@@ -4586,7 +4578,7 @@ async function doDementiOfficiel() {
   const presidentActuel = CYCLES_ELECTORAUX?.[state.country]?.['president']?.eluId;
   if (presidentActuel && !cibles.includes(presidentActuel)) cibles.push(presidentActuel);
   for (const id of postesGouvernementNommes) {
-    const titulaireInfo = typeof getTitulairePosteNomme === 'function' ? await getTitulairePosteNomme(id, null) : null;
+    const titulaireInfo = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel(id, null) : null;
     if (titulaireInfo?.estPJ && !cibles.includes(titulaireInfo.nom)) cibles.push(titulaireInfo.nom);
   }
 
@@ -5143,7 +5135,8 @@ async function ouvrirProposerTreve() {
 
 async function confirmerPropositionTreve(guerreId, adversaire) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  const maeAdversaire = await getTitulairePoste('min_ae', null, adversaire);
+  const maeAdversaireInfo = await getTitulaireActuel('min_ae', null, adversaire);
+  const maeAdversaire = maeAdversaireInfo?.estPJ ? maeAdversaireInfo.nom : null;
   if (typeof sbSendMail === 'function') {
     await sbSendMail('Ministère des Affaires Étrangères', maeAdversaire || 'PNJ-MAE',
       'Proposition de trêve', (state.char?.name||'Le Ministre') + ' propose une trêve. Répondez pour l\'accepter.',
@@ -5553,7 +5546,8 @@ async function confirmerMobilisation() {
     await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
   }
 
-  const commandantNom = await getTitulairePoste('commandant');
+  const commandantInfoMobil = await getTitulaireActuel('commandant');
+  const commandantNom = commandantInfoMobil?.estPJ ? commandantInfoMobil.nom : null;
   if (commandantNom && typeof sbSendMail === 'function') {
     await sbSendMail('Ministère de la Défense', commandantNom, 'ORDRE DE MOBILISATION — CONFIDENTIEL',
       'Destination : ' + (COUNTRIES[empireCible]?.n||empireCible) + ' — ' + villeCible + '.<br><br>Feuille de route :<br>' + route.replace(/\n/g,'<br>'),
@@ -5960,12 +5954,14 @@ async function resoudreCombat(A, B) {
   if (B.section.lieutenantNom && typeof sbSendMail === 'function') sbSendMail('État-Major', B.section.lieutenantNom, 'Rapport de combat', resultat + '. Pertes : ' + matriculesMortsB.length + ' soldats.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
 
   if (soldatsA.length === 0 && sectionA?.soldats.length === 0 && A.section.lieutenantNom) {
-    const commandantNom = await getTitulairePoste('commandant', null, A.pays);
-    if (commandantNom) await sbSendMail('État-Major', commandantNom, 'Section anéantie', 'La section de ' + A.section.lieutenantNom + ' a été anéantie et doit être recomplétée.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+    const commandantInfoA = await getTitulaireActuel('commandant', null, A.pays);
+    const commandantNomA = commandantInfoA?.estPJ ? commandantInfoA.nom : null;
+    if (commandantNomA) await sbSendMail('État-Major', commandantNomA, 'Section anéantie', 'La section de ' + A.section.lieutenantNom + ' a été anéantie et doit être recomplétée.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
   }
   if (soldatsB.length === 0 && sectionB?.soldats.length === 0 && B.section.lieutenantNom) {
-    const commandantNom = await getTitulairePoste('commandant', null, B.pays);
-    if (commandantNom) await sbSendMail('État-Major', commandantNom, 'Section anéantie', 'La section de ' + B.section.lieutenantNom + ' a été anéantie et doit être recomplétée.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
+    const commandantInfoB = await getTitulaireActuel('commandant', null, B.pays);
+    const commandantNomB = commandantInfoB?.estPJ ? commandantInfoB.nom : null;
+    if (commandantNomB) await sbSendMail('État-Major', commandantNomB, 'Section anéantie', 'La section de ' + B.section.lieutenantNom + ' a été anéantie et doit être recomplétée.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
   }
 }
 
@@ -6112,7 +6108,8 @@ async function verifierEffetsCouvreFeuQuotidien(pays) {
   if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 3);
   const postesGouv = ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'];
   for (const posteId of postesGouv) {
-    const nom = await getTitulairePoste(posteId, null, pays);
+    const infoTitulaire = await getTitulaireActuel(posteId, null, pays);
+    const nom = infoTitulaire?.estPJ ? infoTitulaire.nom : null;
     if (!nom) continue;
     if (nom === state.char?.name) { state.pop = Math.max(0, (state.pop||0) - 2); }
     else if (typeof sbGet === 'function') {
@@ -6187,7 +6184,8 @@ async function verifierRechercheMilitaireQuotidien(pays) {
   budgetNat.rechercheMilitaire.enCours = null;
   await sbSaveBudgetNational(pays, budgetNat);
   addExternalEvent('🔬 Recherche militaire achevée : le coefficient de tir de "' + enCours.arme + '" est amélioré pour toute la nation.');
-  const commandantNom = await getTitulairePoste('commandant', null, pays);
+  const commandantInfoRecherche = await getTitulaireActuel('commandant', null, pays);
+  const commandantNom = commandantInfoRecherche?.estPJ ? commandantInfoRecherche.nom : null;
   if (commandantNom && typeof sbSendMail === 'function') sbSendMail('Chercheurs Civils', commandantNom, 'Recherche achevée', 'Le programme de recherche sur "' + enCours.arme + '" est terminé. Coefficient amélioré.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
 }
 
@@ -6363,7 +6361,8 @@ async function doEngagerOfficier() {
   if (['lieutenant','capitaine','commandant'].includes(state.poste?.id)) { showToast('Déjà officier', 'Vous occupez déjà un poste militaire.', false); return; }
   const pays = state.country || 'republic';
   const id = await sbCreerEngagement({ pays, nom: state.char?.name, jour: state.day || 1 });
-  const commandantNom = await getTitulairePoste('commandant', null, pays);
+  const commandantInfoEng = await getTitulaireActuel('commandant', null, pays);
+  const commandantNom = commandantInfoEng?.estPJ ? commandantInfoEng.nom : null;
   if (commandantNom && typeof sbSendMail === 'function') {
     await sbSendMail(state.char?.name || 'Un citoyen', commandantNom, 'Demande d\'engagement comme officier',
       state.char?.name + ' souhaite s\'engager comme officier. Rendez-vous à la Salle de Commandement pour traiter les engagements en attente.',
@@ -6675,8 +6674,10 @@ async function doTorturerPrisonnierQHS(prisonnierId) {
   }
 
   // Alerte automatique au president et au premier ministre si le MJ est toujours en poste
-  const presidentNom = await getTitulairePoste('president', null, pays);
-  const pmNom = await getTitulairePoste('pm', null, pays);
+  const presidentInfoTorture = await getTitulaireActuel('president', null, pays);
+  const presidentNom = presidentInfoTorture?.estPJ ? presidentInfoTorture.nom : null;
+  const pmInfoTorture = await getTitulaireActuel('pm', null, pays);
+  const pmNom = pmInfoTorture?.estPJ ? pmInfoTorture.nom : null;
   const alerte = 'Le Ministre de la Justice (' + mjNom + ') est empêtré(e) dans une affaire de torture au QHS. Sa popularité et sa légitimité sont au plus bas. À vous de décider s\'il faut le/la démettre.';
   if (presidentNom && typeof sbSendMail === 'function') await sbSendMail('Alerte confidentielle', presidentNom, 'Affaire de torture au QHS', alerte, typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
   if (pmNom && typeof sbSendMail === 'function') await sbSendMail('Alerte confidentielle', pmNom, 'Affaire de torture au QHS', alerte, typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});

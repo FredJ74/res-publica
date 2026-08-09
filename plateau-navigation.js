@@ -354,7 +354,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
 
   // Affichage du directeur en poste — usines et entrepots, meme logique que la caisse
   // ci-dessus (demande Fred 8 aout 2026). Priorite au vrai titulaire PJ (via le systeme
-  // generique getTitulairePosteNomme, deja utilise pour juge/commissaire) ; a defaut, le
+  // generique getTitulaireActuel, deja utilise pour juge/commissaire) ; a defaut, le
   // PNJ par default du bureau de direction (jamais un flou "poste vacant" tant qu'un PNJ
   // occupe encore la place).
   const BATIMENTS_DIRECTEUR = {
@@ -370,8 +370,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
   if (cfgDirecteur && elDirecteur) {
     elDirecteur.style.display = 'block';
     elDirecteur.textContent = 'Directeur : ...';
-    if (typeof getTitulairePosteNomme === 'function') {
-      getTitulairePosteNomme(cfgDirecteur.posteId, cfgDirecteur.city).then(titulaire => {
+    if (typeof getTitulaireActuel === 'function') {
+      getTitulaireActuel(cfgDirecteur.posteId, cfgDirecteur.city).then(titulaire => {
         if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
         if (titulaire) {
           elDirecteur.textContent = 'Directeur : ' + titulaire.nom;
