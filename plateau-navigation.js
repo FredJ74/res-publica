@@ -328,7 +328,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   document.getElementById('bat-nom').textContent = displayName;
   document.getElementById('bat-cat').textContent = displayCat;
 
-  // Affichage de la caisse — entrepots/usines uniquement, visible de tous des l'entree
+  // Affichage de la caisse — entrepots/usines/armurerie, visible de tous des l'entree
   // (decision Fred 8 aout 2026 : transparence totale sur ces caisses economiques,
   // contrairement aux caisses institutionnelles qui restent cachees sauf ordre dedie).
   const BATIMENTS_CAISSE_VISIBLE = {
@@ -337,9 +337,35 @@ function enterBuilding(buildingId, skipAutoRoom) {
   };
   const cleCaisse = BATIMENTS_CAISSE_VISIBLE[buildingId];
   const elCaisse = document.getElementById('bat-caisse');
-  if (cleCaisse && elCaisse) {
+  const elStock = document.getElementById('bat-stock');
+
+  if (buildingId === 'armurerie') {
+    // Armurerie ajoutee le 9 aout 2026 (retour de test en jeu, main d'oeuvre de production) :
+    // stock/caisse existent depuis longtemps mais sur un systeme different des entrepots/usines
+    // (table 'entreprises' via chargerArmurerieLocale/sbGetEntreprise, pas 'batiments_etat'/
+    // sbGetBatimentEtat) - ne peut donc pas juste rejoindre BATIMENTS_CAISSE_VISIBLE tel quel.
+    // Stock de matieres affiche en plus de la caisse : c'est la seule des 3 ressources limitant
+    // produire_arme (PA/matiere/caisse) qui n'etait visible nulle part avant de cliquer produire.
+    if (elCaisse) { elCaisse.style.display = 'block'; elCaisse.textContent = 'Caisse : ...'; }
+    if (elStock) { elStock.style.display = 'block'; elStock.textContent = 'Stock matières : ...'; }
+    if (typeof chargerArmurerieLocale === 'function') {
+      chargerArmurerieLocale().then(data => {
+        if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
+        const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+        if (elCaisse) elCaisse.textContent = 'Caisse : ' + (data?.caisse ?? 0).toLocaleString('fr-FR') + ' ' + cur;
+        if (elStock) {
+          const matieres = Object.entries(data?.stockMatieres || {});
+          elStock.textContent = 'Stock matières : ' + (matieres.length ? matieres.map(([m, q]) => q + ' ' + m).join(', ') : 'aucune');
+        }
+      }).catch(() => {
+        if (elCaisse) elCaisse.textContent = 'Caisse : indisponible';
+        if (elStock) elStock.textContent = 'Stock matières : indisponible';
+      });
+    }
+  } else if (cleCaisse && elCaisse) {
     elCaisse.style.display = 'block';
     elCaisse.textContent = 'Caisse : ...';
+    if (elStock) elStock.style.display = 'none';
     if (typeof sbGetBatimentEtat === 'function') {
       sbGetBatimentEtat(state.country || 'republic', state.currentCity, buildingId).then(etat => {
         if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
@@ -348,8 +374,9 @@ function enterBuilding(buildingId, skipAutoRoom) {
         elCaisse.textContent = 'Caisse : ' + solde.toLocaleString('fr-FR') + ' ' + cur;
       }).catch(() => { elCaisse.textContent = 'Caisse : indisponible'; });
     }
-  } else if (elCaisse) {
-    elCaisse.style.display = 'none';
+  } else {
+    if (elCaisse) elCaisse.style.display = 'none';
+    if (elStock) elStock.style.display = 'none';
   }
 
   // Affichage du directeur en poste — usines et entrepots, meme logique que la caisse
