@@ -1,8 +1,8 @@
 # Journal de session — Res Publica (9 août 2026)
 
 ## État du dépôt
-- Toutes les modifications ont été committées et poussées sur `main` (18 commits).
-- Session arrêtée à 3h du matin (2 petits ajouts après coup : vérification Jean-Lou Zeure, puis portraits des 3 référents) — reprise prévue avec le résumé de fin de journal ci-dessous.
+- Toutes les modifications ont été committées et poussées sur `main` (19 commits).
+- Session close à 3h du matin (quelques petits ajouts après la clôture initiale : vérification Jean-Lou Zeure, portraits des 3 référents, mise à jour de l'image d'accueil du BNE Luthécia) — reprise prévue avec le résumé de fin de journal ci-dessous.
 
 ---
 
@@ -54,6 +54,7 @@
 - **Règle de conflit** (demandée par Fred) : aucune situation active n'est jamais écrasée automatiquement. Postuler en ayant déjà un emploi BNE réserve la nouvelle offre et envoie un mail d'arbitrage (garder / prendre le nouveau) au lieu de trancher. Obtenir un poste politique en gardant un emploi BNE (possible via les 3 systèmes de postes parallèles, voir dette technique) est détecté par un nouveau passage du cron nocturne (`verifierConflitsEmploiBNE`), même mécanique de mail, rien n'est jamais tranché automatiquement.
 - Incompatible avec un poste politique (vérifié à la candidature). Démission immédiate et gratuite.
 - **Bug distinct repéré au passage** (voir chantiers en attente ci-dessous) : plusieurs mails envoyés par le cron utilisent probablement les mauvais noms de colonnes.
+- **Image d'accueil mise à jour** (`bureau-national-emploi-luthecia.png`) — Fred a signalé que plusieurs images semblaient avoir disparu de l'affichage. Vérifié via `git log -p`/`git diff` sur les commits de ce soir touchant `data.js` (fix `buildingContext`, création de Jean-Lou Zeure) : **aucun des deux n'a touché la moindre ligne `imageUrl`**, et sur l'ensemble de la session une seule `imageUrl` a été retirée, volontairement (le remplacement Centre Multimodal PSM demandé en tout début de soirée). L'image du BNE Luthécia était déjà correctement référencée et déjà commitée depuis la création du bâtiment (commit `85bafef`, avant ce soir) — ce n'est pas une régression de nos changements, juste une version mise à jour du fichier à recommiter (fait).
 
 ---
 
@@ -93,6 +94,7 @@ Extension de la quête d'accueil : après le tour actuel, Jérémy demande au jo
 8. **Idée backlog (session future)** : annonces d'emploi **entre joueurs**, notamment pour des jobs illégaux (ex: un PJ recrute un autre PJ pour un coup précis), en complément du Bureau National de l'Emploi (offres officielles/légales, codé le 9 août).
 9. **Bug probable, pas corrigé** : dans `api/cron-minuit.js`, plusieurs envois de mail existants (relances de chantier impayé, avertissements de prêt...) utilisent des noms de colonnes (`destinataire`/`expediteur`/`sujet`/`corps`) différents de ceux relus par le client (`to_player`/`from_player`/`subject`/`body`, voir `sbGetMailsFor`/`plateau-communication.js`). Vraisemblablement le même type de bug que celui du cycle électoral corrigé le 9 août (`votes_pj`/`votes_pnj`) — ces mails ne doivent jamais arriver dans la boîte de réception des joueurs concernés.
 10. **Bug `buildingContext` vestige, corrigé seulement pour `banque-nationale`** : `WORLD.<pays>.<ville>.buildingContext[<batimentId>].persons` écrase silencieusement le vrai contenu de la première salle d'un bâtiment (`plateau-navigation.js:565` + minimap `:91`), avec des noms de `PNJ_PERSONALITIES` jamais nettoyés après l'ajout des vraies salles/PNJ dans `BUILDINGS`. Repéré aussi sur `banque-privee` (Hans Von Discret masque M. Fischer) — probablement `commissariat`/`tribunal` aussi (même bloc). À auditer entièrement (tous pays/villes) plutôt que de corriger bâtiment par bâtiment au fil des demandes de Fred.
+11. **Images "disparues" signalées par Fred en toute fin de session** : un seul cas concret vérifié ce soir (accueil du BNE Luthécia, pas une régression — voir section BNE ci-dessus). Fred a parlé de **plusieurs** images au pluriel ; je n'ai vérifié que celle-là. À vérifier plus largement à la prochaine session si d'autres images manquent encore à l'affichage — probablement le même schéma récurrent de toute la soirée (fichier référencé dans le code mais jamais réellement commité), pas un nouveau bug.
 
 ---
 
