@@ -235,7 +235,7 @@ async function preleverTaxeFonciere() {
 // = le compromis arrive simplement a echeance sans que le joueur ait acheté = acompte perdu.
 // Chaque resolution est archivee dans compromis_historique.
 async function resoudreCompromisExpires() {
-  const resultats = { resolus: 0, rembourses: 0, perdus: 0 };
+  const resultats = { resolus: 0, rembourses: 0, perdus: 0, pretsEnAttenteFinalisation: 0 };
   try {
     const terrains = await sbGet('terrains_etat', '');
     if (!terrains) return resultats;
@@ -246,8 +246,16 @@ async function resoudreCompromisExpires() {
       if (!etat.compromis || !etat.compromisExpireAt) continue;
       if (Date.now() < etat.compromisExpireAt) continue; // pas encore echu
 
+      // Fix du 10 aout 2026 : un pret deja accorde lors d'une precedente passe gele le
+      // compromis indefiniment (pas de nouvelle echeance a fixer) -- en attente que le joueur
+      // finalise via acte_vente_terrain (le controle pretOk existant, mort jusqu'ici, redevient
+      // utile). Sans ce garde-fou, compromisExpireAt reste dans le passe et cette meme ligne
+      // se ferait perdre/wiper a chaque passage du cron, chaque nuit, indefiniment.
+      if (etat.pretDemande && etat.pretDemande.statut === 'accorde') continue;
+
       let refusExplicite = false;
       let detail = [];
+      let pretVientDetreAccorde = false;
 
       // --- Permis : decision du maire si donnee, sinon "pas de reponse = positif" MAINTENANT ---
       if (etat.permis && etat.permis.statut === 'attente_validation') {
@@ -273,6 +281,7 @@ async function resoudreCompromisExpires() {
 
         if (accorde) {
           etat.pretDemande.statut = 'accorde';
+          pretVientDetreAccorde = true;
           if (demandeur) {
             await sbUpdate('personnages', `name=eq.${encodeURIComponent(etat.pretDemande.demandeur)}`, { arg: argActuel + etat.pretDemande.montant });
             await sbInsert('prets', {
@@ -295,6 +304,15 @@ async function resoudreCompromisExpires() {
           refusExplicite = true;
           detail.push('prêt refusé par la banque');
         }
+      }
+
+      // Pret accorde a l'instant, aucune autre clause (permis) refusee en meme temps : le
+      // compromis reste actif, ni rembourse ni perdu -- le joueur finalisera plus tard avec
+      // l'argent prete. On sauvegarde juste la decision du pret et on passe au suivant.
+      if (pretVientDetreAccorde && !refusExplicite) {
+        await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
+        resultats.pretsEnAttenteFinalisation++;
+        continue;
       }
 
       // --- Issue : rembourser si refus explicite, sinon l'acompte est perdu (compromis
@@ -322,12 +340,15 @@ async function resoudreCompromisExpires() {
         detail: detail.join(' · ')
       }).catch(() => {});
 
-      // Libere le terrain (le compromis est termine, quelle que soit l'issue)
+      // Libere le terrain (le compromis est termine, quelle que soit l'issue). pretDemande
+      // efface aussi desormais (10 aout 2026) : un {statut:'refuse'} laisse accroche aurait
+      // bloque a tort le pretOk d'un futur compromis n'ayant rien demande.
       delete etat.compromis;
       delete etat.compromisPar;
       delete etat.acompte;
       delete etat.compromisAt;
       delete etat.compromisExpireAt;
+      delete etat.pretDemande;
       await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
       resultats.resolus++;
     }
@@ -336,13 +357,15 @@ async function resoudreCompromisExpires() {
 }
 
 // Resolution des compromis de rachat d'entreprise arrives a echeance (Notaire, chantier du
-// 10 aout 2026). Contrairement au terrain, aucune clause (permis/pret) n'existe ici -- l'acompte
-// est donc TOUJOURS perdu si le compromis expire sans finalisation, jamais rembourse. Balaie
+// 10 aout 2026). Pas de clause "permis" ici (aucun equivalent pour une entreprise), mais la
+// meme clause "pret bancaire" que le terrain existe desormais -- meme logique que
+// resoudreCompromisExpires ci-dessus (et son fix du 10 aout 2026) : un pret accorde gele le
+// compromis indefiniment, en attente que le joueur finalise via acte_rachat_entreprise. Balaie
 // toute la table 'entreprises' (pas une liste figee par type) pour couvrir automatiquement les
 // futures entreprises rachetables sans avoir a toucher ce cron. Table 'entreprises' stocke
 // data en jsonb natif (pas de JSON.parse/stringify, contrairement a terrains_etat).
 async function resoudreCompromisEntreprisesExpires() {
-  const resultats = { resolus: 0, perdus: 0 };
+  const resultats = { resolus: 0, rembourses: 0, perdus: 0, pretsEnAttenteFinalisation: 0 };
   try {
     const entreprises = await sbGet('entreprises', '');
     if (!entreprises) return resultats;
@@ -352,13 +375,76 @@ async function resoudreCompromisEntreprisesExpires() {
       if (!data || !data.compromis || !data.compromisExpireAt) continue;
       if (Date.now() < data.compromisExpireAt) continue; // pas encore echu
 
+      // Meme garde-fou que le terrain : un pret deja accorde a une precedente passe ne doit
+      // plus jamais faire wiper/perdre ce compromis.
+      if (data.pretDemande && data.pretDemande.statut === 'accorde') continue;
+
+      let refusExplicite = false;
+      let detail = [];
+      let pretVientDetreAccorde = false;
+      const country = (data.id || row.id || '').split('-').slice(1).join('-') || null;
+
+      if (data.pretDemande && data.pretDemande.statut === 'attente_validation') {
+        const demRows = await sbGet('personnages', `name=eq.${encodeURIComponent(data.pretDemande.demandeur)}`);
+        const demandeur = demRows && demRows[0];
+        const argActuel = demandeur ? (demandeur.arg || 0) : 0;
+        const risque = argActuel < data.pretDemande.montant * 0.10;
+        const accorde = !risque || Math.random() < 0.5;
+
+        if (accorde) {
+          data.pretDemande.statut = 'accorde';
+          pretVientDetreAccorde = true;
+          if (demandeur) {
+            await sbUpdate('personnages', `name=eq.${encodeURIComponent(data.pretDemande.demandeur)}`, { arg: argActuel + data.pretDemande.montant });
+            await sbInsert('prets', {
+              id: 'pret-' + Date.now(),
+              emprunteur: data.pretDemande.demandeur,
+              country,
+              building_id: row.id,
+              type_banque: 'nationale',
+              montant_initial: data.pretDemande.montant,
+              montant_restant: data.pretDemande.montantTotal,
+              duree_jours: data.pretDemande.duree,
+              mensualite: data.pretDemande.mensualite,
+              jours_impayes: 0,
+              statut: 'en_cours'
+            }).catch(() => {});
+          }
+          detail.push('prêt accordé (+' + data.pretDemande.montant + ' FR virés)');
+        } else {
+          data.pretDemande.statut = 'refuse';
+          refusExplicite = true;
+          detail.push('prêt refusé par la banque');
+        }
+      }
+
+      if (pretVientDetreAccorde && !refusExplicite) {
+        await sbUpdate('entreprises', `id=eq.${encodeURIComponent(row.id)}`, { data, updated_at: new Date().toISOString() }).catch(() => {});
+        resultats.pretsEnAttenteFinalisation++;
+        continue;
+      }
+
+      const demandeurActuel = data.compromisPar;
+      if (refusExplicite && demandeurActuel && data.acompte) {
+        const propRows = await sbGet('personnages', `name=eq.${encodeURIComponent(demandeurActuel)}`);
+        const proprio = propRows && propRows[0];
+        if (proprio) {
+          await sbUpdate('personnages', `name=eq.${encodeURIComponent(demandeurActuel)}`, { arg: (proprio.arg || 0) + data.acompte });
+        }
+        resultats.rembourses++;
+        detail.push('acompte remboursé (' + data.acompte + ' FR)');
+      } else {
+        resultats.perdus++;
+        detail.push('acompte perdu (' + (data.acompte || 0) + ' FR)');
+      }
+
       await sbInsert('compromis_historique', {
         id: 'compromis-entreprise-' + row.id + '-' + Date.now(),
-        country: (data.id || row.id || '').split('-').slice(1).join('-') || null,
+        country,
         building_id: row.id,
-        demandeur: data.compromisPar || 'inconnu',
-        resultat: 'perdu',
-        detail: 'acompte perdu (' + (data.acompte || 0) + ' FR) — compromis de rachat d\'entreprise expiré sans finalisation'
+        demandeur: demandeurActuel || 'inconnu',
+        resultat: refusExplicite ? 'rembourse' : 'perdu',
+        detail: detail.join(' · ') || ('compromis de rachat d\'entreprise expiré sans finalisation')
       }).catch(() => {});
 
       delete data.compromis;
@@ -366,8 +452,8 @@ async function resoudreCompromisEntreprisesExpires() {
       delete data.acompte;
       delete data.compromisAt;
       delete data.compromisExpireAt;
+      delete data.pretDemande;
       await sbUpdate('entreprises', `id=eq.${encodeURIComponent(row.id)}`, { data, updated_at: new Date().toISOString() }).catch(() => {});
-      resultats.perdus++;
       resultats.resolus++;
     }
   } catch(e) { console.error('resoudreCompromisEntreprisesExpires error', e); }
@@ -551,6 +637,20 @@ async function preleverPretsBancairesServeur() {
                 etat.enVenteParBanque = true;
                 etat.prixVenteBanque = Math.round((etat.valeur_totale || 0) * 0.7);
                 await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(tRow.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() });
+              } else {
+                // Pas un terrain (cle building_id+country) : tenter une entreprise (cle id
+                // directe, table 'entreprises', pret de compromis de rachat d'entreprise du
+                // 10 aout 2026). Pas de remise "prixVenteBanque" ici -- ce mecanisme n'existe
+                // pas pour les entreprises, elle redevient simplement rachetable au prix normal.
+                const eRows = await sbGet('entreprises', `id=eq.${encodeURIComponent(pret.building_id)}`);
+                const eRow = eRows && eRows[0];
+                if (eRow) {
+                  const dataE = eRow.data || {};
+                  dataE.proprietaire = 'PNJ';
+                  delete dataE.compromis; delete dataE.compromisPar; delete dataE.acompte;
+                  delete dataE.compromisAt; delete dataE.compromisExpireAt; delete dataE.pretDemande;
+                  await sbUpdate('entreprises', `id=eq.${encodeURIComponent(eRow.id)}`, { data: dataE, updated_at: new Date().toISOString() });
+                }
               }
             }
             await sbInsert('mails', { destinataire: pret.emprunteur, expediteur: 'Banque Nationale', sujet: 'SAISIE', corps: 'Votre bien a été saisi pour non-remboursement et sera remis en vente.', archived: false }).catch(() => {});
@@ -575,6 +675,18 @@ async function preleverPretsBancairesServeur() {
                 let etat; try { etat = JSON.parse(tRow.data); } catch(e) { etat = {}; }
                 etat.proprietaire = null; etat.coproprietaire = null; etat.enVenteParBanque = false;
                 await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(tRow.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() });
+              } else {
+                // Meme repli qu'a la saisie nationale ci-dessus : pas un terrain, tenter une
+                // entreprise.
+                const eRows = await sbGet('entreprises', `id=eq.${encodeURIComponent(pret.building_id)}`);
+                const eRow = eRows && eRows[0];
+                if (eRow) {
+                  const dataE = eRow.data || {};
+                  dataE.proprietaire = 'PNJ';
+                  delete dataE.compromis; delete dataE.compromisPar; delete dataE.acompte;
+                  delete dataE.compromisAt; delete dataE.compromisExpireAt; delete dataE.pretDemande;
+                  await sbUpdate('entreprises', `id=eq.${encodeURIComponent(eRow.id)}`, { data: dataE, updated_at: new Date().toISOString() });
+                }
               }
             }
             await sbUpdate('personnages', `name=eq.${encodeURIComponent(pret.emprunteur)}`, { moral: Math.max(0, (emprunteur.moral || 75) - 20) });

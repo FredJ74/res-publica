@@ -2278,10 +2278,23 @@ async function doSignerCompromisEntreprise(type) {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.6rem">' + def.label + ' — ' + def.prix.toLocaleString('fr-FR') + ' ' + cur + '</div>';
   html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Le compromis réserve cette entreprise 7 jours. À l\'échéance, si le rachat n\'est pas finalisé chez le notaire, l\'acompte est perdu et l\'entreprise redevient disponible.</div>';
-  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem">';
+  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.6rem">';
   html += '<div style="font-size:.85rem;color:#c0b090">✓ Versement de l\'acompte</div>';
   html += '<div style="font-size:.72rem;color:#6a5a30">' + ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + ' — déduits du prix final, ou perdus si le compromis expire sans finalisation.</div>';
   html += '</div>';
+
+  // Clause pret bancaire, meme mecanisme que le compromis de terrain (doConfirmerCompromis,
+  // plateau-pnj.js) : decision tranchee par le cron a l'echeance des 7 jours, pas a la demande.
+  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem">';
+  html += '<label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:#c0b090;cursor:pointer"><input type="checkbox" id="compromis-entreprise-pret-check" onchange="document.getElementById(\'compromis-entreprise-pret-champs\').style.display=this.checked?\'block\':\'none\'" /> Demander un prêt à la Banque Nationale</label>';
+  html += '<div id="compromis-entreprise-pret-champs" style="display:none;margin-top:.5rem">';
+  html += '<div style="display:flex;gap:.4rem">';
+  html += '<input id="compromis-entreprise-pret-montant" type="number" placeholder="Montant (max ' + PLAFOND_PRET_COMPROMIS.toLocaleString('fr-FR') + ')" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-size:.78rem;outline:none" />';
+  html += '<input id="compromis-entreprise-pret-duree" type="number" placeholder="Durée (jours)" value="30" style="width:120px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-size:.78rem;outline:none" />';
+  html += '</div>';
+  html += '</div>';
+  html += '</div>';
+
   html += '<button onclick="confirmerSignerCompromisEntreprise(&quot;' + type + '&quot;)" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Signer le compromis</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -2289,10 +2302,20 @@ async function doSignerCompromisEntreprise(type) {
 }
 
 async function confirmerSignerCompromisEntreprise(type) {
-  document.getElementById('modal-postes')?.classList.remove('open');
   const def = ENTREPRISES_RACHETABLES[type];
   if (!def) return;
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+
+  const demandePret = document.getElementById('compromis-entreprise-pret-check')?.checked;
+  const montantPret = parseInt(document.getElementById('compromis-entreprise-pret-montant')?.value || 0);
+  const dureePret = parseInt(document.getElementById('compromis-entreprise-pret-duree')?.value || 30);
+
+  if (demandePret && (!montantPret || montantPret < 1000 || montantPret > PLAFOND_PRET_COMPROMIS)) {
+    showToast('Montant invalide', 'Entre 1000 et ' + PLAFOND_PRET_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + '.', false);
+    return;
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
   const data = await def.charger();
   if (!data || data.proprietaire !== 'PNJ') { showToast('Indisponible', 'Cette entreprise n\'est plus disponible.', false); return; }
   if (compromisEntrepriseActif(data)) { showToast('Déjà réservée', 'Un compromis est déjà en cours sur cette entreprise (' + data.compromisPar + ').', false); return; }
@@ -2304,10 +2327,24 @@ async function confirmerSignerCompromisEntreprise(type) {
   data.acompte = ACOMPTE_COMPROMIS;
   data.compromisAt = Date.now();
   data.compromisExpireAt = Date.now() + 7 * 86400000;
+
+  if (demandePret) {
+    const taux = typeof getTauxPret === 'function' ? getTauxPret('nationale') : 5;
+    const montantTotal = Math.round(montantPret * (1 + taux / 100));
+    data.pretDemande = {
+      demandeur: state.char?.name,
+      montant: montantPret,
+      montantTotal: montantTotal,
+      duree: dureePret,
+      mensualite: Math.ceil(montantTotal / dureePret),
+      statut: 'attente_validation'
+    };
+  }
+
   await sbSaveEntreprise(data.id, data);
   updateUI();
   showToast('Compromis signé !', def.label + ' réservée 7 jours. -' + ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur, true);
-  addJournalEntry('Compromis de rachat signé pour ' + def.label + ' (' + ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + ' d\'acompte). Valable 7 jours.', 'event-good');
+  addJournalEntry('Compromis de rachat signé pour ' + def.label + ' (' + ACOMPTE_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + ' d\'acompte). Valable 7 jours.' + (demandePret ? ' Prêt demandé.' : ''), 'event-good');
 }
 
 // =====================
@@ -2352,6 +2389,10 @@ async function traiterActeRachatEntreprise(candidat) {
   const data = await def.charger(); // relecture fraiche, evite tout etat perime
   if (!data || !data.compromis || data.compromisPar !== state.char?.name) {
     showToast('Compromis introuvable', 'Ce compromis n\'est plus valide (peut-être déjà expiré).', false);
+    return;
+  }
+  if (data.pretDemande && data.pretDemande.statut === 'attente_validation') {
+    showToast('Clause en attente', 'Le prêt demandé n\'est pas encore tranché par la banque. Revenez après sa décision.', false);
     return;
   }
   const solde = def.prix - (data.acompte || 0);
