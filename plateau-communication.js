@@ -142,12 +142,22 @@ async function envoyerComposeMail() {
 // =====================
 // TRACTS
 // =====================
-function ouvrirModalImprimerTracts() {
+// A La Tribune (Luthecia), Gustave Rotative a son propre stock de bois (9 aout 2026) : imprimer
+// des tracts y consomme du bois en plus de l'argent du joueur, avec une recette dynamique qui
+// preserve toujours 50% de marge sur le prix du lot (voir confirmerImpression). A PSM (Gutenberg,
+// imprimerie-librairie), l'ordre reste inchange : argent uniquement, pas de bois.
+async function ouvrirModalImprimerTracts() {
   const contacts = state.contacts || [];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('postes-modal-title').textContent = 'Faire imprimer des tracts';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">150 ' + cur + ' par lot de 10 tracts.</div>';
+
+  if (state.currentBuilding === 'la-tribune' && typeof sbGetBatimentEtat === 'function') {
+    const etat = await sbGetBatimentEtat(state.country, 'capitale', 'la-tribune');
+    const stockBois = etat.imprimerie?.stockBois || 0;
+    html += '<div style="font-size:.76rem;color:' + (stockBois > 0 ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Stock de bois de Gustave : ' + stockBois + '</div>';
+  }
 
   if (contacts.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Repertoire vide. Ajoutez des contacts pour cibler un PJ.</div>';
@@ -193,16 +203,37 @@ function selectTractType(type) {
   }
 }
 
-function confirmerImpression() {
+async function confirmerImpression() {
   const type = window._tractType || 'pour';
   const cible = document.getElementById('tract-cible')?.value;
   const quantite = parseInt(document.getElementById('tract-quantite')?.value || '10');
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cout = quantite / 10 * 150;
+  const nbLots = quantite / 10;
 
   if (state.arg < cout) {
     showToast('Fonds insuffisants', 'Il vous faut ' + cout + ' ' + cur, false);
     return;
+  }
+
+  // A La Tribune (Luthecia) : Gustave a besoin de bois pour imprimer. Recette dynamique -
+  // ne consomme jamais plus de 50% du prix du lot (150 FR) en valeur de bois, quel que soit
+  // le cours actuel du bois a l'entrepot. Rien n'est debite si le stock manque.
+  let etatImprimerie = null, boisParLot = 0;
+  if (state.currentBuilding === 'la-tribune' && typeof sbGetBatimentEtat === 'function') {
+    const etatEntrepot = await sbGetBatimentEtat(state.country, 'capitale', 'entrepot-logistique-luthecia');
+    const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
+    const prixBoisPourGustave = (typeof getPrixRessource === 'function' ? getPrixRessource('bois', stockBoisEntrepot) : 5) * 1.10;
+    boisParLot = Math.max(1, Math.floor(75 / prixBoisPourGustave)); // 75 FR = 50% de 150 FR/lot
+
+    etatImprimerie = await sbGetBatimentEtat(state.country, 'capitale', 'la-tribune');
+    const stockBois = etatImprimerie.imprimerie?.stockBois || 0;
+    const boisNecessaire = boisParLot * nbLots;
+    if (stockBois < boisNecessaire) {
+      document.getElementById('modal-postes')?.classList.remove('open');
+      showToast('Gustave manque de bois', 'Il me faudrait ' + boisNecessaire + ' bois pour ce lot, il ne m\'en reste que ' + stockBois + '. Vous auriez du bois à me vendre ?', false);
+      return;
+    }
   }
 
   document.getElementById('modal-postes').classList.remove('open');
@@ -223,6 +254,16 @@ function confirmerImpression() {
       quantite: quantite,
       legal: true
     });
+  }
+
+  if (etatImprimerie) {
+    const boisConsomme = boisParLot * nbLots;
+    etatImprimerie.imprimerie = {
+      ...(etatImprimerie.imprimerie || {}),
+      stockBois: (etatImprimerie.imprimerie?.stockBois || 0) - boisConsomme,
+      caisse: (etatImprimerie.imprimerie?.caisse || 0) + cout
+    };
+    if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, 'capitale', 'la-tribune', etatImprimerie).catch(() => {});
   }
 
   updateUI();

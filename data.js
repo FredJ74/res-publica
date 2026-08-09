@@ -2038,7 +2038,9 @@ const BUILDINGS = {
         orders: [
           {fn:'parler_pnj',    label:'Parler à la standardiste', pa:0, cost:0, type:'legal', icon:'ti-message', successRate:100},
           {fn:'se_renseigner', label:'Se renseigner',            pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100},
-          {fn:'consulter_archives_presse', label:'Consulter les archives de presse', pa:0, cost:0, type:'legal', icon:'ti-news', successRate:100, desc:'Articles archivés publiés par le journal au fil des décennies.'}
+          {fn:'consulter_archives_presse', label:'Consulter les archives de presse', pa:0, cost:0, type:'legal', icon:'ti-news', successRate:100, desc:'Articles archivés publiés par le journal au fil des décennies.'},
+          {fn:'imprimer_tracts',  label:'Faire imprimer des tracts',  pa:2, cost:150, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir pour/contre + cible (repertoire) + quantite. Necessite assez de bois en stock chez Gustave.'},
+          {fn:'vendre_bois_imprimerie', label:'Vendre du bois à Gustave', pa:1, cost:0, type:'legal', icon:'ti-trees', successRate:100, desc:'Prix = cours actuel du bois à l\'entrepôt +10%. Plafonné par la caisse de l\'imprimerie.'}
         ]
       },
       redaction: {

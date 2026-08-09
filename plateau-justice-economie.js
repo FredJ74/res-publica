@@ -2874,6 +2874,82 @@ async function confirmerAchatEntrepot(buildingId) {
 }
 
 // =====================
+// VENDRE DU BOIS A L'IMPRIMERIE (La Tribune, Gustave Rotative) — 9 aout 2026
+// =====================
+// Le bois achete a l'entrepot arrive en inventaire sous forme empilable (stackable/stackKey,
+// voir confirmerAchatEntrepot juste au-dessus) — different de la forme utilisee par la recolte/
+// l'armurerie (type:'matiere_premiere'). C'est la seule source de bois pour un joueur a
+// Luthecia : MATIERES_PREMIERES_VILLE ne definit aucune ressource recoltable pour 'capitale'.
+async function ouvrirVendreBoisImprimerie() {
+  const lot = (state.inventory || []).find(i => i.stackKey === 'bois' && (i.qty || 0) > 0);
+  if (!lot) {
+    showToast('Aucun bois', 'Vous n\'avez pas de bois à vendre — achetez-en à l\'Entrepôt Logistique.', false);
+    return;
+  }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const etatEntrepot = await sbGetBatimentEtat(state.country, 'capitale', 'entrepot-logistique-luthecia');
+  const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
+  const prixUnitaire = Math.round((typeof getPrixRessource === 'function' ? getPrixRessource('bois', stockBoisEntrepot) : 5) * 1.10 * 100) / 100;
+
+  document.getElementById('postes-modal-title').textContent = 'Vendre du bois à Gustave';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Vous avez ' + lot.qty + ' bois. Gustave achète à ' + prixUnitaire + ' ' + cur + '/unité (cours actuel de l\'entrepôt +10%), dans la limite de sa caisse.</div>' +
+    '<input type="number" id="vendre-bois-qte" min="1" max="' + lot.qty + '" value="' + lot.qty + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.7rem"/>' +
+    '<button onclick="confirmerVendreBoisImprimerie()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Vendre</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVendreBoisImprimerie() {
+  const qteVoulue = parseInt(document.getElementById('vendre-bois-qte')?.value || '0');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!qteVoulue || qteVoulue <= 0) { showToast('Quantité invalide', '', false); return; }
+
+  const lot = (state.inventory || []).find(i => i.stackKey === 'bois' && (i.qty || 0) > 0);
+  if (!lot || lot.qty < qteVoulue) {
+    showToast('Stock personnel insuffisant', 'Vous n\'avez pas ' + qteVoulue + ' bois.', false);
+    return;
+  }
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  // Prix recalcule ici, pas celui affiche a l'ouverture du modal (le cours peut avoir bouge entre-temps)
+  const etatEntrepot = await sbGetBatimentEtat(state.country, 'capitale', 'entrepot-logistique-luthecia');
+  const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
+  const prixUnitaire = Math.round((typeof getPrixRessource === 'function' ? getPrixRessource('bois', stockBoisEntrepot) : 5) * 1.10 * 100) / 100;
+
+  const etatImprimerie = await sbGetBatimentEtat(state.country, 'capitale', 'la-tribune');
+  const caisse = etatImprimerie.imprimerie?.caisse || 0;
+  const qteAchetable = Math.max(0, Math.min(qteVoulue, Math.floor(caisse / prixUnitaire)));
+  if (qteAchetable <= 0) {
+    showToast('Caisse vide', 'Gustave n\'a pas les moyens d\'acheter du bois pour le moment.', false);
+    return;
+  }
+
+  const montantPaye = Math.round(qteAchetable * prixUnitaire * 100) / 100;
+
+  lot.qty -= qteAchetable;
+  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
+
+  etatImprimerie.imprimerie = {
+    ...(etatImprimerie.imprimerie || {}),
+    stockBois: (etatImprimerie.imprimerie?.stockBois || 0) + qteAchetable,
+    caisse: caisse - montantPaye
+  };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, 'capitale', 'la-tribune', etatImprimerie).catch(() => {});
+
+  state.arg = (state.arg || 0) + montantPaye;
+  updateUI();
+
+  if (qteAchetable < qteVoulue) {
+    showToast('Vente partielle', 'Gustave n\'avait de quoi acheter que ' + qteAchetable + ' bois (caisse limitée). +' + montantPaye + ' ' + cur + '.', true);
+  } else {
+    showToast('Vente effectuée', '+' + montantPaye + ' ' + cur + ' pour ' + qteAchetable + ' bois.', true, true);
+  }
+  addJournalEntry('Vente de ' + qteAchetable + ' bois à Gustave Rotative (+' + montantPaye + ' ' + cur + ').', 'event-good');
+}
+
+// =====================
 // TABLEAU DE BORD DU DIRECTEUR D'ENTREPOT PJ — meme principe que le directeur d'usine
 // (nomme par le Maire au lieu du Ministre des Finances, poste local via scope:'ville').
 // Fixe le prix de vente de l'entrepot dans la meme fourchette ±40% que partout ailleurs.

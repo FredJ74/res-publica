@@ -65,6 +65,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(); return; }
   if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(); return; }
+  if (fn === 'vendre_bois_imprimerie') { ouvrirVendreBoisImprimerie(); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'acheter_produit_stock') { doAcheterProduitStock(); return; }
