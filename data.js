@@ -3546,6 +3546,7 @@ const BUILDINGS = {
         name: "Salle d'Honneur Militaire",
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les faits d'armes et les soldats les plus decores originaires de Luthecia. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-honneur-militaire.png",
         persons: [],
         orders: []
       },
@@ -3553,6 +3554,7 @@ const BUILDINGS = {
         name: "Salle des Unions Célèbres",
         imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
         desc: "Les mariages et alliances les plus marquants de l'histoire de la ville. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-unions-celebres.png",
         persons: [],
         orders: []
       },
@@ -3560,6 +3562,7 @@ const BUILDINGS = {
         name: "Salle des Grandes Dynasties",
         imageBg: "linear-gradient(135deg,#181410,#241c14)",
         desc: "Arbre genealogique vivant des familles historiques de Luthecia. Contenu a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-dynasties.png",
         persons: [],
         orders: []
       },
@@ -3567,6 +3570,7 @@ const BUILDINGS = {
         name: "Salle des Scandales et Affaires",
         imageBg: "linear-gradient(135deg,#100c10,#181018)",
         desc: "Les grandes crises politiques et affaires qui ont secoue Luthecia. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-scandales.png",
         persons: [],
         orders: []
       },
