@@ -1,7 +1,8 @@
 # Journal de session — Res Publica (9 août 2026)
 
 ## État du dépôt
-- Toutes les modifications ont été committées et poussées sur `main` (15 commits).
+- Toutes les modifications ont été committées et poussées sur `main` (16 commits).
+- Session arrêtée à 3h du matin — reprise prévue avec le résumé de fin de journal ci-dessous.
 
 ---
 
@@ -63,15 +64,35 @@
 
 ---
 
-## 📝 Chantiers en attente (mis à jour)
-1. **Grand audit Ordres, prévu la semaine prochaine** — portée précisée ce soir : vérifier un par un les **318 handlers dédiés** non couverts par la vérification de ce soir (confirmer que chacun applique bien un effet cohérent avec sa description), plus élucider le cas `construire_sur_terrain` (flux de démarrage de chantier non identifié).
-2. **Audit PNJ** — prévu avant la bêta, pas encore fait (état des ~18 points d'appel IA hors périmètre de la fondation `PNJ_PROFILS` posée le 8 août).
-3. **Tâche optionnelle** : décrets automatiques du PNJ Président (à décider si prioritaire).
-4. **Tableau Excel PNJ** à mettre à jour avec les nouveaux PNJ créés le 8 août (cascade de nomination automatique, postes de Directeur usine/entrepôt).
-5. **Dette technique repérée le 9 août** : 3 systèmes de postes parallèles et non synchronisés — `POSTES` (structure statique, `data.js`, holders codés en dur, couvre Président/PM/Ministères/Députés/Maires), `POSTES_ELECTIFS`/`cycles_electoraux` (élections), et `POSTES_NOMMES_EXCLUSIFS`/`titulaires_pnj` (nominations : juge, commissaire, directeurs). Comportements parfois contradictoires — ex : le bouton "Postuler à un poste" (`postulerPoste`, Palais du Gouvernement) **bloque aujourd'hui** une candidature PJ à un ministère quand le PM est un PNJ générique (`getTitulairePoste` ne connaît que les vrais PJ, pas `titulaires_pnj`), à l'inverse de la règle de priorité PJ qu'on veut construire pour les postes nommés. À traiter plus tard, pas urgent.
-6. **Idée backlog (session future)** : annonces d'emploi **entre joueurs**, notamment pour des jobs illégaux (ex: un PJ recrute un autre PJ pour un coup précis), en complément du Bureau National de l'Emploi (offres officielles/légales, codé le 9 août — voir plus bas).
-7. **Bug probable repéré le 9 août, pas corrigé** : dans `api/cron-minuit.js`, plusieurs envois de mail existants (relances de chantier impayé, avertissements de prêt...) utilisent des noms de colonnes (`destinataire`/`expediteur`/`sujet`/`corps`) différents de ceux relus par le client (`to_player`/`from_player`/`subject`/`body`, voir `sbGetMailsFor`/`plateau-communication.js`). Vraisemblablement le même type de bug que celui du cycle électoral corrigé ce soir (`votes_pj`/`votes_pnj`) — ces mails ne doivent jamais arriver dans la boîte de réception des joueurs concernés. À vérifier et corriger, candidat naturel pour le grand audit Ordres.
-8. **Bug `buildingContext` vestige repéré le 9 août, corrigé seulement pour `banque-nationale`** : `WORLD.<pays>.<ville>.buildingContext[<batimentId>].persons` écrase silencieusement le vrai contenu de la première salle d'un bâtiment (`plateau-navigation.js:565` + minimap `:91`), avec des noms de `PNJ_PERSONALITIES` jamais nettoyés après l'ajout des vraies salles/PNJ dans `BUILDINGS`. Repéré aussi sur `banque-privee` (Hans Von Discret masque M. Fischer) — probablement `commissariat`/`tribunal` aussi (même bloc). À auditer entièrement (tous pays/villes) plutôt que de corriger bâtiment par bâtiment au fil des demandes de Fred.
+## 🎯 Quête carrière (aiguillage par Jérémy) — script reçu et validé par Fred, pas encore codé
+Extension de la quête d'accueil : après le tour actuel, Jérémy demande au joueur ce qu'il aimerait devenir et l'oriente vers un référent selon son ambition (Criminelle / Politique / Entrepreneuriale / Indécis), chaque référent proposant une mini-mission qui fait *expérimenter* sa logique plutôt que réciter les règles.
+- **Investigation faite ce soir** : le squelette FSM de `plateau-quete-accueil.js` (`state.char.queteAccueil = {etape}`, `queteAccueilVerifierEtapeBatiment`, `afficherPopupQueteAccueil`) est directement réutilisable, y compris le motif `reprise_contact`/`choix_destination` (popup à boutons multiples) qui correspond presque exactement à l'aiguillage à 3 branches + indécis. Le "revenir plus tard" a aussi déjà un vrai précédent (`queteAccueilGenererReponseMailJeremy`, réponse IA + réapparition au Marché). Rien d'existant en revanche pour la mécanique "mini-mission avec objet à livrer" — mais `addToInventory`/`state.inventory` et le motif de `state.char.enigme1` (marqueurs de possession d'objet) donnent tout ce qu'il faut pour la construire.
+- **Noms vérifiés** :
+  - **Pat Hounette** (branche criminelle) — existe déjà, Place du Formulaire de la Liberté. Photo ajoutée ce soir (voir plus haut).
+  - **Laurent Barre** (branche entrepreneuriale) — existe déjà, **Banque Nationale** confirmé (pas "banque d'affaires" comme indiqué dans le script initial — ce bâtiment n'existe pas ; la Banque Privée Helvétia envisagée un temps a été écartée, cf. bug `buildingContext` ci-dessus qui le rendait invisible, maintenant corrigé).
+  - **Jean-Lou Zeure** (branche politique) — **nouveau, à créer**, au Bureau National de l'Emploi de Luthécia (`bureau-national-emploi`, salle `accueil`), construit ce soir et actuellement `persons: []`.
+- **2 décisions de conception à trancher avant de coder** (voir chantiers en attente) : le déclenchement de l'aiguillage, et ce que "le référent reste disponible comme point de repère durable" veut dire concrètement.
+
+---
+
+## 📝 Chantiers en attente (mis à jour — priorité aux 2 premiers points pour la prochaine session)
+
+**À reprendre en premier :**
+1. **Quête carrière — 2 décisions de conception à trancher avant de coder** (voir section dédiée ci-dessus) :
+   - Déclenchement de l'aiguillage par Jérémy : juste après la fin du tour actuel (`quete_terminee_avec_aide`/`sans_aide`), ou reprise séparée plus tard ?
+   - "Le référent reste disponible comme point de repère durable" : ajout automatique au répertoire de contacts (comme Jérémy), ou simple PNJ retrouvable physiquement avec une réaction différente si on lui reparle ?
+   Une fois tranché : plan technique complet des 3 mini-missions (colis de Pat Hounette, 3 interviews pour Jean-Lou Zeure, observation des cours pour Laurent Barre) à détailler avant de coder.
+2. **Point 2 du chantier "priorité PJ" — pas commencé** : quand l'autorité de nomination d'un poste nommé (ex: le Maire) est elle-même un PNJ générique auto-pourvu, un PJ qui postule doit obligatoirement remplacer le PNJ en poste (pas de vraie décision politique derrière un PNJ) ; à l'inverse une vraie autorité PJ garde son plein pouvoir de choix. Basé sur `POSTES_NOMMES_EXCLUSIFS`/`titulaires_pnj`/`getTitulairePosteNomme` (déjà couverts) — nécessite en plus un vrai mécanisme "un PJ postule", qui n'existe pas aujourd'hui pour ces postes (seule la nomination par l'autorité existe). Investigation faite le 9 août, plan pas encore proposé.
+
+**Backlog déjà connu, pas prioritaire :**
+3. **Grand audit Ordres, prévu la semaine prochaine** — portée précisée le 9 août : vérifier un par un les **318 handlers dédiés** non couverts par la vérification du 9 août (confirmer que chacun applique bien un effet cohérent avec sa description), plus élucider le cas `construire_sur_terrain` (flux de démarrage de chantier non identifié). Bons candidats à y intégrer : le bug des mails `destinataire`/`expediteur` (point 6 ci-dessous) et l'audit `buildingContext` (point 7).
+4. **Audit PNJ** — prévu avant la bêta, pas encore fait (état des ~18 points d'appel IA hors périmètre de la fondation `PNJ_PROFILS` posée le 8 août).
+5. **Tâche optionnelle** : décrets automatiques du PNJ Président (à décider si prioritaire).
+6. **Tableau Excel PNJ** à mettre à jour avec les nouveaux PNJ créés le 8 août (cascade de nomination automatique, postes de Directeur usine/entrepôt), plus Jean-Lou Zeure une fois créé pour la quête carrière.
+7. **Dette technique — 3 systèmes de postes parallèles et non synchronisés** : `POSTES` (structure statique, `data.js`, holders codés en dur, couvre Président/PM/Ministères/Députés/Maires), `POSTES_ELECTIFS`/`cycles_electoraux` (élections), et `POSTES_NOMMES_EXCLUSIFS`/`titulaires_pnj` (nominations : juge, commissaire, directeurs). Comportements parfois contradictoires — ex : le bouton "Postuler à un poste" (`postulerPoste`, Palais du Gouvernement) **bloque aujourd'hui** une candidature PJ à un ministère quand le PM est un PNJ générique (`getTitulairePoste` ne connaît que les vrais PJ, pas `titulaires_pnj`), à l'inverse de la règle de priorité PJ du point 2 ci-dessus.
+8. **Idée backlog (session future)** : annonces d'emploi **entre joueurs**, notamment pour des jobs illégaux (ex: un PJ recrute un autre PJ pour un coup précis), en complément du Bureau National de l'Emploi (offres officielles/légales, codé le 9 août).
+9. **Bug probable, pas corrigé** : dans `api/cron-minuit.js`, plusieurs envois de mail existants (relances de chantier impayé, avertissements de prêt...) utilisent des noms de colonnes (`destinataire`/`expediteur`/`sujet`/`corps`) différents de ceux relus par le client (`to_player`/`from_player`/`subject`/`body`, voir `sbGetMailsFor`/`plateau-communication.js`). Vraisemblablement le même type de bug que celui du cycle électoral corrigé le 9 août (`votes_pj`/`votes_pnj`) — ces mails ne doivent jamais arriver dans la boîte de réception des joueurs concernés.
+10. **Bug `buildingContext` vestige, corrigé seulement pour `banque-nationale`** : `WORLD.<pays>.<ville>.buildingContext[<batimentId>].persons` écrase silencieusement le vrai contenu de la première salle d'un bâtiment (`plateau-navigation.js:565` + minimap `:91`), avec des noms de `PNJ_PERSONALITIES` jamais nettoyés après l'ajout des vraies salles/PNJ dans `BUILDINGS`. Repéré aussi sur `banque-privee` (Hans Von Discret masque M. Fischer) — probablement `commissariat`/`tribunal` aussi (même bloc). À auditer entièrement (tous pays/villes) plutôt que de corriger bâtiment par bâtiment au fil des demandes de Fred.
 
 ---
 
