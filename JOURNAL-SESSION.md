@@ -37,6 +37,7 @@
 3. **Tâche optionnelle** : décrets automatiques du PNJ Président (à décider si prioritaire).
 4. **Tableau Excel PNJ** à mettre à jour avec les nouveaux PNJ créés le 8 août (cascade de nomination automatique, postes de Directeur usine/entrepôt).
 5. **Dette technique repérée le 9 août** : 3 systèmes de postes parallèles et non synchronisés — `POSTES` (structure statique, `data.js`, holders codés en dur, couvre Président/PM/Ministères/Députés/Maires), `POSTES_ELECTIFS`/`cycles_electoraux` (élections), et `POSTES_NOMMES_EXCLUSIFS`/`titulaires_pnj` (nominations : juge, commissaire, directeurs). Comportements parfois contradictoires — ex : le bouton "Postuler à un poste" (`postulerPoste`, Palais du Gouvernement) **bloque aujourd'hui** une candidature PJ à un ministère quand le PM est un PNJ générique (`getTitulairePoste` ne connaît que les vrais PJ, pas `titulaires_pnj`), à l'inverse de la règle de priorité PJ qu'on veut construire pour les postes nommés. À traiter plus tard, pas urgent.
+6. **Idée backlog (session future)** : annonces d'emploi **entre joueurs**, notamment pour des jobs illégaux (ex: un PJ recrute un autre PJ pour un coup précis), en complément du Bureau National de l'Emploi (offres officielles/légales, en cours de conception le 9 août). Pas pour cette session.
 
 ---
 
