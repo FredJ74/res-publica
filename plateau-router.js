@@ -219,6 +219,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs'); return; }
   if (fn === 'prendre_bus_taxi')       { ouvrirModalTransport('bus'); return; }
   if (fn === 'prendre_avion')          { ouvrirModalTransport('avion'); return; }
+  if (fn === 'aller_douanes_aeroport') { doAllerDouanesAeroport(); return; }
   if (fn === 'prendre_bateau')         { ouvrirModalTransport('bateau'); return; }
   if (fn === 'controle_douanes')       { doControlDouanes(); return; }
   if (fn === 'corrompre_douanier')     { doCorrompreDoanier(); return; }

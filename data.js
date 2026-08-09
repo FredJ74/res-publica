@@ -1873,7 +1873,7 @@ const BUILDINGS = {
         image: "🔐",
         imageBg: "linear-gradient(135deg,#0d0d08,#181408)",
         desc: "Un bureau feutre ou tout se passe dans la plus grande discret.",
-        imageUrl: "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/banque-privee-helvetia-bureau.png",
         persons: [
           {name:'M. Fischer', role:'PNJ - Gestionnaire de patrimoine', rel:'neutral', job:'banquier'}
         ],
@@ -1911,7 +1911,6 @@ const BUILDINGS = {
           {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
           {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
           {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
-          {fn:'parler_pnj', label:'Parler', pa:1, cost:0, type:'legal', icon:'ti-message-circle', successRate:100, desc:'Discuter avec le personnel soignant.'},
           {fn:'se_nourrir', label:'Manger', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Un repas de qualite, servi au chevet.'}
         ]
       }
@@ -2036,7 +2035,6 @@ const BUILDINGS = {
           {name:'Gustave Rotative (PNJ)', role:'PNJ - Chef d\'atelier', rel:'neutral', job:'imprimeur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/la-tribune-accueil.png', photoPos:'80% 40%'}
         ],
         orders: [
-          {fn:'parler_pnj',    label:'Parler à la standardiste', pa:0, cost:0, type:'legal', icon:'ti-message', successRate:100},
           {fn:'se_renseigner', label:'Se renseigner',            pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100},
           {fn:'consulter_archives_presse', label:'Consulter les archives de presse', pa:0, cost:0, type:'legal', icon:'ti-news', successRate:100, desc:'Articles archivés publiés par le journal au fil des décennies.'},
           {fn:'imprimer_tracts',  label:'Faire imprimer des tracts',  pa:2, cost:150, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir pour/contre + cible (repertoire) + quantite. Necessite assez de bois en stock chez Gustave.'},
@@ -2605,7 +2603,6 @@ const BUILDINGS = {
           {name:'Harry Cover', role:'Detective prive', rel:'neutral', job:'inspecteur'}
         ],
         orders: [
-          {fn:'parler_pnj',    label:'Parler à l\'hôtesse', pa:0, cost:0, type:'legal', icon:'ti-message', successRate:100},
           {fn:'se_renseigner', label:'Se renseigner',       pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100}
         ]
       },
@@ -4321,7 +4318,7 @@ const BUILDINGS = {
         orders: [
           {fn:'prendre_train', label:'Prendre le train', pa:2, cost:75, type:'legal', icon:'ti-train', successRate:100, desc:'75 FR. 2 PA. Transport intra-empire vers une autre ville.'},
           {fn:'prendre_bus_taxi', label:'Prendre un bus ou taxi', pa:1, cost:150, type:'legal', icon:'ti-bus', successRate:100, desc:'150 FR. 1 PA. Transport intra-empire uniquement.'},
-          {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Inter-empire. Disponible depuis le port.'},
+          {fn:'aller_douanes_aeroport', label:'Prendre l\'avion', pa:0, cost:0, type:'legal', icon:'ti-plane', successRate:100, desc:'Vous conduit au Hall des Douanes — contrôle obligatoire avant tout vol international.'},
           {fn:'taxi_caserne', label:'Taxi vers la Caserne', pa:1, cost:200, type:'legal', icon:'ti-military-rank', successRate:100, desc:'200 FR. 1 PA. Accès conditionné sur place.'},
           {fn:'taxi_qhs', label:'Taxi vers le QHS', pa:1, cost:200, type:'legal', icon:'ti-lock', successRate:100, desc:'200 FR. 1 PA. Accès conditionné sur place.'}
         ]

@@ -633,6 +633,13 @@ const QUETE_CARRIERE_REFERENTS = {
 };
 
 function queteAccueilProposerCarriere() {
+  // Fix 9 aout 2026 (retour de test en jeu) : la sequence de cloture carriere n'etait jamais
+  // raccordee au mecanisme de reprise existant (queteAccueilRappel) - fermer cette popup avant
+  // d'avoir clique un bouton (accidentellement, ou via le bug de fermeture au clic exterieur,
+  // corrige separement) ne laissait aucune trace recuperable. Chaque etape de la sequence
+  // enregistre desormais la sienne, avec une entree correspondante dans les rappels.
+  state.char.queteAccueil = { etape: 'proposition_carriere' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
@@ -652,6 +659,7 @@ function queteAccueilChoisirAmbition(ambition) {
     etape: ambition === 'indecis' ? null : 'a_rencontrer',
     resultat: null
   };
+  state.char.queteAccueil = { etape: 'carriere_orientation' };
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 
   const ref = QUETE_CARRIERE_REFERENTS[ambition];
@@ -668,6 +676,8 @@ function queteAccueilChoisirAmbition(ambition) {
 }
 
 function queteAccueilCarriereRepertoire() {
+  state.char.queteAccueil = { etape: 'carriere_repertoire' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
@@ -677,6 +687,8 @@ function queteAccueilCarriereRepertoire() {
 }
 
 function queteAccueilCarriereRecontact() {
+  state.char.queteAccueil = { etape: 'carriere_recontact' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
@@ -688,6 +700,8 @@ function queteAccueilCarriereRecontact() {
 }
 
 function queteAccueilCarriereConclusion() {
+  state.char.queteAccueil = { etape: 'carriere_conclusion' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
   const ambition = state.char?.queteCarriere?.ambition;
   const ref = QUETE_CARRIERE_REFERENTS[ambition];
   const texte = ref
@@ -706,6 +720,10 @@ function queteAccueilCarriereConclusion() {
 // liste des personnes presentes, voir quitterJeremy) : c'est le tout dernier point de la
 // sequence de cloture, pas juste une fermeture visuelle de popup.
 function fermerClotureCarriere() {
+  // Etape terminale : evite qu'une demande de rappel ulterieure a Jeremy ne rejoue la
+  // conclusion indefiniment une fois la sequence reellement terminee.
+  state.char.queteAccueil = { etape: 'carriere_terminee' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
   if (typeof quitterJeremy === 'function') quitterJeremy();
 }
 
@@ -874,7 +892,14 @@ function queteAccueilRappel() {
           queteAccueilSurbrillance(".person-card[onclick*=\"openPnjModal('\"]", 15000);
           queteAccueilSurbrillance('#btn-messages', 15000);
         } });
-    }
+    },
+    // Sequence de cloture carriere (9 aout 2026) — chaque rappel rejoue simplement la meme
+    // fonction d'affichage que celle appelee au demarrage naturel de cette etape.
+    proposition_carriere: function() { queteAccueilProposerCarriere(); },
+    carriere_orientation: function() { queteAccueilChoisirAmbition(state.char?.queteCarriere?.ambition || 'indecis'); },
+    carriere_repertoire:  function() { queteAccueilCarriereRepertoire(); },
+    carriere_recontact:   function() { queteAccueilCarriereRecontact(); },
+    carriere_conclusion:  function() { queteAccueilCarriereConclusion(); }
   };
 
   if (rappels[etape]) { rappels[etape](); return true; }

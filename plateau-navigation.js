@@ -650,6 +650,13 @@ function enterRoom(buildingId, roomId, tabEl) {
 // =====================
 // DOUANES AEROPORT
 // =====================
+// Bouton "Prendre l'avion" ajoute au Hall Principal (9 aout 2026, retour de test en jeu) :
+// jusque-la aucun cheminement visible depuis le hall vers le Hall des Douanes, le joueur devait
+// deviner qu'il fallait cliquer l'onglet de piece correspondant parmi les autres pieces du batiment.
+function doAllerDouanesAeroport() {
+  if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, 'hall_douanes', null);
+}
+
 function doPasserDouanesAeroport() {
   const pays = state.country || 'republic';
   const msgs = {
@@ -676,15 +683,10 @@ function doPasserDouanesAeroport() {
   showToast('Douanes passées', msg, true);
   addJournalEntry('Contrôle douanier passé. Accès zone embarquement autorisé.', 'event-info');
 
-  // Activer l'onglet zone embarquement
-  const tabs = document.querySelectorAll('.piece-tab');
-  tabs.forEach(t => {
-    if (t.textContent.includes('Embarquement') || t.textContent.includes('Embarque')) {
-      t.style.opacity = '1';
-      t.style.pointerEvents = 'auto';
-      t.style.color = 'var(--gold)';
-    }
-  });
+  // Redirige automatiquement vers la zone d'embarquement (9 aout 2026, retour de test en jeu) :
+  // plus besoin de re-cliquer un onglet apres avoir passe la douane avec succes. Remplace
+  // l'ancien bricolage qui se contentait de deverrouiller visuellement l'onglet sans y entrer.
+  if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, 'zone_embarquement', null);
 }
 
 function checkZoneEmbarquementAcces(buildingId, roomId) {

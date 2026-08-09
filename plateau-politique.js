@@ -2652,7 +2652,12 @@ function accepterNominationPosteNomme(posteId, city, country, nommeurNom) {
 }
 
 
-document.querySelectorAll('.modal-overlay').forEach(m => {
+// Fix 9 aout 2026 (retour de test en jeu) : ce comportement "clic sur le fond sombre = fermer"
+// s'appliquait a tous les modals sans distinction, y compris modal-quete-accueil - Fred a perdu
+// la progression de la quete carriere en fermant accidentellement la popup en plein milieu.
+// Exclu ici, corrige uniquement pour ce modal precis (les autres gardent le clic-exterieur,
+// pratique et sans risque de perte de progression pour eux).
+document.querySelectorAll('.modal-overlay:not(#modal-quete-accueil)').forEach(m => {
   m.addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('open');
   });
