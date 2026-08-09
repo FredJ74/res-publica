@@ -1366,7 +1366,7 @@ function doControlDouanes() {
 
 function doCorrompreDoanier() {
   const roll = Math.floor(Math.random() * 100) + 1;
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const inf = state.inf || 0;
   const taux = Math.max(5, 55 + Math.floor(dup/10) + Math.floor(inf/10) + 20); // +20 zone transport
   if (roll <= taux) {
@@ -1462,7 +1462,7 @@ function recupererColis(idx) {
 function doContrebandePort() {
   const pays = state.country || 'republic';
   const dis = state.char?.stats?.DIS || 8;
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const empMod = { republic:0, narco:25, soviet:-20, khalija:10 }[pays] || 0;
   const taux = Math.max(5, 55 + Math.floor(dis/10) + Math.floor(dup/10) + 15 + empMod - getMalusISN());
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -1482,8 +1482,8 @@ function doContrebandePort() {
 }
 
 function doBlocusPortuaire() {
-  const vol = state.char?.stats?.VOL || 8;
-  const ent = state.char?.stats?.ENT || 8;
+  const vol = getStatEffective('VOL');
+  const ent = getStatEffective('ENT');
   const taux = Math.max(5, 60 + Math.floor(vol/10) + Math.floor(ent/10) - getMalusISN());
   const roll = Math.floor(Math.random() * 100) + 1;
   const pays = state.country || 'republic';
@@ -1503,7 +1503,7 @@ function doBlocusPortuaire() {
 }
 
 function doInspecterCargaisons() {
-  const int_ = state.char?.stats?.INT || 8;
+  const int_ = getStatEffective('INT');
   const pays = state.country || 'republic';
   const isBonus = pays === 'soviet';
   const taux = Math.max(5, 80 + Math.floor(int_/10) + (isBonus ? 15 : 0));
@@ -1527,7 +1527,7 @@ function doInspecterCargaisons() {
 }
 
 function doConsulterManifeste() {
-  const int_ = state.char?.stats?.INT || 8;
+  const int_ = getStatEffective('INT');
   const taux = Math.max(5, 75 + Math.floor(int_/10));
   const roll = Math.floor(Math.random() * 100) + 1;
 
@@ -1542,7 +1542,7 @@ function doConsulterManifeste() {
 }
 
 function doFalsifierManifeste() {
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const taux = Math.max(5, 40 + Math.floor(dup/10) - getMalusISN());
   const roll = Math.floor(Math.random() * 100) + 1;
 
