@@ -902,7 +902,7 @@ async function confirmerDebauchage() {
   if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
 
   const loyaute = PNJ_STATS_PAR_JOB[p.job]?.loyaute ?? 40;
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const bonusMontant = Math.min(30, Math.floor(montant / 100));
   let taux = Math.round((100 - loyaute) / 2 + dup + bonusMontant);
   taux = Math.max(5, Math.min(85, taux));

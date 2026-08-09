@@ -1861,7 +1861,7 @@ function afficherPopupBlocusEntree(buildingId) {
 async function doForcerBlocus(buildingId) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const forStat = state.char?.stats?.FOR || 8;
-  const volStat = state.char?.stats?.VOL || 8;
+  const volStat = getStatEffective('VOL');
   const intensite = state.blocusActifIci?.intensite || 40;
   const taux = Math.max(5, Math.min(90, Math.round(40 + (forStat - 10) * 3 + (volStat - 10) * 3 - intensite / 2)));
   const roll = Math.floor(Math.random() * 100) + 1;
