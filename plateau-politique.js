@@ -1532,13 +1532,23 @@ function renderRoomActions(room, buildingId, roomId) {
         else needsPost = posteId !== reqPost;
       }
     }
-    const paDisplay = TEST_MODE ? '0 PA' : o.pa + ' PA';
+    let paDisplay = TEST_MODE ? '0 PA' : o.pa + ' PA';
     // Appliquer malus ISN sur les actes illegaux
     let tauxAffiche = o.successRate || 70;
     if (o.type === 'illegal') {
       tauxAffiche = Math.max(5, tauxAffiche - getMalusISN());
     }
-    const costDisplay = o.cost > 0 ? o.cost.toLocaleString('fr-FR') + ' ' + cur : 'gratuit';
+    let costDisplay = o.cost > 0 ? o.cost.toLocaleString('fr-FR') + ' ' + cur : 'gratuit';
+    // Fix 9 aout 2026 : produire_arme est declare pa:0/cost:0 dans data.js (sa vraie logique
+    // est geree entierement dans confirmerProduction, hors du chemin doOrder generique) - le
+    // bouton affichait donc "gratuit" a tort alors que la production coute reellement 2 PA et
+    // rapporte 100 FR de salaire (confirme par Fred en jeu). PA_PRODUCTION_ARMURERIE/
+    // SALAIRE_PRODUCTION_ARMURERIE (plateau-actions-illegales-rumeurs.js) sont la seule source
+    // de verite du tarif, jamais dupliquee ici en dur.
+    if (o.fn === 'produire_arme' && typeof PA_PRODUCTION_ARMURERIE !== 'undefined') {
+      paDisplay = TEST_MODE ? '0 PA' : PA_PRODUCTION_ARMURERIE + ' PA';
+      costDisplay = '+' + SALAIRE_PRODUCTION_ARMURERIE.toLocaleString('fr-FR') + ' ' + cur;
+    }
     const ef = ORDER_EFFECTS[o.fn] || {};
     const gainParts = [];
     if (ef.hp > 0)    gainParts.push('+' + ef.hp + ' Sante');

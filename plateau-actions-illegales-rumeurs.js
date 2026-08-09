@@ -2124,6 +2124,11 @@ async function confirmerAchatStock(produitId) {
   addJournalEntry('Achat en stock à l\'armurerie : ' + (RECETTES_PRODUCTION[produitId]?.label||produitId) + ' (-' + prix + ' FR).', 'event-good');
 }
 
+// Fix 9 aout 2026 (confirme par test en jeu) : ne reconnaissait que la forme d'inventoire de
+// la recolte (type:'matiere_premiere'), jamais la forme empilable produite par un achat a
+// l'entrepot (stackable/stackKey) - or l'Armurerie n'existe qu'a Luthecia, qui n'a aucune
+// ressource recoltable localement (MATIERES_PREMIERES_VILLE n'a pas d'entree pour 'capitale').
+// L'ordre etait donc inutilisable en pratique. Meme correctif que vendre_bois_imprimerie.
 async function doVendreMatiereArmurerie() {
   const data = await chargerArmurerieLocale();
   if (!data) { showToast('Indisponible', '', false); return; }
@@ -2132,13 +2137,15 @@ async function doVendreMatiereArmurerie() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat fixés par le propriétaire de l\'armurerie.</div>';
   Object.entries(data.parametres.prixAchatMatiere).forEach(([m, prix]) => {
+    const lot = (state.inventory || []).find(i => i.stackKey === m && (i.qty || 0) > 0);
+    const qteDispo = lot?.qty || 0;
     html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + m + ' (' + prix + ' FR/unité, stock actuel : ' + (data.stockMatieres[m]||0) + ')</span>';
-    html += '<input type="number" id="vendre-qte-' + m + '" min="1" value="1" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.78rem;outline:none"/>';
-    html += '<button onclick="confirmerVenteMatiere(\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem">Vendre</button>';
+    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + m + ' (' + prix + ' FR/unité) — vous en avez ' + qteDispo + '</span>';
+    html += '<input type="number" id="vendre-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + (qteDispo > 0 ? qteDispo : 1) + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.78rem;outline:none"/>';
+    html += '<button onclick="confirmerVenteMatiere(\'' + m + '\')" ' + (qteDispo <= 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.72rem"' : 'style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem"') + '>Vendre</button>';
     html += '</div>';
   });
-  html += '<div style="font-size:.7rem;color:#5a5040;font-style:italic;margin-top:.6rem">Nécessite d\'avoir ces matières dans votre inventaire (récolte à venir).</div>';
+  html += '<div style="font-size:.7rem;color:#5a5040;font-style:italic;margin-top:.6rem">Nécessite d\'avoir ces matières dans votre inventaire (achetées à l\'Entrepôt Logistique).</div>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -2146,21 +2153,20 @@ async function doVendreMatiereArmurerie() {
 
 async function confirmerVenteMatiere(matiere) {
   const qte = parseInt(document.getElementById('vendre-qte-' + matiere)?.value || '0');
+  document.getElementById('modal-postes')?.classList.remove('open');
   if (!qte || qte <= 0) { showToast('Quantité invalide', '', false); return; }
 
-  const items = (state.inventory || []).filter(i => i.type === 'matiere_premiere' && i.matiere === matiere);
-  if (items.length < qte) { showToast('Stock personnel insuffisant', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + matiere + '.', false); return; }
+  const lot = (state.inventory || []).find(i => i.stackKey === matiere && (i.qty || 0) > 0);
+  if (!lot || lot.qty < qte) { showToast('Stock personnel insuffisant', 'Vous n\'avez pas ' + qte + ' unité(s) de ' + matiere + '.', false); return; }
 
   const data = await chargerArmurerieLocale();
-  document.getElementById('modal-postes')?.classList.remove('open');
   const prixUnitaire = data.parametres.prixAchatMatiere[matiere] || 0;
   const total = prixUnitaire * qte;
   if (data.caisse < total) { showToast('Caisse insuffisante', 'L\'entreprise ne peut pas acheter cette quantité actuellement.', false); return; }
 
-  for (let i = 0; i < qte; i++) {
-    const idx = state.inventory.findIndex(it => it.type === 'matiere_premiere' && it.matiere === matiere);
-    if (idx >= 0) state.inventory.splice(idx, 1);
-  }
+  lot.qty -= qte;
+  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
+
   data.stockMatieres[matiere] = (data.stockMatieres[matiere] || 0) + qte;
   data.caisse -= total;
   ajouterHistoriqueEntreprise(data, -total, 'Achat de matière première (' + matiere + ' x' + qte + ') — ' + (state.char?.name||'Anonyme'));
