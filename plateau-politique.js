@@ -62,47 +62,96 @@ function soumettreVoteMarchande(taux) {
 }
 
 // =====================
-// POSTES MODAL
+// ECRAN POSTES (refonte du 9 aout 2026 — remplace openPostesModal/postulerPoste/prendrePoste/
+// ouvrirPostulerPoste/demanderPosteAuPM, 3 implementations paralleles du meme ecran, toutes
+// basees sur l'ancienne table statique POSTES, jamais persistee, jamais synchronisee entre
+// joueurs. Desormais base uniquement sur POSTES_ELECTIFS (calendrier electoral, deja
+// fonctionnel) et POSTES_NOMMES_EXCLUSIFS (nomination par l'autorite competente).
 // =====================
-function openPostesModal() {
-  const postes = POSTES[state.country];
-  if (!postes) return;
+async function ouvrirEcranPostes() {
+  document.getElementById('postes-modal-title').textContent = 'Postes disponibles';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
 
-  const world = WORLD[state.country];
-  const city = world?.[state.currentCity];
-  const co = COUNTRIES[state.country];
+  const country = state.country;
+  const villeCourante = state.currentCity || 'capitale';
+  const villeNom = WORLD[country]?.[villeCourante]?.name || villeCourante;
 
-  let allPostes = [];
-  if (city?.isCapitale) {
-    allPostes = [...(postes.capitale || []), ...(postes.assemblee || [])];
-  } else {
-    allPostes = postes[state.currentCity] || [];
+  const postesElus = [...(POSTES_ELECTIFS.national||[]), ...(POSTES_ELECTIFS.departemental||[]), ...(POSTES_ELECTIFS.local||[])];
+  const postesNommes = Object.entries(POSTES_NOMMES_EXCLUSIFS).map(([id, def]) => ({ id, ...def }));
+
+  let html = '<div style="padding:.5rem 0">';
+
+  html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810">POSTES ÉLECTIFS</div>';
+  postesElus.forEach(p => {
+    const local = p.niveau === 'ville';
+    html += '<div class="poste-item"><div>' +
+      '<div class="poste-name">' + p.name + (local ? ' (' + villeNom + ')' : '') + '</div>' +
+      '<div class="poste-holder" style="font-size:.75rem;color:#6a5a30">Mandat de ' + p.mandatSemaines + ' semaines — voir le calendrier électoral pour candidater</div>' +
+      '</div><button class="poste-btn" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');ouvrirCalendrierElectoral();">Calendrier</button></div>';
+  });
+
+  html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">POSTES NOMMÉS</div>';
+  for (const p of postesNommes) {
+    const villeDeCePoste = p.scope === 'ville' ? villeCourante : null;
+    const titulaire = typeof getTitulairePosteNomme === 'function' ? await getTitulairePosteNomme(p.id, villeDeCePoste) : null;
+    let actionHtml;
+    if (titulaire && titulaire.estPJ && titulaire.nom === state.char?.name) {
+      actionHtml = '<button class="poste-btn" style="opacity:.4;cursor:default;color:#C9A84C">Votre poste</button>';
+    } else if (titulaire && titulaire.estPJ) {
+      actionHtml = '<button class="poste-btn" style="opacity:.4;cursor:default">Occupé</button>';
+    } else {
+      actionHtml = '<button class="poste-btn" onclick="demanderNominationPoste(\'' + p.id + '\',\'' + p.label.replace(/'/g,'') + '\')">Postuler</button>';
+    }
+    html += '<div class="poste-item"><div>' +
+      '<div class="poste-name">' + p.label + (villeDeCePoste ? ' (' + villeNom + ')' : '') + '</div>' +
+      '<div class="poste-holder">' + (titulaire ? ('Occupé par ' + titulaire.nom + (titulaire.estPJ ? '' : ' (PNJ)')) : 'Poste vacant') + '</div>' +
+      '</div>' + actionHtml + '</div>';
   }
 
-  const available = allPostes.filter(p => !p.holder || p.holder.startsWith('PNJ'));
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
 
-  document.getElementById('postes-body').innerHTML = `
-    <div style="padding:.8rem 1rem;font-size:.8rem;color:#8a8060;border-bottom:1px solid #1a1810;font-style:italic">
-      ${available.length} poste(s) disponible(s) a ${city?.name || 'cette ville'}.
-    </div>
-    ${allPostes.map(p => `
-      <div class="poste-item">
-        <div>
-          <div class="poste-name">${p.name}</div>
-          <div class="poste-holder">${p.holder ? (p.holder.startsWith('PNJ') ? 'Occupe par un PNJ (delogeable)' : `Occupe par ${p.holder}`) : 'Poste vacant'}</div>
-        </div>
-        ${!p.holder
-          ? `<button class="poste-btn" onclick="postulerPoste('${p.id}','${p.name}')">Postuler</button>`
-          : p.holder === state.char?.name
-            ? `<button class="poste-btn" style="opacity:.4;cursor:default;color:#C9A84C">Votre poste</button>`
-            : p.holder.startsWith('PNJ')
-              ? `<button class="poste-btn pnj" onclick="postulerPoste('${p.id}','${p.name}')">${['pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(p.id) ? 'Envoyer ma demande' : 'Deloger le PNJ'}</button>`
-              : `<button class="poste-btn" style="opacity:.4;cursor:default">Occupe</button>`
-        }
-      </div>`).join('')}
-  `;
+// Candidature aupres de l'autorite de nomination (POSTES_NOMMES_EXCLUSIFS). Generalise a tous
+// les postes nommes ce qui n'existait avant que pour PM/ministres (postulerPoste). Regle de
+// priorite PJ (chantier identifie le 9 aout, jusque-la jamais code) : si l'autorite est un PNJ
+// generique auto-pourvu, il ne prend jamais de vraie decision politique — la candidature d'un
+// vrai joueur est donc acceptee directement, sans mail ni attente.
+async function demanderNominationPoste(posteId, posteName) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+  if (!regle) return;
 
-  document.getElementById('modal-postes').classList.add('open');
+  const check = peutAccepterPosteNomme(posteId);
+  if (!check.ok) { showToast('Impossible', check.raison, false); return; }
+
+  const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
+  const titulaireAutorite = typeof getTitulairePosteNomme === 'function' ? await getTitulairePosteNomme(regle.nommePar, villeCourante) : null;
+
+  if (!titulaireAutorite) {
+    showToast('Poste vacant', "L'autorité de nomination pour ce poste est elle-même vacante. Votre candidature ne peut pas être transmise pour le moment.", false);
+    return;
+  }
+
+  if (!titulaireAutorite.estPJ) {
+    accepterNominationPosteNomme(posteId, villeCourante, state.country, titulaireAutorite.nom + ' (PNJ)');
+    return;
+  }
+
+  const candidatNom = state.char?.name || 'Anonyme';
+  const sujet = 'Candidature au poste de ' + posteName;
+  const corps = candidatNom + ' postule au poste de <strong>' + posteName + '</strong>.<br><br>' +
+    '<button onclick="accepterCandidaturePoste(\'' + posteId + '\',\'' + posteName.replace(/'/g,'') + '\',\'' + candidatNom.replace(/'/g,'') + '\')" ' +
+    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem">✓ Accepter la candidature</button>';
+
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    await sbSendMail(candidatNom, titulaireAutorite.nom, sujet, corps, time).catch(() => {});
+  }
+  showToast('Demande transmise', 'Votre candidature au poste de ' + posteName + ' a été transmise à ' + titulaireAutorite.nom + '.', true);
+  addJournalEntry('Demande de poste envoyée à ' + titulaireAutorite.nom + ' : ' + posteName + '. En attente de réponse.', 'event-info');
 }
 
 
@@ -1529,7 +1578,7 @@ function renderRoomActions(room, buildingId, roomId) {
     } else if (o.fn === 'gerer_finances') {
       onclickFn = 'openFinancesModal()';
     } else if (o.fn === 'postuler') {
-      onclickFn = 'openPostesModal()';
+      onclickFn = 'ouvrirEcranPostes()';
     } else {
       const safeLabel = o.label.replace(/'/g, ' ');
       const safeDesc = (o.desc||'').replace(/'/g, ' ');
@@ -1673,150 +1722,78 @@ function ouvrirPhotoCadavre(jsonStr) {
 
 // ORGANIGRAMME
 // =====================
+// Reconstruite le 9 aout 2026 (refonte des postes) : lisait l'ancienne table statique POSTES,
+// retiree. Desormais basee sur POSTES_ELECTIFS (cycle.eluId) + POSTES_NOMMES_EXCLUSIFS
+// (joueurs reels puis titulaires_pnj en repli, via getTitulairePosteNomme).
 async function ouvrirOrganigramme() {
-  const postes = POSTES[state.country];
-  if (!postes) return;
   const co = COUNTRIES[state.country];
   const myName = state.char?.name || '';
+  const villeCourante = state.currentCity || 'capitale';
+  const villeNom = WORLD[state.country]?.[villeCourante]?.name || villeCourante;
 
-  // Lire les vrais titulaires depuis Supabase (source de verite partagee)
-  let joueurs = [];
-  if (typeof sbListPersonnages === 'function') {
-    try { joueurs = (await sbListPersonnages() || []).filter(j => j.country === state.country); } catch(e) {}
-  }
+  document.getElementById('postes-modal-title').textContent = `Organigramme — ${co?.n || 'Empire'}`;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
 
-  const getTitulaire = (posteId) => {
-    if (state.poste?.id === posteId) return myName; // moi-meme
-    const j = joueurs.find(j => {
-      let p = null;
-      try { p = typeof j.poste === 'string' ? JSON.parse(j.poste) : j.poste; } catch(e) {}
-      return p?.id === posteId;
-    });
-    return j?.name || null;
+  if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase();
+
+  const getTitulaireElu = (posteId, city) => {
+    const cle = typeof getCleCycle === 'function' ? getCleCycle(posteId, city) : posteId;
+    return CYCLES_ELECTORAUX?.[state.country]?.[cle]?.eluId || null;
   };
 
   const sections = [
-    { title: 'Exécutif', postes: postes.capitale || [] },
-    { title: 'Assemblée', postes: postes.assemblee || [] },
-    { title: 'Villes', postes: [
-      ...(postes.ville_capitale || []),
-      ...(postes.ville_a || []),
-      ...(postes.ville_b || [])
+    { title: 'Exécutif', postes: [
+      { id:'president', name:'Président de la République', type:'elu' },
+      { id:'pm', name:'Premier Ministre', type:'nomme' },
+      { id:'min_int', name:"Ministre de l'Intérieur", type:'nomme' },
+      { id:'min_fin', name:'Ministre des Finances', type:'nomme' },
+      { id:'min_just', name:'Ministre de la Justice', type:'nomme' },
+      { id:'min_def', name:'Ministre de la Défense', type:'nomme' },
+      { id:'min_info', name:"Ministre de l'Information", type:'nomme' },
+      { id:'min_ae', name:'Ministre des Affaires Étrangères', type:'nomme' },
+      { id:'commandant', name:'Commandant de la Caserne', type:'nomme' },
+      { id:'juge', name:'Juge', type:'nomme' },
+      { id:'chef_syndicat', name:'Chef Syndical', type:'elu' }
+    ]},
+    { title: 'Ville — ' + villeNom, postes: [
+      { id:'maire', name:'Maire', type:'elu', city: villeCourante },
+      { id:'commissaire', name:'Commissaire', type:'nomme', city: villeCourante },
+      { id:'directeur_entrepot', name:"Directeur de l'Entrepôt Logistique", type:'nomme', city: villeCourante }
+    ]},
+    { title: 'Entreprises stratégiques', postes: [
+      { id:'directeur_pharma', name:"Directeur de l'Usine Pharmaceutique", type:'nomme' },
+      { id:'directeur_tabac_alcools', name:'Directeur du Pôle Tabac & Alcools', type:'nomme' },
+      { id:'directeur_raffinerie', name:'Directeur de la Raffinerie', type:'nomme' }
     ]}
-  ].filter(s => s.postes.length > 0);
+  ];
 
-  document.getElementById('postes-modal-title').textContent = `Organigramme — ${co?.n || 'Empire'}`;
-  document.getElementById('postes-body').innerHTML = sections.map(s => `
-    <div style="padding:.5rem 1rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;border-bottom:1px solid #2a2010;margin-top:.3rem">${s.title}</div>
-    ${s.postes.map(p => {
-      const holderName = getTitulaire(p.id);
-      const isMe = holderName === myName;
+  let html = '';
+  for (const s of sections) {
+    html += `<div style="padding:.5rem 1rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;border-bottom:1px solid #2a2010;margin-top:.3rem">${s.title}</div>`;
+    for (const p of s.postes) {
+      let holderName, estPJ;
+      if (p.type === 'elu') {
+        holderName = getTitulaireElu(p.id, p.city);
+        estPJ = true; // cycle.eluId n'est jamais un PNJ (repli PNJ gere separement, voir cascade cron)
+      } else {
+        const titulaire = typeof getTitulairePosteNomme === 'function' ? await getTitulairePosteNomme(p.id, p.city) : null;
+        holderName = titulaire?.nom || null;
+        estPJ = titulaire?.estPJ ?? true;
+      }
+      const isMe = estPJ && holderName === myName;
       const holderLabel = !holderName
         ? '<span style="color:#9a8a68;font-style:italic">Vacant</span>'
-        : `<span style="color:${isMe ? '#C9A84C' : '#4a8a4a'}">${holderName}${isMe ? ' ✦' : ''}</span>`;
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 1rem;border-bottom:1px solid #1a1810">
+        : `<span style="color:${isMe ? '#C9A84C' : '#4a8a4a'}">${holderName}${estPJ ? '' : ' (PNJ)'}${isMe ? ' ✦' : ''}</span>`;
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 1rem;border-bottom:1px solid #1a1810">
         <div style="font-size:.78rem;color:#c0b090">${p.name}</div>
         <div style="font-size:.75rem">${holderLabel}</div>
       </div>`;
-    }).join('')}
-  `).join('');
-
-  document.getElementById('modal-postes').classList.add('open');
+    }
+  }
+  document.getElementById('postes-body').innerHTML = html;
 }
 
-async function postulerPoste(posteId, posteName) {
-  document.getElementById('modal-postes').classList.remove('open');
-
-  // Postes nommes en cascade : le President nomme le PM, le PM nomme ses ministres
-  const posteRequiertPM = ['pm'];
-  const posteRequiertNominationParPM = ['min_int','min_fin','min_just','min_def','min_info','min_ae'];
-
-  if (posteRequiertPM.includes(posteId) || posteRequiertNominationParPM.includes(posteId)) {
-    const estPosteMinistre = posteRequiertNominationParPM.includes(posteId);
-    const idValideur = estPosteMinistre ? 'pm' : 'president';
-    const labelValideur = estPosteMinistre ? 'Premier Ministre' : 'Président de la République';
-
-    const nomValideur = (typeof getTitulairePoste === 'function') ? await getTitulairePoste(idValideur) : null;
-
-    if (!nomValideur) {
-      showToast('Poste vacant', `Le poste de ${labelValideur} est actuellement vacant. Votre candidature ne peut pas etre transmise pour le moment.`, false);
-      return;
-    }
-
-    const candidatNom = state.char?.name || 'Anonyme';
-    const sujet = 'Candidature au poste de ' + posteName;
-    const corps = candidatNom + ' postule au poste de <strong>' + posteName + '</strong>.<br><br>' +
-      '<button onclick="accepterCandidaturePoste(\'' + posteId + '\',\'' + posteName.replace(/'/g,'') + '\',\'' + candidatNom.replace(/'/g,'') + '\')" ' +
-      'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem">✓ Accepter la candidature</button>';
-
-    if (typeof sbSendMail === 'function') {
-      const h = String(state.hour || 8).padStart(2,'0');
-      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-      await sbSendMail(candidatNom, nomValideur, sujet, corps, time).catch(() => {});
-    }
-
-    showToast('Demande transmise', `Votre candidature au poste de ${posteName} a ete transmise a ${nomValideur} (${labelValideur}).`, true);
-    addJournalEntry(`Demande de poste envoyee a ${nomValideur} : ${posteName}. En attente de reponse.`, 'event-info');
-    return;
-  }
-
-  // Verifier si le joueur n'a pas deja ce poste
-  if (state.poste?.id === posteId) {
-    showToast('Poste deja occupe', `Vous occupez deja le poste de ${posteName}.`, false);
-    return;
-  }
-
-  const postes = POSTES[state.country];
-  const allPostes = [
-    ...(postes?.capitale || []),
-    ...(postes?.assemblee || []),
-    ...(postes?.[state.currentCity] || [])
-  ];
-  const poste = allPostes.find(p => p.id === posteId);
-
-  // Verification en direct aupres de Supabase (source de verite partagee entre tous les
-  // joueurs) plutot que du cache local POSTES, qui peut etre perime et laisser deux
-  // joueurs obtenir simultanement le meme poste unique.
-  const titulaireReel = typeof getTitulairePoste === 'function' ? await getTitulairePoste(posteId) : null;
-  if (titulaireReel && titulaireReel !== (state.char?.name || 'Joueur')) {
-    showToast('Poste occupe', `Ce poste est occupe par ${titulaireReel}.`, false);
-    return;
-  }
-  const isPnjHolder = !!poste?.holder && poste.holder.startsWith('PNJ');
-  const successRate = isPnjHolder ? 65 : 90;
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= successRate) {
-    // Marquer le poste comme pris dans POSTES
-    if (poste) poste.holder = state.char?.name || 'Joueur';
-    // Libérer l'ancien poste si applicable
-    if (state.poste?.id && state.poste.id !== posteId) {
-      const oldPoste = [...(POSTES[state.country]?.capitale||[]), ...(POSTES[state.country]?.assemblee||[])].find(p => p.id === state.poste.id);
-      if (oldPoste && oldPoste.holder === (state.char?.name || 'Joueur')) oldPoste.holder = null;
-    }
-    state.poste = { id: posteId, name: posteName };
-    if (state.char) state.char.poste = state.poste;
-    state.salaireTouche = false;
-    state.inf = Math.min(100, state.inf + 15);
-    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-    updateUI();
-    if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
-      const roomCourante = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-      if (roomCourante) renderPersonsList(roomCourante.persons || []);
-    }
-    showToast('Poste obtenu !', `Vous occupez desormais le poste de ${posteName}. +15 Influence.`, true, true);
-    addJournalEntry(`Poste obtenu : ${posteName}. +15 Influence.`, 'event-good');
-    // Mettre a jour l'affichage du personnage
-    if (document.getElementById('char-arch-left')) {
-      const ar = ARCHETYPES.find(x => x.id === state.char?.archetype);
-      const co = COUNTRIES[state.country];
-      document.getElementById('char-arch-left').textContent = `${posteName} · ${co?.n||''}`;
-    }
-  } else {
-    showToast('Candidature refusee', `Votre demande pour le poste de ${posteName} a ete rejetee.`, false);
-    addJournalEntry(`Candidature refusee : ${posteName}.`, 'event-bad');
-  }
-}
 
 // =====================
 
@@ -2966,82 +2943,6 @@ async function confirmerOfficialisationMariage() {
 }
 
 
-function ouvrirPostulerPoste() {
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
-  const postes = POSTES[pays]?.[ville] || POSTES[pays]?.capitale || [];
-
-  document.getElementById('postes-modal-title').textContent = 'Postuler a un poste';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Postes disponibles a ' + (WORLD[pays]?.[ville]?.name||ville) + ' :</div>';
-
-  if (postes.length === 0) {
-    html += '<div style="font-size:.85rem;color:#5a5040">Aucun poste disponible ici.</div>';
-  } else {
-    postes.forEach(poste => {
-      const estOccupeParPJ = poste.holder && !poste.holder.startsWith('PNJ-');
-      const estPresident = poste.id === 'president';
-      const estPM = poste.id === 'pm';
-      const isPJHolder = estOccupeParPJ;
-      const moi = state.char?.name;
-
-      // Ne pas afficher son propre poste
-      if (poste.holder === moi) return;
-
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem">';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
-      html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + poste.name + '</div>';
-      html += '<div style="font-size:.7rem;color:#5a4030">Titulaire actuel : ' + (poste.holder || 'Vacant') + '</div></div>';
-
-      if (estPresident && isPJHolder) {
-        html += '<div style="font-size:.68rem;color:#6a3020;font-style:italic">Inaccessible</div>';
-      } else if (estPM && isPJHolder) {
-        html += '<div style="font-size:.68rem;color:#6a3020;font-style:italic">Inaccessible</div>';
-      } else if (!isPJHolder) {
-        // Poste PNJ - prise automatique
-        html += '<button onclick="prendrePoste(\'' + poste.id + '\',\'' + poste.name + '\',false)" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.25rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Prendre le poste</button>';
-      } else {
-        // Poste minister PJ - envoyer demande au PM
-        html += '<button onclick="demanderPosteAuPM(\'' + poste.id + '\',\'' + poste.name + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.25rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Postuler</button>';
-      }
-      html += '</div></div>';
-    });
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function prendrePoste(posteId, posteNom, isPJHolder) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
-  const postes = POSTES[pays]?.[ville] || POSTES[pays]?.capitale || [];
-  const poste = postes.find(p => p.id === posteId);
-  if (poste) poste.holder = state.char?.name;
-  if (posteId === 'depute') {
-    state.posteDepute = { id: posteId, name: posteNom };
-    if (state.char) state.char.posteDepute = state.posteDepute;
-  } else {
-    state.poste = { id: posteId, name: posteNom };
-    if (state.char) state.char.poste = state.poste;
-  }
-  updateUI();
-  showToast('Poste pris !', 'Vous etes desormais ' + posteNom + '.', true, true);
-  addJournalEntry('Prise de poste : ' + posteNom, 'event-good');
-  addExternalEvent((state.char?.name||'Anonyme') + ' prend le poste de ' + posteNom + '.');
-}
-
-function demanderPosteAuPM(posteId, posteNom) {
-  document.getElementById('modal-postes').classList.remove('open');
-  addMailNotification(
-    'Demande de poste',
-    'Candidature : ' + posteNom,
-    (state.char?.name||'Anonyme') + ' souhaite postuler au poste de ' + posteNom + '. Vous pouvez le/la nommer depuis votre bureau.'
-  );
-  showToast('Demande envoyee', 'Le Premier Ministre a ete informe de votre candidature au poste de ' + posteNom + '.', true);
-  addJournalEntry('Candidature envoyee au PM pour : ' + posteNom, 'event-info');
-}
 
 async function doEtatUrgence() {
   if (state.poste?.id !== 'president') {
@@ -4615,7 +4516,11 @@ async function traiterDemandeManifestation(id, autorise) {
     const pays = state.country || 'republic';
     if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 5);
     // Malus sur le Ministre de l'Interieur lui-meme (refuser un rassemblement legitime a un cout politique)
-    const minIntNom = POSTES?.[pays]?.min_int?.titulaire;
+    // Fix 9 aout 2026 : lisait POSTES?.[pays]?.min_int?.titulaire, une forme qui n'a jamais
+    // existe dans la vraie structure de POSTES (jamais de cle plate par id, jamais de champ
+    // .titulaire) - ce malus n'a donc jamais pu s'appliquer depuis la creation de cette fonction.
+    const minIntInfo = typeof getTitulairePosteNomme === 'function' ? await getTitulairePosteNomme('min_int', null) : null;
+    const minIntNom = minIntInfo?.estPJ ? minIntInfo.nom : null;
     if (minIntNom) {
       if (minIntNom === state.char?.name) {
         state.pop = Math.max(0, (state.pop||0) - 8);
@@ -4672,12 +4577,18 @@ async function doDementiOfficiel() {
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement des rumeurs en cours...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const postesGouvernement = ['president', 'pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
+  // Fix 9 aout 2026 : lisait POSTES?.[state.country]?.[id]?.titulaire, une forme qui n'a jamais
+  // existe dans la vraie structure de POSTES (jamais de cle plate par id, jamais de champ
+  // .titulaire) - cette liste de cibles n'a donc jamais pu inclure personne d'autre que
+  // soi-meme depuis la creation de cette fonction.
+  const postesGouvernementNommes = ['pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
   const cibles = [state.char?.name].filter(Boolean);
-  postesGouvernement.forEach(id => {
-    const titulaire = POSTES?.[state.country]?.[id]?.titulaire;
-    if (titulaire && !cibles.includes(titulaire)) cibles.push(titulaire);
-  });
+  const presidentActuel = CYCLES_ELECTORAUX?.[state.country]?.['president']?.eluId;
+  if (presidentActuel && !cibles.includes(presidentActuel)) cibles.push(presidentActuel);
+  for (const id of postesGouvernementNommes) {
+    const titulaireInfo = typeof getTitulairePosteNomme === 'function' ? await getTitulairePosteNomme(id, null) : null;
+    if (titulaireInfo?.estPJ && !cibles.includes(titulaireInfo.nom)) cibles.push(titulaireInfo.nom);
+  }
 
   let toutesRumeurs = [];
   for (const cible of cibles) {

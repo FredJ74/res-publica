@@ -45,7 +45,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   }
 
   // Ordres speciaux
-  if (fn === 'postuler') { ouvrirPostulerPoste(); return; }
   if (fn === 'gerer_finances') { openFinancesModal(); return; }
   if (fn === 'plainte_police') { openPlainteModal(); return; }
   if (fn === 'arreter') { doArreter(); return; }

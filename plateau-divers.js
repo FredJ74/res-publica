@@ -543,8 +543,7 @@ async function genererMeteoPolitique() {
 
   const co = COUNTRIES[state.country];
   const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
-  const president = POSTES[state.country]?.capitale?.find(p => p.id === 'president');
-  const presidentNom = president?.holder || 'Personne';
+  const presidentNom = CYCLES_ELECTORAUX?.[state.country]?.['president']?.eluId || 'Personne';
   const topics = (typeof FORUM_TOPICS !== 'undefined' ? (FORUM_TOPICS['local'] || []) : []).slice(0, 2).map(t => t.title).join(', ');
 
   const prompt = 'Tu es le météorologue politique de ' + (co?.n || 'l\'empire') + ' dans Res Publica, jeu parodique. ' +

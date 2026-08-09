@@ -1358,7 +1358,7 @@ const BUILDINGS = {
           {name:'Secretaire Dupuis', role:'PNJ - Accueil officiel', rel:'neutral', job:'secretaire'}
         ],
         orders: [
-          {fn:'postuler', label:'Postuler a un poste', pa:2, cost:0, type:'legal', icon:'ti-id-badge', successRate:85, desc:'PNJ : automatique. PM/President PJ : impossible.'},
+          {fn:'postuler', label:'Postuler a un poste', pa:2, cost:0, type:'legal', icon:'ti-id-badge', successRate:100, desc:'Postes electifs (calendrier) et postes nommes (candidature aupres de l\'autorite competente).'},
           {fn:'organigramme', label:'Organigramme du pays', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Voir qui occupe chaque poste dans votre empire.'}
         ]
       },
@@ -2739,7 +2739,7 @@ const BUILDINGS = {
           {name:'Secretaire Municipal', role:'PNJ - Administration', rel:'neutral', job:'secretaire'}
         ],
         orders: [
-          {fn:'postuler',      label:'Postuler comme maire',   pa:2, cost:0,  type:'legal', icon:'ti-id-badge',   successRate:80},
+          {fn:'postuler',      label:'Postuler a un poste',   pa:2, cost:0,  type:'legal', icon:'ti-id-badge',   successRate:100},
           {fn:'gerer_finances',label:'Gerer les finances locales',pa:1,cost:0,type:'legal', icon:'ti-chart-bar',  successRate:100, requiresPost:true},
           {fn:'corrompre_fonct',label:'Corrompre un employ',   pa:2, cost:200,type:'illegal',icon:'ti-coins',     successRate:65},
           {fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, type:'legal', icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.'},
@@ -5406,36 +5406,13 @@ const ORGA_ORDRE_RANG_MIN = {
   orga_hooliganisme:  3, // Meneur seulement
 };
 
-const POSTES = {
-  republic: {
-    capitale: [
-      {id:'president',    name:'President de la Republique', niveau:7, unique:true,  holder:null, isCapitale:true},
-      {id:'pm',           name:'Premier Ministre',            niveau:6, unique:true,  holder:'PNJ-Bertrand', isCapitale:true},
-      {id:'min_int',      name:'Ministre de l\'Interieur',   niveau:5, unique:true,  holder:'PNJ-Lacroix',  isCapitale:true},
-      {id:'min_fin',      name:'Ministre des Finances',       niveau:5, unique:true,  holder:'PNJ-Leroux',   isCapitale:true},
-      {id:'min_just',     name:'Ministre de la Justice',      niveau:5, unique:true,  holder:'PNJ-Morin',    isCapitale:true},
-      {id:'min_def',      name:'Ministre de la Defense',      niveau:5, unique:true,  holder:'PNJ-Bernard',  isCapitale:true},
-      {id:'min_info',     name:'Ministre de l\'Information',  niveau:5, unique:true,  holder:'PNJ-Simon',    isCapitale:true},
-      {id:'min_ae',       name:'Ministre des AE',             niveau:5, unique:true,  holder:'PNJ-Durand',   isCapitale:true}
-    ],
-    assemblee: Array.from({length:9}, (_,i) => ({
-      id:`depute_${i+1}`, name:`Depute Siege ${i+1}`, niveau:2,
-      unique:true, holder: i < 7 ? `PNJ-Depute${i+1}` : null, isCapitale:true
-    })),
-    ville_capitale: [
-      {id:'maire_capitale',    name:'Maire de Luthécia', niveau:3, unique:true, holder:'PNJ-Maire-Luthecia'},
-      {id:'adj_maire_capitale',name:'Maire Adjoint',      niveau:2, unique:true, holder:'PNJ-Adj-Luthecia'}
-    ],
-    ville_a: [
-      {id:'maire_a',    name:'Maire de Port-Sainte-Marie', niveau:3, unique:true, holder:'PNJ-Maire-A'},
-      {id:'adj_maire_a',name:'Maire Adjoint',              niveau:2, unique:true, holder:'PNJ-Adj-A'}
-    ],
-    ville_b: [
-      {id:'maire_b',    name:'Maire de Montrouge',         niveau:3, unique:true, holder:'PNJ-Maire-B'},
-      {id:'adj_maire_b',name:'Maire Adjoint',              niveau:2, unique:true, holder:'PNJ-Adj-B'}
-    ]
-  }
-};
+// POSTES (table statique, holders codes en dur, jamais persistee) retiree le 9 aout 2026 —
+// refonte du systeme de postes. Remplacee par POSTES_ELECTIFS (postes elus) et
+// POSTES_NOMMES_EXCLUSIFS (postes nommes) plus bas dans ce fichier, seuls systemes desormais
+// utilises. NOTE : "Maire Adjoint" (x3 villes) n'existait que dans cette table, jamais lu
+// nulle part ailleurs dans le code (aucun requiresPost, aucune nomination) — poste orphelin
+// depuis toujours, disparait avec elle. A reintroduire explicitement dans
+// POSTES_NOMMES_EXCLUSIFS si un vrai role est voulu pour lui.
 
 // =====================
 // ECONOMIE — ENTREPOTS LOGISTIQUES ET TRANSFORMATEURS (modele economique V1, theorie
