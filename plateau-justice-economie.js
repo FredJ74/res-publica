@@ -56,7 +56,7 @@ function confirmerDonArgent() {
   if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
   if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
 
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const dis = state.dis || 50;
 
   // Jet de refus selon ISN
@@ -110,7 +110,7 @@ function confirmerDonArgent() {
     },
     squatter_cool: () => {
       const bonus = Math.min(40, Math.floor(montant / 100));
-      const cha = state.char?.stats?.CHA || 8;
+      const cha = getStatEffective('CHA');
       const taux = Math.min(85, cha * 3 + bonus);
       const roll = Math.floor(Math.random() * 100) + 1;
       if (roll <= taux) {
@@ -754,7 +754,7 @@ function tenterCorruptionArrestation(peineType, cout, taux) {
   }
 
   state.arg -= cout;
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const bonus = Math.floor(dup / 10) * 5;
   const roll = Math.floor(Math.random() * 100) + 1;
   const tauxFinal = Math.min(85, taux + bonus);
@@ -838,7 +838,7 @@ function verifierLiberationPrisonniers() {
 
 function tenterFuite() {
   document.getElementById('modal-postes').classList.remove('open');
-  const vol = state.char?.stats?.VOL || 8;
+  const vol = getStatEffective('VOL');
   const bonus = Math.floor(state.dis / 10) + Math.floor(vol / 2);
   const taux = Math.min(70, 30 + bonus);
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -857,7 +857,7 @@ function tenterFuite() {
 
 function tenterResistance(peineType) {
   document.getElementById('modal-postes').classList.remove('open');
-  const vol = state.char?.stats?.VOL || 8;
+  const vol = getStatEffective('VOL');
   const taux = Math.min(30, vol * 2);
   const roll = Math.floor(Math.random() * 100) + 1;
 
@@ -992,7 +992,7 @@ async function doDefense() {
   if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Vous défendre coûte ' + cout + ' ' + cur + '.', false); return; }
   state.arg -= cout;
 
-  const cha = typeof getStatEffective === 'function' ? getStatEffective('CHA') : (state.char?.stats?.CHA || 8);
+  const cha = getStatEffective('CHA');
   const bonusCha = (cha - 8) * 3;
   const preuveReelle = typeof verifierPreuveReelle === 'function'
     ? await verifierPreuveReelle(affaire.country || state.country, affaire.cible, affaire.motif).catch(() => false)
@@ -1106,7 +1106,7 @@ function confirmerRequeteAvocat() {
   state.arg -= cout;
   state.estEmprisonne.avocatUtilise = true;
 
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const taux = Math.min(85, 40 + Math.floor(dup * 1.5));
   const roll = Math.floor(Math.random() * 100) + 1;
 
@@ -1183,7 +1183,7 @@ function doTentativeEvasion() {
   state.estEmprisonne.dernierJourEvasion = jourActuel;
 
   const pays = state.country;
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
   let taux = 10 + (dup - 10) * 2 - (isEmpire - 45) / 3;
   taux = Math.max(2, Math.min(40, Math.round(taux)));
@@ -1438,7 +1438,7 @@ function doControlDouanes() {
 
 function doCorrompreDoanier() {
   const roll = Math.floor(Math.random() * 100) + 1;
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const inf = state.inf || 0;
   const taux = Math.max(5, 55 + Math.floor(dup/10) + Math.floor(inf/10) + 20); // +20 zone transport
   if (roll <= taux) {
@@ -1477,7 +1477,7 @@ function doTaxiSpecial(destination) {
   // Si faux document — jet DUP
   const aVraiDoc = aAccesLibre || (state.inventory||[]).some(i => i.acteId === 'laissez_passer' && i.legal);
   if (!aVraiDoc && aLaissezPasser) {
-    const dup = state.char?.stats?.DUP || 8;
+    const dup = getStatEffective('DUP');
     const roll = Math.floor(Math.random() * 100) + 1;
     const taux = Math.max(5, 50 + Math.floor(dup/10) - getMalusISN());
     if (roll > taux) {
@@ -2212,7 +2212,7 @@ async function confirmerDonPnj(encodedPnj) {
     tracerActionPourRumeur('don', nomCourt);
     return;
   }
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const nomCourt = pnj.name.replace(' (PNJ)','');
   const jobsRisques = ['commissaire','policier','inspecteur','juge'];
   const tauxRefus = jobsRisques.includes(job) ? Math.max(0, isn - 30) / 2 : 0;
@@ -2331,7 +2331,7 @@ function doCompteOffshore() {
 function doCorrompreGardien() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 800;
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   state.arg -= cost;
   const taux = Math.min(80, 30 + Math.floor(dup * 3));
@@ -2351,7 +2351,7 @@ function doCorrompreGardien() {
 function doFalsifierDocs() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 500;
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   state.arg -= cost;
   const taux = Math.min(75, 25 + Math.floor(dup * 3));
@@ -4255,7 +4255,7 @@ async function confirmerMenerEnquete() {
     return;
   }
 
-  const perCommissaire = state.char?.stats?.PER || 8;
+  const perCommissaire = getStatEffective('PER');
   const infCommissaire = state.inf || 0;
   const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
   const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
@@ -4325,7 +4325,7 @@ async function confirmerOrganiserFilature() {
     return;
   }
 
-  const perCommissaire = state.char?.stats?.PER || 8;
+  const perCommissaire = getStatEffective('PER');
   const infCommissaire = state.inf || 0;
   const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
   const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
@@ -4399,7 +4399,7 @@ async function confirmerOrganiserChasseHomme() {
     return;
   }
 
-  const perCommissaire = state.char?.stats?.PER || 8;
+  const perCommissaire = getStatEffective('PER');
   const infCommissaire = state.inf || 0;
   const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
   const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
@@ -4518,7 +4518,7 @@ function doCambriolerCaisse(buildingId, buildingLabel) {
 async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
   document.getElementById('modal-postes').classList.remove('open');
   const pays = state.country;
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
   const bonusReputation = getBonusReputationCriminelle();
 
@@ -4582,7 +4582,7 @@ async function doVolerMaterielChantier() {
   if (!ts.chantier) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
 
   document.getElementById('modal-postes')?.classList.remove('open');
-  const dup = state.char?.stats?.DUP || 8;
+  const dup = getStatEffective('DUP');
   const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
   const bonusReputation = typeof getBonusReputationCriminelle === 'function' ? getBonusReputationCriminelle() : 0;
 
