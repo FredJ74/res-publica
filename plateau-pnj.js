@@ -889,6 +889,73 @@ async function confirmerLancerRumeur(nomCible, pa, cost, successRate) {
   updateUI();
 }
 
+// =====================
+// DISTRIBUER UN TRACT (9 aout 2026)
+// =====================
+// N'existait pas du tout avant ce soir : le routeur appelait doDistribuerTract() sans que la
+// fonction soit definie nulle part (ReferenceError silencieuse au clic), et le flag
+// requiresTract:true de l'ordre (data.js) n'etait lu par aucun code. Premier ordre construit
+// des le depart avec le systeme de moyenne de groupe (getStatEffective) : le taux depend de
+// CHA et ENT, donc de qui compose le groupe au moment de l'action.
+function doDistribuerTract() {
+  const lots = (state.inventory || []).filter(i => i.type === 'tract' && (i.quantite || 0) > 0);
+  if (lots.length === 0) {
+    showToast('Aucun tract', 'Faites imprimer des tracts avant de pouvoir les distribuer.', false);
+    return;
+  }
+  if (lots.length === 1) {
+    confirmerDistribuerTract(lots[0].cible, lots[0].tractType);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Distribuer un tract';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisissez le lot à distribuer.</div>' +
+    lots.map(l =>
+      '<div onclick="confirmerDistribuerTract(\'' + l.cible.replace(/'/g,'') + '\',\'' + l.tractType + '\')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+        '<i class="ti ti-file-description" style="font-size:.9rem;color:' + (l.tractType === 'pour' ? '#6a9a6a' : '#9a4a4a') + '"></i>' +
+        '<div><div style="font-size:.82rem;color:#c0b090">' + l.name + '</div>' +
+        '<div style="font-size:.85rem;color:#9a8a68">' + l.quantite + ' restants</div></div>' +
+      '</div>'
+    ).join('') +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerDistribuerTract(cible, tractType) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+
+  const lot = (state.inventory || []).find(i => i.type === 'tract' && i.cible === cible && i.tractType === tractType);
+  if (!lot || (lot.quantite || 0) <= 0) {
+    showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false);
+    return;
+  }
+  lot.quantite -= 1;
+  if (lot.quantite <= 0) {
+    state.inventory = state.inventory.filter(i => i !== lot);
+  }
+
+  const cha = getStatEffective('CHA');
+  const ent = getStatEffective('ENT');
+  const taux = Math.min(90, Math.max(10, 25 + Math.round(cha * 3) + Math.round(ent * 3)));
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const succes = roll <= taux;
+
+  if (succes) {
+    const montant = Math.floor(Math.random() * 6) + 3; // 3 a 8
+    const delta = tractType === 'pour' ? montant : -montant;
+    if (typeof sbAjusterPopJoueur === 'function') sbAjusterPopJoueur(cible, delta).catch(() => {});
+    const verbe = tractType === 'pour' ? 'convaincus' : 'dissuadés';
+    showToast('Tract distribué !', 'Efficace — ' + Math.abs(delta) + ' POP ' + (tractType === 'pour' ? 'pour' : 'contre') + ' ' + cible + '. (' + taux + '% de chances)', true, true);
+    addJournalEntry('Tract distribué ' + tractType + ' ' + cible + ' avec succès : ' + (tractType === 'pour' ? '+' : '-') + montant + ' POP. (' + taux + '% de chances)', 'event-good');
+  } else {
+    showToast('Tract distribué', 'Sans effet cette fois — personne n\'a été convaincu. (' + taux + '% de chances)', false);
+    addJournalEntry('Distribution de tract ' + tractType + ' ' + cible + ' sans effet. (' + taux + '% de chances)', '');
+  }
+
+  updateUI();
+}
+
 function doSaluerPersonne(nom) {
   const jourActuel = state.day || 1;
   if (!state.salutationsDuJour || state.salutationsDuJour.jour !== jourActuel) {

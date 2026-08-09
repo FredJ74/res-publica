@@ -1255,11 +1255,16 @@ async function sbResoudreRumeur(id) {
   return sbUpdate('rumeurs_actives', `id=eq.${encodeURIComponent(id)}`, { resolu: true });
 }
 
+// Fix 9 aout 2026 : lisait/ecrivait une colonne personnages.pop qui n'existe pas (verifie en
+// direct sur Supabase : "column personnages.pop does not exist") - la vraie POP vit dans
+// resources.pop (colonne JSON, voir sbSavePersonnage/sbLoadPersonnage). Consequence : cette
+// fonction echouait toujours silencieusement (erreur avalee par le .catch() des appelants),
+// la POP d'une cible n'a donc jamais ete reellement modifiee par lancer_rumeur_cible.
 async function sbAjusterPopJoueur(nomJoueur, delta) {
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=pop`);
-  const popActuel = rows?.[0]?.pop ?? 50;
-  const nouveauPop = Math.max(0, Math.min(100, popActuel + delta));
-  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { pop: nouveauPop });
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=resources`);
+  const resources = rows?.[0]?.resources || { inf: 0, pop: 50, dis: 50 };
+  const nouveauPop = Math.max(0, Math.min(100, (resources.pop ?? 50) + delta));
+  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { resources: { ...resources, pop: nouveauPop } });
   return nouveauPop;
 }
 
