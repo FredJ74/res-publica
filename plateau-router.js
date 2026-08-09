@@ -387,6 +387,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'reception_etat') { doReceptionAvecBonus(fn, cost); return; }
   if (fn === 'banquet_diplo') { ouvrirBanquetDiplomatique(); return; }
 
+  // Bureau National de l'Emploi (9 aout 2026)
+  if (fn === 'sinscrire_demandeur_emploi') { doInscrireDemandeurEmploi(); return; }
+  if (fn === 'consulter_offres_emploi')    { ouvrirOffresEmploiBNE(); return; }
+  if (fn === 'demissionner_emploi_bne')    { demissionnerEmploiBNE(); return; }
+
   // Deduire PA et argent
   if (!TEST_MODE) state.pa = Math.max(0, state.pa - pa);
   if (cost > 0) state.arg = Math.max(0, state.arg - cost);

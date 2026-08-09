@@ -312,6 +312,18 @@ function closeSelfView() {
   }
 }
 
+// Salaire verse a l'ordre Dormir : poste politique prioritaire, sinon emploi BNE actif
+// (state.emploiBNE, cache local rafraichi par rafraichirCacheEmploiBNE — voir
+// plateau-justice-economie.js), sinon le plancher universel SALAIRES.default (9 aout 2026).
+function calculerSalaireDormir() {
+  if (state.poste) return SALAIRES[state.poste.id] || SALAIRES.default;
+  if (state.emploiBNE?.offreId && typeof OFFRES_EMPLOI_BNE !== 'undefined') {
+    const offre = OFFRES_EMPLOI_BNE[state.emploiBNE.offreId];
+    if (offre) return offre.salaire;
+  }
+  return SALAIRES.default;
+}
+
 function switchSelfTab(tab, el) {
   if (el) {
     document.querySelectorAll('#vue-self .piece-tab').forEach(t => t.classList.remove('active'));
@@ -332,7 +344,7 @@ function switchSelfTab(tab, el) {
     const confort = confortMap[state.currentBuilding] || { label: 'Lieu ordinaire', moral: 1, paBonus: 0, icon: 'ti-home' };
 
     const dejaDormi = state.dernierDormir === (state.day || 1);
-    const salaire = (state.poste ? (SALAIRES[state.poste.id] || SALAIRES.default) : SALAIRES.default);
+    const salaire = calculerSalaireDormir();
 
     let html = '<div style="padding:1.2rem;max-width:600px">';
 
@@ -838,7 +850,7 @@ async function doDormir() {
     if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   }
   localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
-  const salaire = state.poste ? (SALAIRES[state.poste.id] || SALAIRES.default) : SALAIRES.default;
+  const salaire = calculerSalaireDormir();
   state.arg += salaire;
   state.liquide += Math.floor(salaire * 0.3);
   state.banque += Math.ceil(salaire * 0.7);

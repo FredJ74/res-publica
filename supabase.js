@@ -1409,6 +1409,20 @@ async function sbSetBatimentEtat(country, city, buildingId, patch) {
   return fusion;
 }
 
+// Bureau National de l'Emploi (9 aout 2026) — reutilise batiments_etat plutot qu'une nouvelle
+// table dediee (pas de DDL possible avec la cle anon). Une seule entree partagee par pays
+// ('national'/'bne' comme city/buildingId), contenant l'occupation reelle de TOUTES les
+// offres (OFFRES_EMPLOI_BNE, data.js), quelle que soit leur portee ou le bureau physique visite :
+// { offres: { [offreId]: [ { pjNom, statut: 'actif'|'en_attente_arbitrage' } ] } }
+async function sbGetEtatBNE(country) {
+  const etat = await sbGetBatimentEtat(country, 'national', 'bne');
+  return etat.offres ? etat : { offres: {} };
+}
+
+async function sbSetEtatBNE(country, offres) {
+  return sbSetBatimentEtat(country, 'national', 'bne', { offres });
+}
+
 async function sbCreerPret(pret) {
   return await sbInsert('prets', pret);
 }

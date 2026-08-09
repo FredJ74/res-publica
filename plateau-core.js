@@ -463,6 +463,9 @@ function loadCharacter() {
             updateUI();
             restaurerPositionApresChargement(state.char);
             if (typeof enigme1VerifierDeclenchement === 'function') enigme1VerifierDeclenchement();
+            // Emploi BNE : pas de colonne dediee sur personnages (voir plateau-justice-economie.js),
+            // le cache local state.emploiBNE doit etre rafraichi explicitement depuis Supabase.
+            if (typeof rafraichirCacheEmploiBNE === 'function') rafraichirCacheEmploiBNE();
             console.log('Personnage synchronisé depuis Supabase:', char.name);
           }
         }).catch(() => {});

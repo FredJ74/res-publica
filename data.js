@@ -235,7 +235,11 @@ const WORLD = {
               imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-emploi-annexe-psm.png",
               desc: "L'antenne locale du Bureau National de l'Emploi de Républia. Offres d'emploi, accompagnement, formation.",
               persons: [],
-              orders: []
+              orders: [
+                {fn:'sinscrire_demandeur_emploi', label:"S'inscrire comme demandeur d'emploi", pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, desc:"Ouvre l'accès aux offres du Bureau National de l'Emploi."},
+                {fn:'consulter_offres_emploi', label:"Consulter les offres d'emploi", pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:'Offres locales, nationales et internationales disponibles.'},
+                {fn:'demissionner_emploi_bne', label:'Démissionner de mon emploi', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Effet immédiat, sans coût. Libère la place pour un autre demandeur.'}
+              ]
             }
           }
         },
@@ -4100,7 +4104,11 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200&q=80",
         desc: "Le hall d'accueil du Bureau National de l'Emploi. Offres d'emploi, accompagnement, formation, création d'activité.",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'sinscrire_demandeur_emploi', label:"S'inscrire comme demandeur d'emploi", pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, desc:"Ouvre l'accès aux offres du Bureau National de l'Emploi."},
+          {fn:'consulter_offres_emploi', label:"Consulter les offres d'emploi", pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:'Offres locales, nationales et internationales disponibles.'},
+          {fn:'demissionner_emploi_bne', label:'Démissionner de mon emploi', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Effet immédiat, sans coût. Libère la place pour un autre demandeur.'}
+        ]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -4127,7 +4135,11 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-national-emploi-luthecia.png",
         desc: "Le hall d'accueil du Bureau National de l'Emploi. Offres d'emploi, accompagnement, formation, création d'activité.",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'sinscrire_demandeur_emploi', label:"S'inscrire comme demandeur d'emploi", pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, desc:"Ouvre l'accès aux offres du Bureau National de l'Emploi."},
+          {fn:'consulter_offres_emploi', label:"Consulter les offres d'emploi", pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:'Offres locales, nationales et internationales disponibles.'},
+          {fn:'demissionner_emploi_bne', label:'Démissionner de mon emploi', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Effet immédiat, sans coût. Libère la place pour un autre demandeur.'}
+        ]
       },
       bureau_direction: {
         name: "Bureau de Direction",
@@ -5629,6 +5641,29 @@ const SALAIRES = {
   gouverneur:  1500,
   prefet:      900,
   default:     150  // Citoyen sans poste
+};
+
+// =====================
+// BUREAU NATIONAL DE L'EMPLOI (BNE) — catalogue des offres, 9 aout 2026
+// =====================
+// Contenu statique (comme PNJ_STATS_PAR_JOB) : le "qui occupe quelle offre" reel est stocke
+// dans Supabase, table generique batiments_etat, sous une seule entree partagee
+// (country + '_national_bne') plutot qu'une nouvelle table dediee (voir sbGetEtatBNE/
+// sbSetEtatBNE, supabase.js). Salaire verse comme un salaire de poste classique, a l'ordre
+// Dormir (voir calculerSalaireDormir, plateau-personnage.js). Incompatible avec un poste
+// politique (state.poste) — un seul des deux a la fois.
+// portee : 'locale' (restreinte a une ville, champ ville obligatoire), 'nationale' (visible
+// depuis n'importe quel Bureau de Republia), 'internationale' (visible aussi au Quartier des
+// Ambassades — pour l'instant juste une etiquette/du contenu jouable, pas de vraie mecanique
+// inter-empire derriere).
+const OFFRES_EMPLOI_BNE = {
+  serveur_luthecia:     { job:'serveur',    label:'Serveur — Hôtel Républica',                       portee:'locale',         ville:'capitale', salaire:200, places:2 },
+  docker_psm:           { job:'docker',     label:'Docker — Port Industriel de Port-Sainte-Marie',   portee:'locale',         ville:'ville_a',  salaire:220, places:2 },
+  hotelier_montrouge:   { job:'hotelier',   label:'Hôtelier — Hôtel du Mineur',                       portee:'locale',         ville:'ville_b',  salaire:250, places:1 },
+  secretaire_nationale: { job:'secretaire', label:'Secrétaire administratif (poste itinérant)',       portee:'nationale',      salaire:300, places:3 },
+  commercant_national:  { job:'commercant', label:'Commerçant itinérant',                             portee:'nationale',      salaire:220, places:3 },
+  banquier_national:    { job:'banquier',   label:'Conseiller bancaire',                              portee:'nationale',      salaire:450, places:1 },
+  hotesse_ambassade:    { job:'hotesse',    label:"Hôtesse d'accueil diplomatique",                   portee:'internationale', salaire:280, places:2 }
 };
 
 // Postes nommes (non electifs) avec regles de cumul strictes

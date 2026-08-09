@@ -1003,6 +1003,71 @@ async function verifierPostesVacantsEtAutoPourvoir() {
   return resultats;
 }
 
+// =====================
+// BUREAU NATIONAL DE L'EMPLOI — conflit poste politique + emploi BNE (9 aout 2026)
+// =====================
+// Detecte tout PJ ayant simultanement un poste politique (personnages.poste) ET un emploi BNE
+// actif (batiments_etat, id='<pays>_national_bne', voir sbGetEtatBNE cote client) — rendu
+// possible par les 3 systemes de postes paralleles et non synchronises entre eux (dette
+// technique notee le 9 aout 2026, JOURNAL-SESSION.md), qui ne verifient jamais l'incompatibilite
+// avec un emploi BNE. Envoie un mail d'arbitrage plutot que de trancher automatiquement (regle
+// demandee par Fred) — l'emploi BNE n'est PAS touche ici, il continue d'etre paye tant que
+// le joueur n'a pas explicitement demissionne (au Bureau, ou de son poste politique par les
+// canaux habituels).
+//
+// IMPORTANT : le reste de ce fichier envoie ses mails avec des noms de colonnes differents
+// (destinataire/expediteur/sujet/corps) de ceux relus par le client (to_player/from_player/
+// subject/body, voir sbGetMailsFor et l'affichage des mails non lus dans plateau-communication.js)
+// — tres probablement le meme genre de bug que celui corrige ce soir sur le cycle electoral
+// (votes_pj/votes_pnj). Pas corrige ici (hors perimetre BNE), mais le nouveau mail ci-dessous
+// utilise volontairement le VRAI schema (to_player/from_player/subject/body) pour ne pas
+// reproduire le probleme. A signaler/traiter separement.
+async function verifierConflitsEmploiBNE() {
+  const resultats = { notifies: [] };
+  try {
+    const idBNE = PAYS_CASCADE + '_national_bne';
+    const etatRows = await sbGet('batiments_etat', `id=eq.${encodeURIComponent(idBNE)}`);
+    if (!etatRows || !etatRows[0]) return resultats;
+    let etat;
+    try { etat = JSON.parse(etatRows[0].data); } catch(e) { return resultats; }
+    const offres = etat.offres || {};
+
+    const joueurs = await sbGet('personnages', `select=name,country,poste&country=eq.${PAYS_CASCADE}`) || [];
+
+    for (const [offreId, occupants] of Object.entries(offres)) {
+      for (const occ of (occupants || [])) {
+        if (occ.statut !== 'actif') continue;
+        const joueur = joueurs.find(j => j.name === occ.pjNom);
+        if (!joueur) continue;
+        let poste = joueur.poste;
+        if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
+        if (!poste?.id) continue; // pas de poste politique, pas de conflit
+
+        // Deja notifie et pas encore traite (mail non archive avec ce sujet) : ne pas renvoyer chaque nuit
+        const dejaNotifie = await sbGet('mails', `to_player=eq.${encodeURIComponent(occ.pjNom)}&subject=eq.${encodeURIComponent('Poste politique et emploi BNE en même temps')}&archived=eq.false`);
+        if (dejaNotifie && dejaNotifie.length > 0) continue;
+
+        const corps = 'Vous occupez à la fois le poste politique de <strong>' + (poste.name || poste.id) + '</strong> et un emploi du Bureau National de l\'Emploi (' + offreId + '). Les deux sont incompatibles.<br><br>' +
+          'Si vous conservez votre poste politique : rendez-vous au Bureau National de l\'Emploi pour démissionner de votre emploi BNE (immédiat, gratuit).<br>' +
+          'Si vous préférez garder l\'emploi BNE : démissionnez de votre poste politique par les moyens habituels. Votre emploi BNE reste actif et payé en attendant votre décision.';
+
+        await sbInsert('mails', {
+          id: 'mail-bne-conflit-' + Date.now() + '-' + occ.pjNom,
+          to_player: occ.pjNom,
+          from_player: 'Bureau National de l\'Emploi',
+          subject: 'Poste politique et emploi BNE en même temps',
+          body: corps,
+          time: new Date().toLocaleDateString('fr-FR'),
+          read: false,
+          archived: false
+        }).catch(() => {});
+        resultats.notifies.push({ pjNom: occ.pjNom, poste: poste.id, offre: offreId });
+      }
+    }
+  } catch(e) { console.error('verifierConflitsEmploiBNE error', e); }
+  return resultats;
+}
+
 export default async function handler(req, res) {
   // Sécurité minimale : autoriser uniquement les appels Vercel Cron ou avec un secret
   const authHeader = req.headers['authorization'];
@@ -1135,7 +1200,10 @@ export default async function handler(req, res) {
     // 13. Production quotidienne des transformateurs (mode PNJ), redistribution 60/40
     const production = await produireTransformateursQuotidien();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production });
+    // 14. Conflits poste politique + emploi BNE (mail d'arbitrage, rien n'est tranche automatiquement)
+    const conflitsBNE = await verifierConflitsEmploiBNE();
+
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

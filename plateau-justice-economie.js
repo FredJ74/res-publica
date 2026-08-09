@@ -4857,3 +4857,213 @@ async function validerImpotNational(pays) {
   addJournalEntry('Taux d\'imposition national fixé à ' + nouveauTaux + '% par le Ministre des Finances.', 'event-info');
   addExternalEvent('FINANCES : Le taux d\'imposition national est fixé à ' + nouveauTaux + '%.');
 }
+
+// =====================
+// BUREAU NATIONAL DE L'EMPLOI (BNE) — 9 aout 2026
+// =====================
+// Donne un revenu regulier a un PJ sans poste politique. Incompatible avec state.poste
+// (verifie a la postulation) — un vrai poste politique prime toujours. L'occupation reelle
+// des offres (OFFRES_EMPLOI_BNE, data.js) vit dans Supabase via sbGetEtatBNE/sbSetEtatBNE
+// (supabase.js), pas dans un nouveau champ sur la table personnages (aucune colonne
+// supplementaire possible avec la cle anon) : state.emploiBNE n'est qu'un cache local,
+// rafraichi au chargement du personnage (plateau-core.js) et apres chaque action BNE.
+//
+// Regle de conflit (demandee par Fred le 9 aout 2026) : une situation deja active (emploi
+// BNE OU poste politique) n'est jamais ecrasee automatiquement par une nouvelle candidature.
+// - Postuler alors qu'on tient deja un AUTRE emploi BNE : la nouvelle offre est reservee en
+//   'en_attente_arbitrage' (comptee dans les places, invisible aux autres), un mail part avec
+//   les deux choix, l'emploi actuel reste actif tant que le joueur n'a pas tranche.
+// - Obtenir un poste politique en gardant un emploi BNE actif : detecte par le cron nocturne
+//   (verifierConflitsEmploiBNE, api/cron-minuit.js), meme mail, meme mecanique de tranchage
+//   (trancherEmploiBNE), cote poste politique celui-ci n'est jamais touche automatiquement.
+
+function trouverEmploiActuelBNE(offresBlob, pjNom) {
+  for (const [offreId, occupants] of Object.entries(offresBlob || {})) {
+    const entry = (occupants || []).find(o => o.pjNom === pjNom && o.statut === 'actif');
+    if (entry) return { offreId, entry };
+  }
+  return null;
+}
+
+function trouverReservationEnAttenteBNE(offresBlob, pjNom) {
+  for (const [offreId, occupants] of Object.entries(offresBlob || {})) {
+    const entry = (occupants || []).find(o => o.pjNom === pjNom && o.statut === 'en_attente_arbitrage');
+    if (entry) return { offreId, entry };
+  }
+  return null;
+}
+
+function compterPlacesPrisesBNE(offresBlob, offreId) {
+  return ((offresBlob || {})[offreId] || []).length;
+}
+
+// Rafraichit le cache local state.emploiBNE depuis Supabase — appelee au chargement du
+// personnage (plateau-core.js) et apres chaque action BNE, jamais suppose fiable seul.
+async function rafraichirCacheEmploiBNE() {
+  if (!state.char?.name || typeof sbGetEtatBNE !== 'function') return;
+  try {
+    const etat = await sbGetEtatBNE(state.country);
+    const actuel = trouverEmploiActuelBNE(etat.offres, state.char.name);
+    state.emploiBNE = actuel ? { offreId: actuel.offreId } : null;
+  } catch(e) {}
+}
+
+function doInscrireDemandeurEmploi() {
+  state.demandeurEmploi = true;
+  showToast('Inscription enregistrée', 'Vous êtes désormais demandeur d\'emploi. Consultez les offres disponibles.', true);
+  addJournalEntry('Inscription comme demandeur d\'emploi au Bureau National de l\'Emploi.', 'event-info');
+}
+
+async function ouvrirOffresEmploiBNE() {
+  if (!state.demandeurEmploi) {
+    showToast('Inscription requise', 'Inscrivez-vous comme demandeur d\'emploi avant de consulter les offres.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = "Offres d'emploi — Bureau National de l'Emploi";
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Chargement des offres...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const etat = await sbGetEtatBNE(state.country);
+  const villeCourante = state.currentCity || 'capitale';
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const pjNom = state.char?.name;
+  const emploiActuel = trouverEmploiActuelBNE(etat.offres, pjNom);
+  const reservationEnAttente = trouverReservationEnAttenteBNE(etat.offres, pjNom);
+
+  const offresVisibles = Object.entries(OFFRES_EMPLOI_BNE).filter(([, o]) =>
+    o.portee !== 'locale' || o.ville === villeCourante
+  );
+
+  const portéeLabel = { locale: 'Locale', nationale: 'Nationale', internationale: 'Internationale' };
+
+  let html = '<div style="padding:1rem">';
+  if (reservationEnAttente) {
+    html += '<div style="font-size:.78rem;color:#c08a3a;font-style:italic;margin-bottom:.8rem;border:1px solid #6a4a1a;padding:.5rem">Une candidature est en attente d\'arbitrage — consultez votre messagerie pour trancher avant d\'en déposer une nouvelle.</div>';
+  }
+  html += offresVisibles.map(([offreId, o]) => {
+    const placesPrises = compterPlacesPrisesBNE(etat.offres, offreId);
+    const complet = placesPrises >= o.places;
+    const estMonEmploi = emploiActuel?.offreId === offreId;
+    let bouton;
+    if (estMonEmploi) {
+      bouton = '<span style="font-size:.7rem;color:#4a8a4a">Votre emploi actuel</span>';
+    } else if (reservationEnAttente) {
+      bouton = '<span style="font-size:.7rem;color:#5a5040">Candidature en attente</span>';
+    } else if (complet) {
+      bouton = '<span style="font-size:.7rem;color:#5a5040">Complet</span>';
+    } else {
+      bouton = '<button onclick="postulerOffreEmploiBNE(\'' + offreId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Postuler</button>';
+    }
+    return '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center">' +
+      '<div>' +
+        '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + o.label + '</div>' +
+        '<div style="font-size:.68rem;color:#6a5a30;margin-top:.15rem">' + portéeLabel[o.portee] + ' · ' + o.salaire.toLocaleString('fr-FR') + ' ' + cur + '/jour · ' + placesPrises + '/' + o.places + ' places prises</div>' +
+      '</div>' + bouton +
+    '</div>';
+  }).join('');
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function postulerOffreEmploiBNE(offreId) {
+  const offre = OFFRES_EMPLOI_BNE[offreId];
+  if (!offre) return;
+  if (state.poste) {
+    showToast('Poste politique en cours', 'Vous occupez déjà un poste politique, incompatible avec un emploi du BNE.', false);
+    return;
+  }
+  const pjNom = state.char?.name;
+  const etat = await sbGetEtatBNE(state.country);
+  const reservationEnAttente = trouverReservationEnAttenteBNE(etat.offres, pjNom);
+  if (reservationEnAttente) {
+    showToast('Candidature en attente', 'Tranchez d\'abord la candidature en attente reçue par mail.', false);
+    return;
+  }
+  const placesPrises = compterPlacesPrisesBNE(etat.offres, offreId);
+  if (placesPrises >= offre.places) {
+    showToast('Poste complet', 'Il n\'y a plus de place disponible pour cette offre.', false);
+    return;
+  }
+
+  const emploiActuel = trouverEmploiActuelBNE(etat.offres, pjNom);
+  const offres = { ...etat.offres };
+
+  if (!emploiActuel) {
+    // Aucune situation en cours : prise immediate
+    offres[offreId] = [...(offres[offreId] || []), { pjNom, statut: 'actif' }];
+    await sbSetEtatBNE(state.country, offres);
+    state.emploiBNE = { offreId };
+    document.getElementById('modal-postes')?.classList.remove('open');
+    showToast('Poste obtenu !', 'Vous occupez désormais : ' + offre.label + '. Salaire versé chaque jour à l\'ordre Dormir.', true, true);
+    addJournalEntry('Poste obtenu au Bureau National de l\'Emploi : ' + offre.label + '.', 'event-good');
+    return;
+  }
+
+  // Situation deja en cours (autre emploi BNE) : reservation + mail d'arbitrage, rien n'est ecrase
+  const ancienneOffre = OFFRES_EMPLOI_BNE[emploiActuel.offreId];
+  offres[offreId] = [...(offres[offreId] || []), { pjNom, statut: 'en_attente_arbitrage' }];
+  await sbSetEtatBNE(state.country, offres);
+
+  const corps = 'Vous occupez déjà le poste de <strong>' + (ancienneOffre?.label || emploiActuel.offreId) + '</strong> et avez postulé pour <strong>' + offre.label + '</strong>.<br><br>' +
+    'Votre poste actuel reste actif tant que vous n\'avez pas tranché. La nouvelle offre vous est réservée en attendant votre réponse.<br><br>' +
+    '<button onclick="trancherEmploiBNE(true,\'' + emploiActuel.offreId + '\',\'' + offreId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #6a5a30;background:transparent;color:#c0b090;cursor:pointer;margin-right:.5rem">Garder mon poste actuel</button>' +
+    '<button onclick="trancherEmploiBNE(false,\'' + emploiActuel.offreId + '\',\'' + offreId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Prendre le nouveau poste</button>';
+
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2, '0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    await sbSendMail('Bureau National de l\'Emploi', pjNom, 'Deux postes en même temps ?', corps, time).catch(() => {});
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Candidature enregistrée', 'Vous occupez déjà un poste — consultez votre messagerie pour trancher.', true);
+  addJournalEntry('Candidature déposée pour ' + offre.label + ', en attente d\'arbitrage (poste actuel conservé).', 'event-info');
+}
+
+// Appelee depuis les 2 boutons du mail d'arbitrage (postulerOffreEmploiBNE et
+// verifierConflitsEmploiBNE cote cron envoient le meme format de mail).
+async function trancherEmploiBNE(garderActuel, ancienOffreId, nouvelOffreId) {
+  const pjNom = state.char?.name;
+  const etat = await sbGetEtatBNE(state.country);
+  const offres = { ...etat.offres };
+
+  if (garderActuel) {
+    // Libere juste la reservation en attente sur la nouvelle offre
+    offres[nouvelOffreId] = (offres[nouvelOffreId] || []).filter(o => !(o.pjNom === pjNom && o.statut === 'en_attente_arbitrage'));
+    await sbSetEtatBNE(state.country, offres);
+    state.emploiBNE = ancienOffreId ? { offreId: ancienOffreId } : null;
+    showToast('Poste conservé', 'Vous gardez votre poste actuel.', true);
+    addJournalEntry('Arbitrage BNE : poste actuel conservé.', 'event-info');
+  } else {
+    // Retire l'ancien poste (si emploi BNE), confirme le nouveau
+    if (ancienOffreId && OFFRES_EMPLOI_BNE[ancienOffreId]) {
+      offres[ancienOffreId] = (offres[ancienOffreId] || []).filter(o => !(o.pjNom === pjNom && o.statut === 'actif'));
+    }
+    offres[nouvelOffreId] = (offres[nouvelOffreId] || []).map(o =>
+      (o.pjNom === pjNom && o.statut === 'en_attente_arbitrage') ? { ...o, statut: 'actif' } : o
+    );
+    await sbSetEtatBNE(state.country, offres);
+    state.emploiBNE = { offreId: nouvelOffreId };
+    const offre = OFFRES_EMPLOI_BNE[nouvelOffreId];
+    showToast('Nouveau poste confirmé', 'Vous occupez désormais : ' + (offre?.label || nouvelOffreId) + '.', true, true);
+    addJournalEntry('Arbitrage BNE : nouveau poste confirmé (' + (offre?.label || nouvelOffreId) + ').', 'event-good');
+  }
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  updateUI();
+}
+
+async function demissionnerEmploiBNE() {
+  const pjNom = state.char?.name;
+  const etat = await sbGetEtatBNE(state.country);
+  const emploiActuel = trouverEmploiActuelBNE(etat.offres, pjNom);
+  if (!emploiActuel) {
+    showToast('Aucun emploi', 'Vous n\'occupez actuellement aucun poste du BNE.', false);
+    return;
+  }
+  const offres = { ...etat.offres };
+  offres[emploiActuel.offreId] = (offres[emploiActuel.offreId] || []).filter(o => !(o.pjNom === pjNom && o.statut === 'actif'));
+  await sbSetEtatBNE(state.country, offres);
+  state.emploiBNE = null;
+  const offre = OFFRES_EMPLOI_BNE[emploiActuel.offreId];
+  showToast('Démission effective', 'Vous ne travaillez plus comme ' + (offre?.label || emploiActuel.offreId) + '.', true);
+  addJournalEntry('Démission du poste : ' + (offre?.label || emploiActuel.offreId) + '.', 'event-info');
+}
