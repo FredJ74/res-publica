@@ -3753,7 +3753,7 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/place-formulaire-liberte.png",
         desc: "Une vaste place pavee, encore silencieuse. Ce lieu est prevu pour accueillir de futurs rassemblements.",
         persons: [
-          {name:'Pat Hounette', role:'Dealer', rel:'neutral', job:'criminel'}
+          {name:'Pat Hounette', role:'Dealer', rel:'neutral', job:'criminel', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/pat-hounette.png', photoPos:'45% 30%'}
         ],
         orders: []
       }
