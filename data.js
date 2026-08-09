@@ -1313,7 +1313,7 @@ const BUILDINGS = {
         name: "Salle de Presse",
         imageBg: "linear-gradient(135deg,#0f0f18,#181820)",
         desc: "La salle de presse presidentielle. Les journalistes accredites y attendent les declarations.",
-        imageUrl: "https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-presse-palais-presidentiel-luthecia.png",
         persons: [
           {name:'Porte-parole presidentiel (PNJ)', role:'PNJ - Porte-parole de la presidence', rel:'neutral', job:'porteparole', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/porte-parole-presidentiel.png', photoPos:'50% 15%'}
         ],
@@ -1435,7 +1435,7 @@ const BUILDINGS = {
         name: "Bureau - Ministre des Finances",
         imageBg: "linear-gradient(135deg,#0a0f08,#101508)",
         desc: "Le bureau du Ministre des Finances. Fiscalite, budget, politique economique.",
-        imageUrl: "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-ministre-finances-luthecia.png",
         requiresPostId: 'min_fin',
         persons: [{name:'Le Ministre des Finances (PNJ)', role:'PNJ - Ministre des Finances', rel:'neutral', job:'min_fin'}],
         orders: [
@@ -1449,7 +1449,7 @@ const BUILDINGS = {
         name: "Bureau - Ministre de la Justice",
         imageBg: "linear-gradient(135deg,#0a0808,#140f08)",
         desc: "Le bureau du Ministre de la Justice. Magistrature, poursuites, grace presidentielle.",
-        imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-ministre-justice-luthecia.png",
         requiresPostId: 'min_just',
         persons: [{name:'Le Ministre de la Justice (PNJ)', role:'PNJ - Ministre de la Justice', rel:'neutral', job:'min_just'}],
         orders: [
@@ -2048,7 +2048,7 @@ const BUILDINGS = {
         image: "📰",
         imageBg: "linear-gradient(135deg,#100808,#1c0c0c)",
         desc: "La redaction en ebullition permanente. Telephones, claviers, tension.",
-        imageUrl: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-redaction-autruche-entravee.png",
         persons: [
           {name:'Romain Castel', role:'PNJ - Redacteur en chef', rel:'neutral', job:'redacteur'},
           {name:'Marie Leblanc', role:'Journaliste d\'investigation', rel:'enemy', job:'journaliste'}
@@ -3517,6 +3517,7 @@ const BUILDINGS = {
         name: "Salle des Personnalités Luthéciennes",
         imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
         desc: "Les figures les plus populaires et aimees de la ville, toutes generations confondues. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-personnalites.png",
         persons: [],
         orders: []
       },
@@ -3524,6 +3525,7 @@ const BUILDINGS = {
         name: "Salle des Grands Entrepreneurs",
         imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
         desc: "Les batisseurs economiques de Luthecia, du petit commerce a l'empire industriel. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-entrepreneurs.png",
         persons: [],
         orders: []
       },
@@ -3531,6 +3533,7 @@ const BUILDINGS = {
         name: "Salle des Organisations",
         imageBg: "linear-gradient(135deg,#0e1418,#141c22)",
         desc: "Clubs, syndicats et organisations locales : leurs plus grands representants, toutes disciplines confondues. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-organisations.png",
         persons: [],
         orders: []
       },
@@ -3690,6 +3693,7 @@ const BUILDINGS = {
         name: "Salle des Grandes Villes de Republia",
         imageBg: "linear-gradient(135deg,#181410,#241c14)",
         desc: "Les maires des differentes villes du pays entrent en competition pour la reconnaissance nationale de leur cite. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-national-salle-grandes-villes.png",
         persons: [],
         orders: []
       },
@@ -3904,7 +3908,7 @@ const BUILDINGS = {
         name: "Nef des Formulaires",
         imageBg: "linear-gradient(135deg,#0a0808,#150f0a)",
         desc: "La grande nef où les fidèles remplissent leurs actes de foi administratifs. Des piles de formulaires s'élèvent jusqu'au plafond.",
-        imageUrl: "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tabernacle-impots-nef-formulaires.png",
         persons: [
           {name:'Percepteur Suprême Adolphe Taxe (PNJ)', role:'Grand Prêtre du Papyrusisme', rel:'neutral', job:'grand_pretre'},
           {name:'Enfant de chœur Lacroix (PNJ)', role:'PNJ - Distributeur de formulaires', rel:'neutral', job:'clerc'}
@@ -4308,9 +4312,8 @@ const BUILDINGS = {
       hall_gare: {
         name: "Hall Principal",
         imageBg: "linear-gradient(135deg,#08090f,#101520)",
-        imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/centre-multinodal-republic.png',
         desc: "Le hall principal. Gaston Retard annonce comme chaque matin un retard indéterminé sur la ligne Nord. Mireille Guichet sourit sans savoir.",
-        imageUrl: "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-multimodal-luthecia.png",
         persons: [
           {name:'Gaston Retard (PNJ)', role:'Chef de gare', rel:'neutral', job:'chef_gare'},
           {name:'Mireille Guichet (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse'}
@@ -4327,7 +4330,7 @@ const BUILDINGS = {
         name: "Hall des Douanes",
         imageBg: "linear-gradient(135deg,#08090f,#101215)",
         desc: "Le contrôle douanier. Obligatoire avant tout vol international. L\'Inspecteur Prosper Tampon veille avec son tampon béni.",
-        imageUrl: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-douanes-luthecia.png",
         persons: [
           {name:'Inspecteur Prosper Tampon (PNJ)', role:'Inspecteur des douanes', rel:'neutral', job:'douanier'}
         ],
@@ -4340,7 +4343,7 @@ const BUILDINGS = {
         name: "Zone d\'Embarquement",
         imageBg: "linear-gradient(135deg,#05080f,#080c18)",
         desc: "La zone d\'embarquement internationale. Accès réservé aux voyageurs ayant passé les douanes.",
-        imageUrl: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-embarquement-luthecia.png",
         locked: false,
         requiresDouane: true,
         persons: [],
