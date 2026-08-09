@@ -1832,7 +1832,7 @@ const BUILDINGS = {
         desc: "L'accueil de la banque nationale. Propre, froid, officiel.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/banque-nationale-accueil.png",
         persons: [
-          {name:'Laurent Barre', role:"PNJ - Directeur d'agence", rel:'neutral', job:'directeur'}
+          {name:'Laurent Barre', role:"PNJ - Directeur d'agence", rel:'neutral', job:'directeur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/laurent-barre.png', photoPos:'65% 30%'}
         ],
         orders: [
           {fn:'gerer_finances', label:'Gerer mon compte',    pa:0, cost:0,    type:'legal', icon:'ti-chart-bar',   successRate:100, desc:'Deposer ou retirer de l\'argent. Voir son solde.'},
@@ -4129,7 +4129,9 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-national-emploi-luthecia.png",
         desc: "Le hall d'accueil du Bureau National de l'Emploi. Offres d'emploi, accompagnement, formation, création d'activité.",
-        persons: [],
+        persons: [
+          {name:'Jean-Lou Zeure', role:'Ancien Maire de Luthécia', rel:'neutral', job:'citoyen', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-lou-zeure.png', photoPos:'63% 30%'}
+        ],
         orders: [
           {fn:'sinscrire_demandeur_emploi', label:"S'inscrire comme demandeur d'emploi", pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, desc:"Ouvre l'accès aux offres du Bureau National de l'Emploi."},
           {fn:'consulter_offres_emploi', label:"Consulter les offres d'emploi", pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:'Offres locales, nationales et internationales disponibles.'},
