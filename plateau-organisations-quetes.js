@@ -1567,18 +1567,45 @@ function sauvegarderPersonnageImmediat() {
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 }
 
-// Renvoie la valeur EFFECTIVE d'une caracteristique, en tenant compte d'un eventuel bonus
-// de formation temporaire (voir doSeFormer). A utiliser partout ou une stat compte (CHA
-// pour se defendre, etc.) au lieu de lire state.char.stats directement.
+// Moyenne de groupe (9 aout 2026) : valeurs disponibles pour <stat> parmi le joueur + ses
+// employes actuellement inGroupe (meme perimetre que rejoindreJeremy/quitterJeremy/
+// organiser_blocus, PAS state.group.members qui est un mecanisme distinct pour rejoindre
+// le groupe d'un AUTRE joueur/PNJ). Un employe sans valeur pour cette stat precise (les PNJ
+// n'ont que FOR/CHA/DUP/INT via PNJ_STATS_PAR_JOB, jamais VOL/ENT, sauf override explicite
+// comme le PER d'un informateur fixe a son recrutement) est simplement absent du tableau -
+// ni compte ni traite comme 0, pour ne pas fausser la moyenne vers le bas artificiellement.
+function getMembresGroupeAvecStat(stat) {
+  const valeurs = [];
+  const valeurJoueur = state.char?.stats?.[stat];
+  if (valeurJoueur !== undefined && valeurJoueur !== null) valeurs.push(valeurJoueur);
+  (typeof getEmployes === 'function' ? getEmployes() : (state.employes || []))
+    .filter(e => e.inGroupe)
+    .forEach(e => {
+      const v = e.stats?.[stat] ?? (typeof PNJ_STATS_PAR_JOB !== 'undefined' ? PNJ_STATS_PAR_JOB[e.job]?.[stat] : undefined);
+      if (v !== undefined && v !== null) valeurs.push(v);
+    });
+  return valeurs;
+}
+
+// Renvoie la valeur EFFECTIVE d'une caracteristique, en tenant compte de la moyenne de
+// groupe (9 aout 2026 : remplace la simple valeur du joueur - un groupe bien compose peut
+// faire monter le taux de reussite d'un ordre, un groupe mal compose peut le faire baisser),
+// puis d'un eventuel bonus de formation temporaire (voir doSeFormer) et de l'affaiblissement
+// lie aux HP. A utiliser partout ou une stat compte (CHA pour se defendre, etc.) au lieu de
+// lire state.char.stats directement. Retrocompatible : joueur seul (aucun employe inGroupe)
+// -> moyenne d'un seul element = sa propre valeur, comportement strictement identique a avant.
 function getStatEffective(stat) {
-  const base = state.char?.stats?.[stat] ?? 8;
+  const valeursGroupe = getMembresGroupeAvecStat(stat);
+  const base = valeursGroupe.length > 0
+    ? valeursGroupe.reduce((s, v) => s + v, 0) / valeursGroupe.length
+    : (state.char?.stats?.[stat] ?? 8);
   const bonus = (state.char?.bonusFormation?.stat === stat) ? (state.char.bonusFormation.valeur || 0) : 0;
   const valeurNormale = base + bonus;
   if (state.statsAffaiblies && state.statsAffaiblies[stat] !== undefined) {
     const fraction = Math.max(0, Math.min(1, (state.hp || 0) / 100));
     return Math.max(1, Math.round(valeurNormale * fraction));
   }
-  return valeurNormale;
+  return Math.round(valeurNormale);
 }
 
 // SUIVRE UNE FORMATION (Universite, amphi) — bonus TEMPORAIRE (+2, jusqu'au prochain sommeil),

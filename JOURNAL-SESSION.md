@@ -1,8 +1,8 @@
 # Journal de session — Res Publica (9 août 2026)
 
 ## État du dépôt
-- Toutes les modifications ont été committées et poussées sur `main` (19 commits).
-- Session close à 3h du matin (quelques petits ajouts après la clôture initiale : vérification Jean-Lou Zeure, portraits des 3 référents, mise à jour de l'image d'accueil du BNE Luthécia) — reprise prévue avec le résumé de fin de journal ci-dessous.
+- Toutes les modifications ont été committées et poussées sur `main`.
+- Session reprise après la clôture de 3h : chantier de la mécanique "moyenne de groupe" en cours (voir section dédiée plus bas), avant de finaliser les 3 mini-missions de la quête carrière.
 
 ---
 
@@ -95,6 +95,7 @@ Extension de la quête d'accueil : après le tour actuel, Jérémy demande au jo
 9. **Bug probable, pas corrigé** : dans `api/cron-minuit.js`, plusieurs envois de mail existants (relances de chantier impayé, avertissements de prêt...) utilisent des noms de colonnes (`destinataire`/`expediteur`/`sujet`/`corps`) différents de ceux relus par le client (`to_player`/`from_player`/`subject`/`body`, voir `sbGetMailsFor`/`plateau-communication.js`). Vraisemblablement le même type de bug que celui du cycle électoral corrigé le 9 août (`votes_pj`/`votes_pnj`) — ces mails ne doivent jamais arriver dans la boîte de réception des joueurs concernés.
 10. **Bug `buildingContext` vestige, corrigé seulement pour `banque-nationale`** : `WORLD.<pays>.<ville>.buildingContext[<batimentId>].persons` écrase silencieusement le vrai contenu de la première salle d'un bâtiment (`plateau-navigation.js:565` + minimap `:91`), avec des noms de `PNJ_PERSONALITIES` jamais nettoyés après l'ajout des vraies salles/PNJ dans `BUILDINGS`. Repéré aussi sur `banque-privee` (Hans Von Discret masque M. Fischer) — probablement `commissariat`/`tribunal` aussi (même bloc). À auditer entièrement (tous pays/villes) plutôt que de corriger bâtiment par bâtiment au fil des demandes de Fred.
 11. **Images "disparues" signalées par Fred en toute fin de session** : un seul cas concret vérifié ce soir (accueil du BNE Luthécia, pas une régression — voir section BNE ci-dessus). Fred a parlé de **plusieurs** images au pluriel ; je n'ai vérifié que celle-là. À vérifier plus largement à la prochaine session si d'autres images manquent encore à l'affichage — probablement le même schéma récurrent de toute la soirée (fichier référencé dans le code mais jamais réellement commité), pas un nouveau bug.
+12. **Bug `getGroupSize()` repéré en construisant la mécanique de moyenne de groupe, pas corrigé** : cette fonction (`plateau-multijoueur.js:1343`) lit `state.employees` (avec un "s", au pluriel) comme repli quand `state.group` n'est pas défini — un champ qui n'est **jamais rempli nulle part** dans le code (seul `state.employes`, sans "s", existe réellement). Conséquence : `organiser_blocus` (et tout ce qui utiliserait `getGroupSize()`) ne compte quasiment jamais les employés recrutés dans la taille du groupe, seulement le joueur seul. Adjacent au chantier "moyenne de groupe" de ce soir mais volontairement pas touché — à traiter séparément.
 
 ---
 
