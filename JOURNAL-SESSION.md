@@ -1,7 +1,7 @@
 # Journal de session — Res Publica (9 août 2026)
 
 ## État du dépôt
-- Toutes les modifications ont été committées et poussées sur `main` (2 commits).
+- Toutes les modifications ont été committées et poussées sur `main` (12 commits).
 
 ---
 
@@ -31,13 +31,39 @@
 
 ---
 
+## 🧭 Fix navigation PSM (Pôle Tabac/Entrepôt + carrefour Scierie/Artisanal)
+- 3 rounds successifs, corrigés au fur et à mesure des retours de test en jeu réel :
+  1. Image manquante sur `psm-pole-tabac-entrepot` (fichier jamais commité) + `flechesStyle` ajouté après inspection de l'image réelle.
+  2. Retour arrière de `psm-carrefour-artisanal-scierie` d'abord "corrigé" via `liensParArrivee` — ne se déclenchait quasiment jamais en jeu (voir cause racine ci-dessous).
+  3. **Cause racine trouvée et corrigée** : `rueCentraleDepuisNoeud` (la provenance, nécessaire à `imagesParArrivee`/`zonesParArrivee`/`liensParArrivee`) était perdue à **chaque sortie de bâtiment** (`showVueRue()` → `initialiserRueCentrale()` ne la transmettait jamais). Corrigé à la racine en propageant la provenance de bout en bout (`memoriserNoeudRueCentrale`/`obtenirNoeudRueCentraleMemorise` stockent désormais `{noeudId, depuisNoeudId}`). Bénéfice général au-delà de PSM : `psm-carrefour-musee` (3 bâtiments, 4 vues différentes selon provenance) et `psm-eglise-cimetiere` en profitent aussi. Rétrocompatible avec les anciennes sauvegardes localStorage.
+
+---
+
+## 🗳️ Bug électoral corrigé : le cas Arnie/Gaston Intérim expliqué
+- Investigation demandée par Fred (candidature Arnie à la présidentielle, remplacée par le PNJ "Gaston Intérim faute de candidat"). Données Supabase réelles retrouvées : Arnie était bien seul candidat, élu à l'unanimité (3/3 votes PNJ), mais `eluId` n'a jamais été renseigné.
+- **Cause racine, différente du fix d'hier sur `cycle.phase`** : `calculerResultatsServer` (`api/cron-minuit.js`) lisait `cycle.votes_pj`/`cycle.votes_pnj` — des champs qui n'existent nulle part ailleurs dans le jeu (toujours `undefined`). Résultat : `totalVoix` valait systématiquement 0, donc **aucune élection traitée par le cron n'a jamais pu déclarer d'élu**, quel que soit le nombre réel de votes. Corrigé pour lire les vrais champs `cycle.votes`/`cycle.votesPNJ`.
+- Rejoué contre les vraies données Arnie après correctif (en Python, hors jeu) : élection bien déclarée à l'unanimité. **Ne réécrit pas rétroactivement l'historique Supabase** — Arnie reste non-élu dans l'archive, seules les prochaines élections sont concernées.
+
+---
+
+## 💼 Bureau National de l'Emploi (BNE) — nouveau, complet ce soir
+- Revenu régulier pour un PJ sans poste politique : inscription volontaire → consultation d'offres → candidature, sur les 3 guichets existants (Luthécia, Montrouge, annexe PSM dans le Centre d'Affaires — trouvée par Fred, pas créée ce soir).
+- **Catalogue** `OFFRES_EMPLOI_BNE` (`data.js`) : 7 offres de départ, jobs repris de `PNJ_STATS_PAR_JOB` (serveur, docker, hôtelier, secrétaire, commerçant, banquier, hôtesse), 3 portées (locale par ville / nationale / internationale — cette dernière juste étiquetée pour l'instant, pas de vraie mécanique inter-empire), salaire 200-450 FR/jour selon le poste (au-dessus du plancher universel de 150 FR/jour, en dessous des salaires politiques).
+- **Pas de nouvelle table Supabase** (impossible en DDL avec la clé anon) : réutilise la table générique `batiments_etat` déjà existante, une seule entrée partagée par pays. `state.emploiBNE` n'est qu'un cache local, rafraîchi au chargement du personnage et après chaque action.
+- **Règle de conflit** (demandée par Fred) : aucune situation active n'est jamais écrasée automatiquement. Postuler en ayant déjà un emploi BNE réserve la nouvelle offre et envoie un mail d'arbitrage (garder / prendre le nouveau) au lieu de trancher. Obtenir un poste politique en gardant un emploi BNE (possible via les 3 systèmes de postes parallèles, voir dette technique) est détecté par un nouveau passage du cron nocturne (`verifierConflitsEmploiBNE`), même mécanique de mail, rien n'est jamais tranché automatiquement.
+- Incompatible avec un poste politique (vérifié à la candidature). Démission immédiate et gratuite.
+- **Bug distinct repéré au passage** (voir chantiers en attente ci-dessous) : plusieurs mails envoyés par le cron utilisent probablement les mauvais noms de colonnes.
+
+---
+
 ## 📝 Chantiers en attente (mis à jour)
 1. **Grand audit Ordres, prévu la semaine prochaine** — portée précisée ce soir : vérifier un par un les **318 handlers dédiés** non couverts par la vérification de ce soir (confirmer que chacun applique bien un effet cohérent avec sa description), plus élucider le cas `construire_sur_terrain` (flux de démarrage de chantier non identifié).
 2. **Audit PNJ** — prévu avant la bêta, pas encore fait (état des ~18 points d'appel IA hors périmètre de la fondation `PNJ_PROFILS` posée le 8 août).
 3. **Tâche optionnelle** : décrets automatiques du PNJ Président (à décider si prioritaire).
 4. **Tableau Excel PNJ** à mettre à jour avec les nouveaux PNJ créés le 8 août (cascade de nomination automatique, postes de Directeur usine/entrepôt).
 5. **Dette technique repérée le 9 août** : 3 systèmes de postes parallèles et non synchronisés — `POSTES` (structure statique, `data.js`, holders codés en dur, couvre Président/PM/Ministères/Députés/Maires), `POSTES_ELECTIFS`/`cycles_electoraux` (élections), et `POSTES_NOMMES_EXCLUSIFS`/`titulaires_pnj` (nominations : juge, commissaire, directeurs). Comportements parfois contradictoires — ex : le bouton "Postuler à un poste" (`postulerPoste`, Palais du Gouvernement) **bloque aujourd'hui** une candidature PJ à un ministère quand le PM est un PNJ générique (`getTitulairePoste` ne connaît que les vrais PJ, pas `titulaires_pnj`), à l'inverse de la règle de priorité PJ qu'on veut construire pour les postes nommés. À traiter plus tard, pas urgent.
-6. **Idée backlog (session future)** : annonces d'emploi **entre joueurs**, notamment pour des jobs illégaux (ex: un PJ recrute un autre PJ pour un coup précis), en complément du Bureau National de l'Emploi (offres officielles/légales, en cours de conception le 9 août). Pas pour cette session.
+6. **Idée backlog (session future)** : annonces d'emploi **entre joueurs**, notamment pour des jobs illégaux (ex: un PJ recrute un autre PJ pour un coup précis), en complément du Bureau National de l'Emploi (offres officielles/légales, codé le 9 août — voir plus bas).
+7. **Bug probable repéré le 9 août, pas corrigé** : dans `api/cron-minuit.js`, plusieurs envois de mail existants (relances de chantier impayé, avertissements de prêt...) utilisent des noms de colonnes (`destinataire`/`expediteur`/`sujet`/`corps`) différents de ceux relus par le client (`to_player`/`from_player`/`subject`/`body`, voir `sbGetMailsFor`/`plateau-communication.js`). Vraisemblablement le même type de bug que celui du cycle électoral corrigé ce soir (`votes_pj`/`votes_pnj`) — ces mails ne doivent jamais arriver dans la boîte de réception des joueurs concernés. À vérifier et corriger, candidat naturel pour le grand audit Ordres.
 
 ---
 
