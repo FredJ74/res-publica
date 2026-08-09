@@ -68,9 +68,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'acheter_produit_stock') { doAcheterProduitStock(); return; }
-  if (fn === 'vendre_matiere_armurerie') { doVendreMatiereArmurerie(); return; }
   if (fn === 'racheter_armurerie') { doRachatArmurerie(); return; }
-  if (fn === 'gerer_armurerie') { doGererArmurerie(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(); return; }
   if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(); return; }
   if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(); return; }
@@ -260,10 +258,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'rendre_sentence')         { ouvrirRendreSentence(); return; }
   if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(); return; }
   if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(); return; }
-  if (fn === 'acheter_poison_parapluie') { doAcheterPoisonObjet('parapluie'); return; }
-  if (fn === 'acheter_poison_ghb')       { doAcheterPoisonObjet('ghb'); return; }
-  if (fn === 'acheter_poison_polonium')  { doAcheterPoisonObjet('polonium'); return; }
-  if (fn === 'acheter_poison_vipere')    { doAcheterPoisonObjet('vipere'); return; }
+  if (fn === 'marche_noir') { doMarcheNoir(); return; }
   if (fn === 'officialiser_mariage') { ouvrirOfficialiserMariage(); return; }
   if (fn === 'gerer_couvre_feu') { ouvrirGererCouvreFeu(); return; }
   if (fn === 'subvention_min_int') { ouvrirModalFinancerMinInt(); return; }

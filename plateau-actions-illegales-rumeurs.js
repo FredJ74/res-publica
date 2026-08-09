@@ -1002,6 +1002,41 @@ function doObtenirExplosifsMilitaires() {
   addJournalEntry('Explosifs militaires réglementaires obtenus (Ministère de la Défense).', 'event-info');
 }
 
+// =====================
+// MARCHE NOIR — regroupe, a l'endroit ou il se trouve deja pour chaque empire (Armurerie pour
+// republic/soviet, Marche pour narco/khalija — meme vendeur, pas de deplacement de lieu),
+// l'achat d'explosifs et le poison local unique a cet empire (POISON_OBJETS). Peaufinage
+// Armurerie du 9 aout 2026 : plus de catalogue transversal, chaque empire garde son marche
+// noir cloisonne.
+// =====================
+function doMarcheNoir() {
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const poisonType = Object.keys(POISON_OBJETS).find(k => POISON_OBJETS[k].empire === pays);
+  const poison = poisonType ? POISON_OBJETS[poisonType] : null;
+
+  document.getElementById('postes-modal-title').textContent = 'Marché Noir';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Rien de tout cela n\'est enregistré nulle part. À vos risques.</div>';
+
+  html += '<div onclick="doAcheterExplosifs()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.7rem;border:1px solid #2a2010;background:#0a0805;margin-bottom:.5rem" onmouseover="this.style.background=\'#140a0a\'" onmouseout="this.style.background=\'#0a0805\'">';
+  html += '<span style="font-size:.85rem;color:#c0b090"><i class="ti ti-bomb" style="margin-right:.5rem;color:#cc6a6a"></i>Explosifs</span>';
+  html += '<span style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">1 200 ' + cur + '</span>';
+  html += '</div>';
+
+  if (poison) {
+    html += '<div onclick="doAcheterPoisonObjet(&quot;' + poisonType + '&quot;)" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.7rem;border:1px solid #2a2010;background:#0a0805" onmouseover="this.style.background=\'#140a0a\'" onmouseout="this.style.background=\'#0a0805\'">';
+    html += '<span style="font-size:.85rem;color:#c0b090"><i class="ti ' + poison.icon + '" style="margin-right:.5rem;color:#cc6a6a"></i>' + poison.name + '</span>';
+    html += '<span style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' + poison.cout.toLocaleString('fr-FR') + ' ' + cur + '</span>';
+    html += '</div>';
+  }
+
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="margin-top:.8rem;width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#9a8a68;cursor:pointer">Fermer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 function doAcheterExplosifs() {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';

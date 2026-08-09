@@ -352,19 +352,34 @@ function enterBuilding(buildingId, skipAutoRoom) {
       chargerArmurerieLocale().then(data => {
         if (state.currentBuilding !== buildingId) return; // le joueur a change de batiment entre temps
         const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
-        if (elCaisse) elCaisse.textContent = 'Caisse : ' + (data?.caisse ?? 0).toLocaleString('fr-FR') + ' ' + cur;
+        // Gerer mon armurerie / vendre des matieres premieres ne sont plus des ordres
+        // visibles dans la liste (peaufinage Armurerie, 9 aout 2026) : on y acceed desormais
+        // en cliquant sur la caisse/le stock affiches en en-tete, comme un raccourci "sur place".
+        const estProprietaire = !!data && data.proprietaire === state.char?.name;
+        if (elCaisse) {
+          elCaisse.textContent = 'Caisse : ' + (data?.caisse ?? 0).toLocaleString('fr-FR') + ' ' + cur;
+          elCaisse.style.cursor = estProprietaire ? 'pointer' : 'default';
+          elCaisse.title = estProprietaire ? 'Gérer mon armurerie' : '';
+          elCaisse.onclick = estProprietaire && typeof doGererArmurerie === 'function' ? doGererArmurerie : null;
+        }
         if (elStock) {
           const matieres = Object.entries(data?.stockMatieres || {});
           elStock.textContent = 'Stock matières : ' + (matieres.length ? matieres.map(([m, q]) => q + ' ' + m).join(', ') : 'aucune');
+          elStock.style.cursor = 'pointer';
+          elStock.title = 'Vendre des matières premières';
+          elStock.onclick = typeof doVendreMatiereArmurerie === 'function' ? doVendreMatiereArmurerie : null;
         }
       }).catch(() => {
-        if (elCaisse) elCaisse.textContent = 'Caisse : indisponible';
-        if (elStock) elStock.textContent = 'Stock matières : indisponible';
+        if (elCaisse) { elCaisse.textContent = 'Caisse : indisponible'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; }
+        if (elStock) { elStock.textContent = 'Stock matières : indisponible'; elStock.onclick = null; elStock.style.cursor = 'default'; }
       });
     }
   } else if (cleCaisse && elCaisse) {
     elCaisse.style.display = 'block';
     elCaisse.textContent = 'Caisse : ...';
+    elCaisse.onclick = null;
+    elCaisse.style.cursor = 'default';
+    elCaisse.title = '';
     if (elStock) elStock.style.display = 'none';
     if (typeof sbGetBatimentEtat === 'function') {
       sbGetBatimentEtat(state.country || 'republic', state.currentCity, buildingId).then(etat => {
@@ -375,8 +390,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
       }).catch(() => { elCaisse.textContent = 'Caisse : indisponible'; });
     }
   } else {
-    if (elCaisse) elCaisse.style.display = 'none';
-    if (elStock) elStock.style.display = 'none';
+    if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; elCaisse.title = ''; }
+    if (elStock) { elStock.style.display = 'none'; elStock.onclick = null; elStock.style.cursor = 'default'; elStock.title = ''; }
   }
 
   // Affichage du directeur en poste — usines et entrepots, meme logique que la caisse
