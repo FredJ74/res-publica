@@ -1340,7 +1340,10 @@ function quitterJeremy() {
 }
 
 function getGroupSize() {
-  if (!state.group) return 1 + (state.employees ? state.employees.length : 0);
+  // Fix 9 aout 2026 : lisait state.employees (jamais rempli nulle part, typo au pluriel)
+  // au lieu de state.employes - le bonus de taille de groupe (organiser_blocus, etc.) ne
+  // comptait donc quasiment jamais les employes recrutes, seulement le joueur seul.
+  if (!state.group) return 1 + (state.employes ? state.employes.filter(e => e.inGroupe).length : 0);
   return state.group.members.length;
 }
 
