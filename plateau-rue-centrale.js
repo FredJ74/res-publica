@@ -187,11 +187,14 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [0, 100], nom: "Bureau National de l'Emploi", type: 'batiment', buildingId: 'bureau-national-emploi' }
       ],
       liens: { gauche: null, droite: null, toutDroit: 'luthecia-quartier-ambassades', arriere: 'luthecia-terrains-artisanal' },
-      // Position par defaut de "toutDroit" (top:50%, left:80%) tombait en plein sur la facade/
-      // enseigne du batiment (a droite de la photo) ; deplacee en haut a gauche, dans le ciel
-      // degage au-dessus de la route qui part vers l'horizon.
+      // Positions par defaut inadaptees a cette photo (toutDroit tombait sur la facade/enseigne
+      // du batiment ; arriere, par defaut en haut aussi, se confondait visuellement avec
+      // toutDroit). Repositionnees explicitement en haut/bas pour rester lisibles avec la
+      // fleche du haut (toutDroit, icone vers le haut) -> Quartier des Ambassades, et la
+      // fleche du bas (arriere, icone vers le bas) -> Centre Artisanal (via terrains-artisanal).
       flechesStyle: {
-        toutDroit: 'top:14px; left:14%; transform:translateX(-50%);'
+        toutDroit: 'top:14px; left:14%; transform:translateX(-50%);',
+        arriere:   'bottom:14px; left:50%; transform:translateX(-50%);'
       }
     },
 
