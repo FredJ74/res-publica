@@ -1,7 +1,7 @@
 # Journal de session — Res Publica (9 août 2026)
 
 ## État du dépôt
-- Toutes les modifications ont été committées et poussées sur `main` (12 commits).
+- Toutes les modifications ont été committées et poussées sur `main` (15 commits).
 
 ---
 
@@ -56,6 +56,13 @@
 
 ---
 
+## 🖼️ Pat Hounette (photo) + 🏦 Laurent Barre (invisible) — deux corrections PNJ
+- **Pat Hounette** (Place du Formulaire de la Liberté) : n'avait en réalité **jamais** eu de `photoUrl` dans le code (vérifié sur tout l'historique git) — pas le même bug que les photos du Palais, juste jamais branchée. Fichier déjà présent sur le disque, jamais commité. Ajouté (`photoUrl` + `photoPos`).
+- **Laurent Barre** (Directeur d'agence, Banque Nationale) : Fred ne le trouvait plus en jeu. Cause trouvée — un `buildingContext` obsolète (`WORLD.republic.capitale.buildingContext['banque-nationale']`, avec Bernard Coffre-Fort/Simone Intérêt) écrasait silencieusement le vrai contenu de la salle via la règle de priorité sur la première salle (`plateau-navigation.js:565` et `:91` pour la minimap). Entrée obsolète supprimée, Laurent Barre redevient visible sans rien déplacer — reste cohérent avec son rôle déjà établi dans l'énigme du portrait (coffre lié à la succession Thibault, situé à la Banque Nationale).
+- **Même bug repéré ailleurs, pas corrigé** : `banque-privee` (Hans Von Discret masque M. Fischer), et potentiellement `commissariat`/`tribunal` (même bloc `buildingContext`, mêmes personnes issues de `PNJ_PERSONALITIES` jamais nettoyées après l'ajout des vraies salles/PNJ). À auditer.
+
+---
+
 ## 📝 Chantiers en attente (mis à jour)
 1. **Grand audit Ordres, prévu la semaine prochaine** — portée précisée ce soir : vérifier un par un les **318 handlers dédiés** non couverts par la vérification de ce soir (confirmer que chacun applique bien un effet cohérent avec sa description), plus élucider le cas `construire_sur_terrain` (flux de démarrage de chantier non identifié).
 2. **Audit PNJ** — prévu avant la bêta, pas encore fait (état des ~18 points d'appel IA hors périmètre de la fondation `PNJ_PROFILS` posée le 8 août).
@@ -64,6 +71,7 @@
 5. **Dette technique repérée le 9 août** : 3 systèmes de postes parallèles et non synchronisés — `POSTES` (structure statique, `data.js`, holders codés en dur, couvre Président/PM/Ministères/Députés/Maires), `POSTES_ELECTIFS`/`cycles_electoraux` (élections), et `POSTES_NOMMES_EXCLUSIFS`/`titulaires_pnj` (nominations : juge, commissaire, directeurs). Comportements parfois contradictoires — ex : le bouton "Postuler à un poste" (`postulerPoste`, Palais du Gouvernement) **bloque aujourd'hui** une candidature PJ à un ministère quand le PM est un PNJ générique (`getTitulairePoste` ne connaît que les vrais PJ, pas `titulaires_pnj`), à l'inverse de la règle de priorité PJ qu'on veut construire pour les postes nommés. À traiter plus tard, pas urgent.
 6. **Idée backlog (session future)** : annonces d'emploi **entre joueurs**, notamment pour des jobs illégaux (ex: un PJ recrute un autre PJ pour un coup précis), en complément du Bureau National de l'Emploi (offres officielles/légales, codé le 9 août — voir plus bas).
 7. **Bug probable repéré le 9 août, pas corrigé** : dans `api/cron-minuit.js`, plusieurs envois de mail existants (relances de chantier impayé, avertissements de prêt...) utilisent des noms de colonnes (`destinataire`/`expediteur`/`sujet`/`corps`) différents de ceux relus par le client (`to_player`/`from_player`/`subject`/`body`, voir `sbGetMailsFor`/`plateau-communication.js`). Vraisemblablement le même type de bug que celui du cycle électoral corrigé ce soir (`votes_pj`/`votes_pnj`) — ces mails ne doivent jamais arriver dans la boîte de réception des joueurs concernés. À vérifier et corriger, candidat naturel pour le grand audit Ordres.
+8. **Bug `buildingContext` vestige repéré le 9 août, corrigé seulement pour `banque-nationale`** : `WORLD.<pays>.<ville>.buildingContext[<batimentId>].persons` écrase silencieusement le vrai contenu de la première salle d'un bâtiment (`plateau-navigation.js:565` + minimap `:91`), avec des noms de `PNJ_PERSONALITIES` jamais nettoyés après l'ajout des vraies salles/PNJ dans `BUILDINGS`. Repéré aussi sur `banque-privee` (Hans Von Discret masque M. Fischer) — probablement `commissariat`/`tribunal` aussi (même bloc). À auditer entièrement (tous pays/villes) plutôt que de corriger bâtiment par bâtiment au fil des demandes de Fred.
 
 ---
 
