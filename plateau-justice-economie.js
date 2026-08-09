@@ -649,7 +649,10 @@ function doSeJustifier() {
     return;
   }
 
-  const motifLabel = { achat_arme_illegal: "tentative d'achat d'arme non enregistrée" }[convocation.motif] || convocation.motif;
+  const motifLabel = {
+    achat_arme_illegal: "tentative d'achat d'arme non enregistrée",
+    possession_illegale_douane: "possession d'objets prohibés découverte au contrôle douanier"
+  }[convocation.motif] || convocation.motif;
 
   document.getElementById('postes-modal-title').textContent = 'Convocation — Se justifier';
   let html = '<div style="padding:1rem">';

@@ -678,6 +678,36 @@ function doPasserDouanesAeroport() {
     }
   }
 
+  // Inspection douaniere des objets prohibes (9 aout 2026) : controle physique deterministe -
+  // trouve systematiquement ce qu'il y a a trouver (pas de jet de chance, contrairement au
+  // controle Recherche ci-dessus). Armes et poisons illegaux confisques, convocation au
+  // commissariat sous 24h - meme mecanisme que l'achat d'arme illegal rate (state.convocations/
+  // se_justifier/traiterConvocations), le joueur reste libre de circuler, pas d'arrestation
+  // immediate. "Drogue" volontairement hors perimetre : aucun type d'objet drogue n'existe
+  // encore dans le jeu (voir chantier note au journal).
+  const objetsProhibes = (state.inventory || []).filter(i => (i.type === 'arme' || i.type === 'poison') && i.legal === false);
+  if (objetsProhibes.length > 0) {
+    const nomsConfisques = objetsProhibes.map(i => i.name).join(', ');
+    state.inventory = state.inventory.filter(i => !objetsProhibes.includes(i));
+
+    if (!state.convocations) state.convocations = [];
+    state.convocations.push({
+      motif: 'possession_illegale_douane',
+      jourEmission: state.day || 1,
+      heureEmission: state.hour || 8,
+      jourLimite: (state.day || 1) + 1,
+      heureLimite: state.hour || 8,
+      traitee: false
+    });
+
+    const commissairePays = { republic:'Raoul Toufaud', narco:'El Capitan Gordo', soviet:'Camarade Borodine', khalija:'Chambellan Ibn Protocole' }[pays] || 'Le Commissariat';
+    addMailNotification(commissairePays, 'Convocation officielle', 'Le contrôle douanier a détecté des objets prohibés dans vos bagages (' + nomsConfisques + '), désormais confisqués. Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).');
+
+    showToast('Objets confisqués', nomsConfisques + ' confisqué(s) par la douane. Convocation au commissariat sous 24h.', false, true);
+    addJournalEntry('Contrôle douanier : objets prohibés confisqués (' + nomsConfisques + '). Convocation reçue.', 'event-bad');
+    updateUI();
+  }
+
   state.douanePassee = true;
   const msg = msgs[pays] || msgs['republic'];
   showToast('Douanes passées', msg, true);

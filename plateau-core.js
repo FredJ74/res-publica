@@ -135,6 +135,7 @@ const PEINES_ACTES = {
     violation_couvre_feu:     { jours: 1, amende: 200,  label: 'Violation du couvre-feu' },
     vol:                      { jours: 1, amende: 500,  label: 'Vol' },
     achat_arme_illegal:       { jours: 1, amende: 500,  label: "Achat d'arme non enregistree" },
+    possession_illegale_douane: { jours: 1, amende: 500, label: "Possession d'objets prohibes au controle douanier" },
     diffamation:              { jours: 1, amende: 500,  label: 'Diffamation' },
     tentative_assassinat:     { jours: 2, amende: 1500, label: "Tentative d'assassinat" },
     assassinat:               { jours: 2, amende: 1500, label: 'Assassinat' },
