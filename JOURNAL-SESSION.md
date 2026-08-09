@@ -70,7 +70,7 @@ Extension de la quête d'accueil : après le tour actuel, Jérémy demande au jo
 - **Noms vérifiés** :
   - **Pat Hounette** (branche criminelle) — existe déjà, Place du Formulaire de la Liberté. Photo ajoutée ce soir (voir plus haut).
   - **Laurent Barre** (branche entrepreneuriale) — existe déjà, **Banque Nationale** confirmé (pas "banque d'affaires" comme indiqué dans le script initial — ce bâtiment n'existe pas ; la Banque Privée Helvétia envisagée un temps a été écartée, cf. bug `buildingContext` ci-dessus qui le rendait invisible, maintenant corrigé).
-  - **Jean-Lou Zeure** (branche politique) — **nouveau, à créer**, au Bureau National de l'Emploi de Luthécia (`bureau-national-emploi`, salle `accueil`), construit ce soir et actuellement `persons: []`.
+  - **Jean-Lou Zeure** (branche politique) — **nouveau, à créer**, au Bureau National de l'Emploi de Luthécia (`bureau-national-emploi`, salle `accueil`), construit ce soir et actuellement `persons: []`. Re-vérifié en fin de session (10 août, 3h) suite à une remontée de Fred : aucune trace nulle part dans le code (`grep` sur tout le dépôt) — il n'a jamais été créé, ni par erreur ni autrement. Confirmé : reste entièrement à faire, pas une régression.
 - **2 décisions de conception à trancher avant de coder** (voir chantiers en attente) : le déclenchement de l'aiguillage, et ce que "le référent reste disponible comme point de repère durable" veut dire concrètement.
 
 ---
