@@ -941,7 +941,7 @@ async function verifierPostesVacantsEtAutoPourvoir() {
     // Etat initial en memoire : qui occupe deja quoi (PJ), et quels PNJ sont deja enregistres.
     // Resolution en un seul passage (choix explicite du 8 aout 2026) : la map est mise a jour
     // au fur et a mesure des ecritures, pas relue en base entre chaque etape de la cascade.
-    const joueurs = await sbGet('personnages', `select=name,country,poste&country=eq.${PAYS_CASCADE}`) || [];
+    const joueurs = await sbGet('personnages', `select=name,country,poste,poste_depute&country=eq.${PAYS_CASCADE}`) || [];
     const titulairesPnjRows = await sbGet('titulaires_pnj', `country=eq.${PAYS_CASCADE}`) || [];
 
     const cle = (posteId, ville) => posteId + '|' + (ville || 'national');
@@ -949,9 +949,16 @@ async function verifierPostesVacantsEtAutoPourvoir() {
     joueurs.forEach(j => {
       let poste = j.poste;
       if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
-      if (!poste?.id) return;
-      const idNormalise = poste.id.startsWith('maire') ? 'maire' : poste.id;
-      occupePJ.add(cle(idNormalise, poste.city));
+      if (poste?.id) {
+        const idNormalise = poste.id.startsWith('maire') ? 'maire' : poste.id;
+        occupePJ.add(cle(idNormalise, poste.city));
+      }
+      // Depute est stocke a part (poste_depute), cumulable avec un autre poste — pas encore
+      // couvert par la cascade ci-dessous (aucun fallback PNJ pour depute pour l'instant),
+      // mais on l'enregistre deja pour ne pas ecraser un vrai depute le jour ou ce sera le cas.
+      let posteDepute = j.poste_depute;
+      if (typeof posteDepute === 'string') { try { posteDepute = JSON.parse(posteDepute); } catch(e) { posteDepute = null; } }
+      if (posteDepute?.id) occupePJ.add(cle(posteDepute.id, posteDepute.city));
     });
     const occupePNJ = new Set(titulairesPnjRows.filter(r => r.nom_pnj).map(r => cle(r.poste_id, r.city)));
     const estOccupe = (posteId, ville) => occupePJ.has(cle(posteId, ville)) || occupePNJ.has(cle(posteId, ville));
