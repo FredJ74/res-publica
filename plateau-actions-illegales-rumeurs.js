@@ -1997,7 +1997,6 @@ function defautArmurerie(pays) {
     stockMatieres: { metal: 20, bois: 10 },
     stockProduits: {},
     parametres: {
-      tarifHoraire: 50, // FR par UT verse au producteur
       prixAchatMatiere: { metal: 20, bois: 10 }, // FR verses au vendeur de matiere premiere
       prixVente,
       stockMax
@@ -2020,21 +2019,28 @@ function ajouterHistoriqueEntreprise(data, montant, motif) {
   if (data.historique.length > 50) data.historique = data.historique.slice(-50);
 }
 
+// Main d'oeuvre de production (9 aout 2026, pilote sur l'armurerie) : tarif plat, identique
+// pour toutes les recettes, pas de distinction qualifie/non-qualifie sur ce batiment (le
+// travail qualifie est un sujet a part, pas applique ici). Remplace l'ancien systeme UT
+// (recette.ut * PA_PAR_UT en cout, recette.ut * tarifHoraire reglable en salaire) - recette.ut
+// reste utilise ailleurs (palier de prix de vente / stock max), juste plus pour le travail.
+const PA_PRODUCTION_ARMURERIE = 2;
+const SALAIRE_PRODUCTION_ARMURERIE = 100; // 2 PA x 50 FR/PA
+
 async function doProduireArme() {
   const data = await chargerArmurerieLocale();
   if (!data) { showToast('Indisponible', '', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Produire une arme';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Salaire : ' + data.parametres.tarifHoraire + ' FR par UT (fixé par le propriétaire). 1 UT = ' + PA_PAR_UT + ' PA.</div>';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Salaire fixe : ' + SALAIRE_PRODUCTION_ARMURERIE + ' FR par arme (' + PA_PRODUCTION_ARMURERIE + ' PA), quel que soit le modèle.</div>';
   Object.entries(getRecettesPays(state.country || 'republic')).forEach(([id, r]) => {
     const materiauxTxt = Object.entries(r.materiaux).map(([m, q]) => q + ' ' + m).join(', ');
     const stockActuel = data.stockProduits[id] || 0;
     const stockMax = data.parametres.stockMax[id] || 0;
-    const salaire = r.ut * data.parametres.tarifHoraire;
     html += '<button onclick="confirmerProduction(\'' + id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.5rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
-    html += '<b>' + r.label + '</b> — ' + r.ut + ' UT (' + (r.ut*PA_PAR_UT) + ' PA)<br>';
-    html += '<span style="color:#8a8060">Matériaux : ' + materiauxTxt + ' · Salaire : ' + salaire + ' FR · Stock : ' + stockActuel + '/' + stockMax + '</span>';
+    html += '<b>' + r.label + '</b> — ' + PA_PRODUCTION_ARMURERIE + ' PA<br>';
+    html += '<span style="color:#8a8060">Matériaux : ' + materiauxTxt + ' · Salaire : ' + SALAIRE_PRODUCTION_ARMURERIE + ' FR · Stock : ' + stockActuel + '/' + stockMax + '</span>';
     html += '</button>';
   });
   html += '</div>';
@@ -2045,34 +2051,36 @@ async function doProduireArme() {
 async function confirmerProduction(produitId) {
   const recette = RECETTES_PRODUCTION[produitId];
   const data = await chargerArmurerieLocale();
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (!recette || !data) return;
+  if (!recette || !data) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
-  const paRequis = recette.ut * PA_PAR_UT;
-  if ((state.pa || 0) < paRequis) { showToast('PA insuffisants', paRequis + ' PA requis.', false); return; }
+  if ((state.pa || 0) < PA_PRODUCTION_ARMURERIE) { showToast('PA insuffisants', PA_PRODUCTION_ARMURERIE + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
   const manque = Object.entries(recette.materiaux).find(([m, q]) => (data.stockMatieres[m] || 0) < q);
-  if (manque) { showToast('Matières insuffisantes', 'Il manque du ' + manque[0] + ' en stock.', false); return; }
+  if (manque) { showToast('Stock de matière insuffisant', 'Il manque du ' + manque[0] + ' en stock.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
-  const salaire = recette.ut * data.parametres.tarifHoraire;
-  if (data.caisse < salaire) { showToast('Caisse insuffisante', 'L\'entreprise ne peut pas payer ce travail actuellement.', false); return; }
+  if (data.caisse < SALAIRE_PRODUCTION_ARMURERIE) { showToast('Caisse insuffisante', 'L\'entreprise ne peut pas payer ce travail actuellement.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
   const stockActuel = data.stockProduits[produitId] || 0;
   const stockMax = data.parametres.stockMax[produitId] || 0;
-  if (stockActuel >= stockMax) { showToast('Stock plein', 'Le stock maximum de ce produit est atteint.', false); return; }
+  if (stockActuel >= stockMax) { showToast('Stock plein', 'Le stock maximum de ce produit est atteint.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
   // Consommer
   Object.entries(recette.materiaux).forEach(([m, q]) => { data.stockMatieres[m] -= q; });
   data.stockProduits[produitId] = stockActuel + 1;
-  data.caisse -= salaire;
-  ajouterHistoriqueEntreprise(data, -salaire, 'Salaire de production (' + recette.label + ') — ' + (state.char?.name||'Anonyme'));
+  data.caisse -= SALAIRE_PRODUCTION_ARMURERIE;
+  ajouterHistoriqueEntreprise(data, -SALAIRE_PRODUCTION_ARMURERIE, 'Salaire de production (' + recette.label + ') — ' + (state.char?.name||'Anonyme'));
   await sbSaveEntreprise(data.id, data);
 
-  state.pa = Math.max(0, (state.pa || 0) - paRequis);
-  state.arg = (state.arg || 0) + salaire;
+  state.pa = Math.max(0, (state.pa || 0) - PA_PRODUCTION_ARMURERIE);
+  state.arg = (state.arg || 0) + SALAIRE_PRODUCTION_ARMURERIE;
   updateUI();
-  showToast('Production réussie !', recette.label + ' fabriqué(e). +' + salaire + ' FR de salaire.', true, true);
-  addJournalEntry('Production d\'un(e) ' + recette.label + ' à l\'armurerie (+' + salaire + ' FR).', 'event-good');
+  showToast('Production réussie !', recette.label + ' fabriqué(e). +' + SALAIRE_PRODUCTION_ARMURERIE + ' FR de salaire.', true, true);
+  addJournalEntry('Production d\'un(e) ' + recette.label + ' à l\'armurerie (+' + SALAIRE_PRODUCTION_ARMURERIE + ' FR).', 'event-good');
+
+  // Ne ferme pas le modal : rafraichit la liste pour permettre d'enchainer sans le rouvrir a
+  // chaque fois (production continue, cf regle 3 - seules les 3 ressources limitent, pas une
+  // fermeture systematique de fenetre).
+  doProduireArme();
 }
 
 async function doAcheterProduitStock() {
@@ -2188,8 +2196,7 @@ async function doGererArmurerie() {
   let html = '<div style="padding:1rem">';
   html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">Caisse : ' + data.caisse.toLocaleString('fr-FR') + ' FR</div>';
 
-  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Tarif horaire (FR par UT versé au producteur)</label>';
-  html += '<input id="gere-tarif" type="number" value="' + data.parametres.tarifHoraire + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.6rem">Salaire de production fixe : 100 FR par arme (2 PA), non réglable.</div>';
 
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.3rem">Prix d\'achat des matières (FR/unité)</div>';
   Object.keys(data.parametres.prixAchatMatiere).forEach(m => {
@@ -2215,7 +2222,6 @@ async function confirmerGestionArmurerie(entrepriseId) {
   const data = await sbGetEntreprise(entrepriseId);
   if (!data) return;
 
-  data.parametres.tarifHoraire = Math.max(0, parseInt(document.getElementById('gere-tarif')?.value || '0'));
   Object.keys(data.parametres.prixAchatMatiere).forEach(m => {
     data.parametres.prixAchatMatiere[m] = Math.max(0, parseInt(document.getElementById('gere-mat-' + m)?.value || '0'));
   });

@@ -2217,7 +2217,7 @@ const BUILDINGS = {
             pa:2, cost:1200, type:'illegal', icon:'ti-bomb', successRate:40,
             desc:'ILLEGAL. Non enregistre. Taux de reussite 40%. Echec : le vendeur alerte la police, vous devenez recherche(e).'
           },
-          {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire (Unites de Temps). Necessite des materiaux en stock.'},
+          {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'},
           {fn:'acheter_produit_stock', label:'Acheter en stock (fabrication maison)', pa:1, cost:0, type:'legal', icon:'ti-package', successRate:100, desc:'Armes produites par de vrais joueurs, au prix fixe par le proprietaire.'},
           {fn:'vendre_matiere_armurerie', label:'Vendre des matieres premieres', pa:1, cost:0, type:'legal', icon:'ti-truck-delivery', successRate:100, desc:'Metal, bois — au prix fixe par le proprietaire de l\'armurerie.'},
           {fn:'racheter_armurerie', label:'Racheter cette entreprise', pa:0, cost:130000, type:'legal', icon:'ti-building-store', successRate:100, desc:'Devenir proprietaire de l\'armurerie (actuellement tenue par un PNJ).'},
