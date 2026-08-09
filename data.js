@@ -144,11 +144,6 @@ const WORLD = {
           desc: "Honoré Cozetoujours condamne avant d'écouter.",
           persons: [{"name": "Honoré Cozetoujours (PNJ)", "role": "Juge en chef", "rel": "neutral", "job": "juge"}, {"name": "Maître Plaidoyer (PNJ)", "role": "Avocat commis d'office", "rel": "neutral", "job": "avocat"}]
         },
-        'banque-nationale': {
-          name: "Banque Nationale de Républia",
-          desc: "Bernard Coffre-Fort n'a jamais ouvert un compte de sa vie.",
-          persons: [{"name": "Bernard Coffre-Fort (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}, {"name": "Simone Intérêt (PNJ)", "role": "Caissière", "rel": "neutral", "job": "caissier"}]
-        },
         'banque-privee': {
           name: "Banque Privée Helvetia",
           desc: "Hans Von Discret ne confirme ni n'infirme rien.",
