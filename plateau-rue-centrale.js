@@ -175,11 +175,24 @@ const RUE_CENTRALE_NOEUDS = {
     },
 
     'luthecia-bureau-emploi': {
-      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-national-emploi-luthecia.png',
+      // Fix regression du 9 aout 2026 : ce noeud et la salle d'accueil du batiment (data.js)
+      // partageaient le meme fichier image depuis la creation du batiment. Ca ne posait pas
+      // de probleme tant que ce fichier contenait une photo de rue (facade + trottoir) qui
+      // convenait a peu pres aux deux usages, mais le remplacement de l'image d'accueil par
+      // une vraie photo d'interieur (hall de reception) a silencieusement ecrase la photo de
+      // rue ici aussi. Ancienne photo de facade recuperee depuis l'historique git (commit
+      // ff7dd49^) et remise sur un fichier dedie, separe de l'accueil.
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-bureau-national-emploi-luthecia.png',
       zones: [
         { xPct: [0, 100], nom: "Bureau National de l'Emploi", type: 'batiment', buildingId: 'bureau-national-emploi' }
       ],
-      liens: { gauche: null, droite: null, toutDroit: 'luthecia-quartier-ambassades', arriere: 'luthecia-terrains-artisanal' }
+      liens: { gauche: null, droite: null, toutDroit: 'luthecia-quartier-ambassades', arriere: 'luthecia-terrains-artisanal' },
+      // Position par defaut de "toutDroit" (top:50%, left:80%) tombait en plein sur la facade/
+      // enseigne du batiment (a droite de la photo) ; deplacee en haut a gauche, dans le ciel
+      // degage au-dessus de la route qui part vers l'horizon.
+      flechesStyle: {
+        toutDroit: 'top:14px; left:14%; transform:translateX(-50%);'
+      }
     },
 
     'luthecia-terrains-artisanal': {
