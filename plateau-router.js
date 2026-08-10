@@ -131,6 +131,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(); return; }
   if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(); return; }
   if (fn === 'vente_directe_usine') { doOuvrirVenteDirecteUsine(); return; }
+  if (fn === 'produire_medicaments') { doProduireUsine('medicaments'); return; }
+  if (fn === 'produire_alcool') { doProduireUsine('alcool'); return; }
+  if (fn === 'produire_tabac') { doProduireUsine('tabac'); return; }
+  if (fn === 'produire_carburant') { doProduireUsine('carburant'); return; }
   if (fn === 'nommer_directeur_pharma') { ouvrirModalNommerDirecteurPharma(); return; }
   if (fn === 'nommer_directeur_tabac_alcools') { ouvrirModalNommerDirecteurTabacAlcools(); return; }
   if (fn === 'nommer_directeur_raffinerie') { ouvrirModalNommerDirecteurRaffinerie(); return; }

@@ -4080,7 +4080,9 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&q=80",
         desc: "Les installations de raffinage. Le pétrole brut livré y est transformé en carburant.",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'produire_carburant', label:'Produire du carburant', pa:1, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 70 FR. Consomme 5 pétrole du stock de matières de l\'usine, produit 10 carburants.'}
+        ]
       }
     }
   },
@@ -4183,7 +4185,9 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=1200&q=80",
         desc: "Les alambics. Céréales et fruits livrés y sont distillés en alcool.",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'produire_alcool', label:"Produire de l'alcool", pa:1, cost:0, type:'legal', icon:'ti-glass-full', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 55 FR. Consomme 5 céréales du stock de matières de l\'usine, produit 10 alcools.'}
+        ]
       },
       manufacture_tabac: {
         name: "Manufacture de Tabac",
@@ -4191,7 +4195,9 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1519669417670-68775a50919f?w=1200&q=80",
         desc: "Les lignes de manufacture. Les plantes livrées y sont transformées en tabac.",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'produire_tabac', label:'Produire du tabac', pa:1, cost:0, type:'legal', icon:'ti-cigarette', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 66 FR. Consomme 5 plantes du stock de matières de l\'usine, produit 10 tabacs.'}
+        ]
       }
     }
   },
@@ -4290,7 +4296,9 @@ const BUILDINGS = {
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-production-usine-pharma-luthecia.png",
         desc: "Les lignes de production. Les plantes livrées y sont transformées en médicaments.",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'produire_medicaments', label:'Produire des médicaments', pa:1, cost:0, type:'legal', icon:'ti-vaccine', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 84 FR. Consomme 5 plantes du stock de matières de l\'usine, produit 10 médicaments.'}
+        ]
       }
     }
   },

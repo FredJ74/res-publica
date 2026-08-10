@@ -778,15 +778,35 @@ const TRANSFORMATEURS = [
   { buildingId: 'raffinerie-montrouge',          city: 'ville_b',  chaines: [{ matiere: 'petrole', produit: 'carburant' }] }
 ];
 
-const VOLUME_MATIERE_PAR_CHAINE_JOUR = 80; // -> 40 unites produites (ratio 2:1)
-const RATIO_TRANSFORMATION = 2;
+// Volume et ratio alignes sur le travail PJ (produire_medicaments/alcool/tabac/carburant,
+// plateau-justice-economie.js) le 10 aout 2026 : meme ratio de transformation pour les deux
+// modes (1 matiere = 2 produits, au lieu de l'ancien RATIO_TRANSFORMATION=2 qui faisait
+// l'inverse), seul le volume differe desormais. Le mode PNJ automatique n'est plus que le
+// filet de securite (10% du volume d'origine, 80 -> 8) ; les 90% restants sont censes venir
+// du travail remunere des joueurs.
+const VOLUME_MATIERE_PAR_CHAINE_JOUR = 8; // -> 16 unites produites (ratio 1:2)
 const PART_REDISTRIBUTION_ENTREPOTS = 0.6; // 20% a chacun des 3 entrepots
 const PLAFOND_VENTE_DIRECTE = 50;
 
-// Production quotidienne automatique (mode PNJ) de chaque transformateur : consomme sa
-// matiere premiere, produit le bien fini au ratio 2:1, redistribue 60% aux 3 entrepots
-// (20% chacun, perdu si un entrepot est deja plein sur ce produit), garde 40% en vente
-// directe sur place (mini-stock propre, plafonne, prix dynamique comme un entrepot).
+// Redirection d'une partie de chaque livraison quotidienne vers le stock physique de matiere
+// premiere de l'usine locale (usine.stockMatieres, meme principe que l'Armurerie -- ajoute le
+// 10 aout 2026, remplace l'ancien achat instantane sur la caisse de l'usine). S'accumule si
+// personne ne produit, se consomme avec la production (PNJ + PJ). 20% de chaque livraison
+// concernee, carve sur le meme flux (pas un volume supplementaire) -- si l'usine n'a pas la
+// place, le surplus reste simplement a l'entrepot (pas de perte), demande de Fred.
+const USINE_LOCALE_PAR_VILLE = {
+  capitale: { buildingId: 'usine-pharmaceutique-luthecia', matieres: ['plantes'] },
+  ville_a:  { buildingId: 'pole-tabac-alcools-psm',        matieres: ['cereales', 'plantes'] },
+  ville_b:  { buildingId: 'raffinerie-montrouge',          matieres: ['petrole'] }
+};
+const PART_REDIRECTION_USINE = 0.20;
+
+// Production quotidienne automatique (mode PNJ, filet de securite) de chaque transformateur :
+// consomme sa matiere premiere depuis son propre stock physique (usine.stockMatieres, alimente
+// par livrerEntrepotsQuotidien ci-dessous -- plus d'achat instantane sur caisse depuis le 10
+// aout 2026), produit le bien fini au ratio 1:2, redistribue 60% aux 3 entrepots (20% chacun,
+// perdu si un entrepot est deja plein sur ce produit), garde 40% en vente directe sur place
+// (mini-stock propre, plafonne, prix dynamique comme un entrepot).
 async function produireTransformateursQuotidien() {
   const resultats = { transformateurs: 0, uniteesProduites: 0 };
   try {
@@ -795,9 +815,9 @@ async function produireTransformateursQuotidien() {
       if (!etat) continue; // batiment pas encore accessible dans cette ville
 
       // Dotation de depart, meme logique que l'entrepot
-      const usine = etat.usine || { caisse: 3000, venteDirecte: {} };
-      let caisse = usine.caisse ?? 3000;
+      const usine = etat.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
       const venteDirecte = usine.venteDirecte || {};
+      const stockMatieres = usine.stockMatieres || {};
       // Reglable par le directeur PJ en poste (tableau de bord, aout 2026) — 0.6 par defaut (mode PNJ)
       const partEntrepots = usine.repartitionEntrepots != null ? usine.repartitionEntrepots : PART_REDISTRIBUTION_ENTREPOTS;
 
@@ -805,11 +825,11 @@ async function produireTransformateursQuotidien() {
         const matiereCfg = RESSOURCES_ECONOMIE_SERVEUR[chaine.matiere];
         if (!matiereCfg) continue;
 
-        const coutMatiere = VOLUME_MATIERE_PAR_CHAINE_JOUR * matiereCfg.prixAchatFournisseur;
-        if (caisse < coutMatiere) continue; // pas assez de tresorerie pour produire aujourd'hui
-        caisse -= coutMatiere;
+        const stockDispo = stockMatieres[chaine.matiere] || 0;
+        if (stockDispo < VOLUME_MATIERE_PAR_CHAINE_JOUR) continue; // pas assez de matiere en stock aujourd'hui
+        stockMatieres[chaine.matiere] = stockDispo - VOLUME_MATIERE_PAR_CHAINE_JOUR;
 
-        const uniteesProduites = Math.floor(VOLUME_MATIERE_PAR_CHAINE_JOUR / RATIO_TRANSFORMATION);
+        const uniteesProduites = VOLUME_MATIERE_PAR_CHAINE_JOUR * 2; // 1 matiere = 2 produits
         const versEntrepots = Math.round(uniteesProduites * partEntrepots);
         const venteDirecteQte = uniteesProduites - versEntrepots;
         const parEntrepot = Math.floor(versEntrepots / ENTREPOTS_VILLES.length);
@@ -835,7 +855,7 @@ async function produireTransformateursQuotidien() {
         resultats.uniteesProduites += uniteesProduites;
       }
 
-      await sbSetBatimentEtat('republic', transfo.city, transfo.buildingId, { ...etat, usine: { ...usine, caisse, venteDirecte } }).catch(() => {});
+      await sbSetBatimentEtat('republic', transfo.city, transfo.buildingId, { ...etat, usine: { ...usine, venteDirecte, stockMatieres } }).catch(() => {});
       resultats.transformateurs++;
     }
   } catch(e) { console.error('produireTransformateursQuotidien error', e); }
@@ -859,6 +879,16 @@ async function livrerEntrepotsQuotidien() {
       let unitesEntrepot = 0;
       let coutEntrepot = 0;
 
+      // Usine locale de cette ville (redirection 20% des matieres qu'elle utilise, voir constante
+      // PART_REDIRECTION_USINE ci-dessus)
+      const usineLocale = USINE_LOCALE_PAR_VILLE[city];
+      let etatUsine = null;
+      let stockMatieresUsine = {};
+      if (usineLocale) {
+        etatUsine = await sbGetBatimentEtat('republic', city, usineLocale.buildingId).catch(() => null);
+        if (etatUsine) stockMatieresUsine = (etatUsine.usine && etatUsine.usine.stockMatieres) || {};
+      }
+
       for (let i = 0; i < NB_LIVRAISONS_JOUR; i++) {
         // Volume de cette livraison : moyenne 800/6 ~133, avec une vraie irregularite
         const moyenneParLivraison = VOLUME_TOTAL_JOUR / NB_LIVRAISONS_JOUR;
@@ -878,11 +908,24 @@ async function livrerEntrepotsQuotidien() {
         tirage.forEach(([cle, res], idx) => {
           const qteLivree = Math.round(volumeLivraison * (poids[idx] / sommePoids));
           if (qteLivree <= 0) return;
-          const placeRestante = Math.max(0, res.plafond - (stock[cle] || 0));
-          const qteStockee = Math.min(qteLivree, placeRestante);
 
-          // L'entrepot paie la totalite livree, meme ce qui depasse et se perd
-          const cout = qteLivree * res.prixAchatFournisseur;
+          // Redirection vers l'usine locale, carvee sur cette meme livraison (pas un volume
+          // supplementaire) -- gratuite pour l'usine (dotation publique, comme la livraison
+          // elle-meme). Si l'usine n'a pas la place, le surplus reste simplement a l'entrepot.
+          let qteRedirigee = 0;
+          if (usineLocale && etatUsine && usineLocale.matieres.includes(cle)) {
+            const qteVisee = Math.round(qteLivree * PART_REDIRECTION_USINE);
+            const placeUsine = Math.max(0, res.plafond - (stockMatieresUsine[cle] || 0));
+            qteRedirigee = Math.min(qteVisee, placeUsine);
+            if (qteRedirigee > 0) stockMatieresUsine[cle] = (stockMatieresUsine[cle] || 0) + qteRedirigee;
+          }
+          const qteRestante = qteLivree - qteRedirigee;
+
+          const placeRestante = Math.max(0, res.plafond - (stock[cle] || 0));
+          const qteStockee = Math.min(qteRestante, placeRestante);
+
+          // L'entrepot paie la totalite restante (hors part redirigee), meme ce qui depasse et se perd
+          const cout = qteRestante * res.prixAchatFournisseur;
           if (caisse >= cout) {
             caisse -= cout;
             stock[cle] = (stock[cle] || 0) + qteStockee;
@@ -894,6 +937,9 @@ async function livrerEntrepotsQuotidien() {
       }
 
       await sbSetBatimentEtat('republic', city, buildingId, { ...etat, entrepot: { ...entrepot, stock, caisse } }).catch(() => {});
+      if (usineLocale && etatUsine) {
+        await sbSetBatimentEtat('republic', city, usineLocale.buildingId, { ...etatUsine, usine: { ...(etatUsine.usine || {}), stockMatieres: stockMatieresUsine } }).catch(() => {});
+      }
       resultats.entrepots++;
       resultats.unitesLivrees += unitesEntrepot;
       resultats.coutTotal += coutEntrepot;

@@ -3192,6 +3192,96 @@ async function confirmerVenteDirecteUsine(buildingId) {
 }
 
 // =====================
+// PRODUCTION PJ DES USINES (10 aout 2026) — meme principe que produire_arme a l'Armurerie :
+// travail remunere par PJ, un ordre par chaine (place dans la salle de production dediee de
+// chaque usine, donc pas besoin de liste/choix comme produire_arme — la salle determine deja
+// le produit). Consomme un vrai stock physique de matiere (usine.stockMatieres), alimente par
+// la redirection d'une partie des livraisons de l'entrepot local (PART_REDIRECTION_USINE,
+// api/cron-minuit.js) — pas un achat instantane sur la caisse. Salaire calibre pour ~10% de
+// marge usine sur le prix de gros (RESSOURCES_ECONOMIE, prixAchatFournisseur) : Revenu = 10x
+// prix produit, Cout matiere = 5x prix matiere, Salaire = 90%xRevenu - Cout matiere. Complete
+// le mode PNJ automatique (produireTransformateursQuotidien, api/cron-minuit.js), reduit ce
+// meme soir a 10% de son volume d'origine : un filet de securite, plus la source principale
+// de production.
+// =====================
+const PA_PRODUCTION_USINE = 1;
+const MATIERE_PAR_PA_USINE = 5;
+const PRODUIT_PAR_PA_USINE = 10;
+const PLAFOND_VENTE_DIRECTE_USINE = 50; // doit rester identique a PLAFOND_VENTE_DIRECTE, api/cron-minuit.js
+
+const CHAINES_PRODUCTION_USINE = {
+  medicaments: { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', matiere: 'plantes',  salairePA: 84 },
+  alcool:      { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'cereales', salairePA: 55 },
+  tabac:       { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'plantes',  salairePA: 66 },
+  carburant:   { buildingId: 'raffinerie-montrouge',          city: 'ville_b',  matiere: 'petrole',  salairePA: 70 }
+};
+
+async function doProduireUsine(produitId) {
+  const c = CHAINES_PRODUCTION_USINE[produitId];
+  if (!c) { showToast('Indisponible', '', false); return; }
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, c.city, c.buildingId).catch(() => null) : null;
+  const usine = etat?.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
+  const caisse = usine.caisse ?? 0;
+  const venteDirecte = usine.venteDirecte || {};
+  const stockMatieres = usine.stockMatieres || {};
+  const stockActuel = venteDirecte[produitId] || 0;
+  const stockMatiereActuel = stockMatieres[c.matiere] || 0;
+  const matiereCfg = RESSOURCES_ECONOMIE[c.matiere];
+  const produitCfg = RESSOURCES_ECONOMIE[produitId];
+
+  document.getElementById('postes-modal-title').textContent = 'Produire — ' + produitCfg.label;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">' + PA_PRODUCTION_USINE + ' PA consomme ' + MATIERE_PAR_PA_USINE + ' ' + matiereCfg.label + ' du stock de l\'usine et produit ' + PRODUIT_PAR_PA_USINE + ' ' + produitCfg.label + '. Salaire fixe : ' + c.salairePA + ' ' + cur + '.</div>';
+  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem;font-size:.75rem;color:#8a8060">Stock de ' + matiereCfg.label + ' : ' + stockMatiereActuel + ' · Stock local de ' + produitCfg.label + ' : ' + stockActuel + '/' + PLAFOND_VENTE_DIRECTE_USINE + ' · Caisse de l\'usine : ' + Math.round(caisse) + ' ' + cur + '</div>';
+  html += '<button onclick="confirmerProductionUsine(\'' + produitId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Produire (' + PA_PRODUCTION_USINE + ' PA)</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerProductionUsine(produitId) {
+  const c = CHAINES_PRODUCTION_USINE[produitId];
+  if (!c) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+
+  if ((state.pa || 0) < PA_PRODUCTION_USINE) { showToast('PA insuffisants', PA_PRODUCTION_USINE + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, c.city, c.buildingId).catch(() => null) : null;
+  if (!etat) { showToast('Indisponible', '', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+  const usine = etat.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
+  let caisse = usine.caisse ?? 0;
+  const venteDirecte = usine.venteDirecte || {};
+  const stockMatieres = usine.stockMatieres || {};
+
+  const stockMatiereActuel = stockMatieres[c.matiere] || 0;
+  if (stockMatiereActuel < MATIERE_PAR_PA_USINE) { showToast('Stock de matière insuffisant', 'Il manque du ' + RESSOURCES_ECONOMIE[c.matiere].label + ' en stock.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+
+  if (caisse < c.salairePA) { showToast('Caisse insuffisante', "L'usine ne peut pas payer ce travail actuellement.", false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+
+  const stockActuel = venteDirecte[produitId] || 0;
+  const placeRestante = Math.max(0, PLAFOND_VENTE_DIRECTE_USINE - stockActuel);
+  if (placeRestante <= 0) { showToast('Stock plein', 'Le stock local de ce produit est au maximum.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+
+  const produitsAjoutes = Math.min(PRODUIT_PAR_PA_USINE, placeRestante);
+  stockMatieres[c.matiere] = stockMatiereActuel - MATIERE_PAR_PA_USINE;
+  caisse -= c.salairePA;
+  venteDirecte[produitId] = stockActuel + produitsAjoutes;
+
+  const nouvelEtat = { ...etat, usine: { ...usine, caisse, venteDirecte, stockMatieres } };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, c.city, c.buildingId, nouvelEtat).catch(() => {});
+
+  state.pa = Math.max(0, (state.pa || 0) - PA_PRODUCTION_USINE);
+  state.arg = (state.arg || 0) + c.salairePA;
+  updateUI();
+  showToast('Production réussie !', RESSOURCES_ECONOMIE[produitId].label + ' produit(s). +' + c.salairePA + ' ' + cur + ' de salaire.', true, true);
+  addJournalEntry('Production de ' + produitsAjoutes + ' ' + RESSOURCES_ECONOMIE[produitId].label + ' (+' + c.salairePA + ' ' + cur + ').', 'event-good');
+
+  // Ne ferme pas le modal : rafraichit pour permettre d'enchainer, meme logique que produire_arme.
+  doProduireUsine(produitId);
+}
+
+// =====================
 // TABLEAU DE BORD DU DIRECTEUR PJ — le directeur choisit le prix de vente directe (dans la
 // meme fourchette ±40% que les entrepots) et la repartition entrepots/vente directe de sa
 // propre usine (voir note du 7 aout 2026 dans api/cron-minuit.js). Reserve au titulaire du
