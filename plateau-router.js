@@ -319,6 +319,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gerer_candidatures_directeurs') { ouvrirGestionCandidatures(['directeur_pharma','directeur_tabac_alcools','directeur_raffinerie']); return; }
   if (fn === 'gerer_candidature_commandant') { ouvrirGestionCandidatures(['commandant']); return; }
   if (fn === 'gerer_candidature_directeur_entrepot') { ouvrirGestionCandidatures(['directeur_entrepot']); return; }
+  if (fn === 'gerer_candidature_maire_adjoint') { ouvrirGestionCandidatures(['maire_adjoint']); return; }
+  if (fn === 'revoquer_directeur_entrepot') { ouvrirModalRevoquerDirecteurEntrepot(); return; }
   if (fn === 'censurer_media') { ouvrirModalMedia(); return; }
   if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
   if (fn === 'activer_cessez_le_feu') { ouvrirActiverCessezLeFeu(); return; }

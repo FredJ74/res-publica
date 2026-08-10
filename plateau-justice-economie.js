@@ -2582,6 +2582,18 @@ async function collecterRevenusConstructions() {
 // =====================
 const TERRAINS_LUTHECIA = ['terrain-a-batir-1', 'terrain-a-batir-2', 'terrain-a-batir-3', 'terrain-a-batir-4', 'terrain-a-batir-5'];
 
+// Pour filtrer les demandes de permis par ville (doTraiterDemandesPermis, 10 aout 2026) --
+// terrains_etat ne stocke aucun champ city, seulement building_id, d'ou ce mapping construit a
+// partir des listes buildings de chaque ville (data.js). ATTENTION, collision preexistante
+// decouverte au passage et NON corrigee ici (hors perimetre, risque sur des terrains deja
+// possedes) : 'terrain-a-batir-3' est utilise a la fois par Luthecia (capitale) et Montrouge
+// (ville_b) -- meme id, donc meme ligne terrains_etat (cle country+building_id, pas de ville).
+const TERRAINS_PAR_VILLE = {
+  capitale: TERRAINS_LUTHECIA,
+  ville_a:  ['terrain-a-batir-8', 'terrain-a-batir-9', 'terrain-a-batir-10', 'terrain-a-batir-11'],
+  ville_b:  ['terrain-a-batir-3']
+};
+
 async function doActeVenteTerrain() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const nom = state.char?.name;
@@ -4111,16 +4123,22 @@ async function verifierInstructionPermis(buildingId) {
   }
 }
 
+// Transfert complet au Maire Adjoint le 10 aout 2026 (verification stricte, plus partage avec
+// le Maire) + fix du filtrage : chargeait auparavant TOUS les permis du pays, pas seulement
+// ceux de la ville courante -- un maire/adjoint voyait et traitait les demandes des 2 autres
+// villes.
 async function doTraiterDemandesPermis() {
-  if (!state.poste?.id?.startsWith('maire')) { showToast('Réservé au maire', '', false); return; }
+  if (state.poste?.id !== 'maire_adjoint') { showToast('Réservé au maire adjoint', '', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Demandes de permis à traiter';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
+  const terrainsVille = TERRAINS_PAR_VILLE[state.currentCity] || [];
   const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(state.country)}`).catch(() => []);
   const demandes = [];
   (rows || []).forEach(r => {
+    if (!terrainsVille.includes(r.building_id)) return; // filtre par ville
     try {
       const etat = JSON.parse(r.data);
       if (etat.permis?.statut === 'attente_validation') demandes.push({ buildingId: r.building_id, etat });
@@ -4286,10 +4304,11 @@ function getBuildingIdTribunal(ville) {
   return ville === 'capitale' ? 'tribunal' : 'tribunal-local';
 }
 
-// ---- FINANCEMENT COMMUNAL (Maire) : virement instantane depuis la caisse municipale ----
+// ---- FINANCEMENT COMMUNAL (Maire Adjoint depuis le 10 aout 2026 -- transfert complet, plus
+// partage avec le Maire) : virement instantane depuis la caisse municipale ----
 async function ouvrirModalFinancerCommunal() {
-  if (!state.poste?.id?.startsWith('maire')) {
-    showToast('Acces refuse', 'Reserve au Maire.', false);
+  if (state.poste?.id !== 'maire_adjoint') {
+    showToast('Acces refuse', 'Reserve au Maire Adjoint.', false);
     return;
   }
   const ville = state.currentCity;

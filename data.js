@@ -2294,14 +2294,26 @@ const BUILDINGS = {
         orders: [
           {fn:'fixer_impots_locaux',   label:'Fixer les impôts locaux',       pa:2, cost:0, type:'legal', icon:'ti-receipt-tax',  successRate:100, requiresPost:'maire', desc:'Definir le taux de taxation locale. Impact direct sur les recettes et la popularite.'},
           {fn:'repartition_budget_local', label:'Repartir le budget municipal', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Repartir les recettes fiscales locales entre Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal. Applique chaque nuit, credite directement leur caisse reelle.'},
-          {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire', desc:'Valider ou refuser les permis de construire arrives a instruction terminee.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Deploiement de forces de l\'ordre supplementaires. Preleve sur budget mairie.'},
-          {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'contester_resultats',   label:'Contester des resultats',       pa:2, cost:0, type:'legal', icon:'ti-alert-triangle', successRate:70, desc:'Deposer un recours dans le sous-forum Tribunal. Delai 48h. Decision du juge.'},
           {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'},
-          {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
           {fn:'revoquer_commissaire',   label:'Revoquer le commissaire',      pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste de commissaire au titulaire actuel de la ville.'},
-          {fn:'gerer_candidature_directeur_entrepot', label:"Gérer les candidatures au Directeur d'Entrepôt", pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:"Candidatures reçues pour le Directeur de l'Entrepôt Logistique de cette ville — sans se déplacer."}
+          {fn:'gerer_candidature_maire_adjoint', label:'Gérer les candidatures au Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:'Candidatures reçues pour le poste de Maire Adjoint de cette ville — sans se déplacer.'}
+        ]
+      },
+      bureau_maire_adjoint: {
+        name: "Bureau du Maire Adjoint",
+        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
+        desc: "Le bureau de l'adjoint au maire de Luthecia. Acces sur rendez-vous.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-maire.png",
+        persons: [],
+        orders: [
+          {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
+          {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
+          {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
+          {fn:'gerer_candidature_directeur_entrepot', label:"Gérer les candidatures au Directeur d'Entrepôt", pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire_adjoint', desc:"Candidatures reçues pour le Directeur de l'Entrepôt Logistique de cette ville — sans se déplacer."},
+          {fn:'nommer_directeur_entrepot', label:'Nommer un directeur d\'entrepôt', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'maire_adjoint', desc:"Nommer un PJ directeur de l'entrepôt de cette ville. Poste exclusif (sauf député)."},
+          {fn:'revoquer_directeur_entrepot', label:"Revoquer le directeur d'entrepôt", pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire_adjoint', desc:"Retirer le poste de directeur d'entrepôt au titulaire actuel de la ville."}
         ]
       },
       salle_elections: {
@@ -2753,12 +2765,26 @@ const BUILDINGS = {
         orders: [
           {fn:'fixer_impots_locaux',   label:'Fixer les impôts locaux',       pa:2, cost:0, type:'legal', icon:'ti-receipt-tax',  successRate:100, requiresPost:'maire', desc:'Definir le taux de taxation locale.'},
           {fn:'repartition_budget_local', label:'Répartir le budget municipal', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Repartir les recettes fiscales locales entre Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal. Applique chaque nuit, credite directement leur caisse reelle.'},
-          {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire', desc:'Valider ou refuser les permis de construire arrives a instruction terminee.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Preleve sur budget mairie.'},
           {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'},
-          {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
           {fn:'revoquer_commissaire',   label:'Revoquer le commissaire',      pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste de commissaire au titulaire actuel de la ville.'},
-          {fn:'gerer_candidature_directeur_entrepot', label:"Gérer les candidatures au Directeur d'Entrepôt", pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:"Candidatures reçues pour le Directeur de l'Entrepôt Logistique de cette ville — sans se déplacer."}
+          {fn:'gerer_candidature_maire_adjoint', label:'Gérer les candidatures au Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:'Candidatures reçues pour le poste de Maire Adjoint de cette ville — sans se déplacer.'}
+        ]
+      },
+      bureau_maire_adjoint: {
+        name: "Bureau du Maire Adjoint",
+        image: "🏛",
+        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
+        desc: "Le bureau de l'adjoint au maire. Acces reserve.",
+        imageUrl: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=1200&q=80",
+        persons: [],
+        orders: [
+          {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
+          {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
+          {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
+          {fn:'gerer_candidature_directeur_entrepot', label:"Gérer les candidatures au Directeur d'Entrepôt", pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire_adjoint', desc:"Candidatures reçues pour le Directeur de l'Entrepôt Logistique de cette ville — sans se déplacer."},
+          {fn:'nommer_directeur_entrepot', label:'Nommer un directeur d\'entrepôt', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'maire_adjoint', desc:"Nommer un PJ directeur de l'entrepôt de cette ville. Poste exclusif (sauf député)."},
+          {fn:'revoquer_directeur_entrepot', label:"Revoquer le directeur d'entrepôt", pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire_adjoint', desc:"Retirer le poste de directeur d'entrepôt au titulaire actuel de la ville."}
         ]
       }
     }
@@ -4043,7 +4069,6 @@ const BUILDINGS = {
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Norbert Charton (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
-          {fn:'nommer_directeur_entrepot', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'maire', desc:"Nommer un PJ directeur de l'entrepôt. Poste exclusif (sauf député)."},
           {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix d'achat", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue à l'entrepôt, dans la fourchette autorisée (±40% du prix de base)."}
         ]
       }
@@ -4229,7 +4254,6 @@ const BUILDINGS = {
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Yvon Paletier (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
-          {fn:'nommer_directeur_entrepot', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'maire', desc:"Nommer un PJ directeur de l'entrepôt. Poste exclusif (sauf député)."},
           {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix d'achat", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue à l'entrepôt, dans la fourchette autorisée (±40% du prix de base)."}
         ]
       }
@@ -4259,7 +4283,6 @@ const BUILDINGS = {
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Marcel Silo (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
-          {fn:'nommer_directeur_entrepot', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'maire', desc:"Nommer un PJ directeur de l'entrepôt. Poste exclusif (sauf député)."},
           {fn:'fixer_prix_achat_entrepot', label:"Fixer les prix d'achat", pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_entrepot', desc:"Fixer le prix de chaque ressource vendue à l'entrepôt, dans la fourchette autorisée (±40% du prix de base)."}
         ]
       }
@@ -5671,10 +5694,18 @@ const POSTES_NOMMES_EXCLUSIFS = {
   directeur_tabac_alcools: { label: 'Directeur du Pôle Tabac & Alcools',   nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
   directeur_raffinerie:    { label: 'Directeur de la Raffinerie',          nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
 
-  // Directeur de l'entrepot logistique — nomme par le Maire (portee locale, un titulaire
-  // distinct par ville, contrairement aux directeurs d'usine nommes par le Ministre des
-  // Finances a l'echelle du pays). Meme mecanique que le commissaire.
-  directeur_entrepot:      { label: "Directeur de l'Entrepôt Logistique",  nommePar: 'maire',   scope: 'ville', compatibles: ['depute'] }
+  // Directeur de l'entrepot logistique — nomme par le Maire ADJOINT depuis le 10 aout 2026
+  // (transfert complet de la prerogative, voir maire_adjoint ci-dessous), portee locale, un
+  // titulaire distinct par ville. Meme mecanique que le commissaire. Ne change rien au
+  // remplissage PNJ automatique du cron (verifierPostesVacantsEtAutoPourvoir, api/cron-minuit.js),
+  // qui a sa propre boucle par ville cablee sur estOccupe('maire', ville), independante de ce champ.
+  directeur_entrepot:      { label: "Directeur de l'Entrepôt Logistique",  nommePar: 'maire_adjoint', scope: 'ville', compatibles: ['depute'] },
+
+  // Maire Adjoint (10 aout 2026) — nomme par le Maire, portee locale. Pas de repli PNJ
+  // automatique dans la cascade du cron (deliberement pas construit, reflexion a venir sur une
+  // eventuelle cohabitation liee au score electoral) : le poste reste simplement vacant tant
+  // qu'aucun joueur ne postule.
+  maire_adjoint:           { label: 'Maire Adjoint',                      nommePar: 'maire',         scope: 'ville', compatibles: ['depute'] }
 };
 
 // Nouveaux ordres v6

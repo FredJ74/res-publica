@@ -3955,15 +3955,18 @@ function ouvrirModalNommerCommissaire() {
   ouvrirNominerPosteNomme('commissaire');
 }
 
+// Transfert complet au Maire Adjoint le 10 aout 2026 (plus partage avec le Maire) : verification
+// stricte, contrairement au startsWith('maire') d'avant qui aurait aussi laisse passer le Maire.
 function ouvrirModalNommerDirecteurEntrepot() {
-  if (!state.poste?.id?.startsWith('maire')) {
-    showToast('Accès refusé', "Seul le Maire peut nommer un directeur d'entrepôt.", false);
+  if (state.poste?.id !== 'maire_adjoint') {
+    showToast('Accès refusé', "Seul le Maire Adjoint peut nommer un directeur d'entrepôt.", false);
     return;
   }
   ouvrirNominerPosteNomme('directeur_entrepot');
 }
 
 function ouvrirModalRevoquerCommissaire() { ouvrirRevoquerPosteNomme('commissaire'); }
+function ouvrirModalRevoquerDirecteurEntrepot() { ouvrirRevoquerPosteNomme('directeur_entrepot'); }
 
 function ouvrirModalNommerPM() {
   if (state.poste?.id !== 'president') {
