@@ -2672,28 +2672,43 @@ document.querySelectorAll('.modal-overlay:not(#modal-quete-accueil)').forEach(m 
 // CORRIGER POSTULER
 // =====================
 
-// Appelee quand le President/PM clique "Accepter la candidature" dans le mail
+// Appelee quand le President/PM clique "Accepter la candidature" dans le mail (ou depuis la
+// fenetre de gestion groupee des candidatures, nommerDepuisCandidature).
+// Fix du 10 aout 2026 : accordait jusqu'ici le poste via une "nomination en attente" deposee
+// par sbDeposerNominationPoste, jamais appliquee car ni cette fonction ni
+// sbGetNominationsPosteEnAttente/sbMarquerNominationTraitee n'ont jamais existe nulle part
+// dans le code (typeof-guardees, no-op silencieux) -- le mail/toast/journal disaient "devient
+// X" mais rien n'etait jamais reellement accorde. Le candidat n'etant pas forcement connecte
+// au moment ou l'autorite clique, on ne peut pas toucher son state local -- on ecrit donc
+// directement sur sa fiche Supabase (personnages.poste), effectif immediatement pour tout le
+// monde (getTitulaireActuel), visible pour le candidat lui-meme des son prochain chargement.
 async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
   document.getElementById('modal-pnj')?.classList.remove('open');
+  const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+  const villeDuPoste = regle?.scope === 'ville' ? state.currentCity : null;
 
-  // Deposer une "nomination en attente" pour le candidat, appliquee a sa prochaine connexion
-  if (typeof sbDeposerNominationPoste === 'function') {
-    await sbDeposerNominationPoste({
-      id: 'nomination-' + Date.now(),
-      destinataire: candidatNom,
-      poste_id: posteId,
-      poste_name: posteName,
-      country: state.country,
-      traite: false
-    }).catch(() => {});
+  // Deloger un eventuel titulaire actuel different du candidat (PJ ou PNJ), avant d'attribuer
+  // le poste -- evite qu'un poste unique se retrouve occupe par deux joueurs en meme temps.
+  if (typeof getTitulaireActuel === 'function') {
+    const ancienTitulaire = await getTitulaireActuel(posteId, villeDuPoste);
+    if (ancienTitulaire?.estPJ && ancienTitulaire.nom !== candidatNom && typeof sbUpdate === 'function') {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(ancienTitulaire.nom)}`, { poste: null }).catch(() => {});
+    }
+  }
+  if (typeof sbSupprimerTitulairePnj === 'function') {
+    await sbSupprimerTitulairePnj(state.country, posteId, villeDuPoste).catch(() => {});
   }
 
-  // Notifier le candidat par mail (en plus de l'application directe a sa prochaine connexion)
+  if (typeof sbUpdate === 'function') {
+    const posteAAccorder = { id: posteId, name: posteName, city: villeDuPoste };
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(candidatNom)}`, { poste: posteAAccorder }).catch(() => {});
+  }
+
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
     const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     await sbSendMail(state.char?.name || 'Anonyme', candidatNom, 'Candidature acceptée !',
-      'Votre candidature au poste de ' + posteName + ' a été acceptée. Le poste sera effectif à votre prochaine connexion.', time).catch(() => {});
+      'Votre candidature au poste de ' + posteName + ' a été acceptée. Le poste est déjà effectif.', time).catch(() => {});
   }
 
   showToast('Candidature acceptée', candidatNom + ' devient ' + posteName + '.', true, true);
@@ -2772,59 +2787,11 @@ async function convoquerCandidatEntretien(posteName, candidatNom) {
   addJournalEntry('Convocation à un entretien envoyée à ' + candidatNom + ' pour le poste de ' + posteName + '.', 'event-info');
 }
 
-// Applique une nomination en attente au chargement du jeu (comme la naturalisation)
-// Gere aussi le cas special DEMISSION_FORCEE (motion de censure adoptee contre le PM)
-async function appliquerNominationPosteEnAttente() {
-  if (typeof sbGetNominationsPosteEnAttente !== 'function' || !state.char?.name) return;
-  try {
-    const nominations = await sbGetNominationsPosteEnAttente(state.char.name);
-    if (!nominations || nominations.length === 0) return;
-    const nomination = nominations[0];
-
-    if (nomination.poste_id === 'DEMISSION_FORCEE') {
-      const ancienPoste = state.poste?.name || 'votre poste';
-      state.poste = null;
-      if (state.char) state.char.poste = null;
-
-      if (typeof sbMarquerNominationTraitee === 'function') {
-        await sbMarquerNominationTraitee(nomination.id).catch(() => {});
-      }
-      if (typeof sbSavePersonnage === 'function') {
-        await sbSavePersonnage(state).catch(() => {});
-      }
-
-      updateUI();
-      showToast('Censure adoptée', 'L\'Assemblée a retiré sa confiance. Vous avez démissionné de ' + ancienPoste + '.', false, true);
-      addJournalEntry('Motion de censure adoptée contre vous. Démission forcée de ' + ancienPoste + '.', 'event-bad');
-      return;
-    }
-
-    // Deloger un eventuel titulaire actuel different du nomme, avant d'attribuer le poste
-    // (evite qu'un poste unique se retrouve occupe par deux joueurs en meme temps).
-    const ancienTitulaireInfo = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel(nomination.poste_id) : null;
-    if (ancienTitulaireInfo?.estPJ && ancienTitulaireInfo.nom !== state.char.name && typeof sbUpdate === 'function') {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(ancienTitulaireInfo.nom)}`, { poste: null }).catch(() => {});
-    }
-    if (typeof sbSupprimerTitulairePnj === 'function') {
-      await sbSupprimerTitulairePnj(state.country, nomination.poste_id, null).catch(() => {});
-    }
-
-    state.poste = { id: nomination.poste_id, name: nomination.poste_name };
-    if (state.char) state.char.poste = state.poste;
-    state.salaireTouche = false;
-
-    if (typeof sbMarquerNominationTraitee === 'function') {
-      await sbMarquerNominationTraitee(nomination.id).catch(() => {});
-    }
-    if (typeof sbSavePersonnage === 'function') {
-      await sbSavePersonnage(state).catch(() => {});
-    }
-
-    updateUI();
-    showToast('Nomination effective !', 'Vous êtes désormais ' + nomination.poste_name + '.', true, true);
-    addJournalEntry('Votre nomination au poste de ' + nomination.poste_name + ' est effective.', 'event-good');
-  } catch(e) { console.warn('appliquerNominationPosteEnAttente error', e); }
-}
+// appliquerNominationPosteEnAttente() retiree le 10 aout 2026 : reposait entierement sur
+// sbGetNominationsPosteEnAttente/sbMarquerNominationTraitee, jamais definies nulle part dans
+// le code -- fonction morte depuis toujours. accepterCandidaturePoste et la demission forcee
+// par motion de censure ecrivent desormais directement sur personnages.poste au moment de
+// l'action (voir ces deux fonctions), plus besoin d'un passage differe au chargement.
 
 // =====================
 // PONT ELECTION -> POUVOIR REEL (refonte des postes, 9 aout 2026)
@@ -5038,20 +5005,18 @@ async function cloturerVoteConfiance(vote) {
       (confianceAccordee ? 'Le gouvernement de ' + vote.pm_nom + ' obtient la confiance.' : 'Le gouvernement de ' + vote.pm_nom + ' est CENSURÉ et doit démissionner.'), 'national');
   }
 
-  if (!confianceAccordee && typeof sbSendMail === 'function') {
-    const time = 'Résultat du vote';
-    await sbSendMail('Assemblée Nationale', vote.pm_nom, 'Motion de censure adoptée',
-      'L\'Assemblée Nationale a retiré sa confiance à votre gouvernement (' + pour + ' pour / ' + contre + ' contre). Vous devez démissionner immédiatement.', time).catch(() => {});
-    // Deposer une "censure en attente" pour forcer la demission a la prochaine connexion du PM
-    if (typeof sbDeposerNominationPoste === 'function') {
-      await sbDeposerNominationPoste({
-        id: 'censure-' + Date.now(),
-        destinataire: vote.pm_nom,
-        poste_id: 'DEMISSION_FORCEE',
-        poste_name: '',
-        country: vote.country,
-        traite: false
-      }).catch(() => {});
+  if (!confianceAccordee) {
+    if (typeof sbSendMail === 'function') {
+      const time = 'Résultat du vote';
+      await sbSendMail('Assemblée Nationale', vote.pm_nom, 'Motion de censure adoptée',
+        'L\'Assemblée Nationale a retiré sa confiance à votre gouvernement (' + pour + ' pour / ' + contre + ' contre). Vous avez démissionné avec effet immédiat.', time).catch(() => {});
+    }
+    // Demission forcee avec effet immediat (fix du 10 aout 2026 : reposait sur
+    // sbDeposerNominationPoste, jamais definie nulle part -- le PM censure restait en poste
+    // malgre la perte de confiance). Ecrit directement sur sa fiche, le PM n'etant pas
+    // forcement connecte au moment du vote.
+    if (typeof sbUpdate === 'function') {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(vote.pm_nom)}`, { poste: null }).catch(() => {});
     }
   }
 }
