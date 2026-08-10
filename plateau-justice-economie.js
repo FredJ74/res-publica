@@ -2584,14 +2584,14 @@ const TERRAINS_LUTHECIA = ['terrain-a-batir-1', 'terrain-a-batir-2', 'terrain-a-
 
 // Pour filtrer les demandes de permis par ville (doTraiterDemandesPermis, 10 aout 2026) --
 // terrains_etat ne stocke aucun champ city, seulement building_id, d'ou ce mapping construit a
-// partir des listes buildings de chaque ville (data.js). ATTENTION, collision preexistante
-// decouverte au passage et NON corrigee ici (hors perimetre, risque sur des terrains deja
-// possedes) : 'terrain-a-batir-3' est utilise a la fois par Luthecia (capitale) et Montrouge
-// (ville_b) -- meme id, donc meme ligne terrains_etat (cle country+building_id, pas de ville).
+// partir des listes buildings de chaque ville (data.js). Collision Luthecia/Montrouge (les deux
+// utilisaient 'terrain-a-batir-3') corrigee le meme soir : Montrouge est passe sur
+// 'terrain-a-batir-6', deja libre et deja defini (data.js), aucune donnee perdue (la ligne
+// Supabase existante etait deja celle de Luthecia, jamais celle de Montrouge).
 const TERRAINS_PAR_VILLE = {
   capitale: TERRAINS_LUTHECIA,
   ville_a:  ['terrain-a-batir-8', 'terrain-a-batir-9', 'terrain-a-batir-10', 'terrain-a-batir-11'],
-  ville_b:  ['terrain-a-batir-3']
+  ville_b:  ['terrain-a-batir-6']
 };
 
 async function doActeVenteTerrain() {

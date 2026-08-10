@@ -885,6 +885,11 @@ const PLAN_LAYOUTS = {
     'siege-syndical':              [376,  12,  72, 60],
     'usine-principale':            [286,  80, 162, 58],
     'centre-multinodal-montrouge': [ 14, 168, 120, 100],
+    // terrain-a-batir-2 ajoute le 10 aout 2026 (fix collision d'id narco/soviet/khalija
+    // ville_a/ville_b, tous deux utilisaient -3) : cette table est generique par creneau de
+    // ville, partagee par les 4 empires -- Republic n'utilise pas -2 ici (Montrouge est passe
+    // sur -6, deja present ci-dessous).
+    'terrain-a-batir-2':           [ 66, 168,  76, 100],
     'terrain-a-batir-3':           [152, 168,  76, 100],
     'terrain-a-batir-4':           [238, 168,  76, 100],
     'terrain-a-batir-5':           [324, 168,  76, 100],
