@@ -430,6 +430,8 @@ function loadCharacter() {
       console.log('Personnage charge (local):', char.name, '| Pays:', state.country);
       // Restaurer la position exacte (piece) ou la personne se trouvait avant le rafraichissement
       restaurerPositionApresChargement(char);
+      // Reinjecter le journal personnel persiste (rapide, depuis le cache local)
+      restaurerJournal(char);
       // Synchroniser depuis Supabase en arrière-plan
       if (char.name && typeof sbLoadPersonnage === 'function') {
         sbLoadPersonnage(char.name).then(sbState => {
@@ -467,6 +469,9 @@ function loadCharacter() {
             applyCharToState(state.char);
             updateUI();
             restaurerPositionApresChargement(state.char);
+            // Reconcilie avec la version Supabase (potentiellement plus a jour, ex. joueur
+            // actif sur un autre appareil) -- vide et repeuple #journal en consequence.
+            restaurerJournal(state.char);
             if (typeof enigme1VerifierDeclenchement === 'function') enigme1VerifierDeclenchement();
             // Emploi BNE : pas de colonne dediee sur personnages (voir plateau-justice-economie.js),
             // le cache local state.emploiBNE doit etre rafraichi explicitement depuis Supabase.
@@ -779,11 +784,40 @@ function addJournalEntry(text, cls) {
   div.innerHTML = `<span class="journal-time">Jour ${state.day} · ${h}h00</span>
     <span class="journal-text ${cls||''}">${text}</span>`;
   j.insertBefore(div, j.firstChild);
+
+  // Persistance (10 aout 2026) : conserve les 120 dernieres entrees, la plus recente en tete
+  // (unshift). Vit uniquement sur state.char.journal, jamais de miroir state.journal separe --
+  // deliberement, pour ne pas reproduire le bug de state.arg (valeur correcte ecrasee par un
+  // defaut faute d'etre resynchronisee vers state.char avant sauvegarde).
+  if (state.char) {
+    if (!Array.isArray(state.char.journal)) state.char.journal = [];
+    state.char.journal.unshift({ day: state.day, hour: state.hour, text, cls: cls || '' });
+    if (state.char.journal.length > 120) state.char.journal.length = 120;
+  }
+
   // Signaler les evenements importants (mauvaises nouvelles, événements externes)
   const important = ['event-bad', 'event-secret', 'event-external'];
   if (important.includes(cls) && typeof signalerEvenementJournal === 'function') {
     signalerEvenementJournal();
   }
+}
+
+// Reinjecte les entrees de journal personnel persistees (state.char.journal, jusqu'a 120)
+// dans le panneau #journal au chargement -- appelee a la fois apres la restauration rapide
+// depuis localStorage et apres la fusion Supabase (voir loadCharacter), pour refleter la
+// version la plus a jour dans les deux cas.
+function restaurerJournal(char) {
+  const j = document.getElementById('journal');
+  if (!j || !Array.isArray(char?.journal)) return;
+  j.innerHTML = '';
+  char.journal.forEach(entry => {
+    const h = String(entry.hour ?? 0).padStart(2, '0');
+    const div = document.createElement('div');
+    div.className = 'journal-entry';
+    div.innerHTML = `<span class="journal-time">Jour ${entry.day} · ${h}h00</span>
+      <span class="journal-text ${entry.cls || ''}">${entry.text}</span>`;
+    j.appendChild(div);
+  });
 }
 
 // Close modals on overlay click
