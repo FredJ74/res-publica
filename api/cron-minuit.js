@@ -1114,7 +1114,23 @@ const PNJ_PAR_DEFAUT_POSTE = {
   min_info:    "Le Ministre de l'Information (PNJ)",
   min_ae:      'Le Ministre des Affaires Étrangères (PNJ)',
   juge:        'Juge Fontaine',
-  commissaire: 'Raoul Toufaud (PNJ)'
+  commissaire: 'Raoul Toufaud (PNJ)',
+  // Commandant et les 3 directeurs d'usine ajoutes le 10 aout 2026 (chantier "priorite PJ",
+  // point 2 du backlog). Reutilise les PNJ deja en poste dans chaque batiment (data.js) plutot
+  // que d'inventer des noms, sauf Commandant qui n'en avait pas encore.
+  commandant:              'Commandant Tom Hawak',
+  directeur_pharma:        'Bernard Piluler (PNJ)',
+  directeur_tabac_alcools: 'Fernand Cendrier (PNJ)',
+  directeur_raffinerie:    'Gustave Baril (PNJ)'
+};
+
+// Directeur d'entrepot (scope:ville, nomme par le maire) : un PNJ different par ville, deja en
+// poste dans chaque entrepot (data.js) -- traite dans la boucle par ville ci-dessous, pas dans
+// CASCADE_NATIONALE (national uniquement).
+const PNJ_DIRECTEUR_ENTREPOT_PAR_VILLE = {
+  capitale: 'Marcel Silo (PNJ)',
+  ville_a:  'Yvon Paletier (PNJ)',
+  ville_b:  'Norbert Charton (PNJ)'
 };
 
 // Cascade des postes nommes nationaux, dans l'ordre de dependance (chaque poste ne peut etre
@@ -1127,7 +1143,11 @@ const CASCADE_NATIONALE = [
   { posteId: 'min_def',  nommePar: 'pm' },
   { posteId: 'min_info', nommePar: 'pm' },
   { posteId: 'min_ae',   nommePar: 'pm' },
-  { posteId: 'juge',     nommePar: 'min_just' }
+  { posteId: 'juge',     nommePar: 'min_just' },
+  { posteId: 'commandant',              nommePar: 'min_def' },
+  { posteId: 'directeur_pharma',        nommePar: 'min_fin' },
+  { posteId: 'directeur_tabac_alcools', nommePar: 'min_fin' },
+  { posteId: 'directeur_raffinerie',    nommePar: 'min_fin' }
 ];
 
 async function verifierPostesVacantsEtAutoPourvoir() {
@@ -1196,11 +1216,14 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       await pourvoirPnj(posteId, null, PNJ_PAR_DEFAUT_POSTE[posteId]);
     }
 
-    // --- Maire (elu, par ville) + Commissaire (nomme par le maire, par ville) ---
+    // --- Maire (elu, par ville) + Commissaire + Directeur d'entrepot (nommes par le maire, par ville) ---
     for (const ville of VILLES_CASCADE) {
       if (!estOccupe('maire', ville)) await pourvoirCycleElu('maire', ville);
       if (!estOccupe('commissaire', ville) && estOccupe('maire', ville)) {
         await pourvoirPnj('commissaire', ville, PNJ_PAR_DEFAUT_POSTE.commissaire);
+      }
+      if (!estOccupe('directeur_entrepot', ville) && estOccupe('maire', ville)) {
+        await pourvoirPnj('directeur_entrepot', ville, PNJ_DIRECTEUR_ENTREPOT_PAR_VILLE[ville]);
       }
     }
   } catch(e) { console.error('verifierPostesVacantsEtAutoPourvoir error', e); }

@@ -2701,6 +2701,77 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
   addExternalEvent('🏛 ' + candidatNom + ' est nommé(e) ' + posteName + '.', 'national');
 }
 
+// =====================
+// GESTION GROUPEE DES CANDIDATURES (10 aout 2026, chantier "priorite PJ" point 2) — accessible
+// directement depuis le bureau de l'autorite de nomination (Ministre des Finances pour les 3
+// directeurs d'usine, Maire pour le directeur d'entrepot, Ministre de la Defense pour le
+// Commandant), sans se deplacer dans le batiment concerne. Reutilise integralement le systeme
+// de candidature/mail existant (demanderNominationPoste envoie deja un vrai mail 'Candidature
+// au poste de X' des qu'un PJ postule aupres d'une autorite PJ) -- cette fenetre se contente de
+// regrouper ces mails par poste plutot que de forcer un traitement mail par mail.
+// =====================
+async function ouvrirGestionCandidatures(posteIds) {
+  document.getElementById('postes-modal-title').textContent = 'Gestion des candidatures';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const moi = state.char?.name;
+  const villeCourante = state.currentCity || 'capitale';
+  const mails = (typeof sbGetMailsFor === 'function' && moi) ? ((await sbGetMailsFor(moi).catch(() => [])) || []) : [];
+
+  let html = '<div style="padding:.5rem 0">';
+  for (const posteId of posteIds) {
+    const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
+    if (!regle) continue;
+    const villeDePoste = regle.scope === 'ville' ? villeCourante : null;
+    const titulaire = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel(posteId, villeDePoste) : null;
+
+    html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">' + regle.label.toUpperCase() + '</div>';
+    html += '<div style="padding:.4rem 1rem;font-size:.8rem;color:#8a8060">Actuellement : ' + (titulaire ? titulaire.nom + (titulaire.estPJ ? '' : ' (PNJ)') : 'Poste vacant') + '</div>';
+
+    const sujetAttendu = 'Candidature au poste de ' + regle.label;
+    const candidatures = mails.filter(m => m.to_player === moi && m.subject === sujetAttendu);
+
+    if (candidatures.length === 0) {
+      html += '<div style="padding:.3rem 1rem .6rem;font-size:.78rem;color:#5a5040;font-style:italic">Aucune candidature en attente.</div>';
+    } else {
+      candidatures.forEach(m => {
+        const nomSafe = (m.from_player || '').replace(/'/g, ' ');
+        const labelSafe = regle.label.replace(/'/g, ' ');
+        html += '<div style="padding:.6rem 1rem;border-bottom:1px solid #1a1810;display:flex;justify-content:space-between;align-items:center">';
+        html += '<span style="font-size:.85rem;color:#c0b090">' + m.from_player + '</span>';
+        html += '<div style="display:flex;gap:.4rem">';
+        html += '<button onclick="nommerDepuisCandidature(\'' + posteId + '\',\'' + labelSafe + '\',\'' + nomSafe + '\',\'' + m.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer</button>';
+        html += '<button onclick="convoquerCandidatEntretien(\'' + labelSafe + '\',\'' + nomSafe + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Convoquer à un entretien</button>';
+        html += '</div></div>';
+      });
+    }
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function nommerDepuisCandidature(posteId, posteName, candidatNom, mailId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  await accepterCandidaturePoste(posteId, posteName, candidatNom);
+  if (typeof sbDeleteMail === 'function' && mailId) await sbDeleteMail(mailId).catch(() => {});
+}
+
+// Purement narratif/optionnel : aucun effet mecanique, l'autorite peut nommer directement sans
+// jamais convoquer. Le candidat reste dans la liste des candidatures apres l'envoi.
+async function convoquerCandidatEntretien(posteName, candidatNom) {
+  const nommeurNom = state.char?.name || 'Anonyme';
+  const lieu = (typeof BUILDINGS !== 'undefined' && BUILDINGS[state.currentBuilding]?.name) || 'ministère';
+  const corps = nommeurNom + ' vous convie à un entretien au ' + lieu + ' pour discuter de votre motivation pour le poste de <strong>' + posteName + '</strong>. Présentez-vous quand vous le pourrez — purement informel, votre candidature reste valable.';
+  if (typeof sbSendMail === 'function') {
+    const h = String(state.hour || 8).padStart(2,'0');
+    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    await sbSendMail(nommeurNom, candidatNom, 'Convocation à un entretien', corps, time).catch(() => {});
+  }
+  showToast('Convocation envoyée', candidatNom + ' a été invité(e) à un entretien.', true);
+  addJournalEntry('Convocation à un entretien envoyée à ' + candidatNom + ' pour le poste de ' + posteName + '.', 'event-info');
+}
+
 // Applique une nomination en attente au chargement du jeu (comme la naturalisation)
 // Gere aussi le cas special DEMISSION_FORCEE (motion de censure adoptee contre le PM)
 async function appliquerNominationPosteEnAttente() {
