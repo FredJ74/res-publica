@@ -1626,6 +1626,17 @@ function ouvrirAudioguide(url, nomSalle) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Stoppe et decharge un audioguide en cours de lecture (fermeture de la modale, changement
+// de piece/batiment) — pour eviter qu'il continue en fond ou que plusieurs se superposent.
+function arreterAudioguide() {
+  const audio = document.querySelector('#postes-body audio');
+  if (audio) {
+    audio.pause();
+    audio.removeAttribute('src');
+    audio.load();
+  }
+}
+
 
 // DÉCRETS PRÉSIDENTIELS
 // =====================

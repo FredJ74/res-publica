@@ -483,6 +483,10 @@ function enterRoom(buildingId, roomId, tabEl) {
   const room = b.rooms?.[roomId] || ctxRoomsExtra?.[roomId];
   if (!room) return;
 
+  // Stopper un audioguide en cours de lecture pour eviter qu'il continue en fond ou
+  // se superpose a celui de la prochaine salle visitee.
+  if (typeof arreterAudioguide === 'function') arreterAudioguide();
+
   state.currentRoom = roomId;
   deplacerGroupeAvecPj(buildingId, roomId, state.currentCity);
 
