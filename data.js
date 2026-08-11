@@ -3634,6 +3634,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "L'histoire presidentielle de la nation, ses meilleurs et ses pires chefs d'Etat. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-presidents-musee-national.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-luthecia-audio-salle-presidents.mp3",
         persons: [],
         orders: []
       },

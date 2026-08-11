@@ -1606,8 +1606,24 @@ function renderRoomActions(room, buildingId, roomId) {
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltip + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + costDisplay + ' · ' + paDisplay + '</span>' + gainBadge + '</button>';
   });
 
+  // Bouton generique "Ecouter l'audioguide" : apparait pour toute salle ayant un audioUrl,
+  // sans passer par room.orders/doOrder (pas un ordre codable, juste un lecteur audio).
+  if (room.audioUrl) {
+    const safeNom = room.name.replace(/'/g, ' ');
+    buttons.push('<button class="action-btn legal" onclick="ouvrirAudioguide(\'' + room.audioUrl + '\',\'' + safeNom + '\')" title="Ecouter l\'audioguide de cette salle"><i class="ti ti-headphones" style="font-size:.82rem"></i> Écouter l\'audioguide <span class="pa-cost">gratuit · 0 PA</span></button>');
+  }
+
   document.getElementById('actions-row-bat').innerHTML = buttons.join('') ||
     '<div style="font-size:.75rem;color:#9a8a68;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
+}
+
+function ouvrirAudioguide(url, nomSalle) {
+  document.getElementById('postes-modal-title').textContent = 'Audioguide — ' + nomSalle;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.5rem;text-align:center">' +
+    '<audio controls autoplay style="width:100%" src="' + url + '"></audio>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 
