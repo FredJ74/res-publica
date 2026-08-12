@@ -3682,6 +3682,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181008,#221408)",
         desc: "Figures religieuses, syndicales et de loges ayant marqué le pays.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-organisations-musee-national.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-responsables-organisations.mp3",
         persons: [],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
@@ -3692,6 +3693,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#101418,#181c22)",
         desc: "Compositeurs, sculpteurs, champions et figures populaires du sport national.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-artistes-sportifs-musee-national.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-artistes-sportifs.mp3",
         persons: [],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
@@ -3702,6 +3704,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181008,#221408)",
         desc: "Regalia, objets d'Etat et symboles du pouvoir. Acces strictement interdit — zone sous haute protection, surveillance 24h/24.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tresor-national-musee-national.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-tresor-national.mp3",
         persons: [],
         orders: []
       },
@@ -3710,6 +3713,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
         desc: "Les plus grandes fortunes et entreprises a l'echelle nationale.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-economie-musee-national.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-reussites-economiques.mp3",
         persons: [],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
@@ -3720,6 +3724,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181410,#241c14)",
         desc: "Les maires des differentes villes du pays entrent en competition pour la reconnaissance nationale de leur cite. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-national-salle-grandes-villes.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-grandes-villes.mp3",
         persons: [],
         orders: []
       },
@@ -3728,6 +3733,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
         desc: "Les plus grands criminels de chaque ville du pays entrent en competition pour le titre de plus grand criminel de la nation. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-criminels-musee-national.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-grands-criminels.mp3",
         persons: [],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
