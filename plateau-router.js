@@ -79,12 +79,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }
   if (fn === 'acheter_bombe_mil') { doObtenirExplosifsMilitaires(); return; }
-  if (fn === 'se_justifier') { doSeJustifier(); return; }
+  if (fn === 'se_justifier') { doSeJustifier(pa, cost); return; }
   if (fn === 'observer_match') { doObserverMatch(); return; }
   if (fn === 'consulter_palmares') { doConsulterPalmares(); return; }
   if (fn === 'parier_match') { doParierMatch(); return; }
   if (fn === 'regarder_live') { doRegarderLive(); return; }
-  if (fn === 'prendre_licence_sportive') { doPrendreLicenceSportive(); return; }
+  if (fn === 'prendre_licence_sportive') { doPrendreLicenceSportive(pa, cost); return; }
   if (fn === 'tenue_entrainement') { doTenueEntrainement(); return; }
   if (fn === 'tenue_match') { doTenueMatch(); return; }
   if (fn === 'conseil_entraineur_adjoint') { doConseilEntraineurAdjoint(); return; }
@@ -95,20 +95,20 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'distribuer_tracts_match') { doDistribuerTractsMatch(); return; }
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
   if (fn === 'organiser_boycott') { doOrganiserBoycott(); return; }
-  if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(); return; }
+  if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(pa, cost); return; }
   if (fn === 'centre_anti_poison') { doCentreAntiPoison(); return; }
   if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(); return; }
   if (fn === 'dormir_chambre') { doDormirChambre(); return; }
   if (fn === 'dormir') { doDormir(); return; }
   if (fn === 'service_etage') { doServiceEtage(); return; }
-  if (fn === 'consulter_classement_joueurs_club') { doConsulterClassementBookmaker(); return; }
+  if (fn === 'consulter_classement_joueurs_club') { doConsulterClassementBookmaker(pa, cost); return; }
   if (fn === 'postuler_president_club') { doPostulerPresidentClub(); return; }
   if (fn === 'consulter_bureau_president') { doConsulterBureauPresident(); return; }
   if (fn === 'proposer_transfert') { doProposerTransfert(); return; }
   if (fn === 'gerer_offres_transfert') { doGererOffresTransfert(); return; }
   if (fn === 'choisir_accessoire_club') { doChoisirAccessoireClub(); return; }
   if (fn === 'acheter_accessoire_personnalise') { doAcheterAccessoirePersonnalise(); return; }
-  if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(); return; }
+  if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(pa, cost); return; }
   if (fn === 'consulter_organigramme_supporters') { doConsulterOrganigrammeSupporters(); return; }
   if (fn === 'consulter_etat_civil') { doConsulterEtatCivil(); return; }
   if (fn === 'consulter_personnalites_musee') { doConsulterPersonnalitesMusee(); return; }
@@ -180,7 +180,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocauxReel(); return; }
   if (fn === 'consommer_buvette') { doConsommerBuvette(); return; }
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
-  if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne'); return; }
+  if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne', pa, cost); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(); return; }
@@ -220,20 +220,20 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_info_3')       { consulterInformateur(3); return; }
   if (fn === 'consulter_info_4')       { consulterInformateur(4); return; }
   if (fn === 'gerer_informateurs')     { ouvrirGestionInformateurs(); return; }
-  if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs'); return; }
+  if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs', pa, cost); return; }
   if (fn === 'prendre_bus_taxi')       { ouvrirModalTransport('bus'); return; }
   if (fn === 'prendre_avion')          { ouvrirModalTransport('avion'); return; }
   if (fn === 'aller_douanes_aeroport') { doAllerDouanesAeroport(); return; }
   if (fn === 'prendre_bateau')         { ouvrirModalTransport('bateau'); return; }
   if (fn === 'controle_douanes')       { doControlDouanes(); return; }
-  if (fn === 'corrompre_douanier')     { doCorrompreDoanier(); return; }
-  if (fn === 'expedier_colis')         { ouvrirExpedierColis(); return; }
+  if (fn === 'corrompre_douanier')     { doCorrompreDoanier(pa, cost); return; }
+  if (fn === 'expedier_colis')         { ouvrirExpedierColis(pa, cost); return; }
   if (fn === 'receptionner_commande')  { ouvrirReceptionnerCommande(); return; }
   if (fn === 'contrebande_port')       { doContrebandePort(); return; }
   if (fn === 'blocus_portuaire')       { doBlocusPortuaire(); return; }
   if (fn === 'inspecter_cargaisons')   { doInspecterCargaisons(); return; }
   if (fn === 'consulter_manifeste')    { doConsulterManifeste(); return; }
-  if (fn === 'falsifier_manifeste')    { doFalsifierManifeste(); return; }
+  if (fn === 'falsifier_manifeste')    { doFalsifierManifeste(pa, cost); return; }
   if (fn === 'acheter_parapluie')      { doAcheterPoisonObjet('parapluie'); return; }
   if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb'); return; }
   if (fn === 'acheter_polonium')       { doAcheterPoisonObjet('polonium'); return; }
@@ -269,7 +269,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gerer_couvre_feu') { ouvrirGererCouvreFeu(); return; }
   if (fn === 'subvention_min_int') { ouvrirModalFinancerMinInt(); return; }
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
-  if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(); return; }
+  if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(pa, cost); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
   if (fn === 'proposer_treve')        { ouvrirProposerTreve(); return; }
   if (fn === 'prier')                { doPrier(); return; }
@@ -280,7 +280,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'excommunier')          { ouvrirModalCibleRepertoire('excommunier', 'Excommunier'); return; }
   if (fn === 'benediction_etat')     { doBenedictionEtat(); return; }
   if (fn === 'consulter_confessions'){ doConsulterConfessions(); return; }
-  if (fn === 'acheter_relique')      { doAcheterRelique(); return; }
+  if (fn === 'acheter_relique')      { doAcheterRelique(pa, cost); return; }
   if (fn === 'scanner_aleatoire')    { declencherScandale(); return; }
   if (fn === 'accord_diplomatique')  { ouvrirModalNegociationDiplomatique(); return; }
   if (fn === 'produire_fuite')       { ouvrirProduireFuite(); return; }
@@ -346,7 +346,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_faits_armes') { ouvrirConsulterFaitsArmes(); return; }
   if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetMilitaire(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
-  if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
+  if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans', pa, cost); return; }
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
   if (fn === 'reponses_diplomatiques') { ouvrirReponsesDiplomatiques(); return; }
   if (fn === 'subvention') { ouvrirChoixTypeCibleFiscale('subvention', 'Accorder une subvention à'); return; }
@@ -373,7 +373,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'allegemement_secteur')    { ouvrirModalSecteur(); return; }
   if (fn === 'allegement_fiscal')       { doAllegementFiscalIndisponible(); return; }
   if (fn === 'preempter_entreprise')    { ouvrirPreemptionEntreprise(); return; }
-  if (fn === 'stage_caserne')           { doStageCaserne(); return; }
+  if (fn === 'stage_caserne')           { doStageCaserne(pa, cost); return; }
   if (fn === 'acte_rachat_entreprise_preemption') { doActeRachatEntreprisePreemption(); return; }
   if (fn === 'interdire_manif')         { ouvrirInterdireManif(); return; }
   if (fn === 'reprimer_manif')          { ouvrirReprimerManif(); return; }

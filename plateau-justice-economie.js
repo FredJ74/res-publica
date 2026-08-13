@@ -642,7 +642,7 @@ function checkArrestationAuReveil() {
 // =====================
 // SE JUSTIFIER (suite a convocation — ex: achat d'arme illegal echoue)
 // =====================
-function doSeJustifier() {
+function doSeJustifier(pa, cost) {
   const convocation = (state.convocations || []).find(c => !c.traitee);
   if (!convocation) {
     showToast('Rien à signaler', "Vous n'avez aucune convocation en attente.", false);
@@ -657,19 +657,21 @@ function doSeJustifier() {
   document.getElementById('postes-modal-title').textContent = 'Convocation — Se justifier';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">Vous êtes entendu(e) au sujet de : ' + motifLabel + '. L\'entretien prend du temps.</div>';
-  html += '<button onclick="confirmerSeJustifier()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Se présenter (2 PA)</button>';
+  html += '<button onclick="confirmerSeJustifier(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Se présenter (2 PA)</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerSeJustifier() {
+async function confirmerSeJustifier(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const convocation = (state.convocations || []).find(c => !c.traitee);
   if (!convocation) { showToast('Rien à signaler', '', false); return; }
 
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', 'Il vous manque des PA pour vous présenter.', false); return; }
+
   convocation.traitee = true;
-  if (!TEST_MODE) state.pa = Math.max(0, state.pa - 2);
 
   // Lever l'avis de recherche lie a ce motif precis
   if (state.recherche) {
@@ -1441,13 +1443,20 @@ function doControlDouanes() {
   }
 }
 
-function doCorrompreDoanier() {
+// Cout conditionnel (Phase K) : le PA est du des la tentative (le temps est passe a approcher
+// l'agent, reussite ou non), le FR n'est du QUE si le pot-de-vin est accepte -- coherent avec
+// "L'agent n'a pas mordu" en cas d'echec, ou aucun argent ne change de mains.
+async function doCorrompreDoanier(pa, cost) {
+  const rPa = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '', false); return; }
+
   const roll = Math.floor(Math.random() * 100) + 1;
   const dup = getStatEffective('DUP');
   const inf = state.inf || 0;
   const taux = Math.max(5, 55 + Math.floor(dup/10) + Math.floor(inf/10) + 20); // +20 zone transport
   if (roll <= taux) {
-    state.arg -= 300;
+    const rCost = await deduireCoutOrdre({ pa: 0, cost });
+    if (!rCost.ok) { showToast('Fonds insuffisants', 'L\'agent accepte mais vous n\'avez plus de quoi payer.', false); return; }
     state.dis = Math.max(0, state.dis - 5);
     updateUI();
     showToast('Agent corrompu', 'L\'agent regarde ailleurs. -300 FR -5 DIS.', true);
@@ -1459,10 +1468,10 @@ function doCorrompreDoanier() {
   }
 }
 
-function doTaxiSpecial(destination) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (state.arg < 200) { showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false); return; }
-
+// Cout conditionnel (Phase K) : rien n'est du tant que le trajet n'est pas reellement effectue
+// -- acces refuse ou faux document detecte (arrestation) = voyage jamais entame, donc ni PA ni
+// FR ne sont consideres depenses. Deduction placee au seul point "Voyage OK".
+async function doTaxiSpecial(destination, pa, cost) {
   const label = destination === 'caserne' ? 'la Caserne' : 'le QHS';
   const cityKey = destination === 'caserne' ? 'caserne' : 'qhs';
 
@@ -1495,7 +1504,9 @@ function doTaxiSpecial(destination) {
   }
 
   // Voyage OK
-  state.arg -= 200;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
   state.currentCity = cityKey;
   state.currentBuilding = null;
   state.currentRoom = null;
@@ -1512,16 +1523,16 @@ function doTaxiSpecial(destination) {
   buildCityTabs();
   updateUI();
   forceRenderCity(cityKey);
-  showToast('En route !', 'Vous arrivez à ' + label + '. -200 ' + cur, true);
+  showToast('En route !', 'Vous arrivez à ' + label + '. -' + cost + ' ' + cur, true);
   addJournalEntry('Taxi vers ' + label, 'event-info');
 }
 
-function ouvrirFalsifierDocument() {
+function ouvrirFalsifierDocument(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Falsifier un document';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Acte illegal. Taux 45%. Echec : alerte possible. Document ajoute a votre inventaire si succes.</div>';
   DOCUMENTS_FALSIFIABLES.forEach(doc => {
-    html += '<div onclick="confirmerFalsification(\'' + doc.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+    html += '<div onclick="confirmerFalsification(\'' + doc.id + '\',' + pa + ',' + cost + ')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
     html += '<div style="display:flex;align-items:center;gap:.6rem">';
     html += '<i class="ti ' + doc.icon + '" style="font-size:1rem;color:#8a6a20"></i>';
     html += '<div><div style="font-size:.82rem;color:#c0b090">' + doc.name + '</div>';
@@ -1533,15 +1544,22 @@ function ouvrirFalsifierDocument() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerFalsification(docId) {
+// Cout conditionnel (Phase K), meme logique que doCorrompreDoanier/doFalsifierManifeste : PA du
+// des la tentative, FR uniquement en cas de reussite.
+async function confirmerFalsification(docId, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const doc = DOCUMENTS_FALSIFIABLES.find(d => d.id === docId);
   if (!doc) return;
+
+  const rPa = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '', false); return; }
 
   const roll = Math.floor(Math.random() * 100) + 1;
   const taux = Math.max(5, 45 - getMalusISN());
 
   if (roll <= taux) {
+    const rCost = await deduireCoutOrdre({ pa: 0, cost });
+    if (!rCost.ok) { showToast('Fonds insuffisants', '', false); return; }
     if (!state.inventory) state.inventory = [];
     state.inventory.push({
       type: 'document_falsifie',
@@ -1551,7 +1569,6 @@ function confirmerFalsification(docId) {
       legal: false,
       desc: doc.desc
     });
-    state.arg -= 300;
     updateUI();
     showToast('Document falsifie !', doc.name + ' ajoute a votre inventaire.', true, true);
     addJournalEntry('Falsification : ' + doc.name, 'event-bad');

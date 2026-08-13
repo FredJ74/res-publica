@@ -1722,11 +1722,10 @@ function appliquerFormation(stat) {
 // militaires). +5 VOL, 1 fois par jour, max 3 jours CONSECUTIFS puis 7 jours de repos avant de
 // pouvoir recommencer. Rater un jour (pas de stage la veille) relance un nouveau cycle de 3 a
 // zero, sans cooldown -- seule une serie ininterrompue de 3 jours declenche le repos force.
-// PA deduit explicitement ici : les handlers dedies (routes via un cas special de doOrder,
-// voir plateau-router.js) ne beneficient PAS de la deduction generique de PA/cout, qui ne
-// s'applique qu'aux ordres sans handler dedie -- motif pre-existant, deja le cas pour la
-// plupart des autres handlers dedies du jeu.
-function doStageCaserne() {
+// PA/cout preleves via deduireCoutOrdre (Phase K, migre depuis une deduction hardcodee) : les
+// handlers dedies (routes via un cas special de doOrder, voir plateau-router.js) ne beneficient
+// PAS de la deduction generique de PA/cout, qui ne s'applique qu'aux ordres sans handler dedie.
+async function doStageCaserne(pa, cost) {
   if (!state.char) return;
   const suivi = state.char.stageCaserne || {};
 
@@ -1739,7 +1738,8 @@ function doStageCaserne() {
     return;
   }
 
-  if (!TEST_MODE) state.pa = Math.max(0, state.pa - 3);
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', 'Il vous manque des PA pour ce stage.', false); return; }
 
   const streak = (suivi.dernierJour === state.day - 1) ? (suivi.streak || 0) + 1 : 1;
 
@@ -2039,12 +2039,12 @@ function doSeRenseigner() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function doPrendreLicenceSportive() {
+async function doPrendreLicenceSportive(pa, cost) {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
   if (state.char?.licenceSportive?.clubId === clubLocal.id) { showToast('Déjà licencié(e)', 'Vous avez déjà votre licence pour ' + clubLocal.nom + '.', false); return; }
-  if (state.arg < 300) { showToast('Fonds insuffisants', '300 FR requis.', false); return; }
-  state.arg -= 300;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
   if (!state.char) return;
   state.char.licenceSportive = { clubId: clubLocal.id, dateAchat: state.day || 1 };
   sauvegarderPersonnageImmediat();
@@ -2260,7 +2260,7 @@ async function afficherLiveMatch(numeroJournee, matchIdx) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function doRejoindreClubSupporters() {
+async function doRejoindreClubSupporters(pa, cost) {
   if (!state.organisations) state.organisations = [];
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
@@ -2272,9 +2272,10 @@ async function doRejoindreClubSupporters() {
   const dejaMembre = orga?.membres?.some(m => m.nom === state.char?.name);
   if (dejaMembre) { showToast('Déjà membre', 'Vous êtes déjà membre du club de supporters de ' + clubLocal.nom + '.', false); return; }
 
-  if (state.arg < 150) { showToast('Fonds insuffisants', '150 FR requis pour l\'adhésion.', false); return; }
-  state.arg -= 150;
-  state.pa = Math.max(0, (state.pa || 0) - 1);
+  // Avant Phase K, le PA (1) etait deduit ici sans jamais respecter TEST_MODE (bug decouvert
+  // lors de la migration -- seul le cout (150 FR) etait correctement verifie).
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '150 FR requis pour l\'adhésion.', false); return; }
 
   const def = TYPES_ORGANISATIONS.supporters;
   const grades = def?.grades?.[pays] || ['Sympathisant', 'Membre', 'Ultra', 'Meneur'];
@@ -2795,11 +2796,11 @@ async function doVoirMonClassement() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function doConsulterClassementBookmaker() {
+async function doConsulterClassementBookmaker(pa, cost) {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
-  if (state.arg < 75) { showToast('Fonds insuffisants', '75 FR requis.', false); return; }
-  state.arg -= 75;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
   updateUI();
 
   document.getElementById('postes-modal-title').textContent = 'Classement des joueurs — ' + clubLocal.nom;

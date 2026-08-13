@@ -3363,13 +3363,13 @@ function ouvrirModalNegociationDiplomatique() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function ouvrirModalEmpireCible(action, titre) {
+function ouvrirModalEmpireCible(action, titre, pa, cost) {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
   document.getElementById('postes-modal-title').textContent = titre;
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir un empire cible :</div>';
   empires.forEach(([k, co]) => {
-    html += '<button onclick="executerOrdreEmpire(\'' + action + '\',\'' + k + '\',\'' + co.n + '\')" style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">';
+    html += '<button onclick="executerOrdreEmpire(\'' + action + '\',\'' + k + '\',\'' + co.n + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">';
     html += '<i class="ti ' + co.icon + '" style="font-size:1rem;color:' + co.col + '"></i> ' + co.n + '</button>';
   });
   html += '</div>';
@@ -3377,7 +3377,9 @@ function ouvrirModalEmpireCible(action, titre) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function executerOrdreEmpire(action, empireId, empireName) {
+// pa/cost ne sont fournis (non-undefined) que pour l'action 'ouvrir_ambassade' (Phase K, seul
+// ordre pilote de ce dispatcheur partage) -- les autres branches (dead ou live) les ignorent.
+async function executerOrdreEmpire(action, empireId, empireName, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
@@ -3394,10 +3396,11 @@ function executerOrdreEmpire(action, empireId, empireName) {
     showToast('Cessez-le-feu', 'Negociation en cours avec ' + empireName + '. +10 ID.', true);
     addJournalEntry('Cessez-le-feu negocie avec ' + empireName, 'event-good');
   } else if (action === 'ouvrir_ambassade') {
+    const r = await deduireCoutOrdre({ pa, cost });
+    if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
     if (!state.ambassades) state.ambassades = [];
     state.ambassades.push({ empire: empireId, nom: empireName });
     INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 8);
-    state.arg -= 1000;
     updateUI();
     // Persistance partagee : rend le bureau accessible a tous, dans le Quartier des Ambassades
     // du pays cible (empireId), pour l'ambassadeur de state.country.

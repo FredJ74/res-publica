@@ -930,11 +930,11 @@ async function doDormir() {
   return true;
 }
 
-function doTransfertCliniquePrivee() {
+async function doTransfertCliniquePrivee(pa, cost) {
   if (!state.hospitalisation) { showToast('Indisponible', 'Vous n\'êtes pas hospitalisé(e).', false); return; }
   if (state.hospitalisation.lieu === 'clinique') { showToast('Déjà en clinique privée', '', false); return; }
-  if (state.arg < 1000) { showToast('Fonds insuffisants', '1000 FR requis pour le transfert.', false); return; }
-  state.arg -= 1000;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '1000 FR requis pour le transfert.', false); return; }
   state.hospitalisation.lieu = 'clinique';
   updateUI();
   if (typeof enterBuilding === 'function') enterBuilding('clinique-privee', true);

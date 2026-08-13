@@ -1470,7 +1470,7 @@ function doCorrompreDoanier() {
 // =====================
 // SYSTEME PORT
 // =====================
-function ouvrirExpedierColis() {
+function ouvrirExpedierColis(pa, cost) {
   const inventaire = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
   if (inventaire.length === 0) { showToast('Inventaire vide', 'Aucun objet à expédier.', false); return; }
   const contacts = state.contacts || [];
@@ -1487,21 +1487,20 @@ function ouvrirExpedierColis() {
   html += '<select id="exp-dest" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
   contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
   html += '</select>';
-  html += '<button onclick="confirmerExpedition()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Expédier</button>';
+  html += '<button onclick="confirmerExpedition(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Expédier</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerExpedition() {
+async function confirmerExpedition(pa, cost) {
   const objIdx = parseInt(document.getElementById('exp-objet')?.value || '0');
   const dest = document.getElementById('exp-dest')?.value;
   const inventaire = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
   const obj = inventaire[objIdx];
   if (!obj || !dest) return;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (state.arg < 200) { showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false); return; }
-  state.arg -= 200;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
   state.inventory = state.inventory.filter(i => i !== obj);
   updateUI();
   document.getElementById('modal-postes').classList.remove('open');
@@ -1629,13 +1628,19 @@ function doConsulterManifeste() {
   }
 }
 
-function doFalsifierManifeste() {
+// Cout conditionnel (Phase K), meme logique que doCorrompreDoanier : PA du des la tentative,
+// FR uniquement en cas de reussite (rien a payer si la falsification echoue).
+async function doFalsifierManifeste(pa, cost) {
+  const rPa = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '', false); return; }
+
   const dup = getStatEffective('DUP');
   const taux = Math.max(5, 40 + Math.floor(dup/10) - getMalusISN());
   const roll = Math.floor(Math.random() * 100) + 1;
 
   if (roll <= taux) {
-    state.arg -= 200;
+    const rCost = await deduireCoutOrdre({ pa: 0, cost });
+    if (!rCost.ok) { showToast('Fonds insuffisants', '', false); return; }
     updateUI();
     showToast('Manifeste falsifié', 'La cargaison a disparu des registres.', true, true);
     addJournalEntry('Falsification du manifeste portuaire.', 'event-bad');

@@ -448,11 +448,13 @@ function doConsulterConfessions() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function doAcheterRelique() {
+async function doAcheterRelique(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false); return; }
+
   if (!state.inventory) state.inventory = [];
   state.inventory.push({ type:'relique', name:'Relique du Loukoum Sacré', icon:'ti-star', legal:true, effet:'ip+10', desc:'Accès facilité aux zones réservées d\'Al-Khalija.' });
   modifierIP(10);
-  state.arg -= 500;
   updateUI();
   showToast('Relique acquise !', 'Relique du Loukoum Sacré ajoutée à votre inventaire. +10 IP.', true, true);
 }
