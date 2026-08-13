@@ -6683,9 +6683,24 @@ async function confirmerRemonteeRenseignement(rapportId) {
 // =====================
 // ENGAGEMENT VOLONTAIRE COMME OFFICIER — PJ -> validation Commandant (compagnie) -> affectation Capitaine (section)
 // =====================
-async function doEngagerOfficier() {
+async function doEngagerOfficier(pa, cost) {
   if (['lieutenant','capitaine','commandant'].includes(state.poste?.id)) { showToast('Déjà officier', 'Vous occupez déjà un poste militaire.', false); return; }
   const pays = state.country || 'republic';
+
+  // Empeche les candidatures multiples : une candidature est "active" tant qu'elle n'a pas
+  // atteint le statut final 'affecte' (voir sbCreerEngagement/sbMajEngagement).
+  const [enAttenteCommandant, enAttenteCapitaine] = await Promise.all([
+    sbGetEngagementsPays(pays, 'attente_commandant').catch(() => []),
+    sbGetEngagementsPays(pays, 'attente_capitaine').catch(() => [])
+  ]);
+  const dejaCandidat = [...enAttenteCommandant, ...enAttenteCapitaine].some(e => e.nom === state.char?.name);
+  if (dejaCandidat) { showToast('Candidature déjà en cours', 'Votre demande d\'engagement précédente est toujours en cours de traitement.', false); return; }
+
+  // PA preleves au vrai point de commit, juste avant la creation reelle de la candidature --
+  // si insuffisants, rien n'est cree (deduireCoutOrdre est atomique, verification+prelevement).
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
   const id = await sbCreerEngagement({ pays, nom: state.char?.name, jour: state.day || 1 });
   const commandantInfoEng = await getTitulaireActuel('commandant', null, pays);
   const commandantNom = commandantInfoEng?.estPJ ? commandantInfoEng.nom : null;
@@ -6793,6 +6808,27 @@ async function confirmerAffectationSection(engagementId) {
   section.lieutenantNom = engagement.nom;
   await sbSaveCompagnie(engagement.compagnieId, compagnie);
   await sbMajEngagement(engagementId, 'affecte', {});
+
+  // Bug corrige (promotion fantome) : seul section.lieutenantNom etait renseigne ici -- le
+  // candidat recevait un mail de confirmation sans jamais obtenir state.poste.id:'lieutenant',
+  // donc sans acces reel aux ordres requiresPost:'lieutenant'. Le Capitaine qui valide n'est
+  // pas forcement le candidat (autre PJ, potentiellement hors session) : on ne peut donc pas se
+  // contenter de modifier le state local de l'acteur courant. Meme technique que
+  // accepterCandidaturePoste() (ligne ~2737, fix du 10 aout 2026 pour ce meme probleme sur les
+  // nominations de poste electif/ministeriel) : ecriture directe sur la fiche Supabase du
+  // candidat (personnages.poste), effective immediatement pour tout le monde (getTitulaireActuel),
+  // visible par le candidat des son prochain chargement -- pas besoin qu'il soit connecte.
+  const posteLieutenant = { id: 'lieutenant', name: 'Lieutenant', compagnieId: engagement.compagnieId, sectionId };
+  if (typeof sbUpdate === 'function') {
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(engagement.nom)}`, { poste: posteLieutenant }).catch(() => {});
+  }
+  // Si le candidat est justement le joueur connecte dans cette session (rare mais possible),
+  // mettre aussi a jour son state local immediatement plutot que d'attendre un rechargement.
+  if (engagement.nom === state.char?.name) {
+    state.poste = posteLieutenant;
+    if (state.char) state.char.poste = state.poste;
+    updateUI();
+  }
 
   if (typeof sbSendMail === 'function') {
     await sbSendMail('Commandement', engagement.nom, 'Nomination confirmée',

@@ -1468,52 +1468,18 @@ async function doCorrompreDoanier(pa, cost) {
   }
 }
 
-// Bug corrige (remonte en test manuel avant Phase L) : ACCES_CASERNE/ACCES_QHS etaient
-// referencees dans doTaxiSpecial (voir plus bas) sans jamais avoir ete declarees nulle part
-// dans le depot (confirme par recherche dans tout l'historique git) -- accesLibres valait donc
-// undefined et accesLibres.some(...) plantait systematiquement au tout premier appel, avant
-// meme la verification de PA/argent. Aucun rapport avec la migration Phase K (qui n'a touche
-// que le bloc "Voyage OK" plus bas) : ce crash existait deja avant, pour taxi_caserne ET
-// taxi_qhs, qui partagent tous deux ce meme handler. Listes deduites du vocabulaire de postes
-// deja utilise ailleurs dans le jeu (hierarchie militaire pour la Caserne, justice/gardien QHS
-// pour le QHS) -- a ajuster si Fred veut une composition differente.
-const ACCES_CASERNE = ['min_def', 'commandant', 'capitaine', 'lieutenant'];
-const ACCES_QHS = ['min_just', 'gardien_qhs', 'commissaire'];
-
-// Cout conditionnel (Phase K) : rien n'est du tant que le trajet n'est pas reellement effectue
-// -- acces refuse ou faux document detecte (arrestation) = voyage jamais entame, donc ni PA ni
-// FR ne sont consideres depenses. Deduction placee au seul point "Voyage OK".
+// Decision de game design (avant Phase L) : le trajet en taxi lui-meme est desormais ouvert a
+// TOUT PJ, sans condition de poste ni de laissez-passer -- la Caserne et le QHS ont tous deux
+// une salle d'entree publique (corps_garde / entree_qhs), donc le taxi ne peut pas etre plus
+// restrictif que la destination qu'il dessert. D'eventuelles restrictions (salles internes,
+// ordres precis) seront traitees separement, au niveau de la salle/de l'ordre, jamais au niveau
+// du trajet. Corrige un ancien bloc d'acces (ACCES_CASERNE/ACCES_QHS) qui, avant meme cette
+// decision, etait de toute facon casse : ces deux constantes n'avaient jamais ete declarees
+// nulle part dans le depot et faisaient planter systematiquement doTaxiSpecial des le premier
+// appel, pour taxi_caserne ET taxi_qhs (bug preexistant, sans rapport avec la migration Phase K).
 async function doTaxiSpecial(destination, pa, cost) {
   const label = destination === 'caserne' ? 'la Caserne' : 'le QHS';
   const cityKey = destination === 'caserne' ? 'caserne' : 'qhs';
-
-  // Verifier acces
-  const posteId = state.poste?.id || '';
-  const accesLibres = destination === 'caserne' ? ACCES_CASERNE : ACCES_QHS;
-  const aAccesLibre = accesLibres.some(p => posteId.includes(p));
-  const aLaissezPasser = (state.inventory||[]).some(i =>
-    i.acteId === 'laissez_passer' || i.acteId === 'acte_officiel' || i.type === 'document_falsifie'
-  );
-
-  if (!aAccesLibre && !aLaissezPasser) {
-    showToast('Accès refusé', 'Vous n\'avez pas les autorisations pour vous rendre à ' + label + '. Procurez-vous un laissez-passer officiel ou un ordre de visite.', false);
-    return;
-  }
-
-  // Si faux document — jet DUP
-  const aVraiDoc = aAccesLibre || (state.inventory||[]).some(i => i.acteId === 'laissez_passer' && i.legal);
-  if (!aVraiDoc && aLaissezPasser) {
-    const dup = getStatEffective('DUP');
-    const roll = Math.floor(Math.random() * 100) + 1;
-    const taux = Math.max(5, 50 + Math.floor(dup/10) - getMalusISN());
-    if (roll > taux) {
-      showToast('Faux document détecté !', 'La garde a reconnu le faux. Vous êtes arrêté(e).', false);
-      state.recherche = [{ acte:'faux_document', type:'delit_grave', jour:state.day, peine:4 }];
-      updateUI();
-      addJournalEntry('Faux laissez-passer détecté à l\'entrée de ' + label + '. Arrestation.', 'event-bad');
-      return;
-    }
-  }
 
   // Voyage OK
   const r = await deduireCoutOrdre({ pa, cost });
