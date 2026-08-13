@@ -55,13 +55,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'organiser_chasse_homme') { doOrganiserChasseHomme(); return; }
   if (fn === 'consulter_caisse_commissariat') { doConsulterCaisseCommissariat(); return; }
   if (fn === 'cambrioler_caisse_commissariat') { doCambriolerCaisseCommissariat(); return; }
-  if (fn === 'se_rebeller') { doSeRebeller(); return; }
+  if (fn === 'se_rebeller') { doSeRebeller(pa, cost); return; }
   if (fn === 'archives_police') { doArchivesPolice(pa, cost); return; }
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
   if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost, successRate); return; }
   if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
   if (fn === 'boire_verre') { ouvrirModalInvitationSociale('boire_verre', pa, cost, successRate); return; }
-  if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(); return; }
+  if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(pa); return; }
   if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(pa, cost); return; }
   if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(); return; }
@@ -73,7 +73,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'recolter_matiere') { doRecolterMatiere(); return; }
   if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(); return; }
   if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(); return; }
-  if (fn === 'plainte_obstruction_permis') { doPlainteObstruction(); return; }
+  if (fn === 'plainte_obstruction_permis') { doPlainteObstruction(pa, cost); return; }
   if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
@@ -96,13 +96,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
   if (fn === 'organiser_boycott') { doOrganiserBoycott(); return; }
   if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(pa, cost); return; }
-  if (fn === 'centre_anti_poison') { doCentreAntiPoison(); return; }
-  if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(); return; }
+  if (fn === 'centre_anti_poison') { doCentreAntiPoison(pa); return; }
+  if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(pa); return; }
   if (fn === 'dormir_chambre') { doDormirChambre(); return; }
   if (fn === 'dormir') { doDormir(); return; }
-  if (fn === 'service_etage') { doServiceEtage(); return; }
+  if (fn === 'service_etage') { doServiceEtage(pa); return; }
   if (fn === 'consulter_classement_joueurs_club') { doConsulterClassementBookmaker(pa, cost); return; }
-  if (fn === 'postuler_president_club') { doPostulerPresidentClub(); return; }
+  if (fn === 'postuler_president_club') { doPostulerPresidentClub(pa, cost); return; }
   if (fn === 'consulter_bureau_president') { doConsulterBureauPresident(); return; }
   if (fn === 'proposer_transfert') { doProposerTransfert(); return; }
   if (fn === 'gerer_offres_transfert') { doGererOffresTransfert(); return; }
@@ -120,8 +120,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_succession') { doConsulterArchivesNotariales(); return; }
   if (fn === 'consulter_archives_presse') { doConsulterArchivesPresse(); return; }
   if (fn === 'demander_juge_instruction') { doDemanderJugeInstruction(pa, cost); return; }
-  if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(); return; }
-  if (fn === 'demander_divorce') { doDemanderDivorce(); return; }
+  if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(pa, cost); return; }
+  if (fn === 'demander_divorce') { doDemanderDivorce(pa, cost); return; }
   if (fn === 'acte_vente_terrain') { doActeVenteTerrain(); return; }
   if (fn === 'acte_rachat_entreprise') { doActeRachatEntreprise(); return; }
   if (fn === 'corrompre_rdv_notaire') { doCorrompreRdvNotaire(); return; }
@@ -273,7 +273,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
   if (fn === 'proposer_treve')        { ouvrirProposerTreve(); return; }
   if (fn === 'prier')                { doPrier(pa, cost); return; }
-  if (fn === 'se_confesser')         { doSeConfeser(); return; }
+  if (fn === 'se_confesser')         { doSeConfeser(pa, cost); return; }
   if (fn === 'faire_don')            { doFaireDon(cost); return; }
   if (fn === 'demander_benediction') { doDemanderBenediction(pa, cost); return; }
   if (fn === 'pelerin')              { doPelerin(pa, cost); return; }
@@ -292,7 +292,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'se_reposer' || fn === 'se_nourrir') { doSeReposer(fn); return; }
   if (fn === 'requete_avocat') { doRequeteAvocat(); return; }
   if (fn === 'greve_faim') { doGreveFaim(); return; }
-  if (fn === 'tentative_evasion') { doTentativeEvasion(); return; }
+  if (fn === 'tentative_evasion') { doTentativeEvasion(pa, cost); return; }
   if (fn === 'visiter_prisonnier') { doVisiterPrisonnier(); return; }
   if (fn === 'se_renseigner') { doSeRenseigner(); return; }
   if (fn === 'reserver') { doReserver(); return; }
@@ -359,7 +359,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'dissoudre_assemblee') { doDissoudreAssemblee(); return; }
   if (fn === 'negocier') { showToast('Ordre contact', 'Utilisez les ordres contact en cliquant sur le personnage cible.', false); return; }
   if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); return; }
-  if (fn === 'plainte') { ouvrirPorterPlainte(); return; }
+  if (fn === 'plainte') { ouvrirPorterPlainte(pa, cost); return; }
   if (fn === 'defense') { doDefense(); return; }
   if (fn === 'projet_loi') { ouvrirDeposerProjet(); return; }
   if (fn === 'greve') { doGrevePNJ(); return; }
@@ -392,16 +392,16 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'relations_bilaterales') { ouvrirRelationsBilaterales(); return; }
   if (fn === 'corrompre_homologue_local') { doCorrompreHomologueLocal(); return; }
   if (fn === 'organiser_reception_diplomatique') { doOrganiserReceptionDiplomatique(); return; }
-  if (fn === 'financer_oeuvre_culturelle') { doFinancerOeuvreCulturelle(); return; }
+  if (fn === 'financer_oeuvre_culturelle') { doFinancerOeuvreCulturelle(pa, cost); return; }
   if (fn === 'demander_audience_ambassadeur') { doDemanderAudienceAmbassadeur(pa, cost); return; }
   if (fn === 'demander_asile_politique') { doDemanderAsilePolitique(pa, cost); return; }
-  if (fn === 'reserver_salle_reception') { doReserverSalleReception(); return; }
+  if (fn === 'reserver_salle_reception') { doReserverSalleReception(pa, cost); return; }
   if (fn === 'sanctions_empire')        { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
   if (fn === 'reception_etat') { doReceptionAvecBonus(fn, cost); return; }
   if (fn === 'banquet_diplo') { ouvrirBanquetDiplomatique(); return; }
 
   // Bureau National de l'Emploi (9 aout 2026)
-  if (fn === 'sinscrire_demandeur_emploi') { doInscrireDemandeurEmploi(); return; }
+  if (fn === 'sinscrire_demandeur_emploi') { doInscrireDemandeurEmploi(pa, cost); return; }
   if (fn === 'consulter_offres_emploi')    { ouvrirOffresEmploiBNE(); return; }
   if (fn === 'demissionner_emploi_bne')    { demissionnerEmploiBNE(); return; }
 

@@ -688,7 +688,7 @@ async function traiterSuccession(defunt, conjointSurvivant) {
   addExternalEvent('⚱️ ' + defunt + ' a quitté ce monde. Succession réglée avec ' + conjointSurvivant + '.', 'local');
 }
 
-async function doDemanderDivorce() {
+async function doDemanderDivorce(pa, cost) {
   const nom = state.char?.name;
   if (typeof sbGetMariageActif !== 'function') return;
 
@@ -698,6 +698,9 @@ async function doDemanderDivorce() {
     return;
   }
   const conjoint = mariage.conjoint1 === nom ? mariage.conjoint2 : mariage.conjoint1;
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
 
   if (typeof sbDissoudreMariage === 'function') {
     await sbDissoudreMariage(mariage.id, 'divorce').catch(() => {});
@@ -943,7 +946,7 @@ async function doTransfertCliniquePrivee(pa, cost) {
   addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
 }
 
-function doCentreAntiPoison() {
+async function doCentreAntiPoison(pa) {
   if (!state.empoisonnement?.actif) {
     showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false);
     return;
@@ -961,10 +964,10 @@ function doCentreAntiPoison() {
   const ordre = room?.orders?.find(o => o.fn === 'centre_anti_poison');
   const cout = ordre?.cost || 0;
   const successRate = ordre?.successRate || 70;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost: cout });
+  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
 
   state.centreAntiPoisonToday.tentatives++;
-  state.arg -= cout;
 
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= successRate) {
@@ -980,7 +983,7 @@ function doCentreAntiPoison() {
   }
 }
 
-function doReserverChambreHotel() {
+async function doReserverChambreHotel(pa) {
   const confortMap = {
     'hotel-republica': { moral: 3, paBonus: 2 },
     'hotel-port':      { moral: 3, paBonus: 2 },
@@ -991,8 +994,8 @@ function doReserverChambreHotel() {
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'reserver_chambre_hotel');
   const cout = ordre?.cost || 60;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
-  state.arg -= cout;
+  const r = await deduireCoutOrdre({ pa, cost: cout });
+  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
   state.reservationHotel = { buildingId: state.currentBuilding, bonus };
   updateUI();
   showToast('Chambre reservee', 'Vous obtiendrez un bonus de +' + bonus.paBonus + ' PA et +' + bonus.moral + ' Moral en passant l\'ordre Dormir <strong>dans cette chambre</strong>.', true, true);
@@ -1000,7 +1003,7 @@ function doReserverChambreHotel() {
   if (typeof queteAccueilApresReservationChambre === 'function') queteAccueilApresReservationChambre();
 }
 
-function doServiceEtage() {
+async function doServiceEtage(pa) {
   const reservation = state.reservationHotel;
   if (!reservation || reservation.buildingId !== state.currentBuilding) {
     showToast('Chambre non reservee', 'Vous devez d\'abord reserver une chambre a l\'accueil pour beneficier du service d\'etage.', false);
@@ -1009,8 +1012,8 @@ function doServiceEtage() {
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'service_etage');
   const cout = ordre?.cost || 150;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
-  state.arg -= cout;
+  const r = await deduireCoutOrdre({ pa, cost: cout });
+  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
   state.hp = Math.min(100, (state.hp || 0) + 10);
   state.moral = Math.min(100, (state.moral || 0) + 1);
   state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + 1;

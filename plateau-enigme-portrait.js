@@ -533,7 +533,9 @@ async function doDemanderJugeInstruction(pa, cost) {
 // BANQUE NATIONALE — coffre lie a la succession de Pierre Thibault
 // =====================
 
-function doPresenterAutorisationCoffre() {
+async function doPresenterAutorisationCoffre(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const autorise = state.char && state.char.enigme1 && state.char.enigme1.autorisationCoffre;
 
   let html = '<div style="padding:1.2rem">';

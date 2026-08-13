@@ -4396,7 +4396,7 @@ function doOrganiserReceptionDiplomatique() {
 // effectivement en poste ici (peu importe lequel des 3, du moment qu'il en est un) —
 // la reservation est associee a SON empire, pas au pays hote, pour rester coherente
 // avec la verification faite dans doOrganiserReceptionDiplomatique.
-async function doReserverSalleReception() {
+async function doReserverSalleReception(pa, cost) {
   const jour = state.day || 1;
   const monAmbassade = (state.ambassadesOuvertesCache || []).find(a => a.ambassadeur === state.char?.name);
   if (!monAmbassade) {
@@ -4409,6 +4409,8 @@ async function doReserverSalleReception() {
     showToast('Salle déjà réservée', 'La Salle de Réception est déjà réservée aujourd\'hui par ' + empireResa + '.', false);
     return;
   }
+  const rDeduc = await deduireCoutOrdre({ pa, cost });
+  if (!rDeduc.ok) { showToast('PA insuffisants', '', false); return; }
   const res = typeof sbReserverSalleReception === 'function'
     ? await sbReserverSalleReception(state.country, jour, monAmbassade.empire, state.char?.name).catch(() => ({ ok: false }))
     : { ok: false };
@@ -4420,14 +4422,13 @@ async function doReserverSalleReception() {
   }
 }
 
-function doFinancerOeuvreCulturelle() {
+async function doFinancerOeuvreCulturelle(pa, cost) {
   const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
   if (!empireId) return;
   const empireName = COUNTRIES[empireId]?.n || empireId;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cout = 600;
-  if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Financer une œuvre culturelle coûte ' + cout + ' ' + cur + '.', false); return; }
-  state.arg -= cout;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', 'Financer une œuvre culturelle coûte ' + cost + ' ' + cur + '.', false); return; }
   state.pop = Math.min(100, (state.pop || 50) + 8);
   INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 3);
   showToast('Mécénat culturel', 'Une œuvre a été financée localement. +8 POP, +3 ID.', true);

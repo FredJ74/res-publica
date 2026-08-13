@@ -2948,7 +2948,7 @@ async function getElecteursClub(club) {
   };
 }
 
-async function doPostulerPresidentClub() {
+async function doPostulerPresidentClub(pa, cost) {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', '', false); return; }
   const data = await chargerPresidentClub(clubLocal.id);
@@ -2963,6 +2963,9 @@ async function doPostulerPresidentClub() {
       return;
     }
   }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const electeurs = await getElecteursClub(clubLocal);
   const jour = state.day || 1;

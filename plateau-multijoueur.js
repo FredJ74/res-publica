@@ -605,7 +605,7 @@ const INFORMATEURS_CATALOGUE = [
   { nom: 'Nadège Oreille',    genre: 'F', photoUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/informateur-f-1-la-poste.png' }
 ];
 
-async function doRecruterInformateurPNJ() {
+async function doRecruterInformateurPNJ(pa) {
   if (!state.employes) state.employes = [];
   if (state.employes.some(e => e.job === 'informateur')) {
     showToast('Déjà en poste', 'Vous employez déjà un informateur. Renvoyez-le avant d\'en recruter un autre.', false);
@@ -614,12 +614,9 @@ async function doRecruterInformateurPNJ() {
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'recruter_informateur_pnj');
   const cout = ordre?.cost || 150;
+  const r = await deduireCoutOrdre({ pa, cost: cout });
+  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis pour la première journée.', false); return; }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (state.arg < cout) {
-    showToast('Fonds insuffisants', cout + ' ' + cur + ' requis pour la première journée.', false);
-    return;
-  }
-  state.arg -= cout;
 
   const infoChoisi = INFORMATEURS_CATALOGUE[Math.floor(Math.random() * INFORMATEURS_CATALOGUE.length)];
   const nomPnj = infoChoisi.nom + ' (PNJ)';

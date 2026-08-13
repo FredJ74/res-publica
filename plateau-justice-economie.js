@@ -926,7 +926,9 @@ function ouvrirDetailJugement(idx) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function ouvrirPorterPlainte() {
+async function ouvrirPorterPlainte(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   document.getElementById('postes-modal-title').textContent = 'Affaires en cours — ' + ville;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
@@ -1174,7 +1176,7 @@ function verifierDecouverteCrimesPasses() {
 // Une tentative d'evasion par jour maximum (bug de spam remonte le 4 aout 2026 : les PA
 // illimites de la phase de test permettaient de retenter indefiniment). Taux de base 10%,
 // modifie par DUP et l'indice de securite du pays — meme formule que le vol/cambriolage.
-function doTentativeEvasion() {
+async function doTentativeEvasion(pa, cost) {
   if (!state.estEmprisonne) {
     showToast('Non emprisonne', 'Vous devez etre emprisonne pour tenter de vous evader.', false);
     return;
@@ -1185,6 +1187,8 @@ function doTentativeEvasion() {
     showToast('Trop tôt', 'Une seule tentative d\'évasion par jour.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.estEmprisonne.dernierJourEvasion = jourActuel;
 
   const pays = state.country;
@@ -1214,11 +1218,13 @@ function doTentativeEvasion() {
   }
 }
 
-async function doSeRebeller() {
+async function doSeRebeller(pa, cost) {
   if (!state.estEmprisonne) {
     showToast('Non emprisonne', 'Vous devez etre emprisonne pour vous rebeller.', false);
     return;
   }
+  const rDeduc = await deduireCoutOrdre({ pa, cost });
+  if (!rDeduc.ok) { showToast('PA insuffisants', '', false); return; }
 
   const pays = state.country;
   const ville = state.currentCity;
@@ -4226,13 +4232,16 @@ async function traiterPermis(buildingId, valide) {
   addJournalEntry((valide ? 'Permis de construire validé' : 'Permis de construire refusé') + ' pour ' + etat.permis.demandeur + '.', valide ? 'event-good' : 'event-bad');
 }
 
-async function doPlainteObstruction() {
+async function doPlainteObstruction(pa, cost) {
   const id = state.currentBuilding;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
   if (!ts.permis || ts.permis.statut !== 'refuse') { showToast('Indisponible', 'Aucun refus de permis à contester ici.', false); return; }
   if (ts.permis.refusLegitime) { showToast('Refus légitime', 'Le zonage justifiait ce refus — pas de recours possible.', false); return; }
   if (ts.permis.plainteDeposee) { showToast('Plainte déjà déposée', '', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const maireInfoObstruction = await getTitulaireActuel('maire', state.currentCity);
   const maireNom = maireInfoObstruction?.estPJ ? maireInfoObstruction.nom : null;
@@ -5177,7 +5186,9 @@ async function rafraichirCacheEmploiBNE() {
   } catch(e) {}
 }
 
-function doInscrireDemandeurEmploi() {
+async function doInscrireDemandeurEmploi(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.demandeurEmploi = true;
   showToast('Inscription enregistrée', 'Vous êtes désormais demandeur d\'emploi. Consultez les offres disponibles.', true);
   addJournalEntry('Inscription comme demandeur d\'emploi au Bureau National de l\'Emploi.', 'event-info');

@@ -335,7 +335,9 @@ async function doPrier(pa, cost) {
   addJournalEntry('Prière au ' + (religion?.temple || 'temple'), 'event-info');
 }
 
-function doSeConfeser() {
+async function doSeConfeser(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
   const religion = RELIGIONS[pays];
   state.moral = Math.min(100, state.moral + 5);
