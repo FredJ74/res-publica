@@ -1190,6 +1190,7 @@ function doTentativeEvasion() {
   const ville = state.currentCity || 'capitale';
   const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
   let taux = 10 + (dup - 10) * 2 - (isn - 45) / 3;
+  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
   taux = Math.max(2, Math.min(40, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -4464,6 +4465,7 @@ async function confirmerMenerEnquete() {
   const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
 
   let taux = 35 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isn - 45) / 5;
+  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
   taux = Math.max(10, Math.min(90, Math.round(taux)));
 
   const toutes = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
@@ -4536,6 +4538,7 @@ async function confirmerOrganiserFilature() {
   const isnVille = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : 30;
 
   let taux = 50 + 2 * (perCommissaire - 13) - (cibleInfos.per - 13) + (isnVille - 50) / 5 + (infCommissaire - cibleInfos.inf) * 0.3;
+  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
   taux = Math.max(10, Math.min(90, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -4610,6 +4613,7 @@ async function confirmerOrganiserChasseHomme() {
   const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
 
   let taux = 45 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isn - 45) / 5;
+  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
   taux = Math.max(10, Math.min(90, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -4729,6 +4733,7 @@ async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
   const bonusReputation = getBonusReputationCriminelle();
 
   let taux = 20 + (dup - 10) * 2 - (isn - 45) / 3 + bonusReputation;
+  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
   taux = Math.max(5, Math.min(60, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -4793,6 +4798,7 @@ async function doVolerMaterielChantier() {
   const bonusReputation = typeof getBonusReputationCriminelle === 'function' ? getBonusReputationCriminelle() : 0;
 
   let taux = 60 + (dup - 10) * 2 - (isn - 45) / 3 + bonusReputation;
+  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
   taux = Math.max(15, Math.min(90, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;

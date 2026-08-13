@@ -2112,7 +2112,12 @@ function confirmerNegociation() {
     return;
   }
 
-  const taux = calculerTauxNegociationSquatteurs(montant);
+  // La benediction ne se consomme qu'ici, a la resolution reelle -- pas dans
+  // calculerTauxNegociationSquatteurs, appelee aussi par l'apercu en direct du modal (elle
+  // bruleraitle bonus a chaque frappe clavier sinon).
+  let taux = calculerTauxNegociationSquatteurs(montant);
+  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
+  taux = Math.max(5, Math.min(95, Math.round(taux)));
   const roll = Math.floor(Math.random() * 100) + 1;
   const succesNego = roll <= taux;
 

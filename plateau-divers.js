@@ -366,16 +366,54 @@ function doFaireDon(cost) {
   showToast('Don effectué', '+5 IP +3 POP. Le ' + (RELIGIONS[state.country]?.grandPretre||'Grand Prêtre') + ' vous bénit.', true);
 }
 
-function doDemanderBenediction() {
+// Bonus consommable de benediction (+5 points de pourcentage, non cumulable, une seule
+// bonification active a la fois). Perimetre de cette passe (option b validee) : uniquement
+// les jets deja retouches dans ce meme chantier (Filature, Squatteurs, evasion, enquete,
+// chasse a l'homme, cambriolage, vol materiel chantier, vol PJ, achat arme illegale). Le
+// reste des jets du jeu n'est pas encore branche -- a etendre famille par famille ensuite.
+function consommerBonusBenediction(taux) {
+  if (state.benediction?.actif && (state.benediction.expire === undefined || (state.day || 1) <= state.benediction.expire)) {
+    state.benediction.actif = false;
+    return taux + 5;
+  }
+  return taux;
+}
+
+// Demande une benediction aupres du titulaire (PJ ou PNJ) du poste religieux habilite de
+// l'empire courant -- ce n'est plus un jet solo sans interlocuteur. Doctrine V2, formule
+// validee : P = Base(80) + 2*(CHA_religieux-13) + (Piete_ville-50)/5. L'effet est applicable
+// a tout ordre suivant avec jet, illegal compris -- les religions de Republia ne sont pas des
+// arbitres moraux.
+async function doDemanderBenediction() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const religion = RELIGIONS[pays];
+
+  let chaReligieux = (typeof PNJ_STATS_PAR_JOB !== 'undefined' ? PNJ_STATS_PAR_JOB.grand_pretre?.CHA : null) ?? 9;
+  if (typeof getTitulaireActuel === 'function') {
+    const titulaire = await getTitulaireActuel('grand_pretre', ville, pays).catch(() => null);
+    if (titulaire?.estPJ) {
+      if (titulaire.nom === state.char?.name) {
+        chaReligieux = getStatEffective('CHA');
+      } else if (typeof sbGetStatCHA === 'function') {
+        chaReligieux = await sbGetStatCHA(titulaire.nom).catch(() => chaReligieux);
+      }
+    }
+  }
+
+  const pieteVille = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'piete') : 40;
+  let taux = 80 + 2 * (chaReligieux - 13) + (pieteVille - 50) / 5;
+  taux = Math.max(5, Math.min(95, Math.round(taux)));
+
   const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 80) {
+  if (roll <= taux) {
     if (!state.benediction) state.benediction = {};
     state.benediction.actif = true;
-    state.benediction.expire = state.day + 1;
-    showToast('Béni !', 'Vous bénéficiez d\'un bonus de +5% sur votre prochain ordre pendant 24h.', true, true);
-    addJournalEntry('Bénédiction reçue. +5% prochain ordre.', 'event-good');
+    state.benediction.expire = (state.day || 1) + 1;
+    showToast('Béni !', 'Vous bénéficiez d\'un bonus de +5 points sur votre prochain ordre avec jet (24h, non cumulable).', true, true);
+    addJournalEntry('Bénédiction reçue du ' + (religion?.grandPretre || 'religieux habilité') + '. +5 points prochain ordre.', 'event-good');
   } else {
-    showToast('Pas de réponse', 'Le Très-Haut est occupé. Revenez demain.', false);
+    showToast('Pas de réponse', 'Le ' + (religion?.grandPretre || 'Très-Haut') + ' est occupé. Revenez demain.', false);
   }
 }
 

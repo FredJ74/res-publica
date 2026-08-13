@@ -82,6 +82,9 @@ async function confirmerVol(encodedCible, tauxReussite, seuilVisibilite) {
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
   document.getElementById('modal-postes').classList.remove('open');
+  // Consomme la benediction ici (resolution reelle), pas dans ouvrirModalVoler -- sinon un
+  // joueur qui ouvre le modal puis renonce perdrait le bonus pour rien.
+  tauxReussite = (typeof consommerBonusBenediction === 'function') ? Math.min(95, consommerBonusBenediction(tauxReussite)) : tauxReussite;
 
   const nomCible = cible.name.replace(' (PNJ)', '');
   const roll = Math.random() * 100;
@@ -799,7 +802,9 @@ function confirmerAchatArmeIllegal(armeId) {
   const char = state.char;
   const bonusCarriere = BONUS_CARRIERE_VOL[char?.career] || 0;
   const isPays = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, state.currentCity || 'capitale', 'isn') : (INDICES_NATIONAUX[pays]?.ISN || 30);
-  const tauxReussite = Math.max(5, Math.min(95, Math.round(50 + bonusCarriere - (isPays / 3))));
+  let tauxReussite = 50 + bonusCarriere - (isPays / 3);
+  tauxReussite = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(tauxReussite) : tauxReussite;
+  tauxReussite = Math.max(5, Math.min(95, Math.round(tauxReussite)));
   const roll = Math.random() * 100;
 
   if (roll > tauxReussite) {

@@ -846,6 +846,13 @@ async function sbGetStatsInfluenceJoueur(nom) {
   return { per: r?.char?.stats?.PER || 8, inf: r?.resources?.inf || 0 };
 }
 
+// Pour un titulaire religieux (grand_pretre) qui serait un PJ different du joueur courant
+// (chantier Benediction, doctrine V2).
+async function sbGetStatCHA(nom) {
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=char`).catch(() => []);
+  return rows?.[0]?.char?.stats?.CHA ?? 9;
+}
+
 async function sbSetTitulairePnj(country, posteId, city, nomPnj) {
   const id = country + '_' + posteId + '_' + (city || 'national');
   const existing = await sbGet('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`).catch(() => []);
