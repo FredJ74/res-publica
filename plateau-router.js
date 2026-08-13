@@ -372,6 +372,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'subvention_cible')        { ouvrirModalCibleRepertoire('subvention', 'Accorder une subvention'); return; }
   if (fn === 'allegemement_secteur')    { ouvrirModalSecteur(); return; }
   if (fn === 'interdire_manif')         { ouvrirInterdireManif(); return; }
+  if (fn === 'reprimer_manif')          { ouvrirReprimerManif(); return; }
   if (fn === 'annuler_poursuites_cible'){ ouvrirModalAffaires('annuler'); return; }
   if (fn === 'ouvrir_enquete_cible')    { ouvrirModalCibleRepertoire('ouvrir_enquete', 'Ouvrir une enquete sur'); return; }
   if (fn === 'nommer_juge_cible')       { ouvrirModalNommerJuge(); return; }

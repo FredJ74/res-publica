@@ -3893,6 +3893,70 @@ async function confirmerInterdireManif() {
   addJournalEntry('Manifestation interdite : ' + sujet + ' (' + nomVille + ').', 'event-info');
 }
 
+// REPRIMER UNE MANIFESTATION (Ministre de l'Interieur) -- meme exception que ci-dessus (cible
+// une ville, Social local). Remplace l'ancien chemin mort reprimer_manif_cible.
+async function ouvrirReprimerManif() {
+  const pays = state.country || 'republic';
+  document.getElementById('postes-modal-title').textContent = 'Reprimer une manifestation';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Baisse le Social de la ville ciblee (bonus si une manifestation y a ete interdite dans les 72h). Blesse les PJ actuellement presents dans cette ville.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SUJET / CIBLE</div>';
+  html += '<input id="reprimer-manif-sujet" type="text" placeholder="Preciser..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">VILLE CIBLEE</div>';
+  html += '<select id="reprimer-manif-ville" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+  if (pays === 'republic' && typeof VILLES_REPUBLIA !== 'undefined') {
+    VILLES_REPUBLIA.forEach(v => { html += '<option value="' + v + '">' + (NOMS_VILLES_REPUBLIA[v] || v) + '</option>'; });
+  } else {
+    html += '<option value="' + (state.currentCity || 'capitale') + '">' + (state.currentCity || 'capitale') + '</option>';
+  }
+  html += '</select>';
+  html += '<button onclick="confirmerReprimerManif()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Reprimer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerReprimerManif() {
+  const sujet = document.getElementById('reprimer-manif-sujet')?.value?.trim() || 'Rassemblement non precise';
+  const ville = document.getElementById('reprimer-manif-ville')?.value || state.currentCity || 'capitale';
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
+
+  const budgetMuni = await chargerBudgetMunicipalPourVille(pays, ville);
+  const interdictionRecente = budgetMuni.manifestationInterdite && budgetMuni.manifestationInterdite.expireJour >= (state.day || 1);
+  const baisseSocial = interdictionRecente ? 8 : 5;
+  if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, ville, 'social', -baisseSocial).catch(() => {});
+
+  if (interdictionRecente) {
+    delete budgetMuni.manifestationInterdite;
+    if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(pays + '_' + ville, budgetMuni).catch(() => {});
+  }
+
+  // PJ "participants" = tout PJ actuellement dans cette ville, faute de systeme de presence a
+  // un evenement dans le jeu (decision technique assumee, voir plan valide avec Fred).
+  let nbTouches = 0;
+  if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
+    const rows = await sbGet('personnages', `country=eq.${encodeURIComponent(pays)}&current_city=eq.${encodeURIComponent(ville)}`).catch(() => []);
+    for (const r of (rows || [])) {
+      const nouveauHp = Math.max(1, (r.hp || 100) - 10);
+      const stats = r.stats || {};
+      const nouveauxStats = { ...stats, VOL: Math.max(1, (stats.VOL || 6) - 10) };
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(r.name)}`, { hp: nouveauHp, stats: nouveauxStats }).catch(() => {});
+      nbTouches++;
+    }
+    if (state.currentCity === ville && state.country === pays) {
+      state.hp = Math.max(1, (state.hp || 100) - 10);
+      if (state.char?.stats) state.char.stats.VOL = Math.max(1, (state.char.stats.VOL || 6) - 10);
+    }
+  }
+
+  updateUI();
+  showToast('Repression menee', sujet + ' — Social -' + baisseSocial + (interdictionRecente ? ' (bonus, deja interdite)' : '') + '. ' + nbTouches + ' PJ present(s) touche(s) (-10 HP, -10 VOL).', false, true);
+  addExternalEvent('REPRESSION : Dispersion forcee de "' + sujet + '" a ' + nomVille + '.');
+  addJournalEntry('Repression ordonnee : ' + sujet + ' (' + nomVille + '). ' + nbTouches + ' PJ touche(s).', 'event-bad');
+}
+
 function executerOrdreTexte(action) {
   const texte = document.getElementById('texte-libre-input')?.value?.trim();
   if (!texte) { showToast('Champ requis', 'Veuillez remplir le champ.', false); return; }
