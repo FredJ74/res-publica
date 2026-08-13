@@ -3530,6 +3530,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "L'histoire municipale de la ville, ses meilleurs et ses pires edeciles reunis dans la meme salle. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-maires-musee-luthecia.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-audio-salle-maires.mp3",
         persons: [],
         orders: []
       },
@@ -3562,6 +3563,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181018,#221824)",
         desc: "Les plus belles diatribes, lettres ouvertes et recits qui ont marque la vie forumiale de Luthecia. Contenu a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-plumes-musee-luthecia.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-audio-salle-plumes.mp3",
         persons: [],
         orders: []
       },
@@ -3570,7 +3572,6 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les faits d'armes et les soldats les plus decores originaires de Luthecia. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-honneur-militaire.png",
-        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-audio-salle-honneur-militaire.mp3",
         persons: [],
         orders: []
       },
@@ -3652,6 +3653,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les plus grands faits d'armes a l'echelle du pays.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-militaires-musee-national.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-audio-salle-honneur-militaire.mp3",
         persons: [],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
@@ -3672,6 +3674,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#14100c,#1c1810)",
         desc: "Universitaires, philosophes, journalistes et chercheurs ayant marqué le pays.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-civils-intellectuels-musee-national.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-national-audio-salle-personnalites-civiles.mp3",
         persons: [],
         orders: [
           {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
