@@ -371,6 +371,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'redressement_cible')      { ouvrirModalCibleRepertoire('redressement_fiscal', 'Redressement fiscal'); return; }
   if (fn === 'subvention_cible')        { ouvrirModalCibleRepertoire('subvention', 'Accorder une subvention'); return; }
   if (fn === 'allegemement_secteur')    { ouvrirModalSecteur(); return; }
+  if (fn === 'allegement_fiscal')       { doAllegementFiscalIndisponible(); return; }
   if (fn === 'interdire_manif')         { ouvrirInterdireManif(); return; }
   if (fn === 'reprimer_manif')          { ouvrirReprimerManif(); return; }
   if (fn === 'annuler_poursuites_cible'){ ouvrirModalAffaires('annuler'); return; }

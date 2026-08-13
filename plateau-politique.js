@@ -3983,6 +3983,15 @@ function executerOrdreTexte(action) {
   }
 }
 
+// Ordre volontairement indisponible pour l'instant (demande explicite de Fred) : le systeme de
+// taxation qui alimente les caisses de l'Etat doit d'abord etre construit correctement avant
+// qu'un allegement fiscal ait un vrai sens economique. Message explicite plutot qu'un bouton
+// mort silencieux -- l'ancien couple ouvrirModalSecteur/appliquerAllegement (ci-dessous) reste
+// en l'etat, non branche, pour reprise le jour ou ce chantier sera fait.
+function doAllegementFiscalIndisponible() {
+  showToast('Pas encore disponible', 'L\'allegement fiscal sera active une fois le systeme de taxation alimentant les caisses de l\'Etat finalise.', false);
+}
+
 function ouvrirModalSecteur() {
   document.getElementById('postes-modal-title').textContent = 'Allegement fiscal sectoriel';
   let html = '<div style="padding:1rem"><div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir le secteur beneficiaire :</div>';
