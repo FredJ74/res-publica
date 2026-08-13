@@ -703,6 +703,47 @@ async function preleverPretsBancairesServeur() {
   return resultats;
 }
 
+// Remboursement quotidien du pret de preemption d'Etat (chantier "refonte des ordres",
+// Doctrine V2, droit de preemption du Ministre des Finances). Contrairement aux prets joueurs
+// ci-dessus, pas d'escalade/saisie en cas d'impaye -- l'Etat ne peut pas se saisir lui-meme :
+// la mensualite est simplement reportee a la nuit suivante si la caisse du Ministere des
+// Finances est insuffisante, sans penalite.
+async function preleverPreemptionsServeur() {
+  const resultats = { payes: 0, reportes: 0, soldes: 0 };
+  try {
+    for (const pays of ['republic', 'narco', 'soviet', 'khalija']) {
+      const budgetRows = await sbGet('budgets_nationaux', `id=eq.${pays}`);
+      const budgetRow = budgetRows && budgetRows[0];
+      const preemption = budgetRow?.data?.preemption;
+      if (!preemption) continue;
+
+      const mensualite = Math.min(preemption.mensualite, preemption.montantRestant);
+      const caisseKey = pays + '_gouvernement-min_fin';
+      const caisseRows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`);
+      const caisse = caisseRows?.[0]?.data || { solde: 0 };
+
+      if ((caisse.solde || 0) >= mensualite) {
+        caisse.solde -= mensualite;
+        preemption.montantRestant -= mensualite;
+        await sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`, { data: caisse, updated_at: new Date().toISOString() });
+        resultats.payes++;
+
+        const nouvelleData = { ...budgetRow.data };
+        if (preemption.montantRestant <= 0) {
+          delete nouvelleData.preemption;
+          resultats.soldes++;
+        } else {
+          nouvelleData.preemption = preemption;
+        }
+        await sbUpdate('budgets_nationaux', `id=eq.${pays}`, { data: nouvelleData, updated_at: new Date().toISOString() });
+      } else {
+        resultats.reportes++;
+      }
+    }
+  } catch(e) { console.error('preleverPreemptionsServeur error', e); }
+  return resultats;
+}
+
 // Fin automatique d'un blocus syndical si aucun des deux leaders (Secretaire General ou
 // Adjoint) ne l'a renouvele depuis plus de 25h (marge de securite sur le cycle de 24h) —
 // evite qu'un blocus persiste indefiniment sans intervention. Concerne tous les bâtiments
@@ -1474,7 +1515,10 @@ export default async function handler(req, res) {
     // 15. Investissements arrives a echeance (J+7, chantier "refonte des ordres")
     const investissements = await resoudreInvestissementsExpires();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE, investissements });
+    // 16. Remboursement quotidien des prets de preemption d'Etat (Ministre des Finances)
+    const preemptions = await preleverPreemptionsServeur();
+
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE, investissements, preemptions });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

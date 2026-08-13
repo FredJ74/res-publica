@@ -2421,6 +2421,169 @@ async function traiterActeRachatEntreprise(candidat) {
   addJournalEntry('Rachat de ' + def.label + ' officialisé — ' + solde.toLocaleString('fr-FR') + ' ' + cur + ' de solde payé.', 'event-good');
 }
 
+// =====================
+// PREEMPTION D'ETAT (Ministre des Finances, Bureau du Ministre des Finances) -- chemin
+// parallele au rachat joueur ci-dessus, ne le court-circuite pas (champ preemptionEtat distinct
+// de compromis/compromisPar). Une seule preemption active a la fois par pays, tant que son pret
+// n'est pas solde (budgets_nationaux[pays].preemption, verifie a l'ouverture et a la confirmation).
+// =====================
+async function ouvrirPreemptionEntreprise() {
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const budgetNat = await chargerBudgetNational(pays);
+  if (budgetNat.preemption) {
+    const def = ENTREPRISES_RACHETABLES[budgetNat.preemption.entrepriseType];
+    showToast('Préemption en cours', 'Le prêt sur ' + (def?.label || budgetNat.preemption.entrepriseType) + ' n\'est pas encore soldé. Impossible d\'en lancer une nouvelle.', false);
+    return;
+  }
+
+  const candidats = [];
+  for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
+    const def = ENTREPRISES_RACHETABLES[type];
+    const data = await def.charger();
+    if (data && data.proprietaire === 'PNJ' && !compromisEntrepriseActif(data) && !data.preemptionEtat) candidats.push({ type, def });
+  }
+
+  if (candidats.length === 0) {
+    showToast('Aucune entreprise disponible', 'Aucune entreprise PNJ n\'est actuellement préemptable.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Droit de préemption';
+  let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
+  candidats.forEach(c => {
+    html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
+    html += '<span style="font-size:.85rem;color:#c0b090">' + c.def.label + '</span>';
+    html += '<div style="display:flex;align-items:center;gap:.6rem"><span style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#C9A84C">' + c.def.prix.toLocaleString('fr-FR') + ' ' + cur + '</span>';
+    html += '<button onclick="ouvrirPretPreemption(&quot;' + c.type + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Préempter</button></div>';
+    html += '</div>';
+  });
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function ouvrirPretPreemption(type) {
+  const def = ENTREPRISES_RACHETABLES[type];
+  if (!def) return;
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Prêt de préemption — ' + def.label;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Prix à couvrir : ' + def.prix.toLocaleString('fr-FR') + ' ' + cur + '. Le prêt doit couvrir au moins ce montant (le surplus éventuel reste dans la caisse du Ministère). Automatique, aucun jet de risque, crédité immédiatement.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">MONTANT DU PRÊT</div>';
+  html += '<input id="preemption-pret-montant" type="number" min="' + def.prix + '" step="1000" value="' + def.prix + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">DURÉE (JOURS)</div>';
+  html += '<input id="preemption-pret-duree" type="number" min="5" step="5" value="30" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.8rem"/>';
+  html += '<button onclick="confirmerPreemption(&quot;' + type + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Emprunter et préempter</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerPreemption(type) {
+  const def = ENTREPRISES_RACHETABLES[type];
+  if (!def) return;
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const pays = state.country || 'republic';
+  const montant = parseInt(document.getElementById('preemption-pret-montant')?.value || 0);
+  const duree = parseInt(document.getElementById('preemption-pret-duree')?.value || 30);
+
+  if (!montant || montant < def.prix) {
+    showToast('Montant insuffisant', 'Le prêt doit couvrir au moins ' + def.prix.toLocaleString('fr-FR') + ' ' + cur + '.', false);
+    return;
+  }
+
+  const budgetNat = await chargerBudgetNational(pays);
+  if (budgetNat.preemption) {
+    showToast('Préemption en cours', 'Une préemption est déjà active.', false);
+    return;
+  }
+
+  const data = await def.charger();
+  if (!data || data.proprietaire !== 'PNJ' || compromisEntrepriseActif(data) || data.preemptionEtat) {
+    showToast('Indisponible', 'Cette entreprise n\'est plus préemptable.', false);
+    return;
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+
+  const taux = typeof getTauxPret === 'function' ? getTauxPret('nationale') : 5;
+  const montantTotal = Math.round(montant * (1 + taux / 100));
+
+  if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(pays, 'gouvernement-min_fin', montant).catch(() => {});
+  if (typeof debiterCaisseBatimentPlafonne === 'function') await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', def.prix).catch(() => {});
+
+  data.preemptionEtat = 'attente_acte';
+  data.preemptionPar = state.char?.name || 'Le Ministre des Finances';
+  await sbSaveEntreprise(data.id, data);
+
+  budgetNat.preemption = {
+    entrepriseType: type,
+    montantInitial: montant,
+    montantRestant: montantTotal,
+    dureeJours: duree,
+    mensualite: Math.ceil(montantTotal / duree),
+    jourDebut: state.day || 1
+  };
+  await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
+
+  updateUI();
+  showToast('Préemption engagée !', def.label + ' préemptée pour ' + def.prix.toLocaleString('fr-FR') + ' ' + cur + '. Reste à officialiser chez le notaire.', true, true);
+  addExternalEvent('PRÉEMPTION : L\'État a exercé son droit de préemption sur ' + def.label + '.');
+  addJournalEntry('Préemption engagée sur ' + def.label + ' — prêt de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' sur ' + duree + ' jours.', 'event-info');
+}
+
+// Finalisation chez le Notaire (Bureau des Contrats), reservee au Ministre des Finances --
+// aucun paiement ici, deja couvert par le pret verse a la preemption.
+async function doActeRachatEntreprisePreemption() {
+  if (state.poste?.id !== 'min_fin') { showToast('Réservé au Ministre des Finances', '', false); return; }
+  const candidats = [];
+  for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
+    const def = ENTREPRISES_RACHETABLES[type];
+    const data = await def.charger();
+    if (data && data.preemptionEtat === 'attente_acte') candidats.push({ type, def });
+  }
+
+  if (candidats.length === 0) {
+    showToast('Aucune préemption en attente', 'Aucune entreprise préemptée n\'attend d\'être officialisée.', false);
+    return;
+  }
+
+  if (candidats.length === 1) { traiterActeRachatEntreprisePreemption(candidats[0]); return; }
+
+  let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
+  candidats.forEach((c, i) => {
+    html += '<div onclick="traiterActeRachatEntreprisePreemptionParIndex(' + i + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">' + c.def.label + '</div>';
+  });
+  html += '</div></div>';
+  window._candidatsActePreemption = candidats;
+  document.getElementById('postes-modal-title').textContent = 'Quelle entreprise ?';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function traiterActeRachatEntreprisePreemptionParIndex(i) {
+  traiterActeRachatEntreprisePreemption(window._candidatsActePreemption[i]);
+}
+
+async function traiterActeRachatEntreprisePreemption(candidat) {
+  const def = candidat.def;
+  const data = await def.charger();
+  if (!data || data.preemptionEtat !== 'attente_acte') {
+    showToast('Préemption introuvable', 'Cette préemption n\'est plus valide (peut-être déjà officialisée).', false);
+    return;
+  }
+  const pays = state.country || 'republic';
+  data.proprietaire = 'État (' + (COUNTRIES[pays]?.n || pays) + ')';
+  delete data.preemptionEtat;
+  delete data.preemptionPar;
+  ajouterHistoriqueEntreprise(data, 0, 'Préemption par l\'État, officialisée par le Ministre des Finances');
+  await sbSaveEntreprise(data.id, data);
+  updateUI();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Acte signé !', def.label + ' appartient désormais à l\'État.', true, true);
+  addJournalEntry('Préemption de ' + def.label + ' officialisée — propriété transférée à l\'État.', 'event-good');
+}
+
 async function doGererArmurerie() {
   const data = await chargerArmurerieLocale();
   if (!data) { showToast('Indisponible', '', false); return; }
