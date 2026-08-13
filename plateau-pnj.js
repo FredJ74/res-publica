@@ -2056,15 +2056,30 @@ function doFaireDisparaitreCadavre() {
   }
 }
 
+// Bareme par paliers (interpolation lineaire entre paliers), plafond +20 a 4000+
+const PALIERS_BONUS_ARGENT_SQUATTEURS = [[0,0],[500,5],[1000,8],[2000,12],[3000,16],[4000,20]];
+function bonusArgentSquatteurs(montant) {
+  const m = montant || 0;
+  if (m >= 4000) return 20;
+  for (let i = 0; i < PALIERS_BONUS_ARGENT_SQUATTEURS.length - 1; i++) {
+    const [m1, b1] = PALIERS_BONUS_ARGENT_SQUATTEURS[i], [m2, b2] = PALIERS_BONUS_ARGENT_SQUATTEURS[i+1];
+    if (m >= m1 && m <= m2) return Math.floor(b1 + (b2 - b1) * (m - m1) / (m2 - m1));
+  }
+  return 0;
+}
+
 // Formule partagee entre l'affichage en direct du modal et la resolution reelle, pour ne
 // jamais pouvoir diverger. cha via getStatEffective : reflete deja la moyenne de groupe.
+// Doctrine V2, formule validee : P = Base(50, valeur neutre non precisee par la doctrine --
+// a ajuster si besoin) + 2*(CHA_groupe-13) + (Social_ville-50)/5 + bonus_argent (bareme dedie).
+// Garde l'exception Crime+Syndicat (intimidation automatique, voir bonusOrga) intouchee.
 function calculerTauxNegociationSquatteurs(montant) {
   const cha = getStatEffective('CHA');
-  const indices = INDICES_NATIONAUX?.[state.country] || { IS: 45 };
-  const is = indices.IS || 45;
-  const bonusArgent = Math.min(40, Math.floor((montant || 0) / 100));
+  const socialVille = (typeof getIndiceVille === 'function') ? getIndiceVille(state.country, state.currentCity || 'capitale', 'social') : 45;
+  const bonusArgent = bonusArgentSquatteurs(montant);
   const bonusOrga2 = calculerBonusOrga();
-  return Math.min(90, Math.floor(cha * 3 + is / 5) + bonusArgent + (bonusOrga2.nego_cha || 0));
+  const taux = 50 + 2 * (cha - 13) + (socialVille - 50) / 5 + bonusArgent + (bonusOrga2.nego_cha || 0);
+  return Math.max(5, Math.min(90, Math.round(taux)));
 }
 
 function majTauxNegociationLive() {
