@@ -4859,7 +4859,7 @@ async function doVolerMaterielChantier() {
     }
 
     ts.chantier.dateFinPrevue += 2 * 86400000;
-    if (typeof modifierIndiceVille === 'function') modifierIndiceVille(pays, ville, 'IS', -1);
+    if (typeof modifierIndiceVille === 'function') modifierIndiceVille(pays, ville, 'social', -1);
     if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
       INDICES_NATIONAUX[pays].IS = Math.max(0, (INDICES_NATIONAUX[pays].IS || 45) - 1);
     }
