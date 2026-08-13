@@ -373,6 +373,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'allegemement_secteur')    { ouvrirModalSecteur(); return; }
   if (fn === 'allegement_fiscal')       { doAllegementFiscalIndisponible(); return; }
   if (fn === 'preempter_entreprise')    { ouvrirPreemptionEntreprise(); return; }
+  if (fn === 'stage_caserne')           { doStageCaserne(); return; }
   if (fn === 'acte_rachat_entreprise_preemption') { doActeRachatEntreprisePreemption(); return; }
   if (fn === 'interdire_manif')         { ouvrirInterdireManif(); return; }
   if (fn === 'reprimer_manif')          { ouvrirReprimerManif(); return; }

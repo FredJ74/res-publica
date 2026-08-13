@@ -1718,6 +1718,47 @@ function appliquerFormation(stat) {
   addJournalEntry('Formation suivie à l\'université : +2 ' + stat + ' (temporaire).', 'event-good');
 }
 
+// STAGE A LA CASERNE (Corps de Garde) — regenere la Volonte, ouvert a tout PJ (pas reserve aux
+// militaires). +5 VOL, 1 fois par jour, max 3 jours CONSECUTIFS puis 7 jours de repos avant de
+// pouvoir recommencer. Rater un jour (pas de stage la veille) relance un nouveau cycle de 3 a
+// zero, sans cooldown -- seule une serie ininterrompue de 3 jours declenche le repos force.
+// PA deduit explicitement ici : les handlers dedies (routes via un cas special de doOrder,
+// voir plateau-router.js) ne beneficient PAS de la deduction generique de PA/cout, qui ne
+// s'applique qu'aux ordres sans handler dedie -- motif pre-existant, deja le cas pour la
+// plupart des autres handlers dedies du jeu.
+function doStageCaserne() {
+  if (!state.char) return;
+  const suivi = state.char.stageCaserne || {};
+
+  if (suivi.cooldownJusqua && state.day < suivi.cooldownJusqua) {
+    showToast('Repos obligatoire', 'Trois jours de stage d\'affilée, place au repos. Revenez au jour ' + suivi.cooldownJusqua + '.', false);
+    return;
+  }
+  if (suivi.dernierJour === state.day) {
+    showToast('Déjà fait aujourd\'hui', 'Un seul stage par jour.', false);
+    return;
+  }
+
+  if (!TEST_MODE) state.pa = Math.max(0, state.pa - 3);
+
+  const streak = (suivi.dernierJour === state.day - 1) ? (suivi.streak || 0) + 1 : 1;
+
+  if (!state.char.stats) state.char.stats = {};
+  state.char.stats.VOL = (state.char.stats.VOL || 0) + 5;
+
+  const nouveauSuivi = { dernierJour: state.day, streak };
+  if (streak >= 3) {
+    nouveauSuivi.streak = 0;
+    nouveauSuivi.cooldownJusqua = state.day + 7;
+  }
+  state.char.stageCaserne = nouveauSuivi;
+
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  updateUI();
+  showToast('Stage terminé !', '"Il faut le vouloir pour remonter sa Volonté !" — +5 Volonté.', true, true);
+  addJournalEntry('Stage à la Caserne. +5 Volonté (' + streak + '/3 jours consécutifs).', 'event-good');
+}
+
 // RECRUTER DES MILITANTS (Universite, amphi) — conditionne a l'adhesion a un syndicat actif,
 // 1 recrutement/jour, plafond de 2 militants par joueur. Prepare les futures manifestations.
 async function doRecruterMilitants() {
