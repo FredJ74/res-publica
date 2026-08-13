@@ -2147,7 +2147,9 @@ function soumettreProjetLoi() {
 
 // ASSEMBLEE NATIONALE
 // =====================
-function observerDebats() {
+async function observerDebats(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const deputes = ['Depute Marchand (PNJ)', 'Depute Fontaine (PNJ)', 'Depute Rousseau (PNJ)', 'Depute Girard (PNJ)'];
   const positions = ['Pour', 'Contre', 'Abstention'];
   const loisEnCours = state.loisEnCours || [];
@@ -4434,7 +4436,9 @@ function doFinancerOeuvreCulturelle() {
 }
 
 // Ordres de l'accueil, ouverts a tous (pas reserves a l'ambassadeur)
-async function doDemanderAudienceAmbassadeur() {
+async function doDemanderAudienceAmbassadeur(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const roll = Math.random() * 100;
   if (roll < 70) {
     const pnj = { name: 'L\'Ambassadeur', role: 'PNJ - Ambassadeur', rel: 'neutral', job: 'ambassadeur' };
@@ -4445,8 +4449,10 @@ async function doDemanderAudienceAmbassadeur() {
   }
 }
 
-function doDemanderAsilePolitique() {
+async function doDemanderAsilePolitique(pa, cost) {
   if (!state.char) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.char.asilePolitique = { pays: state.country, jour: state.day || 1 };
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   showToast('Demande déposée', 'Votre demande d\'asile politique a été enregistrée.', true);
@@ -4672,7 +4678,9 @@ const DOSSIERS_GOUVERNEMENTAUX = [
   "Rapport d'audit interne : des irregularites mineures ont ete relevees dans la gestion de deux budgets ministeriels."
 ];
 
-function doConsulterDossiersGouv() {
+async function doConsulterDossiersGouv(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const dossier = DOSSIERS_GOUVERNEMENTAUX[Math.floor(Math.random() * DOSSIERS_GOUVERNEMENTAUX.length)];
   document.getElementById('postes-modal-title').textContent = 'Dossier confidentiel';
   const html = '<div style="padding:1rem;font-size:.85rem;color:#c0b090;line-height:1.6;font-style:italic">« ' + dossier + ' »</div>';

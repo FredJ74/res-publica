@@ -317,7 +317,9 @@ const RELIGIONS = {
   khalija:  { nom: 'Loukoumisme',grandPretre: 'Grand Confiseur',     temple: 'Pâtisserie Sacrée',     peche: 'refuser un loukoum offert' }
 };
 
-function doPrier() {
+async function doPrier(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
   const religion = RELIGIONS[pays];
   modifierIP(3);
@@ -394,7 +396,9 @@ function consommerBonusBenediction(taux) {
 // validee : P = Base(80) + 2*(CHA_religieux-13) + (Piete_ville-50)/5. L'effet est applicable
 // a tout ordre suivant avec jet, illegal compris -- les religions de Republia ne sont pas des
 // arbitres moraux.
-async function doDemanderBenediction() {
+async function doDemanderBenediction(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const religion = RELIGIONS[pays];
@@ -427,7 +431,9 @@ async function doDemanderBenediction() {
   }
 }
 
-function doPelerin() {
+async function doPelerin(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.dis = Math.min(100, state.dis + 10);
   if (!state.pelerinExpire) state.pelerinExpire = state.day + 1;
   updateUI();
@@ -435,7 +441,9 @@ function doPelerin() {
   addJournalEntry('Statut de pèlerin déclaré.', 'event-info');
 }
 
-function doBenedictionEtat() {
+async function doBenedictionEtat(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   modifierIP(10);
   state.pop = Math.min(100, state.pop + 5);
   updateUI();
@@ -443,7 +451,9 @@ function doBenedictionEtat() {
   addExternalEvent('RELIGION : Un acte d\'État a reçu la bénédiction du ' + (RELIGIONS[state.country]?.grandPretre||'Grand Prêtre') + '.');
 }
 
-function doConsulterConfessions() {
+async function doConsulterConfessions(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const confessions = [
     'Un haut fonctionnaire a avoué détourner des fonds depuis 3 ans.',
     'Un ministre a confessé ses contacts avec un empire étranger.',
@@ -483,12 +493,14 @@ const OBJETS_TROUVES_ASSEMBLEE = [
   { name: 'Bouteille de whisky entamée', icon: 'ti-bottle', desc: 'Une bouteille de whisky bon marché, à moitié vide, planquée derrière un radiateur.', compromettant: false, imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/objet-whisky.png' }
 ];
 
-function reclamerObjetTrouve() {
+async function reclamerObjetTrouve(pa, cost) {
   // Limite a 1 essai par jour, peu importe le resultat
   if (state.dernierObjetTrouveJour === state.day) {
     showToast('Deja fait aujourd\'hui', 'Vous avez deja consulte le service des objets trouves aujourd\'hui. Revenez demain.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.dernierObjetTrouveJour = state.day;
 
   const reussite = Math.random() < 0.5;

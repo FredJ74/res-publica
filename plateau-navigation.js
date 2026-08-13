@@ -1613,7 +1613,9 @@ function doInspecterCargaisons() {
   }
 }
 
-function doConsulterManifeste() {
+async function doConsulterManifeste(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const int_ = getStatEffective('INT');
   const taux = Math.max(5, 75 + Math.floor(int_/10));
   const roll = Math.floor(Math.random() * 100) + 1;

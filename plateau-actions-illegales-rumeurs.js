@@ -301,7 +301,9 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   cellules_fragilisees:   (a, c) => 'On raconte que les cellules de garde a vue de ' + c + ' se fragiliseraient, suite a des incidents recents.'
 };
 
-async function ecouterRumeurs(successRate) {
+async function ecouterRumeurs(successRate, pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const char = state.char;
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];

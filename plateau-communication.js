@@ -395,7 +395,9 @@ function distribuerTractPNJ(pnjName) {
   updateUI();
 }
 
-function doLogePortail() {
+async function doLogePortail(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= 95) {
     // Trouver le portier de la loge
@@ -868,7 +870,9 @@ const ENIGME1_ARCHIVES_HISTORIQUES = [
   }
 ];
 
-async function doArchivesPolice() {
+async function doArchivesPolice(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('postes-modal-title').textContent = 'Archives de Police';
   document.getElementById('postes-body').innerHTML = enigme1HtmlRechercheArchivesPolice();
   document.getElementById('modal-postes').classList.add('open');

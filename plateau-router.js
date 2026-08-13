@@ -56,14 +56,14 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_caisse_commissariat') { doConsulterCaisseCommissariat(); return; }
   if (fn === 'cambrioler_caisse_commissariat') { doCambriolerCaisseCommissariat(); return; }
   if (fn === 'se_rebeller') { doSeRebeller(); return; }
-  if (fn === 'archives_police') { doArchivesPolice(); return; }
+  if (fn === 'archives_police') { doArchivesPolice(pa, cost); return; }
   if (fn === 'pouls_populaire') { doPoulsPopulaire(); return; }
   if (fn === 'lancer_rumeur_cible') { ouvrirModalLancerRumeur(pa, cost, successRate); return; }
   if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
   if (fn === 'boire_verre') { ouvrirModalInvitationSociale('boire_verre', pa, cost, successRate); return; }
   if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(); return; }
   if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
-  if (fn === 'demander_parler_loge') { doLogePortail(); return; }
+  if (fn === 'demander_parler_loge') { doLogePortail(pa, cost); return; }
   if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(); return; }
   if (fn === 'vendre_bois_imprimerie') { ouvrirVendreBoisImprimerie(); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
@@ -119,7 +119,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // corrige le 9 aout 2026 (audit Ordres).
   if (fn === 'consulter_succession') { doConsulterArchivesNotariales(); return; }
   if (fn === 'consulter_archives_presse') { doConsulterArchivesPresse(); return; }
-  if (fn === 'demander_juge_instruction') { doDemanderJugeInstruction(); return; }
+  if (fn === 'demander_juge_instruction') { doDemanderJugeInstruction(pa, cost); return; }
   if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(); return; }
   if (fn === 'demander_divorce') { doDemanderDivorce(); return; }
   if (fn === 'acte_vente_terrain') { doActeVenteTerrain(); return; }
@@ -232,7 +232,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'contrebande_port')       { doContrebandePort(); return; }
   if (fn === 'blocus_portuaire')       { doBlocusPortuaire(); return; }
   if (fn === 'inspecter_cargaisons')   { doInspecterCargaisons(); return; }
-  if (fn === 'consulter_manifeste')    { doConsulterManifeste(); return; }
+  if (fn === 'consulter_manifeste')    { doConsulterManifeste(pa, cost); return; }
   if (fn === 'falsifier_manifeste')    { doFalsifierManifeste(pa, cost); return; }
   if (fn === 'acheter_parapluie')      { doAcheterPoisonObjet('parapluie'); return; }
   if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb'); return; }
@@ -247,12 +247,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(); return; }
   if (fn === 'contester_resultats')    { ouvrirContesterResultats(); return; }
   if (fn === 'calendrier_elections')   { ouvrirCalendrierElectoral(); return; }
-  if (fn === 'observer_debats')         { observerDebats(); return; }
+  if (fn === 'observer_debats')         { observerDebats(pa, cost); return; }
   if (fn === 'consulter_annuaire_deputes') { consulterAnnuaireDeputes(); return; }
-  if (fn === 'objet_trouve')            { reclamerObjetTrouve(); return; }
+  if (fn === 'objet_trouve')            { reclamerObjetTrouve(pa, cost); return; }
   if (fn === 'voter_loi')              { ouvrirVoteLoi(); return; }
   if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
-  if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(successRate); return; }
+  if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(successRate, pa, cost); return; }
   if (fn === 'consulter_lobbyiste')    { doConsulterLobbyiste(); return; }
   if (fn === 'forum_president_conference' || fn === 'conference_presse')  { ouvrirForumNationalSousForumPresident('conference'); return; }
   if (fn === 'donner_conf') { doDonnerConference(); return; }
@@ -272,14 +272,14 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(pa, cost); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
   if (fn === 'proposer_treve')        { ouvrirProposerTreve(); return; }
-  if (fn === 'prier')                { doPrier(); return; }
+  if (fn === 'prier')                { doPrier(pa, cost); return; }
   if (fn === 'se_confesser')         { doSeConfeser(); return; }
   if (fn === 'faire_don')            { doFaireDon(cost); return; }
-  if (fn === 'demander_benediction') { doDemanderBenediction(); return; }
-  if (fn === 'pelerin')              { doPelerin(); return; }
+  if (fn === 'demander_benediction') { doDemanderBenediction(pa, cost); return; }
+  if (fn === 'pelerin')              { doPelerin(pa, cost); return; }
   if (fn === 'excommunier')          { ouvrirModalCibleRepertoire('excommunier', 'Excommunier'); return; }
-  if (fn === 'benediction_etat')     { doBenedictionEtat(); return; }
-  if (fn === 'consulter_confessions'){ doConsulterConfessions(); return; }
+  if (fn === 'benediction_etat')     { doBenedictionEtat(pa, cost); return; }
+  if (fn === 'consulter_confessions'){ doConsulterConfessions(pa, cost); return; }
   if (fn === 'acheter_relique')      { doAcheterRelique(pa, cost); return; }
   if (fn === 'scanner_aleatoire')    { declencherScandale(); return; }
   if (fn === 'accord_diplomatique')  { ouvrirModalNegociationDiplomatique(); return; }
@@ -300,7 +300,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'article') { doArticle(); return; }
   if (fn === 'etouffer') { doEtouffer(); return; }
   if (fn === 'archives') { ouvrirArchivesTribunal(); return; }
-  if (fn === 'consulter_dossiers_gouv') { doConsulterDossiersGouv(); return; }
+  if (fn === 'consulter_dossiers_gouv') { doConsulterDossiersGouv(pa, cost); return; }
   if (fn === 'demander_info_loge') { doLogeInfo(); return; }
   if (fn === 'se_former') { doSeFormer(); return; }
   if (fn === 'recruter_info') { doRecruterInfo(); return; }
@@ -393,8 +393,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'corrompre_homologue_local') { doCorrompreHomologueLocal(); return; }
   if (fn === 'organiser_reception_diplomatique') { doOrganiserReceptionDiplomatique(); return; }
   if (fn === 'financer_oeuvre_culturelle') { doFinancerOeuvreCulturelle(); return; }
-  if (fn === 'demander_audience_ambassadeur') { doDemanderAudienceAmbassadeur(); return; }
-  if (fn === 'demander_asile_politique') { doDemanderAsilePolitique(); return; }
+  if (fn === 'demander_audience_ambassadeur') { doDemanderAudienceAmbassadeur(pa, cost); return; }
+  if (fn === 'demander_asile_politique') { doDemanderAsilePolitique(pa, cost); return; }
   if (fn === 'reserver_salle_reception') { doReserverSalleReception(); return; }
   if (fn === 'sanctions_empire')        { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
   if (fn === 'reception_etat') { doReceptionAvecBonus(fn, cost); return; }

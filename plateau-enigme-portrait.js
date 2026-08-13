@@ -498,7 +498,9 @@ function enigme1AfficherArticlePresse(idx) {
 // GREFFE — demande d'audience au juge (Juge Fontaine, deja presente au Tribunal)
 // =====================
 
-function doDemanderJugeInstruction() {
+async function doDemanderJugeInstruction(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const dossier = (state.char && state.char.enigme1 && state.char.enigme1.dossier) || {};
   const clesArchives = ['mairie', 'commissariat', 'notaire', 'presse'];
   const clesEhpad = ['ehpad_dubois', 'ehpad_chevillard', 'ehpad_chauchay'];
