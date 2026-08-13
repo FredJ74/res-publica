@@ -4528,12 +4528,14 @@ async function confirmerOrganiserFilature() {
     return;
   }
 
+  // Doctrine V2, formule validee : P = Base(50) + 2*(PER_groupe-13) - (PER_cible-13)
+  // + (Securite_ville-50)/5 + (INF_commissaire-INF_cible)*0.3
   const perCommissaire = getStatEffective('PER');
   const infCommissaire = state.inf || 0;
   const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
-  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
+  const isnVille = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : 30;
 
-  let taux = 50 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isEmpire - 45) / 5;
+  let taux = 50 + 2 * (perCommissaire - 13) - (cibleInfos.per - 13) + (isnVille - 50) / 5 + (infCommissaire - cibleInfos.inf) * 0.3;
   taux = Math.max(10, Math.min(90, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
