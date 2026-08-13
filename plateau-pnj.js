@@ -2091,6 +2091,11 @@ function majTauxNegociationLive() {
 
 function doNegocierSquatteurs() {
   const id = state.currentBuilding;
+  // Revalidation a l'ouverture (bug remonte avant Phase L) : requiresSquatteurs n'etait lu par
+  // aucun code, le bouton restait affiche/cliquable sans squatteur reel. terrainOrdreDisponible
+  // est la meme verification deja utilisee pour signer_compromis/acheter_terrain.
+  const dispo = typeof terrainOrdreDisponible === 'function' ? terrainOrdreDisponible('negocier_squatteurs', id) : { ok: true };
+  if (!dispo.ok) { showToast('Aucun squatteur', dispo.raison || 'Aucun squatteur a negocier.', false); return; }
   const ts = getTerrainState(id);
   const pnj = ts.pnjData;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -2113,6 +2118,15 @@ function doNegocierSquatteurs() {
 
 function confirmerNegociation() {
   const id = state.currentBuilding;
+  // Revalidation au commit (bug remonte avant Phase L) : la modale peut avoir ete ouverte
+  // avant que le squat ne disparaisse (police appelee, negociation menee ailleurs, etc.) --
+  // aucun PA ni argent ne doit etre preleve si le squat n'existe plus reellement.
+  const dispo = typeof terrainOrdreDisponible === 'function' ? terrainOrdreDisponible('negocier_squatteurs', id) : { ok: true };
+  if (!dispo.ok) {
+    document.getElementById('modal-postes').classList.remove('open');
+    showToast('Aucun squatteur', dispo.raison || 'Aucun squatteur a negocier.', false);
+    return;
+  }
   const ts = getTerrainState(id);
   const pnj = ts.pnjData;
   const cur = COUNTRIES[state.country]?.cur || 'FR';

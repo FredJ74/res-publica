@@ -1532,6 +1532,15 @@ function renderRoomActions(room, buildingId, roomId) {
         else needsPost = posteId !== reqPost;
       }
     }
+    // Verifier requiresSquatteurs (negocier_squatteurs) : le flag existe dans data.js depuis
+    // le debut mais n'etait lu par aucun code -- le bouton restait affiche/cliquable meme sans
+    // squatteur reel sur le terrain (bug remonte avant Phase L). terrainOrdreDisponible()
+    // contient deja la bonne verification (utilisee pour signer_compromis/acheter_terrain),
+    // reutilisee ici a l'identique plutot que dupliquee.
+    let needsSquat = false;
+    if (o.requiresSquatteurs && typeof terrainOrdreDisponible === 'function') {
+      needsSquat = !terrainOrdreDisponible(o.fn, buildingId).ok;
+    }
     let paDisplay = TEST_MODE ? '0 PA' : o.pa + ' PA';
     // Appliquer malus ISN sur les actes illegaux
     let tauxAffiche = o.successRate || 70;
@@ -1589,6 +1598,8 @@ function renderRoomActions(room, buildingId, roomId) {
       };
       const posteRequisNom = o.requiresPost === true ? 'un poste institutionnel' : (postesNoms[o.requiresPost] || o.requiresPost);
       onclickFn = 'showPostRequired(' + JSON.stringify(posteRequisNom) + ')';
+    } else if (needsSquat) {
+      onclickFn = "showToast('Aucun squatteur', 'Aucun squatteur a negocier sur ce terrain pour l\\'instant.', false)";
     } else if (o.fn === 'plainte_police') {
       onclickFn = 'openPlainteModal()';
     } else if (o.fn === 'gerer_finances') {
@@ -1602,7 +1613,7 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
-    const blockedCls = needsPost ? ' blocked' : '';
+    const blockedCls = (needsPost || needsSquat) ? ' blocked' : '';
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltip + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + costDisplay + ' · ' + paDisplay + '</span>' + gainBadge + '</button>';
   });
 

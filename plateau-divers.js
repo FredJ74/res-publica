@@ -371,9 +371,19 @@ function doFaireDon(cost) {
 // les jets deja retouches dans ce meme chantier (Filature, Squatteurs, evasion, enquete,
 // chasse a l'homme, cambriolage, vol materiel chantier, vol PJ, achat arme illegale). Le
 // reste des jets du jeu n'est pas encore branche -- a etendre famille par famille ensuite.
+//
+// Bug corrige (avant Phase L) : le bonus vivait sur state.benediction (racine de state), qui
+// n'est jamais persiste -- ni dans le cache localStorage du personnage (JSON.stringify(state.char)
+// uniquement), ni dans sbSavePersonnage (liste de colonnes figee, sans champ benediction). Un
+// simple rechargement de page entre la benediction et son utilisation reinitialisait state a zero
+// et faisait disparaitre le bonus sans aucun signal -- symptome exact remonte sur negocier_squatteurs.
+// Deplace sous state.char.benediction, qui LUI est bien inclus dans le blob JSON persiste (meme
+// convention que stageCaserne/licenceSportive/bonusFormation).
 function consommerBonusBenediction(taux) {
-  if (state.benediction?.actif && (state.benediction.expire === undefined || (state.day || 1) <= state.benediction.expire)) {
-    state.benediction.actif = false;
+  const b = state.char?.benediction;
+  if (b?.actif && (b.expire === undefined || (state.day || 1) <= b.expire)) {
+    b.actif = false;
+    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
     return taux + 5;
   }
   return taux;
@@ -407,9 +417,9 @@ async function doDemanderBenediction() {
 
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= taux) {
-    if (!state.benediction) state.benediction = {};
-    state.benediction.actif = true;
-    state.benediction.expire = (state.day || 1) + 1;
+    if (!state.char) return;
+    state.char.benediction = { actif: true, expire: (state.day || 1) + 1 };
+    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
     showToast('Béni !', 'Vous bénéficiez d\'un bonus de +5 points sur votre prochain ordre avec jet (24h, non cumulable).', true, true);
     addJournalEntry('Bénédiction reçue du ' + (religion?.grandPretre || 'religieux habilité') + '. +5 points prochain ordre.', 'event-good');
   } else {
