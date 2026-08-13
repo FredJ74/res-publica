@@ -72,13 +72,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(); return; }
   if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(); return; }
-  if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(); return; }
+  if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(pa, cost); return; }
   if (fn === 'plainte_obstruction_permis') { doPlainteObstruction(pa, cost); return; }
   if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }
-  if (fn === 'acheter_bombe_mil') { doObtenirExplosifsMilitaires(); return; }
+  if (fn === 'acheter_bombe_mil') { doObtenirExplosifsMilitaires(pa, cost); return; }
   if (fn === 'se_justifier') { doSeJustifier(pa, cost); return; }
   if (fn === 'observer_match') { doObserverMatch(); return; }
   if (fn === 'consulter_palmares') { doConsulterPalmares(); return; }
@@ -92,9 +92,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_budget_club') { doConsulterBudgetClub(); return; }
   if (fn === 'gerer_salaires_club') { doGererSalairesClub(); return; }
   if (fn === 'imprimer_tracts_sportifs') { doImprimerTractsSportifs(); return; }
-  if (fn === 'distribuer_tracts_match') { doDistribuerTractsMatch(); return; }
+  if (fn === 'distribuer_tracts_match') { doDistribuerTractsMatch(pa, cost); return; }
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
-  if (fn === 'organiser_boycott') { doOrganiserBoycott(); return; }
+  if (fn === 'organiser_boycott') { doOrganiserBoycott(pa, cost); return; }
   if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(pa, cost); return; }
   if (fn === 'centre_anti_poison') { doCentreAntiPoison(pa); return; }
   if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(pa); return; }
@@ -124,12 +124,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demander_divorce') { doDemanderDivorce(pa, cost); return; }
   if (fn === 'acte_vente_terrain') { doActeVenteTerrain(); return; }
   if (fn === 'acte_rachat_entreprise') { doActeRachatEntreprise(); return; }
-  if (fn === 'corrompre_rdv_notaire') { doCorrompreRdvNotaire(); return; }
+  if (fn === 'corrompre_rdv_notaire') { doCorrompreRdvNotaire(pa, cost); return; }
   if (fn === 'transferer_compromis') { doOuvrirTransfertCompromis(); return; }
   if (fn === 'valider_transfert_compromis') { doValiderTransfertCompromis(); return; }
   if (fn === 'payer_versement_chantier') { doPayerVersementChantier(); return; }
-  if (fn === 'corrompre_chantier') { doCorrompreChantier(); return; }
-  if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(); return; }
+  if (fn === 'corrompre_chantier') { doCorrompreChantier(pa, cost); return; }
+  if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(pa, cost); return; }
   if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(); return; }
   if (fn === 'vente_directe_usine') { doOuvrirVenteDirecteUsine(); return; }
   if (fn === 'produire_medicaments') { doProduireUsine('medicaments'); return; }
@@ -192,7 +192,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(); return; }
   if (fn === 'expulsion_legale')         { doExpulsionLegale(); return; }
   if (fn === 'appeler_police_terrain')  { doAppelerPoliceTerrain(); return; }
-  if (fn === 'faire_disparaitre_cadavre') { doFaireDisparaitreCadavre(); return; }
+  if (fn === 'faire_disparaitre_cadavre') { doFaireDisparaitreCadavre(pa, cost); return; }
   if (fn === 'negocier_squatteurs')     { doNegocierSquatteurs(); return; }
   if (fn === 'signer_compromis')        { doSignerCompromis(); return; }
   if (fn === 'acheter_terrain')         { doAcheterTerrain(); return; }
@@ -229,9 +229,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'corrompre_douanier')     { doCorrompreDoanier(pa, cost); return; }
   if (fn === 'expedier_colis')         { ouvrirExpedierColis(pa, cost); return; }
   if (fn === 'receptionner_commande')  { ouvrirReceptionnerCommande(); return; }
-  if (fn === 'contrebande_port')       { doContrebandePort(); return; }
-  if (fn === 'blocus_portuaire')       { doBlocusPortuaire(); return; }
-  if (fn === 'inspecter_cargaisons')   { doInspecterCargaisons(); return; }
+  if (fn === 'contrebande_port')       { doContrebandePort(pa, cost); return; }
+  if (fn === 'blocus_portuaire')       { doBlocusPortuaire(pa, cost); return; }
+  if (fn === 'inspecter_cargaisons')   { doInspecterCargaisons(pa, cost); return; }
   if (fn === 'consulter_manifeste')    { doConsulterManifeste(pa, cost); return; }
   if (fn === 'falsifier_manifeste')    { doFalsifierManifeste(pa, cost); return; }
   if (fn === 'acheter_parapluie')      { doAcheterPoisonObjet('parapluie'); return; }
@@ -363,7 +363,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'defense') { doDefense(); return; }
   if (fn === 'projet_loi') { ouvrirDeposerProjet(); return; }
   if (fn === 'greve') { doGrevePNJ(); return; }
-  if (fn === 'recruter_etud') { doRecruterMilitants(); return; }
+  if (fn === 'recruter_etud') { doRecruterMilitants(pa, cost); return; }
   if (fn === 'acte_officiel') { doActeOfficiel(); return; }
 
   if (fn === 'interdire_manif_cible')   { ouvrirModalTexteLibre('interdire_manif', 'Interdire une manifestation', 'Preciser le nom ou sujet de la manifestation a interdire...'); return; }
@@ -390,8 +390,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demettre_ambassadeur_cible'){ ouvrirModalDemettreAmbassadeur(); return; }
   if (fn === 'expulser_ambassadeur_cible'){ ouvrirModalExpulserAmbassadeur(); return; }
   if (fn === 'relations_bilaterales') { ouvrirRelationsBilaterales(); return; }
-  if (fn === 'corrompre_homologue_local') { doCorrompreHomologueLocal(); return; }
-  if (fn === 'organiser_reception_diplomatique') { doOrganiserReceptionDiplomatique(); return; }
+  if (fn === 'corrompre_homologue_local') { doCorrompreHomologueLocal(pa, cost); return; }
+  if (fn === 'organiser_reception_diplomatique') { doOrganiserReceptionDiplomatique(pa, cost); return; }
   if (fn === 'financer_oeuvre_culturelle') { doFinancerOeuvreCulturelle(pa, cost); return; }
   if (fn === 'demander_audience_ambassadeur') { doDemanderAudienceAmbassadeur(pa, cost); return; }
   if (fn === 'demander_asile_politique') { doDemanderAsilePolitique(pa, cost); return; }

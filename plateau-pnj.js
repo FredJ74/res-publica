@@ -2010,7 +2010,7 @@ function doExpulsionAcceleree(cout) {
   }
 }
 
-function doFaireDisparaitreCadavre() {
+async function doFaireDisparaitreCadavre(pa, cost) {
   const id = state.currentBuilding;
   // Revalidation au commit (bug remonte avant Phase L, meme pattern que negocier_squatteurs) :
   // aucun code ne verifiait jusqu'ici qu'un cadavre existe reellement avant le jet -- un joueur
@@ -2018,6 +2018,8 @@ function doFaireDisparaitreCadavre() {
   // une entree state.recherche de 24h pour un crime qui n'a jamais eu lieu.
   const dispo = typeof terrainOrdreDisponible === 'function' ? terrainOrdreDisponible('faire_disparaitre_cadavre', id) : { ok: true };
   if (!dispo.ok) { showToast('Aucun cadavre', dispo.raison || 'Aucun cadavre a dissimuler.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const ts = getTerrainState(id);
   const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30, ID: 40 };
   const isn = indices.ISN || 30;
@@ -2391,7 +2393,7 @@ async function finaliserAchatTerrain(id, prix, surface, aPermis) {
 
 // Accelere (reduit de moitie le delai restant) le rendez-vous notarial d'un achat direct en
 // attente, contre corruption — meme principe que corrompre_fonctionnaire_permis.
-async function doCorrompreRdvNotaire() {
+async function doCorrompreRdvNotaire(pa, cost) {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -2400,14 +2402,13 @@ async function doCorrompreRdvNotaire() {
     showToast('Impossible', "Vous n'avez pas de rendez-vous en attente ici.", false);
     return;
   }
-  const cout = 800;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false); return; }
 
   const maintenant = Date.now();
   const restant = ts.achatDirect.dateAchat - maintenant;
   if (restant <= 0) { showToast('Inutile', 'Le rendez-vous est déjà arrivé.', false); return; }
 
-  state.arg -= cout;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   const nouvelleDateAchat = maintenant + Math.floor(restant / 2);
   const achatDirect = { ...ts.achatDirect, dateAchat: nouvelleDateAchat, dateLimite: nouvelleDateAchat + 24 * 3600000 };
   const nouvelEtat = setTerrainState(id, { achatDirect });
@@ -2415,7 +2416,7 @@ async function doCorrompreRdvNotaire() {
 
   const dateTxt = new Date(nouvelleDateAchat).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
   updateUI();
-  addJournalEntry('Rendez-vous accéléré par corruption (-' + cout + ' ' + cur + '). Nouveau rendez-vous : ' + dateTxt + '.', 'event-info');
+  addJournalEntry('Rendez-vous accéléré par corruption (-' + cost + ' ' + cur + '). Nouveau rendez-vous : ' + dateTxt + '.', 'event-info');
   showToast('Délai réduit', 'Nouveau rendez-vous : ' + dateTxt + '.', true);
 }
 

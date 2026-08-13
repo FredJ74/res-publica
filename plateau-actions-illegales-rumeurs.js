@@ -993,11 +993,13 @@ function confirmerAchatGilet() {
 // Explosifs reglementaires, reserves au Ministre de la Defense — traçables (contrairement
 // a la version marche noir), pas de risque ni de cout : ordre defini dans data.js
 // (acheter_bombe_mil) mais jamais routee. Corrige le 5 aout 2026.
-function doObtenirExplosifsMilitaires() {
+async function doObtenirExplosifsMilitaires(pa, cost) {
   if (state.poste?.id !== 'min_def') {
     showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
     type: 'explosif', name: 'Explosifs militaires réglementaires', icon: 'ti-bomb', legal: true,

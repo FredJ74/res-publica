@@ -1543,7 +1543,9 @@ function recupererColis(idx) {
   showToast('Colis récupéré !', c.objet.name + ' ajouté à votre inventaire.', true, true);
 }
 
-function doContrebandePort() {
+async function doContrebandePort(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
   const dis = state.char?.stats?.DIS || 8;
   const dup = getStatEffective('DUP');
@@ -1568,7 +1570,9 @@ function doContrebandePort() {
   }
 }
 
-function doBlocusPortuaire() {
+async function doBlocusPortuaire(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const vol = getStatEffective('VOL');
   const ent = getStatEffective('ENT');
   const taux = Math.max(5, 60 + Math.floor(vol/10) + Math.floor(ent/10) - getMalusISN());
@@ -1589,7 +1593,9 @@ function doBlocusPortuaire() {
   }
 }
 
-function doInspecterCargaisons() {
+async function doInspecterCargaisons(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const int_ = getStatEffective('INT');
   const pays = state.country || 'republic';
   const isBonus = pays === 'soviet';

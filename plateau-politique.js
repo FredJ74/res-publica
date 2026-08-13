@@ -4345,14 +4345,13 @@ function ouvrirRelationsBilaterales() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function doCorrompreHomologueLocal() {
+async function doCorrompreHomologueLocal(pa, cost) {
   const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
   if (!empireId) return;
   const empireName = COUNTRIES[empireId]?.n || empireId;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cout = 800;
-  if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Corrompre un homologue coûte ' + cout + ' ' + cur + '.', false); return; }
-  state.arg -= cout;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', 'Corrompre un homologue coûte ' + cost + ' ' + cur + '.', false); return; }
   const roll = Math.random() * 100;
   if (roll < 65) {
     INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 6);
@@ -4366,7 +4365,7 @@ function doCorrompreHomologueLocal() {
   updateUI();
 }
 
-function doOrganiserReceptionDiplomatique() {
+function doOrganiserReceptionDiplomatique(pa, cost) {
   const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
   if (!empireId) return;
   const empireName = COUNTRIES[empireId]?.n || empireId;
@@ -4374,14 +4373,13 @@ function doOrganiserReceptionDiplomatique() {
   // Verifier qu'une reservation existe bien pour aujourd'hui, au nom de cette ambassade
   // (voir sbReserverSalleReception, ordre pris a l'accueil).
   const jour = state.day || 1;
-  sbGetReservationSalle(state.country, jour).then(resa => {
+  sbGetReservationSalle(state.country, jour).then(async resa => {
     if (!resa || resa.data?.empire !== empireId) {
       showToast('Salle non réservée', "Réservez d'abord la Salle de Réception pour aujourd'hui, depuis l'accueil du Quartier des Ambassades.", false);
       return;
     }
-    const cout = 1200;
-    if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Organiser une réception coûte ' + cout + ' ' + cur + '.', false); return; }
-    state.arg -= cout;
+    const r = await deduireCoutOrdre({ pa, cost });
+    if (!r.ok) { showToast('Fonds insuffisants', 'Organiser une réception coûte ' + cost + ' ' + cur + '.', false); return; }
     INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 5);
     state.pop = Math.min(100, (state.pop || 50) + 5);
     showToast('Réception organisée', 'Une réception diplomatique a été donnée dans la Salle de Réception. +5 ID, +5 POP.', true);

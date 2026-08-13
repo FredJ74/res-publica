@@ -1761,7 +1761,7 @@ async function doStageCaserne(pa, cost) {
 
 // RECRUTER DES MILITANTS (Universite, amphi) — conditionne a l'adhesion a un syndicat actif,
 // 1 recrutement/jour, plafond de 2 militants par joueur. Prepare les futures manifestations.
-async function doRecruterMilitants() {
+async function doRecruterMilitants(pa, cost) {
   const orgas = state.organisations || [];
   const syndicat = orgas.find(o => o.type === 'syndicale' && o.membres?.some(m => m.nom === state.char?.name));
   if (!syndicat) {
@@ -1779,6 +1779,8 @@ async function doRecruterMilitants() {
     showToast('Plafond atteint', 'Vous avez déjà 2 militants recrutés (maximum).', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const noms = ['Sacha Fervent', 'Lila Combattante', 'Noé Insurgé', 'Maya Debout', 'Théo Rebelle', 'Zoé Militante'];
   const nomPnj = noms[Math.floor(Math.random() * noms.length)] + ' (PNJ)';
 
@@ -2675,7 +2677,7 @@ function bonusClassementTracts(position) {
   return 1.5 - (position - 1) * (0.8 / 11);
 }
 
-async function doDistribuerTractsMatch() {
+async function doDistribuerTractsMatch(pa, cost) {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
   const orgaSupporters = getClubSupportersLocal();
@@ -2687,6 +2689,8 @@ async function doDistribuerTractsMatch() {
     showToast('Réservé aux candidats', 'Vous devez être candidat déclaré à une élection.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const saison = await verifierEtJouerJournees();
   const classement = calculerClassement(saison.calendrier);
@@ -2718,7 +2722,7 @@ async function doOrganiserManifestation() {
 // =====================
 // BOYCOTT
 // =====================
-async function doOrganiserBoycott() {
+async function doOrganiserBoycott(pa, cost) {
   const orga = getClubSupportersLocal();
   const clubLocal = getClubLocal();
   if (!orga || !clubLocal) { showToast('Indisponible', '', false); return; }
@@ -2728,6 +2732,8 @@ async function doOrganiserBoycott() {
   const saison = await chargerOuInitialiserSaison();
   const prochaineJournee = saison.calendrier.find(j => j.matchs.some(m => !m.played && m.home === clubLocal.id));
   if (!prochaineJournee) { showToast('Aucun match à domicile', 'Pas de prochain match à domicile pour ce club.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const match = prochaineJournee.matchs.find(m => !m.played && m.home === clubLocal.id);
   match.boycotte = true;
 

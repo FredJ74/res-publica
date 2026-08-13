@@ -3938,7 +3938,7 @@ async function doPayerVersementChantier() {
   showToast('Versement payé !', 'Le chantier reprend.', true);
 }
 
-async function doCorrompreChantier() {
+async function doCorrompreChantier(pa, cost) {
   const id = state.currentBuilding;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
@@ -3948,14 +3948,12 @@ async function doCorrompreChantier() {
   if (!ch) { showToast('Impossible', "Aucun chantier en cours ici.", false); return; }
   if (ch.enAttentePaiement) { showToast('Impossible', 'Un versement est en attente — payez-le avant d\'accélérer.', false); return; }
 
-  const cout = 1500;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false); return; }
-
   const maintenant = Date.now();
   const restant = ch.dateFinPrevue - maintenant;
   if (restant <= 0) { showToast('Inutile', 'Le chantier est déjà arrivé à échéance.', false); return; }
 
-  state.arg -= cout;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   ch.dateFinPrevue = maintenant + Math.floor(restant / 2);
 
   const nouvelEtat = setTerrainState(id, { chantier: ch });
@@ -3963,7 +3961,7 @@ async function doCorrompreChantier() {
 
   const dateTxt = new Date(ch.dateFinPrevue).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
   updateUI();
-  addJournalEntry('Chantier accéléré par corruption (-' + cout + ' ' + cur + '). Nouvelle livraison prévue le ' + dateTxt + '.', 'event-info');
+  addJournalEntry('Chantier accéléré par corruption (-' + cost + ' ' + cur + '). Nouvelle livraison prévue le ' + dateTxt + '.', 'event-info');
   showToast('Chantier accéléré', 'Nouvelle livraison : ' + dateTxt + '.', true);
 }
 
@@ -4262,17 +4260,16 @@ async function doPlainteObstruction(pa, cost) {
   addExternalEvent('⚖️ Le maire est reconnu coupable d\'obstruction à un permis de construire légitime.');
 }
 
-async function doCorrompreFonctionnairePermis() {
+async function doCorrompreFonctionnairePermis(pa, cost) {
   const id = state.currentBuilding;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
   if (!ts.permis || ts.permis.statut !== 'instruction') { showToast('Indisponible', 'Aucune instruction en cours ici.', false); return; }
 
-  const cout = 800;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', cost + ' FR requis.', false); return; }
 
   const decouvert = Math.random() < 0.25;
-  state.arg -= cout;
 
   if (decouvert) {
     if (!state.historiqueCrimes) state.historiqueCrimes = [];
@@ -4290,7 +4287,7 @@ async function doCorrompreFonctionnairePermis() {
   updateUI();
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Dossier accéléré', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', true, true);
-  addJournalEntry('Corruption d\'un fonctionnaire pour accélérer un permis de construire (-' + cout + ' FR).', 'event-bad');
+  addJournalEntry('Corruption d\'un fonctionnaire pour accélérer un permis de construire (-' + cost + ' FR).', 'event-bad');
 }
 
 
@@ -4828,7 +4825,7 @@ async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
 // caisse). Le proprietaire lui-meme peut voler son propre chantier (auto-victimisation
 // parodique) : l'argent se neutralise financierement, seul le bonus de sympathie publique
 // et le RP restent un vrai gain. Toujours tracable sur enquete, meme en cas de reussite.
-async function doVolerMaterielChantier() {
+async function doVolerMaterielChantier(pa, cost) {
   const id = state.currentBuilding;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
@@ -4837,6 +4834,9 @@ async function doVolerMaterielChantier() {
   const ville = state.currentCity || 'capitale';
 
   if (!ts.chantier) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   const dup = getStatEffective('DUP');
