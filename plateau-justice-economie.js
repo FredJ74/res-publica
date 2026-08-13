@@ -1187,8 +1187,9 @@ function doTentativeEvasion() {
 
   const pays = state.country;
   const dup = getStatEffective('DUP');
-  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
-  let taux = 10 + (dup - 10) * 2 - (isEmpire - 45) / 3;
+  const ville = state.currentCity || 'capitale';
+  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
+  let taux = 10 + (dup - 10) * 2 - (isn - 45) / 3;
   taux = Math.max(2, Math.min(40, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -4460,9 +4461,9 @@ async function confirmerMenerEnquete() {
   const perCommissaire = getStatEffective('PER');
   const infCommissaire = state.inf || 0;
   const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
-  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
+  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
 
-  let taux = 35 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isEmpire - 45) / 5;
+  let taux = 35 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isn - 45) / 5;
   taux = Math.max(10, Math.min(90, Math.round(taux)));
 
   const toutes = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
@@ -4604,9 +4605,9 @@ async function confirmerOrganiserChasseHomme() {
   const perCommissaire = getStatEffective('PER');
   const infCommissaire = state.inf || 0;
   const cibleInfos = typeof sbGetStatsInfluenceJoueur === 'function' ? await sbGetStatsInfluenceJoueur(cible) : { per: 8, inf: 0 };
-  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
+  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
 
-  let taux = 45 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isEmpire - 45) / 5;
+  let taux = 45 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isn - 45) / 5;
   taux = Math.max(10, Math.min(90, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -4721,10 +4722,11 @@ async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
   document.getElementById('modal-postes').classList.remove('open');
   const pays = state.country;
   const dup = getStatEffective('DUP');
-  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
+  const ville = state.currentCity || 'capitale';
+  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
   const bonusReputation = getBonusReputationCriminelle();
 
-  let taux = 20 + (dup - 10) * 2 - (isEmpire - 45) / 3 + bonusReputation;
+  let taux = 20 + (dup - 10) * 2 - (isn - 45) / 3 + bonusReputation;
   taux = Math.max(5, Math.min(60, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -4785,10 +4787,10 @@ async function doVolerMaterielChantier() {
 
   document.getElementById('modal-postes')?.classList.remove('open');
   const dup = getStatEffective('DUP');
-  const isEmpire = (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.IS) || 45;
+  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
   const bonusReputation = typeof getBonusReputationCriminelle === 'function' ? getBonusReputationCriminelle() : 0;
 
-  let taux = 60 + (dup - 10) * 2 - (isEmpire - 45) / 3 + bonusReputation;
+  let taux = 60 + (dup - 10) * 2 - (isn - 45) / 3 + bonusReputation;
   taux = Math.max(15, Math.min(90, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -4957,10 +4959,13 @@ async function verifierEffetsEtDistributionFiscale() {
   const tauxLocal = budgetMuni.tauxLocal ?? TAUX_TAXE_DEFAUT;
   const tauxTotal = tauxLocal + (budgetNat.tauxNational ?? TAUX_TAXE_DEFAUT);
 
-  // Effets sur les indices : IS baisse au-dela d'un taux neutre (~15-20%), ISN se degrade au-dela de 25% (marche noir)
-  if (INDICES_NATIONAUX[pays]) {
-    if (tauxTotal > 18) INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - Math.min(5, Math.floor((tauxTotal - 18) * 0.5)));
-    if (tauxTotal > 25) INDICES_NATIONAUX[pays].ISN = Math.max(0, INDICES_NATIONAUX[pays].ISN - Math.min(5, Math.floor((tauxTotal - 25) * 0.6)));
+  // Effets sur les indices de la ville concernee (tauxLocal est deja specifique a cette ville
+  // via chargerBudgetMunicipal/getVilleKey) : Social baisse au-dela d'un taux neutre (~15-20%),
+  // Securite se degrade au-dela de 25% (marche noir). Repli national inchange hors Republia.
+  const villeFiscale = state.currentCity || 'capitale';
+  if (typeof modifierIndiceVille === 'function') {
+    if (tauxTotal > 18) await modifierIndiceVille(pays, villeFiscale, 'social', -Math.min(5, Math.floor((tauxTotal - 18) * 0.5))).catch(() => {});
+    if (tauxTotal > 25) await modifierIndiceVille(pays, villeFiscale, 'isn', -Math.min(5, Math.floor((tauxTotal - 25) * 0.6))).catch(() => {});
   }
 
   // Distribution quotidienne : chaque poste recoit sa propre part dans sa propre caisse

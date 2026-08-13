@@ -3730,7 +3730,7 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
 
   await ajusterSoldeCibleFiscale(typeCible, idCible, montantVerse);
-  INDICES_NATIONAUX[pays].IS = Math.min(100, INDICES_NATIONAUX[pays].IS + 3);
+  if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, state.currentCity || 'capitale', 'social', 3).catch(() => {});
   updateUI();
   showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
   addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
@@ -3820,7 +3820,7 @@ function executerOrdreContact(action, nomCible) {
         : 0;
       if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
       if (typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(nomCible, montantVerse).catch(() => {});
-      INDICES_NATIONAUX[pays].IS = Math.min(100, INDICES_NATIONAUX[pays].IS + 3);
+      if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, state.currentCity || 'capitale', 'social', 3).catch(() => {});
       updateUI();
       showToast('Subvention accordée', montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomCible + '. +3 IS.', true, true);
       addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
@@ -4817,8 +4817,13 @@ function ouvrirNommerMinistresModal() {
 }
 
 // Appliquer malus ISN aux actes illegaux
+// Signature inchangee (0 argument) pour ne pas toucher les 20 sites d'appel -- lit desormais
+// l'indice de Securite de la ville courante du joueur (Republia), repli national inchange pour
+// les 3 autres empires (voir getIndiceVille, plateau-divers.js).
 function getMalusISN() {
-  const isn = INDICES_NATIONAUX[state.country]?.ISN || 30;
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : (INDICES_NATIONAUX[pays]?.ISN || 30);
   if (isn <= 20) return 0;
   if (isn <= 40) return 5;
   if (isn <= 60) return 10;

@@ -30,7 +30,7 @@ function ouvrirModalVoler(encodedCible) {
   const per = getStatEffective('PER');
   const cha = getStatEffective('CHA');
   const bonusCarriere = BONUS_CARRIERE_VOL[char?.career] || 0;
-  const isPays = INDICES_NATIONAUX[state.country]?.IS || 40;
+  const isPays = (typeof getIndiceVille === 'function') ? getIndiceVille(state.country, state.currentCity || 'capitale', 'isn') : (INDICES_NATIONAUX[state.country]?.ISN || 30);
 
   // Stats de la cible — si PJ reel on n'a que des stats par defaut raisonnables (PNJ ont parfois des stats definies)
   const perCible = cible.stats?.PER || 9;
@@ -798,7 +798,7 @@ function confirmerAchatArmeIllegal(armeId) {
   // Jet de reussite — meme logique que le vol (adapte : pas de cible, achat aupres du PNJ armurier)
   const char = state.char;
   const bonusCarriere = BONUS_CARRIERE_VOL[char?.career] || 0;
-  const isPays = INDICES_NATIONAUX[pays]?.IS || 40;
+  const isPays = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, state.currentCity || 'capitale', 'isn') : (INDICES_NATIONAUX[pays]?.ISN || 30);
   const tauxReussite = Math.max(5, Math.min(95, Math.round(50 + bonusCarriere - (isPays / 3))));
   const roll = Math.random() * 100;
 
