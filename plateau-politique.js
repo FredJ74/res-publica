@@ -3849,6 +3849,50 @@ function ouvrirModalTexteLibre(action, titre, placeholder) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// INTERDIRE UNE MANIFESTATION (Ministre de l'Interieur) -- exception a la regle generale
+// "ministere = national" : cible explicitement UNE ville et modifie son Social local, pas le
+// national. Remplace l'ancien chemin mort interdire_manif_cible (jamais atteignable, voir
+// audit du chantier "refonte des ordres").
+async function ouvrirInterdireManif() {
+  const pays = state.country || 'republic';
+  document.getElementById('postes-modal-title').textContent = 'Interdire une manifestation';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Baisse le Social de la ville ciblee. Facilite une repression ulterieure au meme endroit (72h).</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SUJET / NOM DE LA MANIFESTATION</div>';
+  html += '<input id="interdire-manif-sujet" type="text" placeholder="Preciser..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">VILLE CIBLEE</div>';
+  html += '<select id="interdire-manif-ville" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+  if (pays === 'republic' && typeof VILLES_REPUBLIA !== 'undefined') {
+    VILLES_REPUBLIA.forEach(v => { html += '<option value="' + v + '">' + (NOMS_VILLES_REPUBLIA[v] || v) + '</option>'; });
+  } else {
+    html += '<option value="' + (state.currentCity || 'capitale') + '">' + (state.currentCity || 'capitale') + '</option>';
+  }
+  html += '</select>';
+  html += '<button onclick="confirmerInterdireManif()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Interdire</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerInterdireManif() {
+  const sujet = document.getElementById('interdire-manif-sujet')?.value?.trim() || 'Manifestation non precisee';
+  const ville = document.getElementById('interdire-manif-ville')?.value || state.currentCity || 'capitale';
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const pays = state.country || 'republic';
+  const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
+
+  if (typeof modifierIndiceVille === 'function') await modifierIndiceVille(pays, ville, 'social', -5).catch(() => {});
+
+  const budgetMuni = await chargerBudgetMunicipalPourVille(pays, ville);
+  budgetMuni.manifestationInterdite = { sujet, jour: state.day || 1, expireJour: (state.day || 1) + 3 };
+  if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(pays + '_' + ville, budgetMuni).catch(() => {});
+
+  updateUI();
+  showToast('Manifestation interdite', sujet + ' — interdite a ' + nomVille + '. -5 Social local.', true);
+  addExternalEvent('INTERDICTION : La manifestation "' + sujet + '" a ete interdite par le Ministre de l\'Interieur a ' + nomVille + '.');
+  addJournalEntry('Manifestation interdite : ' + sujet + ' (' + nomVille + ').', 'event-info');
+}
+
 function executerOrdreTexte(action) {
   const texte = document.getElementById('texte-libre-input')?.value?.trim();
   if (!texte) { showToast('Champ requis', 'Veuillez remplir le champ.', false); return; }
@@ -5138,6 +5182,20 @@ async function chargerBudgetMunicipal() {
       tauxFoncier: 0.05,
       derniereDistribJour: state.day || 1
     };
+    if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(key, data).catch(() => {});
+  }
+  return data;
+}
+
+// Variante parametree de chargerBudgetMunicipal (qui suppose toujours la ville courante du
+// joueur via getVilleKey) -- necessaire pour Interdire/Reprimer une manifestation, qui ciblent
+// une ville choisie par le Ministre, pas forcement celle ou il se trouve.
+async function chargerBudgetMunicipalPourVille(pays, ville) {
+  const key = pays + '_' + ville;
+  if (typeof sbGetBudgetMunicipal !== 'function') return { key, allocation: { commissariat:20, multimodal:15, stade:15, marche:15, dispensaire:20, tribunal:15 }, caisse:0, tauxFoncier:0.05, derniereDistribJour: state.day||1 };
+  let data = await sbGetBudgetMunicipal(key).catch(() => null);
+  if (!data) {
+    data = { key, allocation: { commissariat:20, multimodal:15, stade:15, marche:15, dispensaire:20, tribunal:15 }, caisse:0, tauxFoncier:0.05, derniereDistribJour: state.day||1 };
     if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(key, data).catch(() => {});
   }
   return data;
