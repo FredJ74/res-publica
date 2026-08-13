@@ -628,6 +628,70 @@ function advanceTime(pa) {
   }
 }
 
+// =====================
+// PRIMITIVE CENTRALISEE DE DEDUCTION PA / COUT (Phase K, 13/08/2026)
+// =====================
+// Prealable a toute deduction dans un handler dedie (route par un cas special de doOrder, voir
+// plateau-router.js) : ces handlers ne beneficient PAS de la deduction generique de doOrder(),
+// qui ne s'applique qu'aux ordres sans cas special. Audit complet : .scratch/audit-pa-couts-phase-j.csv
+//
+// Separation stricte des responsabilites (valable pour toutes les phases de migration a venir) :
+//   - deduireCoutOrdre() ne connait AUCUNE regle metier (reussite/echec/acceptation/refus).
+//     Elle verifie et preleve, point final. C'est au handler de decider QUAND l'appeler :
+//     avant un jet si le cout est du meme en cas d'echec, a l'interieur de la branche succes
+//     si le cout n'est du qu'en cas de reussite/acceptation, etc.
+//   - advanceTime() reste totalement independante : elle avance l'horloge de jeu, jamais les
+//     ressources. Un ordre qui doit faire les deux appelle les deux fonctions explicitement.
+//   - Les PA restent TOUJOURS personnels (state.pa), meme quand le cout financier est
+//     institutionnel (caisse d'un batiment). Le parametre `payeur` ne concerne que l'argent.
+//
+// Retour :
+//   succes : { ok: true, paPreleves, montantPreleve }
+//     (paPreleves vaut 0 si TEST_MODE, puisque state.pa n'est alors pas touche -- valeur
+//     honnete refletant ce qui a reellement ete preleve, pas la valeur declarative de l'ordre)
+//   echec  : { ok: false, raison: 'pa_insuffisants' | 'fonds_insuffisants' | 'caisse_institution_insuffisante' }
+//     aucune ressource n'est modifiee en cas d'echec.
+async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur' } = {}) {
+  // A. PA : toujours personnels, ignores sous TEST_MODE (comme partout ailleurs dans le jeu)
+  if (!TEST_MODE && (state.pa || 0) < pa) {
+    return { ok: false, raison: 'pa_insuffisants' };
+  }
+
+  // B. Cout financier : jamais ignore par TEST_MODE (convention existante de doOrder())
+  if (cost > 0) {
+    if (payeur === 'joueur') {
+      if ((state.arg || 0) < cost) {
+        return { ok: false, raison: 'fonds_insuffisants' };
+      }
+    } else if (payeur && payeur.type === 'institution') {
+      // Verification + prelevement atomique en un seul appel : si la caisse ne couvre pas le
+      // montant en entier, rien n'est preleve (voir diagnostic Phase K sur
+      // debiterCaisseBatimentPlafonne, qui elle tolere le partiel pour d'autres usages).
+      const montantVerse = typeof debiterCaisseBatimentAtomique === 'function'
+        ? await debiterCaisseBatimentAtomique(payeur.pays, payeur.buildingId, cost)
+        : 0;
+      if (montantVerse < cost) {
+        return { ok: false, raison: 'caisse_institution_insuffisante' };
+      }
+    }
+  }
+
+  // D. Deduction des PA (apres verification ET apres prelevement institutionnel reussi, pour
+  // qu'un echec du prelevement financier ne laisse jamais les PA ampute pour rien)
+  let paPreleves = 0;
+  if (!TEST_MODE) {
+    state.pa = Math.max(0, (state.pa || 0) - pa);
+    paPreleves = pa;
+  }
+
+  // E. Deduction du cout personnel (le cas institutionnel a deja ete preleve atomiquement en B)
+  if (cost > 0 && payeur === 'joueur') {
+    state.arg = Math.max(0, (state.arg || 0) - cost);
+  }
+
+  return { ok: true, paPreleves, montantPreleve: cost };
+}
+
 function checkMidnight() {
   if (state.hour === 0 && state.minute < 2) {
     if (!state.midnightDone) {

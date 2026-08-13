@@ -4965,6 +4965,23 @@ async function debiterCaisseBatimentPlafonne(pays, buildingId, montantVise) {
   return montantVerse;
 }
 
+// Debit TOUT-OU-RIEN pour les couts institutionnels fixes (deduireCoutOrdre, plateau-core.js).
+// Contrairement a debiterCaisseBatimentPlafonne (versement partiel volontaire, utilise ailleurs
+// pour les virements/salaires/reparations qui tolerent un montant reduit), cette fonction ne
+// touche JAMAIS la caisse si le solde est insuffisant : renvoie 0 sans effet de bord, ou le
+// montant demande en entier. Audit Phase K (8/8) : 12 sites appelaient deja
+// debiterCaisseBatimentPlafonne pour un cout FIXE en annulant l'action apres coup si le montant
+// verse etait insuffisant, perdant silencieusement le montant partiel deja preleve -- ces sites
+// ne sont pas corriges ici (dette technique consignee pour la Phase K-bis), mais tout nouvel
+// appelant a cout fixe doit utiliser debiterCaisseBatimentAtomique, jamais Plafonne.
+async function debiterCaisseBatimentAtomique(pays, buildingId, montant) {
+  const c = await chargerCaisseBatiment(pays, buildingId);
+  if ((c.solde || 0) < montant) return 0;
+  c.solde = (c.solde || 0) - montant;
+  if (typeof sbSaveCaisseBatiment === 'function') await sbSaveCaisseBatiment(c.key, { solde: c.solde }).catch(() => {});
+  return montant;
+}
+
 async function chargerBudgetNational(pays) {
   if (typeof sbGetBudgetNational !== 'function') return { tauxNational: TAUX_TAXE_DEFAUT, reserveJour: 0 };
   let data = await sbGetBudgetNational(pays).catch(() => null);
