@@ -1541,7 +1541,19 @@ function renderRoomActions(room, buildingId, roomId) {
     if (o.requiresSquatteurs && typeof terrainOrdreDisponible === 'function') {
       needsSquat = !terrainOrdreDisponible(o.fn, buildingId).ok;
     }
-    let paDisplay = TEST_MODE ? '0 PA' : o.pa + ' PA';
+    // Verifier requiresCadavre (faire_disparaitre_cadavre) : meme defaut que requiresSquatteurs
+    // (flag jamais lu), corrige a l'identique en reutilisant terrainOrdreDisponible().
+    let needsCadavre = false;
+    if (o.requiresCadavre && typeof terrainOrdreDisponible === 'function') {
+      needsCadavre = !terrainOrdreDisponible(o.fn, buildingId).ok;
+    }
+    // Avant ce correctif, TEST_MODE forcait l'affichage a "0 PA" quel que soit o.pa reel --
+    // le joueur ne pouvait jamais apprendre le vrai cout normal d'un ordre pendant la periode
+    // de PA illimites (bug remonte sur "investir", en realite systemique a tous les ordres avec
+    // pa>0). La vraie valeur reste desormais toujours visible ; seule une mention "(illimité)"
+    // signale que TEST_MODE l'annule pour l'instant. Valeur transmise a doOrder() inchangee
+    // (o.pa brut, deja correcte avant ce correctif -- uniquement l'affichage etait en cause).
+    let paDisplay = o.pa + ' PA' + (TEST_MODE && o.pa > 0 ? ' (illimité' + (o.pa > 1 ? 's' : '') + ')' : '');
     // Appliquer malus ISN sur les actes illegaux
     let tauxAffiche = o.successRate || 70;
     if (o.type === 'illegal') {
@@ -1555,7 +1567,7 @@ function renderRoomActions(room, buildingId, roomId) {
     // SALAIRE_PRODUCTION_ARMURERIE (plateau-actions-illegales-rumeurs.js) sont la seule source
     // de verite du tarif, jamais dupliquee ici en dur.
     if (o.fn === 'produire_arme' && typeof PA_PRODUCTION_ARMURERIE !== 'undefined') {
-      paDisplay = TEST_MODE ? '0 PA' : PA_PRODUCTION_ARMURERIE + ' PA';
+      paDisplay = PA_PRODUCTION_ARMURERIE + ' PA' + (TEST_MODE && PA_PRODUCTION_ARMURERIE > 0 ? ' (illimité' + (PA_PRODUCTION_ARMURERIE > 1 ? 's' : '') + ')' : '');
       costDisplay = '+' + SALAIRE_PRODUCTION_ARMURERIE.toLocaleString('fr-FR') + ' ' + cur;
     }
     const ef = ORDER_EFFECTS[o.fn] || {};
@@ -1600,6 +1612,8 @@ function renderRoomActions(room, buildingId, roomId) {
       onclickFn = 'showPostRequired(' + JSON.stringify(posteRequisNom) + ')';
     } else if (needsSquat) {
       onclickFn = "showToast('Aucun squatteur', 'Aucun squatteur a negocier sur ce terrain pour l\\'instant.', false)";
+    } else if (needsCadavre) {
+      onclickFn = "showToast('Aucun cadavre', 'Aucun cadavre a dissimuler sur ce terrain pour l\\'instant.', false)";
     } else if (o.fn === 'plainte_police') {
       onclickFn = 'openPlainteModal()';
     } else if (o.fn === 'gerer_finances') {
@@ -1613,7 +1627,7 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
-    const blockedCls = (needsPost || needsSquat) ? ' blocked' : '';
+    const blockedCls = (needsPost || needsSquat || needsCadavre) ? ' blocked' : '';
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltip + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + costDisplay + ' · ' + paDisplay + '</span>' + gainBadge + '</button>';
   });
 

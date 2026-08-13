@@ -1468,6 +1468,18 @@ async function doCorrompreDoanier(pa, cost) {
   }
 }
 
+// Bug corrige (remonte en test manuel avant Phase L) : ACCES_CASERNE/ACCES_QHS etaient
+// referencees dans doTaxiSpecial (voir plus bas) sans jamais avoir ete declarees nulle part
+// dans le depot (confirme par recherche dans tout l'historique git) -- accesLibres valait donc
+// undefined et accesLibres.some(...) plantait systematiquement au tout premier appel, avant
+// meme la verification de PA/argent. Aucun rapport avec la migration Phase K (qui n'a touche
+// que le bloc "Voyage OK" plus bas) : ce crash existait deja avant, pour taxi_caserne ET
+// taxi_qhs, qui partagent tous deux ce meme handler. Listes deduites du vocabulaire de postes
+// deja utilise ailleurs dans le jeu (hierarchie militaire pour la Caserne, justice/gardien QHS
+// pour le QHS) -- a ajuster si Fred veut une composition differente.
+const ACCES_CASERNE = ['min_def', 'commandant', 'capitaine', 'lieutenant'];
+const ACCES_QHS = ['min_just', 'gardien_qhs', 'commissaire'];
+
 // Cout conditionnel (Phase K) : rien n'est du tant que le trajet n'est pas reellement effectue
 // -- acces refuse ou faux document detecte (arrestation) = voyage jamais entame, donc ni PA ni
 // FR ne sont consideres depenses. Deduction placee au seul point "Voyage OK".

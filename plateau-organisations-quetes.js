@@ -898,7 +898,7 @@ function ouvrirOrdresOrga(orgaId) {
         '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem">' +
           '<i class="ti ' + ordre.icon + '" style="font-size:.9rem;color:#C9A84C"></i>' +
           '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#E8C97A">' + ordre.label + '</div>' +
-          '<div style="margin-left:auto;font-size:.85rem;color:#8a6a20">' + ordre.pa + ' PA' + (ordre.cost > 0 ? ' · ' + ordre.cost.toLocaleString('fr-FR') + ' ' + cur : '') + '</div>' +
+          '<div style="margin-left:auto;font-size:.85rem;color:#8a6a20">' + ordre.pa + ' PA' + (TEST_MODE && ordre.pa > 0 ? ' (illimité' + (ordre.pa > 1 ? 's' : '') + ')' : '') + (ordre.cost > 0 ? ' · ' + ordre.cost.toLocaleString('fr-FR') + ' ' + cur : '') + '</div>' +
         '</div>' +
         '<div style="font-size:.68rem;color:#6a5a30;margin-bottom:.4rem">' + ordre.desc + '</div>' +
         (disabled ?

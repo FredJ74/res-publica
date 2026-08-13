@@ -2012,6 +2012,12 @@ function doExpulsionAcceleree(cout) {
 
 function doFaireDisparaitreCadavre() {
   const id = state.currentBuilding;
+  // Revalidation au commit (bug remonte avant Phase L, meme pattern que negocier_squatteurs) :
+  // aucun code ne verifiait jusqu'ici qu'un cadavre existe reellement avant le jet -- un joueur
+  // pouvait "dissimuler" un cadavre inexistant et, en cas d'echec du jet, subir -20 DIS -5 HP et
+  // une entree state.recherche de 24h pour un crime qui n'a jamais eu lieu.
+  const dispo = typeof terrainOrdreDisponible === 'function' ? terrainOrdreDisponible('faire_disparaitre_cadavre', id) : { ok: true };
+  if (!dispo.ok) { showToast('Aucun cadavre', dispo.raison || 'Aucun cadavre a dissimuler.', false); return; }
   const ts = getTerrainState(id);
   const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30, ID: 40 };
   const isn = indices.ISN || 30;
