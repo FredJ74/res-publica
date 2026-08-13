@@ -3578,6 +3578,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les faits d'armes et les soldats les plus decores originaires de Luthecia. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-honneur-militaire.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-audio-salle-honneur-militaire-v2.mp3",
         persons: [],
         orders: []
       },
@@ -3586,6 +3587,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
         desc: "Les mariages et alliances les plus marquants de l'histoire de la ville. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-unions-celebres.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-audio-salle-unions-celebres.mp3",
         persons: [],
         orders: []
       },
@@ -3602,6 +3604,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#100c10,#181018)",
         desc: "Les grandes crises politiques et affaires qui ont secoue Luthecia. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/musee-ville-luthecia-salle-scandales.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/luthecia/musee-ville-audio-salle-scandales.mp3",
         persons: [],
         orders: []
       },
