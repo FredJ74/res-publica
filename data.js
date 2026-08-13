@@ -5838,7 +5838,7 @@ const INDICES_NATIONAUX = {
 };
 
 function getMalusIllegal(country) {
-  const isn = INDICES_NATIONAUX[country]?.ISN || 30;
+  const isn = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'isn') : (INDICES_NATIONAUX[country]?.ISN || 30);
   if (isn <= 20) return 0;
   if (isn <= 40) return 5;
   if (isn <= 60) return 10;
@@ -5847,7 +5847,7 @@ function getMalusIllegal(country) {
 }
 
 function getMultDetection(country) {
-  const isn = INDICES_NATIONAUX[country]?.ISN || 30;
+  const isn = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'isn') : (INDICES_NATIONAUX[country]?.ISN || 30);
   if (isn <= 60) return 1;
   if (isn <= 80) return 2;
   return 3;

@@ -427,6 +427,10 @@ function loadCharacter() {
       const char = JSON.parse(saved);
       applyCharToState(char);
       console.log('Personnage charge (local):', char.name, '| Pays:', state.country);
+      // Precharge le cache des indices de ville de Republia (chantier "refonte des ordres") --
+      // fire-and-forget, les lecteurs (getIndiceVille etc.) ont deja des valeurs par defaut
+      // en attendant que ca revienne.
+      if (typeof chargerIndicesRepublia === 'function') chargerIndicesRepublia().catch(() => {});
       // Restaurer la position exacte (piece) ou la personne se trouvait avant le rafraichissement
       restaurerPositionApresChargement(char);
       // Reinjecter le journal personnel persiste (rapide, depuis le cache local)
@@ -727,9 +731,11 @@ function updateUI() {
     badge.style.display = unread > 0 ? 'inline' : 'none';
   }
 
-  // Indices nationaux dans topbar
+  // Indices nationaux dans topbar (calcules -- moyenne des villes pour Republia)
   const pays = state.country || 'republic';
-  const idx = (typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[pays] || {ISN:30,IE:50,ID:40,IS:45}) : {ISN:30,IE:50,ID:40,IS:45};
+  const idx = (typeof getIndiceNationalCalcule === 'function')
+    ? { ISN: getIndiceNationalCalcule(pays,'isn'), IE: getIndiceNationalCalcule(pays,'ie'), ID: INDICES_NATIONAUX?.[pays]?.ID ?? 40 }
+    : ((typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[pays] || {ISN:30,IE:50,ID:40,IS:45}) : {ISN:30,IE:50,ID:40,IS:45});
   const setIdx = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   setIdx('idx-isn', idx.ISN);
   setIdx('idx-ie',  idx.IE);

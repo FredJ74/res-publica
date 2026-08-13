@@ -1638,12 +1638,14 @@ function genererPnjTerrain(buildingId) {
     : [];
   if (!profiles.length) return null;
 
-  // Indices impériaux modifient les probabilités
-  const indices = INDICES_NATIONAUX?.[country] || { ISN:30, IE:50, ID:40, IS:45 };
-  const isn = indices.ISN || 30;
-  const ie  = indices.IE  || 50;
-  const id  = indices.ID  || 40;
-  const is  = indices.IS  || 45;
+  // Indices impériaux modifient les probabilités (Securite/Eco/Social calcules -- moyenne des
+  // villes pour Republia, ancien national inchange pour les 3 autres empires ; Diplomatie reste
+  // un indice national independant, non concerne)
+  const idFallback = INDICES_NATIONAUX?.[country]?.ID ?? 40;
+  const isn = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'isn') : 30;
+  const ie  = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'ie') : 50;
+  const id  = idFallback;
+  const is  = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'social') : 45;
 
   // Ajuster les probabilités selon indices
   const adjustedProfiles = profiles.map(p => {

@@ -2295,7 +2295,7 @@ function ouvrirModalNaturalisation() {
 }
 
 function getCoutNaturalisation(paysVise) {
-  const ie = INDICES_NATIONAUX[paysVise]?.IE || 40;
+  const ie = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(paysVise, 'ie') : (INDICES_NATIONAUX[paysVise]?.IE || 40);
   return 2000 + ie * 30;
 }
 
@@ -3148,7 +3148,9 @@ async function estEtatUrgenceActif(country) {
 
 async function ouvrirEtatNation() {
   const pays = state.country || 'republic';
-  const idx = INDICES_NATIONAUX[pays] || { ISN:30, IE:50, ID:40, IS:45 };
+  const idx = (typeof getIndiceNationalCalcule === 'function')
+    ? { ISN: getIndiceNationalCalcule(pays,'isn'), IE: getIndiceNationalCalcule(pays,'ie'), ID: INDICES_NATIONAUX[pays]?.ID ?? 40, IS: getIndiceNationalCalcule(pays,'social') }
+    : (INDICES_NATIONAUX[pays] || { ISN:30, IE:50, ID:40, IS:45 });
   document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
   const el = document.getElementById('vue-self');
   if (!el) return;
@@ -4075,8 +4077,10 @@ async function confirmerRenseignement(empireCible, nomCible) {
   const leurLt = rows2?.[0] || { per:0, int:0 };
 
   const base = state.country === empireCible ? 30 : 45;
-  const notreScore = (INDICES_NATIONAUX[pays]?.ISN || 0) + (notreLt.per||0) + (notreLt.int||0);
-  const leurScore = (INDICES_NATIONAUX[empireCible]?.ISN || 0) + (leurLt.per||0) + (leurLt.int||0);
+  const isnNotre = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(pays, 'isn') : (INDICES_NATIONAUX[pays]?.ISN || 0);
+  const isnLeur = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(empireCible, 'isn') : (INDICES_NATIONAUX[empireCible]?.ISN || 0);
+  const notreScore = isnNotre + (notreLt.per||0) + (notreLt.int||0);
+  const leurScore = isnLeur + (leurLt.per||0) + (leurLt.int||0);
   const tauxFinal = Math.max(5, Math.min(95, Math.round(base + (notreScore - leurScore) / 10)));
 
   const roll = Math.floor(Math.random() * 100) + 1;

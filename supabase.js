@@ -436,6 +436,24 @@ async function sbSaveBudgetMunicipal(key, data) {
   return sbInsert('budgets_municipaux', { id: key, data, updated_at: new Date().toISOString() });
 }
 
+// =====================
+// INDICES DE VILLE (chantier "refonte des ordres" / Doctrine V2) — meme schema que
+// budgets_municipaux, cle "pays_ville" (ex. "republic_capitale").
+// =====================
+async function sbGetIndicesVille(key) {
+  const rows = await sbGet('indices_villes', `id=eq.${encodeURIComponent(key)}`);
+  if (!rows || rows.length === 0) return null;
+  return rows[0].data;
+}
+
+async function sbSaveIndicesVille(key, data) {
+  const existing = await sbGet('indices_villes', `id=eq.${encodeURIComponent(key)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('indices_villes', `id=eq.${encodeURIComponent(key)}`, { data, updated_at: new Date().toISOString() });
+  }
+  return sbInsert('indices_villes', { id: key, data, updated_at: new Date().toISOString() });
+}
+
 async function sbSendMail(from, to, subject, body, time) {
   const id = 'mail-' + Date.now();
   return sbInsert('mails', { id, from_player: from, to_player: to, subject, body, time, read: false });

@@ -3926,7 +3926,7 @@ async function doCorrompreChantier() {
 // PRET BANCAIRE
 // =====================
 function getTauxPret(typeBanque) {
-  const ie = INDICES_NATIONAUX?.[state.country]?.IE || 40;
+  const ie = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(state.country, 'ie') : (INDICES_NATIONAUX?.[state.country]?.IE || 40);
   return typeBanque === 'privee' ? (12 + ie / 10) : (5 + ie / 10);
 }
 

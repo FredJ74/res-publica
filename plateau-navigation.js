@@ -231,6 +231,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
 
   // Verrou militaire : un detachement hostile peut bloquer/attaquer l'entree (verifie en parallele, sans bloquer l'affichage)
   if (typeof rafraichirCacheImmuniteMilitaire === 'function') rafraichirCacheImmuniteMilitaire().catch(() => {});
+  // Rafraichit le cache des indices de ville de Republia (partage entre joueurs via Supabase)
+  if (state.country === 'republic' && typeof chargerIndicesRepublia === 'function') chargerIndicesRepublia().catch(() => {});
   if (typeof verifierCouvreFeu === 'function') verifierCouvreFeu().catch(() => {});
   if (typeof suivreEscorteAvecMoi === 'function') suivreEscorteAvecMoi(buildingId).catch(() => {});
   if (typeof verifierMissionMilitaireEntree === 'function') {

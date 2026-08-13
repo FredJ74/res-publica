@@ -144,25 +144,77 @@ async function publierSondage(texte) {
 
 // INDICES IMPERIAUX - CORRIGE
 // =====================
-// Indices locaux, par ville — structure minimale pour l'instant, seule Luthecia (Republia)
-// est peuplee (necessaire pour le vol de materiel de chantier). Les autres villes/empires
-// restent a construire dans une session dediee (moyenne nationale, QHS, caserne...).
-const INDICES_VILLES = {
-  republic: {
-    capitale: { nom: 'Luthécia', ISN: 30, IE: 50, ID: 40, IS: 45 }
+// Indices de ville, persistes (Supabase, table indices_villes) — construits pour Republia
+// uniquement (3 villes) pour l'instant. Les 5 indices territoriaux (Securite/Economie/Social/
+// Piete/Moral) : pour Republia, le "national" (getIndiceNationalCalcule) est desormais CALCULE
+// a la volee comme la moyenne des 3 villes, il n'est plus une valeur stockee independamment.
+// Pour les 3 autres empires (pas encore de villes construites), tout repli en douceur sur
+// l'ancien INDICES_NATIONAUX inchange -- lecture ET ecriture -- comportement strictement
+// identique a avant pour ces 3 empires (voir getIndiceVille/modifierIndiceVille).
+//
+// Diplomatie (ID) reste un indice national independant, hors de ce systeme (inchange).
+//
+// Nommage : cles minuscules explicites (isn/ie/social/piete/moral) pour eviter la collision
+// historique du code ou "IS" designait le Social (pas la Securite comme dans la doctrine V2).
+const VILLES_REPUBLIA = ['capitale', 'ville_a', 'ville_b'];
+const INDICE_VILLE_DEFAUT = { isn: 30, ie: 50, social: 45, piete: 40, moral: 50 };
+const INDICE_VILLE_CLE_LEGACY = { isn: 'ISN', ie: 'IE', social: 'IS', piete: 'IP' }; // pas d'equivalent legacy pour moral (nouveau)
+
+let INDICES_VILLES_CACHE = {};
+
+// Precharge les 3 villes de Republia depuis Supabase dans le cache memoire -- a appeler au
+// chargement du personnage et rafraichi a chaque entree dans un batiment (comme le cache
+// des ambassades ouvertes), pour que les lectures synchrones ci-dessous restent a jour.
+async function chargerIndicesRepublia() {
+  for (const ville of VILLES_REPUBLIA) {
+    const key = 'republic_' + ville;
+    if (typeof sbGetIndicesVille !== 'function') { INDICES_VILLES_CACHE[key] = { ...INDICE_VILLE_DEFAUT }; continue; }
+    const data = await sbGetIndicesVille(key).catch(() => null);
+    INDICES_VILLES_CACHE[key] = data ? { ...INDICE_VILLE_DEFAUT, ...data } : { ...INDICE_VILLE_DEFAUT };
   }
-};
-
-function getIndicesVille(pays, ville) {
-  return (INDICES_VILLES[pays] && INDICES_VILLES[pays][ville]) || null;
 }
 
-function modifierIndiceVille(pays, ville, cle, delta) {
-  if (!INDICES_VILLES[pays]) INDICES_VILLES[pays] = {};
-  if (!INDICES_VILLES[pays][ville]) INDICES_VILLES[pays][ville] = { nom: ville, ISN: 30, IE: 50, ID: 40, IS: 45 };
-  const iv = INDICES_VILLES[pays][ville];
-  iv[cle] = Math.max(0, Math.min(100, (iv[cle] || 0) + delta));
+// Lecture synchrone d'un indice de ville. Republia : cache precharge. Autres empires : repli
+// sur l'ancien indice national (comportement inchange, infrastructure ville pas encore construite).
+function getIndiceVille(pays, ville, cle) {
+  if (pays !== 'republic') {
+    const cleLegacy = INDICE_VILLE_CLE_LEGACY[cle];
+    return (cleLegacy && typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[pays]?.[cleLegacy] ?? INDICE_VILLE_DEFAUT[cle] ?? 50) : (INDICE_VILLE_DEFAUT[cle] ?? 50);
+  }
+  const iv = INDICES_VILLES_CACHE['republic_' + ville];
+  return (iv && iv[cle] !== undefined) ? iv[cle] : (INDICE_VILLE_DEFAUT[cle] ?? 50);
 }
+
+// Ecriture, meme logique de repli que la lecture (symetrique, pas de regression pour les
+// 3 autres empires).
+async function modifierIndiceVille(pays, ville, cle, delta) {
+  if (pays !== 'republic') {
+    const cleLegacy = INDICE_VILLE_CLE_LEGACY[cle];
+    if (cleLegacy && typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
+      INDICES_NATIONAUX[pays][cleLegacy] = Math.max(0, Math.min(100, (INDICES_NATIONAUX[pays][cleLegacy] ?? 50) + delta));
+    }
+    return;
+  }
+  const key = 'republic_' + ville;
+  if (!INDICES_VILLES_CACHE[key]) INDICES_VILLES_CACHE[key] = { ...INDICE_VILLE_DEFAUT };
+  const iv = INDICES_VILLES_CACHE[key];
+  iv[cle] = Math.max(0, Math.min(100, (iv[cle] ?? INDICE_VILLE_DEFAUT[cle] ?? 50) + delta));
+  if (typeof sbSaveIndicesVille === 'function') await sbSaveIndicesVille(key, iv).catch(() => {});
+}
+
+// Indice "national" calcule a la volee (moyenne des villes de Republia). Pour les 3 autres
+// empires, repli sur l'ancien national stocke (inchange). A utiliser par tout lecteur qui a
+// besoin d'une valeur a l'echelle du pays pour un des 5 indices territoriaux.
+function getIndiceNationalCalcule(pays, cle) {
+  if (pays === 'republic') {
+    const total = VILLES_REPUBLIA.reduce((s, v) => s + getIndiceVille(pays, v, cle), 0);
+    return Math.round(total / VILLES_REPUBLIA.length);
+  }
+  const cleLegacy = INDICE_VILLE_CLE_LEGACY[cle];
+  return (cleLegacy && typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[pays]?.[cleLegacy] ?? INDICE_VILLE_DEFAUT[cle] ?? 50) : (INDICE_VILLE_DEFAUT[cle] ?? 50);
+}
+
+const NOMS_VILLES_REPUBLIA = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
 
 function rendreGrilleIndices(idx, col) {
   let html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem">';
@@ -199,20 +251,34 @@ function ouvrirIndicesImperiaux() {
 function afficherIndicesEmpire(empireKey) {
   const emp = LISTE_EMPIRES_INDICES.find(e => e.key === empireKey);
   if (!emp) return;
-  const idx = (typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[empireKey] || {ISN:30,IE:50,ID:40,IS:45}) : {ISN:30,IE:50,ID:40,IS:45};
+  const idDiplo = (typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[empireKey]?.ID ?? 40) : 40;
+  // National = calcule a la volee (moyenne des villes) pour Republia, ancien stocke pour les autres empires
+  const idx = {
+    ISN: getIndiceNationalCalcule(empireKey, 'isn'),
+    IE: getIndiceNationalCalcule(empireKey, 'ie'),
+    ID: idDiplo,
+    IS: getIndiceNationalCalcule(empireKey, 'social'),
+    IP: getIndiceNationalCalcule(empireKey, 'piete')
+  };
 
   let html = '<div style="padding:1rem">';
   html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.8rem">';
-  html += '<div style="font-family:Playfair Display,serif;font-size:.9rem;color:' + emp.col + ';margin-bottom:.5rem">' + emp.name + ' — Indices Nationaux</div>';
+  html += '<div style="font-family:Playfair Display,serif;font-size:.9rem;color:' + emp.col + ';margin-bottom:.5rem">' + emp.name + ' — Indices Nationaux' + (empireKey === 'republic' ? ' (moyenne des 3 villes)' : '') + '</div>';
   html += rendreGrilleIndices(idx, emp.col);
   html += '</div>';
 
-  const villes = INDICES_VILLES[empireKey];
-  if (villes && Object.keys(villes).length > 0) {
+  if (empireKey === 'republic') {
     html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.5rem">Détail par ville :</div>';
-    Object.values(villes).forEach(iv => {
+    VILLES_REPUBLIA.forEach(ville => {
+      const iv = {
+        ISN: getIndiceVille(empireKey, ville, 'isn'),
+        IE: getIndiceVille(empireKey, ville, 'ie'),
+        ID: idDiplo,
+        IS: getIndiceVille(empireKey, ville, 'social'),
+        IP: getIndiceVille(empireKey, ville, 'piete')
+      };
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.5rem">';
-      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090;margin-bottom:.4rem">' + iv.nom + '</div>';
+      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090;margin-bottom:.4rem">' + NOMS_VILLES_REPUBLIA[ville] + '</div>';
       html += rendreGrilleIndices(iv, '#8a8060');
       html += '</div>';
     });
@@ -229,20 +295,19 @@ function afficherIndicesEmpire(empireKey) {
 
 // SYSTEME RELIGIEUX
 // =====================
+// Piete de la ville courante du joueur (getIndiceVille gere deja le repli legacy pour les
+// 3 empires sans infrastructure ville). Note : la valeur par defaut historique etait 40, pas
+// 50 -- conservee via INDICE_VILLE_DEFAUT.piete pour ne pas deplacer la moyenne de depart.
 function getIP() {
   const pays = state.country || 'republic';
-  if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
-    if (!INDICES_NATIONAUX[pays].IP) INDICES_NATIONAUX[pays].IP = 40;
-    return INDICES_NATIONAUX[pays].IP;
-  }
-  return 40;
+  const ville = state.currentCity || 'capitale';
+  return getIndiceVille(pays, ville, 'piete');
 }
 
 function modifierIP(delta) {
   const pays = state.country || 'republic';
-  if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
-    INDICES_NATIONAUX[pays].IP = Math.max(0, Math.min(100, (INDICES_NATIONAUX[pays].IP || 40) + delta));
-  }
+  const ville = state.currentCity || 'capitale';
+  modifierIndiceVille(pays, ville, 'piete', delta).catch(() => {});
 }
 
 const RELIGIONS = {
