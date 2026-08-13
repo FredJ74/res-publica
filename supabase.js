@@ -454,6 +454,15 @@ async function sbSaveIndicesVille(key, data) {
   return sbInsert('indices_villes', { id: key, data, updated_at: new Date().toISOString() });
 }
 
+// =====================
+// INVESTIR / PLACEMENT (chantier "refonte des ordres" / Doctrine V2) — un seul actif a la
+// fois par joueur, resolution par le cron de minuit a J+7 (voir api/cron-minuit.js).
+// =====================
+async function sbGetInvestissementEnCours(nom) {
+  const rows = await sbGet('investissements', `joueur=eq.${encodeURIComponent(nom)}&statut=eq.en_cours`).catch(() => []);
+  return (rows && rows[0]) || null;
+}
+
 async function sbSendMail(from, to, subject, body, time) {
   const id = 'mail-' + Date.now();
   return sbInsert('mails', { id, from_player: from, to_player: to, subject, body, time, read: false });

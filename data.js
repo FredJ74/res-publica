@@ -1840,7 +1840,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'gerer_finances', label:'Gerer mon compte',    pa:0, cost:0,    type:'legal', icon:'ti-chart-bar',   successRate:100, desc:'Deposer ou retirer de l\'argent. Voir son solde.'},
-          {fn:'investir',       label:'Investir',            pa:2, cost:0,  type:'legal', icon:'ti-trending-up', successRate:75,  desc:'Placer des fonds. Rendement dans 24h. (Gratuit temporairement — le vrai systeme de rendement differe n\'est pas encore code, audit Ordres a venir.)'},
+          {fn:'investir',       label:'Investir',            pa:1, cost:0,  type:'legal', icon:'ti-trending-up', successRate:100, desc:'Placer un montant libre (min. 500 FR). Immobilise 7 jours, rendement entre -12% et +12% selon la conjoncture economique locale.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
           {fn:'fiscal',         label:'Optimisation fiscale',pa:1, cost:200,  type:'grey',  icon:'ti-calculator',  successRate:85,  desc:'Reduire sa fiscalite. Semi-legal.'},
           {fn:'presenter_autorisation_coffre', label:'Présenter une autorisation judiciaire', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Accéder à un coffre grâce à une autorisation du juge.'}

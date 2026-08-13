@@ -1249,6 +1249,43 @@ async function verifierPostesVacantsEtAutoPourvoir() {
 // (votes_pj/votes_pnj). Pas corrige ici (hors perimetre BNE), mais le nouveau mail ci-dessous
 // utilise volontairement le VRAI schema (to_player/from_player/subject/body) pour ne pas
 // reproduire le probleme. A signaler/traiter separement.
+// Resolution des investissements arrives a echeance (J+7, chantier "refonte des ordres" /
+// Doctrine V2). Score = Base(50) + 2*(INT_snapshot-13) + (IE_ville-50)/5 -- INT est fige au
+// moment de la mise (equipe du joueur a ce moment-la), IE_ville est lu EN DIRECT a l'echeance
+// (pas snapshot), pour Republia uniquement (indices_villes). Rendement borne [-12%;+12%].
+async function resoudreInvestissementsExpires() {
+  const resultats = { resolus: 0 };
+  const investissements = await sbGet('investissements', 'statut=eq.en_cours');
+  if (!investissements) return resultats;
+
+  for (const inv of investissements) {
+    if (Date.now() < new Date(inv.jour_resolution_at).getTime()) continue;
+
+    let ie = 50;
+    if (inv.pays === 'republic' && inv.ville) {
+      const rows = await sbGet('indices_villes', `id=eq.${encodeURIComponent(inv.pays + '_' + inv.ville)}`);
+      ie = rows?.[0]?.data?.ie ?? 50;
+    }
+
+    const score = 50 + 2 * ((inv.int_snapshot || 8) - 13) + (ie - 50) / 5;
+    const rendementPct = Math.max(-12, Math.min(12, (score - 50) * 0.24));
+    const montantFinal = Math.round(inv.montant_initial * (1 + rendementPct / 100));
+
+    const demRows = await sbGet('personnages', `name=eq.${encodeURIComponent(inv.joueur)}`);
+    const demandeur = demRows && demRows[0];
+    if (demandeur) {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(inv.joueur)}`, { arg: (demandeur.arg || 0) + montantFinal });
+    }
+    await sbUpdate('investissements', `id=eq.${encodeURIComponent(inv.id)}`, {
+      statut: 'resolu',
+      rendement_pct: Math.round(rendementPct * 100) / 100,
+      montant_final: montantFinal
+    });
+    resultats.resolus++;
+  }
+  return resultats;
+}
+
 async function verifierConflitsEmploiBNE() {
   const resultats = { notifies: [] };
   try {
@@ -1434,7 +1471,10 @@ export default async function handler(req, res) {
     // 14. Conflits poste politique + emploi BNE (mail d'arbitrage, rien n'est tranche automatiquement)
     const conflitsBNE = await verifierConflitsEmploiBNE();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE });
+    // 15. Investissements arrives a echeance (J+7, chantier "refonte des ordres")
+    const investissements = await resoudreInvestissementsExpires();
+
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE, investissements });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

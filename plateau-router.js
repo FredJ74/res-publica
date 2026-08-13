@@ -51,6 +51,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'mener_enquete') { doMenerEnquete(); return; }
   if (fn === 'organiser_filature') { doOrganiserFilature(); return; }
   if (fn === 'organiser_filature') { doOrganiserFilature(); return; }
+  if (fn === 'investir') { ouvrirInvestir(); return; }
   if (fn === 'organiser_chasse_homme') { doOrganiserChasseHomme(); return; }
   if (fn === 'consulter_caisse_commissariat') { doConsulterCaisseCommissariat(); return; }
   if (fn === 'cambrioler_caisse_commissariat') { doCambriolerCaisseCommissariat(); return; }
