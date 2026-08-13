@@ -4512,7 +4512,7 @@ async function confirmerMenerEnquete() {
   const pays = state.country;
   const ville = state.currentCity;
   const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, buildingId, 250) : 0;
+  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, buildingId, 250) : 0;
   if (montantVerse < 250) {
     showToast('Caisse insuffisante', 'La caisse du commissariat ne couvre pas le cout de l enquete.', false);
     return;
@@ -4583,7 +4583,7 @@ async function confirmerOrganiserFilature() {
   const pays = state.country;
   const ville = state.currentCity;
   const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, buildingId, 150) : 0;
+  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, buildingId, 150) : 0;
   if (montantVerse < 150) {
     showToast('Caisse insuffisante', 'La caisse du commissariat ne couvre pas le cout de la filature.', false);
     return;
@@ -4660,7 +4660,7 @@ async function confirmerOrganiserChasseHomme() {
   const pays = state.country;
   const ville = state.currentCity;
   const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, buildingId, 300) : 0;
+  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, buildingId, 300) : 0;
   if (montantVerse < 300) {
     showToast('Caisse insuffisante', 'La caisse du commissariat ne couvre pas le cout de la chasse a l homme.', false);
     return;

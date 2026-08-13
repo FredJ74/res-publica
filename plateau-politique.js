@@ -3458,7 +3458,7 @@ async function confirmerPropositionGrace(idx) {
 
   const pays = state.country || 'republic';
   const cout = 300;
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_just', cout) : 0;
+  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_just', cout) : 0;
   if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).', false); return; }
 
   await sbCreerDemandeGrace({ pays, nomCondamne: condamne.nom, raison: condamne.raison, jourFin: condamne.jourFin, proposePar: state.char?.name });
@@ -3678,7 +3678,7 @@ async function executerOrdreFiscalCible(action, typeCible, idCible) {
     document.getElementById('modal-postes')?.classList.remove('open');
     const pays = state.country || 'republic';
     const cout = 400;
-    const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_just', cout) : 0;
+    const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_just', cout) : 0;
     if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais d\'enquête (' + cout + ' FR).', false); return; }
 
     const reussite = Math.random() < 0.9;
@@ -4051,7 +4051,7 @@ async function annulerAffaire(refId, mode) {
     if (affaire) {
       const pays = state.country || 'republic';
       const cout = 250;
-      const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_just', cout) : 0;
+      const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_just', cout) : 0;
       if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).', false); return; }
 
       affaire.status = 'annulee';
@@ -4174,7 +4174,7 @@ async function confirmerRenseignement(empireCible, nomCible) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
   const cout = 500;
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', cout) : 0;
+  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', cout) : 0;
   if (montantVerse < cout) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de l\'opération (' + cout + ' FR).', false); return; }
 
   // Choisir la section adverse ciblee AVANT le jet, puisque le jet depend des indices de son lieutenant
@@ -5662,7 +5662,7 @@ function creerSoldatsSection(numeroSection) {
 async function doRecruterCompagnie() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const pays = state.country || 'republic';
-  const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', COUT_COMPAGNIE) : 0;
+  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', COUT_COMPAGNIE) : 0;
   if (montantVerse < COUT_COMPAGNIE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût d\'une compagnie (' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR).', false); return; }
 
   const id = 'compagnie-' + pays + '-' + Date.now();
@@ -5684,7 +5684,7 @@ async function doRecruterSection(compagnieId, sectionId) {
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section || section.soldats.length > 0) { showToast('Section non vide ou introuvable', '', false); return; }
 
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', COUT_SECTION);
+  const montantVerse = await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', COUT_SECTION);
   if (montantVerse < COUT_SECTION) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le recomplètement (' + COUT_SECTION.toLocaleString('fr-FR') + ' FR).', false); return; }
 
   section.soldats = creerSoldatsSection(section.numero);
@@ -6454,7 +6454,7 @@ async function ouvrirRechercheMilitaire() {
 async function confirmerRechercheMilitaire(arme) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'caserne-militaire', COUT_RECHERCHE);
+  const montantVerse = await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', COUT_RECHERCHE);
   if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de la recherche.', false); return; }
 
   const budgetNat = await chargerBudgetNational(pays);
@@ -6802,7 +6802,7 @@ async function ouvrirRechercheMilitaireDepuisMinistere() {
 async function confirmerRechercheMilitaireDepuisMinistere(arme) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_def', COUT_RECHERCHE);
+  const montantVerse = await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_def', COUT_RECHERCHE);
   if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'Votre caisse ministérielle ne couvre pas le coût de la recherche.', false); return; }
 
   const budgetNat = await chargerBudgetNational(pays);
@@ -6932,7 +6932,7 @@ async function doAmeliorerConditionsQHS(prisonnierId) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
   const cout = 500;
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'qhs-prison', cout);
+  const montantVerse = await debiterCaisseBatimentAtomique(pays, 'qhs-prison', cout);
   if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du QHS ne couvre pas ce coût (' + cout + ' FR).', false); return; }
 
   const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
