@@ -146,7 +146,7 @@ async function envoyerComposeMail() {
 // des tracts y consomme du bois en plus de l'argent du joueur, avec une recette dynamique qui
 // preserve toujours 50% de marge sur le prix du lot (voir confirmerImpression). A PSM (Gutenberg,
 // imprimerie-librairie), l'ordre reste inchange : argent uniquement, pas de bois.
-async function ouvrirModalImprimerTracts() {
+async function ouvrirModalImprimerTracts(pa, cost) {
   const contacts = state.contacts || [];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('postes-modal-title').textContent = 'Faire imprimer des tracts';
@@ -181,7 +181,7 @@ async function ouvrirModalImprimerTracts() {
     });
     html += '</select>';
 
-    html += '<button onclick="confirmerImpression()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander</button>';
+    html += '<button onclick="confirmerImpression(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander</button>';
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -203,7 +203,7 @@ function selectTractType(type) {
   }
 }
 
-async function confirmerImpression() {
+async function confirmerImpression(pa, cost) {
   const type = window._tractType || 'pour';
   const cible = document.getElementById('tract-cible')?.value;
   const quantite = parseInt(document.getElementById('tract-quantite')?.value || '10');
@@ -235,6 +235,9 @@ async function confirmerImpression() {
       return;
     }
   }
+
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   document.getElementById('modal-postes').classList.remove('open');
   state.arg -= cout;

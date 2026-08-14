@@ -61,9 +61,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'diner_affaires') { ouvrirModalInvitationSociale('diner_affaires', pa, cost, successRate); return; }
   if (fn === 'boire_verre') { ouvrirModalInvitationSociale('boire_verre', pa, cost, successRate); return; }
   if (fn === 'recruter_informateur_pnj') { doRecruterInformateurPNJ(pa); return; }
-  if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
+  if (fn === 'distribuer_tract') { doDistribuerTract(pa, cost); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(pa, cost); return; }
-  if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(); return; }
+  if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(pa, cost); return; }
   if (fn === 'vendre_bois_imprimerie') { ouvrirVendreBoisImprimerie(pa, cost); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
@@ -90,7 +90,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sponsoriser_club') { doSponsoriserClub(); return; }
   if (fn === 'consulter_budget_club') { doConsulterBudgetClub(); return; }
   if (fn === 'gerer_salaires_club') { doGererSalairesClub(); return; }
-  if (fn === 'imprimer_tracts_sportifs') { doImprimerTractsSportifs(); return; }
+  if (fn === 'imprimer_tracts_sportifs') { doImprimerTractsSportifs(pa, cost); return; }
   if (fn === 'distribuer_tracts_match') { doDistribuerTractsMatch(pa, cost); return; }
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
   if (fn === 'organiser_boycott') { doOrganiserBoycott(pa, cost); return; }
@@ -254,17 +254,17 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(successRate, pa, cost); return; }
   if (fn === 'consulter_lobbyiste')    { doConsulterLobbyiste(pa, cost); return; }
   if (fn === 'forum_president_conference' || fn === 'conference_presse')  { ouvrirForumNationalSousForumPresident('conference', pa, cost); return; }
-  if (fn === 'donner_conf') { doDonnerConference(); return; }
+  if (fn === 'donner_conf') { doDonnerConference(pa, cost); return; }
   if (fn === 'forum_president_propagande' || fn === 'propagande_etat')  { ouvrirForumNationalSousForumPresident('propagande', pa, cost); return; }
   if (fn === 'forum_president_dementi' || fn === 'dementi')     { doDementiOfficiel(pa, cost); return; }
   if (fn === 'consulter_archives_lois') { ouvrirArchivesLois(); return; }
   if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
   if (fn === 'porter_plainte')          { ouvrirPorterPlainte(); return; }
   if (fn === 'rendre_sentence')         { ouvrirRendreSentence(); return; }
-  if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(); return; }
-  if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(); return; }
+  if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(pa, cost); return; }
+  if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(pa, cost); return; }
   if (fn === 'marche_noir') { doMarcheNoir(); return; }
-  if (fn === 'officialiser_mariage') { ouvrirOfficialiserMariage(); return; }
+  if (fn === 'officialiser_mariage') { ouvrirOfficialiserMariage(pa, cost); return; }
   if (fn === 'gerer_couvre_feu') { ouvrirGererCouvreFeu(pa, cost); return; }
   if (fn === 'subvention_min_int') { ouvrirModalFinancerMinInt(pa, cost); return; }
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }

@@ -2644,19 +2644,21 @@ async function confirmerSponsoring(montant, label, inf) {
 // =====================
 // TRACTS SPORTIFS
 // =====================
-function doImprimerTractsSportifs() {
+function doImprimerTractsSportifs(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   document.getElementById('postes-modal-title').textContent = 'Tracts pour un match';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">150 ' + cur + ' le lot de 50 tracts. Actuellement en stock : ' + (state.char?.tractsSportifs || 0) + '.</div>';
-  html += '<button onclick="confirmerImpressionTractsSportifs()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander 50 tracts (150 ' + cur + ')</button>';
+  html += '<button onclick="confirmerImpressionTractsSportifs(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Commander 50 tracts (150 ' + cur + ')</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerImpressionTractsSportifs() {
+async function confirmerImpressionTractsSportifs(pa, cost) {
   if (state.arg < 150) { showToast('Fonds insuffisants', '150 FR requis.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.arg -= 150;
   if (!state.char) return;
   state.char.tractsSportifs = (state.char.tractsSportifs || 0) + 50;

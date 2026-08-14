@@ -608,21 +608,21 @@ async function deposerCandidature(posteId, country, city) {
 // NOTE : le jeu n'a pas de pool centralise d'electeurs PNJ existants (verifie dans le code) —
 // on genere donc quelques electeurs synthetiques dedies a cette action, avec le meme effet
 // concret (vote garanti) que la distribution manuelle de prospectus.
-function doDonnerConference() {
+function doDonnerConference(pa, cost) {
   if (state.char?.derniereConferenceJour === state.day) {
     showToast('Déjà fait aujourd\'hui', 'Une seule conférence par jour.', false);
     return;
   }
   document.getElementById('postes-modal-title').textContent = 'Donner une conférence';
   let html = '<div style="padding:1rem">';
-  html += '<button onclick="ouvrirConferenceCandidat()" style="display:block;width:100%;text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.5rem">🗳️ Soutenir un candidat en campagne</button>';
-  html += '<button onclick="ouvrirConferenceIndice()" style="display:block;width:100%;text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem">📊 Sensibiliser sur un thème (indice)</button>';
+  html += '<button onclick="ouvrirConferenceCandidat(' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.5rem">🗳️ Soutenir un candidat en campagne</button>';
+  html += '<button onclick="ouvrirConferenceIndice(' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem">📊 Sensibiliser sur un thème (indice)</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function ouvrirConferenceCandidat() {
+function ouvrirConferenceCandidat(pa, cost) {
   const THEMES_LABELS = { securite: 'Sécurité', economie: 'Économie', education: 'Éducation', cadre_vie: 'Cadre de vie', vie_associative: 'Vie associative' };
   const country = state.country;
   const candidatsEligibles = [];
@@ -639,7 +639,7 @@ function ouvrirConferenceCandidat() {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun candidat éligible pour le moment.</div>';
   } else {
     candidatsEligibles.forEach(c => {
-      html += '<button onclick="confirmerConference(\'' + c.cle + '\',\'' + c.nom.replace(/'/g,"\\'") + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.3rem">' +
+      html += '<button onclick="confirmerConference(\'' + c.cle + '\',\'' + c.nom.replace(/'/g,"\\'") + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.3rem">' +
         c.nom + ' — <span style="color:#8a6a20">' + (THEMES_LABELS[c.theme] || c.theme) + '</span></button>';
     });
   }
@@ -647,7 +647,7 @@ function ouvrirConferenceCandidat() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-function ouvrirConferenceIndice() {
+function ouvrirConferenceIndice(pa, cost) {
   const THEMES = [
     { id: 'securite',        label: 'Sécurité',        portee: 'locale' },
     { id: 'economie',        label: 'Économie',        portee: 'nationale' },
@@ -658,13 +658,15 @@ function ouvrirConferenceIndice() {
   document.getElementById('postes-modal-title').textContent = 'Sensibiliser sur un thème';
   let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Effet immédiat et modeste sur l\'indice correspondant, utilisable à tout moment, campagne ou non.</div>';
   THEMES.forEach(t => {
-    html += '<button onclick="confirmerConferenceIndice(\'' + t.id + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.3rem">' + t.label + '</button>';
+    html += '<button onclick="confirmerConferenceIndice(\'' + t.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.3rem">' + t.label + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
 
-function confirmerConferenceIndice(themeId) {
+async function confirmerConferenceIndice(themeId, pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
   state.char.derniereConferenceJour = state.day;
   sauvegarderPersonnageImmediat();
@@ -685,12 +687,14 @@ function confirmerConferenceIndice(themeId) {
   addJournalEntry('Conférence de sensibilisation à l\'université : ' + THEMES_LABELS[themeId] + '.', 'event-good');
 }
 
-function confirmerConference(cle, candidatNom) {
+async function confirmerConference(cle, candidatNom, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const cycle = CYCLES_ELECTORAUX[state.country]?.[cle];
   if (!cycle) return;
   const candidat = cycle.candidats.find(c => c.nom === candidatNom);
   if (!candidat || candidat.aideConference) { showToast('Indisponible', 'Ce candidat a déjà bénéficié d\'une conférence.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   candidat.aideConference = true;
   state.char.derniereConferenceJour = state.day;
@@ -2307,7 +2311,7 @@ function ouvrirDetailLoi(idx) {
 
 // DEMANDE DE NATURALISATION (changement d'empire)
 // =====================
-function ouvrirModalNaturalisation() {
+function ouvrirModalNaturalisation(pa, cost) {
   const empires = Object.keys(COUNTRIES).filter(c => c !== state.country);
   document.getElementById('postes-modal-title').textContent = 'Demande de naturalisation';
 
@@ -2320,7 +2324,7 @@ function ouvrirModalNaturalisation() {
   html += '</select>';
 
   html += '<div id="natu-cout-affiche" style="font-size:.85rem;color:#C9A84C;margin-bottom:.8rem"></div>';
-  html += '<button onclick="confirmerDemandeNaturalisation()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déposer la demande</button>';
+  html += '<button onclick="confirmerDemandeNaturalisation(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déposer la demande</button>';
   html += '</div>';
 
   document.getElementById('postes-body').innerHTML = html;
@@ -2341,7 +2345,7 @@ function majCoutNaturalisation() {
   document.getElementById('natu-cout-affiche').textContent = 'Coût de la demande : ' + cout + ' ' + cur;
 }
 
-async function confirmerDemandeNaturalisation() {
+async function confirmerDemandeNaturalisation(pa, cost) {
   const paysVise = document.getElementById('natu-empire-vise')?.value;
   if (!paysVise) return;
   const cout = getCoutNaturalisation(paysVise);
@@ -2350,6 +2354,8 @@ async function confirmerDemandeNaturalisation() {
     showToast('Fonds insuffisants', cout + ' ' + (COUNTRIES[state.country]?.cur||'FR') + ' requis.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   state.arg -= cout;
   updateUI();
@@ -2932,7 +2938,7 @@ async function reconcilierPosteElu(posteId, city) {
 // =====================
 // MARIAGE ENTRE DEUX PJ
 // =====================
-async function ouvrirModalDemandeMariage() {
+async function ouvrirModalDemandeMariage(pa, cost) {
   if (typeof sbGetMariageActif === 'function') {
     const mariageActuel = await sbGetMariageActif(state.char?.name);
     if (mariageActuel) {
@@ -2973,19 +2979,21 @@ async function ouvrirModalDemandeMariage() {
     html += '<select id="mariage-destinataire-select" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
     listeComplete.forEach(j => { html += '<option value="' + j.name + '|' + (j.isPJ ? '1' : '0') + '">' + j.name + (j.isPJ ? '' : ' (PNJ)') + '</option>'; });
     html += '</select>';
-    html += '<button onclick="confirmerDemandeMariage()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💍 Envoyer la demande</button>';
+    html += '<button onclick="confirmerDemandeMariage(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💍 Envoyer la demande</button>';
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerDemandeMariage() {
+async function confirmerDemandeMariage(pa, cost) {
   const rawSelect = document.getElementById('mariage-destinataire-select')?.value;
   document.getElementById('modal-postes').classList.remove('open');
   if (!rawSelect) return;
   const [destinataire, estPJRaw] = rawSelect.split('|');
   const estPJ = estPJRaw === '1';
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   if (!estPJ) {
     const estDansMonGroupeMariage = typeof getMonGroupePNJ === 'function' && getMonGroupePNJ().some(g => g.nom === destinataire);
@@ -3056,7 +3064,7 @@ async function refuserDemandeMariage(demandeId) {
 }
 
 // Officialiser : necessite que les DEUX futurs epoux soient physiquement presents dans la meme piece
-async function ouvrirOfficialiserMariage() {
+async function ouvrirOfficialiserMariage(pa, cost) {
   if (!state.char?.name) return;
 
   let demandesAcceptees = [];
@@ -3089,20 +3097,20 @@ async function ouvrirOfficialiserMariage() {
   html += '<select id="mariage-officialiser-select" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
   presents.forEach(p => { html += '<option value="' + p.name + '">' + p.name + '</option>'; });
   html += '</select>';
-  html += '<button onclick="confirmerOfficialisationMariage()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💍 Célébrer l\'union (200 FR)</button>';
+  html += '<button onclick="confirmerOfficialisationMariage(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💍 Célébrer l\'union (200 FR)</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerOfficialisationMariage() {
+async function confirmerOfficialisationMariage(pa, cost) {
   const conjoint = document.getElementById('mariage-officialiser-select')?.value;
   if (!conjoint) return;
 
   const cout = 200;
   if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' requis.', false); return; }
-
-  state.arg -= cout;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   const mariage = {
