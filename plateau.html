@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=129">
+<link rel="stylesheet" href="style.css?v=130">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -498,10 +498,16 @@
 <script type="module">
   import { Editor } from 'https://esm.sh/@tiptap/core@2';
   import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2';
+  // Underline (Lot D1) : PAS inclus dans StarterKit (vérifié sur le paquet réel : Bold,
+  // Italic et Strike y sont, Underline non) -- extension officielle Tiptap séparée, écart
+  // signalé et validé par rapport au plan initial qui prévoyait "aucune nouvelle
+  // dépendance" pour ce lot.
+  import Underline from 'https://esm.sh/@tiptap/extension-underline@2';
   window.RP_TIPTAP_EDITOR = Editor;
   window.RP_TIPTAP_STARTER_KIT = StarterKit;
+  window.RP_TIPTAP_UNDERLINE = Underline;
 </script>
-<script src="forum-canvas.js?v=7"></script>
+<script src="forum-canvas.js?v=8"></script>
 <script src="forum.js?v=132"></script>
 <script src="plateau-core.js?v=132"></script>
 <script src="plateau-rue-centrale.js?v=135"></script>

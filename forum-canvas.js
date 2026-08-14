@@ -370,6 +370,11 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
   bar.title = 'Déplacer cette zone';
   el.appendChild(bar);
 
+  const toolbar = document.createElement('div');
+  toolbar.className = 'rp-zone-toolbar';
+  toolbar.contentEditable = 'false';
+  el.appendChild(toolbar);
+
   const content = document.createElement('div');
   content.className = 'rp-zone-content';
   el.appendChild(content);
@@ -392,14 +397,46 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
   ctrl.attachZControls(el, state);
   ctrl.attachDrag(bar, state, el);
 
-  new window.RP_TIPTAP_EDITOR({
+  const editor = new window.RP_TIPTAP_EDITOR({
     element: content,
-    extensions: [window.RP_TIPTAP_STARTER_KIT],
+    extensions: [window.RP_TIPTAP_STARTER_KIT, window.RP_TIPTAP_UNDERLINE],
     content: html || '<p></p>',
     onFocus: () => ctrl.selectElement(el, state),
   });
 
+  rpCanvasAttachZoneToolbar(toolbar, editor);
+
   return el;
+}
+
+// ===========================================================================
+// Barre de mise en forme minimale (Lot D1) : gras/italique/souligné. Bold/Italic sont
+// natifs de StarterKit ; Underline nécessite l'extension officielle séparée
+// @tiptap/extension-underline (absente de StarterKit, vérifié sur le paquet réel avant
+// d'implémenter -- écart signalé et validé par rapport au plan initial, qui prévoyait
+// "aucune nouvelle dépendance" pour ce lot). Volontairement minimale : pas d'état "actif"
+// visuel sur les boutons selon la position du curseur, cohérent avec la sobriété demandée
+// pour ce premier lot de richesse éditoriale.
+// ===========================================================================
+function rpCanvasAttachZoneToolbar(toolbar, editor) {
+  const buttons = [
+    { label: 'G', title: 'Gras', style: 'font-weight:700', run: () => editor.chain().focus().toggleBold().run() },
+    { label: 'I', title: 'Italique', style: 'font-style:italic', run: () => editor.chain().focus().toggleItalic().run() },
+    { label: 'S', title: 'Souligné', style: 'text-decoration:underline', run: () => editor.chain().focus().toggleUnderline().run() },
+  ];
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = b.label;
+    btn.title = b.title;
+    btn.style.cssText = b.style;
+    // mousedown : empêche le clic sur le bouton de faire perdre la sélection de texte en
+    // cours AVANT que la commande ne s'applique (sinon Tiptap n'aurait plus rien à mettre
+    // en forme au moment où la commande s'exécute).
+    btn.addEventListener('mousedown', (e) => e.preventDefault());
+    btn.addEventListener('click', b.run);
+    toolbar.appendChild(btn);
+  });
 }
 
 // ===========================================================================
