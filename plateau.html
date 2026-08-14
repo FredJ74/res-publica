@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=134">
+<link rel="stylesheet" href="style.css?v=135">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -496,7 +496,7 @@
      les deux exports nécessaires en globales, pour rester consultable depuis un script
      classique sans convertir tout le chargement du jeu en modules ES. -->
 <script type="module">
-  import { Editor } from 'https://esm.sh/@tiptap/core@2';
+  import { Editor, Extension } from 'https://esm.sh/@tiptap/core@2';
   import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2';
   // Underline (Lot D1) : PAS inclus dans StarterKit (vérifié sur le paquet réel : Bold,
   // Italic et Strike y sont, Underline non) -- extension officielle Tiptap séparée, écart
@@ -509,13 +509,48 @@
   // un style inline arbitraire au texte sélectionné.
   import TextStyle from 'https://esm.sh/@tiptap/extension-text-style@2';
   import Color from 'https://esm.sh/@tiptap/extension-color@2';
+  // Polices (Lot D4) : extension officielle réelle et stable en v2 (vérifié sur le paquet),
+  // même mécanisme que Color (attribut ajouté au mark textStyle déjà chargé).
+  import FontFamily from 'https://esm.sh/@tiptap/extension-font-family@2';
   window.RP_TIPTAP_EDITOR = Editor;
   window.RP_TIPTAP_STARTER_KIT = StarterKit;
   window.RP_TIPTAP_UNDERLINE = Underline;
   window.RP_TIPTAP_TEXT_STYLE = TextStyle;
   window.RP_TIPTAP_COLOR = Color;
+  window.RP_TIPTAP_FONT_FAMILY = FontFamily;
+
+  // Tailles de texte (Lot D4) : PAS d'extension officielle stable en v2 -- vérifié sur le
+  // registre npm avant d'implémenter : @tiptap/extension-font-size n'existe qu'en
+  // 3.0.0-next.3 (pré-version majeure suivante, incompatible avec notre coeur Tiptap v2
+  // partout ailleurs). Mark personnalisé minimal, sur le modèle exact de FontFamily/Color
+  // ci-dessus (même mécanisme : attribut ajouté au mark textStyle générique), volontairement
+  // borné : aucune valeur libre, seuls les paliers exposés dans la barre d'outils
+  // (forum-canvas.js) sont atteignables depuis l'interface.
+  const FontSize = Extension.create({
+    name: 'fontSize',
+    addOptions() { return { types: ['textStyle'] }; },
+    addGlobalAttributes() {
+      return [{
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize || null,
+            renderHTML: attributes => attributes.fontSize ? { style: `font-size: ${attributes.fontSize}` } : {},
+          },
+        },
+      }];
+    },
+    addCommands() {
+      return {
+        setFontSize: (size) => ({ chain }) => chain().setMark('textStyle', { fontSize: size }).run(),
+        unsetFontSize: () => ({ chain }) => chain().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().run(),
+      };
+    },
+  });
+  window.RP_TIPTAP_FONT_SIZE = FontSize;
 </script>
-<script src="forum-canvas.js?v=10"></script>
+<script src="forum-canvas.js?v=11"></script>
 <script src="forum.js?v=132"></script>
 <script src="plateau-core.js?v=132"></script>
 <script src="plateau-rue-centrale.js?v=135"></script>

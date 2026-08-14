@@ -399,7 +399,10 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
 
   const editor = new window.RP_TIPTAP_EDITOR({
     element: content,
-    extensions: [window.RP_TIPTAP_STARTER_KIT, window.RP_TIPTAP_UNDERLINE, window.RP_TIPTAP_TEXT_STYLE, window.RP_TIPTAP_COLOR],
+    extensions: [
+      window.RP_TIPTAP_STARTER_KIT, window.RP_TIPTAP_UNDERLINE, window.RP_TIPTAP_TEXT_STYLE,
+      window.RP_TIPTAP_COLOR, window.RP_TIPTAP_FONT_FAMILY, window.RP_TIPTAP_FONT_SIZE,
+    ],
     content: html || '<p></p>',
     onFocus: () => ctrl.selectElement(el, state),
   });
@@ -461,6 +464,64 @@ function rpCanvasAttachZoneToolbar(toolbar, editor) {
   blockButtons.forEach(addButton);
   addSep();
   rpCanvasAttachColorButton(toolbar, editor);
+  addSep();
+  rpCanvasAttachSizeSelect(toolbar, editor);
+  rpCanvasAttachFontSelect(toolbar, editor);
+}
+
+// Tailles bornées (Lot D4) : exactement les paliers ci-dessous sont atteignables depuis
+// l'interface -- aucune saisie libre nulle part, donc structurellement impossible d'obtenir
+// une valeur hors liste par ce chemin (mark personnalisé fontSize, voir plateau.html).
+const RP_FONT_SIZES = [
+  { label: 'Petit', value: '.8em' },
+  { label: 'Normal', value: '1em' },
+  { label: 'Grand', value: '1.3em' },
+  { label: 'Très grand', value: '1.6em' },
+];
+
+function rpCanvasAttachSizeSelect(toolbar, editor) {
+  const select = document.createElement('select');
+  select.className = 'rp-zone-toolbar-select';
+  select.title = 'Taille du texte';
+  RP_FONT_SIZES.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.value;
+    opt.textContent = s.label;
+    if (s.value === '1em') opt.selected = true;
+    select.appendChild(opt);
+  });
+  select.addEventListener('mousedown', (e) => e.stopPropagation());
+  select.addEventListener('change', () => {
+    editor.chain().focus().setFontSize(select.value).run();
+  });
+  toolbar.appendChild(select);
+}
+
+// Polices bornées (Lot D4) : liste blanche volontairement réduite à des polices déjà
+// chargées ailleurs dans le jeu (voir le <link> Google Fonts de plateau.html) -- cohérent
+// avec l'identité visuelle existante, et n'ajoute aucune requête de police supplémentaire.
+const RP_FONT_FAMILIES = [
+  { label: 'Georgia (par défaut)', value: 'Georgia, serif' },
+  { label: 'Crimson Pro', value: "'Crimson Pro', serif" },
+  { label: 'Playfair Display', value: "'Playfair Display', serif" },
+  { label: 'Bebas Neue', value: "'Bebas Neue', sans-serif" },
+];
+
+function rpCanvasAttachFontSelect(toolbar, editor) {
+  const select = document.createElement('select');
+  select.className = 'rp-zone-toolbar-select';
+  select.title = 'Police';
+  RP_FONT_FAMILIES.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.value;
+    opt.textContent = f.label;
+    select.appendChild(opt);
+  });
+  select.addEventListener('mousedown', (e) => e.stopPropagation());
+  select.addEventListener('change', () => {
+    editor.chain().focus().setFontFamily(select.value).run();
+  });
+  toolbar.appendChild(select);
 }
 
 // Palette identique à celle déjà utilisée par le forum existant (richColor, forum.js) --
