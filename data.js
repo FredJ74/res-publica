@@ -345,14 +345,14 @@ const WORLD = {
     },
     caserne: {
       name:'Caserne Militaire de Republia',
-      imageUrl:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&q=80',
+      imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-exterieur.png',
       desc:'La caserne principale de l\'armee de Republia.',
       isCapitale: false, isSpecial: true, travelCost: 1,
       buildings: ['caserne-militaire']
     },
     qhs: {
       name:'Quartier Haute Securite',
-      imageUrl:'https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80',
+      imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-exterieur.png',
       desc:'La prison de haute securite de Republia.',
       isCapitale: false, isSpecial: true, travelCost: 1,
       buildings: ['qhs-prison']
@@ -3413,7 +3413,6 @@ const BUILDINGS = {
     icon: "ti-military-rank",
     bgColor: "#081008",
     desc: "La caserne principale des forces armees de Republia. Acces reserve aux militaires et officiers.",
-    imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-exterieur.png",
     rooms: {
       corps_garde: {
         name: "Corps de Garde",
@@ -3882,7 +3881,6 @@ const BUILDINGS = {
     icon: "ti-lock",
     bgColor: "#080808",
     desc: "La prison de haute securite de Republia. Les criminels les plus dangereux y sont detenus. Evasion quasi impossible.",
-    imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-exterieur.png",
     rooms: {
       entree_qhs: {
         name: "Entree Securisee",
