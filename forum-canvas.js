@@ -471,24 +471,39 @@ function rpCanvasAttachZoneToolbar(toolbar, editor) {
   rpCanvasAttachFontSelect(toolbar, editor);
   addSep();
   rpCanvasAttachLinkButton(toolbar, editor);
-  addButton({ label: '👁', title: 'Spoiler', style: '', run: () => editor.chain().focus().setDetails().run() });
+  rpCanvasAttachSpoilerButton(toolbar, editor);
 }
 
-// Lien (Lot D5) : demande l'URL par window.prompt, même mécanisme déjà utilisé pour les
-// images (rpCanvasAddImageToCompose). Double vérification volontaire : un retour immédiat
-// à la saisie via le même filtre ^https?://, EN PLUS du filtre équivalent déjà configuré
-// sur l'extension elle-même (isAllowedUri, voir plateau.html) qui refuserait de toute façon
-// la commande -- la vérification ici n'est qu'un message d'erreur plus clair, pas le vrai
-// rempart de sécurité (qui reste l'extension + la sanitisation à la lecture, lot B1).
-// Volontairement minimal : pas de bouton "retirer le lien" pour ce lot -- seule la création
-// est demandée.
+// Lien (Lot D5, corrigé D6-fix) : demande l'URL par window.prompt, même mécanisme déjà
+// utilisé pour les images (rpCanvasAddImageToCompose). Double vérification volontaire : un
+// retour immédiat à la saisie via le même filtre ^https?://, EN PLUS du filtre équivalent
+// déjà configuré sur l'extension elle-même (isAllowedUri, voir plateau.html) qui refuserait
+// de toute façon la commande -- la vérification ici n'est qu'un message d'erreur plus clair,
+// pas le vrai rempart de sécurité (qui reste l'extension + la sanitisation à la lecture,
+// lot B1).
+// Ergonomie corrigée (audit du 14/08) : Link est une marque (Mark) standard -- vérifié dans
+// le code source réel de @tiptap/extension-link@2.27.2 -- setLink() appelle en interne
+// setMark(), dont le comportement natif (vérifié dans @tiptap/core) gère déjà les deux
+// usages demandés sans code supplémentaire : sur une sélection non vide, il n'habille QUE le
+// texte sélectionné ; sur une sélection vide (curseur seul), il pose une "stored mark" qui
+// s'applique à la frappe suivante -- c'est le mécanisme natif de la "balise ouverte avant
+// d'écrire". Pour refermer/retirer, unsetMark('link') SANS extendEmptyMarkRange (vérifié
+// dans le code source réel de @tiptap/core, fonction unsetMark) gère nativement les deux
+// autres usages : sélection vide -- ne retire que la marque en cours de frappe (le texte
+// déjà tapé reste un lien, "terminer le lien") ; sélection non vide -- retire la marque du
+// texte sélectionné, qui redevient normal sans être supprimé ("retirer un lien existant" :
+// sélectionner son texte, puis recliquer).
 function rpCanvasAttachLinkButton(toolbar, editor) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.textContent = '🔗';
-  btn.title = 'Insérer un lien (texte sélectionné)';
+  btn.title = 'Lien (sélection, ou balise ouverte avant la frappe -- recliquer pour terminer/retirer)';
   btn.addEventListener('mousedown', (e) => e.preventDefault());
   btn.addEventListener('click', () => {
+    if (editor.isActive('link')) {
+      editor.chain().focus().unsetMark('link').run();
+      return;
+    }
     const url = window.prompt("Adresse du lien (https://...) :");
     if (!url || !url.trim()) return;
     const trimmed = url.trim();
@@ -496,7 +511,72 @@ function rpCanvasAttachLinkButton(toolbar, editor) {
       if (typeof showToast === 'function') showToast('Lien refusé', 'Seules les adresses http:// ou https:// sont autorisées.', false);
       return;
     }
-    editor.chain().focus().extendMarkRange('link').setLink({ href: trimmed }).run();
+    editor.chain().focus().setLink({ href: trimmed }).run();
+  });
+  toolbar.appendChild(btn);
+}
+
+// Spoiler (Lot D6, corrigé) : Details reste un noeud de type "block" (content:
+// "detailsSummary detailsContent", group:"block" -- vérifié dans le code source réel de
+// @tiptap/extension-details@2.27.2), il ne peut donc pas se comporter comme une simple
+// marque inline. Sa commande native setDetails() enveloppe tout le bloc englobant
+// (blockRange), pas seulement la sélection réelle : c'est exactement le défaut signalé.
+// La commande ci-dessous construit donc directement le noeud details via insertContentAt()
+// -- le mécanisme que setDetails() natif utilise lui-même en interne, vérifié dans son code
+// source -- mais borné à la sélection réelle. ProseMirror scinde alors automatiquement le
+// paragraphe autour du noeud de bloc inséré (comportement standard d'un replace avec un
+// contenu de bloc à l'intérieur d'un texte, pas une manipulation DOM). Aucun calcul manuel
+// de position de curseur : insertContentAt() place déjà par défaut la sélection à la fin du
+// contenu inséré (option updateSelection, vérifiée à true par défaut dans le code source
+// réel de @tiptap/core).
+function rpCanvasAttachSpoilerButton(toolbar, editor) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = '👁';
+  btn.title = 'Spoiler (sélection, ou balise ouverte avant la frappe -- recliquer pour retirer)';
+  btn.addEventListener('mousedown', (e) => e.preventDefault());
+  btn.addEventListener('click', () => {
+    if (editor.isActive('details')) {
+      // Curseur ou sélection dans un spoiler existant : le retire sans supprimer son
+      // contenu (unsetDetails, commande officielle -- remonte le contenu du spoiler en
+      // texte normal à la même place, vérifié dans le code source réel). Pour sortir du
+      // spoiler SANS le retirer et continuer à écrire après, Entrée en fin de contenu est
+      // déjà géré nativement par l'extension (addKeyboardShortcuts, vérifié dans son code
+      // source) -- aucun code supplémentaire nécessaire ici.
+      editor.chain().focus().unsetDetails().run();
+      return;
+    }
+    const { state } = editor;
+    const { $from, $to, empty, from, to } = state.selection;
+    if (empty) {
+      // Balise ouverte avant la frappe : nouveau spoiler VIDE inséré exactement à la
+      // position du curseur, quel que soit le texte environnant dans le paragraphe.
+      editor.chain().focus().insertContentAt(from, {
+        type: 'details',
+        content: [
+          { type: 'detailsSummary' },
+          { type: 'detailsContent', content: [{ type: 'paragraph' }] },
+        ],
+      }).run();
+      return;
+    }
+    if ($from.sameParent($to) && $from.parent.isTextblock) {
+      // Sélection à l'intérieur d'un seul paragraphe : seule la portion sélectionnée migre
+      // dans le spoiler, le reste du paragraphe (avant/après) est préservé tel quel.
+      const inline = state.doc.slice(from, to).toJSON()?.content || [];
+      editor.chain().focus().insertContentAt({ from, to }, {
+        type: 'details',
+        content: [
+          { type: 'detailsSummary' },
+          { type: 'detailsContent', content: [{ type: 'paragraph', content: inline }] },
+        ],
+      }).run();
+      return;
+    }
+    // Repli : sélection à cheval sur plusieurs blocs (cas rare, non couvert par la demande
+    // explicite) -- comportement d'origine, enveloppe le ou les blocs entiers concernés.
+    // Limitation connue et consignée, pas une régression silencieuse.
+    editor.chain().focus().setDetails().run();
   });
   toolbar.appendChild(btn);
 }
