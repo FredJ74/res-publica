@@ -1632,7 +1632,7 @@ function payerInformateurs() {
   if (total > 0) addJournalEntry('Salaires informateurs : -' + total + ' ' + cur, 'event-info');
 }
 
-function consulterInformateur(niveau) {
+async function consulterInformateur(niveau, pa) {
   if (!state.informateurs) state.informateurs = [];
 
   // Max 2 informateurs simultanés
@@ -1656,6 +1656,8 @@ function consulterInformateur(niveau) {
     showToast('Fonds insuffisants', `${config.cout} ${cur} requis pour recruter cet informateur.`, false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   // Premier paiement immédiat
   state.arg -= config.cout;

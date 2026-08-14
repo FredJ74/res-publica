@@ -204,7 +204,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'escort_piege')           { doEscortPiege(pa, cost); return; }
   if (fn === 'recruter_informateur_1') { consulterInformateur(1); return; }
   if (fn === 'recruter_informateur_2') { consulterInformateur(2); return; }
-  if (fn === 'recruter_informateur_3') { consulterInformateur(3); return; }
+  if (fn === 'recruter_informateur_3') { consulterInformateur(3, pa); return; }
   if (fn === 'recruter_informateur_4') { consulterInformateur(4); return; }
   if (fn === 'interroger_informateur_1'){ interrogerInformateur(1); return; }
   if (fn === 'interroger_informateur_2'){ interrogerInformateur(2); return; }
@@ -216,7 +216,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'recruter_info_4')        { ouvrirRecruterInformateur(4); return; }
   if (fn === 'consulter_info')         { consulterInformateur(1); return; }
   if (fn === 'consulter_info_2')       { consulterInformateur(2); return; }
-  if (fn === 'consulter_info_3')       { consulterInformateur(3); return; }
+  if (fn === 'consulter_info_3')       { consulterInformateur(3, pa); return; }
   if (fn === 'consulter_info_4')       { consulterInformateur(4); return; }
   if (fn === 'gerer_informateurs')     { ouvrirGestionInformateurs(); return; }
   if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs', pa, cost); return; }
