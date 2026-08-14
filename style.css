@@ -645,6 +645,13 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .rp-zone-content p{margin:0 0 .7em}
 .rp-zone-content p:last-child{margin-bottom:0}
 
+/* Citation (Lot D2, correctif) : toggleBlockquote() produisait déjà une vraie balise
+   <blockquote> (vérifié dans le code source réel de l'extension) mais aucune règle CSS ne
+   la différenciait visuellement d'un paragraphe normal -- seul le style manquait. */
+.rp-zone-content blockquote{margin:.6em 0;padding:.3em 0 .3em .8em;border-left:3px solid #9aa5b5;color:#555;font-style:italic}
+.rp-zone-content blockquote p{margin:0 0 .4em}
+.rp-zone-content blockquote p:last-child{margin-bottom:0}
+
 .rp-resize-edge{position:absolute;top:16px;bottom:0;width:8px;opacity:0;transition:opacity .12s ease;cursor:ew-resize}
 .rp-resize-edge.left{left:-4px}
 .rp-resize-edge.right{right:-4px}
