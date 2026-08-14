@@ -170,9 +170,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_pm')               { ouvrirModalCibleRepertoire('nommer_pm_confirm', 'Nommer un Premier Ministre'); return; }
   if (fn === 'nommer_ministre_pm')      { ouvrirNommerMinistresModal(pa, cost); return; }
   if (fn === 'revoquer_ministre_pm')   { ouvrirModalRevoquerMinistre(pa, cost); return; }
-  if (fn === 'declencher_vote_confiance') { ouvrirDeclencherVoteConfiance(); return; }
+  if (fn === 'declencher_vote_confiance') { ouvrirDeclencherVoteConfiance(pa, cost); return; }
   if (fn === 'declarer_guerre_empire' || fn === 'declarer_guerre')  { ouvrirModalGuerreEmpire(); return; }
-  if (fn === 'gracier_condamne' || fn === 'gracier') { ouvrirModalGracier(); return; }
+  if (fn === 'gracier_condamne' || fn === 'gracier') { ouvrirModalGracier(pa, cost); return; }
   if (fn === 'decret_referendum')       { ouvrirForumNationalSousForumPresident('referendum'); return; }
   if (fn === 'jour_deuil')             { ouvrirForumNationalSousForumPresident('deuil'); return; }
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
@@ -266,7 +266,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(); return; }
   if (fn === 'marche_noir') { doMarcheNoir(); return; }
   if (fn === 'officialiser_mariage') { ouvrirOfficialiserMariage(); return; }
-  if (fn === 'gerer_couvre_feu') { ouvrirGererCouvreFeu(); return; }
+  if (fn === 'gerer_couvre_feu') { ouvrirGererCouvreFeu(pa, cost); return; }
   if (fn === 'subvention_min_int') { ouvrirModalFinancerMinInt(pa, cost); return; }
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(pa, cost); return; }
@@ -305,13 +305,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'se_former') { doSeFormer(); return; }
   if (fn === 'recruter_info') { doRecruterInfo(); return; }
   if (fn === 'mobiliser_police') { doMobiliserPolice(); return; }
-  if (fn === 'mobiliser_armee') { doMobiliserArmee(); return; }
-  if (fn === 'etat_urgence') { doEtatUrgence(); return; }
+  if (fn === 'mobiliser_armee') { doMobiliserArmee(pa, cost); return; }
+  if (fn === 'etat_urgence') { doEtatUrgence(pa, cost); return; }
   if (fn === 'inspecter_troupes') { doInspecterTroupes(); return; }
   if (fn === 'ouvrir_enquete') { ouvrirChoixTypeCibleFiscale('ouvrir_enquete', 'Ouvrir une enquête sur'); return; }
-  if (fn === 'proposer_grace') { ouvrirProposerGrace(); return; }
+  if (fn === 'proposer_grace') { ouvrirProposerGrace(pa, cost); return; }
   if (fn === 'gestion_qhs') { ouvrirGestionQHS(); return; }
-  if (fn === 'annuler_poursuites') { ouvrirModalAffaires('annuler'); return; }
+  if (fn === 'annuler_poursuites') { ouvrirModalAffaires('annuler', pa, cost); return; }
   if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
   if (fn === 'revoquer_juge') { ouvrirModalRevoquerJuge(pa, cost); return; }
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }
@@ -322,7 +322,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gerer_candidature_directeur_entrepot') { ouvrirGestionCandidatures(['directeur_entrepot']); return; }
   if (fn === 'gerer_candidature_maire_adjoint') { ouvrirGestionCandidatures(['maire_adjoint']); return; }
   if (fn === 'revoquer_directeur_entrepot') { ouvrirModalRevoquerDirecteurEntrepot(pa, cost); return; }
-  if (fn === 'censurer_media') { ouvrirModalMedia(); return; }
+  if (fn === 'censurer_media') { ouvrirModalMedia(pa, cost); return; }
   if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
   if (fn === 'activer_cessez_le_feu') { ouvrirActiverCessezLeFeu(); return; }
   if (fn === 'nommer_commandant') { ouvrirNommerCommandant(pa, cost); return; }
@@ -340,8 +340,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'engager_officier') { doEngagerOfficier(pa, cost); return; }
   if (fn === 'traiter_engagements') { ouvrirTraiterEngagements(pa, cost); return; }
   if (fn === 'affecter_engage') { ouvrirAffecterEngage(); return; }
-  if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(); return; }
-  if (fn === 'requisition_civile') { ouvrirRequisitionCivile(); return; }
+  if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(pa, cost); return; }
+  if (fn === 'requisition_civile') { ouvrirRequisitionCivile(pa, cost); return; }
   if (fn === 'se_presenter_affectation') { doSePresenterAffectation(pa, cost); return; }
   if (fn === 'consulter_faits_armes') { ouvrirConsulterFaitsArmes(); return; }
   if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetMilitaire(); return; }
@@ -375,9 +375,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'preempter_entreprise')    { ouvrirPreemptionEntreprise(); return; }
   if (fn === 'stage_caserne')           { doStageCaserne(pa, cost); return; }
   if (fn === 'acte_rachat_entreprise_preemption') { doActeRachatEntreprisePreemption(); return; }
-  if (fn === 'interdire_manif')         { ouvrirInterdireManif(); return; }
-  if (fn === 'reprimer_manif')          { ouvrirReprimerManif(); return; }
-  if (fn === 'annuler_poursuites_cible'){ ouvrirModalAffaires('annuler'); return; }
+  if (fn === 'interdire_manif')         { ouvrirInterdireManif(pa, cost); return; }
+  if (fn === 'reprimer_manif')          { ouvrirReprimerManif(pa, cost); return; }
+  if (fn === 'annuler_poursuites_cible'){ ouvrirModalAffaires('annuler', pa, cost); return; }
   if (fn === 'ouvrir_enquete_cible')    { ouvrirModalCibleRepertoire('ouvrir_enquete', 'Ouvrir une enquete sur'); return; }
   if (fn === 'nommer_juge_cible')       { ouvrirModalNommerJuge(); return; }
   if (fn === 'cessez_le_feu_empire')    { ouvrirModalEmpireCible('cessez_le_feu', 'Negocier un cessez-le-feu avec'); return; }

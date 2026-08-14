@@ -3122,7 +3122,7 @@ async function confirmerOfficialisationMariage() {
 
 
 
-async function doEtatUrgence() {
+async function doEtatUrgence(pa, cost) {
   if (state.poste?.id !== 'president') {
     showToast('Acces refuse', 'Seul le President peut declarer l\'etat d\'urgence.', false);
     return;
@@ -3137,16 +3137,18 @@ async function doEtatUrgence() {
     (actif
       ? '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.8rem">' +
         "L'etat d'urgence est actuellement en vigueur, declare par " + (etatActuel.active_par || 'le President') + ' le Jour ' + (etatActuel.jour_debut || '?') + '.</div>' +
-        '<button onclick="confirmerEtatUrgence(false)" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Lever l\'etat d\'urgence</button>'
+        '<button onclick="confirmerEtatUrgence(false,' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Lever l\'etat d\'urgence</button>'
       : '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.8rem">Suspend certaines libertes publiques. Fort impact sur INF et POP. Autorise des mesures exceptionnelles (arrestations sans plainte prealable).</div>' +
-        '<button onclick="confirmerEtatUrgence(true)" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Declarer l\'etat d\'urgence</button>'
+        '<button onclick="confirmerEtatUrgence(true,' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Declarer l\'etat d\'urgence</button>'
     ) +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerEtatUrgence(activer) {
+async function confirmerEtatUrgence(activer, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country;
   const from = state.char?.name || 'Le President';
 
@@ -3460,7 +3462,7 @@ async function getJugeActuel(pays) {
   return titulaire?.nom || JUGE_PNJ_DEFAUT[pays] || 'Juge (poste vacant)';
 }
 
-async function ouvrirProposerGrace() {
+async function ouvrirProposerGrace(pa, cost) {
   if (state.poste?.id !== 'min_just') { showToast('Réservé au Ministre de la Justice', '', false); return; }
   const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
   document.getElementById('postes-modal-title').textContent = 'Proposer une grâce au Président';
@@ -3472,7 +3474,7 @@ async function ouvrirProposerGrace() {
       html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
       html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#e0d5b8">' + p.nom + '</div>';
       html += '<div style="font-size:.72rem;color:#a89870">' + p.raison + ' · libération prévue Jour ' + p.jourFin + '</div></div>';
-      html += '<button onclick="confirmerPropositionGrace(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.25rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer</button>';
+      html += '<button onclick="confirmerPropositionGrace(' + i + ',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.25rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer</button>';
       html += '</div>';
     });
   }
@@ -3481,11 +3483,13 @@ async function ouvrirProposerGrace() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerPropositionGrace(idx) {
+async function confirmerPropositionGrace(idx, pa, cost) {
   const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
   const condamne = condamnes[idx];
   if (!condamne) return;
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const pays = state.country || 'republic';
   const cout = 300;
@@ -3504,7 +3508,7 @@ async function confirmerPropositionGrace(idx) {
   addJournalEntry('Grâce de ' + condamne.nom + ' recommandée au Président.', 'event-info');
 }
 
-async function ouvrirModalGracier() {
+async function ouvrirModalGracier(pa, cost) {
   if (state.poste?.id !== 'president') { showToast('Réservé au Président', '', false); return; }
   document.getElementById('postes-modal-title').textContent = 'Demandes de grâce en attente';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
@@ -3522,8 +3526,8 @@ async function ouvrirModalGracier() {
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#e0d5b8">' + d.nomCondamne + '</div>';
       html += '<div style="font-size:.72rem;color:#a89870">' + d.raison + ' · recommandé par ' + d.proposePar + '</div>';
       html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
-      html += '<button onclick="confirmerGrace(&quot;' + d.id + '&quot;,&quot;' + d.nomCondamne + '&quot;,true)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Accepter</button>';
-      html += '<button onclick="confirmerGrace(&quot;' + d.id + '&quot;,&quot;' + d.nomCondamne + '&quot;,false)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer">Refuser</button>';
+      html += '<button onclick="confirmerGrace(&quot;' + d.id + '&quot;,&quot;' + d.nomCondamne + '&quot;,true,' + pa + ',' + cost + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Accepter</button>';
+      html += '<button onclick="confirmerGrace(&quot;' + d.id + '&quot;,&quot;' + d.nomCondamne + '&quot;,false,' + pa + ',' + cost + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer">Refuser</button>';
       html += '</div></div>';
     });
   }
@@ -3531,8 +3535,10 @@ async function ouvrirModalGracier() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function confirmerGrace(demandeId, nomCondamne, accepte) {
+async function confirmerGrace(demandeId, nomCondamne, accepte, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   await sbMajDemandeGrace(demandeId, accepte ? 'acceptee' : 'refusee');
 
   if (accepte) {
@@ -3887,7 +3893,7 @@ function ouvrirModalTexteLibre(action, titre, placeholder) {
 // "ministere = national" : cible explicitement UNE ville et modifie son Social local, pas le
 // national. Remplace l'ancien chemin mort interdire_manif_cible (jamais atteignable, voir
 // audit du chantier "refonte des ordres").
-async function ouvrirInterdireManif() {
+async function ouvrirInterdireManif(pa, cost) {
   const pays = state.country || 'republic';
   document.getElementById('postes-modal-title').textContent = 'Interdire une manifestation';
   let html = '<div style="padding:1rem">';
@@ -3902,16 +3908,18 @@ async function ouvrirInterdireManif() {
     html += '<option value="' + (state.currentCity || 'capitale') + '">' + (state.currentCity || 'capitale') + '</option>';
   }
   html += '</select>';
-  html += '<button onclick="confirmerInterdireManif()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Interdire</button>';
+  html += '<button onclick="confirmerInterdireManif(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Interdire</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerInterdireManif() {
+async function confirmerInterdireManif(pa, cost) {
   const sujet = document.getElementById('interdire-manif-sujet')?.value?.trim() || 'Manifestation non precisee';
   const ville = document.getElementById('interdire-manif-ville')?.value || state.currentCity || 'capitale';
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
   const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
 
@@ -3929,7 +3937,7 @@ async function confirmerInterdireManif() {
 
 // REPRIMER UNE MANIFESTATION (Ministre de l'Interieur) -- meme exception que ci-dessus (cible
 // une ville, Social local). Remplace l'ancien chemin mort reprimer_manif_cible.
-async function ouvrirReprimerManif() {
+async function ouvrirReprimerManif(pa, cost) {
   const pays = state.country || 'republic';
   document.getElementById('postes-modal-title').textContent = 'Reprimer une manifestation';
   let html = '<div style="padding:1rem">';
@@ -3944,16 +3952,18 @@ async function ouvrirReprimerManif() {
     html += '<option value="' + (state.currentCity || 'capitale') + '">' + (state.currentCity || 'capitale') + '</option>';
   }
   html += '</select>';
-  html += '<button onclick="confirmerReprimerManif()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Reprimer</button>';
+  html += '<button onclick="confirmerReprimerManif(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Reprimer</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerReprimerManif() {
+async function confirmerReprimerManif(pa, cost) {
   const sujet = document.getElementById('reprimer-manif-sujet')?.value?.trim() || 'Rassemblement non precise';
   const ville = document.getElementById('reprimer-manif-ville')?.value || state.currentCity || 'capitale';
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
   const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
 
@@ -4046,7 +4056,7 @@ function appliquerAllegement(secteur) {
   addJournalEntry('Allegement fiscal accorde au secteur : ' + secteur, 'event-info');
 }
 
-async function ouvrirModalAffaires(mode) {
+async function ouvrirModalAffaires(mode, pa, cost) {
   const titre = mode === 'annuler' ? 'Classer une plainte' : 'Gestion judiciaire';
   document.getElementById('postes-modal-title').textContent = titre;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
@@ -4067,7 +4077,7 @@ async function ouvrirModalAffaires(mode) {
       const refId = a.id || a.nom; // prisonniers n'ont pas forcement d'id, fallback sur le nom
       html += '<div style="padding:.5rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
       html += '<div style="font-size:.82rem;color:#c0b090">' + (a.cible||a.nom||'Inconnu') + ' <span style="font-size:.68rem;color:#5a4030">— ' + (a.motif||a.raison||'') + '</span></div>';
-      html += '<button onclick="annulerAffaire(&quot;' + refId + '&quot;,\'' + mode + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.2rem .5rem;border:1px solid #8a3020;background:transparent;color:#cc4a3a;cursor:pointer">Annuler</button>';
+      html += '<button onclick="annulerAffaire(&quot;' + refId + '&quot;,\'' + mode + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.2rem .5rem;border:1px solid #8a3020;background:transparent;color:#cc4a3a;cursor:pointer">Annuler</button>';
       html += '</div>';
     });
   }
@@ -4075,11 +4085,13 @@ async function ouvrirModalAffaires(mode) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function annulerAffaire(refId, mode) {
+async function annulerAffaire(refId, mode, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   if (mode === 'annuler') {
     const affaire = (state.plaintesEnCours||[]).find(p => p.id === refId);
     if (affaire) {
+      const r = await deduireCoutOrdre({ pa, cost });
+      if (!r.ok) { showToast('PA insuffisants', '', false); return; }
       const pays = state.country || 'republic';
       const cout = 250;
       const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_just', cout) : 0;
@@ -4257,20 +4269,22 @@ async function confirmerRenseignement(empireCible, nomCible) {
   addJournalEntry('Opération de renseignement réussie contre ' + nomCible + ', transmise à ' + notreLieutenantNom + '.', 'event-good');
 }
 
-function ouvrirModalMedia() {
+function ouvrirModalMedia(pa, cost) {
   const medias = MEDIAS[state.country] || [];
   document.getElementById('postes-modal-title').textContent = 'Censurer un media';
   let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#cc4444;font-style:italic;margin-bottom:.8rem">Attention : la censure peut provoquer un scandale si elle est decouverte.</div>';
   medias.forEach((m, i) => {
-    html += '<button onclick="censurer(\'' + m + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">' + m + '</button>';
+    html += '<button onclick="censurer(\'' + m + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem">' + m + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function censurer(media) {
+async function censurer(media, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   INDICES_NATIONAUX[state.country].IS = Math.max(0, INDICES_NATIONAUX[state.country].IS - 8);
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= 30) {
@@ -5082,7 +5096,7 @@ function confirmerSupprPoste(type) {
 // =====================
 // VOTE DE CONFIANCE (declenchee par le PM, soumise a l'Assemblee Nationale)
 // =====================
-async function ouvrirDeclencherVoteConfiance() {
+async function ouvrirDeclencherVoteConfiance(pa, cost) {
   if (state.poste?.id !== 'pm') {
     showToast('Accès refusé', 'Seul le Premier Ministre peut déclencher un vote de confiance.', false);
     return;
@@ -5098,13 +5112,15 @@ async function ouvrirDeclencherVoteConfiance() {
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
     '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">Vous engagez la responsabilité de votre gouvernement devant l\'Assemblée Nationale. Les 25 députés voteront sous 48h. Si la confiance n\'est pas accordée (majorité simple requise), vous devrez démissionner immédiatement.</div>' +
-    '<button onclick="confirmerDeclenchementVoteConfiance()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Engager la responsabilité du gouvernement</button>' +
+    '<button onclick="confirmerDeclenchementVoteConfiance(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Engager la responsabilité du gouvernement</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerDeclenchementVoteConfiance() {
+async function confirmerDeclenchementVoteConfiance(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const vote = {
     id: 'voteconf-' + Date.now(),
@@ -5858,7 +5874,7 @@ async function confirmerMission(compagnieId, sectionId, missionId, pa, cost) {
 }
 
 // ---- MOBILISATION ----
-async function doMobiliserArmee() {
+async function doMobiliserArmee(pa, cost) {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   document.getElementById('postes-modal-title').textContent = 'Mobiliser l\'armée';
   let html = '<div style="padding:1rem">';
@@ -5871,18 +5887,20 @@ async function doMobiliserArmee() {
   html += '<input id="mobil-ville" type="text" placeholder="ex: capitale" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Feuille de route (secrète)</label>';
   html += '<textarea id="mobil-route" rows="4" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"></textarea>';
-  html += '<button onclick="confirmerMobilisation()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Donner l\'ordre de mobilisation</button>';
+  html += '<button onclick="confirmerMobilisation(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Donner l\'ordre de mobilisation</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerMobilisation() {
+async function confirmerMobilisation(pa, cost) {
   const empireCible = document.getElementById('mobil-empire')?.value;
   const villeCible = document.getElementById('mobil-ville')?.value?.trim();
   const route = document.getElementById('mobil-route')?.value?.trim();
   if (!empireCible || !villeCible || !route) { showToast('Champs requis', '', false); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const pays = state.country || 'republic';
   INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 10);
@@ -6388,7 +6406,7 @@ async function ouvrirConsulterFaitsArmes() {
 // =====================
 // COUVRE-FEU — 20h-6h, 2 jours max, exemption militaires/requisitionnes
 // =====================
-async function ouvrirGererCouvreFeu() {
+async function ouvrirGererCouvreFeu(pa, cost) {
   if (state.poste?.id !== 'min_int') { showToast('Réservé au Ministre de l\'Intérieur', '', false); return; }
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
@@ -6398,18 +6416,20 @@ async function ouvrirGererCouvreFeu() {
   let html = '<div style="padding:1rem">';
   if (cf?.actif) {
     html += '<div style="font-size:.85rem;color:#cc4444;margin-bottom:.8rem">Couvre-feu actif (20h-6h) jusqu\'au Jour ' + cf.jourFin + '.</div>';
-    html += '<button onclick="confirmerCouvreFeu(false)" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;padding:.5rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Lever le couvre-feu</button>';
+    html += '<button onclick="confirmerCouvreFeu(false,' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;padding:.5rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Lever le couvre-feu</button>';
   } else {
     html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Actif de 20h à 6h, 2 jours maximum. Dégrade IS et POP du gouvernement chaque jour tant qu\'il dure. Militaires et civils réquisitionnés en sont exemptés.</div>';
-    html += '<button onclick="confirmerCouvreFeu(true)" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Instaurer le couvre-feu</button>';
+    html += '<button onclick="confirmerCouvreFeu(true,' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Instaurer le couvre-feu</button>';
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerCouvreFeu(activer) {
+async function confirmerCouvreFeu(activer, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
   if (activer) {
@@ -6485,7 +6505,7 @@ const DUREE_RECHERCHE_JOURS = 3;
 const COUT_RECHERCHE = 8000;
 const GAIN_COEF_RECHERCHE = 0.5;
 
-async function ouvrirRechercheMilitaire() {
+async function ouvrirRechercheMilitaire(pa, cost) {
   if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
@@ -6499,7 +6519,7 @@ async function ouvrirRechercheMilitaire() {
     html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">En collaboration avec un chercheur civil, améliore durablement le coefficient de tir d\'un type d\'arme pour tout le pays. ' + DUREE_RECHERCHE_JOURS + ' jours, ' + COUT_RECHERCHE.toLocaleString('fr-FR') + ' FR (caisse de la caserne).</div>';
     const armes = [{id:'corps_a_corps',label:'Corps à corps'},{id:'arme_de_poing',label:'Arme de poing'},{id:'mitraillette',label:'Mitraillette'}];
     armes.forEach(a => {
-      html += '<button onclick="confirmerRechercheMilitaire(\'' + a.id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + a.label + '</button>';
+      html += '<button onclick="confirmerRechercheMilitaire(\'' + a.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + a.label + '</button>';
     });
   }
   html += '</div>';
@@ -6507,8 +6527,10 @@ async function ouvrirRechercheMilitaire() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerRechercheMilitaire(arme) {
+async function confirmerRechercheMilitaire(arme, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
   const montantVerse = await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', COUT_RECHERCHE);
   if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de la recherche.', false); return; }
@@ -6568,7 +6590,7 @@ async function suivreEscorteAvecMoi(nouveauBuildingId) {
 // =====================
 const DELAI_REQUISITION_HEURES = 36;
 
-async function ouvrirRequisitionCivile() {
+async function ouvrirRequisitionCivile(pa, cost) {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
@@ -6587,7 +6609,7 @@ async function ouvrirRequisitionCivile() {
     sections.forEach(s => {
       html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem">';
       html += '<span style="font-size:.85rem;color:#e0d5b8">Section ' + s.section.numero + ' (Lt. ' + s.section.lieutenantNom + ')</span>';
-      html += '<button onclick="confirmerRequisitionCivile(\'' + s.compagnieId + '\',\'' + s.section.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Réquisitionner</button>';
+      html += '<button onclick="confirmerRequisitionCivile(\'' + s.compagnieId + '\',\'' + s.section.id + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Réquisitionner</button>';
       html += '</div>';
     });
   }
@@ -6596,12 +6618,14 @@ async function ouvrirRequisitionCivile() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerRequisitionCivile(compagnieId, sectionId) {
+async function confirmerRequisitionCivile(compagnieId, sectionId, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
   const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   let civils = [];
   if (typeof sbListPersonnages === 'function') {
