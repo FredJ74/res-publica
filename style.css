@@ -638,6 +638,19 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .rp-resize-bottom{position:absolute;left:16px;right:16px;bottom:-4px;height:8px;opacity:0;transition:opacity .12s ease;cursor:ns-resize}
 .rp-zone.selected .rp-resize-edge,.rp-zone.selected .rp-resize-bottom{opacity:1;background:rgba(58,127,216,.15)}
 
+/* Objet image (Lot C4) — reprise directe du prototype validé */
+.rp-image{cursor:grab;border:2px solid transparent;border-radius:2px}
+.rp-image:active{cursor:grabbing}
+.rp-image.selected{border-color:#3a7fd8}
+.rp-image img{width:100%;height:100%;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none}
+
+.rp-resize-corner{position:absolute;width:12px;height:12px;background:#3a7fd8;border:2px solid #fff;border-radius:50%;display:none;z-index:3;box-shadow:0 0 2px rgba(0,0,0,.4)}
+.rp-image.selected .rp-resize-corner{display:block}
+.rp-resize-corner.nw{top:-7px;left:-7px;cursor:nwse-resize}
+.rp-resize-corner.ne{top:-7px;right:-7px;cursor:nesw-resize}
+.rp-resize-corner.sw{bottom:-7px;left:-7px;cursor:nesw-resize}
+.rp-resize-corner.se{bottom:-7px;right:-7px;cursor:nwse-resize}
+
 /* Statut RECHERCHÉ */
 @keyframes blink {
   0%, 100% { opacity: 1; }

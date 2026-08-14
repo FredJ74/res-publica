@@ -239,6 +239,9 @@ function renderComposeCanvasForm() {
         <button class="forum-new-btn" onclick="rpCanvasAddTextZoneToCompose()">
           <i class="ti ti-text-plus"></i> Ajouter une zone de texte
         </button>
+        <button class="forum-new-btn" onclick="rpCanvasAddImageToCompose()">
+          <i class="ti ti-photo-plus"></i> Ajouter une image
+        </button>
       </div>
       <div id="rp-compose-canvas" style="position:relative;width:680px;max-width:100%;min-height:500px;background:#fff;border:1px solid #2a2010"></div>
     </div>
@@ -317,6 +320,60 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
     content: html || '<p></p>',
     onFocus: () => ctrl.selectElement(el),
   });
+
+  return el;
+}
+
+// ===========================================================================
+// Objet image (Lot C4) — reprise directe de createImage/startCornerResize du prototype
+// validé (F1.5). Aucune validation d'URL côté saisie, par cohérence avec le comportement
+// déjà existant du forum (confirmerRichInsertImage n'en fait pas non plus) : le filtre
+// ^https?:// s'applique déjà à la lecture dans renderComposedPost (Lot B1), qui reste le
+// vrai rempart au moment de la sauvegarde/l'affichage à d'autres joueurs.
+// ===========================================================================
+function rpCanvasAddImageToCompose() {
+  if (!rpComposeController) return;
+  const container = document.getElementById('rp-compose-canvas');
+  if (!container) return;
+  const url = window.prompt("URL de l'image à ajouter (https://...) :");
+  if (!url || !url.trim()) return;
+  rpCanvasCreateImage(rpComposeController, container, 60, 60, 220, url.trim());
+}
+
+function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
+  const state = { x, y, width, height: width * 0.75 };
+  const el = document.createElement('div');
+  el.className = 'rp-canvas-el rp-image';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.width = width + 'px';
+  el.style.height = state.height + 'px';
+
+  const img = document.createElement('img');
+  img.src = src;
+  img.draggable = false; // le navigateur ne doit jamais démarrer son propre drag natif
+  img.addEventListener('load', () => {
+    const aspect = img.naturalHeight / img.naturalWidth;
+    state.height = state.width * aspect;
+    el.style.height = state.height + 'px';
+  });
+  img.addEventListener('error', () => {
+    if (typeof showToast === 'function') showToast('Image introuvable', "L'URL indiquée ne charge aucune image.", false);
+    el.remove();
+  });
+  el.appendChild(img);
+
+  ['nw', 'ne', 'sw', 'se'].forEach(corner => {
+    const h = document.createElement('div');
+    h.className = 'rp-resize-corner ' + corner;
+    el.appendChild(h);
+    ctrl.attachCornerResize(h, corner, state, el); // minWidth par défaut (40), comme le prototype pour les images
+  });
+
+  container.appendChild(el);
+  // L'image entière sert de poignée de déplacement — pas de texte éditable à l'intérieur,
+  // donc aucun conflit possible entre "saisir" et "écrire" (même raisonnement que le prototype).
+  ctrl.attachDrag(el, state, el);
 
   return el;
 }
