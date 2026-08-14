@@ -1007,18 +1007,34 @@ function editPost(topicId, postId) {
   document.getElementById('forum-main').innerHTML = renderForumContent();
 }
 
-function submitEditPost() {
+async function submitEditPost() {
   const contentEl = document.getElementById('edit-post-content');
   const content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
   if (!content) return;
   const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === editingTopicId);
   if (!topic) return;
   const post = topic.posts.find(p => (p.id||'') === editingPostId) || topic.posts[parseInt(editingPostId)];
-  if (post) {
-    post.content = content;
-    post.blocks = htmlToBlocks(content);
-    post.edited = true;
+  if (!post) return;
+
+  const blocks = htmlToBlocks(content);
+
+  // Persistance reelle en base -- UN SEUL appel Supabase. Avant ce correctif,
+  // submitEditPost() ne persistait jamais rien : la modification n'existait qu'en memoire
+  // locale et disparaissait a la moindre relecture depuis Supabase. Si la sauvegarde
+  // echoue, on ne touche a rien localement et on previent explicitement le joueur, plutot
+  // que de lui laisser croire que sa modification est enregistree.
+  const result = (typeof sbEditPost === 'function' && post.id)
+    ? await sbEditPost(post.id, content, blocks).catch(() => null)
+    : null;
+
+  if (!result) {
+    showToast('Échec de la sauvegarde', 'La modification n\'a pas pu être enregistrée. Réessayez.', false);
+    return;
   }
+
+  post.content = content;
+  post.blocks = blocks;
+  post.edited = true;
   forumView = 'topic';
   currentTopicId = editingTopicId;
   document.getElementById('forum-main').innerHTML = renderForumContent();

@@ -202,8 +202,11 @@ async function sbCreatePost(topicId, author, content, time, authorIsOrg, authorS
   return id;
 }
 
-async function sbEditPost(postId, content) {
-  return sbUpdate('forum_posts', `id=eq.${encodeURIComponent(postId)}`, { content, edited: true });
+async function sbEditPost(postId, content, blocks) {
+  // content_blocks doit etre synchronise avec content -- sinon renderTopicView (qui
+  // privilegie p.blocks des qu'il est non vide) continuerait d'afficher l'ancien texte
+  // malgre une sauvegarde de content reussie.
+  return sbUpdate('forum_posts', `id=eq.${encodeURIComponent(postId)}`, { content, content_blocks: blocks || [], edited: true });
 }
 
 async function sbIncrementViews(topicId) {
