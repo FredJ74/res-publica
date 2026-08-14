@@ -150,6 +150,17 @@ function showVueRue() {
     document.getElementById('rue-desc').textContent = city.desc;
   }
 
+  // Villes speciales (Caserne, QHS) : pas de Centre Multinodal sur place pour repartir, donc
+  // un taxi est propose directement depuis la vue de rue, sur le meme mecanisme que le bouton
+  // "Prendre un bus ou taxi" du Centre Multinodal (ouvrirModalTransport('bus') -> choix parmi
+  // les 3 villes de l'empire courant -> confirmerTransport -> executerVoyage).
+  const rueActionsRow = document.getElementById('rue-actions-row');
+  if (rueActionsRow) {
+    rueActionsRow.innerHTML = city?.isSpecial
+      ? '<button class="action-btn legal" onclick="ouvrirModalTransport(\'bus\')"><i class="ti ti-bus" style="font-size:.82rem"></i> Prendre un taxi</button>'
+      : '';
+  }
+
   const rueImage = document.getElementById('rue-image');
   const minimap = document.getElementById('minimap');
   const ambiance = document.getElementById('rue-ambiance');
