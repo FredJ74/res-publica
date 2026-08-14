@@ -648,6 +648,10 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 /* Tailles/polices bornées (Lot D4) — listes déroulantes natives, aucune saisie libre */
 .rp-zone-toolbar-select{font-size:.68rem;height:1.6em;border:1px solid #ccc;background:#fff;color:#333;border-radius:2px;cursor:pointer;max-width:6.5em}
 
+/* Liens (Lot D5) — sans cette règle, un lien serait visuellement indiscernable du texte
+   normal (aucune règle "a" globale dans ce fichier) */
+.rp-zone-content a{color:#2a6fc9;text-decoration:underline;cursor:pointer}
+
 .rp-zone-content{padding:.5rem .7rem;font-family:Georgia,serif;font-size:.9rem;line-height:1.6;color:#222;min-height:2.4em}
 .rp-zone-content .ProseMirror{outline:none}
 .rp-zone-content p{margin:0 0 .7em}

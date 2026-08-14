@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Res Publica — Plateau de Jeu</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=135">
+<link rel="stylesheet" href="style.css?v=136">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -512,6 +512,19 @@
   // Polices (Lot D4) : extension officielle réelle et stable en v2 (vérifié sur le paquet),
   // même mécanisme que Color (attribut ajouté au mark textStyle déjà chargé).
   import FontFamily from 'https://esm.sh/@tiptap/extension-font-family@2';
+  // Liens (Lot D5) : extension officielle réelle et stable en v2 (vérifiée sur le code
+  // source réel du paquet). openOnClick désactivé -- cliquer un lien PENDANT l'édition ne
+  // doit pas faire quitter la page ; ce comportement (ouverture en lecture) revient au
+  // rendu en lecture seule (renderComposedPost, lot B1), pas à l'éditeur. isAllowedUri
+  // explicitement fourni pour réutiliser EXACTEMENT le même filtre ^https?:// déjà appliqué
+  // aux images dans sanitizeRichHtml/renderComposedPost, plutôt que de se fier au
+  // comportement interne par défaut de l'extension (non documenté avec certitude depuis le
+  // code minifié).
+  import Link from 'https://esm.sh/@tiptap/extension-link@2';
+  window.RP_TIPTAP_LINK = Link.configure({
+    openOnClick: false,
+    isAllowedUri: (url) => /^https?:\/\//i.test(url || ''),
+  });
   window.RP_TIPTAP_EDITOR = Editor;
   window.RP_TIPTAP_STARTER_KIT = StarterKit;
   window.RP_TIPTAP_UNDERLINE = Underline;
@@ -550,7 +563,7 @@
   });
   window.RP_TIPTAP_FONT_SIZE = FontSize;
 </script>
-<script src="forum-canvas.js?v=11"></script>
+<script src="forum-canvas.js?v=12"></script>
 <script src="forum.js?v=132"></script>
 <script src="plateau-core.js?v=132"></script>
 <script src="plateau-rue-centrale.js?v=135"></script>

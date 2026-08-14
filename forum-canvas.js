@@ -402,6 +402,7 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
     extensions: [
       window.RP_TIPTAP_STARTER_KIT, window.RP_TIPTAP_UNDERLINE, window.RP_TIPTAP_TEXT_STYLE,
       window.RP_TIPTAP_COLOR, window.RP_TIPTAP_FONT_FAMILY, window.RP_TIPTAP_FONT_SIZE,
+      window.RP_TIPTAP_LINK,
     ],
     content: html || '<p></p>',
     onFocus: () => ctrl.selectElement(el, state),
@@ -467,6 +468,35 @@ function rpCanvasAttachZoneToolbar(toolbar, editor) {
   addSep();
   rpCanvasAttachSizeSelect(toolbar, editor);
   rpCanvasAttachFontSelect(toolbar, editor);
+  addSep();
+  rpCanvasAttachLinkButton(toolbar, editor);
+}
+
+// Lien (Lot D5) : demande l'URL par window.prompt, même mécanisme déjà utilisé pour les
+// images (rpCanvasAddImageToCompose). Double vérification volontaire : un retour immédiat
+// à la saisie via le même filtre ^https?://, EN PLUS du filtre équivalent déjà configuré
+// sur l'extension elle-même (isAllowedUri, voir plateau.html) qui refuserait de toute façon
+// la commande -- la vérification ici n'est qu'un message d'erreur plus clair, pas le vrai
+// rempart de sécurité (qui reste l'extension + la sanitisation à la lecture, lot B1).
+// Volontairement minimal : pas de bouton "retirer le lien" pour ce lot -- seule la création
+// est demandée.
+function rpCanvasAttachLinkButton(toolbar, editor) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = '🔗';
+  btn.title = 'Insérer un lien (texte sélectionné)';
+  btn.addEventListener('mousedown', (e) => e.preventDefault());
+  btn.addEventListener('click', () => {
+    const url = window.prompt("Adresse du lien (https://...) :");
+    if (!url || !url.trim()) return;
+    const trimmed = url.trim();
+    if (!/^https?:\/\//i.test(trimmed)) {
+      if (typeof showToast === 'function') showToast('Lien refusé', 'Seules les adresses http:// ou https:// sont autorisées.', false);
+      return;
+    }
+    editor.chain().focus().extendMarkRange('link').setLink({ href: trimmed }).run();
+  });
+  toolbar.appendChild(btn);
 }
 
 // Tailles bornées (Lot D4) : exactement les paliers ci-dessous sont atteignables depuis
@@ -505,6 +535,10 @@ const RP_FONT_FAMILIES = [
   { label: 'Crimson Pro', value: "'Crimson Pro', serif" },
   { label: 'Playfair Display', value: "'Playfair Display', serif" },
   { label: 'Bebas Neue', value: "'Bebas Neue', sans-serif" },
+  // Lot D5 : 5e police ajoutée à la demande, écriture calligraphique -- chargée en plus des
+  // 4 déjà présentes (nouvel ajout au <link> Google Fonts de plateau.html, contrairement aux
+  // 4 précédentes qui réutilisaient des polices déjà chargées ailleurs dans le jeu).
+  { label: 'Great Vibes', value: "'Great Vibes', cursive" },
 ];
 
 function rpCanvasAttachFontSelect(toolbar, editor) {
