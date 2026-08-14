@@ -253,7 +253,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'voter_loi')              { ouvrirVoteLoi(); return; }
   if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
   if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(successRate, pa, cost); return; }
-  if (fn === 'consulter_lobbyiste')    { doConsulterLobbyiste(); return; }
+  if (fn === 'consulter_lobbyiste')    { doConsulterLobbyiste(pa, cost); return; }
   if (fn === 'forum_president_conference' || fn === 'conference_presse')  { ouvrirForumNationalSousForumPresident('conference'); return; }
   if (fn === 'donner_conf') { doDonnerConference(); return; }
   if (fn === 'forum_president_propagande' || fn === 'propagande_etat')  { ouvrirForumNationalSousForumPresident('propagande'); return; }
@@ -342,7 +342,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'affecter_engage') { ouvrirAffecterEngage(); return; }
   if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(); return; }
   if (fn === 'requisition_civile') { ouvrirRequisitionCivile(); return; }
-  if (fn === 'se_presenter_affectation') { doSePresenterAffectation(); return; }
+  if (fn === 'se_presenter_affectation') { doSePresenterAffectation(pa, cost); return; }
   if (fn === 'consulter_faits_armes') { ouvrirConsulterFaitsArmes(); return; }
   if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetMilitaire(); return; }
   if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
@@ -360,7 +360,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'negocier') { showToast('Ordre contact', 'Utilisez les ordres contact en cliquant sur le personnage cible.', false); return; }
   if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); return; }
   if (fn === 'plainte') { ouvrirPorterPlainte(pa, cost); return; }
-  if (fn === 'defense') { doDefense(); return; }
+  if (fn === 'defense') { doDefense(pa, cost); return; }
   if (fn === 'projet_loi') { ouvrirDeposerProjet(); return; }
   if (fn === 'greve') { doGrevePNJ(); return; }
   if (fn === 'recruter_etud') { doRecruterMilitants(pa, cost); return; }

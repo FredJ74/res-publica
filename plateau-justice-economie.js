@@ -988,16 +988,15 @@ async function ouvrirPorterPlainte(pa, cost) {
 // Taux = 50 (base) + (CHA-8)*3 (bonus/malus charisme) - 35 si preuve reelle contre l'accuse.
 // 4 resultats selon le jet : reussite critique (classe l'affaire), reussite simple
 // (circonstance attenuante), echec simple (rien), echec critique >90 (aggravation).
-async function doDefense() {
+async function doDefense(pa, cost) {
   const affaire = (state.plaintesEnCours || []).find(p => p.cible === state.char?.name && p.status === 'deposee');
   if (!affaire) {
     showToast('Aucune affaire', "Vous n'avez aucune affaire en attente de jugement pour le moment.", false);
     return;
   }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cout = 300;
-  if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Vous défendre coûte ' + cout + ' ' + cur + '.', false); return; }
-  state.arg -= cout;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', 'Vous défendre coûte ' + cost + ' ' + cur + '.', false); return; }
 
   const cha = getStatEffective('CHA');
   const bonusCha = (cha - 8) * 3;

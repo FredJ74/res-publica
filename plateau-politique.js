@@ -7,11 +7,10 @@
 // =====================
 // MARCHANDER UN VOTE
 // =====================
-function doConsulterLobbyiste() {
+async function doConsulterLobbyiste(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cout = 300;
-  if ((state.arg || 0) < cout) { showToast('Fonds insuffisants', 'Le lobbyiste demande ' + cout + ' ' + cur + '.', false); return; }
-  state.arg -= cout;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', 'Le lobbyiste demande ' + cost + ' ' + cur + '.', false); return; }
   state.bonusLobbyisteMarchandage = (state.bonusLobbyisteMarchandage || 0) + 20;
   updateUI();
   showToast('Accord conclu', 'Le lobbyiste vous garantit un coup de pouce sur votre prochain marchandage de vote (+20%).', true);
@@ -6607,11 +6606,14 @@ async function confirmerRequisitionCivile(compagnieId, sectionId) {
 }
 
 // Le civil convoque se presente a son affectation (doit etre physiquement a la caserne, avant le delai)
-async function doSePresenterAffectation() {
+async function doSePresenterAffectation(pa, cost) {
   const req = state.char?.requisition ? (typeof state.char.requisition === 'string' ? JSON.parse(state.char.requisition) : state.char.requisition) : null;
   if (!req || req.statut !== 'convoque') { showToast('Aucune convocation en attente', '', false); return; }
   if (Date.now() > req.deadline) { showToast('Trop tard', 'Le délai de présentation est dépassé.', false); return; }
   if (state.currentBuilding !== 'caserne-militaire') { showToast('Présentez-vous à la caserne', '', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const pays = state.country || 'republic';
   const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === req.compagnieId);
