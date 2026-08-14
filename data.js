@@ -3413,12 +3413,13 @@ const BUILDINGS = {
     icon: "ti-military-rank",
     bgColor: "#081008",
     desc: "La caserne principale des forces armees de Republia. Acces reserve aux militaires et officiers.",
+    imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-exterieur.png",
     rooms: {
       corps_garde: {
         name: "Corps de Garde",
         imageBg: "linear-gradient(135deg,#081008,#0f1a0a)",
         desc: "L'entree de la caserne. Militaires en faction. Verification des acces.",
-        imageUrl: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-corps-de-garde.png",
         persons: [
           {name:'Sergent Dubois (PNJ)', role:'PNJ - Sous-officier de garde', rel:'neutral', job:'militaire'},
           {name:'Soldat Martin (PNJ)',  role:'PNJ - Faction',                 rel:'neutral', job:'militaire'}
@@ -3436,7 +3437,7 @@ const BUILDINGS = {
         name: "Salle de Commandement",
         imageBg: "linear-gradient(135deg,#060f06,#0a180a)",
         desc: "Le centre nerveux operationnel. Cartes, ecrans, officiers. Acces officiers superieurs.",
-        imageUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-salle-commandement.png",
         requiresPostId: 'min_def',
         persons: [
           {name:'General Faure (PNJ)', role:'PNJ - Chef d\'etat-major', rel:'neutral', job:'general'}
@@ -3460,7 +3461,7 @@ const BUILDINGS = {
         name: "Armurerie Militaire",
         imageBg: "linear-gradient(135deg,#080808,#121008)",
         desc: "L'armurerie de la caserne. Armes lourdes, equipements tactiques, explosifs reglementaires.",
-        imageUrl: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-armurerie-militaire.png",
         requiresPostId: 'min_def',
         persons: [
           {name:'Armurier Militaire (PNJ)', role:'PNJ - Sergent armurier', rel:'neutral', job:'armurier_mil'}
@@ -3475,7 +3476,7 @@ const BUILDINGS = {
         name: "Salle des Faits d'Armes",
         imageBg: "linear-gradient(135deg,#0a0806,#14100a)",
         desc: "Les trophees et etendards des sections. Chaque numero de section porte la memoire de ses combats, transmise d'un lieutenant a l'autre.",
-        imageUrl: "https://images.unsplash.com/photo-1569163139394-de44cb5894c8?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-salle-faits-armes.png",
         persons: [
           {name:'Archiviste Militaire (PNJ)', role:'PNJ - Gardien de la memoire', rel:'neutral', job:'archiviste_mil'}
         ],
@@ -3487,7 +3488,7 @@ const BUILDINGS = {
         name: "Quartier des Troupes",
         imageBg: "linear-gradient(135deg,#080a08,#0f120a)",
         desc: "Les dortoirs et salles de repos des soldats. Ambiance de camaraderie et discipline.",
-        imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-dortoir.png",
         persons: [
           {name:'Caporal Lefebvre (PNJ)', role:'PNJ - Soldat', rel:'neutral', job:'soldat'},
           {name:'Soldat Nguyen (PNJ)',    role:'PNJ - Soldat', rel:'neutral', job:'soldat'}
@@ -3881,12 +3882,13 @@ const BUILDINGS = {
     icon: "ti-lock",
     bgColor: "#080808",
     desc: "La prison de haute securite de Republia. Les criminels les plus dangereux y sont detenus. Evasion quasi impossible.",
+    imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-exterieur.png",
     rooms: {
       entree_qhs: {
         name: "Entree Securisee",
         imageBg: "linear-gradient(135deg,#080808,#101010)",
         desc: "L'entree du QHS. Trois sas de securite. Gardes armes en permanence.",
-        imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-entree-controle.png",
         persons: [
           {name:'Dominique Cruel (PNJ)', role:'PNJ - Directeur du QHS', rel:'neutral', job:'directeur_qhs'},
           {name:'Philippe Cognedur (PNJ)', role:'PNJ - Gardien Chef',     rel:'neutral', job:'gardien_qhs'}
@@ -3901,7 +3903,7 @@ const BUILDINGS = {
         name: "Cellules",
         imageBg: "linear-gradient(135deg,#050505,#0a0808)",
         desc: "Les cellules du QHS. Isolement total. Acces interdit sauf pour les detenus et gardiens.",
-        imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-aile-a-cellules.png",
         persons: [
           {name:'Jean Terre (PNJ)', role:'PNJ - Gardien de couloir', rel:'neutral', job:'gardien_qhs'},
           {name:'Patrick Coule (PNJ)', role:'PNJ - Gardien de couloir', rel:'neutral', job:'gardien_qhs'}
@@ -3933,6 +3935,14 @@ const BUILDINGS = {
         orders: [
           {fn:'se_reposer',        label:'Prendre l\'air',              pa:0, cost:0,    type:'legal',   icon:'ti-walk',     successRate:100, desc:'+2 Moral. La seule liberte qui reste.'}
         ]
+      },
+      salle_commune_qhs: {
+        name: "Salle Commune",
+        imageBg: "linear-gradient(135deg,#0a0a0a,#101010)",
+        desc: "L'espace de detente des detenus. Echecs, baby-foot, quelques journaux. Sous l'oeil des cameras.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-salle-commune.png",
+        persons: [],
+        orders: []
       }
     }
   }
