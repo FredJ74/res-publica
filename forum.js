@@ -450,7 +450,7 @@ function renderTopicView() {
                 <i class="ti ti-quote"></i>
               </button>
             </div>
-            <div class="forum-post-content">${(p.blocks && p.blocks.length > 0) ? sanitizeRichHtml(renderBlocks(p.blocks)) : sanitizeRichHtml(p.content)}</div>
+            <div class="forum-post-content">${p.content_layout ? renderComposedPost(p.content_layout) : ((p.blocks && p.blocks.length > 0) ? sanitizeRichHtml(renderBlocks(p.blocks)) : sanitizeRichHtml(p.content))}</div>
           </div>
         </div>`).join('')}
     </div>
@@ -1450,6 +1450,7 @@ async function loadForumPostsFromSB(topicId) {
     topic.posts = rows.map(r => ({
       id: r.id, author: r.author, content: r.content,
       time: r.time, edited: r.edited, blocks: r.content_blocks || null,
+      content_layout: r.content_layout || null,
       authorCountry: topic.authorCountry || topic.country, authorIsOrg: r.author_is_org, authorSecret: r.author_secret
     }));
     topic.replies = Math.max(0, topic.posts.length - 1);

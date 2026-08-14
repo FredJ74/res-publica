@@ -9,11 +9,61 @@
    comportement exact (déplacement par poignée dédiée, largeur par bords, min-height par le
    bas, coins pour les objets à ratio fixe).
 
-   Ce fichier est chargé par plateau.html mais n'est appelé par rien tant que les lots
-   suivants (C1+) ne le câblent pas dans le forum réel. Aucun effet visible à lui seul.
+   Ce fichier est chargé par plateau.html. Le moteur d'édition (ci-dessous) n'est appelé par
+   rien tant que les lots suivants (C1+) ne le câblent pas dans le forum réel — aucun effet
+   visible. renderComposedPost (Lot B1) EST en revanche déjà branché en lecture seule dans
+   forum.js (renderTopicView) : elle ne s'active que si un post porte un content_layout non
+   nul, ce qu'aucun post réel ne fait encore (rien n'écrit ce champ avant le lot E2).
    =========================================================================== */
 
 const RP_CANVAS_MIN_WIDTH = 40;
+
+// ===========================================================================
+// Rendu LECTURE SEULE d'un post composé (Lot B1). Aucune poignée, aucune interaction —
+// uniquement l'affichage. Le contenu riche de chaque zone est affiché via son html_fallback
+// déjà sanitisé à l'écriture (pas de montage Tiptap ici, l'édition vient aux lots C+), et
+// re-sanitisé ici même par défense en profondeur, comme le fait déjà renderTopicView pour
+// p.content/p.blocks. Rendu desktop uniquement pour ce lot : largeur fixe = canvas_width,
+// sans mise à l'échelle responsive ni bascule mobile — prévues au lot G1.
+// ===========================================================================
+function rpCanvasEscapeAttr(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderComposedPost(layout) {
+  if (!layout || !Array.isArray(layout.elements)) return '';
+  const canvasWidth = layout.canvas_width || 680;
+
+  const elementsHtml = layout.elements.map(el => {
+    const lo = el.layout || {};
+    const x = lo.x || 0, y = lo.y || 0, w = lo.width || 200, z = lo.z || 1;
+
+    if (el.type === 'text_zone') {
+      const minH = lo.minHeight || 0;
+      const safeHtml = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(el.html_fallback || '') : '';
+      return '<div class="rp-composed-zone" style="position:absolute;left:' + x + 'px;top:' + y + 'px;' +
+        'width:' + w + 'px;min-height:' + minH + 'px;z-index:' + z + '">' + safeHtml + '</div>';
+    }
+
+    if (el.type === 'image') {
+      // Même filtre que sanitizeRichHtml applique déjà aux images du forum existant.
+      const src = /^https?:\/\//i.test(el.src || '') ? el.src : '';
+      if (!src) return '';
+      const alt = rpCanvasEscapeAttr(el.alt);
+      const captionHtml = el.caption
+        ? '<div class="rp-composed-caption">' + rpCanvasEscapeAttr(el.caption) + '</div>' : '';
+      return '<div class="rp-composed-image" style="position:absolute;left:' + x + 'px;top:' + y + 'px;' +
+        'width:' + w + 'px;z-index:' + z + '"><img src="' + src + '" alt="' + alt + '" ' +
+        'style="width:100%;height:auto;display:block"/>' + captionHtml + '</div>';
+    }
+
+    return '';
+  }).join('');
+
+  return '<div class="rp-composed-canvas" style="position:relative;width:' + canvasWidth + 'px">' +
+    elementsHtml + '</div>';
+}
 
 // Crée un contrôleur de composition pour UN conteneur donné (jamais un #canvas fixe global) —
 // plusieurs surfaces indépendantes peuvent coexister si besoin.
