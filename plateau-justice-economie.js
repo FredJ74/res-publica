@@ -209,7 +209,7 @@ function doExpulsionLegale() {
   if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
 }
 
-function doRacheterTerrain() {
+function doRacheterTerrain(pa, cost) {
   const building = state.currentBuilding;
   const b = BUILDINGS[building];
   if (!b) return;
@@ -233,14 +233,14 @@ function doRacheterTerrain() {
     '<div style="padding:1rem">' +
     '<div style="font-size:.82rem;color:#a09060;margin-bottom:.8rem">Ce terrain appartient à <strong style="color:#C9A84C">' + proprietaire + '</strong>.<br>Proposez un prix de rachat. Un mail lui sera envoyé automatiquement.</div>' +
     '<input id="rachat-prix" type="number" min="1000" step="500" placeholder="Prix proposé en ' + cur + '..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
-    '<button onclick="confirmerRachat(this)" data-building="' + building + '" data-proprio="' + proprietaire + '" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;width:100%">Envoyer l\'offre</button>' +
+    '<button onclick="confirmerRachat(this,' + pa + ',' + cost + ')" data-building="' + building + '" data-proprio="' + proprietaire + '" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;width:100%">Envoyer l\'offre</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerRachat(btn) {
+async function confirmerRachat(btn, pa, cost) {
   const buildingId = btn?.dataset?.building || btn;
-  const proprietaire = btn?.dataset?.proprio || arguments[1];
+  const proprietaire = btn?.dataset?.proprio;
   const prix = parseInt(document.getElementById('rachat-prix')?.value || 0);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const b = BUILDINGS[buildingId];
@@ -254,6 +254,8 @@ async function confirmerRachat(btn) {
     showToast('Fonds insuffisants', 'Vous n\'avez pas ' + prix.toLocaleString('fr-FR') + ' ' + cur + '.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   // Envoyer un mail au propriétaire
   const from = state.char?.name || 'Anonyme';
@@ -1363,11 +1365,11 @@ function doCampagneSecurite() {
   addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +10 ISN.');
 }
 
-function ouvrirActeOfficielMairie() {
+function ouvrirActeOfficielMairie(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Délivrer un acte officiel';
   let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir l\'acte à délivrer :</div>';
   ACTES_OFFICIELS.forEach(acte => {
-    html += '<div onclick="delivrerActe(\'' + acte.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+    html += '<div onclick="delivrerActe(\'' + acte.id + '\',' + pa + ',' + cost + ')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
     html += '<div style="font-size:.82rem;color:#c0b090">' + acte.name + '</div>';
     html += '<div style="font-size:.68rem;color:#5a4030">' + acte.desc + '</div>';
     html += '</div>';
@@ -1377,10 +1379,12 @@ function ouvrirActeOfficielMairie() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function delivrerActe(acteId) {
+async function delivrerActe(acteId, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const acte = ACTES_OFFICIELS.find(a => a.id === acteId);
   if (!acte) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   if (!state.inventory) state.inventory = [];
   // Supprimer l'ancien acte du meme type si existant
   state.inventory = state.inventory.filter(i => i.acteId !== acteId);
@@ -1722,7 +1726,7 @@ async function chargerLocations() {
   } catch (e) { console.warn('chargerLocations error', e); }
 }
 
-function ouvrirModalLouerLocal() {
+function ouvrirModalLouerLocal(pa, cost) {
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;
   if (!buildingId || !roomId) return;
@@ -1781,12 +1785,12 @@ function ouvrirModalLouerLocal() {
     '</div>' +
     orgaSelect +
     '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.7rem">Le premier loyer est prélevé immédiatement. Ensuite, chaque réveil.</div>' +
-    '<button onclick="confirmerLocation()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🔑 Signer le bail</button>' +
+    '<button onclick="confirmerLocation(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🔑 Signer le bail</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerLocation() {
+async function confirmerLocation(pa, cost) {
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;
   const room = BUILDINGS[buildingId]?.rooms?.[roomId];
@@ -1800,6 +1804,8 @@ function confirmerLocation() {
     showToast('Fonds insuffisants', loc.prix + ' ' + cur + ' requis pour le premier loyer.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   state.arg -= loc.prix;
   if (!state.locationsActives) state.locationsActives = [];
@@ -2401,7 +2407,7 @@ function doImprimerLivre() {
 // Doctrine V2 : montant libre (min 500, pas de max), immobilise 7 jours, resolu par le cron de
 // minuit (meme mecanisme que pretDemande/attente_validation). Un seul investissement actif a
 // la fois par joueur (verifie a l'ouverture ET a la confirmation contre une double-soumission).
-async function ouvrirInvestir() {
+async function ouvrirInvestir(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   if (typeof sbGetInvestissementEnCours === 'function' && state.char?.name) {
     const existant = await sbGetInvestissementEnCours(state.char.name).catch(() => null);
@@ -2417,12 +2423,12 @@ async function ouvrirInvestir() {
     '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Capital immobilise 7 jours. Rendement entre -12% et +12% selon la conjoncture economique de votre ville a l\'echeance. Un seul investissement actif a la fois.</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">MONTANT (min. 500 ' + cur + ')</div>' +
     '<input id="investir-montant" type="number" min="500" step="100" placeholder="Montant en ' + cur + '..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.8rem"/>' +
-    '<button onclick="confirmerInvestir()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Placer les fonds</button>' +
+    '<button onclick="confirmerInvestir(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Placer les fonds</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerInvestir() {
+async function confirmerInvestir(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('investir-montant')?.value || 0);
   if (!montant || montant < 500) { showToast('Montant invalide', 'Minimum 500 ' + cur + '.', false); return; }
@@ -2432,6 +2438,8 @@ async function confirmerInvestir() {
     const existant = await sbGetInvestissementEnCours(state.char.name).catch(() => null);
     if (existant) { showToast('Investissement refusé', 'Vous avez déjà un investissement en cours.', false); return; }
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
@@ -3734,7 +3742,7 @@ async function doRefuserFusionLot(idxOccupe) {
 // LOCATION D'UN LOT (visiteur) + GESTION DU LOCATAIRE
 // =====================
 
-async function doOuvrirLouerLot() {
+async function doOuvrirLouerLot(pa, cost) {
   const id = state.currentBuilding;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
@@ -3754,7 +3762,7 @@ async function doOuvrirLouerLot() {
   let html = '<div style="padding:1rem">';
   html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
   lotsLibres.forEach(function(l) {
-    html += '<div onclick="doLouerCeLot(\'' + l.id + '\')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
+    html += '<div onclick="doLouerCeLot(\'' + l.id + '\',' + pa + ',' + cost + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
     html += '<span style="font-size:.85rem;color:#c0b090">' + l.label + '</span> — ' + l.surface + ' m² — <span style="color:#4a9a6a">' + l.loyer + ' ' + cur + '/jour</span>';
     html += '</div>';
   });
@@ -3765,7 +3773,7 @@ async function doOuvrirLouerLot() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function doLouerCeLot(lotId) {
+async function doLouerCeLot(lotId, pa, cost) {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
   const subdivisions = ts.subdivisions || [];
@@ -3777,6 +3785,8 @@ async function doLouerCeLot(lotId) {
     showToast('Fonds insuffisants', lot.loyer + ' ' + cur + ' requis pour le premier loyer.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   state.arg -= lot.loyer;
   lot.locataire = state.char?.name;

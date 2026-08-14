@@ -2647,7 +2647,7 @@ function verifierEtResetRecoltesJour() {
   }
 }
 
-async function doRecolterMatiere() {
+async function doRecolterMatiere(pa, cost) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const matieres = typeof getMatieresPremieresVille === 'function' ? getMatieresPremieresVille(pays, ville) : [];
@@ -2660,16 +2660,18 @@ async function doRecolterMatiere() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.7rem">Récoltes aujourd\'hui : ' + nb + '/2</div>';
   matieres.forEach(m => {
-    html += '<button ' + (nb >= 2 ? 'disabled' : '') + ' onclick="confirmerRecolte(\'' + m + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:' + (nb>=2?'#5a5040':'#c0b090') + ';cursor:' + (nb>=2?'default':'pointer') + ';font-size:.8rem">' + m + '</button>';
+    html += '<button ' + (nb >= 2 ? 'disabled' : '') + ' onclick="confirmerRecolte(\'' + m + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:' + (nb>=2?'#5a5040':'#c0b090') + ';cursor:' + (nb>=2?'default':'pointer') + ';font-size:.8rem">' + m + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerRecolte(matiere) {
+async function confirmerRecolte(matiere, pa, cost) {
   verifierEtResetRecoltesJour();
   if ((state.char.recoltesJour?.nb || 0) >= 2) { showToast('Limite atteinte', 'Maximum 2 récoltes par jour.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.char.recoltesJour.nb = (state.char.recoltesJour.nb || 0) + 1;
 
   const quantite = 1 + Math.floor(Math.random() * 2); // 1 a 2 unites

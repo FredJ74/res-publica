@@ -51,7 +51,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'mener_enquete') { doMenerEnquete(); return; }
   if (fn === 'organiser_filature') { doOrganiserFilature(); return; }
   if (fn === 'organiser_filature') { doOrganiserFilature(); return; }
-  if (fn === 'investir') { ouvrirInvestir(); return; }
+  if (fn === 'investir') { ouvrirInvestir(pa, cost); return; }
   if (fn === 'organiser_chasse_homme') { doOrganiserChasseHomme(); return; }
   if (fn === 'consulter_caisse_commissariat') { doConsulterCaisseCommissariat(); return; }
   if (fn === 'cambrioler_caisse_commissariat') { doCambriolerCaisseCommissariat(); return; }
@@ -70,7 +70,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'acheter_produit_stock') { doAcheterProduitStock(); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
-  if (fn === 'recolter_matiere') { doRecolterMatiere(); return; }
+  if (fn === 'recolter_matiere') { doRecolterMatiere(pa, cost); return; }
   if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(pa, cost); return; }
   if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(pa, cost); return; }
   if (fn === 'plainte_obstruction_permis') { doPlainteObstruction(pa, cost); return; }
@@ -154,7 +154,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // 'consommation' deja existant (meme profil : petite somme, remboursement rapide, taux eleve).
   if (fn === 'emprunter_prive') { ouvrirModalPretBancaire('privee', 'consommation'); return; }
   if (fn === 'diviser_construction') { doOuvrirDivisionTerrain(); return; }
-  if (fn === 'louer_lot_ici') { doOuvrirLouerLot(); return; }
+  if (fn === 'louer_lot_ici') { doOuvrirLouerLot(pa, cost); return; }
   if (fn === 'gerer_lot_loue') { doGererLotLoue(); return; }
   if (fn === 'declencher_election_club') { doDeclencherElectionClub(); return; }
   if (fn === 'incendier') { doIncendier(); return; }
@@ -183,7 +183,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne', pa, cost); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
   if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
-  if (fn === 'louer_local')              { ouvrirModalLouerLocal(); return; }
+  if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
   if (fn === 'choisir_suite')            { ouvrirModalChoixSuite(); return; }
   if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(); return; }
@@ -196,7 +196,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'negocier_squatteurs')     { doNegocierSquatteurs(); return; }
   if (fn === 'signer_compromis')        { doSignerCompromis(); return; }
   if (fn === 'acheter_terrain')         { doAcheterTerrain(); return; }
-  if (fn === 'racheter_terrain')        { doRacheterTerrain(); return; }
+  if (fn === 'racheter_terrain')        { doRacheterTerrain(pa, cost); return; }
   if (fn === 'decret_inutile')         { signerDecretInutile(); return; }
   if (fn === 'elections_tableau')      { ouvrirTableauElectoral(); return; }
   if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
@@ -244,7 +244,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'repartition_budget_local'){ doRepartirBudgetMunicipal(); return; }
   if (fn === 'consulter_indices_locaux'){ doConsulterIndicesLocaux(); return; }
   if (fn === 'campagne_securite')      { doCampagneSecurite(); return; }
-  if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(); return; }
+  if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(pa, cost); return; }
   if (fn === 'contester_resultats')    { ouvrirContesterResultats(); return; }
   if (fn === 'calendrier_elections')   { ouvrirCalendrierElectoral(); return; }
   if (fn === 'observer_debats')         { observerDebats(pa, cost); return; }
@@ -327,19 +327,19 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'activer_cessez_le_feu') { ouvrirActiverCessezLeFeu(); return; }
   if (fn === 'nommer_commandant') { ouvrirNommerCommandant(pa, cost); return; }
   if (fn === 'recruter_compagnie') { doRecruterCompagnie(); return; }
-  if (fn === 'nommer_capitaine') { ouvrirNommerCapitaine(); return; }
+  if (fn === 'nommer_capitaine') { ouvrirNommerCapitaine(pa, cost); return; }
   if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(pa, cost); return; }
   if (fn === 'gerer_detachement') { doGererDetachement(); return; }
   if (fn === 'assigner_mission') { doAssignerMission(pa, cost); return; }
   if (fn === 'voir_ma_section') { doVoirMaSection(); return; }
-  if (fn === 'entrainer_section') { doEntrainerSection(); return; }
-  if (fn === 'equiper_section') { doEquiperSection(); return; }
-  if (fn === 'remonter_renseignement') { ouvrirRemonterRenseignement(); return; }
+  if (fn === 'entrainer_section') { doEntrainerSection(pa, cost); return; }
+  if (fn === 'equiper_section') { doEquiperSection(pa, cost); return; }
+  if (fn === 'remonter_renseignement') { ouvrirRemonterRenseignement(pa, cost); return; }
   if (fn === 'demettre_lieutenant') { doDemettreLieutenant(pa, cost); return; }
-  if (fn === 'recruter_section') { ouvrirRecruterSection(); return; }
+  if (fn === 'recruter_section') { ouvrirRecruterSection(pa, cost); return; }
   if (fn === 'engager_officier') { doEngagerOfficier(pa, cost); return; }
   if (fn === 'traiter_engagements') { ouvrirTraiterEngagements(pa, cost); return; }
-  if (fn === 'affecter_engage') { ouvrirAffecterEngage(); return; }
+  if (fn === 'affecter_engage') { ouvrirAffecterEngage(pa, cost); return; }
   if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(pa, cost); return; }
   if (fn === 'requisition_civile') { ouvrirRequisitionCivile(pa, cost); return; }
   if (fn === 'se_presenter_affectation') { doSePresenterAffectation(pa, cost); return; }

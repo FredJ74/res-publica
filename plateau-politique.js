@@ -5599,7 +5599,7 @@ async function envoyerNominationCommandant(pa, cost) {
   showToast('Nomination envoyée', destinataire + ' a reçu votre proposition.', true, true);
 }
 
-async function ouvrirNommerCapitaine() {
+async function ouvrirNommerCapitaine(pa, cost) {
   if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant de la Caserne', '', false); return; }
   const pays = state.country || 'republic';
   const compagnies = await sbGetCompagnies(pays).catch(() => []);
@@ -5617,16 +5617,18 @@ async function ouvrirNommerCapitaine() {
   html += '<select id="nomme-capitaine-nom" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
   habitants.forEach(h => html += '<option value="' + h.name + '">' + h.name + '</option>');
   html += '</select>';
-  html += '<button onclick="envoyerNominationCapitaine()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
+  html += '<button onclick="envoyerNominationCapitaine(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function envoyerNominationCapitaine() {
+async function envoyerNominationCapitaine(pa, cost) {
   const compagnieId = document.getElementById('nomme-capitaine-compagnie')?.value;
   const destinataire = document.getElementById('nomme-capitaine-nom')?.value;
   if (!compagnieId || !destinataire) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const corps = (state.char?.name||'Le Commandant') + ' vous propose le poste de <strong>Capitaine</strong> de la compagnie ' + compagnieId + '.<br><br>' +
@@ -5739,12 +5741,14 @@ async function doRecruterCompagnie() {
 
 // Recompletement d'une seule section vidée (moins cher qu'une compagnie complète)
 const COUT_SECTION = Math.round(COUT_COMPAGNIE / NB_SECTIONS_COMPAGNIE);
-async function doRecruterSection(compagnieId, sectionId) {
+async function doRecruterSection(compagnieId, sectionId, pa, cost) {
   if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
   const pays = state.country || 'republic';
   const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section || section.soldats.length > 0) { showToast('Section non vide ou introuvable', '', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const montantVerse = await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', COUT_SECTION);
   if (montantVerse < COUT_SECTION) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le recomplètement (' + COUT_SECTION.toLocaleString('fr-FR') + ' FR).', false); return; }
@@ -6078,7 +6082,7 @@ async function payerSoldeQuotidienne(pays) {
 }
 
 // ---- FICHE DE SECTION (reservee au lieutenant) ----
-async function ouvrirRecruterSection() {
+async function ouvrirRecruterSection(pa, cost) {
   if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
   const pays = state.country || 'republic';
   const compagnies = await sbGetCompagnies(pays).catch(() => []);
@@ -6093,7 +6097,7 @@ async function ouvrirRecruterSection() {
     vides.forEach(v => {
       html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem">';
       html += '<span style="font-size:.85rem;color:#e0d5b8">' + v.section.id + ' (vide)</span>';
-      html += '<button onclick="doRecruterSection(\'' + v.compagnieId + '\',\'' + v.section.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Recompléter (' + COUT_SECTION.toLocaleString('fr-FR') + ' FR)</button>';
+      html += '<button onclick="doRecruterSection(\'' + v.compagnieId + '\',\'' + v.section.id + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Recompléter (' + COUT_SECTION.toLocaleString('fr-FR') + ' FR)</button>';
       html += '</div>';
     });
   }
@@ -6124,7 +6128,7 @@ async function doVoirMaSection() {
 }
 
 // ---- ENTRAINEMENT (comme le foot : pas de plafond, assiduite recompensee, 12/24 max par session) ----
-async function doEntrainerSection() {
+async function doEntrainerSection(pa, cost) {
   if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   const section = getSectionDuLieutenant(compagnie);
@@ -6135,18 +6139,20 @@ async function doEntrainerSection() {
   html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Choisissez la compétence à travailler. ' + CAP_ENTRAINEMENT_PAR_SESSION + ' soldats maximum par session (les moins entraînés dans cette compétence sont sélectionnés en priorité).</div>';
   ['force','endurance','tir'].forEach(stat => {
     const label = { force:'Force', endurance:'Endurance', tir:'Tir' }[stat];
-    html += '<button onclick="confirmerEntrainementSection(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + stat + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + label + '</button>';
+    html += '<button onclick="confirmerEntrainementSection(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + stat + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + label + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerEntrainementSection(compagnieId, sectionId, stat) {
+async function confirmerEntrainementSection(compagnieId, sectionId, stat, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const tries = [...section.soldats].sort((a, b) => a.formation[stat] - b.formation[stat]).slice(0, CAP_ENTRAINEMENT_PAR_SESSION);
   tries.forEach(s => { s.formation[stat] = Math.min(100, s.formation[stat] + 3); });
@@ -6156,7 +6162,7 @@ async function confirmerEntrainementSection(compagnieId, sectionId, stat) {
 }
 
 // ---- EQUIPEMENT INDIVIDUEL ----
-async function doEquiperSection() {
+async function doEquiperSection(pa, cost) {
   if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   const section = getSectionDuLieutenant(compagnie);
@@ -6168,18 +6174,20 @@ async function doEquiperSection() {
   html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">' + ici.length + ' soldats présents ici recevront cet équipement.</div>';
   const armes = [{id:'corps_a_corps',label:'Corps à corps (coef. 1)'},{id:'arme_de_poing',label:'Arme de poing (coef. 2,5)'},{id:'mitraillette',label:'Mitraillette (coef. 4)'}];
   armes.forEach(a => {
-    html += '<button onclick="confirmerEquipementSection(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + a.id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + a.label + '</button>';
+    html += '<button onclick="confirmerEquipementSection(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + a.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + a.label + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerEquipementSection(compagnieId, sectionId, arme) {
+async function confirmerEquipementSection(compagnieId, sectionId, arme, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const ici = section.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom);
   ici.forEach(s => { s.arme = arme; });
   await sbSaveCompagnie(compagnieId, compagnie);
@@ -6700,7 +6708,7 @@ async function verifierDesertionsQuotidien(pays) {
 }
 
 // ---- LE LIEUTENANT FAIT REMONTER SON RAPPORT DE RENSEIGNEMENT AU CAPITAINE ----
-async function ouvrirRemonterRenseignement() {
+async function ouvrirRemonterRenseignement(pa, cost) {
   if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
   const rapports = typeof sbGetRapportsRenseignementNonRemontes === 'function' ? await sbGetRapportsRenseignementNonRemontes(state.char?.name).catch(() => []) : [];
 
@@ -6712,7 +6720,7 @@ async function ouvrirRemonterRenseignement() {
     rapports.forEach(r => {
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.5rem">';
       html += '<div style="font-size:.82rem;color:#e0d5b8;margin-bottom:.4rem">Rapport sur ' + r.nomCible + '</div>';
-      html += '<button onclick="confirmerRemonteeRenseignement(\'' + r.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Transmettre à mon Capitaine</button>';
+      html += '<button onclick="confirmerRemonteeRenseignement(\'' + r.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Transmettre à mon Capitaine</button>';
       html += '</div>';
     });
   }
@@ -6721,11 +6729,13 @@ async function ouvrirRemonterRenseignement() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerRemonteeRenseignement(rapportId) {
+async function confirmerRemonteeRenseignement(rapportId, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   const capitaineNom = compagnie?.capitaineNom;
   if (!capitaineNom) { showToast('Aucun Capitaine en poste', 'Impossible de transmettre pour l\'instant.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const rows = await sbGet('rapports_renseignement', `id=eq.${encodeURIComponent(rapportId)}`).catch(() => []);
   const rapport = rows?.[0]?.data;
@@ -6823,7 +6833,7 @@ async function confirmerAffectationCompagnie(engagementId, pa, cost) {
 }
 
 // Le Capitaine installe un engage affecte a sa compagnie comme lieutenant d'une section
-async function ouvrirAffecterEngage() {
+async function ouvrirAffecterEngage(pa, cost) {
   if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
   const pays = state.country || 'republic';
   const engagements = await sbGetEngagementsPays(pays, 'attente_capitaine').catch(() => []);
@@ -6844,7 +6854,7 @@ async function ouvrirAffecterEngage() {
       html += '<select id="section-' + e.id + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;margin-bottom:.4rem">';
       sectionsVacantes.forEach(s => html += '<option value="' + s.id + '">' + s.id + '</option>');
       html += '</select>';
-      html += '<button onclick="confirmerAffectationSection(\'' + e.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer Lieutenant de cette section</button>';
+      html += '<button onclick="confirmerAffectationSection(\'' + e.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer Lieutenant de cette section</button>';
       html += '</div>';
     });
   }
@@ -6853,7 +6863,7 @@ async function ouvrirAffecterEngage() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerAffectationSection(engagementId) {
+async function confirmerAffectationSection(engagementId, pa, cost) {
   const sectionId = document.getElementById('section-' + engagementId)?.value;
   if (!sectionId) return;
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -6865,6 +6875,8 @@ async function confirmerAffectationSection(engagementId) {
   const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === engagement.compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   section.lieutenantNom = engagement.nom;
   await sbSaveCompagnie(engagement.compagnieId, compagnie);
   await sbMajEngagement(engagementId, 'affecte', {});
