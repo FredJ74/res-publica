@@ -2097,7 +2097,7 @@ function majTauxNegociationLive() {
   if (el) el.textContent = 'Chances de succès actuelles : ' + taux + '%';
 }
 
-function doNegocierSquatteurs() {
+function doNegocierSquatteurs(pa, cost) {
   const id = state.currentBuilding;
   // Revalidation a l'ouverture (bug remonte avant Phase L) : requiresSquatteurs n'etait lu par
   // aucun code, le bouton restait affiche/cliquable sans squatteur reel. terrainOrdreDisponible
@@ -2119,12 +2119,12 @@ function doNegocierSquatteurs() {
     '<input id="negoc-montant" type="number" min="' + minMontant + '" step="100" placeholder="Montant proposé..." oninput="majTauxNegociationLive()" ' +
     'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.4rem"/>' +
     '<div id="negoc-taux-live" style="font-size:.78rem;color:#C9A84C;font-weight:bold;margin-bottom:.6rem">Chances de succès actuelles : ' + calculerTauxNegociationSquatteurs(minMontant) + '%</div>' +
-    '<button onclick="confirmerNegociation()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Négocier</button>' +
+    '<button onclick="confirmerNegociation(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Négocier</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerNegociation() {
+async function confirmerNegociation(pa, cost) {
   const id = state.currentBuilding;
   // Revalidation au commit (bug remonte avant Phase L) : la modale peut avoir ete ouverte
   // avant que le squat ne disparaisse (police appelee, negociation menee ailleurs, etc.) --
@@ -2148,6 +2148,8 @@ function confirmerNegociation() {
     showToast('Fonds insuffisants', 'Vous n\'avez pas ' + montant + ' ' + cur + '.', false);
     return;
   }
+  const rNegoc = await deduireCoutOrdre({ pa, cost });
+  if (!rNegoc.ok) { showToast('PA insuffisants', '', false); return; }
 
   // La benediction ne se consomme qu'ici, a la resolution reelle -- pas dans
   // calculerTauxNegociationSquatteurs, appelee aussi par l'apercu en direct du modal (elle
@@ -2182,7 +2184,7 @@ const PLAFOND_PRET_COMPROMIS = 150000;
 // Ouvre une seule fenetre combinant les 3 clauses du compromis : acompte (obligatoire),
 // demande de pret (optionnelle), demande de permis (optionnelle). Tout est lance en un clic,
 // resolu de facon atomique a J+7 (voir resoudreCompromisExpires, cote cron).
-async function doSignerCompromis() {
+async function doSignerCompromis(pa, cost) {
   const id = state.currentBuilding;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
@@ -2222,7 +2224,7 @@ async function doSignerCompromis() {
   html += '</div>';
   html += '</div>';
 
-  html += '<button class="pnj-action-btn" onclick="doConfirmerCompromis()">Signer le compromis</button>';
+  html += '<button class="pnj-action-btn" onclick="doConfirmerCompromis(' + pa + ',' + cost + ')">Signer le compromis</button>';
   html += '</div>';
 
   document.getElementById('postes-modal-title').textContent = 'Compromis de vente';
@@ -2230,7 +2232,7 @@ async function doSignerCompromis() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function doConfirmerCompromis() {
+async function doConfirmerCompromis(pa, cost) {
   const id = state.currentBuilding;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
@@ -2244,6 +2246,8 @@ async function doConfirmerCompromis() {
     showToast('Montant invalide', 'Entre 1000 et ' + PLAFOND_PRET_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + '.', false);
     return;
   }
+  const rCompromis = await deduireCoutOrdre({ pa, cost });
+  if (!rCompromis.ok) { showToast('PA insuffisants', '', false); return; }
 
   const patch = {
     compromis: true,
@@ -2277,7 +2281,6 @@ async function doConfirmerCompromis() {
   const nouvelEtat = setTerrainState(id, patch);
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
 
-  state.arg -= ACOMPTE_COMPROMIS;
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
   addJournalEntry('Compromis de vente signé pour ' + ACOMPTE_COMPROMIS + ' ' + cur + '. Valable 7 jours.' + (demandePret ? ' Prêt demandé.' : '') + (demandePermis ? ' Permis demandé.' : ''), 'event-good');

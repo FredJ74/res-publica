@@ -2781,7 +2781,7 @@ async function traiterActeVente(candidat) {
 // joueurs se negocie hors mecanique automatique.
 // =====================
 
-async function doOuvrirTransfertCompromis() {
+async function doOuvrirTransfertCompromis(pa, cost) {
   const nom = state.char?.name;
   const candidats = [];
   for (const id of TERRAINS_LUTHECIA) {
@@ -2803,7 +2803,7 @@ async function doOuvrirTransfertCompromis() {
     html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">';
     html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.4rem">' + nomBatiment + ' — ' + joursRestants + ' jour(s) restant(s)</div>';
     html += '<input id="transfert-nom-' + c.id + '" type="text" placeholder="Nom du nouveau détenteur..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-size:.78rem;outline:none;margin-bottom:.4rem" />';
-    html += '<button class="pnj-action-btn" onclick="doInitierTransfertCompromis(\'' + c.id + '\')">Proposer le transfert</button>';
+    html += '<button class="pnj-action-btn" onclick="doInitierTransfertCompromis(\'' + c.id + '\',' + pa + ',' + cost + ')">Proposer le transfert</button>';
     html += '</div>';
   });
   html += '</div>';
@@ -2813,10 +2813,12 @@ async function doOuvrirTransfertCompromis() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function doInitierTransfertCompromis(id) {
+async function doInitierTransfertCompromis(id, pa, cost) {
   const destinataire = (document.getElementById('transfert-nom-' + id)?.value || '').trim();
   if (!destinataire) { showToast('Nom manquant', 'Indiquez le nom du nouveau détenteur.', false); return; }
   if (destinataire === state.char?.name) { showToast('Impossible', 'Vous ne pouvez pas vous transférer un compromis à vous-même.', false); return; }
+  const rTransfert = await deduireCoutOrdre({ pa, cost });
+  if (!rTransfert.ok) { showToast('PA insuffisants', '', false); return; }
 
   const ts = getTerrainState(id);
   const nouvelEtat = setTerrainState(id, { transfertPropose: destinataire, transfertProposePar: state.char?.name });
@@ -2831,7 +2833,7 @@ async function doInitierTransfertCompromis(id) {
   showToast('Transfert proposé', destinataire + ' doit se présenter chez le notaire pour valider.', true);
 }
 
-async function doValiderTransfertCompromis() {
+async function doValiderTransfertCompromis(pa, cost) {
   const nom = state.char?.name;
   const candidats = [];
   for (const id of TERRAINS_LUTHECIA) {
@@ -2850,7 +2852,7 @@ async function doValiderTransfertCompromis() {
     const nomBatiment = BUILDINGS[c.id]?.shortName || c.id;
     html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">';
     html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.4rem">' + nomBatiment + ' — proposé par ' + c.ts.transfertProposePar + '</div>';
-    html += '<button class="pnj-action-btn" onclick="doAccepterTransfertCompromis(\'' + c.id + '\')">Accepter le transfert</button>';
+    html += '<button class="pnj-action-btn" onclick="doAccepterTransfertCompromis(\'' + c.id + '\',' + pa + ',' + cost + ')">Accepter le transfert</button>';
     html += '</div>';
   });
   html += '</div>';
@@ -2860,7 +2862,10 @@ async function doValiderTransfertCompromis() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function doAccepterTransfertCompromis(id) {
+async function doAccepterTransfertCompromis(id, pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
   const ts = getTerrainState(id);
   const nouveauDetenteur = state.char?.name;
   const ancienDetenteur = ts.compromisPar;

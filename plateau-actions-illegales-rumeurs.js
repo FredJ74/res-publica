@@ -2127,7 +2127,7 @@ async function confirmerProduction(produitId) {
   doProduireArme();
 }
 
-async function doAcheterProduitStock() {
+async function doAcheterProduitStock(pa, cost) {
   const data = await chargerArmurerieLocale();
   if (!data) { showToast('Indisponible', '', false); return; }
 
@@ -2140,7 +2140,7 @@ async function doAcheterProduitStock() {
   disponibles.forEach(([id, q]) => {
     const r = RECETTES_PRODUCTION[id];
     const prix = data.parametres.prixVente[id] || 0;
-    html += '<button onclick="confirmerAchatStock(\'' + id + '\')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
+    html += '<button onclick="confirmerAchatStock(\'' + id + '\',' + pa + ',' + cost + ')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
     html += '<span>' + (r?.label||id) + ' (' + q + ' en stock)</span><span style="color:#C9A84C">' + prix + ' FR</span></button>';
   });
   html += '</div>';
@@ -2148,12 +2148,14 @@ async function doAcheterProduitStock() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerAchatStock(produitId) {
+async function confirmerAchatStock(produitId, pa, cost) {
   const data = await chargerArmurerieLocale();
   document.getElementById('modal-postes')?.classList.remove('open');
   const prix = data.parametres.prixVente[produitId] || 0;
   if ((data.stockProduits[produitId] || 0) <= 0) { showToast('Rupture de stock', '', false); return; }
   if (state.arg < prix) { showToast('Fonds insuffisants', '', false); return; }
+  const rStock = await deduireCoutOrdre({ pa, cost });
+  if (!rStock.ok) { showToast('PA insuffisants', '', false); return; }
 
   state.arg -= prix;
   data.stockProduits[produitId] -= 1;
@@ -2361,7 +2363,7 @@ async function confirmerSignerCompromisEntreprise(type) {
 // sur le modele exact de acte_vente_terrain/traiterActeVente (doActeVenteTerrain,
 // plateau-justice-economie.js).
 // =====================
-async function doActeRachatEntreprise() {
+async function doActeRachatEntreprise(pa, cost) {
   const nom = state.char?.name;
   const candidats = [];
   for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
@@ -2375,11 +2377,11 @@ async function doActeRachatEntreprise() {
     return;
   }
 
-  if (candidats.length === 1) { traiterActeRachatEntreprise(candidats[0]); return; }
+  if (candidats.length === 1) { traiterActeRachatEntreprise(candidats[0], pa, cost); return; }
 
   let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
   candidats.forEach((c, i) => {
-    html += '<div onclick="traiterActeRachatEntrepriseParIndex(' + i + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">' + c.def.label + '</div>';
+    html += '<div onclick="traiterActeRachatEntrepriseParIndex(' + i + ',' + pa + ',' + cost + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">' + c.def.label + '</div>';
   });
   html += '</div></div>';
   window._candidatsActeRachatEntreprise = candidats;
@@ -2388,11 +2390,11 @@ async function doActeRachatEntreprise() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function traiterActeRachatEntrepriseParIndex(i) {
-  traiterActeRachatEntreprise(window._candidatsActeRachatEntreprise[i]);
+function traiterActeRachatEntrepriseParIndex(i, pa, cost) {
+  traiterActeRachatEntreprise(window._candidatsActeRachatEntreprise[i], pa, cost);
 }
 
-async function traiterActeRachatEntreprise(candidat) {
+async function traiterActeRachatEntreprise(candidat, pa, cost) {
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   const def = candidat.def;
   const data = await def.charger(); // relecture fraiche, evite tout etat perime
@@ -2409,6 +2411,8 @@ async function traiterActeRachatEntreprise(candidat) {
     showToast('Fonds insuffisants', solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false);
     return;
   }
+  const rRachat = await deduireCoutOrdre({ pa, cost });
+  if (!rRachat.ok) { showToast('PA insuffisants', '', false); return; }
 
   state.arg -= solde;
   data.proprietaire = state.char?.name;
@@ -2538,7 +2542,7 @@ async function confirmerPreemption(type) {
 
 // Finalisation chez le Notaire (Bureau des Contrats), reservee au Ministre des Finances --
 // aucun paiement ici, deja couvert par le pret verse a la preemption.
-async function doActeRachatEntreprisePreemption() {
+async function doActeRachatEntreprisePreemption(pa, cost) {
   if (state.poste?.id !== 'min_fin') { showToast('Réservé au Ministre des Finances', '', false); return; }
   const candidats = [];
   for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
@@ -2552,11 +2556,11 @@ async function doActeRachatEntreprisePreemption() {
     return;
   }
 
-  if (candidats.length === 1) { traiterActeRachatEntreprisePreemption(candidats[0]); return; }
+  if (candidats.length === 1) { traiterActeRachatEntreprisePreemption(candidats[0], pa, cost); return; }
 
   let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
   candidats.forEach((c, i) => {
-    html += '<div onclick="traiterActeRachatEntreprisePreemptionParIndex(' + i + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">' + c.def.label + '</div>';
+    html += '<div onclick="traiterActeRachatEntreprisePreemptionParIndex(' + i + ',' + pa + ',' + cost + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">' + c.def.label + '</div>';
   });
   html += '</div></div>';
   window._candidatsActePreemption = candidats;
@@ -2565,17 +2569,19 @@ async function doActeRachatEntreprisePreemption() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function traiterActeRachatEntreprisePreemptionParIndex(i) {
-  traiterActeRachatEntreprisePreemption(window._candidatsActePreemption[i]);
+function traiterActeRachatEntreprisePreemptionParIndex(i, pa, cost) {
+  traiterActeRachatEntreprisePreemption(window._candidatsActePreemption[i], pa, cost);
 }
 
-async function traiterActeRachatEntreprisePreemption(candidat) {
+async function traiterActeRachatEntreprisePreemption(candidat, pa, cost) {
   const def = candidat.def;
   const data = await def.charger();
   if (!data || data.preemptionEtat !== 'attente_acte') {
     showToast('Préemption introuvable', 'Cette préemption n\'est plus valide (peut-être déjà officialisée).', false);
     return;
   }
+  const rPreemption = await deduireCoutOrdre({ pa, cost });
+  if (!rPreemption.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
   data.proprietaire = 'État (' + (COUNTRIES[pays]?.n || pays) + ')';
   delete data.preemptionEtat;
@@ -2686,10 +2692,11 @@ async function confirmerRecolte(matiere, pa, cost) {
   addJournalEntry('Récolte de ' + quantite + ' ' + matiere + '.', 'event-good');
 }
 
-async function doConsommerBuvette() {
+async function doConsommerBuvette(pa, cost) {
   const cout = 50;
   if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
-  state.arg -= cout;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.pop = Math.min(100, (state.pop || 0) + 2);
 
   if (typeof appliquerTaxeTransaction === 'function' && typeof crediterCaisseBatiment === 'function') {

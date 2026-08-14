@@ -68,7 +68,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'vendre_bois_imprimerie') { ouvrirVendreBoisImprimerie(pa, cost); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
-  if (fn === 'acheter_produit_stock') { doAcheterProduitStock(); return; }
+  if (fn === 'acheter_produit_stock') { doAcheterProduitStock(pa, cost); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(pa, cost); return; }
   if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(pa, cost); return; }
@@ -123,10 +123,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(pa, cost); return; }
   if (fn === 'demander_divorce') { doDemanderDivorce(pa, cost); return; }
   if (fn === 'acte_vente_terrain') { doActeVenteTerrain(); return; }
-  if (fn === 'acte_rachat_entreprise') { doActeRachatEntreprise(); return; }
+  if (fn === 'acte_rachat_entreprise') { doActeRachatEntreprise(pa, cost); return; }
   if (fn === 'corrompre_rdv_notaire') { doCorrompreRdvNotaire(pa, cost); return; }
-  if (fn === 'transferer_compromis') { doOuvrirTransfertCompromis(); return; }
-  if (fn === 'valider_transfert_compromis') { doValiderTransfertCompromis(); return; }
+  if (fn === 'transferer_compromis') { doOuvrirTransfertCompromis(pa, cost); return; }
+  if (fn === 'valider_transfert_compromis') { doValiderTransfertCompromis(pa, cost); return; }
   if (fn === 'payer_versement_chantier') { doPayerVersementChantier(); return; }
   if (fn === 'corrompre_chantier') { doCorrompreChantier(pa, cost); return; }
   if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(pa, cost); return; }
@@ -178,7 +178,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
   if (fn === 'etat_nation')             { ouvrirEtatNation(); return; }
   if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocauxReel(pa, cost); return; }
-  if (fn === 'consommer_buvette') { doConsommerBuvette(); return; }
+  if (fn === 'consommer_buvette') { doConsommerBuvette(pa, cost); return; }
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne', pa, cost); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
@@ -193,8 +193,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'expulsion_legale')         { doExpulsionLegale(); return; }
   if (fn === 'appeler_police_terrain')  { doAppelerPoliceTerrain(); return; }
   if (fn === 'faire_disparaitre_cadavre') { doFaireDisparaitreCadavre(pa, cost); return; }
-  if (fn === 'negocier_squatteurs')     { doNegocierSquatteurs(); return; }
-  if (fn === 'signer_compromis')        { doSignerCompromis(); return; }
+  if (fn === 'negocier_squatteurs')     { doNegocierSquatteurs(pa, cost); return; }
+  if (fn === 'signer_compromis')        { doSignerCompromis(pa, cost); return; }
   if (fn === 'acheter_terrain')         { doAcheterTerrain(); return; }
   if (fn === 'racheter_terrain')        { doRacheterTerrain(pa, cost); return; }
   if (fn === 'decret_inutile')         { signerDecretInutile(); return; }
@@ -374,7 +374,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'allegement_fiscal')       { doAllegementFiscalIndisponible(); return; }
   if (fn === 'preempter_entreprise')    { ouvrirPreemptionEntreprise(); return; }
   if (fn === 'stage_caserne')           { doStageCaserne(pa, cost); return; }
-  if (fn === 'acte_rachat_entreprise_preemption') { doActeRachatEntreprisePreemption(); return; }
+  if (fn === 'acte_rachat_entreprise_preemption') { doActeRachatEntreprisePreemption(pa, cost); return; }
   if (fn === 'interdire_manif')         { ouvrirInterdireManif(pa, cost); return; }
   if (fn === 'reprimer_manif')          { ouvrirReprimerManif(pa, cost); return; }
   if (fn === 'annuler_poursuites_cible'){ ouvrirModalAffaires('annuler', pa, cost); return; }
