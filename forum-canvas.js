@@ -472,6 +472,8 @@ function rpCanvasAttachZoneToolbar(toolbar, editor) {
   addSep();
   rpCanvasAttachLinkButton(toolbar, editor);
   rpCanvasAttachSpoilerButton(toolbar, editor);
+  addSep();
+  rpCanvasAttachEmojiButton(toolbar, editor);
 }
 
 // Lien (Lot D5, corrigé D6-fix) : demande l'URL par window.prompt, même mécanisme déjà
@@ -606,6 +608,87 @@ function rpCanvasAttachSpoilerButton(toolbar, editor) {
     // Limitation connue et consignée, pas une régression silencieuse.
     editor.chain().focus().setDetails().run();
   });
+  toolbar.appendChild(btn);
+}
+
+// Smileys (Lot D7) : réutilise directement EMOJI_CATS (défini dans forum.js, chargé dans
+// le même contexte global classique -- forum-canvas.js et forum.js ne sont pas des modules,
+// donc les déclarations de haut niveau de l'un sont visibles dans l'autre, exactement comme
+// showToast() déjà référencé plus haut) -- aucun contenu nouveau, conforme au plan. Insertion
+// via editor.chain().insertContent(...), l'équivalent Tiptap de document.execCommand
+// ('insertText'/'insertHTML') utilisé par l'éditeur contenteditable existant
+// (richInsertEmoji/richInsertSep dans forum.js) ; insertContent() délègue en interne à
+// insertContentAt() sur la sélection courante (vérifié dans le code source réel de
+// @tiptap/core), donc un emoji tapé sur une sélection existante la remplace, comme n'importe
+// quelle frappe normale.
+// Simplification volontaire, périmètre strictement D7 : les entrées "séparateur" (chaînes de
+// plus de 4 caractères, même critère de longueur que l'existant) sont insérées comme texte
+// brut, sans l'habillage visuel centré du <div> que l'éditeur existant leur applique --
+// reproduire cet habillage demanderait soit une extension Tiptap TextAlign absente du
+// périmètre, soit d'injecter du HTML brut hors du modèle de noeuds Tiptap. Non traité ici,
+// à reconsidérer si demandé séparément.
+// Panneau propre à chaque zone (pas d'ID global partagé comme #emoji-grid dans l'éditeur
+// existant, où une seule instance existe à la fois) : plusieurs zones peuvent avoir leur
+// panneau ouvert simultanément sans collision.
+function rpCanvasAttachEmojiButton(toolbar, editor) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = '😊';
+  btn.title = 'Emojis & symboles';
+  btn.addEventListener('mousedown', (e) => e.preventDefault());
+
+  let panel = null;
+  function closePanel() { if (panel) { panel.remove(); panel = null; } }
+
+  function renderGrid(grid, cat) {
+    grid.innerHTML = '';
+    EMOJI_CATS[cat].forEach((entry) => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.textContent = entry;
+      item.className = entry.length > 4 ? 'rp-emoji-sep' : 'rp-emoji-glyph';
+      item.addEventListener('mousedown', (e) => e.preventDefault());
+      item.addEventListener('click', () => {
+        editor.chain().focus().insertContent(entry).run();
+        closePanel();
+      });
+      grid.appendChild(item);
+    });
+  }
+
+  btn.addEventListener('click', () => {
+    if (panel) { closePanel(); return; }
+    panel = document.createElement('div');
+    panel.className = 'rp-emoji-panel';
+    panel.contentEditable = 'false';
+
+    const cats = document.createElement('div');
+    cats.className = 'rp-emoji-cats';
+    panel.appendChild(cats);
+
+    const grid = document.createElement('div');
+    grid.className = 'rp-emoji-grid';
+    panel.appendChild(grid);
+
+    const catNames = Object.keys(EMOJI_CATS);
+    catNames.forEach((cat, i) => {
+      const catBtn = document.createElement('button');
+      catBtn.type = 'button';
+      catBtn.textContent = cat;
+      catBtn.className = 'rp-emoji-cat-btn' + (i === 0 ? ' is-active' : '');
+      catBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      catBtn.addEventListener('click', () => {
+        cats.querySelectorAll('.rp-emoji-cat-btn').forEach((b) => b.classList.remove('is-active'));
+        catBtn.classList.add('is-active');
+        renderGrid(grid, cat);
+      });
+      cats.appendChild(catBtn);
+    });
+
+    renderGrid(grid, catNames[0]);
+    toolbar.appendChild(panel);
+  });
+
   toolbar.appendChild(btn);
 }
 

@@ -666,6 +666,19 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .rp-zone-content div[data-type="details"] summary{display:block;padding:.4em .8em 0;font-style:italic;color:#555}
 .rp-zone-content div[data-type="detailsContent"]{padding:.2em .8em .6em}
 
+/* Smileys (Lot D7) — panneau propre à chaque zone, même palette visuelle que le panneau de
+   couleurs (Lot D3) pour rester cohérent avec le reste de la barre d'outils. */
+.rp-emoji-panel{position:absolute;top:100%;left:0;z-index:20;width:220px;background:#fff;border:1px solid #ccc;padding:.4rem;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.rp-emoji-cats{display:flex;flex-wrap:wrap;gap:.2rem;margin-bottom:.35rem;padding-bottom:.35rem;border-bottom:1px solid #e5e5e5}
+.rp-emoji-cat-btn{font-size:.62rem;padding:.15rem .4rem;border:1px solid #ccc;background:#fff;color:#666;cursor:pointer;border-radius:2px}
+.rp-emoji-cat-btn:hover{border-color:#3a7fd8}
+.rp-emoji-cat-btn.is-active{color:#3a7fd8;border-color:#3a7fd8}
+.rp-emoji-grid{display:flex;flex-wrap:wrap;gap:.2rem}
+.rp-emoji-grid button{border:none;background:transparent;cursor:pointer;padding:.1rem .25rem;border-radius:2px}
+.rp-emoji-grid button:hover{background:#eaf1fc}
+.rp-emoji-grid button.rp-emoji-glyph{font-size:1.1rem}
+.rp-emoji-grid button.rp-emoji-sep{font-size:.62rem;color:#666;border:1px solid #ccc;padding:.2rem .4rem;white-space:nowrap}
+
 .rp-zone-content{padding:.5rem .7rem;font-family:Georgia,serif;font-size:.9rem;line-height:1.6;color:#222;min-height:2.4em}
 .rp-zone-content .ProseMirror{outline:none}
 .rp-zone-content p{margin:0 0 .7em}
