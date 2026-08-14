@@ -1873,7 +1873,7 @@ async function ouvrirOrganigramme() {
 // =====================
 // FORUM NATIONAL SOUS-FORUM PRESIDENT
 // =====================
-function ouvrirForumNationalSousForumPresident(type) {
+function ouvrirForumNationalSousForumPresident(type, pa, cost) {
   // Ouvre le forum en vue centrale sur le sous-forum presidentiel
   document.querySelectorAll('.vue').forEach(v => v.classList.remove('active'));
   document.getElementById('vue-forum').classList.add('active');
@@ -1933,12 +1933,12 @@ function ouvrirForumNationalSousForumPresident(type) {
     html += '<textarea id="pres-msg-contenu" rows="6" placeholder="Rédigez votre message officiel..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.6rem"></textarea>';
   }
 
-  html += '<button onclick="publierMessagePresidentiel(\'' + type + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier</button>';
+  html += '<button onclick="publierMessagePresidentiel(\'' + type + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier</button>';
   html += '</div></div>';
   body.innerHTML = html;
 }
 
-async function publierMessagePresidentiel(type) {
+async function publierMessagePresidentiel(type, pa, cost) {
   const effets = {
     conference: { pop:15, inf:10, is:5 },
     annonce:    { pop:5,  inf:5,  is:2 },
@@ -1960,6 +1960,8 @@ async function publierMessagePresidentiel(type) {
     const rep3 = document.getElementById('pres-ref-rep3')?.value?.trim();
     const duree = parseInt(document.getElementById('pres-ref-duree')?.value || '5');
     if (!titre || !rep1 || !rep2) { showToast('Champs requis', 'Question et au moins 2 réponses.', false); return; }
+    const rRef = await deduireCoutOrdre({ pa, cost });
+    if (!rRef.ok) { showToast('PA insuffisants', '', false); return; }
     const reponses = [rep1, rep2, ...(rep3 ? [rep3] : [])].map(r => ({ label: r, voix: 0 }));
     if (!state.referendums) state.referendums = [];
     state.referendums.push({ question: titre, reponses, jourFin: state.day + duree, clos: false });
@@ -1968,6 +1970,8 @@ async function publierMessagePresidentiel(type) {
     titre = document.getElementById('pres-msg-titre')?.value?.trim();
     contenu = document.getElementById('pres-msg-contenu')?.value?.trim();
     if (!titre || !contenu) { showToast('Champs requis', 'Titre et contenu obligatoires.', false); return; }
+    const rMsg = await deduireCoutOrdre({ pa, cost });
+    if (!rMsg.ok) { showToast('PA insuffisants', '', false); return; }
   }
 
   const titrePrefixe = '[' + (type === 'referendum' ? 'RÉFÉRENDUM' : type.toUpperCase()) + '] ' + titre;
@@ -2058,7 +2062,7 @@ function confirmerGuerreEmpire(empireId, empireName) {
 // =====================
 // DEPOSER UN PROJET DE LOI
 // =====================
-function ouvrirDeposerProjet() {
+function ouvrirDeposerProjet(pa, cost) {
   // Verifier que le PJ est depute
   const posteId = state.poste?.id;
   const estDepute = posteId && (posteId.startsWith('depute') || posteId === 'depute_1' || posteId === 'depute_2');
@@ -2087,16 +2091,18 @@ function ouvrirDeposerProjet() {
   html += '<textarea id="projet-contenu" rows="6" placeholder="Décrivez votre projet, ses objectifs et ses impacts attendus..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.6rem"></textarea>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">IMPACT SOUHAITÉ</div>';
   html += '<input id="projet-impact" type="text" placeholder="Ex: +10 IE, -5 IS, augmentation budget commissariat..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;margin-bottom:.8rem"/>';
-  html += '<button onclick="soumettreProjetLoi()" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Soumettre le projet</button>';
+  html += '<button onclick="soumettreProjetLoi(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Soumettre le projet</button>';
   html += '</div></div>';
   body.innerHTML = html;
 }
 
-function soumettreProjetLoi() {
+async function soumettreProjetLoi(pa, cost) {
   const titre = document.getElementById('projet-titre')?.value?.trim();
   const contenu = document.getElementById('projet-contenu')?.value?.trim();
   const impact = document.getElementById('projet-impact')?.value?.trim();
   if (!titre || !contenu) { showToast('Champs requis', 'Titre et exposé obligatoires.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const jourDepot = state.day;
   const jourVoteMin = jourDepot + 5;
@@ -2196,7 +2202,7 @@ async function observerDebats(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function ouvrirVoteLoi() {
+function ouvrirVoteLoi(pa, cost) {
   const loisEnCours = (state.loisEnCours || []).filter(l => Date.now() < l.dateCloture);
 
   document.getElementById('postes-modal-title').textContent = 'Voter une loi';
@@ -2216,7 +2222,7 @@ function ouvrirVoteLoi() {
         html += '<div style="display:flex;gap:.5rem">';
         ['Pour', 'Contre', 'Abstention'].forEach(choix => {
           const col = choix === 'Pour' ? '#4a8a4a' : choix === 'Contre' ? '#8a2020' : '#6a6040';
-          html += '<button onclick="enregistrerVoteLoi(' + i + ',\'' + choix + '\')" style="flex:1;padding:.4rem;border:1px solid ' + col + ';background:transparent;color:' + col + ';cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">' + choix + '</button>';
+          html += '<button onclick="enregistrerVoteLoi(' + i + ',\'' + choix + '\',' + pa + ',' + cost + ')" style="flex:1;padding:.4rem;border:1px solid ' + col + ';background:transparent;color:' + col + ';cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">' + choix + '</button>';
         });
         html += '</div>';
       }
@@ -2228,9 +2234,11 @@ function ouvrirVoteLoi() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function enregistrerVoteLoi(loiIdx, choix) {
+async function enregistrerVoteLoi(loiIdx, choix, pa, cost) {
   const loi = (state.loisEnCours || []).filter(l => Date.now() < l.dateCloture)[loiIdx];
   if (!loi) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   if (!state.votesLois) state.votesLois = {};
   state.votesLois[loi.id] = choix;
   if (!loi.votes) loi.votes = [];
@@ -4907,7 +4915,7 @@ async function verifierEffetsManifestationsEcoulees(pays) {
   }
 }
 
-async function doDementiOfficiel() {
+async function doDementiOfficiel(pa, cost) {
   const postesAutorisesDementi = ['president', 'pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
   if (!postesAutorisesDementi.includes(state.poste?.id)) { showToast('Réservé au gouvernement', 'Seuls le président et les membres du gouvernement peuvent démentir officiellement.', false); return; }
 
@@ -4944,7 +4952,7 @@ async function doDementiOfficiel() {
       html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.5rem">';
       html += '<div style="font-size:.78rem;color:#c0b090">Concernant <b>' + r.cible + '</b></div>';
       html += '<div style="font-size:.72rem;color:#8a8060;font-style:italic;margin:.3rem 0">« ' + r.contenu.substring(0, 100) + (r.contenu.length > 100 ? '…' : '') + ' »</div>';
-      html += '<button onclick="confirmerDementi(\'' + r.id + '\',\'' + r.cible + '\',' + (r.popPerdu||15) + ')" style="width:100%;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem">Démentir cette rumeur</button>';
+      html += '<button onclick="confirmerDementi(\'' + r.id + '\',\'' + r.cible + '\',' + (r.popPerdu||15) + ',' + pa + ',' + cost + ')" style="width:100%;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem">Démentir cette rumeur</button>';
       html += '</div>';
     });
   }
@@ -4952,8 +4960,10 @@ async function doDementiOfficiel() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function confirmerDementi(rumeurId, cible, popPerdu) {
+async function confirmerDementi(rumeurId, cible, popPerdu, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const roll = Math.floor(Math.random() * 100) + 1;
   const taux = 80; // successRate declare sur l'ordre
 
@@ -5437,7 +5447,7 @@ const NB_SECTIONS_COMPAGNIE = 4; // 100 hommes par compagnie
 const COUT_COMPAGNIE = 20000; // preleve sur la caisse de la caserne
 
 // ---- GUERRE PARTAGEE ----
-async function ouvrirModalGuerreEmpire() {
+async function ouvrirModalGuerreEmpire(pa, cost) {
   const pays = state.country || 'republic';
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== pays);
   document.getElementById('postes-modal-title').textContent = 'Déclarer la guerre';
@@ -5454,7 +5464,7 @@ async function ouvrirModalGuerreEmpire() {
     html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#e0d5b8">' + co.n + '</div>';
     html += '<div style="font-size:.7rem;color:' + (guerre ? '#cc4444' : '#a89870') + '">' + (guerre ? 'En guerre depuis Jour ' + guerre.jourDebut : 'En paix') + '</div></div>';
     if (!guerre) {
-      html += '<button onclick="confirmerGuerreEmpire(\'' + k + '\',\'' + co.n + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Déclarer</button>';
+      html += '<button onclick="confirmerGuerreEmpire(\'' + k + '\',\'' + co.n + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Déclarer</button>';
     }
     html += '</div>';
   });
@@ -5462,8 +5472,10 @@ async function ouvrirModalGuerreEmpire() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function confirmerGuerreEmpire(empireId, empireName) {
+async function confirmerGuerreEmpire(empireId, empireName, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
   await sbCreerGuerre({ attaquant: pays, attaque: empireId, jourDebut: state.day || 1, ceasefire: null });
   state.pop = Math.max(0, (state.pop||0) - 20);
