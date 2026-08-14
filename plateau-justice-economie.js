@@ -1270,8 +1270,39 @@ async function doSeRebeller(pa, cost) {
   }
 }
 
-function doVisiterPrisonnier() {
-  ouvrirModalCibleRepertoire('visiter_prisonnier', 'Rendre visite a un detenu');
+async function ouvrirVisiterPrisonnier(pa, cost) {
+  const pays = state.country || 'republic';
+  document.getElementById('postes-modal-title').textContent = 'Visiter un détenu';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const prisonniers = await sbGetPrisonniersQHS(pays).catch(() => []);
+  let html = '<div style="padding:1rem">';
+  if (prisonniers.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun détenu au QHS actuellement.</div>';
+  } else {
+    html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir un détenu à visiter :</div>';
+    prisonniers.forEach(p => {
+      html += '<div onclick="confirmerVisitePrisonnier(\'' + p.id + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem;cursor:pointer">';
+      html += p.photoUrl ? '<img src="' + p.photoUrl + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #4a3a1a"/>' : '<div style="width:36px;height:36px;border-radius:50%;background:#1a1610;display:flex;align-items:center;justify-content:center"><i class="ti ti-user" style="color:#5a5040"></i></div>';
+      html += '<div><div style="font-size:.85rem;color:#e0d5b8">' + p.nom + '</div><div style="font-size:.7rem;color:#a89870">' + p.raison + '</div></div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerVisitePrisonnier(prisonnierId, pa, cost) {
+  const rows = await sbGet('prisonniers_qhs', `id=eq.${encodeURIComponent(prisonnierId)}`).catch(() => []);
+  const row = rows?.[0];
+  if (!row || row.statut !== 'detenu') { showToast('Détenu introuvable', 'Ce détenu n\'est plus détenu au QHS.', false); return; }
+  const p = row.data;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Visite effectuée', 'Vous avez rendu visite à ' + p.nom + ' au QHS.', true, true);
+  addJournalEntry('Visite à ' + p.nom + ' au QHS.', 'event-info');
 }
 
 function getBudgetInstitution(inst) {

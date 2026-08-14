@@ -293,7 +293,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'requete_avocat') { doRequeteAvocat(); return; }
   if (fn === 'greve_faim') { doGreveFaim(); return; }
   if (fn === 'tentative_evasion') { doTentativeEvasion(pa, cost); return; }
-  if (fn === 'visiter_prisonnier') { doVisiterPrisonnier(); return; }
+  if (fn === 'visiter_prisonnier') { ouvrirVisiterPrisonnier(pa, cost); return; }
   if (fn === 'se_renseigner') { doSeRenseigner(); return; }
   if (fn === 'reserver') { doReserver(); return; }
   if (fn === 'interview') { doInterview(); return; }
