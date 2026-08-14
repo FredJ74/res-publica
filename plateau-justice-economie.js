@@ -1394,7 +1394,7 @@ async function delivrerActe(acteId, pa, cost) {
   addJournalEntry('Acte officiel délivré : ' + acte.name, 'event-info');
 }
 
-function ouvrirContesterResultats() {
+function ouvrirContesterResultats(pa, cost) {
   const elections = state.electionsEnCours?.filter(e => e.phase === 'termine') || [];
   document.getElementById('postes-modal-title').textContent = 'Contester des résultats';
   let html = '<div style="padding:1rem">';
@@ -1407,7 +1407,7 @@ function ouvrirContesterResultats() {
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + e.nom + '</div>';
       html += '<div style="font-size:.7rem;color:#5a4030">Élu : ' + (e.resultat?.elu || 'N/A') + '</div>';
       html += '<textarea id="motif-contestation-' + i + '" rows="3" placeholder="Motif de la contestation..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;resize:none;margin:.4rem 0"></textarea>';
-      html += '<button onclick="soumettreConte(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Contester</button>';
+      html += '<button onclick="soumettreConte(' + i + ',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Contester</button>';
       html += '</div>';
     });
   }
@@ -1416,10 +1416,12 @@ function ouvrirContesterResultats() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function soumettreConte(idx) {
+async function soumettreConte(idx, pa, cost) {
   const e = (state.electionsEnCours||[]).filter(el => el.phase === 'termine')[idx];
   const motif = document.getElementById('motif-contestation-' + idx)?.value?.trim();
   if (!motif) { showToast('Motif requis', '', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const forumKey = 'tribunal_' + state.currentCity;

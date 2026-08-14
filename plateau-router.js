@@ -162,8 +162,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
   if (fn === 'assassiner') { showToast('Cliquez sur la cible', 'Pour assassiner, cliquez sur le personnage cible dans la liste des personnes presentes.', false); return; }
   if (fn === 'consulter_elections') { ouvrirTableauElectoral(); return; }
-  if (fn === 'creer_poste_ministre')    { creerPosteMinistre(); return; }
-  if (fn === 'creer_comite')            { creerComite(); return; }
+  if (fn === 'creer_poste_ministre')    { creerPosteMinistre(pa, cost); return; }
+  if (fn === 'creer_comite')            { creerComite(pa, cost); return; }
   if (fn === 'supprimer_poste_custom')  { supprimerPosteCustom(); return; }
   if (fn === 'nommer_ministre')         { ouvrirModalNommerPM(); return; }
   if (fn === 'revoquer_pm')             { ouvrirModalRevoquerPM(pa, cost); return; }
@@ -245,7 +245,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_indices_locaux'){ doConsulterIndicesLocaux(); return; }
   if (fn === 'campagne_securite')      { doCampagneSecurite(); return; }
   if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(pa, cost); return; }
-  if (fn === 'contester_resultats')    { ouvrirContesterResultats(); return; }
+  if (fn === 'contester_resultats')    { ouvrirContesterResultats(pa, cost); return; }
   if (fn === 'calendrier_elections')   { ouvrirCalendrierElectoral(); return; }
   if (fn === 'observer_debats')         { observerDebats(pa, cost); return; }
   if (fn === 'consulter_annuaire_deputes') { consulterAnnuaireDeputes(); return; }
@@ -271,7 +271,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(pa, cost); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
-  if (fn === 'proposer_treve')        { ouvrirProposerTreve(); return; }
+  if (fn === 'proposer_treve')        { ouvrirProposerTreve(pa, cost); return; }
   if (fn === 'prier')                { doPrier(pa, cost); return; }
   if (fn === 'se_confesser')         { doSeConfeser(pa, cost); return; }
   if (fn === 'faire_don')            { doFaireDon(cost); return; }
@@ -282,7 +282,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_confessions'){ doConsulterConfessions(pa, cost); return; }
   if (fn === 'acheter_relique')      { doAcheterRelique(pa, cost); return; }
   if (fn === 'scanner_aleatoire')    { declencherScandale(); return; }
-  if (fn === 'accord_diplomatique')  { ouvrirModalNegociationDiplomatique(); return; }
+  if (fn === 'accord_diplomatique')  { ouvrirModalNegociationDiplomatique(pa, cost); return; }
   if (fn === 'produire_fuite')       { ouvrirProduireFuite(); return; }
   if (fn === 'fabriquer_scandale')   { ouvrirFabrquerScandale(); return; }
   if (fn === 'etat_nation')          { ouvrirEtatNation(); return; }
@@ -317,14 +317,14 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }
   if (fn === 'financer_communal') { ouvrirModalFinancerCommunal(pa, cost); return; }
   if (fn === 'revoquer_commissaire') { ouvrirModalRevoquerCommissaire(pa, cost); return; }
-  if (fn === 'gerer_candidatures_directeurs') { ouvrirGestionCandidatures(['directeur_pharma','directeur_tabac_alcools','directeur_raffinerie']); return; }
-  if (fn === 'gerer_candidature_commandant') { ouvrirGestionCandidatures(['commandant']); return; }
-  if (fn === 'gerer_candidature_directeur_entrepot') { ouvrirGestionCandidatures(['directeur_entrepot']); return; }
-  if (fn === 'gerer_candidature_maire_adjoint') { ouvrirGestionCandidatures(['maire_adjoint']); return; }
+  if (fn === 'gerer_candidatures_directeurs') { ouvrirGestionCandidatures(['directeur_pharma','directeur_tabac_alcools','directeur_raffinerie'], pa, cost); return; }
+  if (fn === 'gerer_candidature_commandant') { ouvrirGestionCandidatures(['commandant'], pa, cost); return; }
+  if (fn === 'gerer_candidature_directeur_entrepot') { ouvrirGestionCandidatures(['directeur_entrepot'], pa, cost); return; }
+  if (fn === 'gerer_candidature_maire_adjoint') { ouvrirGestionCandidatures(['maire_adjoint'], pa, cost); return; }
   if (fn === 'revoquer_directeur_entrepot') { ouvrirModalRevoquerDirecteurEntrepot(pa, cost); return; }
   if (fn === 'censurer_media') { ouvrirModalMedia(pa, cost); return; }
   if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
-  if (fn === 'activer_cessez_le_feu') { ouvrirActiverCessezLeFeu(); return; }
+  if (fn === 'activer_cessez_le_feu') { ouvrirActiverCessezLeFeu(pa, cost); return; }
   if (fn === 'nommer_commandant') { ouvrirNommerCommandant(pa, cost); return; }
   if (fn === 'recruter_compagnie') { doRecruterCompagnie(); return; }
   if (fn === 'nommer_capitaine') { ouvrirNommerCapitaine(pa, cost); return; }
@@ -345,10 +345,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'se_presenter_affectation') { doSePresenterAffectation(pa, cost); return; }
   if (fn === 'consulter_faits_armes') { ouvrirConsulterFaitsArmes(); return; }
   if (fn === 'gerer_budget_caserne') { ouvrirGererBudgetMilitaire(); return; }
-  if (fn === 'signer_traite') { ouvrirModalTraite(); return; }
+  if (fn === 'signer_traite') { ouvrirModalTraite(pa, cost); return; }
   if (fn === 'ouvrir_ambassade') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans', pa, cost); return; }
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
-  if (fn === 'reponses_diplomatiques') { ouvrirReponsesDiplomatiques(); return; }
+  if (fn === 'reponses_diplomatiques') { ouvrirReponsesDiplomatiques(pa, cost); return; }
   if (fn === 'subvention') { ouvrirChoixTypeCibleFiscale('subvention', 'Accorder une subvention à'); return; }
   if (fn === 'redressement_fiscal') { ouvrirChoixTypeCibleFiscale('redressement_fiscal', 'Redressement fiscal contre'); return; }
   if (fn === 'fixer_impots_nationaux') { ouvrirFixerImpotNational(pa, cost); return; }

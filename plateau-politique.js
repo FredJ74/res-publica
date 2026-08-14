@@ -2783,7 +2783,7 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
 // au poste de X' des qu'un PJ postule aupres d'une autorite PJ) -- cette fenetre se contente de
 // regrouper ces mails par poste plutot que de forcer un traitement mail par mail.
 // =====================
-async function ouvrirGestionCandidatures(posteIds) {
+async function ouvrirGestionCandidatures(posteIds, pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Gestion des candidatures';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -2814,7 +2814,7 @@ async function ouvrirGestionCandidatures(posteIds) {
         html += '<div style="padding:.6rem 1rem;border-bottom:1px solid #1a1810;display:flex;justify-content:space-between;align-items:center">';
         html += '<span style="font-size:.85rem;color:#c0b090">' + m.from_player + '</span>';
         html += '<div style="display:flex;gap:.4rem">';
-        html += '<button onclick="nommerDepuisCandidature(\'' + posteId + '\',\'' + labelSafe + '\',\'' + nomSafe + '\',\'' + m.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer</button>';
+        html += '<button onclick="nommerDepuisCandidature(\'' + posteId + '\',\'' + labelSafe + '\',\'' + nomSafe + '\',\'' + m.id + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer</button>';
         html += '<button onclick="convoquerCandidatEntretien(\'' + labelSafe + '\',\'' + nomSafe + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Convoquer à un entretien</button>';
         html += '</div></div>';
       });
@@ -2824,8 +2824,10 @@ async function ouvrirGestionCandidatures(posteIds) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function nommerDepuisCandidature(posteId, posteName, candidatNom, mailId) {
+async function nommerDepuisCandidature(posteId, posteName, candidatNom, mailId, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   await accepterCandidaturePoste(posteId, posteName, candidatNom);
   if (typeof sbDeleteMail === 'function' && mailId) await sbDeleteMail(mailId).catch(() => {});
 }
@@ -3267,10 +3269,12 @@ const DIPLOMATIE_CONFIG = {
   }
 };
 
-async function proposerDiplomatie(type, empireCibleId, empireCibleName, details) {
+async function proposerDiplomatie(type, empireCibleId, empireCibleName, details, pa, cost) {
   const pays = state.country || 'republic';
   const config = DIPLOMATIE_CONFIG[type];
   if (!config) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const proposeur = state.char?.name || 'Le Ministre';
   const empireProposeurNom = COUNTRIES[pays]?.n || pays;
@@ -3313,7 +3317,7 @@ async function proposerDiplomatie(type, empireCibleId, empireCibleName, details)
   addJournalEntry(config.label + ' proposé(e) à ' + empireCibleName + '.', 'event-info');
 }
 
-async function ouvrirReponsesDiplomatiques() {
+async function ouvrirReponsesDiplomatiques(pa, cost) {
   if (state.poste?.id !== 'min_ae') { showToast('Réservé au Ministre des Affaires Étrangères', '', false); return; }
   const pays = state.country || 'republic';
   document.getElementById('postes-modal-title').textContent = 'Propositions diplomatiques';
@@ -3333,8 +3337,8 @@ async function ouvrirReponsesDiplomatiques() {
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">' + config.label + ' — ' + p.empireProposeurNom + '</div>';
       if (p.details) html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.5rem">' + p.details + '</div>';
       html += '<div style="display:flex;gap:.4rem">';
-      html += '<button onclick="repondreDiplomatie(&quot;' + p.id + '&quot;,true)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Accepter</button>';
-      html += '<button onclick="repondreDiplomatie(&quot;' + p.id + '&quot;,false)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Refuser</button>';
+      html += '<button onclick="repondreDiplomatie(&quot;' + p.id + '&quot;,true,' + pa + ',' + cost + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Accepter</button>';
+      html += '<button onclick="repondreDiplomatie(&quot;' + p.id + '&quot;,false,' + pa + ',' + cost + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Refuser</button>';
       html += '</div></div>';
     });
   }
@@ -3342,11 +3346,13 @@ async function ouvrirReponsesDiplomatiques() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function repondreDiplomatie(propositionId, accepte) {
+async function repondreDiplomatie(propositionId, accepte, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const rows = typeof sbGet === 'function' ? await sbGet('propositions_diplomatiques', `id=eq.${encodeURIComponent(propositionId)}`).catch(() => []) : [];
   const p = rows?.[0]?.data;
   if (!p) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const config = DIPLOMATIE_CONFIG[p.type] || { gainAccepte: 0, perteRefus: 0, label: p.type };
 
   if (typeof sbMajPropositionDiplomatique === 'function') {
@@ -3382,13 +3388,13 @@ async function repondreDiplomatie(propositionId, accepte) {
 // Ouvre le choix d'empire pour les negociations diplomatiques — propose via la file d'attente
 // generique (proposerDiplomatie) au lieu de passer par executerOrdreEmpire (qui ne faisait rien
 // de reel pour cette action).
-function ouvrirModalNegociationDiplomatique() {
+function ouvrirModalNegociationDiplomatique(pa, cost) {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
   document.getElementById('postes-modal-title').textContent = 'Ouvrir des négociations avec';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir un empire cible :</div>';
   empires.forEach(([k, co]) => {
-    html += '<button onclick="proposerDiplomatie(&quot;negociation&quot;,&quot;' + k + '&quot;,&quot;' + co.n + '&quot;)" style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">';
+    html += '<button onclick="proposerDiplomatie(&quot;negociation&quot;,&quot;' + k + '&quot;,&quot;' + co.n + '&quot;,null,' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;width:100%;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">';
     html += '<i class="ti ' + co.icon + '" style="font-size:1rem;color:' + co.col + '"></i> ' + co.n + '</button>';
   });
   html += '</div>';
@@ -4297,7 +4303,7 @@ async function censurer(media, pa, cost) {
   }
 }
 
-function ouvrirModalTraite() {
+function ouvrirModalTraite(pa, cost) {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
   const types = ['Commercial', 'De paix', "D'alliance militaire", 'Non-agression', 'Culturel'];
   document.getElementById('postes-modal-title').textContent = 'Signer un traite';
@@ -4310,7 +4316,7 @@ function ouvrirModalTraite() {
   html += '<select id="traite-type" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.7rem">';
   types.forEach(t => { html += '<option value="' + t + '">' + t + '</option>'; });
   html += '</select>';
-  html += '<button onclick="proposerTraite()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer</button>';
+  html += '<button onclick="proposerTraite(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -4318,12 +4324,12 @@ function ouvrirModalTraite() {
 
 // Propose le traite via la file d'attente diplomatique generique (voir proposerDiplomatie) —
 // remplace l'ancienne signature unilaterale de signerTraite().
-function proposerTraite() {
+function proposerTraite(pa, cost) {
   const empireId = document.getElementById('traite-empire')?.value;
   const type = document.getElementById('traite-type')?.value;
   document.getElementById('modal-postes').classList.remove('open');
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  proposerDiplomatie('traite', empireId, empireName, type);
+  proposerDiplomatie('traite', empireId, empireName, type, pa, cost);
 }
 
 function signerTraite() {
@@ -5007,7 +5013,7 @@ function getMalusISN() {
   return 25;
 }
 
-function creerPosteMinistre() {
+function creerPosteMinistre(pa, cost) {
   if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
   if (state.postesCustom.ministre) {
     showToast('Limite atteinte', 'Vous avez deja cree un poste ministeriel custom. Supprimez-le d\'abord.', false);
@@ -5018,12 +5024,12 @@ function creerPosteMinistre() {
     '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Vous pouvez creer 1 poste ministeriel et 1 comite. Salaire aligne sur les ministres (2800 FR/jour).</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">INTITULE DU POSTE</div>' +
     '<input id="custom-poste-nom" type="text" placeholder="Ex: Ministre de la Transition Numerique" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem"/>' +
-    '<button onclick="validerCreationPoste(\'ministre\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Creer ce poste</button>' +
+    '<button onclick="validerCreationPoste(\'ministre\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Creer ce poste</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function creerComite() {
+function creerComite(pa, cost) {
   if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
   if (state.postesCustom.comite) {
     showToast('Limite atteinte', 'Vous avez deja cree un comite. Supprimez-le d\'abord.', false);
@@ -5034,14 +5040,16 @@ function creerComite() {
     '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Comite presidentiel special. Salaire aligne sur les ministres.</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">INTITULE DU COMITE</div>' +
     '<input id="custom-poste-nom" type="text" placeholder="Ex: Comite pour la Modernisation de l\'Etat" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem"/>' +
-    '<button onclick="validerCreationPoste(\'comite\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Creer ce comite</button>' +
+    '<button onclick="validerCreationPoste(\'comite\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Creer ce comite</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function validerCreationPoste(type) {
+async function validerCreationPoste(type, pa, cost) {
   const nom = document.getElementById('custom-poste-nom')?.value?.trim();
   if (!nom) { showToast('Nom requis', 'Donnez un nom a ce poste.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
   state.postesCustom[type] = { nom, salaire: 2800, createur: state.char?.name, jour: state.day };
   document.getElementById('modal-postes').classList.remove('open');
@@ -5469,7 +5477,7 @@ async function confirmerGuerreEmpire(empireId, empireName) {
 }
 
 // Etape 1 : le MAE propose une treve a son homologue
-async function ouvrirProposerTreve() {
+async function ouvrirProposerTreve(pa, cost) {
   if (state.poste?.id !== 'min_ae') { showToast('Réservé au Ministre des Affaires Étrangères', '', false); return; }
   const pays = state.country || 'republic';
   const guerres = await sbGetGuerresPays(pays).catch(() => []);
@@ -5483,7 +5491,7 @@ async function ouvrirProposerTreve() {
       const adversaire = g.attaquant === pays ? g.attaque : g.attaquant;
       html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
       html += '<div style="font-size:.85rem;color:#e0d5b8">' + (COUNTRIES[adversaire]?.n||adversaire) + '</div>';
-      html += '<button onclick="confirmerPropositionTreve(\'' + g.id + '\',\'' + adversaire + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer</button>';
+      html += '<button onclick="confirmerPropositionTreve(\'' + g.id + '\',\'' + adversaire + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer</button>';
       html += '</div>';
     });
   }
@@ -5492,8 +5500,10 @@ async function ouvrirProposerTreve() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerPropositionTreve(guerreId, adversaire) {
+async function confirmerPropositionTreve(guerreId, adversaire, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const maeAdversaireInfo = await getTitulaireActuel('min_ae', null, adversaire);
   const maeAdversaire = maeAdversaireInfo?.estPJ ? maeAdversaireInfo.nom : null;
   if (typeof sbSendMail === 'function') {
@@ -5513,7 +5523,7 @@ async function accepterTreve(guerreId) {
 }
 
 // Etape 2 : chaque MG active independamment le cessez-le-feu de son cote
-async function ouvrirActiverCessezLeFeu() {
+async function ouvrirActiverCessezLeFeu(pa, cost) {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const pays = state.country || 'republic';
   const guerres = await sbGetGuerresPays(pays).catch(() => []);
@@ -5531,7 +5541,7 @@ async function ouvrirActiverCessezLeFeu() {
       html += '<div style="font-size:.85rem;color:#e0d5b8">' + (COUNTRIES[adversaire]?.n||adversaire) + '<div style="font-size:.7rem;color:#a89870">' + (g.ceasefire?.actifPar?.[adversaire] ? 'Adversaire : activé' : 'Adversaire : pas encore activé') + '</div></div>';
       html += dejaActif
         ? '<span style="font-size:.7rem;color:#6ab858">Activé de votre côté</span>'
-        : '<button onclick="confirmerActivationCessezLeFeu(\'' + g.id + '\',\'' + adversaire + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Activer</button>';
+        : '<button onclick="confirmerActivationCessezLeFeu(\'' + g.id + '\',\'' + adversaire + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Activer</button>';
       html += '</div>';
     });
   }
@@ -5540,12 +5550,14 @@ async function ouvrirActiverCessezLeFeu() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerActivationCessezLeFeu(guerreId, adversaire) {
+async function confirmerActivationCessezLeFeu(guerreId, adversaire, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
   const rows = await sbGet('guerres', `id=eq.${encodeURIComponent(guerreId)}`);
   const g = rows?.[0]?.data;
   if (!g) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const actifPar = { ...(g.ceasefire?.actifPar || {}), [pays]: true };
   const tousActifs = actifPar[g.attaquant] && actifPar[g.attaque];
   await sbMajGuerre(guerreId, { ceasefire: { ...g.ceasefire, actifPar }, statut: tousActifs ? 'terminee' : 'active' });
