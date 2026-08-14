@@ -1522,7 +1522,7 @@ async function confirmerExpedition(pa, cost) {
   addMailNotification('Service postal', 'Colis en route', 'Un colis (' + obj.name + ') a été expédié par ' + (state.char?.name||'Anonyme') + '. Récupérez-le au port sous 24h.');
 }
 
-function ouvrirReceptionnerCommande() {
+function ouvrirReceptionnerCommande(pa, cost) {
   const colis = (state.colisEnCours || []).filter(c => c.jourArrivee <= state.day);
   document.getElementById('postes-modal-title').textContent = 'Réceptionner une commande';
   let html = '<div style="padding:1rem">';
@@ -1533,7 +1533,7 @@ function ouvrirReceptionnerCommande() {
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between">';
       html += '<div><div style="font-size:.82rem;color:#c0b090">' + c.objet.name + '</div>';
       html += '<div style="font-size:.7rem;color:#5a4030">Expédié par ' + (c.expediteur||'Inconnu') + '</div></div>';
-      html += '<button onclick="recupererColis(' + i + ')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Récupérer</button>';
+      html += '<button onclick="recupererColis(' + i + ',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Récupérer</button>';
       html += '</div>';
     });
   }
@@ -1542,10 +1542,12 @@ function ouvrirReceptionnerCommande() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function recupererColis(idx) {
+async function recupererColis(idx, pa, cost) {
   const colis = (state.colisEnCours || []).filter(c => c.jourArrivee <= state.day);
   const c = colis[idx];
   if (!c) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   if (!state.inventory) state.inventory = [];
   state.inventory.push(c.objet);
   state.colisEnCours = state.colisEnCours.filter(x => x !== c);

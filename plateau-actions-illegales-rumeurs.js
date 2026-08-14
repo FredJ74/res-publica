@@ -381,7 +381,7 @@ async function solliciterAudiencePresident() {
 
 // PRODUIRE UNE FUITE
 // =====================
-async function ouvrirProduireFuite() {
+async function ouvrirProduireFuite(pa, cost) {
   const contacts = state.contacts || [];
   if (contacts.length === 0) {
     showToast('Repertoire vide', 'Ajoutez des contacts pour cibler une fuite.', false);
@@ -394,15 +394,17 @@ async function ouvrirProduireFuite() {
   html += '<select id="fuite-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
   contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
   html += '</select>';
-  html += '<button onclick="confirmerFuite()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer la fuite</button>';
+  html += '<button onclick="confirmerFuite(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer la fuite</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerFuite() {
+async function confirmerFuite(pa, cost) {
   const cible = document.getElementById('fuite-cible')?.value;
   if (!cible) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -445,7 +447,7 @@ async function confirmerFuite() {
 // =====================
 // FABRIQUER UN SCANDALE
 // =====================
-function ouvrirFabrquerScandale() {
+function ouvrirFabrquerScandale(pa, cost) {
   const contacts = state.contacts || [];
   if (contacts.length === 0) {
     showToast('Repertoire vide', 'Ajoutez des contacts pour cibler un scandale.', false);
@@ -467,16 +469,18 @@ function ouvrirFabrquerScandale() {
 
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CONTENU DU SCANDALE</div>';
   html += '<textarea id="scandale-contenu" rows="4" placeholder="Decrivez le scandale fabrique..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:none;margin-bottom:.8rem"></textarea>';
-  html += '<button onclick="confirmerScandale(' + taux + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier le scandale</button>';
+  html += '<button onclick="confirmerScandale(' + taux + ',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier le scandale</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerScandale(taux) {
+async function confirmerScandale(taux, pa, cost) {
   const cible = document.getElementById('scandale-cible')?.value;
   const contenu = document.getElementById('scandale-contenu')?.value?.trim();
   if (!cible || !contenu) { showToast('Champs requis', '', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   const roll = Math.floor(Math.random() * 100) + 1;

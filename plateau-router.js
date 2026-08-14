@@ -227,7 +227,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'controle_douanes')       { doControlDouanes(); return; }
   if (fn === 'corrompre_douanier')     { doCorrompreDoanier(pa, cost); return; }
   if (fn === 'expedier_colis')         { ouvrirExpedierColis(pa, cost); return; }
-  if (fn === 'receptionner_commande')  { ouvrirReceptionnerCommande(); return; }
+  if (fn === 'receptionner_commande')  { ouvrirReceptionnerCommande(pa, cost); return; }
   if (fn === 'contrebande_port')       { doContrebandePort(pa, cost); return; }
   if (fn === 'blocus_portuaire')       { doBlocusPortuaire(pa, cost); return; }
   if (fn === 'inspecter_cargaisons')   { doInspecterCargaisons(pa, cost); return; }
@@ -260,7 +260,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_archives_lois') { ouvrirArchivesLois(); return; }
   if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
   if (fn === 'porter_plainte')          { ouvrirPorterPlainte(); return; }
-  if (fn === 'rendre_sentence')         { ouvrirRendreSentence(); return; }
+  if (fn === 'rendre_sentence')         { ouvrirRendreSentence(pa, cost); return; }
   if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(pa, cost); return; }
   if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(pa, cost); return; }
   if (fn === 'marche_noir') { doMarcheNoir(); return; }
@@ -282,8 +282,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_relique')      { doAcheterRelique(pa, cost); return; }
   if (fn === 'scanner_aleatoire')    { declencherScandale(); return; }
   if (fn === 'accord_diplomatique')  { ouvrirModalNegociationDiplomatique(pa, cost); return; }
-  if (fn === 'produire_fuite')       { ouvrirProduireFuite(); return; }
-  if (fn === 'fabriquer_scandale')   { ouvrirFabrquerScandale(); return; }
+  if (fn === 'produire_fuite')       { ouvrirProduireFuite(pa, cost); return; }
+  if (fn === 'fabriquer_scandale')   { ouvrirFabrquerScandale(pa, cost); return; }
   if (fn === 'etat_nation')          { ouvrirEtatNation(); return; }
 
   // Handlers complementaires v17
@@ -351,8 +351,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'subvention') { ouvrirChoixTypeCibleFiscale('subvention', 'Accorder une subvention à'); return; }
   if (fn === 'redressement_fiscal') { ouvrirChoixTypeCibleFiscale('redressement_fiscal', 'Redressement fiscal contre'); return; }
   if (fn === 'fixer_impots_nationaux') { ouvrirFixerImpotNational(pa, cost); return; }
-  if (fn === 'traiter_manifestations') { doTraiterManifestations(); return; }
-  if (fn === 'renseignement') { ouvrirModalRenseignement(); return; }
+  if (fn === 'traiter_manifestations') { doTraiterManifestations(pa, cost); return; }
+  if (fn === 'renseignement') { ouvrirModalRenseignement(pa, cost); return; }
   if (fn === 'planifier_operation') { ouvrirModalTexteLibre('planifier_operation', 'Planifier une operation', 'Decrivez l\'operation...'); return; }
   if (fn === 'mobiliser') { doMobiliserPolice(); return; }
   if (fn === 'dissoudre_assemblee') { doDissoudreAssemblee(); return; }

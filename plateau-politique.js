@@ -4222,25 +4222,28 @@ function ouvrirModalRevoquerMinistre(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function ouvrirModalRenseignement() {
+function ouvrirModalRenseignement(pa, cost) {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
   document.getElementById('postes-modal-title').textContent = 'Opération de renseignement militaire';
   let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Empire à espionner. Le taux de réussite dépend de votre localisation actuelle, de la Sécurité Nationale des deux camps, et de la Perception/Intelligence du Ministre.</div>';
   empires.forEach(([k, co]) => {
-    html += '<button onclick="confirmerRenseignement(\'' + k + '\',\'' + co.n.replace(/'/g,"\\'") + '\')" style="display:flex;align-items:center;gap:.5rem;width:100%;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem"><i class="ti ' + co.icon + '" style="color:' + co.col + '"></i> ' + co.n + '</button>';
+    html += '<button onclick="confirmerRenseignement(\'' + k + '\',\'' + co.n.replace(/'/g,"\\'") + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.5rem;width:100%;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem;margin-bottom:.3rem"><i class="ti ' + co.icon + '" style="color:' + co.col + '"></i> ' + co.n + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerRenseignement(empireCible, nomCible) {
+async function confirmerRenseignement(empireCible, nomCible, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
-  const cout = 500;
-  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', cout) : 0;
-  if (montantVerse < cout) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de l\'opération (' + cout + ' FR).', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId: 'caserne-militaire' } });
+  if (!r.ok) {
+    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Budget insuffisant',
+      r.raison === 'pa_insuffisants' ? '' : 'La caisse de la caserne ne couvre pas le coût de l\'opération.', false);
+    return;
+  }
 
   // Choisir la section adverse ciblee AVANT le jet, puisque le jet depend des indices de son lieutenant
   const compagniesCible = await sbGetCompagnies(empireCible).catch(() => []);
@@ -4821,7 +4824,7 @@ async function confirmerMobilisationPolice(id, label, isn, pop) {
   addExternalEvent('🚔 Intervention des forces de l\'ordre : ' + label + '.');
 }
 
-async function doTraiterManifestations() {
+async function doTraiterManifestations(pa, cost) {
   if (state.poste?.id !== 'min_int') { showToast('Réservé au Ministre de l\'Intérieur', '', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Demandes de manifestation';
@@ -4845,8 +4848,8 @@ async function doTraiterManifestations() {
       html += '<div style="font-size:.75rem;color:#8a8060;margin:.2rem 0">« ' + d.sujet + ' »</div>';
       html += '<div style="font-size:.7rem;color:#6a5a30">Prévue le ' + new Date(d.dateEvenement).toLocaleString('fr-FR') + ' · Auto-validée dans ' + heuresAvantAutoval + 'h</div>';
       html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
-      html += '<button onclick="traiterDemandeManifestation(&quot;' + d.id + '&quot;,true)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer">Autoriser</button>';
-      html += '<button onclick="traiterDemandeManifestation(&quot;' + d.id + '&quot;,false)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #4a2010;background:transparent;color:#cc4444;cursor:pointer">Interdire</button>';
+      html += '<button onclick="traiterDemandeManifestation(&quot;' + d.id + '&quot;,true,' + pa + ',' + cost + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer">Autoriser</button>';
+      html += '<button onclick="traiterDemandeManifestation(&quot;' + d.id + '&quot;,false,' + pa + ',' + cost + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem;border:1px solid #4a2010;background:transparent;color:#cc4444;cursor:pointer">Interdire</button>';
       html += '</div></div>';
     });
   }
@@ -4856,10 +4859,12 @@ async function doTraiterManifestations() {
 
 const DELAI_EFFET_APRES_DEBUT_MIN = 90; // 1h30 apres le debut de l'evenement pour les manifestations autorisees
 
-async function traiterDemandeManifestation(id, autorise) {
-  document.getElementById('modal-postes')?.classList.remove('open');
+async function traiterDemandeManifestation(id, autorise, pa, cost) {
   const demande = await sbGetDemandeManifestationParId(id);
   if (!demande) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  document.getElementById('modal-postes')?.classList.remove('open');
 
   await sbMajDemandeManifestation(id, autorise ? 'autorisee' : 'interdite', {});
 

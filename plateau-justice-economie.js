@@ -1608,7 +1608,7 @@ async function confirmerFalsification(docId, pa, cost) {
   }
 }
 
-async function ouvrirRendreSentence() {
+async function ouvrirRendreSentence(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Rendre la sentence';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -1638,12 +1638,12 @@ async function ouvrirRendreSentence() {
       }
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SENTENCE</div>';
       html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amende\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende (montant + repartition)</button>';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'prison\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison (max 7 jours)</button>';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amenagement\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
-      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'qhs\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amende\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende (montant + repartition)</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'prison\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison (max 7 jours)</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'amenagement\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
+      html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'qhs\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
       if ((a.motif || '').toLowerCase().includes('tortur')) {
-        html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'torture\')" style="text-align:left;padding:.4rem .7rem;border:1px solid #6a1010;background:#150505;color:#cc4444;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">⚖ Sanction torture (prison + popularité à zéro, cumulable)</button>';
+        html += '<button onclick="appliquerSentence(&quot;' + a.id + '&quot;,\'torture\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #6a1010;background:#150505;color:#cc4444;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">⚖ Sanction torture (prison + popularité à zéro, cumulable)</button>';
       }
       html += '</div></div>';
     });
@@ -1652,9 +1652,11 @@ async function ouvrirRendreSentence() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function appliquerSentence(affaireId, type) {
+async function appliquerSentence(affaireId, type, pa, cost) {
   const affaire = (state.plaintesEnCours||[]).find(p => p.id === affaireId);
   if (!affaire) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   affaire.status = 'jugee';
   if (typeof sbSavePlainte === 'function') sbSavePlainte(affaire).catch(() => {});
 
