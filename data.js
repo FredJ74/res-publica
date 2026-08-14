@@ -3917,7 +3917,7 @@ const BUILDINGS = {
         name: "Salle d'Interrogatoire",
         imageBg: "linear-gradient(135deg,#050808,#0a1010)",
         desc: "La salle d'interrogatoire. Lumiere crue, table metallique. Acces enqueteurs autorises.",
-        imageUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-salle-interrogatoire.png",
         persons: [],
         orders: [
           {fn:'interroger',        label:'Interroger un detenu',        pa:2, cost:0,    type:'legal',   icon:'ti-message-circle', successRate:75, requiresPost:'commissaire', desc:'Obtenir des informations. +INF si succes.'},
@@ -3928,7 +3928,7 @@ const BUILDINGS = {
         name: "Promenoir",
         imageBg: "linear-gradient(135deg,#080808,#0f0f0f)",
         desc: "La cour de promenade. Une heure par jour. Sous surveillance constante.",
-        imageUrl: "https://images.unsplash.com/photo-1562564055-71e051d33c19?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-promenoir.png",
         persons: [],
         orders: [
           {fn:'se_reposer',        label:'Prendre l\'air',              pa:0, cost:0,    type:'legal',   icon:'ti-walk',     successRate:100, desc:'+2 Moral. La seule liberte qui reste.'}
