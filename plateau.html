@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=126">
+<link rel="stylesheet" href="style.css?v=127">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -490,8 +490,19 @@
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <script src="supabase.js?v=136"></script>
-<script src="forum-canvas.js?v=3"></script>
-<script src="forum.js?v=130"></script>
+<!-- Tiptap (Lot C2) : chargé en ESM depuis un CDN, comme déjà validé dans les prototypes
+     prototype-tiptap-image.html et prototype-canvas-composition.html. forum-canvas.js reste
+     un script classique (comme tout le reste du jeu) ; ce petit module se contente d'exposer
+     les deux exports nécessaires en globales, pour rester consultable depuis un script
+     classique sans convertir tout le chargement du jeu en modules ES. -->
+<script type="module">
+  import { Editor } from 'https://esm.sh/@tiptap/core@2';
+  import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2';
+  window.RP_TIPTAP_EDITOR = Editor;
+  window.RP_TIPTAP_STARTER_KIT = StarterKit;
+</script>
+<script src="forum-canvas.js?v=5"></script>
+<script src="forum.js?v=131"></script>
 <script src="plateau-core.js?v=132"></script>
 <script src="plateau-rue-centrale.js?v=135"></script>
 <script src="plateau-quete-accueil.js?v=22"></script>

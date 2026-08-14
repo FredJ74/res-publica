@@ -220,11 +220,8 @@ function rpCanvasCreateController(container) {
 }
 
 // ===========================================================================
-// Écran de composition (Lot C1) — point d'entrée séparé, à côté du bouton "Nouveau sujet"
-// existant (jamais retiré ni modifié). Volontairement vide pour ce lot : ni bouton
-// "Ajouter une zone de texte" (C2), ni bouton image (C4), ni contrôleur canvas instancié —
-// juste la coquille et le chemin de retour, pour prouver que le point d'entrée fonctionne
-// sans rien construire dessus encore.
+// Écran de composition (Lot C1, complété au Lot C2) — point d'entrée séparé, à côté du
+// bouton "Nouveau sujet" existant (jamais retiré ni modifié).
 // ===========================================================================
 function renderComposeCanvasForm() {
   return `
@@ -236,10 +233,90 @@ function renderComposeCanvasForm() {
     </div>
     <div style="padding:1rem">
       <div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">
-        Chantier en cours — cet écran n'a encore aucune fonctionnalité et ne permet de rien
-        publier pour le moment.
+        Chantier en cours — rien n'est encore publiable depuis cet écran.
+      </div>
+      <div class="rp-compose-toolbar">
+        <button class="forum-new-btn" onclick="rpCanvasAddTextZoneToCompose()">
+          <i class="ti ti-text-plus"></i> Ajouter une zone de texte
+        </button>
       </div>
       <div id="rp-compose-canvas" style="position:relative;width:680px;max-width:100%;min-height:500px;background:#fff;border:1px solid #2a2010"></div>
     </div>
   `;
+}
+
+// Contrôleur de la surface de composition actuellement affichée — recréé à chaque entrée
+// dans l'écran (voir rpCanvasInitComposeScreen, appelée par showComposeCanvasForm dans
+// forum.js après le rendu). Pas de persistance à ce lot : quitter l'écran perd son contenu,
+// comme prévu (la sauvegarde arrive au lot E2).
+let rpComposeController = null;
+
+function rpCanvasInitComposeScreen() {
+  const container = document.getElementById('rp-compose-canvas');
+  if (!container) return;
+  rpComposeController = rpCanvasCreateController(container);
+}
+
+// Largeur minimale des zones de texte : 140px, PAS le repli générique du moteur (40px,
+// pensé pour les images) — signalé explicitement au lot A2, appliqué ici comme convenu.
+const RP_ZONE_MIN_WIDTH = 140;
+
+function rpCanvasAddTextZoneToCompose() {
+  if (!rpComposeController) return;
+  const container = document.getElementById('rp-compose-canvas');
+  if (!container) return;
+  rpCanvasCreateTextZone(rpComposeController, container, 40, 40, 260, '<p>Nouvelle zone de texte…</p>');
+}
+
+// Création d'une zone de texte — reprise directe de createTextZone du prototype validé
+// (F1.5), câblée sur le vrai contrôleur générique (Lot A2) et sur le vrai Tiptap chargé en
+// ESM (voir plateau.html, exposé en window.RP_TIPTAP_EDITOR/RP_TIPTAP_STARTER_KIT).
+function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
+  if (typeof window.RP_TIPTAP_EDITOR !== 'function' || !window.RP_TIPTAP_STARTER_KIT) {
+    if (typeof showToast === 'function') showToast('Chargement en cours', 'Réessayez dans un instant.', false);
+    return null;
+  }
+
+  const state = { x, y, width, minHeight: 0 };
+  const el = document.createElement('div');
+  el.className = 'rp-canvas-el rp-zone';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.width = width + 'px';
+  el.style.minHeight = state.minHeight + 'px';
+
+  const bar = document.createElement('div');
+  bar.className = 'rp-zone-bar';
+  bar.textContent = '⠿';
+  bar.title = 'Déplacer cette zone';
+  el.appendChild(bar);
+
+  const content = document.createElement('div');
+  content.className = 'rp-zone-content';
+  el.appendChild(content);
+
+  ['left', 'right'].forEach(side => {
+    const h = document.createElement('div');
+    h.className = 'rp-resize-edge ' + side;
+    el.appendChild(h);
+    ctrl.attachEdgeResize(h, side, state, el, { minWidth: RP_ZONE_MIN_WIDTH });
+  });
+
+  const bottomHandle = document.createElement('div');
+  bottomHandle.className = 'rp-resize-bottom';
+  bottomHandle.title = "Réserver de l'espace sous le texte";
+  el.appendChild(bottomHandle);
+  ctrl.attachBottomResize(bottomHandle, state, el, () => bar.offsetHeight + content.offsetHeight);
+
+  container.appendChild(el);
+  ctrl.attachDrag(bar, state, el);
+
+  new window.RP_TIPTAP_EDITOR({
+    element: content,
+    extensions: [window.RP_TIPTAP_STARTER_KIT],
+    content: html || '<p></p>',
+    onFocus: () => ctrl.selectElement(el),
+  });
+
+  return el;
 }

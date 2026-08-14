@@ -615,6 +615,29 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 #forum-view-body .rich-toolbar{background:var(--bg2)}
 #forum-view-body .forum-new-btn{border-color:#9a8a50;color:#C9A84C}
 
+/* ===== Composition libre (bêta) — surface de composition et zones de texte =====
+   Lot C2 : reprise directe des styles déjà validés dans prototype-canvas-composition.html
+   (F1.5) — canvas volontairement clair/blanc, indépendant du thème sombre du jeu, comme
+   c'était déjà le cas dans le prototype. */
+.rp-compose-toolbar{display:flex;gap:.5rem;margin-bottom:.8rem}
+.rp-canvas-el{position:absolute}
+
+.rp-zone{background:#fff;border:2px solid transparent;border-radius:4px;transition:border-color .12s ease,box-shadow .12s ease}
+.rp-zone.selected{border-color:#3a7fd8;box-shadow:0 0 0 3px rgba(58,127,216,.12)}
+.rp-zone-bar{height:16px;display:flex;align-items:center;justify-content:center;cursor:grab;color:#aab0bb;font-size:.7rem;user-select:none;background:#f4f5f7;border-bottom:1px solid transparent}
+.rp-zone-bar:active{cursor:grabbing}
+.rp-zone.selected .rp-zone-bar{background:#eaf1fc;border-bottom-color:#d5e4f7;color:#3a7fd8}
+.rp-zone-content{padding:.5rem .7rem;font-family:Georgia,serif;font-size:.9rem;line-height:1.6;color:#222;min-height:2.4em}
+.rp-zone-content .ProseMirror{outline:none}
+.rp-zone-content p{margin:0 0 .7em}
+.rp-zone-content p:last-child{margin-bottom:0}
+
+.rp-resize-edge{position:absolute;top:16px;bottom:0;width:8px;opacity:0;transition:opacity .12s ease;cursor:ew-resize}
+.rp-resize-edge.left{left:-4px}
+.rp-resize-edge.right{right:-4px}
+.rp-resize-bottom{position:absolute;left:16px;right:16px;bottom:-4px;height:8px;opacity:0;transition:opacity .12s ease;cursor:ns-resize}
+.rp-zone.selected .rp-resize-edge,.rp-zone.selected .rp-resize-bottom{opacity:1;background:rgba(58,127,216,.15)}
+
 /* Statut RECHERCHÉ */
 @keyframes blink {
   0%, 100% { opacity: 1; }

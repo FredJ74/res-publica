@@ -1055,6 +1055,7 @@ function showComposeCanvasForm() {
     return;
   }
   forumView = 'compose-canvas'; document.getElementById('forum-main').innerHTML = renderForumContent();
+  if (typeof rpCanvasInitComposeScreen === 'function') rpCanvasInitComposeScreen();
 }
 function backToList()       { forumView = 'list'; currentTopicId = null; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 function backToTopic()      { forumView = 'topic'; document.getElementById('forum-main').innerHTML = renderForumContent(); }
