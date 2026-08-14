@@ -651,6 +651,12 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .rp-resize-corner.sw{bottom:-7px;left:-7px;cursor:nesw-resize}
 .rp-resize-corner.se{bottom:-7px;right:-7px;cursor:nwse-resize}
 
+/* Ordre Z explicite (Lot C5) — avant-plan/arrière-plan, communs aux zones et aux images */
+.rp-z-controls{position:absolute;top:-11px;left:50%;transform:translateX(-50%);display:none;gap:.2rem;background:#222;padding:.15rem;border-radius:3px;z-index:10}
+.rp-canvas-el.selected .rp-z-controls{display:flex}
+.rp-z-controls button{font-size:.68rem;padding:.15rem .35rem;border:none;background:#444;color:#fff;cursor:pointer;border-radius:2px;line-height:1}
+.rp-z-controls button:hover{background:#555}
+
 /* Statut RECHERCHÉ */
 @keyframes blink {
   0%, 100% { opacity: 1; }

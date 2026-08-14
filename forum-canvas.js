@@ -70,16 +70,19 @@ function renderComposedPost(layout) {
 function rpCanvasCreateController(container) {
   let zCounter = 10;
 
-  // Sélection = passage au premier plan par défaut (comportement validé dans le prototype ;
-  // des actions avant-plan/arrière-plan explicites, indépendantes du geste de sélection,
-  // sont prévues au lot C5 — non incluses ici).
-  function selectElement(el) {
+  // Sélection = passage au premier plan par défaut (comportement validé dans le prototype).
+  // `state` est optionnel pour compatibilité, mais tous les appelants internes le passent
+  // désormais (Lot C5) pour garder state.z synchronisé avec le zIndex réellement appliqué —
+  // sinon la sérialisation (lot E1, à venir) n'aurait aucun moyen fiable de retrouver l'ordre
+  // de superposition choisi par le joueur.
+  function selectElement(el, state) {
     container.querySelectorAll('.rp-canvas-el.selected').forEach(o => {
       if (o !== el) o.classList.remove('selected');
     });
     el.classList.add('selected');
     zCounter += 1;
     el.style.zIndex = zCounter;
+    if (state) state.z = zCounter;
   }
 
   function deselectAll() {
@@ -90,13 +93,85 @@ function rpCanvasCreateController(container) {
     if (e.target === container) deselectAll();
   });
 
+  // Bornes de z parmi les objets actuellement présents dans CE conteneur — interrogées en
+  // direct sur le DOM plutôt que via un registre séparé à tenir à jour, pour rester aussi
+  // simple et sans état caché que le reste du moteur.
+  function computeZBounds(el) {
+    let min = 1, max = 1, first = true;
+    const parent = el.parentElement;
+    if (parent) {
+      Array.from(parent.children).forEach(node => {
+        if (!node.classList || !node.classList.contains('rp-canvas-el')) return;
+        const z = parseInt(node.style.zIndex, 10) || 1;
+        if (first) { min = z; max = z; first = false; }
+        else { if (z < min) min = z; if (z > max) max = z; }
+      });
+    }
+    return { min, max };
+  }
+
+  // Actions explicites avant-plan/arrière-plan (Lot C5) — indépendantes du geste de
+  // sélection (qui continue, lui, d'amener implicitement au premier plan au clic, comme déjà
+  // validé). bringToFront resynchronise aussi le compteur global de sélection, sinon un
+  // simple clic sur un AUTRE objet juste après pourrait ne pas suffire à repasser devant
+  // celui qu'on vient d'amener explicitement au premier plan.
+  function bringToFront(state, el) {
+    const { max } = computeZBounds(el);
+    const newZ = Math.max(max + 1, zCounter + 1);
+    zCounter = newZ;
+    state.z = newZ;
+    el.style.zIndex = newZ;
+  }
+  function sendToBack(state, el) {
+    const { min } = computeZBounds(el);
+    const newZ = min - 1;
+    state.z = newZ;
+    el.style.zIndex = newZ;
+  }
+
+  // Mini barre avant-plan/arrière-plan, visible seulement si l'objet est sélectionné (même
+  // discrétion que les poignées de redimensionnement). mousedown (pas click) et
+  // stopPropagation, comme les poignées de redimensionnement : sinon le mousedown remonterait
+  // aussi au déplacement de l'objet entier (cas d'une image, où toute la surface sert de
+  // poignée de drag).
+  function attachZControls(el, state) {
+    const box = document.createElement('div');
+    box.className = 'rp-z-controls';
+    box.contentEditable = 'false';
+
+    const frontBtn = document.createElement('button');
+    frontBtn.type = 'button';
+    frontBtn.textContent = '⬆';
+    frontBtn.title = 'Amener au premier plan';
+    frontBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      bringToFront(state, el);
+    });
+
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.textContent = '⬇';
+    backBtn.title = "Envoyer à l'arrière-plan";
+    backBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      sendToBack(state, el);
+    });
+
+    box.appendChild(frontBtn);
+    box.appendChild(backBtn);
+    el.appendChild(box);
+    return box;
+  }
+
   // Déplacement générique : `handleEl` capte le geste (une poignée dédiée, ou l'élément
   // entier selon l'objet), `el` est l'élément réellement déplacé. `state` est un objet
   // { x, y, ... } tenu à jour par l'appelant.
   function attachDrag(handleEl, state, el) {
     handleEl.addEventListener('mousedown', (e) => {
       e.preventDefault();
-      selectElement(el);
+      selectElement(el, state);
       const startX = e.clientX, startY = e.clientY;
       const startLeft = state.x, startTop = state.y;
       function onMove(ev) {
@@ -122,7 +197,7 @@ function rpCanvasCreateController(container) {
     handleEl.addEventListener('mousedown', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      selectElement(el);
+      selectElement(el, state);
       const startX = e.clientX;
       const startWidth = state.width;
       const originalLeft = state.x;
@@ -155,7 +230,7 @@ function rpCanvasCreateController(container) {
     handleEl.addEventListener('mousedown', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      selectElement(el);
+      selectElement(el, state);
       const startY = e.clientY;
       const startMinHeight = state.minHeight;
       function onMove(ev) {
@@ -182,7 +257,7 @@ function rpCanvasCreateController(container) {
     handleEl.addEventListener('mousedown', (e) => {
       e.preventDefault();
       e.stopPropagation(); // sinon le mousedown remonterait aussi au drag de l'objet entier
-      selectElement(el);
+      selectElement(el, state);
       const startX = e.clientX;
       const startWidth = state.width, startHeight = state.height;
       const aspect = startHeight / startWidth; // ratio conservé, jamais recalculé pendant le drag
@@ -216,6 +291,7 @@ function rpCanvasCreateController(container) {
   return {
     selectElement, deselectAll,
     attachDrag, attachEdgeResize, attachBottomResize, attachCornerResize,
+    bringToFront, sendToBack, attachZControls,
   };
 }
 
@@ -312,13 +388,15 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
   ctrl.attachBottomResize(bottomHandle, state, el, () => bar.offsetHeight + content.offsetHeight);
 
   container.appendChild(el);
+  ctrl.bringToFront(state, el); // z explicite dès la création (Lot C5) -- le nouvel objet arrive au-dessus
+  ctrl.attachZControls(el, state);
   ctrl.attachDrag(bar, state, el);
 
   new window.RP_TIPTAP_EDITOR({
     element: content,
     extensions: [window.RP_TIPTAP_STARTER_KIT],
     content: html || '<p></p>',
-    onFocus: () => ctrl.selectElement(el),
+    onFocus: () => ctrl.selectElement(el, state),
   });
 
   return el;
@@ -371,6 +449,8 @@ function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
   });
 
   container.appendChild(el);
+  ctrl.bringToFront(state, el); // z explicite dès la création (Lot C5) -- le nouvel objet arrive au-dessus
+  ctrl.attachZControls(el, state);
   // L'image entière sert de poignée de déplacement — pas de texte éditable à l'intérieur,
   // donc aucun conflit possible entre "saisir" et "écrire" (même raisonnement que le prototype).
   ctrl.attachDrag(el, state, el);
