@@ -622,7 +622,12 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .rp-compose-toolbar{display:flex;gap:.5rem;margin-bottom:.8rem}
 .rp-canvas-el{position:absolute}
 
-.rp-zone{background:#fff;border:2px solid transparent;border-radius:4px;transition:border-color .12s ease,box-shadow .12s ease}
+/* Fond transparent par défaut (correction demandée) : une zone qui chevauche une image ne
+   doit pas la masquer derrière un rectangle blanc. Seul l'arrière-plan de la zone est
+   concerné -- la poignée de déplacement et la barre d'outils gardent leur propre fond
+   opaque (#f4f5f7, ci-dessous), pour rester lisibles comme contrôles. Le choix d'une
+   couleur de fond éventuelle (et son opacité) est explicitement reporté à plus tard. */
+.rp-zone{background:transparent;border:2px solid transparent;border-radius:4px;transition:border-color .12s ease,box-shadow .12s ease}
 .rp-zone.selected{border-color:#3a7fd8;box-shadow:0 0 0 3px rgba(58,127,216,.12)}
 .rp-zone-bar{height:16px;display:flex;align-items:center;justify-content:center;cursor:grab;color:#aab0bb;font-size:.7rem;user-select:none;background:#f4f5f7;border-bottom:1px solid transparent}
 .rp-zone-bar:active{cursor:grabbing}
