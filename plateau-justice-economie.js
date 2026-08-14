@@ -4054,13 +4054,13 @@ const TYPES_PRET = {
   consommation: { label: 'Consommation', desc: 'Petite somme, remboursement rapide, taux élevé.', montantMax: 10000, tauxFixe: 12, dureeMax: 30 }
 };
 
-async function ouvrirModalPretBancaire(typeBanque, typePret) {
+async function ouvrirModalPretBancaire(typeBanque, typePret, pa) {
   typeBanque = typeBanque || 'nationale';
 
   if (!typePret) {
     let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
     Object.entries(TYPES_PRET).forEach(([key, t]) => {
-      html += '<div onclick="ouvrirModalPretBancaire(\'' + typeBanque + '\',\'' + key + '\')" style="cursor:pointer;padding:.7rem;border:1px solid #2a2010;background:#0f0d05">';
+      html += '<div onclick="ouvrirModalPretBancaire(\'' + typeBanque + '\',\'' + key + '\',' + pa + ')" style="cursor:pointer;padding:.7rem;border:1px solid #2a2010;background:#0f0d05">';
       html += '<div style="font-size:.85rem;color:#c0b090">' + t.label + '</div>';
       html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + t.desc + '</div>';
       html += '</div>';
@@ -4091,13 +4091,13 @@ async function ouvrirModalPretBancaire(typeBanque, typePret) {
   const dureesDispo = estConso ? [5,10,15,20,25,30] : [10,15,20,25,30];
   dureesDispo.forEach(d => { html += '<option value="' + d + '">' + d + ' jours</option>'; });
   html += '</select>';
-  html += '<button onclick="confirmerPretBancaire(&quot;' + typeBanque + '&quot;,&quot;' + typePret + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer">Contracter le prêt</button>';
+  html += '<button onclick="confirmerPretBancaire(&quot;' + typeBanque + '&quot;,&quot;' + typePret + '&quot;,' + pa + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer">Contracter le prêt</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerPretBancaire(typeBanque, typePret) {
+async function confirmerPretBancaire(typeBanque, typePret, pa) {
   const montant = parseInt(document.getElementById('pret-montant')?.value || 0);
   const duree = parseInt(document.getElementById('pret-duree')?.value || 10);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -4124,6 +4124,9 @@ async function confirmerPretBancaire(typeBanque, typePret) {
       return;
     }
   }
+
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const taux = estConso ? infosType.tauxFixe : getTauxPret(typeBanque);
   const montantTotal = Math.round(montant * (1 + taux / 100));

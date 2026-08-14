@@ -76,7 +76,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(pa, cost); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
-  if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }
+  if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(pa, cost); return; }
   if (fn === 'acheter_bombe_mil') { doObtenirExplosifsMilitaires(pa, cost); return; }
   if (fn === 'se_justifier') { doSeJustifier(pa, cost); return; }
   if (fn === 'observer_match') { doObserverMatch(); return; }
@@ -145,13 +145,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'emprunter_construction') { ouvrirModalPretBancaire('nationale', 'travaux'); return; }
   if (fn === 'emprunter') {
     const typeBanque = state.currentBuilding === 'banque-privee' ? 'privee' : 'nationale';
-    ouvrirModalPretBancaire(typeBanque);
+    ouvrirModalPretBancaire(typeBanque, null, pa);
     return;
   }
   // emprunter_prive (Banque Privee, "sans verification, taux eleve") n'avait aucun handler —
   // corrige le 9 aout 2026 (audit Ordres) en le routant directement vers le type de pret
   // 'consommation' deja existant (meme profil : petite somme, remboursement rapide, taux eleve).
-  if (fn === 'emprunter_prive') { ouvrirModalPretBancaire('privee', 'consommation'); return; }
+  if (fn === 'emprunter_prive') { ouvrirModalPretBancaire('privee', 'consommation', pa); return; }
   if (fn === 'diviser_construction') { doOuvrirDivisionTerrain(); return; }
   if (fn === 'louer_lot_ici') { doOuvrirLouerLot(pa, cost); return; }
   if (fn === 'gerer_lot_loue') { doGererLotLoue(); return; }
@@ -234,9 +234,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_manifeste')    { doConsulterManifeste(pa, cost); return; }
   if (fn === 'falsifier_manifeste')    { doFalsifierManifeste(pa, cost); return; }
   if (fn === 'acheter_parapluie')      { doAcheterPoisonObjet('parapluie'); return; }
-  if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb'); return; }
-  if (fn === 'acheter_polonium')       { doAcheterPoisonObjet('polonium'); return; }
-  if (fn === 'acheter_vipere')         { doAcheterPoisonObjet('vipere'); return; }
+  if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb', pa, cost); return; }
+  if (fn === 'acheter_polonium')       { doAcheterPoisonObjet('polonium', pa, cost); return; }
+  if (fn === 'acheter_vipere')         { doAcheterPoisonObjet('vipere', pa, cost); return; }
   if (fn === 'assassiner')             { ouvrirModalAssassiner(); return; }
   if (fn === 'se_cacher')              { doSeCacher(); return; }
   if (fn === 'empoisonner')            { ouvrirModalEmpoisonner(); return; }

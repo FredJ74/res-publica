@@ -1032,13 +1032,17 @@ function doMarcheNoir() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Rien de tout cela n\'est enregistré nulle part. À vos risques.</div>';
 
-  html += '<div onclick="doAcheterExplosifs()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.7rem;border:1px solid #2a2010;background:#0a0805;margin-bottom:.5rem" onmouseover="this.style.background=\'#140a0a\'" onmouseout="this.style.background=\'#0a0805\'">';
+  html += '<div onclick="doAcheterExplosifs(2,0)" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.7rem;border:1px solid #2a2010;background:#0a0805;margin-bottom:.5rem" onmouseover="this.style.background=\'#140a0a\'" onmouseout="this.style.background=\'#0a0805\'">';
   html += '<span style="font-size:.85rem;color:#c0b090"><i class="ti ti-bomb" style="margin-right:.5rem;color:#cc6a6a"></i>Explosifs</span>';
   html += '<span style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">1 200 ' + cur + '</span>';
   html += '</div>';
 
   if (poison) {
-    html += '<div onclick="doAcheterPoisonObjet(&quot;' + poisonType + '&quot;)" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.7rem;border:1px solid #2a2010;background:#0a0805" onmouseover="this.style.background=\'#140a0a\'" onmouseout="this.style.background=\'#0a0805\'">';
+    // PA declares par type dans data.js (acheter_ghb:1, acheter_polonium:2, acheter_vipere:1) --
+    // pas de valeur unique commune, cf. correctif marche-noir/emprunts du 9 aout 2026.
+    const poisonPaParType = { ghb: 1, polonium: 2, vipere: 1 };
+    const poisonPa = poisonPaParType[poisonType];
+    html += '<div onclick="doAcheterPoisonObjet(&quot;' + poisonType + '&quot;,' + poisonPa + ',' + poison.cout + ')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.7rem;border:1px solid #2a2010;background:#0a0805" onmouseover="this.style.background=\'#140a0a\'" onmouseout="this.style.background=\'#0a0805\'">';
     html += '<span style="font-size:.85rem;color:#c0b090"><i class="ti ' + poison.icon + '" style="margin-right:.5rem;color:#cc6a6a"></i>' + poison.name + '</span>';
     html += '<span style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' + poison.cout.toLocaleString('fr-FR') + ' ' + cur + '</span>';
     html += '</div>';
@@ -1050,7 +1054,7 @@ function doMarcheNoir() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function doAcheterExplosifs() {
+function doAcheterExplosifs(pa, cost) {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const prix = 1200;
@@ -1068,20 +1072,23 @@ function doAcheterExplosifs() {
   html += '<span style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + prix.toLocaleString('fr-FR') + ' ' + cur + '</span>';
   html += '</div>';
   html += '<div style="display:flex;gap:.5rem">';
-  html += '<button onclick="confirmerAchatExplosifs()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer">Acheter</button>';
+  html += '<button onclick="confirmerAchatExplosifs(' + pa + ',' + cost + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer">Acheter</button>';
   html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Renoncer</button>';
   html += '</div></div></div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerAchatExplosifs() {
+async function confirmerAchatExplosifs(pa, cost) {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const prix = 1200;
   document.getElementById('modal-postes').classList.remove('open');
 
   if (state.arg < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const roll = Math.floor(Math.random() * 100) + 1;
   const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
@@ -1276,7 +1283,7 @@ async function confirmerUtiliserExplosifs() {
   updateUI();
 }
 
-function doAcheterPoisonObjet(type) {
+function doAcheterPoisonObjet(type, pa, cost) {
   const obj = POISON_OBJETS[type];
   if (!obj) return;
   const pays = state.country || 'republic';
@@ -1305,14 +1312,14 @@ function doAcheterPoisonObjet(type) {
   html += '<span style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + obj.cout.toLocaleString('fr-FR') + ' ' + cur + '</span>';
   html += '</div>';
   html += '<div style="display:flex;gap:.5rem">';
-  html += '<button onclick="confirmerAchatPoison(&quot;' + type + '&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Acheter</button>';
+  html += '<button onclick="confirmerAchatPoison(&quot;' + type + '&quot;,' + pa + ',' + cost + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Acheter</button>';
   html += '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Renoncer</button>';
   html += '</div></div></div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerAchatPoison(type) {
+async function confirmerAchatPoison(type, pa, cost) {
   const obj = POISON_OBJETS[type];
   if (!obj) return;
   const pays = state.country || 'republic';
@@ -1321,6 +1328,9 @@ function confirmerAchatPoison(type) {
   document.getElementById('modal-postes').classList.remove('open');
 
   if (state.arg < obj.cout) { showToast('Fonds insuffisants', obj.cout + ' ' + cur + ' requis.', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   state.arg -= obj.cout;
   if (!state.inventory) state.inventory = [];
