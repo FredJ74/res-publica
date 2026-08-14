@@ -419,12 +419,23 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
 // pour ce premier lot de richesse éditoriale.
 // ===========================================================================
 function rpCanvasAttachZoneToolbar(toolbar, editor) {
-  const buttons = [
+  const inlineButtons = [
     { label: 'G', title: 'Gras', style: 'font-weight:700', run: () => editor.chain().focus().toggleBold().run() },
     { label: 'I', title: 'Italique', style: 'font-style:italic', run: () => editor.chain().focus().toggleItalic().run() },
     { label: 'S', title: 'Souligné', style: 'text-decoration:underline', run: () => editor.chain().focus().toggleUnderline().run() },
   ];
-  buttons.forEach(b => {
+  // Lot D2 : titres, citations, listes -- natifs de StarterKit (Heading, Blockquote,
+  // BulletList, OrderedList, ListItem tous vérifiés présents dans le paquet réel dès le
+  // lot D1), aucune dépendance supplémentaire cette fois.
+  const blockButtons = [
+    { label: 'H2', title: 'Titre', style: 'font-weight:700;font-size:.7rem', run: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
+    { label: 'H3', title: 'Sous-titre', style: 'font-weight:700;font-size:.66rem', run: () => editor.chain().focus().toggleHeading({ level: 3 }).run() },
+    { label: '❝', title: 'Citation', style: '', run: () => editor.chain().focus().toggleBlockquote().run() },
+    { label: '•', title: 'Liste à puces', style: 'font-weight:700', run: () => editor.chain().focus().toggleBulletList().run() },
+    { label: '1.', title: 'Liste numérotée', style: 'font-size:.68rem', run: () => editor.chain().focus().toggleOrderedList().run() },
+  ];
+
+  function addButton(b) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.textContent = b.label;
@@ -432,11 +443,18 @@ function rpCanvasAttachZoneToolbar(toolbar, editor) {
     btn.style.cssText = b.style;
     // mousedown : empêche le clic sur le bouton de faire perdre la sélection de texte en
     // cours AVANT que la commande ne s'applique (sinon Tiptap n'aurait plus rien à mettre
-    // en forme au moment où la commande s'exécute).
+    // en forme, ou plus le bon paragraphe à transformer en titre/citation/liste, au moment
+    // où la commande s'exécute).
     btn.addEventListener('mousedown', (e) => e.preventDefault());
     btn.addEventListener('click', b.run);
     toolbar.appendChild(btn);
-  });
+  }
+
+  inlineButtons.forEach(addButton);
+  const sep = document.createElement('span');
+  sep.className = 'rp-zone-toolbar-sep';
+  toolbar.appendChild(sep);
+  blockButtons.forEach(addButton);
 }
 
 // ===========================================================================
