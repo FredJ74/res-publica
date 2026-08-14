@@ -402,7 +402,8 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
     extensions: [
       window.RP_TIPTAP_STARTER_KIT, window.RP_TIPTAP_UNDERLINE, window.RP_TIPTAP_TEXT_STYLE,
       window.RP_TIPTAP_COLOR, window.RP_TIPTAP_FONT_FAMILY, window.RP_TIPTAP_FONT_SIZE,
-      window.RP_TIPTAP_LINK,
+      window.RP_TIPTAP_LINK, window.RP_TIPTAP_DETAILS, window.RP_TIPTAP_DETAILS_SUMMARY,
+      window.RP_TIPTAP_DETAILS_CONTENT,
     ],
     content: html || '<p></p>',
     onFocus: () => ctrl.selectElement(el, state),
@@ -470,6 +471,7 @@ function rpCanvasAttachZoneToolbar(toolbar, editor) {
   rpCanvasAttachFontSelect(toolbar, editor);
   addSep();
   rpCanvasAttachLinkButton(toolbar, editor);
+  addButton({ label: '👁', title: 'Spoiler', style: '', run: () => editor.chain().focus().setDetails().run() });
 }
 
 // Lien (Lot D5) : demande l'URL par window.prompt, même mécanisme déjà utilisé pour les

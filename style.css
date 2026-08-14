@@ -652,6 +652,20 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    normal (aucune règle "a" globale dans ce fichier) */
 .rp-zone-content a{color:#2a6fc9;text-decoration:underline;cursor:pointer}
 
+/* Spoiler (Lot D6) — le NodeView de l'extension Details ne fournit aucun style, et crée le
+   bouton bascule VIDE (vérifié dans le code source réel : aucun texte/icône posé par le
+   paquet lui-même) -- le libellé "▶/▼ Spoiler" ci-dessous vient donc entièrement d'ici, pas
+   de l'extension. .is-open est la classe que l'extension bascule elle-même sur le conteneur
+   (option openClassName, valeur par défaut). Dans l'éditeur, ce n'est PAS un <details> natif
+   (le NodeView crée un <div> ordinaire ; le vrai <details> HTML n'apparaît que dans le HTML
+   exporté par editor.getHTML()) -- pas de "marker" natif de <summary> à neutraliser ici. */
+.rp-zone-content div[data-type="details"]{border:1px solid #bbb;border-radius:3px;margin:.5em 0;background:#f4f5f7}
+.rp-zone-content div[data-type="details"] > button{display:block;width:100%;text-align:left;padding:.3em .6em;background:#eceff2;border:none;border-bottom:1px solid #ccc;cursor:pointer;font-size:.72rem;letter-spacing:.03em;color:#666}
+.rp-zone-content div[data-type="details"] > button::before{content:"▶ Spoiler"}
+.rp-zone-content div[data-type="details"].is-open > button::before{content:"▼ Spoiler"}
+.rp-zone-content div[data-type="details"] summary{display:block;padding:.4em .8em 0;font-style:italic;color:#555}
+.rp-zone-content div[data-type="detailsContent"]{padding:.2em .8em .6em}
+
 .rp-zone-content{padding:.5rem .7rem;font-family:Georgia,serif;font-size:.9rem;line-height:1.6;color:#222;min-height:2.4em}
 .rp-zone-content .ProseMirror{outline:none}
 .rp-zone-content p{margin:0 0 .7em}
