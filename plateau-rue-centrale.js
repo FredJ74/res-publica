@@ -1,6 +1,6 @@
 // Point d'entree par ville — sert a savoir si cette ville utilise la nouvelle navigation par scenes
 const RUE_CENTRALE_DEPART = {
-  republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal' }
+  republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal', caserne: 'caserne-exterieur', qhs: 'qhs-exterieur' }
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
 
@@ -486,6 +486,26 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [78, 92], nom: 'Lot 5 (5500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-11' }
       ],
       liens: { arriere: 'psm-terrains-vente' }
+    },
+
+    // ---- CASERNE / QHS — scenes a noeud unique, un seul batiment chacune, accessibles
+    // uniquement par taxi depuis le Centre Multinodal (pas de rue a parcourir, donc aucune
+    // fleche directionnelle). Coordonnees de zone estimees visuellement, a confirmer/ajuster
+    // en jeu comme pour les scenes de Luthecia/PSM.
+    'caserne-exterieur': {
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-exterieur.png',
+      zones: [
+        { xPct: [62, 100], yPct: [10, 92], nom: 'Caserne Militaire', type: 'batiment', buildingId: 'caserne-militaire' }
+      ],
+      liens: {}
+    },
+
+    'qhs-exterieur': {
+      image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-exterieur.png',
+      zones: [
+        { xPct: [5, 95], yPct: [5, 90], nom: 'Quartier Haute Sécurité', type: 'batiment', buildingId: 'qhs-prison' }
+      ],
+      liens: {}
     }
   }
 };
