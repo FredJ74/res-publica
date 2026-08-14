@@ -4636,7 +4636,7 @@ async function confirmerExpulsionAmbassadeur(empireId, pa, cost) {
   showToast('Ambassadeur expulsé', 'Délai de 24h notifié, poste conservé jusqu\'à l\'échéance.', false);
 }
 
-function ouvrirBanquetDiplomatique() {
+function ouvrirBanquetDiplomatique(pa, cost) {
   const contacts = state.contacts || [];
   if (contacts.length === 0) {
     showToast('Répertoire vide', 'Enregistrez des contacts pour pouvoir les inviter.', false);
@@ -4650,15 +4650,17 @@ function ouvrirBanquetDiplomatique() {
     html += '<label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#c0b090"><input type="checkbox" class="banquet-invite" value="' + c.name + '"/> ' + c.name + '</label>';
   });
   html += '</div>';
-  html += '<button onclick="confirmerBanquetDiplomatique()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Organiser le banquet (2000 FR)</button>';
+  html += '<button onclick="confirmerBanquetDiplomatique(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Organiser le banquet (2000 FR)</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerBanquetDiplomatique() {
+async function confirmerBanquetDiplomatique(pa, cost) {
   const invites = Array.from(document.querySelectorAll('.banquet-invite:checked')).map(el => el.value);
   if (invites.length === 0) { showToast('Aucun invité sélectionné', '', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
 
   if (!verifierBudgetInstitution('presidence')) return;

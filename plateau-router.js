@@ -397,7 +397,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'reserver_salle_reception') { doReserverSalleReception(pa, cost); return; }
   if (fn === 'sanctions_empire')        { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
   if (fn === 'reception_etat') { doReceptionAvecBonus(fn, cost); return; }
-  if (fn === 'banquet_diplo') { ouvrirBanquetDiplomatique(); return; }
+  if (fn === 'banquet_diplo') { ouvrirBanquetDiplomatique(pa, cost); return; }
 
   // Bureau National de l'Emploi (9 aout 2026)
   if (fn === 'sinscrire_demandeur_emploi') { doInscrireDemandeurEmploi(pa, cost); return; }
