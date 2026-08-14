@@ -168,8 +168,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_ministre')         { ouvrirModalNommerPM(); return; }
   if (fn === 'revoquer_pm')             { ouvrirModalRevoquerPM(pa, cost); return; }
   if (fn === 'nommer_pm')               { ouvrirModalCibleRepertoire('nommer_pm_confirm', 'Nommer un Premier Ministre'); return; }
-  if (fn === 'nommer_ministre_pm')      { ouvrirNommerMinistresModal(); return; }
-  if (fn === 'revoquer_ministre_pm')   { ouvrirModalRevoquerMinistre(); return; }
+  if (fn === 'nommer_ministre_pm')      { ouvrirNommerMinistresModal(pa, cost); return; }
+  if (fn === 'revoquer_ministre_pm')   { ouvrirModalRevoquerMinistre(pa, cost); return; }
   if (fn === 'declencher_vote_confiance') { ouvrirDeclencherVoteConfiance(); return; }
   if (fn === 'declarer_guerre_empire' || fn === 'declarer_guerre')  { ouvrirModalGuerreEmpire(); return; }
   if (fn === 'gracier_condamne' || fn === 'gracier') { ouvrirModalGracier(); return; }
@@ -325,20 +325,20 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'censurer_media') { ouvrirModalMedia(); return; }
   if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
   if (fn === 'activer_cessez_le_feu') { ouvrirActiverCessezLeFeu(); return; }
-  if (fn === 'nommer_commandant') { ouvrirNommerCommandant(); return; }
+  if (fn === 'nommer_commandant') { ouvrirNommerCommandant(pa, cost); return; }
   if (fn === 'recruter_compagnie') { doRecruterCompagnie(); return; }
   if (fn === 'nommer_capitaine') { ouvrirNommerCapitaine(); return; }
-  if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(); return; }
+  if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(pa, cost); return; }
   if (fn === 'gerer_detachement') { doGererDetachement(); return; }
-  if (fn === 'assigner_mission') { doAssignerMission(); return; }
+  if (fn === 'assigner_mission') { doAssignerMission(pa, cost); return; }
   if (fn === 'voir_ma_section') { doVoirMaSection(); return; }
   if (fn === 'entrainer_section') { doEntrainerSection(); return; }
   if (fn === 'equiper_section') { doEquiperSection(); return; }
   if (fn === 'remonter_renseignement') { ouvrirRemonterRenseignement(); return; }
-  if (fn === 'demettre_lieutenant') { doDemettreLieutenant(); return; }
+  if (fn === 'demettre_lieutenant') { doDemettreLieutenant(pa, cost); return; }
   if (fn === 'recruter_section') { ouvrirRecruterSection(); return; }
   if (fn === 'engager_officier') { doEngagerOfficier(pa, cost); return; }
-  if (fn === 'traiter_engagements') { ouvrirTraiterEngagements(); return; }
+  if (fn === 'traiter_engagements') { ouvrirTraiterEngagements(pa, cost); return; }
   if (fn === 'affecter_engage') { ouvrirAffecterEngage(); return; }
   if (fn === 'recherche_militaire') { ouvrirRechercheMilitaire(); return; }
   if (fn === 'requisition_civile') { ouvrirRequisitionCivile(); return; }
@@ -386,9 +386,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'commanditer_sondage_cible') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet du sondage...'); return; }
   if (fn === 'signer_traite_empire')    { ouvrirModalTraite(); return; }
   if (fn === 'ouvrir_ambassade_empire') { ouvrirModalEmpireCible('ouvrir_ambassade', 'Ouvrir une ambassade dans'); return; }
-  if (fn === 'nommer_ambassadeur_cible'){ ouvrirModalNommerAmbassadeur(); return; }
-  if (fn === 'demettre_ambassadeur_cible'){ ouvrirModalDemettreAmbassadeur(); return; }
-  if (fn === 'expulser_ambassadeur_cible'){ ouvrirModalExpulserAmbassadeur(); return; }
+  if (fn === 'nommer_ambassadeur_cible'){ ouvrirModalNommerAmbassadeur(pa, cost); return; }
+  if (fn === 'demettre_ambassadeur_cible'){ ouvrirModalDemettreAmbassadeur(pa, cost); return; }
+  if (fn === 'expulser_ambassadeur_cible'){ ouvrirModalExpulserAmbassadeur(pa, cost); return; }
   if (fn === 'relations_bilaterales') { ouvrirRelationsBilaterales(); return; }
   if (fn === 'corrompre_homologue_local') { doCorrompreHomologueLocal(pa, cost); return; }
   if (fn === 'organiser_reception_diplomatique') { doOrganiserReceptionDiplomatique(pa, cost); return; }

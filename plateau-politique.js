@@ -4164,7 +4164,7 @@ function ouvrirModalRevoquerPM(pa, cost) {
   ouvrirRevoquerPosteNomme('pm', pa, cost);
 }
 
-function ouvrirModalRevoquerMinistre() {
+function ouvrirModalRevoquerMinistre(pa, cost) {
   if (state.poste?.id !== 'pm') {
     showToast('Acces refuse', 'Seul le Premier Ministre peut revoquer un ministre.', false);
     return;
@@ -4181,7 +4181,7 @@ function ouvrirModalRevoquerMinistre() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le ministere a revoquer.</div>';
   postesMinisteriels.forEach(p => {
-    html += '<button onclick="ouvrirRevoquerPosteNomme(\'' + p.id + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">' + p.name + '</button>';
+    html += '<button onclick="ouvrirRevoquerPosteNomme(\'' + p.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">' + p.name + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -4463,7 +4463,7 @@ async function doDemanderAsilePolitique(pa, cost) {
   addJournalEntry('Demande d\'asile politique déposée.', 'event-info');
 }
 
-function ouvrirModalNommerAmbassadeur() {
+function ouvrirModalNommerAmbassadeur(pa, cost) {
   const contacts = state.contacts || [];
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
   document.getElementById('postes-modal-title').textContent = 'Nommer un ambassadeur';
@@ -4477,17 +4477,19 @@ function ouvrirModalNommerAmbassadeur() {
     html += '<select id="amb-empire" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;margin-bottom:.7rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none">';
     empires.forEach(([k,co]) => { html += '<option value="' + k + '">' + co.n + '</option>'; });
     html += '</select>';
-    html += '<button onclick="confirmerAmbassadeur()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer</button>';
+    html += '<button onclick="confirmerAmbassadeur(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer</button>';
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerAmbassadeur() {
+async function confirmerAmbassadeur(pa, cost) {
   const contact = document.getElementById('amb-contact')?.value;
   const empireId = document.getElementById('amb-empire')?.value;
   document.getElementById('modal-postes').classList.remove('open');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const empireName = COUNTRIES[empireId]?.n || empireId;
   // Persistance partagee : la nomination doit etre visible de tous, dans le Quartier des
   // Ambassades du pays cible (empireId), pour restreindre les ordres du bureau a cette personne.
@@ -4501,7 +4503,7 @@ function confirmerAmbassadeur() {
 
 // DEMETTRE : le pays qui a nomme son propre ambassadeur met fin a sa mission — perte
 // immediate du poste, aucun delai (contrairement a l'expulsion, voir plus bas).
-async function ouvrirModalDemettreAmbassadeur() {
+async function ouvrirModalDemettreAmbassadeur(pa, cost) {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
   document.getElementById('postes-modal-title').textContent = 'Démettre un ambassadeur de son poste';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
@@ -4523,7 +4525,7 @@ async function ouvrirModalDemettreAmbassadeur() {
       const co = COUNTRIES[x.empireId];
       html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.4rem">';
       html += '<span style="font-size:.85rem">' + co.n + ' — <em>' + x.info.data.ambassadeur + '</em></span>';
-      html += '<button onclick="confirmerDemissionAmbassadeur(&quot;' + x.empireId + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Démettre</button>';
+      html += '<button onclick="confirmerDemissionAmbassadeur(&quot;' + x.empireId + '&quot;,' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Démettre</button>';
       html += '</div>';
     });
   }
@@ -4531,8 +4533,10 @@ async function ouvrirModalDemettreAmbassadeur() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function confirmerDemissionAmbassadeur(empireId) {
+async function confirmerDemissionAmbassadeur(empireId, pa, cost) {
   const empireName = COUNTRIES[empireId]?.n || empireId;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const rows = typeof sbGet === 'function' ? await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(empireId + '-' + state.country)}`).catch(() => []) : [];
   const ancienAmbassadeur = rows?.[0]?.data?.ambassadeur;
   if (typeof sbNommerAmbassadeur === 'function') {
@@ -4548,7 +4552,7 @@ async function confirmerDemissionAmbassadeur(empireId) {
 
 // EXPULSER : le pays hote expulse l'ambassadeur d'un autre pays stationne chez lui. Il garde
 // son poste mais a 24h (jour actuel + 1) pour quitter le pays, sous peine d'arrestation.
-async function ouvrirModalExpulserAmbassadeur() {
+async function ouvrirModalExpulserAmbassadeur(pa, cost) {
   const empires = Object.entries(COUNTRIES).filter(([k]) => k !== state.country);
   document.getElementById('postes-modal-title').textContent = 'Expulser un ambassadeur';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
@@ -4565,7 +4569,7 @@ async function ouvrirModalExpulserAmbassadeur() {
       const info = infos.find(i => i.data?.empire === k);
       html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.4rem">';
       html += '<span style="font-size:.85rem">' + co.n + ' — <em>' + info.data.ambassadeur + '</em></span>';
-      html += '<button onclick="confirmerExpulsionAmbassadeur(&quot;' + k + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Expulser</button>';
+      html += '<button onclick="confirmerExpulsionAmbassadeur(&quot;' + k + '&quot;,' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem .7rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Expulser</button>';
       html += '</div>';
     });
   }
@@ -4573,8 +4577,10 @@ async function ouvrirModalExpulserAmbassadeur() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function confirmerExpulsionAmbassadeur(empireId) {
+async function confirmerExpulsionAmbassadeur(empireId, pa, cost) {
   const empireName = COUNTRIES[empireId]?.n || empireId;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const echeance = Date.now() + 24 * 60 * 60 * 1000; // 24h reelles, comme les autres delais du jeu (couvre-feu, recherche militaire)
   if (typeof sbFixerEcheanceExpulsion === 'function') {
     await sbFixerEcheanceExpulsion(state.country, empireId, echeance).catch(() => {});
@@ -4947,7 +4953,7 @@ async function confirmerDementi(rumeurId, cible, popPerdu) {
   }
 }
 
-function ouvrirNommerMinistresModal() {
+function ouvrirNommerMinistresModal(pa, cost) {
   if (state.poste?.id !== 'pm') {
     showToast('Acces refuse', 'Seul le Premier Ministre peut nommer des ministres.', false);
     return;
@@ -4965,7 +4971,7 @@ function ouvrirNommerMinistresModal() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le ministere a pourvoir.</div>';
   postesMinisteriels.forEach(p => {
-    html += '<button onclick="ouvrirNominerPosteNomme(\'' + p.id + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">' + p.name + '</button>';
+    html += '<button onclick="ouvrirNominerPosteNomme(\'' + p.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">' + p.name + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -5544,7 +5550,7 @@ function estEnGuerreAvec(pays1, pays2, guerresCache) {
 }
 
 // ---- CHAINE DE COMMANDEMENT ----
-async function ouvrirNommerCommandant() {
+async function ouvrirNommerCommandant(pa, cost) {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const pays = state.country || 'republic';
   const habitants = typeof listerHabitantsEligibles === 'function' ? await listerHabitantsEligibles('commandant') : [];
@@ -5556,16 +5562,18 @@ async function ouvrirNommerCommandant() {
     html += '<select id="nomme-commandant" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
     habitants.forEach(h => html += '<option value="' + h.name + '">' + h.name + '</option>');
     html += '</select>';
-    html += '<button onclick="envoyerNominationCommandant()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
+    html += '<button onclick="envoyerNominationCommandant(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function envoyerNominationCommandant() {
+async function envoyerNominationCommandant(pa, cost) {
   const destinataire = document.getElementById('nomme-commandant')?.value;
   if (!destinataire) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const corps = (state.char?.name||'Le Ministre') + ' vous propose le poste de <strong>Commandant de la Caserne</strong>.<br><br>' +
@@ -5624,7 +5632,7 @@ async function accepterNominationCapitaine(compagnieId, nommeurNom) {
   addExternalEvent('🎖 ' + (state.char?.name||'Un officier') + ' est nommé Capitaine.');
 }
 
-async function ouvrirNommerLieutenant() {
+async function ouvrirNommerLieutenant(pa, cost) {
   if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   if (!compagnie) return;
@@ -5642,16 +5650,18 @@ async function ouvrirNommerLieutenant() {
   html += '<select id="nomme-lieutenant-nom" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
   habitants.forEach(h => html += '<option value="' + h.name + '">' + h.name + '</option>');
   html += '</select>';
-  html += '<button onclick="envoyerNominationLieutenant(\'' + compagnie.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
+  html += '<button onclick="envoyerNominationLieutenant(\'' + compagnie.id + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function envoyerNominationLieutenant(compagnieId) {
+async function envoyerNominationLieutenant(compagnieId, pa, cost) {
   const sectionId = document.getElementById('nomme-lieutenant-section')?.value;
   const destinataire = document.getElementById('nomme-lieutenant-nom')?.value;
   if (!sectionId || !destinataire) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const corps = (state.char?.name||'Le Capitaine') + ' vous propose le poste de <strong>Lieutenant</strong> de la section ' + sectionId + '.<br><br>' +
@@ -5813,7 +5823,7 @@ const MISSIONS_DETACHEMENT = [
   { id: 'escorter', label: 'Escorter une personne précise' }
 ];
 
-async function doAssignerMission() {
+async function doAssignerMission(pa, cost) {
   if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   const section = getSectionDuLieutenant(compagnie);
@@ -5823,7 +5833,7 @@ async function doAssignerMission() {
   document.getElementById('postes-modal-title').textContent = 'Attribuer une mission';
   let html = '<div style="padding:1rem">';
   MISSIONS_DETACHEMENT.forEach(m => {
-    html += '<button onclick="confirmerMission(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + m.id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid ' + (section.mission===m.id?'#8a6a20':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + m.label + '</button>';
+    html += '<button onclick="confirmerMission(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + m.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid ' + (section.mission===m.id?'#8a6a20':'#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + m.label + '</button>';
   });
   if (MISSIONS_DETACHEMENT.find(m=>m.id==='escorter')) {
     html += '<input id="mission-escorte-cible" type="text" placeholder="Nom de la personne à escorter (si mission Escorter)" style="width:100%;margin-top:.4rem;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;box-sizing:border-box"/>';
@@ -5833,12 +5843,14 @@ async function doAssignerMission() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerMission(compagnieId, sectionId, missionId) {
+async function confirmerMission(compagnieId, sectionId, missionId, pa, cost) {
   const cibleEscorte = document.getElementById('mission-escorte-cible')?.value?.trim() || null;
   document.getElementById('modal-postes')?.classList.remove('open');
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   section.mission = missionId;
   section.cibleEscorte = missionId === 'escorter' ? cibleEscorte : null;
   await sbSaveCompagnie(compagnieId, compagnie);
@@ -6303,7 +6315,7 @@ async function resoudreCombat(A, B) {
 }
 
 // ---- LE CAPITAINE PEUT DEMETTRE UN LIEUTENANT ----
-async function doDemettreLieutenant() {
+async function doDemettreLieutenant(pa, cost) {
   if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   const pourvues = (compagnie?.sections || []).filter(s => s.lieutenantNom);
@@ -6313,7 +6325,7 @@ async function doDemettreLieutenant() {
   pourvues.forEach(s => {
     html += '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem">';
     html += '<span style="font-size:.85rem;color:#e0d5b8">' + s.lieutenantNom + ' (Section ' + s.numero + ')</span>';
-    html += '<button onclick="confirmerDemissionLieutenant(\'' + compagnie.id + '\',\'' + s.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Démettre</button>';
+    html += '<button onclick="confirmerDemissionLieutenant(\'' + compagnie.id + '\',\'' + s.id + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Démettre</button>';
     html += '</div>';
   });
   html += '</div>';
@@ -6321,11 +6333,19 @@ async function doDemettreLieutenant() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerDemissionLieutenant(compagnieId, sectionId) {
+// Anomalie decouverte lors de la migration PA/cout (Phase L, non corrigee, hors perimetre) :
+// cette fonction n'efface jamais le state.poste (ni la fiche Supabase personnages.poste) du
+// lieutenant demis -- seul section.lieutenantNom est efface. Le joueur demis conserve donc ses
+// permissions requiresPost:'lieutenant' malgre la demission. Meme famille de bug que la
+// "promotion fantome" corrigee sur confirmerAffectationSection, mais en sens inverse. Signale
+// pour arbitrage separe, non traite ici.
+async function confirmerDemissionLieutenant(compagnieId, sectionId, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const ancien = section.lieutenantNom;
   section.lieutenantNom = null;
   await sbSaveCompagnie(compagnieId, compagnie);
@@ -6728,7 +6748,7 @@ async function doEngagerOfficier(pa, cost) {
 }
 
 // Le Commandant traite les demandes d'engagement : choisit la compagnie d'affectation
-async function ouvrirTraiterEngagements() {
+async function ouvrirTraiterEngagements(pa, cost) {
   if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
   const pays = state.country || 'republic';
   const engagements = await sbGetEngagementsPays(pays, 'attente_commandant').catch(() => []);
@@ -6747,7 +6767,7 @@ async function ouvrirTraiterEngagements() {
       html += '<select id="compagnie-' + e.id + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.8rem;outline:none;margin-bottom:.4rem">';
       compagnies.forEach(c => html += '<option value="' + c.id + '">' + c.id + (c.capitaineNom ? ' (Cap. ' + c.capitaineNom + ')' : ' (sans capitaine)') + '</option>');
       html += '</select>';
-      html += '<button onclick="confirmerAffectationCompagnie(\'' + e.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter à cette compagnie</button>';
+      html += '<button onclick="confirmerAffectationCompagnie(\'' + e.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter à cette compagnie</button>';
       html += '</div>';
     });
   }
@@ -6756,7 +6776,7 @@ async function ouvrirTraiterEngagements() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerAffectationCompagnie(engagementId) {
+async function confirmerAffectationCompagnie(engagementId, pa, cost) {
   const compagnieId = document.getElementById('compagnie-' + engagementId)?.value;
   if (!compagnieId) return;
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -6765,6 +6785,8 @@ async function confirmerAffectationCompagnie(engagementId) {
   const rows = await sbGet('engagements_militaires', `id=eq.${encodeURIComponent(engagementId)}`).catch(() => []);
   const engagement = rows?.[0]?.data;
   if (!engagement) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   await sbMajEngagement(engagementId, 'attente_capitaine', { compagnieId });
   if (compagnie?.capitaineNom && typeof sbSendMail === 'function') {
