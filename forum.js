@@ -352,6 +352,7 @@ function renderForumContent() {
   if (forumView === 'new-topic') return renderNewTopicForm();
   if (forumView === 'reply')     return renderReplyForm();
   if (forumView === 'edit-post') return renderEditPostForm();
+  if (forumView === 'compose-canvas') return renderComposeCanvasForm();
   return '';
 }
 
@@ -381,6 +382,9 @@ function renderTopicList() {
       ${peutCreerSujet ? `
       <button class="forum-new-btn" onclick="showNewTopicForm()">
         <i class="ti ti-pencil-plus"></i> Nouveau sujet
+      </button>
+      <button class="forum-new-btn" onclick="showComposeCanvasForm()" style="opacity:.85" title="Chantier en cours, sans fonctionnalité pour l'instant">
+        <i class="ti ti-layout-grid"></i> Composition libre (bêta)
       </button>` : ''}
     </div>
     ${topics.length === 0
@@ -1043,6 +1047,15 @@ function showNewTopicForm() {
   forumView = 'new-topic'; document.getElementById('forum-main').innerHTML = renderForumContent();
 }
 function showReplyForm()    { forumView = 'reply';     document.getElementById('forum-main').innerHTML = renderForumContent(); }
+function showComposeCanvasForm() {
+  // Meme garde-fou que showNewTopicForm (double verification : le bouton est deja masque par
+  // la meme condition, mais on protege aussi l'appel direct de la fonction).
+  if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
+    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', false);
+    return;
+  }
+  forumView = 'compose-canvas'; document.getElementById('forum-main').innerHTML = renderForumContent();
+}
 function backToList()       { forumView = 'list'; currentTopicId = null; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 function backToTopic()      { forumView = 'topic'; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 

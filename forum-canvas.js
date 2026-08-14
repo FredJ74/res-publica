@@ -218,3 +218,28 @@ function rpCanvasCreateController(container) {
     attachDrag, attachEdgeResize, attachBottomResize, attachCornerResize,
   };
 }
+
+// ===========================================================================
+// Écran de composition (Lot C1) — point d'entrée séparé, à côté du bouton "Nouveau sujet"
+// existant (jamais retiré ni modifié). Volontairement vide pour ce lot : ni bouton
+// "Ajouter une zone de texte" (C2), ni bouton image (C4), ni contrôleur canvas instancié —
+// juste la coquille et le chemin de retour, pour prouver que le point d'entrée fonctionne
+// sans rien construire dessus encore.
+// ===========================================================================
+function renderComposeCanvasForm() {
+  return `
+    <div class="forum-header-bar">
+      <button class="forum-back-btn" onclick="backToList()">
+        <i class="ti ti-arrow-left"></i> Retour
+      </button>
+      <div class="forum-title-main">Nouveau sujet — Composition libre (bêta)</div>
+    </div>
+    <div style="padding:1rem">
+      <div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">
+        Chantier en cours — cet écran n'a encore aucune fonctionnalité et ne permet de rien
+        publier pour le moment.
+      </div>
+      <div id="rp-compose-canvas" style="position:relative;width:680px;max-width:100%;min-height:500px;background:#fff;border:1px solid #2a2010"></div>
+    </div>
+  `;
+}
