@@ -2850,7 +2850,7 @@ async function doAccepterTransfertCompromis(id) {
 // ceci a un vrai ordre de salle.
 // =====================
 
-async function doOuvrirAchatEntrepot() {
+async function doOuvrirAchatEntrepot(pa, cost) {
   const buildingId = state.currentBuilding;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, buildingId) : {};
@@ -2876,7 +2876,7 @@ async function doOuvrirAchatEntrepot() {
     html += '</tr>';
   });
   html += '</table>';
-  html += '<button class="pnj-action-btn" onclick="confirmerAchatEntrepot(\'' + buildingId + '\')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider l\'achat</button>';
+  html += '<button class="pnj-action-btn" onclick="confirmerAchatEntrepot(\'' + buildingId + '\',' + pa + ',' + cost + ')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider l\'achat</button>';
   html += '</div>';
 
   document.getElementById('postes-modal-title').textContent = 'Salle des Ventes';
@@ -2884,7 +2884,7 @@ async function doOuvrirAchatEntrepot() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerAchatEntrepot(buildingId) {
+async function confirmerAchatEntrepot(buildingId, pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
   const stock = etat.entrepot?.stock || {};
@@ -2914,6 +2914,8 @@ async function confirmerAchatEntrepot(buildingId) {
     showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(state.arg) + ' ' + cur + '.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   // Deuxieme passe : appliquer (deduire argent+stock, crediter l'inventaire du joueur —
   // plafonne globalement a 100 objets, voir addToInventory/plateau-divers.js). Si la place
@@ -2951,7 +2953,7 @@ async function confirmerAchatEntrepot(buildingId) {
 // voir confirmerAchatEntrepot juste au-dessus) — different de la forme utilisee par la recolte/
 // l'armurerie (type:'matiere_premiere'). C'est la seule source de bois pour un joueur a
 // Luthecia : MATIERES_PREMIERES_VILLE ne definit aucune ressource recoltable pour 'capitale'.
-async function ouvrirVendreBoisImprimerie() {
+async function ouvrirVendreBoisImprimerie(pa, cost) {
   const lot = (state.inventory || []).find(i => i.stackKey === 'bois' && (i.qty || 0) > 0);
   if (!lot) {
     showToast('Aucun bois', 'Vous n\'avez pas de bois à vendre — achetez-en à l\'Entrepôt Logistique.', false);
@@ -2967,12 +2969,12 @@ async function ouvrirVendreBoisImprimerie() {
     '<div style="padding:1rem">' +
     '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Vous avez ' + lot.qty + ' bois. Gustave achète à ' + prixUnitaire + ' ' + cur + '/unité (cours actuel de l\'entrepôt +10%), dans la limite de sa caisse.</div>' +
     '<input type="number" id="vendre-bois-qte" min="1" max="' + lot.qty + '" value="' + lot.qty + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.7rem"/>' +
-    '<button onclick="confirmerVendreBoisImprimerie()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Vendre</button>' +
+    '<button onclick="confirmerVendreBoisImprimerie(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer">Vendre</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerVendreBoisImprimerie() {
+async function confirmerVendreBoisImprimerie(pa, cost) {
   const qteVoulue = parseInt(document.getElementById('vendre-bois-qte')?.value || '0');
   document.getElementById('modal-postes')?.classList.remove('open');
   if (!qteVoulue || qteVoulue <= 0) { showToast('Quantité invalide', '', false); return; }
@@ -2996,6 +2998,8 @@ async function confirmerVendreBoisImprimerie() {
     showToast('Caisse vide', 'Gustave n\'a pas les moyens d\'acheter du bois pour le moment.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const montantPaye = Math.round(qteAchetable * prixUnitaire * 100) / 100;
 
@@ -3036,7 +3040,7 @@ function getBuildingIdDirecteurEntrepot() {
   return ville ? ENTREPOT_PAR_VILLE[ville] : null;
 }
 
-async function doOuvrirFixerPrixAchatEntrepot() {
+async function doOuvrirFixerPrixAchatEntrepot(pa, cost) {
   const buildingIdAttendu = getBuildingIdDirecteurEntrepot();
   if (state.poste?.id !== 'directeur_entrepot' || state.currentBuilding !== buildingIdAttendu) {
     showToast('Accès refusé', 'Seul le directeur en poste peut fixer les prix de cet entrepôt.', false);
@@ -3068,7 +3072,7 @@ async function doOuvrirFixerPrixAchatEntrepot() {
     html += '</tr>';
   });
   html += '</table>';
-  html += '<button class="pnj-action-btn" onclick="confirmerFixerPrixAchatEntrepot(\'' + buildingId + '\')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider les prix</button>';
+  html += '<button class="pnj-action-btn" onclick="confirmerFixerPrixAchatEntrepot(\'' + buildingId + '\',' + pa + ',' + cost + ')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider les prix</button>';
   html += '</div>';
 
   document.getElementById('postes-modal-title').textContent = "Fixer les prix d'achat";
@@ -3076,7 +3080,7 @@ async function doOuvrirFixerPrixAchatEntrepot() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerFixerPrixAchatEntrepot(buildingId) {
+async function confirmerFixerPrixAchatEntrepot(buildingId, pa, cost) {
   if (state.poste?.id !== 'directeur_entrepot' || buildingId !== getBuildingIdDirecteurEntrepot()) return;
   const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
   const prixManuel = { ...(etat.entrepot?.prixManuel || {}) };
@@ -3095,6 +3099,9 @@ async function confirmerFixerPrixAchatEntrepot(buildingId) {
     }
     nouvellesValeurs[cle] = Math.round(prix * 100) / 100;
   }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   for (const cle of Object.keys(RESSOURCES_ECONOMIE)) {
     const valeur = document.getElementById('prix-fixe-entrepot-' + cle)?.value;
@@ -3152,7 +3159,7 @@ async function verifierSalaireDirecteurEntrepot() {
 // de l'usine, pas a celle de l'entrepot.
 // =====================
 
-async function doOuvrirVenteDirecteUsine() {
+async function doOuvrirVenteDirecteUsine(pa, cost) {
   const buildingId = state.currentBuilding;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, buildingId) : {};
@@ -3186,7 +3193,7 @@ async function doOuvrirVenteDirecteUsine() {
     html += '</tr>';
   });
   html += '</table>';
-  html += '<button class="pnj-action-btn" onclick="confirmerVenteDirecteUsine(\'' + buildingId + '\')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider l\'achat</button>';
+  html += '<button class="pnj-action-btn" onclick="confirmerVenteDirecteUsine(\'' + buildingId + '\',' + pa + ',' + cost + ')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider l\'achat</button>';
   html += '</div>';
 
   document.getElementById('postes-modal-title').textContent = 'Vente Directe';
@@ -3194,7 +3201,7 @@ async function doOuvrirVenteDirecteUsine() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerVenteDirecteUsine(buildingId) {
+async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
   const venteDirecte = etat.usine?.venteDirecte || {};
@@ -3223,6 +3230,8 @@ async function confirmerVenteDirecteUsine(buildingId) {
     showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(state.arg) + ' ' + cur + '.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   let totalReellementPaye = 0;
   for (const [cle, { prix }] of Object.entries(achats)) {
@@ -3349,7 +3358,7 @@ const DIRECTEUR_USINE_INFO = {
   directeur_raffinerie:    { city: 'ville_b',   buildingId: 'raffinerie-montrouge',          produits: ['carburant'] }
 };
 
-async function doOuvrirFixerPrixVenteDirecte() {
+async function doOuvrirFixerPrixVenteDirecte(pa, cost) {
   const posteId = state.poste?.id;
   const cfg = DIRECTEUR_USINE_INFO[posteId];
   if (!cfg || state.currentBuilding !== cfg.buildingId) {
@@ -3384,7 +3393,7 @@ async function doOuvrirFixerPrixVenteDirecte() {
     html += '</tr>';
   });
   html += '</table>';
-  html += '<button class="pnj-action-btn" onclick="confirmerFixerPrixVenteDirecte(\'' + buildingId + '\')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider les prix</button>';
+  html += '<button class="pnj-action-btn" onclick="confirmerFixerPrixVenteDirecte(\'' + buildingId + '\',' + pa + ',' + cost + ')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider les prix</button>';
   html += '</div>';
 
   document.getElementById('postes-modal-title').textContent = 'Fixer les prix de vente';
@@ -3392,7 +3401,7 @@ async function doOuvrirFixerPrixVenteDirecte() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerFixerPrixVenteDirecte(buildingId) {
+async function confirmerFixerPrixVenteDirecte(buildingId, pa, cost) {
   const posteId = state.poste?.id;
   const cfg = DIRECTEUR_USINE_INFO[posteId];
   if (!cfg || buildingId !== cfg.buildingId) return;
@@ -3416,6 +3425,9 @@ async function confirmerFixerPrixVenteDirecte(buildingId) {
     nouvellesValeurs[cle] = Math.round(prix * 100) / 100;
   }
 
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
   for (const cle of cfg.produits) {
     const valeur = document.getElementById('prix-fixe-' + cle)?.value;
     if (valeur === '' || valeur == null) delete prixManuel[cle];
@@ -3430,7 +3442,7 @@ async function confirmerFixerPrixVenteDirecte(buildingId) {
   addJournalEntry('Prix de vente directe ajustés en tant que directeur.', 'event-good');
 }
 
-async function doOuvrirFixerRepartitionProduction() {
+async function doOuvrirFixerRepartitionProduction(pa, cost) {
   const posteId = state.poste?.id;
   const cfg = DIRECTEUR_USINE_INFO[posteId];
   if (!cfg || state.currentBuilding !== cfg.buildingId) {
@@ -3447,7 +3459,7 @@ async function doOuvrirFixerRepartitionProduction() {
   html += '<input type="number" min="0" max="100" step="5" id="repartition-entrepots" value="' + repartitionActuelle + '" style="width:100px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:1.2rem;text-align:center" /> %';
   html += '<div style="font-size:.8rem;color:#6a5a30;margin-top:.5rem">vers les entrepôts — le reste part en vente directe sur place.</div>';
   html += '</div>';
-  html += '<button class="pnj-action-btn" onclick="confirmerFixerRepartitionProduction(\'' + buildingId + '\')" style="margin-top:.5rem;font-size:1rem;padding:.7rem">Valider la répartition</button>';
+  html += '<button class="pnj-action-btn" onclick="confirmerFixerRepartitionProduction(\'' + buildingId + '\',' + pa + ',' + cost + ')" style="margin-top:.5rem;font-size:1rem;padding:.7rem">Valider la répartition</button>';
   html += '</div>';
 
   document.getElementById('postes-modal-title').textContent = 'Répartir la production';
@@ -3455,7 +3467,7 @@ async function doOuvrirFixerRepartitionProduction() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerFixerRepartitionProduction(buildingId) {
+async function confirmerFixerRepartitionProduction(buildingId, pa, cost) {
   const posteId = state.poste?.id;
   const cfg = DIRECTEUR_USINE_INFO[posteId];
   if (!cfg || buildingId !== cfg.buildingId) return;
@@ -3464,6 +3476,8 @@ async function confirmerFixerRepartitionProduction(buildingId) {
     showToast('Valeur invalide', 'Indiquez un pourcentage entre 0 et 100.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
   const nouvelEtat = { ...etat, usine: { ...(etat.usine || {}), repartitionEntrepots: valeur / 100 } };
   if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, nouvelEtat).catch(() => {});
@@ -4100,7 +4114,7 @@ const DUREE_INSTRUCTION_PERMIS = {
   building: 10
 };
 
-async function doDeposerDemandePermis() {
+async function doDeposerDemandePermis(pa, cost) {
   const id = state.currentBuilding;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
@@ -4113,7 +4127,7 @@ async function doDeposerDemandePermis() {
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Le permis est toujours obtenu à terme — seule la durée d\'instruction varie selon l\'ampleur du projet.</div>';
   Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
     const duree = DUREE_INSTRUCTION_PERMIS[key];
-    html += '<button onclick="confirmerDepotPermis(\'' + key + '\')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
+    html += '<button onclick="confirmerDepotPermis(\'' + key + '\',' + pa + ',' + cost + ')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
     html += '<span>' + niv.label + '</span><span style="color:#8a8060">' + duree + ' jour(s) d\'instruction</span></button>';
   });
   html += '</div>';
@@ -4121,11 +4135,14 @@ async function doDeposerDemandePermis() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerDepotPermis(palierDemande) {
+async function confirmerDepotPermis(palierDemande, pa, cost) {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
   const jour = state.day || 1;
   const duree = DUREE_INSTRUCTION_PERMIS[palierDemande];
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const nouvelEtat = setTerrainState(id, {
     permis: {
@@ -4169,7 +4186,7 @@ async function verifierInstructionPermis(buildingId) {
 // le Maire) + fix du filtrage : chargeait auparavant TOUS les permis du pays, pas seulement
 // ceux de la ville courante -- un maire/adjoint voyait et traitait les demandes des 2 autres
 // villes.
-async function doTraiterDemandesPermis() {
+async function doTraiterDemandesPermis(pa, cost) {
   if (state.poste?.id !== 'maire_adjoint') { showToast('Réservé au maire adjoint', '', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Demandes de permis à traiter';
@@ -4197,8 +4214,8 @@ async function doTraiterDemandesPermis() {
       html += '<div style="font-size:.8rem;color:#c0b090">' + d.etat.permis.demandeur + ' — ' + NIVEAUX_CONSTRUCTION[d.etat.permis.palierDemande].label + '</div>';
       if (!zoneOk) html += '<div style="font-size:.7rem;color:#cc6a44;margin-top:.2rem">⚠ Hors zonage autorisé ici — un refus serait légitime.</div>';
       html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
-      html += '<button onclick="traiterPermis(\'' + d.buildingId + '\',true)" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.7rem">Valider</button>';
-      html += '<button onclick="traiterPermis(\'' + d.buildingId + '\',false)" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-size:.7rem">Refuser</button>';
+      html += '<button onclick="traiterPermis(\'' + d.buildingId + '\',true,' + pa + ',' + cost + ')" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.7rem">Valider</button>';
+      html += '<button onclick="traiterPermis(\'' + d.buildingId + '\',false,' + pa + ',' + cost + ')" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-size:.7rem">Refuser</button>';
       html += '</div></div>';
     });
   }
@@ -4206,9 +4223,11 @@ async function doTraiterDemandesPermis() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function traiterPermis(buildingId, valide) {
+async function traiterPermis(buildingId, valide, pa, cost) {
   const etat = await sbGetTerrainState(state.country, buildingId).catch(() => null);
   if (!etat?.permis) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const zoneOk = typeof palierAutorise === 'function' ? palierAutorise(state.country, state.currentCity, etat.permis.palierDemande) : true;
   etat.permis.statut = valide ? 'valide' : 'refuse';
@@ -4350,7 +4369,7 @@ function getBuildingIdTribunal(ville) {
 
 // ---- FINANCEMENT COMMUNAL (Maire Adjoint depuis le 10 aout 2026 -- transfert complet, plus
 // partage avec le Maire) : virement instantane depuis la caisse municipale ----
-async function ouvrirModalFinancerCommunal() {
+async function ouvrirModalFinancerCommunal(pa, cost) {
   if (state.poste?.id !== 'maire_adjoint') {
     showToast('Acces refuse', 'Reserve au Maire Adjoint.', false);
     return;
@@ -4376,13 +4395,13 @@ async function ouvrirModalFinancerCommunal() {
   html += '</select>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MONTANT (' + cur + ')</div>';
   html += '<input type="number" id="financer-montant" min="0" value="500" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem"/>';
-  html += '<button onclick="confirmerFinancementCommunal()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Virer les fonds</button>';
+  html += '<button onclick="confirmerFinancementCommunal(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Virer les fonds</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerFinancementCommunal() {
+async function confirmerFinancementCommunal(pa, cost) {
   const buildingId = document.getElementById('financer-batiment-id')?.value;
   const montant = Math.max(0, parseInt(document.getElementById('financer-montant')?.value || '0'));
   document.getElementById('modal-postes').classList.remove('open');
@@ -4393,6 +4412,8 @@ async function confirmerFinancementCommunal() {
     showToast('Fonds insuffisants', 'La caisse municipale ne couvre pas ce montant.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   budgetMuni.caisse -= montant;
   if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(budgetMuni.key, budgetMuni).catch(() => {});
   await crediterCaisseBatiment(state.country, buildingId, montant);
@@ -4404,7 +4425,7 @@ async function confirmerFinancementCommunal() {
 
 // ---- SUBVENTION MINISTERIELLE (Ministre de l'Interieur) : commissariat de n'importe
 //      quelle ville + QHS, depuis la caisse du Ministere ----
-async function ouvrirModalFinancerMinInt() {
+async function ouvrirModalFinancerMinInt(pa, cost) {
   if (state.poste?.id !== 'min_int') {
     showToast('Acces refuse', "Reserve au Ministre de l'Interieur.", false);
     return;
@@ -4426,17 +4447,19 @@ async function ouvrirModalFinancerMinInt() {
   html += '</select>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MONTANT (' + cur + ')</div>';
   html += '<input type="number" id="subvention-montant" min="0" value="500" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem"/>';
-  html += '<button onclick="confirmerSubventionMinInt()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Verser la subvention</button>';
+  html += '<button onclick="confirmerSubventionMinInt(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Verser la subvention</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerSubventionMinInt() {
+async function confirmerSubventionMinInt(pa, cost) {
   const buildingId = document.getElementById('subvention-batiment-id')?.value;
   const montant = Math.max(0, parseInt(document.getElementById('subvention-montant')?.value || '0'));
   document.getElementById('modal-postes').classList.remove('open');
   if (!buildingId || montant <= 0) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const montantVerse = await debiterCaisseBatimentPlafonne(state.country, 'gouvernement-min_int', montant);
   if (montantVerse <= 0) {
@@ -5081,7 +5104,7 @@ async function verifierSalairePolitique() {
 // =====================
 // Reconstruction des ordres fiscaux existants (etaient locaux/casses) — Ministre des Finances et Maire
 // =====================
-async function ouvrirFixerImpotsLocauxReel() {
+async function ouvrirFixerImpotsLocauxReel(pa, cost) {
   const budgetMuni = await chargerBudgetMunicipal();
   const taux = budgetMuni.tauxLocal ?? TAUX_TAXE_DEFAUT;
   document.getElementById('postes-modal-title').textContent = 'Fixer les impôts locaux';
@@ -5090,14 +5113,16 @@ async function ouvrirFixerImpotsLocauxReel() {
   html += '<input id="taux-local-input" type="range" min="0" max="40" value="' + taux + '" oninput="document.getElementById(\'taux-local-val\').textContent=this.value+\'%\'" style="width:100%;margin-bottom:.3rem">';
   html += '<div id="taux-local-val" style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C;text-align:center;margin-bottom:.6rem">' + taux + '%</div>';
   html += '<div style="font-size:.72rem;color:#5a5040;margin-bottom:.8rem">Au-delà de 18-20% (total local+national), le climat social se dégrade. Au-delà de 25%, la sécurité en pâtit aussi (marché noir).</div>';
-  html += '<button onclick="validerImpotsLocauxReel(\'' + budgetMuni.key + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
+  html += '<button onclick="validerImpotsLocauxReel(\'' + budgetMuni.key + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function validerImpotsLocauxReel(key) {
+async function validerImpotsLocauxReel(key, pa, cost) {
   const nouveauTaux = parseInt(document.getElementById('taux-local-input')?.value || '5');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const budgetMuni = await sbGetBudgetMunicipal(key);
   budgetMuni.tauxLocal = nouveauTaux;
   await sbSaveBudgetMunicipal(key, budgetMuni);
@@ -5106,7 +5131,7 @@ async function validerImpotsLocauxReel(key) {
   addExternalEvent('MAIRIE : Le taux d\'imposition local est fixé à ' + nouveauTaux + '%.');
 }
 
-async function ouvrirFixerImpotNational() {
+async function ouvrirFixerImpotNational(pa, cost) {
   if (state.poste?.id !== 'min_fin') { showToast('Réservé au Ministre des Finances', '', false); return; }
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
@@ -5118,14 +5143,16 @@ async function ouvrirFixerImpotNational() {
   html += '<input id="taux-national-input" type="range" min="0" max="40" value="' + taux + '" oninput="document.getElementById(\'taux-national-val\').textContent=this.value+\'%\'" style="width:100%;margin-bottom:.3rem">';
   html += '<div id="taux-national-val" style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;color:#C9A84C;text-align:center;margin-bottom:.6rem">' + taux + '%</div>';
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.8rem">Au-delà de 18-20% (total local+national), le climat social se dégrade. Au-delà de 25%, la sécurité en pâtit aussi (marché noir).</div>';
-  html += '<button onclick="validerImpotNational(\'' + pays + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
+  html += '<button onclick="validerImpotNational(\'' + pays + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Appliquer</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function validerImpotNational(pays) {
+async function validerImpotNational(pays, pa, cost) {
   const nouveauTaux = parseInt(document.getElementById('taux-national-input')?.value || '5');
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const budgetNat = await chargerBudgetNational(pays);
   budgetNat.tauxNational = nouveauTaux;
   await sbSaveBudgetNational(pays, budgetNat);

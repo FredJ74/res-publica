@@ -65,16 +65,16 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'distribuer_tract') { doDistribuerTract(); return; }
   if (fn === 'demander_parler_loge') { doLogePortail(pa, cost); return; }
   if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(); return; }
-  if (fn === 'vendre_bois_imprimerie') { ouvrirVendreBoisImprimerie(); return; }
+  if (fn === 'vendre_bois_imprimerie') { ouvrirVendreBoisImprimerie(pa, cost); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'acheter_produit_stock') { doAcheterProduitStock(); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(); return; }
-  if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(); return; }
+  if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(pa, cost); return; }
   if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(pa, cost); return; }
   if (fn === 'plainte_obstruction_permis') { doPlainteObstruction(pa, cost); return; }
-  if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(); return; }
+  if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(pa, cost); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(); return; }
@@ -130,8 +130,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'payer_versement_chantier') { doPayerVersementChantier(); return; }
   if (fn === 'corrompre_chantier') { doCorrompreChantier(pa, cost); return; }
   if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(pa, cost); return; }
-  if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(); return; }
-  if (fn === 'vente_directe_usine') { doOuvrirVenteDirecteUsine(); return; }
+  if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(pa, cost); return; }
+  if (fn === 'vente_directe_usine') { doOuvrirVenteDirecteUsine(pa, cost); return; }
   if (fn === 'produire_medicaments') { doProduireUsine('medicaments'); return; }
   if (fn === 'produire_alcool') { doProduireUsine('alcool'); return; }
   if (fn === 'produire_tabac') { doProduireUsine('tabac'); return; }
@@ -139,10 +139,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_directeur_pharma') { ouvrirModalNommerDirecteurPharma(); return; }
   if (fn === 'nommer_directeur_tabac_alcools') { ouvrirModalNommerDirecteurTabacAlcools(); return; }
   if (fn === 'nommer_directeur_raffinerie') { ouvrirModalNommerDirecteurRaffinerie(); return; }
-  if (fn === 'fixer_prix_vente_directe') { doOuvrirFixerPrixVenteDirecte(); return; }
-  if (fn === 'fixer_repartition_production') { doOuvrirFixerRepartitionProduction(); return; }
+  if (fn === 'fixer_prix_vente_directe') { doOuvrirFixerPrixVenteDirecte(pa, cost); return; }
+  if (fn === 'fixer_repartition_production') { doOuvrirFixerRepartitionProduction(pa, cost); return; }
   if (fn === 'nommer_directeur_entrepot') { ouvrirModalNommerDirecteurEntrepot(pa, cost); return; }
-  if (fn === 'fixer_prix_achat_entrepot') { doOuvrirFixerPrixAchatEntrepot(); return; }
+  if (fn === 'fixer_prix_achat_entrepot') { doOuvrirFixerPrixAchatEntrepot(pa, cost); return; }
   if (fn === 'emprunter_construction') { ouvrirModalPretBancaire('nationale', 'travaux'); return; }
   if (fn === 'emprunter') {
     const typeBanque = state.currentBuilding === 'banque-privee' ? 'privee' : 'nationale';
@@ -177,7 +177,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'jour_deuil')             { ouvrirForumNationalSousForumPresident('deuil'); return; }
   if (fn === 'solliciter_audience_president') { solliciterAudiencePresident(); return; }
   if (fn === 'etat_nation')             { ouvrirEtatNation(); return; }
-  if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocauxReel(); return; }
+  if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocauxReel(pa, cost); return; }
   if (fn === 'consommer_buvette') { doConsommerBuvette(); return; }
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne', pa, cost); return; }
@@ -267,7 +267,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'marche_noir') { doMarcheNoir(); return; }
   if (fn === 'officialiser_mariage') { ouvrirOfficialiserMariage(); return; }
   if (fn === 'gerer_couvre_feu') { ouvrirGererCouvreFeu(); return; }
-  if (fn === 'subvention_min_int') { ouvrirModalFinancerMinInt(); return; }
+  if (fn === 'subvention_min_int') { ouvrirModalFinancerMinInt(pa, cost); return; }
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(pa, cost); return; }
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
@@ -315,7 +315,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
   if (fn === 'revoquer_juge') { ouvrirModalRevoquerJuge(pa, cost); return; }
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }
-  if (fn === 'financer_communal') { ouvrirModalFinancerCommunal(); return; }
+  if (fn === 'financer_communal') { ouvrirModalFinancerCommunal(pa, cost); return; }
   if (fn === 'revoquer_commissaire') { ouvrirModalRevoquerCommissaire(pa, cost); return; }
   if (fn === 'gerer_candidatures_directeurs') { ouvrirGestionCandidatures(['directeur_pharma','directeur_tabac_alcools','directeur_raffinerie']); return; }
   if (fn === 'gerer_candidature_commandant') { ouvrirGestionCandidatures(['commandant']); return; }
@@ -351,7 +351,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'reponses_diplomatiques') { ouvrirReponsesDiplomatiques(); return; }
   if (fn === 'subvention') { ouvrirChoixTypeCibleFiscale('subvention', 'Accorder une subvention à'); return; }
   if (fn === 'redressement_fiscal') { ouvrirChoixTypeCibleFiscale('redressement_fiscal', 'Redressement fiscal contre'); return; }
-  if (fn === 'fixer_impots_nationaux') { ouvrirFixerImpotNational(); return; }
+  if (fn === 'fixer_impots_nationaux') { ouvrirFixerImpotNational(pa, cost); return; }
   if (fn === 'traiter_manifestations') { doTraiterManifestations(); return; }
   if (fn === 'renseignement') { ouvrirModalRenseignement(); return; }
   if (fn === 'planifier_operation') { ouvrirModalTexteLibre('planifier_operation', 'Planifier une operation', 'Decrivez l\'operation...'); return; }
