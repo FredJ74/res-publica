@@ -2506,7 +2506,7 @@ function consulterAnnuaireDeputes() {
 // remplacee partout par getTitulaireActuel (plateau-organisations-quetes.js), qui couvre
 // aussi les postes elus, pas seulement les postes nommes.
 
-async function ouvrirRevoquerPosteNomme(posteId) {
+async function ouvrirRevoquerPosteNomme(posteId, pa, cost) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return;
   // Fix 9 aout 2026 : comparaison stricte a 'maire' ne correspondait jamais a un vrai maire
@@ -2530,16 +2530,18 @@ async function ouvrirRevoquerPosteNomme(posteId) {
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1rem">' +
       '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">' + titulaireInfo.nom + (titulaireInfo.estPJ ? '' : ' (PNJ)') + ' occupe actuellement le poste de ' + regle.label + (villeNom ? ' a ' + villeNom : '') + '.</div>' +
-      '<button onclick="confirmerRevocationPosteNomme(\'' + posteId + '\',\'' + titulaireInfo.nom.replace(/'/g,'') + '\',' + (titulaireInfo.estPJ ? 'true' : 'false') + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a2a;background:transparent;color:#c0503a;cursor:pointer">Revoquer</button>' +
+      '<button onclick="confirmerRevocationPosteNomme(\'' + posteId + '\',\'' + titulaireInfo.nom.replace(/'/g,'') + '\',' + (titulaireInfo.estPJ ? 'true' : 'false') + ',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a3a2a;background:transparent;color:#c0503a;cursor:pointer">Revoquer</button>' +
       '</div>';
   }
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ) {
+async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
 
   if (estPJ) {
@@ -2589,7 +2591,7 @@ async function listerHabitantsEligibles(posteId) {
 }
 
 // Ouvre le modal de sélection pour nommer un juge ou un commissaire
-async function ouvrirNominerPosteNomme(posteId) {
+async function ouvrirNominerPosteNomme(posteId, pa, cost) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return;
 
@@ -2617,19 +2619,22 @@ async function ouvrirNominerPosteNomme(posteId) {
     html += '<select id="nomme-poste-contact" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
     candidatsComplet.forEach(h => { html += '<option value="' + h.name + '|' + (h.isPJ ? '1' : '0') + '">' + h.name + (h.isPJ ? '' : ' (PNJ)') + '</option>'; });
     html += '</select>';
-    html += '<button onclick="envoyerNominationPosteNomme(\'' + posteId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
+    html += '<button onclick="envoyerNominationPosteNomme(\'' + posteId + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer la nomination</button>';
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
 
 // Envoie le mail de nomination avec bouton d'acceptation intégré
-async function envoyerNominationPosteNomme(posteId) {
+async function envoyerNominationPosteNomme(posteId, pa, cost) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   const rawSelectNomme = document.getElementById('nomme-poste-contact')?.value;
   if (!rawSelectNomme || !regle) return;
   const [destinataire, estPJRawNomme] = rawSelectNomme.split('|');
   const estPJNomme = estPJRawNomme === '1';
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   document.getElementById('modal-postes').classList.remove('open');
 
@@ -4120,7 +4125,7 @@ function ouvrirModalNommerJuge() {
   ouvrirNominerPosteNomme('juge');
 }
 
-function ouvrirModalRevoquerJuge() { ouvrirRevoquerPosteNomme('juge'); }
+function ouvrirModalRevoquerJuge(pa, cost) { ouvrirRevoquerPosteNomme('juge', pa, cost); }
 
 function ouvrirModalNommerCommissaire() {
   if (!state.poste?.id?.startsWith('maire')) {
@@ -4132,16 +4137,16 @@ function ouvrirModalNommerCommissaire() {
 
 // Transfert complet au Maire Adjoint le 10 aout 2026 (plus partage avec le Maire) : verification
 // stricte, contrairement au startsWith('maire') d'avant qui aurait aussi laisse passer le Maire.
-function ouvrirModalNommerDirecteurEntrepot() {
+function ouvrirModalNommerDirecteurEntrepot(pa, cost) {
   if (state.poste?.id !== 'maire_adjoint') {
     showToast('Accès refusé', "Seul le Maire Adjoint peut nommer un directeur d'entrepôt.", false);
     return;
   }
-  ouvrirNominerPosteNomme('directeur_entrepot');
+  ouvrirNominerPosteNomme('directeur_entrepot', pa, cost);
 }
 
-function ouvrirModalRevoquerCommissaire() { ouvrirRevoquerPosteNomme('commissaire'); }
-function ouvrirModalRevoquerDirecteurEntrepot() { ouvrirRevoquerPosteNomme('directeur_entrepot'); }
+function ouvrirModalRevoquerCommissaire(pa, cost) { ouvrirRevoquerPosteNomme('commissaire', pa, cost); }
+function ouvrirModalRevoquerDirecteurEntrepot(pa, cost) { ouvrirRevoquerPosteNomme('directeur_entrepot', pa, cost); }
 
 function ouvrirModalNommerPM() {
   if (state.poste?.id !== 'president') {
@@ -4151,12 +4156,12 @@ function ouvrirModalNommerPM() {
   ouvrirNominerPosteNomme('pm');
 }
 
-function ouvrirModalRevoquerPM() {
+function ouvrirModalRevoquerPM(pa, cost) {
   if (state.poste?.id !== 'president') {
     showToast('Acces refuse', 'Seul le President peut revoquer le Premier Ministre.', false);
     return;
   }
-  ouvrirRevoquerPosteNomme('pm');
+  ouvrirRevoquerPosteNomme('pm', pa, cost);
 }
 
 function ouvrirModalRevoquerMinistre() {

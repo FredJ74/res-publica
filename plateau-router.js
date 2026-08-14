@@ -141,7 +141,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_directeur_raffinerie') { ouvrirModalNommerDirecteurRaffinerie(); return; }
   if (fn === 'fixer_prix_vente_directe') { doOuvrirFixerPrixVenteDirecte(); return; }
   if (fn === 'fixer_repartition_production') { doOuvrirFixerRepartitionProduction(); return; }
-  if (fn === 'nommer_directeur_entrepot') { ouvrirModalNommerDirecteurEntrepot(); return; }
+  if (fn === 'nommer_directeur_entrepot') { ouvrirModalNommerDirecteurEntrepot(pa, cost); return; }
   if (fn === 'fixer_prix_achat_entrepot') { doOuvrirFixerPrixAchatEntrepot(); return; }
   if (fn === 'emprunter_construction') { ouvrirModalPretBancaire('nationale', 'travaux'); return; }
   if (fn === 'emprunter') {
@@ -166,7 +166,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'creer_comite')            { creerComite(); return; }
   if (fn === 'supprimer_poste_custom')  { supprimerPosteCustom(); return; }
   if (fn === 'nommer_ministre')         { ouvrirModalNommerPM(); return; }
-  if (fn === 'revoquer_pm')             { ouvrirModalRevoquerPM(); return; }
+  if (fn === 'revoquer_pm')             { ouvrirModalRevoquerPM(pa, cost); return; }
   if (fn === 'nommer_pm')               { ouvrirModalCibleRepertoire('nommer_pm_confirm', 'Nommer un Premier Ministre'); return; }
   if (fn === 'nommer_ministre_pm')      { ouvrirNommerMinistresModal(); return; }
   if (fn === 'revoquer_ministre_pm')   { ouvrirModalRevoquerMinistre(); return; }
@@ -313,15 +313,15 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gestion_qhs') { ouvrirGestionQHS(); return; }
   if (fn === 'annuler_poursuites') { ouvrirModalAffaires('annuler'); return; }
   if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
-  if (fn === 'revoquer_juge') { ouvrirModalRevoquerJuge(); return; }
+  if (fn === 'revoquer_juge') { ouvrirModalRevoquerJuge(pa, cost); return; }
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }
   if (fn === 'financer_communal') { ouvrirModalFinancerCommunal(); return; }
-  if (fn === 'revoquer_commissaire') { ouvrirModalRevoquerCommissaire(); return; }
+  if (fn === 'revoquer_commissaire') { ouvrirModalRevoquerCommissaire(pa, cost); return; }
   if (fn === 'gerer_candidatures_directeurs') { ouvrirGestionCandidatures(['directeur_pharma','directeur_tabac_alcools','directeur_raffinerie']); return; }
   if (fn === 'gerer_candidature_commandant') { ouvrirGestionCandidatures(['commandant']); return; }
   if (fn === 'gerer_candidature_directeur_entrepot') { ouvrirGestionCandidatures(['directeur_entrepot']); return; }
   if (fn === 'gerer_candidature_maire_adjoint') { ouvrirGestionCandidatures(['maire_adjoint']); return; }
-  if (fn === 'revoquer_directeur_entrepot') { ouvrirModalRevoquerDirecteurEntrepot(); return; }
+  if (fn === 'revoquer_directeur_entrepot') { ouvrirModalRevoquerDirecteurEntrepot(pa, cost); return; }
   if (fn === 'censurer_media') { ouvrirModalMedia(); return; }
   if (fn === 'commanditer_sondage') { ouvrirModalTexteLibre('commanditer_sondage', 'Commanditer un sondage', 'Preciser le sujet...'); return; }
   if (fn === 'activer_cessez_le_feu') { ouvrirActiverCessezLeFeu(); return; }
