@@ -330,10 +330,18 @@ function renderComposeCanvasForm() {
 // comme prévu (la sauvegarde arrive au lot E2).
 let rpComposeController = null;
 
+// Registre des objets vivants de l'écran de composition (Lot E1) -- { type, el, state,
+// editor? }, un état par objet, réutilisant directement les mêmes objets `state` déjà tenus
+// à jour par le moteur générique (x/y/width/z/minHeight, voir rpCanvasCreateController) :
+// aucune duplication d'état, la sérialisation lit directement la même source de vérité que
+// l'affichage. Recréé à chaque entrée dans l'écran, comme rpComposeController.
+let rpComposeElements = [];
+
 function rpCanvasInitComposeScreen() {
   const container = document.getElementById('rp-compose-canvas');
   if (!container) return;
   rpComposeController = rpCanvasCreateController(container);
+  rpComposeElements = [];
 }
 
 // Largeur minimale des zones de texte : 140px, PAS le repli générique du moteur (40px,
@@ -410,6 +418,8 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
   });
 
   rpCanvasAttachZoneToolbar(toolbar, editor);
+
+  rpComposeElements.push({ type: 'text_zone', el, state, editor });
 
   return el;
 }
@@ -831,6 +841,9 @@ function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
   img.addEventListener('error', () => {
     if (typeof showToast === 'function') showToast('Image introuvable', "L'URL indiquée ne charge aucune image.", false);
     el.remove();
+    // L'objet est retiré du DOM : le retirer aussi du registre de sérialisation (Lot E1),
+    // sinon une entrée fantôme (élément détaché) subsisterait dans rpComposeElements.
+    rpComposeElements = rpComposeElements.filter((entry) => entry.el !== el);
   });
   el.appendChild(img);
 
@@ -848,5 +861,88 @@ function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
   // donc aucun conflit possible entre "saisir" et "écrire" (même raisonnement que le prototype).
   ctrl.attachDrag(el, state, el);
 
+  rpComposeElements.push({ type: 'image', el, state });
+
   return el;
+}
+
+// ===========================================================================
+// Sérialisation (Lot E1) — canvas vivant -> content_layout conforme au schéma déjà consommé
+// par renderComposedPost (Lot B1). Fonction pure au sens où elle ne modifie ni le DOM ni les
+// instances Tiptap : elle ne fait que LIRE le registre rpComposeElements, qui référence
+// directement les mêmes objets `state` que le moteur générique tient déjà à jour (aucune
+// duplication d'état à maintenir en parallèle).
+//
+// canvas_width = 680 : la largeur réelle, fixe, du conteneur #rp-compose-canvas
+// (renderComposeCanvasForm) -- exactement la même valeur que le repli par défaut déjà
+// utilisé par renderComposedPost (layout.canvas_width || 680), donc déjà cohérente avec la
+// lecture réelle sans avoir besoin de la lire dynamiquement du DOM.
+//
+// reading_order : ordre de création (index dans rpComposeElements), conformément à la règle
+// par défaut déjà prévue pour le lot F2 ("pas d'interface de réordonnancement manuel dans ce
+// premier lot"). F2 n'existant pas encore, ce lot n'invente pas de mécanisme d'identifiants
+// au-delà de cet ordre simple -- à faire évoluer par F2 si un besoin de réordonnancement
+// manuel ou de suppression/duplication le justifie.
+//
+// html_fallback de chaque zone de texte : editor.getHTML() passé par sanitizeRichHtml, dont
+// la liste blanche a été étendue dans ce même lot (DETAILS/SUMMARY, font-family, target/rel
+// sur les liens) pour couvrir tout ce que la Phase D a introduit -- sans cette extension, un
+// spoiler ou une police choisie disparaîtrait silencieusement à la sérialisation.
+function rpCanvasSerializeCompose() {
+  const elements = rpComposeElements.map((entry) => {
+    const state = entry.state;
+    const layout = { x: state.x || 0, y: state.y || 0, width: state.width || 0, z: state.z || 1 };
+
+    if (entry.type === 'text_zone') {
+      layout.minHeight = state.minHeight || 0;
+      const rawHtml = entry.editor ? entry.editor.getHTML() : '';
+      const html_fallback = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(rawHtml) : '';
+      return { type: 'text_zone', html_fallback, layout };
+    }
+
+    if (entry.type === 'image') {
+      const img = entry.el.querySelector('img');
+      return {
+        type: 'image',
+        src: img ? img.src : '',
+        alt: img ? (img.alt || '') : '', // aucune saisie d'alt/légende dans l'interface à ce
+        caption: '',                     // stade (lot C4) -- dette consignée, hors périmètre E1
+        layout,
+      };
+    }
+
+    return null;
+  }).filter(Boolean);
+
+  return {
+    canvas_width: 680,
+    elements,
+    reading_order: elements.map((_, i) => i),
+  };
+}
+
+// Fallback HTML "à plat" (Lot E1) — concaténation, dans l'ordre de reading_order, du
+// html_fallback de chaque zone et d'un <img> simple pour chaque image ; destiné aux
+// surfaces qui ne comprennent pas content_layout (aperçus de liste, notifications...),
+// jamais à renderComposedPost qui lit content_layout directement. Ne re-sanitise pas
+// html_fallback : il vient d'être produit par rpCanvasSerializeCompose() dans le même appel,
+// déjà passé par sanitizeRichHtml -- contrairement à renderComposedPost, qui doit se méfier
+// d'un content_layout relu depuis la base et donc re-sanitise par défense en profondeur.
+function rpCanvasBuildFallbackContent(layout) {
+  if (!layout || !Array.isArray(layout.elements)) return '';
+  const order = Array.isArray(layout.reading_order) && layout.reading_order.length
+    ? layout.reading_order
+    : layout.elements.map((_, i) => i);
+
+  return order.map((i) => {
+    const el = layout.elements[i];
+    if (!el) return '';
+    if (el.type === 'text_zone') return el.html_fallback || '';
+    if (el.type === 'image') {
+      const src = /^https?:\/\//i.test(el.src || '') ? el.src : '';
+      if (!src) return '';
+      return '<img src="' + src + '" alt="' + rpCanvasEscapeAttr(el.alt) + '"/>';
+    }
+    return '';
+  }).join('');
 }

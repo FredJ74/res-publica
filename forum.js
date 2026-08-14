@@ -1097,13 +1097,20 @@ function openTopic(topicId) {
 // =====================
 // SECURITE : nettoyage du HTML genere par l'editeur riche avant sauvegarde/affichage
 // =====================
-const RICH_ALLOWED_TAGS = new Set(['P','BR','B','I','U','STRONG','EM','H2','H3','BLOCKQUOTE','DIV','SPAN','IMG','HR','UL','OL','LI','A']);
+// DETAILS/SUMMARY ajoutés au lot E1 : nécessaires pour que les spoilers du canvas (lot D6,
+// extension Tiptap Details/DetailsSummary/DetailsContent) survivent à la sanitisation --
+// sans eux, un spoiler serait entièrement déplié en texte normal (la balise interdite est
+// dépliée, pas supprimée, voir cleanNode ci-dessous). HTML sémantique natif, aucun style ni
+// script requis pour le repli/dépli en lecture (déjà vérifié en F0.5).
+const RICH_ALLOWED_TAGS = new Set(['P','BR','B','I','U','STRONG','EM','H2','H3','BLOCKQUOTE','DIV','SPAN','IMG','HR','UL','OL','LI','A','DETAILS','SUMMARY']);
+// font-family ajouté au lot E1 : nécessaire pour que les polices bornées du canvas (lot D4)
+// survivent à la sanitisation -- font-size y figurait déjà.
 const RICH_ALLOWED_STYLE_PROPS = new Set([
   'color','background-color','text-align','font-style','font-weight','text-decoration','float','clear',
   'margin','margin-left','margin-right','margin-top','margin-bottom','max-width','max-height',
   'width','height','display','border-left','border','border-top','border-radius','object-fit',
   'vertical-align','padding','grid-template-columns','gap',
-  'text-transform','letter-spacing','font-size','line-height','overflow'
+  'text-transform','letter-spacing','font-size','font-family','line-height','overflow'
 ]);
 
 function sanitizeRichStyle(styleStr) {
@@ -1247,6 +1254,11 @@ function sanitizeRichHtml(html) {
             if (!/^https?:\/\//i.test(attr.value.trim())) child.removeAttribute('src');
           } else if (name === 'href' && tag === 'A') {
             if (!/^https?:\/\//i.test(attr.value.trim())) child.removeAttribute('href');
+          } else if ((name === 'target' || name === 'rel') && tag === 'A') {
+            // Conservés tels quels (lot E1) : valeurs fixes posées par l'extension Tiptap
+            // Link (lot D5, HTMLAttributes:{target:'_blank',rel:'noopener noreferrer nofollow'}),
+            // jamais une saisie utilisateur libre -- les retirer romprait l'ouverture en
+            // nouvel onglet et les protections rel sans aucun bénéfice de sécurité.
           } else {
             child.removeAttribute(attr.name);
           }
