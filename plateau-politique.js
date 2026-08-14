@@ -1620,7 +1620,7 @@ function renderRoomActions(room, buildingId, roomId) {
     } else if (o.fn === 'plainte_police') {
       onclickFn = 'openPlainteModal(' + o.pa + ',' + o.cost + ')';
     } else if (o.fn === 'gerer_finances') {
-      onclickFn = 'openFinancesModal()';
+      onclickFn = 'openFinancesModal(' + o.pa + ',' + o.cost + ')';
     } else if (o.fn === 'postuler') {
       onclickFn = 'ouvrirEcranPostes()';
     } else {
@@ -5404,7 +5404,7 @@ async function doConsulterIndicesLocaux() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function doRepartirBudgetMunicipal() {
+async function doRepartirBudgetMunicipal(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Répartir le budget municipal';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -5421,12 +5421,12 @@ async function doRepartirBudgetMunicipal() {
     html += '</div>';
   });
   html += '<div id="budget-total-warning" style="font-size:.72rem;color:#cc6a44;margin-bottom:.6rem"></div>';
-  html += '<button onclick="confirmerRepartitionBudget()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
+  html += '<button onclick="confirmerRepartitionBudget(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function confirmerRepartitionBudget() {
+async function confirmerRepartitionBudget(pa, cost) {
   const key = getVilleKey();
   const allocation = {};
   let total = 0;
@@ -5439,6 +5439,8 @@ async function confirmerRepartitionBudget() {
     document.getElementById('budget-total-warning').textContent = 'Le total doit être exactement 100% (actuellement ' + total + '%).';
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const data = await sbGetBudgetMunicipal(key).catch(() => null) || await chargerBudgetMunicipal();
   data.allocation = allocation;
   await sbSaveBudgetMunicipal(key, data).catch(() => {});

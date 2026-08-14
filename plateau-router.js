@@ -45,7 +45,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   }
 
   // Ordres speciaux
-  if (fn === 'gerer_finances') { openFinancesModal(); return; }
+  if (fn === 'gerer_finances') { openFinancesModal(pa, cost); return; }
   if (fn === 'plainte_police') { openPlainteModal(pa, cost); return; }
   if (fn === 'arreter') { doArreter(pa, cost); return; }
   if (fn === 'mener_enquete') { doMenerEnquete(pa, cost); return; }
@@ -81,13 +81,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'se_justifier') { doSeJustifier(pa, cost); return; }
   if (fn === 'observer_match') { doObserverMatch(); return; }
   if (fn === 'consulter_palmares') { doConsulterPalmares(); return; }
-  if (fn === 'parier_match') { doParierMatch(); return; }
+  if (fn === 'parier_match') { doParierMatch(pa, cost); return; }
   if (fn === 'regarder_live') { doRegarderLive(); return; }
   if (fn === 'prendre_licence_sportive') { doPrendreLicenceSportive(pa, cost); return; }
-  if (fn === 'tenue_entrainement') { doTenueEntrainement(); return; }
+  if (fn === 'tenue_entrainement') { doTenueEntrainement(pa, cost); return; }
   if (fn === 'tenue_match') { doTenueMatch(); return; }
   if (fn === 'conseil_entraineur_adjoint') { doConseilEntraineurAdjoint(); return; }
-  if (fn === 'sponsoriser_club') { doSponsoriserClub(); return; }
+  if (fn === 'sponsoriser_club') { doSponsoriserClub(pa, cost); return; }
   if (fn === 'consulter_budget_club') { doConsulterBudgetClub(); return; }
   if (fn === 'gerer_salaires_club') { doGererSalairesClub(); return; }
   if (fn === 'imprimer_tracts_sportifs') { doImprimerTractsSportifs(pa, cost); return; }
@@ -103,9 +103,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_classement_joueurs_club') { doConsulterClassementBookmaker(pa, cost); return; }
   if (fn === 'postuler_president_club') { doPostulerPresidentClub(pa, cost); return; }
   if (fn === 'consulter_bureau_president') { doConsulterBureauPresident(); return; }
-  if (fn === 'proposer_transfert') { doProposerTransfert(); return; }
+  if (fn === 'proposer_transfert') { doProposerTransfert(pa, cost); return; }
   if (fn === 'gerer_offres_transfert') { doGererOffresTransfert(); return; }
-  if (fn === 'choisir_accessoire_club') { doChoisirAccessoireClub(); return; }
+  if (fn === 'choisir_accessoire_club') { doChoisirAccessoireClub(pa, cost); return; }
   if (fn === 'acheter_accessoire_personnalise') { doAcheterAccessoirePersonnalise(); return; }
   if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(pa, cost); return; }
   if (fn === 'consulter_organigramme_supporters') { doConsulterOrganigrammeSupporters(); return; }
@@ -155,7 +155,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'diviser_construction') { doOuvrirDivisionTerrain(); return; }
   if (fn === 'louer_lot_ici') { doOuvrirLouerLot(pa, cost); return; }
   if (fn === 'gerer_lot_loue') { doGererLotLoue(); return; }
-  if (fn === 'declencher_election_club') { doDeclencherElectionClub(); return; }
+  if (fn === 'declencher_election_club') { doDeclencherElectionClub(pa, cost); return; }
   if (fn === 'incendier') { doIncendier(); return; }
   if (fn === 'utiliser_explosifs') { doUtiliserExplosifs(); return; }
   if (fn === 'marchander_vote') { openMarchanderVoteModal(); return; }
@@ -240,7 +240,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'assassiner')             { ouvrirModalAssassiner(); return; }
   if (fn === 'se_cacher')              { doSeCacher(); return; }
   if (fn === 'empoisonner')            { ouvrirModalEmpoisonner(); return; }
-  if (fn === 'repartition_budget_local'){ doRepartirBudgetMunicipal(); return; }
+  if (fn === 'repartition_budget_local'){ doRepartirBudgetMunicipal(pa, cost); return; }
   if (fn === 'consulter_indices_locaux'){ doConsulterIndicesLocaux(); return; }
   if (fn === 'campagne_securite')      { doCampagneSecurite(); return; }
   if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(pa, cost); return; }

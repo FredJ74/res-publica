@@ -721,7 +721,7 @@ function renderOngletOrgas() {
           '</div>'
         ) : (
           '<div style="padding:.5rem .8rem;border-top:1px solid #1a1208">' +
-          '<button onclick="doDeclencherElectionClub()" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">🗳 Déclencher une élection</button>' +
+          '<button onclick="doDeclencherElectionClub(1,0)" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.25rem .5rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer">🗳 Déclencher une élection</button>' +
           '</div>'
         )
       ) : '') +
@@ -2067,7 +2067,7 @@ function estIndisponiblePourSport() {
   return b && b.jusquauJour > (state.day || 1);
 }
 
-function doTenueEntrainement() {
+function doTenueEntrainement(pa, cost) {
   const clubLocal = getClubLocal();
   if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive avant de vous entraîner.', false); return; }
   if (estIndisponiblePourSport()) {
@@ -2085,7 +2085,7 @@ function doTenueEntrainement() {
   ['defense','technique','endurance'].forEach(stat => {
     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;padding:.4rem .6rem;border:1px solid #2a2010">';
     html += '<span style="font-size:.8rem;color:#c0b090">' + LABELS_PERF[stat] + ' : <b style="color:#C9A84C">' + (perf[stat]||0) + '</b></span>';
-    html += '<button ' + (nb >= 2 ? 'disabled' : '') + ' onclick="confirmerEntrainement(\'' + stat + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:' + (nb>=2?'#5a5040':'#C9A84C') + ';cursor:' + (nb>=2?'default':'pointer') + '">S\'entraîner</button>';
+    html += '<button ' + (nb >= 2 ? 'disabled' : '') + ' onclick="confirmerEntrainement(\'' + stat + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:' + (nb>=2?'#5a5040':'#C9A84C') + ';cursor:' + (nb>=2?'default':'pointer') + '">S\'entraîner</button>';
     html += '</div>';
   });
   html += '</div>';
@@ -2093,9 +2093,11 @@ function doTenueEntrainement() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerEntrainement(stat) {
+async function confirmerEntrainement(stat, pa, cost) {
   verifierEtResetEntrainementsJour();
   if ((state.char.entrainementsJour?.nb || 0) >= 2) { showToast('Limite atteinte', 'Maximum 2 entraînements par jour.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.char.entrainementsJour.nb = (state.char.entrainementsJour.nb || 0) + 1;
 
   const blesse = Math.random() < 0.05;
@@ -2117,7 +2119,7 @@ function confirmerEntrainement(stat) {
   sauvegarderPersonnageImmediat();
   updateUI();
   showToast('Entraînement réussi', '+2 ' + LABELS_PERF[stat] + '.', true, true);
-  doTenueEntrainement();
+  doTenueEntrainement(pa, cost);
 }
 
 async function doConseilEntraineurAdjoint() {
@@ -2320,7 +2322,7 @@ function getClubSupportersLocal() {
   return (state.organisations || []).find(o => o.type === 'supporters' && o.country === pays && o.city === ville);
 }
 
-function doDeclencherElectionClub() {
+function doDeclencherElectionClub(pa, cost) {
   const orga = getClubSupportersLocal();
   if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
   const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
@@ -2337,17 +2339,19 @@ function doDeclencherElectionClub() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.6rem">Motivez votre décision — ce message sera publié sur le forum du championnat.</div>';
   html += '<textarea id="election-motivation" rows="4" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem" placeholder="Pourquoi déclenchez-vous cette élection ?"></textarea>';
-  html += '<button onclick="confirmerDeclenchementElection(\'' + orga.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déclencher l\'élection</button>';
+  html += '<button onclick="confirmerDeclenchementElection(\'' + orga.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déclencher l\'élection</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerDeclenchementElection(orgaId) {
+async function confirmerDeclenchementElection(orgaId, pa, cost) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
   const motivation = document.getElementById('election-motivation')?.value?.trim();
   if (!motivation) { showToast('Motivation requise', '', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const jour = state.day || 1;
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
@@ -2612,7 +2616,7 @@ const PALIERS_SPONSORING = [
   { montant: 3000, inf: 10, label: 'Sponsor officiel' }
 ];
 
-function doSponsoriserClub() {
+function doSponsoriserClub(pa, cost) {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
 
@@ -2620,7 +2624,7 @@ function doSponsoriserClub() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Votre nom sera associé au club — visibilité en échange de votre soutien financier.</div>';
   PALIERS_SPONSORING.forEach(p => {
-    html += '<button onclick="confirmerSponsoring(' + p.montant + ',\'' + p.label + '\',' + p.inf + ')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
+    html += '<button onclick="confirmerSponsoring(' + p.montant + ',\'' + p.label + '\',' + p.inf + ',' + pa + ',' + cost + ')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
     html += '<span>' + p.label + '</span><span style="color:#C9A84C">' + p.montant.toLocaleString('fr-FR') + ' FR · +' + p.inf + ' INF</span></button>';
   });
   html += '</div>';
@@ -2628,10 +2632,12 @@ function doSponsoriserClub() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerSponsoring(montant, label, inf) {
+async function confirmerSponsoring(montant, label, inf, pa, cost) {
   const clubLocal = getClubLocal();
   document.getElementById('modal-postes')?.classList.remove('open');
   if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.arg -= montant;
   state.inf = Math.min(100, (state.inf || 0) + inf);
   clubLocal.sponsorActuel = state.char?.name || null;
@@ -3079,7 +3085,7 @@ async function verifierElectionPresident(club) {
 // =====================
 // TRANSFERTS ENTRE CLUBS
 // =====================
-async function doProposerTransfert() {
+async function doProposerTransfert(pa, cost) {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', '', false); return; }
   const dataPresident = await chargerPresidentClub(clubLocal.id);
@@ -3091,13 +3097,13 @@ async function doProposerTransfert() {
   html += '<input id="transfert-joueur" type="text" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Prix proposé au club (FR)</label>';
   html += '<input id="transfert-prix" type="number" value="1000" min="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
-  html += '<button onclick="confirmerPropositionTransfert(\'' + clubLocal.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer l\'offre</button>';
+  html += '<button onclick="confirmerPropositionTransfert(\'' + clubLocal.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer l\'offre</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerPropositionTransfert(clubAchatId) {
+async function confirmerPropositionTransfert(clubAchatId, pa, cost) {
   const nomJoueur = document.getElementById('transfert-joueur')?.value?.trim();
   const prix = parseInt(document.getElementById('transfert-prix')?.value || '0');
   if (!nomJoueur || prix <= 0) { showToast('Champs requis', '', false); return; }
@@ -3110,6 +3116,8 @@ async function confirmerPropositionTransfert(clubAchatId) {
   const clubVente = getClub(clubVenteId), clubAchat = getClub(clubAchatId);
   const dataVente = await chargerPresidentClub(clubVenteId);
   if (!dataVente.president) { showToast('Club sans président', 'Impossible de négocier avec un club sans président désigné.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const transfertId = await sbCreerTransfert({
     joueur: nomJoueur, clubDepartId: clubVenteId, clubArriveeId: clubAchatId,
@@ -3277,7 +3285,7 @@ async function confirmerSalairesClub(clubId) {
   showToast('Salaires mis à jour', '', true, true);
 }
 
-function doChoisirAccessoireClub() {
+function doChoisirAccessoireClub(pa, cost) {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
 
@@ -3292,7 +3300,7 @@ function doChoisirAccessoireClub() {
   let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.6rem">';
   accessoires.forEach(a => {
     const img = visuels[a.id];
-    html += '<button onclick="confirmerAchatAccessoireClub(\'' + a.id + '\',\'' + a.label + '\',' + a.prix + ')" style="display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem;text-align:left">';
+    html += '<button onclick="confirmerAchatAccessoireClub(\'' + a.id + '\',\'' + a.label + '\',' + a.prix + ',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem;text-align:left">';
     html += img
       ? '<img src="' + img + '" style="width:56px;height:56px;object-fit:cover;border:1px solid #2a2010;flex-shrink:0"/>'
       : '<i class="ti ' + a.icon + '" style="font-size:1.4rem;color:#8a6a20;width:56px;text-align:center;flex-shrink:0"></i>';
@@ -3303,10 +3311,12 @@ function doChoisirAccessoireClub() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerAchatAccessoireClub(id, label, prix) {
+async function confirmerAchatAccessoireClub(id, label, prix, pa, cost) {
   const clubLocal = getClubLocal();
   document.getElementById('modal-postes').classList.remove('open');
   if (state.arg < prix) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.arg -= prix;
   if (!state.inventory) state.inventory = [];
   state.inventory.push({ type:'accessoire_sport', name: label + ' — ' + clubLocal.nom, icon:'ti-shirt', legal:true });
@@ -3419,7 +3429,7 @@ async function doConsulterPalmares() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function doParierMatch() {
+async function doParierMatch(pa, cost) {
   const saison = await verifierEtJouerJournees();
 
   const prochaineJournee = saison.calendrier.find(j => j.matchs.some(m => !m.played));
@@ -3429,14 +3439,14 @@ async function doParierMatch() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Choisissez un match</div>';
   prochaineJournee.matchs.filter(m => !m.played).forEach(m => {
-    html += '<button onclick="ouvrirFormulairePari(\'' + m.home + '\',\'' + m.away + '\',' + prochaineJournee.numero + ',' + saison.numero + ')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + getClub(m.home).nom + ' vs ' + getClub(m.away).nom + '</button>';
+    html += '<button onclick="ouvrirFormulairePari(\'' + m.home + '\',\'' + m.away + '\',' + prochaineJournee.numero + ',' + saison.numero + ',' + pa + ',' + cost + ')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + getClub(m.home).nom + ' vs ' + getClub(m.away).nom + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function ouvrirFormulairePari(homeId, awayId, journeeNumero, saisonNumero) {
+function ouvrirFormulairePari(homeId, awayId, journeeNumero, saisonNumero, pa, cost) {
   const homeClub = getClub(homeId), advClub = getClub(awayId);
 
   document.getElementById('postes-modal-title').textContent = 'Parier sur ce match';
@@ -3452,17 +3462,19 @@ function ouvrirFormulairePari(homeId, awayId, journeeNumero, saisonNumero) {
   html += '<input type="hidden" id="pari-choix" value="domicile"/>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.4rem">Mise (FR)</label>';
   html += '<input id="pari-mise" type="number" value="100" min="10" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.9rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
-  html += '<button onclick="confirmerPariMatch(\'' + homeId + '\',\'' + awayId + '\',' + journeeNumero + ',' + saisonNumero + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
+  html += '<button onclick="confirmerPariMatch(\'' + homeId + '\',\'' + awayId + '\',' + journeeNumero + ',' + saisonNumero + ',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider le pari</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero) {
+async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, pa, cost) {
   const mise = parseInt(document.getElementById('pari-mise')?.value || '0');
   const choix = document.getElementById('pari-choix')?.value || 'domicile';
   if (!mise || mise < 10) { showToast('Mise invalide', 'Minimum 10 FR.', false); return; }
   if (state.arg < mise) { showToast('Fonds insuffisants', '', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   state.arg -= mise;

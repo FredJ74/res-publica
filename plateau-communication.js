@@ -1008,7 +1008,7 @@ function addMailNotification(from, subject, body) {
 // =====================
 // FINANCES MODAL
 // =====================
-function openFinancesModal() {
+function openFinancesModal(pa, cost) {
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
 
   document.getElementById('finances-body').innerHTML = `
@@ -1028,8 +1028,8 @@ function openFinancesModal() {
       <div style="font-size:.75rem;color:#6a5a30;margin-bottom:.5rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em">DEPOT / RETRAIT</div>
       <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem">
         <input class="finance-input" id="finance-amount-input" type="number" placeholder="Montant" min="1" max="${state.banque}"/>
-        <button class="finance-btn" onclick="deposerArgent()">Deposer</button>
-        <button class="finance-btn danger" onclick="retirerArgent()">Retirer</button>
+        <button class="finance-btn" onclick="deposerArgent(${pa},${cost})">Deposer</button>
+        <button class="finance-btn danger" onclick="retirerArgent(${pa},${cost})">Retirer</button>
       </div>
       <div style="font-size:.72rem;color:#5a5040;font-style:italic">Le depot et le retrait sont 100% securises et sans risque.</div>
     </div>
@@ -1043,12 +1043,14 @@ function openFinancesModal() {
   document.getElementById('modal-finances').classList.add('open');
 }
 
-function deposerArgent() {
+async function deposerArgent(pa, cost) {
   const amount = parseInt(document.getElementById('finance-amount-input').value);
   if (!amount || amount <= 0 || amount > state.liquide) {
     showToast('Erreur', 'Montant invalide ou insuffisant en liquide.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.liquide -= amount;
   state.banque += amount;
   document.getElementById('modal-finances').classList.remove('open');
@@ -1056,12 +1058,14 @@ function deposerArgent() {
   addJournalEntry(`Depot bancaire : ${amount.toLocaleString('fr-FR')}.`, '');
 }
 
-function retirerArgent() {
+async function retirerArgent(pa, cost) {
   const amount = parseInt(document.getElementById('finance-amount-input').value);
   if (!amount || amount <= 0 || amount > state.banque) {
     showToast('Erreur', 'Montant invalide ou solde bancaire insuffisant.', false);
     return;
   }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   state.banque -= amount;
   state.liquide += amount;
   document.getElementById('modal-finances').classList.remove('open');
