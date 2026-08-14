@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=133">
+<link rel="stylesheet" href="style.css?v=134">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -503,11 +503,19 @@
   // signalé et validé par rapport au plan initial qui prévoyait "aucune nouvelle
   // dépendance" pour ce lot.
   import Underline from 'https://esm.sh/@tiptap/extension-underline@2';
+  // Couleurs (Lot D3) : la couleur de texte n'est pas non plus native de StarterKit --
+  // vérifié sur le code source réel des paquets avant d'implémenter. TextStyle est le mark
+  // générique dont Color dépend (obligatoire, pas une dépendance superflue) pour appliquer
+  // un style inline arbitraire au texte sélectionné.
+  import TextStyle from 'https://esm.sh/@tiptap/extension-text-style@2';
+  import Color from 'https://esm.sh/@tiptap/extension-color@2';
   window.RP_TIPTAP_EDITOR = Editor;
   window.RP_TIPTAP_STARTER_KIT = StarterKit;
   window.RP_TIPTAP_UNDERLINE = Underline;
+  window.RP_TIPTAP_TEXT_STYLE = TextStyle;
+  window.RP_TIPTAP_COLOR = Color;
 </script>
-<script src="forum-canvas.js?v=9"></script>
+<script src="forum-canvas.js?v=10"></script>
 <script src="forum.js?v=132"></script>
 <script src="plateau-core.js?v=132"></script>
 <script src="plateau-rue-centrale.js?v=135"></script>

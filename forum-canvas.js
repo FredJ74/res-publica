@@ -399,7 +399,7 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
 
   const editor = new window.RP_TIPTAP_EDITOR({
     element: content,
-    extensions: [window.RP_TIPTAP_STARTER_KIT, window.RP_TIPTAP_UNDERLINE],
+    extensions: [window.RP_TIPTAP_STARTER_KIT, window.RP_TIPTAP_UNDERLINE, window.RP_TIPTAP_TEXT_STYLE, window.RP_TIPTAP_COLOR],
     content: html || '<p></p>',
     onFocus: () => ctrl.selectElement(el, state),
   });
@@ -450,11 +450,61 @@ function rpCanvasAttachZoneToolbar(toolbar, editor) {
     toolbar.appendChild(btn);
   }
 
+  function addSep() {
+    const sep = document.createElement('span');
+    sep.className = 'rp-zone-toolbar-sep';
+    toolbar.appendChild(sep);
+  }
+
   inlineButtons.forEach(addButton);
-  const sep = document.createElement('span');
-  sep.className = 'rp-zone-toolbar-sep';
-  toolbar.appendChild(sep);
+  addSep();
   blockButtons.forEach(addButton);
+  addSep();
+  rpCanvasAttachColorButton(toolbar, editor);
+}
+
+// Palette identique à celle déjà utilisée par le forum existant (richColor, forum.js) --
+// reprise telle quelle (Lot D3), aucune nouvelle couleur inventée. Conçue à l'origine pour
+// le thème sombre de l'éditeur riche existant : certaines teintes très claires (ex.
+// #f0ead6, presque blanc) peuvent être peu lisibles sur le fond clair du canvas -- signalé
+// ici, non corrigé, puisque la consigne est de réutiliser la palette telle quelle.
+const RP_COLOR_PALETTE = [
+  '#f0ead6', '#C9A84C', '#E8D880', '#cc4444', '#e08a8a', '#4a8a4a', '#7abf6a',
+  '#4a6aaa', '#7a9ad0', '#aa6aaa', '#c98ac9', '#d08a3a', '#8a8060', '#5a5040', '#000000',
+];
+
+function rpCanvasAttachColorButton(toolbar, editor) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = 'A';
+  btn.title = 'Couleur du texte';
+  btn.style.cssText = 'color:#C9A84C;font-weight:700';
+  btn.addEventListener('mousedown', (e) => e.preventDefault());
+
+  let panel = null;
+  function closePanel() { if (panel) { panel.remove(); panel = null; } }
+
+  btn.addEventListener('click', () => {
+    if (panel) { closePanel(); return; }
+    panel = document.createElement('div');
+    panel.className = 'rp-color-panel';
+    panel.contentEditable = 'false';
+    RP_COLOR_PALETTE.forEach(c => {
+      const swatch = document.createElement('button');
+      swatch.type = 'button';
+      swatch.style.background = c;
+      swatch.title = c;
+      swatch.addEventListener('mousedown', (e) => e.preventDefault());
+      swatch.addEventListener('click', () => {
+        editor.chain().focus().setColor(c).run();
+        closePanel();
+      });
+      panel.appendChild(swatch);
+    });
+    toolbar.appendChild(panel);
+  });
+
+  toolbar.appendChild(btn);
 }
 
 // ===========================================================================
