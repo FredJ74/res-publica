@@ -1668,7 +1668,7 @@ function arreterAudioguide() {
 
 // DÉCRETS PRÉSIDENTIELS
 // =====================
-async function signerDecretInutile() {
+async function signerDecretInutile(pa, cost) {
   if (state.poste?.id !== 'president') {
     showToast('Accès refusé', 'Seul le Président peut signer des décrets.', false);
     return;
@@ -1711,12 +1711,10 @@ async function signerDecretInutile() {
     const data = await resp.json();
     const decret = data.content?.[0]?.text || 'Décret indisponible.';
 
-    // Effets gameplay
+    // Effets gameplay pré-calculés pour l'aperçu, appliqués uniquement au clic "Publier"
+    // (publierDecret) -- ne jamais les appliquer ici, avant toute confirmation du joueur.
     const popEffect = Math.floor(Math.random() * 20) - 5; // -5 à +15
     const infEffect = Math.floor(Math.random() * 10) + 2;
-    state.pop = Math.max(0, Math.min(100, (state.pop || 50) + popEffect));
-    state.inf = Math.min(100, (state.inf || 0) + infEffect);
-    updateUI();
 
     document.getElementById('postes-modal-title').textContent = '📜 Décret Présidentiel';
     document.getElementById('postes-body').innerHTML =
@@ -1726,19 +1724,23 @@ async function signerDecretInutile() {
       '<div style="margin-top:.8rem;font-size:.72rem;color:' + (popEffect >= 0 ? '#4a8a4a' : '#8a3a2a') + '">' +
         (popEffect >= 0 ? '+' : '') + popEffect + ' POP · +' + infEffect + ' INF</div>' +
       '<div style="margin-top:.6rem;display:flex;gap:.5rem">' +
-      '<button onclick="publierDecret(this.dataset.txt)" data-txt="' + decret.replace(/"/g, '&quot;') + '" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-speakerphone" style="font-size:.7rem"></i> Publier</button>' +
+      '<button onclick="publierDecret(this.dataset.txt,' + popEffect + ',' + infEffect + ',' + pa + ',' + cost + ',this.dataset.sujet)" data-txt="' + decret.replace(/"/g, '&quot;') + '" data-sujet="' + sujet.replace(/"/g, '&quot;') + '" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-speakerphone" style="font-size:.7rem"></i> Publier</button>' +
       '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>' +
       '</div></div>';
-
-    addJournalEntry('📜 Décret signé sur : ' + sujet + '. ' + (popEffect >= 0 ? '+' : '') + popEffect + ' POP · +' + infEffect + ' INF.', 'event-info');
 
   } catch(e) {
     document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a3a20">Erreur de rédaction. La plume est fatiguée.</div>';
   }
 }
 
-async function publierDecret(texte) {
+async function publierDecret(texte, popEffect, infEffect, pa, cost, sujet) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
+  state.pop = Math.max(0, Math.min(100, (state.pop || 50) + popEffect));
+  state.inf = Math.min(100, (state.inf || 0) + infEffect);
+  updateUI();
+  addJournalEntry('📜 Décret signé sur : ' + sujet + '. ' + (popEffect >= 0 ? '+' : '') + popEffect + ' POP · +' + infEffect + ' INF.', 'event-info');
   const from = state.char?.name || 'Le Président';
   const h = String(state.hour || 8).padStart(2, '0');
   const m = String(state.minute || 0).padStart(2, '0');

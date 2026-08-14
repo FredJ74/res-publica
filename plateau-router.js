@@ -196,7 +196,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'signer_compromis')        { doSignerCompromis(pa, cost); return; }
   if (fn === 'acheter_terrain')         { doAcheterTerrain(); return; }
   if (fn === 'racheter_terrain')        { doRacheterTerrain(pa, cost); return; }
-  if (fn === 'decret_inutile')         { signerDecretInutile(); return; }
+  if (fn === 'decret_inutile')         { signerDecretInutile(pa, cost); return; }
   if (fn === 'elections_tableau')      { ouvrirTableauElectoral(); return; }
   if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
   if (fn === 'deposer_candidature')    { deposerCandidature('maire', state.country, state.currentCity); return; }
@@ -301,7 +301,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'archives') { ouvrirArchivesTribunal(); return; }
   if (fn === 'consulter_dossiers_gouv') { doConsulterDossiersGouv(pa, cost); return; }
   if (fn === 'demander_info_loge') { doLogeInfo(); return; }
-  if (fn === 'se_former') { doSeFormer(); return; }
+  if (fn === 'se_former') { doSeFormer(pa, cost); return; }
   if (fn === 'recruter_info') { doRecruterInfo(); return; }
   if (fn === 'mobiliser_police') { doMobiliserPolice(); return; }
   if (fn === 'mobiliser_armee') { doMobiliserArmee(pa, cost); return; }

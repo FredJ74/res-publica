@@ -1687,29 +1687,29 @@ function getStatEffective(stat) {
 
 // SUIVRE UNE FORMATION (Universite, amphi) — bonus TEMPORAIRE (+2, jusqu'au prochain sommeil),
 // max 1 formation par jour, cout 100 FR.
-function doSeFormer() {
+function doSeFormer(pa, cost) {
   if (state.char?.dernierFormationJour === state.day) {
     showToast('Déjà formé aujourd\'hui', 'Une seule formation par jour.', false);
     return;
   }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 100;
   if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
   const stats = ['INT','CHA','VOL','PER','DUP','ENT'];
   document.getElementById('postes-modal-title').textContent = 'Suivre une formation';
   let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir la caractéristique à booster pour la journée (+2, effet jusqu\'à votre prochain sommeil) :</div>';
   stats.forEach(s => {
-    html += '<button onclick="appliquerFormation(\'' + s + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.3rem">' + s + ' (actuel : ' + getStatEffective(s) + ')</button>';
+    html += '<button onclick="appliquerFormation(\'' + s + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.3rem">' + s + ' (actuel : ' + getStatEffective(s) + ')</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function appliquerFormation(stat) {
-  document.getElementById('modal-postes').classList.remove('open');
+async function appliquerFormation(stat, pa, cost) {
   if (!state.char) return;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  document.getElementById('modal-postes').classList.remove('open');
   state.char.dernierFormationJour = state.day;
   state.char.bonusFormation = { stat, valeur: 2 };
   sauvegarderPersonnageImmediat();
