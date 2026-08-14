@@ -1,4 +1,4 @@
-function doDonnerArgentPnj() {
+function doDonnerArgentPnj(pa, cost) {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
   const pnj = ts.pnjData;
@@ -39,12 +39,12 @@ function doDonnerArgentPnj() {
       : '') +
     '<input id="don-montant" type="number" min="0" step="50" placeholder="Montant en ' + cur + '..." ' +
     'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
-    '<button onclick="confirmerDonArgent()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💰 Donner</button>' +
+    '<button onclick="confirmerDonArgent(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">💰 Donner</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerDonArgent() {
+async function confirmerDonArgent(pa, cost) {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
   const pnj = ts.pnjData;
@@ -55,6 +55,8 @@ function confirmerDonArgent() {
 
   if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
   if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
+  const rDon = await deduireCoutOrdre({ pa, cost });
+  if (!rDon.ok) { showToast('PA insuffisants', '', false); return; }
 
   const dup = getStatEffective('DUP');
   const dis = state.dis || 50;
@@ -294,7 +296,7 @@ function accepterRachat(acheteur, buildingId, prix) {
   }
 }
 
-async function doArreter() {
+async function doArreter(pa, cost) {
   const actif = typeof estEtatUrgenceActif === 'function' ? await estEtatUrgenceActif(state.country) : false;
   if (!actif) {
     showToast('Non autorise', "Cet ordre necessite que l'etat d'urgence soit en vigueur.", false);
@@ -323,7 +325,7 @@ async function doArreter() {
       ${contactsSection}
       <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:1rem 0 .4rem">MOTIF DU DOSSIER</div>
       <textarea id="arreter-motif" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:'Crimson Pro',serif;font-size:.85rem;height:70px;outline:none;resize:none" placeholder="Faits reproches..."></textarea>
-      <button onclick="confirmerArrestation()" style="margin-top:.8rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a3a2a;background:transparent;color:#c0503a;cursor:pointer">
+      <button onclick="confirmerArrestation(${pa},${cost})" style="margin-top:.8rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a3a2a;background:transparent;color:#c0503a;cursor:pointer">
         <i class="ti ti-handcuffs" style="font-size:.8rem"></i> Ordonner l'arrestation
       </button>
     </div>
@@ -331,11 +333,13 @@ async function doArreter() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerArrestation() {
+async function confirmerArrestation(pa, cost) {
   const cibleInput = document.querySelector('input[name="arreter-cible"]:checked');
   const motif = document.getElementById('arreter-motif')?.value?.trim();
   if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne de votre repertoire.', false); return; }
   if (!motif) { showToast('Motif requis', 'Precisez le motif du dossier.', false); return; }
+  const rArret = await deduireCoutOrdre({ pa, cost });
+  if (!rArret.ok) { showToast('PA insuffisants', '', false); return; }
   const cible = cibleInput.value;
   document.getElementById('modal-postes').classList.remove('open');
 
@@ -364,7 +368,7 @@ async function confirmerArrestation() {
   }
 }
 
-function openPlainteModal() {
+function openPlainteModal(pa, cost) {
   const contacts = state.contacts || [];
 
   const contactsSection = contacts.length === 0
@@ -395,7 +399,7 @@ function openPlainteModal() {
         <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MOTIF</div>
         <textarea id="plainte-motif" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.6rem;font-family:'Crimson Pro',serif;font-size:.85rem;height:70px;outline:none;resize:none" placeholder="Decrivez les faits reproches..."></textarea>
       </div>
-      <button onclick="soumettrePlaynte()" style="font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
+      <button onclick="soumettrePlaynte(${pa},${cost})" style="font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.82rem;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
         <i class="ti ti-send" style="font-size:.8rem"></i> Deposer la plainte
       </button>
     </div>
@@ -406,7 +410,9 @@ function openPlainteModal() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function soumettrePlaynte() {
+async function soumettrePlaynte(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const cible = document.querySelector('input[name="plainte-cible"]:checked')?.value || 'X';
   const motif = document.getElementById('plainte-motif')?.value?.trim() || 'Motif non precise';
   document.getElementById('modal-postes').classList.remove('open');
@@ -1079,7 +1085,7 @@ function doSeReposer(fn) {
   }
 }
 
-function doRequeteAvocat() {
+function doRequeteAvocat(pa, cost) {
   if (!state.estEmprisonne) {
     showToast('Inutile', "Vous n'êtes pas emprisonné(e) actuellement.", false);
     return;
@@ -1098,18 +1104,20 @@ function doRequeteAvocat() {
   html += '<span style="font-size:.75rem;color:#6a5a30">Honoraires</span>';
   html += '<span style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + cout.toLocaleString('fr-FR') + ' ' + cur + '</span>';
   html += '</div>';
-  html += '<button onclick="confirmerRequeteAvocat()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager l\'avocat</button>';
+  html += '<button onclick="confirmerRequeteAvocat(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager l\'avocat</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerRequeteAvocat() {
+async function confirmerRequeteAvocat(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   if (!state.estEmprisonne || state.estEmprisonne.avocatUtilise) return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cout = 800;
   if (state.arg < cout) { showToast('Fonds insuffisants', cout.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
+  const rAvocat = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!rAvocat.ok) { showToast('PA insuffisants', '', false); return; }
 
   state.arg -= cout;
   state.estEmprisonne.avocatUtilise = true;
@@ -4540,7 +4548,7 @@ async function enregistrerDetention(nom, raison, jourFin, qhs) {
   }
 }
 
-function doMenerEnquete() {
+function doMenerEnquete(pa, cost) {
   const contacts = state.contacts || [];
   const contactsSection = contacts.length === 0
     ? '<div style="font-size:.8rem;color:#7a5020;font-style:italic;padding:.5rem;background:#0f0805;border:1px solid #2a1810">Votre repertoire est vide. Enregistrez la personne visee au prealable.</div>'
@@ -4552,12 +4560,12 @@ function doMenerEnquete() {
     '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Cout : 250 FR, preleves sur la caisse du commissariat. Fouille le passe recent de la cible.</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE</div>' +
     contactsSection +
-    '<button onclick="confirmerMenerEnquete()" style="margin-top:1rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ouvrir l enquete</button>' +
+    '<button onclick="confirmerMenerEnquete(' + pa + ',' + cost + ')" style="margin-top:1rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ouvrir l enquete</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerMenerEnquete() {
+async function confirmerMenerEnquete(pa, cost) {
   const cibleInput = document.querySelector('input[name="enquete-cible"]:checked');
   if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne du repertoire.', false); return; }
   const cible = cibleInput.value;
@@ -4566,9 +4574,10 @@ async function confirmerMenerEnquete() {
   const pays = state.country;
   const ville = state.currentCity;
   const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
-  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, buildingId, 250) : 0;
-  if (montantVerse < 250) {
-    showToast('Caisse insuffisante', 'La caisse du commissariat ne couvre pas le cout de l enquete.', false);
+  const rEnquete = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
+  if (!rEnquete.ok) {
+    showToast(rEnquete.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
+      rEnquete.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de l enquete.', false);
     return;
   }
 
@@ -4611,7 +4620,7 @@ async function confirmerMenerEnquete() {
   showToast('Enquete reussie', cible + ' a ete demasque(e) et place(e) en garde a vue.', true, true);
 }
 
-function doOrganiserFilature() {
+function doOrganiserFilature(pa, cost) {
   const contacts = (state.contacts || []).filter(c => c.isPJ);
   const contactsSection = contacts.length === 0
     ? '<div style="font-size:.8rem;color:#7a5020;font-style:italic;padding:.5rem;background:#0f0805;border:1px solid #2a1810">Aucun PJ enregistre dans votre repertoire.</div>'
@@ -4623,12 +4632,12 @@ function doOrganiserFilature() {
     '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Cout : 150 FR, preleves sur la caisse du commissariat. Rapport des deplacements des dernieres 24h si reussite.</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE</div>' +
     contactsSection +
-    '<button onclick="confirmerOrganiserFilature()" style="margin-top:1rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer la filature</button>' +
+    '<button onclick="confirmerOrganiserFilature(' + pa + ',' + cost + ')" style="margin-top:1rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer la filature</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerOrganiserFilature() {
+async function confirmerOrganiserFilature(pa, cost) {
   const cibleInput = document.querySelector('input[name="filature-cible"]:checked');
   if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); return; }
   const cible = cibleInput.value;
@@ -4637,9 +4646,10 @@ async function confirmerOrganiserFilature() {
   const pays = state.country;
   const ville = state.currentCity;
   const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
-  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, buildingId, 150) : 0;
-  if (montantVerse < 150) {
-    showToast('Caisse insuffisante', 'La caisse du commissariat ne couvre pas le cout de la filature.', false);
+  const rFilature = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
+  if (!rFilature.ok) {
+    showToast(rFilature.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
+      rFilature.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de la filature.', false);
     return;
   }
 
@@ -4681,7 +4691,7 @@ async function confirmerOrganiserFilature() {
   addJournalEntry('Filature reussie contre ' + cible + ' (' + taux + '% de chances). -150 FR.', 'event-good');
 }
 
-function doOrganiserChasseHomme() {
+function doOrganiserChasseHomme(pa, cost) {
   const contacts = (state.contacts || []).filter(c => c.isPJ);
   const contactsSection = contacts.length === 0
     ? '<div style="font-size:.8rem;color:#7a5020;font-style:italic;padding:.5rem;background:#0f0805;border:1px solid #2a1810">Aucun PJ enregistre dans votre repertoire.</div>'
@@ -4693,12 +4703,12 @@ function doOrganiserChasseHomme() {
     '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Cout : 300 FR, preleves sur la caisse du commissariat. La cible doit faire l objet d un avis de recherche actif.</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CIBLE</div>' +
     contactsSection +
-    '<button onclick="confirmerOrganiserChasseHomme()" style="margin-top:1rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer la chasse</button>' +
+    '<button onclick="confirmerOrganiserChasseHomme(' + pa + ',' + cost + ')" style="margin-top:1rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Lancer la chasse</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerOrganiserChasseHomme() {
+async function confirmerOrganiserChasseHomme(pa, cost) {
   const cibleInput = document.querySelector('input[name="chasse-cible"]:checked');
   if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); return; }
   const cible = cibleInput.value;
@@ -4714,9 +4724,10 @@ async function confirmerOrganiserChasseHomme() {
   const pays = state.country;
   const ville = state.currentCity;
   const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(ville) : 'commissariat';
-  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, buildingId, 300) : 0;
-  if (montantVerse < 300) {
-    showToast('Caisse insuffisante', 'La caisse du commissariat ne couvre pas le cout de la chasse a l homme.', false);
+  const rChasse = await deduireCoutOrdre({ pa, cost, payeur: { type: 'institution', pays, buildingId } });
+  if (!rChasse.ok) {
+    showToast(rChasse.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante',
+      rChasse.raison === 'pa_insuffisants' ? '' : 'La caisse du commissariat ne couvre pas le cout de la chasse a l homme.', false);
     return;
   }
 

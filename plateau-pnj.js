@@ -1519,10 +1519,9 @@ async function confirmerFaireLAmour(nomEscort) {
   }
 }
 
-function doEscortPiege() {
+function doEscortPiege(pa, cost) {
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
-  const cost = 800;
 
   // Sélectionner une cible PJ dans le répertoire
   const pjContacts = (state.contacts || []).filter(c => c.isPJ || c.type === 'pj');
@@ -1538,7 +1537,7 @@ function doEscortPiege() {
     '<div style="padding:.8rem 1rem">' +
     '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Sélectionnez le PJ à piéger. Coût : ' + cost + ' ' + cur + '.</div>' +
     pjContacts.map(c =>
-      '<div onclick="confirmerEscortPiege(\'' + c.name.replace(/'/g,'') + '\')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+      '<div onclick="confirmerEscortPiege(\'' + c.name.replace(/'/g,'') + '\',' + pa + ',' + cost + ')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
         '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20"></i>' +
         '<div><div style="font-size:.82rem;color:#c0b090">' + c.name + '</div>' +
         '<div style="font-size:.85rem;color:#9a8a68">' + (c.role||'PJ') + '</div></div>' +
@@ -1548,15 +1547,15 @@ function doEscortPiege() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerEscortPiege(nomCible) {
+async function confirmerEscortPiege(nomCible, pa, cost) {
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
-  const cost = 800;
 
   document.getElementById('modal-postes').classList.remove('open');
 
   if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   // Stats commanditaire
   const dup = getStatEffective('DUP');

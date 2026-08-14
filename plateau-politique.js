@@ -1614,7 +1614,7 @@ function renderRoomActions(room, buildingId, roomId) {
     } else if (needsCadavre) {
       onclickFn = "showToast('Aucun cadavre', 'Aucun cadavre a dissimuler sur ce terrain pour l\\'instant.', false)";
     } else if (o.fn === 'plainte_police') {
-      onclickFn = 'openPlainteModal()';
+      onclickFn = 'openPlainteModal(' + o.pa + ',' + o.cost + ')';
     } else if (o.fn === 'gerer_finances') {
       onclickFn = 'openFinancesModal()';
     } else if (o.fn === 'postuler') {

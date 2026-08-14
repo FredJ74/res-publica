@@ -46,13 +46,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
 
   // Ordres speciaux
   if (fn === 'gerer_finances') { openFinancesModal(); return; }
-  if (fn === 'plainte_police') { openPlainteModal(); return; }
-  if (fn === 'arreter') { doArreter(); return; }
-  if (fn === 'mener_enquete') { doMenerEnquete(); return; }
-  if (fn === 'organiser_filature') { doOrganiserFilature(); return; }
-  if (fn === 'organiser_filature') { doOrganiserFilature(); return; }
+  if (fn === 'plainte_police') { openPlainteModal(pa, cost); return; }
+  if (fn === 'arreter') { doArreter(pa, cost); return; }
+  if (fn === 'mener_enquete') { doMenerEnquete(pa, cost); return; }
+  if (fn === 'organiser_filature') { doOrganiserFilature(pa, cost); return; }
   if (fn === 'investir') { ouvrirInvestir(pa, cost); return; }
-  if (fn === 'organiser_chasse_homme') { doOrganiserChasseHomme(); return; }
+  if (fn === 'organiser_chasse_homme') { doOrganiserChasseHomme(pa, cost); return; }
   if (fn === 'consulter_caisse_commissariat') { doConsulterCaisseCommissariat(); return; }
   if (fn === 'cambrioler_caisse_commissariat') { doCambriolerCaisseCommissariat(); return; }
   if (fn === 'se_rebeller') { doSeRebeller(pa, cost); return; }
@@ -186,10 +185,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
   if (fn === 'choisir_suite')            { ouvrirModalChoixSuite(); return; }
-  if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(); return; }
+  if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(pa, cost); return; }
   if (fn === 'appeler_police_terrain')  { doAppelerPoliceTerrain(); return; }
   if (fn === 'expulsion_legale')        { doExpulsionLegale(); return; }
-  if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(); return; }
+  if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(pa, cost); return; }
   if (fn === 'expulsion_legale')         { doExpulsionLegale(); return; }
   if (fn === 'appeler_police_terrain')  { doAppelerPoliceTerrain(); return; }
   if (fn === 'faire_disparaitre_cadavre') { doFaireDisparaitreCadavre(pa, cost); return; }
@@ -202,7 +201,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
   if (fn === 'deposer_candidature')    { deposerCandidature('maire', state.country, state.currentCity); return; }
   if (fn === 'escort_infos')           { doEscortInfos(); return; }
-  if (fn === 'escort_piege')           { doEscortPiege(); return; }
+  if (fn === 'escort_piege')           { doEscortPiege(pa, cost); return; }
   if (fn === 'recruter_informateur_1') { consulterInformateur(1); return; }
   if (fn === 'recruter_informateur_2') { consulterInformateur(2); return; }
   if (fn === 'recruter_informateur_3') { consulterInformateur(3); return; }
@@ -290,7 +289,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Handlers complementaires v17
   if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_journaliste') { doCorruption(fn, cost); return; }
   if (fn === 'se_reposer' || fn === 'se_nourrir') { doSeReposer(fn); return; }
-  if (fn === 'requete_avocat') { doRequeteAvocat(); return; }
+  if (fn === 'requete_avocat') { doRequeteAvocat(pa, cost); return; }
   if (fn === 'greve_faim') { doGreveFaim(); return; }
   if (fn === 'tentative_evasion') { doTentativeEvasion(pa, cost); return; }
   if (fn === 'visiter_prisonnier') { ouvrirVisiterPrisonnier(pa, cost); return; }
