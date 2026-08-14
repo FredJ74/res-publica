@@ -1286,9 +1286,11 @@ function ouvrirModalTransport(mode) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function executerVoyage(mode, empireId, villeId) {
+async function executerVoyage(mode, empireId, villeId) {
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const rPaInter = await deduireCoutOrdre({ pa: config.pa, cost: 0 });
+  if (!rPaInter.ok) { showToast('PA insuffisants', 'Il vous faut ' + config.pa + ' PA.', false); return; }
   state.arg -= config.cost;
   const ancienEmpire = state.country;
   state.country = empireId;
@@ -1322,7 +1324,7 @@ function executerVoyage(mode, empireId, villeId) {
   addExternalEvent((state.char?.name||'Anonyme') + ' est arrivé(e) à ' + villeName + ' (' + empireName + ').');
 }
 
-function confirmerTransport(mode, empireId, villeId) {
+async function confirmerTransport(mode, empireId, villeId) {
   document.getElementById('modal-postes').classList.remove('open');
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -1370,6 +1372,8 @@ function confirmerTransport(mode, empireId, villeId) {
   }
 
   // Voyage a 100% si ressources OK
+  const rPaDirect = await deduireCoutOrdre({ pa: config.pa, cost: 0 });
+  if (!rPaDirect.ok) { showToast('PA insuffisants', 'Il vous faut ' + config.pa + ' PA.', false); return; }
   state.arg -= config.cost;
 
   // Changer d'empire et de ville
