@@ -516,34 +516,62 @@ function rpCanvasAttachLinkButton(toolbar, editor) {
   toolbar.appendChild(btn);
 }
 
-// Spoiler (Lot D6, corrigé) : Details reste un noeud de type "block" (content:
-// "detailsSummary detailsContent", group:"block" -- vérifié dans le code source réel de
-// @tiptap/extension-details@2.27.2), il ne peut donc pas se comporter comme une simple
-// marque inline. Sa commande native setDetails() enveloppe tout le bloc englobant
-// (blockRange), pas seulement la sélection réelle : c'est exactement le défaut signalé.
-// La commande ci-dessous construit donc directement le noeud details via insertContentAt()
-// -- le mécanisme que setDetails() natif utilise lui-même en interne, vérifié dans son code
-// source -- mais borné à la sélection réelle. ProseMirror scinde alors automatiquement le
-// paragraphe autour du noeud de bloc inséré (comportement standard d'un replace avec un
-// contenu de bloc à l'intérieur d'un texte, pas une manipulation DOM). Aucun calcul manuel
-// de position de curseur : insertContentAt() place déjà par défaut la sélection à la fin du
-// contenu inséré (option updateSelection, vérifiée à true par défaut dans le code source
-// réel de @tiptap/core).
+// Spoiler (Lot D6, corrigé -- modèle BBCode [spoiler]...[/spoiler]) : Details reste un
+// noeud de type "block" (content: "detailsSummary detailsContent", group:"block" --
+// vérifié dans le code source réel de @tiptap/extension-details@2.27.2), il ne peut donc
+// pas se comporter comme une simple marque inline. Sa commande native setDetails()
+// enveloppe tout le bloc englobant (blockRange), pas seulement la sélection réelle : c'est
+// le défaut signalé au premier passage. La commande ci-dessous construit donc directement
+// le noeud details via insertContentAt() -- le mécanisme que setDetails() natif utilise
+// lui-même en interne, vérifié dans son code source -- mais borné à la sélection réelle.
+// ProseMirror scinde alors automatiquement le paragraphe autour du noeud de bloc inséré
+// (comportement standard d'un replace avec un contenu de bloc à l'intérieur d'un texte,
+// pas une manipulation DOM). Aucun calcul manuel de position de curseur pour la création :
+// insertContentAt() place déjà par défaut la sélection à la fin du contenu inséré (option
+// updateSelection, vérifiée à true par défaut dans le code source réel de @tiptap/core).
+//
+// Second clic pendant qu'on est dans un spoiler -- deux usages distincts, désambiguïsés par
+// la présence ou non d'une sélection (même logique que le bouton Lien) :
+// - sélection vide (curseur seul) = "fermeture" façon [/spoiler] : sort du spoiler sans le
+//   modifier ni le supprimer, la frappe suivante est hors spoiler. Aucune commande officielle
+//   ne fait exactement cela (l'unique mécanisme natif d'évasion est le raccourci clavier
+//   Entrée de DetailsContent, vérifié dans son code source, mais il exige d'être sur un
+//   paragraphe final déjà vide -- trop restrictif pour un clic de bouton explicite). Implémenté
+//   ci-dessous avec les primitives de position ProseMirror déjà utilisées par l'extension
+//   elle-même en interne ($pos.after(depth), insertContentAt, setTextSelection) : pas de
+//   manipulation DOM.
+// - sélection non vide = retrait complet du spoiler (unsetDetails, commande officielle --
+//   remonte le contenu du spoiler en texte normal à la même place, contenu conservé).
+function rpCanvasExitSpoiler(editor) {
+  const { state } = editor;
+  const { $from } = state.selection;
+  let depth = null;
+  for (let d = $from.depth; d > 0; d -= 1) {
+    if ($from.node(d).type.name === 'details') { depth = d; break; }
+  }
+  if (depth === null) return;
+  const after = $from.after(depth);
+  const nodeAfter = state.doc.nodeAt(after);
+  if (nodeAfter && nodeAfter.isTextblock) {
+    editor.chain().focus().setTextSelection(after + 1).run();
+  } else {
+    editor.chain().focus().insertContentAt(after, { type: 'paragraph' }).run();
+  }
+}
+
 function rpCanvasAttachSpoilerButton(toolbar, editor) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.textContent = '👁';
-  btn.title = 'Spoiler (sélection, ou balise ouverte avant la frappe -- recliquer pour retirer)';
+  btn.title = 'Spoiler (sélection, ou balise ouverte avant la frappe -- recliquer pour fermer/retirer)';
   btn.addEventListener('mousedown', (e) => e.preventDefault());
   btn.addEventListener('click', () => {
     if (editor.isActive('details')) {
-      // Curseur ou sélection dans un spoiler existant : le retire sans supprimer son
-      // contenu (unsetDetails, commande officielle -- remonte le contenu du spoiler en
-      // texte normal à la même place, vérifié dans le code source réel). Pour sortir du
-      // spoiler SANS le retirer et continuer à écrire après, Entrée en fin de contenu est
-      // déjà géré nativement par l'extension (addKeyboardShortcuts, vérifié dans son code
-      // source) -- aucun code supplémentaire nécessaire ici.
-      editor.chain().focus().unsetDetails().run();
+      if (editor.state.selection.empty) {
+        rpCanvasExitSpoiler(editor);
+      } else {
+        editor.chain().focus().unsetDetails().run();
+      }
       return;
     }
     const { state } = editor;
