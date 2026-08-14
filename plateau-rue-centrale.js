@@ -490,12 +490,12 @@ const RUE_CENTRALE_NOEUDS = {
 
     // ---- CASERNE / QHS — scenes a noeud unique, un seul batiment chacune, accessibles
     // uniquement par taxi depuis le Centre Multinodal (pas de rue a parcourir, donc aucune
-    // fleche directionnelle). Coordonnees de zone estimees visuellement, a confirmer/ajuster
-    // en jeu comme pour les scenes de Luthecia/PSM.
+    // fleche directionnelle). Un seul batiment par image : toute l'image est cliquable
+    // (xPct/yPct [0,100]), pas besoin de decouper une zone precise.
     'caserne-exterieur': {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-exterieur.png',
       zones: [
-        { xPct: [62, 100], yPct: [10, 92], nom: 'Caserne Militaire', type: 'batiment', buildingId: 'caserne-militaire' }
+        { xPct: [0, 100], yPct: [0, 100], nom: 'Caserne Militaire', type: 'batiment', buildingId: 'caserne-militaire' }
       ],
       liens: {}
     },
@@ -503,7 +503,7 @@ const RUE_CENTRALE_NOEUDS = {
     'qhs-exterieur': {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/qhs-luthecia-exterieur.png',
       zones: [
-        { xPct: [5, 95], yPct: [5, 90], nom: 'Quartier Haute Sécurité', type: 'batiment', buildingId: 'qhs-prison' }
+        { xPct: [0, 100], yPct: [0, 100], nom: 'Quartier Haute Sécurité', type: 'batiment', buildingId: 'qhs-prison' }
       ],
       liens: {}
     }
