@@ -9,11 +9,13 @@
    comportement exact (déplacement par poignée dédiée, largeur par bords, min-height par le
    bas, coins pour les objets à ratio fixe).
 
-   Ce fichier est chargé par plateau.html. Le moteur d'édition (ci-dessous) n'est appelé par
-   rien tant que les lots suivants (C1+) ne le câblent pas dans le forum réel — aucun effet
-   visible. renderComposedPost (Lot B1) EST en revanche déjà branché en lecture seule dans
-   forum.js (renderTopicView) : elle ne s'active que si un post porte un content_layout non
-   nul, ce qu'aucun post réel ne fait encore (rien n'écrit ce champ avant le lot E2).
+   Ce fichier est chargé par plateau.html. Depuis le lot de finitions qui a suivi la phase I
+   (bouton unique de création de sujet), le moteur d'édition ci-dessous est le chemin normal
+   et unique de création d'un sujet -- plus une simple option parmi d'autres (voir
+   renderTopicList/showComposeCanvasForm, forum.js). renderComposedPost (Lot B1) reste le seul
+   renderer de lecture des posts composés (content_layout non nul), branché dans forum.js
+   (renderTopicView) depuis le lot B1, activement utilisé par tout post créé ou modifié via
+   cet écran depuis le lot E2.
    =========================================================================== */
 
 const RP_CANVAS_MIN_WIDTH = 40;
@@ -121,8 +123,8 @@ function rpCanvasCreateController(container) {
   // Sélection = passage au premier plan par défaut (comportement validé dans le prototype).
   // `state` est optionnel pour compatibilité, mais tous les appelants internes le passent
   // désormais (Lot C5) pour garder state.z synchronisé avec le zIndex réellement appliqué —
-  // sinon la sérialisation (lot E1, à venir) n'aurait aucun moyen fiable de retrouver l'ordre
-  // de superposition choisi par le joueur.
+  // condition nécessaire à la sérialisation (lot E1), qui n'aurait sinon aucun moyen fiable de
+  // retrouver l'ordre de superposition choisi par le joueur.
   function selectElement(el, state) {
     container.querySelectorAll('.rp-canvas-el.selected').forEach(o => {
       if (o !== el) o.classList.remove('selected');
@@ -1135,11 +1137,12 @@ function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
 // utilisé par renderComposedPost (layout.canvas_width || 680), donc déjà cohérente avec la
 // lecture réelle sans avoir besoin de la lire dynamiquement du DOM.
 //
-// reading_order : ordre de création (index dans rpComposeElements), conformément à la règle
-// par défaut déjà prévue pour le lot F2 ("pas d'interface de réordonnancement manuel dans ce
-// premier lot"). F2 n'existant pas encore, ce lot n'invente pas de mécanisme d'identifiants
-// au-delà de cet ordre simple -- à faire évoluer par F2 si un besoin de réordonnancement
-// manuel ou de suppression/duplication le justifie.
+// reading_order : ordre de création (index dans rpComposeElements). Confirmé suffisant par le
+// lot F2 (vérifié par test réel sur création/suppression/duplication en séquence) : ce même
+// tableau, recalculé à chaque appel à partir de rpComposeElements (seule source de vérité de
+// l'ordre, déjà tenue à jour par F1 pour la suppression/duplication), a toujours donné le bon
+// résultat sans nécessiter la moindre interface de réordonnancement manuel -- aucun code
+// supplémentaire n'a été nécessaire à F2.
 //
 // html_fallback de chaque zone de texte : editor.getHTML() passé par sanitizeRichHtml, dont
 // la liste blanche a été étendue dans ce même lot (DETAILS/SUMMARY, font-family, target/rel
