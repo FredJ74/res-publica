@@ -182,11 +182,16 @@ const QUETE_CARRIERE_BRIEFS = {
     texte: "Jérémy vous envoie ? ... Il parle trop, ce garçon. Alors comme ça, vous cherchez à gagner votre vie sans forcément remplir toutes les cases du formulaire ?<br><br>Bon. J'ai quelque chose à faire livrer. Remettez ce colis à Brigitte Menottes, au commissariat de Luthécia. Ne posez pas de question. Revenez me voir ensuite.",
     rappel: "Le colis secret, toujours à remettre à Brigitte Menottes, au commissariat de Luthécia."
   },
+  // politique : refonte du 17 aout 2026 (lot Jean-Lou Zeure). Le declenchement ne passe plus
+  // par un bouton "Discuter" (voir genererZoneCarriereHtml) mais par la question libre du
+  // joueur mentionnant Jeremy (voir talkToPnj). .introduction et .texte sont les deux fenetres
+  // chainees (declencherMissionJeanLou), .rappel reste lu par rappelMissionCarriere() inchangee.
   politique: {
     titre: 'Jean-Lou Zeure',
     image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-lou-zeure.png',
-    texte: "Jean-Lou Zeure. Ancien maire de Luthécia. Ancien, oui. C'est important, le mot ancien, en politique. On vous l'ajoute généralement sans vous demander votre avis.<br><br>Tenez, un lot de tracts tout prêt — la mécanique d'impression, on la verra une autre fois. Ce qui m'intéresse aujourd'hui, c'est qui vous accompagne quand vous le distribuerez. Allez-y, et revenez me voir après.",
-    rappel: "Le tract est dans votre inventaire, prêt à être distribué. Allez-y quand vous êtes prêt(e)."
+    introduction: "Jérémy, le neveu du nouveau maire, vous envoie voir l'ancien maire pour des conseils ? Surprenant...<br><br>Car oui, je suis l'ancien maire de Luthécia. Ancien, oui. C'est important, le mot ancien, en politique. On vous l'ajoute généralement sans vous demander votre avis.<br><br>Vous avez besoin de conseils donc... D'accord.",
+    texte: "Pour séduire les électeurs, vous pouvez faire éditer des tracts à votre nom à l'imprimerie, puis les distribuer aux gens que vous croisez. Certains voteront pour vous, d'autres non : c'est la loi de la démocratie.<br><br>Tenez, voici trois tracts. Présentez-vous à une élection, n'importe laquelle, puis distribuez-les. Revenez ensuite me voir et dites-moi les résultats que vous avez obtenus auprès de ces gens.",
+    rappel: "Présentez-vous à une élection puis distribuez les 3 tracts. Revenez ensuite me voir avec les résultats."
   },
   entrepreneurial: {
     titre: 'Laurent Barre',
@@ -204,10 +209,9 @@ const QUETE_CARRIERE_DEBRIEFS = {
   criminel: {
     succes: "Vous venez de transporter quelque chose sans en connaître le contenu, pour un homme que vous ne connaissez pas. Première leçon : dans ce métier, l'information vaut parfois davantage que la marchandise."
   },
-  politique: {
-    succes: "Voilà. Une conviction de plus. La mobilisation, ça ne se fait jamais seul — remarquez comme votre entourage a pesé dans la balance, autant que vos propres mots.",
-    echec: "Personne n'a été convaincu, cette fois. Ne vous vexez pas — même le meilleur discours porte plus loin quand on n'est pas seul à le tenir."
-  },
+  // Plus d'entree politique ici : le retour chez Jean-Lou (jeanLouRetour(), refonte du 17 aout
+  // 2026) affiche un score exact (X/3) suivi d'un texte de conseils fixe, independant de
+  // succes/echec generique -- ce dispatcher (debriefCarriere) n'est plus appele pour 'politique'.
   entrepreneurial: {
     succes: "Vous avez réussi. Remarquez : la somme seule n'explique pas tout. Qui vous accompagnait a compté au moins autant que ce que vous avez offert.",
     echec: "Ils ont pris l'argent et sont restés. La prochaine fois, entourez-vous mieux avant d'ouvrir votre portefeuille — l'argent seul ne fait pas tout."
@@ -235,6 +239,20 @@ function genererZoneCarriereHtml(pnj) {
       return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');rappelMissionCarriere(\'criminel\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Rappel de la mission</button>';
     }
     return ''; // a_rencontrer, colis_livre (attend la question libre) ou terminee -> dialogue PNJ normal
+  }
+
+  // Branche politique (Jean-Lou Zeure) : meme principe que Pat pour le declenchement (pas de
+  // bouton "Discuter", question libre avec mot-cle Jeremy -- voir talkToPnj). Contrairement a
+  // Pat, le retour ("Faire le point") reste un bouton dedie -- priorite beta au fonctionnement,
+  // pas de conversion en mot-cle pour ce point precis (decision explicite du 17 aout 2026).
+  if (branche === 'politique') {
+    if (qc.etape === 'tracts_recus') {
+      return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');rappelMissionCarriere(\'politique\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Rappel de la mission</button>';
+    }
+    if (qc.etape === 'tracts_termines') {
+      return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20;font-weight:bold" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');jeanLouRetour()"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Faire le point</button>';
+    }
+    return ''; // a_rencontrer (pas encore declenche) ou terminee -> dialogue PNJ normal
   }
 
   if (qc.etape === 'a_rencontrer') {
@@ -422,16 +440,215 @@ function patHounetteRetour() {
   });
 }
 
-// "Mes Objectifs" pour la branche criminelle -- meme principe que queteAccueilObjectifActuel
-// (plateau-quete-accueil.js) pour le tronc commun, lu en repli par afficherObjectifsSecrets()
-// quand ce dernier ne renvoie rien (branche non encore concernee ou tronc commun deja termine).
+// "Mes Objectifs" pour les branches criminelle et politique -- meme principe que
+// queteAccueilObjectifActuel (plateau-quete-accueil.js) pour le tronc commun, lu en repli par
+// afficherObjectifsSecrets() quand ce dernier ne renvoie rien (branche non encore concernee ou
+// tronc commun deja termine).
 function queteCarriereObjectifActuel() {
   const qc = state.char?.queteCarriere;
-  if (!qc || qc.ambition !== 'criminel') return null;
-  if (qc.etape === 'a_rencontrer') return "Rendez-vous chez Pat Hounette et dites-lui que Jérémy vous envoie.";
-  if (qc.etape === 'colis_recu') return "Remettez le colis secret à Brigitte Menottes au commissariat de Luthécia.";
-  if (qc.etape === 'colis_livre') return "Retournez voir Pat Hounette.";
-  return null; // 'terminee' (ou etat inconnu) -> pas d'objectif specifique
+  if (!qc) return null;
+  if (qc.ambition === 'criminel') {
+    if (qc.etape === 'a_rencontrer') return "Rendez-vous chez Pat Hounette et dites-lui que Jérémy vous envoie.";
+    if (qc.etape === 'colis_recu') return "Remettez le colis secret à Brigitte Menottes au commissariat de Luthécia.";
+    if (qc.etape === 'colis_livre') return "Retournez voir Pat Hounette.";
+    return null; // 'terminee' (ou etat inconnu) -> pas d'objectif specifique
+  }
+  if (qc.ambition === 'politique') {
+    if (qc.etape === 'a_rencontrer') return "Rendez-vous chez Jean-Lou Zeure et dites-lui que Jérémy vous envoie.";
+    if (qc.etape === 'tracts_recus') return "Présentez-vous à une élection à la mairie, puis distribuez les 3 tracts confiés par Jean-Lou Zeure.";
+    if (qc.etape === 'tracts_termines') return "Retournez voir Jean-Lou Zeure et donnez-lui vos résultats.";
+    return null; // 'terminee' (ou etat inconnu) -> pas d'objectif specifique
+  }
+  return null;
+}
+
+// =====================
+// BRANCHE POLITIQUE — Jean-Lou Zeure (refonte du 17 aout 2026)
+// Etats propres : state.char.queteCarriere = { ambition:'politique', etape, resultat:null,
+//   electionCible: {posteId,country,city} | null, ciblesJeanLou: [nomPNJ,...],
+//   resultatsJeanLou: [bool,...] }
+//   a_rencontrer -> tracts_recus -> tracts_termines -> terminee
+// A la difference de Pat, le retour ("Faire le point") reste un bouton dedie (decision
+// explicite, priorite beta au fonctionnement plutot qu'a l'uniformisation ergonomique) : voir
+// genererZoneCarriereHtml. Utilise imperativement le vrai systeme electoral (CYCLES_ELECTORAUX/
+// votesPNJ/enregistrerVotePNJ, plateau-politique.js) -- jamais distribuerTractPNJ()/
+// state.electionsEnCours, le systeme factice identifie par l'audit du 17 aout 2026.
+// =====================
+
+// Declenchee depuis talkToPnj() des que le joueur mentionne Jeremy a Jean-Lou Zeure (question
+// libre, pas de bouton). Deux fenetres chainees (introduction puis mission), puis remise reelle
+// de 3 tracts electoraux (modele d'objet tract deja existant, cible = le PJ lui-meme, marques
+// origineQuete:'jean_lou' pour que la quete puisse suivre precisement LEURS distributions sans
+// interferer avec d'eventuels autres tracts que le joueur possederait par ailleurs).
+function declencherMissionJeanLou() {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'politique' || qc.etape !== 'a_rencontrer') return;
+  const b = QUETE_CARRIERE_BRIEFS.politique;
+
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (typeof afficherPopupQueteAccueil !== 'function') return;
+
+  afficherPopupQueteAccueil({
+    image: b.image,
+    titre: b.titre,
+    texte: b.introduction,
+    suivant: function() {
+      afficherPopupQueteAccueil({
+        image: b.image,
+        titre: b.titre,
+        texte: b.texte,
+        suivant: function() {
+          qc.etape = 'tracts_recus';
+          qc.electionCible = null;
+          qc.ciblesJeanLou = [];
+          qc.resultatsJeanLou = [];
+          if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+          if (typeof addToInventory === 'function') {
+            addToInventory({
+              type: 'tract', name: 'Tracts POUR ' + (state.char?.name || 'vous'),
+              icon: 'ti-file-description', tractType: 'pour', cible: state.char?.name || '',
+              quantite: 3, legal: true, origineQuete: 'jean_lou'
+            });
+          }
+          if (typeof addJournalEntry === 'function') {
+            addJournalEntry('Jean-Lou Zeure vous a confié 3 tracts électoraux à votre nom.', 'event-info');
+          }
+        }
+      });
+    }
+  });
+}
+
+// Cherche une candidature REELLE et active du joueur (CYCLES_ELECTORAUX, jamais
+// state.electionsEnCours) dans son empire courant. Parcourt les cles dans un ordre stable pour
+// que le choix soit deterministe si le joueur est candidat a plusieurs postes a la fois (voir
+// distribuerTractJeanLou : les 3 tracts de cette quete restent tous rattaches a la MEME
+// election, jamais repartis/dupliques sur plusieurs).
+function trouverElectionCandidatJoueur() {
+  const country = state.country;
+  const cycles = (typeof CYCLES_ELECTORAUX !== 'undefined' && CYCLES_ELECTORAUX[country]) || {};
+  const nom = state.char?.name;
+  if (!nom) return null;
+  const cles = Object.keys(cycles).sort();
+  for (const cle of cles) {
+    const cycle = cycles[cle];
+    if (!cycle || !cycle.candidats) continue;
+    if (!cycle.candidats.some(c => c.nom === nom)) continue;
+    if (typeof getPhaseActuelle !== 'function') continue;
+    if (getPhaseActuelle(country, cycle.posteId, cycle.city) !== PHASES_ELECTORALES.CAMPAGNE) continue;
+    return { posteId: cycle.posteId, city: cycle.city || null, country };
+  }
+  return null;
+}
+
+// Declenchee depuis la fiche d'un PNJ (bouton quete-specifique, voir openPnjModal) une fois le
+// joueur reellement candidat. Consomme un tract de mission Jean-Lou, garantit 3 PNJ distincts
+// pour CETTE quete, et n'ecrit une voix reelle QUE via enregistrerVotePNJ (plateau-politique.js)
+// -- jamais dans state.electionsEnCours. Les 3 tracts restent rattaches a la meme election
+// (qc.electionCible, fixee au premier tract distribue).
+function distribuerTractJeanLou(pnjName) {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'politique' || qc.etape !== 'tracts_recus') return;
+
+  const ciblesDeja = qc.ciblesJeanLou || [];
+  if (ciblesDeja.includes(pnjName)) {
+    if (typeof showToast === 'function') showToast('Déjà tenté', pnjName + ' a déjà été démarché(e) pour cette mission.', false);
+    return;
+  }
+
+  const election = qc.electionCible || trouverElectionCandidatJoueur();
+  if (!election) {
+    if (typeof showToast === 'function') showToast('Pas encore candidat', 'Présentez-vous d\'abord à une élection à la mairie avant de distribuer vos tracts.', false);
+    return;
+  }
+  if (!qc.electionCible) {
+    qc.electionCible = election;
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  }
+
+  const lot = (state.inventory || []).find(i => i.type === 'tract' && i.origineQuete === 'jean_lou' && (i.quantite || 0) > 0);
+  if (!lot) return; // plus de tract de mission -- le bouton ne devrait plus etre visible a ce stade
+
+  lot.quantite -= 1;
+  if (lot.quantite <= 0) {
+    const idx = state.inventory.indexOf(lot);
+    state.inventory.splice(idx, 1);
+  }
+  if (typeof renderInventory === 'function') renderInventory();
+
+  // Meme mecanisme probabiliste que le tractage existant (distribuerTractPNJ, plateau-
+  // communication.js) : 50% de base + bonus INF/10, plafonne a 80%. Seule la destination du
+  // succes change (vrai systeme electoral, pas state.electionsEnCours).
+  const bonusInf = Math.floor((state.inf || 0) / 10);
+  const taux = Math.min(80, 50 + bonusInf);
+  const roll = Math.floor(Math.random() * 100) + 1;
+  let convaincu = roll <= taux;
+
+  if (convaincu) {
+    // Verification synchrone (pas d'attente reseau) : ce PNJ ne peut deja figurer dans
+    // cycle.votesPNJ pour cette election puisque la quete garantit 3 cibles distinctes, sauf
+    // cas rarissime ou il a ete convaincu par un tout autre biais (ex: distribuerProspectus)
+    // avant meme cette mission -- dans ce cas, aucune nouvelle voix n'est ecrite et le tract
+    // ne compte pas comme un succes pour la quete. La persistance reelle (asynchrone) est
+    // lancee ensuite, mais cette decision synchrone conditionne deja le score/message affiches
+    // immediatement ci-dessous.
+    const cleCycle = (typeof getCleCycle === 'function') ? getCleCycle(election.posteId, election.city) : null;
+    const cycleCible = cleCycle && (typeof CYCLES_ELECTORAUX !== 'undefined') ? CYCLES_ELECTORAUX[election.country]?.[cleCycle] : null;
+    if (cycleCible && cycleCible.votesPNJ && cycleCible.votesPNJ[pnjName]) {
+      convaincu = false;
+    } else if (typeof enregistrerVotePNJ === 'function') {
+      enregistrerVotePNJ(election.country, election.posteId, election.city, pnjName, state.char.name).catch(() => {});
+    }
+  }
+
+  qc.ciblesJeanLou = ciblesDeja.concat([pnjName]);
+  qc.resultatsJeanLou = (qc.resultatsJeanLou || []).concat([convaincu]);
+  if (qc.ciblesJeanLou.length >= 3) {
+    qc.etape = 'tracts_termines';
+  }
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  if (typeof addJournalEntry === 'function') {
+    addJournalEntry(convaincu
+      ? 'Tract distribué à ' + pnjName + ' — convaincu(e).'
+      : 'Tract distribué à ' + pnjName + ' — sans effet.', convaincu ? 'event-good' : '');
+  }
+  if (typeof showToast === 'function') {
+    showToast(convaincu ? 'Convaincu !' : 'Sans effet',
+      convaincu ? pnjName + ' est convaincu ! Il va voter pour vous.' : pnjName + ' n\'est pas convaincu. Il ne votera pas pour vous.',
+      convaincu);
+  }
+  if (typeof updateUI === 'function') updateUI();
+}
+
+// Declenchee par le bouton "Faire le point" sur la fiche de Jean-Lou une fois les 3 tracts
+// distribues. Le score est deja connu par le jeu (qc.resultatsJeanLou) : jamais redemande au
+// joueur. Affiche d'abord la replique du PJ annoncant le score exact, puis les conseils finaux
+// (texte fixe, fourni tel quel), avant de clore definitivement la branche.
+function jeanLouRetour() {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'politique' || qc.etape !== 'tracts_termines') return;
+  const b = QUETE_CARRIERE_BRIEFS.politique;
+  const total = (qc.resultatsJeanLou || []).length;
+  const convaincus = (qc.resultatsJeanLou || []).filter(Boolean).length;
+
+  afficherPopupQueteAccueil({
+    image: (state.char && state.char.photoUrl) || null,
+    titre: (state.char && state.char.name) || 'Vous',
+    texte: 'J\'ai convaincu ' + convaincus + ' personne' + (convaincus > 1 ? 's' : '') + ' sur ' + total + '.',
+    suivant: function() {
+      afficherPopupQueteAccueil({
+        image: b.image,
+        titre: b.titre,
+        texte: "Bon, eh bien vous savez déjà comment faire voter les gens.<br><br>Maintenant, je vous conseille de faire une belle déclaration de candidature sur le forum dédié à l'élection. Les beaux discours peuvent rallier des électeurs à votre cause, et certains pourront même tracter pour vous.<br><br>N'oubliez pas non plus la puissance du club des supporters du club de football. Si vous parvenez à les mettre de votre côté, ils pourront sérieusement vous aider à remporter une élection.<br><br>Je vous laisse, j'ai des offres d'emploi à éplucher. Mais si vous avez besoin d'aide, ajoutez-moi à vos contacts et écrivez-moi. J'essaierai de répondre à vos questions.",
+        suivant: function() {
+          qc.etape = 'terminee';
+          if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+        }
+      });
+    }
+  });
 }
 
 // Protege le Colis secret contre une perte accidentelle (destruction/abandon) tant que la
@@ -532,13 +749,26 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonObjetPnjModal(\'' + enc + '\')"><i class="ti ti-package" style="font-size:.85rem"></i> Donner un objet</button>';
   }
 
+  // Tracts de la mission Jean-Lou Zeure (origineQuete:'jean_lou') separes des tracts
+  // "generiques" : le bouton generique (distribuerTractPNJ, systeme factice identifie par
+  // l'audit du 17 aout 2026) reste masque tant que le joueur en detient, pour eviter qu'il ne
+  // consomme accidentellement un tract de mission via le mauvais circuit (celui-ci n'ecrit
+  // jamais dans le vrai systeme electoral). Voir distribuerTractJeanLou plus bas pour le vrai
+  // circuit de cette quete.
   const tractsDispos = (state.inventory || []).filter(i => i.type === 'tract');
-  if (tractsDispos.length > 0) {
+  const tractsJeanLou = tractsDispos.filter(i => i.origineQuete === 'jean_lou');
+  const tractsGeneriques = tractsDispos.filter(i => i.origineQuete !== 'jean_lou');
+  if (tractsGeneriques.length > 0 && tractsJeanLou.length === 0) {
     if (isPJ) {
       actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');donnerTracts(\'' + pnjSafeName + '\')"><i class="ti ti-files" style="font-size:.85rem"></i> Donner des tracts</button>';
     } else {
       actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractPNJ(\'' + pnjSafeName + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract</button>';
     }
+  }
+  if (!isPJ && tractsJeanLou.length > 0 && state.char?.queteCarriere?.ambition === 'politique'
+      && state.char.queteCarriere.etape === 'tracts_recus'
+      && !(state.char.queteCarriere.ciblesJeanLou || []).includes(pnjSafeName)) {
+    actionBtns += '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20" onclick="distribuerTractJeanLou(\'' + pnjSafeName + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract (mission Jean-Lou)</button>';
   }
 
   if (pnj.rel === 'enemy') {
@@ -880,6 +1110,26 @@ function verifierSuccesMaxence(cle) {
       if (typeof patHounetteRetour === 'function') patHounetteRetour();
       return;
     }
+  }
+
+  // Branche politique (Jean-Lou Zeure) : reponse scriptee (pas d'IA) a l'ouverture de sa fiche,
+  // ton desabus\u00e9 de chomeur plutot que le ton d'autorite que l'IA pouvait prendre a tort a
+  // cause du lieu (Bureau National de l'Emploi -- il y est demandeur d'emploi, pas employe).
+  const nomCourtJeanLou = (pnj.name || '').replace(' (PNJ)', '').trim();
+  if (nomCourtJeanLou === 'Jean-Lou Zeure' && action === 'bonjour') {
+    speech.textContent = "Vous aussi vous cherchez un boulot bien planqu\u00e9 et pas trop mal pay\u00e9 ? Attention, on est deux sur le coup.";
+    return;
+  }
+
+  // Branche politique (Jean-Lou Zeure) : declenchement de la mission des que le joueur
+  // mentionne Jeremy, quelle que soit l'orthographe (accent, ou variante "Jeremie"/"J\u00e9r\u00e9mie").
+  // Meme pattern que Pat Hounette ci-dessus.
+  if (nomCourtJeanLou === 'Jean-Lou Zeure' && action !== 'bonjour'
+      && state.char?.queteCarriere?.ambition === 'politique'
+      && state.char.queteCarriere.etape === 'a_rencontrer'
+      && /j[\u00e9e]r[\u00e9e]m(y|ie)/i.test(action)) {
+    if (typeof declencherMissionJeanLou === 'function') declencherMissionJeanLou();
+    return;
   }
 
   // Actions predefinies

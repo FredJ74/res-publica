@@ -587,11 +587,13 @@ async function deposerCandidature(posteId, country, city) {
   if (!CYCLES_ELECTORAUX[c][cle]) await initCycleElectoral(c, posteId, city);
 
   const cycle = CYCLES_ELECTORAUX[c][cle];
-  if (getPhaseActuelle(c, posteId, city) !== PHASES_ELECTORALES.CANDIDATURES) {
-    showToast('Hors délai', 'Les candidatures ne sont pas ouvertes pour ce poste.', false);
-    return;
-  }
-
+  // Delai de depot restreint a la seule phase CANDIDATURES retire le 17 aout 2026 (decision
+  // explicite) : une election doit rester accessible a tout moment, pas seulement durant la
+  // toute premiere semaine suivant sa creation. Les autres prerequis (domiciliation,
+  // influence minimale, cumul interdit, deja candidat) restent tous verifies ci-dessus/dessous,
+  // inchanges -- seul ce verrou temporel disparait. Ne modifie ni le calendrier de campagne, ni
+  // le vote, ni le depouillement : une candidature deposee tardivement rejoint simplement
+  // cycle.candidats avec 0 voix, comme n'importe quelle autre.
   if (cycle.candidats.find(ca => ca.nom === nom)) {
     showToast('Déjà candidat', 'Vous êtes déjà candidat à ce poste.', false);
     return;
@@ -823,6 +825,27 @@ function voterPour(candidatNom, posteId, country, city) {
   addJournalEntry('🗳️ Vote enregistré pour ' + candidatNom + (city ? ' (' + city + ')' : '') + '.', 'event-info');
 }
 
+// Enregistre le vote d'un PNJ convaincu dans le vrai systeme electoral (cycle.votesPNJ) ET
+// persiste immediatement en Supabase -- corrige un oubli de persistance de distribuerProspectus
+// (audit du 17 aout 2026 : le vote local n'atteignait jamais Supabase, risquant d'etre ecrase
+// au prochain syncCyclesDepuisSupabase). Helper factorise, seul point d'ecriture reel des votes
+// PNJ desormais : reutilise par distribuerProspectus ci-dessous ET par la quete Jean-Lou
+// (distribuerTractJeanLou, plateau-pnj.js) -- aucune logique electorale parallele.
+// Renvoie false sans rien faire si ce PNJ est deja enregistre pour ce cycle (garde-fou contre
+// une deuxieme voix pour le meme PNJ, meme si l'appel vient d'ailleurs que ce cycle).
+async function enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom) {
+  const cle = getCleCycle(posteId, city);
+  const cycle = CYCLES_ELECTORAUX[country]?.[cle];
+  if (!cycle) return false;
+  if (!cycle.votesPNJ) cycle.votesPNJ = {};
+  if (cycle.votesPNJ[pnjId]) return false;
+  cycle.votesPNJ[pnjId] = candidatNom;
+  if (typeof sbSaveCycleElectoral === 'function') {
+    await sbSaveCycleElectoral(country, posteId, cycle, city).catch(() => {});
+  }
+  return true;
+}
+
 // Distribuer un prospectus à un PNJ
 function distribuerProspectus(pnjId, candidatNom, posteId, country, city) {
   const cle = getCleCycle(posteId, city);
@@ -846,7 +869,7 @@ function distribuerProspectus(pnjId, candidatNom, posteId, country, city) {
 
   state.pa -= 1;
   state.arg -= 50;
-  cycle.votesPNJ[pnjId] = candidatNom;
+  enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom).catch(() => {});
 
   // Trouver le candidat et incrémenter son compteur
   const candidat = cycle.candidats.find(c => c.nom === candidatNom);

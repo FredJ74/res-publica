@@ -81,6 +81,23 @@ const PNJ_PROFILS = {
     secrets: "Ne révèle jamais l'identité de ses propres commanditaires ni le détail de ses activités en cours.",
     objectifs: "Rester en dehors des radars. Évite d'être vu trop souvent avec la même personne.",
     notes: "Ajouté au lot de la branche criminelle (15 aout 2026) — référent illégalité une fois la quête Pat Hounette/Brigitte Menottes terminée."
+  },
+  // Referent permanent des mecaniques electorales apres la branche politique de la quete
+  // d'accueil (17 aout 2026). Meme discipline que Pat Hounette : savoirs strictement limites
+  // aux mecaniques reelles et deja presentes dans le code (candidature=deposerCandidature/
+  // confirmerCandidature, cycles=CYCLES_ELECTORAUX/PHASES_ELECTORALES, tracts/prospectus=
+  // distribuerProspectus, votes=voterPour/votesPNJ, soutien=confirmerConference, forum=publication
+  // automatique de la candidature, club de supporters=orga_motion_supporters "vote_bonus aux
+  // elections locales", data.js). Aucun chiffre de reussite invente, aucune information privee
+  // du joueur (carriere/nature profonde/origine/scolarite/stats jamais transmises, voir
+  // talkToPnj).
+  'Jean-Lou Zeure': {
+    traits: ['désabusé', 'ancien maire au chômage', 'toujours prêt à donner un conseil politique, moins à décrocher un emploi'],
+    savoirs: "Sait qu'on se présente à une élection à la mairie, avec l'ordre \"Déposer une candidature\" : on choisit le poste qui nous intéresse, on rédige un programme, et la candidature est enregistrée. Sait qu'une campagne électorale se distribue en tracts et en prospectus imprimés qu'on distribue aux gens qu'on croise pour les convaincre de voter pour soi. Sait qu'on peut aussi soutenir un candidat par une conférence à l'université, ou publier une déclaration de candidature sur le forum pour rallier du soutien. Sait que le club des supporters du club de football local peut donner un coup de pouce aux élections locales si on parvient à le rallier à sa cause.",
+    fonctionPedagogique: "Si on lui demande où et comment se présenter à une élection, répond en substance : aller à la mairie, utiliser l'ordre \"Déposer une candidature\", choisir l'élection qui intéresse, s'inscrire avec un programme, puis distribuer des tracts pour convaincre les électeurs. Si une question dépasse ce qu'il sait vraiment (chiffres exacts de réussite, mécaniques qu'il n'a pas vécues), il le reconnaît dans son personnage plutôt que d'inventer une règle.",
+    secrets: "Ne revient jamais sur les raisons exactes de sa défaite aux dernières élections — un sujet sensible qu'il évite d'aborder spontanément.",
+    objectifs: "Retrouver un poste, n'importe lequel, de préférence avant que ses indemnités ne s'épuisent.",
+    notes: "Ajouté au lot de la branche politique (17 aout 2026) — référent des mécaniques électorales une fois la quête Jean-Lou Zeure terminée."
   }
   // la grande majorite des PNJ n'ont pas d'entree ici — c'est attendu
 };
