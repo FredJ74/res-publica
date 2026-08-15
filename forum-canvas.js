@@ -18,6 +18,24 @@
 
 const RP_CANVAS_MIN_WIDTH = 40;
 
+// Fond de zone de texte (lot de finitions, après I) : petite palette fixe de couleurs sobres,
+// semi-transparentes (rgba, jamais opaques -- le fond ne doit jamais masquer totalement le
+// canvas derrière la zone). '' = transparent, comportement par défaut inchangé. Uniquement le
+// FOND est concerné : jamais de CSS `opacity` sur la zone entière, qui rendrait aussi le texte
+// transparent -- exigence explicite du plan. RP_ZONE_BG_SAFE_RE valide strictement le format
+// à la lecture (renderComposedPost) et à la désérialisation (rpCanvasDeserializeIntoCompose) :
+// bgColor vient de content_layout, une donnée stockée relue depuis la base, potentiellement
+// modifiée hors du client officiel -- même défense en profondeur que le reste du pipeline
+// (src d'image filtré par ^https?://, html_fallback repassé par sanitizeRichHtml, etc.).
+const RP_ZONE_BG_PALETTE = [
+  { label: 'Transparent (par défaut)', value: '' },
+  { label: 'Parchemin', value: 'rgba(232,224,204,0.55)' },
+  { label: 'Gris sobre', value: 'rgba(120,120,120,0.18)' },
+  { label: 'Or discret', value: 'rgba(201,168,76,0.15)' },
+  { label: 'Ardoise', value: 'rgba(58,90,120,0.14)' },
+];
+const RP_ZONE_BG_SAFE_RE = /^rgba\(\d{1,3},\d{1,3},\d{1,3},(0|1|0?\.\d+)\)$/;
+
 // ===========================================================================
 // Rendu LECTURE SEULE d'un post composé (Lot B1). Aucune poignée, aucune interaction —
 // uniquement l'affichage. Le contenu riche de chaque zone est affiché via son html_fallback
@@ -63,8 +81,12 @@ function renderComposedPost(layout) {
     if (el.type === 'text_zone') {
       const minH = lo.minHeight || 0;
       const safeHtml = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(el.html_fallback || '') : '';
+      // Fond de zone (lot de finitions) : validé strictement avant interpolation dans le HTML
+      // -- une valeur hors de ce format précis (rgba(...) uniquement) est silencieusement
+      // ignorée plutôt qu'insérée telle quelle dans l'attribut style.
+      const bg = RP_ZONE_BG_SAFE_RE.test(el.bgColor || '') ? 'background-color:' + el.bgColor + ';' : '';
       return '<div class="rp-composed-zone" style="position:absolute;left:' + x + 'px;top:' + y + 'px;' +
-        'width:' + w + 'px;min-height:' + minH + 'px;z-index:' + z + '">' + safeHtml + '</div>';
+        'width:' + w + 'px;min-height:' + minH + 'px;z-index:' + z + ';' + bg + '">' + safeHtml + '</div>';
     }
 
     if (el.type === 'image') {
@@ -443,19 +465,21 @@ function rpCanvasAddTextZoneToCompose() {
 // Création d'une zone de texte — reprise directe de createTextZone du prototype validé
 // (F1.5), câblée sur le vrai contrôleur générique (Lot A2) et sur le vrai Tiptap chargé en
 // ESM (voir plateau.html, exposé en window.RP_TIPTAP_EDITOR/RP_TIPTAP_STARTER_KIT).
-function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
+function rpCanvasCreateTextZone(ctrl, container, x, y, width, html, bgColor) {
   if (typeof window.RP_TIPTAP_EDITOR !== 'function' || !window.RP_TIPTAP_STARTER_KIT) {
     if (typeof showToast === 'function') showToast('Chargement en cours', 'Réessayez dans un instant.', false);
     return null;
   }
 
-  const state = { x, y, width, minHeight: 0 };
+  const state = { x, y, width, minHeight: 0, bgColor: bgColor || '' };
   const el = document.createElement('div');
   el.className = 'rp-canvas-el rp-zone';
   el.style.left = x + 'px';
   el.style.top = y + 'px';
   el.style.width = width + 'px';
   el.style.minHeight = state.minHeight + 'px';
+  // Uniquement le fond -- jamais `opacity`, qui ferait aussi disparaître le texte.
+  if (state.bgColor) el.style.backgroundColor = state.bgColor;
 
   const bar = document.createElement('div');
   bar.className = 'rp-zone-bar';
@@ -503,6 +527,7 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
   });
 
   rpCanvasAttachZoneToolbar(toolbar, editor);
+  rpCanvasAttachZoneBgButton(toolbar, el, state);
 
   rpComposeElements.push({ type: 'text_zone', el, state, editor });
 
@@ -521,7 +546,7 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
     dupBtn.addEventListener('mousedown', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const newEl = rpCanvasCreateTextZone(ctrl, container, state.x + 20, state.y + 20, state.width, editor.getHTML());
+      const newEl = rpCanvasCreateTextZone(ctrl, container, state.x + 20, state.y + 20, state.width, editor.getHTML(), state.bgColor);
       if (!newEl) return;
       const newEntry = rpComposeElements[rpComposeElements.length - 1];
       if (newEntry && newEntry.el === newEl) {
@@ -949,6 +974,48 @@ function rpCanvasAttachColorButton(toolbar, editor) {
   toolbar.appendChild(btn);
 }
 
+// Fond de la zone (lot de finitions, après I) — propriété de la zone elle-même (state.bgColor),
+// pas une marque Tiptap : bouton séparé de rpCanvasAttachZoneToolbar (formatage du texte),
+// mais posé sur la même barre. Réutilise le même panneau .rp-color-panel (style.css) que
+// rpCanvasAttachColorButton pour rester cohérent visuellement, avec une petite palette dédiée
+// (RP_ZONE_BG_PALETTE, sobre, semi-transparente) distincte de la palette de couleur de texte.
+function rpCanvasAttachZoneBgButton(toolbar, el, state) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = '▦';
+  btn.title = 'Fond de la zone';
+  btn.addEventListener('mousedown', (e) => e.preventDefault());
+
+  let panel = null;
+  function closePanel() { if (panel) { panel.remove(); panel = null; } }
+
+  btn.addEventListener('click', () => {
+    if (panel) { closePanel(); return; }
+    panel = document.createElement('div');
+    panel.className = 'rp-color-panel';
+    panel.contentEditable = 'false';
+    RP_ZONE_BG_PALETTE.forEach(opt => {
+      const swatch = document.createElement('button');
+      swatch.type = 'button';
+      // Une valeur vide (transparent) n'a pas de couleur CSS unie représentative -- damier
+      // sobre, reconnaissable, uniquement pour ce swatch-là.
+      swatch.style.background = opt.value || 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0/10px 10px';
+      swatch.title = opt.label;
+      swatch.addEventListener('mousedown', (e) => e.preventDefault());
+      swatch.addEventListener('click', () => {
+        state.bgColor = opt.value;
+        // Uniquement le fond -- jamais `opacity`, qui ferait aussi disparaître le texte.
+        el.style.backgroundColor = opt.value || 'transparent';
+        closePanel();
+      });
+      panel.appendChild(swatch);
+    });
+    toolbar.appendChild(panel);
+  });
+
+  toolbar.appendChild(btn);
+}
+
 // ===========================================================================
 // Objet image (Lot C4) — reprise directe de createImage/startCornerResize du prototype
 // validé (F1.5). Aucune validation d'URL côté saisie, par cohérence avec le comportement
@@ -1084,7 +1151,13 @@ function rpCanvasSerializeCompose() {
       if (contentEl) layout.contentHeight = contentEl.scrollHeight || 0;
       const rawHtml = entry.editor ? entry.editor.getHTML() : '';
       const html_fallback = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(rawHtml) : '';
-      return { type: 'text_zone', html_fallback, layout };
+      // Fond de zone (lot de finitions) : propriété visuelle de la zone, pas géométrique --
+      // au même niveau que html_fallback, pas dans layout (réservé aux propriétés de position/
+      // taille). Revalidé au format strict (RP_ZONE_BG_SAFE_RE) avant d'être sauvegardé : une
+      // valeur qui ne vient pas de la palette (ne devrait jamais arriver via l'UI) n'est pas
+      // persistée.
+      const bgColor = RP_ZONE_BG_SAFE_RE.test(state.bgColor || '') ? state.bgColor : '';
+      return { type: 'text_zone', html_fallback, bgColor, layout };
     }
 
     if (entry.type === 'image') {
@@ -1173,7 +1246,10 @@ function rpCanvasDeserializeIntoCompose(layout, container) {
     const z = lo.z || 1;
 
     if (el.type === 'text_zone') {
-      const domEl = rpCanvasCreateTextZone(rpComposeController, container, x, y, width, el.html_fallback || '<p></p>');
+      // Fond de zone (lot de finitions) : revalidé au même format strict qu'à la lecture --
+      // défense en profondeur, content_layout est une donnée stockée relue depuis la base.
+      const bgColor = RP_ZONE_BG_SAFE_RE.test(el.bgColor || '') ? el.bgColor : '';
+      const domEl = rpCanvasCreateTextZone(rpComposeController, container, x, y, width, el.html_fallback || '<p></p>', bgColor);
       if (!domEl) return;
       const entry = rpComposeElements[rpComposeElements.length - 1];
       if (!entry || entry.el !== domEl) return;
