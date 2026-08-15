@@ -325,7 +325,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge.png',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-6','stade','zone-production','entrepot-logistique-montrouge','raffinerie-montrouge','bureau-national-emploi-montrouge'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-6','stade','zone-production','entrepot-logistique-montrouge','raffinerie-montrouge','bureau-national-emploi-montrouge','armurerie','loge-maconnique','la-tribune','marche','cafe-gare-montrouge','brasserie-voyageurs-montrouge','musee-histoire-montrouge','eglise-montrouge','cinema-montrouge','jardins-ouvriers-montrouge','logements-montrouge','cafe-tabac-cheminots-montrouge'],
       buildingContext: {
         'stade': {
           name: "Stade Marcel Cazenave — Union Cheminote de Montrouge",
@@ -4489,6 +4489,82 @@ const BUILDINGS = {
         ]
       }
     }
+  },
+
+  // ---- MONTROUGE — fiches minimales pour la navigation par vues (2026-08-16) ----
+  // Volontairement strictement minimales : nom, salle unique, aucun PNJ/ordre/mecanique
+  // inventes. A enrichir plus tard si Fred le demande (voir dette signalee dans le rapport).
+  'cafe-gare-montrouge': {
+    name: "Café de la Gare",
+    shortName: "Café de la Gare",
+    cat: "Commerce",
+    icon: "ti-coffee",
+    bgColor: "#100c08",
+    desc: "Un café en face de la gare de Montrouge.",
+    rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", persons: [], orders: [] } }
+  },
+  'brasserie-voyageurs-montrouge': {
+    name: "Brasserie des Voyageurs",
+    shortName: "Brasserie des Voyageurs",
+    cat: "Commerce",
+    icon: "ti-beer",
+    bgColor: "#100c08",
+    desc: "Une brasserie pres de la gare de Montrouge.",
+    rooms: { salle: { name: "Salle", desc: "Comptoir et banquettes.", imageBg: "linear-gradient(135deg,#100c08,#181008)", persons: [], orders: [] } }
+  },
+  'musee-histoire-montrouge': {
+    name: "Musée de l'Histoire de Montrouge — Autour du Rail",
+    shortName: "Musée de Montrouge",
+    cat: "Culture",
+    icon: "ti-building-monument",
+    bgColor: "#0c0a06",
+    desc: "Musée consacré à l'histoire cheminote de Montrouge.",
+    rooms: { salle: { name: "Salle d'exposition", desc: "Exposition sur les chemins de fer de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", persons: [], orders: [] } }
+  },
+  'eglise-montrouge': {
+    name: "Église",
+    shortName: "Église",
+    cat: "Cultes",
+    icon: "ti-cross",
+    bgColor: "#0c0a06",
+    desc: "L'église de Montrouge.",
+    rooms: { salle: { name: "Nef", desc: "Un lieu de recueillement.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", persons: [], orders: [] } }
+  },
+  'cinema-montrouge': {
+    name: "Cinéma de Montrouge",
+    shortName: "Cinéma",
+    cat: "Loisirs",
+    icon: "ti-movie",
+    bgColor: "#100810",
+    desc: "Le cinéma de Montrouge.",
+    rooms: { salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", persons: [], orders: [] } }
+  },
+  'jardins-ouvriers-montrouge': {
+    name: "Jardins ouvriers",
+    shortName: "Jardins ouvriers",
+    cat: "Espaces verts",
+    icon: "ti-plant-2",
+    bgColor: "#0a1008",
+    desc: "Des parcelles cultivées par les ouvriers de Montrouge.",
+    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", persons: [], orders: [] } }
+  },
+  'logements-montrouge': {
+    name: "Logements",
+    shortName: "Logements",
+    cat: "Habitat",
+    icon: "ti-home",
+    bgColor: "#0a0a08",
+    desc: "Immeubles de logements de Montrouge.",
+    rooms: { salle: { name: "Hall d'immeuble", desc: "Boîtes aux lettres, escalier.", imageBg: "linear-gradient(135deg,#0a0a08,#100f0c)", persons: [], orders: [] } }
+  },
+  'cafe-tabac-cheminots-montrouge': {
+    name: "Café des Cheminots — Bar-Tabac",
+    shortName: "Café des Cheminots",
+    cat: "Commerce",
+    icon: "ti-cigarette",
+    bgColor: "#100c08",
+    desc: "Le café-tabac des cheminots de Montrouge. Un seul et même établissement.",
+    rooms: { salle: { name: "Salle", desc: "Comptoir, tabac, quelques tables.", imageBg: "linear-gradient(135deg,#100c08,#181008)", persons: [], orders: [] } }
   },
 
   // ---- PORTS ----

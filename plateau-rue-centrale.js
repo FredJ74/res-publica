@@ -1,6 +1,6 @@
 // Point d'entree par ville — sert a savoir si cette ville utilise la nouvelle navigation par scenes
 const RUE_CENTRALE_DEPART = {
-  republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal', caserne: 'caserne-exterieur', qhs: 'qhs-exterieur' }
+  republic: { capitale: 'luthecia-palais-presidentiel', ville_a: 'psm-centre-multimodal', ville_b: 'montrouge-vue-3', caserne: 'caserne-exterieur', qhs: 'qhs-exterieur' }
   // Autres villes/empires a ajouter au fur et a mesure des images produites
 };
 
@@ -506,6 +506,164 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [0, 100], yPct: [0, 100], nom: 'Quartier Haute Sécurité', type: 'batiment', buildingId: 'qhs-prison' }
       ],
       liens: {}
+    },
+
+    // ---- MONTROUGE — 13 vues fixes, connexions figees par Fred (voir prompt du 2026-08-16) ----
+    // IMPORTANT : les directions (gauche/droite/toutDroit/arriere) sont celles VALIDEES,
+    // pas une deduction geographique. Ne pas "corriger" en fonction de l'angle de camera.
+
+    'montrouge-vue-1': {
+      image: 'images/montrouge/montrouge-rue-hotel-armurerie-stade.png',
+      zones: [
+        { xPct: [0, 40],  nom: 'Hôtel de la Victoire', type: 'batiment', buildingId: 'hotel-mineur' },
+        { xPct: [40, 58], nom: 'Armurerie-Quincaillerie de Montrouge', type: 'batiment', buildingId: 'armurerie' }
+      ],
+      liens: { gauche: 'montrouge-vue-5', toutDroit: 'montrouge-vue-6' },
+      flechesStyle: { toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
+    },
+
+    'montrouge-vue-2': {
+      image: 'images/montrouge/montrouge-rue-commissariat-stade-raffinerie.png',
+      zones: [
+        { xPct: [0, 28],   nom: 'Commissariat de Montrouge', type: 'batiment', buildingId: 'commissariat-local' },
+        { xPct: [82, 100], nom: 'Raffinerie de Montrouge', type: 'batiment', buildingId: 'raffinerie-montrouge' }
+      ],
+      liens: { toutDroit: 'montrouge-vue-5', arriere: 'montrouge-vue-3' },
+      flechesStyle: {
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
+        arriere:   'bottom:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Vue 3 — Place de la Gare : point d'arrivee / reference principale de Montrouge.
+    'montrouge-vue-3': {
+      image: 'images/montrouge/montrouge-place-gare.png',
+      zones: [
+        { xPct: [0, 14],   nom: 'Café de la Gare', type: 'batiment', buildingId: 'cafe-gare-montrouge' },
+        { xPct: [27, 73],  nom: 'Gare de Montrouge', type: 'batiment', buildingId: 'centre-multinodal-montrouge' },
+        { xPct: [84, 100], nom: 'Brasserie des Voyageurs', type: 'batiment', buildingId: 'brasserie-voyageurs-montrouge' }
+      ],
+      liens: { gauche: 'montrouge-vue-2', droite: 'montrouge-vue-4', arriere: 'montrouge-vue-13' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
+    },
+
+    'montrouge-vue-4': {
+      image: 'images/montrouge/montrouge-rue-entrepot-hopital.png',
+      zones: [
+        { xPct: [0, 35],   nom: 'Entrepôt logistique de Montrouge', type: 'batiment', buildingId: 'entrepot-logistique-montrouge' },
+        { xPct: [68, 100], nom: 'Hôpital de Montrouge', type: 'batiment', buildingId: 'dispensaire-public-v' }
+      ],
+      liens: { toutDroit: 'montrouge-vue-12', arriere: 'montrouge-vue-3' },
+      flechesStyle: {
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
+        arriere:   'bottom:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    'montrouge-vue-5': {
+      image: 'images/montrouge/montrouge-stade-marcel-cazenave-aerien.png',
+      zones: [
+        { xPct: [0, 100], yPct: [0, 100], nom: 'Stade Marcel Cazenave', type: 'batiment', buildingId: 'stade' }
+      ],
+      liens: { gauche: 'montrouge-vue-1', arriere: 'montrouge-vue-2' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
+    },
+
+    'montrouge-vue-6': {
+      image: 'images/montrouge/montrouge-rue-centre-commercial-affaires.png',
+      zones: [
+        { xPct: [0, 30],   nom: 'Centre commercial de Montrouge', type: 'batiment', buildingId: 'centre-commercial' },
+        { xPct: [68, 100], nom: 'Centre d\'affaires de Montrouge', type: 'batiment', buildingId: 'centre-affaires' }
+      ],
+      liens: { gauche: 'montrouge-vue-1', toutDroit: 'montrouge-vue-7' },
+      flechesStyle: { toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
+    },
+
+    // Vue 7 — la place avec la locomotive au centre est "Place du Rail" elle-meme
+    // (pas un lieu separe a cliquer : c'est l'identite de cette vue).
+    'montrouge-vue-7': {
+      image: 'images/montrouge/montrouge-place-hotel-de-ville.png',
+      zones: [
+        { xPct: [0, 27], nom: 'Hôtel de Ville de Montrouge', type: 'batiment', buildingId: 'mairie' }
+      ],
+      liens: { arriere: 'montrouge-vue-6', toutDroit: 'montrouge-vue-8' },
+      flechesStyle: {
+        arriere:   'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    'montrouge-vue-8': {
+      image: 'images/montrouge/montrouge-rue-musee-banque-cheminote.png',
+      zones: [
+        { xPct: [0, 32],   nom: 'Musée de l\'Histoire de Montrouge — Autour du Rail', type: 'batiment', buildingId: 'musee-histoire-montrouge' },
+        { xPct: [65, 100], nom: 'Banque Cheminote de Montrouge', type: 'batiment', buildingId: 'banque-locale' }
+      ],
+      liens: { arriere: 'montrouge-vue-7', toutDroit: 'montrouge-vue-9' },
+      flechesStyle: {
+        arriere:   'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    'montrouge-vue-9': {
+      image: 'images/montrouge/montrouge-rue-loge-eglise.png',
+      zones: [
+        { xPct: [0, 22],   nom: 'Loge maçonnique de Montrouge', type: 'batiment', buildingId: 'loge-maconnique' },
+        { xPct: [55, 100], nom: 'Église', type: 'batiment', buildingId: 'eglise-montrouge' }
+      ],
+      liens: { arriere: 'montrouge-vue-8', toutDroit: 'montrouge-vue-10' },
+      flechesStyle: {
+        arriere:   'bottom:10px; left:50%; transform:translateX(-50%);',
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    'montrouge-vue-10': {
+      image: 'images/montrouge/montrouge-rue-cinema-journal-lci.png',
+      zones: [
+        { xPct: [0, 27],   nom: 'Cinéma de Montrouge', type: 'batiment', buildingId: 'cinema-montrouge' },
+        { xPct: [68, 100], nom: 'Le Cheminot Informé (LCI)', type: 'batiment', buildingId: 'la-tribune' }
+      ],
+      liens: { gauche: 'montrouge-vue-9', toutDroit: 'montrouge-vue-11' },
+      flechesStyle: { toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
+    },
+
+    'montrouge-vue-11': {
+      image: 'images/montrouge/montrouge-rue-centre-artisanal-terrains.png',
+      zones: [
+        { xPct: [0, 22],   nom: 'Centre artisanal de Montrouge', type: 'batiment', buildingId: 'centre-artisanal' },
+        { xPct: [78, 100], nom: 'Terrains à vendre', type: 'batiment', buildingId: 'terrain-a-batir-6' }
+      ],
+      liens: { arriere: 'montrouge-vue-10', gauche: 'montrouge-vue-12' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
+    },
+
+    // Vue 12 — fichier mal nomme (montrouge-rue-jardins-ouvriers-entrepot.png) : le contenu
+    // fonctionnel reel est Jardins ouvriers + Logements. Pas d'acces entrepot depuis cette vue
+    // (confirme par Fred), meme si l'image affiche une facade "Entrepot Logistique".
+    'montrouge-vue-12': {
+      image: 'images/montrouge/montrouge-rue-jardins-ouvriers-entrepot.png',
+      zones: [
+        { xPct: [0, 25],   nom: 'Jardins ouvriers', type: 'batiment', buildingId: 'jardins-ouvriers-montrouge' },
+        { xPct: [68, 100], nom: 'Logements', type: 'batiment', buildingId: 'logements-montrouge' }
+      ],
+      liens: { toutDroit: 'montrouge-vue-11', arriere: 'montrouge-vue-4' },
+      flechesStyle: {
+        toutDroit: 'top:10px; left:50%; transform:translateX(-50%);',
+        arriere:   'bottom:10px; left:50%; transform:translateX(-50%);'
+      }
+    },
+
+    // Vue 13 — Café des Cheminots et le Bar-Tabac sont un seul et meme etablissement (une zone).
+    'montrouge-vue-13': {
+      image: 'images/montrouge/montrouge-place-marche-tabac-cafe.png',
+      zones: [
+        { xPct: [0, 32],   nom: 'Marché de Montrouge', type: 'batiment', buildingId: 'marche' },
+        { xPct: [75, 100], nom: 'Café des Cheminots — Bar-Tabac', type: 'batiment', buildingId: 'cafe-tabac-cheminots-montrouge' }
+      ],
+      liens: { toutDroit: 'montrouge-vue-3' },
+      flechesStyle: { toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
     }
   }
 };
