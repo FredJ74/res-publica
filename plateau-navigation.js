@@ -1659,8 +1659,10 @@ async function doFalsifierManifeste(pa, cost) {
   const rPa = await deduireCoutOrdre({ pa, cost: 0 });
   if (!rPa.ok) { showToast('PA insuffisants', '', false); return; }
 
-  const dup = getStatEffective('DUP');
-  const taux = Math.max(5, 40 + Math.floor(dup/10) - getMalusISN());
+  // Falsifier un document est une competence technique (INT), pas un numero de charme (DUP) --
+  // reclasse par l'audit de refonte de la creation de personnage (bêta).
+  const int = getStatEffective('INT');
+  const taux = Math.max(5, 40 + Math.floor(int/10) - getMalusISN());
   const roll = Math.floor(Math.random() * 100) + 1;
 
   if (roll <= taux) {

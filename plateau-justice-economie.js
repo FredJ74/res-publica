@@ -2405,10 +2405,12 @@ function doCorrompreGardien() {
 function doFalsifierDocs() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 500;
-  const dup = getStatEffective('DUP');
+  // Falsifier un document est une competence technique (INT), pas un numero de charme (DUP) --
+  // reclasse par l'audit de refonte de la creation de personnage (bêta).
+  const int = getStatEffective('INT');
   if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   state.arg -= cost;
-  const taux = Math.min(75, 25 + Math.floor(dup * 3));
+  const taux = Math.min(75, 25 + Math.floor(int * 3));
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= taux) {
     addToInventory({ name: 'Document falsifié', icon: 'ti-file-x', type: 'document_falsifie', legal: false, desc: 'Document officiel falsifié.' });

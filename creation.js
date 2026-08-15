@@ -162,13 +162,13 @@ function selOrigin(id){
 
 /* ---- School ---- */
 function renderSchool(){
+  const cur=COUNTRIES[G.country]?.cur||'FR';
   document.getElementById('school-grid').innerHTML=SCHOOLS.map(s=>`
     <div class="oc ${G.school===s.id?'sel':''}" onclick="selSchool('${s.id}')">
       <div class="checkmark"><i class="ti ti-check"></i></div>
       <div class="oname"><i class="ti ${s.icon}" style="font-size:1rem;color:#8a6a20"></i> ${s.name}</div>
-      <div class="odesc">${s.desc}</div>
       <div class="obonus">
-        <strong>${s.compPts} pts</strong> de competences<br>
+        ${s.argBonus?`<strong>+${s.argBonus.toLocaleString('fr-FR')} ${cur}</strong><br>`:''}
         ${Object.entries(s.bonuses).map(([k,v])=>`<strong>+${v} ${k}</strong>`).join('  ')}
         ${Object.entries(s.malus||{}).map(([k,v])=>`<span style="color:#8a4020">${v} ${k}</span>`).join('  ')}
       </div>
@@ -219,15 +219,19 @@ function renderCareer(){
       <div class="oname"><i class="ti ${c.icon}" style="font-size:1rem;color:#8a6a20"></i> ${c.name}</div>
       <div class="obonus">+${c.argBonus.toLocaleString('fr-FR')} ${cur} &middot; <strong>+1 ${c.statKey}</strong></div>
       <div class="odesc" style="margin-top:.3rem">${c.comp}</div>
-      <div class="oblock">Contact : ${c.contact}</div>
-      <div class="owarn">Casserole : ${c.casserole}</div>
     </div>`;
   }).join('');
   const sc=SCHOOLS.find(x=>x.id===G.school);
   document.getElementById('career-info').textContent=
     sc?`Carrieres disponibles selon votre niveau d'etudes (${sc.name}).`:'';
 }
+// Revalidation cote logique (bêta, faille corrigee) : isBlocked() ne protegeait jusqu'ici que
+// l'affichage (onclick vide sur une carte bloquee) -- selCareer() elle-meme ne verifiait rien,
+// donc appelable directement depuis la console (ex. selCareer('business') sans le bon niveau
+// d'etudes) pour contourner le prerequis. Desormais revalidee ici, au meme titre que l'IHM.
 function selCareer(id){
+  const c=CAREERS.find(x=>x.id===id);
+  if(!c || isBlocked(c)) return;
   G.career=id;
   renderCareer();
   document.getElementById('n5').disabled=false;
@@ -346,9 +350,10 @@ function palier(a){
 
 function totalArg(){
   const or=ORIGINS.find(x=>x.id===G.origin);
+  const sc=SCHOOLS.find(x=>x.id===G.school);
   const ar=ARCHETYPES.find(x=>x.id===G.archetype);
   const ca=CAREERS.find(x=>x.id===G.career);
-  return (or?.arg||0)+(ar?.argBonus||0)+(ca?.argBonus||0);
+  return (or?.arg||0)+(sc?.argBonus||0)+(ar?.argBonus||0)+(ca?.argBonus||0);
 }
 function resources(){
   const ar=ARCHETYPES.find(x=>x.id===G.archetype);
@@ -413,13 +418,6 @@ function renderReview(){
     <div class="rsec" style="border:none">
       <div class="rsectitle">Biographie</div>
       <div class="rbio">${G.bio}</div>
-      ${ca?`
-        <div style="margin-top:.8rem;font-size:.75rem;color:#6a4020;font-style:italic">
-          <i class="ti ti-alert-triangle" style="font-size:.75rem"></i> Casserole : ${ca.casserole}
-        </div>
-        <div style="font-size:.75rem;color:#4a6030;margin-top:.2rem">
-          <i class="ti ti-user-check" style="font-size:.75rem"></i> Contact de depart : ${ca.contact}
-        </div>`:''}
     </div>`;
 }
 

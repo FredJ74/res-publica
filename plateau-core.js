@@ -499,8 +499,21 @@ function restaurerPositionApresChargement(char) {
   }, 300);
 }
 
+// Migration des anciens id de carrière (18 -> 10, bêta) -- voir MIGRATION_CAREER_IDS (data.js)
+// pour la table complète et le raisonnement de chaque mappage. Mutation en mémoire uniquement
+// (jamais d'écriture directe en base) : la prochaine sauvegarde normale du personnage (au
+// premier appel de sbSavePersonnage, qui se produit tres vite en jeu) persiste naturellement
+// l'id corrige, sans backfill explicite necessaire.
+function migrerCareerId(char) {
+  if (!char || !char.career) return;
+  if (typeof MIGRATION_CAREER_IDS === 'undefined') return;
+  const nouvelId = MIGRATION_CAREER_IDS[char.career];
+  if (nouvelId) char.career = nouvelId;
+}
+
 function applyCharToState(char) {
   if (!char) return;
+  migrerCareerId(char);
   state.char = char;
   state.country = char.country || 'republic';
   state.currentCity = char.currentCity || 'capitale';

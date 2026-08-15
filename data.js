@@ -33,60 +33,91 @@ const COUNTRIES = {
   }
 };
 
+// Rééquilibrage (bêta) : la richesse et la puissance statistique ne progressent plus
+// systématiquement dans le même sens sur un même choix -- chaque origine a désormais un net de
+// caractéristiques différent, corrélé négativement avec son capital (voir artefact "Refonte de
+// la création de personnage" pour le détail du raisonnement).
 const ORIGINS = [
-  {id:'poor',     icon:'ti-home-off',          name:'Milieu defavorise',  arg:200,  bonuses:{VOL:2,DUP:1}, malus:{CHA:-1}, trait:'Resilience brute'},
-  {id:'worker',   icon:'ti-tool',              name:'Classe ouvriere',    arg:500,  bonuses:{VOL:1,ENT:1}, malus:{},       trait:'Sens du collectif'},
-  {id:'bourgeois',icon:'ti-building',          name:'Petite bourgeoisie', arg:1200, bonuses:{INT:1,CHA:1}, malus:{},       trait:'Vernis social'},
-  {id:'elite',    icon:'ti-building-skyscraper',name:'Haute societe',     arg:3000, bonuses:{ENT:2,CHA:1}, malus:{VOL:-1}, trait:"Carnet d'adresses ancestral"}
+  {id:'poor',     icon:'ti-home-off',           name:'Milieu defavorise',  arg:300,  bonuses:{VOL:2,DUP:2}, malus:{CHA:-1}, trait:'Resilience brute, rien a perdre'},
+  {id:'worker',   icon:'ti-tool',               name:'Classe ouvriere',    arg:600,  bonuses:{VOL:1,PER:1}, malus:{DUP:-1}, trait:'Sens du collectif, mains calleuses, trop honnete pour bien mentir'},
+  {id:'bourgeois',icon:'ti-building',           name:'Petite bourgeoisie', arg:1000, bonuses:{INT:1,CHA:1}, malus:{ENT:-1}, trait:"Vernis social, ambitions mesurees, pas encore le bon carnet d'adresses"},
+  {id:'elite',    icon:'ti-building-skyscraper',name:'Haute societe',      arg:2200, bonuses:{ENT:2},       malus:{VOL:-2}, trait:"Carnet d'adresses ancestral, mais n'a jamais connu la difficulte reelle"}
 ];
 
+// compPts retire (bêta) : jamais stocke ni relu, aucune mecanique reelle (voir audit). blocks
+// mis a jour vers les 10 id de carriere actuels (voir CAREERS/MIGRATION_CAREER_IDS). "higher"
+// bloque desormais aussi les professions intellectuelles (medecin/universitaire), reservees a
+// "Hautes ecoles" -- la seule ecole a recevoir un bonus d'argent explicite (+400, prestige/
+// reseau plutot que superiorite statistique pure : le net de caracteristiques reste +2 pour
+// les 4 ecoles).
 const SCHOOLS = [
-  {id:'none',   icon:'ti-x',      name:"Pas d'ecole",        compPts:20, bonuses:{DUP:2,VOL:1}, malus:{INT:-1}, blocks:['civil','lawyer','magistrat','lobbyist','academic','doctor'], blockLabel:"Bloque : fonctionnaire, avocat, magistrat, lobbyiste, universitaire, medecin"},
-  {id:'basic',  icon:'ti-book',   name:'Ecole basique',      compPts:35, bonuses:{PER:1,ENT:1}, malus:{},       blocks:['civil','magistrat','lobbyist'],                              blockLabel:'Bloque : haut fonctionnaire, magistrat, lobbyiste'},
-  {id:'higher', icon:'ti-school', name:'Etudes superieures', compPts:50, bonuses:{INT:2,CHA:1}, malus:{},       blocks:[],                                                           blockLabel:'Toutes carrieres accessibles'},
-  {id:'elite',  icon:'ti-award',  name:'Hautes ecoles',      compPts:65, bonuses:{INT:3,CHA:1,ENT:1}, malus:{VOL:-1}, blocks:[],                                                   blockLabel:'Toutes carrieres + acces reseau elite'}
+  {id:'none',   icon:'ti-x',      name:"Pas d'ecole",        bonuses:{DUP:2,VOL:1}, malus:{INT:-1}, argBonus:0,   blocks:['magistrat','business','doctor'], blockLabel:'Bloque : justice, affaires, professions intellectuelles'},
+  {id:'basic',  icon:'ti-book',   name:'Ecole basique',      bonuses:{PER:1,ENT:1}, malus:{},       argBonus:0,   blocks:['magistrat','business'],           blockLabel:'Bloque : justice, affaires'},
+  {id:'higher', icon:'ti-school', name:'Etudes superieures', bonuses:{INT:1,CHA:1}, malus:{},       argBonus:0,   blocks:['doctor'],                         blockLabel:'Bloque : professions intellectuelles (reservees aux hautes ecoles)'},
+  {id:'elite',  icon:'ti-award',  name:'Hautes ecoles',      bonuses:{INT:2,ENT:1}, malus:{VOL:-1}, argBonus:400, blocks:[],                                 blockLabel:'Toutes carrieres accessibles + bonus de reseau'}
 ];
 
+// Seul le capital de depart est retouche (bêta) -- bonus/malus/desc inchanges, deja bien
+// concus (voir artefact). Casse la correlation actuelle entre "meilleures stats sous le
+// nouveau bareme" et "plus riche" (Capitaliste et Criminel, les deux natures DUP, etaient
+// aussi les deux plus riches).
 const ARCHETYPES = [
-  {id:'politician',    icon:'ti-speakerphone',   name:'Ambitieux',               bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, argBonus:300,  infBonus:15, popBonus:20,  disBonus:-10, desc:"Seduction et persuasion. Le pouvoir est votre oxygene."},
-  {id:'authoritarian', icon:'ti-sword',          name:'Ordre et discipline',     bonuses:{VOL:2,PER:2}, malus:{ENT:-2}, argBonus:500,  infBonus:20, popBonus:5,   disBonus:5,   desc:"La hierarchie et la force. L'ordre est la seule vraie valeur."},
-  {id:'oligarch',      icon:'ti-briefcase',      name:'Capitaliste',             bonuses:{INT:2,DUP:2}, malus:{CHA:-2}, argBonus:2000, infBonus:10, popBonus:-5,  disBonus:5,   desc:"L'argent est la mesure de toutes choses."},
-  {id:'informer',      icon:'ti-news',           name:"Diffuseur d'informations",bonuses:{PER:2,INT:2}, malus:{VOL:-2}, argBonus:200,  infBonus:5,  popBonus:15,  disBonus:-5,  desc:"L'information est votre arme et votre raison d'etre."},
-  {id:'legalist',      icon:'ti-scale',          name:'Legaliste',               bonuses:{INT:2,VOL:2}, malus:{CHA:-2}, argBonus:600,  infBonus:15, popBonus:5,   disBonus:10,  desc:"Les regles, les textes, les procedures. Vous savez comment les plier."},
-  {id:'believer',      icon:'ti-building-church',name:'Homme de foi',            bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, argBonus:100,  infBonus:10, popBonus:25,  disBonus:0,   desc:"Une conviction profonde vous anime. Elle mobilise les foules."},
-  {id:'shadow',        icon:'ti-user-question',  name:"Homme de l'ombre",        bonuses:{DUP:2,PER:2}, malus:{CHA:-2}, argBonus:400,  infBonus:5,  popBonus:-10, disBonus:20,  desc:"Infiltration, manipulation, double jeu. Vous n'existez pas officiellement."},
-  {id:'anticapitalist',icon:'ti-users-group',    name:'Anti-capitaliste',        bonuses:{CHA:2,VOL:2}, malus:{INT:-2}, argBonus:200,  infBonus:10, popBonus:20,  disBonus:-5,  desc:"Vous combattez le systeme. La justice sociale est votre etendard."},
-  {id:'criminal',      icon:'ti-eye-off',        name:'Criminel',                bonuses:{DUP:2,VOL:2}, malus:{ENT:-2}, argBonus:1500, infBonus:5,  popBonus:-15, disBonus:15,  desc:"En dehors des lois. Vos propres regles, bien plus efficaces."}
+  {id:'politician',    icon:'ti-speakerphone',   name:'Ambitieux',               bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, argBonus:400,  infBonus:15, popBonus:20,  disBonus:-10, desc:"Seduction et persuasion. Le pouvoir est votre oxygene."},
+  {id:'authoritarian', icon:'ti-sword',          name:'Ordre et discipline',     bonuses:{VOL:2,PER:2}, malus:{ENT:-2}, argBonus:600,  infBonus:20, popBonus:5,   disBonus:5,   desc:"La hierarchie et la force. L'ordre est la seule vraie valeur."},
+  {id:'oligarch',      icon:'ti-briefcase',      name:'Capitaliste',             bonuses:{INT:2,DUP:2}, malus:{CHA:-2}, argBonus:900,  infBonus:10, popBonus:-5,  disBonus:5,   desc:"L'argent est la mesure de toutes choses."},
+  {id:'informer',      icon:'ti-news',           name:"Diffuseur d'informations",bonuses:{PER:2,INT:2}, malus:{VOL:-2}, argBonus:350,  infBonus:5,  popBonus:15,  disBonus:-5,  desc:"L'information est votre arme et votre raison d'etre."},
+  {id:'legalist',      icon:'ti-scale',          name:'Legaliste',               bonuses:{INT:2,VOL:2}, malus:{CHA:-2}, argBonus:700,  infBonus:15, popBonus:5,   disBonus:10,  desc:"Les regles, les textes, les procedures. Vous savez comment les plier."},
+  {id:'believer',      icon:'ti-building-church',name:'Homme de foi',            bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, argBonus:300,  infBonus:10, popBonus:25,  disBonus:0,   desc:"Une conviction profonde vous anime. Elle mobilise les foules."},
+  {id:'shadow',        icon:'ti-user-question',  name:"Homme de l'ombre",        bonuses:{DUP:2,PER:2}, malus:{CHA:-2}, argBonus:500,  infBonus:5,  popBonus:-10, disBonus:20,  desc:"Infiltration, manipulation, double jeu. Vous n'existez pas officiellement."},
+  {id:'anticapitalist',icon:'ti-users-group',    name:'Anti-capitaliste',        bonuses:{CHA:2,VOL:2}, malus:{INT:-2}, argBonus:350,  infBonus:10, popBonus:20,  disBonus:-5,  desc:"Vous combattez le systeme. La justice sociale est votre etendard."},
+  {id:'criminal',      icon:'ti-eye-off',        name:'Criminel',                bonuses:{DUP:2,VOL:2}, malus:{ENT:-2}, argBonus:1200, infBonus:5,  popBonus:-15, disBonus:15,  desc:"En dehors des lois. Vos propres regles, bien plus efficaces."}
 ];
 
+// Consolidation 18->10 (bêta, arbitrage joueur) : chaque carrière fusionnée garde l'id interne
+// de l'UNE de ses composantes (celle déjà référencée ailleurs dans le code par comparaison
+// directe sur char.career -- voir MIGRATION_CAREER_IDS ci-dessous pour la table complète des
+// anciens id vers les 10 actuels, utilisée par migrerCareerId() au chargement d'un personnage
+// existant). contact/casserole retirés (purement décoratifs, jamais lus ailleurs que par
+// l'écran de création lui-même -- voir audit). Argent/prérequis rééquilibrés selon les mêmes
+// principes que les autres tables (origines/écoles/natures) : la carrière la mieux payée
+// (Affaires) exige désormais un vrai prérequis scolaire, ce qui n'était pas le cas avant.
 const CAREERS = [
-  {id:'civil',       name:'Haut fonctionnaire',        icon:'ti-id-badge',        argBonus:800,  statKey:'INT', comp:'Droit, Negociation',        contact:'Un ministre en poste',         casserole:'Dossier fiscal sensible',            blocks:['none','basic']},
-  {id:'local_civil', name:'Fonctionnaire local',        icon:'ti-building-estate', argBonus:350,  statKey:'ENT', comp:'Administration, Entregent',  contact:'Un elu local complaisant',      casserole:'Favoritisme avere',                  blocks:[]},
-  {id:'officer',     name:'Officier sup. / Mercenaire', icon:'ti-military-rank',   argBonus:700,  statKey:'VOL', comp:'Commandement, Intimidation', contact:'Un general loyal',              casserole:'Bavure classifiee',                  blocks:[]},
-  {id:'business',    name:"Homme d'affaires",           icon:'ti-chart-line',      argBonus:2000, statKey:'INT', comp:'Lobbying, Blanchiment',      contact:'Un banquier discret',           casserole:'Paradis fiscal exposable',           blocks:[]},
-  {id:'magistrat',   name:'Magistrat',                  icon:'ti-gavel',           argBonus:750,  statKey:'INT', comp:'Droit, Procedure judiciaire',contact:'Un procureur influent',         casserole:'Jugement partial avere',             blocks:['none','basic']},
-  {id:'lawyer',      name:'Avocat',                     icon:'ti-scale',           argBonus:900,  statKey:'INT', comp:'Droit, Negociation',         contact:'Reseau judiciaire',             casserole:'Client douteux defend',              blocks:['none','basic']},
-  {id:'press',       name:'Grand journaliste',          icon:'ti-pencil',          argBonus:400,  statKey:'PER', comp:'Kompromat, Propagande',      contact:'Un redacteur en chef',          casserole:'Ennemi puissant cree',               blocks:['none']},
-  {id:'influencer',  name:'Influenceur',                icon:'ti-device-mobile',   argBonus:300,  statKey:'CHA', comp:'Reseaux sociaux, Image',     contact:'Communaute de followers',       casserole:'Scandale en ligne archive',          blocks:[]},
-  {id:'clergy',      name:'Chef de culte',              icon:'ti-star',            argBonus:100,  statKey:'CHA', comp:'Rhetorique, Mobilisation',   contact:'Communaute de fideles',         casserole:'Scandale moral',                     blocks:[]},
-  {id:'lobbyist',    name:'Lobbyiste',                  icon:'ti-arrows-exchange', argBonus:1100, statKey:'ENT', comp:'Lobbying, Negociation',      contact:'Un directeur de cabinet',       casserole:"Conflit d'interets documente",       blocks:['none','basic']},
-  {id:'doctor',      name:'Medecin',                    icon:'ti-stethoscope',     argBonus:700,  statKey:'INT', comp:'Reseau civil, Discretion',   contact:'Patients influents',            casserole:'Prescription douteuse',              blocks:['none','basic']},
-  {id:'academic',    name:'Universitaire',              icon:'ti-book-2',          argBonus:300,  statKey:'INT', comp:'Rhetorique, Propagande',     contact:'Etudiants militants',           casserole:'These controversee',                 blocks:['none','basic']},
-  {id:'union',       name:'Syndicaliste',               icon:'ti-affiliate',       argBonus:200,  statKey:'VOL', comp:'Mobilisation, Negociation',  contact:'Milliers de membres syndiques', casserole:'Greve sauvage passee',               blocks:['none']},
-  {id:'intel',       name:'Agent des services',         icon:'ti-spy',             argBonus:500,  statKey:'PER', comp:'Surveillance, Infiltration', contact:'Ancien superieur classe',       casserole:'Operation classifiee compromettante', blocks:[]},
-  {id:'criminal_c',  name:'Criminel organise',          icon:'ti-lock-open',       argBonus:1200, statKey:'DUP', comp:'Milices, Blanchiment',       contact:'Reseau criminel actif',         casserole:"Mandat d'arret latent",              blocks:[]}, // Accessible a tous
-  {id:'worker',      name:'Ouvrier',                    icon:'ti-hammer',          argBonus:250,  statKey:'VOL', comp:'Force, Solidarite',          contact:"Camarades d'atelier",           casserole:'Accident du travail cache',          blocks:[]},
-  {id:'unemployed',  name:'Sans emploi',                icon:'ti-mood-sad',        argBonus:50,   statKey:'DUP', comp:'Survie, Systeme D',          contact:'Reseau de la rue',              casserole:'Casier judiciaire mineur',           blocks:[]},
-  {id:'escort',      name:'Prostitue(e)',                icon:'ti-heart',           argBonus:400,  statKey:'CHA', comp:'Seduction, Kompromat',       contact:'Clients haut places',           casserole:'Temoignage compromettant possible',  blocks:[]}
+  {id:'officer',   name:'Armée — Officier supérieur / Mercenaire',        icon:'ti-military-rank',   argBonus:700,  statKey:'VOL', comp:'Commandement, Intimidation',            blocks:[]},
+  {id:'business',  name:'Affaires — Homme d\'affaires / Lobbyiste',        icon:'ti-chart-line',      argBonus:1200, statKey:'INT', comp:'Lobbying, Blanchiment, Negociation',    blocks:['none','basic']},
+  {id:'magistrat', name:'Justice — Magistrat / Avocat',                    icon:'ti-gavel',           argBonus:800,  statKey:'INT', comp:'Droit, Procedure judiciaire, Negociation', blocks:['none','basic']},
+  {id:'press',     name:'Médias & Communication — Grand journaliste / Influenceur', icon:'ti-pencil', argBonus:450,  statKey:'PER', comp:'Kompromat, Propagande, Reseaux sociaux',blocks:[]},
+  {id:'clergy',    name:'Religion — Chef de culte',                        icon:'ti-star',            argBonus:150,  statKey:'CHA', comp:'Rhetorique, Mobilisation',              blocks:[]},
+  {id:'doctor',    name:'Professions intellectuelles — Médecin / Universitaire', icon:'ti-stethoscope', argBonus:550, statKey:'INT', comp:'Reseau civil, Discretion, Rhetorique', blocks:['none','basic','higher']},
+  {id:'worker',    name:'Monde ouvrier — Ouvrier / Syndicaliste',          icon:'ti-hammer',          argBonus:300,  statKey:'VOL', comp:'Force, Solidarite, Mobilisation',       blocks:[]},
+  {id:'intel',     name:'Renseignement — Agent des services',              icon:'ti-spy',             argBonus:500,  statKey:'PER', comp:'Surveillance, Infiltration',            blocks:[]},
+  {id:'criminal_c',name:'Crime organisé — Criminel organisé',              icon:'ti-lock-open',       argBonus:900,  statKey:'DUP', comp:'Milices, Blanchiment',                  blocks:[]}, // Accessible a tous
+  {id:'escort',    name:'Prostitution — Prostitué(e)',                     icon:'ti-heart',           argBonus:450,  statKey:'CHA', comp:'Seduction, Kompromat',                  blocks:[]}
 ];
 
+// Migration des anciens id de carrière (18 -> 10, bêta) pour les personnages déjà créés/
+// sauvegardés. Appliquée au chargement (voir migrerCareerId(), plateau-core.js) -- ne modifie
+// jamais les données en base directement, seulement la valeur lue en mémoire, pour rester
+// cohérent avec le principe "ne casse rien silencieusement" sans réécrire l'historique.
+// - Fusions vers l'id conservé : lawyer/civil/local_civil->magistrat (civil/local_civil
+//   n'avaient pas de remplaçant direct ; magistrat est le plus proche, service de l'Etat/INT),
+//   influencer->press, academic->doctor, lobbyist->business, union->worker.
+// - unemployed n'a pas de remplaçant thématique évident (aucune des 10 carrières restantes ne
+//   représente "sans emploi") ; mappé vers worker, la carrière la plus modeste restante.
+const MIGRATION_CAREER_IDS = {
+  civil: 'magistrat', local_civil: 'magistrat', lawyer: 'magistrat',
+  influencer: 'press', academic: 'doctor', lobbyist: 'business',
+  union: 'worker', unemployed: 'worker'
+};
+
+// Descriptions courtes (bêta) reprises telles quelles de l'artefact "Refonte de la création de
+// personnage" -- pensées pour l'écran de création (creation.js), pas retouchées ailleurs.
 const STAT_DEFS = [
-  {k:'INT', n:'Intelligence', d:'Analyse, strategie, manipulation intellectuelle', i:'ti-brain'},
-  {k:'CHA', n:'Charisme',     d:'Seduction, eloquence, leadership naturel',        i:'ti-speakerphone'},
-  {k:'VOL', n:'Volonte',      d:'Resistance a la pression, tenacite',              i:'ti-flame'},
-  {k:'PER', n:'Perception',   d:'Lire les situations, detecter les trahisons',     i:'ti-eye'},
-  {k:'DUP', n:'Duplicite',    d:'Mentir, dissimuler, jouer un role',               i:'ti-masks-theater'},
-  {k:'ENT', n:'Entregent',    d:'Creer et maintenir des liens sociaux',            i:'ti-network'}
+  {k:'INT', n:'Intelligence', d:"Comprendre, analyser, anticiper : utile pour l'enquete, la finance, et dejouer les pieges les plus subtils.", i:'ti-brain'},
+  {k:'CHA', n:'Charisme',     d:'Convaincre, seduire, apaiser : la cle de toute negociation, plaidoirie ou discours.',                          i:'ti-speakerphone'},
+  {k:'VOL', n:'Volonte',      d:"Tenir bon : resister a la pression, a l'arrestation, a la torture -- et se battre quand il n'y a plus le choix.", i:'ti-flame'},
+  {k:'PER', n:'Perception',   d:'Reperer ce qui vous echappe : detecter un mensonge, filer une cible, ne jamais etre surpris.',                  i:'ti-eye'},
+  {k:'DUP', n:'Duplicite',    d:'Mentir, dissimuler, corrompre : la specialite de tous ceux qui vivent dans l\'illegalite.',                     i:'ti-masks-theater'},
+  {k:'ENT', n:'Entregent',    d:'Construire et entretenir un reseau : peu spectaculaire dans l\'instant, decisif sur la duree.',                 i:'ti-network'}
 ];
 
 // =====================
@@ -5800,7 +5831,7 @@ const PJ_SIMULES = [
   {
     name: 'Alexandre Moreau',
     archetype: 'politician',
-    career: 'civil',
+    career: 'magistrat', // migration 18->10 (bêta) : ancien id 'civil' (Haut fonctionnaire), retiré
     poste: { id: 'depute_1', name: 'Depute' },
     stats: { INT:12, CHA:13, VOL:10, PER:11, DUP:9, ENT:12 },
     resources: { inf:45, pop:38, dis:70, hp:90, moral:75 },
