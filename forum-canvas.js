@@ -129,6 +129,18 @@ function rpCanvasCreateController(container) {
     el.style.zIndex = newZ;
   }
 
+  // Resynchronise le compteur interne de z sans toucher au DOM (Lot E3) -- nécessaire quand
+  // un z est restauré directement depuis une valeur sauvegardée (désérialisation d'un post
+  // composé existant) plutôt qu'attribué par bringToFront/selectElement : sans ça, zCounter
+  // resterait bloqué à sa valeur de départ (10) et un simple clic dans un élément restauré
+  // (qui appelle selectElement, lequel fait `zCounter+=1; el.style.zIndex=zCounter`, sans
+  // relire le DOM contrairement à bringToFront) pourrait lui attribuer un z inférieur à
+  // celui d'autres éléments restaurés, inversant silencieusement l'ordre de superposition
+  // voulu. N'affecte que ce compteur privé, aucun effet visuel immédiat.
+  function syncZCounter(z) {
+    if (typeof z === 'number' && z > zCounter) zCounter = z;
+  }
+
   // Mini barre avant-plan/arrière-plan, visible seulement si l'objet est sélectionné (même
   // discrétion que les poignées de redimensionnement). mousedown (pas click) et
   // stopPropagation, comme les poignées de redimensionnement : sinon le mousedown remonterait
@@ -291,7 +303,7 @@ function rpCanvasCreateController(container) {
   return {
     selectElement, deselectAll,
     attachDrag, attachEdgeResize, attachBottomResize, attachCornerResize,
-    bringToFront, sendToBack, attachZControls,
+    bringToFront, sendToBack, attachZControls, syncZCounter,
   };
 }
 
@@ -300,18 +312,27 @@ function rpCanvasCreateController(container) {
 // bouton "Nouveau sujet" existant (jamais retiré ni modifié).
 // ===========================================================================
 function renderComposeCanvasForm() {
+  // Mode édition (Lot E3) : editingTopicId/editingPostId posés par editPost() (forum.js)
+  // avant d'entrer dans cet écran. Pas de champ Titre (le titre du sujet n'est jamais
+  // modifiable depuis un post, même règle que renderEditPostForm côté éditeur classique) ;
+  // "Retour" annule vers le sujet plutôt que la liste ; le bouton principal indique
+  // "Enregistrer les modifications" au lieu de "Publier le sujet" -- même bouton, même appel
+  // à submitComposeCanvas(), aucune logique dupliquée.
+  const enEdition = typeof editingTopicId !== 'undefined' && typeof editingPostId !== 'undefined'
+    && editingTopicId != null && editingPostId != null;
   return `
     <div class="forum-header-bar">
-      <button class="forum-back-btn" onclick="backToList()">
-        <i class="ti ti-arrow-left"></i> Retour
+      <button class="forum-back-btn" onclick="${enEdition ? 'backToTopic()' : 'backToList()'}">
+        <i class="ti ti-arrow-left"></i> ${enEdition ? 'Annuler' : 'Retour'}
       </button>
-      <div class="forum-title-main">Nouveau sujet — Composition libre (bêta)</div>
+      <div class="forum-title-main">${enEdition ? 'Modifier le message (composition libre)' : 'Nouveau sujet — Composition libre (bêta)'}</div>
     </div>
     <div style="padding:1rem">
+      ${enEdition ? '' : `
       <div class="forum-field">
         <label class="forum-field-label">Titre du sujet</label>
         <input class="forum-field-input" id="compose-canvas-title" type="text" placeholder="Intitulé du sujet..."/>
-      </div>
+      </div>`}
       <div class="rp-compose-toolbar" id="rp-compose-toolbar">
         <div id="rp-compose-add-buttons" class="rp-compose-btn-group">
           <button class="forum-new-btn" onclick="rpCanvasAddTextZoneToCompose()">
@@ -326,7 +347,7 @@ function renderComposeCanvasForm() {
             <i class="ti ti-eye"></i> Prévisualiser
           </button>
           <button class="forum-submit-btn" onclick="submitComposeCanvas()">
-            <i class="ti ti-send"></i> Publier le sujet
+            <i class="ti ti-send"></i> ${enEdition ? 'Enregistrer les modifications' : 'Publier le sujet'}
           </button>
         </div>
       </div>
@@ -359,6 +380,20 @@ function rpCanvasInitComposeScreen() {
   // bascule en conséquence (Lot E1.5), sinon une entrée répétée dans l'écran de composition
   // laisserait le bouton afficher "Revenir à l'édition" à tort.
   rpComposeEnPreview = false;
+
+  // Édition d'un post composé existant (Lot E3) : editingTopicId/editingPostId sont posés
+  // par editPost() (forum.js) avant d'entrer dans cet écran -- et explicitement remis à null
+  // par showComposeCanvasForm() pour une NOUVELLE composition, afin qu'une session d'édition
+  // précédente ne "fuite" jamais dans un nouveau sujet. editingTopicId/editingPostId sont des
+  // variables de forum.js, visibles ici car les deux fichiers sont des scripts classiques
+  // partageant le même contexte global (même principe déjà en place pour EMOJI_CATS, lot D7).
+  if (editingTopicId != null && editingPostId != null) {
+    const topic = (typeof FORUM_TOPICS !== 'undefined' ? (FORUM_TOPICS[currentForumId] || []) : []).find(t => t.id === editingTopicId);
+    const post = topic ? (topic.posts.find(p => (p.id || '') === editingPostId) || topic.posts[parseInt(editingPostId)]) : null;
+    if (post && post.content_layout) {
+      rpCanvasDeserializeIntoCompose(post.content_layout, container);
+    }
+  }
 }
 
 // Largeur minimale des zones de texte : 140px, PAS le repli générique du moteur (40px,
@@ -962,6 +997,75 @@ function rpCanvasBuildFallbackContent(layout) {
     }
     return '';
   }).join('');
+}
+
+// ===========================================================================
+// Désérialisation (Lot E3) — sens inverse de rpCanvasSerializeCompose() : content_layout
+// existant -> canvas vivant (éléments DOM + une instance Tiptap par zone), pour la réouverture
+// d'un post composé déjà publié. Réutilise directement rpCanvasCreateTextZone/
+// rpCanvasCreateImage (Lots C2/C4, inchangées) pour la création elle-même -- ce sont déjà les
+// seules fonctions qui savent construire un élément vivant correctement câblé (moteur
+// générique, registre, Tiptap) ; cette fonction ne fait que les appeler avec les valeurs
+// sauvegardées puis restaurer ce qu'elles ne peuvent pas déjà connaître à la création
+// (min-height et z proviennent du layout sauvegardé, pas d'une valeur par défaut).
+//
+// html_fallback (déjà passé par sanitizeRichHtml à la sauvegarde, liste blanche étendue au
+// lot E1 pour couvrir exactement ce que les extensions Tiptap actives produisent) est fourni
+// tel quel comme contenu initial de l'éditeur -- son propre parseHTML() (StarterKit, Color/
+// TextStyle, Link, Details/Summary/Content, etc., les mêmes extensions qui ont servi à le
+// générer) le reconvertit fidèlement en document Tiptap, sans étape de conversion
+// supplémentaire à écrire ici.
+//
+// z restauré à la valeur exacte sauvegardée puis synchronisé avec syncZCounter() (ajout
+// minimal à rpCanvasCreateController, lot E3) : sans cette resynchronisation, une simple
+// sélection (clic dans une zone restaurée) pourrait plus tard lui attribuer un z inférieur à
+// celui d'un autre élément restauré et inverser silencieusement l'ordre de superposition
+// voulu -- bringToFront()/sendToBack() n'ont pas ce problème (ils relisent déjà le DOM à
+// chaque appel), seule la sélection implicite (selectElement) incrémente son propre compteur
+// interne sans le faire.
+function rpCanvasDeserializeIntoCompose(layout, container) {
+  if (!layout || !Array.isArray(layout.elements) || !rpComposeController) return;
+
+  layout.elements.forEach((el) => {
+    if (!el) return;
+    const lo = el.layout || {};
+    const x = lo.x || 0, y = lo.y || 0, width = lo.width || (el.type === 'image' ? 100 : RP_ZONE_MIN_WIDTH);
+    const z = lo.z || 1;
+
+    if (el.type === 'text_zone') {
+      const domEl = rpCanvasCreateTextZone(rpComposeController, container, x, y, width, el.html_fallback || '<p></p>');
+      if (!domEl) return;
+      const entry = rpComposeElements[rpComposeElements.length - 1];
+      if (!entry || entry.el !== domEl) return;
+      const minHeight = lo.minHeight || 0;
+      entry.state.minHeight = minHeight;
+      domEl.style.minHeight = minHeight + 'px';
+      entry.state.z = z;
+      domEl.style.zIndex = z;
+      rpComposeController.syncZCounter(z);
+      return;
+    }
+
+    if (el.type === 'image') {
+      const src = /^https?:\/\//i.test(el.src || '') ? el.src : '';
+      if (!src) return;
+      const domEl = rpCanvasCreateImage(rpComposeController, container, x, y, width, src);
+      if (!domEl) return;
+      const entry = rpComposeElements[rpComposeElements.length - 1];
+      if (!entry || entry.el !== domEl) return;
+      entry.state.z = z;
+      domEl.style.zIndex = z;
+      rpComposeController.syncZCounter(z);
+      // alt restauré tel quel (déjà présent dans le schéma depuis E1, aucune saisie possible
+      // dans l'interface aujourd'hui -- dette déjà consignée, voir rapport E1) : ne rien
+      // perdre de ce qui existe, sans ajouter de champ de saisie ici (hors périmètre E3).
+      if (el.alt) {
+        const img = domEl.querySelector('img');
+        if (img) img.alt = el.alt;
+      }
+      return;
+    }
+  });
 }
 
 // ===========================================================================

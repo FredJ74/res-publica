@@ -213,11 +213,18 @@ async function sbCreatePost(topicId, author, content, time, authorIsOrg, authorS
   return id;
 }
 
-async function sbEditPost(postId, content, blocks) {
+// contentLayout (Lot E3) : paramètre optionnel, dernier de la liste pour ne rien casser des
+// appelants existants (submitEditPost, éditeur classique, qui ne le passe jamais -- écrit
+// alors content_layout: null, comme le ferait explicitement une édition qui repasserait un
+// post composé en texte simple -- cas non prévu par ce lot, mais un post classique n'a de
+// toute façon jamais eu de content_layout à préserver). sbUpdate() propage déjà correctement
+// un échec (renvoie null), aucun correctif de valeur de retour nécessaire ici contrairement
+// à sbCreatePost au lot E2.
+async function sbEditPost(postId, content, blocks, contentLayout) {
   // content_blocks doit etre synchronise avec content -- sinon renderTopicView (qui
   // privilegie p.blocks des qu'il est non vide) continuerait d'afficher l'ancien texte
   // malgre une sauvegarde de content reussie.
-  return sbUpdate('forum_posts', `id=eq.${encodeURIComponent(postId)}`, { content, content_blocks: blocks || [], edited: true });
+  return sbUpdate('forum_posts', `id=eq.${encodeURIComponent(postId)}`, { content, content_blocks: blocks || [], content_layout: contentLayout || null, edited: true });
 }
 
 async function sbIncrementViews(topicId) {

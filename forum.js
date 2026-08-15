@@ -1003,6 +1003,18 @@ function renderEditPostForm() {
 function editPost(topicId, postId) {
   editingTopicId = topicId;
   editingPostId = postId;
+  // Lot E3 : un post composé (content_layout non nul) se rouvre dans l'écran de composition
+  // libre, pas dans l'éditeur classique -- seul cet écran sait reconstruire son canvas
+  // vivant. rpCanvasInitComposeScreen() (forum-canvas.js) lit editingTopicId/editingPostId
+  // posés ci-dessus pour décider s'il doit désérialiser un content_layout existant.
+  const topic = (FORUM_TOPICS[currentForumId] || []).find(t => t.id === topicId);
+  const post = topic ? (topic.posts.find(p => (p.id || '') === postId) || topic.posts[parseInt(postId)]) : null;
+  if (post && post.content_layout) {
+    forumView = 'compose-canvas';
+    document.getElementById('forum-main').innerHTML = renderForumContent();
+    if (typeof rpCanvasInitComposeScreen === 'function') rpCanvasInitComposeScreen();
+    return;
+  }
   forumView = 'edit-post';
   document.getElementById('forum-main').innerHTML = renderForumContent();
 }
@@ -1070,6 +1082,12 @@ function showComposeCanvasForm() {
     showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', false);
     return;
   }
+  // Lot E3 : editingTopicId/editingPostId peuvent porter l'état d'une édition de post
+  // composé précédente (editPost) -- une NOUVELLE composition doit toujours repartir d'un
+  // canvas vide, jamais hériter silencieusement d'une session d'édition abandonnée sans
+  // sauvegarde.
+  editingTopicId = null;
+  editingPostId = null;
   forumView = 'compose-canvas'; document.getElementById('forum-main').innerHTML = renderForumContent();
   if (typeof rpCanvasInitComposeScreen === 'function') rpCanvasInitComposeScreen();
 }
@@ -1387,6 +1405,42 @@ async function submitReply() {
 // La défaillance symétrique (sbCreateTopic lui-même échoue silencieusement en interne mais
 // renvoie tout de même un id) est un défaut préexistant, partagé avec submitNewTopic, hors
 // périmètre de ce lot -- consigné, pas corrigé ici.
+// Édition d'un post composé existant (Lot E3) — branche dédiée de submitComposeCanvas(),
+// déclenchée quand editingTopicId/editingPostId sont posés (editPost, sur un post dont
+// content_layout est non nul). Volontairement séparée du chemin de création juste en
+// dessous plutôt que fusionnée dans un long if/else : les deux ne partagent ni le titre, ni
+// sbCreateTopic/sbCreateTopic-rollback, ni la mise à jour locale -- seules la sérialisation
+// (rpCanvasSerializeCompose) et la construction du fallback (rpCanvasBuildFallbackContent)
+// sont réellement communes, et le restent (mêmes appels, aucune logique dupliquée). Si la
+// sauvegarde échoue, on ne touche à rien localement (même principe que submitEditPost pour
+// l'éditeur classique) plutôt que de laisser croire à une modification enregistrée.
+async function submitEditComposedPost(layout, content) {
+  const topic = (FORUM_TOPICS[currentForumId] || []).find(t => t.id === editingTopicId);
+  const post = topic ? (topic.posts.find(p => (p.id || '') === editingPostId) || topic.posts[parseInt(editingPostId)]) : null;
+  if (!topic || !post) { showToast('Message introuvable', "Impossible de retrouver le message à modifier.", false); return; }
+
+  if (typeof sbEditPost !== 'function') {
+    showToast('Connexion indisponible', 'Impossible d\'enregistrer sans connexion à la base.', false);
+    return;
+  }
+  const result = await sbEditPost(post.id, content, [], layout).catch(() => null);
+  if (!result) {
+    showToast('Échec de la sauvegarde', "Les modifications n'ont pas pu être enregistrées. Réessayez.", false);
+    return;
+  }
+
+  post.content = content;
+  post.blocks = [];
+  post.content_layout = layout;
+  post.edited = true;
+  currentTopicId = editingTopicId;
+  editingTopicId = null;
+  editingPostId = null;
+  forumView = 'topic';
+  document.getElementById('forum-main').innerHTML = renderForumContent();
+  showToast('Modifié', 'Votre message a été mis à jour.', true);
+}
+
 async function submitComposeCanvas() {
   // Même garde-fou que submitNewTopic (double vérification : le bouton "Composition libre"
   // est déjà masqué par la même condition à l'entrée de l'écran, showComposeCanvasForm).
@@ -1394,18 +1448,30 @@ async function submitComposeCanvas() {
     showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false);
     return;
   }
-  const titleEl = document.getElementById('compose-canvas-title');
-  const title = titleEl?.value?.trim();
-  if (!title) { showToast('Titre requis', 'Donnez un titre à votre sujet avant de publier.', false); return; }
+
+  const enEdition = editingTopicId != null && editingPostId != null;
+
+  let title = null;
+  if (!enEdition) {
+    const titleEl = document.getElementById('compose-canvas-title');
+    title = titleEl?.value?.trim();
+    if (!title) { showToast('Titre requis', 'Donnez un titre à votre sujet avant de publier.', false); return; }
+  }
 
   if (typeof rpCanvasSerializeCompose !== 'function') return;
   const layout = rpCanvasSerializeCompose();
   if (!layout.elements || layout.elements.length === 0) {
-    showToast('Composition vide', 'Ajoutez au moins une zone de texte ou une image avant de publier.', false);
+    showToast('Composition vide',
+      enEdition ? "Ajoutez au moins une zone de texte ou une image avant d'enregistrer." : 'Ajoutez au moins une zone de texte ou une image avant de publier.', false);
+    return;
+  }
+  const content = typeof rpCanvasBuildFallbackContent === 'function' ? rpCanvasBuildFallbackContent(layout) : '';
+
+  if (enEdition) {
+    await submitEditComposedPost(layout, content);
     return;
   }
 
-  const content = typeof rpCanvasBuildFallbackContent === 'function' ? rpCanvasBuildFallbackContent(layout) : '';
   const char = state.char;
   const authorName = char?.name || 'Anonyme';
   const time = formatDateHeureJeu();
