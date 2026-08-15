@@ -308,7 +308,7 @@ function renderForumModal() {
             <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${unreadCount} non lu(s)</span>` : 'Aucun message'}</div>
           </div>
         </div>
-        ${renderCategorieHeader('intra', 'ti-flag', 'Forums intra-nationaux')}
+        ${renderCategorieHeader('intra', 'ti-flag', 'Forums nationaux')}
         ${renderCategorieHeader('inter', 'ti-world', 'Forums internationaux')}
         ${renderCategorieHeader('prive', 'ti-lock', 'Forums privés')}
       </div>
@@ -374,7 +374,7 @@ function renderForumAccueil() {
   return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#6a5a30;gap:.6rem">
     <i class="ti ti-message-2-cog" style="font-size:2.2rem;opacity:.5"></i>
     <div style="font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.05em;color:#8a7040">Choisissez une categorie a gauche</div>
-    <div style="font-size:.78rem;max-width:260px;text-align:center">Forums intra-nationaux, internationaux ou prives -- deroulez une categorie pour voir ses forums.</div>
+    <div style="font-size:.78rem;max-width:260px;text-align:center">Forums nationaux, internationaux ou prives -- deroulez une categorie pour voir ses forums.</div>
   </div>`;
 }
 
