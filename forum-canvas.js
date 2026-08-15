@@ -308,8 +308,9 @@ function renderComposeCanvasForm() {
       <div class="forum-title-main">Nouveau sujet — Composition libre (bêta)</div>
     </div>
     <div style="padding:1rem">
-      <div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">
-        Chantier en cours — rien n'est encore publiable depuis cet écran.
+      <div class="forum-field">
+        <label class="forum-field-label">Titre du sujet</label>
+        <input class="forum-field-input" id="compose-canvas-title" type="text" placeholder="Intitulé du sujet..."/>
       </div>
       <div class="rp-compose-toolbar" id="rp-compose-toolbar">
         <div id="rp-compose-add-buttons" style="display:flex;gap:.5rem">
@@ -326,6 +327,9 @@ function renderComposeCanvasForm() {
       </div>
       <div id="rp-compose-canvas" style="position:relative;width:680px;max-width:100%;min-height:500px;background:#fff;border:1px solid #2a2010"></div>
       <div id="rp-compose-preview" style="display:none;width:680px;max-width:100%;border:1px dashed #8a6a20;padding:.5rem 0"></div>
+      <button class="forum-submit-btn" onclick="submitComposeCanvas()" style="margin-top:1rem">
+        <i class="ti ti-send"></i> Publier le sujet
+      </button>
     </div>
   `;
 }

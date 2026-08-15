@@ -383,7 +383,7 @@ function renderTopicList() {
       <button class="forum-new-btn" onclick="showNewTopicForm()">
         <i class="ti ti-pencil-plus"></i> Nouveau sujet
       </button>
-      <button class="forum-new-btn" onclick="showComposeCanvasForm()" style="opacity:.85" title="Chantier en cours, sans fonctionnalité pour l'instant">
+      <button class="forum-new-btn" onclick="showComposeCanvasForm()" style="opacity:.85" title="Créez un sujet avec une mise en page libre (zones de texte et images positionnables)">
         <i class="ti ti-layout-grid"></i> Composition libre (bêta)
       </button>` : ''}
     </div>
@@ -1371,6 +1371,79 @@ async function submitReply() {
   forumView = 'topic';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   addJournalEntry(`Vous avez répondu au sujet "${topic.title}".`, 'event-info');
+}
+
+// Publication réelle d'un sujet composé (Lot E2) — même geste que submitNewTopic (sbCreateTopic
+// puis sbCreatePost pour le premier message), avec en plus la sérialisation du canvas vivant
+// (rpCanvasSerializeCompose, lot E1) et le fallback à plat (rpCanvasBuildFallbackContent, lot
+// E1) passés à sbCreatePost. Volontairement minimal par rapport à submitNewTopic : pas de
+// "poster en tant que" (organisation) ni de case signature -- non prévus par le plan E2,
+// consignés comme finition ultérieure plutôt qu'ajoutés silencieusement.
+//
+// Rien de partiellement publié en cas d'échec réseau : si sbCreateTopic réussit mais que
+// sbCreatePost échoue (le sujet resterait alors sans aucun message), le sujet orphelin est
+// immédiatement supprimé via sbDelete -- exploitable de façon fiable parce que sbCreatePost
+// a été corrigé dans ce même lot pour renvoyer null en cas d'échec réel (voir supabase.js).
+// La défaillance symétrique (sbCreateTopic lui-même échoue silencieusement en interne mais
+// renvoie tout de même un id) est un défaut préexistant, partagé avec submitNewTopic, hors
+// périmètre de ce lot -- consigné, pas corrigé ici.
+async function submitComposeCanvas() {
+  // Même garde-fou que submitNewTopic (double vérification : le bouton "Composition libre"
+  // est déjà masqué par la même condition à l'entrée de l'écran, showComposeCanvasForm).
+  if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
+    showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false);
+    return;
+  }
+  const titleEl = document.getElementById('compose-canvas-title');
+  const title = titleEl?.value?.trim();
+  if (!title) { showToast('Titre requis', 'Donnez un titre à votre sujet avant de publier.', false); return; }
+
+  if (typeof rpCanvasSerializeCompose !== 'function') return;
+  const layout = rpCanvasSerializeCompose();
+  if (!layout.elements || layout.elements.length === 0) {
+    showToast('Composition vide', 'Ajoutez au moins une zone de texte ou une image avant de publier.', false);
+    return;
+  }
+
+  const content = typeof rpCanvasBuildFallbackContent === 'function' ? rpCanvasBuildFallbackContent(layout) : '';
+  const char = state.char;
+  const authorName = char?.name || 'Anonyme';
+  const time = formatDateHeureJeu();
+
+  if (typeof sbCreateTopic !== 'function' || typeof sbCreatePost !== 'function') {
+    showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false);
+    return;
+  }
+
+  const topicId = await sbCreateTopic(currentForumId, title, authorName, state.country, time, false, false).catch(() => null);
+  if (!topicId) {
+    showToast('Échec de la publication', "Le sujet n'a pas pu être créé. Réessayez.", false);
+    return;
+  }
+
+  const postId = await sbCreatePost(topicId, authorName, content, time, false, false, [], layout).catch(() => null);
+  if (!postId) {
+    if (typeof sbDelete === 'function') await sbDelete('forum_topics', `id=eq.${encodeURIComponent(topicId)}`).catch(() => {});
+    showToast('Échec de la publication', "Le message n'a pas pu être enregistré. Rien n'a été publié.", false);
+    return;
+  }
+
+  // Local aussi pour affichage immédiat, même geste que submitNewTopic.
+  const newTopic = {
+    id: topicId, title, author: authorName,
+    authorCountry: state.country, authorIsOrg: false, authorSecret: false,
+    time, views: 1, replies: 0,
+    lastPostAuthor: authorName, lastPostTime: time,
+    posts: [{ id: postId, author: authorName, authorCountry: state.country, authorIsOrg: false, authorSecret: false, time, content, blocks: [], content_layout: layout }]
+  };
+  if (!FORUM_TOPICS[currentForumId]) FORUM_TOPICS[currentForumId] = [];
+  FORUM_TOPICS[currentForumId].unshift(newTopic);
+  state.pop = Math.min(100, (state.pop || 0) + 2);
+  updateUI();
+  forumView = 'list';
+  document.getElementById('forum-main').innerHTML = renderForumContent();
+  addJournalEntry(`Vous avez créé le sujet "${title}" sur le forum (composition libre).`, 'event-info');
+  showToast('Sujet publié', 'Votre sujet est en ligne.', true, true);
 }
 
 // =====================

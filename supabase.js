@@ -192,9 +192,20 @@ async function sbCreateTopic(forumId, title, author, country, time, authorIsOrg,
   return id;
 }
 
-async function sbCreatePost(topicId, author, content, time, authorIsOrg, authorSecret, blocks) {
+// contentLayout (Lot E1.5->E2) : paramètre optionnel, dernier de la liste pour ne rien casser
+// des appelants existants (submitNewTopic/submitReply, qui ne le passent jamais -- content_
+// layout reste alors null, comportement strictement inchangé pour eux). Extension mineure
+// prévue par le plan E2, pas une nouvelle fonction séparée.
+// Retour corrigé au passage (E2) : sbInsert() renvoie déjà null en cas d'échec réel, mais
+// cette fonction ignorait ce signal et renvoyait toujours l'id généré -- un appelant ne
+// pouvait donc jamais détecter un échec d'écriture. Comportement des appelants existants
+// inchangé (aucun des deux ne branchait sur cette valeur de retour) ; nécessaire pour que
+// submitComposeCanvas() (E2) puisse fiablement annuler un sujet resté sans aucun message si
+// l'écriture du post échoue -- voir le commentaire de rollback dans forum.js.
+async function sbCreatePost(topicId, author, content, time, authorIsOrg, authorSecret, blocks, contentLayout) {
   const id = 'post-' + Date.now();
-  await sbInsert('forum_posts', { id, topic_id: topicId, author, content, time, author_is_org: !!authorIsOrg, author_secret: !!authorSecret, content_blocks: blocks || [] });
+  const inserted = await sbInsert('forum_posts', { id, topic_id: topicId, author, content, time, author_is_org: !!authorIsOrg, author_secret: !!authorSecret, content_blocks: blocks || [], content_layout: contentLayout || null });
+  if (!inserted) return null;
   // Mettre à jour le compteur de réponses + le dernier post (pour le tri par activité)
   const posts = await sbLoadForumPosts(topicId);
   const count = (posts?.length || 1) - 1;
