@@ -439,6 +439,17 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    FORUM V2 — SUJETS & EDITEUR
    =========================== */
 .forum-layout{display:grid;grid-template-columns:200px 1fr;height:500px;overflow:hidden}
+/* Correctif croissance verticale du compositeur (correctif bugs bêta forum) : #modal-forum
+   reçoit .forum-compose-grow uniquement pendant l'écran de composition (renderForumContent,
+   forum.js). Neutralise les trois overflow:hidden ancestraux (#forum-body en plein écran,
+   .forum-layout, .forum-main) qui piégeaient le canvas -- sans toucher .forum-topics-list ni
+   au comportement des autres écrans (liste, sujet), qui gardent leur propre défilement
+   interne. Le vrai défilement devient celui, déjà existant, de .modal-box (overflow-y:auto,
+   max-height:85vh ou 100vh en plein écran via .modal-fullscreen) : "scroll normal de la
+   page/conteneur principal" comme demandé, jamais une fenêtre interne bornée. */
+.forum-compose-grow #forum-body{overflow:visible}
+.forum-compose-grow .forum-layout{height:auto;overflow:visible}
+.forum-compose-grow .forum-main{overflow:visible}
 .forum-sidebar{background:var(--bg);border-right:1px solid var(--border2);overflow-y:auto;padding:.4rem 0}
 .forum-nav-item{display:flex;align-items:flex-start;gap:.5rem;padding:.5rem .8rem;cursor:pointer;transition:background .2s;border-bottom:1px solid #0f0d05}
 .forum-nav-item:hover{background:var(--bg3)}

@@ -356,6 +356,16 @@ function switchToMail() {
 }
 
 function renderForumContent() {
+  // Correctif croissance verticale du compositeur (correctif bugs bêta forum) : bascule une
+  // classe sur le conteneur de modal STATIQUE (#modal-forum, toujours présent dans le DOM,
+  // seul son contenu est remplacé -- voir renderForumModal) selon l'écran affiché. Cette
+  // classe (style.css) neutralise l'overflow:hidden de #forum-body/.forum-layout/.forum-main
+  // UNIQUEMENT pour l'écran de composition, sans rien changer aux autres écrans (liste, sujet,
+  // etc., qui gardent leur propre défilement interne existant, .forum-topics-list). Effectué
+  // ici plutôt qu'à chaque site d'appel : renderForumContent() est le seul point de passage
+  // commun à tous les changements d'écran du forum.
+  const modalForumEl = document.getElementById('modal-forum');
+  if (modalForumEl) modalForumEl.classList.toggle('forum-compose-grow', forumView === 'compose-canvas');
   if (forumView === 'mail')      return renderMailView();
   if (forumView === 'list' && !currentForumId) return renderForumAccueil();
   if (forumView === 'list')      return renderTopicList();
@@ -467,7 +477,7 @@ function renderTopicView() {
         </div>`).join('')}
     </div>
     <div class="forum-reply-bar">
-      <button class="forum-new-btn" onclick="showReplyForm()">
+      <button class="forum-new-btn" onclick="showComposeCanvasReply()">
         <i class="ti ti-corner-down-right"></i> Répondre
       </button>
     </div>
@@ -1106,6 +1116,22 @@ function showComposeCanvasForm() {
   forumView = 'compose-canvas'; document.getElementById('forum-main').innerHTML = renderForumContent();
   if (typeof rpCanvasInitComposeScreen === 'function') rpCanvasInitComposeScreen();
 }
+// Réponse via le nouveau compositeur (correctif bugs bêta forum, remplace showReplyForm comme
+// cible du bouton "Répondre") -- ne touche PAS currentTopicId, déjà posé par openTopic() sur le
+// sujet réellement affiché : c'est cette valeur, conservée telle quelle, qui permet à
+// renderComposeCanvasForm()/submitComposeCanvas() de reconnaître une réponse (currentTopicId
+// non nul, editingPostId nul) plutôt qu'un nouveau sujet. Pas de garde-fou "Présidence" ici :
+// répondre à un sujet n'a jamais été restreint (showReplyForm(), toujours actif pour quotePost,
+// n'en avait aucun), seule la création d'un nouveau sujet l'est. editingTopicId/editingPostId
+// remis à null, même précaution que showComposeCanvasForm(), pour ne jamais hériter d'une
+// édition abandonnée. L'ancien pipeline (renderReplyForm/submitReply) reste intact, encore
+// utilisé par quotePost().
+function showComposeCanvasReply() {
+  editingTopicId = null;
+  editingPostId = null;
+  forumView = 'compose-canvas'; document.getElementById('forum-main').innerHTML = renderForumContent();
+  if (typeof rpCanvasInitComposeScreen === 'function') rpCanvasInitComposeScreen();
+}
 function backToList()       { forumView = 'list'; currentTopicId = null; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 function backToTopic()      { forumView = 'topic'; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 
@@ -1468,18 +1494,60 @@ async function submitEditComposedPost(layout, content) {
   showToast('Modifié', 'Votre message a été mis à jour.', true);
 }
 
+// Réponse composée dans un sujet existant (correctif bugs bêta forum) — branche dédiée de
+// submitComposeCanvas() au même titre que submitEditComposedPost() juste au-dessus : même
+// contenu sauvegardé qu'un post composé normal (content_layout + fallback content), mais poste
+// dans currentTopicId (sbCreatePost seul, jamais sbCreateTopic) et reprend le bookkeeping local
+// de submitReply() (replies/lastPostAuthor/lastPostTime/pop/journal) plutôt que celui de la
+// création de sujet. Rien de local n'est modifié si la sauvegarde échoue, même principe que
+// submitEditComposedPost et submitComposeCanvas (branche nouveau sujet).
+async function submitReplyComposed(layout, content) {
+  const topic = (FORUM_TOPICS[currentForumId] || []).find(t => t.id === currentTopicId);
+  if (!topic) { showToast('Sujet introuvable', 'Impossible de retrouver le sujet.', false); return; }
+
+  if (typeof sbCreatePost !== 'function') {
+    showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false);
+    return;
+  }
+  const char = state.char;
+  const authorName = char?.name || 'Anonyme';
+  const time = formatDateHeureJeu();
+
+  const postId = await sbCreatePost(topic.id, authorName, content, time, false, false, [], layout).catch(() => null);
+  if (!postId) {
+    showToast('Échec de la publication', "La réponse n'a pas pu être enregistrée. Réessayez.", false);
+    return;
+  }
+
+  topic.posts.push({ id: postId, author: authorName, authorCountry: state.country, authorIsOrg: false, authorSecret: false, time, content, blocks: [], content_layout: layout });
+  topic.replies = topic.posts.length - 1;
+  topic.lastPostAuthor = authorName;
+  topic.lastPostTime = time;
+  state.pop = Math.min(100, (state.pop || 0) + 1);
+  updateUI();
+  forumView = 'topic';
+  document.getElementById('forum-main').innerHTML = renderForumContent();
+  addJournalEntry(`Vous avez répondu au sujet "${escapeHtmlText(topic.title)}".`, 'event-info');
+}
+
 async function submitComposeCanvas() {
-  // Même garde-fou que submitNewTopic (double vérification : le bouton "Nouveau sujet"
-  // est déjà masqué par la même condition à l'entrée de l'écran, showComposeCanvasForm).
-  if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
+  const enEdition = editingTopicId != null && editingPostId != null;
+  // Réponse dans le sujet courant (correctif bugs bêta forum) : distingué sans nouvelle
+  // variable globale, en réutilisant currentTopicId/editingPostId déjà maintenus par
+  // openTopic()/showComposeCanvasReply() -- currentTopicId n'est jamais posé quand on arrive
+  // par "Nouveau sujet" (bouton visible seulement depuis la liste, où currentTopicId est null).
+  const enReponse = !enEdition && currentTopicId != null;
+
+  // Même garde-fou que submitNewTopic, mais seulement pour la création d'un nouveau sujet :
+  // répondre à un sujet existant ou modifier son propre message n'a jamais été restreint à la
+  // Présidence (ni submitReply ni submitEditPost ne l'étaient).
+  if (!enEdition && !enReponse && currentForumId === 'presidence' && state.poste?.id !== 'president') {
     showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false);
     return;
   }
 
-  const enEdition = editingTopicId != null && editingPostId != null;
-
   let title = null;
-  if (!enEdition) {
+  if (!enEdition && !enReponse) {
     const titleEl = document.getElementById('compose-canvas-title');
     title = titleEl?.value?.trim();
     if (!title) { showToast('Titre requis', 'Donnez un titre à votre sujet avant de publier.', false); return; }
@@ -1489,13 +1557,18 @@ async function submitComposeCanvas() {
   const layout = rpCanvasSerializeCompose();
   if (!layout.elements || layout.elements.length === 0) {
     showToast('Composition vide',
-      enEdition ? "Ajoutez au moins une zone de texte ou une image avant d'enregistrer." : 'Ajoutez au moins une zone de texte ou une image avant de publier.', false);
+      enEdition ? "Ajoutez au moins une zone de texte ou une image avant d'enregistrer."
+        : (enReponse ? "Ajoutez au moins une zone de texte ou une image avant de publier votre réponse." : 'Ajoutez au moins une zone de texte ou une image avant de publier.'), false);
     return;
   }
   const content = typeof rpCanvasBuildFallbackContent === 'function' ? rpCanvasBuildFallbackContent(layout) : '';
 
   if (enEdition) {
     await submitEditComposedPost(layout, content);
+    return;
+  }
+  if (enReponse) {
+    await submitReplyComposed(layout, content);
     return;
   }
 

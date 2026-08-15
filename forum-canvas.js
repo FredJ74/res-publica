@@ -230,7 +230,7 @@ function rpCanvasCreateController(container) {
   // Déplacement générique : `handleEl` capte le geste (une poignée dédiée, ou l'élément
   // entier selon l'objet), `el` est l'élément réellement déplacé. `state` est un objet
   // { x, y, ... } tenu à jour par l'appelant.
-  function attachDrag(handleEl, state, el) {
+  function attachDrag(handleEl, state, el, onChange) {
     handleEl.addEventListener('mousedown', (e) => {
       e.preventDefault();
       selectElement(el, state);
@@ -241,6 +241,7 @@ function rpCanvasCreateController(container) {
         state.y = startTop + (ev.clientY - startY);
         el.style.left = state.x + 'px';
         el.style.top = state.y + 'px';
+        if (onChange) onChange();
       }
       function onUp() {
         document.removeEventListener('mousemove', onMove);
@@ -288,7 +289,7 @@ function rpCanvasCreateController(container) {
   // peut réduire le plancher sans jamais descendre sous la hauteur réellement nécessaire —
   // c'est ce qui garantit qu'aucun texte n'est jamais tronqué et qu'aucun défilement interne
   // n'apparaît, et que la poignée s'arrête pile où le contenu s'arrête (sans "zone morte").
-  function attachBottomResize(handleEl, state, el, getRequiredHeight) {
+  function attachBottomResize(handleEl, state, el, getRequiredHeight, onChange) {
     handleEl.addEventListener('mousedown', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -302,6 +303,7 @@ function rpCanvasCreateController(container) {
         const newMinHeight = Math.max(requiredHeight, candidate);
         state.minHeight = newMinHeight;
         el.style.minHeight = newMinHeight + 'px';
+        if (onChange) onChange();
       }
       function onUp() {
         document.removeEventListener('mousemove', onMove);
@@ -314,7 +316,7 @@ function rpCanvasCreateController(container) {
 
   // Redimensionnement 2D par un coin, ratio conservé — pour les objets à hauteur explicite
   // (ex. une image), jamais utilisé pour une zone de texte.
-  function attachCornerResize(handleEl, corner, state, el, opts) {
+  function attachCornerResize(handleEl, corner, state, el, opts, onChange) {
     const minWidth = (opts && opts.minWidth) || RP_CANVAS_MIN_WIDTH;
     handleEl.addEventListener('mousedown', (e) => {
       e.preventDefault();
@@ -340,6 +342,7 @@ function rpCanvasCreateController(container) {
         el.style.top = state.y + 'px';
         el.style.width = newWidth + 'px';
         el.style.height = newHeight + 'px';
+        if (onChange) onChange();
       }
       function onUp() {
         document.removeEventListener('mousemove', onMove);
@@ -365,23 +368,39 @@ function rpCanvasCreateController(container) {
 // et à la modification des sujets créés avant la bascule).
 // ===========================================================================
 function renderComposeCanvasForm() {
-  // Mode édition (Lot E3) : editingTopicId/editingPostId posés par editPost() (forum.js)
-  // avant d'entrer dans cet écran. Pas de champ Titre (le titre du sujet n'est jamais
-  // modifiable depuis un post, même règle que renderEditPostForm côté éditeur classique) ;
-  // "Retour" annule vers le sujet plutôt que la liste ; le bouton principal indique
-  // "Enregistrer les modifications" au lieu de "Publier le sujet" -- même bouton, même appel
-  // à submitComposeCanvas(), aucune logique dupliquée.
+  // Trois modes, distingués sans variable globale dédiée, en réutilisant l'état déjà
+  // maintenu par forum.js :
+  // - édition (Lot E3) : editingTopicId/editingPostId posés par editPost() sur un post
+  //   composé existant ;
+  // - réponse (correctif bugs bêta forum) : currentTopicId posé par openTopic()/
+  //   showComposeCanvasReply(), aucune édition en cours -- on répond dans le sujet courant ;
+  // - sinon : nouveau sujet (bouton visible seulement depuis la liste, où currentTopicId
+  //   est null).
+  // Dans les trois cas, même canvas, mêmes boutons Ajouter zone/image/Prévisualiser, même
+  // appel à submitComposeCanvas() -- aucune logique dupliquée, seuls l'en-tête, le champ
+  // Titre et le libellé du bouton de publication changent.
   const enEdition = typeof editingTopicId !== 'undefined' && typeof editingPostId !== 'undefined'
     && editingTopicId != null && editingPostId != null;
+  const enReponse = !enEdition && typeof currentTopicId !== 'undefined' && currentTopicId != null;
+  const topicReponse = enReponse && typeof FORUM_TOPICS !== 'undefined'
+    ? (FORUM_TOPICS[currentForumId] || []).find(t => t.id === currentTopicId) : null;
+
+  const backAction = (enEdition || enReponse) ? 'backToTopic()' : 'backToList()';
+  const backLabel = enReponse ? 'Retour au sujet' : (enEdition ? 'Annuler' : 'Retour');
+  const headerTitle = enReponse
+    ? `Répondre : ${escapeHtmlText(topicReponse?.title || '')}`
+    : (enEdition ? 'Modifier le message' : 'Nouveau sujet');
+  const submitLabel = enReponse ? 'Publier la réponse' : (enEdition ? 'Enregistrer les modifications' : 'Publier le sujet');
+
   return `
     <div class="forum-header-bar">
-      <button class="forum-back-btn" onclick="${enEdition ? 'backToTopic()' : 'backToList()'}">
-        <i class="ti ti-arrow-left"></i> ${enEdition ? 'Annuler' : 'Retour'}
+      <button class="forum-back-btn" onclick="${backAction}">
+        <i class="ti ti-arrow-left"></i> ${backLabel}
       </button>
-      <div class="forum-title-main">${enEdition ? 'Modifier le message' : 'Nouveau sujet'}</div>
+      <div class="forum-title-main">${headerTitle}</div>
     </div>
-    <div style="padding:1rem 1rem 0;flex-shrink:0">
-      ${enEdition ? '' : `
+    <div style="padding:1rem">
+      ${(enEdition || enReponse) ? '' : `
       <div class="forum-field">
         <label class="forum-field-label">Titre du sujet</label>
         <input class="forum-field-input" id="compose-canvas-title" type="text" placeholder="Intitulé du sujet..."/>
@@ -400,27 +419,26 @@ function renderComposeCanvasForm() {
             <i class="ti ti-eye"></i> Prévisualiser
           </button>
           <button class="forum-submit-btn" onclick="submitComposeCanvas()">
-            <i class="ti ti-send"></i> ${enEdition ? 'Enregistrer les modifications' : 'Publier le sujet'}
+            <i class="ti ti-send"></i> ${submitLabel}
           </button>
         </div>
       </div>
-    </div>
-    <!-- Correctif bug bloquant (18 aout 2026) : .forum-main/.forum-layout sont en
-         overflow:hidden -- seul un enfant flex:1;overflow-y:auto dédié defile reellement (meme
-         principe deja utilise par .forum-topics-list pour la liste des sujets, style.css).
-         Avant ce correctif, le canvas de composition (hauteur non bornee, elements en position
-         absolute) grandissait sans jamais pouvoir etre atteint au-dela de la hauteur visible :
-         aucun ancetre ne proposait de defilement. La barre d'outils (bouton Publier inclus)
-         reste volontairement HORS de cette zone defilante, juste au-dessus (flex-shrink:0),
-         pour rester accessible meme quand le canvas est long. N'affecte ni renderComposedPost
-         (rendu publie, correctif de hauteur E3 intact) ni la logique de zones/serialisation. -->
-    <div style="padding:0 1rem 1rem;flex:1;overflow-y:auto;min-height:0">
-      <!-- Fond du canvas (lot de finitions) : gris chaud clair sobre plutôt que blanc pur --
-           évite l'effet feuille blanche agressive à côté du reste du forum, tout en restant
-           un fond clair (le texte des zones -- .rp-zone-content, style.css -- est en gris
-           foncé #222, pensé pour un fond clair, pas pour la charte sombre générale du jeu). -->
-      <div id="rp-compose-canvas" style="position:relative;width:680px;max-width:100%;min-height:500px;background:#e8e0cc;border:1px solid #2a2010"></div>
-      <div id="rp-compose-preview" style="display:none;width:680px;max-width:100%;border:1px dashed #8a6a20;padding:.5rem 0"></div>
+      <!-- Correctif croissance verticale (correctif bugs bêta forum, remplace la version
+           overflow-y:auto du correctif precedent) : plus de zone interne scrollable ici. Le
+           canvas (hauteur non bornee, elements en position absolute -- voir
+           rpCanvasRecalcComposeHeight) grandit desormais en flux normal ; c'est
+           .forum-compose-grow (classe togglee par renderForumContent() sur #modal-forum,
+           forum.js) qui neutralise l'overflow:hidden de #forum-body/.forum-layout/.forum-main
+           pour cet ecran precis, laissant .modal-box (deja overflow-y:auto;max-height:100vh
+           en plein ecran, style.css) faire le vrai defilement -- exactement le "scroll normal
+           de la page" demande. La barre d'outils (bouton Publier inclus) defile desormais
+           avec le reste, comme le reste du contenu de cet ecran : priorite donnee a la
+           surface verticale extensible, comme explicitement demande, plutot qu'a une barre
+           fixe (qui aurait exige un empilement de plusieurs elements sticky avec le bandeau
+           de la modale, fragile). N'affecte ni renderComposedPost (rendu publie, correctif de
+           hauteur E3 intact) ni la logique de zones/serialisation. -->
+      <div id="rp-compose-canvas" style="position:relative;width:680px;max-width:100%;min-height:500px;background:#e8e0cc;border:1px solid #2a2010;margin-top:.5rem"></div>
+      <div id="rp-compose-preview" style="display:none;width:680px;max-width:100%;border:1px dashed #8a6a20;padding:.5rem 0;margin-top:.5rem"></div>
     </div>
   `;
 }
@@ -437,6 +455,32 @@ let rpComposeController = null;
 // aucune duplication d'état, la sérialisation lit directement la même source de vérité que
 // l'affichage. Recréé à chaque entrée dans l'écran, comme rpComposeController.
 let rpComposeElements = [];
+
+// Croissance verticale du canvas d'édition (correctif bugs bêta forum) — les éléments du
+// canvas sont en position:absolute (voir rpCanvasCreateController) : ils ne contribuent
+// jamais à la hauteur d'un parent en flux normal (même raison que le calcul explicite déjà
+// en place dans renderComposedPost pour le rendu publié, non touché ici). #rp-compose-canvas
+// a donc besoin du même genre de calcul explicite, mais sur l'état VIVANT (rpComposeElements)
+// plutôt que sur un layout sérialisé : min-height = point le plus bas de tous les objets +
+// une marge basse confortable pour continuer à travailler, jamais moins que la hauteur
+// initiale. Appelée à chaque événement qui peut faire grandir un objet (saisie, déplacement,
+// redimensionnement, duplication, chargement d'image, désérialisation) -- jamais l'inverse
+// (aucun appel ne réduit la hauteur en dessous de ce qu'exige le contenu réel, exactement le
+// même principe que attachBottomResize pour une seule zone).
+const RP_COMPOSE_BASE_HEIGHT = 500;
+const RP_COMPOSE_BOTTOM_MARGIN = 80;
+function rpCanvasRecalcComposeHeight() {
+  const container = document.getElementById('rp-compose-canvas');
+  if (!container || !Array.isArray(rpComposeElements)) return;
+  let maxBottom = 0;
+  rpComposeElements.forEach((entry) => {
+    if (!entry || !entry.el || !entry.state) return;
+    const bottom = (entry.state.y || 0) + (entry.el.offsetHeight || 0);
+    if (bottom > maxBottom) maxBottom = bottom;
+  });
+  const needed = maxBottom > 0 ? maxBottom + RP_COMPOSE_BOTTOM_MARGIN : RP_COMPOSE_BASE_HEIGHT;
+  container.style.minHeight = Math.max(RP_COMPOSE_BASE_HEIGHT, needed) + 'px';
+}
 
 function rpCanvasInitComposeScreen() {
   const container = document.getElementById('rp-compose-canvas');
@@ -520,12 +564,12 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html, bgColor) {
   bottomHandle.className = 'rp-resize-bottom';
   bottomHandle.title = "Réserver de l'espace sous le texte";
   el.appendChild(bottomHandle);
-  ctrl.attachBottomResize(bottomHandle, state, el, () => bar.offsetHeight + content.offsetHeight);
+  ctrl.attachBottomResize(bottomHandle, state, el, () => bar.offsetHeight + content.offsetHeight, rpCanvasRecalcComposeHeight);
 
   container.appendChild(el);
   ctrl.bringToFront(state, el); // z explicite dès la création (Lot C5) -- le nouvel objet arrive au-dessus
   const zBox = ctrl.attachZControls(el, state);
-  ctrl.attachDrag(bar, state, el);
+  ctrl.attachDrag(bar, state, el, rpCanvasRecalcComposeHeight);
 
   const editor = new window.RP_TIPTAP_EDITOR({
     element: content,
@@ -538,12 +582,18 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html, bgColor) {
     ],
     content: html || '<p></p>',
     onFocus: () => ctrl.selectElement(el, state),
+    // Croissance verticale (correctif bugs bêta forum) : une zone de texte grandit en flux
+    // normal (jamais de height/max-height/overflow sur .rp-zone-content, voir plus haut), mais
+    // .rp-zone est en position:absolute -- sans ce recalcul, le canvas ne saurait jamais qu'un
+    // objet a grandi pendant la saisie.
+    onUpdate: () => rpCanvasRecalcComposeHeight(),
   });
 
   rpCanvasAttachZoneToolbar(toolbar, editor);
   rpCanvasAttachZoneBgButton(toolbar, el, state);
 
   rpComposeElements.push({ type: 'text_zone', el, state, editor });
+  rpCanvasRecalcComposeHeight();
 
   // Duplication / suppression (Lot F1) : ajoutées à la même mini-barre que les contrôles de
   // superposition (attachZControls, lot C5) -- zBox est le conteneur déjà créé et positionné
@@ -568,6 +618,7 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html, bgColor) {
         // fait déjà rpCanvasDeserializeIntoCompose (lot E3) pour la même raison.
         newEntry.state.minHeight = state.minHeight;
         newEl.style.minHeight = state.minHeight + 'px';
+        rpCanvasRecalcComposeHeight();
       }
     });
 
@@ -605,6 +656,7 @@ function rpCanvasDeleteElement(el) {
   if (entry.editor && typeof entry.editor.destroy === 'function') entry.editor.destroy();
   if (entry.el && typeof entry.el.remove === 'function') entry.el.remove();
   rpComposeElements.splice(idx, 1);
+  rpCanvasRecalcComposeHeight();
 }
 
 // ===========================================================================
@@ -1074,6 +1126,7 @@ function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
     const aspect = img.naturalHeight / img.naturalWidth;
     state.height = state.width * aspect;
     el.style.height = state.height + 'px';
+    rpCanvasRecalcComposeHeight();
   });
   img.addEventListener('error', () => {
     if (typeof showToast === 'function') showToast('Image introuvable', "L'URL indiquée ne charge aucune image.", false);
@@ -1081,6 +1134,7 @@ function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
     // L'objet est retiré du DOM : le retirer aussi du registre de sérialisation (Lot E1),
     // sinon une entrée fantôme (élément détaché) subsisterait dans rpComposeElements.
     rpComposeElements = rpComposeElements.filter((entry) => entry.el !== el);
+    rpCanvasRecalcComposeHeight();
   });
   el.appendChild(img);
 
@@ -1088,7 +1142,7 @@ function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
     const h = document.createElement('div');
     h.className = 'rp-resize-corner ' + corner;
     el.appendChild(h);
-    ctrl.attachCornerResize(h, corner, state, el); // minWidth par défaut (40), comme le prototype pour les images
+    ctrl.attachCornerResize(h, corner, state, el, null, rpCanvasRecalcComposeHeight); // minWidth par défaut (40), comme le prototype pour les images
   });
 
   container.appendChild(el);
@@ -1096,9 +1150,10 @@ function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
   const zBox = ctrl.attachZControls(el, state);
   // L'image entière sert de poignée de déplacement — pas de texte éditable à l'intérieur,
   // donc aucun conflit possible entre "saisir" et "écrire" (même raisonnement que le prototype).
-  ctrl.attachDrag(el, state, el);
+  ctrl.attachDrag(el, state, el, rpCanvasRecalcComposeHeight);
 
   rpComposeElements.push({ type: 'image', el, state });
+  rpCanvasRecalcComposeHeight();
 
   // Duplication / suppression (Lot F1) : même mini-barre que les contrôles de superposition
   // (attachZControls, lot C5), même principe que pour les zones de texte ci-dessus. La copie
@@ -1309,6 +1364,12 @@ function rpCanvasDeserializeIntoCompose(layout, container) {
       return;
     }
   });
+
+  // Réouverture d'un post long en édition (correctif bugs bêta forum) : appelé une fois après
+  // avoir tout restauré (chaque création interne a déjà recalculé au fil de l'eau, mais avec
+  // un minHeight pas encore ajusté à sa valeur sauvegardée pour les zones -- ce recalcul final
+  // reflète la géométrie réellement restaurée).
+  rpCanvasRecalcComposeHeight();
 }
 
 // ===========================================================================
