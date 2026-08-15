@@ -315,43 +315,6 @@ function chkId(){
   document.getElementById('n7').disabled=!G.name||!G.bio;
 }
 
-async function genBio(){
-  const name=document.getElementById('cname').value.trim();
-  const btn=document.getElementById('aibtn');
-  const err=document.getElementById('aierr');
-  err.style.display='none';
-  if(!name){err.textContent="Entrez d'abord un nom.";err.style.display='block';return;}
-  const co=COUNTRIES[G.country];
-  const ar=ARCHETYPES.find(x=>x.id===G.archetype);
-  const ca=CAREERS.find(x=>x.id===G.career);
-  const or=ORIGINS.find(x=>x.id===G.origin);
-  const sc=SCHOOLS.find(x=>x.id===G.school);
-  btn.innerHTML='<span class="spin"></span> Generation en cours...';
-  btn.disabled=true;
-  const prompt=`Tu es le narrateur d'un jeu de role politique parodique et satirique. Genere une biographie courte (3-4 phrases, ton satirique et cynique) pour un personnage nomme "${name}". Nature profonde : ${ar?.name||'inconnue'}. Origine : ${or?.name||'inconnue'}. Scolarite : ${sc?.name||'inconnue'}. Carriere : ${ca?.name||'inconnue'}. Empire : "${co?.n||'inconnu'}" (parodie ${G.country==='republic'?'de la Ve Republique francaise':G.country==='narco'?"d'un narco-etat":G.country==='soviet'?"d'un regime communiste":"d'une monarchie petroliere"}). Style : ironique, memorable, ambitions politiques troubles. Reponds UNIQUEMENT avec la biographie, sans titre ni introduction.`;
-  try{
-    const resp=await fetch('/api/chat',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
-    });
-    const data=await resp.json();
-    if(data.content?.[0]?.text){
-      document.getElementById('cbio').value=data.content[0].text;
-      G.bio=data.content[0].text;
-      chkId();
-    } else {
-      err.textContent='Erreur de generation. Ecrivez votre biographie manuellement.';
-      err.style.display='block';
-    }
-  } catch(e){
-    err.textContent='API inaccessible. Ecrivez votre biographie manuellement.';
-    err.style.display='block';
-  }
-  btn.innerHTML='<i class="ti ti-sparkles" style="font-size:14px;vertical-align:-2px"></i> Regenerer la biographie';
-  btn.disabled=false;
-}
-
 /* ---- Review ---- */
 function palier(a){
   if(a<600)  return'1 - Denument';
