@@ -480,7 +480,7 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
 
   container.appendChild(el);
   ctrl.bringToFront(state, el); // z explicite dès la création (Lot C5) -- le nouvel objet arrive au-dessus
-  ctrl.attachZControls(el, state);
+  const zBox = ctrl.attachZControls(el, state);
   ctrl.attachDrag(bar, state, el);
 
   const editor = new window.RP_TIPTAP_EDITOR({
@@ -499,7 +499,66 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html) {
 
   rpComposeElements.push({ type: 'text_zone', el, state, editor });
 
+  // Duplication / suppression (Lot F1) : ajoutées à la même mini-barre que les contrôles de
+  // superposition (attachZControls, lot C5) -- zBox est le conteneur déjà créé et positionné
+  // par le moteur générique, pas une nouvelle barre. Le décalage +20px évite de superposer
+  // exactement la copie sur l'original ; le contenu est dupliqué via editor.getHTML() (état
+  // actuel réel, pas le html de création) dans une TOUTE NOUVELLE instance Tiptap
+  // (rpCanvasCreateTextZone recrée systématiquement son propre éditeur) -- indépendance
+  // totale garantie par construction, aucune référence partagée entre l'original et la copie.
+  if (zBox) {
+    const dupBtn = document.createElement('button');
+    dupBtn.type = 'button';
+    dupBtn.textContent = '⧉';
+    dupBtn.title = 'Dupliquer cette zone';
+    dupBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const newEl = rpCanvasCreateTextZone(ctrl, container, state.x + 20, state.y + 20, state.width, editor.getHTML());
+      if (!newEl) return;
+      const newEntry = rpComposeElements[rpComposeElements.length - 1];
+      if (newEntry && newEntry.el === newEl) {
+        // minHeight n'est pas un paramètre de création -- repris explicitement ici, comme le
+        // fait déjà rpCanvasDeserializeIntoCompose (lot E3) pour la même raison.
+        newEntry.state.minHeight = state.minHeight;
+        newEl.style.minHeight = state.minHeight + 'px';
+      }
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.textContent = '🗑';
+    delBtn.title = 'Supprimer cette zone';
+    delBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Reprise du principe déjà en place pour la suppression d'un message
+      // (confirmerSuppressionPost, forum.js) : action irréversible, confirmation requise.
+      if (!window.confirm('Supprimer cette zone de texte ? Cette action est irréversible.')) return;
+      rpCanvasDeleteElement(el);
+    });
+
+    zBox.appendChild(dupBtn);
+    zBox.appendChild(delBtn);
+  }
+
   return el;
+}
+
+// Suppression (Lot F1) — générique aux deux types d'objets (zone de texte ou image) : ne
+// s'appuie que sur `el`/`editor`, retrouve l'entrée correspondante dans le registre
+// (rpComposeElements, lot E1), détruit l'instance Tiptap si elle existe (editor.destroy(),
+// méthode réelle vérifiée dans le code source de @tiptap/core avant implémentation --
+// libère proprement la vue ProseMirror et ses écouteurs), retire l'élément du DOM, puis
+// retire l'entrée du registre. Aucune trace résiduelle : ni dans le DOM, ni dans l'état de
+// composition, ni dans une instance Tiptap orpheline.
+function rpCanvasDeleteElement(el) {
+  const idx = rpComposeElements.findIndex((entry) => entry.el === el);
+  if (idx === -1) return;
+  const entry = rpComposeElements[idx];
+  if (entry.editor && typeof entry.editor.destroy === 'function') entry.editor.destroy();
+  if (entry.el && typeof entry.el.remove === 'function') entry.el.remove();
+  rpComposeElements.splice(idx, 1);
 }
 
 // ===========================================================================
@@ -934,12 +993,45 @@ function rpCanvasCreateImage(ctrl, container, x, y, width, src) {
 
   container.appendChild(el);
   ctrl.bringToFront(state, el); // z explicite dès la création (Lot C5) -- le nouvel objet arrive au-dessus
-  ctrl.attachZControls(el, state);
+  const zBox = ctrl.attachZControls(el, state);
   // L'image entière sert de poignée de déplacement — pas de texte éditable à l'intérieur,
   // donc aucun conflit possible entre "saisir" et "écrire" (même raisonnement que le prototype).
   ctrl.attachDrag(el, state, el);
 
   rpComposeElements.push({ type: 'image', el, state });
+
+  // Duplication / suppression (Lot F1) : même mini-barre que les contrôles de superposition
+  // (attachZControls, lot C5), même principe que pour les zones de texte ci-dessus. La copie
+  // recharge le même src dans un tout nouvel élément <img> (rpCanvasCreateImage recrée
+  // systématiquement son propre état et recalcule sa hauteur au chargement) -- indépendance
+  // totale garantie par construction, aucune référence partagée avec l'original.
+  if (zBox) {
+    const dupBtn = document.createElement('button');
+    dupBtn.type = 'button';
+    dupBtn.textContent = '⧉';
+    dupBtn.title = 'Dupliquer cette image';
+    dupBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      rpCanvasCreateImage(ctrl, container, state.x + 20, state.y + 20, state.width, src);
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.textContent = '🗑';
+    delBtn.title = 'Supprimer cette image';
+    delBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Reprise du principe déjà en place pour la suppression d'un message
+      // (confirmerSuppressionPost, forum.js) : action irréversible, confirmation requise.
+      if (!window.confirm('Supprimer cette image ? Cette action est irréversible.')) return;
+      rpCanvasDeleteElement(el);
+    });
+
+    zBox.appendChild(dupBtn);
+    zBox.appendChild(delBtn);
+  }
 
   return el;
 }
