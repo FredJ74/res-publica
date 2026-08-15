@@ -396,6 +396,14 @@ function patHounetteRetour() {
   const b = QUETE_CARRIERE_BRIEFS.criminel;
   const d = QUETE_CARRIERE_DEBRIEFS.criminel;
 
+  // Ferme la fiche de Pat (fenetre "Posez votre question") avant d'afficher la popup de
+  // quete -- meme geste que declencherMissionPatHounette()/remettreColisBrigitte(), omis ici
+  // par erreur lors du retrait du bouton "Faire le point" (17 aout 2026). Sans cette fermeture,
+  // afficherPopupQueteAccueil() detecte modal-pnj encore ouverte et se re-differe de 2s en 2s
+  // (garde-fou anti-empilement existant), donnant l'impression que l'interface reste bloquee
+  // en attente d'une reponse jusqu'a ce que le joueur ferme la fiche lui-meme.
+  document.getElementById('modal-pnj')?.classList.remove('open');
+
   afficherPopupQueteAccueil({
     image: b.image,
     titre: b.titre,
