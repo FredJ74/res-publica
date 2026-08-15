@@ -334,8 +334,11 @@ function rpCanvasCreateController(container) {
 }
 
 // ===========================================================================
-// Écran de composition (Lot C1, complété au Lot C2) — point d'entrée séparé, à côté du
-// bouton "Nouveau sujet" existant (jamais retiré ni modifié).
+// Écran de composition (Lot C1, complété au Lot C2) — depuis le lot de finitions post-I,
+// chemin normal et unique de création d'un sujet (le bouton "Nouveau sujet" historique,
+// qui ouvrait renderNewTopicForm/l'éditeur classique, a été retiré de renderTopicList ;
+// son code reste intact dans forum.js -- non supprimé -- car encore nécessaire à la lecture
+// et à la modification des sujets créés avant la bascule).
 // ===========================================================================
 function renderComposeCanvasForm() {
   // Mode édition (Lot E3) : editingTopicId/editingPostId posés par editPost() (forum.js)
@@ -351,7 +354,7 @@ function renderComposeCanvasForm() {
       <button class="forum-back-btn" onclick="${enEdition ? 'backToTopic()' : 'backToList()'}">
         <i class="ti ti-arrow-left"></i> ${enEdition ? 'Annuler' : 'Retour'}
       </button>
-      <div class="forum-title-main">${enEdition ? 'Modifier le message (composition libre)' : 'Nouveau sujet — Composition libre (bêta)'}</div>
+      <div class="forum-title-main">${enEdition ? 'Modifier le message' : 'Nouveau sujet'}</div>
     </div>
     <div style="padding:1rem">
       ${enEdition ? '' : `

@@ -391,11 +391,8 @@ function renderTopicList() {
         <div class="forum-subtitle">${f.desc}</div>
       </div>
       ${peutCreerSujet ? `
-      <button class="forum-new-btn" onclick="showNewTopicForm()">
+      <button class="forum-new-btn" onclick="showComposeCanvasForm()">
         <i class="ti ti-pencil-plus"></i> Nouveau sujet
-      </button>
-      <button class="forum-new-btn" onclick="showComposeCanvasForm()" style="opacity:.85" title="Créez un sujet avec une mise en page libre (zones de texte et images positionnables)">
-        <i class="ti ti-layout-grid"></i> Composition libre (bêta)
       </button>` : ''}
     </div>
     ${topics.length === 0
@@ -1078,6 +1075,13 @@ function quotePost(postIndex) {
   }, 100);
 }
 
+// Ancien chemin de création (éditeur classique, avant la bascule vers la composition libre
+// -- lot de finitions post-I) : plus appelé depuis aucun bouton de renderTopicList (un seul
+// bouton désormais, "Nouveau sujet", branché sur showComposeCanvasForm). Conservé tel quel,
+// non supprimé, car renderNewTopicForm()/submitNewTopic() restent le seul code qui sait créer
+// un sujet au format plat (content/content_blocks) -- utile en repli si besoin, et
+// renderEditPostForm()/submitEditPost() (édition d'un post existant, chemin séparé et
+// toujours actif) partagent renderRichEditor() avec ce formulaire.
 function showNewTopicForm() {
   if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
     showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', false);
@@ -1465,7 +1469,7 @@ async function submitEditComposedPost(layout, content) {
 }
 
 async function submitComposeCanvas() {
-  // Même garde-fou que submitNewTopic (double vérification : le bouton "Composition libre"
+  // Même garde-fou que submitNewTopic (double vérification : le bouton "Nouveau sujet"
   // est déjà masqué par la même condition à l'entrée de l'écran, showComposeCanvasForm).
   if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
     showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false);
