@@ -193,11 +193,15 @@ const QUETE_CARRIERE_BRIEFS = {
     texte: "Pour séduire les électeurs, vous pouvez faire éditer des tracts à votre nom à l'imprimerie, puis les distribuer aux gens que vous croisez. Certains voteront pour vous, d'autres non : c'est la loi de la démocratie.<br><br>Tenez, voici trois tracts. Présentez-vous à une élection, n'importe laquelle, puis distribuez-les. Revenez ensuite me voir et dites-moi les résultats que vous avez obtenus auprès de ces gens.",
     rappel: "Présentez-vous à une élection puis distribuez les 3 tracts. Revenez ensuite me voir avec les résultats."
   },
+  // entrepreneurial : refonte du 18 aout 2026 (lot Laurent Barre). L'ancienne mission (terrain
+  // squatte, Lot 4 de la Chataigneraie, obligation d'etre plusieurs) est retiree -- la presence
+  // de squatteurs n'etait pas garantie, mauvais pour un tutoriel. Declenchement par question
+  // libre (mot-cle Jeremy), pas de bouton "Discuter" -- meme principe que Pat/Jean-Lou.
   entrepreneurial: {
     titre: 'Laurent Barre',
     image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/laurent-barre.png',
-    texte: "Vous voulez devenir entrepreneur. Excellent. Combien avez-vous ?<br><br>Non. Je vous demandais combien vous êtes prêt à perdre.<br><br>Il y a un terrain squatté que la mairie n'arrive pas à récupérer — le Lot 4 de la Châtaigneraie. Allez-y. Et un bon négociateur ne se présente jamais seul s'il peut l'éviter : amenez du monde, vos chances grimperont — pas besoin d'être des experts, juste d'être plusieurs. Revenez me voir après.",
-    rappel: "Le Lot 4 de la Châtaigneraie vous attend. Allez-y quand vous êtes prêt(e)."
+    texte: "Vous voulez devenir entrepreneur ? Très bien. Commençons par voir si vous savez négocier.<br><br>Allez voir l'agent immobilier ou le promoteur et dites-lui que vous voulez négocier le prix d'une parcelle. Revenez me donner sa réponse, peu importe qu'elle soit positive ou négative.",
+    rappel: "Allez négocier le prix d'une parcelle auprès de l'agent immobilier ou du promoteur, puis revenez me voir avec la réponse."
   }
 };
 
@@ -209,13 +213,10 @@ const QUETE_CARRIERE_DEBRIEFS = {
   criminel: {
     succes: "Vous venez de transporter quelque chose sans en connaître le contenu, pour un homme que vous ne connaissez pas. Première leçon : dans ce métier, l'information vaut parfois davantage que la marchandise."
   },
-  // Plus d'entree politique ici : le retour chez Jean-Lou (jeanLouRetour(), refonte du 17 aout
-  // 2026) affiche un score exact (X/3) suivi d'un texte de conseils fixe, independant de
-  // succes/echec generique -- ce dispatcher (debriefCarriere) n'est plus appele pour 'politique'.
-  entrepreneurial: {
-    succes: "Vous avez réussi. Remarquez : la somme seule n'explique pas tout. Qui vous accompagnait a compté au moins autant que ce que vous avez offert.",
-    echec: "Ils ont pris l'argent et sont restés. La prochaine fois, entourez-vous mieux avant d'ouvrir votre portefeuille — l'argent seul ne fait pas tout."
-  }
+  // Plus d'entree politique ni entrepreneuriale ici : le retour chez Jean-Lou (jeanLouRetour())
+  // et chez Laurent (laurentRetour(), refonte du 18 aout 2026) affichent chacun un texte de
+  // conseils fixe, connu du jeu, independant d'un succes/echec generique -- ce dispatcher
+  // (debriefCarriere, retire) n'est plus appele par aucune des 3 branches.
 };
 
 // Construit le bouton d'action de la zone carriere pour ce PNJ, ou '' s'il n'est pas concerne
@@ -255,48 +256,25 @@ function genererZoneCarriereHtml(pnj) {
     return ''; // a_rencontrer (pas encore declenche) ou terminee -> dialogue PNJ normal
   }
 
-  if (qc.etape === 'a_rencontrer') {
-    return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20;font-weight:bold" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirBriefCarriere(\'' + branche + '\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Discuter</button>';
-  }
-  if (qc.etape === 'en_cours') {
-    return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');rappelMissionCarriere(\'' + branche + '\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Rappel de la mission</button>';
-  }
-  if (qc.etape === 'terminee' && !qc.debriefVu) {
-    return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20;font-weight:bold" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');debriefCarriere(\'' + branche + '\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Faire le point</button>';
-  }
-  return ''; // debrief deja vu -> dialogue PNJ normal (talkToPnj), referent desormais juste consultable
-}
-
-// Ouvre le brief de mission, prepare ce qu'il faut pour l'accomplir (tract en inventaire pour
-// Jean-Lou, squatteur scripte pour Laurent Barre), puis passe la quete en 'en_cours'.
-function ouvrirBriefCarriere(branche) {
-  const b = QUETE_CARRIERE_BRIEFS[branche];
-  if (!b || typeof afficherPopupQueteAccueil !== 'function') return;
-
-  if (branche === 'politique') {
-    donnerTractMissionCarriere();
-  } else if (branche === 'entrepreneurial' && typeof demarrerMissionLaurentBarre === 'function') {
-    demarrerMissionLaurentBarre();
+  // Branche entrepreneuriale (Laurent Barre) : meme principe que Pat/Jean-Lou (pas de bouton
+  // "Discuter", question libre avec mot-cle Jeremy -- voir talkToPnj). Comme Jean-Lou, le
+  // retour ("Faire le point") reste un bouton dedie -- priorite beta au fonctionnement,
+  // decision explicite du 18 aout 2026, coherente avec le lot precedent.
+  if (branche === 'entrepreneurial') {
+    if (qc.etape === 'negociation_demandee') {
+      return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');rappelMissionCarriere(\'entrepreneurial\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Rappel de la mission</button>';
+    }
+    if (qc.etape === 'negociation_obtenue') {
+      return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20;font-weight:bold" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');laurentRetour()"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Faire le point</button>';
+    }
+    return ''; // a_rencontrer (pas encore declenche) ou terminee -> dialogue PNJ normal
   }
 
-  if (state.char.queteCarriere) {
-    state.char.queteCarriere.etape = 'en_cours';
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-  }
-
-  afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.texte, suivant: null });
-}
-
-// Lot de tracts POUR le joueur lui-meme (cible toujours une vraie ligne Supabase valide, pas
-// de dependance a l'existence d'un autre joueur reel) - contourne volontairement le circuit
-// d'impression/bois de La Tribune, hors sujet de cette lecon (moyenne de groupe uniquement).
-function donnerTractMissionCarriere() {
-  if (!state.inventory) state.inventory = [];
-  const cible = state.char?.name;
-  const existant = state.inventory.find(i => i.type === 'tract' && i.cible === cible && i.tractType === 'pour');
-  if (existant) { existant.quantite = (existant.quantite || 0) + 1; }
-  else { state.inventory.push({ type:'tract', name:'Tracts POUR ' + cible, icon:'ti-file-description', tractType:'pour', cible: cible, quantite: 1, legal:true }); }
-  if (typeof updateUI === 'function') updateUI();
+  // Plus aucune branche n'utilise le dispatcher generique a_rencontrer/en_cours/terminee ci-
+  // dessus (ouvrirBriefCarriere/debriefCarriere, retires le 18 aout 2026 -- les 3 branches ont
+  // desormais chacune leur propre etat/dispatch dedie). Rien a faire ici pour une branche
+  // inconnue.
+  return '';
 }
 
 function rappelMissionCarriere(branche) {
@@ -304,10 +282,10 @@ function rappelMissionCarriere(branche) {
   if (b && typeof showToast === 'function') showToast('Rappel', b.rappel, true);
 }
 
-// Hook appele depuis les 3 ordres concernes (doContrebandePort, confirmerDistribuerTract,
-// confirmerNegociation), succes ou echec - l'echec vaut lecon aussi, la mission n'est jamais
-// bloquante. No-op si ce n'est pas la bonne branche ou si la mission n'est pas en cours (evite
-// qu'un usage ulterieur, hors mission, de ces memes ordres ne redeclenche quoi que ce soit).
+// Hook historique (ordre general confirmerDistribuerTract, hors perimetre des 3 branches
+// d'onboarding desormais refaites) : plus aucune des 3 branches ne l'appelle pour sa propre
+// progression (chacune a son etat/dispatch dedie -- voir plus bas). Conserve tel quel, non
+// touche : ordre general non concerne par ce lot.
 function verifierProgressionCarriere(branche, succes) {
   const qc = state.char?.queteCarriere;
   if (!qc || qc.ambition !== branche || qc.etape !== 'en_cours') return;
@@ -316,29 +294,14 @@ function verifierProgressionCarriere(branche, succes) {
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 }
 
-function debriefCarriere(branche) {
-  const qc = state.char?.queteCarriere;
-  const b = QUETE_CARRIERE_BRIEFS[branche];
-  const d = QUETE_CARRIERE_DEBRIEFS[branche];
-  if (!b || !d || typeof afficherPopupQueteAccueil !== 'function') return;
-  const texte = qc?.resultat === 'succes' ? d.succes : d.echec;
-
-  if (qc) {
-    qc.debriefVu = true;
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-  }
-
-  afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: texte, suivant: null });
-}
-
 // =====================
 // BRANCHE CRIMINELLE — Pat Hounette / Brigitte Menottes (refonte du 15 aout 2026)
 // Etats propres : state.char.queteCarriere = { ambition:'criminel', etape, resultat:null }
 //   a_rencontrer -> colis_recu -> colis_livre -> terminee
 // Remplace l'ancienne mission "contrebande au port, a plusieurs" (verifierProgressionCarriere
-// n'est plus appelee pour cette branche, voir doContrebandePort). Ne passe plus par
-// ouvrirBriefCarriere/debriefCarriere (generiques aux 3 branches, gardes intacts pour
-// politique/entrepreneurial) : dispatch dedie ci-dessous, texte/image repris de
+// n'est plus appelee pour cette branche, voir doContrebandePort). Ne passe plus par l'ancien
+// dispatcher generique ouvrirBriefCarriere/debriefCarriere (retire le 18 aout 2026, plus aucune
+// des 3 branches ne l'utilisait) : dispatch dedie ci-dessous, texte/image repris de
 // QUETE_CARRIERE_BRIEFS.criminel et QUETE_CARRIERE_DEBRIEFS.criminel.
 // =====================
 
@@ -457,6 +420,12 @@ function queteCarriereObjectifActuel() {
     if (qc.etape === 'a_rencontrer') return "Rendez-vous chez Jean-Lou Zeure et dites-lui que Jérémy vous envoie.";
     if (qc.etape === 'tracts_recus') return "Présentez-vous à une élection à la mairie, puis distribuez les 3 tracts confiés par Jean-Lou Zeure.";
     if (qc.etape === 'tracts_termines') return "Retournez voir Jean-Lou Zeure et donnez-lui vos résultats.";
+    return null; // 'terminee' (ou etat inconnu) -> pas d'objectif specifique
+  }
+  if (qc.ambition === 'entrepreneurial') {
+    if (qc.etape === 'a_rencontrer') return "Rendez-vous chez Laurent Barre et dites-lui que Jérémy vous envoie.";
+    if (qc.etape === 'negociation_demandee') return "Demandez à l'agent immobilier ou au promoteur de négocier le prix d'une parcelle, puis retournez voir Laurent Barre.";
+    if (qc.etape === 'negociation_obtenue') return "Retournez voir Laurent Barre et donnez-lui la réponse obtenue.";
     return null; // 'terminee' (ou etat inconnu) -> pas d'objectif specifique
   }
   return null;
@@ -647,6 +616,104 @@ function jeanLouRetour() {
           if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
         }
       });
+    }
+  });
+}
+
+// =====================
+// BRANCHE ENTREPRENEURIALE — Laurent Barre (refonte du 18 aout 2026)
+// Etats propres : state.char.queteCarriere = { ambition:'entrepreneurial', etape,
+//   resultatNegociation: 'non'|'ouvert'|null }
+//   a_rencontrer -> negociation_demandee -> negociation_obtenue -> terminee
+// Remplace l'ancienne mission (terrain squatte du Lot 4 de la Chataigneraie, obligation d'etre
+// plusieurs) : la presence de squatteurs n'etait pas garantie, inadaptee a un tutoriel.
+// Aucun achat, aucune depense, aucune modification reelle de prix de parcelle -- uniquement
+// une interaction de dialogue, jamais l'ordre reel de negociation avec les squatteurs
+// (confirmerNegociation, mecanique generale non touchee et non reutilisee ici).
+// =====================
+
+// Declenchee depuis talkToPnj() des que le joueur mentionne Jeremy a Laurent Barre (question
+// libre, pas de bouton). Une seule fenetre (texte fourni), pas de grant d'objet/argent.
+function declencherMissionLaurent() {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'entrepreneurial' || qc.etape !== 'a_rencontrer') return;
+  const b = QUETE_CARRIERE_BRIEFS.entrepreneurial;
+
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (typeof afficherPopupQueteAccueil !== 'function') return;
+
+  afficherPopupQueteAccueil({
+    image: b.image,
+    titre: b.titre,
+    texte: b.texte,
+    suivant: function() {
+      qc.etape = 'negociation_demandee';
+      qc.resultatNegociation = null;
+      if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+    }
+  });
+}
+
+// Declenchee depuis talkToPnj() quand le joueur demande a negocier le prix d'une parcelle a
+// l'agent immobilier (Notaire Fontenelle, office notarial -- "Ventes de terrain" fait partie
+// de ses attributions reelles) ou au promoteur (Gerard Speculos et equivalents par empire,
+// PNJ id:'promoteur' dans data.js). Reponse aleatoire simple, sans impact economique reel --
+// sert uniquement a faire pratiquer l'interaction au joueur. Memorise le resultat une seule
+// fois (gate sur l'etape : un deuxieme essai, etape deja passee a negociation_obtenue, ne
+// redeclenche plus rien ici et retombe sur le comportement normal du PNJ).
+function repondreNegociationParcelle(pnj) {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'entrepreneurial' || qc.etape !== 'negociation_demandee') return;
+
+  const ouvert = Math.random() < 0.5;
+  qc.resultatNegociation = ouvert ? 'ouvert' : 'non';
+  qc.etape = 'negociation_obtenue';
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (typeof afficherPopupQueteAccueil !== 'function') return;
+  afficherPopupQueteAccueil({
+    image: pnj.photoUrl || null,
+    titre: (pnj.name || '').replace(' (PNJ)', ''),
+    texte: ouvert
+      ? "Négocier ? Pourquoi pas. Mais bon, est-ce que vous avez les fonds ? Si vous payez cash, on peut en reparler. N'hésitez pas à revenir me voir."
+      : "Négocier ? Vous plaisantez, j'espère. Le potentiel de ces parcelles est énorme. C'est déjà une bonne affaire à ce prix-là.",
+    suivant: null
+  });
+}
+
+// Declenchee par le bouton "Faire le point" sur la fiche de Laurent une fois la reponse
+// obtenue. Le jeu connait deja le resultat (qc.resultatNegociation) : un seul choix cliquable
+// est propose, celui correspondant reellement a la reponse obtenue -- le joueur ne peut donc
+// pas mentir accidentellement et casser l'etat de la quete (solution minimale demandee, pas de
+// systeme general de memoire des mensonges).
+function laurentRetour() {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'entrepreneurial' || qc.etape !== 'negociation_obtenue') return;
+  const b = QUETE_CARRIERE_BRIEFS.entrepreneurial;
+  const choixTexte = qc.resultatNegociation === 'ouvert' ? 'Ils ne sont pas fermés à la discussion.' : 'Ils ont dit non.';
+
+  afficherPopupQueteAccueil({
+    image: b.image,
+    titre: b.titre,
+    texte: 'Alors, ils ont dit quoi ?',
+    suivant: null,
+    actionsHtml: '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\');laurentConclusion();">' + choixTexte + '</button>'
+  });
+}
+
+function laurentConclusion() {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'entrepreneurial' || qc.etape !== 'negociation_obtenue') return;
+  const b = QUETE_CARRIERE_BRIEFS.entrepreneurial;
+
+  afficherPopupQueteAccueil({
+    image: b.image,
+    titre: b.titre,
+    texte: "Vous voyez, pour négocier, il faut avoir des atouts. Un bon businessman se doit d'avoir une bonne intelligence. Si vous voulez être encore meilleur, sachez vous entourer de personnes plus intelligentes que vous.<br><br>N'ayez crainte, vous resterez le boss quoi qu'il arrive : ces personnes seront là pour vous servir.<br><br>À présent, j'ai du travail. Explorez un peu cette ville et détectez les opportunités.<br><br>Si vous avez besoin d'aide, ajoutez-moi à vos contacts et envoyez-moi un mail. Je vous répondrai volontiers si je peux vous apporter une vraie réponse.",
+    suivant: function() {
+      qc.etape = 'terminee';
+      if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
     }
   });
 }
@@ -1130,6 +1197,33 @@ function verifierSuccesMaxence(cle) {
       && /j[\u00e9e]r[\u00e9e]m(y|ie)/i.test(action)) {
     if (typeof declencherMissionJeanLou === 'function') declencherMissionJeanLou();
     return;
+  }
+
+  // Branche entrepreneuriale (Laurent Barre) : declenchement de la mission des que le joueur
+  // mentionne Jeremy, meme pattern que Pat/Jean-Lou ci-dessus.
+  const nomCourtLaurent = (pnj.name || '').replace(' (PNJ)', '').trim();
+  if (nomCourtLaurent === 'Laurent Barre' && action !== 'bonjour'
+      && state.char?.queteCarriere?.ambition === 'entrepreneurial'
+      && state.char.queteCarriere.etape === 'a_rencontrer'
+      && /j[ée]r[ée]m(y|ie)/i.test(action)) {
+    if (typeof declencherMissionLaurent === 'function') declencherMissionLaurent();
+    return;
+  }
+
+  // Branche entrepreneuriale : l'agent immobilier (Notaire Fontenelle, office notarial) ou le
+  // promoteur (Gerard Speculos et equivalents, PNJ id:'promoteur') valident l'etape de mission
+  // des que le joueur demande a negocier le prix d'une parcelle/terrain -- reconnaissance
+  // souple (racines negoci/prix/parcelle/terrain), pas de phrase exacte requise. Meme
+  // normalisation (accents/casse) que le reste de ce fichier.
+  if ((nomCourtLaurent === 'Notaire Fontenelle' || nomCourtLaurent === 'Gérard Spéculos' || nomCourtLaurent === 'Don Ladrillo' || nomCourtLaurent === 'Camarade Bâtissov' || nomCourtLaurent === 'Cheikh Al-Bâtisseur')
+      && action !== 'bonjour'
+      && state.char?.queteCarriere?.ambition === 'entrepreneurial'
+      && state.char.queteCarriere.etape === 'negociation_demandee') {
+    const actionNormaliseeNego = action.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (/negoci|prix|parcelle|terrain/.test(actionNormaliseeNego)) {
+      if (typeof repondreNegociationParcelle === 'function') repondreNegociationParcelle(pnj);
+      return;
+    }
   }
 
   // Actions predefinies
@@ -2674,8 +2768,6 @@ async function confirmerNegociation(pa, cost) {
 
   state.arg -= montant;
   document.getElementById('modal-postes').classList.remove('open');
-
-  if (typeof verifierProgressionCarriere === 'function') verifierProgressionCarriere('entrepreneurial', succesNego);
 
   if (succesNego) {
     setTerrainState(id, { pnj: null, pnjData: null });

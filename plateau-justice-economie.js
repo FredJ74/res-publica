@@ -2625,18 +2625,6 @@ function setTerrainState(buildingId, patch) {
   return actuel;
 }
 
-// Quete carriere de Laurent Barre (branche entrepreneuriale) : place un squatteur garanti
-// (profil sympathique, pas de minimum impose contrairement a "La Bande a Rotule") sur le
-// Lot 4 de la Chataigneraie, plutot que de compter sur la generation aleatoire des terrains.
-function demarrerMissionLaurentBarre() {
-  const pays = state.country || 'republic';
-  const id = 'terrain-a-batir-4';
-  const profil = (typeof TERRAIN_PNJ_PROFILES !== 'undefined' ? (TERRAIN_PNJ_PROFILES[pays] || []) : []).find(p => p.id === 'squatter_cool');
-  if (!profil) return;
-  const nouvelEtat = setTerrainState(id, { pnj: 'squatter_cool', pnjData: profil });
-  if (typeof sbSetTerrainState === 'function') sbSetTerrainState(pays, id, nouvelEtat).catch(() => {});
-}
-
 async function chargerTerrainState(buildingId) {
   if (typeof sbGetTerrainState !== 'function') return getTerrainState(buildingId);
   const distant = await sbGetTerrainState(state.country, buildingId).catch(() => null);

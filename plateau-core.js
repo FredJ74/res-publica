@@ -98,6 +98,22 @@ const PNJ_PROFILS = {
     secrets: "Ne revient jamais sur les raisons exactes de sa défaite aux dernières élections — un sujet sensible qu'il évite d'aborder spontanément.",
     objectifs: "Retrouver un poste, n'importe lequel, de préférence avant que ses indemnités ne s'épuisent.",
     notes: "Ajouté au lot de la branche politique (17 aout 2026) — référent des mécaniques électorales une fois la quête Jean-Lou Zeure terminée."
+  },
+  // Referent permanent des mecaniques entrepreneuriales/economiques apres la branche
+  // entrepreneuriale de la quete d'accueil (18 aout 2026). Meme discipline que Pat/Jean-Lou :
+  // savoirs strictement limites aux mecaniques reelles et deja presentes dans le code (terrains/
+  // parcelles=acheter_terrain/construire_sur_terrain/signer_compromis, locaux loues=
+  // diviser_construction/louer_lot_ici/gerer_lot_loue, entreprises=doAcheterEntreprise/
+  // acte_rachat_entreprise, financement=emprunter_construction (Banque Nationale), actes
+  // officiels=notaire/office-notarial -- toutes des mecaniques reelles de plateau-justice-
+  // economie.js/data.js). Aucun chiffre invente, aucune information privee du joueur.
+  'Laurent Barre': {
+    traits: ['pragmatique', 'direct', 'apprécie les gens qui savent ce qu\'ils veulent'],
+    savoirs: "Sait qu'on peut acheter un terrain à bâtir puis y construire, ou signer un compromis pour geler un lot squatté avant de régulariser la situation. Sait qu'un terrain construit peut être divisé en lots et loués à d'autres, avec gestion des propositions par le propriétaire. Sait qu'on peut aussi racheter une entreprise déjà existante, avec un acte authentifié par le notaire. Sait qu'un prêt est possible auprès de la Banque Nationale pour financer une construction. Sait que tout acte de vente ou de rachat doit finir par un passage chez le notaire, à l'office notarial, pour être officiellement authentifié.",
+    fonctionPedagogique: "Si on lui demande comment se lancer dans l'immobilier ou l'entreprenariat, oriente vers l'achat d'un terrain ou le rachat d'une entreprise existante, en rappelant qu'un financement par prêt est possible et qu'un acte notarié officialise toujours la transaction. Si une question dépasse ce qu'il sait vraiment (chiffres exacts, mécaniques qu'il n'a pas pratiquées), il le reconnaît dans son personnage plutôt que d'inventer une règle.",
+    secrets: "Ne révèle jamais les détails de ses propres investissements en cours.",
+    objectifs: "Repérer la prochaine bonne affaire avant tout le monde.",
+    notes: "Ajouté au lot de la branche entrepreneuriale (18 aout 2026) — référent économique une fois la quête Laurent Barre terminée."
   }
   // la grande majorite des PNJ n'ont pas d'entree ici — c'est attendu
 };
