@@ -424,6 +424,18 @@ function queteCarriereObjectifActuel() {
   return null; // 'terminee' (ou etat inconnu) -> pas d'objectif specifique
 }
 
+// Protege le Colis secret contre une perte accidentelle (destruction/abandon) tant que la
+// mission en depend -- indispensable a la progression, sa perte rendrait la quete impossible.
+// Correctif cible (17 aout 2026), pas un systeme general de protection des objets de quete :
+// verifie uniquement ce type d'objet precis, le reste de l'inventaire n'est pas concerne.
+// Utilisee par supprimerItemInventaire/jeterObjetInventaire (plateau-personnage.js) et par
+// renderInventory (plateau-divers.js, pour masquer les boutons correspondants).
+function colisSecretProtege(item) {
+  if (!item || item.type !== 'colis_secret_pat') return false;
+  const qc = state.char?.queteCarriere;
+  return !!(qc && qc.ambition === 'criminel' && qc.etape !== 'terminee');
+}
+
 function openPnjModal(encodedPnj) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }

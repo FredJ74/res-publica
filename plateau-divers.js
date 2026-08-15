@@ -645,6 +645,13 @@ function renderInventory() {
     const legal = item.legal === false ? '<span style="color:#cc4444;font-size:.8rem"> ⚠ Illégal</span>' : '';
     const expiry = item.expireDay ? '<div style="font-size:.8rem;color:#6a5030">Expire jour ' + item.expireDay + '</div>' : '';
     const qtyBadge = (item.stackable && item.qty > 1) ? '<span style="color:#C9A84C;font-weight:bold"> ×' + item.qty + '</span>' : '';
+    // Objet de quete indispensable (ex: Colis secret) : boutons jeter/supprimer masques tant
+    // qu'il est protege, remplaces par un simple indicateur -- voir colisSecretProtege().
+    const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
+    const actionsHtml = protege
+      ? '<span title="Indispensable à une mission en cours" style="flex-shrink:0;color:#6a5a30;font-size:.85rem;padding:.15rem .35rem"><i class="ti ti-lock"></i></span>'
+      : '<button onclick="jeterObjetInventaire(' + idx + ')" title="Déposer ici (visible par les autres joueurs)" style="flex-shrink:0;background:none;border:1px solid #4a3010;color:#a0905a;cursor:pointer;padding:.15rem .35rem;font-size:.85rem;font-family:Bebas Neue,sans-serif"><i class="ti ti-map-pin"></i></button>' +
+        '<button onclick="supprimerItemInventaire(' + idx + ')" title="Supprimer" style="flex-shrink:0;background:none;border:1px solid #3a1a1a;color:#cc5540;cursor:pointer;padding:.15rem .35rem;font-size:.85rem;font-family:Bebas Neue,sans-serif">✕</button>';
     return '<div class="inv-item" style="display:flex;align-items:center;justify-content:space-between;gap:.4rem">' +
       '<div style="display:flex;align-items:center;gap:.4rem;flex:1;min-width:0;cursor:pointer" onclick="ouvrirDetailObjetInventaire(' + idx + ')">' +
         '<i class="ti ' + (item.icon||'ti-package') + '" style="font-size:.85rem;color:#8a6a20;flex-shrink:0"></i>' +
@@ -654,8 +661,7 @@ function renderInventory() {
           expiry +
         '</div>' +
       '</div>' +
-      '<button onclick="jeterObjetInventaire(' + idx + ')" title="Déposer ici (visible par les autres joueurs)" style="flex-shrink:0;background:none;border:1px solid #4a3010;color:#a0905a;cursor:pointer;padding:.15rem .35rem;font-size:.85rem;font-family:Bebas Neue,sans-serif"><i class="ti ti-map-pin"></i></button>' +
-      '<button onclick="supprimerItemInventaire(' + idx + ')" title="Supprimer" style="flex-shrink:0;background:none;border:1px solid #3a1a1a;color:#cc5540;cursor:pointer;padding:.15rem .35rem;font-size:.85rem;font-family:Bebas Neue,sans-serif">✕</button>' +
+      actionsHtml +
     '</div>';
   }).join('');
 }

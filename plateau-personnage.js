@@ -1110,15 +1110,20 @@ async function ouvrirDetailObjetInventaire(idx) {
 
   html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
 
-  if (joueursPresents.length > 0) {
-    html += '<select id="donner-objet-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
-    joueursPresents.forEach(p => { html += '<option value="' + p.name + '">' + p.name + '</option>'; });
-    html += '</select>';
-    html += '<button onclick="donnerObjetAJoueur(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-gift"></i> Donner a ce joueur</button>';
-  }
+  const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
+  if (protege) {
+    html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic"><i class="ti ti-lock"></i> Indispensable à une mission en cours — ne peut être ni donné à un autre joueur, ni abandonné, ni détruit.</div>';
+  } else {
+    if (joueursPresents.length > 0) {
+      html += '<select id="donner-objet-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
+      joueursPresents.forEach(p => { html += '<option value="' + p.name + '">' + p.name + '</option>'; });
+      html += '</select>';
+      html += '<button onclick="donnerObjetAJoueur(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #4a6aaa;background:transparent;color:#6a8aca;cursor:pointer"><i class="ti ti-gift"></i> Donner a ce joueur</button>';
+    }
 
-  html += '<button onclick="jeterObjetInventaire(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a30;background:transparent;color:#a0905a;cursor:pointer"><i class="ti ti-map-pin"></i> Abandonner ici (visible par les autres joueurs)</button>';
-  html += '<button onclick="supprimerItemInventaire(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-x"></i> Supprimer (destruction definitive)</button>';
+    html += '<button onclick="jeterObjetInventaire(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #8a6a30;background:transparent;color:#a0905a;cursor:pointer"><i class="ti ti-map-pin"></i> Abandonner ici (visible par les autres joueurs)</button>';
+    html += '<button onclick="supprimerItemInventaire(' + idx + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer"><i class="ti ti-x"></i> Supprimer (destruction definitive)</button>';
+  }
 
   html += '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -1128,6 +1133,13 @@ async function donnerObjetAJoueur(idx) {
   const item = state.inventory[idx];
   const cible = document.getElementById('donner-objet-cible')?.value;
   if (!item || !cible) return;
+  // Meme protection que la destruction/l'abandon : ce chemin (fiche detail d'un objet, donner
+  // a un vrai joueur present dans la piece) contournerait sinon la restriction "Brigitte
+  // Menottes uniquement" deja posee sur confirmerDonObjetPj (plateau-justice-economie.js).
+  if (typeof colisSecretProtege === 'function' && colisSecretProtege(item)) {
+    showToast('Impossible', 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.', false);
+    return;
+  }
 
   state.inventory.splice(idx, 1);
   renderInventory();
@@ -1153,6 +1165,10 @@ async function donnerObjetAJoueur(idx) {
 function supprimerItemInventaire(idx) {
   const item = state.inventory[idx];
   if (!item) return;
+  if (typeof colisSecretProtege === 'function' && colisSecretProtege(item)) {
+    showToast('Impossible', 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.', false);
+    return;
+  }
   state.inventory.splice(idx, 1);
   renderInventory();
   showToast('Objet détruit', '"' + item.name + '" a été détruit définitivement. Aucune trace.', true);
@@ -1162,6 +1178,10 @@ function supprimerItemInventaire(idx) {
 async function jeterObjetInventaire(idx) {
   const item = state.inventory[idx];
   if (!item) return;
+  if (typeof colisSecretProtege === 'function' && colisSecretProtege(item)) {
+    showToast('Impossible', 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.', false);
+    return;
+  }
   state.inventory.splice(idx, 1);
   renderInventory();
   document.getElementById('modal-postes').classList.remove('open');
