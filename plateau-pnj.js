@@ -494,6 +494,15 @@ function declencherMissionJeanLou() {
 // que le choix soit deterministe si le joueur est candidat a plusieurs postes a la fois (voir
 // distribuerTractJeanLou : les 3 tracts de cette quete restent tous rattaches a la MEME
 // election, jamais repartis/dupliques sur plusieurs).
+// Correctif du 18 aout 2026 (bug bloquant remonte en test manuel) : cette fonction exigeait
+// encore getPhaseActuelle(...) === CAMPAGNE, un second verrou date/phase independant du delai
+// de candidature deja retire de deposerCandidature() (lot precedent). Un cycle fraichement cree
+// a sa candidature demarre sa phase CANDIDATURES avec dateDebutCampagne = maintenant + 1
+// semaine : juste apres avoir depose sa candidature (desormais possible a tout moment), le
+// joueur echouait donc systematiquement ce test de phase, alors qu'il est bien reellement
+// candidat. Etre reellement liste dans cycle.candidats suffit desormais a etre considere
+// candidat pour les interactions electorales (tracts/prospectus) -- aucune autre condition
+// electorale modifiee.
 function trouverElectionCandidatJoueur() {
   const country = state.country;
   const cycles = (typeof CYCLES_ELECTORAUX !== 'undefined' && CYCLES_ELECTORAUX[country]) || {};
@@ -504,8 +513,6 @@ function trouverElectionCandidatJoueur() {
     const cycle = cycles[cle];
     if (!cycle || !cycle.candidats) continue;
     if (!cycle.candidats.some(c => c.nom === nom)) continue;
-    if (typeof getPhaseActuelle !== 'function') continue;
-    if (getPhaseActuelle(country, cycle.posteId, cycle.city) !== PHASES_ELECTORALES.CAMPAGNE) continue;
     return { posteId: cycle.posteId, city: cycle.city || null, country };
   }
   return null;
