@@ -380,7 +380,7 @@ function renderComposeCanvasForm() {
       </button>
       <div class="forum-title-main">${enEdition ? 'Modifier le message' : 'Nouveau sujet'}</div>
     </div>
-    <div style="padding:1rem">
+    <div style="padding:1rem 1rem 0;flex-shrink:0">
       ${enEdition ? '' : `
       <div class="forum-field">
         <label class="forum-field-label">Titre du sujet</label>
@@ -404,6 +404,17 @@ function renderComposeCanvasForm() {
           </button>
         </div>
       </div>
+    </div>
+    <!-- Correctif bug bloquant (18 aout 2026) : .forum-main/.forum-layout sont en
+         overflow:hidden -- seul un enfant flex:1;overflow-y:auto dédié defile reellement (meme
+         principe deja utilise par .forum-topics-list pour la liste des sujets, style.css).
+         Avant ce correctif, le canvas de composition (hauteur non bornee, elements en position
+         absolute) grandissait sans jamais pouvoir etre atteint au-dela de la hauteur visible :
+         aucun ancetre ne proposait de defilement. La barre d'outils (bouton Publier inclus)
+         reste volontairement HORS de cette zone defilante, juste au-dessus (flex-shrink:0),
+         pour rester accessible meme quand le canvas est long. N'affecte ni renderComposedPost
+         (rendu publie, correctif de hauteur E3 intact) ni la logique de zones/serialisation. -->
+    <div style="padding:0 1rem 1rem;flex:1;overflow-y:auto;min-height:0">
       <!-- Fond du canvas (lot de finitions) : gris chaud clair sobre plutôt que blanc pur --
            évite l'effet feuille blanche agressive à côté du reste du forum, tout en restant
            un fond clair (le texte des zones -- .rp-zone-content, style.css -- est en gris
