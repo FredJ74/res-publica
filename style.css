@@ -619,6 +619,12 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    Lot C2 : reprise directe des styles déjà validés dans prototype-canvas-composition.html
    (F1.5) — canvas volontairement clair/blanc, indépendant du thème sombre du jeu, comme
    c'était déjà le cas dans le prototype. */
+/* Actions principales (Prévisualiser / Publier, correctif ergonomique post-E2) : barre
+   toujours visible, placée avant l'outillage du canvas et le canvas lui-même -- jamais
+   affectée par la hauteur du canvas ni par la position des zones/images qu'il contient,
+   contrairement à un bouton placé après lui. Ni rpCanvasTogglePreview() ni submitComposeCanvas()
+   ne sont modifiées : seul l'emplacement de leurs boutons change. */
+.rp-compose-actions{display:flex;gap:.6rem;align-items:center;padding-bottom:.8rem;margin-bottom:.8rem;border-bottom:1px solid #2a2010}
 .rp-compose-toolbar{display:flex;gap:.5rem;margin-bottom:.8rem}
 .rp-canvas-el{position:absolute}
 
