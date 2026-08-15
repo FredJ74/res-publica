@@ -405,14 +405,14 @@ function renderTopicList() {
             <div class="forum-topic-row" onclick="openTopic('${t.id}')">
               <div class="forum-topic-title">
                 <i class="ti ti-message-circle" style="font-size:.8rem;color:#4a6a4a;margin-right:.3rem"></i>
-                ${t.title}
+                ${escapeHtmlText(t.title)}
               </div>
               <div class="forum-topic-author">
-                <div>${t.author}</div>
+                <div>${escapeHtmlText(t.author)}</div>
                 <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(t.time)}</div>
               </div>
               <div class="forum-topic-author">
-                <div>${t.lastPostAuthor || t.author}</div>
+                <div>${escapeHtmlText(t.lastPostAuthor || t.author)}</div>
                 <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(t.lastPostTime || t.time)}</div>
               </div>
               <div class="forum-topic-stat">${t.views}</div>
@@ -436,15 +436,15 @@ function renderTopicView() {
       <button class="forum-back-btn" onclick="backToList()">
         <i class="ti ti-arrow-left"></i> Retour
       </button>
-      <div class="forum-title-main" style="flex:1">${topic.title}</div>
+      <div class="forum-title-main" style="flex:1">${escapeHtmlText(topic.title)}</div>
     </div>
     <div class="forum-posts">
       ${topic.posts.map((p, i) => `
         <div class="forum-post">
           <div class="forum-post-side">
-            <div class="forum-post-avatar" ${!p.authorIsOrg ? `style="cursor:pointer" onclick="ouvrirFichePublique('${(p.author||'').replace(/'/g,"\\'")}')"` : ''}>${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(p.author, 40) : '<i class="ti ti-user" style="font-size:1.2rem;color:#C9A84C"></i>'}</div>
+            <div class="forum-post-avatar" ${!p.authorIsOrg ? `style="cursor:pointer" data-author="${escapeHtmlText(p.author)}" onclick="ouvrirFichePublique(this.dataset.author)"` : ''}>${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(p.author, 40) : '<i class="ti ti-user" style="font-size:1.2rem;color:#C9A84C"></i>'}</div>
             ${p.authorCountry && COUNTRIES?.[p.authorCountry] ? '<div style="width:100%;height:6px;background:' + COUNTRIES[p.authorCountry].col + ';margin:.3rem 0 .1rem"></div>' : ''}
-            <div class="forum-post-author">${p.author}${p.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.7rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
+            <div class="forum-post-author">${escapeHtmlText(p.author)}${p.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.7rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
             ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">secrète</span>' : ''}
             <div class="forum-post-time">${formatDateAffichage(p.time)}</div>
             ${i === 0 ? `<span class="forum-post-badge">Auteur du sujet</span>` : ''}
@@ -919,9 +919,9 @@ function renderPosterEnTantQue(fieldId) {
   if (mesOrgas.length === 0) return '';
   let html = '<div class="forum-field"><label class="forum-field-label">Poster en tant que</label>';
   html += '<select id="' + fieldId + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
-  html += '<option value="">' + (state.char?.name || 'Moi-même') + '</option>';
+  html += '<option value="">' + escapeHtmlText(state.char?.name || 'Moi-même') + '</option>';
   mesOrgas.forEach(o => {
-    html += '<option value="' + o.id + '">' + o.nom + (!o.visible ? ' (secrète)' : '') + '</option>';
+    html += '<option value="' + o.id + '">' + escapeHtmlText(o.nom) + (!o.visible ? ' (secrète)' : '') + '</option>';
   });
   html += '</select></div>';
   return html;
@@ -969,7 +969,7 @@ function renderReplyForm() {
   return `
     <div class="forum-header-bar">
       <button class="forum-back-btn" onclick="backToTopic()"><i class="ti ti-arrow-left"></i> Retour au sujet</button>
-      <div class="forum-title-main">Répondre : ${topic?.title||''}</div>
+      <div class="forum-title-main">Répondre : ${escapeHtmlText(topic?.title||'')}</div>
     </div>
     <div class="forum-compose-form">
       ${renderPosterEnTantQue('reply-auteur')}
@@ -1066,7 +1066,7 @@ function quotePost(postIndex) {
   const post = topic?.posts[postIndex];
   if (!post) return;
   const stripped = post.content.replace(/<[^>]+>/g, '').substring(0, 200);
-  const quoteHtml = `<div style="margin:1.3rem 0"><div style="text-align:center;color:#6a5a30;font-size:.7rem;letter-spacing:.35em">— · —</div><blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:.5rem 0;color:#c0b090"><em>${stripped}...</em><br><small style="color:#6a5a30">— ${post.author}</small></blockquote><div style="text-align:center;color:#6a5a30;font-size:.7rem;letter-spacing:.35em">— · —</div></div><p></p>`;
+  const quoteHtml = `<div style="margin:1.3rem 0"><div style="text-align:center;color:#6a5a30;font-size:.7rem;letter-spacing:.35em">— · —</div><blockquote style="border-left:3px solid #C9A84C;padding:.7rem 1.2rem;margin:.5rem 0;color:#c0b090"><em>${stripped}...</em><br><small style="color:#6a5a30">— ${escapeHtmlText(post.author)}</small></blockquote><div style="text-align:center;color:#6a5a30;font-size:.7rem;letter-spacing:.35em">— · —</div></div><p></p>`;
   forumView = 'reply';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   setTimeout(() => {
@@ -1378,7 +1378,7 @@ async function submitNewTopic() {
   updateUI();
   forumView = 'list';
   document.getElementById('forum-main').innerHTML = renderForumContent();
-  addJournalEntry(`Vous avez créé le sujet "${title}" sur le forum.`, 'event-info');
+  addJournalEntry(`Vous avez créé le sujet "${escapeHtmlText(title)}" sur le forum.`, 'event-info');
 }
 
 async function submitReply() {
@@ -1415,7 +1415,7 @@ async function submitReply() {
   updateUI();
   forumView = 'topic';
   document.getElementById('forum-main').innerHTML = renderForumContent();
-  addJournalEntry(`Vous avez répondu au sujet "${topic.title}".`, 'event-info');
+  addJournalEntry(`Vous avez répondu au sujet "${escapeHtmlText(topic.title)}".`, 'event-info');
 }
 
 // Publication réelle d'un sujet composé (Lot E2) — même geste que submitNewTopic (sbCreateTopic
@@ -1535,7 +1535,7 @@ async function submitComposeCanvas() {
   updateUI();
   forumView = 'list';
   document.getElementById('forum-main').innerHTML = renderForumContent();
-  addJournalEntry(`Vous avez créé le sujet "${title}" sur le forum (composition libre).`, 'event-info');
+  addJournalEntry(`Vous avez créé le sujet "${escapeHtmlText(title)}" sur le forum (composition libre).`, 'event-info');
   showToast('Sujet publié', 'Votre sujet est en ligne.', true, true);
 }
 
@@ -1767,7 +1767,7 @@ function renderMailCompose(defaultTo = '', defaultSubject = '') {
         <input class="forum-field-input" id="mail-to" type="text" value="${escapeHtmlText(defaultTo)}"
           placeholder="Nom du destinataire..." list="contacts-list"/>
         <datalist id="contacts-list">
-          ${contacts.map(c => `<option value="${c.name}">`).join('')}
+          ${contacts.map(c => `<option value="${escapeHtmlText(c.name)}">`).join('')}
         </datalist>
       </div>
       <div class="forum-field">
