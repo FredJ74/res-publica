@@ -328,7 +328,7 @@ const WORLD = {
       buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-6','stade','zone-production','entrepot-logistique-montrouge','raffinerie-montrouge','bureau-national-emploi-montrouge','armurerie','loge-maconnique','la-tribune','marche','cafe-gare-montrouge','brasserie-voyageurs-montrouge','musee-histoire-montrouge','eglise-montrouge','cinema-montrouge','jardins-ouvriers-montrouge','logements-montrouge','cafe-tabac-cheminots-montrouge'],
       buildingContext: {
         'stade': {
-          name: "Stade Marcel Cazenave — Union Cheminote de Montrouge",
+          name: "Stade Marcel Cazenave",
           desc: "Colle aux voies ferrees. Les Cheminots jouent avec la rage des quartiers ouvriers.",
           persons: [
             {name:'Jean-Philippe Hervitmonfute (PNJ)', role:'Entraineur', rel:'neutral', job:'entraineur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entraineur-montrouge-hervitmonfute.png'},
@@ -363,15 +363,34 @@ const WORLD = {
           persons: [{"name": "Docteur Silicose (PNJ)", "role": "Médecin du travail", "rel": "neutral", "job": "medecin"}]
         },
         'la-tribune': {
-          name: "La Voix du Mineur",
+          name: "Le Cheminot Informé (LCI)",
           desc: "Le journal syndical de Montrouge.",
           persons: [{"name": "Rédacteur Calame (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}]
         },
         'marche': {
-          name: "Marché Ouvrier de Montrouge",
+          name: "Marché de Montrouge",
           desc: "Légumes pas chers, grèves annoncées à voix haute.",
           persons: [{"name": "Josette Betterave (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}]
-        }
+        },
+
+        // ---- Correctif de nomenclature (2026-08-16) : le nom affiche au joueur doit
+        // correspondre au libelle valide sur les 13 vues urbaines. Overrides minimaux
+        // (nom uniquement), aucune mecanique/PNJ/desc ajoutee pour ce lot. Les buildingId
+        // techniques ne sont pas touches.
+        'hotel-mineur':                 { name: "Hôtel de la Victoire" },
+        'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge" },
+        'commissariat-local':           { name: "Commissariat de Montrouge" },
+        'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
+        'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
+        'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
+        'dispensaire-public-v':         { name: "Hôpital de Montrouge" },
+        'centre-commercial':            { name: "Centre commercial de Montrouge" },
+        'centre-affaires':              { name: "Centre d'affaires de Montrouge" },
+        'mairie':                       { name: "Hôtel de Ville de Montrouge" },
+        'banque-locale':                { name: "Banque Cheminote de Montrouge" },
+        'loge-maconnique':              { name: "Loge maçonnique de Montrouge" },
+        'centre-artisanal':             { name: "Centre artisanal de Montrouge" },
+        'terrain-a-batir-6':            { name: "Terrains à vendre" }
       }
     },
     caserne: {
