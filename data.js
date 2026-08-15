@@ -335,7 +335,7 @@ const WORLD = {
             {name:'Émilie Charbon (PNJ)', role:'Journaliste Sportive', rel:'neutral', job:'commentateur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/journaliste-montrouge-emilie-charbon.png'}
           ],
           roomOverrides: {
-            terrain: { name: "Terrain — Union Cheminote de Montrouge", imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-union-cheminote-montrouge.png" },
+            terrain: { name: "Terrain — Union Cheminote de Montrouge", imageUrl: "images/montrouge/montrouge-stade-pelouse-accueil.png" },
             vestiaires: { name: "Vestiaire — Union Cheminote de Montrouge",
               persons: [{name:'Gérard Bricoleau (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entraineur-adjoint-montrouge-bricoleau.png'}]
             },
