@@ -486,7 +486,13 @@ async function sbGetInvestissementEnCours(nom) {
 
 async function sbSendMail(from, to, subject, body, time) {
   const id = 'mail-' + Date.now();
-  return sbInsert('mails', { id, from_player: from, to_player: to, subject, body, time, read: false });
+  // Filet de sécurité universel (lot H2, faille XSS pipeline mail) : sbSendMail est le point
+  // d'écriture unique de TOUTE la table mails (mail joueur composé, mais aussi ~60 mails
+  // système générés ailleurs dans le jeu). sanitizeRichHtml est un no-op sur du texte sans
+  // balise (tous les mails système), donc sans risque ici -- et submitMail (forum.js)
+  // sanitise déjà en amont pour le mail joueur, ce qui rend ce passage idempotent.
+  const safeBody = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(body || '') : (body || '');
+  return sbInsert('mails', { id, from_player: from, to_player: to, subject, body: safeBody, time, read: false });
 }
 
 async function sbGetMailsFor(playerName) {

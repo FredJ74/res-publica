@@ -1252,6 +1252,18 @@ function renderBlocks(blocks) {
   }).join('');
 }
 
+// Échappement texte brut (distinct de sanitizeRichHtml, qui autorise du balisage riche) --
+// pour les champs qui ne sont JAMAIS censés contenir de HTML (sujet de mail, destinataire/
+// expéditeur : simples <input type="text">, jamais de formatage). Un <input> ne peut de toute
+// façon jamais contenir de vraies balises HTML dans sa valeur -- seulement la chaîne littérale
+// telle que tapée -- donc le risque n'existe qu'au moment où cette chaîne est réinjectée telle
+// quelle dans un template HTML sans passer par ici (lot H2, faille XSS pipeline mail).
+function escapeHtmlText(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function sanitizeRichHtml(html) {
   const tmp = document.createElement('div');
   tmp.innerHTML = html || '';
@@ -1558,11 +1570,11 @@ function renderMailInbox() {
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;background:${m.read?'transparent':'rgba(201,168,76,0.05)'}">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <div style="font-size:.82rem;color:${m.read?'#8a8060':'#f0ead6'};font-weight:${m.read?'normal':'bold'}">
-                ${!m.read?'🔵 ':''}${m.subject}
+                ${!m.read?'🔵 ':''}${escapeHtmlText(m.subject)}
               </div>
               <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
-            <div style="font-size:.72rem;color:#6a5a30">De : ${m.from}</div>
+            <div style="font-size:.72rem;color:#6a5a30">De : ${escapeHtmlText(m.from)}</div>
           </div>`).join('')}
     </div>
     <div>
@@ -1574,10 +1586,10 @@ function renderMailInbox() {
         : sent.map(m => `
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer">
             <div style="display:flex;justify-content:space-between">
-              <div style="font-size:.82rem;color:#8a8060">${m.subject}</div>
+              <div style="font-size:.82rem;color:#8a8060">${escapeHtmlText(m.subject)}</div>
               <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
-            <div style="font-size:.72rem;color:#6a5a30">À : ${m.to}</div>
+            <div style="font-size:.72rem;color:#6a5a30">À : ${escapeHtmlText(m.to)}</div>
           </div>`).join('')}
     </div>
     ${archives.length > 0 ? `
@@ -1588,10 +1600,10 @@ function renderMailInbox() {
       ${archives.map(m => `
         <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;opacity:.75">
           <div style="display:flex;justify-content:space-between">
-            <div style="font-size:.82rem;color:#8a8060">${m.subject}</div>
+            <div style="font-size:.82rem;color:#8a8060">${escapeHtmlText(m.subject)}</div>
             <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
           </div>
-          <div style="font-size:.72rem;color:#6a5a30">${m.from === myName ? 'À : ' + m.to : 'De : ' + m.from}</div>
+          <div style="font-size:.72rem;color:#6a5a30">${m.from === myName ? 'À : ' + escapeHtmlText(m.to) : 'De : ' + escapeHtmlText(m.from)}</div>
         </div>`).join('')}
     </div>` : ''}
   `;
@@ -1693,21 +1705,22 @@ function renderMailRead() {
       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
         <i class="ti ti-arrow-left"></i> Retour
       </button>
-      <div class="forum-title-main" style="flex:1">${mail.subject}</div>
+      <div class="forum-title-main" style="flex:1">${escapeHtmlText(mail.subject)}</div>
     </div>
     <div style="padding:.8rem">
       <div style="display:flex;align-items:center;gap:.6rem;font-size:.72rem;color:#6a5a30;margin-bottom:.8rem;padding:.5rem;border:1px solid #1a1810">
         ${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(mail.from, 28) : ''}
         <div>
-          De : <strong style="color:#c0b090">${mail.from}</strong> 
-          → À : <strong style="color:#c0b090">${mail.to}</strong>
+          De : <strong style="color:#c0b090">${escapeHtmlText(mail.from)}</strong>
+          → À : <strong style="color:#c0b090">${escapeHtmlText(mail.to)}</strong>
           · ${formatDateAffichage(mail.time)}
         </div>
       </div>
-      <div style="font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.8;color:#f0ead6">${mail.body}</div>
+      <div style="font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.8;color:#f0ead6">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(mail.body || '') : ''}</div>
       <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
         ${mail.to === myName ? `
-          <button onclick="replyToMail('${mail.from}','${mail.subject}')" class="forum-new-btn" style="font-size:.72rem">
+          <button data-mail-from="${escapeHtmlText(mail.from)}" data-mail-subject="${escapeHtmlText(mail.subject)}"
+            onclick="replyToMail(this.dataset.mailFrom, this.dataset.mailSubject)" class="forum-new-btn" style="font-size:.72rem">
             <i class="ti ti-corner-down-left"></i> Répondre
           </button>` : ''}
         ${mail.archived ? `
@@ -1747,7 +1760,7 @@ function renderMailCompose(defaultTo = '', defaultSubject = '') {
     <div class="forum-compose-form">
       <div class="forum-field">
         <label class="forum-field-label">Destinataire</label>
-        <input class="forum-field-input" id="mail-to" type="text" value="${defaultTo}" 
+        <input class="forum-field-input" id="mail-to" type="text" value="${escapeHtmlText(defaultTo)}"
           placeholder="Nom du destinataire..." list="contacts-list"/>
         <datalist id="contacts-list">
           ${contacts.map(c => `<option value="${c.name}">`).join('')}
@@ -1755,7 +1768,7 @@ function renderMailCompose(defaultTo = '', defaultSubject = '') {
       </div>
       <div class="forum-field">
         <label class="forum-field-label">Sujet</label>
-        <input class="forum-field-input" id="mail-subject" type="text" value="${defaultSubject}"
+        <input class="forum-field-input" id="mail-subject" type="text" value="${escapeHtmlText(defaultSubject)}"
           placeholder="Objet du message..."/>
       </div>
       <div class="forum-field">
@@ -1783,13 +1796,15 @@ function submitMail() {
   const to = toEls[toEls.length - 1]?.value?.trim();
   const subject = subjectEls[subjectEls.length - 1]?.value?.trim();
   const bodyEl = bodyEls[bodyEls.length - 1];
-  const body = bodyEl?.innerHTML?.trim();
   const bodyText = bodyEl?.innerText?.trim();
   if (!to || !subject || !bodyText) {
     showToast('Champs requis','Remplissez tous les champs.',false);
     _mailEnvoiEnCours = false;
     return;
   }
+  // Sanitisation à l'écriture (lot H2, faille XSS pipeline mail) : le corps vient d'un
+  // contenteditable, même filtre que les posts du forum (RICH_ALLOWED_TAGS).
+  const body = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(bodyEl?.innerHTML?.trim() || '') : (bodyEl?.innerHTML?.trim() || '');
   sendMail(to, subject, body);
   mailFromOverride = null;
   mailDefaultTo = '';
