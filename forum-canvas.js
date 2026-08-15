@@ -380,7 +380,11 @@ function renderComposeCanvasForm() {
           </button>
         </div>
       </div>
-      <div id="rp-compose-canvas" style="position:relative;width:680px;max-width:100%;min-height:500px;background:#fff;border:1px solid #2a2010"></div>
+      <!-- Fond du canvas (lot de finitions) : gris chaud clair sobre plutôt que blanc pur --
+           évite l'effet feuille blanche agressive à côté du reste du forum, tout en restant
+           un fond clair (le texte des zones -- .rp-zone-content, style.css -- est en gris
+           foncé #222, pensé pour un fond clair, pas pour la charte sombre générale du jeu). -->
+      <div id="rp-compose-canvas" style="position:relative;width:680px;max-width:100%;min-height:500px;background:#e8e0cc;border:1px solid #2a2010"></div>
       <div id="rp-compose-preview" style="display:none;width:680px;max-width:100%;border:1px dashed #8a6a20;padding:.5rem 0"></div>
     </div>
   `;
