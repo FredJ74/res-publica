@@ -940,13 +940,16 @@ function rpCanvasAttachFontSelect(toolbar, editor) {
   toolbar.appendChild(select);
 }
 
-// Palette identique à celle déjà utilisée par le forum existant (richColor, forum.js) --
-// reprise telle quelle (Lot D3), aucune nouvelle couleur inventée. Conçue à l'origine pour
-// le thème sombre de l'éditeur riche existant : certaines teintes très claires (ex.
-// #f0ead6, presque blanc) peuvent être peu lisibles sur le fond clair du canvas -- signalé
-// ici, non corrigé, puisque la consigne est de réutiliser la palette telle quelle.
+// Palette à l'origine identique à celle du forum existant (richColor, forum.js) -- reprise
+// telle quelle au lot D3. Dette corrigée (lot de finitions, après I) : #f0ead6 (crème, quasi
+// blanc) était conçu pour le panneau SOMBRE de richColor (background:#0a0a07, forum.js), où il
+// sert de couleur de texte "par défaut" lisible -- mais quasi invisible sur le panneau CLAIR
+// du canvas (.rp-color-panel, background:#fff, style.css), donc remplacé ICI uniquement par
+// un brun chaud sombre, dans le même esprit ("couleur de texte par défaut/neutre") mais
+// lisible sur fond clair. richColor (forum.js), qui reste sur son propre panneau sombre où
+// #f0ead6 était et reste parfaitement lisible, n'est pas concerné par ce correctif.
 const RP_COLOR_PALETTE = [
-  '#f0ead6', '#C9A84C', '#E8D880', '#cc4444', '#e08a8a', '#4a8a4a', '#7abf6a',
+  '#2a2410', '#C9A84C', '#E8D880', '#cc4444', '#e08a8a', '#4a8a4a', '#7abf6a',
   '#4a6aaa', '#7a9ad0', '#aa6aaa', '#c98ac9', '#d08a3a', '#8a8060', '#5a5040', '#000000',
 ];
 
