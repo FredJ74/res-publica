@@ -563,15 +563,24 @@ function queteAccueilChoisirAmbition(ambition) {
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 
   const ref = QUETE_CARRIERE_REFERENTS[ambition];
-  const texte = ref
+  let texte = ref
     ? "Alors allez donc voir " + ref.nom + ". Vous le trouverez à " + ref.lieu + ". Dites-lui que c'est moi qui vous envoie."
     : "Je comprends, ce n'est pas facile de se déterminer. Continuez à arpenter la ville et rencontrer les habitants, ça vous aidera à vous faire une idée.";
+
+  // Branche criminelle (lot Pat Hounette) : le tronc commun s'arrete ici, sans repasser par la
+  // sequence de cloture generique (repertoire/recontact/conclusion — deja redondante avec ce
+  // que le joueur vient d'apprendre en ajoutant Jeremy). L'idee "tout acte a des consequences"
+  // de l'ancienne conclusion est fusionnee directement dans cette meme fenetre plutot que d'en
+  // ouvrir une nouvelle. Politique/entrepreneurial gardent la sequence complete, inchangee.
+  if (ambition === 'criminel') {
+    texte += " Mais sachez que tout acte a des conséquences sur l'ensemble de la société, pas seulement pour vous.";
+  }
 
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
     texte: texte,
-    suivant: queteAccueilCarriereRepertoire
+    suivant: ambition === 'criminel' ? fermerClotureCarriere : queteAccueilCarriereRepertoire
   });
 }
 

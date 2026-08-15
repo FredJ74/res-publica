@@ -65,6 +65,22 @@ const PNJ_PROFILS = {
     objectifs: "Veut partir à la retraite dans deux ans avec sa pension complète — évite tout scandale qui pourrait la compromettre.",
     rumeurs: "Colporte volontiers les ragots qu'il entend des visiteurs habitués, sans toujours vérifier s'ils sont exacts.",
     notes: "Premier cas d'enrichissement complet (audit PNJ, 8 aout 2026) — sert d'exemple de remplissage pour les prochains PNJ centraux."
+  },
+  // Referent permanent de l'illegalite apres la branche criminelle de la quete d'accueil
+  // (15 aout 2026). savoirs limite volontairement aux mecaniques reelles et deja presentes
+  // dans le code (DUP=data.js, organisations criminelles=TYPES_ORGANISATIONS/plateau-
+  // organisations-quetes.js, actions illegales=plateau-actions-illegales-rumeurs.js/data.js
+  // orders type:'illegal') -- pas de chiffre invente, pas de mecanique fabriquee pour la
+  // conversation. Ne connait rien de la carriere/nature profonde/origine/scolarite/stats
+  // privees du joueur (jamais transmises dans le contexte generique, voir talkToPnj) : ce
+  // qu'il "sait" du joueur se limite a la mission du colis qu'il lui a lui-meme confiee.
+  'Pat Hounette': {
+    traits: ['prudent', 'peu bavard', 'jamais deux fois au meme endroit'],
+    savoirs: "Connaît le milieu criminel de Luthécia sans en être le chef. Sait qu'on peut rejoindre une organisation criminelle déjà existante, ou en fonder une soi-même à condition de disposer d'un local pour y installer son siège — sinon, on peut aussi travailler en solo. Sait que la Duplicité (DUP) est la caractéristique clé de tout ce qui touche à l'illégalité : mentir, dissimuler, corrompre. Connaît l'existence de pratiques comme la contrebande portuaire, le vol, le recel de kompromats, ou la corruption de fonctionnaires (douaniers, policiers, juges...), sans en détailler les chances de réussite exactes — chacun apprend ça sur le terrain.",
+    fonctionPedagogique: "Peut orienter un joueur intéressé par le milieu criminel vers les organisations criminelles, ou vers le travail en solo, et expliquer pourquoi la Duplicité compte tant dans ce métier. Si on lui pose une question précise dont il n'est pas sûr de la réponse, il le dit franchement dans son personnage (prudence, méfiance) plutôt que d'inventer une règle ou un chiffre.",
+    secrets: "Ne révèle jamais l'identité de ses propres commanditaires ni le détail de ses activités en cours.",
+    objectifs: "Rester en dehors des radars. Évite d'être vu trop souvent avec la même personne.",
+    notes: "Ajouté au lot de la branche criminelle (15 aout 2026) — référent illégalité une fois la quête Pat Hounette/Brigitte Menottes terminée."
   }
   // la grande majorite des PNJ n'ont pas d'entree ici — c'est attendu
 };

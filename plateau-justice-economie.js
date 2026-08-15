@@ -2212,6 +2212,14 @@ async function confirmerDonObjetPj(encodedPnj, idx) {
   const item = state.inventory[idx];
   if (!item || !pnj.isPJ) return;
 
+  // Colis secret (quete Pat Hounette/Brigitte Menottes) : destine uniquement a Brigitte, une
+  // PNJ -- jamais transferable a un vrai joueur, pour ne pas perdre accidentellement l'objet de
+  // quete hors de la chaine prevue (voir confirmerDonObjetPnj pour la remise reelle).
+  if (item.type === 'colis_secret_pat') {
+    showToast('Impossible', 'Ce colis est destiné à Brigitte Menottes, personne d\'autre.', false);
+    return;
+  }
+
   const cible = pnj.name.replace(' (PNJ)', '');
   state.inventory.splice(idx, 1);
   renderInventory();
@@ -2324,6 +2332,19 @@ function confirmerDonObjetPnj(objIdx, encodedPnj) {
   const nomCourt = pnj.name.replace(' (PNJ)','');
   document.getElementById('modal-postes').classList.remove('open');
   let msg = '', bon = true;
+  if (obj.type === 'colis_secret_pat') {
+    // Quete Pat Hounette/Brigitte Menottes : ce colis n'est destine qu'a elle -- a tout autre
+    // PNJ, transfert refuse plutot que de le laisser se perdre hors de la chaine de la quete
+    // (voir queteCarriereObjectifActuel/section 18 : solution la plus simple pour la beta).
+    if (nomCourt !== 'Brigitte Menottes') {
+      showToast('Impossible', 'Ce colis est destiné à Brigitte Menottes, personne d\'autre.', false);
+      return;
+    }
+    state.inventory.splice(objIdx, 1);
+    updateUI();
+    if (typeof remettreColisBrigitte === 'function') remettreColisBrigitte();
+    return;
+  }
   if (obj.type === 'tract') {
     obj.quantite = (obj.quantite||1) - 1;
     if (obj.quantite <= 0) state.inventory.splice(objIdx, 1);

@@ -172,11 +172,15 @@ function ouvrirPhotoPleinEcran(el) {
 const QUETE_CARRIERE_REFERENTS_NOMS = { 'Pat Hounette': 'criminel', 'Jean-Lou Zeure': 'politique', 'Laurent Barre': 'entrepreneurial' };
 
 const QUETE_CARRIERE_BRIEFS = {
+  // criminel : refonte du 15 aout 2026 (lot Pat Hounette / Brigitte Menottes). Le declenchement
+  // ne passe plus par un bouton "Discuter" (voir genererZoneCarriereHtml) mais par la question
+  // libre du joueur mentionnant Jeremy (voir talkToPnj) -- .texte/.rappel repris ici tels quels
+  // par declencherMissionPatHounette() et rappelMissionCarriere(), .image/.titre inchanges.
   criminel: {
     titre: 'Pat Hounette',
     image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/pat-hounette.png',
-    texte: "Jérémy vous envoie ? ... Il parle trop, ce garçon. Alors comme ça, vous cherchez à gagner votre vie sans forcément remplir toutes les cases du formulaire ?<br><br>Bon. J'ai un petit colis à faire passer au port. Rien de bien méchant, mais un colis ne se transporte jamais bien tout seul — pas besoin d'être des experts, juste d'être plusieurs. Allez-y, et revenez me voir après.",
-    rappel: "Le colis, toujours au port. Allez-y quand vous êtes prêt(e)."
+    texte: "Jérémy vous envoie ? ... Il parle trop, ce garçon. Alors comme ça, vous cherchez à gagner votre vie sans forcément remplir toutes les cases du formulaire ?<br><br>Bon. J'ai quelque chose à faire livrer. Remettez ce colis à Brigitte Menottes, au commissariat de Luthécia. Ne posez pas de question. Revenez me voir ensuite.",
+    rappel: "Le colis secret, toujours à remettre à Brigitte Menottes, au commissariat de Luthécia."
   },
   politique: {
     titre: 'Jean-Lou Zeure',
@@ -193,9 +197,12 @@ const QUETE_CARRIERE_BRIEFS = {
 };
 
 const QUETE_CARRIERE_DEBRIEFS = {
+  // criminel.succes : laius existant reutilise tel quel au retour chez Pat (voir
+  // patHounetteRetour()), seule la phrase faisant reference au fait d'etre "plusieurs" est
+  // retiree -- cette mecanique de groupe n'existe plus dans la nouvelle mission (colis solo).
+  // Plus de .echec : la nouvelle mission n'a pas de jet de reussite/echec, juste une remise.
   criminel: {
-    succes: "Vous venez de transporter quelque chose sans en connaître le contenu, pour un homme que vous ne connaissez pas. Première leçon : dans ce métier, l'information vaut parfois davantage que la marchandise.<br><br>Et remarquez : votre discrétion n'était pas qu'à vous. Qui était avec vous a compté.",
-    echec: "Repéré. Ça arrive. La discrétion, ça ne s'improvise pas tout seul — qui vous accompagne compte autant que votre propre habileté."
+    succes: "Vous venez de transporter quelque chose sans en connaître le contenu, pour un homme que vous ne connaissez pas. Première leçon : dans ce métier, l'information vaut parfois davantage que la marchandise."
   },
   politique: {
     succes: "Voilà. Une conviction de plus. La mobilisation, ça ne se fait jamais seul — remarquez comme votre entourage a pesé dans la balance, autant que vos propres mots.",
@@ -215,6 +222,19 @@ function genererZoneCarriereHtml(pnj) {
   if (!branche) return '';
   const qc = state.char?.queteCarriere;
   if (!qc || qc.ambition !== branche) return '';
+
+  // Branche criminelle (Pat Hounette) : etats propres a cette refonte (a_rencontrer inchange,
+  // puis colis_recu / colis_livre / terminee) -- pas de bouton "Discuter" ici, le declenchement
+  // passe par la question libre du joueur (mot-cle Jeremy, voir talkToPnj).
+  if (branche === 'criminel') {
+    if (qc.etape === 'colis_recu') {
+      return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');rappelMissionCarriere(\'criminel\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Rappel de la mission</button>';
+    }
+    if (qc.etape === 'colis_livre') {
+      return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20;font-weight:bold" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');patHounetteRetour()"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Faire le point</button>';
+    }
+    return ''; // a_rencontrer (pas encore declenche) ou terminee -> dialogue PNJ normal
+  }
 
   if (qc.etape === 'a_rencontrer') {
     return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20;font-weight:bold" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirBriefCarriere(\'' + branche + '\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Discuter</button>';
@@ -290,6 +310,118 @@ function debriefCarriere(branche) {
   }
 
   afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: texte, suivant: null });
+}
+
+// =====================
+// BRANCHE CRIMINELLE — Pat Hounette / Brigitte Menottes (refonte du 15 aout 2026)
+// Etats propres : state.char.queteCarriere = { ambition:'criminel', etape, resultat:null }
+//   a_rencontrer -> colis_recu -> colis_livre -> terminee
+// Remplace l'ancienne mission "contrebande au port, a plusieurs" (verifierProgressionCarriere
+// n'est plus appelee pour cette branche, voir doContrebandePort). Ne passe plus par
+// ouvrirBriefCarriere/debriefCarriere (generiques aux 3 branches, gardes intacts pour
+// politique/entrepreneurial) : dispatch dedie ci-dessous, texte/image repris de
+// QUETE_CARRIERE_BRIEFS.criminel et QUETE_CARRIERE_DEBRIEFS.criminel.
+// =====================
+
+// Declenchee depuis talkToPnj() des que le joueur mentionne Jeremy a Pat Hounette (question
+// libre, pas de bouton). Cree le vrai objet d'inventaire, journalise, trace l'action pour le
+// pipeline de rumeurs (fait detectable, pas une annonce publique), et bascule l'etape.
+function declencherMissionPatHounette() {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'criminel' || qc.etape !== 'a_rencontrer') return;
+  const b = QUETE_CARRIERE_BRIEFS.criminel;
+
+  qc.etape = 'colis_recu';
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  if (typeof addToInventory === 'function') {
+    addToInventory({ type: 'colis_secret_pat', name: 'Colis secret', icon: 'ti-package', desc: "Un colis remis par Pat Hounette. Vous ignorez ce qu'il contient." });
+  }
+  if (typeof addJournalEntry === 'function') {
+    addJournalEntry('Pat Hounette vous a confié un colis secret à remettre à Brigitte Menottes au commissariat de Luthécia.', 'event-info');
+  }
+  // Fait potentiellement compromettant (quelqu'un a pu voir la remise), pas une rumeur diffusee
+  // automatiquement -- alimente le meme pipeline que les autres actions detectables du jeu.
+  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('colis_recu_pat_hounette', 'Pat Hounette');
+
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (typeof afficherPopupQueteAccueil === 'function') {
+    afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.texte, suivant: null });
+  }
+}
+
+// Declenchee depuis confirmerDonObjetPnj/confirmerDonObjetPj (plateau-justice-economie.js)
+// quand le joueur remet reellement le Colis secret a Brigitte Menottes. L'objet a deja ete
+// retire de l'inventaire par l'appelant avant ce point.
+function remettreColisBrigitte() {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'criminel' || qc.etape !== 'colis_recu') return;
+  qc.etape = 'colis_livre';
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+
+  const imageBrigitte = 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commissariat-brigitte-menottes.png';
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (typeof afficherPopupQueteAccueil !== 'function') return;
+
+  afficherPopupQueteAccueil({
+    image: imageBrigitte,
+    titre: 'Brigitte Menottes',
+    texte: "Un cadeau ? Pour moi ? J'espère que vous n'essayez pas de me soudoyer. Voyons voir ce que c'est...",
+    suivant: function() {
+      afficherPopupQueteAccueil({
+        image: 'images/colis-pat-hounette-plaisir-offrir.jpg',
+        titre: 'Brigitte Menottes',
+        texte: "Ohhhh, des menottes en fourrure roses !!! ❤️❤️❤️",
+        suivant: function() {
+          afficherPopupQueteAccueil({
+            image: imageBrigitte,
+            titre: 'Brigitte Menottes',
+            texte: "Hum hum... Vous direz au mystérieux inconnu qui vous a demandé de me faire parvenir ce cadeau que je ne suis pas corruptible. Mais pour autant, je les garderai pour un usage personnel : elles ne font pas partie du matériel autorisé pendant le service. Dites-lui merci de ma part.",
+            suivant: null
+          });
+        }
+      });
+    }
+  });
+}
+
+// Declenchee par le bouton "Faire le point" sur la fiche de Pat une fois le colis livre.
+// Reutilise le laius existant (chute pedagogique de la mission), puis enchaine sur les
+// conseils finaux avant de clore definitivement la branche.
+function patHounetteRetour() {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'criminel' || qc.etape !== 'colis_livre') return;
+  const b = QUETE_CARRIERE_BRIEFS.criminel;
+  const d = QUETE_CARRIERE_DEBRIEFS.criminel;
+
+  afficherPopupQueteAccueil({
+    image: b.image,
+    titre: b.titre,
+    texte: d.succes,
+    suivant: function() {
+      afficherPopupQueteAccueil({
+        image: b.image,
+        titre: b.titre,
+        texte: "À présent, je sais que vous êtes digne de confiance. Alors je vais vous donner quelques conseils.<br><br>Si vous voulez faire carrière dans le crime, vous pouvez rejoindre un groupe criminel existant, ou créer le vôtre si vous disposez d'un local où installer votre siège. Vous pouvez aussi travailler en solo. C'est vous qui voyez.<br><br>Mais retenez une chose : vous aurez besoin de gens capables de vous aider, et notamment de gens dotés d'une grande duplicité. C'est risqué de faire confiance à ce genre de personnes... mais dans notre métier, on n'a pas toujours le choix.<br><br>Maintenant, éloignez-vous de moi. À rester ensemble trop longtemps, on va finir par se faire remarquer. Continuez à explorer la ville.<br><br>Et si vous avez besoin d'un conseil sur... disons, des activités que l'administration réprouve, ajoutez-moi à votre répertoire et envoyez-moi un mail. Je vous répondrai si je peux.",
+        suivant: function() {
+          qc.etape = 'terminee';
+          if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+        }
+      });
+    }
+  });
+}
+
+// "Mes Objectifs" pour la branche criminelle -- meme principe que queteAccueilObjectifActuel
+// (plateau-quete-accueil.js) pour le tronc commun, lu en repli par afficherObjectifsSecrets()
+// quand ce dernier ne renvoie rien (branche non encore concernee ou tronc commun deja termine).
+function queteCarriereObjectifActuel() {
+  const qc = state.char?.queteCarriere;
+  if (!qc || qc.ambition !== 'criminel') return null;
+  if (qc.etape === 'a_rencontrer') return "Rendez-vous chez Pat Hounette et dites-lui que Jérémy vous envoie.";
+  if (qc.etape === 'colis_recu') return "Remettez le colis secret à Brigitte Menottes au commissariat de Luthécia.";
+  if (qc.etape === 'colis_livre') return "Retournez voir Pat Hounette.";
+  return null; // 'terminee' (ou etat inconnu) -> pas d'objectif specifique
 }
 
 function openPnjModal(encodedPnj) {
@@ -693,6 +825,20 @@ function verifierSuccesMaxence(cle) {
           <i class="ti ti-x" style="font-size:.85rem"></i> Non merci
         </button>
       </div>`;
+    return;
+  }
+
+  // Branche criminelle (Pat Hounette) : declenchement de la mission des que le joueur mentionne
+  // Jeremy dans une question libre, quelle que soit l'orthographe (accent ou non). Reponse fixe
+  // (pas d'IA) pour garantir la progression, meme pattern que le Secretaire Petit ci-dessus.
+  // Gate sur l'etape pour ne jamais redeclencher (ni redonner un colis) une fois la mission
+  // commencee ou terminee.
+  const nomCourtPat = (pnj.name || '').replace(' (PNJ)', '').trim();
+  if (nomCourtPat === 'Pat Hounette' && action !== 'bonjour'
+      && state.char?.queteCarriere?.ambition === 'criminel'
+      && state.char.queteCarriere.etape === 'a_rencontrer'
+      && /j[ée]r[ée]my/i.test(action)) {
+    if (typeof declencherMissionPatHounette === 'function') declencherMissionPatHounette();
     return;
   }
 

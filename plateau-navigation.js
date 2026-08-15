@@ -1576,8 +1576,6 @@ async function doContrebandePort(pa, cost) {
   const roll = Math.floor(Math.random() * 100) + 1;
   const succesContrebande = roll <= taux;
 
-  if (typeof verifierProgressionCarriere === 'function') verifierProgressionCarriere('criminel', succesContrebande);
-
   if (succesContrebande) {
     if (!state.inventory) state.inventory = [];
     state.inventory.push({ type:'contrebande', name:'Cargaison de contrebande', icon:'ti-package-off', legal:false, desc:'Marchandises importées illégalement.' });

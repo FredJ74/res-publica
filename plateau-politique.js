@@ -1288,21 +1288,23 @@ const OBJECTIFS_SECRETS = {
 };
 
 function afficherObjectifsSecrets() {
-  // Tant que le tronc commun de la quete d'accueil est actif, "Mes Objectifs" devient le
-  // carnet de quete simple (action suivante a accomplir), pas le catalogue d'objectifs
-  // secrets d'archetype -- qui reste par ailleurs pleinement fonctionnel en arriere-plan
+  // Tant que le tronc commun de la quete d'accueil OU une branche specialisee (ex: Pat
+  // Hounette/Brigitte Menottes cote criminel) est active, "Mes Objectifs" devient le carnet de
+  // quete simple (action suivante a accomplir), pas le catalogue d'objectifs secrets
+  // d'archetype -- qui reste par ailleurs pleinement fonctionnel en arriere-plan
   // (verifierObjectifs, appele depuis plateau-core.js, continue de tourner et de crediter
   // l'influence normalement, seul cet affichage change).
   const objectifQuete = (typeof queteAccueilObjectifActuel === 'function') ? queteAccueilObjectifActuel() : null;
-  if (objectifQuete) {
+  const objectifCarriere = !objectifQuete && (typeof queteCarriereObjectifActuel === 'function') ? queteCarriereObjectifActuel() : null;
+  const objectifActif = objectifQuete || objectifCarriere;
+  if (objectifActif) {
     document.getElementById('postes-modal-title').textContent = '🎯 Mes Objectifs';
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:.6rem 1rem">' +
       '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .4rem;border-bottom:1px solid #1a1810">' +
         '<div style="font-size:1rem">⬜</div>' +
-        '<div style="flex:1"><div style="font-size:.78rem;color:#c0b090">' + objectifQuete + '</div></div>' +
+        '<div style="flex:1"><div style="font-size:.78rem;color:#c0b090">' + objectifActif + '</div></div>' +
       '</div>' +
-      '<div style="font-size:.85rem;color:#8a7050;margin-top:.6rem;font-style:italic">Suivez Jérémy pour progresser dans cette étape.</div>' +
       '</div>';
     document.getElementById('modal-postes').classList.add('open');
     return;
