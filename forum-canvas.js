@@ -35,6 +35,27 @@ function renderComposedPost(layout) {
   if (!layout || !Array.isArray(layout.elements)) return '';
   const canvasWidth = layout.canvas_width || 680;
 
+  // Hauteur du canvas (correctif rendu, après E3) : ses enfants sont tous en position:absolute
+  // (voir plus bas) -- selon les règles CSS standard, un enfant absolu ne contribue PAS à la
+  // hauteur d'un conteneur en flux normal. Sans ce calcul explicite, .rp-composed-canvas avait
+  // une hauteur quasi nulle alors que son contenu s'affichait visuellement bien plus bas. Ce
+  // n'est ni un fond, ni une bordure, ni une ombre qui causait la rupture visible signalée :
+  // .rp-composed-canvas n'en a jamais eu (aucune règle CSS ne le concerne). La rupture venait
+  // du conteneur englobant du post (.forum-post, qui a bien un fond défini) dont la boîte
+  // s'arrêtait à cette hauteur quasi nulle, exposant le fond normal de la page juste en dessous
+  // -- exactement à la limite du canvas. contentHeight (zones) et height (images) sont des
+  // mesures réelles capturées à la sauvegarde (voir rpCanvasSerializeCompose, correctif du
+  // même lot) ; repli sur minHeight/une estimation par défaut pour d'éventuels posts composés
+  // avant ce correctif, qui n'ont pas encore ces deux champs.
+  const canvasHeight = layout.elements.reduce((max, el) => {
+    const lo = el.layout || {};
+    const y = lo.y || 0;
+    let h = 0;
+    if (el.type === 'text_zone') h = Math.max(lo.minHeight || 0, lo.contentHeight || 0);
+    else if (el.type === 'image') h = lo.height || Math.round((lo.width || 200) * 0.75);
+    return Math.max(max, y + h);
+  }, 0);
+
   const elementsHtml = layout.elements.map(el => {
     const lo = el.layout || {};
     const x = lo.x || 0, y = lo.y || 0, w = lo.width || 200, z = lo.z || 1;
@@ -61,7 +82,12 @@ function renderComposedPost(layout) {
     return '';
   }).join('');
 
-  return '<div class="rp-composed-canvas" style="position:relative;width:' + canvasWidth + 'px">' +
+  // background/border/box-shadow explicitement neutres (et non simplement omis) : le canvas
+  // doit se fondre totalement dans le corps du message, sans aucune différence visuelle avec
+  // le fond normal du post -- comportement par défaut demandé ; un futur choix de couleur de
+  // fond par l'auteur n'est PAS implémenté ici.
+  return '<div class="rp-composed-canvas" style="position:relative;width:' + canvasWidth + 'px;' +
+    'min-height:' + canvasHeight + 'px;background:transparent;border:none;box-shadow:none">' +
     elementsHtml + '</div>';
 }
 
@@ -947,6 +973,16 @@ function rpCanvasSerializeCompose() {
 
     if (entry.type === 'text_zone') {
       layout.minHeight = state.minHeight || 0;
+      // Hauteur réellement mesurée du contenu (correctif rendu, après E3) : .rp-zone-content
+      // est un DIV en flux normal à l'intérieur de la zone (seule la zone elle-même, .rp-zone,
+      // est positionnée en absolute) -- son scrollHeight reflète donc fidèlement la hauteur
+      // réelle du texte tel qu'il s'affiche au moment de la sauvegarde, y compris quand
+      // minHeight est resté à 0 (zone jamais redimensionnée manuellement, cas courant). Sert
+      // uniquement au calcul de la hauteur du canvas en lecture (renderComposedPost) -- ignoré
+      // partout ailleurs, notamment par la désérialisation (E3), qui laisse le vrai Tiptap
+      // live recalculer sa propre hauteur normalement.
+      const contentEl = entry.el && typeof entry.el.querySelector === 'function' ? entry.el.querySelector('.rp-zone-content') : null;
+      if (contentEl) layout.contentHeight = contentEl.scrollHeight || 0;
       const rawHtml = entry.editor ? entry.editor.getHTML() : '';
       const html_fallback = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(rawHtml) : '';
       return { type: 'text_zone', html_fallback, layout };
@@ -954,6 +990,11 @@ function rpCanvasSerializeCompose() {
 
     if (entry.type === 'image') {
       const img = entry.el.querySelector('img');
+      // state.height est déjà la hauteur réelle (ratio de l'image chargée, recalculée par
+      // rpCanvasCreateImage dès que l'image charge) -- la sérialiser permet à
+      // renderComposedPost (lecture, DOM-free) de connaître la vraie hauteur sans avoir à la
+      // deviner (voir correctif rendu ci-dessous).
+      layout.height = Math.round(state.height || 0);
       return {
         type: 'image',
         src: img ? img.src : '',

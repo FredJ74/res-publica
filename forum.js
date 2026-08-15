@@ -150,13 +150,24 @@ function toggleArchiveMail(mailId, archive) {
 }
 
 // Emojis par catégorie
+// Palette enrichie (correctif ergonomique post-E3) : catégories, mécanisme d'insertion
+// (rpCanvasAttachEmojiButton, forum-canvas.js) et bouton 😊 (renderRichEditor) inchangés --
+// uniquement les listes elles-mêmes. Ajouts choisis pour couvrir un éventail d'expressions
+// utiles à un forum de jeu de rôle politique/social (rire, sourire, clin d'oeil, ironie,
+// tristesse, pleurs, colère, surprise, peur, embarras, réflexion, approbation, désapprobation,
+// amour/admiration, félicitations, provocation) sans dupliquer des variantes déjà couvertes
+// (secret via 🤫 déjà présent, argent via 🤑 déjà présent, politique/vote/pouvoir et justice
+// déjà bien représentés par 🗳️/👑/⚖️, médias/information déjà couverts par 📰/🔎, alerte/danger
+// déjà couverts par 🚨/⚠️ -- ces catégories ne reçoivent que quelques ajouts ciblés, pas une
+// refonte).
 const EMOJI_CATS = {
-  'Politique': ['🏛️','👑','⚖️','🗳️','📜','🤝','🚩','🎖️','🛡️','📋','🗡️','🔏','🏆','🎗️'],
-  'Alertes':   ['⚠️','🚨','‼️','❗','🔴','🟢','🔵','⭕','✅','❌','🔔','📣','📢','🚫'],
-  'Médias':    ['📰','📡','✍️','📝','💬','📨','🎙️','📸','🖊️','📖','🗞️','📻','🎬','🔎'],
-  'Émotions':  ['😄','😈','🤫','🤐','👀','🙏','💪','🤑','😤','🧐','😏','🤭','👏','🫡'],
-  'Symboles':  ['⭐','💀','💣','🔒','🔓','🕵️','🃏','⚡','🌟','💡','🔑','💎','🏴','⚜️'],
-  'Séparateurs':['═══════════════','· · · · · · · · ·','— — — — — — —','⚜️ ─────────── ⚜️','◆ ─────────── ◆','✦ · · · · · · · ✦']
+  'Politique': ['🏛️','👑','⚖️','🗳️','📜','🤝','🚩','🎖️','🛡️','📋','🗡️','🔏','🏆','🎗️','🎩','🏰','🕊️','💼'],
+  'Alertes':   ['⚠️','🚨','‼️','❗','🔴','🟢','🔵','⭕','✅','❌','🔔','📣','📢','🚫','🆘','⛔','🔥'],
+  'Médias':    ['📰','📡','✍️','📝','💬','📨','🎙️','📸','🖊️','📖','🗞️','📻','🎬','🔎','📺','🎥','🗨️'],
+  'Émotions':  ['😄','😈','🤫','🤐','👀','🙏','💪','🤑','😤','🧐','😏','🤭','👏','🫡',
+                '😂','🤣','🙂','😉','🙃','😢','😭','😠','😲','😨','😳','🤔','👍','👎','😍','😜','🎉'],
+  'Symboles':  ['⭐','💀','💣','🔒','🔓','🕵️','🃏','⚡','🌟','💡','🔑','💎','🏴','⚜️','💰','🏦','🎭'],
+  'Séparateurs':['═══════════════','· · · · · · · · ·','— — — — — — —','⚜️ ─────────── ⚜️','◆ ─────────── ◆','✦ · · · · · · · ✦','★ ─────────── ★','─────── ⚖️ ───────']
 };
 
 // Styles narratifs
