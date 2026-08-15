@@ -311,15 +311,21 @@ function renderComposeCanvasForm() {
       <div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">
         Chantier en cours — rien n'est encore publiable depuis cet écran.
       </div>
-      <div class="rp-compose-toolbar">
-        <button class="forum-new-btn" onclick="rpCanvasAddTextZoneToCompose()">
-          <i class="ti ti-text-plus"></i> Ajouter une zone de texte
-        </button>
-        <button class="forum-new-btn" onclick="rpCanvasAddImageToCompose()">
-          <i class="ti ti-photo-plus"></i> Ajouter une image
+      <div class="rp-compose-toolbar" id="rp-compose-toolbar">
+        <div id="rp-compose-add-buttons" style="display:flex;gap:.5rem">
+          <button class="forum-new-btn" onclick="rpCanvasAddTextZoneToCompose()">
+            <i class="ti ti-text-plus"></i> Ajouter une zone de texte
+          </button>
+          <button class="forum-new-btn" onclick="rpCanvasAddImageToCompose()">
+            <i class="ti ti-photo-plus"></i> Ajouter une image
+          </button>
+        </div>
+        <button class="forum-new-btn" id="rp-compose-preview-btn" onclick="rpCanvasTogglePreview()" style="margin-left:auto">
+          <i class="ti ti-eye"></i> Prévisualiser
         </button>
       </div>
       <div id="rp-compose-canvas" style="position:relative;width:680px;max-width:100%;min-height:500px;background:#fff;border:1px solid #2a2010"></div>
+      <div id="rp-compose-preview" style="display:none;width:680px;max-width:100%;border:1px dashed #8a6a20;padding:.5rem 0"></div>
     </div>
   `;
 }
@@ -342,6 +348,11 @@ function rpCanvasInitComposeScreen() {
   if (!container) return;
   rpComposeController = rpCanvasCreateController(container);
   rpComposeElements = [];
+  // Écran fraîchement rendu (renderComposeCanvasForm) : le canvas est visible et la
+  // prévisualisation masquée par défaut dans le HTML généré -- resynchronise l'état de
+  // bascule en conséquence (Lot E1.5), sinon une entrée répétée dans l'écran de composition
+  // laisserait le bouton afficher "Revenir à l'édition" à tort.
+  rpComposeEnPreview = false;
 }
 
 // Largeur minimale des zones de texte : 140px, PAS le repli générique du moteur (40px,
@@ -945,4 +956,65 @@ function rpCanvasBuildFallbackContent(layout) {
     }
     return '';
   }).join('');
+}
+
+// ===========================================================================
+// Prévisualisation (Lot E1.5) — bascule d'affichage pure, jamais une reconstruction. Le
+// canvas d'édition (#rp-compose-canvas, ses éléments DOM, ses instances Tiptap par zone) et
+// son registre (rpComposeElements) ne sont JAMAIS touchés par ce lot : ils sont seulement
+// masqués (display:none) pendant la prévisualisation, puis réaffichés tels quels. C'est ce
+// qui garantit par construction qu'aucun état (texte, mise en forme, position, taille,
+// min-height, z, ordre) ne peut se perdre, et qu'un nombre illimité d'allers-retours est
+// possible sans jamais repasser par une désérialisation (qui n'existera qu'au lot E3, pour
+// la réouverture d'un post déjà publié).
+//
+// Le rendu affiché est produit par renderComposedPost() (Lot B1), très exactement le même
+// renderer que celui déjà branché en lecture réelle dans forum.js (renderTopicView) --
+// aucune fonction de prévisualisation séparée n'a été écrite. Le HTML produit est enveloppé
+// dans un <div class="forum-post-content">, la même classe CSS que le vrai rendu d'un post
+// dans le fil de discussion (style.css), pour que la typographie du texte corresponde à ce
+// qu'un lecteur verra réellement -- sans dupliquer cette règle CSS ici. La largeur (680px)
+// vient de layout.canvas_width, produit par rpCanvasSerializeCompose() (Lot E1) avec la
+// même valeur que le repli par défaut déjà utilisé par renderComposedPost -- c'est
+// exactement la largeur réelle du canvas de composition, donc déjà celle qu'aura le post
+// publié.
+//
+// Liens et spoilers : le HTML produit par renderComposedPost() sort de sanitizeRichHtml(),
+// dont la liste blanche a été étendue au lot E1 pour laisser passer <details>/<summary>
+// (spoilers) et href/target/rel sur <a> (liens) intacts -- ce sont donc de vrais éléments
+// HTML natifs dans la prévisualisation (un <a href> cliquable, un <details> nativement
+// repliable/dépliable par le navigateur), pas une imitation : aucun JavaScript de repli/
+// dépli ou de gestion de clic n'est nécessaire ni présent ici.
+let rpComposeEnPreview = false;
+
+function rpCanvasTogglePreview() {
+  const canvasEl = document.getElementById('rp-compose-canvas');
+  const addButtonsEl = document.getElementById('rp-compose-add-buttons');
+  const previewEl = document.getElementById('rp-compose-preview');
+  const btn = document.getElementById('rp-compose-preview-btn');
+  if (!canvasEl || !addButtonsEl || !previewEl || !btn) return;
+
+  if (rpComposeEnPreview) {
+    // Retour à l'édition : le canvas vivant n'a jamais été touché, on le réaffiche tel quel.
+    previewEl.style.display = 'none';
+    previewEl.innerHTML = '';
+    canvasEl.style.display = '';
+    addButtonsEl.style.display = '';
+    btn.innerHTML = '<i class="ti ti-eye"></i> Prévisualiser';
+    rpComposeEnPreview = false;
+    return;
+  }
+
+  // "Ajouter une zone de texte" / "Ajouter une image" sont eux aussi des contrôles
+  // d'édition -- masqués pendant la prévisualisation, contrairement au bouton
+  // Prévisualiser/Revenir lui-même, qui reste le seul contrôle visible (nécessaire pour
+  // revenir à l'édition).
+  const layout = rpCanvasSerializeCompose();
+  const html = renderComposedPost(layout);
+  previewEl.innerHTML = '<div class="forum-post-content">' + html + '</div>';
+  canvasEl.style.display = 'none';
+  addButtonsEl.style.display = 'none';
+  previewEl.style.display = 'block';
+  btn.innerHTML = '<i class="ti ti-arrow-back-up"></i> Revenir à l\'édition';
+  rpComposeEnPreview = true;
 }
