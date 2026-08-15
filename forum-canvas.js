@@ -312,21 +312,21 @@ function renderComposeCanvasForm() {
         <label class="forum-field-label">Titre du sujet</label>
         <input class="forum-field-input" id="compose-canvas-title" type="text" placeholder="Intitulé du sujet..."/>
       </div>
-      <div class="rp-compose-actions" id="rp-compose-actions">
-        <button class="forum-new-btn" id="rp-compose-preview-btn" onclick="rpCanvasTogglePreview()">
-          <i class="ti ti-eye"></i> Prévisualiser
-        </button>
-        <button class="forum-submit-btn" onclick="submitComposeCanvas()">
-          <i class="ti ti-send"></i> Publier le sujet
-        </button>
-      </div>
       <div class="rp-compose-toolbar" id="rp-compose-toolbar">
-        <div id="rp-compose-add-buttons" style="display:flex;gap:.5rem">
+        <div id="rp-compose-add-buttons" class="rp-compose-btn-group">
           <button class="forum-new-btn" onclick="rpCanvasAddTextZoneToCompose()">
             <i class="ti ti-text-plus"></i> Ajouter une zone de texte
           </button>
           <button class="forum-new-btn" onclick="rpCanvasAddImageToCompose()">
             <i class="ti ti-photo-plus"></i> Ajouter une image
+          </button>
+        </div>
+        <div class="rp-compose-btn-group">
+          <button class="forum-new-btn" id="rp-compose-preview-btn" onclick="rpCanvasTogglePreview()">
+            <i class="ti ti-eye"></i> Prévisualiser
+          </button>
+          <button class="forum-submit-btn" onclick="submitComposeCanvas()">
+            <i class="ti ti-send"></i> Publier le sujet
           </button>
         </div>
       </div>

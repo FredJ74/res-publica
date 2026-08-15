@@ -619,13 +619,30 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    Lot C2 : reprise directe des styles déjà validés dans prototype-canvas-composition.html
    (F1.5) — canvas volontairement clair/blanc, indépendant du thème sombre du jeu, comme
    c'était déjà le cas dans le prototype. */
-/* Actions principales (Prévisualiser / Publier, correctif ergonomique post-E2) : barre
-   toujours visible, placée avant l'outillage du canvas et le canvas lui-même -- jamais
-   affectée par la hauteur du canvas ni par la position des zones/images qu'il contient,
-   contrairement à un bouton placé après lui. Ni rpCanvasTogglePreview() ni submitComposeCanvas()
-   ne sont modifiées : seul l'emplacement de leurs boutons change. */
-.rp-compose-actions{display:flex;gap:.6rem;align-items:center;padding-bottom:.8rem;margin-bottom:.8rem;border-bottom:1px solid #2a2010}
-.rp-compose-toolbar{display:flex;gap:.5rem;margin-bottom:.8rem}
+/* Barre d'actions unique (correctif ergonomique post-E2, deuxième passe) : groupe gauche
+   (Ajouter zone/image) et groupe droit (Prévisualiser puis Publier) sur une seule ligne
+   quand la largeur le permet, séparés par l'espace disponible plutôt que par un écart figé.
+   Reste immédiatement au-dessus du canvas -- ni rpCanvasSerializeCompose() (E1), ni
+   renderComposedPost()/rpCanvasTogglePreview() (E1.5), ni submitComposeCanvas() (E2) ne sont
+   touchées : uniquement la structure/le style de cette barre. */
+.rp-compose-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .8rem;margin-bottom:.8rem}
+.rp-compose-btn-group{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
+/* :last-child (pas une classe dédiée au groupe droit) : reste correct même quand le groupe
+   gauche disparaît en prévisualisation (rpCanvasTogglePreview masque #rp-compose-add-buttons
+   via display:none, qui ne retire rien du DOM) -- le groupe droit garde alors la même
+   position ancrée à droite, stable, au lieu de se retrouver plaqué à gauche. */
+.rp-compose-toolbar > .rp-compose-btn-group:last-child{margin-left:auto}
+/* Les 4 contrôles de cette barre (2 classes différentes, .forum-new-btn et .forum-submit-btn,
+   pensées ailleurs pour des contextes différents) doivent avoir la même hauteur, le même
+   padding et le même alignement ici -- neutralise leurs marges/tailles par défaut
+   (margin-left:auto sur .forum-new-btn, padding et margin-top plus généreux sur
+   .forum-submit-btn) sans toucher ces classes globales, utilisées ailleurs dans le forum. */
+.rp-compose-toolbar .forum-new-btn,
+.rp-compose-toolbar .forum-submit-btn{margin:0;padding:.4rem .9rem;font-size:.8rem;white-space:nowrap}
+/* Publier le sujet : importance visuelle légèrement supérieure par la couleur (fond plein),
+   pas par la taille -- reste aligné avec les 3 autres boutons. */
+.rp-compose-toolbar .forum-submit-btn{background:var(--gold-dark);color:#0a0a0a}
+.rp-compose-toolbar .forum-submit-btn:hover{background:var(--gold);color:#0a0a0a}
 .rp-canvas-el{position:absolute}
 
 /* Fond transparent par défaut (correction demandée) : une zone qui chevauche une image ne
