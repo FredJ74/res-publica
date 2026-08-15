@@ -844,10 +844,19 @@ function addContactByName(name, role, rel, isPJ) {
 }
 
 function addContact(pnj) {
-  if ((pnj.name || '').replace(' (PNJ)', '').trim() === 'Jérémy' && typeof queteAccueilVerifierDepartJeremy === 'function') {
-    // Depart immediat de Jeremy des qu'il est ajoute au repertoire, plutot que d'attendre
-    // le prochain deplacement du joueur.
-    queteAccueilVerifierDepartJeremy();
+  if ((pnj.name || '').replace(' (PNJ)', '').trim() === 'Jérémy') {
+    if (typeof state !== 'undefined' && state.char && state.char.queteAccueil &&
+        state.char.queteAccueil.etape === 'attente_depart_jeremy' && typeof queteAccueilProposerCarriere === 'function') {
+      // Ajout reel au repertoire = validation naturelle de l'etape "attente_depart_jeremy" :
+      // on enchaine directement sur la derniere question d'orientation, plutot que d'attendre
+      // un prochain deplacement (queteAccueilVerifierDepartJeremy reste le filet de securite
+      // si le joueur s'eloigne sans avoir ajoute Jeremy).
+      queteAccueilProposerCarriere();
+    } else if (typeof queteAccueilVerifierDepartJeremy === 'function') {
+      // Depart immediat de Jeremy des qu'il est ajoute au repertoire a un autre moment de la
+      // quete, plutot que d'attendre le prochain deplacement du joueur.
+      queteAccueilVerifierDepartJeremy();
+    }
   }
   if (!state.contacts) state.contacts = [];
   const exists = state.contacts.find(c => c.name === pnj.name);

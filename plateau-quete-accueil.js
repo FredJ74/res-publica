@@ -73,8 +73,22 @@ function queteAccueilApresFichePersonnage() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Donc une bonne chambre, c'est primordial, mais un bon repas aussi.<br><br>On va à l'hôtel-restaurant ? C'est le deuxième bâtiment après l'Hôtel de Ville. Vous vous souvenez où c'est ? On en vient. Il faut sortir du bâtiment et aller à droite.",
+    texte: "Donc une bonne chambre, c'est primordial, mais un bon repas aussi. Il y a tout ça à l'hôtel-restaurant. On y va ?<br><br>C'est le deuxième bâtiment après l'Hôtel de Ville. Vous vous souvenez où c'est ? On en vient. Il faut sortir du bâtiment et aller à droite.",
     suivant: null
+  });
+}
+
+// Deuxieme fenetre du dispensaire (sujet distinct : sommeil/recuperation), affichee a la
+// fermeture de la premiere (qui ne parle que du lieu). Un sujet par fenetre plutot qu'un
+// unique pave qui melangeait les deux.
+function afficherPopupQueteAccueilSommeil() {
+  afficherPopupQueteAccueil({
+    image: QUETE_ACCUEIL_IMAGES.jeremy,
+    titre: 'Jérémy',
+    texte: "Chaque jour, on se fatigue au travail. Il est important de se reposer en dormant. Une fois par jour seulement.<br><br>Idéalement, il vaut mieux dormir dans une chambre, on récupère mieux que si on dort n'importe où. Je vous montrerai juste après.",
+    suivant: function() {
+      queteAccueilSurbrillance('[onclick*="openSelfView"]', 15000);
+    }
   });
 }
 
@@ -106,7 +120,7 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici vous pouvez réserver une chambre, ou si vous avez les moyens, louer une suite. Une bonne nuit ici, c'est plus de PA récupérés en dormant le lendemain.",
+      texte: "Ici vous pouvez réserver une chambre, ou si vous avez les moyens, louer une suite. Une bonne nuit ici, c'est plus d'énergie pour le lendemain.",
       suivant: function() {
         queteAccueilSurbrillance('.action-btn[onclick*="reserver_chambre_hotel"]', 12000);
       }
@@ -183,10 +197,8 @@ function queteAccueilVerifierEtapeBatiment(buildingId, roomId) {
     afficherPopupQueteAccueil({
       image: QUETE_ACCUEIL_IMAGES.jeremy,
       titre: 'Jérémy',
-      texte: "Ici c'est le dispensaire. On peut se faire soigner gratuitement, ou à moindre frais. Bien sûr, si vous êtes riche, vous pouvez aller en hôpital privé pour de meilleurs soins.<br><br>Il y a aussi nos anciens, ici, à l'EHPAD. Ils sont un peu la mémoire de la ville, vous savez.<br><br>Chaque jour, on se fatigue au travail. Il est important de se reposer en dormant. Une fois par jour seulement.<br><br>Idéalement, il vaut mieux dormir dans une chambre, on récupère mieux que si on dort n'importe où. Je vous montrerai juste après.",
-      suivant: function() {
-        queteAccueilSurbrillance('[onclick*="openSelfView"]', 15000);
-      }
+      texte: "Ici c'est le dispensaire. On peut se faire soigner gratuitement, ou à moindre frais. Bien sûr, si vous êtes riche, vous pouvez aller en hôpital privé pour de meilleurs soins.<br><br>Il y a aussi nos anciens, ici, à l'EHPAD. Ils sont un peu la mémoire de la ville, vous savez.<br><br>N'hésitez pas à venir leur parler.",
+      suivant: afficherPopupQueteAccueilSommeil
     });
     return;
   }
@@ -225,22 +237,6 @@ const QUETE_ACCUEIL_STYLES_FLECHES = {
 const QUETE_ACCUEIL_ICONES_FLECHES = {
   arriere: '↓', gauche: '←', toutDroit: '↑', droite: '→'
 };
-
-// Reaction de Jeremy selon l'archetype deja choisi a la creation du personnage (state.char.archetype).
-// Oriente vers le(s) type(s) d'organisation pertinent(s), sans poser de question ouverte au joueur.
-const QUETE_ACCUEIL_CONSEILS_ARCHETYPE = {
-  politician:     "Ambitieux, à ce qu'on dit sur vous... Vous comptez fonder votre propre parti, ou plutôt rejoindre une formation déjà en place ? J'en connais quelques-unes, si ça vous intéresse. Regardez du côté des organisations politiques.",
-  authoritarian:  "Ordre et discipline, à ce qu'on m'a dit ! Vous devriez tenter votre chance du côté de la Caserne — on y grimpe les échelons, de simple soldat à officier, avec une vraie hiérarchie à respecter. Sinon, il paraît qu'il existe aussi une Loge assez stricte sur les principes, si la discipline version secrète vous tente davantage.",
-  oligarch:       "Capitaliste ! L'argent avant tout, c'est ça ? Il existe des organisations économiques qui pourraient vous intéresser, on y parle chiffres et contrats toute la journée.",
-  informer:       "Vous aimez faire circuler l'information, on dirait. Le journal du coin recrute peut-être, ou alors une organisation médiatique, si vous préférez rester dans l'ombre du micro.",
-  legalist:       "Légaliste... vous devez adorer les formulaires, alors ! Ça tombe bien, on en a beaucoup ici. Sinon, la politique ou la Loge, ça vous dit ? On y respecte scrupuleusement les procédures.",
-  believer:       "Une conviction profonde, à ce qu'on raconte. Vous devriez faire un tour du côté d'une organisation religieuse, ça pourrait vous parler.",
-  shadow:         "Un homme de l'ombre, hein ? Discret, discret... Je ne devrais peut-être pas vous en parler, mais il existe une Loge, très discrète justement. Ou pire encore, si vous voyez ce que je veux dire.",
-  anticapitalist: "Anti-capitaliste ! Vous devriez faire un tour du côté du syndicat, ils cherchent toujours du monde pour la prochaine manifestation.",
-  criminal:       "Un criminel, vous ? Ne le répétez à personne, mais je m'en doutais un peu... Vous comptez travailler seul, ou plutôt rejoindre une organisation bien établie ? Il y en a une, justement, très active en ville."
-};
-const QUETE_ACCUEIL_CONSEIL_DEFAUT =
-  "Quel que soit votre chemin, sachez qu'il existe plusieurs organisations en ville. Ça vaut le coup d'y jeter un œil.";
 
 function queteAccueilDoitDemarrer(pays, noeudId) {
   if (pays !== 'republic') return false;
@@ -439,7 +435,7 @@ function queteAccueilNotifierOrdre(fn) {
   if (etape === 'stade_attente_action' && state.currentBuilding === 'stade') {
     state.char.queteAccueil = { etape: 'stade_apres_action' };
     if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-    afficherConseilArchetypeJeremy();
+    afficherDecouverteStade();
     return;
   }
 }
@@ -456,72 +452,17 @@ function queteAccueilArmerMinuteurStade() {
   }, 60000);
 }
 
-// Remplace l'ancien systeme de conseil fixe par archetype : Jeremy pose desormais une
-// question ouverte, et une IA reagit a la reponse libre du joueur (loufoque, vague ou
-// determinee), en orientant vers les organisations pertinentes si la reponse s'y prete.
-function afficherConseilArchetypeJeremy() {
+// Affichee juste apres la premiere action du joueur au stade : ne pose plus la question de
+// carriere ici (elle est deja posee, sous une meilleure forme avec choix cliquables, a la
+// toute fin du tronc commun — voir queteAccueilProposerCarriere). On laisse simplement le
+// joueur explorer, puis on arme le minuteur de reprise de contact.
+function afficherDecouverteStade() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Sans indiscrétion, vous voulez devenir quoi dans cette ville ?<br><br>Vous pouvez me parler franchement, ça restera entre nous.<br><br>Alors quoi ? Politicien ? Militaire ? Criminel ? Religieux ? Autre chose ?",
-    suivant: null,
-    actionsHtml:
-      '<div style="display:flex;gap:.4rem;margin-top:.4rem">' +
-      '<input id="quete-accueil-reponse-archetype" type="text" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" placeholder="Votre réponse..." onkeydown="if(event.key===\'Enter\') queteAccueilEnvoyerReponseArchetype();" />' +
-      '<button class="pnj-action-btn" onclick="queteAccueilEnvoyerReponseArchetype()"><i class="ti ti-send" style="font-size:.85rem"></i></button>' +
-      '</div>'
+    texte: "Je vous laisse découvrir le stade. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser.",
+    suivant: queteAccueilArmerMinuteurStade
   });
-}
-
-async function queteAccueilEnvoyerReponseArchetype() {
-  const input = document.getElementById('quete-accueil-reponse-archetype');
-  const reponse = (input && input.value ? input.value : '').trim();
-  if (!reponse) return;
-
-  const texteEl = document.getElementById('quete-accueil-texte');
-  const actionsEl = document.getElementById('quete-accueil-actions');
-  if (texteEl) texteEl.innerHTML = '<span style="font-style:italic;color:#9a8a68">Jérémy réfléchit...</span>';
-  if (actionsEl) actionsEl.innerHTML = '';
-
-  const prompt = "Tu es Jeremy, jeune stagiaire un peu maladroit mais serviable a l'Hotel de Ville de Luthecia, dans le jeu Res Publica (jeu de role politique parodique et satirique). Tu vouvoies toujours le joueur.\n" +
-    "Tu viens de demander au joueur ce qu'il aimerait devenir dans la ville. Il te repond : \"" + reponse.replace(/"/g, "'") + "\".\n" +
-    "Reagis en 2 a 3 phrases maximum, dans ton personnage (gentil, un peu naif, honnete), en restant coherent avec sa reponse meme si elle est loufoque, vague ou indecise. Si sa reponse correspond a une orientation credible (politique, militaire, criminelle, religieuse, economique, syndicale, secrete...), oriente-le vers le type d'organisation correspondant en ville. Si sa reponse est trop vague ou farfelue, reste bienveillant et rassurant, sans te moquer de lui. Ne parle jamais d'un lieu ou tu ne te trouves pas actuellement. Reponds UNIQUEMENT avec ta replique, sans guillemets ni introduction.";
-
-  // Reponse de secours si l'IA est indisponible : conseil concret par archetype, pas un
-  // texte generique creux. Base sur QUETE_ACCUEIL_CONSEILS_ARCHETYPE (voir plus haut).
-  const archetypeJoueur = state.char && state.char.archetype;
-  let reply = QUETE_ACCUEIL_CONSEILS_ARCHETYPE[archetypeJoueur] || QUETE_ACCUEIL_CONSEIL_DEFAUT;
-  let appelReussi = false;
-  try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    if (data.content && data.content[0] && data.content[0].text) {
-      reply = data.content[0].text;
-      appelReussi = true;
-    }
-  } catch (e) { /* on garde la reponse de secours par archetype */ }
-
-  // Dans tous les cas (IA ou secours), on oriente vers le Musee de la Ville pour approfondir.
-  reply += " Si vous voulez en savoir plus sur ce genre de carrière, faites donc un tour au Musée de la Ville — il y a plein d'informations utiles là-bas.";
-
-  if (texteEl) texteEl.textContent = reply;
-
-  const closeBtn = document.getElementById('quete-accueil-close');
-  if (closeBtn) {
-    closeBtn.onclick = function() {
-      document.getElementById('modal-quete-accueil').classList.remove('open');
-      afficherPopupQueteAccueil({
-        image: QUETE_ACCUEIL_IMAGES.jeremy,
-        titre: 'Jérémy',
-        texte: "Je vous laisse découvrir. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser.",
-        suivant: queteAccueilArmerMinuteurStade
-      });
-    };
-  }
 }
 
 // Declenchee depuis le hook ajoute dans doReserverChambreHotel() (plateau-personnage.js).
@@ -535,65 +476,19 @@ function queteAccueilApresReservationChambre() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Parfait ! Maintenant, dès que vous passerez l'ordre Dormir dans cette chambre réservée, vous récupérerez plus de PA et de Moral que si vous dormiez n'importe où. Bon, en attendant, allons faire un tour au bar, juste à côté.",
+    texte: "Parfait ! Maintenant, dès que vous passerez l'ordre Dormir dans cette chambre réservée, vous vous requinquerez bien mieux. Bon, en attendant, allons faire un tour au bar, juste à côté.",
     suivant: function() {
       queteAccueilSurbrillance(".piece-tab[onclick*=\",'bar',\"]", 15000);
     }
   });
 }
 
+// Le faux choix "Oui, encore un peu d'aide / Non merci" a ete retire (les deux menaient de
+// toute facon a la meme question d'orientation juste apres) : afficherRepriseContactJeremy
+// est desormais un simple alias de queteAccueilRepriseNon, conserve comme point d'entree
+// pour ne pas toucher ses appelants (minuteur du stade, rappel).
 function afficherRepriseContactJeremy() {
-  state.char.queteAccueil = { etape: 'reprise_contact' };
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-
-  afficherPopupQueteAccueil({
-    image: QUETE_ACCUEIL_IMAGES.jeremy,
-    titre: 'Jérémy',
-    texte: "Dites, vous avez encore besoin de moi pour découvrir la ville, ou vous vous sentez de continuer seul(e) ?",
-    suivant: null,
-    actionsHtml:
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilRepriseOui();">' +
-      '<i class="ti ti-check" style="font-size:.85rem"></i> Oui, encore un peu d\'aide</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilRepriseNon();">' +
-      '<i class="ti ti-x" style="font-size:.85rem"></i> Non merci, ça ira</button>'
-  });
-}
-
-function queteAccueilRepriseOui() {
-  state.char.queteAccueil = { etape: 'choix_destination' };
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-
-  afficherPopupQueteAccueil({
-    image: QUETE_ACCUEIL_IMAGES.jeremy,
-    titre: 'Jérémy',
-    texte: "Où voulez-vous aller ? Le marché, les terrains à bâtir, ou le centre multimodal ?",
-    suivant: null,
-    actionsHtml:
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilDestination(\'marche\');">Le marché</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilDestination(\'terrains\');">Les terrains à bâtir</button> ' +
-      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilDestination(\'multimodal\');">Le centre multimodal</button>'
-  });
-}
-
-const QUETE_ACCUEIL_TEXTES_DESTINATION = {
-  marche: "Le marché ? C'est plutôt vers le centre, pas très loin d'ici. Regardez le plan si besoin, en haut à droite, ça vous montrera le chemin le plus sûr.",
-  terrains: "Les terrains à bâtir sont plutôt excentrés. Consultez le plan pour vous y retrouver, c'est le plus simple.",
-  multimodal: "Le centre multimodal, c'est là où vous êtes arrivé en arrivant en ville. Le plan vous montrera comment y retourner facilement."
-};
-
-function queteAccueilDestination(dest) {
-  state.char.queteAccueil = { etape: 'quete_terminee_avec_aide' };
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-
-  afficherPopupQueteAccueil({
-    image: QUETE_ACCUEIL_IMAGES.jeremy,
-    titre: 'Jérémy',
-    texte: (QUETE_ACCUEIL_TEXTES_DESTINATION[dest] || QUETE_ACCUEIL_TEXTES_DESTINATION.marche) + " Si vous avez des questions en chemin, n'hésitez pas à me demander.",
-    suivant: function() {
-      queteAccueilSurbrillance('button[onclick*="ouvrirPlanVille"]', 12000);
-      if (typeof queteAccueilProposerCarriere === 'function') queteAccueilProposerCarriere();
-    }
-  });
+  queteAccueilRepriseNon();
 }
 
 function queteAccueilRepriseNon() {
@@ -601,18 +496,23 @@ function queteAccueilRepriseNon() {
   // clique lui-meme sur Jeremy (dans Personnes Presentes) et utilise le bouton "Ajouter au
   // repertoire" qui apparait naturellement dans sa fiche, puis le bouton Messages/Forums.
   // Jeremy quitte reellement le groupe seulement au prochain deplacement (voir
-  // queteAccueilVerifierDepartJeremy, appelee depuis les deux hooks de navigation).
+  // queteAccueilVerifierDepartJeremy, appelee depuis les deux hooks de navigation) — sauf si
+  // le joueur l'ajoute d'abord a son repertoire, auquel cas c'est ce qui fait avancer la
+  // quete (voir addContact, plateau-pnj.js).
   state.char.queteAccueil = { etape: 'attente_depart_jeremy' };
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Alors nos chemins se séparent ici. Pour le moment, bien sûr !<br><br>Si vous avez besoin de moi, cliquez sur ma fiche pour m'ajouter à vos contacts, et utilisez ensuite le bouton Messages/Forums pour m'envoyer un mail.",
+    texte: "Je vais vous laisser découvrir la ville seul(e). Nos chemins se séparent ici. Pour le moment, bien sûr !<br><br>Si vous avez besoin de moi, cliquez sur ma fiche pour m'ajouter à vos contacts, et utilisez ensuite le bouton Messages/Forums pour m'envoyer un mail.",
     suivant: function() {
+      // La derniere question d'orientation n'est plus enchainee immediatement ici : le joueur
+      // n'aurait pas le temps materiel de cliquer sur la fiche de Jeremy avant qu'elle
+      // n'apparaisse. Elle attend desormais que Jeremy soit reellement ajoute au repertoire
+      // (addContact, plateau-pnj.js), qui appelle queteAccueilProposerCarriere a ce moment-la.
       queteAccueilSurbrillance(".person-card[onclick*=\"openPnjModal('\"]", 15000);
       queteAccueilSurbrillance('#btn-messages', 15000);
-      if (typeof queteAccueilProposerCarriere === 'function') queteAccueilProposerCarriere();
     }
   });
 }
@@ -643,7 +543,7 @@ function queteAccueilProposerCarriere() {
   afficherPopupQueteAccueil({
     image: QUETE_ACCUEIL_IMAGES.jeremy,
     titre: 'Jérémy',
-    texte: "Bon... vous commencez à connaître Luthécia. Mais visiter une ville, c'est une chose. S'y faire une place, c'en est une autre. Vous avez une idée de ce que vous aimeriez devenir ?",
+    texte: "Bon, une dernière chose... Vous commencez à connaître Luthécia. Mais visiter une ville, c'est une chose. S'y faire une place, c'en est une autre. Vous avez une idée de ce que vous aimeriez devenir ?",
     suivant: null,
     actionsHtml:
       '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilChoisirAmbition(\'criminel\');">Plutôt du côté criminel</button> ' +
@@ -806,6 +706,42 @@ function queteAccueilExpliquerLicenciement() {
 }
 
 // =====================
+// "MES OBJECTIFS" — carnet de quete simple : action suivante a accomplir pour l'etape en
+// cours du tronc commun. Lu par afficherObjectifsSecrets() (plateau-politique.js), qui
+// l'affiche a la place des objectifs secrets d'archetype tant que ce tronc commun n'est pas
+// termine. Couvre volontairement jusqu'a 'proposition_carriere' (la derniere question du
+// tronc commun) seulement : au-dela, le choix d'orientation appartient aux branches
+// specialisees, pas encore reecrites/alimentees dans ce lot.
+// =====================
+const QUETE_ACCUEIL_OBJECTIFS = {
+  garde_en_cours: "Présentez-vous à l'Hôtel de Ville.",
+  guide_carrefour: "Rendez-vous à l'Hôtel de Ville.",
+  guide_hdv: "Rendez-vous à l'Hôtel de Ville.",
+  attente_entree_mairie: "Entrez à l'Hôtel de Ville et parlez au secrétaire Petit.",
+  jeremy_groupe: "Suivez Jérémy dans la salle des élections.",
+  guide_salle_elections: "Rendez-vous dans la salle des élections.",
+  guide_sortie: "Sortez de l'Hôtel de Ville avec Jérémy.",
+  attente_gauche_dispensaire: "Suivez Jérémy sur la gauche.",
+  attente_entree_dispensaire: "Rendez-vous au dispensaire avec Jérémy.",
+  attente_fiche_personnage: "Consultez votre fiche personnage.",
+  attente_hotel: "Rendez-vous à l'hôtel-restaurant.",
+  attente_bar: "Réservez une chambre à l'hôtel-restaurant.",
+  attente_bar_apres_chambre: "Allez faire un tour au bar avec Jérémy.",
+  attente_offre_verre: "Offrez un verre à Jérémy au bar.",
+  guide_stade: "Rendez-vous au stade.",
+  stade_attente_action: "Découvrez le stade.",
+  stade_apres_action: "Découvrez le stade.",
+  stade_libre_minuteur: "Découvrez le stade.",
+  attente_depart_jeremy: "Ajoutez Jérémy à vos contacts.",
+  proposition_carriere: "Dites à Jérémy ce que vous aimeriez devenir."
+};
+
+function queteAccueilObjectifActuel() {
+  if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return null;
+  return QUETE_ACCUEIL_OBJECTIFS[state.char.queteAccueil.etape] || null;
+}
+
+// =====================
 // RAPPEL DE L'ETAPE EN COURS — parler a Jeremy (mot-cle) rejoue le meme message et la meme
 // surbrillance que ceux affiches au demarrage de l'etape en cours, pour un joueur perdu
 // (clic trop rapide, popup fermee sans lire...). Couvre les etapes a partir de
@@ -878,13 +814,11 @@ function queteAccueilRappel() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
         texte: "Allez-y, jetez un œil, essayez quelque chose au stade !", suivant: null });
     },
-    stade_apres_action: function() { afficherConseilArchetypeJeremy(); },
+    stade_apres_action: function() { afficherDecouverteStade(); },
     stade_libre_minuteur: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
-        texte: "Je vous laisse découvrir. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser.", suivant: null });
+        texte: "Je vous laisse découvrir le stade. Si vous avez des questions pendant la visite, n'hésitez pas à me les poser.", suivant: null });
     },
-    reprise_contact: function() { afficherRepriseContactJeremy(); },
-    choix_destination: function() { queteAccueilRepriseOui(); },
     attente_depart_jeremy: function() {
       afficherPopupQueteAccueil({ image: QUETE_ACCUEIL_IMAGES.jeremy, titre: 'Jérémy',
         texte: "Nos chemins se séparent ici, vous vous souvenez ? Si besoin, cliquez sur ma fiche pour m'ajouter à vos contacts, puis utilisez le bouton Messages/Forums.",
@@ -920,6 +854,14 @@ function afficherPopupQueteAccueil(opts) {
     setTimeout(function() { afficherPopupQueteAccueil(opts); }, 2000);
     return;
   }
+
+  // Met brievement "Mes Objectifs" en surbrillance : chaque popup de la quete correspond a
+  // une etape creee ou modifiee, donc le joueur doit pouvoir retrouver ou la suivre s'il se
+  // perd. Reutilise le mecanisme de surbrillance existant (pas de nouveau timer).
+  if (typeof queteAccueilSurbrillance === 'function') {
+    queteAccueilSurbrillance('button[onclick*="afficherObjectifsSecrets"]', 6000);
+  }
+
   const imgEl = document.getElementById('quete-accueil-image');
   const guidageEl = document.getElementById('quete-accueil-guidage');
   const titreEl = document.getElementById('quete-accueil-titre');
