@@ -274,6 +274,19 @@ function renderStatsUI(){
     </div>`;
   }).join('');
   document.getElementById('pts-left').textContent=G.freePts;
+  // Reliquat (bêta) : avertissement clair mais NON bloquant -- aucun point n'est disabled sur
+  // le bouton "Suivant" (id="n6", index.html), tout comme aujourd'hui. Le reliquat eventuel
+  // est sauvegarde (char.freePtsRestants, validateChar) et reste distribuable plus tard depuis
+  // la fiche de personnage (onglet Statistiques).
+  const ptsWarn=document.getElementById('pts-warning');
+  if(ptsWarn){
+    if(G.freePts>0){
+      ptsWarn.style.display='block';
+      ptsWarn.textContent=`Il vous reste ${G.freePts} point(s) non distribué(s). Vous pourrez les répartir plus tard depuis votre fiche de personnage.`;
+    } else {
+      ptsWarn.style.display='none';
+    }
+  }
 }
 function adjStat(k,dir){
   const base=getBase(k), free=G.freeStats[k]||0;
@@ -427,6 +440,7 @@ function validateChar(){
     country:G.country, origin:G.origin, school:G.school,
     archetype:G.archetype, career:G.career,
     stats:{}, freeStats:G.freeStats,
+    freePtsRestants:G.freePts, // reliquat (bêta) : plus jamais obligatoire de tout depenser a la creation
     name:G.name, bio:G.bio, motto:G.motto,
     arg:totalArg(), resources:resources(),
     createdAt:new Date().toISOString(),

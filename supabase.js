@@ -65,6 +65,13 @@ async function sbSavePersonnage(charState) {
     bio:              charState.char?.bio || null,
     archetype:        charState.char?.archetype,
     career:           charState.char?.career,
+    // origin/school (bêta, P0) : jamais écrits jusqu'ici -- perte de données silencieuse
+    // confirmée par l'audit (aucune colonne dédiée n'existait même côté base, vérifié en
+    // direct -- voir migration_origin_school_freepts.sql, à exécuter manuellement une fois
+    // avant que ce correctif ne prenne réellement effet).
+    origin:           charState.char?.origin || null,
+    school:           charState.char?.school || null,
+    free_pts_restants: charState.char?.freePtsRestants || 0,
     stats:            charState.char?.stats,
     resources:        { inf: charState.inf, pop: charState.pop, dis: charState.dis },
     arg:              charState.arg || 0,
@@ -123,7 +130,9 @@ async function sbLoadPersonnage(name) {
   if (!rows || rows.length === 0) return null;
   const r = rows[0];
   return {
-    char: { name: r.name, archetype: r.archetype, career: r.career, stats: r.stats,
+    char: { name: r.name, archetype: r.archetype, career: r.career,
+             origin: r.origin || null, school: r.school || null, freePtsRestants: r.free_pts_restants || 0,
+             stats: r.stats,
              photoUrl: r.photo_url || null, bio: r.bio || null, poste: r.poste || null, posteDepute: r.poste_depute || null,
              country: r.country, currentCity: r.current_city, currentBuilding: r.current_building,
              currentRoom: r.current_room || null, motto: r.motto || null,

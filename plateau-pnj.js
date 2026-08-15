@@ -48,6 +48,25 @@ function genererStatsHtml() {
     '</div>';
   }).join('');
 
+  // Reliquat de création (bêta) : distribution point par point, définitive, sans coût en PA
+  // -- même plafond (16) et même barème de coût (2 au-delà de 12) que la création elle-même,
+  // puisque ce sont littéralement les mêmes points, seulement dépensés plus tard. Les niveaux
+  // 17-20 restent réservés à une future mécanique de progression en jeu (non construite ici).
+  const freePts = char?.freePtsRestants || 0;
+  const reliquatHtml = freePts > 0
+    ? '<div style="border-top:1px solid #2a2010;margin:.6rem 0"></div>' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.15em;color:#C9A84C;margin-bottom:.3rem">POINTS NON DISTRIBUÉS : ' + freePts + '</div>' +
+      '<div style="font-size:.75rem;color:#9a8a68;margin-bottom:.5rem">Reliquat de votre création -- attribution définitive, sans coût en PA.</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem">' +
+        STAT_DEFS_LOCAL.map(function (s) {
+          const val = persoStats[s.k] || 0;
+          const plafond = val >= 16;
+          return '<button onclick="attribuerPointReliquat(\'' + s.k + '\')" ' + (plafond ? 'disabled' : '') +
+            ' style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.35rem;border:1px solid #4a3a20;background:' + (plafond ? '#1a1810' : '#1a1408') + ';color:' + (plafond ? '#5a5040' : '#C9A84C') + ';cursor:' + (plafond ? 'default' : 'pointer') + '">+1 ' + s.k + (plafond ? ' (max)' : '') + '</button>';
+        }).join('') +
+      '</div>'
+    : '';
+
   return '<div style="padding:.6rem 1rem">' +
       '<div style="font-size:.9rem;color:#8a8060;margin-bottom:.8rem;font-style:italic">' +
         (ar?.name || '') + ' · ' + (co?.n || '') +
@@ -59,12 +78,38 @@ function genererStatsHtml() {
       '<div style="border-top:1px solid #2a2010;margin:.6rem 0"></div>' +
       '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.15em;color:#9a8a68;margin-bottom:.5rem">ATTRIBUTS PERSONNELS</div>' +
       '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:.4rem">' + persoHtml + '</div>' +
+      reliquatHtml +
       '<div style="border-top:1px solid #2a2010;margin:.6rem 0"></div>' +
       '<div style="display:flex;justify-content:space-between;font-size:.92rem;color:#8a8060">' +
         '<span>💰 Liquide : <strong style="color:#C9A84C">' + (state.liquide||0).toLocaleString('fr-FR') + ' ' + cur + '</strong></span>' +
         '<span>🏦 Banque : <strong style="color:#C9A84C">' + (state.banque||0).toLocaleString('fr-FR') + ' ' + cur + '</strong></span>' +
       '</div>' +
     '</div>';
+}
+
+// Distribution du reliquat de points (bêta) -- voir genererStatsHtml() pour l'affichage.
+// Attribution point par point, définitive, sans coût en PA (le reliquat lui-même est la
+// ressource rare, pas besoin d'en ajouter une seconde) -- même plafond et même barème de coût
+// que la création (adjStat, creation.js), puisque ce sont les mêmes points.
+function attribuerPointReliquat(stat) {
+  const char = state.char;
+  if (!char || !(char.freePtsRestants > 0)) return;
+  if (!char.stats) char.stats = {};
+  const cur = char.stats[stat] ?? 8;
+  if (cur >= 16) {
+    if (typeof showToast === 'function') showToast('Plafond atteint', 'Cette caractéristique a atteint son maximum (16) par ce biais -- les niveaux 17-20 se débloquent uniquement en jeu.', false);
+    return;
+  }
+  const cost = cur >= 12 ? 2 : 1;
+  if (char.freePtsRestants < cost) {
+    if (typeof showToast === 'function') showToast('Points insuffisants', 'Il vous reste ' + char.freePtsRestants + ' point(s), ce palier en coûte ' + cost + '.', false);
+    return;
+  }
+  char.stats[stat] = cur + 1;
+  char.freePtsRestants -= cost;
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  if (typeof showToast === 'function') showToast('Point attribué', '+1 ' + stat + ' (définitif).', true);
+  if (typeof ouvrirStatsPerso === 'function') ouvrirStatsPerso();
 }
 
 function ouvrirStatsPerso() {
@@ -1152,6 +1197,26 @@ function ouvrirModalInvitationSociale(type, pa, cost, successRate) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Plafonnement + limite de fréquence de la croissance ENT (bêta, exploit corrigé) : aucun des
+// 4 points d'écriture directe de state.char.stats.ENT (3 variantes d'invitation sociale
+// ci-dessous, plus confirmerFaireLAmour) n'avait jusqu'ici ni plafond ni limite de fréquence --
+// un joueur pouvait répéter l'action à volonté pour faire progresser ENT sans limite, seule
+// caractéristique du jeu dans ce cas (audit dédié). Plafond dur 20 (même valeur que prévue pour
+// le futur système complet d'entraînement des 6 caractéristiques, non construit ici) ; une
+// seule progression ENT autorisée par jour, tous mécanismes confondus. Le reste de l'action
+// (argent, PA, autres bonus hp/inf/moral) n'est jamais affecté par ce garde-fou -- seul le
+// gain ENT lui-même est silencieusement plafonné/ignoré au-delà de la limite.
+function appliquerGainENT(montant) {
+  if (!montant || !state.char) return false;
+  if (!state.char.stats) state.char.stats = {};
+  const actuel = state.char.stats.ENT || 0;
+  if (actuel >= 20) return false;
+  if (state.char.dernierGainENTJour === state.day) return false;
+  state.char.stats.ENT = Math.min(20, actuel + montant);
+  state.char.dernierGainENTJour = state.day;
+  return true;
+}
+
 async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
   const messageEnvoye = (document.getElementById("invitation-message-input")?.value || "").trim().slice(0, 200);
   document.getElementById('modal-postes').classList.remove('open');
@@ -1169,7 +1234,7 @@ async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
       state.arg -= cost;
       if (cfgPnj.hp) state.hp = Math.min(100, (state.hp || 0) + cfgPnj.hp);
       if (cfgPnj.inf) state.inf = Math.min(100, (state.inf || 0) + cfgPnj.inf);
-      if (cfgPnj.ent && state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + cfgPnj.ent;
+      if (cfgPnj.ent) appliquerGainENT(cfgPnj.ent);
       if (cfgPnj.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + cfgPnj.paDiffere;
       updateUI();
       showToast('Invitation acceptée !', nomInvite + ' a accepté votre invitation à ' + cfgPnj.verbe + '. -' + cost + ' FR.', true, true);
@@ -1219,7 +1284,7 @@ async function verifierReponseInvitationSociale() {
         state.arg -= infos.cost;
         if (cfg.hp) state.hp = Math.min(100, (state.hp || 0) + cfg.hp);
         if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
-        if (cfg.ent && state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + cfg.ent;
+        if (cfg.ent) appliquerGainENT(cfg.ent);
         if (cfg.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + cfg.paDiffere;
         showToast('Invitation acceptée !', infos.invite + ' a accepté votre invitation à ' + cfg.verbe + (ligne.reponse ? ' ("' + ligne.reponse + '")' : '') + '. -' + infos.cost + ' FR.', true, true);
         addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' : acceptée. -' + infos.cost + ' FR.', 'event-good');
@@ -1280,7 +1345,7 @@ async function repondreInvitationSociale(id, accepte, nomInviteur) {
   if (accepte) {
     if (cfg.hp) state.hp = Math.min(100, (state.hp || 0) + cfg.hp);
     if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
-    if (cfg.ent && state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + cfg.ent;
+    if (cfg.ent) appliquerGainENT(cfg.ent);
     if (cfg.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + cfg.paDiffere;
     updateUI();
     showToast('Invitation acceptée !', 'Vous rejoignez ' + nomInviteur + ' pour ' + (cfg.verbe || 'un moment') + '.', true, true);
@@ -1480,7 +1545,7 @@ async function confirmerFaireLAmour(nomEscort) {
 
   state.moral = Math.min(100, (state.moral || 0) + bonus.moral);
   state.hp = Math.min(100, (state.hp || 0) + bonus.hp);
-  if (state.char?.stats) state.char.stats.ENT = (state.char.stats.ENT || 0) + bonus.ent;
+  appliquerGainENT(bonus.ent);
 
   const petitsNoms = ['Monsieur ou Madame', 'grand fou', 'mon merveilleux amant', 'cheri(e)'];
   const petitNomActuel = petitsNoms[palierActuel];
