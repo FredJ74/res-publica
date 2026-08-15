@@ -3023,11 +3023,22 @@ const BUILDINGS = {
         image: "⏳",
         imageBg: "linear-gradient(135deg,#081008,#0c180c)",
         desc: "Salle bondee. Patience requise.",
-        imageUrl: "https://images.unsplash.com/photo-1584515933487-779824d29309?w=1200&q=80",
+        imageUrl: "images/montrouge/montrouge-hopital-accueil.png",
         persons: [{name:'Infirmiere (PNJ)', role:'Soignante', rel:'neutral', job:'infirmier'}],
         orders: [
           {fn:'soins_basiques', label:'Soins basiques (gratuit)', pa:0, cost:0, type:'legal', icon:'ti-bandage', successRate:100, desc:'+10 Sante.'}
         ]
+      },
+      // Salle minimale ajoutee le 2026-08-16, meme principe que ehpad_tilleuls a Luthecia
+      // (BUILDINGS['dispensaire-public'].rooms.ehpad_tilleuls) : l'EHPAD est une salle du
+      // dispensaire, pas un batiment separe. orders:[] comme a Luthecia ; aucun PNJ invente.
+      ehpad: {
+        name: "EHPAD de Montrouge",
+        imageBg: "linear-gradient(135deg,#141008,#1c1810)",
+        desc: "Le salon commun de l'EHPAD, rattache au dispensaire de Montrouge.",
+        imageUrl: "images/montrouge/montrouge-ehpad-salle-commune.png",
+        persons: [],
+        orders: []
       }
     }
   },
@@ -3045,11 +3056,23 @@ const BUILDINGS = {
         image: "🚔",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
         desc: "Accueil du commissariat.",
-        imageUrl: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&q=80",
+        imageUrl: "images/montrouge/montrouge-commissariat-accueil.png",
         persons: [{name:'Brigadier Local (PNJ)', role:'Officier de garde', rel:'neutral', job:'policier'}],
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100}
         ]
+      },
+      // Salle minimale ajoutee le 2026-08-16 pour raccorder l'image geoles fournie.
+      // Volontairement sans PNJ/ordre : les mecaniques de detention (state.estEmprisonne,
+      // evasion...) sont codees en dur sur buildingId === 'commissariat' (Luthecia), pas sur
+      // 'commissariat-local' — les repliquer ici serait inventer une mecanique deconnectee.
+      geoles: {
+        name: "Geôles",
+        imageBg: "linear-gradient(135deg,#0f1018,#151822)",
+        desc: "Les cellules de garde à vue du commissariat de Montrouge.",
+        imageUrl: "images/montrouge/montrouge-commissariat-geoles.png",
+        persons: [],
+        orders: []
       }
     }
   },
@@ -4135,7 +4158,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#141210,#1c1815)",
-        imageUrl: "https://images.unsplash.com/photo-1553413077-190dd305871c?w=1200&q=80",
+        imageUrl: "images/montrouge/montrouge-entrepot-halle-logistique.png",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
         orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
@@ -4143,7 +4166,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "images/montrouge/montrouge-entrepot-bureau-direction.png",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Norbert Charton (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
@@ -4172,7 +4195,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
+        imageUrl: "images/montrouge/montrouge-raffinerie-bureau-direction.png",
         desc: "Le bureau du directeur de la raffinerie. Accès sur rendez-vous.",
         persons: [{name:'Gustave Baril (PNJ)', role:'Directeur de la Raffinerie', rel:'neutral', job:'directeur_raffinerie'}],
         orders: [
@@ -4184,7 +4207,7 @@ const BUILDINGS = {
       salle_production: {
         name: "Salle de Production",
         imageBg: "linear-gradient(135deg,#0a0d10,#12161a)",
-        imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&q=80",
+        imageUrl: "images/montrouge/montrouge-raffinerie-usine-production.png",
         desc: "Les installations de raffinage. Le pétrole brut livré y est transformé en carburant.",
         persons: [],
         orders: [
@@ -4497,7 +4520,7 @@ const BUILDINGS = {
         name: "Hall de la Gare",
         imageBg: "linear-gradient(135deg,#08090f,#101520)",
         desc: "Une gare industrielle. Bruyante. Les syndicats y ont leur table d\'information permanente.",
-        imageUrl: "https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?w=1200&q=80",
+        imageUrl: "images/montrouge/montrouge-gare-hall.png",
         persons: [
           {name:'Chef de Gare Syndiqué (PNJ)', role:'Chef de gare', rel:'neutral', job:'chef_gare'},
           {name:'Délégué Syndical (PNJ)', role:'Délégué permanent', rel:'neutral', job:'syndicaliste'}
@@ -4529,7 +4552,7 @@ const BUILDINGS = {
     icon: "ti-beer",
     bgColor: "#100c08",
     desc: "Une brasserie pres de la gare de Montrouge.",
-    rooms: { salle: { name: "Salle", desc: "Comptoir et banquettes.", imageBg: "linear-gradient(135deg,#100c08,#181008)", persons: [], orders: [] } }
+    rooms: { salle: { name: "Salle", desc: "Comptoir et banquettes.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-brasserie-voyageurs.png", persons: [], orders: [] } }
   },
   'musee-histoire-montrouge': {
     name: "Musée de l'Histoire de Montrouge — Autour du Rail",
@@ -4565,7 +4588,7 @@ const BUILDINGS = {
     icon: "ti-plant-2",
     bgColor: "#0a1008",
     desc: "Des parcelles cultivées par les ouvriers de Montrouge.",
-    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", persons: [], orders: [] } }
+    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", imageUrl: "images/montrouge/montrouge-jardins-ouvriers-interieur.png", persons: [], orders: [] } }
   },
   'logements-montrouge': {
     name: "Logements",
