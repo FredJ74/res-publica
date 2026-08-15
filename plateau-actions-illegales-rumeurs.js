@@ -1755,7 +1755,9 @@ function congediерInformateur(idx) {
 
 
 function doSeCacher() {
-  const dis = state.char?.stats?.DIS || state.dis || 50;
+  // DIS fantome corrige (bêta) : le premier terme (stats.DIS) n'a jamais existe, state.dis
+  // (la vraie ressource) etait deja present en repli -- ne garder que lui.
+  const dis = state.dis || 50;
   const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN() + 15); // +15 zone transport
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= taux) {
@@ -1934,9 +1936,15 @@ function checkScandale() {
 // CONSTANTE BONUS CARRIERE VOL (complement)
 // =====================
 
+// Remappee vers les 10 id de carriere actuels (bêta, consolidation 18->10 -- voir
+// MIGRATION_CAREER_IDS, data.js). unemployed/lawyer/civil retires : ids disparus, plus jamais
+// portes par un personnage charge (migres a la volee par migrerCareerId avant toute lecture de
+// char.career) -- business/press/worker (Affaires/Medias/Monde ouvrier, les 3 nouvelles
+// carrieres fusionnees sans equivalent direct dans cette table) restent neutres, aucun de
+// leurs composants d'origine n'y figurait.
 const BONUS_CARRIERE_VOL = {
-  criminal_c: 15, unemployed: 15, intel: 15, escort: 15,
-  magistrat: -10, lawyer: -10, officer: -10, clergy: -10, civil: -10, doctor: -10
+  criminal_c: 15, intel: 15, escort: 15,
+  magistrat: -10, officer: -10, clergy: -10, doctor: -10
   // toutes les autres carrieres : 0 (neutre)
 };
 

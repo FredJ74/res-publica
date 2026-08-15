@@ -1980,10 +1980,13 @@ function afficherPopupBlocusEntree(buildingId) {
 
 async function doForcerBlocus(buildingId) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  const forStat = state.char?.stats?.FOR || 8;
+  // FOR fantome retire (bêta) : le joueur n'a jamais eu de FOR (toujours undefined, repli fixe
+  // a 8) -- (forStat-10)*3 valait donc TOUJOURS -6, un malus constant et silencieux applique a
+  // tous les joueurs sans exception. VOL est deja un second facteur reel de cette meme formule,
+  // pas besoin d'une seconde caracteristique pour ce jet.
   const volStat = getStatEffective('VOL');
   const intensite = state.blocusActifIci?.intensite || 40;
-  const taux = Math.max(5, Math.min(90, Math.round(40 + (forStat - 10) * 3 + (volStat - 10) * 3 - intensite / 2)));
+  const taux = Math.max(5, Math.min(90, Math.round(40 + (volStat - 10) * 3 - intensite / 2)));
   const roll = Math.floor(Math.random() * 100) + 1;
 
   if (roll <= taux) {

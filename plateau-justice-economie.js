@@ -1239,10 +1239,14 @@ async function doSeRebeller(pa, cost) {
   const ville = state.currentCity;
   const cur = COUNTRIES[pays]?.cur || 'FR';
 
-  const forBase = state.char?.stats?.FOR || 8;
+  // FOR fantome corrige (bêta) : le joueur n'a jamais eu de caracteristique FOR (toujours
+  // undefined, repli fixe a 8) -- VOL est deja la caracteristique de confrontation physique du
+  // joueur ailleurs dans le code (tenterResistance, assassinat mains nues). codetenu.stats.FOR
+  // reste inchange : un PNJ employe, avec sa propre FOR reelle (PNJ_STATS_PAR_JOB, data.js).
+  const volBase = getStatEffective('VOL');
   const codetenu = (state.employes || []).find(e => e.job === 'codetenu');
   const bonusCodetenu = codetenu?.stats?.FOR ? Math.floor(codetenu.stats.FOR / 2) : 0;
-  const taux = Math.min(60, forBase * 3 + bonusCodetenu);
+  const taux = Math.min(60, volBase * 3 + bonusCodetenu);
   const roll = Math.floor(Math.random() * 100) + 1;
 
   const degats = Math.floor(Math.random() * 7) + 4;
@@ -1477,22 +1481,10 @@ async function soumettreConte(idx, pa, cost) {
   addExternalEvent('ELECTORAL : ' + (state.char?.name||'Anonyme') + ' conteste les résultats de l\'élection : ' + e.nom);
 }
 
-function doControlDouanes() {
-  if (!state.recherche?.length) {
-    showToast('Contrôle', 'Contrôle routinier. Tout est en ordre. Bonne route.', true);
-    return;
-  }
-  const dis = state.char?.stats?.DIS || 50;
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
-  if (roll <= taux) {
-    showToast('Contrôle passé', 'L\'agent a regardé vos papiers sans trop y prêter attention. Ouf.', true);
-  } else {
-    showToast('Interception !', 'L\'agent a reconnu votre signalement. Vous êtes arrêté(e).', false);
-    addJournalEntry('Interception aux douanes.', 'event-bad');
-  }
-}
-
+// doControlDouanes() : doublon exact retiré (bêta) -- la seule définition vivante (identique
+// avant retrait, vérifiée par diff) reste dans plateau-navigation.js, déjà corrigée pour le
+// même correctif DIS fantôme. Deux définitions du même nom en scope global classique : la
+// seconde chargée écrasait silencieusement la première, aucun comportement perdu ici.
 // Cout conditionnel (Phase K) : le PA est du des la tentative (le temps est passe a approcher
 // l'agent, reussite ou non), le FR n'est du QUE si le pot-de-vin est accepte -- coherent avec
 // "L'agent n'a pas mordu" en cas d'echec, ou aucun argent ne change de mains.

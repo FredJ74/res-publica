@@ -700,7 +700,9 @@ function doPasserDouanesAeroport() {
 
   // Si Recherché : jet de détection
   if (state.recherche?.length > 0) {
-    const dis = state.char?.stats?.DIS || 50;
+    // DIS fantome corrige (bêta) : state.dis est la vraie ressource Discretion (0-100),
+    // deja utilisee correctement partout ailleurs -- stats.DIS n'a jamais existe.
+    const dis = state.dis || 50;
     const roll = Math.floor(Math.random() * 100) + 1;
     const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
     if (roll > taux) {
@@ -1345,7 +1347,8 @@ async function confirmerTransport(mode, empireId, villeId) {
 
     // Si recherche : jet de detection
     if (state.recherche?.length > 0) {
-      const dis = state.char?.stats?.DIS || 50;
+      // DIS fantome corrige (bêta) : voir plateau-navigation.js:703 pour le detail.
+      const dis = state.dis || 50;
       const roll = Math.floor(Math.random() * 100) + 1;
       const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
       if (roll > taux) {
@@ -1453,7 +1456,8 @@ function doControlDouanes() {
     showToast('Contrôle', 'Contrôle routinier. Tout est en ordre. Bonne route.', true);
     return;
   }
-  const dis = state.char?.stats?.DIS || 50;
+  // DIS fantome corrige (bêta) : voir plateau-navigation.js:703 pour le detail.
+  const dis = state.dis || 50;
   const roll = Math.floor(Math.random() * 100) + 1;
   const taux = Math.max(5, 70 + Math.floor(dis/10) - getMalusISN());
   if (roll <= taux) {
@@ -1564,7 +1568,8 @@ async function doContrebandePort(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
-  const dis = state.char?.stats?.DIS || 8;
+  // DIS fantome corrige (bêta) : voir plateau-navigation.js:703 pour le detail.
+  const dis = state.dis || 8;
   const dup = getStatEffective('DUP');
   const empMod = { republic:0, narco:25, soviet:-20, khalija:10 }[pays] || 0;
   const taux = Math.max(5, 55 + Math.floor(dis/10) + Math.floor(dup/10) + 15 + empMod - getMalusISN());
