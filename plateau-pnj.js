@@ -517,7 +517,6 @@ async function talkToPnj(encodedPnj, action) {
   speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
 
   const char = state.char;
-  const ar = ARCHETYPES.find(x => x.id === char?.archetype);
   const co = COUNTRIES[state.country];
 
   // Gestion speciale loge
@@ -773,7 +772,7 @@ ${ordresIci ? 'Voici les actions reellement disponibles dans la piece ou vous vo
 })() : ''}
 ${autresJoueursTexte}
 
-Le joueur : ${char?.name || 'Inconnu'}, ${ar?.name || 'citoyen'}.
+Le joueur : ${char?.name || 'Inconnu'}.
 ${politicalContext} ${recherchéContext}
 ${forumContext}
 
