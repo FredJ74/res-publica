@@ -225,15 +225,16 @@ function genererZoneCarriereHtml(pnj) {
 
   // Branche criminelle (Pat Hounette) : etats propres a cette refonte (a_rencontrer inchange,
   // puis colis_recu / colis_livre / terminee) -- pas de bouton "Discuter" ici, le declenchement
-  // passe par la question libre du joueur (mot-cle Jeremy, voir talkToPnj).
+  // passe par la question libre du joueur (mot-cle Jeremy, voir talkToPnj). Le retour apres
+  // livraison (colis_livre) ne passe plus non plus par un bouton dedie ("Faire le point",
+  // retire le 17 aout 2026 sur demande explicite -- eviter de multiplier les ordres
+  // specifiques a une etape de quete) : patHounetteRetour() est desormais declenchee par la
+  // meme question libre, via un mot-cle (voir talkToPnj).
   if (branche === 'criminel') {
     if (qc.etape === 'colis_recu') {
       return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');rappelMissionCarriere(\'criminel\')"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Rappel de la mission</button>';
     }
-    if (qc.etape === 'colis_livre') {
-      return '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20;font-weight:bold" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');patHounetteRetour()"><i class="ti ti-briefcase" style="font-size:.85rem"></i> Faire le point</button>';
-    }
-    return ''; // a_rencontrer (pas encore declenche) ou terminee -> dialogue PNJ normal
+    return ''; // a_rencontrer, colis_livre (attend la question libre) ou terminee -> dialogue PNJ normal
   }
 
   if (qc.etape === 'a_rencontrer') {
@@ -385,9 +386,10 @@ function remettreColisBrigitte() {
   });
 }
 
-// Declenchee par le bouton "Faire le point" sur la fiche de Pat une fois le colis livre.
-// Reutilise le laius existant (chute pedagogique de la mission), puis enchaine sur les
-// conseils finaux avant de clore definitivement la branche.
+// Declenchee par la question libre du joueur a Pat une fois le colis livre (mot-cle, voir
+// talkToPnj -- plus de bouton dedie depuis le 17 aout 2026). Reutilise le laius existant
+// (chute pedagogique de la mission), puis enchaine sur les conseils finaux avant de clore
+// definitivement la branche.
 function patHounetteRetour() {
   const qc = state.char?.queteCarriere;
   if (!qc || qc.ambition !== 'criminel' || qc.etape !== 'colis_livre') return;
@@ -852,6 +854,24 @@ function verifierSuccesMaxence(cle) {
       && /j[ée]r[ée]my/i.test(action)) {
     if (typeof declencherMissionPatHounette === 'function') declencherMissionPatHounette();
     return;
+  }
+
+  // Branche criminelle (Pat Hounette) : retour apres livraison a Brigitte, declenche par la
+  // question libre plutot que par un bouton dedie (retire le 17 aout 2026 -- eviter de
+  // multiplier les ordres specifiques a une etape de quete). Normalisation identique a celle
+  // deja utilisee ailleurs dans le code pour ignorer accents/casse (voir supabase.js, generation
+  // de slug) : minuscules + suppression des diacritiques, puis un seul test sur les racines
+  // (ex. "merci" couvre aussi "remercie(r)"/"remercie" et "remerciement(s)" par inclusion).
+  // Gate sur l'etape : ne se declenche qu'a colis_livre, jamais avant (ne termine pas la quete
+  // prematurement) ni apres (ne rejoue pas le debrief une fois terminee).
+  if (nomCourtPat === 'Pat Hounette' && action !== 'bonjour'
+      && state.char?.queteCarriere?.ambition === 'criminel'
+      && state.char.queteCarriere.etape === 'colis_livre') {
+    const actionNormalisee = action.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (/merci|menotte|brigitte|colis/.test(actionNormalisee)) {
+      if (typeof patHounetteRetour === 'function') patHounetteRetour();
+      return;
+    }
   }
 
   // Actions predefinies
