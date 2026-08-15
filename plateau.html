@@ -512,6 +512,19 @@
   // Polices (Lot D4) : extension officielle réelle et stable en v2 (vérifié sur le paquet),
   // même mécanisme que Color (attribut ajouté au mark textStyle déjà chargé).
   import FontFamily from 'https://esm.sh/@tiptap/extension-font-family@2';
+  // Alignement du texte (lot de finitions, après I) : extension officielle réelle et stable
+  // en v2 (vérifiée sur le registre npm réel avant d'implémenter -- dist-tag v2-latest =
+  // 2.27.2, même famille de version que le reste du coeur Tiptap ici). types restreint à
+  // paragraph/heading, les deux seuls nœuds de bloc réellement atteignables depuis cette
+  // barre d'outils (citation/listes enveloppent déjà des paragraphes, qui héritent donc de
+  // l'alignement sans configuration supplémentaire). Seuls gauche/centre/droite sont câblés
+  // côté interface (forum-canvas.js) -- justify, permis par l'extension, n'est volontairement
+  // pas exposé, conformément à la consigne. Aucun changement nécessaire côté sanitisation :
+  // text-align figure déjà dans RICH_ALLOWED_STYLE_PROPS (forum.js), et p/h2/h3 sont déjà
+  // dans RICH_ALLOWED_TAGS -- l'extension ne produit qu'un style inline sur des balises déjà
+  // couvertes par le filtre existant.
+  import TextAlign from 'https://esm.sh/@tiptap/extension-text-align@2';
+  window.RP_TIPTAP_TEXT_ALIGN = TextAlign.configure({ types: ['heading', 'paragraph'] });
   // Liens (Lot D5) : extension officielle réelle et stable en v2 (vérifiée sur le code
   // source réel du paquet). openOnClick désactivé -- cliquer un lien PENDANT l'édition ne
   // doit pas faire quitter la page ; ce comportement (ouverture en lecture) revient au
@@ -576,7 +589,7 @@
   });
   window.RP_TIPTAP_FONT_SIZE = FontSize;
 </script>
-<script src="forum-canvas.js?v=27"></script>
+<script src="forum-canvas.js?v=28"></script>
 <script src="forum.js?v=139"></script>
 <script src="plateau-core.js?v=132"></script>
 <script src="plateau-rue-centrale.js?v=135"></script>

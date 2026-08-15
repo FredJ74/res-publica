@@ -519,6 +519,7 @@ function rpCanvasCreateTextZone(ctrl, container, x, y, width, html, bgColor) {
     extensions: [
       window.RP_TIPTAP_STARTER_KIT, window.RP_TIPTAP_UNDERLINE, window.RP_TIPTAP_TEXT_STYLE,
       window.RP_TIPTAP_COLOR, window.RP_TIPTAP_FONT_FAMILY, window.RP_TIPTAP_FONT_SIZE,
+      window.RP_TIPTAP_TEXT_ALIGN,
       window.RP_TIPTAP_LINK, window.RP_TIPTAP_DETAILS, window.RP_TIPTAP_DETAILS_SUMMARY,
       window.RP_TIPTAP_DETAILS_CONTENT,
     ],
@@ -618,6 +619,13 @@ function rpCanvasAttachZoneToolbar(toolbar, editor) {
     { label: '•', title: 'Liste à puces', style: 'font-weight:700', run: () => editor.chain().focus().toggleBulletList().run() },
     { label: '1.', title: 'Liste numérotée', style: 'font-size:.68rem', run: () => editor.chain().focus().toggleOrderedList().run() },
   ];
+  // Alignement (lot de finitions, après I) : extension officielle TextAlign (plateau.html),
+  // gauche/centre/droite uniquement -- justify n'est pas exposé, conformément à la consigne.
+  const alignButtons = [
+    { label: 'Ga', title: 'Aligner à gauche', style: 'font-size:.66rem', run: () => editor.chain().focus().setTextAlign('left').run() },
+    { label: 'Ce', title: 'Centrer', style: 'font-size:.66rem', run: () => editor.chain().focus().setTextAlign('center').run() },
+    { label: 'Dr', title: 'Aligner à droite', style: 'font-size:.66rem', run: () => editor.chain().focus().setTextAlign('right').run() },
+  ];
 
   function addButton(b) {
     const btn = document.createElement('button');
@@ -643,6 +651,8 @@ function rpCanvasAttachZoneToolbar(toolbar, editor) {
   inlineButtons.forEach(addButton);
   addSep();
   blockButtons.forEach(addButton);
+  addSep();
+  alignButtons.forEach(addButton);
   addSep();
   rpCanvasAttachColorButton(toolbar, editor);
   addSep();
