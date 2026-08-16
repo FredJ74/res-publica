@@ -253,8 +253,13 @@ async function sbEnregistrerVenteArme(vente) {
   return sbInsert('registre_ventes_armes', vente);
 }
 
-async function sbConsulterRegistreArmes(pays) {
-  const rows = await sbGet('registre_ventes_armes', `pays=eq.${encodeURIComponent(pays)}&order=created_at.desc`);
+// A2 (16 aout 2026) : registre local par armurerie -- city obligatoire pour toute consultation
+// en jeu (le registre national agrege n'existe plus, cf. afficherRegistreArmes). Parametre
+// optionnel uniquement pour ne pas casser un appelant qui ignorerait encore la ville.
+async function sbConsulterRegistreArmes(pays, city) {
+  let filtre = `pays=eq.${encodeURIComponent(pays)}`;
+  if (city) filtre += `&city=eq.${encodeURIComponent(city)}`;
+  const rows = await sbGet('registre_ventes_armes', filtre + '&order=created_at.desc');
   return rows || [];
 }
 

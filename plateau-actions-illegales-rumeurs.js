@@ -783,13 +783,17 @@ async function confirmerAchatArme(armeId) {
     imageUrl: arme.imageUrl
   });
 
-  // Inscription au registre officiel de vente d'armes — systematique pour tout achat legal
+  // Inscription au registre officiel de vente d'armes — systematique pour tout achat legal.
+  // Registre local par armurerie (A2, 16 aout 2026) : city = ville reelle de l'armurerie ou la
+  // vente a lieu (achat toujours effectue physiquement sur place, meme raisonnement que
+  // chargerArmurerieLocale).
   if (typeof sbEnregistrerVenteArme === 'function') {
     sbEnregistrerVenteArme({
       joueur: state.char?.name || 'Anonyme',
       arme: arme.name,
       prix: prixApplique,
       pays: pays,
+      city: state.currentCity || 'capitale',
       jour: state.day || 1,
       heure: state.hour || 8
     }).catch(() => {});
@@ -907,7 +911,10 @@ async function doConsulterRegistre() {
     return;
   }
 
-  await afficherRegistreArmes(pays, false);
+  // Registre local (A2, 16 aout 2026) : meme une fonction nationale (president, min_int,
+  // min_just) ne voit que le registre de l'armurerie ou elle se trouve physiquement -- aucune
+  // vue nationale agregee.
+  await afficherRegistreArmes(pays, state.currentCity || 'capitale', false);
 }
 
 function ouvrirModalCorruptionRegistre() {
@@ -939,7 +946,8 @@ async function confirmerCorruptionRegistre() {
     updateUI();
     showToast('Corruption réussie', 'L\'armurier accepte. +5 INF, +5 POP.', true);
     addJournalEntry('Registre consulté après corruption de l\'armurier. -' + cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
-    await afficherRegistreArmes(state.country || 'republic', true);
+    // Corruption locale : ne donne acces qu'au registre de l'armurerie ou elle est tentee.
+    await afficherRegistreArmes(state.country || 'republic', state.currentCity || 'capitale', true);
   } else {
     state.inf = Math.max(0, (state.inf || 0) - 5);
     state.pop = Math.max(0, (state.pop || 0) - 5);
@@ -949,13 +957,14 @@ async function confirmerCorruptionRegistre() {
   }
 }
 
-async function afficherRegistreArmes(pays, viaCorruption) {
+async function afficherRegistreArmes(pays, city, viaCorruption) {
   let ventes = [];
   if (typeof sbConsulterRegistreArmes === 'function') {
-    ventes = await sbConsulterRegistreArmes(pays).catch(() => []);
+    ventes = await sbConsulterRegistreArmes(pays, city).catch(() => []);
   }
 
-  document.getElementById('postes-modal-title').textContent = 'Registre de vente d\'armes' + (viaCorruption ? ' (obtenu sous le manteau)' : '');
+  const nomVille = WORLD[pays]?.[city]?.name || city;
+  document.getElementById('postes-modal-title').textContent = 'Registre de vente d\'armes — ' + nomVille + (viaCorruption ? ' (obtenu sous le manteau)' : '');
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Ventes légales enregistrées. Les ventes du marché noir n\'y figurent jamais.</div>';
 
