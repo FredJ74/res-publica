@@ -3081,7 +3081,8 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-hotel-victoire-hall.png",
         persons: [{name:'Receptionniste (PNJ)', role:'Accueil', rel:'neutral', job:'hotelier'}],
         orders: [
-          {fn:'se_nourrir', label:'Se nourrir',  pa:0, cost:15, type:'legal', icon:'ti-soup', successRate:100},
+          {fn:'produire_commerce', label:'Préparer le petit-déjeuner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Pas de restaurant ici — juste une petite offre de petit-déjeuner (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Petit-déjeuner', pa:1, cost:0, type:'legal', icon:'ti-coffee', successRate:100, desc:'Voir l\'offre de petit-déjeuner et commander.'},
           {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'}
         ]
       },
@@ -4639,7 +4640,10 @@ const BUILDINGS = {
     icon: "ti-beer",
     bgColor: "#100c08",
     desc: "Une brasserie pres de la gare de Montrouge.",
-    rooms: { salle: { name: "Salle", desc: "Comptoir et banquettes.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-brasserie-voyageurs.png", persons: [], orders: [] } }
+    rooms: { salle: { name: "Salle", desc: "Comptoir et banquettes.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-brasserie-voyageurs.png", persons: [], orders: [
+      {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
+      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'}
+    ] } }
   },
   'musee-histoire-montrouge': {
     name: "Musée de l'Histoire de Montrouge — Autour du Rail",

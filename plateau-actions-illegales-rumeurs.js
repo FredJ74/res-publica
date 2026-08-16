@@ -2236,6 +2236,39 @@ const RECETTES_ALIMENTAIRES = {
     materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 5,
     effets: { hp: 8, moral: 2 },
     typesAutorises: ['cafe', 'brasserie'], villesAutorisees: null, buildingsAutorises: null
+  },
+
+  // Brasserie des Voyageurs (Montrouge, lot 4/6) : vraie restauration, 3 plats. Carbonade-frites
+  // est une specialite reellement verrouillee a Montrouge (decision ferme de Fred, tourisme
+  // gastronomique) -- les deux autres restent communes, comme demande ("les effets exacts
+  // peuvent rester modestes... et doivent etre configurables").
+  carbonade_frites: {
+    id: 'carbonade_frites', label: 'Carbonade-frites', categorie: 'plat', image: null,
+    materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 5,
+    effets: { hp: 8, moral: 3 },
+    typesAutorises: ['brasserie'], villesAutorisees: ['ville_b'], buildingsAutorises: null
+  },
+  plat_de_poisson: {
+    id: 'plat_de_poisson', label: 'Plat de poisson', categorie: 'plat', image: null,
+    materiaux: { cereales: 1, poisson: 1 }, pa: 1, portions: 5,
+    effets: { hp: 8, moral: 2 },
+    typesAutorises: ['brasserie'], villesAutorisees: null, buildingsAutorises: null
+  },
+  saucisse_puree: {
+    id: 'saucisse_puree', label: 'Saucisse-purée', categorie: 'plat', image: null,
+    materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 5,
+    effets: { hp: 8, moral: 2 },
+    typesAutorises: ['brasserie'], villesAutorisees: null, buildingsAutorises: null
+  },
+
+  // Hotel Mineur (Montrouge, lot 4/6) : pas de restaurant, une petite offre de petit-dejeuner
+  // uniquement, remplace l'ancien se_nourrir casse (10 FR/+3 Moral quel que soit le lieu, cf.
+  // releve economique). Rendement "produit simple" (1 PA -> 10 portions, section 6).
+  petit_dejeuner: {
+    id: 'petit_dejeuner', label: 'Petit-déjeuner', categorie: 'petit_dej', image: null,
+    materiaux: { cereales: 1 }, pa: 1, portions: 10,
+    effets: { hp: 3, moral: 1 },
+    typesAutorises: ['cafe'], villesAutorisees: null, buildingsAutorises: null
   }
 };
 
@@ -2245,7 +2278,9 @@ const RECETTES_ALIMENTAIRES = {
 // Un nouveau commerce mono-piece s'ajoute par une simple ligne ; les batiments a plusieurs
 // commerces distincts (ex. Hotel Republica, lot 5) necessiteront un roomId, pas encore geres ici.
 const BUILDING_COMMERCE_TYPE = {
-  'cafe-gare-montrouge': 'cafe'
+  'cafe-gare-montrouge': 'cafe',
+  'brasserie-voyageurs-montrouge': 'brasserie',
+  'hotel-mineur': 'cafe'
 };
 
 // Dotations de depart par commerce pilote (meme principe que defautArmurerie : un commerce ne
@@ -2263,6 +2298,26 @@ const DOTATIONS_COMMERCE_PILOTE = {
     data.carte = ['boeuf_bourguignon'];
     data.parametres.stockMax = { boeuf_bourguignon: 20 };
     data.parametres.prixVente = { boeuf_bourguignon: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boeuf_bourguignon)) };
+  },
+  'brasserie-voyageurs-montrouge': function(data) {
+    data.caisse = 3000; // vraie restauration, dotation superieure au petit cafe
+    data.stockMatieres = { cereales: 15, viande: 15, poisson: 10 };
+    data.coutMoyenMatieres = { cereales: 3, viande: 5, poisson: 4 };
+    data.carte = ['carbonade_frites', 'plat_de_poisson', 'saucisse_puree'];
+    data.parametres.stockMax = { carbonade_frites: 20, plat_de_poisson: 20, saucisse_puree: 20 };
+    data.parametres.prixVente = {
+      carbonade_frites: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.carbonade_frites)),
+      plat_de_poisson: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.plat_de_poisson)),
+      saucisse_puree: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.saucisse_puree))
+    };
+  },
+  'hotel-mineur': function(data) {
+    data.caisse = 1000; // offre minimale (petit-dejeuner seulement), dotation la plus modeste
+    data.stockMatieres = { cereales: 10 };
+    data.coutMoyenMatieres = { cereales: 3 };
+    data.carte = ['petit_dejeuner'];
+    data.parametres.stockMax = { petit_dejeuner: 30 };
+    data.parametres.prixVente = { petit_dejeuner: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.petit_dejeuner)) };
   }
 };
 
