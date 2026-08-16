@@ -390,7 +390,7 @@ const WORLD = {
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
         'dispensaire-public-v':         { name: "Hôpital de Montrouge" },
-        'centre-commercial':            { name: "Centre commercial de Montrouge" },
+        'centre-commercial':            { name: "Centre commercial de Montrouge", roomOverrides: { hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg" } } },
         // Le BNE de Montrouge est une annexe du Centre d'Affaires, sur le meme modele que
         // PSM (ville_a.buildingContext['centre-affaires'].roomsExtra.bureau_emploi_annexe) :
         // memes 3 ordres generiques (aucune mecanique/PNJ invente), image propre a Montrouge.
@@ -404,10 +404,23 @@ const WORLD = {
           // Correspondance retenue par ordre de gamme : grand=Prestige(1000FR/tier1),
           // moyen=Standard(500FR/tier2), petit=Open Space(200FR/tier3, "espace partage").
           roomOverrides: {
-            hall:            { imageUrl: "images/montrouge/montrouge-centre-affaires-accueil.png" },
-            bureau_prestige: { imageUrl: "images/montrouge/montrouge-centre-affaires-grand-bureau.png" },
-            bureau_standard: { imageUrl: "images/montrouge/montrouge-centre-affaires-moyen-bureau.png" },
-            open_space:      { imageUrl: "images/montrouge/montrouge-centre-affaires-petit-bureau.png" },
+            // 2026-08-16 : versions corrigees des images (remplacent les anciens .png,
+            // supprimes du depot). hall recoit en plus une liste de personnes propre a
+            // Montrouge (persons ci-dessous) : le batiment 'centre-affaires' est partage
+            // avec Luthecia/PSM, qui affichent toujours le trio generique (Gretta/Moshe/
+            // Harry) du template BUILDINGS['centre-affaires'].rooms.hall -- inchange, non
+            // touche, pour ne pas les modifier ailleurs.
+            hall: {
+              imageUrl: "images/montrouge/montrouge-centre-affaires-accueil.jpg",
+              persons: [
+                {name:'Gretta Délieu (PNJ)', role:'PNJ - Accueil', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hall-centre-affaires-luthecia.png', photoPos:'38% 45%'},
+                {name:'Moshe Maychan (PNJ)', role:'PNJ', rel:'neutral', job:'criminel'},
+                {name:'Harry Cover (PNJ)', role:'PNJ', rel:'neutral', job:'inspecteur'}
+              ]
+            },
+            bureau_prestige: { imageUrl: "images/montrouge/montrouge-centre-affaires-grand-bureau.jpg" },
+            bureau_standard: { imageUrl: "images/montrouge/montrouge-centre-affaires-moyen-bureau.jpg" },
+            open_space:      { imageUrl: "images/montrouge/montrouge-centre-affaires-petit-bureau.jpg" },
             // Antenne locale de La Tribune de Republia (pas L'Autruche Entravee, un autre
             // journal) : image seule, aucune salle/ordre/PNJ ajoute, roomId deja existant
             // et unique dans tout le depot (seul le template generique le definit).
@@ -417,7 +430,7 @@ const WORLD = {
             bureau_emploi_annexe: {
               name: "Bureau National de l'Emploi (Annexe)",
               imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
-              imageUrl: "images/montrouge/montrouge-bne-accueil.png",
+              imageUrl: "images/montrouge/montrouge-bne-accueil.jpg",
               desc: "L'antenne locale du Bureau National de l'Emploi de Républia. Offres d'emploi, accompagnement, formation.",
               persons: [],
               orders: [
@@ -428,7 +441,18 @@ const WORLD = {
             }
           }
         },
-        'mairie':                       { name: "Hôtel de Ville de Montrouge" },
+        // 2026-08-16 : accueil + bureau du maire raccordes. Salle des elections et
+        // archives municipales demandees mais AUCUNE salle correspondante n'existe dans
+        // BUILDINGS['mairie'] (seules accueil_mairie/bureau_maire_local/bureau_maire_adjoint
+        // existent ; salle_elections n'existe que dans 'mairie-capitale', batiment distinct
+        // exclusif a Luthecia) -- signale dans le rapport, non implante.
+        'mairie': {
+          name: "Hôtel de Ville de Montrouge",
+          roomOverrides: {
+            accueil_mairie:     { imageUrl: "images/montrouge/montrouge-mairie-accueil.jpg" },
+            bureau_maire_local: { imageUrl: "images/montrouge/montrouge-mairie-bureau-maire.jpg" }
+          }
+        },
         'banque-locale':                { name: "Banque Cheminote de Montrouge" },
         'loge-maconnique':              { name: "Loge maçonnique de Montrouge" },
         'centre-artisanal':             { name: "Centre artisanal de Montrouge" },
