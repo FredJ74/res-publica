@@ -384,7 +384,7 @@ const WORLD = {
         // (nom uniquement), aucune mecanique/PNJ/desc ajoutee pour ce lot. Les buildingId
         // techniques ne sont pas touches.
         'hotel-mineur':                 { name: "Hôtel de la Victoire" },
-        'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge" },
+        'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge", roomOverrides: { magasin: { imageUrl: "images/montrouge/montrouge-armurerie-interieur.png" } } },
         'commissariat-local':           { name: "Commissariat de Montrouge" },
         'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
@@ -4248,7 +4248,7 @@ const BUILDINGS = {
       accueil: {
         name: "Accueil",
         imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
-        imageUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200&q=80",
+        imageUrl: "images/montrouge/montrouge-bne-accueil.png",
         desc: "Le hall d'accueil du Bureau National de l'Emploi. Offres d'emploi, accompagnement, formation, création d'activité.",
         persons: [],
         orders: [
