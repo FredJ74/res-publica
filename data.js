@@ -5729,12 +5729,22 @@ const ORGA_ORDRE_RANG_MIN = {
 // - source : 'livraison' (tiree aleatoirement aux 6 livraisons/jour) ou 'transformation'
 //   (n'arrive dans l'entrepot que via la redistribution 20% d'un transformateur — jamais
 //   tiree directement lors d'une livraison de matieres premieres)
+// Charbon (17 aout 2026) : matiere distincte du carburant, propre a l'identite economique de
+// Montrouge (MATIERES_PREMIERES_VILLE.republic.ville_b) -- aucune valeur ne peut etre deduite
+// de l'existant (premiere matiere ajoutee depuis la V1), donc exposee ici en constante isolee,
+// facilement ajustable : prix/plafond calibres par analogie avec minerai/bois (matiere premiere
+// brute, tier moyen, gros volume de stockage).
+const CHARBON_PRIX_BASE = 7;
+const CHARBON_PRIX_ACHAT_FOURNISSEUR = 3.5;
+const CHARBON_PLAFOND = 400;
+
 const RESSOURCES_ECONOMIE = {
   // --- Matieres premieres (livrees) ---
-  cereales:     { label: 'Céréales',     icon: 'ti-wheat',       prixBase: 3,  prixAchatFournisseur: 1.5, plafond: 150, source: 'livraison' },
+  cereales:     { label: 'Céréales & légumes', icon: 'ti-wheat',  prixBase: 3,  prixAchatFournisseur: 1.5, plafond: 150, source: 'livraison' },
   poisson:      { label: 'Poisson',      icon: 'ti-fish',        prixBase: 4,  prixAchatFournisseur: 2,   plafond: 125, source: 'livraison' },
   viande:       { label: 'Viande',       icon: 'ti-meat',        prixBase: 5,  prixAchatFournisseur: 2.5, plafond: 125, source: 'livraison' },
   bois:         { label: 'Bois',         icon: 'ti-trees',       prixBase: 5,  prixAchatFournisseur: 2.5, plafond: 750, source: 'livraison' },
+  charbon:      { label: 'Charbon',      icon: 'ti-flame',       prixBase: CHARBON_PRIX_BASE, prixAchatFournisseur: CHARBON_PRIX_ACHAT_FOURNISSEUR, plafond: CHARBON_PLAFOND, source: 'livraison' },
   petrole:      { label: 'Pétrole',      icon: 'ti-droplet',     prixBase: 8,  prixAchatFournisseur: 4,   plafond: 200, source: 'livraison' },
   minerai:      { label: 'Minerai',      icon: 'ti-mountain',    prixBase: 10, prixAchatFournisseur: 5,   plafond: 500, source: 'livraison' },
   metal:        { label: 'Métal',        icon: 'ti-bolt',        prixBase: 15, prixAchatFournisseur: 7.5, plafond: 200, source: 'livraison' },

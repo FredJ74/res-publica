@@ -787,6 +787,7 @@ const RESSOURCES_ECONOMIE_SERVEUR = {
   poisson:      { plafond: 125, prixAchatFournisseur: 2,   source: 'livraison' },
   viande:       { plafond: 125, prixAchatFournisseur: 2.5, source: 'livraison' },
   bois:         { plafond: 750, prixAchatFournisseur: 2.5, source: 'livraison' },
+  charbon:      { plafond: 400, prixAchatFournisseur: 3.5, source: 'livraison' }, // valeurs miroir de RESSOURCES_ECONOMIE.charbon, data.js (17 aout 2026)
   petrole:      { plafond: 200, prixAchatFournisseur: 4,   source: 'livraison' },
   minerai:      { plafond: 500, prixAchatFournisseur: 5,   source: 'livraison' },
   metal:        { plafond: 200, prixAchatFournisseur: 7.5, source: 'livraison' },

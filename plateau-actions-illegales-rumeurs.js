@@ -2114,10 +2114,23 @@ function defautArmurerie(pays, ville) {
     // EntreprisesExpires en avait un, casse par l'ajout de la ville dans l'id).
     country: pays || 'republic',
     city: ville || 'capitale',
+    // buildingId/roomId (17 aout 2026, generalisation commerces) : ajoutes pour aligner le
+    // schema de l'armurerie sur celui des nouveaux commerces (getCommerceId ci-dessous) --
+    // l'id Supabase de l'armurerie ('armurerie-<country>-<city>') reste lui inchange, aucune
+    // migration necessaire, ces champs ne sont lus par aucun code existant.
+    buildingId: 'armurerie',
+    roomId: null,
     proprietaire: 'PNJ',
     caisse: 20000,
     stockMatieres: { metal: 20, bois: 10 },
+    // coutMoyenMatieres (17 aout 2026) : cout moyen pondere du stock, alimente par
+    // crediterStockMatiereCommerce a chaque achat de matiere premiere (confirmerVenteMatiere
+    // ci-dessous). L'armurerie ne s'en sert pas pour son propre pricing (prixVente reste fixe,
+    // choisi par le proprietaire) -- champ present pour un schema commun a tous les commerces,
+    // sans effet sur le fonctionnement actuel de l'armurerie.
+    coutMoyenMatieres: {},
     stockProduits: {},
+    carte: [],
     parametres: {
       prixAchatMatiere: { metal: 20, bois: 10 }, // FR verses au vendeur de matiere premiere
       prixVente,
@@ -2131,6 +2144,65 @@ async function chargerEntrepriseParId(id, pays, ville) {
   const data = await chargerEntreprise(id, () => defautArmurerie(pays, ville));
   if (data) data.id = id;
   return data;
+}
+
+// =====================
+// COMMERCES PRODUCTIFS GENERIQUES (17 aout 2026) -- generalisation du moteur d'entreprise
+// pionnier par l'armurerie (ci-dessus), sans dupliquer son architecture. Un commerce
+// alimentaire (restaurant/brasserie/cafe/bar/stand_marche/buvette) utilise la MEME table
+// 'entreprises' et le MEME chargement (chargerEntreprise), avec un schema par defaut generique
+// plutot qu'une deuxieme architecture parallele.
+// =====================
+
+// Convention d'id generique : <type>-<country>-<city>-<buildingId>[-<roomId>]. Localisation
+// TOUJOURS stockee explicitement dans les donnees (country/city/buildingId/roomId, jamais
+// deduite en parsant l'id -- meme lecon que le commentaire ci-dessus sur l'armurerie). Le
+// roomId n'est ajoute que lorsqu'un meme buildingId heberge plusieurs commerces distincts
+// (ex. hotel-republica : room 'restaurant' et room 'bar', deux entreprises differentes).
+function getCommerceId(type, country, city, buildingId, roomId) {
+  return type + '-' + country + '-' + city + '-' + buildingId + (roomId ? '-' + roomId : '');
+}
+
+function defautCommerce(type, pays, ville, buildingId, roomId) {
+  return {
+    id: null,
+    type,
+    country: pays || 'republic',
+    city: ville || 'capitale',
+    buildingId: buildingId || null,
+    roomId: roomId || null,
+    proprietaire: 'PNJ',
+    caisse: 0,
+    stockMatieres: {},
+    coutMoyenMatieres: {},
+    stockProduits: {},
+    carte: [],       // sous-ensemble des recettes autorisees (RECETTES_ALIMENTAIRES) propose par ce commerce
+    parametres: { prixVente: {}, stockMax: {} },
+    historique: []
+  };
+}
+
+async function chargerCommerce(type, pays, ville, buildingId, roomId) {
+  const id = getCommerceId(type, pays, ville, buildingId, roomId);
+  const data = await chargerEntreprise(id, () => defautCommerce(type, pays, ville, buildingId, roomId));
+  if (data) data.id = id;
+  return data;
+}
+
+// Cout moyen pondere du stock d'une matiere premiere, mis a jour a chaque achat REEL (decision
+// de Fred, releve economique du 17 aout 2026 : le cout de revient utilise le prix reellement
+// paye par le commerce, pas un cours theorique). Generique -- utilise aussi bien par l'armurerie
+// (confirmerVenteMatiere) que par les futurs commerces alimentaires, un seul mecanisme au lieu
+// d'une logique dupliquee par type de commerce.
+function crediterStockMatiereCommerce(data, matiere, qte, prixUnitairePaye) {
+  if (!data.coutMoyenMatieres) data.coutMoyenMatieres = {};
+  const stockAvant = data.stockMatieres[matiere] || 0;
+  const coutMoyenAvant = data.coutMoyenMatieres[matiere] || 0;
+  const nouveauStock = stockAvant + qte;
+  data.coutMoyenMatieres[matiere] = nouveauStock > 0
+    ? (stockAvant * coutMoyenAvant + qte * prixUnitairePaye) / nouveauStock
+    : 0;
+  data.stockMatieres[matiere] = nouveauStock;
 }
 
 async function chargerArmurerieLocale() {
@@ -2259,7 +2331,10 @@ async function confirmerVenteMatiere(matiere) {
   lot.qty -= qte;
   if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
 
-  data.stockMatieres[matiere] = (data.stockMatieres[matiere] || 0) + qte;
+  // Met a jour stockMatieres ET coutMoyenMatieres en un seul appel (17 aout 2026, generalisation
+  // commerces) -- meme effet qu'avant sur stockMatieres, coutMoyenMatieres alimente en plus sans
+  // affecter le pricing de l'armurerie (prixVente reste fixe, non derive de ce cout).
+  crediterStockMatiereCommerce(data, matiere, qte, prixUnitaire);
   data.caisse -= total;
   ajouterHistoriqueEntreprise(data, -total, 'Achat de matière première (' + matiere + ' x' + qte + ') — ' + (state.char?.name||'Anonyme'));
   await sbSaveEntreprise(data.id, data);
@@ -2743,6 +2818,19 @@ async function doRecolterMatiere(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Correspondance entre le libelle d'affichage de MATIERES_PREMIERES_VILLE et la cle canonique
+// RESSOURCES_ECONOMIE, quand elle existe (17 aout 2026, releve economique + chantier commerces
+// alimentaires). Le systeme entrepot/armurerie/commerces est Republic-only aujourd'hui --
+// narco/soviet/khalija recoltent des matieres sans equivalent economique reel (Cuir, Bois
+// exotique, Caoutchouc, Ble, Epices, Coton...), volontairement laissees au format legacy
+// ci-dessous jusqu'a leur eventuelle integration (hors perimetre de ce chantier).
+const MATIERE_RECOLTE_VERS_CLE = {
+  'Métal': 'metal',
+  'Poisson': 'poisson',
+  'Charbon': 'charbon',
+  'Bois': 'bois'
+};
+
 async function confirmerRecolte(matiere, pa, cost) {
   verifierEtResetRecoltesJour();
   if ((state.char.recoltesJour?.nb || 0) >= 2) { showToast('Limite atteinte', 'Maximum 2 récoltes par jour.', false); return; }
@@ -2752,8 +2840,21 @@ async function confirmerRecolte(matiere, pa, cost) {
 
   const quantite = 1 + Math.floor(Math.random() * 2); // 1 a 2 unites
   if (!state.inventory) state.inventory = [];
-  for (let i = 0; i < quantite; i++) {
-    state.inventory.push({ type: 'matiere_premiere', matiere, name: matiere, icon: 'ti-package' });
+
+  // Format empilable (stackable/stackKey), identique aux matieres achetees a l'entrepot (A3,
+  // chantier commerces alimentaires, 17 aout 2026) -- corrige la coupure auditee : la recolte
+  // produisait auparavant un objet non empilable par unite, invendable a l'armurerie/aux
+  // commerces qui lisent stackKey. Repli sur l'ancien format legacy pour toute matiere sans
+  // equivalent RESSOURCES_ECONOMIE (aucune casse des objets deja en inventaire -- coexistence
+  // pure, aucune migration).
+  const cle = MATIERE_RECOLTE_VERS_CLE[matiere];
+  const res = cle && typeof RESSOURCES_ECONOMIE !== 'undefined' ? RESSOURCES_ECONOMIE[cle] : null;
+  if (res && typeof addToInventory === 'function') {
+    addToInventory({ name: res.label, icon: res.icon, stackable: true, stackKey: cle, qty: quantite, desc: 'Récolté localement.' });
+  } else {
+    for (let i = 0; i < quantite; i++) {
+      state.inventory.push({ type: 'matiere_premiere', matiere, name: matiere, icon: 'ti-package' });
+    }
   }
 
   document.getElementById('modal-postes')?.classList.remove('open');
