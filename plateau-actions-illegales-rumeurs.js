@@ -2328,6 +2328,159 @@ function resoudreCommerceActuel() {
   return null;
 }
 
+// =====================
+// VENDRE DES MATIERES AU COMMERCE (correctif cible, 17 aout 2026) -- meme principe que
+// doVendreMatiereArmurerie/confirmerVenteMatiere ci-dessous, generalise sans dupliquer :
+// reutilise crediterStockMatiereCommerce (deja generique, deja teste). Ferme le chainon
+// manquant identifie au rapport precedent : jusqu'ici seule la dotation de depart alimentait
+// le stock matieres d'un commerce alimentaire, aucun ordre en jeu ne permettait a un PJ de le
+// reapprovisionner.
+// =====================
+
+// Matieres acceptees = union des materiaux des recettes de la CARTE du commerce (jamais une
+// liste codee en dur par etablissement) -- verifie correspondre exactement aux exemples donnes
+// (cereales/viande pour le Cafe, +poisson pour la Brasserie, cereales seul pour l'Hotel Mineur,
+// alcool+cereales pour la buvette dont un des 3 snacks utilise des cereales).
+function matieresAccepteesParCommerce(data) {
+  const cles = new Set();
+  (data.carte || []).forEach(id => {
+    const recette = RECETTES_ALIMENTAIRES[id];
+    if (recette) Object.keys(recette.materiaux).forEach(m => cles.add(m));
+  });
+  return [...cles];
+}
+
+// Prix d'achat unitaire : parametres.prixAchatMatiere (meme champ que l'armurerie) si fixe
+// manuellement (PJ, a cabler ulterieurement en UI -- le parametre existe et est deja lu),
+// sinon repli automatique sur RESSOURCES_ECONOMIE[matiere].prixAchatFournisseur (PNJ) -- le prix
+// deja defini dans le jeu comme "prix paye par l'entrepot A LA LIVRAISON", exactement la meme
+// notion economique qu'un commerce payant un PJ pour une matiere livree. Aucune economie
+// parallele inventee.
+function prixAchatMatiereCommerce(data, matiere) {
+  const manuel = data.parametres.prixAchatMatiere ? data.parametres.prixAchatMatiere[matiere] : null;
+  if (manuel != null) return manuel;
+  return (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere] ? RESSOURCES_ECONOMIE[matiere].prixAchatFournisseur : 0) || 0;
+}
+
+// Transaction pure (testable isolement) : matieres -> verification -> caisse -> stock -> cout
+// moyen -> historique. Ordre securise : tout controle sans effet de bord (matiere acceptee,
+// stock personnel, stock max du commerce) passe AVANT le seul point a effet de bord externe
+// (debit de la caisse du stade pour une buvette, via debiterCaisseBatimentAtomique -- meme
+// prudence d'ordonnancement que produireRecetteCommerce, meme raison : une vraie ecriture
+// Supabase ne doit jamais se declencher si un controle ulterieur peut encore faire echouer la
+// vente). Aucune taxe transactionnelle : la vente de matiere premiere a une entreprise n'a
+// jamais ete taxee (confirmerVenteMatiere, armurerie, ne l'a jamais ete non plus) -- seule la
+// vente finale au consommateur l'est (commanderProduitCommerce).
+async function vendreMatiereCommerce(commerceType, pays, ville, buildingId, roomId, matiere, qte) {
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!data) return { ok: false, raison: 'introuvable' };
+  if (!matieresAccepteesParCommerce(data).includes(matiere)) return { ok: false, raison: 'matiere_non_acceptee' };
+  if (!qte || qte <= 0) return { ok: false, raison: 'quantite_invalide' };
+
+  const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === matiere && (i.qty || 0) > 0);
+  if (!lot || lot.qty < qte) return { ok: false, raison: 'stock_personnel_insuffisant' };
+
+  const stockMax = data.parametres.stockMax[matiere];
+  const stockActuel = data.stockMatieres[matiere] || 0;
+  if (stockMax != null && stockActuel + qte > stockMax) return { ok: false, raison: 'stock_plein', placeRestante: Math.max(0, stockMax - stockActuel) };
+
+  const prixUnitaire = prixAchatMatiereCommerce(data, matiere);
+  const total = prixUnitaire * qte;
+
+  let coutOk;
+  if (data.type === 'buvette' && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
+    // Aucune caisse autonome (doctrine deja validee/codee) : la buvette paie le vendeur depuis
+    // la caisse du stade, comme elle y verse deja ses ventes et son salaire de production.
+    coutOk = (await debiterCaisseBatimentAtomique(pays, getCaisseLocaleId('stade', ville), total)) === total;
+  } else {
+    coutOk = (data.caisse || 0) >= total;
+  }
+  if (!coutOk) return { ok: false, raison: 'caisse_insuffisante' };
+
+  lot.qty -= qte;
+  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
+
+  crediterStockMatiereCommerce(data, matiere, qte, prixUnitaire);
+  if (data.type !== 'buvette') data.caisse -= total;
+  state.arg = (state.arg || 0) + total;
+
+  ajouterHistoriqueEntreprise(data, -total, 'Achat de matière première (' + matiere + ' x' + qte + ') — ' + (state.char?.name || 'Anonyme'));
+  await sbSaveEntreprise(data.id, data);
+
+  return { ok: true, total, prixUnitaire, qte };
+}
+
+function doVendreMatiereCommerceGenerique(pa, cost) {
+  const c = resoudreCommerceActuel();
+  if (!c) { showToast('Indisponible', '', false); return; }
+  doVendreMatiereCommerce(c.type, c.buildingId, c.roomId, pa, cost);
+}
+
+async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cost) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!data) { showToast('Indisponible', '', false); return; }
+
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const matieres = matieresAccepteesParCommerce(data);
+  const disponibles = matieres.filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0));
+
+  document.getElementById('postes-modal-title').textContent = 'Vendre des matières au commerce';
+  let html = '<div style="padding:1rem">';
+  if (disponibles.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060">Vous ne possédez aucune matière que ce commerce accepte' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
+  } else {
+    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat fixés par le commerce.</div>';
+  }
+  disponibles.forEach(m => {
+    const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
+    const qteDispo = lot?.qty || 0;
+    const prixUnitaire = prixAchatMatiereCommerce(data, m);
+    const stockMax = data.parametres.stockMax[m];
+    const stockActuel = data.stockMatieres[m] || 0;
+    const placeRestante = stockMax != null ? Math.max(0, stockMax - stockActuel) : null;
+    const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
+    const qteInitiale = Math.max(1, placeRestante != null ? Math.min(qteDispo, placeRestante) : qteDispo);
+    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
+    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + (placeRestante != null ? ', capacité restante ' + placeRestante : '') + '</span>';
+    html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.78rem;outline:none"/>';
+    html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.72rem"' : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem"') + '>Vendre</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVendreMatiereCommerceUI(commerceType, buildingId, roomId, matiere) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const roomIdReel = roomId || null;
+  const qte = parseInt(document.getElementById('vendre-commerce-qte-' + matiere)?.value || '0');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!qte || qte <= 0) { showToast('Quantité invalide', '', false); return; }
+
+  const res = await vendreMatiereCommerce(commerceType, pays, ville, buildingId, roomIdReel, matiere, qte);
+  const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) ? RESSOURCES_ECONOMIE[matiere].label : matiere;
+  if (!res.ok) {
+    const messages = {
+      introuvable: '',
+      matiere_non_acceptee: 'Ce commerce n\'achète pas cette matière.',
+      quantite_invalide: '',
+      stock_personnel_insuffisant: 'Vous n\'avez pas ' + qte + ' unité(s) de ' + label + '.',
+      stock_plein: 'Le stock maximum de cette matière est atteint pour ce commerce.',
+      caisse_insuffisante: 'Le commerce ne peut pas acheter cette quantité actuellement.'
+    };
+    showToast('Vente refusée', messages[res.raison] || '', false);
+    return;
+  }
+  updateUI();
+  showToast('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', true, true);
+  addJournalEntry('Vente de ' + res.qte + ' ' + label + ' au commerce (+' + res.total.toLocaleString('fr-FR') + ' FR).', 'event-good');
+  doVendreMatiereCommerce(commerceType, buildingId, roomIdReel, 0, 0); // rafraichit, meme pattern que les autres interfaces de commerce
+}
+
 // Dotations de depart par commerce pilote (meme principe que defautArmurerie : un commerce ne
 // demarre pas a zero, comme l'entrepot/l'armurerie). Cle = buildingId, lue par chargerCommerce
 // (definie plus haut dans ce fichier) au tout premier chargement d'un commerce.
