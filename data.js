@@ -451,8 +451,9 @@ const WORLD = {
         'mairie': {
           name: "Hôtel de Ville de Montrouge",
           roomOverrides: {
-            accueil_mairie:     { imageUrl: "images/montrouge/montrouge-mairie-accueil.jpg" },
-            bureau_maire_local: { imageUrl: "images/montrouge/montrouge-mairie-bureau-maire.jpg" }
+            accueil_mairie:      { imageUrl: "images/montrouge/montrouge-mairie-accueil.jpg" },
+            bureau_maire_local:  { imageUrl: "images/montrouge/montrouge-mairie-bureau-maire.jpg" },
+            bureau_maire_adjoint:{ imageUrl: "images/montrouge/montrouge-mairie-bureau-maire-adjoint.jpg" }
           },
           roomsExtra: {
             salle_elections: {
