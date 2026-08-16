@@ -2987,7 +2987,21 @@ const BUILDINGS = {
         persons: [{name:'Receptionniste (PNJ)', role:'Accueil', rel:'neutral', job:'hotelier'}],
         orders: [
           {fn:'se_nourrir', label:'Se nourrir',  pa:0, cost:15, type:'legal', icon:'ti-soup', successRate:100},
-          {fn:'dormir',     label:'Dormir',      pa:0, cost:40, type:'legal', icon:'ti-moon', successRate:100, desc:'+2 PA bonus demain.', paBonus:2}
+          {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'}
+        ]
+      },
+      // Salle ajoutee le 2026-08-16 pour aligner l'Hotel de la Victoire sur l'architecture
+      // hall+chambre de hotel-port (meme fn 'dormir_chambre', memes mecanismes de
+      // plateau-personnage.js:doReserverChambreHotel/doDormirChambre -- confortMap y a deja
+      // une entree 'hotel-mineur' identique a 'hotel-port', aucun code JS modifie).
+      chambre_mineur: {
+        name: "Chambre",
+        imageBg: "linear-gradient(135deg,#0a0808,#121010)",
+        desc: "Une chambre modeste mais propre.",
+        imageUrl: "images/montrouge/montrouge-hotel-victoire-chambre.png",
+        persons: [],
+        orders: [
+          {fn:'dormir_chambre', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'}
         ]
       }
     }
