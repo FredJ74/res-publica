@@ -441,16 +441,51 @@ const WORLD = {
             }
           }
         },
-        // 2026-08-16 : accueil + bureau du maire raccordes. Salle des elections et
-        // archives municipales demandees mais AUCUNE salle correspondante n'existe dans
-        // BUILDINGS['mairie'] (seules accueil_mairie/bureau_maire_local/bureau_maire_adjoint
-        // existent ; salle_elections n'existe que dans 'mairie-capitale', batiment distinct
-        // exclusif a Luthecia) -- signale dans le rapport, non implante.
+        // 2026-08-16 : accueil + bureau du maire raccordes. Salle des elections + archives
+        // ajoutees via roomsExtra (BUILDINGS['mairie'] ne les definit pas -- seule
+        // 'mairie-capitale', batiment distinct exclusif a Luthecia, les a). Audit prealable
+        // du systeme electoral municipal (CYCLES_ELECTORAUX / cle = posteId+'_'+city / colonne
+        // city sur votes_electoraux+candidatures+cycles_electoraux, cote client ET cron
+        // api/cron-minuit.js VILLES_CASCADE) : deja correctement scope par ville partout,
+        // aucune collision Luthecia/PSM/Montrouge trouvee -- aucun correctif necessaire.
         'mairie': {
           name: "Hôtel de Ville de Montrouge",
           roomOverrides: {
             accueil_mairie:     { imageUrl: "images/montrouge/montrouge-mairie-accueil.jpg" },
             bureau_maire_local: { imageUrl: "images/montrouge/montrouge-mairie-bureau-maire.jpg" }
+          },
+          roomsExtra: {
+            salle_elections: {
+              name: "Salle des Élections",
+              imageBg: "linear-gradient(135deg,#0f1810,#142014)",
+              desc: "La salle où sont gérés les scrutins et candidatures officielles de la ville.",
+              imageUrl: "images/montrouge/montrouge-mairie-salle-elections.jpg",
+              persons: [
+                {name:'Responsable Electoral (PNJ)', role:'PNJ - Commission electorale', rel:'neutral', job:'responsable_election'}
+              ],
+              orders: [
+                {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
+                {fn:'contester_resultats',  label:'Contester des resultats',    pa:3, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:40,  desc:'Contester le resultat d\'une election. Long processus.'},
+                {fn:'falsifier_docs',       label:'Falsifier une liste',        pa:3, cost:500,  type:'illegal', icon:'ti-file-x',        successRate:35,  desc:'Manipuler les listes electorales. Tres risque.'}
+              ]
+            },
+            // Archives : consulter_mandats_maires volontairement EXCLU (contenu reel mais
+            // fige sur Luthecia : ENIGME1_REGISTRE_MANDATS + texte en dur "Maire de Luthecia"
+            // dans plateau-enigme-portrait.js -- l'inclure aurait affiche les archives de
+            // Luthecia dans la mairie de Montrouge). consulter_etat_civil conserve : registre
+            // national ("Republia"), non lie a une ville, verifie sans dependance a Luthecia.
+            salle_archives: {
+              name: "Salle des Archives",
+              imageBg: "linear-gradient(135deg,#100c08,#181410)",
+              desc: "L'état-civil et les archives administratives de la ville. Poussiéreux, mais tout y est.",
+              imageUrl: "images/montrouge/montrouge-mairie-archives.jpg",
+              persons: [
+                {name:'Archiviste Municipal (PNJ)', role:'PNJ - Archives', rel:'neutral', job:'archiviste'}
+              ],
+              orders: [
+                {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."}
+              ]
+            }
           }
         },
         'banque-locale':                { name: "Banque Cheminote de Montrouge" },
