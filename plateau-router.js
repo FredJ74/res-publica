@@ -177,6 +177,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'etat_nation')             { ouvrirEtatNation(); return; }
   if (fn === 'fixer_impots_locaux')    { ouvrirFixerImpotsLocauxReel(pa, cost); return; }
   if (fn === 'consommer_buvette') { doConsommerBuvette(pa, cost); return; }
+  if (fn === 'produire_commerce') { doProduireCommerceGenerique(pa, cost); return; }
+  if (fn === 'consulter_carte_commerce') { doConsulterCarteCommerceGenerique(pa, cost); return; }
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne', pa, cost); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }

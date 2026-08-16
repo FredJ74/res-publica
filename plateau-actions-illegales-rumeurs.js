@@ -2182,9 +2182,19 @@ function defautCommerce(type, pays, ville, buildingId, roomId) {
   };
 }
 
+// Dotation de depart eventuelle par buildingId (meme principe que defautArmurerie : un commerce
+// pilote ne demarre pas a zero) -- typeof DOTATIONS_COMMERCE_PILOTE en garde car cette const est
+// declaree plus loin dans ce fichier (catalogue des commerces, rempli lot par lot) ; l'ordre de
+// declaration n'a aucune importance ici, chargerCommerce n'est jamais appelee avant la fin du
+// chargement du script.
 async function chargerCommerce(type, pays, ville, buildingId, roomId) {
   const id = getCommerceId(type, pays, ville, buildingId, roomId);
-  const data = await chargerEntreprise(id, () => defautCommerce(type, pays, ville, buildingId, roomId));
+  const dotation = typeof DOTATIONS_COMMERCE_PILOTE !== 'undefined' ? DOTATIONS_COMMERCE_PILOTE[buildingId] : null;
+  const data = await chargerEntreprise(id, () => {
+    const d = defautCommerce(type, pays, ville, buildingId, roomId);
+    if (dotation) dotation(d);
+    return d;
+  });
   if (data) data.id = id;
   return data;
 }
@@ -2216,7 +2226,57 @@ function crediterStockMatiereCommerce(data, matiere, qte, prixUnitairePaye) {
 // { id, label, categorie, image, materiaux:{cle:qte}, pa, portions, effets:{hp,moral,paDiffere},
 //   typesAutorises:[...], villesAutorisees:[...]|null, buildingsAutorises:[...]|null }
 // villesAutorisees/buildingsAutorises null = recette commune, pas de verrou geographique.
-const RECETTES_ALIMENTAIRES = {};
+const RECETTES_ALIMENTAIRES = {
+  // Cafe de la Gare (Montrouge, lot 3/6) : restauration legere, un seul plat du jour pour
+  // l'instant -- catalogue volontairement reduit (cf. consigne "ne donner au cafe qu'une
+  // petite carte"). Image absente (aucun asset livre a ce jour) -- propriete deja lue par
+  // doConsulterCarteCommerce (affichee des qu'un chemin est fourni), a completer par Fred.
+  boeuf_bourguignon: {
+    id: 'boeuf_bourguignon', label: 'Bœuf bourguignon — plat du jour', categorie: 'plat', image: null,
+    materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 5,
+    effets: { hp: 8, moral: 2 },
+    typesAutorises: ['cafe', 'brasserie'], villesAutorisees: null, buildingsAutorises: null
+  }
+};
+
+// Correspondance buildingId -> type de commerce (17 aout 2026, lot 3+) -- permet a un seul jeu
+// d'ordres generiques (produire_commerce/consulter_carte_commerce, plateau-router.js) de
+// s'appliquer a tout batiment : le type est lu ici plutot que duplique dans chaque room config.
+// Un nouveau commerce mono-piece s'ajoute par une simple ligne ; les batiments a plusieurs
+// commerces distincts (ex. Hotel Republica, lot 5) necessiteront un roomId, pas encore geres ici.
+const BUILDING_COMMERCE_TYPE = {
+  'cafe-gare-montrouge': 'cafe'
+};
+
+// Dotations de depart par commerce pilote (meme principe que defautArmurerie : un commerce ne
+// demarre pas a zero, comme l'entrepot/l'armurerie). Cle = buildingId, lue par chargerCommerce
+// (definie plus haut dans ce fichier) au tout premier chargement d'un commerce.
+const DOTATIONS_COMMERCE_PILOTE = {
+  'cafe-gare-montrouge': function(data) {
+    // caisse de depart (meme necessite que defautArmurerie : sans fonds, la toute premiere
+    // production est bloquee par le controle "caisse insuffisante pour payer le salaire" --
+    // trouve par test d'integration local, pas par relecture). Montant modeste, proportionne a
+    // un petit cafe (pas les 20000 FR de l'armurerie) : ~40 productions a 50 FR de salaire.
+    data.caisse = 2000;
+    data.stockMatieres = { cereales: 10, viande: 10 };
+    data.coutMoyenMatieres = { cereales: 3, viande: 5 }; // au prix de base courant des matieres (releve economique)
+    data.carte = ['boeuf_bourguignon'];
+    data.parametres.stockMax = { boeuf_bourguignon: 20 };
+    data.parametres.prixVente = { boeuf_bourguignon: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boeuf_bourguignon)) };
+  }
+};
+
+function doProduireCommerceGenerique(pa, cost) {
+  const buildingId = state.currentBuilding;
+  if (!BUILDING_COMMERCE_TYPE[buildingId]) { showToast('Indisponible', '', false); return; }
+  doProduireRecetteCommerce(BUILDING_COMMERCE_TYPE[buildingId], buildingId, null, pa, cost);
+}
+
+function doConsulterCarteCommerceGenerique(pa, cost) {
+  const buildingId = state.currentBuilding;
+  if (!BUILDING_COMMERCE_TYPE[buildingId]) { showToast('Indisponible', '', false); return; }
+  doConsulterCarteCommerce(BUILDING_COMMERCE_TYPE[buildingId], buildingId, null, pa, cost);
+}
 
 // 1 PA de travail = 50 FR de main-d'oeuvre (regle validee, releve economique du 17 aout 2026,
 // identique au flat de l'armurerie -- SALAIRE_PRODUCTION_ARMURERIE/PA_PRODUCTION_ARMURERIE

@@ -4627,7 +4627,10 @@ const BUILDINGS = {
     icon: "ti-coffee",
     bgColor: "#100c08",
     desc: "Un café en face de la gare de Montrouge.",
-    rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-cafe-gare-interieur.png", persons: [], orders: [] } }
+    rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-cafe-gare-interieur.png", persons: [], orders: [
+      {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer le plat du jour pour le service (consomme les matières en stock, rémunéré en FR).'},
+      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'}
+    ] } }
   },
   'brasserie-voyageurs-montrouge': {
     name: "Brasserie des Voyageurs",
