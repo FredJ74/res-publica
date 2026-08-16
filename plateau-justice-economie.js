@@ -473,14 +473,16 @@ async function traiterPlaintes() {
       result = `Ouverture d'une enquete concernant ${p.cible}. Conclusions dans 24h.`;
       // Programmer le resultat de l'enquete (motif transporte pour le tribunal)
       if (!state.enquetesEnCours) state.enquetesEnCours = [];
-      state.enquetesEnCours.push({ cible: p.cible, motif: p.motif, country: p.country || state.country, day: state.day + 1, status: 'pending' });
+      // city propagee depuis la plainte d'origine (A3 lot judiciaire) -- l'enquete concerne la
+      // meme affaire, elle doit rester attachee a la meme ville.
+      state.enquetesEnCours.push({ cible: p.cible, motif: p.motif, country: p.country || state.country, city: p.city, day: state.day + 1, status: 'pending' });
       if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_enquete', p.cible);
     } else {
       result = `Actes illegaux confirmes pour ${p.cible}. Mise en garde a vue. Proces dans 24h.`;
       addExternalEvent(`ACTION EXTERIEURE : ${p.cible} a ete place(e) en garde a vue suite a votre plainte. Proces prevu demain.`, 'local');
       if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('plainte_confirmee', p.cible);
       // Transmettre directement au tribunal — l'affaire est mure pour jugement
-      transmettreAffaireAuTribunal(p.cible, p.motif || 'Plainte initiale confirmee par les forces de l\'ordre.');
+      transmettreAffaireAuTribunal(p.cible, p.motif || 'Plainte initiale confirmee par les forces de l\'ordre.', p.city);
     }
     if (notifierJoueurs) {
       addMailNotification('Commissariat Central', `RE: Votre plainte du Jour ${p.day - 1}`, result);
@@ -505,22 +507,27 @@ async function traiterEnquetes() {
       result = `Enquete conclue : non-lieu pour ${e.cible}. Aucune preuve suffisante.`;
     } else {
       result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. Mise en garde a vue immediate. Affaire transmise au tribunal pour jugement.`;
-      await enregistrerDetention(e.cible, 'Garde a vue suite a enquete');
+      await enregistrerDetention(e.cible, 'Garde a vue suite a enquete', undefined, undefined, e.city);
       addExternalEvent(`${e.cible} a ete place(e) en garde a vue. Affaire transmise au tribunal.`, 'local');
       // Transmettre au tribunal pour jugement public
-      transmettreAffaireAuTribunal(e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.');
+      transmettreAffaireAuTribunal(e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.', e.city);
     }
     addMailNotification('Brigade Criminelle', `Conclusions enquete : ${e.cible}`, result);
   }
 }
 
-function transmettreAffaireAuTribunal(cible, motif) {
-  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  const forumKey = 'tribunal_' + state.currentCity;
+// A3 (lot judiciaire, 16 aout 2026) : city desormais un parametre explicite -- une affaire
+// appartient a la ville ou elle a ete constatee (plainte/enquete d'origine), jamais a
+// state.currentCity du joueur qui declenche par hasard le traitement differe (minuit/dormir)
+// ou qui execute cette fonction. Repli sur state.currentCity UNIQUEMENT si l'appelant ne
+// connait vraiment aucune ville (compatibilite avec d'anciennes donnees sans city).
+function transmettreAffaireAuTribunal(cible, motif, city) {
+  const villeReelle = city || state.currentCity || 'capitale';
+  const forumKey = 'tribunal_' + villeReelle;
 
   // Ajouter à la file d'attente du juge (statut lu par ouvrirRendreSentence) — visible par TOUS les juges via Supabase
   if (!state.plaintesEnCours) state.plaintesEnCours = [];
-  const affaireTransmise = { id: 'affaire-' + Date.now(), country: state.country, city: state.currentCity, cible, motif, jour: state.day, status: 'deposee' };
+  const affaireTransmise = { id: 'affaire-' + Date.now(), country: state.country, city: villeReelle, cible, motif, jour: state.day, status: 'deposee' };
   state.plaintesEnCours.push(affaireTransmise);
   if (typeof sbSavePlainte === 'function') sbSavePlainte(affaireTransmise).catch(() => {});
 
@@ -827,7 +834,9 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
   }
   updateUI();
   addExternalEvent('Vous avez ete arrete(e) pour ' + peineCalc.label + '. ' + jours + ' jour(s) d\'emprisonnement. Amende : ' + amende.toLocaleString('fr-FR') + ' FR.');
-  enregistrerDetention(state.char?.name, peineCalc.label, state.day + jours).catch(() => {});
+  // Auto-referent : l'arrestation a lieu ici et maintenant, sur le joueur lui-meme -- city
+  // explicite plutot qu'implicite (A3, lot judiciaire), meme comportement qu'avant.
+  enregistrerDetention(state.char?.name, peineCalc.label, state.day + jours, undefined, state.currentCity).catch(() => {});
 
   // Teleportation en cellule de garde a vue
   state.currentBuilding = 'commissariat';
@@ -1664,12 +1673,12 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     if (affaire.circonstanceAttenuante) { duree = Math.max(1, duree - 1); note = ' (circonstance atténuante : -1 jour)'; }
     if (affaire.aggravation) { duree = duree + 2; note = ' (aggravation : +2 jours)'; }
     details = 'Prison ' + duree + ' jours' + note;
-    await enregistrerDetention(affaire.cible, affaire.motif, state.day + duree);
+    await enregistrerDetention(affaire.cible, affaire.motif, state.day + duree, undefined, affaire.city);
   } else if (type === 'amenagement') {
     details = 'Amenagement : pointage quotidien au commissariat';
   } else if (type === 'qhs') {
     details = 'Envoi au QHS';
-    await enregistrerDetention(affaire.cible, affaire.motif, state.day + 30, true);
+    await enregistrerDetention(affaire.cible, affaire.motif, state.day + 30, true, affaire.city);
     if (typeof sbCreerPrisonnierQHS === 'function') {
       let photoUrl = null;
       if (typeof sbGet === 'function') {
@@ -1690,7 +1699,7 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     }
     const duree = 3 * (nbPrecedentes + 1);
     details = 'Prison ' + duree + ' jours + popularité à zéro' + (nbPrecedentes > 0 ? ' (peine cumulée, ' + (nbPrecedentes + 1) + 'e condamnation)' : '');
-    await enregistrerDetention(affaire.cible, affaire.motif, state.day + duree);
+    await enregistrerDetention(affaire.cible, affaire.motif, state.day + duree, undefined, affaire.city);
     // Perte totale de popularite appliquee directement au personnage reel (peut ne pas etre
     // le joueur actuellement connecte).
     if (typeof sbUpdate === 'function') {
@@ -1701,7 +1710,7 @@ async function appliquerSentence(affaireId, type, pa, cost) {
       await sbTracerAction({
         id: 'condamnation-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
         auteur: affaire.cible, cible: null, type_action: 'condamnation_torture',
-        country: state.country, city: state.currentCity,
+        country: state.country, city: affaire.city || state.currentCity || 'capitale',
         jour: state.day || 1, jour_expiration: (state.day || 1) + 36500
       }).catch(() => {});
     }
@@ -1720,7 +1729,7 @@ async function appliquerSentence(affaireId, type, pa, cost) {
   if (typeof sbCreerJugement === 'function') {
     await sbCreerJugement({
       country: state.country || 'republic',
-      city: state.currentCity || 'capitale',
+      city: affaire.city || state.currentCity || 'capitale',
       accuse: nouveauJugement.accuse,
       motif: nouveauJugement.motif,
       peine: nouveauJugement.peine,
@@ -4573,7 +4582,13 @@ async function confirmerSubventionMinInt(pa, cost) {
   addJournalEntry('Subvention de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur + " du Ministere de l'Interieur vers " + buildingId + '.', 'event-good');
 }
 
-async function enregistrerDetention(nom, raison, jourFin, qhs) {
+// A3 (lot judiciaire, 16 aout 2026) : city desormais un parametre explicite (5e, en fin de
+// liste pour ne rien casser des appelants qui l'ignoreraient encore) -- la ville d'une
+// detention est celle de l'affaire/enquete/arrestation qui la motive, jamais automatiquement
+// la ville du joueur/agent qui execute ce code a cet instant. Repli sur state.currentCity
+// UNIQUEMENT si l'appelant ne connait vraiment aucune ville (compatibilite), jamais si la
+// vraie ville est connue.
+async function enregistrerDetention(nom, raison, jourFin, qhs, city) {
   if (!state.prisonniers) state.prisonniers = [];
   const entree = { nom, depuis: 'Jour ' + (state.day || 1), raison };
   if (jourFin !== undefined && jourFin !== null) entree.jourFin = jourFin;
@@ -4583,7 +4598,7 @@ async function enregistrerDetention(nom, raison, jourFin, qhs) {
   if (typeof sbCreerDetention === 'function') {
     await sbCreerDetention({
       country: state.country || 'republic',
-      city: state.currentCity || 'capitale',
+      city: city || state.currentCity || 'capitale',
       nom, raison,
       jour_debut: state.day || 1,
       jour_fin: jourFin !== undefined ? jourFin : null,
@@ -4654,8 +4669,11 @@ async function confirmerMenerEnquete(pa, cost) {
   if (typeof sbUpdate === 'function') {
     await sbUpdate('actions_tracables', 'id=eq.' + encodeURIComponent(action.id), { decouvert: true }).catch(() => {});
   }
-  if (typeof enregistrerDetention === 'function') enregistrerDetention(cible, action.type_action || 'Acte illegal decouvert par enquete', (state.day || 1) + 2).catch(() => {});
-  if (typeof transmettreAffaireAuTribunal === 'function') transmettreAffaireAuTribunal(cible, action.type_action || 'Acte illegal decouvert par enquete');
+  // Enquete menee par un commissaire depuis sa propre ville (le journal d'actions tracables
+  // fouille est deja filtre sur "ville" ci-dessus, A3 lot judiciaire) : l'affaire appartient
+  // donc reellement a cette ville, pas seulement par defaut.
+  if (typeof enregistrerDetention === 'function') enregistrerDetention(cible, action.type_action || 'Acte illegal decouvert par enquete', (state.day || 1) + 2, undefined, ville).catch(() => {});
+  if (typeof transmettreAffaireAuTribunal === 'function') transmettreAffaireAuTribunal(cible, action.type_action || 'Acte illegal decouvert par enquete', ville);
   if (typeof envoyerNotificationVraiJoueur === 'function') {
     await envoyerNotificationVraiJoueur(cible, 'Enquete de police', 'Une enquete a mis en evidence un acte illegal vous concernant. Vous avez ete place en garde a vue.');
   }
@@ -4793,7 +4811,9 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
   }
 
   const motif = recherche[0]?.acte || 'Avis de recherche';
-  if (typeof enregistrerDetention === 'function') await enregistrerDetention(cible, motif, (state.day || 1) + 3);
+  // Chasse a l'homme organisee depuis le commissariat du chasseur (meme raisonnement que
+  // confirmerMenerEnquete, A3 lot judiciaire) : la cible est ramenee/detenue dans cette ville.
+  if (typeof enregistrerDetention === 'function') await enregistrerDetention(cible, motif, (state.day || 1) + 3, undefined, ville);
   if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(cible)}`, { recherche: [] }).catch(() => {});
   if (typeof envoyerNotificationVraiJoueur === 'function') {
     await envoyerNotificationVraiJoueur(cible, 'Arrestation', 'Vous avez ete localise(e) et arrete(e) suite a un avis de recherche.');
