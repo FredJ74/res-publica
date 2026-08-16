@@ -2982,7 +2982,10 @@ async function finaliserAchatTerrain(id, prix, surface, aPermis) {
     surface: surface,
     valeur_totale: prix,
     dette_fonciere: 0,
-    city: state.currentCity || 'capitale'
+    // La signature a toujours lieu a l'Office Notarial de Luthecia, quelle que soit la ville du
+    // terrain -- ne jamais deduire la ville d'un terrain de state.currentCity (A2, audit du 16
+    // aout 2026). getVilleTerrain (plateau-justice-economie.js) fait autorite via l'id du terrain.
+    city: typeof getVilleTerrain === 'function' ? getVilleTerrain(id) : (state.currentCity || 'capitale')
   });
   if (typeof sbSetTerrainState === 'function') {
     await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});

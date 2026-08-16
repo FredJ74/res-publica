@@ -2709,13 +2709,32 @@ const TERRAINS_PAR_VILLE = {
   ville_b:  ['terrain-a-batir-6']
 };
 
+// L'Office Notarial est unique et national (a Luthecia), mais doit traiter les compromis/rendez-
+// vous de terrains de n'importe quelle ville -- contrairement aux permis (mairie, filtres par
+// ville courante). A2, audit multi-ville du 16 aout 2026 : doActeVenteTerrain/
+// doOuvrirTransfertCompromis/doValiderTransfertCompromis ne parcouraient que TERRAINS_LUTHECIA.
+function getTousLesTerrainsPays() {
+  return Object.values(TERRAINS_PAR_VILLE).flat();
+}
+
+// Ville reelle d'un terrain, par son id -- ne jamais deduire la ville d'un terrain de
+// state.currentCity : le joueur signe toujours a l'Office Notarial de Luthecia, quelle que soit
+// la ville du terrain concerne (cf. finaliserAchatTerrain, plateau-pnj.js).
+function getVilleTerrain(id) {
+  for (const [ville, ids] of Object.entries(TERRAINS_PAR_VILLE)) {
+    if (ids.includes(id)) return ville;
+  }
+  return 'capitale';
+}
+
 async function doActeVenteTerrain() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const nom = state.char?.name;
 
   // Trouver les terrains ou ce joueur a une reservation active (compromis ou achat direct)
+  // -- toutes villes du pays, l'Office Notarial est national (A2).
   const candidats = [];
-  for (const id of TERRAINS_LUTHECIA) {
+  for (const id of getTousLesTerrainsPays()) {
     await chargerTerrainState(id);
     const ts = getTerrainState(id);
     if (ts.compromis && ts.compromisPar === nom) candidats.push({ id, type: 'compromis', ts });
@@ -2814,7 +2833,7 @@ async function traiterActeVente(candidat) {
 async function doOuvrirTransfertCompromis(pa, cost) {
   const nom = state.char?.name;
   const candidats = [];
-  for (const id of TERRAINS_LUTHECIA) {
+  for (const id of getTousLesTerrainsPays()) {
     await chargerTerrainState(id);
     const ts = getTerrainState(id);
     if (ts.compromis && ts.compromisPar === nom) candidats.push({ id, ts });
@@ -2866,7 +2885,7 @@ async function doInitierTransfertCompromis(id, pa, cost) {
 async function doValiderTransfertCompromis(pa, cost) {
   const nom = state.char?.name;
   const candidats = [];
-  for (const id of TERRAINS_LUTHECIA) {
+  for (const id of getTousLesTerrainsPays()) {
     await chargerTerrainState(id);
     const ts = getTerrainState(id);
     if (ts.transfertPropose === nom) candidats.push({ id, ts });
