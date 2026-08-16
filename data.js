@@ -370,7 +370,13 @@ const WORLD = {
         'marche': {
           name: "Marché de Montrouge",
           desc: "Légumes pas chers, grèves annoncées à voix haute.",
-          persons: [{"name": "Josette Betterave (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}]
+          persons: [{"name": "Josette Betterave (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}],
+          // Image de navigation interieure (distincte de la vue de rue 13, montrouge-place-marche-tabac-cafe.png,
+          // qui n'est pas touchee). Le nom du fichier dit "exterieur" car la scene represente un marche en
+          // plein air, mais c'est bien l'image affichee APRES entree dans le batiment.
+          roomOverrides: {
+            marche_ext: { imageUrl: "images/montrouge/montrouge-marche-exterieur.png" }
+          }
         },
 
         // ---- Correctif de nomenclature (2026-08-16) : le nom affiche au joueur doit
@@ -2977,7 +2983,7 @@ const BUILDINGS = {
         image: "🏨",
         imageBg: "linear-gradient(135deg,#0a0808,#121010)",
         desc: "Hall simple mais propre.",
-        imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=80",
+        imageUrl: "images/montrouge/montrouge-hotel-victoire-hall.png",
         persons: [{name:'Receptionniste (PNJ)', role:'Accueil', rel:'neutral', job:'hotelier'}],
         orders: [
           {fn:'se_nourrir', label:'Se nourrir',  pa:0, cost:15, type:'legal', icon:'ti-soup', successRate:100},
@@ -4543,7 +4549,7 @@ const BUILDINGS = {
     icon: "ti-coffee",
     bgColor: "#100c08",
     desc: "Un café en face de la gare de Montrouge.",
-    rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", persons: [], orders: [] } }
+    rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-cafe-gare-interieur.png", persons: [], orders: [] } }
   },
   'brasserie-voyageurs-montrouge': {
     name: "Brasserie des Voyageurs",
@@ -4606,7 +4612,7 @@ const BUILDINGS = {
     icon: "ti-cigarette",
     bgColor: "#100c08",
     desc: "Le café-tabac des cheminots de Montrouge. Un seul et même établissement.",
-    rooms: { salle: { name: "Salle", desc: "Comptoir, tabac, quelques tables.", imageBg: "linear-gradient(135deg,#100c08,#181008)", persons: [], orders: [] } }
+    rooms: { salle: { name: "Salle", desc: "Comptoir, tabac, quelques tables.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-bar-tabac-interieur.png", persons: [], orders: [] } }
   },
 
   // ---- PORTS ----
