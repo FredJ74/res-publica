@@ -4579,7 +4579,7 @@ const BUILDINGS = {
     icon: "ti-movie",
     bgColor: "#100810",
     desc: "Le cinéma de Montrouge.",
-    rooms: { salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", persons: [], orders: [] } }
+    rooms: { salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-accueil.png", persons: [], orders: [] } }
   },
   'jardins-ouvriers-montrouge': {
     name: "Jardins ouvriers",
