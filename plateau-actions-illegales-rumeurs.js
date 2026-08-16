@@ -683,20 +683,32 @@ const ARMES_CATALOGUE = {
 // =====================
 // MODAL TRIPTIQUE D'ACHAT D'ARME
 // =====================
-function ouvrirModalAcheterArme() {
+// Correctif 2026-08-16 (audit "double circuit d'achat") : Acheter une arme est desormais
+// l'UNIQUE porte d'entree d'achat au comptoir, legal ou marche noir, et les deux modalites
+// puisent dans le meme stock reel (data.stockProduits, alimente par confirmerProduction).
+// Plus aucune arme n'est generee ex-nihilo depuis ARMES_CATALOGUE : le catalogue ne fournit
+// plus que les proprietes (nom/desc/bonus/image/type), la disponibilite et le prix viennent
+// de l'entreprise armurerie-<pays> (meme circuit que l'ancien "Acheter en stock", desormais
+// supprime de l'interface -- voir doAcheterProduitStock/confirmerAchatStock, retires).
+async function ouvrirModalAcheterArme() {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const armes = ARMES_CATALOGUE[pays] || ARMES_CATALOGUE.republic;
+  const data = await chargerArmurerieLocale();
+  if (!data) { showToast('Indisponible', '', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Choisissez votre arme';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Achat légal : enregistré au registre de vente, prix normal. Marché noir : non enregistré, 3x le prix, risque de dénonciation par l\'armurier.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Achat légal : enregistré au registre de vente, prix normal. Marché noir : non enregistré, 3x le prix, risque de dénonciation par l\'armurier. Seules les armes réellement en stock (produites par les employés de l\'armurerie) sont disponibles.</div>';
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem">';
 
   armes.forEach((arme) => {
+    const stock = data.stockProduits[arme.id] || 0;
+    const prixVente = data.parametres.prixVente[arme.id] || arme.prix;
+    const prixIllegal = prixVente * 3;
+    const rupture = stock <= 0;
     const typeLabel = { blanche: 'Arme blanche', poing: 'Arme de poing', carabine: 'Carabine' }[arme.type] || arme.type;
-    const prixIllegal = arme.prix * 3;
-    html += '<div style="border:1px solid #2a2010;background:#0a0805;overflow:hidden;display:flex;flex-direction:column;height:100%">';
+    html += '<div style="border:1px solid #2a2010;background:#0a0805;overflow:hidden;display:flex;flex-direction:column;height:100%' + (rupture ? ';opacity:.55' : '') + '">';
     // Image
     html += '<div style="width:100%;height:120px;overflow:hidden;background:#050503;flex-shrink:0">';
     if (arme.imageUrl) {
@@ -709,10 +721,15 @@ function ouvrirModalAcheterArme() {
     html += '<div style="padding:.5rem;display:flex;flex-direction:column;flex:1">';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.08em;color:#c0b090;margin-bottom:.25rem">' + arme.name + '</div>';
     html += '<div style="font-size:.76rem;color:#b0a488;font-style:italic;margin-bottom:.5rem;line-height:1.45">' + arme.desc + '</div>';
-    html += '<div style="font-size:.72rem;color:#6ab858;margin-bottom:.6rem">+' + arme.bonus.val + ' ' + arme.bonus.stat + ' · ' + typeLabel + '</div>';
+    html += '<div style="font-size:.72rem;color:#6ab858;margin-bottom:.3rem">+' + arme.bonus.val + ' ' + arme.bonus.stat + ' · ' + typeLabel + '</div>';
+    html += '<div style="font-size:.7rem;margin-bottom:.6rem;color:' + (rupture ? '#8a5a5a' : '#7a9a68') + '">' + (rupture ? 'Rupture de stock' : ('En stock : ' + stock)) + '</div>';
     html += '<div style="margin-top:auto">';
-    html += '<button onclick="confirmerAchatArme(\'' + arme.id + '\')" style="width:100%;margin-bottom:.35rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.4rem;border:1px solid #4a7a3a;background:transparent;color:#7ab868;cursor:pointer" onmouseover="this.style.background=\'#0e1a0a\'" onmouseout="this.style.background=\'transparent\'">Achat légal — ' + arme.prix.toLocaleString('fr-FR') + ' ' + cur + '</button>';
-    html += '<button onclick="confirmerAchatArmeIllegal(\'' + arme.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.4rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer" onmouseover="this.style.background=\'#1a0a0a\'" onmouseout="this.style.background=\'transparent\'">Marché noir — ' + prixIllegal.toLocaleString('fr-FR') + ' ' + cur + '</button>';
+    if (rupture) {
+      html += '<button disabled style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.4rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default">Rupture de stock</button>';
+    } else {
+      html += '<button onclick="confirmerAchatArme(\'' + arme.id + '\')" style="width:100%;margin-bottom:.35rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.4rem;border:1px solid #4a7a3a;background:transparent;color:#7ab868;cursor:pointer" onmouseover="this.style.background=\'#0e1a0a\'" onmouseout="this.style.background=\'transparent\'">Achat légal — ' + prixVente.toLocaleString('fr-FR') + ' ' + cur + '</button>';
+      html += '<button onclick="confirmerAchatArmeIllegal(\'' + arme.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.4rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer" onmouseover="this.style.background=\'#1a0a0a\'" onmouseout="this.style.background=\'transparent\'">Marché noir — ' + prixIllegal.toLocaleString('fr-FR') + ' ' + cur + '</button>';
+    }
     html += '</div>';
     html += '</div></div>';
   });
@@ -725,28 +742,34 @@ function ouvrirModalAcheterArme() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerAchatArme(armeId) {
+async function confirmerAchatArme(armeId) {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const armes = ARMES_CATALOGUE[pays] || ARMES_CATALOGUE.republic;
   const arme = armes.find(a => a.id === armeId);
   if (!arme) return;
 
-  const prixApplique = state.mobilisationNationaleCache ? Math.round(arme.prix / 2) : arme.prix;
+  const data = await chargerArmurerieLocale();
+  if (!data) { showToast('Indisponible', '', false); return; }
+  if ((data.stockProduits[armeId] || 0) <= 0) {
+    showToast('Rupture de stock', 'Cette arme n\'est plus disponible pour le moment.', false);
+    return;
+  }
+
+  const prixVente = data.parametres.prixVente[armeId] || arme.prix;
+  const prixApplique = state.mobilisationNationaleCache ? Math.round(prixVente / 2) : prixVente;
   if (state.arg < prixApplique) {
     showToast('Fonds insuffisants', prixApplique.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
     return;
   }
 
   state.arg -= prixApplique;
-  if (typeof appliquerTaxeTransaction === 'function' && typeof chargerEntreprise === 'function') {
-    appliquerTaxeTransaction(prixApplique).then(async ({ net }) => {
-      const id = getEntrepriseIdArmurerie(pays);
-      const data = await chargerEntreprise(id, () => defautArmurerie(pays));
-      data.caisse = (data.caisse || 0) + net;
-      await sbSaveEntreprise(id, data).catch(() => {});
-    }).catch(() => {});
-  }
+  data.stockProduits[armeId] -= 1;
+  const { net } = typeof appliquerTaxeTransaction === 'function' ? await appliquerTaxeTransaction(prixApplique) : { net: prixApplique };
+  data.caisse = (data.caisse || 0) + net;
+  ajouterHistoriqueEntreprise(data, net, 'Vente au comptoir — ' + arme.name);
+  await sbSaveEntreprise(data.id, data);
+
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
     id: 'arme-' + Date.now(),
@@ -760,12 +783,12 @@ function confirmerAchatArme(armeId) {
     imageUrl: arme.imageUrl
   });
 
-  // Inscription au registre officiel de vente d'armes
+  // Inscription au registre officiel de vente d'armes — systematique pour tout achat legal
   if (typeof sbEnregistrerVenteArme === 'function') {
     sbEnregistrerVenteArme({
       joueur: state.char?.name || 'Anonyme',
       arme: arme.name,
-      prix: arme.prix,
+      prix: prixApplique,
       pays: pays,
       jour: state.day || 1,
       heure: state.hour || 8
@@ -773,7 +796,7 @@ function confirmerAchatArme(armeId) {
   }
 
   updateUI();
-  addJournalEntry('Achat légal : ' + arme.name + ' (-' + arme.prix.toLocaleString('fr-FR') + ' ' + cur + '). Inscrit au registre.', 'event-bad');
+  addJournalEntry('Achat légal : ' + arme.name + ' (-' + prixApplique.toLocaleString('fr-FR') + ' ' + cur + '). Inscrit au registre.', 'event-bad');
 
   // Modal de confirmation "reçu officiel" avec le registre en illustration
   document.getElementById('postes-modal-title').textContent = 'Vente enregistrée';
@@ -789,14 +812,22 @@ function confirmerAchatArme(armeId) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerAchatArmeIllegal(armeId) {
+async function confirmerAchatArmeIllegal(armeId) {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const armes = ARMES_CATALOGUE[pays] || ARMES_CATALOGUE.republic;
   const arme = armes.find(a => a.id === armeId);
   if (!arme) return;
 
-  const prixIllegal = arme.prix * 3;
+  const data = await chargerArmurerieLocale();
+  if (!data) { showToast('Indisponible', '', false); return; }
+  if ((data.stockProduits[armeId] || 0) <= 0) {
+    showToast('Rupture de stock', 'Cette arme n\'est plus disponible pour le moment.', false);
+    return;
+  }
+
+  const prixVente = data.parametres.prixVente[armeId] || arme.prix;
+  const prixIllegal = prixVente * 3;
   if (state.arg < prixIllegal) {
     showToast('Fonds insuffisants', prixIllegal.toLocaleString('fr-FR') + ' ' + cur + ' requis (marché noir).', false);
     return;
@@ -814,7 +845,7 @@ function confirmerAchatArmeIllegal(armeId) {
   const roll = Math.random() * 100;
 
   if (roll > tauxReussite) {
-    // ECHEC — l'armurier refuse et denonce
+    // ECHEC — l'armurier refuse et denonce. Rien n'a ete vendu : le stock n'est pas touche.
     if (!state.recherche) state.recherche = [];
     state.recherche.push({ acte: 'achat_arme_illegal', type: 'delit_mineur', jour: state.day });
 
@@ -838,7 +869,10 @@ function confirmerAchatArmeIllegal(armeId) {
     return;
   }
 
-  // REUSSITE — arme livree, non enregistree
+  // REUSSITE — arme livree, non enregistree au registre, mais bien consommee du stock reel
+  data.stockProduits[armeId] -= 1;
+  await sbSaveEntreprise(data.id, data);
+
   state.arg -= prixIllegal;
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
@@ -2151,48 +2185,12 @@ async function confirmerProduction(produitId) {
   doProduireArme();
 }
 
-async function doAcheterProduitStock(pa, cost) {
-  const data = await chargerArmurerieLocale();
-  if (!data) { showToast('Indisponible', '', false); return; }
-
-  document.getElementById('postes-modal-title').textContent = 'Acheter en stock';
-  let html = '<div style="padding:1rem">';
-  const disponibles = Object.entries(data.stockProduits).filter(([id, q]) => q > 0);
-  if (disponibles.length === 0) {
-    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Rien en stock pour l\'instant — revenez plus tard.</div>';
-  }
-  disponibles.forEach(([id, q]) => {
-    const r = RECETTES_PRODUCTION[id];
-    const prix = data.parametres.prixVente[id] || 0;
-    html += '<button onclick="confirmerAchatStock(\'' + id + '\',' + pa + ',' + cost + ')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
-    html += '<span>' + (r?.label||id) + ' (' + q + ' en stock)</span><span style="color:#C9A84C">' + prix + ' FR</span></button>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerAchatStock(produitId, pa, cost) {
-  const data = await chargerArmurerieLocale();
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const prix = data.parametres.prixVente[produitId] || 0;
-  if ((data.stockProduits[produitId] || 0) <= 0) { showToast('Rupture de stock', '', false); return; }
-  if (state.arg < prix) { showToast('Fonds insuffisants', '', false); return; }
-  const rStock = await deduireCoutOrdre({ pa, cost });
-  if (!rStock.ok) { showToast('PA insuffisants', '', false); return; }
-
-  state.arg -= prix;
-  data.stockProduits[produitId] -= 1;
-  const { net, taxeLocale, taxeNationale } = typeof appliquerTaxeTransaction === 'function' ? await appliquerTaxeTransaction(prix) : { net: prix };
-  data.caisse += net;
-  ajouterHistoriqueEntreprise(data, net, 'Vente au comptoir — ' + (RECETTES_PRODUCTION[produitId]?.label||produitId) + (taxeLocale||taxeNationale ? ' (taxes : ' + (taxeLocale+taxeNationale) + ' FR)' : ''));
-  await sbSaveEntreprise(data.id, data);
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({ type: 'arme', name: RECETTES_PRODUCTION[produitId]?.label || produitId, icon: 'ti-sword', legal: true });
-  updateUI();
-  showToast('Achat effectué', (RECETTES_PRODUCTION[produitId]?.label||produitId) + ' ajouté(e) à votre inventaire.', true, true);
-  addJournalEntry('Achat en stock à l\'armurerie : ' + (RECETTES_PRODUCTION[produitId]?.label||produitId) + ' (-' + prix + ' FR).', 'event-good');
-}
+// doAcheterProduitStock/confirmerAchatStock (ordre "Acheter en stock") retires le 2026-08-16 :
+// creaient un objet arme appauvri (sans bonus/image/desc) sans jamais alimenter le registre
+// des ventes d'armes -- contournement legal reel confirme par audit. Leur logique economique
+// (stock reel, prixVente, caisse, historique, taxes) est desormais fusionnee dans
+// confirmerAchatArme/confirmerAchatArmeIllegal ci-dessus, qui restent l'UNIQUE porte d'achat
+// et alimentent systematiquement sbEnregistrerVenteArme() cote legal.
 
 // Fix 9 aout 2026 (confirme par test en jeu) : ne reconnaissait que la forme d'inventoire de
 // la recolte (type:'matiere_premiere'), jamais la forme empilable produite par un achat a

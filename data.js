@@ -2274,8 +2274,7 @@ const BUILDINGS = {
             pa:1, cost:0, type:'legal', icon:'ti-book', successRate:100,
             desc:'Acces libre : Commissaire, Juge. Sinon : soudoyer l\'armurier (30%, 100 FR, +/-5 INF et POP). Ventes des 6 derniers mois.'
           },
-          {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'},
-          {fn:'acheter_produit_stock', label:'Acheter en stock (fabrication maison)', pa:1, cost:0, type:'legal', icon:'ti-package', successRate:100, desc:'Armes produites par de vrais joueurs, au prix fixe par le proprietaire.'}
+          {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'}
         ]
       }
     }
