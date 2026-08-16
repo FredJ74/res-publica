@@ -325,7 +325,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge.png',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-6','stade','zone-production','entrepot-logistique-montrouge','raffinerie-montrouge','bureau-national-emploi-montrouge','armurerie','loge-maconnique','la-tribune','marche','cafe-gare-montrouge','brasserie-voyageurs-montrouge','musee-histoire-montrouge','eglise-montrouge','cinema-montrouge','jardins-ouvriers-montrouge','logements-montrouge','cafe-tabac-cheminots-montrouge'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-6','stade','zone-production','entrepot-logistique-montrouge','raffinerie-montrouge','armurerie','loge-maconnique','la-tribune','marche','cafe-gare-montrouge','brasserie-voyageurs-montrouge','musee-histoire-montrouge','eglise-montrouge','cinema-montrouge','jardins-ouvriers-montrouge','logements-montrouge','cafe-tabac-cheminots-montrouge'],
       buildingContext: {
         'stade': {
           name: "Stade Marcel Cazenave",
@@ -391,7 +391,39 @@ const WORLD = {
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
         'dispensaire-public-v':         { name: "Hôpital de Montrouge" },
         'centre-commercial':            { name: "Centre commercial de Montrouge" },
-        'centre-affaires':              { name: "Centre d'affaires de Montrouge" },
+        // Le BNE de Montrouge est une annexe du Centre d'Affaires, sur le meme modele que
+        // PSM (ville_a.buildingContext['centre-affaires'].roomsExtra.bureau_emploi_annexe) :
+        // memes 3 ordres generiques (aucune mecanique/PNJ invente), image propre a Montrouge.
+        // L'ancien batiment autonome 'bureau-national-emploi-montrouge' est retire (voir plus
+        // bas) : verifie sans autre reference dans tout le depot avant suppression.
+        'centre-affaires': {
+          name: "Centre d'affaires de Montrouge",
+          // Images d'interieur (2026-08-16) : reutilise integralement les 3 categories de
+          // bureaux a louer deja definies au niveau generique (BUILDINGS['centre-affaires'] :
+          // bureau_prestige/bureau_standard/open_space), meme mecanique de location que PSM.
+          // Correspondance retenue par ordre de gamme : grand=Prestige(1000FR/tier1),
+          // moyen=Standard(500FR/tier2), petit=Open Space(200FR/tier3, "espace partage").
+          roomOverrides: {
+            hall:            { imageUrl: "images/montrouge/montrouge-centre-affaires-accueil.png" },
+            bureau_prestige: { imageUrl: "images/montrouge/montrouge-centre-affaires-grand-bureau.png" },
+            bureau_standard: { imageUrl: "images/montrouge/montrouge-centre-affaires-moyen-bureau.png" },
+            open_space:      { imageUrl: "images/montrouge/montrouge-centre-affaires-petit-bureau.png" }
+          },
+          roomsExtra: {
+            bureau_emploi_annexe: {
+              name: "Bureau National de l'Emploi (Annexe)",
+              imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
+              imageUrl: "images/montrouge/montrouge-bne-accueil.png",
+              desc: "L'antenne locale du Bureau National de l'Emploi de Républia. Offres d'emploi, accompagnement, formation.",
+              persons: [],
+              orders: [
+                {fn:'sinscrire_demandeur_emploi', label:"S'inscrire comme demandeur d'emploi", pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, desc:"Ouvre l'accès aux offres du Bureau National de l'Emploi."},
+                {fn:'consulter_offres_emploi', label:"Consulter les offres d'emploi", pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:'Offres locales, nationales et internationales disponibles.'},
+                {fn:'demissionner_emploi_bne', label:'Démissionner de mon emploi', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Effet immédiat, sans coût. Libère la place pour un autre demandeur.'}
+              ]
+            }
+          }
+        },
         'mairie':                       { name: "Hôtel de Ville de Montrouge" },
         'banque-locale':                { name: "Banque Cheminote de Montrouge" },
         'loge-maconnique':              { name: "Loge maçonnique de Montrouge" },
@@ -4232,37 +4264,6 @@ const BUILDINGS = {
         orders: [
           {fn:'produire_carburant', label:'Produire du carburant', pa:1, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 70 FR. Consomme 5 pétrole du stock de matières de l\'usine, produit 10 carburants.'}
         ]
-      }
-    }
-  },
-
-  'bureau-national-emploi-montrouge': {
-    name: "Bureau National de l'Emploi — Montrouge",
-    shortName: "Bureau de l'Emploi",
-    cat: "Économie",
-    icon: "ti-briefcase",
-    bgColor: "#0f1216",
-    desc: "L'office national qui recense les demandeurs d'emploi et les offres disponibles. Votre avenir, notre mission.",
-    rooms: {
-      accueil: {
-        name: "Accueil",
-        imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
-        imageUrl: "images/montrouge/montrouge-bne-accueil.png",
-        desc: "Le hall d'accueil du Bureau National de l'Emploi. Offres d'emploi, accompagnement, formation, création d'activité.",
-        persons: [],
-        orders: [
-          {fn:'sinscrire_demandeur_emploi', label:"S'inscrire comme demandeur d'emploi", pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, desc:"Ouvre l'accès aux offres du Bureau National de l'Emploi."},
-          {fn:'consulter_offres_emploi', label:"Consulter les offres d'emploi", pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:'Offres locales, nationales et internationales disponibles.'},
-          {fn:'demissionner_emploi_bne', label:'Démissionner de mon emploi', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Effet immédiat, sans coût. Libère la place pour un autre demandeur.'}
-        ]
-      },
-      bureau_direction: {
-        name: "Bureau de Direction",
-        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
-        desc: "Le bureau du directeur de l'office. Accès sur rendez-vous.",
-        persons: [],
-        orders: []
       }
     }
   },

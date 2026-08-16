@@ -569,7 +569,12 @@ function enterRoom(buildingId, roomId, tabEl) {
   const isFirstRoom = Object.keys(b.rooms || {})[0] === roomId;
   const roomOverride = ctx?.roomOverrides?.[roomId];
 
-  // Image de la piece — priorité : ROOM_IMAGES_EMPIRE > roomOverride > room.imageUrl
+  // Image de la piece — priorité : roomOverride (specifique a la ville) > ROOM_IMAGES_EMPIRE
+  // (par pays) > room.imageUrl. Inversee le 2026-08-16 : audit exhaustif de toutes les
+  // collisions existantes (roomOverride.imageUrl + ROOM_IMAGES_EMPIRE sur le meme
+  // pays/buildingId/roomId) -- les seuls cas trouves (8, tous dans khalija/capitale :
+  // hotel-republica, palais-presidentiel, assemblee) ont une URL strictement identique des
+  // deux cotes, donc ce changement ne modifie visuellement aucune ville existante.
   const empireRoomImg = (typeof ROOM_IMAGES_EMPIRE !== 'undefined')
     ? ROOM_IMAGES_EMPIRE[state.country]?.[buildingId]?.[roomId]
     : null;
@@ -585,7 +590,7 @@ function enterRoom(buildingId, roomId, tabEl) {
       chantierImg = NIVEAUX_CONSTRUCTION[tsChantier.niveau_construction]?.imageUrl || null;
     }
   }
-  const imgUrl = enigme1Img || chantierImg || empireRoomImg || roomOverride?.imageUrl || room.imageUrl;
+  const imgUrl = enigme1Img || chantierImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl;
   if (imgUrl) {
     pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
