@@ -3085,6 +3085,7 @@ const BUILDINGS = {
         orders: [
           {fn:'produire_commerce', label:'Préparer le petit-déjeuner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Pas de restaurant ici — juste une petite offre de petit-déjeuner (consomme les matières en stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Petit-déjeuner', pa:1, cost:0, type:'legal', icon:'ti-coffee', successRate:100, desc:'Voir l\'offre de petit-déjeuner et commander.'},
+          {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
           {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'}
         ]
       },
@@ -4632,7 +4633,8 @@ const BUILDINGS = {
     desc: "Un café en face de la gare de Montrouge.",
     rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-cafe-gare-interieur.png", persons: [], orders: [
       {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer le plat du jour pour le service (consomme les matières en stock, rémunéré en FR).'},
-      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'}
+      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
+      {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'}
     ] } }
   },
   'brasserie-voyageurs-montrouge': {
@@ -4644,7 +4646,8 @@ const BUILDINGS = {
     desc: "Une brasserie pres de la gare de Montrouge.",
     rooms: { salle: { name: "Salle", desc: "Comptoir et banquettes.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-brasserie-voyageurs.png", persons: [], orders: [
       {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
-      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'}
+      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
+      {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'}
     ] } }
   },
   'musee-histoire-montrouge': {

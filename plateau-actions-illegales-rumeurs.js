@@ -2247,7 +2247,9 @@ const RECETTES_ALIMENTAIRES = {
   // gastronomique) -- les deux autres restent communes, comme demande ("les effets exacts
   // peuvent rester modestes... et doivent etre configurables").
   carbonade_frites: {
-    id: 'carbonade_frites', label: 'Carbonade-frites', categorie: 'plat', image: null,
+    id: 'carbonade_frites', label: 'Carbonade-frites', categorie: 'plat',
+    // Asset reel confirme present dans le depot (mini-lot de finition, 17 aout 2026).
+    image: 'images/montrouge/montrouge-plat-carbonade.jpg',
     materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 5,
     effets: { hp: 8, moral: 3 },
     typesAutorises: ['brasserie'], villesAutorisees: ['ville_b'], buildingsAutorises: null
@@ -2452,6 +2454,71 @@ async function confirmerFixerPrixCommerce(commerceType, pays, ville, buildingId,
   return { ok: true, prix: data.parametres.prixVente[recetteId] };
 }
 
+// Interface "Gerer mon commerce" (mini-lot de finition, 17 aout 2026) -- reservee au
+// proprietaire PJ. N'invente aucune regle de calcul : delegue integralement a
+// coutRevientPortionRecette/fourchettePrixPJ/confirmerFixerPrixCommerce (lot 2), deja ecrites et
+// testees mais jusqu'ici sans point d'entree en jeu.
+function doGererCommerceGenerique(pa, cost) {
+  const c = resoudreCommerceActuel();
+  if (!c) { showToast('Indisponible', '', false); return; }
+  doGererCommerce(c.type, c.buildingId, c.roomId);
+}
+
+async function doGererCommerce(commerceType, buildingId, roomId) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!data) { showToast('Indisponible', '', false); return; }
+  if (data.proprietaire === 'PNJ') { showToast('Réservé au propriétaire', 'Ce commerce appartient encore à un PNJ (rachetable au Bureau des Contrats).', false); return; }
+  if (data.proprietaire !== state.char?.name) { showToast('Réservé au propriétaire', 'Ce commerce appartient à ' + data.proprietaire + '.', false); return; }
+
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Gérer mon commerce';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">Caisse : ' + (data.caisse || 0).toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  const carte = (data.carte || []).filter(id => RECETTES_ALIMENTAIRES[id]);
+  if (carte.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060">Aucun produit sur la carte de cet établissement.</div>';
+  }
+  carte.forEach(id => {
+    const recette = RECETTES_ALIMENTAIRES[id];
+    const coutRevient = coutRevientPortionRecette(data, recette);
+    const { min, max } = fourchettePrixPJ(coutRevient);
+    const prixActuel = data.parametres.prixVente[id];
+    html += '<div style="padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem">';
+    html += '<b style="font-size:.85rem;color:#c0b090">' + recette.label + '</b><br>';
+    html += '<span style="font-size:.72rem;color:#8a8060">Coût de revient actuel : ' + coutRevient.toFixed(2) + ' ' + cur + ' — Fourchette autorisée : ' + min.toFixed(2) + ' à ' + max.toFixed(2) + ' ' + cur + '</span><br>';
+    html += '<span style="font-size:.72rem;color:#6a5a30">Prix actuel : ' + (prixActuel != null ? prixActuel.toLocaleString('fr-FR') : 'non défini') + ' ' + cur + '</span>';
+    html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
+    html += '<input type="number" min="' + min + '" max="' + max + '" step="0.5" id="gere-commerce-prix-' + id + '" placeholder="Nouveau prix" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.75rem;outline:none"/>';
+    html += '<button onclick="confirmerGererPrixCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem">Valider</button>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerGererPrixCommerceUI(commerceType, buildingId, roomId, recetteId) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const roomIdReel = roomId || null;
+  const valeur = document.getElementById('gere-commerce-prix-' + recetteId)?.value;
+  const res = await confirmerFixerPrixCommerce(commerceType, pays, ville, buildingId, roomIdReel, recetteId, valeur);
+  if (!res.ok) {
+    const messages = {
+      introuvable: 'Produit introuvable.',
+      reserve_proprietaire: 'Réservé au propriétaire de ce commerce.',
+      hors_fourchette: 'Le prix doit être compris entre ' + (res.min != null ? res.min.toFixed(2) : '?') + ' et ' + (res.max != null ? res.max.toFixed(2) : '?') + ' ' + (COUNTRIES[state.country || 'republic']?.cur || 'FR') + '.'
+    };
+    showToast('Prix refusé', messages[res.raison] || '', false);
+    return;
+  }
+  showToast('Prix mis à jour', res.prix.toLocaleString('fr-FR') + ' FR.', true, true);
+  addJournalEntry('Prix ajusté pour ' + (RECETTES_ALIMENTAIRES[recetteId]?.label || recetteId) + ' — ' + res.prix.toLocaleString('fr-FR') + ' FR.', 'event-good');
+  doGererCommerce(commerceType, buildingId, roomIdReel); // rafraichit, meme pattern que produire/consulter
+}
+
 // Production generique : matieres -> PA -> lot -> portions, sur le modele exact de
 // confirmerProduction (armurerie) mais parametre par recette au lieu d'un id d'arme fixe.
 async function produireRecetteCommerce(commerceType, pays, ville, buildingId, roomId, recetteId) {
@@ -2516,6 +2583,21 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
 
   const stock = data.stockProduits[recetteId] || 0;
   if (stock <= 0) return { ok: false, raison: 'rupture' };
+
+  // Coherence prix PJ (mini-lot de finition, 17 aout 2026) : le cout moyen des matieres peut
+  // avoir evolue depuis que le proprietaire a fixe son prix (confirmerFixerPrixCommerce), le
+  // rendant obsolete hors de la fourchette courante. Plutot que de bloquer la vente (le commerce
+  // deviendrait invendable sans intervention du proprietaire, potentiellement absent), le prix
+  // est ramene proprement dans la fourchette actuelle -- meme regle de calcul que partout
+  // ailleurs (fourchettePrixPJ), aucune duplication. Les commerces PNJ ne sont jamais concernes :
+  // leur prix est deja recalcule a chaque production (produireRecetteCommerce), toujours a jour.
+  if (data.proprietaire !== 'PNJ' && data.parametres.prixVente[recetteId] != null) {
+    const { min, max } = fourchettePrixPJ(coutRevientPortionRecette(data, recette));
+    const prixActuel = data.parametres.prixVente[recetteId];
+    if (prixActuel < min || prixActuel > max) {
+      data.parametres.prixVente[recetteId] = Math.round(Math.max(min, Math.min(max, prixActuel)) * 100) / 100;
+    }
+  }
 
   const prix = data.parametres.prixVente[recetteId];
   if (prix == null) return { ok: false, raison: 'prix_non_defini' };
