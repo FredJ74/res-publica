@@ -2362,6 +2362,42 @@ function prixAchatMatiereCommerce(data, matiere) {
   return (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere] ? RESSOURCES_ECONOMIE[matiere].prixAchatFournisseur : 0) || 0;
 }
 
+// Fourchette de prix d'achat autorisee pour un proprietaire PJ (correctif de finition, 17 aout
+// 2026). L'armurerie (confirmerGestionArmurerie) n'a AUCUNE borne comparable pour son
+// prixAchatMatiere -- seulement Math.max(0, ...), verifie exhaustivement avant d'ecrire cette
+// fonction -- donc pas de regle existante a generaliser. Regle provisoire appliquee telle que
+// demandee : ±50% autour de prixAchatFournisseur, coefficients centralises ci-dessous pour
+// rester facilement ajustables.
+const COEF_PRIX_ACHAT_MATIERE_MIN = 0.5;
+const COEF_PRIX_ACHAT_MATIERE_MAX = 1.5;
+function fourchettePrixAchatMatierePJ(matiere) {
+  const base = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) ? RESSOURCES_ECONOMIE[matiere].prixAchatFournisseur : 0;
+  return {
+    min: Math.round(base * COEF_PRIX_ACHAT_MATIERE_MIN * 100) / 100,
+    max: Math.round(base * COEF_PRIX_ACHAT_MATIERE_MAX * 100) / 100
+  };
+}
+
+// Reserve au proprietaire PJ -- fixe le prix auquel SON commerce achete une matiere aux
+// vendeurs. La buvette n'a jamais de proprietaire PJ (exclue du rachat depuis le lot 6,
+// institution municipale) : data.proprietaire y vaut toujours 'PNJ' par construction, donc deja
+// refusee par le controle ci-dessous sans cas particulier a ecrire.
+async function confirmerFixerPrixAchatMatiereCommerce(commerceType, pays, ville, buildingId, roomId, matiere, prixSaisi) {
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!data) return { ok: false, raison: 'introuvable' };
+  if (data.proprietaire === 'PNJ' || data.proprietaire !== state.char?.name) return { ok: false, raison: 'reserve_proprietaire' };
+  if (!matieresAccepteesParCommerce(data).includes(matiere)) return { ok: false, raison: 'matiere_non_acceptee' };
+
+  const { min, max } = fourchettePrixAchatMatierePJ(matiere);
+  const prix = parseFloat(prixSaisi);
+  if (isNaN(prix) || prix < min || prix > max) return { ok: false, raison: 'hors_fourchette', min, max };
+
+  if (!data.parametres.prixAchatMatiere) data.parametres.prixAchatMatiere = {};
+  data.parametres.prixAchatMatiere[matiere] = Math.round(prix * 100) / 100;
+  await sbSaveEntreprise(data.id, data);
+  return { ok: true, prix: data.parametres.prixAchatMatiere[matiere] };
+}
+
 // Transaction pure (testable isolement) : matieres -> verification -> caisse -> stock -> cout
 // moyen -> historique. Ordre securise : tout controle sans effet de bord (matiere acceptee,
 // stock personnel, stock max du commerce) passe AVANT le seul point a effet de bord externe
@@ -2647,9 +2683,61 @@ async function doGererCommerce(commerceType, buildingId, roomId) {
     html += '<button onclick="confirmerGererPrixCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem">Valider</button>';
     html += '</div></div>';
   });
+
+  // Prix d'achat des matieres (correctif de finition, 17 aout 2026) : matieres determinees
+  // generiquement a partir de la carte actuelle (matieresAccepteesParCommerce, deja utilisee par
+  // le flux de vente joueur -> commerce) -- si une recette est retiree de la carte et que sa
+  // matiere n'est plus utilisee ailleurs, elle disparait naturellement de cette liste, sans
+  // toucher ni au stock deja present ni a un ancien prix stocke (juste plus affiche/proposable).
+  html += '<div style="font-size:.8rem;color:#8a8060;margin:.9rem 0 .3rem;font-weight:bold">Prix d\'achat des matières</div>';
+  const matieresAcceptees = matieresAccepteesParCommerce(data);
+  if (matieresAcceptees.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060">Aucune matière n\'est actuellement nécessaire aux produits de la carte.</div>';
+  }
+  matieresAcceptees.forEach(m => {
+    const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
+    const stockActuel = data.stockMatieres[m] || 0;
+    const stockMax = data.parametres.stockMax[m];
+    const placeRestante = stockMax != null ? Math.max(0, stockMax - stockActuel) : null;
+    const prixReference = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].prixAchatFournisseur : 0;
+    const prixActuelAchat = prixAchatMatiereCommerce(data, m);
+    const { min, max } = fourchettePrixAchatMatierePJ(m);
+    html += '<div style="padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem">';
+    html += '<b style="font-size:.85rem;color:#c0b090">' + label + '</b><br>';
+    html += '<span style="font-size:.72rem;color:#8a8060">Stock actuel : ' + stockActuel + (placeRestante != null ? ' — Capacité restante : ' + placeRestante : '') + '</span><br>';
+    html += '<span style="font-size:.72rem;color:#8a8060">Prix de référence (PNJ) : ' + prixReference.toLocaleString('fr-FR') + ' ' + cur + ' — Fourchette autorisée : ' + min.toFixed(2) + ' à ' + max.toFixed(2) + ' ' + cur + '</span><br>';
+    html += '<span style="font-size:.72rem;color:#6a5a30">Prix actuellement proposé : ' + prixActuelAchat.toLocaleString('fr-FR') + ' ' + cur + '</span>';
+    html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
+    html += '<input type="number" min="' + min + '" max="' + max + '" step="0.1" id="gere-commerce-achat-' + m + '" placeholder="Nouveau prix" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.75rem;outline:none"/>';
+    html += '<button onclick="confirmerGererPrixAchatCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem">Valider</button>';
+    html += '</div></div>';
+  });
+
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerGererPrixAchatCommerceUI(commerceType, buildingId, roomId, matiere) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const roomIdReel = roomId || null;
+  const valeur = document.getElementById('gere-commerce-achat-' + matiere)?.value;
+  const res = await confirmerFixerPrixAchatMatiereCommerce(commerceType, pays, ville, buildingId, roomIdReel, matiere, valeur);
+  const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) ? RESSOURCES_ECONOMIE[matiere].label : matiere;
+  if (!res.ok) {
+    const messages = {
+      introuvable: '',
+      reserve_proprietaire: 'Réservé au propriétaire de ce commerce.',
+      matiere_non_acceptee: 'Ce commerce n\'achète pas ' + label + '.',
+      hors_fourchette: 'Le prix doit être compris entre ' + (res.min != null ? res.min.toFixed(2) : '?') + ' et ' + (res.max != null ? res.max.toFixed(2) : '?') + ' ' + (COUNTRIES[state.country || 'republic']?.cur || 'FR') + '.'
+    };
+    showToast('Prix d\'achat refusé', messages[res.raison] || '', false);
+    return;
+  }
+  showToast('Prix d\'achat mis à jour', res.prix.toLocaleString('fr-FR') + ' FR.', true, true);
+  addJournalEntry('Prix d\'achat ajusté pour ' + label + ' — ' + res.prix.toLocaleString('fr-FR') + ' FR.', 'event-good');
+  doGererCommerce(commerceType, buildingId, roomIdReel); // rafraichit, meme pattern que le reste de l'interface
 }
 
 async function confirmerGererPrixCommerceUI(commerceType, buildingId, roomId, recetteId) {
