@@ -579,12 +579,15 @@ const RUE_CENTRALE_NOEUDS = {
       flechesStyle: { toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
     },
 
-    // Vue 7 — la place avec la locomotive au centre est "Place du Rail" elle-meme
-    // (pas un lieu separe a cliquer : c'est l'identite de cette vue).
+    // Vue 7 — la place avec la locomotive au centre s'appelle "Place du Rail" ; c'est
+    // desormais aussi un lieu cliquable (place-du-rail-montrouge), distinct de la facade
+    // de la mairie (0-27%), sur le reste de l'image (locomotive + place + batiments en
+    // arriere-plan, 28-100%).
     'montrouge-vue-7': {
       image: 'images/montrouge/montrouge-place-hotel-de-ville.png',
       zones: [
-        { xPct: [0, 27], nom: 'Hôtel de Ville de Montrouge', type: 'batiment', buildingId: 'mairie' }
+        { xPct: [0, 27], nom: 'Hôtel de Ville de Montrouge', type: 'batiment', buildingId: 'mairie' },
+        { xPct: [28, 100], nom: 'Place du Rail', type: 'batiment', buildingId: 'place-du-rail-montrouge' }
       ],
       liens: { arriere: 'montrouge-vue-6', toutDroit: 'montrouge-vue-8' },
       flechesStyle: {

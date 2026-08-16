@@ -325,7 +325,7 @@ const WORLD = {
       imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge.png',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-6','stade','zone-production','entrepot-logistique-montrouge','raffinerie-montrouge','armurerie','loge-maconnique','la-tribune','marche','cafe-gare-montrouge','brasserie-voyageurs-montrouge','musee-histoire-montrouge','eglise-montrouge','cinema-montrouge','jardins-ouvriers-montrouge','logements-montrouge','cafe-tabac-cheminots-montrouge'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-6','stade','zone-production','entrepot-logistique-montrouge','raffinerie-montrouge','armurerie','loge-maconnique','la-tribune','marche','cafe-gare-montrouge','brasserie-voyageurs-montrouge','musee-histoire-montrouge','eglise-montrouge','cinema-montrouge','jardins-ouvriers-montrouge','logements-montrouge','cafe-tabac-cheminots-montrouge','place-du-rail-montrouge'],
       buildingContext: {
         'stade': {
           name: "Stade Marcel Cazenave",
@@ -4655,6 +4655,18 @@ const BUILDINGS = {
     bgColor: "#0c0a06",
     desc: "L'église de Montrouge.",
     rooms: { salle: { name: "Nef", desc: "Un lieu de recueillement.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-eglise-nef.jpg", persons: [], orders: [] } }
+  },
+  // Lieu purement environnemental (2026-08-16) : la locomotive et la place au centre de la
+  // vue 7, distinctes de la facade de la mairie. Aucun ordre/PNJ/mecanique, meme patron
+  // minimal que eglise-montrouge/cinema-montrouge.
+  'place-du-rail-montrouge': {
+    name: "Place du Rail",
+    shortName: "Place du Rail",
+    cat: "Lieux publics",
+    icon: "ti-train",
+    bgColor: "#0c0c0e",
+    desc: "La place centrale de Montrouge, dominee par la locomotive-monument.",
+    rooms: { place: { name: "Place du Rail", desc: "La locomotive-monument trone au centre de la place.", imageBg: "linear-gradient(135deg,#0c0c0e,#141418)", imageUrl: "images/montrouge/montrouge-place-du-rail.jpg", persons: [], orders: [] } }
   },
   'cinema-montrouge': {
     name: "Cinéma de Montrouge",
