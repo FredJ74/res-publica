@@ -54,34 +54,15 @@ const FORUMS = new Proxy({}, {
   has(target, prop) { return prop in getForums(); }
 });
 
+// Correctif bug beta forum (diagnostic + validation Fred, 16 aout 2026) : les 4 sujets de
+// demonstration codes en dur ici (topic-1/topic-2/topic-4/topic-5) n'ont jamais existe dans
+// Supabase (forum_topics) -- repondre a l'un d'eux echouait systematiquement, sbCreatePost
+// echouant sur un topic_id sans ligne reelle correspondante. Retires plutot que migres : aucun
+// sujet affiche dans le forum ne doit exister uniquement cote client.
 const FORUM_TOPICS = {
-  local: [
-    {
-      id: 'topic-1', title: 'Corruption au commissariat central', author: 'CitoyenAnonyme',
-      time: 'Jour 1 · 07h30', views: 42, replies: 3,
-      posts: [
-        { id:'p1', author: 'CitoyenAnonyme', time: 'Jour 1 · 07h30', content: 'La corruption au commissariat central est inacceptable ! J\'ai vu de mes propres yeux le commissaire Gros accepter une enveloppe. Qui va agir ?' },
-        { id:'p2', author: 'JournalisteX', time: 'Jour 1 · 08h00', content: 'Des sources confirment ces informations. Une enquête est en cours.' },
-        { id:'p3', author: 'CitoyenLambda', time: 'Jour 1 · 09h00', content: 'Rien de nouveau sous le soleil. Ça dure depuis des années.' }
-      ]
-    },
-    {
-      id: 'topic-2', title: 'Travaux avenue de la République', author: 'CommerçantDuCentre',
-      time: 'Jour 1 · 06h00', views: 18, replies: 1,
-      posts: [
-        { id:'p4', author: 'CommerçantDuCentre', time: 'Jour 1 · 06h00', content: 'Les travaux paralysent le commerce depuis 3 semaines. Qui a signé ce permis ?' },
-        { id:'p5', author: 'MairieOfficiel', time: 'Jour 1 · 10h00', content: 'Les travaux sont prévus pour se terminer dans 10 jours. Nous vous prions de nous excuser.' }
-      ]
-    }
-  ],
-  national: [
-    { id:'topic-4', title:'Elections anticipées : rumeurs persistantes', author:'ObservateurPolitique', time:'Jour 1 · 08h00', views:234, replies:5,
-      posts:[{ id:'p7', author:'ObservateurPolitique', time:'Jour 1 · 08h00', content:'Le gouvernement en place semble fragilisé. Des élections anticipées seraient envisagées selon nos informations.' }] }
-  ],
-  international: [
-    { id:'topic-5', title:'Tensions Républia / El Estado', author:'DiplomateEtranger', time:'Jour 1 · 04h00', views:89, replies:1,
-      posts:[{ id:'p8', author:'DiplomateEtranger', time:'Jour 1 · 04h00', content:'Les tensions entre Républia et El Estado s\'intensifient autour des accords commerciaux.' }] }
-  ],
+  local: [],
+  national: [],
+  international: [],
   gouvernement: [], presse: []
 };
 
@@ -1427,13 +1408,22 @@ async function submitReply() {
   const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === currentTopicId);
   if (!topic) return;
 
-  // Supabase
-  if (typeof sbCreatePost === 'function') {
-    await sbCreatePost(topic.id, authorName, content, time, authorIsOrg, authorSecret, blocks);
+  // Correctif bug beta forum (16 aout 2026) : sbCreatePost() etait appelee sans jamais verifier
+  // son resultat -- un echec Supabase (ex. topic_id sans ligne reelle correspondante) etait
+  // totalement silencieux, le message apparaissait quand meme localement comme si la
+  // publication avait reussi. Meme garde-fou et meme comportement que submitReplyComposed().
+  if (typeof sbCreatePost !== 'function') {
+    showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false);
+    return;
+  }
+  const postId = await sbCreatePost(topic.id, authorName, content, time, authorIsOrg, authorSecret, blocks).catch(() => null);
+  if (!postId) {
+    showToast('Échec de la publication', "La réponse n'a pas pu être enregistrée. Réessayez.", false);
+    return;
   }
 
   // Local
-  topic.posts.push({ id:'p-'+Date.now(), author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, time, content, blocks });
+  topic.posts.push({ id: postId, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, time, content, blocks });
   topic.replies = topic.posts.length - 1;
   topic.lastPostAuthor = authorName;
   topic.lastPostTime = time;
