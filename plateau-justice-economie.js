@@ -4483,6 +4483,16 @@ function getBuildingIdTribunal(ville) {
   return getCaisseLocaleId('tribunal', ville);
 }
 
+// A3 (lot finition financiere locale, 17 aout 2026) : contrairement a Commissariat/Dispensaire/
+// Tribunal ci-dessus, la capitale a deja une caisse 'mairie-capitale' active (solde reel, affichee
+// en en-tete via ROOMS_AVEC_CAISSE) -- lui appliquer getCaisseLocaleId directement migrerait
+// silencieusement vers la cle 'mairie_capitale', orphelinant l'argent existant et figeant
+// l'affichage. La capitale garde donc son id historique ; seules PSM/Montrouge (qui n'ont jamais
+// eu de caisse mairie propre) recoivent une cle locale generique.
+function getBuildingIdMairie(ville) {
+  return (!ville || ville === 'capitale') ? 'mairie-capitale' : getCaisseLocaleId('mairie', ville);
+}
+
 // ---- FINANCEMENT COMMUNAL (Maire Adjoint depuis le 10 aout 2026 -- transfert complet, plus
 // partage avec le Maire) : virement instantane depuis la caisse municipale ----
 async function ouvrirModalFinancerCommunal(pa, cost) {
@@ -5218,13 +5228,21 @@ async function verifierEffetsEtDistributionFiscale() {
     if (tauxTotal > 25) await modifierIndiceVille(pays, villeFiscale, 'isn', -Math.min(5, Math.floor((tauxTotal - 25) * 0.6))).catch(() => {});
   }
 
-  // Distribution quotidienne : chaque poste recoit sa propre part dans sa propre caisse
+  // Distribution quotidienne : chaque poste recoit sa propre part dans sa propre caisse.
+  // 'mairie' credite auparavant toujours 'mairie-capitale' (id code en dur) -- necessaire a la
+  // coherence du correctif du salaire du maire (verifierSalairePolitique, meme helper
+  // getBuildingIdMairie) : sans ce correctif, la caisse locale d'ou le maire de PSM/Montrouge est
+  // desormais paye ne serait jamais approvisionnee. Credite la mairie de villeFiscale (deja
+  // calculee ci-dessus pour les indices, meme ville que le declencheur) -- ne resout pas la limite
+  // deja connue et hors perimetre de ce lot (un seul declenchement/jour, une seule ville a la
+  // fois), qui reste a traiter separement.
   const dailyBase = Object.values(CITY_POPULATION?.[pays] || {}).reduce((s, v) => s + (v.dailyTaxRevenue || 0), 0);
   const totalDisponible = dailyBase + (budgetNat.reserveJour || 0);
   const repartition = budgetNat.repartition || REPARTITION_DEFAULT;
   for (const [posteId, buildingId] of Object.entries(CAISSE_PAR_POSTE_BUDGET)) {
     const part = (repartition[posteId] || 0) / 100;
-    await crediterCaisseBatiment(pays, buildingId, Math.floor(totalDisponible * part));
+    const cible = posteId === 'mairie' ? getBuildingIdMairie(villeFiscale) : buildingId;
+    await crediterCaisseBatiment(pays, cible, Math.floor(totalDisponible * part));
   }
   // Le virement journalier automatique vers la caserne, fixe par le MG, est traite separement (voir traiterVirementJournalierCaserne)
 
@@ -5242,7 +5260,13 @@ async function verifierSalairePolitique() {
   if (state.char.dernierSalairePolitiqueJour === jour) return;
 
   const pays = state.country || 'republic';
-  const buildingId = CAISSE_BATIMENT_POSTE[posteId];
+  // Poste municipal (city renseignee sur state.poste par reconcilierPosteElu, ex. maire) :
+  // caisse de la VILLE REELLE du poste, jamais une ville codee en dur (A3, lot finition
+  // financiere locale, 17 aout 2026) -- CAISSE_BATIMENT_POSTE reste la source pour les postes
+  // nationaux (president/pm/ministres), qui n'ont pas de city sur state.poste.
+  const buildingId = state.poste?.city
+    ? getBuildingIdMairie(state.poste.city)
+    : CAISSE_BATIMENT_POSTE[posteId];
   const montantVise = SALAIRES_POLITIQUES[posteId];
   const montantVerse = await debiterCaisseBatimentPlafonne(pays, buildingId, montantVise);
 

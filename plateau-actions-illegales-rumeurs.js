@@ -2771,11 +2771,12 @@ async function doConsommerBuvette(pa, cost) {
 
   if (typeof appliquerTaxeTransaction === 'function' && typeof crediterCaisseBatiment === 'function') {
     const { net } = await appliquerTaxeTransaction(cout);
-    // Caisse locale par ville (A3, lot caisses locales, 16 aout 2026) -- 'stade' etant un
-    // buildingId de navigation partage entre les 3 villes, la buvette de Montrouge creditait
-    // auparavant la meme caisse que celle de Luthecia.
-    const idCaisseBuvette = typeof getCaisseLocaleId === 'function' ? getCaisseLocaleId('stade-buvette', state.currentCity) : 'stade-buvette';
-    await crediterCaisseBatiment(state.country || 'republic', idCaisseBuvette, net).catch(() => {});
+    // Doctrine (A3, lot finition financiere locale, 17 aout 2026) : la buvette n'a pas de
+    // caisse financiere autonome -- tout argent genere dans l'enceinte du stade appartient a
+    // la caisse du stade de cette ville. La ligne legacy 'stade-buvette' (88 FR, origine non
+    // demontrable avec certitude) reste intacte et ne recoit plus aucune nouvelle recette.
+    const idCaisseStade = typeof getCaisseLocaleId === 'function' ? getCaisseLocaleId('stade', state.currentCity) : 'stade';
+    await crediterCaisseBatiment(state.country || 'republic', idCaisseStade, net).catch(() => {});
   }
 
   updateUI();
