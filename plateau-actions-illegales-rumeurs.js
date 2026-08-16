@@ -2205,6 +2205,284 @@ function crediterStockMatiereCommerce(data, matiere, qte, prixUnitairePaye) {
   data.stockMatieres[matiere] = nouveauStock;
 }
 
+// =====================
+// COMMERCES ALIMENTAIRES -- moteur recettes/production/prix/taxe/carte (17 aout 2026, lot 2/6).
+// Generique par construction : ne connait ni Montrouge ni un plat particulier, seulement le
+// registre RECETTES_ALIMENTAIRES (rempli lot par lot avec les catalogues reels) et le schema
+// de commerce genere par defautCommerce/chargerCommerce (lot 1).
+// =====================
+
+// Registre central des recettes -- rempli progressivement (lots 3-5). Chaque entree :
+// { id, label, categorie, image, materiaux:{cle:qte}, pa, portions, effets:{hp,moral,paDiffere},
+//   typesAutorises:[...], villesAutorisees:[...]|null, buildingsAutorises:[...]|null }
+// villesAutorisees/buildingsAutorises null = recette commune, pas de verrou geographique.
+const RECETTES_ALIMENTAIRES = {};
+
+// 1 PA de travail = 50 FR de main-d'oeuvre (regle validee, releve economique du 17 aout 2026,
+// identique au flat de l'armurerie -- SALAIRE_PRODUCTION_ARMURERIE/PA_PRODUCTION_ARMURERIE
+// ci-dessus, 100/2=50). Un PA produit plusieurs portions (recette.portions), contrairement a
+// l'armurerie (1 PA fixe -> 1 objet) : le rendement usine (CHAINES_PRODUCTION_USINE,
+// plateau-justice-economie.js, 1 PA -> plusieurs unites) est le bon precedent ici, pas l'armurerie.
+const COUT_MAIN_OEUVRE_PA_ALIMENTAIRE = 50;
+
+function recetteAutoriseePourCommerce(recette, commerce) {
+  if (!recette || !commerce) return false;
+  if (!recette.typesAutorises || !recette.typesAutorises.includes(commerce.type)) return false;
+  if (recette.villesAutorisees && !recette.villesAutorisees.includes(commerce.city)) return false;
+  if (recette.buildingsAutorises && !recette.buildingsAutorises.includes(commerce.buildingId)) return false;
+  return true;
+}
+
+// Cout de revient par portion = (cout matieres au cout moyen REELLEMENT paye par CE commerce +
+// main-d'oeuvre) / portions -- decision ferme de Fred (releve economique du 17 aout 2026) :
+// jamais un cours theorique (RESSOURCES_ECONOMIE/getPrixRessource), toujours coutMoyenMatieres.
+function coutRevientPortionRecette(commerce, recette) {
+  const coutMatieres = Object.entries(recette.materiaux).reduce((s, [m, q]) => {
+    const coutUnitaire = (commerce.coutMoyenMatieres && commerce.coutMoyenMatieres[m]) || 0;
+    return s + q * coutUnitaire;
+  }, 0);
+  const coutMainOeuvre = recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE;
+  return (coutMatieres + coutMainOeuvre) / recette.portions;
+}
+
+function prixVenteAutoPNJ(coutRevient) {
+  return Math.round(coutRevient * 2 * 100) / 100;
+}
+
+// Fourchette autorisee pour un commerce tenu par un PJ (+10% a +80% du cout de revient) --
+// meme principe que la fourchette ±40% deja utilisee par les usines/entrepots
+// (confirmerFixerPrixVenteDirecte, confirmerFixerPrixAchatEntrepot, plateau-justice-economie.js),
+// bornes differentes ici car validees specifiquement pour les commerces alimentaires.
+function fourchettePrixPJ(coutRevient) {
+  return {
+    min: Math.round(coutRevient * 1.10 * 100) / 100,
+    max: Math.round(coutRevient * 1.80 * 100) / 100
+  };
+}
+
+// Reserve au proprietaire PJ d'un commerce -- fixe le prix d'une recette de sa carte, dans la
+// fourchette. Aucun commerce pilote n'est encore possede par un PJ (rachat generalise = lot 6),
+// mais l'engine doit deja le permettre (section 7 du cahier des charges) : fonction complete et
+// testee, simplement pas encore reliee a un bouton en jeu tant qu'aucun commerce n'est rachetable.
+async function confirmerFixerPrixCommerce(commerceType, pays, ville, buildingId, roomId, recetteId, prixSaisi) {
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  if (!data || !recette) return { ok: false, raison: 'introuvable' };
+  if (data.proprietaire === 'PNJ' || data.proprietaire !== state.char?.name) return { ok: false, raison: 'reserve_proprietaire' };
+
+  const coutRevient = coutRevientPortionRecette(data, recette);
+  const { min, max } = fourchettePrixPJ(coutRevient);
+  const prix = parseFloat(prixSaisi);
+  if (isNaN(prix) || prix < min || prix > max) return { ok: false, raison: 'hors_fourchette', min, max };
+
+  data.parametres.prixVente[recetteId] = Math.round(prix * 100) / 100;
+  await sbSaveEntreprise(data.id, data);
+  return { ok: true, prix: data.parametres.prixVente[recetteId] };
+}
+
+// Production generique : matieres -> PA -> lot -> portions, sur le modele exact de
+// confirmerProduction (armurerie) mais parametre par recette au lieu d'un id d'arme fixe.
+async function produireRecetteCommerce(commerceType, pays, ville, buildingId, roomId, recetteId) {
+  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!recette || !data) return { ok: false, raison: 'introuvable' };
+  if (!recetteAutoriseePourCommerce(recette, data)) return { ok: false, raison: 'recette_non_autorisee' };
+  if ((state.pa || 0) < recette.pa) return { ok: false, raison: 'pa_insuffisants' };
+
+  const manque = Object.entries(recette.materiaux).find(([m, q]) => (data.stockMatieres[m] || 0) < q);
+  if (manque) return { ok: false, raison: 'stock_matiere_insuffisant', matiere: manque[0] };
+
+  const coutMainOeuvre = recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE;
+  if (data.caisse < coutMainOeuvre) return { ok: false, raison: 'caisse_insuffisante' };
+
+  const stockMax = data.parametres.stockMax[recetteId];
+  const stockActuel = data.stockProduits[recetteId] || 0;
+  if (stockMax != null && stockActuel >= stockMax) return { ok: false, raison: 'stock_plein' };
+
+  Object.entries(recette.materiaux).forEach(([m, q]) => { data.stockMatieres[m] -= q; });
+  data.stockProduits[recetteId] = stockActuel + recette.portions;
+  data.caisse -= coutMainOeuvre;
+
+  // Prix auto recalcule a chaque production pour un commerce PNJ (le cout moyen des matieres
+  // peut avoir bouge depuis le dernier lot) -- un commerce PJ garde le prix fixe par son
+  // proprietaire (confirmerFixerPrixCommerce), jamais ecrase automatiquement ici.
+  if (data.proprietaire === 'PNJ') {
+    data.parametres.prixVente[recetteId] = prixVenteAutoPNJ(coutRevientPortionRecette(data, recette));
+  }
+
+  ajouterHistoriqueEntreprise(data, -coutMainOeuvre, 'Production de ' + recette.label + ' (' + recette.portions + ' portions) — ' + (state.char?.name || 'Anonyme'));
+  await sbSaveEntreprise(data.id, data);
+
+  state.pa = Math.max(0, (state.pa || 0) - recette.pa);
+  state.arg = (state.arg || 0) + coutMainOeuvre;
+  return { ok: true, portions: recette.portions, salaire: coutMainOeuvre };
+}
+
+// Vente/consommation generique : carte -> Commander -> stock-1 -> taxe -> caisse -> effets.
+// La buvette de stade n'a pas de caisse autonome (doctrine deja validee/codee pour
+// doConsommerBuvette) : son net part directement dans la caisse du stade de sa ville.
+async function commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId) {
+  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!recette || !data) return { ok: false, raison: 'introuvable' };
+
+  const stock = data.stockProduits[recetteId] || 0;
+  if (stock <= 0) return { ok: false, raison: 'rupture' };
+
+  const prix = data.parametres.prixVente[recetteId];
+  if (prix == null) return { ok: false, raison: 'prix_non_defini' };
+  if ((state.arg || 0) < prix) return { ok: false, raison: 'fonds_insuffisants', prix };
+
+  state.arg -= prix;
+  data.stockProduits[recetteId] = stock - 1;
+
+  let net = prix;
+  if (typeof appliquerTaxeTransaction === 'function') {
+    const t = await appliquerTaxeTransaction(prix);
+    net = t.net;
+  }
+
+  if (data.type === 'buvette' && typeof getCaisseLocaleId === 'function' && typeof crediterCaisseBatiment === 'function') {
+    await crediterCaisseBatiment(pays, getCaisseLocaleId('stade', ville), net).catch(() => {});
+  } else {
+    data.caisse = (data.caisse || 0) + net;
+  }
+
+  const effets = recette.effets || {};
+  if (effets.hp) state.hp = Math.min(100, Math.max(0, (state.hp || 0) + effets.hp));
+  if (effets.moral) state.moral = Math.min(100, Math.max(0, (state.moral || 0) + effets.moral));
+  if (effets.pop) state.pop = Math.min(100, Math.max(0, (state.pop || 0) + effets.pop));
+  if (effets.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + effets.paDiffere;
+
+  ajouterHistoriqueEntreprise(data, net, 'Vente — ' + recette.label + ' — ' + (state.char?.name || 'Anonyme'));
+  await sbSaveEntreprise(data.id, data);
+
+  return { ok: true, prix, net, effets };
+}
+
+// Interface "Consulter la carte" -- modele de l'achat d'armes (liste + bouton), sans registre
+// ni notion de legalite. Ouvre le PA/cost de l'ordre de salle (browsing), chaque "Commander"
+// est ensuite une transaction FR independante (meme principe que confirmerAchatEntrepot :
+// un seul PA pour parcourir la salle, chaque ligne a son propre cout).
+async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false); return; }
+
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!data) { showToast('Indisponible', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Carte';
+  let html = '<div style="padding:1rem">';
+  const carte = data.carte || [];
+  const carteValide = carte.filter(id => RECETTES_ALIMENTAIRES[id]);
+  if (carteValide.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060">Aucun produit disponible pour le moment.</div>';
+  }
+  carteValide.forEach(id => {
+    const recette = RECETTES_ALIMENTAIRES[id];
+    const stock = data.stockProduits[id] || 0;
+    const prix = data.parametres.prixVente[id];
+    const composition = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
+    const effetsTxt = Object.entries(recette.effets || {}).map(([k, v]) => (v > 0 ? '+' : '') + v + ' ' + k.toUpperCase()).join(', ');
+    const enRupture = stock <= 0;
+    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
+    if (recette.image) html += '<img src="' + recette.image + '" style="width:56px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0" />';
+    html += '<div style="flex:1">';
+    html += '<b style="font-size:.85rem;color:#c0b090">' + recette.label + '</b><br>';
+    html += '<span style="font-size:.72rem;color:#8a8060">' + composition + '</span><br>';
+    if (effetsTxt) html += '<span style="font-size:.72rem;color:#6ab858">' + effetsTxt + '</span><br>';
+    html += '<span style="font-size:.75rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
+    html += '</div>';
+    html += enRupture
+      ? '<span style="font-size:.7rem;color:#5a5040;flex-shrink:0">Rupture</span>'
+      : '<button onclick="doCommanderProduitCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem">Commander</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Pont UI <-> logique (commanderProduitCommerce ci-dessus est pure/testable, celle-ci gere
+// toasts/journal/rafraichissement, meme separation que confirmerProduction/doProduireArme).
+async function doCommanderProduitCommerceUI(commerceType, buildingId, roomId, recetteId) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  const res = await commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
+  if (!res.ok) {
+    const messages = { rupture: 'Ce produit est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' FR requis.', prix_non_defini: 'Prix non défini pour ce produit.', introuvable: '' };
+    showToast('Commande impossible', messages[res.raison] || '', false);
+    return;
+  }
+  updateUI();
+  showToast('Commande servie', recette.label + '.', true, true);
+  addJournalEntry(recette.label + ' commandé(e) — ' + res.prix + ' FR.', 'event-good');
+  // Rafraichit la carte pour permettre d'enchainer sans rouvrir (meme pattern que confirmerProduction/doProduireArme)
+  doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
+}
+
+// Interface "Produire" -- meme modele que doProduireArme (armurerie), restreinte aux recettes
+// de la carte du commerce (l'exploitant ne produit que ce qu'il vend, v1 du moteur).
+async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, cost) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!data) { showToast('Indisponible', '', false); return; }
+
+  const recettesDispo = (data.carte || []).filter(id => recetteAutoriseePourCommerce(RECETTES_ALIMENTAIRES[id], data));
+
+  document.getElementById('postes-modal-title').textContent = 'Produire';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Main-d\'œuvre : ' + COUT_MAIN_OEUVRE_PA_ALIMENTAIRE + ' FR par PA travaillé.</div>';
+  if (recettesDispo.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060">Aucune recette disponible sur la carte de cet établissement.</div>';
+  }
+  recettesDispo.forEach(id => {
+    const recette = RECETTES_ALIMENTAIRES[id];
+    const materiauxTxt = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
+    const stockActuel = data.stockProduits[id] || 0;
+    const stockMax = data.parametres.stockMax[id];
+    html += '<button onclick="doProduireRecetteCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.5rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
+    html += '<b>' + recette.label + '</b> — ' + recette.pa + ' PA → ' + recette.portions + ' portions<br>';
+    html += '<span style="color:#8a8060">Matériaux : ' + materiauxTxt + ' · Salaire : ' + (recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE) + ' FR · Stock : ' + stockActuel + (stockMax != null ? '/' + stockMax : '') + '</span>';
+    html += '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function doProduireRecetteCommerceUI(commerceType, buildingId, roomId, recetteId) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  if ((state.pa || 0) < (recette?.pa || 0)) { showToast('PA insuffisants', recette.pa + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+
+  const res = await produireRecetteCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
+  if (!res.ok) {
+    const messages = {
+      recette_non_autorisee: 'Cette recette n\'est pas autorisée pour cet établissement.',
+      pa_insuffisants: recette.pa + ' PA requis.',
+      stock_matiere_insuffisant: 'Il manque du ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[res.matiere] ? RESSOURCES_ECONOMIE[res.matiere].label : res.matiere) + ' en stock.',
+      caisse_insuffisante: 'L\'établissement ne peut pas payer ce travail actuellement.',
+      stock_plein: 'Le stock maximum de ce produit est atteint.',
+      introuvable: ''
+    };
+    showToast('Production impossible', messages[res.raison] || '', false);
+    document.getElementById('modal-postes')?.classList.remove('open');
+    return;
+  }
+
+  updateUI();
+  showToast('Production réussie !', recette.label + ' — ' + res.portions + ' portions. +' + res.salaire + ' FR de salaire.', true, true);
+  addJournalEntry('Production de ' + recette.label + ' (' + res.portions + ' portions) à ' + (BUILDINGS[buildingId]?.name || buildingId) + '.', 'event-good');
+  // Ne ferme pas le modal : rafraichit pour enchainer (meme pattern que confirmerProduction/doProduireArme)
+  doProduireRecetteCommerce(commerceType, buildingId, roomId, 0, 0);
+}
+
 async function chargerArmurerieLocale() {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
