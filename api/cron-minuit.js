@@ -382,7 +382,12 @@ async function resoudreCompromisEntreprisesExpires() {
       let refusExplicite = false;
       let detail = [];
       let pretVientDetreAccorde = false;
-      const country = (data.id || row.id || '').split('-').slice(1).join('-') || null;
+      // A2 (16 aout 2026) : le pays est lu directement dans les donnees de l'entreprise, plus
+      // jamais parse depuis l'id -- 'armurerie-<country>-<city>' rendait l'ancien parsing
+      // (split('-').slice(1).join('-')) faux des qu'une ville s'ajoutait a l'id (retournait
+      // 'republic-ville_b' au lieu de 'republic'). Repli sur l'ancien format id sans ville
+      // (compatibilite avec d'anciennes lignes qui n'auraient pas encore le champ country).
+      const country = data.country || (data.id || row.id || '').split('-').slice(1)[0] || null;
 
       if (data.pretDemande && data.pretDemande.statut === 'attente_validation') {
         const demRows = await sbGet('personnages', `name=eq.${encodeURIComponent(data.pretDemande.demandeur)}`);

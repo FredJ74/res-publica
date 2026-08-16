@@ -2068,8 +2068,14 @@ function getRecettesPays(pays) {
 
 const PRIX_RACHAT_ARMURERIE = 130000;
 
-function getEntrepriseIdArmurerie(country) {
-  return 'armurerie-' + country;
+// A2 (16 aout 2026) : id local par ville -- une armurerie de Republia n'est plus une entreprise
+// unique par pays mais une entreprise par ville (Luthecia/Montrouge/PSM partageaient jusqu'ici
+// la meme caisse/stock via 'armurerie-'+country). Generique pour tous les empires : narco/
+// soviet/khalija n'ont qu'une seule armurerie (capitale) mais recoivent le meme format d'id des
+// leur premiere instanciation, sans migration necessaire (aucune ligne 'armurerie-narco' etc.
+// n'existait avant ce changement).
+function getEntrepriseIdArmurerie(country, city) {
+  return 'armurerie-' + country + '-' + city;
 }
 
 async function chargerEntreprise(id, defautFabrique) {
@@ -2082,7 +2088,7 @@ async function chargerEntreprise(id, defautFabrique) {
   return data;
 }
 
-function defautArmurerie(pays) {
+function defautArmurerie(pays, ville) {
   const recettes = getRecettesPays(pays || 'republic');
   const prixVenteDefaut = { 1: 300, 2: 800, 3: 1200 }; // par palier d'UT (simple/moyen/complexe)
   const prixVente = {}, stockMax = {};
@@ -2094,6 +2100,11 @@ function defautArmurerie(pays) {
   return {
     id: null,
     type: 'armurerie',
+    // A2 (16 aout 2026) : country/city stockes explicitement dans les donnees (pas seulement
+    // encodes dans l'id) -- evite tout parsing fragile de l'id cote cron (resoudreCompromis-
+    // EntreprisesExpires en avait un, casse par l'ajout de la ville dans l'id).
+    country: pays || 'republic',
+    city: ville || 'capitale',
     proprietaire: 'PNJ',
     caisse: 20000,
     stockMatieres: { metal: 20, bois: 10 },
@@ -2107,12 +2118,16 @@ function defautArmurerie(pays) {
   };
 }
 
-async function chargerArmurerieLocale() {
-  const pays = state.country || 'republic';
-  const id = getEntrepriseIdArmurerie(pays);
-  const data = await chargerEntreprise(id, () => defautArmurerie(pays));
+async function chargerEntrepriseParId(id, pays, ville) {
+  const data = await chargerEntreprise(id, () => defautArmurerie(pays, ville));
   if (data) data.id = id;
   return data;
+}
+
+async function chargerArmurerieLocale() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  return chargerEntrepriseParId(getEntrepriseIdArmurerie(pays, ville), pays, ville);
 }
 
 function ajouterHistoriqueEntreprise(data, montant, motif) {
@@ -2247,15 +2262,43 @@ async function confirmerVenteMatiere(matiere) {
 }
 
 // =====================
-// RACHAT D'ENTREPRISE — registre generalise (Notaire, Bureau des Contrats). Une seule entree
-// aujourd'hui (Armurerie, table 'entreprises') ; les futures entreprises rachetables (une fois
-// le patron duplique sur d'autres batiments) s'ajoutent ici par une simple ligne de config, a
+// RACHAT D'ENTREPRISE — registre generalise (Notaire, Bureau des Contrats). Les futures
+// entreprises rachetables d'un autre type s'ajoutent ici par une simple ligne de config, a
 // condition de suivre le meme modele proprietaire/PNJ (pas le modele directeur-nomme-par-le-
 // maire des entrepots/usines actuels, table 'batiments_etat', qui n'a pas de notion de rachat).
-// =====================
-const ENTREPRISES_RACHETABLES = {
-  armurerie: { label: 'l\'Armurerie', prix: PRIX_RACHAT_ARMURERIE, charger: chargerArmurerieLocale }
-};
+//
+// A2 (16 aout 2026) : rachat/compromis/preemption se signent TOUS a distance de l'armurerie
+// elle-meme (Bureau des Contrats du Notaire, ou bureau du Ministre des Finances pour la
+// preemption -- jamais dans l'armurerie), state.currentCity n'a donc aucun sens pour determiner
+// QUELLE armurerie est ciblee ici (contrairement a chargerArmurerieLocale, correcte pour la
+// production/l'achat/la gestion, actions qui se font physiquement sur place). La liste est donc
+// generee dynamiquement, une entree par ville du pays courant possedant reellement une
+// armurerie navigable -- generique pour tous les empires, aucune liste figee par pays.
+function getVillesAvecArmurerie(country) {
+  const monde = WORLD[country];
+  if (!monde) return [];
+  return Object.keys(monde).filter(v => {
+    const c = monde[v];
+    return c && Array.isArray(c.buildings) && c.buildings.includes('armurerie');
+  });
+}
+
+function getEntreprisesRachetables() {
+  const pays = state.country || 'republic';
+  return getVillesAvecArmurerie(pays).map(city => {
+    const id = getEntrepriseIdArmurerie(pays, city);
+    return {
+      id,
+      label: 'l\'Armurerie de ' + (WORLD[pays]?.[city]?.name || city),
+      prix: PRIX_RACHAT_ARMURERIE,
+      charger: () => chargerEntrepriseParId(id, pays, city)
+    };
+  });
+}
+
+function getEntrepriseRachetable(id) {
+  return getEntreprisesRachetables().find(e => e.id === id) || null;
+}
 
 // Compromis actif = reserve, non expire. ACOMPTE_COMPROMIS (1000 FR, plateau-pnj.js) reutilise
 // tel quel : meme acompte fixe que pour un terrain, independant du prix de l'entreprise.
@@ -2265,10 +2308,9 @@ function compromisEntrepriseActif(data) {
 
 async function doRachatEntreprise() {
   const candidats = [];
-  for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
-    const def = ENTREPRISES_RACHETABLES[type];
+  for (const def of getEntreprisesRachetables()) {
     const data = await def.charger();
-    if (data && data.proprietaire === 'PNJ' && !compromisEntrepriseActif(data)) candidats.push({ type, def });
+    if (data && data.proprietaire === 'PNJ' && !compromisEntrepriseActif(data)) candidats.push({ type: def.id, def });
   }
 
   if (candidats.length === 0) {
@@ -2294,7 +2336,7 @@ async function doRachatEntreprise() {
 }
 
 async function doSignerCompromisEntreprise(type) {
-  const def = ENTREPRISES_RACHETABLES[type];
+  const def = getEntrepriseRachetable(type);
   if (!def) return;
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   const data = await def.charger();
@@ -2335,7 +2377,7 @@ async function doSignerCompromisEntreprise(type) {
 }
 
 async function confirmerSignerCompromisEntreprise(type) {
-  const def = ENTREPRISES_RACHETABLES[type];
+  const def = getEntrepriseRachetable(type);
   if (!def) return;
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
 
@@ -2388,10 +2430,9 @@ async function confirmerSignerCompromisEntreprise(type) {
 async function doActeRachatEntreprise(pa, cost) {
   const nom = state.char?.name;
   const candidats = [];
-  for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
-    const def = ENTREPRISES_RACHETABLES[type];
+  for (const def of getEntreprisesRachetables()) {
     const data = await def.charger();
-    if (data && data.compromis && data.compromisPar === nom) candidats.push({ type, def });
+    if (data && data.compromis && data.compromisPar === nom) candidats.push({ type: def.id, def });
   }
 
   if (candidats.length === 0) {
@@ -2462,16 +2503,15 @@ async function ouvrirPreemptionEntreprise() {
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const budgetNat = await chargerBudgetNational(pays);
   if (budgetNat.preemption) {
-    const def = ENTREPRISES_RACHETABLES[budgetNat.preemption.entrepriseType];
+    const def = getEntrepriseRachetable(budgetNat.preemption.entrepriseType);
     showToast('Préemption en cours', 'Le prêt sur ' + (def?.label || budgetNat.preemption.entrepriseType) + ' n\'est pas encore soldé. Impossible d\'en lancer une nouvelle.', false);
     return;
   }
 
   const candidats = [];
-  for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
-    const def = ENTREPRISES_RACHETABLES[type];
+  for (const def of getEntreprisesRachetables()) {
     const data = await def.charger();
-    if (data && data.proprietaire === 'PNJ' && !compromisEntrepriseActif(data) && !data.preemptionEtat) candidats.push({ type, def });
+    if (data && data.proprietaire === 'PNJ' && !compromisEntrepriseActif(data) && !data.preemptionEtat) candidats.push({ type: def.id, def });
   }
 
   if (candidats.length === 0) {
@@ -2494,7 +2534,7 @@ async function ouvrirPreemptionEntreprise() {
 }
 
 async function ouvrirPretPreemption(type) {
-  const def = ENTREPRISES_RACHETABLES[type];
+  const def = getEntrepriseRachetable(type);
   if (!def) return;
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   document.getElementById('postes-modal-title').textContent = 'Prêt de préemption — ' + def.label;
@@ -2510,7 +2550,7 @@ async function ouvrirPretPreemption(type) {
 }
 
 async function confirmerPreemption(type) {
-  const def = ENTREPRISES_RACHETABLES[type];
+  const def = getEntrepriseRachetable(type);
   if (!def) return;
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   const pays = state.country || 'republic';
@@ -2567,10 +2607,9 @@ async function confirmerPreemption(type) {
 async function doActeRachatEntreprisePreemption(pa, cost) {
   if (state.poste?.id !== 'min_fin') { showToast('Réservé au Ministre des Finances', '', false); return; }
   const candidats = [];
-  for (const type of Object.keys(ENTREPRISES_RACHETABLES)) {
-    const def = ENTREPRISES_RACHETABLES[type];
+  for (const def of getEntreprisesRachetables()) {
     const data = await def.charger();
-    if (data && data.preemptionEtat === 'attente_acte') candidats.push({ type, def });
+    if (data && data.preemptionEtat === 'attente_acte') candidats.push({ type: def.id, def });
   }
 
   if (candidats.length === 0) {

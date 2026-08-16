@@ -3718,9 +3718,18 @@ async function ouvrirCiblageFiscalType(action, typeCible, titre) {
       html += '<div style="font-size:.85rem;color:#e0d5b8">' + c.nom + '</div></div>';
     });
   } else if (typeCible === 'entreprise') {
-    const id = getEntrepriseIdArmurerie(pays);
-    html += '<div onclick="executerOrdreFiscalCible(\'' + action + '\',\'entreprise\',\'' + id + '\')" style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer">';
-    html += '<div style="font-size:.85rem;color:#e0d5b8">Armurerie</div></div>';
+    // A2 (16 aout 2026) : une entreprise par ville possedant reellement une armurerie
+    // navigable (meme source que getEntreprisesRachetables, plateau-actions-illegales-
+    // rumeurs.js) -- le Ministre des Finances, poste national, peut cibler individuellement
+    // chaque armurerie du pays, l'intitule precise desormais la ville.
+    const villesArmurerie = typeof getVillesAvecArmurerie === 'function' ? getVillesAvecArmurerie(pays) : [];
+    if (villesArmurerie.length === 0) html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune armurerie connue pour l\'instant.</div>';
+    villesArmurerie.forEach(city => {
+      const id = getEntrepriseIdArmurerie(pays, city);
+      const nomVille = WORLD[pays]?.[city]?.name || city;
+      html += '<div onclick="executerOrdreFiscalCible(\'' + action + '\',\'entreprise\',\'' + id + '\')" style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer">';
+      html += '<div style="font-size:.85rem;color:#e0d5b8">Armurerie de ' + nomVille + '</div></div>';
+    });
   } else if (typeCible === 'organisation') {
     const orgas = (state.organisations || []).filter(o => o.country === pays);
     if (orgas.length === 0) html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune organisation connue pour l\'instant.</div>';
@@ -3771,7 +3780,10 @@ async function ajusterSoldeCibleFiscale(typeCible, idCible, delta) {
 
 function nomAffichageCible(typeCible, idCible) {
   if (typeCible === 'club_sportif') return getClub(idCible)?.nom || idCible;
-  if (typeCible === 'entreprise') return 'l\'armurerie';
+  if (typeCible === 'entreprise') {
+    const def = typeof getEntrepriseRachetable === 'function' ? getEntrepriseRachetable(idCible) : null;
+    return def ? def.label : 'l\'armurerie';
+  }
   if (typeCible === 'organisation') return (state.organisations || []).find(x => x.id === idCible)?.nom || idCible;
   return idCible;
 }
