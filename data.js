@@ -4654,7 +4654,7 @@ const BUILDINGS = {
     icon: "ti-cross",
     bgColor: "#0c0a06",
     desc: "L'église de Montrouge.",
-    rooms: { salle: { name: "Nef", desc: "Un lieu de recueillement.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", persons: [], orders: [] } }
+    rooms: { salle: { name: "Nef", desc: "Un lieu de recueillement.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-eglise-nef.jpg", persons: [], orders: [] } }
   },
   'cinema-montrouge': {
     name: "Cinéma de Montrouge",
