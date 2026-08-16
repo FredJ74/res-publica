@@ -2189,7 +2189,11 @@ function defautCommerce(type, pays, ville, buildingId, roomId) {
 // chargement du script.
 async function chargerCommerce(type, pays, ville, buildingId, roomId) {
   const id = getCommerceId(type, pays, ville, buildingId, roomId);
-  const dotation = typeof DOTATIONS_COMMERCE_PILOTE !== 'undefined' ? DOTATIONS_COMMERCE_PILOTE[buildingId] : null;
+  // Cle 'buildingId|roomId' prioritaire (batiment a plusieurs commerces distincts, ex. le stade
+  // n'a qu'un commerce -- sa buvette -- pas tout le batiment), repli sur 'buildingId' seul pour
+  // les commerces mono-piece (lots 3-4).
+  const cleDotation = roomId ? buildingId + '|' + roomId : buildingId;
+  const dotation = typeof DOTATIONS_COMMERCE_PILOTE !== 'undefined' ? (DOTATIONS_COMMERCE_PILOTE[cleDotation] || DOTATIONS_COMMERCE_PILOTE[buildingId]) : null;
   const data = await chargerEntreprise(id, () => {
     const d = defautCommerce(type, pays, ville, buildingId, roomId);
     if (dotation) dotation(d);
@@ -2269,19 +2273,58 @@ const RECETTES_ALIMENTAIRES = {
     materiaux: { cereales: 1 }, pa: 1, portions: 10,
     effets: { hp: 3, moral: 1 },
     typesAutorises: ['cafe'], villesAutorisees: null, buildingsAutorises: null
+  },
+
+  // Buvette de stade (lot 5/6) : alcool comme vraie matiere stockee, consommee a la commande
+  // (section 15). typesAutorises inclut deja 'bar' par anticipation (aucun cout supplementaire,
+  // simple entree de tableau) si le Bar des Pecheurs/Hotel Republica sont migres plus tard --
+  // sans que cela ne les active prematurement (aucun commerce 'bar' n'existe encore).
+  biere_pression: {
+    id: 'biere_pression', label: 'Bière pression', categorie: 'boisson', image: null,
+    materiaux: { alcool: 1 }, pa: 1, portions: 10,
+    effets: { pop: 2, moral: 1 },
+    typesAutorises: ['buvette', 'bar'], villesAutorisees: null, buildingsAutorises: null
+  },
+  boisson_sans_alcool: {
+    id: 'boisson_sans_alcool', label: 'Boisson sans alcool', categorie: 'boisson', image: null,
+    // Pas de chaine industrielle complexe pour l'instant (section 17, cahier des charges) --
+    // produit simple, aucune matiere premiere dediee inventee.
+    materiaux: {}, pa: 1, portions: 10,
+    effets: { moral: 1 },
+    typesAutorises: ['buvette', 'bar', 'cafe'], villesAutorisees: null, buildingsAutorises: null
+  },
+  snack_buvette: {
+    id: 'snack_buvette', label: 'Cacahuètes salées', categorie: 'snack', image: null,
+    materiaux: { cereales: 1 }, pa: 1, portions: 15,
+    effets: { hp: 2, moral: 1 },
+    typesAutorises: ['buvette', 'bar'], villesAutorisees: null, buildingsAutorises: null
   }
 };
 
 // Correspondance buildingId -> type de commerce (17 aout 2026, lot 3+) -- permet a un seul jeu
 // d'ordres generiques (produire_commerce/consulter_carte_commerce, plateau-router.js) de
 // s'appliquer a tout batiment : le type est lu ici plutot que duplique dans chaque room config.
-// Un nouveau commerce mono-piece s'ajoute par une simple ligne ; les batiments a plusieurs
-// commerces distincts (ex. Hotel Republica, lot 5) necessiteront un roomId, pas encore geres ici.
+// Cle 'buildingId' pour un commerce mono-piece (le batiment EST le commerce) ; cle
+// 'buildingId|roomId' quand un meme buildingId partage entre plusieurs villes n'a qu'UNE de ses
+// pieces qui est un commerce (le stade : sa buvette seulement, pas le terrain).
 const BUILDING_COMMERCE_TYPE = {
   'cafe-gare-montrouge': 'cafe',
   'brasserie-voyageurs-montrouge': 'brasserie',
-  'hotel-mineur': 'cafe'
+  'hotel-mineur': 'cafe',
+  'stade|buvette': 'buvette'
 };
+
+// Resout le commerce (type + roomId) correspondant a l'endroit ou se trouve le joueur --
+// verifie d'abord la cle room-scopee (batiment a commerces multiples), puis la cle batiment
+// seul (commerce mono-piece). Retourne null si aucun commerce ici.
+function resoudreCommerceActuel() {
+  const buildingId = state.currentBuilding;
+  const roomId = state.currentRoom;
+  const cleRoom = buildingId + '|' + roomId;
+  if (BUILDING_COMMERCE_TYPE[cleRoom]) return { type: BUILDING_COMMERCE_TYPE[cleRoom], buildingId, roomId };
+  if (BUILDING_COMMERCE_TYPE[buildingId]) return { type: BUILDING_COMMERCE_TYPE[buildingId], buildingId, roomId: null };
+  return null;
+}
 
 // Dotations de depart par commerce pilote (meme principe que defautArmurerie : un commerce ne
 // demarre pas a zero, comme l'entrepot/l'armurerie). Cle = buildingId, lue par chargerCommerce
@@ -2318,19 +2361,33 @@ const DOTATIONS_COMMERCE_PILOTE = {
     data.carte = ['petit_dejeuner'];
     data.parametres.stockMax = { petit_dejeuner: 30 };
     data.parametres.prixVente = { petit_dejeuner: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.petit_dejeuner)) };
+  },
+  'stade|buvette': function(data) {
+    // AUCUNE caisse ici (data.caisse reste 0 en permanence) -- ni pour les ventes (deja routees
+    // vers la caisse du stade, doctrine du lot precedent), ni pour la main-d'oeuvre de
+    // production (routee vers la meme caisse du stade, voir produireRecetteCommerce ci-dessus).
+    data.stockMatieres = { alcool: 10, cereales: 5 };
+    data.coutMoyenMatieres = { alcool: 14, cereales: 3 }; // prix de base courant (releve economique)
+    data.carte = ['biere_pression', 'boisson_sans_alcool', 'snack_buvette'];
+    data.parametres.stockMax = { biere_pression: 30, boisson_sans_alcool: 30, snack_buvette: 30 };
+    data.parametres.prixVente = {
+      biere_pression: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.biere_pression)),
+      boisson_sans_alcool: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boisson_sans_alcool)),
+      snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
+    };
   }
 };
 
 function doProduireCommerceGenerique(pa, cost) {
-  const buildingId = state.currentBuilding;
-  if (!BUILDING_COMMERCE_TYPE[buildingId]) { showToast('Indisponible', '', false); return; }
-  doProduireRecetteCommerce(BUILDING_COMMERCE_TYPE[buildingId], buildingId, null, pa, cost);
+  const c = resoudreCommerceActuel();
+  if (!c) { showToast('Indisponible', '', false); return; }
+  doProduireRecetteCommerce(c.type, c.buildingId, c.roomId, pa, cost);
 }
 
 function doConsulterCarteCommerceGenerique(pa, cost) {
-  const buildingId = state.currentBuilding;
-  if (!BUILDING_COMMERCE_TYPE[buildingId]) { showToast('Indisponible', '', false); return; }
-  doConsulterCarteCommerce(BUILDING_COMMERCE_TYPE[buildingId], buildingId, null, pa, cost);
+  const c = resoudreCommerceActuel();
+  if (!c) { showToast('Indisponible', '', false); return; }
+  doConsulterCarteCommerce(c.type, c.buildingId, c.roomId, pa, cost);
 }
 
 // 1 PA de travail = 50 FR de main-d'oeuvre (regle validee, releve economique du 17 aout 2026,
@@ -2407,16 +2464,32 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
   const manque = Object.entries(recette.materiaux).find(([m, q]) => (data.stockMatieres[m] || 0) < q);
   if (manque) return { ok: false, raison: 'stock_matiere_insuffisant', matiere: manque[0] };
 
-  const coutMainOeuvre = recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE;
-  if (data.caisse < coutMainOeuvre) return { ok: false, raison: 'caisse_insuffisante' };
-
   const stockMax = data.parametres.stockMax[recetteId];
   const stockActuel = data.stockProduits[recetteId] || 0;
   if (stockMax != null && stockActuel >= stockMax) return { ok: false, raison: 'stock_plein' };
 
+  // Tous les controles sans effet de bord sont passes -- seul le paiement de la main-d'oeuvre
+  // reste a verifier, en dernier, car pour une buvette c'est une VRAIE ecriture Supabase externe
+  // (contrairement a data.caisse, mutation locale non encore sauvegardee) : elle ne doit jamais
+  // se declencher si un controle ulterieur pouvait encore faire echouer la production.
+  const coutMainOeuvre = recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE;
+  // Buvette : aucune caisse autonome (doctrine deja validee/codee pour doConsommerBuvette), y
+  // compris cote depense -- le net des ventes va deja a la caisse du stade, la main-d'oeuvre de
+  // production en est donc symetriquement tiree, jamais de data.caisse (qui reste a 0 en
+  // permanence pour ce type). debiterCaisseBatimentAtomique est tout-ou-rien (contrairement a
+  // debiterCaisseBatimentPlafonne qui tolere un versement partiel, inadapte ici : un salaire de
+  // production doit etre paye en entier ou pas du tout, comme pour tout autre commerce).
+  let coutOk;
+  if (data.type === 'buvette' && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
+    coutOk = (await debiterCaisseBatimentAtomique(pays, getCaisseLocaleId('stade', ville), coutMainOeuvre)) === coutMainOeuvre;
+  } else {
+    coutOk = data.caisse >= coutMainOeuvre;
+    if (coutOk) data.caisse -= coutMainOeuvre;
+  }
+  if (!coutOk) return { ok: false, raison: 'caisse_insuffisante' };
+
   Object.entries(recette.materiaux).forEach(([m, q]) => { data.stockMatieres[m] -= q; });
   data.stockProduits[recetteId] = stockActuel + recette.portions;
-  data.caisse -= coutMainOeuvre;
 
   // Prix auto recalcule a chaque production pour un commerce PNJ (le cout moyen des matieres
   // peut avoir bouge depuis le dernier lot) -- un commerce PJ garde le prix fixe par son

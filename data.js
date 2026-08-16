@@ -1861,6 +1861,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'consommer_buvette', label:'Prendre un verre', pa:1, cost:50, type:'legal', icon:'ti-beer', successRate:100, desc:'Un moment convivial entre supporters. Leger gain de popularite.'},
+          {fn:'produire_commerce', label:'Servir', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Preparer bieres, boissons et snacks pour le service (consomme le stock, remunere en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au comptoir et commander.'},
           {fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa:1, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Echarpe, casquette ou maillot du club — a choisir.'},
           {fn:'acheter_accessoire_personnalise', label:'Acheter un accessoire personnalisé', pa:0, cost:0, type:'legal', icon:'ti-lock', successRate:100, desc:'Personnalisation (nom, numero) — reserve aux comptes premium. Bientot disponible.'}
         ]
