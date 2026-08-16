@@ -636,9 +636,11 @@ function confirmerCreationOrga(type) {
   state.organisations.push(nouvelleOrga);
   if (typeof sbSaveOrganisation === 'function') sbSaveOrganisation(nouvelleOrga).catch(() => {});
 
-  // Lier au local en cours si on vient de gerer_local
+  // Lier au local en cours si on vient de gerer_local (scope ville ajoute le 2026-08-16,
+  // meme repli de compatibilite que getLocationPourRoom pour les locations sans city)
   const location = (state.locationsActives || []).find(l =>
-    l.buildingId === state.currentBuilding && l.locataire === state.char?.name
+    l.buildingId === state.currentBuilding && l.locataire === state.char?.name &&
+    (l.city == null || l.city === state.currentCity)
   );
   if (location) location.orgaId = id;
 
@@ -2016,7 +2018,10 @@ function doSeRenseigner() {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Rien de particulier à signaler ici.</div>';
   } else {
     locaux.forEach(([roomId, room]) => {
-      const location = (state.locationsActives || []).find(l => l.buildingId === state.currentBuilding && l.roomId === roomId);
+      // Scope ville ajoute le 2026-08-16, meme repli de compatibilite que getLocationPourRoom
+      const location = (state.locationsActives || []).find(l =>
+        l.buildingId === state.currentBuilding && l.roomId === roomId && (l.city == null || l.city === state.currentCity)
+      );
       html += '<div style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
       html += '<div style="display:flex;justify-content:space-between;align-items:center">';
       html += '<div style="font-size:.82rem;color:#c0b090">' + (room.locationData?.label || room.name) + '</div>';

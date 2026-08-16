@@ -1172,8 +1172,16 @@ async function sbAMessagesNonLus(membre) {
 // LOCATIONS ACTIVES (bail de salle/local) — n'avait jusqu'ici AUCUNE sauvegarde Supabase,
 // purement local et perdu au rafraichissement (contrairement aux organisations qui l'ont deja).
 // =====================
+// Cle id : cause racine du bug multi-ville corrigee le 2026-08-16. Un batiment generique
+// (ex. 'centre-affaires') est partage par plusieurs villes du meme pays -- l'ancienne cle
+// 'buildingId:roomId' faisait qu'une location a Montrouge ecrasait la MEME ligne qu'une
+// location a Luthecia. Les nouvelles locations incluent toujours location.city (voir
+// confirmerLocation), donc obtiennent une cle a 3 segments 'buildingId:roomId:city',
+// distincte des anciennes lignes a 2 segments deja en base (verifie : 7 lignes reelles,
+// aucune avec city -- volontairement non migrees, non touchees par ce correctif, voir
+// getLocationPourRoom pour le repli de compatibilite en lecture).
 async function sbSaveLocation(location) {
-  const id = location.buildingId + ':' + location.roomId;
+  const id = location.buildingId + ':' + location.roomId + (location.city ? ':' + location.city : '');
   const data = { id, country: location.country, data: location };
   const existing = await sbGet('locations_actives', `id=eq.${encodeURIComponent(id)}`);
   if (existing && existing.length > 0) {
@@ -1187,8 +1195,10 @@ async function sbLoadLocations(country) {
   return (rows || []).map(r => r.data);
 }
 
-async function sbSupprimerLocation(buildingId, roomId) {
-  const id = buildingId + ':' + roomId;
+// Aucun appelant actuellement dans le code (verifie) -- signature alignee sur sbSaveLocation
+// par coherence si elle est reutilisee un jour.
+async function sbSupprimerLocation(buildingId, roomId, city) {
+  const id = buildingId + ':' + roomId + (city ? ':' + city : '');
   return sbDelete('locations_actives', `id=eq.${encodeURIComponent(id)}`);
 }
 

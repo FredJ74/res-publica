@@ -1747,8 +1747,17 @@ function getLocationsActives() {
   return state.locationsActives;
 }
 
-function getLocationPourRoom(buildingId, roomId) {
-  return getLocationsActives().find(l => l.buildingId === buildingId && l.roomId === roomId);
+// Scope ajoute le 2026-08-16 (bug multi-ville : 'centre-affaires' etc. sont partages par
+// plusieurs villes du meme pays). city = ville a verifier, par defaut la ville courante du
+// joueur (tous les appelants existants operent deja sur state.currentBuilding/currentRoom,
+// donc sur la ville ou se trouve le joueur). Repli de compatibilite : une location persistee
+// AVANT ce correctif (sans champ city -- confirme en base : 7 lignes reelles, dont une active,
+// aucune avec city) reste visible/bloquante depuis n'importe quelle ville, exactement son
+// comportement actuel, pour ne pas lui inventer une ville ni casser un bail reel existant.
+function getLocationPourRoom(buildingId, roomId, city = state.currentCity) {
+  return getLocationsActives().find(l =>
+    l.buildingId === buildingId && l.roomId === roomId && (l.city == null || l.city === city)
+  );
 }
 
 // Charge toutes les locations actives depuis Supabase au demarrage (remplace l'ancien
@@ -1856,6 +1865,11 @@ async function confirmerLocation(pa, cost) {
     orgaId,
     locataire: state.char?.name,
     country: state.country,
+    // Ajoute le 2026-08-16 : un batiment generique (ex. 'centre-affaires') est partage par
+    // plusieurs villes du meme pays. Sans cette dimension, une location a Montrouge occupait
+    // le meme local qu'a Luthecia/PSM. Les anciennes locations persistees (sans city) restent
+    // gerees par un repli de compatibilite dans getLocationPourRoom -- voir ce commentaire la.
+    city: state.currentCity,
     depuis: state.day || 1,
     visible: true
   });
@@ -2006,7 +2020,10 @@ function toggleVisibiliteLocation() {
 function resilierBail() {
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;
-  const idx = (state.locationsActives || []).findIndex(l => l.buildingId === buildingId && l.roomId === roomId);
+  const ville = state.currentCity;
+  const idx = (state.locationsActives || []).findIndex(l =>
+    l.buildingId === buildingId && l.roomId === roomId && (l.city == null || l.city === ville)
+  );
   if (idx < 0) return;
 
   const location = state.locationsActives[idx];

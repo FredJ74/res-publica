@@ -407,7 +407,11 @@ const WORLD = {
             hall:            { imageUrl: "images/montrouge/montrouge-centre-affaires-accueil.png" },
             bureau_prestige: { imageUrl: "images/montrouge/montrouge-centre-affaires-grand-bureau.png" },
             bureau_standard: { imageUrl: "images/montrouge/montrouge-centre-affaires-moyen-bureau.png" },
-            open_space:      { imageUrl: "images/montrouge/montrouge-centre-affaires-petit-bureau.png" }
+            open_space:      { imageUrl: "images/montrouge/montrouge-centre-affaires-petit-bureau.png" },
+            // Antenne locale de La Tribune de Republia (pas L'Autruche Entravee, un autre
+            // journal) : image seule, aucune salle/ordre/PNJ ajoute, roomId deja existant
+            // et unique dans tout le depot (seul le template generique le definit).
+            tribune_republia: { imageUrl: "images/montrouge/tribune-redaction.jpg" }
           },
           roomsExtra: {
             bureau_emploi_annexe: {
