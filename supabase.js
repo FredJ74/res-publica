@@ -1175,13 +1175,12 @@ async function sbAMessagesNonLus(membre) {
 // Cle id : cause racine du bug multi-ville corrigee le 2026-08-16. Un batiment generique
 // (ex. 'centre-affaires') est partage par plusieurs villes du meme pays -- l'ancienne cle
 // 'buildingId:roomId' faisait qu'une location a Montrouge ecrasait la MEME ligne qu'une
-// location a Luthecia. Les nouvelles locations incluent toujours location.city (voir
-// confirmerLocation), donc obtiennent une cle a 3 segments 'buildingId:roomId:city',
-// distincte des anciennes lignes a 2 segments deja en base (verifie : 7 lignes reelles,
-// aucune avec city -- volontairement non migrees, non touchees par ce correctif, voir
-// getLocationPourRoom pour le repli de compatibilite en lecture).
+// location a Luthecia. Les 7 locations qui existaient encore sous l'ancienne cle (sans
+// city) ont ete migrees individuellement (INSERT nouvelle cle + verification + DELETE
+// ancienne cle) vers 'buildingId:roomId:city' -- plus aucune ligne sans city en base,
+// donc plus besoin de repli conditionnel ici ni dans getLocationPourRoom.
 async function sbSaveLocation(location) {
-  const id = location.buildingId + ':' + location.roomId + (location.city ? ':' + location.city : '');
+  const id = location.buildingId + ':' + location.roomId + ':' + location.city;
   const data = { id, country: location.country, data: location };
   const existing = await sbGet('locations_actives', `id=eq.${encodeURIComponent(id)}`);
   if (existing && existing.length > 0) {
