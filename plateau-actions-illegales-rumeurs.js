@@ -2833,9 +2833,37 @@ function getVillesAvecArmurerie(country) {
   });
 }
 
+// Prix de rachat des commerces alimentaires pilotes (17 aout 2026, lot 6/6) -- ordre de grandeur
+// coherent avec leur dotation de depart (1000-3000 FR de tresorerie), nettement en dessous de
+// l'armurerie (130000 FR, un commerce autrement plus etabli). Valeurs de lancement, ajustables.
+// La buvette de stade (type 'buvette') est volontairement absente : institution municipale sans
+// caisse propre (doctrine du lot 5), pas un commerce a proprietaire prive.
+const PRIX_RACHAT_COMMERCE = {
+  'cafe-gare-montrouge': 18000,
+  'brasserie-voyageurs-montrouge': 28000,
+  'hotel-mineur': 15000
+};
+
+// Meme forme {id,label,prix,charger} que l'armurerie ci-dessous -- doRachatEntreprise/
+// traiterActeRachatEntreprise/ouvrirPreemptionEntreprise n'ont jamais suppose le type
+// 'armurerie' nulle part (verifie exhaustivement), donc aucun changement necessaire a ces
+// fonctions pour que le rachat/la preemption fonctionnent deja sur ces commerces.
+function getCommercesAlimentairesRachetables() {
+  const pays = state.country || 'republic';
+  return Object.entries(PRIX_RACHAT_COMMERCE)
+    .map(([buildingId, prix]) => {
+      const villeReelle = Object.keys(WORLD[pays] || {}).find(v => WORLD[pays][v]?.buildings?.includes(buildingId));
+      if (!villeReelle) return null; // batiment non construit dans ce pays (pilotes Republic-only pour l'instant)
+      const type = BUILDING_COMMERCE_TYPE[buildingId];
+      const id = getCommerceId(type, pays, villeReelle, buildingId, null);
+      return { id, label: BUILDINGS[buildingId]?.name || buildingId, prix, charger: () => chargerCommerce(type, pays, villeReelle, buildingId, null) };
+    })
+    .filter(Boolean);
+}
+
 function getEntreprisesRachetables() {
   const pays = state.country || 'republic';
-  return getVillesAvecArmurerie(pays).map(city => {
+  const armureries = getVillesAvecArmurerie(pays).map(city => {
     const id = getEntrepriseIdArmurerie(pays, city);
     return {
       id,
@@ -2844,6 +2872,7 @@ function getEntreprisesRachetables() {
       charger: () => chargerEntrepriseParId(id, pays, city)
     };
   });
+  return armureries.concat(getCommercesAlimentairesRachetables());
 }
 
 function getEntrepriseRachetable(id) {
