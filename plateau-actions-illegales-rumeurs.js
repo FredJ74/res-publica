@@ -2771,7 +2771,11 @@ async function doConsommerBuvette(pa, cost) {
 
   if (typeof appliquerTaxeTransaction === 'function' && typeof crediterCaisseBatiment === 'function') {
     const { net } = await appliquerTaxeTransaction(cout);
-    await crediterCaisseBatiment(state.country || 'republic', 'stade-buvette', net).catch(() => {});
+    // Caisse locale par ville (A3, lot caisses locales, 16 aout 2026) -- 'stade' etant un
+    // buildingId de navigation partage entre les 3 villes, la buvette de Montrouge creditait
+    // auparavant la meme caisse que celle de Luthecia.
+    const idCaisseBuvette = typeof getCaisseLocaleId === 'function' ? getCaisseLocaleId('stade-buvette', state.currentCity) : 'stade-buvette';
+    await crediterCaisseBatiment(state.country || 'republic', idCaisseBuvette, net).catch(() => {});
   }
 
   updateUI();

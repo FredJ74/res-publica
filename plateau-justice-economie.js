@@ -4448,8 +4448,15 @@ const CAISSE_PAR_POSTE_BUDGET = {
 const COUT_REPARATION_GRILLE = 200; // FR par point regenere
 const REGEN_GRILLE_PAR_JOUR = 4; // points vises par jour, plafonne par le budget dispo
 
+// A3 (lot caisses locales, 16 aout 2026) : cette fonction (et Dispensaire/Tribunal ci-dessous)
+// n'identifie QUE des caisses (verifie exhaustivement : tous les appelants s'en servent comme
+// cle de caisses_batiments -- subvention, financement communal, paiement d'enquete/filature,
+// cambriolage, consultation -- jamais comme buildingId de navigation reel). Retournait
+// auparavant le meme id pour Port-Sainte-Marie ET Montrouge ('commissariat-local', partage),
+// fusionnant leurs deux caisses. Delegue desormais a getCaisseLocaleId, qui distingue chaque
+// ville reellement.
 function getBuildingIdCommissariat(ville) {
-  return ville === 'capitale' ? 'commissariat' : 'commissariat-local';
+  return getCaisseLocaleId('commissariat', ville);
 }
 
 function getBuildingIdCentreMultimodal(ville, pays) {
@@ -4469,11 +4476,11 @@ function getBuildingIdCentreMultimodal(ville, pays) {
 }
 
 function getBuildingIdDispensaire(ville) {
-  return ville === 'capitale' ? 'dispensaire-public' : 'dispensaire-public-v';
+  return getCaisseLocaleId('dispensaire', ville);
 }
 
 function getBuildingIdTribunal(ville) {
-  return ville === 'capitale' ? 'tribunal' : 'tribunal-local';
+  return getCaisseLocaleId('tribunal', ville);
 }
 
 // ---- FINANCEMENT COMMUNAL (Maire Adjoint depuis le 10 aout 2026 -- transfert complet, plus
@@ -4486,11 +4493,13 @@ async function ouvrirModalFinancerCommunal(pa, cost) {
   const ville = state.currentCity;
   const budgetMuni = await chargerBudgetMunicipal();
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+  // Stade/Marche : id codes en dur auparavant, sans ville -- une subvention votee depuis
+  // Montrouge creditait la meme caisse que Luthecia (A3, lot caisses locales, 16 aout 2026).
   const options = [
     { id: getBuildingIdCommissariat(ville), label: 'Commissariat' },
     { id: getBuildingIdCentreMultimodal(ville), label: 'Centre Multimodal' },
-    { id: 'stade', label: 'Stade' },
-    { id: 'marche', label: 'Marche' },
+    { id: getCaisseLocaleId('stade', ville), label: 'Stade' },
+    { id: getCaisseLocaleId('marche', ville), label: 'Marche' },
     { id: getBuildingIdDispensaire(ville), label: 'Dispensaire' },
     { id: getBuildingIdTribunal(ville), label: 'Tribunal' }
   ];
@@ -4539,11 +4548,16 @@ async function ouvrirModalFinancerMinInt(pa, cost) {
     showToast('Acces refuse', "Reserve au Ministre de l'Interieur.", false);
     return;
   }
-  const options = [
-    { id: 'commissariat', label: 'Commissariat de Luthecia' },
-    { id: 'commissariat-local', label: 'Commissariat (Port-Sainte-Marie / Montrouge)' },
-    { id: 'qhs', label: 'QHS' }
-  ];
+  // Une entree par ville reelle du pays (A3, lot caisses locales, 16 aout 2026) -- remplace
+  // l'ancienne option unique "Commissariat (Port-Sainte-Marie / Montrouge)" qui fusionnait deux
+  // villes sous un id code en dur, sans jamais passer par getBuildingIdCommissariat (deja
+  // corrigee, mais court-circuitee ici). 'qhs' reste inchange, infrastructure nationale unique.
+  const villesCommissariat = typeof getVillesReelles === 'function' ? getVillesReelles(state.country) : ['capitale'];
+  const options = villesCommissariat.map(v => ({
+    id: getBuildingIdCommissariat(v),
+    label: 'Commissariat de ' + (WORLD[state.country]?.[v]?.name || v)
+  }));
+  options.push({ id: 'qhs', label: 'QHS' });
   const caisse = await chargerCaisseBatiment(state.country, 'gouvernement-min_int');
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
@@ -5085,6 +5099,26 @@ async function doConsulterCaisseBatimentGenerique(buildingId, buildingLabel) {
 async function doConsulterCaisseCommissariat() {
   const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(state.currentCity) : 'commissariat';
   await doConsulterCaisseBatimentGenerique(buildingId, 'Commissariat');
+}
+
+// A3 (lot caisses locales, 16 aout 2026) : identifiant de caisse LOCALE, distinct du buildingId
+// de navigation qui peut etre partage entre plusieurs villes (meme principe que l'armurerie :
+// le buildingId de navigation reste partage intentionnellement -- 'commissariat-local'/
+// 'marche'/'stade' restent les memes pieces navigables -- mais l'etat financier doit rester
+// local par ville). 'categorie' est un nom stable (commissariat/tribunal/dispensaire/marche/
+// stade/stade-buvette/...), 'ville' la ville reelle du batiment physique concerne. Generique :
+// fonctionne pour toute categorie et toute ville de tout empire, sans exception codee en dur.
+function getCaisseLocaleId(categorie, ville) {
+  return categorie + '_' + (ville || 'capitale');
+}
+
+// Villes reelles d'un pays (hors zones speciales caserne/qhs, isSpecial:true) -- generique,
+// fonctionne pour tout empire des qu'il possede plusieurs villes actives (A3, lot caisses
+// locales, 16 aout 2026).
+function getVillesReelles(country) {
+  const monde = WORLD[country];
+  if (!monde) return ['capitale'];
+  return Object.keys(monde).filter(v => monde[v] && !monde[v].isSpecial);
 }
 
 async function chargerCaisseBatiment(pays, buildingId) {

@@ -5387,7 +5387,11 @@ function getBuildingIdPourCategorieBudget(cat, ville) {
   if (cat === 'multimodal') return getBuildingIdCentreMultimodal(ville);
   if (cat === 'dispensaire') return getBuildingIdDispensaire(ville);
   if (cat === 'tribunal') return getBuildingIdTribunal(ville);
-  return cat;
+  // stade/marche (et toute categorie future sans helper dedie) : repli generique sur la meme
+  // caisse locale (A3, lot caisses locales, 16 aout 2026) -- retournait auparavant 'cat' tel
+  // quel (ex. 'marche'), un buildingId de navigation partage entre plusieurs villes, fusionnant
+  // leurs caisses.
+  return typeof getCaisseLocaleId === 'function' ? getCaisseLocaleId(cat, ville) : cat;
 }
 
 function getVilleKey() {

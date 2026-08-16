@@ -619,7 +619,10 @@ function enterRoom(buildingId, roomId, tabEl) {
     'bureau_min_def': 'gouvernement-min_def'
   };
   const ROOMS_AVEC_CAISSE = { 'palais-presidentiel': 'palais-presidentiel', 'mairie-capitale': 'mairie-capitale', 'caserne-militaire': 'caserne-militaire' };
-  const caisseBuildingId = (buildingId === 'palais-gouvernement' ? ROOMS_AVEC_CAISSE_SPECIFIQUE[roomId] : null) || ROOMS_AVEC_CAISSE[buildingId] || (buildingId === 'stade' && roomId === 'buvette' ? 'stade-buvette' : null);
+  // Buvette : caisse locale par ville (A3, lot caisses locales, 16 aout 2026), meme cle que
+  // doConsommerBuvette -- affichait auparavant le solde de la caisse partagee entre les 3 villes.
+  const idCaisseBuvetteAffichee = typeof getCaisseLocaleId === 'function' ? getCaisseLocaleId('stade-buvette', state.currentCity) : 'stade-buvette';
+  const caisseBuildingId = (buildingId === 'palais-gouvernement' ? ROOMS_AVEC_CAISSE_SPECIFIQUE[roomId] : null) || ROOMS_AVEC_CAISSE[buildingId] || (buildingId === 'stade' && roomId === 'buvette' ? idCaisseBuvetteAffichee : null);
   if (caisseBuildingId && typeof chargerCaisseBatiment === 'function') {
     chargerCaisseBatiment(state.country || 'republic', caisseBuildingId).then(c => {
       const el = document.getElementById('piece-desc');
