@@ -5,6 +5,9 @@
     },
     "api/cron-minuit.js": {
       "maxDuration": 30
+    },
+    "api/upload-org-avatar.js": {
+      "maxDuration": 15
     }
   },
   "crons": [

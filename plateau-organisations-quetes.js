@@ -1071,6 +1071,13 @@ function ouvrirOptionsOrga(orgaId) {
 // mails, sbGetOrganisationParId, jamais confiance au seul state.organisations perime) --
 // couvre explicitement la perte de statut de chef entre ouverture du panneau et clic
 // Sauvegarder.
+//
+// Upload de fichier (revu le 17 aout 2026 apres audit securite) : le nettoyage de l'ancien
+// avatar uploade n'est plus declenche ici cote client -- sbUploadOrgAvatar() passe desormais
+// par api/upload-org-avatar.js, qui determine et supprime lui-meme l'ancien fichier (a partir
+// de sa PROPRE lecture fraiche de l'organisation, jamais d'une valeur fournie par le client) de
+// facon atomique avec l'upload. Le client n'a plus aucun droit d'ecriture/suppression direct
+// sur le bucket Storage.
 async function sauvegarderOptionsOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
@@ -1084,7 +1091,6 @@ async function sauvegarderOptionsOrga(orgaId) {
   const newNom = document.getElementById('orga-rename-input')?.value?.trim();
   const newDevise = document.getElementById('orga-devise-input')?.value?.trim() || '';
   const urlSaisie = document.getElementById('orga-avatar-input')?.value?.trim() || '';
-  const ancienAvatar = orga.avatar || '';
 
   let nouvelAvatar = urlSaisie;
   if (_orgaAvatarFileTemp) {
@@ -1104,13 +1110,6 @@ async function sauvegarderOptionsOrga(orgaId) {
   orga.devise = newDevise;
   orga.avatar = nouvelAvatar;
   sauvegarderOrga(orga);
-
-  // Nettoyage best-effort de l'ancien fichier uploade par CE systeme uniquement (jamais une URL
-  // externe saisie par le joueur -- voir sbSupprimerAncienAvatarOrga), seulement s'il a
-  // reellement change.
-  if (ancienAvatar && ancienAvatar !== nouvelAvatar && typeof sbSupprimerAncienAvatarOrga === 'function') {
-    sbSupprimerAncienAvatarOrga(ancienAvatar).catch(() => {});
-  }
 
   _orgaAvatarFileTemp = null;
   showToast('Paramètres enregistrés', '"' + orga.nom + '"', true);

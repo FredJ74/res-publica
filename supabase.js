@@ -807,54 +807,41 @@ async function sbDeleteOrganisation(orgaId) {
 }
 
 // =====================
-// STORAGE — AVATAR D'ORGANISATION (17 aout 2026)
+// STORAGE — AVATAR D'ORGANISATION (17 aout 2026, revu le 17 aout 2026 apres audit securite)
 // =====================
-// Aucun bucket Supabase Storage n'existait avant ce lot (verifie en direct : GET /storage/v1/
-// bucket renvoyait [] avant migration, aucune reference storage/upload/bucket nulle part dans
-// le depot). orga.avatar (proprete existante, deja utilisee par les Parametres d'organisation
-// et affichee dans "Mes organisations") reste LA seule propriete d'avatar -- un upload reussi y
-// ecrit simplement une URL publique, exactement comme une URL saisie a la main. Bucket dedie
-// 'org-avatars' (public en lecture), migration_org_avatars_storage.sql fournie, a executer
-// manuellement (creation de bucket hors de portee de la cle anon).
-const ORG_AVATAR_BUCKET = 'org-avatars';
+// Premiere version rejetee en revue : upload/suppression directs depuis le client avec la cle
+// anon, ce qui exigeait des policies Storage INSERT/DELETE ouvertes a tous -- un appel API
+// direct pouvait alors contourner sauvegarderOptionsOrga/sbUploadOrgAvatar (format, taille, ET
+// la verification du chef). Corrige : l'upload passe desormais PAR UN ENDPOINT SERVEUR
+// (api/upload-org-avatar.js, cle service_role uniquement en variable d'environnement Vercel,
+// jamais dans ce fichier ni ailleurs cote client) qui fait AUTORITE sur ces trois controles.
+// orga.avatar reste LA seule propriete d'avatar (deja existante, deja affichee dans "Mes
+// organisations") -- un upload reussi y ecrit simplement l'URL publique renvoyee par le
+// serveur, exactement comme une URL saisie a la main. Bucket dedie 'org-avatars' (lecture
+// publique uniquement, aucune policy anon en ecriture -- migration_org_avatars_storage.sql).
+//
+// Renvoie l'URL publique (ou null en cas d'echec reel : format refuse, fichier trop
+// volumineux, chef plus a jour, service pas encore configure cote Vercel). Validation de forme
+// faite cote client ICI en plus (retour rapide sans requete reseau pour un fichier evidemment
+// invalide) -- le serveur revalide integralement de toute facon, c'est lui qui fait foi.
 const ORG_AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2 Mo -- raisonnable pour un logo/avatar, evite les uploads aberrants
 const ORG_AVATAR_MIME_EXT = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
 
-// Envoie une image vers le bucket dedie et renvoie son URL PUBLIQUE (ou null en cas d'echec
-// reel -- bucket pas encore migre, format refuse, fichier trop volumineux, etc.). Nom de
-// fichier genere cote systeme (jamais le nom fourni par le joueur), prefixe par l'id de l
-// organisation (namespace naturel : evite les collisions entre organisations, permet un
-// nettoyage cible cote suppression). Validation de forme (taille/format) faite ICI en plus du
-// controle deja fait cote UI, pour rester correcte meme si cette fonction est un jour appelee
-// autrement que depuis le formulaire.
 async function sbUploadOrgAvatar(orgaId, file) {
   if (!orgaId || !file) return null;
   if (file.size > ORG_AVATAR_MAX_BYTES) return null;
-  const ext = ORG_AVATAR_MIME_EXT[file.type];
-  if (!ext) return null;
-  const path = orgaId + '/' + Date.now() + '-' + Math.floor(Math.random() * 1000000) + '.' + ext;
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${ORG_AVATAR_BUCKET}/${path}`, {
+  if (!ORG_AVATAR_MIME_EXT[file.type]) return null;
+  const nom = (typeof state !== 'undefined' && state.char?.name) || '';
+  if (!nom) return null;
+  const url = `/api/upload-org-avatar?orgaId=${encodeURIComponent(orgaId)}&characterName=${encodeURIComponent(nom)}`;
+  const res = await fetch(url, {
     method: 'POST',
-    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Content-Type': file.type },
+    headers: { 'Content-Type': file.type },
     body: file
-  });
-  if (!res.ok) { console.error('sbUploadOrgAvatar error', await res.text().catch(() => '')); return null; }
-  return `${SUPABASE_URL}/storage/v1/object/public/${ORG_AVATAR_BUCKET}/${path}`;
-}
-
-// Supprime un ancien avatar uploade PAR CE MEME SYSTEME uniquement -- reconnu exclusivement via
-// le prefixe de l'URL publique du bucket dedie, jamais une URL externe saisie par le joueur
-// (impossible de la confondre : seul ce prefixe exact declenche une suppression). Best-effort,
-// echec totalement silencieux : un fichier orphelin est un risque bien moindre qu'une
-// suppression erronee d'un avatar encore utilise.
-async function sbSupprimerAncienAvatarOrga(ancienneUrl) {
-  const prefixe = `${SUPABASE_URL}/storage/v1/object/public/${ORG_AVATAR_BUCKET}/`;
-  if (!ancienneUrl || !ancienneUrl.startsWith(prefixe)) return;
-  const path = ancienneUrl.slice(prefixe.length);
-  await fetch(`${SUPABASE_URL}/storage/v1/object/${ORG_AVATAR_BUCKET}/${path}`, {
-    method: 'DELETE',
-    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
-  }).catch(() => {});
+  }).catch(() => null);
+  if (!res || !res.ok) { console.error('sbUploadOrgAvatar error', await res?.text().catch(() => '') || 'reseau'); return null; }
+  const json = await res.json().catch(() => null);
+  return json?.url || null;
 }
 
 // =====================
