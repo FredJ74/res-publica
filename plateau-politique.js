@@ -1912,6 +1912,125 @@ async function ouvrirOrganigramme() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// =====================
+// ORGANIGRAMME — ACCUEIL DES MAIRIES (17 aout 2026)
+// =====================
+// Ordre commun aux 3 mairies de Republia (mairie-capitale/hall_mairie, mairie/accueil_mairie —
+// partage par PSM et Montrouge), distinct de l'ordre 'organigramme' existant (Palais du
+// Gouvernement + hall_mairie de Luthecia uniquement, jamais accessible depuis PSM/Montrouge,
+// une seule vue combinee sans distinction national/municipal). Reutilise entierement
+// getTitulaireActuel (plateau-organisations-quetes.js), POSTES_ELECTIFS/POSTES_NOMMES_EXCLUSIFS
+// (data.js) et getAvatarHtmlPourNom (plateau-multijoueur.js) -- aucune seconde source de verite,
+// aucun nouvel asset. L'ordre 'organigramme' existant n'est pas touche.
+//
+// Ville municipale : resolue via state.currentCity, fiable ici (contrairement aux pipelines
+// differes deja corriges ailleurs) car ouvrirOrganigrammeMairie() est appelee SYNCHRONEMENT par
+// doOrder() au moment du clic, pendant que le joueur est physiquement dans l'accueil de la
+// mairie concernee -- verifie dans plateau-router.js/plateau-navigation.js avant d'ecrire ce
+// code, aucun appel differe/cron implique.
+//
+// Deputes : POSTES_ELECTIFS.departemental['depute'] a bien nbParVille:3 declare, mais ce champ
+// n'est utilise nulle part (verifie) -- getCleCycle ne construit qu'UNE cle par ville
+// (posteId+'_'+city), donc un seul siege reellement elu par ville existe aujourd'hui (3 au
+// total). C'est ce mecanisme reel qui est affiche ici, pas le champ non implemente ni l'ancien
+// "Annuaire des Deputes" (consulterAnnuaireDeputes, 25 sieges decoratifs sur state.postes,
+// jamais connecte au systeme electoral reel) qui reste hors perimetre, inchange.
+function renderTitreSectionOrganigramme(titre) {
+  return `<div style="padding:.5rem 1rem;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;border-bottom:1px solid #2a2010;margin-top:.3rem">${escapeHtmlText(titre)}</div>`;
+}
+
+async function renderLignesOrganigramme(postes) {
+  const myName = state.char?.name || '';
+  let html = '';
+  for (const p of postes) {
+    const titulaire = typeof getTitulaireActuel === 'function' ? await getTitulaireActuel(p.id, p.city, state.country) : null;
+    const holderName = titulaire?.nom || null;
+    const estPJ = titulaire?.estPJ ?? true;
+    const isMe = estPJ && holderName === myName;
+    const avatar = holderName && typeof getAvatarHtmlPourNom === 'function'
+      ? getAvatarHtmlPourNom(holderName, 30, isMe ? '#C9A84C' : '#4a8a4a')
+      : '';
+    const holderLabel = !holderName
+      ? '<span style="color:#9a8a68;font-style:italic">Vacant</span>'
+      : `<span style="color:${isMe ? '#C9A84C' : '#4a8a4a'}">${escapeHtmlText(holderName)}${estPJ ? '' : ' (PNJ)'}${isMe ? ' ✦' : ''}</span>`;
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 1rem;border-bottom:1px solid #1a1810">
+      <div style="font-size:.78rem;color:#c0b090">${escapeHtmlText(p.name)}</div>
+      <div style="display:flex;align-items:center;gap:.5rem;font-size:.75rem">${avatar}${holderLabel}</div>
+    </div>`;
+  }
+  return html;
+}
+
+function renderRetourOrganigrammeMairie() {
+  return '<div style="padding:1rem 1rem .3rem"><button onclick="ouvrirOrganigrammeMairie()" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid #2a2010;background:transparent;color:#8a7040;cursor:pointer"><i class="ti ti-arrow-left"></i> Retour</button></div>';
+}
+
+function ouvrirOrganigrammeMairie() {
+  document.getElementById('postes-modal-title').textContent = "Consulter l'organigramme";
+  document.getElementById('postes-body').innerHTML = `
+    <div style="padding:1.5rem;display:flex;flex-direction:column;gap:.8rem">
+      <div style="font-size:.76rem;color:#8a8060;font-style:italic;margin-bottom:.2rem">Consultation publique et gratuite. Aucun poste ni fonction requis.</div>
+      <button onclick="afficherOrganigrammeMairieNational()" style="font-family:Bebas Neue,sans-serif;font-size:.82rem;letter-spacing:.08em;padding:.7rem 1rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;text-align:left"><i class="ti ti-flag" style="margin-right:.5rem"></i>Organigramme national</button>
+      <button onclick="afficherOrganigrammeMairieMunicipal()" style="font-family:Bebas Neue,sans-serif;font-size:.82rem;letter-spacing:.08em;padding:.7rem 1rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;text-align:left"><i class="ti ti-building-community" style="margin-right:.5rem"></i>Organigramme municipal</button>
+    </div>`;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function afficherOrganigrammeMairieNational() {
+  document.getElementById('postes-modal-title').textContent = 'Organigramme national';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+
+  if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase();
+  if (typeof rafraichirCachePhotosJoueurs === 'function') await rafraichirCachePhotosJoueurs();
+
+  const country = state.country;
+  const co = COUNTRIES[country];
+  const villes = Object.keys(WORLD[country] || {});
+  const presidentDef = (POSTES_ELECTIFS.national || []).find(p => p.id === 'president');
+  const deputeDef = (POSTES_ELECTIFS.departemental || []).find(p => p.id === 'depute');
+  const ministresIds = Object.keys(POSTES_NOMMES_EXCLUSIFS).filter(id => id === 'pm' || id.startsWith('min_'));
+
+  let html = renderTitreSectionOrganigramme('Présidence');
+  html += await renderLignesOrganigramme([{ id: 'president', name: presidentDef?.name || 'Président', city: null }]);
+
+  html += renderTitreSectionOrganigramme('Gouvernement');
+  html += await renderLignesOrganigramme(ministresIds.map(id => ({ id, name: POSTES_NOMMES_EXCLUSIFS[id].label, city: null })));
+
+  html += renderTitreSectionOrganigramme('Assemblée');
+  html += await renderLignesOrganigramme(villes.map(v => ({
+    id: 'depute', city: v,
+    name: (deputeDef?.name || 'Député') + ' — ' + (WORLD[country][v]?.name || v)
+  })));
+
+  html += renderRetourOrganigrammeMairie();
+
+  document.getElementById('postes-modal-title').textContent = 'Organigramme national — ' + (co?.n || 'Empire');
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function afficherOrganigrammeMairieMunicipal() {
+  document.getElementById('postes-modal-title').textContent = 'Organigramme municipal';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+
+  if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase();
+  if (typeof rafraichirCachePhotosJoueurs === 'function') await rafraichirCachePhotosJoueurs();
+
+  const country = state.country;
+  const ville = state.currentCity || 'capitale';
+  const villeNom = WORLD[country]?.[ville]?.name || ville;
+  const maireDef = (POSTES_ELECTIFS.local || []).find(p => p.id === 'maire');
+  const maireAdjointDef = POSTES_NOMMES_EXCLUSIFS.maire_adjoint;
+
+  let html = renderTitreSectionOrganigramme(villeNom);
+  html += await renderLignesOrganigramme([
+    { id: 'maire', city: ville, name: maireDef?.name || 'Maire' },
+    { id: 'maire_adjoint', city: ville, name: maireAdjointDef?.label || 'Maire Adjoint' }
+  ]);
+  html += renderRetourOrganigrammeMairie();
+
+  document.getElementById('postes-modal-title').textContent = 'Organigramme municipal — ' + villeNom;
+  document.getElementById('postes-body').innerHTML = html;
+}
 
 // =====================
 
