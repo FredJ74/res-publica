@@ -4656,6 +4656,12 @@ const BUILDINGS = {
       {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
     ] } }
   },
+  // Structure a 6 salles + accueil (17 aout 2026, implantation des images preparees) --
+  // remplace l'ancien placeholder a une seule salle sans image. montrouge-musee-memoire-
+  // ouvriere.jpg (planche a plusieurs concepts) reste DELIBEREMENT en reserve, jamais reference
+  // ici. Les anciennes idees "Les gens de Montrouge"/"Une vie a l'usine"/"Les cites ouvrieres"/
+  // "Les grandes catastrophes" sont integrees transversalement aux 6 salles existantes (salle_
+  // ville et salle_luttes notamment), pas de salle supplementaire creee.
   'musee-histoire-montrouge': {
     name: "Musée de l'Histoire de Montrouge — Autour du Rail",
     shortName: "Musée de Montrouge",
@@ -4663,7 +4669,15 @@ const BUILDINGS = {
     icon: "ti-building-monument",
     bgColor: "#0c0a06",
     desc: "Musée consacré à l'histoire cheminote de Montrouge.",
-    rooms: { salle: { name: "Salle d'exposition", desc: "Exposition sur les chemins de fer de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", persons: [], orders: [] } }
+    rooms: {
+      accueil: { name: "Accueil", desc: "L'accueil du musée, consacré à l'histoire cheminote de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-accueil.jpg", persons: [], orders: [] },
+      salle_terre: { name: "Salle 1 — La terre", desc: "Montrouge avant l'Homme : géologie du bassin, charbon, roche ferrugineuse, origine du nom de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-prehistoire.jpg", persons: [], orders: [] },
+      salle_industrie: { name: "Salle 2 — L'industrie", desc: "Le fer et le charbon, matières premières de l'essor industriel de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-fer-charbon.jpg", persons: [], orders: [] },
+      salle_rail: { name: "Salle 3 — Le rail", desc: "Le train et le rail : du fer et du charbon au chemin de fer, moteur du développement de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-train-rail.jpg", persons: [], orders: [] },
+      salle_ville: { name: "Salle 4 — La ville et ses habitants", desc: "Urbanisation et vie ouvrière : cités ouvrières, quotidien des travailleurs, travail à l'usine.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-urbanisation.jpg", persons: [], orders: [] },
+      salle_luttes: { name: "Salle 5 — Les luttes", desc: "Montrouge en lutte : syndicalisme, grèves, solidarité ouvrière et conquêtes sociales.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-luttes.jpg", persons: [], orders: [] },
+      salle_loisirs: { name: "Salle 6 — Les loisirs", desc: "La détente des ouvriers : cafés, vie associative, et une large place donnée au football et à l'UCM.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-detente.jpg", persons: [], orders: [] }
+    }
   },
   'eglise-montrouge': {
     name: "Église",
@@ -4686,6 +4700,10 @@ const BUILDINGS = {
     desc: "La place centrale de Montrouge, dominee par la locomotive-monument.",
     rooms: { place: { name: "Place du Rail", desc: "La locomotive-monument trone au centre de la place.", imageBg: "linear-gradient(135deg,#0c0c0e,#141418)", imageUrl: "images/montrouge/montrouge-place-du-rail.jpg", persons: [], orders: [] } }
   },
+  // Salle 1/Salle 2 ajoutees (17 aout 2026, implantation des images preparees) -- le Hall
+  // existant (accueil/guichet) est conserve tel quel, roomId 'salle' inchange (verifie sans
+  // autre reference dans le depot). Simple image de fond pour chaque salle de projection --
+  // aucune mecanique de diffusion/propagande ajoutee, hors perimetre de ce lot.
   'cinema-montrouge': {
     name: "Cinéma de Montrouge",
     shortName: "Cinéma",
@@ -4693,7 +4711,11 @@ const BUILDINGS = {
     icon: "ti-movie",
     bgColor: "#100810",
     desc: "Le cinéma de Montrouge.",
-    rooms: { salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-accueil.png", persons: [], orders: [] } }
+    rooms: {
+      salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-accueil.png", persons: [], orders: [] },
+      salle_1: { name: "Salle 1", desc: "Une des deux salles de projection du cinéma de Montrouge.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-salle-1.jpg", persons: [], orders: [] },
+      salle_2: { name: "Salle 2", desc: "L'autre salle de projection du cinéma de Montrouge.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-salle-2.jpg", persons: [], orders: [] }
+    }
   },
   'jardins-ouvriers-montrouge': {
     name: "Jardins ouvriers",
