@@ -437,7 +437,7 @@
   <div class="modal-box modal-fullscreen">
     <div class="modal-header">
       <div class="modal-title">Forum</div>
-      <button class="modal-close" onclick="document.getElementById('modal-forum').classList.remove('open')"><i class="ti ti-x"></i></button>
+      <button class="modal-close" onclick="document.getElementById('modal-forum').classList.remove('open'); if(typeof onboardingComposeEnCours!=='undefined') onboardingComposeEnCours=false;"><i class="ti ti-x"></i></button>
     </div>
     <div id="forum-body"></div>
   </div>
@@ -591,10 +591,10 @@
   window.RP_TIPTAP_FONT_SIZE = FontSize;
 </script>
 <script src="forum-canvas.js?v=32"></script>
-<script src="forum.js?v=146"></script>
+<script src="forum.js?v=147"></script>
 <script src="plateau-core.js?v=137"></script>
 <script src="plateau-rue-centrale.js?v=139"></script>
-<script src="plateau-quete-accueil.js?v=24"></script>
+<script src="plateau-quete-accueil.js?v=25"></script>
 <script src="plateau-enigme-portrait.js?v=22"></script>
 <script src="plateau-etat-civil.js?v=9"></script>
 <script src="plateau-musee-personnalites.js?v=2"></script>

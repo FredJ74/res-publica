@@ -206,6 +206,16 @@ let mailView = 'inbox'; // 'inbox' | 'compose' | 'read'
 let mailDefaultTo = ''; // Destinataire pré-rempli depuis répertoire PJ
 let editingPostId = null;
 let editingTopicId = null;
+// Onboarding forum (17 aout 2026) : armé uniquement par queteAccueilLancerPresentationForum()
+// (plateau-quete-accueil.js) juste après l'ouverture du compositeur, jamais avant. Remis à
+// false au tout début de CHAQUE ouverture de showComposeCanvasForm() (donc y compris par le
+// bouton normal "Nouveau sujet"), ce qui empêche une session d'onboarding abandonnée de
+// "fuiter" vers une publication ultérieure sans rapport -- toute nouvelle ouverture du
+// compositeur repart obligatoirement désarmée, seul l'appel d'onboarding la réarme aussitôt
+// après. Consommé (remis à false) uniquement lors d'une publication personnelle réellement
+// réussie dans submitComposeCanvas().
+let onboardingComposeEnCours = false;
+function onboardingArmerComposeCanvas() { onboardingComposeEnCours = true; }
 
 // =====================
 // MODAL PRINCIPALE
@@ -1255,6 +1265,9 @@ function showComposeCanvasForm() {
     showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', false);
     return;
   }
+  // Onboarding forum (17 aout 2026) : toute (ré)ouverture du compositeur repart désarmée, voir
+  // le commentaire sur la déclaration de onboardingComposeEnCours plus haut dans ce fichier.
+  onboardingComposeEnCours = false;
   // Lot E3 : editingTopicId/editingPostId peuvent porter l'état d'une édition de post
   // composé précédente (editPost) -- une NOUVELLE composition doit toujours repartir d'un
   // canvas vide, jamais hériter silencieusement d'une session d'édition abandonnée sans
@@ -1280,7 +1293,7 @@ function showComposeCanvasReply() {
   forumView = 'compose-canvas'; document.getElementById('forum-main').innerHTML = renderForumContent();
   if (typeof rpCanvasInitComposeScreen === 'function') rpCanvasInitComposeScreen();
 }
-function backToList()       { forumView = 'list'; currentTopicId = null; document.getElementById('forum-main').innerHTML = renderForumContent(); }
+function backToList()       { forumView = 'list'; currentTopicId = null; onboardingComposeEnCours = false; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 function backToTopic()      { forumView = 'topic'; document.getElementById('forum-main').innerHTML = renderForumContent(); }
 
 function openTopic(topicId) {
@@ -1756,6 +1769,9 @@ async function submitComposeCanvas() {
     return;
   }
   const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
+  // Onboarding forum (17 aout 2026) : capturé avant tout appel d'écriture, jamais réévalué
+  // après (le flag est mono-thread, rien d'autre ne le modifie pendant cet appel async).
+  const eraOnboarding = onboardingComposeEnCours;
 
   const topicId = await sbCreateTopic(currentForumId, title, authorName, state.country, time, authorIsOrg, authorSecret, authorReal, idOrga, orgIcon).catch(() => null);
   if (!topicId) {
@@ -1787,6 +1803,15 @@ async function submitComposeCanvas() {
   addJournalEntry(`Vous avez créé le sujet "${escapeHtmlText(title)}" sur le forum (composition libre).`, 'event-info');
   if (typeof marquerForumVisite === 'function') marquerForumVisite();
   showToast('Sujet publié', 'Votre sujet est en ligne.', true, true);
+  // Onboarding forum (17 aout 2026) : validation UNIQUEMENT après succès réel Supabase confirmé
+  // ci-dessus, ET compositeur réellement armé par l'onboarding, ET publication personnelle (pas
+  // organisationnelle). Une publication organisationnelle pendant une session armée ne valide
+  // rien mais ne désarme pas non plus le flag (le joueur reste libre de réessayer en personnel
+  // dans la même session). Jamais basé sur le titre, le forum choisi ou le contenu.
+  if (eraOnboarding && !authorIsOrg) {
+    onboardingComposeEnCours = false;
+    if (typeof queteAccueilMarquerPresentationPubliee === 'function') queteAccueilMarquerPresentationPubliee();
+  }
 }
 
 // =====================

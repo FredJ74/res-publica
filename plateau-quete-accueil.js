@@ -634,6 +634,68 @@ function fermerClotureCarriere() {
   state.char.queteAccueil = { etape: 'carriere_terminee' };
   if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
   if (typeof quitterJeremy === 'function') quitterJeremy();
+  // Onboarding forum (17 aout 2026) : prolongement naturel de la cloture normale de la quete
+  // d'accueil, jamais des fins alternatives (refusee = refus deliberement precoce ; sans_aide =
+  // ne passe structurellement jamais par cette fonction, voir queteAccueilVerifierDepartJeremy).
+  if (typeof queteAccueilProposerPresentationForum === 'function') queteAccueilProposerPresentationForum();
+}
+
+// Onboarding forum (17 aout 2026) : propose au joueur de se presenter sur le forum local, une
+// seule fois, au moment reel ou il franchit la cloture de la quete d'accueil (jamais rejoue --
+// voir le commentaire "Etape terminale" ci-dessus qui garantit que fermerClotureCarriere() ne
+// s'execute plus une fois l'etape depassee). L'etape passe immediatement a
+// 'presentation_en_cours', avant meme que le joueur ait clique un bouton : ainsi, que la popup
+// soit fermee via la croix, via "Plus tard", via "Me presenter" puis abandon du compositeur ou
+// via un rechargement avant publication, l'etat reste 'presentation_en_cours' -- jamais
+// 'carriere_terminee' -- et cette fonction ne peut donc plus jamais se redeclencher. Le jeu ne
+// redige jamais le texte du joueur, ne publie jamais a sa place et ne recompense pas
+// mecaniquement la publication (voir queteAccueilLancerPresentationForum).
+function queteAccueilProposerPresentationForum() {
+  state.char.queteAccueil = { etape: 'presentation_en_cours' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  afficherPopupQueteAccueil({
+    image: null,
+    titre: 'Luthécia',
+    texte: "Vous commencez à connaître Luthécia... mais Luthécia ne vous connaît pas encore.<br><br>Le forum local est le lieu où les citoyens débattent, annoncent leurs projets et commencent parfois leurs premières querelles.<br><br>Souhaitez-vous vous présenter aux autres habitants ?",
+    suivant: null,
+    actionsHtml:
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilLancerPresentationForum();">Me présenter</button> ' +
+      '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-quete-accueil\').classList.remove(\'open\'); queteAccueilIgnorerPresentationForum();">Plus tard</button>'
+  });
+}
+
+// "Me presenter" : ouvre le forum local directement sur un nouveau compositeur, pre-rempli
+// UNIQUEMENT sur le titre (identite personnelle forcee -- jamais une organisation, meme si le
+// joueur en dirige deja une a ce stade), corps vide, toute liberte de composition normale
+// laissee au joueur. Rien n'est publie ici : la validation reelle se fait uniquement dans
+// submitComposeCanvas() (forum.js), apres succes reel Supabase, via le flag transitoire
+// onboardingComposeEnCours pose ci-dessous. L'etape reste 'presentation_en_cours' tant que la
+// publication reelle n'est pas confirmee (voir queteAccueilMarquerPresentationPubliee).
+function queteAccueilLancerPresentationForum() {
+  if (typeof openForumView === 'function') openForumView('local');
+  else if (typeof openForum_module === 'function') openForum_module('local');
+  if (typeof showComposeCanvasForm === 'function') showComposeCanvasForm();
+  if (typeof onboardingArmerComposeCanvas === 'function') onboardingArmerComposeCanvas();
+  const titleEl = document.getElementById('compose-canvas-title');
+  if (titleEl) titleEl.value = 'Présentation de ' + (state.char?.name || '');
+}
+
+// "Plus tard" : choix valide, terminal -- aucune relance automatique, aucun minuteur, aucune
+// penalite. Le joueur reste libre d'aller se presenter spontanement plus tard, comme n'importe
+// quel autre joueur, via le forum normal.
+function queteAccueilIgnorerPresentationForum() {
+  state.char.queteAccueil = { etape: 'presentation_ignoree' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+}
+
+// Appelee depuis submitComposeCanvas() (forum.js) apres succes REEL et confirme d'une
+// publication personnelle (jamais organisationnelle) provenant reellement du compositeur arme
+// par l'onboarding -- jamais avant, jamais sur simple heuristique de titre/forum/contenu.
+function queteAccueilMarquerPresentationPubliee() {
+  if (typeof state === 'undefined' || !state.char || !state.char.queteAccueil) return;
+  if (state.char.queteAccueil.etape !== 'presentation_en_cours') return;
+  state.char.queteAccueil = { etape: 'presentation_publiee' };
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
 }
 
 // Fait quitter Jeremy du groupe reellement, au premier deplacement (rue ou batiment) suivant
