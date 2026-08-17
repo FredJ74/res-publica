@@ -400,11 +400,13 @@ function renderComposeCanvasForm() {
       <div class="forum-title-main">${headerTitle}</div>
     </div>
     <div style="padding:1rem">
-      ${(enEdition || enReponse) ? '' : `
+      ${enEdition ? '' : `
+      ${enReponse ? '' : `
       <div class="forum-field">
         <label class="forum-field-label">Titre du sujet</label>
         <input class="forum-field-input" id="compose-canvas-title" type="text" placeholder="Intitulé du sujet..."/>
       </div>`}
+      ${typeof renderPosterEnTantQue === 'function' ? renderPosterEnTantQue('compose-canvas-auteur') : ''}`}
       <div class="rp-compose-toolbar" id="rp-compose-toolbar">
         <div id="rp-compose-add-buttons" class="rp-compose-btn-group">
           <button class="forum-new-btn" onclick="rpCanvasAddTextZoneToCompose()">

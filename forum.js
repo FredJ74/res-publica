@@ -399,7 +399,7 @@ function renderTopicList() {
                 ${escapeHtmlText(t.title)}
               </div>
               <div class="forum-topic-author">
-                <div>${escapeHtmlText(t.author)}</div>
+                <div>${escapeHtmlText(t.author)}${t.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
                 <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(t.time)}</div>
               </div>
               <div class="forum-topic-author">
@@ -416,6 +416,20 @@ function renderTopicList() {
 // =====================
 // FORUM — VUE TOPIC
 // =====================
+// Avatar d'un post/sujet (17 aout 2026, publication au nom d'une organisation) : une publication
+// organisationnelle affiche le logo de l'organisation (icone de son TYPE, figee au moment de la
+// publication -- p.authorOrgIcon/authorOrgIcon selon le contexte -- jamais le portrait personnel
+// du chef, meme en l'absence d'icone). Une publication personnelle garde l'avatar existant
+// inchange (getAvatarHtmlPourNom).
+function getAvatarHtmlPost(estOrg, icone, author, taille) {
+  const t = taille || 32;
+  if (estOrg) {
+    const cls = icone || 'ti-building-community';
+    return '<div style="width:' + t + 'px;height:' + t + 'px;border-radius:50%;background:#1a1508;border:1px solid #C9A84C;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ' + cls + '" style="font-size:' + Math.round(t * 0.5) + 'px;color:#C9A84C"></i></div>';
+  }
+  return typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(author, t) : '<i class="ti ti-user" style="font-size:1.2rem;color:#C9A84C"></i>';
+}
+
 function renderTopicView() {
   const topics = FORUM_TOPICS[currentForumId] || [];
   const topic = topics.find(t => t.id === currentTopicId);
@@ -433,7 +447,7 @@ function renderTopicView() {
       ${topic.posts.map((p, i) => `
         <div class="forum-post">
           <div class="forum-post-side">
-            <div class="forum-post-avatar" ${!p.authorIsOrg ? `style="cursor:pointer" data-author="${escapeHtmlText(p.author)}" onclick="ouvrirFichePublique(this.dataset.author)"` : ''}>${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(p.author, 40) : '<i class="ti ti-user" style="font-size:1.2rem;color:#C9A84C"></i>'}</div>
+            <div class="forum-post-avatar" ${!p.authorIsOrg ? `style="cursor:pointer" data-author="${escapeHtmlText(p.author)}" onclick="ouvrirFichePublique(this.dataset.author)"` : ''}>${getAvatarHtmlPost(p.authorIsOrg, p.authorOrgIcon, p.author, 40)}</div>
             ${p.authorCountry && COUNTRIES?.[p.authorCountry] ? '<div style="width:100%;height:6px;background:' + COUNTRIES[p.authorCountry].col + ';margin:.3rem 0 .1rem"></div>' : ''}
             <div class="forum-post-author">${escapeHtmlText(p.author)}${p.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.7rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
             ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">secrète</span>' : ''}
@@ -442,7 +456,7 @@ function renderTopicView() {
           </div>
           <div class="forum-post-main">
             <div class="forum-post-toolbar">
-              ${p.author === myName ? `
+              ${(p.authorReal || p.author) === myName ? `
                 <button onclick="editPost('${topic.id}','${p.id || i}')" style="background:transparent;border:none;color:#8a8060;cursor:pointer;font-size:.75rem;padding:.2rem .4rem" title="Modifier">
                   <i class="ti ti-edit"></i>
                 </button>
@@ -901,14 +915,20 @@ function switchEmojiCat(cat) {
 // =====================
 // NOUVEAU TOPIC / RÉPONSE
 // =====================
+// Publication au nom d'une organisation (17 aout 2026) : seul le CHEF ACTUEL peut publier au nom
+// de son organisation (doctrine validee -- pas les membres). orga.chef est le champ deja utilise
+// partout ailleurs comme source de verite du poste de direction (quitterOrga, ouvrirMailOrga,
+// resolution d'election), aucune convention nouvelle inventee. state.organisations sert
+// uniquement a REMPLIR la liste deroulante (peut etre legerement perime) ; l'autorisation reelle
+// est reverifiee fraichement au moment de publier, voir resoudreIdentitePublication ci-dessous.
 function getMesOrganisations() {
-  return (state.organisations || []).filter(o => (o.membres || []).some(m => m.nom === state.char?.name));
+  return (state.organisations || []).filter(o => o.chef === state.char?.name);
 }
 
 function renderPosterEnTantQue(fieldId) {
   const mesOrgas = getMesOrganisations();
   if (mesOrgas.length === 0) return '';
-  let html = '<div class="forum-field"><label class="forum-field-label">Poster en tant que</label>';
+  let html = '<div class="forum-field"><label class="forum-field-label">Publier en tant que</label>';
   html += '<select id="' + fieldId + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
   html += '<option value="">' + escapeHtmlText(state.char?.name || 'Moi-même') + '</option>';
   mesOrgas.forEach(o => {
@@ -916,6 +936,48 @@ function renderPosterEnTantQue(fieldId) {
   });
   html += '</select></div>';
   return html;
+}
+
+// Resout l'identite de publication (personnage ou organisation) pour un champ "Publier en tant
+// que" donne -- point d'entree UNIQUE reutilise par les 4 pipelines de publication (ancien et
+// nouveau compositeur, sujet et reponse), pour ne jamais dupliquer la verification.
+//
+// IMPORTANT (controle d'autorisation, doctrine validee) : ne fait JAMAIS confiance au seul choix
+// de l'interface. Si une organisation est selectionnee, son chef est revérifié ICI, en lisant
+// Supabase directement (sbGetOrganisationParId, jamais state.organisations qui peut etre perime
+// depuis le chargement de la session) -- couvre explicitement le cas ou le joueur etait chef en
+// ouvrant l'editeur mais a perdu le poste avant de cliquer Publier. Si le controle echoue,
+// { refuse: true } est retourne et AUCUNE publication ne doit avoir lieu.
+//
+// Le logo est fige au moment de la publication (icone du TYPE d'organisation, TYPES_ORGANISATIONS
+// -- aucune organisation n'a de logo propre aujourd'hui, c'est le seul avatar institutionnel
+// generique existant, aucune nouvelle image creee) plutot que resolu a l'affichage via l'id de
+// l'organisation : une organisation peut etre dissoute plus tard, l'ancien message doit rester
+// lisible avec son identite d'origine intacte (persistance historique demandee).
+async function resoudreIdentitePublication(fieldId) {
+  const char = state.char;
+  const nomPersonnage = char?.name || 'Anonyme';
+  const orgaId = document.getElementById(fieldId)?.value || '';
+
+  if (!orgaId) {
+    return { authorName: nomPersonnage, authorIsOrg: false, authorSecret: false, authorReal: nomPersonnage, orgaId: null, orgIcon: null };
+  }
+
+  if (typeof sbGetOrganisationParId !== 'function') return { refuse: true };
+  const orgaFraiche = await sbGetOrganisationParId(orgaId).catch(() => null);
+  if (!orgaFraiche || orgaFraiche.chef !== nomPersonnage) {
+    return { refuse: true };
+  }
+
+  const icon = (typeof TYPES_ORGANISATIONS !== 'undefined' && TYPES_ORGANISATIONS[orgaFraiche.type]?.icon) || null;
+  return {
+    authorName: orgaFraiche.nom,
+    authorIsOrg: true,
+    authorSecret: !orgaFraiche.visible,
+    authorReal: nomPersonnage,
+    orgaId: orgaFraiche.id,
+    orgIcon: icon
+  };
 }
 
 function renderSignatureCheckbox(fieldId) {
@@ -1353,13 +1415,12 @@ async function submitNewTopic() {
   if (document.getElementById('new-topic-signature')?.checked) {
     content = sanitizeRichHtml(content + getSignatureHtml());
   }
-  const char = state.char;
-
-  const orgaId = document.getElementById('new-topic-auteur')?.value || '';
-  const orga = orgaId ? getMesOrganisations().find(o => o.id === orgaId) : null;
-  const authorName = orga ? orga.nom : (char?.name || 'Anonyme');
-  const authorIsOrg = !!orga;
-  const authorSecret = orga ? !orga.visible : false;
+  const identite = await resoudreIdentitePublication('new-topic-auteur');
+  if (identite.refuse) {
+    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false);
+    return;
+  }
+  const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
 
   const time = formatDateHeureJeu();
   const blocks = htmlToBlocks(content);
@@ -1367,17 +1428,17 @@ async function submitNewTopic() {
   // Supabase
   let topicId;
   if (typeof sbCreateTopic === 'function') {
-    topicId = await sbCreateTopic(currentForumId, title, authorName, state.country, time, authorIsOrg, authorSecret);
-    if (topicId) await sbCreatePost(topicId, authorName, content, time, authorIsOrg, authorSecret, blocks);
+    topicId = await sbCreateTopic(currentForumId, title, authorName, state.country, time, authorIsOrg, authorSecret, authorReal, idOrga, orgIcon);
+    if (topicId) await sbCreatePost(topicId, authorName, content, time, authorIsOrg, authorSecret, blocks, null, authorReal, idOrga, orgIcon);
   }
 
   // Local aussi pour affichage immédiat
   const newTopic = {
     id: topicId || 'topic-' + Date.now(), title, author: authorName,
-    authorCountry: state.country, authorIsOrg, authorSecret,
+    authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon,
     time, views: 1, replies: 0,
     lastPostAuthor: authorName, lastPostTime: time,
-    posts: [{ id:'p-'+Date.now(), author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, time, content, blocks }]
+    posts: [{ id:'p-'+Date.now(), author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks }]
   };
   if (!FORUM_TOPICS[currentForumId]) FORUM_TOPICS[currentForumId] = [];
   FORUM_TOPICS[currentForumId].unshift(newTopic);
@@ -1395,14 +1456,6 @@ async function submitReply() {
   if (document.getElementById('reply-signature')?.checked) {
     content = sanitizeRichHtml(content + getSignatureHtml());
   }
-  const char = state.char;
-
-  const orgaId = document.getElementById('reply-auteur')?.value || '';
-  const orga = orgaId ? getMesOrganisations().find(o => o.id === orgaId) : null;
-  const authorName = orga ? orga.nom : (char?.name || 'Anonyme');
-  const authorIsOrg = !!orga;
-  const authorSecret = orga ? !orga.visible : false;
-
   const time = formatDateHeureJeu();
   const blocks = htmlToBlocks(content);
   const topic = (FORUM_TOPICS[currentForumId]||[]).find(t => t.id === currentTopicId);
@@ -1412,18 +1465,27 @@ async function submitReply() {
   // son resultat -- un echec Supabase (ex. topic_id sans ligne reelle correspondante) etait
   // totalement silencieux, le message apparaissait quand meme localement comme si la
   // publication avait reussi. Meme garde-fou et meme comportement que submitReplyComposed().
+  // Doctrine intacte (17 aout 2026) : la resolution d'identite (avec sa verification fraiche du
+  // chef d'organisation) est faite ICI, apres ce garde-fou de connexion mais avant tout appel
+  // reseau d'ecriture -- aucun etat local modifie avant le succes reel de sbCreatePost().
   if (typeof sbCreatePost !== 'function') {
     showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false);
     return;
   }
-  const postId = await sbCreatePost(topic.id, authorName, content, time, authorIsOrg, authorSecret, blocks).catch(() => null);
+  const identite = await resoudreIdentitePublication('reply-auteur');
+  if (identite.refuse) {
+    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false);
+    return;
+  }
+  const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
+  const postId = await sbCreatePost(topic.id, authorName, content, time, authorIsOrg, authorSecret, blocks, null, authorReal, idOrga, orgIcon).catch(() => null);
   if (!postId) {
     showToast('Échec de la publication', "La réponse n'a pas pu être enregistrée. Réessayez.", false);
     return;
   }
 
   // Local
-  topic.posts.push({ id: postId, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, time, content, blocks });
+  topic.posts.push({ id: postId, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks });
   topic.replies = topic.posts.length - 1;
   topic.lastPostAuthor = authorName;
   topic.lastPostTime = time;
@@ -1499,17 +1561,24 @@ async function submitReplyComposed(layout, content) {
     showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false);
     return;
   }
-  const char = state.char;
-  const authorName = char?.name || 'Anonyme';
+  // Identite de publication (17 aout 2026, publication au nom d'une organisation) : meme
+  // resolveur/meme verification fraiche que submitReply() -- doctrine de garde-fou du correctif
+  // precedent intacte, rien de local touche avant le succes reel de sbCreatePost().
+  const identite = await resoudreIdentitePublication('compose-canvas-auteur');
+  if (identite.refuse) {
+    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false);
+    return;
+  }
+  const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
   const time = formatDateHeureJeu();
 
-  const postId = await sbCreatePost(topic.id, authorName, content, time, false, false, [], layout).catch(() => null);
+  const postId = await sbCreatePost(topic.id, authorName, content, time, authorIsOrg, authorSecret, [], layout, authorReal, idOrga, orgIcon).catch(() => null);
   if (!postId) {
     showToast('Échec de la publication', "La réponse n'a pas pu être enregistrée. Réessayez.", false);
     return;
   }
 
-  topic.posts.push({ id: postId, author: authorName, authorCountry: state.country, authorIsOrg: false, authorSecret: false, time, content, blocks: [], content_layout: layout });
+  topic.posts.push({ id: postId, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks: [], content_layout: layout });
   topic.replies = topic.posts.length - 1;
   topic.lastPostAuthor = authorName;
   topic.lastPostTime = time;
@@ -1562,22 +1631,29 @@ async function submitComposeCanvas() {
     return;
   }
 
-  const char = state.char;
-  const authorName = char?.name || 'Anonyme';
   const time = formatDateHeureJeu();
 
   if (typeof sbCreateTopic !== 'function' || typeof sbCreatePost !== 'function') {
     showToast('Connexion indisponible', 'Impossible de publier sans connexion à la base.', false);
     return;
   }
+  // Identite de publication (17 aout 2026, publication au nom d'une organisation) : meme
+  // resolveur/meme verification fraiche que les autres pipelines -- effectuee avant tout appel
+  // d'ecriture, aucun etat local touche si elle est refusee.
+  const identite = await resoudreIdentitePublication('compose-canvas-auteur');
+  if (identite.refuse) {
+    showToast('Publication refusée', "Vous n'êtes plus le/la responsable de cette organisation.", false);
+    return;
+  }
+  const { authorName, authorIsOrg, authorSecret, authorReal, orgaId: idOrga, orgIcon } = identite;
 
-  const topicId = await sbCreateTopic(currentForumId, title, authorName, state.country, time, false, false).catch(() => null);
+  const topicId = await sbCreateTopic(currentForumId, title, authorName, state.country, time, authorIsOrg, authorSecret, authorReal, idOrga, orgIcon).catch(() => null);
   if (!topicId) {
     showToast('Échec de la publication', "Le sujet n'a pas pu être créé. Réessayez.", false);
     return;
   }
 
-  const postId = await sbCreatePost(topicId, authorName, content, time, false, false, [], layout).catch(() => null);
+  const postId = await sbCreatePost(topicId, authorName, content, time, authorIsOrg, authorSecret, [], layout, authorReal, idOrga, orgIcon).catch(() => null);
   if (!postId) {
     if (typeof sbDelete === 'function') await sbDelete('forum_topics', `id=eq.${encodeURIComponent(topicId)}`).catch(() => {});
     showToast('Échec de la publication', "Le message n'a pas pu être enregistré. Rien n'a été publié.", false);
@@ -1587,10 +1663,10 @@ async function submitComposeCanvas() {
   // Local aussi pour affichage immédiat, même geste que submitNewTopic.
   const newTopic = {
     id: topicId, title, author: authorName,
-    authorCountry: state.country, authorIsOrg: false, authorSecret: false,
+    authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon,
     time, views: 1, replies: 0,
     lastPostAuthor: authorName, lastPostTime: time,
-    posts: [{ id: postId, author: authorName, authorCountry: state.country, authorIsOrg: false, authorSecret: false, time, content, blocks: [], content_layout: layout }]
+    posts: [{ id: postId, author: authorName, authorCountry: state.country, authorIsOrg, authorSecret, authorReal, authorOrgId: idOrga, authorOrgIcon: orgIcon, time, content, blocks: [], content_layout: layout }]
   };
   if (!FORUM_TOPICS[currentForumId]) FORUM_TOPICS[currentForumId] = [];
   FORUM_TOPICS[currentForumId].unshift(newTopic);

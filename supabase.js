@@ -191,13 +191,31 @@ async function sbLoadForumPosts(topicId) {
   return sbGet('forum_posts', `topic_id=eq.${encodeURIComponent(topicId)}&order=created_at.asc`);
 }
 
-async function sbCreateTopic(forumId, title, author, country, time, authorIsOrg, authorSecret) {
+// authorReal/orgaId/orgIcon (17 aout 2026, publication au nom d'une organisation) : parametres
+// optionnels, derniers de la liste (meme convention que contentLayout ci-dessous), UNIQUEMENT
+// inclus dans le payload d'insertion quand ils sont fournis (authorIsOrg=true) -- une publication
+// personnelle (l'immense majorite du trafic) n'ecrit donc JAMAIS ces 3 colonnes et reste
+// entierement fonctionnelle avant meme que la migration migration_forum_organisation.sql ne soit
+// appliquee. Seule la publication organisationnelle en depend, et echoue proprement (sbInsert
+// renvoie null) tant que la migration n'a pas ete executee -- comportement deja gere par les
+// appelants (message "echec de la publication", aucun etat local corrompu).
+async function sbCreateTopic(forumId, title, author, country, time, authorIsOrg, authorSecret, authorReal, orgaId, orgIcon) {
   const id = 'topic-' + Date.now();
-  await sbInsert('forum_topics', {
+  const payload = {
     id, forum_id: forumId, title, author, country, time, views: 1, replies: 0,
     last_post_author: author, last_post_time: time,
     author_is_org: !!authorIsOrg, author_secret: !!authorSecret
-  });
+  };
+  if (authorIsOrg) {
+    payload.author_real = authorReal || null;
+    payload.author_org_id = orgaId || null;
+    payload.author_org_icon = orgIcon || null;
+  }
+  // Comportement de retour volontairement inchange (renvoie toujours id, ne verifie pas
+  // sbInsert()) : l'absence de detection d'echec sur sbCreateTopic est un defaut preexistant
+  // deja identifie et explicitement laisse hors perimetre par le correctif precedent (458c334) --
+  // pas re-ouvert ici.
+  await sbInsert('forum_topics', payload);
   return id;
 }
 
@@ -211,9 +229,18 @@ async function sbCreateTopic(forumId, title, author, country, time, authorIsOrg,
 // inchangé (aucun des deux ne branchait sur cette valeur de retour) ; nécessaire pour que
 // submitComposeCanvas() (E2) puisse fiablement annuler un sujet resté sans aucun message si
 // l'écriture du post échoue -- voir le commentaire de rollback dans forum.js.
-async function sbCreatePost(topicId, author, content, time, authorIsOrg, authorSecret, blocks, contentLayout) {
+// authorReal/orgaId/orgIcon (17 aout 2026, publication au nom d'une organisation) : meme
+// convention que sbCreateTopic ci-dessus -- optionnels, uniquement inclus dans le payload quand
+// authorIsOrg est vrai, une publication personnelle n'ecrit donc jamais ces colonnes.
+async function sbCreatePost(topicId, author, content, time, authorIsOrg, authorSecret, blocks, contentLayout, authorReal, orgaId, orgIcon) {
   const id = 'post-' + Date.now();
-  const inserted = await sbInsert('forum_posts', { id, topic_id: topicId, author, content, time, author_is_org: !!authorIsOrg, author_secret: !!authorSecret, content_blocks: blocks || [], content_layout: contentLayout || null });
+  const payload = { id, topic_id: topicId, author, content, time, author_is_org: !!authorIsOrg, author_secret: !!authorSecret, content_blocks: blocks || [], content_layout: contentLayout || null };
+  if (authorIsOrg) {
+    payload.author_real = authorReal || null;
+    payload.author_org_id = orgaId || null;
+    payload.author_org_icon = orgIcon || null;
+  }
+  const inserted = await sbInsert('forum_posts', payload);
   if (!inserted) return null;
   // Mettre à jour le compteur de réponses + le dernier post (pour le tri par activité)
   const posts = await sbLoadForumPosts(topicId);
@@ -708,6 +735,18 @@ async function sbLoadOrganisations() {
   const rows = await sbGet('organisations', 'select=*');
   if (!rows) return [];
   return rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
+}
+
+// Lecture FRAICHE d'une seule organisation (17 aout 2026, publication au nom d'une organisation)
+// -- contrairement a state.organisations (charge une fois au demarrage, potentiellement perime
+// si le chef a change entre-temps), interroge Supabase directement. Utilisee au moment exact de
+// la publication pour verifier que le joueur est toujours chef, jamais a partir du seul cache
+// local. Reutilise la meme table 'organisations' (id + data JSON), aucun changement de schema.
+async function sbGetOrganisationParId(orgaId) {
+  if (!orgaId) return null;
+  const rows = await sbGet('organisations', `id=eq.${encodeURIComponent(orgaId)}`).catch(() => []);
+  if (!rows || rows.length === 0) return null;
+  try { return JSON.parse(rows[0].data); } catch(e) { return null; }
 }
 
 async function sbDeleteOrganisation(orgaId) {
