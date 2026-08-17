@@ -362,10 +362,32 @@ const WORLD = {
           desc: "Surpeuplé. L'attente est longue mais les soins sont gratuits.",
           persons: [{"name": "Docteur Silicose (PNJ)", "role": "Médecin du travail", "rel": "neutral", "job": "medecin"}]
         },
+        // Images interieures (17 aout 2026, finition spatiale) : roomOverrides couvre les 2
+        // rooms deja existantes (accueil_tribune/redaction, partagees avec La Tribune de
+        // Republia a Luthecia -- seule l'image change ici, PNJ/ordres de la base restent
+        // intacts, roomOverrides.imageUrl ne touche jamais persons/orders). roomsExtra ajoute
+        // une 3e piece "Imprimerie" PROPRE A MONTROUGE (jamais ajoutee a Luthecia) -- vide de
+        // PNJ/ordres, purement spatiale comme demande (aucune mecanique inventee ; Gustave
+        // Rotative, deja "Chef d'atelier - imprimeur" dans accueil_tribune cote base, n'est pas
+        // deplace : necessiterait de toucher au contenu existant, hors perimetre de ce lot).
         'la-tribune': {
           name: "Le Cheminot Informé (LCI)",
           desc: "Le journal syndical de Montrouge.",
-          persons: [{"name": "Rédacteur Calame (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}]
+          persons: [{"name": "Rédacteur Calame (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}],
+          roomOverrides: {
+            accueil_tribune: { imageUrl: "images/montrouge/montrouge-lci-accueil.jpg" },
+            redaction:       { imageUrl: "images/montrouge/montrouge-lci-redaction.jpg" }
+          },
+          roomsExtra: {
+            imprimerie: {
+              name: "Imprimerie / Reprographie",
+              imageBg: "linear-gradient(135deg,#100808,#1c0c0c)",
+              desc: "L'atelier d'impression du journal. Odeur d'encre et de papier.",
+              imageUrl: "images/montrouge/montrouge-lci-imprimerie.jpg",
+              persons: [],
+              orders: []
+            }
+          }
         },
         'marche': {
           name: "Marché de Montrouge",
