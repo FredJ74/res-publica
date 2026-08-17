@@ -1,0 +1,53 @@
+-- Migration requise avant que l'envoi de mail au nom d'une organisation ne fonctionne
+-- effectivement (le correctif du doublon "Envoyes", lui, ne depend d'aucun changement de
+-- schema et fonctionne deja avec les colonnes existantes).
+--
+-- Contexte : verifie en direct via l'API REST Supabase (requetes GET de sonde avant toute
+-- ecriture) -- la table mails n'a pas de colonne from_real/from_org_id/from_org_icon
+-- aujourd'hui (confirme par l'erreur 42703 "column ... does not exist"). Noms choisis pour
+-- suivre la convention deja en place sur cette table (from_player/to_player, prefixe "from_"),
+-- pas repris aveuglement du forum (qui utilise "author_*" -- convention differente, propre a
+-- forum_topics/forum_posts).
+--
+-- Risque de deploiement DELIBEREMENT ecarte, meme doctrine que le forum (migration_forum_
+-- organisation.sql) :
+-- - sbSendMail (supabase.js) n'inclut les 3 nouvelles colonnes dans le payload d'ecriture QUE
+--   lorsqu'un fromOrgId est fourni -- un envoi personnel (l'immense majorite du trafic mail)
+--   n'ecrit jamais ces colonnes et reste entierement fonctionnel des le deploiement, avant meme
+--   cette migration. Seul l'envoi au nom d'une organisation en depend, et echoue proprement
+--   (message "Le mail n'a pas pu etre enregistre", aucun etat local corrompu) tant que la
+--   migration n'a pas ete executee.
+-- - sbGetMailsFor (supabase.js) a ete modifiee pour ajouter from_real au filtre OR de lecture
+--   (necessaire pour qu'un chef retrouve son propre envoi organisationnel dans "Envoyes" --
+--   voir from_real ci-dessous). Verifie en direct : PostgREST rejette (400/42703) toute requete
+--   referencant une colonne absente, meme dans un simple filtre -- sans precaution, la LECTURE
+--   de TOUS les mails (personnels compris) aurait casse des le deploiement, avant la migration.
+--   sbGetMailsFor essaie donc d'abord la requete enrichie, et se replie automatiquement sur
+--   l'ancienne requete (sans from_real) si elle echoue -- aucune regression sur les mails
+--   personnels avant la migration, bascule silencieuse et definitive vers la requete enrichie
+--   une fois la migration appliquee.
+--
+-- from_real : identite technique reelle du personnage ayant effectue l'envoi, distincte de
+-- l'identite publique affichee (from_player). Sert a la moderation/l'audit ET a permettre au
+-- veritable expediteur de retrouver son propre mail dans "Envoyes" (voir sbGetMailsFor
+-- ci-dessus) -- jamais affichee publiquement au destinataire. Seulement rempli pour les envois
+-- organisationnels (un envoi personnel n'a pas besoin de ce champ : from_player EST deja
+-- l'identite reelle dans ce cas).
+--
+-- from_org_id : identifiant de l'organisation au moment de l'envoi, pour tracabilite
+-- eventuelle. Ne sert PAS a retrouver le logo/nom a l'affichage (voir from_org_icon
+-- ci-dessous) -- l'organisation peut etre dissoute plus tard, l'ancien mail doit rester lisible
+-- avec son identite d'origine intacte.
+--
+-- from_org_icon : icone (classe Tabler Icons, ex. 'ti-users-group') du TYPE d'organisation,
+-- FIGEE au moment de l'envoi -- meme source que le forum (TYPES_ORGANISATIONS[type].icon,
+-- data.js), pour que l'identite d'une organisation reste visuellement coherente entre forum et
+-- messagerie. Duree de stockage negligeable, pas de duplication d'image, aucun nouvel asset.
+--
+-- La cle anon (utilisee par le client via l'API REST) n'a pas les privileges DDL necessaires
+-- pour executer ceci elle-meme (deja le cas pour tous les changements de schema de ce projet --
+-- toujours executes manuellement par Fred dans l'editeur SQL Supabase).
+
+ALTER TABLE mails ADD COLUMN IF NOT EXISTS from_real text;
+ALTER TABLE mails ADD COLUMN IF NOT EXISTS from_org_id text;
+ALTER TABLE mails ADD COLUMN IF NOT EXISTS from_org_icon text;

@@ -1049,6 +1049,16 @@ function titreChefOrga(type) {
   return titres[type] || 'Président';
 }
 
+// Correctif du 17 aout 2026 (envoi de mail au nom d'une organisation) : n'expose plus le nom
+// reel du chef dans l'expediteur (mailFromOverride prefixait auparavant "NomDuChef, Titre",
+// visible du destinataire -- viole la doctrine du forum ou seuls le nom et l'icone de l'
+// organisation sont publics) et ne se fiait plus a un controle fait une seule fois a l'
+// ouverture. Preselectionne desormais simplement l'organisation dans le meme selecteur "Envoyer
+// en tant que" que le compositeur standard (renderEnvoyerMailEnTantQue, forum.js) -- la
+// verification fraiche du chef a lieu au moment exact de l'envoi (resoudreIdentitePublication,
+// appelee par sendMail), pas ici. Ce controle prealable reste une simple economie de clic
+// (eviter d'ouvrir le compositeur pour rien si le joueur n'est deja plus chef), pas la barriere
+// de securite reelle.
 function ouvrirMailOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
@@ -1057,12 +1067,11 @@ function ouvrirMailOrga(orgaId) {
     showToast('Réservé au président', 'Seul le/la ' + titreChefOrga(orga.type).toLowerCase() + ' peut envoyer du courrier officiel au nom de "' + orga.nom + '".', false);
     return;
   }
-  mailFromOverride = (state.char?.name || 'Anonyme') + ', ' + titreChefOrga(orga.type);
   document.getElementById('modal-postes')?.classList.remove('open');
   document.getElementById('vue-self')?.classList.remove('active');
   mailView = 'compose';
   openForumView('local');
-  document.getElementById('forum-main').innerHTML = renderMailCompose();
+  document.getElementById('forum-main').innerHTML = renderMailCompose('', '', orgaId);
 }
 
 function ouvrirForumDepuisOrga(orgaId) {

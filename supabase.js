@@ -525,7 +525,17 @@ async function sbGetInvestissementEnCours(nom) {
   return (rows && rows[0]) || null;
 }
 
-async function sbSendMail(from, to, subject, body, time) {
+// Retour corrige (17 aout 2026, correctif doublon "Envoyes") : renvoyait auparavant le tableau
+// brut de sbInsert (jamais exploite par aucun appelant — verifie sur les ~60 sites d'appel,
+// tous en fire-and-forget ou await sans capturer le resultat), pendant que sendMail() (forum.js)
+// generait sont PROPRE id local independant pour l'echo immediat (nouvel appel Date.now(), donc
+// quasi toujours different de celui genere ICI). Au rechargement suivant de la messagerie
+// (loadMailsFromSB), la ligne Supabase (id reel) et l'echo local (id different, meme contenu)
+// ne sont jamais reconnus comme le meme mail et survivent tous les deux -- doublon PERSISTANT
+// dans "Envoyes", pas un artefact d'affichage. Renvoie desormais l'id reellement insere (ou null
+// en cas d'echec reel), pour que l'appelant reutilise CET id pour son echo local -- meme
+// doctrine que sbCreatePost (forum.js/458c334) : un seul id, jamais deux generes separement.
+async function sbSendMail(from, to, subject, body, time, fromReal, fromOrgId, fromOrgIcon) {
   const id = 'mail-' + Date.now();
   // Filet de sécurité universel (lot H2, faille XSS pipeline mail) : sbSendMail est le point
   // d'écriture unique de TOUTE la table mails (mail joueur composé, mais aussi ~60 mails
@@ -533,11 +543,35 @@ async function sbSendMail(from, to, subject, body, time) {
   // balise (tous les mails système), donc sans risque ici -- et submitMail (forum.js)
   // sanitise déjà en amont pour le mail joueur, ce qui rend ce passage idempotent.
   const safeBody = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(body || '') : (body || '');
-  return sbInsert('mails', { id, from_player: from, to_player: to, subject, body: safeBody, time, read: false });
+  const payload = { id, from_player: from, to_player: to, subject, body: safeBody, time, read: false };
+  // fromReal/fromOrgId/fromOrgIcon (envoi au nom d'une organisation, meme convention que
+  // author_real/author_org_id/author_org_icon du forum) : optionnels, uniquement inclus quand
+  // fournis -- un mail personnel (l'immense majorite) n'ecrit donc jamais ces colonnes et reste
+  // fonctionnel meme avant que la migration ne soit appliquee.
+  if (fromOrgId) {
+    payload.from_real = fromReal || null;
+    payload.from_org_id = fromOrgId || null;
+    payload.from_org_icon = fromOrgIcon || null;
+  }
+  const inserted = await sbInsert('mails', payload);
+  return inserted ? id : null;
 }
 
+// from_real.eq ajoute (17 aout 2026, envoi au nom d'une organisation) : pour un mail
+// organisationnel, from_player contient le nom PUBLIC de l'organisation, pas celui du
+// personnage reel qui a envoye -- sans ce 3e critere, le chef ne retrouverait jamais son
+// propre mail dans "Envoyes" apres rechargement (ni to_player ni from_player ne valent alors
+// son nom). Repli obligatoire tant que la migration n'est pas appliquee : PostgREST rejette
+// (400/42703) toute requete referencant une colonne absente, meme dans un simple filtre --
+// vérifié en direct sur Supabase avant d'écrire ce code. Sans ce repli, TOUS les mails
+// personnels cesseraient de charger des le deploiement, avant meme la migration manuelle
+// (regression bien plus grave que le doublon corrige par ce meme lot). Une fois la migration
+// appliquee, la requete enrichie reussit toujours et le repli n'est plus jamais invoque.
 async function sbGetMailsFor(playerName) {
-  return sbGet('mails', `or=(to_player.eq.${encodeURIComponent(playerName)},from_player.eq.${encodeURIComponent(playerName)})&order=created_at.desc`);
+  const q = encodeURIComponent(playerName);
+  const enrichi = await sbGet('mails', `or=(to_player.eq.${q},from_player.eq.${q},from_real.eq.${q})&order=created_at.desc`);
+  if (enrichi) return enrichi;
+  return sbGet('mails', `or=(to_player.eq.${q},from_player.eq.${q})&order=created_at.desc`);
 }
 
 async function sbMarkMailRead(mailId) {

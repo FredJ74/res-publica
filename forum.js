@@ -78,22 +78,58 @@ function saveMails(mails) {
 function getMyMails() {
   const name = state.char?.name;
   if (!name) return [];
-  return getMails().filter(m => m.to === name || m.from === name);
+  // m.fromReal (17 aout 2026) : pour un mail organisationnel, m.from est le nom PUBLIC de l
+  // organisation, jamais celui du personnage reel -- sans ce critere, l'expediteur reel ne
+  // retrouverait jamais son propre mail dans "Envoyes".
+  return getMails().filter(m => m.to === name || m.from === name || m.fromReal === name);
 }
-let mailFromOverride = null;
 
+// Correctif doublon "Envoyes" (17 aout 2026) : sendMail() generait auparavant son PROPRE id
+// local ('mail-' + Date.now()) pour l'echo immediat, independamment de l'id deja genere par
+// sbSendMail() pour la ligne Supabase reelle -- deux appels Date.now() separes par un aller-
+// retour reseau, donc presque toujours deux ids differents. Au rechargement suivant de la
+// messagerie (loadMailsFromSB), la ligne Supabase et l'echo local (id different, meme contenu)
+// n'etaient jamais reconnus comme le meme mail et survivaient tous les deux -- doublon
+// PERSISTANT dans "Envoyes", reproduit et confirme (voir audit). sbSendMail() renvoie desormais
+// l'id reellement insere (ou null en cas d'echec) : reutilise ici pour l'echo local, jamais
+// regenere -- meme doctrine que le correctif forum du 16 aout 2026 (458c334/458).
+//
+// Identite d'expedition (17 aout 2026, envoi au nom d'une organisation) : reutilise TEL QUEL
+// resoudreIdentitePublication() (etablie pour le forum) -- fonction deja generique (aucun
+// couplage aux sujets/posts du forum), meme doctrine de controle frais au moment exact de
+// l'action (chef re-verifie via sbGetOrganisationParId, jamais state.organisations perime),
+// aucune seconde source de verite creee. Le champ 'compose-mail-auteur' n'existe que dans le
+// compositeur principal (renderMailCompose) -- absent ailleurs (ex. modal-compose-mail, envoi
+// rapide depuis le repertoire/une fiche PNJ), resoudreIdentitePublication retombe alors
+// naturellement sur l'identite personnelle (comportement inchange pour ce chemin, volontaire).
 async function sendMail(to, subject, body) {
-  const from = mailFromOverride || state.char?.name || 'Anonyme';
+  const identite = typeof resoudreIdentitePublication === 'function'
+    ? await resoudreIdentitePublication('compose-mail-auteur')
+    : { authorName: state.char?.name || 'Anonyme', authorIsOrg: false, authorReal: state.char?.name || 'Anonyme', orgaId: null, orgIcon: null };
+  if (identite.refuse) {
+    showToast('Action refusée', "Vous n'êtes plus habilité à envoyer au nom de cette organisation.", false);
+    return;
+  }
+  const from = identite.authorName;
   const time = formatDateHeureJeu();
 
-  // Supabase
+  let mailId = null;
   if (typeof sbSendMail === 'function') {
-    await sbSendMail(from, to, subject, body, time);
+    mailId = await sbSendMail(from, to, subject, body, time, identite.authorReal, identite.orgaId, identite.orgIcon);
+    if (!mailId) {
+      showToast('Erreur', "Le mail n'a pas pu être enregistré.", false);
+      return;
+    }
+  } else {
+    mailId = 'mail-' + Date.now();
   }
 
-  // Local aussi
   const mails = getMails();
-  mails.push({ id: 'mail-' + Date.now(), from, to, subject, body, time, read: false });
+  mails.push({
+    id: mailId, from, to, subject, body, time, read: false,
+    fromIsOrg: identite.authorIsOrg, fromReal: identite.authorReal,
+    fromOrgId: identite.orgaId, fromOrgIcon: identite.orgIcon
+  });
   saveMails(mails);
   addJournalEntry(`Mail envoyé à ${to} : "${subject}".`, 'event-info');
   showToast('Mail envoyé', `À ${to} — "${subject}"`, true);
@@ -1694,7 +1730,10 @@ function renderMailInbox() {
   const mails = allMails.filter(m => !m.archived);
   const archives = allMails.filter(m => m.archived);
   const received = mails.filter(m => m.to === myName);
-  const sent = mails.filter(m => m.from === myName);
+  // m.fromReal (17 aout 2026) : un mail organisationnel a m.from = nom de l'organisation, pas
+  // le personnage reel -- sans ce critere, l'expediteur reel ne verrait jamais son propre envoi
+  // dans "Envoyes".
+  const sent = mails.filter(m => m.from === myName || m.fromReal === myName);
 
   return `
     <div class="forum-header-bar">
@@ -1717,7 +1756,7 @@ function renderMailInbox() {
               </div>
               <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
-            <div style="font-size:.72rem;color:#6a5a30">De : ${escapeHtmlText(m.from)}</div>
+            <div style="font-size:.72rem;color:#6a5a30">De : ${escapeHtmlText(m.from)}${m.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
           </div>`).join('')}
     </div>
     <div>
@@ -1729,7 +1768,7 @@ function renderMailInbox() {
         : sent.map(m => `
           <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer">
             <div style="display:flex;justify-content:space-between">
-              <div style="font-size:.82rem;color:#8a8060">${escapeHtmlText(m.subject)}</div>
+              <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Envoyé en tant qu\'organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
               <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
             </div>
             <div style="font-size:.72rem;color:#6a5a30">À : ${escapeHtmlText(m.to)}</div>
@@ -1743,10 +1782,10 @@ function renderMailInbox() {
       ${archives.map(m => `
         <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;opacity:.75">
           <div style="display:flex;justify-content:space-between">
-            <div style="font-size:.82rem;color:#8a8060">${escapeHtmlText(m.subject)}</div>
+            <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
             <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
           </div>
-          <div style="font-size:.72rem;color:#6a5a30">${m.from === myName ? 'À : ' + escapeHtmlText(m.to) : 'De : ' + escapeHtmlText(m.from)}</div>
+          <div style="font-size:.72rem;color:#6a5a30">${(m.from === myName || m.fromReal === myName) ? 'À : ' + escapeHtmlText(m.to) : 'De : ' + escapeHtmlText(m.from)}</div>
         </div>`).join('')}
     </div>` : ''}
   `;
@@ -1826,7 +1865,11 @@ async function loadMailsFromSB() {
           sbMarkMailRead(r.id).catch(() => {});
         }
         return { id: r.id, from: r.from_player, to: r.to_player,
-          subject: r.subject, body: r.body, time: r.time, read: estLu, archived: r.archived || false };
+          subject: r.subject, body: r.body, time: r.time, read: estLu, archived: r.archived || false,
+          // Mapping explicite (17 aout 2026) : le meme oubli venait d'etre trouve et corrige sur
+          // le forum (loadForumTopicsFromSB/loadForumPostsFromSB, colonnes jamais recopiees sur
+          // les objets locaux) -- verifie ici des la premiere version, pas apres coup.
+          fromIsOrg: !!r.from_org_id, fromReal: r.from_real, fromOrgId: r.from_org_id, fromOrgIcon: r.from_org_icon };
       }),
       ...local.filter(m => !sbIds.has(m.id))
     ];
@@ -1854,16 +1897,16 @@ function renderMailRead() {
     </div>
     <div style="padding:.8rem">
       <div style="display:flex;align-items:center;gap:.6rem;font-size:.72rem;color:#6a5a30;margin-bottom:.8rem;padding:.5rem;border:1px solid #1a1810">
-        ${typeof getAvatarHtmlPourNom === 'function' ? getAvatarHtmlPourNom(mail.from, 28) : ''}
+        ${typeof getAvatarHtmlPost === 'function' ? getAvatarHtmlPost(mail.fromIsOrg, mail.fromOrgIcon, mail.from, 28) : ''}
         <div>
-          De : <strong style="color:#c0b090">${escapeHtmlText(mail.from)}</strong>
+          De : <strong style="color:#c0b090">${escapeHtmlText(mail.from)}</strong>${mail.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}
           → À : <strong style="color:#c0b090">${escapeHtmlText(mail.to)}</strong>
           · ${formatDateAffichage(mail.time)}
         </div>
       </div>
       <div style="font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.8;color:#f0ead6">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(mail.body || '') : ''}</div>
       <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
-        ${mail.to === myName ? `
+        ${mail.to === myName && !mail.fromIsOrg ? `
           <button data-mail-from="${escapeHtmlText(mail.from)}" data-mail-subject="${escapeHtmlText(mail.subject)}"
             onclick="replyToMail(this.dataset.mailFrom, this.dataset.mailSubject)" class="forum-new-btn" style="font-size:.72rem">
             <i class="ti ti-corner-down-left"></i> Répondre
@@ -1882,6 +1925,7 @@ function renderMailRead() {
           <i class="ti ti-trash"></i> Supprimer
         </button>
       </div>
+      ${mail.to === myName && mail.fromIsOrg ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">La réponse directe à une organisation n\'est pas encore disponible — aucune boîte de messagerie propre aux organisations n\'existe à ce jour.</div>' : ''}
       ${!mail.archived ? '<div style="margin-top:.5rem;font-size:.72rem;color:#9a8a68;font-style:italic">Ce message sera supprimé automatiquement 14 jours après réception, sauf archivage.</div>' : ''}
     </div>
   `;
@@ -1892,7 +1936,25 @@ function replyToMail(to, subject) {
   document.getElementById('forum-main').innerHTML = renderMailCompose(to, 'RE: ' + subject);
 }
 
-function renderMailCompose(defaultTo = '', defaultSubject = '') {
+// Selecteur d'identite d'expedition (17 aout 2026, envoi au nom d'une organisation) : quasi-
+// duplique de renderPosterEnTantQue (forum, ci-dessus) plutot que reutilise directement --
+// libelle different ("Envoyer" vs "Publier") et ce lot doit explicitement ne pas toucher au
+// forum. getMesOrganisations() (chef actuel uniquement, deja etabli pour le forum) est en
+// revanche appele tel quel, sans duplication : seule la couche d'affichage differe.
+function renderEnvoyerMailEnTantQue(fieldId, selectedOrgaId) {
+  const mesOrgas = typeof getMesOrganisations === 'function' ? getMesOrganisations() : [];
+  if (mesOrgas.length === 0) return '';
+  let html = '<div class="forum-field"><label class="forum-field-label">Envoyer en tant que</label>';
+  html += '<select id="' + fieldId + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
+  html += '<option value="">' + escapeHtmlText(state.char?.name || 'Moi-même') + '</option>';
+  mesOrgas.forEach(o => {
+    html += '<option value="' + o.id + '"' + (selectedOrgaId === o.id ? ' selected' : '') + '>' + escapeHtmlText(o.nom) + (!o.visible ? ' (secrète)' : '') + '</option>';
+  });
+  html += '</select></div>';
+  return html;
+}
+
+function renderMailCompose(defaultTo = '', defaultSubject = '', defaultOrgaId = '') {
   // Liste des PJ connus (contacts)
   const contacts = state.contacts || [];
   return `
@@ -1911,6 +1973,7 @@ function renderMailCompose(defaultTo = '', defaultSubject = '') {
           ${contacts.map(c => `<option value="${escapeHtmlText(c.name)}">`).join('')}
         </datalist>
       </div>
+      ${renderEnvoyerMailEnTantQue('compose-mail-auteur', defaultOrgaId)}
       <div class="forum-field">
         <label class="forum-field-label">Sujet</label>
         <input class="forum-field-input" id="mail-subject" type="text" value="${escapeHtmlText(defaultSubject)}"
@@ -1951,7 +2014,6 @@ function submitMail() {
   // contenteditable, même filtre que les posts du forum (RICH_ALLOWED_TAGS).
   const body = typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(bodyEl?.innerHTML?.trim() || '') : (bodyEl?.innerHTML?.trim() || '');
   sendMail(to, subject, body);
-  mailFromOverride = null;
   mailDefaultTo = '';
   mailView = 'inbox';
   renderForumModal();
