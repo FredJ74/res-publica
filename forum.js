@@ -222,12 +222,63 @@ function openForum_module(forumId) {
   }
   renderForumModal();
   document.getElementById('modal-forum').classList.add('open');
+  // Voyant d'activite (17 aout 2026) : point d'entree UNIQUE de toute ouverture du forum/de la
+  // messagerie (bouton principal, raccourcis depuis une organisation) -- eteindre ici couvre
+  // tous les chemins d'acces sans code specifique a chacun.
+  if (typeof marquerForumVisite === 'function') marquerForumVisite();
   if (forumId) {
     // Charger depuis Supabase en arrière-plan et rafraîchir
     loadForumTopicsFromSB(forumId).then(() => {
       if (mailView !== 'compose') document.getElementById('forum-main').innerHTML = renderForumContent();
     }).catch(() => {});
   }
+}
+
+// =====================
+// VOYANT D'ACTIVITE FORUM (17 aout 2026)
+// =====================
+// Audit prealable : aucun mecanisme de lecture existant (ni lastForumVisit, ni table dediee, ni
+// lu/non-lu par sujet) -- confirme, rien a reutiliser. Doctrine V1 volontairement simple :
+// dernier contenu forum (nouveaux sujets + nouvelles reponses, jamais une simple edition
+// puisque created_at ne change pas a l'edition) compare a la derniere consultation du joueur,
+// sans suivi sujet par sujet.
+//
+// Persistance : localStorage, cle SUFFIXEE PAR LE NOM DU PERSONNAGE (meme convention que
+// respublica_mails/respublica_photo_<nom>) -- jamais la table personnages, deja identifiee
+// comme resauvegardee integralement a chaque action (sbSavePersonnage) : y ajouter un champ
+// aurait exige une migration ET une re-ecriture complete du personnage a chaque ouverture du
+// forum pour une simple estampille d'attention, risque disproportionne pour ce lot. Compromis
+// assume : ne survit pas a un changement d'appareil -- acceptable pour cette V1 beta (voir
+// rapport), et peut migrer vers une colonne dediee plus tard sans casser ce mecanisme.
+function _cleDernierPassageForum() {
+  const nom = state.char?.name;
+  return nom ? 'respublica_dernier_passage_forum_' + nom : null;
+}
+
+// Marque le forum comme visite PAR CE PERSONNAGE (jamais global -- ne doit jamais eteindre le
+// voyant d'un autre joueur). Appelee a l'ouverture du forum (openForum_module) ET juste apres
+// la propre publication reussie du joueur (submitNewTopic/submitReply/submitReplyComposed/
+// submitComposeCanvas), pour eviter qu'il voie un voyant rouge simplement parce qu'il vient de
+// publier -- son propre post est cree AVANT cet appel, donc toujours <= a l'horodatage marque
+// ici, jamais reconnu comme "nouveau" pour lui-meme au prochain controle.
+function marquerForumVisite() {
+  const cle = _cleDernierPassageForum();
+  if (!cle) return;
+  try { localStorage.setItem(cle, new Date().toISOString()); } catch(e) {}
+  const dot = document.getElementById('forum-activity-dot');
+  if (dot) dot.style.display = 'none';
+}
+
+async function verifierActiviteForumNonVue() {
+  const cle = _cleDernierPassageForum();
+  if (!cle || typeof sbGetDernierContenuForum !== 'function') return;
+  try {
+    const dernierContenu = await sbGetDernierContenuForum();
+    const dot = document.getElementById('forum-activity-dot');
+    if (!dernierContenu || !dot) return;
+    const dernierPassage = localStorage.getItem(cle);
+    dot.style.display = (!dernierPassage || dernierContenu > dernierPassage) ? 'inline-block' : 'none';
+  } catch(e) {}
 }
 
 function renderForumNavItem(id, f) {
@@ -452,14 +503,31 @@ function renderTopicList() {
 // =====================
 // FORUM — VUE TOPIC
 // =====================
-// Avatar d'un post/sujet (17 aout 2026, publication au nom d'une organisation) : une publication
-// organisationnelle affiche le logo de l'organisation (icone de son TYPE, figee au moment de la
-// publication -- p.authorOrgIcon/authorOrgIcon selon le contexte -- jamais le portrait personnel
-// du chef, meme en l'absence d'icone). Une publication personnelle garde l'avatar existant
-// inchange (getAvatarHtmlPourNom).
+// Avatar d'un post/sujet (16-17 aout 2026, publication au nom d'une organisation) : une
+// publication organisationnelle affiche l'identite visuelle de l'organisation, figee au moment
+// de la publication -- p.authorOrgIcon/authorOrgIcon selon le contexte -- jamais le portrait
+// personnel du chef. Une publication personnelle garde l'avatar existant inchange
+// (getAvatarHtmlPourNom).
+//
+// Identite visuelle organisationnelle (17 aout 2026, avatar personnalise) : 'icone' porte soit
+// une classe Tabler Icon (ex. 'ti-users-group', repli generique TYPES_ORGANISATIONS[type].icon),
+// soit desormais une URL/chemin d'image (avatar personnalise de l'organisation, orga.avatar).
+// Distinction faite via le prefixe 'ti-' -- convention EXHAUSTIVE et sans exception dans tout le
+// depot (aucune classe Tabler Icon n'existe hors de ce prefixe, verifie), pas une heuristique
+// fragile mais la seule forme reellement prise par les deux valeurs possibles de ce champ ; une
+// colonne de type dediee (image|icon) apporterait de la complexite de schema sans lever une
+// ambiguite qui n'existe pas en pratique. onerror : repli visuel sur l'icone generique si l'
+// image est cassee (URL externe supprimee, hebergement disparu), jamais un cadre casse.
 function getAvatarHtmlPost(estOrg, icone, author, taille) {
   const t = taille || 32;
   if (estOrg) {
+    if (icone && !icone.startsWith('ti-')) {
+      const tailleIcone = Math.round(t * 0.5);
+      return '<div style="width:' + t + 'px;height:' + t + 'px;border-radius:50%;overflow:hidden;border:1px solid #C9A84C;flex-shrink:0;background:#1a1508;position:relative">' +
+        '<img src="' + icone + '" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"/>' +
+        '<i class="ti ti-building-community" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-size:' + tailleIcone + 'px;color:#C9A84C"></i>' +
+        '</div>';
+    }
     const cls = icone || 'ti-building-community';
     return '<div style="width:' + t + 'px;height:' + t + 'px;border-radius:50%;background:#1a1508;border:1px solid #C9A84C;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ' + cls + '" style="font-size:' + Math.round(t * 0.5) + 'px;color:#C9A84C"></i></div>';
   }
@@ -985,11 +1053,12 @@ function renderPosterEnTantQue(fieldId) {
 // ouvrant l'editeur mais a perdu le poste avant de cliquer Publier. Si le controle echoue,
 // { refuse: true } est retourne et AUCUNE publication ne doit avoir lieu.
 //
-// Le logo est fige au moment de la publication (icone du TYPE d'organisation, TYPES_ORGANISATIONS
-// -- aucune organisation n'a de logo propre aujourd'hui, c'est le seul avatar institutionnel
-// generique existant, aucune nouvelle image creee) plutot que resolu a l'affichage via l'id de
-// l'organisation : une organisation peut etre dissoute plus tard, l'ancien message doit rester
-// lisible avec son identite d'origine intacte (persistance historique demandee).
+// Le logo est fige au moment de la publication (avatar personnalise de l'organisation en
+// priorite -- orga.avatar, 17 aout 2026 -- puis repli sur l'icone du TYPE, TYPES_ORGANISATIONS,
+// si l'organisation n'a defini aucun avatar) plutot que resolu a l'affichage via l'id de l'
+// organisation : une organisation peut etre dissoute ou changer d'avatar plus tard, l'ancien
+// message doit rester lisible avec son identite d'origine intacte (persistance historique
+// demandee -- reutilise pour le forum ET la messagerie, meme fonction, aucune doctrine separee).
 async function resoudreIdentitePublication(fieldId) {
   const char = state.char;
   const nomPersonnage = char?.name || 'Anonyme';
@@ -1005,7 +1074,7 @@ async function resoudreIdentitePublication(fieldId) {
     return { refuse: true };
   }
 
-  const icon = (typeof TYPES_ORGANISATIONS !== 'undefined' && TYPES_ORGANISATIONS[orgaFraiche.type]?.icon) || null;
+  const icon = orgaFraiche.avatar || (typeof TYPES_ORGANISATIONS !== 'undefined' && TYPES_ORGANISATIONS[orgaFraiche.type]?.icon) || null;
   return {
     authorName: orgaFraiche.nom,
     authorIsOrg: true,
@@ -1483,6 +1552,9 @@ async function submitNewTopic() {
   forumView = 'list';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   addJournalEntry(`Vous avez créé le sujet "${escapeHtmlText(title)}" sur le forum.`, 'event-info');
+  // Voyant (17 aout 2026) : sa propre publication ne doit pas s'afficher comme "nouvelle" a
+  // ses propres yeux au prochain controle.
+  if (typeof marquerForumVisite === 'function') marquerForumVisite();
 }
 
 async function submitReply() {
@@ -1530,6 +1602,7 @@ async function submitReply() {
   forumView = 'topic';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   addJournalEntry(`Vous avez répondu au sujet "${escapeHtmlText(topic.title)}".`, 'event-info');
+  if (typeof marquerForumVisite === 'function') marquerForumVisite();
 }
 
 // Publication réelle d'un sujet composé (Lot E2) — même geste que submitNewTopic (sbCreateTopic
@@ -1623,6 +1696,7 @@ async function submitReplyComposed(layout, content) {
   forumView = 'topic';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   addJournalEntry(`Vous avez répondu au sujet "${escapeHtmlText(topic.title)}".`, 'event-info');
+  if (typeof marquerForumVisite === 'function') marquerForumVisite();
 }
 
 async function submitComposeCanvas() {
@@ -1711,6 +1785,7 @@ async function submitComposeCanvas() {
   forumView = 'list';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   addJournalEntry(`Vous avez créé le sujet "${escapeHtmlText(title)}" sur le forum (composition libre).`, 'event-info');
+  if (typeof marquerForumVisite === 'function') marquerForumVisite();
   showToast('Sujet publié', 'Votre sujet est en ligne.', true, true);
 }
 

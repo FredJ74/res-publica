@@ -191,6 +191,25 @@ async function sbLoadForumPosts(topicId) {
   return sbGet('forum_posts', `topic_id=eq.${encodeURIComponent(topicId)}&order=created_at.asc`);
 }
 
+// Voyant d'activite forum (17 aout 2026) : horodatage du contenu forum le plus recent, tous
+// forums confondus (nouveaux sujets ET nouvelles reponses, jamais une simple edition puisque
+// created_at ne change pas a l'edition -- exactement la distinction demandee). Volontairement
+// GLOBAL, non filtre par pays : forum_posts n'a pas de colonne country (verifie, seul
+// forum_topics en a une), et une jointure aurait ajoute une complexite disproportionnee pour
+// une V1 -- simplification assumee et documentee (un post dans un autre empire peut en theorie
+// allumer le voyant), pas une table de lecture sujet par sujet.
+async function sbGetDernierContenuForum() {
+  const [topics, posts] = await Promise.all([
+    sbGet('forum_topics', 'select=created_at&order=created_at.desc&limit=1').catch(() => null),
+    sbGet('forum_posts', 'select=created_at&order=created_at.desc&limit=1').catch(() => null)
+  ]);
+  const t = topics?.[0]?.created_at || null;
+  const p = posts?.[0]?.created_at || null;
+  if (!t) return p;
+  if (!p) return t;
+  return t > p ? t : p; // horodatages ISO 8601 -- comparaison lexicographique fiable
+}
+
 // authorReal/orgaId/orgIcon (17 aout 2026, publication au nom d'une organisation) : parametres
 // optionnels, derniers de la liste (meme convention que contentLayout ci-dessous), UNIQUEMENT
 // inclus dans le payload d'insertion quand ils sont fournis (authorIsOrg=true) -- une publication
@@ -785,6 +804,57 @@ async function sbGetOrganisationParId(orgaId) {
 
 async function sbDeleteOrganisation(orgaId) {
   return sbDelete('organisations', `id=eq.${encodeURIComponent(orgaId)}`);
+}
+
+// =====================
+// STORAGE — AVATAR D'ORGANISATION (17 aout 2026)
+// =====================
+// Aucun bucket Supabase Storage n'existait avant ce lot (verifie en direct : GET /storage/v1/
+// bucket renvoyait [] avant migration, aucune reference storage/upload/bucket nulle part dans
+// le depot). orga.avatar (proprete existante, deja utilisee par les Parametres d'organisation
+// et affichee dans "Mes organisations") reste LA seule propriete d'avatar -- un upload reussi y
+// ecrit simplement une URL publique, exactement comme une URL saisie a la main. Bucket dedie
+// 'org-avatars' (public en lecture), migration_org_avatars_storage.sql fournie, a executer
+// manuellement (creation de bucket hors de portee de la cle anon).
+const ORG_AVATAR_BUCKET = 'org-avatars';
+const ORG_AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2 Mo -- raisonnable pour un logo/avatar, evite les uploads aberrants
+const ORG_AVATAR_MIME_EXT = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
+
+// Envoie une image vers le bucket dedie et renvoie son URL PUBLIQUE (ou null en cas d'echec
+// reel -- bucket pas encore migre, format refuse, fichier trop volumineux, etc.). Nom de
+// fichier genere cote systeme (jamais le nom fourni par le joueur), prefixe par l'id de l
+// organisation (namespace naturel : evite les collisions entre organisations, permet un
+// nettoyage cible cote suppression). Validation de forme (taille/format) faite ICI en plus du
+// controle deja fait cote UI, pour rester correcte meme si cette fonction est un jour appelee
+// autrement que depuis le formulaire.
+async function sbUploadOrgAvatar(orgaId, file) {
+  if (!orgaId || !file) return null;
+  if (file.size > ORG_AVATAR_MAX_BYTES) return null;
+  const ext = ORG_AVATAR_MIME_EXT[file.type];
+  if (!ext) return null;
+  const path = orgaId + '/' + Date.now() + '-' + Math.floor(Math.random() * 1000000) + '.' + ext;
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${ORG_AVATAR_BUCKET}/${path}`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Content-Type': file.type },
+    body: file
+  });
+  if (!res.ok) { console.error('sbUploadOrgAvatar error', await res.text().catch(() => '')); return null; }
+  return `${SUPABASE_URL}/storage/v1/object/public/${ORG_AVATAR_BUCKET}/${path}`;
+}
+
+// Supprime un ancien avatar uploade PAR CE MEME SYSTEME uniquement -- reconnu exclusivement via
+// le prefixe de l'URL publique du bucket dedie, jamais une URL externe saisie par le joueur
+// (impossible de la confondre : seul ce prefixe exact declenche une suppression). Best-effort,
+// echec totalement silencieux : un fichier orphelin est un risque bien moindre qu'une
+// suppression erronee d'un avatar encore utilise.
+async function sbSupprimerAncienAvatarOrga(ancienneUrl) {
+  const prefixe = `${SUPABASE_URL}/storage/v1/object/public/${ORG_AVATAR_BUCKET}/`;
+  if (!ancienneUrl || !ancienneUrl.startsWith(prefixe)) return;
+  const path = ancienneUrl.slice(prefixe.length);
+  await fetch(`${SUPABASE_URL}/storage/v1/object/${ORG_AVATAR_BUCKET}/${path}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
+  }).catch(() => {});
 }
 
 // =====================

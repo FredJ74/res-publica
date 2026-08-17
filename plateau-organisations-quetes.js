@@ -672,13 +672,16 @@ function renderOngletOrgas() {
     const estChef = orga.chef === state.char?.name;
     const monMembre = orga.membres?.find(m => m.nom === state.char?.name);
     const demandesCount = (orga.demandesAdhesion || []).length;
-    const avatar = orga.avatar || '';
+    // Avatar personnalise en priorite, fallback icone du type -- meme fonction/doctrine que le
+    // forum et la messagerie (getAvatarHtmlPost), un seul rendu partout (17 aout 2026).
+    const avatarHtml = typeof getAvatarHtmlPost === 'function'
+      ? getAvatarHtmlPost(true, orga.avatar || def.icon || null, orga.nom, 36)
+      : '<div style="width:36px;height:36px;border-radius:50%;background:#1a1208;display:flex;align-items:center;justify-content:center"><i class="ti ' + (def.icon||'ti-users') + '" style="font-size:1rem;color:#C9A84C"></i></div>';
 
     return '<div style="border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem">' +
 
       '<div style="padding:.8rem 1rem;border-bottom:1px solid #1a1208;display:flex;align-items:center;gap:.7rem">' +
-        (avatar ? '<img src="' + avatar + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #3a2a10"/>' :
-          '<div style="width:36px;height:36px;border-radius:50%;background:#1a1208;display:flex;align-items:center;justify-content:center"><i class="ti ' + (def.icon||'ti-users') + '" style="font-size:1rem;color:#C9A84C"></i></div>') +
+        avatarHtml +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-family:Bebas Neue,sans-serif;font-size:.92rem;color:#E8C97A;letter-spacing:.06em">' + orga.nom + '</div>' +
           '<div style="font-size:.72rem;color:#8a8060">' + (def.label||'') + ' · ' + (monMembre?.grade||'') + (estChef ? ' 👑' : '') + ' · ' + (orga.membres?.length||0) + ' membres</div>' +
@@ -974,22 +977,79 @@ function executerOrdreOrga(orgaId, fn) {
 
 // ------ OPTIONS CHEF ------
 
+// Avatar d'organisation (17 aout 2026) : orga.avatar reste LA seule propriete d'avatar
+// (deja existante avant ce lot, deja affichee dans "Mes organisations" -- aucune deuxieme
+// propriete creee). URL saisie a la main ET fichier importe aboutissent tous les deux a une
+// simple URL ecrite dans ce meme champ -- mutuellement exclusifs dans ce formulaire (choisir un
+// fichier vide le champ URL et inversement), jamais deux avatars distincts.
+let _orgaAvatarFileTemp = null;
+
+function renderApercuAvatarOrgaHtml(nom, icone) {
+  return typeof getAvatarHtmlPost === 'function' ? getAvatarHtmlPost(true, icone || null, nom, 56) : '';
+}
+
+function mettreAJourApercuAvatarOrga(nom, type) {
+  _orgaAvatarFileTemp = null;
+  const valeur = document.getElementById('orga-avatar-input')?.value?.trim() || '';
+  const icone = valeur || (TYPES_ORGANISATIONS[type]?.icon) || null;
+  const zone = document.getElementById('orga-avatar-preview');
+  if (zone) zone.innerHTML = renderApercuAvatarOrgaHtml(nom, icone);
+}
+
+function handleOrgaAvatarFileChange(event) {
+  const f = event.target.files[0];
+  if (!f) return;
+  const okTypes = ['image/png', 'image/jpeg', 'image/webp'];
+  if (!okTypes.includes(f.type)) {
+    showToast('Format non supporté', 'PNG, JPG/JPEG ou WEBP uniquement.', false);
+    event.target.value = '';
+    return;
+  }
+  if (f.size > 2 * 1024 * 1024) {
+    showToast('Fichier trop volumineux', 'Taille maximale : 2 Mo.', false);
+    event.target.value = '';
+    return;
+  }
+  _orgaAvatarFileTemp = f;
+  const avatarInput = document.getElementById('orga-avatar-input');
+  if (avatarInput) avatarInput.value = '';
+  const zone = document.getElementById('orga-avatar-preview');
+  if (zone) {
+    const url = URL.createObjectURL(f);
+    zone.innerHTML = '<div style="width:56px;height:56px;border-radius:50%;overflow:hidden;border:1px solid #C9A84C;flex-shrink:0"><img src="' + url + '" style="width:100%;height:100%;object-fit:cover"/></div>';
+  }
+}
+
 function ouvrirOptionsOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga || orga.chef !== state.char?.name) return;
+  _orgaAvatarFileTemp = null;
+  const nomEchap = escapeHtmlText(orga.nom);
+  const icone = orga.avatar || (TYPES_ORGANISATIONS[orga.type]?.icon) || null;
 
   document.getElementById('postes-modal-title').textContent = 'Parametres — ' + orga.nom;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
 
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">NOM</div>' +
-    '<input id="orga-rename-input" type="text" maxlength="40" value="' + orga.nom + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
+    '<input id="orga-rename-input" type="text" maxlength="40" value="' + nomEchap + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
 
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">DEVISE</div>' +
-    '<input id="orga-devise-input" type="text" maxlength="80" placeholder="Ex: La force dans l\'union..." value="' + (orga.devise||'') + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
+    '<input id="orga-devise-input" type="text" maxlength="80" placeholder="Ex: La force dans l\'union..." value="' + escapeHtmlText(orga.devise||'') + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.5rem"/>' +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">AVATAR (URL image)</div>' +
-    '<input id="orga-avatar-input" type="text" maxlength="300" placeholder="https://..." value="' + (orga.avatar||'') + '" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">AVATAR DE L\'ORGANISATION</div>' +
+    '<div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.5rem">' +
+      '<div id="orga-avatar-preview">' + renderApercuAvatarOrgaHtml(orga.nom, icone) + '</div>' +
+      '<div style="font-size:.68rem;color:#8a8060;flex:1">Aperçu — mis à jour à chaque changement, avant sauvegarde.</div>' +
+    '</div>' +
+    '<div style="font-size:.72rem;color:#8a6a20;margin-bottom:.2rem">URL de l\'image</div>' +
+    '<input id="orga-avatar-input" type="text" maxlength="300" placeholder="https://..." value="' + escapeHtmlText(orga.avatar||'') + '" oninput="mettreAJourApercuAvatarOrga(\'' + nomEchap.replace(/'/g,"\\'") + '\',\'' + orga.type + '\')" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.4rem"/>' +
+    '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.2rem">— ou —</div>' +
+    '<label style="display:inline-block;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:.3rem">' +
+      '<i class="ti ti-upload"></i> Importer une image depuis mon ordinateur' +
+      '<input type="file" accept="image/png,image/jpeg,image/webp" onchange="handleOrgaAvatarFileChange(event)" style="display:none"/>' +
+    '</label>' +
+    '<div style="font-size:.65rem;color:#6a5a30;margin-bottom:.6rem">PNG (transparence supportée), JPG/JPEG ou WEBP — 2 Mo maximum.</div>' +
 
     '<button onclick="sauvegarderOptionsOrga(\'' + orgaId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-bottom:.8rem">Sauvegarder</button>' +
 
@@ -1000,6 +1060,62 @@ function ouvrirOptionsOrga(orgaId) {
     '<button onclick="dissoudreOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #5a1a1a;background:transparent;color:#cc4444;cursor:pointer">Dissoudre</button>' +
     '</div></div>';
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// Corrige un bug preexistant trouve en auditant ce panneau (17 aout 2026) : le bouton
+// "Sauvegarder" appelait deja sauvegarderOptionsOrga(orgaId), mais cette fonction n'a jamais
+// existe nulle part dans le depot (verifie : aucune definition, seulement cette reference) --
+// Nom/Devise/Avatar n'ont donc jamais pu etre sauvegardes via ce panneau jusqu'ici (Visibilite/
+// Dissoudre restent inchanges, deja geres par leurs propres boutons/fonctions independants).
+// Controle d'autorisation frais AU MOMENT EXACT de la sauvegarde (meme doctrine que forum/
+// mails, sbGetOrganisationParId, jamais confiance au seul state.organisations perime) --
+// couvre explicitement la perte de statut de chef entre ouverture du panneau et clic
+// Sauvegarder.
+async function sauvegarderOptionsOrga(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) return;
+
+  const orgaFraiche = typeof sbGetOrganisationParId === 'function' ? await sbGetOrganisationParId(orgaId).catch(() => null) : null;
+  if (!orgaFraiche || orgaFraiche.chef !== state.char?.name) {
+    showToast('Action refusée', "Vous n'êtes plus habilité à modifier cette organisation.", false);
+    return;
+  }
+
+  const newNom = document.getElementById('orga-rename-input')?.value?.trim();
+  const newDevise = document.getElementById('orga-devise-input')?.value?.trim() || '';
+  const urlSaisie = document.getElementById('orga-avatar-input')?.value?.trim() || '';
+  const ancienAvatar = orga.avatar || '';
+
+  let nouvelAvatar = urlSaisie;
+  if (_orgaAvatarFileTemp) {
+    if (typeof sbUploadOrgAvatar !== 'function') {
+      showToast('Import indisponible', "L'import de fichier n'est pas disponible pour le moment.", false);
+      return;
+    }
+    const urlUploadee = await sbUploadOrgAvatar(orgaId, _orgaAvatarFileTemp);
+    if (!urlUploadee) {
+      showToast("Échec de l'import", "L'image n'a pas pu être envoyée. Réessayez ou utilisez une URL.", false);
+      return;
+    }
+    nouvelAvatar = urlUploadee;
+  }
+
+  if (newNom && newNom.length >= 2) orga.nom = newNom;
+  orga.devise = newDevise;
+  orga.avatar = nouvelAvatar;
+  sauvegarderOrga(orga);
+
+  // Nettoyage best-effort de l'ancien fichier uploade par CE systeme uniquement (jamais une URL
+  // externe saisie par le joueur -- voir sbSupprimerAncienAvatarOrga), seulement s'il a
+  // reellement change.
+  if (ancienAvatar && ancienAvatar !== nouvelAvatar && typeof sbSupprimerAncienAvatarOrga === 'function') {
+    sbSupprimerAncienAvatarOrga(ancienAvatar).catch(() => {});
+  }
+
+  _orgaAvatarFileTemp = null;
+  showToast('Paramètres enregistrés', '"' + orga.nom + '"', true);
+  document.getElementById('modal-postes').classList.remove('open');
+  switchSelfTab('orgas', null);
 }
 
 function renommerOrga(orgaId) {

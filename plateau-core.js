@@ -383,6 +383,12 @@ window.addEventListener('DOMContentLoaded', () => {
   verifierNouveauxMails();
   setInterval(verifierNouveauxMails, 120000);
 
+  // Voyant d'activité forum (17 août 2026) — même cadence que la vérification des mails
+  if (typeof verifierActiviteForumNonVue === 'function') {
+    verifierActiviteForumNonVue();
+    setInterval(verifierActiviteForumNonVue, 120000);
+  }
+
   // Vérification des objets reçus (dons d'un autre joueur) toutes les 2 minutes
   verifierObjetsRecus();
   setInterval(verifierObjetsRecus, 120000);

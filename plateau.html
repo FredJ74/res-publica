@@ -62,6 +62,7 @@
     <button class="forum-btn" onclick="openForumView()" id="btn-messages" title="Messages et Forums">
       <i class="ti ti-messages" style="font-size:.8rem;vertical-align:-1px"></i> Messages/Forums
       <span id="mail-badge" style="display:none;background:#cc2020;color:#fff;font-size:.6rem;padding:.1rem .3rem;border-radius:50%;margin-left:.2rem;font-family:'Bebas Neue',sans-serif">0</span>
+      <span id="forum-activity-dot" title="Nouvelle activité sur le forum" style="display:none;width:8px;height:8px;background:#cc2020;border-radius:50%;margin-left:.25rem;vertical-align:middle"></span>
     </button>
     <button class="forum-btn" onclick="ouvrirRepertoirePJ()" title="Liste des joueurs">
       <i class="ti ti-users" style="font-size:.8rem;vertical-align:-1px"></i> PJ
@@ -489,7 +490,7 @@
 <script src="data.js?v=194"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
-<script src="supabase.js?v=146"></script>
+<script src="supabase.js?v=147"></script>
 <!-- Tiptap (Lot C2) : chargé en ESM depuis un CDN, comme déjà validé dans les prototypes
      prototype-tiptap-image.html et prototype-canvas-composition.html. forum-canvas.js reste
      un script classique (comme tout le reste du jeu) ; ce petit module se contente d'exposer
@@ -590,8 +591,8 @@
   window.RP_TIPTAP_FONT_SIZE = FontSize;
 </script>
 <script src="forum-canvas.js?v=32"></script>
-<script src="forum.js?v=145"></script>
-<script src="plateau-core.js?v=136"></script>
+<script src="forum.js?v=146"></script>
+<script src="plateau-core.js?v=137"></script>
 <script src="plateau-rue-centrale.js?v=139"></script>
 <script src="plateau-quete-accueil.js?v=24"></script>
 <script src="plateau-enigme-portrait.js?v=22"></script>
@@ -606,7 +607,7 @@
 <script src="plateau-politique.js?v=162"></script>
 <script src="plateau-justice-economie.js?v=168"></script>
 <script src="plateau-actions-illegales-rumeurs.js?v=148"></script>
-<script src="plateau-organisations-quetes.js?v=142"></script>
+<script src="plateau-organisations-quetes.js?v=143"></script>
 <script src="plateau-divers.js?v=133"></script>
 <script src="plateau-router.js?v=178"></script>
 <div style="display:none">
