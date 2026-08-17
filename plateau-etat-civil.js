@@ -36,6 +36,16 @@ let ETAT_CIVIL_CACHE_JOUEURS = null;
 
 let ETAT_CIVIL_CACHE_MARIAGES = null;
 let ETAT_CIVIL_CACHE_DECES = null;
+let ETAT_CIVIL_CACHE_NAISSANCES = null;
+
+// Conversion identifiant de ville -> nom RP, mecanisme canonique deja utilise partout ailleurs
+// dans le jeu (WORLD[pays][ville].name) -- aucune table parallele creee (17 aout 2026, mini-lot
+// etat-civil). Retourne null si city est absent (acte legacy ou migration pas encore appliquee) :
+// permet a l'appelant de choisir une formulation neutre plutot que d'inventer une ville.
+function etatCivilNomVille(city) {
+  if (!city) return null;
+  return (typeof WORLD !== 'undefined' && WORLD[state.country]?.[city]?.name) || city;
+}
 
 async function etatCivilChargerJoueurs() {
   if (ETAT_CIVIL_CACHE_JOUEURS) return ETAT_CIVIL_CACHE_JOUEURS;
@@ -55,6 +65,11 @@ async function etatCivilChargerJoueurs() {
   } catch (e) {
     ETAT_CIVIL_CACHE_DECES = [];
   }
+  try {
+    ETAT_CIVIL_CACHE_NAISSANCES = (typeof sbGetToutesLesNaissances === 'function') ? await sbGetToutesLesNaissances(state.country) : [];
+  } catch (e) {
+    ETAT_CIVIL_CACHE_NAISSANCES = [];
+  }
   return ETAT_CIVIL_CACHE_JOUEURS;
 }
 
@@ -72,7 +87,13 @@ function etatCivilConstruireFiche(nomPersonne) {
     const evenementsJoueur = [];
     if (joueur.created_at) {
       const d = new Date(joueur.created_at);
-      evenementsJoueur.push({ annee: d.getFullYear(), texte: d.getDate() + ' ' + ETAT_CIVIL_MOIS[d.getMonth()] + ' ' + d.getFullYear() + ' : naissance de ' + joueur.name + '.' });
+      // Ville de naissance (17 aout 2026) : table dediee etat_civil_naissances, absente pour
+      // tout personnage cree avant ce correctif (ou avant l'application de la migration) --
+      // formulation neutre dans ce cas, jamais de ville inventee.
+      const naissance = (ETAT_CIVIL_CACHE_NAISSANCES || []).find(function(x) { return x.nom === nomPersonne; });
+      const nomVilleNaissance = etatCivilNomVille(naissance?.city);
+      const suffixeNaissance = nomVilleNaissance ? (', née à ' + nomVilleNaissance) : '';
+      evenementsJoueur.push({ annee: d.getFullYear(), texte: d.getDate() + ' ' + ETAT_CIVIL_MOIS[d.getMonth()] + ' ' + d.getFullYear() + ' : naissance de ' + joueur.name + suffixeNaissance + '.' });
     }
 
     (ETAT_CIVIL_CACHE_MARIAGES || []).forEach(function(m) {
@@ -81,7 +102,9 @@ function etatCivilConstruireFiche(nomPersonne) {
       if (!m.created_at) return;
       const dm = new Date(m.created_at);
       const dateTxt = dm.getDate() + ' ' + ETAT_CIVIL_MOIS[dm.getMonth()] + ' ' + dm.getFullYear();
-      evenementsJoueur.push({ annee: dm.getFullYear(), texte: dateTxt + ' : mariage de ' + nomPersonne + ' avec ' + conjoint + '.' });
+      const nomVilleMariage = etatCivilNomVille(m.city);
+      const suffixeMariage = nomVilleMariage ? (', célébré à ' + nomVilleMariage) : '';
+      evenementsJoueur.push({ annee: dm.getFullYear(), texte: dateTxt + ' : mariage de ' + nomPersonne + ' avec ' + conjoint + suffixeMariage + '.' });
       if (m.statut === 'dissous') {
         const motif = m.raison_dissolution === 'veuvage' ? 'veuvage' : 'divorce';
         evenementsJoueur.push({ annee: dm.getFullYear(), texte: 'Union avec ' + conjoint + ' dissoute (' + motif + ').' });
@@ -91,7 +114,9 @@ function etatCivilConstruireFiche(nomPersonne) {
     const deces = (ETAT_CIVIL_CACHE_DECES || []).find(function(x) { return x.nom === nomPersonne; });
     if (deces && deces.created_at) {
       const dd = new Date(deces.created_at);
-      evenementsJoueur.push({ annee: dd.getFullYear(), texte: dd.getDate() + ' ' + ETAT_CIVIL_MOIS[dd.getMonth()] + ' ' + dd.getFullYear() + ' : décès de ' + joueur.name + '.' });
+      const nomVilleDeces = etatCivilNomVille(deces.city);
+      const suffixeDeces = nomVilleDeces ? (' à ' + nomVilleDeces) : '';
+      evenementsJoueur.push({ annee: dd.getFullYear(), texte: dd.getDate() + ' ' + ETAT_CIVIL_MOIS[dd.getMonth()] + ' ' + dd.getFullYear() + ' : décès de ' + joueur.name + suffixeDeces + '.' });
     }
 
     evenementsJoueur.sort(function(a, b) { return a.annee - b.annee; });

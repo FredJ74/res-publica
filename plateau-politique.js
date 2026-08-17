@@ -3053,7 +3053,9 @@ async function confirmerDemandeMariage(pa, cost) {
       const cout = 200;
       if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis pour officialiser.', false); return; }
       state.arg -= cout;
-      const mariagePnj = { id: 'mariage-' + Date.now(), conjoint1: state.char?.name, conjoint2: destinataire, country: state.country, statut: 'actif', jour_union: state.day || 1 };
+      // city (17 aout 2026, mini-lot etat-civil) : ville de la ceremonie, celle ou le joueur se
+      // trouve reellement au moment de l'acceptation instantanee (action synchrone).
+      const mariagePnj = { id: 'mariage-' + Date.now(), conjoint1: state.char?.name, conjoint2: destinataire, country: state.country, statut: 'actif', jour_union: state.day || 1, city: state.currentCity };
       if (typeof sbCreerMariage === 'function') await sbCreerMariage(mariagePnj).catch(() => {});
       updateUI();
       showToast('Félicitations !', destinataire + ' a accepté. Union officialisée sur le champ !', true, true);
@@ -3160,13 +3162,17 @@ async function confirmerOfficialisationMariage(pa, cost) {
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
+  // city (17 aout 2026, mini-lot etat-civil) : ville de la ceremonie -- les deux epoux doivent
+  // etre physiquement presents dans cette piece pour officialiser (verifie plus haut dans cette
+  // fonction), state.currentCity est donc la localisation reellement pertinente de l'acte.
   const mariage = {
     id: 'mariage-' + Date.now(),
     conjoint1: state.char?.name,
     conjoint2: conjoint,
     country: state.country,
     statut: 'actif',
-    jour_union: state.day || 1
+    jour_union: state.day || 1,
+    city: state.currentCity
   };
 
   if (typeof sbCreerMariage === 'function') {

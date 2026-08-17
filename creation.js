@@ -444,6 +444,14 @@ function validateChar(){
         votes_pnj: {},
       };
       sbSavePersonnage(tempState).catch(e => console.warn('Supabase save error', e));
+
+      // Ville de naissance (17 aout 2026, mini-lot etat-civil) : ecriture separee, une seule
+      // fois, dans une table dediee (etat_civil_naissances) -- jamais dans 'personnages', qui
+      // est resauvegardee integralement a chaque action ulterieure du joueur et casserait toutes
+      // les sauvegardes si une colonne y manquait avant que la migration ne soit appliquee.
+      if (typeof sbEnregistrerNaissance === 'function') {
+        sbEnregistrerNaissance(char.name, char.country, G.city || 'capitale').catch(e => console.warn('Naissance non enregistree', e));
+      }
     }
   }
   catch(e){ console.warn('localStorage non disponible'); }

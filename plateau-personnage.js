@@ -745,9 +745,12 @@ async function confirmerDestructionPersonnage() {
   }
 
   // Archive permanente du deces, pour l'etat-civil (le personnage lui-meme va etre supprime
-  // juste apres, cette trace est la seule qui subsistera).
+  // juste apres, cette trace est la seule qui subsistera). Ville : derniere localisation connue
+  // du personnage au moment de l'action (17 aout 2026, mini-lot etat-civil) -- action synchrone,
+  // sur son propre personnage, state.currentCity est donc fiable ici (contrairement aux flux
+  // asynchrones deja corriges par ailleurs, ou l'acteur pouvait differer du sujet de l'acte).
   if (typeof sbEnregistrerDeces === 'function') {
-    await sbEnregistrerDeces(nom, state.country).catch(() => {});
+    await sbEnregistrerDeces(nom, state.country, state.currentCity).catch(() => {});
   }
 
   if (typeof sbDeletePersonnage === 'function') {

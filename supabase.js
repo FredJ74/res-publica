@@ -963,9 +963,13 @@ async function sbGetMariagesPourNom(nom) {
 }
 
 // Archive permanente d'un deces de PJ (le personnage lui-meme est supprime de 'personnages',
-// donc c'est la seule trace qui persiste pour l'etat-civil).
-async function sbEnregistrerDeces(nom, country) {
-  return sbInsert('etat_civil_deces', { id: 'deces-' + Date.now(), nom, country });
+// donc c'est la seule trace qui persiste pour l'etat-civil). city (17 aout 2026, mini-lot
+// etat-civil) : ville reellement pertinente selon la doctrine validee -- optionnelle (undefined
+// tant que la migration migration_etat_civil_ville.sql n'a pas ete appliquee, colonne absente ->
+// PGRST204, deja avale par le .catch() du seul appelant, aucune regression sur la suppression du
+// personnage elle-meme).
+async function sbEnregistrerDeces(nom, country, city) {
+  return sbInsert('etat_civil_deces', { id: 'deces-' + Date.now(), nom, country, city: city || null });
 }
 
 async function sbGetDecesPourNom(nom) {
@@ -981,6 +985,20 @@ async function sbGetTousLesDeces(country) {
 
 async function sbGetTousLesMariages(country) {
   const rows = await sbGet('mariages', `country=eq.${encodeURIComponent(country)}`).catch(() => []);
+  return rows || [];
+}
+
+// Naissance (17 aout 2026, mini-lot etat-civil) : AUCUNE colonne ajoutee a 'personnages' (relue/
+// resauvegardee integralement a chaque action de chaque joueur -- une colonne manquante y
+// romprait toutes les sauvegardes de tous les joueurs tant que la migration n'est pas appliquee,
+// risque juge inacceptable). A la place, table dediee minimale, insert-only, exactement sur le
+// modele de sbEnregistrerDeces ci-dessus -- ecrite une seule fois, a la creation du personnage.
+async function sbEnregistrerNaissance(nom, country, city) {
+  return sbInsert('etat_civil_naissances', { id: 'naissance-' + Date.now(), nom, country, city: city || null });
+}
+
+async function sbGetToutesLesNaissances(country) {
+  const rows = await sbGet('etat_civil_naissances', `country=eq.${encodeURIComponent(country)}`).catch(() => []);
   return rows || [];
 }
 
