@@ -3,6 +3,11 @@
 // Déclenché automatiquement par vercel.json
 // =====================
 
+// Journal du jour (Lot B, 17-18 aout 2026) : génération appelée en toute dernière étape du
+// handler, dans son propre try/catch (voir plus bas) — jamais mélangée aux tâches critiques
+// existantes ci-dessous, qui restent strictement inchangées.
+import { genererToutesLesEditions } from './_journal-generation.js';
+
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_ANON = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
 
@@ -1524,7 +1529,18 @@ export default async function handler(req, res) {
     // 16. Remboursement quotidien des prets de preemption d'Etat (Ministre des Finances)
     const preemptions = await preleverPreemptionsServeur();
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE, investissements, preemptions });
+    // 17. Journal du jour (Lot B) — STRICTEMENT en dernier, dans son propre try/catch : un
+    // echec ou un depassement de son propre budget interne ne doit jamais remettre en cause les
+    // 16 taches critiques ci-dessus, deja executees et sauvegardees avant ce point.
+    let journalDuJour = null;
+    try {
+      journalDuJour = await genererToutesLesEditions();
+    } catch (e) {
+      console.error('Erreur Journal du jour (non bloquante pour le cron)', e);
+      journalDuJour = { erreur: e.message };
+    }
+
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE, investissements, preemptions, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

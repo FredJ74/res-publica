@@ -4,7 +4,7 @@
       "maxDuration": 30
     },
     "api/cron-minuit.js": {
-      "maxDuration": 30
+      "maxDuration": 120
     },
     "api/upload-org-avatar.js": {
       "maxDuration": 15
