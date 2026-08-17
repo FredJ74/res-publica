@@ -1772,6 +1772,7 @@ async function loadForumTopicsFromSB(forumId) {
           lastPostAuthor: row.last_post_author || row.author,
           lastPostTime: row.last_post_time || row.time,
           authorCountry: row.country, authorIsOrg: row.author_is_org, authorSecret: row.author_secret,
+          authorReal: row.author_real, authorOrgId: row.author_org_id, authorOrgIcon: row.author_org_icon,
           posts: []
         });
       } else {
@@ -1798,7 +1799,8 @@ async function loadForumPostsFromSB(topicId) {
       id: r.id, author: r.author, content: r.content,
       time: r.time, edited: r.edited, blocks: r.content_blocks || null,
       content_layout: r.content_layout || null,
-      authorCountry: topic.authorCountry || topic.country, authorIsOrg: r.author_is_org, authorSecret: r.author_secret
+      authorCountry: topic.authorCountry || topic.country, authorIsOrg: r.author_is_org, authorSecret: r.author_secret,
+      authorReal: r.author_real, authorOrgId: r.author_org_id, authorOrgIcon: r.author_org_icon
     }));
     topic.replies = Math.max(0, topic.posts.length - 1);
   } catch(e) { console.warn('loadForumPostsFromSB error', e); }
