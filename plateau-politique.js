@@ -40,7 +40,7 @@ function openMarchanderVoteModal() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function soumettreVoteMarchande(taux) {
+async function soumettreVoteMarchande(taux) {
   const voteId = state._voteIdx !== undefined ? (state.votesEnCours || [])[state._voteIdx]?.id : null;
   document.getElementById('modal-postes').classList.remove('open');
   const cur = COUNTRIES[state.char && state.char.country ? state.char.country : 'republic'] && COUNTRIES[state.char.country].cur ? COUNTRIES[state.char.country].cur : 'FR';
@@ -49,7 +49,12 @@ function soumettreVoteMarchande(taux) {
   const roll = Math.floor(Math.random() * 100) + 1;
   const vote = (state.votesEnCours || []).find(function(v) { return v.id === voteId; });
   if (roll <= taux) {
-    state.arg -= 200; state.pa = Math.max(0, state.pa - 1); state.inf = Math.min(100, state.inf + 3);
+    // Cout (200 FR + 1 PA) du uniquement en cas de succes -- deja le comportement d'origine.
+    // Deduction PA centralisee (Lot 1, migration identifiee par l'audit : cette fonction
+    // deduisait state.pa sans jamais respecter TEST_MODE, contrairement au reste du jeu).
+    const r = await deduireCoutOrdre({ pa: 1, cost: 200 });
+    if (!r.ok) { showToast('PA insuffisants', '1 PA requis.', false); return; }
+    state.inf = Math.min(100, state.inf + 3);
     if (vote) vote.pour = (vote.pour || 0) + 1;
     updateUI();
     showToast('Vote marchande !', 'Un depute a vote dans votre sens. -200 ' + cur + ' -1 PA +3 INF.', true, true);
@@ -847,12 +852,15 @@ async function enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom) {
 }
 
 // Distribuer un prospectus à un PNJ
-function distribuerProspectus(pnjId, candidatNom, posteId, country, city) {
+async function distribuerProspectus(pnjId, candidatNom, posteId, country, city) {
   const cle = getCleCycle(posteId, city);
   const cycle = CYCLES_ELECTORAUX[country]?.[cle];
   if (!cycle) return;
 
-  if (state.pa < 1) { showToast('PA insuffisants', '1 PA requis.', false); return; }
+  // Garde financiere conservee (controle metier/financier, jamais ignore par TEST_MODE de
+  // toute facon). La disponibilite des PA est desormais tranchee uniquement par
+  // deduireCoutOrdre() plus bas (Lot 1, correctif suite a revue) -- plus de garde manuelle
+  // state.pa<1, qui bloquait a tort meme sous TEST_MODE=true.
   if (state.arg < 50) { showToast('Fonds insuffisants', '50 FR requis par prospectus.', false); return; }
 
   // Un PNJ ne peut recevoir qu'un seul prospectus
@@ -867,8 +875,15 @@ function distribuerProspectus(pnjId, candidatNom, posteId, country, city) {
     return;
   }
 
-  state.pa -= 1;
-  state.arg -= 50;
+  // Deduction PA+cout centralisee -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la
+  // disponibilite des PA. Appelee avant tout effet de bord (enregistrerVotePNJ, compteur du
+  // candidat) : fail-closed.
+  const r = await deduireCoutOrdre({ pa: 1, cost: 50 });
+  if (!r.ok) {
+    showToast(r.raison === 'fonds_insuffisants' ? 'Fonds insuffisants' : 'PA insuffisants',
+      r.raison === 'fonds_insuffisants' ? '50 FR requis par prospectus.' : '1 PA requis.', false);
+    return;
+  }
   enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom).catch(() => {});
 
   // Trouver le candidat et incrémenter son compteur

@@ -916,7 +916,7 @@ function ouvrirOrdresOrga(orgaId) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function executerOrdreOrga(orgaId, fn) {
+async function executerOrdreOrga(orgaId, fn) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
 
@@ -927,12 +927,21 @@ function executerOrdreOrga(orgaId, fn) {
   if (!ordre) return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  // Vérifs PA et coût
-  if ((state.pa || 0) < ordre.pa) { showToast('PA insuffisants', ordre.pa + ' PA requis.', false); return; }
+  // Vérif coût financier (garde metier/financiere conservee). La disponibilite des PA est
+  // desormais tranchee uniquement par deduireCoutOrdre() ci-dessous (Lot 1, correctif suite a
+  // revue) -- plus de garde manuelle state.pa<..., qui bloquait a tort meme sous
+  // TEST_MODE=true.
   if (ordre.cost > 0 && state.arg < ordre.cost) { showToast('Fonds insuffisants', ordre.cost + ' ' + cur + ' requis.', false); return; }
 
-  state.pa -= ordre.pa;
-  if (ordre.cost > 0) state.arg -= ordre.cost;
+  // Deduction PA+cout centralisee -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la
+  // disponibilite des PA. Appelee avant tout effet de bord (bloc "effets" plus bas) :
+  // fail-closed.
+  const r = await deduireCoutOrdre({ pa: ordre.pa, cost: ordre.cost });
+  if (!r.ok) {
+    showToast(r.raison === 'fonds_insuffisants' ? 'Fonds insuffisants' : 'PA insuffisants',
+      r.raison === 'fonds_insuffisants' ? ordre.cost + ' ' + cur + ' requis.' : ordre.pa + ' PA requis.', false);
+    return;
+  }
 
   // Effets selon fonction
   const effets = {
@@ -3037,8 +3046,11 @@ async function confirmerDemandeManifestation(orgaId) {
     return;
   }
 
-  if ((state.pa || 0) < 1) { showToast('PA insuffisants', '1 PA requis.', false); return; }
-  state.pa -= 1;
+  // Deduction PA centralisee -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la disponibilite
+  // des PA (plus de garde manuelle state.pa<1, qui bloquait a tort meme sous TEST_MODE=true).
+  // Appelee avant sbCreerDemandeManifestation (mutation Supabase) : fail-closed.
+  const rPa = await deduireCoutOrdre({ pa: 1, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '1 PA requis.', false); return; }
   updateUI();
 
   const nbMembres = orga.membres?.length || 1;

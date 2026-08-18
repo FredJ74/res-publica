@@ -302,8 +302,14 @@ const JOURNALISTES_PNJ = {
 // =====================
 const TEST_MODE = true; // PA illimites
 
+// Plafond de reserve PA (Lot 1, 18 aout 2026) : constante fonctionnelle unique, remplace
+// l'ancien state.paMax variable (recalcule a chaque Dormir selon l'hotel, jamais persiste
+// cote Supabase -- voir audit). Toute lecture de plafond doit desormais utiliser PA_MAX,
+// jamais state.paMax ni une valeur recalculee localement.
+const PA_MAX = 30;
+
 let state = {
-  pa: 999, paMax: 999,
+  pa: 999, paMax: PA_MAX,
   arg: 4250, liquide: 500, banque: 3750,
   inf: 25, pop: 30, dis: 85, hp: 92, moral: 78,
   day: 1, hour: 8,
@@ -842,7 +848,7 @@ function updateUI() {
     } catch(e) {}
   }
   document.getElementById('r-pa').textContent   = TEST_MODE ? '∞' : state.pa;
-  document.getElementById('b-pa').style.width   = TEST_MODE ? '100%' : (state.pa / state.paMax * 100) + '%';
+  document.getElementById('b-pa').style.width   = TEST_MODE ? '100%' : (Math.min(state.pa, PA_MAX) / PA_MAX * 100) + '%';
   document.getElementById('r-arg').textContent  = state.arg.toLocaleString('fr-FR') + ' ' + cur;
   document.getElementById('r-inf').textContent  = state.inf;
   document.getElementById('b-inf').style.width  = state.inf + '%';

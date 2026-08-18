@@ -1195,7 +1195,10 @@ function ouvrirMinimapLectureSeule_old(countryId, cityId) {
 // Wrappers pour les onclick électoraux
 function voterPourCandidat(el) { voterPour(el.dataset.nom, el.dataset.poste, el.dataset.country, el.dataset.city); ouvrirBureauDeVote(el.dataset.poste, el.dataset.country, el.dataset.city); }
 function distribuerProspectusModalBtn(el) { distribuerProspectusModal(el.dataset.nom, el.dataset.poste, el.dataset.country, el.dataset.city); }
-function distribuerProspectusBtn(el) { distribuerProspectus(el.dataset.pnj, el.dataset.nom, el.dataset.poste, el.dataset.country, el.dataset.city); ouvrirBureauDeVote(el.dataset.poste, el.dataset.country, el.dataset.city); }
+// distribuerProspectus() est desormais async (Lot 1, migration vers deduireCoutOrdre) : le
+// rafraichissement de l'ecran doit attendre la fin reelle de la deduction PA/argent, sinon
+// ouvrirBureauDeVote() pourrait s'executer avant que le prospectus ne soit reellement compte.
+async function distribuerProspectusBtn(el) { await distribuerProspectus(el.dataset.pnj, el.dataset.nom, el.dataset.poste, el.dataset.country, el.dataset.city); ouvrirBureauDeVote(el.dataset.poste, el.dataset.country, el.dataset.city); }
 function ouvrirBureauDeVoteBtn(el) { ouvrirBureauDeVote(el.dataset.poste, el.dataset.country, el.dataset.city); }
 function deposerCandidatureBtn(el) { deposerCandidature(el.dataset.poste, el.dataset.country, state.currentCity); }
 function fermerModalPostes() { document.getElementById('modal-postes').classList.remove('open'); }

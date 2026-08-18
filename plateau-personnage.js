@@ -875,27 +875,43 @@ async function doDormir() {
   state.banque += Math.ceil(salaire * 0.7);
   state.moral = Math.min(100, state.moral + confort.moral + (bonusLogement.moral || 0));
 
-  // Restauration reelle des PA — corrige un bug de fond ou la recuperation n'etait jamais appliquee
+  // Recuperation des PA (Lot 1, 18 aout 2026) — ADDITIVE : les PA restants avant sommeil ne
+  // sont plus jamais ecrases, seule la recuperation elle-meme s'ajoute au stock, sous reserve
+  // du plafond de reserve PA_MAX (plateau-core.js). state.paMax n'est plus recalcule ici : le
+  // plafond est desormais une constante fonctionnelle unique (PA_MAX), jamais une valeur
+  // variable selon l'hotel/le confort.
   const PA_BASE_NORMAL = 12;
-  let plafondPA = PA_BASE_NORMAL + (confort.paBonus || 0);
+  let recuperationPA = PA_BASE_NORMAL + (confort.paBonus || 0);
   let detentionQHS = null;
   if (typeof sbGet === 'function' && state.char?.name) {
     const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(state.char.name)}&select=detention_qhs`).catch(() => []);
     detentionQHS = rows?.[0]?.detention_qhs ? (typeof rows[0].detention_qhs === 'string' ? JSON.parse(rows[0].detention_qhs) : rows[0].detention_qhs) : null;
   }
   if (detentionQHS?.enQHS) {
-    plafondPA = detentionQHS.paLimite1Jour ? 1 : 3;
+    // Sanction QHS : remplace (ne s'ajoute pas a) le stock existant, pour empecher toute
+    // accumulation normale jusqu'a PA_MAX pendant la detention. Comportement inchange par
+    // rapport a avant ce lot -- seul le plafond global (Math.min ci-dessous) est nouveau, en
+    // pure securite (ne change rien en pratique tant que la sanction reste tres inferieure a
+    // PA_MAX).
+    const plafondQHS = detentionQHS.paLimite1Jour ? 1 : 3;
     if (detentionQHS.paLimite1Jour) {
       detentionQHS.paLimite1Jour = false;
       if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char.name)}`, { detention_qhs: JSON.stringify(detentionQHS) }).catch(() => {});
     }
-  }
-  state.pa = plafondPA;
-  state.paMax = plafondPA;
-  if (state.bonusPaProchainDormir) {
-    state.pa += state.bonusPaProchainDormir;
-    addJournalEntry('Bonus de repas applique : +' + state.bonusPaProchainDormir + ' PA.', 'event-good');
-    state.bonusPaProchainDormir = 0;
+    state.pa = plafondQHS;
+    if (state.bonusPaProchainDormir) {
+      state.pa += state.bonusPaProchainDormir;
+      addJournalEntry('Bonus de repas applique : +' + state.bonusPaProchainDormir + ' PA.', 'event-good');
+      state.bonusPaProchainDormir = 0;
+    }
+    state.pa = Math.min(PA_MAX, Math.max(0, state.pa));
+  } else {
+    if (state.bonusPaProchainDormir) {
+      recuperationPA += state.bonusPaProchainDormir;
+      addJournalEntry('Bonus de repas applique : +' + state.bonusPaProchainDormir + ' PA.', 'event-good');
+      state.bonusPaProchainDormir = 0;
+    }
+    state.pa = Math.min(PA_MAX, (state.pa || 0) + recuperationPA);
   }
 
   updateUI();
@@ -1048,7 +1064,10 @@ async function doDormirChambre() {
   }
   const reussi = await doDormir();
   if (reussi) {
-    state.pa = (state.pa || 0) + reservation.bonus.paBonus;
+    // Plafonne a PA_MAX (Lot 1) : doDormir() a deja plafonne sa propre recuperation, mais ce
+    // bonus de chambre s'applique dans un second temps, en dehors de doDormir() -- sans ce
+    // Math.min, il pourrait a lui seul faire depasser la reserve maximale.
+    state.pa = Math.min(PA_MAX, (state.pa || 0) + reservation.bonus.paBonus);
     state.moral = Math.min(100, (state.moral || 0) + reservation.bonus.moral);
     state.reservationHotel = null;
     updateUI();

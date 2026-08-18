@@ -2767,7 +2767,6 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!recette || !data) return { ok: false, raison: 'introuvable' };
   if (!recetteAutoriseePourCommerce(recette, data)) return { ok: false, raison: 'recette_non_autorisee' };
-  if ((state.pa || 0) < recette.pa) return { ok: false, raison: 'pa_insuffisants' };
 
   const manque = Object.entries(recette.materiaux).find(([m, q]) => (data.stockMatieres[m] || 0) < q);
   if (manque) return { ok: false, raison: 'stock_matiere_insuffisant', matiere: manque[0] };
@@ -2776,10 +2775,6 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
   const stockActuel = data.stockProduits[recetteId] || 0;
   if (stockMax != null && stockActuel >= stockMax) return { ok: false, raison: 'stock_plein' };
 
-  // Tous les controles sans effet de bord sont passes -- seul le paiement de la main-d'oeuvre
-  // reste a verifier, en dernier, car pour une buvette c'est une VRAIE ecriture Supabase externe
-  // (contrairement a data.caisse, mutation locale non encore sauvegardee) : elle ne doit jamais
-  // se declencher si un controle ulterieur pouvait encore faire echouer la production.
   const coutMainOeuvre = recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE;
   // Buvette : aucune caisse autonome (doctrine deja validee/codee pour doConsommerBuvette), y
   // compris cote depense -- le net des ventes va deja a la caisse du stade, la main-d'oeuvre de
@@ -2787,14 +2782,31 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
   // permanence pour ce type). debiterCaisseBatimentAtomique est tout-ou-rien (contrairement a
   // debiterCaisseBatimentPlafonne qui tolere un versement partiel, inadapte ici : un salaire de
   // production doit etre paye en entier ou pas du tout, comme pour tout autre commerce).
-  let coutOk;
+  //
+  // Atomicite PA/caisse (Lot 1, correctif suite a revue) -- deduireCoutOrdre() est l'AUTORITE
+  // UNIQUE sur la disponibilite des PA (aucune garde manuelle state.pa<...). Les deux branches
+  // garantissent : soit PA et ressources sont debites ensemble et la production a lieu, soit
+  // rien n'est mute (ni PA, ni caisse, ni stock) :
+  //   - buvette : PA et cout main-d'oeuvre geres en UN SEUL appel a deduireCoutOrdre() via
+  //     payeur:{type:'institution'}, qui delegue a debiterCaisseBatimentAtomique() en interne
+  //     et ne deduit les PA (etape D) qu'apres le succes du debit institutionnel (etape B) --
+  //     aucune fenetre entre les deux, contrairement a une lecture prealable separee. Le
+  //     raison renvoye par la primitive ('caisse_institution_insuffisante') est remappe vers
+  //     'caisse_insuffisante' pour preserver le contrat existant avec l'appelant UI
+  //     (doProduireRecetteCommerceUI, qui ne connait que cette valeur).
+  //   - commerce standard/restaurant : data.caisse n'est pas geree par
+  //     debiterCaisseBatimentAtomique (caisse d'une entreprise, pas d'un batiment) ; verifiee en
+  //     lecture seule AVANT deduireCoutOrdre(), puis debitee seulement APRES son succes -- rien
+  //     n'est encore persiste a ce stade (sbSaveEntreprise plus bas).
   if (data.type === 'buvette' && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
-    coutOk = (await debiterCaisseBatimentAtomique(pays, getCaisseLocaleId('stade', ville), coutMainOeuvre)) === coutMainOeuvre;
+    const r = await deduireCoutOrdre({ pa: recette.pa, cost: coutMainOeuvre, payeur: { type: 'institution', pays, buildingId: getCaisseLocaleId('stade', ville) } });
+    if (!r.ok) return { ok: false, raison: r.raison === 'caisse_institution_insuffisante' ? 'caisse_insuffisante' : r.raison };
   } else {
-    coutOk = data.caisse >= coutMainOeuvre;
-    if (coutOk) data.caisse -= coutMainOeuvre;
+    if (data.caisse < coutMainOeuvre) return { ok: false, raison: 'caisse_insuffisante' };
+    const rPa = await deduireCoutOrdre({ pa: recette.pa, cost: 0 });
+    if (!rPa.ok) return { ok: false, raison: 'pa_insuffisants' };
+    data.caisse -= coutMainOeuvre;
   }
-  if (!coutOk) return { ok: false, raison: 'caisse_insuffisante' };
 
   Object.entries(recette.materiaux).forEach(([m, q]) => { data.stockMatieres[m] -= q; });
   data.stockProduits[recetteId] = stockActuel + recette.portions;
@@ -2809,7 +2821,6 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
   ajouterHistoriqueEntreprise(data, -coutMainOeuvre, 'Production de ' + recette.label + ' (' + recette.portions + ' portions) — ' + (state.char?.name || 'Anonyme'));
   await sbSaveEntreprise(data.id, data);
 
-  state.pa = Math.max(0, (state.pa || 0) - recette.pa);
   state.arg = (state.arg || 0) + coutMainOeuvre;
   return { ok: true, portions: recette.portions, salaire: coutMainOeuvre };
 }
@@ -2970,8 +2981,10 @@ async function doProduireRecetteCommerceUI(commerceType, buildingId, roomId, rec
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const recette = RECETTES_ALIMENTAIRES[recetteId];
-  if ((state.pa || 0) < (recette?.pa || 0)) { showToast('PA insuffisants', recette.pa + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
+  // Pas de garde PA manuelle ici (trouve en verification post-Lot 1 : ce wrapper bloquait
+  // l'action a tort meme sous TEST_MODE=true, en amont de produireRecetteCommerce() qui est
+  // elle-meme deja fail-closed via deduireCoutOrdre()). La raison 'pa_insuffisants' est deja
+  // geree ci-dessous par le mapping `messages`.
   const res = await produireRecetteCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
   if (!res.ok) {
     const messages = {
@@ -3040,8 +3053,6 @@ async function confirmerProduction(produitId) {
   const data = await chargerArmurerieLocale();
   if (!recette || !data) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
-  if ((state.pa || 0) < PA_PRODUCTION_ARMURERIE) { showToast('PA insuffisants', PA_PRODUCTION_ARMURERIE + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
   const manque = Object.entries(recette.materiaux).find(([m, q]) => (data.stockMatieres[m] || 0) < q);
   if (manque) { showToast('Stock de matière insuffisant', 'Il manque du ' + manque[0] + ' en stock.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
@@ -3051,6 +3062,14 @@ async function confirmerProduction(produitId) {
   const stockMax = data.parametres.stockMax[produitId] || 0;
   if (stockActuel >= stockMax) { showToast('Stock plein', 'Le stock maximum de ce produit est atteint.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
+  // Deduction PA centralisee (Lot 1, correctif suite a revue) -- deduireCoutOrdre() est
+  // desormais l'AUTORITE UNIQUE sur la disponibilite des PA (plus de garde manuelle
+  // state.pa<... redondante, qui bloquait a tort meme sous TEST_MODE=true). Appelee ICI, AVANT
+  // toute mutation de stock/caisse et avant l'ecriture Supabase : fail-closed. cost:0 car le
+  // salaire est un GAIN (state.arg += plus bas), pas un cout modelise par deduireCoutOrdre.
+  const rPa = await deduireCoutOrdre({ pa: PA_PRODUCTION_ARMURERIE, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', PA_PRODUCTION_ARMURERIE + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+
   // Consommer
   Object.entries(recette.materiaux).forEach(([m, q]) => { data.stockMatieres[m] -= q; });
   data.stockProduits[produitId] = stockActuel + 1;
@@ -3058,7 +3077,6 @@ async function confirmerProduction(produitId) {
   ajouterHistoriqueEntreprise(data, -SALAIRE_PRODUCTION_ARMURERIE, 'Salaire de production (' + recette.label + ') — ' + (state.char?.name||'Anonyme'));
   await sbSaveEntreprise(data.id, data);
 
-  state.pa = Math.max(0, (state.pa || 0) - PA_PRODUCTION_ARMURERIE);
   state.arg = (state.arg || 0) + SALAIRE_PRODUCTION_ARMURERIE;
   updateUI();
   showToast('Production réussie !', recette.label + ' fabriqué(e). +' + SALAIRE_PRODUCTION_ARMURERIE + ' FR de salaire.', true, true);

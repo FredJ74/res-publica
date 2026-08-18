@@ -3431,8 +3431,6 @@ async function confirmerProductionUsine(produitId) {
   if (!c) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
 
-  if ((state.pa || 0) < PA_PRODUCTION_USINE) { showToast('PA insuffisants', PA_PRODUCTION_USINE + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
-
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, c.city, c.buildingId).catch(() => null) : null;
   if (!etat) { showToast('Indisponible', '', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
   const usine = etat.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
@@ -3449,6 +3447,15 @@ async function confirmerProductionUsine(produitId) {
   const placeRestante = Math.max(0, PLAFOND_VENTE_DIRECTE_USINE - stockActuel);
   if (placeRestante <= 0) { showToast('Stock plein', 'Le stock local de ce produit est au maximum.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
+  // Deduction PA centralisee (Lot 1, correctif suite a revue) -- deduireCoutOrdre() est
+  // desormais l'AUTORITE UNIQUE sur la disponibilite des PA (plus de garde manuelle
+  // state.pa<... redondante, qui bloquait a tort meme sous TEST_MODE=true). Appelee ICI, AVANT
+  // toute mutation de stock/caisse et avant l'ecriture Supabase : fail-closed, rien n'est mute
+  // ni persiste si les PA manquent. cost:0 car le salaire est un GAIN verse au joueur
+  // (state.arg += plus bas), pas un cout preleve par deduireCoutOrdre.
+  const rPa = await deduireCoutOrdre({ pa: PA_PRODUCTION_USINE, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', PA_PRODUCTION_USINE + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+
   const produitsAjoutes = Math.min(PRODUIT_PAR_PA_USINE, placeRestante);
   stockMatieres[c.matiere] = stockMatiereActuel - MATIERE_PAR_PA_USINE;
   caisse -= c.salairePA;
@@ -3457,7 +3464,6 @@ async function confirmerProductionUsine(produitId) {
   const nouvelEtat = { ...etat, usine: { ...usine, caisse, venteDirecte, stockMatieres } };
   if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, c.city, c.buildingId, nouvelEtat).catch(() => {});
 
-  state.pa = Math.max(0, (state.pa || 0) - PA_PRODUCTION_USINE);
   state.arg = (state.arg || 0) + c.salairePA;
   updateUI();
   showToast('Production réussie !', RESSOURCES_ECONOMIE[produitId].label + ' produit(s). +' + c.salairePA + ' ' + cur + ' de salaire.', true, true);
