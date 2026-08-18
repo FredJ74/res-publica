@@ -262,6 +262,32 @@ async function appelAnthropic(systemPrompt, paquetFactuel, timeoutMs) {
 const TYPES_ARTICLE_VALIDES = ['actualite', 'declaration', 'statistique', 'absence_remarquable'];
 const TYPES_IMAGE_VALIDES = ['personnage', 'lieu', 'generique', 'fallback'];
 
+// Reconnaissance deterministe d'une valeur numerique dans un texte (18 aout 2026, suite a deux
+// faux positifs reels en production) :
+// - une valeur exactement egale a 0 peut etre exprimee par le chiffre litteral OU par une
+//   formulation naturelle d'absence ("aucune naissance...", "zero arrestation...", "pas de
+//   mariage...") -- jamais exigee sous une seule forme desormais. Ne s'applique QUE si la valeur
+//   source vaut reellement 0 : un indicateur disponible:false ne passe jamais par cette fonction
+//   (deja ecarte plus haut, avant meme d'atteindre ce controle).
+// - un nombre decimal est accepte sous sa forme JS (point, "557.5") OU sous sa forme francaise
+//   courante (virgule, "557,5") -- seule la notation change, jamais la valeur elle-meme : aucune
+//   tolerance d'arrondi, aucune valeur differente acceptee.
+const MOTS_ZERO = ['aucun', 'aucune', 'aucuns', 'aucunes', 'zéro', 'zero', 'pas de'];
+function valeurRepresenteeDansTexte(valeur, texte) {
+  if (valeur === 0) {
+    if (texte.indexOf('0') !== -1) return true;
+    const texteMinuscule = texte.toLowerCase();
+    return MOTS_ZERO.some(mot => texteMinuscule.indexOf(mot) !== -1);
+  }
+  const formePoint = String(valeur);
+  if (texte.indexOf(formePoint) !== -1) return true;
+  if (formePoint.indexOf('.') !== -1) {
+    const formeVirgule = formePoint.replace('.', ',');
+    if (texte.indexOf(formeVirgule) !== -1) return true;
+  }
+  return false;
+}
+
 function extraireCitations(texte) {
   const citations = [];
   const reFr = /«([^»]+)»/g;
@@ -297,8 +323,9 @@ function validerArticle(art, index, erreurs, contexte, idsVus) {
       const indic = sourcesResolues.find(s => s.id === sid).source;
       if (indic.disponible !== true) { erreurs.push(`${contexte} (${art.id}) : indicateur cité non disponible (${sid}, disponible=${indic.disponible})`); return; }
       if (indic.valeur != null && typeof indic.valeur !== 'object') {
-        const valeurStr = String(indic.valeur);
-        if (art.texte.indexOf(valeurStr) === -1) erreurs.push(`${contexte} (${art.id}) : la valeur de l'indicateur ${sid} (${valeurStr}) n'apparaît pas telle quelle dans le texte`);
+        if (!valeurRepresenteeDansTexte(indic.valeur, art.texte)) {
+          erreurs.push(`${contexte} (${art.id}) : la valeur de l'indicateur ${sid} (${indic.valeur}) n'apparaît pas dans le texte (ni en chiffres, ni sous forme d'absence si applicable)`);
+        }
       }
     });
   }

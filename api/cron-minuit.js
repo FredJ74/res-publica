@@ -1385,9 +1385,14 @@ async function verifierConflitsEmploiBNE() {
 }
 
 export default async function handler(req, res) {
-  // Sécurité minimale : autoriser uniquement les appels Vercel Cron ou avec un secret
+  // Securite FAIL CLOSED (18 aout 2026, correctif suite a un declenchement accidentel reel en
+  // production) : si CRON_SECRET n'est pas configure, aucune tache ne demarre -- l'ancien
+  // comportement (if (process.env.CRON_SECRET && ...)) laissait cet endpoint totalement ouvert
+  // tant que la variable n'existait pas. Vercel Cron envoie automatiquement CRON_SECRET dans
+  // l'en-tete Authorization des que cette variable est configuree dans le projet -- aucune
+  // modification supplementaire n'est necessaire cote appelant legitime.
   const authHeader = req.headers['authorization'];
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
