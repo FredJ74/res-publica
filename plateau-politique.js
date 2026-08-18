@@ -1110,6 +1110,13 @@ function changerDomicile(newCountry, newCity) {
   const ancienDomicile = state.domicile;
   state.domicile = { country: newCountry, city: newCity, depuis: state.day || 1 };
 
+  // Logements sociaux de Montrouge (18 aout 2026) : resiliation automatique du bail social si
+  // le domicile officiel quitte Montrouge -- ne touche jamais les autres locations (commerciales)
+  // du personnage, uniquement l'entree marquee logementSocial:true le cas echeant.
+  if (typeof resilierLogementSocialSiDepartMontrouge === 'function') {
+    resilierLogementSocialSiDepartMontrouge(ancienDomicile, newCountry, newCity);
+  }
+
   // Perdre les postes liés à l'ancienne domiciliation
   if (state.poste) {
     const postesLocaux = ['maire', 'depute'];
@@ -1546,9 +1553,17 @@ function renderRoomActions(room, buildingId, roomId) {
   const city = world?.[state.currentCity];
   const ctx = city?.buildingContext?.[buildingId];
   const ctxOrders = (ctx?.orders || []);
+  // Ordres specifiques a CETTE room, pour une ville donnee, sur un batiment generique partage
+  // par plusieurs villes (ex. 'mairie') -- ctxOrders ci-dessus s'applique a TOUTES les rooms du
+  // batiment, ce qui ne convient pas quand seule une room precise doit recevoir un ordre propre
+  // a une ville (ex. bureau_maire_adjoint de Montrouge, logements sociaux, 18 aout 2026).
+  // roomOverrides ne servait jusqu'ici qu'a name/imageUrl/persons (voir plateau-navigation.js) --
+  // extension purement additive : absent pour tous les roomOverrides existants, donc aucun
+  // changement de comportement ailleurs.
+  const ctxRoomOrders = (ctx?.roomOverrides?.[roomId]?.orders || []);
 
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
-  const allOrders = [...orders, ...ctxOrders];
+  const allOrders = [...orders, ...ctxOrders, ...ctxRoomOrders];
 
   const buttons = allOrders.map(o => {
     // Verifier requiresPost : doit avoir le bon poste specifique

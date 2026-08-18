@@ -1355,6 +1355,56 @@ async function sbSupprimerLocation(buildingId, roomId, city) {
 }
 
 // =====================
+// LOGEMENTS SOCIAUX DE MONTROUGE (18 aout 2026) — demandes persistantes + archive
+// d'attributions. Tables nouvelles (voir migration_logements_sociaux_montrouge.sql, NON
+// executee), sur le meme modele que terrains_historique_ventes (append-only, id construit
+// cote application, created_at automatique). Toutes les fonctions tolerent l'absence de
+// migration (sbGet renvoie null -> [] cote appelant), comme le reste du projet.
+// =====================
+async function sbDeposerDemandeLogement(country, ville, demandeur, typeSouhaite) {
+  const id = 'demande-logement-' + ville + '-' + demandeur.replace(/[^a-zA-Z0-9]/g, '') + '-' + Date.now();
+  const inserted = await sbInsert('logements_demandes', {
+    id, country, ville, demandeur, type_souhaite: typeSouhaite || null, statut: 'en_attente'
+  });
+  return inserted ? id : null;
+}
+
+async function sbGetDemandeLogementEnAttente(country, ville, demandeur) {
+  const rows = await sbGet('logements_demandes',
+    `country=eq.${encodeURIComponent(country)}&ville=eq.${encodeURIComponent(ville)}&demandeur=eq.${encodeURIComponent(demandeur)}&statut=eq.en_attente`);
+  return (rows && rows[0]) || null;
+}
+
+async function sbGetDemandesLogementEnAttente(country, ville) {
+  const rows = await sbGet('logements_demandes',
+    `country=eq.${encodeURIComponent(country)}&ville=eq.${encodeURIComponent(ville)}&statut=eq.en_attente&order=created_at.asc`);
+  return rows || [];
+}
+
+async function sbMarquerDemandeLogementTraitee(demandeId, roomId) {
+  return sbUpdate('logements_demandes', `id=eq.${encodeURIComponent(demandeId)}`,
+    { statut: 'attribuee', room_id_attribue: roomId });
+}
+
+// Archive permanente, append-only (jamais mise a jour ni supprimee, y compris a la
+// resiliation) -- uniquement des faits (logement/beneficiaire/autorite/date), aucune
+// qualification automatique (voir doctrine "le jeu ne juge pas", audit du 18 aout 2026).
+async function sbEnregistrerAttributionLogement(country, ville, roomId, beneficiaire, autorite) {
+  return sbInsert('logements_attributions_historique', {
+    id: 'attrib-' + roomId + '-' + Date.now(),
+    country, ville, room_id: roomId, beneficiaire, autorite
+  });
+}
+
+// Fonction de lecture prevue pour une future interface d'archives municipales (hors perimetre
+// de ce lot) -- symetrique a sbGetToutHistoriqueTerrains.
+async function sbGetHistoriqueAttributionsLogements(country, ville) {
+  const rows = await sbGet('logements_attributions_historique',
+    `country=eq.${encodeURIComponent(country)}&ville=eq.${encodeURIComponent(ville)}&order=created_at.asc`);
+  return rows || [];
+}
+
+// =====================
 // RESERVATION DE LA SALLE DE RECEPTION (Quartier des Ambassades)
 // Une seule reservation possible par jour et par pays hote — evite que 2 ambassades
 // organisent un evenement le meme jour dans la meme salle commune.

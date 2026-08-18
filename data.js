@@ -475,7 +475,20 @@ const WORLD = {
           roomOverrides: {
             accueil_mairie:      { imageUrl: "images/montrouge/montrouge-mairie-accueil.jpg" },
             bureau_maire_local:  { imageUrl: "images/montrouge/montrouge-mairie-bureau-maire.jpg" },
-            bureau_maire_adjoint:{ imageUrl: "images/montrouge/montrouge-mairie-bureau-maire-adjoint.jpg" }
+            // Logements sociaux (18 aout 2026, corrige suite a decision game design : les deux
+            // demarches se font depuis CETTE room existante, jamais une nouvelle piece dediee).
+            // 'orders' ici est fusionne par renderRoomActions() (plateau-politique.js) avec les
+            // ordres de base de bureau_maire_adjoint (voir extension apportee a cette fonction),
+            // exactement comme roomOverrides gere deja name/imageUrl/persons par ville -- jamais
+            // ajoute au tableau orders de BUILDINGS['mairie'] lui-meme (base partagee par
+            // plusieurs villes, ex. PSM/ville_a), pour ne jamais apparaitre ailleurs qu'a Montrouge.
+            bureau_maire_adjoint:{
+              imageUrl: "images/montrouge/montrouge-mairie-bureau-maire-adjoint.jpg",
+              orders: [
+                {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
+                {fn:'traiter_demandes_logement_social', label:'Examiner les demandes de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'}
+              ]
+            }
           },
           roomsExtra: {
             salle_elections: {
@@ -4797,7 +4810,78 @@ const BUILDINGS = {
     icon: "ti-home",
     bgColor: "#0a0a08",
     desc: "Immeubles de logements de Montrouge.",
-    rooms: { salle: { name: "Hall d'immeuble", desc: "Boîtes aux lettres, escalier.", imageBg: "linear-gradient(135deg,#0a0a08,#100f0c)", persons: [], orders: [] } }
+    // Logements sociaux (18 aout 2026) : batiment exclusif a Montrouge (jamais partage avec
+    // une autre ville), donc les 4 appartements sont ajoutes directement ici, sans passer par
+    // buildingContext/roomsExtra (reserve aux batiments generiques partages entre villes).
+    // Aucun ordre 'louer_local' sur ces rooms : l'attribution n'est jamais en self-service,
+    // uniquement via le bureau de l'adjoint au maire (buildingContext['mairie'].roomOverrides.
+    // bureau_maire_adjoint.orders, Montrouge uniquement -- voir plus haut dans ce fichier).
+    // Le hall (salle) reste purement spatial, sans ordre administratif.
+    // locationData.logementSocial:true + orgaAutorisee:false identifient ces 4 rooms pour les
+    // regles specifiques (residence Montrouge, resiliation au depart, bonus de sommeil,
+    // interdiction d'organisation) sans toucher aux locations commerciales existantes.
+    rooms: {
+      salle: {
+        // Hall pur : navigation vers les 4 appartements uniquement (via les onglets de pieces,
+        // deja automatiques puisque ce sont de vraies rooms ci-dessous). Aucun ordre administratif
+        // ici -- deplaces dans le bureau de l'adjoint au maire (buildingContext['mairie'] ci-dessus),
+        // decision game design du 18 aout 2026 : ce batiment n'est pas un guichet.
+        name: "Hall d'immeuble",
+        desc: "Boîtes aux lettres, escalier.",
+        imageBg: "linear-gradient(135deg,#0a0a08,#100f0c)",
+        imageUrl: "images/montrouge/montrouge-immeuble-hall.jpg",
+        persons: [],
+        orders: []
+      },
+      petit_appartement_1: {
+        name: "Petit appartement n°1",
+        desc: "Un studio modeste, propriété de la mairie.",
+        imageBg: "linear-gradient(135deg,#0a0a08,#100f0c)",
+        imageUrl: "images/montrouge/montrouge-appartement-petit.jpg",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 30, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Petit appartement n°1', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      petit_appartement_2: {
+        name: "Petit appartement n°2",
+        desc: "Un studio modeste, propriété de la mairie.",
+        imageBg: "linear-gradient(135deg,#0a0a08,#100f0c)",
+        imageUrl: "images/montrouge/montrouge-appartement-petit.jpg",
+        isLocationRoom: true,
+        locationData: { type: 'petit', prix: 30, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Petit appartement n°2', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 3, bonusSanteSommeil: 4 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_1: {
+        name: "Grand appartement n°1",
+        desc: "Un logement familial, propriété de la mairie.",
+        imageBg: "linear-gradient(135deg,#0a0a08,#100f0c)",
+        imageUrl: "images/montrouge/montrouge-appartement-grand.jpg",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 60, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Grand appartement n°1', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      },
+      grand_appartement_2: {
+        name: "Grand appartement n°2",
+        desc: "Un logement familial, propriété de la mairie.",
+        imageBg: "linear-gradient(135deg,#0a0a08,#100f0c)",
+        imageUrl: "images/montrouge/montrouge-appartement-grand.jpg",
+        isLocationRoom: true,
+        locationData: { type: 'grand', prix: 60, bonusPOP: 0, bonusINF: 0, bonusDIS: 0, label: 'Grand appartement n°2', logementSocial: true, orgaAutorisee: false, bonusMoralSommeil: 5, bonusSanteSommeil: 7 },
+        persons: [],
+        orders: [
+          {fn:'gerer_logement_social', label:'Mon logement', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:"Voir les conditions de votre bail, si vous êtes le locataire de cet appartement."}
+        ]
+      }
+    }
   },
   'cafe-tabac-cheminots-montrouge': {
     name: "Café des Cheminots — Bar-Tabac",

@@ -1965,6 +1965,14 @@ function ouvrirModalGererLocal() {
 
   const orgaActuelle = mesOrgas.find(o => o.id === location.orgaId);
 
+  // orgaAutorisee (18 aout 2026, logements sociaux de Montrouge) : lu directement sur la
+  // definition statique de la room (source de verite unique), jamais copie sur l'entree
+  // dynamique de state.locationsActives -- fonctionne donc identiquement pour une location
+  // auto-signee (confirmerLocation) ou attribuee par un tiers (attribuerLogementSocial).
+  // Absent (toutes les locations commerciales existantes) => comportement inchange.
+  const roomOrgaCheck = BUILDINGS[buildingId]?.rooms?.[roomId];
+  const orgaAutorisee = roomOrgaCheck?.locationData?.orgaAutorisee !== false;
+
   let orgaSelect = '';
   if (mesOrgas.length > 0) {
     orgaSelect = '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin:.6rem 0 .3rem">ORGANISATION ASSOCIÉE</div>' +
@@ -1991,9 +1999,10 @@ function ouvrirModalGererLocal() {
     '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.4rem">Loué depuis le Jour ' + location.depuis + ' · ' + (location.batimentLabel || '') + '</div>' +
     '<div style="font-size:.72rem;color:' + (orgaActuelle ? '#4a8a4a' : '#6a5a30') + ';margin-bottom:.5rem">Organisation : ' + (orgaActuelle ? orgaActuelle.nom : 'Aucune') + '</div>' +
     orgaSelect +
+    (orgaAutorisee ?
     '<div style="margin-bottom:.6rem">' +
       '<button onclick="ouvrirCreerOrga()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #4a6a4a;background:transparent;color:#6a9a6a;cursor:pointer"><i class=\"ti ti-building\" style=\"font-size:.8rem\"></i> Créer une organisation ici</button>' +
-    '</div>' +
+    '</div>' : '') +
     '<div style="display:flex;gap:.4rem;margin-top:.6rem">' +
       '<button onclick="toggleVisibiliteLocation()" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.35rem;border:1px solid #3a4a5a;background:transparent;color:#6a8aaa;cursor:pointer">' +
         (location.visible ? '👁 Masquer' : '👁 Afficher') + ' sur le plan' +

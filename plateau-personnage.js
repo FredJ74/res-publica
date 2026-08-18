@@ -795,6 +795,12 @@ async function doDormir() {
     return false;
   }
 
+  // Logements sociaux de Montrouge (18 aout 2026) : bonus MORAL/SANTE UNIQUEMENT si le bail
+  // est actif ET que Dormir est passe physiquement dans ce meme appartement -- n'a AUCUN effet
+  // sur le loyer (paye normalement par payerLocations() plus bas, quel que soit le lieu).
+  const bonusLogement = typeof getBonusLogementSocialDormir === 'function'
+    ? getBonusLogementSocialDormir() : { moral: 0, sante: 0 };
+
   if (state.empoisonnement?.actif) {
     state.hp = Math.floor((state.hp || 0) / 2);
     if (state.hp < 20) state.hp = 0;
@@ -823,6 +829,12 @@ async function doDormir() {
 
   if (!state.empoisonnement?.actif) {
     state.hp = Math.min(100, (state.hp || 0) + 12);
+  }
+
+  // Bonus SANTE du logement social : s'ajoute a la recuperation normale ci-dessus, ne la
+  // remplace jamais (meme applique pendant un empoisonnement, comme les autres etapes ci-dessus).
+  if (bonusLogement.sante > 0) {
+    state.hp = Math.min(100, (state.hp || 0) + bonusLogement.sante);
   }
 
   // Prélever le coût selon l'hôtel
@@ -861,7 +873,7 @@ async function doDormir() {
   state.arg += salaire;
   state.liquide += Math.floor(salaire * 0.3);
   state.banque += Math.ceil(salaire * 0.7);
-  state.moral = Math.min(100, state.moral + confort.moral);
+  state.moral = Math.min(100, state.moral + confort.moral + (bonusLogement.moral || 0));
 
   // Restauration reelle des PA — corrige un bug de fond ou la recuperation n'etait jamais appliquee
   const PA_BASE_NORMAL = 12;
@@ -888,7 +900,10 @@ async function doDormir() {
 
   updateUI();
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
-  showToast('Bonne nuit !', 'Salaire verse : +' + salaire.toLocaleString('fr-FR') + ' ' + cur + ' · +' + confort.moral + ' Moral', true, true);
+  const moralAffiche = confort.moral + (bonusLogement.moral || 0);
+  const suffixeLogement = (bonusLogement.moral || bonusLogement.sante)
+    ? ' (dont logement social : +' + (bonusLogement.moral || 0) + ' Moral / +' + (bonusLogement.sante || 0) + ' Santé)' : '';
+  showToast('Bonne nuit !', 'Salaire verse : +' + salaire.toLocaleString('fr-FR') + ' ' + cur + ' · +' + moralAffiche + ' Moral' + suffixeLogement, true, true);
   addJournalEntry('Vous dormez. Salaire verse : +' + salaire.toLocaleString('fr-FR') + ' ' + cur, 'event-good');
 
   // Payer les loyers des locations actives

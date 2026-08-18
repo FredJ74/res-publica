@@ -73,6 +73,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(pa, cost); return; }
   if (fn === 'plainte_obstruction_permis') { doPlainteObstruction(pa, cost); return; }
   if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(pa, cost); return; }
+  if (fn === 'demander_logement_social') { demanderLogementSocial(pa, cost); return; }
+  if (fn === 'gerer_logement_social') { gererLogementSocial(); return; }
+  if (fn === 'traiter_demandes_logement_social') { traiterDemandesLogementSocial(pa, cost); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(pa, cost); return; }
