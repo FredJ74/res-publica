@@ -334,13 +334,26 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 /* RIGHT */
 #right{background:var(--bg2);border-left:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden}
 .journal{flex:1;overflow-y:auto;padding:.4rem}
-.journal-entry{padding:.35rem .5rem;border-bottom:1px solid #0f0d05;font-size:.82rem;line-height:1.4}
+.journal-entry{padding:.35rem .5rem;border-bottom:1px solid #0f0d05;font-size:15px;line-height:1.5}
 .journal-time{font-family:'Bebas Neue',sans-serif;font-size:.74rem;color:#7a7050;display:block;margin-bottom:.1rem}
-.journal-text{color:#7a7050}
+.journal-text{color:#8a8060}
 .journal-text.event-good{color:#5a8050}
 .journal-text.event-bad{color:#8a4a38}
 .journal-text.event-info{color:#5a6a8a}
 .journal-text.event-secret{color:#7a5a8a}
+
+/* CONFORT DE LECTURE (18 aout 2026) : base partagee pour tout contenu destine a etre reellement
+   lu (Journal du jour, Mail, Forum) -- eviter que chaque ecran reinvente sa propre taille/
+   interligne. Ne definit jamais de max-width ici : chaque contexte l'applique via
+   .lecture-longue-page si pertinent. Le Forum n'utilise pas .lecture-longue-page : sa grille
+   existante et la largeur fixe (inline) des posts composes geren deja leur propre largeur. */
+.lecture-longue{font-size:17px;line-height:1.62;overflow-wrap:break-word}
+.lecture-longue p{margin:0 0 1em}
+.lecture-longue p:last-child{margin-bottom:0}
+.lecture-longue-page{max-width:680px}
+@media (max-width:720px){
+  .lecture-longue-page{max-width:100%}
+}
 
 /* MODALS */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
@@ -495,7 +508,14 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .forum-post-badge{font-family:'Bebas Neue',sans-serif;font-size:.62rem;letter-spacing:.06em;padding:.1rem .35rem;border:1px solid var(--gold-dark);color:var(--gold);margin-top:.2rem}
 .forum-post-main{padding:.7rem .9rem;min-width:0}
 .forum-post-toolbar{display:flex;justify-content:flex-end;gap:.2rem;margin-bottom:.2rem}
-.forum-post-content{font-size:.95rem;color:#b0a080;line-height:1.7;overflow-wrap:break-word}
+/* Doctrine "confort de lecture" (18 aout 2026, memes valeurs que .lecture-longue) : les blocs
+   composes (forum-canvas.js) heritent de ces valeurs pour leur taille "Normal" (1em) -- leurs
+   paliers relatifs (.8em/1.3em/1.6em) s'appliquent donc proportionnellement, sans les toucher.
+   Couleur relevee de #b0a080 (trop terne) vers var(--text2), plus contrastee, deja utilisee
+   ailleurs dans la charte (ex. auteur du mail) -- pas de blanc agressif. */
+.forum-post-content{font-size:17px;color:var(--text2);line-height:1.62;overflow-wrap:break-word}
+.forum-post-content p{margin:0 0 1em}
+.forum-post-content p:last-child{margin-bottom:0}
 .forum-post-image{margin-top:.5rem}
 .forum-reply-bar{padding:.6rem 1rem;border-top:1px solid var(--border2);background:var(--bg);flex-shrink:0}
 .forum-compose-form{flex:1;overflow-y:auto;padding:1rem}

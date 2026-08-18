@@ -445,8 +445,8 @@ window.addEventListener('DOMContentLoaded', () => {
       sessionStorage.setItem('journaliste_done', '1');
     }
   }, 5000);
-  // Journal du matin en dernier — après tous les autres
-  setTimeout(() => afficherJournalDuMatin(), 8000);
+  // Journal du jour en dernier — après tous les autres
+  setTimeout(() => afficherJournalDuJour(), 8000);
 
   // Forcer le rendu complet au chargement
   setTimeout(() => {
@@ -913,12 +913,28 @@ function showToast(result, msg, success, isCrit) {
   window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3800);
 }
 
+const MOIS_FR_JOURNAL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+// Formate un horodatage reel (ISO, ex. created_at Supabase ou Date.now() local capture a
+// l'insertion) en "18 août 2026 · 16h00". Retourne null si aucun horodatage exploitable --
+// ne JAMAIS deriver cet affichage de state.day (doctrine "Confort de lecture", 18 aout 2026 :
+// state.day est une convention de jeu, pas une date reelle, et ne doit jamais servir a afficher
+// une date au joueur).
+function formaterHorodatageJournal(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const h = String(d.getHours()).padStart(2, '0');
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${d.getDate()} ${MOIS_FR_JOURNAL[d.getMonth()]} ${d.getFullYear()} · ${h}h${m}`;
+}
+
 function addJournalEntry(text, cls) {
   const j = document.getElementById('journal');
-  const h = String(state.hour).padStart(2,'0');
+  const ts = new Date().toISOString();
   const div = document.createElement('div');
   div.className = 'journal-entry';
-  div.innerHTML = `<span class="journal-time">Jour ${state.day} · ${h}h00</span>
+  div.innerHTML = `<span class="journal-time">${formaterHorodatageJournal(ts)}</span>
     <span class="journal-text ${cls||''}">${text}</span>`;
   j.insertBefore(div, j.firstChild);
 
@@ -928,7 +944,7 @@ function addJournalEntry(text, cls) {
   // defaut faute d'etre resynchronisee vers state.char avant sauvegarde).
   if (state.char) {
     if (!Array.isArray(state.char.journal)) state.char.journal = [];
-    state.char.journal.unshift({ day: state.day, hour: state.hour, text, cls: cls || '' });
+    state.char.journal.unshift({ day: state.day, hour: state.hour, text, cls: cls || '', ts });
     if (state.char.journal.length > 120) state.char.journal.length = 120;
   }
 
@@ -948,10 +964,13 @@ function restaurerJournal(char) {
   if (!j || !Array.isArray(char?.journal)) return;
   j.innerHTML = '';
   char.journal.forEach(entry => {
+    // entry.ts n'existe que pour les entrees creees apres l'introduction de l'horodatage reel
+    // (18 aout 2026) -- repli honnete sur "Jour X" pour les entrees anciennes, sans rien inventer.
     const h = String(entry.hour ?? 0).padStart(2, '0');
+    const horodatage = formaterHorodatageJournal(entry.ts) || `Jour ${entry.day} · ${h}h00`;
     const div = document.createElement('div');
     div.className = 'journal-entry';
-    div.innerHTML = `<span class="journal-time">Jour ${entry.day} · ${h}h00</span>
+    div.innerHTML = `<span class="journal-time">${horodatage}</span>
       <span class="journal-text ${entry.cls || ''}">${entry.text}</span>`;
     j.appendChild(div);
   });

@@ -688,12 +688,11 @@ function closeMailView() {
 
 function addExternalEvent(text, scope) {
   const j = document.getElementById('journal');
-  const h = String(state.hour).padStart(2,'0');
-  const m = String(state.minute||0).padStart(2,'0');
+  const ts = new Date().toISOString();
   const div = document.createElement('div');
   div.className = 'journal-entry journal-external';
   div.innerHTML = `
-    <span class="journal-time">Jour ${state.day} · ${h}h${m}</span>
+    <span class="journal-time">${formaterHorodatageJournal(ts)}</span>
     <span class="journal-alert" onclick="this.style.display='none'" title="Cliquer pour marquer comme lu">●</span>
     <span class="journal-text event-external"><strong>${text}</strong></span>
   `;
@@ -737,10 +736,14 @@ async function chargerEvenementsPartages() {
     const nouveaux = rows.filter(r => !dejaVus.has(r.id)).sort((a,b) => a.id - b.id);
     nouveaux.forEach(r => {
       dejaVus.add(r.id);
+      // r.created_at est l'horodatage serveur reel (colonne Supabase deja existante, jamais
+      // selectionnee explicitement mais toujours renvoyee par sbGet faute de filtre "select=").
+      // Repli honnete sur "Jour X" si absent, sans jamais inventer d'heure.
+      const horodatage = formaterHorodatageJournal(r.created_at) || `Jour ${r.jour || '?'}`;
       const div = document.createElement('div');
       div.className = 'journal-entry journal-external';
       div.innerHTML = `
-        <span class="journal-time">Jour ${r.jour || '?'}</span>
+        <span class="journal-time">${horodatage}</span>
         <span class="journal-alert" onclick="this.style.display='none'" title="Cliquer pour marquer comme lu">●</span>
         <span class="journal-text event-external"><strong>${r.texte}</strong></span>
       `;

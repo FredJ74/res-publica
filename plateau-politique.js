@@ -1402,120 +1402,125 @@ function verifierObjectifs() {
 }
 
 // =====================
-// JOURNAL DU MATIN
+// JOURNAL DU JOUR (18 aout 2026 : remplace l'ancien "Journal du Matin" genere a la volee par
+// prompt libre. Ce journal se contente de LIRE la derniere edition publiee de journal_editions
+// (produite par le cron via api/_journal-generation.js) -- il ne genere jamais rien lui-meme.
+// Statuts 'en_cours'/'echec' ne sont jamais montres au joueur.)
 // =====================
-async function afficherJournalDuMatin() {
+
+// Repli honnete si l'ID (ex. type d'image) n'est pas au format YYYY-MM-DD attendu -- ne devrait
+// jamais arriver puisque date_edition est calculee cote serveur, mais evite d'afficher "undefined".
+function formaterDateEditionFr(dateEdition) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateEdition || '');
+  if (!m) return dateEdition || '';
+  const jour = parseInt(m[3], 10);
+  const mois = MOIS_FR_JOURNAL[parseInt(m[2], 10) - 1] || m[2];
+  return jour + ' ' + mois + ' ' + m[1];
+}
+
+// Filet de securite cosmetique (pas un moteur Markdown) : le Journal du jour est deja structure
+// en JSON avec des champs separes (titre/corps rendus dans de vraies balises HTML), ce qui evite
+// le principal cas d'usage du markdown dans l'ancien Journal du Matin (simuler un titre dans un
+// bloc de texte libre). Ce filtre retire simplement les marqueurs de syntaxe les plus frequents
+// si un article en contient malgre tout -- jamais de conversion en gras/italique HTML.
+function nettoyerMarkdownResiduel(texte) {
+  return String(texte || '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/^#{1,6}\s*/gm, '');
+}
+
+function texteArticleHtml(texte) {
+  return escapeHtmlText(nettoyerMarkdownResiduel(texte));
+}
+
+function renderArticleJournal(art) {
+  if (!art) return '';
+  const ville = art.ville ? `<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.1rem">${escapeHtmlText(art.ville)}</div>` : '';
+  const titre = art.titre ? `<h4 style="font-family:'Playfair Display',serif;font-size:.98rem;color:#d8c8a0;margin:0 0 .3rem">${texteArticleHtml(art.titre)}</h4>` : '';
+  const texte = art.texte ? `<p>${texteArticleHtml(art.texte)}</p>` : '';
+  return `<div style="margin-bottom:.9rem">${ville}${titre}${texte}</div>`;
+}
+
+function renderRubriqueJournal(titreSection, articles) {
+  if (!Array.isArray(articles) || articles.length === 0) return '';
+  const titreHtml = `<div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:1.2rem 0 .5rem;border-bottom:1px solid #2a2010;padding-bottom:.2rem">${escapeHtmlText(titreSection)}</div>`;
+  return titreHtml + articles.map(renderArticleJournal).join('');
+}
+
+function construireHtmlJournalDuJour(edition) {
+  const co = COUNTRIES[edition.country];
+  const nomPays = escapeHtmlText((co?.n || edition.country || '').toUpperCase());
+  const dateFr = escapeHtmlText(formaterDateEditionFr(edition.date_edition));
+
+  const une = edition.une || {};
+  const dp = edition.double_page_centrale || {};
+  const eco = edition.page_economie_societe || {};
+
+  let html = `<div class="lecture-longue lecture-longue-page" style="padding:.8rem 1rem">`;
+  html += `<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.8rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em">${nomPays} · ${dateFr}</div>`;
+
+  // A/B : Une
+  if (une.titre_principal) {
+    html += `<h2 style="font-family:'Playfair Display',serif;color:#E8D880;margin:0 0 .5rem;font-size:1.3rem">${texteArticleHtml(une.titre_principal)}</h2>`;
+  }
+  if (une.chapeau) {
+    html += `<p style="font-style:italic;color:#c0b090">${texteArticleHtml(une.chapeau)}</p>`;
+  }
+  if (Array.isArray(une.accroches) && une.accroches.length > 0) {
+    html += '<ul style="margin:.4rem 0 1rem;padding-left:1.1rem">';
+    une.accroches.forEach(acc => {
+      if (acc && acc.texte) html += `<li>${texteArticleHtml(acc.texte)}</li>`;
+    });
+    html += '</ul>';
+  }
+
+  // C : Actualités
+  html += renderRubriqueJournal('Villes', dp.villes);
+  html += renderRubriqueJournal('Actualité nationale', dp.nationale);
+  html += renderRubriqueJournal('International', dp.internationale);
+
+  // D : Économie & société
+  html += renderRubriqueJournal('Statistiques', eco.statistiques);
+  html += renderRubriqueJournal('Absences notables', eco.absences_notables);
+  const rp = eco.rubrique_pedagogique;
+  if (rp && rp.texte) {
+    html += `<div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:1.2rem 0 .5rem;border-bottom:1px solid #2a2010;padding-bottom:.2rem">Rubrique pédagogique</div>`;
+    if (rp.titre) html += `<h4 style="font-family:'Playfair Display',serif;font-size:.98rem;color:#d8c8a0;margin:0 0 .3rem">${texteArticleHtml(rp.titre)}</h4>`;
+    html += `<p>${texteArticleHtml(rp.texte)}</p>`;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+async function afficherJournalDuJour() {
   const today = state.day || 1;
-  const sessionKey = 'journal_matin_day_' + today;
+  const sessionKey = 'journal_dujour_day_' + today;
   if (sessionStorage.getItem(sessionKey)) return;
   sessionStorage.setItem(sessionKey, '1');
 
-  const co = COUNTRIES[state.country];
-  const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
-  // Récupérer la vraie situation politique depuis Supabase
-  let presidentNom = 'Poste vacant';
-  let autresPostes = [];
-  let resumeActions = '';
-  let topics = '';
+  document.getElementById('postes-modal-title').textContent = 'Journal du jour';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem 1rem;font-style:italic;color:#8a8060">Chargement…</div>';
+  document.querySelector('#modal-postes .modal-box')?.classList.add('modal-wide');
+  document.getElementById('modal-postes').classList.add('open');
 
-  if (typeof sbListPersonnages === 'function') {
+  let edition = null;
+  if (typeof sbGet === 'function') {
     try {
-      const joueurs = await sbListPersonnages() || [];
-      const memeEmpire = joueurs.filter(j => j.country === state.country);
-      const president = memeEmpire.find(j => j.poste && j.poste.id === 'president');
-      presidentNom = president?.name || 'Poste vacant';
-      autresPostes = memeEmpire
-        .filter(j => j.poste && j.poste.id !== 'president' && j.name !== state.char?.name)
-        .map(j => j.name + ' (' + j.poste.name + ')')
-        .slice(0, 3);
-      const autres = joueurs.filter(j => j.name !== state.char?.name);
-      if (autres.length > 0) {
-        resumeActions = autres.slice(0,3).map(j => j.name + ' vu à ' + (j.current_city || 'lieu inconnu')).join(', ');
-      }
-    } catch(e) {}
+      const rows = await sbGet('journal_editions',
+        'country=eq.' + encodeURIComponent(state.country) +
+        '&statut=eq.publiee&order=date_edition.desc&limit=1');
+      edition = (rows && rows[0]) || null;
+    } catch(e) { console.warn('afficherJournalDuJour error', e); }
   }
 
-  if (typeof FORUM_TOPICS !== 'undefined') {
-    topics = (FORUM_TOPICS['local'] || []).slice(0, 3).map(t => '"' + t.title + '" (par ' + t.author + ')').join(', ');
-  }
+  document.getElementById('postes-body').innerHTML = edition
+    ? construireHtmlJournalDuJour(edition)
+    : '<div style="padding:1.2rem 1rem;font-style:italic;color:#8a8060">Aucun numéro n\'est encore disponible pour aujourd\'hui.</div>';
 
-  // Mentionner la quete active, le cas echeant
-  let queteInfo = '';
-  if (typeof sbGetQueteActive === 'function') {
-    try {
-      const quete = await sbGetQueteActive(state.country);
-      if (quete) queteInfo = 'Une affaire est en cours : "' + quete.titre + '" (' + quete.description + ').';
-    } catch(e) {}
-  }
-
-  const contextePolitique = presidentNom !== 'Poste vacant'
-    ? presidentNom + ' occupe la présidence.'
-    : 'Le fauteuil présidentiel est vacant.';
-  const contextPostes = autresPostes.length > 0 ? 'Autres postes : ' + autresPostes.join(', ') + '.' : '';
-
-  const prompt = 'Tu es le rédacteur du journal du matin dans ' + (co?.n || 'l\'empire') + ', jeu politique parodique. ' +
-    'Style : ' + empireStyle.tone + '. Religion : ' + empireStyle.religion + '. ' +
-    'SITUATION RÉELLE DU JOUR : ' + contextePolitique + ' ' + contextPostes + ' ' +
-    (resumeActions ? 'Joueurs actifs : ' + resumeActions + '. ' : '') +
-    (topics ? 'Sujets du forum : ' + topics + '. ' : '') +
-    (queteInfo ? queteInfo + ' Mentionne cette affaire dans une des breves. ' : '') +
-    'Jour ' + today + '. ' +
-    'Rédige un bref journal du matin parodique COHÉRENT avec cette situation réelle : 1 titre + 3 brèves drôles. ' +
-    'Si un président est nommé, ne dis PAS que le fauteuil est vide. Pas de vrais dieux. Max 6 lignes.';
-
-  try {
-    const resp = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 200, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await resp.json();
-    const journal = data.content?.[0]?.text;
-    if (!journal) return;
-
-    // Afficher dans un modal dédié
-    document.getElementById('postes-modal-title').textContent = '📰 Journal du Matin — Jour ' + today;
-    document.getElementById('postes-body').innerHTML =
-      '<div style="padding:.8rem 1rem">' +
-      '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.6rem;font-family:Bebas Neue,sans-serif;letter-spacing:.08em">' +
-        co?.n?.toUpperCase() + ' · ÉDITION DU JOUR ' + today +
-      '</div>' +
-      '<div style="font-size:.85rem;color:#c0b090;line-height:1.9;white-space:pre-line;font-family:Crimson Pro,Georgia,serif;border-left:2px solid #3a2a10;padding-left:.8rem">' +
-        journal +
-      '</div>' +
-      '<div style="margin-top:.8rem;display:flex;gap:.5rem">' +
-        '<button onclick="publierJournal(this.dataset.txt)" data-txt="' + journal.replace(/"/g,'&quot;') + '" ' +
-        'style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">' +
-        '<i class="ti ti-news" style="font-size:.7rem"></i> Publier sur le forum</button>' +
-        '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" ' +
-        'style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #3a2a10;background:transparent;color:#6a5a30;cursor:pointer">Fermer</button>' +
-      '</div></div>';
-    document.getElementById('modal-postes').classList.add('open');
-
-    addJournalEntry('📰 Journal du matin disponible — Jour ' + today, 'event-info');
-  } catch(e) {}
-}
-
-async function publierJournal(texte) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const from = state.char?.name || 'Rédaction';
-  const h = String(state.hour || 8).padStart(2, '0');
-  const m = String(state.minute || 0).padStart(2, '0');
-  const time = `Jour ${state.day} · ${h}h${m}`;
-  const titre = '📰 Journal du Matin — Jour ' + (state.day||1);
-
-  let topicId = null;
-  if (typeof sbCreateTopic === 'function') {
-    topicId = await sbCreateTopic('presse', titre, from, state.country, time);
-    if (topicId && typeof sbCreatePost === 'function') await sbCreatePost(topicId, from, texte, time);
-  }
-  if (!FORUM_TOPICS['presse']) FORUM_TOPICS['presse'] = [];
-  FORUM_TOPICS['presse'].unshift({
-    id: topicId || 'topic-' + Date.now(), title: titre, author: from,
-    time, views: 1, replies: 0, lastPostAuthor: from, lastPostTime: time,
-    posts: [{ id: 'p-' + Date.now(), author: from, time, content: texte }]
-  });
-  showToast('Journal publié !', 'Visible sur Presse et Medias.', true);
+  if (edition) addJournalEntry('📰 Journal du jour disponible', 'event-info');
 }
 
 // =====================

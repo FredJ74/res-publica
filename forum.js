@@ -2004,7 +2004,7 @@ function renderMailRead() {
           · ${formatDateAffichage(mail.time)}
         </div>
       </div>
-      <div style="font-family:Crimson Pro,Georgia,serif;font-size:.9rem;line-height:1.8;color:#f0ead6">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(mail.body || '') : ''}</div>
+      <div class="lecture-longue lecture-longue-page" style="color:#f0ead6">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(mail.body || '') : ''}</div>
       <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
         ${mail.to === myName && !mail.fromIsOrg ? `
           <button data-mail-from="${escapeHtmlText(mail.from)}" data-mail-subject="${escapeHtmlText(mail.subject)}"

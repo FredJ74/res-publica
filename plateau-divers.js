@@ -31,13 +31,16 @@ async function genererEvenementAleatoire() {
   const co = COUNTRIES[state.country];
   const empireStyle = EMPIRE_STYLES?.[state.country] || { tone: 'parodique', religion: 'la Foi Locale', leader: 'le Chef' };
 
+  // Consigne de brievete+completude (18 aout 2026, correctif troncature) : ajoutee a chaque
+  // prompt pour reduire le risque qu'une phrase depasse la limite de tokens ci-dessous.
+  const consigneBrievete = ' Reponds uniquement par cette phrase, complete et jamais coupee (20 mots maximum).';
   const prompts = {
-    scandale: 'Génère un titre de scandale politique absurde et parodique dans ' + (co?.n || 'l\'empire') + '. Style : ' + empireStyle.tone + '. 1 phrase. Pas de vrais dieux.',
-    greve: 'Génère une annonce de grève surprise absurde dans ' + (co?.n || 'l\'empire') + '. Corps de métier inattendu. Style : ' + empireStyle.tone + '. 1 phrase.',
-    visite: 'Génère une annonce de visite diplomatique absurde dans ' + (co?.n || 'l\'empire') + '. Visiteur improbable. Style : ' + empireStyle.tone + '. 1 phrase.',
-    panne: 'Génère une annonce de panne administrative absurde dans ' + (co?.n || 'l\'empire') + '. Service inattendu en panne. Style : ' + empireStyle.tone + '. 1 phrase.',
-    bonne_nouvelle: 'Génère une bonne nouvelle politique absurde dans ' + (co?.n || 'l\'empire') + '. Style : ' + empireStyle.tone + '. 1 phrase. Religion locale : ' + empireStyle.religion + '.',
-    rumeur: 'Génère une rumeur politique absurde qui circule dans ' + (co?.n || 'l\'empire') + '. Style : ' + empireStyle.tone + '. 1 phrase.',
+    scandale: 'Génère un titre de scandale politique absurde et parodique dans ' + (co?.n || 'l\'empire') + '. Style : ' + empireStyle.tone + '. 1 phrase. Pas de vrais dieux.' + consigneBrievete,
+    greve: 'Génère une annonce de grève surprise absurde dans ' + (co?.n || 'l\'empire') + '. Corps de métier inattendu. Style : ' + empireStyle.tone + '. 1 phrase.' + consigneBrievete,
+    visite: 'Génère une annonce de visite diplomatique absurde dans ' + (co?.n || 'l\'empire') + '. Visiteur improbable. Style : ' + empireStyle.tone + '. 1 phrase.' + consigneBrievete,
+    panne: 'Génère une annonce de panne administrative absurde dans ' + (co?.n || 'l\'empire') + '. Service inattendu en panne. Style : ' + empireStyle.tone + '. 1 phrase.' + consigneBrievete,
+    bonne_nouvelle: 'Génère une bonne nouvelle politique absurde dans ' + (co?.n || 'l\'empire') + '. Style : ' + empireStyle.tone + '. 1 phrase. Religion locale : ' + empireStyle.religion + '.' + consigneBrievete,
+    rumeur: 'Génère une rumeur politique absurde qui circule dans ' + (co?.n || 'l\'empire') + '. Style : ' + empireStyle.tone + '. 1 phrase.' + consigneBrievete,
   };
 
   const emojis = { scandale: '🔥', greve: '✊', visite: '🤝', panne: '⚠️', bonne_nouvelle: '🎉', rumeur: '👂' };
@@ -46,11 +49,18 @@ async function genererEvenementAleatoire() {
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 100, messages: [{ role: 'user', content: prompts[type.id] }] })
+      // max_tokens releve de 100 a 220 (18 aout 2026, correctif troncature) : la limite precedente
+      // coupait parfois la phrase avant sa fin malgre la consigne "1 phrase". La marge combinee
+      // au filtre stop_reason ci-dessous elimine l'affichage d'une phrase amputee.
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 220, messages: [{ role: 'user', content: prompts[type.id] }] })
     });
     const data = await resp.json();
     const texte = data.content?.[0]?.text;
-    if (texte) {
+    // Ne jamais afficher une phrase tronquee par la limite de tokens : stop_reason:'max_tokens'
+    // signale une coupure brute du modele (deja expose par api/chat.js, simple relais de la
+    // reponse Anthropic). Dans ce cas l'evenement de ce cycle est abandonne, comme s'il n'avait
+    // pas eu lieu -- jamais affiche a moitie.
+    if (texte && data.stop_reason !== 'max_tokens') {
       const emoji = emojis[type.id] || '📢';
       addJournalEntry(emoji + ' ' + type.label.toUpperCase() + ' : ' + texte, 'event-' + (type.id === 'bonne_nouvelle' ? 'good' : type.id === 'scandale' ? 'bad' : 'info'));
       addExternalEvent(emoji + ' ' + texte);
