@@ -511,9 +511,51 @@ const WORLD = {
             }
           }
         },
-        'banque-locale':                { name: "Banque Cheminote de Montrouge" },
-        'loge-maconnique':              { name: "Loge maçonnique de Montrouge" },
-        'centre-artisanal':             { name: "Centre artisanal de Montrouge" },
+        // Images d'interieur (18 aout 2026, suite du chantier images Montrouge) : roomOverrides
+        // couvre les rooms deja existantes (image seule, jamais persons/orders/mecanique).
+        // banque-locale recoit en plus une room roomsExtra "bureau_directeur" -- purement
+        // spatiale/visuelle (aucun ordre, aucun PNJ, aucune mecanique bancaire), meme principe
+        // deja etabli que 'imprimerie' (la-tribune) ou 'salle_elections'/'salle_archives'
+        // (mairie) ci-dessus. L'override mort 'banque-nationale' (ligne 355, jamais atteignable
+        // car absent de la liste "buildings" de Montrouge) est laisse tel quel, hors perimetre.
+        'banque-locale': {
+          name: "Banque Cheminote de Montrouge",
+          roomOverrides: {
+            guichet: { imageUrl: "images/montrouge/montrouge-banque-accueil.jpg" }
+          },
+          roomsExtra: {
+            bureau_directeur: {
+              name: "Bureau du Directeur",
+              imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
+              desc: "Le bureau du directeur de l'agence. Porte capitonnee, silence feutre.",
+              imageUrl: "images/montrouge/montrouge-banque-bureau-directeur.jpg",
+              persons: [],
+              orders: []
+            }
+          }
+        },
+        'loge-maconnique': {
+          name: "Loge maçonnique de Montrouge",
+          roomOverrides: {
+            hall_loge:          { imageUrl: "images/montrouge/montrouge-loge-entree.jpg" },
+            salle_reunion_loge: { imageUrl: "images/montrouge/montrouge-loge-salle-reunion.jpg" }
+          }
+        },
+        // Correspondance par tier (18 aout 2026), meme logique deja validee pour centre-affaires
+        // ci-dessus (grand=tier1/moyen=tier2/petit=tier3) : echoppe_facade (tier:1, 600FR/jour,
+        // +12 POP) = grand, atelier_milieu (tier:2, 300FR/jour, +6 POP) = moyen, reserve_arriere
+        // (tier:3, 100FR/jour, +2 POP) = petit. Aucun numero de box ni surface n'existe dans le
+        // code (verifie) -- les mentions "Box n°X" / m² visibles sur les images sont du seul
+        // decor graphique, jamais reproduites en donnees. Loyers/POP/tiers/ordres inchanges.
+        'centre-artisanal': {
+          name: "Centre artisanal de Montrouge",
+          roomOverrides: {
+            travees:         { imageUrl: "images/montrouge/montrouge-centre-artisanal-accueil.jpg" },
+            echoppe_facade:  { imageUrl: "images/montrouge/montrouge-centre-artisanal-box-grand.jpg" },
+            atelier_milieu:  { imageUrl: "images/montrouge/montrouge-centre-artisanal-box-moyen.jpg" },
+            reserve_arriere: { imageUrl: "images/montrouge/montrouge-centre-artisanal-box-petit.jpg" }
+          }
+        },
         'terrain-a-batir-6':            { name: "Terrains à vendre" }
       }
     },
