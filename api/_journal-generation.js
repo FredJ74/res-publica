@@ -65,6 +65,16 @@ const TIMEZONE_PAR_PAYS = {
   khalija: 'Europe/Paris'
 };
 
+// Noms lisibles par pays (18 aout 2026, hierarchie geographique) -- duplique de COUNTRIES
+// (data.js), meme convention d'isolation serveur que le reste de ce module. Utilise uniquement
+// pour nommer le pays dans le prompt -- n'affecte jamais l'identifiant technique "pays".
+const NOMS_PAYS = {
+  republic: 'Republia',
+  narco: 'El Estado',
+  soviet: 'Sovarka',
+  khalija: 'Al-Khalija'
+};
+
 // Budget interne par appel Anthropic (indépendant du maxDuration global du cron, 120s) : assez
 // large pour une génération normale de 4 pages, assez borné pour qu'un pays lent ne puisse
 // jamais, même avec les 4 pays en parallèle (Promise.allSettled), épuiser le budget des tâches
@@ -92,7 +102,7 @@ function dateEditionPourPays(pays, momentDate) {
 // source reste présent, seulement organisé différemment. Motif mesuré en production (18 août
 // 2026) : le paquet plat de Républia (85 indicateurs prix/stock, un objet verbeux par valeur)
 // dépassait 30s de traitement côté Anthropic avant même de générer la moindre sortie.
-function construireAiInput(paquet) {
+function construireAiInput(paquet, dateEdition) {
   const nonEco = [];
   const ecoParVille = {};
 
@@ -121,6 +131,14 @@ function construireAiInput(paquet) {
   }));
 
   return {
+    // Pays cible et date humaine officielle du numero (18 aout 2026, hierarchie geographique +
+    // correctif de date) : deja calcules par genererEditionPays, jamais recalcules ici -- paquet.country
+    // vient du Lot A (INCHANGE), dateEdition vient de dateEditionPourPays (Lot B). Ces deux champs
+    // etaient auparavant silencieusement perdus lors de la compaction -- c'est ce qui permettait
+    // a un fait etranger de devenir la Une, et a l'IA de citer la date UTC brute de "periode.fin"
+    // au lieu de la date civile reelle du numero.
+    country: paquet.country,
+    date_edition: dateEdition,
     periode: paquet.periode,
     FACTS: paquet.FACTS,
     PUBLIC_STATEMENTS: paquet.PUBLIC_STATEMENTS,
@@ -156,7 +174,8 @@ const SCHEMA_JSON_TEXTE = `{
   "une": {
     "titre_principal": "string",
     "chapeau": "string",
-    "accroches": [ { "texte": "string", "article_ref": "string (id d'un article existant)" } ],
+    "article_principal_ref": "string|null (id d'un article existant et domestique ; null si la Une n'est ancrée sur aucun article précis, ex. journée calme)",
+    "accroches": [ { "texte": "string", "article_ref": "string (id d'un article existant et domestique)" } ],
     "image": { "type": "personnage|lieu|generique|fallback", "ref_id": "string|null" }
   },
   "double_page_centrale": {
@@ -174,8 +193,11 @@ const SCHEMA_JSON_TEXTE = `{
 //   "titre": "string", "texte": "string", "ville": "string|null", "pays_source": "string|null",
 //   "source_ids": ["string", ...] }`;
 
-function construirePromptSysteme() {
-  return `Tu es la rédaction du "Journal du jour", un quotidien national fictif du jeu Res Publica.
+function construirePromptSysteme(pays, dateEdition) {
+  const nomPays = NOMS_PAYS[pays] || pays;
+  return `Tu es la rédaction du "Journal du jour" de ${nomPays}, un quotidien national fictif du jeu Res Publica.
+
+Cette édition porte la date du ${dateEdition} — c'est la date humaine officielle de ce numéro, celle que le lecteur voit. Les données "periode" (debut/fin) fournies plus bas sont des bornes techniques réelles qui peuvent parler d'un instant légèrement différent : tu peux évoquer "les dernières 24 heures", "la veille", "la période écoulée", mais tu ne dois JAMAIS présenter une autre date civile que le ${dateEdition} comme étant "la journée" ou la date de ce numéro.
 
 RÈGLE ABSOLUE, NON NÉGOCIABLE : « Tu peux interpréter les faits à ta façon. Tu ne peux JAMAIS inventer les faits. »
 
@@ -184,6 +206,10 @@ Tu reçois un paquet de données structurées (FACTS, PUBLIC_STATEMENTS, INDICAT
 TU PEUX : hiérarchiser l'information, choisir un angle, commenter, ironiser, adopter un ton partisan ou de mauvaise foi, dramatiser prudemment (jamais présenter une causalité comme certaine si elle n'est pas prouvée par les données), rapprocher plusieurs faits réellement présents dans le paquet.
 
 TU NE PEUX JAMAIS : inventer un événement, une personne, une déclaration, une citation, un chiffre, une transaction, une causalité certaine non démontrée, une comparaison/série historique non fournie, ou une règle de fonctionnement du jeu. Si les données sont pauvres, écris PLUS COURT — ne remplis jamais artificiellement une rubrique. Une rubrique peut légitimement être courte ou signaler qu'il ne s'est rien passé.
+
+HIÉRARCHIE GÉOGRAPHIQUE : ce journal est celui de ${nomPays} (pays "${pays}"). Pour la Une (titre principal ET accroches), la rubrique "villes" et la rubrique "nationale" : priorité ABSOLUE aux faits, déclarations et indicateurs dont le champ "pays"/"pays_source" correspond à "${pays}". Une information provenant d'un autre pays peut alimenter UNIQUEMENT la rubrique "internationale", présentée clairement comme étrangère ("à l'étranger...", "dans tel autre pays..."). Elle ne doit JAMAIS devenir le titre principal de la Une, ni une accroche de Une — même si l'actualité intérieure est pauvre ce jour-là. Ne cherche jamais à combler un manque d'actualité domestique en promouvant un sujet étranger au rang de sujet principal.
+
+JOURNÉE CALME : si aucune actualité domestique notable n'existe, assume-le honnêtement plutôt que d'importer un sujet étranger pour la Une. « Pas d'information » est aussi une information : une Une du type "Journée calme à ${nomPays}" est parfaitement légitime, avec "article_principal_ref":null si elle ne s'appuie sur aucun article précis. Les INDICATORS/COMPARISONS peuvent enrichir cette Une lorsqu'ils apportent réellement quelque chose de pertinent, mais ne sont JAMAIS obligatoires pour la justifier — tu n'es pas tenu de fabriquer un sujet principal à partir d'un indicateur économique juste pour remplir la Une. Une information étrangère intéressante reste toujours possible dans "internationale", quel que soit le calme du jour.
 
 FAITS vs DÉCLARATIONS : FACTS est établi par le système lui-même. PUBLIC_STATEMENTS prouve seulement que son auteur a publiquement écrit quelque chose — JAMAIS que c'est vrai. Tout contenu tiré de PUBLIC_STATEMENTS doit être attribué explicitement à son auteur avec un verbe déclaratif ("X affirme...", "X accuse...", "X annonce..."), jamais présenté comme un fait acquis.
 
@@ -298,11 +324,32 @@ function extraireCitations(texte) {
   return citations;
 }
 
-function validerArticle(art, index, erreurs, contexte, idsVus) {
+// Hiérarchie géographique (18 août 2026) : détermine si un article s'appuie EXCLUSIVEMENT sur
+// des sources étrangères au pays cible. Un article "statistique"/"absence_remarquable" est
+// toujours implicitement domestique — INDICATORS/COMPARISONS ne sont jamais collectés que pour
+// le pays cible lui-même (_journal-collecte.js, Lot A, inchangé). Pour "actualite"/"declaration",
+// on regarde le pays réel de CHAQUE source citée (un match de championnat peut concerner deux
+// pays à la fois) : l'article n'est jugé étranger QUE si AUCUNE de ses sources ne concerne le
+// pays cible — jamais de faux positif si l'information géographique est simplement absente.
+function paysDeSource(source) {
+  if (!source) return [];
+  if (Array.isArray(source.pays)) return source.pays;
+  return source.pays != null ? [source.pays] : [];
+}
+function articleEstEtranger(article, paysCible, index) {
+  if (!article || article.type === 'statistique' || article.type === 'absence_remarquable') return false;
+  if (!Array.isArray(article.source_ids) || article.source_ids.length === 0) return false;
+  const paysCites = article.source_ids.reduce((acc, sid) => acc.concat(paysDeSource(index[sid])), []);
+  if (paysCites.length === 0) return false;
+  return !paysCites.includes(paysCible);
+}
+
+function validerArticle(art, index, erreurs, contexte, idsVus, articlesParId) {
   if (!art || typeof art !== 'object') { erreurs.push(`${contexte} : article invalide (non objet)`); return; }
   if (typeof art.id !== 'string' || !art.id) { erreurs.push(`${contexte} : id manquant`); return; }
   if (idsVus.has(art.id)) erreurs.push(`id d'article dupliqué : "${art.id}"`);
   idsVus.add(art.id);
+  if (articlesParId) articlesParId[art.id] = art;
   if (!TYPES_ARTICLE_VALIDES.includes(art.type)) { erreurs.push(`${contexte} (${art.id}) : type invalide "${art.type}"`); return; }
   if (typeof art.titre !== 'string' || !art.titre) { erreurs.push(`${contexte} (${art.id}) : titre manquant`); return; }
   if (typeof art.texte !== 'string' || !art.texte) { erreurs.push(`${contexte} (${art.id}) : texte manquant`); return; }
@@ -372,11 +419,13 @@ function validerEdition(reponseTexte, aiInput) {
 
   const index = indexerAiInput(aiInput);
   const idsVus = new Set();
+  const articlesParId = {};
+  const paysCible = aiInput.country;
 
   ['villes', 'nationale', 'internationale'].forEach(rubrique => {
     const liste = double_page_centrale[rubrique];
     if (!Array.isArray(liste)) { erreurs.push(`double_page_centrale.${rubrique} doit être un tableau`); return; }
-    liste.forEach(art => validerArticle(art, index, erreurs, `double_page_centrale.${rubrique}`, idsVus));
+    liste.forEach(art => validerArticle(art, index, erreurs, `double_page_centrale.${rubrique}`, idsVus, articlesParId));
   });
 
   ['statistiques', 'absences_notables'].forEach(rubrique => {
@@ -384,7 +433,7 @@ function validerEdition(reponseTexte, aiInput) {
     if (!Array.isArray(liste)) { erreurs.push(`page_economie_societe.${rubrique} doit être un tableau`); return; }
     const typeAttendu = rubrique === 'statistiques' ? 'statistique' : 'absence_remarquable';
     liste.forEach(art => {
-      validerArticle(art, index, erreurs, `page_economie_societe.${rubrique}`, idsVus);
+      validerArticle(art, index, erreurs, `page_economie_societe.${rubrique}`, idsVus, articlesParId);
       if (art && art.type && art.type !== typeAttendu) erreurs.push(`page_economie_societe.${rubrique} (${art.id}) : type "${art.type}" incohérent avec la rubrique (attendu "${typeAttendu}")`);
     });
   });
@@ -402,15 +451,32 @@ function validerEdition(reponseTexte, aiInput) {
     erreurs.push('rubrique_pedagogique.fiche_id ne correspond pas à EDUCATIONAL_REFERENCE.fiche_id');
   }
 
-  // Une : titre/chapeau/accroches/image.
+  // Une : titre/chapeau/article_principal_ref/accroches/image.
   if (typeof une.titre_principal !== 'string' || !une.titre_principal) erreurs.push('une.titre_principal manquant');
   if (typeof une.chapeau !== 'string') erreurs.push('une.chapeau manquant');
+
+  // Hiérarchie géographique (18 août 2026) : le sujet principal de la Une ne peut jamais être
+  // une information exclusivement étrangère — null est explicitement autorisé (journée calme,
+  // Une non ancrée sur un article précis, voir prompt).
+  if (une.article_principal_ref != null) {
+    if (typeof une.article_principal_ref !== 'string') {
+      erreurs.push('une.article_principal_ref doit être une chaîne ou null');
+    } else if (!idsVus.has(une.article_principal_ref)) {
+      erreurs.push(`une.article_principal_ref inconnu "${une.article_principal_ref}"`);
+    } else if (articleEstEtranger(articlesParId[une.article_principal_ref], paysCible, index)) {
+      erreurs.push(`une.article_principal_ref "${une.article_principal_ref}" repose exclusivement sur une source étrangère — interdit comme sujet principal de Une (hiérarchie géographique)`);
+    }
+  }
+
   if (!Array.isArray(une.accroches)) {
     erreurs.push('une.accroches doit être un tableau');
   } else {
     une.accroches.forEach((acc, i) => {
       if (!acc || typeof acc.texte !== 'string' || typeof acc.article_ref !== 'string') { erreurs.push(`une.accroches[${i}] invalide`); return; }
-      if (!idsVus.has(acc.article_ref)) erreurs.push(`une.accroches[${i}] : article_ref inconnu "${acc.article_ref}"`);
+      if (!idsVus.has(acc.article_ref)) { erreurs.push(`une.accroches[${i}] : article_ref inconnu "${acc.article_ref}"`); return; }
+      if (articleEstEtranger(articlesParId[acc.article_ref], paysCible, index)) {
+        erreurs.push(`une.accroches[${i}] : article_ref "${acc.article_ref}" repose exclusivement sur une source étrangère — interdit en accroche de Une (hiérarchie géographique)`);
+      }
     });
   }
   if (!une.image || typeof une.image !== 'object') {
@@ -448,10 +514,10 @@ async function genererEditionPays(pays) {
     // AI_INPUT : restructuration purement formelle du paquet Lot A (regroupement des
     // indicateurs prix/stock par ville, voir construireAiInput) — le paquet Lot A complet reste
     // intact ci-dessus pour l'archive/historique/comparaisons, jamais modifié ni raccourci.
-    const aiInput = construireAiInput(paquet);
+    const aiInput = construireAiInput(paquet, dateEdition);
     const faitsSourcesArchive = { ...paquet, AI_INPUT: aiInput };
 
-    const systemPrompt = construirePromptSysteme();
+    const systemPrompt = construirePromptSysteme(pays, dateEdition);
     const appel = await appelAnthropic(systemPrompt, aiInput, ANTHROPIC_TIMEOUT_MS);
 
     if (!appel.ok) {
@@ -505,10 +571,12 @@ export {
   genererEditionPays,
   PROMPT_VERSION,
   TIMEZONE_PAR_PAYS,
+  NOMS_PAYS,
   dateEditionPourPays,
   construirePromptSysteme,
   construireAiInput,
   indexerAiInput,
   validerEdition,
+  articleEstEtranger,
   appelAnthropic
 };
