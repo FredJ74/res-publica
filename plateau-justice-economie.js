@@ -2063,6 +2063,14 @@ function confirmerResiliation(idx) {
   if (!state.locationsActives?.[idx]) return;
   const location = state.locationsActives[idx];
   state.locationsActives.splice(idx, 1);
+  // Correctif (18 aout 2026) : la resiliation ne supprimait jusqu'ici que l'entree locale --
+  // la ligne correspondante de la table Supabase dediee "locations_actives" restait en base,
+  // et pouvait donc reapparaitre pour d'autres joueurs (ou apres reconnexion) via
+  // chargerLocations(). sbSupprimerLocation() existait deja (introduite pour la resiliation
+  // automatique des logements sociaux) mais n'etait jusque-la jamais appelee ici.
+  if (typeof sbSupprimerLocation === 'function') {
+    sbSupprimerLocation(location.buildingId, location.roomId, location.city).catch(() => {});
+  }
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Bail résilié', location.localLabel + ' libéré.', false);
   addJournalEntry('Bail résilié : ' + location.localLabel + '.', 'event-info');

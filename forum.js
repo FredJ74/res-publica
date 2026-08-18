@@ -291,6 +291,25 @@ async function verifierActiviteForumNonVue() {
   } catch(e) {}
 }
 
+// Voyants par rubrique, a l'interieur de l'interface Messages/Forums (18 aout 2026). Reutilise
+// STRICTEMENT les mecanismes deja existants -- aucune nouvelle notion de "lu" :
+//  - Mail : recalcule en temps reel depuis read:false (meme filtre que le texte "X non lu(s)"
+//    deja affiche a cote de "Boîte Mail", jamais un nouveau systeme de lecture) ;
+//  - Forum : lit l'etat COURANT du voyant global #forum-activity-dot (doctrine "derniere
+//    consultation globale" deja en place, jamais decomposee par sous-forum/sujet). Comme
+//    openForum_module() rend le sidebar AVANT d'appeler marquerForumVisite() (voir plus haut),
+//    cette lecture capture bien "y avait-il du nouveau au moment de l'ouverture", pas apres.
+function forumADeLActiviteNonVue() {
+  const dot = document.getElementById('forum-activity-dot');
+  return !!dot && dot.style.display !== 'none';
+}
+
+// Meme identite visuelle que #forum-activity-dot (8px, #cc2020, rond) -- jamais une deuxieme
+// forme de voyant. margeGauche permet de coller le point juste apres un libelle existant.
+function htmlPointRougeActivite(margeGauche) {
+  return '<span style="display:inline-block;width:8px;height:8px;background:#cc2020;border-radius:50%;margin-left:' + (margeGauche || '.4rem') + ';vertical-align:middle"></span>';
+}
+
 function renderForumNavItem(id, f) {
   const accessible = !f.private || canAccessForum(id);
   return `<div class="forum-nav-item ${id === currentForumId && forumView !== 'mail' ? 'active' : ''} ${!accessible ? 'locked' : ''}"
@@ -376,13 +395,24 @@ function renderCategorieHeader(cat, icon, label) {
 function renderForumModal() {
   const modal = document.getElementById('forum-body');
   const unreadCount = getMyMails().filter(m => !m.read && m.to === state.char?.name).length;
+  // Voyants de rubrique (18 aout 2026, corrige suite a retour : un seul voyant Forum, jamais
+  // repete sur Forums nationaux/internationaux/prives -- le mecanisme sous-jacent n'a aucune
+  // granularite par sous-forum, et 3 points rouges simultanes suggeraient visuellement le
+  // contraire au joueur). Mail depuis unreadCount (deja calcule ci-dessus, temps reel) ; Forum
+  // depuis l'etat courant du voyant global (calcule une seule fois, avant que
+  // marquerForumVisite() -- appelee juste apres ce rendu par openForum_module() -- ne l'eteigne).
+  // Place sur le titre du modal (#modal-forum-title, plateau.html), seul element qui represente
+  // "Forum" en general sans etre l'une des 3 categories ni la Boite Mail.
+  const forumNonVu = forumADeLActiviteNonVue();
+  const titreModal = document.getElementById('modal-forum-title');
+  if (titreModal) titreModal.innerHTML = 'Forum' + (forumNonVu ? htmlPointRougeActivite('.4rem') : '');
   modal.innerHTML = `
     <div class="forum-layout">
       <div class="forum-sidebar">
         <div class="forum-nav-item forum-mail-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
           <i class="ti ti-mail" style="font-size:.85rem"></i>
           <div>
-            <div class="forum-nav-name">Boîte Mail</div>
+            <div class="forum-nav-name">Boîte Mail${unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}</div>
             <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${unreadCount} non lu(s)</span>` : 'Aucun message'}</div>
           </div>
         </div>
