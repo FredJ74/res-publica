@@ -748,7 +748,7 @@ function ouvrirModalCandidature(posteId, country, poste, cycle, city) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerCandidature(el) {
+async function confirmerCandidature(el) {
   const posteId = el?.dataset?.poste || el;
   const country = el?.dataset?.country || arguments[1];
   const city = el?.dataset?.city || arguments[2] || null;
@@ -757,7 +757,19 @@ function confirmerCandidature(el) {
   const theme = document.getElementById('prog-theme')?.value || 'economie';
   if (!programme) { showToast('Programme requis', 'Décrivez votre programme.', false); return; }
 
+  // Garde du cycle electoral (correctif Lot 2C) -- meme controle que deposerCandidature()
+  // (ligne 592) : initialise le cycle s'il n'existe pas encore, AVANT la deduction PA. Un cycle
+  // absent est un etat metier exploitable (creation a la volee), pas un echec -- seule son
+  // absence totale (init impossible) doit bloquer l'ordre sans debit.
   const cle = getCleCycle(posteId, city);
+  if (!CYCLES_ELECTORAUX[country][cle]) await initCycleElectoral(country, posteId, city);
+  if (!CYCLES_ELECTORAUX[country][cle]) { showToast('Indisponible', 'Le cycle electoral n\'est pas exploitable pour ce poste.', false); return; }
+
+  // Deduction PA centralisee (Lot 2C) -- au moment de la confirmation effective, pas a
+  // l'ouverture du modal (ouvrirModalCandidature). Avant toute mutation irreversible.
+  const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
+
   const cycle = CYCLES_ELECTORAUX[country][cle];
   const nouveauCandidat = {
     nom, programme, theme,
@@ -3956,8 +3968,10 @@ async function executerOrdreFiscalCible(action, typeCible, idCible) {
     document.getElementById('modal-postes')?.classList.remove('open');
     const pays = state.country || 'republic';
     const cout = 400;
-    const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_just', cout) : 0;
-    if (montantVerse < cout) { showToast('Caisse insuffisante', 'La caisse du gouvernement ne peut pas couvrir les frais d\'enquête (' + cout + ' FR).', false); return; }
+    // Deduction PA+cout centralisee (Lot 2C) via payeur institutionnel (caisse du ministere de
+    // la justice), avant toute mutation (jet, mails).
+    const r = await deduireCoutOrdre({ pa: 2, cost: cout, payeur: { type: 'institution', pays, buildingId: 'gouvernement-min_just' } });
+    if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante', r.raison === 'pa_insuffisants' ? '2 PA requis.' : 'La caisse du gouvernement ne peut pas couvrir les frais d\'enquête (' + cout + ' FR).', false); return; }
 
     const reussite = Math.random() < 0.9;
     updateUI();
@@ -3975,6 +3989,9 @@ async function executerOrdreFiscalCible(action, typeCible, idCible) {
 
   if (action === 'redressement_fiscal') {
     document.getElementById('modal-postes')?.classList.remove('open');
+    // Deduction PA centralisee (Lot 2C) -- avant la premiere mutation (solde de la cible).
+    const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
+    if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
     const montantVise = 2000;
     const montantPreleve = -(await ajusterSoldeCibleFiscale(typeCible, idCible, -montantVise));
     const budgetNat = await chargerBudgetNational(state.country);
@@ -4006,6 +4023,21 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const nomCible = nomAffichageCible(typeCible, idCible);
   const pays = state.country || 'republic';
+
+  // Lecture seule du solde de la caisse AVANT la deduction PA (correctif Lot 2C) -- seul le cas
+  // caisse a zero est un echec complet sans aucune contrepartie ; un solde > 0 reste une
+  // reussite partielle valide (le joueur choisit librement le montant demande), donc le
+  // versement partiel via debiterCaisseBatimentPlafonne plus bas n'est pas touche.
+  const caisseMinFin = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'gouvernement-min_fin') : { solde: 0 };
+  if ((caisseMinFin?.solde || 0) <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
+
+  // Deduction PA centralisee (Lot 2C) -- c'est ICI, a la confirmation du montant, le veritable
+  // point d'execution irreversible pour "subvention" (executerOrdreFiscalCible n'ouvre que ce
+  // formulaire, sans jamais muter d'etat). Avant le debit de la caisse institutionnelle
+  // (debiterCaisseBatimentPlafonne, volontairement laisse tolerant au partiel : comportement
+  // metier inchange).
+  const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
 
   const montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant) : 0;
   if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
@@ -4242,7 +4274,7 @@ async function confirmerReprimerManif(pa, cost) {
   addJournalEntry('Repression ordonnee : ' + sujet + ' (' + nomVille + '). ' + nbTouches + ' PJ touche(s).', 'event-bad');
 }
 
-function executerOrdreTexte(action) {
+async function executerOrdreTexte(action) {
   const texte = document.getElementById('texte-libre-input')?.value?.trim();
   if (!texte) { showToast('Champ requis', 'Veuillez remplir le champ.', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
@@ -4259,6 +4291,11 @@ function executerOrdreTexte(action) {
     showToast('Repression ordonnee', texte + ' — +10 ISN -15 POP.', false);
     addExternalEvent('REPRESSION : Ordre de dispersion force pour "' + texte + '".');
   } else if (action === 'commanditer_sondage') {
+    // Deduction PA+cout centralisee (Lot 2C, double fuite corrigee : ni les PA ni les 200 FR
+    // n'etaient preleves auparavant). Avant la seule mutation de cette branche (INF). Montant
+    // et effet inchanges.
+    const r = await deduireCoutOrdre({ pa: 1, cost: 200 });
+    if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '1 PA requis.' : '200 FR requis.', false); return; }
     state.inf = Math.min(100, state.inf + 5);
     updateUI();
     showToast('Sondage publie', '"' + texte + '" publie dans le forum national. +5 INF.', true);
@@ -4910,10 +4947,24 @@ async function confirmerBanquetDiplomatique(pa, cost) {
   }
 }
 
-function doReceptionAvecBonus(fn, cost) {
+async function doReceptionAvecBonus(fn, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  // Prelever sur le budget de la Presidence, pas sur l'argent personnel
-  if (!verifierBudgetInstitution('presidence')) return;
+  // Prelever sur le budget de la Presidence, pas sur l'argent personnel. Lecture seule AVANT la
+  // deduction PA (correctif fail-closed, meme principe que doCampagneSecurite) : on ne peut pas
+  // appeler verifierBudgetInstitution() ici, car elle debite REELLEMENT le budget en meme temps
+  // qu'elle le controle -- l'appeler avant deduireCoutOrdre() debiterait la Presidence avant
+  // meme de savoir si les PA sont disponibles. On reutilise donc getBudgetInstitution() (la
+  // meme primitive de lecture que verifierBudgetInstitution utilise en interne) pour ne faire
+  // qu'un controle, et on ne debite b.solde qu'apres le succes de la deduction PA.
+  const budgetPresidence = getBudgetInstitution('presidence');
+  if (budgetPresidence.solde < budgetPresidence.coutOrdre) {
+    showToast('Budget insuffisant', 'Le budget de la Presidence est insuffisant. Le Ministre des Finances doit revoir la repartition budgetaire.', false);
+    return;
+  }
+  // Deduction PA centralisee (Lot 2C) -- apres verification du budget, avant tout debit.
+  const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
+  budgetPresidence.solde -= budgetPresidence.coutOrdre;
 
   // Bonus/malus selon popularite
   const popBonus = state.pop > 20 ? Math.floor((state.pop - 20) * 1) : -Math.floor((20 - state.pop) * 1);
@@ -4960,7 +5011,7 @@ async function doConsulterDossiersGouv(pa, cost) {
   addJournalEntry('Consultation d\'un dossier confidentiel du gouvernement. +2 INF.', 'event-info');
 }
 
-function doMobiliserPolice() {
+function doMobiliserPolice(fn) {
   const options = [
     { id: 'blocus', label: 'Disperser un blocus routier', isn: 8, pop: -8 },
     { id: 'encadrer', label: 'Encadrer un rassemblement (prévention)', isn: 3, pop: -2 },
@@ -4971,7 +5022,7 @@ function doMobiliserPolice() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Chaque type d\'intervention a un impact different sur la securite nationale et la popularite.</div>';
   options.forEach(o => {
-    html += '<button onclick="confirmerMobilisationPolice(\'' + o.id + '\',\'' + o.label.replace(/'/g,"\\'") + '\',' + o.isn + ',' + o.pop + ')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
+    html += '<button onclick="confirmerMobilisationPolice(\'' + o.id + '\',\'' + o.label.replace(/'/g,"\\'") + '\',' + o.isn + ',' + o.pop + ',\'' + fn + '\')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
     html += '<span>' + o.label + '</span><span style="color:#8a8060">+' + o.isn + ' ISN · ' + (o.pop<=0?o.pop:'+'+o.pop) + ' POP</span></button>';
   });
   html += '</div>';
@@ -4979,19 +5030,38 @@ function doMobiliserPolice() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerMobilisationPolice(id, label, isn, pop) {
+async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
+
+  // Cas special 'blocus' : verifier l'existence reelle du blocus AVANT toute deduction PA
+  // (correctif Lot 2C) -- sinon disperser un blocus inexistant coute des PA pour rien. Etat
+  // charge ici et reutilise plus bas, sans second appel Supabase. Ne touche pas aux autres
+  // branches (encadrer/reprimer/generique), qui n'ont pas de precondition de ce type.
+  let etatActuelBlocus = null;
+  if (id === 'blocus') {
+    etatActuelBlocus = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, state.currentCity, state.currentBuilding) : null;
+    if (!etatActuelBlocus?.blocus) {
+      showToast('Aucun blocus', "Il n'y a pas de blocus syndical en cours ici.", false);
+      return;
+    }
+  }
+
+  // Deduction PA centralisee (Lot 2C) -- uniquement pour mobiliser_police (ordre classe A par
+  // l'audit). 'mobiliser' route vers ce meme handler partage (bug de routage distinct, classe
+  // E, hors perimetre de ce lot) : aucune deduction pour ce cas, comportement inchange tant que
+  // l'arbitrage sur le routage n'a pas eu lieu. Placee avant toute mutation (y compris le cas
+  // special 'blocus' ci-dessous).
+  if (fn === 'mobiliser_police') {
+    const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
+    if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
+  }
 
   // Cas special : disperser un blocus reellement en cours dans le batiment ou l'on se trouve
   // (pas seulement decoratif — voir plateau-organisations-quetes.js pour la creation du
   // blocus). Les PNJ militants restent employes du syndicat quelle que soit l'issue.
   if (id === 'blocus') {
-    const etatActuel = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, state.currentCity, state.currentBuilding) : null;
-    if (!etatActuel?.blocus) {
-      showToast('Aucun blocus', "Il n'y a pas de blocus syndical en cours ici.", false);
-      return;
-    }
+    const etatActuel = etatActuelBlocus;
     const intensite = etatActuel.blocus.intensite || 40;
     const taux = Math.max(10, Math.min(90, 55 - intensite / 3));
     const roll = Math.floor(Math.random() * 100) + 1;
@@ -5990,8 +6060,11 @@ function creerSoldatsSection(numeroSection) {
 async function doRecruterCompagnie() {
   if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
   const pays = state.country || 'republic';
-  const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', COUT_COMPAGNIE) : 0;
-  if (montantVerse < COUT_COMPAGNIE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût d\'une compagnie (' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR).', false); return; }
+  // Deduction PA+cout centralisee (Lot 2C) -- payeur institutionnel (caisse de la caserne)
+  // delegue a la primitive via payeur:{type:'institution'}, qui garantit le debit atomique de
+  // la caisse PUIS la deduction des PA seulement si celui-ci a reussi.
+  const r = await deduireCoutOrdre({ pa: 3, cost: COUT_COMPAGNIE, payeur: { type: 'institution', pays, buildingId: 'caserne-militaire' } });
+  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Budget insuffisant', r.raison === 'pa_insuffisants' ? '3 PA requis.' : 'La caisse de la caserne ne couvre pas le coût d\'une compagnie (' + COUT_COMPAGNIE.toLocaleString('fr-FR') + ' FR).', false); return; }
 
   const id = 'compagnie-' + pays + '-' + Date.now();
   const sections = Array.from({ length: NB_SECTIONS_COMPAGNIE }, (_, i) => ({

@@ -219,8 +219,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'interroger_informateur_4'){ interrogerInformateur(4); return; }
   if (fn === 'recruter_info')          { ouvrirRecruterInformateur(1); return; }
   if (fn === 'recruter_info_2')        { ouvrirRecruterInformateur(2); return; }
-  if (fn === 'recruter_info_3')        { ouvrirRecruterInformateur(3); return; }
-  if (fn === 'recruter_info_4')        { ouvrirRecruterInformateur(4); return; }
+  if (fn === 'recruter_info_3')        { ouvrirRecruterInformateur(3, pa); return; }
+  if (fn === 'recruter_info_4')        { ouvrirRecruterInformateur(4, pa); return; }
   if (fn === 'consulter_info')         { consulterInformateur(1); return; }
   if (fn === 'consulter_info_2')       { consulterInformateur(2); return; }
   if (fn === 'consulter_info_3')       { consulterInformateur(3, pa); return; }
@@ -310,7 +310,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demander_info_loge') { doLogeInfo(); return; }
   if (fn === 'se_former') { doSeFormer(pa, cost); return; }
   if (fn === 'recruter_info') { doRecruterInfo(); return; }
-  if (fn === 'mobiliser_police') { doMobiliserPolice(); return; }
+  if (fn === 'mobiliser_police') { doMobiliserPolice(fn); return; }
   if (fn === 'mobiliser_armee') { doMobiliserArmee(pa, cost); return; }
   if (fn === 'etat_urgence') { doEtatUrgence(pa, cost); return; }
   if (fn === 'inspecter_troupes') { doInspecterTroupes(); return; }
@@ -361,7 +361,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'traiter_manifestations') { doTraiterManifestations(pa, cost); return; }
   if (fn === 'renseignement') { ouvrirModalRenseignement(pa, cost); return; }
   if (fn === 'planifier_operation') { ouvrirModalTexteLibre('planifier_operation', 'Planifier une operation', 'Decrivez l\'operation...'); return; }
-  if (fn === 'mobiliser') { doMobiliserPolice(); return; }
+  if (fn === 'mobiliser') { doMobiliserPolice(fn); return; }
   if (fn === 'dissoudre_assemblee') { doDissoudreAssemblee(); return; }
   if (fn === 'negocier') { showToast('Ordre contact', 'Utilisez les ordres contact en cliquant sur le personnage cible.', false); return; }
   if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); return; }

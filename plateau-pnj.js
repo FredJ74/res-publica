@@ -2945,13 +2945,15 @@ async function doAcheterTerrain() {
     return;
   }
 
+  // Deduction PA+cout centralisee (Lot 2C) -- avant toute mutation (setTerrainState, Supabase).
+  const r = await deduireCoutOrdre({ pa: 2, cost: ACOMPTE_ACHAT_DIRECT });
+  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '2 PA requis.' : ACOMPTE_ACHAT_DIRECT + ' ' + cur + ' requis pour le dépôt de garantie.', false); return; }
+
   const surface = SURFACE_TERRAINS[id] || 2000;
   const prix = surface * PRIX_AU_M2_TERRAIN;
   const delaiJours = 2 + Math.floor(Math.random() * 6); // 2 a 7 jours
   const dateAchat = Date.now() + delaiJours * 86400000;
   const dateLimite = dateAchat + 24 * 3600000;
-
-  state.arg -= ACOMPTE_ACHAT_DIRECT;
 
   const nouvelEtat = setTerrainState(id, {
     achatDirect: {

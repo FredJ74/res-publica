@@ -1403,17 +1403,29 @@ function validerImpotsLocaux() {
   addExternalEvent('MAIRIE : Le taux d\'imposition local est fixé à ' + nouveauTaux + '% par le Maire.');
 }
 
-function doCampagneSecurite() {
+async function doCampagneSecurite() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 500;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  if (!verifierBudgetInstitution('mairie')) return;
+  // Arbitrage de conception (correctif Lot 2C) : payeur exclusif = budget institutionnel de la
+  // mairie (state.budgets.mairie via getBudgetInstitution), jamais l'argent personnel du joueur.
+  // Debit du cout REEL de cet ordre (500 FR) -- pas le cout generique de
+  // verifierBudgetInstitution (b.coutOrdre = 250 FR pour la mairie) : les deux ne se cumulent
+  // plus, un seul debit de 500 FR sur le budget mairie. Verification AVANT toute deduction PA :
+  // si le budget est insuffisant, ni PA ni FR ne sont debites.
+  const budgetMairie = getBudgetInstitution('mairie');
+  if (budgetMairie.solde < cost) {
+    showToast('Budget insuffisant', 'Le budget de la mairie (' + cost + ' ' + cur + ' requis) est insuffisant. Le Ministre des Finances doit revoir la répartition budgétaire.', false);
+    return;
+  }
+  // Deduction PA centralisee (Lot 2C) -- apres verification du budget mairie, avant toute mutation.
+  const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
+  budgetMairie.solde -= cost;
   const pays = state.country || 'republic';
   if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 10);
   state.pop = Math.max(0, state.pop - 3);
   updateUI();
-  showToast('Campagne de sécurité', '+10 ISN local. -3 POP. Prélevé sur budget mairie.', false);
+  showToast('Campagne de sécurité', '+10 ISN local. -3 POP. ' + cost + ' ' + cur + ' prélevés sur le budget de la mairie.', false);
   addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +10 ISN.');
 }
 
@@ -2810,7 +2822,11 @@ async function traiterActeVente(candidat) {
       showToast('Fonds insuffisants', solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false);
       return;
     }
-    state.arg -= solde;
+    // Deduction PA+cout centralisee (Lot 2C) -- au moment ou l'acte est effectivement traite
+    // (pas lors de la simple consultation/presentation des candidats dans doActeVenteTerrain),
+    // avant la premiere mutation irreversible (finalisation de l'achat).
+    const rAd = await deduireCoutOrdre({ pa: 1, cost: solde });
+    if (!rAd.ok) { showToast(rAd.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rAd.raison === 'pa_insuffisants' ? '1 PA requis.' : solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false); return; }
     await finaliserAchatTerrain(id, ad.prix, ad.surface, false);
     setTerrainState(id, { achatDirect: null });
     if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, { achatDirect: null }).catch(() => {});
@@ -2840,7 +2856,10 @@ async function traiterActeVente(candidat) {
     showToast('Fonds insuffisants', solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false);
     return;
   }
-  state.arg -= solde;
+  // Deduction PA+cout centralisee (Lot 2C) -- au moment ou l'acte est effectivement traite,
+  // avant la premiere mutation irreversible (finalisation de l'achat).
+  const rCompromis = await deduireCoutOrdre({ pa: 1, cost: solde });
+  if (!rCompromis.ok) { showToast(rCompromis.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rCompromis.raison === 'pa_insuffisants' ? '1 PA requis.' : solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false); return; }
   await finaliserAchatTerrain(id, ts.valeur_totale, ts.surface, ts.constructionAutorisee);
   const clear = { compromis: null, compromisPar: null, acompte: null, compromisAt: null, compromisExpireAt: null };
   setTerrainState(id, clear);
@@ -4961,6 +4980,11 @@ function doCambriolerCaisse(buildingId, buildingLabel) {
 
 async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
   document.getElementById('modal-postes').classList.remove('open');
+  // Deduction PA centralisee (Lot 2C) -- deduireCoutOrdre() est l'AUTORITE UNIQUE. Appelee ICI,
+  // avant tout calcul et toute mutation (jet, caisse, reputation, recherche) : fail-closed. Cout
+  // du que le cambriolage reussisse ou non, comme pour les actes illegaux deja migres au Lot 2A.
+  const rPa = await deduireCoutOrdre({ pa: 3, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '3 PA requis.', false); return; }
   const pays = state.country;
   const dup = getStatEffective('DUP');
   const ville = state.currentCity || 'capitale';

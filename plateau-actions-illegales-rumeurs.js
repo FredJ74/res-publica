@@ -767,7 +767,9 @@ async function confirmerAchatArme(armeId) {
     return;
   }
 
-  state.arg -= prixApplique;
+  // Deduction PA+cout centralisee (Lot 2C) -- avant toute mutation de stock/caisse.
+  const r = await deduireCoutOrdre({ pa: 1, cost: prixApplique });
+  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '1 PA requis.' : prixApplique.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
   data.stockProduits[armeId] -= 1;
   const { net } = typeof appliquerTaxeTransaction === 'function' ? await appliquerTaxeTransaction(prixApplique) : { net: prixApplique };
   data.caisse = (data.caisse || 0) + net;
@@ -878,10 +880,13 @@ async function confirmerAchatArmeIllegal(armeId) {
   }
 
   // REUSSITE — arme livree, non enregistree au registre, mais bien consommee du stock reel
+  // Deduction PA+cout centralisee (Lot 2C) -- cout du uniquement en cas de reussite (comme deja
+  // pour l'argent), AVANT toute mutation de stock/Supabase : fail-closed.
+  const r = await deduireCoutOrdre({ pa: 1, cost: prixIllegal });
+  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '1 PA requis.' : prixIllegal.toLocaleString('fr-FR') + ' ' + cur + ' requis (marché noir).', false); return; }
   data.stockProduits[armeId] -= 1;
   await sbSaveEntreprise(data.id, data);
 
-  state.arg -= prixIllegal;
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
     id: 'arme-' + Date.now(),
@@ -1018,7 +1023,7 @@ function doAcheterGilet() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerAchatGilet() {
+async function confirmerAchatGilet() {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const prix = 600;
@@ -1026,7 +1031,9 @@ function confirmerAchatGilet() {
 
   if (state.arg < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
-  state.arg -= prix;
+  // Deduction PA+cout centralisee (Lot 2C) -- avant toute mutation.
+  const r = await deduireCoutOrdre({ pa: 1, cost: prix });
+  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '1 PA requis.' : prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
     type: 'protection', name: 'Gilet pare-balles', icon: 'ti-shield-check', legal: true,
@@ -1637,7 +1644,7 @@ function getInfomateurInfo(niveau) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-function ouvrirRecruterInformateur(niveau) {
+function ouvrirRecruterInformateur(niveau, pa) {
   const cfg = INFORMATEUR_NIVEAUX[niveau];
   if (!cfg) return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -1659,12 +1666,12 @@ function ouvrirRecruterInformateur(niveau) {
     '<div style="padding:1.2rem">' +
     '<div style="font-size:.85rem;color:#c0b090;line-height:1.7;font-family:Crimson Pro,serif;margin-bottom:.8rem">' + cfg.desc + '</div>' +
     '<div style="font-size:.75rem;color:#8a6a20;margin-bottom:1rem">Coût : <strong>' + cfg.cout + ' ' + cur + '/jour</strong> · Prélevé à chaque Dormir · Max 2 informateurs simultanés</div>' +
-    '<button onclick="confirmerRecrutementInformateur(' + niveau + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
+    '<button onclick="confirmerRecrutementInformateur(' + niveau + ',' + pa + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerRecrutementInformateur(niveau) {
+async function confirmerRecrutementInformateur(niveau, pa) {
   document.getElementById('modal-postes').classList.remove('open');
   const cfg = INFORMATEUR_NIVEAUX[niveau];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -1672,7 +1679,12 @@ function confirmerRecrutementInformateur(niveau) {
     showToast('Fonds insuffisants', cfg.cout + ' ' + cur + ' requis.', false);
     return;
   }
-  state.arg -= cfg.cout;
+  // Deduction PA+cout centralisee (Lot 2C) -- pa vient du dispatch (2 pour recruter_info_3,
+  // 3 pour recruter_info_4, exactement les valeurs declarees dans data.js), debite une seule
+  // fois. cout = le premier jour du salaire recurrent (deja preleve immediatement avant ce lot,
+  // logique financiere inchangee).
+  const r = await deduireCoutOrdre({ pa, cost: cfg.cout });
+  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? pa + ' PA requis.' : cfg.cout + ' ' + cur + ' requis.', false); return; }
   if (!state.informateurs) state.informateurs = [];
   state.informateurs.push({ niveau, label: cfg.label, cout: cfg.cout, actif: true, joursActif: 0 });
   updateUI();
@@ -3509,6 +3521,14 @@ async function confirmerPreemption(type) {
   }
 
   document.getElementById('modal-postes')?.classList.remove('open');
+
+  // Deduction PA centralisee (correctif Lot 2C) -- deduireCoutOrdre() est l'AUTORITE UNIQUE.
+  // Appelee ICI, au dernier point sur avant la premiere mutation institutionnelle/Supabase
+  // (crediterCaisseBatiment ci-dessous) : fail-closed. Aucun cout personnel (cost:0, voir
+  // data.js : pa:2, cost:0 pour preempter_entreprise), seul le pret automatique de la Banque
+  // Nationale finance l'operation.
+  const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '2 PA requis.', false); return; }
 
   const taux = typeof getTauxPret === 'function' ? getTauxPret('nationale') : 5;
   const montantTotal = Math.round(montant * (1 + taux / 100));
