@@ -2925,7 +2925,15 @@ const SURFACE_TERRAINS = {
   'terrain-a-batir-2': 2300,
   'terrain-a-batir-3': 2300,
   'terrain-a-batir-4': 1850,
-  'terrain-a-batir-5': 2750
+  'terrain-a-batir-5': 2750,
+  // Lot 2D (19 aout 2026) -- 5 nouveaux terrains de Montrouge, prix a 12 FR/m² valide par Fred.
+  // Le lot 6 existant n'a volontairement AUCUNE entree ici (sa superficie n'a jamais ete
+  // officiellement fixee) : ne pas lui en ajouter une dans ce lot, cf. plateau-rue-centrale.js.
+  'terrain-a-batir-montrouge-3': 1500,
+  'terrain-a-batir-montrouge-7': 1800,
+  'terrain-a-batir-montrouge-8': 2200,
+  'terrain-a-batir-montrouge-9': 2500,
+  'terrain-a-batir-montrouge-12': 3000
 };
 const PRIX_AU_M2_TERRAIN = 12;
 

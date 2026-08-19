@@ -636,7 +636,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/montrouge/montrouge-rue-centre-artisanal-terrains.png',
       zones: [
         { xPct: [0, 22],   nom: 'Centre artisanal de Montrouge', type: 'batiment', buildingId: 'centre-artisanal' },
-        { xPct: [78, 100], nom: 'Terrains à vendre', type: 'batiment', buildingId: 'terrain-a-batir-6' }
+        { xPct: [78, 100], nom: 'Terrains à bâtir de Montrouge', type: 'sous-lieu' }
       ],
       liens: { arriere: 'montrouge-vue-10', gauche: 'montrouge-vue-12' },
       flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
@@ -834,6 +834,7 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
     });
     div.addEventListener('click', () => {
       if (z.type === 'noeud') naviguerVersNoeudRue(pays, z.noeudId, z.nom);
+      else if (z.type === 'sous-lieu') ouvrirTerrainsMontrouge();
       else entrerDansBatimentRue(z.buildingId, z.nom);
     });
     scene.appendChild(div);
@@ -924,4 +925,35 @@ function entrerDansBatimentRue(buildingId, nom) {
       }
     }, 100);
   }, 1400);
+}
+
+// Ecran de selection "Terrains a batir de Montrouge" (Lot 2D, 19 aout 2026). Reutilise le
+// modal generique modal-postes (meme pattern que ouvrirModalCibleRepertoire,
+// ouvrirRecruterInformateur, etc.) : ce n'est qu'un ecran de choix, chaque entree appelant
+// enterBuilding() directement -- le meme point d'entree que partout ailleurs dans le jeu.
+// Aucune nouvelle mecanique de batiment/piece n'est creee ici, et aucun etat immobilier n'est
+// porte par cet ecran. La liste des terrains vient de TERRAINS_PAR_VILLE.ville_b
+// (plateau-justice-economie.js), source unique de verite egalement utilisee par
+// sortirBatiment() (plateau-navigation.js) -- ne jamais dupliquer cette liste ici. Le lot 6
+// n'a volontairement aucune entree dans SURFACE_TERRAINS (sa superficie n'a jamais ete
+// officiellement fixee) : le libelle affiche s'adapte donc automatiquement (pas de "m²" pour
+// le lot 6, une vraie superficie pour les 5 autres) sans aucune donnee inventee.
+function ouvrirTerrainsMontrouge() {
+  const ids = (typeof TERRAINS_PAR_VILLE !== 'undefined') ? TERRAINS_PAR_VILLE.ville_b : [];
+  document.getElementById('postes-modal-title').textContent = 'Terrains à bâtir de Montrouge';
+  let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.5rem">';
+  ids.forEach(id => {
+    const b = (typeof BUILDINGS !== 'undefined') ? BUILDINGS[id] : null;
+    if (!b) return;
+    const numero = id.split('-').pop();
+    const surface = (typeof SURFACE_TERRAINS !== 'undefined') ? SURFACE_TERRAINS[id] : null;
+    const label = 'Lot ' + numero + (surface ? ' — ' + surface.toLocaleString('fr-FR') + ' m²' : '');
+    const img = b.rooms?.terrain?.imageUrl || '';
+    html += '<div onclick="fermerModalPostes();entrerDansBatimentRue(\'' + id + '\',\'' + label + '\')" style="display:flex;align-items:center;gap:.7rem;padding:.5rem .6rem;border:1px solid #2a2010;background:#0f0d05;cursor:pointer">';
+    if (img) html += '<div style="width:52px;height:52px;flex:0 0 auto;background:url(\'' + img + '\') center/cover;border:1px solid #2a2010"></div>';
+    html += '<span style="font-size:.85rem;color:#c0b090">' + label + '</span></div>';
+  });
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }

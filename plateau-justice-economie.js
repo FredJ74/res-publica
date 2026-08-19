@@ -2741,10 +2741,15 @@ const TERRAINS_LUTHECIA = ['terrain-a-batir-1', 'terrain-a-batir-2', 'terrain-a-
 // utilisaient 'terrain-a-batir-3') corrigee le meme soir : Montrouge est passe sur
 // 'terrain-a-batir-6', deja libre et deja defini (data.js), aucune donnee perdue (la ligne
 // Supabase existante etait deja celle de Luthecia, jamais celle de Montrouge).
+// ville_b (Montrouge) contient aussi, depuis le Lot 2D (19 aout 2026), les 5 nouveaux terrains
+// 'terrain-a-batir-montrouge-*'. Cette meme liste EST la source unique de verite pour "ce
+// batiment appartient au sous-lieu Terrains a batir de Montrouge", reutilisee telle quelle par
+// ouvrirTerrainsMontrouge() (plateau-rue-centrale.js) et par sortirBatiment()
+// (plateau-navigation.js) -- ne jamais dupliquer cette liste ailleurs.
 const TERRAINS_PAR_VILLE = {
   capitale: TERRAINS_LUTHECIA,
   ville_a:  ['terrain-a-batir-8', 'terrain-a-batir-9', 'terrain-a-batir-10', 'terrain-a-batir-11'],
-  ville_b:  ['terrain-a-batir-6']
+  ville_b:  ['terrain-a-batir-6', 'terrain-a-batir-montrouge-3', 'terrain-a-batir-montrouge-7', 'terrain-a-batir-montrouge-8', 'terrain-a-batir-montrouge-9', 'terrain-a-batir-montrouge-12']
 };
 
 // L'Office Notarial est unique et national (a Luthecia), mais doit traiter les compromis/rendez-

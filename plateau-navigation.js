@@ -775,6 +775,14 @@ function sortirBatiment() {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
     return;
   }
+  // Capture AVANT reinitialisation : si on quitte l'un des terrains du sous-lieu "Terrains a
+  // batir de Montrouge" (Lot 2D, 19 aout 2026), la sortie doit ramener a l'ecran de selection
+  // des terrains plutot qu'a la rue nue. Meme source unique de verite (TERRAINS_PAR_VILLE.
+  // ville_b, plateau-justice-economie.js) que ouvrirTerrainsMontrouge() -- jamais dupliquee.
+  // Tous les autres batiments du jeu gardent leur comportement inchange (retour direct a la rue).
+  const batimentQuitte = state.currentBuilding;
+  const retourVersTerrainsMontrouge = typeof TERRAINS_PAR_VILLE !== 'undefined' && TERRAINS_PAR_VILLE.ville_b.includes(batimentQuitte);
+
   state.douanePassee = false;
   state.currentBuilding = null;
   state.currentRoom = null;
@@ -795,6 +803,7 @@ function sortirBatiment() {
     }
   }
   showVueRue();
+  if (retourVersTerrainsMontrouge && typeof ouvrirTerrainsMontrouge === 'function') ouvrirTerrainsMontrouge();
   addJournalEntry(`Vous sortez du batiment.`, '');
 }
 
