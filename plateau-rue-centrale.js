@@ -927,33 +927,56 @@ function entrerDansBatimentRue(buildingId, nom) {
   }, 1400);
 }
 
-// Ecran de selection "Terrains a batir de Montrouge" (Lot 2D, 19 aout 2026). Reutilise le
-// modal generique modal-postes (meme pattern que ouvrirModalCibleRepertoire,
-// ouvrirRecruterInformateur, etc.) : ce n'est qu'un ecran de choix, chaque entree appelant
-// enterBuilding() directement -- le meme point d'entree que partout ailleurs dans le jeu.
-// Aucune nouvelle mecanique de batiment/piece n'est creee ici, et aucun etat immobilier n'est
-// porte par cet ecran. La liste des terrains vient de TERRAINS_PAR_VILLE.ville_b
-// (plateau-justice-economie.js), source unique de verite egalement utilisee par
-// sortirBatiment() (plateau-navigation.js) -- ne jamais dupliquer cette liste ici. Le lot 6
-// n'a volontairement aucune entree dans SURFACE_TERRAINS (sa superficie n'a jamais ete
-// officiellement fixee) : le libelle affiche s'adapte donc automatiquement (pas de "m²" pour
-// le lot 6, une vraie superficie pour les 5 autres) sans aucune donnee inventee.
+// Vue generale "Terrains a batir de Montrouge" (correctif UX, 19 aout 2026 -- remplace l'ancien
+// modal-postes, juge trop reduit/pas integre au plateau). Reutilise EXACTEMENT le meme squelette
+// DOM que enterBuilding()/enterRoom() (vue-batiment, pieces-tabs avec la classe .piece-tab deja
+// stylee partout ailleurs, piece-image en grand) pour une interface visuellement identique aux
+// autres batiments -- sans jamais appeler enterBuilding()/enterRoom() elles-memes et sans creer
+// de nouvelle entree BUILDINGS : ce n'est ni un vrai batiment ni une vraie piece.
+// state.currentBuilding reste volontairement null pendant l'affichage de cette vue : le bouton
+// "Sortir" deja present dans le template (sortir-btn, onclick="sortirBatiment()") fonctionne donc
+// SANS AUCUNE MODIFICATION -- sortirBatiment() ne trouvant aucun batiment courant (null n'est
+// jamais dans TERRAINS_PAR_VILLE.ville_b), renvoie simplement et normalement a la rue. Chaque
+// onglet appelle directement enterBuilding(idReel) -- le meme point d'entree que partout
+// ailleurs, sur un vrai buildingId independant, aucun etat immobilier n'est duplique ni partage
+// entre les 6 terrains. Liste des terrains ET superficies issues de TERRAINS_PAR_VILLE.ville_b /
+// SURFACE_TERRAINS (plateau-justice-economie.js / plateau-pnj.js), sources uniques de verite,
+// jamais dupliquees ici. Le lot 6 n'a volontairement aucune entree dans SURFACE_TERRAINS (sa
+// superficie n'a jamais ete officiellement fixee) : son onglet affiche donc juste "Lot 6", sans
+// "m²" invente.
 function ouvrirTerrainsMontrouge() {
   const ids = (typeof TERRAINS_PAR_VILLE !== 'undefined') ? TERRAINS_PAR_VILLE.ville_b : [];
-  document.getElementById('postes-modal-title').textContent = 'Terrains à bâtir de Montrouge';
-  let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.5rem">';
-  ids.forEach(id => {
-    const b = (typeof BUILDINGS !== 'undefined') ? BUILDINGS[id] : null;
-    if (!b) return;
+
+  document.getElementById('vue-rue').classList.remove('active');
+  document.getElementById('vue-batiment').classList.add('active');
+  const ancienConteneurRue = document.getElementById('rue-centrale-conteneur');
+  if (ancienConteneurRue) ancienConteneurRue.remove();
+
+  document.getElementById('bat-nom').textContent = 'Terrains à bâtir de Montrouge';
+  document.getElementById('bat-cat').textContent = 'Immobilier';
+  const elCaisse = document.getElementById('bat-caisse');
+  const elStock = document.getElementById('bat-stock');
+  const elDirecteur = document.getElementById('bat-directeur');
+  if (elCaisse) { elCaisse.style.display = 'none'; elCaisse.onclick = null; elCaisse.style.cursor = 'default'; }
+  if (elStock) elStock.style.display = 'none';
+  if (elDirecteur) elDirecteur.style.display = 'none';
+
+  document.getElementById('pieces-tabs').innerHTML = ids.map(id => {
     const numero = id.split('-').pop();
     const surface = (typeof SURFACE_TERRAINS !== 'undefined') ? SURFACE_TERRAINS[id] : null;
     const label = 'Lot ' + numero + (surface ? ' — ' + surface.toLocaleString('fr-FR') + ' m²' : '');
-    const img = b.rooms?.terrain?.imageUrl || '';
-    html += '<div onclick="fermerModalPostes();entrerDansBatimentRue(\'' + id + '\',\'' + label + '\')" style="display:flex;align-items:center;gap:.7rem;padding:.5rem .6rem;border:1px solid #2a2010;background:#0f0d05;cursor:pointer">';
-    if (img) html += '<div style="width:52px;height:52px;flex:0 0 auto;background:url(\'' + img + '\') center/cover;border:1px solid #2a2010"></div>';
-    html += '<span style="font-size:.85rem;color:#c0b090">' + label + '</span></div>';
-  });
-  html += '</div></div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+    return '<div class="piece-tab" onclick="enterBuilding(\'' + id + '\')">' + label + '</div>';
+  }).join('');
+
+  const pieceImg = document.getElementById('piece-image');
+  pieceImg.style.background = "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('images/montrouge/montrouge-terrains-vue-ensemble.jpg') center/cover no-repeat";
+  document.getElementById('piece-nom').textContent = 'Terrains à bâtir de Montrouge';
+  document.getElementById('piece-desc').textContent = 'Six parcelles disponibles autour de la ville. Choisissez un lot ci-dessus pour vous y rendre.';
+
+  renderPersonsList([]);
+  document.getElementById('action-context-bat').textContent = 'TERRAINS À BÂTIR DE MONTROUGE — CHOISISSEZ UNE PARCELLE';
+  document.getElementById('actions-row-bat').innerHTML = '';
+
+  document.getElementById('loc-name').textContent = 'Montrouge';
+  document.getElementById('loc-sub').textContent = 'Terrains à bâtir de Montrouge';
 }
