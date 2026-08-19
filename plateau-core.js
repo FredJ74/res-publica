@@ -308,6 +308,18 @@ const TEST_MODE = true; // PA illimites
 // jamais state.paMax ni une valeur recalculee localement.
 const PA_MAX = 30;
 
+// Horloge artificielle par PA (Lot 2A, 19 aout 2026) : decouplee de TEST_MODE. TEST_MODE ne
+// doit plus gouverner que la disponibilite/deduction des PA -- l'ancien mecanisme ou depenser
+// des PA faisait avancer l'heure de jeu (advanceTime() ci-dessous) est desormais gate par ce
+// second interrupteur, dedie et distinct, et non par TEST_MODE. Volontairement laisse a false :
+// le plateau est aujourd'hui resynchronise sur l'heure reelle (syncRealTime()), qui reste la
+// seule autorite sur state.hour/state.minute. Reactiver cette horloge artificielle exigerait au
+// prealable un arbitrage produit sur la coexistence des deux modeles (voir audit du 19 aout
+// 2026) -- ne pas basculer cette constante sans cet arbitrage. syncRealTime()/le cron/les
+// elections (basees sur Date.now(), pas sur state.day) restent inchanges et hors de ce
+// perimetre.
+const HORLOGE_PA_ACTIVE = false;
+
 let state = {
   pa: 999, paMax: PA_MAX,
   arg: 4250, liquide: 500, banque: 3750,
@@ -687,8 +699,10 @@ function updateClock() {
 }
 
 function advanceTime(pa) {
-  // Chaque PA consomme environ 30 minutes de temps de jeu
-  if (!TEST_MODE && pa > 0) {
+  // Chaque PA consomme environ 30 minutes de temps de jeu -- gate desormais uniquement par
+  // HORLOGE_PA_ACTIVE (Lot 2A), plus du tout par TEST_MODE : cette mecanique reste inerte tant
+  // que HORLOGE_PA_ACTIVE est a false, quel que soit l'etat de TEST_MODE.
+  if (HORLOGE_PA_ACTIVE && pa > 0) {
     state.minute = (state.minute || 0) + (pa * 30);
     while (state.minute >= 60) {
       state.minute -= 60;

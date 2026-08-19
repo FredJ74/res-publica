@@ -1776,7 +1776,18 @@ async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
     const chance = estDansMonGroupe ? 95 : (rel === 'ally' ? 85 : rel === 'enemy' ? 20 : 60);
     const roll = Math.floor(Math.random() * 100) + 1;
     if (roll <= chance) {
-      state.arg -= cost;
+      // Deduction PA+cout centralisee (Lot 2A, correctif de fuite PA identifiee par l'audit du
+      // 19 aout 2026 : diner_affaires/boire_verre ne debitaient jusqu'ici jamais leurs PA,
+      // meme sous TEST_MODE=false, ni via deduireCoutOrdre() ni par mutation directe). Cout du
+      // uniquement en cas d'acceptation (roll reussi), comme deja pour l'argent -- meme moment
+      // exact que l'ancien `state.arg -= cost` qu'elle remplace.
+      const r = await deduireCoutOrdre({ pa, cost });
+      if (!r.ok) {
+        const raisonTxt = r.raison === 'pa_insuffisants' ? 'plus assez de PA' : 'plus les fonds';
+        showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', nomInvite + ' a accepté, mais vous n\'avez ' + raisonTxt + ' pour ' + cfgPnj.verbe + '.', false);
+        addJournalEntry('Invitation à ' + cfgPnj.verbe + ' avec ' + nomInvite + ' acceptée, mais ' + (r.raison === 'pa_insuffisants' ? 'PA' : 'fonds') + ' insuffisants.', 'event-bad');
+        return;
+      }
       if (cfgPnj.hp) state.hp = Math.min(100, (state.hp || 0) + cfgPnj.hp);
       if (cfgPnj.inf) state.inf = Math.min(100, (state.inf || 0) + cfgPnj.inf);
       if (cfgPnj.ent) appliquerGainENT(cfgPnj.ent);
@@ -1825,8 +1836,15 @@ async function verifierReponseInvitationSociale() {
     if (!ligne) return;
 
     if (ligne.statut === 'acceptee') {
-      if (state.arg >= infos.cost) {
-        state.arg -= infos.cost;
+      // Deduction PA+cout centralisee (Lot 2A, correctif de fuite PA) -- moment logique de
+      // consommation : exactement celui deja utilise pour l'argent (confirmation de
+      // l'acceptation differee), jamais a l'envoi de l'invitation. Aucun changement de
+      // comportement pour l'argent : meme instant, meme condition, juste route via
+      // deduireCoutOrdre() pour couvrir aussi les PA. Nettoyage (suppression de la ligne
+      // Supabase + _invitationSocialeEnAttente=null) deja inconditionnel plus bas, donc aucun
+      // risque de retraitement/double debit meme en cas d'echec ici.
+      const r = await deduireCoutOrdre({ pa: infos.pa, cost: infos.cost });
+      if (r.ok) {
         if (cfg.hp) state.hp = Math.min(100, (state.hp || 0) + cfg.hp);
         if (cfg.inf) state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
         if (cfg.ent) appliquerGainENT(cfg.ent);
@@ -1835,8 +1853,9 @@ async function verifierReponseInvitationSociale() {
         addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' : acceptée. -' + infos.cost + ' FR.', 'event-good');
         if (typeof advanceTime === 'function') advanceTime(Math.max(0, infos.pa || 0));
       } else {
-        showToast('Fonds insuffisants', infos.invite + ' a accepté, mais vous n\'avez plus les fonds pour régler.', false);
-        addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' acceptée, mais fonds insuffisants pour payer.', 'event-bad');
+        const raisonTxt = r.raison === 'pa_insuffisants' ? 'plus assez de PA' : 'plus les fonds';
+        showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', infos.invite + ' a accepté, mais vous n\'avez ' + raisonTxt + ' pour régler.', false);
+        addJournalEntry('Invitation à ' + cfg.verbe + ' avec ' + infos.invite + ' acceptée, mais ' + (r.raison === 'pa_insuffisants' ? 'PA' : 'fonds') + ' insuffisants pour payer.', 'event-bad');
       }
       if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur(infos.type + '_accepte', infos.invite);
     } else if (ligne.statut === 'refusee') {

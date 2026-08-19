@@ -190,7 +190,11 @@ async function confirmerAssassinatArme(encodedCible, mode, taux) {
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
 
   const paCost = mode === 'feu' ? 3 : 2;
-  if (!TEST_MODE) state.pa = Math.max(0, state.pa - paCost);
+  // Deduction PA centralisee (Lot 2A) -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la
+  // disponibilite des PA (poche historique jamais migree au Lot 1). Appelee ICI, avant toute
+  // mutation (DIS, historique d'assassinats, ecriture Supabase d'impact) : fail-closed.
+  const rPa = await deduireCoutOrdre({ pa: paCost, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', paCost + ' PA requis.', false); return; }
 
   const roll = Math.floor(Math.random() * 100) + 1;
 
@@ -1184,12 +1188,16 @@ function doIncendier() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerIncendier() {
+async function confirmerIncendier() {
   document.getElementById('modal-postes').classList.remove('open');
   const buildingId = state.currentBuilding;
   const b = BUILDINGS[buildingId];
   if (!b) return;
-  if (!TEST_MODE) state.pa = Math.max(0, state.pa - 3);
+  // Deduction PA centralisee (Lot 2A) -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la
+  // disponibilite des PA (poche historique jamais migree au Lot 1). Appelee ICI, avant toute
+  // mutation (fermeture du batiment, historique de crimes) : fail-closed.
+  const rPa = await deduireCoutOrdre({ pa: 3, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '3 PA requis.', false); return; }
 
   const malusISN = getMalusISN();
   const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
@@ -1265,9 +1273,15 @@ async function confirmerUtiliserExplosifs() {
   const b = BUILDINGS[buildingId];
   if (!b) return;
 
+  // Deduction PA centralisee (Lot 2A, correctif suite a revue Lot 1) -- deduireCoutOrdre() est
+  // l'AUTORITE UNIQUE sur la disponibilite des PA. Appelee ICI, AVANT la consommation de
+  // l'objet (mutation irreversible de l'inventaire, jusqu'ici prealable a la deduction PA) :
+  // fail-closed, l'explosif reste en inventaire si les PA manquent.
+  const rPa = await deduireCoutOrdre({ pa: 3, cost: 0 });
+  if (!rPa.ok) { showToast('PA insuffisants', '3 PA requis.', false); return; }
+
   // Consommer l'objet (usage unique)
   state.inventory.splice(explosifIdx, 1);
-  if (!TEST_MODE) state.pa = Math.max(0, state.pa - 3);
 
   const malusISN = getMalusISN();
   const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
