@@ -237,9 +237,12 @@ function openForum_module(forumId) {
   // tous les chemins d'acces sans code specifique a chacun.
   if (typeof marquerForumVisite === 'function') marquerForumVisite();
   if (forumId) {
-    // Charger depuis Supabase en arrière-plan et rafraîchir
+    // Charger depuis Supabase en arrière-plan et rafraîchir -- renderForumModal() complet (pas
+    // seulement #forum-main), sinon le compteur de la sidebar (forum-nav-count, deja rendu AVANT
+    // que FORUM_TOPICS[forumId] soit peuple) reste fige a "0 sujet(s)" jusqu'a un changement de
+    // rubrique ulterieur (bug constate le 20 aout 2026 : panneau principal a jour, sidebar non).
     loadForumTopicsFromSB(forumId).then(() => {
-      if (mailView !== 'compose') document.getElementById('forum-main').innerHTML = renderForumContent();
+      if (mailView !== 'compose') renderForumModal();
     }).catch(() => {});
   }
 }
@@ -376,8 +379,10 @@ function toggleCategorieForum(cat) {
   currentTopicId = null;
   renderForumModal();
   if (currentForumId) {
+    // renderForumModal() complet (meme correctif que openForum_module ci-dessus, compteur
+    // sidebar) plutot qu'une simple mise a jour de #forum-main.
     loadForumTopicsFromSB(currentForumId).then(() => {
-      document.getElementById('forum-main').innerHTML = renderForumContent();
+      if (mailView !== 'compose') renderForumModal();
     }).catch(() => {});
   }
 }
@@ -434,6 +439,13 @@ function canAccessForum(forumId) {
     const orga = (state.organisations || []).find(o => o.id === f.requiredOrgId);
     return !!orga && (orga.membres || []).some(m => m.nom === state.char?.name);
   }
+  // Presse & Medias (correctif du 20 aout 2026) : lecture publique -- seule la CREATION d'un
+  // nouveau sujet reste reservee (garde dedie dans submitComposeCanvas(), meme patron que
+  // presidence). private:true est conserve uniquement pour l'icone cadenas + la description
+  // "Reserve aux journalistes" (renderForumNavItem), qui restent des indications exactes des lors
+  // que seule l'ecriture est concernee -- avant ce correctif, canAccessForum() bloquait aussi la
+  // simple ouverture de la rubrique pour tout joueur sans poste institutionnel.
+  if (forumId === 'presse') return true;
   if (!state.poste) return false;
   if (f.requiredPost) return f.requiredPost.includes(state.poste.id);
   return true;
@@ -446,8 +458,9 @@ function switchForum(id) {
   const f = getForums()[id];
   if (f?.cat) forumCategorieActive = f.cat;
   renderForumModal();
+  // renderForumModal() complet (meme correctif que ci-dessus, compteur sidebar).
   loadForumTopicsFromSB(id).then(() => {
-    document.getElementById('forum-main').innerHTML = renderForumContent();
+    if (mailView !== 'compose') renderForumModal();
   }).catch(() => {});
 }
 
@@ -1285,6 +1298,12 @@ function showNewTopicForm() {
     showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet dans "La Présidence à la Nation".', false);
     return;
   }
+  // Presse & Medias (correctif du 20 aout 2026) : meme garde que submitComposeCanvas() -- chemin
+  // legacy non branche a un bouton actif, conserve par coherence.
+  if (currentForumId === 'presse' && state.char?.career !== 'press') {
+    showToast('Accès restreint', 'Seuls les journalistes peuvent ouvrir un sujet ici.', false);
+    return;
+  }
   forumView = 'new-topic'; document.getElementById('forum-main').innerHTML = renderForumContent();
 }
 function showReplyForm()    { forumView = 'reply';     document.getElementById('forum-main').innerHTML = renderForumContent(); }
@@ -1555,6 +1574,12 @@ async function submitNewTopic() {
     showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false);
     return;
   }
+  // Presse & Medias (correctif du 20 aout 2026) : meme garde que submitComposeCanvas() -- chemin
+  // legacy non branche a un bouton actif, conserve par coherence.
+  if (currentForumId === 'presse' && state.char?.career !== 'press') {
+    showToast('Accès restreint', 'Seuls les journalistes peuvent ouvrir un sujet ici.', false);
+    return;
+  }
   const titleEl = document.getElementById('new-topic-title');
   const contentEl = document.getElementById('new-topic-content');
   const title = titleEl?.value?.trim();
@@ -1755,6 +1780,15 @@ async function submitComposeCanvas() {
   // Présidence (ni submitReply ni submitEditPost ne l'étaient).
   if (!enEdition && !enReponse && currentForumId === 'presidence' && state.poste?.id !== 'president') {
     showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false);
+    return;
+  }
+  // Presse & Medias (correctif du 20 aout 2026) : lecture desormais publique (canAccessForum),
+  // mais la creation d'un nouveau sujet reste reservee aux journalistes -- meme carriere deja
+  // existante ('press', CAREERS/data.js) que celle utilisee pour la redaction/les articles de La
+  // Tribune, aucune nouvelle notion inventee. Meme exception "reponse jamais restreinte" que
+  // presidence ci-dessus.
+  if (!enEdition && !enReponse && currentForumId === 'presse' && state.char?.career !== 'press') {
+    showToast('Accès restreint', 'Seuls les journalistes peuvent ouvrir un sujet ici.', false);
     return;
   }
 
