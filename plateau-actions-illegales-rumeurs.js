@@ -2208,6 +2208,40 @@ function defautCommerce(type, pays, ville, buildingId, roomId) {
   };
 }
 
+// Rattrapage generique de dotation (correctif, 20 aout 2026) -- cause reelle de l'absence des 4
+// boissons au Cafe de la Gare en production : DOTATIONS_COMMERCE_PILOTE n'est rejouee QUE lors de
+// la toute premiere creation d'un commerce (chargerEntreprise, ci-dessous, n'appelle
+// defautFabrique -- et donc la dotation -- que si sbGetEntreprise ne renvoie encore rien). Le
+// commerce du Cafe de la Gare existait deja en base (premiere production de Boeuf bourguignon
+// bien avant l'ajout des boissons a sa dotation), donc l'ajout des 4 recettes/2 matieres/prix a
+// DOTATIONS_COMMERCE_PILOTE ne lui a jamais ete applique -- confirme en lisant sa ligne reelle en
+// base (entreprises.data.carte = ["boeuf_bourguignon"] seul, stockMatieres sans
+// fruits_legumes/produits_exotiques). Generique par construction (tous les commerces a dotation
+// pilote, pas seulement celui-ci) : rejoue la dotation sur un commerce vierge de reference
+// (defautCommerce, jamais lu ni ecrit) puis fusionne UNIQUEMENT les cles absentes du commerce
+// reellement persiste dans carte/stockMatieres/coutMoyenMatieres/parametres.stockMax/prixVente --
+// ne touche jamais une valeur deja existante (stock reellement consomme, prix ajuste par un
+// proprietaire PJ, caisse accumulee), donc aucune perte de progression reelle.
+function rattraperDotationCommerce(data, dotation, type, pays, ville, buildingId, roomId) {
+  const reference = defautCommerce(type, pays, ville, buildingId, roomId);
+  dotation(reference);
+  let modifie = false;
+  (reference.carte || []).forEach(recId => {
+    if (!data.carte.includes(recId)) { data.carte.push(recId); modifie = true; }
+  });
+  ['stockMatieres', 'coutMoyenMatieres'].forEach(champ => {
+    Object.entries(reference[champ] || {}).forEach(([cle, val]) => {
+      if (!(cle in data[champ])) { data[champ][cle] = val; modifie = true; }
+    });
+  });
+  ['prixVente', 'stockMax'].forEach(champ => {
+    Object.entries((reference.parametres || {})[champ] || {}).forEach(([cle, val]) => {
+      if (!(cle in data.parametres[champ])) { data.parametres[champ][cle] = val; modifie = true; }
+    });
+  });
+  return modifie;
+}
+
 // Dotation de depart eventuelle par buildingId (meme principe que defautArmurerie : un commerce
 // pilote ne demarre pas a zero) -- typeof DOTATIONS_COMMERCE_PILOTE en garde car cette const est
 // declaree plus loin dans ce fichier (catalogue des commerces, rempli lot par lot) ; l'ordre de
@@ -2225,7 +2259,12 @@ async function chargerCommerce(type, pays, ville, buildingId, roomId) {
     if (dotation) dotation(d);
     return d;
   });
-  if (data) data.id = id;
+  if (data) {
+    data.id = id;
+    if (dotation && rattraperDotationCommerce(data, dotation, type, pays, ville, buildingId, roomId)) {
+      if (typeof sbSaveEntreprise === 'function') await sbSaveEntreprise(id, data).catch(() => {});
+    }
+  }
   return data;
 }
 

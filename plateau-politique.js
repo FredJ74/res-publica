@@ -1648,7 +1648,9 @@ function renderRoomActions(room, buildingId, roomId) {
     // pa>0). La vraie valeur reste desormais toujours visible ; seule une mention "(illimité)"
     // signale que TEST_MODE l'annule pour l'instant. Valeur transmise a doOrder() inchangee
     // (o.pa brut, deja correcte avant ce correctif -- uniquement l'affichage etait en cause).
-    let paDisplay = o.pa + ' PA' + (TEST_MODE && o.pa > 0 ? ' (illimité' + (o.pa > 1 ? 's' : '') + ')' : '');
+    // Correctif "gratuit" (20 aout 2026) : un ordre a 0 PA n'affiche plus "0 PA" -- generique,
+    // vrai pour tout ordre, pas seulement les commerces (voir aussi costDisplay/jonction ci-dessous).
+    let paDisplay = o.pa > 0 ? o.pa + ' PA' + (TEST_MODE ? ' (illimité' + (o.pa > 1 ? 's' : '') + ')' : '') : '';
     // Lot boissons (20 aout 2026) : "Produire un repas" (produire_commerce) n'a jamais debite le
     // moindre PA a l'ouverture, quel que soit le buildingId ou la valeur declaree dans data.js --
     // le vrai cout PA est celui de la recette choisie ensuite, debite par produireRecetteCommerce()
@@ -1667,7 +1669,11 @@ function renderRoomActions(room, buildingId, roomId) {
     if (o.type === 'illegal') {
       tauxAffiche = Math.max(5, tauxAffiche - getMalusISN());
     }
-    let costDisplay = o.cost > 0 ? o.cost.toLocaleString('fr-FR') + ' ' + cur : 'gratuit';
+    // "gratuit" retire (20 aout 2026) : trompeur des qu'une action a un cout reel differe (ex.
+    // produire_commerce/consommer_boisson/offrir_tournee, declares 0 PA/0 FR a l'ouverture alors
+    // que l'action qui suit a un vrai cout choisi ensuite). Un ordre reellement 0 PA/0 FR n'affiche
+    // plus rien du tout (voir jonction costDisplay/paDisplay plus bas).
+    let costDisplay = o.cost > 0 ? o.cost.toLocaleString('fr-FR') + ' ' + cur : '';
     // Fix 9 aout 2026 : produire_arme est declare pa:0/cost:0 dans data.js (sa vraie logique
     // est geree entierement dans confirmerProduction, hors du chemin doOrder generique) - le
     // bouton affichait donc "gratuit" a tort alors que la production coute reellement 2 PA et
@@ -1736,7 +1742,8 @@ function renderRoomActions(room, buildingId, roomId) {
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
     const blockedCls = (needsPost || needsSquat || needsCadavre) ? ' blocked' : '';
-    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltip + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + costDisplay + (paDisplay ? ' · ' + paDisplay : '') + '</span>' + gainBadge + '</button>';
+    const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
+    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltip + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
   // Bouton generique "Ecouter l'audioguide" : apparait pour toute salle ayant un audioUrl,
