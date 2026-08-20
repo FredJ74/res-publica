@@ -349,6 +349,63 @@ function encodePnjSafe(obj) {
   return encodeURIComponent(JSON.stringify(obj)).replace(/'/g, '%27');
 }
 
+// =====================
+// DETECTION DE NOUVELLE VERSION CLIENT (correctif, 20 aout 2026)
+// =====================
+// version.json est un simple marqueur statique {"v": N}, a bumper manuellement en meme temps
+// que les ?v= de cache-busting a chaque lot deploye (meme geste, un fichier de plus) -- jamais
+// deduit du HTML/JS deja charge (aucun parsing de plateau.html). La version chargee au demarrage
+// de CETTE session est figee une fois pour toutes (_versionInitialeClient, premiere lecture
+// reussie), puis comparee a chaque verification a la version distante relue a neuf.
+let _versionInitialeClient = null;
+let _bandeauNouvelleVersionAffiche = false;
+
+async function fetchVersionJson() {
+  try {
+    // cache:'no-store' (intention navigateur) + parametre d'URL unique (contourne aussi un
+    // eventuel cache intermediaire cote CDN, qui ne respecte pas toujours les en-tetes de
+    // requete) : les deux ensembles, pas l'un ou l'autre, pour une fraicheur reellement garantie.
+    const res = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && typeof data.v !== 'undefined' ? data.v : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function verifierNouvelleVersion() {
+  const v = await fetchVersionJson();
+  if (v === null) return; // echec reseau/format -- ne jamais declencher sur une incertitude
+  if (_versionInitialeClient === null) {
+    _versionInitialeClient = v; // premiere lecture reussie de la session = reference
+    return;
+  }
+  if (v === _versionInitialeClient) return; // rien de nouveau
+  if (_bandeauNouvelleVersionAffiche) return; // deja signale par un poll precedent, pas de doublon
+  _bandeauNouvelleVersionAffiche = true;
+
+  // Sauvegarde/flush avant d'interrompre le joueur -- reutilise integralement le mecanisme deja
+  // en place pour pagehide/beforeunload (supabase.js), jamais duplique ici.
+  if (typeof sbSauvegardeUrgenceDechargement === 'function') sbSauvegardeUrgenceDechargement();
+  afficherBandeauNouvelleVersion();
+}
+
+// Bandeau persistant injecte dynamiquement (pas de nouveau markup dans plateau.html) -- ne se
+// masque jamais tout seul, contrairement a showToast() (auto-masque 3,8s, inadapte ici).
+// location.reload() UNIQUEMENT au clic sur le bouton, jamais automatique.
+function afficherBandeauNouvelleVersion() {
+  if (document.getElementById('bandeau-nouvelle-version')) return;
+  const bandeau = document.createElement('div');
+  bandeau.id = 'bandeau-nouvelle-version';
+  bandeau.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:300;background:#1a1005;border-bottom:1px solid #8a6a20;color:#f0ead6;padding:.7rem 1rem;display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;font-size:.85rem;font-family:inherit';
+  bandeau.innerHTML =
+    '<span>🔄 Une nouvelle version de Res Publica est disponible.</span>' +
+    '<button id="bandeau-nouvelle-version-btn" style="font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.4rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Recharger</button>';
+  document.body.appendChild(bandeau);
+  document.getElementById('bandeau-nouvelle-version-btn').addEventListener('click', () => { window.location.reload(); });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   loadCharacter();
   // Restaurer dernierDormir depuis localStorage
@@ -464,6 +521,18 @@ window.addEventListener('DOMContentLoaded', () => {
   if (typeof window !== 'undefined') {
     window.addEventListener('pagehide', () => { if (typeof sbSauvegardeUrgenceDechargement === 'function') sbSauvegardeUrgenceDechargement(); });
     window.addEventListener('beforeunload', () => { if (typeof sbSauvegardeUrgenceDechargement === 'function') sbSauvegardeUrgenceDechargement(); });
+  }
+
+  // Detection de nouvelle version (correctif, 20 aout 2026) : verification au demarrage, toutes
+  // les 5 min (meme cadence que le championnat/les elections d'organisations ci-dessus), et
+  // immediatement quand l'onglet redevient visible (le cas le plus frequent en pratique : un
+  // onglet reste ouvert en arriere-plan pendant un deploiement).
+  setTimeout(() => { if (typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion(); }, 2700);
+  setInterval(() => { if (typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion(); }, 300000);
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion();
+    });
   }
 
   // Séquence de chargement espacée pour éviter les conflits de modaux
