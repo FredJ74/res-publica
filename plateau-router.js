@@ -101,6 +101,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'soin_public') { doSoinPublic(pa, cost); return; }
   if (fn === 'soins') { doSoinCliniquePrivee(pa, cost); return; }
   if (fn === 'vendre_ressource_medicale') { doVendreRessourceMedicaleGenerique(pa, cost); return; }
+  if (fn === 'gerer_visites_chambre') { doGererVisitesChambre(pa, cost); return; }
+  if (fn === 'ouvrir_chambres_clinique') { doOuvrirChambresClinique(pa, cost); return; }
   if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(pa); return; }
   if (fn === 'dormir_chambre') { doDormirChambre(); return; }
   if (fn === 'dormir') { doDormir(); return; }

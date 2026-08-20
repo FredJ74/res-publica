@@ -444,7 +444,15 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // propres a une ville (ctx.roomsExtra), sans jamais les ajouter aux autres villes qui
   // partagent la meme definition de batiment globale (ex: centre-affaires).
   const ctxForTabs = getBuildingContext(buildingId);
-  const rooms = Object.entries({ ...(b.rooms || {}), ...(ctxForTabs?.roomsExtra || {}) });
+  const roomsBrutes = Object.entries({ ...(b.rooms || {}), ...(ctxForTabs?.roomsExtra || {}) });
+  // Chambres individuelles de la clinique privee (arbitrage UX, 20 aout 2026) : jamais des
+  // onglets bruts "Chambre 1"..."Chambre 10" -- acces via le point d'entree unique "Chambres"
+  // sur l'accueil (doOuvrirChambresClinique, plateau-personnage.js), qui appelle enterRoom()
+  // directement vers la bonne chambre. Scope strictement clinique-privee : aucun autre batiment
+  // n'est concerne par ce filtre.
+  const rooms = buildingId === 'clinique-privee'
+    ? roomsBrutes.filter(([roomId]) => !/^chambre_(?:[1-9]|10)$/.test(roomId))
+    : roomsBrutes;
   document.getElementById('pieces-tabs').innerHTML = rooms.map(([roomId, room], i) => {
     const isZoneEmb = roomId === 'zone_embarquement';
     const locked = isZoneEmb && !state.douanePassee;
@@ -487,6 +495,20 @@ function enterRoom(buildingId, roomId, tabEl) {
     const ouvertes = state.ambassadesOuvertesCache || [];
     if (!ouvertes.some(a => a.empire === empireRequis)) {
       showToast('Bureau fermé', "Aucune ambassade de " + (COUNTRIES[empireRequis]?.n || empireRequis) + " n'est ouverte ici pour le moment.", false);
+      return;
+    }
+  }
+  // Verrou : chambre individuelle de la clinique privee (lot chambres, 20 aout 2026) --
+  // STRICTEMENT limite a clinique-privee/chambre_1..chambre_10, jamais generalise aux autres
+  // locations_actives (logements sociaux, appartements, commerces loues...). L'occupant entre
+  // toujours ; un autre PJ n'entre que si les visites sont autorisees (defaut) ou si la chambre
+  // n'est pas attribuee (rien a proteger). Les PNJ (Sophie Stiquay, Docteur Bistouri...) ne
+  // sont jamais concernes : ce sont des donnees d'affichage statiques (room.persons), jamais des
+  // appelants de enterRoom().
+  if (buildingId === 'clinique-privee' && /^chambre_(?:[1-9]|10)$/.test(roomId)) {
+    const locChambre = (typeof getLocationPourRoom === 'function') ? getLocationPourRoom(buildingId, roomId, 'capitale') : null;
+    if (locChambre && locChambre.locataire !== state.char?.name && locChambre.visitesAutorisees === false) {
+      showToast('Visite refusée', 'Le patient de cette chambre a interdit les visites pour le moment.', false);
       return;
     }
   }

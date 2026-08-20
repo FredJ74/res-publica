@@ -2099,6 +2099,12 @@ function payerLocations() {
 
   locations.forEach((loc, i) => {
     if (loc.locataire !== state.char?.name) return; // Pas notre location
+    // Chambres de la clinique privee (lot chambres, 20 aout 2026) : attribution medicale, pas une
+    // location payante -- prix:0 est deja conserve pour la compatibilite du schema, mais on
+    // l'exclut ici explicitement pour ne produire ni prelevement, ni message de loyer, ni
+    // avertissement, ni resiliation. Ne concerne aucune autre location (logements sociaux,
+    // appartements, locaux commerciaux...).
+    if (loc.chambreClinique === true) return;
 
     if (state.arg >= loc.prix) {
       state.arg -= loc.prix;

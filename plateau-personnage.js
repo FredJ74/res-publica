@@ -967,11 +967,74 @@ async function doDormir() {
   return true;
 }
 
+// =====================
+// CHAMBRES INDIVIDUELLES DE LA CLINIQUE PRIVEE (lot chambres, 20 aout 2026) -- reutilise
+// integralement locations_actives (plateau-justice-economie.js : getLocationPourRoom/
+// chargerLocations/sbSaveLocation, deja charge au demarrage dans state.locationsActives), meme
+// patron que l'attribution des logements sociaux de Montrouge (attribuerLogementSocial,
+// plateau-logements-montrouge.js) mais en self-service (le patient s'attribue lui-meme sa
+// chambre au moment du transfert, pas un tiers). Aucune nouvelle table/colonne Supabase :
+// locations_actives.data est un JSONB libre (verifie en lecture directe sur la table de
+// production), deja etendu sans migration pour les logements sociaux (logementSocial/
+// bonusMoralSommeil/bonusSanteSommeil) -- meme principe ici avec visitesAutorisees/
+// chambreClinique.
+//
+// prix:0 conserve sur chaque attribution pour la compatibilite du schema (payerLocations()
+// lit loc.prix pour toute entree dont locataire===state.char?.name), mais payerLocations()
+// (plateau-justice-economie.js) exclut desormais explicitement chambreClinique===true avant
+// tout traitement -- aucun prelevement, message de loyer, avertissement ni expulsion pour les
+// chambres de la clinique (arbitrage UX, 20 aout 2026). N'affecte aucune autre location.
+const CHAMBRES_CLINIQUE_PRIVEE = ['chambre_1','chambre_2','chambre_3','chambre_4','chambre_5','chambre_6','chambre_7','chambre_8','chambre_9','chambre_10'];
+
+function getChambreAttribueeClinique(nomPatient) {
+  return (state.locationsActives || []).find(l =>
+    l.buildingId === 'clinique-privee' && l.chambreClinique === true && l.locataire === nomPatient);
+}
+
+function trouverChambreLibreClinique() {
+  for (const roomId of CHAMBRES_CLINIQUE_PRIVEE) {
+    if (!getLocationPourRoom('clinique-privee', roomId, 'capitale')) return roomId;
+  }
+  return null;
+}
+
 async function doTransfertCliniquePrivee(pa, cost) {
   if (!state.hospitalisation) { showToast('Indisponible', 'Vous n\'êtes pas hospitalisé(e).', false); return; }
   if (state.hospitalisation.lieu === 'clinique') { showToast('Déjà en clinique privée', '', false); return; }
+
+  // Fail-closed (section 2 du lot) : la disponibilite d'une chambre est verifiee AVANT tout
+  // debit -- jamais de transfert partiel, jamais de patient envoye dans la chambre d'un autre.
+  const patient = state.char?.name;
+  const dejaAttribuee = patient ? getChambreAttribueeClinique(patient) : null;
+  let roomIdCible = dejaAttribuee ? dejaAttribuee.roomId : trouverChambreLibreClinique();
+  if (!roomIdCible) {
+    showToast('Aucune chambre disponible', "La clinique ne dispose actuellement d'aucune chambre libre.", false);
+    return;
+  }
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('Fonds insuffisants', '1000 FR requis pour le transfert.', false); return; }
+
+  // Nouvelle attribution seulement si le patient n'en avait pas deja une (idempotent : un
+  // re-transfert retrouve la meme chambre plutot que d'en creer une seconde).
+  if (!dejaAttribuee) {
+    const entree = {
+      buildingId: 'clinique-privee',
+      roomId: roomIdCible,
+      city: 'capitale',
+      country: state.country || 'republic',
+      locataire: patient,
+      depuis: state.day || 1,
+      visible: true,
+      prix: 0,
+      chambreClinique: true,
+      visitesAutorisees: true
+    };
+    if (!state.locationsActives) state.locationsActives = [];
+    state.locationsActives.push(entree);
+    if (typeof sbSaveLocation === 'function') await sbSaveLocation(entree).catch(() => {});
+  }
+
   state.hospitalisation.lieu = 'clinique';
   // clinique-privee n'existe qu'a la capitale de chaque empire (lot chambre, 20 aout 2026) --
   // mise a jour explicite de la ville avant l'entree dans la piece, au cas ou cet ordre serait un
@@ -980,14 +1043,112 @@ async function doTransfertCliniquePrivee(pa, cost) {
   state.currentCity = 'capitale';
   if (state.char) state.char.currentCity = 'capitale';
   updateUI();
-  // Destination precise : la nouvelle piece "chambre", pas la reception -- meme mecanisme de
-  // changement de batiment/piece que partout ailleurs (enterBuilding/enterRoom), qui persiste
-  // deja immediatement la position (voir enterRoom, plateau-navigation.js) -- aucune
-  // teleportation parallele.
+  // Destination precise : la chambre attribuee (existante ou nouvelle), pas la reception --
+  // meme mecanisme de changement de batiment/piece que partout ailleurs (enterBuilding/
+  // enterRoom), qui persiste deja immediatement la position (voir enterRoom,
+  // plateau-navigation.js) -- aucune teleportation parallele.
   if (typeof enterBuilding === 'function') enterBuilding('clinique-privee', true);
-  if (typeof enterRoom === 'function') enterRoom('clinique-privee', 'chambre', null);
+  if (typeof enterRoom === 'function') enterRoom('clinique-privee', roomIdCible, null);
   showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true);
   addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
+}
+
+// Liberation de la chambre a la fin REELLE de l'hospitalisation uniquement -- appelee depuis
+// verifierProgressionHospitalisation() (plus bas dans ce fichier), seul endroit ou
+// state.hospitalisation est efface par la progression naturelle des jours (verifie : aucun
+// refresh/navigation/visite ne declenche cette fonction, seulement doDormir()). Meme patron que
+// resilierLogementSocialSiDepartMontrouge (plateau-logements-montrouge.js) :
+// splice(state.locationsActives) + sbSupprimerLocation.
+function libererChambreCliniquePatient(nomPatient) {
+  if (!nomPatient) return;
+  const idx = (state.locationsActives || []).findIndex(l =>
+    l.locataire === nomPatient && l.buildingId === 'clinique-privee' && l.chambreClinique === true);
+  if (idx < 0) return;
+  const bail = state.locationsActives[idx];
+  state.locationsActives.splice(idx, 1);
+  if (typeof sbSupprimerLocation === 'function') sbSupprimerLocation(bail.buildingId, bail.roomId, bail.city).catch(() => {});
+}
+
+// =====================
+// CONTROLE DES VISITES (section 3 du lot) -- ordre unique present sur les 10 chambres, reserve
+// au patient occupant. Aucun gain/cout/effet : uniquement le champ visitesAutorisees de
+// l'attribution locations_actives.
+function doGererVisitesChambre(pa, cost) {
+  const loc = (typeof getLocationPourRoom === 'function') ? getLocationPourRoom('clinique-privee', state.currentRoom, 'capitale') : null;
+  if (!loc || !loc.chambreClinique) {
+    showToast('Chambre inoccupée', "Cette chambre n'est pas attribuée pour l'instant.", false);
+    return;
+  }
+  if (loc.locataire !== state.char?.name) {
+    showToast('Accès refusé', 'Seul le patient occupant peut gérer les visites de sa chambre.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Visites de la chambre';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.8rem">Visites actuellement ' + (loc.visitesAutorisees !== false ? 'autorisées' : 'interdites') + '.</div>' +
+    '<div style="display:flex;flex-direction:column;gap:.4rem">' +
+    '<button onclick="confirmerVisitesChambreUI(true)" style="padding:.6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.85rem;text-align:left">Autoriser les visites</button>' +
+    '<button onclick="confirmerVisitesChambreUI(false)" style="padding:.6rem;border:1px solid #5a2a2a;background:transparent;color:#8a3a2a;cursor:pointer;font-size:.85rem;text-align:left">Interdire les visites</button>' +
+    '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="padding:.6rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;font-size:.85rem;text-align:left">Annuler</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVisitesChambreUI(autoriser) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const loc = (typeof getLocationPourRoom === 'function') ? getLocationPourRoom('clinique-privee', state.currentRoom, 'capitale') : null;
+  if (!loc || loc.locataire !== state.char?.name) { showToast('Accès refusé', '', false); return; }
+  loc.visitesAutorisees = !!autoriser;
+  if (typeof sbSaveLocation === 'function') await sbSaveLocation(loc).catch(() => {});
+  showToast(autoriser ? 'Visites autorisées' : 'Visites interdites', autoriser ? 'Les autres joueurs peuvent à nouveau vous rendre visite.' : 'Seul le personnel de la clinique peut désormais entrer.', true);
+  addJournalEntry(autoriser ? 'Visites de la chambre autorisées.' : 'Visites de la chambre interdites.', 'event-info');
+}
+
+// =====================
+// ACCES AUX CHAMBRES DEPUIS L'ACCUEIL (arbitrage UX, 20 aout 2026) -- point d'entree unique pour
+// rejoindre sa propre chambre ou rendre visite a un patient qui l'autorise. Remplace l'affichage
+// des 10 onglets chambre_1..chambre_10 (masques dans enterBuilding, plateau-navigation.js) :
+// aucun texte ici ne mentionne jamais un roomId technique, seulement des noms de patients.
+function doOuvrirChambresClinique(pa, cost) {
+  const moi = state.char?.name;
+  const maChambre = moi ? getChambreAttribueeClinique(moi) : null;
+  const visiteurs = (state.locationsActives || []).filter(l =>
+    l.buildingId === 'clinique-privee' && l.chambreClinique === true &&
+    l.locataire !== moi && l.visitesAutorisees !== false);
+
+  let corps = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
+  if (maChambre) {
+    corps += '<button onclick="rejoindreChambreClinique(\'' + moi.replace(/'/g, "\\'") + '\')" style="padding:.6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.85rem;text-align:left">Rejoindre ma chambre</button>';
+  }
+  visiteurs.forEach(l => {
+    const nomEchappe = l.locataire.replace(/'/g, "\\'");
+    corps += '<button onclick="rejoindreChambreClinique(\'' + nomEchappe + '\')" style="padding:.6rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.85rem;text-align:left">Rendre visite à ' + l.locataire + '</button>';
+  });
+  if (!maChambre && visiteurs.length === 0) {
+    corps += '<div style="font-size:.85rem;color:#8a8060">Aucun patient ne reçoit actuellement de visites.</div>';
+  }
+  corps += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="padding:.6rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;font-size:.85rem;text-align:left">Annuler</button>';
+  corps += '</div></div>';
+
+  document.getElementById('postes-modal-title').textContent = 'Chambres';
+  document.getElementById('postes-body').innerHTML = corps;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Le controle d'acces reel reste enterRoom (plateau-navigation.js), interroge de nouveau au clic
+// (pas de donnee figee dans la popup) : si l'etat a change entre l'ouverture (visites interdites
+// entre-temps, patient sorti) et ce clic, c'est enterRoom qui refuse -- cette fonction se contente
+// de retrouver la chambre actuelle du patient puis d'y naviguer normalement.
+function rejoindreChambreClinique(nomPatient) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const loc = getChambreAttribueeClinique(nomPatient);
+  if (!loc) {
+    showToast('Chambre indisponible', "Ce patient ne dispose plus d'une chambre pour l'instant.", false);
+    return;
+  }
+  if (typeof enterBuilding === 'function') enterBuilding('clinique-privee', true);
+  if (typeof enterRoom === 'function') enterRoom('clinique-privee', loc.roomId, null);
 }
 
 async function doCentreAntiPoison(pa) {
@@ -1415,6 +1576,11 @@ function verifierProgressionHospitalisation() {
   if (!state.hospitalisation) return;
   const jourFin = state.hospitalisation.jourFin || ((state.hospitalisation.jourDebut || state.day || 1) + 1);
   if ((state.day || 1) >= jourFin) {
+    // Liberation de la chambre clinique, uniquement ici (fin reelle de l'hospitalisation) --
+    // jamais sur un refresh/une navigation interne/une visite, voir libererChambreCliniquePatient.
+    if (state.hospitalisation.lieu === 'clinique' && typeof libererChambreCliniquePatient === 'function') {
+      libererChambreCliniquePatient(state.char?.name);
+    }
     state.hospitalisation = null;
     showToast('Rétabli(e) !', 'Vous avez retrouvé toutes vos capacités.', true, true);
     addJournalEntry('Vous êtes complètement rétabli(e) de votre agression.', 'event-good');
