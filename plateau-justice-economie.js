@@ -3431,10 +3431,17 @@ const PRODUIT_PAR_PA_USINE = 10;
 const PLAFOND_VENTE_DIRECTE_USINE = 50; // doit rester identique a PLAFOND_VENTE_DIRECTE, api/cron-minuit.js
 
 const CHAINES_PRODUCTION_USINE = {
-  medicaments: { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', matiere: 'plantes',  salairePA: 84 },
-  alcool:      { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'cereales', salairePA: 55 },
-  tabac:       { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'plantes',  salairePA: 66 },
-  carburant:   { buildingId: 'raffinerie-montrouge',          city: 'ville_b',  matiere: 'petrole',  salairePA: 70 }
+  medicaments:  { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', matiere: 'plantes',  salairePA: 84 },
+  alcool:       { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'cereales', salairePA: 55 },
+  tabac:        { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  matiere: 'plantes',  salairePA: 66 },
+  carburant:    { buildingId: 'raffinerie-montrouge',          city: 'ville_b',  matiere: 'petrole',  salairePA: 70 },
+  // Filiere alcool->desinfectant (20 aout 2026, valeurs validees par Fred) : meme usine que
+  // medicaments, seconde chaine independante -- aucun changement sur la chaine plantes/medicaments
+  // existante. Approvisionnement en alcool volontairement NON automatique (aucune redirection
+  // ajoutee a USINE_LOCALE_PAR_VILLE, api/cron-minuit.js) : seul le mecanisme generique
+  // vendre_matiere_usine (ci-dessus) peut alimenter stockMatieres.alcool de cette usine, un joueur
+  // devant physiquement "transporter" l'alcool depuis Port-Sainte-Marie.
+  desinfectant: { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', matiere: 'alcool',   salairePA: 70 }
 };
 
 async function doProduireUsine(produitId) {
@@ -3509,13 +3516,150 @@ async function confirmerProductionUsine(produitId) {
 }
 
 // =====================
+// VENTE DE MATIERES PREMIERES A UNE USINE (lot filiere alcool->desinfectant, 20 aout 2026) --
+// generique pour toute usine/toute chaine CHAINES_PRODUCTION_USINE, pas seulement l'usine
+// pharmaceutique : construit une chaine industrielle inter-villes (une matiere achetee/produite
+// ailleurs doit pouvoir etre revendue par un joueur a l'usine qui la transforme), sans aucun
+// transfert automatique entre batiments -- le joueur est le seul vecteur de transport.
+//
+// Reutilise integralement crediterStockMatiereCommerce() (plateau-actions-illegales-rumeurs.js)
+// pour la mise a jour stock/cout moyen pondere -- deja generique (ne connait ni commerce ni
+// usine, seulement un objet {stockMatieres, coutMoyenMatieres}), aucune logique dupliquee. Le
+// reste (verifications, debit de la caisse de l'usine, credit du joueur) suit le meme squelette
+// que vendreMatiereCommerce SANS l'appeler directement : structure de donnees differente
+// (etat.usine, pas une entreprise "commerce" avec parametres.stockMax/taxation).
+//
+// Prix : aucun systeme de prix fixe par un directeur pour l'achat de matieres par une usine
+// n'existe encore (explicitement hors perimetre de ce lot) -- prixAchatFournisseur est utilise
+// directement (meme repli que prixAchatMatiereCommerce en l'absence de prix manuel), sans aucune
+// valeur inventee : c'est deja la valeur utilisee par l'entrepot pour racheter cette meme
+// ressource aux fournisseurs.
+// Plafond : RESSOURCES_ECONOMIE[matiere].plafond, meme convention que la redirection
+// entrepot->usine existante (livrerEntrepotsQuotidien, api/cron-minuit.js) -- pas un stockMax
+// distinct invente pour l'occasion.
+
+// Matieres acceptees par une usine = union des matieres des chaines CHAINES_PRODUCTION_USINE
+// configurees pour ce buildingId (jamais une liste codee en dur par usine) -- meme principe que
+// matieresAccepteesParCommerce (union des materiaux de la carte), applique ici aux chaines de
+// production. Tant qu'aucune chaine n'est configuree pour une matiere donnee sur ce batiment
+// (ex. alcool pour l'usine pharmaceutique, avant l'ajout de la chaine alcool->desinfectant),
+// cette matiere n'est pas acceptee -- comportement voulu, pas une limitation a lever.
+function matieresAccepteesParUsine(buildingId) {
+  return Object.values(CHAINES_PRODUCTION_USINE)
+    .filter(c => c.buildingId === buildingId)
+    .map(c => c.matiere);
+}
+
+async function vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte) {
+  if (!matieresAccepteesParUsine(buildingId).includes(matiere)) return { ok: false, raison: 'matiere_non_acceptee' };
+  if (!qte || qte <= 0) return { ok: false, raison: 'quantite_invalide' };
+
+  const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === matiere && (i.qty || 0) > 0);
+  if (!lot || lot.qty < qte) return { ok: false, raison: 'stock_personnel_insuffisant' };
+
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  if (!etat) return { ok: false, raison: 'introuvable' };
+  const usine = etat.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
+  if (!usine.stockMatieres) usine.stockMatieres = {};
+
+  const res = RESSOURCES_ECONOMIE[matiere];
+  const stockActuel = usine.stockMatieres[matiere] || 0;
+  const placeRestante = Math.max(0, res.plafond - stockActuel);
+  if (placeRestante < qte) return { ok: false, raison: 'stock_plein', placeRestante };
+
+  const prixUnitaire = res.prixAchatFournisseur;
+  const total = prixUnitaire * qte;
+  if ((usine.caisse || 0) < total) return { ok: false, raison: 'caisse_insuffisante' };
+
+  lot.qty -= qte;
+  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
+
+  crediterStockMatiereCommerce(usine, matiere, qte, prixUnitaire);
+  usine.caisse = (usine.caisse || 0) - total;
+  state.arg = (state.arg || 0) + total;
+
+  const nouvelEtat = { ...etat, usine };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, buildingId, nouvelEtat).catch(() => {});
+
+  return { ok: true, total, prixUnitaire, qte };
+}
+
+function doVendreMatierePremiereUsineGenerique(pa, cost) {
+  const buildingId = state.currentBuilding;
+  if (!buildingId) { showToast('Indisponible', '', false); return; }
+  doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost);
+}
+
+async function doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  const usine = etat?.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
+  const matieres = matieresAccepteesParUsine(buildingId);
+  const disponibles = matieres.filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0));
+
+  document.getElementById('postes-modal-title').textContent = "Vendre des matières à l'usine";
+  let html = '<div style="padding:1rem">';
+  if (disponibles.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060">Vous ne possédez aucune matière utilisée par cette usine' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
+  } else {
+    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat au tarif fournisseur en vigueur.</div>';
+  }
+  disponibles.forEach(m => {
+    const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
+    const qteDispo = lot?.qty || 0;
+    const res = RESSOURCES_ECONOMIE[m];
+    const prixUnitaire = res.prixAchatFournisseur;
+    const stockActuel = usine.stockMatieres[m] || 0;
+    const placeRestante = Math.max(0, res.plafond - stockActuel);
+    const qteInitiale = Math.max(1, Math.min(qteDispo, placeRestante));
+    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
+    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + res.label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + ', capacité restante ' + placeRestante + '</span>';
+    html += '<input type="number" id="vendre-usine-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.78rem;outline:none"/>';
+    html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.72rem"' : 'onclick="confirmerVendreMatierePremiereUsineUI(\'' + buildingId + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem"') + '>Vendre</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVendreMatierePremiereUsineUI(buildingId, matiere) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const qte = parseInt(document.getElementById('vendre-usine-qte-' + matiere)?.value || '0');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!qte || qte <= 0) { showToast('Quantité invalide', '', false); return; }
+
+  const res = await vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte);
+  const label = RESSOURCES_ECONOMIE[matiere]?.label || matiere;
+  if (!res.ok) {
+    const messages = {
+      introuvable: '',
+      matiere_non_acceptee: "Cette usine n'utilise pas cette matière.",
+      quantite_invalide: '',
+      stock_personnel_insuffisant: 'Vous n\'avez pas ' + qte + ' unité(s) de ' + label + '.',
+      stock_plein: 'Le stock maximum de cette matière est atteint pour cette usine.',
+      caisse_insuffisante: "L'usine ne peut pas acheter cette quantité actuellement."
+    };
+    showToast('Vente refusée', messages[res.raison] || '', false);
+    return;
+  }
+  updateUI();
+  showToast('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', true, true);
+  addJournalEntry('Vente de ' + res.qte + ' ' + label + " à l'usine (+" + res.total.toLocaleString('fr-FR') + ' FR).', 'event-good');
+  doOuvrirVendreMatierePremiereUsine(buildingId, 0, 0); // rafraichit, meme pattern que vendre_matiere_commerce
+}
+
+// =====================
 // TABLEAU DE BORD DU DIRECTEUR PJ — le directeur choisit le prix de vente directe (dans la
 // meme fourchette ±40% que les entrepots) et la repartition entrepots/vente directe de sa
 // propre usine (voir note du 7 aout 2026 dans api/cron-minuit.js). Reserve au titulaire du
 // poste, dans son propre batiment.
 // =====================
 const DIRECTEUR_USINE_INFO = {
-  directeur_pharma:        { city: 'capitale', buildingId: 'usine-pharmaceutique-luthecia', produits: ['medicaments'] },
+  directeur_pharma:        { city: 'capitale', buildingId: 'usine-pharmaceutique-luthecia', produits: ['medicaments', 'desinfectant'] },
   directeur_tabac_alcools: { city: 'ville_a',   buildingId: 'pole-tabac-alcools-psm',        produits: ['alcool', 'tabac'] },
   directeur_raffinerie:    { city: 'ville_b',   buildingId: 'raffinerie-montrouge',          produits: ['carburant'] }
 };

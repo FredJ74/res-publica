@@ -98,7 +98,9 @@ const RESSOURCES_ECONOMIE = {
   medicaments: { plafond: 100, prixBase: 11 },
   alcool:      { plafond: 100, prixBase: 7 },
   tabac:       { plafond: 100, prixBase: 9 },
-  carburant:   { plafond: 100, prixBase: 10 }
+  carburant:   { plafond: 100, prixBase: 10 },
+  // Filiere alcool->desinfectant (20 aout 2026) : valeurs miroir de RESSOURCES_ECONOMIE.desinfectant, data.js.
+  desinfectant: { plafond: 100, prixBase: 9 }
 };
 
 function getPrixRessource(cle, quantiteEnStock) {

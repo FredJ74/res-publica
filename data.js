@@ -4634,7 +4634,9 @@ const BUILDINGS = {
         desc: "Les lignes de production. Les plantes livrées y sont transformées en médicaments.",
         persons: [],
         orders: [
-          {fn:'produire_medicaments', label:'Produire des médicaments', pa:1, cost:0, type:'legal', icon:'ti-vaccine', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 84 FR. Consomme 5 plantes du stock de matières de l\'usine, produit 10 médicaments.'}
+          {fn:'produire_medicaments', label:'Produire des médicaments', pa:1, cost:0, type:'legal', icon:'ti-vaccine', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 84 FR. Consomme 5 plantes du stock de matières de l\'usine, produit 10 médicaments.'},
+          {fn:'produire_desinfectant', label:'Produire du désinfectant', pa:1, cost:0, type:'legal', icon:'ti-droplet', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 70 FR. Consomme 5 alcool du stock de matières de l\'usine, produit 10 désinfectants.'},
+          {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
         ]
       }
     }
@@ -5988,7 +5990,10 @@ const RESSOURCES_ECONOMIE = {
   medicaments:  { label: 'Médicaments',  icon: 'ti-pill',        prixBase: 22, prixAchatFournisseur: 11,  plafond: 100, source: 'transformation' },
   alcool:       { label: 'Alcool',       icon: 'ti-glass-full',  prixBase: 14, prixAchatFournisseur: 7,   plafond: 100, source: 'transformation' },
   tabac:        { label: 'Tabac',        icon: 'ti-cigarette',   prixBase: 18, prixAchatFournisseur: 9,   plafond: 100, source: 'transformation' },
-  carburant:    { label: 'Carburant',    icon: 'ti-gas-station', prixBase: 20, prixAchatFournisseur: 10,  plafond: 100, source: 'transformation' }
+  carburant:    { label: 'Carburant',    icon: 'ti-gas-station', prixBase: 20, prixAchatFournisseur: 10,  plafond: 100, source: 'transformation' },
+  // Filiere alcool->desinfectant (20 aout 2026) : valeurs validees par Fred. Aucun debouche
+  // medical/effet de soin ajoute pour l'instant -- une ressource transformee comme les autres.
+  desinfectant: { label: 'Désinfectant', icon: 'ti-droplet',     prixBase: 18, prixAchatFournisseur: 9,   plafond: 100, source: 'transformation' }
 };
 
 // Prix effectif d'une ressource selon le taux de remplissage du stock (stock eleve = prix

@@ -804,7 +804,9 @@ const RESSOURCES_ECONOMIE_SERVEUR = {
   medicaments:  { plafond: 100, prixAchatFournisseur: 11,  source: 'transformation' },
   alcool:       { plafond: 100, prixAchatFournisseur: 7,   source: 'transformation' },
   tabac:        { plafond: 100, prixAchatFournisseur: 9,   source: 'transformation' },
-  carburant:    { plafond: 100, prixAchatFournisseur: 10,  source: 'transformation' }
+  carburant:    { plafond: 100, prixAchatFournisseur: 10,  source: 'transformation' },
+  // Filiere alcool->desinfectant (20 aout 2026) : valeurs miroir de RESSOURCES_ECONOMIE.desinfectant, data.js.
+  desinfectant: { plafond: 100, prixAchatFournisseur: 9,   source: 'transformation' }
 };
 
 const ENTREPOTS_VILLES = [
@@ -829,7 +831,7 @@ const NB_LIVRAISONS_JOUR = 6;
 // repartition entrepots/vente directe reglable) construit le 8 aout 2026 — voir
 // DIRECTEUR_USINE_INFO et verifierSalaireDirecteur dans plateau-justice-economie.js.
 const TRANSFORMATEURS = [
-  { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', chaines: [{ matiere: 'plantes', produit: 'medicaments' }] },
+  { buildingId: 'usine-pharmaceutique-luthecia', city: 'capitale', chaines: [{ matiere: 'plantes', produit: 'medicaments' }, { matiere: 'alcool', produit: 'desinfectant' }] },
   { buildingId: 'pole-tabac-alcools-psm',        city: 'ville_a',  chaines: [{ matiere: 'cereales', produit: 'alcool' }, { matiere: 'plantes', produit: 'tabac' }] },
   { buildingId: 'raffinerie-montrouge',          city: 'ville_b',  chaines: [{ matiere: 'petrole', produit: 'carburant' }] }
 ];
