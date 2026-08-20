@@ -3807,7 +3807,14 @@ function getCommercesAlimentairesRachetables() {
       if (!villeReelle) return null; // batiment non construit dans ce pays (pilotes Republic-only pour l'instant)
       const type = BUILDING_COMMERCE_TYPE[buildingId];
       const id = getCommerceId(type, pays, villeReelle, buildingId, null);
-      return { id, label: BUILDINGS[buildingId]?.name || buildingId, prix, charger: () => chargerCommerce(type, pays, villeReelle, buildingId, null) };
+      // Nom affiche : override de la ville reelle (villeReelle, pas forcement la ville courante
+      // du joueur) en priorite, sinon nom canonique -- meme resolution que getBuildingContext()
+      // (plateau-navigation.js) mais parametree par ville plutot que par state.currentCity,
+      // necessaire ici puisque cette liste peut etre consultee depuis une autre ville que celle
+      // du commerce (ex. Hotel de Montrouge "hotel-mineur", nomme differemment selon la ville --
+      // corrige le 20 aout 2026 sans toucher au nom canonique, qui reste partage par 7 villes).
+      const nomAffiche = WORLD[pays]?.[villeReelle]?.buildingContext?.[buildingId]?.name || BUILDINGS[buildingId]?.name || buildingId;
+      return { id, label: nomAffiche, prix, charger: () => chargerCommerce(type, pays, villeReelle, buildingId, null) };
     })
     .filter(Boolean);
 }

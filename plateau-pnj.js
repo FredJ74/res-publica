@@ -1081,11 +1081,12 @@ function verifierSuccesMaxence(cle) {
     }
   }
 
-  // Enigme du portrait disparu : Clerc Delhune (notaire) et Laurent Barre (banquier),
-  // temoignages parles en complement des archives ecrites.
+  // Enigme du portrait disparu : Claire Delhune (notaire, ex-"Clerc Delhune" -- renommee lors de
+  // la refonte du notaire du 20 aout 2026, reference mise a jour ici pour ne pas casser le
+  // parcours) et Laurent Barre (banquier), temoignages parles en complement des archives ecrites.
   const nomCourtEnigme = (pnj.name || '').replace(' (PNJ)', '').trim();
   if (typeof enigme1EtapeActive === 'function' && enigme1EtapeActive()) {
-    if (nomCourtEnigme === 'Clerc Delhune' && /thibault/i.test(action)) {
+    if (nomCourtEnigme === 'Claire Delhune' && /thibault/i.test(action)) {
       speech.textContent = "Thibault... Pierre Thibault, c'est ça ? Oui, j'ai eu le dossier de sa succession entre les mains, il y a bien longtemps. De mémoire, il y avait mention d'un coffre à la Banque Nationale, toujours actif d'ailleurs. Pour le détail exact, il faudra consulter les archives notariales.";
       return;
     }

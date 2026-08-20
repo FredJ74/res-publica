@@ -120,10 +120,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_personnalites_musee') { doConsulterPersonnalitesMusee(); return; }
   if (fn === 'consulter_mandats_maires') { doConsulterResumesMandats(); return; }
   if (fn === 'consulter_archives_notariales') { doConsulterArchivesNotariales(); return; }
-  // consulter_succession (Bureau des Successions) reutilise le meme systeme d'archives que
-  // consulter_archives_notariales (Archives Notariales) — c'etait un doublon orphelin sans handler,
-  // corrige le 9 aout 2026 (audit Ordres).
-  if (fn === 'consulter_succession') { doConsulterArchivesNotariales(); return; }
+  // consulter_succession (Bureau des Successions) retire (refonte notaire, 20 aout 2026 -- audit
+  // Ordres) : doublon exact de consulter_archives_notariales, payant pour rien de plus. Le
+  // handler partage doConsulterArchivesNotariales() reste utilise par l'ordre restant ci-dessus,
+  // non touche.
+  if (fn === 'consulter_dossier_notarial') { doConsulterDossierNotarial(); return; }
   if (fn === 'consulter_archives_presse') { doConsulterArchivesPresse(); return; }
   if (fn === 'demander_juge_instruction') { doDemanderJugeInstruction(pa, cost); return; }
   if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(pa, cost); return; }

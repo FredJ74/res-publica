@@ -2880,6 +2880,88 @@ async function traiterActeVente(candidat) {
 }
 
 // =====================
+// SE RENSEIGNER SUR UN DOSSIER (Accueil du notaire, refonte du 20 aout 2026 -- audit Ordres)
+// Consultation publique du secretariat : n'importe quel nom peut etre saisi, pas seulement celui
+// du demandeur (delibere -- pas de garde nom===state.char?.name). Strictement informatif, aucune
+// mutation. Agrege uniquement des dossiers reellement persistants deja identifies par l'audit --
+// jamais de dossier fabrique par supposition :
+//   - terrains_etat (compromis/achat direct/transfert propose), meme scan que doActeVenteTerrain
+//     ci-dessus (getTousLesTerrainsPays/chargerTerrainState/getTerrainState)
+//   - entreprises (compromis de rachat), meme scan que doRachatEntreprise/doActeRachatEntreprise
+// Types volontairement exclus (architecture actuelle insuffisante, voir rapport d'audit) :
+// preemption d'Etat (pas de lien nominatif clair a un PJ demandeur), offres de rachat de terrain
+// par mail (aucun etat persistant hors la boite mail elle-meme), mariage/testament (aucun contrat
+// reel n'existe encore, voir §9 du lot).
+// =====================
+function doConsulterDossierNotarial() {
+  document.getElementById('postes-modal-title').textContent = 'Se renseigner sur un dossier';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Indiquez le nom du personnage dont vous souhaitez consulter les dossiers notariaux en cours.</div>';
+  html += '<input id="dossier-notarial-nom" type="text" placeholder="Nom du personnage..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem .6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem;box-sizing:border-box" />';
+  html += '<button class="pnj-action-btn" onclick="rechercherDossierNotarial()"><i class="ti ti-search" style="font-size:.85rem"></i> Consulter</button>';
+  html += '<div id="dossier-notarial-resultats" style="margin-top:.9rem"></div>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function rechercherDossierNotarial() {
+  const nom = (document.getElementById('dossier-notarial-nom')?.value || '').trim();
+  const resultatsEl = document.getElementById('dossier-notarial-resultats');
+  if (!resultatsEl) return;
+  if (!nom) {
+    resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">Indiquez un nom.</div>';
+    return;
+  }
+  resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a8060;font-style:italic">Recherche en cours...</div>';
+
+  const dossiers = [];
+
+  // Terrains : compromis actif, achat direct (rendez-vous en attente), transfert de compromis
+  // propose a ce nom -- meme source que doActeVenteTerrain/doOuvrirTransfertCompromis.
+  if (typeof getTousLesTerrainsPays === 'function' && typeof chargerTerrainState === 'function' && typeof getTerrainState === 'function') {
+    for (const id of getTousLesTerrainsPays()) {
+      await chargerTerrainState(id);
+      const ts = getTerrainState(id);
+      if (!ts) continue;
+      const nomBatiment = BUILDINGS[id]?.shortName || BUILDINGS[id]?.name || id;
+      if (ts.compromis && ts.compromisPar === nom) {
+        dossiers.push('Achat d\'un terrain (' + nomBatiment + ') — signature prévue avant le ' + formaterHorodatageJournal(ts.compromisExpireAt));
+      }
+      if (ts.achatDirect && ts.achatDirect.demandeur === nom) {
+        dossiers.push('Achat direct d\'un terrain (' + nomBatiment + ') — rendez-vous notarial le ' + formaterHorodatageJournal(ts.achatDirect.dateAchat));
+      }
+      if (ts.transfertPropose === nom) {
+        dossiers.push('Transfert de compromis proposé (' + nomBatiment + ') — en attente de validation');
+      }
+    }
+  }
+
+  // Entreprises : compromis de rachat actif -- meme source que doRachatEntreprise/doActeRachatEntreprise.
+  if (typeof getEntreprisesRachetables === 'function') {
+    for (const def of getEntreprisesRachetables()) {
+      const data = await def.charger();
+      if (data && data.compromis && data.compromisPar === nom) {
+        dossiers.push('Rachat de "' + def.label + '" — signature prévue avant le ' + formaterHorodatageJournal(data.compromisExpireAt));
+      }
+    }
+  }
+
+  if (dossiers.length === 0) {
+    resultatsEl.innerHTML = '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun dossier en cours à ce nom.</div>';
+    return;
+  }
+
+  let html = '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.5rem">Vous avez ' + dossiers.length + ' dossier(s) en attente :</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
+  dossiers.forEach(texte => {
+    html += '<div style="font-size:.82rem;color:#e0d8c0">• ' + texte + '</div>';
+  });
+  html += '</div>';
+  resultatsEl.innerHTML = html;
+}
+
+// =====================
 // TRANSFERT DE COMPROMIS — validé chez le notaire, presence des deux parties requise (le
 // detenteur initie, le destinataire doit lui-meme venir valider). Le delai restant se
 // poursuit (pas de remise a 7 jours). L'acompte suit le compromis ; le remboursement entre

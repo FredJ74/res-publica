@@ -1840,11 +1840,11 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181410,#241c10)",
         desc: "Le hall d'attente de l'office notarial. Boiseries sombres, silence feutre.",
         persons: [
-          {name:'Notaire Fontenelle (PNJ)', role:'Notaire Officiel', rel:'neutral', job:'notaire'},
-          {name:'Clerc Delhune (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
+          {name:'Alain Dex (PNJ)', role:'Secrétaire', rel:'neutral', job:'secretaire_notaire'},
+          {name:'Claire Delhune (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
         ],
         orders: [
-          {fn:'presentation_office_notarial', label:'Se renseigner sur les services', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100, desc:'Ventes de terrain, successions, contrats de mariage, archives — presentation des services du notaire.'}
+          {fn:'consulter_dossier_notarial', label:'Se renseigner sur un dossier', pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:'Consulter les dossiers notariaux en cours enregistres au nom d\'un personnage, le votre ou un autre.'}
         ]
       },
       bureau_successions: {
@@ -1853,12 +1853,13 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#14100c,#1c1610)",
         desc: "Le bureau ou se traitent les heritages. Les dossiers s'empilent, les familles se dechirent.",
         persons: [
-          {name:'Clerc Delhune (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
+          {name:'Claire Delhune (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
         ],
-        orders: [
-          {fn:'redaction_testament', label:'Rediger un testament', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Designer un heritier de son choix, plutot que la devolution par defaut. (Gratuit temporairement — la devolution par defaut s\'applique encore dans tous les cas, audit Ordres a venir.)'},
-          {fn:'consulter_succession', label:'Consulter une succession', pa:1, cost:100, type:'legal', icon:'ti-search', successRate:100, desc:'Verifier qui a herite de qui, et de quoi.'}
-        ]
+        // Les 2 ordres precedents (redaction_testament, consulter_succession) ont ete retires
+        // (refonte notaire, 20 aout 2026 -- audit prealable) : aucun n'avait de consequence
+        // metier reelle. Reste vide en attendant le futur lot Testament/Succession, qui
+        // occupera cette piece -- ne pas y ajouter d'ordre provisoire d'ici la.
+        orders: []
       },
       bureau_contrats: {
         name: "Bureau des Contrats",
@@ -1875,7 +1876,6 @@ const BUILDINGS = {
           {fn:'acte_rachat_entreprise_preemption', label:'Officialiser une preemption d\'Etat', pa:1, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_fin', desc:'Finalise une preemption en attente : transfert de propriete a l\'Etat. Aucun paiement ici, deja couvert par le pret.'},
           {fn:'transferer_compromis', label:'Transférer un compromis', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, desc:'Céder votre compromis en cours à un autre joueur, qui devra venir valider.'},
           {fn:'valider_transfert_compromis', label:'Valider un transfert de compromis', pa:1, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Accepter un compromis qu\'un autre joueur vous a proposé de reprendre.'},
-          {fn:'contrat_mariage', label:'Negocier un contrat de mariage', pa:2, cost:0, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Choisir le regime matrimonial (communaute, separation de biens) plutot que la copropriete par defaut. (Gratuit temporairement — la copropriete par defaut s\'applique encore dans tous les cas, audit Ordres a venir.)'},
           {fn:'demander_divorce', label:'Demander le divorce', pa:1, cost:200, type:'legal', icon:'ti-heart-broken', successRate:100, desc:'Dissout votre mariage actuel. Votre conjoint en sera informé par mail.'}
         ]
       },
@@ -1888,7 +1888,7 @@ const BUILDINGS = {
           {name:'Archiviste Notarial (PNJ)', role:'PNJ - Gardien des Archives', rel:'neutral', job:'archiviste_notaire'}
         ],
         orders: [
-          {fn:'consulter_archives_notariales', label:'Consulter les archives notariales', pa:1, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent des biens, mariages et successions. Recherche par nom de personnage.'}
+          {fn:'consulter_archives_notariales', label:'Consulter les archives notariales', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent des biens, mariages et successions. Recherche par nom de personnage.'}
         ]
       }
     }
@@ -3229,6 +3229,11 @@ const BUILDINGS = {
   },
 
   'hotel-mineur': {
+    // Nom canonique/generique (partage par 7 villes sur 4 empires -- Montrouge, Frontera Alta,
+    // La Selva, Sibirsk-9, Kolkhoz-7, Oasis Al-Baraka, Port Al-Nour). NE PAS renommer en "Hotel
+    // de la Victoire" ici : ce nom est specifique a l'override Montrouge/republic (ligne ~411),
+    // le poser au niveau canonique le ferait fuiter dans les 6 autres villes. Voir correctif
+    // cible dans getCommercesAlimentairesRachetables() (plateau-actions-illegales-rumeurs.js).
     name: "Hotel des Mineurs",
     shortName: "Hotel des Mineurs",
     cat: "Hotellerie",
