@@ -973,9 +973,19 @@ async function doTransfertCliniquePrivee(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('Fonds insuffisants', '1000 FR requis pour le transfert.', false); return; }
   state.hospitalisation.lieu = 'clinique';
+  // clinique-privee n'existe qu'a la capitale de chaque empire (lot chambre, 20 aout 2026) --
+  // mise a jour explicite de la ville avant l'entree dans la piece, au cas ou cet ordre serait un
+  // jour propose depuis un dispensaire hors capitale (aujourd'hui uniquement celui de la
+  // capitale : no-op dans ce cas, mais correct si la portee change plus tard).
+  state.currentCity = 'capitale';
+  if (state.char) state.char.currentCity = 'capitale';
   updateUI();
+  // Destination precise : la nouvelle piece "chambre", pas la reception -- meme mecanisme de
+  // changement de batiment/piece que partout ailleurs (enterBuilding/enterRoom), qui persiste
+  // deja immediatement la position (voir enterRoom, plateau-navigation.js) -- aucune
+  // teleportation parallele.
   if (typeof enterBuilding === 'function') enterBuilding('clinique-privee', true);
-  if (typeof enterRoom === 'function') enterRoom('clinique-privee', 'reception_clinique', null);
+  if (typeof enterRoom === 'function') enterRoom('clinique-privee', 'chambre', null);
   showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true);
   addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
 }

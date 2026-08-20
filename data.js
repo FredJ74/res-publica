@@ -2146,7 +2146,7 @@ const BUILDINGS = {
         image: "🏥",
         imageBg: "linear-gradient(135deg,#080f10,#0c1618)",
         desc: "Reception moderne et discrete. Personnel forme a la confidentialite.",
-        imageUrl: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&q=80",
+        imageUrl: "images/luthecia-clinique-accueil.jpg",
         persons: [
           {name:'Dr. Vidal', role:'PNJ - Medecin chef', rel:'neutral', job:'medecin'}
         ],
@@ -2158,6 +2158,18 @@ const BUILDINGS = {
           {fn:'se_nourrir', label:'Manger', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Un repas de qualite, servi au chevet.'},
           {fn:'vendre_ressource_medicale', label:'Fournir des ressources médicales', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à la clinique, depuis votre inventaire, du desinfectant ou des medicaments.'}
         ]
+      },
+      // Piece ajoutee (lot accueil/chambre, 20 aout 2026) : destination du transfert depuis un
+      // dispensaire (doTransfertCliniquePrivee, plateau-personnage.js). Aucun ordre deplace ici
+      // ce lot -- les actions existantes restent en reception_clinique.
+      chambre: {
+        name: "Chambre",
+        image: "🛏️",
+        imageBg: "linear-gradient(135deg,#080f10,#0c1618)",
+        desc: "Une chambre privee, calme et confortable, reservee aux patients pris en charge.",
+        imageUrl: "images/luthecia-clinique-chambre.jpg",
+        persons: [],
+        orders: []
       }
     }
   },
