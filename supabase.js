@@ -672,10 +672,58 @@ let sbSaveTimer = null;
 function sbAutoSave() {
   if (sbSaveTimer) clearTimeout(sbSaveTimer);
   sbSaveTimer = setTimeout(async () => {
+    sbSaveTimer = null;
     if (state?.char?.name) {
       await sbSavePersonnage(state);
     }
   }, 3000); // Sauvegarde 3s après la dernière action
+}
+
+// Filet de secours au dechargement de la page (correctif, 20 aout 2026) : sbAutoSave() ci-dessus
+// debounce de 3s -- un refresh/fermeture pendant cette fenetre tue le setTimeout en cours et perd
+// les mutations non encore ecrites (inventory notamment, qui n'a par ailleurs aucun repli
+// localStorage, voir updateUI()/plateau-core.js). Appelee depuis les gestionnaires
+// pagehide/beforeunload (plateau-core.js) -- PAS depuis un flux normal du jeu.
+//
+// Deux choix deliberes, pour rester honnete sur ce qui est reellement garanti par le navigateur
+// (jamais un simple `await fetch()` dans beforeunload, connu pour etre annule sans preavis) :
+//  1) keepalive:true sur le fetch -- garantie standard du navigateur de laisser la requete
+//     s'achever meme apres le dechargement du document. C'est cette option, pas l'evenement
+//     choisi, qui rend l'envoi fiable ; pagehide et beforeunload y recourent donc tous les deux.
+//  2) UN SEUL PATCH direct, sans la lecture prealable de sbSavePersonnage (qui decide entre
+//     INSERT/UPDATE) : cette lecture ne peut pas etre garantie de s'achever dans la fenetre de
+//     dechargement, meme avec keepalive, et de toute facon la ligne existe deja a ce stade (un
+//     personnage a necessairement ete sauvegarde au moins une fois avant de pouvoir jouer).
+//     Ne couvre donc que les champs les plus critiques a ne pas perdre (inventory/arg/liquide/
+//     banque/pa/hp/moral/resources/position), pas l'objet complet (journal, historique_crimes,
+//     etc. restent couverts par le cours normal de sbAutoSave()) -- volume garde petit pour rester
+//     sous la limite de charge utile des requetes keepalive.
+// Aucune transaction metier rejouee ici : uniquement une ecriture de l'etat personnage deja
+// mute en memoire, jamais un nouvel achat/deduction.
+function sbSauvegardeUrgenceDechargement() {
+  if (sbSaveTimer) { clearTimeout(sbSaveTimer); sbSaveTimer = null; }
+  if (!state?.char?.name) return;
+  const body = JSON.stringify({
+    inventory: state.inventory || [],
+    arg: state.arg || 0,
+    liquide: state.liquide || 0,
+    banque: state.banque || 0,
+    pa: state.pa || 10,
+    hp: state.hp || 100,
+    moral: state.moral || 75,
+    resources: { inf: state.inf || 0, pop: state.pop || 0, dis: state.dis || 50 },
+    current_city: state.currentCity || 'capitale',
+    current_building: state.currentBuilding || null,
+    current_room: state.currentRoom || null
+  });
+  try {
+    fetch(`${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(state.char.name)}`, {
+      method: 'PATCH',
+      headers: SB_HEADERS,
+      body,
+      keepalive: true
+    }).catch(() => {});
+  } catch (e) {}
 }
 
 // =====================

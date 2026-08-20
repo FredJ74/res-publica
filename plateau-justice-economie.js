@@ -3085,6 +3085,12 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
   etat.entrepot = { ...(etat.entrepot || {}), stock, caisse: (etat.entrepot?.caisse || 0) + totalReellementPaye };
   if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, etat).catch(() => {});
 
+  // Sauvegarde personnage immediate (correctif, 20 aout 2026) : l'argent est deja irreversiblement
+  // debite de l'entrepot ci-dessus -- ne pas attendre le debounce de 3s de sbAutoSave() (via
+  // updateUI() plus bas) pour que l'inventory recu survive a un refresh immediat. Aucune
+  // transaction rejouee : seule l'ecriture de l'etat personnage deja mute est avancee.
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
   showToast('Achat effectué !', '-' + Math.round(total) + ' ' + cur + '.', true, true);
@@ -3394,6 +3400,11 @@ async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
 
   const nouvelEtat = { ...etat, usine: { ...(etat.usine || {}), venteDirecte, caisse: (etat.usine?.caisse || 0) + totalReellementPaye } };
   if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, nouvelEtat).catch(() => {});
+
+  // Sauvegarde personnage immediate (correctif, 20 aout 2026) : meme raisonnement que
+  // confirmerAchatEntrepot ci-dessus -- l'argent est deja irreversiblement debite de l'usine,
+  // ne pas dependre du debounce de 3s pour que l'inventory recu survive a un refresh immediat.
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();

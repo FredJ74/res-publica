@@ -454,6 +454,18 @@ window.addEventListener('DOMContentLoaded', () => {
   }, 30000);
   if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
 
+  // Filet de secours au dechargement de la page (correctif, 20 aout 2026) : sbAutoSave() debounce
+  // 3s -- un refresh/fermeture pendant cette fenetre perdait toute mutation pas encore ecrite
+  // (inventory en particulier, sans repli localStorage). pagehide ET beforeunload declenchent le
+  // meme flush (sbSauvegardeUrgenceDechargement, supabase.js) : la fiabilite vient de son
+  // fetch(..., {keepalive:true}), pas de l'evenement choisi -- les deux sont donc couverts plutot
+  // que de parier sur un seul, sans pretendre qu'un `await` classique dans beforeunload serait
+  // fiable (il ne l'est pas).
+  if (typeof window !== 'undefined') {
+    window.addEventListener('pagehide', () => { if (typeof sbSauvegardeUrgenceDechargement === 'function') sbSauvegardeUrgenceDechargement(); });
+    window.addEventListener('beforeunload', () => { if (typeof sbSauvegardeUrgenceDechargement === 'function') sbSauvegardeUrgenceDechargement(); });
+  }
+
   // Séquence de chargement espacée pour éviter les conflits de modaux
   setTimeout(() => genererMeteoPolitique(), 1000);
   setTimeout(() => genererEvenementAleatoire(), 3000);
