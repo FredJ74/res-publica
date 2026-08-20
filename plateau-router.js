@@ -98,6 +98,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'organiser_boycott') { doOrganiserBoycott(pa, cost); return; }
   if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(pa, cost); return; }
   if (fn === 'centre_anti_poison') { doCentreAntiPoison(pa); return; }
+  if (fn === 'soin_public') { doSoinPublic(pa, cost); return; }
+  if (fn === 'soins') { doSoinCliniquePrivee(pa, cost); return; }
+  if (fn === 'vendre_ressource_medicale') { doVendreRessourceMedicaleGenerique(pa, cost); return; }
   if (fn === 'reserver_chambre_hotel') { doReserverChambreHotel(pa); return; }
   if (fn === 'dormir_chambre') { doDormirChambre(); return; }
   if (fn === 'dormir') { doDormir(); return; }
@@ -437,7 +440,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   else { resultType = 'success'; }
 
   // Ordres a succes garanti
-  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins','soins_urgence','soins_basiques','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','plainte','plainte_police','archives','archives_police','acheter_terrain','se_presenter','rencontrer','se_former'];
+  // soins/soin_public/soins_basiques retires (20 aout 2026) : desormais des fn dediees
+  // (special-casees plus haut, doSoinCliniquePrivee/doSoinPublic), doOrder() ne les atteint plus
+  // jamais -- entree ici devenue inutile/trompeuse. soins_basiques n'est plus reference par aucun
+  // batiment (dispensaire-public-v est desormais branche sur soin_public comme les 2 autres).
+  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins_urgence','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','plainte','plainte_police','archives','archives_police','acheter_terrain','se_presenter','rencontrer','se_former'];
   if (alwaysSuccess.includes(fn)) resultType = roll >= 95 ? 'crit' : 'success';
 
   applyEffects(fn, resultType, cost);

@@ -1017,6 +1017,317 @@ async function doCentreAntiPoison(pa) {
   }
 }
 
+// =====================
+// SOINS STANDARDS -- dispensaire public / clinique privee (lot filiere alcool->desinfectant,
+// 20 aout 2026). Fonctions dediees, hors du chemin generique doOrder()/ORDER_EFFECTS/
+// applyEffects() : gain Sante/PA strictement fixe, jamais de jet ni de multiplicateur crit --
+// meme doctrine que doCentreAntiPoison/doTransfertCliniquePrivee ci-dessus (deduireCoutOrdre(),
+// jamais la deduction inline generique de doOrder()).
+//
+// Stock medical : reutilise integralement le patron batiments_etat deja etabli pour
+// entrepot/usine (sbGetBatimentEtat/sbSetBatimentEtat, meme table) -- nouvelle cle "sante" par
+// batiment plutot qu'un second moteur economique. Champ stockMatieres nomme a l'identique de
+// celui des usines/commerces pour reutiliser crediterStockMatiereCommerce() sans modification
+// (plateau-actions-illegales-rumeurs.js, deja generique). Approvisionne exclusivement par un
+// joueur via vendreRessourceMedicaleStructure() plus bas (meme squelette que
+// vendreMatierePremiereUsine) -- aucun transfert automatique depuis un entrepot.
+//
+// Limite quotidienne : meme idiome jour-compare que doCentreAntiPoison (state.centreAntiPoisonToday)
+// -- MAIS stockee dans state.char.stats plutot qu'en sibling direct de state.char. Verifie ce
+// jour meme : ni centreAntiPoisonToday ni dernierGainENTJour (appliquerGainENT, plateau-pnj.js)
+// ne figurent dans le mapping de sbSavePersonnage/sbLoadPersonnage (supabase.js) -- aucun des
+// deux ne survit reellement a un rafraichissement malgre l'usage de cet idiome. state.char.stats
+// est en revanche deja un champ JSONB reellement persiste (mappe tel quel dans les deux sens),
+// donc les deux nouveaux compteurs y sont places pour satisfaire l'exigence explicite de
+// persistance reelle, sans migration ni nouvelle colonne.
+// Financement (correctif, 20 aout 2026, suite audit demande par Fred) : PAS de caisse privee
+// inventee pour les structures PUBLIQUES. Les batiments publics/institutionnels comparables
+// (commissariat/tribunal/marche/stade/dispensaire) utilisent deja un systeme etabli --
+// chargerCaisseBatiment/crediterCaisseBatiment/debiterCaisseBatimentAtomique, table dediee
+// (sbGetCaisseBatiment/sbSaveCaisseBatiment), cle getCaisseLocaleId('dispensaire', ville) --
+// alimente par le Maire Adjoint via "Financer un batiment communal" (ouvrirModalFinancerCommunal,
+// plateau-justice-economie.js), qui liste DEJA "Dispensaire" comme option. Solde de depart 0,
+// comme tous les autres batiments communaux -- aucune valeur inventee, c'est le comportement par
+// defaut existant de chargerCaisseBatiment. Reutilise ce systeme tel quel pour le dispensaire
+// (financement:'institution'), au lieu d'une caisse batiments_etat autonome.
+// La clinique privee, elle, reste une entreprise privee (jamais listee dans le financement
+// communal) : garde sa propre caisse dans batiments_etat.sante (financement:'propre'), mais SANS
+// dotation initiale inventee (correctif, 20 aout 2026, decision explicite de Fred) -- demarre a 0,
+// alimentee uniquement par le produit reel (net de taxe, appliquerTaxeTransaction() reutilisee
+// telle quelle -- aucune fiscalite specifique clinique) de ses propres soins payes par les
+// patients (doSoinCliniquePrivee ci-dessous). Aucun bootstrap autonome ici, contrairement aux
+// commerces/usines de lots precedents.
+
+// Les 3 dispensaires publics de Republia partagent le meme mecanisme, meme financement
+// institutionnel, et le MEME compteur quotidien (aucun n'a de "city" fixe : state.currentCity
+// au moment de l'action determine la ville reelle, stock/caisse restant proprement locaux par
+// ville malgre le buildingId partage entre PSM et Montrouge -- meme principe que
+// getCaisseLocaleId, deja documente dans ce fichier pour les caisses communales).
+const STRUCTURES_MEDICALES = {
+  'dispensaire-public':   { ressources: ['desinfectant'], financement: 'institution', categorieCaisse: 'dispensaire' },
+  'dispensaire-public-v': { ressources: ['desinfectant'], financement: 'institution', categorieCaisse: 'dispensaire' },
+  'clinique-privee':      { ressources: ['desinfectant', 'medicaments'], financement: 'propre' }
+};
+
+function structureMedicaleAccepteRessource(buildingId, ressource) {
+  return (STRUCTURES_MEDICALES[buildingId]?.ressources || []).includes(ressource);
+}
+
+// Phrases d'infirmiere (validees par Fred) pour le soin public -- affichage generique, non lie a
+// un PNJ nomme dans le code (les 3 infirmieres nommees -- Anne Tibiotique/Betty Dine/Agnes
+// Thesie -- sont implantees cote data.js comme PNJ visibles dans leurs salles respectives, mais
+// la phrase elle-meme reste independante de qui est physiquement affiche).
+const PHRASES_INFIRMIERE_SOIN_PUBLIC = [
+  "On n'avait plus de bisous magiques, du coup on vous a mis du désinfectant.",
+  "Ça va piquer un peu. Si ça pique beaucoup, c'est que ça marche beaucoup.",
+  "Le médecin ? Ah non, pour 25 francs vous avez moi.",
+  "C'est propre. Enfin, suffisamment propre pour l'administration."
+];
+const PHRASE_INFIRMIERE_RUPTURE_STOCK = "Alors… bonne nouvelle : vous n'avez rien à payer. Mauvaise nouvelle : on n'a plus rien pour vous soigner.";
+
+// Generique pour les 3 dispensaires (Luthecia/PSM/Montrouge) : buildingId/ville lus depuis
+// state.currentBuilding/state.currentCity, jamais code en dur -- meme patron que
+// doOuvrirVenteDirecteUsine/doProduireUsine (plateau-justice-economie.js). Compteur quotidien
+// COMMUN aux 3 (une seule cle state.char.stats.soinPublicJour, jamais scopee par batiment) : un
+// joueur ne peut pas repeter le soin public dans une autre ville le meme jour.
+async function doSoinPublic(pa, cost) {
+  if (!state.char) return;
+  const buildingId = state.currentBuilding;
+  const cfg = STRUCTURES_MEDICALES[buildingId];
+  if (!cfg || cfg.financement !== 'institution') { showToast('Indisponible', '', false); return; }
+  const today = state.day || 1;
+  if (!state.char.stats) state.char.stats = {};
+
+  // 1) limite quotidienne (commune aux 3 structures publiques)
+  if (state.char.stats.soinPublicJour === today) {
+    showToast('Déjà soigné(e) aujourd\'hui', 'Un seul soin public par jour, quelle que soit la ville.', false);
+    return;
+  }
+  // 2) fonds du patient
+  if ((state.arg || 0) < cost) {
+    showToast('Fonds insuffisants', cost + ' FR requis.', false);
+    return;
+  }
+  // 3) stock medical de la structure (local a la ville reelle du batiment)
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  const sante = etat?.sante || { stockMatieres: {} };
+  if (!sante.stockMatieres) sante.stockMatieres = {};
+  const stockDesinfectant = sante.stockMatieres.desinfectant || 0;
+  if (stockDesinfectant < 1) {
+    showToast('Rupture de stock', PHRASE_INFIRMIERE_RUPTURE_STOCK, false);
+    return;
+  }
+
+  // 4) debit FR + ressources (seulement maintenant que tout est verifie)
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', cost + ' FR requis.', false); return; }
+  sante.stockMatieres.desinfectant = stockDesinfectant - 1;
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, buildingId, { ...etat, sante }).catch(() => {});
+
+  // 5) effets fixes, jamais de jet/multiplicateur
+  state.hp = Math.min(100, (state.hp || 0) + 10);
+  state.pa = Math.min(PA_MAX, (state.pa || 0) + 1);
+
+  // 6) enregistrement de l'utilisation quotidienne (compteur commun, pas par batiment)
+  state.char.stats.soinPublicJour = today;
+
+  updateUI();
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+
+  const phrase = PHRASES_INFIRMIERE_SOIN_PUBLIC[Math.floor(Math.random() * PHRASES_INFIRMIERE_SOIN_PUBLIC.length)];
+  showToast('Soins reçus', '+10 Santé, +1 PA. « ' + phrase + ' »', true, true);
+  addJournalEntry('Soin public reçu au dispensaire (-' + cost + ' FR). +10 Santé, +1 PA.', 'event-good');
+}
+
+async function doSoinCliniquePrivee(pa, cost) {
+  if (!state.char) return;
+  const today = state.day || 1;
+  if (!state.char.stats) state.char.stats = {};
+
+  // 1) limite quotidienne (compteur independant de celui du soin public)
+  if (state.char.stats.soinCliniqueJour === today) {
+    showToast('Déjà soigné(e) aujourd\'hui', 'Un seul soin en clinique privée par jour.', false);
+    return;
+  }
+  // 2) fonds du patient
+  if ((state.arg || 0) < cost) {
+    showToast('Fonds insuffisants', cost + ' FR requis.', false);
+    return;
+  }
+  // 3) stock medical de la structure (desinfectant ET medicaments) -- clinique privee, Luthecia
+  // uniquement (pas concernee par l'extension aux 3 dispensaires publics)
+  const pays = state.country || 'republic';
+  const ville = 'capitale';
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, 'clinique-privee').catch(() => null) : null;
+  const sante = etat?.sante || { caisse: 0, stockMatieres: {} };
+  if (!sante.stockMatieres) sante.stockMatieres = {};
+  const stockDesinfectant = sante.stockMatieres.desinfectant || 0;
+  const stockMedicaments = sante.stockMatieres.medicaments || 0;
+  if (stockDesinfectant < 1 || stockMedicaments < 1) {
+    showToast('Rupture de stock', 'La clinique manque actuellement de désinfectant et/ou de médicaments.', false);
+    return;
+  }
+
+  // 4) debit du patient
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', cost + ' FR requis.', false); return; }
+
+  // 5) taxation existante (aucune fiscalite specifique clinique) puis credit reel de la caisse --
+  // correctif demande par Fred, 20 aout 2026 : plus aucune dotation initiale inventee, la caisse
+  // demarre a 0 et ne se remplit que du produit net (apres taxe) de ses propres soins payes.
+  let net = cost;
+  if (typeof appliquerTaxeTransaction === 'function') {
+    const t = await appliquerTaxeTransaction(cost);
+    net = t.net;
+  }
+  sante.caisse = (sante.caisse || 0) + net;
+
+  // 6) decrement des ressources consommees
+  sante.stockMatieres.desinfectant = stockDesinfectant - 1;
+  sante.stockMatieres.medicaments = stockMedicaments - 1;
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, 'clinique-privee', { ...etat, sante }).catch(() => {});
+
+  // 7) gains Sante/PA fixes
+  state.hp = Math.min(100, (state.hp || 0) + 30);
+  state.pa = Math.min(PA_MAX, (state.pa || 0) + 2);
+
+  // 8) enregistrement de l'utilisation quotidienne
+  state.char.stats.soinCliniqueJour = today;
+
+  updateUI();
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+
+  showToast('Soins reçus', '+30 Santé, +2 PA.', true, true);
+  addJournalEntry('Soin reçu en clinique privée (-' + cost + ' FR). +30 Santé, +2 PA.', 'event-good');
+}
+
+// =====================
+// APPROVISIONNEMENT DES STRUCTURES MEDICALES -- vente par un joueur, depuis son inventaire
+// personnel, de desinfectant/medicaments a une structure de soins. Meme squelette que
+// vendreMatierePremiereUsine (plateau-justice-economie.js) : verifications sans effet de bord
+// d'abord, seul effet de bord (paiement) ensuite. Reutilise crediterStockMatiereCommerce()
+// (plateau-actions-illegales-rumeurs.js, deja generique) pour la mise a jour stock/cout moyen --
+// aucune logique de stock dupliquee. Prix : prixAchatFournisseur (meme doctrine que
+// vendreMatierePremiereUsine, aucun systeme de prix directeur pour l'instant).
+//
+// Paiement : branche selon STRUCTURES_MEDICALES[buildingId].financement (correctif, 20 aout
+// 2026) -- 'institution' (dispensaires publics) paie via la caisse communale existante
+// (debiterCaisseBatimentAtomique, plateau-justice-economie.js, meme primitive tout-ou-rien deja
+// utilisee ailleurs pour un cout institutionnel fixe) ; 'propre' (clinique privee) continue de
+// payer depuis sa propre caisse en batiments_etat.sante.caisse. Aucune duplication de moteur :
+// stock (stockMatieres) toujours dans batiments_etat.sante quel que soit le financement.
+async function vendreRessourceMedicaleStructure(buildingId, pays, ville, ressource, qte) {
+  const cfg = STRUCTURES_MEDICALES[buildingId];
+  if (!cfg || !cfg.ressources.includes(ressource)) return { ok: false, raison: 'ressource_non_acceptee' };
+  if (!qte || qte <= 0) return { ok: false, raison: 'quantite_invalide' };
+
+  const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === ressource && (i.qty || 0) > 0);
+  if (!lot || lot.qty < qte) return { ok: false, raison: 'stock_personnel_insuffisant' };
+
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  if (!etat) return { ok: false, raison: 'introuvable' };
+  const sante = etat.sante || (cfg.financement === 'propre' ? { caisse: 0, stockMatieres: {} } : { stockMatieres: {} });
+  if (!sante.stockMatieres) sante.stockMatieres = {};
+
+  const res = RESSOURCES_ECONOMIE[ressource];
+  const stockActuel = sante.stockMatieres[ressource] || 0;
+  const placeRestante = Math.max(0, res.plafond - stockActuel);
+  if (placeRestante < qte) return { ok: false, raison: 'stock_plein', placeRestante };
+
+  const prixUnitaire = res.prixAchatFournisseur;
+  const total = prixUnitaire * qte;
+
+  let paiementOk;
+  if (cfg.financement === 'institution' && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
+    paiementOk = (await debiterCaisseBatimentAtomique(pays, getCaisseLocaleId(cfg.categorieCaisse, ville), total)) === total;
+  } else {
+    paiementOk = (sante.caisse || 0) >= total;
+  }
+  if (!paiementOk) return { ok: false, raison: 'caisse_insuffisante' };
+
+  lot.qty -= qte;
+  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
+
+  crediterStockMatiereCommerce(sante, ressource, qte, prixUnitaire);
+  if (cfg.financement !== 'institution') sante.caisse = (sante.caisse || 0) - total;
+  state.arg = (state.arg || 0) + total;
+
+  const nouvelEtat = { ...etat, sante };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, buildingId, nouvelEtat).catch(() => {});
+
+  return { ok: true, total, prixUnitaire, qte };
+}
+
+function doVendreRessourceMedicaleGenerique(pa, cost) {
+  const buildingId = state.currentBuilding;
+  if (!buildingId) { showToast('Indisponible', '', false); return; }
+  doOuvrirVendreRessourceMedicale(buildingId, pa, cost);
+}
+
+async function doOuvrirVendreRessourceMedicale(buildingId, pa, cost) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  const sante = etat?.sante || { stockMatieres: {} };
+  const ressources = STRUCTURES_MEDICALES[buildingId]?.ressources || [];
+  const disponibles = ressources.filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0));
+
+  document.getElementById('postes-modal-title').textContent = 'Fournir des ressources médicales';
+  let html = '<div style="padding:1rem">';
+  if (disponibles.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Vous ne possédez aucune ressource utilisée par cette structure' + (ressources.length ? ' (' + ressources.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
+  } else {
+    html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat au tarif fournisseur en vigueur.</div>';
+  }
+  disponibles.forEach(m => {
+    const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
+    const qteDispo = lot?.qty || 0;
+    const res = RESSOURCES_ECONOMIE[m];
+    const prixUnitaire = res.prixAchatFournisseur;
+    const stockActuel = sante.stockMatieres[m] || 0;
+    const placeRestante = Math.max(0, res.plafond - stockActuel);
+    const qteInitiale = Math.max(1, Math.min(qteDispo, placeRestante));
+    html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
+    html += '<span style="flex:1;font-size:.85rem;color:#c0b090">' + res.label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + ', capacité restante ' + placeRestante + '</span>';
+    html += '<input type="number" id="vendre-sante-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.85rem;outline:none"/>';
+    html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.82rem"' : 'onclick="confirmerVendreRessourceMedicaleUI(\'' + buildingId + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVendreRessourceMedicaleUI(buildingId, ressource) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const qte = parseInt(document.getElementById('vendre-sante-qte-' + ressource)?.value || '0');
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!qte || qte <= 0) { showToast('Quantité invalide', '', false); return; }
+
+  const res = await vendreRessourceMedicaleStructure(buildingId, pays, ville, ressource, qte);
+  const label = RESSOURCES_ECONOMIE[ressource]?.label || ressource;
+  if (!res.ok) {
+    const messages = {
+      introuvable: '',
+      ressource_non_acceptee: "Cette structure n'utilise pas cette ressource.",
+      quantite_invalide: '',
+      stock_personnel_insuffisant: 'Vous n\'avez pas ' + qte + ' unité(s) de ' + label + '.',
+      stock_plein: 'Le stock maximum de cette ressource est atteint pour cette structure.',
+      caisse_insuffisante: "Cette structure ne peut pas acheter cette quantité actuellement."
+    };
+    showToast('Vente refusée', messages[res.raison] || '', false);
+    return;
+  }
+  updateUI();
+  showToast('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', true, true);
+  addJournalEntry('Vente de ' + res.qte + ' ' + label + ' à ' + (BUILDINGS[buildingId]?.shortName || buildingId) + ' (+' + res.total.toLocaleString('fr-FR') + ' FR).', 'event-good');
+  doOuvrirVendreRessourceMedicale(buildingId, 0, 0);
+}
+
 async function doReserverChambreHotel(pa) {
   const confortMap = {
     'hotel-republica': { moral: 3, paBonus: 2 },

@@ -188,7 +188,7 @@ const WORLD = {
         'dispensaire-public': {
           name: "Dispensaire Public de Luthecia",
           desc: "Docteur Aspirine prescrit du repos pour tout.",
-          persons: [{"name": "Docteur Aspirine (PNJ)", "role": "Généraliste", "rel": "neutral", "job": "medecin"}]
+          persons: [{"name": "Docteur Aspirine (PNJ)", "role": "Généraliste", "rel": "neutral", "job": "medecin"}, {"name": "Anne Tibiotique (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "infirmier"}]
         },
         'la-tribune': {
           name: "L'Autruche Entravée",
@@ -238,6 +238,9 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','phare-psm','marche-psm','musee-port-sainte-marie','pole-tabac-alcools-psm','entrepot-logistique-psm'],
       buildingContext: {
+        'dispensaire-public-v': {
+          persons: [{name:'Betty Dine (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}]
+        },
         'zone-production': {
           name: "Scierie Guy Tarembois",
           desc: "Bois locaux, sciage et rabotage. Rachetee par un habitant de Montrouge, elle alimente le Chantier Naval en planches et en poutres.",
@@ -411,7 +414,7 @@ const WORLD = {
         'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
-        'dispensaire-public-v':         { name: "Hôpital de Montrouge" },
+        'dispensaire-public-v':         { name: "Hôpital de Montrouge", persons: [{name:'Agnès Thésie (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}] },
         'centre-commercial':            { name: "Centre commercial de Montrouge", roomOverrides: { hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg" } } },
         // Le BNE de Montrouge est une annexe du Centre d'Affaires, sur le meme modele que
         // PSM (ville_a.buildingContext['centre-affaires'].roomsExtra.bureau_emploi_annexe) :
@@ -2148,11 +2151,12 @@ const BUILDINGS = {
           {name:'Dr. Vidal', role:'PNJ - Medecin chef', rel:'neutral', job:'medecin'}
         ],
         orders: [
-          {fn:'soins',          label:'Consultation et soins',       pa:0, cost:200, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+20 Sante.'},
+          {fn:'soins',          label:'Soin standard',              pa:0, cost:100, type:'legal', icon:'ti-stethoscope', successRate:100, desc:'+30 Sante, +2 PA immediats. 1 fois par jour. Consomme 1 desinfectant + 1 medicament du stock de la clinique.'},
           {fn:'soins_urgence',  label:'Soins acceleres (urgence)',   pa:0, cost:500, type:'legal', icon:'ti-urgent',      successRate:100, desc:'+40 Sante immediatement.'},
           {fn:'soins_discrets', label:'Soins sans trace',            pa:1, cost:800, type:'grey',  icon:'ti-eye-off',     successRate:95,  desc:'+30 Sante. Aucune trace medicale.'},
           {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:150, type:'legal', icon:'ti-vaccine', successRate:85, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
-          {fn:'se_nourrir', label:'Manger', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Un repas de qualite, servi au chevet.'}
+          {fn:'se_nourrir', label:'Manger', pa:1, cost:30, type:'legal', icon:'ti-soup', successRate:100, desc:'Un repas de qualite, servi au chevet.'},
+          {fn:'vendre_ressource_medicale', label:'Fournir des ressources médicales', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à la clinique, depuis votre inventaire, du desinfectant ou des medicaments.'}
         ]
       }
     }
@@ -2178,10 +2182,10 @@ const BUILDINGS = {
           {name:'Infirmiere Dupre', role:'PNJ - Soignante', rel:'neutral', job:'infirmier'}
         ],
         orders: [
-          {fn:'soins_basiques', label:'Soins basiques (gratuit)', pa:0, cost:0,  type:'legal', icon:'ti-bandage',    successRate:100, desc:'+10 Sante. Lent mais gratuit.'},
-          {fn:'soins',          label:'Consultation medecin',    pa:0, cost:20,  type:'legal', icon:'ti-stethoscope',successRate:100, desc:'+15 Sante.'},
+          {fn:'soin_public', label:'Soin standard', pa:0, cost:25, type:'legal', icon:'ti-bandage', successRate:100, desc:'+10 Sante, +1 PA immediat. 1 fois par jour. Consomme 1 desinfectant du stock du dispensaire.'},
           {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:60, type:'legal', icon:'ti-vaccine', successRate:65, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
-          {fn:'transfert_clinique_privee', label:'Être transféré en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Meilleure prise en charge, convalescence plus rapide. 1000 FR.'}
+          {fn:'transfert_clinique_privee', label:'Être transféré en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Meilleure prise en charge, convalescence plus rapide. 1000 FR.'},
+          {fn:'vendre_ressource_medicale', label:'Fournir des ressources médicales', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre au dispensaire, depuis votre inventaire, du desinfectant.'}
         ]
       },
       ehpad_tilleuls: {
@@ -3266,7 +3270,8 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-hopital-accueil.png",
         persons: [{name:'Infirmiere (PNJ)', role:'Soignante', rel:'neutral', job:'infirmier'}],
         orders: [
-          {fn:'soins_basiques', label:'Soins basiques (gratuit)', pa:0, cost:0, type:'legal', icon:'ti-bandage', successRate:100, desc:'+10 Sante.'}
+          {fn:'soin_public', label:'Soin standard', pa:0, cost:25, type:'legal', icon:'ti-bandage', successRate:100, desc:'+10 Sante, +1 PA immediat. 1 fois par jour (commun aux 3 dispensaires publics de Republia). Consomme 1 desinfectant du stock local.'},
+          {fn:'vendre_ressource_medicale', label:'Fournir des ressources médicales', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre au dispensaire, depuis votre inventaire, du desinfectant.'}
         ]
       },
       // Salle minimale ajoutee le 2026-08-16, meme principe que ehpad_tilleuls a Luthecia
@@ -6023,9 +6028,14 @@ const ORDER_EFFECTS = {
   service_etage:       {hp:10,  moral:1,  successRate:100},
   dormir:             {moral:5,          successRate:100, paBonus:0},
   se_reposer:         {moral:3,          successRate:100},
-  soins:              {hp:20,            successRate:100},
+  // soins (clinique-privee) / soin_public (les 3 dispensaires publics de Republia) -- 20 aout
+  // 2026, filiere alcool->desinfectant : desormais des fonctions dediees
+  // (doSoinCliniquePrivee/doSoinPublic, plateau-personnage.js), hors du chemin generique
+  // doOrder()/applyEffects() -- gain Sante/PA strictement fixe, jamais de jet ni de multiplicateur
+  // crit. Aucune entree ici pour "soins"/"soin_public"/"soins_basiques" : plus aucun batiment ne
+  // reference ces 3 fn via le chemin generique (soins_basiques etait le dernier, utilise par
+  // dispensaire-public-v -- desormais branche sur soin_public comme les 2 autres dispensaires).
   soins_urgence:      {hp:40,            successRate:100},
-  soins_basiques:     {hp:10,            successRate:100},
   soins_discrets:     {hp:30,  dis:-2,   successRate:95},
   rencontrer:         {inf:2,            successRate:100},
   diner_affaires:     {inf:5,  moral:2,  successRate:100},

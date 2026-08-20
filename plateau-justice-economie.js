@@ -3003,9 +3003,9 @@ async function doOuvrirAchatEntrepot(pa, cost) {
   const prixManuel = etat.entrepot?.prixManuel || {};
 
   let html = '<div style="padding:1.2rem">';
-  html += '<div style="font-size:.95rem;color:#8a8060;margin-bottom:1rem">Indiquez la quantité souhaitée pour chaque produit (laissez vide pour ne rien acheter). Le prix affiché varie selon le niveau du stock.</div>';
+  html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:1rem">Indiquez la quantité souhaitée pour chaque produit (laissez vide pour ne rien acheter). Le prix affiché varie selon le niveau du stock.</div>';
   html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
-  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix actuel</th><th>Quantité</th></tr>';
+  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix actuel</th><th>Quantité</th></tr>';
 
   Object.entries(RESSOURCES_ECONOMIE).forEach(([cle, res]) => {
     const enStock = stock[cle] || 0;
@@ -3204,9 +3204,9 @@ async function doOuvrirFixerPrixAchatEntrepot(pa, cost) {
   const prixManuel = etat.entrepot?.prixManuel || {};
 
   let html = '<div style="padding:1.2rem">';
-  html += '<div style="font-size:.95rem;color:#8a8060;margin-bottom:1rem">Prix fixé par produit, dans la fourchette autorisée. Laissez vide pour revenir au prix automatique (fonction du stock).</div>';
+  html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:1rem">Prix fixé par produit, dans la fourchette autorisée. Laissez vide pour revenir au prix automatique (fonction du stock).</div>';
   html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
-  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix auto</th><th>Prix fixé</th></tr>';
+  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix auto</th><th>Prix fixé</th></tr>';
 
   Object.entries(RESSOURCES_ECONOMIE).forEach(([cle, res]) => {
     const enStock = stock[cle] || 0;
@@ -3324,9 +3324,9 @@ async function doOuvrirVenteDirecteUsine(pa, cost) {
   }
 
   let html = '<div style="padding:1.2rem">';
-  html += '<div style="font-size:.95rem;color:#8a8060;margin-bottom:1rem">Vente directe sur place. Indiquez la quantité souhaitée (laissez vide pour ne rien acheter).</div>';
+  html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:1rem">Vente directe sur place. Indiquez la quantité souhaitée (laissez vide pour ne rien acheter).</div>';
   html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
-  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix actuel</th><th>Quantité</th></tr>';
+  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix actuel</th><th>Quantité</th></tr>';
 
   produits.forEach(cle => {
     const res = RESSOURCES_ECONOMIE[cle];
@@ -3460,9 +3460,9 @@ async function doProduireUsine(produitId) {
 
   document.getElementById('postes-modal-title').textContent = 'Produire — ' + produitCfg.label;
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">' + PA_PRODUCTION_USINE + ' PA consomme ' + MATIERE_PAR_PA_USINE + ' ' + matiereCfg.label + ' du stock de l\'usine et produit ' + PRODUIT_PAR_PA_USINE + ' ' + produitCfg.label + '. Salaire fixe : ' + c.salairePA + ' ' + cur + '.</div>';
-  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem;font-size:.75rem;color:#8a8060">Stock de ' + matiereCfg.label + ' : ' + stockMatiereActuel + ' · Stock local de ' + produitCfg.label + ' : ' + stockActuel + '/' + PLAFOND_VENTE_DIRECTE_USINE + ' · Caisse de l\'usine : ' + Math.round(caisse) + ' ' + cur + '</div>';
-  html += '<button onclick="confirmerProductionUsine(\'' + produitId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Produire (' + PA_PRODUCTION_USINE + ' PA)</button>';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">' + PA_PRODUCTION_USINE + ' PA consomme ' + MATIERE_PAR_PA_USINE + ' ' + matiereCfg.label + ' du stock de l\'usine et produit ' + PRODUIT_PAR_PA_USINE + ' ' + produitCfg.label + '. Salaire fixe : ' + c.salairePA + ' ' + cur + '.</div>';
+  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem;font-size:.85rem;color:#8a8060">Stock de ' + matiereCfg.label + ' : ' + stockMatiereActuel + ' · Stock local de ' + produitCfg.label + ' : ' + stockActuel + '/' + PLAFOND_VENTE_DIRECTE_USINE + ' · Caisse de l\'usine : ' + Math.round(caisse) + ' ' + cur + '</div>';
+  html += '<button onclick="confirmerProductionUsine(\'' + produitId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Produire (' + PA_PRODUCTION_USINE + ' PA)</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -3616,9 +3616,9 @@ async function doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost) {
   document.getElementById('postes-modal-title').textContent = "Vendre des matières à l'usine";
   let html = '<div style="padding:1rem">';
   if (disponibles.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060">Vous ne possédez aucune matière utilisée par cette usine' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
+    html += '<div style="font-size:.9rem;color:#8a8060">Vous ne possédez aucune matière utilisée par cette usine' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
   } else {
-    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat au tarif fournisseur en vigueur.</div>';
+    html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat au tarif fournisseur en vigueur.</div>';
   }
   disponibles.forEach(m => {
     const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
@@ -3629,9 +3629,9 @@ async function doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost) {
     const placeRestante = Math.max(0, res.plafond - stockActuel);
     const qteInitiale = Math.max(1, Math.min(qteDispo, placeRestante));
     html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + res.label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + ', capacité restante ' + placeRestante + '</span>';
-    html += '<input type="number" id="vendre-usine-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.78rem;outline:none"/>';
-    html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.72rem"' : 'onclick="confirmerVendreMatierePremiereUsineUI(\'' + buildingId + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem"') + '>Vendre</button>';
+    html += '<span style="flex:1;font-size:.88rem;color:#c0b090">' + res.label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + ', capacité restante ' + placeRestante + '</span>';
+    html += '<input type="number" id="vendre-usine-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
+    html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.82rem"' : 'onclick="confirmerVendreMatierePremiereUsineUI(\'' + buildingId + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
     html += '</div>';
   });
   html += '</div>';
@@ -3692,9 +3692,9 @@ async function doOuvrirFixerPrixVenteDirecte(pa, cost) {
   const prixManuel = etat.usine?.prixManuel || {};
 
   let html = '<div style="padding:1.2rem">';
-  html += '<div style="font-size:.95rem;color:#8a8060;margin-bottom:1rem">Prix fixé par produit, dans la fourchette autorisée. Laissez vide pour revenir au prix automatique (fonction du stock).</div>';
+  html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:1rem">Prix fixé par produit, dans la fourchette autorisée. Laissez vide pour revenir au prix automatique (fonction du stock).</div>';
   html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
-  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix auto</th><th>Prix fixé</th></tr>';
+  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix auto</th><th>Prix fixé</th></tr>';
 
   cfg.produits.forEach(cle => {
     const res = RESSOURCES_ECONOMIE[cle];
@@ -3774,10 +3774,10 @@ async function doOuvrirFixerRepartitionProduction(pa, cost) {
   const repartitionActuelle = etat.usine?.repartitionEntrepots != null ? Math.round(etat.usine.repartitionEntrepots * 100) : 60;
 
   let html = '<div style="padding:1.2rem">';
-  html += '<div style="font-size:.95rem;color:#8a8060;margin-bottom:1rem">Part de la production quotidienne envoyée aux entrepôts publics (répartie entre les 3 villes). Le reste reste ici, en vente directe.</div>';
+  html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:1rem">Part de la production quotidienne envoyée aux entrepôts publics (répartie entre les 3 villes). Le reste reste ici, en vente directe.</div>';
   html += '<div style="text-align:center;margin:1.2rem 0">';
   html += '<input type="number" min="0" max="100" step="5" id="repartition-entrepots" value="' + repartitionActuelle + '" style="width:100px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:1.2rem;text-align:center" /> %';
-  html += '<div style="font-size:.8rem;color:#6a5a30;margin-top:.5rem">vers les entrepôts — le reste part en vente directe sur place.</div>';
+  html += '<div style="font-size:.9rem;color:#6a5a30;margin-top:.5rem">vers les entrepôts — le reste part en vente directe sur place.</div>';
   html += '</div>';
   html += '<button class="pnj-action-btn" onclick="confirmerFixerRepartitionProduction(\'' + buildingId + '\',' + pa + ',' + cost + ')" style="margin-top:.5rem;font-size:1rem;padding:.7rem">Valider la répartition</button>';
   html += '</div>';

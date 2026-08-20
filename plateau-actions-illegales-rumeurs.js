@@ -2565,9 +2565,9 @@ async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cos
   document.getElementById('postes-modal-title').textContent = 'Vendre des matières au commerce';
   let html = '<div style="padding:1rem">';
   if (disponibles.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060">Vous ne possédez aucune matière que ce commerce accepte' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
+    html += '<div style="font-size:.9rem;color:#8a8060">Vous ne possédez aucune matière que ce commerce accepte' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
   } else {
-    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat fixés par le commerce.</div>';
+    html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat fixés par le commerce.</div>';
   }
   disponibles.forEach(m => {
     const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
@@ -2579,9 +2579,9 @@ async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cos
     const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
     const qteInitiale = Math.max(1, placeRestante != null ? Math.min(qteDispo, placeRestante) : qteDispo);
     html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    html += '<span style="flex:1;font-size:.78rem;color:#c0b090">' + label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + (placeRestante != null ? ', capacité restante ' + placeRestante : '') + '</span>';
-    html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.78rem;outline:none"/>';
-    html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.72rem"' : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem"') + '>Vendre</button>';
+    html += '<span style="flex:1;font-size:.88rem;color:#c0b090">' + label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + (placeRestante != null ? ', capacité restante ' + placeRestante : '') + '</span>';
+    html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
+    html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.82rem"' : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
     html += '</div>';
   });
   html += '</div>';
@@ -2786,7 +2786,7 @@ async function doGererCommerce(commerceType, buildingId, roomId) {
   html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">Caisse : ' + (data.caisse || 0).toLocaleString('fr-FR') + ' ' + cur + '</div>';
   const carte = (data.carte || []).filter(id => RECETTES_ALIMENTAIRES[id]);
   if (carte.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060">Aucun produit sur la carte de cet établissement.</div>';
+    html += '<div style="font-size:.9rem;color:#8a8060">Aucun produit sur la carte de cet établissement.</div>';
   }
   carte.forEach(id => {
     const recette = RECETTES_ALIMENTAIRES[id];
@@ -2794,12 +2794,12 @@ async function doGererCommerce(commerceType, buildingId, roomId) {
     const { min, max } = fourchettePrixPJ(coutRevient);
     const prixActuel = data.parametres.prixVente[id];
     html += '<div style="padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem">';
-    html += '<b style="font-size:.85rem;color:#c0b090">' + recette.label + '</b><br>';
-    html += '<span style="font-size:.72rem;color:#8a8060">Coût de revient actuel : ' + coutRevient.toFixed(2) + ' ' + cur + ' — Fourchette autorisée : ' + min.toFixed(2) + ' à ' + max.toFixed(2) + ' ' + cur + '</span><br>';
-    html += '<span style="font-size:.72rem;color:#6a5a30">Prix actuel : ' + (prixActuel != null ? prixActuel.toLocaleString('fr-FR') : 'non défini') + ' ' + cur + '</span>';
+    html += '<b style="font-size:.93rem;color:#c0b090">' + recette.label + '</b><br>';
+    html += '<span style="font-size:.82rem;color:#8a8060">Coût de revient actuel : ' + coutRevient.toFixed(2) + ' ' + cur + ' — Fourchette autorisée : ' + min.toFixed(2) + ' à ' + max.toFixed(2) + ' ' + cur + '</span><br>';
+    html += '<span style="font-size:.82rem;color:#6a5a30">Prix actuel : ' + (prixActuel != null ? prixActuel.toLocaleString('fr-FR') : 'non défini') + ' ' + cur + '</span>';
     html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
-    html += '<input type="number" min="' + min + '" max="' + max + '" step="0.5" id="gere-commerce-prix-' + id + '" placeholder="Nouveau prix" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.75rem;outline:none"/>';
-    html += '<button onclick="confirmerGererPrixCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem">Valider</button>';
+    html += '<input type="number" min="' + min + '" max="' + max + '" step="0.5" id="gere-commerce-prix-' + id + '" placeholder="Nouveau prix" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.85rem;outline:none"/>';
+    html += '<button onclick="confirmerGererPrixCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem">Valider</button>';
     html += '</div></div>';
   });
 
@@ -2808,10 +2808,10 @@ async function doGererCommerce(commerceType, buildingId, roomId) {
   // le flux de vente joueur -> commerce) -- si une recette est retiree de la carte et que sa
   // matiere n'est plus utilisee ailleurs, elle disparait naturellement de cette liste, sans
   // toucher ni au stock deja present ni a un ancien prix stocke (juste plus affiche/proposable).
-  html += '<div style="font-size:.8rem;color:#8a8060;margin:.9rem 0 .3rem;font-weight:bold">Prix d\'achat des matières</div>';
+  html += '<div style="font-size:.9rem;color:#8a8060;margin:.9rem 0 .3rem;font-weight:bold">Prix d\'achat des matières</div>';
   const matieresAcceptees = matieresAccepteesParCommerce(data);
   if (matieresAcceptees.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060">Aucune matière n\'est actuellement nécessaire aux produits de la carte.</div>';
+    html += '<div style="font-size:.9rem;color:#8a8060">Aucune matière n\'est actuellement nécessaire aux produits de la carte.</div>';
   }
   matieresAcceptees.forEach(m => {
     const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
@@ -2822,13 +2822,13 @@ async function doGererCommerce(commerceType, buildingId, roomId) {
     const prixActuelAchat = prixAchatMatiereCommerce(data, m);
     const { min, max } = fourchettePrixAchatMatierePJ(m);
     html += '<div style="padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem">';
-    html += '<b style="font-size:.85rem;color:#c0b090">' + label + '</b><br>';
-    html += '<span style="font-size:.72rem;color:#8a8060">Stock actuel : ' + stockActuel + (placeRestante != null ? ' — Capacité restante : ' + placeRestante : '') + '</span><br>';
-    html += '<span style="font-size:.72rem;color:#8a8060">Prix de référence (PNJ) : ' + prixReference.toLocaleString('fr-FR') + ' ' + cur + ' — Fourchette autorisée : ' + min.toFixed(2) + ' à ' + max.toFixed(2) + ' ' + cur + '</span><br>';
-    html += '<span style="font-size:.72rem;color:#6a5a30">Prix actuellement proposé : ' + prixActuelAchat.toLocaleString('fr-FR') + ' ' + cur + '</span>';
+    html += '<b style="font-size:.93rem;color:#c0b090">' + label + '</b><br>';
+    html += '<span style="font-size:.82rem;color:#8a8060">Stock actuel : ' + stockActuel + (placeRestante != null ? ' — Capacité restante : ' + placeRestante : '') + '</span><br>';
+    html += '<span style="font-size:.82rem;color:#8a8060">Prix de référence (PNJ) : ' + prixReference.toLocaleString('fr-FR') + ' ' + cur + ' — Fourchette autorisée : ' + min.toFixed(2) + ' à ' + max.toFixed(2) + ' ' + cur + '</span><br>';
+    html += '<span style="font-size:.82rem;color:#6a5a30">Prix actuellement proposé : ' + prixActuelAchat.toLocaleString('fr-FR') + ' ' + cur + '</span>';
     html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
-    html += '<input type="number" min="' + min + '" max="' + max + '" step="0.1" id="gere-commerce-achat-' + m + '" placeholder="Nouveau prix" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.75rem;outline:none"/>';
-    html += '<button onclick="confirmerGererPrixAchatCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.72rem">Valider</button>';
+    html += '<input type="number" min="' + min + '" max="' + max + '" step="0.1" id="gere-commerce-achat-' + m + '" placeholder="Nouveau prix" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.85rem;outline:none"/>';
+    html += '<button onclick="confirmerGererPrixAchatCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem">Valider</button>';
     html += '</div></div>';
   });
 
@@ -3019,7 +3019,7 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
   const carte = data.carte || [];
   const carteValide = carte.filter(id => RECETTES_ALIMENTAIRES[id]);
   if (carteValide.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060">Aucun produit disponible pour le moment.</div>';
+    html += '<div style="font-size:.9rem;color:#8a8060">Aucun produit disponible pour le moment.</div>';
   }
   carteValide.forEach(id => {
     const recette = RECETTES_ALIMENTAIRES[id];
@@ -3031,14 +3031,14 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
     if (recette.image) html += '<img src="' + recette.image + '" style="width:56px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0" />';
     html += '<div style="flex:1">';
-    html += '<b style="font-size:.85rem;color:#c0b090">' + recette.label + '</b><br>';
-    html += '<span style="font-size:.72rem;color:#8a8060">' + composition + '</span><br>';
-    if (effetsTxt) html += '<span style="font-size:.72rem;color:#6ab858">' + effetsTxt + '</span><br>';
-    html += '<span style="font-size:.75rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
+    html += '<b style="font-size:.93rem;color:#c0b090">' + recette.label + '</b><br>';
+    html += '<span style="font-size:.82rem;color:#8a8060">' + composition + '</span><br>';
+    if (effetsTxt) html += '<span style="font-size:.82rem;color:#6ab858">' + effetsTxt + '</span><br>';
+    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
     html += '</div>';
     html += enRupture
-      ? '<span style="font-size:.7rem;color:#5a5040;flex-shrink:0">Rupture</span>'
-      : '<button onclick="doCommanderProduitCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem">Commander</button>';
+      ? '<span style="font-size:.8rem;color:#5a5040;flex-shrink:0">Rupture</span>'
+      : '<button onclick="doCommanderProduitCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">Commander</button>';
     html += '</div>';
   });
   html += '</div>';
@@ -3093,7 +3093,7 @@ async function doConsommerBoisson(commerceType, buildingId, roomId) {
   const carte = data.carte || [];
   const boissons = carte.filter(id => RECETTES_ALIMENTAIRES[id]?.categorie === 'boisson');
   if (boissons.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060">Aucune boisson disponible pour le moment.</div>';
+    html += '<div style="font-size:.9rem;color:#8a8060">Aucune boisson disponible pour le moment.</div>';
   }
   boissons.forEach(id => {
     const recette = RECETTES_ALIMENTAIRES[id];
@@ -3102,12 +3102,12 @@ async function doConsommerBoisson(commerceType, buildingId, roomId) {
     const enRupture = stock <= 0;
     html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
     html += '<div style="flex:1">';
-    html += '<b style="font-size:.85rem;color:#c0b090">' + recette.label + '</b><br>';
-    html += '<span style="font-size:.75rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
+    html += '<b style="font-size:.93rem;color:#c0b090">' + recette.label + '</b><br>';
+    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
     html += '</div>';
     html += enRupture
-      ? '<span style="font-size:.7rem;color:#5a5040;flex-shrink:0">Rupture</span>'
-      : '<button onclick="confirmerConsommerBoissonUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem">Commander</button>';
+      ? '<span style="font-size:.8rem;color:#5a5040;flex-shrink:0">Rupture</span>'
+      : '<button onclick="confirmerConsommerBoissonUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">Commander</button>';
     html += '</div>';
   });
   html += '</div>';
@@ -3175,11 +3175,11 @@ async function ouvrirModalOffrirTourneeBoisson(commerceType, buildingId, roomId)
 
   document.getElementById('postes-modal-title').textContent = '🍷 Offrir une tournée';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Choisissez la boisson offerte à toute la tournée. Une seule boisson pour l\'ensemble des invités.</div>';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Choisissez la boisson offerte à toute la tournée. Une seule boisson pour l\'ensemble des invités.</div>';
   const carte = data.carte || [];
   const boissons = carte.filter(id => RECETTES_ALIMENTAIRES[id]?.categorie === 'boisson');
   if (boissons.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060">Aucune boisson disponible pour le moment.</div>';
+    html += '<div style="font-size:.9rem;color:#8a8060">Aucune boisson disponible pour le moment.</div>';
   }
   boissons.forEach(id => {
     const recette = RECETTES_ALIMENTAIRES[id];
@@ -3188,12 +3188,12 @@ async function ouvrirModalOffrirTourneeBoisson(commerceType, buildingId, roomId)
     const enRupture = stock <= 0;
     html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
     html += '<div style="flex:1">';
-    html += '<b style="font-size:.85rem;color:#c0b090">' + recette.label + '</b><br>';
-    html += '<span style="font-size:.75rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR/pers.' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
+    html += '<b style="font-size:.93rem;color:#c0b090">' + recette.label + '</b><br>';
+    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR/pers.' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
     html += '</div>';
     html += enRupture
-      ? '<span style="font-size:.7rem;color:#5a5040;flex-shrink:0">Rupture</span>'
-      : '<button onclick="ouvrirModalOffrirTourneeCibles(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem">Choisir</button>';
+      ? '<span style="font-size:.8rem;color:#5a5040;flex-shrink:0">Rupture</span>'
+      : '<button onclick="ouvrirModalOffrirTourneeCibles(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">Choisir</button>';
     html += '</div>';
   });
   html += '</div>';
@@ -3238,19 +3238,19 @@ async function ouvrirModalOffrirTourneeCibles(commerceType, buildingId, roomId, 
   document.getElementById('postes-modal-title').textContent = '🍷 Offrir une tournée — ' + recette.label;
   let html = '<div style="padding:.8rem 1rem">';
   if (maxSelectable <= 0) {
-    html += '<div style="font-size:.78rem;color:#cc6644;font-style:italic">Vous ne pouvez inviter personne pour l\'instant : il faut au moins ' + (2 * prix).toLocaleString('fr-FR') + ' ' + cur + ' et 2 ' + recette.label + ' en stock (vous compris) pour lancer une tournée.</div>';
+    html += '<div style="font-size:.88rem;color:#cc6644;font-style:italic">Vous ne pouvez inviter personne pour l\'instant : il faut au moins ' + (2 * prix).toLocaleString('fr-FR') + ' ' + cur + ' et 2 ' + recette.label + ' en stock (vous compris) pour lancer une tournée.</div>';
     html += '</div>';
     document.getElementById('postes-body').innerHTML = html;
     document.getElementById('modal-postes').classList.add('open');
     return;
   }
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">' + prix.toLocaleString('fr-FR') + ' ' + cur + ' par personne (vous compris), à votre charge. Le coût réel n\'est prélevé qu\'à la fin, uniquement pour ceux qui auront réellement accepté. Sélectionnez jusqu\'à ' + maxSelectable + ' invité(s).</div>';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">' + prix.toLocaleString('fr-FR') + ' ' + cur + ' par personne (vous compris), à votre charge. Le coût réel n\'est prélevé qu\'à la fin, uniquement pour ceux qui auront réellement accepté. Sélectionnez jusqu\'à ' + maxSelectable + ' invité(s).</div>';
   html += '<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem">';
   presents.forEach(p => {
-    html += '<label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#c0b090"><input type="checkbox" class="tournee-cible" value="' + p.name.replace(/"/g, '') + '|' + p.kind + '|' + p.rel + '"/> ' + p.name + (p.kind !== 'pj' ? ' <span style="color:#5a4a30;font-size:.7rem">(PNJ)</span>' : '') + '</label>';
+    html += '<label style="display:flex;align-items:center;gap:.5rem;font-size:.9rem;color:#c0b090"><input type="checkbox" class="tournee-cible" value="' + p.name.replace(/"/g, '') + '|' + p.kind + '|' + p.rel + '"/> ' + p.name + (p.kind !== 'pj' ? ' <span style="color:#5a4a30;font-size:.8rem">(PNJ)</span>' : '') + '</label>';
   });
   html += '</div>';
-  html += '<button onclick="confirmerOffrirTourneeUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + recetteId + '\',' + maxSelectable + ')" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">OFFRIR LA TOURNÉE</button>';
+  html += '<button onclick="confirmerOffrirTourneeUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + recetteId + '\',' + maxSelectable + ')" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.9rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">OFFRIR LA TOURNÉE</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -3562,9 +3562,9 @@ async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, c
 
   document.getElementById('postes-modal-title').textContent = 'Produire';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Main-d\'œuvre : ' + COUT_MAIN_OEUVRE_PA_ALIMENTAIRE + ' FR par PA travaillé.</div>';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Main-d\'œuvre : ' + COUT_MAIN_OEUVRE_PA_ALIMENTAIRE + ' FR par PA travaillé.</div>';
   if (recettesDispo.length === 0) {
-    html += '<div style="font-size:.8rem;color:#8a8060">Aucune recette disponible sur la carte de cet établissement.</div>';
+    html += '<div style="font-size:.9rem;color:#8a8060">Aucune recette disponible sur la carte de cet établissement.</div>';
   }
   recettesDispo.forEach(id => {
     const recette = RECETTES_ALIMENTAIRES[id];
@@ -3576,10 +3576,10 @@ async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, c
     // vrai bouton distinct. Meme handler qu'avant, doProduireRecetteCommerceUI(), aucune logique
     // dupliquee -- generique, s'applique a tous les commerces utilisant cette fenetre, pas
     // seulement le Cafe de la Gare.
-    html += '<div style="margin-bottom:.5rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;font-size:.78rem">';
+    html += '<div style="margin-bottom:.5rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;font-size:.88rem">';
     html += '<b>' + recette.label + '</b> — ' + recette.pa + ' PA → ' + recette.portions + ' portions<br>';
     html += '<span style="color:#8a8060">Matériaux : ' + materiauxTxt + ' · Salaire : ' + (recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE) + ' FR · Stock : ' + stockActuel + (stockMax != null ? '/' + stockMax : '') + '</span><br>';
-    html += '<button onclick="doProduireRecetteCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="margin-top:.5rem;padding:.4rem 1rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem;font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em">PRODUIRE</button>';
+    html += '<button onclick="doProduireRecetteCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="margin-top:.5rem;padding:.4rem 1rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem;font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em">PRODUIRE</button>';
     html += '</div>';
   });
   html += '</div>';
