@@ -3316,7 +3316,7 @@ async function doOuvrirVenteDirecteUsine(pa, cost) {
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, buildingId) : {};
   const venteDirecte = etat.usine?.venteDirecte || {};
   const prixManuel = etat.usine?.prixManuel || {};
-  const produits = Object.keys(venteDirecte);
+  const produits = produitsUsine(buildingId);
 
   if (produits.length === 0) {
     showToast('Rien à vendre', "Aucune production locale disponible pour l'instant.", false);
@@ -3360,7 +3360,7 @@ async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
 
   const achats = {};
   let total = 0;
-  for (const cle of Object.keys(venteDirecte)) {
+  for (const cle of produitsUsine(buildingId)) {
     const qte = parseInt(document.getElementById('vente-usine-' + cle)?.value || 0);
     if (!qte || qte <= 0) continue;
     const enStock = venteDirecte[cle] || 0;
@@ -3548,6 +3548,20 @@ function matieresAccepteesParUsine(buildingId) {
   return Object.values(CHAINES_PRODUCTION_USINE)
     .filter(c => c.buildingId === buildingId)
     .map(c => c.matiere);
+}
+
+// Produits vendables en vente directe par une usine = cles CHAINES_PRODUCTION_USINE dont le
+// buildingId correspond (correctif, 20 aout 2026) -- meme principe generique que
+// matieresAccepteesParUsine ci-dessus, applique cette fois aux produits finis plutot qu'aux
+// matieres. Corrige la cause reelle de l'absence de desinfectant en vente directe : la liste
+// affichee etait Object.keys(etat.usine.venteDirecte), qui ne contient une cle que si CE produit
+// a deja ete produit au moins une fois -- une usine dont une nouvelle chaine vient d'etre ajoutee
+// (ex. alcool->desinfectant) n'a jamais cette cle tant que personne n'a produit, meme si la
+// chaine existe deja dans la config. Generique pour toute usine/chaine future, jamais un id
+// code en dur.
+function produitsUsine(buildingId) {
+  return Object.keys(CHAINES_PRODUCTION_USINE)
+    .filter(id => CHAINES_PRODUCTION_USINE[id].buildingId === buildingId);
 }
 
 async function vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte) {
