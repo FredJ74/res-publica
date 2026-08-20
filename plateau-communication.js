@@ -1030,8 +1030,16 @@ function addMailNotification(from, subject, body) {
 // fiable jusqu'a la correction de sbLoadPersonnage ci-dessus). Requete dediee via sbGet(), meme
 // table/meme colonne deja utilisee par etatCivilChargerJoueurs (plateau-etat-civil.js) -- aucune
 // nouvelle colonne. Jamais envoye le jour meme de la creation (< 1 jour reel ecoule).
+// Suspendu (hotfix du 20 aout 2026) : le concept a change (portrait journalistique publie par
+// Jodie en Presse & Medias, plus une auto-presentation du joueur en Forum Local) -- le parcours
+// ci-dessous correspond a l'ancien concept et ne doit plus envoyer de nouveaux mails tant que le
+// nouveau parcours n'est pas pret. Un seul flag a repasser a true pour reactiver, aucune autre
+// modification necessaire : calcul d'anciennete, correction createdAt (sbLoadPersonnage) et
+// mecanisme d'envoi unique restent intacts et reutilisables tels quels.
+const JODIE_MAIL_ACCUEIL_ACTIVE = false;
 const JODIE_MAIL_ACCUEIL_SUJET = 'On ne vous connaît pas encore…';
 async function jodieVerifierMailAccueil() {
+  if (!JODIE_MAIL_ACCUEIL_ACTIVE) return;
   if (typeof state === 'undefined' || !state.char?.name) return;
   if (typeof sbGet !== 'function' || typeof sbGetMailsFor !== 'function' || typeof sbSendMail !== 'function') return;
 
