@@ -2307,16 +2307,27 @@ const RECETTES_ALIMENTAIRES = {
   // (section 15). typesAutorises inclut deja 'bar' par anticipation (aucun cout supplementaire,
   // simple entree de tableau) si le Bar des Pecheurs/Hotel Republica sont migres plus tard --
   // sans que cela ne les active prematurement (aucun commerce 'bar' n'existe encore).
+  // Adaptee le 20 aout 2026 (lot boissons Cafe de la Gare) pour rejoindre le catalogue
+  // Cafe/Jus de fruits/Biere/Vin : materiaux passe de alcool a cereales, portions 10->15,
+  // effets uniformises a +2 moral seul (aucun avantage mecanique superieur alcoolise/non
+  // alcoolise, decision explicite de Fred), 'cafe' ajoute a typesAutorises. La cle 'biere_pression'
+  // n'est PAS renommee (seul son contenu change) pour ne rien casser des donnees deja persistees
+  // (stockProduits/carte de la buvette du stade, qui reference deja ce meme id) -- son prix de
+  // vente PNJ est recalcule automatiquement (prixVenteAutoPNJ), pas fige ici.
   biere_pression: {
-    id: 'biere_pression', label: 'Bière pression', categorie: 'boisson', image: null,
-    materiaux: { alcool: 1 }, pa: 1, portions: 10,
-    effets: { pop: 2, moral: 1 },
-    typesAutorises: ['buvette', 'bar'], villesAutorisees: null, buildingsAutorises: null
+    id: 'biere_pression', label: 'Bière', categorie: 'boisson', image: null,
+    materiaux: { cereales: 1 }, pa: 1, portions: 15,
+    effets: { moral: 2 },
+    typesAutorises: ['buvette', 'bar', 'cafe'], villesAutorisees: null, buildingsAutorises: null
   },
   boisson_sans_alcool: {
     id: 'boisson_sans_alcool', label: 'Boisson sans alcool', categorie: 'boisson', image: null,
     // Pas de chaine industrielle complexe pour l'instant (section 17, cahier des charges) --
-    // produit simple, aucune matiere premiere dediee inventee.
+    // produit simple, aucune matiere premiere dediee inventee. Conservee telle quelle (lot
+    // boissons du 20 aout 2026) : deja presente sur la carte de la buvette du stade, la retirer
+    // ou la renommer casserait cette carte existante -- non redondante en pratique avec "Jus de
+    // fruits" (celle-ci n'a aucune matiere premiere, contrairement a Jus de fruits qui en
+    // consomme une reelle).
     materiaux: {}, pa: 1, portions: 10,
     effets: { moral: 1 },
     typesAutorises: ['buvette', 'bar', 'cafe'], villesAutorisees: null, buildingsAutorises: null
@@ -2326,6 +2337,30 @@ const RECETTES_ALIMENTAIRES = {
     materiaux: { cereales: 1 }, pa: 1, portions: 15,
     effets: { hp: 2, moral: 1 },
     typesAutorises: ['buvette', 'bar'], villesAutorisees: null, buildingsAutorises: null
+  },
+
+  // Lot boissons - Cafe de la Gare (20 aout 2026) : 3 nouvelles recettes, memes regles pour les
+  // 4 boissons du catalogue (1 matiere + 1 PA -> 15 consommations, +2 moral uniquement, aucun
+  // hp/inf/ent/pa -- aucun avantage mecanique superieur pour l'alcoolise, decision explicite de
+  // Fred). typesAutorises limite a 'cafe' pour ce lot (perimetre = Cafe de la Gare uniquement,
+  // extension a d'autres types laissee pour plus tard, aucune donnee inventee au-dela du demande).
+  cafe_boisson: {
+    id: 'cafe_boisson', label: 'Café', categorie: 'boisson', image: null,
+    materiaux: { produits_exotiques: 1 }, pa: 1, portions: 15,
+    effets: { moral: 2 },
+    typesAutorises: ['cafe'], villesAutorisees: null, buildingsAutorises: null
+  },
+  jus_de_fruits: {
+    id: 'jus_de_fruits', label: 'Jus de fruits', categorie: 'boisson', image: null,
+    materiaux: { fruits_legumes: 1 }, pa: 1, portions: 15,
+    effets: { moral: 2 },
+    typesAutorises: ['cafe'], villesAutorisees: null, buildingsAutorises: null
+  },
+  vin: {
+    id: 'vin', label: 'Vin', categorie: 'boisson', image: null,
+    materiaux: { fruits_legumes: 1 }, pa: 1, portions: 15,
+    effets: { moral: 2 },
+    typesAutorises: ['cafe'], villesAutorisees: null, buildingsAutorises: null
   }
 };
 
@@ -2553,11 +2588,26 @@ const DOTATIONS_COMMERCE_PILOTE = {
     // trouve par test d'integration local, pas par relecture). Montant modeste, proportionne a
     // un petit cafe (pas les 20000 FR de l'armurerie) : ~40 productions a 50 FR de salaire.
     data.caisse = 2000;
-    data.stockMatieres = { cereales: 10, viande: 10 };
-    data.coutMoyenMatieres = { cereales: 3, viande: 5 }; // au prix de base courant des matieres (releve economique)
-    data.carte = ['boeuf_bourguignon'];
-    data.parametres.stockMax = { boeuf_bourguignon: 20 };
-    data.parametres.prixVente = { boeuf_bourguignon: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boeuf_bourguignon)) };
+    // Lot boissons (20 aout 2026) : fruits_legumes/produits_exotiques ajoutes au prix de base
+    // courant (meme convention que cereales/viande ci-dessus), pour alimenter Cafe/Jus de
+    // fruits/Vin des leur premiere production.
+    data.stockMatieres = { cereales: 10, viande: 10, fruits_legumes: 10, produits_exotiques: 10 };
+    data.coutMoyenMatieres = { cereales: 3, viande: 5, fruits_legumes: 4, produits_exotiques: 6 }; // au prix de base courant des matieres (releve economique)
+    data.carte = ['boeuf_bourguignon', 'cafe_boisson', 'jus_de_fruits', 'vin', 'biere_pression'];
+    data.parametres.stockMax = { boeuf_bourguignon: 20, cafe_boisson: 30, jus_de_fruits: 30, vin: 30, biere_pression: 30 };
+    // Prix initial fixe a 7 FR pour les 4 boissons (decision de Fred, 20 aout 2026) -- NOTE : ce
+    // commerce est PNJ par defaut, donc produireRecetteCommerce() recalculera automatiquement ce
+    // prix a chaque production via prixVenteAutoPNJ (le meme mecanisme deja en place pour
+    // boeuf_bourguignon juste en dessous) : 7 FR ne restera donc affiche que jusqu'a la toute
+    // premiere production de chaque boisson, puis convergera vers le cout de revient reel x2
+    // (~7,07 FR biere, ~7,20 FR jus/vin, ~7,47 FR cafe avec les couts moyens ci-dessus).
+    data.parametres.prixVente = {
+      boeuf_bourguignon: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boeuf_bourguignon)),
+      cafe_boisson: 7,
+      jus_de_fruits: 7,
+      vin: 7,
+      biere_pression: 7
+    };
   },
   'brasserie-voyageurs-montrouge': function(data) {
     data.caisse = 3000; // vraie restauration, dotation superieure au petit cafe
@@ -2634,8 +2684,12 @@ function coutRevientPortionRecette(commerce, recette) {
   return (coutMatieres + coutMainOeuvre) / recette.portions;
 }
 
+// Arrondi a l'entier (regle validee par Fred, 20 aout 2026 : prix de vente automatique PNJ =
+// cout de revient x2, arrondi a l'entier -- pas au centime). Primitive generique, tous les
+// commerces PNJ passent par ici (boeuf_bourguignon, biere_pression, cafe_boisson, jus_de_fruits,
+// vin, etc.) : correction centralisee, aucun bricolage specifique au Cafe de la Gare.
 function prixVenteAutoPNJ(coutRevient) {
-  return Math.round(coutRevient * 2 * 100) / 100;
+  return Math.round(coutRevient * 2);
 }
 
 // Fourchette autorisee pour un commerce tenu par un PJ (+10% a +80% du cout de revient) --
@@ -2972,6 +3026,491 @@ async function doCommanderProduitCommerceUI(commerceType, buildingId, roomId, re
   doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
 }
 
+// =====================
+// CONSOMMER UNE BOISSON (lot boissons, 20 aout 2026) -- reutilise integralement
+// commanderProduitCommerce() (prix/stock/argent/effets, deja fail-closed) : cet ordre n'ajoute
+// AUCUNE logique de commande/consommation propre, seulement un ecran de choix filtre sur les
+// produits categorie:'boisson' de la carte du commerce (deja generique : n'importe quel
+// commerce dont la carte contient des recettes categorie:'boisson' en beneficie, aucun
+// buildingId code en dur). Seule difference avec "Consulter la carte" : ferme la fenetre au lieu
+// de la rafraichir apres un achat reussi (comportement explicitement demande), et n'affiche que
+// les boissons plutot que la carte complete. Gratuit par construction (0 PA/0 cout a l'ouverture
+// ET a la confirmation) : aucun appel a deduireCoutOrdre() nulle part dans cette chaine, seul le
+// cout financier reste verifie par commanderProduitCommerce() (fonds_insuffisants -> refus net).
+function doConsommerBoissonGenerique(pa, cost) {
+  const c = resoudreCommerceActuel();
+  if (!c) { showToast('Indisponible', '', false); return; }
+  doConsommerBoisson(c.type, c.buildingId, c.roomId);
+}
+
+async function doConsommerBoisson(commerceType, buildingId, roomId) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!data) { showToast('Indisponible', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Consommer une boisson';
+  let html = '<div style="padding:1rem">';
+  const carte = data.carte || [];
+  const boissons = carte.filter(id => RECETTES_ALIMENTAIRES[id]?.categorie === 'boisson');
+  if (boissons.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060">Aucune boisson disponible pour le moment.</div>';
+  }
+  boissons.forEach(id => {
+    const recette = RECETTES_ALIMENTAIRES[id];
+    const stock = data.stockProduits[id] || 0;
+    const prix = data.parametres.prixVente[id];
+    const enRupture = stock <= 0;
+    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
+    html += '<div style="flex:1">';
+    html += '<b style="font-size:.85rem;color:#c0b090">' + recette.label + '</b><br>';
+    html += '<span style="font-size:.75rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
+    html += '</div>';
+    html += enRupture
+      ? '<span style="font-size:.7rem;color:#5a5040;flex-shrink:0">Rupture</span>'
+      : '<button onclick="confirmerConsommerBoissonUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem">Commander</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Pont UI <-> logique, meme primitive pure que doCommanderProduitCommerceUI (commanderProduitCommerce)
+// mais ferme la fenetre au lieu de la rafraichir -- comportement demande specifiquement pour cet
+// ordre (retour a la salle apres consommation, pas d'enchainement de commandes).
+async function confirmerConsommerBoissonUI(commerceType, buildingId, roomId, recetteId) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  const res = await commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
+  if (!res.ok) {
+    const messages = { rupture: 'Cette boisson est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' FR requis.', prix_non_defini: 'Prix non défini pour cette boisson.', introuvable: '' };
+    showToast('Achat impossible', messages[res.raison] || '', false);
+    return;
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  // Effets affiches derives de res.effets (retourne par commanderProduitCommerce), jamais
+  // codes en dur -- reste correct si les effets d'une recette venaient a changer.
+  const effetsTxt = Object.entries(res.effets || {}).filter(([, v]) => v).map(([k, v]) => (v > 0 ? '+' : '') + v + ' ' + ({hp:'Santé', moral:'Moral', inf:'INF', pop:'POP'}[k] || k.toUpperCase())).join(' ');
+  showToast('Boisson servie', recette.label + (effetsTxt ? ' — ' + effetsTxt : '') + '. -' + res.prix + ' FR.', true, true);
+  addJournalEntry(recette.label + ' consommé(e) — ' + res.prix + ' FR.', 'event-good');
+}
+
+// =====================
+// OFFRIR UNE TOURNEE (lot tournees, 20 aout 2026) -- remplace boire_verre par une mecanique
+// generique a cibles multiples (PJ et/ou PNJ), adossee au moteur commerce existant. Reutilise
+// integralement chargerCommerce/RECETTES_ALIMENTAIRES/appliquerTaxeTransaction/
+// crediterCaisseBatiment/ajouterHistoriqueEntreprise/sbSaveEntreprise (memes primitives que
+// commanderProduitCommerce, jamais dupliquees ni bouclees N+1 fois) et appliquerGainENT (meme
+// plafond/limite quotidienne que partout ailleurs). Persistance dans les tables "tournees"
+// (etat partage : boisson, prix de reference, pa_debite, statut) et invitations_diner.tournee_id
+// (une ligne par cible PJ) -- migration_tournees_boissons.sql, deja executee. Etat local
+// (state._tourneeModalOuvert) sert uniquement a eviter d'ouvrir deux fois la meme modale de
+// reponse, jamais source de verite sur l'existence/l'etat d'une tournee (toujours relu en base).
+//
+// Portee de ce lot (decision explicite de Fred, 20 aout 2026) : uniquement le Cafe de la Gare de
+// Montrouge. L'ancien boire_verre de l'Hotel-Restaurant de Luthecia (bar, hotel-republica) reste
+// INCHANGE -- ce batiment n'a aucun commerce (carte/stock/prix) adosse au moteur generique
+// (BUILDING_COMMERCE_TYPE ne le liste pas), en construire un est hors perimetre de ce lot. Un lot
+// dedie ulterieur ("raccordement bars/cafes/restaurants/buvettes de Republia au moteur commerce
+// generique") branchera les etablissements restants, y compris celui-la, sans toucher au moteur
+// tournee lui-meme (deja generique par construction : aucun buildingId code en dur ci-dessous).
+// =====================
+
+// Etape 1/3 : choix de la boisson (carte reelle du commerce, categorie:'boisson' uniquement --
+// jamais d'id code en dur). Meme structure que doConsommerBoisson, un "Choisir" menant a l'etape
+// suivante plutot qu'a une consommation immediate.
+function doOffrirTourneeGenerique(pa, cost) {
+  const c = resoudreCommerceActuel();
+  if (!c) { showToast('Indisponible', '', false); return; }
+  ouvrirModalOffrirTourneeBoisson(c.type, c.buildingId, c.roomId);
+}
+
+async function ouvrirModalOffrirTourneeBoisson(commerceType, buildingId, roomId) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!data) { showToast('Indisponible', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = '🍷 Offrir une tournée';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Choisissez la boisson offerte à toute la tournée. Une seule boisson pour l\'ensemble des invités.</div>';
+  const carte = data.carte || [];
+  const boissons = carte.filter(id => RECETTES_ALIMENTAIRES[id]?.categorie === 'boisson');
+  if (boissons.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060">Aucune boisson disponible pour le moment.</div>';
+  }
+  boissons.forEach(id => {
+    const recette = RECETTES_ALIMENTAIRES[id];
+    const stock = data.stockProduits[id] || 0;
+    const prix = data.parametres.prixVente[id];
+    const enRupture = stock <= 0;
+    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
+    html += '<div style="flex:1">';
+    html += '<b style="font-size:.85rem;color:#c0b090">' + recette.label + '</b><br>';
+    html += '<span style="font-size:.75rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR/pers.' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
+    html += '</div>';
+    html += enRupture
+      ? '<span style="font-size:.7rem;color:#5a5040;flex-shrink:0">Rupture</span>'
+      : '<button onclick="ouvrirModalOffrirTourneeCibles(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem">Choisir</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Etape 2/3 : selection multiple des cibles (PJ presents, PNJ presents, PNJ du groupe -- memes 3
+// sources qu'ouvrirModalInvitationSociale, plateau-pnj.js) + precontroles de lancement en lecture
+// seule (section 4 du cahier des charges) : la selection proposee est plafonnee par le pire cas
+// (M+1 boissons, tout le monde accepte), jamais une reservation -- argent/stock sont entierement
+// relus a la resolution (resoudreTournee ci-dessous), independamment de ce qui est calcule ici.
+async function ouvrirModalOffrirTourneeCibles(commerceType, buildingId, roomId, recetteId) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  if (!data || !recette) { showToast('Indisponible', '', false); return; }
+  const stock = data.stockProduits[recetteId] || 0;
+  const prix = data.parametres.prixVente[recetteId];
+  if (prix == null) { showToast('Prix non défini', '', false); return; }
+
+  const presentsPJ = (window._vraisJoueursPresents || []).filter(p => p.name !== state.char?.name).map(p => ({ name: p.name, kind: 'pj', rel: '' }));
+  const roomActuelle = BUILDINGS[buildingId]?.rooms?.[roomId];
+  const presentsPNJ = (roomActuelle?.persons || []).filter(p => !p.isPJ).map(p => ({ name: p.name.replace(' (PNJ)', ''), kind: 'pnj', rel: p.rel || 'neutral' }));
+  const monGroupePNJ = typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : [];
+  const presentsMonGroupe = monGroupePNJ
+    .filter(g => !presentsPNJ.some(pp => pp.name === g.nom))
+    .map(g => ({ name: g.nom, kind: 'groupe', rel: '' }));
+  const presents = [...presentsPJ, ...presentsPNJ, ...presentsMonGroupe];
+
+  if (presents.length === 0) {
+    showToast('Personne à inviter', 'Aucun autre joueur ou PNJ n\'est présent dans cette pièce pour l\'instant.', false);
+    return;
+  }
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const maxParStock = Math.max(0, stock - 1);
+  const maxParArgent = Math.max(0, Math.floor((state.arg || 0) / prix) - 1);
+  const maxSelectable = Math.min(presents.length, maxParStock, maxParArgent);
+
+  document.getElementById('postes-modal-title').textContent = '🍷 Offrir une tournée — ' + recette.label;
+  let html = '<div style="padding:.8rem 1rem">';
+  if (maxSelectable <= 0) {
+    html += '<div style="font-size:.78rem;color:#cc6644;font-style:italic">Vous ne pouvez inviter personne pour l\'instant : il faut au moins ' + (2 * prix).toLocaleString('fr-FR') + ' ' + cur + ' et 2 ' + recette.label + ' en stock (vous compris) pour lancer une tournée.</div>';
+    html += '</div>';
+    document.getElementById('postes-body').innerHTML = html;
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">' + prix.toLocaleString('fr-FR') + ' ' + cur + ' par personne (vous compris), à votre charge. Le coût réel n\'est prélevé qu\'à la fin, uniquement pour ceux qui auront réellement accepté. Sélectionnez jusqu\'à ' + maxSelectable + ' invité(s).</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem">';
+  presents.forEach(p => {
+    html += '<label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#c0b090"><input type="checkbox" class="tournee-cible" value="' + p.name.replace(/"/g, '') + '|' + p.kind + '|' + p.rel + '"/> ' + p.name + (p.kind !== 'pj' ? ' <span style="color:#5a4a30;font-size:.7rem">(PNJ)</span>' : '') + '</label>';
+  });
+  html += '</div>';
+  html += '<button onclick="confirmerOffrirTourneeUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + recetteId + '\',' + maxSelectable + ')" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">OFFRIR LA TOURNÉE</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Etape 3/3 : lancement. Precontrole final (relu, pas celui fige a l'ouverture de la modale) puis
+// creation persistante (tournees + invitations_diner.tournee_id pour les cibles PJ). Les PNJ sont
+// resolus immediatement (memes probabilites que l'ancien systeme : 95% groupe, 85/60/20 selon
+// rel allie/neutre/ennemi) et figes dans pnj_resultats -- AUCUN bonus ni paiement a cet instant,
+// pour eux comme pour les PJ (correction obligatoire de l'asymetrie de l'ancien systeme : les
+// effets n'arrivent qu'a la resolution reussie, cf. resoudreTournee).
+async function confirmerOffrirTourneeUI(commerceType, buildingId, roomId, recetteId, maxSelectable) {
+  const cibles = Array.from(document.querySelectorAll('.tournee-cible:checked')).map(el => {
+    const [name, kind, rel] = el.value.split('|');
+    return { name, kind, rel };
+  });
+  if (cibles.length === 0) { showToast('Aucune cible sélectionnée', 'Sélectionnez au moins une personne à inviter.', false); return; }
+  if (cibles.length > maxSelectable) {
+    showToast('Sélection trop large', 'Vous ne pouvez inviter que ' + maxSelectable + ' personne(s) au maximum pour l\'instant (fonds/stock).', false);
+    return;
+  }
+
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  if (!data || !recette) { showToast('Indisponible', '', false); return; }
+  const stock = data.stockProduits[recetteId] || 0;
+  const prix = data.parametres.prixVente[recetteId];
+  if (prix == null) { showToast('Prix non défini', '', false); return; }
+
+  const M = cibles.length;
+  const besoinArgent = (M + 1) * prix;
+  const besoinStock = M + 1;
+  if ((state.arg || 0) < besoinArgent) {
+    showToast('Fonds insuffisants', besoinArgent.toLocaleString('fr-FR') + ' FR nécessaires au maximum (si tout le monde accepte).', false);
+    return;
+  }
+  if (stock < besoinStock) {
+    showToast('Stock insuffisant', besoinStock + ' ' + recette.label + ' nécessaires au maximum, ' + stock + ' en stock.', false);
+    return;
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+
+  const pnjResultats = cibles.filter(c => c.kind !== 'pj').map(c => {
+    const chance = c.kind === 'groupe' ? 95 : (c.rel === 'ally' ? 85 : c.rel === 'enemy' ? 20 : 60);
+    const roll = Math.floor(Math.random() * 100) + 1;
+    return { nom: c.name, accepte: roll <= chance };
+  });
+  const ciblesPJ = cibles.filter(c => c.kind === 'pj');
+
+  const tourneeId = 'tournee-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
+  if (typeof sbCreerTournee !== 'function') { showToast('Indisponible', '', false); return; }
+  const tourneeCreee = await sbCreerTournee({
+    id: tourneeId,
+    country: pays,
+    ville,
+    offreur: state.char?.name,
+    building_id: buildingId,
+    room_id: roomId || null,
+    commerce_type: commerceType,
+    recette_id: recetteId,
+    prix_unitaire_reference: prix,
+    pnj_resultats: pnjResultats,
+    statut: 'en_attente',
+    pa_debite: false,
+    expires_at: expiresAt
+  }).catch(() => null);
+
+  if (!tourneeCreee) {
+    showToast('Erreur', 'Impossible de créer la tournée pour l\'instant. Réessayez.', false);
+    return;
+  }
+
+  if (ciblesPJ.length > 0 && typeof sbCreerInvitationsTournee === 'function') {
+    await sbCreerInvitationsTournee(ciblesPJ.map(c => ({
+      inviteur: state.char?.name, invite: c.name, country: pays, city: ville,
+      building_id: buildingId, room_id: roomId || null,
+      statut: 'attente', cout: prix, type: 'tournee_boisson', tournee_id: tourneeId
+    }))).catch(() => {});
+  }
+
+  showToast('Tournée lancée', 'En attente de la réponse de vos invités (5 min maximum)...', true);
+  addJournalEntry('Tournée offerte (' + recette.label + ') à ' + M + ' personne(s).', 'event-info');
+
+  // Si aucune cible PJ (donc rien a attendre, les PNJ sont deja tous resolus), tenter une
+  // resolution immediate plutot que d'attendre le prochain tick de polling (confort, pas une
+  // dependance : le polling periodique la resoudrait de toute facon dans les secondes suivantes).
+  if (ciblesPJ.length === 0 && typeof verifierTourneesActivesOffreur === 'function') {
+    verifierTourneesActivesOffreur();
+  }
+}
+
+// Credit MORAL/ENT d'un invite ayant reellement accepte (section 13). Meme niveau de fiabilite
+// que le seul precedent existant de mutation cross-joueur (debiterCitoyenPlafonne,
+// plateau-politique.js:3841) : lecture puis ecriture non atomiques, dette transactionnelle
+// acceptee explicitement par Fred pour ce lot (aucune RPC ajoutee). ENT reutilise le plafond dur
+// de appliquerGainENT (20) mais PAS sa limite "une fois par jour" -- cette derniere repose sur
+// state.char.dernierGainENTJour, un champ jamais persiste cote serveur (absent de
+// sbSavePersonnage/sbLoadPersonnage, verifie) : il n'existe donc aucune donnee fiable a lire pour
+// l'appliquer a un joueur distant. Seul le plafond dur (verifiable via stats.ENT, reellement
+// persiste) est donc applique ici.
+async function crediterTourneeInviteAcceptant(nomCible) {
+  if (typeof sbGet !== 'function' || typeof sbUpdate !== 'function') return;
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomCible)}&select=moral,stats`).catch(() => []);
+  const row = rows?.[0];
+  if (!row) return;
+  const moralActuel = row.moral ?? 75;
+  const stats = row.stats || {};
+  const entActuel = stats.ENT || 0;
+  const nouveauStats = entActuel < 20 ? { ...stats, ENT: Math.min(20, entActuel + 1) } : stats;
+  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomCible)}`, {
+    moral: Math.min(100, moralActuel + 2),
+    stats: nouveauStats
+  }).catch(() => {});
+}
+
+// Resolution tout-ou-rien (section 10) d'une tournee deja claim (statut en_resolution, voir
+// verifierTourneesActivesOffreur ci-dessous qui seul appelle cette fonction, uniquement pour ses
+// PROPRES tournees -- offreur === state.char.name garanti par construction de l'appelant, jamais
+// revérifié ici). Relit systematiquement stock/prix/argent avant toute mutation, y compris lors
+// d'une reprise apres crash (pa_debite=true) : le plafond calcule au lancement n'est jamais
+// reutilise tel quel.
+async function resoudreTournee(tournee) {
+  const invitationsPJ = await sbGetInvitationsTournee(tournee.id);
+  const pjAcceptants = invitationsPJ.filter(r => r.statut === 'acceptee');
+  const pnjAcceptants = (tournee.pnj_resultats || []).filter(p => p.accepte);
+  const N = pjAcceptants.length + pnjAcceptants.length;
+
+  async function nettoyerInvitations() {
+    for (const row of invitationsPJ) { await sbSupprimerInvitationDiner(row.id).catch(() => {}); }
+  }
+
+  const estMoi = tournee.offreur === state.char?.name;
+
+  if (N === 0) {
+    await nettoyerInvitations();
+    await sbMarquerTourneeResolue(tournee.id, tournee.pa_debite === true);
+    if (estMoi) {
+      showToast('Tournée déclinée', 'Personne n\'a accepté votre offre.', false);
+      addJournalEntry('Tournée proposée : personne n\'a accepté.', 'event-info');
+    }
+    return;
+  }
+
+  const recette = RECETTES_ALIMENTAIRES[tournee.recette_id];
+  const data = await chargerCommerce(tournee.commerce_type, tournee.country, tournee.ville, tournee.building_id, tournee.room_id);
+  const quantite = N + 1;
+  const stockActuel = data ? (data.stockProduits[tournee.recette_id] || 0) : 0;
+  const prixReel = data ? data.parametres.prixVente[tournee.recette_id] : null;
+  const argentDispo = estMoi ? (state.arg || 0) : 0;
+
+  // Echec total (section 10) : une seule ressource manquante suffit, aucun service partiel.
+  if (!data || !recette || prixReel == null || stockActuel < quantite || argentDispo < prixReel * quantite) {
+    await nettoyerInvitations();
+    await sbMarquerTourneeResolue(tournee.id, tournee.pa_debite === true);
+    if (estMoi) {
+      showToast('Tournée annulée', 'Les ressources nécessaires ne sont plus réunies au moment de servir la tournée.', false);
+      addJournalEntry('Tournée annulée à la résolution : stock, prix ou fonds insuffisants.', 'event-bad');
+      updateUI();
+    }
+    return;
+  }
+
+  const montantTotal = prixReel * quantite;
+
+  // PA (section 11) : 1 PA unique, quel que soit N. pa_debite ne sert jamais de verrou prealable
+  // -- il ne passe a true qu'apres le succes reel de deduireCoutOrdre(), et permet ici de sauter
+  // ce debit lors d'une reprise (le PA a deja ete preleve lors d'une tentative anterieure).
+  if (!tournee.pa_debite) {
+    const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
+    if (!r.ok) {
+      await nettoyerInvitations();
+      await sbMarquerTourneeResolue(tournee.id, false);
+      if (estMoi) {
+        showToast('Tournée annulée', 'Plus assez de PA pour offrir la tournée.', false);
+        addJournalEntry('Tournée annulée à la résolution : PA insuffisants.', 'event-bad');
+        updateUI();
+      }
+      return;
+    }
+    await sbMarquerTourneePaDebite(tournee.id).catch(() => {});
+  }
+
+  // Flux financier/stock (section 12) : memes primitives que commanderProduitCommerce, appliquees
+  // UNE FOIS pour la quantite agregee (jamais une boucle N+1 fois, qui multiplierait a tort les
+  // effets de la recette). La caisse du commerce est toujours CREDITEE (jamais debitee) : c'est
+  // l'argent personnel de l'offreur qui paie, exactement comme une vente normale.
+  state.arg -= montantTotal;
+  data.stockProduits[tournee.recette_id] = stockActuel - quantite;
+  let net = montantTotal;
+  if (typeof appliquerTaxeTransaction === 'function') {
+    const t = await appliquerTaxeTransaction(montantTotal);
+    net = t.net;
+  }
+  if (data.type === 'buvette' && typeof getCaisseLocaleId === 'function' && typeof crediterCaisseBatiment === 'function') {
+    await crediterCaisseBatiment(tournee.country, getCaisseLocaleId('stade', tournee.ville), net).catch(() => {});
+  } else {
+    data.caisse = (data.caisse || 0) + net;
+  }
+  ajouterHistoriqueEntreprise(data, net, 'Tournée offerte — ' + recette.label + ' x' + quantite + ' — ' + (tournee.offreur || 'Anonyme'));
+  await sbSaveEntreprise(data.id, data);
+
+  // Effets (section 13) : offreur une seule fois, chaque invite PJ ayant reellement accepte de
+  // meme -- jamais les PNJ (aucun personnage persiste a crediter). Traitement PUIS suppression de
+  // chaque ligne d'invitation (et non une boucle de credit separee de la suppression) : c'est ce
+  // qui rend une reprise apres crash idempotente sans colonne de suivi supplementaire -- une ligne
+  // deja supprimee ne peut plus jamais etre recreditee lors d'une reprise ulterieure.
+  state.moral = Math.min(100, (state.moral || 0) + 2);
+  if (typeof appliquerGainENT === 'function') appliquerGainENT(1);
+
+  for (const row of invitationsPJ) {
+    if (row.statut === 'acceptee') await crediterTourneeInviteAcceptant(row.invite);
+    await sbSupprimerInvitationDiner(row.id).catch(() => {});
+  }
+
+  await sbMarquerTourneeResolue(tournee.id, true);
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+  updateUI();
+  showToast('Tournée servie !', quantite + ' ' + recette.label + ' servi(e)s. -' + montantTotal.toLocaleString('fr-FR') + ' FR. +2 Moral +1 ENT.', true, true);
+  addJournalEntry('Tournée offerte (' + recette.label + ') : ' + N + ' invité(s) sur ' + (invitationsPJ.length + (tournee.pnj_resultats || []).length) + ' ont accepté. -' + montantTotal + ' FR. +2 Moral +1 ENT.', 'event-good');
+}
+
+// Polling offreur (section 9) : retrouve les tournees encore actives EN BASE (jamais via un
+// state local, qui ne survivrait pas a un refresh) et tente une resolution des qu'elle est prete
+// -- soit tous les PJ ont repondu, soit expires_at est depasse. Machine a etats a claim
+// conditionnel (PATCH PostgREST ?id=eq.X&statut=eq.en_attente) : un tableau vide en retour
+// signifie qu'un autre onglet/appareil a deja pris la main, on passe simplement au suivant.
+async function verifierTourneesActivesOffreur() {
+  if (!state.char?.name || typeof sbGetTourneesActivesOffreur !== 'function') return;
+  if (window._tourneeResolutionEnCours) return;
+  let tournees = [];
+  try { tournees = await sbGetTourneesActivesOffreur(state.char.name); } catch (e) { return; }
+
+  for (const t of tournees) {
+    if (t.statut === 'en_attente') {
+      const invitationsPJ = await sbGetInvitationsTournee(t.id).catch(() => []);
+      const expiree = t.expires_at && new Date(t.expires_at).getTime() <= Date.now();
+      const tousRepondu = invitationsPJ.every(r => r.statut !== 'attente');
+      if (!expiree && !tousRepondu) continue;
+      const claim = await sbClaimResolutionTournee(t.id);
+      if (!claim || claim.length === 0) continue;
+      window._tourneeResolutionEnCours = true;
+      try { await resoudreTournee(claim[0]); } finally { window._tourneeResolutionEnCours = false; }
+    } else if (t.statut === 'en_resolution') {
+      const debutMs = t.resolution_started_at ? new Date(t.resolution_started_at).getTime() : 0;
+      if (Date.now() - debutMs < 30000) continue; // pas encore perime, laisser sa chance au claimant en cours
+      const seuilIso = new Date(Date.now() - 30000).toISOString();
+      const reclaim = await sbReclaimResolutionTourneeExpiree(t.id, seuilIso);
+      if (!reclaim || reclaim.length === 0) continue;
+      window._tourneeResolutionEnCours = true;
+      try { await resoudreTournee(reclaim[0]); } finally { window._tourneeResolutionEnCours = false; }
+    }
+  }
+}
+
+// Polling invite (section 7) : ecran de reponse dedie a la tournee, distinct de l'ancien
+// verifierInvitationsSocialesRecues (qui l'ignore desormais, cf. sbGetInvitationsDinerRecues).
+// Reponse via sbRepondreInvitationDiner (meme primitive que l'ancien systeme, aucune duplication)
+// -- AUCUN effet applique ici, ni pour un "oui" ni pour un "non" : c'est la correction obligatoire
+// de l'asymetrie de l'ancien systeme, les bonus n'arrivent qu'a la resolution par l'offreur.
+async function verifierTourneesRecues() {
+  if (!state.char?.name || typeof sbGetInvitationsTourneeRecues !== 'function') return;
+  if (state._tourneeModalOuvert) return;
+  let rows = [];
+  try { rows = await sbGetInvitationsTourneeRecues(state.char.name); } catch (e) { return; }
+  if (!rows || rows.length === 0) return;
+  const invitation = rows[0];
+  const tournee = typeof sbGetTournee === 'function' ? await sbGetTournee(invitation.tournee_id).catch(() => null) : null;
+  if (!tournee) return;
+  const recette = RECETTES_ALIMENTAIRES[tournee.recette_id];
+
+  state._tourneeModalOuvert = true;
+  document.getElementById('postes-modal-title').textContent = '🍷 Tournée offerte';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem">' +
+    '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">' + tournee.offreur + ' vous offre une tournée (' + (recette?.label || 'boisson') + '), à ses frais.</div>' +
+    '<div style="display:flex;gap:.5rem">' +
+      '<button onclick="repondreTournee(' + invitation.id + ',true)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #4a8a4a;background:transparent;color:#6a9a6a;cursor:pointer">✅ Accepter</button>' +
+      '<button onclick="repondreTournee(' + invitation.id + ',false)" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem;border:1px solid #5a2a2a;background:transparent;color:#8a3a2a;cursor:pointer">❌ Refuser</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function repondreTournee(id, accepte) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  state._tourneeModalOuvert = false;
+  if (typeof sbRepondreInvitationDiner === 'function') await sbRepondreInvitationDiner(id, accepte, null).catch(() => {});
+  showToast(
+    accepte ? 'Invitation acceptée' : 'Invitation déclinée',
+    accepte ? 'Vous rejoignez la tournée. Elle sera servie une fois que tout le monde aura répondu (ou à expiration).' : 'Vous avez décliné la tournée.',
+    accepte, false
+  );
+  addJournalEntry(accepte ? 'Vous avez accepté une tournée offerte.' : 'Vous avez décliné une tournée offerte.', accepte ? 'event-good' : 'event-info');
+}
+
 // Interface "Produire" -- meme modele que doProduireArme (armurerie), restreinte aux recettes
 // de la carte du commerce (l'exploitant ne produit que ce qu'il vend, v1 du moteur).
 async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, cost) {
@@ -2993,10 +3532,16 @@ async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, c
     const materiauxTxt = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
     const stockActuel = data.stockProduits[id] || 0;
     const stockMax = data.parametres.stockMax[id];
-    html += '<button onclick="doProduireRecetteCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.5rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
+    // Bouton PRODUIRE explicite (lot boissons, 20 aout 2026) -- la fiche recette redevient une
+    // simple fiche informative (div, plus cliquable en elle-meme), l'action est desormais un
+    // vrai bouton distinct. Meme handler qu'avant, doProduireRecetteCommerceUI(), aucune logique
+    // dupliquee -- generique, s'applique a tous les commerces utilisant cette fenetre, pas
+    // seulement le Cafe de la Gare.
+    html += '<div style="margin-bottom:.5rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;font-size:.78rem">';
     html += '<b>' + recette.label + '</b> — ' + recette.pa + ' PA → ' + recette.portions + ' portions<br>';
-    html += '<span style="color:#8a8060">Matériaux : ' + materiauxTxt + ' · Salaire : ' + (recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE) + ' FR · Stock : ' + stockActuel + (stockMax != null ? '/' + stockMax : '') + '</span>';
-    html += '</button>';
+    html += '<span style="color:#8a8060">Matériaux : ' + materiauxTxt + ' · Salaire : ' + (recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE) + ' FR · Stock : ' + stockActuel + (stockMax != null ? '/' + stockMax : '') + '</span><br>';
+    html += '<button onclick="doProduireRecetteCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="margin-top:.5rem;padding:.4rem 1rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.72rem;font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em">PRODUIRE</button>';
+    html += '</div>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;

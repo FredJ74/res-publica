@@ -4753,8 +4753,10 @@ const BUILDINGS = {
     bgColor: "#100c08",
     desc: "Un café en face de la gare de Montrouge.",
     rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-cafe-gare-interieur.png", persons: [], orders: [
-      {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer le plat du jour pour le service (consomme les matières en stock, rémunéré en FR).'},
-      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
+      {fn:'produire_commerce', label:'Produire', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Choisir un plat ou une boisson de la carte a preparer pour le service (consomme les matieres en stock, remunere en FR).'},
+      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats et boissons disponibles et commander.'},
+      {fn:'consommer_boisson', label:'Consommer une boisson', pa:0, cost:0, type:'legal', icon:'ti-glass', successRate:100, desc:'Choisir une boisson de la carte a consommer sur place.'},
+      {fn:'offrir_tournee', label:'Offrir une tournée', pa:0, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Offrez une tournee (une seule boisson de la carte) a plusieurs personnes presentes, a vos frais. Chacun accepte ou refuse independamment ; vous ne buvez et ne payez que si au moins une personne accepte. Cout reel : 1 PA + le prix de la boisson x (nombre d\'acceptants + vous).'},
       {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
       {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
     ] } }
@@ -5977,6 +5979,10 @@ const RESSOURCES_ECONOMIE = {
   minerai:      { label: 'Minerai',      icon: 'ti-mountain',    prixBase: 10, prixAchatFournisseur: 5,   plafond: 500, source: 'livraison' },
   metal:        { label: 'Métal',        icon: 'ti-bolt',        prixBase: 15, prixAchatFournisseur: 7.5, plafond: 200, source: 'livraison' },
   plantes:      { label: 'Plantes',      icon: 'ti-leaf',        prixBase: 6,  prixAchatFournisseur: 3,   plafond: 300, source: 'livraison' },
+  // Lot boissons (20 aout 2026) : deux nouvelles matieres premieres livrees, parametres valides
+  // par Fred. Ne touche a aucune ressource existante.
+  fruits_legumes:    { label: 'Fruits & légumes', icon: 'ti-apple',   prixBase: 4, prixAchatFournisseur: 2, plafond: 150, source: 'livraison' },
+  produits_exotiques:{ label: 'Produits exotiques',icon: 'ti-package',prixBase: 6, prixAchatFournisseur: 3, plafond: 125, source: 'livraison' },
 
   // --- Produits transformes (redistribution 20% des transformateurs, jamais livres directement) ---
   medicaments:  { label: 'Médicaments',  icon: 'ti-pill',        prixBase: 22, prixAchatFournisseur: 11,  plafond: 100, source: 'transformation' },

@@ -1649,6 +1649,19 @@ function renderRoomActions(room, buildingId, roomId) {
     // signale que TEST_MODE l'annule pour l'instant. Valeur transmise a doOrder() inchangee
     // (o.pa brut, deja correcte avant ce correctif -- uniquement l'affichage etait en cause).
     let paDisplay = o.pa + ' PA' + (TEST_MODE && o.pa > 0 ? ' (illimité' + (o.pa > 1 ? 's' : '') + ')' : '');
+    // Lot boissons (20 aout 2026) : "Produire un repas" (produire_commerce) n'a jamais debite le
+    // moindre PA a l'ouverture, quel que soit le buildingId ou la valeur declaree dans data.js --
+    // le vrai cout PA est celui de la recette choisie ensuite, debite par produireRecetteCommerce()
+    // (plateau-actions-illegales-rumeurs.js). Masquer l'indication PA ici est donc exact partout,
+    // pas seulement au Cafe de la Gare. "Consulter la carte" reste affichee normalement partout
+    // SAUF quand sa valeur declaree est reellement 0 PA (seul le Cafe de la Gare pour l'instant) --
+    // les autres commerces (brasserie/hotel-mineur/buvette) debitent encore reellement leur PA
+    // declare et doivent continuer a l'afficher.
+    if (o.fn === 'produire_commerce' || o.fn === 'consommer_boisson' || o.fn === 'offrir_tournee') {
+      paDisplay = '';
+    } else if (o.fn === 'consulter_carte_commerce' && o.pa === 0) {
+      paDisplay = '';
+    }
     // Appliquer malus ISN sur les actes illegaux
     let tauxAffiche = o.successRate || 70;
     if (o.type === 'illegal') {
@@ -1723,7 +1736,7 @@ function renderRoomActions(room, buildingId, roomId) {
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
     const blockedCls = (needsPost || needsSquat || needsCadavre) ? ' blocked' : '';
-    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltip + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + costDisplay + ' · ' + paDisplay + '</span>' + gainBadge + '</button>';
+    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltip + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + costDisplay + (paDisplay ? ' · ' + paDisplay : '') + '</span>' + gainBadge + '</button>';
   });
 
   // Bouton generique "Ecouter l'audioguide" : apparait pour toute salle ayant un audioUrl,

@@ -90,6 +90,11 @@ const RESSOURCES_ECONOMIE = {
   minerai:     { plafond: 500, prixBase: 5 },
   metal:       { plafond: 200, prixBase: 7.5 },
   plantes:     { plafond: 300, prixBase: 3 },
+  // Lot boissons (20 aout 2026) : valeurs miroir de RESSOURCES_ECONOMIE.fruits_legumes/
+  // produits_exotiques, data.js -- meme convention que le reste de cette table (prixBase
+  // contient ici prixAchatFournisseur, pas le prixBase reel).
+  fruits_legumes:     { plafond: 150, prixBase: 2 },
+  produits_exotiques: { plafond: 125, prixBase: 3 },
   medicaments: { plafond: 100, prixBase: 11 },
   alcool:      { plafond: 100, prixBase: 7 },
   tabac:       { plafond: 100, prixBase: 9 },

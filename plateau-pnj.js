@@ -1926,6 +1926,12 @@ function demarrerPollingInvitationsDiner() {
   window._dinerPollingActif = true;
   setInterval(() => { if (typeof verifierInvitationsSocialesRecues === 'function') verifierInvitationsSocialesRecues(); }, 4000);
   setInterval(() => { if (typeof verifierReponseInvitationSociale === 'function') verifierReponseInvitationSociale(); }, 4000);
+  // Lot tournees (20 aout 2026) : deux boucles dediees, memes cadence/mecanisme que les 2
+  // ci-dessus mais sur les tables tournees/invitations_diner.tournee_id -- source de verite
+  // toujours en base (jamais un state local), donc une tournee en attente survit naturellement
+  // a un refresh/reconnexion (la boucle offreur la retrouve au prochain tick).
+  setInterval(() => { if (typeof verifierTourneesRecues === 'function') verifierTourneesRecues(); }, 4000);
+  setInterval(() => { if (typeof verifierTourneesActivesOffreur === 'function') verifierTourneesActivesOffreur(); }, 4000);
 }
 
 

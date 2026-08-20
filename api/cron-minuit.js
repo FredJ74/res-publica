@@ -797,6 +797,10 @@ const RESSOURCES_ECONOMIE_SERVEUR = {
   minerai:      { plafond: 500, prixAchatFournisseur: 5,   source: 'livraison' },
   metal:        { plafond: 200, prixAchatFournisseur: 7.5, source: 'livraison' },
   plantes:      { plafond: 300, prixAchatFournisseur: 3,   source: 'livraison' },
+  // Lot boissons (20 aout 2026) : valeurs miroir de RESSOURCES_ECONOMIE.fruits_legumes/
+  // produits_exotiques, data.js.
+  fruits_legumes:     { plafond: 150, prixAchatFournisseur: 2, source: 'livraison' },
+  produits_exotiques: { plafond: 125, prixAchatFournisseur: 3, source: 'livraison' },
   medicaments:  { plafond: 100, prixAchatFournisseur: 11,  source: 'transformation' },
   alcool:       { plafond: 100, prixAchatFournisseur: 7,   source: 'transformation' },
   tabac:        { plafond: 100, prixAchatFournisseur: 9,   source: 'transformation' },

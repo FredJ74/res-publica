@@ -1564,8 +1564,16 @@ async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingI
   });
 }
 
+// tournee_id=is.null (lot tournees, 20 aout 2026) : exclut les invitations qui appartiennent a
+// une tournee (voir plus bas) -- celles-ci ont leur propre ecran de reponse dedie
+// (verifierTourneesRecues/repondreTournee, plateau-actions-illegales-rumeurs.js) et ne doivent
+// jamais etre captees par l'ancien flux mono-cible diner_affaires/boire_verre
+// (verifierInvitationsSocialesRecues, plateau-pnj.js). Aucune ligne diner_affaires/boire_verre
+// existante ou future n'a jamais tournee_id renseigne (jamais ecrit par sbCreerInvitationDiner),
+// donc ce filtre est un no-op strict pour elles -- seul le comportement des lignes de tournee
+// change (elles disparaissent de cette requete).
 async function sbGetInvitationsDinerRecues(nomJoueur) {
-  const filtre = `invite=eq.${encodeURIComponent(nomJoueur)}&statut=eq.attente`;
+  const filtre = `invite=eq.${encodeURIComponent(nomJoueur)}&statut=eq.attente&tournee_id=is.null`;
   return sbGet('invitations_diner', filtre) || [];
 }
 
@@ -1580,6 +1588,62 @@ async function sbRepondreInvitationDiner(id, accepte, reponse) {
 
 async function sbSupprimerInvitationDiner(id) {
   return sbDelete('invitations_diner', `id=eq.${id}`);
+}
+
+// =====================
+// TOURNEES (offrir un verre a plusieurs cibles simultanement, PJ et/ou PNJ) -- 20 aout 2026.
+// invitations_diner.tournee_id relie les invitations PJ d'une tournee a sa ligne "tournees"
+// partagee ; reponse/statut/suppression reutilisent tels quels sbRepondreInvitationDiner et
+// sbSupprimerInvitationDiner ci-dessus, aucune primitive dupliquee.
+// =====================
+async function sbCreerTournee(t) {
+  const rows = await sbInsert('tournees', t);
+  return rows?.[0] || null;
+}
+
+async function sbGetTournee(id) {
+  const rows = await sbGet('tournees', `id=eq.${encodeURIComponent(id)}`);
+  return rows?.[0] || null;
+}
+
+async function sbGetTourneesActivesOffreur(nomOffreur) {
+  return sbGet('tournees', `offreur=eq.${encodeURIComponent(nomOffreur)}&statut=in.(en_attente,en_resolution)`) || [];
+}
+
+// Claim conditionnel (compare-and-swap) : le PATCH ne s'applique que si la ligne est encore
+// en_attente au moment ou Postgres l'evalue (verrouillage ligne standard) -- un tableau vide en
+// retour signifie qu'un autre client a deja pris la main, jamais une erreur.
+async function sbClaimResolutionTournee(id) {
+  return sbUpdate('tournees', `id=eq.${encodeURIComponent(id)}&statut=eq.en_attente`,
+    { statut: 'en_resolution', resolution_started_at: new Date().toISOString() });
+}
+
+// Meme principe, pour reclamer une resolution restee en_resolution au-dela du seuil de
+// peremption (crash presume du claimant precedent) -- seuilIso = horodatage ISO en-deca duquel
+// resolution_started_at est considere perime.
+async function sbReclaimResolutionTourneeExpiree(id, seuilIso) {
+  return sbUpdate('tournees', `id=eq.${encodeURIComponent(id)}&statut=eq.en_resolution&resolution_started_at=lt.${encodeURIComponent(seuilIso)}`,
+    { statut: 'en_resolution', resolution_started_at: new Date().toISOString() });
+}
+
+async function sbMarquerTourneePaDebite(id) {
+  return sbUpdate('tournees', `id=eq.${encodeURIComponent(id)}`, { pa_debite: true });
+}
+
+async function sbMarquerTourneeResolue(id, paDebite) {
+  return sbUpdate('tournees', `id=eq.${encodeURIComponent(id)}`, { statut: 'resolue', pa_debite: !!paDebite });
+}
+
+async function sbCreerInvitationsTournee(rows) {
+  return sbInsert('invitations_diner', rows);
+}
+
+async function sbGetInvitationsTournee(tourneeId) {
+  return sbGet('invitations_diner', `tournee_id=eq.${encodeURIComponent(tourneeId)}`) || [];
+}
+
+async function sbGetInvitationsTourneeRecues(nomJoueur) {
+  return sbGet('invitations_diner', `invite=eq.${encodeURIComponent(nomJoueur)}&statut=eq.attente&tournee_id=not.is.null`) || [];
 }
 
 async function sbTracerAction(action) {

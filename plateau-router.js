@@ -184,6 +184,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_carte_commerce') { doConsulterCarteCommerceGenerique(pa, cost); return; }
   if (fn === 'gerer_commerce') { doGererCommerceGenerique(pa, cost); return; }
   if (fn === 'vendre_matiere_commerce') { doVendreMatiereCommerceGenerique(pa, cost); return; }
+  if (fn === 'consommer_boisson') { doConsommerBoissonGenerique(pa, cost); return; }
+  if (fn === 'offrir_tournee') { doOffrirTourneeGenerique(pa, cost); return; }
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne', pa, cost); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
