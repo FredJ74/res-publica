@@ -1007,6 +1007,65 @@ function addMailNotification(from, subject, body) {
   if (badge) { badge.textContent = unread; badge.style.display = unread > 0 ? 'inline' : 'none'; }
 }
 
+// =====================
+// MAIL D'ACCUEIL DE JODIE MOITOUT (lot "Jodie incite les nouveaux PJ a se presenter sur le
+// forum", 20 aout 2026) -- envoye via sbSendMail(), le point d'ecriture unique de TOUTE la table
+// mails reelle (~70 emetteurs PNJ/systeme dans le jeu, voir supabase.js:559-563), PAS via
+// addMailNotification() ci-dessus : cette derniere n'ecrit que dans state.mails (jamais persiste
+// cote Supabase, jamais visible dans la vraie Boite Mail/renderMailInbox) -- l'utiliser aurait
+// rendu le mail invisible du parcours normal de messagerie que ce lot cherche justement a faire
+// decouvrir.
+//
+// Envoi unique SANS nouveau marqueur/colonne : interroge directement sbGetMailsFor() (deja
+// utilisee par verifierNouveauxMails()) pour savoir si ce mail existe deja pour ce joueur -- la
+// table mails elle-meme fait foi, aucun etat parallele a maintenir en synchronisation. Appelee
+// depuis le meme point d'ancrage que enigme1VerifierDeclenchement() (plateau-core.js,
+// synchronisation Supabase de loadCharacter()), qui ne s'execute qu'une fois par chargement de
+// session -- refresh/reconnexion/changement de ville ne redeclenchent jamais cette verification
+// en dehors de ce point unique, et meme si c'etait le cas, le mail deja present dans la table
+// empecherait tout doublon.
+//
+// Anciennete (complement du 20 aout 2026) : UNIQUEMENT personnages.created_at (colonne Postgres
+// native, jamais reecrite -- voir audit), jamais state.char.createdAt (champ client, releve non
+// fiable jusqu'a la correction de sbLoadPersonnage ci-dessus). Requete dediee via sbGet(), meme
+// table/meme colonne deja utilisee par etatCivilChargerJoueurs (plateau-etat-civil.js) -- aucune
+// nouvelle colonne. Jamais envoye le jour meme de la creation (< 1 jour reel ecoule).
+const JODIE_MAIL_ACCUEIL_SUJET = 'On ne vous connaît pas encore…';
+async function jodieVerifierMailAccueil() {
+  if (typeof state === 'undefined' || !state.char?.name) return;
+  if (typeof sbGet !== 'function' || typeof sbGetMailsFor !== 'function' || typeof sbSendMail !== 'function') return;
+
+  const rowsPerso = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=created_at').catch(() => null);
+  const createdAt = rowsPerso?.[0]?.created_at;
+  if (!createdAt) return;
+  const joursEcoulesReels = (Date.now() - new Date(createdAt).getTime()) / 86400000;
+  if (joursEcoulesReels < 1) return; // Jamais le jour meme de la creation
+  const joursEcoules = Math.floor(joursEcoulesReels);
+
+  const mails = await sbGetMailsFor(state.char.name).catch(() => null);
+  if (!mails) return; // Echec reseau : retente a la prochaine synchronisation, jamais de doublon force
+  const dejaEnvoye = mails.some(m => m.from_player === 'Jodie Moitout' && m.subject === JODIE_MAIL_ACCUEIL_SUJET);
+  if (dejaEnvoye) return;
+
+  let accroche;
+  if (joursEcoules === 1) {
+    accroche = "À peine arrivé et déjà repéré. C'est un défaut professionnel.";
+  } else if (joursEcoules <= 3) {
+    accroche = "Cela fait quelques jours que vous êtes arrivé et vous n'êtes toujours pas passé sous mon radar. Enfin… jusqu'à maintenant.";
+  } else if (joursEcoules <= 7) {
+    accroche = "Voilà plusieurs jours que vous êtes parmi nous. Il serait peut-être temps que les habitants sachent à qui ils ont affaire.";
+  } else {
+    accroche = "Vous êtes là depuis un moment maintenant et vous avez réussi l'exploit de rester relativement discret. Pour une journaliste, c'est presque vexant.";
+  }
+
+  const corps = "Bonjour,<br><br>" +
+    "Jodie Moitout, journaliste. " + accroche + "<br><br>" +
+    "Les habitants ont pris l'habitude de se présenter sur le forum. Rien de très officiel : quelques mots sur vous, ce qui vous amène ici, vos projets… ou juste ce que vous avez envie qu'on sache.<br><br>" +
+    "C'est souvent là que commencent les premières rencontres.<br><br>" +
+    "Jodie Moitout<br><br>" +
+    "<em>« Je pose beaucoup de questions. C'est un métier. »</em>";
+  await sbSendMail('Jodie Moitout', state.char.name, JODIE_MAIL_ACCUEIL_SUJET, corps, formatDateHeureJeu()).catch(() => {});
+}
 
 // =====================
 // FINANCES MODAL

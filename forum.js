@@ -2036,6 +2036,10 @@ function renderMailRead() {
       </div>
       <div class="lecture-longue lecture-longue-page" style="color:#f0ead6">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(mail.body || '') : ''}</div>
       <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+        ${mail.from === 'Jodie Moitout' && mail.subject === 'On ne vous connaît pas encore…' && typeof queteAccueilLancerPresentationForum === 'function' ? `
+          <button onclick="queteAccueilLancerPresentationForum()" class="forum-new-btn" style="font-size:.72rem">
+            <i class="ti ti-users"></i> Se présenter aux habitants
+          </button>` : ''}
         ${mail.to === myName && !mail.fromIsOrg ? `
           <button data-mail-from="${escapeHtmlText(mail.from)}" data-mail-subject="${escapeHtmlText(mail.subject)}"
             onclick="replyToMail(this.dataset.mailFrom, this.dataset.mailSubject)" class="forum-new-btn" style="font-size:.72rem">

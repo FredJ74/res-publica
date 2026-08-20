@@ -656,6 +656,10 @@ function loadCharacter() {
             // actif sur un autre appareil) -- vide et repeuple #journal en consequence.
             restaurerJournal(state.char);
             if (typeof enigme1VerifierDeclenchement === 'function') enigme1VerifierDeclenchement();
+            // Mail d'accueil de Jodie Moitout (lot du 20 aout 2026) : meme point d'ancrage que
+            // l'enigme ci-dessus, une seule fois par chargement de session -- voir
+            // jodieVerifierMailAccueil() (plateau-communication.js) pour la garantie d'unicite.
+            if (typeof jodieVerifierMailAccueil === 'function') jodieVerifierMailAccueil();
             // Emploi BNE : pas de colonne dediee sur personnages (voir plateau-justice-economie.js),
             // le cache local state.emploiBNE doit etre rafraichi explicitement depuis Supabase.
             if (typeof rafraichirCacheEmploiBNE === 'function') rafraichirCacheEmploiBNE();

@@ -133,6 +133,14 @@ async function sbLoadPersonnage(name) {
     char: { name: r.name, archetype: r.archetype, career: r.career,
              origin: r.origin || null, school: r.school || null, freePtsRestants: r.free_pts_restants || 0,
              stats: r.stats,
+             // Restauration de createdAt (correctif audit du 20 aout 2026) : ce mapping manquait
+             // -- state.char.createdAt redevenait undefined a chaque synchronisation Supabase
+             // (loadCharacter ecrase state.char avec cet objet), cassant silencieusement le
+             // declenchement de enigme1VerifierDeclenchement() des la premiere synchro de chaque
+             // session. personnages.created_at (colonne Postgres native, jamais reecrite) est la
+             // seule source fiable -- aucune nouvelle colonne, deja utilisee ailleurs (voir
+             // etatCivilChargerJoueurs, plateau-etat-civil.js).
+             createdAt: r.created_at || null,
              photoUrl: r.photo_url || null, bio: r.bio || null, poste: r.poste || null, posteDepute: r.poste_depute || null,
              country: r.country, currentCity: r.current_city, currentBuilding: r.current_building,
              currentRoom: r.current_room || null, motto: r.motto || null,
