@@ -1085,6 +1085,19 @@ const PHRASES_INFIRMIERE_SOIN_PUBLIC = [
 ];
 const PHRASE_INFIRMIERE_RUPTURE_STOCK = "Alors… bonne nouvelle : vous n'avez rien à payer. Mauvaise nouvelle : on n'a plus rien pour vous soigner.";
 
+// Repliques de Sophie Stiquay (infirmiere, clinique privee de Luthecia -- lot dedie, 20 aout
+// 2026), validees par Fred. Meme mecanisme de tirage aleatoire que PHRASES_INFIRMIERE_SOIN_PUBLIC
+// ci-dessus (aucune duplication : reutilise le meme Math.random()*length au point d'appel,
+// affichee uniquement apres un soin reellement reussi -- jamais sur un echec/limite/rupture).
+const PHRASES_SOPHIE_STIQUAY_SOIN_CLINIQUE = [
+  "Détendez-vous… ici, nous nous occupons de tout.",
+  "Vous êtes entre de très bonnes mains.",
+  "Ne bougez pas… n'oubliez pas que je suis assise sur vous.",
+  "Vous voyez ? Prendre soin de soi peut être très agréable.",
+  "Encore quelques secondes… Je vous promets que vous ressortirez en pleine forme.",
+  "Nous espérons que vous avez apprécié votre passage. Moi, en tout cas, j'ai été ravie de m'occuper de vous."
+];
+
 // Generique pour les 3 dispensaires (Luthecia/PSM/Montrouge) : buildingId/ville lus depuis
 // state.currentBuilding/state.currentCity, jamais code en dur -- meme patron que
 // doOuvrirVenteDirecteUsine/doProduireUsine (plateau-justice-economie.js). Compteur quotidien
@@ -1199,7 +1212,8 @@ async function doSoinCliniquePrivee(pa, cost) {
   updateUI();
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 
-  showToast('Soins reçus', '+30 Santé, +2 PA.', true, true);
+  const phraseSophie = PHRASES_SOPHIE_STIQUAY_SOIN_CLINIQUE[Math.floor(Math.random() * PHRASES_SOPHIE_STIQUAY_SOIN_CLINIQUE.length)];
+  showToast('Soins reçus', '+30 Santé, +2 PA. « ' + phraseSophie + ' »', true, true);
   addJournalEntry('Soin reçu en clinique privée (-' + cost + ' FR). +30 Santé, +2 PA.', 'event-good');
 }
 

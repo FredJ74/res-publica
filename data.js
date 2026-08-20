@@ -183,7 +183,7 @@ const WORLD = {
         'clinique-privee': {
           name: "Clinique Privée Saint-Luc",
           desc: "Docteur Bistouri opère dans l'ordre alphabétique du portefeuille.",
-          persons: [{"name": "Docteur Bistouri (PNJ)", "role": "Chirurgien", "rel": "neutral", "job": "medecin"}, {"name": "Infirmière Piqûre (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "infirmier"}]
+          persons: [{"name": "Docteur Bistouri (PNJ)", "role": "Chirurgien", "rel": "neutral", "job": "medecin"}, {"name": "Infirmière Piqûre (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "infirmier"}, {"name": "Sophie Stiquay (PNJ)", "role": "Infirmière", "rel": "neutral", "job": "infirmier"}]
         },
         'dispensaire-public': {
           name: "Dispensaire Public de Luthecia",
