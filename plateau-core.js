@@ -300,7 +300,7 @@ const JOURNALISTES_PNJ = {
 // =====================
 // STATE
 // =====================
-const TEST_MODE = true; // PA illimites
+const TEST_MODE = false; // PA illimites
 
 // Plafond de reserve PA (Lot 1, 18 aout 2026) : constante fonctionnelle unique, remplace
 // l'ancien state.paMax variable (recalcule a chaque Dormir selon l'hotel, jamais persiste
@@ -705,6 +705,14 @@ function applyCharToState(char) {
   state.inf = char.resources?.inf || 25;
   state.pop = char.resources?.pop || 30;
   state.dis = char.resources?.dis || 85;
+  // Restauration des PA depuis le cache local (audit du 20 aout 2026) : state.pa restait bloque
+  // a la valeur par defaut du litteral d'etat initial (999, plateau-core.js:324) le temps que la
+  // synchronisation Supabase asynchrone (loadCharacter -> sbLoadPersonnage) ecrase la valeur --
+  // fenetre transitoire avec un compteur de PA irrealiste et non plafonne. char.pa || 10 aurait
+  // ete errone : 0 est une valeur normale (PA epuises) qui doit rester 0, pas retomber a 10. Le
+  // fallback 10 (PA initiaux d'un nouveau personnage, voir creation.js) ne s'applique desormais
+  // que si char.pa est reellement absent (undefined/null), jamais si char.pa vaut 0.
+  state.pa = (typeof char.pa === 'number') ? char.pa : 10;
 
   // UI
   const nameEl = document.getElementById('char-name-display');

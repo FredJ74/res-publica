@@ -47,7 +47,11 @@ function forceRenderCity(cityId) {
   if (state.recherche && state.recherche.length > 0) {
     setTimeout(() => checkArrestationAuDeplacement(), 500);
   }
-  if (!TEST_MODE) updateUI();
+  // Rafraichissement inconditionnel (correctif audit du 20 aout 2026) : cette ligne dependait a
+  // tort de TEST_MODE, hors de son perimetre documente (qui ne doit gouverner que la
+  // disponibilite/deduction des PA, voir plateau-core.js) -- l'UI (dont la barre PA) doit se
+  // rafraichir apres tout changement de ville, quel que soit le mode.
+  updateUI();
 }
 
 // =====================
