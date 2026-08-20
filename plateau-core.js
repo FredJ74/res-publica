@@ -593,12 +593,18 @@ function loadCharacter() {
       if (char.name && typeof sbLoadPersonnage === 'function') {
         sbLoadPersonnage(char.name).then(sbState => {
           if (sbState) {
-            // La position (bâtiment/pièce) locale est toujours écrite immédiatement et de façon fiable
-            // dès qu'on change de pièce (voir enterRoom). La sauvegarde Supabase, elle, est asynchrone :
-            // un rafraîchissement rapide après un déplacement peut arriver avant qu'elle n'ait fini de
-            // se propager. On garde donc toujours la position locale plutôt que celle de Supabase.
+            // La position (bâtiment/pièce/ville/pays) locale est toujours écrite immédiatement et de
+            // façon fiable dès qu'on change de pièce ou de ville (voir enterRoom/confirmerTransport).
+            // La sauvegarde Supabase, elle, est asynchrone : un rafraîchissement rapide après un
+            // déplacement (y compris un voyage inter-villes) peut arriver avant qu'elle n'ait fini de
+            // se propager. On garde donc toujours la position locale plutôt que celle de Supabase --
+            // correctif (20 aout 2026) : ce garde-fou ne couvrait jusqu'ici que currentBuilding/
+            // currentRoom, jamais country/currentCity, laissant un voyage inter-villes revenir a
+            // l'ancienne ville/pays sur un refresh rapide malgre une position batiment/piece correcte.
             const positionLocaleBuilding = state.char?.currentBuilding;
             const positionLocaleRoom = state.char?.currentRoom;
+            const positionLocaleCountry = state.char?.country;
+            const positionLocaleVille = state.char?.currentCity;
 
             // Fusionner les données Supabase (plus récentes pour tout le reste : argent, inventaire, etc.)
             Object.assign(state, sbState);
@@ -621,6 +627,14 @@ function loadCharacter() {
             if (positionLocaleRoom) {
               state.currentRoom = positionLocaleRoom;
               if (state.char) state.char.currentRoom = positionLocaleRoom;
+            }
+            if (positionLocaleCountry) {
+              state.country = positionLocaleCountry;
+              if (state.char) state.char.country = positionLocaleCountry;
+            }
+            if (positionLocaleVille) {
+              state.currentCity = positionLocaleVille;
+              if (state.char) state.char.currentCity = positionLocaleVille;
             }
 
             applyCharToState(state.char);

@@ -712,6 +712,7 @@ function sbSauvegardeUrgenceDechargement() {
     hp: state.hp || 100,
     moral: state.moral || 75,
     resources: { inf: state.inf || 0, pop: state.pop || 0, dis: state.dis || 50 },
+    country: state.country || 'republic',
     current_city: state.currentCity || 'capitale',
     current_building: state.currentBuilding || null,
     current_room: state.currentRoom || null
