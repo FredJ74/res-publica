@@ -357,6 +357,17 @@ function encodePnjSafe(obj) {
 // deduit du HTML/JS deja charge (aucun parsing de plateau.html). La version chargee au demarrage
 // de CETTE session est figee une fois pour toutes (_versionInitialeClient, premiere lecture
 // reussie), puis comparee a chaque verification a la version distante relue a neuf.
+// Suspension temporaire (20 aout 2026, decision de Fred) : deploiements trop frequents pendant
+// cette phase de developpement, le bandeau apparaissait a chaque joueur bien trop souvent.
+// Flag unique -- repasser a true reactive tout le mecanisme instantanement, aucune autre
+// modification necessaire. Rien n'est demonte : verifierNouvelleVersion()/fetchVersionJson()/
+// afficherBandeauNouvelleVersion() restent intactes, seulement dormantes (le seul point de garde
+// est le tout debut de verifierNouvelleVersion() ci-dessous, qui est le point d'entree UNIQUE de
+// toutes les planifications -- demarrage, poll 5 min, visibilitychange). sbSauvegardeUrgenceDechargement()/
+// pagehide/beforeunload/sbAutoSave() ne sont pas concernes par ce flag, le filet de sauvegarde
+// reste totalement actif.
+const DETECTION_NOUVELLE_VERSION_ACTIVE = false;
+
 let _versionInitialeClient = null;
 let _bandeauNouvelleVersionAffiche = false;
 
@@ -375,6 +386,7 @@ async function fetchVersionJson() {
 }
 
 async function verifierNouvelleVersion() {
+  if (!DETECTION_NOUVELLE_VERSION_ACTIVE) return; // suspension temporaire, voir le flag ci-dessus
   const v = await fetchVersionJson();
   if (v === null) return; // echec reseau/format -- ne jamais declencher sur une incertitude
   if (_versionInitialeClient === null) {
