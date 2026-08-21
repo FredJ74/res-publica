@@ -604,7 +604,7 @@ function renderTopicView() {
       ${topic.posts.map((p, i) => `
         <div class="forum-post">
           <div class="forum-post-side">
-            <div class="forum-post-avatar" ${!p.authorIsOrg ? `style="cursor:pointer" data-author="${escapeHtmlText(p.author)}" onclick="ouvrirFichePublique(this.dataset.author)"` : ''}>${getAvatarHtmlPost(p.authorIsOrg, p.authorOrgIcon, p.author, 40)}</div>
+            <div class="forum-post-avatar" ${(!p.authorIsOrg && !(typeof PNJ_PERSONALITIES !== 'undefined' && PNJ_PERSONALITIES[p.author])) ? `style="cursor:pointer" data-author="${escapeHtmlText(p.author)}" onclick="ouvrirFichePublique(this.dataset.author)"` : ''}>${getAvatarHtmlPost(p.authorIsOrg, p.authorOrgIcon, p.author, 40)}</div>
             ${p.authorCountry && COUNTRIES?.[p.authorCountry] ? '<div style="width:100%;height:6px;background:' + COUNTRIES[p.authorCountry].col + ';margin:.3rem 0 .1rem"></div>' : ''}
             <div class="forum-post-author">${escapeHtmlText(p.author)}${p.authorIsOrg ? ' <i class="ti ti-shield" style="font-size:.7rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
             ${p.authorSecret ? '<span class="forum-post-badge" style="border-color:#8a2020;color:#cc4444">secrète</span>' : ''}
@@ -1885,6 +1885,12 @@ function renderMailView() {
   if (mailView === 'inbox')   return renderMailInbox();
   if (mailView === 'compose') return renderMailCompose(mailDefaultTo);
   if (mailView === 'read')    return renderMailRead();
+  // Portrait de Jodie Moitout (lot du 21 aout 2026) : deux vues supplementaires dans la meme
+  // messagerie, memes fonctions de rendu que ci-dessus mais definies dans plateau-communication.js
+  // (toute la logique Jodie y est regroupee) -- meme pattern de dispatch, rien de nouveau cote
+  // architecture.
+  if (mailView === 'jodie-interview' && typeof renderJodieInterviewForm === 'function') return renderJodieInterviewForm();
+  if (mailView === 'jodie-preview' && typeof renderJodiePortraitPreview === 'function') return renderJodiePortraitPreview();
   return renderMailInbox();
 }
 
@@ -2052,6 +2058,20 @@ function renderMailRead() {
   const mail = getMails().find(m => m.id === currentMailId);
   if (!mail) return renderMailInbox();
   const myName = state.char?.name || '';
+  const estPropositionJodie = mail.to === myName && mail.from === 'Jodie Moitout' &&
+    mail.subject === (typeof JODIE_PORTRAIT_SUJET_PROPOSITION !== 'undefined' ? JODIE_PORTRAIT_SUJET_PROPOSITION : null);
+  // Portrait de Jodie Moitout : l'etat (encore a decider / deja refuse / deja publie) est verifie
+  // FRAIS depuis Supabase (jamais le simple cache local de getMails() ci-dessus, potentiellement
+  // perime -- voir jodiePortraitADejaRefuse()/jodiePortraitDejaPublie(), plateau-communication.js)
+  // -- rendu en differe (comme de nombreux autres ecrans de ce jeu : placeholder synchrone puis
+  // contenu reel une fois la reponse arrivee) plutot que de rendre renderMailRead() elle-meme
+  // asynchrone, ce qui aurait exige de convertir en cascade renderMailView()/renderForumContent()
+  // et tous leurs appelants synchrones existants -- hors perimetre de ce correctif. Ce masquage
+  // reste purement indicatif : la protection reelle contre une reprise est le controle refait par
+  // le handler jodiePortraitOuvrirInterview() lui-meme, jamais ce seul affichage.
+  if (estPropositionJodie && typeof jodiePortraitRafraichirEtatMail === 'function') {
+    setTimeout(() => jodiePortraitRafraichirEtatMail(), 0);
+  }
   return `
     <div class="forum-header-bar">
       <button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">
@@ -2069,6 +2089,7 @@ function renderMailRead() {
         </div>
       </div>
       <div class="lecture-longue lecture-longue-page" style="color:#f0ead6">${typeof sanitizeRichHtml === 'function' ? sanitizeRichHtml(mail.body || '') : ''}</div>
+      ${estPropositionJodie ? '<div id="jodie-portrait-etat" style="margin-top:1rem"></div>' : ''}
       <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
         ${mail.to === myName && !mail.fromIsOrg ? `
           <button data-mail-from="${escapeHtmlText(mail.from)}" data-mail-subject="${escapeHtmlText(mail.subject)}"

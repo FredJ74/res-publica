@@ -1024,38 +1024,58 @@ function addMailNotification(from, subject, body) {
 }
 
 // =====================
-// MAIL D'ACCUEIL DE JODIE MOITOUT (lot "Jodie incite les nouveaux PJ a se presenter sur le
-// forum", 20 aout 2026) -- envoye via sbSendMail(), le point d'ecriture unique de TOUTE la table
-// mails reelle (~70 emetteurs PNJ/systeme dans le jeu, voir supabase.js:559-563), PAS via
-// addMailNotification() ci-dessus : cette derniere n'ecrit que dans state.mails (jamais persiste
-// cote Supabase, jamais visible dans la vraie Boite Mail/renderMailInbox) -- l'utiliser aurait
-// rendu le mail invisible du parcours normal de messagerie que ce lot cherche justement a faire
-// decouvrir.
+// PORTRAIT DE JODIE MOITOUT ("Un jour, un portrait", lot du 21 aout 2026) -- remplace
+// INTEGRALEMENT l'ancien mecanisme d'accueil de Jodie (invitation a se presenter sur le Forum
+// Local). Cet ancien mecanisme n'a jamais tourne en production (son flag JODIE_MAIL_ACCUEIL_ACTIVE
+// valait false depuis sa creation le 20 aout 2026, aucun mail de ce type n'a donc jamais ete
+// envoye a un vrai joueur) -- son code est retire ici plutot que laisse en dormance, pour qu'il
+// ne puisse plus jamais etre reactive par erreur (plus de flag a repasser a true). Nouveau
+// concept : Jodie, journaliste a L'Autruche Entravee (groupe La Tribune), propose un petit
+// portrait/interview publie dans Presse & Medias -- jamais une auto-presentation joueur.
 //
-// Envoi unique SANS nouveau marqueur/colonne : interroge directement sbGetMailsFor() (deja
-// utilisee par verifierNouveauxMails()) pour savoir si ce mail existe deja pour ce joueur -- la
-// table mails elle-meme fait foi, aucun etat parallele a maintenir en synchronisation. Appelee
-// depuis le meme point d'ancrage que enigme1VerifierDeclenchement() (plateau-core.js,
-// synchronisation Supabase de loadCharacter()), qui ne s'execute qu'une fois par chargement de
-// session -- refresh/reconnexion/changement de ville ne redeclenchent jamais cette verification
-// en dehors de ce point unique, et meme si c'etait le cas, le mail deja present dans la table
-// empecherait tout doublon.
+// Point d'entree unique jodiePortraitVerifierProposition(), appelee une fois par session au MEME
+// ancrage que l'ancien mecanisme (plateau-core.js, callback post-synchronisation Supabase de
+// loadCharacter()) : jamais le jour meme de la creation du personnage (personnages.created_at,
+// colonne Postgres native jamais reecrite -- meme source que l'ancien mecanisme), et jamais deux
+// fois -- couvre aussi bien un personnage tout juste cree qu'un personnage ancien jamais encore
+// contacte (la verification ne depend que de l'ABSENCE du mail en base, jamais d'une date de
+// deploiement).
 //
-// Anciennete (complement du 20 aout 2026) : UNIQUEMENT personnages.created_at (colonne Postgres
-// native, jamais reecrite -- voir audit), jamais state.char.createdAt (champ client, releve non
-// fiable jusqu'a la correction de sbLoadPersonnage ci-dessus). Requete dediee via sbGet(), meme
-// table/meme colonne deja utilisee par etatCivilChargerJoueurs (plateau-etat-civil.js) -- aucune
-// nouvelle colonne. Jamais envoye le jour meme de la creation (< 1 jour reel ecoule).
-// Suspendu (hotfix du 20 aout 2026) : le concept a change (portrait journalistique publie par
-// Jodie en Presse & Medias, plus une auto-presentation du joueur en Forum Local) -- le parcours
-// ci-dessous correspond a l'ancien concept et ne doit plus envoyer de nouveaux mails tant que le
-// nouveau parcours n'est pas pret. Un seul flag a repasser a true pour reactiver, aucune autre
-// modification necessaire : calcul d'anciennete, correction createdAt (sbLoadPersonnage) et
-// mecanisme d'envoi unique restent intacts et reutilisables tels quels.
-const JODIE_MAIL_ACCUEIL_ACTIVE = false;
-const JODIE_MAIL_ACCUEIL_SUJET = 'On ne vous connaît pas encore…';
-async function jodieVerifierMailAccueil() {
-  if (!JODIE_MAIL_ACCUEIL_ACTIVE) return;
+// Idempotence SANS nouvelle table/colonne (revision du 21 aout 2026, apres verification precise
+// du comportement UI reel) : le mail de PROPOSITION n'est PLUS archive a l'envoi -- il doit
+// apparaitre normalement dans Messages Recus, garder son etat non lu standard et declencher le
+// voyant Mail comme n'importe quel autre mail (un archivage immediat le sortait silencieusement
+// de "Messages Recus", visible seulement dans une section "Archives" sans aucun indice de
+// nouveaute -- comportement incorrect, corrige ici). Consequence acceptee explicitement : si ce
+// mail n'est ensuite ni lu/archive ni refuse, purgerVieuxMails() (cron, 14 jours) peut le
+// supprimer, et un PJ qui n'a jamais repondu peut alors recevoir une nouvelle proposition plus
+// tard -- CE N'EST PAS UN REFUS, ce comportement est voulu.
+//
+// Le mail de REFUS, en revanche, reste archive immediatement a l'envoi (sbSetMailArchived,
+// primitive deja existante, forum.js/toggleArchiveMail) : c'est desormais L'AUTORITE PERSISTANTE
+// unique de l'etat "refuse" (section 2 du lot), qui doit survivre indefiniment a la purge des 14
+// jours -- "des qu'un refus explicite existe, aucune relance n'est autorisee" ne tolere aucune
+// fenetre de disparition. Cette autorite est verifiee a DEUX niveaux independants (aucun des deux
+// seul ne suffit) : jodiePortraitADejaRefuse() interroge Supabase directement (jamais un simple
+// cache local potentiellement perime) et est appelee a la fois par le HANDLER
+// jodiePortraitOuvrirInterview() (le vrai point de blocage, imperatif) et par l'affichage de
+// renderMailRead() (masquage des boutons, purement indicatif -- ne remplace jamais le controle du
+// handler). Limite assumee et documentee (pas de SQL pour la fermer) : un joueur qui SUPPRIME
+// explicitement (deleteMail -> sbDeleteMail, une vraie suppression Supabase) le mail de refus
+// perdrait ce marqueur -- action deliberee et rare du joueur sur SON propre mail, pas une
+// decheance automatique du systeme.
+const JODIE_PORTRAIT_SUJET_PROPOSITION = "Un portrait pour L'Autruche Entravée ?";
+const JODIE_PORTRAIT_SUJET_REFUS = "Un portrait pour L'Autruche Entravée ? (classé)";
+const JODIE_PORTRAIT_TITRE_PREFIXE = 'Un jour, un portrait : ';
+const JODIE_QUESTIONS_INTERVIEW = [
+  'Qui êtes-vous ?',
+  "Qu'est-ce qui vous a amené ici ?",
+  'Qu\'aimeriez-vous accomplir ?',
+  'Quel regard portez-vous sur votre ville ou sur le pays ?',
+  'Y a-t-il quelque chose que les habitants devraient savoir sur vous ?'
+];
+
+async function jodiePortraitVerifierProposition() {
   if (typeof state === 'undefined' || !state.char?.name) return;
   if (typeof sbGet !== 'function' || typeof sbGetMailsFor !== 'function' || typeof sbSendMail !== 'function') return;
 
@@ -1064,31 +1084,250 @@ async function jodieVerifierMailAccueil() {
   if (!createdAt) return;
   const joursEcoulesReels = (Date.now() - new Date(createdAt).getTime()) / 86400000;
   if (joursEcoulesReels < 1) return; // Jamais le jour meme de la creation
-  const joursEcoules = Math.floor(joursEcoulesReels);
 
   const mails = await sbGetMailsFor(state.char.name).catch(() => null);
   if (!mails) return; // Echec reseau : retente a la prochaine synchronisation, jamais de doublon force
-  const dejaEnvoye = mails.some(m => m.from_player === 'Jodie Moitout' && m.subject === JODIE_MAIL_ACCUEIL_SUJET);
-  if (dejaEnvoye) return;
-
-  let accroche;
-  if (joursEcoules === 1) {
-    accroche = "À peine arrivé et déjà repéré. C'est un défaut professionnel.";
-  } else if (joursEcoules <= 3) {
-    accroche = "Cela fait quelques jours que vous êtes arrivé et vous n'êtes toujours pas passé sous mon radar. Enfin… jusqu'à maintenant.";
-  } else if (joursEcoules <= 7) {
-    accroche = "Voilà plusieurs jours que vous êtes parmi nous. Il serait peut-être temps que les habitants sachent à qui ils ont affaire.";
-  } else {
-    accroche = "Vous êtes là depuis un moment maintenant et vous avez réussi l'exploit de rester relativement discret. Pour une journaliste, c'est presque vexant.";
-  }
+  const dejaContacte = mails.some(m => m.from_player === 'Jodie Moitout' &&
+    (m.subject === JODIE_PORTRAIT_SUJET_PROPOSITION || m.subject === JODIE_PORTRAIT_SUJET_REFUS));
+  if (dejaContacte) return;
 
   const corps = "Bonjour,<br><br>" +
-    "Jodie Moitout, journaliste. " + accroche + "<br><br>" +
-    "Les habitants ont pris l'habitude de se présenter sur le forum. Rien de très officiel : quelques mots sur vous, ce qui vous amène ici, vos projets… ou juste ce que vous avez envie qu'on sache.<br><br>" +
-    "C'est souvent là que commencent les premières rencontres.<br><br>" +
+    "Jodie Moitout, journaliste à <em>L'Autruche Entravée</em> — le petit dernier du groupe La Tribune, celui qui pose les questions que les autres n'osent pas.<br><br>" +
+    "Un nouveau visage en ville, ça ne m'échappe jamais très longtemps. Ça vous dirait de répondre à quelques questions pour un petit portrait ? Rien de formel — juste de quoi donner un visage à votre nom, pour la rubrique Presse &amp; Médias.<br><br>" +
+    "Libre à vous d'accepter ou de décliner, bien sûr.<br><br>" +
     "Jodie Moitout<br><br>" +
-    "<em>« Je pose beaucoup de questions. C'est un métier. »</em>";
-  await sbSendMail('Jodie Moitout', state.char.name, JODIE_MAIL_ACCUEIL_SUJET, corps, formatDateHeureJeu()).catch(() => {});
+    "<em>« Tout le monde a une histoire. La mienne, c'est de la trouver. »</em>";
+
+  await sbSendMail('Jodie Moitout', state.char.name, JODIE_PORTRAIT_SUJET_PROPOSITION, corps, formatDateHeureJeu());
+}
+
+// Interroge Supabase DIRECTEMENT (jamais un simple cache local potentiellement perime -- voir
+// commentaire d'en-tete) : existe-t-il un mail-marqueur de refus pour ce PJ ? Autorite unique de
+// l'etat "refuse", appelee a la fois par le handler jodiePortraitOuvrirInterview() (blocage reel)
+// et par renderMailRead() (masquage indicatif des boutons) -- jamais l'un sans l'autre.
+async function jodiePortraitADejaRefuse(nom) {
+  if (!nom || typeof sbGetMailsFor !== 'function') return false;
+  const mails = await sbGetMailsFor(nom).catch(() => null);
+  if (!mails) return false; // echec reseau : ne bloque jamais artificiellement une action reelle
+  return mails.some(m => m.from_player === 'Jodie Moitout' && m.subject === JODIE_PORTRAIT_SUJET_REFUS);
+}
+
+// Meme doctrine que ci-dessus, pour l'etat "publie" (marqueur = ligne forum_topics, jamais purgee).
+async function jodiePortraitDejaPublie(nom) {
+  if (!nom || typeof sbGet !== 'function') return false;
+  const titre = JODIE_PORTRAIT_TITRE_PREFIXE + nom;
+  const existant = await sbGet('forum_topics', `forum_id=eq.presse&author=eq.${encodeURIComponent('Jodie Moitout')}&title=eq.${encodeURIComponent(titre)}`).catch(() => null);
+  return !!(existant && existant.length > 0);
+}
+
+// Refus -- appelable aussi bien depuis le mail de proposition (renderMailRead(), forum.js) que
+// depuis l'apercu final du portrait (renderJodiePortraitPreview() ci-dessous) : dans les deux cas
+// le resultat est identique et definitif (section 6/2 du lot) -- envoi du mail-marqueur de refus
+// (archive immediatement, meme raison que ci-dessus), jamais de republication ni de relance.
+async function jodiePortraitRefuser() {
+  const nom = state.char?.name;
+  if (!nom || typeof sbSendMail !== 'function') return;
+  const corps = "Compris, on n'en parle plus. Si jamais vous changez d'avis, vous savez où me trouver.<br><br>Jodie Moitout";
+  const idMail = await sbSendMail('Jodie Moitout', nom, JODIE_PORTRAIT_SUJET_REFUS, corps, formatDateHeureJeu()).catch(() => null);
+  if (idMail && typeof sbSetMailArchived === 'function') await sbSetMailArchived(idMail, true).catch(() => {});
+  window._jodieInterviewReponses = null;
+  window._jodiePortraitTexte = null;
+  showToast('Proposition déclinée', "Vous avez décliné l'interview de Jodie Moitout.", true);
+  if (typeof renderForumContent === 'function') {
+    mailView = 'inbox';
+    document.getElementById('forum-main').innerHTML = renderForumContent();
+  }
+}
+
+// Accepter -- HANDLER, le vrai point de blocage (section 2 du lot : "masquer le bouton seul ne
+// suffit pas"). Verifie D'ABORD le marqueur de refus (un refus explicite, quelle que soit son
+// origine -- mail initial ou apercu final -- interdit definitivement toute reprise), PUIS le
+// marqueur de publication (aucun second portrait) -- les deux via Supabase frais, jamais un
+// simple etat client. Reouvrir l'ancien mail de proposition et cliquer "Accepter" APRES un refus
+// ou une publication ne peut donc plus jamais relancer l'interview, meme si l'affichage des
+// boutons (renderMailRead()) etait par extraordinaire reste perime.
+async function jodiePortraitOuvrirInterview() {
+  const nom = state.char?.name;
+  if (!nom) return;
+  if (await jodiePortraitADejaRefuse(nom)) {
+    showToast('Proposition déclinée', 'Vous avez déjà décliné cette proposition — Jodie ne relance pas.', false);
+    return;
+  }
+  if (await jodiePortraitDejaPublie(nom)) {
+    showToast('Déjà publié', 'Jodie a déjà publié votre portrait dans Presse & Médias.', false);
+    return;
+  }
+  window._jodieInterviewReponses = ['', '', '', '', ''];
+  mailView = 'jodie-interview';
+  document.getElementById('forum-main').innerHTML = renderForumContent();
+}
+
+// Remplit #jodie-portrait-etat (place par renderMailRead(), forum.js) une fois la reponse
+// Supabase arrivee -- boutons Accepter/Refuser si rien n'est encore tranche, message informatif
+// sinon. Purement indicatif (section 2 du lot) : la protection reelle contre une reprise est le
+// controle refait par jodiePortraitOuvrirInterview() elle-meme, jamais ce seul affichage -- si cet
+// element n'existe plus au moment ou la reponse arrive (le joueur a change d'ecran entre-temps),
+// on ne fait simplement rien.
+async function jodiePortraitRafraichirEtatMail() {
+  const nom = state.char?.name;
+  if (!nom) return;
+
+  const dejaRefuse = await jodiePortraitADejaRefuse(nom);
+  const el = document.getElementById('jodie-portrait-etat');
+  if (!el) return; // ecran deja quitte entre-temps
+  if (dejaRefuse) {
+    el.innerHTML = '<div style="font-size:.8rem;color:#8a8060;font-style:italic">Vous avez décliné cette proposition.</div>';
+    return;
+  }
+
+  const dejaPublie = await jodiePortraitDejaPublie(nom);
+  const el2 = document.getElementById('jodie-portrait-etat');
+  if (!el2) return;
+  if (dejaPublie) {
+    el2.innerHTML = '<div style="font-size:.8rem;color:#8a8060;font-style:italic">Vous avez déjà publié votre portrait dans Presse &amp; Médias.</div>';
+    return;
+  }
+
+  el2.innerHTML =
+    '<div style="display:flex;gap:.5rem;flex-wrap:wrap">' +
+    '<button onclick="jodiePortraitOuvrirInterview()" class="forum-new-btn" style="font-size:.72rem"><i class="ti ti-microphone"></i> Accepter l\'interview</button>' +
+    '<button onclick="jodiePortraitRefuser()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Refuser</button>' +
+    '</div>';
+}
+
+// Formulaire d'interview -- 5 questions, reponses libres, memes classes CSS forum-field/
+// forum-field-label deja utilisees ailleurs dans ce fichier (renderEnvoyerMailEnTantQue) : aucun
+// nouvel editeur, un simple formulaire dans la vue mail deja existante (meme pattern que
+// mailView 'inbox'/'read'/'compose', voir renderMailView(), forum.js).
+function renderJodieInterviewForm() {
+  if (!window._jodieInterviewReponses) window._jodieInterviewReponses = ['', '', '', '', ''];
+  let html = '<div class="forum-header-bar">' +
+    '<button class="forum-back-btn" onclick="mailView=\'inbox\';document.getElementById(\'forum-main\').innerHTML=renderForumContent()"><i class="ti ti-arrow-left"></i> Retour</button>' +
+    '<div class="forum-title-main" style="flex:1">Interview avec Jodie Moitout</div>' +
+    '</div>';
+  html += '<div style="padding:.8rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:1rem">Jodie prend des notes. Répondez avec vos mots — c\'est ce qui fera un bon portrait.</div>';
+  JODIE_QUESTIONS_INTERVIEW.forEach((q, i) => {
+    html += '<div class="forum-field" style="margin-bottom:.8rem">';
+    html += '<label class="forum-field-label">' + (i + 1) + '. ' + escapeHtmlText(q) + '</label>';
+    html += '<textarea id="jodie-reponse-' + i + '" rows="3" maxlength="500" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem .6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:vertical;box-sizing:border-box" oninput="window._jodieInterviewReponses[' + i + ']=this.value">' + escapeHtmlText(window._jodieInterviewReponses[i] || '') + '</textarea>';
+    html += '</div>';
+  });
+  html += '<button class="forum-new-btn" onclick="jodiePortraitGenererApercu()"><i class="ti ti-feather"></i> Envoyer mes réponses à Jodie</button>';
+  html += '</div>';
+  return html;
+}
+
+// Validation (aucun envoi vide, section 4 du lot) puis generation IA du portrait -- reutilise
+// TEL QUEL le mecanisme deja en production pour Jeremy (queteAccueilGenererReponseMailJeremy(),
+// plateau-quete-accueil.js : meme endpoint /api/chat, meme construction de prompt en texte libre
+// avec echappement des guillemets du joueur, meme lecture data.content[0].text, meme reponse de
+// repli en cas d'echec) -- aucun second moteur IA construit ici. On ne fournit au modele QUE les
+// 5 reponses et le nom du PJ, jamais d'autre donnee de personnage (aucun fait invente en dehors
+// des reponses fournies).
+async function jodiePortraitGenererApercu() {
+  const reponses = (window._jodieInterviewReponses || []).map(r => (r || '').trim());
+  if (reponses.some(r => !r)) {
+    showToast('Réponses incomplètes', 'Merci de répondre à chacune des 5 questions.', false);
+    return;
+  }
+  const nom = state.char?.name || '';
+  document.getElementById('forum-main').innerHTML = '<div style="padding:2rem;text-align:center;color:#8a8060">Jodie rédige...</div>';
+
+  const prompt = "Tu es Jodie Moitout, journaliste micro-trottoir pour le journal L'Autruche Entravee (groupe La Tribune), dans le jeu Res Publica. " +
+    "Tu viens d'interviewer " + nom + ", un nouvel habitant, en lui posant 5 questions. Voici ses reponses :\n\n" +
+    JODIE_QUESTIONS_INTERVIEW.map((q, i) => (i + 1) + ". " + q + "\nReponse : \"" + reponses[i].replace(/"/g, "'") + "\"").join("\n\n") + "\n\n" +
+    "Redige un COURT portrait journalistique (120 a 200 mots), a la troisieme personne, dans un ton enjoue et un peu malicieux, fidele aux reponses fournies SANS inventer de faits substantiels supplementaires sur " + nom + ". Pas de titre (il sera ajoute separement). Reponds UNIQUEMENT avec le texte de l'article, sans introduction ni commentaire.";
+
+  let texte = null;
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, messages: [{ role: 'user', content: prompt }] })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    texte = data.content?.[0]?.text || null;
+  } catch (e) { texte = null; }
+
+  if (!texte) {
+    showToast('Indisponible', "Jodie n'arrive pas à mettre ses idées en ordre pour le moment. Réessayez plus tard.", false);
+    mailView = 'jodie-interview';
+    document.getElementById('forum-main').innerHTML = renderForumContent();
+    return;
+  }
+
+  window._jodiePortraitTexte = texte;
+  mailView = 'jodie-preview';
+  document.getElementById('forum-main').innerHTML = renderForumContent();
+}
+
+// Apercu obligatoire avant publication (section 6 du lot) -- aucune publication automatique.
+function renderJodiePortraitPreview() {
+  const nom = state.char?.name || '';
+  const titre = JODIE_PORTRAIT_TITRE_PREFIXE + nom;
+  let html = '<div class="forum-header-bar"><div class="forum-title-main" style="flex:1">Aperçu du portrait</div></div>';
+  html += '<div style="padding:.8rem">';
+  html += '<div style="font-size:.7rem;color:#6a5a30;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem">Presse &amp; Médias — L\'Autruche Entravée</div>';
+  html += '<div style="font-family:Playfair Display,serif;font-size:1.05rem;color:#E8D880;margin-bottom:.6rem">' + escapeHtmlText(titre) + '</div>';
+  html += '<div class="lecture-longue lecture-longue-page" style="color:#f0ead6;margin-bottom:1rem">' + escapeHtmlText(window._jodiePortraitTexte || '').replace(/\n/g, '<br>') + '</div>';
+  html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Ce texte ne sera publié qu\'avec votre accord.</div>';
+  html += '<div style="display:flex;gap:.5rem;flex-wrap:wrap">';
+  html += '<button class="forum-new-btn" onclick="jodiePortraitPublier()"><i class="ti ti-send"></i> Publier dans Presse &amp; Médias</button>';
+  html += '<button onclick="jodiePortraitRefuser()" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Ne pas publier</button>';
+  html += '</div></div>';
+  return html;
+}
+
+// Publication reelle -- appelle DIRECTEMENT sbCreateTopic()/sbCreatePost() (supabase.js), jamais
+// showNewTopicForm()/submitComposeCanvas() (forum.js, chemin UI reserve aux PJ dont
+// career==='press') : ces primitives elles-memes n'imposent AUCUNE restriction de career (verifie
+// avant implementation), la restriction n'existe que cote UI joueur -- rester entierement en
+// dehors de ce chemin UI garantit de ne jamais l'affaiblir pour les joueurs ordinaires.
+// author:'Jodie Moitout' explicitement fige EN DUR ici, jamais state.char?.name -- c'est
+// precisement le bug (faux auteur PJ sur un article systeme) que ce lot doit ne jamais reproduire.
+// Second controle anti-republication juste avant l'ecriture (le premier a lieu a l'ouverture de
+// l'interview, jodiePortraitOuvrirInterview() ci-dessus) : aucune fenetre ou l'interview aurait pu
+// se derouler entierement sans jamais reverifier avant l'ecriture definitive.
+async function jodiePortraitPublier() {
+  const nom = state.char?.name || '';
+  const titre = JODIE_PORTRAIT_TITRE_PREFIXE + nom;
+  const texte = window._jodiePortraitTexte;
+  if (!texte) { showToast('Erreur', 'Aucun portrait à publier.', false); return; }
+
+  if (await jodiePortraitDejaPublie(nom)) {
+    showToast('Déjà publié', 'Ce portrait a déjà été publié.', false);
+    mailView = 'inbox'; document.getElementById('forum-main').innerHTML = renderForumContent();
+    return;
+  }
+
+  if (typeof sbCreateTopic !== 'function' || typeof sbCreatePost !== 'function') {
+    showToast('Indisponible', "La publication n'a pas pu être enregistrée. Réessayez plus tard.", false);
+    return;
+  }
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toISOString();
+  // NOTE (limite preexistante, signalee et non corrigee ici -- hors perimetre de ce lot) :
+  // sbCreateTopic() renvoie TOUJOURS un id genere localement, meme si l'ecriture Supabase
+  // sous-jacente echoue reellement (defaut deja identifie et explicitement laisse hors perimetre
+  // par un correctif anterieur, commit 458c334) -- ce controle est donc best-effort, comme pour
+  // tous les autres appelants existants de cette primitive. sbCreatePost(), en revanche, renvoie
+  // bien null sur un echec reel (verifie ici explicitement, pas seulement via .catch() qui ne
+  // couvrirait qu'un rejet, jamais un retour null resolu) : le texte de l'article est le contenu
+  // reellement visible du portrait, sa perte silencieuse serait le defaut le plus genant.
+  const topicId = await sbCreateTopic('presse', titre, 'Jodie Moitout', state.country || 'republic', time, false, false, null, null, null);
+  if (!topicId) { showToast('Échec', "La publication n'a pas pu être enregistrée. Réessayez plus tard.", false); return; }
+  const postId = await sbCreatePost(topicId, 'Jodie Moitout', texte, time, false, false, [], null, null, null, null).catch(() => null);
+  if (!postId) {
+    showToast('Publication incomplète', "Le sujet a été créé mais le texte n'a pas pu être enregistré. Réessayez.", false);
+    return;
+  }
+
+  window._jodiePortraitTexte = null;
+  window._jodieInterviewReponses = null;
+  showToast('Portrait publié !', 'Jodie a publié votre portrait dans Presse & Médias.', true, true);
+  mailView = 'inbox';
+  document.getElementById('forum-main').innerHTML = renderForumContent();
 }
 
 // =====================
