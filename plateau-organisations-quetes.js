@@ -498,8 +498,7 @@ function getResponsableLoge() {
 // Envoie une vraie notification a un autre joueur (mail Supabase). Si destinataire inconnu/absent, notifie le joueur courant a la place pour ne pas perdre l'information.
 async function envoyerNotificationVraiJoueur(destinataire, sujet, corps) {
   const from = state.char?.name || 'Anonyme';
-  const h = String(state.hour || 8).padStart(2,'0');
-  const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
 
   if (destinataire && typeof sbSendMail === 'function') {
     await sbSendMail(from, destinataire, sujet, corps, time).catch(() => {});

@@ -280,7 +280,9 @@ async function rafraichirCachePhotosJoueurs() {
 function getAvatarHtmlPourNom(nom, taille, bordColor) {
   const t = taille || 32;
   const c = bordColor || '#C9A84C';
-  const photo = window._cachePhotosJoueurs?.[nom];
+  // Photo joueur reelle en priorite, sinon photo PNJ connue (PNJ_PHOTOS, plateau-core.js --
+  // correctif du 21 aout 2026 pour Jodie Moitout) avant de retomber sur l'icone generique.
+  const photo = window._cachePhotosJoueurs?.[nom] || (typeof PNJ_PHOTOS !== 'undefined' && PNJ_PHOTOS[nom]);
   if (photo) {
     return '<div style="width:' + t + 'px;height:' + t + 'px;border-radius:50%;overflow:hidden;border:1px solid ' + c + ';flex-shrink:0"><img src="' + photo + '" style="width:100%;height:100%;object-fit:cover"/></div>';
   }

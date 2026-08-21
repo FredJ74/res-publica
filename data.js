@@ -227,7 +227,26 @@ const WORLD = {
         'marche': {
           name: "Marché Central de Luthecia",
           desc: "Marcel Bidoche vend de la viande et des informations. Ginette Légume sait tout sur tout le monde. Jodie Moitout tend son micro à n'importe qui.",
-          persons: [{"name": "Jean-Pierre Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-bidoche.png", "photoPos": "65% 30%"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ginette-legume.png", "photoPos": "65% 25%"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png", "photoPos": "62% 20%"}]
+          persons: [{"name": "Jean-Pierre Bidoche (PNJ)", "role": "Boucher", "rel": "neutral", "job": "commercant", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-bidoche.png", "photoPos": "65% 30%"}, {"name": "Ginette Légume (PNJ)", "role": "Maraîchère", "rel": "neutral", "job": "commercant", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/ginette-legume.png", "photoPos": "65% 25%"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png", "photoPos": "62% 20%"}],
+          // Lot Marche (21 aout 2026) : ordres commerce generiques additifs, propres a Luthecia
+          // uniquement (roomOverrides.orders, fusion additive avec le template de base partage
+          // avec Montrouge -- jamais un remplacement, voir renderRoomActions()). Pas de
+          // gerer_commerce (meme choix que la buvette du stade : commerce institutionnel, jamais
+          // rachetable, absent de PRIX_RACHAT_COMMERCE -- l'exposer afficherait un faux "reserve
+          // au proprietaire" trompeur).
+          roomOverrides: {
+            marche_ext: {
+              // se_nourrir masque UNIQUEMENT ici (excludeOrders, plateau-politique.js
+              // renderRoomActions) : le template partage BUILDINGS['marche'] n'est pas modifie,
+              // Montrouge/Khalija le conservent tel quel.
+              excludeOrders: ['se_nourrir'],
+              orders: [
+                {fn:'produire_commerce', label:'Préparer des sandwiches', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer des sandwiches pour le service (consomme les matières en stock, rémunéré en FR).'},
+                {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les sandwiches disponibles et commander.'},
+                {fn:'vendre_matiere_commerce', label:'Vendre des matières au marché', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce marché.'}
+              ]
+            }
+          }
         }
       }
     },
@@ -1428,10 +1447,13 @@ const BUILDINGS = {
           {name:'Marie Leblanc (PNJ)',    role:'Journaliste - La Tribune', rel:'enemy',  job:'journaliste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jean-dupont-marie-leblanc.png', photoPos:'70% 30%'}
         ],
         orders: [
-          {fn:'repas_gastronomique', label:'Se nourrir', pa:0, cost:120, type:'legal', icon:'ti-soup', successRate:100, desc:'Repas gastronomique. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.'},
-          {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:300, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : +10 Sante, +5 INF pour chacun, +1 PA au prochain Dormir. Aucun cout si refuse.'},
+          {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:300, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 vin du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'},
           {fn:'ecouter_rumeurs', label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
-          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:80, desc:'Sur un PJ de votre repertoire. Succes : -5 a -20 POP sur la cible. Echec : se retourne contre vous (-5 POP -5 DIS) + risque de detection.'}
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:80, desc:'Sur un PJ de votre repertoire. Succes : -5 a -20 POP sur la cible. Echec : se retourne contre vous (-5 POP -5 DIS) + risque de detection.'},
+          {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
+          {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
         ]
       },
       bar: {
@@ -1450,7 +1472,13 @@ const BUILDINGS = {
           {fn:'boire_verre', label:'Offrir un verre', pa:0, cost:50, type:'legal', icon:'ti-glass', successRate:100, desc:'Invitez un PJ present a boire un verre, a vos frais. Si accepte : +5 Sante, +2 INF, +2 ENT pour chacun. Aucun cout si refuse.'},
           {fn:'ecouter_rumeurs', label:'Ecouter le barman',     pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90,  desc:'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marco'},
           {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'150 FR/jour. Un PNJ rejoint votre groupe en permanence tant que vous le payez. Sa PER (12-18) enrichit la moyenne de PER de votre groupe pour les futurs ordres de localisation.'},
-          {fn:'escort_piege',    label:'Organiser une rencontre piège', pa:3, cost:800, type:'illegal', icon:'ti-spy', successRate:55, desc:'Piéger un adversaire politique. Risque de scandale.'}
+          {fn:'escort_piege',    label:'Organiser une rencontre piège', pa:3, cost:800, type:'illegal', icon:'ti-spy', successRate:55, desc:'Piéger un adversaire politique. Risque de scandale.'},
+          {fn:'produire_commerce', label:'Servir', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
+          {fn:'consommer_boisson', label:'Consommer une boisson', pa:0, cost:0, type:'legal', icon:'ti-glass', successRate:100, desc:'Choisir une boisson de la carte à consommer sur place.'},
+          {fn:'offrir_tournee', label:'Offrir une tournée', pa:0, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Offrez une tournée (une seule boisson de la carte) à plusieurs personnes présentes, à vos frais. Chacun accepte ou refuse indépendamment ; vous ne buvez et ne payez que si au moins une personne accepte.'},
+          {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
         ]
       },
       chambres: {

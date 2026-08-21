@@ -124,9 +124,7 @@ async function confirmerVol(encodedCible, tauxReussite, seuilVisibilite) {
     tracerActionPourRumeur('vol', nomCible);
 
     if (typeof sbSendMail === 'function') {
-      const h = String(state.hour || 8).padStart(2,'0');
-      const m = String(state.minute || 0).padStart(2,'0');
-      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h' + m;
+      const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
       sbSendMail('Système', nomCible, 'Vous avez été volé(e)', 'Quelqu\'un vous a discrètement dérobé ' + montantVole + ' FR. Le montant a été déduit de votre trésorerie.', time).catch(() => {});
     }
   } else {
@@ -493,12 +491,13 @@ async function confirmerScandale(taux, pa, cost) {
   if (roll <= tauxFinal) {
     // Publier dans le forum national
     if (!FORUM_TOPICS['national']) FORUM_TOPICS['national'] = [];
+    const timeScandale = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + state.day;
     FORUM_TOPICS['national'].unshift({
       id: 'scandale-' + Date.now(),
       title: '[SCANDALE] Revelations sur ' + cible,
       author: 'Source anonyme',
-      time: 'Jour ' + state.day,
-      posts: [{ author: 'Source anonyme', time: 'Jour ' + state.day, content: contenu }]
+      time: timeScandale,
+      posts: [{ author: 'Source anonyme', time: timeScandale, content: contenu }]
     });
 
     // Mail a la cible
@@ -1570,9 +1569,8 @@ async function confirmerEmpoisonnement(cibleNom) {
     // Notification narrative a la victime (mail)
     if (typeof sbSendMail === 'function') {
       const msg = (POISON_MESSAGES && POISON_MESSAGES[poisonType]) || 'Vous vous sentez soudainement très mal...';
-      const h = String(state.hour || 8).padStart(2,'0');
-      const m = String(state.minute || 0).padStart(2,'0');
-      await sbSendMail('Événement mystérieux', cibleNom, 'Vous vous sentez mal...', msg, 'Jour ' + state.day + ' · ' + h + 'h' + m).catch(() => {});
+      const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + state.day;
+      await sbSendMail('Événement mystérieux', cibleNom, 'Vous vous sentez mal...', msg, time).catch(() => {});
     }
 
     addExternalEvent('MYSTÈRE : ' + cibleNom + ' se sent soudainement très mal...');
@@ -1896,7 +1894,7 @@ function ouvrirCalendrierElections() {
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + e.nom + '</div>';
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:' + phaseCol + ';border:1px solid;padding:.1rem .3rem">' + phaseLabel + '</div>';
       html += '</div>';
-      html += '<div style="font-size:.7rem;color:#5a4030;margin-top:.2rem">Tour ' + (e.tour||1) + ' · Résultats : Jour ' + e.jourResultat + '</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030;margin-top:.2rem">Tour ' + (e.tour||1) + ' · Résultats à venir</div>';
       if (e.phase === 'candidatures') {
         html += '<div style="font-size:.7rem;color:#4a8a4a;margin-top:.2rem">✓ Candidatures encore acceptées</div>';
       } else if (e.phase === 'campagne') {
@@ -2399,7 +2397,88 @@ const RECETTES_ALIMENTAIRES = {
     id: 'vin', label: 'Vin', categorie: 'boisson', image: null,
     materiaux: { fruits_legumes: 1 }, pa: 1, portions: 15,
     effets: { moral: 2 },
-    typesAutorises: ['cafe'], villesAutorisees: null, buildingsAutorises: null
+    // 'brasserie' ajoute (lot carte gastronomique Le Republica, 21 aout 2026) : le restaurant du
+    // Republica (type 'brasserie', voir BUILDING_COMMERCE_TYPE) doit pouvoir produire du vin avec
+    // cette meme recette (necessaire au diner d'affaires). N'ajoute PAS 'vin' a la carte de la
+    // Brasserie des Voyageurs (Montrouge, egalement type 'brasserie') : elargir typesAutorises ne
+    // rend une recette disponible que si elle figure aussi dans data.carte du commerce concerne
+    // (DOTATIONS_COMMERCE_PILOTE) -- celle de Montrouge ne liste toujours que ses 3 plats.
+    typesAutorises: ['cafe', 'brasserie'], villesAutorisees: null, buildingsAutorises: null
+  },
+
+  // Carte gastronomique Le Republica (21 aout 2026) -- remplace l'ancienne carte provisoire
+  // (boeuf_bourguignon/plat_de_poisson/saucisse_puree). Aucune matiere nouvelle : chaque plat
+  // nomme des 3 menus fournis par Fred est mappe sur son abstraction existante la plus proche
+  // (cerf/chapon/foie gras -> viande ; Saint-Jacques/huitres/turbot -> poisson ; garnitures/
+  // fruits/morilles -> fruits_legumes ; dessert sans correspondance directe -> cereales, meme
+  // convention que petit_dejeuner), un plat = une unite de sa matiere, sommee par menu -- d'ou
+  // des compositions volontairement differentes (Menu 2 tout poisson, Menu 3 tout viande) : cree
+  // une vraie difference de consommation de stock entre menus, sans rendre aucun des 3
+  // statistiquement superieur (memes portions/effets/prix). categorie:'menu' (nouvelle valeur,
+  // aucun filtre existant n'y est sensible -- seul 'boisson' est teste ailleurs dans le moteur).
+  // buildingsAutorises verrouille ces 3 menus a Le Republica (specialite maison nommee, meme
+  // doctrine que carbonade_frites verrouillee a Montrouge), pas une carte generaliste
+  // reutilisable par un futur commerce 'brasserie'. Images deja presentes dans le depot
+  // (images/luthecia-restaurant-menu-1/2/3.jpg, fournies par Fred), jamais generees ici.
+  menu_gastronomique_1: {
+    id: 'menu_gastronomique_1',
+    label: 'Menu 1 — Carpaccio de Saint-Jacques aux agrumes, Pavé de cerf sauce aux airelles, Omelette norvégienne',
+    categorie: 'menu', image: 'images/luthecia-restaurant-menu-1.jpg',
+    materiaux: { poisson: 1, viande: 1, cereales: 1 }, pa: 1, portions: 5,
+    // +3 PA demande = paDiffere (champ deja existant du moteur, jamais utilise jusqu'ici par
+    // aucune recette mais deja gere par commanderProduitCommerce() -> state.bonusPaProchainDormir).
+    // Aucun mecanisme de PA immediat n'existe dans ce moteur de vente -- meme convention que
+    // l'ancien repas_gastronomique ("+1 PA au prochain Dormir"), simplement portee a 3.
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], villesAutorisees: null, buildingsAutorises: ['hotel-republica'],
+    // Prix strictement fixe (lot plafonds, 21 aout 2026) : jamais recalcule par
+    // produireRecetteCommerce() malgre un proprietaire PNJ par defaut -- voir le nouveau
+    // controle "!recette.prixFixe" ajoute a ce recalcul, plus bas dans ce fichier.
+    prixFixe: true
+  },
+  menu_gastronomique_2: {
+    id: 'menu_gastronomique_2',
+    label: 'Menu 2 — Huîtres gratinées au four (origine Port-Sainte-Marie), Turbot sauce hollandaise, Soufflé au Grand Marnier',
+    categorie: 'menu', image: 'images/luthecia-restaurant-menu-2.jpg',
+    materiaux: { poisson: 2, cereales: 1 }, pa: 1, portions: 5,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], villesAutorisees: null, buildingsAutorises: ['hotel-republica'],
+    // Prix strictement fixe (lot plafonds, 21 aout 2026) : jamais recalcule par
+    // produireRecetteCommerce() malgre un proprietaire PNJ par defaut -- voir le nouveau
+    // controle "!recette.prixFixe" ajoute a ce recalcul, plus bas dans ce fichier.
+    prixFixe: true
+  },
+  menu_gastronomique_3: {
+    id: 'menu_gastronomique_3',
+    label: 'Menu 3 — Foie gras et sa gelée de gewurztraminer, Chapon sauce aux morilles, Pavlova aux fruits rouges',
+    categorie: 'menu', image: 'images/luthecia-restaurant-menu-3.jpg',
+    materiaux: { viande: 2, fruits_legumes: 1 }, pa: 1, portions: 5,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], villesAutorisees: null, buildingsAutorises: ['hotel-republica'],
+    // Prix strictement fixe (lot plafonds, 21 aout 2026) : jamais recalcule par
+    // produireRecetteCommerce() malgre un proprietaire PNJ par defaut -- voir le nouveau
+    // controle "!recette.prixFixe" ajoute a ce recalcul, plus bas dans ce fichier.
+    prixFixe: true
+  },
+
+  // Marche de Luthecia (lot Marche, 21 aout 2026) : production reelle de sandwiches, remplace
+  // l'ancien se_nourrir generique/hors-stock a cet endroit. Rendement 1 PA -> 8 sandwiches (chiffre
+  // demande, aucune valeur "souvenue" -- verifie qu'aucun autre rendement du moteur n'etait
+  // suppose ici). Interpretation RP demandee : cereales=farine/pain, fruits_legumes=salade/tomate,
+  // viande=jambon/poulet -- aucune des 3 n'est une matiere nouvelle. villesAutorisees verrouille a
+  // la Capitale (Luthecia) : le type 'marche' est techniquement partage avec Montrouge/Khalija
+  // (BUILDING_COMMERCE_TYPE), mais cette recette ne doit y etre disponible nulle part ailleurs.
+  sandwich: {
+    id: 'sandwich', label: 'Sandwich', categorie: 'plat', image: null,
+    materiaux: { cereales: 1, fruits_legumes: 1, viande: 1 }, pa: 1, portions: 8,
+    // +1 PA demande = paDiffere (meme convention que les menus du Republica ci-dessus,
+    // aucun mecanisme de PA immediat disponible dans ce moteur de vente).
+    effets: { hp: 5, moral: 1, paDiffere: 1 },
+    typesAutorises: ['marche'], villesAutorisees: ['capitale'], buildingsAutorises: null,
+    // Prix strictement fixe (lot correctif final, 21 aout 2026), meme attribut que les menus du
+    // Republica -- beneficie automatiquement des deux controles generiques (produireRecetteCommerce
+    // et confirmerFixerPrixCommerce), aucun code specifique au sandwich.
+    prixFixe: true
   }
 };
 
@@ -2413,8 +2492,53 @@ const BUILDING_COMMERCE_TYPE = {
   'cafe-gare-montrouge': 'cafe',
   'brasserie-voyageurs-montrouge': 'brasserie',
   'hotel-mineur': 'cafe',
-  'stade|buvette': 'buvette'
+  'stade|buvette': 'buvette',
+  // Lot Le Republica (21 aout 2026) : migration anticipee par le commentaire de
+  // RECETTES_ALIMENTAIRES.biere_pression (20 aout 2026, "si le Bar des Pecheurs/Hotel Republica
+  // sont migres plus tard"). Cle room-scopee (hotel-republica heberge 2 commerces distincts,
+  // meme principe que le stade) -- les autres pieces de l'hotel (accueil/chambres/suites) ne
+  // sont pas concernees, resoudreCommerceActuel() n'a pas de repli buildingId seul ici.
+  'hotel-republica|restaurant': 'brasserie',
+  'hotel-republica|bar': 'bar',
+  // Lot Marche de Luthecia (21 aout 2026) : cle buildingId seule (commerce mono-piece, une seule
+  // room 'marche_ext' dans le template BUILDINGS['marche']). Ce buildingId est PARTAGE par
+  // plusieurs villes/empires (Montrouge, Souk d'Al-Khalija...) -- resoudreCommerceActuel() n'a
+  // aucune notion de ville/empire, donc cette entree resout techniquement un commerce partout ou
+  // buildingId==='marche'. Sans consequence pratique ailleurs : aucun bouton commerce
+  // (produire_commerce/consulter_carte_commerce/vendre_matiere_commerce) n'existe nulle part
+  // ailleurs que dans le roomOverride de Luthecia (WORLD.republic.capitale.buildingContext.marche,
+  // voir plus bas) -- sans bouton, aucun joueur ne peut jamais declencher ces fn a Montrouge ou au
+  // Souk. La donnee reelle (stock/caisse) est de toute facon deja scopee par ville via
+  // chargerCommerce(type, pays, ville, buildingId, roomId).
+  'marche': 'marche'
 };
+
+// Types de commerce sans caisse autonome (paiement client/salaire de production routes vers la
+// caisse INSTITUTIONNELLE du batiment dont ils dependent, jamais data.caisse) -- generalise le
+// cas pionnier de la buvette du stade (lot 5) au marche (lot Marche de Luthecia, 21 aout 2026).
+// Cle = data.type, valeur = categorie passee a getCaisseLocaleId(categorie, ville). La caisse
+// "Marche" existe deja independamment de ce lot (Consulter les caisses communales / Repartir le
+// budget municipal, mairie-capitale la suivent depuis le lot des caisses locales, 16 aout 2026) --
+// ce lot ne fait qu'y raccorder une vraie vente, il ne cree aucune nouvelle caisse.
+const COMMERCE_SANS_CAISSE_AUTONOME = { buvette: 'stade', marche: 'marche' };
+
+// Plafond universel des stocks de detail (lot plafonds, 21 aout 2026) -- 20 unites maximum par
+// type de matiere premiere ET par type de produit fini, PJ comme PNJ, pour tout commerce passant
+// par ce moteur (defautCommerce/chargerCommerce/produireRecetteCommerce/commanderProduitCommerce/
+// vendreMatiereCommerce -- cafe/brasserie/bar/buvette/marche). N'affecte jamais entrepots ni
+// usines : ces deux architectures (plateau-justice-economie.js, CHAINES_PRODUCTION_USINE) ont
+// leurs propres fonctions dediees et ne passent jamais par les 2 primitives ci-dessous. Un
+// stockMax declare par commerce (parametres.stockMax) reste utilisable pour fixer un plafond PLUS
+// bas que 20 si besoin -- jamais plus haut : le plafond effectif est toujours
+// min(declare ?? 20, STOCK_MAX_COMMERCE). Un stock deja superieur a 20 lors de l'ajout de ce
+// plafond n'est jamais tronque (aucune ecriture destructive introduite ici) : seule toute
+// NOUVELLE entree au-dela de 20 est refusee, jusqu'a ce que la consommation le fasse redescendre.
+const STOCK_MAX_COMMERCE = 20;
+
+function plafondEffectifCommerce(data, cle) {
+  const declare = data.parametres.stockMax ? data.parametres.stockMax[cle] : null;
+  return declare != null ? Math.min(declare, STOCK_MAX_COMMERCE) : STOCK_MAX_COMMERCE;
+}
 
 // Resout le commerce (type + roomId) correspondant a l'endroit ou se trouve le joueur --
 // verifie d'abord la cle room-scopee (batiment a commerces multiples), puis la cle batiment
@@ -2516,18 +2640,20 @@ async function vendreMatiereCommerce(commerceType, pays, ville, buildingId, room
   const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === matiere && (i.qty || 0) > 0);
   if (!lot || lot.qty < qte) return { ok: false, raison: 'stock_personnel_insuffisant' };
 
-  const stockMax = data.parametres.stockMax[matiere];
+  const stockMax = plafondEffectifCommerce(data, matiere);
   const stockActuel = data.stockMatieres[matiere] || 0;
-  if (stockMax != null && stockActuel + qte > stockMax) return { ok: false, raison: 'stock_plein', placeRestante: Math.max(0, stockMax - stockActuel) };
+  if (stockActuel + qte > stockMax) return { ok: false, raison: 'stock_plein', placeRestante: Math.max(0, stockMax - stockActuel) };
 
   const prixUnitaire = prixAchatMatiereCommerce(data, matiere);
   const total = prixUnitaire * qte;
 
   let coutOk;
-  if (data.type === 'buvette' && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
-    // Aucune caisse autonome (doctrine deja validee/codee) : la buvette paie le vendeur depuis
-    // la caisse du stade, comme elle y verse deja ses ventes et son salaire de production.
-    coutOk = (await debiterCaisseBatimentAtomique(pays, getCaisseLocaleId('stade', ville), total)) === total;
+  const categorieCaisseInstit = COMMERCE_SANS_CAISSE_AUTONOME[data.type];
+  if (categorieCaisseInstit && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
+    // Aucune caisse autonome (doctrine deja validee/codee, generalisee de la buvette au marche) :
+    // le commerce paie le vendeur depuis sa caisse institutionnelle, comme il y verse deja ses
+    // ventes et son salaire de production.
+    coutOk = (await debiterCaisseBatimentAtomique(pays, getCaisseLocaleId(categorieCaisseInstit, ville), total)) === total;
   } else {
     coutOk = (data.caisse || 0) >= total;
   }
@@ -2537,7 +2663,7 @@ async function vendreMatiereCommerce(commerceType, pays, ville, buildingId, room
   if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
 
   crediterStockMatiereCommerce(data, matiere, qte, prixUnitaire);
-  if (data.type !== 'buvette') data.caisse -= total;
+  if (!categorieCaisseInstit) data.caisse -= total;
   state.arg = (state.arg || 0) + total;
 
   ajouterHistoriqueEntreprise(data, -total, 'Achat de matière première (' + matiere + ' x' + qte + ') — ' + (state.char?.name || 'Anonyme'));
@@ -2573,14 +2699,14 @@ async function doVendreMatiereCommerce(commerceType, buildingId, roomId, pa, cos
     const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
     const qteDispo = lot?.qty || 0;
     const prixUnitaire = prixAchatMatiereCommerce(data, m);
-    const stockMax = data.parametres.stockMax[m];
+    const stockMax = plafondEffectifCommerce(data, m);
     const stockActuel = data.stockMatieres[m] || 0;
-    const placeRestante = stockMax != null ? Math.max(0, stockMax - stockActuel) : null;
+    const placeRestante = Math.max(0, stockMax - stockActuel);
     const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
-    const qteInitiale = Math.max(1, placeRestante != null ? Math.min(qteDispo, placeRestante) : qteDispo);
+    const qteInitiale = Math.max(1, Math.min(qteDispo, placeRestante));
     html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">';
-    html += '<span style="flex:1;font-size:.88rem;color:#c0b090">' + label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + (placeRestante != null ? ', capacité restante ' + placeRestante : '') + '</span>';
-    html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + qteDispo + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
+    html += '<span style="flex:1;font-size:.88rem;color:#c0b090">' + label + ' (' + prixUnitaire.toLocaleString('fr-FR') + ' ' + cur + '/unité) — vous en avez ' + qteDispo + ', capacité restante ' + placeRestante + '</span>';
+    html += '<input type="number" id="vendre-commerce-qte-' + m + '" min="1" max="' + Math.min(qteDispo, placeRestante) + '" value="' + qteInitiale + '" style="width:70px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.88rem;outline:none"/>';
     html += '<button ' + (placeRestante === 0 ? 'disabled style="padding:.3rem .6rem;border:1px solid #3a2a20;background:transparent;color:#5a5040;cursor:default;font-size:.82rem"' : 'onclick="confirmerVendreMatiereCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + m + '\')" style="padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem"') + '>Vendre</button>';
     html += '</div>';
   });
@@ -2633,7 +2759,11 @@ const DOTATIONS_COMMERCE_PILOTE = {
     data.stockMatieres = { cereales: 10, viande: 10, fruits_legumes: 10, produits_exotiques: 10 };
     data.coutMoyenMatieres = { cereales: 3, viande: 5, fruits_legumes: 4, produits_exotiques: 6 }; // au prix de base courant des matieres (releve economique)
     data.carte = ['boeuf_bourguignon', 'cafe_boisson', 'jus_de_fruits', 'vin', 'biere_pression'];
-    data.parametres.stockMax = { boeuf_bourguignon: 20, cafe_boisson: 30, jus_de_fruits: 30, vin: 30, biere_pression: 30 };
+    // Valeurs plafonnees a 20 (lot plafonds universels commerces de detail, 21 aout 2026) --
+    // etaient a 30, desormais alignees sur STOCK_MAX_COMMERCE (plus bas) pour que l'affichage
+    // corresponde exactement a la capacite reellement appliquee par vendreMatiereCommerce/
+    // produireRecetteCommerce.
+    data.parametres.stockMax = { boeuf_bourguignon: 20, cafe_boisson: 20, jus_de_fruits: 20, vin: 20, biere_pression: 20 };
     // Prix initial fixe a 7 FR pour les 4 boissons (decision de Fred, 20 aout 2026) -- NOTE : ce
     // commerce est PNJ par defaut, donc produireRecetteCommerce() recalculera automatiquement ce
     // prix a chaque production via prixVenteAutoPNJ (le meme mecanisme deja en place pour
@@ -2665,7 +2795,7 @@ const DOTATIONS_COMMERCE_PILOTE = {
     data.stockMatieres = { cereales: 10 };
     data.coutMoyenMatieres = { cereales: 3 };
     data.carte = ['petit_dejeuner'];
-    data.parametres.stockMax = { petit_dejeuner: 30 };
+    data.parametres.stockMax = { petit_dejeuner: 20 }; // plafonne (lot plafonds, 21 aout 2026, etait 30)
     data.parametres.prixVente = { petit_dejeuner: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.petit_dejeuner)) };
   },
   'stade|buvette': function(data) {
@@ -2675,12 +2805,64 @@ const DOTATIONS_COMMERCE_PILOTE = {
     data.stockMatieres = { alcool: 10, cereales: 5 };
     data.coutMoyenMatieres = { alcool: 14, cereales: 3 }; // prix de base courant (releve economique)
     data.carte = ['biere_pression', 'boisson_sans_alcool', 'snack_buvette'];
-    data.parametres.stockMax = { biere_pression: 30, boisson_sans_alcool: 30, snack_buvette: 30 };
+    data.parametres.stockMax = { biere_pression: 20, boisson_sans_alcool: 20, snack_buvette: 20 }; // plafonne (lot plafonds, 21 aout 2026, etait 30)
     data.parametres.prixVente = {
       biere_pression: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.biere_pression)),
       boisson_sans_alcool: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boisson_sans_alcool)),
       snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
     };
+  },
+  // Lot carte gastronomique Le Republica (21 aout 2026) -- remplace la carte provisoire
+  // (boeuf_bourguignon/plat_de_poisson/saucisse_puree, plats generalistes reutilises tels quels
+  // au lot precedent) par les 3 vrais menus gastronomiques (RECETTES_ALIMENTAIRES.menu_gastro-
+  // nomique_1/2/3 ci-dessus) + 'vin' (recette deja existante, typesAutorises etendu a 'brasserie'
+  // ci-dessus pour ce seul usage). fruits_legumes ajoute au stock de depart (necessaire au vin et
+  // au Menu 3), memes ordres de grandeur que les autres commerces alimentaires.
+  'hotel-republica|restaurant': function(data) {
+    data.caisse = 3000;
+    data.stockMatieres = { cereales: 15, viande: 15, poisson: 10, fruits_legumes: 10 };
+    data.coutMoyenMatieres = { cereales: 3, viande: 5, poisson: 4, fruits_legumes: 4 };
+    data.carte = ['menu_gastronomique_1', 'menu_gastronomique_2', 'menu_gastronomique_3', 'vin'];
+    data.parametres.stockMax = { menu_gastronomique_1: 20, menu_gastronomique_2: 20, menu_gastronomique_3: 20, vin: 20 }; // vin plafonne (lot plafonds, 21 aout 2026, etait 30)
+    data.parametres.prixVente = {
+      // Prix fixe demande (les 3 menus valent volontairement la meme chose, aucun n'est
+      // statistiquement superieur) -- PAS calcule via prixVenteAutoPNJ malgre le proprietaire PNJ
+      // par defaut, meme convention que les boissons du Cafe de la Gare (prix initial fixe a 7 FR
+      // le 20 aout 2026). A noter (comme pour tout commerce PNJ) : produireRecetteCommerce()
+      // recalculera ce prix automatiquement des la premiere production de chaque menu, vers son
+      // propre cout de revient x2 -- il ne restera pas fige a 120 indefiniment. Signale au rapport.
+      menu_gastronomique_1: 120,
+      menu_gastronomique_2: 120,
+      menu_gastronomique_3: 120,
+      vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin))
+    };
+  },
+  'hotel-republica|bar': function(data) {
+    data.caisse = 2000;
+    data.stockMatieres = { cereales: 10 };
+    data.coutMoyenMatieres = { cereales: 3 };
+    data.carte = ['biere_pression', 'boisson_sans_alcool', 'snack_buvette'];
+    data.parametres.stockMax = { biere_pression: 20, boisson_sans_alcool: 20, snack_buvette: 20 }; // plafonne (lot plafonds, 21 aout 2026, etait 30)
+    data.parametres.prixVente = {
+      biere_pression: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.biere_pression)),
+      boisson_sans_alcool: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boisson_sans_alcool)),
+      snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
+    };
+  },
+  // Marche de Luthecia (lot Marche, 21 aout 2026) -- meme doctrine "aucune caisse autonome" que
+  // la buvette (data.caisse reste a 0 en permanence) : ventes et salaire de production routes
+  // vers la caisse institutionnelle "Marche" deja existante (COMMERCE_SANS_CAISSE_AUTONOME.marche
+  // = 'marche', voir plus haut), jamais vers Jean-Pierre Bidoche ou Ginette Legume (aucune caisse
+  // individuelle creee pour eux, ils restent des PNJ d'ambiance).
+  'marche': function(data) {
+    data.stockMatieres = { cereales: 10, fruits_legumes: 10, viande: 10 };
+    data.coutMoyenMatieres = { cereales: 3, fruits_legumes: 4, viande: 5 };
+    data.carte = ['sandwich'];
+    data.parametres.stockMax = { sandwich: 20 }; // plafonne (lot plafonds, 21 aout 2026, etait 40)
+    // Prix fixe demande (15 FR), meme convention que les menus du Republica ci-dessus -- pas
+    // calcule via prixVenteAutoPNJ. Meme mise en garde : produireRecetteCommerce() le recalculera
+    // automatiquement des la premiere production (proprietaire PNJ par defaut).
+    data.parametres.prixVente = { sandwich: 15 };
   }
 };
 
@@ -2750,6 +2932,10 @@ async function confirmerFixerPrixCommerce(commerceType, pays, ville, buildingId,
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   const recette = RECETTES_ALIMENTAIRES[recetteId];
   if (!data || !recette) return { ok: false, raison: 'introuvable' };
+  // Prix fixe (lot correctif final, 21 aout 2026) -- meme attribut de recette que le blocage du
+  // recalcul PNJ automatique dans produireRecetteCommerce(), etendu ici au reglage manuel PJ.
+  // Aucun ID hardcode : toute recette future declaree prixFixe:true en beneficie automatiquement.
+  if (recette.prixFixe) return { ok: false, raison: 'prix_fixe' };
   if (data.proprietaire === 'PNJ' || data.proprietaire !== state.char?.name) return { ok: false, raison: 'reserve_proprietaire' };
 
   const coutRevient = coutRevientPortionRecette(data, recette);
@@ -2790,17 +2976,25 @@ async function doGererCommerce(commerceType, buildingId, roomId) {
   }
   carte.forEach(id => {
     const recette = RECETTES_ALIMENTAIRES[id];
-    const coutRevient = coutRevientPortionRecette(data, recette);
-    const { min, max } = fourchettePrixPJ(coutRevient);
     const prixActuel = data.parametres.prixVente[id];
     html += '<div style="padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem">';
     html += '<b style="font-size:.93rem;color:#c0b090">' + recette.label + '</b><br>';
-    html += '<span style="font-size:.82rem;color:#8a8060">Coût de revient actuel : ' + coutRevient.toFixed(2) + ' ' + cur + ' — Fourchette autorisée : ' + min.toFixed(2) + ' à ' + max.toFixed(2) + ' ' + cur + '</span><br>';
-    html += '<span style="font-size:.82rem;color:#6a5a30">Prix actuel : ' + (prixActuel != null ? prixActuel.toLocaleString('fr-FR') : 'non défini') + ' ' + cur + '</span>';
-    html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
-    html += '<input type="number" min="' + min + '" max="' + max + '" step="0.5" id="gere-commerce-prix-' + id + '" placeholder="Nouveau prix" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.85rem;outline:none"/>';
-    html += '<button onclick="confirmerGererPrixCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem">Valider</button>';
-    html += '</div></div>';
+    if (recette.prixFixe) {
+      // Prix fixe (lot correctif final, 21 aout 2026) : aucune fourchette/coût de revient
+      // affiché ni d'input propose -- ce prix n'est modifiable ni par le moteur PNJ
+      // (produireRecetteCommerce) ni par le proprietaire PJ (confirmerFixerPrixCommerce).
+      html += '<span style="font-size:.82rem;color:#6a5a30">Prix fixe : ' + (prixActuel != null ? prixActuel.toLocaleString('fr-FR') : 'non défini') + ' ' + cur + ' — non modifiable</span>';
+    } else {
+      const coutRevient = coutRevientPortionRecette(data, recette);
+      const { min, max } = fourchettePrixPJ(coutRevient);
+      html += '<span style="font-size:.82rem;color:#8a8060">Coût de revient actuel : ' + coutRevient.toFixed(2) + ' ' + cur + ' — Fourchette autorisée : ' + min.toFixed(2) + ' à ' + max.toFixed(2) + ' ' + cur + '</span><br>';
+      html += '<span style="font-size:.82rem;color:#6a5a30">Prix actuel : ' + (prixActuel != null ? prixActuel.toLocaleString('fr-FR') : 'non défini') + ' ' + cur + '</span>';
+      html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
+      html += '<input type="number" min="' + min + '" max="' + max + '" step="0.5" id="gere-commerce-prix-' + id + '" placeholder="Nouveau prix" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.85rem;outline:none"/>';
+      html += '<button onclick="confirmerGererPrixCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;font-size:.82rem">Valider</button>';
+      html += '</div>';
+    }
+    html += '</div>';
   });
 
   // Prix d'achat des matieres (correctif de finition, 17 aout 2026) : matieres determinees
@@ -2816,8 +3010,8 @@ async function doGererCommerce(commerceType, buildingId, roomId) {
   matieresAcceptees.forEach(m => {
     const label = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].label : m;
     const stockActuel = data.stockMatieres[m] || 0;
-    const stockMax = data.parametres.stockMax[m];
-    const placeRestante = stockMax != null ? Math.max(0, stockMax - stockActuel) : null;
+    const stockMax = plafondEffectifCommerce(data, m);
+    const placeRestante = Math.max(0, stockMax - stockActuel);
     const prixReference = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].prixAchatFournisseur : 0;
     const prixActuelAchat = prixAchatMatiereCommerce(data, m);
     const { min, max } = fourchettePrixAchatMatierePJ(m);
@@ -2868,6 +3062,7 @@ async function confirmerGererPrixCommerceUI(commerceType, buildingId, roomId, re
   if (!res.ok) {
     const messages = {
       introuvable: 'Produit introuvable.',
+      prix_fixe: 'Le prix de ce produit est fixe et ne peut pas être modifié.',
       reserve_proprietaire: 'Réservé au propriétaire de ce commerce.',
       hors_fourchette: 'Le prix doit être compris entre ' + (res.min != null ? res.min.toFixed(2) : '?') + ' et ' + (res.max != null ? res.max.toFixed(2) : '?') + ' ' + (COUNTRIES[state.country || 'republic']?.cur || 'FR') + '.'
     };
@@ -2890,9 +3085,13 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
   const manque = Object.entries(recette.materiaux).find(([m, q]) => (data.stockMatieres[m] || 0) < q);
   if (manque) return { ok: false, raison: 'stock_matiere_insuffisant', matiere: manque[0] };
 
-  const stockMax = data.parametres.stockMax[recetteId];
+  // Plafond effectif (lot plafonds, 21 aout 2026) -- corrige au passage un defaut preexistant :
+  // l'ancien controle ("stockActuel >= stockMax") ne bloquait qu'une fois le plafond DEJA atteint,
+  // jamais une production qui l'aurait depasse (stock 18 + 5 portions = 23 passait avant ce
+  // correctif). Compare desormais stock APRES production au plafond, avant toute mutation.
+  const stockMax = plafondEffectifCommerce(data, recetteId);
   const stockActuel = data.stockProduits[recetteId] || 0;
-  if (stockMax != null && stockActuel >= stockMax) return { ok: false, raison: 'stock_plein' };
+  if (stockActuel + recette.portions > stockMax) return { ok: false, raison: 'stock_plein' };
 
   const coutMainOeuvre = recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE;
   // Buvette : aucune caisse autonome (doctrine deja validee/codee pour doConsommerBuvette), y
@@ -2917,8 +3116,9 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
   //     debiterCaisseBatimentAtomique (caisse d'une entreprise, pas d'un batiment) ; verifiee en
   //     lecture seule AVANT deduireCoutOrdre(), puis debitee seulement APRES son succes -- rien
   //     n'est encore persiste a ce stade (sbSaveEntreprise plus bas).
-  if (data.type === 'buvette' && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
-    const r = await deduireCoutOrdre({ pa: recette.pa, cost: coutMainOeuvre, payeur: { type: 'institution', pays, buildingId: getCaisseLocaleId('stade', ville) } });
+  const categorieCaisseInstitProd = COMMERCE_SANS_CAISSE_AUTONOME[data.type];
+  if (categorieCaisseInstitProd && typeof debiterCaisseBatimentAtomique === 'function' && typeof getCaisseLocaleId === 'function') {
+    const r = await deduireCoutOrdre({ pa: recette.pa, cost: coutMainOeuvre, payeur: { type: 'institution', pays, buildingId: getCaisseLocaleId(categorieCaisseInstitProd, ville) } });
     if (!r.ok) return { ok: false, raison: r.raison === 'caisse_institution_insuffisante' ? 'caisse_insuffisante' : r.raison };
   } else {
     if (data.caisse < coutMainOeuvre) return { ok: false, raison: 'caisse_insuffisante' };
@@ -2932,8 +3132,11 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
 
   // Prix auto recalcule a chaque production pour un commerce PNJ (le cout moyen des matieres
   // peut avoir bouge depuis le dernier lot) -- un commerce PJ garde le prix fixe par son
-  // proprietaire (confirmerFixerPrixCommerce), jamais ecrase automatiquement ici.
-  if (data.proprietaire === 'PNJ') {
+  // proprietaire (confirmerFixerPrixCommerce), jamais ecrase automatiquement ici. Exception
+  // ajoutee (lot plafonds/menus fixes, 21 aout 2026) : une recette explicitement declaree
+  // recette.prixFixe:true (menus gastronomiques du Republica) ignore ce recalcul, PNJ ou pas --
+  // attribut propre a la recette, aucun ID hardcode ici.
+  if (data.proprietaire === 'PNJ' && !recette.prixFixe) {
     data.parametres.prixVente[recetteId] = prixVenteAutoPNJ(coutRevientPortionRecette(data, recette));
   }
 
@@ -2983,8 +3186,9 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
     net = t.net;
   }
 
-  if (data.type === 'buvette' && typeof getCaisseLocaleId === 'function' && typeof crediterCaisseBatiment === 'function') {
-    await crediterCaisseBatiment(pays, getCaisseLocaleId('stade', ville), net).catch(() => {});
+  const categorieCaisseInstitVente = COMMERCE_SANS_CAISSE_AUTONOME[data.type];
+  if (categorieCaisseInstitVente && typeof getCaisseLocaleId === 'function' && typeof crediterCaisseBatiment === 'function') {
+    await crediterCaisseBatiment(pays, getCaisseLocaleId(categorieCaisseInstitVente, ville), net).catch(() => {});
   } else {
     data.caisse = (data.caisse || 0) + net;
   }
@@ -3080,6 +3284,52 @@ function doConsommerBoissonGenerique(pa, cost) {
   const c = resoudreCommerceActuel();
   if (!c) { showToast('Indisponible', '', false); return; }
   doConsommerBoisson(c.type, c.buildingId, c.roomId);
+}
+
+// =====================
+// SE NOURRIR / REPAS GASTRONOMIQUE (Le Republica, lot finition boucle economique, 21 aout 2026)
+// -- special-case appele par doOrder() (plateau-router.js) avant le moteur generique de jet
+// (executerOrdreGenerique). PA et fonds du client deja verifies par doOrder() a ce stade (rien
+// n'est encore mute) : ne reste qu'a verifier le stock du restaurant, condition supplementaire
+// propre a cet ordre. Aucune mutation si rupture -- ni PA, ni argent, ni stock (symetrique a
+// produireRecetteCommerce/commanderProduitCommerce : jamais de prestation sans stock disponible,
+// jamais de mutation avant la derniere verification).
+//
+// Choix du plat servi (arbitrage minimal, aucun comportement canonique existant pour une
+// consommation a prix/effets fixes independants du plat -- "Consulter la carte"/"Consommer une
+// boisson" laissent toujours le joueur choisir explicitement, jamais un choix automatique) :
+// premier plat de la carte du commerce (ordre de declaration dans DOTATIONS_COMMERCE_PILOTE) dont
+// le stock est > 0. Sans consequence sur le jeu (les effets Sante/Moral restent ceux, inchanges,
+// du roll generique existant -- jamais ceux, propres a la recette, de RECETTES_ALIMENTAIRES) : a
+// signaler/ajuster si Fred souhaite une autre regle de selection.
+//
+// Le paiement (120 FR, deduit ensuite par executerOrdreGenerique comme avant ce lot) est traite
+// comme une vraie vente de commerce : appliquerTaxeTransaction() puis credit du net a la caisse
+// du restaurant -- jamais a une caisse institutionnelle, jamais au joueur -- exactement le meme
+// mecanisme que commanderProduitCommerce() ci-dessus, sans le dupliquer.
+async function doRepasGastronomiqueGenerique(pa, cost, label, desc, successRate) {
+  const c = resoudreCommerceActuel();
+  if (!c) { showToast('Indisponible', '', false); return; }
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const data = await chargerCommerce(c.type, pays, ville, c.buildingId, c.roomId);
+  if (!data) { showToast('Indisponible', '', false); return; }
+
+  const recetteId = (data.carte || []).find(id => (data.stockProduits[id] || 0) > 0);
+  if (!recetteId) { showToast('Rupture de stock', 'Le restaurant n\'a rien à servir pour l\'instant.', false); return; }
+
+  data.stockProduits[recetteId] -= 1;
+  let net = cost;
+  if (typeof appliquerTaxeTransaction === 'function') {
+    const t = await appliquerTaxeTransaction(cost);
+    net = t.net;
+  }
+  data.caisse = (data.caisse || 0) + net;
+  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  ajouterHistoriqueEntreprise(data, net, 'Vente — ' + (recette ? recette.label : recetteId) + ' — ' + (state.char?.name || 'Anonyme'));
+  await sbSaveEntreprise(data.id, data).catch(() => {});
+
+  executerOrdreGenerique('repas_gastronomique', pa, cost, label, desc, successRate);
 }
 
 async function doConsommerBoisson(commerceType, buildingId, roomId) {
@@ -3449,8 +3699,9 @@ async function resoudreTournee(tournee) {
     const t = await appliquerTaxeTransaction(montantTotal);
     net = t.net;
   }
-  if (data.type === 'buvette' && typeof getCaisseLocaleId === 'function' && typeof crediterCaisseBatiment === 'function') {
-    await crediterCaisseBatiment(tournee.country, getCaisseLocaleId('stade', tournee.ville), net).catch(() => {});
+  const categorieCaisseInstitTournee = COMMERCE_SANS_CAISSE_AUTONOME[data.type];
+  if (categorieCaisseInstitTournee && typeof getCaisseLocaleId === 'function' && typeof crediterCaisseBatiment === 'function') {
+    await crediterCaisseBatiment(tournee.country, getCaisseLocaleId(categorieCaisseInstitTournee, tournee.ville), net).catch(() => {});
   } else {
     data.caisse = (data.caisse || 0) + net;
   }
@@ -3570,7 +3821,7 @@ async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, c
     const recette = RECETTES_ALIMENTAIRES[id];
     const materiauxTxt = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
     const stockActuel = data.stockProduits[id] || 0;
-    const stockMax = data.parametres.stockMax[id];
+    const stockMax = plafondEffectifCommerce(data, id);
     // Bouton PRODUIRE explicite (lot boissons, 20 aout 2026) -- la fiche recette redevient une
     // simple fiche informative (div, plus cliquable en elle-meme), l'action est desormais un
     // vrai bouton distinct. Meme handler qu'avant, doProduireRecetteCommerceUI(), aucune logique

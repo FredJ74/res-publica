@@ -432,6 +432,22 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_offres_emploi')    { ouvrirOffresEmploiBNE(); return; }
   if (fn === 'demissionner_emploi_bne')    { demissionnerEmploiBNE(); return; }
 
+  // Republia — Se nourrir (repas_gastronomique) : lie au stock reel du restaurant (lot
+  // finition boucle economique, 21 aout 2026) -- special-case obligatoire comme les autres
+  // ordres commerce ci-dessus, sinon le stock/la caisse ne seraient jamais mutes. Le reste du
+  // comportement (roll probabiliste inclus, repas_gastronomique n'est pas dans alwaysSuccess
+  // ci-dessous) est intentionnellement inchange : delegue a executerOrdreGenerique() apres
+  // verification du stock, jamais duplique.
+  if (fn === 'repas_gastronomique') { doRepasGastronomiqueGenerique(pa, cost, label, desc, successRate); return; }
+
+  executerOrdreGenerique(fn, pa, cost, label, desc, successRate);
+}
+
+// Extrait de doOrder() (lot Le Republica, 21 aout 2026) -- comportement generique (PA/argent,
+// roll, effets, toast, journal, detection, temps) partage par doOrder() (chemin par defaut,
+// inchange) ET par doRepasGastronomiqueGenerique() ci-dessous (apres verification du stock),
+// pour eviter toute duplication/divergence du moteur de jet existant.
+function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
   // Deduire PA et argent
   if (!TEST_MODE) state.pa = Math.max(0, state.pa - pa);
   if (cost > 0) state.arg = Math.max(0, state.arg - cost);
@@ -458,7 +474,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // (special-casees plus haut, doSoinCliniquePrivee/doSoinPublic), doOrder() ne les atteint plus
   // jamais -- entree ici devenue inutile/trompeuse. soins_basiques n'est plus reference par aucun
   // batiment (dispensaire-public-v est desormais branche sur soin_public comme les 2 autres).
-  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins_urgence','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','plainte','plainte_police','archives','archives_police','acheter_terrain','se_presenter','rencontrer','se_former'];
+  // repas_gastronomique ajoute (lot carte gastronomique Le Republica, 21 aout 2026) : bug
+  // preexistant corrige (successRate:100 declare mais jamais garanti faute d'etre dans cette
+  // liste). Sans effet observable a ce jour -- le bouton qui l'exposait a ete retire de la salle
+  // du restaurant au meme lot (remplace par "Consulter la carte") -- mais le fn reste une
+  // infrastructure partagee (ORDER_EFFECTS, applyEffects, doRepasGastronomiqueGenerique) : garde
+  // deterministe si jamais rebranche ailleurs.
+  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins_urgence','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','plainte','plainte_police','archives','archives_police','acheter_terrain','se_presenter','rencontrer','se_former','repas_gastronomique'];
   if (alwaysSuccess.includes(fn)) resultType = roll >= 95 ? 'crit' : 'success';
 
   applyEffects(fn, resultType, cost);

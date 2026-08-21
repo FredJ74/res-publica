@@ -129,9 +129,7 @@ async function envoyerComposeMail() {
   } else {
     // Fallback direct Supabase
     const from = state.char?.name || 'Anonyme';
-    const h = String(state.hour || 8).padStart(2,'0');
-    const m = String(state.minute || 0).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h' + m;
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
     if (typeof sbSendMail === 'function') await sbSendMail(from, to, subject, body, time);
     addJournalEntry('Mail envoyé à ' + to + ' : "' + subject + '".', 'event-info');
     showToast('Mail envoyé', 'À ' + to + ' — "' + subject + '"', true);
@@ -536,7 +534,7 @@ function openElectionsModal() {
     html += '<div style="font-family:Playfair Display,serif;font-size:.9rem;color:#E8C97A">' + e.nom + '</div>';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:' + phaseColor + ';border:1px solid;padding:.1rem .4rem">' + phaseLabel + '</div>';
     html += '</div>';
-    html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">Tour ' + (e.tour||1) + ' · Resultats : Jour ' + e.jourResultat + '</div>';
+    html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">Tour ' + (e.tour||1) + ' · Resultats a venir</div>';
 
     // Candidats et voix
     if (e.candidats && e.candidats.length > 0) {
@@ -1005,7 +1003,7 @@ function ouvrirDetailDetention(idx) {
   if (!d) return;
   document.getElementById('postes-modal-title').textContent = 'Detention — ' + d.nom;
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.5rem">Depuis le Jour ' + d.jour_debut + (d.jour_fin ? ' (fin prevue Jour ' + d.jour_fin + ')' : '') + '</div>';
+  html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.5rem">Détention en cours</div>';
   html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">Motif : ' + d.raison + '</div>';
   if (d.qhs) html += '<div style="font-size:.78rem;color:#8a3a2a">Detention en QHS (haute securite)</div>';
   html += '</div>';
@@ -1234,10 +1232,12 @@ async function jodiePortraitGenererApercu() {
   const nom = state.char?.name || '';
   document.getElementById('forum-main').innerHTML = '<div style="padding:2rem;text-align:center;color:#8a8060">Jodie rédige...</div>';
 
-  const prompt = "Tu es Jodie Moitout, journaliste micro-trottoir pour le journal L'Autruche Entravee (groupe La Tribune), dans le jeu Res Publica. " +
+  const prompt = "Tu es Jodie Moitout, journaliste micro-trottoir pour le journal L'Autruche Entravee (groupe La Tribune), dans le jeu Res Publica. Le pays s'appelle Républia, avec un accent aigu sur le e (jamais \"Republia\" sans accent). " +
     "Tu viens d'interviewer " + nom + ", un nouvel habitant, en lui posant 5 questions. Voici ses reponses :\n\n" +
     JODIE_QUESTIONS_INTERVIEW.map((q, i) => (i + 1) + ". " + q + "\nReponse : \"" + reponses[i].replace(/"/g, "'") + "\"").join("\n\n") + "\n\n" +
-    "Redige un COURT portrait journalistique (120 a 200 mots), a la troisieme personne, dans un ton enjoue et un peu malicieux, fidele aux reponses fournies SANS inventer de faits substantiels supplementaires sur " + nom + ". Pas de titre (il sera ajoute separement). Reponds UNIQUEMENT avec le texte de l'article, sans introduction ni commentaire.";
+    "Redige un COURT portrait journalistique (120 a 200 mots), a la troisieme personne, dans un ton enjoue et un peu malicieux, fidele aux reponses fournies SANS inventer de faits substantiels supplementaires sur " + nom + ". Pas de titre (il sera ajoute separement). " +
+    "Texte BRUT uniquement, sans aucune mise en forme Markdown : pas d'astérisque (ni simple * pour l'italique, ni double ** pour le gras), pas de dièse # en début de ligne, pas de liste à puces. La ponctuation française normale reste bienvenue (guillemets « », tirets, points de suspension). " +
+    "Reponds UNIQUEMENT avec le texte de l'article, sans introduction ni commentaire.";
 
   let texte = null;
   try {
@@ -1261,9 +1261,30 @@ async function jodiePortraitGenererApercu() {
     return;
   }
 
-  window._jodiePortraitTexte = texte;
+  // Nettoyage defensif AVANT stockage (audit du 21 aout 2026) : un seul point d'ecriture de
+  // window._jodiePortraitTexte dans toute cette fonction -- l'apercu (renderJodiePortraitPreview)
+  // et la publication (jodiePortraitPublier) le relisent tel quel, jamais recalcule ni renettoye
+  // separement : impossible d'avoir une version nettoyee a l'ecran et une version brute publiee.
+  window._jodiePortraitTexte = jodieNettoyerMarkdown(texte);
   mailView = 'jodie-preview';
   document.getElementById('forum-main').innerHTML = renderForumContent();
+}
+
+// Filet de securite minimal (pas un moteur Markdown general) : retire uniquement les marqueurs
+// de mise en forme Markdown les plus probables malgre la consigne du prompt ci-dessus (observe en
+// test reel : "il le *sait*, il le *sent*" affiche tel quel, l'interface ne rend aucun Markdown).
+// Ne touche jamais a la ponctuation francaise normale (guillemets « », tirets, apostrophes,
+// points de suspension) -- uniquement *Viande*/**Viande**, les # de titre en debut de ligne, les
+// puces de liste en debut de ligne, et un ultime nettoyage des etoiles/dieses isoles residuels.
+function jodieNettoyerMarkdown(texte) {
+  if (!texte) return texte;
+  return texte
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^[-*+]\s+/gm, '')
+    .replace(/[*#]/g, '')
+    .trim();
 }
 
 // Apercu obligatoire avant publication (section 6 du lot) -- aucune publication automatique.

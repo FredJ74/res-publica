@@ -171,10 +171,28 @@ async function collecterEtatCivil(periode) {
     sbGet('etat_civil_deces', `${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`)
   ]);
   const facts = [];
+  // Formulation d'arrivee (bug journal "nouveau-ne", 21 aout 2026) : etat_civil_naissances
+  // n'enregistre jamais une vraie naissance -- c'est la date de creation du personnage (voir
+  // creation.js/sbEnregistrerNaissance), un nouveau PJ etant un nouvel arrivant, pas un
+  // nouveau-ne. Le "resume" ci-dessous est le seul texte transmis tel quel a l'IA du Journal du
+  // Jour (_journal-generation.js) comme FAIT source ("tu ne peux jamais inventer les faits") --
+  // l'ancien "Naissance de X" produisait donc mecaniquement des articles parlant de naissance/
+  // nouveau-ne pour chaque nouvel arrivant, quel que soit le pays ou la ville (aucun filtre
+  // geographique ici). Reformule en "Arrivee de X", meme forme neutre (nom, aucun accord de
+  // genre necessaire) que le "X est arrive(e) a VILLE" deja utilise ailleurs (plateau-
+  // navigation.js, changement de ville) et que "Mariage de X"/"Deces de X" juste en dessous.
+  // Verification finale (22 aout 2026) : construireAiInput() (_journal-generation.js) transmet
+  // FACTS a l'IA SANS filtrage de champs ("FACTS: paquet.FACTS", passthrough integral, voir
+  // commentaire juste au-dessus dans ce fichier source) -- type:'naissance' etait donc bien
+  // expose tel quel dans le JSON envoye au modele, en plus de l'ancien "resume" deja corrige.
+  // Renomme ici en 'arrivee' (fait journalier uniquement) ; compterType('naissance') mis a jour
+  // en consequence plus bas pour que l'indicateur naissances_periode continue de compter les
+  // memes faits sous leur nouveau type. La table etat_civil_naissances, sbEnregistrerNaissance()
+  // et le registre d'etat-civil (plateau-etat-civil.js) restent strictement inchanges.
   (naissances || []).forEach(r => facts.push({
-    id: idSource('etat_civil_naissances', r), domaine: 'etat_civil', type: 'naissance',
+    id: idSource('etat_civil_naissances', r), domaine: 'etat_civil', type: 'arrivee',
     ville: r.city || null, pays: r.country,
-    resume: `Naissance de ${r.nom}` + (r.city ? ` à ${r.city}` : ''),
+    resume: `Arrivée de ${r.nom}` + (r.city ? ` à ${r.city}` : ''),
     created_at: r.created_at
   }));
   (mariages || []).forEach(r => facts.push({
@@ -504,7 +522,7 @@ async function construirePaquetFactuel(pays, periode) {
 
   const INDICATORS = [
     ...indicPopulation,
-    { id: idIndicateur(`naissances_periode_${pays}`), cle: 'naissances_periode', valeur: compterType('naissance'), pays, disponible: true },
+    { id: idIndicateur(`naissances_periode_${pays}`), cle: 'naissances_periode', valeur: compterType('arrivee'), pays, disponible: true },
     { id: idIndicateur(`mariages_periode_${pays}`), cle: 'mariages_periode', valeur: compterType('mariage'), pays, disponible: true },
     { id: idIndicateur(`deces_periode_${pays}`), cle: 'deces_periode', valeur: compterType('deces'), pays, disponible: true },
     { id: idIndicateur(`arrestations_periode_${pays}`), cle: 'arrestations_periode', valeur: compterType('arrestation'), pays, disponible: true },

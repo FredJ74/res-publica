@@ -147,6 +147,22 @@ function markMailRead(mailId) {
     if (typeof sbMarkMailRead === 'function') sbMarkMailRead(mailId).catch(() => {});
   }
 }
+
+// Correctif latence des voyants (audit du 21 aout 2026) : recalcule le voyant Mail global
+// (#mail-badge + titre d'onglet, normalement mis a jour uniquement par verifierNouveauxMails(),
+// plateau-communication.js, au chargement et toutes les 2 minutes) depuis le cache LOCAL deja a
+// jour (getMyMails(), rafraichi par loadMailsFromSB() a chaque ouverture de la messagerie) --
+// AUCUN appel reseau ici, purement une relecture locale instantanee. A appeler apres toute
+// mutation locale de l'etat lu/non-lu (lecture d'un mail) pour ne pas attendre le prochain
+// passage du polling.
+function rafraichirVoyantMailLocal() {
+  const nom = state.char?.name;
+  if (!nom) return;
+  const nonLus = getMyMails().filter(m => !m.read && m.to === nom).length;
+  const badge = document.getElementById('mail-badge');
+  if (badge) { badge.textContent = nonLus; badge.style.display = nonLus > 0 ? 'inline' : 'none'; }
+  document.title = nonLus > 0 ? '(' + nonLus + ') Res Publica' : 'Res Publica';
+}
 function deleteMail(mailId) {
   const mails = getMails().filter(x => x.id !== mailId);
   saveMails(mails);
@@ -473,6 +489,11 @@ function switchToMail() {
   }
   loadMailsFromSB().then(() => {
     if (mailView !== 'compose') renderForumModal();
+    // Correctif latence des voyants (21 aout 2026) : synchronise le voyant EXTERIEUR (#mail-badge)
+    // depuis le cache local que loadMailsFromSB() vient de rafraichir -- reutilise cette MEME
+    // requete reseau (sbGetMailsFor, deja executee ci-dessus), jamais une deuxieme requete
+    // separee (verifierNouveauxMails() ferait le meme travail en double).
+    if (typeof rafraichirVoyantMailLocal === 'function') rafraichirVoyantMailLocal();
   }).catch(() => {});
 }
 
@@ -2051,7 +2072,15 @@ function readMail(mailId) {
   currentMailId = mailId;
   markMailRead(mailId);
   mailView = 'read';
-  document.getElementById('forum-main').innerHTML = renderForumContent();
+  // Correctif latence des voyants (21 aout 2026) : renderForumModal() (sidebar + panneau
+  // principal), pas seulement renderForumContent() (panneau principal seul, comportement
+  // precedent) -- le compteur "Boîte Mail X non lu(s)"/le point rouge de la barre laterale
+  // (calcules a chaque appel de renderForumModal() depuis getMyMails(), voir plus haut dans ce
+  // fichier) restaient sinon figes a leur valeur d'ouverture jusqu'a la fermeture/reouverture de
+  // la fenetre. rafraichirVoyantMailLocal() synchronise en plus le voyant EXTERIEUR (#mail-badge,
+  // hors de cette fenetre) -- les deux sans aucun appel reseau, purement locaux.
+  renderForumModal();
+  if (typeof rafraichirVoyantMailLocal === 'function') rafraichirVoyantMailLocal();
 }
 
 function renderMailRead() {

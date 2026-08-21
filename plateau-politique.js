@@ -151,7 +151,7 @@ async function demanderNominationPoste(posteId, posteName) {
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     await sbSendMail(candidatNom, titulaireAutorite.nom, sujet, corps, time).catch(() => {});
   }
   showToast('Demande transmise', 'Votre candidature au poste de ' + posteName + ' a été transmise à ' + titulaireAutorite.nom + '.', true);
@@ -347,9 +347,7 @@ function nommerAdministrateurSiVacant(country, posteId) {
 
   // Publier sur le forum
   if (typeof sbCreateTopic === 'function') {
-    const h = String(state.hour || 8).padStart(2, '0');
-    const m = String(state.minute || 0).padStart(2, '0');
-    const time = `Jour ${state.day} · ${h}h${m}`;
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : `Jour ${state.day}`;
     const titre = '🏛 Nomination : ' + adminDef.name;
     const texte = 'Faute de candidat, ' + adminDef.name + ' est nommé ' + adminDef.role + '.\n\n"' + adminDef.trait + '"\n\nIl peut être destitué par un vote de l\'assemblée ou une candidature au prochain cycle.';
     sbCreateTopic('local', titre, 'Système', country, time).then(topicId => {
@@ -789,9 +787,7 @@ async function confirmerCandidature(el) {
 
   // Publier sur le forum — national pour un poste national, local pour un poste de ville
   if (typeof sbCreateTopic === 'function') {
-    const h = String(state.hour || 8).padStart(2, '0');
-    const m = String(state.minute || 0).padStart(2, '0');
-    const time = `Jour ${state.day} · ${h}h${m}`;
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : `Jour ${state.day}`;
     const forumCible = posteEstLocal(posteId) ? 'local' : 'national';
     const titre = '🗳️ Candidature de ' + nom + ' — ' + POSTES_ELECTIFS.national.concat(POSTES_ELECTIFS.local).concat(POSTES_ELECTIFS.departemental).find(p=>p.id===posteId)?.name;
     const texte = nom + ' se présente aux élections.\n\nProgramme :\n' + programme;
@@ -1589,8 +1585,16 @@ function renderRoomActions(room, buildingId, roomId) {
   // changement de comportement ailleurs.
   const ctxRoomOrders = (ctx?.roomOverrides?.[roomId]?.orders || []);
 
+  // Exclusion additive minimale (lot plafonds/Marche, 21 aout 2026) : permet a un roomOverride
+  // propre a UNE ville de masquer un fn herite du template de base PARTAGE (ex. se_nourrir au
+  // Marche de Luthecia, herite de BUILDINGS['marche'], egalement utilise tel quel a Montrouge/
+  // Khalija) sans jamais toucher au template lui-meme ni dupliquer la room. Absent partout
+  // ailleurs (aucun roomOverride existant ne declare excludeOrders) : zero changement de
+  // comportement pour tout le reste du jeu.
+  const ctxExcludeOrders = (ctx?.roomOverrides?.[roomId]?.excludeOrders || []);
+
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
-  const allOrders = [...orders, ...ctxOrders, ...ctxRoomOrders];
+  const allOrders = [...orders, ...ctxOrders, ...ctxRoomOrders].filter(o => !ctxExcludeOrders.includes(o.fn));
 
   const buttons = allOrders.map(o => {
     // Verifier requiresPost : doit avoir le bon poste specifique
@@ -1854,9 +1858,7 @@ async function publierDecret(texte, popEffect, infEffect, pa, cost, sujet) {
   updateUI();
   addJournalEntry('📜 Décret signé sur : ' + sujet + '. ' + (popEffect >= 0 ? '+' : '') + popEffect + ' POP · +' + infEffect + ' INF.', 'event-info');
   const from = state.char?.name || 'Le Président';
-  const h = String(state.hour || 8).padStart(2, '0');
-  const m = String(state.minute || 0).padStart(2, '0');
-  const time = `Jour ${state.day} · ${h}h${m}`;
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : `Jour ${state.day}`;
 
   let topicId = null;
   if (typeof sbCreateTopic === 'function') {
@@ -2347,15 +2349,19 @@ async function soumettreProjetLoi(pa, cost) {
   const dateCloture = dateDepotReel + 5 * 24 * 60 * 60 * 1000; // 5 jours reels
 
   if (!FORUM_TOPICS['parlement']) FORUM_TOPICS['parlement'] = [];
+  // Horodatage du sujet/post forum (date reelle, correctif du 21 aout 2026) -- distinct de
+  // jourDepot/jourVoteMin juste au-dessus, qui restent des compteurs de jours de JEU utilises
+  // pour le seuil d'eligibilite au vote (mecanique inchangee, non touchee ici).
+  const timeAffichage = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + jourDepot;
   const topic = {
     id: 'loi-' + Date.now(),
     title: '[PROJET] ' + titre,
     author: state.char?.name || 'Député',
-    time: 'Jour ' + jourDepot,
-    views: 1, replies: 0, lastPostAuthor: state.char?.name || 'Député', lastPostTime: 'Jour ' + jourDepot,
+    time: timeAffichage,
+    views: 1, replies: 0, lastPostAuthor: state.char?.name || 'Député', lastPostTime: timeAffichage,
     posts: [{
       author: state.char?.name,
-      time: 'Jour ' + jourDepot,
+      time: timeAffichage,
       content: contenu + (impact ? '\n\nImpact attendu : ' + impact : '')
     }]
   };
@@ -2378,11 +2384,14 @@ async function soumettreProjetLoi(pa, cost) {
   }
 
   closeForumView();
-  showToast('Projet soumis !', titre + ' · Vote possible à partir du Jour ' + jourVoteMin, true, true);
+  // Libelle sans numero de jour (correctif du 21 aout 2026, doctrine "Confort de lecture") :
+  // jourVoteMin reste utilise tel quel pour le seuil interne (comparaison plus bas dans le
+  // fichier), seul l'affichage change.
+  showToast('Projet soumis !', titre + ' · Vote pas encore disponible', true, true);
   addJournalEntry('Projet de loi soumis : ' + titre, 'event-good');
   addExternalEvent('FORUM PARLEMENTAIRE : Nouveau projet de loi déposé par ' + (state.char?.name||'Anonyme') + ' : "' + titre + '"');
   // Mail a tous les deputes (simulation)
-  addMailNotification('Secrétariat de l\'Assemblée', 'Nouveau projet de loi', 'Un projet de loi a été déposé : "' + titre + '". Consultez le Forum Parlementaire pour le détail. Vote à partir du Jour ' + jourVoteMin + '.');
+  addMailNotification('Secrétariat de l\'Assemblée', 'Nouveau projet de loi', 'Un projet de loi a été déposé : "' + titre + '". Consultez le Forum Parlementaire pour le détail. Vote pas encore disponible.');
 }
 
 // =====================
@@ -2452,7 +2461,7 @@ function ouvrirVoteLoi(pa, cost) {
       const dejaVote = state.votesLois?.[loi.id];
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">' + loi.titre + '</div>';
-      html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">Depose par ' + loi.auteur + ' le Jour ' + loi.jourDepot + '</div>';
+      html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">Depose par ' + loi.auteur + '</div>';
       if (dejaVote) {
         html += '<div style="font-size:.78rem;color:#4a6a4a">Vote exprime : <strong>' + dejaVote + '</strong></div>';
       } else {
@@ -2510,7 +2519,7 @@ async function ouvrirArchivesLois() {
       const col = loi.resultat === 'Adoptee' ? '#4a8a4a' : loi.resultat === 'Rejetee' ? '#8a2020' : '#6a5a30';
       html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;color:' + col + '">' + (loi.resultat || 'En cours') + '</div>';
       html += '</div>';
-      html += '<div style="font-size:.68rem;color:#5a4030">Jour ' + loi.jourDepot + ' · ' + (loi.votes?.length||0) + ' votants</div>';
+      html += '<div style="font-size:.68rem;color:#5a4030">' + (loi.votes?.length||0) + ' votants</div>';
       html += '</div>';
     });
   }
@@ -2524,7 +2533,7 @@ function ouvrirDetailLoi(idx) {
   if (!loi) return;
   document.getElementById('postes-modal-title').textContent = loi.titre;
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Depose par ' + loi.auteur + ' · Vote Jour ' + loi.jourVote + '</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Depose par ' + loi.auteur + ' · Vote enregistré</div>';
   const col = loi.resultat === 'Adoptee' ? '#4a8a4a' : '#8a2020';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:' + col + ';margin-bottom:.8rem">' + (loi.resultat||'En cours') + '</div>';
   if (loi.votes?.length > 0) {
@@ -2619,7 +2628,7 @@ async function confirmerDemandeNaturalisation(pa, cost) {
     : null;
   if (ministre && typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     sbSendMail('Service de l\'Immigration', ministre.name, 'Demande de naturalisation',
       (state.char?.name||'Un citoyen') + ' demande la naturalisation dans votre empire. Vous pouvez traiter sa demande depuis votre bureau, 48h apres le depot.', time).catch(() => {});
   }
@@ -2676,7 +2685,7 @@ async function traiterDemandeNaturalisation(demandeId, accepter) {
   }
 
   const h = String(state.hour || 8).padStart(2,'0');
-  const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
 
   if (accepter) {
     if (typeof sbSendMail === 'function') {
@@ -2798,7 +2807,7 @@ async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, c
     const revoqueurNom = state.char?.name || 'Anonyme';
     if (typeof sbSendMail === 'function') {
       const h = String(state.hour || 8).padStart(2,'0');
-      const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+      const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
       await sbSendMail(revoqueurNom, nomTitulaire, 'Revocation de poste',
         'Vous avez ete revoque(e) du poste de ' + regle.label + ' par ' + revoqueurNom + '.', time).catch(() => {});
     }
@@ -2907,7 +2916,7 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     await sbSendMail(nommeurNom, destinataire, sujet, corps, time);
     showToast('Nomination envoyée', destinataire + ' a reçu votre proposition.', true);
     addJournalEntry('Nomination de ' + destinataire + ' au poste de ' + regle.label + ' proposée.', 'event-info');
@@ -2950,7 +2959,7 @@ function accepterNominationPosteNomme(posteId, city, country, nommeurNom) {
   // Notifier le nommeur
   if (typeof sbSendMail === 'function' && nommeurNom) {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     sbSendMail(state.char?.name || 'Anonyme', nommeurNom, 'Nomination acceptée',
       (state.char?.name || 'Le candidat') + ' a accepté le poste de ' + regle.label + '.', time).catch(() => {});
   }
@@ -3011,7 +3020,7 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     await sbSendMail(state.char?.name || 'Anonyme', candidatNom, 'Candidature acceptée !',
       'Votre candidature au poste de ' + posteName + ' a été acceptée. Le poste est déjà effectif.', time).catch(() => {});
   }
@@ -3087,7 +3096,7 @@ async function convoquerCandidatEntretien(posteName, candidatNom) {
   const corps = nommeurNom + ' vous convie à un entretien au ' + lieu + ' pour discuter de votre motivation pour le poste de <strong>' + posteName + '</strong>. Présentez-vous quand vous le pourrez — purement informel, votre candidature reste valable.';
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     await sbSendMail(nommeurNom, candidatNom, 'Convocation à un entretien', corps, time).catch(() => {});
   }
   showToast('Convocation envoyée', candidatNom + ' a été invité(e) à un entretien.', true);
@@ -3269,7 +3278,7 @@ async function confirmerDemandeMariage(pa, cost) {
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     const corps = (state.char?.name || 'Quelqu\'un') + ' vous demande en mariage !<br><br>' +
       '<button onclick="accepterDemandeMariage(&quot;' + demande.id + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-right:.5rem">💍 Accepter</button>' +
       '<button onclick="refuserDemandeMariage(&quot;' + demande.id + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Refuser</button>';
@@ -3372,7 +3381,7 @@ async function confirmerOfficialisationMariage(pa, cost) {
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     await sbSendMail('Mairie', conjoint, 'Mariage célébré !', 'Votre mariage avec ' + (state.char?.name||'') + ' a été officialisé. Félicitations !', time).catch(() => {});
   }
 }
@@ -3393,7 +3402,7 @@ async function doEtatUrgence(pa, cost) {
     '<div style="padding:1rem">' +
     (actif
       ? '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.8rem">' +
-        "L'etat d'urgence est actuellement en vigueur, declare par " + (etatActuel.active_par || 'le President') + ' le Jour ' + (etatActuel.jour_debut || '?') + '.</div>' +
+        "L'etat d'urgence est actuellement en vigueur. Declare par " + (etatActuel.active_par || 'le President') + '.</div>' +
         '<button onclick="confirmerEtatUrgence(false,' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Lever l\'etat d\'urgence</button>'
       : '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.8rem">Suspend certaines libertes publiques. Fort impact sur INF et POP. Autorise des mesures exceptionnelles (arrestations sans plainte prealable).</div>' +
         '<button onclick="confirmerEtatUrgence(true,' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Declarer l\'etat d\'urgence</button>'
@@ -3563,7 +3572,7 @@ async function proposerDiplomatie(type, empireCibleId, empireCibleName, details,
       id: 'diplo-forum-' + Date.now(),
       title: '[NÉGOCIATIONS] ' + empireProposeurNom + ' ↔ ' + empireCibleName,
       author: 'Ministère des Affaires Étrangères',
-      time: 'Jour ' + (state.day || 1),
+      time: typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1),
       content: proposeur + ' (' + empireProposeurNom + ') ouvre des négociations diplomatiques avec ' + empireCibleName + '.'
     });
   }
@@ -3734,7 +3743,7 @@ async function ouvrirProposerGrace(pa, cost) {
     condamnes.forEach((p, i) => {
       html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
       html += '<div><div style="font-family:Playfair Display,serif;font-size:.85rem;color:#e0d5b8">' + p.nom + '</div>';
-      html += '<div style="font-size:.72rem;color:#a89870">' + p.raison + ' · libération prévue Jour ' + p.jourFin + '</div></div>';
+      html += '<div style="font-size:.72rem;color:#a89870">' + p.raison + ' · Libération à venir</div></div>';
       html += '<button onclick="confirmerPropositionGrace(' + i + ',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.25rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Proposer</button>';
       html += '</div>';
     });
@@ -5493,7 +5502,7 @@ async function notifierDeputesPourVoteConfiance(vote) {
     const deputesPJ = joueurs.filter(j => j.country === vote.country && j.poste?.id?.startsWith('depute_'));
 
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     const sujet = 'Vote de confiance — Assemblée Nationale';
     const corps = 'Le Premier Ministre ' + vote.pm_nom + ' engage la responsabilité de son gouvernement. ' +
       'Votez avant 48h.<br><br>' +
@@ -6780,7 +6789,7 @@ async function ouvrirGererCouvreFeu(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Couvre-feu';
   let html = '<div style="padding:1rem">';
   if (cf?.actif) {
-    html += '<div style="font-size:.85rem;color:#cc4444;margin-bottom:.8rem">Couvre-feu actif (20h-6h) jusqu\'au Jour ' + cf.jourFin + '.</div>';
+    html += '<div style="font-size:.85rem;color:#cc4444;margin-bottom:.8rem">Couvre-feu en vigueur (20h-6h).</div>';
     html += '<button onclick="confirmerCouvreFeu(false,' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;padding:.5rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Lever le couvre-feu</button>';
   } else {
     html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Actif de 20h à 6h, 2 jours maximum. Dégrade IS et POP du gouvernement chaque jour tant qu\'il dure. Militaires et civils réquisitionnés en sont exemptés.</div>';
@@ -6800,7 +6809,7 @@ async function confirmerCouvreFeu(activer, pa, cost) {
   if (activer) {
     budgetNat.couvreFeu = { actif: true, jourDebut: state.day || 1, jourFin: (state.day || 1) + 2, dateFin: Date.now() + 2 * 86400000 };
     await sbSaveBudgetNational(pays, budgetNat);
-    showToast('Couvre-feu instauré', '20h-6h, jusqu\'au Jour ' + budgetNat.couvreFeu.jourFin + '.', false, true);
+    showToast('Couvre-feu instauré', '20h-6h. Couvre-feu en vigueur.', false, true);
     addExternalEvent('🌙 COUVRE-FEU instauré par le Ministère de l\'Intérieur, de 20h à 6h.');
   } else {
     budgetNat.couvreFeu = { actif: false };
@@ -6879,7 +6888,7 @@ async function ouvrirRechercheMilitaire(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Recherche militaire';
   let html = '<div style="padding:1rem">';
   if (enCours) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Recherche en cours sur : <strong style="color:#C9A84C">' + enCours.arme + '</strong>, achèvement Jour ' + enCours.jourFin + '.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060">Recherche en cours sur : <strong style="color:#C9A84C">' + enCours.arme + '</strong>.</div>';
   } else {
     html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">En collaboration avec un chercheur civil, améliore durablement le coefficient de tir d\'un type d\'arme pour tout le pays. ' + DUREE_RECHERCHE_JOURS + ' jours, ' + COUT_RECHERCHE.toLocaleString('fr-FR') + ' FR (caisse de la caserne).</div>';
     const armes = [{id:'corps_a_corps',label:'Corps à corps'},{id:'arme_de_poing',label:'Arme de poing'},{id:'mitraillette',label:'Mitraillette'}];
@@ -7276,7 +7285,7 @@ async function ouvrirRechercheMilitaireDepuisMinistere() {
   document.getElementById('postes-modal-title').textContent = 'Financer la recherche militaire';
   let html = '<div style="padding:1rem">';
   if (enCours) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Recherche déjà en cours sur : <strong style="color:#C9A84C">' + enCours.arme + '</strong>, achèvement Jour ' + enCours.jourFin + '.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060">Recherche déjà en cours sur : <strong style="color:#C9A84C">' + enCours.arme + '</strong>.</div>';
   } else {
     html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Financé directement depuis votre caisse ministérielle (sans passer par la caserne). ' + DUREE_RECHERCHE_JOURS + ' jours, ' + COUT_RECHERCHE.toLocaleString('fr-FR') + ' FR.</div>';
     const armes = [{id:'corps_a_corps',label:'Corps à corps'},{id:'arme_de_poing',label:'Arme de poing'},{id:'mitraillette',label:'Mitraillette'}];

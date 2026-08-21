@@ -486,9 +486,11 @@ async function traiterPlaintes() {
       transmettreAffaireAuTribunal(p.cible, p.motif || 'Plainte initiale confirmee par les forces de l\'ordre.', p.city);
     }
     if (notifierJoueurs) {
-      addMailNotification('Commissariat Central', `RE: Votre plainte du Jour ${p.day - 1}`, result);
+      // "Jour N" retire du sujet/corps (correctif du 21 aout 2026) : p.day reste utilise tel
+      // quel plus haut dans cette fonction pour la logique de traitement, seul l'affichage change.
+      addMailNotification('Commissariat Central', `RE: Votre plainte`, result);
       if (p.cible && p.cible !== 'X' && typeof envoyerNotificationVraiJoueur === 'function') {
-        await envoyerNotificationVraiJoueur(p.cible, 'Convocation - Plainte a votre encontre', 'Une plainte deposee contre vous le Jour ' + (p.day - 1) + ' a evolue : ' + result);
+        await envoyerNotificationVraiJoueur(p.cible, 'Convocation - Plainte a votre encontre', 'Une plainte a ete deposee contre vous, elle a evolue : ' + result);
       }
     }
     if (typeof sbSavePlainte === 'function') sbSavePlainte(p).catch(() => {});
@@ -534,17 +536,18 @@ function transmettreAffaireAuTribunal(cible, motif, city) {
 
   // Publier sur le forum tribunal local (visible de tous, transparence judiciaire)
   if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
+  const timeAffaire = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
   FORUM_TOPICS[forumKey].unshift({
     id: 'affaire-' + Date.now(),
     title: '[AFFAIRE TRANSMISE] ' + cible,
     author: 'Brigade Criminelle',
-    time: 'Jour ' + (state.day || 1),
+    time: timeAffaire,
     replies: 0,
     isPlainte: true,
     cible,
     posts: [{
       author: 'Brigade Criminelle',
-      time: 'Jour ' + (state.day || 1),
+      time: timeAffaire,
       content: '**AFFAIRE TRANSMISE AU TRIBUNAL**\n\nMis en cause : ' + cible + '\n\nMotif :\n' + motif + '\n\n_En attente de jugement par un magistrat._'
     }]
   });
@@ -552,7 +555,7 @@ function transmettreAffaireAuTribunal(cible, motif, city) {
   // Publier aussi sur Supabase pour que tous les joueurs de la ville le voient
   if (typeof sbCreateTopic === 'function') {
     const auteur = 'Brigade Criminelle';
-    const heure = 'Jour ' + (state.day || 1);
+    const heure = timeAffaire;
     const textePost = '**AFFAIRE TRANSMISE AU TRIBUNAL**\n\nMis en cause : ' + cible + '\n\nMotif :\n' + motif + '\n\n_En attente de jugement par un magistrat._';
     sbCreateTopic(forumKey, '⚖️ [AFFAIRE] ' + cible, auteur, state.country, heure)
       .then(topicId => {
@@ -1491,12 +1494,13 @@ async function soumettreConte(idx, pa, cost) {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const forumKey = 'tribunal_' + state.currentCity;
   if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
+  const timeContestation = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + state.day;
   FORUM_TOPICS[forumKey].unshift({
     id: 'contestation-' + Date.now(),
     title: '[CONTESTATION] ' + e.nom,
     author: state.char?.name || 'Anonyme',
-    time: 'Jour ' + state.day,
-    posts: [{ author: state.char?.name, time: 'Jour ' + state.day, content: 'RECOURS ELECTORAL\n\nElection contestée : ' + e.nom + '\nMotif : ' + motif + '\n\nLe juge est prié de statuer dans les 48 heures.' }]
+    time: timeContestation,
+    posts: [{ author: state.char?.name, time: timeContestation, content: 'RECOURS ELECTORAL\n\nElection contestée : ' + e.nom + '\nMotif : ' + motif + '\n\nLe juge est prié de statuer dans les 48 heures.' }]
   });
   showToast('Recours déposé', 'Contestation publiée dans le forum du Tribunal de ' + ville + '. Décision dans 48h.', true);
   addJournalEntry('Contestation électorale déposée : ' + e.nom, 'event-info');
@@ -1759,7 +1763,7 @@ async function appliquerSentence(affaireId, type, pa, cost) {
   addExternalEvent('JUGEMENT : ' + affaire.cible + ' condamne(e) a : ' + details + ' (Juge : ' + (state.char?.name||'PNJ') + ')');
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     sbSendMail('Tribunal', affaire.cible, 'Resultat de votre affaire', 'La sentence a ete rendue : ' + details, time).catch(() => {});
   }
 }
@@ -2009,7 +2013,7 @@ function ouvrirModalGererLocal() {
         '<div style="font-size:.72rem;color:#4a8a4a;margin-top:.2rem">' + (bonusParts.join(' · ') || 'Aucun') + '</div>' +
       '</div>' +
     '</div>' +
-    '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.4rem">Loué depuis le Jour ' + location.depuis + ' · ' + (location.batimentLabel || '') + '</div>' +
+    '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.4rem">Loué · ' + (location.batimentLabel || '') + '</div>' +
     '<div style="font-size:.72rem;color:' + (orgaActuelle ? '#4a8a4a' : '#6a5a30') + ';margin-bottom:.5rem">Organisation : ' + (orgaActuelle ? orgaActuelle.nom : 'Aucune') + '</div>' +
     orgaSelect +
     (orgaAutorisee ?
@@ -2197,7 +2201,7 @@ function ouvrirMesLocations() {
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem">' +
         '<div>' +
           '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#C9A84C">' + loc.localLabel + '</div>' +
-          '<div style="font-size:.68rem;color:#6a5a30">' + (loc.batimentLabel || '') + ' · Depuis Jour ' + loc.depuis + '</div>' +
+          '<div style="font-size:.68rem;color:#6a5a30">' + (loc.batimentLabel || '') + ' · Location en cours</div>' +
         '</div>' +
         '<div style="text-align:right">' +
           '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#c0b090">' + loc.prix + ' ' + cur + '/jour</div>' +
@@ -2315,7 +2319,7 @@ async function confirmerDonPnj(encodedPnj) {
     const nomCourt = pnj.name.replace(' (PNJ)','');
     const expediteur = state.char?.name || 'Anonyme';
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     if (typeof sbDeposerDon === 'function') {
       await sbDeposerDon(nomCourt, montant, expediteur).catch(() => {});
     }
@@ -5914,7 +5918,7 @@ async function postulerOffreEmploiBNE(offreId) {
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2, '0');
-    const time = 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
     await sbSendMail('Bureau National de l\'Emploi', pjNom, 'Deux postes en même temps ?', corps, time).catch(() => {});
   }
   document.getElementById('modal-postes')?.classList.remove('open');

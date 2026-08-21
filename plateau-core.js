@@ -50,6 +50,19 @@ const PNJ_PERSONALITIES = {
   'Jodie Moitout':     { trait: "Journaliste micro-trottoir de L'Autruche Entravee. Tend son micro a n'importe qui, n'importe ou, n'importe quand. Les gens lui disent tout sans savoir pourquoi. Son sourire est une arme.", style: "enthousiasme journalistique communicatif, questions anodines aux reponses explosives, micro tendu en permanence" }
 };
 
+// Registre minimal nom PNJ -> photoUrl (correctif du 21 aout 2026, avatar de Jodie dans Mail/
+// Forum). Absent avant ce correctif : les photos de PNJ n'existaient jusqu'ici que localement,
+// declarees dans chaque room.persons[] de data.js (rendu des fiches PNJ en salle), jamais dans
+// une table consultable par nom seul -- getAvatarHtmlPourNom() (plateau-multijoueur.js), utilisee
+// par les avatars de mail/forum, n'avait donc aucune source pour un auteur PNJ et retombait
+// systematiquement sur l'icone generique. Meme URL EXACTE que celle deja declaree dans data.js
+// (persons[] du Forum Local et du Marche) -- aucun nouvel asset, aucune duplication. Rempli
+// uniquement pour Jodie ici (perimetre de ce correctif) ; a etendre au meme registre si d'autres
+// PNJ ont besoin d'un avatar hors contexte de salle.
+const PNJ_PHOTOS = {
+  'Jodie Moitout': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png'
+};
+
 // Fiches PNJ enrichies (audit du 8 aout 2026) — table separee de PNJ_PERSONALITIES,
 // meme cle (nom du PNJ, sans le suffixe "(PNJ)"). Remplissage partiel assume : la grande
 // majorite des PNJ n'ont AUCUNE entree ici, seuls quelques PNJ centraux sont enrichis.
@@ -466,14 +479,18 @@ window.addEventListener('DOMContentLoaded', () => {
     syncCyclesDepuisSupabase().then(() => verifierPostesVacants());
   }, 2000);
 
-  // Vérification mails toutes les 2 minutes
+  // Vérification mails toutes les minutes (réduit de 2 min à 1 min, correctif latence des
+  // voyants du 21 aout 2026 -- ce polling redevient un filet de sécurité en arrière-plan, la
+  // réactivité réelle vient désormais des déclenchements immédiats à l'ouverture de la
+  // messagerie, à la lecture d'un mail et au retour sur l'onglet, voir forum.js/plus haut).
   verifierNouveauxMails();
-  setInterval(verifierNouveauxMails, 120000);
+  setInterval(verifierNouveauxMails, 60000);
 
-  // Voyant d'activité forum (17 août 2026) — même cadence que la vérification des mails
+  // Voyant d'activité forum (17 août 2026) — même cadence que la vérification des mails, même
+  // raison de réduction
   if (typeof verifierActiviteForumNonVue === 'function') {
     verifierActiviteForumNonVue();
-    setInterval(verifierActiviteForumNonVue, 120000);
+    setInterval(verifierActiviteForumNonVue, 60000);
   }
 
   // Vérification des objets reçus (dons d'un autre joueur) toutes les 2 minutes
@@ -543,7 +560,14 @@ window.addEventListener('DOMContentLoaded', () => {
   setInterval(() => { if (typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion(); }, 300000);
   if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion();
+      if (document.visibilityState !== 'visible') return;
+      if (typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion();
+      // Correctif latence des voyants Mail/Forum (audit du 21 aout 2026) : reutilise ce MEME
+      // ecouteur deja existant (jamais un second addEventListener) -- resynchronise les deux
+      // voyants immediatement au retour sur l'onglet, plutot que de laisser l'ecart s'accumuler
+      // jusqu'au prochain passage du polling de fond (qui reste actif, en filet de securite).
+      if (typeof verifierNouveauxMails === 'function') verifierNouveauxMails();
+      if (typeof verifierActiviteForumNonVue === 'function') verifierActiviteForumNonVue();
     });
   }
 
@@ -822,11 +846,16 @@ function syncRealTime() {
   state.day = state.day || 1; // Le jour de jeu est incremente a minuit
 }
 
+// Horloge de la barre superieure (#game-time, plateau.html) -- element UNIQUE partage par toutes
+// les vues (rue, batiments, pieces : ce n'est pas duplique par vue, aucun autre reliquat a
+// corriger ailleurs). Correctif du 21 aout 2026 : affichait auparavant "Jour N" (compteur de
+// jours de jeu, sans utilite propre ici -- state.hour/state.minute sont deja synchronises sur
+// l'heure reelle de Paris via syncRealTime(), seul le prefixe "Jour N" restait fictif). Reutilise
+// formatDateHeureJeu() (deja la date reelle utilisee partout ailleurs dans le jeu pour les
+// horodatages), appelee chaque minute par startClock() -- pas de nouvelle logique temporelle.
 function updateClock() {
-  const h = String(state.hour).padStart(2,'0');
-  const m = String(state.minute||0).padStart(2,'0');
   const el = document.getElementById('game-time');
-  if (el) el.textContent = `Jour ${state.day} · ${h}h${m}`;
+  if (el) el.textContent = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
 }
 
 function advanceTime(pa) {
@@ -955,7 +984,10 @@ async function runMidnightUpdate() {
     }
   }
   // Regeneration naturelle des PV si le joueur a ete agresse
-  addJournalEntry(`Nouveau jour : Jour ${state.day}. La ville s'eveille.`, 'event-info');
+  // "Jour N" retire du texte (correctif du 21 aout 2026) : addJournalEntry() prefixe deja chaque
+  // entree d'un horodatage reel (formaterHorodatageJournal) -- redondant et fictif ici, sans
+  // utilite propre au-dela de celui deja affiche par le journal lui-meme.
+  addJournalEntry(`Nouveau jour. La ville s'eveille.`, 'event-info');
   updateClock();
 }
 
