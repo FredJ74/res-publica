@@ -671,14 +671,24 @@ function loadCharacter() {
   } catch(e) { console.warn('Erreur chargement personnage', e); }
 }
 
-// Si le joueur etait dans un batiment/piece avant de rafraichir, on l'y replace directement
+// Si le joueur etait dans un batiment/piece avant de rafraichir, on l'y replace directement.
+// Correctif du 21 aout 2026 (bug generique "refresh renvoie dans la rue", tous batiments/pieces
+// confondus, pas specifique au notaire) : le DOMContentLoaded (plus bas dans ce fichier) ecrit
+// state.char.currentBuilding/currentRoom = state.currentBuilding/currentRoom (encore null a cet
+// instant, avant que le setTimeout ci-dessous n'ait eu la moindre chance de s'executer) --
+// char etant LA MEME reference que state.char (voir applyCharToState), cette ecriture pollue
+// aussi l'objet que ce setTimeout s'appretait a lire 300ms plus tard, faisant systematiquement
+// avorter la restauration (garde-fou !char.currentBuilding a la relecture). Correctif : capturer
+// la cible dans des variables locales INDEPENDANTES de l'objet char/state.char des la validation
+// ci-dessus, avant de rendre la main -- le callback differe n'utilise plus jamais char directement.
 function restaurerPositionApresChargement(char) {
   if (!char.currentBuilding || !char.currentRoom) return;
   if (!BUILDINGS[char.currentBuilding] || !BUILDINGS[char.currentBuilding].rooms?.[char.currentRoom]) return;
+  const buildingCible = char.currentBuilding, roomCible = char.currentRoom;
   setTimeout(() => {
     try {
-      enterBuilding(char.currentBuilding, true);
-      enterRoom(char.currentBuilding, char.currentRoom, null);
+      enterBuilding(buildingCible, true);
+      enterRoom(buildingCible, roomCible, null);
     } catch(e) { console.warn('Erreur restauration position', e); }
   }, 300);
 }

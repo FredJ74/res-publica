@@ -2872,6 +2872,7 @@ async function doSignerCompromis(pa, cost) {
 async function doConfirmerCompromis(pa, cost) {
   const id = state.currentBuilding;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Signer un compromis')) return;
 
   const demandePret = document.getElementById('compromis-pret-check')?.checked;
   const montantPret = parseInt(document.getElementById('compromis-pret-montant')?.value || 0);
@@ -2952,6 +2953,7 @@ const ACOMPTE_ACHAT_DIRECT = 1000;
 async function doAcheterTerrain() {
   const id = state.currentBuilding;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Acheter ce terrain')) return;
 
   const dispo = terrainOrdreDisponible('acheter_terrain', id);
   if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
@@ -2996,6 +2998,7 @@ async function doAcheterTerrain() {
 // copropriete du conjoint). Reutilisee par la signature chez le notaire, que ce soit a
 // l'issue d'un compromis ou d'un achat direct avec rendez-vous.
 async function finaliserAchatTerrain(id, prix, surface, aPermis) {
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, "Finaliser l'achat")) return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const b = BUILDINGS[id];
   const localName = b?.shortName || b?.name || id;
@@ -3048,6 +3051,7 @@ async function finaliserAchatTerrain(id, prix, surface, aPermis) {
 // attente, contre corruption — meme principe que corrompre_fonctionnaire_permis.
 async function doCorrompreRdvNotaire(pa, cost) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Accélérer le rendez-vous')) return;
   const ts = getTerrainState(id);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 

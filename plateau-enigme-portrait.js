@@ -300,9 +300,29 @@ async function enigme1ChargerHistoriqueTerrains() {
   return ETAT_CIVIL_CACHE_TERRAINS;
 }
 
+// Successions reelles (chantier testament/succession, 20 aout 2026) -- distinct du registre
+// fictif ENIGME1_REGISTRE_SUCCESSIONS (jamais touche), meme doctrine de cache que
+// ETAT_CIVIL_CACHE_TERRAINS ci-dessus.
+let SUCCESSIONS_REELLES_CACHE = null;
+
+async function chargerSuccessionsReelles() {
+  if (SUCCESSIONS_REELLES_CACHE) return SUCCESSIONS_REELLES_CACHE;
+  try {
+    const toutes = (typeof sbGetToutesLesSuccessions === 'function') ? await sbGetToutesLesSuccessions(state.country) : [];
+    // Archives publiques : uniquement les dossiers integralement regles (architecture v4, 21
+    // aout 2026) -- une succession encore 'en_attente' ne doit jamais apparaitre ici, ses
+    // dispositions ne sont pas encore definitives et concernent d'abord les heritiers convoques
+    // (Bureau des Successions, "Réclamer un héritage"), pas le grand public.
+    SUCCESSIONS_REELLES_CACHE = (toutes || []).filter(function(s) { return s.statut === 'resolue'; });
+  } catch (e) {
+    SUCCESSIONS_REELLES_CACHE = [];
+  }
+  return SUCCESSIONS_REELLES_CACHE;
+}
+
 function enigme1RechercherArchivesNotariales(nomQuery) {
   const nomLower = (nomQuery || '').trim().toLowerCase();
-  if (!nomLower) return { parcelles: [], successions: [], terrainsReels: [] };
+  if (!nomLower) return { parcelles: [], successions: [], terrainsReels: [], successionsReelles: [] };
 
   const parcelles = ENIGME1_REGISTRE_PARCELLES.filter(function(p) {
     return p.parcelle.toLowerCase().indexOf(nomLower) !== -1 ||
@@ -328,7 +348,18 @@ function enigme1RechercherArchivesNotariales(nomQuery) {
     }
   });
 
-  return { parcelles: parcelles, successions: successions, terrainsReels: terrainsReels };
+  // Successions reelles : correspond par nom du defunt OU par nom du beneficiaire final resolu
+  // de l'une de ses dispositions (architecture v4, dispositions[].resultat.beneficiaire) -- le
+  // cache ne contient de toute facon que des dossiers 'resolue' (chargerSuccessionsReelles).
+  const successionsReelles = (SUCCESSIONS_REELLES_CACHE || []).filter(function(s) {
+    if ((s.defunt || '').toLowerCase().indexOf(nomLower) !== -1) return true;
+    const beneficiaires = (s.dispositions || [])
+      .map(function(d) { return d.resultat && d.resultat.beneficiaire; })
+      .filter(Boolean);
+    return beneficiaires.some(function(nom) { return nom.toLowerCase().indexOf(nomLower) !== -1; });
+  });
+
+  return { parcelles: parcelles, successions: successions, terrainsReels: terrainsReels, successionsReelles: successionsReelles };
 }
 
 function doConsulterArchivesNotariales() {
@@ -346,6 +377,7 @@ function doConsulterArchivesNotariales() {
   document.getElementById('modal-postes').classList.add('open');
 
   if (typeof enigme1ChargerHistoriqueTerrains === 'function') enigme1ChargerHistoriqueTerrains();
+  if (typeof chargerSuccessionsReelles === 'function') chargerSuccessionsReelles();
 }
 
 function enigme1LancerRechercheNotariale() {
@@ -360,7 +392,7 @@ function enigme1LancerRechercheNotariale() {
   }
 
   const res = enigme1RechercherArchivesNotariales(query);
-  if (res.parcelles.length === 0 && res.successions.length === 0 && res.terrainsReels.length === 0) {
+  if (res.parcelles.length === 0 && res.successions.length === 0 && res.terrainsReels.length === 0 && (res.successionsReelles || []).length === 0) {
     resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a3a20;font-style:italic">Aucun résultat.</div>';
     return;
   }
@@ -377,6 +409,11 @@ function enigme1LancerRechercheNotariale() {
     html += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">Succession — ' + s.defunt + '</span>';
     html += '</div>';
   });
+  (res.successionsReelles || []).forEach(function(s) {
+    html += '<div onclick="enigme1AfficherSuccessionReelle(\'' + s.id + '\')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
+    html += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">Succession de ' + escapeHtmlText(s.defunt) + '</span>';
+    html += '</div>';
+  });
   res.terrainsReels.forEach(function(t) {
     html += '<div onclick="enigme1AfficherTerrainReel(\'' + t.buildingId + '\')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
     html += '<span style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + t.nom + '</span>';
@@ -384,6 +421,44 @@ function enigme1LancerRechercheNotariale() {
   });
   html += '</div>';
   resultatsEl.innerHTML = html;
+}
+
+// Succession reelle archivee (chantier testament/succession, 20 aout 2026) -- distinct de
+// enigme1AfficherSuccession (registre fictif de l'enigme, non touche).
+function enigme1AfficherSuccessionReelle(id) {
+  const s = (SUCCESSIONS_REELLES_CACHE || []).find(function(x) { return x.id === id; });
+  if (!s) return;
+  const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[s.country]?.cur) || 'FR';
+  const dateTxt = (typeof formaterHorodatageJournal === 'function') ? formaterHorodatageJournal(s.created_at) : (s.created_at || '');
+
+  let html = '<div style="padding:1.2rem">';
+  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.05em;margin-bottom:.3rem">Succession de ' + escapeHtmlText(s.defunt) + '</div>';
+  html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.8rem">Ouverte le ' + dateTxt + '</div>';
+
+  // dispositions[] (architecture v4) : chaque disposition deja resolue (d.resultat, garanti par
+  // le filtre statut==='resolue' de chargerSuccessionsReelles) porte son beneficiaire final, ou
+  // null en cas de devolution a l'Etat (aucun heritier n'a accepte).
+  const lignes = (s.dispositions || []).map(function(d) {
+    const cibleTxt = (d.resultat && d.resultat.beneficiaire) ? escapeHtmlText(d.resultat.beneficiaire) : 'dévolution à l\'État';
+    if (d.type === 'argent') return (d.part_nette || 0).toLocaleString('fr-FR') + ' ' + cur + ' → ' + cibleTxt;
+    return escapeHtmlText(d.libelle || d.id) + ' → ' + cibleTxt;
+  });
+
+  if (lignes.length > 0) {
+    html += '<div style="display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem">';
+    lignes.forEach(function(l) { html += '<div style="font-size:.85rem;color:#e0d8c0">• ' + l + '</div>'; });
+    html += '</div>';
+  }
+
+  html += '<div style="font-size:.78rem;color:#8a8060;border-top:1px solid #2a2010;padding-top:.6rem">';
+  html += 'Argent brut : ' + (s.argent_brut_total || 0).toLocaleString('fr-FR') + ' ' + cur + '<br>';
+  html += 'Droits de succession prélevés : ' + (s.droits_total || 0).toLocaleString('fr-FR') + ' ' + cur + '<br>';
+  html += 'Part État : ' + (s.part_etat || 0).toLocaleString('fr-FR') + ' ' + cur + ' · Part Office notarial : ' + (s.part_notaire || 0).toLocaleString('fr-FR') + ' ' + cur;
+  html += '</div>';
+
+  html += '<button class="pnj-action-btn" onclick="doConsulterArchivesNotariales()" style="margin-top:1rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Nouvelle recherche</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
 }
 
 function enigme1AfficherTerrainReel(buildingId) {

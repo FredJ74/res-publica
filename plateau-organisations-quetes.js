@@ -324,8 +324,14 @@ async function remettreRecompenseQuete(quete) {
       // Re-verifier que le terrain est toujours libre (au cas ou quelqu'un l'aurait pris entre temps)
       const terrainsLibresActuels = await getTerrainsVraimentLibres(state.country);
       const stillLibre = terrainsLibresActuels.some(t => t.buildingId === terrainInfo.buildingId);
+      // Chemin technique protege par le gel successoral (n'appartient pas au metier
+      // Testament/Succession, voir rapport d'architecture) : une recompense de quete ne doit pas
+      // pouvoir attribuer un terrain actuellement immobilise par une succession en cours. Verifie
+      // directement le champ (pas refuserSiGele(), qui afficherait un toast redondant avec le
+      // message de repli deja existant ci-dessous en cas d'indisponibilite).
+      const gele = (typeof idSuccessionGelantActif === 'function') && !!(await idSuccessionGelantActif('terrain', terrainInfo.buildingId).catch(() => null));
 
-      if (stillLibre) {
+      if (stillLibre && !gele) {
         const profiles = TERRAIN_PNJ_PROFILES?.[state.country] || TERRAIN_PNJ_PROFILES?.republic || [];
         const squatterProfiles = profiles.filter(p => p.id === 'squatter_cool' || p.id === 'squatter_agr');
         const squatterChoisi = squatterProfiles[Math.floor(Math.random() * squatterProfiles.length)] || null;

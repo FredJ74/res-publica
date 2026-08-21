@@ -1855,11 +1855,15 @@ const BUILDINGS = {
         persons: [
           {name:'Claire Delhune (PNJ)', role:'Clerc de notaire', rel:'neutral', job:'clerc_notaire'}
         ],
-        // Les 2 ordres precedents (redaction_testament, consulter_succession) ont ete retires
-        // (refonte notaire, 20 aout 2026 -- audit prealable) : aucun n'avait de consequence
-        // metier reelle. Reste vide en attendant le futur lot Testament/Succession, qui
-        // occupera cette piece -- ne pas y ajouter d'ordre provisoire d'ici la.
-        orders: []
+        // redaction_testament/consulter_succession (ancien faux gameplay a jet) retires le 20
+        // aout 2026 -- remplaces par un veritable acte notarial deterministe (chantier
+        // testament/succession). Cout 1 PA/200 FR propose par analogie avec demander_divorce
+        // (meme registre : acte administratif personnel majeur, deterministe, pas de jet) --
+        // aucun cout canonique existant pour un testament specifiquement, a valider (voir rapport).
+        orders: [
+          {fn:'gerer_testament', label:'Rédiger / modifier son testament', pa:1, cost:200, type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Désigner un ou plusieurs bénéficiaires pour vos terrains, entreprises et votre argent. Un acte déterministe : aucun jet, aucun échec possible.'},
+          {fn:'reclamer_heritage', label:'Réclamer un héritage', pa:0, cost:0, type:'legal', icon:'ti-file-import', successRate:100, desc:'Consulter les successions ouvertes ou vous êtes concerné, et répondre aux dispositions qui vous concernent. Gratuit, déterministe : aucun jet.'}
+        ]
       },
       bureau_contrats: {
         name: "Bureau des Contrats",

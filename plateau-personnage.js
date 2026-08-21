@@ -604,88 +604,770 @@ function ouvrirModalDetruirePersonnage() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// Transfere les biens (argent + biens immobiliers) du defunt vers le conjoint survivant,
-// avec 33% de droits de succession preleves sur la part recue (50% du patrimoine du defunt)
-async function traiterSuccession(defunt, conjointSurvivant) {
-  const TAUX_DROITS_SUCCESSION = 0.33;
-  let biensHerites = [];
+// =====================
+// SUCCESSION DIFFEREE (architecture v4, 21 aout 2026) -- remplace entierement l'ancien flux
+// synchrone (planifierSuccession/executerSuccession, transmission immediate) : plus aucun
+// transfert au moment du deces. ouvrirSuccession() cree un dossier successoral autonome
+// (statut 'en_attente'), gele les actifs concernes, enregistre les premieres convocations
+// (10 jours reels chacune) et nettoie les engagements du defunt -- rien n'est transfere ici.
+// Le reglement reel (transferts, credits, degel) n'a lieu que plus tard, exclusivement par le
+// cron (resoudreSuccessionsExpirees, api/cron-minuit.js), sur des dispositions independantes
+// les unes des autres.
+//
+// Fail-closed a l'ouverture : chaque ecriture critique (ligne successions, gel de chaque actif,
+// nettoyage des engagements) est verifiee explicitement. confirmerDestructionPersonnage()
+// n'appelle JAMAIS sbDeletePersonnage() si ouvrirSuccession() echoue a un stade quelconque.
+// Limite assumee (aucune transaction multi-table reelle cote Supabase REST) : si une ecriture
+// reussit puis qu'une suivante de la MEME ouverture echoue, les ecritures deja faites ne sont pas
+// annulees -- mais le personnage n'est alors jamais supprime, donc recuperable manuellement
+// (voir rapport d'implementation pour le detail des risques residuels).
+// =====================
 
-  // 1. Argent EN BANQUE du defunt — transmis a 100%, moins 33% de droits (conjoint recupere 67%)
-  const argentBanque = state.banque || 0;
-  const droitsArgent = Math.floor(argentBanque * TAUX_DROITS_SUCCESSION);
-  const montantHerite = argentBanque - droitsArgent;
+const TAUX_DROITS_SUCCESSION = 0.33;
+const PART_ETAT_DROITS_SUCCESSION = 0.90; // part notaire = droits - part Etat, jamais de FR perdu a l'arrondi
+const DELAI_CONVOCATION_MS = 10 * 24 * 60 * 60 * 1000; // 10 jours reels, toutes les convocations (principal/remplacant/conjoint legal)
 
-  // 1bis. Argent LIQUIDE du defunt — ne suit pas la succession, reste au sol dans la piece (comme un objet abandonne)
-  const argentLiquide = state.liquide || 0;
-  if (argentLiquide > 0 && typeof sbAbandonnerObjet === 'function' && state.currentBuilding && state.currentRoom) {
-    await sbAbandonnerObjet(
-      { id: 'liquide-succession-' + Date.now(), name: 'Liasse de billets', icon: 'ti-cash', desc: 'De l\'argent liquide trouvé sur place : ' + argentLiquide.toLocaleString('fr-FR') + ' FR.', type: 'argent_liquide', montant: argentLiquide, legal: true },
-      state.country, state.currentCity, state.currentBuilding, state.currentRoom
-    ).catch(() => {});
+// Verifie qu'un nom correspond reellement a un personnage existant -- utilise a la fois pour
+// valider les dispositions d'un testament au moment de sa redaction ET pour REVALIDER chaque
+// beneficiaire au moment ou la succession s'ouvre reellement (jamais de confiance dans une
+// existence verifiee au moment de la redaction, qui peut dater de tres longtemps -- section 5).
+async function personnageExisteReellement(nom) {
+  if (!nom || typeof sbGet !== 'function') return false;
+  const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(nom) + '&select=name').catch(() => null);
+  return !!(rows && rows.length > 0);
+}
+
+// Determine la toute premiere etape de la chaine de convocation d'UNE disposition (bien ou part
+// d'argent), en cascadant principal -> remplacant -> conjoint legal -> aucune (chaine vide,
+// resolue directement par le cron a son prochain passage, sans attente artificielle -- section 8,
+// resolution anticipee). Un principal/remplacant designe par testament mais INEXISTANT au moment
+// de l'ouverture (section 5) est traite exactement comme s'il avait renonce : on cascade au
+// palier suivant, jamais de transmission a un nom qui ne correspond plus a personne.
+async function determinerChaineInitiale(dispositionTestament, conjointNom) {
+  const maintenant = Date.now();
+  const expiresAt = new Date(maintenant + DELAI_CONVOCATION_MS).toISOString();
+  const convoqueLe = new Date(maintenant).toISOString();
+
+  const principal = dispositionTestament?.beneficiaire || null;
+  if (principal && await personnageExisteReellement(principal)) {
+    return [{ role: 'principal', beneficiaire: principal, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null }];
   }
+  const remplacant = dispositionTestament?.remplacant || null;
+  if (remplacant && await personnageExisteReellement(remplacant)) {
+    return [{ role: 'remplacant', beneficiaire: remplacant, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null }];
+  }
+  if (conjointNom) {
+    return [{ role: 'legal_conjoint', beneficiaire: conjointNom, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null }];
+  }
+  return [];
+}
 
-  // 1ter. Objets de l'inventaire du defunt — ne suivent pas non plus la succession, restent au sol
-  if (state.inventory?.length > 0 && typeof sbAbandonnerObjet === 'function' && state.currentBuilding && state.currentRoom) {
-    for (const objet of state.inventory) {
-      await sbAbandonnerObjet(objet, state.country, state.currentCity, state.currentBuilding, state.currentRoom).catch(() => {});
+// Determine l'etape SUIVANTE de la chaine d'une disposition, une fois que son etape courante
+// (roleActuel) vient de se solder par une renonciation -- explicite (doRepondreHeritage) ou
+// tacite (cron, silence a l'echeance). Meme cascade que determinerChaineInitiale, mais amorcee a
+// partir du role qui vient de renoncer plutot que depuis le testament brut, et jamais reconvoque
+// un role deja present dans la chaine (une disposition ne revient jamais en arriere). Reutilisee
+// telle quelle cote client (reponse explicite) ; le cron (resoudreSuccessionsExpirees) en
+// implemente une copie fonctionnellement identique dans son propre idiome raw-fetch (aucun code
+// partage possible entre les deux runtimes, cf. doctrine du gel).
+async function determinerEtapeSuivante(disposition, roleActuel, conjointNom) {
+  const maintenant = Date.now();
+  const expiresAt = new Date(maintenant + DELAI_CONVOCATION_MS).toISOString();
+  const convoqueLe = new Date(maintenant).toISOString();
+  const dejaConvoques = new Set((disposition.chaine || []).map(e => e.role));
+
+  if (roleActuel === 'principal' && disposition.remplacant_prevu && !dejaConvoques.has('remplacant')) {
+    if (await personnageExisteReellement(disposition.remplacant_prevu)) {
+      return { role: 'remplacant', beneficiaire: disposition.remplacant_prevu, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null };
     }
   }
+  if (roleActuel !== 'legal_conjoint' && conjointNom && !dejaConvoques.has('legal_conjoint')) {
+    return { role: 'legal_conjoint', beneficiaire: conjointNom, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null };
+  }
+  return null;
+}
 
-  // 2. Biens immobiliers du defunt — transferer la pleine propriete au conjoint.
-  // Droits de 33% calcules sur la MOITIE de la valeur du bien (l'autre moitie appartenait deja au conjoint)
-  if (typeof sbGetTousLesBiensDe === 'function' && typeof sbSetTerrainState === 'function') {
-    try {
-      const biens = await sbGetTousLesBiensDe(defunt);
-      for (const bien of biens) {
-        let etat = {};
-        try { etat = JSON.parse(bien.data); } catch(e) {}
-        const valeurBien = (typeof getValeurTotaleBien === 'function') ? getValeurTotaleBien(etat) : 25000;
-        const moitieValeur = Math.floor(valeurBien * 0.5);
-        const droitsBien = Math.floor(moitieValeur * TAUX_DROITS_SUCCESSION);
+// Ouvre une succession complete : photographie le patrimoine, calcule la fiscalite globale une
+// seule fois, construit les dispositions avec leurs premieres convocations, cree la ligne
+// successions, gele les actifs, nettoie les engagements du defunt. defunt est TOUJOURS le
+// personnage actuellement connecte (seul appelant : confirmerDestructionPersonnage) -- l'argent
+// de banque est donc lu directement depuis state, deja la source la plus fraiche possible ici.
+//
+// IDEMPOTENCE (verification demandee le 21 aout 2026) : si une tentative precedente a deja cree
+// la ligne successions mais a echoue plus loin (ex. gel partiel : 2 actifs geles, le 3e echoue),
+// confirmerDestructionPersonnage() n'a PAS supprime le personnage -- le joueur peut relancer la
+// destruction. Sans garde-fou, cette relance recalculerait tout depuis zero et creerait une
+// DEUXIEME ligne 'en_attente' pour le meme defunt (dispositions dupliquees, succession_gel de
+// certains actifs bascule vers le nouvel id, l'ancienne ligne devient orpheline). Le garde-fou :
+// avant tout calcul, on cherche une succession 'en_attente' deja existante pour ce defunt ; si
+// elle existe, on la REPREND telle quelle (id, dispositions, montants fiscaux deja figes -- rien
+// n'est recalcule, meme si le solde du defunt a change entre deux tentatives) et on retente
+// uniquement les etapes qui restent (gel/nettoyage), qui sont toutes naturellement rejouables
+// sans effet de bord (re-ecrire succession_gel=successionId sur un actif deja gele, ou relire un
+// compromis/pret deja nettoye qui n'apparait alors simplement plus dans le scan, est un no-op).
+// Defense en profondeur cote base : index unique partiel sur successions(defunt) WHERE
+// statut='en_attente' (voir migration_testament_succession.sql), qui ferait de toute facon
+// echouer une deuxieme creation concurrente (ex. double-clic rapide / deux onglets) meme si ce
+// garde-fou client venait a manquer.
+async function ouvrirSuccession(defunt, country) {
+  if (!defunt) return { ok: false, raison: 'defunt_manquant' };
 
-        // Le conjoint devient seul proprietaire (les deux parts fusionnent)
-        await sbSetTerrainState(bien.country, bien.building_id, {
-          ...etat,
-          proprietaire: conjointSurvivant,
-          coproprietaire: null
-        }).catch(() => {});
+  let successionExistante = null;
+  if (typeof sbGetSuccessionsEnAttente === 'function') {
+    const enAttente = await sbGetSuccessionsEnAttente(country).catch(() => undefined);
+    if (enAttente === undefined) return { ok: false, raison: 'lecture_successions_impossible' };
+    successionExistante = (enAttente || []).find(s => s.defunt === defunt) || null;
+  }
 
-        biensHerites.push({ buildingId: bien.building_id, valeur: valeurBien, droits: droitsBien });
+  // Conjoint -- toujours relu (lecture seule, cout negligeable), y compris en reprise : sert
+  // uniquement a la dissolution best-effort du mariage par l'appelant, n'affecte jamais
+  // successions.conjoint qui reste fige des la creation initiale de la ligne.
+  let mariageId = null;
+  if (typeof sbGetMariageActif === 'function') {
+    const mariage = await sbGetMariageActif(defunt).catch(() => undefined);
+    if (mariage === undefined) return { ok: false, raison: 'lecture_mariage_impossible' };
+    if (mariage) mariageId = mariage.id;
+  }
+
+  let successionId, dispositions, testamentId, conjointNom = null;
+
+  if (successionExistante) {
+    // Reprise stricte : aucune relecture de testament/terrains/entreprises, aucun recalcul
+    // fiscal -- la ligne deja creee est l'unique source de verite pour cette succession.
+    successionId = successionExistante.id;
+    dispositions = successionExistante.dispositions || [];
+    testamentId = successionExistante.testament_id || null;
+    conjointNom = successionExistante.conjoint || null;
+  } else {
+    // 1. Testament actif eventuel
+    let testament = null;
+    if (typeof sbGetTestamentActif === 'function') {
+      testament = await sbGetTestamentActif(defunt).catch(() => undefined);
+      if (testament === undefined) return { ok: false, raison: 'lecture_testament_impossible' };
+    }
+
+    // 2. Conjoint -- revalide reellement son existence (section 9 de l'audit). Simple snapshot
+    // informatif (successions.conjoint) : ne porte JAMAIS d'echeance propre -- distinct des
+    // eventuelles etapes 'legal_conjoint' des chaines de dispositions individuelles (section 1
+    // de l'architecture v4). Assigne a la variable de portee EXTERIEURE (declaree juste avant le
+    // if/else) -- pas de redeclaration locale, le mail de convocation (etape 13) et le retour de
+    // la fonction en dependent tous les deux, que l'ouverture vienne d'etre creee ou reprise.
+    if (mariageId && typeof sbGetMariageActif === 'function') {
+      const mariage = await sbGetMariageActif(defunt).catch(() => undefined);
+      if (mariage) {
+        const nomConjoint = mariage.conjoint1 === defunt ? mariage.conjoint2 : mariage.conjoint1;
+        conjointNom = (await personnageExisteReellement(nomConjoint)) ? nomConjoint : null;
       }
-    } catch(e) { console.warn('Erreur transfert biens succession', e); }
+    }
+
+    // 3. Terrains/batiments/locaux possedes -- vraie primitive (sbGetTousLesBiensDe corrigee :
+    // elle n'a jamais existe nulle part).
+    let terrains = [];
+    if (typeof sbGetTerrainsPossedesPar === 'function') {
+      const r = await sbGetTerrainsPossedesPar(country, defunt).catch(() => undefined);
+      if (r === undefined) return { ok: false, raison: 'lecture_terrains_impossible' };
+      terrains = r || [];
+    }
+
+    // 4. Entreprises possedees (liste fixe et petite, meme scan que rechercherDossierNotarial)
+    let entreprises = [];
+    if (typeof getEntreprisesRachetables === 'function') {
+      for (const def of getEntreprisesRachetables()) {
+        const data = await def.charger().catch(() => undefined);
+        if (data === undefined) return { ok: false, raison: 'lecture_entreprises_impossible' };
+        if (data && data.proprietaire === defunt) entreprises.push({ id: def.id, label: def.label });
+      }
+    }
+
+    // 5. Fiscalite globale (section 1/9 des arbitrages) : calculee UNE SEULE FOIS sur la masse
+    // totale, jamais recalculee par disposition. argentBrutTotal = solde bancaire du defunt au
+    // moment de l'ouverture (l'argent liquide et l'inventaire restent hors perimetre, point 9).
+    const argentBrutTotal = state.banque || 0;
+    const droitsTotal = Math.floor(argentBrutTotal * TAUX_DROITS_SUCCESSION);
+    const partEtat = Math.floor(droitsTotal * PART_ETAT_DROITS_SUCCESSION);
+    const partNotaire = droitsTotal - partEtat;
+    const argentNetTotal = argentBrutTotal - droitsTotal;
+
+    // 6. Construction des dispositions -- une par terrain/entreprise possede, plus une par part
+    // d'argent testamentaire (ou une seule pour la totalite si aucun testament exploitable).
+    // regle:false des la creation -- marqueur de reglement (transfert/credit reellement execute
+    // par le cron), distinct de resultat (decision successorale tranchee) : voir reglerSuccession,
+    // api/cron-minuit.js.
+    const contenu = testament?.contenu || {};
+    const biensTestament = {};
+    (contenu.biens || []).forEach(b => { if (b?.id) biensTestament[b.id] = b; });
+
+    dispositions = [];
+    for (const t of terrains) {
+      const dt = biensTestament[t.buildingId];
+      const chaine = await determinerChaineInitiale(dt, conjointNom);
+      dispositions.push({
+        id: t.buildingId, type: 'terrain',
+        libelle: BUILDINGS[t.buildingId]?.shortName || BUILDINGS[t.buildingId]?.name || t.buildingId,
+        remplacant_prevu: dt?.remplacant || null,
+        chaine, etat: 'en_attente', resultat: null, regle: false
+      });
+    }
+    for (const e of entreprises) {
+      const dt = biensTestament[e.id];
+      const chaine = await determinerChaineInitiale(dt, conjointNom);
+      dispositions.push({ id: e.id, type: 'entreprise', libelle: e.label, remplacant_prevu: dt?.remplacant || null, chaine, etat: 'en_attente', resultat: null, regle: false });
+    }
+
+    if (argentNetTotal > 0) {
+      const partsArgentTestament = (contenu.argent || []).filter(p => p?.beneficiaire && p?.pourcentage);
+      if (partsArgentTestament.length > 0) {
+        // Reliquat d'arrondi affecte a la PREMIERE part dans l'ordre du testament (deterministe,
+        // section 1) -- montant fixe des l'ouverture, independant de qui l'acceptera au final.
+        let distribue = 0;
+        const montants = partsArgentTestament.map((p, i) => {
+          if (i === 0) return null; // calcule apres coup, reçoit le reliquat
+          const m = Math.floor(argentNetTotal * (p.pourcentage / 100));
+          distribue += m;
+          return m;
+        });
+        montants[0] = argentNetTotal - distribue;
+        for (let i = 0; i < partsArgentTestament.length; i++) {
+          const p = partsArgentTestament[i];
+          const chaine = await determinerChaineInitiale({ beneficiaire: p.beneficiaire, remplacant: p.remplacant }, conjointNom);
+          dispositions.push({ id: 'argent-' + (i + 1), type: 'argent', part_nette: montants[i], remplacant_prevu: p.remplacant || null, chaine, etat: 'en_attente', resultat: null, regle: false });
+        }
+      } else {
+        // Aucun testament exploitable pour l'argent : une seule disposition pour la totalite
+        // nette, cascade directement sur le conjoint legal (pas de "principal" testamentaire ici).
+        const chaine = await determinerChaineInitiale(null, conjointNom);
+        dispositions.push({ id: 'argent-1', type: 'argent', part_nette: argentNetTotal, remplacant_prevu: null, chaine, etat: 'en_attente', resultat: null, regle: false });
+      }
+    }
+
+    // 7. Creer la ligne successions (avant tout gel, section 4 des arbitrages) -- photographie
+    // fiscale globale + dispositions completes, statut 'en_attente'. Protegee cote base par un
+    // index unique partiel sur (defunt) WHERE statut='en_attente' : une creation concurrente pour
+    // le meme defunt (ex. double-clic) echoue proprement ici (rCreation falsy), sans jamais
+    // produire deux lignes 'en_attente'.
+    successionId = 'succession-' + Date.now();
+    testamentId = testament?.id || null;
+    if (typeof sbCreerSuccession !== 'function') return { ok: false, raison: 'primitive_succession_indisponible' };
+    const rCreation = await sbCreerSuccession({
+      id: successionId, defunt, country, testament_id: testamentId,
+      statut: 'en_attente', conjoint: conjointNom,
+      argent_brut_total: argentBrutTotal, droits_total: droitsTotal, part_etat: partEtat, part_notaire: partNotaire, argent_net_total: argentNetTotal,
+      dispositions
+    });
+    if (!rCreation) return { ok: false, raison: 'echec_creation_succession' };
   }
 
-  // 3. Crediter reellement l'argent de banque herite via le systeme de vols_en_attente (reutilise comme
-  // mecanisme generique de credit differe a la prochaine connexion du beneficiaire)
-  if (montantHerite > 0 && typeof sbDeposerVol === 'function') {
-    await sbDeposerVol({
-      id: 'succession-' + Date.now(),
-      victime: conjointSurvivant, // "victime" au sens technique du champ, ici beneficiaire d'un credit positif
-      voleur: 'Succession',
-      type_butin: 'argent',
-      montant: -montantHerite, // montant negatif = credit (la fonction de reprise fait state.arg -= montant)
-      objet_id: null,
-      traite: false
-    }).catch(() => {});
+  // 8. Gel de tous les terrains/entreprises concernes -- derive des DISPOSITIONS elles-memes
+  // (frozen des la creation de la ligne), jamais d'un nouveau scan d'ownership : coherent aussi
+  // bien en creation qu'en reprise, et rejouable sans risque (re-ecrire succession_gel=successionId
+  // sur un actif deja gele par CETTE meme succession est un no-op). Chaque ecriture verifiee,
+  // arret immediat au premier echec (section 2 des arbitrages).
+  for (const d of dispositions) {
+    if (d.type === 'terrain') {
+      await chargerTerrainState(d.id);
+      const ts = getTerrainState(d.id);
+      if (!ts) return { ok: false, raison: 'echec_gel_terrain', detail: d.id };
+      const r = await sbSetTerrainState(country, d.id, { ...ts, succession_gel: successionId });
+      if (!r) return { ok: false, raison: 'echec_gel_terrain', detail: d.id };
+    } else if (d.type === 'entreprise') {
+      const def = getEntrepriseRachetable(d.id);
+      const data = def ? await def.charger().catch(() => null) : null;
+      if (!data) return { ok: false, raison: 'echec_gel_entreprise', detail: d.id };
+      const r = await sbSaveEntreprise(d.id, { ...data, succession_gel: successionId });
+      if (!r) return { ok: false, raison: 'echec_gel_entreprise', detail: d.id };
+    }
   }
 
-  // 4. Notifier le conjoint survivant par mail
+  // 9. Compromis en cours ou le defunt est ACHETEUR sur un bien qui n'est pas le sien (y compris
+  // transfertPropose === defunt : un tiers lui proposait de reprendre SON compromis) -- annules a
+  // l'ouverture, jamais transmis (section 6). Rescanne a chaque tentative (creation ou reprise) :
+  // naturellement idempotent, un compromis deja nettoye n'apparait simplement plus dans le scan.
+  const compromisTerrainsAAnnuler = [];
+  if (typeof getTousLesTerrainsPays === 'function' && typeof chargerTerrainState === 'function' && typeof getTerrainState === 'function') {
+    for (const id of getTousLesTerrainsPays()) {
+      await chargerTerrainState(id);
+      const ts = getTerrainState(id);
+      if (!ts || ts.proprietaire === defunt) continue; // deja traite comme bien possede au point 8 (gel)
+      if ((ts.compromis && ts.compromisPar === defunt) || (ts.achatDirect && ts.achatDirect.demandeur === defunt) || ts.transfertPropose === defunt) {
+        compromisTerrainsAAnnuler.push(id);
+      }
+    }
+  }
+  const compromisEntreprisesAAnnuler = [];
+  if (typeof getEntreprisesRachetables === 'function') {
+    for (const def of getEntreprisesRachetables()) {
+      const data = await def.charger().catch(() => undefined);
+      if (data === undefined) return { ok: false, raison: 'lecture_entreprises_impossible' };
+      if (data && data.proprietaire !== defunt && data.compromis && data.compromisPar === defunt) {
+        compromisEntreprisesAAnnuler.push(def.id);
+      }
+    }
+  }
+
+  // 10. Dettes en cours -- eteintes, jamais transmises (section 6). Meme remarque d'idempotence
+  // naturelle : une dette deja passee au statut 'succession' ne ressort plus de ce scan.
+  let prets = [];
+  if (typeof sbGetPretsEnCours === 'function') {
+    const r = await sbGetPretsEnCours(defunt).catch(() => undefined);
+    if (r === undefined) return { ok: false, raison: 'lecture_prets_impossible' };
+    prets = r || [];
+  }
+
+  // 11. Nettoyage des engagements du defunt sur des biens qui ne sont pas les siens (section 6 +
+  // transfertPropose === defunt, section 4 des arbitrages).
+  for (const id of compromisTerrainsAAnnuler) {
+    await chargerTerrainState(id);
+    const ts = getTerrainState(id);
+    const nettoye = { ...ts, compromis: null, compromisPar: null, acompte: null, compromisAt: null, compromisExpireAt: null, achatDirect: null, transfertPropose: null, transfertProposePar: null };
+    const r = await sbSetTerrainState(country, id, nettoye);
+    if (!r) return { ok: false, raison: 'echec_nettoyage_compromis_terrain', detail: id };
+  }
+  for (const id of compromisEntreprisesAAnnuler) {
+    const def = getEntrepriseRachetable(id);
+    const data = def ? await def.charger().catch(() => null) : null;
+    if (!data) return { ok: false, raison: 'echec_nettoyage_compromis_entreprise', detail: id };
+    const nettoye = { ...data, compromis: null, compromisPar: null, acompte: null, compromisAt: null, compromisExpireAt: null, pretDemande: null };
+    const r = await sbSaveEntreprise(id, nettoye);
+    if (!r) return { ok: false, raison: 'echec_nettoyage_compromis_entreprise', detail: id };
+  }
+
+  // 12. Dettes eteintes (section 6) -- nouveau statut 'succession' (ni 'rembourse' ni 'saisi',
+  // les deux seuls statuts de cloture existants cote cron, ne decrivent pas ce cas -- voir rapport).
+  for (const pret of prets) {
+    const r = await sbUpdatePret(pret.id, { statut: 'succession' });
+    if (!r) return { ok: false, raison: 'echec_extinction_pret', detail: pret.id };
+  }
+
+  // 13. Convocations par mail -- best-effort (information/convocation, jamais le point d'entree
+  // fonctionnel reel : "Réclamer un héritage" chez le notaire reste la source de verite, section
+  // 2 des derniers arbitrages). Un echec d'envoi ne bloque jamais l'ouverture.
   if (typeof sbSendMail === 'function') {
-    const totalDroitsBiens = biensHerites.reduce((s, b) => s + b.droits, 0);
-    let corps = (defunt) + ' a quitté ce monde. En tant que conjoint(e) survivant(e), vous héritez de :<br><br>';
-    corps += '- ' + montantHerite.toLocaleString('fr-FR') + ' FR de banque (après ' + droitsArgent.toLocaleString('fr-FR') + ' FR de droits de succession)<br>';
-    if (biensHerites.length > 0) {
-      corps += '- ' + biensHerites.length + ' bien(s) immobilier(s), désormais en pleine propriété<br>';
-      corps += '- Droits de succession sur les biens : ' + totalDroitsBiens.toLocaleString('fr-FR') + ' FR (à régler séparément)<br>';
+    const dejaConvoques = new Set();
+    for (const d of dispositions) {
+      const etape = d.chaine[d.chaine.length - 1];
+      if (!etape || dejaConvoques.has(etape.beneficiaire)) continue;
+      dejaConvoques.add(etape.beneficiaire);
+      await sbSendMail('Office Notarial', etape.beneficiaire, 'Succession — ' + defunt,
+        defunt + ' est décédé(e). Vous êtes convoqué(e) au sujet d\'une succession. Rendez-vous au Bureau des Successions de l\'Office Notarial de Luthécia, rubrique « Réclamer un héritage », pour consulter et répondre.', '').catch(() => {});
     }
-    if (argentLiquide > 0) {
-      corps += '- Note : ' + argentLiquide.toLocaleString('fr-FR') + ' FR en liquide ont été laissés sur place, à récupérer physiquement si quelqu\'un ne les a pas pris avant vous.<br>';
+    if (conjointNom) {
+      await sbSendMail('Office Notarial', conjointNom, 'Succession — ' + defunt,
+        defunt + ', votre conjoint(e), est décédé(e). En tant que conjoint(e) survivant(e), vous pouvez consulter l\'ensemble du règlement successoral au Bureau des Successions de l\'Office Notarial de Luthécia, rubrique « Réclamer un héritage ».', '').catch(() => {});
     }
-    const time = 'Succession';
-    await sbSendMail('Notaire', conjointSurvivant, 'Succession — ' + defunt, corps, time).catch(() => {});
   }
 
-  addExternalEvent('⚱️ ' + defunt + ' a quitté ce monde. Succession réglée avec ' + conjointSurvivant + '.', 'local');
+  // 14. Testament consomme (s'il existait) -- best-effort (bookkeeping), idempotent par nature
+  // (repasser un testament deja 'execute' a 'execute' ne change rien).
+  if (testamentId && typeof sbMarquerTestamentStatut === 'function') {
+    await sbMarquerTestamentStatut(testamentId, 'execute').catch(() => {});
+  }
+
+  return { ok: true, successionId, mariageId };
+}
+
+// =====================
+// RECLAMER UN HERITAGE -- point d'entree fonctionnel reel des successions (Bureau des
+// Successions, 0 PA/0 FR, deterministe -- section 2 des derniers arbitrages). Le mail de
+// convocation envoye par ouvrirSuccession() n'est qu'une notification best-effort : sa perte,
+// son archivage ou un echec d'envoi ne doit jamais empecher un heritier d'agir ici. Un legataire
+// ordinaire ne voit QUE ses dispositions actives ; le conjoint (successions.conjoint) voit en
+// plus l'integralite du testament/des dispositions, sans que cela ne lui ouvre de decision sur
+// une disposition qui ne le concerne pas encore reellement (chaine[].role === 'legal_conjoint'
+// uniquement quand elle l'atteint effectivement).
+// =====================
+
+function libelleDispositionSuccession(d) {
+  if (d.type === 'argent') return (d.part_nette || 0).toLocaleString('fr-FR') + ' FR';
+  return d.libelle || d.id;
+}
+
+async function doReclamerHeritage() {
+  document.getElementById('postes-modal-title').textContent = 'Réclamer un héritage';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const nom = state.char?.name;
+  const country = state.country || 'republic';
+  const successions = (typeof sbGetSuccessionsEnAttente === 'function') ? await sbGetSuccessionsEnAttente(country).catch(() => []) : [];
+
+  const pertinentes = [];
+  for (const s of (successions || [])) {
+    const estConjoint = s.conjoint === nom;
+    const dispositions = s.dispositions || [];
+    const dispositionsActives = dispositions.filter(d => {
+      const chaine = d.chaine || [];
+      const etape = chaine[chaine.length - 1];
+      return etape && etape.beneficiaire === nom && etape.reponse === null;
+    });
+    if (estConjoint || dispositionsActives.length > 0) pertinentes.push({ succession: s, estConjoint, dispositionsActives });
+  }
+
+  if (pertinentes.length === 0) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Aucune succession ne vous concerne actuellement.</div>';
+    return;
+  }
+
+  let html = '<div style="padding:1rem">';
+  pertinentes.forEach(p => { html += renderSuccessionPourHeritier(p.succession, p.estConjoint, p.dispositionsActives, nom); });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+function renderSuccessionPourHeritier(s, estConjoint, dispositionsActives, nom) {
+  const dateTxt = (typeof formaterHorodatageJournal === 'function') ? formaterHorodatageJournal(s.created_at) : (s.created_at || '');
+  let html = '<div style="border:1px solid #2a2010;padding:1rem;margin-bottom:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:.05em;color:#c9a44c;margin-bottom:.4rem">Succession de ' + escapeHtmlText(s.defunt) + '</div>';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.7rem">Ouverte le ' + dateTxt + '.</div>';
+
+  if (estConjoint) {
+    // Vue globale, purement informative -- aucun bouton ici (une decision reelle ne peut porter
+    // que sur une disposition ou 'legal_conjoint' est effectivement l'etape courante, listee a
+    // part ci-dessous dans dispositionsActives).
+    html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">Dispositions testamentaires</div>';
+    const dispositions = s.dispositions || [];
+    if (dispositions.length === 0) {
+      html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">Aucun bien ni somme à transmettre.</div>';
+    }
+    dispositions.forEach(d => {
+      const chaine = d.chaine || [];
+      const etape = chaine[chaine.length - 1];
+      const cible = d.resultat ? d.resultat.beneficiaire : (etape ? etape.beneficiaire : null);
+      const cibleTxt = cible ? escapeHtmlText(cible) : 'dévolution à l\'État';
+      html += '<div style="font-size:.85rem;color:#e0d8c0;margin-bottom:.25rem">• ' + escapeHtmlText(libelleDispositionSuccession(d)) + ' → ' + cibleTxt + '</div>';
+    });
+    html += '<div style="margin-top:.8rem"></div>';
+  }
+
+  if (dispositionsActives.length > 0) {
+    html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em">' + (estConjoint ? 'Vos décisions en attente' : 'Le défunt vous a légué') + '</div>';
+    dispositionsActives.forEach(d => {
+      const chaine = d.chaine || [];
+      const etape = chaine[chaine.length - 1];
+      const expTxt = (typeof formaterHorodatageJournal === 'function') ? formaterHorodatageJournal(etape.expires_at) : etape.expires_at;
+      html += '<div style="border-top:1px solid #2a2010;padding-top:.6rem;margin-top:.6rem">';
+      html += '<div style="font-size:.85rem;color:#e0d8c0;margin-bottom:.3rem">' + escapeHtmlText(libelleDispositionSuccession(d)) + '</div>';
+      html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.5rem">Vous avez jusqu\'au ' + expTxt + ' pour répondre. Passé ce délai, la disposition sera considérée comme refusée.</div>';
+      html += '<div style="display:flex;gap:.5rem">';
+      html += '<button onclick="doRepondreHeritage(\'' + s.id + '\',\'' + d.id + '\',\'accepte\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #2a6a2a;background:transparent;color:#4a8a4a;cursor:pointer">Accepter</button>';
+      html += '<button onclick="doRepondreHeritage(\'' + s.id + '\',\'' + d.id + '\',\'renonce\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Renoncer</button>';
+      html += '</div></div>';
+    });
+  }
+
+  html += '</div>';
+  return html;
+}
+
+// Enregistre la reponse d'un heritier a UNE disposition precise. N'effectue AUCUN transfert
+// patrimonial : le reglement reel reste exclusivement du ressort du cron (resoudreSuccessionsExpirees).
+// En cas de renonciation, fait avancer immediatement la chaine vers l'etape suivante (remplacant
+// ou conjoint legal) plutot que d'attendre artificiellement l'echeance -- meme doctrine de
+// resolution anticipee que le cron applique de son cote pour le silence.
+async function doRepondreHeritage(successionId, dispositionId, reponse) {
+  const nom = state.char?.name;
+  const succession = (typeof sbGetSuccession === 'function') ? await sbGetSuccession(successionId).catch(() => null) : null;
+  if (!succession) { showToast('Erreur', "Ce dossier n'existe plus.", false); doReclamerHeritage(); return; }
+  if (succession.statut !== 'en_attente') { showToast('Trop tard', 'Cette succession a déjà été réglée.', false); doReclamerHeritage(); return; }
+
+  const dispositions = succession.dispositions || [];
+  const disposition = dispositions.find(d => d.id === dispositionId);
+  if (!disposition) { showToast('Erreur', "Cette disposition n'existe plus.", false); doReclamerHeritage(); return; }
+
+  const chaine = disposition.chaine || [];
+  const etape = chaine[chaine.length - 1];
+  if (!etape || etape.beneficiaire !== nom || etape.reponse !== null) {
+    showToast('Action impossible', "Cette disposition ne vous concerne plus.", false);
+    doReclamerHeritage();
+    return;
+  }
+  if (Date.now() > new Date(etape.expires_at).getTime()) {
+    showToast('Délai expiré', 'Le délai de réponse est écoulé pour cette disposition.', false);
+    doReclamerHeritage();
+    return;
+  }
+
+  etape.reponse = reponse;
+  etape.repondu_le = new Date().toISOString();
+
+  let nouveauConvoque = null;
+  if (reponse === 'renonce') {
+    const suivante = await determinerEtapeSuivante(disposition, etape.role, succession.conjoint);
+    if (suivante) { disposition.chaine.push(suivante); nouveauConvoque = suivante.beneficiaire; }
+  }
+
+  const r = await sbUpdateSuccession(successionId, { dispositions });
+  if (!r) { showToast('Erreur', "Votre réponse n'a pas pu être enregistrée. Réessayez.", false); return; }
+
+  if (nouveauConvoque && typeof sbSendMail === 'function') {
+    await sbSendMail('Office Notarial', nouveauConvoque, 'Succession — ' + succession.defunt,
+      'Vous êtes convoqué(e) au sujet de la succession de ' + succession.defunt + '. Rendez-vous au Bureau des Successions de l\'Office Notarial de Luthécia, rubrique « Réclamer un héritage ».', '').catch(() => {});
+  }
+
+  showToast(reponse === 'accepte' ? 'Héritage accepté' : 'Renonciation enregistrée',
+    reponse === 'accepte' ? 'Le règlement définitif interviendra lors du traitement notarial.' : 'Votre renonciation a été enregistrée.', true);
+  doReclamerHeritage();
+}
+
+// =====================
+// TESTAMENT -- redaction/consultation/modification/revocation (refonte du 20 aout 2026). Acte
+// notarial DETERMINISTE : jamais un ordre a jet, aucune reussite/echec alea (section 12 du lot).
+// Actifs couverts pour cette premiere version : argent, terrains/batiments/locaux (terrains_etat),
+// entreprises -- caisse/stock d'entreprise jamais touches ici, ils suivent naturellement le bien
+// au moment du reglement final (cron, resoudreSuccessionsExpirees), pas de traitement separe necessaire.
+// Inventaire/objets/logements sociaux/organisations/postes explicitement hors perimetre.
+// =====================
+
+// Patrimoine transmissible du joueur courant, pour l'affichage du formulaire -- meme scan que
+// ouvrirSuccession() (sbGetTerrainsPossedesPar + getEntreprisesRachetables), reutilise a
+// l'identique.
+async function getPatrimoineTransmissible() {
+  const nom = state.char?.name;
+  const country = state.country || 'republic';
+  const terrains = (typeof sbGetTerrainsPossedesPar === 'function') ? await sbGetTerrainsPossedesPar(country, nom).catch(() => []) : [];
+  const entreprises = [];
+  if (typeof getEntreprisesRachetables === 'function') {
+    for (const def of getEntreprisesRachetables()) {
+      const data = await def.charger().catch(() => null);
+      if (data && data.proprietaire === nom) entreprises.push({ id: def.id, label: def.label });
+    }
+  }
+  return {
+    terrains: (terrains || []).map(t => ({ buildingId: t.buildingId, label: BUILDINGS[t.buildingId]?.shortName || BUILDINGS[t.buildingId]?.name || t.buildingId })),
+    entreprises,
+    argentBanque: state.banque || 0
+  };
+}
+
+// pa/cost (de l'ordre "Rédiger / modifier son testament") ne sont debites qu'au moment ou un
+// testament est reellement enregistre (soumettreTestament) -- jamais a la simple ouverture de
+// l'ecran (consultation/revocation restent gratuites), meme logique que le compromis notarial :
+// on ne paie pas pour patienter, seulement pour l'acte signe.
+async function doGererTestament(pa, cost) {
+  document.getElementById('postes-modal-title').textContent = 'Testament';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const testament = (typeof sbGetTestamentActif === 'function') ? await sbGetTestamentActif(state.char?.name).catch(() => null) : null;
+  window._testamentActifCourant = testament || null;
+  if (testament) {
+    renderTestamentActif(testament, pa, cost);
+  } else {
+    await ouvrirFormulaireTestament(null, pa, cost);
+  }
+}
+
+function doGererTestamentModifier(pa, cost) {
+  ouvrirFormulaireTestament(window._testamentActifCourant || null, pa, cost);
+}
+
+function renderTestamentActif(testament, pa, cost) {
+  const contenu = testament.contenu || {};
+  let html = '<div style="padding:1rem">';
+  const dateTxt = (typeof formaterHorodatageJournal === 'function') ? formaterHorodatageJournal(testament.created_at) : (testament.created_at || '');
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Testament rédigé le ' + dateTxt + '.</div>';
+
+  const biens = contenu.biens || [];
+  if (biens.length > 0) {
+    html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em">Biens</div>';
+    biens.forEach(b => {
+      const nomBien = BUILDINGS[b.id]?.shortName || BUILDINGS[b.id]?.name || (typeof getEntrepriseRachetable === 'function' ? getEntrepriseRachetable(b.id)?.label : null) || b.id;
+      const remplacantTxt = b.remplacant ? ' <span style="color:#8a8060">(remplaçant : ' + escapeHtmlText(b.remplacant) + ')</span>' : '';
+      html += '<div style="font-size:.85rem;color:#e0d8c0;margin-bottom:.3rem">• ' + escapeHtmlText(nomBien) + ' → ' + escapeHtmlText(b.beneficiaire) + remplacantTxt + '</div>';
+    });
+  }
+  const argent = contenu.argent || [];
+  if (argent.length > 0) {
+    html += '<div style="font-size:.78rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Argent</div>';
+    argent.forEach(p => {
+      const remplacantTxt = p.remplacant ? ' <span style="color:#8a8060">(remplaçant : ' + escapeHtmlText(p.remplacant) + ')</span>' : '';
+      html += '<div style="font-size:.85rem;color:#e0d8c0;margin-bottom:.3rem">• ' + p.pourcentage + '% → ' + escapeHtmlText(p.beneficiaire) + remplacantTxt + '</div>';
+    });
+  }
+  if (biens.length === 0 && argent.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune disposition particulière — la dévolution par défaut s\'appliquera à tout le patrimoine.</div>';
+  }
+
+  html += '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">';
+  html += '<button class="pnj-action-btn" onclick="doGererTestamentModifier(' + pa + ',' + cost + ')">Modifier</button>';
+  html += '<button onclick="confirmerRevocationTestament(\'' + testament.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer">Révoquer</button>';
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+function _testamentArgentRowsGet() {
+  if (!window._testamentArgentRows) window._testamentArgentRows = [];
+  return window._testamentArgentRows;
+}
+
+async function ouvrirFormulaireTestament(testamentExistant, pa, cost) {
+  document.getElementById('postes-modal-title').textContent = 'Testament';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement du patrimoine...</div>';
+  const patrimoine = await getPatrimoineTransmissible();
+  window._testamentPatrimoineCourant = patrimoine;
+
+  const contenuExistant = testamentExistant?.contenu || {};
+  const beneficiairesBiens = {};
+  const remplacantsBiens = {};
+  (contenuExistant.biens || []).forEach(b => { beneficiairesBiens[b.id] = b.beneficiaire; remplacantsBiens[b.id] = b.remplacant || ''; });
+  window._testamentArgentRows = (contenuExistant.argent || []).map(p => ({ beneficiaire: p.beneficiaire, pourcentage: p.pourcentage, remplacant: p.remplacant || '' }));
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Choisissez un bénéficiaire pour chaque bien (facultatif — sans choix, la dévolution par défaut s\'appliquera : conjoint survivant si valide, sinon retour au marché). Un remplaçant facultatif peut être désigné, appelé seulement si le bénéficiaire principal renonce ou ne répond pas. Les noms doivent correspondre à des personnages existants.</div>';
+
+  if (patrimoine.terrains.length > 0) {
+    html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em">Terrains, bâtiments et locaux</div>';
+    patrimoine.terrains.forEach(t => {
+      html += '<div style="display:flex;gap:.4rem;align-items:center;margin-bottom:.4rem">';
+      html += '<span style="flex:1;font-size:.82rem;color:#c0b090">' + escapeHtmlText(t.label) + '</span>';
+      html += '<input id="testament-bien-' + t.buildingId + '" type="text" placeholder="Bénéficiaire (facultatif)" value="' + escapeHtmlText(beneficiairesBiens[t.buildingId] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />';
+      html += '<input id="testament-remplacant-' + t.buildingId + '" type="text" placeholder="Remplaçant (facultatif)" value="' + escapeHtmlText(remplacantsBiens[t.buildingId] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />';
+      html += '</div>';
+    });
+  }
+
+  if (patrimoine.entreprises.length > 0) {
+    html += '<div style="font-size:.78rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Entreprises</div>';
+    patrimoine.entreprises.forEach(e => {
+      html += '<div style="display:flex;gap:.4rem;align-items:center;margin-bottom:.4rem">';
+      html += '<span style="flex:1;font-size:.82rem;color:#c0b090">' + escapeHtmlText(e.label) + '</span>';
+      html += '<input id="testament-bien-' + e.id + '" type="text" placeholder="Bénéficiaire (facultatif)" value="' + escapeHtmlText(beneficiairesBiens[e.id] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />';
+      html += '<input id="testament-remplacant-' + e.id + '" type="text" placeholder="Remplaçant (facultatif)" value="' + escapeHtmlText(remplacantsBiens[e.id] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />';
+      html += '</div>';
+    });
+  }
+
+  if (patrimoine.terrains.length === 0 && patrimoine.entreprises.length === 0) {
+    html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">Aucun terrain, bâtiment ou entreprise à votre nom pour l\'instant.</div>';
+  }
+
+  html += '<div style="font-size:.78rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Argent (' + (patrimoine.argentBanque || 0).toLocaleString('fr-FR') + ' FR en banque actuellement)</div>';
+  html += '<div id="testament-argent-rows"></div>';
+  html += '<button type="button" onclick="ajouterLigneArgentTestament()" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.3rem .6rem;border:1px solid #6a5a30;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:.8rem">+ Ajouter un bénéficiaire</button>';
+  html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.8rem">Sans bénéficiaire désigné, l\'argent suit la dévolution par défaut. Si plusieurs bénéficiaires sont désignés, le total doit faire exactement 100%.</div>';
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  html += '<button class="pnj-action-btn" onclick="soumettreTestament(' + pa + ',' + cost + ')">Enregistrer le testament (' + pa + ' PA, ' + cost + ' ' + cur + ')</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  rerenderLignesArgentTestament();
+}
+
+function ajouterLigneArgentTestament() {
+  _testamentArgentRowsGet().push({ beneficiaire: '', pourcentage: '', remplacant: '' });
+  rerenderLignesArgentTestament();
+}
+
+function retirerLigneArgentTestament(i) {
+  _testamentArgentRowsGet().splice(i, 1);
+  rerenderLignesArgentTestament();
+}
+
+function rerenderLignesArgentTestament() {
+  const rows = _testamentArgentRowsGet();
+  const el = document.getElementById('testament-argent-rows');
+  if (!el) return;
+  el.innerHTML = rows.map((r, i) => (
+    '<div style="display:flex;gap:.4rem;align-items:center;margin-bottom:.4rem;flex-wrap:wrap">' +
+    '<input type="text" placeholder="Nom du bénéficiaire" value="' + escapeHtmlText(r.beneficiaire || '') + '" oninput="_testamentArgentRowsGet()[' + i + '].beneficiaire=this.value" style="flex:1;min-width:140px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />' +
+    '<input type="number" min="1" max="100" placeholder="%" value="' + (r.pourcentage || '') + '" oninput="_testamentArgentRowsGet()[' + i + '].pourcentage=parseInt(this.value)||0" style="width:60px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />' +
+    '<input type="text" placeholder="Remplaçant (facultatif)" value="' + escapeHtmlText(r.remplacant || '') + '" oninput="_testamentArgentRowsGet()[' + i + '].remplacant=this.value" style="width:150px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />' +
+    '<button type="button" onclick="retirerLigneArgentTestament(' + i + ')" style="border:none;background:transparent;color:#8a3a2a;cursor:pointer;font-size:.9rem"><i class="ti ti-x"></i></button>' +
+    '</div>'
+  )).join('');
+}
+
+async function soumettreTestament(pa, cost) {
+  const nom = state.char?.name;
+  const patrimoine = window._testamentPatrimoineCourant || { terrains: [], entreprises: [], argentBanque: 0 };
+
+  const biens = [];
+  for (const t of patrimoine.terrains) {
+    const val = (document.getElementById('testament-bien-' + t.buildingId)?.value || '').trim();
+    if (!val) continue;
+    const remplacant = (document.getElementById('testament-remplacant-' + t.buildingId)?.value || '').trim();
+    biens.push({ id: t.buildingId, beneficiaire: val, remplacant: remplacant || null });
+  }
+  for (const e of patrimoine.entreprises) {
+    const val = (document.getElementById('testament-bien-' + e.id)?.value || '').trim();
+    if (!val) continue;
+    const remplacant = (document.getElementById('testament-remplacant-' + e.id)?.value || '').trim();
+    biens.push({ id: e.id, beneficiaire: val, remplacant: remplacant || null });
+  }
+
+  const argentRows = _testamentArgentRowsGet().filter(r => r.beneficiaire && r.pourcentage);
+  if (argentRows.length > 0) {
+    const total = argentRows.reduce((s, r) => s + (r.pourcentage || 0), 0);
+    if (total !== 100) {
+      showToast('Répartition invalide', 'Le total des parts d\'argent doit être exactement 100% (actuellement ' + total + '%).', false);
+      return;
+    }
+  }
+
+  // Verifier l'existence reelle de chaque beneficiaire ET remplacant designe AVANT tout
+  // enregistrement -- jamais de testament enregistre avec une disposition vers un nom qui
+  // n'existe pas (principal comme remplacant).
+  const nomsAVerifier = [...new Set([
+    ...biens.map(b => b.beneficiaire), ...biens.filter(b => b.remplacant).map(b => b.remplacant),
+    ...argentRows.map(r => r.beneficiaire), ...argentRows.filter(r => r.remplacant).map(r => r.remplacant)
+  ])];
+  for (const b of nomsAVerifier) {
+    if (b === nom) { showToast('Bénéficiaire invalide', 'Vous ne pouvez pas vous désigner vous-même comme bénéficiaire ou remplaçant.', false); return; }
+    const existe = await personnageExisteReellement(b);
+    if (!existe) { showToast('Personnage introuvable', '"' + b + '" ne correspond à aucun personnage existant.', false); return; }
+  }
+
+  // Cout deduit seulement maintenant, une fois toutes les validations (repartition, existence
+  // des beneficiaires) passees -- jamais de PA/FR perdus pour un formulaire invalide.
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const rCout = await deduireCoutOrdre({ pa, cost });
+  if (!rCout.ok) {
+    showToast(rCout.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rCout.raison === 'pa_insuffisants' ? (pa + ' PA requis.') : (cost + ' ' + cur + ' requis.'), false);
+    return;
+  }
+
+  const contenu = { biens, argent: argentRows.map(r => ({ beneficiaire: r.beneficiaire, pourcentage: r.pourcentage, remplacant: r.remplacant || null })) };
+
+  const ancien = window._testamentActifCourant;
+  const nouveau = {
+    id: 'testament-' + Date.now(),
+    testateur: nom,
+    country: state.country || 'republic',
+    contenu, // JSONB, objet transmis tel quel (meme convention que entreprises.data)
+    statut: 'actif',
+    remplace_id: ancien?.id || null
+  };
+
+  if (typeof sbSaveTestament !== 'function') { showToast('Indisponible', "La persistance du testament n'est pas encore active.", false); return; }
+  const r = await sbSaveTestament(nouveau);
+  if (!r) { showToast('Échec', "Le testament n'a pas pu être enregistré. Réessayez.", false); return; }
+
+  if (ancien?.id && typeof sbMarquerTestamentStatut === 'function') {
+    await sbMarquerTestamentStatut(ancien.id, 'remplace').catch(() => {});
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Testament enregistré', 'Vos dispositions ont été enregistrées chez le notaire.', true, true);
+  addJournalEntry('📜 Testament rédigé chez le notaire.', 'event-info');
+}
+
+function confirmerRevocationTestament(id) {
+  document.getElementById('postes-modal-title').textContent = 'Révoquer le testament';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">Révoquer votre testament actif ? Sans testament, la dévolution par défaut s\'appliquera à l\'ensemble de votre patrimoine.</div>' +
+    '<button onclick="executerRevocationTestament(\'' + id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer;margin-right:.5rem">Révoquer définitivement</button>' +
+    '<button onclick="doGererTestament()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer">Annuler</button>' +
+    '</div>';
+}
+
+async function executerRevocationTestament(id) {
+  if (typeof sbMarquerTestamentStatut !== 'function') return;
+  const r = await sbMarquerTestamentStatut(id, 'revoque');
+  if (!r) { showToast('Échec', 'La révocation a échoué. Réessayez.', false); return; }
+  window._testamentActifCourant = null;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Testament révoqué', 'La dévolution par défaut s\'appliquera désormais.', true, true);
+  addJournalEntry('📜 Testament révoqué chez le notaire.', 'event-info');
 }
 
 async function doDemanderDivorce(pa, cost) {
@@ -730,18 +1412,28 @@ async function confirmerDestructionPersonnage() {
 
   document.getElementById('modal-postes').classList.remove('open');
 
-  // Si le joueur est marie, traiter la succession AVANT de supprimer le personnage
-  if (typeof sbGetMariageActif === 'function') {
-    try {
-      const mariage = await sbGetMariageActif(nom);
-      if (mariage) {
-        const conjoint = mariage.conjoint1 === nom ? mariage.conjoint2 : mariage.conjoint1;
-        await traiterSuccession(nom, conjoint);
-        if (typeof sbDissoudreMariage === 'function') {
-          await sbDissoudreMariage(mariage.id, 'veuvage').catch(() => {});
-        }
-      }
-    } catch(e) { console.warn('Erreur traitement succession', e); }
+  // Succession fail-closed (architecture v4, 21 aout 2026) : la destruction du personnage n'est
+  // JAMAIS declenchee si l'OUVERTURE de la succession echoue a un stade quelconque -- voir
+  // ouvrirSuccession() ci-dessus pour la doctrine complete et les limites assumees (aucune
+  // transaction multi-table reelle disponible cote Supabase REST). Le reglement reel (transferts,
+  // credits) n'a plus lieu ici : il est exclusivement pris en charge, plus tard, par le cron.
+  const country = state.country || 'republic';
+  const ouvertureResult = await ouvrirSuccession(nom, country).catch(e => {
+    console.error('Erreur ouverture succession', e);
+    return { ok: false, raison: 'exception_ouverture' };
+  });
+  if (!ouvertureResult.ok) {
+    showToast('Destruction annulée', "La succession n'a pas pu être ouverte (" + ouvertureResult.raison + "). Réessayez plus tard — votre personnage n'a pas été supprimé.", false, true);
+    console.error('Succession annulée avant toute mutation :', ouvertureResult.raison, ouvertureResult.detail);
+    return;
+  }
+
+  // A partir d'ici, la succession a ete ouverte avec succes (dossier cree, actifs geles,
+  // engagements nettoyes) -- la destruction du personnage peut se poursuivre. Dissolution du
+  // mariage : best-effort (bookkeeping, pas un actif transmissible), n'entre pas dans la chaine
+  // stricte d'ouverture.
+  if (ouvertureResult.mariageId && typeof sbDissoudreMariage === 'function') {
+    await sbDissoudreMariage(ouvertureResult.mariageId, 'veuvage').catch(() => {});
   }
 
   // Archive permanente du deces, pour l'etat-civil (le personnage lui-meme va etre supprime

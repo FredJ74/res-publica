@@ -129,6 +129,17 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demander_juge_instruction') { doDemanderJugeInstruction(pa, cost); return; }
   if (fn === 'presenter_autorisation_coffre') { doPresenterAutorisationCoffre(pa, cost); return; }
   if (fn === 'demander_divorce') { doDemanderDivorce(pa, cost); return; }
+  // gerer_testament (Bureau des Successions) : acte notarial deterministe (chantier testament/
+  // succession, 20 aout 2026) -- special-case obligatoire comme tous les autres actes notariaux
+  // reels ci-dessous, sinon le moteur generique de doOrder() lui appliquerait un jet malgre
+  // successRate:100 (voir audit prealable : seuls les fn de la liste alwaysSuccess y echappent).
+  // pa/cost transmis tels quels : la deduction reelle n'a lieu qu'au moment de soumettreTestament().
+  if (fn === 'gerer_testament') { doGererTestament(pa, cost); return; }
+  // reclamer_heritage (Bureau des Successions) : meme doctrine que gerer_testament ci-dessus --
+  // acte deterministe, special-case obligatoire (0 PA/0 FR, aucun jet malgre le passage par
+  // doOrder()). Point d'entree fonctionnel reel des successions (le mail de convocation n'est
+  // qu'une notification best-effort, jamais la source de verite -- voir doReclamerHeritage()).
+  if (fn === 'reclamer_heritage') { doReclamerHeritage(); return; }
   if (fn === 'acte_vente_terrain') { doActeVenteTerrain(); return; }
   if (fn === 'acte_rachat_entreprise') { doActeRachatEntreprise(pa, cost); return; }
   if (fn === 'corrompre_rdv_notaire') { doCorrompreRdvNotaire(pa, cost); return; }

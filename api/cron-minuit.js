@@ -470,6 +470,270 @@ async function resoudreCompromisEntreprisesExpires() {
   return resultats;
 }
 
+// =====================
+// SUCCESSIONS DIFFEREES (architecture v4, 21 aout 2026) -- meme doctrine que
+// resoudreCompromisExpires ci-dessus : balayage complet de la table, comparaison de timestamps
+// stockes, mutation, ecriture -- pas un second moteur temporel. Table 'successions' stocke
+// dispositions en jsonb natif (comme 'entreprises', pas de JSON.parse/stringify contrairement a
+// terrains_etat). Toute la logique de cascade/reglement est dupliquee ici dans l'idiome raw-fetch
+// du cron -- le code client (plateau-personnage.js, determinerEtapeSuivante/doRepondreHeritage)
+// tourne dans un runtime navigateur totalement isole, aucun partage de code possible.
+// =====================
+
+const DELAI_CONVOCATION_MS_SUCCESSION = 10 * 24 * 60 * 60 * 1000; // 10 jours reels
+
+async function personnageExisteReellementServeur(nom) {
+  if (!nom) return false;
+  const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(nom) + '&select=name').catch(() => null);
+  return !!(rows && rows.length > 0);
+}
+
+// Cascade principal -> remplacant -> legal_conjoint, amorcee a partir du role qui vient de
+// renoncer (explicitement ou tacitement) -- jamais de retour en arriere (dejaConvoques), jamais
+// de transmission automatique. Miroir exact de determinerEtapeSuivante() cote client.
+async function determinerEtapeSuivanteServeur(disposition, roleActuel, conjointNom) {
+  const maintenant = Date.now();
+  const expiresAt = new Date(maintenant + DELAI_CONVOCATION_MS_SUCCESSION).toISOString();
+  const convoqueLe = new Date(maintenant).toISOString();
+  const dejaConvoques = new Set((disposition.chaine || []).map(e => e.role));
+
+  if (roleActuel === 'principal' && disposition.remplacant_prevu && !dejaConvoques.has('remplacant')) {
+    if (await personnageExisteReellementServeur(disposition.remplacant_prevu)) {
+      return { role: 'remplacant', beneficiaire: disposition.remplacant_prevu, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null };
+    }
+  }
+  if (roleActuel !== 'legal_conjoint' && conjointNom && !dejaConvoques.has('legal_conjoint')) {
+    return { role: 'legal_conjoint', beneficiaire: conjointNom, convoque_le: convoqueLe, expires_at: expiresAt, reponse: null, repondu_le: null };
+  }
+  return null;
+}
+
+// Reglement IDEMPOTENT d'une succession dont TOUTES les dispositions ont une decision tranchee
+// (d.resultat) : transfert des biens, credit des beneficiaires, degel, credit de la fiscalite
+// globale deja figee a l'ouverture (Etat 90% / notaire 10%, meme en devolution integrale sans
+// heritier vivant -- section 1/9 des arbitrages), cloture finale (statut 'resolue').
+//
+// IDEMPOTENCE (verification demandee le 21 aout 2026) : scenario couvert -- un terrain est
+// transfere, un heritier est credite, la part Etat ou notaire est creditee, puis une etape
+// SUIVANTE echoue ; la succession reste 'en_attente' ; le cron repasse le lendemain. Sans
+// garde-fou, ce rejeu recrediterait TOUT depuis le debut (double transfert -- inoffensif en soi,
+// re-ecrire le meme proprietaire -- mais surtout double credit reel d'argent a l'heritier, a
+// l'Etat et au notaire, puisque ces credits sont des += additifs). Le garde-fou : chaque
+// disposition porte son propre marqueur persistant dispositions[].regle, et la fiscalite globale
+// porte DEUX marqueurs distincts successions.part_etat_reglee / part_notaire_reglee (distincts
+// l'un de l'autre : un des deux peut reussir et l'autre echouer sans se confondre). Chaque
+// marqueur est ecrit EN BASE immediatement apres que sa mutation reelle a reussi -- jamais tous
+// en un seul commit final. statut='resolue' n'est PAS le mecanisme de protection contre le rejeu
+// (ce serait insuffisant : il n'est ecrit qu'apres plusieurs mutations, exactement le risque
+// signale) -- ce n'est qu'un marqueur de FERMETURE pose en tout dernier, une fois que tous les
+// marqueurs individuels sont deja vrais. Au rejeu, toute etape deja marquee est sautee sans
+// rejouer sa mutation : aucun transfert, credit heritier, credit Etat ou credit notaire ne peut
+// s'executer deux fois par cette voie.
+//
+// Limite assumee (documentee, non corrigee ici -- aucune transaction multi-table reelle possible
+// via l'API REST Supabase, deja le cas partout ailleurs dans ce projet) : pour chaque etape, la
+// mutation reelle et la pose du marqueur qui la protege restent deux appels HTTP SEPARES et
+// SEQUENTIELS. Si le premier reussit et que le second echoue (fenetre tres etroite, deux appels
+// consecutifs vers le meme backend), CETTE etape precise sera rejouee le lendemain -- un risque
+// de double credit reduit a une seule etape a la fois, plus jamais a l'ensemble du dossier comme
+// avant ce correctif. Ordre mutation-puis-marqueur choisi deliberement (jamais l'inverse) : le
+// risque symetrique (marquer "fait" avant que ce ne soit reellement fait) serait pire, un
+// heritier ne recevant alors jamais son du sans aucune trace d'echec.
+//
+// Retourne true si la succession a ete effectivement cloturee (statut='resolue') lors de CET
+// appel, false sinon (reglement partiel ou deja termine avant cet appel) -- utilise par
+// resoudreSuccessionsExpirees() pour ne compter dans ses statistiques que les clotures reelles.
+async function reglerSuccession(s, dispositions) {
+  for (const d of dispositions) {
+    if (d.regle) continue; // deja mutee lors d'une passe precedente -- ne jamais rejouer
+
+    if (d.type === 'terrain') {
+      const tRows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(s.country)}&building_id=eq.${encodeURIComponent(d.id)}`).catch(() => null);
+      const tRow = tRows && tRows[0];
+      if (!tRow) return false;
+      let etat; try { etat = JSON.parse(tRow.data); } catch(e) { return false; }
+      etat.proprietaire = d.resultat.beneficiaire || null;
+      etat.coproprietaire = null;
+      etat.succession_gel = null;
+      const r = await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(tRow.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => null);
+      if (!r) return false;
+    } else if (d.type === 'entreprise') {
+      const eRows = await sbGet('entreprises', `id=eq.${encodeURIComponent(d.id)}`).catch(() => null);
+      const eRow = eRows && eRows[0];
+      if (!eRow) return false;
+      const data = eRow.data || {};
+      data.proprietaire = d.resultat.beneficiaire || 'PNJ';
+      data.succession_gel = null;
+      const r = await sbUpdate('entreprises', `id=eq.${encodeURIComponent(eRow.id)}`, { data, updated_at: new Date().toISOString() }).catch(() => null);
+      if (!r) return false;
+    } else if (d.type === 'argent' && d.part_nette > 0) {
+      let credite = false;
+      if (d.resultat.beneficiaire) {
+        const bRows = await sbGet('personnages', `name=eq.${encodeURIComponent(d.resultat.beneficiaire)}`).catch(() => null);
+        const beneficiaire = bRows && bRows[0];
+        if (beneficiaire) {
+          const r = await sbUpdate('personnages', `name=eq.${encodeURIComponent(d.resultat.beneficiaire)}`, { arg: (beneficiaire.arg || 0) + d.part_nette }).catch(() => null);
+          if (!r) return false;
+          credite = true;
+        }
+      }
+      // Devolution a l'Etat : soit d'emblee (aucun beneficiaire, chaine epuisee), soit en repli
+      // si le beneficiaire resolu a lui-meme disparu entre l'acceptation et le reglement (plutot
+      // que de laisser la somme silencieusement disparaitre).
+      if (!credite) {
+        const budgetRows = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(s.country)}`).catch(() => null);
+        const budgetData = budgetRows?.[0]?.data || { reserveJour: 0 };
+        budgetData.reserveJour = (budgetData.reserveJour || 0) + d.part_nette;
+        const r = await sbUpdate('budgets_nationaux', `id=eq.${encodeURIComponent(s.country)}`, { data: budgetData, updated_at: new Date().toISOString() }).catch(() => null);
+        if (!r) return false;
+      }
+    }
+
+    // Marqueur pose IMMEDIATEMENT apres la mutation reelle de CETTE disposition (ecriture
+    // individuelle, pas d'attente du lot complet) -- protege cette disposition precise contre
+    // tout rejeu, meme si une disposition suivante echoue juste apres.
+    d.regle = true;
+    const rMarque = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}`, { dispositions }).catch(() => null);
+    if (!rMarque) return false;
+  }
+
+  // Fiscalite globale -- deux marqueurs INDEPENDANTS (Etat / notaire), chacun pose immediatement
+  // apres son propre credit reel, jamais recredite si deja marque.
+  if (s.droits_total > 0) {
+    if (!s.part_etat_reglee) {
+      const budgetRows = await sbGet('budgets_nationaux', `id=eq.${encodeURIComponent(s.country)}`).catch(() => null);
+      const budgetData = budgetRows?.[0]?.data || { reserveJour: 0 };
+      budgetData.reserveJour = (budgetData.reserveJour || 0) + s.part_etat;
+      const r = await sbUpdate('budgets_nationaux', `id=eq.${encodeURIComponent(s.country)}`, { data: budgetData, updated_at: new Date().toISOString() }).catch(() => null);
+      if (!r) return false;
+      const rMarque = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}`, { part_etat_reglee: true }).catch(() => null);
+      if (!rMarque) return false;
+      s.part_etat_reglee = true;
+    }
+    if (!s.part_notaire_reglee) {
+      // Ecriture directe (sbGet/sbUpdate/sbInsert propres a ce fichier), PAS via
+      // crediterCaisseBatiment() (plateau-justice-economie.js) : cette primitive partagee est de
+      // toute facon inaccessible depuis ce runtime serverless (code client uniquement, jamais
+      // importe ici -- meme raison que tout le reste de ce cron dispose de ses propres sbGet/
+      // sbUpdate/sbInsert dupliques). Elle serait de plus impropre a un usage financier verifie :
+      // elle avale les echecs Supabase et renvoie le solde local optimiste MEME si l'ecriture
+      // reelle a echoue (limite deja documentee ailleurs dans ce projet). Ici au contraire,
+      // l'ecriture est verifiee (r falsy = echec reel, jamais de succes fictif) avant de poser le
+      // marqueur -- une primitive serveur dediee et verifiee, pas la primitive partagee.
+      const caisseKey = s.country + '_office-notarial';
+      const caisseRows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`).catch(() => null);
+      const caisseData = caisseRows?.[0]?.data || { solde: 0 };
+      caisseData.solde = (caisseData.solde || 0) + s.part_notaire;
+      const r = (caisseRows && caisseRows.length > 0)
+        ? await sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`, { data: caisseData, updated_at: new Date().toISOString() }).catch(() => null)
+        : await sbInsert('caisses_batiments', { id: caisseKey, data: caisseData, updated_at: new Date().toISOString() }).catch(() => null);
+      if (!r) return false;
+      const rMarque = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}`, { part_notaire_reglee: true }).catch(() => null);
+      if (!rMarque) return false;
+      s.part_notaire_reglee = true;
+    }
+  }
+
+  const toutesReglees = dispositions.every(d => d.regle);
+  const fiscaliteReglee = s.droits_total === 0 || (s.part_etat_reglee && s.part_notaire_reglee);
+  if (toutesReglees && fiscaliteReglee) {
+    const r = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}`, { statut: 'resolue', resolved_at: new Date().toISOString() }).catch(() => null);
+    return !!r;
+  }
+  return false;
+}
+
+// Passe quotidienne : fait avancer chaque disposition independamment (silence a l'echeance =
+// renonciation tacite, jamais une acceptation ; cascade immediate vers l'etape suivante des que
+// la renonciation -- explicite ou tacite -- est constatee, aucune attente artificielle une fois
+// la chaine effectivement epuisee) ; regle et cloture des qu'une succession n'a plus aucune
+// disposition en attente.
+async function resoudreSuccessionsExpirees() {
+  const resultats = { convocations_expirees: 0, remplacants_convoques: 0, conjoints_convoques: 0, successions_reglees: 0 };
+  try {
+    const successions = await sbGet('successions', 'statut=eq.en_attente');
+    if (!successions) return resultats;
+
+    for (const s of successions) {
+      const dispositions = s.dispositions || [];
+      let mutated = false;
+      const nouveauxConvoques = [];
+
+      for (const d of dispositions) {
+        if (d.resultat) continue; // deja resolue individuellement lors d'une passe precedente
+
+        const chaine = d.chaine || [];
+        const etape = chaine[chaine.length - 1];
+
+        if (!etape) {
+          // Chaine vide des l'ouverture (aucun beneficiaire valide identifie) -- resolution
+          // anticipee au premier passage du cron, aucune attente artificielle.
+          d.resultat = { beneficiaire: null, statut: 'devolution_etat' };
+          d.etat = 'resolue';
+          mutated = true;
+          continue;
+        }
+
+        if (etape.reponse === 'accepte') {
+          d.resultat = { beneficiaire: etape.beneficiaire, statut: 'accepte' };
+          d.etat = 'resolue';
+          mutated = true;
+          continue;
+        }
+
+        if (etape.reponse === null && Date.now() > new Date(etape.expires_at).getTime()) {
+          etape.reponse = 'renonce';
+          etape.repondu_le = new Date().toISOString();
+          mutated = true;
+          resultats.convocations_expirees++;
+        }
+
+        if (etape.reponse === 'renonce') {
+          const suivante = await determinerEtapeSuivanteServeur(d, etape.role, s.conjoint);
+          if (suivante) {
+            d.chaine.push(suivante);
+            mutated = true;
+            nouveauxConvoques.push(suivante.beneficiaire);
+            if (suivante.role === 'remplacant') resultats.remplacants_convoques++;
+            else resultats.conjoints_convoques++;
+          } else {
+            d.resultat = { beneficiaire: null, statut: 'devolution_etat' };
+            d.etat = 'resolue';
+            mutated = true;
+          }
+        }
+      }
+
+      // Phase decision (ci-dessus) et phase reglement (reglerSuccession) separees par leur
+      // propre ecriture : les decisions fraichement tranchees cette passe (resultat/chaine) sont
+      // persistees ICI, AVANT toute tentative de reglement -- jamais implicitement portees par la
+      // toute premiere ecriture interne de reglerSuccession. Si cette persistance echoue, on ne
+      // tente meme pas le reglement sur un etat non confirme en base : la succession sera
+      // retentee integralement demain, sans aucun risque d'avoir mute un actif sur la base d'une
+      // decision jamais realmente ecrite.
+      if (mutated) {
+        const r = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}`, { dispositions }).catch(() => null);
+        if (!r) continue;
+      }
+
+      const toutesResolues = dispositions.every(d => !!d.resultat);
+      if (toutesResolues) {
+        const cloturee = await reglerSuccession(s, dispositions);
+        if (cloturee) resultats.successions_reglees++;
+      }
+
+      for (const dest of nouveauxConvoques) {
+        await sbInsert('mails', {
+          destinataire: dest, expediteur: 'Office Notarial', sujet: 'Succession — ' + s.defunt,
+          corps: 'Vous êtes convoqué(e) au sujet de la succession de ' + s.defunt + '. Rendez-vous au Bureau des Successions de l\'Office Notarial de Luthécia, rubrique « Réclamer un héritage ».',
+          archived: false
+        }).catch(() => {});
+      }
+    }
+  } catch(e) { console.error('resoudreSuccessionsExpirees error', e); }
+  return resultats;
+}
+
 // Nettoie les rendez-vous d'achat direct manques (au-dela des 24h de rattrapage) : le depot
 // de garantie est perdu, le terrain redevient libre.
 // Table dupliquee cote serveur (les niveaux de construction ne changent que rarement — si
@@ -1540,6 +1804,10 @@ export default async function handler(req, res) {
     // 16. Remboursement quotidien des prets de preemption d'Etat (Ministre des Finances)
     const preemptions = await preleverPreemptionsServeur();
 
+    // 16b. Successions differees : avancement des convocations, cascade remplacant/conjoint,
+    // reglement + degel des dossiers integralement resolus
+    const successionsResolues = await resoudreSuccessionsExpirees();
+
     // 17. Journal du jour (Lot B) — STRICTEMENT en dernier, dans son propre try/catch : un
     // echec ou un depassement de son propre budget interne ne doit jamais remettre en cause les
     // 16 taches critiques ci-dessus, deja executees et sauvegardees avant ce point.
@@ -1551,7 +1819,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE, investissements, preemptions, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE, investissements, preemptions, successionsResolues, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

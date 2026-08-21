@@ -776,7 +776,15 @@ async function recupererDonsEnAttente() {
   } catch(e) { console.warn('recupererDonsEnAttente error', e); }
 }
 
-// Recupere et applique les vols subis par le joueur depuis sa derniere connexion
+// Recupere et applique les vols subis (et les credits differes, ex. succession) par le joueur
+// depuis sa derniere connexion. Correctif du 20 aout 2026 (chantier testament/succession) :
+// vols_en_attente sert aussi a crediter (montant negatif, ex. heritage via traiterSuccession/
+// executerSuccession, plateau-personnage.js) -- avant ce correctif, seul totalPerdu (somme des
+// montants positifs) declenchait une notification, donc un credit pur (total toujours <=0)
+// n'affichait jamais rien au joueur alors que state.arg etait bien crediee en silence. Un seul
+// consommateur de recupererVolsEnAttente() existe dans tout le jeu (plateau-core.js, appel unique
+// au demarrage de session) : verifie avant modification, comportement des vols (totalPerdu)
+// entierement inchange, seul un second cas (totalRecu) est ajoute.
 async function recupererVolsEnAttente() {
   if (typeof sbRecupererVolsEnAttente !== 'function') return;
   const moi = state.char?.name;
@@ -786,10 +794,13 @@ async function recupererVolsEnAttente() {
     if (!vols || vols.length === 0) return;
     const cur = COUNTRIES[state.country]?.cur || 'FR';
     let totalPerdu = 0;
+    let totalRecu = 0;
     for (const vol of vols) {
       if (vol.type_butin === 'argent') {
-        totalPerdu += vol.montant || 0;
-        state.arg = Math.max(0, (state.arg || 0) - (vol.montant || 0));
+        const montant = vol.montant || 0;
+        if (montant > 0) totalPerdu += montant;
+        else totalRecu += -montant;
+        state.arg = Math.max(0, (state.arg || 0) - montant);
       }
       if (typeof sbMarquerVolTraite === 'function') await sbMarquerVolTraite(vol.id).catch(() => {});
     }
@@ -797,6 +808,11 @@ async function recupererVolsEnAttente() {
       updateUI();
       addJournalEntry('🤏 On vous a discrètement dérobé ' + totalPerdu + ' ' + cur + '.', 'event-bad');
       showToast('Vous avez été volé(e)', '-' + totalPerdu + ' ' + cur + ' dérobé(s) discrètement.', false, true);
+    }
+    if (totalRecu > 0) {
+      updateUI();
+      addJournalEntry('💰 Une somme de ' + totalRecu + ' ' + cur + ' a été créditée sur votre compte.', 'event-good');
+      showToast('Somme créditée', '+' + totalRecu + ' ' + cur + ' crédité(s) sur votre compte.', true, true);
     }
   } catch(e) { console.warn('recupererVolsEnAttente error', e); }
 }

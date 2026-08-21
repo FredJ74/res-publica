@@ -3916,6 +3916,7 @@ async function doSignerCompromisEntreprise(type) {
 async function confirmerSignerCompromisEntreprise(type) {
   const def = getEntrepriseRachetable(type);
   if (!def) return;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('entreprise', type, 'Signer ce compromis')) return;
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
 
   const demandePret = document.getElementById('compromis-entreprise-pret-check')?.checked;
@@ -3997,6 +3998,7 @@ function traiterActeRachatEntrepriseParIndex(i, pa, cost) {
 async function traiterActeRachatEntreprise(candidat, pa, cost) {
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   const def = candidat.def;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('entreprise', def.id, "Officialiser le rachat")) return;
   const data = await def.charger(); // relecture fraiche, evite tout etat perime
   if (!data || !data.compromis || data.compromisPar !== state.char?.name) {
     showToast('Compromis introuvable', 'Ce compromis n\'est plus valide (peut-être déjà expiré).', false);
@@ -4089,6 +4091,7 @@ async function ouvrirPretPreemption(type) {
 async function confirmerPreemption(type) {
   const def = getEntrepriseRachetable(type);
   if (!def) return;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('entreprise', type, 'Préempter cette entreprise')) return;
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   const pays = state.country || 'republic';
   const montant = parseInt(document.getElementById('preemption-pret-montant')?.value || 0);
@@ -4181,6 +4184,7 @@ function traiterActeRachatEntreprisePreemptionParIndex(i, pa, cost) {
 
 async function traiterActeRachatEntreprisePreemption(candidat, pa, cost) {
   const def = candidat.def;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('entreprise', def.id, 'Officialiser la préemption')) return;
   const data = await def.charger();
   if (!data || data.preemptionEtat !== 'attente_acte') {
     showToast('Préemption introuvable', 'Cette préemption n\'est plus valide (peut-être déjà officialisée).', false);

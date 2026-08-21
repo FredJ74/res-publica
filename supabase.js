@@ -1149,6 +1149,85 @@ async function sbGetMariagesPourNom(nom) {
   return [...(rows1 || []), ...(rows2 || [])];
 }
 
+// =====================
+// TESTAMENTS (refonte testament/succession, 20 aout 2026) -- table dediee (migration a valider
+// separement, voir rapport d'implementation), meme doctrine que mariages/etat_civil_deces :
+// jamais de suppression de ligne, un nouveau testament remplace l'ancien par changement de statut
+// (jamais un UPDATE du contenu), l'historique complet reste consultable pour toujours.
+// =====================
+async function sbSaveTestament(testament) {
+  return sbInsert('testaments', testament);
+}
+
+// Defense en profondeur (verification d'idempotence/audit du 21 aout 2026) : soumettreTestament()
+// (plateau-personnage.js) sauvegarde le nouveau testament 'actif' PUIS, dans un appel HTTP
+// SEPARE et ulterieur, marque l'ancien 'remplace' -- si ce second appel echoue (reseau), les
+// deux restent 'actif' simultanement, sans qu'aucune contrainte SQL ne l'empeche (aucune
+// migration necessaire pour ce lot). order=created_at.desc&limit=1 garantit un choix
+// deterministe (le plus recent) meme dans ce cas exceptionnel, plutot que de dependre de l'ordre
+// de retour non garanti de PostgREST. Toujours un tableau en reponse (PostgREST standard, jamais
+// un objet nu ici) -- rows[0] reste le bon acces, limit=1 ne change que sa taille maximale (0 ou 1).
+async function sbGetTestamentActif(nom) {
+  if (!nom) return null;
+  const rows = await sbGet('testaments', `testateur=eq.${encodeURIComponent(nom)}&statut=eq.actif&order=created_at.desc&limit=1`).catch(() => []);
+  return (rows && rows.length > 0) ? rows[0] : null;
+}
+
+// Historique complet (actif + remplaces + revoques + executes), le plus recent en tete.
+async function sbGetTousLesTestaments(nom) {
+  if (!nom) return [];
+  const rows = await sbGet('testaments', `testateur=eq.${encodeURIComponent(nom)}&order=created_at.desc`).catch(() => []);
+  return rows || [];
+}
+
+// statut : 'remplace' (un nouveau testament vient d'etre redige), 'revoque' (le testateur a
+// explicitement annule sans en rediger un autre), 'execute' (consomme par une succession reelle).
+async function sbMarquerTestamentStatut(id, statut) {
+  return sbUpdate('testaments', `id=eq.${encodeURIComponent(id)}`, { statut });
+}
+
+// =====================
+// SUCCESSIONS (architecture v3/v4, 20 aout 2026) -- une ligne = un dossier successoral complet,
+// du statut 'en_attente' (ouverture, convocations, gel) a 'resolue' (reglement final par le
+// cron). Meme table qui sert d'archive notariale une fois resolue -- pas de deuxieme table.
+// dispositions (JSONB, tableau) est la SEULE source de verite pour les convocations et leurs
+// echeances, y compris pour le conjoint en tant qu'heritier legal potentiel (voir
+// dispositions[].chaine[].role === 'legal_conjoint'). successions.conjoint est un champ distinct :
+// simple droit d'information globale du conjoint des l'ouverture, jamais une convocation avec
+// decision/echeance -- ne pas les confondre (voir rapport d'architecture).
+// =====================
+async function sbCreerSuccession(succession) {
+  return sbInsert('successions', succession);
+}
+
+async function sbGetSuccession(id) {
+  if (!id) return null;
+  const rows = await sbGet('successions', `id=eq.${encodeURIComponent(id)}`).catch(() => []);
+  return (rows && rows.length > 0) ? rows[0] : null;
+}
+
+async function sbUpdateSuccession(id, patch) {
+  return sbUpdate('successions', `id=eq.${encodeURIComponent(id)}`, patch);
+}
+
+// Successions en_attente d'un pays -- le filtrage par beneficiaire/conjoint se fait cote client
+// (dispositions est un contenu JSONB libre, meme doctrine que enigme1RechercherArchivesNotariales/
+// rechercherDossierNotarial : jamais de requete PostgREST fouillant l'interieur d'un tableau JSONB).
+async function sbGetSuccessionsEnAttente(country) {
+  if (!country) return [];
+  const rows = await sbGet('successions', `country=eq.${encodeURIComponent(country)}&statut=eq.en_attente`).catch(() => []);
+  return rows || [];
+}
+
+// Toutes les successions d'un pays, tous statuts confondus -- utilise par les archives notariales
+// (qui ne retiennent ensuite que statut='resolue' cote client, une succession en cours ne doit
+// jamais apparaitre dans les archives).
+async function sbGetToutesLesSuccessions(country) {
+  if (!country) return [];
+  const rows = await sbGet('successions', `country=eq.${encodeURIComponent(country)}&order=created_at.desc`).catch(() => []);
+  return rows || [];
+}
+
 // Archive permanente d'un deces de PJ (le personnage lui-meme est supprime de 'personnages',
 // donc c'est la seule trace qui persiste pour l'etat-civil). city (17 aout 2026, mini-lot
 // etat-civil) : ville reellement pertinente selon la doctrine validee -- optionnelle (undefined

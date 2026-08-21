@@ -273,7 +273,8 @@ async function confirmerRachat(btn, pa, cost) {
   showToast('Offre envoyée !', proprietaire + ' a reçu votre proposition.', true);
 }
 
-function accepterRachat(acheteur, buildingId, prix) {
+async function accepterRachat(acheteur, buildingId, prix) {
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', buildingId, 'Accepter ce rachat')) return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const b = BUILDINGS[buildingId];
   const localName = b?.shortName || b?.name || buildingId;
@@ -2776,6 +2777,45 @@ function getVilleTerrain(id) {
   return 'capitale';
 }
 
+// =====================
+// GEL SUCCESSORAL (architecture Testament/Succession, 21 aout 2026) -- controle centralise
+// UNIQUE, reutilise par tous les handlers capables de modifier la propriete/l'engagement d'un
+// terrain ou d'une entreprise, plutot que de dupliquer une garde dans chacun (audit exhaustif des
+// chemins de mutation, voir rapport d'architecture). Le champ succession_gel vit dans le JSONB
+// deja existant (terrains_etat.data / entreprises.data), pose et retire exclusivement par le
+// moteur de succession (ouvertureSuccession / le cron de reglement, plateau-personnage.js /
+// api/cron-minuit.js) -- jamais par un handler metier.
+// =====================
+
+// Retourne l'id de succession qui gele cet actif, ou null si libre. type : 'terrain'|'entreprise'.
+async function idSuccessionGelantActif(type, id) {
+  if (type === 'terrain') {
+    if (typeof chargerTerrainState === 'function' && typeof getTerrainState === 'function') {
+      await chargerTerrainState(id);
+      const ts = getTerrainState(id);
+      return ts?.succession_gel || null;
+    }
+  } else if (type === 'entreprise') {
+    if (typeof getEntrepriseRachetable === 'function') {
+      const def = getEntrepriseRachetable(id);
+      const data = def ? await def.charger().catch(() => null) : null;
+      return data?.succession_gel || null;
+    }
+  }
+  return null;
+}
+
+// A appeler en TOUTE PREMIERE ligne de tout handler pouvant modifier/vendre/transferer/preempter/
+// construire/changer la propriete d'un terrain ou d'une entreprise (liste exhaustive dans le
+// rapport d'architecture). Retourne true si l'action doit etre bloquee (toast standard deja
+// affiche) ; false si l'actif est libre et que le handler peut continuer normalement.
+async function refuserSiGele(type, id, libelleAction) {
+  const gel = await idSuccessionGelantActif(type, id);
+  if (!gel) return false;
+  showToast('Succession en cours', (libelleAction || 'Cette action') + " est impossible : ce bien est actuellement gelé le temps du règlement d'une succession.", false);
+  return true;
+}
+
 async function doActeVenteTerrain() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const nom = state.char?.name;
@@ -2817,6 +2857,7 @@ async function traiterActeVente(candidat) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const id = candidat.id;
   const ts = candidat.ts;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, "Officialiser l'acte")) return;
 
   if (candidat.type === 'achatDirect') {
     const ad = ts.achatDirect;
@@ -2905,6 +2946,16 @@ function doConsulterDossierNotarial() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Correctif du 21 aout 2026 (audit "Se renseigner sur un dossier" bloque sur "Recherche en
+// cours...") : chaque lecture (terrain ou entreprise) est desormais protegee individuellement
+// par son propre try/catch -- avant ce correctif, une seule lecture defaillante (rejet de
+// promesse non intercepte) interrompait la fonction entiere sans jamais ecrire de resultat final,
+// laissant l'interface figee indefiniment et perdant tous les dossiers deja trouves. Le
+// deuxieme facteur (recursion chargerTerrainState/verifierInstructionPermis, vraie boucle sans
+// fin plutot qu'une exception) est corrige separement, a la source, dans verifierInstructionPermis
+// ci-dessus -- les deux correctifs sont complementaires. Strictement en lecture (aucune mutation,
+// aucun cout, aucun jet -- inchange), recherche toujours possible sur un nom tiers quelconque
+// (aucune garde nom===state.char?.name ajoutee, conforme au design voulu).
 async function rechercherDossierNotarial() {
   const nom = (document.getElementById('dossier-notarial-nom')?.value || '').trim();
   const resultatsEl = document.getElementById('dossier-notarial-resultats');
@@ -2916,48 +2967,68 @@ async function rechercherDossierNotarial() {
   resultatsEl.innerHTML = '<div style="font-size:.8rem;color:#8a8060;font-style:italic">Recherche en cours...</div>';
 
   const dossiers = [];
+  let lecturesEchouees = 0;
 
   // Terrains : compromis actif, achat direct (rendez-vous en attente), transfert de compromis
-  // propose a ce nom -- meme source que doActeVenteTerrain/doOuvrirTransfertCompromis.
+  // propose a ce nom -- meme source que doActeVenteTerrain/doOuvrirTransfertCompromis. Chaque
+  // terrain est isole : une lecture qui echoue est journalisee et sautee, jamais fatale aux autres.
   if (typeof getTousLesTerrainsPays === 'function' && typeof chargerTerrainState === 'function' && typeof getTerrainState === 'function') {
     for (const id of getTousLesTerrainsPays()) {
-      await chargerTerrainState(id);
-      const ts = getTerrainState(id);
-      if (!ts) continue;
-      const nomBatiment = BUILDINGS[id]?.shortName || BUILDINGS[id]?.name || id;
-      if (ts.compromis && ts.compromisPar === nom) {
-        dossiers.push('Achat d\'un terrain (' + nomBatiment + ') — signature prévue avant le ' + formaterHorodatageJournal(ts.compromisExpireAt));
-      }
-      if (ts.achatDirect && ts.achatDirect.demandeur === nom) {
-        dossiers.push('Achat direct d\'un terrain (' + nomBatiment + ') — rendez-vous notarial le ' + formaterHorodatageJournal(ts.achatDirect.dateAchat));
-      }
-      if (ts.transfertPropose === nom) {
-        dossiers.push('Transfert de compromis proposé (' + nomBatiment + ') — en attente de validation');
+      try {
+        await chargerTerrainState(id);
+        const ts = getTerrainState(id);
+        if (!ts) continue;
+        const nomBatiment = BUILDINGS[id]?.shortName || BUILDINGS[id]?.name || id;
+        if (ts.compromis && ts.compromisPar === nom) {
+          dossiers.push('Achat d\'un terrain (' + nomBatiment + ') — signature prévue avant le ' + formaterHorodatageJournal(ts.compromisExpireAt));
+        }
+        if (ts.achatDirect && ts.achatDirect.demandeur === nom) {
+          dossiers.push('Achat direct d\'un terrain (' + nomBatiment + ') — rendez-vous notarial le ' + formaterHorodatageJournal(ts.achatDirect.dateAchat));
+        }
+        if (ts.transfertPropose === nom) {
+          dossiers.push('Transfert de compromis proposé (' + nomBatiment + ') — en attente de validation');
+        }
+      } catch (e) {
+        console.error('rechercherDossierNotarial : lecture terrain échouée', id, e);
+        lecturesEchouees++;
       }
     }
   }
 
   // Entreprises : compromis de rachat actif -- meme source que doRachatEntreprise/doActeRachatEntreprise.
+  // Meme isolation individuelle que les terrains ci-dessus.
   if (typeof getEntreprisesRachetables === 'function') {
     for (const def of getEntreprisesRachetables()) {
-      const data = await def.charger();
-      if (data && data.compromis && data.compromisPar === nom) {
-        dossiers.push('Rachat de "' + def.label + '" — signature prévue avant le ' + formaterHorodatageJournal(data.compromisExpireAt));
+      try {
+        const data = await def.charger();
+        if (data && data.compromis && data.compromisPar === nom) {
+          dossiers.push('Rachat de "' + def.label + '" — signature prévue avant le ' + formaterHorodatageJournal(data.compromisExpireAt));
+        }
+      } catch (e) {
+        console.error('rechercherDossierNotarial : lecture entreprise échouée', def.id, e);
+        lecturesEchouees++;
       }
     }
   }
 
+  // Etat final TOUJOURS atteint desormais, quel que soit le nombre de lectures echouees : soit
+  // des dossiers sont affiches, soit un message "aucun dossier" explicite -- jamais plus de
+  // "Recherche en cours..." qui perdure. Un eventuel echec partiel est signale sans jamais
+  // masquer les resultats deja valides trouves par ailleurs.
+  let html;
   if (dossiers.length === 0) {
-    resultatsEl.innerHTML = '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun dossier en cours à ce nom.</div>';
-    return;
+    html = '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun dossier en cours à ce nom.</div>';
+  } else {
+    html = '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.5rem">Vous avez ' + dossiers.length + ' dossier(s) en attente :</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
+    dossiers.forEach(texte => {
+      html += '<div style="font-size:.82rem;color:#e0d8c0">• ' + texte + '</div>';
+    });
+    html += '</div>';
   }
-
-  let html = '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.5rem">Vous avez ' + dossiers.length + ' dossier(s) en attente :</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
-  dossiers.forEach(texte => {
-    html += '<div style="font-size:.82rem;color:#e0d8c0">• ' + texte + '</div>';
-  });
-  html += '</div>';
+  if (lecturesEchouees > 0) {
+    html += '<div style="font-size:.72rem;color:#8a3a20;font-style:italic;margin-top:.6rem">' + lecturesEchouees + ' dossier(s) n\'ont pas pu être consultés (réessayez plus tard) — les résultats ci-dessus restent fiables.</div>';
+  }
   resultatsEl.innerHTML = html;
 }
 
@@ -3001,6 +3072,7 @@ async function doOuvrirTransfertCompromis(pa, cost) {
 }
 
 async function doInitierTransfertCompromis(id, pa, cost) {
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Transférer ce compromis')) return;
   const destinataire = (document.getElementById('transfert-nom-' + id)?.value || '').trim();
   if (!destinataire) { showToast('Nom manquant', 'Indiquez le nom du nouveau détenteur.', false); return; }
   if (destinataire === state.char?.name) { showToast('Impossible', 'Vous ne pouvez pas vous transférer un compromis à vous-même.', false); return; }
@@ -3050,6 +3122,7 @@ async function doValiderTransfertCompromis(pa, cost) {
 }
 
 async function doAccepterTransfertCompromis(id, pa, cost) {
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Accepter ce transfert')) return;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
@@ -3997,6 +4070,7 @@ async function doOuvrirDivisionTerrain() {
 
 async function doAjouterSubdivision() {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Diviser ce bien')) return;
   const ts = getTerrainState(id);
   const surfaceMin = SURFACE_MIN_SUBDIVISION[ts.niveau_construction];
   const label = (document.getElementById('subdiv-label')?.value || '').trim();
@@ -4024,6 +4098,7 @@ async function doAjouterSubdivision() {
 
 async function doSupprimerSubdivision(idx) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Modifier ce lot')) return;
   const ts = getTerrainState(id);
   const subdivisions = ts.subdivisions || [];
   const lot = subdivisions[idx];
@@ -4086,6 +4161,7 @@ function doOuvrirAgrandirLot(idxOccupe) {
 // consultables via 'Gérer mon local loué').
 async function doFusionnerLot(idxOccupe, idxVide) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Fusionner ces lots')) return;
   const ts = getTerrainState(id);
   const subdivisions = ts.subdivisions || [];
   const lotOccupe = subdivisions[idxOccupe];
@@ -4107,6 +4183,7 @@ async function doFusionnerLot(idxOccupe, idxVide) {
 
 async function doAccepterFusionLot(idxOccupe) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, "Accepter l'agrandissement")) return;
   const ts = getTerrainState(id);
   const subdivisions = ts.subdivisions || [];
   const lotOccupe = subdivisions[idxOccupe];
@@ -4126,6 +4203,7 @@ async function doAccepterFusionLot(idxOccupe) {
 
 async function doRefuserFusionLot(idxOccupe) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, "Refuser l'agrandissement")) return;
   const ts = getTerrainState(id);
   const subdivisions = ts.subdivisions || [];
   const lotOccupe = subdivisions[idxOccupe];
@@ -4175,6 +4253,7 @@ async function doOuvrirLouerLot(pa, cost) {
 
 async function doLouerCeLot(lotId, pa, cost) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Louer ce lot')) return;
   const ts = getTerrainState(id);
   const subdivisions = ts.subdivisions || [];
   const lot = subdivisions.find(function(l) { return l.id === lotId; });
@@ -4285,6 +4364,7 @@ const DUREE_CHANTIER_JOURS = { hangar: 6, commerce_standard: 12, commerce_premiu
 
 async function confirmerConstruction(niveauKey) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Construire ici')) return;
   const niveau = NIVEAUX_CONSTRUCTION[niveauKey];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   if (!niveau) return;
@@ -4332,6 +4412,7 @@ async function confirmerConstruction(niveauKey) {
 
 async function doPayerVersementChantier() {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Payer le versement')) return;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -4363,6 +4444,7 @@ async function doPayerVersementChantier() {
 
 async function doCorrompreChantier(pa, cost) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Accélérer le chantier')) return;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -4550,6 +4632,7 @@ async function doDeposerDemandePermis(pa, cost) {
 
 async function confirmerDepotPermis(palierDemande, pa, cost) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Déposer ce permis')) return;
   const ts = getTerrainState(id);
   const jour = state.day || 1;
   const duree = DUREE_INSTRUCTION_PERMIS[palierDemande];
@@ -4575,9 +4658,29 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
 }
 
 // A appeler en entrant sur le terrain : fait passer une demande en instruction vers l'attente de validation du maire
+// Correctif recursion (verification d'idempotence/audit du 21 aout 2026) : cette fonction avait
+// pour habitude de rappeler chargerTerrainState(buildingId) en entree -- or son SEUL appelant
+// reel (verifie exhaustivement, un seul site d'appel dans tout le code : chargerTerrainState()
+// elle-meme, juste apres avoir ecrit state.terrainsState[buildingId] = distant) garantit deja que
+// l'etat local est frais au moment de l'appel. Rappeler chargerTerrainState() ici relisait les
+// MEMES donnees non mutees (la mutation ts.permis.statut='attente_validation' n'intervient qu'
+// apres, plus bas) et rentrait dans chargerTerrainState(), qui rappelait cette fonction, etc. --
+// boucle de promesses ne se resolvant jamais (pas un stack overflow, un veritable blocage
+// asynchrone : chaque tour reemet une requete reseau). Se declenchait des qu'un seul terrain,
+// n'importe ou, avait un permis 'instruction' dont le delai etait echu -- bloquait notamment
+// rechercherDossierNotarial() (balaie tous les terrains du pays) et ouvrirSuccession() (gel d'un
+// terrain du defunt dans cet etat). Correctif strictement local a cette ligne : utiliser l'etat
+// deja charge par l'appelant (getTerrainState(), synchrone, aucune requete) au lieu de le
+// rerequeter -- aucune regle metier des permis (duree/resultat/validation/corruption/couts/
+// notifications) n'est modifiee ci-dessous.
 async function verifierInstructionPermis(buildingId) {
-  await chargerTerrainState(buildingId);
   const ts = getTerrainState(buildingId);
+  // Verification directe du champ (pas refuserSiGele()) : cette fonction est elle-meme appelee
+  // DEPUIS chargerTerrainState() -- passer par idSuccessionGelantActif(), qui rappelle
+  // chargerTerrainState(), creerait une recursion. Controle silencieux (pas de toast) : ce
+  // traitement est automatique/passif (declenche a l'entree dans la piece), pas une action du
+  // joueur -- un permis ne doit simplement plus evoluer pendant le gel (section 2 du lot).
+  if (ts.succession_gel) return;
   if (!ts.permis || ts.permis.statut !== 'instruction') return;
   const jour = state.day || 1;
   if (jour < ts.permis.dateInstructionTerminee) return;
@@ -4637,6 +4740,7 @@ async function doTraiterDemandesPermis(pa, cost) {
 }
 
 async function traiterPermis(buildingId, valide, pa, cost) {
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', buildingId, 'Traiter ce permis')) return;
   const etat = await sbGetTerrainState(state.country, buildingId).catch(() => null);
   if (!etat?.permis) return;
   const r = await deduireCoutOrdre({ pa, cost });
@@ -4663,6 +4767,7 @@ async function traiterPermis(buildingId, valide, pa, cost) {
 
 async function doPlainteObstruction(pa, cost) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Contester ce refus')) return;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
   if (!ts.permis || ts.permis.statut !== 'refuse') { showToast('Indisponible', 'Aucun refus de permis à contester ici.', false); return; }
@@ -4693,6 +4798,7 @@ async function doPlainteObstruction(pa, cost) {
 
 async function doCorrompreFonctionnairePermis(pa, cost) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Corrompre le fonctionnaire')) return;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
   if (!ts.permis || ts.permis.statut !== 'instruction') { showToast('Indisponible', 'Aucune instruction en cours ici.', false); return; }
@@ -5305,6 +5411,7 @@ async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
 // et le RP restent un vrai gain. Toujours tracable sur enquete, meme en cas de reussite.
 async function doVolerMaterielChantier(pa, cost) {
   const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Voler du matériel')) return;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
