@@ -218,6 +218,150 @@ async function sbGetDernierContenuForum() {
   return t > p ? t : p; // horodatages ISO 8601 -- comparaison lexicographique fiable
 }
 
+// Voyants d'activite PAR FORUM (22 aout 2026, architecture finale suite a 3 revues successives
+// le meme jour) : remplace l'usage de sbGetDernierContenuForum() ci-dessus (laissee en place,
+// sans plus aucun appelant, au cas ou une V1 plus simple redevienne utile ailleurs) ET une
+// premiere version a pagination globale (abandonnee : son MAX_PAGES pouvait encore produire un
+// faux negatif au-dela du plafond, et un forum accessible sans aucun contenu forcait un scan de
+// tout l'historique de forum_posts a CHAQUE sondage de 60s pour le reconfirmer vide).
+//
+// Architecture retenue, en 2 temps (orchestres par forum.js, verifierActiviteForumNonVue()) :
+//  - sbActiviteForumCibles() : resolution CIBLEE, une fois par forum nouvellement accessible
+//    (jamais tous les forums du jeu -- filtre forum_id=in.(...)) -- cout borne par le volume
+//    PROPRE de ces forums, jamais par le volume global du jeu ni par le comportement de visite
+//    du joueur (voir le rejet argumente de l'alternative "borne = dernierPassage" lors de la
+//    revue du 22 aout : elle restait bloquee arbitrairement loin dans le passe des qu'un seul
+//    forum accessible restait longtemps sans visite, recreant un rescan periodique complet).
+//  - sbActiviteForumDepuis() : sondage INCREMENTAL a chaque poll suivant, filtre a la fois par
+//    idsAccessibles (in.()) ET par curseur (created_at=gte.<curseur>) -- cout borne par
+//    l'activite reelle depuis le dernier sondage, jamais par l'historique ni par le nombre de
+//    forums silencieux. gte. (pas gt.) : created_at n'est pas garanti unique (plusieurs lignes
+//    pourraient partager exactement le meme timestamp) -- gt. exclurait definitivement une ligne
+//    soeur du curseur jamais vue lors du sondage precedent ; gte. la re-recupere, sans
+//    consequence puisque l'agregation n'est qu'un MAX par forum (idempotente).
+//
+// forum_posts n'a pas de colonne forum_id (verifie) mais a une relation topic_id ->
+// forum_topics.id deja exploitable par l'embed PostgREST, y compris comme filtre EMBARQUE
+// (verifie par sondes reelles : forum_posts?select=created_at,forum_topics!inner(forum_id)
+// &forum_topics.forum_id=in.(local,sport) renvoie correctement les posts des SEULS forums
+// demandes) -- capacites EXISTANTES, aucune fonction SQL/RPC ni nouvelle architecture serveur.
+// idsForums/idsAccessibles sont des parametres d'ENTREE, jamais un filtre de permission recree
+// ici : forum.js calcule et transmet cette liste avec !f.private || canAccessForum(id),
+// l'expression EXACTE deja utilisee par renderForumNavItem -- aucune deuxieme logique
+// d'autorisation dans ce fichier.
+
+// Sommet de chaque flux (curseur de depart), 2 requetes O(1) independantes du volume total --
+// utilise UNE SEULE FOIS par session pour amorcer le curseur incremental.
+async function sbDernierHorodatageForum() {
+  const [t, p] = await Promise.all([
+    sbGet('forum_topics', 'select=created_at&order=created_at.desc&limit=1').catch(() => null),
+    sbGet('forum_posts', 'select=created_at&order=created_at.desc&limit=1').catch(() => null)
+  ]);
+  return { topics: t?.[0]?.created_at || null, posts: p?.[0]?.created_at || null };
+}
+
+// Resolution ciblee d'un sous-ensemble precis de forum_id. Le filtre in.() borne le flux a
+// epuiser au volume PROPRE de ces forums -- un forum sans aucun contenu parmi idsForums
+// n'entraine plus un scan de tout forum_posts, juste l'epuisement de son propre sous-ensemble
+// filtre (generalement 1 page). Aucun MAX_PAGES : la seule condition d'arret correcte reste
+// restants vide OU derniere page incomplete (flux scope epuise) -- jamais un plafond arbitraire.
+async function sbActiviteForumCibles(idsForums, pageSize) {
+  pageSize = pageSize || 200;
+  const cibles = new Set(idsForums || []);
+  if (cibles.size === 0) return {};
+  const idsFiltre = Array.from(cibles).map(encodeURIComponent).join(',');
+
+  async function dernierParForum(table, select, filtre, extraireForumId) {
+    const resultats = {};
+    const restants = new Set(cibles);
+    let offset = 0;
+    while (restants.size > 0) {
+      // Pas de .catch(() => null) ici (revue du 22 aout 2026) : un echec reseau doit remonter
+      // (verifierActiviteForumNonVue() a deja son try/catch) plutot que d'etre confondu avec un
+      // flux reellement epuise -- sinon un id encore non resolu se voyait ecrit `null` ("confirme
+      // vide") a la fin de cette fonction alors que sbGet avait simplement echoue, un faux negatif
+      // permanent (le curseur, deja au sommet a ce moment du bootstrap, ne le retrouverait plus
+      // jamais pendant la session). sbGet() renvoie null sur echec HTTP (voir plus haut) -- lignes
+      // est donc null uniquement en cas d'echec ; [] (tableau vide) reste le seul signal de page
+      // reellement vide, recue AVEC succes.
+      const lignes = await sbGet(table, `select=${select}&${filtre}&order=created_at.desc&limit=${pageSize}&offset=${offset}`);
+      if (lignes === null) throw new Error('sbActiviteForumCibles: echec reseau sur ' + table);
+      if (lignes.length === 0) break; // flux (scope) epuise (succes, page vide), rien de plus a trouver
+      lignes.forEach(l => {
+        const fid = extraireForumId(l);
+        if (fid && restants.has(fid) && !(fid in resultats)) {
+          resultats[fid] = l.created_at; // 1ere occurrence rencontree = la plus recente (ordre desc)
+          restants.delete(fid);
+        }
+      });
+      if (lignes.length < pageSize) break; // page incomplete = flux (scope) epuise
+      offset += pageSize;
+    }
+    return resultats;
+  }
+
+  const [topics, posts] = await Promise.all([
+    dernierParForum('forum_topics', 'forum_id,created_at', `forum_id=in.(${idsFiltre})`, l => l.forum_id),
+    dernierParForum('forum_posts', 'created_at,forum_topics!inner(forum_id)', `forum_topics.forum_id=in.(${idsFiltre})`, l => l.forum_topics?.forum_id)
+  ]);
+
+  const parForum = {};
+  Object.entries(topics).forEach(([id, iso]) => { parForum[id] = iso; });
+  Object.entries(posts).forEach(([id, iso]) => { if (!parForum[id] || iso > parForum[id]) parForum[id] = iso; });
+  cibles.forEach(id => { if (!(id in parForum)) parForum[id] = null; }); // resolu : confirme vide
+  return parForum;
+}
+
+// Sondage incremental : uniquement ce qui est arrive depuis le curseur, ET uniquement parmi les
+// forums accessibles (idsAccessibles, meme provenance que sbActiviteForumCibles -- calcule et
+// transmis par forum.js, jamais recalcule ici). gte. (pas gt.), voir le commentaire d'ensemble
+// ci-dessus. Si curseur est null (jamais etabli), aucun filtre created_at n'est applique --
+// n'arrive jamais en pratique ici puisque forum.js etablit toujours le curseur via
+// sbDernierHorodatageForum() avant le premier appel a cette fonction.
+async function sbActiviteForumDepuis(idsAccessibles, curseurTopics, curseurPosts, pageSize) {
+  pageSize = pageSize || 200;
+  const ids = new Set(idsAccessibles || []);
+  if (ids.size === 0) return { parForum: {}, curseurTopics, curseurPosts };
+  const idsFiltre = Array.from(ids).map(encodeURIComponent).join(',');
+
+  async function depuis(table, select, filtreScope, extraireForumId, curseur) {
+    const parForum = {};
+    let dernier = curseur;
+    let offset = 0;
+    while (true) {
+      const filtreCurseur = curseur ? `&created_at=gte.${encodeURIComponent(curseur)}` : '';
+      // Pas de .catch(() => null) ici (revue du 22 aout 2026) : sur une pagination a plusieurs
+      // pages (rare, seulement si beaucoup de nouveau contenu depuis le dernier sondage), une
+      // page 0 reussie avait deja avance `dernier` avant qu'un echec sur la page 1 ne soit
+      // confondu avec "flux epuise" -- le curseur retourne aurait alors avance au-dela de
+      // donnees jamais recuperees, les faisant sauter definitivement (gte. ne les retrouverait
+      // plus). L'echec doit remonter pour que le sondage entier soit abandonne (try/catch de
+      // verifierActiviteForumNonVue()) et le curseur laisse intact pour le prochain essai.
+      const lignes = await sbGet(table, `select=${select}&${filtreScope}${filtreCurseur}&order=created_at.asc&limit=${pageSize}&offset=${offset}`);
+      if (lignes === null) throw new Error('sbActiviteForumDepuis: echec reseau sur ' + table);
+      if (lignes.length === 0) break;
+      lignes.forEach(l => {
+        const fid = extraireForumId(l);
+        if (fid) { if (!parForum[fid] || l.created_at > parForum[fid]) parForum[fid] = l.created_at; }
+        if (!dernier || l.created_at > dernier) dernier = l.created_at;
+      });
+      if (lignes.length < pageSize) break;
+      offset += pageSize;
+    }
+    return { parForum, curseur: dernier };
+  }
+
+  const [t, p] = await Promise.all([
+    depuis('forum_topics', 'forum_id,created_at', `forum_id=in.(${idsFiltre})`, l => l.forum_id, curseurTopics),
+    depuis('forum_posts', 'created_at,forum_topics!inner(forum_id)', `forum_topics.forum_id=in.(${idsFiltre})`, l => l.forum_topics?.forum_id, curseurPosts)
+  ]);
+
+  const parForum = {};
+  Object.entries(t.parForum).forEach(([id, iso]) => { parForum[id] = iso; });
+  Object.entries(p.parForum).forEach(([id, iso]) => { if (!parForum[id] || iso > parForum[id]) parForum[id] = iso; });
+  return { parForum, curseurTopics: t.curseur, curseurPosts: p.curseur };
+}
+
 // authorReal/orgaId/orgIcon (17 aout 2026, publication au nom d'une organisation) : parametres
 // optionnels, derniers de la liste (meme convention que contentLayout ci-dessous), UNIQUEMENT
 // inclus dans le payload d'insertion quand ils sont fournis (authorIsOrg=true) -- une publication

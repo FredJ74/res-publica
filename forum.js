@@ -218,6 +218,18 @@ let currentTopicId = null;
 let forumView = 'list';
 let forumCategorieActive = null; // 'intra' | 'inter' | 'prive' | null (rien de deplie)
 let forumSousGroupeOuvert = false; // accordeon imbrique pour 'Institutionnels'
+// Voyants par rubrique (22 aout 2026) : dernier resultat calcule par recalculerActiviteForumAgregat().
+// forums: { [forumId]: bool }, groupes: { [cat]: bool } ('intra'/'inter'/'prive'), global: bool.
+let forumActivite = { forums: {}, groupes: {}, global: false };
+// Cache/curseur de resolution (22 aout 2026, architecture finale -- voir verifierActiviteForumNonVue).
+// forumActiviteCache : forum_id -> iso (dernier contenu connu) | null (resolu, confirme vide) --
+// purge des qu'un forum cesse d'etre accessible, ce qui gere aussi bien la perte d'acces que le
+// regain (un id absent du cache est toujours retraite comme "a resoudre", jamais suppose a jour).
+// forumActiviteCurseur : curseur SYSTEME (pas par personnage) -- independant du comportement de
+// visite du joueur, avance uniquement selon ce que le client a deja recupere du serveur.
+let forumActiviteCache = {};
+let forumActiviteCurseur = { topics: null, posts: null };
+let forumActiviteCurseurEtabli = false;
 let mailView = 'inbox'; // 'inbox' | 'compose' | 'read'
 let mailDefaultTo = ''; // Destinataire pré-rempli depuis répertoire PJ
 let editingPostId = null;
@@ -248,11 +260,12 @@ function openForum_module(forumId) {
   }
   renderForumModal();
   document.getElementById('modal-forum').classList.add('open');
-  // Voyant d'activite (17 aout 2026) : point d'entree UNIQUE de toute ouverture du forum/de la
-  // messagerie (bouton principal, raccourcis depuis une organisation) -- eteindre ici couvre
-  // tous les chemins d'acces sans code specifique a chacun.
-  if (typeof marquerForumVisite === 'function') marquerForumVisite();
+  // Voyant d'activite (revu le 22 aout 2026) : la simple ouverture de la fenetre Forum ne marque
+  // plus rien comme vu -- seule l'ouverture d'un forum PRECIS (forumId fourni) le marque, lui
+  // seul. Un appel sans forumId (atterrissage sur la liste des categories, rien de precis
+  // affiche) ne doit rien eteindre.
   if (forumId) {
+    if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(forumId);
     // Charger depuis Supabase en arrière-plan et rafraîchir -- renderForumModal() complet (pas
     // seulement #forum-main), sinon le compteur de la sidebar (forum-nav-count, deja rendu AVANT
     // que FORUM_TOPICS[forumId] soit peuple) reste fige a "0 sujet(s)" jusqu'a un changement de
@@ -264,63 +277,167 @@ function openForum_module(forumId) {
 }
 
 // =====================
-// VOYANT D'ACTIVITE FORUM (17 aout 2026)
+// VOYANTS D'ACTIVITE FORUM, PAR RUBRIQUE (22 aout 2026 -- remplace la V1 globale du 17-18 aout,
+// gardee en doctrine pour la persistance/la migration mais decomposee par forum)
 // =====================
-// Audit prealable : aucun mecanisme de lecture existant (ni lastForumVisit, ni table dediee, ni
-// lu/non-lu par sujet) -- confirme, rien a reutiliser. Doctrine V1 volontairement simple :
-// dernier contenu forum (nouveaux sujets + nouvelles reponses, jamais une simple edition
-// puisque created_at ne change pas a l'edition) compare a la derniere consultation du joueur,
-// sans suivi sujet par sujet.
+// Chaque forum accessible a desormais son propre etat lu/non-lu. Le voyant Forum (global,
+// #forum-activity-dot) est le OU de tous les forums ACCESSIBLES porteurs d'une nouveaute ; un
+// forum appartenant a un groupe (son f.cat -- 'intra'/'inter'/'prive', deja utilise par
+// renderCategorieHeader, aucune notion nouvelle) allume aussi le voyant de ce groupe. Simple
+// ouverture de la fenetre Forum : ne marque plus rien comme vu. Seule l'ouverture EFFECTIVE d'un
+// forum precis (switchForum, openForum_module(forumId) quand un id est fourni,
+// toggleCategorieForum via sa premiere entree auto-selectionnee) marque CE forum -- jamais les
+// autres. Accessibilite : reutilise exactement `!f.private || canAccessForum(id)`, la meme
+// expression que renderForumNavItem -- aucun second systeme de permissions.
 //
-// Persistance : localStorage, cle SUFFIXEE PAR LE NOM DU PERSONNAGE (meme convention que
-// respublica_mails/respublica_photo_<nom>) -- jamais la table personnages, deja identifiee
-// comme resauvegardee integralement a chaque action (sbSavePersonnage) : y ajouter un champ
-// aurait exige une migration ET une re-ecriture complete du personnage a chaque ouverture du
-// forum pour une simple estampille d'attention, risque disproportionne pour ce lot. Compromis
-// assume : ne survit pas a un changement d'appareil -- acceptable pour cette V1 beta (voir
-// rapport), et peut migrer vers une colonne dediee plus tard sans casser ce mecanisme.
+// Persistance : localStorage, une cle par personnage ET par forum (voir _cleDernierPassageForumId
+// ci-dessous), meme convention que l'ancienne cle globale (respullica_dernier_passage_forum_<nom>,
+// desormais suffixee _<forumId>). Migration douce : au premier acces a la cle d'un forum donne,
+// si elle est absente, on reprend la valeur de l'ANCIENNE cle globale comme point de depart --
+// un joueur qui avait deja consulte le forum avant ce lot ne voit pas tout son historique
+// s'allumer d'un coup ; un forum jamais visite (aucune ancienne cle non plus) reste
+// correctement "jamais vu".
 function _cleDernierPassageForum() {
   const nom = state.char?.name;
   return nom ? 'respublica_dernier_passage_forum_' + nom : null;
 }
 
-// Marque le forum comme visite PAR CE PERSONNAGE (jamais global -- ne doit jamais eteindre le
-// voyant d'un autre joueur). Appelee a l'ouverture du forum (openForum_module) ET juste apres
-// la propre publication reussie du joueur (submitNewTopic/submitReply/submitReplyComposed/
-// submitComposeCanvas), pour eviter qu'il voie un voyant rouge simplement parce qu'il vient de
-// publier -- son propre post est cree AVANT cet appel, donc toujours <= a l'horodatage marque
-// ici, jamais reconnu comme "nouveau" pour lui-meme au prochain controle.
-function marquerForumVisite() {
+function _cleDernierPassageForumId(forumId) {
   const cle = _cleDernierPassageForum();
-  if (!cle) return;
-  try { localStorage.setItem(cle, new Date().toISOString()); } catch(e) {}
-  const dot = document.getElementById('forum-activity-dot');
-  if (dot) dot.style.display = 'none';
+  return cle && forumId ? cle + '_' + forumId : null;
 }
 
-async function verifierActiviteForumNonVue() {
-  const cle = _cleDernierPassageForum();
-  if (!cle || typeof sbGetDernierContenuForum !== 'function') return;
+function _dernierPassageForumId(forumId) {
+  const cle = _cleDernierPassageForumId(forumId);
+  if (!cle) return null;
   try {
-    const dernierContenu = await sbGetDernierContenuForum();
-    const dot = document.getElementById('forum-activity-dot');
-    if (!dernierContenu || !dot) return;
-    const dernierPassage = localStorage.getItem(cle);
-    dot.style.display = (!dernierPassage || dernierContenu > dernierPassage) ? 'inline-block' : 'none';
+    const valeur = localStorage.getItem(cle);
+    if (valeur) return valeur;
+    // Migration douce, paresseuse (une seule fois par forum, a la premiere lecture) depuis
+    // l'ancienne cle globale -- jamais de balayage de tous les forums au demarrage.
+    const cleGlobale = _cleDernierPassageForum();
+    const ancienne = cleGlobale ? localStorage.getItem(cleGlobale) : null;
+    if (ancienne) { try { localStorage.setItem(cle, ancienne); } catch(e) {} }
+    return ancienne;
+  } catch(e) { return null; }
+}
+
+// Marque UN forum precis comme visite PAR CE PERSONNAGE (jamais global, jamais un autre
+// personnage). Appelee a l'ouverture effective de ce forum ET juste apres la propre publication
+// reussie du joueur DANS ce forum (memes 4 points d'appel qu'avant, desormais parametres par
+// currentForumId plutot que globaux) -- son propre post est cree avant cet appel, donc jamais
+// reconnu comme "nouveau" pour lui-meme au prochain controle. Met a jour l'etat local
+// immediatement (sans attendre le prochain sondage Supabase), meme comportement instantane que
+// l'ancienne marquerForumVisite() sur le point du bouton principal.
+function marquerForumRubriqueVisitee(forumId) {
+  const cle = _cleDernierPassageForumId(forumId);
+  if (!cle) return;
+  try { localStorage.setItem(cle, new Date().toISOString()); } catch(e) {}
+  forumActivite.forums[forumId] = false;
+  const f = getForums()[forumId];
+  recalculerActiviteForumAgregat(f?.cat);
+}
+
+// Point d'entree unique du sondage (60s + visibilitychange, cadence inchangee -- voir
+// plateau-core.js). idsAccessibles est recalcule a CHAQUE appel avec l'expression EXACTE deja
+// utilisee par renderForumNavItem (!f.private || canAccessForum(id)) -- forum.js reste seul juge
+// de l'accessibilite ; supabase.js ne fait que RECEVOIR cette liste comme parametre de
+// resolution/filtrage, aucune deuxieme logique de permissions.
+//
+// Purge du cache AVANT de determiner les ids "nouveaux" (22 aout 2026, revue perte/regain
+// d'acces) : tout forum absent de idsAccessibles est retire de forumActiviteCache. C'est ce qui
+// gere a la fois la perte d'acces (son entree perimee n'est plus jamais lue une fois purgee, et
+// le sondage incremental ci-dessous, scope a idsAccessibles, ne la met plus a jour pendant la
+// perte) ET le regain d'acces (l'id, absent du cache pendant la perte, est automatiquement
+// retraite comme "nouvellement accessible" au prochain sondage -> re-resolu depuis zero via
+// sbActiviteForumCibles, jamais un etat perime datant d'avant la perte d'acces).
+//
+// Regime : sbActiviteForumCibles() (resolution ciblee, in.(), sans plafond arbitraire) UNIQUEMENT
+// pour les forums accessibles pas encore en cache -- typiquement aucun apres le tout premier
+// sondage de la session, sauf nouvelle organisation/changement de ville/regain d'acces. Puis
+// sbActiviteForumDepuis() (delta depuis le curseur systeme, scope a idsAccessibles) a CHAQUE
+// sondage -- 2 requetes dans le cas courant, jamais un rescan de l'historique.
+async function verifierActiviteForumNonVue() {
+  if (!_cleDernierPassageForum()) return;
+  try {
+    const forums = getForums();
+    const idsAccessibles = Object.keys(forums).filter(id => !forums[id].private || canAccessForum(id));
+
+    Object.keys(forumActiviteCache).forEach(id => {
+      if (!idsAccessibles.includes(id)) delete forumActiviteCache[id];
+    });
+
+    if (!forumActiviteCurseurEtabli && typeof sbDernierHorodatageForum === 'function') {
+      const sommet = await sbDernierHorodatageForum();
+      forumActiviteCurseur.topics = sommet.topics;
+      forumActiviteCurseur.posts = sommet.posts;
+      forumActiviteCurseurEtabli = true;
+    }
+
+    const idsNonResolus = idsAccessibles.filter(id => !(id in forumActiviteCache));
+    if (idsNonResolus.length > 0 && typeof sbActiviteForumCibles === 'function') {
+      Object.assign(forumActiviteCache, await sbActiviteForumCibles(idsNonResolus));
+    }
+
+    if (idsAccessibles.length > 0 && typeof sbActiviteForumDepuis === 'function') {
+      const delta = await sbActiviteForumDepuis(idsAccessibles, forumActiviteCurseur.topics, forumActiviteCurseur.posts);
+      Object.entries(delta.parForum).forEach(([id, iso]) => {
+        if (!forumActiviteCache[id] || iso > forumActiviteCache[id]) forumActiviteCache[id] = iso;
+      });
+      if (delta.curseurTopics) forumActiviteCurseur.topics = delta.curseurTopics;
+      if (delta.curseurPosts) forumActiviteCurseur.posts = delta.curseurPosts;
+    }
+
+    Object.keys(forums).forEach(id => {
+      const f = forums[id];
+      const accessible = !f.private || canAccessForum(id);
+      if (!accessible) { forumActivite.forums[id] = false; return; }
+      const dernierContenu = forumActiviteCache[id];
+      if (!dernierContenu) { forumActivite.forums[id] = false; return; }
+      const dernierPassage = _dernierPassageForumId(id);
+      forumActivite.forums[id] = !dernierPassage || dernierContenu > dernierPassage;
+    });
+    recalculerActiviteForumAgregat();
+    // Rafraichit la sidebar (points par forum/groupe) si la modale est actuellement ouverte --
+    // meme garde mailView!=='compose' que les rendus post-fetch existants (openForum_module,
+    // switchForum, toggleCategorieForum), pour ne jamais interrompre une saisie en cours.
+    if (mailView !== 'compose' && document.getElementById('modal-forum')?.classList.contains('open')) {
+      renderForumModal();
+    }
   } catch(e) {}
 }
 
-// Voyants par rubrique, a l'interieur de l'interface Messages/Forums (18 aout 2026). Reutilise
-// STRICTEMENT les mecanismes deja existants -- aucune nouvelle notion de "lu" :
-//  - Mail : recalcule en temps reel depuis read:false (meme filtre que le texte "X non lu(s)"
-//    deja affiche a cote de "Boîte Mail", jamais un nouveau systeme de lecture) ;
-//  - Forum : lit l'etat COURANT du voyant global #forum-activity-dot (doctrine "derniere
-//    consultation globale" deja en place, jamais decomposee par sous-forum/sujet). Comme
-//    openForum_module() rend le sidebar AVANT d'appeler marquerForumVisite() (voir plus haut),
-//    cette lecture capture bien "y avait-il du nouveau au moment de l'ouverture", pas apres.
-function forumADeLActiviteNonVue() {
+// Recalcule les voyants de groupe + le voyant global a partir de forumActivite.forums, et
+// repercute immediatement sur le point du bouton principal (#forum-activity-dot, hors de la
+// modale, jamais re-rendu par renderForumModal). categorieSeule limite le recalcul de groupe a
+// une seule categorie (appel depuis marquerForumRubriqueVisitee) ; omis, tous les groupes sont
+// recalcules (appel depuis le sondage, ou plusieurs groupes peuvent changer a la fois).
+function recalculerActiviteForumAgregat(categorieSeule) {
+  const forums = getForums();
+  const groupes = {};
+  Object.entries(forums).forEach(([id, f]) => {
+    if (!f.cat) return;
+    groupes[f.cat] = !!groupes[f.cat] || !!forumActivite.forums[id];
+  });
+  if (categorieSeule) {
+    forumActivite.groupes[categorieSeule] = !!groupes[categorieSeule];
+  } else {
+    forumActivite.groupes = groupes;
+  }
+  forumActivite.global = Object.values(forumActivite.forums).some(Boolean);
   const dot = document.getElementById('forum-activity-dot');
-  return !!dot && dot.style.display !== 'none';
+  if (dot) dot.style.display = forumActivite.global ? 'inline-block' : 'none';
+}
+
+// Voyant global (titre de la modale #modal-forum-title ET bouton principal #forum-activity-dot,
+// tous deux desormais alimentes par forumActivite.global -- meme source unique).
+function forumADeLActiviteNonVue() {
+  return !!forumActivite.global;
+}
+
+// Voyant de groupe ('intra'/'inter'/'prive', le meme decoupage que renderCategorieHeader).
+function groupeForumADeLActiviteNonVue(cat) {
+  return !!forumActivite.groupes[cat];
 }
 
 // Meme identite visuelle que #forum-activity-dot (8px, #cc2020, rond) -- jamais une deuxieme
@@ -331,11 +448,12 @@ function htmlPointRougeActivite(margeGauche) {
 
 function renderForumNavItem(id, f) {
   const accessible = !f.private || canAccessForum(id);
+  const nonVu = accessible && !!forumActivite.forums[id];
   return `<div class="forum-nav-item ${id === currentForumId && forumView !== 'mail' ? 'active' : ''} ${!accessible ? 'locked' : ''}"
     onclick="${accessible ? `switchForum('${id}')` : `showToast('Accès restreint','Ce forum est réservé aux membres autorisés.',false)`}">
     <i class="ti ${f.icon}" style="font-size:.85rem"></i>
     <div>
-      <div class="forum-nav-name">${f.name}</div>
+      <div class="forum-nav-name">${f.name}${nonVu ? htmlPointRougeActivite('.4rem') : ''}</div>
       <div class="forum-nav-count">${(FORUM_TOPICS[id]||[]).length} sujet(s)</div>
     </div>
     ${f.private ? `<i class="ti ti-lock" style="font-size:.65rem;color:#4a4030;margin-left:auto"></i>` : ''}
@@ -395,6 +513,9 @@ function toggleCategorieForum(cat) {
   currentTopicId = null;
   renderForumModal();
   if (currentForumId) {
+    // Deplier une categorie auto-selectionne sa premiere entree, qui devient bien visible --
+    // ouverture effective de CE forum (revu le 22 aout 2026), a marquer comme telle.
+    if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(currentForumId);
     // renderForumModal() complet (meme correctif que openForum_module ci-dessus, compteur
     // sidebar) plutot qu'une simple mise a jour de #forum-main.
     loadForumTopicsFromSB(currentForumId).then(() => {
@@ -405,9 +526,10 @@ function toggleCategorieForum(cat) {
 
 function renderCategorieHeader(cat, icon, label) {
   const active = forumView !== 'mail' && forumCategorieActive === cat;
+  const nonVu = groupeForumADeLActiviteNonVue(cat);
   return `<div class="forum-categorie-header ${active ? 'active' : ''}" onclick="toggleCategorieForum('${cat}')">
     <i class="ti ${icon}" style="font-size:.85rem"></i>
-    ${label}
+    ${label}${nonVu ? htmlPointRougeActivite('.4rem') : ''}
     <i class="ti ti-chevron-right forum-categorie-chevron ${active ? 'ouvert' : ''}"></i>
   </div>
   ${active ? renderForumCategorieItems(cat) : ''}`;
@@ -416,14 +538,13 @@ function renderCategorieHeader(cat, icon, label) {
 function renderForumModal() {
   const modal = document.getElementById('forum-body');
   const unreadCount = getMyMails().filter(m => !m.read && m.to === state.char?.name).length;
-  // Voyants de rubrique (18 aout 2026, corrige suite a retour : un seul voyant Forum, jamais
-  // repete sur Forums nationaux/internationaux/prives -- le mecanisme sous-jacent n'a aucune
-  // granularite par sous-forum, et 3 points rouges simultanes suggeraient visuellement le
-  // contraire au joueur). Mail depuis unreadCount (deja calcule ci-dessus, temps reel) ; Forum
-  // depuis l'etat courant du voyant global (calcule une seule fois, avant que
-  // marquerForumVisite() -- appelee juste apres ce rendu par openForum_module() -- ne l'eteigne).
-  // Place sur le titre du modal (#modal-forum-title, plateau.html), seul element qui represente
-  // "Forum" en general sans etre l'une des 3 categories ni la Boite Mail.
+  // Voyants de rubrique (revu le 22 aout 2026 : desormais un point par forum + par groupe, plus
+  // seulement le point global -- voir la section "VOYANTS D'ACTIVITE FORUM, PAR RUBRIQUE"
+  // plus haut). Mail depuis unreadCount (deja calcule ci-dessus, temps reel, inchange). Forum
+  // (titre du modal) depuis forumActivite.global, la meme source que le point du bouton
+  // principal #forum-activity-dot -- plus aucune ouverture de la fenetre ne l'eteint ici ;
+  // seule marquerForumRubriqueVisitee(forumId), appelee sur l'ouverture EFFECTIVE d'un forum
+  // precis, peut l'eteindre.
   const forumNonVu = forumADeLActiviteNonVue();
   const titreModal = document.getElementById('modal-forum-title');
   if (titreModal) titreModal.innerHTML = 'Forum' + (forumNonVu ? htmlPointRougeActivite('.4rem') : '');
@@ -474,6 +595,9 @@ function switchForum(id) {
   const f = getForums()[id];
   if (f?.cat) forumCategorieActive = f.cat;
   renderForumModal();
+  // Ouverture effective de ce forum precis (revu le 22 aout 2026) -- marque CE forum, jamais les
+  // autres.
+  if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(id);
   // renderForumModal() complet (meme correctif que ci-dessus, compteur sidebar).
   loadForumTopicsFromSB(id).then(() => {
     if (mailView !== 'compose') renderForumModal();
@@ -1643,7 +1767,7 @@ async function submitNewTopic() {
   addJournalEntry(`Vous avez créé le sujet "${escapeHtmlText(title)}" sur le forum.`, 'event-info');
   // Voyant (17 aout 2026) : sa propre publication ne doit pas s'afficher comme "nouvelle" a
   // ses propres yeux au prochain controle.
-  if (typeof marquerForumVisite === 'function') marquerForumVisite();
+  if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(currentForumId);
 }
 
 async function submitReply() {
@@ -1691,7 +1815,7 @@ async function submitReply() {
   forumView = 'topic';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   addJournalEntry(`Vous avez répondu au sujet "${escapeHtmlText(topic.title)}".`, 'event-info');
-  if (typeof marquerForumVisite === 'function') marquerForumVisite();
+  if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(currentForumId);
 }
 
 // Publication réelle d'un sujet composé (Lot E2) — même geste que submitNewTopic (sbCreateTopic
@@ -1785,7 +1909,7 @@ async function submitReplyComposed(layout, content) {
   forumView = 'topic';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   addJournalEntry(`Vous avez répondu au sujet "${escapeHtmlText(topic.title)}".`, 'event-info');
-  if (typeof marquerForumVisite === 'function') marquerForumVisite();
+  if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(currentForumId);
 }
 
 async function submitComposeCanvas() {
@@ -1886,7 +2010,7 @@ async function submitComposeCanvas() {
   forumView = 'list';
   document.getElementById('forum-main').innerHTML = renderForumContent();
   addJournalEntry(`Vous avez créé le sujet "${escapeHtmlText(title)}" sur le forum (composition libre).`, 'event-info');
-  if (typeof marquerForumVisite === 'function') marquerForumVisite();
+  if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(currentForumId);
   showToast('Sujet publié', 'Votre sujet est en ligne.', true, true);
   // Onboarding forum (17 aout 2026) : validation UNIQUEMENT après succès réel Supabase confirmé
   // ci-dessus, ET compositeur réellement armé par l'onboarding, ET publication personnelle (pas
