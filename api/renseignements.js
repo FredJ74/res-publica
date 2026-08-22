@@ -117,14 +117,43 @@
 // declarations non verifiees de l'appelant -- ce que cet appel garantit reellement, c'est que
 // le jour utilise est le jour REEL persiste de ce personnage, jamais un jour arbitraire.
 //
-// Verification volontairement NON ajoutee : une correlation avec personnages.escort_active
-// (le client a-t-il reellement cet escort dans son groupe ?) a ete envisagee puis ecartee --
-// son ecriture n'est pas garantie synchrone au moment de cet appel (l'evenement 'embauche' se
-// produit dans la MEME action cote client que la mise a jour d'escort_active elle-meme, sans
-// sauvegarde forcee entre les deux) : une telle verification risquerait de rejeter a tort des
-// evenements pourtant reels, plutot que d'apporter une securite fiable. Limite acceptee, dans
-// la meme famille que les autres limites deja documentees de ce chantier (ex. chaEscort en
-// Phase 2) -- aucune refonte d'authentification, comme demande.
+// Correctif d'integrite (22 aout 2026, revue avant GO Phase 5C) : un appel direct pouvait
+// jusqu'ici forger un evenement pour un nom qui n'a jamais ete un escort reel (ex. escort =
+// "Marc Hantile"), et ce seul evenement suffisait a estEscortConnuDeLAgence pour reconnaitre
+// une fausse appartenance a l'agence. Pour un evenement 'prestation', l'ecriture verifie
+// desormais que "escort" apparait reellement dans personnages.escort_active DU CLIENT au
+// moment de l'appel -- rejet silencieux (ok:false, aucune ligne creee) sinon. Cette
+// verification N'EST PAS ajoutee aux evenements 'embauche' : ceux-ci se produisent dans la
+// MEME action cote client que la mise a jour d'escort_active elle-meme, sans sauvegarde
+// forcee entre les deux -- l'exiger y rejetterait a tort des embauches pourtant reelles.
+// C'est pourquoi estEscortConnuDeLAgence (voir plus bas) n'accepte plus qu'un evenement
+// 'prestation' -- desormais toujours verifie a l'ecriture -- comme preuve d'appartenance ;
+// un evenement 'embauche' isole, jamais verifiable de maniere fiable, ne l'etablit plus a lui
+// seul. Limite residuelle assumee : une 'prestation' forgee reste possible si l'appelant
+// force AUSSI une entree correspondante dans personnages.escort_active (table sans RLS,
+// limite systemique deja documentee ailleurs dans ce fichier) -- mais cela exige deux
+// forgeries coordonnees au lieu d'un seul appel direct, dans la meme famille de compromis que
+// les autres limites deja documentees de ce chantier (ex. chaEscort en Phase 2) -- aucune
+// refonte d'authentification, comme demande.
+//
+// Phase 5C (22 aout 2026) : la mecanique Roxanne Velours devient V1-complete -- fait
+// CONSOMMER escort_evenements_commerciaux par secret_contre_secret et interroger_pnj_sujet,
+// aucun nouveau producteur, aucune nouvelle table, aucun endpoint de lecture generique ajoute.
+// construireRelationsCommercialesEscort() (voir plus bas) est la SEULE fonction qui lit cette
+// table : elle regroupe les evenements encore valides d'un escort par client, formule une
+// phrase deterministe (JAMAIS l'IA) selon un seuil fixe (>=3 evenements = "soutenue"), et
+// retourne des candidats au MEME format que les lignes renseignements_connus deja consommees
+// par le tirage pondere -- fusion directe dans le meme pool, memes poidsRecence/
+// poidsImportance, aucune probabilite modifiee. Connaissance COMMUNE de l'agence (pas
+// seulement les propres clients de l'escort interroge) : c'est le PARAMETRE "escort" passe a
+// construireRelationsCommercialesEscort qui determine de qui on lit l'activite, jamais un nom
+// ou un genre code en dur -- fonctionne identiquement pour tout PNJ job:'escort', et ne prete
+// aucune connaissance a un PNJ qui n'a jamais eu d'evenement reel (la fonction retourne alors
+// simplement [], sans qu'il soit necessaire de verifier job==='escort' cote serveur, donnee
+// cote client uniquement). Regle de non-reactivation (design valide) : un evenement commercial
+// choisi comme contrepartie/revelation n'est JAMAIS reactive (contrairement a une ligne
+// renseignements_connus reelle, deja reactivee par interroger_pnj_sujet) -- sa date
+// d'expiration reste celle de l'evenement reel, en parler ne la change pas.
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
@@ -236,6 +265,116 @@ function poidsImportance(categorie) {
 function poidsRecence(jourDerniereReactivation, jourActuel) {
   const age = Math.max(0, Math.min(DUREE_MEMOIRE_JOURS, jourActuel - (jourDerniereReactivation || jourActuel)));
   return 1 - 0.8 * (age / DUREE_MEMOIRE_JOURS);
+}
+
+// Verifie qu'un PNJ appartient reellement a l'agence -- STRUCTUREL, sans dependre de
+// job==='escort' (impossible cote serveur, donnee cote client uniquement, data.js). Critere
+// retenu : avoir eu AU MOINS UN evenement 'prestation' reel dans escort_evenements_
+// commerciaux, MEME EXPIRE -- l'appartenance a l'agence n'est pas une question de recence,
+// contrairement au contenu des relations elles-memes. Restreint a 'prestation' (et non plus
+// n'importe quel type_evenement) depuis le correctif d'integrite du 22 aout 2026 : seules ces
+// lignes sont desormais verifiees a l'ecriture contre personnages.escort_active (voir
+// enregistrerEvenementEscort ci-dessus) -- un evenement 'embauche' isole, jamais verifiable de
+// facon fiable a l'ecriture, ne suffit plus a lui seul a etablir l'appartenance. Cela exclut
+// PAR CONSTRUCTION tout PNJ qui n'a jamais eu de prestation reelle et verifiee (Marco, Marc
+// Hantile, ou tout autre nom force via un evenement 'embauche' forge par un appelant direct).
+// Limite assumee et documentee : un escort authentique qui n'aurait ENCORE jamais eu de
+// prestation (embauchee mais jamais "utilisee") ne serait pas reconnue par ce test -- edge
+// case etroit et sans consequence de securite (echec toujours FERME : au pire une vraie
+// escort tres recente n'obtient pas encore la connaissance commune, jamais l'inverse).
+async function estEscortConnuDeLAgence(nom) {
+  const filtre = `escort=eq.${encodeURIComponent(nom)}&type_evenement=eq.prestation&limit=1`;
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_EVENEMENTS_ESCORT}?${filtre}`, { headers: serviceHeaders() }).catch(() => null);
+  if (!r || !r.ok) return false;
+  const lignes = await r.json();
+  return Array.isArray(lignes) && lignes.length > 0;
+}
+
+// Phase 5C (22 aout 2026, corrige apres revue) : connaissance professionnelle COMMUNE de
+// L'AGENCE -- pas seulement les propres clients de l'escort interroge/qui parle. Rita, qui
+// n'a jamais servi Gaby, peut neanmoins savoir "Gaby embauche Natacha" du seul fait qu'elle
+// appartient a la meme agence : la requete porte donc sur TOUS les evenements encore valides
+// de escort_evenements_commerciaux, jamais filtres par escort=escortNom.
+//
+// Formulation TOUJOURS deterministe (jamais l'IA) : >=3 evenements encore valides pour un
+// COUPLE (client, escort concerne) = relation soutenue ; sinon "embauche" (present) si
+// personnages.escort_active du client confirme une embauche ACTIVE maintenant avec CET
+// escort precis, sinon "a recemment fait appel a" (passe recent). Une seule requete groupee
+// (name=in.(...)) sur les clients concernes -- jamais un scan complet de personnages.
+//
+// "exclureClient" retire UNIQUEMENT la relation du demandeur AVEC L'ESCORT QUI LUI PARLE (il
+// ne doit jamais apprendre "vous embauchez cet escort" comme une piste nouvelle) -- ses
+// relations avec d'AUTRES escorts restent des candidats valides, regle de design validee au
+// sens strict ("sa propre relation commerciale avec l'escort qui lui parle").
+//
+// Chaque candidat retourne porte le meme format que les lignes renseignements_connus deja
+// consommees par le tirage pondere (contenu/cible/categorie/fait_objectif_ref/jour_derniere_
+// reactivation) -- fusion directe possible sans adapter poidsRecence/poidsImportance. Marque
+// "__commercial:true" (jamais persiste, uniquement en memoire le temps de la requete) pour
+// que les appelants sachent ne JAMAIS reactiver la ligne source correspondante.
+async function construireRelationsCommercialesEscort(escortNom, jourActuel, exclureClient) {
+  // Appartenance a l'agence verifiee AVANT toute lecture agence-wide -- voir
+  // estEscortConnuDeLAgence ci-dessus. Un PNJ qui n'a jamais eu d'evenement propre n'obtient
+  // jamais la connaissance commune, quel que soit le nom passe par l'appelant.
+  const appartientAgence = await estEscortConnuDeLAgence(escortNom);
+  if (!appartientAgence) return [];
+
+  const filtre = `jour_expiration=gte.${jourActuel}&limit=1000`;
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_EVENEMENTS_ESCORT}?${filtre}`, { headers: serviceHeaders() }).catch(() => null);
+  if (!r || !r.ok) return [];
+  const evenements = await r.json();
+  if (!Array.isArray(evenements) || evenements.length === 0) return [];
+
+  // Regroupement par COUPLE (client, escort concerne) -- une relation Gaby/Natacha est
+  // distincte d'une relation Gaby/Rita, meme au sein du meme lot d'evenements agence-wide.
+  const parCouple = {};
+  for (const ev of evenements) {
+    if (!ev || !ev.client || !ev.escort) continue;
+    if (ev.client === exclureClient && ev.escort === escortNom) continue;
+    const cle = ev.client + ' ' + ev.escort;
+    if (!parCouple[cle]) parCouple[cle] = { client: ev.client, escort: ev.escort, nb: 0, dernierJour: -1, dernierEvenement: null };
+    const g = parCouple[cle];
+    g.nb += 1;
+    if (ev.jour >= g.dernierJour) { g.dernierJour = ev.jour; g.dernierEvenement = ev; }
+  }
+  const couples = Object.values(parCouple);
+  if (couples.length === 0) return [];
+
+  // Relation ACTIVE maintenant : lue depuis personnages.escort_active (source de verite deja
+  // existante, jamais dupliquee) -- une seule requete groupee sur les clients concernes,
+  // quel que soit le nombre d'escorts differents impliques.
+  const clientsUniques = [...new Set(couples.map(c => c.client))];
+  const filtreClients = `name=in.(${clientsUniques.map(c => encodeURIComponent(c)).join(',')})&select=name,escort_active`;
+  const rActifs = await fetch(`${SUPABASE_URL}/rest/v1/personnages?${filtreClients}`, { headers: serviceHeaders() }).catch(() => null);
+  const escortActivePourClient = {};
+  if (rActifs && rActifs.ok) {
+    const lignes = await rActifs.json();
+    if (Array.isArray(lignes)) {
+      for (const ligne of lignes) {
+        escortActivePourClient[ligne.name] = Array.isArray(ligne.escort_active) ? ligne.escort_active : [];
+      }
+    }
+  }
+
+  return couples.map(c => {
+    const estActive = (escortActivePourClient[c.client] || []).some(e => e && e.nom === c.escort);
+    let contenu;
+    if (c.nb >= 3) {
+      contenu = c.client + ' et ' + c.escort + ' entretiennent une relation commerciale soutenue.';
+    } else if (estActive) {
+      contenu = c.client + ' embauche ' + c.escort + '.';
+    } else {
+      contenu = c.client + ' a récemment fait appel à ' + c.escort + '.';
+    }
+    return {
+      contenu,
+      cible: c.client,
+      categorie: 'escort_frequentation',
+      fait_objectif_ref: 'escort_evenements_commerciaux:' + c.dernierEvenement.id,
+      jour_derniere_reactivation: c.dernierJour,
+      __commercial: true
+    };
+  });
 }
 
 async function tirerConfidenceEscort(body, res) {
@@ -426,49 +565,60 @@ async function secretContreSecret(body, res) {
     return res.status(200).json({ ok: true, declarationValide: false, contrepartie: null });
   }
 
-  // Contrepartie : tirage pondere dans la memoire REELLE de l'escort, memes fonctions que
-  // tirer_confidence_escort. Exclut explicitement la ligne qui vient d'etre creee (le secret
-  // du PJ lui-meme) -- elle ne doit jamais pouvoir se retourner comme contrepartie au meme
-  // echange. Aucune liste renvoyee au navigateur, un seul element si disponible.
+  // Contrepartie : tirage pondere fusionnant DEUX sources -- la memoire individuelle REELLE de
+  // l'escort (renseignements_connus, comme avant) et sa connaissance professionnelle COMMUNE
+  // de l'agence (escort_evenements_commerciaux, Phase 5C) -- memes poidsRecence/poidsImportance
+  // pour les deux, aucune probabilite modifiee. Exclut explicitement la ligne qui vient d'etre
+  // creee (le secret du PJ lui-meme) cote memoire individuelle, et la propre relation
+  // commerciale du PJ avec cet escort cote connaissance professionnelle (voir
+  // construireRelationsCommercialesEscort) -- dans les deux cas, le PJ ne doit jamais recevoir
+  // sa propre information comme s'il s'agissait d'une piste nouvelle. Aucune liste renvoyee au
+  // navigateur, un seul element si disponible.
   const filtreEscort = `titulaire=eq.${encodeURIComponent(escort)}&jour_expiration=gte.${jourActuel}&limit=200`;
   const rMemoireEscort = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?${filtreEscort}`, { headers: serviceHeaders() }).catch(() => null);
+  const eligiblesMemoire = (rMemoireEscort && rMemoireEscort.ok) ? await rMemoireEscort.json() : null;
+  const candidatsMemoire = (Array.isArray(eligiblesMemoire) ? eligiblesMemoire : []).filter(row => row.id !== ligneEscort.id);
+  const candidatsCommerciaux = await construireRelationsCommercialesEscort(escort, jourActuel, client);
   let contrepartieTexte = null;
-  if (rMemoireEscort && rMemoireEscort.ok) {
-    const eligibles = await rMemoireEscort.json();
-    const candidats = Array.isArray(eligibles) ? eligibles.filter(row => row.id !== ligneEscort.id) : [];
-    if (candidats.length > 0) {
-      const poids = candidats.map(row => poidsRecence(row.jour_derniere_reactivation, jourActuel) * poidsImportance(row.categorie));
-      const total = poids.reduce((s, p) => s + p, 0);
-      let tirage = Math.random() * total;
-      let choisi = candidats[candidats.length - 1];
-      for (let i = 0; i < candidats.length; i++) {
-        tirage -= poids[i];
-        if (tirage <= 0) { choisi = candidats[i]; break; }
-      }
-
-      const texteContrepartie = escort + ' a confié : « ' + choisi.contenu + ' »';
-      const lignePj = {
-        id: 'rc_' + Date.now() + '_' + Math.floor(Math.random() * 1000000),
-        titulaire: client,
-        contenu: texteContrepartie,
-        cible: choisi.cible || null,
-        categorie: choisi.categorie,
-        source: escort,
-        mode_acquisition: 'transmission',
-        fait_objectif_ref: choisi.fait_objectif_ref || null,
-        jour_acquisition: jourActuel,
-        jour_derniere_reactivation: jourActuel,
-        jour_expiration: jourActuel + DUREE_MEMOIRE_JOURS
-      };
-      const rEcriturePj = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
-        method: 'POST',
-        headers: { ...serviceHeaders(), 'Prefer': 'return=representation' },
-        body: JSON.stringify(lignePj)
-      }).catch(() => null);
-      // N'annonce une contrepartie que si elle a reellement ete persistee -- jamais une
-      // recompense fictive si l'ecriture echoue.
-      if (rEcriturePj && rEcriturePj.ok) contrepartieTexte = texteContrepartie;
+  const candidats = candidatsMemoire.concat(candidatsCommerciaux);
+  if (candidats.length > 0) {
+    const poids = candidats.map(row => poidsRecence(row.jour_derniere_reactivation, jourActuel) * poidsImportance(row.categorie));
+    const total = poids.reduce((s, p) => s + p, 0);
+    let tirage = Math.random() * total;
+    let choisi = candidats[candidats.length - 1];
+    for (let i = 0; i < candidats.length; i++) {
+      tirage -= poids[i];
+      if (tirage <= 0) { choisi = candidats[i]; break; }
     }
+
+    // Provenance identique quelle que soit l'origine (memoire individuelle ou connaissance
+    // professionnelle commune) : dans les deux cas, c'est CET escort qui confie CETTE
+    // information au PJ maintenant -- le contenu lui-meme (deja factuel/attribue) porte la
+    // nuance, pas l'enrobage.
+    const texteContrepartie = escort + ' a confié : « ' + choisi.contenu + ' »';
+    const lignePj = {
+      id: 'rc_' + Date.now() + '_' + Math.floor(Math.random() * 1000000),
+      titulaire: client,
+      contenu: texteContrepartie,
+      cible: choisi.cible || null,
+      categorie: choisi.categorie,
+      source: escort,
+      mode_acquisition: 'transmission',
+      fait_objectif_ref: choisi.fait_objectif_ref || null,
+      jour_acquisition: jourActuel,
+      jour_derniere_reactivation: jourActuel,
+      jour_expiration: jourActuel + DUREE_MEMOIRE_JOURS
+    };
+    const rEcriturePj = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: 'POST',
+      headers: { ...serviceHeaders(), 'Prefer': 'return=representation' },
+      body: JSON.stringify(lignePj)
+    }).catch(() => null);
+    // N'annonce une contrepartie que si elle a reellement ete persistee -- jamais une
+    // recompense fictive si l'ecriture echoue. Aucune reactivation de la source dans les deux
+    // cas (comportement deja existant pour la memoire individuelle, inchange ; et jamais pour
+    // un evenement commercial objectif -- regle de design validee, Phase 5C).
+    if (rEcriturePj && rEcriturePj.ok) contrepartieTexte = texteContrepartie;
   }
 
   return res.status(200).json({ ok: true, declarationValide: true, contrepartie: contrepartieTexte });
@@ -554,16 +704,25 @@ async function interrogerPnjSurSujet(body, res) {
   // renvoyee au navigateur (voir en-tete de fichier).
   const filtre = `titulaire=eq.${encodeURIComponent(pnj)}&jour_expiration=gte.${jourActuel}&limit=200`;
   const rMemoire = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?${filtre}`, { headers: serviceHeaders() }).catch(() => null);
-  if (!rMemoire || !rMemoire.ok) return res.status(200).json({ ok: true, statut: 'ignorance', revelation: null });
-  const memoire = await rMemoire.json();
-  if (!Array.isArray(memoire) || memoire.length === 0) {
+  const memoirePersistee = (rMemoire && rMemoire.ok) ? await rMemoire.json() : [];
+
+  // Connaissance professionnelle commune de l'agence (Phase 5C) : toujours tentee, meme si
+  // "pnj" n'est pas reellement un escort de l'agence -- construireRelationsCommercialesEscort
+  // retourne simplement [] dans ce cas (aucun evenement n'existe pour ce nom), sans qu'il soit
+  // necessaire de savoir job==='escort' cote serveur. Exclut la propre relation de
+  // l'enqueteur avec ce PNJ.
+  const relationsCommerciales = await construireRelationsCommercialesEscort(pnj, jourActuel, enqueteur);
+
+  const memoireFusionnee = (Array.isArray(memoirePersistee) ? memoirePersistee : []).concat(relationsCommerciales);
+  if (memoireFusionnee.length === 0) {
     return res.status(200).json({ ok: true, statut: 'ignorance', revelation: null });
   }
 
   // Ciblage AVANT le jet : le PNJ n'a rien a "refuser" s'il ne sait rien sur le sujet -- voir
-  // en-tete de fichier (ignorance != echec de jet).
-  const indicesPertinents = await selectionnerRenseignementsPertinents(sujet, memoire);
-  const candidats = indicesPertinents.map(i => memoire[i]).filter(Boolean);
+  // en-tete de fichier (ignorance != echec de jet). Le sujet libre filtre les DEUX sources de
+  // la meme facon, formule inchangee.
+  const indicesPertinents = await selectionnerRenseignementsPertinents(sujet, memoireFusionnee);
+  const candidats = indicesPertinents.map(i => memoireFusionnee[i]).filter(Boolean);
   if (candidats.length === 0) {
     return res.status(200).json({ ok: true, statut: 'ignorance', revelation: null });
   }
@@ -614,7 +773,13 @@ async function interrogerPnjSurSujet(body, res) {
 
   // Reactivation du souvenir SOURCE du PNJ -- uniquement maintenant que la revelation a
   // reellement ete persistee cote enqueteur (jamais si le jet a echoue, jamais si le PNJ ne
-  // savait rien, jamais si l'ecriture ci-dessus a echoue).
+  // savait rien, jamais si l'ecriture ci-dessus a echoue), ET UNIQUEMENT si la source est une
+  // ligne renseignements_connus reelle. Un evenement commercial objectif (choisi.__commercial)
+  // n'est JAMAIS reactive : en parler ne change pas la date a laquelle la relation s'est
+  // reellement produite (regle de design validee, Phase 5C) -- il garde sa propre expiration.
+  if (choisi.__commercial) {
+    return res.status(200).json({ ok: true, statut: 'revelation', revelation: texteRevele });
+  }
   await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(choisi.id)}`, {
     method: 'PATCH',
     headers: serviceHeaders(),
@@ -636,7 +801,7 @@ async function enregistrerEvenementEscort(body, res) {
 
   // jour REEL persiste du personnage -- jamais accepte du corps de la requete.
   const rPerso = await fetch(
-    `${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(client)}&select=day`,
+    `${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(client)}&select=day,escort_active`,
     { headers: serviceHeaders() }
   ).catch(() => null);
   if (!rPerso || !rPerso.ok) return res.status(200).json({ ok: false });
@@ -644,6 +809,16 @@ async function enregistrerEvenementEscort(body, res) {
   const perso = Array.isArray(lignesPerso) ? lignesPerso[0] : null;
   if (!perso) return res.status(200).json({ ok: false });
   const jourActuel = Number.isInteger(perso.day) ? perso.day : 1;
+
+  // Correctif d'integrite (22 aout 2026) : une 'prestation' doit correspondre a un escort
+  // reellement present dans escort_active DE CE CLIENT au moment de l'appel -- voir le
+  // commentaire d'en-tete de fichier pour le raisonnement complet (pourquoi 'prestation'
+  // uniquement, pas 'embauche').
+  if (type_evenement === 'prestation') {
+    const estReellementEmployee = Array.isArray(perso.escort_active) &&
+      perso.escort_active.some(e => e && e.nom === escort);
+    if (!estReellementEmployee) return res.status(200).json({ ok: false });
+  }
 
   // id/jour_expiration TOUJOURS calcules ici, jamais acceptes du client. INSERT uniquement --
   // aucun upsert, un evenement reel de plus est toujours une nouvelle ligne (voir migration).
