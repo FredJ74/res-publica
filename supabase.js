@@ -2184,3 +2184,20 @@ async function sbTirerConfidenceEscort(client, escort, chaEscort) {
     return await res.json();
   } catch (e) { return null; }
 }
+
+// Phase 3 (22 aout 2026) : echange volontaire "secret contre secret". Le texte libre du
+// joueur (declaration) part tel quel vers le serveur -- l'extraction IA, l'ecriture des deux
+// memoires et le tirage de la contrepartie se font entierement dans api/renseignements.js
+// (action secret_contre_secret). Reponse : {ok, declarationValide, contrepartie} -- jamais la
+// memoire complete de l'escort, uniquement le resultat de CET echange precis.
+async function sbEchangerSecretEscort(client, escort, declaration) {
+  try {
+    const res = await fetch('/api/renseignements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'secret_contre_secret', client, escort, declaration })
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}

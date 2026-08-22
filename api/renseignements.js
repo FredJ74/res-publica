@@ -60,9 +60,29 @@
 // soit la valeur recue -- dupliquer ici la table PNJ_STATS_PAR_JOB introduirait une deuxieme
 // source de verite pour une constante de design (risque de derive silencieuse si data.js
 // change), sans reduire le plafond de securite deja garanti par le bornage final.
+//
+// Phase 3 (22 aout 2026) : ajoute 'secret_contre_secret' -- echange VOLONTAIRE, explicite
+// (bouton dedie, jamais une ecoute automatique des dialogues). Le PJ declare librement un
+// "secret" en texte libre ; l'IA (Anthropic, meme cle ANTHROPIC_API_KEY qu'api/chat.js, appel
+// direct depuis ce fichier -- jamais via api/chat.js, dont l'allowlist de payload n'est pas
+// concue pour une instruction d'extraction structuree) sert UNIQUEMENT a juger si la
+// declaration est exploitable et a l'extraire en JSON strict -- jamais a inventer un
+// evenement, jamais a en verifier la veracite. fait_objectif_ref reste TOUJOURS null pour ce
+// qu'un PJ declare de cette facon (regle de design validee : une declaration libre n'est
+// jamais une preuve). Le jugement de validite (l'IA a-t-elle vraiment trouve un renseignement
+// exploitable) est TOUJOURS fait ici, jamais cote client -- sinon un appelant pourrait forcer
+// la contrepartie en pretendant simplement "valide:true" sans jamais appeler l'IA.
+//
+// Reponse : {ok, declarationValide, contrepartie}. contrepartie contient le TEXTE du
+// renseignement rendu par l'escort (decision produit du 22 aout 2026 : contrairement a
+// tirer_confidence_escort, cet echange est volontaire et "paye" par le PJ avec son propre
+// secret -- le reveler narrativement est le coeur du gameplay, pas une fuite). Reste borne :
+// jamais la liste complete de la memoire de l'escort, un seul element precis resultant de CET
+// echange precis, jamais consultable a nouveau ensuite.
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || null;
 
 const TABLE = 'renseignements_connus';
 const DUREE_MEMOIRE_JOURS = 90;
@@ -70,6 +90,14 @@ const DUREE_MEMOIRE_JOURS = 90;
 const MODES_ACQUISITION = [
   'action_personnelle', 'observation', 'document_consulte', 'confidence', 'transmission',
   'interrogatoire'
+];
+
+// Meme taxonomie que la table (categorie n'a pas de CHECK, voir migration_renseignements_
+// connus.sql) -- utilisee ici uniquement pour valider/reborner la sortie de l'IA, jamais pour
+// contraindre la colonne elle-meme.
+const CATEGORIES_CONNUES = [
+  'acte_illegal', 'achat_arme', 'escort_frequentation', 'recrutement_pnj',
+  'achat_terrain', 'achat_commerce', 'gros_achat', 'autre'
 ];
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
@@ -265,6 +293,140 @@ async function tirerConfidenceEscort(body, res) {
   return res.status(200).json({ ok: true, confidenceObtenue: true });
 }
 
+// Extraction IA d'une declaration libre (Phase 3) -- UNIQUEMENT structuration, jamais
+// invention ni verification de verite. Retourne null en cas d'echec technique (cle absente,
+// appel Anthropic en echec, JSON non parsable) -- traite comme "non valide" par l'appelant,
+// jamais comme une erreur bloquante (echec silencieux, meme doctrine que le reste du fichier).
+async function extraireDeclarationSecret(declarationBrute) {
+  if (!ANTHROPIC_API_KEY) return null;
+
+  const instructions = 'Tu analyses une declaration libre faite par un personnage de jeu de role a une autre personne, dans le cadre d\'un echange volontaire de confidences ("secret contre secret"). Determine si cette declaration contient une information exploitable : un fait ou evenement concret que ce personnage affirme avoir vecu, commis ou observe (ex. acte illegal, achat d\'arme, frequentation d\'un escort, recrutement d\'un employe, achat de terrain ou de commerce, gros achat economique, ou tout autre evenement comparable). Une banalite, un refus, une phrase vide de sens ou une simple politesse ne compte PAS comme une information exploitable.\n\nIMPORTANT : ne juge JAMAIS si la declaration est vraie ou fausse. Contente-toi d\'extraire ce qui est AFFIRME, tel quel, meme si cela te semble improbable ou invente -- ce n\'est jamais a toi de verifier.\n\nReponds UNIQUEMENT avec un objet JSON strict, sans aucun texte ni markdown autour, au format exact :\n{"valide": true ou false, "resume": "resume concis de l\'affirmation, une phrase, a la troisieme personne, sans dire qui l\'affirme" ou null, "cible": "nom de la personne concernee si mentionnee" ou null, "categorie": "une valeur EXACTEMENT parmi acte_illegal, achat_arme, escort_frequentation, recrutement_pnj, achat_terrain, achat_commerce, gros_achat, autre" ou null}\n\nSi valide est false, resume/cible/categorie doivent etre null.';
+  const promptComplet = instructions + '\n\nDeclaration du personnage :\n' + declarationBrute;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: promptComplet }] })
+  }).catch(() => null);
+  if (!resp || !resp.ok) return null;
+
+  const data = await resp.json().catch(() => null);
+  let texte = data?.content?.[0]?.text?.trim() || '';
+  // Retire d'eventuelles balises markdown de bloc de code, si le modele en ajoute malgre la
+  // consigne "sans markdown autour".
+  texte = texte.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '').trim();
+
+  let parsed;
+  try { parsed = JSON.parse(texte); } catch (e) { return null; }
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  if (parsed.valide !== true) return { valide: false, resume: null, cible: null, categorie: null };
+  if (typeof parsed.resume !== 'string' || parsed.resume.trim().length === 0) {
+    return { valide: false, resume: null, cible: null, categorie: null };
+  }
+
+  const categorie = CATEGORIES_CONNUES.includes(parsed.categorie) ? parsed.categorie : 'autre';
+  const cible = (typeof parsed.cible === 'string' && parsed.cible.trim().length > 0) ? parsed.cible.trim().slice(0, 200) : null;
+  return { valide: true, resume: parsed.resume.trim().slice(0, 2000), cible, categorie };
+}
+
+async function secretContreSecret(body, res) {
+  const { client, escort, declaration } = body;
+  if (!texteValide(client, 200) || !texteValide(escort, 200) || !texteValide(declaration, 1000)) {
+    return res.status(400).json({ error: 'Paramètres invalides.' });
+  }
+
+  // jourActuel lu depuis personnages.day, jamais accepte du corps de la requete -- meme
+  // principe que tirer_confidence_escort.
+  const rPerso = await fetch(
+    `${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(client)}&select=day`,
+    { headers: serviceHeaders() }
+  ).catch(() => null);
+  if (!rPerso || !rPerso.ok) return res.status(200).json({ ok: true, declarationValide: false, contrepartie: null });
+  const lignesPerso = await rPerso.json();
+  const perso = Array.isArray(lignesPerso) ? lignesPerso[0] : null;
+  if (!perso) return res.status(200).json({ ok: true, declarationValide: false, contrepartie: null });
+  const jourActuel = Number.isInteger(perso.day) ? perso.day : 1;
+
+  const extraction = await extraireDeclarationSecret(declaration);
+  if (!extraction || !extraction.valide) {
+    return res.status(200).json({ ok: true, declarationValide: false, contrepartie: null });
+  }
+
+  // Memoire de l'escort : une declaration libre reste une DECLARATION, jamais une verite
+  // objective -- fait_objectif_ref TOUJOURS null (regle de design validee). "affirme" marque
+  // explicitement le caractere non verifie, distinct de "a confie" (Phase 2, confidence
+  // extraite pendant Faire l'amour).
+  const ligneEscort = {
+    id: 'rc_' + Date.now() + '_' + Math.floor(Math.random() * 1000000),
+    titulaire: escort,
+    contenu: client + ' affirme : « ' + extraction.resume + ' »',
+    cible: extraction.cible,
+    categorie: extraction.categorie,
+    source: client,
+    mode_acquisition: 'transmission',
+    fait_objectif_ref: null,
+    jour_acquisition: jourActuel,
+    jour_derniere_reactivation: jourActuel,
+    jour_expiration: jourActuel + DUREE_MEMOIRE_JOURS
+  };
+  const rEcritureEscort = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+    method: 'POST',
+    headers: { ...serviceHeaders(), 'Prefer': 'return=representation' },
+    body: JSON.stringify(ligneEscort)
+  }).catch(() => null);
+  if (!rEcritureEscort || !rEcritureEscort.ok) {
+    return res.status(200).json({ ok: true, declarationValide: false, contrepartie: null });
+  }
+
+  // Contrepartie : tirage pondere dans la memoire REELLE de l'escort, memes fonctions que
+  // tirer_confidence_escort. Exclut explicitement la ligne qui vient d'etre creee (le secret
+  // du PJ lui-meme) -- elle ne doit jamais pouvoir se retourner comme contrepartie au meme
+  // echange. Aucune liste renvoyee au navigateur, un seul element si disponible.
+  const filtreEscort = `titulaire=eq.${encodeURIComponent(escort)}&jour_expiration=gte.${jourActuel}&limit=200`;
+  const rMemoireEscort = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?${filtreEscort}`, { headers: serviceHeaders() }).catch(() => null);
+  let contrepartieTexte = null;
+  if (rMemoireEscort && rMemoireEscort.ok) {
+    const eligibles = await rMemoireEscort.json();
+    const candidats = Array.isArray(eligibles) ? eligibles.filter(row => row.id !== ligneEscort.id) : [];
+    if (candidats.length > 0) {
+      const poids = candidats.map(row => poidsRecence(row.jour_derniere_reactivation, jourActuel) * poidsImportance(row.categorie));
+      const total = poids.reduce((s, p) => s + p, 0);
+      let tirage = Math.random() * total;
+      let choisi = candidats[candidats.length - 1];
+      for (let i = 0; i < candidats.length; i++) {
+        tirage -= poids[i];
+        if (tirage <= 0) { choisi = candidats[i]; break; }
+      }
+
+      const texteContrepartie = escort + ' a confié : « ' + choisi.contenu + ' »';
+      const lignePj = {
+        id: 'rc_' + Date.now() + '_' + Math.floor(Math.random() * 1000000),
+        titulaire: client,
+        contenu: texteContrepartie,
+        cible: choisi.cible || null,
+        categorie: choisi.categorie,
+        source: escort,
+        mode_acquisition: 'transmission',
+        fait_objectif_ref: choisi.fait_objectif_ref || null,
+        jour_acquisition: jourActuel,
+        jour_derniere_reactivation: jourActuel,
+        jour_expiration: jourActuel + DUREE_MEMOIRE_JOURS
+      };
+      const rEcriturePj = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+        method: 'POST',
+        headers: { ...serviceHeaders(), 'Prefer': 'return=representation' },
+        body: JSON.stringify(lignePj)
+      }).catch(() => null);
+      // N'annonce une contrepartie que si elle a reellement ete persistee -- jamais une
+      // recompense fictive si l'ecriture echoue.
+      if (rEcriturePj && rEcriturePj.ok) contrepartieTexte = texteContrepartie;
+    }
+  }
+
+  return res.status(200).json({ ok: true, declarationValide: true, contrepartie: contrepartieTexte });
+}
+
 export default async function handler(req, res) {
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) {
@@ -285,5 +447,6 @@ export default async function handler(req, res) {
   const body = req.body || {};
   if (body.action === 'enregistrer') return enregistrer(body, res);
   if (body.action === 'tirer_confidence_escort') return tirerConfidenceEscort(body, res);
+  if (body.action === 'secret_contre_secret') return secretContreSecret(body, res);
   return res.status(400).json({ error: 'action invalide.' });
 }

@@ -896,6 +896,11 @@ function openPnjModal(encodedPnj) {
     }
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalFabriquerKompromat(\'' + escortNom + '\')"><i class="ti ti-file-shredder" style="font-size:.85rem"></i> Fabriquer un kompromat (300 FR)</button>';
     actionBtns += '<button class="pnj-action-btn" style="color:#cc6699;border-color:#4a1a30" onclick="ouvrirModalFaireLAmour(\'' + escortNom + '\')"><i class="ti ti-heart-filled" style="font-size:.85rem"></i> Faire l\'amour</button>';
+    // Secret contre secret (Phase 3 memoire, 22 aout 2026) : precondition volontairement
+    // INDEPENDANTE de "Faire l'amour" -- accessible des que le PJ peut interagir avec l'escort,
+    // jamais liee a escortActiveInfo (l'embauche reste exclusive a "Faire l'amour", precision
+    // explicite du game design -- ne pas mutualiser les deux preconditions).
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalSecretContreSecret(\'' + escortNom + '\')"><i class="ti ti-message-2-heart" style="font-size:.85rem"></i> Secret contre secret</button>';
   }
 
   // Recruter codetenu
@@ -2285,6 +2290,52 @@ async function confirmerFaireLAmour(nomEscort) {
         if (mariage) tracerActionPourRumeur('nuit_escort', null);
       }
     } catch(e) {}
+  }
+}
+
+// Phase 3 memoire des renseignements (22 aout 2026) : echange volontaire "secret contre
+// secret". Precondition volontairement INDEPENDANTE de escortActiveInfo (l'embauche reste
+// exclusive a "Faire l'amour", precision explicite du game design) -- accessible des que le
+// PJ peut ouvrir la fiche de l'escort. Interaction explicite uniquement : aucune ecoute
+// automatique des dialogues libres ailleurs dans le jeu (voir bouton dedie, plateau-pnj.js
+// ~ligne 898). Le texte libre du joueur n'est jamais interprete/enregistre ici -- transmis
+// tel quel au serveur (api/renseignements.js, action secret_contre_secret), qui fait
+// entierement l'extraction IA, l'ecriture memoire escort, le tirage de la contrepartie et
+// l'ecriture memoire PJ. Ce client ne recoit jamais que le resultat final (accepte ou non,
+// contrepartie deja formulee ou null) -- jamais la memoire complete de l'escort.
+function ouvrirModalSecretContreSecret(nomEscort) {
+  document.getElementById('postes-modal-title').textContent = '🤝 ' + nomEscort;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.85rem;color:#c0b090;font-style:italic;margin-bottom:1rem;line-height:1.6">"Si tu me dis un secret, je t\'en confierai un autre. Mais pas de blague : si on ne peut pas se faire confiance, nos rendez-vous n\'ont aucun sens..."</div>' +
+    '<textarea id="secret-contre-secret-texte" placeholder="Confiez-lui quelque chose..." maxlength="500" style="width:100%;min-height:5rem;margin-bottom:.7rem;background:#0a0805;border:1px solid #2a2010;color:#c0b090;font-size:.8rem;padding:.5rem;resize:vertical;box-sizing:border-box;font-family:Crimson Pro,serif"></textarea>' +
+    '<button onclick="confirmerSecretContreSecret(\'' + nomEscort.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Confier ce secret</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerSecretContreSecret(nomEscort) {
+  const champ = document.getElementById('secret-contre-secret-texte');
+  const declaration = (champ?.value || '').trim();
+  if (!declaration) { showToast('Rien à confier', 'Écrivez votre confidence avant de valider.', false); return; }
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const resultat = typeof sbEchangerSecretEscort === 'function'
+    ? await sbEchangerSecretEscort(state.char?.name || 'Anonyme', nomEscort, declaration).catch(() => null)
+    : null;
+
+  if (!resultat || !resultat.ok || !resultat.declarationValide) {
+    showToast('Refus poli', nomEscort + ' n\'a pas trouvé votre confidence assez intéressante pour un échange.', false);
+    addJournalEntry('Tentative d\'échange de confidences avec ' + nomEscort + ' : elle décline poliment.', 'event-info');
+    return;
+  }
+
+  if (resultat.contrepartie) {
+    showToast('Confidence échangée', nomEscort + ' vous confie quelque chose en retour.', true, true);
+    addJournalEntry('Échange de confidences avec ' + nomEscort + '. ' + resultat.contrepartie, 'event-good');
+  } else {
+    showToast('Confidence reçue', nomEscort + ' garde votre confidence, mais n\'a rien à partager pour l\'instant.', true);
+    addJournalEntry('Vous avez confié un secret à ' + nomEscort + ', qui n\'avait rien à partager en retour.', 'event-info');
   }
 }
 
