@@ -1017,7 +1017,7 @@ function updateUI() {
     state.char.arg         = state.arg || 0;
     state.char.resources   = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
     state.char.hp          = state.hp || 100;
-    state.char.pa          = state.pa || 10;
+    state.char.pa          = (typeof state.pa === 'number') ? state.pa : 10;
     state.char.moral       = state.moral || 75;
     try {
       localStorage.setItem('respublica_char_' + state.char.name, JSON.stringify(state.char));

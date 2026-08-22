@@ -55,6 +55,36 @@ async function sbDelete(table, filters) {
 // =====================
 // PERSONNAGES
 // =====================
+// File d'attente de sauvegarde personnage (22 aout 2026, correctif audit PA) : sbSavePersonnage()
+// est appelee ~50 fois dans le projet, la plupart en "tire-et-oublie" (.catch(() => {}), jamais
+// await). Chaque appel capture `data` de facon SYNCHRONE (avant tout await, voir plus bas) --
+// donc un appel plus tardif capture toujours un state.pa au moins aussi frais qu'un appel
+// anterieur (JS mono-thread, rien d'autre ne peut muter state entre deux appels synchrones). Le
+// bug reel n'etait donc jamais la capture, mais l'ORDRE D'ARRIVEE en base : sans coordination,
+// rien ne garantit qu'une ecriture lancee plus tot (donnees plus anciennes) ne termine pas APRES
+// une ecriture lancee plus tard (donnees plus fraiches), l'ecrasant silencieusement (cas
+// demontre dans doDormir() : sauvegarderPersonnageImmediat() ligne ~1561, non awaited, capture
+// AVANT la recuperation de PA, contre l'ecriture correcte de fin de fonction).
+//
+// Correctif : sbSaveQueue serialise uniquement l'ECRITURE RESEAU (sbEcrirePersonnage), jamais la
+// capture -- chaque appel de sbSavePersonnage() est chaine APRES la fin du precedent, quel que
+// soit l'ordre dans lequel les requetes HTTP repondraient naturellement. Les ecritures atteignent
+// donc Supabase strictement dans l'ordre des APPELS, jamais dans l'ordre des reponses reseau.
+// sbSaveQueue est toujours reaffectee via .catch(() => {}) : un echec ne bloque jamais les
+// ecritures suivantes. AUCUN appelant existant n'est modifie -- sbSavePersonnage() garde exactement
+// la meme signature et retourne toujours une Promise qui reflete le succes/echec de SA PROPRE
+// ecriture (jamais celui d'une autre, deja en file ou suivante).
+let sbSaveQueue = Promise.resolve();
+
+async function sbEcrirePersonnage(data) {
+  const existing = await sbGet('personnages', `name=eq.${encodeURIComponent(data.name)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('personnages', `name=eq.${encodeURIComponent(data.name)}`, data);
+  } else {
+    return sbInsert('personnages', data);
+  }
+}
+
 async function sbSavePersonnage(charState) {
   const photoKey = 'respublica_photo_' + (charState.char?.name || 'default');
   const savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
@@ -78,7 +108,7 @@ async function sbSavePersonnage(charState) {
     liquide:          charState.liquide || 0,
     banque:           charState.banque || 0,
     hp:               charState.hp || 100,
-    pa:               charState.pa || 10,
+    pa:               (typeof charState.pa === 'number') ? charState.pa : 10,
     moral:            charState.moral || 75,
     poste:            charState.poste || null,
     poste_depute:     charState.posteDepute || null,
@@ -116,13 +146,11 @@ async function sbSavePersonnage(charState) {
     updated_at:       new Date().toISOString()
   };
 
-  // Vérifier si le personnage existe déjà
-  const existing = await sbGet('personnages', `name=eq.${encodeURIComponent(data.name)}`);
-  if (existing && existing.length > 0) {
-    return sbUpdate('personnages', `name=eq.${encodeURIComponent(data.name)}`, data);
-  } else {
-    return sbInsert('personnages', data);
-  }
+  // `data` est fige ici, de facon synchrone (avant tout await) -- voir le commentaire de
+  // sbSaveQueue plus haut. La file ne retarde que l'ECRITURE, jamais cette capture.
+  const tache = sbSaveQueue.then(() => sbEcrirePersonnage(data));
+  sbSaveQueue = tache.catch(() => {}); // ne bloque jamais la file suite a un echec
+  return tache;
 }
 
 async function sbLoadPersonnage(name) {
@@ -860,7 +888,7 @@ function sbSauvegardeUrgenceDechargement() {
     arg: state.arg || 0,
     liquide: state.liquide || 0,
     banque: state.banque || 0,
-    pa: state.pa || 10,
+    pa: (typeof state.pa === 'number') ? state.pa : 10,
     hp: state.hp || 100,
     moral: state.moral || 75,
     resources: { inf: state.inf || 0, pop: state.pop || 0, dis: state.dis || 50 },

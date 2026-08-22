@@ -3195,6 +3195,21 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
   await sbSaveEntreprise(data.id, data);
 
   state.arg = (state.arg || 0) + coutMainOeuvre;
+
+  // Sauvegarde personnage immediate (correctif audit PA, 22 aout 2026) : jusqu'ici, seul le
+  // debounce de 3s de sbAutoSave() (declenche par updateUI() dans le wrapper UI) ou le filet de
+  // secours au dechargement persistaient la deduction de PA ci-dessus (via deduireCoutOrdre()) --
+  // un rafraichissement rapide (<3s apres le dernier clic) pouvait la perdre. Placee ICI, dans la
+  // fonction metier commune (pas le wrapper UI doProduireRecetteCommerceUI), pour couvrir tout
+  // futur appelant direct sans avoir a s'en souvenir a chaque nouveau point d'entree -- meme
+  // patron deja utilise ailleurs pour d'autres actions qui coutent des PA (ex.
+  // plateau-justice-economie.js:3257/3572). N'intervient qu'ICI, apres le SEUL point de sortie en
+  // succes de la fonction (tous les echecs -- recette non autorisee, stock insuffisant, PA/caisse
+  // insuffisants -- retournent plus haut, avant toute mutation) : jamais de sauvegarde en cas
+  // d'echec, jamais de double sauvegarde (sbSaveEntreprise ci-dessus ne concerne que le commerce,
+  // pas le personnage).
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+
   return { ok: true, portions: recette.portions, salaire: coutMainOeuvre };
 }
 
