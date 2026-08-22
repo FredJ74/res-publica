@@ -2725,7 +2725,15 @@ const BUILDING_COMMERCE_TYPE = {
   // voir plus bas) -- sans bouton, aucun joueur ne peut jamais declencher ces fn a Montrouge ou au
   // Souk. La donnee reelle (stock/caisse) est de toute facon deja scopee par ville via
   // chargerCommerce(type, pays, ville, buildingId, roomId).
-  'marche': 'marche'
+  'marche': 'marche',
+  // Restaurant Le Capitaine Sauvage (Port-Sainte-Marie, 23 aout 2026) : raccorde au meme moteur
+  // generique que Le Republica/la Brasserie des Voyageurs -- type 'brasserie' (audit dedie,
+  // confirme que c'est le bon moteur pour ce genre d'etablissement). Cle room-scopee par
+  // coherence avec hotel-republica|restaurant, meme si capitaine-sauvage est aujourd'hui un
+  // batiment mono-piece -- n'exclut pas une future extension du batiment. getCommerceId()
+  // integre deja pays/ville/buildingId/roomId : ce commerce est donc scope a Port-Sainte-Marie
+  // (ville_a) des sa premiere creation, entierement distinct de celui de Luthecia.
+  'capitaine-sauvage|salle_principale': 'brasserie'
 };
 
 // Types de commerce sans caisse autonome (paiement client/salaire de production routes vers la
@@ -3086,6 +3094,45 @@ const DOTATIONS_COMMERCE_PILOTE = {
     // calcule via prixVenteAutoPNJ. Meme mise en garde : produireRecetteCommerce() le recalculera
     // automatiquement des la premiere production (proprietaire PNJ par defaut).
     data.parametres.prixVente = { sandwich: 15 };
+  },
+  // Restaurant Le Capitaine Sauvage (Port-Sainte-Marie, 23 aout 2026) -- raccordement minimal,
+  // AUCUNE nouvelle recette/prix/ingredient invente ce soir (demande explicite : la carte
+  // personnalisee du Capitaine Sauvage, avec ses propres specialites PSM, est un chantier
+  // separe a venir). Recherche prealable dans RECETTES_ALIMENTAIRES : seules deux recettes sont
+  // a la fois (a) non verrouillees a Luthecia/hotel-republica (menu_gastronomique_1/2/3 --
+  // buildingsAutorises:['hotel-republica'], verrou volontaire intact, non touche) et (b)
+  // reellement cohérentes avec ce restaurant -- plat_de_poisson (typesAutorises:['brasserie'],
+  // aucun verrou de ville/batiment) pour le theme maritime du port, et vin (deja utilise par Le
+  // Republica et son Bar, aucun verrou non plus, necessaire structurellement au diner d'affaires).
+  // carbonade_frites/boeuf_bourguignon/saucisse_puree existent aussi sans verrou mais sont des
+  // plats terrestres sans rapport avec l'identite du Capitaine Sauvage -- volontairement pas
+  // repris, laisses a la carte dediee de demain plutot que de les utiliser en bouche-trou.
+  // Stocks/couts moyens de depart repris a l'identique des valeurs DEJA utilisees ailleurs pour
+  // ces memes matieres (poisson/cereales : brasserie-voyageurs-montrouge ci-dessus ; fruits_
+  // legumes : hotel-republica|bar ci-dessus) -- aucun cout invente. Caisse de depart alignee sur
+  // brasserie-voyageurs-montrouge (3000 FR), le seul autre commerce de type 'brasserie' a "vraie
+  // restauration" deja dote (Le Republica n'a pas de caisse de depart comparable a copier, ses
+  // 3000 FR sont associes a sa carte gastronomique verrouillee, pas a un montant generique).
+  // Prix de vente calcule via prixVenteAutoPNJ (meme formule generique que partout ailleurs),
+  // jamais un chiffre choisi a la main.
+  //
+  // LIMITE CONNUE ET ASSUMEE (a rapporter, pas a corriger ce soir) : aucune recette existante
+  // n'a categorie:'menu' en dehors des 3 menus gastronomiques verrouilles a Luthecia --
+  // verifierStockDinerAffaires() (plateau-pnj.js) exige 2 unites 'menu' + 1 vin pour servir un
+  // diner d'affaires. L'ordre diner_affaires est neanmoins branche (memes PA/cout/textes qu'a
+  // Luthecia) : il se comportera exactement comme un dîner d'affaires a stock insuffisant
+  // (message "le restaurant n'a rien a servir", aucun cout preleve) jusqu'a ce que la carte
+  // personnalisee de demain ajoute une recette categorie:'menu' propre a PSM.
+  'capitaine-sauvage|salle_principale': function(data) {
+    data.caisse = 3000;
+    data.stockMatieres = { cereales: 15, poisson: 10, fruits_legumes: 10 };
+    data.coutMoyenMatieres = { cereales: 3, poisson: 4, fruits_legumes: 4 };
+    data.carte = ['plat_de_poisson', 'vin'];
+    data.parametres.stockMax = { plat_de_poisson: 20, vin: 20 };
+    data.parametres.prixVente = {
+      plat_de_poisson: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.plat_de_poisson)),
+      vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin))
+    };
   }
 };
 
