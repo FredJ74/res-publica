@@ -2430,7 +2430,20 @@ const RECETTES_ALIMENTAIRES = {
     // Aucun mecanisme de PA immediat n'existe dans ce moteur de vente -- meme convention que
     // l'ancien repas_gastronomique ("+1 PA au prochain Dormir"), simplement portee a 3.
     effets: { hp: 10, moral: 1, paDiffere: 3 },
-    typesAutorises: ['brasserie'], villesAutorisees: null, buildingsAutorises: ['hotel-republica'],
+    // villesAutorisees ajoute (lot isolation des villes, 22 aout 2026) : buildingsAutorises seul
+    // ne verrouille QUE le buildingId, jamais la ville -- 'hotel-republica' est partage par les 4
+    // capitales (Luthecia/narco/soviet/khalija) ET par les Hotels de PSM/Montrouge (meme
+    // buildingId, noms differents). Sans ce champ, ces 3 menus etaient donc techniquement
+    // disponibles a Port-Sainte-Marie et Montrouge (bug de portee confirme par audit). 'capitale'
+    // exclut bien PSM (ville_a) et Montrouge (ville_b) au sein de Republic -- residu non couvert :
+    // aucun champ "pays autorise" n'existe dans ce moteur, donc les capitales des 3 AUTRES empires
+    // (qui partagent aussi la cle de ville 'capitale') restent techniquement non exclues ; corriger
+    // cela exigerait un nouveau champ de portee par pays, hors perimetre de ce lot (aucune nouvelle
+    // architecture de scope creee ici, uniquement villesAutorisees deja existant et deja eprouve
+    // par carbonade_frites).
+    // paysAutorises ajoute (lot scope pays, 22 aout 2026) : ferme le residu signale au lot
+    // precedent (les 4 capitales partagent la meme cle de ville 'capitale').
+    typesAutorises: ['brasserie'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica'],
     // Prix strictement fixe (lot plafonds, 21 aout 2026) : jamais recalcule par
     // produireRecetteCommerce() malgre un proprietaire PNJ par defaut -- voir le nouveau
     // controle "!recette.prixFixe" ajoute a ce recalcul, plus bas dans ce fichier.
@@ -2442,7 +2455,20 @@ const RECETTES_ALIMENTAIRES = {
     categorie: 'menu', image: 'images/luthecia-restaurant-menu-2.jpg',
     materiaux: { poisson: 2, cereales: 1 }, pa: 1, portions: 5,
     effets: { hp: 10, moral: 1, paDiffere: 3 },
-    typesAutorises: ['brasserie'], villesAutorisees: null, buildingsAutorises: ['hotel-republica'],
+    // villesAutorisees ajoute (lot isolation des villes, 22 aout 2026) : buildingsAutorises seul
+    // ne verrouille QUE le buildingId, jamais la ville -- 'hotel-republica' est partage par les 4
+    // capitales (Luthecia/narco/soviet/khalija) ET par les Hotels de PSM/Montrouge (meme
+    // buildingId, noms differents). Sans ce champ, ces 3 menus etaient donc techniquement
+    // disponibles a Port-Sainte-Marie et Montrouge (bug de portee confirme par audit). 'capitale'
+    // exclut bien PSM (ville_a) et Montrouge (ville_b) au sein de Republic -- residu non couvert :
+    // aucun champ "pays autorise" n'existe dans ce moteur, donc les capitales des 3 AUTRES empires
+    // (qui partagent aussi la cle de ville 'capitale') restent techniquement non exclues ; corriger
+    // cela exigerait un nouveau champ de portee par pays, hors perimetre de ce lot (aucune nouvelle
+    // architecture de scope creee ici, uniquement villesAutorisees deja existant et deja eprouve
+    // par carbonade_frites).
+    // paysAutorises ajoute (lot scope pays, 22 aout 2026) : ferme le residu signale au lot
+    // precedent (les 4 capitales partagent la meme cle de ville 'capitale').
+    typesAutorises: ['brasserie'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica'],
     // Prix strictement fixe (lot plafonds, 21 aout 2026) : jamais recalcule par
     // produireRecetteCommerce() malgre un proprietaire PNJ par defaut -- voir le nouveau
     // controle "!recette.prixFixe" ajoute a ce recalcul, plus bas dans ce fichier.
@@ -2454,7 +2480,20 @@ const RECETTES_ALIMENTAIRES = {
     categorie: 'menu', image: 'images/luthecia-restaurant-menu-3.jpg',
     materiaux: { viande: 2, fruits_legumes: 1 }, pa: 1, portions: 5,
     effets: { hp: 10, moral: 1, paDiffere: 3 },
-    typesAutorises: ['brasserie'], villesAutorisees: null, buildingsAutorises: ['hotel-republica'],
+    // villesAutorisees ajoute (lot isolation des villes, 22 aout 2026) : buildingsAutorises seul
+    // ne verrouille QUE le buildingId, jamais la ville -- 'hotel-republica' est partage par les 4
+    // capitales (Luthecia/narco/soviet/khalija) ET par les Hotels de PSM/Montrouge (meme
+    // buildingId, noms differents). Sans ce champ, ces 3 menus etaient donc techniquement
+    // disponibles a Port-Sainte-Marie et Montrouge (bug de portee confirme par audit). 'capitale'
+    // exclut bien PSM (ville_a) et Montrouge (ville_b) au sein de Republic -- residu non couvert :
+    // aucun champ "pays autorise" n'existe dans ce moteur, donc les capitales des 3 AUTRES empires
+    // (qui partagent aussi la cle de ville 'capitale') restent techniquement non exclues ; corriger
+    // cela exigerait un nouveau champ de portee par pays, hors perimetre de ce lot (aucune nouvelle
+    // architecture de scope creee ici, uniquement villesAutorisees deja existant et deja eprouve
+    // par carbonade_frites).
+    // paysAutorises ajoute (lot scope pays, 22 aout 2026) : ferme le residu signale au lot
+    // precedent (les 4 capitales partagent la meme cle de ville 'capitale').
+    typesAutorises: ['brasserie'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['hotel-republica'],
     // Prix strictement fixe (lot plafonds, 21 aout 2026) : jamais recalcule par
     // produireRecetteCommerce() malgre un proprietaire PNJ par defaut -- voir le nouveau
     // controle "!recette.prixFixe" ajoute a ce recalcul, plus bas dans ce fichier.
@@ -2888,6 +2927,13 @@ const COUT_MAIN_OEUVRE_PA_ALIMENTAIRE = 50;
 function recetteAutoriseePourCommerce(recette, commerce) {
   if (!recette || !commerce) return false;
   if (!recette.typesAutorises || !recette.typesAutorises.includes(commerce.type)) return false;
+  // paysAutorises (lot scope pays, 22 aout 2026) : meme principe que villesAutorisees/
+  // buildingsAutorises, generique -- absent = comportement inchange (aucune restriction),
+  // present = compare a commerce.country (deja lu, jamais recalcule ici -- chargerCommerce()/
+  // defautCommerce() le renseignent deja pour tout commerce). Comble le residu signale au lot
+  // precedent : buildingId/ville seuls ne peuvent pas distinguer les 4 capitales, qui partagent
+  // toutes la cle de ville 'capitale'.
+  if (recette.paysAutorises && !recette.paysAutorises.includes(commerce.country)) return false;
   if (recette.villesAutorisees && !recette.villesAutorisees.includes(commerce.city)) return false;
   if (recette.buildingsAutorises && !recette.buildingsAutorises.includes(commerce.buildingId)) return false;
   return true;

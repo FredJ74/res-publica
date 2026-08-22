@@ -223,7 +223,19 @@ async function preleverTaxeFonciere() {
       const budgetMuni = await getBudgetMuni(villeKey);
       if (!budgetMuni) continue;
       budgetMuni.caisse = (budgetMuni.caisse || 0) + montant;
-      await sbUpdate('budgets_municipaux', `id=eq.${encodeURIComponent(villeKey)}`, { data: JSON.stringify(budgetMuni), updated_at: new Date().toISOString() }).catch(() => {});
+      // Correctif (lot isolation des villes, 22 aout 2026) : "data" etait ecrit ici via
+      // JSON.stringify(budgetMuni), alors que getBudgetMuni() ci-dessus (et tout le reste du
+      // projet, chargerBudgetMunicipal()/sbSaveBudgetMunicipal(), plateau-politique.js/
+      // supabase.js) le lit et l'ecrit toujours comme un objet natif, jamais une chaine --
+      // budgets_municipaux.data est une colonne jsonb, pas text (contrairement a terrains_etat
+      // ci-dessus, dont le JSON.stringify/JSON.parse est lui correct et coherent des deux cotes).
+      // Cette double-encodage transformait silencieusement la ligne en une chaine de caracteres
+      // (confirme en audit lecture seule sur republic_capitale) : chaque lecture ulterieure de
+      // budgetMuni.allocation/.caisse/.tauxFoncier redevenait alors "undefined" (proprietes d'une
+      // chaine), bloquant silencieusement toute redistribution vers les caisses institutionnelles
+      // (Commissariat/Multimodal/Stade/Marche/Dispensaire/Tribunal) sans jamais lever d'erreur
+      // visible (l'appelant, plateau-personnage.js, avale toute exception via .catch(()=>{})).
+      await sbUpdate('budgets_municipaux', `id=eq.${encodeURIComponent(villeKey)}`, { data: budgetMuni, updated_at: new Date().toISOString() }).catch(() => {});
       resultats.collecte += montant;
     }
   } catch(e) { console.error('preleverTaxeFonciere error', e); }

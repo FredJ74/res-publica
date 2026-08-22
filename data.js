@@ -242,7 +242,7 @@ const WORLD = {
               excludeOrders: ['se_nourrir'],
               orders: [
                 {fn:'produire_commerce', label:'Préparer des sandwiches', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer des sandwiches pour le service (consomme les matières en stock, rémunéré en FR).'},
-                {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les sandwiches disponibles et commander.'},
+                {fn:'consulter_carte_commerce', label:'Voir ce qu\'il y a à manger', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les sandwiches disponibles et commander.'},
                 {fn:'vendre_matiere_commerce', label:'Vendre des matières au marché', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce marché.'}
               ]
             }
@@ -1451,7 +1451,7 @@ const BUILDINGS = {
           {fn:'ecouter_rumeurs', label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
           {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:80, desc:'Sur un PJ de votre repertoire. Succes : -5 a -20 POP sur la cible. Echec : se retourne contre vous (-5 POP -5 DIS) + risque de detection.'},
           {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
-          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
+          {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
         ]
@@ -1473,9 +1473,8 @@ const BUILDINGS = {
           {fn:'ecouter_rumeurs', label:'Ecouter le barman',     pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:90,  desc:'Le barman entend tout. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marco'},
           {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'150 FR/jour. Un PNJ rejoint votre groupe en permanence tant que vous le payez. Sa PER (12-18) enrichit la moyenne de PER de votre groupe pour les futurs ordres de localisation.'},
           {fn:'escort_piege',    label:'Organiser une rencontre piège', pa:3, cost:800, type:'illegal', icon:'ti-spy', successRate:55, desc:'Piéger un adversaire politique. Risque de scandale.'},
-          {fn:'produire_commerce', label:'Servir', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'produire_commerce', label:'Préparer les consommations', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
-          {fn:'consommer_boisson', label:'Consommer une boisson', pa:0, cost:0, type:'legal', icon:'ti-glass', successRate:100, desc:'Choisir une boisson de la carte à consommer sur place.'},
           {fn:'offrir_tournee', label:'Offrir une tournée', pa:0, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Offrez une tournée (une seule boisson de la carte) à plusieurs personnes présentes, à vos frais. Chacun accepte ou refuse indépendamment ; vous ne buvez et ne payez que si au moins une personne accepte.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
