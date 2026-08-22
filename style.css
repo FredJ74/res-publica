@@ -500,7 +500,7 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .forum-topic-author{font-size:.82rem;color:var(--text4)}
 .forum-topic-stat{font-size:.82rem;color:var(--text3);text-align:center}
 .forum-posts{flex:1;overflow-y:auto;padding:.8rem}
-.forum-post{background:var(--bg3);border:1px solid var(--border);margin-bottom:.7rem;display:grid;grid-template-columns:130px 1fr;align-items:start}
+.forum-post{background:var(--bg3);border:1px solid var(--border);margin-bottom:1.75rem;display:grid;grid-template-columns:130px 1fr;align-items:start}
 .forum-post-side{padding:.9rem .6rem;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;text-align:center;gap:.3rem}
 .forum-post-avatar{width:44px;height:44px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0}
 .forum-post-author{font-family:'Playfair Display',serif;font-size:.82rem;color:var(--gold-light);word-break:break-word}
@@ -634,7 +634,7 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 #forum-view-body .forum-topics-header{background:var(--bg);color:#6a6030}
 
 /* Posts du forum — plus lisibles */
-#forum-view-body .forum-post{background:var(--bg3);border:1px solid #2a2408}
+#forum-view-body .forum-post{background:var(--bg3);border:2px solid #4a3c18}
 #forum-view-body .forum-post-author{color:#E8C97A}
 #forum-view-body .forum-post-content{color:#c8c090;font-size:.88rem;line-height:1.7}
 #forum-view-body .forum-post-time{color:#6a6040}
