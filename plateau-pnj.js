@@ -864,6 +864,23 @@ function openPnjModal(encodedPnj) {
       if (empData && empData.inGroupe) {
         actionBtns += '<button class="pnj-action-btn" onclick="laisserPnjEnPlace(\'' + nomCourt + '\')"><i class="ti ti-map-pin" style="font-size:.85rem"></i> Laisser ici</button>';
       }
+      // Fiche informateur (correctif visibilite, 22 aout 2026) : bloc d'information dedie, meme
+      // convention que les blocs job==='escort'/'codetenu'/'hotesse_objets_trouves' plus bas --
+      // un texte insere dans actionBtns, jamais un nouveau systeme de dialogue. Aucune IA, aucune
+      // donnee inventee : relit directement l'entree reelle de state.employes (empData deja
+      // calculee ci-dessus), les memes cout/PER fixes a son recrutement (doRecruterInformateurPNJ).
+      // L'effet mecanique (moyenne de PER du groupe, getStatEffective('PER')) reste inchange --
+      // ce bloc ne fait que le rendre visible.
+      if (pnj.job === 'informateur' && empData) {
+        actionBtns += '<div style="margin-top:.6rem;padding:.6rem .7rem;border:1px solid #3a2a10;background:#0f0d05;font-size:.75rem;color:#c0b090;line-height:1.6">' +
+          '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.08em;color:#C9A84C;margin-bottom:.3rem">🕵️ Informateur</div>' +
+          'PER ' + (empData.stats?.PER ?? '?') + ' · ' + (empData.cout || 0) + ' FR/jour' +
+          '<div style="margin-top:.3rem;color:#9a8a68;font-style:italic">' +
+          (empData.inGroupe
+            ? 'Sa PER est actuellement intégrée à celle de votre groupe pour les recherches, enquêtes et localisations.'
+            : 'Laissé ici : sa PER ne renforce plus votre groupe tant qu\'il n\'est pas rejoint.') +
+          '</div></div>';
+      }
     }
   }
 

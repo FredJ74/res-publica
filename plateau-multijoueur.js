@@ -636,8 +636,12 @@ async function doRecruterInformateurPNJ(pa) {
   });
 
   updateUI();
-  showToast('Informateur recruté !', nomPnj + ' rejoint votre groupe (PER ' + perInformateur + '). -' + cout + ' ' + cur + '.', true, true);
-  addJournalEntry('Recrutement d\'un informateur : ' + nomPnj + ' (PER ' + perInformateur + ', ' + cout + ' ' + cur + '/jour).', 'event-good');
+  // Message de confirmation enrichi (correctif visibilite de l'effet, 22 aout 2026) : rappelle
+  // explicitement les 5 elements demandes (nom, PER, adhesion au groupe, salaire, effet reel) --
+  // l'effet mecanique (moyenne de PER du groupe) etait deja correct mais jamais rappele au
+  // joueur au moment ou il compte le plus, juste apres le recrutement.
+  showToast('Informateur recruté !', nomPnj + ' (PER ' + perInformateur + ') rejoint votre groupe. -' + cout + ' ' + cur + ', puis ' + cout + ' ' + cur + '/jour. Sa PER s\'ajoute à celle du groupe pour les recherches, enquêtes et localisations.', true, true);
+  addJournalEntry('Recrutement d\'un informateur : ' + nomPnj + ' (PER ' + perInformateur + ') rejoint le groupe, ' + cout + ' ' + cur + '/jour. Sa PER renforce le groupe pour les recherches, enquêtes et localisations.', 'event-good');
 
   // Pas d'ecriture dans room.persons (objet BUILDINGS global, partage par tous les
   // joueurs) : l'informateur a deja ete ajoute a state.employes avec inGroupe:true
