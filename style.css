@@ -296,6 +296,29 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .piece-container{display:grid;grid-template-columns:1fr 200px;flex:1;overflow:hidden;min-height:0}
 .piece-image{position:relative;overflow:hidden;display:flex;align-items:flex-end;min-height:280px;background-size:cover!important;background-position:center!important}
 .piece-image::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 65%,rgba(0,0,0,.35) 100%);z-index:0;pointer-events:none}
+/* Musees (Option C, audit du 23 aout 2026) : affichage integral -- aucun cartel/panneau ne doit
+   etre coupe. Specificite [data-musee="1"] (0,2,0) > .piece-image seule (0,1,0) : l'emporte sur
+   le background-size:cover!important ci-dessus sans le modifier, donc sans effet sur les pieces
+   normales. min-height:460px (contre 280px) rapproche moderement le ratio du cadre du 3:2 des
+   images (1536x1024) pour reduire les bandes mortes -- valeur choisie a l'estime, aucun ratio
+   exact n'est force (variable selon la fenetre du joueur, voir audit).
+   Correctif (23 aout 2026, revue avant commit) : pieceImg.style.background (JS) est un
+   SHORTHAND a DEUX couches -- 1) le degrade linear-gradient, 2) url(image) center/cover
+   no-repeat. Un background-size:contain!important a une seule valeur s'appliquerait aux DEUX
+   couches (une valeur unique se repete sur toutes les couches). Sans consequence visible pour
+   le degrade lui-meme (une image generee sans ratio intrinseque comme un gradient est de toute
+   facon rendue a 100% 100% de la zone, que la valeur soit cover/contain/100% 100%), mais rendu
+   ici EXPLICITE avec la forme a deux valeurs (une par couche, dans le meme ordre que le
+   shorthand JS) plutot que de reposer sur cette subtilite de specification : "100% 100%" pour
+   le degrade (couvre tout le conteneur, sans ambiguite), "contain" pour l'image. Par ailleurs,
+   le shorthand `background` INLINE reinitialise TOUJOURS les sous-proprietes qu'il ne precise
+   pas (dont background-color, jamais mentionne dans la chaine JS) a leur valeur initiale
+   (transparent) -- au meme niveau de cascade (inline), ce qui neutralise silencieusement tout
+   background-color pose ici SANS !important (verifie : le fond neutre n'etait donc jamais
+   applique). background-color et background-repeat passent donc egalement en !important, par
+   coherence avec background-size/background-position deja necessairement !important pour la
+   meme raison. */
+.piece-image[data-musee="1"]{min-height:460px;background-size:100% 100%, contain!important;background-position:center!important;background-repeat:no-repeat!important;background-color:var(--bg)!important}
 .piece-emoji{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:6rem;opacity:.12;pointer-events:none}
 .piece-ambiance{position:relative;z-index:1;padding:1.2rem;width:100%}
 .piece-nom{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--gold-light);margin-bottom:.2rem}

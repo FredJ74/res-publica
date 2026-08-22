@@ -606,6 +606,22 @@ function enterRoom(buildingId, roomId, tabEl) {
     : null;
 
   const pieceImg = document.getElementById('piece-image');
+
+  // Affichage integral des images de musee (Option C, audit du 23 aout 2026) : critere
+  // structurel buildingId.startsWith('musee-') -- jamais cat==='Culture', qui matche les 4
+  // musees actuels par coincidence mais pourrait un jour inclure un batiment culturel non-
+  // musee. Attribut TOUJOURS repose ici (ajoute OU retire) a chaque changement de piece/
+  // batiment, jamais seulement ajoute -- un passage musee -> batiment normal ne doit jamais
+  // conserver le style musee. La regle CSS dediee .piece-image[data-musee="1"] (voir style.css)
+  // passe le cadre en background-size:contain via une specificite superieure a la regle
+  // generale .piece-image{background-size:cover!important}, sans toucher au comportement des
+  // pieces normales.
+  if (buildingId?.startsWith('musee-')) {
+    pieceImg.setAttribute('data-musee', '1');
+  } else {
+    pieceImg.removeAttribute('data-musee');
+  }
+
   const enigme1Img = (typeof enigme1ImageSalleVide === 'function') ? enigme1ImageSalleVide(buildingId, roomId) : null;
   let chantierImg = null;
   if (buildingId?.startsWith('terrain-a-batir') && typeof getTerrainState === 'function') {
