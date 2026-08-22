@@ -2215,6 +2215,24 @@ async function confirmerFaireLAmour(nomEscort) {
   if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   state.arg -= cost;
 
+  // Phase 2 memoire des renseignements (22 aout 2026) : jet de confidence, best-effort et
+  // entierement invisible cote UI (ni toast, ni journal, ni recit modifie -- point 9 du design
+  // valide : le coeur de cette Phase 2 est la persistance, pas le dialogue). Ne bloque jamais
+  // le reste de l'action -- aucun await. Correctif du 22 aout 2026 (revue avant GO) : le taux
+  // complet (CHA_client/pays/ville/jour/piete) est desormais calcule entierement cote serveur,
+  // a partir des donnees persistees de "client" (personnages/indices_villes) -- ce client ne
+  // transmet plus que le nom du client, le nom de l'escort et chaEscort. chaEscort reste
+  // transmis ici car aucune source serveur n'existe pour les stats des PNJ (escorts sans ligne
+  // personnages, PNJ_STATS_PAR_JOB/PNJ_STATS_NOMMES vivent uniquement dans data.js, cote client
+  // -- voir api/renseignements.js pour le detail). Resolu via getPnjStats (job 'escort',
+  // CHA=10 par defaut) -- uniforme entre escorts tant qu'aucun nom precis n'est ajoute a
+  // PNJ_STATS_NOMMES (mecanisme deja existant, aucune valeur inventee ici).
+  if (typeof sbTirerConfidenceEscort === 'function') {
+    const nomClient = state.char?.name || 'Anonyme';
+    const chaEscort = (typeof getPnjStats === 'function' ? getPnjStats({ name: nomEscort, job: 'escort' }).CHA : 10) ?? 10;
+    sbTirerConfidenceEscort(nomClient, nomEscort, chaEscort).catch(() => {});
+  }
+
   const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
   const palierActuel = escortInfo?.palier || 0;
   const bonusParPalier = [

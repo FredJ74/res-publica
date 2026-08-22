@@ -2165,3 +2165,22 @@ async function sbEnregistrerRenseignement(entry) {
     return await res.json();
   } catch (e) { return null; }
 }
+
+// Phase 2 (22 aout 2026) : operation metier dediee (tirer_confidence_escort), pas un 'lister'
+// generique -- le serveur charge la memoire du client uniquement pour le tirage pondere et ne
+// renvoie jamais que {confidenceObtenue:true|false} (voir api/renseignements.js). Correctif du
+// 22 aout 2026 (revue avant GO) : le taux complet (CHA_client/pays/ville/jour/piete) est
+// desormais calcule entierement cote serveur, a partir de personnages/indices_villes -- ce
+// helper ne transmet plus que chaEscort, la seule donnee sans source serveur possible sans
+// dupliquer data.js (PNJ_STATS_PAR_JOB/PNJ_STATS_NOMMES, statique cote client uniquement).
+async function sbTirerConfidenceEscort(client, escort, chaEscort) {
+  try {
+    const res = await fetch('/api/renseignements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'tirer_confidence_escort', client, escort, chaEscort })
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}
