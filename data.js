@@ -357,7 +357,7 @@ const WORLD = {
             {name:'Émilie Charbon (PNJ)', role:'Journaliste Sportive', rel:'neutral', job:'commentateur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/journaliste-montrouge-emilie-charbon.png'}
           ],
           roomOverrides: {
-            terrain: { name: "Terrain — Union Cheminote de Montrouge", imageUrl: "images/montrouge/montrouge-stade-pelouse-accueil.png" },
+            terrain: { name: "Terrain — Union Cheminote de Montrouge", imageUrl: "images/montrouge/montrouge-stade-pelouse-accueil.jpg" },
             vestiaires: { name: "Vestiaire — Union Cheminote de Montrouge",
               persons: [{name:'Gérard Bricoleau (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/entraineur-adjoint-montrouge-bricoleau.png'}]
             },
@@ -415,11 +415,11 @@ const WORLD = {
           name: "Marché de Montrouge",
           desc: "Légumes pas chers, grèves annoncées à voix haute.",
           persons: [{"name": "Josette Betterave (PNJ)", "role": "Marchande", "rel": "neutral", "job": "commercant"}],
-          // Image de navigation interieure (distincte de la vue de rue 13, montrouge-place-marche-tabac-cafe.png,
+          // Image de navigation interieure (distincte de la vue de rue 13, montrouge-place-marche-tabac-cafe.jpg,
           // qui n'est pas touchee). Le nom du fichier dit "exterieur" car la scene represente un marche en
           // plein air, mais c'est bien l'image affichee APRES entree dans le batiment.
           roomOverrides: {
-            marche_ext: { imageUrl: "images/montrouge/montrouge-marche-exterieur.png" }
+            marche_ext: { imageUrl: "images/montrouge/montrouge-marche-exterieur.jpg" }
           }
         },
 
@@ -428,7 +428,7 @@ const WORLD = {
         // (nom uniquement), aucune mecanique/PNJ/desc ajoutee pour ce lot. Les buildingId
         // techniques ne sont pas touches.
         'hotel-mineur':                 { name: "Hôtel de la Victoire" },
-        'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge", roomOverrides: { magasin: { imageUrl: "images/montrouge/montrouge-armurerie-interieur.png" } } },
+        'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge", roomOverrides: { magasin: { imageUrl: "images/montrouge/montrouge-armurerie-interieur.jpg" } } },
         'commissariat-local':           { name: "Commissariat de Montrouge" },
         'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
@@ -3277,7 +3277,7 @@ const BUILDINGS = {
         image: "🏨",
         imageBg: "linear-gradient(135deg,#0a0808,#121010)",
         desc: "Hall simple mais propre.",
-        imageUrl: "images/montrouge/montrouge-hotel-victoire-hall.png",
+        imageUrl: "images/montrouge/montrouge-hotel-victoire-hall.jpg",
         persons: [{name:'Receptionniste (PNJ)', role:'Accueil', rel:'neutral', job:'hotelier'}],
         orders: [
           {fn:'produire_commerce', label:'Préparer le petit-déjeuner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Pas de restaurant ici — juste une petite offre de petit-déjeuner (consomme les matières en stock, rémunéré en FR).'},
@@ -3295,7 +3295,7 @@ const BUILDINGS = {
         name: "Chambre",
         imageBg: "linear-gradient(135deg,#0a0808,#121010)",
         desc: "Une chambre modeste mais propre.",
-        imageUrl: "images/montrouge/montrouge-hotel-victoire-chambre.png",
+        imageUrl: "images/montrouge/montrouge-hotel-victoire-chambre.jpg",
         persons: [],
         orders: [
           {fn:'dormir_chambre', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'}
@@ -3340,7 +3340,7 @@ const BUILDINGS = {
         image: "⏳",
         imageBg: "linear-gradient(135deg,#081008,#0c180c)",
         desc: "Salle bondee. Patience requise.",
-        imageUrl: "images/montrouge/montrouge-hopital-accueil.png",
+        imageUrl: "images/montrouge/montrouge-hopital-accueil.jpg",
         persons: [{name:'Infirmiere (PNJ)', role:'Soignante', rel:'neutral', job:'infirmier'}],
         orders: [
           {fn:'soin_public', label:'Soin standard', pa:0, cost:25, type:'legal', icon:'ti-bandage', successRate:100, desc:'+10 Sante, +1 PA immediat. 1 fois par jour (commun aux 3 dispensaires publics de Republia). Consomme 1 desinfectant du stock local.'},
@@ -3354,7 +3354,7 @@ const BUILDINGS = {
         name: "EHPAD de Montrouge",
         imageBg: "linear-gradient(135deg,#141008,#1c1810)",
         desc: "Le salon commun de l'EHPAD, rattache au dispensaire de Montrouge.",
-        imageUrl: "images/montrouge/montrouge-ehpad-salle-commune.png",
+        imageUrl: "images/montrouge/montrouge-ehpad-salle-commune.jpg",
         persons: [],
         orders: []
       }
@@ -3374,7 +3374,7 @@ const BUILDINGS = {
         image: "🚔",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
         desc: "Accueil du commissariat.",
-        imageUrl: "images/montrouge/montrouge-commissariat-accueil.png",
+        imageUrl: "images/montrouge/montrouge-commissariat-accueil.jpg",
         persons: [{name:'Brigadier Local (PNJ)', role:'Officier de garde', rel:'neutral', job:'policier'}],
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100}
@@ -3388,7 +3388,7 @@ const BUILDINGS = {
         name: "Geôles",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
         desc: "Les cellules de garde à vue du commissariat de Montrouge.",
-        imageUrl: "images/montrouge/montrouge-commissariat-geoles.png",
+        imageUrl: "images/montrouge/montrouge-commissariat-geoles.jpg",
         persons: [],
         orders: []
       }
@@ -4476,7 +4476,7 @@ const BUILDINGS = {
       salle_ventes: {
         name: "Salle des Ventes",
         imageBg: "linear-gradient(135deg,#141210,#1c1815)",
-        imageUrl: "images/montrouge/montrouge-entrepot-halle-logistique.png",
+        imageUrl: "images/montrouge/montrouge-entrepot-halle-logistique.jpg",
         desc: "Le quai de chargement et la salle des ventes. Le stock et les prix varient selon les livraisons du jour.",
         persons: [],
         orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]
@@ -4484,7 +4484,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "images/montrouge/montrouge-entrepot-bureau-direction.png",
+        imageUrl: "images/montrouge/montrouge-entrepot-bureau-direction.jpg",
         desc: "Le bureau du directeur de l'entrepôt. Accès sur rendez-vous.",
         persons: [{name:'Norbert Charton (PNJ)', role:"Directeur de l'Entrepôt Logistique", rel:'neutral', job:'directeur_entrepot'}],
         orders: [
@@ -4513,7 +4513,7 @@ const BUILDINGS = {
       bureau_direction: {
         name: "Bureau de Direction",
         imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "images/montrouge/montrouge-raffinerie-bureau-direction.png",
+        imageUrl: "images/montrouge/montrouge-raffinerie-bureau-direction.jpg",
         desc: "Le bureau du directeur de la raffinerie. Accès sur rendez-vous.",
         persons: [{name:'Gustave Baril (PNJ)', role:'Directeur de la Raffinerie', rel:'neutral', job:'directeur_raffinerie'}],
         orders: [
@@ -4525,7 +4525,7 @@ const BUILDINGS = {
       salle_production: {
         name: "Salle de Production",
         imageBg: "linear-gradient(135deg,#0a0d10,#12161a)",
-        imageUrl: "images/montrouge/montrouge-raffinerie-usine-production.png",
+        imageUrl: "images/montrouge/montrouge-raffinerie-usine-production.jpg",
         desc: "Les installations de raffinage. Le pétrole brut livré y est transformé en carburant.",
         persons: [],
         orders: [
@@ -4809,7 +4809,7 @@ const BUILDINGS = {
         name: "Hall de la Gare",
         imageBg: "linear-gradient(135deg,#08090f,#101520)",
         desc: "Une gare industrielle. Bruyante. Les syndicats y ont leur table d\'information permanente.",
-        imageUrl: "images/montrouge/montrouge-gare-hall.png",
+        imageUrl: "images/montrouge/montrouge-gare-hall.jpg",
         persons: [
           {name:'Chef de Gare Syndiqué (PNJ)', role:'Chef de gare', rel:'neutral', job:'chef_gare'},
           {name:'Délégué Syndical (PNJ)', role:'Délégué permanent', rel:'neutral', job:'syndicaliste'}
@@ -4832,7 +4832,7 @@ const BUILDINGS = {
     icon: "ti-coffee",
     bgColor: "#100c08",
     desc: "Un café en face de la gare de Montrouge.",
-    rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-cafe-gare-interieur.png", persons: [], orders: [
+    rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-cafe-gare-interieur.jpg", persons: [], orders: [
       {fn:'produire_commerce', label:'Produire', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Choisir un plat ou une boisson de la carte a preparer pour le service (consomme les matieres en stock, remunere en FR).'},
       {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats et boissons disponibles et commander.'},
       {fn:'consommer_boisson', label:'Consommer une boisson', pa:0, cost:0, type:'legal', icon:'ti-glass', successRate:100, desc:'Choisir une boisson de la carte a consommer sur place.'},
@@ -4848,7 +4848,7 @@ const BUILDINGS = {
     icon: "ti-beer",
     bgColor: "#100c08",
     desc: "Une brasserie pres de la gare de Montrouge.",
-    rooms: { salle: { name: "Salle", desc: "Comptoir et banquettes.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-brasserie-voyageurs.png", persons: [], orders: [
+    rooms: { salle: { name: "Salle", desc: "Comptoir et banquettes.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-brasserie-voyageurs.jpg", persons: [], orders: [
       {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
       {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
       {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
@@ -4911,7 +4911,7 @@ const BUILDINGS = {
     bgColor: "#100810",
     desc: "Le cinéma de Montrouge.",
     rooms: {
-      salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-accueil.png", persons: [], orders: [] },
+      salle: { name: "Hall", desc: "Affiches de films, guichet.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-accueil.jpg", persons: [], orders: [] },
       salle_1: { name: "Salle 1", desc: "Une des deux salles de projection du cinéma de Montrouge.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-salle-1.jpg", persons: [], orders: [] },
       salle_2: { name: "Salle 2", desc: "L'autre salle de projection du cinéma de Montrouge.", imageBg: "linear-gradient(135deg,#100810,#180c18)", imageUrl: "images/montrouge/montrouge-cinema-salle-2.jpg", persons: [], orders: [] }
     }
@@ -4923,7 +4923,7 @@ const BUILDINGS = {
     icon: "ti-plant-2",
     bgColor: "#0a1008",
     desc: "Des parcelles cultivées par les ouvriers de Montrouge.",
-    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", imageUrl: "images/montrouge/montrouge-jardins-ouvriers-interieur.png", persons: [], orders: [] } }
+    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", imageUrl: "images/montrouge/montrouge-jardins-ouvriers-interieur.jpg", persons: [], orders: [] } }
   },
   'logements-montrouge': {
     name: "Logements",
@@ -5012,7 +5012,7 @@ const BUILDINGS = {
     icon: "ti-cigarette",
     bgColor: "#100c08",
     desc: "Le café-tabac des cheminots de Montrouge. Un seul et même établissement.",
-    rooms: { salle: { name: "Salle", desc: "Comptoir, tabac, quelques tables.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-bar-tabac-interieur.png", persons: [], orders: [] } }
+    rooms: { salle: { name: "Salle", desc: "Comptoir, tabac, quelques tables.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-bar-tabac-interieur.jpg", persons: [], orders: [] } }
   },
 
   // ---- PORTS ----
