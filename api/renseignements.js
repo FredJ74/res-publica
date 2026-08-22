@@ -79,6 +79,30 @@
 // secret -- le reveler narrativement est le coeur du gameplay, pas une fuite). Reste borne :
 // jamais la liste complete de la memoire de l'escort, un seul element precis resultant de CET
 // echange precis, jamais consultable a nouveau ensuite.
+//
+// Phase 4 (22 aout 2026) : ajoute 'interroger_pnj_sujet' -- interrogatoire cible d'un PNJ par
+// un enqueteur habilite (commissaire/juge). Mecanique ENTIEREMENT DISTINCTE de "Interroger un
+// detenu" (data.js:4314, gain d'INF, commissariat) et de la torture du QHS (appliquerSentence
+// 'torture', sanction judiciaire, juge) -- ni l'une ni l'autre n'est touchee par ce fichier.
+//
+// Ciblage du sujet : l'IA ne sert QUE a selectionner, parmi les renseignements REELLEMENT
+// presents dans la memoire du PNJ (charges ici, jamais renvoyes au navigateur), les indices
+// pertinents pour le sujet libre saisi par l'enqueteur -- jamais a inventer un renseignement,
+// jamais a consulter une autre source. Si la liste retournee est vide (aucun renseignement
+// pertinent), c'est l'IGNORANCE du PNJ, AVANT tout jet -- pas d'echec de jet a proprement
+// parler. Le jet (40 + 3*(CHA_enqueteur - CHA_pnj), borne [5,90], AUCUN modificateur de piete)
+// n'intervient qu'une fois qu'au moins un renseignement pertinent existe reellement. Reponse :
+// {ok, statut:'ignorance'|'refus'|'revelation', revelation}.
+//
+// Revision du 22 aout 2026 (revue de securite, avant tout commit) : DEUX failles fermees.
+// (1) Le poste de l'enqueteur etait verifie cote CLIENT uniquement -- un appel direct pouvait
+// se declarer commissaire/juge et recevoir le contenu reel d'un renseignement. Le poste est
+// desormais relu ICI depuis personnages.poste (jamais depuis le corps de la requete) ; si ce
+// n'est ni 'commissaire' ni 'juge', aucun souvenir du PNJ n'est meme charge. (2) chaPnj etait
+// transmis par le client -- un appelant pouvait envoyer systematiquement la valeur la plus
+// favorable (le terme est soustractif dans la formule) pour maximiser artificiellement son
+// taux. Le client ne fixe plus cette valeur : voir CHA_PNJ_NEUTRE ci-dessous pour le compromis
+// retenu. CHA_enqueteur reste lu depuis personnages (jamais du corps de la requete, inchange).
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
@@ -427,6 +451,156 @@ async function secretContreSecret(body, res) {
   return res.status(200).json({ ok: true, declarationValide: true, contrepartie: contrepartieTexte });
 }
 
+// Selection IA des renseignements pertinents (Phase 4) -- role STRICTEMENT limite : choisir
+// parmi les index d'une liste FOURNIE, jamais generer ni inventer. Retourne [] en cas d'echec
+// technique (cle absente, appel en echec, JSON non parsable) -- traite comme "aucun renseignement
+// pertinent" par l'appelant (ignorance), jamais comme une erreur bloquante.
+async function selectionnerRenseignementsPertinents(sujet, memoire) {
+  if (!ANTHROPIC_API_KEY) return [];
+  const candidatsTronques = memoire.slice(0, 50);
+  const liste = candidatsTronques
+    .map((row, i) => i + ': cible=' + (row.cible || 'aucune') + ' / categorie=' + row.categorie + ' / resume=' + String(row.contenu || '').slice(0, 150))
+    .join('\n');
+
+  const instructions = 'Tu dois determiner, parmi une liste de renseignements reellement connus par un personnage, lesquels sont raisonnablement pertinents pour repondre au sujet suivant, pose par un enqueteur. Ne juge JAMAIS la veracite des renseignements. Ne genere ni n\'invente AUCUN nouveau renseignement -- choisis UNIQUEMENT parmi les index fournis ci-dessous. Si aucun n\'est pertinent, renvoie une liste vide.\n\nSujet de l\'enqueteur :\n' + sujet + '\n\nRenseignements connus (index: cible / categorie / resume) :\n' + liste + '\n\nReponds UNIQUEMENT avec un JSON strict, sans texte ni markdown autour, au format exact :\n{"indices_pertinents": [liste d\'entiers parmi les index ci-dessus, vide si aucun]}';
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: instructions }] })
+  }).catch(() => null);
+  if (!resp || !resp.ok) return [];
+
+  const data = await resp.json().catch(() => null);
+  let texte = data?.content?.[0]?.text?.trim() || '';
+  texte = texte.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '').trim();
+
+  let parsed;
+  try { parsed = JSON.parse(texte); } catch (e) { return []; }
+  if (!parsed || !Array.isArray(parsed.indices_pertinents)) return [];
+  return parsed.indices_pertinents.filter(i => Number.isInteger(i) && i >= 0 && i < candidatsTronques.length);
+}
+
+// Valeur neutre de CHA pour un PNJ generique interroge (Phase 4, revue de securite du 22 aout
+// 2026, avant GO) : le client ne fixe plus JAMAIS cette valeur -- un appelant direct pouvait
+// sinon envoyer chaPnj:1 systematiquement pour maximiser artificiellement son taux (le terme
+// est soustractif dans la formule). Aucune source serveur fiable n'existe pour la CHA reelle
+// d'un PNJ generique (PNJ_STATS_PAR_JOB/PNJ_STATS_NOMMES ne vivent que dans data.js, cote
+// client) -- dupliquer cette table ici introduirait une seconde source de verite pour une
+// donnee de design, pour un gain de precision marginal. Compromis assume et documente : TOUS
+// les PNJ interroges via cette action utilisent desormais la meme CHA neutre, reprise telle
+// quelle du profil "default" de PNJ_STATS_PAR_JOB (data.js) -- pas une valeur inventee ici,
+// la meme valeur de repli deja utilisee par le jeu pour tout PNJ sans job specifique. Un PNJ
+// reellement plus charismatique (ex. une escort, CHA 10) n'est plus favorise/defavorise par
+// sa vraie CHA dans ce jet precis -- perte de nuance ponctuelle, mais aucune valeur ne peut
+// plus etre choisie par l'appelant pour biaiser le taux.
+const CHA_PNJ_NEUTRE = 5;
+
+async function interrogerPnjSurSujet(body, res) {
+  const { enqueteur, pnj, sujet } = body;
+  if (!texteValide(enqueteur, 200) || !texteValide(pnj, 200) || !texteValide(sujet, 300)) {
+    return res.status(400).json({ error: 'Paramètres invalides.' });
+  }
+
+  // CHA_enqueteur, jourActuel ET poste lus depuis personnages, jamais acceptes du corps de la
+  // requete -- meme principe que tirer_confidence_escort/secret_contre_secret. Le poste declare
+  // par le client N'EST PLUS jamais fait confiance (revue de securite du 22 aout 2026) : seul
+  // le poste REELLEMENT persiste ici fait foi.
+  const rPerso = await fetch(
+    `${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(enqueteur)}&select=stats,day,poste`,
+    { headers: serviceHeaders() }
+  ).catch(() => null);
+  if (!rPerso || !rPerso.ok) return res.status(200).json({ ok: true, statut: 'ignorance', revelation: null });
+  const lignesPerso = await rPerso.json();
+  const perso = Array.isArray(lignesPerso) ? lignesPerso[0] : null;
+  if (!perso) return res.status(200).json({ ok: true, statut: 'ignorance', revelation: null });
+
+  // Habilitation : seuls commissaire/juge (V1 validee), verifie exclusivement sur cette
+  // lecture fraiche -- si l'appelant n'est pas reellement habilite, aucun souvenir du PNJ
+  // n'est meme charge (return immediat, avant toute requete sur renseignements_connus).
+  const posteReel = perso.poste?.id;
+  if (posteReel !== 'commissaire' && posteReel !== 'juge') {
+    return res.status(200).json({ ok: true, statut: 'ignorance', revelation: null });
+  }
+
+  const chaEnqueteur = (perso.stats && Number.isFinite(perso.stats.CHA)) ? perso.stats.CHA : 8;
+  const jourActuel = Number.isInteger(perso.day) ? perso.day : 1;
+  const chaPnjSur = CHA_PNJ_NEUTRE;
+
+  // Memoire ENCORE valide du PNJ -- chargee ici uniquement pour le ciblage/tirage, jamais
+  // renvoyee au navigateur (voir en-tete de fichier).
+  const filtre = `titulaire=eq.${encodeURIComponent(pnj)}&jour_expiration=gte.${jourActuel}&limit=200`;
+  const rMemoire = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?${filtre}`, { headers: serviceHeaders() }).catch(() => null);
+  if (!rMemoire || !rMemoire.ok) return res.status(200).json({ ok: true, statut: 'ignorance', revelation: null });
+  const memoire = await rMemoire.json();
+  if (!Array.isArray(memoire) || memoire.length === 0) {
+    return res.status(200).json({ ok: true, statut: 'ignorance', revelation: null });
+  }
+
+  // Ciblage AVANT le jet : le PNJ n'a rien a "refuser" s'il ne sait rien sur le sujet -- voir
+  // en-tete de fichier (ignorance != echec de jet).
+  const indicesPertinents = await selectionnerRenseignementsPertinents(sujet, memoire);
+  const candidats = indicesPertinents.map(i => memoire[i]).filter(Boolean);
+  if (candidats.length === 0) {
+    return res.status(200).json({ ok: true, statut: 'ignorance', revelation: null });
+  }
+
+  const taux = Math.max(5, Math.min(90, Math.round(40 + 3 * (chaEnqueteur - chaPnjSur))));
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll > taux) {
+    return res.status(200).json({ ok: true, statut: 'refus', revelation: null });
+  }
+
+  const poids = candidats.map(row => poidsRecence(row.jour_derniere_reactivation, jourActuel) * poidsImportance(row.categorie));
+  const total = poids.reduce((s, p) => s + p, 0);
+  let tirage = Math.random() * total;
+  let choisi = candidats[candidats.length - 1];
+  for (let i = 0; i < candidats.length; i++) {
+    tirage -= poids[i];
+    if (tirage <= 0) { choisi = candidats[i]; break; }
+  }
+
+  // Provenance : le PNJ reste la source IMMEDIATE, jamais la chaine complete simplifiee --
+  // "<pnj> vous dit : « <contenu deja attribue du souvenir source> »" preserve l'attribution
+  // deja presente dans choisi.contenu (qui peut elle-meme deja contenir "X affirme..."/"X a
+  // confie...", voir Phases 2/3).
+  const texteRevele = pnj + ' vous dit : « ' + choisi.contenu + ' »';
+  const ligneEnqueteur = {
+    id: 'rc_' + Date.now() + '_' + Math.floor(Math.random() * 1000000),
+    titulaire: enqueteur,
+    contenu: texteRevele,
+    cible: choisi.cible || null,
+    categorie: choisi.categorie,
+    source: pnj,
+    mode_acquisition: 'interrogatoire',
+    fait_objectif_ref: choisi.fait_objectif_ref || null,
+    jour_acquisition: jourActuel,
+    jour_derniere_reactivation: jourActuel,
+    jour_expiration: jourActuel + DUREE_MEMOIRE_JOURS
+  };
+  const rEcriture = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+    method: 'POST',
+    headers: { ...serviceHeaders(), 'Prefer': 'return=representation' },
+    body: JSON.stringify(ligneEnqueteur)
+  }).catch(() => null);
+  if (!rEcriture || !rEcriture.ok) {
+    // Ecriture cote enqueteur echouee -- aucune revelation annoncee, et donc AUCUNE
+    // reactivation du souvenir source non plus (voir juste en dessous, jamais atteint ici).
+    return res.status(200).json({ ok: true, statut: 'refus', revelation: null });
+  }
+
+  // Reactivation du souvenir SOURCE du PNJ -- uniquement maintenant que la revelation a
+  // reellement ete persistee cote enqueteur (jamais si le jet a echoue, jamais si le PNJ ne
+  // savait rien, jamais si l'ecriture ci-dessus a echoue).
+  await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(choisi.id)}`, {
+    method: 'PATCH',
+    headers: serviceHeaders(),
+    body: JSON.stringify({ jour_derniere_reactivation: jourActuel, jour_expiration: jourActuel + DUREE_MEMOIRE_JOURS })
+  }).catch(() => {});
+
+  return res.status(200).json({ ok: true, statut: 'revelation', revelation: texteRevele });
+}
+
 export default async function handler(req, res) {
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) {
@@ -448,5 +622,6 @@ export default async function handler(req, res) {
   if (body.action === 'enregistrer') return enregistrer(body, res);
   if (body.action === 'tirer_confidence_escort') return tirerConfidenceEscort(body, res);
   if (body.action === 'secret_contre_secret') return secretContreSecret(body, res);
+  if (body.action === 'interroger_pnj_sujet') return interrogerPnjSurSujet(body, res);
   return res.status(400).json({ error: 'action invalide.' });
 }

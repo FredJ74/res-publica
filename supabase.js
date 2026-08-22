@@ -2201,3 +2201,21 @@ async function sbEchangerSecretEscort(client, escort, declaration) {
     return await res.json();
   } catch (e) { return null; }
 }
+
+// Phase 4 (22 aout 2026) : interrogatoire cible d'un PNJ. Le poste (commissaire/juge) et la
+// CHA de l'enqueteur sont verifies/lus entierement cote serveur (revue de securite du 22 aout
+// 2026, avant GO) -- ce helper ne transmet plus ni poste ni CHA, un appel direct ne peut donc
+// plus se declarer habilite ni biaiser le taux. Le ciblage/tirage/ecriture/reactivation se
+// font entierement dans api/renseignements.js (action interroger_pnj_sujet). Reponse :
+// {ok, statut, revelation} -- jamais la memoire complete du PNJ.
+async function sbInterrogerPnjSurSujet(enqueteur, pnj, sujet) {
+  try {
+    const res = await fetch('/api/renseignements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'interroger_pnj_sujet', enqueteur, pnj, sujet })
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}

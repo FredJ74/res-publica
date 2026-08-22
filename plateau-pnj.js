@@ -849,6 +849,16 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj(\'' + enc + '\', \'confrontation\')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
   }
 
+  // Interrogatoire cible (Phase 4 memoire, 22 aout 2026) : reserve aux postes enqueteurs/juges
+  // (V1 validee -- commissaire = policier/enqueteur habilite du jeu, juge). Gate cote client
+  // uniquement, meme convention que tous les autres ordres a requiresPost de ce projet (aucune
+  // verification de poste cote serveur nulle part ailleurs non plus). Mecanique DISTINCTE de
+  // "Interroger un detenu" (data.js:4314, gain d'INF, commissariat) et de la torture du QHS
+  // (appliquerSentence 'torture', sanction judiciaire) -- aucune des deux n'est touchee ici.
+  // Applicable a tout PNJ (jamais un PJ reel, hors perimetre de ce lot).
+  if (!isPJ && (state.poste?.id === 'commissaire' || state.poste?.id === 'juge')) {
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirModalInterrogatoireSujet(\'' + pnjSafeName + '\',\'' + (pnj.job || 'default').replace(/'/g,'') + '\')"><i class="ti ti-message-question" style="font-size:.85rem"></i> Interroger sur un sujet</button>';
+  }
 
   // Recruter comme employé (tous PNJ sauf escort qui a son propre bouton)
   if (!isPJ && pnj.job !== 'escort' && pnj.job !== 'codetenu') {
@@ -2337,6 +2347,52 @@ async function confirmerSecretContreSecret(nomEscort) {
     showToast('Confidence reçue', nomEscort + ' garde votre confidence, mais n\'a rien à partager pour l\'instant.', true);
     addJournalEntry('Vous avez confié un secret à ' + nomEscort + ', qui n\'avait rien à partager en retour.', 'event-info');
   }
+}
+
+// Phase 4 memoire des renseignements (22 aout 2026) : interrogatoire cible d'un PNJ sur un
+// sujet libre. Reserve aux commissaires/juges (voir garde d'affichage du bouton plus haut).
+// Le sujet part tel quel vers le serveur (api/renseignements.js, action interroger_pnj_sujet)
+// qui fait entierement le ciblage IA, le jet, le tirage et l'ecriture -- ce client ne recoit
+// jamais que le resultat final (ignorance/refus/revelation), jamais la memoire complete du PNJ.
+function ouvrirModalInterrogatoireSujet(nomPnj, pnjJob) {
+  document.getElementById('postes-modal-title').textContent = '🔍 Interroger ' + nomPnj;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.82rem;color:#a09060;margin-bottom:.8rem">Sur quel sujet souhaitez-vous interroger ' + nomPnj + ' ?</div>' +
+    '<textarea id="interrogatoire-sujet-texte" placeholder="Ex. Que savez-vous sur Gaby ?" maxlength="200" style="width:100%;min-height:3.5rem;margin-bottom:.7rem;background:#0a0805;border:1px solid #2a2010;color:#c0b090;font-size:.8rem;padding:.5rem;resize:vertical;box-sizing:border-box;font-family:Crimson Pro,serif"></textarea>' +
+    '<button onclick="confirmerInterrogatoireSujet(\'' + nomPnj.replace(/'/g,'') + '\',\'' + (pnjJob || 'default').replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Interroger</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerInterrogatoireSujet(nomPnj, pnjJob) {
+  const champ = document.getElementById('interrogatoire-sujet-texte');
+  const sujet = (champ?.value || '').trim();
+  if (!sujet) { showToast('Sujet requis', 'Précisez le sujet de l\'interrogatoire.', false); return; }
+  document.getElementById('modal-postes').classList.remove('open');
+
+  // CHA du PNJ desormais entierement geree cote serveur (revue de securite du 22 aout 2026,
+  // avant GO) -- ce client ne calcule plus ni ne transmet de CHA pour ce jet.
+  const nomEnqueteur = state.char?.name || 'Anonyme';
+
+  const resultat = typeof sbInterrogerPnjSurSujet === 'function'
+    ? await sbInterrogerPnjSurSujet(nomEnqueteur, nomPnj, sujet).catch(() => null)
+    : null;
+
+  if (!resultat || !resultat.ok || resultat.statut === 'ignorance') {
+    showToast('Aucune information', nomPnj + ' affirme ne rien savoir sur ce sujet.', false);
+    addJournalEntry('Interrogatoire de ' + nomPnj + ' sur "' + sujet + '" : ne sait rien.', 'event-info');
+    return;
+  }
+
+  if (resultat.statut === 'refus' || !resultat.revelation) {
+    showToast('Silence', nomPnj + ' refuse de vous en dire plus.', false);
+    addJournalEntry('Interrogatoire de ' + nomPnj + ' sur "' + sujet + '" : refus de parler.', 'event-info');
+    return;
+  }
+
+  showToast('Renseignement obtenu', nomPnj + ' vous confie quelque chose.', true, true);
+  addJournalEntry('Interrogatoire de ' + nomPnj + ' sur "' + sujet + '". ' + resultat.revelation, 'event-good');
 }
 
 function doEscortPiege(pa, cost) {
