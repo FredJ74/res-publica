@@ -2517,7 +2517,12 @@ const RECETTES_ALIMENTAIRES = {
     // Prix strictement fixe (lot correctif final, 21 aout 2026), meme attribut que les menus du
     // Republica -- beneficie automatiquement des deux controles generiques (produireRecetteCommerce
     // et confirmerFixerPrixCommerce), aucun code specifique au sandwich.
-    prixFixe: true
+    prixFixe: true,
+    // Libelle du bouton (lot mini-finition marche, 22 aout 2026) : un sandwich achete au marche
+    // est consomme immediatement, "Commander" est contre-intuitif -- "Manger" via l'attribut
+    // generique labelAction (doConsulterCarteCommerce ci-dessus), comportement de
+    // commanderProduitCommerce() strictement inchange.
+    labelAction: 'Manger'
   }
 };
 
@@ -3286,9 +3291,15 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     if (effetsTxt) html += '<span style="font-size:.82rem;color:#6ab858">' + effetsTxt + '</span><br>';
     html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
     html += '</div>';
+    // Libelle du bouton personnalisable par recette (lot mini-finition marche, 22 aout 2026) --
+    // meme pattern deja utilise par prixFixe/buildingsAutorises/villesAutorisees/paysAutorises :
+    // un attribut optionnel propre a la recette, jamais un id hardcode ici ni dans
+    // commanderProduitCommerce() (logique metier intacte, seul l'intitule change). Absent partout
+    // sauf sur 'sandwich' -- comportement inchange pour tous les autres commerces/recettes.
+    const libelleAction = recette.labelAction || 'Commander';
     html += enRupture
       ? '<span style="font-size:.8rem;color:#5a5040;flex-shrink:0">Rupture</span>'
-      : '<button onclick="doCommanderProduitCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">Commander</button>';
+      : '<button onclick="doCommanderProduitCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">' + libelleAction + '</button>';
     html += '</div>';
   });
   html += '</div>';
