@@ -1466,7 +1466,7 @@ const BUILDINGS = {
           {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marco-barman.png', photoPos:'50% 20%'},
           {name:'Natacha (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'F', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-f-1-robe-verte.png', photoPos:'50% 15%'},
           {name:'Julien (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'H', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/escort-h-1-costume-beige.png', photoPos:'50% 15%'},
-          {name:'Un lobbyiste',   role:'Inconnu - Discretion de mise', rel:'neutral', job:null}
+          {name:'Marc Hantile', role:'Lobbyiste — Conseil en affaires et économie', rel:'neutral', job:'lobbyiste', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/luthecia-pnj-marc-hantile.jpg', photoPos:'55% 15%'}
         ],
         orders: [
           {fn:'boire_verre', label:'Offrir un verre', pa:0, cost:50, type:'legal', icon:'ti-glass', successRate:100, desc:'Invitez un PJ present a boire un verre, a vos frais. Si accepte : +5 Sante, +2 INF, +2 ENT pour chacun. Aucun cout si refuse.'},
