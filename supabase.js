@@ -2137,3 +2137,31 @@ async function sbGetMessagesChatPiece(country, city, buildingId, roomId, depuisT
   if (depuisTimestamp) filtre += `&created_at=gt.${encodeURIComponent(depuisTimestamp)}`;
   return sbGet('chat_piece', filtre) || [];
 }
+
+// =====================
+// MEMOIRE DES RENSEIGNEMENTS CONNUS (Phase 1, 22 aout 2026)
+// =====================
+// renseignements_connus est protegee par RLS, sans policy anon (voir migration_
+// renseignements_connus.sql) -- un appel direct via sbGet/sbInsert/sbUpdate (cle anon, comme
+// tout le reste de ce fichier) serait rejete par Postgres (verifie en test : SELECT anon ->
+// 200 [], INSERT anon -> 401 42501 "new row violates row-level security policy"). Ce helper ne
+// touche donc JAMAIS SUPABASE_URL/SB_HEADERS pour cette table -- il passe systematiquement par
+// api/renseignements.js (SUPABASE_SERVICE_ROLE_KEY, jamais exposee au client).
+//
+// Seule l'ecriture est exposee dans cette Phase 1 (revue de securite du 22 aout 2026, avant
+// commit) : sbGetRenseignementsPour/sbReactiverRenseignement ont ete retires avec l'action
+// serveur correspondante -- un endpoint de lecture par "titulaire" declare par le client,
+// sans aucune authentification pour verifier cette identite, aurait recree exactement le
+// SELECT arbitraire que RLS etait cense empecher. Reviendront avec un mecanisme de controle
+// d'acces reel, dans un lot ulterieur.
+async function sbEnregistrerRenseignement(entry) {
+  try {
+    const res = await fetch('/api/renseignements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'enregistrer', ...entry })
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}

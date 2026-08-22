@@ -931,6 +931,30 @@ async function confirmerAchatArme(armeId) {
   // vente a lieu (achat toujours effectue physiquement sur place, meme raisonnement que
   // chargerArmurerieLocale).
   if (typeof sbEnregistrerVenteArme === 'function') {
+    // Premier producteur de la memoire des renseignements (Phase 1, 22 aout 2026) : l'acheteur
+    // se souvient de sa propre action (mode_acquisition 'action_personnelle', source = lui-meme
+    // -- regle de design validee, Arnie qui achete son revolver). Ecriture BEST-EFFORT, apres
+    // l'achat deja reussi ci-dessus (argent debite, arme deja en inventaire) -- un echec ici
+    // (endpoint indisponible, service_role manquant) n'annule jamais retroactivement l'achat,
+    // simplement trace en console pour rester diagnosticable en QA. Ne modifie ni le payload
+    // ni le comportement de l'insertion registre elle-meme -- seul le .then/.catch qui suit
+    // observe son resultat pour enrichir fait_objectif_ref quand l'id du registre est
+    // disponible (registre_ventes_armes.id, colonne confirmee par sonde directe).
+    const enregistrerRenseignementAchatArme = (registreId) => {
+      if (typeof sbEnregistrerRenseignement !== 'function') return;
+      sbEnregistrerRenseignement({
+        titulaire: state.char?.name || 'Anonyme',
+        contenu: 'A achete legalement ' + arme.name + ' a l\'armurerie de ' + (state.currentCity || 'capitale') + '.',
+        cible: null,
+        categorie: 'achat_arme',
+        source: state.char?.name || 'Anonyme',
+        mode_acquisition: 'action_personnelle',
+        fait_objectif_ref: registreId != null ? 'registre_ventes_armes:' + registreId : null,
+        jour_acquisition: state.day || 1
+      }).then(resultat => {
+        if (!resultat) console.error('Renseignement (achat arme) non enregistre -- achat non affecte.');
+      }).catch(() => console.error('Renseignement (achat arme) non enregistre -- achat non affecte.'));
+    };
     sbEnregistrerVenteArme({
       joueur: state.char?.name || 'Anonyme',
       arme: arme.name,
@@ -939,7 +963,10 @@ async function confirmerAchatArme(armeId) {
       city: state.currentCity || 'capitale',
       jour: state.day || 1,
       heure: state.hour || 8
-    }).catch(() => {});
+    }).then(rows => {
+      const registreId = Array.isArray(rows) && rows[0] && rows[0].id != null ? rows[0].id : null;
+      enregistrerRenseignementAchatArme(registreId);
+    }).catch(() => enregistrerRenseignementAchatArme(null));
   }
 
   updateUI();
