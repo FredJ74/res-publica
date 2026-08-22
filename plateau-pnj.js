@@ -2172,11 +2172,15 @@ const ETAPE_SUIVANTE_ESCORT = {
   2: { label: 'Emmener voir la mer a Port-Sainte-Marie', palierVise: 3 }
 };
 
+// Correction du 22 aout 2026 (regle de game design absolue) : ces 4 phrases laissaient
+// auparavant entendre une alternative "sans engager" ("a moins que...", "ou alors... allons
+// droit au but") -- retiree ici, uniquement l'ambiguite contraire a la regle, sans refondre
+// la personnalite/le ton de chaque phrase.
 const PHRASES_ESCORT_NON_ENGAGEE = [
-  function(nom) { return 'Que vous etes presse(e), ' + nom + '. Engagez-moi si vous voulez qu on aille plus loin. A moins que vous ne soyez tres presse...'; },
-  function(nom) { return 'Doucement, ' + nom + '. On ne se donne pas comme ca, sans un minimum d engagement. A moins que le temps ne vous manque...'; },
-  function(nom) { return nom + ', vous brulez les etapes. Engagez-moi d abord, ou alors... allons droit au but si vous preferez.'; },
-  function(nom) { return 'Un instant, ' + nom + '. Il y a une facon de faire les choses. Engagez-moi, a moins que vous ne soyez presse ce soir.'; }
+  function(nom) { return 'Que vous etes presse(e), ' + nom + '. Engagez-moi si vous voulez qu on aille plus loin.'; },
+  function(nom) { return 'Doucement, ' + nom + '. On ne se donne pas comme ca, sans un minimum d engagement.'; },
+  function(nom) { return nom + ', vous brulez les etapes. Engagez-moi d abord.'; },
+  function(nom) { return 'Un instant, ' + nom + '. Il y a une facon de faire les choses. Engagez-moi.'; }
 ];
 
 const PHRASES_ESCORT_ETAPE_SUIVANTE = [
@@ -2191,13 +2195,16 @@ function ouvrirModalFaireLAmour(nomEscort) {
   const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
 
   if (!escortInfo) {
+    // Correction du 22 aout 2026 (regle de game design validee) : "Faire l'amour" exige
+    // desormais TOUJOURS une embauche prealable -- l'ancien bouton "sans engager" permettait
+    // de contourner cette regle et a ete retire. "Secret contre secret", lui, reste
+    // volontairement independant de l'embauche (voir plus bas).
     const phraseFn = PHRASES_ESCORT_NON_ENGAGEE[Math.floor(Math.random() * PHRASES_ESCORT_NON_ENGAGEE.length)];
     document.getElementById('postes-modal-title').textContent = '💗 ' + nomEscort;
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1rem">' +
       '<div style="font-size:.85rem;color:#c0b090;font-style:italic;margin-bottom:1rem;line-height:1.6">"' + phraseFn(nomPJ) + '"</div>' +
-      '<button onclick="ouvrirRecrutementEscort(\'' + nomEscort.replace(/'/g,'') + '\',\'F\')" style="width:100%;margin-bottom:.5rem;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager comme escort (800 FR/j)</button>' +
-      '<button onclick="confirmerFaireLAmour(\'' + nomEscort.replace(/'/g,'') + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #cc6699;background:transparent;color:#cc6699;cursor:pointer">Faire l amour sans engager (300 FR)</button>' +
+      '<button onclick="ouvrirRecrutementEscort(\'' + nomEscort.replace(/'/g,'') + '\',\'F\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager comme escort (800 FR/j)</button>' +
       '</div>';
     document.getElementById('modal-postes').classList.add('open');
     return;
@@ -2224,6 +2231,15 @@ function ouvrirModalFaireLAmour(nomEscort) {
 
 async function confirmerFaireLAmour(nomEscort) {
   document.getElementById('modal-postes').classList.remove('open');
+  // Garde-fou (22 aout 2026, regle de game design validee) : "Faire l'amour" exige TOUJOURS
+  // une embauche active -- verifie ici, pas seulement au niveau du bouton, pour qu'un appel
+  // direct de cette fonction ne puisse jamais contourner la regle. Retour immediat avant
+  // toute depense, tout bonus, toute trace nuit_escort, toute confidence et tout appel IA.
+  const escortInfoGarde = (state.escortActive || []).find(e => e.nom === nomEscort);
+  if (!escortInfoGarde) {
+    showToast('Escort non engagée', 'Engagez d\'abord ' + nomEscort + ' comme escort.', false);
+    return;
+  }
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
   const cost = 300;
@@ -2248,6 +2264,13 @@ async function confirmerFaireLAmour(nomEscort) {
     sbTirerConfidenceEscort(nomClient, nomEscort, chaEscort).catch(() => {});
   }
 
+  // Phase 5B memoire commerciale (22 aout 2026) : prestation reellement realisee (garde-fou
+  // Phase 5A deja passe, paiement deja effectue) -- best-effort, fire-and-forget, ne bloque
+  // jamais le reste de l'action. jour calcule cote serveur.
+  if (typeof sbEnregistrerEvenementEscort === 'function') {
+    sbEnregistrerEvenementEscort(state.char?.name || 'Anonyme', nomEscort, 'prestation').catch(() => {});
+  }
+
   const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
   const palierActuel = escortInfo?.palier || 0;
   const bonusParPalier = [
@@ -2269,7 +2292,7 @@ async function confirmerFaireLAmour(nomEscort) {
   const maxTokensParPalier = [250, 320, 400, 480];
   const maxTokensVise = maxTokensParPalier[palierActuel];
 
-  const prompt = 'Tu es le narrateur de Res Publica, jeu politique parodique et satirique. Le joueur vient de passer un moment intime avec ' + nomEscort + ", une escort de l'Agence Roxane Velours. La complicite entre eux a atteint un palier ou elle l'appelle desormais " + petitNomActuel + '. Redige UN recit (' + longueurVisee + ') qui flatte et valorise le joueur, lui donnant un sentiment de plenitude et de superiorite, integrant naturellement ce petit nom dans le dialogue, mais glisse a la toute fin un doute subtil sur l authenticite du plaisir ressenti par l escort (professionnelle avant tout). Ton elegant, un peu ironique, jamais vulgaire ni explicite. Reponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
+  const prompt = 'Tu es le narrateur de Res Publica, jeu politique parodique et satirique. Le joueur vient de passer un moment intime avec ' + nomEscort + ", une escort de l'Agence Roxane Velours. La complicite entre eux a atteint un palier ou le petit nom \"" + petitNomActuel + '" est desormais utilise. Redige UN recit (' + longueurVisee + ') qui flatte et valorise le joueur, lui donnant un sentiment de plenitude et de superiorite, integrant naturellement ce petit nom dans le dialogue, mais glisse a la toute fin un doute subtil sur l authenticite du plaisir ressenti par l escort (professionnelle avant tout). Ton elegant, un peu ironique, jamais vulgaire ni explicite. Reponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
 
   let recit = 'Vous passez un moment agréable avec ' + nomEscort + '.';
   try {
@@ -2293,11 +2316,14 @@ async function confirmerFaireLAmour(nomEscort) {
   addJournalEntry('Moment privé avec ' + nomEscort + '. +' + bonus.moral + ' Moral, +' + bonus.hp + ' Santé, +' + bonus.ent + ' ENT. -' + cost + ' ' + cur + '.', 'event-good');
 
   if (typeof tracerActionPourRumeur === 'function') {
-    tracerActionPourRumeur('nuit_escort', null);
+    // Correction du 22 aout 2026 : la cible etait auparavant toujours null, rendant impossible
+    // de savoir quel escort etait concerne par la trace. Duree de actions_tracables (7 jours)
+    // inchangee -- distincte de la future memoire commerciale 90 jours.
+    tracerActionPourRumeur('nuit_escort', nomEscort);
     try {
       if (typeof sbGetMariageActif === 'function') {
         const mariage = await sbGetMariageActif(state.char?.name);
-        if (mariage) tracerActionPourRumeur('nuit_escort', null);
+        if (mariage) tracerActionPourRumeur('nuit_escort', nomEscort);
       }
     } catch(e) {}
   }
@@ -2336,7 +2362,7 @@ async function confirmerSecretContreSecret(nomEscort) {
 
   if (!resultat || !resultat.ok || !resultat.declarationValide) {
     showToast('Refus poli', nomEscort + ' n\'a pas trouvé votre confidence assez intéressante pour un échange.', false);
-    addJournalEntry('Tentative d\'échange de confidences avec ' + nomEscort + ' : elle décline poliment.', 'event-info');
+    addJournalEntry('Tentative d\'échange de confidences avec ' + nomEscort + ' : décline poliment.', 'event-info');
     return;
   }
 

@@ -481,6 +481,13 @@ async function confirmerRecrutementEscort(nomEscort, tarif, genre) {
   if (!state.escortActive) state.escortActive = [];
   state.escortActive.push({ nom: nomEscort, tarif, depuis: state.day || 1, genre, palier: 0, photoUrl: window._photoEscortEnAttente || null });
 
+  // Phase 5B memoire commerciale (22 aout 2026) : embauche reellement effectuee (toutes les
+  // verifications precedentes ont deja reussi, l'argent est deja deduit) -- best-effort,
+  // fire-and-forget, ne bloque jamais le reste du recrutement. jour calcule cote serveur.
+  if (typeof sbEnregistrerEvenementEscort === 'function') {
+    sbEnregistrerEvenementEscort(state.char?.name || 'Anonyme', nomEscort, 'embauche').catch(() => {});
+  }
+
   // Banque de photos Agence Roxane Velours (independante du prenom, tiree au hasard par genre)
   const PHOTOS_ESCORT = {
     F: [

@@ -2219,3 +2219,19 @@ async function sbInterrogerPnjSurSujet(enqueteur, pnj, sujet) {
     return await res.json();
   } catch (e) { return null; }
 }
+
+// Phase 5B (22 aout 2026) : evenement commercial escort reel (embauche/prestation). Ecriture
+// fire-and-forget best-effort -- jour/id/jour_expiration entierement calcules cote serveur
+// (api/renseignements.js, action enregistrer_evenement_escort). Aucune consommation branchee
+// dans ce lot (ni Secret contre secret, ni interrogatoire) -- uniquement l'ecriture.
+async function sbEnregistrerEvenementEscort(client, escort, typeEvenement) {
+  try {
+    const res = await fetch('/api/renseignements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'enregistrer_evenement_escort', client, escort, type_evenement: typeEvenement })
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}

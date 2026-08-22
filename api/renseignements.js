@@ -103,12 +103,35 @@
 // favorable (le terme est soustractif dans la formule) pour maximiser artificiellement son
 // taux. Le client ne fixe plus cette valeur : voir CHA_PNJ_NEUTRE ci-dessous pour le compromis
 // retenu. CHA_enqueteur reste lu depuis personnages (jamais du corps de la requete, inchange).
+//
+// Phase 5B (22 aout 2026) : ajoute 'enregistrer_evenement_escort' -- ecrit UN evenement
+// commercial reel (embauche ou prestation) dans escort_evenements_commerciaux (RLS activee,
+// aucune policy anon -- meme migration/doctrine que renseignements_connus, execute
+// manuellement en production). Aucune consommation branchee dans ce lot (ni Secret contre
+// secret, ni interrogatoire) -- uniquement l'ecriture.
+//
+// jour est TOUJOURS lu depuis personnages.day (jamais du corps de la requete), meme principe
+// que le reste de ce fichier. id/jour_expiration TOUJOURS calcules ici. Limite assumee et
+// documentee (aucune authentification par personnage dans ce projet, deja documentee
+// partout ailleurs dans ce fichier) : "client"/"escort"/"type_evenement" restent des
+// declarations non verifiees de l'appelant -- ce que cet appel garantit reellement, c'est que
+// le jour utilise est le jour REEL persiste de ce personnage, jamais un jour arbitraire.
+//
+// Verification volontairement NON ajoutee : une correlation avec personnages.escort_active
+// (le client a-t-il reellement cet escort dans son groupe ?) a ete envisagee puis ecartee --
+// son ecriture n'est pas garantie synchrone au moment de cet appel (l'evenement 'embauche' se
+// produit dans la MEME action cote client que la mise a jour d'escort_active elle-meme, sans
+// sauvegarde forcee entre les deux) : une telle verification risquerait de rejeter a tort des
+// evenements pourtant reels, plutot que d'apporter une securite fiable. Limite acceptee, dans
+// la meme famille que les autres limites deja documentees de ce chantier (ex. chaEscort en
+// Phase 2) -- aucune refonte d'authentification, comme demande.
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
 const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || null;
 
 const TABLE = 'renseignements_connus';
+const TABLE_EVENEMENTS_ESCORT = 'escort_evenements_commerciaux';
 const DUREE_MEMOIRE_JOURS = 90;
 
 const MODES_ACQUISITION = [
@@ -601,6 +624,48 @@ async function interrogerPnjSurSujet(body, res) {
   return res.status(200).json({ ok: true, statut: 'revelation', revelation: texteRevele });
 }
 
+// Phase 5B : ecriture d'UN evenement commercial escort reel. Fire-and-forget cote appelant --
+// cette fonction ne fait jamais planter/annuler l'action de jeu qui l'a declenchee (deja
+// terminee avec succes avant cet appel), se contente d'echouer silencieusement (voir
+// commentaire d'en-tete de fichier pour les limites assumees de verification).
+async function enregistrerEvenementEscort(body, res) {
+  const { client, escort, type_evenement } = body;
+  if (!texteValide(client, 200) || !texteValide(escort, 200) || !['embauche', 'prestation'].includes(type_evenement)) {
+    return res.status(400).json({ error: 'Paramètres invalides.' });
+  }
+
+  // jour REEL persiste du personnage -- jamais accepte du corps de la requete.
+  const rPerso = await fetch(
+    `${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(client)}&select=day`,
+    { headers: serviceHeaders() }
+  ).catch(() => null);
+  if (!rPerso || !rPerso.ok) return res.status(200).json({ ok: false });
+  const lignesPerso = await rPerso.json();
+  const perso = Array.isArray(lignesPerso) ? lignesPerso[0] : null;
+  if (!perso) return res.status(200).json({ ok: false });
+  const jourActuel = Number.isInteger(perso.day) ? perso.day : 1;
+
+  // id/jour_expiration TOUJOURS calcules ici, jamais acceptes du client. INSERT uniquement --
+  // aucun upsert, un evenement reel de plus est toujours une nouvelle ligne (voir migration).
+  const row = {
+    id: 'eec_' + Date.now() + '_' + Math.floor(Math.random() * 1000000),
+    client,
+    escort,
+    type_evenement,
+    jour: jourActuel,
+    jour_expiration: jourActuel + DUREE_MEMOIRE_JOURS
+  };
+
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_EVENEMENTS_ESCORT}`, {
+    method: 'POST',
+    headers: { ...serviceHeaders(), 'Prefer': 'return=representation' },
+    body: JSON.stringify(row)
+  }).catch(() => null);
+  if (!r || !r.ok) return res.status(200).json({ ok: false });
+
+  return res.status(200).json({ ok: true });
+}
+
 export default async function handler(req, res) {
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) {
@@ -623,5 +688,6 @@ export default async function handler(req, res) {
   if (body.action === 'tirer_confidence_escort') return tirerConfidenceEscort(body, res);
   if (body.action === 'secret_contre_secret') return secretContreSecret(body, res);
   if (body.action === 'interroger_pnj_sujet') return interrogerPnjSurSujet(body, res);
+  if (body.action === 'enregistrer_evenement_escort') return enregistrerEvenementEscort(body, res);
   return res.status(400).json({ error: 'action invalide.' });
 }
