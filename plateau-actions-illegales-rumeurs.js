@@ -2385,7 +2385,11 @@ const RECETTES_ALIMENTAIRES = {
     id: 'cafe_boisson', label: 'Café', categorie: 'boisson', image: null,
     materiaux: { produits_exotiques: 1 }, pa: 1, portions: 15,
     effets: { moral: 2 },
-    typesAutorises: ['cafe'], villesAutorisees: null, buildingsAutorises: null
+    // 'bar' ajoute (correctif boucle nourriture Luthecia, 22 aout 2026) : le Bar du Republica
+    // (type 'bar') doit pouvoir vendre du cafe, meme principe deja applique a 'vin' ci-dessous
+    // pour la brasserie -- n'active la recette que si elle figure aussi dans data.carte du
+    // commerce concerne (DOTATIONS_COMMERCE_PILOTE), aucun autre commerce 'bar' n'existe a ce jour.
+    typesAutorises: ['cafe', 'bar'], villesAutorisees: null, buildingsAutorises: null
   },
   jus_de_fruits: {
     id: 'jus_de_fruits', label: 'Jus de fruits', categorie: 'boisson', image: null,
@@ -2403,7 +2407,9 @@ const RECETTES_ALIMENTAIRES = {
     // Brasserie des Voyageurs (Montrouge, egalement type 'brasserie') : elargir typesAutorises ne
     // rend une recette disponible que si elle figure aussi dans data.carte du commerce concerne
     // (DOTATIONS_COMMERCE_PILOTE) -- celle de Montrouge ne liste toujours que ses 3 plats.
-    typesAutorises: ['cafe', 'brasserie'], villesAutorisees: null, buildingsAutorises: null
+    // 'bar' ajoute (correctif boucle nourriture Luthecia, 22 aout 2026) : meme principe, pour le
+    // Bar du Republica desormais Cafe/Biere/Vin.
+    typesAutorises: ['cafe', 'brasserie', 'bar'], villesAutorisees: null, buildingsAutorises: null
   },
 
   // Carte gastronomique Le Republica (21 aout 2026) -- remplace l'ancienne carte provisoire
@@ -2881,15 +2887,23 @@ const DOTATIONS_COMMERCE_PILOTE = {
       vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin))
     };
   },
+  // Bar de Luthecia (correctif boucle nourriture, 22 aout 2026) : catalogue restreint a Cafe/
+  // Biere/Vin (decision deja actee), boisson_sans_alcool retiree (hors de cette liste). cafe_boisson
+  // et vin existent deja (RECETTES_ALIMENTAIRES, lot boissons du Cafe de la Gare) -- 'bar' ajoute a
+  // leur typesAutorises ci-dessous, aucune recette recreee. snack_buvette conserve : ce n'est pas
+  // une boisson, hors du perimetre de cette restriction. produits_exotiques/fruits_legumes ajoutes
+  // au stock de depart avec les memes valeurs deja utilisees pour ces matieres au Cafe de la Gare
+  // (coherence des couts moyens de depart entre les deux commerces qui vendent du cafe).
   'hotel-republica|bar': function(data) {
     data.caisse = 2000;
-    data.stockMatieres = { cereales: 10 };
-    data.coutMoyenMatieres = { cereales: 3 };
-    data.carte = ['biere_pression', 'boisson_sans_alcool', 'snack_buvette'];
-    data.parametres.stockMax = { biere_pression: 20, boisson_sans_alcool: 20, snack_buvette: 20 }; // plafonne (lot plafonds, 21 aout 2026, etait 30)
+    data.stockMatieres = { cereales: 10, produits_exotiques: 10, fruits_legumes: 10 };
+    data.coutMoyenMatieres = { cereales: 3, produits_exotiques: 6, fruits_legumes: 4 };
+    data.carte = ['cafe_boisson', 'biere_pression', 'vin', 'snack_buvette'];
+    data.parametres.stockMax = { cafe_boisson: 20, biere_pression: 20, vin: 20, snack_buvette: 20 }; // plafonne (lot plafonds, 21 aout 2026, etait 30)
     data.parametres.prixVente = {
+      cafe_boisson: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.cafe_boisson)),
       biere_pression: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.biere_pression)),
-      boisson_sans_alcool: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boisson_sans_alcool)),
+      vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin)),
       snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
     };
   },
@@ -3267,6 +3281,14 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
 
   ajouterHistoriqueEntreprise(data, net, 'Vente — ' + recette.label + ' — ' + (state.char?.name || 'Anonyme'));
   await sbSaveEntreprise(data.id, data);
+
+  // Sauvegarde personnage immediate (meme correctif et meme raisonnement que
+  // produireRecetteCommerce ci-dessus, audit boucle nourriture du 22 aout 2026) : cote client
+  // cette fois -- state.arg (paiement) et les effets de consommation (hp/moral/pop/paDiffere)
+  // ne dependaient jusqu'ici que du debounce de 3s de l'auto-sauvegarde. Reutilise
+  // sbSavePersonnage() tel quel (file Promise deja en place, commit 36a3b1d) -- aucune
+  // sauvegarde concurrente ni fallback reintroduits.
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 
   return { ok: true, prix, net, effets };
 }
