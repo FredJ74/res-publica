@@ -531,6 +531,11 @@ async function reclamerObjetTrouve(pa, cost) {
     icon: objet.icon,
     desc: objet.desc,
     type: objet.compromettant ? 'kompromat' : 'objet',
+    // origine (correctif ordre Voler, 22 aout 2026) : seul marqueur fiable identifiant un objet
+    // comme provenant reellement des Objets Trouves -- type:'kompromat'/'objet' ne suffit pas
+    // (kompromat est aussi produit par au moins 4 autres mecanismes sans rapport, voir l'audit
+    // dedie). Utilise par estObjetVolableParVol() (plateau-actions-illegales-rumeurs.js).
+    origine: 'objets_trouves',
     cible: null,
     legal: !objet.compromettant,
     imageUrl: objet.imageUrl || null

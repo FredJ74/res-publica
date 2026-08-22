@@ -36,20 +36,48 @@ function ouvrirModalVoler(encodedCible) {
   const perCible = cible.stats?.PER || 9;
   const intCible = cible.stats?.INT || 9;
 
-  const tauxReussite = Math.max(5, Math.min(95, Math.round(
-    50 + (per + cha) - (perCible + intCible) + bonusCarriere - (isPays / 3)
-  )));
-  const seuilVisibilite = 90;
+  // Jet final a 4 paliers (refonte du 22 aout 2026, decision de game design arretee -- remplace
+  // l'ancien couple tauxReussite/roll et la variable voitButin, jamais utilisee depuis sa
+  // creation, voir audit dedie). Base neutre 50, deplacee par exactement les memes influences
+  // qu'avant (PER/CHA effectives du groupe -- un informateur recrute inGroupe continue donc de
+  // les faire progresser via getStatEffective -- PER/INT de la cible, carriere, ISN local).
+  // Seule la part aleatoire est ajoutee plus tard, dans confirmerVol() : jamais ici, pour ne pas
+  // consommer la benediction avant la confirmation reelle (meme doctrine que l'ancien code).
+  // Paliers arretes : jetFinal <25 echec complet ; 25-49 reussite, voleur identifie ; 50-74
+  // reussite, vol detecte mais auteur inconnu ; >=75 reussite sans detection.
+  const jetBase = 50 + (per + cha) - (perCible + intCible) + bonusCarriere - (isPays / 3);
 
   document.getElementById('postes-modal-title').textContent = 'Voler — ' + cible.name;
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Acte illegal. En cas d\'echec, des consequences variables selon l\'empire s\'appliquent.</div>';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Chances de reussite estimees : <strong style="color:#C9A84C">' + tauxReussite + '%</strong></div>';
-  html += '<button onclick="confirmerVol(\'' + encodedCible + '\',' + tauxReussite + ',' + seuilVisibilite + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #aa7a30;background:transparent;color:#C9A84C;cursor:pointer">🤏 Tenter le vol (2 PA)</button>';
+  html += '<div style="font-size:.82rem;color:#aa7a30;font-style:italic;margin-bottom:1rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Acte illegal. En cas d\'echec, des consequences variables selon l\'empire s\'appliquent. Une part de hasard reste toujours decisive.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Estimation avant hasard : <strong style="color:#C9A84C">' + Math.round(jetBase) + ' / 100</strong> (echec &lt;25 · identifie 25-49 · detecte 50-74 · discret &ge;75)</div>';
+  html += '<button onclick="confirmerVol(\'' + encodedCible + '\',' + jetBase + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #aa7a30;background:transparent;color:#C9A84C;cursor:pointer">🤏 Tenter le vol (2 PA)</button>';
   html += '</div>';
 
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// Eligibilite au vol -- un seul point d'exclusion central (correctif ordre Voler, 22 aout 2026),
+// reutilise par la selection du butin ci-dessous plutot que reecrit par branche. Exclusions
+// absolues : actes officiels (jamais transferables, meme convention que les dons/ventes de
+// matieres partout ailleurs dans le projet) et objets de quete non transferables
+// (colis_secret_pat, destine uniquement a Brigitte Menottes -- voir confirmerDonObjetPj,
+// plateau-justice-economie.js). Categories volables (les 3 seules validees) : matieres premieres
+// empilables (stackable+stackKey -- signal deja utilise partout ailleurs pour identifier une
+// matiere, jamais un champ type dedie, verifie sur tous les points d'ajout du projet) ; objets
+// provenant du systeme Objets Trouves, identifies par le marqueur origine:'objets_trouves' pose
+// par reclamerObjetTrouve() plus bas dans ce lot (type:'kompromat'/'objet' NE SUFFISAIENT PAS :
+// type:'kompromat' est produit par au moins 4 autres mecanismes sans rapport -- voir audit) ;
+// armes (type:'arme').
+function estObjetVolableParVol(item) {
+  if (!item) return false;
+  if (item.type === 'acte_officiel') return false;
+  if (item.type === 'colis_secret_pat') return false;
+  if (item.stackable && item.stackKey) return true;
+  if (item.origine === 'objets_trouves') return true;
+  if (item.type === 'arme') return true;
+  return false;
 }
 
 const CONSEQUENCES_VOL_ECHEC = {
@@ -78,19 +106,26 @@ const CONSEQUENCES_VOL_ECHEC = {
   }
 };
 
-async function confirmerVol(encodedCible, tauxReussite, seuilVisibilite) {
+async function confirmerVol(encodedCible, jetBase) {
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
   document.getElementById('modal-postes').classList.remove('open');
-  // Consomme la benediction ici (resolution reelle), pas dans ouvrirModalVoler -- sinon un
-  // joueur qui ouvre le modal puis renonce perdrait le bonus pour rien.
-  tauxReussite = (typeof consommerBonusBenediction === 'function') ? Math.min(95, consommerBonusBenediction(tauxReussite)) : tauxReussite;
 
   const nomCible = cible.name.replace(' (PNJ)', '');
-  const roll = Math.random() * 100;
 
-  if (roll > tauxReussite) {
-    // ECHEC
+  // Jet final (refonte du 22 aout 2026) : jetBase (deterministe, calcule dans ouvrirModalVoler) +
+  // benediction (consommee ICI, a la resolution reelle, jamais a l'ouverture du modal -- meme
+  // doctrine que l'ancien code) + part aleatoire uniforme +/-25 (meme largeur qu'un palier :
+  // verifie qu'un jet parfaitement neutre en caracteristiques/carriere/ISN reste borne
+  // exactement dans la fenetre [25,75], jamais hors des paliers centraux -- voir le rapport pour
+  // les 3 exemples chiffres).
+  let jetFinal = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(jetBase) : jetBase;
+  jetFinal += (Math.random() * 50 - 25);
+  jetFinal = Math.max(0, Math.min(100, Math.round(jetFinal)));
+
+  if (jetFinal < 25) {
+    // ECHEC COMPLET -- conserve integralement les consequences existantes par empire (compatibles
+    // telles quelles, aucune modification demandee ni necessaire).
     const consequence = CONSEQUENCES_VOL_ECHEC[state.country] || CONSEQUENCES_VOL_ECHEC.republic;
     const msg = consequence(nomCible);
     updateUI();
@@ -99,36 +134,139 @@ async function confirmerVol(encodedCible, tauxReussite, seuilVisibilite) {
     return;
   }
 
-  // REUSSITE — determiner le butin
-  const voitButin = roll <= (tauxReussite * seuilVisibilite / 100);
+  // REUSSITE (jetFinal >= 25) — palier de CONNAISSANCE DE LA VICTIME uniquement. La verite du
+  // moteur (tracerActionPourRumeur plus bas) reste toujours la vraie identite, quel que soit ce
+  // palier -- ne jamais melanger les deux (verite du moteur != connaissance de la victime).
+  const identifie = jetFinal < 50;                          // 25-49
+  const detecteAnonyme = jetFinal >= 50 && jetFinal < 75;    // 50-74
+  // jetFinal >= 75 : discret -- aucune des deux, aucune notification a la victime.
+  const reveleALaVictime = identifie || detecteAnonyme;
 
   if (cible.isPJ) {
-    // Vol sur un vrai joueur — montant aleatoire d'argent liquide (50-200), applique a sa prochaine connexion
-    const montantVole = Math.floor(Math.random() * 150) + 50;
-    const vol = {
-      id: 'vol-' + Date.now(),
-      victime: nomCible,
-      voleur: state.char?.name || 'Anonyme',
-      type_butin: 'argent',
-      montant: montantVole,
-      objet_id: null,
-      traite: false
-    };
-    if (typeof sbDeposerVol === 'function') {
-      await sbDeposerVol(vol).catch(() => {});
+    // Vol sur un vrai joueur — lecture reelle EN LECTURE SEULE de son etat courant, necessaire
+    // pour (a) ne jamais deroben plus d'argent qu'il n'en possede reellement, (b) choisir un
+    // objet reellement present dans son inventaire. Jamais d'ecriture directe sur l'etat d'un
+    // autre joueur : uniquement via vols_en_attente, applique par SON PROPRE client a sa
+    // prochaine connexion (recupererVolsEnAttente, plateau-communication.js) -- meme doctrine
+    // que le reste du projet (dons, impacts differes).
+    const victimeRows = typeof sbGet === 'function'
+      ? await sbGet('personnages', `name=eq.${encodeURIComponent(nomCible)}&select=arg,inventory`).catch(() => null)
+      : null;
+    const argVictime = victimeRows?.[0]?.arg || 0;
+    const inventaireVictime = victimeRows?.[0]?.inventory || [];
+    const objetsEligibles = inventaireVictime.filter(estObjetVolableParVol);
+
+    // Tirage du butin (decision arretee, 22 aout 2026) : 60% argent, 40% objet. Deux replis
+    // (revue anti-fabrication, meme date) : objet->argent si aucun objet eligible ; argent->objet
+    // si la cible n'a reellement AUCUN argent volable (jamais d'argent fabrique de toutes
+    // pieces) ; si ni l'un ni l'autre n'est disponible, le vol ne produit aucun butin.
+    let butin = Math.random() < 0.6 ? 'argent' : 'objet';
+    if (butin === 'objet' && objetsEligibles.length === 0) butin = 'argent';
+    if (butin === 'argent' && argVictime <= 0) butin = objetsEligibles.length > 0 ? 'objet' : 'rien';
+
+    if (butin === 'rien') {
+      // Rien a voler chez cette cible precise : le jet a reussi mais aucune ressource ne peut
+      // etre transferee -- aucun butin fabrique, aucune trace, aucune notification (rien ne s'est
+      // reellement passe pour la victime).
+      showToast('Vol infructueux', nomCible + ' n\'avait rien de volable pour l\'instant.', false);
+      addJournalEntry('Tentative de vol sur ' + nomCible + ' : rien a voler.', 'event-info');
+      return;
     }
-    state.arg = (state.arg || 0) + montantVole;
-    updateUI();
-    showToast('Vol réussi !', '+' + montantVole + ' FR dérobés à ' + nomCible + '.', true, true);
-    addJournalEntry('Vol réussi sur ' + nomCible + '. +' + montantVole + ' FR.', 'event-good');
+
+    let vol, descButin;
+
+    if (butin === 'argent') {
+      // Argent : plafonne a ce que la cible possede reellement (verifie ci-dessus, jamais 0 ici
+      // puisque le repli 'rien' l'a deja exclu). Seul le cas argent reste credite immediatement
+      // au voleur (apres confirmation du depot ci-dessous) : la monnaie est fongible, aucun
+      // risque de duplication d'un objet unique.
+      const montantVole = Math.min(Math.floor(Math.random() * 150) + 50, argVictime);
+      vol = { id: 'vol-' + Date.now(), victime: nomCible, voleur: state.char?.name || 'Anonyme', type_butin: 'argent', montant: montantVole, objet_id: null, traite: false };
+      descButin = montantVole + ' FR';
+    } else {
+      // Objet/matiere -- AUCUN credit immediat au voleur (correctif anti-duplication, revue du
+      // 22 aout 2026). Crediter immediatement pendant que le retrait restait differe cote
+      // victime laissait une fenetre ou l'objet existait potentiellement en double : la victime
+      // pouvait le vendre/donner/consommer avant le traitement differe (qui devenait alors un
+      // no-op), tandis que le voleur avait deja recu sa copie -- duplication definitive. Aucun
+      // mecanisme du projet ne permet d'ecrire l'etat d'un autre joueur en toute securite
+      // (sbSavePersonnage ecrase la ligne entiere ; un patch cible resterait ecrase par la
+      // prochaine sauvegarde complete du client de la victime si elle est en session). Le butin
+      // est donc entierement resolu au moment ou LA VICTIME ELLE-MEME traite vols_en_attente
+      // (recupererVolsEnAttente, plateau-communication.js, sur son propre etat frais a sa
+      // connexion) : cette meme etape retire l'objet SEULEMENT s'il est encore reellement present
+      // ET, seulement dans ce cas, le met en file pour le voleur via objets_recus -- le
+      // mecanisme deja existant et deja sur pour les dons entre joueurs
+      // (sbDonnerObjetJoueur/verifierObjetsRecus), jamais une seconde architecture de transfert.
+      // Si l'objet a deja ete vendu/donne/consomme par la victime avant sa prochaine connexion,
+      // rien n'est retire ET rien n'est jamais credite au voleur : aucune duplication possible,
+      // au prix d'une livraison differee (le voleur ne recoit sa prise, si elle existe encore,
+      // qu'a la prochaine connexion de la victime -- jamais immediatement pour cette categorie).
+      const objet = objetsEligibles[Math.floor(Math.random() * objetsEligibles.length)];
+      if (objet.stackable && objet.stackKey) {
+        const qteVoulue = Math.min(Math.floor(Math.random() * 5) + 1, objet.qty || 1);
+        vol = { id: 'vol-' + Date.now(), victime: nomCible, voleur: state.char?.name || 'Anonyme', type_butin: 'matiere', montant: qteVoulue, objet_id: objet.stackKey, traite: false };
+        descButin = qteVoulue + 'x ' + (objet.name || objet.stackKey);
+      } else {
+        vol = { id: 'vol-' + Date.now(), victime: nomCible, voleur: state.char?.name || 'Anonyme', type_butin: 'objet', montant: 0, objet_id: objet.id, traite: false };
+        descButin = '"' + objet.name + '"';
+      }
+    }
+
+    // Depot CONFIRME avant toute recompense (correctif bloquant, revue du 22 aout 2026) :
+    // sbInsert() peut echouer et renvoyer null SANS jamais lever d'exception -- verifier
+    // explicitement le retour est la seule facon de savoir si vols_en_attente a reellement recu
+    // cette ligne. Si le depot echoue : aucun argent credite, aucun objet mis en transfert,
+    // aucune trace objective, aucun mail -- le jet a reussi mecaniquement mais le mecanisme
+    // metier n'a pas pu etre persiste. Ni un echec de jet (CONSEQUENCES_VOL_ECHEC non concerne,
+    // le palier reste inchange) ni une reussite : un simple echec technique, invitant a reessayer
+    // -- l'argent ne peut plus jamais etre cree ex nihilo sur un INSERT rate.
+    const depotOk = typeof sbDeposerVol === 'function'
+      ? await sbDeposerVol(vol).then(r => !!r).catch(() => false)
+      : false;
+
+    if (!depotOk) {
+      showToast('Erreur technique', 'Le vol n\'a pas pu être enregistré. Réessayez.', false);
+      addJournalEntry('Tentative de vol sur ' + nomCible + ' : échec technique, aucune ressource transférée.', 'event-bad');
+      return;
+    }
+
+    if (butin === 'argent') {
+      state.arg = (state.arg || 0) + vol.montant;
+      updateUI();
+      showToast('Vol réussi !', descButin + ' dérobé(s) à ' + nomCible + '.', true, true);
+      addJournalEntry('Vol réussi sur ' + nomCible + '. ' + descButin + '.', 'event-good');
+    } else {
+      showToast('Vol tenté avec succès !', descButin + ' — butin en cours de récupération.', true, true);
+      addJournalEntry('Vol réussi sur ' + nomCible + '. ' + descButin + ' (livraison différée, confirmation a la prochaine connexion de la cible).', 'event-good');
+    }
+
+    // Verite objective du moteur (actions_tracables) : TOUJOURS la vraie identite du voleur,
+    // quel que soit le palier de connaissance accorde a la victime ci-dessus -- section 5 de la
+    // decision de game design. Politique de tracage des echecs/tentatives inchangee (seuls les
+    // succes reellement persistes sont traces, aucun changement de politique sans validation
+    // prealable).
     tracerActionPourRumeur('vol', nomCible);
 
-    if (typeof sbSendMail === 'function') {
+    // Notification IMMEDIATE a la victime — seule cette partie varie selon le palier, jamais la
+    // trace objective ci-dessus. jetFinal >= 75 : aucun mail, le vol reste invisible pour la
+    // victime pour l'instant (le retrait reel objet/matiere n'est de toute facon applique qu'a sa
+    // prochaine connexion, voir recupererVolsEnAttente ; pour l'argent, la deduction differee
+    // reste egalement silencieuse a ce palier).
+    if (typeof sbSendMail === 'function' && reveleALaVictime) {
       const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
-      sbSendMail('Système', nomCible, 'Vous avez été volé(e)', 'Quelqu\'un vous a discrètement dérobé ' + montantVole + ' FR. Le montant a été déduit de votre trésorerie.', time).catch(() => {});
+      if (identifie) {
+        const nomVoleur = state.char?.name || 'Quelqu\'un';
+        sbSendMail('Système', nomCible, 'Vous avez été volé(e)', nomVoleur + ' vous a dérobé ' + descButin + '. Vous l\'avez reconnu(e) sur le fait.', time).catch(() => {});
+      } else {
+        sbSendMail('Système', nomCible, 'Vous avez été volé(e)', 'Quelqu\'un vous a discrètement dérobé ' + descButin + '. Vous n\'avez pas pu identifier l\'auteur.', time).catch(() => {});
+      }
     }
   } else {
-    // Vol sur un PNJ — effet immediat possible
+    // Vol sur un PNJ — inchange : aucun inventaire reel a piller (pas de systeme d'inventaire
+    // PNJ), aucune notification possible (pas de vrai joueur destinataire). Hors perimetre de ce
+    // lot (butin objet/matiere/arme reserve aux vraies cibles PJ, seules a posseder un inventaire
+    // reel a interroger).
     const butinArgent = Math.floor(Math.random() * 200) + 50;
     state.arg = (state.arg || 0) + butinArgent;
     updateUI();

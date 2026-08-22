@@ -783,6 +783,57 @@ async function recupererDonsEnAttente() {
 // consommateur de recupererVolsEnAttente() existe dans tout le jeu (plateau-core.js, appel unique
 // au demarrage de session) : verifie avant modification, comportement des vols (totalPerdu)
 // entierement inchange, seul un second cas (totalRecu) est ajoute.
+// Objets/matieres (correctif ordre Voler, 22 aout 2026, revise pour eliminer tout risque de
+// duplication) : la mutation reelle (retrait chez la victime) est TOUJOURS appliquee ici, quel
+// que soit le palier de connaissance decide au moment du vol (confirmerVol,
+// plateau-actions-illegales-rumeurs.js).
+//
+// Visibilite (correctif bloquant, revue du 22 aout 2026) : vols_en_attente n'a PAS de colonne
+// revele (verifie en direct : "column vols_en_attente.revele does not exist") -- ce champ,
+// introduit a un tour precedent, faisait echouer silencieusement CHAQUE INSERT de vol.js (voir
+// confirmerVol, desormais corrige pour ne plus l'envoyer). La visibilite de la victime est
+// entierement geree AU MOMENT DU VOL (mail immediat identifie/anonyme/absent selon le palier,
+// confirmerVol) -- ce traitement differe n'a donc plus besoin de savoir quoi que ce soit sur le
+// palier : il applique simplement la perte reelle, sans jamais reafficher de toast/journal a ce
+// sujet (le palier >=75 resterait sinon revele indirectement par un toast generique ici).
+//
+// Anti-duplication (objet/matiere UNIQUEMENT -- l'argent reste credite immediatement au voleur
+// dans confirmerVol, fongible, aucun risque de duplication d'un objet unique) : le voleur n'a
+// RIEN recu au moment du vol. C'est CE traitement, ici, sur l'etat reellement a jour de LA
+// VICTIME ELLE-MEME, qui retire l'objet SEULEMENT s'il est encore reellement present, ET
+// seulement dans ce cas, le met en file pour le voleur via objets_recus (sbDonnerObjetJoueur,
+// mecanisme deja existant et deja sur pour les dons entre joueurs, recupere par le voleur via
+// verifierObjetsRecus() -- aucune seconde architecture de transfert). Si la victime a deja
+// vendu/donne/consomme l'objet avant sa propre reconnexion, rien n'est retire ET rien n'est
+// jamais credite au voleur : aucune duplication possible dans aucun des deux cas.
+//
+// Atomicite retrait/sauvegarde/marquage (revue du 22 aout 2026) : un simple reordonnancement
+// (transfert avant mutation) ne suffisait PAS -- entre la mutation de state.inventory et sa
+// sauvegarde reelle, sbMarquerVolTraite() pouvait reussir alors que la sauvegarde personnage
+// echouait ou n'avait pas encore eu lieu (le debounce 3s d'updateUI()/sbAutoSave() ne garantit
+// aucun ordre avec une ecriture immediate et attendue). En cas de crash/fermeture avant que ce
+// debounce ne parte, le retrait etait perdu au prochain chargement (rechargement de
+// personnages.inventory encore intact) alors que objets_recus, LUI, avait deja durablement recu
+// le butin -- duplication definitive. Correctif : sbSavePersonnage() est desormais attendue
+// EXPLICITEMENT ici (jamais via le debounce) avant tout marquage.
+//
+// Confirmation du don (revue du 22 aout 2026, correctif du marqueur) : verifier objets_recus pour
+// detecter un don deja confirme lors d'un retry (via un ancien marqueur __volId) s'est revele
+// PEU FIABLE -- verifierObjetsRecus() SUPPRIME la ligne objets_recus des que le voleur l'a
+// effectivement recuperee (sbSupprimerObjetRecu). Si le voleur recupere son butin (jusqu'a 2 min
+// apres, ou au demarrage de sa session) AVANT que la victime ne retente le meme vol.id, la ligne
+// n'existe plus -- le retry ne verrait plus aucune trace du don deja effectue et rappellerait
+// sbDonnerObjetJoueur(), doublant le butin. Corrige en marquant la confirmation du don
+// DIRECTEMENT sur la ligne vols_en_attente elle-meme (jamais supprimee par un tiers) : la colonne
+// EXISTANTE type_butin (deja une colonne texte libre, aucune migration) prend la valeur
+// 'matiere_confirmee'/'objet_confirme' juste apres le succes de sbDonnerObjetJoueur, AVANT toute
+// mutation locale. Un retry reconnait cette valeur et ne rappelle plus jamais
+// sbDonnerObjetJoueur() pour ce vol.id, meme si objets_recus a deja ete vide entre-temps -- seuls
+// le retrait et la sauvegarde restent a retenter. Risque residuel assume et documente : si cette
+// ecriture de confirmation echoue elle-meme juste apres le succes de sbDonnerObjetJoueur (deux
+// echecs reseau consecutifs sur le meme vol), le retry ne verrait pas la confirmation et
+// pourrait redonner une copie -- fenetre desormais bornee a un echec propre a nos deux ecritures,
+// independante du delai de recuperation du voleur.
 async function recupererVolsEnAttente() {
   if (typeof sbRecupererVolsEnAttente !== 'function') return;
   const moi = state.char?.name;
@@ -791,24 +842,89 @@ async function recupererVolsEnAttente() {
     const vols = await sbRecupererVolsEnAttente(moi);
     if (!vols || vols.length === 0) return;
     const cur = COUNTRIES[state.country]?.cur || 'FR';
-    let totalPerdu = 0;
     let totalRecu = 0;
+    let mutationAppliquee = false;
+    let inventaireModifie = false;
+    const volsAMarquer = [];
+
     for (const vol of vols) {
+      let resoluCeVol = true; // false uniquement si un transfert objet/matiere reste a confirmer
       if (vol.type_butin === 'argent') {
         const montant = vol.montant || 0;
-        if (montant > 0) totalPerdu += montant;
-        else totalRecu += -montant;
+        if (montant !== 0) mutationAppliquee = true;
+        if (montant < 0) totalRecu += -montant; // credit pur : toujours notifie (jamais issu du vol, cas hors perimetre de ce lot)
         state.arg = Math.max(0, (state.arg || 0) - montant);
+      } else if ((vol.type_butin === 'matiere' || vol.type_butin === 'matiere_confirmee') && vol.objet_id) {
+        const stack = (state.inventory || []).find(i => i.stackable && i.stackKey === vol.objet_id);
+        if (stack) {
+          const perte = Math.min(vol.montant || 0, stack.qty || 0);
+          if (perte > 0) {
+            let transfereOk = vol.type_butin === 'matiere_confirmee';
+            if (!transfereOk) {
+              transfereOk = vol.voleur && typeof sbDonnerObjetJoueur === 'function'
+                ? await sbDonnerObjetJoueur({ name: stack.name, icon: stack.icon, stackable: true, stackKey: vol.objet_id, qty: perte }, vol.voleur, 'Butin de vol').then(() => true).catch(() => false)
+                : false;
+              if (transfereOk && typeof sbUpdate === 'function') {
+                await sbUpdate('vols_en_attente', `id=eq.${encodeURIComponent(vol.id)}`, { type_butin: 'matiere_confirmee' }).catch(() => {});
+              }
+            }
+            if (transfereOk) {
+              stack.qty = (stack.qty || 0) - perte;
+              if (stack.qty <= 0) state.inventory = state.inventory.filter(i => i !== stack);
+              mutationAppliquee = true;
+              inventaireModifie = true;
+            } else {
+              resoluCeVol = false; // transfert non confirme : le bien reste chez la victime, rien perdu
+            }
+          }
+        }
+      } else if ((vol.type_butin === 'objet' || vol.type_butin === 'objet_confirme') && vol.objet_id) {
+        const idx = (state.inventory || []).findIndex(i => i.id === vol.objet_id);
+        if (idx !== -1) {
+          let transfereOk = vol.type_butin === 'objet_confirme';
+          if (!transfereOk) {
+            transfereOk = vol.voleur && typeof sbDonnerObjetJoueur === 'function'
+              ? await sbDonnerObjetJoueur({ ...state.inventory[idx] }, vol.voleur, 'Butin de vol').then(() => true).catch(() => false)
+              : false;
+            if (transfereOk && typeof sbUpdate === 'function') {
+              await sbUpdate('vols_en_attente', `id=eq.${encodeURIComponent(vol.id)}`, { type_butin: 'objet_confirme' }).catch(() => {});
+            }
+          }
+          if (transfereOk) {
+            state.inventory.splice(idx, 1);
+            mutationAppliquee = true;
+            inventaireModifie = true;
+          } else {
+            resoluCeVol = false; // transfert non confirme : l'objet reste chez la victime, rien perdu
+          }
+        }
       }
-      if (typeof sbMarquerVolTraite === 'function') await sbMarquerVolTraite(vol.id).catch(() => {});
+      if (resoluCeVol) volsAMarquer.push(vol.id);
     }
-    if (totalPerdu > 0) {
+
+    // Sauvegarde durable AVANT tout marquage (correctif atomicite ci-dessus) : une seule fois
+    // pour toute la serie, explicitement attendue -- jamais le debounce de sbAutoSave().
+    let sauvegardeOk = true;
+    if (mutationAppliquee) {
+      sauvegardeOk = typeof sbSavePersonnage === 'function'
+        ? await sbSavePersonnage(state).then(() => true).catch(() => false)
+        : false;
+    }
+
+    if (!sauvegardeOk) return; // rien de marque, rien de notifie -- tout sera retente au prochain passage
+
+    for (const id of volsAMarquer) {
+      if (typeof sbMarquerVolTraite === 'function') await sbMarquerVolTraite(id).catch(() => {});
+    }
+    if (mutationAppliquee) {
       updateUI();
-      addJournalEntry('🤏 On vous a discrètement dérobé ' + totalPerdu + ' ' + cur + '.', 'event-bad');
-      showToast('Vous avez été volé(e)', '-' + totalPerdu + ' ' + cur + ' dérobé(s) discrètement.', false, true);
+      if (inventaireModifie && typeof renderInventory === 'function') renderInventory();
     }
+    // Aucun toast/journal ici pour une perte issue d'un vol (correctif visibilite ci-dessus) : la
+    // victime a deja ete informee au moment du vol si son palier le prevoyait (mail immediat,
+    // confirmerVol) ; reafficher quoi que ce soit ici reviendrait a reveler indirectement les
+    // vols du palier >=75, qui ne doivent jamais etre notifies.
     if (totalRecu > 0) {
-      updateUI();
       addJournalEntry('💰 Une somme de ' + totalRecu + ' ' + cur + ' a été créditée sur votre compte.', 'event-good');
       showToast('Somme créditée', '+' + totalRecu + ' ' + cur + ' crédité(s) sur votre compte.', true, true);
     }
