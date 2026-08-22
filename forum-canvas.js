@@ -115,6 +115,70 @@ function renderComposedPost(layout) {
     elementsHtml + '</div>';
 }
 
+// ===========================================================================
+// Correctif de rendu (lecture seule, après B1) : le min-height ci-dessus vient de
+// canvasHeight, une estimation figée au moment de l'enregistrement (ou une valeur par
+// défaut pour les posts composés antérieurs à ce champ). Les enfants du canvas sont en
+// position:absolute (choix assumé du moteur de composition libre) et ne font donc jamais
+// grandir leur parent selon les règles CSS standard -- si le texte se répartit sur plus de
+// lignes qu'estimé, si une image a un ratio réel différent de l'estimation, ou si une
+// légende ajoute de la hauteur non comptée à l'enregistrement, le canvas rendu s'arrête
+// trop tôt et le contenu déborde visuellement sur le post suivant. rpCanvasFixRenderedHeights
+// mesure le DOM réellement rendu et relève min-height en conséquence -- ne redescend jamais
+// sous la valeur enregistrée, ne touche ni à content_layout, ni à l'éditeur, ni au
+// drag&drop : uniquement le style d'un noeud déjà affiché.
+function rpCanvasMeasureAndFix(canvas) {
+  if (!canvas || !canvas.isConnected) return;
+  const recorded = parseFloat(canvas.dataset.rpRecordedHeight || canvas.style.minHeight) || 0;
+  if (!canvas.dataset.rpRecordedHeight) canvas.dataset.rpRecordedHeight = String(recorded);
+  let measured = 0;
+  for (let i = 0; i < canvas.children.length; i++) {
+    const child = canvas.children[i];
+    const bottom = child.offsetTop + child.offsetHeight;
+    if (bottom > measured) measured = bottom;
+  }
+  // Petite marge de sécurité (cohérente avec les espacements existants, ex. forum-post-image
+  // margin-top:.5rem) -- évite un contact pixel-perfect avec le bord du canvas.
+  const target = Math.max(recorded, measured > 0 ? measured + 4 : 0);
+  if (target !== parseFloat(canvas.style.minHeight)) canvas.style.minHeight = target + 'px';
+}
+
+// Rejoue la mesure quand les images du canvas terminent leur chargement (taille réelle
+// inconnue avant onload/onerror) et quand un enfant change effectivement de dimensions
+// (ResizeObserver, léger, un seul par canvas -- ex. police de secours chargée tardivement).
+function rpCanvasFixRenderedHeights(root) {
+  const scope = root && root.querySelectorAll ? root : document;
+  scope.querySelectorAll('.rp-composed-canvas').forEach(canvas => {
+    rpCanvasMeasureAndFix(canvas);
+    canvas.querySelectorAll('img').forEach(img => {
+      if (img.complete) return;
+      const retry = () => rpCanvasMeasureAndFix(canvas);
+      img.addEventListener('load', retry, { once: true });
+      img.addEventListener('error', retry, { once: true });
+    });
+    if (typeof ResizeObserver === 'function' && !canvas.dataset.rpObserved) {
+      canvas.dataset.rpObserved = '1';
+      const ro = new ResizeObserver(() => rpCanvasMeasureAndFix(canvas));
+      for (let i = 0; i < canvas.children.length; i++) ro.observe(canvas.children[i]);
+    }
+  });
+}
+
+// Déclenché à chaque remplacement du contenu du forum (nouveau sujet ouvert, page
+// rafraîchie, etc.) : #forum-body est un noeud fixe de plateau.html, jamais recréé, donc un
+// seul observateur couvre toute la session sans qu'il faille modifier chacun des nombreux
+// points d'affectation de forum-main.innerHTML dans forum.js. requestAnimationFrame laisse
+// le navigateur poser le layout (et démarrer le chargement des images) avant la première
+// mesure, comme demandé -- pas de mesure tant que rien n'est encore peint.
+(function rpCanvasObserveForum() {
+  const host = document.getElementById('forum-body');
+  if (!host || typeof MutationObserver !== 'function') return;
+  const mo = new MutationObserver(() => {
+    requestAnimationFrame(() => rpCanvasFixRenderedHeights(host));
+  });
+  mo.observe(host, { childList: true, subtree: true });
+})();
+
 // Crée un contrôleur de composition pour UN conteneur donné (jamais un #canvas fixe global) —
 // plusieurs surfaces indépendantes peuvent coexister si besoin.
 function rpCanvasCreateController(container) {
