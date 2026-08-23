@@ -382,10 +382,25 @@ const WORLD = {
           desc: "Un hôtel modeste qui sent le poisson et l'iode.",
           persons: [{"name": "Raymond Ancre (PNJ)", "role": "Gérant", "rel": "neutral", "job": "serveur"}]
         },
+        // NOTE (lot visuel commissariat PSM, 24 aout 2026) : cette entree 'commissariat' est du
+        // code mort deja identifie par un audit anterieur -- PSM navigue reellement via le
+        // buildingId 'commissariat-local' (voir buildings ci-dessus), jamais 'commissariat'
+        // (reserve a Luthecia). "Inspecteur Morue (PNJ)" n'est donc JAMAIS affiche en jeu.
+        // Conservee telle quelle, non modifiee, en attente d'arbitrage (voir rapport).
         'commissariat': {
           name: "Commissariat de Port-Sainte-Marie",
           desc: "Un petit commissariat de province.",
           persons: [{"name": "Inspecteur Morue (PNJ)", "role": "Inspecteur local", "rel": "neutral", "job": "commissaire"}]
+        },
+        // Images propres a PSM pour le VRAI buildingId navigable 'commissariat-local' (template
+        // partage avec Montrouge, BUILDINGS['commissariat-local']) -- roomOverrides uniquement
+        // sur imageUrl, meme pattern que Montrouge (armurerie/centre-commercial ci-dessus) :
+        // ne touche jamais persons/orders de la base partagee, aucun impact sur Montrouge.
+        'commissariat-local': {
+          roomOverrides: {
+            accueil_loc: { imageUrl: "images/port-sainte-marie-commissariat-accueil.png" },
+            geoles: { imageUrl: "images/port-sainte-marie-commissariat-geoles.png" }
+          }
         },
         'banque-nationale': {
           name: "Banque Locale de Port-Sainte-Marie",
