@@ -686,13 +686,27 @@ function enterRoom(buildingId, roomId, tabEl) {
 
   renderPersonsList(displayPersons);
 
-  // Detachement militaire eventuellement present (asynchrone, ne bloque pas l'affichage normal)
-  if (typeof getAffichageDetachementPiece === 'function') {
-    getAffichageDetachementPiece(state.country || 'republic', buildingId, roomId).then(det => {
-      if (det && state.currentBuilding === buildingId && state.currentRoom === roomId) {
+  // Detachement militaire ET police eventuellement presents (asynchrone, ne bloque pas
+  // l'affichage normal). Lot policiers PNJ (24 aout 2026) : les deux verifications sont
+  // regroupees dans un seul Promise.all puis un SEUL rendu final -- deux .then() independants
+  // repartant chacun de displayPersons se seraient ecrases mutuellement si les deux presences
+  // coexistaient dans la meme piece (correctif introduit avec cet ajout, aucune regression sur
+  // le comportement militaire seul).
+  if (typeof getAffichageDetachementPiece === 'function' || typeof getAffichagePolicePiece === 'function') {
+    Promise.all([
+      typeof getAffichageDetachementPiece === 'function' ? getAffichageDetachementPiece(state.country || 'republic', buildingId, roomId).catch(() => null) : null,
+      typeof getAffichagePolicePiece === 'function' ? getAffichagePolicePiece(state.country || 'republic', state.currentCity, buildingId, roomId).catch(() => null) : null
+    ]).then(([det, pol]) => {
+      if (!(det || pol) || state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
+      const extras = [];
+      if (det) {
         const missionLabel = { bloquer_acces:'Bloque l\'accès', securiser:'Sécurise la pièce', assassiner:'Ordre : neutraliser les intrus', arreter:'Ordre : arrêter les intrus', surveiller:'En surveillance', escorter:'Escorte en cours' }[det.mission] || 'Sans consigne';
-        renderPersonsList([...displayPersons, { name: det.nom, role: det.nombre + ' soldats — ' + missionLabel, rel: 'neutral', job: 'militaire' }]);
+        extras.push({ name: det.nom, role: det.nombre + ' soldats — ' + missionLabel, rel: 'neutral', job: 'militaire' });
       }
+      if (pol) {
+        extras.push({ name: 'Patrouille de police', role: pol.nombre + ' policier(s) en faction', rel: 'neutral', job: 'policier' });
+      }
+      renderPersonsList([...displayPersons, ...extras]);
     }).catch(() => {});
   }
 
@@ -707,6 +721,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   if (typeof verifierBlocusEntree === 'function') {
     verifierBlocusEntree(buildingId, roomId);
+  }
+  if (typeof verifierSurveillancePolicePJ === 'function') {
+    verifierSurveillancePolicePJ(buildingId, roomId, null);
   }
   if (typeof verifierPresenceMaireLuthecia === 'function') {
     verifierPresenceMaireLuthecia(buildingId, roomId);

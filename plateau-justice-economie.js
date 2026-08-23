@@ -4873,6 +4873,506 @@ function getBuildingIdCommissariat(ville) {
   return getCaisseLocaleId('commissariat', ville);
 }
 
+// =====================
+// POLICIERS PNJ (lot du 24 aout 2026)
+// =====================
+// Systeme generique par (pays, ville) -- aucun handler duplique par ville, fonctionne a
+// l'identique pour Luthecia/Montrouge/PSM. Persistance dans batiments_etat (deja generique,
+// deja documente comme reutilisable pour des mecaniques futures liees a un batiment precis,
+// voir supabase.js) sous la cle 'effectifsPolice', propre au VRAI buildingId de navigation du
+// commissariat de la ville (distinct de getBuildingIdCommissariat ci-dessus, qui identifie la
+// CAISSE, pas la piece).
+
+const COUT_ENTRETIEN_POLICIER_JOUR = 50; // FR/policier/jour, arbitrage valide
+const PER_GROUPE_BONUS_PAR_MEMBRE = 1;   // PER groupe = moyenne + (nombre-1), arbitrage valide
+const DILUTION_RUE_PER_POLICE = 2;       // malus fixe en rue, arbitrage valide
+
+// buildingId de NAVIGATION du commissariat d'une ville (distinct de la caisse ci-dessus) :
+// Luthecia utilise son propre template riche 'commissariat', Montrouge/PSM partagent le
+// template pauvre 'commissariat-local' (voir audit dedie, meme buildingId, isolation garantie
+// par la ville dans la cle de persistance).
+function getBuildingIdCommissariatNavigation(ville) {
+  return ville === 'capitale' ? 'commissariat' : 'commissariat-local';
+}
+
+async function chargerEffectifsPolice(pays, ville) {
+  const buildingId = getBuildingIdCommissariatNavigation(ville);
+  const etat = await sbGetBatimentEtat(pays, ville, buildingId).catch(() => ({}));
+  return etat?.effectifsPolice || { policiers: [], dernierPaiementJour: null };
+}
+
+async function sauvegarderEffectifsPolice(pays, ville, effectifs) {
+  const buildingId = getBuildingIdCommissariatNavigation(ville);
+  if (typeof sbSetBatimentEtat === 'function') {
+    await sbSetBatimentEtat(pays, ville, buildingId, { effectifsPolice: effectifs }).catch(() => {});
+  }
+}
+
+// Verifie que le PJ courant est bien commissaire ET dans la ville de son propre commissariat
+// (jamais celle d'une autre ville visitee en simple deplacement) -- condition testee ici une
+// seule fois, reutilisee par tous les ordres de gestion des effectifs.
+function commissaireLocalValide() {
+  if (state.poste?.id !== 'commissaire') return { ok: false, raison: 'poste' };
+  const ville = state.poste.city;
+  if (!ville || state.currentCity !== ville) return { ok: false, raison: 'juridiction' };
+  return { ok: true, ville };
+}
+
+// PER groupe = moyenne PER + (nombre-1). Dilution rue (-2) appliquee separement par l'appelant,
+// jamais ici, pour rester reutilisable tel quel dans les deux contextes (piece/rue).
+function calculerPerGroupePolice(policiers) {
+  if (!policiers || policiers.length === 0) return 0;
+  const moyenne = policiers.reduce((s, p) => s + (p.stats?.PER || 0), 0) / policiers.length;
+  return moyenne + (policiers.length - 1) * PER_GROUPE_BONUS_PAR_MEMBRE;
+}
+
+// VOL groupe = simple moyenne, aucun bonus d'effectif (regle explicite, distincte de PER).
+function calculerVolGroupePolice(policiers) {
+  if (!policiers || policiers.length === 0) return 0;
+  return policiers.reduce((s, p) => s + (p.stats?.VOL || 0), 0) / policiers.length;
+}
+
+// ---- RECRUTEMENT ----
+async function doRecruterPolicier(pa, cost) {
+  const check = commissaireLocalValide();
+  if (!check.ok) {
+    showToast(check.raison === 'poste' ? 'Réservé au Commissaire' : 'Hors juridiction',
+      check.raison === 'juridiction' ? 'Vous ne pouvez recruter que dans le commissariat de votre propre ville.' : '', false);
+    return;
+  }
+  const pays = state.country || 'republic';
+  const ville = check.ville;
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const effectifs = await chargerEffectifsPolice(pays, ville);
+  const matricule = 'POL-' + ville + '-' + Date.now();
+  effectifs.policiers.push({ matricule, stats: { PER: 12, VOL: 12 }, buildingId: null, roomId: null, rueNoeudId: null, recruteLe: Date.now() });
+  await sauvegarderEffectifsPolice(pays, ville, effectifs);
+
+  updateUI();
+  showToast('Policier recruté', 'PER 12, VOL 12. Entretien : ' + COUT_ENTRETIEN_POLICIER_JOUR + ' FR/jour prélevés sur la caisse du commissariat.', true, true);
+  addJournalEntry('Recrutement d\'un policier (matricule ' + matricule + ').', 'event-good');
+}
+
+// ---- GESTION / AFFECTATION ----
+async function ouvrirGererEffectifsPolice() {
+  const check = commissaireLocalValide();
+  if (!check.ok) {
+    showToast(check.raison === 'poste' ? 'Réservé au Commissaire' : 'Hors juridiction', '', false);
+    return;
+  }
+  const pays = state.country || 'republic';
+  const ville = check.ville;
+  const effectifs = await chargerEffectifsPolice(pays, ville);
+
+  document.getElementById('postes-modal-title').textContent = 'Gérer mes effectifs';
+  let html = '<div style="padding:1rem">';
+  if (effectifs.policiers.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucun policier recruté pour l\'instant.</div>';
+  } else {
+    effectifs.policiers.forEach(p => {
+      let affectation = 'Disponible (au commissariat)';
+      if (p.buildingId && p.roomId) affectation = 'Affecté — ' + (BUILDINGS[p.buildingId]?.shortName || p.buildingId) + ' / ' + (resoudreNomRoomAffectation(p.buildingId, p.roomId) || p.roomId);
+      else if (p.rueNoeudId) affectation = 'Affecté — rue (' + p.rueNoeudId + ')';
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">' + p.matricule + ' — PER ' + p.stats.PER + ', VOL ' + p.stats.VOL + '</div>';
+      html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.4rem">' + affectation + '</div>';
+      html += '<div style="display:flex;gap:.4rem">';
+      html += '<button onclick="doOuvrirAffectationRoom(\'' + p.matricule + '\')" style="flex:1;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter (pièce)</button>';
+      html += '<button onclick="doOuvrirAffectationRue(\'' + p.matricule + '\')" style="flex:1;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter (rue)</button>';
+      if (p.buildingId || p.rueNoeudId) html += '<button onclick="doRappelerPolicier(\'' + p.matricule + '\')" style="flex:1;font-size:.72rem;padding:.35rem;border:1px solid #4a6a8a;background:transparent;color:#5a8ad0;cursor:pointer">Rappeler</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function doOuvrirAffectationRoom(matricule) {
+  const check = commissaireLocalValide();
+  if (!check.ok) return;
+  const pays = state.country || 'republic';
+  const ville = check.ville;
+  const buildings = (WORLD[pays]?.[ville]?.buildings || []);
+
+  document.getElementById('postes-modal-title').textContent = 'Affecter ' + matricule + ' à une pièce';
+  let html = '<div style="padding:1rem">';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Bâtiment</label>';
+  html += '<select id="affect-building" onchange="majSelectRoomsAffectation()" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  buildings.forEach(bId => { if (BUILDINGS[bId]) html += '<option value="' + bId + '">' + (BUILDINGS[bId].shortName || BUILDINGS[bId].name) + '</option>'; });
+  html += '</select>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Pièce</label>';
+  html += '<select id="affect-room" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem"></select>';
+  html += '<button onclick="confirmerAffectationRoom(\'' + matricule + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  majSelectRoomsAffectation();
+}
+
+// Fusionne BUILDINGS[bId].rooms avec les rooms ajoutees localement via
+// buildingContext.roomsExtra (meme resolution que le reste du jeu, voir getBuildingContext
+// ci-dessus) -- corrige un picker qui ne listait avant que les rooms du template de base et
+// excluait les pieces ajoutees par ville (ex. Encre Marianaise/atelier a PSM).
+function resoudreNomRoomAffectation(buildingId, roomId) {
+  if (!buildingId || !roomId || !BUILDINGS[buildingId]) return null;
+  const roomsExtra = (typeof getBuildingContext === 'function' ? getBuildingContext(buildingId)?.roomsExtra : null) || {};
+  const room = BUILDINGS[buildingId].rooms?.[roomId] || roomsExtra[roomId];
+  return room?.name || null;
+}
+
+function majSelectRoomsAffectation() {
+  const bId = document.getElementById('affect-building')?.value;
+  const roomSelect = document.getElementById('affect-room');
+  if (!roomSelect || !bId || !BUILDINGS[bId]) return;
+  const roomsExtra = (typeof getBuildingContext === 'function' ? getBuildingContext(bId)?.roomsExtra : null) || {};
+  const rooms = { ...(BUILDINGS[bId].rooms || {}), ...roomsExtra };
+  roomSelect.innerHTML = Object.keys(rooms).map(rId => '<option value="' + rId + '">' + (rooms[rId].name || rId) + '</option>').join('');
+}
+
+async function confirmerAffectationRoom(matricule) {
+  const buildingId = document.getElementById('affect-building')?.value;
+  const roomId = document.getElementById('affect-room')?.value;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const check = commissaireLocalValide();
+  if (!check.ok || !buildingId || !roomId) return;
+  const pays = state.country || 'republic';
+  const ville = check.ville;
+  const effectifs = await chargerEffectifsPolice(pays, ville);
+  const p = effectifs.policiers.find(x => x.matricule === matricule);
+  if (!p) return;
+  p.buildingId = buildingId; p.roomId = roomId; p.rueNoeudId = null;
+  await sauvegarderEffectifsPolice(pays, ville, effectifs);
+  updateUI();
+  showToast('Policier affecté', matricule + ' surveille désormais ' + (resoudreNomRoomAffectation(buildingId, roomId) || roomId) + '.', true, true);
+  addJournalEntry('Policier ' + matricule + ' affecté à ' + (BUILDINGS[buildingId]?.shortName || buildingId) + '.', 'event-info');
+}
+
+// Prefixes d'id de noeuds de rue par ville (republic uniquement, seul empire couvert par
+// RUE_CENTRALE_NOEUDS a ce jour -- voir plateau-rue-centrale.js) -- derives directement de la
+// convention de nommage deja en place, aucune nouvelle donnee inventee.
+const PREFIXE_RUE_PAR_VILLE = { capitale: 'luthecia-', ville_a: 'psm-', ville_b: 'montrouge-' };
+
+async function doOuvrirAffectationRue(matricule) {
+  const check = commissaireLocalValide();
+  if (!check.ok) return;
+  const ville = check.ville;
+  const prefixe = PREFIXE_RUE_PAR_VILLE[ville];
+  const noeuds = (typeof RUE_CENTRALE_NOEUDS !== 'undefined' && prefixe)
+    ? Object.keys(RUE_CENTRALE_NOEUDS.republic || {}).filter(id => id.startsWith(prefixe))
+    : [];
+
+  document.getElementById('postes-modal-title').textContent = 'Affecter ' + matricule + ' à une rue';
+  let html = '<div style="padding:1rem">';
+  if (noeuds.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucune vue de rue disponible pour cette ville.</div>';
+  } else {
+    html += '<select id="affect-rue" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    noeuds.forEach(id => { html += '<option value="' + id + '">' + id + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="confirmerAffectationRue(\'' + matricule + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerAffectationRue(matricule) {
+  const rueNoeudId = document.getElementById('affect-rue')?.value;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const check = commissaireLocalValide();
+  if (!check.ok || !rueNoeudId) return;
+  const pays = state.country || 'republic';
+  const ville = check.ville;
+  const effectifs = await chargerEffectifsPolice(pays, ville);
+  const p = effectifs.policiers.find(x => x.matricule === matricule);
+  if (!p) return;
+  p.buildingId = null; p.roomId = null; p.rueNoeudId = rueNoeudId;
+  await sauvegarderEffectifsPolice(pays, ville, effectifs);
+  updateUI();
+  showToast('Policier affecté', matricule + ' patrouille désormais cette rue.', true, true);
+  addJournalEntry('Policier ' + matricule + ' affecté en patrouille de rue.', 'event-info');
+}
+
+async function doRappelerPolicier(matricule) {
+  const check = commissaireLocalValide();
+  if (!check.ok) return;
+  const pays = state.country || 'republic';
+  const ville = check.ville;
+  const effectifs = await chargerEffectifsPolice(pays, ville);
+  const p = effectifs.policiers.find(x => x.matricule === matricule);
+  if (!p) return;
+  p.buildingId = null; p.roomId = null; p.rueNoeudId = null;
+  await sauvegarderEffectifsPolice(pays, ville, effectifs);
+  updateUI();
+  showToast('Policier rappelé', matricule + ' revient disponible au commissariat.', true, true);
+}
+
+// ---- AFFICHAGE DE PRESENCE (piece / rue) ----
+// Gabarit directement calque sur getAffichageDetachementPiece (detachements militaires,
+// plateau-politique.js) -- structure de retour volontairement minimale (nombre uniquement) :
+// ne revele ni PER/VOL effectifs ni calculs internes (regle explicite du lot).
+async function getAffichagePolicePiece(pays, ville, buildingId, roomId) {
+  const effectifs = await chargerEffectifsPolice(pays, ville);
+  const presents = effectifs.policiers.filter(p => p.buildingId === buildingId && p.roomId === roomId);
+  if (presents.length === 0) return null;
+  return { nombre: presents.length };
+}
+
+async function getAffichagePoliceRue(pays, ville, rueNoeudId) {
+  const effectifs = await chargerEffectifsPolice(pays, ville);
+  const presents = effectifs.policiers.filter(p => p.rueNoeudId === rueNoeudId);
+  if (presents.length === 0) return null;
+  return { nombre: presents.length };
+}
+
+// ---- ENTRETIEN QUOTIDIEN (caisse du commissariat) ----
+// Regle de game design validee (arbitrage du 24 aout 2026, remplace l'ancienne convention
+// "paiement partiel sans consequence") : un policier qui ne peut pas etre paye quitte son
+// emploi et disparait DEFINITIVEMENT de l'effectif persistant -- aucune dette, aucun salaire
+// differe, aucun agent maintenu gratuitement, aucune desactivation temporaire. Le nombre
+// d'agents effectivement payables est determine par un debit PLAFONNE sur la caisse du
+// commissariat (debiterCaisseBatimentPlafonne, meme primitive que precedemment), divise par le
+// cout unitaire. Ordre de suppression : l'array effectifs.policiers est deja, par construction
+// (doRecruterPolicier ne fait que .push()), classe par ordre de recrutement -- convention deja
+// neutre et deterministe fournie par la persistance elle-meme, aucun choix de conception
+// supplementaire necessaire. Les derniers recrutes (fin de tableau) sont ceux qui partent en
+// premier faute de budget ; leur affectation (buildingId/roomId/rueNoeudId) disparait
+// naturellement avec eux puisque l'objet entier est retire du tableau.
+async function payerEffectifsPoliceQuotidien(pays, ville) {
+  const effectifs = await chargerEffectifsPolice(pays, ville);
+  if (!effectifs.policiers.length) return;
+  const jour = state.day || 1;
+  if (effectifs.dernierPaiementJour === jour) return; // deja paye aujourd'hui (garde-fou multi-connexion)
+
+  const buildingIdCaisse = getBuildingIdCommissariat(ville);
+  const coutVise = effectifs.policiers.length * COUT_ENTRETIEN_POLICIER_JOUR;
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, buildingIdCaisse, coutVise);
+  const nombrePayable = Math.floor(montantVerse / COUT_ENTRETIEN_POLICIER_JOUR);
+
+  effectifs.dernierPaiementJour = jour;
+  let nbPartis = 0;
+  if (nombrePayable < effectifs.policiers.length) {
+    nbPartis = effectifs.policiers.length - nombrePayable;
+    effectifs.policiers = effectifs.policiers.slice(0, nombrePayable);
+  }
+  await sauvegarderEffectifsPolice(pays, ville, effectifs);
+
+  if (nbPartis > 0 && typeof addJournalEntry === 'function' && state.currentCity === ville) {
+    showToast('Effectifs réduits', nbPartis + ' policier(s) n\'ont pas pu être payés et ont quitté le commissariat.', false, true);
+    addJournalEntry(nbPartis + ' policier(s) de ' + ville + ' quittent le service faute de paiement (caisse insuffisante).', 'event-bad');
+  }
+}
+
+// ---- FOUILLE GENERIQUE (inventaire) ----
+// Detection generique : tout objet legal:false est repere (reutilise le flag deja universel du
+// jeu). Seuls les types deja dotes d'un vrai traitement de confiscation ailleurs dans le jeu
+// (whitelist deja utilisee par les douanes, doPasserDouanesAeroport, plateau-navigation.js)
+// declenchent une consequence reelle -- ne pas etendre cette liste sans decision explicite de
+// peine pour les autres types legal:false existants (kompromat, contrebande, document_falsifie,
+// tract, photo_compromettante, explosif, loukoum_contrebande).
+const OBJET_ILLEGAL_PEINE_CONNUE = { arme: true, poison: true, tract_calomnieux: true };
+
+function identifierObjetsIllegaux(inventory) {
+  return (inventory || []).filter(i => i && i.legal === false);
+}
+
+function separerObjetsIllegauxConnus(objets) {
+  return {
+    connus: objets.filter(o => OBJET_ILLEGAL_PEINE_CONNUE[o.type]),
+    nonReconnus: objets.filter(o => !OBJET_ILLEGAL_PEINE_CONNUE[o.type])
+  };
+}
+
+// Retire purement et simplement les objets confisques de l'inventaire local (aucune convocation,
+// aucune peine -- ces consequences sont ajoutees separement par chaque appelant ci-dessous, qui
+// ont des besoins differents : soumission = convocation deferee, fuite ratee = peine immediate).
+function confisquerObjets(objetsConnus) {
+  if (!objetsConnus || objetsConnus.length === 0) return '';
+  const noms = objetsConnus.map(o => o.name).join(', ');
+  state.inventory = (state.inventory || []).filter(i => !objetsConnus.includes(i));
+  return noms;
+}
+
+// Se soumettre au controle : confiscation + convocation deferee, EXACTEMENT la meme consequence
+// que le controle douanier (motif possession_illegale_douane reutilise tel quel, aucune peine
+// inventee).
+function appliquerConsequencesSoumissionFouille(objetsConnus) {
+  const noms = confisquerObjets(objetsConnus);
+  if (!noms) return;
+
+  if (!state.convocations) state.convocations = [];
+  state.convocations.push({
+    motif: 'possession_illegale_douane',
+    jourEmission: state.day || 1,
+    heureEmission: state.hour || 8,
+    jourLimite: (state.day || 1) + 1,
+    heureLimite: state.hour || 8,
+    traitee: false
+  });
+  updateUI();
+  showToast('Objets confisqués', noms + ' confisqué(s). Convocation au commissariat sous 24h.', false, true);
+  addJournalEntry('Contrôle policier : objets prohibés confisqués (' + noms + '). Convocation reçue.', 'event-bad');
+}
+
+// Fuite ratee : confiscation + peine IMMEDIATE (procederArrestation, meme motif
+// possession_illegale_douane que la convocation deferee ci-dessus -- aucune peine inventee) puis
+// +1 jour cumulatif (ajouterJourFuiteRatee, precedent additif existant). La peine immediate est
+// necessaire ici : sans elle, ajouterJourFuiteRatee n'aurait aucune detention de base sur
+// laquelle cumuler (state.estEmprisonne serait absent).
+function appliquerConsequencesFuiteRatee(objetsConnus) {
+  const noms = confisquerObjets(objetsConnus);
+  if (typeof procederArrestation === 'function') procederArrestation('possession_illegale_douane', false, false);
+  ajouterJourFuiteRatee();
+  updateUI();
+  showToast('Fuite ratée', (noms ? noms + ' confisqué(s). ' : '') + 'Vous êtes arrêté(e) et écroué(e).', false, true);
+  addJournalEntry('Fuite ratée face à un contrôle policier' + (noms ? ' — objets confisqués (' + noms + ')' : '') + '.', 'event-bad');
+}
+
+// Echec de fuite : +1 jour de detention CUMULATIF (jamais substitutif). Reutilise l'unique
+// precedent additif existant du jeu (evasion ratee/rebellion reussie, memes lignes plus haut
+// dans ce fichier -- state.estEmprisonne.jours += 1 uniquement si une peine est deja active).
+// A appeler APRES que la peine de base (procederArrestation) ait ete posee dans le meme flux.
+function ajouterJourFuiteRatee() {
+  if (state.estEmprisonne) {
+    state.estEmprisonne.jours += 1;
+    state.estEmprisonne.jourFin += 1;
+    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+  }
+}
+
+// ---- FORMULE COMMUNE DES JETS OPPOSES (arbitrage valide du 24 aout 2026) ----
+// chancePJ = clamp(50 + 5*(caracPJ - caracAdversaire), 10, 90). Tirage 1-100, succes PJ si
+// tirage <= chancePJ. Utilisee identiquement pour DIS vs PER (surveillance), DUP vs PER
+// (controle) et VOL vs VOL (fuite) -- seule la paire de caracteristiques change.
+function calculerChancePJ(caracPJ, caracAdversaire) {
+  return Math.max(10, Math.min(90, 50 + 5 * (caracPJ - caracAdversaire)));
+}
+
+// Normalisation de la Discretion (ressource 0-100, pas une caracteristique sur l'echelle
+// habituelle) : DIS_effective = 8 + (state.dis/10). Arbitrage valide, verifie sur les 3 exemples
+// de controle fournis (DIS 0/50/100 -> 8/13/18).
+function calculerDisEffective() {
+  return 8 + (state.dis || 0) / 10;
+}
+
+// ---- HOOKS SECURITE/SOCIAL/POP EN ATTENTE (aucune valeur arretee, ne pas inventer) ----
+// Deux effets prevus par le cahier des charges restent volontairement NON cables faute de
+// chiffres valides (les 3 autres -- SOCIAL/POP lies au controle direct du commissaire -- sont
+// hors perimetre de ce lot, voir le controle direct PJ->PJ traite separement) :
+//  - SECURITE gagnee par policier deploye (ici, dans verifierSurveillancePolicePJ, a chaque
+//    fois qu'une patrouille est presente -- pas encore d'index SECURITE local a incrementer) ;
+//  - SOCIAL perdu par policier deploye (meme point d'ancrage).
+// Ne pas cabler de chiffre ici sans arbitrage explicite.
+
+// ---- CHAINE AUTOMATIQUE : surveillance -> controle -> fouille -> soumission/fuite ----
+// Point d'entree appele depuis enterRoom (plateau-navigation.js) et afficherNoeudRue
+// (plateau-rue-centrale.js) a chaque fois que le PJ ARRIVE dans une piece/rue. Ne concerne QUE
+// le joueur local agissant (son propre inventaire, son propre etat). Le controle direct du
+// commissaire sur un autre PJ (complexite multi-joueur reelle : pas de canal live vers le
+// client cible) est explicitement HORS PERIMETRE de ce lot et traite separement.
+async function verifierSurveillancePolicePJ(buildingId, roomId, rueNoeudId) {
+  if (state.estEmprisonne) return; // deja incarcere, rien a controler
+  const pays = state.country || 'republic';
+  const ville = state.currentCity;
+  if (!ville) return;
+
+  const effectifs = await chargerEffectifsPolice(pays, ville).catch(() => null);
+  if (!effectifs || !effectifs.policiers.length) return;
+
+  const enRue = !!rueNoeudId;
+  const presents = enRue
+    ? effectifs.policiers.filter(p => p.rueNoeudId === rueNoeudId)
+    : effectifs.policiers.filter(p => p.buildingId === buildingId && p.roomId === roomId);
+  if (presents.length === 0) return;
+
+  let perGroupe = calculerPerGroupePolice(presents);
+  if (enRue) perGroupe -= DILUTION_RUE_PER_POLICE; // dilution rue uniquement, jamais en piece
+
+  const disEff = calculerDisEffective();
+  const chanceDetection = calculerChancePJ(disEff, perGroupe);
+  const tirage = Math.floor(Math.random() * 100) + 1;
+  if (tirage <= chanceDetection) return; // PJ passe inapercu, aucune trace, silence total
+
+  const volGroupe = calculerVolGroupePolice(presents);
+  resoudreControlePoliceAutomatique(perGroupe, volGroupe);
+}
+
+// Etape 2 : controle (DUP PJ vs PER groupe police). Succes PJ = relache sans fouille. Echec =
+// fouille (aucun jet supplementaire, la fouille elle-meme est automatique et certaine une fois
+// le controle perdu -- seule la decouverte d'objets reconnus declenche une suite).
+function resoudreControlePoliceAutomatique(perGroupe, volGroupe) {
+  showToast('Contrôle de police', 'Une patrouille vous arrête pour un contrôle d\'identité.', false);
+  addJournalEntry('Contrôlé(e) par une patrouille de police.', 'event-bad');
+
+  const dup = getStatEffective('DUP');
+  const chanceConvaincre = calculerChancePJ(dup, perGroupe);
+  const tirage = Math.floor(Math.random() * 100) + 1;
+  if (tirage <= chanceConvaincre) {
+    showToast('Contrôle terminé', 'Vous convainquez la patrouille de vous laisser repartir.', true, true);
+    addJournalEntry('Contrôle de police évité par la persuasion.', 'event-good');
+    return;
+  }
+
+  const { connus } = separerObjetsIllegauxConnus(identifierObjetsIllegaux(state.inventory));
+  if (connus.length === 0) {
+    showToast('Fouille effectuée', 'Rien d\'illégal trouvé sur vous. Vous êtes relâché(e).', true, true);
+    addJournalEntry('Fouille policière : rien trouvé.', '');
+    return;
+  }
+
+  ouvrirChoixSoumissionFuite(connus, volGroupe);
+}
+
+// Etape 3 : choix explicite du joueur (jamais automatique) -- reutilise le gabarit du modal
+// d'interception existant (memes ids #postes-modal-title/#postes-body/#modal-postes, voir
+// l'arrestation classique un peu plus haut dans ce fichier). L'etat transitoire (objets trouves,
+// VOL adverse) est stocke le temps du choix dans une variable de module dediee, aucune autre
+// fonction ne le lit.
+let _policeFouilleEnCours = null;
+function ouvrirChoixSoumissionFuite(objetsConnus, volAdversaire) {
+  _policeFouilleEnCours = { objetsConnus, volAdversaire };
+  const noms = objetsConnus.map(o => o.name).join(', ');
+  document.getElementById('postes-modal-title').textContent = 'Fouille policière';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.85rem;color:#cc4444;margin-bottom:.8rem">Objets prohibés découverts : ' + noms + '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:.5rem">' +
+    '<button onclick="doSeSoumettrePolice()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #4a6a4a;background:transparent;color:#6a9a6a;cursor:pointer"><i class="ti ti-check" style="font-size:.8rem"></i> Se soumettre</button>' +
+    '<button onclick="doTenterFuitePolice()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a6a20;background:transparent;color:#8a8060;cursor:pointer"><i class="ti ti-run" style="font-size:.8rem"></i> Tenter de fuir</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function doSeSoumettrePolice() {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!_policeFouilleEnCours) return;
+  appliquerConsequencesSoumissionFouille(_policeFouilleEnCours.objetsConnus);
+  _policeFouilleEnCours = null;
+}
+
+// Etape 4 (si fuite choisie) : VOL PJ vs VOL groupe police, AUCUN bonus d'effectif (regle
+// explicite, distincte de PER). Fuite reussie = le PJ garde tout, aucune trace/enquete inventee.
+// Fuite ratee = confiscation + peine immediate + jour cumulatif (appliquerConsequencesFuiteRatee).
+function doTenterFuitePolice() {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!_policeFouilleEnCours) return;
+  const { objetsConnus, volAdversaire } = _policeFouilleEnCours;
+  _policeFouilleEnCours = null;
+
+  const vol = getStatEffective('VOL');
+  const chanceFuite = calculerChancePJ(vol, volAdversaire);
+  const tirage = Math.floor(Math.random() * 100) + 1;
+  if (tirage <= chanceFuite) {
+    showToast('Fuite réussie !', 'Vous échappez à la patrouille avec vos objets.', true, true);
+    addJournalEntry('Fuite réussie face à un contrôle policier.', 'event-good');
+    return;
+  }
+  appliquerConsequencesFuiteRatee(objetsConnus);
+}
+
 function getBuildingIdCentreMultimodal(ville, pays) {
   // BUG CORRIGE LE 8 AOUT 2026 : la map utilisait 'port-sainte-marie'/'montrouge' comme cles,
   // mais les appelants (VILLES_PAR_EMPIRE, confirmerTransport/executerVoyage) passent toujours

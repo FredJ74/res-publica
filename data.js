@@ -1441,7 +1441,12 @@ const PNJ_STATS_PAR_JOB = {
   barman:           { FOR:4,  CHA:7,  DUP:5,  INT:6,  loyaute:40, recrutCout:120,  recrutLabel:'Barman',          combatBonus:{ inf:3 } },
   escort:           { FOR:2,  CHA:10, DUP:8,  INT:7,  loyaute:25, recrutCout:500,  recrutLabel:'Escort',          combatBonus:{ dis:-5, inf:5 } },
   commissaire:      { FOR:7,  CHA:5,  DUP:6,  INT:7,  loyaute:65, recrutCout:800,  recrutLabel:'Commissaire',     combatBonus:{ dis:-10 } },
-  policier:         { FOR:8,  CHA:4,  DUP:4,  INT:5,  loyaute:60, recrutCout:400,  recrutLabel:'Policier',        combatBonus:{ for:5 } },
+  // PER/VOL ajoutes (24 aout 2026, lot policiers PNJ) : extension additive, verifiee sans risque
+  // sur tous les consommateurs existants (getPnjStats fait un spread generique, aucun code ne
+  // suppose exactement 4 proprietes). Valeurs fixes pour le policier PNJ standard recrutable par
+  // un commissaire (voir chargerEffectifsPolice, plateau-justice-economie.js) -- distinct du
+  // systeme d'emploi personnel generique (confirmerRecrutPnj, desactive, non reactive ici).
+  policier:         { FOR:8,  CHA:4,  DUP:4,  INT:5,  PER:12, VOL:12, loyaute:60, recrutCout:400,  recrutLabel:'Policier',        combatBonus:{ for:5 } },
   inspecteur:       { FOR:6,  CHA:5,  DUP:5,  INT:8,  loyaute:55, recrutCout:600,  recrutLabel:'Inspecteur',      combatBonus:{ inf:5 } },
   militaire:        { FOR:9,  CHA:4,  DUP:3,  INT:5,  loyaute:80, recrutCout:500,  recrutLabel:'Militaire',       combatBonus:{ for:8 } },
   soldat:           { FOR:8,  CHA:3,  DUP:3,  INT:4,  loyaute:75, recrutCout:300,  recrutLabel:'Soldat',          combatBonus:{ for:6 } },
@@ -2409,7 +2414,9 @@ const BUILDINGS = {
         orders: [
           {fn:'mener_enquete',          label:"Mener l'enquete",             pa:2, cost:250, type:'legal', icon:'ti-search',       successRate:35,  requiresPost:'commissaire', desc:"Enqueter sur une personne ou un lieu suite a une plainte deposee. Taux ajuste par PER, influence et securite locale."},
           {fn:'organiser_filature',     label:'Organiser une filature',       pa:2, cost:150, type:'legal', icon:'ti-eye',          successRate:50,  requiresPost:'commissaire', desc:"Obtenir un rapport des deplacements d'un PJ sur les dernieres 24h."},
-          {fn:'organiser_chasse_homme', label:"Organiser une chasse a l'homme", pa:3, cost:300, type:'legal', icon:'ti-target-arrow', successRate:100, requiresPost:'commissaire', desc:'Localiser et arreter un PJ recherche.'}
+          {fn:'organiser_chasse_homme', label:"Organiser une chasse a l'homme", pa:3, cost:300, type:'legal', icon:'ti-target-arrow', successRate:100, requiresPost:'commissaire', desc:'Localiser et arreter un PJ recherche.'},
+          {fn:'recruter_policier',      label:'Recruter un policier',         pa:1, cost:0,   type:'legal', icon:'ti-user-plus',    successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',          pa:0, cost:0,   type:'legal', icon:'ti-users-group',  successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
         ]
       }
     }
@@ -3485,8 +3492,14 @@ const BUILDINGS = {
         desc: "Accueil du commissariat.",
         imageUrl: "images/montrouge/montrouge-commissariat-accueil.jpg",
         persons: [{name:'Brigadier Local (PNJ)', role:'Officier de garde', rel:'neutral', job:'policier'}],
+        // Lot policiers PNJ (24 aout 2026) : ordres partages Montrouge/PSM via ce meme template
+        // (commissariat-local), memes fn/handlers qu'a Luthecia (recruter_policier/
+        // gerer_effectifs_police, plateau-justice-economie.js) -- aucun handler duplique par
+        // ville, isolation garantie par (pays, ville) a l'interieur des fonctions elles-memes.
         orders: [
-          {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100}
+          {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
+          {fn:'recruter_policier',      label:'Recruter un policier', pa:1, cost:0, type:'legal', icon:'ti-user-plus',   successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',  pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
         ]
       },
       // Salle minimale ajoutee le 2026-08-16 pour raccorder l'image geoles fournie.

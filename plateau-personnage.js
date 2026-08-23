@@ -1619,6 +1619,8 @@ async function doDormir() {
   // Regeneration quotidienne des grilles de prison de la ville courante (puise sur la
   // caisse du commissariat, s'arrete des que le budget est insuffisant)
   if (typeof regenererGrillesPrison === 'function') regenererGrillesPrison(state.country, state.currentCity).catch(() => {});
+  // Entretien quotidien des policiers PNJ de la ville courante (lot du 24 aout 2026)
+  if (typeof payerEffectifsPoliceQuotidien === 'function') payerEffectifsPoliceQuotidien(state.country, state.currentCity).catch(() => {});
   // Distribution quotidienne du budget municipal vers les vraies caisses des batiments communaux
   if (typeof distribuerBudgetMunicipalVersBatiments === 'function') distribuerBudgetMunicipalVersBatiments(state.country, state.currentCity).catch(() => {});
   // Decroissance lente de la reputation criminelle si inactif

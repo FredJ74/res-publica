@@ -52,6 +52,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'organiser_filature') { doOrganiserFilature(pa, cost); return; }
   if (fn === 'investir') { ouvrirInvestir(pa, cost); return; }
   if (fn === 'organiser_chasse_homme') { doOrganiserChasseHomme(pa, cost); return; }
+  if (fn === 'recruter_policier') { doRecruterPolicier(pa, cost); return; }
+  if (fn === 'gerer_effectifs_police') { ouvrirGererEffectifsPolice(); return; }
   if (fn === 'consulter_caisse_commissariat') { doConsulterCaisseCommissariat(); return; }
   if (fn === 'cambrioler_caisse_commissariat') { doCambriolerCaisseCommissariat(); return; }
   if (fn === 'se_rebeller') { doSeRebeller(pa, cost); return; }

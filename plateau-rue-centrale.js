@@ -802,6 +802,20 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
   if (typeof chargerVraisJoueursPresents === 'function') {
     chargerVraisJoueursPresents('rue-centrale', noeudId, 'persons-list-rue');
   }
+  // Patrouille de police eventuellement affectee a cette rue (lot policiers PNJ, 24 aout 2026) --
+  // aucun equivalent n'existait ici pour les detachements militaires (jamais deployables sur une
+  // rue, buildingId/roomId toujours nuls hors batiment), donc pas de risque de collision de
+  // rendu comme dans enterRoom.
+  if (typeof getAffichagePoliceRue === 'function') {
+    getAffichagePoliceRue(pays, state.currentCity, noeudId).then(pol => {
+      if (pol && rueCentraleNoeudActuel === noeudId) {
+        renderPersonsList([...(noeud.persons || []), { name: 'Patrouille de police', role: pol.nombre + ' policier(s) en patrouille', rel: 'neutral', job: 'policier' }], 'persons-list-rue');
+      }
+    }).catch(() => {});
+  }
+  if (typeof verifierSurveillancePolicePJ === 'function') {
+    verifierSurveillancePolicePJ(null, null, noeudId);
+  }
 
   // Zones cliquables + tooltip
   const scene = document.getElementById('rc-scene');
