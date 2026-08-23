@@ -1529,28 +1529,16 @@ async function doDormir() {
     state.hp = Math.min(100, (state.hp || 0) + bonusLogement.sante);
   }
 
-  // Prélever le coût selon l'hôtel
-  const coutsDormir = {
-    'hotel-republica': 80, 'hotel-port': 60, 'hotel-mineur': 40,
-    'hotel-narco': 80, 'hotel-soviet': 60, 'hotel-khalija': 80
-  };
-  const coutDormir = coutsDormir[state.currentBuilding] || 0;
-  const curD = COUNTRIES[state.country]?.cur || 'FR';
-  if (coutDormir > 0 && state.arg < coutDormir) {
-    showToast('Fonds insuffisants', coutDormir + ' ' + curD + ' requis pour la nuit.', false);
-    return;
-  }
-  if (coutDormir > 0) state.arg -= coutDormir;
-
-  const b = state.currentBuilding ? BUILDINGS[state.currentBuilding] : null;
-  const confortMap = {
-    'hotel-republica':    { moral: 5, paBonus: 5 },
-    'hotel-port':         { moral: 3, paBonus: 2 },
-    'hotel-mineur':       { moral: 3, paBonus: 2 },
-    'palais-presidentiel':{ moral: 8, paBonus: 8 }
-  };
-  const confort = confortMap[state.currentBuilding] || { moral: 1, paBonus: 0 };
-
+  // Correctif du 23 aout 2026 (audit dedie "moteur hotel Republia") : l'ancien prelevement
+  // automatique d'une "nuitee" ET le bonus Moral/PA ambiant accordes uniquement parce que
+  // state.currentBuilding etait un hotel (quelle que soit la piece -- hall, restaurant, bar...)
+  // sont retires d'ici. Cela double-comptait avec le bonus de reservation reelle
+  // (doDormirChambre ci-dessous) et facturait une seconde fois un sejour deja paye a la
+  // reservation. doDormir() redevient la recuperation NORMALE, generique, identique partout :
+  // seule une chambre reellement reservee (state.reservationHotel, verifie par
+  // doDormirChambre) accorde desormais un bonus hotelier, une seule fois, jamais cumule avec
+  // celui-ci. Le paiement d'une chambre a lieu exclusivement a la reservation (voir
+  // doReserverChambreHotel), plus jamais ici.
   state.salaireTouche = true;
   state.day = today + 1;
   state.dernierDormir = state.day; // Bloque le jour suivant
@@ -1565,15 +1553,19 @@ async function doDormir() {
   state.arg += salaire;
   state.liquide += Math.floor(salaire * 0.3);
   state.banque += Math.ceil(salaire * 0.7);
-  state.moral = Math.min(100, state.moral + confort.moral + (bonusLogement.moral || 0));
+  // Moral de base (correctif du 23 aout 2026) : constante unique, plus aucun bonus lie a la
+  // simple presence dans un hotel (voir commentaire plus haut) -- seul doDormirChambre() ajoute
+  // desormais un bonus hotelier, apres cet appel, jamais ici.
+  state.moral = Math.min(100, state.moral + 1 + (bonusLogement.moral || 0));
 
   // Recuperation des PA (Lot 1, 18 aout 2026) — ADDITIVE : les PA restants avant sommeil ne
   // sont plus jamais ecrases, seule la recuperation elle-meme s'ajoute au stock, sous reserve
   // du plafond de reserve PA_MAX (plateau-core.js). state.paMax n'est plus recalcule ici : le
-  // plafond est desormais une constante fonctionnelle unique (PA_MAX), jamais une valeur
-  // variable selon l'hotel/le confort.
+  // plafond est desormais une constante fonctionnelle unique (PA_MAX). Plus aucun bonus lie a
+  // la simple presence dans un hotel (correctif du 23 aout 2026, voir plus haut) -- seul
+  // doDormirChambre() ajoute desormais +2 PA, apres cet appel, jamais ici.
   const PA_BASE_NORMAL = 12;
-  let recuperationPA = PA_BASE_NORMAL + (confort.paBonus || 0);
+  let recuperationPA = PA_BASE_NORMAL;
   let detentionQHS = null;
   if (typeof sbGet === 'function' && state.char?.name) {
     const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(state.char.name)}&select=detention_qhs`).catch(() => []);
@@ -1608,7 +1600,7 @@ async function doDormir() {
 
   updateUI();
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
-  const moralAffiche = confort.moral + (bonusLogement.moral || 0);
+  const moralAffiche = 1 + (bonusLogement.moral || 0);
   const suffixeLogement = (bonusLogement.moral || bonusLogement.sante)
     ? ' (dont logement social : +' + (bonusLogement.moral || 0) + ' Moral / +' + (bonusLogement.sante || 0) + ' Santé)' : '';
   showToast('Bonne nuit !', 'Salaire verse : +' + salaire.toLocaleString('fr-FR') + ' ' + cur + ' · +' + moralAffiche + ' Moral' + suffixeLogement, true, true);
@@ -2218,6 +2210,28 @@ async function doReserverChambreHotel(pa) {
   const cout = ordre?.cost || 60;
   const r = await deduireCoutOrdre({ pa, cost: cout });
   if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+
+  // Caisse propre a l'hotel (correctif du 23 aout 2026, audit dedie) : le paiement disparaissait
+  // integralement jusqu'ici (aucune caisse creditee nulle part). Reutilise exactement le meme
+  // mecanisme deja en place pour les commerces/la buvette -- appliquerTaxeTransaction() (taux
+  // local + national INCHANGES) puis crediterCaisseBatiment() sur une caisse identifiee par
+  // getCaisseLocaleId('hotel', ville) (meme principe deja eprouve par la buvette/le marche :
+  // categorie stable 'hotel', ville reelle du batiment) -- une caisse DISTINCTE par ville, y
+  // compris pour hotel-mineur qui partage son buildingId entre plusieurs villes/empires.
+  // Reutilise caisses_batiments, deja existante : aucune nouvelle table.
+  if (cout > 0) {
+    const pays = state.country || 'republic';
+    const ville = state.currentCity || 'capitale';
+    let net = cout;
+    if (typeof appliquerTaxeTransaction === 'function') {
+      const t = await appliquerTaxeTransaction(cout);
+      net = t.net;
+    }
+    if (typeof crediterCaisseBatiment === 'function' && typeof getCaisseLocaleId === 'function') {
+      await crediterCaisseBatiment(pays, getCaisseLocaleId('hotel', ville), net).catch(() => {});
+    }
+  }
+
   state.reservationHotel = { buildingId: state.currentBuilding, bonus };
   updateUI();
   showToast('Chambre reservee', 'Vous obtiendrez un bonus de +' + bonus.paBonus + ' PA et +' + bonus.moral + ' Moral en passant l\'ordre Dormir <strong>dans cette chambre</strong>.', true, true);
@@ -2248,6 +2262,21 @@ async function doDormirChambre() {
   const reservation = state.reservationHotel;
   if (!reservation || reservation.buildingId !== state.currentBuilding) {
     showToast('Chambre non reservee', 'Vous n\'avez pas reserve la chambre. Vous devez passer l\'ordre Dormir a partir de votre fiche personnage.', false);
+    return;
+  }
+  // Garde-fou explicite (23 aout 2026, dernier point avant GO) : verifie que le personnage est
+  // REELLEMENT dans la chambre de l'hotel reserve, pas seulement que le bouton dormir_chambre
+  // n'est affiche que la -- une verification cote fonction, pas seulement cote UI. Reutilise la
+  // configuration DEJA existante plutot que d'ajouter une nouvelle table buildingId->roomId en
+  // parallele (qui pourrait diverger de data.js) : dormir_chambre n'est declare que par les 3
+  // rooms chambre reelles (chambres/chambre_port/chambre_mineur, verifie -- aucune autre room ne
+  // porte cet ordre), donc controler que la room courante offre bien cet ordre est strictement
+  // equivalent au mapping explicite hotel-republica->chambres/hotel-port->chambre_port/
+  // hotel-mineur->chambre_mineur, sans le dupliquer.
+  const roomActuelle = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  const estDansLaChambre = roomActuelle?.orders?.some(o => o.fn === 'dormir_chambre');
+  if (!estDansLaChambre) {
+    showToast('Chambre non reservee', 'Vous devez etre physiquement dans la chambre de l\'hotel reserve pour beneficier du bonus.', false);
     return;
   }
   const reussi = await doDormir();
