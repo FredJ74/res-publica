@@ -3491,7 +3491,9 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0a0806,#12100a)",
         desc: "Tables en terrasse face aux bateaux de pêche. L'ambiance du Capitaine Sauvage.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-resto-capitaine-sauvage.png",
-        persons: [],
+        persons: [
+          {name:'Marine Leroux (PNJ)', role:'Serveuse', rel:'neutral', job:'serveur', photoUrl:'images/port-sainte-marie-pnj-marine-leroux.png', photoPos:'50% 15%'}
+        ],
         // Memes 7 ordres que hotel-republica.restaurant (Luthecia), raccordes au meme moteur
         // generique -- fn/label/pa/cost/desc repris a l'identique, aucun recalibrage (audit du
         // 23 aout 2026). Voir BUILDING_COMMERCE_TYPE/DOTATIONS_COMMERCE_PILOTE
