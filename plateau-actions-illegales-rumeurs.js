@@ -2735,6 +2735,79 @@ const RECETTES_ALIMENTAIRES = {
   }
 };
 
+// =====================
+// PRODUITS DE MARCHE -- socle generique (Lot 1, 23 aout 2026 -- revise apres retour de Fred :
+// PRODUITS_MARCHE devient un registre distinct de RECETTES_ALIMENTAIRES, jamais un troisieme
+// meme registre pour des objets non-alimentaires ; resolveur renomme resoudreProduitCommerce)
+// =====================
+// Prepare les donnees communes aux 3 familles de futurs produits de marche (Luthecia/Montrouge/
+// PSM), SANS encore les brancher a aucun code actif -- aucun ordre, aucune recette definitive,
+// aucune modification de comportement de commanderProduitCommerce/produireRecetteCommerce/
+// getStatEffective, aucun objet reellement cree. Purement un socle de reference pour les lots a
+// venir : Lot 2 (aliment + regle des 7 jours), Lot 3 (objet d'integration locale + bonus ENT),
+// Lot 4 (carte postale).
+//
+// RECETTES_ALIMENTAIRES reste STRICTEMENT reserve aux aliments consommes selon le moteur
+// restaurant/bar actuel (effets immediats a la commande, inchange). PRODUITS_MARCHE est un
+// registre SEPARE, pour les 3 familles de produits de marche -- y compris les aliments a
+// emporter, qui n'iront jamais dans RECETTES_ALIMENTAIRES malgre leur nature alimentaire,
+// puisqu'ils suivent un comportement different (achat -> objet en inventaire, aucun effet
+// immediat, cf. Lot 2). UN SEUL moteur de production/stock/prix (coutRevientPortionRecette/
+// prixVenteAutoPNJ/produireRecetteCommerce/commanderProduitCommerce), jamais duplique : les deux
+// registres partagent exactement la meme forme d'entree (materiaux/pa/portions/effets/
+// typesAutorises/villesAutorisees/buildingsAutorises/paysAutorises/categorie/label/image/
+// prixFixe). familleProduitMarche (une des 3 valeurs ci-dessous) distingue les entrees
+// PRODUITS_MARCHE -- absent de RECETTES_ALIMENTAIRES par construction, jamais teste sur ce
+// registre.
+const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postale'];
+
+// Registre distinct, volontairement VIDE dans ce lot (aucun produit concret cree -- Lots 2/3/4).
+const PRODUITS_MARCHE = {};
+
+// Resolveur generique -- SEULE piece necessaire pour que le moteur commerce (deja generique)
+// reste unique sans forcer les objets non-alimentaires dans RECETTES_ALIMENTAIRES. Remplace,
+// dans ce lot, les lookups RECETTES_ALIMENTAIRES[id] reellement generiques (production, vente,
+// consultation de carte, gestion/prix, matieres acceptees -- identifies precisement par l'audit
+// dedie) : ceux-la doivent pouvoir resoudre un futur produit PRODUITS_MARCHE aussi bien qu'une
+// recette alimentaire. Les chemins volontairement alimentaires (categorie:'menu' pour le diner
+// d'affaires, boissons/tournees) restent sur RECETTES_ALIMENTAIRES seul, inchanges -- un id
+// absent de ce registre y est deja ignore silencieusement, comportement correct puisque ces
+// chemins ne doivent jamais matcher un produit non-alimentaire.
+function resoudreProduitCommerce(id) {
+  return RECETTES_ALIMENTAIRES[id] || PRODUITS_MARCHE[id] || null;
+}
+
+// Gabarit des metadonnees d'instance par famille (documentation -- aucun objet instancie dans ce
+// lot, aucune action Consommer/Ecrire/Envoyer/Lire codee). Champs JSON ordinaires : l'inventaire
+// (state.inventory/addToInventory, plateau-divers.js) accepte deja des metadonnees libres sans
+// migration, et un objet non-stackable compte deja pour 1 charge (getTotalInventaire) -- confirme
+// par l'audit dedie, aucune extension du systeme d'inventaire necessaire pour ce socle. Compatible
+// tel quel avec le depot/ramassage (objets_abandonnes, JSON integral) et le don distant
+// (objets_recus/sbDonnerObjetJoueur, JSON integral) deja existants, sans aucune modification.
+//
+// aliment (Lot 2, dans PRODUITS_MARCHE, jamais RECETTES_ALIMENTAIRES) :
+//   { familleProduitMarche:'aliment', villeOrigine, dateAchat }
+//   -- dateAchat sert au calcul d'age lors de la Consommation (regle des 7 jours, PAS codee ici).
+//      Important : aucune information de peremption ne doit etre visible avant consommation --
+//      dateAchat reste une donnee interne de l'objet, jamais affichee telle quelle. Un aliment de
+//      cette famille ne doit donc jamais utiliser le champ existant item.expireDay (deja rendu
+//      directement dans renderInventory, plateau-divers.js) : ce serait exactement l'inverse du
+//      comportement demande.
+//
+// integration_locale (Lot 3) : { familleProduitMarche:'integration_locale', villeOrigine, bonusENT }
+//   -- bonusENT fixe a 1 pour cette famille. Non-cumulable et conditionne a la possession
+//      effective + a la ville courante : logique du Lot 3 (dans getStatEffective), non modifiee
+//      ici.
+//
+// carte_postale (Lot 4) : { familleProduitMarche:'carte_postale', modele, villeOrigine,
+//   expediteur, destinataire:null, message:null, dateEnvoi:null, etat:'vierge',
+//   bonusDeclenche:false }
+//   -- etat passe a 'ecrite' a l'envoi (Lot 4, non code ici) ; destinataire/message/dateEnvoi
+//      renseignes au meme moment, via reutilisation de sbDonnerObjetJoueur (deja existant,
+//      deja compatible cross-joueur/hors-ligne, voir audit dedie). bonusDeclenche passe
+//      definitivement a true a la premiere lecture eligible (Lot 4) -- jamais reinitialise,
+//      garantit qu'une carte relue/deposee/ramassee/donnee ne redeclenche jamais le bonus Moral.
+
 // Correspondance buildingId -> type de commerce (17 aout 2026, lot 3+) -- permet a un seul jeu
 // d'ordres generiques (produire_commerce/consulter_carte_commerce, plateau-router.js) de
 // s'appliquer a tout batiment : le type est lu ici plutot que duplique dans chaque room config.
@@ -2829,7 +2902,7 @@ function resoudreCommerceActuel() {
 function matieresAccepteesParCommerce(data) {
   const cles = new Set();
   (data.carte || []).forEach(id => {
-    const recette = RECETTES_ALIMENTAIRES[id];
+    const recette = resoudreProduitCommerce(id);
     if (recette) Object.keys(recette.materiaux).forEach(m => cles.add(m));
   });
   return [...cles];
@@ -3253,7 +3326,7 @@ function fourchettePrixPJ(coutRevient) {
 // testee, simplement pas encore reliee a un bouton en jeu tant qu'aucun commerce n'est rachetable.
 async function confirmerFixerPrixCommerce(commerceType, pays, ville, buildingId, roomId, recetteId, prixSaisi) {
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
-  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  const recette = resoudreProduitCommerce(recetteId);
   if (!data || !recette) return { ok: false, raison: 'introuvable' };
   // Prix fixe (lot correctif final, 21 aout 2026) -- meme attribut de recette que le blocage du
   // recalcul PNJ automatique dans produireRecetteCommerce(), etendu ici au reglage manuel PJ.
@@ -3293,12 +3366,12 @@ async function doGererCommerce(commerceType, buildingId, roomId) {
   document.getElementById('postes-modal-title').textContent = 'Gérer mon commerce';
   let html = '<div style="padding:1rem">';
   html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">Caisse : ' + (data.caisse || 0).toLocaleString('fr-FR') + ' ' + cur + '</div>';
-  const carte = (data.carte || []).filter(id => RECETTES_ALIMENTAIRES[id]);
+  const carte = (data.carte || []).filter(id => resoudreProduitCommerce(id));
   if (carte.length === 0) {
     html += '<div style="font-size:.9rem;color:#8a8060">Aucun produit sur la carte de cet établissement.</div>';
   }
   carte.forEach(id => {
-    const recette = RECETTES_ALIMENTAIRES[id];
+    const recette = resoudreProduitCommerce(id);
     const prixActuel = data.parametres.prixVente[id];
     html += '<div style="padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem">';
     html += '<b style="font-size:.93rem;color:#c0b090">' + recette.label + '</b><br>';
@@ -3393,14 +3466,14 @@ async function confirmerGererPrixCommerceUI(commerceType, buildingId, roomId, re
     return;
   }
   showToast('Prix mis à jour', res.prix.toLocaleString('fr-FR') + ' FR.', true, true);
-  addJournalEntry('Prix ajusté pour ' + (RECETTES_ALIMENTAIRES[recetteId]?.label || recetteId) + ' — ' + res.prix.toLocaleString('fr-FR') + ' FR.', 'event-good');
+  addJournalEntry('Prix ajusté pour ' + (resoudreProduitCommerce(recetteId)?.label || recetteId) + ' — ' + res.prix.toLocaleString('fr-FR') + ' FR.', 'event-good');
   doGererCommerce(commerceType, buildingId, roomIdReel); // rafraichit, meme pattern que produire/consulter
 }
 
 // Production generique : matieres -> PA -> lot -> portions, sur le modele exact de
 // confirmerProduction (armurerie) mais parametre par recette au lieu d'un id d'arme fixe.
 async function produireRecetteCommerce(commerceType, pays, ville, buildingId, roomId, recetteId) {
-  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  const recette = resoudreProduitCommerce(recetteId);
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!recette || !data) return { ok: false, raison: 'introuvable' };
   if (!recetteAutoriseePourCommerce(recette, data)) return { ok: false, raison: 'recette_non_autorisee' };
@@ -3489,7 +3562,7 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
 // La buvette de stade n'a pas de caisse autonome (doctrine deja validee/codee pour
 // doConsommerBuvette) : son net part directement dans la caisse du stade de sa ville.
 async function commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId) {
-  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  const recette = resoudreProduitCommerce(recetteId);
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!recette || !data) return { ok: false, raison: 'introuvable' };
 
@@ -3567,12 +3640,12 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
   document.getElementById('postes-modal-title').textContent = 'Carte';
   let html = '<div style="padding:1rem">';
   const carte = data.carte || [];
-  const carteValide = carte.filter(id => RECETTES_ALIMENTAIRES[id]);
+  const carteValide = carte.filter(id => resoudreProduitCommerce(id));
   if (carteValide.length === 0) {
     html += '<div style="font-size:.9rem;color:#8a8060">Aucun produit disponible pour le moment.</div>';
   }
   carteValide.forEach(id => {
-    const recette = RECETTES_ALIMENTAIRES[id];
+    const recette = resoudreProduitCommerce(id);
     const stock = data.stockProduits[id] || 0;
     const prix = data.parametres.prixVente[id];
     const composition = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
@@ -3607,7 +3680,7 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
 async function doCommanderProduitCommerceUI(commerceType, buildingId, roomId, recetteId) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
-  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  const recette = resoudreProduitCommerce(recetteId);
   const res = await commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
   if (!res.ok) {
     const messages = { rupture: 'Ce produit est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' FR requis.', prix_non_defini: 'Prix non défini pour ce produit.', introuvable: '' };
@@ -4161,7 +4234,7 @@ async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, c
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!data) { showToast('Indisponible', '', false); return; }
 
-  const recettesDispo = (data.carte || []).filter(id => recetteAutoriseePourCommerce(RECETTES_ALIMENTAIRES[id], data));
+  const recettesDispo = (data.carte || []).filter(id => recetteAutoriseePourCommerce(resoudreProduitCommerce(id), data));
 
   document.getElementById('postes-modal-title').textContent = 'Produire';
   let html = '<div style="padding:1rem">';
@@ -4170,7 +4243,7 @@ async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, c
     html += '<div style="font-size:.9rem;color:#8a8060">Aucune recette disponible sur la carte de cet établissement.</div>';
   }
   recettesDispo.forEach(id => {
-    const recette = RECETTES_ALIMENTAIRES[id];
+    const recette = resoudreProduitCommerce(id);
     const materiauxTxt = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
     const stockActuel = data.stockProduits[id] || 0;
     const stockMax = plafondEffectifCommerce(data, id);
@@ -4193,7 +4266,7 @@ async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, c
 async function doProduireRecetteCommerceUI(commerceType, buildingId, roomId, recetteId) {
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
-  const recette = RECETTES_ALIMENTAIRES[recetteId];
+  const recette = resoudreProduitCommerce(recetteId);
   // Pas de garde PA manuelle ici (trouve en verification post-Lot 1 : ce wrapper bloquait
   // l'action a tort meme sous TEST_MODE=true, en amont de produireRecetteCommerce() qui est
   // elle-meme deja fail-closed via deduireCoutOrdre()). La raison 'pa_insuffisants' est deja

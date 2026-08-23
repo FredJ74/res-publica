@@ -6084,6 +6084,16 @@ const RESSOURCES_ECONOMIE = {
   // par Fred. Ne touche a aucune ressource existante.
   fruits_legumes:    { label: 'Fruits & légumes', icon: 'ti-apple',   prixBase: 4, prixAchatFournisseur: 2, plafond: 150, source: 'livraison' },
   produits_exotiques:{ label: 'Produits exotiques',icon: 'ti-package',prixBase: 6, prixAchatFournisseur: 3, plafond: 125, source: 'livraison' },
+  // Lot socle marches (23 aout 2026) : matiere premiere generique pour les futurs objets
+  // d'integration locale (echarpe/casquette/T-shirt, Lot 3) -- audit dedie prealable : aucune
+  // matiere textile n'existait, aucun mapping ailleurs n'enumere RESSOURCES_ECONOMIE a la main
+  // (toutes les listes reelles trouvees -- Salle des Ventes de l'entrepot, plafond total,
+  // vente/achat de matieres par un commerce -- iterent deja Object.keys/entries/values, donc
+  // cette seule entree suffit, aucun autre fichier a toucher). Valeurs choisies par analogie
+  // avec les autres matieres premieres brutes livrees de tier moyen (poisson/viande/produits_
+  // exotiques), meme convention prixAchatFournisseur = prixBase/2 deja verifiee sur toutes les
+  // entrees existantes -- ajustables, aucune recette ne les utilise encore dans ce lot.
+  textile:            { label: 'Textile',         icon: 'ti-shirt',   prixBase: 5, prixAchatFournisseur: 2.5, plafond: 125, source: 'livraison' },
 
   // --- Produits transformes (redistribution 20% des transformateurs, jamais livres directement) ---
   medicaments:  { label: 'Médicaments',  icon: 'ti-pill',        prixBase: 22, prixAchatFournisseur: 11,  plafond: 100, source: 'transformation' },
