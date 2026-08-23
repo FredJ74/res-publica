@@ -3220,7 +3220,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0d1018,#141820)",
         desc: "Hall de l'hotel. Matelots, commercants et gens de passage.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-du-port-accueil.png",
-        persons: [{name:'Patrone (PNJ)', role:'Gérante', rel:'neutral', job:'hotelier'}],
+        persons: [{name:'Jeanine Debré (PNJ)', role:'Gérante', rel:'neutral', job:'hotelier', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-hotel-jeanine-debre.png', photoPos:'45% 25%'}],
         // Raccorde au moteur commerce generique (audit dedie puis correctif du meme jour) :
         // remplace le reliquat se_nourrir (jamais migre -- doSeReposer('se_nourrir'), ancien
         // chemin generique ignorant meme le cost declare ici, ne creditait aucune caisse) par
@@ -3258,44 +3258,35 @@ const BUILDINGS = {
     icon: "ti-fish",
     bgColor: "#0a0d10",
     desc: "Bar populaire du port. Les pecheurs et contrebandiers s'y retrouvent.",
+    // Lot finitions (24 aout 2026, meme jour) : arriere_salle (local a louer) retiree --
+    // decision game design, le Bar des Pecheurs ne doit plus avoir de local a louer. Aucune
+    // reference codee en dur a cette room ailleurs (moteur de location generique, lit
+    // BUILDINGS[...].rooms dynamiquement via isLocationRoom -- verifie plateau-organisations-
+    // quetes.js/plateau-justice-economie.js) ; un bail deja actif en base continuerait a etre
+    // paye normalement (payerLocations() n'utilise que les valeurs deja stockees sur le bail,
+    // jamais une relecture de BUILDINGS), simplement plus visible/gerable depuis ce batiment.
     rooms: {
-      arriere_salle: {
-        name: "Arrière-Salle — Local à louer",
-        imageBg: "linear-gradient(135deg,#0a0d10,#080c0f)",
-        desc: "📋 À LOUER — L'arrière-salle du bar. Idéal pour un tripot, des réunions discrètes ou un quartier général criminel. Personne ne pose de questions ici.",
-        imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&q=80",
-        isLocationRoom: true,
-        locationData: { prix: 120, bonusPOP: 0, bonusINF: 2, bonusDIS: 8, label: 'Arrière-Salle du Bar', tier: 2, usages: ['tripot','reunion_secrete','orga_criminelle'] },
-        persons: [],
-        orders: [
-          {fn:'louer_local', label:'Louer cette arrière-salle (120 FR/jour)', pa:1, cost:0, type:'grey', icon:'ti-key', successRate:100, desc:'+8 DIS +2 INF. Personne ne sait ce qui se passe là-dedans.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
-        ]
-      },
       salle_bar: {
         name: "Salle du bar",
-        image: "🍺",
         imageBg: "linear-gradient(135deg,#0a0d10,#101518)",
         desc: "Atmosphere enfumee, bruit de fond. Tout se negocie ici.",
-        imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&q=80",
-        imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-bar-pecheurs-salle.png",
         persons: [
           {name:'Marin Dulac (PNJ)', role:'Patron du bar', rel:'neutral', job:'barman', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-bar-pecheurs-marin-dulac.png', photoPos:'50% 20%'},
           {name:'René Seigne (PNJ)', role:'Habitué du bar — Informateur', rel:'neutral', job:null, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-bar-pecheurs-rene-seigne.png', photoPos:'55% 20%'}
         ],
-        // Raccordement au moteur bar generique (meme jour, audit dedie) : reutilise a l'identique
-        // les ordres du Bar du Republica (produire_commerce/consulter_carte_commerce/
+        // Raccordement au moteur bar generique (audit dedie) : reutilise a l'identique les
+        // ordres du Bar du Republica (produire_commerce/consulter_carte_commerce/
         // vendre_matiere_commerce/gerer_commerce/boire_verre/offrir_tournee/
-        // recruter_informateur_pnj). se_nourrir generique retire -- remplace fonctionnellement
-        // par le vrai commerce (produire/consulter carte/boire un verre/tournee), verifie qu'il
-        // ne servait a rien d'autre ici (aucun autre ordre/mecanique n'en dependait). ecouter_
-        // rumeurs raccorde a Marin Dulac via sourceOverride (meme mecanisme que Marco au Bar du
-        // Republica). contrebande/recruter_informateur_3/recruter_info_3/consulter_info_3
-        // (mecanique informateur, bug pre-existant non corrige dans ce lot) conserves inchanges --
-        // René Seigne est un figurant habitue/informateur narratif, non raccorde a cette mecanique.
-        // Marin (PNJ) figurant remplace par Marin Dulac (PNJ), patron/barman (job existant
-        // 'barman'). Portraits ajoutes plus tard (micro-lot dedie, meme jour) :
-        // photoUrl/photoPos sur les deux PNJ, name/role/job inchanges.
+        // recruter_informateur_pnj). ecouter_rumeurs raccorde a Marin Dulac via sourceOverride
+        // (meme mecanisme que Marco au Bar du Republica). Nettoyage informateurs (24 aout 2026,
+        // meme jour) : recruter_informateur_3/recruter_info_3/consulter_info_3 (ancien systeme
+        // state.informateurs, bug pre-existant non corrige) retires de CETTE interface
+        // uniquement -- fonctions globales (consulterInformateur/ouvrirRecruterInformateur,
+        // plateau-actions-illegales-rumeurs.js) et niveaux 1/2/4 ailleurs dans le jeu non
+        // touches, INFORMATEUR_NIVEAUX non modifie. recruter_informateur_pnj (systeme moderne
+        // PNJ compagnon) conserve. René Seigne reste un figurant narratif, non raccorde a
+        // recruter_informateur_pnj dans ce lot.
         orders: [
           {fn:'produire_commerce', label:'Préparer les consommations', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
@@ -3305,10 +3296,7 @@ const BUILDINGS = {
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
           {fn:'ecouter_rumeurs', label:'Ecouter le patron', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:85, desc:'Marin Dulac entend tout ce qui se dit au bar. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marin Dulac'},
           {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
-          {fn:'contrebande',label:'Contacter reseau',pa:2, cost:100, type:'illegal',icon:'ti-package', successRate:55},
-          {fn:'recruter_informateur_3', label:'Recruter un informateur (Niv.3)', pa:1, cost:700, type:'grey', icon:'ti-user-search', successRate:100, desc:'700 FR/jour. Indice empire origine d\'un crime, contrebandes en cours.'},
-          {fn:'recruter_info_3', label:'Recruter informateur N3', pa:2, cost:0, type:'grey', icon:'ti-user-secret', successRate:60, desc:'700 FR/jour. Indice empire origine d\'un crime, contrebandes en cours.'},
-          {fn:'consulter_info_3', label:'Consulter informateur N3', pa:1, cost:0, type:'grey', icon:'ti-eye', successRate:100, desc:'Obtenir une information de votre informateur niveau 3.'},
+          {fn:'contrebande',label:'Contacter reseau',pa:2, cost:100, type:'illegal',icon:'ti-package', successRate:55}
         ]
       }
     }
@@ -3654,7 +3642,10 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0a0c08,#10140c)",
         desc: "Rateliers d'armes, cannes a peche et equipements de chasse.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/armurerie-port-sainte-marie-maison-le-gall.png",
-        persons: [],
+        // Victor Legall (PNJ), meme jour : job 'commercant' reutilise (deja le job fonctionnel
+        // de Roger Detente, role "Armurier" a l'Armurerie Martinon de Luthecia -- 'armurier'
+        // n'existe pas dans PNJ_STATS_PAR_JOB, seul 'commercant' y resout de vraies stats).
+        persons: [{name:'Victor Legall (PNJ)', role:'Armurier', rel:'neutral', job:'commercant', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-armurerie-victor-legall.png', photoPos:'50% 30%'}],
         // Raccordement au moteur armurerie generique existant (audit dedie du 24 aout 2026,
         // confirme : entreprise/caisse/stock/registre 'armurerie-republic-ville_a' deja isoles
         // par ville, aucune migration necessaire). 4 ordres standards, memes libelles/PA/couts
