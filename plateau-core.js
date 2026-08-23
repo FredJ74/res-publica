@@ -851,6 +851,18 @@ function formatDateHeureJeu() {
   return `${dateStr} · ${h}h${m}`;
 }
 
+// Date reelle du jour (Europe/Paris), format JJ/MM/AAAA -- factorise le meme calcul que
+// formatDateHeureJeu()/formatDateAffichage() ci-dessus, reutilise par les plafonds quotidiens
+// (Lot 4, cartes postales, 23 aout 2026) : state.day est un compteur PROPRE A CHAQUE
+// PERSONNAGE (avance par sa propre horloge PA, plateau-core.js) et ne peut donc jamais servir a
+// comparer "le meme jour" entre deux joueurs differents (lecteur/expediteur) -- seule l'horloge
+// reelle, commune a tous, convient ici. Jamais l'horloge PA/le jour du jeu (meme regle que
+// DUREE_FRAICHEUR_ALIMENT_MS, plateau-personnage.js).
+function dateReelleParisStr() {
+  const frNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  return frNow.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
 // Affiche "Aujourd'hui" a la place de la date si elle correspond a la date du jour.
 // Les anciens messages au format "Jour X" restent affiches tels quels (retrocompatibilite).
 function formatDateAffichage(dateHeureStr) {

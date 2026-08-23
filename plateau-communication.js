@@ -284,8 +284,17 @@ async function verifierObjetsRecus() {
       const qteAjoutee = typeof addToInventory === 'function' ? addToInventory(objet) : 0;
       if (qteAjoutee > 0) {
         if (typeof sbSupprimerObjetRecu === 'function') await sbSupprimerObjetRecu(id).catch(() => {});
-        if (typeof showToast === 'function') showToast('Objet reçu !', expediteur + ' vous a donné "' + objet.name + '".', true, true);
-        if (typeof addJournalEntry === 'function') addJournalEntry(expediteur + ' vous a donné "' + objet.name + '".', 'event-good');
+        // Carte postale (Lot 4, 23 aout 2026) : message fixe, jamais de nom d'expediteur ni de
+        // contenu du message a l'arrivee (point 10 du cahier des charges) -- l'expediteur et le
+        // texte ne sont reveles qu'a la lecture volontaire (lireCartePostale, plateau-
+        // personnage.js). Aucun Moral ici : le seul declencheur de Moral est la premiere lecture.
+        if (objet.familleProduitMarche === 'carte_postale') {
+          if (typeof showToast === 'function') showToast('Courrier reçu', 'Une carte postale est arrivée dans votre inventaire.', true, true);
+          if (typeof addJournalEntry === 'function') addJournalEntry('Vous avez reçu une carte postale. Elle a été placée dans votre inventaire.', 'event-good');
+        } else {
+          if (typeof showToast === 'function') showToast('Objet reçu !', expediteur + ' vous a donné "' + objet.name + '".', true, true);
+          if (typeof addJournalEntry === 'function') addJournalEntry(expediteur + ' vous a donné "' + objet.name + '".', 'event-good');
+        }
       }
       // Si l'inventaire est plein (qteAjoutee === 0), l'objet reste en attente en base et
       // sera propose de nouveau au prochain passage, une fois de la place liberee.
@@ -944,6 +953,30 @@ async function recupererImpactsEnAttente() {
       if (imp.indice === 'pop') { state.pop = Math.max(0, Math.min(100, (state.pop || 0) + imp.delta)); resume.push(imp.delta + ' POP'); }
       if (imp.indice === 'inf') { state.inf = Math.max(0, Math.min(100, (state.inf || 0) + imp.delta)); resume.push(imp.delta + ' INF'); }
       if (imp.indice === 'dis') { state.dis = Math.max(0, Math.min(100, (state.dis || 50) + imp.delta)); resume.push(imp.delta + ' DIS'); }
+      // Bonus Moral expediteur d'une carte postale lue pour la premiere fois (Lot 4, 23 aout
+      // 2026) : mecanisme deja generique reutilise tel quel (aucune deuxieme file d'attente).
+      // Plafond quotidien EXPEDITEUR (regle definitive de Fred) : au plus une seule occurrence de
+      // ce bonus par jour reel (Europe/Paris), tous destinataires/cartes confondus, meme si
+      // plusieurs cartes ont ete lues le meme jour -- verifie ICI, au moment ou l'expediteur
+      // recupere effectivement le credit (jamais au moment de la lecture par le destinataire, qui
+      // ignore tout de l'etat/l'horloge de l'expediteur, potentiellement hors-ligne). Une carte
+      // au-dela du plafond du jour est simplement consommee sans credit -- jamais retentee, la
+      // ligne est marquee traitee comme les autres ci-dessous.
+      if (imp.indice === 'moral_carte_postale') {
+        // cartePostaleMoralJour : colonne PERSISTEE (personnages.carte_postale_moral_jour,
+        // supabase.js), jamais un state.* suppose sauvegarde implicitement -- meme champ partage
+        // avec le plafond LECTEUR (lireCartePostale, plateau-personnage.js), sous-cles distinctes.
+        const jourDuJour = typeof dateReelleParisStr === 'function' ? dateReelleParisStr() : null;
+        if (!state.cartePostaleMoralJour) state.cartePostaleMoralJour = { lecteur: null, expediteur: null };
+        if (jourDuJour && state.cartePostaleMoralJour.expediteur !== jourDuJour) {
+          state.moral = Math.min(100, Math.max(0, (state.moral || 0) + imp.delta));
+          state.cartePostaleMoralJour.expediteur = jourDuJour;
+          resume.push(imp.delta + ' Moral (carte postale)');
+        }
+        // Que le plafond du jour soit deja atteint ou non, sbMarquerImpactTraite(imp.id) est
+        // TOUJOURS appele plus bas (hors de ce bloc, comme pour tous les indices) : une carte
+        // au-dela du plafond est consommee definitivement, jamais retentee un jour suivant.
+      }
       if (imp.indice === 'hp_set') {
         state.hp = Math.max(0, imp.delta);
         state.regenJour = state.day;
@@ -974,6 +1007,12 @@ async function recupererImpactsEnAttente() {
       } else if (empoisonne) {
         showToast('Malaise suspect', 'Vous ne vous sentez pas bien... quelque chose ne va pas. Soignez-vous avant votre prochain sommeil.', false, true);
         addJournalEntry('Un malaise suspect vous gagne. Vous pourriez avoir été empoisonné(e).', 'event-bad');
+      } else if (resume.some(r => r.includes('carte postale'))) {
+        // Branche dediee (Lot 4, 23 aout 2026) : une correspondance recue par un autre joueur,
+        // jamais un evenement negatif -- evite le libelle generique "affecte vos indices"/le
+        // toast "bad" ci-dessous, inadapte a un gain de Moral.
+        showToast('Correspondance lue', 'Une carte postale que vous avez envoyée a été lue. +10 Moral.', true, true);
+        addJournalEntry('Une carte postale que vous avez envoyée a été lue. +10 Moral.', 'event-good');
       } else {
         addJournalEntry('Des événements ont affecté vos indices : ' + resume.join(', ') + '.', 'event-bad');
         showToast('Indices modifiés', resume.join(', '), false, true);

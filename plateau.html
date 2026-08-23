@@ -481,6 +481,17 @@
   </div>
 </div>
 
+<!-- MODAL CARTE POSTALE (Lot 4, 23 aout 2026) -->
+<div id="modal-carte-postale" class="modal-overlay">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="carte-postale-modal-title">Carte postale</div>
+      <button class="modal-close" onclick="fermerModalCartePostale()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="carte-postale-body"></div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="result-toast">
   <div class="toast-result" id="toast-result"></div>
@@ -490,7 +501,7 @@
 <script src="data.js?v=216"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
-<script src="supabase.js?v=160"></script>
+<script src="supabase.js?v=161"></script>
 <!-- Tiptap (Lot C2) : chargé en ESM depuis un CDN, comme déjà validé dans les prototypes
      prototype-tiptap-image.html et prototype-canvas-composition.html. forum-canvas.js reste
      un script classique (comme tout le reste du jeu) ; ce petit module se contente d'exposer
@@ -592,7 +603,7 @@
 </script>
 <script src="forum-canvas.js?v=33"></script>
 <script src="forum.js?v=153"></script>
-<script src="plateau-core.js?v=149"></script>
+<script src="plateau-core.js?v=150"></script>
 <script src="plateau-rue-centrale.js?v=141"></script>
 <script src="plateau-quete-accueil.js?v=26"></script>
 <script src="plateau-enigme-portrait.js?v=22"></script>
@@ -601,13 +612,13 @@
 <script src="plateau-musee-personnalites.js?v=2"></script>
 <script src="plateau-maxence.js?v=1"></script>
 <script src="plateau-navigation.js?v=158"></script>
-<script src="plateau-personnage.js?v=153"></script>
+<script src="plateau-personnage.js?v=154"></script>
 <script src="plateau-pnj.js?v=173"></script>
 <script src="plateau-multijoueur.js?v=136"></script>
-<script src="plateau-communication.js?v=137"></script>
+<script src="plateau-communication.js?v=138"></script>
 <script src="plateau-politique.js?v=168"></script>
 <script src="plateau-justice-economie.js?v=177"></script>
-<script src="plateau-actions-illegales-rumeurs.js?v=166"></script>
+<script src="plateau-actions-illegales-rumeurs.js?v=167"></script>
 <script src="plateau-organisations-quetes.js?v=147"></script>
 <script src="plateau-divers.js?v=134"></script>
 <script src="plateau-router.js?v=186"></script>

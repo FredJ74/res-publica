@@ -2377,6 +2377,18 @@ async function ouvrirDetailObjetInventaire(idx) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> Consommer</button>';
   }
 
+  // Carte postale (Lot 4, 23 aout 2026) : bouton toujours affiche independamment de la
+  // protection "objet de quete" (ni un transfert entre joueurs, ni un abandon). etatCarte
+  // 'vierge' -> ouvre la composition ; 'ecrite' -> ouvre la lecture (jamais l'inverse, une carte
+  // ecrite ne redevient jamais vierge -- point 14 du cahier des charges).
+  if (item.familleProduitMarche === 'carte_postale') {
+    if (item.etatCarte === 'vierge') {
+      html += '<button onclick="ouvrirEcrireCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-feather"></i> Écrire et envoyer</button>';
+    } else if (item.etatCarte === 'ecrite') {
+      html += '<button onclick="lireCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-mail-opened"></i> Lire</button>';
+    }
+  }
+
   const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
   if (protege) {
     html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic"><i class="ti ti-lock"></i> Indispensable à une mission en cours — ne peut être ni donné à un autre joueur, ni abandonné, ni détruit.</div>';
@@ -2442,6 +2454,196 @@ async function consommerAliment(idx) {
   }
 
   updateUI();
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+}
+
+// =====================
+// CARTES POSTALES (Lot 4, 23 aout 2026)
+// =====================
+// Auditee et reutilisee telle quelle : sbListPersonnages() (repertoire complet des PJ, deja
+// utilise par ouvrirRepertoirePJ/composerMailPour -- une carte n'exige pas d'etre dans la meme
+// piece que le destinataire, contrairement a "donner", d'ou le choix de ce repertoire plutot que
+// sbGetPresencesInRoom). escapeHtmlText (forum.js) : seule fonction d'echappement HTML texte
+// brut deja utilisee partout ailleurs dans le jeu (auteur/sujet de mail, titres de forum) --
+// reutilisee ici pour auteur/destinataire/message, jamais sanitizeRichHtml (reservee au mail
+// riche, autorise des balises : une carte postale est un texte simple, pas un editeur riche).
+function ouvrirEcrireCartePostale(idx) {
+  const item = state.inventory[idx];
+  if (!item || item.familleProduitMarche !== 'carte_postale' || item.etatCarte !== 'vierge') return;
+
+  document.getElementById('carte-postale-modal-title').textContent = 'Écrire et envoyer';
+  document.getElementById('carte-postale-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
+  document.getElementById('modal-carte-postale').classList.add('open');
+
+  const esc = typeof escapeHtmlText === 'function' ? escapeHtmlText : (s => String(s == null ? '' : s));
+  const myName = state.char?.name || '';
+
+  (typeof sbListPersonnages === 'function' ? sbListPersonnages().catch(() => []) : Promise.resolve([])).then(joueurs => {
+    const destinataires = (joueurs || []).filter(j => j.name !== myName);
+    const imagePreview = item.imageUrl
+      ? '<img src="' + item.imageUrl + '" style="width:100%;max-height:160px;object-fit:cover;border:1px solid #2a2010"/>'
+      : '<div style="width:100%;height:100px;border:1px dashed #3a2a10;display:flex;align-items:center;justify-content:center;color:#5a4a20;font-size:.72rem;font-style:italic;gap:.4rem"><i class="ti ti-photo-off" style="font-size:1.3rem"></i> Visuel à venir</div>';
+
+    let html = '<div style="padding:1rem">';
+    html += '<div style="margin-bottom:.8rem">';
+    html += '<div style="font-size:.68rem;color:#8a6a20;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;margin-bottom:.3rem">RECTO — ' + esc(item.name) + '</div>';
+    html += imagePreview;
+    html += '</div>';
+
+    html += '<div style="display:flex;border:1px solid #6a5a30;background:#f0ead6;min-height:220px">';
+    html += '<div style="flex:1.5;border-right:1px solid #8a7a50;padding:.8rem;display:flex;flex-direction:column">';
+    html += '<textarea id="carte-postale-message" maxlength="500" placeholder="Écrivez votre message ici..." style="flex:1;width:100%;background:transparent;border:none;outline:none;resize:none;color:#2a2010;font-family:\'Great Vibes\',cursive;font-size:1.3rem;line-height:1.7"></textarea>';
+    html += '<div id="carte-postale-compteur" style="font-family:Crimson Pro,serif;font-size:.65rem;color:#7a6a40;text-align:right;margin-top:.3rem">0/500</div>';
+    html += '</div>';
+    html += '<div style="flex:1;padding:.8rem;display:flex;flex-direction:column;gap:.5rem;position:relative">';
+    html += '<div style="position:absolute;top:.5rem;right:.5rem;width:34px;height:42px;border:1px dashed #8a7a50;display:flex;align-items:center;justify-content:center;color:#8a7a50"><i class="ti ti-stamp" style="font-size:1rem"></i></div>';
+    html += '<label style="font-family:Bebas Neue,sans-serif;font-size:.62rem;letter-spacing:.1em;color:#6a5a30;margin-top:1.7rem">Destinataire</label>';
+    html += '<select id="carte-postale-destinataire" style="width:100%;background:#fffdf6;border:1px solid #8a7a50;color:#2a2010;padding:.35rem;font-family:Crimson Pro,serif;font-size:.8rem;outline:none"><option value="">— Choisir —</option>';
+    destinataires.forEach(j => { html += '<option value="' + esc(j.name) + '">' + esc(j.name) + '</option>'; });
+    html += '</select>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div style="margin-top:.8rem;text-align:right">';
+    html += '<button id="carte-postale-envoyer-btn" onclick="envoyerCartePostale(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer"><i class="ti ti-send"></i> Envoyer</button>';
+    html += '</div></div>';
+
+    document.getElementById('carte-postale-body').innerHTML = html;
+    const ta = document.getElementById('carte-postale-message');
+    const compteur = document.getElementById('carte-postale-compteur');
+    if (ta && compteur) ta.addEventListener('input', () => { compteur.textContent = ta.value.length + '/500'; });
+  });
+}
+
+function fermerModalCartePostale() {
+  document.getElementById('modal-carte-postale')?.classList.remove('open');
+}
+
+// Envoi (point 9) : strategie fail-closed. Le transfert distant (sbDonnerObjetJoueur, deja
+// generique et deja sur pour les dons entre joueurs -- objets_recus, full JSON, lu par
+// verifierObjetsRecus) est tente EN PREMIER, avant toute mutation locale. Le retrait de
+// l'inventaire de l'expediteur ne survient QUE si ce transfert a reellement reussi : en cas
+// d'echec reseau, la carte reste intacte et rien n'a ete cree cote destinataire -- ni perte, ni
+// duplication possible dans aucun des deux cas. L'id de l'exemplaire (pose a l'achat,
+// commanderProduitCommerce) est conserve tel quel via le spread -- identite unique preservee.
+async function envoyerCartePostale(idx) {
+  const item = state.inventory[idx];
+  if (!item || item.familleProduitMarche !== 'carte_postale' || item.etatCarte !== 'vierge') return;
+
+  const destinataire = document.getElementById('carte-postale-destinataire')?.value?.trim();
+  const message = document.getElementById('carte-postale-message')?.value?.trim();
+  const moi = state.char?.name || 'Anonyme';
+
+  if (!destinataire) { showToast('Destinataire manquant', 'Choisissez un joueur destinataire.', false); return; }
+  if (destinataire === moi) { showToast('Destinataire invalide', 'Vous ne pouvez pas vous envoyer une carte à vous-même.', false); return; }
+  if (!message) { showToast('Message vide', 'Écrivez un message avant d\'envoyer.', false); return; }
+
+  const btn = document.getElementById('carte-postale-envoyer-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.5'; }
+
+  if (typeof sbDonnerObjetJoueur !== 'function') {
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    showToast('Envoi impossible', 'Le service de courrier est indisponible pour le moment.', false);
+    return;
+  }
+
+  const carteEcrite = Object.assign({}, item, {
+    etatCarte: 'ecrite',
+    auteur: moi,
+    destinataireInitial: destinataire,
+    message: message.slice(0, 500),
+    dateEnvoi: typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toISOString(),
+    bonusDeclenche: false
+  });
+
+  const ok = await sbDonnerObjetJoueur(carteEcrite, destinataire, moi).then(() => true).catch(() => false);
+  if (!ok) {
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    showToast('Envoi échoué', 'Erreur réseau, la carte n\'a pas pu être envoyée. Réessayez.', false);
+    return;
+  }
+
+  state.inventory.splice(idx, 1);
+  renderInventory();
+  fermerModalCartePostale();
+  showToast('Carte envoyée', 'Votre carte postale a été envoyée à ' + destinataire + '.', true, true);
+  addJournalEntry('Vous avez envoyé une carte postale à ' + destinataire + '.', 'event-info');
+
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+}
+
+// Lecture (points 11/12/13/14/15). Affichage TOUJOURS possible (donnee deja possedee localement,
+// aucun appel reseau necessaire pour simplement lire) -- seul le declenchement du bonus depend
+// d'un appel reseau, et uniquement pour le lecteur qui est le VRAI destinataire initial (un tiers
+// qui recupererait la carte plus tard -- don/abandon/ramassage -- peut lire mais ne declenche
+// jamais rien, point 13). echappement systematique via escapeHtmlText avant toute insertion HTML,
+// y compris pour un tiers lecteur : meme convention, aucune exception.
+async function lireCartePostale(idx) {
+  const item = state.inventory[idx];
+  if (!item || item.familleProduitMarche !== 'carte_postale' || item.etatCarte !== 'ecrite') return;
+
+  const esc = typeof escapeHtmlText === 'function' ? escapeHtmlText : (s => String(s == null ? '' : s));
+  const messageHtml = esc(item.message || '').replace(/\n/g, '<br>');
+
+  document.getElementById('carte-postale-modal-title').textContent = 'Lecture — ' + esc(item.name);
+  let html = '<div style="padding:1rem">';
+  html += '<div style="display:flex;border:1px solid #6a5a30;background:#f0ead6;min-height:200px">';
+  html += '<div style="flex:1.5;border-right:1px solid #8a7a50;padding:.8rem;color:#2a2010;font-family:\'Great Vibes\',cursive;font-size:1.25rem;line-height:1.7">' + messageHtml + '</div>';
+  html += '<div style="flex:1;padding:.8rem;color:#2a2010;font-family:Crimson Pro,serif;font-size:.8rem">';
+  html += '<div style="margin-bottom:.5rem"><strong>De :</strong> ' + esc(item.auteur || '?') + '</div>';
+  html += '<div style="margin-bottom:.5rem"><strong>À :</strong> ' + esc(item.destinataireInitial || '?') + '</div>';
+  html += '<div style="color:#6a5a30;font-size:.7rem">' + esc(item.dateEnvoi || '') + '</div>';
+  html += '</div></div></div>';
+  document.getElementById('carte-postale-body').innerHTML = html;
+  document.getElementById('modal-carte-postale').classList.add('open');
+
+  const moi = state.char?.name || '';
+  if (item.bonusDeclenche || item.destinataireInitial !== moi) return;
+
+  // Ordre fail-closed : la file distante (impacts_indices_attente, deja generique -- credite
+  // l'expediteur, potentiellement hors-ligne, a sa prochaine connexion via
+  // recupererImpactsEnAttente, plateau-communication.js) est ecrite EN PREMIER. bonusDeclenche
+  // n'est fixe QUE si cette ecriture est CONFIRMEE (valeur non-null retournee, jamais une simple
+  // absence d'exception reseau -- sbDeposerImpactIndice/sbInsert renvoient null sur tout echec
+  // HTTP, y compris permission/serveur, sans lever d'exception). Un vrai echec (resultat null)
+  // laisse le flag a false : une relecture ulterieure retentera proprement. Idempotence du retry
+  // lui-meme : sbDeposerImpactIndice utilise resolution=ignore-duplicates (supabase.js) -- un
+  // retry apres un accuse de reception reseau perdu (le premier depot avait en realite reussi
+  // cote serveur) revient avec un succes HTTP propre au lieu d'une erreur de doublon, donc jamais
+  // de carte bloquee definitivement ni de seconde ligne creee pour le meme id.
+  if (typeof sbDeposerImpactIndice !== 'function') return;
+  const resultat = await sbDeposerImpactIndice({
+    id: 'cartepostale-' + item.id,
+    victime: item.auteur,
+    indice: 'moral_carte_postale',
+    delta: 10,
+    traite: false
+  }).catch(() => null);
+  if (!resultat) return;
+
+  item.bonusDeclenche = true;
+
+  // Plafond quotidien LECTEUR (regle definitive de Fred) : au plus une seule occurrence de ce
+  // bonus par jour reel (Europe/Paris), toutes cartes/expediteurs confondus. Verifie ici, cote
+  // lecteur (necessairement en ligne). Note : le flag bonusDeclenche est deja fixe ci-dessus
+  // meme si le plafond du jour est deja atteint -- l'opportunite de LA CARTE est consommee des
+  // que le credit expediteur a ete confirme en file, independamment du plafond propre du lecteur
+  // ce jour-la (sinon une relecture le meme jour redeposerait un second credit expediteur pour la
+  // meme carte : duplication). cartePostaleMoralJour est une colonne PERSISTEE (personnages.
+  // carte_postale_moral_jour, supabase.js) -- jamais un state.* implicitement suppose sauvegarde
+  // (audit du 23 aout 2026 : un simple state.* nouveau n'est PAS retourne par sbSavePersonnage,
+  // qui n'ecrit qu'une liste explicite de colonnes -- sans cette colonne dediee, le plafond etait
+  // contournable par un simple refresh).
+  const jourDuJour = typeof dateReelleParisStr === 'function' ? dateReelleParisStr() : null;
+  if (!state.cartePostaleMoralJour) state.cartePostaleMoralJour = { lecteur: null, expediteur: null };
+  if (jourDuJour && state.cartePostaleMoralJour.lecteur !== jourDuJour) {
+    state.moral = Math.min(100, Math.max(0, (state.moral || 0) + 10));
+    state.cartePostaleMoralJour.lecteur = jourDuJour;
+    if (typeof updateUI === 'function') updateUI();
+    showToast('Belle surprise', 'Cette carte postale vous touche. +10 Moral.', true, true);
+    addJournalEntry('Vous avez lu une carte postale de ' + esc(item.auteur) + '. +10 Moral.', 'event-good');
+  }
+
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 }
 

@@ -2815,6 +2815,72 @@ const PRODUITS_MARCHE = {
     categorie: 'objet', image: null, icon: 'ti-meat',
     materiaux: { cereales: 1, viande: 1, fruits_legumes: 1 }, pa: 1, portions: 8,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
+  },
+  // Lot 4 (23 aout 2026) : 9 cartes postales (3 par ville), noms/themes valides par Fred.
+  // image:null en attente des noms de fichiers definitifs des 9 visuels (deja crees dans
+  // ~/Downloads mais jamais copies/devines ici -- Fred fournira les chemins). Meme moteur
+  // bois/pa/portions -> coutRevientPortionRecette/prixVenteAutoPNJ, aucun prix fixe a la main :
+  // materiaux:{bois:1}, pa:1, portions:16 (correction economique validee par Fred le 23 aout
+  // 2026, apres le calibrage initial portions:8 du meme jour) -> cout matieres 5 FR + cout PA
+  // 50 FR = 55 FR de production totale, divise par 16 cartes -> cout de revient unitaire
+  // 3,4375 FR, prix vente automatique 7 FR pour les 9 (identique, aucune matiere supplementaire
+  // n'a de raison de varier par ville pour un simple carton). categorie:'objet',
+  // pas d'effets (jamais consomme). familleProduitMarche:'carte_postale' -> objet individualise
+  // avec etatCarte:'vierge'/'ecrite' (voir commanderProduitCommerce, ouvrirDetailObjetInventaire,
+  // ouvrirEcrireCartePostale/envoyerCartePostale/lireCartePostale, plateau-personnage.js).
+  carte_psm_notre_dame_mer: {
+    id: 'carte_psm_notre_dame_mer', label: 'Carte postale — Notre-Dame de la Mer', familleProduitMarche: 'carte_postale',
+    categorie: 'objet', image: null, icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
+  },
+  carte_psm_touristique: {
+    id: 'carte_psm_touristique', label: 'Carte postale — Souvenir de Port-Sainte-Marie', familleProduitMarche: 'carte_postale',
+    categorie: 'objet', image: null, icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
+  },
+  carte_psm_culture_marine: {
+    id: 'carte_psm_culture_marine', label: 'Carte postale — Traditions de la Marine', familleProduitMarche: 'carte_postale',
+    categorie: 'objet', image: null, icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
+  },
+  carte_montrouge_place_rail: {
+    id: 'carte_montrouge_place_rail', label: 'Carte postale — Place du Rail', familleProduitMarche: 'carte_postale',
+    categorie: 'objet', image: null, icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
+  },
+  carte_montrouge_touristique: {
+    id: 'carte_montrouge_touristique', label: 'Carte postale — Souvenir de Montrouge', familleProduitMarche: 'carte_postale',
+    categorie: 'objet', image: null, icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
+  },
+  carte_montrouge_musee_rail: {
+    id: 'carte_montrouge_musee_rail', label: 'Carte postale — Musée du Rail', familleProduitMarche: 'carte_postale',
+    categorie: 'objet', image: null, icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
+  },
+  carte_luthecia_institutions: {
+    id: 'carte_luthecia_institutions', label: 'Carte postale — Institutions de Luthécia', familleProduitMarche: 'carte_postale',
+    categorie: 'objet', image: null, icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
+  },
+  carte_luthecia_internationale: {
+    id: 'carte_luthecia_internationale', label: 'Carte postale — Luthécia, ville internationale', familleProduitMarche: 'carte_postale',
+    categorie: 'objet', image: null, icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
+  },
+  carte_luthecia_culture: {
+    id: 'carte_luthecia_culture', label: 'Carte postale — Musées et Jardin botanique', familleProduitMarche: 'carte_postale',
+    categorie: 'objet', image: null, icon: 'ti-mail',
+    materiaux: { bois: 1 }, pa: 1, portions: 16,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   }
 };
 
@@ -3688,6 +3754,12 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
       // demandee par la regle de design. Jamais reinitialise ensuite (depot/ramassage/don ne
       // touchent jamais ce champ, simple metadonnee JSON transportee telle quelle).
       if (recette.familleProduitMarche === 'aliment') objet.dateAchat = Date.now();
+      // Carte postale (Lot 4, 23 aout 2026) : etatCarte est la SEULE metadonnee qui distingue une
+      // carte vierge d'une carte ecrite -- familleProduitMarche seul ne suffit pas (partage par
+      // les 9 modeles). Aucune autre donnee posee ici : auteur/destinataire/message/dateEnvoi
+      // n'existent qu'a partir de l'envoi (envoyerCartePostale, plateau-personnage.js), jamais
+      // avant. bonusDeclenche n'est ajoute qu'a l'envoi egalement (inutile sur une carte vierge).
+      if (recette.familleProduitMarche === 'carte_postale') objet.etatCarte = 'vierge';
       addToInventory(objet);
     }
   } else {

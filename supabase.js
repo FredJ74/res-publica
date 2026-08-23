@@ -23,10 +23,15 @@ async function sbGet(table, filters = '') {
   return res.json();
 }
 
-async function sbInsert(table, data) {
+// preferResolution (optionnel, Lot 4 -- cartes postales, 23 aout 2026) : ajoute
+// "resolution=<valeur>" au Prefer PostgREST (ex. 'ignore-duplicates', equivalent a
+// ON CONFLICT DO NOTHING). Retrocompatible : tous les appelants existants (dizaines, deux
+// arguments) gardent exactement le meme comportement, seul un appel a 3 arguments est affecte.
+async function sbInsert(table, data, preferResolution) {
+  const prefer = preferResolution ? `return=representation,resolution=${preferResolution}` : 'return=representation';
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
-    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+    headers: { ...SB_HEADERS, 'Prefer': prefer },
     body: JSON.stringify(data)
   });
   if (!res.ok) { console.error('sbInsert error', await res.text()); return null; }
@@ -132,6 +137,15 @@ async function sbSavePersonnage(charState) {
     invitation_sociale_en_attente: charState._invitationSocialeEnAttente || null,
     convocations:     charState.convocations || [],
     est_emprisonne:   charState.estEmprisonne || null,
+    // Plafonds quotidiens Moral des cartes postales (Lot 4, 23 aout 2026) : meme motif que
+    // salutations_du_jour ci-dessus (une colonne dediee, jamais une cle ajoutee a un state.*
+    // implicitement suppose persiste). {lecteur, expediteur} : date reelle Europe/Paris
+    // (dateReelleParisStr, plateau-core.js) de la derniere occurrence de chaque bonus, ou null.
+    // AUDIT (23 aout 2026) : sans cette colonne, ces deux plafonds n'etaient QUE des state.*
+    // en memoire, jamais retournes par cette fonction -- perdus a chaque refresh/reconnexion,
+    // plafond quotidien entierement contournable. Colonne a creer manuellement, voir
+    // migration_carte_postale.sql -- absente tant que la migration n'a pas ete executee.
+    carte_postale_moral_jour: charState.cartePostaleMoralJour || null,
     motto:            charState.char?.motto || null,
     licence_sportive: charState.char?.licenceSportive || null,
     performance_sportive: charState.char?.performance || null,
@@ -207,7 +221,8 @@ async function sbLoadPersonnage(name) {
     salutationsDuJour: r.salutations_du_jour || null,
     _invitationSocialeEnAttente: r.invitation_sociale_en_attente || null,
     convocations:  r.convocations || [],
-    estEmprisonne: r.est_emprisonne || null
+    estEmprisonne: r.est_emprisonne || null,
+    cartePostaleMoralJour: r.carte_postale_moral_jour || null
   };
 }
 
@@ -1973,8 +1988,15 @@ async function sbGetActionsTracablesParAuteur(country, auteur, typeAction, jourA
 // =====================
 // IMPACTS D'INDICES EN ATTENTE (generique, applique a la victime a sa prochaine connexion)
 // =====================
+// resolution=ignore-duplicates (Lot 4, 23 aout 2026, audit idempotence) : si un appelant retente
+// ce depot avec exactement le meme id (ex. accuse de reception reseau perdu apres un premier
+// succes serveur -- lireCartePostale, plateau-personnage.js), Postgres traite la ligne deja
+// existante comme "rien a faire" -- succes HTTP propre -- au lieu d'une erreur de contrainte.
+// Necessaire pour qu'un appelant puisse determiner de facon fiable "cette ligne existe-t-elle
+// reellement en base ?" a partir de la seule valeur de retour (non-null = oui), sans jamais
+// pouvoir se retrouver bloque par un doublon qu'il ne peut plus jamais confirmer.
 async function sbDeposerImpactIndice(impact) {
-  return sbInsert('impacts_indices_attente', impact);
+  return sbInsert('impacts_indices_attente', impact, 'ignore-duplicates');
 }
 
 async function sbRecupererImpactsEnAttente(victime) {
