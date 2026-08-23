@@ -1811,13 +1811,31 @@ function getMembresGroupeAvecStat(stat) {
 // lie aux HP. A utiliser partout ou une stat compte (CHA pour se defendre, etc.) au lieu de
 // lire state.char.stats directement. Retrocompatible : joueur seul (aucun employe inGroupe)
 // -> moyenne d'un seul element = sa propre valeur, comportement strictement identique a avant.
+// Bonus ENT local (Lot 2, objets d'integration -- 23 aout 2026) : +1 non cumulable tant qu'au
+// moins un objet familleProduitMarche:'integration_locale' de l'inventaire a
+// bonusIntegrationVille === state.currentCity. Fonction independante (jamais fusionnee dans
+// getStatEffective directement) : reutilisee telle quelle par l'affichage ENT (plateau-core.js)
+// sans jamais entrainer la logique de moyenne de groupe -- seule getStatEffective doit tenir
+// compte du groupe, pas ce bonus purement personnel. Relit l'inventaire a chaque appel, aucun
+// etat mis en cache : deposer/donner/detruire l'objet fait donc disparaitre le bonus des le
+// prochain appel, sans code supplementaire. Jamais d'ecriture dans state.char.stats.
+function bonusEntIntegrationLocale() {
+  return (state.inventory || []).some(i =>
+    i && i.familleProduitMarche === 'integration_locale' && i.bonusIntegrationVille === state.currentCity
+  ) ? 1 : 0;
+}
+
 function getStatEffective(stat) {
   const valeursGroupe = getMembresGroupeAvecStat(stat);
   const base = valeursGroupe.length > 0
     ? valeursGroupe.reduce((s, v) => s + v, 0) / valeursGroupe.length
     : (state.char?.stats?.[stat] ?? 8);
   const bonus = (state.char?.bonusFormation?.stat === stat) ? (state.char.bonusFormation.valeur || 0) : 0;
-  const valeurNormale = base + bonus;
+  // Bonus ENT local (Lot 2) : n'affecte QUE stat==='ENT', court-circuite avant tout appel a
+  // bonusEntIntegrationLocale() pour les 5 autres caracteristiques -- comportement et cout
+  // strictement inchanges pour tous les autres appelants de cette fonction.
+  const bonusLocal = (stat === 'ENT') ? bonusEntIntegrationLocale() : 0;
+  const valeurNormale = base + bonus + bonusLocal;
   if (state.statsAffaiblies && state.statsAffaiblies[stat] !== undefined) {
     const fraction = Math.max(0, Math.min(1, (state.hp || 0) / 100));
     return Math.max(1, Math.round(valeurNormale * fraction));

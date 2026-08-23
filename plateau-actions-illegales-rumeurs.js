@@ -2762,7 +2762,36 @@ const RECETTES_ALIMENTAIRES = {
 const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postale'];
 
 // Registre distinct, volontairement VIDE dans ce lot (aucun produit concret cree -- Lots 2/3/4).
-const PRODUITS_MARCHE = {};
+// Lot 2 (23 aout 2026) : 3 objets d'integration locale, rendement/couts valides par Fred (audit
+// dedie). pa:1/portions:2 pour les 3 -- coutRevientPortionRecette/prixVenteAutoPNJ inchangees,
+// prix jamais fixe a la main : Casquette 55 FR, T-shirt 60 FR, Echarpe 66 FR attendus une fois
+// dotees (Lot 3, marches non branches ici). bonusIntegrationVille est une metadonnee DEDIEE au
+// bonus ENT (Lot 2, getStatEffective) -- deliberement distincte de villeOrigine (simple
+// provenance de l'objet, recopiee separement a l'achat, jamais utilisee pour le bonus). Pas
+// d'effets (categorie objet, jamais consomme), pas d'image dediee pour l'instant.
+const PRODUITS_MARCHE = {
+  tshirt_psm: {
+    id: 'tshirt_psm', label: 'T-shirt de Port-Sainte-Marie', familleProduitMarche: 'integration_locale',
+    categorie: 'objet', image: null, icon: 'ti-shirt',
+    materiaux: { textile: 2 }, pa: 1, portions: 2,
+    bonusIntegrationVille: 'ville_a',
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
+  },
+  casquette_montrouge: {
+    id: 'casquette_montrouge', label: 'Casquette de cheminot', familleProduitMarche: 'integration_locale',
+    categorie: 'objet', image: null, icon: 'ti-shirt',
+    materiaux: { textile: 1 }, pa: 1, portions: 2,
+    bonusIntegrationVille: 'ville_b',
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
+  },
+  echarpe_luthecia: {
+    id: 'echarpe_luthecia', label: 'Écharpe en soie', familleProduitMarche: 'integration_locale',
+    categorie: 'objet', image: null, icon: 'ti-shirt',
+    materiaux: { textile: 2, produits_exotiques: 1 }, pa: 1, portions: 2,
+    bonusIntegrationVille: 'capitale',
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
+  }
+};
 
 // Resolveur generique -- SEULE piece necessaire pour que le moteur commerce (deja generique)
 // reste unique sans forcer les objets non-alimentaires dans RECETTES_ALIMENTAIRES. Remplace,
@@ -3604,11 +3633,35 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
     data.caisse = (data.caisse || 0) + net;
   }
 
-  const effets = recette.effets || {};
-  if (effets.hp) state.hp = Math.min(100, Math.max(0, (state.hp || 0) + effets.hp));
-  if (effets.moral) state.moral = Math.min(100, Math.max(0, (state.moral || 0) + effets.moral));
-  if (effets.pop) state.pop = Math.min(100, Math.max(0, (state.pop || 0) + effets.pop));
-  if (effets.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + effets.paDiffere;
+  // Produit de marche non-alimentaire (Lot 2, familleProduitMarche present) : objet individualise
+  // en inventaire, JAMAIS d'effet immediat -- chemin distinct de celui des recettes alimentaires
+  // ci-dessous, qui reste strictement inchange (branche else). id unique par exemplaire (pas
+  // seulement l'id de recette) : necessaire pour la compatibilite depot/ramassage
+  // (sbAbandonnerObjet utilise objet.id comme cle primaire dans objets_abandonnes -- deux
+  // exemplaires partageant le meme id se remplaceraient l'un l'autre). villeOrigine = simple
+  // provenance (ou l'objet a ete achete), distincte de bonusIntegrationVille (recopiee telle
+  // quelle depuis la recette, utilisee uniquement par getStatEffective, Lot 2). Pas de
+  // stackable : addToInventory (deja generique, plateau-divers.js) pousse alors un objet a part,
+  // charge 1 naturelle, aucune extension du systeme d'inventaire.
+  const effets = recette.familleProduitMarche ? {} : (recette.effets || {});
+  if (recette.familleProduitMarche) {
+    if (typeof addToInventory === 'function') {
+      addToInventory({
+        id: recetteId + '_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        type: recetteId,
+        name: recette.label,
+        icon: recette.icon || 'ti-package',
+        villeOrigine: ville,
+        familleProduitMarche: recette.familleProduitMarche,
+        bonusIntegrationVille: recette.bonusIntegrationVille || null
+      });
+    }
+  } else {
+    if (effets.hp) state.hp = Math.min(100, Math.max(0, (state.hp || 0) + effets.hp));
+    if (effets.moral) state.moral = Math.min(100, Math.max(0, (state.moral || 0) + effets.moral));
+    if (effets.pop) state.pop = Math.min(100, Math.max(0, (state.pop || 0) + effets.pop));
+    if (effets.paDiffere) state.bonusPaProchainDormir = (state.bonusPaProchainDormir || 0) + effets.paDiffere;
+  }
 
   ajouterHistoriqueEntreprise(data, net, 'Vente — ' + recette.label + ' — ' + (state.char?.name || 'Anonyme'));
   await sbSaveEntreprise(data.id, data);

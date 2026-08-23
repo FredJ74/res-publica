@@ -804,11 +804,22 @@ function applyCharToState(char) {
 
   if (char.stats) {
     const statGrid = document.getElementById('stat-mini-grid');
-    if (statGrid) statGrid.innerHTML = STAT_DEFS.map(({k}) => `
+    // Correctif d'affichage cible (Lot 2, objets d'integration locale, 23 aout 2026) : SEULE la
+    // ligne ENT gagne un suffixe "(+1)" quand bonusEntIntegrationLocale() est actif -- les 5
+    // autres caracteristiques restent affichees telles quelles (valeur brute char.stats[k]),
+    // strictement inchangees. Volontairement PAS getStatEffective('ENT') ici : cette fonction
+    // inclut aussi la moyenne de groupe, ce qui produirait un delta trompeur si un groupe est
+    // actif -- bonusEntIntegrationLocale() est un calcul independant, purement personnel.
+    if (statGrid) statGrid.innerHTML = STAT_DEFS.map(({k}) => {
+      const brut = char.stats[k] || 8;
+      const suffixeEnt = (k === 'ENT' && typeof bonusEntIntegrationLocale === 'function' && bonusEntIntegrationLocale())
+        ? ' <span style="color:#6ab858">(+1)</span>' : '';
+      return `
       <div class="stat-mini">
         <div class="stat-mini-name">${k}</div>
-        <div class="stat-mini-val">${char.stats[k]||8}</div>
-      </div>`).join('');
+        <div class="stat-mini-val">${brut}${suffixeEnt}</div>
+      </div>`;
+    }).join('');
   }
 
   const cur = co?.cur || 'FR';
