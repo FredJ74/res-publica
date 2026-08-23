@@ -265,6 +265,51 @@ const WORLD = {
       isCapitale: false,
       buildings: ['hotel-port','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','bar-des-pecheurs','imprimerie-librairie','centre-multinodal-port-sainte-marie','port-sainte-marie','port-plaisance-psm','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-8','terrain-a-batir-9','terrain-a-batir-10','terrain-a-batir-11','stade','zone-production','capitaine-sauvage','chasse-peche-psm','place-armes-psm','ecole-marine','chantier-naval','notre-dame-mer','phare-psm','marche-psm','musee-port-sainte-marie','pole-tabac-alcools-psm','entrepot-logistique-psm'],
       buildingContext: {
+        // Rattrapage fonctionnel de la mairie de PSM (audit dedie, meme jour) : modele
+        // structurel identique a celui deja utilise pour Montrouge (roomOverrides +
+        // roomsExtra, BUILDINGS['mairie'] partage inchange). objet_trouve ajoute a
+        // accueil_mairie (ordre generique deja utilise a Luthecia, aucune nouvelle
+        // mecanique). salle_elections/salle_archives ajoutees via roomsExtra, memes
+        // ordres/handlers que Montrouge -- consulter_mandats_maires volontairement absent
+        // (contenu hardcode Luthecia, meme raison que Montrouge). Logements sociaux
+        // volontairement absents (specifiques a Montrouge, non demandes ici). Aucun PNJ,
+        // aucun visuel nouveau -- image emoji seule (deja la convention du template de
+        // base BUILDINGS['mairie'] pour accueil_mairie/bureau_maire_local), memes
+        // imageBg que Luthecia/Montrouge pour ces 2 rooms.
+        'mairie': {
+          name: "Hôtel de Ville de Port-Sainte-Marie",
+          roomOverrides: {
+            accueil_mairie: {
+              orders: [
+                {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'}
+              ]
+            }
+          },
+          roomsExtra: {
+            salle_elections: {
+              name: "Salle des Élections",
+              image: "🗳️",
+              imageBg: "linear-gradient(135deg,#0f1810,#142014)",
+              desc: "La salle où sont gérés les scrutins et candidatures officielles de la ville.",
+              persons: [],
+              orders: [
+                {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
+                {fn:'contester_resultats',  label:'Contester des resultats',    pa:3, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:40,  desc:'Contester le resultat d\'une election. Long processus.'},
+                {fn:'falsifier_docs',       label:'Falsifier une liste',        pa:3, cost:500,  type:'illegal', icon:'ti-file-x',        successRate:35,  desc:'Manipuler les listes electorales. Tres risque.'}
+              ]
+            },
+            salle_archives: {
+              name: "Salle des Archives",
+              image: "📜",
+              imageBg: "linear-gradient(135deg,#100c08,#181410)",
+              desc: "L'état-civil et les archives administratives de la ville. Poussiéreux, mais tout y est.",
+              persons: [],
+              orders: [
+                {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."}
+              ]
+            }
+          }
+        },
         'dispensaire-public-v': {
           persons: [{name:'Betty Dine (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}]
         },
