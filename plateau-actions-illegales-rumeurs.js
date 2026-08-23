@@ -3035,7 +3035,15 @@ const BUILDING_COMMERCE_TYPE = {
   // ci-dessus. type 'marche' (meme moteur/meme doctrine caisse institutionnelle que Luthecia/
   // Montrouge, COMMERCE_SANS_CAISSE_AUTONOME.marche = 'marche' ci-dessous) -- getCommerceId()
   // le scope deja a Port-Sainte-Marie (ville_a), entierement distinct des deux autres marches.
-  'marche-psm|etals': 'marche'
+  'marche-psm|etals': 'marche',
+  // Bar des Pecheurs (Port-Sainte-Marie, audit dedie puis raccordement du meme jour) : type
+  // 'bar', meme moteur que le Bar du Republica (hotel-republica|bar) -- caisse AUTONOME
+  // (data.caisse, 'bar' absent de COMMERCE_SANS_CAISSE_AUTONOME ci-dessous, aucun risque du bug
+  // fonds de roulement institutionnel decouvert sur les marches). Cle room-scopee (le batiment
+  // 'bar-des-pecheurs' a une 2e room, arriere_salle, un local a louer sans rapport avec ce
+  // commerce). getCommerceId() scope deja ce commerce a Port-Sainte-Marie (ville_a),
+  // entierement distinct du Bar du Republica.
+  'bar-des-pecheurs|salle_bar': 'bar'
 };
 
 // Types de commerce sans caisse autonome (paiement client/salaire de production routes vers la
@@ -3379,6 +3387,26 @@ const DOTATIONS_COMMERCE_PILOTE = {
       cafe_boisson: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.cafe_boisson)),
       biere_pression: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.biere_pression)),
       vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin)),
+      snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
+    };
+  },
+  // Bar des Pecheurs (Port-Sainte-Marie) -- meme moteur que le Bar du Republica ci-dessus, caisse
+  // autonome dotee a 2000 FR (alignee sur Bar du Republica/Cafe de la Gare, decision de Fred,
+  // audit dedie du fonds de roulement des marches). Carte de base = les 5 recettes deja
+  // typesAutorises:['bar'] (biere_pression/vin/cafe_boisson/boisson_sans_alcool/snack_buvette),
+  // aucune recette modifiee. Specialite locale PSM PAS encore ajoutee : proposee au rapport de ce
+  // lot, en attente du choix de Fred avant tout ajout a cette carte.
+  'bar-des-pecheurs|salle_bar': function(data) {
+    data.caisse = 2000;
+    data.stockMatieres = { cereales: 10, fruits_legumes: 10, produits_exotiques: 10 };
+    data.coutMoyenMatieres = { cereales: 3, fruits_legumes: 4, produits_exotiques: 6 };
+    data.carte = ['biere_pression', 'vin', 'cafe_boisson', 'boisson_sans_alcool', 'snack_buvette'];
+    data.parametres.stockMax = { biere_pression: 20, vin: 20, cafe_boisson: 20, boisson_sans_alcool: 20, snack_buvette: 20 };
+    data.parametres.prixVente = {
+      biere_pression: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.biere_pression)),
+      vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin)),
+      cafe_boisson: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.cafe_boisson)),
+      boisson_sans_alcool: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boisson_sans_alcool)),
       snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
     };
   },
