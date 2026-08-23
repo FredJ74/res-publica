@@ -3043,7 +3043,16 @@ const BUILDING_COMMERCE_TYPE = {
   // 'bar-des-pecheurs' a une 2e room, arriere_salle, un local a louer sans rapport avec ce
   // commerce). getCommerceId() scope deja ce commerce a Port-Sainte-Marie (ville_a),
   // entierement distinct du Bar du Republica.
-  'bar-des-pecheurs|salle_bar': 'bar'
+  'bar-des-pecheurs|salle_bar': 'bar',
+  // Hotel du Port (Port-Sainte-Marie, audit dedie puis raccordement du meme jour) : remplace le
+  // reliquat se_nourrir (jamais migre, contrairement a hotel-mineur/Montrouge qui a recu ce
+  // correctif le 2026-08-16) par le meme moteur 'cafe' (petit-dejeuner). Cle room-scopee
+  // (buildingId 'hotel-port' dedie a une seule ville, mais coherence avec le principe
+  // buildingId|roomId des autres commerces PSM ci-dessus) -- getCommerceId() scope deja ce
+  // commerce a Port-Sainte-Marie (ville_a), entierement distinct de l'Hotel des Mineurs de
+  // Montrouge (id different : cafe-republic-ville_a-hotel-port-hall_port vs
+  // cafe-republic-ville_b-hotel-mineur, aucune caisse/stock/carte partagee).
+  'hotel-port|hall_port': 'cafe'
 };
 
 // Types de commerce sans caisse autonome (paiement client/salaire de production routes vers la
@@ -3329,6 +3338,19 @@ const DOTATIONS_COMMERCE_PILOTE = {
     data.coutMoyenMatieres = { cereales: 3 };
     data.carte = ['petit_dejeuner'];
     data.parametres.stockMax = { petit_dejeuner: 20 }; // plafonne (lot plafonds, 21 aout 2026, etait 30)
+    data.parametres.prixVente = { petit_dejeuner: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.petit_dejeuner)) };
+  },
+  // Hotel du Port (Port-Sainte-Marie, meme jour) : dotation calquee a l'identique sur hotel-mineur
+  // (meme offre petit-dejeuner seul, meme dotation la plus modeste) -- cle room-scopee
+  // 'hotel-port|hall_port' (coherente avec BUILDING_COMMERCE_TYPE ci-dessus), commerce et donnees
+  // (caisse/stock/carte) entierement distincts de ceux de hotel-mineur (id different, voir
+  // getCommerceId()).
+  'hotel-port|hall_port': function(data) {
+    data.caisse = 1000;
+    data.stockMatieres = { cereales: 10 };
+    data.coutMoyenMatieres = { cereales: 3 };
+    data.carte = ['petit_dejeuner'];
+    data.parametres.stockMax = { petit_dejeuner: 20 };
     data.parametres.prixVente = { petit_dejeuner: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.petit_dejeuner)) };
   },
   'stade|buvette': function(data) {

@@ -3221,8 +3221,20 @@ const BUILDINGS = {
         desc: "Hall de l'hotel. Matelots, commercants et gens de passage.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hotel-du-port-accueil.png",
         persons: [{name:'Patrone (PNJ)', role:'Gérante', rel:'neutral', job:'hotelier'}],
+        // Raccorde au moteur commerce generique (audit dedie puis correctif du meme jour) :
+        // remplace le reliquat se_nourrir (jamais migre -- doSeReposer('se_nourrir'), ancien
+        // chemin generique ignorant meme le cost declare ici, ne creditait aucune caisse) par
+        // exactement le meme quatuor d'ordres deja deploye a l'Hotel des Mineurs de Montrouge
+        // (produire_commerce/consulter_carte_commerce "Petit-dejeuner"/gerer_commerce/
+        // vendre_matiere_commerce -- voir BUILDING_COMMERCE_TYPE['hotel-port|hall_port'] et
+        // DOTATIONS_COMMERCE_PILOTE['hotel-port|hall_port'], plateau-actions-illegales-
+        // rumeurs.js). reserver_chambre_hotel inchange (PA/cout/desc), moteur reservation/
+        // sommeil non touche.
         orders: [
-          {fn:'se_nourrir', label:'Se nourrir',     pa:0, cost:20, type:'legal', icon:'ti-soup',  successRate:100},
+          {fn:'produire_commerce', label:'Préparer le petit-déjeuner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Pas de restaurant ici — juste une petite offre de petit-déjeuner (consomme les matières en stock, rémunéré en FR).'},
+          {fn:'consulter_carte_commerce', label:'Petit-déjeuner', pa:1, cost:0, type:'legal', icon:'ti-coffee', successRate:100, desc:'Voir l\'offre de petit-déjeuner et commander.'},
+          {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
           {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'}
         ]
       },
