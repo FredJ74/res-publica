@@ -193,7 +193,22 @@ const WORLD = {
         'la-tribune': {
           name: "L'Autruche Entravée",
           desc: "Le journal d'investigation de Républia.",
-          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png", "photoPos": "62% 20%"}]
+          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/jodie-moitout.png", "photoPos": "62% 20%"}],
+          // Tracts calomnieux (24 aout 2026) : ajoute UNIQUEMENT a l'accueil de La Tribune de
+          // Luthecia (republic/capitale) via roomOverrides.orders, fusion additive (voir
+          // allOrders, plateau-politique.js) -- les 4 ordres de base (se_renseigner/
+          // consulter_archives_presse/imprimer_tracts/vendre_bois_imprimerie) restent intacts,
+          // rien retire. Handler unique imprimer_tracts_calomnieux (plateau-communication.js),
+          // partage avec Montrouge/PSM -- aucune logique dupliquee. Ne touche pas redaction, ni
+          // les autres empires partageant le buildingId 'la-tribune' (chacun a son propre
+          // buildingContext, non modifie ici).
+          roomOverrides: {
+            accueil_tribune: {
+              orders: [
+                {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:0, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + bois en stock personnel.'}
+              ]
+            }
+          }
         },
         'loge-maconnique': {
           requiresMembership: 'loge',
@@ -453,13 +468,20 @@ const WORLD = {
             redaction:       { imageUrl: "images/montrouge/montrouge-lci-redaction.jpg" }
           },
           roomsExtra: {
+            // Tracts calomnieux (24 aout 2026) : ajoute dans cette room (deja creee, jusqu'ici
+            // purement spatiale/vide) -- meme handler generique imprimer_tracts_calomnieux que
+            // Luthecia (accueil_tribune) et PSM (atelier), aucune mecanique dupliquee. Room
+            // roomsExtra propre a Montrouge (ville_b) uniquement : aucune propagation vers
+            // Luthecia ni vers un autre empire partageant 'la-tribune'.
             imprimerie: {
               name: "Imprimerie / Reprographie",
               imageBg: "linear-gradient(135deg,#100808,#1c0c0c)",
               desc: "L'atelier d'impression du journal. Odeur d'encre et de papier.",
               imageUrl: "images/montrouge/montrouge-lci-imprimerie.jpg",
               persons: [],
-              orders: []
+              orders: [
+                {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:0, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + bois en stock personnel.'}
+              ]
             }
           }
         },
@@ -2072,8 +2094,7 @@ const BUILDINGS = {
           {fn:'consulter_organigramme_supporters', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Composition complete du club de supporters, visible de tous.'},
           {fn:'declencher_election_club', label:'Déclencher une élection', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Reserve aux membres. 3 jours de candidatures puis 3 jours de vote.'},
           {fn:'organiser_manifestation', label:'Organiser une manifestation', pa:2, cost:0, type:'legal', icon:'ti-megaphone', successRate:100, desc:'Reserve au president. Pour ou contre le maire. Intensite liee au nombre de membres.'},
-          {fn:'organiser_boycott', label:'Organiser un boycott', pa:2, cost:0, type:'legal', icon:'ti-ban', successRate:100, desc:'Reserve au president. Boycotte le prochain match a domicile.'},
-          {fn:'distribuer_tracts_match', label:'Distribuer des tracts avant le match', pa:2, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Reserve aux candidats declares. Efficacite liee a la frequentation et au classement du club.'}
+          {fn:'organiser_boycott', label:'Organiser un boycott', pa:2, cost:0, type:'legal', icon:'ti-ban', successRate:100, desc:'Reserve au president. Boycotte le prochain match a domicile.'}
         ]
       },
       bureau_president: {
@@ -3522,26 +3543,40 @@ const BUILDINGS = {
         name: "Accueil / Bureau",
         imageBg: "linear-gradient(135deg,#0f0d08,#1a1608)",
         desc: "Le bureau d'accueil de l'imprimerie. Odeur d'encre et de papier.",
-        imageUrl: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-imprimerie-accueil.png",
         persons: [
-          {name:'Gutenberg (Imprimeur)', role:'PNJ - Proprietaire imprimerie', rel:'neutral', job:'imprimeur'}
+          {name:'Annie Talique-Legall (PNJ)', role:'PNJ - Proprietaire imprimerie', rel:'neutral', job:'imprimeur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-imprimerie-annie-talique-legall.png', photoPos:'50% 25%'}
         ],
+        // Lot tracts electoraux/calomnieux (24 aout 2026) : imprimer_tracts (partage avec
+        // la-tribune) retire d'ici, remplace par imprimer_tracts_electoraux, fn dediee et
+        // PROPRE A PSM (aucun risque de toucher Luthecia/Montrouge, qui continuent d'utiliser
+        // imprimer_tracts/ouvrirModalImprimerTracts/confirmerImpression a l'identique). Cout
+        // reel : 1 PA + bois en stock personnel (voir BOIS_PAR_LOT_TRACTS_PSM,
+        // plateau-communication.js) -- pas de systeme caisse/stock institutionnel comme Gustave.
+        // imprimer_tracts_sportifs retire (mecanique abandonnee, voir plateau-organisations-
+        // quetes.js). imprimer_livre retire (abandonne, jamais eu d'effet reel utile).
         orders: [
-          {fn:'imprimer_tracts',  label:'Faire imprimer des tracts',  pa:2, cost:150, type:'legal',   icon:'ti-file-description', successRate:100, desc:'Choisir pour/contre + cible (repertoire) + quantite. Tracts en inventaire.'},
-          {fn:'imprimer_livre',   label:'Faire imprimer un livre',    pa:3, cost:500, type:'legal',   icon:'ti-book',             successRate:100, desc:'Publication d\'un ouvrage. Augmente la notoriete intellectuelle.'},
-          {fn:'imprimer_clandestin', label:'Impression clandestine',  pa:2, cost:300, type:'illegal', icon:'ti-eye-off',          successRate:70,  desc:'Documents non officiels, faux papiers, tracts interdits.'},
-          {fn:'imprimer_tracts_sportifs', label:'Imprimer des tracts pour un match', pa:1, cost:0, type:'legal', icon:'ti-file-description', successRate:100, desc:'A distribuer lors d\'un prochain match. Achat par lot de 50.'}
+          {fn:'imprimer_tracts_electoraux', label:'Imprimer des tracts électoraux', pa:1, cost:0, type:'legal', icon:'ti-file-description', successRate:100, desc:'Choisir un candidat en campagne. Produit un lot de 10 tracts en sa faveur. Coût : 1 PA + bois en stock personnel.'}
         ]
       },
       atelier: {
         name: "Atelier d'Imprimerie",
         imageBg: "linear-gradient(135deg,#0a0a08,#141208)",
         desc: "L'atelier en activite permanente. Presses, rouleaux d'encre, odeur caracteristique.",
-        imageUrl: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=1200&q=80",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-imprimerie-atelier.png",
+        // Ouvrier typographe (PNJ) conserve tel quel, purement visuel -- aucune mecanique dediee
+        // dans ce lot (aucun autre atelier du jeu n'a de PNJ avec fonction mecanique reelle).
         persons: [
           {name:'Ouvrier typographe (PNJ)', role:'PNJ - Typographe', rel:'neutral', job:'typographe'}
         ],
-        orders: []
+        // imprimer_clandestin renomme imprimer_tracts_calomnieux (24 aout 2026) : devient une
+        // vraie mecanique (campagne mensongere ciblee, -5 POP a la distribution). Reutilise le
+        // mecanisme de detection existant a l'impression (checkDetection/ACTES_ILLEGAUX, cle
+        // renommee a l'identique dans plateau-core.js). Cout reel : 1 PA + bois en stock
+        // personnel, meme principe que le tract electoral.
+        orders: [
+          {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:0, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + bois en stock personnel.'}
+        ]
       }
     }
   },
@@ -6495,8 +6530,6 @@ Object.assign(ORDER_EFFECTS, {
   se_rebeller:        {moral:5,          successRate:30},
   requete_avocat:     {inf:2,            successRate:100},
   imprimer_tracts:    {pop:5,  inf:3,    successRate:100},
-  imprimer_livre:     {pop:8,  inf:5,    successRate:100},
-  imprimer_clandestin:{dis:-4,           successRate:70},
   conference_presse:  {pop:15, inf:10,   successRate:100},
   annonce_officielle: {pop:5,  inf:5,    successRate:100},
   propagande_etat:    {pop:20,           successRate:75},

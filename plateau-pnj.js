@@ -518,6 +518,25 @@ function trouverElectionCandidatJoueur() {
   return null;
 }
 
+// Meme principe que trouverElectionCandidatJoueur ci-dessus, parametre par un nom de candidat
+// arbitraire (lot tracts electoraux PSM, 24 aout 2026) -- trouve le cycle electoral ou une
+// personne nommee est effectivement candidate, quel que soit le joueur courant. Reutilise pour
+// resoudre sans ambiguite la cible d'un tract electoral (choisie a l'impression) au moment de sa
+// distribution a un PNJ.
+function trouverElectionParCandidat(nomCandidat) {
+  const country = state.country;
+  const cycles = (typeof CYCLES_ELECTORAUX !== 'undefined' && CYCLES_ELECTORAUX[country]) || {};
+  if (!nomCandidat) return null;
+  const cles = Object.keys(cycles).sort();
+  for (const cle of cles) {
+    const cycle = cycles[cle];
+    if (!cycle || !cycle.candidats) continue;
+    if (!cycle.candidats.some(c => c.nom === nomCandidat)) continue;
+    return { posteId: cycle.posteId, city: cycle.city || null, country };
+  }
+  return null;
+}
+
 // Declenchee depuis la fiche d'un PNJ (bouton quete-specifique, voir openPnjModal) une fois le
 // joueur reellement candidat. Consomme un tract de mission Jean-Lou, garantit 3 PNJ distincts
 // pour CETTE quete, et n'ecrit une voix reelle QUE via enregistrerVotePNJ (plateau-politique.js)
@@ -824,11 +843,11 @@ function openPnjModal(encodedPnj) {
   }
 
   // Tracts de la mission Jean-Lou Zeure (origineQuete:'jean_lou') separes des tracts
-  // "generiques" : le bouton generique (distribuerTractPNJ, systeme factice identifie par
-  // l'audit du 17 aout 2026) reste masque tant que le joueur en detient, pour eviter qu'il ne
-  // consomme accidentellement un tract de mission via le mauvais circuit (celui-ci n'ecrit
-  // jamais dans le vrai systeme electoral). Voir distribuerTractJeanLou plus bas pour le vrai
-  // circuit de cette quete.
+  // "generiques" : les boutons generiques (distribuerTractElectoralPNJ, remplace l'ancien
+  // distribuerTractPNJ "systeme factice identifie par l'audit du 17 aout 2026") restent masques
+  // tant que le joueur en detient, pour eviter qu'il ne consomme accidentellement un tract de
+  // mission via le mauvais circuit. Voir distribuerTractJeanLou plus bas pour le vrai circuit de
+  // cette quete, non touche.
   const tractsDispos = (state.inventory || []).filter(i => i.type === 'tract');
   const tractsJeanLou = tractsDispos.filter(i => i.origineQuete === 'jean_lou');
   const tractsGeneriques = tractsDispos.filter(i => i.origineQuete !== 'jean_lou');
@@ -836,7 +855,16 @@ function openPnjModal(encodedPnj) {
     if (isPJ) {
       actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');donnerTracts(\'' + pnjSafeName + '\')"><i class="ti ti-files" style="font-size:.85rem"></i> Donner des tracts</button>';
     } else {
-      actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractPNJ(\'' + pnjSafeName + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract</button>';
+      actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractElectoralPNJ(\'' + pnjSafeName + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract électoral</button>';
+    }
+  }
+  // Tracts calomnieux (lot du 24 aout 2026) : distinct du circuit electoral ci-dessus (type
+  // 'tract_calomnieux', pas 'tract'), aucun verrouillage electoral applicable. Uniquement pour
+  // les PNJ presents (pas de transfert a un vrai PJ demande pour ce type).
+  if (!isPJ) {
+    const tractsCalomnieuxDispos = (state.inventory || []).filter(i => i.type === 'tract_calomnieux' && (i.quantite || 0) > 0);
+    if (tractsCalomnieuxDispos.length > 0) {
+      actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#8a2020" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');distribuerTractCalomnieuxPNJ(\'' + pnjSafeName + '\')"><i class="ti ti-alert-triangle" style="font-size:.85rem"></i> Distribuer un tract calomnieux</button>';
     }
   }
   if (!isPJ && tractsJeanLou.length > 0 && state.char?.queteCarriere?.ambition === 'politique'

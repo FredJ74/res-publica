@@ -859,6 +859,26 @@ async function enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom) {
   return true;
 }
 
+// Liste les candidats actuellement en campagne (lot tracts electoraux PSM, 24 aout 2026) --
+// utilise pour restreindre le choix de cible a l'impression d'un tract electoral a de vrais
+// candidats resolvables (evite d'imprimer un tract pour quelqu'un qui ne se presente a rien,
+// dont la distribution ne pourrait jamais s'ecrire dans le vrai systeme electoral). Memes phases
+// que distribuerProspectus (campagne active).
+function listerCandidatsElectorauxActifs() {
+  const country = state.country;
+  const cycles = (typeof CYCLES_ELECTORAUX !== 'undefined' && CYCLES_ELECTORAUX[country]) || {};
+  const phasesActives = [PHASES_ELECTORALES.CAMPAGNE, PHASES_ELECTORALES.SECOND_TOUR];
+  const out = [];
+  Object.keys(cycles).sort().forEach(cle => {
+    const cycle = cycles[cle];
+    if (!cycle || !cycle.candidats || !cycle.candidats.length) return;
+    const phase = getPhaseActuelle(country, cycle.posteId, cycle.city);
+    if (!phasesActives.includes(phase)) return;
+    cycle.candidats.forEach(c => out.push({ nom: c.nom, posteId: cycle.posteId, city: cycle.city || null }));
+  });
+  return out;
+}
+
 // Distribuer un prospectus à un PNJ
 async function distribuerProspectus(pnjId, candidatNom, posteId, country, city) {
   const cle = getCleCycle(posteId, city);

@@ -769,7 +769,12 @@ function doPasserDouanesAeroport() {
   // se_justifier/traiterConvocations), le joueur reste libre de circuler, pas d'arrestation
   // immediate. "Drogue" volontairement hors perimetre : aucun type d'objet drogue n'existe
   // encore dans le jeu (voir chantier note au journal).
-  const objetsProhibes = (state.inventory || []).filter(i => (i.type === 'arme' || i.type === 'poison') && i.legal === false);
+  // tract_calomnieux ajoute (24 aout 2026, lot tracts electoraux/calomnieux PSM) : reutilise ce
+  // seul point de controle/fouille reel du jeu (aucun autre trouve inspectant l'inventaire) --
+  // memes consequences que les autres objets prohibes ici (confiscation + convocation), jamais
+  // la detention 1 jour prevue pour l'echec critique de distribution (ce controle n'a jamais ete
+  // branche sur procederArrestation/state.estEmprisonne, seulement sur les convocations).
+  const objetsProhibes = (state.inventory || []).filter(i => (i.type === 'arme' || i.type === 'poison' || i.type === 'tract_calomnieux') && i.legal === false);
   if (objetsProhibes.length > 0) {
     const nomsConfisques = objetsProhibes.map(i => i.name).join(', ');
     state.inventory = state.inventory.filter(i => !objetsProhibes.includes(i));

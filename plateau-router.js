@@ -65,6 +65,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demander_parler_loge') { doLogePortail(pa, cost); return; }
   if (fn === 'imprimer_tracts') { ouvrirModalImprimerTracts(pa, cost); return; }
   if (fn === 'vendre_bois_imprimerie') { ouvrirVendreBoisImprimerie(pa, cost); return; }
+  if (fn === 'imprimer_tracts_electoraux') { ouvrirModalImprimerTractsElectoraux(pa, cost); return; }
+  if (fn === 'imprimer_tracts_calomnieux') { ouvrirModalImprimerTractsCalomnieux(pa, cost); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
@@ -92,8 +94,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sponsoriser_club') { doSponsoriserClub(pa, cost); return; }
   if (fn === 'consulter_budget_club') { doConsulterBudgetClub(); return; }
   if (fn === 'gerer_salaires_club') { doGererSalairesClub(); return; }
-  if (fn === 'imprimer_tracts_sportifs') { doImprimerTractsSportifs(pa, cost); return; }
-  if (fn === 'distribuer_tracts_match') { doDistribuerTractsMatch(pa, cost); return; }
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
   if (fn === 'organiser_boycott') { doOrganiserBoycott(pa, cost); return; }
   if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(pa, cost); return; }

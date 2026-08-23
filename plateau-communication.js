@@ -272,6 +272,144 @@ async function confirmerImpression(pa, cost) {
   addJournalEntry('Production de ' + quantite + ' tracts ' + type + ' ' + cible, 'event-info');
 }
 
+// =====================
+// IMPRIMERIE PSM — TRACTS ELECTORAUX / TRACTS CALOMNIEUX (lot du 24 aout 2026)
+// =====================
+// Fn dediees et propres a PSM (imprimer_tracts_electoraux/imprimer_tracts_calomnieux),
+// distinctes de imprimer_tracts/imprimer_clandestin utilises par la-tribune (Luthecia/
+// Montrouge, ouvrirModalImprimerTracts/confirmerImpression ci-dessus, NON touches) : aucun
+// risque de regression sur ces deux villes. Cout reel des deux ordres : 1 PA + bois pris dans
+// le stock personnel du joueur (stackKey 'bois', meme lot que confirmerVendreBoisImprimerie plus
+// bas dans le fichier) -- pas de caisse/stock institutionnel comme Gustave, pas de
+// batiments_etat. Quantite de bois par lot volontairement simple/non optimisee (decision
+// explicite : "ce n'est pas le sujet").
+const BOIS_PAR_LOT_TRACTS_PSM = 1;
+
+function stockBoisPersonnel() {
+  const lot = (state.inventory || []).find(i => i.stackKey === 'bois' && (i.qty || 0) > 0);
+  return { lot, qte: lot?.qty || 0 };
+}
+
+// --- Tract electoral (accueil_imprimerie) ---
+// Arbitrage du 24 aout 2026 : le vrai moteur electoral (CYCLES_ELECTORAUX/votesPNJ) ne connait
+// qu'un vote POUR un candidat nomme, jamais de vote "contre" ni de score negatif. Le tract
+// electoral est donc EXCLUSIVEMENT en faveur de la cible choisie -- aucun choix pour/contre
+// propose ici. La fonction hostile (nuire a une cible) est desormais entierement portee par le
+// tract calomnieux (voir plus bas). La cible est restreinte aux candidats reellement en
+// campagne (listerCandidatsElectorauxActifs, plateau-politique.js) pour garantir qu'un tract
+// imprime soit toujours distribuable dans le vrai systeme.
+function ouvrirModalImprimerTractsElectoraux(pa, cost) {
+  const candidats = (typeof listerCandidatsElectorauxActifs === 'function') ? listerCandidatsElectorauxActifs() : [];
+  const { qte: stockBois } = stockBoisPersonnel();
+  document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts électoraux';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA + ' + BOIS_PAR_LOT_TRACTS_PSM + ' bois pour un lot de 10 tracts, en faveur du candidat choisi.</div>';
+  html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS_PSM ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock personnel : ' + stockBois + '</div>';
+  if (candidats.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucun candidat en campagne actuellement.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CANDIDAT SOUTENU</div>';
+    html += '<select id="tract-electoral-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    candidats.forEach((c, idx) => { html += '<option value="' + idx + '">' + c.nom + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="confirmerImprimerTractsElectoraux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Imprimer 10 tracts</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  window._candidatsElectorauxActifs = candidats;
+}
+
+async function confirmerImprimerTractsElectoraux(pa, cost) {
+  const idx = parseInt(document.getElementById('tract-electoral-cible')?.value ?? '-1');
+  const candidat = (window._candidatsElectorauxActifs || [])[idx];
+  if (!candidat) { showToast('Aucun candidat', '', false); return; }
+
+  const { lot, qte } = stockBoisPersonnel();
+  if (qte < BOIS_PAR_LOT_TRACTS_PSM) {
+    showToast('Pas assez de bois', 'Il faut ' + BOIS_PAR_LOT_TRACTS_PSM + ' bois en stock personnel pour ce lot.', false);
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  lot.qty -= BOIS_PAR_LOT_TRACTS_PSM;
+  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
+
+  if (!state.inventory) state.inventory = [];
+  const existing = state.inventory.find(i => i.type === 'tract' && i.cible === candidat.nom && i.tractType === 'pour');
+  if (existing) {
+    existing.quantite = (existing.quantite || 0) + 10;
+  } else {
+    state.inventory.push({ type: 'tract', name: 'Tracts POUR ' + candidat.nom, icon: 'ti-file-description', tractType: 'pour', cible: candidat.nom, quantite: 10, legal: true, electionPosteId: candidat.posteId, electionCity: candidat.city });
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Tracts imprimés !', '10 tracts en faveur de ' + candidat.nom + ' ajoutés à votre inventaire.', true, true);
+  addJournalEntry('Impression de 10 tracts électoraux en faveur de ' + candidat.nom + '.', 'event-info');
+}
+
+// --- Tract calomnieux (atelier) ---
+// Cible libre dans le repertoire (comme l'ancien imprimer_tracts) : contrairement au tract
+// electoral, il n'y a pas de notion de "candidat en campagne" a respecter, la calomnie visant a
+// nuire a la POP d'une cible quelconque, pas a fausser un vote. Reutilise checkDetection/
+// ACTES_ILLEGAUX['imprimer_tracts_calomnieux'] (plateau-core.js, cle renommee a l'identique
+// depuis l'ancienne imprimer_clandestin) -- meme mecanisme de detection qu'ailleurs, aucun
+// systeme parallele.
+function ouvrirModalImprimerTractsCalomnieux(pa, cost) {
+  const contacts = state.contacts || [];
+  const { qte: stockBois } = stockBoisPersonnel();
+  document.getElementById('postes-modal-title').textContent = 'Imprimer des tracts calomnieux';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">1 PA + ' + BOIS_PAR_LOT_TRACTS_PSM + ' bois pour un lot de 10 tracts calomnieux (illégal).</div>';
+  html += '<div style="font-size:.76rem;color:' + (stockBois >= BOIS_PAR_LOT_TRACTS_PSM ? '#8a8060' : '#cc5540') + ';margin-bottom:.8rem"><i class="ti ti-trees" style="font-size:.75rem"></i> Bois en stock personnel : ' + stockBois + '</div>';
+  if (contacts.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Repertoire vide. Ajoutez des contacts pour cibler un PJ.</div>';
+  } else {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CIBLE</div>';
+    html += '<select id="tract-calomnieux-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+    html += '</select>';
+    html += '<button onclick="confirmerImprimerTractsCalomnieux(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Imprimer 10 tracts</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerImprimerTractsCalomnieux(pa, cost) {
+  const cible = document.getElementById('tract-calomnieux-cible')?.value;
+  if (!cible) { showToast('Aucune cible', '', false); return; }
+
+  const { lot, qte } = stockBoisPersonnel();
+  if (qte < BOIS_PAR_LOT_TRACTS_PSM) {
+    showToast('Pas assez de bois', 'Il faut ' + BOIS_PAR_LOT_TRACTS_PSM + ' bois en stock personnel pour ce lot.', false);
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  lot.qty -= BOIS_PAR_LOT_TRACTS_PSM;
+  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
+
+  if (!state.inventory) state.inventory = [];
+  const existing = state.inventory.find(i => i.type === 'tract_calomnieux' && i.cible === cible);
+  if (existing) {
+    existing.quantite = (existing.quantite || 0) + 10;
+  } else {
+    state.inventory.push({ type: 'tract_calomnieux', name: 'Tracts calomnieux contre ' + cible, icon: 'ti-alert-triangle', cible: cible, quantite: 10, legal: false });
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Tracts imprimés !', '10 tracts calomnieux contre ' + cible + ' ajoutés à votre inventaire (illégal).', true, true);
+  addJournalEntry('Impression clandestine de 10 tracts calomnieux contre ' + cible + '.', 'event-info');
+  if (typeof checkDetection === 'function') checkDetection('imprimer_tracts_calomnieux', 'success');
+}
+
 // Verifie les objets recus (dons d'un autre joueur, reellement persistes via
 // sbDonnerObjetJoueur) et les ajoute a l'inventaire local. Meme rythme que les mails.
 async function verifierObjetsRecus() {
@@ -353,54 +491,184 @@ function confirmerDonTracts(tractIdx, pjName) {
   addJournalEntry('Don de ' + quantite + ' tracts a ' + pjName, 'event-info');
 }
 
-function distribuerTractPNJ(pnjName) {
-  const tracts = (state.inventory||[]).filter(i => i.type === 'tract');
+// =====================
+// DISTRIBUTION DE TRACTS A UN PNJ PRESENT (lot du 24 aout 2026)
+// =====================
+// Remplace l'ancien distribuerTractPNJ, explicitement documente comme "systeme factice
+// identifie par l'audit du 17 aout 2026" (state.electionsEnCours, jamais le vrai systeme
+// electoral). Deux circuits desormais distincts : electoral (vrai vote PNJ, CYCLES_ELECTORAUX/
+// enregistrerVotePNJ) et calomnieux (POP + risque penal, aucun lien avec le vote). Le don
+// generique (plateau-justice-economie.js, "Donner un objet") et le transfert a un vrai PJ
+// (donnerTracts/confirmerDonTracts ci-dessus) restent inchanges -- usages distincts et
+// deliberement non touches. La quete Jean-Lou (distribuerTractJeanLou, plateau-pnj.js) continue
+// d'utiliser son propre circuit, deja branche sur le vrai systeme, non modifie.
+
+// --- Electoral : 1 tract -> 1 PNJ, vrai vote ---
+// N'accepte que tractType:'pour' (24 aout 2026, correctif) : un ancien tract tractType:'contre'
+// (imprime avant ce lot, quand un choix pour/contre existait encore) ne doit JAMAIS devenir
+// silencieusement un vote pour sa cible -- son sens hostile d'origine reste correctement porte
+// par l'ancien circuit du marche (distribuer_tract/confirmerDistribuerTract, plateau-pnj.js,
+// non touche : sbAjusterPopJoueur(cible, -delta) inchange). Ce circuit-ci ne fait que refuser
+// poliment de les traiter, avec message explicite, plutot que de les ignorer silencieusement.
+function distribuerTractElectoralPNJ(pnjName) {
+  const tracts = (state.inventory || []).filter(i => i.type === 'tract' && i.origineQuete !== 'jean_lou' && i.tractType === 'pour' && (i.quantite || 0) > 0);
   if (tracts.length === 0) {
-    showToast('Aucun tract', 'Vous n\'avez pas de tracts en inventaire.', false);
+    const tractsContreAnciens = (state.inventory || []).filter(i => i.type === 'tract' && i.origineQuete !== 'jean_lou' && i.tractType === 'contre' && (i.quantite || 0) > 0);
+    if (tractsContreAnciens.length > 0) {
+      showToast('Ancien format', 'Vos tracts "contre" (ancien format) ne se distribuent pas ici. Utilisez "Distribuer un tract" au marché, circuit inchangé pour ces tracts.', false);
+    } else {
+      showToast('Aucun tract', 'Vous n\'avez pas de tract électoral en inventaire.', false);
+    }
     return;
   }
-  // Utiliser le premier lot de tracts disponible
-  const tract = tracts[0];
-  tract.quantite -= 1;
-  if (tract.quantite <= 0) {
-    const i = state.inventory.indexOf(tract);
-    state.inventory.splice(i, 1);
+  if (tracts.length === 1) {
+    confirmerDistribuerTractElectoral(tracts[0].cible, pnjName);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Distribuer un tract électoral à ' + pnjName;
+  let html = '<div style="padding:.8rem 1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisissez le candidat à soutenir aupres de ' + pnjName + '.</div>';
+  html += tracts.map(t =>
+    '<div onclick="confirmerDistribuerTractElectoral(\'' + t.cible.replace(/'/g, '') + '\',\'' + pnjName + '\')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+      '<i class="ti ti-file-description" style="font-size:.9rem;color:#6a9a6a"></i>' +
+      '<div><div style="font-size:.82rem;color:#c0b090">Pour ' + t.cible + '</div>' +
+      '<div style="font-size:.85rem;color:#9a8a68">' + t.quantite + ' restants</div></div>' +
+    '</div>'
+  ).join('');
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDistribuerTractElectoral(cible, pnjName) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const tract = (state.inventory || []).find(i => i.type === 'tract' && i.origineQuete !== 'jean_lou' && i.tractType === 'pour' && i.cible === cible && (i.quantite || 0) > 0);
+  if (!tract) { showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false); return; }
+
+  // Resolution de l'election reelle AVANT toute consommation (tract.electionPosteId/City poses
+  // a l'impression ne sont qu'une trace -- toujours re-resolus ici pour couvrir aussi les tracts
+  // legacy imprimes avant ce lot).
+  const election = (typeof trouverElectionParCandidat === 'function') ? trouverElectionParCandidat(cible) : null;
+  if (!election) {
+    showToast('Élection introuvable', cible + ' n\'est candidat(e) à aucune élection en cours.', false);
+    return;
+  }
+  const cle = (typeof getCleCycle === 'function') ? getCleCycle(election.posteId, election.city) : election.posteId;
+  const cycle = (typeof CYCLES_ELECTORAUX !== 'undefined') ? CYCLES_ELECTORAUX[election.country]?.[cle] : null;
+  if (!cycle) { showToast('Élection introuvable', '', false); return; }
+
+  // Garde-fou explicite AVANT consommation (regle du 24 aout 2026) : un PNJ deja vote ne peut
+  // plus recevoir de tract electoral -- refus avant tract consomme et avant tout effet.
+  if (cycle.votesPNJ && cycle.votesPNJ[pnjName]) {
+    showToast('Déjà convaincu', pnjName + ' a déjà voté pour cette élection.', false);
+    return;
   }
 
-  // Jet 50% + bonus INF/10
-  const bonusInf = Math.floor(state.inf / 10);
+  // Consommation (1 tract, succes ou echec) -- meme convention que confirmerDistribuerTract.
+  tract.quantite -= 1;
+  if (tract.quantite <= 0) state.inventory = state.inventory.filter(i => i !== tract);
+
+  // Meme formule que distribuerTractJeanLou (plateau-pnj.js) : 50% + INF/10, plafonne 80%.
+  const bonusInf = Math.floor((state.inf || 0) / 10);
   const taux = Math.min(80, 50 + bonusInf);
   const roll = Math.floor(Math.random() * 100) + 1;
   const succes = roll <= taux;
 
   if (succes) {
-    // Verifier si periode electorale
-    const enElection = state.electionsEnCours?.some(e => e.phase === 'campagne');
-    const estCandidat = state.electionsEnCours?.some(e =>
-      e.candidats?.some(c => c.nom === tract.cible)
-    );
-
-    if (enElection && estCandidat) {
-      // +1 voix au candidat
-      state.electionsEnCours.forEach(e => {
-        const candidat = e.candidats?.find(c => c.nom === tract.cible);
-        if (candidat) candidat.voix = (candidat.voix||0) + 1;
-      });
-      showToast('Tract distribue !', pnjName + ' votera pour ' + tract.cible + '. +1 voix.', true, true);
+    const ok = (typeof enregistrerVotePNJ === 'function') ? await enregistrerVotePNJ(election.country, election.posteId, election.city, pnjName, cible) : false;
+    if (ok) {
+      showToast('Tract distribué !', pnjName + ' est convaincu(e) et votera pour ' + cible + '.', true, true);
+      addJournalEntry('Tract électoral distribué à ' + pnjName + ' — vote enregistré pour ' + cible + '.', 'event-good');
     } else {
-      // +/- POP sur la cible
-      if (tract.tractType === 'pour') {
-        state.pop = Math.min(100, state.pop + 2);
-        showToast('Tract distribue !', '+2 POP pour ' + tract.cible, true);
-      } else {
-        state.pop = Math.max(0, state.pop - 2);
-        showToast('Tract distribue !', '-2 POP pour ' + tract.cible, true);
-      }
+      // Deja vote entre-temps (course concurrente improbable) -- tract tout de meme consomme.
+      showToast('Déjà convaincu', pnjName + ' avait déjà voté.', false);
+      addJournalEntry('Tract électoral distribué à ' + pnjName + ' — déjà voté.', '');
     }
-    addJournalEntry('Tract distribue a ' + pnjName + ' — succes.', 'event-good');
   } else {
-    showToast('Sans effet', pnjName + ' n\'a pas ete convaincu(e). Tract consomme.', false);
-    addJournalEntry('Distribution de tract a ' + pnjName + ' — sans effet.', '');
+    showToast('Sans effet', pnjName + ' n\'a pas été convaincu(e). Tract consommé.', false);
+    addJournalEntry('Distribution de tract électoral à ' + pnjName + ' — sans effet.', '');
+  }
+  updateUI();
+}
+
+// --- Calomnieux : 1 tract -> 1 PNJ, -5 POP sur la cible, risque penal a l'echec critique ---
+function distribuerTractCalomnieuxPNJ(pnjName) {
+  const tracts = (state.inventory || []).filter(i => i.type === 'tract_calomnieux' && (i.quantite || 0) > 0);
+  if (tracts.length === 0) {
+    showToast('Aucun tract', 'Vous n\'avez pas de tract calomnieux en inventaire.', false);
+    return;
+  }
+  if (tracts.length === 1) {
+    confirmerDistribuerTractCalomnieux(tracts[0].cible, pnjName);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Distribuer un tract calomnieux à ' + pnjName;
+  let html = '<div style="padding:.8rem 1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Choisissez la cible de la campagne mensongère.</div>';
+  html += tracts.map(t =>
+    '<div onclick="confirmerDistribuerTractCalomnieux(\'' + t.cible.replace(/'/g, '') + '\',\'' + pnjName + '\')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+      '<i class="ti ti-alert-triangle" style="font-size:.9rem;color:#cc4444"></i>' +
+      '<div><div style="font-size:.82rem;color:#c0b090">Contre ' + t.cible + '</div>' +
+      '<div style="font-size:.85rem;color:#9a8a68">' + t.quantite + ' restants</div></div>' +
+    '</div>'
+  ).join('');
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Seuils utilises (24 aout 2026, corrige au meme jour : 10% exactement, pas 25%) : reussite =
+// meme formule que le tract electoral (50% + INF/10, plafonne 80%), taux de reussite general
+// inchange. En cas d'echec (100-taux), 10% exactement de ces echecs sont "critiques" (flagrant
+// delit), les 90% restants "simples" (sans consequence).
+async function confirmerDistribuerTractCalomnieux(cible, pnjName) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const tract = (state.inventory || []).find(i => i.type === 'tract_calomnieux' && i.cible === cible && (i.quantite || 0) > 0);
+  if (!tract) { showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false); return; }
+
+  tract.quantite -= 1;
+  if (tract.quantite <= 0) state.inventory = state.inventory.filter(i => i !== tract);
+
+  const bonusInf = Math.floor((state.inf || 0) / 10);
+  const taux = Math.min(80, 50 + bonusInf);
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    // Reussite : -5 POP reel et persistant sur la cible.
+    if (typeof sbAjusterPopJoueur === 'function') sbAjusterPopJoueur(cible, -5).catch(() => {});
+    showToast('Tract distribué !', pnjName + ' relaie la calomnie. -5 POP pour ' + cible + '.', true, true);
+    addJournalEntry('Tract calomnieux distribué à ' + pnjName + ' — succès. -5 POP pour ' + cible + '.', 'event-good');
+  } else {
+    const rollCritique = Math.floor(Math.random() * 100) + 1;
+    const critique = rollCritique <= 10;
+    if (critique) {
+      // Echec critique : destruction de TOUS les tracts calomnieux detenus + 1 jour de
+      // detention. Reutilise directement l'architecture existante (state.estEmprisonne, meme
+      // forme que procederArrestation) plutot que cette derniere : celle-ci calculerait 2 jours
+      // via PEINES.delit_mineur (pas 1) et ouvrirait un choix corruption/fuite/resistance non
+      // souhaite ici (flagrant delit, sanction immediate et non negociable).
+      state.inventory = (state.inventory || []).filter(i => i.type !== 'tract_calomnieux');
+      if (state.immuniteMilitaireActuelle) {
+        showToast('Immunité militaire', 'Flagrant délit, mais votre immunité militaire vous protège de toute poursuite.', true);
+        addJournalEntry('Distribution de tract calomnieux — flagrant délit, immunité militaire invoquée.', 'event-info');
+      } else {
+        // Persistance verifiee (24 aout 2026) : est_emprisonne/estEmprisonne figure bien dans le
+        // whitelist de sbSavePersonnage/sbLoadPersonnage (supabase.js) -- contrairement a
+        // l'ancien state.char.tractsSportifs, ce champ survit deja a un refresh via la
+        // sauvegarde automatique (filet de securite 30s, plateau-core.js) et le flush d'urgence
+        // au dechargement de page. Appel explicite tout de meme ajoute ici, par coherence avec
+        // la majorite des autres mutations critiques du jeu (qui sauvegardent explicitement
+        // plutot que de compter uniquement sur le filet 30s) : la peine doit etre certaine, pas
+        // dependante d'une fenetre de synchronisation.
+        state.estEmprisonne = { jours: 1, jourFin: (state.day || 1) + 1, raison: 'Distribution de tracts calomnieux' };
+        if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+        showToast('Flagrant délit !', pnjName + ' alerte immédiatement la police. Tous vos tracts calomnieux sont détruits. 1 jour de détention.', false, true);
+        addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — échec critique. Tracts calomnieux détruits, 1 jour de détention.', 'event-bad');
+      }
+    } else {
+      showToast('Sans effet', pnjName + ' n\'a pas été convaincu(e). Tract consommé.', false);
+      addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — sans effet.', '');
+    }
   }
   updateUI();
 }

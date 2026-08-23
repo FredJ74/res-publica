@@ -259,7 +259,7 @@ const ACTES_ILLEGAUX = {
   arreter:            { type: 'delit_grave',   detectRate: 40 },
   fabriquer_scandale: { type: 'delit_grave',   detectRate: 45 },
   fuite_info:         { type: 'delit_grave',   detectRate: 40 },
-  imprimer_clandestin:{ type: 'delit_mineur',  detectRate: 30 },
+  imprimer_tracts_calomnieux:{ type: 'delit_mineur',  detectRate: 30 },
   tentative_evasion:  { type: 'crime',         detectRate: 90 },
   se_rebeller:        { type: 'delit_mineur',  detectRate: 60 },
   fausse_rumeur:      { type: 'delit_mineur',  detectRate: 35 },
