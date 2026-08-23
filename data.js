@@ -3577,7 +3577,35 @@ const BUILDINGS = {
         desc: "Rateliers d'armes, cannes a peche et equipements de chasse.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/armurerie-port-sainte-marie-maison-le-gall.png",
         persons: [],
-        orders: []
+        // Raccordement au moteur armurerie generique existant (audit dedie du 24 aout 2026,
+        // confirme : entreprise/caisse/stock/registre 'armurerie-republic-ville_a' deja isoles
+        // par ville, aucune migration necessaire). 4 ordres standards, memes libelles/PA/couts
+        // que BUILDINGS['armurerie'] -- jamais marche_noir, reste specifique a Luthecia
+        // (buildingContext.armurerie.orders, capitale uniquement). Personnalisation d'affichage
+        // des armes (nom/image locale) geree par ARMES_OVERRIDES_VILLE/resoudreArmeAffichage,
+        // plateau-actions-illegales-rumeurs.js -- jamais par un nouvel ordre ici.
+        orders: [
+          {
+            fn:'choisir_arme',
+            label:'Acheter une arme',
+            pa:1, cost:0, type:'grey', icon:'ti-sword', successRate:100,
+            desc:'Couteau, revolver ou carabine — achat légal (enregistré) ou marché noir (3x le prix), au choix pour chaque arme.'
+          },
+          {
+            fn:'acheter_gilet',
+            label:'Acheter un gilet pare-balles',
+            pa:1, cost:600, type:'legal', icon:'ti-shield-check', successRate:100,
+            desc:'Protection physique. Enregistre dans le registre.',
+            imageUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/arme-gilet-republic.png'
+          },
+          {
+            fn:'consulter_registre_armes',
+            label:'Consulter le registre de vente',
+            pa:1, cost:0, type:'legal', icon:'ti-book', successRate:100,
+            desc:'Acces libre : Commissaire, Juge. Sinon : soudoyer l\'armurier (30%, 100 FR, +/-5 INF et POP). Ventes des 6 derniers mois.'
+          },
+          {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'}
+        ]
       }
     }
   },

@@ -821,6 +821,48 @@ const ARMES_CATALOGUE = {
   ]
 };
 
+// Personnalisation locale de l'affichage des armes (Lot armurerie PSM, 24 aout 2026) : PSM
+// (ville_a) vend mecaniquement les 3 memes armes que le reste de Republia (memes id/prix/bonus/
+// type, ARMES_CATALOGUE.republic INCHANGE) mais sous un nom/visuel propres a la boutique Chasse
+// et Peche. Cle = ville, valeur = { armeId: {name, imageUrl, desc?} } -- proprietes d'AFFICHAGE
+// UNIQUEMENT, jamais id/prix/bonus/type (les mecaniques restent celles de l'arme generique).
+// Absent pour toute ville non listee ici (Luthecia/Montrouge/autres empires) : comportement
+// strictement inchange pour elles, aucune contamination possible.
+const ARMES_OVERRIDES_VILLE = {
+  ville_a: {
+    couteau: {
+      name: 'Couteau de plongée',
+      desc: 'Lame inoxydable, dents de scie pour cordages et filets. Indispensable pour la chasse sous-marine.',
+      imageUrl: 'images/armurerie-port-sainte-marie-couteau-plongee.png'
+    },
+    revolver: {
+      name: 'Fusil sous-marin',
+      desc: 'Harpon professionnel à sandow, moulinet grande capacité. Idéal pour la chasse sous-marine.',
+      imageUrl: 'images/armurerie-port-sainte-marie-fusil-harpon.png'
+    },
+    carabine_chasse: {
+      name: 'Carabine de chasse',
+      desc: 'Modèle Saint-Marian, mécanisme à verrou, crosse en bois massif. Idéale pour la chasse côtière.',
+      imageUrl: 'images/armurerie-port-sainte-marie-carabine.png'
+    }
+  }
+};
+
+// Fusionne uniquement les proprietes d'affichage locales (name/imageUrl/desc) avec l'arme
+// generique -- jamais id/prix/bonus/type, qui restent ceux de armeGenerique. Retourne
+// armeGenerique inchangee (meme reference) si aucun override n'existe pour cette ville : zero
+// risque de regression pour Luthecia/Montrouge/les autres empires.
+function resoudreArmeAffichage(armeGenerique, ville) {
+  const override = ARMES_OVERRIDES_VILLE[ville]?.[armeGenerique.id];
+  if (!override) return armeGenerique;
+  return {
+    ...armeGenerique,
+    name: override.name || armeGenerique.name,
+    desc: override.desc || armeGenerique.desc,
+    imageUrl: override.imageUrl || armeGenerique.imageUrl
+  };
+}
+
 // =====================
 // MODAL TRIPTIQUE D'ACHAT D'ARME
 // =====================
@@ -833,6 +875,7 @@ const ARMES_CATALOGUE = {
 // supprime de l'interface -- voir doAcheterProduitStock/confirmerAchatStock, retires).
 async function ouvrirModalAcheterArme() {
   const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const armes = ARMES_CATALOGUE[pays] || ARMES_CATALOGUE.republic;
   const data = await chargerArmurerieLocale();
@@ -843,7 +886,11 @@ async function ouvrirModalAcheterArme() {
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Achat légal : enregistré au registre de vente, prix normal. Marché noir : non enregistré, 3x le prix, risque de dénonciation par l\'armurier. Seules les armes réellement en stock (produites par les employés de l\'armurerie) sont disponibles.</div>';
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem">';
 
-  armes.forEach((arme) => {
+  armes.forEach((armeGenerique) => {
+    // Personnalisation d'affichage locale (Lot armurerie PSM, 24 aout 2026) : arme.id/bonus/
+    // type/prix restent ceux de armeGenerique, seuls name/desc/imageUrl peuvent etre localises
+    // (resoudreArmeAffichage retourne armeGenerique inchangee si aucun override pour cette ville).
+    const arme = resoudreArmeAffichage(armeGenerique, ville);
     const stock = data.stockProduits[arme.id] || 0;
     const prixVente = data.parametres.prixVente[arme.id] || arme.prix;
     const prixIllegal = prixVente * 3;
@@ -885,10 +932,15 @@ async function ouvrirModalAcheterArme() {
 
 async function confirmerAchatArme(armeId) {
   const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const armes = ARMES_CATALOGUE[pays] || ARMES_CATALOGUE.republic;
   const arme = armes.find(a => a.id === armeId);
   if (!arme) return;
+  // Personnalisation d'affichage locale (Lot armurerie PSM, 24 aout 2026) : uniquement pour
+  // l'objet pousse en inventaire (name/desc/imageUrl) -- stock/prix/caisse/historique/registre/
+  // toast/journal continuent d'utiliser `arme` (generique), inchanges.
+  const armeAffichee = resoudreArmeAffichage(arme, ville);
 
   const data = await chargerArmurerieLocale();
   if (!data) { showToast('Indisponible', '', false); return; }
@@ -918,12 +970,12 @@ async function confirmerAchatArme(armeId) {
     id: 'arme-' + Date.now(),
     type: 'arme',
     sousType: arme.type,
-    name: arme.name,
+    name: armeAffichee.name,
     icon: arme.icon,
-    desc: arme.desc,
+    desc: armeAffichee.desc,
     legal: true,
     bonus: arme.bonus,
-    imageUrl: arme.imageUrl
+    imageUrl: armeAffichee.imageUrl
   });
 
   // Inscription au registre officiel de vente d'armes — systematique pour tout achat legal.
@@ -988,10 +1040,18 @@ async function confirmerAchatArme(armeId) {
 
 async function confirmerAchatArmeIllegal(armeId) {
   const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const armes = ARMES_CATALOGUE[pays] || ARMES_CATALOGUE.republic;
   const arme = armes.find(a => a.id === armeId);
   if (!arme) return;
+  // Personnalisation d'affichage locale (complement Lot armurerie PSM, 24 aout 2026) : ce chemin
+  // (marche noir) est atteignable depuis le meme modal choisir_arme que l'achat legal, y compris
+  // a PSM, independamment de l'ordre marche_noir (specifique a Luthecia, sans rapport). Meme
+  // principe que confirmerAchatArme() : uniquement pour l'objet pousse en inventaire (name/desc/
+  // imageUrl) -- stock/prix/PA/legal/bonus/registre (absence d'inscription, deja le comportement
+  // actuel) restent inchanges, utilisent toujours `arme` (generique).
+  const armeAffichee = resoudreArmeAffichage(arme, ville);
 
   const data = await chargerArmurerieLocale();
   if (!data) { showToast('Indisponible', '', false); return; }
@@ -1056,12 +1116,12 @@ async function confirmerAchatArmeIllegal(armeId) {
     id: 'arme-' + Date.now(),
     type: 'arme',
     sousType: arme.type,
-    name: arme.name,
+    name: armeAffichee.name,
     icon: arme.icon,
-    desc: arme.desc,
+    desc: armeAffichee.desc,
     legal: false,
     bonus: arme.bonus,
-    imageUrl: arme.imageUrl
+    imageUrl: armeAffichee.imageUrl
   });
 
   if (!state.historiqueCrimes) state.historiqueCrimes = [];
