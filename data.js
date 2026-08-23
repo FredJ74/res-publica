@@ -3498,8 +3498,15 @@ const BUILDINGS = {
         // generique -- fn/label/pa/cost/desc repris a l'identique, aucun recalibrage (audit du
         // 23 aout 2026). Voir BUILDING_COMMERCE_TYPE/DOTATIONS_COMMERCE_PILOTE
         // (plateau-actions-illegales-rumeurs.js) pour le raccordement du commerce lui-meme.
+        // Correctif du 23 aout 2026 : diner_affaires passe de 300 a 150 FR -- les 300 FR
+        // avaient ete herites de Luthecia lors de la copie initiale des ordres (audit dedie),
+        // mais la carte definitive de PSM est volontairement moins chere (menus a ~20-21 FR
+        // contre 120 FR a Luthecia) -- le diner d'affaires doit suivre. Rien d'autre change :
+        // memes bonus, meme cout PA, meme consommation (2 menus + 1 vin), meme fiscalite/caisse,
+        // aucune recette modifiee. hotel-republica|restaurant (Luthecia) reste a 300 FR,
+        // inchange.
         orders: [
-          {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:300, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 vin du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'},
+          {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:150, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 vin du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'},
           {fn:'ecouter_rumeurs', label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
           {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:80, desc:'Sur un PJ de votre repertoire. Succes : -5 a -20 POP sur la cible. Echec : se retourne contre vous (-5 POP -5 DIS) + risque de detection.'},
           {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},

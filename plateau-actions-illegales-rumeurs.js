@@ -3166,13 +3166,17 @@ const DOTATIONS_COMMERCE_PILOTE = {
     data.caisse = 3000;
     data.stockMatieres = { cereales: 15, poisson: 10, viande: 10, fruits_legumes: 10 };
     data.coutMoyenMatieres = { cereales: 3, poisson: 4, viande: 5, fruits_legumes: 4 };
-    data.carte = ['menu_psm_1', 'menu_psm_2', 'menu_psm_3', 'plat_de_poisson', 'vin'];
-    data.parametres.stockMax = { menu_psm_1: 20, menu_psm_2: 20, menu_psm_3: 20, plat_de_poisson: 20, vin: 20 };
+    // plat_de_poisson retire de la carte du Capitaine Sauvage (correctif du 23 aout 2026) --
+    // la recette generique elle-meme N'EST PAS supprimee de RECETTES_ALIMENTAIRES (reste
+    // utilisable ailleurs, ex. Brasserie des Voyageurs de Montrouge), uniquement retiree ici.
+    // stockMax/prixVente ci-dessous n'en gardent plus trace non plus (configuration morte
+    // retiree, jamais laissee en place).
+    data.carte = ['menu_psm_1', 'menu_psm_2', 'menu_psm_3', 'vin'];
+    data.parametres.stockMax = { menu_psm_1: 20, menu_psm_2: 20, menu_psm_3: 20, vin: 20 };
     data.parametres.prixVente = {
       menu_psm_1: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.menu_psm_1)),
       menu_psm_2: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.menu_psm_2)),
       menu_psm_3: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.menu_psm_3)),
-      plat_de_poisson: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.plat_de_poisson)),
       vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin))
     };
   }
