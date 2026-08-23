@@ -2671,6 +2671,44 @@ const RECETTES_ALIMENTAIRES = {
     prixFixe: true
   },
 
+  // Menus gastronomiques du Capitaine Sauvage (Port-Sainte-Marie, 23 aout 2026) -- carte propre a
+  // PSM, deliberement DISTINCTE des 3 menus ci-dessus (jamais prixFixe : moteur normal
+  // prixVenteAutoPNJ, rendement 6 portions/lot au lieu de 5, decision de design "moins cher que
+  // Luthecia grace au rendement, pas a des matieres moins cheres"). effets identiques aux menus
+  // Luthecia (hp:10/moral:1/paDiffere:3) -- ne s'applique qu'a une commande individuelle via
+  // "Consulter la carte" ; Dîner d'affaires reste regi par CONFIG_INVITATIONS_SOCIALES.
+  // diner_affaires (plateau-pnj.js), jamais par les effets de la recette consommee (verifie a
+  // l'audit dedie, aucune modification necessaire ici).
+  // Restrictions : meme principe que les menus Luthecia (villesAutorisees/buildingsAutorises
+  // isolent chaque carte "maison" a sa propre ville/batiment) -- ville_a = identifiant reel de
+  // Port-Sainte-Marie (WORLD.republic.ville_a, confirme par l'audit dedie), jamais 'capitale' :
+  // ces 3 recettes ne peuvent donc jamais apparaitre a Luthecia, Montrouge, ni dans une autre
+  // brasserie/empire, symetriquement a l'isolation deja en place pour les menus Luthecia.
+  menu_psm_1: {
+    id: 'menu_psm_1',
+    label: 'Menu 1 — Salade verte à l\'ail et aux noix, Poulpe à la mariannaise, Riz au lait à la cannelle',
+    categorie: 'menu', image: null,
+    materiaux: { fruits_legumes: 1, poisson: 1, cereales: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  menu_psm_2: {
+    id: 'menu_psm_2',
+    label: 'Menu 2 — Salade de chou rouge et pomme verte, Magret de canard colvert, Île flottante',
+    categorie: 'menu', image: null,
+    materiaux: { fruits_legumes: 1, viande: 1, cereales: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
+  },
+  menu_psm_3: {
+    id: 'menu_psm_3',
+    label: 'Menu 3 — Huîtres de PSM, Tourte au crabe, Crème brûlée au Grand Marnier',
+    categorie: 'menu', image: null,
+    materiaux: { poisson: 2, cereales: 1 }, pa: 1, portions: 6,
+    effets: { hp: 10, moral: 1, paDiffere: 3 },
+    typesAutorises: ['brasserie'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['capitaine-sauvage']
+  },
+
   // Marche de Luthecia (lot Marche, 21 aout 2026) : production reelle de sandwiches, remplace
   // l'ancien se_nourrir generique/hors-stock a cet endroit. Rendement 1 PA -> 8 sandwiches (chiffre
   // demande, aucune valeur "souvenue" -- verifie qu'aucun autre rendement du moteur n'etait
@@ -3108,28 +3146,32 @@ const DOTATIONS_COMMERCE_PILOTE = {
   // plats terrestres sans rapport avec l'identite du Capitaine Sauvage -- volontairement pas
   // repris, laisses a la carte dediee de demain plutot que de les utiliser en bouche-trou.
   // Stocks/couts moyens de depart repris a l'identique des valeurs DEJA utilisees ailleurs pour
-  // ces memes matieres (poisson/cereales : brasserie-voyageurs-montrouge ci-dessus ; fruits_
-  // legumes : hotel-republica|bar ci-dessus) -- aucun cout invente. Caisse de depart alignee sur
-  // brasserie-voyageurs-montrouge (3000 FR), le seul autre commerce de type 'brasserie' a "vraie
-  // restauration" deja dote (Le Republica n'a pas de caisse de depart comparable a copier, ses
-  // 3000 FR sont associes a sa carte gastronomique verrouillee, pas a un montant generique).
-  // Prix de vente calcule via prixVenteAutoPNJ (meme formule generique que partout ailleurs),
-  // jamais un chiffre choisi a la main.
+  // ces memes matieres (poisson/cereales/viande : brasserie-voyageurs-montrouge ci-dessus ;
+  // fruits_legumes : hotel-republica|bar ci-dessus) -- aucun cout invente. Caisse de depart
+  // alignee sur brasserie-voyageurs-montrouge (3000 FR), le seul autre commerce de type
+  // 'brasserie' a "vraie restauration" deja dote (Le Republica n'a pas de caisse de depart
+  // comparable a copier, ses 3000 FR sont associes a sa carte gastronomique verrouillee, pas a
+  // un montant generique). Prix de vente calcule via prixVenteAutoPNJ (meme formule generique
+  // que partout ailleurs), jamais un chiffre choisi a la main.
   //
-  // LIMITE CONNUE ET ASSUMEE (a rapporter, pas a corriger ce soir) : aucune recette existante
-  // n'a categorie:'menu' en dehors des 3 menus gastronomiques verrouilles a Luthecia --
-  // verifierStockDinerAffaires() (plateau-pnj.js) exige 2 unites 'menu' + 1 vin pour servir un
-  // diner d'affaires. L'ordre diner_affaires est neanmoins branche (memes PA/cout/textes qu'a
-  // Luthecia) : il se comportera exactement comme un dîner d'affaires a stock insuffisant
-  // (message "le restaurant n'a rien a servir", aucun cout preleve) jusqu'a ce que la carte
-  // personnalisee de demain ajoute une recette categorie:'menu' propre a PSM.
+  // Carte definitive (23 aout 2026) : ajoute les 3 menus gastronomiques propres a PSM
+  // (menu_psm_1/2/3, definis ci-dessus, categorie:'menu', jamais prixFixe) -- ferme la limite
+  // signalee au lot precedent, Dîner d'affaires (2 unites 'menu' + 1 vin, verifierStockDiner
+  // Affaires/consommerStockDinerAffaires, plateau-pnj.js) devient fonctionnel des la premiere
+  // production d'un menu + du vin, sans aucune modification de ces deux fonctions -- elles ne
+  // filtrent que sur data.carte/RECETTES_ALIMENTAIRES[id].categorie, generique par construction,
+  // aucune reference a Luthecia. viande ajoutee au stock/cout moyen de depart (necessaire au
+  // Menu 2, absente jusqu'ici de cette dotation).
   'capitaine-sauvage|salle_principale': function(data) {
     data.caisse = 3000;
-    data.stockMatieres = { cereales: 15, poisson: 10, fruits_legumes: 10 };
-    data.coutMoyenMatieres = { cereales: 3, poisson: 4, fruits_legumes: 4 };
-    data.carte = ['plat_de_poisson', 'vin'];
-    data.parametres.stockMax = { plat_de_poisson: 20, vin: 20 };
+    data.stockMatieres = { cereales: 15, poisson: 10, viande: 10, fruits_legumes: 10 };
+    data.coutMoyenMatieres = { cereales: 3, poisson: 4, viande: 5, fruits_legumes: 4 };
+    data.carte = ['menu_psm_1', 'menu_psm_2', 'menu_psm_3', 'plat_de_poisson', 'vin'];
+    data.parametres.stockMax = { menu_psm_1: 20, menu_psm_2: 20, menu_psm_3: 20, plat_de_poisson: 20, vin: 20 };
     data.parametres.prixVente = {
+      menu_psm_1: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.menu_psm_1)),
+      menu_psm_2: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.menu_psm_2)),
+      menu_psm_3: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.menu_psm_3)),
       plat_de_poisson: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.plat_de_poisson)),
       vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin))
     };
