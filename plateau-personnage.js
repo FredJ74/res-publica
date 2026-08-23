@@ -2369,6 +2369,14 @@ async function ouvrirDetailObjetInventaire(idx) {
 
   html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
 
+  // Aliment a emporter (Lot 3, 23 aout 2026) : bouton Consommer, toujours affiche independamment
+  // de la protection "objet de quete" (manger son propre repas n'est jamais un transfert).
+  // AUCUN indice de fraicheur/age ici (peremption volontairement invisible avant consommation,
+  // regle de design validee) -- le libelle reste neutre, identique quel que soit l'etat reel.
+  if (item.familleProduitMarche === 'aliment') {
+    html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> Consommer</button>';
+  }
+
   const protege = typeof colisSecretProtege === 'function' && colisSecretProtege(item);
   if (protege) {
     html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic"><i class="ti ti-lock"></i> Indispensable à une mission en cours — ne peut être ni donné à un autre joueur, ni abandonné, ni détruit.</div>';
@@ -2386,6 +2394,55 @@ async function ouvrirDetailObjetInventaire(idx) {
 
   html += '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
+}
+
+// Duree de fraicheur d'un aliment a emporter (Lot 3, 23 aout 2026) : 7x24h REELLES (horloge
+// systeme, jamais l'horloge PA/le passage a minuit du jeu -- regle de design validee). Frontiere
+// : age <= ce seuil -> consommable normalement ; strictement au-dela -> perime. Constante
+// partagee, jamais recalculee ailleurs.
+const DUREE_FRAICHEUR_ALIMENT_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Consommation d'un aliment a emporter (Lot 3). Retire l'exemplaire de facon SYNCHRONE, avant
+// tout await -- protection naturelle contre un double-clic/double consommation : le second
+// appel eventuel trouve soit un index deja disparu (splice), soit le modal deja ferme (aucun
+// autre code JS ne peut s'executer entre l'ouverture de la modale et ce retrait, la boucle
+// d'evenements ne rend la main qu'apres ce point). Verifie aussi explicitement que l'objet est
+// toujours present et de la bonne famille avant d'agir (l'inventaire a pu changer entre
+// l'ouverture du detail et le clic). Peremption jamais annoncee avant ce moment (age calcule ici
+// pour la premiere fois, jamais expose auparavant) -- voir DUREE_FRAICHEUR_ALIMENT_MS ci-dessus.
+async function consommerAliment(idx) {
+  const item = state.inventory[idx];
+  if (!item || item.familleProduitMarche !== 'aliment') return;
+
+  // Garde-fou horodatage (demande explicite) : un dateAchat absent/invalide ne doit JAMAIS etre
+  // traite implicitement comme "frais" -- echec toujours FERME. Refus propre, message technique
+  // neutre (jamais un indice de fraicheur), objet CONSERVE en inventaire (aucun retrait tant que
+  // la consommation n'a pas reellement pu etre evaluee).
+  if (typeof item.dateAchat !== 'number' || !Number.isFinite(item.dateAchat)) {
+    document.getElementById('modal-postes')?.classList.remove('open');
+    showToast('Consommation impossible', 'Cet objet ne peut pas être consommé pour le moment (donnée technique manquante).', false);
+    return;
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  state.inventory.splice(idx, 1);
+  renderInventory();
+
+  const age = Date.now() - item.dateAchat;
+  const perime = age > DUREE_FRAICHEUR_ALIMENT_MS;
+
+  if (perime) {
+    state.pa = Math.max(0, (state.pa || 0) - 1);
+    showToast('Intoxication alimentaire', 'Votre ' + item.name + ' avait plus de 7 jours : il était périmé et vous rend malade. -1 PA.', false);
+    addJournalEntry('Vous avez consommé "' + item.name + '" — périmé, -1 PA.', 'event-bad');
+  } else {
+    state.pa = Math.min(PA_MAX, (state.pa || 0) + 1);
+    showToast('Casse-croûte', 'Vous avez mangé votre ' + item.name + '. +1 PA.', true, true);
+    addJournalEntry('Vous avez consommé "' + item.name + '". +1 PA.', 'event-good');
+  }
+
+  updateUI();
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 }
 
 async function donnerObjetAJoueur(idx) {

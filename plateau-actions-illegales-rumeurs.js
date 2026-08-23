@@ -2790,6 +2790,31 @@ const PRODUITS_MARCHE = {
     materiaux: { textile: 2, produits_exotiques: 1 }, pa: 1, portions: 2,
     bonusIntegrationVille: 'capitale',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
+  },
+  // Lot 3 (23 aout 2026) : 3 aliments a emporter, noms/matieres/rendement valides par Fred
+  // (audit dedie -- aucune matiere/prix invente). pa:1/portions:8 pour les 3, prix jamais fixe a
+  // la main : ~15 FR Montrouge / ~14 FR PSM / ~16 FR Luthecia attendus une fois dotes (marches
+  // non branches ici). categorie:'objet' (jamais consomme via le chemin recette normal -- voir
+  // commanderProduitCommerce, la branche familleProduitMarche pousse un objet en inventaire, pas
+  // d'effets). L'ancien sandwich (RECETTES_ALIMENTAIRES, marche de Luthecia) reste strictement
+  // intact et inchange -- ces 3 entrees n'y touchent pas.
+  casse_croute_cheminot: {
+    id: 'casse_croute_cheminot', label: 'Casse-croûte du Cheminot', familleProduitMarche: 'aliment',
+    categorie: 'objet', image: null, icon: 'ti-meat',
+    materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 8,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
+  },
+  cornet_friture_psm: {
+    id: 'cornet_friture_psm', label: 'Cornet de friture de poissons', familleProduitMarche: 'aliment',
+    categorie: 'objet', image: null, icon: 'ti-fish',
+    materiaux: { poisson: 1, cereales: 1 }, pa: 1, portions: 8,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
+  },
+  croque_monsieur_luthecia: {
+    id: 'croque_monsieur_luthecia', label: 'Croque-Monsieur du Marché', familleProduitMarche: 'aliment',
+    categorie: 'objet', image: null, icon: 'ti-meat',
+    materiaux: { cereales: 1, viande: 1, fruits_legumes: 1 }, pa: 1, portions: 8,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   }
 };
 
@@ -3646,7 +3671,7 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
   const effets = recette.familleProduitMarche ? {} : (recette.effets || {});
   if (recette.familleProduitMarche) {
     if (typeof addToInventory === 'function') {
-      addToInventory({
+      const objet = {
         id: recetteId + '_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
         type: recetteId,
         name: recette.label,
@@ -3654,7 +3679,16 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
         villeOrigine: ville,
         familleProduitMarche: recette.familleProduitMarche,
         bonusIntegrationVille: recette.bonusIntegrationVille || null
-      });
+      };
+      // Aliment a emporter (Lot 3, 23 aout 2026) : horodatage REEL (Date.now(), jamais l'horloge
+      // PA/le jour du jeu) pose ICI, au tout premier instant ou l'exemplaire entre dans un
+      // inventaire -- audit dedie : aucune autre notion de "date de fabrication" n'est
+      // techniquement disponible (data.stockProduits n'est qu'un compteur agrege, sans identite
+      // par unite), dateAchat est donc a la fois la seule donnee reellement exacte ET celle
+      // demandee par la regle de design. Jamais reinitialise ensuite (depot/ramassage/don ne
+      // touchent jamais ce champ, simple metadonnee JSON transportee telle quelle).
+      if (recette.familleProduitMarche === 'aliment') objet.dateAchat = Date.now();
+      addToInventory(objet);
     }
   } else {
     if (effets.hp) state.hp = Math.min(100, Math.max(0, (state.hp || 0) + effets.hp));
