@@ -2587,6 +2587,12 @@ async function lireCartePostale(idx) {
 
   document.getElementById('carte-postale-modal-title').textContent = 'Lecture — ' + esc(item.name);
   let html = '<div style="padding:1rem">';
+  // Aperçu recto (Lot 5B, 24 aout 2026, raccordement des visuels) : meme champ item.imageUrl que
+  // ouvrirEcrireCartePostale, absent auparavant de cette modale de lecture -- gracieux si
+  // toujours null (carte sans visuel connu), jamais de chemin devine.
+  if (item.imageUrl) {
+    html += '<div style="margin-bottom:.7rem"><img src="' + item.imageUrl + '" style="width:100%;max-height:200px;object-fit:cover;border:1px solid #2a2010"/></div>';
+  }
   html += '<div style="display:flex;border:1px solid #6a5a30;background:#f0ead6;min-height:200px">';
   html += '<div style="flex:1.5;border-right:1px solid #8a7a50;padding:.8rem;color:#2a2010;font-family:\'Great Vibes\',cursive;font-size:1.25rem;line-height:1.7">' + messageHtml + '</div>';
   html += '<div style="flex:1;padding:.8rem;color:#2a2010;font-family:Crimson Pro,serif;font-size:.8rem">';

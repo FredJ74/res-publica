@@ -2770,25 +2770,26 @@ const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postal
 // 20 FR automatique pour les 3 (calcul verifie au rapport du Lot 5A). bonusIntegrationVille est une metadonnee DEDIEE au
 // bonus ENT (Lot 2, getStatEffective) -- deliberement distincte de villeOrigine (simple
 // provenance de l'objet, recopiee separement a l'achat, jamais utilisee pour le bonus). Pas
-// d'effets (categorie objet, jamais consomme), pas d'image dediee pour l'instant.
+// d'effets (categorie objet, jamais consomme). Visuels raccordes au Lot 5B (24 aout 2026) --
+// les 3 fichiers reels (~/Downloads), copies/renommes tels quels, aucune approximation.
 const PRODUITS_MARCHE = {
   tshirt_psm: {
     id: 'tshirt_psm', label: 'T-shirt de Port-Sainte-Marie', familleProduitMarche: 'integration_locale',
-    categorie: 'objet', image: null, icon: 'ti-shirt',
+    categorie: 'objet', image: 'images/port-sainte-marie-marche-tshirt.png', icon: 'ti-shirt',
     materiaux: { textile: 2 }, pa: 1, portions: 6,
     bonusIntegrationVille: 'ville_a',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   casquette_montrouge: {
     id: 'casquette_montrouge', label: 'Casquette de cheminot', familleProduitMarche: 'integration_locale',
-    categorie: 'objet', image: null, icon: 'ti-shirt',
+    categorie: 'objet', image: 'images/montrouge/montrouge-marche-casquette.png', icon: 'ti-shirt',
     materiaux: { textile: 2 }, pa: 1, portions: 6,
     bonusIntegrationVille: 'ville_b',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   echarpe_luthecia: {
     id: 'echarpe_luthecia', label: 'Écharpe en soie', familleProduitMarche: 'integration_locale',
-    categorie: 'objet', image: null, icon: 'ti-shirt',
+    categorie: 'objet', image: 'images/luthecia-marche-echarpe.png', icon: 'ti-shirt',
     materiaux: { textile: 1, produits_exotiques: 1 }, pa: 1, portions: 6,
     bonusIntegrationVille: 'capitale',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
@@ -2802,25 +2803,26 @@ const PRODUITS_MARCHE = {
   // intact et inchange -- ces 3 entrees n'y touchent pas.
   casse_croute_cheminot: {
     id: 'casse_croute_cheminot', label: 'Casse-croûte du Cheminot', familleProduitMarche: 'aliment',
-    categorie: 'objet', image: null, icon: 'ti-meat',
+    categorie: 'objet', image: 'images/montrouge/montrouge-marche-casse-croute.png', icon: 'ti-meat',
     materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 8,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   cornet_friture_psm: {
     id: 'cornet_friture_psm', label: 'Cornet de friture de poissons', familleProduitMarche: 'aliment',
-    categorie: 'objet', image: null, icon: 'ti-fish',
+    categorie: 'objet', image: 'images/port-sainte-marie-marche-friture.png', icon: 'ti-fish',
     materiaux: { poisson: 1, cereales: 1 }, pa: 1, portions: 8,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   croque_monsieur_luthecia: {
     id: 'croque_monsieur_luthecia', label: 'Croque-Monsieur du Marché', familleProduitMarche: 'aliment',
-    categorie: 'objet', image: null, icon: 'ti-meat',
+    categorie: 'objet', image: 'images/luthecia-marche-croque-monsieur.png', icon: 'ti-meat',
     materiaux: { cereales: 1, viande: 1, fruits_legumes: 1 }, pa: 1, portions: 8,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   },
   // Lot 4 (23 aout 2026) : 9 cartes postales (3 par ville), noms/themes valides par Fred.
-  // image:null en attente des noms de fichiers definitifs des 9 visuels (deja crees dans
-  // ~/Downloads mais jamais copies/devines ici -- Fred fournira les chemins). Meme moteur
+  // Visuels raccordes au Lot 5B (24 aout 2026) : les 9 fichiers reels (~/Downloads), identifies
+  // sans ambiguite par leur contenu/texte visible (chaque carte porte son propre theme imprime),
+  // copies/renommes tels quels. Meme moteur
   // bois/pa/portions -> coutRevientPortionRecette/prixVenteAutoPNJ, aucun prix fixe a la main :
   // materiaux:{bois:1}, pa:1, portions:16 (correction economique validee par Fred le 23 aout
   // 2026, apres le calibrage initial portions:8 du meme jour) -> cout matieres 5 FR + cout PA
@@ -2832,55 +2834,55 @@ const PRODUITS_MARCHE = {
   // ouvrirEcrireCartePostale/envoyerCartePostale/lireCartePostale, plateau-personnage.js).
   carte_psm_notre_dame_mer: {
     id: 'carte_psm_notre_dame_mer', label: 'Carte postale — Notre-Dame de la Mer', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: null, icon: 'ti-mail',
+    categorie: 'objet', image: 'images/port-sainte-marie-carte-postale-notre-dame-mer.png', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   carte_psm_touristique: {
     id: 'carte_psm_touristique', label: 'Carte postale — Souvenir de Port-Sainte-Marie', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: null, icon: 'ti-mail',
+    categorie: 'objet', image: 'images/port-sainte-marie-carte-postale-touristique.png', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   carte_psm_culture_marine: {
     id: 'carte_psm_culture_marine', label: 'Carte postale — Traditions de la Marine', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: null, icon: 'ti-mail',
+    categorie: 'objet', image: 'images/port-sainte-marie-carte-postale-culture-marine.png', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   carte_montrouge_place_rail: {
     id: 'carte_montrouge_place_rail', label: 'Carte postale — Place du Rail', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: null, icon: 'ti-mail',
+    categorie: 'objet', image: 'images/montrouge/montrouge-carte-postale-place-rail.png', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   carte_montrouge_touristique: {
     id: 'carte_montrouge_touristique', label: 'Carte postale — Souvenir de Montrouge', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: null, icon: 'ti-mail',
+    categorie: 'objet', image: 'images/montrouge/montrouge-carte-postale-touristique.png', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   carte_montrouge_musee_rail: {
     id: 'carte_montrouge_musee_rail', label: 'Carte postale — Musée du Rail', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: null, icon: 'ti-mail',
+    categorie: 'objet', image: 'images/montrouge/montrouge-carte-postale-musee-rail.png', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   carte_luthecia_institutions: {
     id: 'carte_luthecia_institutions', label: 'Carte postale — Institutions de Luthécia', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: null, icon: 'ti-mail',
+    categorie: 'objet', image: 'images/luthecia-carte-postale-institutions.png', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   },
   carte_luthecia_internationale: {
     id: 'carte_luthecia_internationale', label: 'Carte postale — Luthécia, ville internationale', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: null, icon: 'ti-mail',
+    categorie: 'objet', image: 'images/luthecia-carte-postale-internationale.png', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   },
   carte_luthecia_culture: {
     id: 'carte_luthecia_culture', label: 'Carte postale — Musées et Jardin botanique', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: null, icon: 'ti-mail',
+    categorie: 'objet', image: 'images/luthecia-carte-postale-culture.png', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   }
@@ -3792,6 +3794,12 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
         type: recetteId,
         name: recette.label,
         icon: recette.icon || 'ti-package',
+        // imageUrl (Lot 5B, 24 aout 2026, raccordement des visuels) : deja lu generiquement par
+        // ouvrirDetailObjetInventaire/ouvrirEcrireCartePostale (plateau-personnage.js), jamais
+        // pose auparavant sur ces objets individualises -- recette.image restait donc toujours
+        // ignore, meme une fois renseigne dans PRODUITS_MARCHE. Simple recopie, jamais de mecanique
+        // ajoutee.
+        imageUrl: recette.image || null,
         villeOrigine: ville,
         familleProduitMarche: recette.familleProduitMarche,
         bonusIntegrationVille: recette.bonusIntegrationVille || null

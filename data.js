@@ -3494,7 +3494,18 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#0a0c08,#10140c)",
         desc: "Poissons frais, legumes de saison et l'odeur du pain chaud de la boulangerie.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-marche.png",
-        persons: [],
+        // Lot 5B (24 aout 2026) : 2 PNJ de presence/personnalisation, meme structure que les
+        // marches de Luthecia/Montrouge (Jean-Pierre Bidoche/Ginette Legume/Josette Betterave --
+        // job:'commercant', pas le job:'marchande' du template generique BUILDINGS['marche']).
+        // Aucun ordre ni mecanique individuelle : les achats passent uniquement par le bouton
+        // generique "Faire des achats". photoUrl relatif + photoPos, meme convention que Marine
+        // Leroux (Capitaine Sauvage, ajoutee la meme journee) -- images decoupees depuis le
+        // composite source (~/Downloads/PSM vendeurs marche.png, jamais modifie), un fichier par
+        // PNJ.
+        persons: [
+          {name:'Mireille Legall (PNJ)', role:'Marchande de poisson', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-mireille-legall.png', photoPos:'50% 15%'},
+          {name:'Bastien Leroux (PNJ)', role:'Vendeur de souvenirs', rel:'neutral', job:'commercant', photoUrl:'images/port-sainte-marie-marche-bastien-leroux.png', photoPos:'50% 15%'}
+        ],
         // Lot 5A -- Faire des achats (24 aout 2026) : premier raccordement reel de ce marche
         // (orders vide jusqu'ici, jamais visite). Pas de se_nourrir/pouls_populaire a masquer --
         // ce batiment n'herite d'aucun template partage (buildingId propre 'marche-psm', pas
