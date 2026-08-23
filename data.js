@@ -272,10 +272,9 @@ const WORLD = {
         // mecanique). salle_elections/salle_archives ajoutees via roomsExtra, memes
         // ordres/handlers que Montrouge -- consulter_mandats_maires volontairement absent
         // (contenu hardcode Luthecia, meme raison que Montrouge). Logements sociaux
-        // volontairement absents (specifiques a Montrouge, non demandes ici). Aucun PNJ,
-        // aucun visuel nouveau -- image emoji seule (deja la convention du template de
-        // base BUILDINGS['mairie'] pour accueil_mairie/bureau_maire_local), memes
-        // imageBg que Luthecia/Montrouge pour ces 2 rooms.
+        // volontairement absents (specifiques a Montrouge, non demandes ici). Aucun PNJ.
+        // Visuels ajoutes plus tard (micro-lot dedie, meme jour) : imageUrl sur
+        // salle_elections/salle_archives (emoji provisoire retire), imageBg conserve en repli.
         'mairie': {
           name: "Hôtel de Ville de Port-Sainte-Marie",
           roomOverrides: {
@@ -288,8 +287,8 @@ const WORLD = {
           roomsExtra: {
             salle_elections: {
               name: "Salle des Élections",
-              image: "🗳️",
               imageBg: "linear-gradient(135deg,#0f1810,#142014)",
+              imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-mairie-salle-elections.png",
               desc: "La salle où sont gérés les scrutins et candidatures officielles de la ville.",
               persons: [],
               orders: [
@@ -300,8 +299,8 @@ const WORLD = {
             },
             salle_archives: {
               name: "Salle des Archives",
-              image: "📜",
               imageBg: "linear-gradient(135deg,#100c08,#181410)",
+              imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-mairie-salle-archives.png",
               desc: "L'état-civil et les archives administratives de la ville. Poussiéreux, mais tout y est.",
               persons: [],
               orders: [
@@ -3269,8 +3268,8 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&q=80",
         imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80",
         persons: [
-          {name:'Marin Dulac (PNJ)', role:'Patron du bar', rel:'neutral', job:'barman'},
-          {name:'René Seigne (PNJ)', role:'Habitué du bar — Informateur', rel:'neutral', job:null}
+          {name:'Marin Dulac (PNJ)', role:'Patron du bar', rel:'neutral', job:'barman', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-bar-pecheurs-marin-dulac.png', photoPos:'50% 20%'},
+          {name:'René Seigne (PNJ)', role:'Habitué du bar — Informateur', rel:'neutral', job:null, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-bar-pecheurs-rene-seigne.png', photoPos:'55% 20%'}
         ],
         // Raccordement au moteur bar generique (meme jour, audit dedie) : reutilise a l'identique
         // les ordres du Bar du Republica (produire_commerce/consulter_carte_commerce/
@@ -3283,7 +3282,8 @@ const BUILDINGS = {
         // (mecanique informateur, bug pre-existant non corrige dans ce lot) conserves inchanges --
         // René Seigne est un figurant habitue/informateur narratif, non raccorde a cette mecanique.
         // Marin (PNJ) figurant remplace par Marin Dulac (PNJ), patron/barman (job existant
-        // 'barman'). Portraits non ajoutes ici (fournis separement).
+        // 'barman'). Portraits ajoutes plus tard (micro-lot dedie, meme jour) :
+        // photoUrl/photoPos sur les deux PNJ, name/role/job inchanges.
         orders: [
           {fn:'produire_commerce', label:'Préparer les consommations', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
