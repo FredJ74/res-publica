@@ -2763,9 +2763,11 @@ const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postal
 
 // Registre distinct, volontairement VIDE dans ce lot (aucun produit concret cree -- Lots 2/3/4).
 // Lot 2 (23 aout 2026) : 3 objets d'integration locale, rendement/couts valides par Fred (audit
-// dedie). pa:1/portions:2 pour les 3 -- coutRevientPortionRecette/prixVenteAutoPNJ inchangees,
-// prix jamais fixe a la main : Casquette 55 FR, T-shirt 60 FR, Echarpe 66 FR attendus une fois
-// dotees (Lot 3, marches non branches ici). bonusIntegrationVille est une metadonnee DEDIEE au
+// dedie) -- pa:1/portions:2 initial, prix 55/60/66 FR. RECALIBRAGE ECONOMIQUE (Lot 5A, 24 aout
+// 2026, decision de Fred -- Option B) : portions:6 pour les 3, T-shirt inchange (textile:2),
+// Casquette textile:1->2, Echarpe textile:2->1 (garde produits_exotiques:1, identite "soie"
+// preservee) -- prixVenteAutoPNJ(coutRevientPortionRecette(...)) inchangee, aucun prixFixe :
+// 20 FR automatique pour les 3 (calcul verifie au rapport du Lot 5A). bonusIntegrationVille est une metadonnee DEDIEE au
 // bonus ENT (Lot 2, getStatEffective) -- deliberement distincte de villeOrigine (simple
 // provenance de l'objet, recopiee separement a l'achat, jamais utilisee pour le bonus). Pas
 // d'effets (categorie objet, jamais consomme), pas d'image dediee pour l'instant.
@@ -2773,21 +2775,21 @@ const PRODUITS_MARCHE = {
   tshirt_psm: {
     id: 'tshirt_psm', label: 'T-shirt de Port-Sainte-Marie', familleProduitMarche: 'integration_locale',
     categorie: 'objet', image: null, icon: 'ti-shirt',
-    materiaux: { textile: 2 }, pa: 1, portions: 2,
+    materiaux: { textile: 2 }, pa: 1, portions: 6,
     bonusIntegrationVille: 'ville_a',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   casquette_montrouge: {
     id: 'casquette_montrouge', label: 'Casquette de cheminot', familleProduitMarche: 'integration_locale',
     categorie: 'objet', image: null, icon: 'ti-shirt',
-    materiaux: { textile: 1 }, pa: 1, portions: 2,
+    materiaux: { textile: 2 }, pa: 1, portions: 6,
     bonusIntegrationVille: 'ville_b',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   echarpe_luthecia: {
     id: 'echarpe_luthecia', label: 'Écharpe en soie', familleProduitMarche: 'integration_locale',
     categorie: 'objet', image: null, icon: 'ti-shirt',
-    materiaux: { textile: 2, produits_exotiques: 1 }, pa: 1, portions: 2,
+    materiaux: { textile: 1, produits_exotiques: 1 }, pa: 1, portions: 6,
     bonusIntegrationVille: 'capitale',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   },
@@ -2964,7 +2966,14 @@ const BUILDING_COMMERCE_TYPE = {
   // batiment mono-piece -- n'exclut pas une future extension du batiment. getCommerceId()
   // integre deja pays/ville/buildingId/roomId : ce commerce est donc scope a Port-Sainte-Marie
   // (ville_a) des sa premiere creation, entierement distinct de celui de Luthecia.
-  'capitaine-sauvage|salle_principale': 'brasserie'
+  'capitaine-sauvage|salle_principale': 'brasserie',
+  // Marche de Port-Sainte-Marie (Lot 5A, 24 aout 2026) : batiment 'marche-psm' distinct du
+  // buildingId partage 'marche' (Luthecia/Montrouge) -- cle room-scopee (une seule room 'etals'
+  // dans son template, data.js) meme si mono-piece aujourd'hui, coherence avec capitaine-sauvage
+  // ci-dessus. type 'marche' (meme moteur/meme doctrine caisse institutionnelle que Luthecia/
+  // Montrouge, COMMERCE_SANS_CAISSE_AUTONOME.marche = 'marche' ci-dessous) -- getCommerceId()
+  // le scope deja a Port-Sainte-Marie (ville_a), entierement distinct des deux autres marches.
+  'marche-psm|etals': 'marche'
 };
 
 // Types de commerce sans caisse autonome (paiement client/salaire de production routes vers la
@@ -3311,20 +3320,61 @@ const DOTATIONS_COMMERCE_PILOTE = {
       snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
     };
   },
-  // Marche de Luthecia (lot Marche, 21 aout 2026) -- meme doctrine "aucune caisse autonome" que
-  // la buvette (data.caisse reste a 0 en permanence) : ventes et salaire de production routes
-  // vers la caisse institutionnelle "Marche" deja existante (COMMERCE_SANS_CAISSE_AUTONOME.marche
-  // = 'marche', voir plus haut), jamais vers Jean-Pierre Bidoche ou Ginette Legume (aucune caisse
-  // individuelle creee pour eux, ils restent des PNJ d'ambiance).
+  // Marche de Luthecia / Marche de Montrouge (Lot 5A -- Faire des achats, 24 aout 2026) :
+  // buildingId 'marche' PARTAGE entre les deux villes (BUILDING_COMMERCE_TYPE['marche']='marche',
+  // resolu buildingId seul, roomId toujours null ici -- voir resoudreCommerceActuel/
+  // chargerCommerce) -- une SEULE entree de dotation pour les deux, donc obligatoirement
+  // brancher ICI sur data.city (deja renseigne par defautCommerce/chargerCommerce AVANT l'appel a
+  // cette fonction) plutot que sur une cle buildingId|roomId qui ne distinguerait rien. Aucune
+  // caisse autonome (data.caisse reste a 0), meme doctrine inchangee que la buvette :
+  // COMMERCE_SANS_CAISSE_AUTONOME.marche='marche' route vers la caisse institutionnelle
+  // getCaisseLocaleId('marche', ville) -- deja city-safe par construction (categorie+'_'+ville),
+  // donc 'marche_capitale' pour Luthecia et 'marche_ville_b' pour Montrouge, jamais partagee.
+  // Remplace l'ancien 'sandwich' (Luthecia uniquement) par croque_monsieur_luthecia -- la ligne
+  // Supabase deja persistee pour Luthecia garde encore l'ancien sandwich dans carte/stockProduits/
+  // parametres (rattraperDotationCommerce est PUREMENT ADDITIF, ne retire jamais une cle
+  // existante) : nettoyage cible fourni separement (migration_marche_luthecia_sandwich.sql, non
+  // execute). RECETTES_ALIMENTAIRES.sandwich lui-meme n'est PAS supprime (definition generique
+  // conservee, plus reference par aucune dotation apres ce lot).
   'marche': function(data) {
-    data.stockMatieres = { cereales: 10, fruits_legumes: 10, viande: 10 };
-    data.coutMoyenMatieres = { cereales: 3, fruits_legumes: 4, viande: 5 };
-    data.carte = ['sandwich'];
-    data.parametres.stockMax = { sandwich: 20 }; // plafonne (lot plafonds, 21 aout 2026, etait 40)
-    // Prix fixe demande (15 FR), meme convention que les menus du Republica ci-dessus -- pas
-    // calcule via prixVenteAutoPNJ. Meme mise en garde : produireRecetteCommerce() le recalculera
-    // automatiquement des la premiere production (proprietaire PNJ par defaut).
-    data.parametres.prixVente = { sandwich: 15 };
+    if (data.city === 'ville_b') {
+      // Montrouge
+      data.stockMatieres = { cereales: 10, viande: 10, textile: 10, bois: 10 };
+      data.coutMoyenMatieres = { cereales: 3, viande: 5, textile: 5, bois: 5 };
+      data.carte = ['casse_croute_cheminot', 'casquette_montrouge', 'carte_montrouge_place_rail', 'carte_montrouge_touristique', 'carte_montrouge_musee_rail'];
+    } else {
+      // Luthecia (capitale) -- comportement par defaut historique de cette cle
+      data.stockMatieres = { cereales: 10, viande: 10, fruits_legumes: 10, textile: 10, produits_exotiques: 10, bois: 10 };
+      data.coutMoyenMatieres = { cereales: 3, viande: 5, fruits_legumes: 4, textile: 5, produits_exotiques: 6, bois: 5 };
+      data.carte = ['croque_monsieur_luthecia', 'echarpe_luthecia', 'carte_luthecia_institutions', 'carte_luthecia_internationale', 'carte_luthecia_culture'];
+    }
+    // Stock/prix generes generiquement pour les 5 produits de la ville courante -- jamais de
+    // valeur ecrite a la main : prixVenteAutoPNJ(coutRevientPortionRecette(...)) exactement comme
+    // partout ailleurs, resoudreProduitCommerce() pour rester agnostique aliment/objet/carte
+    // postale (meme resolveur que le reste du moteur commerce, Lot 1).
+    data.parametres.stockMax = {};
+    data.parametres.prixVente = {};
+    data.carte.forEach(id => {
+      data.parametres.stockMax[id] = 20;
+      const recette = resoudreProduitCommerce(id);
+      if (recette) data.parametres.prixVente[id] = prixVenteAutoPNJ(coutRevientPortionRecette(data, recette));
+    });
+  },
+  // Marche de Port-Sainte-Marie (Lot 5A, 24 aout 2026) : cle room-scopee dediee (batiment
+  // 'marche-psm' distinct, pas de partage avec Luthecia/Montrouge -- aucun branchement sur
+  // data.city necessaire ici). Meme doctrine caisse institutionnelle (COMMERCE_SANS_CAISSE_
+  // AUTONOME.marche), memes primitives de prix generiques.
+  'marche-psm|etals': function(data) {
+    data.stockMatieres = { poisson: 10, cereales: 10, textile: 10, bois: 10 };
+    data.coutMoyenMatieres = { poisson: 4, cereales: 3, textile: 5, bois: 5 };
+    data.carte = ['cornet_friture_psm', 'tshirt_psm', 'carte_psm_notre_dame_mer', 'carte_psm_touristique', 'carte_psm_culture_marine'];
+    data.parametres.stockMax = {};
+    data.parametres.prixVente = {};
+    data.carte.forEach(id => {
+      data.parametres.stockMax[id] = 20;
+      const recette = resoudreProduitCommerce(id);
+      if (recette) data.parametres.prixVente[id] = prixVenteAutoPNJ(coutRevientPortionRecette(data, recette));
+    });
   },
   // Restaurant Le Capitaine Sauvage (Port-Sainte-Marie, 23 aout 2026) -- raccordement minimal,
   // AUCUNE nouvelle recette/prix/ingredient invente ce soir (demande explicite : la carte
@@ -3851,6 +3901,99 @@ async function doCommanderProduitCommerceUI(commerceType, buildingId, roomId, re
   addJournalEntry(recette.label + ' commandé(e) — ' + res.prix + ' FR.', 'event-good');
   // Rafraichit la carte pour permettre d'enchainer sans rouvrir (meme pattern que confirmerProduction/doProduireArme)
   doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
+}
+
+// =====================
+// FAIRE DES ACHATS (marches, Lot 5A -- 24 aout 2026) -- reutilise integralement le moteur
+// existant (chargerCommerce/resoudreProduitCommerce/commanderProduitCommerce), AUCUNE logique de
+// commande/prix/stock propre : cet ordre ajoute seulement un ecran de choix par categorie
+// (familleProduitMarche), meme principe que doConsommerBoisson/doConsommerBoissonGenerique
+// (filtre categorie:'boisson') mais sur 3 familles au lieu d'une, avec un niveau de navigation
+// supplementaire (categories -> produits de la categorie). Remplace "Consulter la carte"
+// (consulter_carte_commerce), retire des marches -- toujours utilise tel quel par les autres
+// commerces (cafe/brasserie/bar/buvette), fonction generique non touchee.
+const LABELS_CATEGORIE_ACHATS_MARCHE = {
+  aliment: 'Nourriture à emporter',
+  integration_locale: 'Souvenir local',
+  carte_postale: 'Cartes postales'
+};
+
+function doFaireAchatsCommerceGenerique(pa, cost) {
+  const c = resoudreCommerceActuel();
+  if (!c) { showToast('Indisponible', '', false); return; }
+  doFaireAchatsCommerce(c.type, c.buildingId, c.roomId, pa, cost);
+}
+
+async function doFaireAchatsCommerce(commerceType, buildingId, roomId, pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false); return; }
+  afficherCategoriesAchatsMarche(commerceType, buildingId, roomId);
+}
+
+function afficherCategoriesAchatsMarche(commerceType, buildingId, roomId) {
+  document.getElementById('postes-modal-title').textContent = 'Faire des achats';
+  let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.5rem">';
+  html += '<button onclick="afficherCategorieAchatsMarche(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'aliment\')" style="display:flex;align-items:center;gap:.6rem;padding:.7rem 1rem;border:1px solid #4a8a4a;background:transparent;color:#c0b090;cursor:pointer;font-size:.9rem;text-align:left"><i class="ti ti-meat" style="font-size:1.1rem;color:#6ab858"></i> Nourriture à emporter</button>';
+  html += '<button onclick="afficherCategorieAchatsMarche(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'integration_locale\')" style="display:flex;align-items:center;gap:.6rem;padding:.7rem 1rem;border:1px solid #4a8a4a;background:transparent;color:#c0b090;cursor:pointer;font-size:.9rem;text-align:left"><i class="ti ti-shirt" style="font-size:1.1rem;color:#6ab858"></i> Souvenir local</button>';
+  html += '<button onclick="afficherCategorieAchatsMarche(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'carte_postale\')" style="display:flex;align-items:center;gap:.6rem;padding:.7rem 1rem;border:1px solid #4a8a4a;background:transparent;color:#c0b090;cursor:pointer;font-size:.9rem;text-align:left"><i class="ti ti-mail" style="font-size:1.1rem;color:#6ab858"></i> Cartes postales</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function afficherCategorieAchatsMarche(commerceType, buildingId, roomId, famille) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  if (!data) { showToast('Indisponible', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = LABELS_CATEGORIE_ACHATS_MARCHE[famille] || 'Achats';
+  let html = '<div style="padding:1rem">';
+  html += '<button onclick="afficherCategoriesAchatsMarche(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\')" style="margin-bottom:.8rem;padding:.3rem .6rem;border:1px solid #2a2010;background:transparent;color:#8a8060;cursor:pointer;font-size:.75rem"><i class="ti ti-arrow-left"></i> Retour aux catégories</button>';
+  const carte = data.carte || [];
+  const produits = carte.filter(id => resoudreProduitCommerce(id)?.familleProduitMarche === famille);
+  if (produits.length === 0) {
+    html += '<div style="font-size:.9rem;color:#8a8060">Aucun produit disponible pour le moment.</div>';
+  }
+  produits.forEach(id => {
+    const recette = resoudreProduitCommerce(id);
+    const stock = data.stockProduits[id] || 0;
+    const prix = data.parametres.prixVente[id];
+    const enRupture = stock <= 0;
+    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
+    if (recette.image) html += '<img src="' + recette.image + '" style="width:56px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0" />';
+    html += '<div style="flex:1">';
+    html += '<b style="font-size:.93rem;color:#c0b090">' + recette.label + '</b><br>';
+    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
+    html += '</div>';
+    html += enRupture
+      ? '<span style="font-size:.8rem;color:#5a5040;flex-shrink:0">Rupture</span>'
+      : '<button onclick="doCommanderAchatCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\',\'' + famille + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">Acheter</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Pont UI <-> logique, meme primitive pure que doCommanderProduitCommerceUI (commanderProduitCommerce
+// non duplique) -- seule difference : rafraichit la MEME categorie filtree plutot que la carte
+// complete, pour permettre d'enchainer plusieurs achats dans la meme categorie sans revenir au
+// choix des 3 categories a chaque fois.
+async function doCommanderAchatCommerceUI(commerceType, buildingId, roomId, recetteId, famille) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const recette = resoudreProduitCommerce(recetteId);
+  const res = await commanderProduitCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
+  if (!res.ok) {
+    const messages = { rupture: 'Ce produit est en rupture de stock.', fonds_insuffisants: (res.prix || 0) + ' FR requis.', prix_non_defini: 'Prix non défini pour ce produit.', introuvable: '' };
+    showToast('Achat impossible', messages[res.raison] || '', false);
+    return;
+  }
+  updateUI();
+  showToast('Achat effectué', recette.label + '.', true, true);
+  addJournalEntry(recette.label + ' acheté(e) — ' + res.prix + ' FR.', 'event-good');
+  afficherCategorieAchatsMarche(commerceType, buildingId, roomId, famille);
 }
 
 // =====================

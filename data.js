@@ -238,11 +238,19 @@ const WORLD = {
             marche_ext: {
               // se_nourrir masque UNIQUEMENT ici (excludeOrders, plateau-politique.js
               // renderRoomActions) : le template partage BUILDINGS['marche'] n'est pas modifie,
-              // Montrouge/Khalija le conservent tel quel.
+              // Khalija le conserve tel quel. Montrouge l'exclut desormais aussi via son propre
+              // roomOverride (Lot 5A, voir buildingContext.marche ci-dessous dans ville_b).
               excludeOrders: ['se_nourrir'],
+              // Lot 5A -- Faire des achats (24 aout 2026) : "Voir ce qu'il y a a manger"
+              // (consulter_carte_commerce) retire, remplace par "Faire des achats"
+              // (faire_achats_marche, categories aliment/souvenir/cartes postales) -- l'ancien
+              // sandwich ne fait plus partie de la carte de ce marche (voir DOTATIONS_COMMERCE_
+              // PILOTE['marche'], plateau-actions-illegales-rumeurs.js). Libelle de production
+              // generalise ("Préparer des sandwiches" -> "Produire les articles du marché"),
+              // desormais partage a l'identique par les 3 marches (Luthecia/Montrouge/PSM).
               orders: [
-                {fn:'produire_commerce', label:'Préparer des sandwiches', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer des sandwiches pour le service (consomme les matières en stock, rémunéré en FR).'},
-                {fn:'consulter_carte_commerce', label:'Voir ce qu\'il y a à manger', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les sandwiches disponibles et commander.'},
+                {fn:'produire_commerce', label:'Produire les articles du marché', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au marché (consomme les matières en stock, rémunéré en FR).'},
+                {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Nourriture à emporter, souvenir local, cartes postales.'},
                 {fn:'vendre_matiere_commerce', label:'Vendre des matières au marché', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce marché.'}
               ]
             }
@@ -419,7 +427,21 @@ const WORLD = {
           // qui n'est pas touchee). Le nom du fichier dit "exterieur" car la scene represente un marche en
           // plein air, mais c'est bien l'image affichee APRES entree dans le batiment.
           roomOverrides: {
-            marche_ext: { imageUrl: "images/montrouge/montrouge-marche-exterieur.jpg" }
+            marche_ext: {
+              imageUrl: "images/montrouge/montrouge-marche-exterieur.jpg",
+              // Lot 5A -- Faire des achats (24 aout 2026) : Montrouge n'avait jusqu'ici AUCUN
+              // bouton commerce (seul le template partage BUILDINGS['marche'] s'appliquait --
+              // se_nourrir/pouls_populaire/distribuer_tract/lancer_rumeur_cible). Meme structure
+              // que le roomOverride de Luthecia (excludeOrders + orders additifs) : se_nourrir
+              // masque au profit du commerce, produire_commerce/faire_achats_marche/
+              // vendre_matiere_commerce ajoutes a l'identique.
+              excludeOrders: ['se_nourrir'],
+              orders: [
+                {fn:'produire_commerce', label:'Produire les articles du marché', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au marché (consomme les matières en stock, rémunéré en FR).'},
+                {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Nourriture à emporter, souvenir local, cartes postales.'},
+                {fn:'vendre_matiere_commerce', label:'Vendre des matières au marché', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce marché.'}
+              ]
+            }
           }
         },
 
@@ -3473,7 +3495,19 @@ const BUILDINGS = {
         desc: "Poissons frais, legumes de saison et l'odeur du pain chaud de la boulangerie.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-marche.png",
         persons: [],
-        orders: []
+        // Lot 5A -- Faire des achats (24 aout 2026) : premier raccordement reel de ce marche
+        // (orders vide jusqu'ici, jamais visite). Pas de se_nourrir/pouls_populaire a masquer --
+        // ce batiment n'herite d'aucun template partage (buildingId propre 'marche-psm', pas
+        // 'marche'), ces deux ordres n'y ont jamais existe. distribuer_tract/lancer_rumeur_cible
+        // repris a l'identique du template BUILDINGS['marche'] (memes pa/cost/successRate/desc)
+        // pour rester coh\u00e9rents avec Luthecia/Montrouge.
+        orders: [
+          {fn:'produire_commerce', label:'Produire les articles du march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au march\u00e9 (consomme les mati\u00e8res en stock, r\u00e9mun\u00e9r\u00e9 en FR).'},
+          {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Nourriture \u00e0 emporter, souvenir local, cartes postales.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des mati\u00e8res au march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les mati\u00e8res premi\u00e8res de votre inventaire \u00e0 ce march\u00e9.'},
+          {fn:'distribuer_tract', label:'Distribuer un tract', pa:1, cost:0, type:'legal', icon:'ti-file-description', successRate:70, desc:'Necessite un tract en inventaire. Donne un vote au candidat du tract.', requiresTract:true},
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
+        ]
       }
     }
   },

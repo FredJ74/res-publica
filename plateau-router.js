@@ -201,6 +201,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consommer_buvette') { doConsommerBuvette(pa, cost); return; }
   if (fn === 'produire_commerce') { doProduireCommerceGenerique(pa, cost); return; }
   if (fn === 'consulter_carte_commerce') { doConsulterCarteCommerceGenerique(pa, cost); return; }
+  if (fn === 'faire_achats_marche') { doFaireAchatsCommerceGenerique(pa, cost); return; }
   if (fn === 'gerer_commerce') { doGererCommerceGenerique(pa, cost); return; }
   if (fn === 'vendre_matiere_commerce') { doVendreMatiereCommerceGenerique(pa, cost); return; }
   if (fn === 'consommer_boisson') { doConsommerBoissonGenerique(pa, cost); return; }
