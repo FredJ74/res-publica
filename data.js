@@ -3268,17 +3268,22 @@ const BUILDINGS = {
         desc: "Atmosphere enfumee, bruit de fond. Tout se negocie ici.",
         imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&q=80",
         imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80",
-        persons: [{name:'Marin (PNJ)', role:'Client habitue', rel:'neutral', job:null}],
+        persons: [
+          {name:'Marin Dulac (PNJ)', role:'Patron du bar', rel:'neutral', job:'barman'},
+          {name:'René Seigne (PNJ)', role:'Habitué du bar — Informateur', rel:'neutral', job:null}
+        ],
         // Raccordement au moteur bar generique (meme jour, audit dedie) : reutilise a l'identique
         // les ordres du Bar du Republica (produire_commerce/consulter_carte_commerce/
         // vendre_matiere_commerce/gerer_commerce/boire_verre/offrir_tournee/
         // recruter_informateur_pnj). se_nourrir generique retire -- remplace fonctionnellement
         // par le vrai commerce (produire/consulter carte/boire un verre/tournee), verifie qu'il
         // ne servait a rien d'autre ici (aucun autre ordre/mecanique n'en dependait). ecouter_
-        // rumeurs deja present, conserve tel quel. contrebande/recruter_informateur_3/
-        // recruter_info_3/consulter_info_3 (mecanique informateur, bug pre-existant non corrige
-        // dans ce lot) conserves inchanges. Marin (PNJ), simple figurant, conserve tel quel --
-        // aucun PNJ cree.
+        // rumeurs raccorde a Marin Dulac via sourceOverride (meme mecanisme que Marco au Bar du
+        // Republica). contrebande/recruter_informateur_3/recruter_info_3/consulter_info_3
+        // (mecanique informateur, bug pre-existant non corrige dans ce lot) conserves inchanges --
+        // René Seigne est un figurant habitue/informateur narratif, non raccorde a cette mecanique.
+        // Marin (PNJ) figurant remplace par Marin Dulac (PNJ), patron/barman (job existant
+        // 'barman'). Portraits non ajoutes ici (fournis separement).
         orders: [
           {fn:'produire_commerce', label:'Préparer les consommations', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer boissons et snacks pour le service (consomme les matières en stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir ce qui est disponible au bar et commander.'},
@@ -3286,7 +3291,7 @@ const BUILDINGS = {
           {fn:'offrir_tournee', label:'Offrir une tournée', pa:0, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Offrez une tournée (une seule boisson de la carte) à plusieurs personnes présentes, à vos frais. Chacun accepte ou refuse indépendamment ; vous ne buvez et ne payez que si au moins une personne accepte.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
-          {fn:'ecouter_rumeurs', label:'Ecouter',    pa:0, cost:0,   type:'grey',  icon:'ti-ear',      successRate:85},
+          {fn:'ecouter_rumeurs', label:'Ecouter le patron', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:85, desc:'Marin Dulac entend tout ce qui se dit au bar. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marin Dulac'},
           {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
           {fn:'contrebande',label:'Contacter reseau',pa:2, cost:100, type:'illegal',icon:'ti-package', successRate:55},
           {fn:'recruter_informateur_3', label:'Recruter un informateur (Niv.3)', pa:1, cost:700, type:'grey', icon:'ti-user-search', successRate:100, desc:'700 FR/jour. Indice empire origine d\'un crime, contrebandes en cours.'},
