@@ -1925,6 +1925,7 @@ const BUILDINGS = {
           {fn:'subvention',           label:'Accorder une subvention',      pa:2, cost:0, type:'legal',   icon:'ti-coins',          successRate:100, requiresPost:'min_fin', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Montant a fixer ensuite (plafond 5000 FR).'},
           {fn:'fiscal',              label:'Repartition budgetaire',       pa:2, cost:0, type:'legal', icon:'ti-chart-pie',   successRate:100, requiresPost:'min_fin', desc:'Fixer la repartition des recettes fiscales entre les institutions. Prerogative exclusive du Ministre des Finances.'},
           {fn:'gerer_candidatures_directeurs', label:'Gérer les candidatures de directeurs', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'min_fin', desc:'Candidatures reçues pour les 3 directeurs d\'usine (Pharmaceutique, Tabac & Alcools, Raffinerie) — sans se déplacer.'},
+          {fn:'virement_ministere_usine', label:'Virement vers une usine', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'min_fin', desc:"Verser un montant depuis la caisse du Ministere vers la caisse d'une usine nationale. Le ministre ne peut jamais prelever directement dans la caisse d'une usine."},
           {fn:'allegement_fiscal',   label:'Allegement fiscal sectoriel', pa:0, cost:0, type:'legal', icon:'ti-percentage', successRate:100, requiresPost:'min_fin', desc:'Pas encore disponible -- sera active une fois le systeme de taxation alimentant les caisses de l\'Etat finalise.'},
           {fn:'preempter_entreprise', label:'Droit de preemption sur une entreprise', pa:2, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_fin', desc:'Nationaliser une entreprise encore tenue par un PNJ, financee par un pret automatique de la Banque Nationale. Une seule preemption a la fois.'}
         ]
@@ -4898,7 +4899,8 @@ const BUILDINGS = {
         orders: [
           {fn:'nommer_directeur_raffinerie', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de la raffinerie. Poste exclusif (sauf député).'},
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_raffinerie', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
-          {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_raffinerie', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'}
+          {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_raffinerie', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
+          {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_raffinerie', desc:'Verser un montant depuis la caisse de la raffinerie vers la caisse du Ministère des Finances.'}
         ]
       },
       salle_production: {
@@ -4972,7 +4974,8 @@ const BUILDINGS = {
         orders: [
           {fn:'nommer_directeur_tabac_alcools', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur du Pôle Tabac & Alcools. Poste exclusif (sauf député).'},
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
-          {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'}
+          {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
+          {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Verser un montant depuis la caisse du pôle vers la caisse du Ministère des Finances.'}
         ]
       },
       distillerie: {
@@ -5081,7 +5084,8 @@ const BUILDINGS = {
         orders: [
           {fn:'nommer_directeur_pharma', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de l\'Usine Pharmaceutique. Poste exclusif (sauf député).'},
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_pharma', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
-          {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_pharma', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'}
+          {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_pharma', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
+          {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_pharma', desc:"Verser un montant depuis la caisse de l'usine vers la caisse du Ministère des Finances."}
         ]
       },
       salle_production: {
@@ -6469,6 +6473,20 @@ function getPrixRessource(cle, quantiteEnStock) {
   // 0% rempli -> +40% ; 50% rempli -> prix de base ; 100% rempli -> -40%
   const variation = (0.5 - tauxRemplissage) * 0.8;
   return Math.round(res.prixBase * (1 + variation) * 100) / 100;
+}
+
+// Prix automatique PNJ des ENTREPOTS MUNICIPAUX uniquement (arbitrage du 24 aout 2026) : marge
+// fixe de 50% du prix de vente, donc prix = 2 x prixAchatFournisseur -- deja exactement egal a
+// res.prixBase pour toutes les ressources du catalogue (verifie une a une), sans variation liee
+// au niveau de stock. Remplace getPrixRessource() UNIQUEMENT pour les entrepots (achat PJ, prix
+// affiche au directeur, vente de bois a l'imprimerie qui suit le cours de l'entrepot) ;
+// getPrixRessource() elle-meme reste inchangee et continue de servir la vente directe des
+// usines (doOuvrirVenteDirecteUsine) -- voir rapport : le "cout reel" des produits manufactures
+// n'a pas ete valide pour cette regle, aucune extension aux usines dans ce lot.
+function getPrixRessourceEntrepot(cle) {
+  const res = RESSOURCES_ECONOMIE[cle];
+  if (!res) return 0;
+  return Math.round(res.prixBase * 100) / 100;
 }
 
 // Quantite maximale livrable pour combler un entrepot vide a son plafond (dotation de

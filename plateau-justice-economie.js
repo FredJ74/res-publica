@@ -3188,17 +3188,14 @@ async function doOuvrirAchatEntrepot(pa, cost) {
   let html = '<div style="padding:1.2rem">';
   html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:1rem">Indiquez la quantité souhaitée pour chaque produit (laissez vide pour ne rien acheter). Le prix affiché varie selon le niveau du stock.</div>';
   html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
-  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix actuel</th><th>Quantité</th></tr>';
+  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix actuel</th><th>Quantité</th></tr>';
 
   Object.entries(RESSOURCES_ECONOMIE).forEach(([cle, res]) => {
     const enStock = stock[cle] || 0;
-    const prixActuel = prixManuel[cle] != null ? prixManuel[cle] : (typeof getPrixRessource === 'function' ? getPrixRessource(cle, enStock) : res.prixBase);
-    const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
-    const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
+    const prixActuel = prixManuel[cle] != null ? prixManuel[cle] : (typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot(cle) : res.prixBase);
     html += '<tr style="border-top:1px solid #2a2010">';
     html += '<td style="padding:.55rem 0"><i class="ti ' + res.icon + '" style="margin-right:.4rem;font-size:1.1rem"></i>' + res.label + '</td>';
     html += '<td style="color:' + (enStock === 0 ? '#cc5540' : '#8a8060') + '">' + enStock + '</td>';
-    html += '<td style="color:#6a5a30">' + prixMin + '-' + prixMax + ' ' + cur + '</td>';
     html += '<td style="color:#C9A84C;font-weight:bold">' + prixActuel + ' ' + cur + '</td>';
     html += '<td><input type="number" min="0" max="' + enStock + '" id="achat-entrepot-' + cle + '" style="width:90px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:1rem" ' + (enStock === 0 ? 'disabled' : '') + ' /></td>';
     html += '</tr>';
@@ -3229,7 +3226,7 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
       showToast('Stock insuffisant', 'Il ne reste que ' + enStock + ' unité(s) de ' + RESSOURCES_ECONOMIE[cle].label + '.', false);
       return;
     }
-    const prix = prixManuel[cle] != null ? prixManuel[cle] : getPrixRessource(cle, enStock);
+    const prix = prixManuel[cle] != null ? prixManuel[cle] : getPrixRessourceEntrepot(cle);
     achats[cle] = { qte, prix };
     total += qte * prix;
   }
@@ -3296,7 +3293,7 @@ async function ouvrirVendreBoisImprimerie(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const etatEntrepot = await sbGetBatimentEtat(state.country, 'capitale', 'entrepot-logistique-luthecia');
   const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
-  const prixUnitaire = Math.round((typeof getPrixRessource === 'function' ? getPrixRessource('bois', stockBoisEntrepot) : 5) * 1.10 * 100) / 100;
+  const prixUnitaire = Math.round((typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot('bois') : 5) * 1.10 * 100) / 100;
 
   document.getElementById('postes-modal-title').textContent = 'Vendre du bois à Gustave';
   document.getElementById('postes-body').innerHTML =
@@ -3323,7 +3320,7 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   // Prix recalcule ici, pas celui affiche a l'ouverture du modal (le cours peut avoir bouge entre-temps)
   const etatEntrepot = await sbGetBatimentEtat(state.country, 'capitale', 'entrepot-logistique-luthecia');
   const stockBoisEntrepot = etatEntrepot.entrepot?.stock?.bois || 0;
-  const prixUnitaire = Math.round((typeof getPrixRessource === 'function' ? getPrixRessource('bois', stockBoisEntrepot) : 5) * 1.10 * 100) / 100;
+  const prixUnitaire = Math.round((typeof getPrixRessourceEntrepot === 'function' ? getPrixRessourceEntrepot('bois') : 5) * 1.10 * 100) / 100;
 
   const etatImprimerie = await sbGetBatimentEtat(state.country, 'capitale', 'la-tribune');
   const caisse = etatImprimerie.imprimerie?.caisse || 0;
@@ -3387,22 +3384,19 @@ async function doOuvrirFixerPrixAchatEntrepot(pa, cost) {
   const prixManuel = etat.entrepot?.prixManuel || {};
 
   let html = '<div style="padding:1.2rem">';
-  html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:1rem">Prix fixé par produit, dans la fourchette autorisée. Laissez vide pour revenir au prix automatique (fonction du stock).</div>';
+  html += '<div style="font-size:.96rem;color:#8a8060;margin-bottom:1rem">Prix fixé librement par produit (aucune fourchette imposée — vous pouvez brader votre stock pour dégager de la trésorerie, ou augmenter votre marge). Laissez vide pour revenir au prix automatique (marge fixe de 50%).</div>';
   html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
-  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix mini-maxi</th><th>Prix auto</th><th>Prix fixé</th></tr>';
+  html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.93rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix auto (marge 50%)</th><th>Prix fixé</th></tr>';
 
   Object.entries(RESSOURCES_ECONOMIE).forEach(([cle, res]) => {
     const enStock = stock[cle] || 0;
-    const prixAuto = getPrixRessource(cle, enStock);
-    const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
-    const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
+    const prixAuto = getPrixRessourceEntrepot(cle);
     const prixFixe = prixManuel[cle];
     html += '<tr style="border-top:1px solid #2a2010">';
     html += '<td style="padding:.55rem 0"><i class="ti ' + res.icon + '" style="margin-right:.4rem;font-size:1.1rem"></i>' + res.label + '</td>';
     html += '<td style="color:#8a8060">' + enStock + '</td>';
-    html += '<td style="color:#6a5a30">' + prixMin + '-' + prixMax + ' ' + cur + '</td>';
     html += '<td style="color:#6a5a30">' + prixAuto + ' ' + cur + '</td>';
-    html += '<td><input type="number" min="' + prixMin + '" max="' + prixMax + '" step="0.5" id="prix-fixe-entrepot-' + cle + '" placeholder="auto" value="' + (prixFixe != null ? prixFixe : '') + '" style="width:100px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:1rem" /></td>';
+    html += '<td><input type="number" min="0.01" step="0.5" id="prix-fixe-entrepot-' + cle + '" placeholder="auto" value="' + (prixFixe != null ? prixFixe : '') + '" style="width:100px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:1rem" /></td>';
     html += '</tr>';
   });
   html += '</table>';
@@ -3419,16 +3413,18 @@ async function confirmerFixerPrixAchatEntrepot(buildingId, pa, cost) {
   const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
   const prixManuel = { ...(etat.entrepot?.prixManuel || {}) };
 
+  // Liberte de prix du directeur PJ (arbitrage du 24 aout 2026) : plus aucune fourchette
+  // economique (ni plancher ni plafond lie a prixBase) -- il peut brader son stock sous son
+  // prix d'achat pour degager de la tresorerie, ou au contraire augmenter fortement sa marge.
+  // Seules des protections techniques subsistent : nombre valide, fini, strictement positif.
   const nouvellesValeurs = {};
   for (const cle of Object.keys(RESSOURCES_ECONOMIE)) {
     const res = RESSOURCES_ECONOMIE[cle];
     const valeur = document.getElementById('prix-fixe-entrepot-' + cle)?.value;
     if (valeur === '' || valeur == null) continue;
     const prix = parseFloat(valeur);
-    const prixMin = Math.round(res.prixBase * 0.6 * 100) / 100;
-    const prixMax = Math.round(res.prixBase * 1.4 * 100) / 100;
-    if (isNaN(prix) || prix < prixMin || prix > prixMax) {
-      showToast('Prix hors fourchette', res.label + ' doit être fixé entre ' + prixMin + ' et ' + prixMax + '.', false);
+    if (!isFinite(prix) || prix <= 0) {
+      showToast('Prix invalide', res.label + ' doit être fixé à un montant positif.', false);
       return;
     }
     nouvellesValeurs[cle] = Math.round(prix * 100) / 100;
@@ -3860,6 +3856,64 @@ const DIRECTEUR_USINE_INFO = {
   directeur_tabac_alcools: { city: 'ville_a',   buildingId: 'pole-tabac-alcools-psm',        produits: ['alcool', 'tabac'] },
   directeur_raffinerie:    { city: 'ville_b',   buildingId: 'raffinerie-montrouge',          produits: ['carburant'] }
 };
+
+// =====================
+// VIREMENT USINE -> MINISTERE (lot du 24 aout 2026) — le directeur ne peut jamais prelever dans
+// la caisse du Ministere : il peut seulement VERSER depuis la caisse de SA propre usine.
+// DIRECTEUR_USINE_INFO garantit deja qu'un poste de directeur ne correspond qu'a une seule usine
+// precise -- aucune selection d'une autre usine n'est possible, donc aucun risque qu'un directeur
+// transfere l'argent d'une usine qu'il ne dirige pas. Symmetrique de doOuvrirVirementMinistereUsine
+// (plateau-politique.js), memes primitives (debiterCaisseEtatBatimentAtomique/
+// crediterCaisseBatiment, ci-dessus).
+// =====================
+function doOuvrirVirementUsineMinistere(pa, cost) {
+  const cfg = DIRECTEUR_USINE_INFO[state.poste?.id];
+  if (!cfg || state.currentBuilding !== cfg.buildingId) {
+    showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Virement vers le Ministère';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Prélevé sur la caisse de cette usine, versé à la caisse du Ministère des Finances.</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Montant (FR)</label>';
+  html += '<input id="virement-ministere-montant" type="number" min="1" step="1" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem"/>';
+  html += '<button onclick="confirmerVirementUsineMinistere(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Virer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVirementUsineMinistere(pa, cost) {
+  // Re-verification complete du poste ET du batiment courant (pas seulement a l'ouverture du
+  // modal) : c'est ici, a la confirmation, que la mutation reelle a lieu.
+  const cfg = DIRECTEUR_USINE_INFO[state.poste?.id];
+  if (!cfg || state.currentBuilding !== cfg.buildingId) {
+    showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false);
+    return;
+  }
+  const montant = Math.floor(Number(document.getElementById('virement-ministere-montant')?.value));
+  if (!isFinite(montant) || montant <= 0) { showToast('Montant invalide', 'Le montant doit être un nombre entier positif.', false); return; }
+
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  // Debit atomique de la caisse de l'usine EN PREMIER (jamais de decouvert) ; le credit au
+  // Ministere n'est tente que si ce debit a reellement reussi.
+  const montantPreleve = await debiterCaisseEtatBatimentAtomique(pays, cfg.city, cfg.buildingId, 'usine', montant);
+  if (montantPreleve <= 0) {
+    showToast('Caisse insuffisante', "La caisse de l'usine ne peut pas couvrir ce virement.", false);
+    return;
+  }
+  if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(pays, 'gouvernement-min_fin', montantPreleve);
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Virement effectué', montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' versés au Ministère des Finances.', true, true);
+  addJournalEntry("Virement de l'usine vers le Ministère des Finances (" + montantPreleve + ' FR).', 'event-good');
+}
 
 async function doOuvrirFixerPrixVenteDirecte(pa, cost) {
   const posteId = state.poste?.id;
@@ -6111,6 +6165,33 @@ async function debiterCaisseBatimentAtomique(pays, buildingId, montant) {
   c.solde = (c.solde || 0) - montant;
   if (typeof sbSaveCaisseBatiment === 'function') await sbSaveCaisseBatiment(c.key, { solde: c.solde }).catch(() => {});
   return montant;
+}
+
+// =====================
+// VIREMENTS INSTITUTIONNELS GENERIQUES (lot du 24 aout 2026) — pendant de
+// debiterCaisseBatimentAtomique/crediterCaisseBatiment ci-dessus, mais pour les caisses qui ne
+// vivent pas dans caisses_batiments (systeme "classique") mais dans le blob JSON generique de
+// sbGetBatimentEtat (usines : etat.usine.caisse, entrepots : etat.entrepot.caisse, et bientot le
+// port : etat.port.caisse). Parametrees par sousCle pour rester reutilisables sans duplication
+// le jour ou l'economie du port sera creee. Meme semantique tout-ou-rien (jamais de decouvert,
+// aucun effet de bord si le solde est insuffisant) que debiterCaisseBatimentAtomique.
+async function debiterCaisseEtatBatimentAtomique(pays, ville, buildingId, sousCle, montant) {
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  const sousEtat = etat?.[sousCle] || {};
+  const solde = sousEtat.caisse || 0;
+  if (solde < montant) return 0;
+  const nouvelEtat = { ...(etat || {}), [sousCle]: { ...sousEtat, caisse: solde - montant } };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, buildingId, nouvelEtat).catch(() => {});
+  return montant;
+}
+
+async function crediterCaisseEtatBatiment(pays, ville, buildingId, sousCle, montant) {
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  const sousEtat = etat?.[sousCle] || {};
+  const solde = Math.max(0, (sousEtat.caisse || 0) + montant);
+  const nouvelEtat = { ...(etat || {}), [sousCle]: { ...sousEtat, caisse: solde } };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, ville, buildingId, nouvelEtat).catch(() => {});
+  return solde;
 }
 
 async function chargerBudgetNational(pays) {

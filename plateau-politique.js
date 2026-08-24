@@ -4099,6 +4099,74 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   if (typeCible === 'citoyen' && typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', idCible, 'Subvention accordée', 'Vous avez reçu une subvention de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' du Ministre des Finances.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
 }
 
+// =====================
+// VIREMENT MINISTERE -> USINE (lot du 24 aout 2026) — le ministre ne peut jamais prelever
+// directement dans la caisse d'une usine : il peut seulement VERSER depuis la caisse du
+// Ministere (gouvernement-min_fin, meme caisse institutionnelle que la subvention ci-dessus).
+// Symmetrique de doOuvrirVirementUsineMinistere (plateau-justice-economie.js). Prepare de facon
+// generique (DIRECTEUR_USINE_INFO deja generique) pour que le port reutilise le meme schema une
+// fois son economie creee, sans dupliquer ce handler.
+// =====================
+function doOuvrirVirementMinistereUsine(pa, cost) {
+  if (state.poste?.id !== 'min_fin') {
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut ordonner ce virement.', false);
+    return;
+  }
+  document.getElementById('postes-modal-title').textContent = 'Virement vers une usine';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Prélevé sur la caisse du Ministère des Finances, versé à la caisse de l\'usine choisie.</div>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Usine</label>';
+  html += '<select id="virement-usine-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  Object.entries(DIRECTEUR_USINE_INFO).forEach(([posteId, cfg]) => {
+    const nomUsine = BUILDINGS[cfg.buildingId]?.name || cfg.buildingId;
+    html += '<option value="' + posteId + '">' + nomUsine + '</option>';
+  });
+  html += '</select>';
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Montant (FR)</label>';
+  html += '<input id="virement-usine-montant" type="number" min="1" step="1" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem"/>';
+  html += '<button onclick="confirmerVirementMinistereUsine(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Virer</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVirementMinistereUsine(pa, cost) {
+  // Re-verification complete du poste (pas seulement a l'ouverture du modal) : c'est ici, a la
+  // confirmation, que la mutation reelle a lieu.
+  if (state.poste?.id !== 'min_fin') {
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut ordonner ce virement.', false);
+    return;
+  }
+  const posteCible = document.getElementById('virement-usine-cible')?.value;
+  const cfg = DIRECTEUR_USINE_INFO[posteCible];
+  if (!cfg) { showToast('Cible invalide', '', false); return; }
+  const montant = Math.floor(Number(document.getElementById('virement-usine-montant')?.value));
+  if (!isFinite(montant) || montant <= 0) { showToast('Montant invalide', 'Le montant doit être un nombre entier positif.', false); return; }
+
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  // Debit atomique de la caisse du Ministere EN PREMIER (jamais de decouvert) ; le credit a
+  // l'usine n'est tente que si ce debit a reellement reussi.
+  const montantPreleve = typeof debiterCaisseBatimentAtomique === 'function'
+    ? await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_fin', montant)
+    : 0;
+  if (montantPreleve <= 0) {
+    showToast('Caisse insuffisante', 'La caisse du Ministère ne peut pas couvrir ce virement.', false);
+    return;
+  }
+  if (typeof crediterCaisseEtatBatiment === 'function') await crediterCaisseEtatBatiment(pays, cfg.city, cfg.buildingId, 'usine', montantPreleve);
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  const nomUsine = BUILDINGS[cfg.buildingId]?.name || cfg.buildingId;
+  showToast('Virement effectué', montantPreleve.toLocaleString('fr-FR') + ' ' + cur + ' versés à ' + nomUsine + '.', true, true);
+  addJournalEntry('Virement du Ministère des Finances vers ' + nomUsine + ' (' + montantPreleve + ' FR).', 'event-good');
+}
+
 async function ouvrirCiblageFiscal(action, titre) {
   document.getElementById('postes-modal-title').textContent = titre;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';

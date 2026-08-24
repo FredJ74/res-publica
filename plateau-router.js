@@ -163,6 +163,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'nommer_directeur_raffinerie') { ouvrirModalNommerDirecteurRaffinerie(); return; }
   if (fn === 'fixer_prix_vente_directe') { doOuvrirFixerPrixVenteDirecte(pa, cost); return; }
   if (fn === 'fixer_repartition_production') { doOuvrirFixerRepartitionProduction(pa, cost); return; }
+  if (fn === 'virement_usine_ministere') { doOuvrirVirementUsineMinistere(pa, cost); return; }
   if (fn === 'nommer_directeur_entrepot') { ouvrirModalNommerDirecteurEntrepot(pa, cost); return; }
   if (fn === 'fixer_prix_achat_entrepot') { doOuvrirFixerPrixAchatEntrepot(pa, cost); return; }
   if (fn === 'emprunter_construction') { ouvrirModalPretBancaire('nationale', 'travaux'); return; }
@@ -380,6 +381,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sanctions_diplo') { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
   if (fn === 'reponses_diplomatiques') { ouvrirReponsesDiplomatiques(pa, cost); return; }
   if (fn === 'subvention') { ouvrirChoixTypeCibleFiscale('subvention', 'Accorder une subvention à'); return; }
+  if (fn === 'virement_ministere_usine') { doOuvrirVirementMinistereUsine(pa, cost); return; }
   if (fn === 'redressement_fiscal') { ouvrirChoixTypeCibleFiscale('redressement_fiscal', 'Redressement fiscal contre'); return; }
   if (fn === 'fixer_impots_nationaux') { ouvrirFixerImpotNational(pa, cost); return; }
   if (fn === 'traiter_manifestations') { doTraiterManifestations(pa, cost); return; }
