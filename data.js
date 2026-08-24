@@ -3954,22 +3954,28 @@ const BUILDINGS = {
       }
     }
   },
+  // Phare de PSM (lot du 24 aout 2026) : buildingId et hotspot rue (psm-ecole-phare, plateau-
+  // rue-centrale.js) deja existants et deja correctement raccordes -- aucune navigation touchee.
+  // Unique room repurposee (anciennement 'base'/"Base du Phare" avec un gardien decoratif jamais
+  // fonctionnel, job 'gardien_phare' sans entree PNJ_STATS_PAR_JOB) en 'sommet'/"Sommet du
+  // phare", conformement au principe valide : un seul batiment accessible, une seule room, le
+  // joueur arrive directement au sommet. persons:[] volontairement (aucun PNJ pour l'instant).
+  // orders:[] volontairement : Allumer/Eteindre le phare et Observer au large sont reportes,
+  // aucun bouton/handler cree en anticipation.
   'phare-psm': {
     name: "Phare de Port-Sainte-Marie",
     shortName: "Phare",
     cat: "Transport",
     icon: "ti-lighthouse",
     bgColor: "#08090c",
-    desc: "Le phare qui guide les bateaux depuis des generations. Un gardien y veille.",
+    desc: "Le phare qui guide les bateaux depuis des generations.",
     rooms: {
-      base: {
-        name: "Base du Phare",
-        image: "\ud83d\uddfc",
+      sommet: {
+        name: "Sommet du phare",
         imageBg: "linear-gradient(135deg,#08090c,#0d0f14)",
-        desc: "L'escalier en colimacon monte vers la lanterne.",
-        persons: [
-          {name:'Gardien du Phare (PNJ)', role:'Gardien', rel:'neutral', job:'gardien_phare'}
-        ],
+        desc: "La lanterne du phare domine Port-Sainte-Marie et offre une vue panoramique sur la ville, les ports et le large.",
+        imageUrl: "images/port-sainte-marie-phare-sommet.png",
+        persons: [],
         orders: []
       }
     }

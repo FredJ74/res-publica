@@ -363,10 +363,18 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-ecole-phare-psm.png',
       zones: [
         { xPct: [22, 62], nom: 'École de Marine', type: 'batiment', buildingId: 'ecole-marine' },
-        { xPct: [65, 82], nom: 'Phare',            type: 'batiment', buildingId: 'phare-psm' }
+        // Zone recalibree sur la silhouette reelle du phare (mesuree sur l'image, verifiee
+        // identique en production) -- l'ancienne zone [65,82] etait etroite et decalee a gauche
+        // de la tour reelle (qui commence vers 85%). Couvre desormais confortablement tour +
+        // lanterne + base/jetee, sans chevaucher l'Ecole de Marine (fin a 62%) ni la fleche
+        // toutDroit (repositionnee en haut, voir flechesStyle ci-dessous).
+        { xPct: [79, 97], yPct: [16, 64], nom: 'Phare', type: 'batiment', buildingId: 'phare-psm' }
       ],
       liens: { gauche: 'psm-carrefour-musee', toutDroit: 'psm-centre-multimodal', arriere: 'psm-dispensaire-port-plaisance' },
-      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
+      // toutDroit repositionnee en haut du ciel (meme pattern que la majorite des autres scenes,
+      // ex. psm-carrefour-artisanal-scierie ci-dessus) : la position par defaut (top:50%,
+      // left:80%) tombait en plein sur la zone du phare et genait le clic.
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);', toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
     },
 
     'psm-dispensaire-port-plaisance': {
