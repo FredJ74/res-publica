@@ -452,6 +452,32 @@ const WORLD = {
             }
           }
         },
+        // Banque de PSM (lot du 24 aout 2026) : habillage propre a PSM sur le VRAI buildingId
+        // navigable 'banque-locale' (template partage avec Montrouge, BUILDINGS['banque-locale'],
+        // inchange). Structure technique calquee sur 'banque-locale' de Montrouge ci-dessus
+        // (roomOverrides.guichet.imageUrl + roomsExtra.bureau_directeur), contenu propre a PSM.
+        // orders du guichet non touches (gerer_finances/emprunter restent sur la base partagee).
+        // bureau_directeur : orders: [] volontairement, meme convention que Montrouge -- aucun
+        // ordre generique existant prevu pour cette room, aucune decision de game design prise.
+        // Aucune salle des coffres ajoutee : asymetrie volontaire avec Luthecia (seule ville a
+        // disposer de coffre_privatif, BUILDINGS['banque-nationale']), non dupliquee ici.
+        'banque-locale': {
+          roomOverrides: {
+            guichet: { imageUrl: "images/port-sainte-marie-banque-accueil.png" }
+          },
+          roomsExtra: {
+            bureau_directeur: {
+              name: "Bureau de Direction",
+              imageBg: "linear-gradient(135deg,#0d0d08,#181808)",
+              imageUrl: "images/port-sainte-marie-banque-bureau-direction.png",
+              desc: "Le bureau de la directrice de l'agence. Vue sur le port.",
+              persons: [
+                {name:'Marie Le Roux (PNJ)', role:'Directrice de la banque de Port-Sainte-Marie', rel:'neutral', job:'directeur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-banque-marie-le-roux.png', photoPos:'50% 15%'}
+              ],
+              orders: []
+            }
+          }
+        },
         'banque-nationale': {
           name: "Banque Locale de Port-Sainte-Marie",
           desc: "Une succursale modeste.",
