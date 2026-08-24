@@ -5390,6 +5390,667 @@ async function payerEffectifsDouaneQuotidien(pays) {
   }
 }
 
+// =====================
+// FRET MARITIME INTERNATIONAL — CAISSES PERSISTANTES MULTI-OBJETS (lot du 24 aout 2026)
+// =====================
+// Remplace integralement l'ancien systeme expedier_colis/receptionner_commande (colisEnCours,
+// plateau-navigation.js) : etat 100% client jamais persiste, destinataire ne recevant jamais
+// rien en pratique. Modele final (2 iterations d'arbitrage) : une CAISSE partagee (500 unites
+// max, plusieurs objets, plusieurs deposants) plutot qu'un objet unique par envoi. Persistance
+// dans 2 tables Supabase dediees (caisses_fret + contenu_caisses_fret, migration fournie
+// separement, PAS executee) -- table dediee plutot qu'un blob batiments_etat partage par tous
+// les pays (meme raisonnement que pour le premier prototype : recherche par destinataire,
+// eviter la contention d'ecriture).
+//
+// Les 2 order existants (expedier_colis/receptionner_commande, memes fn dans les 4 ports,
+// data.js) sont conserves comme points d'entree UI ; toute la logique ci-dessous les remplace.
+//
+// Modele generique (portee internationale) : PORTS_FRET liste tous les ports capables de
+// RECEVOIR du fret, un seul est peuple pour l'instant (Republia/PSM).
+const PORTS_FRET = {
+  republic: { ville: 'ville_a', buildingId: 'port-sainte-marie' }
+};
+const ROOM_CHARGEMENT_FRET = 'quai_principal'; // meme room dans les 4 ports (chargement ET reception)
+
+// Arbitrages valides (24 aout 2026, 2 tours) :
+const CAPACITE_MAX_CAISSE_FRET = 500;
+const DUREE_TRANSPORT_FRET_JOURS = 1;
+const TAUX_DOUANE_FRET = 10;                // % de valeur_declaree, du au premier dedouanement
+const TAUX_GARDIENNAGE_FRET_JOUR = 1;       // %/jour de valeur_declaree, a partir du 8e jour
+const JOURS_FRANCHISE_GARDIENNAGE_FRET = 7;
+const JOUR_MISE_EN_VENTE_FRET = 15;
+const RATIO_PRIX_LIQUIDATION_FRET = 0.5;    // prix PNJ = 50% de la valeur administrative restante
+
+// ---- BLACKLIST TECHNIQUE (objets non transferables par construction -- PAS lie a la legalite :
+// armes/poisons/drogues/contrebande/kompromat restent transferables, leur illegalite sera geree
+// plus tard par les douanes, cf. arbitrage explicite du 24 aout 2026) ----
+// 'relique' ajoutee le 24 aout 2026 (arbitrage explicite) : raison purement fonctionnelle, pas
+// legale -- le bonus +10 IP de doAcheterRelique() (plateau-divers.js) est attribue
+// definitivement a l'achat (modifierIP(10), one-shot) et ne suit jamais l'objet dans
+// l'inventaire (audit confirme : le champ effet:'ip+10' n'est lu nulle part). Transferer la
+// relique donnerait une representation trompeuse de la mecanique. Le fonctionnement des
+// reliques elles-memes (achat, bonus one-shot) reste totalement inchange.
+const BLACKLIST_TYPES_FRET = new Set(['acte_officiel', 'colis_secret_pat', 'relique']);
+const BLACKLIST_IDS_EXACTS_FRET = new Set(['cle-debarras-musee']);
+function estObjetInterditFret(item) {
+  if (!item) return true;
+  if (BLACKLIST_TYPES_FRET.has(item.type)) return true;
+  if (item.id && BLACKLIST_IDS_EXACTS_FRET.has(item.id)) return true;
+  if (item.calepinEnigme1) return true;
+  if (typeof item.id === 'string' && item.id.indexOf('fiche-etat-civil-') === 0) return true;
+  return false;
+}
+
+// ---- HELPERS ----
+async function jeSuisPresentDansRoomFret(pays, ville, buildingId) {
+  if (typeof sbGetPresencesInRoom !== 'function') return true; // repli permissif si le service est indisponible
+  const moi = state.char?.name || '';
+  const presents = await sbGetPresencesInRoom(pays, ville, buildingId, ROOM_CHARGEMENT_FRET).catch(() => []);
+  return (presents || []).some(p => p.name === moi);
+}
+
+function calculerDroitsDouaneCaisseFret(caisse) {
+  return Math.round((caisse.valeur_declaree || 0) * TAUX_DOUANE_FRET / 100);
+}
+
+// Deterministe depuis date_arrivee_reelle, calcule UNE SEULE FOIS au moment du dedouanement
+// (pas a chaque consultation, pas a chaque retrait ulterieur -- "Une fois dedouanee, les
+// retraits collectifs sont libres sans nouveau paiement", arbitrage explicite).
+function calculerGardiennageCaisseFret(caisse, maintenantMs) {
+  if (!caisse.date_arrivee_reelle) return 0;
+  const joursEcoules = Math.floor((maintenantMs - new Date(caisse.date_arrivee_reelle).getTime()) / 86400000);
+  const joursFactures = Math.max(0, joursEcoules - JOURS_FRANCHISE_GARDIENNAGE_FRET);
+  if (joursFactures <= 0) return 0;
+  return Math.round((caisse.valeur_declaree || 0) * TAUX_GARDIENNAGE_FRET_JOUR / 100 * joursFactures);
+}
+
+async function chargerContenuCaisseFret(caisseId) {
+  if (typeof sbGet !== 'function') return [];
+  return await sbGet('contenu_caisses_fret', 'caisse_id=eq.' + encodeURIComponent(caisseId) + '&order=date_depot.asc').catch(() => []) || [];
+}
+
+function totalContenuFret(lignes) {
+  return (lignes || []).reduce((s, l) => s + (l.quantite || 0), 0);
+}
+
+// ---- EXPEDITION (cote leader, port d'origine) ----
+async function ouvrirExpedierColis(pa, cost) {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity;
+  const buildingId = state.currentBuilding;
+  const moi = state.char?.name || '';
+
+  document.getElementById('postes-modal-title').textContent = 'Fret maritime — Expédition';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const caisses = typeof sbGet === 'function'
+    ? await sbGet('caisses_fret', 'leader=eq.' + encodeURIComponent(moi) + '&building_origine=eq.' + encodeURIComponent(buildingId) + '&statut=eq.ouverte').catch(() => [])
+    : [];
+
+  if (!caisses || caisses.length === 0) {
+    let html = '<div style="padding:1rem">';
+    html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + pa + ' PA · ' + cost + ' FR. Réserve une caisse de fret (500 unités max, transport 1 jour). Vous pourrez y déposer plusieurs marchandises et inviter des chargeurs avant de la fermer et l\'expédier.</div>';
+    html += '<button onclick="confirmerReservationCaisseFret(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Réserver une caisse</button>';
+    html += '</div>';
+    document.getElementById('postes-body').innerHTML = html;
+    window._fretPaysOrigine = pays; window._fretVilleOrigine = ville; window._fretBuildingOrigine = buildingId;
+    return;
+  }
+  await afficherGestionCaisseOuverteFret(caisses[0].id);
+}
+
+async function confirmerReservationCaisseFret(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
+  const caisse = {
+    leader: state.char?.name || 'Inconnu',
+    pays_origine: window._fretPaysOrigine || state.country || 'republic',
+    ville_origine: window._fretVilleOrigine || state.currentCity,
+    building_origine: window._fretBuildingOrigine || state.currentBuilding,
+    statut: 'ouverte',
+    chargeurs_autorises: [],
+    receptionnaires_autorises: [],
+    dedouanee: false
+  };
+  const rows = typeof sbInsert === 'function' ? await sbInsert('caisses_fret', caisse).catch(() => null) : null;
+  const nouvelle = rows && rows[0];
+  if (!nouvelle) { showToast('Erreur', 'Impossible de réserver la caisse.', false); return; }
+  showToast('Caisse réservée', 'Vous pouvez maintenant y déposer des marchandises.', true, true);
+  addJournalEntry('Caisse de fret réservée au port.', 'event-info');
+  await afficherGestionCaisseOuverteFret(nouvelle.id);
+}
+
+async function afficherGestionCaisseOuverteFret(caisseId) {
+  const moi = state.char?.name || '';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.statut !== 'ouverte') { showToast('Caisse indisponible', '', false); return; }
+
+  const estLeader = caisse.leader === moi;
+  const estChargeur = (caisse.chargeurs_autorises || []).includes(moi);
+  if (!estLeader && !estChargeur) { showToast('Accès refusé', 'Vous n\'êtes pas autorisé à charger cette caisse.', false); return; }
+  const presentIci = await jeSuisPresentDansRoomFret(caisse.pays_origine, caisse.ville_origine, caisse.building_origine);
+  if (!presentIci) { showToast('Absent du port', 'Vous devez être physiquement présent au port pour agir sur cette caisse.', false); return; }
+
+  const lignes = await chargerContenuCaisseFret(caisseId);
+  const total = totalContenuFret(lignes);
+
+  const eligibles = (state.inventory || []).filter(i => !estObjetInterditFret(i));
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">Remplissage : ' + total + ' / ' + CAPACITE_MAX_CAISSE_FRET + ' unités.</div>';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">CONTENU ACTUEL</div>';
+  if (lignes.filter(l => l.quantite > 0).length === 0) {
+    html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">Caisse vide.</div>';
+  } else {
+    lignes.filter(l => l.quantite > 0).forEach(l => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem;display:flex;align-items:center;justify-content:space-between">';
+      html += '<div><div style="font-size:.8rem;color:#c0b090">' + l.quantite + ' × ' + (l.objet?.name || '?') + '</div><div style="font-size:.68rem;color:#5a4030">Déposé par ' + l.deposant + '</div></div>';
+      if (l.deposant === moi) {
+        html += '<button onclick="reprendreDeCaisseFret(\'' + caisseId + '\',\'' + l.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.25rem .5rem;border:1px solid #8a4020;background:transparent;color:#cc6a44;cursor:pointer">Reprendre</button>';
+      }
+      html += '</div>';
+    });
+  }
+
+  if (eligibles.length > 0) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.8rem 0 .4rem">DÉPOSER</div>';
+    html += '<select id="fret-depot-objet" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.4rem">';
+    eligibles.forEach((obj, i) => { html += '<option value="' + i + '">' + obj.name + ' (x' + (obj.qty || 1) + ')</option>'; });
+    html += '</select>';
+    html += '<input type="number" id="fret-depot-qty" value="1" min="1" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.5rem">';
+    html += '<button onclick="deposerDansCaisseFret(\'' + caisseId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.74rem;padding:.4rem .9rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Déposer</button>';
+    window._fretEligiblesDepot = eligibles;
+  }
+
+  if (estLeader) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.8rem 0 .4rem">CHARGEURS AUTORISÉS</div>';
+    (caisse.chargeurs_autorises || []).forEach(nom => {
+      html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.2rem">' + nom + ' <a href="#" onclick="retirerChargeurFret(\'' + caisseId + '\',\'' + nom + '\');return false" style="color:#cc6a44;font-size:.7rem">retirer</a></div>';
+    });
+    html += '<input type="text" id="fret-nouveau-chargeur" placeholder="Nom du joueur" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.8rem;outline:none;margin:.3rem 0">';
+    html += '<button onclick="ajouterChargeurFret(\'' + caisseId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Autoriser</button>';
+
+    html += '<div style="margin-top:1rem;padding-top:.8rem;border-top:1px solid #2a2010">';
+    html += '<button onclick="ouvrirFermerCaisseFret(\'' + caisseId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Fermer et déclarer</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  window._fretCaisseOuverteActuelle = caisseId;
+}
+
+async function deposerDansCaisseFret(caisseId) {
+  const idx = parseInt(document.getElementById('fret-depot-objet')?.value || '0');
+  const qte = Math.max(1, parseInt(document.getElementById('fret-depot-qty')?.value || '1'));
+  const obj = (window._fretEligiblesDepot || [])[idx];
+  if (!obj) { showToast('Sélection invalide', '', false); return; }
+
+  const itemActuel = (state.inventory || []).find(i => i === obj);
+  if (!itemActuel || (itemActuel.qty || 1) < qte) { showToast('Quantité indisponible', 'Votre inventaire a changé.', false); return; }
+
+  const lignes = await chargerContenuCaisseFret(caisseId);
+  const totalActuel = totalContenuFret(lignes);
+  if (totalActuel + qte > CAPACITE_MAX_CAISSE_FRET) {
+    showToast('Caisse pleine', 'Capacité restante : ' + (CAPACITE_MAX_CAISSE_FRET - totalActuel) + ' unité(s).', false);
+    return;
+  }
+
+  const { qty, ...objetSansQty } = itemActuel;
+  if ((itemActuel.qty || 1) <= qte) {
+    state.inventory = state.inventory.filter(i => i !== itemActuel);
+  } else {
+    itemActuel.qty -= qte;
+  }
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+  updateUI();
+
+  const inserted = typeof sbInsert === 'function'
+    ? await sbInsert('contenu_caisses_fret', {
+        caisse_id: caisseId, deposant: state.char?.name || 'Inconnu', objet: objetSansQty, quantite: qte
+      }).catch(() => null)
+    : null;
+  const nouvelleLigne = inserted && inserted[0];
+
+  // Re-verification post-insertion : la caisse n'a ni verrou ni contrainte au niveau base
+  // (INSERT, pas de compare-and-swap possible sur une SOMME multi-lignes comme pour un simple
+  // retrait). Si deux depots concurrents ont chacun valide "totalActuel + qte <= 500" avant
+  // d'inserer, le total reel apres peut depasser 500. Chaque depot annule alors UNIQUEMENT SA
+  // PROPRE ligne (jamais celle d'un autre PJ) et rembourse son propre inventaire -- garantit
+  // que la capacite ne reste jamais durablement depassee, sans nouvelle migration/verrou DB.
+  if (nouvelleLigne) {
+    const lignesApres = await chargerContenuCaisseFret(caisseId);
+    if (totalContenuFret(lignesApres) > CAPACITE_MAX_CAISSE_FRET) {
+      if (typeof sbUpdate === 'function') await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(nouvelleLigne.id), { quantite: 0 }).catch(() => {});
+      if (typeof addToInventory === 'function') addToInventory({ ...objetSansQty, qty: qte });
+      else { state.inventory = state.inventory || []; state.inventory.push({ ...objetSansQty, qty: qte }); }
+      if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+      updateUI();
+      showToast('Dépôt annulé', 'La caisse a atteint sa capacité maximale entre-temps (dépôt concurrent). Votre marchandise a été restituée.', false);
+      await afficherGestionCaisseOuverteFret(caisseId);
+      return;
+    }
+  }
+
+  showToast('Déposé', qte + ' × ' + objetSansQty.name + ' déposé(e) dans la caisse.', true, true);
+  await afficherGestionCaisseOuverteFret(caisseId);
+}
+
+async function reprendreDeCaisseFret(caisseId, contenuId) {
+  const moi = state.char?.name || '';
+  const rows = typeof sbGet === 'function' ? await sbGet('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(contenuId)).catch(() => []) : [];
+  const ligne = rows && rows[0];
+  if (!ligne || ligne.caisse_id !== caisseId || ligne.deposant !== moi || ligne.quantite <= 0) {
+    showToast('Reprise impossible', 'Vous ne pouvez reprendre que vos propres dépôts.', false);
+    return;
+  }
+  // Meme verrou optimiste que retirerDeCaisseFret : le PATCH ne reussit que si la ligne vaut
+  // toujours ce qu'on vient de lire (double-clic, ou reprise concurrente improbable mais non
+  // exclue puisque deposant est toujours le meme nom -- pas de faux negatif possible).
+  const maj = typeof sbUpdate === 'function'
+    ? await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(contenuId) + '&quantite=eq.' + ligne.quantite, { quantite: 0 }).catch(() => null)
+    : null;
+  if (!maj || maj.length === 0) { showToast('Conflit', 'Cette ligne vient d\'être modifiée. Réessayez.', false); return; }
+
+  if (typeof addToInventory === 'function') addToInventory({ ...ligne.objet, qty: ligne.quantite });
+  else { state.inventory = state.inventory || []; state.inventory.push({ ...ligne.objet, qty: ligne.quantite }); }
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+  updateUI();
+  showToast('Repris', ligne.quantite + ' × ' + (ligne.objet?.name || '') + ' repris(e) dans votre inventaire.', true, true);
+  await afficherGestionCaisseOuverteFret(caisseId);
+}
+
+async function ajouterChargeurFret(caisseId) {
+  const nom = document.getElementById('fret-nouveau-chargeur')?.value?.trim();
+  if (!nom) return;
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.leader !== (state.char?.name || '')) return;
+  const liste = Array.from(new Set([...(caisse.chargeurs_autorises || []), nom]));
+  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { chargeurs_autorises: liste }).catch(() => {});
+  await afficherGestionCaisseOuverteFret(caisseId);
+}
+
+async function retirerChargeurFret(caisseId, nom) {
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.leader !== (state.char?.name || '')) return;
+  const liste = (caisse.chargeurs_autorises || []).filter(n => n !== nom);
+  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { chargeurs_autorises: liste }).catch(() => {});
+  await afficherGestionCaisseOuverteFret(caisseId);
+}
+
+// ---- FERMETURE + DECLARATION (leader uniquement) ----
+async function ouvrirFermerCaisseFret(caisseId) {
+  const moi = state.char?.name || '';
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.leader !== moi || caisse.statut !== 'ouverte') { showToast('Action impossible', '', false); return; }
+  const lignes = await chargerContenuCaisseFret(caisseId);
+  const total = totalContenuFret(lignes);
+  if (total <= 0) { showToast('Caisse vide', 'Déposez au moins une unité avant de fermer la caisse.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Fermer et déclarer la caisse';
+  let joueurs = [];
+  if (typeof sbListPersonnages === 'function') joueurs = (await sbListPersonnages().catch(() => []) || []).filter(j => j.name && j.name !== moi);
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Une fois fermée, plus aucun dépôt ni retrait n\'est possible. La déclaration (destinataire, nature, valeur) est indépendante du contenu réel — elle sera la seule base des droits de douane futurs.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATAIRE</div>';
+  html += '<select id="fret-fermeture-dest" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  joueurs.forEach(j => { html += '<option value="' + j.name + '">' + j.name + ' — ' + (typeof COUNTRIES !== 'undefined' ? (COUNTRIES[j.country]?.n || j.country) : j.country) + '</option>'; });
+  html += '</select>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DÉCLARATION DOUANIÈRE (nature/qualité déclarée)</div>';
+  html += '<input type="text" id="fret-fermeture-declaration" placeholder="Ex. denrées diverses" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">VALEUR DÉCLARÉE (FR)</div>';
+  html += '<input type="number" id="fret-fermeture-valeur" value="0" min="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+  html += '<button onclick="confirmerFermetureCaisseFret(\'' + caisseId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Fermer la caisse</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  window._fretJoueursFermeture = joueurs;
+}
+
+async function confirmerFermetureCaisseFret(caisseId) {
+  const moi = state.char?.name || '';
+  // Identite/statut reverifies cote handler (pas seulement via l'affichage conditionnel du
+  // formulaire) -- meme principe que partout ailleurs dans ce lot : le filtre supplementaire
+  // sur le PATCH lui-meme (leader=eq./statut=eq.) empeche aussi une double-fermeture concurrente.
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.leader !== moi || caisse.statut !== 'ouverte') { showToast('Action impossible', '', false); return; }
+
+  const destNom = document.getElementById('fret-fermeture-dest')?.value;
+  const declaration = document.getElementById('fret-fermeture-declaration')?.value?.trim() || '';
+  const valeur = Math.max(0, parseFloat(document.getElementById('fret-fermeture-valeur')?.value || '0'));
+  const destJoueur = (window._fretJoueursFermeture || []).find(j => j.name === destNom);
+  if (!destJoueur) { showToast('Destinataire invalide', '', false); return; }
+  const portDest = PORTS_FRET[destJoueur.country];
+  if (!portDest) { showToast('Port indisponible', 'Aucun port de fret n\'est encore opérationnel dans l\'empire de ce destinataire.', false); return; }
+
+  const maj = typeof sbUpdate === 'function' ? await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId) + '&leader=eq.' + encodeURIComponent(moi) + '&statut=eq.ouverte', {
+    statut: 'fermee',
+    destinataire: destJoueur.name,
+    pays_destination: destJoueur.country,
+    ville_destination: portDest.ville,
+    building_destination: portDest.buildingId,
+    declaration_douaniere: declaration,
+    valeur_declaree: valeur,
+    date_fermeture: new Date().toISOString()
+  }).catch(() => null) : null;
+  if (!maj || maj.length === 0) { showToast('Action impossible', 'La caisse a peut-être déjà été fermée.', false); return; }
+
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Caisse fermée', 'Vous pouvez maintenant l\'expédier.', true, true);
+  addJournalEntry('Caisse de fret fermée, destinée à ' + destJoueur.name + '.', 'event-info');
+}
+
+async function expedierCaisseFret(caisseId) {
+  const moi = state.char?.name || '';
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.leader !== moi || caisse.statut !== 'fermee' || !caisse.destinataire || !caisse.pays_destination) {
+    showToast('Expédition impossible', '', false);
+    return;
+  }
+  const lignes = await chargerContenuCaisseFret(caisseId);
+  const total = totalContenuFret(lignes);
+  if (total <= 0) { showToast('Caisse vide', '', false); return; }
+
+  const maintenant = new Date();
+  const dateArriveePrevue = new Date(maintenant.getTime() + DUREE_TRANSPORT_FRET_JOURS * 86400000);
+  if (typeof sbUpdate === 'function') {
+    await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), {
+      statut: 'en_transit',
+      date_depart: maintenant.toISOString(),
+      date_arrivee_prevue: dateArriveePrevue.toISOString()
+    }).catch(() => {});
+  }
+  showToast('Caisse expédiée !', 'Arrivée sous ' + DUREE_TRANSPORT_FRET_JOURS + ' jour à destination.', true, true);
+  addJournalEntry('Caisse de fret expédiée vers ' + caisse.destinataire + '.', 'event-info');
+  if (typeof addMailNotification === 'function') addMailNotification('Administration Portuaire', 'Caisse en route', 'Une caisse de fret vous a été expédiée par ' + moi + '. Elle sera à retirer au port sous ' + DUREE_TRANSPORT_FRET_JOURS + ' jour.');
+}
+
+// ---- RECEPTION (cote destinataire, port de destination) ----
+async function ouvrirReceptionnerCommande(pa, cost) {
+  const pays = state.country || 'republic';
+  const moi = state.char?.name || '';
+  document.getElementById('postes-modal-title').textContent = 'Fret maritime — Réception';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  let caisses = [];
+  if (typeof sbGet === 'function') {
+    const commeDestinataire = await sbGet('caisses_fret', 'destinataire=eq.' + encodeURIComponent(moi) + '&pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.arrivee').catch(() => []) || [];
+    const commeReceptionnaire = await sbGet('caisses_fret', 'pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.arrivee&receptionnaires_autorises=cs.{' + encodeURIComponent(moi) + '}').catch(() => []) || [];
+    const parId = {};
+    [...commeDestinataire, ...commeReceptionnaire].forEach(c => { parId[c.id] = c; });
+    caisses = Object.values(parId);
+  }
+
+  if (caisses.length === 0) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Aucune caisse en attente pour vous à ce port.</div>';
+    return;
+  }
+  if (caisses.length === 1) { await afficherCaisseArriveeFret(caisses[0].id, pa); return; }
+
+  let html = '<div style="padding:1rem">';
+  caisses.forEach(c => {
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.4rem;display:flex;align-items:center;justify-content:space-between">';
+    html += '<div style="font-size:.8rem;color:#c0b090">Caisse de ' + c.leader + ' (' + (c.declaration_douaniere || 'sans déclaration') + ')</div>';
+    html += '<button onclick="afficherCaisseArriveeFret(\'' + c.id + '\',' + pa + ')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.25rem .5rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Ouvrir</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function afficherCaisseArriveeFret(caisseId, pa) {
+  const moi = state.char?.name || '';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.statut !== 'arrivee') { showToast('Caisse indisponible', '', false); return; }
+
+  const estDestinataire = caisse.destinataire === moi;
+  const estReceptionnaire = (caisse.receptionnaires_autorises || []).includes(moi);
+  if (!estDestinataire && !estReceptionnaire) { showToast('Accès refusé', '', false); return; }
+  const presentIci = await jeSuisPresentDansRoomFret(caisse.pays_destination, caisse.ville_destination, caisse.building_destination);
+  if (!presentIci) { showToast('Absent du port', 'Vous devez être physiquement présent au port pour agir sur cette caisse.', false); return; }
+
+  let html = '<div style="padding:1rem">';
+
+  if (!caisse.dedouanee) {
+    const douane = calculerDroitsDouaneCaisseFret(caisse);
+    const gardiennage = calculerGardiennageCaisseFret(caisse, Date.now());
+    const total = douane + gardiennage;
+    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.4rem">Caisse non dédouanée. Droits de douane : ' + douane + ' FR' + (gardiennage > 0 ? ' · Gardiennage : ' + gardiennage + ' FR' : '') + ' · <strong>Total : ' + total + ' FR</strong>.</div>';
+    if (estDestinataire) {
+      html += '<button onclick="dedouanerCaisseFret(\'' + caisseId + '\',' + pa + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Payer et dédouaner</button>';
+    } else {
+      html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic">Seul le destinataire officiel (' + caisse.destinataire + ') peut dédouaner cette caisse.</div>';
+    }
+    html += '</div>';
+    document.getElementById('postes-body').innerHTML = html;
+    return;
+  }
+
+  const lignes = await chargerContenuCaisseFret(caisseId);
+  const disponibles = lignes.filter(l => l.quantite > 0);
+  html += '<div style="font-size:.78rem;color:#4a8a4a;margin-bottom:.6rem">Dédouanée. Retraits libres.</div>';
+  if (disponibles.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Caisse vide.</div>';
+  } else {
+    disponibles.forEach(l => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.4rem;display:flex;align-items:center;justify-content:space-between">';
+      html += '<div><div style="font-size:.8rem;color:#c0b090">' + l.quantite + ' × ' + (l.objet?.name || '?') + '</div><div style="font-size:.68rem;color:#5a4030">Déposé par ' + l.deposant + '</div></div>';
+      html += '<div style="display:flex;gap:.3rem;align-items:center">';
+      html += '<input type="number" id="fret-retrait-qty-' + l.id + '" value="1" min="1" max="' + l.quantite + '" style="width:60px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.3rem;font-size:.8rem">';
+      html += '<button onclick="retirerDeCaisseFret(\'' + caisseId + '\',\'' + l.id + '\',' + pa + ')" style="font-family:Bebas Neue,sans-serif;font-size:.65rem;padding:.3rem .5rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Retirer</button>';
+      html += '</div></div>';
+    });
+  }
+
+  if (estDestinataire) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.8rem 0 .4rem">RÉCEPTIONNAIRES AUTORISÉS</div>';
+    (caisse.receptionnaires_autorises || []).forEach(nom => {
+      html += '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.2rem">' + nom + ' <a href="#" onclick="retirerReceptionnaireFret(\'' + caisseId + '\',\'' + nom + '\');return false" style="color:#cc6a44;font-size:.7rem">retirer</a></div>';
+    });
+    html += '<input type="text" id="fret-nouveau-receptionnaire" placeholder="Nom du joueur" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.8rem;outline:none;margin:.3rem 0">';
+    html += '<button onclick="ajouterReceptionnaireFret(\'' + caisseId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Autoriser</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function dedouanerCaisseFret(caisseId, pa) {
+  const moi = state.char?.name || '';
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.destinataire !== moi || caisse.dedouanee || caisse.statut !== 'arrivee') { showToast('Action impossible', '', false); return; }
+
+  const douane = calculerDroitsDouaneCaisseFret(caisse);
+  const gardiennage = calculerGardiennageCaisseFret(caisse, Date.now());
+  const total = douane + gardiennage;
+
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if ((state.arg || 0) < total) { showToast('Fonds insuffisants', 'Il vous faut ' + total + ' FR (douane + gardiennage).', false); return; }
+
+  // Filtre &dedouanee=eq.false : evite un double paiement en cas de double-clic rapide (le
+  // second appel ne matche plus aucune ligne une fois le premier passe a true).
+  const maj = typeof sbUpdate === 'function'
+    ? await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId) + '&dedouanee=eq.false', { dedouanee: true, date_dedouanement: new Date().toISOString() }).catch(() => null)
+    : null;
+  if (!maj || maj.length === 0) { showToast('Déjà dédouanée', '', false); return; }
+
+  state.arg -= total;
+  if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(caisse.pays_destination, caisse.building_destination, total).catch(() => {});
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+
+  updateUI();
+  showToast('Caisse dédouanée', total + ' FR versés à la caisse du port. Retraits libres.', true, true);
+  addJournalEntry('Caisse de fret dédouanée (' + total + ' FR versés à la caisse du port).', 'event-good');
+  await afficherCaisseArriveeFret(caisseId, pa);
+}
+
+async function retirerDeCaisseFret(caisseId, contenuId, pa) {
+  const moi = state.char?.name || '';
+  const caisseRows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = caisseRows && caisseRows[0];
+  if (!caisse || caisse.statut !== 'arrivee' || !caisse.dedouanee) { showToast('Retrait impossible', '', false); return; }
+  const estAutorise = caisse.destinataire === moi || (caisse.receptionnaires_autorises || []).includes(moi);
+  if (!estAutorise) { showToast('Accès refusé', '', false); return; }
+  const presentIci = await jeSuisPresentDansRoomFret(caisse.pays_destination, caisse.ville_destination, caisse.building_destination);
+  if (!presentIci) { showToast('Absent du port', '', false); return; }
+
+  const ligneRows = typeof sbGet === 'function' ? await sbGet('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(contenuId)).catch(() => []) : [];
+  const ligne = ligneRows && ligneRows[0];
+  if (!ligne || ligne.caisse_id !== caisseId || ligne.quantite <= 0) { showToast('Ligne indisponible', '', false); return; }
+
+  const qteDemandee = Math.max(1, parseInt(document.getElementById('fret-retrait-qty-' + contenuId)?.value || '1'));
+  const qte = Math.min(qteDemandee, ligne.quantite);
+
+  const placeDisponible = (typeof PLAFOND_INVENTAIRE_EMPILABLE !== 'undefined' ? PLAFOND_INVENTAIRE_EMPILABLE : 100) - (typeof getTotalInventaire === 'function' ? getTotalInventaire() : 0);
+  if (placeDisponible < qte) { showToast('Inventaire plein', 'Libérez de la place avant de retirer.', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  // Verrouillage optimiste (compare-and-swap applicatif) : le PATCH ne reussit que si
+  // 'quantite' vaut toujours EXACTEMENT ce qu'on vient de lire. Si un autre PJ a deja retire
+  // sur cette meme ligne entre notre lecture et cet appel, le filtre ne matche plus aucune
+  // ligne (0 resultat) -- on annule tout AVANT de toucher a l'inventaire, jamais apres. Evite
+  // deux retraits concurrents de recreer ou dupliquer les memes unites (perte de mise a jour
+  // classique sur un simple PATCH inconditionnel).
+  const nouvelleQte = ligne.quantite - qte;
+  const maj = typeof sbUpdate === 'function'
+    ? await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(contenuId) + '&quantite=eq.' + ligne.quantite, { quantite: nouvelleQte }).catch(() => null)
+    : null;
+  if (!maj || maj.length === 0) {
+    showToast('Conflit de retrait', 'Cette ligne vient d\'être modifiée par quelqu\'un d\'autre. Réessayez.', false);
+    return;
+  }
+
+  if (typeof addToInventory === 'function') addToInventory({ ...ligne.objet, qty: qte });
+  else { state.inventory = state.inventory || []; state.inventory.push({ ...ligne.objet, qty: qte }); }
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+
+  // Passage a 'videe' si le contenu total de la caisse atteint 0 -- transition evenementielle
+  // (declenchee par l'action elle-meme), pas temporelle : pas besoin de cron ici.
+  const lignesRestantes = await chargerContenuCaisseFret(caisseId);
+  if (totalContenuFret(lignesRestantes) <= 0 && typeof sbUpdate === 'function') {
+    await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { statut: 'videe' }).catch(() => {});
+  }
+
+  updateUI();
+  showToast('Retiré', qte + ' × ' + (ligne.objet?.name || '') + ' ajouté(e) à votre inventaire.', true, true);
+  addJournalEntry('Marchandise retirée au port : ' + qte + ' × ' + (ligne.objet?.name || '') + '.', 'event-good');
+  await afficherCaisseArriveeFret(caisseId, pa);
+}
+
+async function ajouterReceptionnaireFret(caisseId) {
+  const nom = document.getElementById('fret-nouveau-receptionnaire')?.value?.trim();
+  if (!nom) return;
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.destinataire !== (state.char?.name || '')) return;
+  const liste = Array.from(new Set([...(caisse.receptionnaires_autorises || []), nom]));
+  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { receptionnaires_autorises: liste }).catch(() => {});
+  await afficherCaisseArriveeFret(caisseId, 1);
+}
+
+async function retirerReceptionnaireFret(caisseId, nom) {
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.destinataire !== (state.char?.name || '')) return;
+  const liste = (caisse.receptionnaires_autorises || []).filter(n => n !== nom);
+  if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { receptionnaires_autorises: liste }).catch(() => {});
+  await afficherCaisseArriveeFret(caisseId, 1);
+}
+
+// ---- LIQUIDATION J15 (room Entrepots du port) ----
+async function ouvrirMarchandisesNonReclamees() {
+  const pays = state.country || 'republic';
+  document.getElementById('postes-modal-title').textContent = 'Marchandises non réclamées';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const caisses = typeof sbGet === 'function'
+    ? await sbGet('caisses_fret', 'pays_destination=eq.' + encodeURIComponent(pays) + '&statut=eq.a_vendre').catch(() => [])
+    : [];
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Caisses jamais vidées par leur destinataire (15 jours après arrivée). Chaque caisse est vendue en un seul lot, au profit de la caisse du port.</div>';
+  if (!caisses || caisses.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune caisse non réclamée pour l\'instant.</div>';
+  } else {
+    for (const c of caisses) {
+      const lignes = await chargerContenuCaisseFret(c.id);
+      const restant = totalContenuFret(lignes);
+      if (restant <= 0) continue;
+      const valeurAdmin = (c.valeur_declaree || 0) * (restant / (c.quantite_arrivee || restant || 1));
+      const prix = Math.round(valeurAdmin * RATIO_PRIX_LIQUIDATION_FRET);
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between">';
+      html += '<div><div style="font-size:.82rem;color:#c0b090">Lot de ' + c.leader + ' — ' + restant + ' unité(s), ' + lignes.filter(l=>l.quantite>0).length + ' type(s) d\'objet</div>';
+      html += '<div style="font-size:.7rem;color:#5a4030">' + prix + ' FR</div></div>';
+      html += '<button onclick="acheterLotNonReclameeFret(\'' + c.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Acheter le lot</button>';
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function acheterLotNonReclameeFret(caisseId) {
+  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
+  const caisse = rows && rows[0];
+  if (!caisse || caisse.statut !== 'a_vendre' || caisse.pays_destination !== (state.country || 'republic')) {
+    showToast('Indisponible', '', false);
+    return;
+  }
+  const lignes = await chargerContenuCaisseFret(caisseId);
+  const disponibles = lignes.filter(l => l.quantite > 0);
+  const restant = totalContenuFret(disponibles);
+  if (restant <= 0) { showToast('Lot déjà vendu', '', false); return; }
+
+  // Le lot est indivisible (achat en bloc du contenu restant) : si la capacite individuelle ne
+  // suffit pas, STOP plutot que de fractionner/supprimer silencieusement des objets (exigence
+  // explicite du 24 aout 2026).
+  const placeDisponible = (typeof PLAFOND_INVENTAIRE_EMPILABLE !== 'undefined' ? PLAFOND_INVENTAIRE_EMPILABLE : 100) - (typeof getTotalInventaire === 'function' ? getTotalInventaire() : 0);
+  if (placeDisponible < restant) {
+    showToast('Capacité insuffisante', 'Ce lot contient ' + restant + ' unité(s) ; il ne peut être vendu qu\'en bloc. Libérez au moins ' + (restant - placeDisponible) + ' place(s) avant d\'acheter.', false);
+    return;
+  }
+
+  const valeurAdmin = (caisse.valeur_declaree || 0) * (restant / (caisse.quantite_arrivee || restant || 1));
+  const prix = Math.round(valeurAdmin * RATIO_PRIX_LIQUIDATION_FRET);
+  if ((state.arg || 0) < prix) { showToast('Fonds insuffisants', '', false); return; }
+
+  // Reservation optimiste (meme tolerance de course que le reste du jeu) : on marque 'vendue'
+  // avant de crediter/transferer, la relecture ci-dessus limite le risque de double-achat.
+  const maj = typeof sbUpdate === 'function' ? await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId) + '&statut=eq.a_vendre', { statut: 'vendue' }).catch(() => null) : null;
+  if (!maj || maj.length === 0) { showToast('Indisponible', 'Ce lot vient d\'être acheté par quelqu\'un d\'autre.', false); return; }
+
+  state.arg -= prix;
+  if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(caisse.pays_destination, caisse.building_destination, prix).catch(() => {});
+  for (const l of disponibles) {
+    if (typeof addToInventory === 'function') addToInventory({ ...l.objet, qty: l.quantite });
+    else { state.inventory = state.inventory || []; state.inventory.push({ ...l.objet, qty: l.quantite }); }
+    if (typeof sbUpdate === 'function') await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(l.id), { quantite: 0 }).catch(() => {});
+  }
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+
+  updateUI();
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Lot acheté !', restant + ' unité(s) ajoutée(s) à votre inventaire.', true, true);
+  addJournalEntry('Achat d\'un lot de marchandises non réclamées au port (' + prix + ' FR versés à la caisse du port).', 'event-good');
+}
+
 // ---- FOUILLE GENERIQUE (inventaire) ----
 // Detection generique : tout objet legal:false est repere (reutilise le flag deja universel du
 // jeu). Seuls les types deja dotes d'un vrai traitement de confiscation ailleurs dans le jeu

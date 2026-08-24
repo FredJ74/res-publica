@@ -1625,6 +1625,64 @@ async function resoudreInvestissementsExpires() {
   return resultats;
 }
 
+// =====================
+// FRET MARITIME INTERNATIONAL (lot du 24 aout 2026) — passage en_transit -> arrivee
+// =====================
+// Le seul point qui doit faire arriver reellement une caisse a destination : ne depend d'aucun
+// client, aucun doDormir(), aucun tick d'horloge navigateur (exigence explicite du lot). Le cron
+// tourne 1x/jour de facon inconditionnelle (vercel.json, 23h UTC). quantite_arrivee est figee
+// ici (somme du contenu reel au moment de l'arrivee), base fixe pour le calcul de la valeur
+// administrative restante lors d'une eventuelle liquidation J15.
+async function traiterArriveesCaissesFret() {
+  const resultats = { arrivees: 0 };
+  const caisses = await sbGet('caisses_fret', 'statut=eq.en_transit');
+  if (!caisses) return resultats;
+
+  const maintenant = new Date();
+  for (const c of caisses) {
+    if (!c.date_arrivee_prevue || maintenant.getTime() < new Date(c.date_arrivee_prevue).getTime()) continue;
+
+    const contenu = await sbGet('contenu_caisses_fret', 'caisse_id=eq.' + encodeURIComponent(c.id));
+    const quantiteArrivee = (contenu || []).reduce((s, l) => s + (l.quantite || 0), 0);
+
+    await sbUpdate('caisses_fret', `id=eq.${encodeURIComponent(c.id)}`, {
+      statut: 'arrivee',
+      date_arrivee_reelle: maintenant.toISOString(),
+      quantite_arrivee: quantiteArrivee
+    });
+    resultats.arrivees++;
+  }
+  return resultats;
+}
+
+// J15 (arbitrage valide) : caisse arrivee mais jamais entierement videe -> statut 'a_vendre'.
+// Ne debite jamais l'ancien destinataire (il perd simplement son droit sur la caisse, aucune
+// ecriture financiere ici) ; aucune recette n'est creee tant que personne n'achete le lot (voir
+// acheterLotNonReclameeFret, cote client).
+async function traiterMiseEnVenteCaissesFret() {
+  const resultats = { misesEnVente: 0 };
+  const caisses = await sbGet('caisses_fret', 'statut=eq.arrivee');
+  if (!caisses) return resultats;
+
+  const maintenant = new Date();
+  for (const c of caisses) {
+    if (!c.date_arrivee_reelle) continue;
+    const joursEcoules = (maintenant.getTime() - new Date(c.date_arrivee_reelle).getTime()) / 86400000;
+    if (joursEcoules < 15) continue;
+
+    const contenu = await sbGet('contenu_caisses_fret', 'caisse_id=eq.' + encodeURIComponent(c.id));
+    const quantiteRestante = (contenu || []).reduce((s, l) => s + (l.quantite || 0), 0);
+    if (quantiteRestante <= 0) continue; // deja videe entre-temps (retrait synchrone cote client)
+
+    await sbUpdate('caisses_fret', `id=eq.${encodeURIComponent(c.id)}`, {
+      statut: 'a_vendre',
+      date_mise_en_vente: maintenant.toISOString()
+    });
+    resultats.misesEnVente++;
+  }
+  return resultats;
+}
+
 async function verifierConflitsEmploiBNE() {
   const resultats = { notifies: [] };
   try {
@@ -1825,6 +1883,13 @@ export default async function handler(req, res) {
     // reglement + degel des dossiers integralement resolus
     const successionsResolues = await resoudreSuccessionsExpirees();
 
+    // 16c. Fret maritime international (lot du 24 aout 2026) : arrivee des caisses en transit
+    // (en_transit -> arrivee, quantite_arrivee figee), independamment de tout client connecte
+    const caissesFretArrivees = await traiterArriveesCaissesFret();
+
+    // 16d. Fret maritime : mise en vente J15 des caisses jamais videes (arrivee -> a_vendre)
+    const caissesFretMisesEnVente = await traiterMiseEnVenteCaissesFret();
+
     // 17. Journal du jour (Lot B) — STRICTEMENT en dernier, dans son propre try/catch : un
     // echec ou un depassement de son propre budget interne ne doit jamais remettre en cause les
     // 16 taches critiques ci-dessus, deja executees et sauvegardees avant ce point.
@@ -1836,7 +1901,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE, investissements, preemptions, successionsResolues, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE, investissements, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

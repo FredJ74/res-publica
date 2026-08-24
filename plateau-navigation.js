@@ -1576,80 +1576,12 @@ function doCorrompreDoanier() {
 // =====================
 // SYSTEME PORT
 // =====================
-function ouvrirExpedierColis(pa, cost) {
-  const inventaire = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
-  if (inventaire.length === 0) { showToast('Inventaire vide', 'Aucun objet à expédier.', false); return; }
-  const contacts = state.contacts || [];
-  if (contacts.length === 0) { showToast('Répertoire vide', 'Aucun destinataire disponible.', false); return; }
-
-  document.getElementById('postes-modal-title').textContent = 'Expédier un colis';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">2 PA · 200 FR · Livraison sous 24h dans un autre empire.</div>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">OBJET À EXPÉDIER</div>';
-  html += '<select id="exp-objet" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
-  inventaire.forEach((obj, i) => { html += '<option value="' + i + '">' + obj.name + '</option>'; });
-  html += '</select>';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATAIRE</div>';
-  html += '<select id="exp-dest" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-  contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
-  html += '</select>';
-  html += '<button onclick="confirmerExpedition(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Expédier</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerExpedition(pa, cost) {
-  const objIdx = parseInt(document.getElementById('exp-objet')?.value || '0');
-  const dest = document.getElementById('exp-dest')?.value;
-  const inventaire = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
-  const obj = inventaire[objIdx];
-  if (!obj || !dest) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
-  state.inventory = state.inventory.filter(i => i !== obj);
-  updateUI();
-  document.getElementById('modal-postes').classList.remove('open');
-  if (!state.colisEnCours) state.colisEnCours = [];
-  state.colisEnCours.push({ objet: obj, dest, jourArrivee: state.day + 1 });
-  showToast('Colis expédié !', obj.name + ' envoyé à ' + dest + '. Arrivée dans 24h.', true, true);
-  addJournalEntry('Colis expédié : ' + obj.name + ' → ' + dest, 'event-info');
-  addMailNotification('Service postal', 'Colis en route', 'Un colis (' + obj.name + ') a été expédié par ' + (state.char?.name||'Anonyme') + '. Récupérez-le au port sous 24h.');
-}
-
-function ouvrirReceptionnerCommande(pa, cost) {
-  const colis = (state.colisEnCours || []).filter(c => c.jourArrivee <= state.day);
-  document.getElementById('postes-modal-title').textContent = 'Réceptionner une commande';
-  let html = '<div style="padding:1rem">';
-  if (colis.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun colis en attente de réception.</div>';
-  } else {
-    colis.forEach((c, i) => {
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem;display:flex;align-items:center;justify-content:space-between">';
-      html += '<div><div style="font-size:.82rem;color:#c0b090">' + c.objet.name + '</div>';
-      html += '<div style="font-size:.7rem;color:#5a4030">Expédié par ' + (c.expediteur||'Inconnu') + '</div></div>';
-      html += '<button onclick="recupererColis(' + i + ',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a8a4a;background:transparent;color:#4a8a4a;cursor:pointer">Récupérer</button>';
-      html += '</div>';
-    });
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function recupererColis(idx, pa, cost) {
-  const colis = (state.colisEnCours || []).filter(c => c.jourArrivee <= state.day);
-  const c = colis[idx];
-  if (!c) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push(c.objet);
-  state.colisEnCours = state.colisEnCours.filter(x => x !== c);
-  updateUI();
-  document.getElementById('modal-postes').classList.remove('open');
-  showToast('Colis récupéré !', c.objet.name + ' ajouté à votre inventaire.', true, true);
-}
+// Le fret PJ->PJ (expedier_colis/receptionner_commande) a ete integralement remplace le
+// 24 aout 2026 par un systeme de caisses persistantes multi-objets (2 tours d'arbitrage) --
+// l'ancien systeme colisEnCours (etat client local, jamais persiste, 1 objet par envoi, le
+// destinataire ne recevait jamais rien en pratique) est supprime. Nouveaux handlers
+// ouvrirExpedierColis()/ouvrirReceptionnerCommande() dans plateau-justice-economie.js (section
+// FRET MARITIME INTERNATIONAL, tables Supabase dediees caisses_fret + contenu_caisses_fret).
 
 async function doContrebandePort(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });

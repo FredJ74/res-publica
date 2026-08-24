@@ -216,6 +216,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_organigramme_mairie') { ouvrirOrganigrammeMairie(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
+  if (fn === 'marchandises_non_reclamees') { ouvrirMarchandisesNonReclamees(); return; }
   if (fn === 'choisir_suite')            { ouvrirModalChoixSuite(); return; }
   if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(pa, cost); return; }
   if (fn === 'appeler_police_terrain')  { doAppelerPoliceTerrain(); return; }
