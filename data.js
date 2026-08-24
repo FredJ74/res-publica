@@ -324,8 +324,28 @@ const WORLD = {
             }
           }
         },
+        // Dispensaire de PSM (lot du 24 aout 2026) : habillage propre a PSM sur le VRAI buildingId
+        // navigable 'dispensaire-public-v' (template partage avec Montrouge, BUILDINGS
+        // ['dispensaire-public-v'], inchange -- ce template porte en dur l'image et le texte EHPAD
+        // de Montrouge, d'ou le besoin d'un roomOverrides complet ici, meme pattern deja utilise
+        // pour commissariat-local/banque-locale/tribunal-local). persons top-level (hors
+        // roomOverrides) reste le mecanisme deja en place pour la 1ere room (attente) -- Corinne
+        // Titgoute (accueil) rejoint Betty Dine (infirmiere, conservee) plutot que de la
+        // remplacer, meme convention que Docteur Aspirine + Anne Tibiotique a Luthecia. orders non
+        // touches : soin_public/vendre_ressource_medicale restent sur la base partagee.
         'dispensaire-public-v': {
-          persons: [{name:'Betty Dine (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}]
+          roomOverrides: {
+            attente: { imageUrl: "images/port-sainte-marie-dispensaire-accueil.png" },
+            ehpad: {
+              name: "Résidence des Embruns",
+              desc: "EHPAD moderne de Port-Sainte-Marie avec vue sur le port de plaisance.",
+              imageUrl: "images/port-sainte-marie-ehpad-residence-embruns.png"
+            }
+          },
+          persons: [
+            {name:'Corinne Titgoute (PNJ)', role:'Accueil du Dispensaire des Marins Mariannais', rel:'neutral', job:'hotesse', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-dispensaire-corinne-titgoute.png', photoPos:'50% 15%'},
+            {name:'Betty Dine (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}
+          ]
         },
         'zone-production': {
           name: "Scierie Guy Tarembois",

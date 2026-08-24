@@ -1815,6 +1815,9 @@ function ouvrirModalLouerLocal(pa, cost) {
 
   const room = BUILDINGS[buildingId]?.rooms?.[roomId];
   if (!room?.locationData) { showToast('Erreur', 'Local non trouvé.', false); return; }
+  // roomOverride.desc a priorite sur room.desc si un override existe pour cette room precise
+  // (meme priorite generique que dans enterRoom, plateau-navigation.js).
+  const descAffichee = (typeof getBuildingContext === 'function' ? getBuildingContext(buildingId)?.roomOverrides?.[roomId]?.desc : null) || room.desc;
 
   const loc = room.locationData;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -1854,7 +1857,7 @@ function ouvrirModalLouerLocal(pa, cost) {
   document.getElementById('postes-modal-title').textContent = '📋 Louer : ' + loc.label;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' + (room.desc || '') + '</div>' +
+    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">' + (descAffichee || '') + '</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.7rem">' +
       '<div style="background:#0a0805;border:1px solid #1a1810;padding:.5rem;text-align:center">' +
         '<div style="font-size:.82rem;color:#9a8a68">LOYER / JOUR</div>' +
@@ -1934,6 +1937,7 @@ function ouvrirModalChoixSuite() {
   const buildingId = state.currentBuilding;
   const b = BUILDINGS[buildingId];
   if (!b) return;
+  const ctxSuites = typeof getBuildingContext === 'function' ? getBuildingContext(buildingId) : null;
 
   const suites = Object.entries(b.rooms || {}).filter(([, r]) => r.isLocationRoom && r.locationData?.suiteChoice);
   if (suites.length === 0) { showToast('Aucune suite', 'Aucune suite disponible ici.', false); return; }
@@ -1951,8 +1955,10 @@ function ouvrirModalChoixSuite() {
     if (loc.bonusDIS > 0) bonusParts.push('+' + loc.bonusDIS + ' DIS');
 
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.5rem">';
+    // roomOverride.desc a priorite sur room.desc si un override existe pour cette room precise.
+    const descSuite = ctxSuites?.roomOverrides?.[roomId]?.desc || room.desc;
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#C9A84C">' + loc.label + '</div>';
-    html += '<div style="font-size:.75rem;color:#a09060;margin:.2rem 0">' + (room.desc || '') + '</div>';
+    html += '<div style="font-size:.75rem;color:#a09060;margin:.2rem 0">' + (descSuite || '') + '</div>';
     html += '<div style="font-size:.78rem;color:#9a8a68">' + loc.prix.toLocaleString('fr-FR') + ' ' + cur + '/jour \u00b7 ' + (bonusParts.join(' \u00b7 ') || 'Aucun bonus') + '</div>';
     if (dejaLoue) {
       html += '<div style="font-size:.72rem;color:#8a6a20;margin-top:.4rem">D\u00e9j\u00e0 lou\u00e9e' + (dejaLoue.locataire === state.char?.name ? ' (par vous)' : '') + '.</div>';

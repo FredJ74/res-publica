@@ -645,7 +645,10 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (existing) existing.remove();
 
   document.getElementById('piece-nom').textContent = roomOverride?.name || room.name;
-  let displayDesc = (isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || '');
+  // roomOverride.desc a priorite sur ctx.desc (batiment, 1ere room seulement) et sur room.desc
+  // (base partagee) -- meme priorite que roomOverride.imageUrl ci-dessus, generique, sans aucun
+  // cas particulier de ville/batiment/room.
+  let displayDesc = roomOverride?.desc || ((isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || ''));
   if (state.estEmprisonne && buildingId === 'commissariat' && roomId === 'prison') {
     const joursRestants = Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
     displayDesc += ' — Peine : ' + state.estEmprisonne.raison + '. Temps restant : ' + joursRestants + ' jour(s) (libération au Jour ' + state.estEmprisonne.jourFin + ').';
