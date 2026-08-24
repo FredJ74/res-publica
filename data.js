@@ -6594,33 +6594,15 @@ const CITY_POPULATION = {
       unemployment: 0.14
     }
   },
-  republic: {
-    'palais-presidentiel': {
-      'accueil_elysee':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/accueil-palais-president-republic.png',
-      'bureau_president':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-president.png'
-    },
-    'palais-gouvernement': {
-      'archives_gouv':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/archives-gouv-republic.png',
-      'bureau_min_int':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-int-republic.png',
-      'bureau_min_ae':    'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-ae-republic.png',
-      'bureau_min_def':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-min-def-republic.png'
-    },
-    'mairie-capitale': {
-      'hall_mairie':      'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-luthecia.png',
-      'bureau_maire':     'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/bureau-maire-luthecia.png',
-      'salle_elections':  'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-elections-luthecia.png'
-    },
-    'mairie': {
-      'accueil_mairie':   'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/mairie-port-sainte-marie.png'
-    },
-    'terrain-a-batir-1': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-2': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-3': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-4': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-5': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-6': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' },
-    'terrain-a-batir-7': { 'terrain': 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/terrain-a-vendre-republic.png' }
-  },
+  // Correctif du 24 aout 2026 (audit fiscal) : une seconde cle 'republic' (urls d'images de
+  // batiments -- palais-presidentiel/palais-gouvernement/mairie-capitale/mairie/terrains a
+  // batir) ecrasait silencieusement le bloc demographique/fiscal ci-dessus. Ce contenu image
+  // etait un doublon exact (jusqu'a la virgule finale) d'un extrait deja present et deja
+  // utilise dans ROOM_IMAGES_EMPIRE.republic (voir plus haut dans ce fichier, palais-
+  // presidentiel a terrain-a-batir-7) -- structure existante deja lue en runtime par
+  // plateau-navigation.js (ROOM_IMAGES_EMPIRE[state.country]?.[buildingId]?.[roomId]). Rien
+  // n'est perdu : ces images restent accessibles exactement ou elles etaient deja reellement
+  // utilisees. Supprime ici uniquement l'exemplaire orphelin qui neutralisait CITY_POPULATION.
   narco: {
     capitale: { total: 620000, taxRate: 0.08, dailyTaxRevenue: 18000, unemployment: 0.28 },
     ville_a:  { total: 85000,  taxRate: 0.08, dailyTaxRevenue: 2400,  unemployment: 0.32 },
