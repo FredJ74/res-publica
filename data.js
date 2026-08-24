@@ -3974,6 +3974,13 @@ const BUILDINGS = {
       }
     }
   },
+  // Port de plaisance de PSM (lot du 24 aout 2026) : buildingId deja existant, exclusif a PSM
+  // (seule occurrence dans tous les "buildings" du jeu, aucun risque de partage/heritage avec
+  // Montrouge ou Luthecia -- modifie donc directement ici, sans buildingContext/roomOverrides).
+  // Room 'quai' renommee en 'port_plaisance' (aucune reference codee en dur a l'ancienne cle
+  // 'quai' trouvee ailleurs dans le jeu, aucun risque) pour correspondre au nom affiche demande.
+  // Nouvelle room 'capitainerie' ajoutee avec Patrice Lecap. orders: [] dans les deux rooms,
+  // aucune mecanique portuaire (anneaux, bateaux, navigation, taxes...) : volontairement reporte.
   'port-plaisance-psm': {
     name: "Port de Plaisance de Port-Sainte-Marie",
     shortName: "Port de Plaisance",
@@ -3982,13 +3989,23 @@ const BUILDINGS = {
     bgColor: "#050810",
     desc: "Voiliers et bateaux de plaisance, face au retour de facade de la banque.",
     rooms: {
-      quai: {
-        name: "Quai",
+      port_plaisance: {
+        name: "Port de plaisance",
         image: "\u26f5",
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
-        desc: "Mats et coques blanches se balancent doucement.",
-        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-plaisance.png",
+        desc: "Voiliers et bateaux de plaisance amarres le long du quai, grande ouverture sur la mer.",
+        imageUrl: "images/port-sainte-marie-port-plaisance.png",
         persons: [],
+        orders: []
+      },
+      capitainerie: {
+        name: "Capitainerie",
+        imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
+        desc: "Le poste de vigie du port : radios, cartographie et vue sur l'entree du chenal.",
+        imageUrl: "images/port-sainte-marie-capitainerie.png",
+        persons: [
+          {name:'Patrice Lecap (PNJ)', role:'Chef de la capitainerie', rel:'neutral', job:null, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-capitainerie-patrice-lecap.png', photoPos:'50% 15%'}
+        ],
         orders: []
       }
     }
