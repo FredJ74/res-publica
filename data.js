@@ -3872,6 +3872,14 @@ const BUILDINGS = {
       }
     }
   },
+  // Ecole de Marine Mariannaise de PSM (lot du 24 aout 2026) : buildingId et hotspot rue
+  // (psm-ecole-phare, plateau-rue-centrale.js, meme scene que le phare) deja existants et deja
+  // correctement raccordes -- aucune navigation touchee. Room 'hall' deja existante (orders:[]
+  // deja vide, rien a signaler/preserver) simplement rebaptisee et habillee. Nouvelle room
+  // 'salle_cours' ajoutee. persons:[] dans les deux rooms pour l'instant : le directeur visible
+  // sur l'image du hall n'a pas encore de nom arrete (voir rapport), aucun PNJ generique cree en
+  // attendant l'arbitrage. orders:[] dans les deux : aucune mecanique de formation/diplome/
+  // brevet cette fois-ci, volontairement reporte.
   'ecole-marine': {
     name: "Ecole de Marine de Port-Sainte-Marie",
     shortName: "Ecole de Marine",
@@ -3881,10 +3889,20 @@ const BUILDINGS = {
     desc: "Formation des futurs marins et officiers de la marine marchande.",
     rooms: {
       hall: {
-        name: "Hall d'Entree",
-        image: "\u2693",
+        name: "Hall d'accueil",
         imageBg: "linear-gradient(135deg,#08090c,#0d0f14)",
-        desc: "Maquettes de navires et portraits d'anciens capitaines.",
+        desc: "Maquettes de navires, sextant et portraits d'anciens capitaines sous une grande verriere.",
+        imageUrl: "images/port-sainte-marie-ecole-marine-hall.png",
+        persons: [
+          {name:'Maxime Bonvent (PNJ)', role:'Directeur de l\'École de Marine Mariannaise', rel:'neutral', job:'directeur', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-ecole-marine-maxime-bonvent.png', photoPos:'50% 15%'}
+        ],
+        orders: []
+      },
+      salle_cours: {
+        name: "Salle de cours",
+        imageBg: "linear-gradient(135deg,#08090c,#0d0f14)",
+        desc: "Les eleves y apprennent aussi bien la navigation traditionnelle que les techniques maritimes contemporaines.",
+        imageUrl: "images/port-sainte-marie-ecole-marine-salle-cours.png",
         persons: [],
         orders: []
       }
