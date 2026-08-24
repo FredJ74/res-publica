@@ -435,6 +435,23 @@ const WORLD = {
             }
           }
         },
+        // Tribunal de PSM (lot du 24 aout 2026) : habillage propre a PSM sur le VRAI buildingId
+        // navigable 'tribunal-local' (template partage avec Montrouge, BUILDINGS['tribunal-
+        // local'], inchange -- roomOverride sur imageUrl/persons uniquement, meme pattern que
+        // 'commissariat-local' ci-dessus). Les 3 orders (plainte/defense/rendre_sentence)
+        // proviennent de la base partagee et restent strictement inchanges : aucun greffe, aucune
+        // salle d'archives ajoutee -- ces services restent exclusifs a Luthecia (regle de game
+        // design validee : historique judiciaire national centralise au greffe de la capitale).
+        'tribunal-local': {
+          roomOverrides: {
+            salle_audience_locale: {
+              imageUrl: "images/port-sainte-marie-tribunal-salle-audience.png",
+              persons: [
+                {name:'Mireille Sedlex (PNJ)', role:'Juge de Port-Sainte-Marie', rel:'neutral', job:'juge', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-tribunal-mireille-sedlex.png', photoPos:'50% 15%'}
+              ]
+            }
+          }
+        },
         'banque-nationale': {
           name: "Banque Locale de Port-Sainte-Marie",
           desc: "Une succursale modeste.",
@@ -702,6 +719,22 @@ const WORLD = {
               imageUrl: "images/montrouge/montrouge-banque-bureau-directeur.jpg",
               persons: [],
               orders: []
+            }
+          }
+        },
+        // Tribunal de Montrouge (lot du 24 aout 2026) : habillage propre a Montrouge sur le VRAI
+        // buildingId navigable 'tribunal-local' (template partage avec PSM, BUILDINGS['tribunal-
+        // local'], inchange -- roomOverride sur imageUrl/persons uniquement, meme pattern que
+        // 'banque-locale' ci-dessus). Les 3 orders (plainte/defense/rendre_sentence) proviennent
+        // de la base partagee et restent strictement inchanges : aucun greffe, aucune salle
+        // d'archives ajoutee -- ces services restent exclusifs a Luthecia.
+        'tribunal-local': {
+          roomOverrides: {
+            salle_audience_locale: {
+              imageUrl: "images/montrouge/montrouge-tribunal-salle-audience.png",
+              persons: [
+                {name:'Gérard Bretellewood (PNJ)', role:'Juge de Montrouge', rel:'neutral', job:'juge', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/montrouge/montrouge-tribunal-gerard-bretellewood.png', photoPos:'50% 15%'}
+              ]
             }
           }
         },

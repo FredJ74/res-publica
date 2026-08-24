@@ -904,6 +904,16 @@ function tenterResistance(peineType) {
   }
 }
 
+// Resout la provenance d'un jugement vers son nom de ville affichable, en reutilisant
+// exclusivement les donnees WORLD deja existantes (aucune table de correspondance codee en dur).
+// j.country/j.city sont deja ecrits tels quels par appliquerSentence -> sbCreerJugement (voir
+// plus bas) ; cette fonction ne fait que les relire pour l'affichage, aucune persistance touchee.
+function libelleTribunalOrigine(j) {
+  const pays = j.country || state.country || 'republic';
+  const nomVille = WORLD[pays]?.[j.city]?.name;
+  return nomVille ? ('Tribunal de ' + nomVille) : 'Tribunal (ville inconnue)';
+}
+
 async function ouvrirArchivesTribunal() {
   document.getElementById('postes-modal-title').textContent = 'Archives du Tribunal';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
@@ -927,6 +937,7 @@ async function ouvrirArchivesTribunal() {
       html += '<div style="font-size:.7rem;color:#5a4030">Jour ' + j.jour + '</div>';
       html += '</div>';
       html += '<div style="font-size:.72rem;color:#6a5a30">' + j.motif + ' · ' + (j.peine||'En cours') + '</div>';
+      html += '<div style="font-size:.68rem;color:#8a6a20;margin-top:.15rem">' + libelleTribunalOrigine(j) + '</div>';
       html += '</div>';
     });
   }
@@ -940,6 +951,7 @@ function ouvrirDetailJugement(idx) {
   document.getElementById('postes-modal-title').textContent = 'Jugement — ' + j.accuse;
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.5rem">Date : Jour ' + j.jour + ' · Juge : ' + (j.juge||'PNJ') + '</div>';
+  html += '<div style="font-size:.78rem;color:#8a6a20;margin-bottom:.5rem">' + libelleTribunalOrigine(j) + '</div>';
   html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">Motif : ' + j.motif + '</div>';
   html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">Peine : ' + (j.peine||'N/A') + '</div>';
   if (j.executee !== undefined) html += '<div style="font-size:.78rem;color:' + (j.executee ? '#4a8a4a' : '#8a6a20') + '">' + (j.executee ? 'Peine executee' : 'Peine en cours ou amenagee') + '</div>';
