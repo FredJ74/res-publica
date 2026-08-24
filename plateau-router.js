@@ -253,10 +253,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_info_4')       { consulterInformateur(4); return; }
   if (fn === 'gerer_informateurs')     { ouvrirGestionInformateurs(); return; }
   if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs', pa, cost); return; }
+  if (fn === 'renseignement_transport_intl') { ouvrirRenseignementMireilleGuichet(); return; }
   if (fn === 'prendre_bus_taxi')       { ouvrirModalTransport('bus'); return; }
   if (fn === 'prendre_avion')          { ouvrirModalTransport('avion'); return; }
   if (fn === 'aller_douanes_aeroport') { doAllerDouanesAeroport(); return; }
   if (fn === 'prendre_bateau')         { ouvrirModalTransport('bateau'); return; }
+  if (fn === 'renseignement_transport_maritime') { ouvrirRenseignementAlainBordage(); return; }
   if (fn === 'controle_douanes')       { doControlDouanes(); return; }
   if (fn === 'corrompre_douanier')     { doCorrompreDoanier(pa, cost); return; }
   if (fn === 'expedier_colis')         { ouvrirExpedierColis(pa, cost); return; }

@@ -1301,8 +1301,8 @@ function closeWorldMap() {
 const TRANSPORT_CONFIG = {
   train:  { pa:2, cost:75,  label:'Train',  icon:'ti-train',  type:'intra',  desc:'Intra-empire uniquement. Plus économique.' },
   bus:    { pa:1, cost:150, label:'Bus/Taxi',icon:'ti-bus',   type:'intra',  desc:'Intra-empire. Rapide.' },
-  avion:  { pa:3, cost:250, label:'Avion',  icon:'ti-plane', type:'inter',  desc:'Inter-empire. Contrôle douanes obligatoire.' },
-  bateau: { pa:4, cost:100, label:'Bateau', icon:'ti-ship',  type:'inter',  desc:'Inter-empire. Moins cher, plus lent.' }
+  avion:  { pa:2, cost:300, label:'Avion',  icon:'ti-plane', type:'inter',  desc:'Inter-empire. Contrôle douanes obligatoire.' },
+  bateau: { pa:5, cost:100, label:'Bateau', icon:'ti-ship',  type:'inter',  desc:'Inter-empire. Moins cher, plus lent.' }
 };
 
 const VILLES_PAR_EMPIRE = {
@@ -1378,9 +1378,20 @@ function ouvrirModalTransport(mode) {
 async function executerVoyage(mode, empireId, villeId) {
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const rPaInter = await deduireCoutOrdre({ pa: config.pa, cost: 0 });
-  if (!rPaInter.ok) { showToast('PA insuffisants', 'Il vous faut ' + config.pa + ' PA.', false); return; }
-  state.arg -= config.cost;
+  // Debit atomique unique (PA + FR revalides ici, au point reel du debit -- correctif du
+  // 24 aout 2026 : auparavant seuls les PA etaient revalides ici, les FR n'etaient verifies
+  // qu'en amont dans confirmerTransport puis debites sans nouvelle verification, un ecart de
+  // temps theorique entre les deux). Un seul appel : jamais de double debit, jamais de solde
+  // negatif (deduireCoutOrdre refuse et ne touche a rien si l'un des deux manque).
+  const rVoyage = await deduireCoutOrdre({ pa: config.pa, cost: config.cost });
+  if (!rVoyage.ok) {
+    showToast(
+      rVoyage.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants',
+      rVoyage.raison === 'pa_insuffisants' ? ('Il vous faut ' + config.pa + ' PA.') : ('Il vous faut ' + config.cost + ' ' + cur + '.'),
+      false
+    );
+    return;
+  }
   const ancienEmpire = state.country;
   state.country = empireId;
   state.currentCity = villeId;
@@ -1411,6 +1422,29 @@ async function executerVoyage(mode, empireId, villeId) {
   showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
   addJournalEntry('Voyage en ' + config.label + ' → ' + villeName + ' (' + empireName + ')', 'event-info');
   addExternalEvent((state.char?.name||'Anonyme') + ' est arrivé(e) à ' + villeName + ' (' + empireName + ').');
+}
+
+// Dialogues scriptes (lot du 24 aout 2026) -- texte fixe, pas de chat IA generique : garantit
+// qu'aucun PNJ ne mentionne jamais "PA" (exigence explicite), les couts en PA restant reserves
+// a l'interface des orders. Information seulement, aucune action/debit associe.
+function ouvrirRenseignementMireilleGuichet() {
+  document.getElementById('postes-modal-title').textContent = 'Mireille Guichet — Hôtesse d\'accueil';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem">' +
+    '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">' +
+    '« C\'est noté ! Pour l\'étranger, l\'avion est de loin le plus rapide, mais le billet coûte 300 FR. Si vous n\'êtes pas pressé(e), vous pouvez aussi prendre le bateau depuis Port-Sainte-Marie : la traversée est nettement plus longue, mais elle ne coûte que 100 FR. »' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function ouvrirRenseignementAlainBordage() {
+  document.getElementById('postes-modal-title').textContent = 'Alain Bordage — Employé de la compagnie maritime';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1.2rem">' +
+    '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">' +
+    '« La traversée coûte 100 FR. Ce n\'est pas rapide, mais c\'est économique. Si vous êtes pressé(e) et que vous en avez les moyens, prenez plutôt l\'avion à Luthécia : 300 FR, mais vous arriverez beaucoup plus vite. »' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 async function confirmerTransport(mode, empireId, villeId) {
@@ -1555,18 +1589,35 @@ function doControlDouanes() {
   }
 }
 
-function doCorrompreDoanier() {
+// Correctif du 24 aout 2026 (audit dedie) : la fonction n'acceptait auparavant aucun parametre
+// (pa/cost transmis par le routeur etaient ignores) -- le PA declare n'etait donc jamais debite,
+// et surtout state.douanePassee n'etait jamais mis a true en cas de succes : la corruption
+// payait 300 FR sans jamais debloquer reellement la zone d'embarquement, un cul-de-sac
+// fonctionnel. Formule de reussite et comportement d'echec inchanges (aucun game design
+// modifie) ; seul le mecanisme de debit et la consequence du succes sont corriges. Debit PA+FR
+// desormais atomique via deduireCoutOrdre (meme primitive que le reste du jeu, meme convention
+// que doCorrompreFonctionnairePermis : debite AVANT le jet, cout de la tentative que le
+// pot-de-vin fonctionne ou non -- l'ancien comportement "gratuit en cas d'echec" etait
+// l'anomalie, pas l'inverse).
+async function doCorrompreDoanier(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) {
+    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false);
+    return;
+  }
+
   const roll = Math.floor(Math.random() * 100) + 1;
   const dup = getStatEffective('DUP');
   const inf = state.inf || 0;
-  const taux = Math.max(5, 55 + Math.floor(dup/10) + Math.floor(inf/10) + 20); // +20 zone transport
+  const taux = Math.max(5, 55 + Math.floor(dup/10) + Math.floor(inf/10) + 20); // +20 zone transport, formule inchangee
   if (roll <= taux) {
-    state.arg -= 300;
     state.dis = Math.max(0, state.dis - 5);
+    state.douanePassee = true;
     updateUI();
-    showToast('Agent corrompu', 'L\'agent regarde ailleurs. -300 FR -5 DIS.', true);
+    showToast('Agent corrompu', 'L\'agent regarde ailleurs. -300 FR -5 DIS. Accès à l\'embarquement autorisé.', true);
     addJournalEntry('Corruption douanière réussie.', 'event-bad');
     checkDetection('corrompre_douanier', 'success');
+    if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, 'zone_embarquement', null);
   } else {
     showToast('Refus !', 'L\'agent n\'a pas mordu. Tentative notée.', false);
     checkDetection('corrompre_douanier', 'fail');

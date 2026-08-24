@@ -5127,7 +5127,8 @@ const BUILDINGS = {
           {fn:'prendre_bus_taxi', label:'Prendre un bus ou taxi', pa:1, cost:150, type:'legal', icon:'ti-bus', successRate:100, desc:'150 FR. 1 PA. Transport intra-empire uniquement.'},
           {fn:'aller_douanes_aeroport', label:'Prendre l\'avion', pa:0, cost:0, type:'legal', icon:'ti-plane', successRate:100, desc:'Vous conduit au Hall des Douanes — contrôle obligatoire avant tout vol international.'},
           {fn:'taxi_caserne', label:'Taxi vers la Caserne', pa:1, cost:200, type:'legal', icon:'ti-military-rank', successRate:100, desc:'200 FR. 1 PA. Accès conditionné sur place.'},
-          {fn:'taxi_qhs', label:'Taxi vers le QHS', pa:1, cost:200, type:'legal', icon:'ti-lock', successRate:100, desc:'200 FR. 1 PA. Accès conditionné sur place.'}
+          {fn:'taxi_qhs', label:'Taxi vers le QHS', pa:1, cost:200, type:'legal', icon:'ti-lock', successRate:100, desc:'200 FR. 1 PA. Accès conditionné sur place.'},
+          {fn:'renseignement_transport_intl', label:'Demander conseil à Mireille', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100, desc:'Se renseigner sur les moyens de transport internationaux.'}
         ]
       },
       hall_douanes: {
@@ -5152,7 +5153,7 @@ const BUILDINGS = {
         requiresDouane: true,
         persons: [],
         orders: [
-          {fn:'prendre_avion', label:'Prendre l\'avion', pa:3, cost:250, type:'legal', icon:'ti-plane', successRate:100, desc:'250 FR. 3 PA. Vol vers un autre empire.'}
+          {fn:'prendre_avion', label:'Prendre l\'avion', pa:2, cost:300, type:'legal', icon:'ti-plane', successRate:100, desc:'300 FR. 2 PA. Vol vers un autre empire.'}
         ]
       }
     }
@@ -5424,9 +5425,17 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
         desc: "Les grues bleues s\'activent.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-industriel.png",
-        persons: [],
+        // Alain Bordage (lot du 24 aout 2026) : employe de la compagnie maritime, renseigne les
+        // voyageurs sur le transport international passager (avion/bateau) -- sans rapport avec
+        // le fret v68 (caisses_fret) ni avec Pascal Paguevite (douanes/fret, room separee).
+        // Aucun portrait adapte trouve dans Downloads au moment de ce lot -- STOP signale au
+        // rapport, pas de photoUrl invente/reutilise.
+        persons: [
+          {name:'Alain Bordage (PNJ)', role:'Employé de la compagnie maritime', rel:'neutral', job:'agent_maritime'}
+        ],
         orders: [
-          {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Transport inter-empire. Plus lent mais moins cher que l\'avion.'},
+          {fn:'prendre_bateau', label:'Prendre le bateau', pa:5, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 5 PA. Transport inter-empire. Plus lent mais moins cher que l\'avion.'},
+          {fn:'renseignement_transport_maritime', label:'Demander conseil à Alain Bordage', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100, desc:'Se renseigner sur le transport maritime international.'},
           {fn:'expedier_colis', label:'Réserver une caisse de fret', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Réserve une caisse persistante (500 unités max) où vous et vos chargeurs autorisés pouvez déposer des marchandises avant de la fermer et l\'expédier vers un PJ d\'un autre empire. Délai 1 jour.'},
           {fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Consulter et dédouaner les caisses arrivées à votre nom. Droits de douane et gardiennage éventuel dus avant tout retrait.'},
           {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:55, desc:'Importer un objet illégal. DIS/10 + DUP/10. Zone port +15%. El Estado +25%.'},
@@ -5524,7 +5533,7 @@ const BUILDINGS = {
           {name:'Boris Docker (PNJ)', role:'Docker du Parti', rel:'neutral', job:'docker'}
         ],
         orders: [
-          {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Transport inter-empire.'},
+          {fn:'prendre_bateau', label:'Prendre le bateau', pa:5, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 5 PA. Transport inter-empire.'},
           {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire. Délai 24h.'},
           {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
           {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:35, desc:'Très risqué à Sovarka. DIS/10 + DUP/10. -20% modificateur Sovarka.'},
@@ -5553,7 +5562,7 @@ const BUILDINGS = {
           {name:'Paco Cargaison (PNJ)', role:'Docker spécialiste', rel:'neutral', job:'docker'}
         ],
         orders: [
-          {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Transport inter-empire.'},
+          {fn:'prendre_bateau', label:'Prendre le bateau', pa:5, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 5 PA. Transport inter-empire.'},
           {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire.'},
           {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
           {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:75, desc:'Très facile à El Estado. DIS/10 + DUP/10. +25% modificateur El Estado.'},
@@ -5582,7 +5591,7 @@ const BUILDINGS = {
           {name:'Hassan Docker (PNJ)', role:'Chef docker', rel:'neutral', job:'docker'}
         ],
         orders: [
-          {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Transport inter-empire.'},
+          {fn:'prendre_bateau', label:'Prendre le bateau', pa:5, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 5 PA. Transport inter-empire.'},
           {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet à un PJ autre empire.'},
           {fn:'receptionner_commande', label:'Réceptionner une commande', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Récupérer un objet commandé.'},
           {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:60, desc:'Possible mais discret. DIS/10 + DUP/10. +10% Al-Khalija.'},
