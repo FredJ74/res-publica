@@ -5403,17 +5403,22 @@ const BUILDINGS = {
     icon: "ti-anchor",
     bgColor: "#050810",
     desc: "Le grand port de Républia. Commerce maritime, syndicats puissants et réseaux de contrebande discrets.",
+    // Restructuration du port industriel (lot du 24 aout 2026) : les 3 anciennes rooms
+    // administratives (bureau_port, bureau_directeur_port, bureau_commandant_port) sont
+    // fusionnees en une seule 'administration_portuaire' -- aucune reference codee en dur a ces
+    // 3 anciens ids trouvee ailleurs dans le code (verifie avant fusion), aucun risque. Les
+    // orders de bureau_port (consulter_manifeste/falsifier_manifeste) sont reportes a l'identique
+    // (fn/cout/desc/handler inchanges) ; bureau_directeur_port/bureau_commandant_port n'avaient
+    // aucun order. Marcel Ancre et Ginette Conteneur, precedemment dupliques sur plusieurs rooms,
+    // n'apparaissent plus que dans administration_portuaire (identite/role/job inchanges).
+    // Aucun order deplace/modifie/ajoute ailleurs ; aucune mecanique syndicale/douaniere creee.
     rooms: {
       quai_principal: {
         name: "Quai Principal",
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
-        desc: "Les grues bleues s\'activent. Marcel Ancre surveille les entrées. Dédé le Docker discute d\'une éventuelle grève avec ses camarades.",
+        desc: "Les grues bleues s\'activent.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-industriel.png",
-        persons: [
-          {name:'Marcel Ancre (PNJ)', role:'Capitaine de port', rel:'neutral', job:'capitaine_port'},
-          {name:'Dédé le Docker (PNJ)', role:'Docker syndiqué', rel:'neutral', job:'docker'},
-          {name:'Ginette Conteneur (PNJ)', role:'Agente de fret', rel:'neutral', job:'agent_fret'}
-        ],
+        persons: [],
         orders: [
           {fn:'prendre_bateau', label:'Prendre le bateau', pa:4, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 4 PA. Transport inter-empire. Plus lent mais moins cher que l\'avion.'},
           {fn:'expedier_colis', label:'Expédier un colis', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Envoyer un objet de son inventaire à un PJ dans un autre empire. Délai 24h.'},
@@ -5423,24 +5428,19 @@ const BUILDINGS = {
           {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:80, requiresPost:'min_def', desc:'Révèle contrebandes en cours. INT/10 + ISN/10. Prérogative min_def ou commissaire.'}
         ]
       },
-      bureau_port: {
-        name: "Bureau du Port",
-        imageBg: "linear-gradient(135deg,#050810,#080d15)",
-        desc: "Le bureau administratif. Formulaires d\'entrée en 3 exemplaires. Ginette sait tout ce qui transite.",
-        imageUrl: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1200&q=80",
-        persons: [
-          {name:'Ginette Conteneur (PNJ)', role:'Agente de fret', rel:'neutral', job:'agent_fret'}
-        ],
-        orders: [
-          {fn:'consulter_manifeste', label:'Consulter le manifeste', pa:1, cost:0, type:'grey', icon:'ti-file-search', successRate:75, desc:'Liste des cargaisons déclarées. INT/10. Révèle possibles contrebandes.'},
-          {fn:'falsifier_manifeste', label:'Falsifier le manifeste', pa:2, cost:200, type:'illegal', icon:'ti-file-x', successRate:40, desc:'Faire disparaître une cargaison des registres. DUP/10.'}
-        ]
+      criee: {
+        name: "Criée",
+        imageBg: "linear-gradient(135deg,#08100c,#0c1810)",
+        desc: "La grande criée industrielle du port : lots de poisson pesés et vendus chaque matin, cours affichés en direct.",
+        imageUrl: "images/port-sainte-marie-port-industriel-criee.png",
+        persons: [],
+        orders: []
       },
       entrepot: {
-        name: "Entrepôt — Local à louer",
+        name: "Entrepôts",
         imageBg: "linear-gradient(135deg,#050810,#08100a)",
-        desc: "📋 À LOUER — Entrepôt portuaire de 300m². Idéal pour stocker des marchandises... officielles ou non. Marcel Ancre ne regarde pas trop dans les caisses.",
-        imageUrl: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80",
+        desc: "📋 À LOUER — Entrepôt portuaire de 300m². Immenses entrepôts de stockage et zones frigorifiques pour denrées périssables et exotiques.",
+        imageUrl: "images/port-sainte-marie-port-industriel-entrepots.png",
         isLocationRoom: true,
         locationData: { prix: 350, bonusPOP: 0, bonusINF: 3, bonusDIS: 6, label: 'Entrepôt Portuaire', tier: 2, usages: ['stockage','contrebande','logistique'] },
         persons: [],
@@ -5452,39 +5452,35 @@ const BUILDINGS = {
       douanes: {
         name: "Douanes",
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
-        desc: "Le poste de douane du port. Controles des marchandises entrantes et sortantes. Contenu a venir.",
-        persons: [],
-        orders: []
-      },
-      criee: {
-        name: "Criée",
-        imageBg: "linear-gradient(135deg,#08100c,#0c1810)",
-        desc: "La criée aux poissons, ou se negocie chaque matin la peche du jour. Contenu a venir.",
+        desc: "Le bureau des douaniers du port : contrôle documentaire, dossiers de cargaisons et va-et-vient incessant entre dockers et agents.",
+        imageUrl: "images/port-sainte-marie-port-industriel-douanes.png",
         persons: [],
         orders: []
       },
       bureau_syndical_dockers: {
         name: "Bureau Syndical des Dockers",
         imageBg: "linear-gradient(135deg,#100a08,#180e0a)",
-        desc: "Le bureau du syndicat des dockers de Port-Sainte-Marie. Contenu a venir.",
-        persons: [],
-        orders: []
-      },
-      bureau_directeur_port: {
-        name: "Bureau du Directeur du Port Maritime",
-        imageBg: "linear-gradient(135deg,#0a0c10,#0e1218)",
-        desc: "Le bureau du Directeur du Port Maritime de Port-Sainte-Marie. Contenu a venir.",
-        persons: [],
-        orders: []
-      },
-      bureau_commandant_port: {
-        name: "Bureau du Commandant de Port",
-        imageBg: "linear-gradient(135deg,#0a0810,#0e0c16)",
-        desc: "Le bureau du Commandant de Port. Contenu a venir.",
+        desc: "Le local du Syndicat des Dockers de Port-Sainte-Marie : affiches de mobilisation, tableau d'annonces et permanence syndicale.",
+        imageUrl: "images/port-sainte-marie-port-industriel-syndicat-dockers.png",
         persons: [
-          {name:'Marcel Ancre (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port'}
+          {name:'Dédé le Docker (PNJ)', role:'Docker syndiqué', rel:'neutral', job:'docker'},
+          {name:'Étienne Dantafasse (PNJ)', role:'Président du Syndicat des Dockers de Port-Sainte-Marie', rel:'neutral', job:null, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-industriel-etienne-dantafasse.png', photoPos:'50% 12%'}
         ],
         orders: []
+      },
+      administration_portuaire: {
+        name: "Administration Portuaire",
+        imageBg: "linear-gradient(135deg,#0a0c10,#0e1218)",
+        desc: "La salle opérationnelle de l'administration du port, avec vue sur les quais et les grues du port industriel.",
+        imageUrl: "images/port-sainte-marie-port-industriel-administration.png",
+        persons: [
+          {name:'Marcel Ancre (PNJ)', role:'Commandant de Port', rel:'neutral', job:'capitaine_port', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-industriel-marcel-ancre.png', photoPos:'50% 15%'},
+          {name:'Ginette Conteneur (PNJ)', role:'Agente de fret', rel:'neutral', job:'agent_fret', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-industriel-ginette-conteneur.png', photoPos:'50% 15%'}
+        ],
+        orders: [
+          {fn:'consulter_manifeste', label:'Consulter le manifeste', pa:1, cost:0, type:'grey', icon:'ti-file-search', successRate:75, desc:'Liste des cargaisons déclarées. INT/10. Révèle possibles contrebandes.'},
+          {fn:'falsifier_manifeste', label:'Falsifier le manifeste', pa:2, cost:200, type:'illegal', icon:'ti-file-x', successRate:40, desc:'Faire disparaître une cargaison des registres. DUP/10.'}
+        ]
       }
     }
   },
