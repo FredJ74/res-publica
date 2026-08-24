@@ -400,6 +400,26 @@ const WORLD = {
           roomOverrides: {
             accueil_loc: { imageUrl: "images/port-sainte-marie-commissariat-accueil.png" },
             geoles: { imageUrl: "images/port-sainte-marie-commissariat-geoles.png" }
+          },
+          // Bureau du commissaire PROPRE A PSM (lot du 24 aout 2026), memes pattern/precedent que
+          // salle_elections/salle_archives (mairie ci-dessus) ou bureau_emploi_annexe
+          // (centre-affaires ci-dessus) : roomsExtra isole cette piece a PSM sans jamais toucher
+          // BUILDINGS['commissariat-local'] (template partage avec Montrouge, inchange). orders
+          // volontairement vide : mener_enquete/organiser_filature/organiser_chasse_homme sont
+          // des mecaniques propres a Luthecia (bureau_commissaire de BUILDINGS['commissariat']),
+          // recruter_policier/gerer_effectifs_police existent deja sur accueil_loc -- aucune
+          // decision de game design prise ici sur d'eventuels ordres futurs pour ce bureau.
+          roomsExtra: {
+            bureau_commissaire: {
+              name: "Bureau du Commissaire",
+              imageBg: "linear-gradient(135deg,#0f1018,#151822)",
+              imageUrl: "images/port-sainte-marie-commissariat-bureau-commissaire.png",
+              desc: "Le bureau du commissaire de Port-Sainte-Marie. Vue sur le port.",
+              persons: [
+                {name:'Martial Morvan (PNJ)', role:'Commissaire de Port-Sainte-Marie', rel:'neutral', job:'commissaire', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-commissariat-martial-morvan.png', photoPos:'50% 20%'}
+              ],
+              orders: []
+            }
           }
         },
         'banque-nationale': {
