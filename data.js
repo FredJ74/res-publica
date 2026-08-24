@@ -399,7 +399,20 @@ const WORLD = {
         'commissariat-local': {
           roomOverrides: {
             accueil_loc: { imageUrl: "images/port-sainte-marie-commissariat-accueil.png" },
-            geoles: { imageUrl: "images/port-sainte-marie-commissariat-geoles.png" }
+            // Loic Karamel (PNJ), lot du 24 aout 2026 : detenu decoratif, meme precedent exact
+            // que Tristan Cabane (BUILDINGS['commissariat'].prison, Luthecia) -- job:'detenu'
+            // deja utilise la, aucun nouveau job cree. Purement narratif : aucun ordre, aucune
+            // mecanique, ne touche pas state.estEmprisonne ni aucune logique de detention (celles-
+            // ci restent codees en dur sur buildingId==='commissariat', jamais 'commissariat-
+            // local', voir commentaire sur la room 'geoles' de BUILDINGS['commissariat-local']
+            // plus bas). PSM uniquement -- roomOverride scope a ville_a, Montrouge (aucun
+            // override sur geoles) et Luthecia (batiment distinct) restent inchanges.
+            geoles: {
+              imageUrl: "images/port-sainte-marie-commissariat-geoles.png",
+              persons: [
+                {name:'Loïc Karamel (PNJ)', role:'Prisonnier — Contrebandier', rel:'neutral', job:'detenu', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-commissariat-loic-karamel.png', photoPos:'50% 15%'}
+              ]
+            }
           },
           // Bureau du commissaire PROPRE A PSM (lot du 24 aout 2026), memes pattern/precedent que
           // salle_elections/salle_archives (mairie ci-dessus) ou bureau_emploi_annexe
