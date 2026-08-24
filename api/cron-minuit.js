@@ -1455,7 +1455,11 @@ const PNJ_PAR_DEFAUT_POSTE = {
   commandant:              'Commandant Tom Hawak',
   directeur_pharma:        'Bernard Piluler (PNJ)',
   directeur_tabac_alcools: 'Fernand Cendrier (PNJ)',
-  directeur_raffinerie:    'Gustave Baril (PNJ)'
+  directeur_raffinerie:    'Gustave Baril (PNJ)',
+  // Chef des Douanes (lot du 24 aout 2026) : deja en poste dans data.js (persons de la room
+  // douanes, port-sainte-marie), meme convention que commissaire/directeurs -- reutilise le nom
+  // deja affiche plutot que d'en inventer un second.
+  chef_douanes:            'Pascal Paguevite (PNJ)'
 };
 
 // Directeur d'entrepot (scope:ville, nomme par le maire) : un PNJ different par ville, deja en
@@ -1481,7 +1485,8 @@ const CASCADE_NATIONALE = [
   { posteId: 'commandant',              nommePar: 'min_def' },
   { posteId: 'directeur_pharma',        nommePar: 'min_fin' },
   { posteId: 'directeur_tabac_alcools', nommePar: 'min_fin' },
-  { posteId: 'directeur_raffinerie',    nommePar: 'min_fin' }
+  { posteId: 'directeur_raffinerie',    nommePar: 'min_fin' },
+  { posteId: 'chef_douanes',            nommePar: 'min_int' }
 ];
 
 async function verifierPostesVacantsEtAutoPourvoir() {

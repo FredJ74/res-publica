@@ -4534,6 +4534,16 @@ function ouvrirModalNommerJuge() {
 
 function ouvrirModalRevoquerJuge(pa, cost) { ouvrirRevoquerPosteNomme('juge', pa, cost); }
 
+function ouvrirModalNommerChefDouanes() {
+  if (state.poste?.id !== 'min_int') {
+    showToast('Accès refusé', "Seul le Ministre de l'Intérieur peut nommer un Chef des Douanes.", false);
+    return;
+  }
+  ouvrirNominerPosteNomme('chef_douanes');
+}
+
+function ouvrirModalRevoquerChefDouanes(pa, cost) { ouvrirRevoquerPosteNomme('chef_douanes', pa, cost); }
+
 function ouvrirModalNommerCommissaire() {
   if (!state.poste?.id?.startsWith('maire')) {
     showToast('Accès refusé', 'Seul le Maire peut nommer un commissaire.', false);

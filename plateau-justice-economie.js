@@ -5262,6 +5262,134 @@ async function payerEffectifsPoliceQuotidien(pays, ville) {
   }
 }
 
+// =====================
+// DOUANIERS PNJ — SERVICE DES DOUANES DU PORT (lot du 24 aout 2026)
+// =====================
+// Reutilise l'architecture des policiers PNJ (persistance batiments_etat, fiche
+// {matricule,stats,...}, calcul de groupe calculerPerGroupePolice/calculerVolGroupePolice --
+// deja generiques, reutilises tels quels ci-dessous sans duplication) SANS le systeme de
+// patrouille de rue : les douaniers ne controlent pas les passants, ils constituent l'effectif
+// fixe du service des douanes du port, rattache en dur a port-sainte-marie/douanes (aucune
+// affectation a choisir, contrairement aux policiers qui peuvent etre positionnes dans
+// n'importe quelle piece/rue de leur ville). Un seul port existe dans tout le jeu -- pas de
+// scope ville a verifier, contrairement a commissaireLocalValide().
+//
+// Effectif PNJ initial et salaire : arbitrage valide le 24 aout 2026 (4 douaniers, 50 FR/jour/
+// douanier -- meme tarif que les policiers, mais debite sur gouvernement-min_int, aucune caisse
+// propre aux douanes). Ville 'ville_a' = Port-Sainte-Marie (seule ville dotee d'un port, cf.
+// data.js CITIES.ville_a.buildings qui liste 'port-sainte-marie').
+const BUILDING_ID_PORT = 'port-sainte-marie';
+const ROOM_ID_DOUANES = 'douanes';
+const VILLE_ID_PORT = 'ville_a';
+const EFFECTIF_DOUANE_INITIAL = 4;
+const COUT_ENTRETIEN_DOUANIER_JOUR = 50; // FR/douanier/jour, arbitrage valide -- debite sur gouvernement-min_int
+
+function creerDouanierPnjInitial(numero) {
+  return { matricule: 'DOU-PNJ-' + numero, stats: { PER: 12, VOL: 12 }, buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_DOUANES, recruteLe: Date.now() };
+}
+
+// Initialise l'effectif PNJ de depart (4 douaniers, arbitrage valide) UNE SEULE FOIS, seulement
+// si effectifsDouane n'a jamais ete persiste (etat.effectifsDouane === undefined). Une fois
+// persiste -- meme reduit a 0 par la suite (licenciement/impayes) -- ce chemin ne se redeclenche
+// plus jamais : l'effectif n'est JAMAIS reconstitue automatiquement a 4.
+async function chargerEffectifsDouane(pays) {
+  const etat = await sbGetBatimentEtat(pays, VILLE_ID_PORT, BUILDING_ID_PORT).catch(() => ({}));
+  if (etat && etat.effectifsDouane) return etat.effectifsDouane;
+  const numeros = Array.from({ length: EFFECTIF_DOUANE_INITIAL }, (_, i) => i + 1);
+  const effectifsInitiaux = { douaniers: numeros.map(creerDouanierPnjInitial), dernierPaiementJour: null };
+  await sauvegarderEffectifsDouane(pays, effectifsInitiaux);
+  return effectifsInitiaux;
+}
+
+async function sauvegarderEffectifsDouane(pays, effectifs) {
+  if (typeof sbSetBatimentEtat === 'function') {
+    await sbSetBatimentEtat(pays, VILLE_ID_PORT, BUILDING_ID_PORT, { effectifsDouane: effectifs }).catch(() => {});
+  }
+}
+
+// Verifie que le PJ courant occupe bien le poste national de Chef des Douanes.
+function chefDouanesValide() {
+  return state.poste?.id === 'chef_douanes' ? { ok: true } : { ok: false };
+}
+
+// ---- RECRUTEMENT ----
+// Memes stats de depart que les policiers (PER 12, VOL 12) -- precedent direct, pas invente.
+// Affectation FIXE a port-sainte-marie/douanes des la creation : aucune etape de choix,
+// contrairement a doRecruterPolicier (les douaniers ne patrouillent jamais ailleurs).
+async function doRecruterDouanier(pa, cost) {
+  const check = chefDouanesValide();
+  if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
+  const pays = state.country || 'republic';
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const effectifs = await chargerEffectifsDouane(pays);
+  const matricule = 'DOU-' + Date.now();
+  effectifs.douaniers.push({ matricule, stats: { PER: 12, VOL: 12 }, buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_DOUANES, recruteLe: Date.now() });
+  await sauvegarderEffectifsDouane(pays, effectifs);
+
+  updateUI();
+  showToast('Douanier recruté', 'PER 12, VOL 12. Rattaché au service des douanes du port. Payé directement par le Ministère de l\'Intérieur.', true, true);
+  addJournalEntry('Recrutement d\'un douanier (matricule ' + matricule + ').', 'event-good');
+}
+
+// ---- GESTION ----
+// Pas d'affectation room/rue a choisir (contrairement a ouvrirGererEffectifsPolice) : les
+// douaniers sont toujours au port, rien a reaffecter ni a rappeler.
+async function ouvrirGererEffectifsDouane() {
+  const check = chefDouanesValide();
+  if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
+  const pays = state.country || 'republic';
+  const effectifs = await chargerEffectifsDouane(pays);
+
+  document.getElementById('postes-modal-title').textContent = 'Effectifs des douanes';
+  let html = '<div style="padding:1rem">';
+  if (effectifs.douaniers.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucun douanier recruté pour l\'instant.</div>';
+  } else {
+    effectifs.douaniers.forEach(d => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.82rem;color:#c0b090">' + d.matricule + ' — PER ' + d.stats.PER + ', VOL ' + d.stats.VOL + '</div>';
+      html += '<div style="font-size:.78rem;color:#8a8060">Rattaché au service des douanes du port</div>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// ---- ENTRETIEN QUOTIDIEN ----
+// Reprend a l'identique le comportement de payerEffectifsPoliceQuotidien : debit plafonne sur la
+// caisse reelle (ici gouvernement-min_int -- aucune caisse propre aux douanes), aucun decouvert
+// possible, les derniers recrutes (fin de tableau, ordre deterministe de creation/recrutement)
+// partent en premier faute de budget. Service national unique (un seul port dans tout le jeu),
+// donc pas de parametre ville contrairement a la police -- appele une seule fois par jour et par
+// pays, quelle que soit la ville ou se trouve le joueur qui declenche doDormir().
+async function payerEffectifsDouaneQuotidien(pays) {
+  const effectifs = await chargerEffectifsDouane(pays);
+  if (!effectifs.douaniers.length) return;
+  const jour = state.day || 1;
+  if (effectifs.dernierPaiementJour === jour) return; // deja paye aujourd'hui (garde-fou multi-connexion)
+
+  const coutVise = effectifs.douaniers.length * COUT_ENTRETIEN_DOUANIER_JOUR;
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_int', coutVise);
+  const nombrePayable = Math.floor(montantVerse / COUT_ENTRETIEN_DOUANIER_JOUR);
+
+  effectifs.dernierPaiementJour = jour;
+  let nbPartis = 0;
+  if (nombrePayable < effectifs.douaniers.length) {
+    nbPartis = effectifs.douaniers.length - nombrePayable;
+    effectifs.douaniers = effectifs.douaniers.slice(0, nombrePayable);
+  }
+  await sauvegarderEffectifsDouane(pays, effectifs);
+
+  if (nbPartis > 0 && typeof addJournalEntry === 'function' && state.currentCity === VILLE_ID_PORT) {
+    showToast('Effectifs réduits', nbPartis + ' douanier(s) n\'ont pas pu être payés et ont quitté le service.', false, true);
+    addJournalEntry(nbPartis + ' douanier(s) du port quittent le service faute de paiement (caisse du Ministère de l\'Intérieur insuffisante).', 'event-bad');
+  }
+}
+
 // ---- FOUILLE GENERIQUE (inventaire) ----
 // Detection generique : tout objet legal:false est repere (reutilise le flag deja universel du
 // jeu). Seuls les types deja dotes d'un vrai traitement de confiscation ailleurs dans le jeu

@@ -115,10 +115,13 @@ function appliquerRemplacantesEscort(persons) {
   });
 }
 
-const POSTES_UNIQUES_A_MASQUER = ['president','pm','maire','min_int','min_fin','min_just','min_def','min_info','min_ae','directeur_pharma','directeur_tabac_alcools','directeur_raffinerie','directeur_entrepot'];
+const POSTES_UNIQUES_A_MASQUER = ['president','pm','maire','min_int','min_fin','min_just','min_def','min_info','min_ae','directeur_pharma','directeur_tabac_alcools','directeur_raffinerie','directeur_entrepot','chef_douanes'];
 // Note : commissaire/juge/commandant sont volontairement exclus -- ces PNJ restent affiches
 // en permanence pour l'ambiance du plateau, puisqu'aucune prerogative de jeu n'est encore
-// codee sur ces postes (a construire plus tard).
+// codee sur ces postes (a construire plus tard). Chef des Douanes AJOUTE a la liste (24 aout
+// 2026) car il a, des ce lot, de vraies prerogatives operationnelles (recruter_douanier/
+// gerer_effectifs_douane) -- Pascal Paguevite doit donc disparaitre de l'affichage des lors
+// qu'un vrai titulaire (PJ ou PNJ via la cascade) est enregistre, comme les ministres.
 
 function filtrerPnjPostesPourvus(persons) {
   const cache = window._titulairesPostes || {};

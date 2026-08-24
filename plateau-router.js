@@ -345,6 +345,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'annuler_poursuites') { ouvrirModalAffaires('annuler', pa, cost); return; }
   if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
   if (fn === 'revoquer_juge') { ouvrirModalRevoquerJuge(pa, cost); return; }
+  if (fn === 'nommer_chef_douanes') { ouvrirModalNommerChefDouanes(); return; }
+  if (fn === 'revoquer_chef_douanes') { ouvrirModalRevoquerChefDouanes(pa, cost); return; }
+  if (fn === 'recruter_douanier') { doRecruterDouanier(pa, cost); return; }
+  if (fn === 'gerer_effectifs_douane') { ouvrirGererEffectifsDouane(); return; }
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }
   if (fn === 'financer_communal') { ouvrirModalFinancerCommunal(pa, cost); return; }
   if (fn === 'revoquer_commissaire') { ouvrirModalRevoquerCommissaire(pa, cost); return; }

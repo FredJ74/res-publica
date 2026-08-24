@@ -1909,7 +1909,9 @@ const BUILDINGS = {
           {fn:'gerer_couvre_feu',    label:'Instaurer un couvre-feu',     pa:2, cost:0, type:'legal', icon:'ti-moon', successRate:100, requiresPost:'min_int', desc:'20h-6h, 2 jours maximum. Degrade IS et POP du gouvernement tant qu\'il dure.'},
           {fn:'subvention_min_int',  label:'Allouer une subvention',      pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_int', desc:'Subventionner le commissariat de n\'importe quelle ville, ou le QHS, depuis la caisse du Ministere.'},
           {fn:'interdire_manif',     label:'Interdire une manifestation', pa:2, cost:0, type:'legal', icon:'ti-ban', successRate:100, requiresPost:'min_int', desc:'Cible une ville precise. Baisse le Social local, facilite une repression ulterieure au meme endroit.'},
-          {fn:'reprimer_manif',      label:'Reprimer une manifestation',  pa:3, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'min_int', desc:'Cible une ville precise. Baisse le Social local (bonus si une manifestation y a ete interdite recemment) ; blesse les PJ presents sur place.'}
+          {fn:'reprimer_manif',      label:'Reprimer une manifestation',  pa:3, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'min_int', desc:'Cible une ville precise. Baisse le Social local (bonus si une manifestation y a ete interdite recemment) ; blesse les PJ presents sur place.'},
+          {fn:'nommer_chef_douanes',  label:'Nommer un Chef des Douanes', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_int', desc:'Nommer un PJ Chef des Douanes de Republia. Poste exclusif (sauf depute).'},
+          {fn:'revoquer_chef_douanes', label:'Revoquer le Chef des Douanes', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'min_int', desc:'Retirer le poste au Chef des Douanes actuellement en fonction.'}
         ]
       },
       bureau_min_fin: {
@@ -5453,13 +5455,27 @@ const BUILDINGS = {
           {fn:'gerer_local', label:'Gérer mon entrepôt', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
+      // Pascal Paguevite (PNJ), lot du 24 aout 2026 : titulaire initial du poste Chef des
+      // Douanes (POSTES_NOMMES_EXCLUSIFS ci-dessus + cascade PNJ du cron). Portrait ajoute le
+      // meme jour (generation la plus recente de ~/Downloads, version corrigee au drapeau gris
+      // de Republia, verifiee visuellement) -- image utilisee telle quelle, aucun crop/retouche
+      // du visage, photoPos cadre juste le buste comme les autres PNJ. Les effectifs de
+      // douaniers recrutes par le Chef sont rattaches en dur a cette room
+      // (buildingId:'port-sainte-marie', roomId:'douanes'), jamais affiches individuellement ici
+      // (meme convention que les policiers : affichage minimal via getAffichage*Piece, voir
+      // plateau-justice-economie.js).
       douanes: {
         name: "Douanes",
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
         desc: "Le bureau des douaniers du port : contrôle documentaire, dossiers de cargaisons et va-et-vient incessant entre dockers et agents.",
         imageUrl: "images/port-sainte-marie-port-industriel-douanes.png",
-        persons: [],
-        orders: []
+        persons: [
+          {name:'Pascal Paguevite (PNJ)', role:'Chef des Douanes', rel:'neutral', job:'chef_douanes', photoUrl:'images/port-sainte-marie-port-industriel-pascal-paguevite.png', photoPos:'50% 20%'}
+        ],
+        orders: [
+          {fn:'recruter_douanier', label:'Recruter un douanier', pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, requiresPost:'chef_douanes', desc:'PER 12, VOL 12. Paye directement par le Ministere de l\'Interieur -- aucune caisse propre aux douanes.'},
+          {fn:'gerer_effectifs_douane', label:'Gerer mes effectifs', pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'chef_douanes', desc:'Consulter les douaniers recrutes, tous rattaches au service des douanes du port.'}
+        ]
       },
       bureau_syndical_dockers: {
         name: "Bureau Syndical des Dockers",
@@ -6695,7 +6711,14 @@ const POSTES_NOMMES_EXCLUSIFS = {
   // automatique dans la cascade du cron (deliberement pas construit, reflexion a venir sur une
   // eventuelle cohabitation liee au score electoral) : le poste reste simplement vacant tant
   // qu'aucun joueur ne postule.
-  maire_adjoint:           { label: 'Maire Adjoint',                      nommePar: 'maire',         scope: 'ville', compatibles: ['depute'] }
+  maire_adjoint:           { label: 'Maire Adjoint',                      nommePar: 'maire',         scope: 'ville', compatibles: ['depute'] },
+
+  // Chef des Douanes (lot du 24 aout 2026) — nomme par le Ministre de l'Interieur, portee
+  // nationale (comme juge/commandant), meme si l'unique service douanier existant est
+  // physiquement rattache au port de PSM. Repli PNJ (Pascal Paguevite) ajoute a la cascade
+  // nationale du cron (api/cron-minuit.js, CASCADE_NATIONALE/PNJ_PAR_DEFAUT_POSTE), meme
+  // mecanique que les 3 directeurs d'usine/juge/commandant -- aucun nouveau moteur de nomination.
+  chef_douanes:            { label: 'Chef des Douanes',                   nommePar: 'min_int',       scope: 'pays',  compatibles: ['depute'] }
 };
 
 // Nouveaux ordres v6

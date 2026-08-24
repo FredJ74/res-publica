@@ -1621,6 +1621,9 @@ async function doDormir() {
   if (typeof regenererGrillesPrison === 'function') regenererGrillesPrison(state.country, state.currentCity).catch(() => {});
   // Entretien quotidien des policiers PNJ de la ville courante (lot du 24 aout 2026)
   if (typeof payerEffectifsPoliceQuotidien === 'function') payerEffectifsPoliceQuotidien(state.country, state.currentCity).catch(() => {});
+  // Entretien quotidien des douaniers PNJ du port, debite sur la caisse du Ministere de
+  // l'Interieur -- service national unique, pas de parametre ville (lot du 24 aout 2026)
+  if (typeof payerEffectifsDouaneQuotidien === 'function') payerEffectifsDouaneQuotidien(state.country).catch(() => {});
   // Distribution quotidienne du budget municipal vers les vraies caisses des batiments communaux
   if (typeof distribuerBudgetMunicipalVersBatiments === 'function') distribuerBudgetMunicipalVersBatiments(state.country, state.currentCity).catch(() => {});
   // Decroissance lente de la reputation criminelle si inactif
