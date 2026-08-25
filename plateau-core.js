@@ -602,7 +602,14 @@ window.addEventListener('DOMContentLoaded', () => {
     if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
     // Sauvegarde automatique periodique -- filet de securite pour rattraper tout gain
     // (INF, HP, etc.) qu'une fonction particuliere aurait omis de sauvegarder elle-meme.
-    if (typeof sbSavePersonnage === 'function' && state.char?.name) {
+    // Correctif du 25 aout 2026 (bug production confirme par instrumentation : un onglet
+    // oublie republiait aveuglement son etat perime toutes les 30s, ecrasant une correction
+    // serveur ou une autre session plus recente) : passe par sbVerifierEtSauvegarderPersonnage
+    // (supabase.js) plutot que sbSavePersonnage direct -- seul CE minuteur purement temporel
+    // est concerne, tous les autres appelants (actions explicites du joueur) restent inchanges.
+    if (typeof sbVerifierEtSauvegarderPersonnage === 'function' && state.char?.name) {
+      sbVerifierEtSauvegarderPersonnage(state).catch(() => {});
+    } else if (typeof sbSavePersonnage === 'function' && state.char?.name) {
       sbSavePersonnage(state).catch(() => {});
     }
   }, 30000);
@@ -725,6 +732,10 @@ function loadCharacter() {
 
             // Fusionner les données Supabase (plus récentes pour tout le reste : argent, inventaire, etc.)
             Object.assign(state, sbState);
+            // Repere de fraicheur (lot du 25 aout 2026, correctif filet de securite 30s) :
+            // memorise le updated_at serveur connu au moment de cette reconciliation -- voir
+            // sbVerifierEtSauvegarderPersonnage (supabase.js).
+            state._dernierUpdatedAtConnu = sbState.updatedAt || null;
 
             // applyCharToState() ci-dessous recalcule inf/pop/dis (et arg) a partir de char.resources/char.arg --
             // il faut donc synchroniser char.resources/char.arg avec les valeurs fraiches qu'on vient de

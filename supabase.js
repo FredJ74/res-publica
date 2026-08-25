@@ -99,42 +99,7 @@ async function sbEcrirePersonnage(data) {
 // fonction, jamais par un chemin d'ecriture parallele. Fail-open par defaut : seule une valeur
 // explicitement false bloque (flag absent/undefined = autorise, comportement inchange partout
 // ailleurs qu'au tout debut du chargement de page).
-// INSTRUMENTATION TEMPORAIRE (diagnostic licence Arnie, 25 aout 2026) -- A RETIRER une fois la
-// cause identifiee. Consigne CHAQUE appel de sbSavePersonnage pour Arnie (bloque ou non par la
-// garde de bootstrap ci-dessous) dans batiments_etat (store generique deja existant, aucune
-// migration, cle dediee 'debug'/'debug'/'licence-arnie') : horodatage, valeur de
-// licenceSportive au moment de l'appel, etat du flag de bootstrap, position, et pile d'appel
-// JS -- pour identifier factuellement l'appelant reel, sans dependre des DevTools du joueur.
-// Fire-and-forget, ne bloque et ne modifie jamais le comportement reel de la sauvegarde.
-// stackDejaCapturee : la pile DOIT etre capturee de facon SYNCHRONE par l'appelant, avant tout
-// await -- capturee ICI (dans une fonction async, apres l'await de sbGetBatimentEtat), elle ne
-// contient plus que ce frame async lui-meme, la chaine d'appel d'origine ayant deja ete
-// depilee. Correctif du diagnostic (premiere iteration inexploitable pour cette raison precise).
-async function instrumenterAppelSavePersonnage(charState, stackDejaCapturee) {
-  try {
-    if (charState.char?.name !== 'Arnie') return;
-    if (typeof sbGetBatimentEtat !== 'function' || typeof sbSetBatimentEtat !== 'function') return;
-    const etatDebug = await sbGetBatimentEtat('debug', 'debug', 'licence-arnie').catch(() => ({}));
-    const breadcrumbs = Array.isArray(etatDebug.breadcrumbs) ? etatDebug.breadcrumbs : [];
-    breadcrumbs.push({
-      ts: new Date().toISOString(),
-      bloque_par_bootstrap: charState.personnageChargeDepuisServeur === false,
-      licenceSportive: charState.char?.licenceSportive || null,
-      currentBuilding: charState.currentBuilding || null,
-      currentRoom: charState.currentRoom || null,
-      currentCity: charState.currentCity || null,
-      stack: stackDejaCapturee || null
-    });
-    if (breadcrumbs.length > 40) breadcrumbs.splice(0, breadcrumbs.length - 40);
-    await sbSetBatimentEtat('debug', 'debug', 'licence-arnie', { breadcrumbs }).catch(() => {});
-  } catch (e) {}
-}
-
 async function sbSavePersonnage(charState) {
-  // Pile capturee ICI, de facon synchrone, AVANT tout await -- seul endroit ou la chaine
-  // d'appel d'origine (qui a appele sbSavePersonnage) est encore intacte.
-  const stackAppelant = (new Error('trace_sbSavePersonnage')).stack || null;
-  instrumenterAppelSavePersonnage(charState, stackAppelant); // temporaire, voir commentaire ci-dessus -- fire-and-forget, n'attend jamais son resultat
   if (charState.personnageChargeDepuisServeur === false) return;
   const photoKey = 'respublica_photo_' + (charState.char?.name || 'default');
   const savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
@@ -207,9 +172,42 @@ async function sbSavePersonnage(charState) {
 
   // `data` est fige ici, de facon synchrone (avant tout await) -- voir le commentaire de
   // sbSaveQueue plus haut. La file ne retarde que l'ECRITURE, jamais cette capture.
-  const tache = sbSaveQueue.then(() => sbEcrirePersonnage(data));
+  const tache = sbSaveQueue.then(() => sbEcrirePersonnage(data)).then((resultat) => {
+    // Repere de fraicheur (lot du 25 aout 2026, correctif filet de securite 30s) : des qu'une
+    // ecriture reussit, cette session SAIT que le updated_at serveur vaut desormais celui
+    // qu'elle vient d'ecrire -- utilise par sbVerifierEtSauvegarderPersonnage ci-dessous pour
+    // detecter qu'UNE AUTRE session/onglet a ecrit depuis, avant de republier aveuglement.
+    charState._dernierUpdatedAtConnu = data.updated_at;
+    return resultat;
+  });
   sbSaveQueue = tache.catch(() => {}); // ne bloque jamais la file suite a un echec
   return tache;
+}
+
+// Variante prudente de sbSavePersonnage, reservee au filet de securite periodique de 30s
+// (plateau-core.js) -- PAS aux dizaines d'autres appelants (sauvegarderPersonnageImmediat,
+// enterRoom, actions de jeu...), qui restent inchanges : une action explicite du joueur DANS
+// cette session est un signal fort que cette session doit gagner, contrairement a un minuteur
+// purement temporel qui peut tourner indefiniment dans un onglet oublie. Correctif minimal
+// cible sur le seul cas reproduit : avant de republier l'INTEGRALITE de l'etat, verifie que le
+// updated_at actuellement en base correspond bien a ce que cette session a vu au dernier
+// chargement/ecriture reussi (state._dernierUpdatedAtConnu). Si un ecart est detecte (une autre
+// session/onglet, ou une correction serveur directe, a ecrit entretemps), le filet de securite
+// n'ecrase PAS cette fois -- il aligne juste son repere sur la valeur serveur constatee, pour ne
+// pas rester bloque indefiniment si cette session redevient legitimement active. Fail-open par
+// defaut (repere absent = pas encore de base de comparaison = on sauvegarde normalement),
+// exactement comme la garde de bootstrap ci-dessus.
+async function sbVerifierEtSauvegarderPersonnage(charState) {
+  if (!charState.char?.name) return;
+  try {
+    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(charState.char.name)}&select=updated_at`);
+    const updatedAtServeur = rows?.[0]?.updated_at || null;
+    if (charState._dernierUpdatedAtConnu && updatedAtServeur && updatedAtServeur !== charState._dernierUpdatedAtConnu) {
+      charState._dernierUpdatedAtConnu = updatedAtServeur;
+      return;
+    }
+  } catch (e) {}
+  return sbSavePersonnage(charState);
 }
 
 async function sbLoadPersonnage(name) {
@@ -217,6 +215,7 @@ async function sbLoadPersonnage(name) {
   if (!rows || rows.length === 0) return null;
   const r = rows[0];
   return {
+    updatedAt: r.updated_at || null,
     char: { name: r.name, archetype: r.archetype, career: r.career,
              origin: r.origin || null, school: r.school || null, freePtsRestants: r.free_pts_restants || 0,
              stats: r.stats,
