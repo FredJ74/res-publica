@@ -5333,25 +5333,68 @@ async function doRecruterDouanier(pa, cost) {
   addJournalEntry('Recrutement d\'un douanier (matricule ' + matricule + ').', 'event-good');
 }
 
-// ---- GESTION ----
-// Pas d'affectation room/rue a choisir (contrairement a ouvrirGererEffectifsPolice) : les
-// douaniers sont toujours au port, rien a reaffecter ni a rappeler.
+// ---- GESTION (Chef des Douanes uniquement — garde UI via requiresPost dans data.js + garde
+// handler independante chefDouanesValide() ci-dessous) ----
+// Regroupe recrutement + licenciement dans un seul ecran (lot du 25 aout 2026, §11). Pas
+// d'affectation room/rue a choisir (contrairement a ouvrirGererEffectifsPolice) : les douaniers
+// sont toujours au port, rien a reaffecter ni a rappeler. Licenciement gratuit (0 PA), meme
+// convention que licencierPnj (plateau-multijoueur.js) : une action de gestion a l'interieur d'un
+// panneau deja verrouille par le PA de l'order qui l'ouvre (ici 0, comme gerer_effectifs_douane
+// l'a toujours ete), pas une nouvelle depense.
 async function ouvrirGererEffectifsDouane() {
   const check = chefDouanesValide();
   if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
   const pays = state.country || 'republic';
   const effectifs = await chargerEffectifsDouane(pays);
 
-  document.getElementById('postes-modal-title').textContent = 'Effectifs des douanes';
+  document.getElementById('postes-modal-title').textContent = 'Gérer les effectifs douaniers';
   let html = '<div style="padding:1rem">';
+  html += '<button onclick="doRecruterDouanier(1,0)" style="display:block;width:100%;text-align:center;padding:.55rem;border:1px solid #6a5a20;background:#1a1508;color:#e0c060;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.8rem;margin-bottom:.8rem">RECRUTER UN DOUANIER (1 PA)</button>';
   if (effectifs.douaniers.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun douanier recruté pour l\'instant.</div>';
   } else {
     effectifs.douaniers.forEach(d => {
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
       html += '<div style="font-size:.82rem;color:#c0b090">' + d.matricule + ' — PER ' + d.stats.PER + ', VOL ' + d.stats.VOL + '</div>';
-      html += '<div style="font-size:.78rem;color:#8a8060">Rattaché au service des douanes du port</div>';
+      html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.4rem">Rattaché au service des douanes du port</div>';
+      html += '<button onclick="doLicencierDouanier(\'' + d.matricule + '\')" style="width:100%;font-size:.72rem;padding:.35rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Licencier</button>';
       html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function doLicencierDouanier(matricule) {
+  const check = chefDouanesValide();
+  if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
+  const pays = state.country || 'republic';
+  const effectifs = await chargerEffectifsDouane(pays);
+  const idx = effectifs.douaniers.findIndex(d => d.matricule === matricule);
+  if (idx < 0) return;
+  effectifs.douaniers.splice(idx, 1);
+  await sauvegarderEffectifsDouane(pays, effectifs);
+  showToast('Douanier licencié', matricule + ' quitte le service des douanes.', true);
+  addJournalEntry('Licenciement du douanier ' + matricule + '.', 'event-info');
+  ouvrirGererEffectifsDouane();
+}
+
+// ---- CONSULTATION PUBLIQUE (visible/accessible a tout PJ, 0 PA/0 FR — n'affiche jamais PER/VOL,
+// info non administrative, seul le Chef des Douanes les voit dans ouvrirGererEffectifsDouane
+// ci-dessus) ----
+async function ouvrirConsulterEffectifsDouane() {
+  const pays = state.country || 'republic';
+  const effectifs = await chargerEffectifsDouane(pays);
+
+  document.getElementById('postes-modal-title').textContent = 'Effectifs des douanes';
+  let html = '<div style="padding:1rem">';
+  if (effectifs.douaniers.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucun douanier en service pour l\'instant.</div>';
+  } else {
+    html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.6rem">' + effectifs.douaniers.length + ' douanier(s) en service, rattachés au service des douanes du port.</div>';
+    effectifs.douaniers.forEach(d => {
+      html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.2rem">' + d.matricule + '</div>';
     });
   }
   html += '</div>';
@@ -5388,6 +5431,411 @@ async function payerEffectifsDouaneQuotidien(pays) {
     showToast('Effectifs réduits', nbPartis + ' douanier(s) n\'ont pas pu être payés et ont quitté le service.', false, true);
     addJournalEntry(nbPartis + ' douanier(s) du port quittent le service faute de paiement (caisse du Ministère de l\'Intérieur insuffisante).', 'event-bad');
   }
+}
+
+// =====================
+// PORT INDUSTRIEL — LOGISTIQUE NATIONALE (lot du 25 aout 2026)
+// =====================
+// Stock institutionnel du port (etat.port, meme cle batiments_etat que effectifsDouane
+// ci-dessus -- reutilise BUILDING_ID_PORT/VILLE_ID_PORT plutot que d'en redeclarer). Alimente
+// uniquement par le cron quotidien (livrerEntrepotsQuotidien / traiterExportationsPortQuotidien,
+// api/cron-minuit.js -- duplique cote serveur, jamais partage avec le client, meme convention que
+// le reste du fichier cron). Ce layer client ne fait que LIRE l'etat et laisser le Commandant
+// reparametrer repartition[cle] par pourcentages ; le calcul de distribution reel (arrondi
+// Hamilton, jamais plus que le stock disponible, reliquat conserve) reste entierement cote cron.
+// Concurrence (§18 du lot) : sbSetBatimentEtat fusionne au niveau du top-level du blob seulement
+// (voir sa definition, supabase.js) -- toute ecriture de repartition[] doit donc reecrire l'objet
+// port entier tel que relu a l'instant T, exactement comme le fait deja le cron. Le seul risque
+// residuel est une nomination/modification de repartition qui tomberait pile au meme instant que
+// le passage du cron (minuit) ; non traite ici (pas de nouvelle primitive atomique sans
+// validation), risque juge marginal et identique a celui deja accepte ailleurs dans le blob.
+const RESSOURCES_PORT_IMPORTEES = ['bois', 'petrole', 'produits_exotiques'];
+const EXPORTATIONS_PORT_INFOS = {
+  cereales: { label: 'Céréales', destination: 'Al-Khalija' },
+  viande:   { label: 'Viande',   destination: 'Al-Khalija' }
+};
+const ENTREPOTS_PORT_INFOS = [
+  { city: 'capitale', buildingId: 'entrepot-logistique-luthecia',  nom: 'Luthécia' },
+  { city: 'ville_a',  buildingId: 'entrepot-logistique-psm',       nom: 'Port-Sainte-Marie' },
+  { city: 'ville_b',  buildingId: 'entrepot-logistique-montrouge', nom: 'Montrouge' }
+];
+const REPARTITION_PORT_DEFAUT = { capitale: 100 / 3, ville_a: 100 / 3, ville_b: 100 / 3 };
+
+async function getEtatPort() {
+  const etat = await sbGetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT).catch(() => ({}));
+  return (etat && etat.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {} };
+}
+
+// Verifie que le PJ courant occupe bien le poste national de Commandant du Port.
+function commandantPortValide() {
+  return state.poste?.id === 'capitaine_port' ? { ok: true } : { ok: false };
+}
+
+function arrondiPct(v) { return Math.round((v || 0) * 100) / 100; }
+
+// ---- CONSULTATION (visible/utilisable par tout visiteur de administration_portuaire, lecture
+// seule -- seule la modification de repartition ci-dessous est reservee au Commandant, pattern
+// "visible mais bloque" applique a l'interieur meme du panneau plutot qu'a l'order lui-meme,
+// puisque la consultation elle-meme doit rester ouverte a tous, §4 du lot) ----
+async function ouvrirConsulterPort() {
+  const port = await getEtatPort();
+  const estCommandant = commandantPortValide().ok;
+
+  document.getElementById('postes-modal-title').textContent = 'Administration du Port';
+  let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto">';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">STOCK INSTITUTIONNEL DU PORT</div>';
+  const clesStock = RESSOURCES_PORT_IMPORTEES.filter(cle => (port.stock?.[cle] || 0) > 0);
+  if (clesStock.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.7rem">Aucun stock en attente de répartition.</div>';
+  } else {
+    clesStock.forEach(cle => {
+      const res = RESSOURCES_ECONOMIE[cle];
+      html += '<div style="font-size:.8rem;color:#c0b090">' + (res?.label || cle) + ' : ' + Math.round(port.stock[cle]) + '</div>';
+    });
+    html += '<div style="margin-bottom:.7rem"></div>';
+  }
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">ORIGINE DES MATIÈRES</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Bois : 50% Républia (direct), 50% Sovarka (via le port) — Pétrole brut : 2/3 Al-Khalija, 1/3 Sovarka — Produits exotiques : 100% El Estado.</div>';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">RÉPARTITION NATIONALE ACTUELLE</div>';
+  RESSOURCES_PORT_IMPORTEES.forEach(cle => {
+    const res = RESSOURCES_ECONOMIE[cle];
+    const rep = port.repartition?.[cle] || REPARTITION_PORT_DEFAUT;
+    html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.2rem">' + (res?.label || cle) + ' — Luthécia ' + arrondiPct(rep.capitale) + '% / Port-Sainte-Marie ' + arrondiPct(rep.ville_a) + '% / Montrouge ' + arrondiPct(rep.ville_b) + '%</div>';
+  });
+  html += '<div style="margin-bottom:.5rem"></div>';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">ARRIVAGES RÉCENTS</div>';
+  const arrivages = (port.arrivages || []).slice(0, 10);
+  if (arrivages.length === 0) {
+    html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.5rem">Aucun arrivage enregistré pour l\'instant.</div>';
+  } else {
+    arrivages.forEach(a => {
+      const res = RESSOURCES_ECONOMIE[a.resource];
+      const date = new Date(a.jour);
+      html += '<div style="font-size:.76rem;color:#8a8060">' + date.toLocaleDateString('fr-FR') + ' — ' + (res?.label || a.resource) + ' : +' + Math.round(a.qte) + '</div>';
+    });
+  }
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">EXPORTATIONS</div>';
+  Object.entries(EXPORTATIONS_PORT_INFOS).forEach(([cle, infos]) => {
+    const exp = port.exportations?.[cle];
+    if (!exp) { html += '<div style="font-size:.76rem;color:#8a8060">' + infos.label + ' vers ' + infos.destination + ' : aucune donnée pour l\'instant.</div>'; return; }
+    html += '<div style="font-size:.8rem;color:#c0b090">' + infos.label + ' vers ' + infos.destination + ' : ' + Math.round(exp.envoye) + '/' + exp.contrat + ' (' + exp.satisfactionPct + '% satisfait)</div>';
+  });
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">STOCKS DES ENTREPÔTS</div>';
+  for (const v of ENTREPOTS_PORT_INFOS) {
+    const etatE = await sbGetBatimentEtat('republic', v.city, v.buildingId).catch(() => null);
+    const stock = etatE?.entrepot?.stock || {};
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.2rem">' + v.nom + ' : ' + RESSOURCES_PORT_IMPORTEES.map(cle => (RESSOURCES_ECONOMIE[cle]?.label || cle) + ' ' + Math.round(stock[cle] || 0)).join(', ') + '</div>';
+  }
+
+  const caissePort = await chargerCaisseBatiment('republic', BUILDING_ID_PORT).catch(() => ({ solde: 0 }));
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">CAISSE DU PORT</div>';
+  html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.7rem">' + Math.round(caissePort.solde || 0) + ' FR</div>';
+
+  if (estCommandant) {
+    html += '<button onclick="ouvrirModifierRepartitionPort()" style="display:block;width:100%;text-align:center;padding:.6rem;border:1px solid #6a5a20;background:#1a1508;color:#e0c060;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.85rem;margin-top:.5rem">MODIFIER LA RÉPARTITION</button>';
+  } else {
+    html += '<div style="margin-top:.5rem;font-size:.76rem;color:#6a5a30;font-style:italic">Réservé au Commandant du Port : modifier la répartition entre les 3 villes.</div>';
+  }
+
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// ---- MODIFICATION DE LA RÉPARTITION (Commandant uniquement — garde UI + garde handler
+// independantes, la garde UI n'etant qu'un confort puisque le bouton n'est deja affiche qu'au
+// Commandant ci-dessus) ----
+function ouvrirModifierRepartitionPort() {
+  const check = commandantPortValide();
+  if (!check.ok) { showToast('Réservé au Commandant du Port', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Modifier la répartition — choisir la matière';
+  let html = '<div style="padding:1rem">';
+  RESSOURCES_PORT_IMPORTEES.forEach(cle => {
+    const res = RESSOURCES_ECONOMIE[cle];
+    html += '<button onclick="ouvrirFormulaireRepartitionPort(\'' + cle + '\')" style="display:block;width:100%;text-align:left;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.85rem;margin-bottom:.4rem">' + (res?.label || cle) + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function ouvrirFormulaireRepartitionPort(cle) {
+  const check = commandantPortValide();
+  if (!check.ok) { showToast('Réservé au Commandant du Port', '', false); return; }
+  const port = await getEtatPort();
+  const rep = port.repartition?.[cle] || REPARTITION_PORT_DEFAUT;
+  const res = RESSOURCES_ECONOMIE[cle];
+
+  document.getElementById('postes-modal-title').textContent = 'Répartition — ' + (res?.label || cle);
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Pourcentages à répartir entre les 3 villes. La somme doit faire 100.</div>';
+  html += '<label style="display:block;font-size:.8rem;color:#c0b090;margin-bottom:.2rem">Luthécia (%)</label>';
+  html += '<input type="number" id="rep-port-capitale" value="' + arrondiPct(rep.capitale) + '" min="0" max="100" step="0.01" style="width:100%;padding:.4rem;margin-bottom:.6rem;background:#0f0d05;border:1px solid #2a2010;color:#e0d0a0">';
+  html += '<label style="display:block;font-size:.8rem;color:#c0b090;margin-bottom:.2rem">Port-Sainte-Marie (%)</label>';
+  html += '<input type="number" id="rep-port-ville_a" value="' + arrondiPct(rep.ville_a) + '" min="0" max="100" step="0.01" style="width:100%;padding:.4rem;margin-bottom:.6rem;background:#0f0d05;border:1px solid #2a2010;color:#e0d0a0">';
+  html += '<label style="display:block;font-size:.8rem;color:#c0b090;margin-bottom:.2rem">Montrouge (%)</label>';
+  html += '<input type="number" id="rep-port-ville_b" value="' + arrondiPct(rep.ville_b) + '" min="0" max="100" step="0.01" style="width:100%;padding:.4rem;margin-bottom:.8rem;background:#0f0d05;border:1px solid #2a2010;color:#e0d0a0">';
+  html += '<button onclick="confirmerModifierRepartitionPort(\'' + cle + '\')" style="display:block;width:100%;text-align:center;padding:.6rem;border:1px solid #6a5a20;background:#1a1508;color:#e0c060;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.85rem">VALIDER (1 PA)</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerModifierRepartitionPort(cle) {
+  const check = commandantPortValide();
+  if (!check.ok) { showToast('Réservé au Commandant du Port', '', false); return; }
+  const capitale = parseFloat(document.getElementById('rep-port-capitale')?.value);
+  const ville_a  = parseFloat(document.getElementById('rep-port-ville_a')?.value);
+  const ville_b  = parseFloat(document.getElementById('rep-port-ville_b')?.value);
+  if (![capitale, ville_a, ville_b].every(v => Number.isFinite(v) && v >= 0)) {
+    showToast('Valeurs invalides', '', false);
+    return;
+  }
+  const somme = capitale + ville_a + ville_b;
+  if (Math.abs(somme - 100) > 0.1) {
+    showToast('La somme doit faire 100%', 'Actuellement : ' + Math.round(somme * 100) / 100 + '%', false);
+    return;
+  }
+  // 1 PA, meme cout que les autres ordres d'allocation deja valides du jeu (fixer_repartition_
+  // production, fixer_prix_achat_entrepot, fixer_prix_vente_directe) -- reutilise plutot
+  // qu'invente, la consultation elle-meme (consulter_administration_port) restant gratuite.
+  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const etat = await sbGetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT).catch(() => ({}));
+  const port = (etat && etat.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {} };
+  const repartition = { ...(port.repartition || {}), [cle]: { capitale, ville_a, ville_b } };
+  await sbSetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT, { ...(etat || {}), port: { ...port, repartition } }).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const res = RESSOURCES_ECONOMIE[cle];
+  showToast('Répartition mise à jour', (res?.label || cle) + ' : Luthécia ' + capitale + '% / Port-Sainte-Marie ' + ville_a + '% / Montrouge ' + ville_b + '%', true, true);
+  addJournalEntry('Le Commandant du Port modifie la répartition de ' + (res?.label || cle).toLowerCase() + '.', 'event-info');
+}
+
+// ---- CRIÉE : AFFECTATION D'UNE PART DU STOCK PORTUAIRE A LA VENTE DIRECTE (Commandant
+// uniquement — garde UI via requiresPost dans data.js + garde handler independante) ----
+// Deplace une quantite reelle du stock institutionnel du port (port.stock) vers un pool de vente
+// directe (port.criee.stock), jamais plus que ce qui est reellement disponible. Le prix de vente
+// n'est PAS invente pour ce lot : reutilise getPrixRessourceEntrepot(cle) (= prixBase, deja la
+// regle validee pour toute vente directe institution -> PJ, voir confirmerAchatEntrepot
+// ci-dessus), le seul precedent sur, plutot que d'arbitrer un nouveau chiffre.
+async function ouvrirAffecterCriee() {
+  const check = commandantPortValide();
+  if (!check.ok) { showToast('Réservé au Commandant du Port', '', false); return; }
+  const port = await getEtatPort();
+  const stock = port.stock || {};
+
+  document.getElementById('postes-modal-title').textContent = 'Affecter du stock à la Criée';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Quantité à transférer du stock institutionnel du port vers la Criée (vente directe aux joueurs). Ne crée aucune matière : plafonné au stock réellement disponible.</div>';
+  RESSOURCES_PORT_IMPORTEES.forEach(cle => {
+    const res = RESSOURCES_ECONOMIE[cle];
+    const dispo = Math.round(stock[cle] || 0);
+    html += '<label style="display:block;font-size:.8rem;color:#c0b090;margin-bottom:.2rem">' + (res?.label || cle) + ' (disponible : ' + dispo + ')</label>';
+    html += '<input type="number" id="affecter-criee-' + cle + '" min="0" max="' + dispo + '" value="0" style="width:100%;padding:.4rem;margin-bottom:.6rem;background:#0f0d05;border:1px solid #2a2010;color:#e0d0a0">';
+  });
+  html += '<button onclick="confirmerAffecterCriee()" style="display:block;width:100%;text-align:center;padding:.6rem;border:1px solid #6a5a20;background:#1a1508;color:#e0c060;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.85rem">VALIDER (1 PA)</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerAffecterCriee() {
+  const check = commandantPortValide();
+  if (!check.ok) { showToast('Réservé au Commandant du Port', '', false); return; }
+  const etat = await sbGetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT).catch(() => ({}));
+  const port = (etat && etat.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {}, criee: {} };
+  const stock = { ...(port.stock || {}) };
+  const criee = { ...(port.criee?.stock || {}) };
+
+  let transfereQuoiQueCeSoit = false;
+  RESSOURCES_PORT_IMPORTEES.forEach(cle => {
+    const demande = parseInt(document.getElementById('affecter-criee-' + cle)?.value || 0);
+    if (!demande || demande <= 0) return;
+    const dispo = stock[cle] || 0;
+    const qte = Math.min(demande, dispo);
+    if (qte <= 0) return;
+    stock[cle] = dispo - qte;
+    criee[cle] = (criee[cle] || 0) + qte;
+    transfereQuoiQueCeSoit = true;
+  });
+  if (!transfereQuoiQueCeSoit) { showToast('Rien à affecter', '', false); return; }
+
+  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  await sbSetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT, { ...(etat || {}), port: { ...port, stock, criee: { ...(port.criee || {}), stock: criee } } }).catch(() => {});
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Stock affecté à la Criée', '', true, true);
+  addJournalEntry('Le Commandant du Port affecte du stock à la Criée.', 'event-info');
+}
+
+// ---- VENTE A LA CRIÉE (tout PJ — achat reel d'un stock institutionnel deja affecte par le
+// Commandant : capacite d'inventaire verifiee, stock reellement decremente, FR reellement
+// debites du PJ et credites dans la caisse du port (republic_port-sainte-marie). Jamais de stock
+// cree au clic. Meme moteur que confirmerAchatEntrepot (double passe : verification puis
+// application au prorata de ce que l'inventaire peut reellement absorber). ----
+async function ouvrirAcheterCriee(pa, cost) {
+  const port = await getEtatPort();
+  const stock = port.criee?.stock || {};
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  let html = '<div style="padding:1.2rem">';
+  const clesDispo = RESSOURCES_PORT_IMPORTEES.filter(cle => (stock[cle] || 0) > 0);
+  if (clesDispo.length === 0) {
+    html += '<div style="font-size:.9rem;color:#8a8060">Aucune marchandise en vente à la Criée pour l\'instant.</div>';
+  } else {
+    html += '<div style="font-size:.9rem;color:#8a8060;margin-bottom:1rem">Marchandises institutionnelles affectées à la vente directe par le Commandant du Port.</div>';
+    html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
+    html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix</th><th>Quantité</th></tr>';
+    clesDispo.forEach(cle => {
+      const res = RESSOURCES_ECONOMIE[cle];
+      const enStock = Math.round(stock[cle]);
+      const prix = getPrixRessourceEntrepot(cle);
+      html += '<tr style="border-top:1px solid #2a2010">';
+      html += '<td style="padding:.5rem 0">' + res.label + '</td>';
+      html += '<td style="color:#8a8060">' + enStock + '</td>';
+      html += '<td style="color:#C9A84C;font-weight:bold">' + prix + ' ' + cur + '</td>';
+      html += '<td><input type="number" min="0" max="' + enStock + '" id="achat-criee-' + cle + '" style="width:90px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem" /></td>';
+      html += '</tr>';
+    });
+    html += '</table>';
+    html += '<button class="pnj-action-btn" onclick="confirmerAcheterCriee(' + pa + ',' + cost + ')" style="margin-top:1.2rem;font-size:1rem;padding:.7rem">Valider l\'achat</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Criée';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerAcheterCriee(pa, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const etat = await sbGetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT).catch(() => ({}));
+  const port = (etat && etat.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {}, criee: {} };
+  const stock = { ...(port.criee?.stock || {}) };
+
+  const achats = {};
+  let total = 0;
+  for (const cle of RESSOURCES_PORT_IMPORTEES) {
+    const qte = parseInt(document.getElementById('achat-criee-' + cle)?.value || 0);
+    if (!qte || qte <= 0) continue;
+    const enStock = stock[cle] || 0;
+    if (qte > enStock) {
+      showToast('Stock insuffisant', 'Il ne reste que ' + Math.round(enStock) + ' unité(s) de ' + RESSOURCES_ECONOMIE[cle].label + ' à la Criée.', false);
+      return;
+    }
+    const prix = getPrixRessourceEntrepot(cle);
+    achats[cle] = { qte, prix };
+    total += qte * prix;
+  }
+  if (Object.keys(achats).length === 0) { showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); return; }
+  if (state.arg < total) {
+    showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(state.arg) + ' ' + cur + '.', false);
+    return;
+  }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  let totalReellementPaye = 0;
+  for (const [cle, { qte, prix }] of Object.entries(achats)) {
+    const res = RESSOURCES_ECONOMIE[cle];
+    const qteAjoutee = addToInventory({
+      name: res.label, icon: res.icon, stackable: true, stackKey: cle, qty: qte,
+      desc: 'Marchandise achetée à la Criée du Port de Port-Sainte-Marie.'
+    });
+    if (qteAjoutee > 0) {
+      stock[cle] = (stock[cle] || 0) - qteAjoutee;
+      totalReellementPaye += qteAjoutee * prix;
+    }
+  }
+  if (totalReellementPaye <= 0) {
+    showToast('Inventaire plein', 'Aucune marchandise n\'a pu être récupérée.', false);
+    return;
+  }
+  state.arg -= totalReellementPaye;
+
+  await sbSetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT, { ...(etat || {}), port: { ...port, criee: { ...(port.criee || {}), stock } } }).catch(() => {});
+  await crediterCaisseBatiment('republic', BUILDING_ID_PORT, totalReellementPaye).catch(() => {});
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Achat effectué !', '-' + Math.round(totalReellementPaye) + ' ' + cur + '.', true, true);
+  addJournalEntry('Achat à la Criée du port : ' + Object.entries(achats).map(([cle, a]) => a.qte + ' ' + RESSOURCES_ECONOMIE[cle].label).join(', ') + '.', 'event-good');
+}
+
+// ---- MANIFESTE (registre administratif persistant, 0 PA / 0 FR, accessible a tout PJ — lot du
+// 25 aout 2026, §9/§10) ----
+// Remplace l'ancien consulter_manifeste (jet INT abstrait sans donnee reelle) et supprime
+// falsifier_manifeste (jet abstrait sans effet reel sur une caisse, retire de data.js/
+// plateau-router.js/plateau-navigation.js -- seul empire qui l'exposait, aucun autre order/room
+// ne le referencait, verifie avant suppression). Reutilise integralement les donnees deja
+// persistees plutot que de dupliquer un historique : caisses_fret (table dediee, definie plus
+// bas dans ce fichier) pour le fret prive -- jamais le contenu reel (contenu_caisses_fret) --, et
+// etat.port (getEtatPort ci-dessus) pour les flux institutionnels.
+async function doConsulterManifeste() {
+  const [origines, destinations] = await Promise.all([
+    sbGet('caisses_fret', 'building_origine=eq.' + encodeURIComponent(BUILDING_ID_PORT)).catch(() => []),
+    sbGet('caisses_fret', 'building_destination=eq.' + encodeURIComponent(BUILDING_ID_PORT)).catch(() => [])
+  ]);
+  const parId = {};
+  (origines || []).forEach(c => { parId[c.id] = c; });
+  (destinations || []).forEach(c => { parId[c.id] = c; });
+  const caisses = Object.values(parId)
+    .sort((a, b) => new Date(b.date_depart || 0) - new Date(a.date_depart || 0))
+    .slice(0, 20);
+
+  const port = await getEtatPort();
+
+  document.getElementById('postes-modal-title').textContent = 'Manifeste du Port';
+  let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto">';
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">FRET PRIVÉ DÉCLARÉ</div>';
+  if (caisses.length === 0) {
+    html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.7rem">Aucune caisse enregistrée pour l\'instant.</div>';
+  } else {
+    caisses.forEach(c => {
+      const dep = c.date_depart ? new Date(c.date_depart).toLocaleDateString('fr-FR') : 'non partie';
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .6rem;margin-bottom:.4rem;font-size:.76rem;color:#8a8060">';
+      html += '<div style="color:#c0b090">Expéditeur : ' + (c.leader || '—') + ' — Destinataire : ' + (c.destinataire || 'non déclaré') + '</div>';
+      html += '<div>Origine : ' + (c.ville_origine || '—') + ' — Destination : ' + (c.pays_destination || '—') + '</div>';
+      html += '<div>Déclaration douanière : ' + (c.declaration_douaniere || 'non déclarée') + ' — Valeur déclarée : ' + (c.valeur_declaree != null ? Math.round(c.valeur_declaree) + ' FR' : '—') + '</div>';
+      html += '<div>Statut : ' + (c.statut || '—') + ' — Départ : ' + dep + '</div>';
+      html += '</div>';
+    });
+  }
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.8rem 0 .4rem">FLUX INSTITUTIONNELS</div>';
+  const arrivages = (port.arrivages || []).slice(0, 10);
+  if (arrivages.length === 0) {
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.5rem">Aucun arrivage institutionnel enregistré pour l\'instant.</div>';
+  } else {
+    arrivages.forEach(a => {
+      const res = RESSOURCES_ECONOMIE[a.resource];
+      const date = new Date(a.jour);
+      html += '<div style="font-size:.76rem;color:#8a8060">' + date.toLocaleDateString('fr-FR') + ' — arrivage ' + (res?.label || a.resource) + ' : +' + Math.round(a.qte) + '</div>';
+    });
+  }
+  RESSOURCES_PORT_IMPORTEES.forEach(cle => {
+    const res = RESSOURCES_ECONOMIE[cle];
+    const rep = port.repartition?.[cle] || REPARTITION_PORT_DEFAUT;
+    html += '<div style="font-size:.76rem;color:#8a8060;margin-top:.2rem">Répartition ' + (res?.label || cle) + ' — Luthécia ' + arrondiPct(rep.capitale) + '% / Port-Sainte-Marie ' + arrondiPct(rep.ville_a) + '% / Montrouge ' + arrondiPct(rep.ville_b) + '%</div>';
+  });
+  Object.entries(EXPORTATIONS_PORT_INFOS).forEach(([cle, infos]) => {
+    const exp = port.exportations?.[cle];
+    if (!exp) return;
+    html += '<div style="font-size:.76rem;color:#8a8060;margin-top:.2rem">Exportation ' + infos.label + ' vers ' + infos.destination + ' : ' + Math.round(exp.envoye) + '/' + exp.contrat + ' (' + exp.satisfactionPct + '%)</div>';
+  });
+
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 // =====================

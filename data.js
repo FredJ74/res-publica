@@ -1929,7 +1929,9 @@ const BUILDINGS = {
           {fn:'gerer_candidatures_directeurs', label:'Gérer les candidatures de directeurs', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'min_fin', desc:'Candidatures reçues pour les 3 directeurs d\'usine (Pharmaceutique, Tabac & Alcools, Raffinerie) — sans se déplacer.'},
           {fn:'virement_ministere_usine', label:'Virement vers une usine', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'min_fin', desc:"Verser un montant depuis la caisse du Ministere vers la caisse d'une usine nationale. Le ministre ne peut jamais prelever directement dans la caisse d'une usine."},
           {fn:'allegement_fiscal',   label:'Allegement fiscal sectoriel', pa:0, cost:0, type:'legal', icon:'ti-percentage', successRate:100, requiresPost:'min_fin', desc:'Pas encore disponible -- sera active une fois le systeme de taxation alimentant les caisses de l\'Etat finalise.'},
-          {fn:'preempter_entreprise', label:'Droit de preemption sur une entreprise', pa:2, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_fin', desc:'Nationaliser une entreprise encore tenue par un PNJ, financee par un pret automatique de la Banque Nationale. Une seule preemption a la fois.'}
+          {fn:'preempter_entreprise', label:'Droit de preemption sur une entreprise', pa:2, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_fin', desc:'Nationaliser une entreprise encore tenue par un PNJ, financee par un pret automatique de la Banque Nationale. Une seule preemption a la fois.'},
+          {fn:'nommer_commandant_port',  label:'Nommer un Commandant du Port', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ Commandant du Port de Port-Sainte-Marie. Poste exclusif (sauf depute).'},
+          {fn:'revoquer_commandant_port', label:'Revoquer le Commandant du Port', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'min_fin', desc:'Retirer le poste au Commandant du Port actuellement en fonction.'}
         ]
       },
       bureau_min_just: {
@@ -2224,7 +2226,7 @@ const BUILDINGS = {
           {name:'Meneur des Supporters (PNJ)', role:'PNJ - Chef de Tribune', rel:'neutral', job:'meneur_supporters'}
         ],
         orders: [
-          {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:150, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adherer au club de supporters de la ville (150 FR/saison).'},
+          {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:50, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adherer au club de supporters de la ville (50 FR, renouvele automatiquement a chaque nouveau championnat).'},
           {fn:'consulter_palmares', label:'Consulter le palmares du club', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent : resultats de chaque championnat, articles de presse marquants. Rien ne s\'efface jamais ici.'},
           {fn:'consulter_organigramme_supporters', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Composition complete du club de supporters, visible de tous.'},
           {fn:'declencher_election_club', label:'Déclencher une élection', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Reserve aux membres. 3 jours de candidatures puis 3 jours de vote.'},
@@ -5448,7 +5450,10 @@ const BUILDINGS = {
         desc: "La grande criée industrielle du port : lots de poisson pesés et vendus chaque matin, cours affichés en direct.",
         imageUrl: "images/port-sainte-marie-port-industriel-criee.png",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'acheter_criee', label:'Acheter à la Criée', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Marchandises institutionnelles affectées à la vente directe par le Commandant du Port.'},
+          {fn:'affecter_criee', label:'Affecter du stock à la Criée', pa:1, cost:0, type:'legal', icon:'ti-truck-delivery', successRate:100, requiresPost:'capitaine_port', desc:'Transférer une part du stock institutionnel du port vers la vente directe. Réservé au Commandant du Port.'}
+        ]
       },
       entrepot: {
         name: "Entrepôts",
@@ -5482,8 +5487,9 @@ const BUILDINGS = {
           {name:'Pascal Paguevite (PNJ)', role:'Chef des Douanes', rel:'neutral', job:'chef_douanes', photoUrl:'images/port-sainte-marie-port-industriel-pascal-paguevite.png', photoPos:'50% 20%'}
         ],
         orders: [
+          {fn:'consulter_effectifs_douane', label:'Consulter les effectifs', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Liste publique des douaniers en service (information administrative, sans détail de compétences).'},
           {fn:'recruter_douanier', label:'Recruter un douanier', pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, requiresPost:'chef_douanes', desc:'PER 12, VOL 12. Paye directement par le Ministere de l\'Interieur -- aucune caisse propre aux douanes.'},
-          {fn:'gerer_effectifs_douane', label:'Gerer mes effectifs', pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'chef_douanes', desc:'Consulter les douaniers recrutes, tous rattaches au service des douanes du port.'}
+          {fn:'gerer_effectifs_douane', label:'Gérer les effectifs douaniers', pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'chef_douanes', desc:'Recruter ou licencier des douaniers, tous rattachés au service des douanes du port.'}
         ]
       },
       // blocus_portuaire deplace ici depuis quai_principal (lot du 25 aout 2026, correctif
@@ -5507,6 +5513,10 @@ const BUILDINGS = {
           {name:'Étienne Dantafasse (PNJ)', role:'Président du Syndicat des Dockers de Port-Sainte-Marie', rel:'neutral', job:null, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-industriel-etienne-dantafasse.png', photoPos:'50% 12%'}
         ],
         orders: [
+          {fn:'se_syndiquer', label:'Se syndiquer', pa:1, cost:50, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adhérer au Syndicat des Dockers de Port-Sainte-Marie (50 FR).'},
+          {fn:'consulter_organigramme_syndicat', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-list-details', successRate:100, desc:'Chef actuel et membres du Syndicat des Dockers.'},
+          {fn:'declencher_election_syndicat', label:'Déclencher une élection', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Réservé aux membres. 3 jours de candidatures puis 3 jours de vote.'},
+          {fn:'organiser_manifestation_syndicat', label:'Organiser une manifestation', pa:2, cost:0, type:'legal', icon:'ti-megaphone', successRate:100, requiresChefSyndicatDockers:true, desc:'Réservé au chef du Syndicat des Dockers.'},
           {fn:'blocus_portuaire', label:'Blocus portuaire', pa:3, cost:0, type:'grey', icon:'ti-barrier-block', successRate:60, requiresChefSyndicatDockers:true, desc:'Paralyse les importations/exportations 24h. VOL/10 + ENT/10. -IE. Réservé au chef du Syndicat des Dockers.'}
         ]
       },
@@ -5520,8 +5530,8 @@ const BUILDINGS = {
           {name:'Ginette Conteneur (PNJ)', role:'Agente de fret', rel:'neutral', job:'agent_fret', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-industriel-ginette-conteneur.png', photoPos:'50% 15%'}
         ],
         orders: [
-          {fn:'consulter_manifeste', label:'Consulter le manifeste', pa:1, cost:0, type:'grey', icon:'ti-file-search', successRate:75, desc:'Liste des cargaisons déclarées. INT/10. Révèle possibles contrebandes.'},
-          {fn:'falsifier_manifeste', label:'Falsifier le manifeste', pa:2, cost:200, type:'illegal', icon:'ti-file-x', successRate:40, desc:'Faire disparaître une cargaison des registres. DUP/10.'}
+          {fn:'consulter_manifeste', label:'Consulter le manifeste', pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:'Registre administratif persistant : cargaisons de fret privé déclarées (sans révéler leur contenu réel) et flux institutionnels du port. Consultation publique, gratuite.'},
+          {fn:'consulter_administration_port', label:'Administration du port', pa:0, cost:0, type:'legal', icon:'ti-anchor', successRate:100, desc:'Stock institutionnel, répartition entre Luthécia/Port-Sainte-Marie/Montrouge, arrivages récents, stocks des 3 entrepôts, caisse du port et situation des exportations. Le Commandant du Port peut modifier la répartition depuis cet écran.'}
         ]
       }
     }
@@ -6740,7 +6750,16 @@ const POSTES_NOMMES_EXCLUSIFS = {
   // physiquement rattache au port de PSM. Repli PNJ (Pascal Paguevite) ajoute a la cascade
   // nationale du cron (api/cron-minuit.js, CASCADE_NATIONALE/PNJ_PAR_DEFAUT_POSTE), meme
   // mecanique que les 3 directeurs d'usine/juge/commandant -- aucun nouveau moteur de nomination.
-  chef_douanes:            { label: 'Chef des Douanes',                   nommePar: 'min_int',       scope: 'pays',  compatibles: ['depute'] }
+  chef_douanes:            { label: 'Chef des Douanes',                   nommePar: 'min_int',       scope: 'pays',  compatibles: ['depute'] },
+
+  // Commandant du Port (lot logistique portuaire, 25 aout 2026) — nomme par le Ministre des
+  // Finances, portee nationale, meme mecanique que chef_douanes/directeur_raffinerie. A la
+  // difference de chef_douanes, Marcel Ancre (PNJ titulaire par defaut, voir PNJ_PAR_DEFAUT_POSTE
+  // et CASCADE_NATIONALE, api/cron-minuit.js) doit rester visible dans administration_portuaire
+  // meme une fois qu'un PJ occupe reellement le poste : capitaine_port n'est PAS ajoute a
+  // POSTES_UNIQUES_A_MASQUER (plateau-multijoueur.js), choix deliberement different du
+  // chef_douanes/Pascal Paguevite qui, lui, disparait.
+  capitaine_port:          { label: 'Commandant du Port',                 nommePar: 'min_fin',       scope: 'pays',  compatibles: ['depute'] }
 };
 
 // Nouveaux ordres v6

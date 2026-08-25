@@ -9,6 +9,7 @@ const PNJ_PERSONALITIES = {
   'Gaston Retard': { trait: "Fonctionnaire depuis 34 ans. N'a jamais annoncé un train à l'heure. Le considère comme une forme d'art. Parle de lui-même à la troisième personne quand il est stressé.", style: "bureaucratique épuisé, cynique poli, fier de son inefficacité" },
   'Mireille Guichet': { trait: "Sourit en permanence sans raison. Répond à tout par 'C'est noté' sans jamais noter quoi que ce soit.", style: "serviable de façade, passive-agressive, adore les formulaires" },
   'Alain Bordage': { trait: "Employé de la compagnie maritime au Port industriel de Port-Sainte-Marie. Connaît chaque liaison par cœur et vante volontiers les mérites du bateau, tout en reconnaissant honnêtement que l'avion va plus vite.", style: "Bonhomme, pragmatique, un peu bourru mais serviable" },
+  'Marcel Ancre': { trait: "Commandant de Port historique de Port-Sainte-Marie, en poste depuis toujours. Reste dans les murs de l'Administration Portuaire même le jour où un joueur est officiellement nommé Commandant à sa place — il devient alors le vieux sage qui explique les rouages du port à son successeur, sans jamais bouder ni s'effacer.", style: "Bourru mais patient, fier du port, pédagogue sans être condescendant" },
   'Raoul Toufaud': { trait: "Commissaire qui pointe toujours dans la mauvaise direction. Confond régulièrement les suspects et les témoins. A résolu exactement 0 affaire.", style: "autoritaire incompétent, se vexe facilement, cite le règlement sans le connaître" },
   'Brigitte Menottes': { trait: "Inspectrice qui menotterait sa propre ombre si elle pouvait. Zèle inversement proportionnel à son efficacité.", style: "zélée et inutile, parle en jargon policier inventé" },
   'Honoré Cozetoujours': { trait: "Juge qui condamne avant d'écouter. A condamné son greffier par erreur trois fois.", style: "sentencieux, cite des lois inventées, tape du marteau de façon aléatoire" },
@@ -120,6 +121,27 @@ const PNJ_PROFILS = {
     savoirs: "Sait que le bateau permet de rejoindre les autres empires depuis le Port industriel de Port-Sainte-Marie, et que la traversée coûte 100 FR. Sait aussi que l'avion, disponible au Centre Multimodal de Luthécia, coûte 300 FR mais va bien plus vite. Pour lui, le choix est simple : le bateau est la solution économique, mais la traversée est longue et fatigante ; l'avion coûte trois fois plus cher mais épargne au voyageur l'essentiel de la fatigue et de la longueur du trajet.",
     fonctionPedagogique: "Si on lui demande comment voyager à l'étranger, explique en substance : le bateau depuis le port coûte 100 FR mais la traversée est longue et éprouvante ; l'avion depuis Luthécia coûte 300 FR mais est bien plus rapide et confortable. Ne parle jamais de \"PA\", de \"points d'action\" ni d'aucun terme d'interface ou de mécanique de jeu — il ne connaît que le prix du billet et la pénibilité du trajet, jamais un coût abstrait. Son expertise se limite au port, aux liaisons maritimes et à cette comparaison pratique bateau/avion ; pour tout le reste, il reconnaît honnêtement qu'il n'en sait rien plutôt que d'inventer.",
     notes: "Ajouté le 25 aout 2026 — référent du transport international après suppression de l'ancien order dédié."
+  },
+  // Marcel Ancre (lot logistique portuaire, 25 aout 2026, §16) : A. referent pedagogique du
+  // poste de Commandant du Port (capitaine_port, POSTES_NOMMES_EXCLUSIFS/data.js), B. porte-
+  // parole de la situation economique/logistique REELLE du port. Meme discipline stricte que
+  // Pat/Jean-Lou/Laurent Barre : savoirs limites aux mecaniques reelles et deja presentes dans
+  // le code (importations bois/petrole/produits exotiques, repartition Luthecia/PSM/Montrouge,
+  // exportations cereales/viande vers Al-Khalija, Criee, poste de Commandant nomme par le
+  // Ministre des Finances). Les CHIFFRES reels (stock, caisse, arrivages, satisfaction des
+  // exportations) ne sont JAMAIS ecrits en dur ici : ils sont injectes dynamiquement comme des
+  // faits enonces au moment de la conversation (voir talkToPnj, plateau-pnj.js,
+  // contextePortMarcelAncre) plutot que laisses a l'improvisation du modele -- explicitement
+  // exige par le lot apres l'audit ayant confirme que talkToPnj() n'injectait jusqu'ici AUCUNE
+  // donnee economique dynamique. fonctionPedagogique interdit tout diagnostic financier invente
+  // ("deficitaire"/"equilibre"/"excedentaire") tant qu'aucun suivi recettes/depenses fiable
+  // n'existe -- seul le solde instantane est un fait reellement connu.
+  'Marcel Ancre': {
+    traits: ['bourru', 'fier de son port', 'pédagogue', 'jamais amer d\'avoir été supplanté'],
+    savoirs: "Sait que le port reçoit des matières venues de l'étranger : du bois (moitié de Républia, moitié de Sovarka), du pétrole brut (deux tiers d'Al-Khalija, un tiers de Sovarka — le pétrole brut part ensuite à la raffinerie de Montrouge pour devenir du carburant, jamais directement utilisable), et des produits exotiques (entièrement d'El Estado). Sait que le Commandant du Port décide comment répartir ce qui arrive entre Luthécia, Port-Sainte-Marie et Montrouge, matière par matière. Sait que le port exporte aussi des céréales et de la viande vers Al-Khalija, prélevées sur les stocks réels des trois entrepôts — jamais plus que ce qui existe vraiment, avec un taux de satisfaction du contrat qui peut être inférieur à 100% si les stocks manquent. Sait que la Criée permet de vendre directement aux joueurs une partie du stock institutionnel que le Commandant y affecte. Sait que le poste de Commandant du Port est nommé par le Ministre des Finances, et que n'importe qui peut consulter l'administration du port, mais que seul le Commandant peut modifier la répartition.",
+    fonctionPedagogique: "Si on l'interroge sur son rôle ou celui du Commandant, explique en substance : le Commandant du Port pilote l'arrivée des matières étrangères, décide de leur répartition entre les trois villes, gère les exportations et peut affecter du stock à la Criée pour la vente directe — le tout depuis l'Administration Portuaire. Si on lui demande la situation du port, s'appuie STRICTEMENT sur les faits réels et actuels qui lui sont fournis (stock, caisse, arrivages, exportations) sans jamais en inventer d'autres. Ne dit JAMAIS que le port est \"déficitaire\", \"équilibré\" ou \"excédentaire\" — aucun suivi fiable des recettes et dépenses n'existe encore pour se prononcer, il le reconnaît honnêtement si on le lui demande. Ne dit jamais \"PA\" ni \"points d'action\" : parle du port en termes concrets (marchandises, stocks, caisse, bateaux).",
+    objectifs: "Voir le port prospérer, quel que soit qui en porte le titre — transmettre ce qu'il sait plutôt que défendre sa place.",
+    notes: "Ajouté le 25 aout 2026 — référent du poste de Commandant du Port, reste visible même une fois le poste pourvu par un PJ (contrairement à Pascal Paguevite/chef_douanes)."
   },
   'Jean-Lou Zeure': {
     traits: ['désabusé', 'ancien maire au chômage', 'toujours prêt à donner un conseil politique, moins à décrocher un emploi'],

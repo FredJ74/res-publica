@@ -1094,6 +1094,74 @@ const ENTREPOTS_VILLES = [
 const VOLUME_TOTAL_JOUR = 800;
 const NB_LIVRAISONS_JOUR = 6;
 
+// =====================
+// LOGISTIQUE PORTUAIRE NATIONALE (lot du 25 aout 2026, Port Industriel de PSM)
+// =====================
+// Principe impose (clarification explicite avant codage) : ne PAS recalibrer l'abondance des
+// matieres premieres. livrerEntrepotsQuotidien() generait deja, chaque jour, un volume aleatoire
+// de bois/petrole/produits_exotiques directement dans CHACUN des 3 entrepots (tirage
+// independant par ville, cf. boucle ENTREPOTS_VILLES plus bas). Ce lot ne change RIEN a ce
+// calcul (meme RNG, memes constantes VOLUME_TOTAL_JOUR/NB_LIVRAISONS_JOUR) : il redirige
+// simplement une partie de ce qui etait deja genere vers un stock portuaire intermediaire
+// (etat.port.stock, batiment 'port-sainte-marie'), puis le redistribue selon les pourcentages
+// du Commandant (defaut 1/3-1/3-1/3) au lieu de le crediter directement a l'entrepot d'origine
+// du tirage. Le volume national total attendu (somme des 3 tirages independants d'aujourd'hui)
+// reste donc identique en moyenne a avant ce lot -- aucun nouveau chiffre invente.
+//
+// Origines fixes (arbitrage valide, non modifiable par un PJ dans ce lot -- seuls les futurs
+// Commandants des autres empires, non developpes ici, pourront un jour regler leurs propres
+// exports) :
+//  - bois : 50% reste une "production interieure" republicaine, generee et creditee EXACTEMENT
+//    comme avant (jamais rerouree par le port) ; les 50% restants (Sovarka) transitent desormais
+//    par etat.port.stock.bois avant redistribution.
+//  - petrole (BRUT, pas carburant) : 100% transite desormais par le port (2/3 Al-Khalija +
+//    1/3 Sovarka). La redirection existante vers la raffinerie de Montrouge (USINE_LOCALE_PAR_
+//    VILLE.ville_b) reste totalement inchangee et intervient AVANT ce reroutage (le port ne
+//    recoit que ce qui restait apres cette redirection, exactement comme l'entrepot local
+//    recevait ce reliquat avant ce lot).
+//  - produits_exotiques : 100% transite desormais par le port (El Estado = pays 'narco').
+// Ces fractions ne modifient QUE l'endroit ou la quantite deja calculee atterrit (port vs
+// entrepot local), jamais sa valeur.
+const ORIGINE_IMPORTS_PORT = {
+  bois: { republic: 0.5, soviet: 0.5 },
+  petrole: { khalija: 2 / 3, soviet: 1 / 3 },
+  produits_exotiques: { narco: 1 }
+};
+const RESSOURCES_REROUTEES_PORT = Object.keys(ORIGINE_IMPORTS_PORT); // ['bois','petrole','produits_exotiques']
+const BUILDING_ID_PORT_PSM = 'port-sainte-marie';
+const VILLE_ID_PORT_PSM = 'ville_a';
+const REPARTITION_PORT_DEFAUT = { capitale: 100 / 3, ville_a: 100 / 3, ville_b: 100 / 3 };
+const NB_ARRIVAGES_CONSERVES = 10; // historique court pour le Commandant/Marcel Ancre, pas de croissance illimitee
+
+// Exportations validees (arbitrage) : la reference "1 ville" reutilise le plafond deja existant
+// de chaque ressource (RESSOURCES_ECONOMIE_SERVEUR[x].plafond) -- pas un chiffre invente, c'est
+// la seule notion de "capacite d'une ville" deja presente dans l'architecture actuelle
+// (identique pour les 3 villes). cereales.plafond=150 -> 1.5 ville = 225 ; viande.plafond=125 ->
+// 1 ville = 125. Destination fixe (Al-Khalija) pour ce lot uniquement.
+const EXPORTATIONS_PORT = {
+  cereales: { equivalentVilles: 1.5, destination: 'khalija' },
+  viande:   { equivalentVilles: 1,   destination: 'khalija' }
+};
+
+// Repartit un montant entre les 3 villes selon des pourcentages arbitraires, methode du plus
+// fort reste (Hamilton) -- meme algorithme deja utilise et valide pour la repartition fiscale
+// nationale (distribuerMontantParVilleAuProrataFiscal, plateau-justice-economie.js) : aucun FR/
+// unite perdu par arrondi, deterministe, pas de nouvelle primitive.
+function repartirSelonPourcentages(montantTotal, pourcentages, villes) {
+  if (montantTotal <= 0) return villes.reduce((acc, v) => { acc[v] = 0; return acc; }, {});
+  const parts = villes.map(v => montantTotal * ((pourcentages[v] || 0) / 100));
+  const planchers = parts.map(p => Math.floor(p));
+  let reliquat = montantTotal - planchers.reduce((s, p) => s + p, 0);
+  const ordre = parts
+    .map((p, i) => ({ i, frac: p - planchers[i] }))
+    .sort((a, b) => b.frac - a.frac || a.i - b.i);
+  const montants = [...planchers];
+  for (let k = 0; k < ordre.length && reliquat > 0; k++) { montants[ordre[k].i]++; reliquat--; }
+  const resultat = {};
+  villes.forEach((v, i) => { resultat[v] = montants[i]; });
+  return resultat;
+}
+
 // Simule les 6 livraisons quotidiennes d'un entrepot en une seule passe (limite du plan
 // Vercel Hobby : un seul cron autorise par jour, pas de vrai rythme toutes les 4h). Chaque
 // livraison tire aleatoirement 3 a 8 matieres premieres parmi celles pas encore pleines,
@@ -1198,6 +1266,12 @@ async function produireTransformateursQuotidien() {
 
 async function livrerEntrepotsQuotidien() {
   const resultats = { entrepots: 0, unitesLivrees: 0, coutTotal: 0 };
+  // Accumulateur national (lot logistique portuaire, 25 aout 2026) : sommme, sur les 3 tirages
+  // INDEPENDANTS des 3 entrepots (inchanges, meme RNG qu'avant ce lot), la part de
+  // bois/petrole/produits_exotiques desormais reroutee vers le port plutot que creditee
+  // directement a l'entrepot d'origine du tirage. Ecrit une seule fois a la fin de cette
+  // fonction, dans etat.port.stock du batiment 'port-sainte-marie'.
+  const portAccumulation = {};
   try {
     const ressourcesLivrables = Object.entries(RESSOURCES_ECONOMIE_SERVEUR).filter(([, r]) => r.source === 'livraison');
 
@@ -1253,7 +1327,27 @@ async function livrerEntrepotsQuotidien() {
             qteRedirigee = Math.min(qteVisee, placeUsine);
             if (qteRedirigee > 0) stockMatieresUsine[cle] = (stockMatieresUsine[cle] || 0) + qteRedirigee;
           }
-          const qteRestante = qteLivree - qteRedirigee;
+          let qteRestante = qteLivree - qteRedirigee;
+
+          // Reroutage port (lot logistique portuaire, 25 aout 2026) : bois (50% seulement,
+          // l'autre moitie "production interieure" suit le chemin normal ci-dessous sans
+          // aucun changement) et petrole/produits_exotiques (100%, la redirection usine
+          // ci-dessus reste prioritaire et inchangee pour petrole -> raffinerie) partent
+          // desormais au port plutot que d'etre credites/payes directement par CET entrepot --
+          // meme quantite qu'avant ce lot, seule la destination change, aucun cout entrepot
+          // sur la part reroutee (ce n'est plus un achat local, c'est un import national).
+          if (RESSOURCES_REROUTEES_PORT.includes(cle)) {
+            let qtePort = qteRestante;
+            if (cle === 'bois') {
+              const qteDirecte = Math.round(qteRestante * 0.5);
+              qtePort = qteRestante - qteDirecte;
+              qteRestante = qteDirecte; // le reste suit le chemin normal ci-dessous, inchange
+            } else {
+              qteRestante = 0; // rien ne suit le chemin normal pour petrole/produits_exotiques
+            }
+            portAccumulation[cle] = (portAccumulation[cle] || 0) + qtePort;
+          }
+          if (qteRestante <= 0) return;
 
           const placeRestante = Math.max(0, res.plafond - (stock[cle] || 0));
           const qteStockee = Math.min(qteRestante, placeRestante);
@@ -1278,7 +1372,139 @@ async function livrerEntrepotsQuotidien() {
       resultats.unitesLivrees += unitesEntrepot;
       resultats.coutTotal += coutEntrepot;
     }
+
+    // Credit + distribution du stock portuaire (lot logistique portuaire, 25 aout 2026).
+    // Aucun cout : ce n'est pas un achat, c'est l'arrivee physique d'un import deja "paye" par
+    // construction (aucune caisse n'existait pour cette part avant ce lot non plus -- voir
+    // commentaire ORIGINE_IMPORTS_PORT). Respecte le plafond de chaque entrepot ; le reliquat
+    // non distribuable (entrepot plein) reste dans etat.port.stock, jamais perdu ni detruit.
+    const ressourcesArrivees = Object.entries(portAccumulation).filter(([, q]) => q > 0);
+    if (ressourcesArrivees.length > 0) {
+      const etatPort = await sbGetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM).catch(() => ({}));
+      const port = (etatPort && etatPort.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {} };
+      const stockPort = port.stock || {};
+      const villesIds = ENTREPOTS_VILLES.map(e => e.city);
+      const stocksEntrepots = {};
+      for (const e of ENTREPOTS_VILLES) {
+        const etatE = await sbGetBatimentEtat('republic', e.city, e.buildingId).catch(() => null);
+        stocksEntrepots[e.city] = { etat: etatE, buildingId: e.buildingId };
+      }
+
+      const arrivagesJour = [];
+      for (const [cle, qteArrivee] of ressourcesArrivees) {
+        stockPort[cle] = (stockPort[cle] || 0) + qteArrivee;
+        arrivagesJour.push({ jour: new Date().toISOString(), resource: cle, qte: qteArrivee });
+
+        // Distribution immediate selon la repartition du Commandant (defaut 1/3-1/3-1/3),
+        // plafonnee par entrepot -- le reliquat non distribuable reste dans stockPort.
+        const pourcentages = (port.repartition && port.repartition[cle]) || REPARTITION_PORT_DEFAUT;
+        const aDistribuer = stockPort[cle];
+        const repartis = repartirSelonPourcentages(aDistribuer, pourcentages, villesIds);
+        let totalReellementDistribue = 0;
+        for (const ville of villesIds) {
+          const vise = repartis[ville];
+          if (vise <= 0) continue;
+          const cible = stocksEntrepots[ville];
+          if (!cible || !cible.etat) continue; // batiment pas encore accessible dans cette ville
+          const entrepotCible = cible.etat.entrepot || { stock: {}, caisse: 8500 };
+          const stockCible = entrepotCible.stock || {};
+          const plafondRes = RESSOURCES_ECONOMIE_SERVEUR[cle].plafond;
+          const placeRestante = Math.max(0, plafondRes - (stockCible[cle] || 0));
+          const qteRecue = Math.min(vise, placeRestante);
+          if (qteRecue > 0) {
+            stockCible[cle] = (stockCible[cle] || 0) + qteRecue;
+            cible.etat = { ...cible.etat, entrepot: { ...entrepotCible, stock: stockCible } };
+            totalReellementDistribue += qteRecue;
+          }
+        }
+        stockPort[cle] = Math.max(0, stockPort[cle] - totalReellementDistribue);
+      }
+
+      for (const e of ENTREPOTS_VILLES) {
+        const cible = stocksEntrepots[e.city];
+        if (cible && cible.etat) await sbSetBatimentEtat('republic', e.city, e.buildingId, cible.etat).catch(() => {});
+      }
+
+      const arrivagesConserves = [...arrivagesJour, ...(port.arrivages || [])].slice(0, NB_ARRIVAGES_CONSERVES);
+      await sbSetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM, {
+        ...(etatPort || {}),
+        port: { ...port, stock: stockPort, arrivages: arrivagesConserves }
+      }).catch(() => {});
+    }
   } catch(e) { console.error('livrerEntrepotsQuotidien error', e); }
+  return resultats;
+}
+
+// Exportations institutionnelles Republia -> Al-Khalija (lot logistique portuaire, 25 aout
+// 2026). Contrairement aux imports, prelevement REEL sur le stock physique existant des 3
+// entrepots (jamais de matiere creee) : si le stock national est insuffisant, seule la
+// quantite reellement disponible est exportee, le taux de satisfaction est trace pour le
+// Commandant/Marcel Ancre, sans consequence diplomatique automatique (hors perimetre de ce lot).
+async function traiterExportationsPortQuotidien() {
+  const resultats = { exportations: {} };
+  try {
+    const etatPort = await sbGetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM).catch(() => ({}));
+    const port = (etatPort && etatPort.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {} };
+    const exportations = port.exportations || {};
+
+    const stocksEntrepots = {};
+    for (const e of ENTREPOTS_VILLES) {
+      const etatE = await sbGetBatimentEtat('republic', e.city, e.buildingId).catch(() => null);
+      stocksEntrepots[e.city] = { etat: etatE };
+    }
+
+    for (const [cle, cfg] of Object.entries(EXPORTATIONS_PORT)) {
+      // "1 ville" reutilise le plafond deja existant de la ressource (RESSOURCES_ECONOMIE_
+      // SERVEUR[cle].plafond) -- aucun chiffre invente, voir EXPORTATIONS_PORT plus haut.
+      const plafondRes = RESSOURCES_ECONOMIE_SERVEUR[cle].plafond;
+      const contrat = Math.round(plafondRes * cfg.equivalentVilles);
+
+      const stocksActuels = {};
+      let stockTotal = 0;
+      for (const e of ENTREPOTS_VILLES) {
+        const s = (stocksEntrepots[e.city].etat?.entrepot?.stock?.[cle]) || 0;
+        stocksActuels[e.city] = s;
+        stockTotal += s;
+      }
+
+      const aExporter = Math.min(contrat, stockTotal);
+      // Repartition proportionnelle au stock REEL de chaque ville (pas aux pourcentages du
+      // Commandant, qui pilotent les imports, pas les exports) -- arrondi Hamilton, jamais plus
+      // preleve que ce qui existe reellement dans un entrepot donne.
+      const preleves = {};
+      if (aExporter > 0 && stockTotal > 0) {
+        const villesIds = ENTREPOTS_VILLES.map(e => e.city);
+        const parts = villesIds.map(v => aExporter * (stocksActuels[v] / stockTotal));
+        const planchers = parts.map(p => Math.floor(p));
+        let reliquat = aExporter - planchers.reduce((s, p) => s + p, 0);
+        const ordre = parts.map((p, i) => ({ i, frac: p - planchers[i] })).sort((a, b) => b.frac - a.frac || a.i - b.i);
+        const montants = [...planchers];
+        for (let k = 0; k < ordre.length && reliquat > 0; k++) { montants[ordre[k].i]++; reliquat--; }
+        villesIds.forEach((v, i) => { preleves[v] = montants[i]; });
+      }
+
+      for (const e of ENTREPOTS_VILLES) {
+        const qte = preleves[e.city] || 0;
+        if (qte <= 0) continue;
+        const cible = stocksEntrepots[e.city];
+        if (!cible.etat) continue;
+        const entrepotCible = cible.etat.entrepot || { stock: {}, caisse: 8500 };
+        const stockCible = entrepotCible.stock || {};
+        stockCible[cle] = Math.max(0, (stockCible[cle] || 0) - qte);
+        cible.etat = { ...cible.etat, entrepot: { ...entrepotCible, stock: stockCible } };
+      }
+
+      const satisfactionPct = contrat > 0 ? Math.round((aExporter / contrat) * 10000) / 100 : 100;
+      exportations[cle] = { destination: cfg.destination, contrat, envoye: aExporter, satisfactionPct, jour: new Date().toISOString() };
+      resultats.exportations[cle] = { contrat, envoye: aExporter, satisfactionPct };
+    }
+
+    for (const e of ENTREPOTS_VILLES) {
+      const cible = stocksEntrepots[e.city];
+      if (cible.etat) await sbSetBatimentEtat('republic', e.city, e.buildingId, cible.etat).catch(() => {});
+    }
+    await sbSetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM, { ...(etatPort || {}), port: { ...port, exportations } }).catch(() => {});
+  } catch(e) { console.error('traiterExportationsPortQuotidien error', e); }
   return resultats;
 }
 
@@ -1399,6 +1625,126 @@ async function preleverLoyersLots() {
   return resultats;
 }
 
+// =====================
+// COTISATIONS NON ETERNELLES — club de supporters + Syndicat des Dockers de PSM (lot logistique
+// portuaire, 25 aout 2026, §13). Principe valide : adhesion = 50 FR pour les deux (rejoindre_
+// club_supporters passe de 150 a 50 FR pour rester coherent avec ce meme principe, voir data.js).
+// Renouvellement JAMAIS eternel : supporters = a chaque nouveau championnat (evenement reel, lu
+// directement sur saison.numero, pas un decompte de jours approximatif) ; syndicat = tous les 3
+// mois reels (calendaire, pas un nombre de jours de jeu -- state.day est un compteur PROPRE A
+// CHAQUE PERSONNAGE cote client, inutilisable pour comparer des joueurs entre eux, voir
+// formatDateHeureJeu/dateReelleParisStr, plateau-core.js). Execute cote serveur/cron (comme
+// preleverLoyersLots ci-dessus, meme pattern exact pour debiter le FR PERSONNEL d'un joueur
+// potentiellement deconnecte) : jamais depend d'un client connecte. Si le FR manque au moment du
+// renouvellement : fin d'adhesion automatique, aucune dette creee (le membre est simplement
+// retire de orga.membres).
+const COTISATION_MONTANT = 50;
+const COTISATION_SYNDICAT_MOIS = 3;
+const ID_SYNDICAT_DOCKERS_PSM = 'orga_syndicat_dockers_republic_ville_a';
+// Duplique minimal de CLUBS_SPORTIFS (data.js) -- seuls country/city/id sont necessaires ici
+// pour retrouver la caisse du club (budgets_clubs) associee a un club de supporters local.
+const CLUBS_SPORTIFS_SERVEUR = [
+  { id:'olympique-luthecia',    country:'republic', city:'capitale' },
+  { id:'brise-mariannaise',     country:'republic', city:'ville_a' },
+  { id:'cheminote-montrouge',   country:'republic', city:'ville_b' },
+  { id:'rojos-cartel',          country:'narco',    city:'capitale' },
+  { id:'fronterizos-unidos',    country:'narco',    city:'ville_a' },
+  { id:'jaguares-selva',        country:'narco',    city:'ville_b' },
+  { id:'dynamo-novomirsk',      country:'soviet',   city:'capitale' },
+  { id:'spartak-sibirsk',       country:'soviet',   city:'ville_a' },
+  { id:'kolkhoze-ouvrier',      country:'soviet',   city:'ville_b' },
+  { id:'nadi-al-madina',        country:'khalija',  city:'capitale' },
+  { id:'al-baraka-fc',          country:'khalija',  city:'ville_a' },
+  { id:'sharq-al-nour',         country:'khalija',  city:'ville_b' }
+];
+
+async function crediterBudgetClubServeur(clubId, montant, motif) {
+  const rows = await sbGet('budgets_clubs', `id=eq.${encodeURIComponent(clubId)}`);
+  let data = rows && rows[0] ? rows[0].data : null;
+  if (!data) data = { clubId, caisse: 0, historique: [], derniereSubventionJour: null, salaires: { titulaire: 100, remplacant: 50, primeVictoire: 150 } };
+  data.caisse = Math.max(0, (data.caisse || 0) + montant);
+  data.historique = data.historique || [];
+  data.historique.push({ jour: null, montant, motif });
+  if (data.historique.length > 50) data.historique = data.historique.slice(-50);
+  if (rows && rows[0]) await sbUpdate('budgets_clubs', `id=eq.${encodeURIComponent(clubId)}`, { data, updated_at: new Date().toISOString() }).catch(() => {});
+  else await sbInsert('budgets_clubs', { id: clubId, data, updated_at: new Date().toISOString() }).catch(() => {});
+}
+
+async function renouvellerCotisationsOrganisations() {
+  const resultats = { renouvellements: 0, resiliations: 0 };
+  try {
+    const rows = await sbGet('organisations', 'select=*');
+    if (!rows) return resultats;
+    const saisonRows = await sbGet('championnat', 'id=eq.1&select=data');
+    let saisonActuelle = null;
+    if (saisonRows && saisonRows[0]) {
+      try { saisonActuelle = JSON.parse(saisonRows[0].data); } catch(e) { saisonActuelle = null; }
+    }
+    const maintenant = Date.now();
+
+    for (const row of rows) {
+      let orga;
+      try { orga = JSON.parse(row.data); } catch(e) { continue; }
+      // Perimetre de ce lot : le club de supporters (adhesion 150->50 FR, renouvellement par
+      // saison) et le seul Syndicat des Dockers de PSM (renouvellement tous les 3 mois). Les
+      // autres organisations 'syndicale' (moteur generique orga_*, fondees par des PJ) ne sont
+      // pas concernees -- aucune mecanique de cotisation validee pour elles dans ce lot.
+      const estSyndicatDockersPSM = orga.type === 'syndicale' && orga.id === ID_SYNDICAT_DOCKERS_PSM;
+      if (orga.type !== 'supporters' && !estSyndicatDockersPSM) continue;
+      if (!orga.membres || orga.membres.length === 0) continue;
+
+      let modifie = false;
+      const membresConserves = [];
+
+      for (const membre of orga.membres) {
+        let doitRenouveler = false;
+        if (orga.type === 'supporters') {
+          doitRenouveler = !!saisonActuelle && membre.derniereCotisationSaison !== saisonActuelle.numero;
+        } else if (membre.derniereCotisationDate) {
+          const echeance = new Date(membre.derniereCotisationDate);
+          echeance.setMonth(echeance.getMonth() + COTISATION_SYNDICAT_MOIS);
+          doitRenouveler = maintenant >= echeance.getTime();
+        }
+
+        if (!doitRenouveler) { membresConserves.push(membre); continue; }
+
+        const persoRows = await sbGet('personnages', `name=eq.${encodeURIComponent(membre.nom)}`);
+        const perso = persoRows && persoRows[0];
+        const argActuel = perso ? (perso.arg || 0) : 0;
+
+        if (perso && argActuel >= COTISATION_MONTANT) {
+          await sbUpdate('personnages', `name=eq.${encodeURIComponent(membre.nom)}`, { arg: argActuel - COTISATION_MONTANT });
+          if (orga.type === 'supporters') {
+            membre.derniereCotisationSaison = saisonActuelle.numero;
+            const club = CLUBS_SPORTIFS_SERVEUR.find(c => c.country === orga.country && c.city === orga.city);
+            if (club) await crediterBudgetClubServeur(club.id, COTISATION_MONTANT, 'Cotisation supporter (renouvellement)').catch(() => {});
+          } else {
+            membre.derniereCotisationDate = new Date().toISOString();
+          }
+          membresConserves.push(membre);
+          resultats.renouvellements++;
+          modifie = true;
+        } else {
+          resultats.resiliations++;
+          modifie = true;
+          await sbInsert('mails', {
+            destinataire: membre.nom, expediteur: orga.nom,
+            sujet: "Fin d'adhésion — cotisation non renouvelée",
+            corps: 'Votre adhésion à "' + orga.nom + '" a pris fin automatiquement : la cotisation de ' + COTISATION_MONTANT + " FR n'a pas pu être prélevée. Aucune dette n'est créée.",
+            archived: false
+          }).catch(() => {});
+        }
+      }
+
+      if (modifie) {
+        orga.membres = membresConserves;
+        await sbUpdate('organisations', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(orga) }).catch(() => {});
+      }
+    }
+  } catch(e) { console.error('renouvellerCotisationsOrganisations error', e); }
+  return resultats;
+}
+
 async function traiterSouvenirsAccueil() {
   const resultats = { fuites: 0, expires: 0 };
   try {
@@ -1459,7 +1805,12 @@ const PNJ_PAR_DEFAUT_POSTE = {
   // Chef des Douanes (lot du 24 aout 2026) : deja en poste dans data.js (persons de la room
   // douanes, port-sainte-marie), meme convention que commissaire/directeurs -- reutilise le nom
   // deja affiche plutot que d'en inventer un second.
-  chef_douanes:            'Pascal Paguevite (PNJ)'
+  chef_douanes:            'Pascal Paguevite (PNJ)',
+  // Commandant du Port (lot logistique portuaire, 25 aout 2026) : deja en poste dans data.js
+  // (persons de administration_portuaire, port-sainte-marie), meme convention. A la difference
+  // de chef_douanes, capitaine_port n'est PAS dans POSTES_UNIQUES_A_MASQUER (plateau-
+  // multijoueur.js) : Marcel Ancre reste visible dans la room meme une fois qu'un PJ est nomme.
+  capitaine_port:          'Marcel Ancre (PNJ)'
 };
 
 // Directeur d'entrepot (scope:ville, nomme par le maire) : un PNJ different par ville, deja en
@@ -1486,7 +1837,8 @@ const CASCADE_NATIONALE = [
   { posteId: 'directeur_pharma',        nommePar: 'min_fin' },
   { posteId: 'directeur_tabac_alcools', nommePar: 'min_fin' },
   { posteId: 'directeur_raffinerie',    nommePar: 'min_fin' },
-  { posteId: 'chef_douanes',            nommePar: 'min_int' }
+  { posteId: 'chef_douanes',            nommePar: 'min_int' },
+  { posteId: 'capitaine_port',          nommePar: 'min_fin' }
 ];
 
 async function verifierPostesVacantsEtAutoPourvoir() {
@@ -1527,6 +1879,25 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       else await sbInsert('titulaires_pnj', payload);
       occupePNJ.add(cle(posteId, ville));
       resultats.pourvus.push({ poste: posteId, city: ville || null, pnj: nomPnj });
+
+      // Retour du Commandant PNJ = reset des repartitions (regle precisee le 25 aout 2026,
+      // apres le rapport initial du lot logistique portuaire) : la repartition 1/3-1/3-1/3 est
+      // la DOCTRINE du PNJ, pas seulement une valeur initiale -- un ancien Commandant PJ ne doit
+      // jamais pouvoir laisser une ville a 0% apres son depart. pourvoirPnj() n'est appelee pour
+      // ce poste QUE lorsqu'il etait reellement vacant l'instant d'avant (ni PJ ni PNJ deja
+      // titulaire, voir estOccupe() plus haut) : c'est le point de convergence UNIQUE de tous
+      // les chemins de perte du poste (revocation, demission, mort/suppression du personnage,
+      // arrestation, naturalisation...), donc cette regle les couvre tous sans avoir a patcher
+      // chacun individuellement. Une succession PJ -> PJ directe (accepterNominationPosteNomme/
+      // accepterCandidaturePoste, plateau-politique.js) installe le nouveau titulaire PJ sans
+      // jamais repasser par une vacance ni par pourvoirPnj() : jamais resetee, comme demande.
+      if (posteId === 'capitaine_port') {
+        const etatPort = await sbGetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM).catch(() => ({}));
+        const port = (etatPort && etatPort.port) || {};
+        if (port.repartition && Object.keys(port.repartition).length > 0) {
+          await sbSetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM, { ...(etatPort || {}), port: { ...port, repartition: {} } }).catch(() => {});
+        }
+      }
     }
 
     async function pourvoirCycleElu(posteId, ville) {
@@ -1867,6 +2238,11 @@ export default async function handler(req, res) {
     // passe, limite du plan Vercel Hobby)
     const livraisons = await livrerEntrepotsQuotidien();
 
+    // 12b. Exportations institutionnelles du Port de PSM (lot logistique portuaire, 25 aout
+    // 2026) : prelevement reel sur le stock des 3 entrepots, apres que les imports du jour ont
+    // ete distribues ci-dessus.
+    const exportationsPort = await traiterExportationsPortQuotidien();
+
     // 13. Production quotidienne des transformateurs (mode PNJ), redistribution 60/40
     const production = await produireTransformateursQuotidien();
 
@@ -1890,6 +2266,10 @@ export default async function handler(req, res) {
     // 16d. Fret maritime : mise en vente J15 des caisses jamais videes (arrivee -> a_vendre)
     const caissesFretMisesEnVente = await traiterMiseEnVenteCaissesFret();
 
+    // 16e. Cotisations non eternelles (club de supporters + Syndicat des Dockers de PSM, lot
+    // logistique portuaire du 25 aout 2026) : renouvellement tacite ou fin d'adhesion automatique
+    const cotisationsOrganisations = await renouvellerCotisationsOrganisations();
+
     // 17. Journal du jour (Lot B) — STRICTEMENT en dernier, dans son propre try/catch : un
     // echec ou un depassement de son propre budget interne ne doit jamais remettre en cause les
     // 16 taches critiques ci-dessus, deja executees et sauvegardees avant ce point.
@@ -1901,7 +2281,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, production, conflitsBNE, investissements, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

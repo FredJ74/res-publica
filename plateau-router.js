@@ -118,6 +118,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_accessoire_personnalise') { doAcheterAccessoirePersonnalise(); return; }
   if (fn === 'rejoindre_club_supporters') { doRejoindreClubSupporters(pa, cost); return; }
   if (fn === 'consulter_organigramme_supporters') { doConsulterOrganigrammeSupporters(); return; }
+  if (fn === 'se_syndiquer') { doRejoindreSyndicatDockers(pa, cost); return; }
+  if (fn === 'consulter_organigramme_syndicat') { doConsulterOrganigrammeSyndicat(); return; }
+  if (fn === 'declencher_election_syndicat') { doDeclencherElectionSyndicat(pa, cost); return; }
+  if (fn === 'organiser_manifestation_syndicat') { doOrganiserManifestationSyndicat(); return; }
   if (fn === 'consulter_etat_civil') { doConsulterEtatCivil(); return; }
   if (fn === 'consulter_personnalites_musee') { doConsulterPersonnalitesMusee(); return; }
   if (fn === 'consulter_mandats_maires') { doConsulterResumesMandats(); return; }
@@ -265,8 +269,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'contrebande_port')       { doContrebandePort(pa, cost); return; }
   if (fn === 'blocus_portuaire')       { doBlocusPortuaire(pa, cost); return; }
   if (fn === 'inspecter_cargaisons')   { doInspecterCargaisons(pa, cost); return; }
-  if (fn === 'consulter_manifeste')    { doConsulterManifeste(pa, cost); return; }
-  if (fn === 'falsifier_manifeste')    { doFalsifierManifeste(pa, cost); return; }
+  if (fn === 'consulter_manifeste')    { doConsulterManifeste(); return; }
   if (fn === 'acheter_parapluie')      { doAcheterPoisonObjet('parapluie'); return; }
   if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb', pa, cost); return; }
   if (fn === 'acheter_polonium')       { doAcheterPoisonObjet('polonium', pa, cost); return; }
@@ -349,6 +352,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'revoquer_juge') { ouvrirModalRevoquerJuge(pa, cost); return; }
   if (fn === 'nommer_chef_douanes') { ouvrirModalNommerChefDouanes(); return; }
   if (fn === 'revoquer_chef_douanes') { ouvrirModalRevoquerChefDouanes(pa, cost); return; }
+  if (fn === 'nommer_commandant_port') { ouvrirModalNommerCommandantPort(); return; }
+  if (fn === 'revoquer_commandant_port') { ouvrirModalRevoquerCommandantPort(pa, cost); return; }
+  if (fn === 'consulter_administration_port') { ouvrirConsulterPort(); return; }
+  if (fn === 'acheter_criee') { ouvrirAcheterCriee(pa, cost); return; }
+  if (fn === 'affecter_criee') { ouvrirAffecterCriee(); return; }
+  if (fn === 'consulter_effectifs_douane') { ouvrirConsulterEffectifsDouane(); return; }
   if (fn === 'recruter_douanier') { doRecruterDouanier(pa, cost); return; }
   if (fn === 'gerer_effectifs_douane') { ouvrirGererEffectifsDouane(); return; }
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }

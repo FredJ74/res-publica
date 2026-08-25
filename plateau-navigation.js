@@ -1730,47 +1730,13 @@ async function doInspecterCargaisons(pa, cost) {
   }
 }
 
-async function doConsulterManifeste(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
-  const int_ = getStatEffective('INT');
-  const taux = Math.max(5, 75 + Math.floor(int_/10));
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    state.inf = Math.min(100, state.inf + 3);
-    updateUI();
-    showToast('Manifeste consulté', 'Vous repérez des incohérences dans les registres. +3 INF.', true);
-    addJournalEntry('Manifeste portuaire consulté. Incohérences notées.', 'event-info');
-  } else {
-    showToast('Accès refusé', 'Le registre n\'est pas disponible.', false);
-  }
-}
-
-// Cout conditionnel (Phase K), meme logique que doCorrompreDoanier : PA du des la tentative,
-// FR uniquement en cas de reussite (rien a payer si la falsification echoue).
-async function doFalsifierManifeste(pa, cost) {
-  const rPa = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '', false); return; }
-
-  // Falsifier un document est une competence technique (INT), pas un numero de charme (DUP) --
-  // reclasse par l'audit de refonte de la creation de personnage (bêta).
-  const int = getStatEffective('INT');
-  const taux = Math.max(5, 40 + Math.floor(int/10) - getMalusISN());
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    const rCost = await deduireCoutOrdre({ pa: 0, cost });
-    if (!rCost.ok) { showToast('Fonds insuffisants', '', false); return; }
-    updateUI();
-    showToast('Manifeste falsifié', 'La cargaison a disparu des registres.', true, true);
-    addJournalEntry('Falsification du manifeste portuaire.', 'event-bad');
-    checkDetection('falsifier_manifeste', 'success');
-  } else {
-    showToast('Échec !', 'La falsification a échoué.', false);
-    checkDetection('falsifier_manifeste', 'fail');
-  }
-}
+// consulter_manifeste (jet abstrait INT, aucune donnee reelle) et falsifier_manifeste (jet
+// abstrait sans effet reel sur une caisse) retires d'ici le 25 aout 2026 (lot logistique
+// portuaire, §9/§10) : falsifier_manifeste est purement supprime a PSM (seul empire qui
+// l'exposait, verifie -- aucun autre order/room ne le referencait), aucune version future
+// codee dans ce lot. consulter_manifeste devient un vrai registre administratif persistant
+// (fret prive + flux institutionnels du port), reimplemente dans plateau-justice-economie.js
+// aux cotes du reste de la logique portuaire (getEtatPort, RESSOURCES_PORT_IMPORTEES, etc.).
 
 // =====================
 

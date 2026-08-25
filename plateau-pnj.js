@@ -1343,6 +1343,37 @@ function verifierSuccesMaxence(cle) {
   const lieuPiece = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom]?.name || '';
   const lieuTexte = lieuBatiment ? (lieuBatiment + (lieuPiece ? ' (' + lieuPiece + ')' : '')) : '';
 
+  // Marcel Ancre (lot logistique portuaire, 25 aout 2026, §16) : talkToPnj() n'injecte par
+  // defaut AUCUNE donnee economique dynamique (audit confirme) -- laisser le modele improviser
+  // des chiffres reels aurait garanti des inventions. Ici, les faits reels sont calcules AVANT
+  // le prompt (etat.port/caisse du port, meme source que ouvrirConsulterPort,
+  // plateau-justice-economie.js) et injectes comme des faits enonces, jamais laisses au modele.
+  // Volontairement PAS de diagnostic "deficitaire/equilibre/excedentaire" : aucun suivi recettes/
+  // depenses fiable n'existe encore (seul le solde instantane est connu) -- l'instruction dans le
+  // prompt lui interdit explicitement d'en deduire un. Architecture prete pour un futur suivi.
+  let contextePortMarcelAncre = '';
+  if (pnjKey === 'Marcel Ancre' && state.country === 'republic' && typeof getEtatPort === 'function') {
+    const port = await getEtatPort().catch(() => null);
+    if (port) {
+      const stockTxt = (typeof RESSOURCES_PORT_IMPORTEES !== 'undefined' ? RESSOURCES_PORT_IMPORTEES : [])
+        .filter(cle => (port.stock?.[cle] || 0) > 0)
+        .map(cle => (RESSOURCES_ECONOMIE[cle]?.label || cle) + ' : ' + Math.round(port.stock[cle]))
+        .join(', ') || 'aucun stock institutionnel en attente de répartition';
+      const caissePort = typeof chargerCaisseBatiment === 'function'
+        ? await chargerCaisseBatiment('republic', BUILDING_ID_PORT).catch(() => ({ solde: 0 }))
+        : { solde: 0 };
+      const arrivagesTxt = (port.arrivages || []).slice(0, 3)
+        .map(a => (RESSOURCES_ECONOMIE[a.resource]?.label || a.resource) + ' +' + Math.round(a.qte))
+        .join(', ') || 'aucun arrivage récent enregistré';
+      const exportsTxt = Object.entries(typeof EXPORTATIONS_PORT_INFOS !== 'undefined' ? EXPORTATIONS_PORT_INFOS : {})
+        .map(([cle, infos]) => {
+          const exp = port.exportations?.[cle];
+          return exp ? (infos.label + ' vers ' + infos.destination + ' : ' + Math.round(exp.envoye) + '/' + exp.contrat + ' (' + exp.satisfactionPct + '%)') : null;
+        }).filter(Boolean).join(' ; ') || 'aucune exportation enregistrée pour l\'instant';
+      contextePortMarcelAncre = `Faits réels et actuels sur la situation du port, à utiliser tels quels sans jamais en inventer d'autres : solde de la caisse du port ${Math.round(caissePort.solde || 0)} FR ; stock institutionnel en attente de répartition : ${stockTxt} ; arrivages récents : ${arrivagesTxt} ; exportations : ${exportsTxt}. Tu ne disposes d'AUCUN suivi fiable des recettes/dépenses passées : ne dis JAMAIS que le port est "déficitaire", "équilibré" ou "excédentaire" — contente-toi d'énoncer les faits ci-dessus.`;
+    }
+  }
+
   const prompt = `Tu joues un personnage dans Res Publica, un jeu de rôle politique parodique et satirique.
 L'empire est ${co?.n} (${empireStyle.tone}).
 La religion locale est ${empireStyle.religion}. Le chef suprême est ${empireStyle.leader}.
@@ -1356,6 +1387,7 @@ ${profil?.fonctionPedagogique ? `Tu es chargé d'expliquer au joueur : ${profil.
 ${profil?.secrets ? `Tu connais ceci mais ne le révèle JAMAIS spontanément, seulement si on insiste beaucoup ou qu'on te corrompt : ${profil.secrets}` : ''}
 ${profil?.objectifs ? `Ta motivation personnelle : ${profil.objectifs}` : ''}
 ${profil?.rumeurs ? `Rumeurs que tu peux relayer, informations imparfaites : ${profil.rumeurs}` : ''}
+${contextePortMarcelAncre}
 Relation avec le joueur : ${pnj.rel === 'ally' ? 'allié de confiance' : pnj.rel === 'enemy' ? 'ennemi déclaré' : 'neutre'}.
 ${lieuTexte ? `Lieu actuel : vous vous trouvez tous les deux à ${lieuTexte}. N'évoque jamais un autre établissement (mairie, commissariat, tribunal...) comme si vous y étiez actuellement.` : ''}
 ${(pnj.name || '').replace(' (PNJ)', '').trim() === 'Maxence Monfils' ? `Contexte special : tu es un enfant d'une dizaine d'annees, curieux, insaisissable et un peu mysterieux. Tu passes ton temps a observer des insectes et des plantes avec ta loupe. Tu vouvoies ou tutoies selon ton humeur (tu es un enfant, pas tenu a la politesse formelle). Tu ne reponds JAMAIS de facon claire ou directe aux questions ; reste evasif, enigmatique, parfois carrement hors sujet, sans jamais mentir grossierement ni etre desagreable. Tu ne dis jamais explicitement que tu es recherche par des organisations environnementales ni que tu arraches des ailes d'insectes, mais tu peux le suggerer de facon detournee et innocente si on te pose une question qui s'en approche. Reponds en 1 a 2 phrases maximum, jamais plus.` : ''}

@@ -1168,6 +1168,7 @@ function quitterOrga(orgaId) {
   if (!orga) return;
   if (orga.chef === state.char?.name) { showToast('Impossible', 'Dissolvez l\'organisation ou transmettez la direction avant de partir.', false); return; }
   orga.membres = orga.membres.filter(m => m.nom !== state.char?.name);
+  sauvegarderOrga(orga);
   showToast('Vous avez quitté', '"' + orga.nom + '"', false);
   addJournalEntry('Départ de "' + orga.nom + '".', '');
   switchSelfTab('orgas', null);
@@ -2441,12 +2442,16 @@ async function doRejoindreClubSupporters(pa, cost) {
   if (dejaMembre) { showToast('Déjà membre', 'Vous êtes déjà membre du club de supporters de ' + clubLocal.nom + '.', false); return; }
 
   // Avant Phase K, le PA (1) etait deduit ici sans jamais respecter TEST_MODE (bug decouvert
-  // lors de la migration -- seul le cout (150 FR) etait correctement verifie).
+  // lors de la migration -- seul le cout (alors 150 FR) etait correctement verifie). Cout ramene
+  // a 50 FR le 25 aout 2026 (lot logistique portuaire, §13, "cotisations non eternelles") pour
+  // s'aligner sur le meme principe d'adhesion que le Syndicat des Dockers de PSM -- desormais
+  // jamais eternelle, voir renouvellerCotisationsOrganisations (api/cron-minuit.js).
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '150 FR requis pour l\'adhésion.', false); return; }
+  if (!r.ok) { showToast('Fonds insuffisants', '50 FR requis pour l\'adhésion.', false); return; }
 
   const def = TYPES_ORGANISATIONS.supporters;
   const grades = def?.grades?.[pays] || ['Sympathisant', 'Membre', 'Ultra', 'Meneur'];
+  const saison = await chargerOuInitialiserSaison();
 
   if (!orga) {
     orga = {
@@ -2465,14 +2470,14 @@ async function doRejoindreClubSupporters(pa, cost) {
     state.organisations.push(orga);
   }
 
-  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1 });
+  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1, derniereCotisationSaison: saison.numero });
   sauvegarderOrga(orga);
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
   showToast('Bienvenue !', 'Vous êtes désormais ' + grades[0] + ' du club de supporters — ' + clubLocal.nom + '.', true, true);
-  addJournalEntry('Adhésion au club de supporters du ' + clubLocal.nom + ' (-150 FR).', 'event-good');
-  await crediterBudgetClub(clubLocal.id, 150, 'Cotisation supporter');
+  addJournalEntry('Adhésion au club de supporters du ' + clubLocal.nom + ' (-50 FR).', 'event-good');
+  await crediterBudgetClub(clubLocal.id, cost, 'Cotisation supporter');
 
   // Rafraichir immediatement l'onglet Organisations si la fiche est deja ouverte dessus
   if (document.getElementById('vue-self')?.classList.contains('active')) {
@@ -2525,6 +2530,71 @@ async function chargerOuCreerSyndicatDockersPSM() {
   state.organisations.push(orga);
   if (typeof sauvegarderOrga === 'function') sauvegarderOrga(orga);
   return orga;
+}
+
+// ---- ADHÉSION (lot logistique portuaire, 25 aout 2026, §12) ----
+// Meme structure que doRejoindreClubSupporters ci-dessus (1 PA, seul precedent d'adhesion a une
+// organisation existant dans le jeu -- aucun precedent 0 PA trouve, reutilise plutot qu'invente),
+// 50 FR credites a la caisse propre du syndicat (orga.caisse, pas de "budget club" equivalent
+// ici puisqu'il n'y a pas de club sportif a financer).
+async function doRejoindreSyndicatDockers(pa, cost) {
+  const orga = await chargerOuCreerSyndicatDockersPSM();
+  if (!orga) { showToast('Indisponible', '', false); return; }
+  const dejaMembre = orga.membres?.some(m => m.nom === state.char?.name);
+  if (dejaMembre) { showToast('Déjà syndiqué', 'Vous êtes déjà membre du Syndicat des Dockers de Port-Sainte-Marie.', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '50 FR requis pour l\'adhésion.', false); return; }
+
+  const def = TYPES_ORGANISATIONS.syndicale;
+  const grades = def?.grades?.[orga.country] || ['Adherent', 'Delegue', 'Secretaire Adjoint', 'Secretaire General'];
+  // derniereCotisationDate (pas state.day, compteur propre a chaque personnage cote client, voir
+  // renouvellerCotisationsOrganisations/api/cron-minuit.js) : date reelle, base du renouvellement
+  // tous les 3 mois calendaires.
+  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1, derniereCotisationDate: new Date().toISOString() });
+  orga.caisse = (orga.caisse || 0) + cost;
+  sauvegarderOrga(orga);
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Bienvenue au syndicat !', 'Vous êtes désormais ' + grades[0] + ' du Syndicat des Dockers de Port-Sainte-Marie.', true, true);
+  addJournalEntry('Adhésion au Syndicat des Dockers de Port-Sainte-Marie (-50 FR).', 'event-good');
+  if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
+}
+
+// ---- ÉLECTION (reutilise integralement le moteur generique deja type-agnostique) ----
+function doDeclencherElectionSyndicat(pa, cost) {
+  const orga = getSyndicatDockersPSM();
+  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); return; }
+  const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
+  if (!estMembre) { showToast('Réservé aux membres', 'Syndiquez-vous pour déclencher une élection.', false); return; }
+  if (orga.election?.enCours) { showToast('Élection en cours', 'Une élection est déjà en cours pour ce syndicat.', false); return; }
+  const jour = state.day || 1;
+  if (orga.election?.derniereElection && (jour - orga.election.derniereElection) < 7) {
+    const reste = 7 - (jour - orga.election.derniereElection);
+    showToast('Trop tôt', 'Encore ' + reste + ' jour(s) avant de pouvoir redéclencher une élection.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Déclencher une élection';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.6rem">Motivez votre décision — ce message sera publié sur le forum du championnat.</div>';
+  html += '<textarea id="election-motivation" rows="4" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem" placeholder="Pourquoi déclenchez-vous cette élection ?"></textarea>';
+  html += '<button onclick="confirmerDeclenchementElection(\'' + orga.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déclencher l\'élection</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// ---- MANIFESTATION (meme modele securise que le club de supporters : garde UI via
+// requiresChefSyndicatDockers dans data.js + revalidation independante ici cote handler,
+// reutilise integralement ouvrirDemandeAutorisationManifester deja type-agnostique) ----
+function doOrganiserManifestationSyndicat() {
+  const orga = getSyndicatDockersPSM();
+  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); return; }
+  const estChef = orga.chef === state.char?.name;
+  if (!estChef) { showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut organiser une manifestation.', false); return; }
+  ouvrirDemandeAutorisationManifester(orga.id);
 }
 
 function doDeclencherElectionClub(pa, cost) {
@@ -2646,25 +2716,22 @@ function verifierElectionsOrganisations() {
   });
 }
 
-function doConsulterOrganigrammeSupporters() {
-  if (typeof rafraichirCachePhotosJoueurs === 'function') {
-    rafraichirCachePhotosJoueurs().then(() => {
-      // Re-affiche seulement si on est encore sur la liste (pas deja sur une fiche membre)
-      if (document.getElementById('postes-body')?.dataset.vue !== 'membre') doConsulterOrganigrammeSupporters();
-    }).catch(() => {});
-  }
+// Rendu generique de l'organigramme d'une organisation (chef/membres/election en cours),
+// extrait le 25 aout 2026 (lot logistique portuaire, §12) pour etre reutilise a la fois par le
+// club de supporters (doConsulterOrganigrammeSupporters, comportement inchange) et par le
+// Syndicat des Dockers de PSM (doConsulterOrganigrammeSyndicat, nouveau) -- aucune donnee/moteur
+// d'election dupliques, seul l'affichage etait jusqu'ici code en dur pour les supporters.
+// retourFn : nom (string) de la fonction globale a rappeler pour revenir de la fiche membre.
+function afficherOrganigrammeOrga(orga, retourFn) {
+  window._orgaOrganigrammeCourante = orga;
+  window._orgaOrganigrammeRetourFn = retourFn;
 
-  const orga = getClubSupportersLocal();
-  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
-  window._orgaSupportersCourante = orga;
-
-  const def = TYPES_ORGANISATIONS.supporters;
-  const grades = def?.grades?.[orga.country] || [];
+  const titreChef = typeof titreChefOrga === 'function' ? titreChefOrga(orga.type) : 'Chef';
 
   document.getElementById('postes-modal-title').textContent = 'Organigramme — ' + orga.nom;
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.25rem">' + orga.nom + (orga.chefEstPnj ? ' (poste de président vacant — assuré par PNJ)' : '') + '</div>';
-  html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.9rem">Président actuel : ' + orga.chef + '</div>';
+  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.25rem">' + orga.nom + (orga.chefEstPnj ? ' (poste vacant — assuré par PNJ)' : '') + '</div>';
+  html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.9rem">' + titreChef + ' actuel : ' + orga.chef + '</div>';
 
   const membresTries = [...(orga.membres || [])].sort((a, b) => (b.gradeIdx || 0) - (a.gradeIdx || 0));
   html += '<div style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:.35rem">';
@@ -2674,7 +2741,7 @@ function doConsulterOrganigrammeSupporters() {
   membresTries.forEach(m => {
     const estChef = m.nom === orga.chef;
     const nomEchap = m.nom.replace(/'/g, "\\'");
-    html += '<div onclick="afficherDetailMembreSupporters(\'' + nomEchap + '\')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.5rem .6rem;border:1px solid #2a2010;font-size:.9rem;color:' + (estChef ? '#C9A84C' : '#c0b090') + '"><span>' + m.nom + (estChef ? ' 👑' : '') + '</span><span>' + m.grade + '</span></div>';
+    html += '<div onclick="afficherDetailMembreOrga(\'' + nomEchap + '\')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.5rem .6rem;border:1px solid #2a2010;font-size:.9rem;color:' + (estChef ? '#C9A84C' : '#c0b090') + '"><span>' + m.nom + (estChef ? ' 👑' : '') + '</span><span>' + m.grade + '</span></div>';
   });
   html += '</div>';
 
@@ -2694,10 +2761,39 @@ function doConsulterOrganigrammeSupporters() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// Fiche detail d'un membre du club de supporters : photo (si connue), grade, et un bouton
-// pour lui ecrire directement (ouvre la messagerie avec son nom deja rempli en destinataire).
-function afficherDetailMembreSupporters(nom) {
-  const orga = window._orgaSupportersCourante;
+function doConsulterOrganigrammeSupporters() {
+  if (typeof rafraichirCachePhotosJoueurs === 'function') {
+    rafraichirCachePhotosJoueurs().then(() => {
+      // Re-affiche seulement si on est encore sur la liste (pas deja sur une fiche membre)
+      if (document.getElementById('postes-body')?.dataset.vue !== 'membre') doConsulterOrganigrammeSupporters();
+    }).catch(() => {});
+  }
+  const orga = getClubSupportersLocal();
+  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
+  afficherOrganigrammeOrga(orga, 'doConsulterOrganigrammeSupporters');
+}
+
+// Syndicat des Dockers de PSM (lot logistique portuaire, 25 aout 2026, §12) : meme rendu que le
+// club de supporters (afficherOrganigrammeOrga ci-dessus), meme moteur d'election generique
+// (deja type-agnostique, verifierElectionsOrganisations). chargerOuCreerSyndicatDockersPSM cree
+// paresseusement l'organisation si elle n'existe pas encore (meme garde que le blocus).
+async function doConsulterOrganigrammeSyndicat() {
+  const orga = await chargerOuCreerSyndicatDockersPSM();
+  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); return; }
+  if (typeof rafraichirCachePhotosJoueurs === 'function') {
+    rafraichirCachePhotosJoueurs().then(() => {
+      if (document.getElementById('postes-body')?.dataset.vue !== 'membre') doConsulterOrganigrammeSyndicat();
+    }).catch(() => {});
+  }
+  afficherOrganigrammeOrga(orga, 'doConsulterOrganigrammeSyndicat');
+}
+
+// Fiche detail d'un membre d'une organisation (club de supporters ou syndicat) : photo (si
+// connue), grade, et un bouton pour lui ecrire directement (ouvre la messagerie avec son nom
+// deja rempli en destinataire). Generalisee le 25 aout 2026 (etait afficherDetailMembreSupporters,
+// couplee en dur au club de supporters -- meme extraction que afficherOrganigrammeOrga ci-dessus).
+function afficherDetailMembreOrga(nom) {
+  const orga = window._orgaOrganigrammeCourante;
   const membre = orga?.membres?.find(m => m.nom === nom);
   const avatar = (typeof getAvatarHtmlPourNom === 'function') ? getAvatarHtmlPourNom(nom, 72, '#C9A84C') : '';
   const nomEchap = nom.replace(/'/g, "\\'");
@@ -2707,7 +2803,7 @@ function afficherDetailMembreSupporters(nom) {
   html += '<div style="font-size:1rem;color:#f0ead6;font-family:Bebas Neue,sans-serif;letter-spacing:.04em">' + nom + '</div>';
   if (membre) html += '<div style="font-size:.85rem;color:#8a8060">' + membre.grade + '</div>';
   html += '<button class="pnj-action-btn" onclick="ecrireAMembre(\'' + nomEchap + '\')" style="margin-top:.6rem"><i class="ti ti-mail" style="font-size:.85rem"></i> Écrire à ' + nom + '</button>';
-  html += '<button class="pnj-action-btn" onclick="doConsulterOrganigrammeSupporters()" style="margin-top:.3rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Retour à l\'organigramme</button>';
+  html += '<button class="pnj-action-btn" onclick="' + (window._orgaOrganigrammeRetourFn || 'doConsulterOrganigrammeSupporters') + '()" style="margin-top:.3rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Retour à l\'organigramme</button>';
   html += '</div>';
 
   const bodyEl = document.getElementById('postes-body');
@@ -2880,6 +2976,7 @@ async function doOrganiserBoycott(pa, cost) {
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const match = prochaineJournee.matchs.find(m => !m.played && m.home === clubLocal.id);
   match.boycotte = true;
+  if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(saison).catch(() => {});
 
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Boycott décidé', 'Le prochain match à domicile de ' + clubLocal.nom + ' sera boycotté par ses supporters.', true, true);

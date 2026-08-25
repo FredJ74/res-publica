@@ -4556,6 +4556,16 @@ function ouvrirModalNommerChefDouanes() {
 
 function ouvrirModalRevoquerChefDouanes(pa, cost) { ouvrirRevoquerPosteNomme('chef_douanes', pa, cost); }
 
+function ouvrirModalNommerCommandantPort() {
+  if (state.poste?.id !== 'min_fin') {
+    showToast('Accès refusé', 'Seul le Ministre des Finances peut nommer un Commandant du Port.', false);
+    return;
+  }
+  ouvrirNominerPosteNomme('capitaine_port');
+}
+
+function ouvrirModalRevoquerCommandantPort(pa, cost) { ouvrirRevoquerPosteNomme('capitaine_port', pa, cost); }
+
 function ouvrirModalNommerCommissaire() {
   if (!state.poste?.id?.startsWith('maire')) {
     showToast('Accès refusé', 'Seul le Maire peut nommer un commissaire.', false);

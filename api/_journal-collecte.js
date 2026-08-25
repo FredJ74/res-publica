@@ -62,6 +62,24 @@ const LIMITE_PAR_DOMAINE = 50;
 // Duplique de COUNTRIES (data.js).
 const PAYS_JEU = ['republic', 'narco', 'soviet', 'khalija'];
 
+// Duplique de VILLES_PAR_EMPIRE (plateau-navigation.js) -- meme convention que les autres
+// constantes de ce fichier (module serverless isole, sans acces au code client). Correctif du
+// 25 aout 2026 : le Journal du jour laissait fuiter les ids techniques bruts (ville_a/ville_b)
+// dans son texte, faute d'un tel helper cote serveur -- resoudreNomVille() ci-dessous est le
+// seul point d'insertion d'un nom de ville dans ce module, generique pour les 4 empires (aucun
+// remplacement code en dur specifique a Republia).
+const NOMS_VILLES = {
+  republic: { capitale: 'Luthécia',       ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' },
+  narco:    { capitale: 'Ciudad Roja',    ville_a: 'Puerto Oscuro',     ville_b: 'La Selva' },
+  soviet:   { capitale: 'Novomirsk',      ville_a: 'Stalinova',         ville_b: 'Kolkhoz-7' },
+  khalija:  { capitale: 'Al-Madina',      ville_a: 'Oasis Al-Zafar',    ville_b: 'Port Al-Nour' }
+};
+
+function resoudreNomVille(pays, villeId) {
+  if (!villeId) return null;
+  return (NOMS_VILLES[pays] && NOMS_VILLES[pays][villeId]) || villeId;
+}
+
 // Duplique de CLUBS_SPORTIFS (data.js) -- seuls les champs necessaires ici (id/nom/country).
 const CLUBS_SPORTIFS = [
   { id: 'olympique-luthecia',  nom: 'Olympique de Luthécia',        country: 'republic' },
@@ -191,14 +209,14 @@ async function collecterEtatCivil(periode) {
   // et le registre d'etat-civil (plateau-etat-civil.js) restent strictement inchanges.
   (naissances || []).forEach(r => facts.push({
     id: idSource('etat_civil_naissances', r), domaine: 'etat_civil', type: 'arrivee',
-    ville: r.city || null, pays: r.country,
-    resume: `Arrivée de ${r.nom}` + (r.city ? ` à ${r.city}` : ''),
+    ville: resoudreNomVille(r.country, r.city), pays: r.country,
+    resume: `Arrivée de ${r.nom}` + (r.city ? ` à ${resoudreNomVille(r.country, r.city)}` : ''),
     created_at: r.created_at
   }));
   (mariages || []).forEach(r => facts.push({
     id: idSource('mariages', r), domaine: 'etat_civil', type: 'mariage',
-    ville: r.city || null, pays: r.country,
-    resume: `Mariage de ${r.conjoint1} et ${r.conjoint2}` + (r.city ? ` à ${r.city}` : ''),
+    ville: resoudreNomVille(r.country, r.city), pays: r.country,
+    resume: `Mariage de ${r.conjoint1} et ${r.conjoint2}` + (r.city ? ` à ${resoudreNomVille(r.country, r.city)}` : ''),
     created_at: r.created_at
   }));
   // Divorces/veuvages volontairement exclus : "mariages" n'a pas de date de dissolution
@@ -206,8 +224,8 @@ async function collecterEtatCivil(periode) {
   // dissolution éventuelle n'est donc jamais garantie.
   (deces || []).forEach(r => facts.push({
     id: idSource('etat_civil_deces', r), domaine: 'etat_civil', type: 'deces',
-    ville: r.city || null, pays: r.country,
-    resume: `Décès de ${r.nom}` + (r.city ? ` à ${r.city}` : ''),
+    ville: resoudreNomVille(r.country, r.city), pays: r.country,
+    resume: `Décès de ${r.nom}` + (r.city ? ` à ${resoudreNomVille(r.country, r.city)}` : ''),
     created_at: r.created_at
   }));
   return facts;
@@ -222,13 +240,13 @@ async function collecterJustice(periode) {
   const facts = [];
   (detentions || []).forEach(r => facts.push({
     id: idSource('detentions', r), domaine: 'justice', type: 'arrestation',
-    ville: r.city || null, pays: r.country,
+    ville: resoudreNomVille(r.country, r.city), pays: r.country,
     resume: `${r.nom} a été placé(e) en détention (${r.raison})`,
     created_at: r.created_at
   }));
   (jugements || []).forEach(r => facts.push({
     id: idSource('jugements', r), domaine: 'justice', type: 'condamnation',
-    ville: r.city || null, pays: r.country,
+    ville: resoudreNomVille(r.country, r.city), pays: r.country,
     resume: `${r.accuse} a été condamné(e) pour ${r.motif} : ${r.peine}`,
     created_at: r.created_at
   }));
@@ -240,8 +258,8 @@ async function collecterCandidatures(periode) {
   const rows = await sbGet('candidatures', `${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
   return (rows || []).map(r => ({
     id: idSource('candidatures', r), domaine: 'politique', type: 'candidature',
-    ville: r.city || null, pays: r.country,
-    resume: `${r.nom} a déposé sa candidature au poste de ${r.poste_id}` + (r.city ? ` à ${r.city}` : ''),
+    ville: resoudreNomVille(r.country, r.city), pays: r.country,
+    resume: `${r.nom} a déposé sa candidature au poste de ${r.poste_id}` + (r.city ? ` à ${resoudreNomVille(r.country, r.city)}` : ''),
     created_at: r.created_at
   }));
 }
@@ -344,7 +362,7 @@ async function collecterIndicateursPopulation(pays) {
   const liste = rows || [];
   const parVille = {};
   liste.forEach(r => {
-    const v = r.current_city || 'inconnue';
+    const v = r.current_city ? resoudreNomVille(pays, r.current_city) : 'inconnue';
     parVille[v] = (parVille[v] || 0) + 1;
   });
   return [
@@ -379,11 +397,11 @@ async function collecterIndicateursEconomiques(pays) {
       const prix = prixFixeManuel ? prixManuel[cle] : getPrixRessource(cle, enStock);
       indicateurs.push({
         id: idIndicateur(`prix_${cle}_${pays}_${entrepot.city}`), cle: `prix_${cle}`,
-        valeur: prix, ville: entrepot.city, pays, disponible: prix != null, prix_manuel: prixFixeManuel
+        valeur: prix, ville: resoudreNomVille(pays, entrepot.city), pays, disponible: prix != null, prix_manuel: prixFixeManuel
       });
       indicateurs.push({
         id: idIndicateur(`stock_${cle}_${pays}_${entrepot.city}`), cle: `stock_${cle}`,
-        valeur: enStock, ville: entrepot.city, pays, disponible: true
+        valeur: enStock, ville: resoudreNomVille(pays, entrepot.city), pays, disponible: true
       });
     });
   }
@@ -412,7 +430,7 @@ async function collecterIndicateursCaisses(pays) {
     const data = parseBlob(rows[0].data);
     indicateurs.push({
       id: idIndicateur(`caisse_municipale_${pays}_${ville}`), cle: 'caisse_municipale',
-      valeur: data.caisse != null ? data.caisse : null, ville, pays, disponible: data.caisse != null
+      valeur: data.caisse != null ? data.caisse : null, ville: resoudreNomVille(pays, ville), pays, disponible: data.caisse != null
     });
   }
   return indicateurs;
