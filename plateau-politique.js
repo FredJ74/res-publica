@@ -117,11 +117,82 @@ async function ouvrirEcranPostes() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// =====================
+// PRIORITE PJ SUR POSTES NOMMES — DELAI DE DECISION + PROTECTION (lot du 25 aout 2026, apres
+// audit dedie). Genere generique a TOUS les POSTES_NOMMES_EXCLUSIFS.
+//
+// Persistance : reutilise batiments_etat (comme etat.port ou le BNE), UNE entree partagee par
+// pays ('<pays>_national_candidatures_postes'), aucune nouvelle table SQL -- l'audit a confirme
+// que le mail seul ne peut pas garantir la survie a une suppression, une echeance fiable cote
+// cron ni le suivi de plusieurs candidats : ce blob resout ces trois points sans DDL.
+// Forme : { [posteId + '|' + (city||'national')]: {
+//   posteId, city, candidats: [{ nom, depuisTs }], echeanceTs, autoriteNom, traitee: bool
+// } }
+// =====================
+const BATIMENT_ID_CANDIDATURES_POSTES = 'candidatures_postes';
+const VILLE_ID_CANDIDATURES_POSTES = 'national';
+
+function cleCandidaturePoste(posteId, city) {
+  return posteId + '|' + (city || 'national');
+}
+
+async function chargerCandidaturesPostes(country) {
+  const pays = country || state.country || 'republic';
+  const etat = typeof sbGetBatimentEtat === 'function'
+    ? await sbGetBatimentEtat(pays, VILLE_ID_CANDIDATURES_POSTES, BATIMENT_ID_CANDIDATURES_POSTES).catch(() => ({}))
+    : {};
+  return (etat && etat.candidatures) || {};
+}
+
+async function sauvegarderCandidaturesPostes(country, candidatures) {
+  const pays = country || state.country || 'republic';
+  if (typeof sbSetBatimentEtat === 'function') {
+    await sbSetBatimentEtat(pays, VILLE_ID_CANDIDATURES_POSTES, BATIMENT_ID_CANDIDATURES_POSTES, { candidatures }).catch(() => {});
+  }
+}
+
+// Protection de 7 jours reels contre la revocation/le remplacement politique arbitraire d'un PJ
+// fraichement nomme (§9-12 du lot) -- ne bloque QUE l'arbitraire du nominateur : demission,
+// arrestation, naturalisation, mort/suppression du personnage et censure du PM restent des
+// sorties legitimes, jamais concernees (comportement preexistant, non touche).
+function estPosteProtege(poste) {
+  if (!poste || !poste.nommeLe) return false;
+  return (Date.now() - poste.nommeLe) < DUREE_PROTECTION_POSTE_NOMME_MS;
+}
+
+function tempsProtectionRestanteTexte(poste) {
+  if (!estPosteProtege(poste)) return '';
+  const finMs = poste.nommeLe + DUREE_PROTECTION_POSTE_NOMME_MS;
+  const heures = Math.max(1, Math.ceil((finMs - Date.now()) / 3600000));
+  if (heures >= 24) return Math.ceil(heures / 24) + ' jour(s)';
+  return heures + 'h';
+}
+
+// Recale l'echeance et le nominateur responsable si l'autorite de nomination a change depuis la
+// derniere ecriture du dossier -- garantit au nouveau titulaire une fenetre complete de 48h
+// (§5 du lot) sans jamais sanctionner un nominateur qui vient de prendre ses fonctions. Mute le
+// dossier en place (appelant responsable de la sauvegarde) ; retourne true si un changement a
+// ete applique.
+async function reconcilierAutoriteCandidature(dossier) {
+  const regle = POSTES_NOMMES_EXCLUSIFS[dossier.posteId];
+  if (!regle || typeof getTitulaireActuel !== 'function') return false;
+  const autoriteActuelle = await getTitulaireActuel(regle.nommePar, dossier.city || null);
+  const nomActuel = autoriteActuelle ? autoriteActuelle.nom : null;
+  if (nomActuel && dossier.autoriteNom !== nomActuel) {
+    dossier.autoriteNom = nomActuel;
+    dossier.echeanceTs = Date.now() + DELAI_DECISION_CANDIDATURE_MS;
+    return true;
+  }
+  return false;
+}
+
 // Candidature aupres de l'autorite de nomination (POSTES_NOMMES_EXCLUSIFS). Generalise a tous
 // les postes nommes ce qui n'existait avant que pour PM/ministres (postulerPoste). Regle de
 // priorite PJ (chantier identifie le 9 aout, jusque-la jamais code) : si l'autorite est un PNJ
 // generique auto-pourvu, il ne prend jamais de vraie decision politique — la candidature d'un
-// vrai joueur est donc acceptee directement, sans mail ni attente.
+// vrai joueur est donc acceptee directement, sans mail ni attente. Si l'autorite est un PJ, une
+// fenetre de decision de 48h reelles commence (persistee, voir plus haut) au lieu de laisser
+// l'autorite ignorer indefiniment la candidature (faille identifiee a l'audit du 25 aout 2026).
 async function demanderNominationPoste(posteId, posteName) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
@@ -144,8 +215,41 @@ async function demanderNominationPoste(posteId, posteName) {
   }
 
   const candidatNom = state.char?.name || 'Anonyme';
+
+  // Persistance de la candidature (§2/§6 du lot priorite PJ) : ouvre ou complete une fenetre de
+  // decision de 48h reelles pour l'autorite PJ. Le titulaire actuel du poste est forcement un
+  // PNJ ou le poste est vacant a ce stade (ouvrirEcranPostes ne propose "Postuler" que dans ce
+  // cas), jamais un PJ deja protege -- rien a verifier de ce cote ici.
+  const candidatures = await chargerCandidaturesPostes(state.country);
+  const cleDossier = cleCandidaturePoste(posteId, villeCourante);
+  let dossier = candidatures[cleDossier];
+  let candidatureDejaEnregistree = false;
+  if (!dossier || dossier.traitee) {
+    dossier = {
+      posteId, city: villeCourante,
+      candidats: [{ nom: candidatNom, depuisTs: Date.now() }],
+      echeanceTs: Date.now() + DELAI_DECISION_CANDIDATURE_MS,
+      autoriteNom: titulaireAutorite.nom,
+      traitee: false
+    };
+  } else if (dossier.candidats.some(c => c.nom === candidatNom && !c.retiree)) {
+    candidatureDejaEnregistree = true; // deja candidat pour ce poste -- pas un nouvel evenement
+  } else {
+    dossier.candidats.push({ nom: candidatNom, depuisTs: Date.now() });
+    // La fenetre en cours n'est jamais reinitialisee par l'arrivee d'un nouveau candidat --
+    // seul un changement d'autorite la recale (reconcilierAutoriteCandidature).
+  }
+
+  if (candidatureDejaEnregistree) {
+    showToast('Déjà candidat', 'Votre candidature au poste de ' + posteName + ' est déjà enregistrée, en attente de décision.', false);
+    return;
+  }
+
+  candidatures[cleDossier] = dossier;
+  await sauvegarderCandidaturesPostes(state.country, candidatures);
+
   const sujet = 'Candidature au poste de ' + posteName;
-  const corps = candidatNom + ' postule au poste de <strong>' + posteName + '</strong>.<br><br>' +
+  const corps = candidatNom + ' postule au poste de <strong>' + posteName + '</strong>. Vous disposez de 48h pour choisir un candidat depuis la fenêtre de gestion des candidatures, sans quoi le système tranchera automatiquement.<br><br>' +
     '<button onclick="accepterCandidaturePoste(\'' + posteId + '\',\'' + posteName.replace(/'/g,'') + '\',\'' + candidatNom.replace(/'/g,'') + '\')" ' +
     'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem">✓ Accepter la candidature</button>';
 
@@ -2812,8 +2916,17 @@ async function ouvrirRevoquerPosteNomme(posteId, pa, cost) {
   const titulaireInfo = await getTitulaireActuel(posteId, villeCourante);
 
   document.getElementById('postes-modal-title').textContent = 'Revoquer le ' + regle.label.toLowerCase();
+  const estProtege = titulaireInfo?.estPJ && estPosteProtege(titulaireInfo.posteComplet);
   if (!titulaireInfo) {
     document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;font-size:.85rem;color:#8a8060;font-style:italic">Aucun ' + regle.label.toLowerCase() + ' en poste actuellement' + (villeNom ? ' a ' + villeNom : '') + '.</div>';
+  } else if (estProtege) {
+    // Garde UI (§12 du lot priorite PJ) : le bouton de revocation n'est meme pas propose tant
+    // que la protection court -- la garde handler ci-dessous revalide independamment.
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem">' +
+      '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.8rem">' + titulaireInfo.nom + ' occupe actuellement le poste de ' + regle.label + (villeNom ? ' a ' + villeNom : '') + '.</div>' +
+      '<div style="font-size:.8rem;color:#8a6a20;font-style:italic">Ce titulaire bénéficie encore de sa période de protection après nomination (' + tempsProtectionRestanteTexte(titulaireInfo.posteComplet) + ' restant). Révocation politique impossible avant l\'échéance.</div>' +
+      '</div>';
   } else {
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1rem">' +
@@ -2825,12 +2938,24 @@ async function ouvrirRevoquerPosteNomme(posteId, pa, cost) {
 }
 
 async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, cost) {
-  document.getElementById('modal-postes').classList.remove('open');
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return;
+  const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
+
+  // Garde handler independante (§12 du lot) : revalide la protection ici meme si l'appelant
+  // n'est pas passe par l'UI (console, chemin equivalent) -- jamais de confiance dans la seule
+  // absence du bouton. Bloque AVANT tout cout/effet de bord (pa/cost pas encore deduits).
+  if (estPJ && typeof getTitulaireActuel === 'function') {
+    const titulaireFrais = await getTitulaireActuel(posteId, villeCourante);
+    if (titulaireFrais?.estPJ && titulaireFrais.nom === nomTitulaire && estPosteProtege(titulaireFrais.posteComplet)) {
+      showToast('Titulaire protégé', 'Ce titulaire bénéficie encore de sa période de protection après nomination (' + tempsProtectionRestanteTexte(titulaireFrais.posteComplet) + ' restant).', false);
+      return;
+    }
+  }
+
+  document.getElementById('modal-postes').classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
-  const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
 
   if (estPJ) {
     if (typeof sbUpdate === 'function') {
@@ -2957,8 +3082,13 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
   }
 }
 
-// Appelée quand le destinataire clique "Accepter le poste" dans le mail
-function accepterNominationPosteNomme(posteId, city, country, nommeurNom) {
+// Appelée quand le destinataire clique "Accepter le poste" dans le mail. Rendue async (25 aout
+// 2026, lot priorite PJ) : doit desormais verifier/deloger un eventuel titulaire PJ existant
+// AVANT de s'attribuer le poste -- gap decouvert a l'audit (cette fonction n'a jamais delogé
+// personne jusqu'ici, contrairement a accepterCandidaturePoste ; sans correctif, ce canal de
+// nomination directe aurait pu produire deux PJ simultanement "titulaires" du meme poste, et
+// surtout aurait pu contourner la protection de 7 jours du titulaire en place).
+async function accepterNominationPosteNomme(posteId, city, country, nommeurNom) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return;
 
@@ -2968,7 +3098,21 @@ function accepterNominationPosteNomme(posteId, city, country, nommeurNom) {
     return;
   }
 
-  state.poste = { id: posteId, name: regle.label, city: city || null };
+  // Protection du titulaire actuel (§10-12 du lot) : un remplacement direct PJ -> PJ pendant la
+  // fenetre de protection est explicitement interdit, meme via ce canal de nomination directe
+  // ("action equivalente permettant de contourner la revocation").
+  if (typeof getTitulaireActuel === 'function') {
+    const ancienTitulaire = await getTitulaireActuel(posteId, city || null);
+    if (ancienTitulaire?.estPJ && ancienTitulaire.nom !== (state.char?.name || '') && estPosteProtege(ancienTitulaire.posteComplet)) {
+      showToast('Titulaire protégé', 'Ce titulaire bénéficie encore de sa période de protection après nomination (' + tempsProtectionRestanteTexte(ancienTitulaire.posteComplet) + ' restant).', false);
+      return;
+    }
+    if (ancienTitulaire?.estPJ && ancienTitulaire.nom !== (state.char?.name || '') && typeof sbUpdate === 'function') {
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(ancienTitulaire.nom)}`, { poste: null }).catch(() => {});
+    }
+  }
+
+  state.poste = { id: posteId, name: regle.label, city: city || null, nommeLe: Date.now() };
   if (state.char) state.char.poste = state.poste;
   state.salaireTouche = false;
   // Nettoie un eventuel titulaire PNJ perime (ce poste etait peut-etre auto-pourvu avant
@@ -2976,6 +3120,14 @@ function accepterNominationPosteNomme(posteId, city, country, nommeurNom) {
   // joueur quitte le poste plus tard, sans passage par la cascade cron.
   if (typeof sbSupprimerTitulairePnj === 'function') {
     sbSupprimerTitulairePnj(state.country, posteId, city || null).catch(() => {});
+  }
+  // Solde un eventuel dossier de candidature persistant pour ce poste (§8 du lot) : ce poste est
+  // desormais pourvu, les candidatures encore listees deviennent obsoletes.
+  const candidaturesNettoyage = await chargerCandidaturesPostes(state.country);
+  const cleNettoyage = cleCandidaturePoste(posteId, city || null);
+  if (candidaturesNettoyage[cleNettoyage] && !candidaturesNettoyage[cleNettoyage].traitee) {
+    candidaturesNettoyage[cleNettoyage].traitee = true;
+    await sauvegarderCandidaturesPostes(state.country, candidaturesNettoyage);
   }
   updateUI();
   if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
@@ -3028,6 +3180,9 @@ document.querySelectorAll('.modal-overlay:not(#modal-quete-accueil)').forEach(m 
 // au moment ou l'autorite clique, on ne peut pas toucher son state local -- on ecrit donc
 // directement sur sa fiche Supabase (personnages.poste), effectif immediatement pour tout le
 // monde (getTitulaireActuel), visible pour le candidat lui-meme des son prochain chargement.
+// Retourne desormais {ok, raison} (25 aout 2026, lot priorite PJ) : les appelants (mail direct,
+// nommerDepuisCandidature) doivent pouvoir reagir a un blocage par protection sans se contenter
+// d'un effet de bord silencieux.
 async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
   document.getElementById('modal-pnj')?.classList.remove('open');
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
@@ -3035,10 +3190,20 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
 
   // Deloger un eventuel titulaire actuel different du candidat (PJ ou PNJ), avant d'attribuer
   // le poste -- evite qu'un poste unique se retrouve occupe par deux joueurs en meme temps.
+  // Protection de 7 jours (§10 du lot) : l'audit a confirme que cette fonction peut deloger un
+  // titulaire PJ directement -- bloquee ici, avant tout effet de bord, si ce titulaire est
+  // encore protege.
   if (typeof getTitulaireActuel === 'function') {
     const ancienTitulaire = await getTitulaireActuel(posteId, villeDuPoste);
-    if (ancienTitulaire?.estPJ && ancienTitulaire.nom !== candidatNom && typeof sbUpdate === 'function') {
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(ancienTitulaire.nom)}`, { poste: null }).catch(() => {});
+    if (ancienTitulaire?.estPJ && ancienTitulaire.nom !== candidatNom) {
+      if (estPosteProtege(ancienTitulaire.posteComplet)) {
+        const raison = 'Ce titulaire bénéficie encore de sa période de protection après nomination (' + tempsProtectionRestanteTexte(ancienTitulaire.posteComplet) + ' restant).';
+        showToast('Titulaire protégé', raison, false);
+        return { ok: false, raison };
+      }
+      if (typeof sbUpdate === 'function') {
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(ancienTitulaire.nom)}`, { poste: null }).catch(() => {});
+      }
     }
   }
   if (typeof sbSupprimerTitulairePnj === 'function') {
@@ -3046,8 +3211,17 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
   }
 
   if (typeof sbUpdate === 'function') {
-    const posteAAccorder = { id: posteId, name: posteName, city: villeDuPoste };
+    const posteAAccorder = { id: posteId, name: posteName, city: villeDuPoste, nommeLe: Date.now() };
     await sbUpdate('personnages', `name=eq.${encodeURIComponent(candidatNom)}`, { poste: posteAAccorder }).catch(() => {});
+  }
+
+  // Solde le dossier de candidature persistant pour ce poste (§8 du lot) : nettoie les autres
+  // candidatures en attente, plus rien a afficher une fois le poste pourvu.
+  const candidatures = await chargerCandidaturesPostes(state.country);
+  const cleDossier = cleCandidaturePoste(posteId, villeDuPoste);
+  if (candidatures[cleDossier] && !candidatures[cleDossier].traitee) {
+    candidatures[cleDossier].traitee = true;
+    await sauvegarderCandidaturesPostes(state.country, candidatures);
   }
 
   if (typeof sbSendMail === 'function') {
@@ -3060,6 +3234,7 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
   showToast('Candidature acceptée', candidatNom + ' devient ' + posteName + '.', true, true);
   addJournalEntry('Vous avez accepté la candidature de ' + candidatNom + ' au poste de ' + posteName + '.', 'event-good');
   addExternalEvent('🏛 ' + candidatNom + ' est nommé(e) ' + posteName + '.', 'national');
+  return { ok: true };
 }
 
 // =====================
@@ -3071,14 +3246,18 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
 // au poste de X' des qu'un PJ postule aupres d'une autorite PJ) -- cette fenetre se contente de
 // regrouper ces mails par poste plutot que de forcer un traitement mail par mail.
 // =====================
+// Source des candidatures basculee du scan de mails vers le dossier persistant
+// candidatures_postes (25 aout 2026, lot priorite PJ) : affiche desormais l'echeance reelle des
+// 48h, reconcilie l'autorite au passage (aucun effet si elle n'a pas change), et ne montre plus
+// jamais une candidature deja traitee (poste deja pourvu entretemps).
 async function ouvrirGestionCandidatures(posteIds, pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Gestion des candidatures';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const moi = state.char?.name;
   const villeCourante = state.currentCity || 'capitale';
-  const mails = (typeof sbGetMailsFor === 'function' && moi) ? ((await sbGetMailsFor(moi).catch(() => [])) || []) : [];
+  const candidaturesTout = await chargerCandidaturesPostes(state.country);
+  let dossiersModifies = false;
 
   let html = '<div style="padding:.5rem 0">';
   for (const posteId of posteIds) {
@@ -3090,19 +3269,27 @@ async function ouvrirGestionCandidatures(posteIds, pa, cost) {
     html += '<div style="padding:.6rem 1rem;font-size:.72rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;border-bottom:1px solid #1a1810;margin-top:.6rem">' + regle.label.toUpperCase() + '</div>';
     html += '<div style="padding:.4rem 1rem;font-size:.8rem;color:#8a8060">Actuellement : ' + (titulaire ? titulaire.nom + (titulaire.estPJ ? '' : ' (PNJ)') : 'Poste vacant') + '</div>';
 
-    const sujetAttendu = 'Candidature au poste de ' + regle.label;
-    const candidatures = mails.filter(m => m.to_player === moi && m.subject === sujetAttendu);
+    const cleDossier = cleCandidaturePoste(posteId, villeDePoste);
+    const dossier = candidaturesTout[cleDossier];
+    const candidatsActifs = (dossier && !dossier.traitee) ? dossier.candidats.filter(c => !c.retiree) : [];
 
-    if (candidatures.length === 0) {
+    if (candidatsActifs.length === 0) {
       html += '<div style="padding:.3rem 1rem .6rem;font-size:.78rem;color:#5a5040;font-style:italic">Aucune candidature en attente.</div>';
     } else {
-      candidatures.forEach(m => {
-        const nomSafe = (m.from_player || '').replace(/'/g, ' ');
+      if (await reconcilierAutoriteCandidature(dossier)) dossiersModifies = true;
+      const heuresRestantes = Math.max(0, Math.ceil((dossier.echeanceTs - Date.now()) / 3600000));
+      html += '<div style="padding:.2rem 1rem .4rem;font-size:.75rem;color:#8a6a20;font-style:italic">' +
+        (heuresRestantes > 0
+          ? 'Échéance : ' + heuresRestantes + 'h restantes avant nomination automatique par tirage au sort.'
+          : 'Échéance dépassée — traitement automatique dès le prochain passage serveur.') +
+        '</div>';
+      candidatsActifs.forEach(c => {
+        const nomSafe = c.nom.replace(/'/g, ' ');
         const labelSafe = regle.label.replace(/'/g, ' ');
         html += '<div style="padding:.6rem 1rem;border-bottom:1px solid #1a1810;display:flex;justify-content:space-between;align-items:center">';
-        html += '<span style="font-size:.85rem;color:#c0b090">' + m.from_player + '</span>';
+        html += '<span style="font-size:.85rem;color:#c0b090">' + c.nom + '</span>';
         html += '<div style="display:flex;gap:.4rem">';
-        html += '<button onclick="nommerDepuisCandidature(\'' + posteId + '\',\'' + labelSafe + '\',\'' + nomSafe + '\',\'' + m.id + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer</button>';
+        html += '<button onclick="nommerDepuisCandidature(\'' + posteId + '\',\'' + labelSafe + '\',\'' + nomSafe + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Nommer</button>';
         html += '<button onclick="convoquerCandidatEntretien(\'' + labelSafe + '\',\'' + nomSafe + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Convoquer à un entretien</button>';
         html += '</div></div>';
       });
@@ -3110,14 +3297,14 @@ async function ouvrirGestionCandidatures(posteIds, pa, cost) {
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+  if (dossiersModifies) await sauvegarderCandidaturesPostes(state.country, candidaturesTout);
 }
 
-async function nommerDepuisCandidature(posteId, posteName, candidatNom, mailId, pa, cost) {
+async function nommerDepuisCandidature(posteId, posteName, candidatNom, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   await accepterCandidaturePoste(posteId, posteName, candidatNom);
-  if (typeof sbDeleteMail === 'function' && mailId) await sbDeleteMail(mailId).catch(() => {});
 }
 
 // Purement narratif/optionnel : aucun effet mecanique, l'autorite peut nommer directement sans

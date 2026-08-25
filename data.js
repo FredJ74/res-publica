@@ -6763,6 +6763,16 @@ const POSTES_NOMMES_EXCLUSIFS = {
   capitaine_port:          { label: 'Commandant du Port',                 nommePar: 'min_fin',       scope: 'pays',  compatibles: ['depute'] }
 };
 
+// Priorite PJ sur postes nommes (lot du 25 aout 2026, apres audit dedie) : "le PNJ a priorite
+// sur le vide, le PJ a priorite sur le PNJ, l'autorite politique choisit entre les PJ". Delai
+// laisse a une autorite PJ pour choisir entre les candidats avant traitement automatique
+// (tirage au sort + sanction du nominateur passif), et duree de protection d'un PJ fraichement
+// nomme contre la revocation/le remplacement politique arbitraire. Generique a TOUS les
+// POSTES_NOMMES_EXCLUSIFS ci-dessus, aucune exception par poste (voir plateau-politique.js/
+// api/cron-minuit.js). Duree en millisecondes reelles (Date.now()), jamais en jours de jeu.
+const DELAI_DECISION_CANDIDATURE_MS = 48 * 3600 * 1000; // 48h reelles
+const DUREE_PROTECTION_POSTE_NOMME_MS = 7 * 24 * 3600 * 1000; // 7 jours reels
+
 // Nouveaux ordres v6
 Object.assign(ORDER_EFFECTS, {
   se_cacher:          {dis:5,            successRate:70},

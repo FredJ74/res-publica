@@ -19,14 +19,20 @@ async function getTitulaireActuel(posteId, city, pays) {
     if (typeof sbListPersonnages === 'function') {
       try {
         const joueurs = await sbListPersonnages() || [];
+        let posteMatch = null;
         const match = joueurs.find(j => {
           let poste = j.poste;
           if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
           if (j.country !== country || !poste || poste.id !== posteId) return false;
           if (city && poste.city !== city) return false;
+          posteMatch = poste;
           return true;
         });
-        if (match) return { nom: match.name, estPJ: true };
+        // posteComplet (25 aout 2026, lot priorite PJ) : ajout additif -- porte l'objet poste
+        // integral (id/name/city/nommeLe) pour permettre a l'appelant de verifier une eventuelle
+        // protection (estPosteProtege, plateau-politique.js) sans requete supplementaire. Ne
+        // change rien pour les appelants existants, qui ne lisaient que .nom/.estPJ.
+        if (match) return { nom: match.name, estPJ: true, posteComplet: posteMatch };
       } catch(e) {}
     }
     if (typeof sbGetTitulairePnj === 'function') {

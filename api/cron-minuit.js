@@ -43,6 +43,18 @@ async function sbUpdate(table, filters, data) {
   return res.json();
 }
 
+// Manquait cote cron (seuls sbGet/sbInsert/sbUpdate existaient) -- necessaire pour nettoyer
+// titulaires_pnj lors d'une nomination automatique de candidature expiree (lot priorite PJ,
+// 25 aout 2026). Duplique de supabase.js.
+async function sbDelete(table, filters) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, {
+    method: 'DELETE',
+    headers: HEADERS
+  });
+  if (!res.ok) { console.error('sbDelete error', table, await res.text()); return null; }
+  return true;
+}
+
 // Etat generique par batiment (id = country_city_buildingId), duplique de supabase.js
 // car le cron tourne dans un contexte serverless isole, sans acces aux fonctions client.
 // BUG CORRIGE LE 8 AOUT 2026 : ces deux fonctions etaient appelees (livrerEntrepotsQuotidien,
@@ -1769,11 +1781,18 @@ async function renouvellerCotisationsOrganisations() {
         } else {
           resultats.resiliations++;
           modifie = true;
+          // Correctif du 25 aout 2026 (audit postes nommes, decouverte adjacente) : le schema
+          // reellement lu par le client est to_player/from_player/subject/body (voir sbSendMail,
+          // supabase.js) -- destinataire/expediteur/sujet/corps (utilise par erreur ici avant ce
+          // correctif, et par de nombreux autres mails cron pre-existants non touches, hors
+          // perimetre de ce lot) ne sont jamais interroges par sbGetMailsFor, rendant ce mail
+          // invisible en pratique.
           await sbInsert('mails', {
-            destinataire: membre.nom, expediteur: orga.nom,
-            sujet: "Fin d'adhésion — cotisation non renouvelée",
-            corps: 'Votre adhésion à "' + orga.nom + '" a pris fin automatiquement : la cotisation de ' + COTISATION_MONTANT + " FR n'a pas pu être prélevée. Aucune dette n'est créée.",
-            archived: false
+            id: 'mail-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+            from_player: orga.nom, to_player: membre.nom,
+            subject: "Fin d'adhésion — cotisation non renouvelée",
+            body: 'Votre adhésion à "' + orga.nom + '" a pris fin automatiquement : la cotisation de ' + COTISATION_MONTANT + " FR n'a pas pu être prélevée. Aucune dette n'est créée.",
+            time: new Date().toISOString(), read: false
           }).catch(() => {});
         }
       }
@@ -1882,6 +1901,177 @@ const CASCADE_NATIONALE = [
   { posteId: 'chef_douanes',            nommePar: 'min_int' },
   { posteId: 'capitaine_port',          nommePar: 'min_fin' }
 ];
+
+// =====================
+// PRIORITE PJ SUR POSTES NOMMES — traitement serveur des candidatures expirees (lot du 25 aout
+// 2026, apres audit dedie). Duplique de POSTES_NOMMES_EXCLUSIFS (data.js) -- le cron tourne dans
+// un contexte serverless isole, sans acces aux fonctions/constantes client, meme convention que
+// RESSOURCES_ECONOMIE_SERVEUR ci-dessus. Republia uniquement (comme le reste de ce fichier).
+// =====================
+const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
+  juge:        { label: 'Juge',        nommePar: 'min_just', scope: 'pays',  compatibles: ['depute'] },
+  commissaire: { label: 'Commissaire', nommePar: 'maire',    scope: 'ville', compatibles: ['depute'] },
+  commandant:  { label: 'Commandant de la Caserne', nommePar: 'min_def', scope: 'pays', compatibles: ['depute'] },
+  pm:          { label: 'Premier Ministre',              nommePar: 'president', scope: 'pays', compatibles: ['depute'] },
+  min_int:     { label: "Ministre de l'Interieur",       nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_fin:     { label: 'Ministre des Finances',         nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_just:    { label: 'Ministre de la Justice',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_def:     { label: 'Ministre de la Defense',        nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_info:    { label: "Ministre de l'Information",     nommePar: 'pm',        scope: 'pays', compatibles: ['depute'] },
+  min_ae:      { label: 'Ministre des Affaires Etrangeres', nommePar: 'pm',     scope: 'pays', compatibles: ['depute'] },
+  directeur_pharma:        { label: "Directeur de l'Usine Pharmaceutique", nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
+  directeur_tabac_alcools: { label: 'Directeur du Pôle Tabac & Alcools',   nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
+  directeur_raffinerie:    { label: 'Directeur de la Raffinerie',          nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
+  directeur_entrepot:      { label: "Directeur de l'Entrepôt Logistique",  nommePar: 'maire_adjoint', scope: 'ville', compatibles: ['depute'] },
+  maire_adjoint:           { label: 'Maire Adjoint',                      nommePar: 'maire',         scope: 'ville', compatibles: ['depute'] },
+  chef_douanes:            { label: 'Chef des Douanes',                   nommePar: 'min_int',       scope: 'pays',  compatibles: ['depute'] },
+  capitaine_port:          { label: 'Commandant du Port',                 nommePar: 'min_fin',       scope: 'pays',  compatibles: ['depute'] }
+};
+
+const DELAI_DECISION_CANDIDATURE_MS_SERVEUR = 48 * 3600 * 1000;
+
+// Resout le titulaire ACTUEL d'un poste nomme cote serveur (PJ d'abord via personnages.poste,
+// PNJ en repli via titulaires_pnj) -- equivalent serveur de getTitulaireActuel (plateau-
+// organisations-quetes.js), qui n'est pas accessible dans ce contexte isole.
+async function resoudreTitulaireActuelPosteServeur(posteId, city) {
+  const joueurs = await sbGet('personnages', `select=name,country,poste&country=eq.${PAYS_CASCADE}`) || [];
+  for (const j of joueurs) {
+    let poste = j.poste;
+    if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
+    if (!poste || poste.id !== posteId) continue;
+    if (city && poste.city !== city) continue;
+    return { nom: j.name, estPJ: true, posteComplet: poste };
+  }
+  const id = PAYS_CASCADE + '_' + posteId + '_' + (city || 'national');
+  const rows = await sbGet('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`);
+  const row = rows && rows[0];
+  if (row && row.nom_pnj) return { nom: row.nom_pnj, estPJ: false, posteComplet: null };
+  return null;
+}
+
+// Traitement quotidien des candidatures de postes nommes ayant depasse leur fenetre de decision
+// de 48h reelles (§2/§4/§16 du lot) : tirage au sort parmi les candidats encore eligibles,
+// nomination automatique, sanction POP/2 du nominateur reste passif. Semantique reelle du delai
+// (§16, documentee explicitement) : "eligible a nomination automatique a partir de 48h,
+// traitement au premier passage serveur disponible apres echeance" -- avec un cron 1x/jour, le
+// traitement effectif peut survenir plusieurs heures apres l'echeance exacte ; accepte, pas de
+// second cron cree pour gagner quelques heures.
+async function traiterCandidaturesPostesExpirees() {
+  const resultats = { traitees: 0, nominationsAuto: 0, sanctions: 0, annuleesSansSanction: 0 };
+  try {
+    const etat = await sbGetBatimentEtat('republic', 'national', 'candidatures_postes').catch(() => ({}));
+    const candidatures = (etat && etat.candidatures) || {};
+    const now = Date.now();
+    let modifie = false;
+
+    for (const [cle, dossier] of Object.entries(candidatures)) {
+      if (dossier.traitee) continue;
+      const regle = POSTES_NOMMES_EXCLUSIFS_SERVEUR[dossier.posteId];
+      if (!regle) { dossier.traitee = true; modifie = true; continue; }
+
+      // Le poste a-t-il deja ete attribue a un PJ entretemps (nomination manuelle par
+      // l'autorite, ou via le canal de nomination directe) ? Annulation sans sanction (§7 du
+      // lot) : le systeme n'a pas eu a trancher, l'autorite a bien exerce son role.
+      const titulaireActuel = await resoudreTitulaireActuelPosteServeur(dossier.posteId, dossier.city || null);
+      if (titulaireActuel && titulaireActuel.estPJ) {
+        dossier.traitee = true; modifie = true; resultats.annuleesSansSanction++; continue;
+      }
+
+      // Reconciliation d'autorite (§5 du lot) : si le nominateur a change depuis la derniere
+      // ecriture du dossier, le nouveau titulaire recoit une fenetre complete de 48h -- jamais
+      // sanctionne pour l'inaction de son predecesseur, jamais sanctionne moins de 48h apres sa
+      // propre prise de fonction.
+      const autoriteActuelle = await resoudreTitulaireActuelPosteServeur(regle.nommePar, regle.scope === 'ville' ? dossier.city : null);
+      const nomAutoriteActuelle = autoriteActuelle ? autoriteActuelle.nom : null;
+      if (nomAutoriteActuelle && dossier.autoriteNom !== nomAutoriteActuelle) {
+        dossier.autoriteNom = nomAutoriteActuelle;
+        dossier.echeanceTs = now + DELAI_DECISION_CANDIDATURE_MS_SERVEUR;
+        modifie = true;
+        continue; // fenetre repartie a zero pour le nouveau titulaire, pas encore expiree
+      }
+
+      if (now < dossier.echeanceTs) continue; // pas encore expiree
+
+      // Candidats encore eligibles : personnage existant, meme pays, pas deja titulaire d'un
+      // poste incompatible (§7 du lot).
+      const candidatsEligibles = [];
+      for (const c of (dossier.candidats || [])) {
+        if (c.retiree) continue;
+        const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(c.nom)}&select=name,country,poste`);
+        const perso = rows && rows[0];
+        if (!perso || perso.country !== 'republic') continue;
+        let posteActuelCandidat = perso.poste;
+        if (typeof posteActuelCandidat === 'string') { try { posteActuelCandidat = JSON.parse(posteActuelCandidat); } catch(e) { posteActuelCandidat = null; } }
+        if (posteActuelCandidat?.id && posteActuelCandidat.id !== dossier.posteId && !(regle.compatibles || []).includes(posteActuelCandidat.id)) continue;
+        candidatsEligibles.push(c.nom);
+      }
+
+      if (candidatsEligibles.length === 0) {
+        dossier.traitee = true; modifie = true;
+        continue; // plus personne d'eligible, rien a nommer, pas de sanction (aucun candidat valide a ignorer)
+      }
+
+      // Tirage au sort — aucun avantage au premier candidat (§2 du lot).
+      const gagnant = candidatsEligibles[Math.floor(Math.random() * candidatsEligibles.length)];
+
+      await sbSupprimerTitulairePnjServeur('republic', dossier.posteId, dossier.city || null);
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(gagnant)}`, {
+        poste: { id: dossier.posteId, name: regle.label, city: dossier.city || null, nommeLe: now }
+      }).catch(() => {});
+      resultats.nominationsAuto++;
+
+      await sbInsert('mails', {
+        id: 'mail-' + now + '-' + Math.floor(Math.random() * 1000),
+        from_player: 'Système', to_player: gagnant,
+        subject: 'Nomination automatique — ' + regle.label,
+        body: "L'autorité de nomination n'a pas tranché dans le délai de 48h imparti. Vous avez été désigné(e) par tirage au sort parmi les candidats éligibles au poste de " + regle.label + '.',
+        time: new Date().toISOString(), read: false
+      }).catch(() => {});
+
+      // Sanction POP/2 du nominateur reste passif (§4 du lot) -- vraie statistique resources.pop
+      // (PAS un champ top-level 'pop' : verifie que le client lit/ecrit pop dans personnages.
+      // resources.pop, jamais une colonne racine -- ecrire au mauvais endroit aurait reproduit
+      // silencieusement le bug deja trouve dans appliquerEffetsBlocusActifs ci-dessus, jamais lu
+      // par le client, hors perimetre de ce lot, signale au rapport). Arrondi : Math.floor,
+      // convention deja utilisee partout ailleurs pour un delta de POP fractionnaire.
+      if (nomAutoriteActuelle) {
+        const rowsAutorite = await sbGet('personnages', `name=eq.${encodeURIComponent(nomAutoriteActuelle)}&select=name,resources`);
+        const autoritePerso = rowsAutorite && rowsAutorite[0];
+        if (autoritePerso) {
+          const popActuelle = (autoritePerso.resources && autoritePerso.resources.pop) || 0;
+          const nouvellePop = Math.max(0, Math.floor(popActuelle / 2));
+          const resourcesMaj = { ...(autoritePerso.resources || {}), pop: nouvellePop };
+          await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomAutoriteActuelle)}`, { resources: resourcesMaj }).catch(() => {});
+          resultats.sanctions++;
+
+          await sbInsert('mails', {
+            id: 'mail-' + now + '-' + Math.floor(Math.random() * 1000 + 1000),
+            from_player: 'Système', to_player: nomAutoriteActuelle,
+            subject: 'Décision non prise — ' + regle.label,
+            body: "Vous n'avez pas tranché entre les candidats au poste de " + regle.label + " dans le délai de 48h. " + gagnant + " a été nommé(e) par tirage au sort. Votre popularité a été divisée par deux (" + Math.round(popActuelle) + ' → ' + nouvellePop + ').',
+            time: new Date().toISOString(), read: false
+          }).catch(() => {});
+        }
+      }
+
+      dossier.traitee = true;
+      modifie = true;
+      resultats.traitees++;
+    }
+
+    if (modifie) {
+      await sbSetBatimentEtat('republic', 'national', 'candidatures_postes', { candidatures }).catch(() => {});
+    }
+  } catch(e) { console.error('traiterCandidaturesPostesExpirees error', e); }
+  return resultats;
+}
+
+// Duplique minimal de sbSupprimerTitulairePnj (supabase.js), necessaire ici en plus de la
+// logique deja inline dans pourvoirPnj/verifierPostesVacantsEtAutoPourvoir ci-dessous.
+async function sbSupprimerTitulairePnjServeur(country, posteId, city) {
+  const id = country + '_' + posteId + '_' + (city || 'national');
+  return sbDelete('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`);
+}
 
 async function verifierPostesVacantsEtAutoPourvoir() {
   const resultats = { pourvus: [] };
@@ -2242,6 +2432,10 @@ export default async function handler(req, res) {
     // l'autorite de nomination vient elle-meme d'etre resolue (voir plan du 8 aout 2026)
     const cascadeAutoPourvoi = await verifierPostesVacantsEtAutoPourvoir();
 
+    // 1c. Priorite PJ sur postes nommes : candidatures ayant depasse leur fenetre de decision
+    // de 48h (lot du 25 aout 2026, apres audit dedie) — tirage au sort + sanction eventuelle.
+    const candidaturesPostesExpirees = await traiterCandidaturesPostesExpirees();
+
     // 2. Purger les mails de plus de 14 jours, non archives (recus ET envoyes)
     const mailsSuppres = await purgerVieuxMails();
 
@@ -2327,7 +2521,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, arrivagePoissonCriee, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });
