@@ -454,15 +454,9 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // sur l'accueil (doOuvrirChambresClinique, plateau-personnage.js), qui appelle enterRoom()
   // directement vers la bonne chambre. Scope strictement clinique-privee : aucun autre batiment
   // n'est concerne par ce filtre.
-  // hiddenTab (correctif UX box portuaire, 25 aout 2026) : flag generique reutilisable pour
-  // toute room accessible uniquement via un bouton depuis une autre room, jamais en onglet de
-  // premiere ligne -- meme principe que le filtre clinique-privee ci-dessous (ecrit avant ce
-  // flag, laisse tel quel pour ne rien risquer sur son propre fonctionnement), desormais
-  // generalise pour les prochains cas plutot que duplique en un nouveau filtre par batiment.
-  const rooms = (buildingId === 'clinique-privee'
+  const rooms = buildingId === 'clinique-privee'
     ? roomsBrutes.filter(([roomId]) => !/^chambre_(?:[1-9]|10)$/.test(roomId))
-    : roomsBrutes
-  ).filter(([, r]) => !r.hiddenTab);
+    : roomsBrutes;
   document.getElementById('pieces-tabs').innerHTML = rooms.map(([roomId, room], i) => {
     const isZoneEmb = roomId === 'zone_embarquement';
     const locked = isZoneEmb && !state.douanePassee;

@@ -2252,40 +2252,33 @@ function ouvrirMesLocations() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// ---- BOX PORTUAIRE MULTI-TENANT (lot du 25 aout 2026, §13-14-15 ; correctif UX du 25 aout 2026
-// deplacant l'ordre vers une room dediee 'box_a_louer') ----
+// ---- BOX PORTUAIRE MULTI-TENANT (lot du 25 aout 2026, §13-14-15 ; correctif UX du 25 aout 2026,
+// 2e passe : 'box_a_louer' est un onglet normal du port, comme suite_privee/suite_presidentielle
+// a l'hotel-republica -- louer_box/gerer_box y vivent comme SEULS ordres, la navigation vers/
+// depuis cette piece se fait par les onglets standard (enterRoom via piece-tab), sans fonction ni
+// ordre dedies) ----
 // Option B validee : structure dediee legere, PAS une reutilisation de getLocationPourRoom (qui
 // reste a titulaire UNIQUE par piece pour les ~15 autres locations, totalement inchangee). Un
 // box est une entree state.locationsActives normale (memes champs, meme sbLoadLocations au
 // chargement), mais sa cle d'appartenance est (buildingId, city, locataire, isBox) -- SANS
-// roomId, deliberement decouple de la room UX (§ correctif du 25 aout 2026 : la premiere version
-// vivait dans 'entrepot' ; l'ordre a ensuite ete deplace vers 'box_a_louer' ; getMaBoxPortuaire
-// continue de retrouver les box crees AVANT ce deplacement, qui portent encore l'ancien roomId
-// 'entrepot', puisqu'il ne teste jamais roomId). ROOM_ID_BOX_PORTUAIRE_NAV n'est utilise QUE pour
-// la navigation (enterRoom apres location) ; le roomId reellement PERSISTE sur l'objet
-// (BOX_PORTUAIRE_ID_PERSISTANCE) est une valeur stable, independante de la room qui heberge
-// l'ordre -- un futur deplacement UX supplementaire n'aura donc plus jamais a se soucier de la
-// persistance existante. Persistance dediee (sbSaveLocationBox/sbSupprimerLocationBox,
-// supabase.js) : id = buildingId:roomId:city:locataire, pour eviter que deux locataires du meme
-// box n'ecrasent la meme ligne (sbSaveLocation/sbSupprimerLocation generiques, sans locataire
-// dans l'id, restent inchangees pour les ~15 autres locations). Aucun bonus DIS/INF (§14,
-// contrairement a l'ancien bail exclusif retire de data.js) ; destination des loyers = caisse
-// reelle du port (republic_port-sainte-marie), creditee dans payerLocations ci-dessus des que
-// isBox===true. Totalement independant du fret prive (expedier_colis/receptionner_commande,
-// §15) : aucun champ ni verification partagee.
+// roomId, deliberement decouple de la room UX (la toute premiere version, avant meme le
+// deplacement vers 'box_a_louer', vivait dans 'entrepot' ; getMaBoxPortuaire continue de
+// retrouver ces box-la, qui portent encore l'ancien roomId 'entrepot', puisqu'il ne teste jamais
+// roomId). ROOM_ID_BOX_PORTUAIRE_NAV n'est utilise QUE pour le rafraichissement de la piece apres
+// location (meme precedent que confirmerLocation) ; le roomId reellement PERSISTE sur l'objet
+// (BOX_PORTUAIRE_ID_PERSISTANCE) est une valeur stable, independante de la piece qui heberge
+// l'ordre -- un futur deplacement UX n'aura donc plus jamais a se soucier de la persistance
+// existante. Persistance dediee (sbSaveLocationBox/sbSupprimerLocationBox, supabase.js) :
+// id = buildingId:roomId:city:locataire, pour eviter que deux locataires du meme box n'ecrasent
+// la meme ligne (sbSaveLocation/sbSupprimerLocation generiques, sans locataire dans l'id,
+// restent inchangees pour les ~15 autres locations). Aucun bonus DIS/INF (§14, contrairement a
+// l'ancien bail exclusif retire de data.js) ; destination des loyers = caisse reelle du port
+// (republic_port-sainte-marie), creditee dans payerLocations ci-dessus des que isBox===true.
+// Totalement independant du fret prive (expedier_colis/receptionner_commande, §15) : aucun
+// champ ni verification partagee.
 const TARIF_BOX_PORTUAIRE_JOUR = 15;
-const ROOM_ID_BOX_PORTUAIRE_NAV = 'box_a_louer'; // room UX reelle -- navigation uniquement
+const ROOM_ID_BOX_PORTUAIRE_NAV = 'box_a_louer'; // room UX reelle -- uniquement pour le rafraichissement post-location
 const BOX_PORTUAIRE_ID_PERSISTANCE = 'box-portuaire'; // identifiant stable persiste, jamais lu pour la navigation
-
-// Navigation pure (correctif UX du 25 aout 2026) : ouvre/quitte la sous-room 'box_a_louer',
-// hors mecanique de location -- aucun etat modifie, aucun cout, aucune verification de bail.
-function ouvrirBoxALouer() {
-  enterRoom(BUILDING_ID_PORT, ROOM_ID_BOX_PORTUAIRE_NAV, null);
-}
-
-function retourEntrepot() {
-  enterRoom(BUILDING_ID_PORT, 'entrepot', null);
-}
 
 function getMaBoxPortuaire() {
   const moi = state.char?.name || '';

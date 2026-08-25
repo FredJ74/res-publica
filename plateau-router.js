@@ -223,8 +223,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
   if (fn === 'louer_box')                { ouvrirModalLouerBox(pa, cost); return; }
   if (fn === 'gerer_box')                { ouvrirModalGererBox(); return; }
-  if (fn === 'acceder_box_a_louer')      { ouvrirBoxALouer(); return; }
-  if (fn === 'retour_entrepot')          { retourEntrepot(); return; }
   if (fn === 'marchandises_non_reclamees') { ouvrirMarchandisesNonReclamees(); return; }
   if (fn === 'choisir_suite')            { ouvrirModalChoixSuite(); return; }
   if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(pa, cost); return; }
