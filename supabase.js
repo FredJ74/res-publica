@@ -90,7 +90,17 @@ async function sbEcrirePersonnage(data) {
   }
 }
 
+// Garde de bootstrap (lot du 25 aout 2026, correctif generique de concurrence client/serveur) :
+// tant que loadCharacter() n'a pas fini de reconcilier state.char avec Supabase
+// (state.personnageChargeDepuisServeur === false, jamais undefined -- voir loadCharacter,
+// plateau-core.js), aucune sauvegarde ne doit pouvoir ecraser un etat serveur potentiellement
+// plus recent avec une copie localStorage perimee. Point unique et central : TOUS les appelants
+// (sauvegarderPersonnageImmediat, enterRoom, sbAutoSave/updateUI...) passent par cette seule
+// fonction, jamais par un chemin d'ecriture parallele. Fail-open par defaut : seule une valeur
+// explicitement false bloque (flag absent/undefined = autorise, comportement inchange partout
+// ailleurs qu'au tout debut du chargement de page).
 async function sbSavePersonnage(charState) {
+  if (charState.personnageChargeDepuisServeur === false) return;
   const photoKey = 'respublica_photo_' + (charState.char?.name || 'default');
   const savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
   const data = {

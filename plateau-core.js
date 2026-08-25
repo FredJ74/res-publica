@@ -689,6 +689,19 @@ function loadCharacter() {
       // fire-and-forget, les lecteurs (getIndiceVille etc.) ont deja des valeurs par defaut
       // en attendant que ca revienne.
       if (typeof chargerIndicesRepublia === 'function') chargerIndicesRepublia().catch(() => {});
+      // Garde de bootstrap (lot du 25 aout 2026, correctif generique de concurrence client/
+      // serveur) : tant que la reconciliation Supabase ci-dessous n'est pas terminee,
+      // state.personnageChargeDepuisServeur reste explicitement false -- sbSavePersonnage
+      // (supabase.js, SEUL point d'ecriture reellement inhibe par ce flag, tous les appelants y
+      // passent) refuse toute sauvegarde tant qu'il vaut false. La restauration de position
+      // ci-dessous continue d'AFFICHER la bonne piece immediatement (aucun changement de
+      // comportement d'affichage) -- seule l'ECRITURE serveur qu'elle declenche via enterRoom()
+      // est retardee. Sans cette garde, restaurerPositionApresChargement(char) (ligne suivante,
+      // a partir du SEUL localStorage, potentiellement perime) pouvait ecraser en base un etat
+      // serveur plus recent avant meme que sbLoadPersonnage() ci-dessous n'ait eu le temps de
+      // repondre -- bug de concurrence confirme en production (licence sportive ecrasee malgre
+      // une correction serveur directe, aucun rapport avec le football en soi).
+      state.personnageChargeDepuisServeur = false;
       // Restaurer la position exacte (piece) ou la personne se trouvait avant le rafraichissement
       restaurerPositionApresChargement(char);
       // Reinjecter le journal personnel persiste (rapide, depuis le cache local)
@@ -759,7 +772,16 @@ function loadCharacter() {
             if (typeof rafraichirCacheEmploiBNE === 'function') rafraichirCacheEmploiBNE();
             console.log('Personnage synchronisé depuis Supabase:', char.name);
           }
-        }).catch(() => {});
+          // Reconciliation terminee (reussie ou sbState vide) : les sauvegardes redeviennent
+          // normales des cet instant, y compris pour la navigation qui vient de se produire
+          // pendant l'attente ci-dessus (enterRoom l'a deja affichee sans la sauvegarder).
+          state.personnageChargeDepuisServeur = true;
+        }).catch(() => { state.personnageChargeDepuisServeur = true; }); // echec reseau : ne jamais bloquer les sauvegardes indefiniment
+      } else {
+        // Pas de nom ou sbLoadPersonnage indisponible : aucune reconciliation ne viendra jamais,
+        // rien a attendre -- autoriser les sauvegardes immediatement (comportement inchange par
+        // rapport a avant ce correctif dans ce cas precis).
+        state.personnageChargeDepuisServeur = true;
       }
     }
   } catch(e) { console.warn('Erreur chargement personnage', e); }
