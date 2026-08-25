@@ -615,17 +615,29 @@ async function interrogerAccueilSurObjets(cibleNom) {
 // debarrasser des objets qui ne servent plus a rien. Decision prise avec Fred le 7 aout 2026.
 const PLAFOND_INVENTAIRE_EMPILABLE = 100;
 
+// item.encombrement (lot Armoire a souvenirs, 25 aout 2026) : un objet NON empilable peut
+// occuper plus d'un emplacement d'un coup (ex. Armoire a souvenirs = 3). i.qty garde la
+// priorite quand il est present (semantique inchangee pour tout objet empilable existant,
+// aucun n'ayant jamais defini encombrement) ; encombrement n'est qu'un repli additionnel pour
+// les objets NON empilables qui en definissent un. Aucun objet existant avant ce lot ne
+// definit ce champ -- comportement byte-identique pour tout le reste de l'inventaire.
 function getTotalInventaire() {
-  return (state.inventory || []).reduce((s, i) => s + (i.qty || 1), 0);
+  return (state.inventory || []).reduce((s, i) => s + (i.qty || i.encombrement || 1), 0);
 }
 
 // Ajoute un objet a l'inventaire, plafonne globalement a PLAFOND_INVENTAIRE_EMPILABLE (tout
 // type d'objet confondu). Si item.stackable et item.stackKey correspondent a une ligne deja
 // presente, incremente sa quantite plutot que de dupliquer une ligne par unite ; sinon,
-// pousse un objet unique classique (qty implicite 1).
+// pousse un objet unique classique (qty implicite 1, sauf item.encombrement > 1 -- voir
+// getTotalInventaire ci-dessus). Un objet non empilable a encombrement > 1 est refuse EN BLOC
+// si la place restante ne suffit pas pour la totalite (jamais de "partiel" pour un objet
+// unique, a la difference d'un lot empilable) -- meme garde-fou global reutilise (placeDisponible
+// <= 0) puis verification specifique juste avant le push, sans toucher au comportement des
+// objets qui n'ont jamais defini encombrement (qteVoulue reste alors 1, strictement identique
+// a avant ce lot).
 function addToInventory(item) {
   const dejaEnStock = getTotalInventaire();
-  const qteVoulue = item.qty || 1;
+  const qteVoulue = item.stackable ? (item.qty || 1) : (item.encombrement || 1);
   const placeDisponible = Math.max(0, PLAFOND_INVENTAIRE_EMPILABLE - dejaEnStock);
   if (placeDisponible <= 0) {
     if (typeof showToast === 'function') showToast('Inventaire plein', 'Plafond de ' + PLAFOND_INVENTAIRE_EMPILABLE + ' objets atteint.', false);
@@ -644,6 +656,10 @@ function addToInventory(item) {
     return qteReelle;
   }
 
+  if (placeDisponible < qteVoulue) {
+    if (typeof showToast === 'function') showToast('Inventaire plein', 'Il faut ' + qteVoulue + ' emplacement(s) libres (plafond ' + PLAFOND_INVENTAIRE_EMPILABLE + ').', false);
+    return 0;
+  }
   state.inventory.push(item);
   renderInventory();
   return 1;

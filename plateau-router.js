@@ -162,6 +162,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'vendre_matiere_usine') { doVendreMatierePremiereUsineGenerique(pa, cost); return; }
   if (fn === 'consulter_caisse_usine') { doConsulterCaisseUsine(); return; }
   if (fn === 'consulter_stock_usine') { doConsulterStockUsine(); return; }
+  if (fn === 'fabriquer_armoire_souvenirs') { doFabriquerArmoireSouvenirs(); return; }
+  if (fn === 'acheter_armoire_souvenirs') { doAcheterArmoireSouvenirs(); return; }
   if (fn === 'produire_medicaments') { doProduireUsine('medicaments'); return; }
   if (fn === 'produire_desinfectant') { doProduireUsine('desinfectant'); return; }
   if (fn === 'produire_alcool') { doProduireUsine('alcool'); return; }

@@ -281,7 +281,19 @@ SALAIRES JOURNALIERS (versés via l'ordre Dormir) :
 
 REVENUS FISCAUX — La population PNJ génère des impôts chaque nuit à minuit. Visibles du Président et du Ministre des Finances.
 
-FREEMIUM — Le jeu est gratuit. Les abonnements premium donnent du confort mais jamais d'avantage compétitif direct.`
+FREEMIUM — Le jeu est gratuit. Les abonnements premium donnent du confort mais jamais d'avantage compétitif direct.
+
+ARMOIRE À SOUVENIRS
+• Chaque Armoire à souvenirs est associée à une liste précise de douze souvenirs, un par grande ville du monde.
+• Plusieurs listes différentes existent et sont attribuées aux Armoires fabriquées.
+• Seul le souvenir exact indiqué par la liste de l'Armoire valide l'emplacement correspondant.
+• Les souvenirs devront être placés physiquement à l'intérieur de l'Armoire pour compter dans la collection.
+• Une collection complète procure un avantage de confort au personnage qui dort en présence de son Armoire.
+• Plusieurs Armoires complètes réunies dans la même pièce ne cumulent pas cet avantage.
+• L'Armoire est transportable, mais doit être entièrement vidée de son contenu avant tout déplacement.
+• Tant qu'elle n'est pas verrouillée, un visiteur peut en retirer les souvenirs.
+• L'Armoire est vendue sans clé.
+• Sa facture comporte une référence confidentielle qui permettra au propriétaire de faire fabriquer ultérieurement une clé adaptée à cette Armoire.`
   }
 };
 
@@ -2350,6 +2362,15 @@ async function ouvrirDetailObjetInventaire(idx) {
     return;
   }
 
+  // Armoire a souvenirs (lot du 25 aout 2026) : popup entierement dediee (image, collection,
+  // progression, facture), meme routage precoce que le calepin d'enquete ci-dessus -- jamais la
+  // popup generique desc+boutons plus bas, qui ne convient pas a un objet individualise a cette
+  // richesse de metadonnees.
+  if (item.type === 'armoire_souvenirs' && typeof ouvrirPopupArmoireSouvenirs === 'function') {
+    ouvrirPopupArmoireSouvenirs(idx, 'contenu');
+    return;
+  }
+
   document.getElementById('postes-modal-title').textContent = item.name;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -2460,6 +2481,92 @@ async function consommerAliment(idx) {
 
   updateUI();
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+}
+
+// =====================
+// ARMOIRE A SOUVENIRS — popup dediee (lot du 25 aout 2026)
+// =====================
+// Reutilise le langage visuel de la checklist du calepin d'enquete (enigme1AfficherCalepin,
+// plateau-enigme-portrait.js : couleur/italique clair vs terne pour distinguer obtenu/manquant)
+// adapte avec une icone de coche, puisqu'ici les 12 noms sont deja connus du joueur (liste de
+// collection publique), contrairement au calepin qui masque le titre tant qu'il n'est pas
+// decouvert. Deux onglets internes au meme modal generique #modal-postes (memes id que partout
+// ailleurs) : Contenu (progression + liste, + lien vers les regles) et Facture. Pour ce lot,
+// contenu est toujours vide (remplissage hors perimetre) : les 12 lignes apparaissent donc
+// naturellement toutes non cochees. La coche signifiera plus tard "cet objet est PHYSIQUEMENT
+// present dans cette Armoire maintenant", pas "a deja ete possede" -- deja respecte ici puisque
+// la seule source de verite lue est item.contenu (etat courant), jamais un historique separe.
+//
+// Confidentialite de la reference secrete (correctif du 25 aout 2026, retour de Fred) : la
+// reference EST affichee dans l'onglet Facture -- c'est sa raison d'etre (elle permettra plus
+// tard de faire fabriquer une cle pour CETTE Armoire) -- mais uniquement quand le personnage
+// courant est le proprietaire enregistre (estProprietaire = item.proprietaire === state.char?.
+// name). Aujourd'hui cette popup n'est jamais ouverte que depuis le PROPRE inventaire du joueur
+// (ouvrirDetailObjetInventaire lit state.inventory[idx], toujours le sien), donc estProprietaire
+// est structurellement toujours vrai pour l'instant -- ce garde-fou prepare l'architecture pour
+// une consultation par un AUTRE personnage (hors perimetre de ce lot, explicitement prevue par
+// Fred), qui ne devra jamais voir cette reference.
+function ouvrirPopupArmoireSouvenirs(idx, tab) {
+  const item = state.inventory[idx];
+  if (!item || item.type !== 'armoire_souvenirs') return;
+  const activeTab = tab || 'contenu';
+  const liste = (typeof LISTES_SOUVENIRS !== 'undefined') ? LISTES_SOUVENIRS[item.listeId] : null;
+  const contenu = item.contenu || [];
+  const estProprietaire = item.proprietaire === state.char?.name;
+
+  let html = '<div style="padding:1rem">';
+  if (item.imageUrl) {
+    html += '<img src="' + item.imageUrl + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:220px;object-fit:cover"/>';
+  }
+  html += '<div style="font-family:Playfair Display,serif;font-size:1rem;color:#E8C97A;margin-bottom:.3rem">Armoire à souvenirs — ' + (liste ? liste.nom : ('Collection n°' + item.listeId)) + '</div>';
+  // Lien contextuel vers les regles (lot du 25 aout 2026) : reutilise le systeme de navigation
+  // deja existant (openRulesView/renderRulesContent, plateau-personnage.js -- section = onglet
+  // data-section de plateau.html, meme granularite que le reste du jeu, aucun mecanisme
+  // d'ancrage supplementaire n'existe ni n'est invente ici). L'Armoire est economique
+  // (fabriquee/vendue par la Scierie) : sa sous-section vit dans l'onglet "economie" deja
+  // existant (REGLES.economie). Ferme d'abord #modal-postes pour eviter un empilement visuel
+  // avec la vue plein ecran des regles.
+  html += '<div style="margin-bottom:.7rem"><a href="#" onclick="document.getElementById(\'modal-postes\')?.classList.remove(\'open\');openRulesView();renderRulesContent(\'economie\');return false;" style="font-size:.76rem;color:#8a9aca;text-decoration:underline;cursor:pointer">Voir les règles des Armoires à souvenirs</a></div>';
+
+  html += '<div style="display:flex;gap:.4rem;margin-bottom:.8rem">';
+  ['contenu', 'facture'].forEach(t => {
+    const actif = activeTab === t;
+    html += '<button onclick="ouvrirPopupArmoireSouvenirs(' + idx + ',\'' + t + '\')" style="flex:1;padding:.4rem;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;border:1px solid ' + (actif ? '#8a6a20' : '#2a2010') + ';background:' + (actif ? '#1a1508' : 'transparent') + ';color:' + (actif ? '#E8C97A' : '#8a8060') + ';cursor:pointer">' + t.toUpperCase() + '</button>';
+  });
+  html += '</div>';
+
+  if (activeTab === 'facture') {
+    html += '<div style="font-size:.82rem;color:#c0b090;line-height:1.9">';
+    html += 'Scierie Guy Tarembois — Port-Sainte-Marie, Républia<br>';
+    html += (item.name || 'Armoire à souvenirs') + '<br>';
+    html += 'Acquéreur : ' + (item.proprietaire || '—') + '<br>';
+    html += 'Date d\'achat : ' + (item.dateAchat ? new Date(item.dateAchat).toLocaleDateString('fr-FR') : '—') + '<br>';
+    html += 'N° d\'Armoire : ' + (item.id || '—') + '<br>';
+    html += '</div>';
+    if (estProprietaire) {
+      html += '<div style="margin-top:.6rem;padding:.6rem;border:1px solid #4a3a10;background:#161206">';
+      html += '<div style="font-size:.8rem;color:#E8C97A;word-break:break-all">Référence confidentielle : ' + (item.referenceSecrete || '—') + '</div>';
+      html += '<div style="font-size:.72rem;color:#8a7a50;font-style:italic;margin-top:.35rem">Conservez précieusement cette référence : elle seule permettra de faire fabriquer une clé pour cette Armoire.</div>';
+      html += '</div>';
+    } else {
+      html += '<div style="font-size:.76rem;color:#6a5a30;font-style:italic;margin-top:.4rem">La référence confidentielle de propriété n\'est visible que par le propriétaire.</div>';
+    }
+  } else {
+    const total = liste ? liste.souvenirs.length : 12;
+    const nbPresents = contenu.length;
+    html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.6rem">' + nbPresents + ' / ' + total + ' souvenirs</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:.35rem">';
+    (liste ? liste.souvenirs : []).forEach(s => {
+      const present = contenu.includes(s.nom);
+      html += '<div style="font-size:.82rem;color:' + (present ? '#e0d8c0' : '#5a5040') + '"><i class="ti ' + (present ? 'ti-square-check' : 'ti-square') + '" style="margin-right:.5rem"></i>' + s.ville + ' — ' + s.nom + '</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  document.getElementById('postes-modal-title').textContent = item.name || 'Armoire à souvenirs';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 // =====================

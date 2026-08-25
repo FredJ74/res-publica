@@ -377,10 +377,21 @@ const WORLD = {
               // nouveau handler ; seul matieresAccepteesParUsine() a ete etendu (plateau-justice-
               // economie.js) pour que ce buildingId, dans CETTE ville, accepte bois/minerai. Pas de
               // recette/production ici (l'Armoire a souvenirs fait l'objet d'un lot ulterieur).
+              //
+              // fabriquer_armoire_souvenirs/acheter_armoire_souvenirs (lot Armoire a souvenirs,
+              // 25 aout 2026) : premier produit manufacture de la Scierie. Recette a 2 matieres
+              // (2 bois + 2 minerai + 3 PA), geree par des fonctions dediees (plateau-justice-
+              // economie.js) plutot que par CHAINES_PRODUCTION_USINE (qui ne supporte qu'une
+              // seule matiere par chaine -- incompatibilite structurelle rapportee et contournee
+              // sans modifier ce moteur existant). consulter_stock_usine (deja present) affiche
+              // desormais aussi le stock de produits finis -- aucun 3e ordre de consultation
+              // necessaire.
               orders: [
                 {fn:'consulter_caisse_usine', label:'Consulter la caisse', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Voir le solde actuel de la caisse de la Scierie.'},
-                {fn:'consulter_stock_usine', label:'Consulter le stock', pa:0, cost:0, type:'legal', icon:'ti-boxes', successRate:100, desc:'Voir les matières premières actuellement détenues par la Scierie.'},
-                {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à la Scierie, depuis votre inventaire, le bois ou le minerai que vous avez achetés à l\'Entrepôt Logistique.'}
+                {fn:'consulter_stock_usine', label:'Consulter le stock', pa:0, cost:0, type:'legal', icon:'ti-boxes', successRate:100, desc:'Voir les matières premières et les produits finis actuellement détenus par la Scierie.'},
+                {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à la Scierie, depuis votre inventaire, le bois ou le minerai que vous avez achetés à l\'Entrepôt Logistique.'},
+                {fn:'fabriquer_armoire_souvenirs', label:'Fabriquer une Armoire à souvenirs', pa:3, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Consomme 2 bois + 2 minerai du stock de la Scierie. +1 Armoire disponible à la vente.'},
+                {fn:'acheter_armoire_souvenirs', label:'Acheter une Armoire à souvenirs', pa:0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'390 FR. Fabriquée par la Scierie Guy Tarembois. Encombrement : 3.'}
               ]
             }
           }

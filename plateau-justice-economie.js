@@ -3909,6 +3909,124 @@ function prixRachatMatierePremiereUsine(buildingId, pays, ville, res) {
   return usineRachatePrixDetail(buildingId, pays, ville) ? res.prixBase : res.prixAchatFournisseur;
 }
 
+// =====================
+// PRODUITS MANUFACTURES D'USINE (lot Armoire a souvenirs, 25 aout 2026) : catalogue generique,
+// meme principe que RESSOURCES_ECONOMIE/CHAINES_PRODUCTION_USINE -- indexe par id de produit,
+// jamais code en dur par batiment. Incompatibilite structurelle identifiee et rapportee avant
+// codage : CHAINES_PRODUCTION_USINE (doProduireUsine/confirmerProductionUsine) ne supporte
+// qu'UNE SEULE matiere par chaine (stockMatieres[c.matiere], singulier) -- l'Armoire consomme
+// DEUX matieres simultanement (bois ET minerai), ce que cette machinerie ne peut pas
+// representer sans la modifier en profondeur. Plutot que d'alterer un moteur deja utilise par
+// 3 usines existantes, ce catalogue et ses fonctions dediees (plus bas) sont ADDITIFS : memes
+// briques reutilisees (etat.usine.stockMatieres, deduireCoutOrdre, sbGetBatimentEtat/
+// sbSetBatimentEtat), nouvelle recette a plusieurs matieres geree a part.
+const PRODUITS_MANUFACTURES_USINE = {
+  armoire_souvenirs: {
+    type: 'armoire_souvenirs',
+    label: 'Armoire à souvenirs',
+    icon: 'ti-archive',
+    // imageUrl : chemin valide par Fred (25 aout 2026), meme convention que les autres visuels
+    // du jeu (dossier images/ a la racine). Asset pas encore depose au moment de ce lot -- le
+    // popup (plateau-personnage.js) n'affiche l'image que si item.imageUrl est renseigne, donc
+    // aucun blocage ni placeholder tant que le fichier n'existe pas physiquement : l'image
+    // apparaitra d'elle-meme des le depot du fichier, sans autre changement de code.
+    imageUrl: 'images/armoire-a-souvenirs.png',
+    buildingId: 'zone-production',
+    pays: 'republic',
+    ville: 'ville_a',
+    fabricant: 'Scierie Guy Tarembois',
+    fabricantLieu: 'Port-Sainte-Marie, Républia',
+    recette: { materiaux: { bois: 2, minerai: 2 }, pa: 3 },
+    prixVente: 390,
+    encombrement: 3
+  }
+};
+
+// Produits manufacturables par un batiment donne (meme principe generique que produitsUsine,
+// applique au nouveau catalogue ci-dessus plutot qu'a CHAINES_PRODUCTION_USINE).
+function produitsManufacturesUsine(buildingId, pays, ville) {
+  return Object.keys(PRODUITS_MANUFACTURES_USINE).filter(id => {
+    const p = PRODUITS_MANUFACTURES_USINE[id];
+    return p.buildingId === buildingId && p.pays === (pays || 'republic') && p.ville === (ville || '');
+  });
+}
+
+// =====================
+// LISTES DE COLLECTION DE L'ARMOIRE A SOUVENIRS (lot du 25 aout 2026) : structure generique
+// indexee par listeId, extensible aux listes 2 et 3 (a venir) sans migration -- il suffira
+// d'ajouter les cles 2/3 ici, aucun autre code de ce lot n'a besoin de changer. Les souvenirs
+// eux-memes ne sont PAS encore des objets du jeu (hors perimetre de ce lot) : cette structure ne
+// sert que de reference d'affichage (popup) et de definition de la collection attendue.
+const LISTES_SOUVENIRS = {
+  1: {
+    nom: 'Collection n°1',
+    souvenirs: [
+      { ville: 'Luthécia',         nom: 'Reproduction miniature du Palais présidentiel' },
+      { ville: 'Montrouge',        nom: 'Ticket du cinéma de Montrouge' },
+      { ville: 'Port Sainte-Marie', nom: 'Mug « Port Sainte-Marie »' },
+      { ville: 'Novomirsk',        nom: 'Poupée traditionnelle de Novomirsk' },
+      { ville: 'Starovka',         nom: 'Flasque métallique gravée « Starovka »' },
+      { ville: 'Krasnov',          nom: 'Insigne émaillé des hauts-fourneaux de Krasnov' },
+      { ville: 'Ciudad Roja',      nom: 'Petit masque rouge du carnaval de Ciudad Roja' },
+      { ville: 'Puerto Negro',     nom: 'Jeton du casino de Puerto Negro' },
+      { ville: 'Villa Sangre',     nom: 'Crâne décoratif peint de Villa Sangre' },
+      { ville: 'Al Madina',        nom: "Petite lampe ouvragée d'Al Madina" },
+      { ville: 'Oasis City',       nom: 'Boule à neige « Oasis City »' },
+      { ville: 'Al-Petrol',        nom: 'Miniature de baril de pétrole doré' }
+    ]
+  }
+};
+
+// Identifiant public d'un exemplaire d'Armoire -- meme convention que les autres objets
+// individualises deja existants (cartes postales/aliments, commanderProduitCommerce,
+// plateau-actions-illegales-rumeurs.js : recetteId + Date.now() + alea), pour rester previsible
+// et coherent avec le reste du jeu. Volontairement PAS utilise comme reference secrete (voir
+// ci-dessous) : previsible/quasi-sequentiel, adapte a un identifiant PUBLIC, pas a un secret.
+function genererIdArmoireSouvenirs() {
+  return 'armoire_souvenirs_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+}
+
+// Reference secrete de propriete (lot Armoire a souvenirs, 25 aout 2026) : DOIT etre non
+// derivable de l'id public et non sequentielle (exigence explicite de Fred, servira plus tard a
+// faire fabriquer une cle personnalisee que seul le proprietaire legitime peut obtenir).
+// crypto.randomUUID() (disponible nativement dans tous les navigateurs modernes) est
+// cryptographiquement aleatoire et totalement independant de genererIdArmoireSouvenirs()
+// ci-dessus -- aucune relation calculable entre les deux. Repli tres improbable (navigateur
+// tres ancien sans crypto.randomUUID) : concatenation de deux tirages Math.random() distincts,
+// toujours aleatoire, jamais sequentielle.
+function genererReferenceSecreteArmoire() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  return 'ref-' + Math.random().toString(36).slice(2) + '-' + Math.random().toString(36).slice(2);
+}
+
+// Individualisation au moment de l'achat (jamais avant -- meme doctrine que les cartes postales,
+// commanderProduitCommerce) : chaque exemplaire recoit son propre id, sa reference secrete, son
+// proprietaire, sa date d'achat, son listeId (structure generique, listes 2/3 futures sans
+// migration), son contenu (vide) et son etat de verrouillage (non verrouille). Architecture
+// prevue pour l'installation/le remplissage/le verrouillage futurs (hors perimetre de ce lot) :
+// contenu est deja un tableau (pret a recevoir des souvenirs), verrouillee un booleen explicite
+// (pret a etre bascule), sans qu'aucun champ supplementaire ne soit necessaire pour ces lots
+// ulterieurs. Pas de sous-objet "facture" duplique : la popup (plateau-personnage.js) lit
+// directement id/proprietaire/dateAchat/referenceSecrete sur CET objet pour l'onglet Facture --
+// une seule source de verite, jamais deux copies pouvant diverger.
+function creerExemplaireArmoireSouvenirs() {
+  const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
+  return {
+    id: genererIdArmoireSouvenirs(),
+    type: p.type,
+    name: p.label,
+    icon: p.icon,
+    imageUrl: p.imageUrl,
+    encombrement: p.encombrement,
+    proprietaire: state.char?.name || null,
+    dateAchat: Date.now(),
+    listeId: 1,
+    referenceSecrete: genererReferenceSecreteArmoire(),
+    contenu: [],
+    verrouillee: false
+  };
+}
+
 // Matieres acceptees par une usine = union des matieres des chaines CHAINES_PRODUCTION_USINE
 // configurees pour ce buildingId (jamais une liste codee en dur par usine) -- meme principe que
 // matieresAccepteesParCommerce (union des materiaux de la carte), applique ici aux chaines de
@@ -4088,11 +4206,16 @@ async function doConsulterStockUsine() {
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
   const usine = etat?.usine || defautUsine(buildingId, pays, ville);
   const matieres = matieresAccepteesParUsine(buildingId, pays, ville);
+  // Produits finis (lot Armoire a souvenirs, 25 aout 2026) : reutilise CETTE MEME consultation
+  // (ni nouvel ordre, ni nouvelle modale) plutot que d'en dupliquer une -- distinct de
+  // usine.stockMatieres (jamais mélangé), lu depuis usine.stockProduits.
+  const produits = produitsManufacturesUsine(buildingId, pays, ville);
 
-  document.getElementById('postes-modal-title').textContent = 'Stock de matières premières — ' + (BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId);
+  document.getElementById('postes-modal-title').textContent = 'Stock — ' + (BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId);
   let html = '<div style="padding:1rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">MATIÈRES PREMIÈRES</div>';
   if (matieres.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Aucune matière première configurée pour ce bâtiment.</div>';
+    html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.8rem">Aucune matière première configurée pour ce bâtiment.</div>';
   } else {
     matieres.forEach(m => {
       const res = RESSOURCES_ECONOMIE[m];
@@ -4101,9 +4224,148 @@ async function doConsulterStockUsine() {
       html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.35rem"><i class="ti ' + (res?.icon || 'ti-package') + '" style="margin-right:.4rem;color:#8a6a20"></i>' + (res?.label || m) + ' : ' + Math.round(qte) + (plafond != null ? ' / ' + plafond : '') + '</div>';
     });
   }
+  if (produits.length > 0) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;color:#8a6a20;margin:.8rem 0 .4rem">PRODUITS FINIS</div>';
+    produits.forEach(id => {
+      const p = PRODUITS_MANUFACTURES_USINE[id];
+      const qte = usine.stockProduits?.[id] || 0;
+      html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.35rem"><i class="ti ' + (p.icon || 'ti-package') + '" style="margin-right:.4rem;color:#8a6a20"></i>' + p.label + ' : ' + Math.round(qte) + '</div>';
+    });
+  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// =====================
+// FABRICATION ET VENTE DE L'ARMOIRE A SOUVENIRS (lot du 25 aout 2026) : recette a PLUSIEURS
+// matieres (voir note sur l'incompatibilite avec CHAINES_PRODUCTION_USINE ci-dessus). Reutilise
+// deduireCoutOrdre (deduction PA centralisee), etat.usine.stockMatieres/stockProduits/caisse,
+// sbGetBatimentEtat/sbSetBatimentEtat -- aucun nouveau mecanisme de persistance.
+// =====================
+
+async function doFabriquerArmoireSouvenirs() {
+  const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(p.pays, p.ville, p.buildingId).catch(() => null) : null;
+  const usine = etat?.usine || defautUsine(p.buildingId, p.pays, p.ville);
+
+  const materiauxTxt = Object.entries(p.recette.materiaux).map(([m, q]) => q + ' ' + (RESSOURCES_ECONOMIE[m]?.label || m)).join(' + ');
+  const stockTxt = Object.entries(p.recette.materiaux).map(([m]) => (RESSOURCES_ECONOMIE[m]?.label || m) + ' en stock : ' + (usine.stockMatieres?.[m] || 0)).join(' · ');
+
+  document.getElementById('postes-modal-title').textContent = 'Fabriquer — ' + p.label;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">' + p.recette.pa + ' PA consomme ' + materiauxTxt + ' du stock de la Scierie et produit 1 ' + p.label + '.</div>';
+  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem;font-size:.85rem;color:#8a8060">' + stockTxt + '</div>';
+  html += '<button onclick="confirmerFabriquerArmoireSouvenirs()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Fabriquer (' + p.recette.pa + ' PA)</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerFabriquerArmoireSouvenirs() {
+  const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(p.pays, p.ville, p.buildingId).catch(() => null) : null;
+  if (!etat) { showToast('Indisponible', '', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+  const usine = etat.usine || defautUsine(p.buildingId, p.pays, p.ville);
+  if (!usine.stockMatieres) usine.stockMatieres = {};
+
+  // Verification COMPLETE du stock AVANT toute deduction de PA -- refus sans mutation partielle
+  // (exigence explicite du lot).
+  const manque = Object.entries(p.recette.materiaux).find(([m, q]) => (usine.stockMatieres[m] || 0) < q);
+  if (manque) {
+    showToast('Stock insuffisant', 'Il manque du ' + (RESSOURCES_ECONOMIE[manque[0]]?.label || manque[0]) + ' dans le stock de la Scierie.', false);
+    document.getElementById('modal-postes')?.classList.remove('open');
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa: p.recette.pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', p.recette.pa + ' PA requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+
+  Object.entries(p.recette.materiaux).forEach(([m, q]) => { usine.stockMatieres[m] -= q; });
+  if (!usine.stockProduits) usine.stockProduits = {};
+  usine.stockProduits[p.type] = (usine.stockProduits[p.type] || 0) + 1;
+
+  const nouvelEtat = { ...etat, usine };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(p.pays, p.ville, p.buildingId, nouvelEtat).catch(() => {});
+
+  updateUI();
+  showToast('Fabrication réussie', '+1 ' + p.label + ' disponible à la vente.', true, true);
+  addJournalEntry('Fabrication d\'une ' + p.label + ' à la Scierie Guy Tarembois.', 'event-good');
+  doFabriquerArmoireSouvenirs(); // rafraichit, meme pattern que confirmerProductionUsine
+}
+
+async function doAcheterArmoireSouvenirs() {
+  const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(p.pays, p.ville, p.buildingId).catch(() => null) : null;
+  const usine = etat?.usine || defautUsine(p.buildingId, p.pays, p.ville);
+  const stockDispo = usine.stockProduits?.[p.type] || 0;
+
+  document.getElementById('postes-modal-title').textContent = 'Acheter — ' + p.label;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Fabriquée par la ' + p.fabricant + ' (' + p.fabricantLieu + '). Encombrement : ' + p.encombrement + ' emplacement(s).</div>';
+  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem;font-size:.85rem;color:#8a8060">Stock disponible : ' + stockDispo + ' · Prix : ' + p.prixVente.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  if (stockDispo <= 0) {
+    html += '<div style="font-size:.82rem;color:#cc5540">Rupture de stock pour l\'instant.</div>';
+  } else {
+    html += '<button onclick="confirmerAchatArmoireSouvenirs()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Acheter (' + p.prixVente.toLocaleString('fr-FR') + ' ' + cur + ')</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerAchatArmoireSouvenirs() {
+  const p = PRODUITS_MANUFACTURES_USINE.armoire_souvenirs;
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(p.pays, p.ville, p.buildingId).catch(() => null) : null;
+  if (!etat) { showToast('Indisponible', '', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+  const usine = etat.usine || defautUsine(p.buildingId, p.pays, p.ville);
+  const stockDispo = usine.stockProduits?.[p.type] || 0;
+  if (stockDispo <= 0) { showToast('Rupture de stock', '', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+
+  // Capacite d'inventaire verifiee AVANT tout paiement (refus propre si le personnage n'a pas la
+  // capacite necessaire) -- reutilise getTotalInventaire()/PLAFOND_INVENTAIRE_EMPILABLE
+  // (plateau-divers.js, etendu ce meme lot pour comprendre item.encombrement > 1).
+  const placeRestante = (typeof PLAFOND_INVENTAIRE_EMPILABLE !== 'undefined' && typeof getTotalInventaire === 'function')
+    ? PLAFOND_INVENTAIRE_EMPILABLE - getTotalInventaire() : Infinity;
+  if (placeRestante < p.encombrement) {
+    showToast('Inventaire insuffisant', 'Il faut ' + p.encombrement + ' emplacements libres pour transporter une ' + p.label + '.', false);
+    document.getElementById('modal-postes')?.classList.remove('open');
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa: 0, cost: p.prixVente, payeur: 'joueur' });
+  if (!r.ok) { showToast('Fonds insuffisants', p.prixVente + ' ' + cur + ' requis.', false); document.getElementById('modal-postes')?.classList.remove('open'); return; }
+
+  usine.stockProduits[p.type] = stockDispo - 1;
+  usine.caisse = (usine.caisse || 0) + p.prixVente;
+  const nouvelEtat = { ...etat, usine };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(p.pays, p.ville, p.buildingId, nouvelEtat).catch(() => {});
+
+  const armoire = creerExemplaireArmoireSouvenirs();
+  const qteAjoutee = (typeof addToInventory === 'function') ? addToInventory(armoire) : 0;
+  if (qteAjoutee <= 0) {
+    // Filet de securite (la capacite a deja ete verifiee ci-dessus, ne devrait jamais se
+    // declencher) : rembourse integralement plutot que de faire disparaitre l'argent et le
+    // stock deja mutes.
+    state.arg = (state.arg || 0) + p.prixVente;
+    usine.stockProduits[p.type] = (usine.stockProduits[p.type] || 0) + 1;
+    usine.caisse = (usine.caisse || 0) - p.prixVente;
+    if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(p.pays, p.ville, p.buildingId, { ...etat, usine }).catch(() => {});
+    showToast('Achat annulé', 'Pas assez de place pour transporter l\'Armoire.', false);
+    document.getElementById('modal-postes')?.classList.remove('open');
+    updateUI();
+    return;
+  }
+
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Achat effectué !', '-' + p.prixVente.toLocaleString('fr-FR') + ' ' + cur + '.', true, true);
+  addJournalEntry('Achat d\'une ' + p.label + ' à la Scierie Guy Tarembois (-' + p.prixVente.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-good');
 }
 
 // =====================
