@@ -5456,22 +5456,26 @@ const BUILDINGS = {
       },
       // isLocationRoom/locationData retires ici (lot du 25 aout 2026, §13-14) : l'ancien bail
       // EXCLUSIF (350 FR/jour, +6 DIS +3 INF, un seul locataire possible pour toute la piece) est
-      // remplace par un service de box INDIVIDUELS multi-tenant (louer_box/gerer_box ci-dessous,
-      // fonctions dediees plateau-justice-economie.js -- Option B validee : structure legere
-      // parallele, AUCUNE modification du moteur isLocationRoom/getLocationPourRoom qui continue
-      // de servir les ~15 autres pieces a bail exclusif exactement comme avant). Tout ancien bail
-      // herite de cette piece (state.locationsActives sans le flag isBox) est automatiquement
-      // resilie sans frais au prochain payerLocations(), ses bonus DIS/INF disparaissant avec lui
-      // (voir le commentaire dedie dans payerLocations).
+      // remplace par un service de box INDIVIDUELS multi-tenant. Correctif UX du 25 aout 2026 :
+      // louer_box/gerer_box (fonctions dediees plateau-justice-economie.js, mecanique v75
+      // totalement inchangee) ont ete deplaces de cette room vers une sous-room dediee
+      // 'box_a_louer' (ci-dessous), accessible via l'ordre 'acceder_box_a_louer' -- l'entrepot
+      // reste reserve au fret prive (expedier_colis/receptionner_commande), le box n'y vit plus.
+      // Option B toujours valide : structure legere parallele, AUCUNE modification du moteur
+      // isLocationRoom/getLocationPourRoom qui continue de servir les ~15 autres pieces a bail
+      // exclusif exactement comme avant. Tout ancien bail herite de cette room (state.
+      // locationsActives sans le flag isBox) est automatiquement resilie sans frais au prochain
+      // payerLocations(), ses bonus DIS/INF disparaissant avec lui (voir le commentaire dedie
+      // dans payerLocations) -- ce nettoyage reste ancre sur le roomId historique 'entrepot',
+      // inchange par ce deplacement.
       entrepot: {
         name: "Entrepôts",
         imageBg: "linear-gradient(135deg,#050810,#08100a)",
-        desc: "Immenses entrepôts de stockage et zones frigorifiques pour denrées périssables et exotiques. Box individuels disponibles à la location.",
+        desc: "Immenses entrepôts de stockage et zones frigorifiques pour denrées périssables et exotiques. Un service de box individuels est accessible sur place.",
         imageUrl: "images/port-sainte-marie-port-industriel-entrepots.png",
         persons: [],
         orders: [
-          {fn:'louer_box', label:'Louer un box (15 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Box individuel de stockage, indépendant des autres locataires. Aucun bonus DIS/INF.'},
-          {fn:'gerer_box', label:'Gérer mon box', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+          {fn:'acceder_box_a_louer', label:'Box à louer', pa:0, cost:0, type:'legal', icon:'ti-box', successRate:100, desc:'Accéder aux box de stockage individuels de l\'entrepôt.'},
           {fn:'marchandises_non_reclamees', label:'Marchandises non réclamées', pa:0, cost:0, type:'legal', icon:'ti-truck-loading', successRate:100, desc:'Caisses de fret jamais vidées par leur destinataire (15 jours après arrivée), en vente au profit du port.'},
           // Deplaces depuis quai_principal (lot du 25 aout 2026, §6) : deplacement UX uniquement,
           // moteur caisses_fret (v68) totalement inchange -- voir ROOM_CHARGEMENT_FRET,
@@ -5481,6 +5485,26 @@ const BUILDINGS = {
           // aucune dependance introduite entre les deux.
           {fn:'expedier_colis', label:'Réserver une caisse de fret', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Réserve une caisse persistante (500 unités max) où vous et vos chargeurs autorisés pouvez déposer des marchandises avant de la fermer et l\'expédier vers un PJ d\'un autre empire. Délai 1 jour.'},
           {fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Consulter et dédouaner les caisses arrivées à votre nom. Droits de douane et gardiennage éventuel dus avant tout retrait.'}
+        ]
+      },
+      // Sous-room dediee du box portuaire (correctif UX du 25 aout 2026), accessible UNIQUEMENT
+      // depuis 'entrepot' (ordre 'acceder_box_a_louer') -- jamais un onglet de premiere ligne du
+      // batiment : hiddenTab:true, meme convention que les chambres individuelles de la clinique
+      // privee (voir le filtre dedie dans enterBuilding, plateau-navigation.js). imageUrl
+      // volontairement absent : aucune image dediee "box portuaire" trouvee dans le depot au
+      // moment de ce lot -- chemin attendu si l'utilisateur en fournit une plus tard :
+      // images/port-sainte-marie-port-industriel-box-a-louer.png (imageBg sert de repli en
+      // attendant, meme convention que les autres rooms sans photo dediee).
+      box_a_louer: {
+        name: "Box à louer",
+        imageBg: "linear-gradient(135deg,#050810,#08100a)",
+        desc: "Une rangée de box individuels grillagés, chacun fermé par son propre cadenas. Aucun bonus de discrétion ou d'influence : juste du stockage.",
+        hiddenTab: true,
+        persons: [],
+        orders: [
+          {fn:'louer_box', label:'Louer un box (15 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Box individuel de stockage, indépendant des autres locataires. Aucun bonus DIS/INF.'},
+          {fn:'gerer_box', label:'Gérer mon box', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+          {fn:'retour_entrepot', label:'← Retour à l\'Entrepôt', pa:0, cost:0, type:'legal', icon:'ti-arrow-left', successRate:100}
         ]
       },
       // Pascal Paguevite (PNJ), lot du 24 aout 2026 : titulaire initial du poste Chef des

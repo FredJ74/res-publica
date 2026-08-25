@@ -2114,12 +2114,14 @@ function payerLocations() {
 
     // Box portuaire (lot du 25 aout 2026, §13-14) : l'ancien bail EXCLUSIF de l'entrepot
     // (isLocationRoom/locationData retires de data.js) est remplace par des box individuels
-    // (isBox:true, voir ouvrirModalLouerBox plus haut). Toute location HERITEE de cette meme
-    // piece mais sans le flag isBox est l'ancien bail : resiliee ici sans frais ni penalite, ses
-    // bonus DIS/INF disparaissant avec elle (§14 : "les anciens bonus DIS/INF ... doivent
-    // disparaitre") -- traitement one-shot, jamais reintroduit puisque plus aucun ordre ne peut
-    // recreer ce type de bail.
-    if (loc.buildingId === BUILDING_ID_PORT && loc.roomId === ROOM_ID_BOX_PORTUAIRE && !loc.isBox) {
+    // (isBox:true, voir ouvrirModalLouerBox plus bas). Toute location HERITEE de l'ancienne room
+    // 'entrepot' (roomId LITTERAL, fait historique fige -- jamais ROOM_ID_BOX_PORTUAIRE_NAV, qui
+    // peut bouger avec la navigation, voir correctif UX du 25 aout 2026 ci-dessous) mais sans le
+    // flag isBox est l'ancien bail : resiliee ici sans frais ni penalite, ses bonus DIS/INF
+    // disparaissant avec elle (§14 : "les anciens bonus DIS/INF ... doivent disparaitre") --
+    // traitement one-shot, jamais reintroduit puisque plus aucun ordre ne peut recreer ce type
+    // de bail.
+    if (loc.buildingId === BUILDING_ID_PORT && loc.roomId === 'entrepot' && !loc.isBox) {
       aTraiter.push({ i, action: 'legacyEntrepot' });
       return;
     }
@@ -2250,25 +2252,45 @@ function ouvrirMesLocations() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// ---- BOX PORTUAIRE MULTI-TENANT (lot du 25 aout 2026, §13-14-15) ----
+// ---- BOX PORTUAIRE MULTI-TENANT (lot du 25 aout 2026, §13-14-15 ; correctif UX du 25 aout 2026
+// deplacant l'ordre vers une room dediee 'box_a_louer') ----
 // Option B validee : structure dediee legere, PAS une reutilisation de getLocationPourRoom (qui
 // reste a titulaire UNIQUE par piece pour les ~15 autres locations, totalement inchangee). Un
 // box est une entree state.locationsActives normale (memes champs, meme sbLoadLocations au
-// chargement), mais sa cle d'appartenance est (buildingId, roomId, city, locataire) au lieu de
-// (buildingId, roomId, city) seul -- getMaBoxPortuaire ci-dessous filtre donc TOUJOURS sur le
-// locataire courant, jamais sur la piece seule. Persistance dediee (sbSaveLocationBox/
-// sbSupprimerLocationBox, supabase.js) pour eviter que deux locataires du meme box n'ecrasent la
-// meme ligne. Aucun bonus DIS/INF (§14, contrairement a l'ancien bail exclusif retire de
-// data.js) ; destination des loyers = caisse reelle du port (republic_port-sainte-marie), creditee
-// dans payerLocations ci-dessus des que isBox===true. Totalement independant du fret prive
-// (expedier_colis/receptionner_commande, §15) : aucun champ ni verification partagee.
+// chargement), mais sa cle d'appartenance est (buildingId, city, locataire, isBox) -- SANS
+// roomId, deliberement decouple de la room UX (§ correctif du 25 aout 2026 : la premiere version
+// vivait dans 'entrepot' ; l'ordre a ensuite ete deplace vers 'box_a_louer' ; getMaBoxPortuaire
+// continue de retrouver les box crees AVANT ce deplacement, qui portent encore l'ancien roomId
+// 'entrepot', puisqu'il ne teste jamais roomId). ROOM_ID_BOX_PORTUAIRE_NAV n'est utilise QUE pour
+// la navigation (enterRoom apres location) ; le roomId reellement PERSISTE sur l'objet
+// (BOX_PORTUAIRE_ID_PERSISTANCE) est une valeur stable, independante de la room qui heberge
+// l'ordre -- un futur deplacement UX supplementaire n'aura donc plus jamais a se soucier de la
+// persistance existante. Persistance dediee (sbSaveLocationBox/sbSupprimerLocationBox,
+// supabase.js) : id = buildingId:roomId:city:locataire, pour eviter que deux locataires du meme
+// box n'ecrasent la meme ligne (sbSaveLocation/sbSupprimerLocation generiques, sans locataire
+// dans l'id, restent inchangees pour les ~15 autres locations). Aucun bonus DIS/INF (§14,
+// contrairement a l'ancien bail exclusif retire de data.js) ; destination des loyers = caisse
+// reelle du port (republic_port-sainte-marie), creditee dans payerLocations ci-dessus des que
+// isBox===true. Totalement independant du fret prive (expedier_colis/receptionner_commande,
+// §15) : aucun champ ni verification partagee.
 const TARIF_BOX_PORTUAIRE_JOUR = 15;
-const ROOM_ID_BOX_PORTUAIRE = 'entrepot';
+const ROOM_ID_BOX_PORTUAIRE_NAV = 'box_a_louer'; // room UX reelle -- navigation uniquement
+const BOX_PORTUAIRE_ID_PERSISTANCE = 'box-portuaire'; // identifiant stable persiste, jamais lu pour la navigation
+
+// Navigation pure (correctif UX du 25 aout 2026) : ouvre/quitte la sous-room 'box_a_louer',
+// hors mecanique de location -- aucun etat modifie, aucun cout, aucune verification de bail.
+function ouvrirBoxALouer() {
+  enterRoom(BUILDING_ID_PORT, ROOM_ID_BOX_PORTUAIRE_NAV, null);
+}
+
+function retourEntrepot() {
+  enterRoom(BUILDING_ID_PORT, 'entrepot', null);
+}
 
 function getMaBoxPortuaire() {
   const moi = state.char?.name || '';
   return getLocationsActives().find(l =>
-    l.buildingId === BUILDING_ID_PORT && l.roomId === ROOM_ID_BOX_PORTUAIRE && l.city === VILLE_ID_PORT &&
+    l.buildingId === BUILDING_ID_PORT && l.city === VILLE_ID_PORT &&
     l.locataire === moi && l.isBox === true
   );
 }
@@ -2304,7 +2326,7 @@ async function confirmerLocationBox(pa, cost) {
   if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment('republic', BUILDING_ID_PORT, TARIF_BOX_PORTUAIRE_JOUR).catch(() => {});
 
   const box = {
-    buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_BOX_PORTUAIRE,
+    buildingId: BUILDING_ID_PORT, roomId: BOX_PORTUAIRE_ID_PERSISTANCE,
     localLabel: 'Box portuaire (' + (state.char?.name || '') + ')',
     batimentLabel: BUILDINGS[BUILDING_ID_PORT]?.shortName || BUILDING_ID_PORT,
     prix: TARIF_BOX_PORTUAIRE_JOUR,
@@ -2324,7 +2346,7 @@ async function confirmerLocationBox(pa, cost) {
   updateUI();
   showToast('Box loué !', 'Box portuaire loué. -' + TARIF_BOX_PORTUAIRE_JOUR + ' FR/jour.', true, true);
   addJournalEntry('Box portuaire loué au port de Port-Sainte-Marie. -' + TARIF_BOX_PORTUAIRE_JOUR + ' FR/jour.', 'event-good');
-  if (state.currentRoom) enterRoom(BUILDING_ID_PORT, ROOM_ID_BOX_PORTUAIRE, null);
+  if (state.currentRoom) enterRoom(BUILDING_ID_PORT, ROOM_ID_BOX_PORTUAIRE_NAV, null);
 }
 
 function ouvrirModalGererBox() {
@@ -2346,8 +2368,12 @@ function ouvrirModalGererBox() {
 
 function resilierBox() {
   const moi = state.char?.name || '';
+  // Meme filtre decouple que getMaBoxPortuaire (pas de test sur roomId) : retrouve aussi bien un
+  // box cree avant le correctif UX (roomId encore 'entrepot') qu'un box recent
+  // (roomId===BOX_PORTUAIRE_ID_PERSISTANCE) -- sbSupprimerLocationBox ci-dessous est ensuite
+  // appelee avec box.roomId, quelle que soit sa valeur reelle, pour cibler la bonne ligne.
   const idx = (state.locationsActives || []).findIndex(l =>
-    l.buildingId === BUILDING_ID_PORT && l.roomId === ROOM_ID_BOX_PORTUAIRE && l.city === VILLE_ID_PORT && l.locataire === moi && l.isBox === true
+    l.buildingId === BUILDING_ID_PORT && l.city === VILLE_ID_PORT && l.locataire === moi && l.isBox === true
   );
   if (idx < 0) return;
   const box = state.locationsActives[idx];
