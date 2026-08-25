@@ -367,7 +367,21 @@ const WORLD = {
             zone_recolte: {
               name: "Atelier",
               imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/atelier-scierie-guy-tarembois-psm.png",
-              excludeOrders: ['recolter_matiere']
+              excludeOrders: ['recolter_matiere'],
+              // orders (lot "caisse et stock", 25 aout 2026) : fusion additive avec le template
+              // partage (roomOverrides.orders, mecanisme deja existant -- voir data.js:198/247/612)
+              // -- infrastructure economique propre a la Scierie (caisse + stock de matieres
+              // premieres dans etat.usine, sbGetBatimentEtat('republic','ville_a','zone-production')).
+              // vendre_matiere_usine est l'ordre GENERIQUE deja utilise par les 3 usines de
+              // transformation (pharma/tabac-alcools/raffinerie) -- reutilise tel quel, aucun
+              // nouveau handler ; seul matieresAccepteesParUsine() a ete etendu (plateau-justice-
+              // economie.js) pour que ce buildingId, dans CETTE ville, accepte bois/minerai. Pas de
+              // recette/production ici (l'Armoire a souvenirs fait l'objet d'un lot ulterieur).
+              orders: [
+                {fn:'consulter_caisse_usine', label:'Consulter la caisse', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Voir le solde actuel de la caisse de la Scierie.'},
+                {fn:'consulter_stock_usine', label:'Consulter le stock', pa:0, cost:0, type:'legal', icon:'ti-boxes', successRate:100, desc:'Voir les matières premières actuellement détenues par la Scierie.'},
+                {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à la Scierie, depuis votre inventaire, le bois ou le minerai que vous avez achetés à l\'Entrepôt Logistique.'}
+              ]
             }
           }
         },

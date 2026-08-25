@@ -3857,16 +3857,76 @@ async function confirmerProductionUsine(produitId) {
 // entrepot->usine existante (livrerEntrepotsQuotidien, api/cron-minuit.js) -- pas un stockMax
 // distinct invente pour l'occasion.
 
+// Matieres hors chaine de production acceptees par une usine (lot "caisse et stock" de la
+// Scierie Guy Tarembois, 25 aout 2026) : une usine peut avoir besoin de stocker/acheter une
+// matiere premiere AVANT qu'aucune recette ne la consomme encore (la Scierie n'a pas encore de
+// chaine matiere->produit -- l'Armoire a souvenirs fait l'objet d'un lot ulterieur). Distinct de
+// CHAINES_PRODUCTION_USINE (qui decrit des chaines deja fonctionnelles, utilisees aussi par le
+// filet de securite PNJ cote cron) : purement une liste de matieres stockables, sans production
+// associee pour l'instant. Cle 'pays|ville|buildingId' (et non buildingId seul, a la difference
+// de CHAINES_PRODUCTION_USINE) car 'zone-production' est PARTAGE par les 3 villes (Luthecia/PSM/
+// Montrouge, audit dedie du 25 aout 2026) -- seule l'instance de Port-Sainte-Marie est concernee
+// ici, Luthecia/Montrouge n'en heritent pas. Extensible sans nouvelle architecture : un futur
+// meuble utilisant une autre matiere n'exige qu'une entree supplementaire dans ce tableau.
+const MATIERES_HORS_CHAINE_PAR_BATIMENT = {
+  'republic|ville_a|zone-production': ['bois', 'minerai'] // Scierie Guy Tarembois (PSM)
+};
+
+// Dotation de depart d'une usine, si sa ligne batiments_etat n'a jamais encore ete ecrite (lot
+// "arbitrage stock initial", 25 aout 2026, decision de Fred). Les 3 usines de transformation
+// existantes gardent leur repli historique (caisse 3000, stock vide, INCHANGE -- meme litteral
+// qu'avant ce lot). Seule la Scierie Guy Tarembois recoit une dotation differente (150 bois +
+// 20 minerai, meme caisse 3000) : cle 'pays|ville|buildingId', meme convention que
+// MATIERES_HORS_CHAINE_PAR_BATIMENT ci-dessus. Clone superficiel a chaque appel (jamais le meme
+// objet stockMatieres/venteDirecte partage par reference entre deux lectures).
+const DOTATION_INITIALE_USINE = {
+  'republic|ville_a|zone-production': { caisse: 3000, stockMatieres: { bois: 150, minerai: 20 } } // Scierie Guy Tarembois (PSM)
+};
+function defautUsine(buildingId, pays, ville) {
+  const cle = (pays || 'republic') + '|' + (ville || '') + '|' + buildingId;
+  const dotation = DOTATION_INITIALE_USINE[cle];
+  return {
+    caisse: dotation ? dotation.caisse : 3000,
+    venteDirecte: {},
+    stockMatieres: dotation ? { ...dotation.stockMatieres } : {}
+  };
+}
+
+// Prix de rachat des matieres premieres par une usine (lot "arbitrage stock initial", 25 aout
+// 2026, decision de Fred) : les 3 usines de transformation existantes rachetent au prix
+// fournisseur (res.prixAchatFournisseur, comportement INCHANGE). Uniquement la Scierie Guy
+// Tarembois rachete au prix de detail (res.prixBase -- actuellement 5 FR/bois, 10 FR/minerai) :
+// le PJ qui choisit de reapprovisionner la Scierie en complement de son propre stock (simple
+// option, jamais obligatoire) ne perd plus d'argent sur l'operation, puisque prixBase a l'achat
+// entrepot (getPrixRessourceEntrepot -> res.prixBase) egale desormais prixBase au rachat scierie.
+// Meme cle 'pays|ville|buildingId' que ci-dessus.
+const USINES_RACHAT_PRIX_DETAIL = new Set(['republic|ville_a|zone-production']); // Scierie Guy Tarembois (PSM)
+function usineRachatePrixDetail(buildingId, pays, ville) {
+  const cle = (pays || 'republic') + '|' + (ville || '') + '|' + buildingId;
+  return USINES_RACHAT_PRIX_DETAIL.has(cle);
+}
+function prixRachatMatierePremiereUsine(buildingId, pays, ville, res) {
+  return usineRachatePrixDetail(buildingId, pays, ville) ? res.prixBase : res.prixAchatFournisseur;
+}
+
 // Matieres acceptees par une usine = union des matieres des chaines CHAINES_PRODUCTION_USINE
 // configurees pour ce buildingId (jamais une liste codee en dur par usine) -- meme principe que
 // matieresAccepteesParCommerce (union des materiaux de la carte), applique ici aux chaines de
-// production. Tant qu'aucune chaine n'est configuree pour une matiere donnee sur ce batiment
-// (ex. alcool pour l'usine pharmaceutique, avant l'ajout de la chaine alcool->desinfectant),
-// cette matiere n'est pas acceptee -- comportement voulu, pas une limitation a lever.
-function matieresAccepteesParUsine(buildingId) {
-  return Object.values(CHAINES_PRODUCTION_USINE)
+// production -- plus, depuis le lot Scierie ci-dessus, les matieres hors chaine propres a ce
+// batiment DANS CETTE VILLE (MATIERES_HORS_CHAINE_PAR_BATIMENT). Tant qu'aucune chaine ni entree
+// hors chaine n'est configuree pour une matiere donnee sur ce batiment (ex. alcool pour l'usine
+// pharmaceutique, avant l'ajout de la chaine alcool->desinfectant), cette matiere n'est pas
+// acceptee -- comportement voulu, pas une limitation a lever. pays/ville optionnels (repli sur
+// l'ancien comportement -- union des chaines seulement -- si omis) : aucun appelant existant
+// (les 3 usines de transformation) n'est affecte, MATIERES_HORS_CHAINE_PAR_BATIMENT ne les
+// concerne pas.
+function matieresAccepteesParUsine(buildingId, pays, ville) {
+  const parChaine = Object.values(CHAINES_PRODUCTION_USINE)
     .filter(c => c.buildingId === buildingId)
     .map(c => c.matiere);
+  const cleHorsChaine = (pays || 'republic') + '|' + (ville || '') + '|' + buildingId;
+  const horsChaine = MATIERES_HORS_CHAINE_PAR_BATIMENT[cleHorsChaine] || [];
+  return [...new Set([...parChaine, ...horsChaine])];
 }
 
 // Produits vendables en vente directe par une usine = cles CHAINES_PRODUCTION_USINE dont le
@@ -3884,7 +3944,7 @@ function produitsUsine(buildingId) {
 }
 
 async function vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte) {
-  if (!matieresAccepteesParUsine(buildingId).includes(matiere)) return { ok: false, raison: 'matiere_non_acceptee' };
+  if (!matieresAccepteesParUsine(buildingId, pays, ville).includes(matiere)) return { ok: false, raison: 'matiere_non_acceptee' };
   if (!qte || qte <= 0) return { ok: false, raison: 'quantite_invalide' };
 
   const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === matiere && (i.qty || 0) > 0);
@@ -3892,7 +3952,7 @@ async function vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte)
 
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
   if (!etat) return { ok: false, raison: 'introuvable' };
-  const usine = etat.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
+  const usine = etat.usine || defautUsine(buildingId, pays, ville);
   if (!usine.stockMatieres) usine.stockMatieres = {};
 
   const res = RESSOURCES_ECONOMIE[matiere];
@@ -3900,7 +3960,7 @@ async function vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte)
   const placeRestante = Math.max(0, res.plafond - stockActuel);
   if (placeRestante < qte) return { ok: false, raison: 'stock_plein', placeRestante };
 
-  const prixUnitaire = res.prixAchatFournisseur;
+  const prixUnitaire = prixRachatMatierePremiereUsine(buildingId, pays, ville, res);
   const total = prixUnitaire * qte;
   if ((usine.caisse || 0) < total) return { ok: false, raison: 'caisse_insuffisante' };
 
@@ -3928,22 +3988,23 @@ async function doOuvrirVendreMatierePremiereUsine(buildingId, pa, cost) {
   const ville = state.currentCity || 'capitale';
   const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
   const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
-  const usine = etat?.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
-  const matieres = matieresAccepteesParUsine(buildingId);
+  const usine = etat?.usine || defautUsine(buildingId, pays, ville);
+  const matieres = matieresAccepteesParUsine(buildingId, pays, ville);
   const disponibles = matieres.filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0));
+  const prixDetail = usineRachatePrixDetail(buildingId, pays, ville);
 
   document.getElementById('postes-modal-title').textContent = "Vendre des matières à l'usine";
   let html = '<div style="padding:1rem">';
   if (disponibles.length === 0) {
     html += '<div style="font-size:.9rem;color:#8a8060">Vous ne possédez aucune matière utilisée par cette usine' + (matieres.length ? ' (' + matieres.map(m => (RESSOURCES_ECONOMIE[m]?.label || m)).join(', ') + ')' : '') + '.</div>';
   } else {
-    html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat au tarif fournisseur en vigueur.</div>';
+    html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Prix d\'achat au ' + (prixDetail ? 'tarif détail' : 'tarif fournisseur') + ' en vigueur.</div>';
   }
   disponibles.forEach(m => {
     const lot = (state.inventory || []).find(i => i.stackable && i.stackKey === m && (i.qty || 0) > 0);
     const qteDispo = lot?.qty || 0;
     const res = RESSOURCES_ECONOMIE[m];
-    const prixUnitaire = res.prixAchatFournisseur;
+    const prixUnitaire = prixRachatMatierePremiereUsine(buildingId, pays, ville, res);
     const stockActuel = usine.stockMatieres[m] || 0;
     const placeRestante = Math.max(0, res.plafond - stockActuel);
     const qteInitiale = Math.max(1, Math.min(qteDispo, placeRestante));
@@ -3983,6 +4044,66 @@ async function confirmerVendreMatierePremiereUsineUI(buildingId, matiere) {
   showToast('Vente effectuée', '+' + res.total.toLocaleString('fr-FR') + ' FR pour ' + res.qte + ' ' + label + '.', true, true);
   addJournalEntry('Vente de ' + res.qte + ' ' + label + " à l'usine (+" + res.total.toLocaleString('fr-FR') + ' FR).', 'event-good');
   doOuvrirVendreMatierePremiereUsine(buildingId, 0, 0); // rafraichit, meme pattern que vendre_matiere_commerce
+}
+
+// =====================
+// CONSULTATION CAISSE/STOCK D'UNE USINE (lot "caisse et stock" de la Scierie Guy Tarembois,
+// 25 aout 2026) : generique pour toute usine (etat.usine, meme schema que les 3 usines de
+// transformation) -- pas cree pour la Scierie specifiquement, meme convention que le reste de ce
+// fichier (matieresAccepteesParUsine, vendreMatierePremiereUsine...). Utilise state.currentBuilding/
+// currentCity/country, comme tous les ordres de salle. Distinct de doConsulterCaisseBatimentGenerique
+// (plus bas dans ce fichier) qui lit la caisse INSTITUTIONNELLE generique (table caisses_batiments,
+// commissariat/tribunal/marche/stade...) -- l'usine a sa PROPRE caisse dans etat.usine, un schema
+// different (avec stock de matieres premieres), d'ou une fonction dediee plutot qu'un partage
+// force entre deux structures de donnees incompatibles. Meme permissions que
+// consulter_caisse_commissariat : pa:0, cost:0, consultation publique (voir data.js).
+// Repli defautUsine(buildingId, pays, ville) (voir plus haut dans ce fichier) identique a celui
+// desormais utilise par vendreMatierePremiereUsine/doOuvrirVendreMatierePremiereUsine pour une
+// usine jamais encore initialisee : affiche la meme dotation de depart (caisse + stock) qu'un
+// premier achat initialiserait, sans qu'aucune ecriture Supabase ne soit necessaire pour une
+// simple consultation. confirmerProductionUsine/produireTransformateursQuotidien (les 3 usines de
+// transformation uniquement) gardent leur propre repli litteral historique, inchange.
+// =====================
+async function doConsulterCaisseUsine() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const buildingId = state.currentBuilding;
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  const usine = etat?.usine || defautUsine(buildingId, pays, ville);
+
+  document.getElementById('postes-modal-title').textContent = 'Caisse — ' + (BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId);
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;text-align:center">' +
+    '<div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;color:#C9A84C">' + Math.round(usine.caisse || 0).toLocaleString('fr-FR') + ' ' + cur + '</div>' +
+    '<div style="font-size:.78rem;color:#8a8060;margin-top:.4rem">Solde actuel de la caisse.</div>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function doConsulterStockUsine() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const buildingId = state.currentBuilding;
+  const etat = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, ville, buildingId).catch(() => null) : null;
+  const usine = etat?.usine || defautUsine(buildingId, pays, ville);
+  const matieres = matieresAccepteesParUsine(buildingId, pays, ville);
+
+  document.getElementById('postes-modal-title').textContent = 'Stock de matières premières — ' + (BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId);
+  let html = '<div style="padding:1rem">';
+  if (matieres.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucune matière première configurée pour ce bâtiment.</div>';
+  } else {
+    matieres.forEach(m => {
+      const res = RESSOURCES_ECONOMIE[m];
+      const qte = usine.stockMatieres?.[m] || 0;
+      const plafond = res?.plafond;
+      html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.35rem"><i class="ti ' + (res?.icon || 'ti-package') + '" style="margin-right:.4rem;color:#8a6a20"></i>' + (res?.label || m) + ' : ' + Math.round(qte) + (plafond != null ? ' / ' + plafond : '') + '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 // =====================

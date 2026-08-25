@@ -160,6 +160,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(pa, cost); return; }
   if (fn === 'vente_directe_usine') { doOuvrirVenteDirecteUsine(pa, cost); return; }
   if (fn === 'vendre_matiere_usine') { doVendreMatierePremiereUsineGenerique(pa, cost); return; }
+  if (fn === 'consulter_caisse_usine') { doConsulterCaisseUsine(); return; }
+  if (fn === 'consulter_stock_usine') { doConsulterStockUsine(); return; }
   if (fn === 'produire_medicaments') { doProduireUsine('medicaments'); return; }
   if (fn === 'produire_desinfectant') { doProduireUsine('desinfectant'); return; }
   if (fn === 'produire_alcool') { doProduireUsine('alcool'); return; }
