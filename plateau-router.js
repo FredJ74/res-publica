@@ -53,6 +53,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'investir') { ouvrirInvestir(pa, cost); return; }
   if (fn === 'organiser_chasse_homme') { doOrganiserChasseHomme(pa, cost); return; }
   if (fn === 'recruter_policier') { doRecruterPolicier(pa, cost); return; }
+  if (fn === 'recruter_policier_cynophile') { doRecruterPolicierCynophile(pa, cost); return; }
   if (fn === 'gerer_effectifs_police') { ouvrirGererEffectifsPolice(); return; }
   if (fn === 'consulter_caisse_commissariat') { doConsulterCaisseCommissariat(); return; }
   if (fn === 'cambrioler_caisse_commissariat') { doCambriolerCaisseCommissariat(); return; }
@@ -220,6 +221,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_organigramme_mairie') { ouvrirOrganigrammeMairie(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
+  if (fn === 'louer_box')                { ouvrirModalLouerBox(pa, cost); return; }
+  if (fn === 'gerer_box')                { ouvrirModalGererBox(); return; }
   if (fn === 'marchandises_non_reclamees') { ouvrirMarchandisesNonReclamees(); return; }
   if (fn === 'choisir_suite')            { ouvrirModalChoixSuite(); return; }
   if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(pa, cost); return; }
@@ -359,6 +362,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_criee') { ouvrirAcheterCriee(pa, cost); return; }
   if (fn === 'consulter_effectifs_douane') { ouvrirConsulterEffectifsDouane(); return; }
   if (fn === 'recruter_douanier') { doRecruterDouanier(pa, cost); return; }
+  if (fn === 'recruter_douanier_cynophile') { doRecruterDouanierCynophile(pa, cost); return; }
+  if (fn === 'controler_caisse_douane') { ouvrirControlerCaisseDouane(pa, cost); return; }
   if (fn === 'gerer_effectifs_douane') { ouvrirGererEffectifsDouane(); return; }
   if (fn === 'nommer_commissaire') { ouvrirModalNommerCommissaire(); return; }
   if (fn === 'financer_communal') { ouvrirModalFinancerCommunal(pa, cost); return; }

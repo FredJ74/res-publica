@@ -305,7 +305,19 @@ const ACTES_ILLEGAUX = {
   assassiner_mains:   { type: 'crime',         detectRate: 30 },
   assassiner_arme:    { type: 'crime',         detectRate: 40 },
   assassiner_feu:     { type: 'crime',         detectRate: 60 },
-  empoisonnement:     { type: 'crime',         detectRate: 25 }
+  empoisonnement:     { type: 'crime',         detectRate: 25 },
+  // Ajoutes le 25 aout 2026 (audit dedie, lot douanes PSM) : ces deux fn appelaient deja
+  // checkDetection(fn, resultType) depuis leur creation, mais etant absentes d'ici la fonction
+  // rendait tout appel un no-op silencieux (const acte = ACTES_ILLEGAUX[fn]; if (!acte) return;)
+  // -- aucun risque de statut Recherche n'a jamais existe pour elles. blocus_portuaire
+  // deliberement PAS ajoute (arbitrage separe, distinct conceptuellement des actes individuels
+  // ci-dessus). Precedents retenus, memes categories thematiques deja existantes :
+  // corrompre_douanier -> memes type/detectRate que corrompre_police (agent d'autorite
+  // soudoye, le plus proche thematiquement d'un douanier parmi les corruptions existantes).
+  // contrebande_port -> memes type/detectRate que acheter_arme_illegale (acquisition/detention
+  // de marchandise prohibee via un canal semi-legitime, pas un acte violent).
+  corrompre_douanier: { type: 'delit_mineur',  detectRate: 35 },
+  contrebande_port:   { type: 'delit_mineur',  detectRate: 20 }
 };
 
 const BUDGET_DEFAULT = {

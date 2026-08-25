@@ -1677,6 +1677,31 @@ async function sbSupprimerLocation(buildingId, roomId, city) {
   return sbDelete('locations_actives', `id=eq.${encodeURIComponent(id)}`);
 }
 
+// ---- BOX PORTUAIRE MULTI-TENANT (lot du 25 aout 2026, §13-14) ----
+// sbSaveLocation/sbSupprimerLocation ci-dessus construisent un id 'buildingId:roomId:city' SANS
+// le locataire -- correct pour les ~15 locations exclusives existantes (un seul bail possible par
+// piece), mais dangereux pour un box multi-tenant : deux PJ louant un box dans la MEME piece
+// ecraseraient la meme ligne Supabase l'un apres l'autre. Ces deux fonctions dediees ajoutent le
+// locataire a l'id, sans toucher sbSaveLocation/sbSupprimerLocation/sbLoadLocations (qui restent
+// inchangees et continuent de servir les ~15 autres pieces) -- meme table locations_actives,
+// meme forme de ligne {id,country,data}, chargee par le meme sbLoadLocations (qui recupere deja
+// TOUTES les lignes du pays sans hypothese d'unicite, donc aucune modification necessaire cote
+// lecture pour supporter plusieurs box).
+async function sbSaveLocationBox(location) {
+  const id = location.buildingId + ':' + location.roomId + ':' + location.city + ':' + location.locataire;
+  const data = { id, country: location.country, data: location };
+  const existing = await sbGet('locations_actives', `id=eq.${encodeURIComponent(id)}`);
+  if (existing && existing.length > 0) {
+    return sbUpdate('locations_actives', `id=eq.${encodeURIComponent(id)}`, data);
+  }
+  return sbInsert('locations_actives', data);
+}
+
+async function sbSupprimerLocationBox(buildingId, roomId, city, locataire) {
+  const id = buildingId + ':' + roomId + ':' + city + ':' + locataire;
+  return sbDelete('locations_actives', `id=eq.${encodeURIComponent(id)}`);
+}
+
 // =====================
 // LOGEMENTS SOCIAUX DE MONTROUGE (18 aout 2026) — demandes persistantes + archive
 // d'attributions. Tables nouvelles (voir migration_logements_sociaux_montrouge.sql, NON

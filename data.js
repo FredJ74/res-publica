@@ -2548,6 +2548,7 @@ const BUILDINGS = {
           {fn:'organiser_filature',     label:'Organiser une filature',       pa:2, cost:150, type:'legal', icon:'ti-eye',          successRate:50,  requiresPost:'commissaire', desc:"Obtenir un rapport des deplacements d'un PJ sur les dernieres 24h."},
           {fn:'organiser_chasse_homme', label:"Organiser une chasse a l'homme", pa:3, cost:300, type:'legal', icon:'ti-target-arrow', successRate:100, requiresPost:'commissaire', desc:'Localiser et arreter un PJ recherche.'},
           {fn:'recruter_policier',      label:'Recruter un policier',         pa:1, cost:0,   type:'legal', icon:'ti-user-plus',    successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
           {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',          pa:0, cost:0,   type:'legal', icon:'ti-users-group',  successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
         ]
       }
@@ -3631,6 +3632,7 @@ const BUILDINGS = {
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
           {fn:'recruter_policier',      label:'Recruter un policier', pa:1, cost:0, type:'legal', icon:'ti-user-plus',   successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
           {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',  pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
         ]
       },
@@ -5452,17 +5454,24 @@ const BUILDINGS = {
           {fn:'acheter_criee', label:'Acheter à la Criée', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Poisson pêché quotidiennement, vendu directement aux joueurs (4 FR/unité).'}
         ]
       },
+      // isLocationRoom/locationData retires ici (lot du 25 aout 2026, §13-14) : l'ancien bail
+      // EXCLUSIF (350 FR/jour, +6 DIS +3 INF, un seul locataire possible pour toute la piece) est
+      // remplace par un service de box INDIVIDUELS multi-tenant (louer_box/gerer_box ci-dessous,
+      // fonctions dediees plateau-justice-economie.js -- Option B validee : structure legere
+      // parallele, AUCUNE modification du moteur isLocationRoom/getLocationPourRoom qui continue
+      // de servir les ~15 autres pieces a bail exclusif exactement comme avant). Tout ancien bail
+      // herite de cette piece (state.locationsActives sans le flag isBox) est automatiquement
+      // resilie sans frais au prochain payerLocations(), ses bonus DIS/INF disparaissant avec lui
+      // (voir le commentaire dedie dans payerLocations).
       entrepot: {
         name: "Entrepôts",
         imageBg: "linear-gradient(135deg,#050810,#08100a)",
-        desc: "📋 À LOUER — Entrepôt portuaire de 300m². Immenses entrepôts de stockage et zones frigorifiques pour denrées périssables et exotiques.",
+        desc: "Immenses entrepôts de stockage et zones frigorifiques pour denrées périssables et exotiques. Box individuels disponibles à la location.",
         imageUrl: "images/port-sainte-marie-port-industriel-entrepots.png",
-        isLocationRoom: true,
-        locationData: { prix: 350, bonusPOP: 0, bonusINF: 3, bonusDIS: 6, label: 'Entrepôt Portuaire', tier: 2, usages: ['stockage','contrebande','logistique'] },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cet entrepôt (350 FR/jour)', pa:1, cost:0, type:'grey', icon:'ti-key', successRate:100, desc:'+6 DIS +3 INF. Stockage discret garanti.'},
-          {fn:'gerer_local', label:'Gérer mon entrepôt', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
+          {fn:'louer_box', label:'Louer un box (15 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Box individuel de stockage, indépendant des autres locataires. Aucun bonus DIS/INF.'},
+          {fn:'gerer_box', label:'Gérer mon box', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
           {fn:'marchandises_non_reclamees', label:'Marchandises non réclamées', pa:0, cost:0, type:'legal', icon:'ti-truck-loading', successRate:100, desc:'Caisses de fret jamais vidées par leur destinataire (15 jours après arrivée), en vente au profit du port.'},
           // Deplaces depuis quai_principal (lot du 25 aout 2026, §6) : deplacement UX uniquement,
           // moteur caisses_fret (v68) totalement inchange -- voir ROOM_CHARGEMENT_FRET,
@@ -5494,7 +5503,9 @@ const BUILDINGS = {
         orders: [
           {fn:'consulter_effectifs_douane', label:'Consulter les effectifs', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Liste publique des douaniers en service (information administrative, sans détail de compétences).'},
           {fn:'recruter_douanier', label:'Recruter un douanier', pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, requiresPost:'chef_douanes', desc:'PER 12, VOL 12. Paye directement par le Ministere de l\'Interieur -- aucune caisse propre aux douanes.'},
-          {fn:'gerer_effectifs_douane', label:'Gérer les effectifs douaniers', pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'chef_douanes', desc:'Recruter ou licencier des douaniers, tous rattachés au service des douanes du port.'}
+          {fn:'recruter_douanier_cynophile', label:'Recruter une unité cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'chef_douanes', desc:'Maitre-chien + chien anti-stupefiants. Compte comme un douanier normal, avec un bonus specialise lors des controles. Paye directement par le Ministere de l\'Interieur, au double du tarif d\'un douanier standard.'},
+          {fn:'gerer_effectifs_douane', label:'Gérer les effectifs douaniers', pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'chef_douanes', desc:'Recruter ou licencier des douaniers, tous rattachés au service des douanes du port.'},
+          {fn:'controler_caisse_douane', label:'Contrôler une caisse de fret', pa:1, cost:0, type:'legal', icon:'ti-search', successRate:100, requiresPost:'chef_douanes', desc:'Cible une caisse precise (arrivee ou en instance de depart) via le manifeste et ordonne son controle par le service. Le contenu reel n\'est jamais revele avant le resultat.'}
         ]
       },
       // blocus_portuaire deplace ici depuis quai_principal (lot du 25 aout 2026, correctif

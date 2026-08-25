@@ -1523,30 +1523,13 @@ async function soumettreConte(idx, pa, cost) {
 // avant retrait, vérifiée par diff) reste dans plateau-navigation.js, déjà corrigée pour le
 // même correctif DIS fantôme. Deux définitions du même nom en scope global classique : la
 // seconde chargée écrasait silencieusement la première, aucun comportement perdu ici.
-// Cout conditionnel (Phase K) : le PA est du des la tentative (le temps est passe a approcher
-// l'agent, reussite ou non), le FR n'est du QUE si le pot-de-vin est accepte -- coherent avec
-// "L'agent n'a pas mordu" en cas d'echec, ou aucun argent ne change de mains.
-async function doCorrompreDoanier(pa, cost) {
-  const rPa = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '', false); return; }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const dup = getStatEffective('DUP');
-  const inf = state.inf || 0;
-  const taux = Math.max(5, 55 + Math.floor(dup/10) + Math.floor(inf/10) + 20); // +20 zone transport
-  if (roll <= taux) {
-    const rCost = await deduireCoutOrdre({ pa: 0, cost });
-    if (!rCost.ok) { showToast('Fonds insuffisants', 'L\'agent accepte mais vous n\'avez plus de quoi payer.', false); return; }
-    state.dis = Math.max(0, state.dis - 5);
-    updateUI();
-    showToast('Agent corrompu', 'L\'agent regarde ailleurs. -300 FR -5 DIS.', true);
-    addJournalEntry('Corruption douanière réussie.', 'event-bad');
-    checkDetection('corrompre_douanier', 'success');
-  } else {
-    showToast('Refus !', 'L\'agent n\'a pas mordu. Tentative notée.', false);
-    checkDetection('corrompre_douanier', 'fail');
-  }
-}
+//
+// doCorrompreDoanier() : MEME defaut retire ici le 25 aout 2026 (audit dedie, lot douanes PSM).
+// Cette copie ne posait jamais state.douanePassee=true en cas de succes -- la version de
+// plateau-navigation.js avait deja ete corrigee le 24 aout pour reparer exactement ce
+// cul-de-sac (paiement de 300 FR sans deblocage reel de la zone d'embarquement), mais chargee
+// AVANT ce fichier, elle etait silencieusement ecrasee par cette version obsolete au
+// chargement du jeu. Seule definition vivante desormais : plateau-navigation.js.
 
 // Decision de game design (avant Phase L) : le trajet en taxi lui-meme est desormais ouvert a
 // TOUT PJ, sans condition de poste ni de laissez-passer -- la Caserne et le QHS ont tous deux
@@ -2118,7 +2101,7 @@ function payerLocations() {
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const pays = state.country || 'republic';
-  const toExpulse = [];
+  const aTraiter = []; // { i, action: 'expulse' | 'legacyEntrepot' }
 
   locations.forEach((loc, i) => {
     if (loc.locataire !== state.char?.name) return; // Pas notre location
@@ -2129,6 +2112,18 @@ function payerLocations() {
     // appartements, locaux commerciaux...).
     if (loc.chambreClinique === true) return;
 
+    // Box portuaire (lot du 25 aout 2026, §13-14) : l'ancien bail EXCLUSIF de l'entrepot
+    // (isLocationRoom/locationData retires de data.js) est remplace par des box individuels
+    // (isBox:true, voir ouvrirModalLouerBox plus haut). Toute location HERITEE de cette meme
+    // piece mais sans le flag isBox est l'ancien bail : resiliee ici sans frais ni penalite, ses
+    // bonus DIS/INF disparaissant avec elle (§14 : "les anciens bonus DIS/INF ... doivent
+    // disparaitre") -- traitement one-shot, jamais reintroduit puisque plus aucun ordre ne peut
+    // recreer ce type de bail.
+    if (loc.buildingId === BUILDING_ID_PORT && loc.roomId === ROOM_ID_BOX_PORTUAIRE && !loc.isBox) {
+      aTraiter.push({ i, action: 'legacyEntrepot' });
+      return;
+    }
+
     if (state.arg >= loc.prix) {
       state.arg -= loc.prix;
       addJournalEntry('Loyer payé : ' + loc.localLabel + ' -' + loc.prix + ' ' + cur, 'event-info');
@@ -2136,6 +2131,12 @@ function payerLocations() {
       // Appliquer les bonus à l'organisation associée
       if (loc.orgaId) {
         appliquerBonusLocation(loc);
+      }
+      // Box portuaire : le loyer alimente reellement la caisse du port (§14), contrairement aux
+      // ~15 autres locations (loyer purement en pure perte, aucune caisse creditee -- confirme
+      // par audit avant ce lot, comportement volontairement inchange pour elles).
+      if (loc.isBox && typeof crediterCaisseBatiment === 'function') {
+        crediterCaisseBatiment(loc.country || pays, loc.buildingId, loc.prix).catch(() => {});
       }
     } else {
       // Fonds insuffisants — mail d'avertissement J1, expulsion J2
@@ -2146,13 +2147,24 @@ function payerLocations() {
         addJournalEntry('⚠️ Loyer impayé : ' + loc.localLabel + '. Avertissement envoyé.', 'event-bad');
       } else {
         // Deuxième défaut → expulsion
-        toExpulse.push(i);
+        aTraiter.push({ i, action: 'expulse' });
       }
     }
   });
 
-  // Traiter les expulsions en ordre inverse
-  toExpulse.reverse().forEach(i => expulserLocataire(i));
+  // Traiter en ordre d'index decroissant (insensible a l'ordre de collecte des deux types).
+  aTraiter.sort((a, b) => b.i - a.i).forEach(({ i, action }) => {
+    if (action === 'legacyEntrepot') {
+      const loc = state.locationsActives[i];
+      state.locationsActives.splice(i, 1);
+      if (typeof sbSupprimerLocation === 'function') sbSupprimerLocation(loc.buildingId, loc.roomId, loc.city).catch(() => {});
+      addMailNotification('Administration Portuaire', 'Entrepôt reconverti',
+        'L\'entrepôt portuaire a été réorganisé en box individuels. Votre ancien bail (' + (loc.localLabel || 'Entrepôt Portuaire') + ') est résilié sans frais, avec ses bonus associés ; un service de box est désormais disponible sur place.');
+      addJournalEntry('Ancien bail de l\'entrepôt résilié sans frais (reconversion en box individuels).', 'event-info');
+    } else {
+      expulserLocataire(i);
+    }
+  });
 }
 
 function appliquerBonusLocation(loc) {
@@ -2236,6 +2248,115 @@ function ouvrirMesLocations() {
     '<div style="font-size:.72rem;color:#8a6a20;margin-bottom:.6rem;font-family:Bebas Neue,sans-serif;letter-spacing:.08em">TOTAL LOYERS : ' + totalLoyer.toLocaleString('fr-FR') + ' ' + cur + '/JOUR</div>' +
     html + '</div>';
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// ---- BOX PORTUAIRE MULTI-TENANT (lot du 25 aout 2026, §13-14-15) ----
+// Option B validee : structure dediee legere, PAS une reutilisation de getLocationPourRoom (qui
+// reste a titulaire UNIQUE par piece pour les ~15 autres locations, totalement inchangee). Un
+// box est une entree state.locationsActives normale (memes champs, meme sbLoadLocations au
+// chargement), mais sa cle d'appartenance est (buildingId, roomId, city, locataire) au lieu de
+// (buildingId, roomId, city) seul -- getMaBoxPortuaire ci-dessous filtre donc TOUJOURS sur le
+// locataire courant, jamais sur la piece seule. Persistance dediee (sbSaveLocationBox/
+// sbSupprimerLocationBox, supabase.js) pour eviter que deux locataires du meme box n'ecrasent la
+// meme ligne. Aucun bonus DIS/INF (§14, contrairement a l'ancien bail exclusif retire de
+// data.js) ; destination des loyers = caisse reelle du port (republic_port-sainte-marie), creditee
+// dans payerLocations ci-dessus des que isBox===true. Totalement independant du fret prive
+// (expedier_colis/receptionner_commande, §15) : aucun champ ni verification partagee.
+const TARIF_BOX_PORTUAIRE_JOUR = 15;
+const ROOM_ID_BOX_PORTUAIRE = 'entrepot';
+
+function getMaBoxPortuaire() {
+  const moi = state.char?.name || '';
+  return getLocationsActives().find(l =>
+    l.buildingId === BUILDING_ID_PORT && l.roomId === ROOM_ID_BOX_PORTUAIRE && l.city === VILLE_ID_PORT &&
+    l.locataire === moi && l.isBox === true
+  );
+}
+
+function ouvrirModalLouerBox(pa, cost) {
+  if (getMaBoxPortuaire()) { ouvrirModalGererBox(); return; }
+
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = '📋 Louer un box portuaire';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.78rem;color:#a09060;font-style:italic;margin-bottom:.7rem;border-left:2px solid #3a2a10;padding-left:.6rem">Un box individuel de stockage, indépendant des autres locataires de l\'entrepôt. Aucun bonus DIS/INF associé.</div>' +
+    '<div style="background:#0a0805;border:1px solid #1a1810;padding:.5rem;text-align:center;margin-bottom:.7rem">' +
+      '<div style="font-size:.82rem;color:#9a8a68">LOYER / JOUR</div>' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + TARIF_BOX_PORTUAIRE_JOUR + ' ' + cur + '</div>' +
+    '</div>' +
+    '<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.7rem">Le premier loyer est prélevé immédiatement. Ensuite, chaque réveil.</div>' +
+    '<button onclick="confirmerLocationBox(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🔑 Louer ce box</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerLocationBox(pa, cost) {
+  if (getMaBoxPortuaire()) { showToast('Déjà loué', 'Vous louez déjà un box.', false); return; }
+  if ((state.arg || 0) < TARIF_BOX_PORTUAIRE_JOUR) {
+    showToast('Fonds insuffisants', TARIF_BOX_PORTUAIRE_JOUR + ' FR requis pour le premier loyer.', false);
+    return;
+  }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  state.arg -= TARIF_BOX_PORTUAIRE_JOUR;
+  if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment('republic', BUILDING_ID_PORT, TARIF_BOX_PORTUAIRE_JOUR).catch(() => {});
+
+  const box = {
+    buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_BOX_PORTUAIRE,
+    localLabel: 'Box portuaire (' + (state.char?.name || '') + ')',
+    batimentLabel: BUILDINGS[BUILDING_ID_PORT]?.shortName || BUILDING_ID_PORT,
+    prix: TARIF_BOX_PORTUAIRE_JOUR,
+    bonusPOP: 0, bonusINF: 0, bonusDIS: 0,
+    orgaId: '',
+    locataire: state.char?.name,
+    country: state.country,
+    city: VILLE_ID_PORT,
+    depuis: state.day || 1,
+    visible: false,
+    isBox: true
+  };
+  getLocationsActives().push(box);
+  if (typeof sbSaveLocationBox === 'function') sbSaveLocationBox(box).catch(() => {});
+
+  document.getElementById('modal-postes').classList.remove('open');
+  updateUI();
+  showToast('Box loué !', 'Box portuaire loué. -' + TARIF_BOX_PORTUAIRE_JOUR + ' FR/jour.', true, true);
+  addJournalEntry('Box portuaire loué au port de Port-Sainte-Marie. -' + TARIF_BOX_PORTUAIRE_JOUR + ' FR/jour.', 'event-good');
+  if (state.currentRoom) enterRoom(BUILDING_ID_PORT, ROOM_ID_BOX_PORTUAIRE, null);
+}
+
+function ouvrirModalGererBox() {
+  const box = getMaBoxPortuaire();
+  if (!box) { showToast('Aucun box', 'Vous ne louez pas de box ici.', false); return; }
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = '⚙️ Mon box portuaire';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="background:#0a0805;border:1px solid #1a1810;padding:.5rem;text-align:center;margin-bottom:.6rem">' +
+      '<div style="font-size:.82rem;color:#9a8a68">LOYER / JOUR</div>' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + box.prix.toLocaleString('fr-FR') + ' ' + cur + '</div>' +
+    '</div>' +
+    '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.6rem">Loué depuis le jour ' + (box.depuis || 1) + '. Box individuel, indépendant des autres locataires de l\'entrepôt.</div>' +
+    '<button onclick="resilierBox()" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.4rem;border:1px solid #5a2a2a;background:transparent;color:#8a3a2a;cursor:pointer">❌ Résilier le box</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function resilierBox() {
+  const moi = state.char?.name || '';
+  const idx = (state.locationsActives || []).findIndex(l =>
+    l.buildingId === BUILDING_ID_PORT && l.roomId === ROOM_ID_BOX_PORTUAIRE && l.city === VILLE_ID_PORT && l.locataire === moi && l.isBox === true
+  );
+  if (idx < 0) return;
+  const box = state.locationsActives[idx];
+  state.locationsActives.splice(idx, 1);
+  if (typeof sbSupprimerLocationBox === 'function') sbSupprimerLocationBox(box.buildingId, box.roomId, box.city, moi).catch(() => {});
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Box résilié', 'Box portuaire libéré.', false);
+  addJournalEntry('Box portuaire résilié.', 'event-info');
+  if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
 }
 
 function ouvrirDonPnjModal(encodedPnj) {
@@ -5043,12 +5164,56 @@ async function doRecruterPolicier(pa, cost) {
 
   const effectifs = await chargerEffectifsPolice(pays, ville);
   const matricule = 'POL-' + ville + '-' + Date.now();
-  effectifs.policiers.push({ matricule, stats: { PER: 12, VOL: 12 }, buildingId: null, roomId: null, rueNoeudId: null, recruteLe: Date.now() });
+  effectifs.policiers.push({ matricule, type: 'standard', stats: { PER: 12, VOL: 12 }, buildingId: null, roomId: null, rueNoeudId: null, recruteLe: Date.now() });
   await sauvegarderEffectifsPolice(pays, ville, effectifs);
 
   updateUI();
   showToast('Policier recruté', 'PER 12, VOL 12. Entretien : ' + COUT_ENTRETIEN_POLICIER_JOUR + ' FR/jour prélevés sur la caisse du commissariat.', true, true);
   addJournalEntry('Recrutement d\'un policier (matricule ' + matricule + ').', 'event-good');
+}
+
+// Cout journalier reel d'un policier, en fonction de son type -- unite cynophile (maitre-chien +
+// chien anti-stupefiants, lot du 25 aout 2026, §8) = 2x le tarif standard, derive de
+// COUT_ENTRETIEN_POLICIER_JOUR (jamais un chiffre en dur separe). Meme convention que
+// coutJournalierDouanier plus bas dans ce fichier.
+function coutJournalierPolicier(agent) {
+  return agent?.type === 'cynophile' ? COUT_ENTRETIEN_POLICIER_JOUR * 2 : COUT_ENTRETIEN_POLICIER_JOUR;
+}
+
+// ---- UNITE CYNOPHILE POLICE (maitre-chien + chien anti-stupefiants, lot du 25 aout 2026, §8) ----
+// Membre a part entiere du groupe police, sous les regles habituelles INCHANGEES
+// (calculerPerGroupePolice/calculerVolGroupePolice ne distinguent pas les types -- une unite
+// cynophile compte comme un policier normal dans la moyenne du groupe, exactement comme n'importe
+// quel autre membre). Seul le cout journalier differe (coutJournalierPolicier). Son bonus
+// specialise +3 PER anti-stupefiants n'est PAS cable ici : aucune action policiere existante ne
+// consiste reellement a rechercher des stupefiants (verifierSurveillancePolicePJ/
+// resoudreControlePoliceAutomatique est un controle d'identite generique qui fouille TOUT objet
+// illegal reconnu, pas une recherche ciblee anti-drogue) -- voir rapport final, §B.
+async function doRecruterPolicierCynophile(pa, cost) {
+  const check = commissaireLocalValide();
+  if (!check.ok) {
+    showToast(check.raison === 'poste' ? 'Réservé au Commissaire' : 'Hors juridiction',
+      check.raison === 'juridiction' ? 'Vous ne pouvez recruter que dans le commissariat de votre propre ville.' : '', false);
+    return;
+  }
+  const pays = state.country || 'republic';
+  const ville = check.ville;
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const effectifs = await chargerEffectifsPolice(pays, ville);
+  const matricule = 'POL-CYNO-' + ville + '-' + Date.now();
+  effectifs.policiers.push({
+    matricule, type: 'cynophile',
+    maitreNom: 'Maître-chien ' + matricule.slice(-4),
+    chienNom: 'Chien ' + matricule.slice(-4),
+    stats: { PER: 12, VOL: 12 }, buildingId: null, roomId: null, rueNoeudId: null, recruteLe: Date.now()
+  });
+  await sauvegarderEffectifsPolice(pays, ville, effectifs);
+
+  updateUI();
+  showToast('Unité cynophile recrutée', 'PER 12, VOL 12. Entretien : ' + (COUT_ENTRETIEN_POLICIER_JOUR * 2) + ' FR/jour prélevés sur la caisse du commissariat.', true, true);
+  addJournalEntry('Recrutement d\'une unité cynophile de police (matricule ' + matricule + ').', 'event-good');
 }
 
 // ---- GESTION / AFFECTATION ----
@@ -5072,7 +5237,7 @@ async function ouvrirGererEffectifsPolice() {
       if (p.buildingId && p.roomId) affectation = 'Affecté — ' + (BUILDINGS[p.buildingId]?.shortName || p.buildingId) + ' / ' + (resoudreNomRoomAffectation(p.buildingId, p.roomId) || p.roomId);
       else if (p.rueNoeudId) affectation = 'Affecté — rue (' + p.rueNoeudId + ')';
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
-      html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">' + p.matricule + ' — PER ' + p.stats.PER + ', VOL ' + p.stats.VOL + '</div>';
+      html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">' + p.matricule + ' — PER ' + p.stats.PER + ', VOL ' + p.stats.VOL + (p.type === 'cynophile' ? ' — Unité cynophile (' + p.maitreNom + ' & ' + p.chienNom + ')' : '') + '</div>';
       html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.4rem">' + affectation + '</div>';
       html += '<div style="display:flex;gap:.4rem">';
       html += '<button onclick="doOuvrirAffectationRoom(\'' + p.matricule + '\')" style="flex:1;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter (pièce)</button>';
@@ -5230,13 +5395,16 @@ async function getAffichagePoliceRue(pays, ville, rueNoeudId) {
 // emploi et disparait DEFINITIVEMENT de l'effectif persistant -- aucune dette, aucun salaire
 // differe, aucun agent maintenu gratuitement, aucune desactivation temporaire. Le nombre
 // d'agents effectivement payables est determine par un debit PLAFONNE sur la caisse du
-// commissariat (debiterCaisseBatimentPlafonne, meme primitive que precedemment), divise par le
-// cout unitaire. Ordre de suppression : l'array effectifs.policiers est deja, par construction
-// (doRecruterPolicier ne fait que .push()), classe par ordre de recrutement -- convention deja
-// neutre et deterministe fournie par la persistance elle-meme, aucun choix de conception
-// supplementaire necessaire. Les derniers recrutes (fin de tableau) sont ceux qui partent en
-// premier faute de budget ; leur affectation (buildingId/roomId/rueNoeudId) disparait
-// naturellement avec eux puisque l'objet entier est retire du tableau.
+// commissariat (debiterCaisseBatimentPlafonne, meme primitive que precedemment). Depuis l'unite
+// cynophile (lot du 25 aout 2026, §8), le cout n'est plus uniforme (coutJournalierPolicier varie
+// selon le type) : accumulation gloutonne du plus ancien au plus recent jusqu'a epuisement du
+// budget verse, au lieu d'une simple division. Ordre de suppression : l'array effectifs.policiers
+// est deja, par construction (doRecruterPolicier/doRecruterPolicierCynophile ne font que .push()),
+// classe par ordre de recrutement -- convention deja neutre et deterministe fournie par la
+// persistance elle-meme, aucun choix de conception supplementaire necessaire. Les derniers
+// recrutes (fin de tableau) sont ceux qui partent en premier faute de budget ; leur affectation
+// (buildingId/roomId/rueNoeudId) disparait naturellement avec eux puisque l'objet entier est
+// retire du tableau.
 async function payerEffectifsPoliceQuotidien(pays, ville) {
   const effectifs = await chargerEffectifsPolice(pays, ville);
   if (!effectifs.policiers.length) return;
@@ -5244,15 +5412,21 @@ async function payerEffectifsPoliceQuotidien(pays, ville) {
   if (effectifs.dernierPaiementJour === jour) return; // deja paye aujourd'hui (garde-fou multi-connexion)
 
   const buildingIdCaisse = getBuildingIdCommissariat(ville);
-  const coutVise = effectifs.policiers.length * COUT_ENTRETIEN_POLICIER_JOUR;
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, buildingIdCaisse, coutVise);
-  const nombrePayable = Math.floor(montantVerse / COUT_ENTRETIEN_POLICIER_JOUR);
+  const coutTotal = effectifs.policiers.reduce((s, p) => s + coutJournalierPolicier(p), 0);
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, buildingIdCaisse, coutTotal);
 
   effectifs.dernierPaiementJour = jour;
   let nbPartis = 0;
-  if (nombrePayable < effectifs.policiers.length) {
-    nbPartis = effectifs.policiers.length - nombrePayable;
-    effectifs.policiers = effectifs.policiers.slice(0, nombrePayable);
+  if (montantVerse < coutTotal) {
+    let cumul = 0, nbGardes = 0;
+    for (let i = 0; i < effectifs.policiers.length; i++) {
+      const c = coutJournalierPolicier(effectifs.policiers[i]);
+      if (cumul + c > montantVerse) break;
+      cumul += c;
+      nbGardes++;
+    }
+    nbPartis = effectifs.policiers.length - nbGardes;
+    effectifs.policiers = effectifs.policiers.slice(0, nbGardes);
   }
   await sauvegarderEffectifsPolice(pays, ville, effectifs);
 
@@ -5285,7 +5459,15 @@ const EFFECTIF_DOUANE_INITIAL = 4;
 const COUT_ENTRETIEN_DOUANIER_JOUR = 50; // FR/douanier/jour, arbitrage valide -- debite sur gouvernement-min_int
 
 function creerDouanierPnjInitial(numero) {
-  return { matricule: 'DOU-PNJ-' + numero, stats: { PER: 12, VOL: 12 }, buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_DOUANES, recruteLe: Date.now() };
+  return { matricule: 'DOU-PNJ-' + numero, type: 'standard', stats: { PER: 12, VOL: 12 }, buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_DOUANES, recruteLe: Date.now() };
+}
+
+// Cout journalier reel d'un agent des douanes, en fonction de son type -- unite cynophile
+// (maitre-chien + chien anti-stupefiants, lot du 25 aout 2026, §6-7) = 2x le tarif standard,
+// derive de COUT_ENTRETIEN_DOUANIER_JOUR (jamais un chiffre en dur separe). Utilise par le
+// recrutement ET par la paye quotidienne (payerEffectifsDouaneQuotidien plus bas).
+function coutJournalierDouanier(agent) {
+  return agent?.type === 'cynophile' ? COUT_ENTRETIEN_DOUANIER_JOUR * 2 : COUT_ENTRETIEN_DOUANIER_JOUR;
 }
 
 // Initialise l'effectif PNJ de depart (4 douaniers, arbitrage valide) UNE SEULE FOIS, seulement
@@ -5325,12 +5507,43 @@ async function doRecruterDouanier(pa, cost) {
 
   const effectifs = await chargerEffectifsDouane(pays);
   const matricule = 'DOU-' + Date.now();
-  effectifs.douaniers.push({ matricule, stats: { PER: 12, VOL: 12 }, buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_DOUANES, recruteLe: Date.now() });
+  effectifs.douaniers.push({ matricule, type: 'standard', stats: { PER: 12, VOL: 12 }, buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_DOUANES, recruteLe: Date.now() });
   await sauvegarderEffectifsDouane(pays, effectifs);
 
   updateUI();
   showToast('Douanier recruté', 'PER 12, VOL 12. Rattaché au service des douanes du port. Payé directement par le Ministère de l\'Intérieur.', true, true);
   addJournalEntry('Recrutement d\'un douanier (matricule ' + matricule + ').', 'event-good');
+}
+
+// ---- UNITE CYNOPHILE (maitre-chien + chien anti-stupefiants, lot du 25 aout 2026, §6-7) ----
+// Membre a part entiere de l'effectif standard (compte dans le nombre de douaniers pour
+// PER_SERVICE_DOUANES, +1 comme n'importe quel agent) -- distingue seulement par son
+// type:'cynophile', jamais par son nom (identite generique, non fonctionnelle : maitreNom/
+// chienNom sont de simples champs d'affichage). Cout double (2x COUT_ENTRETIEN_DOUANIER_JOUR),
+// bonus specialise (+3 PER_SERVICE_DOUANES si la caisse controlee contient reellement des
+// stupefiants) applique uniquement au moment de la resolution du controle (doControlerCaisseFret,
+// plus bas), jamais ici au recrutement.
+async function doRecruterDouanierCynophile(pa, cost) {
+  const check = chefDouanesValide();
+  if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
+  const pays = state.country || 'republic';
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const effectifs = await chargerEffectifsDouane(pays);
+  const matricule = 'DOU-CYNO-' + Date.now();
+  effectifs.douaniers.push({
+    matricule, type: 'cynophile',
+    maitreNom: 'Maître-chien ' + matricule.slice(-4),
+    chienNom: 'Chien ' + matricule.slice(-4),
+    stats: { PER: 12, VOL: 12 },
+    buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_DOUANES, recruteLe: Date.now()
+  });
+  await sauvegarderEffectifsDouane(pays, effectifs);
+
+  updateUI();
+  showToast('Unité cynophile recrutée', 'Rattachée au service des douanes du port (' + (COUT_ENTRETIEN_DOUANIER_JOUR * 2) + ' FR/jour). Payée directement par le Ministère de l\'Intérieur.', true, true);
+  addJournalEntry('Recrutement d\'une unité cynophile (matricule ' + matricule + ').', 'event-good');
 }
 
 // ---- GESTION (Chef des Douanes uniquement — garde UI via requiresPost dans data.js + garde
@@ -5349,14 +5562,21 @@ async function ouvrirGererEffectifsDouane() {
 
   document.getElementById('postes-modal-title').textContent = 'Gérer les effectifs douaniers';
   let html = '<div style="padding:1rem">';
-  html += '<button onclick="doRecruterDouanier(1,0)" style="display:block;width:100%;text-align:center;padding:.55rem;border:1px solid #6a5a20;background:#1a1508;color:#e0c060;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.8rem;margin-bottom:.8rem">RECRUTER UN DOUANIER (1 PA)</button>';
+  html += '<button onclick="doRecruterDouanier(1,0)" style="display:block;width:100%;text-align:center;padding:.55rem;border:1px solid #6a5a20;background:#1a1508;color:#e0c060;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.8rem;margin-bottom:.5rem">RECRUTER UN DOUANIER (1 PA · ' + COUT_ENTRETIEN_DOUANIER_JOUR + ' FR/jour)</button>';
+  html += '<button onclick="doRecruterDouanierCynophile(1,0)" style="display:block;width:100%;text-align:center;padding:.55rem;border:1px solid #6a5a20;background:#1a1508;color:#e0c060;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.8rem;margin-bottom:.8rem">RECRUTER UNE UNITÉ CYNOPHILE (1 PA · ' + (COUT_ENTRETIEN_DOUANIER_JOUR * 2) + ' FR/jour)</button>';
   if (effectifs.douaniers.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060">Aucun douanier recruté pour l\'instant.</div>';
   } else {
     effectifs.douaniers.forEach(d => {
+      const estCynophile = d.type === 'cynophile';
       html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
-      html += '<div style="font-size:.82rem;color:#c0b090">' + d.matricule + ' — PER ' + d.stats.PER + ', VOL ' + d.stats.VOL + '</div>';
-      html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.4rem">Rattaché au service des douanes du port</div>';
+      if (estCynophile) {
+        html += '<div style="font-size:.82rem;color:#c0b090">' + d.matricule + ' — Unité cynophile (' + d.maitreNom + ' &amp; ' + d.chienNom + ')</div>';
+        html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.4rem">Rattachée au service des douanes du port — ' + (COUT_ENTRETIEN_DOUANIER_JOUR * 2) + ' FR/jour</div>';
+      } else {
+        html += '<div style="font-size:.82rem;color:#c0b090">' + d.matricule + ' — PER ' + d.stats.PER + ', VOL ' + d.stats.VOL + '</div>';
+        html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.4rem">Rattaché au service des douanes du port — ' + COUT_ENTRETIEN_DOUANIER_JOUR + ' FR/jour</div>';
+      }
       html += '<button onclick="doLicencierDouanier(\'' + d.matricule + '\')" style="width:100%;font-size:.72rem;padding:.35rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Licencier</button>';
       html += '</div>';
     });
@@ -5394,7 +5614,8 @@ async function ouvrirConsulterEffectifsDouane() {
   } else {
     html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.6rem">' + effectifs.douaniers.length + ' douanier(s) en service, rattachés au service des douanes du port.</div>';
     effectifs.douaniers.forEach(d => {
-      html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.2rem">' + d.matricule + '</div>';
+      const label = d.type === 'cynophile' ? (d.matricule + ' — Unité cynophile (' + d.maitreNom + ' & ' + d.chienNom + ')') : d.matricule;
+      html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.2rem">' + label + '</div>';
     });
   }
   html += '</div>';
@@ -5406,24 +5627,33 @@ async function ouvrirConsulterEffectifsDouane() {
 // Reprend a l'identique le comportement de payerEffectifsPoliceQuotidien : debit plafonne sur la
 // caisse reelle (ici gouvernement-min_int -- aucune caisse propre aux douanes), aucun decouvert
 // possible, les derniers recrutes (fin de tableau, ordre deterministe de creation/recrutement)
-// partent en premier faute de budget. Service national unique (un seul port dans tout le jeu),
-// donc pas de parametre ville contrairement a la police -- appele une seule fois par jour et par
-// pays, quelle que soit la ville ou se trouve le joueur qui declenche doDormir().
+// partent en premier faute de budget. Depuis l'unite cynophile (lot du 25 aout 2026, §6-7), le
+// cout n'est plus uniforme (coutJournalierDouanier varie selon le type) : accumulation gloutonne
+// du plus ancien au plus recent jusqu'a epuisement du budget verse, au lieu d'une simple division.
+// Service national unique (un seul port dans tout le jeu), donc pas de parametre ville
+// contrairement a la police -- appele une seule fois par jour et par pays, quelle que soit la
+// ville ou se trouve le joueur qui declenche doDormir().
 async function payerEffectifsDouaneQuotidien(pays) {
   const effectifs = await chargerEffectifsDouane(pays);
   if (!effectifs.douaniers.length) return;
   const jour = state.day || 1;
   if (effectifs.dernierPaiementJour === jour) return; // deja paye aujourd'hui (garde-fou multi-connexion)
 
-  const coutVise = effectifs.douaniers.length * COUT_ENTRETIEN_DOUANIER_JOUR;
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_int', coutVise);
-  const nombrePayable = Math.floor(montantVerse / COUT_ENTRETIEN_DOUANIER_JOUR);
+  const coutTotal = effectifs.douaniers.reduce((s, d) => s + coutJournalierDouanier(d), 0);
+  const montantVerse = await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_int', coutTotal);
 
   effectifs.dernierPaiementJour = jour;
   let nbPartis = 0;
-  if (nombrePayable < effectifs.douaniers.length) {
-    nbPartis = effectifs.douaniers.length - nombrePayable;
-    effectifs.douaniers = effectifs.douaniers.slice(0, nombrePayable);
+  if (montantVerse < coutTotal) {
+    let cumul = 0, nbGardes = 0;
+    for (let i = 0; i < effectifs.douaniers.length; i++) {
+      const c = coutJournalierDouanier(effectifs.douaniers[i]);
+      if (cumul + c > montantVerse) break;
+      cumul += c;
+      nbGardes++;
+    }
+    nbPartis = effectifs.douaniers.length - nbGardes;
+    effectifs.douaniers = effectifs.douaniers.slice(0, nbGardes);
   }
   await sauvegarderEffectifsDouane(pays, effectifs);
 
@@ -6138,6 +6368,209 @@ async function ouvrirFermerCaisseFret(caisseId) {
   window._fretJoueursFermeture = joueurs;
 }
 
+// ---- DISSIMULATION DES CAISSES DE FRET (lot du 25 aout 2026, §4-5) ----
+// Audit prealable (§4) : caisses_fret/contenu_caisses_fret sont de VRAIES tables Postgres a
+// schema fixe (migration executee manuellement, voir git show 2542984) -- aucune colonne de
+// dissimulation n'existe aujourd'hui et en ajouter une exigerait une nouvelle migration SQL.
+// Pour eviter ce blocage (§17), la difficulte de dissimulation est persistee a cote, dans le
+// meme store generique flexible batiments_etat deja reutilise pour le BNE/les prets/le blocus
+// (sbGetBatimentEtat/sbSetBatimentEtat, voir supabase.js) -- une entree globale unique et
+// partagee (meme convention que sbGetEtatBNE/sbSetEtatBNE), car une caisse peut relier deux pays
+// differents (pays_origine != pays_destination) et son id est deja une cle globalement unique
+// (uuid Postgres reel) : aucune partition par pays/ville necessaire.
+// Valeur persistee UNE SEULE FOIS, au moment de la fermeture+declaration
+// (confirmerFermetureCaisseFret, juste apres -- seul point ou le contenu est fige et ou le leader
+// agit encore en son nom propre) : la DIS EFFECTIVE du leader a cet instant
+// (calculerDisEffective(), meme normalisation 8-18 deja utilisee partout ailleurs pour comparer
+// une DIS a un PER via calculerChancePJ -- pas le state.dis brut 0-100, qui n'est pas sur la
+// meme echelle que PER_SERVICE_DOUANES). Jamais recalculee ni relue depuis le personnage au
+// moment du controle (§5 : la difficulte reste attachee a la caisse, independante de la DIS
+// courante de son auteur au moment ou le Chef controle).
+async function chargerDissimulationCaissesFret() {
+  const etat = await sbGetBatimentEtat('global', 'national', 'dissimulation-fret').catch(() => ({}));
+  return etat?.parCaisse || {};
+}
+
+async function sauvegarderDissimulationCaisseFret(caisseId, valeur) {
+  const parCaisse = await chargerDissimulationCaissesFret();
+  parCaisse[caisseId] = valeur;
+  if (typeof sbSetBatimentEtat === 'function') {
+    await sbSetBatimentEtat('global', 'national', 'dissimulation-fret', { parCaisse }).catch(() => {});
+  }
+}
+
+// Meme bucket global partage (cle 'controles', voisine de 'parCaisse' ci-dessus, fusion
+// superficielle deja geree par sbSetBatimentEtat) : une caisse ne peut etre ciblee qu'une seule
+// fois par le Chef des Douanes (evite le grinding d'une meme caisse jusqu'a un jet favorable).
+async function chargerControlesCaissesFret() {
+  const etat = await sbGetBatimentEtat('global', 'national', 'dissimulation-fret').catch(() => ({}));
+  return etat?.controles || {};
+}
+
+async function marquerCaisseControleeFret(caisseId, resultat) {
+  const controles = await chargerControlesCaissesFret();
+  controles[caisseId] = { resultat, controleeLe: Date.now() };
+  if (typeof sbSetBatimentEtat === 'function') {
+    await sbSetBatimentEtat('global', 'national', 'dissimulation-fret', { controles }).catch(() => {});
+  }
+}
+
+// ---- CONTROLE DOUANIER D'UNE CAISSE (lot du 25 aout 2026, §2-3-5-6-10) ----
+// Philosophie validee (§1) : aucun PJ douanier, seul le Chef des Douanes decide. Il consulte le
+// manifeste (doConsulterManifeste, deja existant, ne montre jamais le contenu reel -- seulement
+// la declaration douaniere auto-declaree, potentiellement fausse) et cible UNE caisse precise,
+// arrivee ou en instance de depart au port de PSM. Formule validee (§3, explicitement PAS une
+// moyenne) : PER_SERVICE_DOUANES = PER effectif du Chef + nombre de douaniers PNJ (chacun +1,
+// unite cynophile comprise -- §6). Bonus specialise +3 UNIQUEMENT si (a) une unite cynophile est
+// presente ET (b) la caisse contient reellement des stupefiants -- jamais revele avant la
+// resolution (aucun texte d'interface ne mentionne la presence de stupefiants ni le bonus avant
+// cet instant). "Stupefiants" = type:'poison' (seul type d'objet du jeu couvrant cette famille,
+// aucun type dedie n'existe -- interpretation explicitement signalee au rapport). Chance de
+// decouverte : clamp(50 + 5*(PER_service - DIS_caisse), 10, 90), meme famille de formule que
+// calculerChancePJ (non reutilisee telle quelle car ses deux arguments ne sont pas dans le meme
+// ordre/sens ici -- DIS_caisse est un desavantage pour la douane, pas un avantage pour son
+// adversaire absent). Consequence d'un controle positif (§10) : reutilise integralement le
+// pipeline convocation existant (state.convocations / motif 'possession_illegale_douane', meme
+// structure que doPasserDouanesAeroport, plateau-navigation.js) et la vraie table mails
+// (sbSendMail) -- AUCUN second systeme de justice cree. Le ou les deposants fautifs peuvent etre
+// des PJ hors ligne : ecriture directe sur leur ligne personnages (lecture/fusion/ecriture),
+// jamais via state (meme doctrine que la sanction POP/DIS du maire pour obstruction de permis,
+// deja presente dans ce fichier). Chaque objet illegal garde son deposant exact par ligne
+// (contenu_caisses_fret.deposant), donc l'attribution n'est jamais ambigue meme si plusieurs
+// personnes ont deposé dans la meme caisse.
+const CAISSE_FRET_TYPES_ILLEGAUX_CONTROLES = ['arme', 'poison', 'tract_calomnieux'];
+
+async function ouvrirControlerCaisseDouane(pa, cost) {
+  const check = chefDouanesValide();
+  if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Contrôle douanier — cibler une caisse';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const [sortantes, arrivees] = await Promise.all([
+    sbGet('caisses_fret', 'building_origine=eq.' + encodeURIComponent(BUILDING_ID_PORT) + '&statut=eq.fermee').catch(() => []),
+    sbGet('caisses_fret', 'building_destination=eq.' + encodeURIComponent(BUILDING_ID_PORT) + '&statut=eq.arrivee').catch(() => [])
+  ]);
+  const controles = await chargerControlesCaissesFret();
+  const ciblables = [...(sortantes || []), ...(arrivees || [])].filter(c => !controles[c.id]);
+
+  let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto">';
+  html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.7rem;font-style:italic">Le manifeste ne révèle jamais le contenu réel d\'une caisse — uniquement sa déclaration. Le contrôle est exécuté par le service ; son issue dépend de l\'effectif et de la difficulté de dissimulation de la caisse.</div>';
+  if (ciblables.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060">Aucune caisse contrôlable pour l\'instant.</div>';
+  } else {
+    ciblables.forEach(c => {
+      const sens = c.building_origine === BUILDING_ID_PORT ? 'Sortante' : 'Entrante';
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.8rem;color:#c0b090">' + sens + ' — Expéditeur : ' + (c.leader || '—') + ' — Destinataire : ' + (c.destinataire || 'non déclaré') + '</div>';
+      html += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.4rem">Déclaration : ' + (c.declaration_douaniere || 'non déclarée') + '</div>';
+      html += '<button onclick="confirmerControleCaisseFret(\'' + c.id + '\',' + pa + ')" style="width:100%;font-size:.72rem;padding:.4rem;border:1px solid #8a3a2a;background:transparent;color:#cc4444;cursor:pointer">Ordonner le contrôle</button>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerControleCaisseFret(caisseId, pa) {
+  const check = chefDouanesValide();
+  if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
+
+  const controlesAvant = await chargerControlesCaissesFret();
+  if (controlesAvant[caisseId]) { showToast('Déjà contrôlée', 'Cette caisse a déjà fait l\'objet d\'un contrôle.', false); return; }
+
+  const rows = await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []);
+  const caisse = rows && rows[0];
+  const cibleValide = caisse && (
+    (caisse.building_origine === BUILDING_ID_PORT && caisse.statut === 'fermee') ||
+    (caisse.building_destination === BUILDING_ID_PORT && caisse.statut === 'arrivee')
+  );
+  if (!cibleValide) { showToast('Cible invalide', 'Cette caisse n\'est plus contrôlable (déjà expédiée, retirée, ou introuvable).', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const pays = state.country || 'republic';
+  const effectifs = await chargerEffectifsDouane(pays);
+  const nbDouaniers = effectifs.douaniers.length;
+  const aUneUniteCynophile = effectifs.douaniers.some(d => d.type === 'cynophile');
+  const disCaisse = (await chargerDissimulationCaissesFret())[caisseId] ?? 13; // 13 = calculerDisEffective() a DIS neutre (50), repli si anomalie de persistance
+
+  const lignes = await chargerContenuCaisseFret(caisseId);
+  const lignesIllegales = lignes.filter(l => CAISSE_FRET_TYPES_ILLEGAUX_CONTROLES.includes(l.objet?.type) && l.objet?.legal === false && (l.quantite || 0) > 0);
+  const contientStupefiants = lignesIllegales.some(l => l.objet?.type === 'poison');
+
+  let perService = getStatEffective('PER') + nbDouaniers;
+  if (aUneUniteCynophile && contientStupefiants) perService += 3;
+
+  const chance = Math.max(10, Math.min(90, 50 + 5 * (perService - disCaisse)));
+  const tirage = Math.floor(Math.random() * 100) + 1;
+  const succes = tirage <= chance;
+
+  await marquerCaisseControleeFret(caisseId, succes ? 'positif' : 'negatif');
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  if (!succes) {
+    showToast('Contrôle infructueux', 'Rien de suspect n\'a été relevé sur cette caisse.', false, true);
+    addJournalEntry('Contrôle douanier d\'une caisse de fret : rien trouvé.', 'event-info');
+    return;
+  }
+
+  if (lignesIllegales.length === 0) {
+    showToast('Contrôle terminé', 'La caisse a été ouverte : aucun contenu illicite reconnu à l\'intérieur.', true, true);
+    addJournalEntry('Contrôle douanier d\'une caisse de fret : ouverte, rien d\'illicite trouvé.', 'event-info');
+    return;
+  }
+
+  const parDeposant = {};
+  lignesIllegales.forEach(l => { (parDeposant[l.deposant] = parDeposant[l.deposant] || []).push(l); });
+
+  for (const [deposant, ses] of Object.entries(parDeposant)) {
+    for (const l of ses) {
+      await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(l.id) + '&quantite=eq.' + l.quantite, { quantite: 0 }).catch(() => {});
+    }
+    const noms = ses.map(l => l.objet?.name || l.objet?.type).join(', ');
+    const nouvelleConvocation = {
+      motif: 'possession_illegale_douane',
+      jourEmission: state.day || 1,
+      heureEmission: state.hour || 8,
+      jourLimite: (state.day || 1) + 1,
+      heureLimite: state.hour || 8,
+      traitee: false
+    };
+
+    // Ecriture DIRECTE en base UNIQUEMENT pour un tiers (deposant potentiellement hors ligne) --
+    // pour le Chef lui-meme (deposant === moi), state.convocations est deja la source de verite
+    // vivante de CETTE session et sera persistee par le cycle de sauvegarde habituel
+    // (sbSavePersonnage) comme n'importe quelle autre mutation de state ; ecrire aussi en base ici
+    // l'exposerait a etre silencieusement ecrasee par le prochain sbSavePersonnage (qui reecrit
+    // convocations en entier depuis state, sans le connaitre).
+    if (deposant === (state.char?.name || '')) {
+      state.convocations = state.convocations || [];
+      state.convocations.push(nouvelleConvocation);
+    } else {
+      const perso = await sbGet('personnages', 'name=eq.' + encodeURIComponent(deposant)).catch(() => []);
+      const ligne = perso && perso[0];
+      if (ligne) {
+        const convocationsActuelles = ligne.convocations || [];
+        convocationsActuelles.push(nouvelleConvocation);
+        await sbUpdate('personnages', 'name=eq.' + encodeURIComponent(deposant), { convocations: convocationsActuelles }).catch(() => {});
+      }
+    }
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Chef des Douanes', deposant, 'Convocation officielle',
+        'Un contrôle douanier a détecté et confisqué du contenu prohibé dans une caisse de fret que vous avez approvisionnée (' + noms + '). Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).',
+        typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    }
+  }
+
+  showToast('Contrôle positif !', 'Contenu prohibé découvert et confisqué. Le ou les responsables ont été convoqués.', true, true);
+  addJournalEntry('Contrôle douanier positif sur une caisse de fret : contenu illicite confisqué, convocation(s) émise(s).', 'event-good');
+  updateUI();
+}
+
 async function confirmerFermetureCaisseFret(caisseId) {
   const moi = state.char?.name || '';
   // Identite/statut reverifies cote handler (pas seulement via l'affichage conditionnel du
@@ -6166,6 +6599,8 @@ async function confirmerFermetureCaisseFret(caisseId) {
     date_fermeture: new Date().toISOString()
   }).catch(() => null) : null;
   if (!maj || maj.length === 0) { showToast('Action impossible', 'La caisse a peut-être déjà été fermée.', false); return; }
+
+  await sauvegarderDissimulationCaisseFret(caisseId, calculerDisEffective());
 
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Caisse fermée', 'Vous pouvez maintenant l\'expédier.', true, true);
