@@ -2725,6 +2725,9 @@ function verifierElectionsOrganisations() {
 function afficherOrganigrammeOrga(orga, retourFn) {
   window._orgaOrganigrammeCourante = orga;
   window._orgaOrganigrammeRetourFn = retourFn;
+  // Retour a la vue liste : plus aucun membre "courant" (evite qu'un rafraichissement de cache
+  // photos arrive apres coup et rouvre a tort la fiche du dernier membre consulte).
+  window._orgaOrganigrammeMembreCourant = null;
 
   const titreChef = typeof titreChefOrga === 'function' ? titreChefOrga(orga.type) : 'Chef';
 
@@ -2761,16 +2764,40 @@ function afficherOrganigrammeOrga(orga, retourFn) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function doConsulterOrganigrammeSupporters() {
-  if (typeof rafraichirCachePhotosJoueurs === 'function') {
-    rafraichirCachePhotosJoueurs().then(() => {
-      // Re-affiche seulement si on est encore sur la liste (pas deja sur une fiche membre)
-      if (document.getElementById('postes-body')?.dataset.vue !== 'membre') doConsulterOrganigrammeSupporters();
-    }).catch(() => {});
+// Compteur d'ouverture + nom du membre actuellement affiche (correctif du 25 aout 2026, apres
+// retour de test production : la version precedente rappelait doConsulterOrganigrammeX() depuis
+// le .then() de rafraichirCachePhotosJoueurs(), qui elle-meme relancait un nouveau cycle a
+// chaque fois -- boucle de microtaches infinie tant que la vue restait "liste", puisque
+// afficherOrganigrammeOrga() remet toujours dataset.vue='liste'. Meme defaut present a
+// l'identique dans doConsulterOrganigrammeSupporters depuis v70 (confirme par comparaison avec
+// aa13990) : pas une regression propre au Syndicat, un bug latent partage par tous les
+// organigrammes, corrige ici une seule fois pour les deux.
+let _orgaOrganigrammeOuvertureId = 0;
+
+// Rafraichit UNIQUEMENT la vue deja affichee (liste ou fiche membre), sans jamais rappeler
+// doConsulterOrganigrammeX() ni relancer rafraichirCachePhotosJoueurs() -- appelee au plus une
+// fois par ouverture, apres resolution du chargement des photos. idOuverture capture au moment
+// de l'ouverture : si l'utilisateur a referme/rouvert un organigramme entretemps (nouvel id) ou
+// si la modale n'est plus ouverte, ce re-render est abandonne silencieusement (jamais de
+// reouverture forcee de la modale).
+function rerenderVueOrganigrammeCourante(idOuverture) {
+  if (idOuverture !== _orgaOrganigrammeOuvertureId) return;
+  if (!document.getElementById('modal-postes')?.classList.contains('open')) return;
+  if (window._orgaOrganigrammeMembreCourant) {
+    afficherDetailMembreOrga(window._orgaOrganigrammeMembreCourant);
+  } else if (window._orgaOrganigrammeCourante) {
+    afficherOrganigrammeOrga(window._orgaOrganigrammeCourante, window._orgaOrganigrammeRetourFn);
   }
+}
+
+function doConsulterOrganigrammeSupporters() {
   const orga = getClubSupportersLocal();
   if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
+  const idOuverture = ++_orgaOrganigrammeOuvertureId;
   afficherOrganigrammeOrga(orga, 'doConsulterOrganigrammeSupporters');
+  if (typeof rafraichirCachePhotosJoueurs === 'function') {
+    rafraichirCachePhotosJoueurs().then(() => rerenderVueOrganigrammeCourante(idOuverture)).catch(() => {});
+  }
 }
 
 // Syndicat des Dockers de PSM (lot logistique portuaire, 25 aout 2026, §12) : meme rendu que le
@@ -2780,12 +2807,11 @@ function doConsulterOrganigrammeSupporters() {
 async function doConsulterOrganigrammeSyndicat() {
   const orga = await chargerOuCreerSyndicatDockersPSM();
   if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); return; }
-  if (typeof rafraichirCachePhotosJoueurs === 'function') {
-    rafraichirCachePhotosJoueurs().then(() => {
-      if (document.getElementById('postes-body')?.dataset.vue !== 'membre') doConsulterOrganigrammeSyndicat();
-    }).catch(() => {});
-  }
+  const idOuverture = ++_orgaOrganigrammeOuvertureId;
   afficherOrganigrammeOrga(orga, 'doConsulterOrganigrammeSyndicat');
+  if (typeof rafraichirCachePhotosJoueurs === 'function') {
+    rafraichirCachePhotosJoueurs().then(() => rerenderVueOrganigrammeCourante(idOuverture)).catch(() => {});
+  }
 }
 
 // Fiche detail d'un membre d'une organisation (club de supporters ou syndicat) : photo (si
@@ -2793,6 +2819,7 @@ async function doConsulterOrganigrammeSyndicat() {
 // deja rempli en destinataire). Generalisee le 25 aout 2026 (etait afficherDetailMembreSupporters,
 // couplee en dur au club de supporters -- meme extraction que afficherOrganigrammeOrga ci-dessus).
 function afficherDetailMembreOrga(nom) {
+  window._orgaOrganigrammeMembreCourant = nom;
   const orga = window._orgaOrganigrammeCourante;
   const membre = orga?.membres?.find(m => m.nom === nom);
   const avatar = (typeof getAvatarHtmlPourNom === 'function') ? getAvatarHtmlPourNom(nom, 72, '#C9A84C') : '';

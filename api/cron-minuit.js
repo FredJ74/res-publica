@@ -1143,6 +1143,15 @@ const EXPORTATIONS_PORT = {
   viande:   { equivalentVilles: 1,   destination: 'khalija' }
 };
 
+// Arrivage de peche quotidien propre a la Criee de PSM (arbitrage valide le 25 aout 2026, §3-5
+// du lot Criee/poisson) : totalement independant de l'approvisionnement en poisson des 3
+// entrepots (livrerEntrepotsQuotidien, inchange), n'a PAS d'origine etrangere -- ne touche jamais
+// ORIGINE_IMPORTS_PORT/RESSOURCES_REROUTEES_PORT ci-dessus, n'entre jamais dans port.stock. Va
+// directement dans port.criee.stock.poisson, plafonne (invendus persistants d'un jour sur
+// l'autre), jamais de report/dette si l'arrivage depasse la place restante.
+const ARRIVAGE_POISSON_CRIEE_MIN = 40;
+const ARRIVAGE_POISSON_CRIEE_MAX = 80; // moyenne cible 60 (uniforme sur [40,80])
+
 // Repartit un montant entre les 3 villes selon des pourcentages arbitraires, methode du plus
 // fort reste (Hamilton) -- meme algorithme deja utilise et valide pour la repartition fiscale
 // nationale (distribuerMontantParVilleAuProrataFiscal, plateau-justice-economie.js) : aucun FR/
@@ -1432,6 +1441,39 @@ async function livrerEntrepotsQuotidien() {
       }).catch(() => {});
     }
   } catch(e) { console.error('livrerEntrepotsQuotidien error', e); }
+  return resultats;
+}
+
+// Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026, §3-5).
+// Independant a 100% de livrerEntrepotsQuotidien() ci-dessus : ne lit, ne modifie et ne reduit
+// JAMAIS le stock d'aucun entrepot -- ecrit uniquement dans port.criee.stock.poisson. Plafonne
+// (RESSOURCES_ECONOMIE_SERVEUR.poisson.plafond = 125), invendus persistants (jamais reinitialise
+// a chaque passage), aucun report/dette si l'arrivage tire depasse la place restante (le surplus
+// est simplement perdu ce jour-la, jamais reporte au lendemain -- coherent avec le principe
+// "aucun depassement du plafond" explicitement demande).
+async function genererArrivagePoissonCriee() {
+  const resultats = { arrivee: 0, stockApres: 0 };
+  try {
+    const etatPort = await sbGetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM).catch(() => ({}));
+    const port = (etatPort && etatPort.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {}, criee: {} };
+    const criee = port.criee || { stock: {} };
+    const stockCriee = { ...(criee.stock || {}) };
+
+    const arrivage = Math.round(ARRIVAGE_POISSON_CRIEE_MIN + Math.random() * (ARRIVAGE_POISSON_CRIEE_MAX - ARRIVAGE_POISSON_CRIEE_MIN));
+    const plafond = RESSOURCES_ECONOMIE_SERVEUR.poisson.plafond;
+    const placeRestante = Math.max(0, plafond - (stockCriee.poisson || 0));
+    const qteAjoutee = Math.min(arrivage, placeRestante);
+
+    if (qteAjoutee > 0) {
+      stockCriee.poisson = (stockCriee.poisson || 0) + qteAjoutee;
+      await sbSetBatimentEtat('republic', VILLE_ID_PORT_PSM, BUILDING_ID_PORT_PSM, {
+        ...(etatPort || {}),
+        port: { ...port, criee: { ...criee, stock: stockCriee } }
+      }).catch(() => {});
+    }
+    resultats.arrivee = qteAjoutee;
+    resultats.stockApres = stockCriee.poisson || 0;
+  } catch(e) { console.error('genererArrivagePoissonCriee error', e); }
   return resultats;
 }
 
@@ -2243,6 +2285,10 @@ export default async function handler(req, res) {
     // ete distribues ci-dessus.
     const exportationsPort = await traiterExportationsPortQuotidien();
 
+    // 12c. Arrivage quotidien de poisson propre a la Criee de PSM (arbitrage du 25 aout 2026) :
+    // independant de livrerEntrepotsQuotidien ci-dessus, ne touche aucun entrepot.
+    const arrivagePoissonCriee = await genererArrivagePoissonCriee();
+
     // 13. Production quotidienne des transformateurs (mode PNJ), redistribution 60/40
     const production = await produireTransformateursQuotidien();
 
@@ -2281,7 +2327,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, arrivagePoissonCriee, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

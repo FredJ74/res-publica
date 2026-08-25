@@ -5450,6 +5450,17 @@ async function payerEffectifsDouaneQuotidien(pays) {
 // le passage du cron (minuit) ; non traite ici (pas de nouvelle primitive atomique sans
 // validation), risque juge marginal et identique a celui deja accepte ailleurs dans le blob.
 const RESSOURCES_PORT_IMPORTEES = ['bois', 'petrole', 'produits_exotiques'];
+// Ressources vendables a la Criee (correctif du 25 aout 2026, apres retour de test) : distinct de
+// RESSOURCES_PORT_IMPORTEES a dessein. Le poisson n'a PAS d'origine etrangere (RESSOURCES_
+// REROUTEES_PORT/ORIGINE_IMPORTS_PORT, api/cron-minuit.js, restent inchanges), n'entre donc
+// JAMAIS dans etat.port.stock et ne doit jamais pouvoir y etre "affecte" par le Commandant
+// (ouvrirAffecterCriee/confirmerAffecterCriee continuent d'utiliser RESSOURCES_PORT_IMPORTEES
+// seul, inchange). Le poisson arrive directement dans port.criee.stock via un arrivage de peche
+// dedie (generation quotidienne pas encore codee -- calibrage du volume en attente de
+// validation) : cette constante prepare uniquement le COTE VENTE (ouvrirAcheterCriee/
+// confirmerAcheterCriee) a afficher/vendre du poisson des qu'un stock y apparaitra, sans rien
+// inventer sur la quantite.
+const RESSOURCES_CRIEE_VENDABLES = [...RESSOURCES_PORT_IMPORTEES, 'poisson'];
 const EXPORTATIONS_PORT_INFOS = {
   cereales: { label: 'Céréales', destination: 'Al-Khalija' },
   viande:   { label: 'Viande',   destination: 'Al-Khalija' }
@@ -5537,11 +5548,18 @@ async function ouvrirConsulterPort() {
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:.7rem 0 .4rem">CAISSE DU PORT</div>';
   html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.7rem">' + Math.round(caissePort.solde || 0) + ' FR</div>';
 
-  if (estCommandant) {
-    html += '<button onclick="ouvrirModifierRepartitionPort()" style="display:block;width:100%;text-align:center;padding:.6rem;border:1px solid #6a5a20;background:#1a1508;color:#e0c060;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.85rem;margin-top:.5rem">MODIFIER LA RÉPARTITION</button>';
-  } else {
-    html += '<div style="margin-top:.5rem;font-size:.76rem;color:#6a5a30;font-style:italic">Réservé au Commandant du Port : modifier la répartition entre les 3 villes.</div>';
-  }
+  // Correctif UX (25 aout 2026, apres retour de test) : le bouton de modification n'est plus
+  // duplique ici -- il vit desormais dans son propre order de salle, "Gérer la logistique
+  // nationale" (requiresPost:'capitaine_port', data.js), visible mais grise pour les non-
+  // Commandant selon la meme convention que gerer_effectifs_douane/blocus_portuaire, alors que
+  // ce panneau de consultation reste volontairement neutre (accessible a tous, aucune action).
+  // ouvrirModifierRepartitionPort()/confirmerModifierRepartitionPort() ne sont pas dupliquees :
+  // c'est le nouvel order qui les appelle directement (plateau-router.js).
+  html += '<div style="margin-top:.5rem;font-size:.76rem;color:#6a5a30;font-style:italic">' +
+    (estCommandant
+      ? 'Utilisez « Gérer la logistique nationale » (visible dans cette salle) pour modifier la répartition.'
+      : 'Seul le Commandant du Port peut modifier la répartition, via « Gérer la logistique nationale ».') +
+    '</div>';
 
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -5687,7 +5705,7 @@ async function ouvrirAcheterCriee(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   let html = '<div style="padding:1.2rem">';
-  const clesDispo = RESSOURCES_PORT_IMPORTEES.filter(cle => (stock[cle] || 0) > 0);
+  const clesDispo = RESSOURCES_CRIEE_VENDABLES.filter(cle => (stock[cle] || 0) > 0);
   if (clesDispo.length === 0) {
     html += '<div style="font-size:.9rem;color:#8a8060">Aucune marchandise en vente à la Criée pour l\'instant.</div>';
   } else {
@@ -5722,7 +5740,7 @@ async function confirmerAcheterCriee(pa, cost) {
 
   const achats = {};
   let total = 0;
-  for (const cle of RESSOURCES_PORT_IMPORTEES) {
+  for (const cle of RESSOURCES_CRIEE_VENDABLES) {
     const qte = parseInt(document.getElementById('achat-criee-' + cle)?.value || 0);
     if (!qte || qte <= 0) continue;
     const enStock = stock[cle] || 0;

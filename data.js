@@ -5531,7 +5531,8 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'consulter_manifeste', label:'Consulter le manifeste', pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:'Registre administratif persistant : cargaisons de fret privé déclarées (sans révéler leur contenu réel) et flux institutionnels du port. Consultation publique, gratuite.'},
-          {fn:'consulter_administration_port', label:'Administration du port', pa:0, cost:0, type:'legal', icon:'ti-anchor', successRate:100, desc:'Stock institutionnel, répartition entre Luthécia/Port-Sainte-Marie/Montrouge, arrivages récents, stocks des 3 entrepôts, caisse du port et situation des exportations. Le Commandant du Port peut modifier la répartition depuis cet écran.'}
+          {fn:'consulter_administration_port', label:'Administration du port', pa:0, cost:0, type:'legal', icon:'ti-anchor', successRate:100, desc:'Stock institutionnel, répartition entre Luthécia/Port-Sainte-Marie/Montrouge, arrivages récents, stocks des 3 entrepôts, caisse du port et situation des exportations. Consultation publique, gratuite.'},
+          {fn:'gerer_logistique_port', label:'Gérer la logistique nationale', pa:0, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'capitaine_port', desc:'Réservé au Commandant du Port : modifier la répartition de la logistique nationale entre Luthécia, Port-Sainte-Marie et Montrouge.'}
         ]
       }
     }
