@@ -2181,7 +2181,9 @@ const BUILDINGS = {
           {name:'Entraineur Local (PNJ)', role:'PNJ - Entraineur', rel:'neutral', job:'entraineur'}
         ],
         orders: [
-          {fn:'prendre_licence_sportive', label:'Prendre sa licence sportive', pa:1, cost:300, type:'legal', icon:'ti-license', successRate:100, desc:'Seule condition pour s\'entrainer ou jouer. 300 FR.'},
+          {fn:'prendre_licence_sportive', label:'Prendre sa licence sportive', pa:1, cost:150, type:'legal', icon:'ti-license', successRate:100, desc:'Seule condition pour s\'entrainer ou jouer. 150 FR. Valable une saison, renouvelée tacitement dans le même club (voir "Ne pas renouveler ma licence" pour s\'y opposer).'},
+          {fn:'demander_non_renouvellement_licence', label:'Ne pas renouveler ma licence', pa:1, cost:0, type:'legal', icon:'ti-license-off', successRate:100, desc:'Vous terminez normalement la saison dans votre club. Au changement de saison, votre licence expire sans frais, suivie d\'une année blanche sans club.'},
+          {fn:'annuler_non_renouvellement_licence', label:'Annuler la demande de non-renouvellement', pa:0, cost:0, type:'legal', icon:'ti-license', successRate:100, desc:'Votre licence sera de nouveau renouvelée tacitement au changement de saison.'},
           {fn:'tenue_entrainement', label:"Mettre la tenue d'entraînement", pa:2, cost:0, type:'legal', icon:'ti-run', successRate:100, desc:'S\'entrainer (Defense/Technique/Endurance). Maximum 2 par jour. Risque de blessure legere.'},
           {fn:'tenue_match', label:'Mettre la tenue de match', pa:0, cost:0, type:'legal', icon:'ti-shirt-sport', successRate:100, desc:'Repartir librement ses points de performance avant le prochain match.'},
           {fn:'conseil_entraineur_adjoint', label:"Demander conseil à l'entraîneur adjoint", pa:0, cost:0, type:'legal', icon:'ti-message-2', successRate:100, desc:'Ce qu\'il vous manque pour integrer les quinze, et sur quelle qualite se concentrer.'}
@@ -2227,7 +2229,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'rejoindre_club_supporters', label:'Rejoindre le club de supporters', pa:1, cost:50, type:'legal', icon:'ti-users-group', successRate:100, desc:'Adherer au club de supporters de la ville (50 FR, renouvele automatiquement a chaque nouveau championnat).'},
-          {fn:'consulter_palmares', label:'Consulter le palmares du club', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent : resultats de chaque championnat, articles de presse marquants. Rien ne s\'efface jamais ici.'},
+          {fn:'consulter_palmares', label:'Consulter le palmares du championnat', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'Historique complet et permanent du championnat (les 12 clubs de Republia et des autres nations) : chaque saison couronnee reste consultable ici, quel que soit le club depuis lequel vous consultez.'},
           {fn:'consulter_organigramme_supporters', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Composition complete du club de supporters, visible de tous.'},
           {fn:'declencher_election_club', label:'Déclencher une élection', pa:1, cost:0, type:'legal', icon:'ti-ballot', successRate:100, desc:'Reserve aux membres. 3 jours de candidatures puis 3 jours de vote.'},
           {fn:'organiser_manifestation', label:'Organiser une manifestation', pa:2, cost:0, type:'legal', icon:'ti-megaphone', successRate:100, desc:'Reserve au president. Pour ou contre le maire. Intensite liee au nombre de membres.'},

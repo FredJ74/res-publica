@@ -2212,18 +2212,95 @@ function doSeRenseigner() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Statut effectif d'une licence sportive -- back-compat : une licence achetee avant le lot du 25
+// aout 2026 (saisonnalite des licences) n'a pas de champ 'statut' du tout, elle est consideree
+// 'active' par defaut (comportement historique inchange). null si aucune licence.
+function statutLicenceSportive() {
+  const lic = state.char?.licenceSportive;
+  if (!lic) return null;
+  return lic.statut || 'active';
+}
+
+// Prix ramene de 300 a 150 FR (lot du 25 aout 2026, licences saisonnieres). La licence n'est
+// plus permanente : elle vaut une saison et se renouvelle tacitement au meme club au changement
+// de saison (voir traiterLicencesSportivesSaison, api/cron-minuit.js -- seul point qui debite le
+// renouvellement, jamais le client). derniereSaisonTraitee aligne cette premiere prise sur la
+// saison en cours, pour que le cron ne la traite pas comme "a renouveler" avant la VRAIE fin de
+// saison.
+const COUT_LICENCE_SPORTIVE = 150;
+
 async function doPrendreLicenceSportive(pa, cost) {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
-  if (state.char?.licenceSportive?.clubId === clubLocal.id) { showToast('Déjà licencié(e)', 'Vous avez déjà votre licence pour ' + clubLocal.nom + '.', false); return; }
+
+  const lic = state.char?.licenceSportive;
+  const statutActuel = statutLicenceSportive();
+
+  // Regle validee (lot du 25 aout 2026) : le transfert reste la SEULE facon de changer de club
+  // tant qu'une licence est active. Une licence active ailleurs bloque toute prise directe ici.
+  if (statutActuel === 'active') {
+    if (lic.clubId === clubLocal.id) { showToast('Déjà licencié(e)', 'Vous avez déjà votre licence pour ' + clubLocal.nom + '.', false); return; }
+    showToast('Déjà licencié ailleurs', 'Vous êtes licencié(e) à ' + (getClub(lic.clubId)?.nom || 'un autre club') + '. Seul un transfert permet de changer de club tant que votre licence est active.', false);
+    return;
+  }
+  // Licence impayee : rattachement conserve au club d'origine -- reprise possible UNIQUEMENT
+  // dans ce meme club (regle explicite, evite qu'un impaye devienne joueur libre gratuitement).
+  if (statutActuel === 'impaye') {
+    if (lic.clubId !== clubLocal.id) {
+      showToast('Rattaché à un autre club', 'Votre licence impayée vous rattache toujours à ' + (getClub(lic.clubId)?.nom || 'votre club') + '. Vous ne pouvez la reprendre que là-bas, ou passer par un transfert.', false);
+      return;
+    }
+    // sinon : reprise autorisee ci-dessous, meme parcours d'achat que d'habitude.
+  }
+  if (statutActuel === 'anneeBlanche') {
+    showToast('Année blanche', 'Vous ne pouvez prendre aucune licence tant que votre année blanche n\'est pas terminée.', false);
+    return;
+  }
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
   if (!state.char) return;
-  state.char.licenceSportive = { clubId: clubLocal.id, dateAchat: state.day || 1 };
+  const saison = await chargerOuInitialiserSaison();
+  state.char.licenceSportive = { clubId: clubLocal.id, dateAchat: state.day || 1, statut: 'active', derniereSaisonTraitee: saison?.numero || 1, nonRenouvellement: false };
   sauvegarderPersonnageImmediat();
   updateUI();
   showToast('Licence obtenue !', 'Vous pouvez désormais vous entraîner et jouer pour ' + clubLocal.nom + '.', true, true);
-  addJournalEntry('Licence sportive prise pour ' + clubLocal.nom + ' (-300 FR).', 'event-good');
+  addJournalEntry('Licence sportive prise pour ' + clubLocal.nom + ' (-' + COUT_LICENCE_SPORTIVE + ' FR).', 'event-good');
+}
+
+// Demande de non-renouvellement (lot du 25 aout 2026, §3) : ne resilie JAMAIS la licence dans
+// l'instant -- le joueur termine normalement sa saison. C'est traiterLicencesSportivesSaison
+// (api/cron-minuit.js), au VRAI changement de saison, qui lit ce flag et fait basculer la
+// licence en annee blanche sans prelevement. Un transfert accepte pendant que ce flag est actif
+// l'annule automatiquement (repondreTransfertJoueur cree une toute nouvelle licenceSportive,
+// nonRenouvellement:false par construction).
+async function doDemanderNonRenouvellementLicence(pa, cost) {
+  const clubLocal = getClubLocal();
+  const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'gérer votre licence');
+  if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
+  if (state.char.licenceSportive.nonRenouvellement) { showToast('Déjà demandé', 'Vous avez déjà demandé à ne pas renouveler votre licence.', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  state.char.licenceSportive.nonRenouvellement = true;
+  sauvegarderPersonnageImmediat();
+  updateUI();
+  showToast('Demande enregistrée', 'Vous terminez la saison normalement à ' + clubLocal.nom + '. Votre licence ne sera pas renouvelée à la prochaine saison.', true, true);
+  addJournalEntry('Demande de non-renouvellement de la licence sportive à ' + clubLocal.nom + '.', 'event-info');
+}
+
+async function doAnnulerNonRenouvellementLicence() {
+  const clubLocal = getClubLocal();
+  const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'gérer votre licence');
+  if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
+  if (!state.char.licenceSportive.nonRenouvellement) { showToast('Aucune demande en cours', '', false); return; }
+
+  state.char.licenceSportive.nonRenouvellement = false;
+  sauvegarderPersonnageImmediat();
+  updateUI();
+  showToast('Demande annulée', 'Votre licence à ' + clubLocal.nom + ' sera de nouveau renouvelée tacitement au changement de saison.', true, true);
+  addJournalEntry('Annulation de la demande de non-renouvellement à ' + clubLocal.nom + '.', 'event-info');
 }
 
 function verifierEtResetEntrainementsJour() {
@@ -2238,9 +2315,25 @@ function estIndisponiblePourSport() {
   return b && b.jusquauJour > (state.day || 1);
 }
 
+// Garde commune entraînement/conseil (correctif du 25 aout 2026, audit comparatif des 3 clubs) :
+// avant ce correctif, seule la PRESENCE d'une licenceSportive etait verifiee, jamais son club --
+// un PJ licencie a Luthecia pouvait s'entrainer et recevoir des conseils a PSM/Montrouge. Renvoie
+// un message dedie par cas (licence absente / mauvais club / impayee / annee blanche) ; null si
+// tout est en ordre.
+function messageLicenceInvalidePourClub(clubLocal, verbe) {
+  const lic = state.char?.licenceSportive;
+  const statutActuel = statutLicenceSportive();
+  if (!lic) return 'Prenez votre licence sportive avant de ' + verbe + '.';
+  if (statutActuel === 'anneeBlanche') return 'Vous êtes en année blanche : impossible de ' + verbe + ' pour l\'instant.';
+  if (statutActuel === 'impaye') return 'Votre licence à ' + (getClub(lic.clubId)?.nom || 'votre club') + ' n\'a pas été renouvelée. Reprenez-la pour pouvoir ' + verbe + '.';
+  if (lic.clubId !== clubLocal?.id) return 'Vous êtes licencié(e) à ' + (getClub(lic.clubId)?.nom || 'un autre club') + '. Vous ne pouvez ' + verbe + ' que dans ce club (un transfert est nécessaire pour en changer).';
+  return null;
+}
+
 function doTenueEntrainement(pa, cost) {
   const clubLocal = getClubLocal();
-  if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive avant de vous entraîner.', false); return; }
+  const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'vous entraîner');
+  if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
   if (estIndisponiblePourSport()) {
     const reste = state.char.blessureSportive.jusquauJour - (state.day||1);
     showToast('Blessé(e)', 'Encore ' + reste + ' jour(s) avant de pouvoir vous entraîner.', false);
@@ -2294,9 +2387,10 @@ async function confirmerEntrainement(stat, pa, cost) {
 }
 
 async function doConseilEntraineurAdjoint() {
-  if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive pour recevoir des conseils.', false); return; }
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'recevoir des conseils');
+  if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
 
   document.getElementById('postes-modal-title').textContent = "Conseil de l'entraîneur adjoint";
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
@@ -2435,6 +2529,23 @@ async function afficherLiveMatch(numeroJournee, matchIdx) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// Correctif du 25 aout 2026 (audit comparatif des 3 clubs, anomalie §1) : le chef/fondateur par
+// defaut d'un club de supporters etait code en dur sur 'Alfredo Mifassole (PNJ)', le meneur de
+// Luthecia -- correct pour Luthecia mais errone a PSM/Montrouge, ou ce nom n'apparait nulle part.
+// Derive desormais le PNJ REELLEMENT affiche dans la room siege_supporters de cette ville : le
+// roomOverride specifique s'il existe (Luthecia -> Alfredo Mifassole, inchange), sinon le PNJ
+// generique de la definition de base partagee (BUILDINGS.stade -- 'Meneur des Supporters (PNJ)',
+// deja ce qui est visuellement affiche a PSM/Montrouge aujourd'hui, faute de PNJ dedie dans les
+// donnees). N'invente aucune nouvelle identite : si aucune donnee ne permet de determiner un PNJ
+// precis, le repli generique deja existant est utilise tel quel.
+function getMeneurSupportersLocal() {
+  const ctx = typeof getBuildingContext === 'function' ? getBuildingContext('stade') : null;
+  const personsOverride = ctx?.roomOverrides?.siege_supporters?.persons;
+  if (personsOverride && personsOverride.length > 0) return personsOverride[0].name;
+  const personsBase = (typeof BUILDINGS !== 'undefined') ? BUILDINGS?.stade?.rooms?.siege_supporters?.persons : null;
+  return (personsBase && personsBase[0]?.name) || 'Meneur des Supporters (PNJ)';
+}
+
 async function doRejoindreClubSupporters(pa, cost) {
   if (!state.organisations) state.organisations = [];
   const pays = state.country || 'republic';
@@ -2460,12 +2571,13 @@ async function doRejoindreClubSupporters(pa, cost) {
   const saison = await chargerOuInitialiserSaison();
 
   if (!orga) {
+    const meneurLocal = getMeneurSupportersLocal();
     orga = {
       id: 'orga_supporters_' + pays + '_' + ville,
       type: 'supporters',
       nom: 'Club de Supporters — ' + clubLocal.nom,
       desc: 'Les fidèles du ' + clubLocal.nom + '.',
-      fondateur: 'Alfredo Mifassole (PNJ)', chef: 'Alfredo Mifassole (PNJ)', chefEstPnj: true,
+      fondateur: meneurLocal, chef: meneurLocal, chefEstPnj: true,
       country: pays, city: ville, country_origine: pays,
       creeLe: state.day || 1,
       membres: [], demandesAdhesion: [],
@@ -2796,9 +2908,25 @@ function rerenderVueOrganigrammeCourante(idOuverture) {
   }
 }
 
+// Correctif du 25 aout 2026 (audit comparatif des 3 clubs, anomalie §1) : l'ancien comportement
+// (un simple showToast) donnait l'impression d'un ordre non branché, en particulier a PSM/
+// Montrouge ou le club de supporters n'a pas encore ete cree (creation paresseuse a la premiere
+// adhesion, doRejoindreClubSupporters -- ce n'est PAS un bug de cablage, voir rapport d'audit).
+// Ouvre desormais la MEME modale que l'organigramme normal, avec une explication persistante et
+// actionnable, au lieu d'un toast transitoire. Ne touche ni _orgaOrganigrammeOuvertureId ni
+// window._orgaOrganigrammeCourante dans cette branche (aucun risque de reintroduire la boucle
+// recursive deja corrigee -- voir le commentaire dedie plus haut -- puisqu'aucun appel a
+// rafraichirCachePhotosJoueurs n'a lieu ici, il n'y a aucun membre a photographier).
 function doConsulterOrganigrammeSupporters() {
+  const clubLocal = typeof getClubLocal === 'function' ? getClubLocal() : null;
   const orga = getClubSupportersLocal();
-  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
+  if (!orga) {
+    document.getElementById('postes-modal-title').textContent = 'Organigramme — Club de Supporters';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Aucun club de supporters n\'a encore été fondé ici' + (clubLocal ? ' pour ' + clubLocal.nom : '') + '. Rejoignez-le en premier (« Rejoindre le club de supporters ») pour le créer officiellement et faire apparaître son organigramme.</div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
   const idOuverture = ++_orgaOrganigrammeOuvertureId;
   afficherOrganigrammeOrga(orga, 'doConsulterOrganigrammeSupporters');
   if (typeof rafraichirCachePhotosJoueurs === 'function') {
@@ -3507,9 +3635,16 @@ async function repondreTransfertJoueur(transfertId, accepte) {
     return;
   }
 
-  // Le joueur accepte : licence basculee, points d'entrainement conserves, argent reparti
+  // Le joueur accepte : licence basculee, points d'entrainement conserves, argent reparti.
+  // nonRenouvellement repart a false par construction (nouvel objet) -- un transfert accepte
+  // annule donc automatiquement toute demande de non-renouvellement en cours (§3 : le joueur
+  // vient explicitement d'accepter de poursuivre sa carriere, dans son nouveau club).
+  // derniereSaisonTraitee aligne la nouvelle licence sur la saison en cours, comme une prise
+  // normale (doPrendreLicenceSportive) -- evite qu'elle soit vue comme "a renouveler" avant la
+  // VRAIE prochaine saison.
   if (state.char?.name === t.joueur) {
-    state.char.licenceSportive = { clubId: t.clubArriveeId, dateAchat: state.day || 1 };
+    const saison = await chargerOuInitialiserSaison();
+    state.char.licenceSportive = { clubId: t.clubArriveeId, dateAchat: state.day || 1, statut: 'active', derniereSaisonTraitee: saison?.numero || 1, nonRenouvellement: false };
     state.arg += (t.prixJoueur || 0);
     updateUI();
   }

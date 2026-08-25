@@ -1706,21 +1706,24 @@ async function preleverLoyersLots() {
 const COTISATION_MONTANT = 50;
 const COTISATION_SYNDICAT_MOIS = 3;
 const ID_SYNDICAT_DOCKERS_PSM = 'orga_syndicat_dockers_republic_ville_a';
-// Duplique minimal de CLUBS_SPORTIFS (data.js) -- seuls country/city/id sont necessaires ici
-// pour retrouver la caisse du club (budgets_clubs) associee a un club de supporters local.
+// Duplique minimal de CLUBS_SPORTIFS (data.js) -- country/city/id necessaires pour retrouver la
+// caisse du club (budgets_clubs) associee a un club de supporters local ; nom ajoute (lot du 25
+// aout 2026, licences saisonnieres) pour les messages de Journal envoyes par
+// traiterLicencesSportivesSaison ci-dessous -- aucun impact sur les usages existants (country/
+// city/id inchanges).
 const CLUBS_SPORTIFS_SERVEUR = [
-  { id:'olympique-luthecia',    country:'republic', city:'capitale' },
-  { id:'brise-mariannaise',     country:'republic', city:'ville_a' },
-  { id:'cheminote-montrouge',   country:'republic', city:'ville_b' },
-  { id:'rojos-cartel',          country:'narco',    city:'capitale' },
-  { id:'fronterizos-unidos',    country:'narco',    city:'ville_a' },
-  { id:'jaguares-selva',        country:'narco',    city:'ville_b' },
-  { id:'dynamo-novomirsk',      country:'soviet',   city:'capitale' },
-  { id:'spartak-sibirsk',       country:'soviet',   city:'ville_a' },
-  { id:'kolkhoze-ouvrier',      country:'soviet',   city:'ville_b' },
-  { id:'nadi-al-madina',        country:'khalija',  city:'capitale' },
-  { id:'al-baraka-fc',          country:'khalija',  city:'ville_a' },
-  { id:'sharq-al-nour',         country:'khalija',  city:'ville_b' }
+  { id:'olympique-luthecia',    country:'republic', city:'capitale', nom:'Olympique de Luthécia' },
+  { id:'brise-mariannaise',     country:'republic', city:'ville_a',  nom:'La Brise Mariannaise' },
+  { id:'cheminote-montrouge',   country:'republic', city:'ville_b',  nom:'Union Cheminote de Montrouge' },
+  { id:'rojos-cartel',          country:'narco',    city:'capitale', nom:'Rojos del Cartel' },
+  { id:'fronterizos-unidos',    country:'narco',    city:'ville_a',  nom:'Fronterizos Unidos' },
+  { id:'jaguares-selva',        country:'narco',    city:'ville_b',  nom:'Jaguares de la Selva' },
+  { id:'dynamo-novomirsk',      country:'soviet',   city:'capitale', nom:'Dynamo Novomirsk' },
+  { id:'spartak-sibirsk',       country:'soviet',   city:'ville_a',  nom:'Spartak Sibirsk-9' },
+  { id:'kolkhoze-ouvrier',      country:'soviet',   city:'ville_b',  nom:'Kolkhoze Ouvrier FC' },
+  { id:'nadi-al-madina',        country:'khalija',  city:'capitale', nom:'Nadi Al-Madina' },
+  { id:'al-baraka-fc',          country:'khalija',  city:'ville_a',  nom:'Al-Baraka FC' },
+  { id:'sharq-al-nour',         country:'khalija',  city:'ville_b',  nom:'Sharq Al-Nour' }
 ];
 
 async function crediterBudgetClubServeur(clubId, montant, motif) {
@@ -1814,6 +1817,116 @@ async function renouvellerCotisationsOrganisations() {
       }
     }
   } catch(e) { console.error('renouvellerCotisationsOrganisations error', e); }
+  return resultats;
+}
+
+// =====================
+// LICENCES SPORTIVES SAISONNIERES (lot du 25 aout 2026, correctif groupe football)
+// =====================
+// Prix aligne sur COUT_LICENCE_SPORTIVE (plateau-organisations-quetes.js) -- duplique ici car le
+// cron tourne dans un contexte serveur isole, sans acces aux constantes client (meme raison que
+// COTISATION_MONTANT ci-dessus).
+const LICENCE_SPORTIVE_MONTANT = 150;
+
+// Point SERVEUR unique de renouvellement/non-renouvellement/fin d'annee blanche des licences
+// sportives -- deliberement PAS declenche cote client (contrairement a demarrerNouvelleSaison,
+// plateau-organisations-quetes.js, qui reste hors perimetre de ce lot) : plusieurs clients
+// connectes en meme temps ne doivent jamais pouvoir faire executer un renouvellement/prelevement
+// deux fois. Idempotence assuree par licence_sportive.derniereSaisonTraitee, compare au numero de
+// la saison persistee (table championnat, id=1) -- exactement le meme principe que
+// membre.derniereCotisationSaison ci-dessus pour les cotisations d'organisations. Ce cron tourne
+// une fois par jour (vercel.json) ; le traitement reste donc a jour au plus tard le lendemain
+// d'un vrai changement de saison, sans jamais pouvoir le rejouer deux fois pour la meme saison.
+//
+// Machine a etats par personnage (licence_sportive.statut) :
+//  - absent/'active'  : licence normale. Si nonRenouvellement===true -> bascule en 'anneeBlanche'
+//                       sans prelevement. Sinon, renouvellement tacite dans le meme club (debit
+//                       LICENCE_SPORTIVE_MONTANT si les fonds suffisent, sinon 'impaye').
+//  - 'impaye'          : rattachement conserve au club d'origine, JAMAIS traite automatiquement
+//                        (le joueur ne redevient jamais libre a cause d'un impaye -- il doit
+//                        reprendre lui-meme sa licence dans ce meme club, voir
+//                        doPrendreLicenceSportive). derniereSaisonTraitee n'avance donc pas ici.
+//  - 'anneeBlanche'    : ce statut signifie qu'une saison blanche vient de s'ecouler (puisque
+//                        derniereSaisonTraitee, fixe au moment du basculement, differe desormais
+//                        du numero de saison courant) -- liberation totale + performance divisee
+//                        par deux (Math.round, seule convention numerique deja utilisee pour les
+//                        stats de performance dans ce systeme).
+async function traiterLicencesSportivesSaison() {
+  const resultats = { renouvellements: 0, impayes: 0, nonRenouvellements: 0, finsAnneeBlanche: 0, migrations: 0 };
+  try {
+    const saisonRows = await sbGet('championnat', 'id=eq.1&select=data');
+    let saisonActuelle = null;
+    if (saisonRows && saisonRows[0]) {
+      try { saisonActuelle = JSON.parse(saisonRows[0].data); } catch(e) { saisonActuelle = null; }
+    }
+    if (!saisonActuelle) return resultats; // championnat pas encore initialise, rien a traiter
+
+    const rows = await sbGet('personnages', 'licence_sportive=not.is.null&select=name,arg,day,journal,performance_sportive,licence_sportive');
+    if (!rows) return resultats;
+
+    for (const perso of rows) {
+      const lic = perso.licence_sportive;
+      if (!lic) continue;
+
+      // Migration silencieuse (bootstrap) : une licence achetee avant ce lot n'a pas encore de
+      // marqueur de saison. On l'aligne sur la saison actuelle SANS la traiter comme un
+      // changement de saison reel (aucun prelevement, aucun message le jour du deploiement) --
+      // elle sera traitee normalement au VRAI prochain changement de saison.
+      if (lic.derniereSaisonTraitee === undefined) {
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(perso.name)}`, {
+          licence_sportive: { ...lic, statut: lic.statut || 'active', derniereSaisonTraitee: saisonActuelle.numero }
+        }).catch(() => {});
+        resultats.migrations++;
+        continue;
+      }
+
+      if (lic.derniereSaisonTraitee === saisonActuelle.numero) continue; // deja traite pour cette saison (idempotence)
+
+      const statutActuel = lic.statut || 'active';
+      if (statutActuel === 'impaye') continue; // rattachement indefiniment conserve, aucun traitement automatique
+
+      const patch = {};
+      let journalTexte = null;
+
+      if (statutActuel === 'anneeBlanche') {
+        const perf = perso.performance_sportive || { defense: 0, technique: 0, endurance: 0 };
+        patch.performance_sportive = {
+          defense: Math.round((perf.defense || 0) / 2),
+          technique: Math.round((perf.technique || 0) / 2),
+          endurance: Math.round((perf.endurance || 0) / 2)
+        };
+        patch.licence_sportive = null;
+        journalTexte = "Votre saison blanche est terminée : vous pouvez de nouveau prendre une licence sportive dans le club de votre choix. Votre niveau sportif a diminué (performance divisée par deux).";
+        resultats.finsAnneeBlanche++;
+      } else if (lic.nonRenouvellement === true) {
+        patch.licence_sportive = { statut: 'anneeBlanche', derniereSaisonTraitee: saisonActuelle.numero };
+        const club = CLUBS_SPORTIFS_SERVEUR.find(c => c.id === lic.clubId);
+        journalTexte = 'Conformément à votre demande, votre licence sportive au ' + (club?.nom || 'club') + " n'a pas été renouvelée. Vous devrez attendre la saison suivante avant de pouvoir reprendre une licence.";
+        resultats.nonRenouvellements++;
+      } else {
+        const club = CLUBS_SPORTIFS_SERVEUR.find(c => c.id === lic.clubId);
+        if ((perso.arg || 0) >= LICENCE_SPORTIVE_MONTANT) {
+          patch.arg = (perso.arg || 0) - LICENCE_SPORTIVE_MONTANT;
+          patch.licence_sportive = { ...lic, statut: 'active', derniereSaisonTraitee: saisonActuelle.numero };
+          journalTexte = 'Votre licence sportive au ' + (club?.nom || 'club') + ' a été renouvelée pour la nouvelle saison. ' + LICENCE_SPORTIVE_MONTANT + ' FR ont été prélevés.';
+          resultats.renouvellements++;
+        } else {
+          patch.licence_sportive = { ...lic, statut: 'impaye', derniereSaisonTraitee: saisonActuelle.numero };
+          journalTexte = 'Votre licence sportive au ' + (club?.nom || 'club') + " n'a pas pu être renouvelée faute de fonds suffisants. Vous pouvez reprendre une licence dans ce club dès que vous disposez de " + LICENCE_SPORTIVE_MONTANT + ' FR. Un transfert reste nécessaire pour rejoindre un autre club.';
+          resultats.impayes++;
+        }
+      }
+
+      if (journalTexte) {
+        const journalActuel = Array.isArray(perso.journal) ? perso.journal.slice() : [];
+        journalActuel.unshift({ day: perso.day || 1, hour: 8, text: journalTexte, cls: 'event-info', ts: new Date().toISOString() });
+        if (journalActuel.length > 120) journalActuel.length = 120;
+        patch.journal = journalActuel;
+      }
+
+      await sbUpdate('personnages', `name=eq.${encodeURIComponent(perso.name)}`, patch).catch(() => {});
+    }
+  } catch(e) { console.error('traiterLicencesSportivesSaison error', e); }
   return resultats;
 }
 
@@ -2521,6 +2634,12 @@ export default async function handler(req, res) {
     // logistique portuaire du 25 aout 2026) : renouvellement tacite ou fin d'adhesion automatique
     const cotisationsOrganisations = await renouvellerCotisationsOrganisations();
 
+    // 16f. Licences sportives saisonnieres (lot du 25 aout 2026, correctif groupe football) :
+    // seul point qui renouvelle/prelevle/fait expirer une licence -- jamais le client (voir
+    // commentaire dedie sur traiterLicencesSportivesSaison), pour qu'un renouvellement ne
+    // puisse jamais etre applique deux fois par deux clients differents.
+    const licencesSportives = await traiterLicencesSportivesSaison();
+
     // 17. Journal du jour (Lot B) — STRICTEMENT en dernier, dans son propre try/catch : un
     // echec ou un depassement de son propre budget interne ne doit jamais remettre en cause les
     // 16 taches critiques ci-dessus, deja executees et sauvegardees avant ce point.
@@ -2532,7 +2651,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

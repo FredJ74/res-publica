@@ -91,6 +91,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'parier_match') { doParierMatch(pa, cost); return; }
   if (fn === 'regarder_live') { doRegarderLive(); return; }
   if (fn === 'prendre_licence_sportive') { doPrendreLicenceSportive(pa, cost); return; }
+  if (fn === 'demander_non_renouvellement_licence') { doDemanderNonRenouvellementLicence(pa, cost); return; }
+  if (fn === 'annuler_non_renouvellement_licence') { doAnnulerNonRenouvellementLicence(); return; }
   if (fn === 'tenue_entrainement') { doTenueEntrainement(pa, cost); return; }
   if (fn === 'tenue_match') { doTenueMatch(); return; }
   if (fn === 'conseil_entraineur_adjoint') { doConseilEntraineurAdjoint(); return; }
