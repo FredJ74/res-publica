@@ -99,7 +99,35 @@ async function sbEcrirePersonnage(data) {
 // fonction, jamais par un chemin d'ecriture parallele. Fail-open par defaut : seule une valeur
 // explicitement false bloque (flag absent/undefined = autorise, comportement inchange partout
 // ailleurs qu'au tout debut du chargement de page).
+// INSTRUMENTATION TEMPORAIRE (diagnostic licence Arnie, 25 aout 2026) -- A RETIRER une fois la
+// cause identifiee. Consigne CHAQUE appel de sbSavePersonnage pour Arnie (bloque ou non par la
+// garde de bootstrap ci-dessous) dans batiments_etat (store generique deja existant, aucune
+// migration, cle dediee 'debug'/'debug'/'licence-arnie') : horodatage, valeur de
+// licenceSportive au moment de l'appel, etat du flag de bootstrap, position, et pile d'appel
+// JS -- pour identifier factuellement l'appelant reel, sans dependre des DevTools du joueur.
+// Fire-and-forget, ne bloque et ne modifie jamais le comportement reel de la sauvegarde.
+async function instrumenterAppelSavePersonnage(charState) {
+  try {
+    if (charState.char?.name !== 'Arnie') return;
+    if (typeof sbGetBatimentEtat !== 'function' || typeof sbSetBatimentEtat !== 'function') return;
+    const etatDebug = await sbGetBatimentEtat('debug', 'debug', 'licence-arnie').catch(() => ({}));
+    const breadcrumbs = Array.isArray(etatDebug.breadcrumbs) ? etatDebug.breadcrumbs : [];
+    breadcrumbs.push({
+      ts: new Date().toISOString(),
+      bloque_par_bootstrap: charState.personnageChargeDepuisServeur === false,
+      licenceSportive: charState.char?.licenceSportive || null,
+      currentBuilding: charState.currentBuilding || null,
+      currentRoom: charState.currentRoom || null,
+      currentCity: charState.currentCity || null,
+      stack: (new Error('trace_sbSavePersonnage')).stack || null
+    });
+    if (breadcrumbs.length > 40) breadcrumbs.splice(0, breadcrumbs.length - 40);
+    await sbSetBatimentEtat('debug', 'debug', 'licence-arnie', { breadcrumbs }).catch(() => {});
+  } catch (e) {}
+}
+
 async function sbSavePersonnage(charState) {
+  instrumenterAppelSavePersonnage(charState); // temporaire, voir commentaire ci-dessus -- fire-and-forget, n'attend jamais son resultat
   if (charState.personnageChargeDepuisServeur === false) return;
   const photoKey = 'respublica_photo_' + (charState.char?.name || 'default');
   const savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;
