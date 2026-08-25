@@ -713,6 +713,17 @@ function enterRoom(buildingId, roomId, tabEl) {
     }).catch(() => {});
   }
 
+  // Precharger/creer paresseusement le Syndicat des Dockers de PSM (lot du 25 aout 2026, meme
+  // principe que le cache d'ambassades ci-dessus) : garantit que getChefSyndicatDockersPSM()
+  // (verifie de facon synchrone par renderRoomActions juste apres) dispose d'une reponse a jour
+  // le plus tot possible. Comme pour les ambassades, le premier rendu de la room peut afficher
+  // l'ordre masque avant resolution de cette promesse -- re-rendu explicite une fois resolue.
+  if (buildingId === 'port-sainte-marie' && roomId === 'bureau_syndical_dockers' && state.country === 'republic' && typeof chargerOuCreerSyndicatDockersPSM === 'function') {
+    chargerOuCreerSyndicatDockersPSM().then(() => {
+      if (state.currentBuilding === buildingId && state.currentRoom === roomId) renderRoomActions(room, buildingId, roomId);
+    }).catch(() => {});
+  }
+
   // Ordres
   renderRoomActions(room, buildingId, roomId);
 
@@ -1424,25 +1435,19 @@ async function executerVoyage(mode, empireId, villeId) {
   addExternalEvent((state.char?.name||'Anonyme') + ' est arrivé(e) à ' + villeName + ' (' + empireName + ').');
 }
 
-// Dialogues scriptes (lot du 24 aout 2026) -- texte fixe, pas de chat IA generique : garantit
-// qu'aucun PNJ ne mentionne jamais "PA" (exigence explicite), les couts en PA restant reserves
-// a l'interface des orders. Information seulement, aucune action/debit associe.
+// Dialogue scripte de Mireille Guichet (lot du 24 aout 2026) -- texte fixe, pas de chat IA
+// generique : garantit qu'elle ne mentionne jamais "PA" (exigence explicite), les couts en PA
+// restant reserves a l'interface des orders. Information seulement, aucune action/debit associe.
+// Alain Bordage suivait le meme principe jusqu'au 25 aout 2026 -- son order dedie a ete
+// supprime, il repond desormais via le dialogue PNJ standard (talkToPnj, cf. PNJ_PERSONALITIES/
+// PNJ_PROFILS['Alain Bordage'], plateau-core.js), au meme titre que n'importe quel autre PNJ
+// affiche dans une room.
 function ouvrirRenseignementMireilleGuichet() {
   document.getElementById('postes-modal-title').textContent = 'Mireille Guichet — Hôtesse d\'accueil';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1.2rem">' +
     '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">' +
     '« C\'est noté ! Pour l\'étranger, l\'avion est de loin le plus rapide, mais le billet coûte 300 FR. Si vous n\'êtes pas pressé(e), vous pouvez aussi prendre le bateau depuis Port-Sainte-Marie : la traversée est nettement plus longue, mais elle ne coûte que 100 FR. »' +
-    '</div></div>';
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function ouvrirRenseignementAlainBordage() {
-  document.getElementById('postes-modal-title').textContent = 'Alain Bordage — Employé de la compagnie maritime';
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1.2rem">' +
-    '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">' +
-    '« La traversée coûte 100 FR. Ce n\'est pas rapide, mais c\'est économique. Si vous êtes pressé(e) et que vous en avez les moyens, prenez plutôt l\'avion à Luthécia : 300 FR, mais vous arriverez beaucoup plus vite. »' +
     '</div></div>';
   document.getElementById('modal-postes').classList.add('open');
 }
@@ -1661,6 +1666,22 @@ async function doContrebandePort(pa, cost) {
 }
 
 async function doBlocusPortuaire(pa, cost) {
+  // Correctif du 25 aout 2026 (bug remonte en production v69 : n'importe quel PJ pouvait
+  // declencher un blocus depuis le quai principal). blocus_portuaire est desormais reserve au
+  // chef du Syndicat des Dockers de PSM et revalide ici INDEPENDAMMENT de l'affichage (meme
+  // principe que le precedent chef des supporters, doOrganiserManifestation) -- un appel direct
+  // au handler par un non-chef (non-membre, simple membre, ancien chef, ou tout autre PJ) echoue
+  // avant tout cout/effet de bord. Scope volontairement limite a 'republic' : c'est le seul pays
+  // dote d'un syndicat des dockers reel pour l'instant (voir getSyndicatDockersPSM,
+  // plateau-organisations-quetes.js) -- le blocus_portuaire d'El Estado (data.js:5570, meme fn,
+  // meme handler) reste inchange et hors perimetre de ce lot.
+  if ((state.country || 'republic') === 'republic') {
+    const orga = typeof chargerOuCreerSyndicatDockersPSM === 'function' ? await chargerOuCreerSyndicatDockersPSM() : null;
+    if (!orga || orga.chef !== (state.char?.name || '')) {
+      showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut déclencher un blocus portuaire.', false);
+      return;
+    }
+  }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const vol = getStatEffective('VOL');

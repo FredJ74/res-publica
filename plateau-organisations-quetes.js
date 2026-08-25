@@ -2486,6 +2486,47 @@ function getClubSupportersLocal() {
   return (state.organisations || []).find(o => o.type === 'supporters' && o.country === pays && o.city === ville);
 }
 
+// Syndicat des Dockers de Port-Sainte-Marie (lot du 25 aout 2026, correctif blocus_portuaire).
+// Etienne Dantafasse ("President du Syndicat des Dockers de Port-Sainte-Marie", data.js) etait
+// purement decoratif jusqu'ici -- job:null, aucune organisation reelle ne le referencait, aucun
+// PJ ne pouvait donc jamais en etre reellement "le chef". Cree paresseusement selon exactement
+// le meme principe que le club de supporters ci-dessus (doRejoindreClubSupporters, id
+// deterministe, chef PNJ par defaut) au lieu d'une nouvelle organisation permanente pre-semee :
+// meme table state.organisations, meme sauvegarderOrga(), meme mecanisme d'election generique
+// et deja type-agnostique (verifierElectionsOrganisations) -- aucun nouveau systeme de
+// permission. Seule vraie difference avec le club de supporters : la creation est declenchee par
+// une simple visite de la room (voir enterRoom, plateau-navigation.js), pas par un order
+// d'adhesion dedie (aucune UI de membres pour ce lot, hors perimetre).
+function getSyndicatDockersPSM() {
+  return (state.organisations || []).find(o => o.id === 'orga_syndicat_dockers_republic_ville_a') || null;
+}
+
+function getChefSyndicatDockersPSM() {
+  return getSyndicatDockersPSM()?.chef || null;
+}
+
+async function chargerOuCreerSyndicatDockersPSM() {
+  let orga = getSyndicatDockersPSM();
+  if (orga) return orga;
+  if (!state.organisations) state.organisations = [];
+  orga = {
+    id: 'orga_syndicat_dockers_republic_ville_a',
+    type: 'syndicale',
+    nom: 'Syndicat des Dockers de Port-Sainte-Marie',
+    desc: 'Le syndicat des dockers du Port industriel de Port-Sainte-Marie.',
+    fondateur: 'Étienne Dantafasse (PNJ)', chef: 'Étienne Dantafasse (PNJ)', chefEstPnj: true,
+    country: 'republic', city: 'ville_a', country_origine: 'republic',
+    creeLe: state.day || 1,
+    membres: [], demandesAdhesion: [],
+    bonusLocaux: { pop:0, inf:0, dis:0 }, caisse: 0,
+    election: null,
+    visible: true
+  };
+  state.organisations.push(orga);
+  if (typeof sauvegarderOrga === 'function') sauvegarderOrga(orga);
+  return orga;
+}
+
 function doDeclencherElectionClub(pa, cost) {
   const orga = getClubSupportersLocal();
   if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }

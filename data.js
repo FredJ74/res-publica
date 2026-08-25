@@ -5425,21 +5425,20 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#050810,#0a0f18)",
         desc: "Les grues bleues s\'activent.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-industriel.png",
-        // Alain Bordage (lot du 24 aout 2026) : employe de la compagnie maritime, renseigne les
-        // voyageurs sur le transport international passager (avion/bateau) -- sans rapport avec
-        // le fret v68 (caisses_fret) ni avec Pascal Paguevite (douanes/fret, room separee).
-        // Aucun portrait adapte trouve dans Downloads au moment de ce lot -- STOP signale au
-        // rapport, pas de photoUrl invente/reutilise.
+        // Alain Bordage (lot du 24 aout 2026, order dedie supprime le 25 aout 2026) : employe de
+        // la compagnie maritime, renseigne desormais les voyageurs directement via le dialogue
+        // PNJ standard (talkToPnj, voir PNJ_PERSONALITIES/PNJ_PROFILS dans plateau-core.js) --
+        // plus d'order separe, il repond comme n'importe quel PNJ conversationnel de la room.
+        // Sans rapport avec le fret v68 (caisses_fret) ni avec Pascal Paguevite (douanes/fret,
+        // room separee). Aucun portrait adapte trouve dans Downloads au moment de sa creation --
+        // toujours pas de photoUrl invente/reutilise.
         persons: [
           {name:'Alain Bordage (PNJ)', role:'Employé de la compagnie maritime', rel:'neutral', job:'agent_maritime'}
         ],
         orders: [
           {fn:'prendre_bateau', label:'Prendre le bateau', pa:5, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 5 PA. Transport inter-empire. Plus lent mais moins cher que l\'avion.'},
-          {fn:'renseignement_transport_maritime', label:'Demander conseil à Alain Bordage', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100, desc:'Se renseigner sur le transport maritime international.'},
           {fn:'expedier_colis', label:'Réserver une caisse de fret', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Réserve une caisse persistante (500 unités max) où vous et vos chargeurs autorisés pouvez déposer des marchandises avant de la fermer et l\'expédier vers un PJ d\'un autre empire. Délai 1 jour.'},
           {fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Consulter et dédouaner les caisses arrivées à votre nom. Droits de douane et gardiennage éventuel dus avant tout retrait.'},
-          {fn:'contrebande_port', label:'Contrebande portuaire', pa:3, cost:0, type:'illegal', icon:'ti-package-off', successRate:55, desc:'Importer un objet illégal. DIS/10 + DUP/10. Zone port +15%. El Estado +25%.'},
-          {fn:'blocus_portuaire', label:'Blocus portuaire', pa:3, cost:0, type:'grey', icon:'ti-barrier-block', successRate:60, desc:'Paralyse les importations/exportations 24h. VOL/10 + ENT/10. -IE. Prérogative syndicaliste.'},
           {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:80, requiresPost:'min_def', desc:'Révèle contrebandes en cours. INT/10 + ISN/10. Prérogative min_def ou commissaire.'}
         ]
       },
@@ -5487,6 +5486,17 @@ const BUILDINGS = {
           {fn:'gerer_effectifs_douane', label:'Gerer mes effectifs', pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'chef_douanes', desc:'Consulter les douaniers recrutes, tous rattaches au service des douanes du port.'}
         ]
       },
+      // blocus_portuaire deplace ici depuis quai_principal (lot du 25 aout 2026, correctif
+      // production : n'importe quel PJ pouvait le declencher depuis le quai). Etienne Dantafasse
+      // etait jusqu'ici purement decoratif (job:null, aucune organisation reelle ne le
+      // referencait) -- une organisation reelle de type 'syndicale' (TYPES_ORGANISATIONS, meme
+      // systeme que les clubs de supporters) est desormais creee paresseusement a la premiere
+      // visite de cette room (getSyndicatDockersPSM/chargerOuCreerSyndicatDockersPSM,
+      // plateau-organisations-quetes.js), avec Etienne comme chef PNJ par defaut, remplacable
+      // plus tard par election via le mecanisme generique deja existant
+      // (verifierElectionsOrganisations, type-agnostique). requiresChefSyndicatDockers:true est
+      // un nouveau flag, verifie dans renderRoomActions (plateau-politique.js) -- garde UI
+      // uniquement ; doBlocusPortuaire() revalide independamment le chef reel cote handler.
       bureau_syndical_dockers: {
         name: "Bureau Syndical des Dockers",
         imageBg: "linear-gradient(135deg,#100a08,#180e0a)",
@@ -5496,7 +5506,9 @@ const BUILDINGS = {
           {name:'Dédé le Docker (PNJ)', role:'Docker syndiqué', rel:'neutral', job:'docker'},
           {name:'Étienne Dantafasse (PNJ)', role:'Président du Syndicat des Dockers de Port-Sainte-Marie', rel:'neutral', job:null, photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-port-industriel-etienne-dantafasse.png', photoPos:'50% 12%'}
         ],
-        orders: []
+        orders: [
+          {fn:'blocus_portuaire', label:'Blocus portuaire', pa:3, cost:0, type:'grey', icon:'ti-barrier-block', successRate:60, requiresChefSyndicatDockers:true, desc:'Paralyse les importations/exportations 24h. VOL/10 + ENT/10. -IE. Réservé au chef du Syndicat des Dockers.'}
+        ]
       },
       administration_portuaire: {
         name: "Administration Portuaire",

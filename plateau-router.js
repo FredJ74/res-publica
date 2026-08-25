@@ -258,7 +258,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'prendre_avion')          { ouvrirModalTransport('avion'); return; }
   if (fn === 'aller_douanes_aeroport') { doAllerDouanesAeroport(); return; }
   if (fn === 'prendre_bateau')         { ouvrirModalTransport('bateau'); return; }
-  if (fn === 'renseignement_transport_maritime') { ouvrirRenseignementAlainBordage(); return; }
   if (fn === 'controle_douanes')       { doControlDouanes(); return; }
   if (fn === 'corrompre_douanier')     { doCorrompreDoanier(pa, cost); return; }
   if (fn === 'expedier_colis')         { ouvrirExpedierColis(pa, cost); return; }

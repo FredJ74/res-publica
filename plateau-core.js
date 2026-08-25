@@ -8,6 +8,7 @@ const PNJ_PERSONALITIES = {
   // RÉPUBLIA
   'Gaston Retard': { trait: "Fonctionnaire depuis 34 ans. N'a jamais annoncé un train à l'heure. Le considère comme une forme d'art. Parle de lui-même à la troisième personne quand il est stressé.", style: "bureaucratique épuisé, cynique poli, fier de son inefficacité" },
   'Mireille Guichet': { trait: "Sourit en permanence sans raison. Répond à tout par 'C'est noté' sans jamais noter quoi que ce soit.", style: "serviable de façade, passive-agressive, adore les formulaires" },
+  'Alain Bordage': { trait: "Employé de la compagnie maritime au Port industriel de Port-Sainte-Marie. Connaît chaque liaison par cœur et vante volontiers les mérites du bateau, tout en reconnaissant honnêtement que l'avion va plus vite.", style: "Bonhomme, pragmatique, un peu bourru mais serviable" },
   'Raoul Toufaud': { trait: "Commissaire qui pointe toujours dans la mauvaise direction. Confond régulièrement les suspects et les témoins. A résolu exactement 0 affaire.", style: "autoritaire incompétent, se vexe facilement, cite le règlement sans le connaître" },
   'Brigitte Menottes': { trait: "Inspectrice qui menotterait sa propre ombre si elle pouvait. Zèle inversement proportionnel à son efficacité.", style: "zélée et inutile, parle en jargon policier inventé" },
   'Honoré Cozetoujours': { trait: "Juge qui condamne avant d'écouter. A condamné son greffier par erreur trois fois.", style: "sentencieux, cite des lois inventées, tape du marteau de façon aléatoire" },
@@ -105,6 +106,21 @@ const PNJ_PROFILS = {
   // elections locales", data.js). Aucun chiffre de reussite invente, aucune information privee
   // du joueur (carriere/nature profonde/origine/scolarite/stats jamais transmises, voir
   // talkToPnj).
+  // Referent du transport international passager depuis le port (lot du 25 aout 2026, apres
+  // suppression de l'ancien order dedie "Demander conseil a Alain Bordage" -- il repond
+  // desormais via le dialogue PNJ standard). Meme discipline que Pat/Jean-Lou : savoirs
+  // strictement limites aux mecaniques reelles et deja presentes dans le code (bateau=
+  // prendre_bateau, 5 PA/100 FR, PSM ; avion=prendre_avion, 2 PA/300 FR, Centre Multimodal de
+  // Luthecia -- voir TRANSPORT_CONFIG, plateau-navigation.js). fonctionPedagogique interdit
+  // explicitement toute mention de "PA"/mecanique d'interface, traduite en langage diegetique
+  // (fatigue/confort/prix du billet) -- exigence explicite du lot. Perimetre volontairement
+  // etroit : port, liaisons maritimes, comparaison pratique bateau/avion, rien d'autre.
+  'Alain Bordage': {
+    traits: ['pragmatique', 'habitué aux allées et venues du port', 'fier de connaître toutes les liaisons maritimes'],
+    savoirs: "Sait que le bateau permet de rejoindre les autres empires depuis le Port industriel de Port-Sainte-Marie, et que la traversée coûte 100 FR. Sait aussi que l'avion, disponible au Centre Multimodal de Luthécia, coûte 300 FR mais va bien plus vite. Pour lui, le choix est simple : le bateau est la solution économique, mais la traversée est longue et fatigante ; l'avion coûte trois fois plus cher mais épargne au voyageur l'essentiel de la fatigue et de la longueur du trajet.",
+    fonctionPedagogique: "Si on lui demande comment voyager à l'étranger, explique en substance : le bateau depuis le port coûte 100 FR mais la traversée est longue et éprouvante ; l'avion depuis Luthécia coûte 300 FR mais est bien plus rapide et confortable. Ne parle jamais de \"PA\", de \"points d'action\" ni d'aucun terme d'interface ou de mécanique de jeu — il ne connaît que le prix du billet et la pénibilité du trajet, jamais un coût abstrait. Son expertise se limite au port, aux liaisons maritimes et à cette comparaison pratique bateau/avion ; pour tout le reste, il reconnaît honnêtement qu'il n'en sait rien plutôt que d'inventer.",
+    notes: "Ajouté le 25 aout 2026 — référent du transport international après suppression de l'ancien order dédié."
+  },
   'Jean-Lou Zeure': {
     traits: ['désabusé', 'ancien maire au chômage', 'toujours prêt à donner un conseil politique, moins à décrocher un emploi'],
     savoirs: "Sait qu'on se présente à une élection à la mairie, avec l'ordre \"Déposer une candidature\" : on choisit le poste qui nous intéresse, on rédige un programme, et la candidature est enregistrée. Sait qu'une campagne électorale se distribue en tracts et en prospectus imprimés qu'on distribue aux gens qu'on croise pour les convaincre de voter pour soi. Sait qu'on peut aussi soutenir un candidat par une conférence à l'université, ou publier une déclaration de candidature sur le forum pour rallier du soutien. Sait que le club des supporters du club de football local peut donner un coup de pouce aux élections locales si on parvient à le rallier à sa cause.",

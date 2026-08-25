@@ -1666,6 +1666,16 @@ function renderRoomActions(room, buildingId, roomId) {
     if (o.requiresCadavre && typeof terrainOrdreDisponible === 'function') {
       needsCadavre = !terrainOrdreDisponible(o.fn, buildingId).ok;
     }
+    // Verifier requiresChefSyndicatDockers (blocus_portuaire, lot du 25 aout 2026) : garde UI
+    // uniquement -- getChefSyndicatDockersPSM() lit state.organisations, deja pre-charge/cree
+    // paresseusement a l'entree de la room (voir enterRoom, plateau-navigation.js). Ne remplace
+    // jamais la revalidation independante faite cote handler (doBlocusPortuaire) : cette
+    // condition ne fait que griser le bouton, exactement comme requiresPost.
+    let needsChefSyndicat = false;
+    if (o.requiresChefSyndicatDockers) {
+      const chefReel = typeof getChefSyndicatDockersPSM === 'function' ? getChefSyndicatDockersPSM() : null;
+      needsChefSyndicat = chefReel !== (state.char?.name || '');
+    }
     // Avant ce correctif, TEST_MODE forcait l'affichage a "0 PA" quel que soit o.pa reel --
     // le joueur ne pouvait jamais apprendre le vrai cout normal d'un ordre pendant la periode
     // de PA illimites (bug remonte sur "investir", en realite systemique a tous les ordres avec
@@ -1752,6 +1762,8 @@ function renderRoomActions(room, buildingId, roomId) {
       onclickFn = "showToast('Aucun squatteur', 'Aucun squatteur a negocier sur ce terrain pour l\\'instant.', false)";
     } else if (needsCadavre) {
       onclickFn = "showToast('Aucun cadavre', 'Aucun cadavre a dissimuler sur ce terrain pour l\\'instant.', false)";
+    } else if (needsChefSyndicat) {
+      onclickFn = "showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut declencher un blocus portuaire.', false)";
     } else if (o.fn === 'plainte_police') {
       onclickFn = 'openPlainteModal(' + o.pa + ',' + o.cost + ')';
     } else if (o.fn === 'gerer_finances') {
@@ -1765,7 +1777,7 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
-    const blockedCls = (needsPost || needsSquat || needsCadavre) ? ' blocked' : '';
+    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltip + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
