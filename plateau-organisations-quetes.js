@@ -2266,6 +2266,13 @@ async function doPrendreLicenceSportive(pa, cost) {
   updateUI();
   showToast('Licence obtenue !', 'Vous pouvez désormais vous entraîner et jouer pour ' + clubLocal.nom + '.', true, true);
   addJournalEntry('Licence sportive prise pour ' + clubLocal.nom + ' (-' + COUT_LICENCE_SPORTIVE + ' FR).', 'event-good');
+  // Correctif du 25 aout 2026 (bug UX v79) : updateUI() ne rafraichit jamais actions-row-bat
+  // (renderRoomActions est un rendu ponctuel, fait uniquement a l'entree dans une piece, voir
+  // enterRoom) -- sans ce rappel, le bouton "Prendre sa licence sportive" (et tout autre ordre
+  // dont l'etat grise/infobulle depend de licenceSportive) restait affiche tel qu'au moment de
+  // l'entree dans la piece, meme apres que cette licence vienne de changer. Meme idiome deja
+  // utilise ailleurs (confirmerLocation/resilierBox) pour rafraichir la piece courante.
+  if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
 }
 
 // Demande de non-renouvellement (lot du 25 aout 2026, §3) : ne resilie JAMAIS la licence dans
@@ -2288,6 +2295,7 @@ async function doDemanderNonRenouvellementLicence(pa, cost) {
   updateUI();
   showToast('Demande enregistrée', 'Vous terminez la saison normalement à ' + clubLocal.nom + '. Votre licence ne sera pas renouvelée à la prochaine saison.', true, true);
   addJournalEntry('Demande de non-renouvellement de la licence sportive à ' + clubLocal.nom + '.', 'event-info');
+  if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
 }
 
 async function doAnnulerNonRenouvellementLicence() {
@@ -2301,6 +2309,7 @@ async function doAnnulerNonRenouvellementLicence() {
   updateUI();
   showToast('Demande annulée', 'Votre licence à ' + clubLocal.nom + ' sera de nouveau renouvelée tacitement au changement de saison.', true, true);
   addJournalEntry('Annulation de la demande de non-renouvellement à ' + clubLocal.nom + '.', 'event-info');
+  if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
 }
 
 function verifierEtResetEntrainementsJour() {
@@ -3666,6 +3675,11 @@ async function repondreTransfertJoueur(transfertId, accepte) {
   await sbMajTransfert(transfertId, t);
   showToast('Transfert accepté !', 'Vous jouez désormais pour ' + getClub(t.clubArriveeId).nom + '.', true, true);
   addJournalEntry('Transfert accepté vers ' + getClub(t.clubArriveeId).nom + '.', 'event-good');
+  // Meme correctif que doPrendreLicenceSportive/doDemanderNonRenouvellementLicence : rafraichit
+  // les ordres de la piece courante (le joueur peut avoir accepte ce transfert depuis n'importe
+  // ou, y compris depuis le stade d'un club) pour que "Prendre sa licence sportive" (et les
+  // autres ordres dependants de licenceSportive) reflete immediatement le nouveau club.
+  if (state.char?.name === t.joueur && state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
 }
 
 async function doGererSalairesClub() {

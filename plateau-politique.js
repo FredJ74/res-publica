@@ -1804,6 +1804,19 @@ function renderRoomActions(room, buildingId, roomId) {
         licenceTooltip = 'Votre licence impayée vous rattache encore à un autre club. Vous ne pouvez la reprendre que là-bas, ou passer par un transfert.';
       }
     }
+    // Meme principe pour "Ne pas renouveler ma licence"/"Annuler le non-renouvellement" --
+    // reutilise directement messageLicenceInvalidePourClub, LA MEME fonction deja appelee par
+    // doDemanderNonRenouvellementLicence/doAnnulerNonRenouvellementLicence (plateau-organisations-
+    // quetes.js) : garantit que l'infobulle affichee ici correspond exactement au message que la
+    // garde fonctionnelle produirait au clic, sans dupliquer la logique une troisieme fois.
+    if ((o.fn === 'demander_non_renouvellement_licence' || o.fn === 'annuler_non_renouvellement_licence') &&
+        typeof getClubLocal === 'function' && typeof messageLicenceInvalidePourClub === 'function') {
+      const msgGestionLicence = messageLicenceInvalidePourClub(getClubLocal(), 'gérer votre licence');
+      if (msgGestionLicence) {
+        needsLicenceIndisponible = true;
+        licenceTooltip = msgGestionLicence;
+      }
+    }
     // Avant ce correctif, TEST_MODE forcait l'affichage a "0 PA" quel que soit o.pa reel --
     // le joueur ne pouvait jamais apprendre le vrai cout normal d'un ordre pendant la periode
     // de PA illimites (bug remonte sur "investir", en realite systemique a tous les ordres avec
