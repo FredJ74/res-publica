@@ -5755,7 +5755,7 @@ async function ouvrirConsulterPort() {
   }
 
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">ORIGINE DES MATIÈRES</div>';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Bois : 50% Républia (direct), 50% Sovarka (via le port) — Pétrole brut : 2/3 Al-Khalija, 1/3 Sovarka — Produits exotiques : 100% El Estado.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.7rem">Bois : 150/jour Scierie Guy Tarembois (Port-Sainte-Marie) + 150/jour Sovarka, soit 300/jour au total — Pétrole brut : 2/3 Al-Khalija, 1/3 Sovarka — Produits exotiques : 100% El Estado.</div>';
 
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">RÉPARTITION NATIONALE ACTUELLE</div>';
   RESSOURCES_PORT_IMPORTEES.forEach(cle => {
@@ -5773,7 +5773,10 @@ async function ouvrirConsulterPort() {
     arrivages.forEach(a => {
       const res = RESSOURCES_ECONOMIE[a.resource];
       const date = new Date(a.jour);
-      html += '<div style="font-size:.76rem;color:#8a8060">' + date.toLocaleDateString('fr-FR') + ' — ' + (res?.label || a.resource) + ' : +' + Math.round(a.qte) + '</div>';
+      // a.label (optionnel, lot Scierie Guy Tarembois du 25 aout 2026) : distingue les deux
+      // arrivages reels de bois (Scierie Guy Tarembois vs Sovarka) au lieu d'un seul libelle
+      // generique "Bois" -- absent pour toutes les autres ressources, aucun changement ailleurs.
+      html += '<div style="font-size:.76rem;color:#8a8060">' + date.toLocaleDateString('fr-FR') + ' — ' + (a.label || res?.label || a.resource) + ' : +' + Math.round(a.qte) + '</div>';
     });
   }
 

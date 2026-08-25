@@ -1122,21 +1122,17 @@ const NB_LIVRAISONS_JOUR = 6;
 // =====================
 // Principe impose (clarification explicite avant codage) : ne PAS recalibrer l'abondance des
 // matieres premieres. livrerEntrepotsQuotidien() generait deja, chaque jour, un volume aleatoire
-// de bois/petrole/produits_exotiques directement dans CHACUN des 3 entrepots (tirage
-// independant par ville, cf. boucle ENTREPOTS_VILLES plus bas). Ce lot ne change RIEN a ce
-// calcul (meme RNG, memes constantes VOLUME_TOTAL_JOUR/NB_LIVRAISONS_JOUR) : il redirige
+// de petrole/produits_exotiques directement dans CHACUN des 3 entrepots (tirage independant par
+// ville, cf. boucle ENTREPOTS_VILLES plus bas). Ce lot ne change RIEN a ce calcul pour ces deux
+// ressources (meme RNG, memes constantes VOLUME_TOTAL_JOUR/NB_LIVRAISONS_JOUR) : il redirige
 // simplement une partie de ce qui etait deja genere vers un stock portuaire intermediaire
 // (etat.port.stock, batiment 'port-sainte-marie'), puis le redistribue selon les pourcentages
 // du Commandant (defaut 1/3-1/3-1/3) au lieu de le crediter directement a l'entrepot d'origine
-// du tirage. Le volume national total attendu (somme des 3 tirages independants d'aujourd'hui)
-// reste donc identique en moyenne a avant ce lot -- aucun nouveau chiffre invente.
+// du tirage.
 //
 // Origines fixes (arbitrage valide, non modifiable par un PJ dans ce lot -- seuls les futurs
 // Commandants des autres empires, non developpes ici, pourront un jour regler leurs propres
 // exports) :
-//  - bois : 50% reste une "production interieure" republicaine, generee et creditee EXACTEMENT
-//    comme avant (jamais rerouree par le port) ; les 50% restants (Sovarka) transitent desormais
-//    par etat.port.stock.bois avant redistribution.
 //  - petrole (BRUT, pas carburant) : 100% transite desormais par le port (2/3 Al-Khalija +
 //    1/3 Sovarka). La redirection existante vers la raffinerie de Montrouge (USINE_LOCALE_PAR_
 //    VILLE.ville_b) reste totalement inchangee et intervient AVANT ce reroutage (le port ne
@@ -1146,14 +1142,37 @@ const NB_LIVRAISONS_JOUR = 6;
 // Ces fractions ne modifient QUE l'endroit ou la quantite deja calculee atterrit (port vs
 // entrepot local), jamais sa valeur.
 const ORIGINE_IMPORTS_PORT = {
-  bois: { republic: 0.5, soviet: 0.5 },
   petrole: { khalija: 2 / 3, soviet: 1 / 3 },
   produits_exotiques: { narco: 1 }
 };
-const RESSOURCES_REROUTEES_PORT = Object.keys(ORIGINE_IMPORTS_PORT); // ['bois','petrole','produits_exotiques']
+const RESSOURCES_REROUTEES_PORT = Object.keys(ORIGINE_IMPORTS_PORT); // ['petrole','produits_exotiques']
 const BUILDING_ID_PORT_PSM = 'port-sainte-marie';
 const VILLE_ID_PORT_PSM = 'ville_a';
 const REPARTITION_PORT_DEFAUT = { capitale: 100 / 3, ville_a: 100 / 3, ville_b: 100 / 3 };
+
+// =====================
+// PRODUCTION NATIONALE DE BOIS — SCIERIE GUY TAREMBOIS (lot du 25 aout 2026, correctif dedie)
+// =====================
+// Remplace l'ancien ORIGINE_IMPORTS_PORT.bois (qui coupait artificiellement en deux un UNIQUE
+// tirage aleatoire partage avec les 10 autres ressources livrees, sans aucun volume garanti --
+// voir l'audit dedie) par deux flux reels, deterministes et independants du RNG de
+// livrerEntrepotsQuotidien() : le bois est desormais totalement exclu du tirage generique
+// (ressourcesLivrables ci-dessous), jamais tire, jamais credite directement a un entrepot
+// d'origine. Convention de reference (parametres d'equilibrage initiaux, decision de Fred,
+// volontairement isoles en constantes nommees pour rester faciles a ajuster) :
+//  - 1 ville = BOIS_UNITES_PAR_VILLE_JOUR bois/jour ;
+//  - Scierie Guy Tarembois (production interieure republicaine, PSM) = 1,5 ville/jour ;
+//  - Importations Sovarka = 1,5 ville/jour.
+// Les deux flux sont credites SANS cout entrepot (dotation publique/import national, meme
+// doctrine que petrole/produits_exotiques ci-dessus), sommes dans le meme accumulateur
+// portAccumulation.bois que le reste de ce lot portuaire, puis distribues aux 3 entrepots via
+// EXACTEMENT le meme mecanisme deja existant et deja eprouve (repartirSelonPourcentages/Hamilton,
+// plafond par entrepot, reliquat conserve dans port.stock.bois si un entrepot est plein) --
+// aucun deuxieme moteur de redistribution, voir le bloc "Credit + distribution du stock
+// portuaire" plus bas dans livrerEntrepotsQuotidien(), inchange pour le bois comme pour le reste.
+const BOIS_UNITES_PAR_VILLE_JOUR = 100;
+const BOIS_SCIERIE_JOUR = Math.round(1.5 * BOIS_UNITES_PAR_VILLE_JOUR); // 150 -- Scierie Guy Tarembois (PSM)
+const BOIS_SOVARKA_JOUR = Math.round(1.5 * BOIS_UNITES_PAR_VILLE_JOUR); // 150 -- importations Sovarka
 const NB_ARRIVAGES_CONSERVES = 10; // historique court pour le Commandant/Marcel Ancre, pas de croissance illimitee
 
 // Exportations validees (arbitrage) : la reference "1 ville" reutilise le plafond deja existant
@@ -1305,7 +1324,13 @@ async function livrerEntrepotsQuotidien() {
   // fonction, dans etat.port.stock du batiment 'port-sainte-marie'.
   const portAccumulation = {};
   try {
-    const ressourcesLivrables = Object.entries(RESSOURCES_ECONOMIE_SERVEUR).filter(([, r]) => r.source === 'livraison');
+    // 'bois' explicitement exclu (lot Scierie Guy Tarembois, 25 aout 2026, correctif dedie) :
+    // ne participe plus jamais a ce tirage RNG partage avec les 10 autres ressources livrees --
+    // sa production est desormais un flux national deterministe, voir BOIS_SCIERIE_JOUR/
+    // BOIS_SOVARKA_JOUR plus bas dans cette meme fonction. RESSOURCES_ECONOMIE_SERVEUR.bois
+    // garde source:'livraison' (plafond/prixAchatFournisseur toujours valides pour l'entrepot),
+    // seule sa participation a CE tirage change.
+    const ressourcesLivrables = Object.entries(RESSOURCES_ECONOMIE_SERVEUR).filter(([cle, r]) => r.source === 'livraison' && cle !== 'bois');
 
     for (const { buildingId, city } of ENTREPOTS_VILLES) {
       const etat = await sbGetBatimentEtat('republic', city, buildingId).catch(() => null);
@@ -1361,23 +1386,16 @@ async function livrerEntrepotsQuotidien() {
           }
           let qteRestante = qteLivree - qteRedirigee;
 
-          // Reroutage port (lot logistique portuaire, 25 aout 2026) : bois (50% seulement,
-          // l'autre moitie "production interieure" suit le chemin normal ci-dessous sans
-          // aucun changement) et petrole/produits_exotiques (100%, la redirection usine
-          // ci-dessus reste prioritaire et inchangee pour petrole -> raffinerie) partent
-          // desormais au port plutot que d'etre credites/payes directement par CET entrepot --
-          // meme quantite qu'avant ce lot, seule la destination change, aucun cout entrepot
-          // sur la part reroutee (ce n'est plus un achat local, c'est un import national).
+          // Reroutage port (lot logistique portuaire, 25 aout 2026) : petrole/produits_exotiques
+          // (100%, la redirection usine ci-dessus reste prioritaire et inchangee pour
+          // petrole -> raffinerie) partent au port plutot que d'etre credites/payes directement
+          // par CET entrepot -- aucun cout entrepot sur la part reroutee (ce n'est plus un achat
+          // local, c'est un import national). Le bois n'apparait plus jamais ici (exclu de
+          // ressourcesLivrables ci-dessus, voir lot Scierie Guy Tarembois du 25 aout 2026) :
+          // cette branche ne concerne donc plus que petrole/produits_exotiques desormais.
           if (RESSOURCES_REROUTEES_PORT.includes(cle)) {
-            let qtePort = qteRestante;
-            if (cle === 'bois') {
-              const qteDirecte = Math.round(qteRestante * 0.5);
-              qtePort = qteRestante - qteDirecte;
-              qteRestante = qteDirecte; // le reste suit le chemin normal ci-dessous, inchange
-            } else {
-              qteRestante = 0; // rien ne suit le chemin normal pour petrole/produits_exotiques
-            }
-            portAccumulation[cle] = (portAccumulation[cle] || 0) + qtePort;
+            portAccumulation[cle] = (portAccumulation[cle] || 0) + qteRestante;
+            qteRestante = 0;
           }
           if (qteRestante <= 0) return;
 
@@ -1405,6 +1423,15 @@ async function livrerEntrepotsQuotidien() {
       resultats.coutTotal += coutEntrepot;
     }
 
+    // Production nationale de bois (lot Scierie Guy Tarembois, 25 aout 2026, correctif dedie) :
+    // deux flux reels et deterministes, totalement independants du tirage RNG ci-dessus (voir
+    // BOIS_SCIERIE_JOUR/BOIS_SOVARKA_JOUR plus haut dans ce fichier). Rejoint le meme
+    // accumulateur portAccumulation.bois que le reste de ce lot portuaire -- aucun cout entrepot
+    // (dotation publique/import national, meme doctrine que petrole/produits_exotiques
+    // ci-dessus), distribue par le meme mecanisme unique juste en dessous (repartirSelonPourcentages/
+    // Hamilton, plafond par entrepot, reliquat conserve).
+    portAccumulation.bois = (portAccumulation.bois || 0) + BOIS_SCIERIE_JOUR + BOIS_SOVARKA_JOUR;
+
     // Credit + distribution du stock portuaire (lot logistique portuaire, 25 aout 2026).
     // Aucun cout : ce n'est pas un achat, c'est l'arrivee physique d'un import deja "paye" par
     // construction (aucune caisse n'existait pour cette part avant ce lot non plus -- voir
@@ -1425,7 +1452,19 @@ async function livrerEntrepotsQuotidien() {
       const arrivagesJour = [];
       for (const [cle, qteArrivee] of ressourcesArrivees) {
         stockPort[cle] = (stockPort[cle] || 0) + qteArrivee;
-        arrivagesJour.push({ jour: new Date().toISOString(), resource: cle, qte: qteArrivee });
+        // Tracabilite des origines pour le bois (retour Fred, 25 aout 2026) : la distribution
+        // reste UNIQUE et mutualisee (aDistribuer/repartirSelonPourcentages ci-dessous portent
+        // toujours sur stockPort['bois'] combine, aucun deuxieme moteur) -- seul l'historique des
+        // arrivages distingue les deux flux reels, pour que la logistique sache que Republia
+        // produit reellement 150 (Scierie Guy Tarembois) et importe reellement 150 (Sovarka),
+        // plutot qu'un seul evenement anonyme de 300.
+        if (cle === 'bois') {
+          const horodatage = new Date().toISOString();
+          arrivagesJour.push({ jour: horodatage, resource: 'bois', qte: BOIS_SCIERIE_JOUR, origine: 'scierie_psm', label: 'Bois — Scierie Guy Tarembois (Républia)' });
+          arrivagesJour.push({ jour: horodatage, resource: 'bois', qte: BOIS_SOVARKA_JOUR, origine: 'sovarka', label: 'Bois — Sovarka' });
+        } else {
+          arrivagesJour.push({ jour: new Date().toISOString(), resource: cle, qte: qteArrivee });
+        }
 
         // Distribution immediate selon la repartition du Commandant (defaut 1/3-1/3-1/3),
         // plafonnee par entrepot -- le reliquat non distribuable reste dans stockPort.

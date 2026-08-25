@@ -354,9 +354,20 @@ const WORLD = {
             {name:'Guy Tarembois (PNJ)', role:'PNJ - Proprietaire de la Scierie', rel:'neutral', job:'proprietaire', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/atelier-scierie-guy-tarembois-psm.png', photoPos:'68% 20%'}
           ],
           roomOverrides: {
+            // excludeOrders (lot Scierie Guy Tarembois, 25 aout 2026, audit dedie) : masque
+            // l'ordre generique herite du template partage BUILDINGS['zone-production']
+            // ('Récolter' -> recolter_matiere), qui proposait du Poisson ici (republic.ville_a
+            // dans MATIERES_PREMIERES_VILLE, plateau-justice-economie.js) sans aucun rapport
+            // avec une scierie. Mecanisme deja existant et deja utilise ailleurs (Marche de
+            // Luthecia, 21 aout 2026) -- ne touche jamais au template partage lui-meme, donc
+            // aucun impact sur les autres villes utilisant 'zone-production' (Luthecia,
+            // Montrouge) ni sur le systeme general recolter_matiere. La production automatique
+            // de bois de la Scierie est desormais geree nationalement par le cron quotidien
+            // (livrerEntrepotsQuotidien, api/cron-minuit.js) -- pas par un ordre joueur ici.
             zone_recolte: {
               name: "Atelier",
-              imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/atelier-scierie-guy-tarembois-psm.png"
+              imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/atelier-scierie-guy-tarembois-psm.png",
+              excludeOrders: ['recolter_matiere']
             }
           }
         },
