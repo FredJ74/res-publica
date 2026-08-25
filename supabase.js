@@ -106,7 +106,11 @@ async function sbEcrirePersonnage(data) {
 // licenceSportive au moment de l'appel, etat du flag de bootstrap, position, et pile d'appel
 // JS -- pour identifier factuellement l'appelant reel, sans dependre des DevTools du joueur.
 // Fire-and-forget, ne bloque et ne modifie jamais le comportement reel de la sauvegarde.
-async function instrumenterAppelSavePersonnage(charState) {
+// stackDejaCapturee : la pile DOIT etre capturee de facon SYNCHRONE par l'appelant, avant tout
+// await -- capturee ICI (dans une fonction async, apres l'await de sbGetBatimentEtat), elle ne
+// contient plus que ce frame async lui-meme, la chaine d'appel d'origine ayant deja ete
+// depilee. Correctif du diagnostic (premiere iteration inexploitable pour cette raison precise).
+async function instrumenterAppelSavePersonnage(charState, stackDejaCapturee) {
   try {
     if (charState.char?.name !== 'Arnie') return;
     if (typeof sbGetBatimentEtat !== 'function' || typeof sbSetBatimentEtat !== 'function') return;
@@ -119,7 +123,7 @@ async function instrumenterAppelSavePersonnage(charState) {
       currentBuilding: charState.currentBuilding || null,
       currentRoom: charState.currentRoom || null,
       currentCity: charState.currentCity || null,
-      stack: (new Error('trace_sbSavePersonnage')).stack || null
+      stack: stackDejaCapturee || null
     });
     if (breadcrumbs.length > 40) breadcrumbs.splice(0, breadcrumbs.length - 40);
     await sbSetBatimentEtat('debug', 'debug', 'licence-arnie', { breadcrumbs }).catch(() => {});
@@ -127,7 +131,10 @@ async function instrumenterAppelSavePersonnage(charState) {
 }
 
 async function sbSavePersonnage(charState) {
-  instrumenterAppelSavePersonnage(charState); // temporaire, voir commentaire ci-dessus -- fire-and-forget, n'attend jamais son resultat
+  // Pile capturee ICI, de facon synchrone, AVANT tout await -- seul endroit ou la chaine
+  // d'appel d'origine (qui a appele sbSavePersonnage) est encore intacte.
+  const stackAppelant = (new Error('trace_sbSavePersonnage')).stack || null;
+  instrumenterAppelSavePersonnage(charState, stackAppelant); // temporaire, voir commentaire ci-dessus -- fire-and-forget, n'attend jamais son resultat
   if (charState.personnageChargeDepuisServeur === false) return;
   const photoKey = 'respublica_photo_' + (charState.char?.name || 'default');
   const savedPhoto = (typeof localStorage !== 'undefined') ? localStorage.getItem(photoKey) : null;

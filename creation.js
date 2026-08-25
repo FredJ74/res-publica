@@ -30,6 +30,24 @@ async function chargerPersonnageParNom() {
       return;
     }
 
+    // INSTRUMENTATION TEMPORAIRE (diagnostic licence Arnie, 25 aout 2026) -- A RETIRER une fois
+    // la cause identifiee. Consigne ce que sbLoadPersonnage() retourne REELLEMENT au moment de
+    // la connexion, avant toute ecriture localStorage -- determine si la valeur est deja fausse
+    // des la lecture initiale ou si elle se corrompt plus tard.
+    if (nom === 'Arnie' && typeof sbGetBatimentEtat === 'function' && typeof sbSetBatimentEtat === 'function') {
+      try {
+        const etatDebug = await sbGetBatimentEtat('debug', 'debug', 'licence-arnie').catch(() => ({}));
+        const breadcrumbs = Array.isArray(etatDebug.breadcrumbs) ? etatDebug.breadcrumbs : [];
+        breadcrumbs.push({
+          ts: new Date().toISOString(),
+          origine: 'chargerPersonnageParNom (connexion)',
+          licenceSportive: sbState.char?.licenceSportive || null
+        });
+        if (breadcrumbs.length > 40) breadcrumbs.splice(0, breadcrumbs.length - 40);
+        await sbSetBatimentEtat('debug', 'debug', 'licence-arnie', { breadcrumbs }).catch(() => {});
+      } catch (e) {}
+    }
+
     // Sauvegarder dans localStorage avec position complète
     const charData = {
       ...sbState.char,
