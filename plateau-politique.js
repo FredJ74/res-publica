@@ -1780,6 +1780,30 @@ function renderRoomActions(room, buildingId, roomId) {
       const chefReel = typeof getChefSyndicatDockersPSM === 'function' ? getChefSyndicatDockersPSM() : null;
       needsChefSyndicat = chefReel !== (state.char?.name || '');
     }
+    // Garde UI dediee a "Prendre sa licence sportive" (correctif du 25 aout 2026, suite au bug
+    // production v78) : grise le bouton avec une infobulle explicite des que le clic serait de
+    // toute facon refuse par la garde fonctionnelle de doPrendreLicenceSportive
+    // (plateau-organisations-quetes.js) -- ce garde-fou UI ne remplace jamais cette garde reelle,
+    // il l'anticipe seulement pour eviter un clic pour rien. Special-case sur o.fn (meme
+    // precedent que produire_arme plus bas) plutot qu'un nouveau flag requiresXXX generique :
+    // un seul ordre du jeu est concerne.
+    let needsLicenceIndisponible = false;
+    let licenceTooltip = '';
+    if (o.fn === 'prendre_licence_sportive' && typeof getClubLocal === 'function' && typeof statutLicenceSportive === 'function') {
+      const clubLocalLicence = getClubLocal();
+      const licActuelle = state.char?.licenceSportive;
+      const statutLicenceActuel = statutLicenceSportive();
+      if (statutLicenceActuel === 'active' && clubLocalLicence && licActuelle.clubId !== clubLocalLicence.id) {
+        needsLicenceIndisponible = true;
+        licenceTooltip = 'Vous êtes déjà licencié(e) dans un autre club. Pour changer de club en cours de saison, vous devez faire l\'objet d\'un transfert.';
+      } else if (statutLicenceActuel === 'anneeBlanche') {
+        needsLicenceIndisponible = true;
+        licenceTooltip = 'Vous êtes en année blanche : vous ne pouvez reprendre aucune licence avant la saison suivante.';
+      } else if (statutLicenceActuel === 'impaye' && clubLocalLicence && licActuelle.clubId !== clubLocalLicence.id) {
+        needsLicenceIndisponible = true;
+        licenceTooltip = 'Votre licence impayée vous rattache encore à un autre club. Vous ne pouvez la reprendre que là-bas, ou passer par un transfert.';
+      }
+    }
     // Avant ce correctif, TEST_MODE forcait l'affichage a "0 PA" quel que soit o.pa reel --
     // le joueur ne pouvait jamais apprendre le vrai cout normal d'un ordre pendant la periode
     // de PA illimites (bug remonte sur "investir", en realite systemique a tous les ordres avec
@@ -1868,6 +1892,8 @@ function renderRoomActions(room, buildingId, roomId) {
       onclickFn = "showToast('Aucun cadavre', 'Aucun cadavre a dissimuler sur ce terrain pour l\\'instant.', false)";
     } else if (needsChefSyndicat) {
       onclickFn = "showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut declencher un blocus portuaire.', false)";
+    } else if (needsLicenceIndisponible) {
+      onclickFn = "showToast('Licence indisponible', " + JSON.stringify(licenceTooltip) + ", false)";
     } else if (o.fn === 'plainte_police') {
       onclickFn = 'openPlainteModal(' + o.pa + ',' + o.cost + ')';
     } else if (o.fn === 'gerer_finances') {
@@ -1881,9 +1907,10 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
-    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat) ? ' blocked' : '';
+    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsLicenceIndisponible) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
-    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltip + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
+    const tooltipFinal = needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : tooltip;
+    return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
   // Bouton generique "Ecouter l'audioguide" : apparait pour toute salle ayant un audioUrl,

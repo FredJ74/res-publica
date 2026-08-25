@@ -3174,17 +3174,29 @@ function getCapitaine(classement) {
   return titulaire ? titulaire.nom : null; // null -> capitaine PNJ par defaut
 }
 
+// Correctif du 25 aout 2026 (bug production v78) : utilisait getClubLocal() -- le club de la
+// VILLE VISITEE -- pour le titre ET pour calculerClassementClub, au lieu du club REEL du joueur
+// (licenceSportive.clubId). Un PJ licencie a Luthecia consultant "Mon niveau sportif" en visite a
+// PSM voyait donc le titre/classement de La Brise Mariannaise. Accessible depuis la fiche
+// personnage (plateau-personnage.js, bouton "Mon niveau sportif"), donc potentiellement DEPUIS
+// N'IMPORTE QUELLE ville -- l'appartenance sportive doit toujours venir de la licence, jamais de
+// la localisation. calculerClassementClub interroge deja sbListJoueursLicencies filtre par
+// licence_sportive.clubId reel (supabase.js) : seul l'appel ICI passait le mauvais club en
+// entree ; un joueur licencie ailleurs n'a donc jamais pu apparaitre dans l'effectif/classement
+// d'un club qui n'est pas le sien -- cette partie etait deja correcte.
 async function doVoirMonClassement() {
-  const clubLocal = getClubLocal();
-  if (!clubLocal || !state.char?.licenceSportive) {
+  const lic = state.char?.licenceSportive;
+  const statutActuel = statutLicenceSportive();
+  const monClub = statutActuel === 'active' || statutActuel === 'impaye' ? getClub(lic.clubId) : null;
+  if (!monClub) {
     showToast('Indisponible', 'Vous devez avoir une licence sportive dans un club.', false);
     return;
   }
-  document.getElementById('postes-modal-title').textContent = 'Mon niveau — ' + clubLocal.nom;
+  document.getElementById('postes-modal-title').textContent = 'Mon niveau — ' + monClub.nom;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const classement = await calculerClassementClub(clubLocal);
+  const classement = await calculerClassementClub(monClub);
   const position = classement.findIndex(j => j.nom === state.char?.name);
   const moi = classement[position];
   const perf = state.char.performance || { defense:0, technique:0, endurance:0 };
