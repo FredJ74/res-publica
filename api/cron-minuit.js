@@ -1065,7 +1065,18 @@ async function appliquerEffetsBlocusActifs() {
       const maireRows = await sbGet('personnages', `country=eq.${encodeURIComponent(row.country)}&poste->>id=like.maire*`);
       const maire = maireRows && maireRows[0];
       if (maire) {
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(maire.name)}`, { pop: Math.max(0, (maire.pop || 50) - malusPop) }).catch(() => {});
+        // Correctif du 25 aout 2026 (audit signale au rapport v73) : le POP reel est stocke
+        // dans personnages.resources.pop (voir sbSavePersonnage, supabase.js : resources:
+        // {inf,pop,dis}), jamais dans une colonne racine 'pop' -- ce malus de blocus ecrivait
+        // (et lisait) le mauvais champ depuis toujours, sans jamais atteindre le POP reellement
+        // affiche au joueur. Meme precedent deja applique/verifie dans
+        // traiterCandidaturesPostesExpirees (sanction POP/2 du lot postes nommes) : lecture/
+        // ecriture via l'objet resources complet, jamais un champ racine isole. Aucun autre
+        // comportement du blocus modifie (malusPop, requete du maire, comptage inchanges).
+        const popActuelle = (maire.resources && maire.resources.pop) || 50;
+        const nouvellePop = Math.max(0, popActuelle - malusPop);
+        const resourcesMaj = { ...(maire.resources || {}), pop: nouvellePop };
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(maire.name)}`, { resources: resourcesMaj }).catch(() => {});
         resultats.appliques++;
       }
     }

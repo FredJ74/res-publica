@@ -5450,17 +5450,15 @@ async function payerEffectifsDouaneQuotidien(pays) {
 // le passage du cron (minuit) ; non traite ici (pas de nouvelle primitive atomique sans
 // validation), risque juge marginal et identique a celui deja accepte ailleurs dans le blob.
 const RESSOURCES_PORT_IMPORTEES = ['bois', 'petrole', 'produits_exotiques'];
-// Ressources vendables a la Criee (correctif du 25 aout 2026, apres retour de test) : distinct de
-// RESSOURCES_PORT_IMPORTEES a dessein. Le poisson n'a PAS d'origine etrangere (RESSOURCES_
-// REROUTEES_PORT/ORIGINE_IMPORTS_PORT, api/cron-minuit.js, restent inchanges), n'entre donc
-// JAMAIS dans etat.port.stock et ne doit jamais pouvoir y etre "affecte" par le Commandant
-// (ouvrirAffecterCriee/confirmerAffecterCriee continuent d'utiliser RESSOURCES_PORT_IMPORTEES
-// seul, inchange). Le poisson arrive directement dans port.criee.stock via un arrivage de peche
-// dedie (generation quotidienne pas encore codee -- calibrage du volume en attente de
-// validation) : cette constante prepare uniquement le COTE VENTE (ouvrirAcheterCriee/
-// confirmerAcheterCriee) a afficher/vendre du poisson des qu'un stock y apparaitra, sans rien
-// inventer sur la quantite.
-const RESSOURCES_CRIEE_VENDABLES = [...RESSOURCES_PORT_IMPORTEES, 'poisson'];
+// Ressources vendables a la Criee (regle fonctionnelle validee le 25 aout 2026, §7-8 du lot
+// entrepot/fret/criee) : la Criee de PSM est une criee AUX POISSONS, elle ne vend jamais les
+// matieres premieres internationales (bois/petrole/produits exotiques) au detail -- celles-ci
+// restent gerees uniquement via la repartition nationale du Commandant (RESSOURCES_PORT_
+// IMPORTEES, administration du port/manifeste). Le poisson n'a pas d'origine etrangere
+// (ORIGINE_IMPORTS_PORT/RESSOURCES_REROUTEES_PORT, api/cron-minuit.js, inchanges) : il arrive
+// directement dans port.criee.stock via l'arrivage de peche quotidien dedie
+// (genererArrivagePoissonCriee, api/cron-minuit.js, v72 -- 40 a 80 unites/jour, plafond 125).
+const RESSOURCES_CRIEE_VENDABLES = ['poisson'];
 const EXPORTATIONS_PORT_INFOS = {
   cereales: { label: 'Céréales', destination: 'Al-Khalija' },
   viande:   { label: 'Viande',   destination: 'Al-Khalija' }
@@ -5636,69 +5634,20 @@ async function confirmerModifierRepartitionPort(cle) {
   addJournalEntry('Le Commandant du Port modifie la répartition de ' + (res?.label || cle).toLowerCase() + '.', 'event-info');
 }
 
-// ---- CRIÉE : AFFECTATION D'UNE PART DU STOCK PORTUAIRE A LA VENTE DIRECTE (Commandant
-// uniquement — garde UI via requiresPost dans data.js + garde handler independante) ----
-// Deplace une quantite reelle du stock institutionnel du port (port.stock) vers un pool de vente
-// directe (port.criee.stock), jamais plus que ce qui est reellement disponible. Le prix de vente
-// n'est PAS invente pour ce lot : reutilise getPrixRessourceEntrepot(cle) (= prixBase, deja la
-// regle validee pour toute vente directe institution -> PJ, voir confirmerAchatEntrepot
-// ci-dessus), le seul precedent sur, plutot que d'arbitrer un nouveau chiffre.
-async function ouvrirAffecterCriee() {
-  const check = commandantPortValide();
-  if (!check.ok) { showToast('Réservé au Commandant du Port', '', false); return; }
-  const port = await getEtatPort();
-  const stock = port.stock || {};
-
-  document.getElementById('postes-modal-title').textContent = 'Affecter du stock à la Criée';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Quantité à transférer du stock institutionnel du port vers la Criée (vente directe aux joueurs). Ne crée aucune matière : plafonné au stock réellement disponible.</div>';
-  RESSOURCES_PORT_IMPORTEES.forEach(cle => {
-    const res = RESSOURCES_ECONOMIE[cle];
-    const dispo = Math.round(stock[cle] || 0);
-    html += '<label style="display:block;font-size:.8rem;color:#c0b090;margin-bottom:.2rem">' + (res?.label || cle) + ' (disponible : ' + dispo + ')</label>';
-    html += '<input type="number" id="affecter-criee-' + cle + '" min="0" max="' + dispo + '" value="0" style="width:100%;padding:.4rem;margin-bottom:.6rem;background:#0f0d05;border:1px solid #2a2010;color:#e0d0a0">';
-  });
-  html += '<button onclick="confirmerAffecterCriee()" style="display:block;width:100%;text-align:center;padding:.6rem;border:1px solid #6a5a20;background:#1a1508;color:#e0c060;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em;font-size:.85rem">VALIDER (1 PA)</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerAffecterCriee() {
-  const check = commandantPortValide();
-  if (!check.ok) { showToast('Réservé au Commandant du Port', '', false); return; }
-  const etat = await sbGetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT).catch(() => ({}));
-  const port = (etat && etat.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {}, criee: {} };
-  const stock = { ...(port.stock || {}) };
-  const criee = { ...(port.criee?.stock || {}) };
-
-  let transfereQuoiQueCeSoit = false;
-  RESSOURCES_PORT_IMPORTEES.forEach(cle => {
-    const demande = parseInt(document.getElementById('affecter-criee-' + cle)?.value || 0);
-    if (!demande || demande <= 0) return;
-    const dispo = stock[cle] || 0;
-    const qte = Math.min(demande, dispo);
-    if (qte <= 0) return;
-    stock[cle] = dispo - qte;
-    criee[cle] = (criee[cle] || 0) + qte;
-    transfereQuoiQueCeSoit = true;
-  });
-  if (!transfereQuoiQueCeSoit) { showToast('Rien à affecter', '', false); return; }
-
-  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
-
-  await sbSetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT, { ...(etat || {}), port: { ...port, stock, criee: { ...(port.criee || {}), stock: criee } } }).catch(() => {});
-  document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Stock affecté à la Criée', '', true, true);
-  addJournalEntry('Le Commandant du Port affecte du stock à la Criée.', 'event-info');
-}
-
-// ---- VENTE A LA CRIÉE (tout PJ — achat reel d'un stock institutionnel deja affecte par le
-// Commandant : capacite d'inventaire verifiee, stock reellement decremente, FR reellement
+// ---- VENTE A LA CRIÉE (tout PJ — achat reel du poisson issu de l'arrivage quotidien dedie de
+// la Criee, v72 : capacite d'inventaire verifiee, stock reellement decremente, FR reellement
 // debites du PJ et credites dans la caisse du port (republic_port-sainte-marie). Jamais de stock
 // cree au clic. Meme moteur que confirmerAchatEntrepot (double passe : verification puis
-// application au prorata de ce que l'inventaire peut reellement absorber). ----
+// application au prorata de ce que l'inventaire peut reellement absorber).
+//
+// "Affecter du stock à la Criée" (Commandant, transfert port.stock -> port.criee.stock) retiree
+// le 25 aout 2026 : reliquat de la 1ere implementation v71, devenu incoherent depuis que la
+// Criee a son propre arrivage de poisson independant (v72, genererArrivagePoissonCriee,
+// api/cron-minuit.js) -- une criee aux poissons ne doit pas vendre du bois/petrole/produits
+// exotiques au detail. Le Commandant continue de piloter la repartition nationale des
+// importations (ouvrirModifierRepartitionPort, inchange), mais n'alimente plus la Criee.
+// RESSOURCES_PORT_IMPORTEES reste utilisee ailleurs (administration du port, manifeste) pour ces
+// memes 3 matieres -- seule la vente au detail de la Criee en est desormais exclue. ----
 async function ouvrirAcheterCriee(pa, cost) {
   const port = await getEtatPort();
   const stock = port.criee?.stock || {};
@@ -5709,7 +5658,7 @@ async function ouvrirAcheterCriee(pa, cost) {
   if (clesDispo.length === 0) {
     html += '<div style="font-size:.9rem;color:#8a8060">Aucune marchandise en vente à la Criée pour l\'instant.</div>';
   } else {
-    html += '<div style="font-size:.9rem;color:#8a8060;margin-bottom:1rem">Marchandises institutionnelles affectées à la vente directe par le Commandant du Port.</div>';
+    html += '<div style="font-size:.9rem;color:#8a8060;margin-bottom:1rem">Poisson pêché quotidiennement, vendu directement aux joueurs.</div>';
     html += '<table style="width:100%;font-size:1rem;border-collapse:collapse">';
     html += '<tr style="color:#8a6a20;font-family:Bebas Neue,sans-serif;font-size:.9rem;letter-spacing:.05em;text-align:left"><th style="padding:.3rem 0">Produit</th><th>Stock</th><th>Prix</th><th>Quantité</th></tr>';
     clesDispo.forEach(cle => {
@@ -5876,7 +5825,16 @@ async function doConsulterManifeste() {
 const PORTS_FRET = {
   republic: { ville: 'ville_a', buildingId: 'port-sainte-marie' }
 };
-const ROOM_CHARGEMENT_FRET = 'quai_principal'; // meme room dans les 4 ports (chargement ET reception)
+// Deplacee de 'quai_principal' vers 'entrepot' (lot du 25 aout 2026, §6) en meme temps que les
+// orders expedier_colis/receptionner_commande (data.js, room port-sainte-marie) -- garde de
+// presence physique (jeSuisPresentDansRoomFret ci-dessous) doit toujours pointer vers la room ou
+// vivent reellement les boutons, sinon le depot/retrait sur une caisse aurait echoue apres le
+// deplacement UX ("vous devez etre physiquement present au port"). Seul Republia/PSM a un port
+// de fret reellement peuple (PORTS_FRET plus bas) : le seul id de room qui compte en pratique
+// est celui de PSM ('entrepot', ex-'quai_principal') -- les 3 autres empires n'ont jamais eu de
+// room correspondant exactement a cette constante de toute facon (quai_sovarka/quai_el_estado/
+// quai_al_khalija), leur fret n'etant pas fonctionnel independamment de ce changement.
+const ROOM_CHARGEMENT_FRET = 'entrepot';
 
 // Arbitrages valides (24 aout 2026, 2 tours) :
 const CAPACITE_MAX_CAISSE_FRET = 500;

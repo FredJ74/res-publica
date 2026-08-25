@@ -5439,8 +5439,6 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'prendre_bateau', label:'Prendre le bateau', pa:5, cost:100, type:'legal', icon:'ti-ship', successRate:100, desc:'100 FR. 5 PA. Transport inter-empire. Plus lent mais moins cher que l\'avion.'},
-          {fn:'expedier_colis', label:'Réserver une caisse de fret', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Réserve une caisse persistante (500 unités max) où vous et vos chargeurs autorisés pouvez déposer des marchandises avant de la fermer et l\'expédier vers un PJ d\'un autre empire. Délai 1 jour.'},
-          {fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Consulter et dédouaner les caisses arrivées à votre nom. Droits de douane et gardiennage éventuel dus avant tout retrait.'},
           {fn:'inspecter_cargaisons', label:'Inspecter les cargaisons', pa:2, cost:0, type:'legal', icon:'ti-search', successRate:80, requiresPost:'min_def', desc:'Révèle contrebandes en cours. INT/10 + ISN/10. Prérogative min_def ou commissaire.'}
         ]
       },
@@ -5451,8 +5449,7 @@ const BUILDINGS = {
         imageUrl: "images/port-sainte-marie-port-industriel-criee.png",
         persons: [],
         orders: [
-          {fn:'acheter_criee', label:'Acheter à la Criée', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Marchandises institutionnelles affectées à la vente directe par le Commandant du Port.'},
-          {fn:'affecter_criee', label:'Affecter du stock à la Criée', pa:1, cost:0, type:'legal', icon:'ti-truck-delivery', successRate:100, requiresPost:'capitaine_port', desc:'Transférer une part du stock institutionnel du port vers la vente directe. Réservé au Commandant du Port.'}
+          {fn:'acheter_criee', label:'Acheter à la Criée', pa:1, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Poisson pêché quotidiennement, vendu directement aux joueurs (4 FR/unité).'}
         ]
       },
       entrepot: {
@@ -5466,7 +5463,15 @@ const BUILDINGS = {
         orders: [
           {fn:'louer_local', label:'Louer cet entrepôt (350 FR/jour)', pa:1, cost:0, type:'grey', icon:'ti-key', successRate:100, desc:'+6 DIS +3 INF. Stockage discret garanti.'},
           {fn:'gerer_local', label:'Gérer mon entrepôt', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
-          {fn:'marchandises_non_reclamees', label:'Marchandises non réclamées', pa:0, cost:0, type:'legal', icon:'ti-truck-loading', successRate:100, desc:'Caisses de fret jamais vidées par leur destinataire (15 jours après arrivée), en vente au profit du port.'}
+          {fn:'marchandises_non_reclamees', label:'Marchandises non réclamées', pa:0, cost:0, type:'legal', icon:'ti-truck-loading', successRate:100, desc:'Caisses de fret jamais vidées par leur destinataire (15 jours après arrivée), en vente au profit du port.'},
+          // Deplaces depuis quai_principal (lot du 25 aout 2026, §6) : deplacement UX uniquement,
+          // moteur caisses_fret (v68) totalement inchange -- voir ROOM_CHARGEMENT_FRET,
+          // plateau-justice-economie.js, mis a jour en meme temps pour que la garde de presence
+          // physique (jeSuisPresentDansRoomFret) continue de correspondre a la room reelle des
+          // boutons. Fonctionne independamment de la location d'un entrepot/box ci-dessus --
+          // aucune dependance introduite entre les deux.
+          {fn:'expedier_colis', label:'Réserver une caisse de fret', pa:2, cost:200, type:'legal', icon:'ti-package-export', successRate:100, desc:'Réserve une caisse persistante (500 unités max) où vous et vos chargeurs autorisés pouvez déposer des marchandises avant de la fermer et l\'expédier vers un PJ d\'un autre empire. Délai 1 jour.'},
+          {fn:'receptionner_commande', label:'Réceptionner une caisse', pa:1, cost:0, type:'legal', icon:'ti-package-import', successRate:100, desc:'Consulter et dédouaner les caisses arrivées à votre nom. Droits de douane et gardiennage éventuel dus avant tout retrait.'}
         ]
       },
       // Pascal Paguevite (PNJ), lot du 24 aout 2026 : titulaire initial du poste Chef des
