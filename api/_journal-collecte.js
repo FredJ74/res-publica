@@ -361,6 +361,14 @@ async function collecterIndicateursPopulation(pays) {
   const rows = await sbGet('personnages', `country=eq.${encodeURIComponent(pays)}&select=current_city&limit=2000`);
   const liste = rows || [];
   const parVille = {};
+  // Pre-semer les villes reelles du pays a 0 (correctif du 25 aout 2026) : sans cela, une ville
+  // sans aucun personnage actuellement present (ex. Montrouge) disparaissait purement et
+  // simplement de l'indicateur -- le Journal n'avait alors aucune donnee pour affirmer
+  // honnetement "0 habitant a Montrouge", il l'omettait juste silencieusement, au lieu de
+  // pouvoir le dire explicitement s'il le juge pertinent.
+  Object.keys(NOMS_VILLES[pays] || {}).forEach(villeId => {
+    parVille[resoudreNomVille(pays, villeId)] = 0;
+  });
   liste.forEach(r => {
     const v = r.current_city ? resoudreNomVille(pays, r.current_city) : 'inconnue';
     parVille[v] = (parVille[v] || 0) + 1;

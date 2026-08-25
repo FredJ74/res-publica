@@ -2221,6 +2221,27 @@ function statutLicenceSportive() {
   return lic.statut || 'active';
 }
 
+// Lecture fraiche OBLIGATOIRE de licence_sportive avant toute garde d'action locale (lot du 25
+// aout 2026, suite a l'incident production Arnie) : state.char n'est reconcilie avec Supabase
+// qu'UNE SEULE FOIS, au demarrage de la page (loadCharacter, plateau-core.js) -- jamais pendant
+// la suite de la session. Un onglet reste donc ouvert indefiniment avec un licenceSportive
+// perime des qu'une correction est faite directement en base (ou, plus generalement, des qu'un
+// autre mecanisme -- transfert accepte ailleurs, renouvellement de saison par le cron -- change
+// la licence sans que CE client ne soit informe). Une garde qui ne compare que des valeurs
+// locales (licenceSportive.clubId === club visite) peut donc rester juste EN APPARENCE tout en
+// autorisant une action sur la base d'un club qui n'est plus le vrai club du personnage --
+// exactement le mecanisme qui a permis l'annulation d'un non-renouvellement a PSM alors que la
+// licence reelle etait a Luthecia. Echoue silencieusement vers l'etat local actuel en cas de
+// probleme reseau (jamais un blocage plus severe qu'avant ce correctif).
+async function rafraichirLicenceSportiveDepuisServeur() {
+  if (!state.char?.name || typeof sbGet !== 'function') return state.char?.licenceSportive || null;
+  try {
+    const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=licence_sportive');
+    if (rows && rows[0] && state.char) state.char.licenceSportive = rows[0].licence_sportive || null;
+  } catch (e) {}
+  return state.char?.licenceSportive || null;
+}
+
 // Prix ramene de 300 a 150 FR (lot du 25 aout 2026, licences saisonnieres). La licence n'est
 // plus permanente : elle vaut une saison et se renouvelle tacitement au meme club au changement
 // de saison (voir traiterLicencesSportivesSaison, api/cron-minuit.js -- seul point qui debite le
@@ -2233,6 +2254,7 @@ async function doPrendreLicenceSportive(pa, cost) {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
 
+  await rafraichirLicenceSportiveDepuisServeur();
   const lic = state.char?.licenceSportive;
   const statutActuel = statutLicenceSportive();
 
@@ -2283,6 +2305,7 @@ async function doPrendreLicenceSportive(pa, cost) {
 // nonRenouvellement:false par construction).
 async function doDemanderNonRenouvellementLicence(pa, cost) {
   const clubLocal = getClubLocal();
+  await rafraichirLicenceSportiveDepuisServeur();
   const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'gérer votre licence');
   if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
   if (state.char.licenceSportive.nonRenouvellement) { showToast('Déjà demandé', 'Vous avez déjà demandé à ne pas renouveler votre licence.', false); return; }
@@ -2300,6 +2323,7 @@ async function doDemanderNonRenouvellementLicence(pa, cost) {
 
 async function doAnnulerNonRenouvellementLicence() {
   const clubLocal = getClubLocal();
+  await rafraichirLicenceSportiveDepuisServeur();
   const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'gérer votre licence');
   if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
   if (!state.char.licenceSportive.nonRenouvellement) { showToast('Aucune demande en cours', '', false); return; }
@@ -2339,8 +2363,9 @@ function messageLicenceInvalidePourClub(clubLocal, verbe) {
   return null;
 }
 
-function doTenueEntrainement(pa, cost) {
+async function doTenueEntrainement(pa, cost) {
   const clubLocal = getClubLocal();
+  await rafraichirLicenceSportiveDepuisServeur();
   const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'vous entraîner');
   if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
   if (estIndisponiblePourSport()) {
@@ -2398,6 +2423,7 @@ async function confirmerEntrainement(stat, pa, cost) {
 async function doConseilEntraineurAdjoint() {
   const clubLocal = getClubLocal();
   if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  await rafraichirLicenceSportiveDepuisServeur();
   const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'recevoir des conseils');
   if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
 
