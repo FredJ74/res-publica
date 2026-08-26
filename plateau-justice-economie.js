@@ -879,6 +879,18 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
     enterBuilding(buildingIdCellule, true);
     if (typeof enterRoom === 'function') enterRoom(buildingIdCellule, roomIdCellule, null);
   }
+
+  // Resolution spectaculaire (chantier "animations de resolution d'ordres", 26 aout 2026) :
+  // appelee APRES la persistance (enregistrerDetention) et la teleportation ci-dessus -- ne
+  // conditionne jamais la verite de l'arrestation (§8), presentation uniquement.
+  if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
+    ouvrirResolutionSpectaculaire({
+      type: 'arrestation',
+      succes: true,
+      titre: 'VOUS ÊTES EN ÉTAT D\'ARRESTATION',
+      resultatHtml: construireResultatArrestationHtml(motifsArrestation, state.currentCity, state.country)
+    });
+  }
 }
 
 // Verification periodique (a minuit / au reveil) : liberation automatique en fin de peine
@@ -7930,6 +7942,31 @@ async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
   return detentionId;
 }
 
+// Construit le HTML du resultat mecanique REEL d'une arrestation (motifs + duree totale + ville +
+// lieu de detention), a partir des seules donnees deja produites par la chaine carcerale --
+// jamais de valeur devinee/recalculee (chantier "animations de resolution d'ordres", 26 aout
+// 2026). Reutilise par tous les points d'entree reels d'arrestation (procederArrestation,
+// verifierArrestationRecherchePolice, chasse a l'homme, enquete policiere, flagrant delit tracts
+// calomnieux). `nomCible` optionnel : si different du joueur courant, la phrase finale passe a la
+// 3e personne (chasseur/enqueteur regardant le resultat de SA propre action sur quelqu'un d'autre).
+function construireResultatArrestationHtml(motifs, ville, country, nomCible) {
+  const pays = country || state.country || 'republic';
+  const nomVille = (typeof WORLD !== 'undefined' && WORLD[pays]?.[ville]?.name) || ville || '';
+  const buildingIdCellule = (typeof getBuildingIdCommissariatNavigation === 'function') ? getBuildingIdCommissariatNavigation(ville) : 'commissariat';
+  const roomIdCellule = (buildingIdCellule === 'commissariat') ? 'prison' : 'geoles';
+  const nomLieu = (typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingIdCellule]?.rooms?.[roomIdCellule]?.name) || 'la prison';
+  const total = (motifs || []).reduce((s, m) => s + (m.jours || 0), 0);
+
+  let html = '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">MOTIFS</div>';
+  (motifs || []).forEach(m => {
+    html += '<div style="display:flex;justify-content:space-between;padding:.25rem 0;border-bottom:1px solid #1a1208"><span>' + (m.type || 'Motif') + '</span><span style="color:#cc6a44">' + (m.jours != null ? m.jours + ' jour' + (m.jours > 1 ? 's' : '') : '—') + '</span></div>';
+  });
+  html += '<div style="display:flex;justify-content:space-between;margin-top:.5rem;font-family:Bebas Neue,sans-serif;font-size:.85rem;color:var(--gold)"><span>TOTAL</span><span>' + total + ' jour' + (total > 1 ? 's' : '') + '</span></div>';
+  const sujet = (nomCible && nomCible !== state.char?.name) ? nomCible + ' est conduit(e)' : 'Vous êtes conduit(e)';
+  html += '<div style="margin-top:.7rem;font-style:italic;color:#a89870">' + sujet + ' à : <strong>' + nomLieu + '</strong>' + (nomVille ? ' — ' + nomVille : '') + '.</div>';
+  return html;
+}
+
 // Une personne est-elle actuellement physiquement detenue (registre carcerale, lot "registre du
 // commissariat") ? Consulte l'etat local si c'est le joueur courant, sinon interroge sa fiche
 // personnages (est_emprisonne y est desormais toujours persiste par enregistrerDetention, quel
@@ -8063,9 +8100,10 @@ async function confirmerMenerEnquete(pa, cost) {
   // date du fait original (assassinat/vol/etc., dont on ne connait que action.jour, un jour de
   // jeu sans ancrage calendaire fiable) -- l'affichage doit libeller cette date "demasquage",
   // jamais "date des faits".
+  const motifsEnquete = [{ type: action.type_action || 'Acte illegal decouvert par enquete', cible: action.cible || null, jour_fait: action.jour, city: ville, ref_type: 'action_tracee', ref_id: action.id, jours: 2, source: 'garde_a_vue', date_evenement: new Date().toISOString() }];
   if (typeof enregistrerDetention === 'function') enregistrerDetention(cible, action.type_action || 'Acte illegal decouvert par enquete', (state.day || 1) + 2, undefined, ville, {
     country: pays,
-    motifs: [{ type: action.type_action || 'Acte illegal decouvert par enquete', cible: action.cible || null, jour_fait: action.jour, city: ville, ref_type: 'action_tracee', ref_id: action.id, jours: 2, source: 'garde_a_vue', date_evenement: new Date().toISOString() }]
+    motifs: motifsEnquete
   }).catch(() => {});
   if (typeof transmettreAffaireAuTribunal === 'function') transmettreAffaireAuTribunal(cible, action.type_action || 'Acte illegal decouvert par enquete', ville, factRefDemasquage);
   if (typeof envoyerNotificationVraiJoueur === 'function') {
@@ -8074,6 +8112,17 @@ async function confirmerMenerEnquete(pa, cost) {
   addExternalEvent('ENQUETE : ' + cible + ' a ete demasque(e) et place(e) en garde a vue.', 'local');
   addJournalEntry('Enquete reussie contre ' + cible + ' (' + taux + '% de chances). Affaire transmise au tribunal. -250 FR.', 'event-good');
   showToast('Enquete reussie', cible + ' a ete demasque(e) et place(e) en garde a vue.', true, true);
+
+  // Resolution spectaculaire du point de vue de l'ENQUETEUR (3e personne, meme doctrine que la
+  // chasse a l'homme ci-dessus).
+  if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
+    ouvrirResolutionSpectaculaire({
+      type: 'arrestation',
+      succes: true,
+      titre: 'CIBLE DÉMASQUÉE ET ARRÊTÉE',
+      resultatHtml: construireResultatArrestationHtml(motifsEnquete, ville, pays, cible)
+    });
+  }
 }
 
 function doOrganiserFilature(pa, cost) {
@@ -8261,13 +8310,26 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
   // reelle qui cree l'incarceration (registre carcerale, 26 aout 2026). Execution factorisee
   // (executerCondamnationRecherchee) avec verifierArrestationRecherchePolice, meme logique.
   const entree = eligibles[0];
-  await executerCondamnationRecherchee(cible, entree, rechercheActuelle, ville);
+  const { joursTotal } = await executerCondamnationRecherchee(cible, entree, rechercheActuelle, ville);
   if (typeof envoyerNotificationVraiJoueur === 'function') {
     await envoyerNotificationVraiJoueur(cible, 'Arrestation', 'Vous avez ete localise(e) et arrete(e) suite a un avis de recherche.');
   }
   addExternalEvent('CHASSE A L HOMME : ' + cible + ' a ete localise(e) et arrete(e).', 'local');
   addJournalEntry('Chasse a l homme reussie contre ' + cible + ' (' + taux + '% de chances). -300 FR.', 'event-good');
   showToast('Chasse reussie', cible + ' a ete localise(e) et arrete(e).', true, true);
+
+  // Resolution spectaculaire du point de vue du CHASSEUR (le PJ qui vient d'agir) -- la cible
+  // arretee est un autre personnage, jamais "vous" (§8 : presentation uniquement, apres coup ;
+  // construireResultatArrestationHtml adapte deja la formulation a la 3e personne via nomCible).
+  if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
+    const motifsAffiches = (entree.type === 'condamnation' && entree.motifs?.length) ? entree.motifs : [{ type: entree.acte || 'Avis de recherche', jours: joursTotal }];
+    ouvrirResolutionSpectaculaire({
+      type: 'arrestation',
+      succes: true,
+      titre: 'CIBLE LOCALISÉE ET ARRÊTÉE',
+      resultatHtml: construireResultatArrestationHtml(motifsAffiches, ville, pays, cible)
+    });
+  }
 }
 
 // Rencontre policiere reelle (lot "condamne recherche croisant la police", 26 aout 2026) :
@@ -8312,6 +8374,19 @@ async function verifierArrestationRecherchePolice() {
     if (typeof enterRoom === 'function') enterRoom(buildingIdCellule, roomIdCellule, null);
   }
   if (typeof updateUI === 'function') updateUI();
+
+  // Resolution spectaculaire, appelee APRES persistance + teleportation (§8) -- meme motifs que
+  // ceux reellement utilises par executerCondamnationRecherchee ci-dessus (entree.motifs pour une
+  // condamnation enrichie, sinon un motif unique reconstruit a l'identique de sa propre logique).
+  if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
+    const motifsAffiches = (eligible.type === 'condamnation' && eligible.motifs?.length) ? eligible.motifs : [{ type: eligible.acte || 'Avis de recherche', jours: joursTotal }];
+    ouvrirResolutionSpectaculaire({
+      type: 'arrestation',
+      succes: true,
+      titre: 'VOUS ÊTES EN ÉTAT D\'ARRESTATION',
+      resultatHtml: construireResultatArrestationHtml(motifsAffiches, ville, state.country)
+    });
+  }
 }
 
 async function chargerNiveauPrison(pays, ville) {

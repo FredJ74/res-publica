@@ -658,15 +658,28 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName) {
         // jamais créée). On garde l'assignation synchrone immediate (navigation/UI ne doivent
         // pas attendre l'aller-retour reseau pour refleter la contrainte), enregistrerDetention
         // vient ensuite fusionner le detentionId et persister est_emprisonne cote serveur.
+        const motifsTracts = [{ type: 'Distribution de tracts calomnieux', jour_fait: state.day, city: state.currentCity, jours: 1, source: 'flagrant_delit' }];
         state.estEmprisonne = { jours: 1, jourFin: (state.day || 1) + 1, raison: 'Distribution de tracts calomnieux' };
         if (typeof enregistrerDetention === 'function') {
           enregistrerDetention(state.char?.name, 'Distribution de tracts calomnieux', (state.day || 1) + 1, undefined, state.currentCity, {
             country: state.country,
-            motifs: [{ type: 'Distribution de tracts calomnieux', jour_fait: state.day, city: state.currentCity, jours: 1, source: 'flagrant_delit' }]
+            motifs: motifsTracts
           }).catch(() => {});
         }
         showToast('Flagrant délit !', pnjName + ' alerte immédiatement la police. Tous vos tracts calomnieux sont détruits. 1 jour de détention.', false, true);
         addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — échec critique. Tracts calomnieux détruits, 1 jour de détention.', 'event-bad');
+
+        // Resolution spectaculaire (chantier "animations de resolution d'ordres", 26 aout 2026) :
+        // ce flagrant delit precis n'a jamais teleporte le joueur (comportement preexistant,
+        // inchange ici -- §8 interdit d'ajouter une dependance de navigation a l'animation).
+        if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
+          ouvrirResolutionSpectaculaire({
+            type: 'arrestation',
+            succes: true,
+            titre: 'VOUS ÊTES EN ÉTAT D\'ARRESTATION',
+            resultatHtml: construireResultatArrestationHtml(motifsTracts, state.currentCity, state.country)
+          });
+        }
       }
     } else {
       showToast('Sans effet', pnjName + ' n\'a pas été convaincu(e). Tract consommé.', false);

@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=145">
+<link rel="stylesheet" href="style.css?v=146">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -421,6 +421,17 @@
   </div>
 </div>
 
+<!-- MODAL RESOLUTION SPECTACULAIRE (chantier "animations de resolution d'ordres", 26 aout 2026) --
+     composant generique reutilisable (bombe/arrestation aujourd'hui) : voir plateau-resolution.js.
+     Pas de bouton de fermeture standard : impossible a fermer avant la fin de l'animation, le
+     bouton Continuer n'apparait qu'avec le resultat (§9 du chantier). -->
+<div id="modal-resolution" class="modal-overlay">
+  <div class="modal-box">
+    <div id="resolution-stage"></div>
+    <div id="resolution-result" class="resolution-result" style="display:none"></div>
+  </div>
+</div>
+
 <!-- MODAL FINANCES -->
 <div id="modal-finances" class="modal-overlay">
   <div class="modal-box">
@@ -604,6 +615,7 @@
 <script src="forum-canvas.js?v=33"></script>
 <script src="forum.js?v=153"></script>
 <script src="plateau-core.js?v=156"></script>
+<script src="plateau-resolution.js?v=1"></script>
 <script src="plateau-rue-centrale.js?v=143"></script>
 <script src="plateau-quete-accueil.js?v=26"></script>
 <script src="plateau-enigme-portrait.js?v=22"></script>
@@ -615,10 +627,10 @@
 <script src="plateau-personnage.js?v=160"></script>
 <script src="plateau-pnj.js?v=176"></script>
 <script src="plateau-multijoueur.js?v=137"></script>
-<script src="plateau-communication.js?v=139"></script>
+<script src="plateau-communication.js?v=140"></script>
 <script src="plateau-politique.js?v=175"></script>
-<script src="plateau-justice-economie.js?v=191"></script>
-<script src="plateau-actions-illegales-rumeurs.js?v=172"></script>
+<script src="plateau-justice-economie.js?v=192"></script>
+<script src="plateau-actions-illegales-rumeurs.js?v=173"></script>
 <script src="plateau-organisations-quetes.js?v=154"></script>
 <script src="plateau-divers.js?v=137"></script>
 <script src="plateau-router.js?v=200"></script>

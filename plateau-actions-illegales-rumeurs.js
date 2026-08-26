@@ -1556,19 +1556,50 @@ async function confirmerUtiliserExplosifs() {
     addJournalEntry('Tentative ratée d\'utilisation d\'explosifs sur ' + b.name + '. Vous êtes blessé(e).', 'event-bad');
   }
 
-  // Risque d'etre repere sur le fait, independamment du resultat
+  // Risque d'etre repere sur le fait -- INCHANGE en cas de reussite (roll existant, detectRate).
+  // En cas d'echec en revanche, le chantier "animations de resolution d'ordres" (26 aout 2026)
+  // rend la regle explicite : un depot de bombe rate DOIT entrainer un signalement (plus un
+  // simple risque probabiliste) -- reutilise integralement le mecanisme existant de
+  // recherche/detection (state.recherche, deja le canal utilise partout ailleurs dans le jeu pour
+  // un acte illegal detecte), aucune seconde mecanique creee.
   const detectRate = ACTES_ILLEGAUX['utiliser_explosifs']?.detectRate || 65;
-  const repere = (Math.floor(Math.random() * 100) + 1) <= detectRate;
+  const repere = reussi ? ((Math.floor(Math.random() * 100) + 1) <= detectRate) : true;
   if (repere) {
     if (!state.recherche) state.recherche = [];
     state.recherche.push({ acte: 'utiliser_explosifs', type: 'crime', jour: state.day });
-    addExternalEvent('ALERTE : un témoin vous a reconnu près de l\'explosion.');
+    addExternalEvent(reussi ? 'ALERTE : un témoin vous a reconnu près de l\'explosion.' : 'ALERTE : l\'échec de l\'attentat a été signalé à la police.');
   } else if (reussi) {
     if (!state.historiqueCrimes) state.historiqueCrimes = [];
     state.historiqueCrimes.push({ acte: 'utiliser_explosifs', cible: buildingId, jour: state.day, expireJour: state.day + 8 });
     tracerActionPourRumeur('utiliser_explosifs', b.name);
   }
   updateUI();
+
+  // Resolution spectaculaire (chantier "animations de resolution d'ordres", 26 aout 2026) :
+  // presentation uniquement, appelee APRES que toute la logique metier ci-dessus s'est deja
+  // executee -- ne conditionne jamais le resultat reel (§8). N'utilise que des valeurs deja
+  // calculees ci-dessus (aucun chiffre invente).
+  if (typeof ouvrirResolutionSpectaculaire === 'function') {
+    let resultatHtml;
+    if (reussi) {
+      resultatHtml =
+        '<div><strong style="color:#e0d5b8">Bâtiment touché :</strong> ' + b.name + '</div>' +
+        '<div style="margin-top:.3rem"><strong style="color:#e0d5b8">Fermeture :</strong> 5 jours</div>' +
+        '<div style="margin-top:.3rem"><strong style="color:#e0d5b8">Victimes :</strong> ' + (autresPresents.length ? autresPresents.length + ' personne(s) blessée(s)' : 'aucune autre personne présente') + '</div>' +
+        (repere ? '<div style="margin-top:.6rem;color:#cc8844">Un témoin vous a reconnu près de l\'explosion.</div>' : '');
+    } else {
+      resultatHtml =
+        '<div>Le dispositif ne s\'est pas déclenché correctement : il vous a explosé entre les mains.</div>' +
+        '<div style="margin-top:.3rem"><strong style="color:#e0d5b8">Conséquence :</strong> vous êtes blessé(e), progressivement.</div>' +
+        '<div style="margin-top:.6rem;color:#cc4444"><strong>L\'incident a été signalé à la police.</strong></div>';
+    }
+    ouvrirResolutionSpectaculaire({
+      type: 'bombe',
+      succes: reussi,
+      titre: reussi ? 'EXPLOSION RÉUSSIE' : 'OUPS…',
+      resultatHtml
+    });
+  }
 }
 
 function doAcheterPoisonObjet(type, pa, cost) {
