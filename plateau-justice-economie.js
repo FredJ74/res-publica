@@ -512,7 +512,7 @@ async function traiterEnquetes() {
       result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. Mise en garde a vue immediate. Affaire transmise au tribunal pour jugement.`;
       await enregistrerDetention(e.cible, 'Garde a vue suite a enquete', undefined, undefined, e.city, {
         country: e.country || state.country,
-        motifs: [{ type: e.motif || 'Garde a vue suite a enquete', jour_fait: e.day, city: e.city, jours: null, source: 'garde_a_vue' }]
+        motifs: [{ type: e.motif || 'Garde a vue suite a enquete', jour_fait: e.day, city: e.city, jours: null, source: 'garde_a_vue', date_evenement: new Date().toISOString() }]
       });
       addExternalEvent(`${e.cible} a ete place(e) en garde a vue. Affaire transmise au tribunal.`, 'local');
       // Transmettre au tribunal pour jugement public
@@ -857,8 +857,9 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
   // Resistance aggravante = un second motif distinct, jamais fusionne dans le premier : le code
   // connait deja separement les deux durees (peineCalc.jours et le +2 fixe de la resistance),
   // rien n'est reparti arbitrairement (registre carcerale, 26 aout 2026).
-  const motifsArrestation = [{ type: peineCalc.label, jour_fait: state.day, city: state.currentCity, jours: peineCalc.jours, source: 'flagrant_delit' }];
-  if (resistanceAggravante) motifsArrestation.push({ type: 'Résistance à l\'arrestation', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'flagrant_delit' });
+  const dateArrestation = new Date().toISOString();
+  const motifsArrestation = [{ type: peineCalc.label, jour_fait: state.day, city: state.currentCity, jours: peineCalc.jours, source: 'flagrant_delit', date_evenement: dateArrestation }];
+  if (resistanceAggravante) motifsArrestation.push({ type: 'Résistance à l\'arrestation', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'flagrant_delit', date_evenement: dateArrestation });
   enregistrerDetention(state.char?.name, peineCalc.label, state.day + jours, undefined, state.currentCity, {
     country: state.country,
     motifs: motifsArrestation
@@ -879,7 +880,7 @@ function verifierLiberationPrisonniers() {
   if (state.day >= state.estEmprisonne.jourFin) {
     const detentionId = state.estEmprisonne.detentionId || null;
     if (detentionId && typeof sbUpdate === 'function') {
-      sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, { mode_fin: 'purgee', jour_fin_effective: state.day }).catch(() => {});
+      sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, { mode_fin: 'purgee', jour_fin_effective: state.day, date_fin_effective: new Date().toISOString() }).catch(() => {});
     }
     state.estEmprisonne = null;
     addMailNotification('Commissariat', 'Libération', 'Votre peine est purgée. Vous êtes libre de circuler.');
@@ -1191,7 +1192,7 @@ async function confirmerRequeteAvocat(pa, cost) {
     const libereParAvocat = state.estEmprisonne.jours <= 0 || state.day >= state.estEmprisonne.jourFin;
     if (detentionId && typeof sbUpdate === 'function') {
       const patch = { reduction_jours: reduction, jour_fin: state.estEmprisonne.jourFin };
-      if (libereParAvocat) { patch.mode_fin = 'anticipee_avocat'; patch.jour_fin_effective = state.day; }
+      if (libereParAvocat) { patch.mode_fin = 'anticipee_avocat'; patch.jour_fin_effective = state.day; patch.date_fin_effective = new Date().toISOString(); }
       sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, patch).catch(() => {});
     }
 
@@ -1290,12 +1291,16 @@ async function doTentativeEvasion(pa, cost) {
       motifsOrigine = detRows?.[0]?.motifs || [];
       countryOrigine = detRows?.[0]?.country || state.country;
     }
+    const dateEvasion = new Date().toISOString();
     if (detentionId && typeof sbUpdate === 'function') {
-      await sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, { mode_fin: 'evasion', jour_fin_effective: state.day }).catch(() => {});
+      // date_fin_effective (lot "dates reelles", 26 aout 2026) : jour_fin_effective (jour de jeu)
+      // reste utilise en interne, date_fin_effective est le pendant reel affiche au joueur --
+      // capture directe a l'instant de l'evasion, jamais deduite de jour_fin_effective.
+      await sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, { mode_fin: 'evasion', jour_fin_effective: state.day, date_fin_effective: dateEvasion }).catch(() => {});
     }
 
     const motifsRecherche = motifsOrigine.concat([
-      { type: 'Évasion', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'evasion' }
+      { type: 'Évasion', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'evasion', date_evenement: dateEvasion }
     ]);
     if (typeof ajouterCondamnationRecherche === 'function') {
       await ajouterCondamnationRecherche(state.char?.name, {
@@ -1368,7 +1373,7 @@ async function doSeRebeller(pa, cost) {
     // Registre carcerale : le jour supplementaire devient un motif propre sur la detention en
     // cours, pas seulement une mutation locale de state.estEmprisonne perdue au premier reload.
     if (typeof prolongerDetentionActive === 'function') {
-      await prolongerDetentionActive(state.char?.name, [{ type: 'Rébellion en cellule', jour_fait: state.day, city: ville, jours: 1, source: 'evenement_detention' }]);
+      await prolongerDetentionActive(state.char?.name, [{ type: 'Rébellion en cellule', jour_fait: state.day, city: ville, jours: 1, source: 'evenement_detention', date_evenement: new Date().toISOString() }]);
     }
   } else {
     state.hp = Math.max(1, (state.hp || 100) - 25);
@@ -1381,8 +1386,9 @@ async function doSeRebeller(pa, cost) {
     // 'transfert_qhs') -- la laisser a NULL la ferait apparaitre comme encore en cours dans le
     // registre, ce qui est faux : elle est bien terminee, juste pas par une liberation.
     const detentionPrecedenteId = state.estEmprisonne?.detentionId || null;
+    const dateTransfertQhs = new Date().toISOString();
     if (detentionPrecedenteId && typeof sbUpdate === 'function') {
-      sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionPrecedenteId)}`, { mode_fin: 'transfert_qhs', jour_fin_effective: state.day }).catch(() => {});
+      sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionPrecedenteId)}`, { mode_fin: 'transfert_qhs', jour_fin_effective: state.day, date_fin_effective: dateTransfertQhs }).catch(() => {});
     }
     state.estEmprisonne = null;
     if (typeof sbCreerPrisonnierQHS === 'function') {
@@ -1394,7 +1400,7 @@ async function doSeRebeller(pa, cost) {
     if (typeof enregistrerDetention === 'function') {
       await enregistrerDetention(state.char?.name, 'Rebellion en cellule matee - transfert QHS', (state.day || 1) + 30, true, ville, {
         country: pays,
-        motifs: [{ type: 'Rébellion en cellule matée — transfert QHS', jour_fait: state.day, city: ville, jours: 30, source: 'evenement_detention' }],
+        motifs: [{ type: 'Rébellion en cellule matée — transfert QHS', jour_fait: state.day, city: ville, jours: 30, source: 'evenement_detention', date_evenement: dateTransfertQhs }],
         detentionPrecedenteId: detentionPrecedenteId
       }).catch(() => {});
     }
@@ -1794,6 +1800,11 @@ async function appliquerSentence(affaireId, type, pa, cost) {
   // dans la ville ou elle se produit reellement -- jamais artificiellement a Luthecia si
   // l'affaire y a ete jugee mais l'arrestation se fait ailleurs.
   const autoriteJugement = 'Juge ' + (state.char?.name || 'PNJ');
+  // factCommun.jour_fait reste un compteur interne (jour de jeu de l'affaire/du demasquage),
+  // jamais affiche tel quel. Les motifs construits ci-dessous (source:'jugement') recoivent leur
+  // propre date_evenement = l'instant du JUGEMENT (capture au moment ou ce code s'execute),
+  // jamais une date des faits inventee -- l'affichage la libelle explicitement "Condamnation",
+  // jamais "date des faits".
   const factCommun = { cible: affaire.victime || null, jour_fait: (affaire.jourFait != null ? affaire.jourFait : affaire.jour), city: affaire.city, ref_type: affaire.refType || null, ref_id: affaire.refId || null };
 
   if (type === 'amende') {
@@ -1805,7 +1816,7 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     if (affaire.circonstanceAttenuante) { duree = Math.max(1, duree - 1); note = ' (circonstance atténuante : -1 jour)'; }
     if (affaire.aggravation) { duree = duree + 2; note = ' (aggravation : +2 jours)'; }
     details = 'Prison ' + duree + ' jours' + note;
-    const motifsPrison = [Object.assign({ type: affaire.motif, jours: duree, detail: note || null, source: 'jugement' }, factCommun)];
+    const motifsPrison = [Object.assign({ type: affaire.motif, jours: duree, detail: note || null, source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
 
     if (await estActuellementDetenu(affaire.cible)) {
       await prolongerDetentionActive(affaire.cible, motifsPrison);
@@ -1831,7 +1842,7 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     // detention -- verifie desormais en amont (voir garde en tete de fonction), donc a ce stade
     // la personne est necessairement deja detenue : on ne fait qu'etendre/escalader sa detention.
     details = 'Envoi au QHS';
-    const motifsQhs = [Object.assign({ type: affaire.motif, jours: 30, detail: 'QHS', source: 'jugement' }, factCommun)];
+    const motifsQhs = [Object.assign({ type: affaire.motif, jours: 30, detail: 'QHS', source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
     await prolongerDetentionActive(affaire.cible, motifsQhs, true);
     if (typeof sbCreerPrisonnierQHS === 'function') {
       let photoUrl = null;
@@ -1856,7 +1867,7 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     }
     const duree = 3 * (nbPrecedentes + 1);
     details = 'Prison ' + duree + ' jours + popularité à zéro' + (nbPrecedentes > 0 ? ' (peine cumulée, ' + (nbPrecedentes + 1) + 'e condamnation)' : '');
-    const motifsTorture = [Object.assign({ type: affaire.motif, jours: duree, detail: nbPrecedentes > 0 ? ('peine cumulee, ' + (nbPrecedentes + 1) + 'e condamnation') : null, source: 'jugement' }, factCommun)];
+    const motifsTorture = [Object.assign({ type: affaire.motif, jours: duree, detail: nbPrecedentes > 0 ? ('peine cumulee, ' + (nbPrecedentes + 1) + 'e condamnation') : null, source: 'jugement', date_evenement: new Date().toISOString() }, factCommun)];
     await prolongerDetentionActive(affaire.cible, motifsTorture);
     // Perte totale de popularite appliquee directement au personnage reel (peut ne pas etre
     // le joueur actuellement connecte).
@@ -7833,6 +7844,14 @@ async function confirmerSubventionMinInt(pa, cost) {
 // permet a une condamnation ulterieure de detecter qu'elle est deja detenue (voir
 // estActuellementDetenu) et a prolongerDetentionActive de retrouver la ligne detentions a
 // completer. Retourne l'id de la ligne detentions creee (ou null si l'insertion a echoue).
+// motifs[].date_evenement (lot "dates reelles", 26 aout 2026, precise le 26 aout 2026 suite a
+// une ambiguite relevee) : timestamp reel capture au moment ou CE motif est construit dans le
+// code -- ce n'est PAS necessairement la date de l'infraction elle-meme. Pour un flagrant delit
+// (arrestation = fait constate a l'instant T), les deux coincident. Pour un demasquage differe
+// (enquete) ou un jugement, ce timestamp est celui du demasquage/de la condamnation, jamais celui
+// du fait d'origine (dont on ne connait, au mieux, qu'un jour de jeu sans ancrage calendaire
+// fiable -- voir jour_fait, jamais affiche). L'affichage (ouvrirDetailDetention) choisit le
+// libelle honnete selon `source`, jamais "date des faits" pour un motif dont ce n'est pas le cas.
 async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
   opts = opts || {};
   const jourDebut = state.day || 1;
@@ -7843,7 +7862,8 @@ async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
     jour_fait: jourDebut,
     city: villeReelle,
     jours: (jourFin !== undefined && jourFin !== null) ? (jourFin - jourDebut) : null,
-    source: opts.source || 'legacy'
+    source: opts.source || 'legacy',
+    date_evenement: new Date().toISOString()
   }];
 
   if (!state.prisonniers) state.prisonniers = [];
@@ -8032,9 +8052,13 @@ async function confirmerMenerEnquete(pa, cost) {
   // fouille est deja filtre sur "ville" ci-dessus, A3 lot judiciaire) : l'affaire appartient
   // donc reellement a cette ville, pas seulement par defaut.
   const factRefDemasquage = { victime: action.cible || null, jourFait: action.jour, refType: 'action_tracee', refId: action.id };
+  // date_evenement ici = l'instant du DEMASQUAGE (cette enquete qui vient de reussir), jamais la
+  // date du fait original (assassinat/vol/etc., dont on ne connait que action.jour, un jour de
+  // jeu sans ancrage calendaire fiable) -- l'affichage doit libeller cette date "demasquage",
+  // jamais "date des faits".
   if (typeof enregistrerDetention === 'function') enregistrerDetention(cible, action.type_action || 'Acte illegal decouvert par enquete', (state.day || 1) + 2, undefined, ville, {
     country: pays,
-    motifs: [{ type: action.type_action || 'Acte illegal decouvert par enquete', cible: action.cible || null, jour_fait: action.jour, city: ville, ref_type: 'action_tracee', ref_id: action.id, jours: 2, source: 'garde_a_vue' }]
+    motifs: [{ type: action.type_action || 'Acte illegal decouvert par enquete', cible: action.cible || null, jour_fait: action.jour, city: ville, ref_type: 'action_tracee', ref_id: action.id, jours: 2, source: 'garde_a_vue', date_evenement: new Date().toISOString() }]
   }).catch(() => {});
   if (typeof transmettreAffaireAuTribunal === 'function') transmettreAffaireAuTribunal(cible, action.type_action || 'Acte illegal decouvert par enquete', ville, factRefDemasquage);
   if (typeof envoyerNotificationVraiJoueur === 'function') {
@@ -8208,7 +8232,7 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
   } else {
     motif = entree.acte || 'Avis de recherche';
     joursTotal = 3;
-    motifsDetention = [{ type: motif, jour_fait: entree.jour, jours: joursTotal, source: 'flagrant_delit_recherche' }];
+    motifsDetention = [{ type: motif, jour_fait: entree.jour, jours: joursTotal, source: 'flagrant_delit_recherche', date_evenement: new Date().toISOString() }];
     extra = { country: pays, motifs: motifsDetention };
   }
   if (typeof enregistrerDetention === 'function') await enregistrerDetention(cible, motif, (state.day || 1) + joursTotal, undefined, ville, extra);

@@ -1449,11 +1449,47 @@ function enigme1AfficherArchiveHistorique(nom) {
   }
 }
 
-// Fiche detaillee d'une incarceration (registre carcerale, 26 aout 2026). Doit supporter sans
-// erreur les anciennes lignes (pauvres : nom/raison/ville/dates/qhs seulement, tous les nouveaux
-// champs a null/absents) et les nouvelles (motifs structures + informations judiciaires +
-// continuite). N'invente jamais une donnee absente : chaque rubrique enrichie n'est affichee que
-// si elle existe reellement sur la ligne.
+// Formate un timestamp reel (colonne Postgres ou new Date().toISOString()) en date calendaire
+// francaise longue ("26 aout 2026"), calee sur Europe/Paris -- meme conversion que
+// dateReelleParisStr()/formatDateHeureJeu() (plateau-core.js), format long car destine a un
+// affichage narratif plutot qu'a une horloge. Retourne null si aucune date reelle n'est
+// disponible : jamais de date inventee ni deduite d'un jour de jeu (lot "dates reelles",
+// 26 aout 2026).
+function formatDateRegistre(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const frDate = new Date(d.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  return frDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// Libelle honnete a associer a motifs[].date_evenement selon sa source (lot "dates reelles",
+// precise le 26 aout 2026) : ce timestamp n'est la date du FAIT lui-meme que pour les sources ou
+// le fait et sa constatation sont simultanes (flagrant delit, evasion, evenement en detention).
+// Pour un demasquage differe (enquete) ou un jugement, il ne represente QUE cet evenement-la --
+// jamais le fait d'origine, dont la date reelle n'est de toute facon pas connue (voir jour_fait,
+// jamais affiche). 'jugement' n'apparait pas ici : ces motifs sont regroupes dans la ligne
+// "Condamnation" separee ci-dessous, jamais redates inline pour eviter la redondance.
+const LIBELLE_DATE_MOTIF = {
+  flagrant_delit: 'constaté le',
+  flagrant_delit_recherche: 'arrestation le',
+  garde_a_vue: 'démasquage le',
+  evasion: 'évasion le',
+  evenement_detention: 'survenu le',
+  legacy: 'enregistré le'
+};
+
+// Fiche detaillee d'une incarceration (registre carcerale, 26 aout 2026 ; dates reelles,
+// 26 aout 2026). Doit supporter sans erreur les anciennes lignes (pauvres : nom/raison/ville/
+// dates internes/qhs seulement, tous les nouveaux champs a null/absents) et les nouvelles
+// (motifs structures + informations judiciaires + continuite + dates reelles). N'invente jamais
+// une donnee absente : chaque rubrique enrichie n'est affichee que si elle existe reellement sur
+// la ligne. Plus aucun "jour X" affiche au joueur : les jours de jeu (jour_debut, jour_fin,
+// jour_fait, jour_affaire...) restent des compteurs internes, jamais exposes tels quels ici --
+// seules les vraies dates (created_at, motifs[].date_evenement, date_fin_effective) et les DUREES
+// en jours (jamais des points dans le temps) sont affichees. Chaque date affichee porte un
+// libelle qui reflete honnetement ce qu'elle mesure (LIBELLE_DATE_MOTIF ci-dessus) : jamais
+// presentee comme "date des faits" quand ce n'est pas le cas.
 function ouvrirDetailDetention(idx) {
   const d = (state._detentionsAffichees || [])[idx];
   if (!d) return;
@@ -1461,20 +1497,34 @@ function ouvrirDetailDetention(idx) {
 
   const motifs = Array.isArray(d.motifs) ? d.motifs : null;
   const dureeInitiale = (d.jour_fin != null && d.jour_debut != null) ? (d.jour_fin - d.jour_debut) : null;
+  // created_at est un timestamp Postgres natif, present sur TOUTES les lignes (anciennes et
+  // nouvelles) puisqu'il est fixe automatiquement a l'insertion -- reutilise directement comme
+  // date reelle d'incarceration, sans duplication ni nouvelle colonne (audit dedie).
+  const dateIncarceration = formatDateRegistre(d.created_at);
 
   let html = '<div style="padding:1rem">';
   html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A;margin-bottom:.2rem">' + d.nom + '</div>';
   html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">' + (d.city || '?') + (d.country ? ' · ' + d.country : '') + '</div>';
 
+  // dateCondamnation = date reelle du JUGEMENT (motif source:'jugement'), jamais celle des faits
+  // d'origine -- voir le commentaire de factCommun dans appliquerSentence (plateau-justice-
+  // economie.js).
+  let dateCondamnation = null;
   if (motifs && motifs.length) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">MOTIFS</div>';
     let total = 0;
     motifs.forEach(function(m) {
       if (m.jours != null) total += m.jours;
+      if (!dateCondamnation && m.source === 'jugement' && m.date_evenement) dateCondamnation = formatDateRegistre(m.date_evenement);
       html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.1rem">— ' + (m.type || 'Motif') + (m.jours != null ? ' : ' + m.jours + ' jour(s)' : '') + '</div>';
       const details = [];
       if (m.cible) details.push('victime/cible : ' + m.cible);
-      if (m.jour_fait != null) details.push('jour ' + m.jour_fait);
+      // 'jugement' est deja restitue separement (ligne "Condamnation" ci-dessous) -- jamais
+      // redate ici pour eviter une redondance ou, pire, une lecture "date des faits".
+      if (m.source !== 'jugement') {
+        const dateMotif = formatDateRegistre(m.date_evenement);
+        if (dateMotif) details.push((LIBELLE_DATE_MOTIF[m.source] || 'daté le') + ' ' + dateMotif);
+      }
       if (m.city) details.push(m.city);
       if (m.detail) details.push(m.detail);
       if (details.length) html += '<div style="font-size:.7rem;color:#6a5a30;margin:0 0 .3rem .8rem;font-style:italic">' + details.join(' · ') + '</div>';
@@ -1487,36 +1537,40 @@ function ouvrirDetailDetention(idx) {
   if (d.ville_condamnation && d.ville_condamnation !== d.city) {
     html += '<div style="font-size:.72rem;color:#6a5a30;margin-top:.4rem">Condamné(e) à ' + d.ville_condamnation + ', incarcéré(e) à ' + d.city + '</div>';
   }
-  if (d.jour_affaire != null) html += '<div style="font-size:.72rem;color:#6a5a30">Affaire du jour ' + d.jour_affaire + '</div>';
+  if (dateCondamnation) html += '<div style="font-size:.72rem;color:#6a5a30">Condamnation : ' + dateCondamnation + '</div>';
   if (d.issue_judiciaire) html += '<div style="font-size:.72rem;color:#6a5a30">Issue judiciaire : ' + d.issue_judiciaire + '</div>';
   if (d.autorite) html += '<div style="font-size:.72rem;color:#6a5a30">Autorité : ' + d.autorite + '</div>';
 
   html += '<div style="margin-top:.6rem;border-top:1px solid #2a2010;padding-top:.5rem">';
-  html += '<div style="font-size:.78rem;color:#c0b090">Début de détention : jour ' + d.jour_debut + '</div>';
-  if (d.jour_fin != null) html += '<div style="font-size:.78rem;color:#c0b090">Fin prévue : jour ' + d.jour_fin + (dureeInitiale != null ? (' (durée initiale ' + dureeInitiale + ' jour(s))') : '') + '</div>';
-  if (d.reduction_jours) html += '<div style="font-size:.78rem;color:#6a9a6a">Réduction obtenue (avocat) : -' + d.reduction_jours + ' jour(s)</div>';
-  if (d.reliquat_jours != null) html += '<div style="font-size:.78rem;color:#9a8a4a">Reliquat repris d\'une détention antérieure : ' + d.reliquat_jours + ' jour(s)</div>';
+  if (dateIncarceration) html += '<div style="font-size:.78rem;color:#c0b090">Incarcération : ' + dateIncarceration + '</div>';
+  if (dureeInitiale != null) html += '<div style="font-size:.78rem;color:#c0b090">Peine initiale : ' + dureeInitiale + ' jour(s)</div>';
+  // Temps restant : uniquement calcule quand la fiche consultee est celle du personnage qui la
+  // consulte lui-meme (meme personnage => meme compteur state.day, comparaison interne valide),
+  // et seulement pour une ligne du nouveau systeme encore active (motifs present, pas de
+  // mode_fin) -- jamais pour la detention d'un tiers (deux compteurs de jours de personnages
+  // differents, sans correspondance fiable, voir audit dedie), et jamais pour une ancienne ligne
+  // dont le statut reel n'est de toute facon pas connu.
+  if (!d.mode_fin && motifs && d.jour_fin != null && d.nom === state.char?.name && typeof state.day === 'number') {
+    html += '<div style="font-size:.78rem;color:#c0b090">Temps restant : ' + Math.max(0, d.jour_fin - state.day) + ' jour(s)</div>';
+  }
+  if (d.reduction_jours) html += '<div style="font-size:.78rem;color:#6a9a6a">Réduction de peine : ' + d.reduction_jours + ' jour(s)</div>';
+  if (d.reliquat_jours != null) html += '<div style="font-size:.78rem;color:#9a8a4a">Reliquat lors de la reprise : ' + d.reliquat_jours + ' jour(s)</div>';
 
-  // jour_fin_effective represente le jour REEL de fin de cette entree, quelle qu'en soit la
-  // cause (purgee, anticipee_avocat, evasion, transfert_qhs) -- distinct de jour_fin (date
-  // theorique/prevue). Le libelle ne parle de "liberation" que pour les deux modes qui en sont
-  // reellement une ; les autres parlent de "fin effective", pour ne pas laisser croire a une
+  // mode_fin indique la NATURE de la fin ; date_fin_effective (timestamp reel, capture a
+  // l'instant meme de l'evenement) indique QUAND -- jour_fin_effective (jour de jeu interne)
+  // n'est plus affiche. Le libelle ne parle de "Libération" que pour les deux modes qui en sont
+  // reellement une ; les autres parlent de "Fin effective", pour ne pas laisser croire a une
   // sortie de detention qui n'a pas eu lieu (evasion, transfert QHS).
   const modeFinLabels = { purgee: 'Peine purgée', anticipee_avocat: 'Libération anticipée (avocat)', evasion: 'Évasion', transfert_qhs: 'Transfert au QHS' };
   const estUneLiberation = { purgee: true, anticipee_avocat: true, evasion: false, transfert_qhs: false };
   let statutTexte, statutCouleur;
   if (d.mode_fin && modeFinLabels[d.mode_fin]) {
-    const libelleJour = estUneLiberation[d.mode_fin] ? 'libération' : 'fin effective';
-    statutTexte = modeFinLabels[d.mode_fin] + (d.jour_fin_effective != null ? (' (' + libelleJour + ' : jour ' + d.jour_fin_effective + ')') : '');
+    statutTexte = modeFinLabels[d.mode_fin];
     statutCouleur = d.mode_fin === 'evasion' ? '#cc4444' : (d.mode_fin === 'transfert_qhs' ? '#9a8a4a' : '#6a9a6a');
   } else if (!motifs) {
     // Ancienne ligne (anterieure au lot registre carceral) : l'absence de mode_fin signifie
     // seulement que l'ancien systeme n'enregistrait jamais la sortie reelle -- PAS que la
-    // detention est toujours active aujourd'hui. Ne jamais deduire "en cours" ici : state.day
-    // est le compteur de jours du personnage qui CONSULTE la fiche, pas celui de la personne
-    // detenue (deux compteurs independants, sans correspondance calendaire fiable entre eux,
-    // voir audit dedie) -- une comparaison jour_fin vs state.day serait trompeuse, pas
-    // seulement mal affichee.
+    // detention est toujours active aujourd'hui.
     statutTexte = 'Statut historique incomplet — fin non constatée';
     statutCouleur = '#8a8060';
   } else {
@@ -1524,6 +1578,12 @@ function ouvrirDetailDetention(idx) {
     statutCouleur = '#8a8060';
   }
   html += '<div style="font-size:.78rem;color:' + statutCouleur + '">Statut : ' + statutTexte + '</div>';
+
+  const dateFinEffective = formatDateRegistre(d.date_fin_effective);
+  if (dateFinEffective) {
+    const libelleFin = estUneLiberation[d.mode_fin] ? 'Libération' : 'Fin effective';
+    html += '<div style="font-size:.78rem;color:' + statutCouleur + '">' + libelleFin + ' : ' + dateFinEffective + '</div>';
+  }
 
   if (d.qhs) html += '<div style="font-size:.78rem;color:#8a3a2a;margin-top:.3rem">Détention en QHS (haute sécurité)</div>';
   html += '</div>';
