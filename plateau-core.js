@@ -752,9 +752,21 @@ function loadCharacter() {
             // anciennes valeurs restees sur l'objet char (c'etait le bug : gains perdus au F5,
             // et pour arg specifiquement, l'objet char de sbLoadPersonnage n'a meme jamais de champ
             // arg du tout -> reset systematique au defaut 4250 code en dur, trouve le 9 aout 2026).
+            // pa exactement le meme bug, jamais corrige pour ce champ precis (urgence du 26 aout
+            // 2026) : sbLoadPersonnage() (supabase.js) porte pa comme un champ RACINE de l'objet
+            // retourne (pa: r.pa), jamais sur son sous-objet char -- Object.assign(state, sbState)
+            // deux lignes plus haut fixe donc deja correctement state.pa, mais remplace aussi
+            // state.char par sbState.char qui n'a JAMAIS eu de propriete pa. Le second
+            // applyCharToState(state.char) plus bas lit char.pa (absent -> undefined) et retombe
+            // sur son repli 10 (voir son propre commentaire, plateau-core.js:858), ecrasant la
+            // valeur pourtant correcte que Object.assign venait d'ecrire dans state.pa -- observe
+            // en production comme "10 PA a chaque rafraichissement" alors que Supabase contenait
+            // la bonne valeur. Meme remede que pour arg : re-synchroniser char.pa AVANT le second
+            // appel, a partir de state.pa qui est deja juste a ce point.
             if (state.char) {
               state.char.resources = { inf: state.inf, pop: state.pop, dis: state.dis };
               state.char.arg = state.arg;
+              state.char.pa = state.pa;
             }
 
             if (positionLocaleBuilding) {
