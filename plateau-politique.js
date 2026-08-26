@@ -1817,6 +1817,27 @@ function renderRoomActions(room, buildingId, roomId) {
         licenceTooltip = msgGestionLicence;
       }
     }
+    // UX "deux ordres toujours visibles" (correctif du 27 aout 2026), scope strict aux suites
+    // d'hotel (room.locationData?.suiteChoice, seules suite_privee/suite_presidentielle
+    // concernees a ce jour -- verifie, aucune autre room ne porte ce flag) : louer_local et
+    // gerer_local restent toujours affiches, jamais retires de data.js, mais grises + infobulle
+    // exacte des que l'action serait de toute facon refusee. Ne touche jamais au systeme
+    // generique louer_local/gerer_local des autres locaux (bureaux/commerces/creation
+    // d'organisation), hors perimetre de ce correctif. Reutilise getLocationPourRoom, deja la
+    // seule source de verite lue par ouvrirModalLouerLocal/ouvrirModalGererLocal
+    // (plateau-justice-economie.js) -- meme condition, jamais dupliquee.
+    let needsSuiteIndisponible = false;
+    let suiteTooltip = '';
+    if (room.locationData?.suiteChoice && (o.fn === 'louer_local' || o.fn === 'gerer_local') && typeof getLocationPourRoom === 'function') {
+      const locationSuite = getLocationPourRoom(buildingId, roomId);
+      if (o.fn === 'louer_local' && locationSuite) {
+        needsSuiteIndisponible = true;
+        suiteTooltip = 'Suite non disponible : déjà louée';
+      } else if (o.fn === 'gerer_local' && (!locationSuite || locationSuite.locataire !== state.char?.name)) {
+        needsSuiteIndisponible = true;
+        suiteTooltip = 'Vous n\'êtes pas locataire de ce local';
+      }
+    }
     // Avant ce correctif, TEST_MODE forcait l'affichage a "0 PA" quel que soit o.pa reel --
     // le joueur ne pouvait jamais apprendre le vrai cout normal d'un ordre pendant la periode
     // de PA illimites (bug remonte sur "investir", en realite systemique a tous les ordres avec
@@ -1907,6 +1928,8 @@ function renderRoomActions(room, buildingId, roomId) {
       onclickFn = "showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut declencher un blocus portuaire.', false)";
     } else if (needsLicenceIndisponible) {
       onclickFn = "showToast('Licence indisponible', " + JSON.stringify(licenceTooltip) + ", false)";
+    } else if (needsSuiteIndisponible) {
+      onclickFn = "showToast('Indisponible', " + JSON.stringify(suiteTooltip) + ", false)";
     } else if (o.fn === 'plainte_police') {
       onclickFn = 'openPlainteModal(' + o.pa + ',' + o.cost + ')';
     } else if (o.fn === 'gerer_finances') {
@@ -1920,9 +1943,9 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
-    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsLicenceIndisponible) ? ' blocked' : '';
+    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsLicenceIndisponible || needsSuiteIndisponible) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
-    const tooltipFinal = needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : tooltip;
+    const tooltipFinal = needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : tooltip);
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 

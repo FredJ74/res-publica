@@ -1759,6 +1759,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 0, bonusINF: 8, bonusDIS: 10, label: 'Suite Privée', tier: 1, suiteChoice: true },
         persons: [],
         orders: [
+          {fn:'louer_local', label:'Louer cette suite (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite luxueuse et très discrète. +8 INF +10 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       },
@@ -1771,6 +1772,7 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 8, bonusINF: 8, bonusDIS: 2, label: 'Suite Présidentielle', tier: 1, suiteChoice: true },
         persons: [],
         orders: [
+          {fn:'louer_local', label:'Louer cette suite (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Suite d\'apparat au décor XIXe. +8 POP +8 INF +2 DIS à votre organisation.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
