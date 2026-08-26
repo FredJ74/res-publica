@@ -63,10 +63,20 @@ function _stageHtmlResolution(type, succes, titre) {
     return html;
   }
   if (type === 'arrestation') {
+    // Arrestation V2 (correctif visuel, 26 aout 2026) : scene de rue stylisee, gyrophare,
+    // silhouette policiere qui avance, personnage interpelle mains levees, badge, puis titre --
+    // accessoire isole dans .res-arrest-scene (§ "remplacable plus tard par une image/WebP sans
+    // toucher aux handlers"). Titre parametre (config.titre) inchange : reste correct a la 3e
+    // personne pour la chasse a l'homme/l'enquete.
     return '<div class="resolution-stage res-arrest-shake">' +
-        '<div class="res-police-flash"></div>' +
-        '<div class="res-arrest-dim"></div>' +
-        '<div class="resolution-icon" style="position:relative;z-index:2;color:#e0d5b8"><i class="ti ti-alert-octagon"></i></div>' +
+        '<div class="res-arrest-scene">' +
+          '<div class="res-arrest-street"></div>' +
+          '<div class="res-police-flash"></div>' +
+          '<div class="res-arrest-dim"></div>' +
+          '<div class="res-cop"><div class="res-cop-head"></div><div class="res-cop-body"></div><div class="res-cop-arm"></div></div>' +
+          '<div class="res-suspect"><div class="res-suspect-head"></div><div class="res-suspect-body"></div><div class="res-suspect-arm res-suspect-arm-l"></div><div class="res-suspect-arm res-suspect-arm-r"></div></div>' +
+          '<div class="res-badge"><i class="ti ti-shield-check"></i></div>' +
+        '</div>' +
         '<div class="resolution-title-big res-arrest-title">' + (titre || 'ARRESTATION') + '</div>' +
       '</div>';
   }
