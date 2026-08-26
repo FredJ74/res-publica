@@ -259,15 +259,15 @@ INDICE DE PIÉTÉ :
 Chaque ville a son propre Indice de Piété (0-100), indépendant des autres villes du même empire.
 
 LIEUX DE CULTE :
-Chaque empire possède au moins un lieu de culte accessible à tous. On peut toujours y prier (+2 Moral, +3 piété de la ville) et y faire un don de 200 FR pris sur son argent personnel (+3 Popularité, +5 piété de la ville).
+Chaque empire possède au moins un lieu de culte accessible à tous. On peut toujours y prier (+2 Moral, +3 piété de la ville) et y faire un don de 200 FR pris sur son argent personnel (+3 Popularité, +5 piété de la ville). À Républia, un don fait dans une église alimente exclusivement la caisse de cette église précise (un don à Port-Sainte-Marie n'alimente jamais Luthécia).
 
 CONFESSION ET BÉNÉDICTION (Républia — Luthécia, Port-Sainte-Marie, Montrouge) :
-Ces deux services ne sont pas des boutons de salle : ils se demandent directement auprès d'un religieux habilité (Grand Prêtre ou clerc) réellement présent sur place.
-• Confession — 2 PA. Efface une seule trace d'action illégale pas encore découverte. Si l'affaire a déjà été découverte ou jugée, la confession n'a plus aucun effet dessus : elle ne réécrit jamais l'historique judiciaire.
+Ces deux services ne sont pas des boutons de salle : ils se demandent directement auprès d'un religieux habilité (Grand Prêtre, Prêtre titulaire ou clerc) réellement présent sur place — Père Ception et Enfant de chœur Lacroix à Luthécia, Père Iscope à Port-Sainte-Marie, Abbé Tonnière à Montrouge.
+• Confession — 2 PA. Efface une seule trace d'action illégale pas encore découverte. Si l'affaire a déjà été découverte ou jugée, la confession n'a plus aucun effet dessus : elle ne réécrit jamais l'historique judiciaire. Le contenu d'une confession n'est jamais consultable par qui que ce soit, pas même le Grand Prêtre : le secret est absolu.
 • Bénédiction — 1 PA. 80% de chances fixes d'obtenir un bonus au prochain ordre risqué entrepris dans les 24 heures qui suivent.
 
 LE GRAND PRÊTRE :
-Son rôle institutionnel (nomination, pouvoirs officiels) n'est pas encore disponible dans le jeu.`
+Père Ception (Luthécia) est l'actuel Grand Prêtre national de Républia. Une carrière religieuse pour les joueurs (grades, charges locales de Prêtre, compétition nationale pour devenir Grand Prêtre, pouvoirs du Grand Prêtre) est en cours de mise en place et n'est pas encore disponible.`
   },
   economie: {
     titre: "L'économie",
@@ -1654,6 +1654,7 @@ async function doDormir() {
   verifierProgressionHospitalisation();
   if (typeof verifierEffetsManifestationsEcoulees === 'function') verifierEffetsManifestationsEcoulees(state.country);
   if (typeof verifierSalairePolitique === 'function') verifierSalairePolitique();
+  if (typeof verifierSalaireReligieux === 'function') verifierSalaireReligieux();
   if (typeof verifierSalaireDirecteur === 'function') verifierSalaireDirecteur();
   if (typeof verifierSalaireDirecteurEntrepot === 'function') verifierSalaireDirecteurEntrepot();
   if (typeof verifierAutoValidationManifestations === 'function') verifierAutoValidationManifestations(state.country);

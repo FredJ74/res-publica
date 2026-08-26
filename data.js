@@ -4009,19 +4009,20 @@ const BUILDINGS = {
         persons: [],
         orders: []
       },
-      // Socle religieux minimal (lot "refonte religion Republia", 26 aout 2026) : actions de
-      // lieu (prier/don) desormais disponibles ici, memes fn/handlers qu'a Luthecia (aucun
-      // handler duplique). La confession et la benediction restent indisponibles a PSM tant
-      // qu'aucun PNJ religieux habilite (grand_pretre/clerc) n'y est present -- ce sont des
-      // services de contact, pas des ordres de salle (voir openPnjModal, plateau-pnj.js) ; aucun
-      // PNJ invente ici, decision de nom/personnalite a prendre separement.
+      // Socle religieux (lot "carriere religieuse Republia", 26 aout 2026) : actions de lieu
+      // (prier/don) memes fn/handlers qu'a Luthecia (aucun handler duplique). Pere Iscope,
+      // religieux local de reference et titulaire PNJ initial de la charge de Pretre de
+      // Port-Sainte-Marie, rend desormais confession/benediction/consulter la regle disponibles
+      // ici (voir openPnjModal, plateau-pnj.js -- job:'pretre' ajoute a la liste habilitee).
       nef: {
         name: "Nef",
         image: "\u26ea",
         imageBg: "linear-gradient(135deg,#08080a,#0d0d10)",
         desc: "Ex-voto de marins accroches aux murs. Silence et recueillement.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/notre-dame-mer-nef.png",
-        persons: [],
+        persons: [
+          {name:'P\u00e8re Iscope (PNJ)', role:'Pr\u00eatre de Port-Sainte-Marie', rel:'neutral', job:'pretre'}
+        ],
         orders: [
           {fn:'prier',     label:'Prier le Formulaire Sacr\u00e9',  pa:1, cost:0,   type:'legal', icon:'ti-star',  successRate:100, desc:'Vous priez pour vous-m\u00eame (+2 Moral) tout en nourrissant la ferveur religieuse de Port-Sainte-Marie (+3 pi\u00e9t\u00e9 locale).'},
           {fn:'faire_don', label:'Faire un don a l\'Eglise',   pa:1, cost:200, type:'legal', icon:'ti-coins', successRate:100, desc:'200 FR pris sur votre argent personnel. +3 popularit\u00e9 pour vous, +5 pi\u00e9t\u00e9 locale pour Port-Sainte-Marie.'}
@@ -4798,7 +4799,7 @@ const BUILDINGS = {
         desc: "La grande nef où les fidèles remplissent leurs actes de foi administratifs. Des piles de formulaires s'élèvent jusqu'au plafond.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/tabernacle-impots-nef-formulaires.png",
         persons: [
-          {name:'Percepteur Suprême Adolphe Taxe (PNJ)', role:'Grand Prêtre du Papyrusisme', rel:'neutral', job:'grand_pretre'},
+          {name:'Père Ception (PNJ)', role:'Grand Prêtre du Papyrusisme', rel:'neutral', job:'grand_pretre'},
           {name:'Enfant de chœur Lacroix (PNJ)', role:'PNJ - Distributeur de formulaires', rel:'neutral', job:'clerc'}
         ],
         // Refonte religion Republia (26 aout 2026) : actions de lieu uniquement (prier, don).
@@ -4818,7 +4819,7 @@ const BUILDINGS = {
         desc: "La pièce secrète du Grand Prêtre. Archives des confessions. Formulaires rares et tampons bénis.",
         imageUrl: "https://images.unsplash.com/photo-1568667256549-094345857aff?w=1200&q=80",
         persons: [
-          {name:'Percepteur Suprême Adolphe Taxe (PNJ)', role:'Grand Prêtre du Papyrusisme', rel:'neutral', job:'grand_pretre'}
+          {name:'Père Ception (PNJ)', role:'Grand Prêtre du Papyrusisme', rel:'neutral', job:'grand_pretre'}
         ],
         // Masques, non supprimes (lot "refonte religion Republia", 26 aout 2026) : les 3 ordres
         // ci-dessous (excommunier/benediction_etat/consulter_confessions) dependent du poste
@@ -5341,13 +5342,14 @@ const BUILDINGS = {
     icon: "ti-cross",
     bgColor: "#0c0a06",
     desc: "L'église de Montrouge.",
-    // Socle religieux minimal (lot "refonte religion Republia", 26 aout 2026) : actions de lieu
-    // (prier/don) desormais disponibles ici, memes fn/handlers qu'a Luthecia (aucun handler
-    // duplique). Confession et benediction restent indisponibles a Montrouge tant qu'aucun PNJ
-    // religieux habilite (grand_pretre/clerc) n'y est present -- services de contact, pas des
-    // ordres de salle (voir openPnjModal, plateau-pnj.js) ; aucun PNJ invente ici, decision de
-    // nom/personnalite a prendre separement.
-    rooms: { salle: { name: "Nef", desc: "Un lieu de recueillement.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-eglise-nef.jpg", persons: [], orders: [
+    // Socle religieux (lot "carriere religieuse Republia", 26 aout 2026) : actions de lieu
+    // (prier/don) memes fn/handlers qu'a Luthecia (aucun handler duplique). Abbe Tonniere,
+    // religieux local de reference et titulaire PNJ initial de la charge de Pretre de Montrouge,
+    // rend desormais confession/benediction/consulter la regle disponibles ici (voir
+    // openPnjModal, plateau-pnj.js -- job:'pretre' ajoute a la liste habilitee).
+    rooms: { salle: { name: "Nef", desc: "Un lieu de recueillement.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-eglise-nef.jpg", persons: [
+      {name:'Abbé Tonnière (PNJ)', role:'Prêtre de Montrouge', rel:'neutral', job:'pretre'}
+    ], orders: [
       {fn:'prier',     label:'Prier le Formulaire Sacré',  pa:1, cost:0,   type:'legal', icon:'ti-star',  successRate:100, desc:'Vous priez pour vous-même (+2 Moral) tout en nourrissant la ferveur religieuse de Montrouge (+3 piété locale).'},
       {fn:'faire_don', label:'Faire un don a l\'Eglise',   pa:1, cost:200, type:'legal', icon:'ti-coins', successRate:100, desc:'200 FR pris sur votre argent personnel. +3 popularité pour vous, +5 piété locale pour Montrouge.'}
     ] } }

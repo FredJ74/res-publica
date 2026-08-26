@@ -8835,6 +8835,45 @@ async function verifierSalairePolitique() {
   }
 }
 
+// Salaire religieux (lot "carriere religieuse Republia", 26 aout 2026) : meme idiome que
+// verifierSalairePolitique juste au-dessus (garde dernierXJour, debiterCaisseBatimentPlafonne),
+// mais PAS la meme source de titulaire -- state.poste est exclusif avec les autres postes
+// nommes, une charge religieuse ne doit jamais l'etre (voir getTitulaireReligieux,
+// plateau-divers.js), donc on interroge titulaires_pnj directement pour les 3 villes plutot que
+// de lire state.poste. 100 FR/jour de la charge locale de Pretre (caisse de SON eglise) ;
+// +100 FR/jour supplementaires pour le Grand Pretre national, TOUJOURS payes par la caisse du
+// Grand Tabernacle de Luthecia (tabernacle-impots), meme si le Grand Pretre est Pretre de PSM ou
+// Montrouge. Silencieux (aucun toast) si le joueur ne detient aucune charge religieuse -- ce sera
+// le cas de l'immense majorite des joueurs, contrairement au salaire politique qui a toujours un
+// poste (ou aucun) a verifier en un seul lieu.
+async function verifierSalaireReligieux() {
+  if (!state.char?.name || (state.country || 'republic') !== 'republic') return;
+  const jour = state.day || 1;
+  if (state.char.dernierSalaireReligieuxJour === jour) return;
+  state.char.dernierSalaireReligieuxJour = jour;
+
+  if (typeof getTitulaireReligieux !== 'function') return;
+  let total = 0;
+  for (const ville of Object.keys(VILLES_EGLISES_REPUBLIA)) {
+    const titulaire = await getTitulaireReligieux('pretre', ville).catch(() => null);
+    if (titulaire?.estPJ && titulaire.nom === state.char.name) {
+      const montant = await debiterCaisseBatimentPlafonne('republic', VILLES_EGLISES_REPUBLIA[ville], 100);
+      if (montant > 0) { state.arg = (state.arg || 0) + montant; total += montant; }
+    }
+  }
+  const grandPretre = await getTitulaireReligieux('grand_pretre', null).catch(() => null);
+  if (grandPretre?.estPJ && grandPretre.nom === state.char.name) {
+    const montant = await debiterCaisseBatimentPlafonne('republic', 'tabernacle-impots', 100);
+    if (montant > 0) { state.arg = (state.arg || 0) + montant; total += montant; }
+  }
+
+  if (total > 0) {
+    updateUI();
+    showToast('Salaire religieux perçu', '+' + total.toLocaleString('fr-FR') + ' FR.', true, true);
+    addJournalEntry('Salaire religieux perçu : ' + total + ' FR.', 'event-good');
+  }
+}
+
 // =====================
 // Reconstruction des ordres fiscaux existants (etaient locaux/casses) — Ministre des Finances et Maire
 // =====================

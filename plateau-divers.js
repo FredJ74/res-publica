@@ -327,6 +327,47 @@ const RELIGIONS = {
   khalija:  { nom: 'Loukoumisme',grandPretre: 'Grand Confiseur',     temple: 'Pâtisserie Sacrée',     peche: 'refuser un loukoum offert' }
 };
 
+// ---- CHARGES RELIGIEUSES (lot "carriere religieuse Republia", 26 aout 2026) ----
+// Titulaire ACTUEL (PJ ou PNJ) d'une charge de Pretre local ou de Grand Pretre national :
+// reutilise le meme stockage generique que le repli PNJ des postes nommes (table titulaires_pnj,
+// sbSetTitulairePnj/sbGetTitulairePnj deja existants, cle pays+posteId+city) -- rien de
+// parallele cree. Mais PAS le meme mecanisme d'ACQUISITION : getTitulaireActuel()
+// (plateau-organisations-quetes.js) ne modelise que la nomination (POSTES_NOMMES_EXCLUSIFS,
+// state.poste exclusif avec les autres postes) et l'election (POSTES_ELECTIFS) -- une charge
+// religieuse se CONQUIERT par score de piete personnelle et n'est delibarement PAS exclusive
+// avec un poste civique (un Pretre peut aussi etre Maire) : state.poste n'est donc jamais
+// touche ici. Ce lecteur dedie reprend seulement la technique de detection PJ/PNJ de la branche
+// "poste elu" de getTitulaireActuel (verifier l'appartenance a sbListPersonnages()).
+//
+// Tant que la conquete par score n'est pas branchee (necessite la migration contributions_piete,
+// voir rapport), titulaires_pnj ne contient jamais d'entree pour 'pretre'/'grand_pretre' : ce
+// lecteur retombe alors sur les titulaires PNJ de reference ci-dessous, exactement les postes
+// initiaux valides pour ce lot.
+const TITULAIRES_RELIGIEUX_PNJ_DEFAUT = {
+  pretre: { capitale: 'Père Ception', ville_a: 'Père Iscope', ville_b: 'Abbé Tonnière' },
+  grand_pretre: { national: 'Père Ception' }
+};
+// Reference de score des titulaires PNJ initiaux -- valeurs de jeu fixes, jamais calculees. Un
+// Pretre PJ doit les DEPASSER STRICTEMENT (jamais egaler) pour conquerir la charge locale.
+const REFERENCE_TITULAIRE_PRETRE = { capitale: 50, ville_a: 40, ville_b: 40 };
+const VILLES_EGLISES_REPUBLIA = { capitale: 'tabernacle-impots', ville_a: 'notre-dame-mer', ville_b: 'eglise-montrouge' };
+
+async function getTitulaireReligieux(posteId, city) {
+  const pays = 'republic'; // carriere religieuse Republia uniquement (§1-2 du lot)
+  const defautNom = posteId === 'pretre' ? TITULAIRES_RELIGIEUX_PNJ_DEFAUT.pretre[city] : TITULAIRES_RELIGIEUX_PNJ_DEFAUT.grand_pretre.national;
+  let nom = typeof sbGetTitulairePnj === 'function' ? await sbGetTitulairePnj(pays, posteId, city || null).catch(() => null) : null;
+  if (!nom) nom = defautNom;
+  if (!nom) return null;
+  let estPJ = false;
+  if (typeof sbListPersonnages === 'function') {
+    try {
+      const joueurs = await sbListPersonnages() || [];
+      estPJ = joueurs.some(j => j.country === pays && j.name === nom);
+    } catch(e) {}
+  }
+  return { nom, estPJ };
+}
+
 async function doPrier(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
@@ -373,6 +414,13 @@ async function doSeConfeser(pa, cost) {
 // sur le budget de la presidence plutot que sur le portefeuille personnel. Desormais paiement
 // exclusivement personnel, PA et argent tous deux verifies/deduits par le meme mecanisme standard
 // que tous les autres ordres -- coherent pour les 4 empires (fonction partagee, RELIGIONS[pays]).
+// Caisses des 3 eglises de Republia (lot "carriere religieuse Republia", 26 aout 2026) : reutilise
+// integralement le systeme institutionnel generique existant (crediterCaisseBatiment, table
+// caisses_batiments, meme cle pays+buildingId que taxes/salaires/etc.) -- aucune caisse
+// parallele. Un don n'alimente QUE la caisse du batiment ou il est fait ; PSM n'alimente jamais
+// Luthecia. Hors de ces 3 batiments (les 3 autres empires), comportement strictement inchange.
+const EGLISES_REPUBLIA_CAISSE = ['tabernacle-impots', 'notre-dame-mer', 'eglise-montrouge'];
+
 async function doFaireDon(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) {
@@ -381,6 +429,9 @@ async function doFaireDon(pa, cost) {
   }
   modifierIP(5);
   state.pop = Math.min(100, state.pop + 3);
+  if (state.country === 'republic' && EGLISES_REPUBLIA_CAISSE.includes(state.currentBuilding) && typeof crediterCaisseBatiment === 'function') {
+    crediterCaisseBatiment('republic', state.currentBuilding, cost).catch(() => {});
+  }
   updateUI();
   showToast('Don effectué', '+5 IP +3 POP. Le ' + (RELIGIONS[state.country]?.grandPretre||'Grand Prêtre') + ' vous bénit.', true);
 }
