@@ -849,6 +849,14 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" onclick="doSeConfeserContact(\'' + pnjSafeName + '\')"><i class="ti ti-message" style="font-size:.85rem"></i> Se confesser</button>';
     actionBtns += '<button class="pnj-action-btn" onclick="doDemanderBenedictionContact(\'' + pnjSafeName + '\')"><i class="ti ti-sparkles" style="font-size:.85rem"></i> Demander une bénédiction</button>';
     actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');openRulesView();renderRulesContent(\'religion\');" style="color:#8a9aca;border-color:#2a3a5a"><i class="ti ti-book" style="font-size:.85rem"></i> Consulter la règle</button>';
+    // Pouvoir du Grand Pretre national (§6 du lot 2, 26 aout 2026) : boutons proposes ici, dans
+    // n'importe laquelle des 3 eglises (pas seulement Luthecia -- la fonction est nationale, un
+    // Grand Pretre base a PSM/Montrouge l'exerce aupres de son propre referent local). Visibles a
+    // tout visiteur ; l'autorisation reelle (etre effectivement le Grand Pretre EN EXERCICE) est
+    // verifiee fraichement au clic, jamais dans cette liste (ouvrirExcommunierCible,
+    // plateau-divers.js), meme doctrine que "controle frais au moment exact" deja etablie ailleurs.
+    actionBtns += '<button class="pnj-action-btn" style="color:#8a3a2a;border-color:#5a2020" onclick="ouvrirExcommunierCible()"><i class="ti ti-ban" style="font-size:.85rem"></i> Excommunier (Grand Prêtre)</button>';
+    actionBtns += '<button class="pnj-action-btn" style="color:#4a8a6a;border-color:#2a5a3a" onclick="ouvrirLeverExcommunicationCible()"><i class="ti ti-shield-check" style="font-size:.85rem"></i> Lever une excommunication (Grand Prêtre)</button>';
   }
 
   const objetsDispos = (state.inventory || []).filter(i => i.type !== 'acte_officiel');

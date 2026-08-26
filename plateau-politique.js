@@ -4461,7 +4461,27 @@ function executerOrdreContact(action, nomCible) {
   document.getElementById('modal-postes').classList.remove('open');
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  if (action === 'nommer_pm_confirm') {
+  if (action === 'excommunier' || action === 'lever_excommunication') {
+    // Second controle d'autorisation, FRAIS, au moment exact de l'action (ouvrirExcommunierCible/
+    // ouvrirLeverExcommunicationCible, plateau-divers.js, en a deja fait un premier avant
+    // d'ouvrir cette liste de cibles -- celui-ci couvre le cas ou le statut de Grand Pretre aurait
+    // change pendant que la modale etait ouverte).
+    (async () => {
+      if (!(await estGrandPretreActuel(state.char?.name))) {
+        showToast('Pouvoir réservé', 'Seul le Grand Prêtre national en exercice peut exercer ce pouvoir.', false);
+        return;
+      }
+      if (action === 'excommunier') {
+        await appliquerExcommunication(nomCible, state.char?.name);
+        showToast('Excommunication prononcée', nomCible + ' est excommunié(e). -15 POP, -2 CHA tant que le statut est actif.', true, true);
+        addJournalEntry('Excommunication de ' + nomCible + ' prononcée.', 'event-bad');
+      } else {
+        await leverExcommunicationCible(nomCible);
+        showToast('Excommunication levée', nomCible + ' n\'est plus excommunié(e). Les 15 POP perdus ne sont pas restitués.', true, true);
+        addJournalEntry('Excommunication de ' + nomCible + ' levée.', 'event-good');
+      }
+    })();
+  } else if (action === 'nommer_pm_confirm') {
     envoyerNotificationVraiJoueur(nomCible, 'Nomination au poste de Premier Ministre',
       'Par decision presidentielle, vous etes nomme(e) Premier Ministre. Prenez vos fonctions immediatement au Palais du Gouvernement.');
     addExternalEvent('NOMINATION : ' + nomCible + ' est nomme(e) Premier Ministre par le President.');

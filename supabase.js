@@ -167,6 +167,10 @@ async function sbSavePersonnage(charState) {
     maxence:          charState.char?.maxence || null,
     succes_maxence:   charState.char?.succesMaxence || null,
     journal:          charState.char?.journal || [],
+    // Excommunication (lot "carriere religieuse Republia", lot 2, 26 aout 2026) : JSONB nullable,
+    // meme idiome que est_emprisonne -- {par, depuis} si active, null sinon. Migration executee
+    // manuellement (ALTER TABLE personnages ADD COLUMN excommunie jsonb).
+    excommunie:       charState.char?.excommunie || null,
     updated_at:       new Date().toISOString()
   };
 
@@ -233,7 +237,7 @@ async function sbLoadPersonnage(name) {
              licenceSportive: r.licence_sportive || null, performance: r.performance_sportive || null, blessureSportive: r.blessure_sportive || null,
              signatureHtml: r.signature_html || null, signatureBlocks: r.signature_blocks || [],
              queteAccueil: r.quete_accueil || null, enigme1: r.enigme1 || null, maxence: r.maxence || null, succesMaxence: r.succes_maxence || null,
-             journal: r.journal || [] },
+             journal: r.journal || [], excommunie: r.excommunie || null },
     country:       r.country,
     inf:           r.resources?.inf || 0,
     pop:           r.resources?.pop || 0,
@@ -772,6 +776,30 @@ async function sbSaveIndicesVille(key, data) {
     return sbUpdate('indices_villes', `id=eq.${encodeURIComponent(key)}`, { data, updated_at: new Date().toISOString() });
   }
   return sbInsert('indices_villes', { id: key, data, updated_at: new Date().toISOString() });
+}
+
+// =====================
+// LEDGER DES CONTRIBUTIONS PERSONNELLES DE PIETE (lot "carriere religieuse Republia", lot 2,
+// 26 aout 2026 -- table contributions_piete, migration executee manuellement). Jamais purge :
+// le total lifetime (grade) et le total actif 7 jours (score de carriere) sont tous deux
+// calcules cote client a partir des memes lignes brutes, jamais recalcules/reecrits ici.
+// =====================
+async function sbEnregistrerContributionPiete(pays, ville, auteur, quantite) {
+  return sbInsert('contributions_piete', { pays, ville, auteur, quantite, created_at: new Date().toISOString() });
+}
+
+// Toutes les contributions d'un auteur, tous villes confondues (necessaire pour le total
+// lifetime, qui n'est jamais scope a une seule ville).
+async function sbGetContributionsPieteAuteur(pays, auteur) {
+  const filtre = `pays=eq.${encodeURIComponent(pays)}&auteur=eq.${encodeURIComponent(auteur)}`;
+  return sbGet('contributions_piete', filtre) || [];
+}
+
+// Toutes les contributions actives (created_at >= depuisISO) d'une ville, tous auteurs confondus
+// -- necessaire pour recalculer la piete municipale glissante (§2 du lot 2).
+async function sbGetContributionsPieteVille(pays, ville, depuisISO) {
+  const filtre = `pays=eq.${encodeURIComponent(pays)}&ville=eq.${encodeURIComponent(ville)}&created_at=gte.${encodeURIComponent(depuisISO)}`;
+  return sbGet('contributions_piete', filtre) || [];
 }
 
 // =====================

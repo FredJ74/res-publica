@@ -256,7 +256,7 @@ LES 4 RELIGIONS :
 • Al-Khalija → Le Loukoumisme — Vénération du Loukoum Divin. Grand Prêtre : le Grand Confiseur. Temple : la Pâtisserie Sacrée. Péché mortel : refuser un loukoum offert.
 
 INDICE DE PIÉTÉ :
-Chaque ville a son propre Indice de Piété (0-100), indépendant des autres villes du même empire.
+Chaque ville a son propre Indice de Piété (0-100), indépendant des autres villes du même empire. À Républia, cet indice est glissant sur 7 jours réels : 40 de base + la somme des contributions religieuses (prières, dons) encore actives sur les 7 derniers jours, plafonnée à 100. Une contribution qui dépasse 7 jours cesse d'y participer — une ville religieusement inactive voit donc sa piété revenir progressivement vers 40. Dans les 3 autres empires, l'indice reste un cumul classique, inchangé.
 
 LIEUX DE CULTE :
 Chaque empire possède au moins un lieu de culte accessible à tous. On peut toujours y prier (+2 Moral, +3 piété de la ville) et y faire un don de 200 FR pris sur son argent personnel (+3 Popularité, +5 piété de la ville). À Républia, un don fait dans une église alimente exclusivement la caisse de cette église précise (un don à Port-Sainte-Marie n'alimente jamais Luthécia).
@@ -266,8 +266,26 @@ Ces deux services ne sont pas des boutons de salle : ils se demandent directemen
 • Confession — 2 PA. Efface une seule trace d'action illégale pas encore découverte. Si l'affaire a déjà été découverte ou jugée, la confession n'a plus aucun effet dessus : elle ne réécrit jamais l'historique judiciaire. Le contenu d'une confession n'est jamais consultable par qui que ce soit, pas même le Grand Prêtre : le secret est absolu.
 • Bénédiction — 1 PA. 80% de chances fixes d'obtenir un bonus au prochain ordre risqué entrepris dans les 24 heures qui suivent.
 
-LE GRAND PRÊTRE :
-Père Ception (Luthécia) est l'actuel Grand Prêtre national de Républia. Une carrière religieuse pour les joueurs (grades, charges locales de Prêtre, compétition nationale pour devenir Grand Prêtre, pouvoirs du Grand Prêtre) est en cours de mise en place et n'est pas encore disponible.`
+CARRIÈRE RELIGIEUSE (Républia uniquement) :
+Prier et faire un don font progresser une carrière personnelle, en plus de leurs effets habituels.
+
+• Contribution personnelle — chaque prière (+3) et chaque don (+5) est enregistré à votre nom. Votre score ACTIF est la somme de vos contributions des 7 derniers jours réels : c'est lui qui compte pour conquérir une charge ou rivaliser pour devenir Grand Prêtre. Votre total LIFETIME (jamais purgé) détermine vos grades.
+
+• Grades (définitifs, fondés sur le total lifetime) :
+  10 points → Enfant de chœur
+  25 points → Clerc
+  45 points → Prêtre
+Un grade acquis reste acquis pour toujours : l'expiration de vos anciennes contributions au bout de 7 jours ne fait jamais redescendre votre grade.
+
+• Charges locales de Prêtre — chaque ville a un titulaire (référence initiale : Père Ception à Luthécia avec 50, Père Iscope à Port-Sainte-Marie avec 40, Abbé Tonnière à Montrouge avec 40). Un joueur ayant atteint au moins le grade de Prêtre qui DÉPASSE STRICTEMENT le score du titulaire en place (une égalité ne suffit jamais) devient automatiquement le nouveau titulaire de cette ville. Une charge n'est jamais perdue simplement parce que le score actif du titulaire baisse ou que ses contributions expirent : elle ne change que lorsqu'un autre Prêtre éligible le dépasse effectivement en agissant.
+
+• Grand Prêtre national — les 3 titulaires locaux sont les seuls candidats à la fonction nationale. Le titulaire local dont le score dépasse strictement celui du Grand Prêtre en exercice devient le nouveau Grand Prêtre, sans jamais perdre sa charge locale. Même principe de stabilité : pas de destitution automatique, uniquement un dépassement effectif.
+
+• Salaires — un Prêtre titulaire local touche 100 FR/jour, versés par la caisse de sa propre église (non versés si cette caisse est vide). Le Grand Prêtre national touche 100 FR/jour supplémentaires, toujours payés par la caisse du Grand Tabernacle de Luthécia, même s'il est Prêtre de Port-Sainte-Marie ou de Montrouge.
+
+• Excommunication (pouvoir du Grand Prêtre national) — le Grand Prêtre peut excommunier n'importe quel personnage de façon totalement arbitraire : aucune preuve ni justification n'est exigée par le jeu, seuls les joueurs peuvent en tirer les conséquences politiques. Effets : -15 POP immédiate (jamais restituée, même après la levée), -2 CHA tant que l'excommunication est active, impossibilité de recevoir une bénédiction, et les prières de l'excommunié ne produisent plus aucune piété. La confession reste possible. L'excommunication est publiquement annoncée. Le Grand Prêtre peut à tout moment lever une excommunication : le -2 CHA disparaît, les bénédictions et la piété des prières redeviennent normales — seuls les 15 POP perdus restent acquis.
+
+Père Ception (Luthécia) est l'actuel Grand Prêtre national de Républia.`
   },
   economie: {
     titre: "L'économie",

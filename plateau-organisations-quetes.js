@@ -2045,7 +2045,13 @@ function getStatEffective(stat) {
   // bonusEntIntegrationLocale() pour les 5 autres caracteristiques -- comportement et cout
   // strictement inchanges pour tous les autres appelants de cette fonction.
   const bonusLocal = (stat === 'ENT') ? bonusEntIntegrationLocale() : 0;
-  const valeurNormale = base + bonus + bonusLocal;
+  // Malus d'excommunication (lot "carriere religieuse Republia", lot 2, 26 aout 2026) : -2 CHA
+  // reversible tant que state.char.excommunie est actif (personnages.excommunie, JSONB nullable).
+  // N'affecte QUE CHA, meme doctrine que le bonus ENT local ci-dessus -- ne modifie jamais
+  // state.char.stats.CHA (la caracteristique de base), disparait des la levee (excommunie remis
+  // a null) sans aucune trace residuelle.
+  const malusExcommunication = (stat === 'CHA' && state.char?.excommunie) ? -2 : 0;
+  const valeurNormale = base + bonus + bonusLocal + malusExcommunication;
   if (state.statsAffaiblies && state.statsAffaiblies[stat] !== undefined) {
     const fraction = Math.max(0, Math.min(1, (state.hp || 0) / 100));
     return Math.max(1, Math.round(valeurNormale * fraction));
