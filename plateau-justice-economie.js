@@ -865,12 +865,19 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
     motifs: motifsArrestation
   }).catch(() => {});
 
-  // Teleportation en cellule de garde a vue
-  state.currentBuilding = 'commissariat';
-  state.currentRoom = 'prison';
+  // Teleportation en cellule de garde a vue -- vers la prison/geoles de la ville REELLE de
+  // l'arrestation (lot "ordres carceraux hors Luthecia", 26 aout 2026), plus jamais codee en dur
+  // sur le batiment 'commissariat' de Luthecia : une arrestation a Montrouge/PSM tele-portait
+  // jusqu'ici le joueur vers un batiment inexistant pour sa ville, avec un verrou de navigation
+  // (enterRoom) qui ne reconnaissait de toute facon que 'commissariat'/'prison' comme cellule
+  // valide -- le joueur restait alors bloque sans pouvoir jamais atteindre une piece coherente.
+  const buildingIdCellule = (typeof getBuildingIdCommissariatNavigation === 'function') ? getBuildingIdCommissariatNavigation(state.currentCity) : 'commissariat';
+  const roomIdCellule = (buildingIdCellule === 'commissariat') ? 'prison' : 'geoles';
+  state.currentBuilding = buildingIdCellule;
+  state.currentRoom = roomIdCellule;
   if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
-    enterBuilding('commissariat', true);
-    if (typeof enterRoom === 'function') enterRoom('commissariat', 'prison', null);
+    enterBuilding(buildingIdCellule, true);
+    if (typeof enterRoom === 'function') enterRoom(buildingIdCellule, roomIdCellule, null);
   }
 }
 

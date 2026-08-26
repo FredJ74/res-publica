@@ -457,12 +457,14 @@ const WORLD = {
             accueil_loc: { imageUrl: "images/port-sainte-marie-commissariat-accueil.png" },
             // Loic Karamel (PNJ), lot du 24 aout 2026 : detenu decoratif, meme precedent exact
             // que Tristan Cabane (BUILDINGS['commissariat'].prison, Luthecia) -- job:'detenu'
-            // deja utilise la, aucun nouveau job cree. Purement narratif : aucun ordre, aucune
-            // mecanique, ne touche pas state.estEmprisonne ni aucune logique de detention (celles-
-            // ci restent codees en dur sur buildingId==='commissariat', jamais 'commissariat-
-            // local', voir commentaire sur la room 'geoles' de BUILDINGS['commissariat-local']
-            // plus bas). PSM uniquement -- roomOverride scope a ville_a, Montrouge (aucun
-            // override sur geoles) et Luthecia (batiment distinct) restent inchanges.
+            // deja utilise la, aucun nouveau job cree. Purement narratif, ne remplace pas les
+            // vrais detenus affiches dynamiquement (voir sbGetDetenusActifs, plateau-navigation.js).
+            // Les mecaniques de detention (se_rebeller/tentative_evasion/requete_avocat)
+            // fonctionnent desormais ici aussi (lot "ordres carceraux hors Luthecia", 26 aout
+            // 2026) : herite les orders du template partage BUILDINGS['commissariat-local'].
+            // rooms.geoles, ce roomOverride ne touchant que imageUrl/persons. PSM uniquement --
+            // roomOverride scope a ville_a, Montrouge (aucun override ici) et Luthecia (batiment
+            // distinct) restent inchanges.
             geoles: {
               imageUrl: "images/port-sainte-marie-commissariat-geoles.png",
               persons: [
@@ -3674,17 +3676,27 @@ const BUILDINGS = {
           {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',  pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
         ]
       },
-      // Salle minimale ajoutee le 2026-08-16 pour raccorder l'image geoles fournie.
-      // Volontairement sans PNJ/ordre : les mecaniques de detention (state.estEmprisonne,
-      // evasion...) sont codees en dur sur buildingId === 'commissariat' (Luthecia), pas sur
-      // 'commissariat-local' — les repliquer ici serait inventer une mecanique deconnectee.
+      // Salle ajoutee le 2026-08-16, orders raccordes le 26 aout 2026 (lot "ordres carceraux
+      // hors Luthecia") : les mecaniques de detention etaient jusque-la codees en dur sur
+      // buildingId === 'commissariat' (Luthecia uniquement), alors que la chaine judiciaire
+      // permet desormais une incarceration reelle a Montrouge/PSM. Memes fn/handlers qu'a
+      // Luthecia (BUILDINGS['commissariat'].rooms.prison, plateau-justice-economie.js,
+      // plateau-router.js) -- aucun handler duplique, partages tels quels via ce meme template
+      // (commissariat-local) entre Montrouge et PSM, meme principe que les orders policiers
+      // d'accueil_loc ci-dessus. Les fonctions elles-memes (doSeRebeller/doTentativeEvasion/
+      // doRequeteAvocat) agissent deja sur state.estEmprisonne, l'etat carceral REEL du
+      // personnage courant, jamais sur un batiment/une ville supposee.
       geoles: {
         name: "Geôles",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
         desc: "Les cellules de garde à vue du commissariat de Montrouge.",
         imageUrl: "images/montrouge/montrouge-commissariat-geoles.jpg",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},
+          {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
+          {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
+        ]
       }
     }
   },

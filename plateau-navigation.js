@@ -479,8 +479,22 @@ function enterBuilding(buildingId, skipAutoRoom) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  // Cellule reelle du personnage emprisonne (lot "ordres carceraux hors Luthecia", 26 aout
+  // 2026) : deduite de est_emprisonne.city/country (lieu REEL de detention, jamais suppose),
+  // repli sur state.currentCity uniquement si l'info manque (anciens etats). Genere le bon
+  // couple buildingId/roomId de navigation pour cette ville (Luthecia : commissariat/prison ;
+  // Montrouge/PSM : commissariat-local/geoles, meme template partage -- state.currentCity est
+  // donc indispensable en plus du buildingId/roomId pour distinguer Montrouge de PSM, qui
+  // partagent litteralement les memes ids de navigation).
+  let estDansSaCellule = true;
+  if (state.estEmprisonne) {
+    const villeDetention = state.estEmprisonne.city || state.currentCity;
+    const buildingIdCellule = (typeof getBuildingIdCommissariatNavigation === 'function') ? getBuildingIdCommissariatNavigation(villeDetention) : 'commissariat';
+    const roomIdCellule = (buildingIdCellule === 'commissariat') ? 'prison' : 'geoles';
+    estDansSaCellule = state.currentCity === villeDetention && buildingId === buildingIdCellule && roomId === roomIdCellule;
+  }
   // Verrou : emprisonnement — reste bloque en cellule, aucun changement de piece
-  if (state.estEmprisonne && !(buildingId === 'commissariat' && roomId === 'prison')) {
+  if (state.estEmprisonne && !estDansSaCellule) {
     showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule. ' + joursRestantsPeine() + ' jour(s) restant(s) avant votre libération.', false);
     return;
   }
@@ -649,7 +663,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   // (base partagee) -- meme priorite que roomOverride.imageUrl ci-dessus, generique, sans aucun
   // cas particulier de ville/batiment/room.
   let displayDesc = roomOverride?.desc || ((isFirstRoom && ctx?.desc) ? ctx.desc : (room.desc || ''));
-  if (state.estEmprisonne && buildingId === 'commissariat' && roomId === 'prison') {
+  if (state.estEmprisonne && estDansSaCellule) {
     const joursRestants = Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
     displayDesc += ' — Peine : ' + state.estEmprisonne.raison + '. Temps restant : ' + joursRestants + ' jour(s) (libération au Jour ' + state.estEmprisonne.jourFin + ').';
   }
