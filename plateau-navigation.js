@@ -730,6 +730,15 @@ function enterRoom(buildingId, roomId, tabEl) {
       }
       if (pol) {
         extras.push({ name: 'Patrouille de police', role: pol.nombre + ' policier(s) en faction', rel: 'neutral', job: 'policier' });
+        // Rencontre policiere reelle (lot "condamne recherche croisant la police", 26 aout
+        // 2026) : declenchee uniquement ici, ou une presence policiere physique vient d'etre
+        // averee -- jamais a chaque deplacement. verifierArrestationRecherchePolice se
+        // reverifie elle-meme (deja emprisonne ?) avant d'agir ; son eventuelle teleportation
+        // declenche un nouvel enterRoom dont state.estEmprisonne desormais actif empechera toute
+        // nouvelle arrestation en cascade.
+        if (typeof verifierArrestationRecherchePolice === 'function') {
+          verifierArrestationRecherchePolice().catch(() => {});
+        }
       }
       if (detenus) {
         // isPJ:true (meme forme que les vrais joueurs presents ailleurs, plateau-multijoueur.js)

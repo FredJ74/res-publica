@@ -8164,6 +8164,50 @@ function doOrganiserChasseHomme(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Execute une entree `recherche` (condamnation enrichie type:'condamnation' OU entree plate
+// heritee {acte,type,jour}) en creant reellement l'incarceration dans `ville`, et retire
+// UNIQUEMENT cette entree de personnages.recherche -- jamais tout le tableau, une personne peut
+// avoir plusieurs avis independants. Factorisee (lot "condamne recherche croisant la police",
+// 26 aout 2026) pour que confirmerOrganiserChasseHomme (chasse a l'homme deliberee) et
+// verifierArrestationRecherchePolice (rencontre fortuite avec une patrouille reelle) executent
+// une condamnation exactement de la meme maniere : meme filtrage country (fait par l'appelant
+// avant d'invoquer cette fonction), meme recuperation des motifs, meme calcul de reliquat apres
+// evasion, meme propagation de detention_precedente_id, meme consommation ciblee de l'entree.
+async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, ville) {
+  let motif, motifsDetention, joursTotal, extra;
+  if (entree.type === 'condamnation') {
+    motifsDetention = entree.motifs || [];
+    motif = (motifsDetention[0] && motifsDetention[0].type) || 'Condamnation';
+    // Continuite apres evasion (entree.reliquat_jours renseigne) : les motifs d'origine sont
+    // conserves tels quels comme historique (jamais reduits/repartis), mais ce qui reste
+    // reellement a purger cette fois est reliquat + la sanction d'evasion, PAS la somme de tous
+    // les motifs historiques (qui totaliserait la peine d'origine en entier, deja partiellement
+    // servie). Condamnation normale (pas d'evasion) : la somme des motifs est bien ce qui reste
+    // a purger dans son integralite.
+    joursTotal = (entree.reliquat_jours != null)
+      ? entree.reliquat_jours + (motifsDetention.find(m => m.source === 'evasion')?.jours || 0)
+      : motifsDetention.reduce((s, m) => s + (m.jours || 0), 0);
+    extra = {
+      country: entree.country, motifs: motifsDetention,
+      jourAffaire: entree.jour_affaire, issueJudiciaire: entree.issue_judiciaire,
+      autorite: entree.autorite, villeCondamnation: entree.ville_condamnation,
+      detentionPrecedenteId: entree.detention_precedente_id || null,
+      reliquatJours: (entree.reliquat_jours !== undefined) ? entree.reliquat_jours : null
+    };
+  } else {
+    motif = entree.acte || 'Avis de recherche';
+    joursTotal = 3;
+    motifsDetention = [{ type: motif, jour_fait: entree.jour, jours: joursTotal, source: 'flagrant_delit_recherche', date_evenement: new Date().toISOString() }];
+    extra = { country: entree.country || state.country, motifs: motifsDetention };
+  }
+  const detentionId = (typeof enregistrerDetention === 'function') ? await enregistrerDetention(nom, motif, (state.day || 1) + joursTotal, undefined, ville, extra) : null;
+  // Ne retirer QUE l'entree effectivement traitee (egalite de reference, l'objet vient bien du
+  // meme tableau juste charge) -- jamais tout le tableau.
+  const rechercheMaj = rechercheActuelle.filter(r => r !== entree);
+  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { recherche: rechercheMaj }).catch(() => {});
+  return { motif, joursTotal, detentionId };
+}
+
 async function confirmerOrganiserChasseHomme(pa, cost) {
   const cibleInput = document.querySelector('input[name="chasse-cible"]:checked');
   if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); return; }
@@ -8214,46 +8258,60 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
   // Chasse a l'homme organisee depuis le commissariat du chasseur (meme raisonnement que
   // confirmerMenerEnquete, A3 lot judiciaire) : la cible est ramenee/detenue dans CETTE ville,
   // jamais dans celle ou la condamnation a ete prononcee -- c'est precisement l'arrestation
-  // reelle qui cree l'incarceration (registre carcerale, 26 aout 2026).
+  // reelle qui cree l'incarceration (registre carcerale, 26 aout 2026). Execution factorisee
+  // (executerCondamnationRecherchee) avec verifierArrestationRecherchePolice, meme logique.
   const entree = eligibles[0];
-  let motif, motifsDetention, joursTotal, extra;
-  if (entree.type === 'condamnation') {
-    motifsDetention = entree.motifs || [];
-    motif = (motifsDetention[0] && motifsDetention[0].type) || 'Condamnation';
-    // Continuite apres evasion (entree.reliquat_jours renseigne) : les motifs d'origine sont
-    // conserves tels quels comme historique (jamais reduits/repartis), mais ce qui reste
-    // reellement a purger cette fois est reliquat + la sanction d'evasion, PAS la somme de tous
-    // les motifs historiques (qui totaliserait la peine d'origine en entier, deja partiellement
-    // servie). Condamnation normale (pas d'evasion) : la somme des motifs est bien ce qui reste
-    // a purger dans son integralite.
-    joursTotal = (entree.reliquat_jours != null)
-      ? entree.reliquat_jours + (motifsDetention.find(m => m.source === 'evasion')?.jours || 0)
-      : motifsDetention.reduce((s, m) => s + (m.jours || 0), 0);
-    extra = {
-      country: entree.country, motifs: motifsDetention,
-      jourAffaire: entree.jour_affaire, issueJudiciaire: entree.issue_judiciaire,
-      autorite: entree.autorite, villeCondamnation: entree.ville_condamnation,
-      detentionPrecedenteId: entree.detention_precedente_id || null,
-      reliquatJours: (entree.reliquat_jours !== undefined) ? entree.reliquat_jours : null
-    };
-  } else {
-    motif = entree.acte || 'Avis de recherche';
-    joursTotal = 3;
-    motifsDetention = [{ type: motif, jour_fait: entree.jour, jours: joursTotal, source: 'flagrant_delit_recherche', date_evenement: new Date().toISOString() }];
-    extra = { country: pays, motifs: motifsDetention };
-  }
-  if (typeof enregistrerDetention === 'function') await enregistrerDetention(cible, motif, (state.day || 1) + joursTotal, undefined, ville, extra);
-  // Ne retirer QUE l'entree effectivement traitee (egalite de reference, l'objet vient bien du
-  // meme tableau juste charge) -- jamais tout le tableau, une cible peut avoir plusieurs avis de
-  // recherche independants.
-  const rechercheMaj = rechercheActuelle.filter(r => r !== entree);
-  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(cible)}`, { recherche: rechercheMaj }).catch(() => {});
+  await executerCondamnationRecherchee(cible, entree, rechercheActuelle, ville);
   if (typeof envoyerNotificationVraiJoueur === 'function') {
     await envoyerNotificationVraiJoueur(cible, 'Arrestation', 'Vous avez ete localise(e) et arrete(e) suite a un avis de recherche.');
   }
   addExternalEvent('CHASSE A L HOMME : ' + cible + ' a ete localise(e) et arrete(e).', 'local');
   addJournalEntry('Chasse a l homme reussie contre ' + cible + ' (' + taux + '% de chances). -300 FR.', 'event-good');
   showToast('Chasse reussie', cible + ' a ete localise(e) et arrete(e).', true, true);
+}
+
+// Rencontre policiere reelle (lot "condamne recherche croisant la police", 26 aout 2026) :
+// appelee UNIQUEMENT depuis enterRoom (plateau-navigation.js), quand une presence policiere
+// physique averee (getAffichagePolicePiece, effectifs reellement assignes a cette piece --
+// jamais une verification globale a chaque deplacement) vient d'etre constatee dans la piece que
+// le joueur courant vient d'integrer. Si ce joueur porte une condamnation enrichie
+// (type:'condamnation') en attente d'execution dans SON EMPIRE COURANT, il est arrete : meme
+// logique d'execution qu'une chasse a l'homme deliberee (executerCondamnationRecherchee),
+// incarceration dans SA ville actuelle -- jamais celle de la condamnation. Aucune extradition :
+// une condamnation d'un autre empire (entry.country different de state.country) reste sans
+// effet ici, exactement comme pour la chasse a l'homme. Les anciennes entrees plates (actes
+// auto-detectes, sans `type`) ne sont pas concernees -- elles suivent leur propre mecanisme deja
+// existant (checkArrestationAuDeplacement/checkArrestationAuReveil), inchange.
+async function verifierArrestationRecherchePolice() {
+  if (state.estEmprisonne || !state.char?.name) return;
+  if (typeof sbGet !== 'function') return;
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(state.char.name)}&select=recherche`).catch(() => []);
+  const rechercheActuelle = rows?.[0]?.recherche || [];
+  const eligible = rechercheActuelle.find(r => r.type === 'condamnation' && (!r.country || r.country === state.country));
+  if (!eligible) return;
+  // Re-verification apres l'attente reseau ci-dessus : l'etat a pu changer entre-temps (deja
+  // emprisonne par ailleurs) -- ne jamais arreter dans un contexte devenu incoherent.
+  if (state.estEmprisonne) return;
+
+  const ville = state.currentCity;
+  const { joursTotal } = await executerCondamnationRecherchee(state.char.name, eligible, rechercheActuelle, ville);
+
+  const nomVille = (typeof WORLD !== 'undefined' && WORLD[state.country]?.[ville]?.name) || ville;
+  showToast('Arrêté(e) !', 'Une condamnation en attente d\'exécution vous rattrape.', false, true);
+  addJournalEntry('Vous croisez une patrouille de police : une condamnation en attente d\'execution vous concernant est reconnue. Conduit(e) a la prison de ' + nomVille + '. Peine totale a purger : ' + joursTotal + ' jour(s).', 'event-bad');
+  addExternalEvent(state.char.name + ' a ete arrete(e) suite a une condamnation en attente d\'execution.', 'local');
+
+  // Teleportation vers la prison/geoles de CETTE ville (meme logique multivilles que
+  // procederArrestation, lot "ordres carceraux hors Luthecia").
+  const buildingIdCellule = (typeof getBuildingIdCommissariatNavigation === 'function') ? getBuildingIdCommissariatNavigation(ville) : 'commissariat';
+  const roomIdCellule = (buildingIdCellule === 'commissariat') ? 'prison' : 'geoles';
+  state.currentBuilding = buildingIdCellule;
+  state.currentRoom = roomIdCellule;
+  if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
+    enterBuilding(buildingIdCellule, true);
+    if (typeof enterRoom === 'function') enterRoom(buildingIdCellule, roomIdCellule, null);
+  }
+  if (typeof updateUI === 'function') updateUI();
 }
 
 async function chargerNiveauPrison(pays, ville) {
