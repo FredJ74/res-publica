@@ -546,9 +546,22 @@ function logeDemanderAdhesion() {
 
 // ------ CRÉATION ------
 
+// Types hors du parcours "creer depuis un local loue" (game design arrete le 26 aout 2026) :
+// sportive/supporters relevent de systemes dedies (championnat, clubs de supporters de stade),
+// jamais fondes via ce formulaire generique -- deja signale par leur propre maxParCreation:0.
+const TYPES_ORGA_EXCLUS_LOCAL_LOUE = ['sportive', 'supporters'];
+
+// Libelle affiche pour un type dans CE parcours uniquement (ne modifie pas def.label, qui reste
+// "Organisation Criminelle" partout ailleurs -- tableau general, mes organisations, etc.).
+// "secrete" decrit ici la visibilite proposee au joueur, pas une nature criminelle imposee.
+function libelleTypeOrgaLocalLoue(type, def) {
+  return type === 'criminelle' ? 'Organisation Secrète' : def.label;
+}
+
 function ouvrirCreerOrga() {
   const mesOrgas = getMesOrgasPays();
   const typesDispos = Object.entries(TYPES_ORGANISATIONS).filter(([type, def]) => {
+    if (TYPES_ORGA_EXCLUS_LOCAL_LOUE.includes(type)) return false;
     // Vérifier qu'on n'a pas déjà créé une orga de ce type
     return !mesOrgas.some(o => o.type === type && o.fondateur === state.char?.name);
   });
@@ -566,7 +579,7 @@ function ouvrirCreerOrga() {
       '<div onclick="ouvrirFormulaireOrga(\'' + type + '\')" style="display:flex;align-items:center;gap:.8rem;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
         '<i class="ti ' + def.icon + '" style="font-size:1.1rem;color:#C9A84C;flex-shrink:0"></i>' +
         '<div>' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#E8C97A;letter-spacing:.06em">' + def.label + '</div>' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#E8C97A;letter-spacing:.06em">' + libelleTypeOrgaLocalLoue(type, def) + '</div>' +
           '<div style="font-size:.68rem;color:#9a8a68">' + (def.secret ? '🔒 Secrète · ' : '') + 'Requis : ' + formatReqOrga(def.requis) + '</div>' +
         '</div>' +
       '</div>'
@@ -596,7 +609,7 @@ function ouvrirFormulaireOrga(type) {
   if (requis.dis && (state.dis || 0) < requis.dis) blocage = 'DIS insuffisante (' + (state.dis||0) + '/' + requis.dis + ')';
   if (requis.arg && state.arg < requis.arg) blocage = 'Fonds insuffisants (' + state.arg.toLocaleString('fr-FR') + '/' + requis.arg.toLocaleString('fr-FR') + ' ' + cur + ')';
 
-  document.getElementById('postes-modal-title').textContent = 'Fonder : ' + def.label;
+  document.getElementById('postes-modal-title').textContent = 'Fonder : ' + libelleTypeOrgaLocalLoue(type, def);
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
     (blocage ? '<div style="background:#1a0808;border:1px solid #5a1a1a;padding:.6rem;margin-bottom:.7rem;font-size:.78rem;color:#cc4444">⛔ ' + blocage + '</div>' : '') +
@@ -604,10 +617,7 @@ function ouvrirFormulaireOrga(type) {
     '<input id="orga-nom-input" type="text" maxlength="40" placeholder="Ex: Loge du Grand Nord, Parti du Progrès..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.9rem;box-sizing:border-box;margin-bottom:.6rem"/>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">DESCRIPTION (optionnel)</div>' +
     '<textarea id="orga-desc-input" maxlength="200" placeholder="Décrivez votre organisation en quelques mots..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;resize:none;height:60px;margin-bottom:.7rem"></textarea>' +
-    '<label style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:#c0b090;margin-bottom:.7rem;cursor:pointer">' +
-    '<input type="checkbox" id="orga-secrete-input"' + (def.secret ? ' checked disabled' : '') + '/> Garder cette organisation secrète (non listée publiquement, même via "Se renseigner")' +
-    (def.secret ? ' <span style="color:#6a5a30;font-style:italic">— déjà secrète pour ce type</span>' : '') +
-    '</label>' +
+    (def.secret ? '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem">🔒 Confidentialité automatique : chef, siège et membres resteront cachés au public. L\'adhésion se fera uniquement sur invitation.</div>' : '') +
     '<button onclick="confirmerCreationOrga(\'' + type + '\')" ' + (blocage ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🏛 Fonder cette organisation</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -634,8 +644,6 @@ function confirmerCreationOrga(type) {
 
   if (!state.organisations) state.organisations = [];
 
-  const secretChoisi = document.getElementById('orga-secrete-input')?.checked || false;
-
   const nouvelleOrga = {
     id, type, nom, desc,
     fondateur: state.char?.name,
@@ -648,7 +656,10 @@ function confirmerCreationOrga(type) {
     bonusLocaux: { pop: 0, inf: 0, dis: 0 },
     caisse: 0,
     localId: state.currentBuilding + ':' + state.currentRoom,
-    visible: !def.secret && !secretChoisi,
+    // Confidentialite entierement determinee par le type (def.secret), plus de choix joueur
+    // dans ce parcours (game design arrete le 26 aout 2026) : les 6 types publics restent
+    // toujours publics ici, seule "criminelle" (Organisation Secrete) est automatiquement visible:false.
+    visible: !def.secret,
   };
 
   state.organisations.push(nouvelleOrga);
@@ -666,7 +677,12 @@ function confirmerCreationOrga(type) {
   updateUI();
   showToast('Organisation fondée !', '"' + nom + '" est née. Vous en êtes le ' + monGrade + '.', true, true);
   addJournalEntry('Fondation de "' + nom + '" (' + def.label + ').', 'event-good');
-  addExternalEvent('🏛 ' + (state.char?.name || 'Anonyme') + ' fonde "' + nom + '", une nouvelle ' + def.label + '.');
+  // Fuite corrigee le 26 aout 2026 : cette annonce publique (fondateur + nom d'orga) etait
+  // envoyee inconditionnellement, y compris pour une organisation secrete -- exposait le chef
+  // et l'existence de l'organisation des sa creation, avant meme tout autre affichage.
+  if (nouvelleOrga.visible) {
+    addExternalEvent('🏛 ' + (state.char?.name || 'Anonyme') + ' fonde "' + nom + '", une nouvelle ' + def.label + '.');
+  }
 }
 
 // ------ ONGLET ORGAS ------
@@ -717,9 +733,13 @@ function renderOngletOrgas() {
       (estChef ?
         '<div style="padding:.5rem .8rem;display:flex;flex-wrap:wrap;gap:.35rem;border-bottom:1px solid #1a1208">' +
           '<button onclick="ouvrirGestionMembres(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a3a2a;background:transparent;color:#6a9a6a;cursor:pointer">👥 Membres</button>' +
-          (demandesCount > 0 ?
-            '<button onclick="ouvrirDemandesAdhesion(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">📨 Candidatures (' + demandesCount + ')</button>' :
-            '<button disabled style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.3rem .6rem;border:1px solid #1a1a10;background:transparent;color:#9a8a68;cursor:not-allowed">📨 Aucune candidature</button>'
+          (!orga.visible ?
+            // Organisation secrete : adhesion uniquement sur invitation, pas de candidature publique.
+            '<button onclick="ouvrirInviterMembreOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">✉️ Inviter</button>' :
+            (demandesCount > 0 ?
+              '<button onclick="ouvrirDemandesAdhesion(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">📨 Candidatures (' + demandesCount + ')</button>' :
+              '<button disabled style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.3rem .6rem;border:1px solid #1a1a10;background:transparent;color:#9a8a68;cursor:not-allowed">📨 Aucune candidature</button>'
+            )
           ) +
           '<button onclick="ouvrirOptionsOrga(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#8a6a20;cursor:pointer">⚙️ Parametres</button>' +
         '</div>'
@@ -831,6 +851,13 @@ function demanderAdhesion(orgaId) {
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
 
+  // Organisation secrete (26 aout 2026) : adhesion uniquement sur invitation, aucune
+  // candidature spontanee possible -- voir ouvrirInviterMembreOrga/accepterInvitationOrga.
+  if (!orga.visible) {
+    showToast('Adhésion impossible', 'Cette organisation recrute uniquement sur invitation.', false);
+    return;
+  }
+
   // Vérif : déjà membre ?
   if (orga.membres?.some(m => m.nom === state.char?.name)) {
     showToast('Déjà membre', 'Vous êtes déjà membre de cette organisation.', false); return;
@@ -898,6 +925,103 @@ function refuserAdhesion(orgaId, nomCandidat) {
   showToast('Demande refusée', nomCandidat + ' a été refusé.', false);
   sauvegarderOrga(orga);
   ouvrirDemandesAdhesion(orgaId);
+}
+
+// ------ INVITATION (organisations secretes) ------
+// Regle arretee le 26 aout 2026 : on entre dans une organisation secrete UNIQUEMENT sur
+// invitation, jamais par candidature spontanee (cf. garde ajoutee dans demanderAdhesion).
+// Aucun systeme d'invitation generique ne preexistait dans le code (seul un mecanisme de
+// candidature/acceptation, a sens inverse, existait pour les organisations publiques) : ce
+// bloc reutilise entierement le canal deja existant et deja valide pour ce genre de flux
+// (mail prive avec bouton d'action integre -- meme doctrine que la nomination a un poste
+// nomme, envoyerNominationPosteNomme/accepterNominationPosteNomme dans plateau-politique.js),
+// sans creer de deuxieme systeme de messagerie. Aucune permission de recrutement dediee
+// n'existe dans le modele d'organisation actuel (seul le grade est modelise) : seul le chef
+// peut inviter, regle provisoire signalee dans le rapport comme demande au §7.
+
+// Ouvre la selection d'un destinataire (reserve au chef d'une organisation secrete).
+async function ouvrirInviterMembreOrga(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga || orga.chef !== state.char?.name || orga.visible) return;
+
+  document.getElementById('postes-modal-title').textContent = '✉️ Inviter — ' + orga.nom;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Recherche des personnages...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const tous = typeof sbListPersonnages === 'function' ? await sbListPersonnages().catch(() => []) : [];
+  const membresActuels = new Set((orga.membres || []).map(m => m.nom));
+  const eligibles = (tous || []).filter(j =>
+    j.country === orga.country_origine && j.name !== state.char?.name && !membresActuels.has(j.name)
+  );
+
+  if (eligibles.length === 0) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Aucun personnage disponible à inviter.</div>';
+    return;
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">L\'invitation est privée : seul(e) le/la destinataire en a connaissance.</div>';
+  html += '<select id="invite-orga-select" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.6rem">';
+  eligibles.forEach(j => { html += '<option value="' + j.name + '">' + j.name + '</option>'; });
+  html += '</select>';
+  html += '<button onclick="envoyerInvitationOrga(\'' + orgaId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Envoyer l\'invitation</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// Envoie l'invitation par mail prive, avec un bouton d'acceptation integre au corps du message
+// (identique dans son principe a la nomination a un poste nomme).
+async function envoyerInvitationOrga(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga || orga.chef !== state.char?.name || orga.visible) return;
+  const destinataire = document.getElementById('invite-orga-select')?.value;
+  if (!destinataire) return;
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const nomInvitant = state.char?.name || 'Anonyme';
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
+  const sujet = 'Invitation — ' + orga.nom;
+  const corps = 'L\'organisation <strong>' + orga.nom + '</strong> vous invite à la rejoindre.<br><br>' +
+    '<em>Cette invitation est privée : personne d\'autre n\'en a connaissance.</em><br><br>' +
+    '<button onclick="accepterInvitationOrga(\'' + orgaId + '\',\'' + nomInvitant.replace(/'/g,"\\'") + '\')" ' +
+    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem">✓ Accepter l\'invitation</button>';
+
+  if (typeof sbSendMail === 'function') {
+    await sbSendMail(orga.nom, destinataire, sujet, corps, time).catch(() => {});
+    showToast('Invitation envoyée', destinataire + ' a reçu votre invitation.', true);
+    addJournalEntry('Invitation envoyée à ' + destinataire + ' pour "' + orga.nom + '".', '');
+  } else {
+    showToast('Erreur', 'Système de mail indisponible.', false);
+  }
+}
+
+// Appelée quand le destinataire clique "Accepter l'invitation" dans le mail.
+async function accepterInvitationOrga(orgaId, nomInvitant) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) { showToast('Invitation expirée', 'Cette organisation n\'existe plus.', false); return; }
+  if (orga.membres?.some(m => m.nom === state.char?.name)) {
+    showToast('Déjà membre', 'Vous êtes déjà membre de cette organisation.', false); return;
+  }
+  const def = TYPES_ORGANISATIONS[orga.type] || {};
+  const mesOrgas = getMesOrgasPays();
+  const dejaType = mesOrgas.some(o => o.type === orga.type && o.membres?.some(m => m.nom === state.char?.name));
+  if (dejaType) {
+    showToast('Limite atteinte', 'Vous appartenez déjà à une organisation de type ' + (def.label || orga.type) + '.', false); return;
+  }
+
+  const grades = def.grades?.[state.country] || ['Membre'];
+  if (!orga.membres) orga.membres = [];
+  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1 });
+  sauvegarderOrga(orga);
+  showToast('Invitation acceptée', 'Vous rejoignez "' + orga.nom + '" comme ' + grades[0] + '.', true);
+  addJournalEntry('Invitation acceptée : membre de "' + orga.nom + '".', 'event-good');
+
+  if (typeof sbSendMail === 'function' && nomInvitant) {
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
+    sbSendMail(orga.nom, nomInvitant, 'Invitation acceptée', (state.char?.name || 'Le destinataire') + ' a rejoint ' + orga.nom + '.', time).catch(() => {});
+  }
+  updateUI();
 }
 
 // ------ ORDRES SPÉCIFIQUES ------
@@ -1080,8 +1204,12 @@ function ouvrirOptionsOrga(orgaId) {
 
     '<button onclick="sauvegarderOptionsOrga(\'' + orgaId + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-bottom:.8rem">Sauvegarder</button>' +
 
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">VISIBILITE</div>' +
-    '<button onclick="toggleVisibiliteOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #3a4a5a;background:transparent;color:#6a8aaa;cursor:pointer;margin-bottom:.8rem">' + (orga.visible ? '👁 Rendre secrete' : '👁 Rendre visible') + '</button>' +
+    // Bascule de visibilite reservee au type "criminelle" (Organisation Secrete) : les 6 autres
+    // types restent toujours publics dans ce game design (26 aout 2026), aucune bascule proposee.
+    (orga.type === 'criminelle' ?
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">VISIBILITE</div>' +
+      '<button onclick="toggleVisibiliteOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #3a4a5a;background:transparent;color:#6a8aaa;cursor:pointer;margin-bottom:.8rem">' + (orga.visible ? '👁 Rendre secrete' : '👁 Rendre visible') + '</button>'
+    : '') +
 
     '<div style="margin-top:.4rem;border-top:1px solid #1a1208;padding-top:.6rem">' +
     '<button onclick="dissoudreOrga(\'' + orgaId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .8rem;border:1px solid #5a1a1a;background:transparent;color:#cc4444;cursor:pointer">Dissoudre</button>' +
@@ -1158,7 +1286,10 @@ function renommerOrga(orgaId) {
 
 function toggleVisibiliteOrga(orgaId) {
   const orga = getOrgaById(orgaId);
-  if (!orga) return;
+  if (!orga || orga.chef !== state.char?.name) return;
+  // Reserve au type "criminelle" (Organisation Secrete) -- les 6 autres types restent toujours
+  // publics dans ce game design, jamais de bascule vers secret pour eux (26 aout 2026).
+  if (orga.type !== 'criminelle') return;
   orga.visible = !orga.visible;
   showToast(orga.visible ? 'Organisation visible' : 'Organisation secrète', '', true);
   sauvegarderOrga(orga);
