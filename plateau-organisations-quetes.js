@@ -1292,8 +1292,15 @@ function genererEvenementsMatch(home, away, scoreHome, scoreAway) {
 function simulerMatch(clubHomeId, clubAwayId, bonusHome, bonusAway, boycotte) {
   const home = getClub(clubHomeId), away = getClub(clubAwayId);
   const avantageDomicile = boycotte ? -5 : 5; // un stade boycotte desavantage legerement l'equipe locale
-  const forceHome = home.valeurBase + avantageDomicile + (bonusHome || 0);
-  const forceAway = away.valeurBase + (bonusAway || 0);
+  // Piete -> avantage offensif (lot "piete/football", 26 aout 2026) : locale au club (sa PROPRE
+  // ville, jamais celle de l'adversaire ni celle ou se joue le match), lue directement dans
+  // indices_villes (systeme distinct de budget_municipal utilise par securite/ecoles/espaces_
+  // verts/associatif ci-dessus -- getIndiceVille gere deja nativement le repli pour les 3 autres
+  // empires, aucun risque de regression hors Republia).
+  const pieteHome = (typeof getIndiceVille === 'function') ? getIndiceVille(home.country, home.city, 'piete') : 50;
+  const pieteAway = (typeof getIndiceVille === 'function') ? getIndiceVille(away.country, away.city, 'piete') : 50;
+  const forceHome = (home.valeurBase + avantageDomicile + (bonusHome || 0)) * multiplicateurPiete(pieteHome);
+  const forceAway = (away.valeurBase + (bonusAway || 0)) * multiplicateurPiete(pieteAway);
   const buts = (force) => Math.max(0, Math.round((force / 28) + (Math.random() * 2.6 - 0.9)));
   const scoreHome = buts(forceHome);
   const scoreAway = buts(forceAway);
@@ -1690,6 +1697,19 @@ const LABELS_PERF = { defense: 'Défense', technique: 'Technique', endurance: 'E
 function multiplicateurIndice(val) {
   // 0 -> x0.7, 50 -> x1.0, 100 -> x1.3
   return 0.7 + ((val || 50) / 100) * 0.6;
+}
+
+// Piete -> avantage offensif (lot "piete/football", 26 aout 2026) : meme philosophie que
+// multiplicateurIndice ci-dessus (lineaire, neutre a 50), amplitude reduite -- piete est un
+// facteur SECONDAIRE, jamais plus de +-10% (regle validee), contre +-30% pour securite/ecoles/
+// espaces_verts/associatif. 0 -> x0.9, 50 -> x1.0 (neutre), 100 -> x1.1. Applique directement sur
+// la force finale dans simulerMatch (ce qui determine les buts), jamais sur une caracteristique
+// de joueur ni un nouveau jet -- le moteur n'a pas de probabilite offensive separee de la force
+// continue existante, donc c'est elle qui porte l'effet, au meme endroit que l'avantage du
+// terrain (avantageDomicile).
+function multiplicateurPiete(val) {
+  // 0 -> x0.9, 50 -> x1.0, 100 -> x1.1
+  return 0.9 + ((val || 50) / 100) * 0.2;
 }
 
 async function getIndicesPourVille(country, city) {
