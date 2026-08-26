@@ -171,6 +171,12 @@ async function sbSavePersonnage(charState) {
     // meme idiome que est_emprisonne -- {par, depuis} si active, null sinon. Migration executee
     // manuellement (ALTER TABLE personnages ADD COLUMN excommunie jsonb).
     excommunie:       charState.char?.excommunie || null,
+    // Reservation de chambre d'hotel (urgence du 27 aout 2026) : JSONB nullable,
+    // {buildingId, bonus:{moral,paBonus}} si active, null sinon -- meme idiome que est_emprisonne/
+    // excommunie. Portee sur char.reservationHotel (jamais sur la racine de state, qui n'est
+    // jamais persistee) : suit donc nativement ce meme rail de sauvegarde. Migration executee
+    // manuellement (ALTER TABLE personnages ADD COLUMN reservation_hotel jsonb).
+    reservation_hotel: charState.char?.reservationHotel || null,
     updated_at:       new Date().toISOString()
   };
 
@@ -237,7 +243,7 @@ async function sbLoadPersonnage(name) {
              licenceSportive: r.licence_sportive || null, performance: r.performance_sportive || null, blessureSportive: r.blessure_sportive || null,
              signatureHtml: r.signature_html || null, signatureBlocks: r.signature_blocks || [],
              queteAccueil: r.quete_accueil || null, enigme1: r.enigme1 || null, maxence: r.maxence || null, succesMaxence: r.succes_maxence || null,
-             journal: r.journal || [], excommunie: r.excommunie || null },
+             journal: r.journal || [], excommunie: r.excommunie || null, reservationHotel: r.reservation_hotel || null },
     country:       r.country,
     inf:           r.resources?.inf || 0,
     pop:           r.resources?.pop || 0,

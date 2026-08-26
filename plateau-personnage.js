@@ -1567,7 +1567,7 @@ async function doDormir() {
   // sont retires d'ici. Cela double-comptait avec le bonus de reservation reelle
   // (doDormirChambre ci-dessous) et facturait une seconde fois un sejour deja paye a la
   // reservation. doDormir() redevient la recuperation NORMALE, generique, identique partout :
-  // seule une chambre reellement reservee (state.reservationHotel, verifie par
+  // seule une chambre reellement reservee (state.char.reservationHotel, verifie par
   // doDormirChambre) accorde desormais un bonus hotelier, une seule fois, jamais cumule avec
   // celui-ci. Le paiement d'une chambre a lieu exclusivement a la reservation (voir
   // doReserverChambreHotel), plus jamais ici.
@@ -1638,44 +1638,61 @@ async function doDormir() {
   showToast('Bonne nuit !', 'Salaire verse : +' + salaire.toLocaleString('fr-FR') + ' ' + cur + ' · +' + moralAffiche + ' Moral' + suffixeLogement, true, true);
   addJournalEntry('Vous dormez. Salaire verse : +' + salaire.toLocaleString('fr-FR') + ' ' + cur, 'event-good');
 
-  // Payer les loyers des locations actives
-  payerLocations();
-  // Revenu passif + bonus INF/POP/DIS des bâtiments construits sur des terrains possédés
-  if (typeof collecterRevenusConstructions === 'function') await collecterRevenusConstructions();
-  // NOTE : les loyers des lots subdivises sont desormais preleves par le cron serveur
-  // (preleverLoyersLots, api/cron-minuit.js) — pas ici, pour ne pas defavoriser le
-  // proprietaire si le locataire ne se connecte jamais.
-  // Payer les escorts actives
-  payerEscorts();
-  payerEmployes();
-  // Regeneration quotidienne des grilles de prison de la ville courante (puise sur la
-  // caisse du commissariat, s'arrete des que le budget est insuffisant)
-  if (typeof regenererGrillesPrison === 'function') regenererGrillesPrison(state.country, state.currentCity).catch(() => {});
-  // Entretien quotidien des policiers PNJ de la ville courante (lot du 24 aout 2026)
-  if (typeof payerEffectifsPoliceQuotidien === 'function') payerEffectifsPoliceQuotidien(state.country, state.currentCity).catch(() => {});
-  // Entretien quotidien des douaniers PNJ du port, debite sur la caisse du Ministere de
-  // l'Interieur -- service national unique, pas de parametre ville (lot du 24 aout 2026)
-  if (typeof payerEffectifsDouaneQuotidien === 'function') payerEffectifsDouaneQuotidien(state.country).catch(() => {});
-  // Distribution quotidienne du budget municipal vers les vraies caisses des batiments communaux
-  if (typeof distribuerBudgetMunicipalVersBatiments === 'function') distribuerBudgetMunicipalVersBatiments(state.country, state.currentCity).catch(() => {});
-  // Decroissance lente de la reputation criminelle si inactif
-  if (state.reputationCriminelle) state.reputationCriminelle = Math.max(0, state.reputationCriminelle - 1);
-  updateUI(); // Rafraichir apres les bonus de location (INF/POP/DIS) appliques ci-dessus
+  // Correctif atomicite (urgence du 27 aout 2026) : ce bloc d'effets secondaires du sommeil est
+  // desormais encadre par un seul try/catch protecteur. Avant ce correctif, une exception non
+  // interceptee dans N'IMPORTE LEQUEL de ces appels (le seul reellement expose etait
+  // collecterRevenusConstructions, awaited sans .catch -- les autres etaient deja proteges ou
+  // purement synchrones, mais tout aussi capables de faire avorter la fonction si l'un d'eux
+  // levait une exception) faisait avorter doDormir() AVANT le sbSavePersonnage final plus bas :
+  // dernierDormir (deja marque et persiste independamment en localStorage des la ligne ~1583,
+  // BIEN avant ce bloc) restait alors correct, mais l'entree de journal "Vous dormez..." ajoutee
+  // juste au-dessus (en memoire uniquement a ce stade) n'atteignait jamais Supabase -- observe en
+  // production comme "deja dormi" au prochain essai, sans aucune entree de sommeil correspondante
+  // dans le journal apres un rafraichissement. Ce bloc garantit desormais que la fonction atteint
+  // TOUJOURS son enregistrement final ci-dessous, quel que soit le sort d'un effet secondaire --
+  // ordre et logique individuelle de chaque appel strictement inchanges.
+  try {
+    // Payer les loyers des locations actives
+    payerLocations();
+    // Revenu passif + bonus INF/POP/DIS des bâtiments construits sur des terrains possédés
+    if (typeof collecterRevenusConstructions === 'function') await collecterRevenusConstructions();
+    // NOTE : les loyers des lots subdivises sont desormais preleves par le cron serveur
+    // (preleverLoyersLots, api/cron-minuit.js) — pas ici, pour ne pas defavoriser le
+    // proprietaire si le locataire ne se connecte jamais.
+    // Payer les escorts actives
+    payerEscorts();
+    payerEmployes();
+    // Regeneration quotidienne des grilles de prison de la ville courante (puise sur la
+    // caisse du commissariat, s'arrete des que le budget est insuffisant)
+    if (typeof regenererGrillesPrison === 'function') regenererGrillesPrison(state.country, state.currentCity).catch(() => {});
+    // Entretien quotidien des policiers PNJ de la ville courante (lot du 24 aout 2026)
+    if (typeof payerEffectifsPoliceQuotidien === 'function') payerEffectifsPoliceQuotidien(state.country, state.currentCity).catch(() => {});
+    // Entretien quotidien des douaniers PNJ du port, debite sur la caisse du Ministere de
+    // l'Interieur -- service national unique, pas de parametre ville (lot du 24 aout 2026)
+    if (typeof payerEffectifsDouaneQuotidien === 'function') payerEffectifsDouaneQuotidien(state.country).catch(() => {});
+    // Distribution quotidienne du budget municipal vers les vraies caisses des batiments communaux
+    if (typeof distribuerBudgetMunicipalVersBatiments === 'function') distribuerBudgetMunicipalVersBatiments(state.country, state.currentCity).catch(() => {});
+    // Decroissance lente de la reputation criminelle si inactif
+    if (state.reputationCriminelle) state.reputationCriminelle = Math.max(0, state.reputationCriminelle - 1);
+    updateUI(); // Rafraichir apres les bonus de location (INF/POP/DIS) appliques ci-dessus
 
-  // Traiter les evenements nocturnes
-  traiterPlaintes();
-  traiterEnquetes();
-  traiterConvocations();
-  verifierLiberationPrisonniers();
-  verifierDecouverteCrimesPasses();
-  checkArrestationAuReveil();
-  verifierProgressionHospitalisation();
-  if (typeof verifierEffetsManifestationsEcoulees === 'function') verifierEffetsManifestationsEcoulees(state.country);
-  if (typeof verifierSalairePolitique === 'function') verifierSalairePolitique();
-  if (typeof verifierSalaireReligieux === 'function') verifierSalaireReligieux();
-  if (typeof verifierSalaireDirecteur === 'function') verifierSalaireDirecteur();
-  if (typeof verifierSalaireDirecteurEntrepot === 'function') verifierSalaireDirecteurEntrepot();
-  if (typeof verifierAutoValidationManifestations === 'function') verifierAutoValidationManifestations(state.country);
+    // Traiter les evenements nocturnes
+    traiterPlaintes();
+    traiterEnquetes();
+    traiterConvocations();
+    verifierLiberationPrisonniers();
+    verifierDecouverteCrimesPasses();
+    checkArrestationAuReveil();
+    verifierProgressionHospitalisation();
+    if (typeof verifierEffetsManifestationsEcoulees === 'function') verifierEffetsManifestationsEcoulees(state.country);
+    if (typeof verifierSalairePolitique === 'function') verifierSalairePolitique();
+    if (typeof verifierSalaireReligieux === 'function') verifierSalaireReligieux();
+    if (typeof verifierSalaireDirecteur === 'function') verifierSalaireDirecteur();
+    if (typeof verifierSalaireDirecteurEntrepot === 'function') verifierSalaireDirecteurEntrepot();
+    if (typeof verifierAutoValidationManifestations === 'function') verifierAutoValidationManifestations(state.country);
+  } catch (e) {
+    console.warn('doDormir: erreur non bloquante dans les effets secondaires du sommeil (le sommeil lui-meme reste acquis)', e);
+  }
 
   // Rafraichir la vue
   switchSelfTab('actions', null);
@@ -1683,8 +1700,14 @@ async function doDormir() {
   // Sauvegarde Supabase immediate et bloquante (contourne le debounce de 3s de
   // sbAutoSave) : le sommeil touche l'argent et les verrous anti-double-salaire
   // (dernierDormir/salaireTouche), donc on ecrit tout de suite sur Supabase avant
-  // qu'un rafraichissement ou changement d'appareil ne puisse survenir entre-temps.
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state);
+  // qu'un rafraichissement ou changement d'appareil ne puisse survenir entre-temps. Protege par
+  // le meme correctif atomicite : un echec reseau ici ne doit pas non plus faire perdre le
+  // constat que le sommeil a bien eu lieu.
+  try {
+    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state);
+  } catch (e) {
+    console.warn('doDormir: echec de la sauvegarde Supabase finale (dernierDormir/journal restent corrects localement, seront re-synchronises a la prochaine sauvegarde reussie)', e);
+  }
 
   return true;
 }
@@ -2270,15 +2293,23 @@ async function doReserverChambreHotel(pa) {
     }
   }
 
-  state.reservationHotel = { buildingId: state.currentBuilding, bonus };
+  // Persistance (urgence du 27 aout 2026, migration personnages.reservation_hotel executee) :
+  // portee sur state.char (jamais sur la racine de state, qui n'est jamais persistee) --
+  // survit donc nativement au meme rail que le reste du personnage (sbSavePersonnage/
+  // sbLoadPersonnage, plus le cache localStorage deja synchronise a chaque updateUI()), sans
+  // aucune mecanique de sauvegarde parallele. sauvegarderPersonnageImmediat() (au lieu du seul
+  // updateUI(), dont la sauvegarde Supabase est debounced 3s) : une chambre payee doit survivre
+  // a un refresh immediat, pas seulement au prochain autosave.
+  if (state.char) state.char.reservationHotel = { buildingId: state.currentBuilding, bonus };
   updateUI();
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   showToast('Chambre reservee', 'Vous obtiendrez un bonus de +' + bonus.paBonus + ' PA et +' + bonus.moral + ' Moral en passant l\'ordre Dormir <strong>dans cette chambre</strong>.', true, true);
   addJournalEntry('Vous avez reserve une chambre d\'hotel. Vous obtiendrez un bonus de ' + bonus.paBonus + ' PA + ' + bonus.moral + ' moral en passant l\'ordre dormir <strong>dans cette chambre</strong>.', 'event-good');
   if (typeof queteAccueilApresReservationChambre === 'function') queteAccueilApresReservationChambre();
 }
 
 async function doServiceEtage(pa) {
-  const reservation = state.reservationHotel;
+  const reservation = state.char?.reservationHotel;
   if (!reservation || reservation.buildingId !== state.currentBuilding) {
     showToast('Chambre non reservee', 'Vous devez d\'abord reserver une chambre a l\'accueil pour beneficier du service d\'etage.', false);
     return;
@@ -2297,7 +2328,7 @@ async function doServiceEtage(pa) {
 }
 
 async function doDormirChambre() {
-  const reservation = state.reservationHotel;
+  const reservation = state.char?.reservationHotel;
   if (!reservation || reservation.buildingId !== state.currentBuilding) {
     showToast('Chambre non reservee', 'Vous n\'avez pas reserve la chambre. Vous devez passer l\'ordre Dormir a partir de votre fiche personnage.', false);
     return;
@@ -2324,8 +2355,12 @@ async function doDormirChambre() {
     // Math.min, il pourrait a lui seul faire depasser la reserve maximale.
     state.pa = Math.min(PA_MAX, (state.pa || 0) + reservation.bonus.paBonus);
     state.moral = Math.min(100, (state.moral || 0) + reservation.bonus.moral);
-    state.reservationHotel = null;
+    // Consommation de la reservation (urgence du 27 aout 2026) : nullifiee sur state.char (meme
+    // champ que la creation ci-dessus), persistee immediatement -- une reservation deja
+    // consommee ne doit jamais reapparaitre "encore valide" a un refresh suivant.
+    if (state.char) state.char.reservationHotel = null;
     updateUI();
+    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
     showToast('Bonus de chambre applique', '+' + reservation.bonus.paBonus + ' PA, +' + reservation.bonus.moral + ' Moral.', true, true);
     addJournalEntry('Bonus de la chambre reservee applique : +' + reservation.bonus.paBonus + ' PA, +' + reservation.bonus.moral + ' moral.', 'event-good');
   }
