@@ -412,16 +412,16 @@ async function remettreRecompenseQuete(quete) {
 }
 
 
-// Affiche le tableau de toutes les organisations connues, groupees par empire,
-// avec leur siege (batiment + salle). Respecte le secret des organisations non
-// visibles, sauf pour celles dont le joueur est lui-meme membre.
+// Affiche le tableau de toutes les organisations connues, groupees par empire.
+// Une organisation existe toujours en tant qu'entite connue, meme secrete (secret =
+// visibilite, pas existence) : seuls son chef et son siege sont masques pour un visiteur
+// qui n'en est pas membre. Un membre (y compris non-chef) garde l'acces complet.
 function ouvrirTableauOrganisations() {
   const toutes = state.organisations || [];
   const suisMembreDe = (o) => (o.membres || []).some(m => m.nom === state.char?.name);
-  const visibles = toutes.filter(o => o.visible || suisMembreDe(o));
 
   const parEmpire = {};
-  visibles.forEach(o => {
+  toutes.forEach(o => {
     const emp = o.country_origine || o.country || 'republic';
     if (!parEmpire[emp]) parEmpire[emp] = [];
     parEmpire[emp].push(o);
@@ -440,23 +440,30 @@ function ouvrirTableauOrganisations() {
       parEmpire[emp].forEach(o => {
         const typeDef = TYPES_ORGANISATIONS[o.type] || {};
         const typeLabel = typeDef.label || o.type;
-        let buildingNom, roomNom;
-        if (o.type === 'supporters') {
-          const villeCtx = WORLD[o.country_origine || o.country]?.[o.city]?.buildingContext?.['stade'];
-          buildingNom = BUILDINGS['stade']?.shortName || BUILDINGS['stade']?.name || 'Stade';
-          roomNom = villeCtx?.roomOverrides?.siege_supporters?.name || BUILDINGS['stade']?.rooms?.siege_supporters?.name || 'Siège des Supporters';
+        const masquer = !o.visible && !suisMembreDe(o);
+        let infoLigne;
+        if (masquer) {
+          infoLigne = 'Chef : non communiqué · Siège : non communiqué';
         } else {
-          const buildingId = (o.localId || '').split(':')[0];
-          const roomId = (o.localId || '').split(':')[1];
-          buildingNom = BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId || 'Siège inconnu';
-          roomNom = BUILDINGS[buildingId]?.rooms?.[roomId]?.name || '';
+          let buildingNom, roomNom;
+          if (o.type === 'supporters') {
+            const villeCtx = WORLD[o.country_origine || o.country]?.[o.city]?.buildingContext?.['stade'];
+            buildingNom = BUILDINGS['stade']?.shortName || BUILDINGS['stade']?.name || 'Stade';
+            roomNom = villeCtx?.roomOverrides?.siege_supporters?.name || BUILDINGS['stade']?.rooms?.siege_supporters?.name || 'Siège des Supporters';
+          } else {
+            const buildingId = (o.localId || '').split(':')[0];
+            const roomId = (o.localId || '').split(':')[1];
+            buildingNom = BUILDINGS[buildingId]?.shortName || BUILDINGS[buildingId]?.name || buildingId || 'Siège inconnu';
+            roomNom = BUILDINGS[buildingId]?.rooms?.[roomId]?.name || '';
+          }
+          infoLigne = 'Chef : ' + (o.chef || o.fondateur || '?') + ' · Siège : ' + buildingNom + (roomNom ? ' (' + roomNom + ')' : '');
         }
         html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.5rem">' +
           '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
           '<span style="font-family:Playfair Display,serif;font-size:.95rem;color:#e0d5b8">' + o.nom + (o.visible ? '' : ' 🔒') + '</span>' +
           '<span style="font-size:.7rem;color:#8a6a20">' + typeLabel + '</span>' +
           '</div>' +
-          '<div style="font-size:.75rem;color:#8a8060;margin-top:.2rem">Chef : ' + (o.chef || o.fondateur || '?') + ' · Siège : ' + buildingNom + (roomNom ? ' (' + roomNom + ')' : '') + '</div>' +
+          '<div style="font-size:.75rem;color:#8a8060;margin-top:.2rem">' + infoLigne + '</div>' +
           '</div>';
       });
     });
@@ -2218,9 +2225,10 @@ function doSeRenseigner() {
         const orga = (state.organisations || []).find(o => o.id === location.orgaId);
         if (orga && orga.visible) {
           html += '<div style="font-size:.72rem;color:#a89870;margin-top:.2rem">Domicilié ici : ' + orga.nom + '</div>';
-        } else if (orga && !orga.visible) {
-          html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-top:.2rem">Une organisation y est domiciliée, mais reste discrète sur son identité.</div>';
         } else {
+          // orga secrete (orga && !orga.visible) : le siege ne doit pas etre revele ici --
+          // rendu identique a un local loue par un particulier sans organisation, pour ne
+          // laisser filtrer aucun indice reliant ce local a une organisation secrete.
           html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-top:.2rem">Loué par ' + (location.locataire || 'un particulier') + ', sans organisation associée.</div>';
         }
       }
