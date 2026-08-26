@@ -216,6 +216,17 @@ const STYLES_NARRATIFS = {
 let currentForumId = null;
 let currentTopicId = null;
 let forumView = 'list';
+// Etats de forumView ou un editeur (canvas de sujet/reponse, edition de post) est reellement
+// affiche dans #forum-main -- distinct de mailView (etat propre a la messagerie, 'compose'/
+// 'inbox'/'read'), qui ne couvre jamais la composition forum. Utilise par
+// forumEstEnCompositionActuellement() (correctif bug brouillon detruit, 26 aout 2026).
+const FORUM_VUES_COMPOSITION = ['compose-canvas', 'edit-post', 'new-topic', 'reply'];
+// Vrai si un brouillon (mail OU forum, sujet/reponse/edition) est actuellement affiche dans
+// #forum-main -- un rafraichissement en arriere-plan ne doit alors JAMAIS reconstruire
+// #forum-main, sous peine de le detruire silencieusement.
+function forumEstEnCompositionActuellement() {
+  return FORUM_VUES_COMPOSITION.includes(forumView) || mailView === 'compose';
+}
 let forumCategorieActive = null; // 'intra' | 'inter' | 'prive' | null (rien de deplie)
 let forumSousGroupeOuvert = false; // accordeon imbrique pour 'Institutionnels'
 // Voyants par rubrique (22 aout 2026) : dernier resultat calcule par recalculerActiviteForumAgregat().
@@ -266,12 +277,16 @@ function openForum_module(forumId) {
   // affiche) ne doit rien eteindre.
   if (forumId) {
     if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(forumId);
-    // Charger depuis Supabase en arrière-plan et rafraîchir -- renderForumModal() complet (pas
-    // seulement #forum-main), sinon le compteur de la sidebar (forum-nav-count, deja rendu AVANT
-    // que FORUM_TOPICS[forumId] soit peuple) reste fige a "0 sujet(s)" jusqu'a un changement de
-    // rubrique ulterieur (bug constate le 20 aout 2026 : panneau principal a jour, sidebar non).
+    // Charger depuis Supabase en arriere-plan et rafraichir -- le compteur de la sidebar
+    // (forum-nav-count, deja rendu AVANT que FORUM_TOPICS[forumId] soit peuple) reste sinon fige
+    // a "0 sujet(s)", et la liste de #forum-main reste vide, jusqu'a un changement de rubrique
+    // ulterieur (bug constate le 20 aout 2026). Correctif du 26 aout 2026 : l'ancienne garde
+    // (mailView!=='compose') ne protegeait jamais un brouillon de sujet/reponse FORUM en cours
+    // (etat porte par forumView, jamais par mailView) -- rendu complet uniquement si aucun
+    // editeur n'est actuellement affiche, sinon seuls titre+sidebar sont rafraichis.
     loadForumTopicsFromSB(forumId).then(() => {
-      if (mailView !== 'compose') renderForumModal();
+      if (!forumEstEnCompositionActuellement()) renderForumModal();
+      else rafraichirVoyantsEtCompteursForum();
     }).catch(() => {});
   }
 }
@@ -398,12 +413,14 @@ async function verifierActiviteForumNonVue() {
       forumActivite.forums[id] = !dernierPassage || dernierContenu > dernierPassage;
     });
     recalculerActiviteForumAgregat();
-    // Rafraichit la sidebar (points par forum/groupe) si la modale est actuellement ouverte --
-    // meme garde mailView!=='compose' que les rendus post-fetch existants (openForum_module,
-    // switchForum, toggleCategorieForum), pour ne jamais interrompre une saisie en cours.
-    if (mailView !== 'compose' && document.getElementById('modal-forum')?.classList.contains('open')) {
-      renderForumModal();
-    }
+    // Correctif bug brouillon detruit (26 aout 2026) : l'ancienne garde ne verifiait que
+    // mailView (etat de la messagerie), jamais forumView (etat REEL de la composition d'un
+    // sujet/reponse forum, showComposeCanvasForm/showComposeCanvasReply) -- ce sondage
+    // periodique (toutes les 60s, voir plateau-core.js) rerendait donc #forum-main et detruisait
+    // tout brouillon de sujet/reponse forum en cours, quel que soit forumView. Ne touche plus
+    // que le titre + la sidebar (rafraichirVoyantsEtCompteursForum), jamais #forum-main : plus
+    // besoin d'aucune garde, le compositeur n'est structurellement plus jamais concerne.
+    rafraichirVoyantsEtCompteursForum();
   } catch(e) {}
 }
 
@@ -516,10 +533,10 @@ function toggleCategorieForum(cat) {
     // Deplier une categorie auto-selectionne sa premiere entree, qui devient bien visible --
     // ouverture effective de CE forum (revu le 22 aout 2026), a marquer comme telle.
     if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(currentForumId);
-    // renderForumModal() complet (meme correctif que openForum_module ci-dessus, compteur
-    // sidebar) plutot qu'une simple mise a jour de #forum-main.
+    // Meme correctif que ci-dessus (26 aout 2026) : rendu complet uniquement hors composition.
     loadForumTopicsFromSB(currentForumId).then(() => {
-      if (mailView !== 'compose') renderForumModal();
+      if (!forumEstEnCompositionActuellement()) renderForumModal();
+      else rafraichirVoyantsEtCompteursForum();
     }).catch(() => {});
   }
 }
@@ -535,33 +552,56 @@ function renderCategorieHeader(cat, icon, label) {
   ${active ? renderForumCategorieItems(cat) : ''}`;
 }
 
+// Extrait de renderForumModal() (correctif bug brouillon detruit, 26 aout 2026) : le HTML de la
+// sidebar seule, reutilise par renderForumModal() (rendu complet, navigation utilisateur directe)
+// ET par rafraichirVoyantsEtCompteursForum() (rafraichissements en arriere-plan -- sondage
+// d'activite, chargements Supabase differes -- qui ne doivent JAMAIS toucher #forum-main, car
+// c'est la que vit le compositeur en cours, voir plus bas).
+function renderForumSidebar() {
+  const unreadCount = getMyMails().filter(m => !m.read && m.to === state.char?.name).length;
+  return `
+    <div class="forum-nav-item forum-mail-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
+      <i class="ti ti-mail" style="font-size:.85rem"></i>
+      <div>
+        <div class="forum-nav-name">Boîte Mail${unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}</div>
+        <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${unreadCount} non lu(s)</span>` : 'Aucun message'}</div>
+      </div>
+    </div>
+    ${renderCategorieHeader('intra', 'ti-flag', 'Forums nationaux')}
+    ${renderCategorieHeader('inter', 'ti-world', 'Forums internationaux')}
+    ${renderCategorieHeader('prive', 'ti-lock', 'Forums privés')}
+  `;
+}
+
+// Rafraichit UNIQUEMENT le titre de la modale (point rouge global) et la sidebar (compteurs,
+// points de rubrique) -- jamais #forum-main, jamais le compositeur en cours (canvas d'un nouveau
+// sujet/d'une reponse, forumView==='compose-canvas'/'new-topic'/'reply'). A utiliser par tout
+// rafraichissement declenche en arriere-plan (sondage d'activite, retour d'un chargement Supabase
+// differe) qui n'a besoin que de mettre a jour ces compteurs, jamais par une action DIRECTE de
+// l'utilisateur (clic sur un forum/une rubrique), qui continue d'appeler renderForumModal() en
+// entier comme avant.
+function rafraichirVoyantsEtCompteursForum() {
+  if (!document.getElementById('modal-forum')?.classList.contains('open')) return;
+  const titreModal = document.getElementById('modal-forum-title');
+  if (titreModal) titreModal.innerHTML = 'Forum' + (forumADeLActiviteNonVue() ? htmlPointRougeActivite('.4rem') : '');
+  const sidebar = document.getElementById('forum-sidebar');
+  if (sidebar) sidebar.innerHTML = renderForumSidebar();
+}
+
 function renderForumModal() {
   const modal = document.getElementById('forum-body');
-  const unreadCount = getMyMails().filter(m => !m.read && m.to === state.char?.name).length;
   // Voyants de rubrique (revu le 22 aout 2026 : desormais un point par forum + par groupe, plus
   // seulement le point global -- voir la section "VOYANTS D'ACTIVITE FORUM, PAR RUBRIQUE"
-  // plus haut). Mail depuis unreadCount (deja calcule ci-dessus, temps reel, inchange). Forum
-  // (titre du modal) depuis forumActivite.global, la meme source que le point du bouton
-  // principal #forum-activity-dot -- plus aucune ouverture de la fenetre ne l'eteint ici ;
-  // seule marquerForumRubriqueVisitee(forumId), appelee sur l'ouverture EFFECTIVE d'un forum
-  // precis, peut l'eteindre.
+  // plus haut). Forum (titre du modal) depuis forumActivite.global, la meme source que le point
+  // du bouton principal #forum-activity-dot -- plus aucune ouverture de la fenetre ne l'eteint
+  // ici ; seule marquerForumRubriqueVisitee(forumId), appelee sur l'ouverture EFFECTIVE d'un
+  // forum precis, peut l'eteindre.
   const forumNonVu = forumADeLActiviteNonVue();
   const titreModal = document.getElementById('modal-forum-title');
   if (titreModal) titreModal.innerHTML = 'Forum' + (forumNonVu ? htmlPointRougeActivite('.4rem') : '');
   modal.innerHTML = `
     <div class="forum-layout">
-      <div class="forum-sidebar">
-        <div class="forum-nav-item forum-mail-item ${forumView === 'mail' ? 'active' : ''}" onclick="switchToMail()">
-          <i class="ti ti-mail" style="font-size:.85rem"></i>
-          <div>
-            <div class="forum-nav-name">Boîte Mail${unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}</div>
-            <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${unreadCount} non lu(s)</span>` : 'Aucun message'}</div>
-          </div>
-        </div>
-        ${renderCategorieHeader('intra', 'ti-flag', 'Forums nationaux')}
-        ${renderCategorieHeader('inter', 'ti-world', 'Forums internationaux')}
-        ${renderCategorieHeader('prive', 'ti-lock', 'Forums privés')}
-      </div>
+      <div class="forum-sidebar" id="forum-sidebar">${renderForumSidebar()}</div>
       <div class="forum-main" id="forum-main">
         ${renderForumContent()}
       </div>
@@ -598,9 +638,10 @@ function switchForum(id) {
   // Ouverture effective de ce forum precis (revu le 22 aout 2026) -- marque CE forum, jamais les
   // autres.
   if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(id);
-  // renderForumModal() complet (meme correctif que ci-dessus, compteur sidebar).
+  // Meme correctif que ci-dessus (26 aout 2026) : rendu complet uniquement hors composition.
   loadForumTopicsFromSB(id).then(() => {
-    if (mailView !== 'compose') renderForumModal();
+    if (!forumEstEnCompositionActuellement()) renderForumModal();
+    else rafraichirVoyantsEtCompteursForum();
   }).catch(() => {});
 }
 
@@ -608,11 +649,18 @@ function switchToMail() {
   forumView = 'mail';
   mailView = 'inbox';
   renderForumModal();
+  // Correctif du 26 aout 2026 : rendu complet (pour que la boite de reception se peuple bien une
+  // fois chargee) uniquement hors composition -- sinon un brouillon (forum OU mail) sur lequel le
+  // joueur est deja repasse entre-temps serait detruit par ce callback tardif.
   if (typeof rafraichirCachePhotosJoueurs === 'function') {
-    rafraichirCachePhotosJoueurs().then(() => { if (mailView !== 'compose') renderForumModal(); }).catch(() => {});
+    rafraichirCachePhotosJoueurs().then(() => {
+      if (!forumEstEnCompositionActuellement()) renderForumModal();
+      else rafraichirVoyantsEtCompteursForum();
+    }).catch(() => {});
   }
   loadMailsFromSB().then(() => {
-    if (mailView !== 'compose') renderForumModal();
+    if (!forumEstEnCompositionActuellement()) renderForumModal();
+    else rafraichirVoyantsEtCompteursForum();
     // Correctif latence des voyants (21 aout 2026) : synchronise le voyant EXTERIEUR (#mail-badge)
     // depuis le cache local que loadMailsFromSB() vient de rafraichir -- reutilise cette MEME
     // requete reseau (sbGetMailsFor, deja executee ci-dessus), jamais une deuxieme requete
