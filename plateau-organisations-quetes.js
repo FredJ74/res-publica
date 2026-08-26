@@ -551,11 +551,17 @@ function logeDemanderAdhesion() {
 // jamais fondes via ce formulaire generique -- deja signale par leur propre maxParCreation:0.
 const TYPES_ORGA_EXCLUS_LOCAL_LOUE = ['sportive', 'supporters'];
 
-// Libelle affiche pour un type dans CE parcours uniquement (ne modifie pas def.label, qui reste
-// "Organisation Criminelle" partout ailleurs -- tableau general, mes organisations, etc.).
-// "secrete" decrit ici la visibilite proposee au joueur, pas une nature criminelle imposee.
+// Libelles affiches pour CE parcours uniquement (ne modifie pas def.label, qui reste
+// "Organisation Criminelle"/"Organisation Mediatique"/"Organisation Economique" partout ailleurs
+// -- tableau general, mes organisations, etc.). "secrete" decrit ici la visibilite proposee au
+// joueur, pas une nature criminelle imposee.
+const LIBELLES_TYPE_ORGA_LOCAL_LOUE = {
+  criminelle: 'Organisation Secrète',
+  mediatique: 'Organisation de presse',
+  economique: 'Organisation commerciale',
+};
 function libelleTypeOrgaLocalLoue(type, def) {
-  return type === 'criminelle' ? 'Organisation Secrète' : def.label;
+  return LIBELLES_TYPE_ORGA_LOCAL_LOUE[type] || def.label;
 }
 
 function ouvrirCreerOrga() {
@@ -950,8 +956,9 @@ async function ouvrirInviterMembreOrga(orgaId) {
 
   const tous = typeof sbListPersonnages === 'function' ? await sbListPersonnages().catch(() => []) : [];
   const membresActuels = new Set((orga.membres || []).map(m => m.nom));
+  const dejaInvites = new Set((orga.invitationsEnvoyees || []).map(i => i.nom));
   const eligibles = (tous || []).filter(j =>
-    j.country === orga.country_origine && j.name !== state.char?.name && !membresActuels.has(j.name)
+    j.country === orga.country_origine && j.name !== state.char?.name && !membresActuels.has(j.name) && !dejaInvites.has(j.name)
   );
 
   if (eligibles.length === 0) {
@@ -969,26 +976,40 @@ async function ouvrirInviterMembreOrga(orgaId) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-// Envoie l'invitation par mail prive, avec un bouton d'acceptation integre au corps du message
-// (identique dans son principe a la nomination a un poste nomme).
+// Envoie l'invitation par mail prive, avec deux boutons integres au corps du message (identique
+// dans son principe a la nomination a un poste nomme -- accepter -- complete ici d'un refus
+// explicite). L'invitation est aussi enregistree dans orga.invitationsEnvoyees (meme forme que
+// demandesAdhesion) : c'est cette entree, retiree des qu'accepterInvitationOrga OU
+// refuserInvitationOrga s'execute, qui rend l'invitation a usage unique -- un second clic sur
+// l'un ou l'autre bouton du meme mail (ou une reponse tardive apres traitement) ne trouve plus
+// rien en attente et n'a donc aucun effet.
 async function envoyerInvitationOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga || orga.chef !== state.char?.name || orga.visible) return;
   const destinataire = document.getElementById('invite-orga-select')?.value;
   if (!destinataire) return;
+  if ((orga.invitationsEnvoyees || []).some(i => i.nom === destinataire)) {
+    showToast('Invitation déjà envoyée', destinataire + ' a déjà une invitation en attente.', false); return;
+  }
 
   document.getElementById('modal-postes').classList.remove('open');
 
   const nomInvitant = state.char?.name || 'Anonyme';
+  const nomInvitantEchap = nomInvitant.replace(/'/g,"\\'");
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
   const sujet = 'Invitation — ' + orga.nom;
   const corps = 'L\'organisation <strong>' + orga.nom + '</strong> vous invite à la rejoindre.<br><br>' +
     '<em>Cette invitation est privée : personne d\'autre n\'en a connaissance.</em><br><br>' +
-    '<button onclick="accepterInvitationOrga(\'' + orgaId + '\',\'' + nomInvitant.replace(/'/g,"\\'") + '\')" ' +
-    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem">✓ Accepter l\'invitation</button>';
+    '<button onclick="accepterInvitationOrga(\'' + orgaId + '\',\'' + nomInvitantEchap + '\')" ' +
+    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;margin-top:.5rem;margin-right:.5rem">✓ Accepter l\'invitation</button>' +
+    '<button onclick="refuserInvitationOrga(\'' + orgaId + '\',\'' + nomInvitantEchap + '\')" ' +
+    'style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #6a3a2a;background:transparent;color:#8a4a2a;cursor:pointer;margin-top:.5rem">✕ Refuser l\'invitation</button>';
 
   if (typeof sbSendMail === 'function') {
     await sbSendMail(orga.nom, destinataire, sujet, corps, time).catch(() => {});
+    if (!orga.invitationsEnvoyees) orga.invitationsEnvoyees = [];
+    orga.invitationsEnvoyees.push({ nom: destinataire, date: state.day || 1 });
+    sauvegarderOrga(orga);
     showToast('Invitation envoyée', destinataire + ' a reçu votre invitation.', true);
     addJournalEntry('Invitation envoyée à ' + destinataire + ' pour "' + orga.nom + '".', '');
   } else {
@@ -1000,6 +1021,9 @@ async function envoyerInvitationOrga(orgaId) {
 async function accepterInvitationOrga(orgaId, nomInvitant) {
   const orga = getOrgaById(orgaId);
   if (!orga) { showToast('Invitation expirée', 'Cette organisation n\'existe plus.', false); return; }
+  if (!(orga.invitationsEnvoyees || []).some(i => i.nom === state.char?.name)) {
+    showToast('Invitation déjà traitée', 'Cette invitation n\'est plus valable.', false); return;
+  }
   if (orga.membres?.some(m => m.nom === state.char?.name)) {
     showToast('Déjà membre', 'Vous êtes déjà membre de cette organisation.', false); return;
   }
@@ -1010,6 +1034,7 @@ async function accepterInvitationOrga(orgaId, nomInvitant) {
     showToast('Limite atteinte', 'Vous appartenez déjà à une organisation de type ' + (def.label || orga.type) + '.', false); return;
   }
 
+  orga.invitationsEnvoyees = (orga.invitationsEnvoyees || []).filter(i => i.nom !== state.char?.name);
   const grades = def.grades?.[state.country] || ['Membre'];
   if (!orga.membres) orga.membres = [];
   orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1 });
@@ -1022,6 +1047,26 @@ async function accepterInvitationOrga(orgaId, nomInvitant) {
     sbSendMail(orga.nom, nomInvitant, 'Invitation acceptée', (state.char?.name || 'Le destinataire') + ' a rejoint ' + orga.nom + '.', time).catch(() => {});
   }
   updateUI();
+}
+
+// Appelée quand le destinataire clique "Refuser l'invitation" dans le mail.
+async function refuserInvitationOrga(orgaId, nomInvitant) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) { showToast('Invitation expirée', 'Cette organisation n\'existe plus.', false); return; }
+  if (!(orga.invitationsEnvoyees || []).some(i => i.nom === state.char?.name)) {
+    showToast('Invitation déjà traitée', 'Cette invitation n\'est plus valable.', false); return;
+  }
+
+  orga.invitationsEnvoyees = (orga.invitationsEnvoyees || []).filter(i => i.nom !== state.char?.name);
+  sauvegarderOrga(orga);
+  showToast('Invitation refusée', '', false);
+  addJournalEntry('Invitation refusée : "' + orga.nom + '".', '');
+
+  // Retour prive au chef uniquement (aucune information publique generee).
+  if (typeof sbSendMail === 'function' && nomInvitant) {
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
+    sbSendMail(orga.nom, nomInvitant, 'Invitation refusée', (state.char?.name || 'Le destinataire') + ' a refusé de rejoindre ' + orga.nom + '.', time).catch(() => {});
+  }
 }
 
 // ------ ORDRES SPÉCIFIQUES ------
