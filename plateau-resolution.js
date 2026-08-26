@@ -31,18 +31,36 @@ const RESOLUTION_DUREES = {
 // d'autre que le joueur courant).
 function _stageHtmlResolution(type, succes, titre) {
   if (type === 'bombe') {
+    // Debut IDENTIQUE aux deux branches (correctif visuel "Bombe V3", 26 aout 2026) : bombe +
+    // meche + etincelle sont toujours le meme markup/la meme animation de depart -- seuls les
+    // elements ajoutes APRES (flash/onde de choc/debris en reussite, ou fizzle/pschhht/OUPS en
+    // echec) different. Le resultat ne devient donc visible qu'a la toute fin, jamais des le debut.
+    // Accessoire isole dans .res-bombe-scene : remplacer plus tard par une image/WebP ne touche
+    // qu'a ce bloc (§2), jamais aux handlers metier (§8, inchanges dans ce lot).
+    let html = '<div class="resolution-stage' + (succes ? ' res-shake' : '') + '">' +
+        '<div class="res-bombe-scene' + (succes ? ' res-bombe-scene-succes' : '') + '">' +
+          '<div class="res-bombe-shadow"></div>' +
+          '<div class="res-bombe-body"><div class="res-bombe-reflet"></div></div>' +
+          '<div class="res-bombe-cap"></div>' +
+          '<div class="res-bombe-light"></div>' +
+          '<div class="res-bombe-fuse' + (succes ? '' : ' res-bombe-fuse-droop') + '"></div>' +
+          '<div class="res-bombe-spark' + (succes ? '' : ' res-bombe-spark-echec') + '"></div>';
     if (succes) {
-      return '<div class="resolution-stage">' +
-          '<div class="res-smoke"></div>' +
+      html +=
           '<div class="res-flash"></div>' +
-          '<div class="resolution-icon res-fuse res-shake"><i class="ti ti-bomb"></i></div>' +
-        '</div>';
+          '<div class="res-shockwave"></div>' +
+          '<div class="res-debris res-debris-1"></div>' +
+          '<div class="res-debris res-debris-2"></div>' +
+          '<div class="res-debris res-debris-3"></div>' +
+          '<div class="res-debris res-debris-4"></div>' +
+          '<div class="res-smoke"></div>';
+    } else {
+      html += '<div class="res-pschht">💨</div>';
     }
-    return '<div class="resolution-stage">' +
-        '<div class="resolution-icon res-fuse-fail"><i class="ti ti-bomb"></i></div>' +
-        '<div class="res-pschht">💨</div>' +
-        '<div class="resolution-title-big res-oups">OUPS…</div>' +
-      '</div>';
+    html += '</div>'; // .res-bombe-scene
+    if (!succes) html += '<div class="resolution-title-big res-oups">OUPS…</div>';
+    html += '</div>'; // .resolution-stage
+    return html;
   }
   if (type === 'arrestation') {
     return '<div class="resolution-stage res-arrest-shake">' +
