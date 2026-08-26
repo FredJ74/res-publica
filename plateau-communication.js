@@ -652,16 +652,19 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName) {
         showToast('Immunité militaire', 'Flagrant délit, mais votre immunité militaire vous protège de toute poursuite.', true);
         addJournalEntry('Distribution de tract calomnieux — flagrant délit, immunité militaire invoquée.', 'event-info');
       } else {
-        // Persistance verifiee (24 aout 2026) : est_emprisonne/estEmprisonne figure bien dans le
-        // whitelist de sbSavePersonnage/sbLoadPersonnage (supabase.js) -- contrairement a
-        // l'ancien state.char.tractsSportifs, ce champ survit deja a un refresh via la
-        // sauvegarde automatique (filet de securite 30s, plateau-core.js) et le flush d'urgence
-        // au dechargement de page. Appel explicite tout de meme ajoute ici, par coherence avec
-        // la majorite des autres mutations critiques du jeu (qui sauvegardent explicitement
-        // plutot que de compter uniquement sur le filet 30s) : la peine doit etre certaine, pas
-        // dependante d'une fenetre de synchronisation.
+        // Registre carcerale (26 aout 2026) : toute incarcération réelle doit apparaître au
+        // registre du commissariat -- ce flux positionnait state.estEmprisonne directement,
+        // contournant enregistrerDetention (donc la ligne detentions correspondante n'était
+        // jamais créée). On garde l'assignation synchrone immediate (navigation/UI ne doivent
+        // pas attendre l'aller-retour reseau pour refleter la contrainte), enregistrerDetention
+        // vient ensuite fusionner le detentionId et persister est_emprisonne cote serveur.
         state.estEmprisonne = { jours: 1, jourFin: (state.day || 1) + 1, raison: 'Distribution de tracts calomnieux' };
-        if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+        if (typeof enregistrerDetention === 'function') {
+          enregistrerDetention(state.char?.name, 'Distribution de tracts calomnieux', (state.day || 1) + 1, undefined, state.currentCity, {
+            country: state.country,
+            motifs: [{ type: 'Distribution de tracts calomnieux', jour_fait: state.day, city: state.currentCity, jours: 1, source: 'flagrant_delit' }]
+          }).catch(() => {});
+        }
         showToast('Flagrant délit !', pnjName + ' alerte immédiatement la police. Tous vos tracts calomnieux sont détruits. 1 jour de détention.', false, true);
         addJournalEntry('Distribution de tract calomnieux à ' + pnjName + ' — échec critique. Tracts calomnieux détruits, 1 jour de détention.', 'event-bad');
       }
@@ -1320,13 +1323,16 @@ async function doArchivesPolice(pa, cost) {
   document.getElementById('postes-body').innerHTML = enigme1HtmlRechercheArchivesPolice();
   document.getElementById('modal-postes').classList.add('open');
 
+  // Registre carcerale local (26 aout 2026) : le registre d'un commissariat ne doit montrer que
+  // les incarcerations reellement executees dans SA ville -- jamais tout le pays.
   if (typeof sbLoadDetentions === 'function') {
     try {
-      state._detentionsReelles = await sbLoadDetentions(state.country) || [];
+      state._detentionsReelles = await sbLoadDetentions(state.country, state.currentCity) || [];
     } catch(e) { state._detentionsReelles = []; }
   } else {
     state._detentionsReelles = [];
   }
+  state._archivesUiCache = null;
 }
 
 function enigme1HtmlRechercheArchivesPolice() {
@@ -1401,6 +1407,28 @@ function enigme1LancerRechercheArchivesPolice() {
   });
   html += '</div>';
   resultatsEl.innerHTML = html;
+
+  // Correction du bug _detentionsAffichees (jamais alimente auparavant -- ouvrirDetailDetention
+  // lisait un tableau toujours vide) + cache de la recherche pour permettre un retour naturel
+  // vers ces memes resultats depuis la fiche detaillee, sans relancer la recherche.
+  state._detentionsAffichees = reels;
+  state._archivesUiCache = { nom, decennie, html: resultatsEl.innerHTML };
+}
+
+// Reaffiche le formulaire de recherche des archives avec les resultats precedents (nom/decennie
+// saisis + liste), sans nouvel appel Supabase -- permet de revenir depuis une fiche detaillee
+// sans perdre la recherche en cours.
+function enigme1RevenirResultatsArchives() {
+  document.getElementById('postes-modal-title').textContent = 'Archives de Police';
+  document.getElementById('postes-body').innerHTML = enigme1HtmlRechercheArchivesPolice();
+  const cache = state._archivesUiCache;
+  if (!cache) return;
+  const nomInput = document.getElementById('archives-police-nom');
+  const decennieInput = document.getElementById('archives-police-decennie');
+  const resultatsEl = document.getElementById('archives-police-resultats');
+  if (nomInput) nomInput.value = cache.nom || '';
+  if (decennieInput) decennieInput.value = cache.decennie || '';
+  if (resultatsEl) resultatsEl.innerHTML = cache.html || '';
 }
 
 function enigme1AfficherArchiveHistorique(nom) {
@@ -1421,14 +1449,83 @@ function enigme1AfficherArchiveHistorique(nom) {
   }
 }
 
+// Fiche detaillee d'une incarceration (registre carcerale, 26 aout 2026). Doit supporter sans
+// erreur les anciennes lignes (pauvres : nom/raison/ville/dates/qhs seulement, tous les nouveaux
+// champs a null/absents) et les nouvelles (motifs structures + informations judiciaires +
+// continuite). N'invente jamais une donnee absente : chaque rubrique enrichie n'est affichee que
+// si elle existe reellement sur la ligne.
 function ouvrirDetailDetention(idx) {
   const d = (state._detentionsAffichees || [])[idx];
   if (!d) return;
-  document.getElementById('postes-modal-title').textContent = 'Detention — ' + d.nom;
+  document.getElementById('postes-modal-title').textContent = 'Détention — ' + d.nom;
+
+  const motifs = Array.isArray(d.motifs) ? d.motifs : null;
+  const dureeInitiale = (d.jour_fin != null && d.jour_debut != null) ? (d.jour_fin - d.jour_debut) : null;
+
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.5rem">Détention en cours</div>';
-  html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">Motif : ' + d.raison + '</div>';
-  if (d.qhs) html += '<div style="font-size:.78rem;color:#8a3a2a">Detention en QHS (haute securite)</div>';
+  html += '<div style="font-family:Playfair Display,serif;font-size:.95rem;color:#E8C97A;margin-bottom:.2rem">' + d.nom + '</div>';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">' + (d.city || '?') + (d.country ? ' · ' + d.country : '') + '</div>';
+
+  if (motifs && motifs.length) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">MOTIFS</div>';
+    let total = 0;
+    motifs.forEach(function(m) {
+      if (m.jours != null) total += m.jours;
+      html += '<div style="font-size:.8rem;color:#c0b090;margin-bottom:.1rem">— ' + (m.type || 'Motif') + (m.jours != null ? ' : ' + m.jours + ' jour(s)' : '') + '</div>';
+      const details = [];
+      if (m.cible) details.push('victime/cible : ' + m.cible);
+      if (m.jour_fait != null) details.push('jour ' + m.jour_fait);
+      if (m.city) details.push(m.city);
+      if (m.detail) details.push(m.detail);
+      if (details.length) html += '<div style="font-size:.7rem;color:#6a5a30;margin:0 0 .3rem .8rem;font-style:italic">' + details.join(' · ') + '</div>';
+    });
+    if (motifs.length > 1) html += '<div style="font-size:.76rem;color:#9a8a4a;margin-top:.2rem">Total des motifs : ' + total + ' jour(s)</div>';
+  } else {
+    html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">Motif : ' + d.raison + '</div>';
+  }
+
+  if (d.ville_condamnation && d.ville_condamnation !== d.city) {
+    html += '<div style="font-size:.72rem;color:#6a5a30;margin-top:.4rem">Condamné(e) à ' + d.ville_condamnation + ', incarcéré(e) à ' + d.city + '</div>';
+  }
+  if (d.jour_affaire != null) html += '<div style="font-size:.72rem;color:#6a5a30">Affaire du jour ' + d.jour_affaire + '</div>';
+  if (d.issue_judiciaire) html += '<div style="font-size:.72rem;color:#6a5a30">Issue judiciaire : ' + d.issue_judiciaire + '</div>';
+  if (d.autorite) html += '<div style="font-size:.72rem;color:#6a5a30">Autorité : ' + d.autorite + '</div>';
+
+  html += '<div style="margin-top:.6rem;border-top:1px solid #2a2010;padding-top:.5rem">';
+  html += '<div style="font-size:.78rem;color:#c0b090">Début de détention : jour ' + d.jour_debut + '</div>';
+  if (d.jour_fin != null) html += '<div style="font-size:.78rem;color:#c0b090">Fin prévue : jour ' + d.jour_fin + (dureeInitiale != null ? (' (durée initiale ' + dureeInitiale + ' jour(s))') : '') + '</div>';
+  if (d.reduction_jours) html += '<div style="font-size:.78rem;color:#6a9a6a">Réduction obtenue (avocat) : -' + d.reduction_jours + ' jour(s)</div>';
+  if (d.reliquat_jours != null) html += '<div style="font-size:.78rem;color:#9a8a4a">Reliquat repris d\'une détention antérieure : ' + d.reliquat_jours + ' jour(s)</div>';
+
+  // jour_fin_effective represente le jour REEL de fin de cette entree, quelle qu'en soit la
+  // cause (purgee, anticipee_avocat, evasion, transfert_qhs) -- distinct de jour_fin (date
+  // theorique/prevue). Le libelle ne parle de "liberation" que pour les deux modes qui en sont
+  // reellement une ; les autres parlent de "fin effective", pour ne pas laisser croire a une
+  // sortie de detention qui n'a pas eu lieu (evasion, transfert QHS).
+  const modeFinLabels = { purgee: 'Peine purgée', anticipee_avocat: 'Libération anticipée (avocat)', evasion: 'Évasion', transfert_qhs: 'Transfert au QHS' };
+  const estUneLiberation = { purgee: true, anticipee_avocat: true, evasion: false, transfert_qhs: false };
+  let statutTexte, statutCouleur;
+  if (d.mode_fin && modeFinLabels[d.mode_fin]) {
+    const libelleJour = estUneLiberation[d.mode_fin] ? 'libération' : 'fin effective';
+    statutTexte = modeFinLabels[d.mode_fin] + (d.jour_fin_effective != null ? (' (' + libelleJour + ' : jour ' + d.jour_fin_effective + ')') : '');
+    statutCouleur = d.mode_fin === 'evasion' ? '#cc4444' : (d.mode_fin === 'transfert_qhs' ? '#9a8a4a' : '#6a9a6a');
+  } else if (d.jour_fin != null && typeof state.day === 'number' && state.day >= d.jour_fin) {
+    statutTexte = 'Peine réputée purgée (jour de fin dépassé, sortie non constatée)';
+    statutCouleur = '#8a8060';
+  } else {
+    statutTexte = 'En cours';
+    statutCouleur = '#8a8060';
+  }
+  html += '<div style="font-size:.78rem;color:' + statutCouleur + '">Statut : ' + statutTexte + '</div>';
+
+  if (d.qhs) html += '<div style="font-size:.78rem;color:#8a3a2a;margin-top:.3rem">Détention en QHS (haute sécurité)</div>';
+  html += '</div>';
+
+  if (d.detention_precedente_id) {
+    html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.5rem;font-style:italic">Fait suite à une détention antérieure interrompue.</div>';
+  }
+
+  html += '<button class="pnj-action-btn" onclick="enigme1RevenirResultatsArchives()" style="margin-top:1rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Retour aux résultats</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }

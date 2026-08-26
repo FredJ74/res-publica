@@ -1295,8 +1295,11 @@ async function sbCreerDetention(data) {
   return sbInsert('detentions', { id, ...data });
 }
 
-async function sbLoadDetentions(country) {
-  return sbGet('detentions', `country=eq.${encodeURIComponent(country)}&order=jour_debut.desc`);
+// Le registre du commissariat est local : city obligatoire des que connue (le repli sans city
+// existe uniquement pour ne pas casser un appelant qui l'ignorerait encore).
+async function sbLoadDetentions(country, city) {
+  const filtreCity = city ? `&city=eq.${encodeURIComponent(city)}` : '';
+  return sbGet('detentions', `country=eq.${encodeURIComponent(country)}${filtreCity}&order=jour_debut.desc`);
 }
 
 async function sbCreerJugement(data) {

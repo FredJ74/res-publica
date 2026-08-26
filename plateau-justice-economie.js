@@ -510,7 +510,10 @@ async function traiterEnquetes() {
       result = `Enquete conclue : non-lieu pour ${e.cible}. Aucune preuve suffisante.`;
     } else {
       result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. Mise en garde a vue immediate. Affaire transmise au tribunal pour jugement.`;
-      await enregistrerDetention(e.cible, 'Garde a vue suite a enquete', undefined, undefined, e.city);
+      await enregistrerDetention(e.cible, 'Garde a vue suite a enquete', undefined, undefined, e.city, {
+        country: e.country || state.country,
+        motifs: [{ type: e.motif || 'Garde a vue suite a enquete', jour_fait: e.day, city: e.city, jours: null, source: 'garde_a_vue' }]
+      });
       addExternalEvent(`${e.cible} a ete place(e) en garde a vue. Affaire transmise au tribunal.`, 'local');
       // Transmettre au tribunal pour jugement public
       transmettreAffaireAuTribunal(e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.', e.city);
@@ -524,13 +527,24 @@ async function traiterEnquetes() {
 // state.currentCity du joueur qui declenche par hasard le traitement differe (minuit/dormir)
 // ou qui execute cette fonction. Repli sur state.currentCity UNIQUEMENT si l'appelant ne
 // connait vraiment aucune ville (compatibilite avec d'anciennes donnees sans city).
-function transmettreAffaireAuTribunal(cible, motif, city) {
+// factRef (registre carcerale, lot "registre du commissariat") : quand l'affaire provient d'un
+// fait trace dans actions_tracables (demasquage via confirmerMenerEnquete), permet de faire
+// voyager la victime/cible reelle, le jour du fait et la reference technique jusqu'a la
+// condamnation puis, in fine, jusqu'au motif de la detention -- sans quoi ces informations,
+// pourtant connues a cet instant, disparaissent avant appliquerSentence (audit du 26 aout 2026).
+function transmettreAffaireAuTribunal(cible, motif, city, factRef) {
   const villeReelle = city || state.currentCity || 'capitale';
   const forumKey = 'tribunal_' + villeReelle;
 
   // Ajouter à la file d'attente du juge (statut lu par ouvrirRendreSentence) — visible par TOUS les juges via Supabase
   if (!state.plaintesEnCours) state.plaintesEnCours = [];
   const affaireTransmise = { id: 'affaire-' + Date.now(), country: state.country, city: villeReelle, cible, motif, jour: state.day, status: 'deposee' };
+  if (factRef) {
+    if (factRef.victime) affaireTransmise.victime = factRef.victime;
+    if (factRef.jourFait != null) affaireTransmise.jourFait = factRef.jourFait;
+    if (factRef.refType) affaireTransmise.refType = factRef.refType;
+    if (factRef.refId) affaireTransmise.refId = factRef.refId;
+  }
   state.plaintesEnCours.push(affaireTransmise);
   if (typeof sbSavePlainte === 'function') sbSavePlainte(affaireTransmise).catch(() => {});
 
@@ -840,7 +854,15 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
   addExternalEvent('Vous avez ete arrete(e) pour ' + peineCalc.label + '. ' + jours + ' jour(s) d\'emprisonnement. Amende : ' + amende.toLocaleString('fr-FR') + ' FR.');
   // Auto-referent : l'arrestation a lieu ici et maintenant, sur le joueur lui-meme -- city
   // explicite plutot qu'implicite (A3, lot judiciaire), meme comportement qu'avant.
-  enregistrerDetention(state.char?.name, peineCalc.label, state.day + jours, undefined, state.currentCity).catch(() => {});
+  // Resistance aggravante = un second motif distinct, jamais fusionne dans le premier : le code
+  // connait deja separement les deux durees (peineCalc.jours et le +2 fixe de la resistance),
+  // rien n'est reparti arbitrairement (registre carcerale, 26 aout 2026).
+  const motifsArrestation = [{ type: peineCalc.label, jour_fait: state.day, city: state.currentCity, jours: peineCalc.jours, source: 'flagrant_delit' }];
+  if (resistanceAggravante) motifsArrestation.push({ type: 'Résistance à l\'arrestation', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'flagrant_delit' });
+  enregistrerDetention(state.char?.name, peineCalc.label, state.day + jours, undefined, state.currentCity, {
+    country: state.country,
+    motifs: motifsArrestation
+  }).catch(() => {});
 
   // Teleportation en cellule de garde a vue
   state.currentBuilding = 'commissariat';
@@ -855,6 +877,10 @@ function procederArrestation(acte, resistanceAggravante, demasque) {
 function verifierLiberationPrisonniers() {
   if (!state.estEmprisonne) return;
   if (state.day >= state.estEmprisonne.jourFin) {
+    const detentionId = state.estEmprisonne.detentionId || null;
+    if (detentionId && typeof sbUpdate === 'function') {
+      sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, { mode_fin: 'purgee', jour_fin_effective: state.day }).catch(() => {});
+    }
     state.estEmprisonne = null;
     addMailNotification('Commissariat', 'Libération', 'Votre peine est purgée. Vous êtes libre de circuler.');
     addJournalEntry('Vous avez purgé votre peine et êtes libéré(e).', 'event-good');
@@ -1150,6 +1176,7 @@ async function confirmerRequeteAvocat(pa, cost) {
   const dup = getStatEffective('DUP');
   const taux = Math.min(85, 40 + Math.floor(dup * 1.5));
   const roll = Math.floor(Math.random() * 100) + 1;
+  const detentionId = state.estEmprisonne.detentionId || null;
 
   if (roll <= taux) {
     const joursRestants = Math.max(1, state.estEmprisonne.jourFin - (state.day || 1));
@@ -1158,7 +1185,17 @@ async function confirmerRequeteAvocat(pa, cost) {
     state.estEmprisonne.jours = Math.max(0, joursRestants - reduction);
     addMailNotification('Cabinet juridique', 'Réduction obtenue', 'Votre avocat a plaidé un vice de procédure. Votre peine est réduite de ' + reduction + ' jour(s).');
 
-    if (state.estEmprisonne.jours <= 0 || state.day >= state.estEmprisonne.jourFin) {
+    // Registre carcerale : la reduction ne reecrit jamais motifs[].jours (la peine d'origine par
+    // motif reste historiquement identifiable) -- elle est conservee a part, dans
+    // reduction_jours, a cote de jour_fin desormais aligne sur la nouvelle date.
+    const libereParAvocat = state.estEmprisonne.jours <= 0 || state.day >= state.estEmprisonne.jourFin;
+    if (detentionId && typeof sbUpdate === 'function') {
+      const patch = { reduction_jours: reduction, jour_fin: state.estEmprisonne.jourFin };
+      if (libereParAvocat) { patch.mode_fin = 'anticipee_avocat'; patch.jour_fin_effective = state.day; }
+      sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, patch).catch(() => {});
+    }
+
+    if (libereParAvocat) {
       state.estEmprisonne = null;
       showToast('Libéré(e) !', 'La réduction de peine vous rend votre liberté.', true, true);
       addJournalEntry('Vous êtes libéré(e) suite à la réduction de peine obtenue par votre avocat.', 'event-good');
@@ -1235,10 +1272,47 @@ async function doTentativeEvasion(pa, cost) {
 
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= taux) {
+    // Evasion reussie != liberation (regle validee, 26 aout 2026) : la peine n'est pas purgee.
+    // On cloture la detention interrompue avec mode_fin='evasion' (jour_fin n'est JAMAIS
+    // reecrit : la peine d'origine reste identifiable telle quelle), on calcule le reliquat
+    // reellement restant (simple soustraction, rien d'invente), et on fait rebasculer la
+    // personne en recherche avec : les motifs d'origine conserves comme historique + un motif
+    // "Evasion" distinct de 2 jours + le reliquat calcule -- jamais reparti dans les anciens
+    // motifs. La continuite avec la detention interrompue est portee par detention_precedente_id.
+    const detentionId = state.estEmprisonne.detentionId || null;
+    const jourFinPrevu = (state.estEmprisonne.jourFin != null) ? state.estEmprisonne.jourFin : state.day;
+    const reliquat = Math.max(0, jourFinPrevu - state.day);
+
+    let motifsOrigine = [];
+    let countryOrigine = state.country;
+    if (detentionId && typeof sbGet === 'function') {
+      const detRows = await sbGet('detentions', `id=eq.${encodeURIComponent(detentionId)}&select=motifs,country`).catch(() => []);
+      motifsOrigine = detRows?.[0]?.motifs || [];
+      countryOrigine = detRows?.[0]?.country || state.country;
+    }
+    if (detentionId && typeof sbUpdate === 'function') {
+      await sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionId)}`, { mode_fin: 'evasion', jour_fin_effective: state.day }).catch(() => {});
+    }
+
+    const motifsRecherche = motifsOrigine.concat([
+      { type: 'Évasion', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'evasion' }
+    ]);
+    if (typeof ajouterCondamnationRecherche === 'function') {
+      await ajouterCondamnationRecherche(state.char?.name, {
+        id: 'rech-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        type: 'condamnation',
+        country: countryOrigine,
+        motifs: motifsRecherche,
+        detention_precedente_id: detentionId,
+        reliquat_jours: reliquat,
+        jour_condamnation: state.day
+      });
+    }
+
     state.estEmprisonne = null;
     state.recherche = [];
     showToast('Evasion reussie !', 'Vous etes libre ! Restez discret.', true, true);
-    addJournalEntry('Evasion reussie !', 'event-good');
+    addJournalEntry('Evasion reussie ! Peine non purgee : reliquat de ' + reliquat + ' jour(s) + 2 jours pour evasion, exigibles a une prochaine arrestation.', 'event-good');
   } else {
     const cur = COUNTRIES[state.country]?.cur || 'FR';
     if (state.estEmprisonne) {
@@ -1291,15 +1365,38 @@ async function doSeRebeller(pa, cost) {
     showToast('Rebellion !', 'Vous avez tenu tete aux gardiens. +6 DIS, mais +1 jour de detention et -10 PV.', true, true);
     addJournalEntry('Rebellion en cellule reussie. Grilles endommagees (-' + degats + '). +1 jour de peine, -10 PV.', 'event-info');
     if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('rebellion_cellule', ville);
+    // Registre carcerale : le jour supplementaire devient un motif propre sur la detention en
+    // cours, pas seulement une mutation locale de state.estEmprisonne perdue au premier reload.
+    if (typeof prolongerDetentionActive === 'function') {
+      await prolongerDetentionActive(state.char?.name, [{ type: 'Rébellion en cellule', jour_fait: state.day, city: ville, jours: 1, source: 'evenement_detention' }]);
+    }
   } else {
     state.hp = Math.max(1, (state.hp || 100) - 25);
     state.dis = Math.max(0, (state.dis || 0) - 15);
+    // Registre carcerale : la rebellion matee remplace entierement la detention en cours par un
+    // transfert QHS (comportement d'origine, jour_fin non prolonge mais reinitialise a +30) --
+    // traite donc comme une nouvelle incarceration liee a la precedente via
+    // detention_precedente_id, plutot qu'une simple prolongation qui suppose une continuite de
+    // duree qui n'existe pas ici. L'ancienne ligne DOIT etre cloturee explicitement (mode_fin =
+    // 'transfert_qhs') -- la laisser a NULL la ferait apparaitre comme encore en cours dans le
+    // registre, ce qui est faux : elle est bien terminee, juste pas par une liberation.
+    const detentionPrecedenteId = state.estEmprisonne?.detentionId || null;
+    if (detentionPrecedenteId && typeof sbUpdate === 'function') {
+      sbUpdate('detentions', `id=eq.${encodeURIComponent(detentionPrecedenteId)}`, { mode_fin: 'transfert_qhs', jour_fin_effective: state.day }).catch(() => {});
+    }
     state.estEmprisonne = null;
     if (typeof sbCreerPrisonnierQHS === 'function') {
       await sbCreerPrisonnierQHS({ pays, nom: state.char?.name, raison: 'Rebellion en cellule', photoUrl: state.char?.photoUrl || null, jourDebut: state.day, jourFin: (state.day || 1) + 30 }).catch(() => {});
     }
     if (typeof sbUpdate === 'function') {
       await sbUpdate('personnages', `name=eq.${encodeURIComponent(state.char?.name)}`, { detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false }) }).catch(() => {});
+    }
+    if (typeof enregistrerDetention === 'function') {
+      await enregistrerDetention(state.char?.name, 'Rebellion en cellule matee - transfert QHS', (state.day || 1) + 30, true, ville, {
+        country: pays,
+        motifs: [{ type: 'Rébellion en cellule matée — transfert QHS', jour_fait: state.day, city: ville, jours: 30, source: 'evenement_detention' }],
+        detentionPrecedenteId: detentionPrecedenteId
+      }).catch(() => {});
     }
     updateUI();
     showToast('Rebellion matee', 'Transfere au QHS. -25 PV, -15 DIS.', false);
@@ -1668,6 +1765,18 @@ async function ouvrirRendreSentence(pa, cost) {
 async function appliquerSentence(affaireId, type, pa, cost) {
   const affaire = (state.plaintesEnCours||[]).find(p => p.id === affaireId);
   if (!affaire) return;
+
+  // QHS et torture supposent une personne DEJA physiquement detenue / sous controle (regle de
+  // jeu validee, 26 aout 2026) -- jamais un mecanisme execute sur un personnage libre, jamais de
+  // statut recherche cree pour ces deux types. Verifie AVANT toute consequence (cout PA, statut
+  // de l'affaire) : si la personne n'est pas detenue, l'action echoue proprement, l'affaire reste
+  // "deposee" (rejugeable plus tard, y compris en prison si la personne est entre-temps
+  // recherchee puis arretee) et aucune ligne detentions ni aucune entree recherche n'est creee.
+  if ((type === 'qhs' || type === 'torture') && !(await estActuellementDetenu(affaire.cible))) {
+    showToast('Action impossible', affaire.cible + " n'est pas actuellement détenu(e). Le QHS et la torture ne peuvent s'appliquer qu'à une personne déjà sous contrôle.", false);
+    return;
+  }
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   affaire.status = 'jugee';
@@ -1675,6 +1784,17 @@ async function appliquerSentence(affaireId, type, pa, cost) {
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   let details = '';
+
+  // Condamnation != incarceration (registre carcerale, lot "registre du commissariat", 26 aout
+  // 2026) : une condamnation a de la prison ne cree PAS directement une ligne detentions. Si le
+  // condamne est deja physiquement detenu (verifie via estActuellementDetenu, qui interroge son
+  // etat reel plutot que de le supposer), la peine s'ajoute a sa detention en cours
+  // (prolongerDetentionActive). Sinon, il devient recherche (ajouterCondamnationRecherche) et
+  // l'incarceration reelle n'aura lieu qu'a une arrestation effective (confirmerOrganiserChasseHomme),
+  // dans la ville ou elle se produit reellement -- jamais artificiellement a Luthecia si
+  // l'affaire y a ete jugee mais l'arrestation se fait ailleurs.
+  const autoriteJugement = 'Juge ' + (state.char?.name || 'PNJ');
+  const factCommun = { cible: affaire.victime || null, jour_fait: (affaire.jourFait != null ? affaire.jourFait : affaire.jour), city: affaire.city, ref_type: affaire.refType || null, ref_id: affaire.refId || null };
 
   if (type === 'amende') {
     const montant = 500;
@@ -1685,12 +1805,34 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     if (affaire.circonstanceAttenuante) { duree = Math.max(1, duree - 1); note = ' (circonstance atténuante : -1 jour)'; }
     if (affaire.aggravation) { duree = duree + 2; note = ' (aggravation : +2 jours)'; }
     details = 'Prison ' + duree + ' jours' + note;
-    await enregistrerDetention(affaire.cible, affaire.motif, state.day + duree, undefined, affaire.city);
+    const motifsPrison = [Object.assign({ type: affaire.motif, jours: duree, detail: note || null, source: 'jugement' }, factCommun)];
+
+    if (await estActuellementDetenu(affaire.cible)) {
+      await prolongerDetentionActive(affaire.cible, motifsPrison);
+    } else {
+      await ajouterCondamnationRecherche(affaire.cible, {
+        id: 'rech-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        type: 'condamnation',
+        country: state.country || 'republic',
+        motifs: motifsPrison,
+        affaire_id: affaire.id,
+        jour_affaire: (affaire.jourFait != null ? affaire.jourFait : affaire.jour),
+        ville_condamnation: affaire.city,
+        issue_judiciaire: details,
+        autorite: autoriteJugement,
+        jour_condamnation: state.day
+      });
+    }
   } else if (type === 'amenagement') {
     details = 'Amenagement : pointage quotidien au commissariat';
   } else if (type === 'qhs') {
+    // QHS suppose une personne deja physiquement detenue / sous controle (regle de jeu validee,
+    // 26 aout 2026) : jamais de statut "recherche pour QHS", jamais de creation artificielle de
+    // detention -- verifie desormais en amont (voir garde en tete de fonction), donc a ce stade
+    // la personne est necessairement deja detenue : on ne fait qu'etendre/escalader sa detention.
     details = 'Envoi au QHS';
-    await enregistrerDetention(affaire.cible, affaire.motif, state.day + 30, true, affaire.city);
+    const motifsQhs = [Object.assign({ type: affaire.motif, jours: 30, detail: 'QHS', source: 'jugement' }, factCommun)];
+    await prolongerDetentionActive(affaire.cible, motifsQhs, true);
     if (typeof sbCreerPrisonnierQHS === 'function') {
       let photoUrl = null;
       if (typeof sbGet === 'function') {
@@ -1701,6 +1843,9 @@ async function appliquerSentence(affaireId, type, pa, cost) {
       if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(affaire.cible)}`, { detention_qhs: JSON.stringify({ enQHS: true, paLimite1Jour: false }) }).catch(() => {});
     }
   } else if (type === 'torture') {
+    // Torture suppose egalement une personne deja detenue -- verifie en amont (voir garde en
+    // tete de fonction), ne fait donc qu'etendre la detention existante, jamais de creation
+    // artificielle ni de statut recherche.
     // Cumul : compter les condamnations precedentes pour torture sur ce meme accuse
     // (enregistrees comme actions tracees "condamnation_torture", jour_expiration tres eloigne
     // pour qu'elles restent comptabilisables indefiniment).
@@ -1711,7 +1856,8 @@ async function appliquerSentence(affaireId, type, pa, cost) {
     }
     const duree = 3 * (nbPrecedentes + 1);
     details = 'Prison ' + duree + ' jours + popularité à zéro' + (nbPrecedentes > 0 ? ' (peine cumulée, ' + (nbPrecedentes + 1) + 'e condamnation)' : '');
-    await enregistrerDetention(affaire.cible, affaire.motif, state.day + duree, undefined, affaire.city);
+    const motifsTorture = [Object.assign({ type: affaire.motif, jours: duree, detail: nbPrecedentes > 0 ? ('peine cumulee, ' + (nbPrecedentes + 1) + 'e condamnation') : null, source: 'jugement' }, factCommun)];
+    await prolongerDetentionActive(affaire.cible, motifsTorture);
     // Perte totale de popularite appliquee directement au personnage reel (peut ne pas etre
     // le joueur actuellement connecte).
     if (typeof sbUpdate === 'function') {
@@ -7675,23 +7821,141 @@ async function confirmerSubventionMinInt(pa, cost) {
 // la ville du joueur/agent qui execute ce code a cet instant. Repli sur state.currentCity
 // UNIQUEMENT si l'appelant ne connait vraiment aucune ville (compatibilite), jamais si la
 // vraie ville est connue.
-async function enregistrerDetention(nom, raison, jourFin, qhs, city) {
+//
+// Registre carcerale (lot "registre du commissariat", 26 aout 2026) : n'est appelee que pour
+// une INCARCERATION REELLEMENT EXECUTEE (arrestation physique effective), jamais pour une
+// simple condamnation -- voir appliquerSentence, qui route une condamnation prononcee sur un
+// personnage libre vers ajouterCondamnationRecherche() a la place. Le 6e parametre optionnel
+// `opts` porte les informations enrichies du registre (motifs structures, references
+// judiciaires) ; les appelants qui l'ignorent conservent le comportement d'avant ce lot (un
+// motif unique reconstruit depuis raison/jourFin). Persiste desormais est_emprisonne sur la
+// fiche `personnages` de LA PERSONNE CONCERNEE (pas seulement le joueur courant) : c'est ce qui
+// permet a une condamnation ulterieure de detecter qu'elle est deja detenue (voir
+// estActuellementDetenu) et a prolongerDetentionActive de retrouver la ligne detentions a
+// completer. Retourne l'id de la ligne detentions creee (ou null si l'insertion a echoue).
+async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
+  opts = opts || {};
+  const jourDebut = state.day || 1;
+  const country = opts.country || state.country || 'republic';
+  const villeReelle = city || state.currentCity || 'capitale';
+  const motifs = (opts.motifs && opts.motifs.length) ? opts.motifs : [{
+    type: raison,
+    jour_fait: jourDebut,
+    city: villeReelle,
+    jours: (jourFin !== undefined && jourFin !== null) ? (jourFin - jourDebut) : null,
+    source: opts.source || 'legacy'
+  }];
+
   if (!state.prisonniers) state.prisonniers = [];
-  const entree = { nom, depuis: 'Jour ' + (state.day || 1), raison };
+  const entree = { nom, depuis: 'Jour ' + jourDebut, raison };
   if (jourFin !== undefined && jourFin !== null) entree.jourFin = jourFin;
   if (qhs) entree.qhs = true;
   state.prisonniers.push(entree);
 
+  let detentionId = null;
   if (typeof sbCreerDetention === 'function') {
-    await sbCreerDetention({
-      country: state.country || 'republic',
-      city: city || state.currentCity || 'capitale',
+    const rows = await sbCreerDetention({
+      country,
+      city: villeReelle,
       nom, raison,
-      jour_debut: state.day || 1,
+      jour_debut: jourDebut,
       jour_fin: jourFin !== undefined ? jourFin : null,
-      qhs: !!qhs
-    }).catch(() => {});
+      qhs: !!qhs,
+      motifs,
+      jour_affaire: (opts.jourAffaire !== undefined) ? opts.jourAffaire : null,
+      issue_judiciaire: opts.issueJudiciaire || null,
+      autorite: opts.autorite || null,
+      ville_condamnation: opts.villeCondamnation || null,
+      detention_precedente_id: opts.detentionPrecedenteId || null,
+      reliquat_jours: (opts.reliquatJours !== undefined) ? opts.reliquatJours : null
+    }).catch(() => null);
+    detentionId = rows?.[0]?.id || null;
   }
+
+  const estEmprisonneValue = {
+    jours: (jourFin !== undefined && jourFin !== null) ? (jourFin - jourDebut) : null,
+    jourFin: jourFin !== undefined ? jourFin : null,
+    raison,
+    detentionId,
+    qhs: !!qhs
+  };
+  if (typeof sbUpdate === 'function') {
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { est_emprisonne: estEmprisonneValue }).catch(() => {});
+  }
+  if (nom === state.char?.name) {
+    // Fusion, jamais ecrasement : si l'appelant (ex. procederArrestation) a deja positionne
+    // state.estEmprisonne de facon synchrone pour que l'UI/la navigation reagisse
+    // immediatement (avant meme que cette fonction async ait fini), on ne fait qu'y ajouter
+    // detentionId plutot que de remplacer l'objet.
+    if (!state.estEmprisonne) state.estEmprisonne = { jours: estEmprisonneValue.jours, jourFin: estEmprisonneValue.jourFin, raison };
+    state.estEmprisonne.detentionId = detentionId;
+    if (qhs) state.estEmprisonne.qhs = true;
+  }
+
+  return detentionId;
+}
+
+// Une personne est-elle actuellement physiquement detenue (registre carcerale, lot "registre du
+// commissariat") ? Consulte l'etat local si c'est le joueur courant, sinon interroge sa fiche
+// personnages (est_emprisonne y est desormais toujours persiste par enregistrerDetention, quel
+// que soit le personnage concerne).
+async function estActuellementDetenu(nom) {
+  if (nom === state.char?.name) return !!state.estEmprisonne;
+  if (typeof sbGet !== 'function') return false;
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=est_emprisonne`).catch(() => []);
+  return !!(rows?.[0]?.est_emprisonne);
+}
+
+// Ajoute un motif a une detention DEJA ACTIVE (rebellion en cellule, condamnation
+// supplementaire prononcee pendant que la personne est deja incarceree, escalade QHS/torture)
+// -- ne cree jamais de nouvelle ligne detentions, ne fait qu'etendre celle qui existe deja.
+// Ne fait rien (retourne false) si la personne n'a pas de detentionId exploitable -- cas des
+// detentions anterieures a ce lot ou d'un etat local incoherent ; aucune reconstruction
+// retroactive n'est tentee.
+async function prolongerDetentionActive(nom, motifsSupplementaires, forcerQhs) {
+  const estCourant = (nom === state.char?.name) ? state.estEmprisonne : null;
+  let estEmprisonne = estCourant;
+  if (!estEmprisonne && typeof sbGet === 'function') {
+    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=est_emprisonne`).catch(() => []);
+    estEmprisonne = rows?.[0]?.est_emprisonne || null;
+  }
+  if (!estEmprisonne || !estEmprisonne.detentionId) return false;
+
+  const joursSupp = motifsSupplementaires.reduce((s, m) => s + (m.jours || 0), 0);
+  const jourFinActuel = (estEmprisonne.jourFin != null) ? estEmprisonne.jourFin : (state.day || 1);
+  const nouveauJourFin = jourFinActuel + joursSupp;
+
+  if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
+    const detRows = await sbGet('detentions', `id=eq.${encodeURIComponent(estEmprisonne.detentionId)}&select=motifs`).catch(() => []);
+    const motifsActuels = detRows?.[0]?.motifs || [];
+    const patch = { motifs: motifsActuels.concat(motifsSupplementaires), jour_fin: nouveauJourFin };
+    if (forcerQhs) patch.qhs = true;
+    await sbUpdate('detentions', `id=eq.${encodeURIComponent(estEmprisonne.detentionId)}`, patch).catch(() => {});
+  }
+
+  const estEmprisonneMaj = Object.assign({}, estEmprisonne, {
+    jours: (estEmprisonne.jours || 0) + joursSupp,
+    jourFin: nouveauJourFin,
+    qhs: forcerQhs ? true : estEmprisonne.qhs
+  });
+  if (typeof sbUpdate === 'function') {
+    await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { est_emprisonne: estEmprisonneMaj }).catch(() => {});
+  }
+  if (nom === state.char?.name) state.estEmprisonne = estEmprisonneMaj;
+  return true;
+}
+
+// Rend une personne LIBRE recherchee suite a une condamnation (registre carcerale) : conserve
+// la peine a executer sans jamais creer de ligne detentions tant que l'arrestation reelle n'a
+// pas eu lieu (voir confirmerOrganiserChasseHomme). personnages.recherche reste le meme champ
+// que les avis de recherche existants (actes auto-detectes) ; les anciennes entrees plates
+// {acte,type,jour} continuent de coexister sans etre touchees ni migrees.
+async function ajouterCondamnationRecherche(nom, entree) {
+  if (typeof sbGet !== 'function' || typeof sbUpdate !== 'function') return;
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=recherche`).catch(() => []);
+  const actuelle = rows?.[0]?.recherche || [];
+  actuelle.push(entree);
+  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { recherche: actuelle }).catch(() => {});
 }
 
 function doMenerEnquete(pa, cost) {
@@ -7759,8 +8023,12 @@ async function confirmerMenerEnquete(pa, cost) {
   // Enquete menee par un commissaire depuis sa propre ville (le journal d'actions tracables
   // fouille est deja filtre sur "ville" ci-dessus, A3 lot judiciaire) : l'affaire appartient
   // donc reellement a cette ville, pas seulement par defaut.
-  if (typeof enregistrerDetention === 'function') enregistrerDetention(cible, action.type_action || 'Acte illegal decouvert par enquete', (state.day || 1) + 2, undefined, ville).catch(() => {});
-  if (typeof transmettreAffaireAuTribunal === 'function') transmettreAffaireAuTribunal(cible, action.type_action || 'Acte illegal decouvert par enquete', ville);
+  const factRefDemasquage = { victime: action.cible || null, jourFait: action.jour, refType: 'action_tracee', refId: action.id };
+  if (typeof enregistrerDetention === 'function') enregistrerDetention(cible, action.type_action || 'Acte illegal decouvert par enquete', (state.day || 1) + 2, undefined, ville, {
+    country: pays,
+    motifs: [{ type: action.type_action || 'Acte illegal decouvert par enquete', cible: action.cible || null, jour_fait: action.jour, city: ville, ref_type: 'action_tracee', ref_id: action.id, jours: 2, source: 'garde_a_vue' }]
+  }).catch(() => {});
+  if (typeof transmettreAffaireAuTribunal === 'function') transmettreAffaireAuTribunal(cible, action.type_action || 'Acte illegal decouvert par enquete', ville, factRefDemasquage);
   if (typeof envoyerNotificationVraiJoueur === 'function') {
     await envoyerNotificationVraiJoueur(cible, 'Enquete de police', 'Une enquete a mis en evidence un acte illegal vous concernant. Vous avez ete place en garde a vue.');
   }
@@ -7864,9 +8132,16 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
 
   const rechercheRows = typeof sbGet === 'function' ? await sbGet('personnages', `name=eq.${encodeURIComponent(cible)}&select=recherche`).catch(() => []) : [];
-  const recherche = rechercheRows?.[0]?.recherche || [];
-  if (!recherche || recherche.length === 0) {
-    showToast('Pas recherche', cible + " ne fait l'objet d'aucun avis de recherche actif.", false);
+  const rechercheActuelle = rechercheRows?.[0]?.recherche || [];
+  // Competence territoriale (regle validee, 26 aout 2026) : une condamnation n'est executable
+  // que dans le meme empire. Les anciennes entrees plates (actes auto-detectes, sans `country`)
+  // n'ont jamais porte cette information -- on ne leur applique donc pas retroactivement de
+  // restriction, elles restent traitees comme avant. Seules les entrees qui portent
+  // explicitement un `country` different du chasseur sont exclues. Verification isolee et
+  // remplacable plus tard par un accord inter-empire/extradition sans toucher au reste.
+  const eligibles = rechercheActuelle.filter(r => !r.country || r.country === state.country);
+  if (!eligibles || eligibles.length === 0) {
+    showToast('Pas recherche', cible + " ne fait l'objet d'aucun avis de recherche actif dans cet empire.", false);
     return;
   }
 
@@ -7897,11 +8172,43 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
     return;
   }
 
-  const motif = recherche[0]?.acte || 'Avis de recherche';
   // Chasse a l'homme organisee depuis le commissariat du chasseur (meme raisonnement que
-  // confirmerMenerEnquete, A3 lot judiciaire) : la cible est ramenee/detenue dans cette ville.
-  if (typeof enregistrerDetention === 'function') await enregistrerDetention(cible, motif, (state.day || 1) + 3, undefined, ville);
-  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(cible)}`, { recherche: [] }).catch(() => {});
+  // confirmerMenerEnquete, A3 lot judiciaire) : la cible est ramenee/detenue dans CETTE ville,
+  // jamais dans celle ou la condamnation a ete prononcee -- c'est precisement l'arrestation
+  // reelle qui cree l'incarceration (registre carcerale, 26 aout 2026).
+  const entree = eligibles[0];
+  let motif, motifsDetention, joursTotal, extra;
+  if (entree.type === 'condamnation') {
+    motifsDetention = entree.motifs || [];
+    motif = (motifsDetention[0] && motifsDetention[0].type) || 'Condamnation';
+    // Continuite apres evasion (entree.reliquat_jours renseigne) : les motifs d'origine sont
+    // conserves tels quels comme historique (jamais reduits/repartis), mais ce qui reste
+    // reellement a purger cette fois est reliquat + la sanction d'evasion, PAS la somme de tous
+    // les motifs historiques (qui totaliserait la peine d'origine en entier, deja partiellement
+    // servie). Condamnation normale (pas d'evasion) : la somme des motifs est bien ce qui reste
+    // a purger dans son integralite.
+    joursTotal = (entree.reliquat_jours != null)
+      ? entree.reliquat_jours + (motifsDetention.find(m => m.source === 'evasion')?.jours || 0)
+      : motifsDetention.reduce((s, m) => s + (m.jours || 0), 0);
+    extra = {
+      country: entree.country, motifs: motifsDetention,
+      jourAffaire: entree.jour_affaire, issueJudiciaire: entree.issue_judiciaire,
+      autorite: entree.autorite, villeCondamnation: entree.ville_condamnation,
+      detentionPrecedenteId: entree.detention_precedente_id || null,
+      reliquatJours: (entree.reliquat_jours !== undefined) ? entree.reliquat_jours : null
+    };
+  } else {
+    motif = entree.acte || 'Avis de recherche';
+    joursTotal = 3;
+    motifsDetention = [{ type: motif, jour_fait: entree.jour, jours: joursTotal, source: 'flagrant_delit_recherche' }];
+    extra = { country: pays, motifs: motifsDetention };
+  }
+  if (typeof enregistrerDetention === 'function') await enregistrerDetention(cible, motif, (state.day || 1) + joursTotal, undefined, ville, extra);
+  // Ne retirer QUE l'entree effectivement traitee (egalite de reference, l'objet vient bien du
+  // meme tableau juste charge) -- jamais tout le tableau, une cible peut avoir plusieurs avis de
+  // recherche independants.
+  const rechercheMaj = rechercheActuelle.filter(r => r !== entree);
+  if (typeof sbUpdate === 'function') await sbUpdate('personnages', `name=eq.${encodeURIComponent(cible)}`, { recherche: rechercheMaj }).catch(() => {});
   if (typeof envoyerNotificationVraiJoueur === 'function') {
     await envoyerNotificationVraiJoueur(cible, 'Arrestation', 'Vous avez ete localise(e) et arrete(e) suite a un avis de recherche.');
   }
