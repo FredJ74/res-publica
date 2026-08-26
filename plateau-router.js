@@ -319,7 +319,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'proposer_treve')        { ouvrirProposerTreve(pa, cost); return; }
   if (fn === 'prier')                { doPrier(pa, cost); return; }
   if (fn === 'se_confesser')         { doSeConfeser(pa, cost); return; }
-  if (fn === 'faire_don')            { doFaireDon(cost); return; }
+  if (fn === 'faire_don')            { doFaireDon(pa, cost); return; }
   if (fn === 'demander_benediction') { doDemanderBenediction(pa, cost); return; }
   if (fn === 'pelerin')              { doPelerin(pa, cost); return; }
   if (fn === 'excommunier')          { ouvrirModalCibleRepertoire('excommunier', 'Excommunier'); return; }

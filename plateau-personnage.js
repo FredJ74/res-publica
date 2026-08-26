@@ -255,17 +255,19 @@ LES 4 RELIGIONS :
 
 • Al-Khalija → Le Loukoumisme — Vénération du Loukoum Divin. Grand Prêtre : le Grand Confiseur. Temple : la Pâtisserie Sacrée. Péché mortel : refuser un loukoum offert.
 
-INDICE DE PIÉTÉ (IP) :
-Chaque empire a un Indice de Piété (0-100). Plus il est élevé, plus la religion est influente. Il impacte l'Indice Social, la popularité des élus et l'ordre public.
+INDICE DE PIÉTÉ :
+Chaque ville a son propre Indice de Piété (0-100), indépendant des autres villes du même empire.
 
 LIEUX DE CULTE :
-Chaque empire possède un lieu de culte accessible à tous. On peut y prier (+IP +Moral), se confesser (+Moral, mais le prêtre sait tout), faire des dons (+IP +POP), ou se déclarer pèlerin (+DIS).
+Chaque empire possède au moins un lieu de culte accessible à tous. On peut toujours y prier (+2 Moral, +3 piété de la ville) et y faire un don de 200 FR pris sur son argent personnel (+3 Popularité, +5 piété de la ville).
 
-CONFESSION :
-Attention ! Tout ce que vous confiez au Grand Prêtre peut être consulté par le chef d'État. Choisissez vos aveux avec soin.
+CONFESSION ET BÉNÉDICTION (Républia — Luthécia, Port-Sainte-Marie, Montrouge) :
+Ces deux services ne sont pas des boutons de salle : ils se demandent directement auprès d'un religieux habilité (Grand Prêtre ou clerc) réellement présent sur place.
+• Confession — 2 PA. Efface une seule trace d'action illégale pas encore découverte. Si l'affaire a déjà été découverte ou jugée, la confession n'a plus aucun effet dessus : elle ne réécrit jamais l'historique judiciaire.
+• Bénédiction — 1 PA. 80% de chances fixes d'obtenir un bonus au prochain ordre risqué entrepris dans les 24 heures qui suivent.
 
-LE CHEF D'ÉTAT ET LA RELIGION :
-Le Président peut nommer le Grand Prêtre depuis son bureau. Il peut aussi décréter des jours saints (impact IP et IS).`
+LE GRAND PRÊTRE :
+Son rôle institutionnel (nomination, pouvoirs officiels) n'est pas encore disponible dans le jeu.`
   },
   economie: {
     titre: "L'économie",

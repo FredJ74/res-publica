@@ -837,6 +837,19 @@ function openPnjModal(encodedPnj) {
   actionBtns += '<button class="pnj-action-btn" onclick="doSaluerPersonne(\'' + pnjSafeName + '\')"><i class="ti ti-hand-stop" style="font-size:.85rem"></i> Saluer</button>';
   actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonPnjModal(\'' + enc + '\')"><i class="ti ti-coins" style="font-size:.85rem"></i> Donner</button>';
 
+  // Services religieux en contact (lot "refonte religion Republia", 26 aout 2026) : confession
+  // et benediction ne sont plus des ordres de salle, mais un service rendu par un religieux
+  // habilite (grand_pretre/clerc) reellement present, uniquement dans l'une des trois eglises de
+  // Republia -- jamais depuis un autre batiment ni un autre empire. "Consulter la regle" reutilise
+  // le mecanisme deja existant (openRulesView/renderRulesContent, section 'religion') plutot que
+  // d'en inventer un nouveau.
+  const EGLISES_REPUBLIA_HABILITEES = ['tabernacle-impots', 'notre-dame-mer', 'eglise-montrouge'];
+  if (!isPJ && ['grand_pretre', 'clerc'].includes(pnj.job) && EGLISES_REPUBLIA_HABILITEES.includes(state.currentBuilding)) {
+    actionBtns += '<button class="pnj-action-btn" onclick="doSeConfeserContact(\'' + pnjSafeName + '\')"><i class="ti ti-message" style="font-size:.85rem"></i> Se confesser</button>';
+    actionBtns += '<button class="pnj-action-btn" onclick="doDemanderBenedictionContact(\'' + pnjSafeName + '\')"><i class="ti ti-sparkles" style="font-size:.85rem"></i> Demander une bénédiction</button>';
+    actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');openRulesView();renderRulesContent(\'religion\');" style="color:#8a9aca;border-color:#2a3a5a"><i class="ti ti-book" style="font-size:.85rem"></i> Consulter la règle</button>';
+  }
+
   const objetsDispos = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
   if (objetsDispos.length > 0) {
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonObjetPnjModal(\'' + enc + '\')"><i class="ti ti-package" style="font-size:.85rem"></i> Donner un objet</button>';

@@ -368,11 +368,16 @@ async function doSeConfeser(pa, cost) {
   }
 }
 
-function doFaireDon(cost) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (!verifierBudgetInstitution('presidence')) {
-    if (state.arg < (cost || 200)) { showToast('Fonds insuffisants', '', false); return; }
-    state.arg -= (cost || 200);
+// Correctif (lot "refonte religion Republia", 26 aout 2026) : le PA affiche (1) n'etait jamais
+// deduit (deduireCoutOrdre n'etait pas appelee), et l'argent pouvait etre preleve implicitement
+// sur le budget de la presidence plutot que sur le portefeuille personnel. Desormais paiement
+// exclusivement personnel, PA et argent tous deux verifies/deduits par le meme mecanisme standard
+// que tous les autres ordres -- coherent pour les 4 empires (fonction partagee, RELIGIONS[pays]).
+async function doFaireDon(pa, cost) {
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) {
+    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false);
+    return;
   }
   modifierIP(5);
   state.pop = Math.min(100, state.pop + 3);
@@ -451,6 +456,79 @@ async function doPelerin(pa, cost) {
   updateUI();
   showToast('Pèlerin déclaré', '+10 DIS pendant 24h. Accès facilité aux lieux saints des autres empires.', true);
   addJournalEntry('Statut de pèlerin déclaré.', 'event-info');
+}
+
+// ---- CONFESSION ET BENEDICTION EN CONTACT (lot "refonte religion Republia", 26 aout 2026) ----
+// Confession et benediction ne sont plus des boutons de salle : ce sont des services rendus par
+// un religieux habilite (grand_pretre/clerc) reellement present, dans l'une des trois eglises de
+// Republia -- declenches depuis openPnjModal (plateau-pnj.js), jamais depuis le routeur d'ordres
+// de piece. La garde (job + batiment) est faite cote appelant.
+
+// La confession efface UNE trace d'action illegale encore non decouverte (actions_tracables,
+// meme systeme que le reste de la chaine judiciaire -- aucune seconde memoire inventee), jamais
+// une affaire deja decouverte/jugee : reutilise sbGetActionsTracables (deja scope pays+ville),
+// filtre sur l'auteur (le joueur courant) et decouvert===false. Ne debite rien si rien n'est
+// eligible. Si plusieurs traces sont eligibles, le joueur choisit laquelle confesser (liste
+// simple, meme gabarit que les autres modales de choix du jeu) plutot qu'un tirage au hasard.
+async function doSeConfeserContact(pnjNom) {
+  if (typeof sbGetActionsTracables !== 'function' || !state.char?.name) return;
+  const toutes = await sbGetActionsTracables(state.country || 'republic', state.currentCity, state.day || 1).catch(() => []);
+  const eligibles = (toutes || []).filter(a => a.auteur === state.char.name && !a.decouvert);
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  if (eligibles.length === 0) {
+    showToast('Rien à confesser', "Vous n'avez rien de compromettant à avouer pour l'instant.", true);
+    return;
+  }
+  if (eligibles.length === 1) {
+    await confirmerConfession(pnjNom, eligibles[0].id);
+    return;
+  }
+  ouvrirModalChoixConfession(pnjNom, eligibles);
+}
+
+function ouvrirModalChoixConfession(pnjNom, eligibles) {
+  document.getElementById('postes-modal-title').textContent = 'Confession';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Que souhaitez-vous confesser ?</div>';
+  eligibles.forEach(a => {
+    const label = (typeof ACTES_ILLEGAUX !== 'undefined' && ACTES_ILLEGAUX[a.type_action]?.label) || (a.type_action || 'Acte').replace(/_/g, ' ');
+    html += '<div onclick="confirmerConfession(\'' + pnjNom.replace(/'/g, '') + '\',\'' + a.id + '\')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;font-size:.82rem;color:#c0b090">' + label + '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerConfession(pnjNom, actionId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (typeof sbDelete === 'function') {
+    await sbDelete('actions_tracables', 'id=eq.' + encodeURIComponent(actionId)).catch(() => {});
+  }
+  updateUI();
+  showToast('Confession entendue', pnjNom + ' vous absout.', true, true);
+  addJournalEntry('Confession auprès de ' + pnjNom + '.', 'event-good');
+}
+
+// Benediction en contact : reprend le mecanisme utile existant (state.char.benediction,
+// consommerBonusBenediction, 9 sites d'application deja fonctionnels) mais retire l'ancienne
+// formule variable (CHA du titulaire + piete de la ville) au profit d'un taux fixe de 80%,
+// regle validee.
+async function doDemanderBenedictionContact(pnjNom) {
+  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= 80) {
+    state.char.benediction = { actif: true, expire: (state.day || 1) + 1 };
+    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+    updateUI();
+    showToast('Béni !', pnjNom + ' vous accorde sa bénédiction. +5 points sur votre prochain ordre avec jet (24h, non cumulable).', true, true);
+    addJournalEntry('Bénédiction reçue de ' + pnjNom + '.', 'event-good');
+  } else {
+    updateUI();
+    showToast('Pas de réponse', pnjNom + ' est occupé(e). Revenez plus tard.', false);
+  }
 }
 
 async function doBenedictionEtat(pa, cost) {
