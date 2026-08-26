@@ -7872,12 +7872,18 @@ async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
     detentionId = rows?.[0]?.id || null;
   }
 
+  // city/country portes directement sur est_emprisonne (lot "salle des geoles", 26 aout 2026) :
+  // c'est ce qui permet a la salle des geoles de savoir QUELLE prison (ville) heberge reellement
+  // chaque detenu, independamment de la ville de condamnation -- sans ca, impossible de scoper
+  // une liste de detenus actifs par commissariat sans deviner.
   const estEmprisonneValue = {
     jours: (jourFin !== undefined && jourFin !== null) ? (jourFin - jourDebut) : null,
     jourFin: jourFin !== undefined ? jourFin : null,
     raison,
     detentionId,
-    qhs: !!qhs
+    qhs: !!qhs,
+    city: villeReelle,
+    country
   };
   if (typeof sbUpdate === 'function') {
     await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { est_emprisonne: estEmprisonneValue }).catch(() => {});
@@ -7889,6 +7895,8 @@ async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
     // detentionId plutot que de remplacer l'objet.
     if (!state.estEmprisonne) state.estEmprisonne = { jours: estEmprisonneValue.jours, jourFin: estEmprisonneValue.jourFin, raison };
     state.estEmprisonne.detentionId = detentionId;
+    state.estEmprisonne.city = villeReelle;
+    state.estEmprisonne.country = country;
     if (qhs) state.estEmprisonne.qhs = true;
   }
 

@@ -1509,8 +1509,15 @@ function ouvrirDetailDetention(idx) {
     const libelleJour = estUneLiberation[d.mode_fin] ? 'libération' : 'fin effective';
     statutTexte = modeFinLabels[d.mode_fin] + (d.jour_fin_effective != null ? (' (' + libelleJour + ' : jour ' + d.jour_fin_effective + ')') : '');
     statutCouleur = d.mode_fin === 'evasion' ? '#cc4444' : (d.mode_fin === 'transfert_qhs' ? '#9a8a4a' : '#6a9a6a');
-  } else if (d.jour_fin != null && typeof state.day === 'number' && state.day >= d.jour_fin) {
-    statutTexte = 'Peine réputée purgée (jour de fin dépassé, sortie non constatée)';
+  } else if (!motifs) {
+    // Ancienne ligne (anterieure au lot registre carceral) : l'absence de mode_fin signifie
+    // seulement que l'ancien systeme n'enregistrait jamais la sortie reelle -- PAS que la
+    // detention est toujours active aujourd'hui. Ne jamais deduire "en cours" ici : state.day
+    // est le compteur de jours du personnage qui CONSULTE la fiche, pas celui de la personne
+    // detenue (deux compteurs independants, sans correspondance calendaire fiable entre eux,
+    // voir audit dedie) -- une comparaison jour_fin vs state.day serait trompeuse, pas
+    // seulement mal affichee.
+    statutTexte = 'Statut historique incomplet — fin non constatée';
     statutCouleur = '#8a8060';
   } else {
     statutTexte = 'En cours';

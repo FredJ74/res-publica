@@ -1302,6 +1302,17 @@ async function sbLoadDetentions(country, city) {
   return sbGet('detentions', `country=eq.${encodeURIComponent(country)}${filtreCity}&order=jour_debut.desc`);
 }
 
+// Salle des geoles (lot "geoles", 26 aout 2026) : personnages REELLEMENT emprisonnes en ce
+// moment dans CETTE prison precise (country+city), d'apres leur etat carceral vivant
+// (personnages.est_emprisonne), jamais depuis l'historique detentions -- une ancienne ligne
+// d'archive ne dit rien de l'etat actuel de quelqu'un. Filtre directement sur les sous-champs
+// jsonb city/country d'est_emprisonne (portes par enregistrerDetention/prolongerDetentionActive
+// depuis ce lot ; une detention active plus ancienne, sans ces sous-champs, ne remontera pas ici
+// -- aucune reconstruction retroactive tentee).
+async function sbGetDetenusActifs(country, city) {
+  return sbGet('personnages', `est_emprisonne->>country=eq.${encodeURIComponent(country)}&est_emprisonne->>city=eq.${encodeURIComponent(city)}&select=name,photo_url,est_emprisonne`);
+}
+
 async function sbCreerJugement(data) {
   const id = 'jug-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
   return sbInsert('jugements', { id, ...data });

@@ -689,18 +689,26 @@ function enterRoom(buildingId, roomId, tabEl) {
 
   renderPersonsList(displayPersons);
 
+  // Salle des geoles (lot dedie, 26 aout 2026) : la liste des detenus affiches doit representer
+  // l'etat carceral REEL et actuel (personnages.est_emprisonne, scope par ville/pays), jamais un
+  // historique -- voir sbGetDetenusActifs (supabase.js). Couvre les deux templates de
+  // navigation existants : 'commissariat'/'prison' (Luthecia) et 'commissariat-local'/'geoles'
+  // (Montrouge, PSM).
+  const estSalleGeoles = (buildingId === 'commissariat' && roomId === 'prison') || (buildingId === 'commissariat-local' && roomId === 'geoles');
+
   // Detachement militaire ET police eventuellement presents (asynchrone, ne bloque pas
-  // l'affichage normal). Lot policiers PNJ (24 aout 2026) : les deux verifications sont
-  // regroupees dans un seul Promise.all puis un SEUL rendu final -- deux .then() independants
-  // repartant chacun de displayPersons se seraient ecrases mutuellement si les deux presences
-  // coexistaient dans la meme piece (correctif introduit avec cet ajout, aucune regression sur
-  // le comportement militaire seul).
-  if (typeof getAffichageDetachementPiece === 'function' || typeof getAffichagePolicePiece === 'function') {
+  // l'affichage normal). Lot policiers PNJ (24 aout 2026) : les trois verifications sont
+  // regroupees dans un seul Promise.all puis un SEUL rendu final -- des .then() independants
+  // repartant chacun de displayPersons se seraient ecrases mutuellement si plusieurs de ces
+  // presences coexistaient dans la meme piece (correctif introduit avec l'ajout
+  // militaire/police, etendu ici aux detenus reels pour la meme raison).
+  if (typeof getAffichageDetachementPiece === 'function' || typeof getAffichagePolicePiece === 'function' || estSalleGeoles) {
     Promise.all([
       typeof getAffichageDetachementPiece === 'function' ? getAffichageDetachementPiece(state.country || 'republic', buildingId, roomId).catch(() => null) : null,
-      typeof getAffichagePolicePiece === 'function' ? getAffichagePolicePiece(state.country || 'republic', state.currentCity, buildingId, roomId).catch(() => null) : null
-    ]).then(([det, pol]) => {
-      if (!(det || pol) || state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
+      typeof getAffichagePolicePiece === 'function' ? getAffichagePolicePiece(state.country || 'republic', state.currentCity, buildingId, roomId).catch(() => null) : null,
+      (estSalleGeoles && typeof sbGetDetenusActifs === 'function') ? sbGetDetenusActifs(state.country || 'republic', state.currentCity).catch(() => []) : null
+    ]).then(([det, pol, detenus]) => {
+      if (!(det || pol || (detenus && detenus.length > 0)) || state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
       const extras = [];
       if (det) {
         const missionLabel = { bloquer_acces:'Bloque l\'accès', securiser:'Sécurise la pièce', assassiner:'Ordre : neutraliser les intrus', arreter:'Ordre : arrêter les intrus', surveiller:'En surveillance', escorter:'Escorte en cours' }[det.mission] || 'Sans consigne';
@@ -708,6 +716,14 @@ function enterRoom(buildingId, roomId, tabEl) {
       }
       if (pol) {
         extras.push({ name: 'Patrouille de police', role: pol.nombre + ' policier(s) en faction', rel: 'neutral', job: 'policier' });
+      }
+      if (detenus) {
+        // isPJ:true (meme forme que les vrais joueurs presents ailleurs, plateau-multijoueur.js)
+        // -- ce sont de vrais personnages, pas des PNJ statiques. Exclu : le joueur courant
+        // lui-meme, deja represente par sa propre carte "(Vous)" en tete de liste.
+        detenus.filter(p => p.name !== state.char?.name).forEach(p => {
+          extras.push({ name: p.name, role: 'Emprisonné', rel: 'neutral', isPJ: true, job: null, photoUrl: p.photo_url || null });
+        });
       }
       renderPersonsList([...displayPersons, ...extras]);
     }).catch(() => {});
