@@ -6952,56 +6952,13 @@ const BUDGETS_INSTITUTIONS = {
 // =====================
 // PJ SIMULATION (mode test multijoueur)
 // =====================
-const PJ_SIMULES = [
-  {
-    name: 'Alexandre Moreau',
-    archetype: 'politician',
-    career: 'magistrat', // migration 18->10 (bêta) : ancien id 'civil' (Haut fonctionnaire), retiré
-    poste: { id: 'depute_1', name: 'Depute' },
-    stats: { INT:12, CHA:13, VOL:10, PER:11, DUP:9, ENT:12 },
-    resources: { inf:45, pop:38, dis:70, hp:90, moral:75 },
-    arg: 8500,
-    country: 'republic',
-    currentCity: 'capitale',
-    currentBuilding: null,
-    isPJ: true,
-    isSimule: true,
-    rel: 'neutral',
-    role: 'Depute — Parti du Centre'
-  },
-  {
-    name: 'Sophie Leroux',
-    archetype: 'informer',
-    career: 'press',
-    poste: null,
-    stats: { INT:13, CHA:11, VOL:9, PER:14, DUP:12, ENT:10 },
-    resources: { inf:30, pop:55, dis:80, hp:95, moral:85 },
-    arg: 3200,
-    country: 'republic',
-    currentCity: 'capitale',
-    currentBuilding: null,
-    isPJ: true,
-    isSimule: true,
-    rel: 'neutral',
-    role: 'Journaliste — La Tribune'
-  },
-  {
-    name: 'Viktor Krasov',
-    archetype: 'shadow',
-    career: 'intel',
-    poste: null,
-    stats: { INT:11, CHA:8, VOL:12, PER:13, DUP:15, ENT:9 },
-    resources: { inf:20, pop:10, dis:95, hp:88, moral:60 },
-    arg: 12000,
-    country: 'republic',
-    currentCity: 'capitale',
-    currentBuilding: null,
-    isPJ: true,
-    isSimule: true,
-    rel: 'neutral',
-    role: 'Agent — Services secrets'
-  }
-];
+// Les 3 profils de demonstration (Alexandre Moreau/Sophie Leroux/Viktor Krasov) retires ici
+// (lot de nettoyage beta) : ils apparaissaient comme de vrais PJ "[SIM]" dans les pieces de la
+// capitale aux yeux des vrais joueurs. L'infrastructure de simulation (initSimulation/
+// getSimulesPresents/ouvrirPanneauSimulation/deplacerSimule*, plateau-pnj.js) reste intacte et
+// fonctionnelle -- elle lit simplement un tableau vide desormais, aucun PJ simule ne s'affiche
+// plus nulle part. Reajouter ici de futurs profils de test si necessaire.
+const PJ_SIMULES = [];
 
 // =====================
 // INDICES NATIONAUX V13
