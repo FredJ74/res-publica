@@ -5127,6 +5127,18 @@ async function ouvrirModalConstruire() {
     showToast('Déjà construit', 'Un bâtiment de type "' + (NIVEAUX_CONSTRUCTION[ts.niveau_construction]?.label||'') + '" existe déjà ici.', false);
     return;
   }
+  // Garde ajoutee le 27 aout 2026, en meme temps que le raccordement de construire_sur_terrain
+  // (avant ce correctif, cette fonction n'etait jamais atteignable, donc ce trou etait dormant) :
+  // confirmerConstruction() ecrase inconditionnellement ts.chantier sans jamais verifier qu'un
+  // chantier est deja en cours -- reouvrir cet ecran pendant un chantier permettrait de relancer
+  // confirmerConstruction() une seconde fois, prelevant un second acompte de 35% et remplaçant le
+  // chantier en cours (perte silencieuse de l'acompte deja verse). Bloque desormais ce cas au
+  // meme endroit que les deux gardes existantes ci-dessus, sans toucher a confirmerConstruction/
+  // doPayerVersementChantier/le cron de progression (avancerChantiersQuotidien), tous inchanges.
+  if (ts.chantier) {
+    showToast('Chantier en cours', 'Un chantier est déjà en cours sur ce terrain.', false);
+    return;
+  }
 
   document.getElementById('postes-modal-title').textContent = 'Construire sur ce terrain';
   let html = '<div style="padding:1rem">';

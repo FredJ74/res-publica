@@ -248,6 +248,14 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'negocier_squatteurs')     { doNegocierSquatteurs(pa, cost); return; }
   if (fn === 'signer_compromis')        { doSignerCompromis(pa, cost); return; }
   if (fn === 'acheter_terrain')         { doAcheterTerrain(); return; }
+  // Ajoute le 27 aout 2026 (audit cible, suspicion levee) : ordre defini dans data.js (10
+  // parcelles a batir) mais jamais routee -- tombait dans executerOrdreGenerique (aucune entree
+  // ORDER_EFFECTS), produisait un toast succes/echec cosmetique sans le moindre effet reel,
+  // alors que le mecanisme cible (ouvrirModalConstruire/confirmerConstruction, plateau-justice-
+  // economie.js) existe deja, complet et fonctionnel : choix du palier, versement initial 35%
+  // reellement preleve, chantier persiste (sbSetTerrainState), progression et livraison
+  // (niveau_construction) deja geres cote serveur (avancerChantiersQuotidien, api/cron-minuit.js).
+  if (fn === 'construire_sur_terrain')  { ouvrirModalConstruire(); return; }
   if (fn === 'racheter_terrain')        { doRacheterTerrain(pa, cost); return; }
   if (fn === 'decret_inutile')         { signerDecretInutile(pa, cost); return; }
   if (fn === 'elections_tableau')      { ouvrirTableauElectoral(); return; }
