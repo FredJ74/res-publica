@@ -649,6 +649,99 @@ function getPhaseActuelle(country, posteId, city) {
   return PHASES_ELECTORALES.VACANT;
 }
 
+// ---- SONDAGE ELECTORAL (Marche, pouls_populaire, chantier 27 aout 2026) ----
+// Lecture pure du VRAI systeme electoral (CYCLES_ELECTORAUX/POSTES_ELECTIFS/getCleCycle/
+// getPhaseActuelle deja definis ci-dessus) : aucun moteur electoral parallele, aucune mutation.
+
+// Elections locales (maire/depute -- posteEstLocal) "en cours" dans une ville donnee : cycle
+// deja initialise, phase differente de MANDAT (poste deja pourvu, pas d'election) et VACANT
+// (cycle clos, personne en lice), et au moins un candidat inscrit (sans candidat, rien a sonder
+// -- meme critere que le "Aucun candidat" de ouvrirBureauDeVote). Lecture synchrone du cache
+// memoire CYCLES_ELECTORAUX, deja tenu a jour par syncCyclesDepuisSupabase() a l'ouverture de
+// chaque ecran electoral -- jamais de nouvel appel reseau ici (reutilisee telle quelle par le
+// garde UI synchrone de renderRoomActions et par doPoulsPopulaire lui-meme).
+function electionsLocalesEnCours(country, ville) {
+  const postesLocaux = [...POSTES_ELECTIFS.local, ...POSTES_ELECTIFS.departemental].filter(p => posteEstLocal(p.id));
+  const out = [];
+  postesLocaux.forEach(p => {
+    const cle = getCleCycle(p.id, ville);
+    const cycle = CYCLES_ELECTORAUX[country]?.[cle];
+    if (!cycle || !cycle.candidats || cycle.candidats.length === 0) return;
+    const phase = getPhaseActuelle(country, p.id, ville);
+    if (!phase || phase === PHASES_ELECTORALES.MANDAT || phase === PHASES_ELECTORALES.VACANT) return;
+    out.push({ poste: p, cycle });
+  });
+  return out;
+}
+
+// Repartit 100 points entiers selon la methode du plus grand reste (standard pour un arrondi
+// electoral) : garantit une somme finale exactement egale a 100 quel que soit le nombre de
+// candidats ou les egalites, sans introduire de biais arbitraire (tri par voix desc puis par
+// nom pour un depart-egalite stable et deterministe).
+function arrondirPourcentages(items) {
+  const base = items.map(it => ({ nom: it.nom, voix: it.voix, pct: Math.floor(it.exact), reste: it.exact - Math.floor(it.exact) }));
+  const manquant = 100 - base.reduce((s, it) => s + it.pct, 0);
+  const ordreRestes = [...base].sort((a, b) => b.reste - a.reste || b.voix - a.voix || a.nom.localeCompare(b.nom));
+  for (let i = 0; i < manquant; i++) ordreRestes[i % ordreRestes.length].pct += 1;
+  return base.sort((a, b) => b.voix - a.voix || b.pct - a.pct || a.nom.localeCompare(b.nom))
+    .map(it => ({ nom: it.nom, voix: it.voix, pct: it.pct }));
+}
+
+// Rapport de force reel d'un scrutin : memes voix que consulterResultatsInformateur (cycle.votes
+// = votes PJ + cycle.votesPNJ = votes PNJ reellement convertis par une action de campagne
+// existante -- prospectus/conference/tract, jamais une intention de vote inventee), converties
+// en pourcentages relatifs. Renvoie null si aucun vote n'est encore enregistre (rapport de force
+// reellement indetermine a ce stade -- aucune repartition par defaut n'est inventee).
+function calculerSondageElectoral(cycle) {
+  const scores = {};
+  cycle.candidats.forEach(c => { scores[c.nom] = 0; });
+  Object.values(cycle.votes || {}).forEach(nom => { if (scores[nom] !== undefined) scores[nom]++; });
+  Object.values(cycle.votesPNJ || {}).forEach(nom => { if (scores[nom] !== undefined) scores[nom]++; });
+  const total = Object.values(scores).reduce((s, v) => s + v, 0);
+  if (total === 0) return null;
+  const brut = Object.entries(scores).map(([nom, voix]) => ({ nom, voix, exact: voix / total * 100 }));
+  return arrondirPourcentages(brut);
+}
+
+// Handler de l'ordre pouls_populaire (Marche) : sondage en lecture seule, jamais d'ecriture sur
+// CYCLES_ELECTORAUX/votes/candidats. Re-synchronise avant affichage (meme appel que les autres
+// ecrans electoraux) pour ne jamais presenter une donnee perimee au moment du clic.
+async function doPoulsPopulaire() {
+  const country = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const villeNom = WORLD[country]?.[ville]?.name || ville;
+  if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase();
+
+  const actives = electionsLocalesEnCours(country, ville);
+  if (actives.length === 0) {
+    showToast('Aucune élection', 'Aucune élection n\'est actuellement en cours dans cette ville.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Sondage électoral — ' + villeNom;
+  let html = '<div style="padding:1rem">';
+  actives.forEach(({ poste, cycle }) => {
+    html += '<div style="margin-bottom:1.1rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;color:#e0d5b8;margin-bottom:.4rem">' + poste.name + '</div>';
+    const sondage = calculerSondageElectoral(cycle);
+    if (!sondage) {
+      html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic">Aucun vote encore enregistré pour ce scrutin — rapport de force indéterminé.</div>';
+    } else {
+      sondage.forEach(r => {
+        html += '<div style="margin-bottom:.4rem">';
+        html += '<div style="display:flex;justify-content:space-between;font-size:.78rem;color:#c0b090;margin-bottom:.15rem"><span>' + r.nom + '</span><span>' + r.pct + '%</span></div>';
+        html += '<div style="height:5px;background:#1a1810;border-radius:3px"><div style="height:100%;width:' + r.pct + '%;background:#C9A84C;border-radius:3px"></div></div>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+  });
+  html += '<div style="font-size:.68rem;color:#6a5a30;font-style:italic;margin-top:.2rem">Sondage réalisé au marché — reflet des intentions déjà exprimées, sans valeur officielle.</div>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 // Déposer une candidature
 async function deposerCandidature(posteId, country, city) {
   const nom = state.char?.name;
@@ -1838,6 +1931,18 @@ function renderRoomActions(room, buildingId, roomId) {
         suiteTooltip = 'Vous n\'êtes pas locataire de ce local';
       }
     }
+    // Garde UI pour "Prendre le pouls" (pouls_populaire, Marche, chantier 27 aout 2026) : meme
+    // principe que les gardes ci-dessus, grise le bouton avec une infobulle explicite des
+    // qu'aucune election locale (maire/depute) n'est actuellement en cours dans la ville
+    // courante, sans jamais le masquer. Reutilise electionsLocalesEnCours() (plateau-politique.js,
+    // pres de getPhaseActuelle), seule source de verite, lecture synchrone du cache
+    // CYCLES_ELECTORAUX deja tenu a jour ailleurs -- jamais de nouvel appel reseau ici.
+    let needsElectionIndisponible = false;
+    const electionTooltip = 'Aucune élection n\'est actuellement en cours dans cette ville.';
+    if (o.fn === 'pouls_populaire' && typeof electionsLocalesEnCours === 'function') {
+      const actives = electionsLocalesEnCours(state.country || 'republic', state.currentCity || 'capitale');
+      needsElectionIndisponible = actives.length === 0;
+    }
     // Avant ce correctif, TEST_MODE forcait l'affichage a "0 PA" quel que soit o.pa reel --
     // le joueur ne pouvait jamais apprendre le vrai cout normal d'un ordre pendant la periode
     // de PA illimites (bug remonte sur "investir", en realite systemique a tous les ordres avec
@@ -1930,6 +2035,8 @@ function renderRoomActions(room, buildingId, roomId) {
       onclickFn = "showToast('Licence indisponible', " + JSON.stringify(licenceTooltip) + ", false)";
     } else if (needsSuiteIndisponible) {
       onclickFn = "showToast('Indisponible', " + JSON.stringify(suiteTooltip) + ", false)";
+    } else if (needsElectionIndisponible) {
+      onclickFn = "showToast('Aucune élection', " + JSON.stringify(electionTooltip) + ", false)";
     } else if (o.fn === 'plainte_police') {
       onclickFn = 'openPlainteModal(' + o.pa + ',' + o.cost + ')';
     } else if (o.fn === 'gerer_finances') {
@@ -1943,9 +2050,9 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
-    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsLicenceIndisponible || needsSuiteIndisponible) ? ' blocked' : '';
+    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
-    const tooltipFinal = needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : tooltip);
+    const tooltipFinal = needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : tooltip));
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
