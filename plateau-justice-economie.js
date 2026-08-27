@@ -2053,14 +2053,15 @@ async function confirmerLocation(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const orgaId = document.getElementById('loc-orga-select')?.value || '';
 
-  if (state.arg < loc.prix) {
+  if (getFondsDisponiblesOrdinaires() < loc.prix) {
     showToast('Fonds insuffisants', loc.prix + ' ' + cur + ' requis pour le premier loyer.', false);
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
-  state.arg -= loc.prix;
+  const debitLoyer = await debiterFondsOrdinaires(loc.prix);
+  if (!debitLoyer.ok) { showToast('Fonds insuffisants', loc.prix + ' ' + cur + ' requis pour le premier loyer.', false); return; }
   if (!state.locationsActives) state.locationsActives = [];
 
   state.locationsActives.push({
@@ -2824,14 +2825,14 @@ function doCorrompreGardien() {
   }
 }
 
-function doFalsifierDocs() {
+async function doFalsifierDocs() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 500;
   // Falsifier un document est une competence technique (INT), pas un numero de charme (DUP) --
   // reclasse par l'audit de refonte de la creation de personnage (bêta).
   const int = getStatEffective('INT');
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
+  const debit = await debiterFondsOrdinaires(cost);
+  if (!debit.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   const taux = Math.min(75, 25 + Math.floor(int * 3));
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= taux) {
@@ -2845,11 +2846,11 @@ function doFalsifierDocs() {
   }
 }
 
-function doImprimerClandestin() {
+async function doImprimerClandestin() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 300;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
+  const debit = await debiterFondsOrdinaires(cost);
+  if (!debit.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   state.dis = Math.max(0, (state.dis||50) - 5);
   addToInventory({ name: 'Publication clandestine', icon: 'ti-file-description', type: 'tract', legal: false, quantite: 20, desc: 'Pamphlet imprimé clandestinement.' });
   updateUI();

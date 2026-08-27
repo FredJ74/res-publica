@@ -1496,7 +1496,7 @@ async function confirmerTransport(mode, empireId, villeId) {
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  if (state.arg < config.cost) {
+  if (getFondsDisponiblesOrdinaires() < config.cost) {
     showToast('Fonds insuffisants', 'Il vous faut ' + config.cost + ' ' + cur, false);
     return;
   }
@@ -1542,7 +1542,8 @@ async function confirmerTransport(mode, empireId, villeId) {
   // Voyage a 100% si ressources OK
   const rPaDirect = await deduireCoutOrdre({ pa: config.pa, cost: 0 });
   if (!rPaDirect.ok) { showToast('PA insuffisants', 'Il vous faut ' + config.pa + ' PA.', false); return; }
-  state.arg -= config.cost;
+  const debitTransport = await debiterFondsOrdinaires(config.cost);
+  if (!debitTransport.ok) { showToast('Fonds insuffisants', 'Il vous faut ' + config.cost + ' ' + cur, false); return; }
 
   // Changer d'empire et de ville
   const ancienEmpire = state.country;

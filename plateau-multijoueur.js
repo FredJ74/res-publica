@@ -912,7 +912,7 @@ async function confirmerDebauchage() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   if (!montant || montant < 100) { showToast('Montant insuffisant', 'Minimum 100 ' + cur + '.', false); return; }
-  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
+  if (getFondsDisponiblesOrdinaires() < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
 
   const loyaute = PNJ_STATS_PAR_JOB[p.job]?.loyaute ?? 40;
   const dup = getStatEffective('DUP');
@@ -921,7 +921,8 @@ async function confirmerDebauchage() {
   taux = Math.max(5, Math.min(85, taux));
   const roll = Math.floor(Math.random() * 100) + 1;
 
-  state.arg -= montant;
+  const debit = await debiterFondsOrdinaires(montant);
+  if (!debit.ok) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
 
   if (roll > taux) {
     updateUI();

@@ -77,11 +77,11 @@ async function commanderSondage() {
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
 
-  if (state.arg < 200) {
+  const debit = await debiterFondsOrdinaires(200);
+  if (!debit.ok) {
     showToast('Fonds insuffisants', '200 ' + cur + ' requis.', false);
     return;
   }
-  state.arg -= 200;
 
   const sujets = [
     'la popularité du fromage local comme symbole national',

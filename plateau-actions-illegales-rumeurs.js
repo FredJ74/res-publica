@@ -232,7 +232,7 @@ async function confirmerVol(encodedCible, jetBase) {
     }
 
     if (butin === 'argent') {
-      state.arg = (state.arg || 0) + vol.montant;
+      crediterFondsOrdinaires(vol.montant);
       updateUI();
       showToast('Vol réussi !', descButin + ' dérobé(s) à ' + nomCible + '.', true, true);
       addJournalEntry('Vol réussi sur ' + nomCible + '. ' + descButin + '.', 'event-good');
@@ -268,7 +268,7 @@ async function confirmerVol(encodedCible, jetBase) {
     // lot (butin objet/matiere/arme reserve aux vraies cibles PJ, seules a posseder un inventaire
     // reel a interroger).
     const butinArgent = Math.floor(Math.random() * 200) + 50;
-    state.arg = (state.arg || 0) + butinArgent;
+    crediterFondsOrdinaires(butinArgent);
     updateUI();
     showToast('Vol réussi !', '+' + butinArgent + ' FR dérobés à ' + nomCible + '.', true, true);
     addJournalEntry('Vol réussi sur ' + nomCible + ' (PNJ). +' + butinArgent + ' FR.', 'event-good');
@@ -1363,7 +1363,7 @@ async function confirmerAchatExplosifs(pa, cost) {
   const prix = 1200;
   document.getElementById('modal-postes').classList.remove('open');
 
-  if (state.arg < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
+  if (getFondsDisponiblesOrdinaires() < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
@@ -1384,7 +1384,8 @@ async function confirmerAchatExplosifs(pa, cost) {
   }
 
   // REUSSITE
-  state.arg -= prix;
+  const debit = await debiterFondsOrdinaires(prix);
+  if (!debit.ok) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
     type: 'explosif', name: 'Explosifs de chantier', icon: 'ti-bomb', legal: false,
@@ -1646,12 +1647,13 @@ async function confirmerAchatPoison(type, pa, cost) {
 
   document.getElementById('modal-postes').classList.remove('open');
 
-  if (state.arg < obj.cout) { showToast('Fonds insuffisants', obj.cout + ' ' + cur + ' requis.', false); return; }
+  if (getFondsDisponiblesOrdinaires() < obj.cout) { showToast('Fonds insuffisants', obj.cout + ' ' + cur + ' requis.', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
-  state.arg -= obj.cout;
+  const debit = await debiterFondsOrdinaires(obj.cout);
+  if (!debit.ok) { showToast('Fonds insuffisants', obj.cout + ' ' + cur + ' requis.', false); return; }
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
     type: 'poison', name: obj.name, icon: obj.icon,

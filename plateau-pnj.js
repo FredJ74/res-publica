@@ -1613,8 +1613,8 @@ async function doEscortInfos() {
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
 
-  if (state.arg < 300) { showToast('Fonds insuffisants', `300 ${cur} requis.`, false); return; }
-  state.arg -= 300;
+  const debit = await debiterFondsOrdinaires(300);
+  if (!debit.ok) { showToast('Fonds insuffisants', `300 ${cur} requis.`, false); return; }
 
   // Choisir une cible au hasard parmi les PJ/PNJ connus
   const cible = cibles[Math.floor(Math.random() * Math.min(3, cibles.length))];
@@ -2169,8 +2169,8 @@ async function confirmerFabriquerKompromat(nomAgent, nomCible) {
   document.getElementById('modal-postes').classList.remove('open');
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
-  if (state.arg < 300) { showToast('Fonds insuffisants', '300 ' + cur + ' requis.', false); return; }
-  state.arg -= 300;
+  const debit = await debiterFondsOrdinaires(300);
+  if (!debit.ok) { showToast('Fonds insuffisants', '300 ' + cur + ' requis.', false); return; }
 
   const prompt = `Tu joues dans Res Publica, jeu politique parodique.
 ${nomAgent} a recueilli des informations compromettantes sur ${nomCible} dans l'empire ${co?.n}.
@@ -2200,7 +2200,7 @@ Génère UNE révélation compromettante, parodique et drôle (2 phrases max). S
     addJournalEntry('Kompromat obtenu sur ' + nomCible + ' via ' + nomAgent + '. Ajouté à l\'inventaire.', 'event-info');
     showToast('Kompromat fabriqué !', info.substring(0, 100) + (info.length > 100 ? '...' : ''), true, true);
   } catch(e) {
-    state.arg += 300;
+    crediterFondsOrdinaires(300);
     showToast('Erreur', 'Impossible de fabriquer le kompromat pour le moment. Remboursé.', false);
   }
 }
@@ -2227,14 +2227,14 @@ function ouvrirModalEtapeEscort(nomEscort, palierVise) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerEtapeEscort(nomEscort, palierVise) {
+async function confirmerEtapeEscort(nomEscort, palierVise) {
   document.getElementById('modal-postes').classList.remove('open');
   const etape = ETAPES_ESCORT[palierVise];
   if (!etape) return;
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
-  if (state.arg < etape.cost) { showToast('Fonds insuffisants', etape.cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= etape.cost;
+  const debit = await debiterFondsOrdinaires(etape.cost);
+  if (!debit.ok) { showToast('Fonds insuffisants', etape.cost + ' ' + cur + ' requis.', false); return; }
 
   const escortInfo = (state.escortActive || []).find(e => e.nom === nomEscort);
   if (escortInfo) escortInfo.palier = palierVise;
@@ -2325,8 +2325,8 @@ async function confirmerFaireLAmour(nomEscort) {
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
   const cost = 300;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
+  const debit = await debiterFondsOrdinaires(cost);
+  if (!debit.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
 
   // Phase 2 memoire des renseignements (22 aout 2026) : jet de confidence, best-effort et
   // entierement invisible cote UI (ni toast, ni journal, ni recit modifie -- point 9 du design
@@ -3127,7 +3127,7 @@ async function confirmerNegociation(pa, cost) {
     showToast('Montant insuffisant', 'Les squatteurs refusent.', false);
     return;
   }
-  if (state.arg < montant) {
+  if (getFondsDisponiblesOrdinaires() < montant) {
     showToast('Fonds insuffisants', 'Vous n\'avez pas ' + montant + ' ' + cur + '.', false);
     return;
   }
@@ -3143,7 +3143,8 @@ async function confirmerNegociation(pa, cost) {
   const roll = Math.floor(Math.random() * 100) + 1;
   const succesNego = roll <= taux;
 
-  state.arg -= montant;
+  const debitNego = await debiterFondsOrdinaires(montant);
+  if (!debitNego.ok) { showToast('Fonds insuffisants', 'Vous n\'avez pas ' + montant + ' ' + cur + '.', false); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   if (succesNego) {
