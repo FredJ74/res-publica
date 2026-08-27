@@ -1959,6 +1959,13 @@ async function jodiePortraitPublier() {
 // =====================
 function openFinancesModal(pa, cost) {
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+  // Lot 3 (chantier fiscalite/Helvetia) : "En banque" affiche desormais le solde reel du compte
+  // Banque nationale (comptes_bancaires), plus l'ancien champ plat state.banque (legacy, plus
+  // mis a jour depuis le Lot 2). Ce modal reste partage entre Banque nationale et Helvetia (bug
+  // d'origine du chantier, PAS corrige ici -- hors perimetre, reserve au futur lot Helvetia) :
+  // il continue donc, comme avant ce lot, a toujours montrer/manipuler le compte Banque
+  // nationale quel que soit le batiment d'ou il est ouvert.
+  const soldeNational = state.comptesBancaires?.nationale?.solde || 0;
 
   document.getElementById('finances-body').innerHTML = `
     <div class="finance-row">
@@ -1971,12 +1978,12 @@ function openFinancesModal(pa, cost) {
     </div>
     <div class="finance-row">
       <div class="finance-label">En banque</div>
-      <div class="finance-amount">${state.banque.toLocaleString('fr-FR')} ${cur}</div>
+      <div class="finance-amount">${soldeNational.toLocaleString('fr-FR')} ${cur}</div>
     </div>
     <div style="padding:.8rem 1rem;border-bottom:1px solid #1a1810">
       <div style="font-size:.75rem;color:#6a5a30;margin-bottom:.5rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em">DEPOT / RETRAIT</div>
       <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem">
-        <input class="finance-input" id="finance-amount-input" type="number" placeholder="Montant" min="1" max="${state.banque}"/>
+        <input class="finance-input" id="finance-amount-input" type="number" placeholder="Montant" min="1" max="${soldeNational}"/>
         <button class="finance-btn" onclick="deposerArgent(${pa},${cost})">Deposer</button>
         <button class="finance-btn danger" onclick="retirerArgent(${pa},${cost})">Retirer</button>
       </div>
@@ -1992,6 +1999,10 @@ function openFinancesModal(pa, cost) {
   document.getElementById('modal-finances').classList.add('open');
 }
 
+// Lot 3 : raccorde a comptes_bancaires (Banque nationale) au lieu de l'ancien champ plat
+// state.banque (jamais mis a jour depuis le Lot 2, donc jusqu'ici un depot/retrait etait
+// invisible a tout le reste du nouveau modele). arg reste inchange dans les deux sens : simple
+// deplacement entre deux poches deja comptees dedans.
 async function deposerArgent(pa, cost) {
   const amount = parseInt(document.getElementById('finance-amount-input').value);
   if (!amount || amount <= 0 || amount > state.liquide) {
@@ -2000,23 +2011,50 @@ async function deposerArgent(pa, cost) {
   }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  if (!state.comptesBancaires) state.comptesBancaires = {};
+  if (!state.comptesBancaires.nationale) state.comptesBancaires.nationale = { solde: 0 };
   state.liquide -= amount;
-  state.banque += amount;
+  state.comptesBancaires.nationale.solde += amount;
+
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  const compteId = state.comptesBancaires.nationale.id;
+  if (compteId && typeof sbMajCompteBancaire === 'function') {
+    sbMajCompteBancaire(compteId, { solde: state.comptesBancaires.nationale.solde }).catch(() => {
+      console.error('Echec de persistance du depot sur le compte Banque nationale (solde local deja modifie, id=' + compteId + ')');
+    });
+  } else {
+    console.error('Depot effectue en memoire mais aucun compte Banque nationale identifiable (id manquant) -- non persiste sur comptes_bancaires.');
+  }
+
   document.getElementById('modal-finances').classList.remove('open');
   showToast('Depot effectue', `${amount.toLocaleString('fr-FR')} deposes en banque.`, true);
   addJournalEntry(`Depot bancaire : ${amount.toLocaleString('fr-FR')}.`, '');
 }
 
 async function retirerArgent(pa, cost) {
+  const soldeNational = state.comptesBancaires?.nationale?.solde || 0;
   const amount = parseInt(document.getElementById('finance-amount-input').value);
-  if (!amount || amount <= 0 || amount > state.banque) {
+  if (!amount || amount <= 0 || amount > soldeNational) {
     showToast('Erreur', 'Montant invalide ou solde bancaire insuffisant.', false);
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
-  state.banque -= amount;
+
+  state.comptesBancaires.nationale.solde -= amount;
   state.liquide += amount;
+
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  const compteId = state.comptesBancaires.nationale.id;
+  if (compteId && typeof sbMajCompteBancaire === 'function') {
+    sbMajCompteBancaire(compteId, { solde: state.comptesBancaires.nationale.solde }).catch(() => {
+      console.error('Echec de persistance du retrait sur le compte Banque nationale (solde local deja modifie, id=' + compteId + ')');
+    });
+  } else {
+    console.error('Retrait effectue en memoire mais aucun compte Banque nationale identifiable (id manquant) -- non persiste sur comptes_bancaires.');
+  }
+
   document.getElementById('modal-finances').classList.remove('open');
   showToast('Retrait effectue', `${amount.toLocaleString('fr-FR')} retires de la banque.`, true);
   addJournalEntry(`Retrait bancaire : ${amount.toLocaleString('fr-FR')}.`, '');

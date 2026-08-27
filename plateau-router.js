@@ -38,8 +38,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   }
 
   // Argent check — ignore pour les ordres finances par le budget d'une institution (pas le portefeuille personnel)
+  // Lot 3 (chantier fiscalite/Helvetia) : verifie desormais les fonds ORDINAIRES (liquide +
+  // Banque nationale), jamais arg seul -- garde amont partagee par la quasi-totalite des
+  // ordres du jeu (special-cases ET chemin generique), donc a fort effet meme si le debit
+  // interne d'un handler dedie individuel n'est pas encore migre lui-meme (voir rapport).
   const ORDRES_BUDGET_INSTITUTION = ['reception_etat', 'banquet_diplo'];
-  if (cost > 0 && !ORDRES_BUDGET_INSTITUTION.includes(fn) && state.arg < cost) {
+  const fondsOrdinairesDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : state.arg;
+  if (cost > 0 && !ORDRES_BUDGET_INSTITUTION.includes(fn) && fondsOrdinairesDisponibles < cost) {
     showToast('Fonds insuffisants', `Cette action coute ${cost} ${cur}.`, false);
     return;
   }
@@ -500,7 +505,17 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
 function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
   // Deduire PA et argent
   if (!TEST_MODE) state.pa = Math.max(0, state.pa - pa);
-  if (cost > 0) state.arg = Math.max(0, state.arg - cost);
+  // Lot 3 (chantier fiscalite/Helvetia) : debit via la primitive canonique (liquide -> Banque
+  // nationale, jamais Helvetia/placements). La suffisance a deja ete verifiee en amont par
+  // doOrder() (meme regle, getFondsDisponiblesOrdinaires), ce debit ne devrait donc jamais
+  // echouer ici en pratique. Appel non attendu (cette fonction n'est pas async) : les mutations
+  // de liquide/comptes/arg sont synchrones (avant le premier await interne de la primitive),
+  // donc deja effectives des la ligne suivante -- seule la persistance reseau se poursuit en
+  // arriere-plan, exactement comme le reste de cette fonction le fait deja pour updateUI() plus bas.
+  if (cost > 0) {
+    if (typeof debiterFondsOrdinaires === 'function') debiterFondsOrdinaires(cost);
+    else state.arg = Math.max(0, state.arg - cost);
+  }
 
   // Roll
   // Ajuster le taux selon le groupe pour le blocus
@@ -554,8 +569,13 @@ function applyEffects(fn, resultType, cost) {
   const mult = resultType === 'crit' ? 1.5 : resultType === 'success' ? 1 :
                resultType === 'partial' ? 0.5 : resultType === 'fail' ? 0 : -0.5;
 
-  // Remboursement partiel si echec
-  if (resultType === 'fail' && cost > 0) state.arg += Math.floor(cost * 0.3);
+  // Remboursement partiel si echec -- credit generique (Lot 3) : atterrit en liquide, jamais
+  // automatiquement sur la Banque nationale.
+  if (resultType === 'fail' && cost > 0) {
+    const remboursement = Math.floor(cost * 0.3);
+    if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(remboursement);
+    else state.arg += remboursement;
+  }
   if (resultType === 'crit-fail' && cost > 0) { /* Pas de remboursement */ }
 
   // Appliquer effets
@@ -564,7 +584,23 @@ function applyEffects(fn, resultType, cost) {
   if (ef.inf)   state.inf   = Math.min(100, Math.max(0, state.inf   + Math.round(ef.inf   * mult)));
   if (ef.pop)   state.pop   = Math.min(100, Math.max(0, state.pop   + Math.round(ef.pop   * (resultType === 'crit-fail' ? -1 : mult))));
   if (ef.dis)   state.dis   = Math.min(100, Math.max(0, state.dis   + Math.round(ef.dis   * (ef.dis < 0 ? 1 : mult))));
-  if (ef.arg)   state.arg   = Math.min(9999999, Math.max(0, state.arg + Math.round(ef.arg * mult)));
+  // Lot 3 : effet de resultat generique (gain OU perte selon fn/mult), jamais un paiement
+  // "gate" -- s'applique toujours, ne peut jamais etre refuse (comportement inchange, deja
+  // borne a 0). Gain -> liquide (credit generique, meme regle que le remboursement ci-dessus).
+  // Perte -> prelevee d'abord sur liquide, jamais automatiquement sur la Banque nationale,
+  // sans jamais faire echouer l'ordre (ce n'est pas un paiement gate, deja borne a 0 comme avant).
+  if (ef.arg) {
+    const deltaArg = Math.round(ef.arg * mult);
+    if (deltaArg > 0) {
+      if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(deltaArg);
+      else state.arg = Math.min(9999999, state.arg + deltaArg);
+    } else if (deltaArg < 0) {
+      const perte = -deltaArg;
+      const preleveLiquide = Math.min(state.liquide || 0, perte);
+      state.liquide = (state.liquide || 0) - preleveLiquide;
+      state.arg = Math.min(9999999, Math.max(0, state.arg + deltaArg));
+    }
+  }
 
   // Effets speciaux
   // Blocus : 1 PA quoi qu'il arrive + bonus groupe

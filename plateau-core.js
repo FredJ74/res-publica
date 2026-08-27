@@ -1028,6 +1028,73 @@ function verifierCoherenceFortune() {
 }
 
 // =====================
+// FONDS ORDINAIRES (Lot 3, chantier fiscalite/Helvetia) — primitives canoniques pour les
+// depenses/revenus courants du joueur. "Ordinaire" = liquide + compte Banque nationale
+// UNIQUEMENT, jamais Helvetia, jamais un placement, jamais automatiquement (regle validee).
+// Objectif de ce lot : faire converger les chokepoints DEJA PARTAGES (deduireCoutOrdre,
+// executerOrdreGenerique/applyEffects, la garde amont de doOrder) vers ces primitives, sans
+// reecrire individuellement les ~95 sites qui font encore state.arg -= X en direct dans leur
+// propre corps (ceux-la continueront de diverger, detecte par verifierCoherenceFortune,
+// jusqu'a leur propre migration future).
+// =====================
+
+// Fonds reellement et immediatement mobilisables pour une depense ordinaire -- PAS arg (qui
+// inclut aussi Helvetia/placements une fois ces derniers vivants). C'est cette fonction, pas
+// arg, qui doit gater toute depense migree vers ces primitives.
+function getFondsDisponiblesOrdinaires() {
+  return (state.liquide || 0) + (state.comptesBancaires?.nationale?.solde || 0);
+}
+
+// Debit atomique (au niveau runtime, synchrone jusqu'a la premiere persistance) des fonds
+// ordinaires : liquide d'abord, complete par la Banque nationale si besoin, jamais de debit
+// partiel si le total des deux est insuffisant -- dans ce cas, retour {ok:false} SANS AUCUNE
+// mutation, a l'appelant de refuser l'effet associe (invariant "paiement reussi -> effet /
+// paiement refuse -> aucun effet", jamais d'etat intermediaire). Persistance immediate (jamais
+// le debounce de 3s de sbAutoSave) pour un paiement qui vient d'avoir lieu : sauvegarderPersonnageImmediat()
+// couvre arg+liquide (memes champs racine, un seul appel sbSavePersonnage) ; le solde du compte
+// Banque nationale est persiste separement (table distincte, aucune transaction croisee possible
+// via l'API REST -- meme limite deja documentee ailleurs dans le projet), en best-effort trace.
+async function debiterFondsOrdinaires(montant) {
+  if (!(montant > 0)) return { ok: true, preleveLiquide: 0, preleveNational: 0 };
+  const compteNational = state.comptesBancaires?.nationale;
+  const soldeNational = compteNational?.solde || 0;
+  const disponible = (state.liquide || 0) + soldeNational;
+  if (disponible < montant) return { ok: false, raison: 'fonds_insuffisants' };
+
+  const preleveLiquide = Math.min(state.liquide || 0, montant);
+  const preleveNational = montant - preleveLiquide;
+
+  state.liquide = (state.liquide || 0) - preleveLiquide;
+  if (preleveNational > 0 && compteNational) {
+    compteNational.solde -= preleveNational;
+  }
+  state.arg = (state.arg || 0) - montant;
+  if (state.char) state.char.arg = state.arg;
+
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  if (preleveNational > 0 && compteNational?.id && typeof sbMajCompteBancaire === 'function') {
+    sbMajCompteBancaire(compteNational.id, { solde: compteNational.solde }).catch(() => {
+      console.error('Echec de persistance du debit sur le compte Banque nationale (solde local deja modifie, id=' + compteNational.id + ')');
+    });
+  }
+
+  return { ok: true, preleveLiquide, preleveNational };
+}
+
+// Credit generique (salaire, remboursement, effet de resultat positif...) : atterrit
+// integralement en liquide, jamais automatiquement sur un compte bancaire -- meme regle que
+// doDormir() (Lot 2). Pas de persistance immediate forcee ici : comportement inchange par
+// rapport a tous les credits generiques deja existants, qui s'appuient sur le prochain
+// updateUI()/sbAutoSave() (debounce 3s) de l'appelant -- un credit n'a jamais la meme urgence
+// qu'un paiement qui vient de reussir.
+function crediterFondsOrdinaires(montant) {
+  if (!(montant > 0)) return;
+  state.liquide = (state.liquide || 0) + montant;
+  state.arg = (state.arg || 0) + montant;
+  if (state.char) state.char.arg = state.arg;
+}
+
+// =====================
 // CLOCK
 // =====================
 function startClock() {
@@ -1147,9 +1214,13 @@ async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur' } = {}) {
   }
 
   // B. Cout financier : jamais ignore par TEST_MODE (convention existante de doOrder())
+  // Lot 3 (chantier fiscalite/Helvetia) : la verification porte desormais sur les fonds
+  // ORDINAIRES (liquide + Banque nationale), jamais sur arg seul -- arg inclura un jour
+  // Helvetia/placements, qui ne doivent jamais couvrir automatiquement une depense courante.
   if (cost > 0) {
     if (payeur === 'joueur') {
-      if ((state.arg || 0) < cost) {
+      const fondsDispo = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+      if (fondsDispo < cost) {
         return { ok: false, raison: 'fonds_insuffisants' };
       }
     } else if (payeur && payeur.type === 'institution') {
@@ -1174,8 +1245,21 @@ async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur' } = {}) {
   }
 
   // E. Deduction du cout personnel (le cas institutionnel a deja ete preleve atomiquement en B)
+  // Lot 3 : via la primitive canonique (liquide d'abord, Banque nationale en complement,
+  // jamais Helvetia/placements). La suffisance a deja ete verifiee en B avec la meme regle
+  // (getFondsDisponiblesOrdinaires) -- ce debit ne peut donc pas echouer ici en pratique ; le
+  // garde-fou {ok:false} n'est qu'une securite defensive, jamais attendue en conditions
+  // normales.
   if (cost > 0 && payeur === 'joueur') {
-    state.arg = Math.max(0, (state.arg || 0) - cost);
+    if (typeof debiterFondsOrdinaires === 'function') {
+      const debit = await debiterFondsOrdinaires(cost);
+      if (!debit.ok) {
+        console.error('debiterFondsOrdinaires a echoue apres verification de suffisance -- etat incoherent possible', { cost, fondsDisponibles: typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : null });
+        return { ok: false, raison: 'fonds_insuffisants' };
+      }
+    } else {
+      state.arg = Math.max(0, (state.arg || 0) - cost);
+    }
   }
 
   return { ok: true, paPreleves, montantPreleve: cost };
