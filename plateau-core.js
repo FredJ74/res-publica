@@ -996,13 +996,17 @@ function totalComptesBancaires() {
   return Object.values(state.comptesBancaires || {}).reduce((s, c) => s + (c?.solde || 0), 0);
 }
 
-// Coherence financiere (Lot 2) : arg doit toujours egaler liquide + Σcomptes + Σplacements
-// actifs apres chargement. N'ecrase JAMAIS liquide/comptesBancaires/placementsBancaires (les
-// vraies poches) pour faire coller arg -- c'est arg, l'agregat de compatibilite, qui s'aligne
-// sur elles, jamais l'inverse. Une divergence signifie qu'un ancien mecanisme (les ~107 sites
-// qui ecrivent encore state.arg directement, cf. audit) a modifie arg sans mettre a jour la
-// poche reelle correspondante -- attendu tant que la primitive canonique de reconciliation
-// (chantier ulterieur) n'existe pas encore. Loggee, jamais reconstruite en 15/85.
+// Coherence financiere (Lot 2) : STRICTEMENT DIAGNOSTIC. Hotfix (28 aout 2026) : la version
+// precedente alignait arg sur liquide+Σcomptes+Σplacements des qu'une divergence etait
+// constatee -- errone, car les ~107 consommateurs existants qui modifient encore state.arg
+// directement (cf. audit) ne mettent jamais a jour liquide/comptes/placements en meme temps.
+// Consequence reelle : une depense ou un revenu legacy (ex. state.arg -= 1000 sans toucher aux
+// poches) etait silencieusement annule au refresh suivant, arg revenant a l'ancienne somme des
+// poches. Tant que la couche de compatibilite des anciennes ecritures arg n'existe pas (chantier
+// ulterieur, non commence ici), personnages.arg reste TEMPORAIREMENT l'autorite de compatibilite
+// sur la fortune globale : cette fonction se contente donc de logger toute divergence (avec assez
+// de contexte pour diagnostiquer), sans jamais modifier arg, liquide, comptesBancaires ni
+// placementsBancaires.
 function verifierCoherenceFortune() {
   const comptesTotal = Object.values(state.comptesBancaires || {}).reduce((s, c) => s + (c?.solde || 0), 0);
   const placementsTotal = (state.placementsBancaires || [])
@@ -1011,14 +1015,16 @@ function verifierCoherenceFortune() {
   const sommePoches = (state.liquide || 0) + comptesTotal + placementsTotal;
   if (state.arg !== sommePoches) {
     console.warn(
-      'Incoherence fortune detectee au chargement : arg=' + state.arg +
-      ', somme des poches (liquide+comptes+placements)=' + sommePoches +
-      '. arg aligne sur la somme des poches, aucune poche reelle modifiee.',
-      { personnage: state.char?.name, liquide: state.liquide, comptesTotal, placementsTotal }
+      'Incoherence fortune detectee au chargement (diagnostic uniquement, rien n\'est modifie) : ' +
+      'personnage=' + (state.char?.name || '?') +
+      ', arg=' + state.arg +
+      ', liquide=' + (state.liquide || 0) +
+      ', totalComptes=' + comptesTotal +
+      ', totalPlacements=' + placementsTotal +
+      ', somme des poches=' + sommePoches +
+      ', ecart=' + (state.arg - sommePoches)
     );
   }
-  state.arg = sommePoches;
-  if (state.char) state.char.arg = state.arg;
 }
 
 // =====================
