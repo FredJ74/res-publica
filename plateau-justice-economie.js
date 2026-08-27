@@ -2873,23 +2873,47 @@ function doImprimerLivre() {
   addJournalEntry('Publication livre. -' + cost + ' ' + cur + '.', 'event-good');
 }
 
-// Doctrine V2 : montant libre (min 500, pas de max), immobilise 7 jours, resolu par le cron de
-// minuit (meme mecanisme que pretDemande/attente_validation). Un seul investissement actif a
-// la fois par joueur (verifie a l'ouverture ET a la confirmation contre une double-soumission).
+// Placement Banque nationale : montant libre (min 500, pas de max), immobilise 7 jours, resolu
+// par le cron de minuit. Un seul investissement actif a la fois par joueur (verifie a
+// l'ouverture ET a la confirmation contre une double-soumission).
+// Audit "PLACEMENT BANQUE NATIONALE", phase 2, chantier raccordement -- bascule sur
+// placements_bancaires (banque='nationale', type='terme'), la table
+// investissements devenant purement legacy : plus aucune nouvelle ligne n'y est creee. La ligne
+// active existante (Arnie, echeance 2026-09-03) n'est PAS migree (decision explicite) : elle
+// continue de vivre dans investissements et de suivre l'ancien mecanisme
+// (resoudreInvestissementsExpires, cron-minuit.js, strictement inchangee) jusqu'a sa resolution
+// naturelle -- tant qu'elle existe, sbGetInvestissementEnCours() continue d'etre interroge ici en
+// plus du nouveau systeme pour empecher un double placement pendant la transition.
 async function ouvrirInvestir(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (typeof sbGetInvestissementEnCours === 'function' && state.char?.name) {
-    const existant = await sbGetInvestissementEnCours(state.char.name).catch(() => null);
-    if (existant) {
-      const joursRestants = Math.max(0, Math.ceil((new Date(existant.jour_resolution_at).getTime() - Date.now()) / 86400000));
-      showToast('Investissement en cours', 'Vous avez deja ' + existant.montant_initial.toLocaleString('fr-FR') + ' ' + cur + ' places. Resultat dans ' + joursRestants + ' jour(s).', false);
-      return;
-    }
+
+  const actifNational = (state.placementsBancaires || []).find(p => p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
+  const actifLegacy = (typeof sbGetInvestissementEnCours === 'function' && state.char?.name)
+    ? await sbGetInvestissementEnCours(state.char.name).catch(() => null)
+    : null;
+
+  if (actifNational && actifLegacy) {
+    // Anomalie : ne devrait jamais arriver (un nouveau placement est refuse par
+    // confirmerInvestir tant que la ligne legacy existe) -- signale sans deviner lequel afficher.
+    console.error('Anomalie : placement Banque nationale actif simultanement dans les deux systemes pour ' + state.char?.name, { actifNational, actifLegacy });
+    showToast('Anomalie détectée', 'Deux placements actifs trouvés — contactez le support.', false);
+    return;
   }
+  if (actifNational) {
+    const joursRestants = Math.max(0, Math.ceil((new Date(actifNational.prochaine_echeance).getTime() - Date.now()) / 86400000));
+    showToast('Investissement en cours', 'Vous avez déjà ' + (actifNational.montant || 0).toLocaleString('fr-FR') + ' ' + cur + ' placés depuis le ' + new Date(actifNational.date_placement).toLocaleDateString('fr-FR') + '. Capital immobilisé. Résultat dans ' + joursRestants + ' jour(s).', false);
+    return;
+  }
+  if (actifLegacy) {
+    const joursRestants = Math.max(0, Math.ceil((new Date(actifLegacy.jour_resolution_at).getTime() - Date.now()) / 86400000));
+    showToast('Investissement en cours', 'Vous avez déjà ' + actifLegacy.montant_initial.toLocaleString('fr-FR') + ' ' + cur + ' placés. Capital immobilisé. Résultat dans ' + joursRestants + ' jour(s).', false);
+    return;
+  }
+
   document.getElementById('postes-modal-title').textContent = 'Investir';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
-    '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Capital immobilise 7 jours. Rendement entre -12% et +12% selon la conjoncture economique de votre ville a l\'echeance. Un seul investissement actif a la fois.</div>' +
+    '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Capital preleve sur votre compte Banque nationale, immobilise 7 jours. Rendement entre -12% et +12% selon la conjoncture economique locale a l\'echeance. Un seul investissement actif a la fois.</div>' +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">MONTANT (min. 500 ' + cur + ')</div>' +
     '<input id="investir-montant" type="number" min="500" step="100" placeholder="Montant en ' + cur + '..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.8rem"/>' +
     '<button onclick="confirmerInvestir(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Placer les fonds</button>' +
@@ -2901,39 +2925,63 @@ async function confirmerInvestir(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('investir-montant')?.value || 0);
   if (!montant || montant < 500) { showToast('Montant invalide', 'Minimum 500 ' + cur + '.', false); return; }
-  if (montant > state.arg) { showToast('Fonds insuffisants', 'Vous n\'avez pas ' + montant + ' ' + cur + '.', false); return; }
+
+  const actifNational = (state.placementsBancaires || []).find(p => p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
+  if (actifNational) { showToast('Investissement refusé', 'Vous avez déjà un investissement Banque nationale en cours.', false); return; }
 
   if (typeof sbGetInvestissementEnCours === 'function' && state.char?.name) {
-    const existant = await sbGetInvestissementEnCours(state.char.name).catch(() => null);
-    if (existant) { showToast('Investissement refusé', 'Vous avez déjà un investissement en cours.', false); return; }
+    const actifLegacy = await sbGetInvestissementEnCours(state.char.name).catch(() => null);
+    if (actifLegacy) { showToast('Investissement refusé', 'Vous avez déjà un investissement en cours.', false); return; }
   }
+
+  // Source des fonds : exclusivement le compte Banque nationale -- jamais liquide, jamais
+  // Helvetia, jamais une combinaison automatique (regle absolue de ce lot). getFondsDisponiblesOrdinaires()
+  // n'est PAS utilisee ici : ce n'est pas une depense ordinaire.
+  const soldeNational = state.comptesBancaires?.nationale?.solde || 0;
+  if (soldeNational < montant) {
+    showToast('Solde Banque nationale insuffisant', 'Déposez d\'abord ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' sur votre compte.', false);
+    return;
+  }
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
   const intSnapshot = getStatEffective('INT'); // fige au moment de la mise (equipe actuelle)
-  const maintenant = Date.now();
 
-  state.arg -= montant;
-  document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-
-  if (typeof sbInsert === 'function') {
-    await sbInsert('investissements', {
-      id: 'invest-' + maintenant,
-      joueur: state.char?.name,
-      pays, ville,
-      montant_initial: montant,
-      int_snapshot: intSnapshot,
-      jour_placement_at: new Date(maintenant).toISOString(),
-      jour_resolution_at: new Date(maintenant + 7 * 86400000).toISOString(),
-      statut: 'en_cours'
-    }).catch(() => {});
+  // Creation atomique (RPC creer_placement_national) : revalide le solde reel, debite le compte
+  // national et cree la ligne placements_bancaires dans une seule transaction serveur -- jamais
+  // de debit sans placement, jamais de placement sans debit reel. Le PA deja deduit ci-dessus
+  // n'est pas rembourse si la RPC echoue ensuite (meme doctrine que partout ailleurs dans le
+  // projet pour un echec non lie a la disponibilite du PA lui-meme).
+  const resultat = (typeof sbCreerPlacementNational === 'function')
+    ? await sbCreerPlacementNational(state.char.name, montant, intSnapshot).catch(() => null)
+    : null;
+  if (!resultat) {
+    showToast('Erreur', 'Le placement n\'a pas pu être enregistré. Réessayez.', false);
+    return;
   }
 
+  // Runtime : integre la ligne retournee par la RPC si sa forme est bien celle attendue (jamais
+  // verifiee en conditions reelles avant ce lot) ; sinon relecture fiable via
+  // sbGetPlacementsBancaires, seule source de verite garantie. Le solde du compte national est de
+  // meme rafraichi depuis la base (deja debite server-side), jamais recalcule localement par
+  // soustraction.
+  const ligneCreee = Array.isArray(resultat) ? resultat[0] : resultat;
+  if (ligneCreee && ligneCreee.id && ligneCreee.statut) {
+    state.placementsBancaires = [...(state.placementsBancaires || []), ligneCreee];
+  } else if (typeof sbGetPlacementsBancaires === 'function') {
+    state.placementsBancaires = await sbGetPlacementsBancaires(state.char.name).catch(() => state.placementsBancaires || []);
+  }
+  if (typeof sbGetComptesBancaires === 'function') {
+    const comptes = await sbGetComptesBancaires(state.char.name).catch(() => null);
+    if (comptes && typeof construireMapComptesBancaires === 'function') state.comptesBancaires = construireMapComptesBancaires(comptes);
+  }
+
+  // arg strictement inchange : un placement est un transfert de poche, pas une depense.
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
   showToast('Investissement placé !', montant.toLocaleString('fr-FR') + ' ' + cur + ' immobilisés 7 jours.', true, true);
-  addJournalEntry('Investissement de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' placé. Résultat dans 7 jours.', 'event-info');
+  addJournalEntry('Investissement Banque nationale de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' placé. Résultat dans 7 jours.', 'event-info');
 }
 
 function doSocieteEcran() {

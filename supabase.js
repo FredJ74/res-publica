@@ -2261,6 +2261,29 @@ async function sbMajCompteBancaire(id, patch) {
   return await sbUpdate('comptes_bancaires', `id=eq.${encodeURIComponent(id)}`, { ...patch, updated_at: new Date().toISOString() });
 }
 
+// RPC generique (Prefer: return=representation pour recuperer la ligne retournee par la
+// fonction) -- premiere utilisation de RPC dans ce projet, introduite pour le raccordement du
+// placement Banque nationale (creer_placement_national/resoudre_placement_national sont des
+// transactions Postgres, seule facon de garantir qu'un debit de compte ne peut jamais avoir lieu
+// sans creer/resoudre le placement correspondant, et inversement).
+async function sbRpc(fn, params) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+    body: JSON.stringify(params || {})
+  });
+  if (!res.ok) { console.error('sbRpc error (' + fn + ')', await res.text()); return null; }
+  return res.json();
+}
+
+// Creation atomique d'un placement Banque nationale : verifie le solde reel du compte national,
+// le debite, et cree la ligne placements_bancaires, dans une seule transaction cote serveur.
+// Signature confirmee par sondage en lecture seule contre la RPC reelle avant integration (audit
+// "PLACEMENT BANQUE NATIONALE", phase 2) : p_personnage/p_montant/p_int_snapshot.
+async function sbCreerPlacementNational(personnage, montant, intSnapshot) {
+  return sbRpc('creer_placement_national', { p_personnage: personnage, p_montant: montant, p_int_snapshot: intSnapshot });
+}
+
 // NOTE : sbGetTerrainsAvecLotsLoues a ete retiree — le paiement des loyers de lots se fait
 // desormais cote serveur (preleverLoyersLots, api/cron-minuit.js), pas via ce client.
 

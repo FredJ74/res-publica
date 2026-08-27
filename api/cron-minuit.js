@@ -55,6 +55,21 @@ async function sbDelete(table, filters) {
   return true;
 }
 
+// RPC generique, duplique de supabase.js (contexte serverless isole -- voir sbGetBatimentEtat
+// ci-dessous pour la meme doctrine). Introduite pour resoudre_placement_national (chantier
+// raccordement du placement Banque nationale) : la RPC est l'autorite transactionnelle unique
+// (credit compte + ajustement arg + statut resolu + mail), jamais rejouee via des UPDATE separes
+// depuis ce fichier.
+async function sbRpc(fn, params) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { ...HEADERS, 'Prefer': 'return=representation' },
+    body: JSON.stringify(params || {})
+  });
+  if (!res.ok) { console.error('sbRpc error', fn, await res.text()); return null; }
+  return res.json();
+}
+
 // Etat generique par batiment (id = country_city_buildingId), duplique de supabase.js
 // car le cron tourne dans un contexte serverless isole, sans acces aux fonctions client.
 // BUG CORRIGE LE 8 AOUT 2026 : ces deux fonctions etaient appelees (livrerEntrepotsQuotidien,
@@ -2391,6 +2406,49 @@ async function resoudreInvestissementsExpires() {
   return resultats;
 }
 
+// Resolution des placements Banque nationale arrives a echeance (banque='nationale',
+// type='terme'), nouveau systeme placements_bancaires (chantier "PLACEMENT BANQUE NATIONALE",
+// phase 2 -- raccordement). Coexiste temporairement avec resoudreInvestissementsExpires()
+// ci-dessus (legacy, table investissements, strictement inchangee) tant que l'unique ligne
+// active heritee n'est pas resolue -- aucune nouvelle ligne investissements n'est plus jamais
+// creee cote client depuis ce lot (voir confirmerInvestir, plateau-justice-economie.js).
+//
+// Contrairement au legacy, cette fonction ne mute JAMAIS directement comptes_bancaires/
+// personnages.arg/placements_bancaires : resoudre_placement_national() est l'autorite
+// transactionnelle unique (credit compte, ajustement d'arg du seul delta net, statut resolu,
+// mail persistant), evaluee ici uniquement pour calculer rendementPct (formule inchangee) avant
+// de la lui transmettre.
+//
+// LIMITE CONNUE, SIGNALEE (non corrigee par supposition) : placements_bancaires ne stocke pas la
+// ville du placement (colonne absente de la migration executee, et p_ville absent de la RPC de
+// creation) -- contrairement a resoudreInvestissementsExpires ci-dessus qui lit inv.ville pour
+// consulter l'IE locale (indices_villes), cette fonction ne peut pas reproduire cette
+// granularite : ie reste fixe a 50 (neutre) pour tous les placements 'terme', quel que soit le
+// pays. C'est exactement le comportement DEJA existant de la formule pour les pays non-republic
+// (jamais modifie ici) -- etendu ici a 'republic' faute de donnee de ville disponible. Necessite
+// un futur ajout de colonne (ville) + parametre RPC pour retrouver la granularite d'origine —
+// signale dans le rapport, non corrige ici.
+async function resoudrePlacementsNationauxExpires() {
+  const resultats = { resolus: 0 };
+  const maintenant = new Date().toISOString();
+  const placements = await sbGet('placements_bancaires', `banque=eq.nationale&type=eq.terme&statut=eq.actif&prochaine_echeance=lte.${encodeURIComponent(maintenant)}`);
+  if (!placements) return resultats;
+
+  for (const p of placements) {
+    const ie = 50; // voir limite ci-dessus (ville non disponible)
+    const score = 50 + 2 * ((p.int_snapshot || 8) - 13) + (ie - 50) / 5;
+    const rendementPct = Math.max(-12, Math.min(12, (score - 50) * 0.24));
+
+    const res = await sbRpc('resoudre_placement_national', {
+      p_placement_id: p.id,
+      p_rendement_pct: Math.round(rendementPct * 100) / 100
+    });
+    if (res) resultats.resolus++;
+    else console.error('resoudre_placement_national a echoue pour ' + p.id + ' -- ligne laissee active, retentee au prochain passage du cron.');
+  }
+  return resultats;
+}
+
 // =====================
 // FRET MARITIME INTERNATIONAL (lot du 24 aout 2026) — passage en_transit -> arrivee
 // =====================
@@ -2652,8 +2710,13 @@ export default async function handler(req, res) {
     // 14. Conflits poste politique + emploi BNE (mail d'arbitrage, rien n'est tranche automatiquement)
     const conflitsBNE = await verifierConflitsEmploiBNE();
 
-    // 15. Investissements arrives a echeance (J+7, chantier "refonte des ordres")
+    // 15. Investissements arrives a echeance (J+7, chantier "refonte des ordres") -- legacy,
+    // ne concerne plus que l'unique ligne heritee non migree (voir plus bas, 15b).
     const investissements = await resoudreInvestissementsExpires();
+
+    // 15b. Placements Banque nationale arrives a echeance (nouveau systeme placements_bancaires,
+    // chantier "PLACEMENT BANQUE NATIONALE" phase 2).
+    const placementsNationaux = await resoudrePlacementsNationauxExpires();
 
     // 16. Remboursement quotidien des prets de preemption d'Etat (Ministre des Finances)
     const preemptions = await preleverPreemptionsServeur();
@@ -2690,7 +2753,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });
