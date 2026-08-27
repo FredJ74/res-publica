@@ -2277,11 +2277,15 @@ async function sbRpc(fn, params) {
 }
 
 // Creation atomique d'un placement Banque nationale : verifie le solde reel du compte national,
-// le debite, et cree la ligne placements_bancaires, dans une seule transaction cote serveur.
-// Signature confirmee par sondage en lecture seule contre la RPC reelle avant integration (audit
-// "PLACEMENT BANQUE NATIONALE", phase 2) : p_personnage/p_montant/p_int_snapshot.
-async function sbCreerPlacementNational(personnage, montant, intSnapshot) {
-  return sbRpc('creer_placement_national', { p_personnage: personnage, p_montant: montant, p_int_snapshot: intSnapshot });
+// le debite, et cree la ligne placements_bancaires (avec sa ville), dans une seule transaction
+// cote serveur. Signature confirmee par sondage en lecture seule contre la RPC reelle avant
+// integration : p_personnage/p_montant/p_int_snapshot/p_ville (micro-correctif IE de la ville,
+// remplace la signature a 3 parametres de la phase 2 -- l'ancienne n'existe plus, non surchargee).
+// ville = la ville OU SE TROUVE LE PERSONNAGE au moment du placement (state.currentCity),
+// jamais recalculee a l'echeance : le placement conserve le contexte economique de sa ville de
+// souscription meme si le joueur demenage ensuite.
+async function sbCreerPlacementNational(personnage, montant, intSnapshot, ville) {
+  return sbRpc('creer_placement_national', { p_personnage: personnage, p_montant: montant, p_int_snapshot: intSnapshot, p_ville: ville });
 }
 
 // NOTE : sbGetTerrainsAvecLotsLoues a ete retiree — le paiement des loyers de lots se fait

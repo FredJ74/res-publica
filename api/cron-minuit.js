@@ -2419,15 +2419,13 @@ async function resoudreInvestissementsExpires() {
 // mail persistant), evaluee ici uniquement pour calculer rendementPct (formule inchangee) avant
 // de la lui transmettre.
 //
-// LIMITE CONNUE, SIGNALEE (non corrigee par supposition) : placements_bancaires ne stocke pas la
-// ville du placement (colonne absente de la migration executee, et p_ville absent de la RPC de
-// creation) -- contrairement a resoudreInvestissementsExpires ci-dessus qui lit inv.ville pour
-// consulter l'IE locale (indices_villes), cette fonction ne peut pas reproduire cette
-// granularite : ie reste fixe a 50 (neutre) pour tous les placements 'terme', quel que soit le
-// pays. C'est exactement le comportement DEJA existant de la formule pour les pays non-republic
-// (jamais modifie ici) -- etendu ici a 'republic' faute de donnee de ville disponible. Necessite
-// un futur ajout de colonne (ville) + parametre RPC pour retrouver la granularite d'origine —
-// signale dans le rapport, non corrige ici.
+// IE de la ville (micro-correctif, chantier "PLACEMENT BANQUE NATIONALE") : placements_bancaires
+// stocke desormais p.ville (figee au moment du placement, jamais recalculee a l'echeance -- voir
+// confirmerInvestir, plateau-justice-economie.js). L'IE est relue EN DIRECT a l'echeance (pas
+// snapshotee, memes regles que resoudreInvestissementsExpires ci-dessus) via indices_villes, id =
+// pays_ville, meme mecanisme exact que le legacy. Fallback ie=50 (neutre) UNIQUEMENT si p.ville
+// est absente/vide (anciennes lignes ou anomalie) ou si aucune donnee IE exploitable n'existe
+// reellement pour cette ville -- jamais recalculee depuis une autre source, jamais devinee.
 async function resoudrePlacementsNationauxExpires() {
   const resultats = { resolus: 0 };
   const maintenant = new Date().toISOString();
@@ -2435,7 +2433,17 @@ async function resoudrePlacementsNationauxExpires() {
   if (!placements) return resultats;
 
   for (const p of placements) {
-    const ie = 50; // voir limite ci-dessus (ville non disponible)
+    // Meme garde exacte que resoudreInvestissementsExpires (legacy) : IE consulte uniquement
+    // pour 'republic', jamais pour les autres empires (comportement d'origine du jeu, pas une
+    // limitation de ce lot -- conserve tel quel).
+    let ie = 50;
+    if (p.pays === 'republic' && p.ville) {
+      const rows = await sbGet('indices_villes', `id=eq.${encodeURIComponent(p.pays + '_' + p.ville)}`);
+      ie = rows?.[0]?.data?.ie ?? 50;
+    } else if (p.pays === 'republic' && !p.ville) {
+      console.error('resoudrePlacementsNationauxExpires : placement ' + p.id + ' (republic) sans ville -- fallback ie=50 (neutre).');
+    }
+
     const score = 50 + 2 * ((p.int_snapshot || 8) - 13) + (ie - 50) / 5;
     const rendementPct = Math.max(-12, Math.min(12, (score - 50) * 0.24));
 

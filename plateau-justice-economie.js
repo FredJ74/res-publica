@@ -2947,14 +2947,19 @@ async function confirmerInvestir(pa, cost) {
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
   const intSnapshot = getStatEffective('INT'); // fige au moment de la mise (equipe actuelle)
+  // Ville figee au moment du placement (micro-correctif IE) -- jamais recalculee a l'echeance :
+  // le placement conserve le contexte economique de la ville ou il a ete souscrit, meme si le
+  // joueur demenage ensuite (regle explicite du chantier). Meme convention que l'ancien systeme
+  // investissements (state.currentCity), jamais la ville "actuelle" au moment de la resolution.
+  const ville = state.currentCity || 'capitale';
 
   // Creation atomique (RPC creer_placement_national) : revalide le solde reel, debite le compte
-  // national et cree la ligne placements_bancaires dans une seule transaction serveur -- jamais
-  // de debit sans placement, jamais de placement sans debit reel. Le PA deja deduit ci-dessus
-  // n'est pas rembourse si la RPC echoue ensuite (meme doctrine que partout ailleurs dans le
-  // projet pour un echec non lie a la disponibilite du PA lui-meme).
+  // national et cree la ligne placements_bancaires (avec sa ville) dans une seule transaction
+  // serveur -- jamais de debit sans placement, jamais de placement sans debit reel. Le PA deja
+  // deduit ci-dessus n'est pas rembourse si la RPC echoue ensuite (meme doctrine que partout
+  // ailleurs dans le projet pour un echec non lie a la disponibilite du PA lui-meme).
   const resultat = (typeof sbCreerPlacementNational === 'function')
-    ? await sbCreerPlacementNational(state.char.name, montant, intSnapshot).catch(() => null)
+    ? await sbCreerPlacementNational(state.char.name, montant, intSnapshot, ville).catch(() => null)
     : null;
   if (!resultat) {
     showToast('Erreur', 'Le placement n\'a pas pu être enregistré. Réessayez.', false);
