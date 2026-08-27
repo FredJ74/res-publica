@@ -47,7 +47,7 @@ function openCharSheet() {
         <div class="cs-title">Ressources</div>
         <div class="cs-stat-row"><span class="cs-stat-name">Argent total</span><span class="cs-stat-val">${state.arg.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Liquide</span><span class="cs-stat-val">${state.liquide.toLocaleString('fr-FR')}</span></div>
-        <div class="cs-stat-row"><span class="cs-stat-name">En banque</span><span class="cs-stat-val">${state.banque.toLocaleString('fr-FR')}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">En banque</span><span class="cs-stat-val">${totalComptesBancaires().toLocaleString('fr-FR')}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Influence</span><span class="cs-stat-val">${state.inf}/100</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Popularite</span><span class="cs-stat-val">${state.pop}/100</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Discretion</span><span class="cs-stat-val">${state.dis}/100</span></div>
@@ -467,7 +467,7 @@ function switchSelfTab(tab, el) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.5rem">FINANCES</div>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">';
     html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">Liquide</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + (state.liquide||0).toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
-    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">En banque</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + (state.banque||0).toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    html += '<div style="padding:.5rem;background:#0a0805"><div style="font-size:.68rem;color:#9a8a68">En banque</div><div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C">' + totalComptesBancaires().toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
     html += '</div></div>';
 
     // Objets
@@ -814,7 +814,12 @@ async function ouvrirSuccession(defunt, country) {
     // 5. Fiscalite globale (section 1/9 des arbitrages) : calculee UNE SEULE FOIS sur la masse
     // totale, jamais recalculee par disposition. argentBrutTotal = solde bancaire du defunt au
     // moment de l'ouverture (l'argent liquide et l'inventaire restent hors perimetre, point 9).
-    const argentBrutTotal = state.banque || 0;
+    // Lot 2 (chantier fiscalite/Helvetia) : source remplacee par l'agregat reel des comptes
+    // bancaires (state.banque, l'ancien champ plat, n'est plus jamais mis a jour) -- meme
+    // perimetre exact qu'avant (solde bancaire uniquement, placements non inclus, decision
+    // separee a prendre plus tard si les placements doivent aussi entrer dans l'assiette
+    // successorale).
+    const argentBrutTotal = (typeof totalComptesBancaires === 'function' ? totalComptesBancaires() : (state.banque || 0));
     const droitsTotal = Math.floor(argentBrutTotal * TAUX_DROITS_SUCCESSION);
     const partEtat = Math.floor(droitsTotal * PART_ETAT_DROITS_SUCCESSION);
     const partNotaire = droitsTotal - partEtat;
@@ -1166,7 +1171,7 @@ async function getPatrimoineTransmissible() {
   return {
     terrains: (terrains || []).map(t => ({ buildingId: t.buildingId, label: BUILDINGS[t.buildingId]?.shortName || BUILDINGS[t.buildingId]?.name || t.buildingId })),
     entreprises,
-    argentBanque: state.banque || 0
+    argentBanque: (typeof totalComptesBancaires === 'function' ? totalComptesBancaires() : (state.banque || 0))
   };
 }
 
@@ -1582,9 +1587,13 @@ async function doDormir() {
   }
   localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
   const salaire = calculerSalaireDormir();
+  // Lot 2 (chantier fiscalite/Helvetia) : l'ancienne repartition 30%/70% liquide/banque,
+  // incoherente avec le 15%/85% de l'hydratation (deux conventions differentes coexistaient),
+  // est retiree. Regle transitoire retenue : un credit generique atterrit integralement en
+  // liquide, jamais automatiquement sur un compte bancaire (aucun credit automatique de la
+  // Banque nationale). state.banque (champ legacy) n'est plus touche du tout.
   state.arg += salaire;
-  state.liquide += Math.floor(salaire * 0.3);
-  state.banque += Math.ceil(salaire * 0.7);
+  state.liquide += salaire;
   // Moral de base (correctif du 23 aout 2026) : constante unique, plus aucun bonus lie a la
   // simple presence dans un hotel (voir commentaire plus haut) -- seul doDormirChambre() ajoute
   // desormais un bonus hotelier, apres cet appel, jamais ici.

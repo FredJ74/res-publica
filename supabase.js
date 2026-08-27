@@ -2236,6 +2236,31 @@ async function sbUpdatePret(id, patch) {
   return await sbUpdate('prets', `id=eq.${encodeURIComponent(id)}`, patch);
 }
 
+// =====================
+// COMPTES BANCAIRES / PLACEMENTS (chantier fiscalite/Helvetia, Lot 2 -- hydratation uniquement,
+// aucune logique fiscale ici). Tables reelles cote Supabase : comptes_bancaires (une ligne par
+// personnage x banque, contrainte d'unicite), placements_bancaires (plusieurs lignes possibles
+// par personnage). Meme convention que sbGetPretsEnCours/sbCreerPret ci-dessus : pas de FK dure,
+// jointure par le nom du personnage.
+// =====================
+async function sbGetComptesBancaires(personnage) {
+  const rows = await sbGet('comptes_bancaires', `personnage=eq.${encodeURIComponent(personnage)}`);
+  return rows || [];
+}
+
+async function sbGetPlacementsBancaires(personnage) {
+  const rows = await sbGet('placements_bancaires', `personnage=eq.${encodeURIComponent(personnage)}`);
+  return rows || [];
+}
+
+async function sbCreerCompteBancaire(compte) {
+  return await sbInsert('comptes_bancaires', compte);
+}
+
+async function sbMajCompteBancaire(id, patch) {
+  return await sbUpdate('comptes_bancaires', `id=eq.${encodeURIComponent(id)}`, { ...patch, updated_at: new Date().toISOString() });
+}
+
 // NOTE : sbGetTerrainsAvecLotsLoues a ete retiree — le paiement des loyers de lots se fait
 // desormais cote serveur (preleverLoyersLots, api/cron-minuit.js), pas via ce client.
 

@@ -421,6 +421,11 @@ const HORLOGE_PA_ACTIVE = false;
 let state = {
   pa: 999, paMax: PA_MAX,
   arg: 4250, liquide: 500, banque: 3750,
+  // Lot 2 (chantier fiscalite/Helvetia) : defauts avant toute hydratation -- comptesBancaires
+  // (cle = banque : 'nationale'/'helvetia') et placementsBancaires (tableau) sont peuples par
+  // loadCharacter(), jamais ici. banque (racine, ci-dessus) reste un champ legacy, plus jamais
+  // utilise comme source de verite (voir applyCharToState) mais laisse en place, non supprime.
+  comptesBancaires: {}, placementsBancaires: [],
   inf: 25, pop: 30, dis: 85, hp: 92, moral: 78,
   day: 1, hour: 8,
   country: 'republic',
@@ -732,7 +737,22 @@ function loadCharacter() {
       restaurerJournal(char);
       // Synchroniser depuis Supabase en arrière-plan
       if (char.name && typeof sbLoadPersonnage === 'function') {
-        sbLoadPersonnage(char.name).then(sbState => {
+        // Lot 2 (hydratation financiere) : comptes_bancaires/placements_bancaires du personnage
+        // sont charges dans la MEME phase async que sbLoadPersonnage (Promise.all), comme
+        // demande -- jamais un second aller-retour reseau separe, jamais une donnee bancaire
+        // exposee au reste du jeu avant que le personnage lui-meme ne le soit. Chaque fetch a
+        // son propre .catch(()=>[]) : une panne reseau sur les comptes/placements ne doit
+        // jamais faire echouer le chargement du personnage lui-meme (deja protege par le
+        // .catch() global de la chaine plus bas).
+        Promise.all([
+          sbLoadPersonnage(char.name),
+          (typeof sbGetComptesBancaires === 'function' ? sbGetComptesBancaires(char.name).catch(() => []) : Promise.resolve([])),
+          (typeof sbGetPlacementsBancaires === 'function' ? sbGetPlacementsBancaires(char.name).catch(() => []) : Promise.resolve([]))
+        ]).then(([sbState, comptesRows, placementsRows]) => {
+          // Applique quel que soit l'issue de sbState (rare, sbState absent) : ne jamais perdre
+          // une donnee bancaire reellement recuperee.
+          state.comptesBancaires = construireMapComptesBancaires(comptesRows);
+          state.placementsBancaires = placementsRows || [];
           if (sbState) {
             // La position (bâtiment/pièce/ville/pays) locale est toujours écrite immédiatement et de
             // façon fiable dès qu'on change de pièce ou de ville (voir enterRoom/confirmerTransport).
@@ -812,6 +832,11 @@ function loadCharacter() {
             if (typeof rafraichirCacheEmploiBNE === 'function') rafraichirCacheEmploiBNE();
             console.log('Personnage synchronisé depuis Supabase:', char.name);
           }
+          // Coherence financiere (Lot 2) : APRES que liquide (via sbState/Object.assign),
+          // comptesBancaires et placementsBancaires soient tous a jour -- jamais avant. Aligne
+          // arg sur la somme reelle des poches, ne modifie jamais liquide/comptes/placements
+          // eux-memes (voir verifierCoherenceFortune ci-dessous).
+          if (typeof verifierCoherenceFortune === 'function') verifierCoherenceFortune();
           // Reconciliation terminee (reussie ou sbState vide) : les sauvegardes redeviennent
           // normales des cet instant, y compris pour la navigation qui vient de se produire
           // pendant l'attente ci-dessus (enterRoom l'a deja affichee sans la sauvegarder).
@@ -870,8 +895,17 @@ function applyCharToState(char) {
   state.arg = char.arg || 4250;
   if (char.poste) state.poste = char.poste;
   if (char.posteDepute) state.posteDepute = char.posteDepute;
-  state.liquide = Math.floor(state.arg * 0.15);
-  state.banque = state.arg - state.liquide;
+  // Lot 2 (hydratation financiere, chantier fiscalite/Helvetia) : le recalcul 15%/85% de
+  // liquide/banque a partir de arg, execute ici a CHAQUE hydratation depuis des mois, est
+  // supprime -- c'etait la cause du bug d'ecrasement des vrais soldes (meme famille que les
+  // bugs pa/arg deja corriges). liquide n'est plus jamais recalcule ici : sa valeur reelle
+  // (personnages.liquide) est deja posee sur state.liquide en amont (Object.assign(state,
+  // sbState) dans loadCharacter(), sbState.liquide etant un champ racine -- meme rail que pa/
+  // arg). state.banque (l'ancien champ plat) n'est plus ni lu ni ecrit du tout : legacy, voir
+  // le rapport d'audit -- les soldes reels vivent desormais dans state.comptesBancaires
+  // (charges par loadCharacter(), pas ici, cette fonction reste synchrone). Le 15%/85% ne
+  // subsiste que comme repartition INITIALE, une seule fois, a la creation d'un personnage
+  // (creation.js) -- jamais recalcule ensuite.
   state.inf = char.resources?.inf || 25;
   state.pop = char.resources?.pop || 30;
   state.dis = char.resources?.dis || 85;
@@ -937,6 +971,54 @@ function applyCharToState(char) {
   const cur = co?.cur || 'FR';
   const argEl = document.getElementById('r-arg');
   if (argEl) argEl.textContent = state.arg.toLocaleString('fr-FR') + ' ' + cur;
+}
+
+// =====================
+// RUNTIME BANCAIRE (Lot 2, chantier fiscalite/Helvetia) — hydratation uniquement, aucune
+// logique fiscale/Helvetia ici.
+// =====================
+
+// Format runtime retenu pour state.comptesBancaires : objet clé par identifiant de banque
+// ('nationale'|'helvetia'), pas un tableau -- un personnage n'a jamais plus d'un compte courant
+// par banque (contrainte d'unicite (personnage, banque) deja en base), donc une cle directe
+// evite un .find() a chaque lecture partout ailleurs dans le jeu. Absence de cle = pas de
+// compte dans cette banque (jamais un objet a solde 0 invente).
+function construireMapComptesBancaires(rows) {
+  const map = {};
+  (rows || []).forEach(r => { if (r && r.banque) map[r.banque] = r; });
+  return map;
+}
+
+// Agregat "solde bancaire total" (toutes banques confondues), remplace les anciennes lectures
+// de state.banque (champ legacy, plus jamais mis a jour depuis ce lot) partout ou le
+// comportement est non ambigu -- voir le rapport d'audit pour le detail des sites.
+function totalComptesBancaires() {
+  return Object.values(state.comptesBancaires || {}).reduce((s, c) => s + (c?.solde || 0), 0);
+}
+
+// Coherence financiere (Lot 2) : arg doit toujours egaler liquide + Σcomptes + Σplacements
+// actifs apres chargement. N'ecrase JAMAIS liquide/comptesBancaires/placementsBancaires (les
+// vraies poches) pour faire coller arg -- c'est arg, l'agregat de compatibilite, qui s'aligne
+// sur elles, jamais l'inverse. Une divergence signifie qu'un ancien mecanisme (les ~107 sites
+// qui ecrivent encore state.arg directement, cf. audit) a modifie arg sans mettre a jour la
+// poche reelle correspondante -- attendu tant que la primitive canonique de reconciliation
+// (chantier ulterieur) n'existe pas encore. Loggee, jamais reconstruite en 15/85.
+function verifierCoherenceFortune() {
+  const comptesTotal = Object.values(state.comptesBancaires || {}).reduce((s, c) => s + (c?.solde || 0), 0);
+  const placementsTotal = (state.placementsBancaires || [])
+    .filter(p => p && p.statut === 'actif')
+    .reduce((s, p) => s + (p.montant || 0), 0);
+  const sommePoches = (state.liquide || 0) + comptesTotal + placementsTotal;
+  if (state.arg !== sommePoches) {
+    console.warn(
+      'Incoherence fortune detectee au chargement : arg=' + state.arg +
+      ', somme des poches (liquide+comptes+placements)=' + sommePoches +
+      '. arg aligne sur la somme des poches, aucune poche reelle modifiee.',
+      { personnage: state.char?.name, liquide: state.liquide, comptesTotal, placementsTotal }
+    );
+  }
+  state.arg = sommePoches;
+  if (state.char) state.char.arg = state.arg;
 }
 
 // =====================
@@ -1219,7 +1301,7 @@ function updateUI() {
 
   // Inventaire
   document.getElementById('inv-liquide').textContent = state.liquide.toLocaleString('fr-FR') + ' ' + cur;
-  document.getElementById('inv-banque').textContent  = state.banque.toLocaleString('fr-FR') + ' ' + cur;
+  document.getElementById('inv-banque').textContent  = totalComptesBancaires().toLocaleString('fr-FR') + ' ' + cur;
   if (typeof renderInventory === 'function') renderInventory();
 }
 

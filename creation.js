@@ -431,10 +431,16 @@ function validateChar(){
     }
     // Sauvegarde Supabase
     if (typeof sbSavePersonnage === 'function') {
+      // Lot 2 (chantier fiscalite/Helvetia) : repartition initiale 15%/85%, INCHANGEE dans sa
+      // formule (deja la convention existante ici), mais la part de 85% n'est plus ecrite sur
+      // l'ancien champ plat personnages.banque (legacy, plus source de verite) -- elle cree
+      // desormais une vraie ligne comptes_bancaires (Banque nationale), juste apres que le
+      // personnage lui-meme existe reellement en base (chainage .then, evite toute course avec
+      // la contrainte de personnage referencee par comptes_bancaires.personnage).
+      const soldeBanqueNationale = (char.arg || 0) - Math.floor((char.arg||0)*0.15);
       const tempState = {
         char, country: char.country, currentCity: G.city || 'capitale',
         arg: char.arg || 0, liquide: Math.floor((char.arg||0)*0.15),
-        banque: Math.ceil((char.arg||0)*0.85),
         inf: char.resources?.inf || 25, pop: char.resources?.pop || 30,
         dis: char.resources?.dis || 85, hp: 100, pa: 10, moral: 75,
         poste: null, inventory: [], informateurs: [], day: 1, recherche: [],
@@ -443,7 +449,18 @@ function validateChar(){
         objectifs_completes: [],
         votes_pnj: {},
       };
-      sbSavePersonnage(tempState).catch(e => console.warn('Supabase save error', e));
+      sbSavePersonnage(tempState)
+        .then(() => {
+          if (typeof sbCreerCompteBancaire !== 'function') return;
+          return sbCreerCompteBancaire({
+            id: 'nationale_' + char.name,
+            personnage: char.name,
+            pays: char.country,
+            banque: 'nationale',
+            solde: soldeBanqueNationale
+          });
+        })
+        .catch(e => console.error('Échec de la création du compte Banque nationale pour ' + char.name + ' — le personnage existe mais sans compte bancaire initial, à corriger manuellement.', e));
 
       // Ville de naissance (17 aout 2026, mini-lot etat-civil) : ecriture separee, une seule
       // fois, dans une table dediee (etat_civil_naissances) -- jamais dans 'personnages', qui

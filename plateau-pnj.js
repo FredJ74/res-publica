@@ -82,7 +82,7 @@ function genererStatsHtml() {
       '<div style="border-top:1px solid #2a2010;margin:.6rem 0"></div>' +
       '<div style="display:flex;justify-content:space-between;font-size:.92rem;color:#8a8060">' +
         '<span>💰 Liquide : <strong style="color:#C9A84C">' + (state.liquide||0).toLocaleString('fr-FR') + ' ' + cur + '</strong></span>' +
-        '<span>🏦 Banque : <strong style="color:#C9A84C">' + (state.banque||0).toLocaleString('fr-FR') + ' ' + cur + '</strong></span>' +
+        '<span>🏦 Banque : <strong style="color:#C9A84C">' + (typeof totalComptesBancaires === 'function' ? totalComptesBancaires() : (state.banque||0)).toLocaleString('fr-FR') + ' ' + cur + '</strong></span>' +
       '</div>' +
     '</div>';
 }
