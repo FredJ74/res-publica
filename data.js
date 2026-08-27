@@ -178,7 +178,7 @@ const WORLD = {
         'banque-privee': {
           name: "Banque Privée Helvetia",
           desc: "Hans Von Discret ne confirme ni n'infirme rien.",
-          persons: [{"name": "Hans Von Discret (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier"}, {"name": "Ursula Offshore (PNJ)", "role": "Conseillère", "rel": "neutral", "job": "conseiller"}]
+          persons: [{"name": "Hans Von Discret (PNJ)", "role": "Directeur", "rel": "neutral", "job": "banquier", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/banque-privee-helvetia-hans-von-discret.png", "photoPos": "50% 20%"}, {"name": "Ursula Offshore (PNJ)", "role": "Conseillère en optimisation fiscale", "rel": "neutral", "job": "conseiller", "photoUrl": "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/banque-privee-helvetia-ursula-offshore.png", "photoPos": "50% 15%"}]
         },
         'clinique-privee': {
           name: "Clinique Privée Saint-Luc",
@@ -2419,11 +2419,11 @@ const BUILDINGS = {
           {name:'M. Fischer', role:'PNJ - Gestionnaire de patrimoine', rel:'neutral', job:'banquier'}
         ],
         orders: [
-          {fn:'gerer_finances',    label:'Gerer mon compte',      pa:0, cost:0,    type:'legal',   icon:'ti-chart-bar',    successRate:100, desc:'Depot ou retrait discret.'},
-          {fn:'compte_offshore',   label:'Ouvrir compte offshore', pa:2, cost:1000, type:'grey',    icon:'ti-world',        successRate:80,  desc:'Compte hors Republia. Moins tracable.'},
+          {fn:'gerer_finances',    label:'Gerer mon compte',      pa:0, cost:0,    type:'legal',   icon:'ti-chart-bar',    successRate:100, desc:'Compte, depot, retrait et placements Helvetia.'},
+          {fn:'compte_offshore',   label:'Placements et optimisation fiscale', pa:0, cost:0, type:'legal', icon:'ti-world', successRate:100, desc:'Placements declares et offshore avec Ursula Offshore.'},
           {fn:'emprunter_prive',   label:'Emprunter (sans verification)', pa:1, cost:0, type:'grey', icon:'ti-credit-card', successRate:100, desc:'Aucune verification. Taux eleve. Methode de recouvrement... directe en cas d\'impaye.'},
-          {fn:'blanchiment',       label:'Blanchir des fonds',     pa:3, cost:0,    type:'illegal', icon:'ti-refresh',      successRate:55,  desc:'Transformer des fonds douteux en argent propre.'},
-          {fn:'societe_ecran',     label:'Creer une societe ecran',pa:3, cost:500,  type:'illegal', icon:'ti-building-off', successRate:60,  desc:'Structure pour masquer des transactions.'}
+          {fn:'blanchiment',       label:'Blanchir des fonds',     pa:0, cost:0,    type:'illegal', icon:'ti-refresh',      successRate:100, desc:'Service a l\'etude. Pas encore disponible.'},
+          {fn:'societe_ecran',     label:'Creer une societe ecran',pa:0, cost:0,    type:'illegal', icon:'ti-building-off', successRate:100, desc:'Service a l\'etude. Pas encore disponible.'}
         ]
       }
     }

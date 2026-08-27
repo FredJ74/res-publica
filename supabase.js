@@ -2288,6 +2288,24 @@ async function sbCreerPlacementNational(personnage, montant, intSnapshot, ville)
   return sbRpc('creer_placement_national', { p_personnage: personnage, p_montant: montant, p_int_snapshot: intSnapshot, p_ville: ville });
 }
 
+// RPC Helvetia H1 (chantier Banque Privee) -- signatures confirmees par sondage en lecture
+// seule contre les RPC reelles avant integration : ouvrir_compte_helvetia(text),
+// deposer_helvetia(text,numeric), retirer_helvetia(text,numeric),
+// creer_placement_helvetia(text,numeric,text). resoudre_placement_helvetia (text) n'a pas de
+// wrapper client : appelee uniquement cote cron (api/cron-minuit.js, copie locale de sbRpc).
+async function sbOuvrirCompteHelvetia(personnage) {
+  return sbRpc('ouvrir_compte_helvetia', { p_personnage: personnage });
+}
+async function sbDeposerHelvetia(personnage, montant) {
+  return sbRpc('deposer_helvetia', { p_personnage: personnage, p_montant: montant });
+}
+async function sbRetirerHelvetia(personnage, montant) {
+  return sbRpc('retirer_helvetia', { p_personnage: personnage, p_montant: montant });
+}
+async function sbCreerPlacementHelvetia(personnage, montant, type) {
+  return sbRpc('creer_placement_helvetia', { p_personnage: personnage, p_montant: montant, p_type: type });
+}
+
 // NOTE : sbGetTerrainsAvecLotsLoues a ete retiree — le paiement des loyers de lots se fait
 // desormais cote serveur (preleverLoyersLots, api/cron-minuit.js), pas via ce client.
 

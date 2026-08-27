@@ -2457,6 +2457,27 @@ async function resoudrePlacementsNationauxExpires() {
   return resultats;
 }
 
+// Resolution des placements Helvetia arrives a echeance (banque='helvetia', type='declare'
+// ou 'offshore'), chantier "Helvetia H1". Contrairement au national, resoudre_placement_helvetia
+// est entierement autonome (rendement fixe 8%, frais 30%, fiscalite 50% -- tout est calcule et
+// persiste DANS la RPC a partir des seules colonnes du placement) : ce cron ne calcule rien,
+// il se contente de trouver les lignes echues et d'appeler la RPC pour chacune. La RPC credite
+// deja atomiquement la caisse Helvetia (frais) et la reserve nationale (impot si declare) --
+// aucune mutation supplementaire a faire ici.
+async function resoudrePlacementsHelvetiaExpires() {
+  const resultats = { resolus: 0 };
+  const maintenant = new Date().toISOString();
+  const placements = await sbGet('placements_bancaires', `banque=eq.helvetia&statut=eq.actif&prochaine_echeance=lte.${encodeURIComponent(maintenant)}`);
+  if (!placements) return resultats;
+
+  for (const p of placements) {
+    const res = await sbRpc('resoudre_placement_helvetia', { p_placement_id: p.id });
+    if (res) resultats.resolus++;
+    else console.error('resoudre_placement_helvetia a echoue pour ' + p.id + ' -- ligne laissee active, retentee au prochain passage du cron.');
+  }
+  return resultats;
+}
+
 // =====================
 // FRET MARITIME INTERNATIONAL (lot du 24 aout 2026) — passage en_transit -> arrivee
 // =====================
@@ -2726,6 +2747,9 @@ export default async function handler(req, res) {
     // chantier "PLACEMENT BANQUE NATIONALE" phase 2).
     const placementsNationaux = await resoudrePlacementsNationauxExpires();
 
+    // 15c. Placements Helvetia arrives a echeance (chantier "Helvetia H1").
+    const placementsHelvetia = await resoudrePlacementsHelvetiaExpires();
+
     // 16. Remboursement quotidien des prets de preemption d'Etat (Ministre des Finances)
     const preemptions = await preleverPreemptionsServeur();
 
@@ -2761,7 +2785,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

@@ -50,7 +50,22 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   }
 
   // Ordres speciaux
-  if (fn === 'gerer_finances') { openFinancesModal(pa, cost); return; }
+  // Helvetia H1 : gerer_finances est partage textuellement avec la Banque nationale (meme fn
+  // depuis data.js, jamais renomme) mais route desormais vers un parcours reellement distinct
+  // selon le batiment ou l'ordre est declenche -- corrige le bug historique ou Helvetia
+  // manipulait le compte national. compte_offshore (ancien ordre cosmetique, unique a
+  // banque-privee) route vers le meme ecran de gestion Helvetia plutot que de maintenir un
+  // second parcours contradictoire.
+  if (fn === 'gerer_finances') {
+    if (state.currentBuilding === 'banque-privee' && typeof ouvrirGestionHelvetia === 'function') { ouvrirGestionHelvetia(pa, cost); return; }
+    openFinancesModal(pa, cost);
+    return;
+  }
+  if (fn === 'compte_offshore') { ouvrirGestionHelvetia(pa, cost); return; }
+  if (fn === 'blanchiment' || fn === 'societe_ecran') {
+    showToast('Service à l\'étude', 'Ce service Helvetia n\'est pas encore disponible.', false);
+    return;
+  }
   if (fn === 'plainte_police') { openPlainteModal(pa, cost); return; }
   if (fn === 'arreter') { doArreter(pa, cost); return; }
   if (fn === 'mener_enquete') { doMenerEnquete(pa, cost); return; }

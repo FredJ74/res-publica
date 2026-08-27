@@ -2989,6 +2989,184 @@ async function confirmerInvestir(pa, cost) {
   addJournalEntry('Investissement Banque nationale de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' placé. Résultat dans 7 jours.', 'event-info');
 }
 
+// =====================
+// BANQUE PRIVEE HELVETIA (chantier "Helvetia H1") -- compte reel, depot/retrait, placements
+// declares/offshore. Toutes les mutations financieres passent par les RPC dediees (atomicite
+// transactionnelle cote serveur, memes garanties que le placement Banque nationale) : jamais de
+// debit/credit local direct sur comptesBancaires.helvetia ou arg -- le runtime est toujours
+// rafraichi depuis Supabase apres coup (rafraichirRuntimeHelvetia), jamais recalcule par
+// soustraction locale. arg ne varie jamais a l'ouverture/depot/retrait/placement (transferts de
+// poche), uniquement du gain net a la resolution (geree par la RPC serveur/cron, jamais ici).
+// =====================
+
+// Rafraichit liquide/arg/comptesBancaires/placementsBancaires depuis Supabase apres une
+// operation Helvetia -- les RPC mutent server-side, jamais localement par soustraction (meme
+// doctrine que confirmerInvestir/Placement Banque nationale ci-dessus).
+async function rafraichirRuntimeHelvetia() {
+  if (!state.char?.name) return;
+  if (typeof sbLoadPersonnage === 'function') {
+    const frais = await sbLoadPersonnage(state.char.name).catch(() => null);
+    if (frais) {
+      if (typeof frais.liquide === 'number') state.liquide = frais.liquide;
+      if (typeof frais.arg === 'number') state.arg = frais.arg;
+      if (state.char) state.char.arg = state.arg;
+    }
+  }
+  if (typeof sbGetComptesBancaires === 'function') {
+    const comptes = await sbGetComptesBancaires(state.char.name).catch(() => null);
+    if (comptes && typeof construireMapComptesBancaires === 'function') state.comptesBancaires = construireMapComptesBancaires(comptes);
+  }
+  if (typeof sbGetPlacementsBancaires === 'function') {
+    state.placementsBancaires = await sbGetPlacementsBancaires(state.char.name).catch(() => state.placementsBancaires || []);
+  }
+}
+
+// Point d'entree unique Helvetia (route par gerer_finances ET compte_offshore quand
+// state.currentBuilding==='banque-privee', voir plateau-router.js) -- un seul parcours, jamais
+// deux ecrans contradictoires pour un ancien ordre cosmetique et le vrai mecanisme.
+async function ouvrirGestionHelvetia(pa, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const compte = state.comptesBancaires?.helvetia;
+
+  if (!compte) {
+    const disponible = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : 0;
+    document.getElementById('postes-modal-title').textContent = 'Banque Privée Helvetia';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem">' +
+      '<div style="font-size:.82rem;color:#a09070;font-style:italic;margin-bottom:1rem;line-height:1.6">« Un compte chez nous commence à 10 000 ' + cur + '. En dessous, nous ne voyons pas l\'intérêt de la conversation. »</div>' +
+      '<div style="font-size:.78rem;color:#8a8060;margin-bottom:1rem">Fonds ordinaires disponibles : ' + disponible.toLocaleString('fr-FR') + ' ' + cur + '. L\'ouverture prélève 10 000 ' + cur + ' sur votre liquide puis, si besoin, votre compte Banque nationale.</div>' +
+      '<button onclick="confirmerOuvertureHelvetia(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ouvrir un compte (10 000 ' + cur + ')</button>' +
+      '</div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+
+  const placementActif = (state.placementsBancaires || []).find(p => p.banque === 'helvetia' && p.statut === 'actif');
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.7rem;color:#6a5a30;font-family:\'Bebas Neue\',sans-serif;letter-spacing:.1em;margin-bottom:.2rem">SOLDE HELVETIA</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:#C9A84C;margin-bottom:.6rem">' + (compte.solde || 0).toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:1rem">Minimum permanent : 10 000 ' + cur + '. Un retrait qui passerait sous ce seuil est refusé.</div>';
+
+  html += '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem">';
+  html += '<input id="helvetia-amount-input" type="number" min="1" placeholder="Montant" style="flex:1;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box"/>';
+  html += '<button onclick="confirmerDepotHelvetia(' + pa + ',' + cost + ')" style="padding:.4rem .7rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Déposer</button>';
+  html += '<button onclick="confirmerRetraitHelvetia(' + pa + ',' + cost + ')" style="padding:.4rem .7rem;border:1px solid #8a4a4a;background:transparent;color:#ca6a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Retirer</button>';
+  html += '</div>';
+
+  html += '<div style="border-top:1px solid #2a2010;padding-top:.8rem;margin-top:.4rem">';
+  html += '<div style="font-size:.7rem;color:#6a5a30;font-family:\'Bebas Neue\',sans-serif;letter-spacing:.1em;margin-bottom:.5rem">PLACEMENTS</div>';
+
+  if (placementActif) {
+    const joursRestants = Math.max(0, Math.ceil((new Date(placementActif.prochaine_echeance).getTime() - Date.now()) / 86400000));
+    html += '<div style="font-size:.8rem;color:#a09070;line-height:1.6">Placement ' + (placementActif.type === 'declare' ? 'déclaré' : 'offshore') + ' de ' + (placementActif.montant || 0).toLocaleString('fr-FR') + ' ' + cur + ' en cours depuis le ' + new Date(placementActif.date_placement).toLocaleDateString('fr-FR') + '. Capital immobilisé. Résultat dans ' + joursRestants + ' jour(s).</div>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">Rendement 8% brut sur 7 jours. Frais Helvetia : 30% du gain. Déclaré : revenu après frais taxé à 50% par Républia. Offshore : aucune imposition républienne, mais fiscalement invisible.</div>';
+    html += '<input id="helvetia-placement-amount" type="number" min="1" placeholder="Montant à placer" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>';
+    html += '<div style="display:flex;gap:.5rem">';
+    html += '<button onclick="confirmerPlacementHelvetia(' + pa + ',' + cost + ',\'declare\')" style="flex:1;padding:.5rem;border:1px solid #4a8a6a;background:transparent;color:#6aca9a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Placement déclaré</button>';
+    html += '<button onclick="confirmerPlacementHelvetia(' + pa + ',' + cost + ',\'offshore\')" style="flex:1;padding:.5rem;border:1px solid #8a6a4a;background:transparent;color:#caa96a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Placement offshore</button>';
+    html += '</div>';
+  }
+  html += '</div></div>';
+
+  document.getElementById('postes-modal-title').textContent = 'Banque Privée Helvetia';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerOuvertureHelvetia(pa, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const resultat = (typeof sbOuvrirCompteHelvetia === 'function')
+    ? await sbOuvrirCompteHelvetia(state.char.name).catch(() => null)
+    : null;
+  if (!resultat) {
+    showToast('Ouverture refusée', 'Fonds ordinaires insuffisants (10 000 ' + cur + ' requis) ou compte déjà existant.', false);
+    return;
+  }
+
+  await rafraichirRuntimeHelvetia();
+  showToast('Compte ouvert !', 'Bienvenue chez Helvetia. Solde : 10 000 ' + cur + '.', true, true);
+  addJournalEntry('Ouverture d\'un compte Banque Privée Helvetia (10 000 ' + cur + ').', 'event-info');
+  updateUI();
+  ouvrirGestionHelvetia(pa, cost);
+}
+
+async function confirmerDepotHelvetia(pa, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
+  if (!montant || montant <= 0) { showToast('Montant invalide', '', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const resultat = (typeof sbDeposerHelvetia === 'function')
+    ? await sbDeposerHelvetia(state.char.name, montant).catch(() => null)
+    : null;
+  if (!resultat) { showToast('Dépôt refusé', 'Fonds ordinaires insuffisants.', false); return; }
+
+  await rafraichirRuntimeHelvetia();
+  showToast('Dépôt effectué', montant.toLocaleString('fr-FR') + ' ' + cur + ' déposés chez Helvetia.', true, true);
+  addJournalEntry('Dépôt Helvetia : ' + montant.toLocaleString('fr-FR') + ' ' + cur + '.', '');
+  updateUI();
+  ouvrirGestionHelvetia(pa, cost);
+}
+
+async function confirmerRetraitHelvetia(pa, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
+  if (!montant || montant <= 0) { showToast('Montant invalide', '', false); return; }
+
+  const soldeActuel = state.comptesBancaires?.helvetia?.solde || 0;
+  if (soldeActuel - montant < 10000) {
+    showToast('Retrait refusé', 'Le compte Helvetia doit conserver au moins 10 000 ' + cur + '.', false);
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const resultat = (typeof sbRetirerHelvetia === 'function')
+    ? await sbRetirerHelvetia(state.char.name, montant).catch(() => null)
+    : null;
+  if (!resultat) { showToast('Retrait refusé', 'Le compte Helvetia doit conserver au moins 10 000 ' + cur + '.', false); return; }
+
+  await rafraichirRuntimeHelvetia();
+  showToast('Retrait effectué', montant.toLocaleString('fr-FR') + ' ' + cur + ' retirés en liquide.', true, true);
+  addJournalEntry('Retrait Helvetia : ' + montant.toLocaleString('fr-FR') + ' ' + cur + '.', '');
+  updateUI();
+  ouvrirGestionHelvetia(pa, cost);
+}
+
+async function confirmerPlacementHelvetia(pa, cost, type) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const montant = parseInt(document.getElementById('helvetia-placement-amount')?.value || 0);
+  if (!montant || montant <= 0) { showToast('Montant invalide', '', false); return; }
+
+  const soldeActuel = state.comptesBancaires?.helvetia?.solde || 0;
+  if (soldeActuel - montant < 10000) {
+    showToast('Placement refusé', 'Le compte Helvetia doit conserver au moins 10 000 ' + cur + ' après le placement.', false);
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const resultat = (typeof sbCreerPlacementHelvetia === 'function')
+    ? await sbCreerPlacementHelvetia(state.char.name, montant, type).catch(() => null)
+    : null;
+  if (!resultat) { showToast('Placement refusé', 'Vérifiez le solde disponible et l\'absence de placement déjà actif.', false); return; }
+
+  await rafraichirRuntimeHelvetia();
+  showToast('Placement effectué !', montant.toLocaleString('fr-FR') + ' ' + cur + ' placés (' + (type === 'declare' ? 'déclaré' : 'offshore') + '). Résultat dans 7 jours.', true, true);
+  addJournalEntry('Placement Helvetia ' + (type === 'declare' ? 'déclaré' : 'offshore') + ' de ' + montant.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
+  updateUI();
+  ouvrirGestionHelvetia(pa, cost);
+}
+
 function doSocieteEcran() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const cost = 500;
