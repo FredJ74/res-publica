@@ -3239,7 +3239,7 @@ async function vendreMatiereCommerce(commerceType, pays, ville, buildingId, room
 
   crediterStockMatiereCommerce(data, matiere, qte, prixUnitaire);
   if (!categorieCaisseInstit) data.caisse -= total;
-  state.arg = (state.arg || 0) + total;
+  crediterFondsOrdinaires(total);
 
   ajouterHistoriqueEntreprise(data, -total, 'Achat de matière première (' + matiere + ' x' + qte + ') — ' + (state.char?.name || 'Anonyme'));
   await sbSaveEntreprise(data.id, data);
@@ -3854,7 +3854,7 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
   ajouterHistoriqueEntreprise(data, -coutMainOeuvre, 'Production de ' + recette.label + ' (' + recette.portions + ' portions) — ' + (state.char?.name || 'Anonyme'));
   await sbSaveEntreprise(data.id, data);
 
-  state.arg = (state.arg || 0) + coutMainOeuvre;
+  crediterFondsOrdinaires(coutMainOeuvre);
 
   // Sauvegarde personnage immediate (correctif audit PA, 22 aout 2026) : jusqu'ici, seul le
   // debounce de 3s de sbAutoSave() (declenche par updateUI() dans le wrapper UI) ou le filet de
@@ -3901,9 +3901,10 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
 
   const prix = data.parametres.prixVente[recetteId];
   if (prix == null) return { ok: false, raison: 'prix_non_defini' };
-  if ((state.arg || 0) < prix) return { ok: false, raison: 'fonds_insuffisants', prix };
+  if (getFondsDisponiblesOrdinaires() < prix) return { ok: false, raison: 'fonds_insuffisants', prix };
 
-  state.arg -= prix;
+  const debitCommerce = await debiterFondsOrdinaires(prix);
+  if (!debitCommerce.ok) return { ok: false, raison: 'fonds_insuffisants', prix };
   data.stockProduits[recetteId] = stock - 1;
 
   let net = prix;
@@ -4532,7 +4533,7 @@ async function resoudreTournee(tournee) {
   const quantite = N + 1;
   const stockActuel = data ? (data.stockProduits[tournee.recette_id] || 0) : 0;
   const prixReel = data ? data.parametres.prixVente[tournee.recette_id] : null;
-  const argentDispo = estMoi ? (state.arg || 0) : 0;
+  const argentDispo = estMoi ? getFondsDisponiblesOrdinaires() : 0;
 
   // Echec total (section 10) : une seule ressource manquante suffit, aucun service partiel.
   if (!data || !recette || prixReel == null || stockActuel < quantite || argentDispo < prixReel * quantite) {
@@ -4570,7 +4571,17 @@ async function resoudreTournee(tournee) {
   // UNE FOIS pour la quantite agregee (jamais une boucle N+1 fois, qui multiplierait a tort les
   // effets de la recette). La caisse du commerce est toujours CREDITEE (jamais debitee) : c'est
   // l'argent personnel de l'offreur qui paie, exactement comme une vente normale.
-  state.arg -= montantTotal;
+  const debitTournee = await debiterFondsOrdinaires(montantTotal);
+  if (!debitTournee.ok) {
+    await nettoyerInvitations();
+    await sbMarquerTourneeResolue(tournee.id, tournee.pa_debite === true);
+    if (estMoi) {
+      showToast('Tournée annulée', 'Fonds insuffisants au moment de servir la tournée.', false);
+      addJournalEntry('Tournée annulée à la résolution : fonds insuffisants.', 'event-bad');
+      updateUI();
+    }
+    return;
+  }
   data.stockProduits[tournee.recette_id] = stockActuel - quantite;
   let net = montantTotal;
   if (typeof appliquerTaxeTransaction === 'function') {
@@ -4816,7 +4827,7 @@ async function confirmerProduction(produitId) {
   ajouterHistoriqueEntreprise(data, -SALAIRE_PRODUCTION_ARMURERIE, 'Salaire de production (' + recette.label + ') — ' + (state.char?.name||'Anonyme'));
   await sbSaveEntreprise(data.id, data);
 
-  state.arg = (state.arg || 0) + SALAIRE_PRODUCTION_ARMURERIE;
+  crediterFondsOrdinaires(SALAIRE_PRODUCTION_ARMURERIE);
   updateUI();
   showToast('Production réussie !', recette.label + ' fabriqué(e). +' + SALAIRE_PRODUCTION_ARMURERIE + ' FR de salaire.', true, true);
   addJournalEntry('Production d\'un(e) ' + recette.label + ' à l\'armurerie (+' + SALAIRE_PRODUCTION_ARMURERIE + ' FR).', 'event-good');
@@ -4885,7 +4896,7 @@ async function confirmerVenteMatiere(matiere) {
   ajouterHistoriqueEntreprise(data, -total, 'Achat de matière première (' + matiere + ' x' + qte + ') — ' + (state.char?.name||'Anonyme'));
   await sbSaveEntreprise(data.id, data);
 
-  state.arg = (state.arg || 0) + total;
+  crediterFondsOrdinaires(total);
   updateUI();
   showToast('Vente effectuée', '+' + total + ' FR pour ' + qte + ' ' + matiere + '.', true, true);
   addJournalEntry('Vente de ' + qte + ' ' + matiere + ' à l\'armurerie (+' + total + ' FR).', 'event-good');

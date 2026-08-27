@@ -2494,14 +2494,15 @@ function ouvrirModalLouerBox(pa, cost) {
 
 async function confirmerLocationBox(pa, cost) {
   if (getMaBoxPortuaire()) { showToast('Déjà loué', 'Vous louez déjà un box.', false); return; }
-  if ((state.arg || 0) < TARIF_BOX_PORTUAIRE_JOUR) {
+  if (getFondsDisponiblesOrdinaires() < TARIF_BOX_PORTUAIRE_JOUR) {
     showToast('Fonds insuffisants', TARIF_BOX_PORTUAIRE_JOUR + ' FR requis pour le premier loyer.', false);
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
 
-  state.arg -= TARIF_BOX_PORTUAIRE_JOUR;
+  const debitBox = await debiterFondsOrdinaires(TARIF_BOX_PORTUAIRE_JOUR);
+  if (!debitBox.ok) { showToast('Fonds insuffisants', TARIF_BOX_PORTUAIRE_JOUR + ' FR requis pour le premier loyer.', false); return; }
   if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment('republic', BUILDING_ID_PORT, TARIF_BOX_PORTUAIRE_JOUR).catch(() => {});
 
   const box = {
@@ -3561,8 +3562,8 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
     showToast('Rien à acheter', 'Indiquez au moins une quantité.', false);
     return;
   }
-  if (state.arg < total) {
-    showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(state.arg) + ' ' + cur + '.', false);
+  if (getFondsDisponiblesOrdinaires() < total) {
+    showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(getFondsDisponiblesOrdinaires()) + ' ' + cur + '.', false);
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
@@ -3583,19 +3584,18 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
       totalReellementPaye += qteAjoutee * prix;
     }
   }
-  state.arg -= totalReellementPaye;
+  // Lot 4B : debit personnage via la primitive canonique (liquide puis Banque nationale),
+  // persistance deja geree par debiterFondsOrdinaires -- l'ancien sbSavePersonnage(state)
+  // explicite juste apres devient un double PATCH inutile, retire. Ne devrait jamais refuser ici
+  // (totalReellementPaye <= total, deja verifie ci-dessus) : filet de securite uniquement.
+  const debitEntrepot = await debiterFondsOrdinaires(totalReellementPaye);
+  if (!debitEntrepot.ok) { showToast('Erreur', 'Paiement impossible.', false); return; }
   total = totalReellementPaye;
 
   // Revenu credite a la caisse de l'entrepot — corrige le 8 aout 2026 : jusque-la, l'argent
   // paye par le joueur disparaissait sans contrepartie, la caisse ne pouvant que baisser.
   etat.entrepot = { ...(etat.entrepot || {}), stock, caisse: (etat.entrepot?.caisse || 0) + totalReellementPaye };
   if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, etat).catch(() => {});
-
-  // Sauvegarde personnage immediate (correctif, 20 aout 2026) : l'argent est deja irreversiblement
-  // debite de l'entrepot ci-dessus -- ne pas attendre le debounce de 3s de sbAutoSave() (via
-  // updateUI() plus bas) pour que l'inventory recu survive a un refresh immediat. Aucune
-  // transaction rejouee : seule l'ecriture de l'etat personnage deja mute est avancee.
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -4535,8 +4535,11 @@ async function confirmerAchatArmoireSouvenirs() {
   if (qteAjoutee <= 0) {
     // Filet de securite (la capacite a deja ete verifiee ci-dessus, ne devrait jamais se
     // declencher) : rembourse integralement plutot que de faire disparaitre l'argent et le
-    // stock deja mutes.
-    state.arg = (state.arg || 0) + p.prixVente;
+    // stock deja mutes. Lot 4B : remboursement via la primitive canonique -- le debit initial
+    // (deduireCoutOrdre, deja migre au Lot 3) avait preleve sur liquide/Banque nationale ; un
+    // simple state.arg+=prixVente cassait l'invariant arg=liquide+comptes en ne restituant
+    // qu'a arg sans jamais toucher liquide.
+    crediterFondsOrdinaires(p.prixVente);
     usine.stockProduits[p.type] = (usine.stockProduits[p.type] || 0) + 1;
     usine.caisse = (usine.caisse || 0) - p.prixVente;
     if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(p.pays, p.ville, p.buildingId, { ...etat, usine }).catch(() => {});
@@ -6535,8 +6538,8 @@ async function confirmerAcheterCriee(pa, cost) {
     total += qte * prix;
   }
   if (Object.keys(achats).length === 0) { showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); return; }
-  if (state.arg < total) {
-    showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(state.arg) + ' ' + cur + '.', false);
+  if (getFondsDisponiblesOrdinaires() < total) {
+    showToast('Fonds insuffisants', Math.round(total) + ' ' + cur + ' requis, vous avez ' + Math.round(getFondsDisponiblesOrdinaires()) + ' ' + cur + '.', false);
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
@@ -6558,11 +6561,14 @@ async function confirmerAcheterCriee(pa, cost) {
     showToast('Inventaire plein', 'Aucune marchandise n\'a pu être récupérée.', false);
     return;
   }
-  state.arg -= totalReellementPaye;
+  // Lot 4B : debit personnage via la primitive canonique, persistance deja geree (retire le
+  // sbSavePersonnage explicite redondant). Ne devrait jamais refuser ici (totalReellementPaye
+  // <= total, deja verifie) : filet de securite uniquement.
+  const debitCriee = await debiterFondsOrdinaires(totalReellementPaye);
+  if (!debitCriee.ok) { showToast('Erreur', 'Paiement impossible.', false); return; }
 
   await sbSetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT, { ...(etat || {}), port: { ...port, criee: { ...(port.criee || {}), stock } } }).catch(() => {});
   await crediterCaisseBatiment('republic', BUILDING_ID_PORT, totalReellementPaye).catch(() => {});
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -8522,13 +8528,22 @@ async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
   if (roll <= taux) {
     const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, buildingId) : { solde: 0 };
     const pct = 0.10 + Math.random() * 0.15;
-    const montantVole = Math.floor((caisse?.solde || 0) * pct);
+    const montantVise = Math.floor((caisse?.solde || 0) * pct);
+    if (montantVise <= 0) {
+      showToast('Caisse vide', "Il n'y avait rien a voler.", false);
+      return;
+    }
+    // Lot 4B (conservation) : credite exactement le montant REELLEMENT preleve de la caisse
+    // (valeur de retour de debiterCaisseBatimentPlafonne), jamais montantVise -- l'ancien code
+    // ignorait la valeur de retour et pouvait crediter plus que ce qui avait ete effectivement
+    // retire de la caisse en cas de solde change entre les deux appels (aucune caisse desormais
+    // creditee sans avoir ete reellement debitee du meme montant).
+    const montantVole = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, buildingId, montantVise) : montantVise;
     if (montantVole <= 0) {
       showToast('Caisse vide', "Il n'y avait rien a voler.", false);
       return;
     }
-    if (typeof debiterCaisseBatimentPlafonne === 'function') await debiterCaisseBatimentPlafonne(pays, buildingId, montantVole);
-    state.arg = (state.arg || 0) + montantVole;
+    crediterFondsOrdinaires(montantVole);
     augmenterReputationCriminelle(8);
     updateUI();
     showToast('Cambriolage reussi !', '+' + montantVole.toLocaleString('fr-FR') + ' FR voles dans la caisse.', true, true);

@@ -1135,7 +1135,7 @@ async function executerOrdreOrga(orgaId, fn) {
     orga_petition:       () => { const gain = Math.floor(Math.random()*8)+3; state.pop = Math.min(100,(state.pop||0)+gain); showToast('Pétition lancée !','+'+gain+' POP.',true); addJournalEntry('Pétition de "'+orga.nom+'". +'+gain+' POP.','event-good'); addExternalEvent('📋 "'+orga.nom+'" lance une pétition publique.'); },
     orga_meeting:        () => { state.pop=Math.min(100,(state.pop||0)+5); state.inf=Math.min(100,(state.inf||0)+3); showToast('Meeting !','+5 POP +3 INF.',true,true); addJournalEntry('Meeting de "'+orga.nom+'".','event-good'); addExternalEvent('📢 "'+orga.nom+'" organise un meeting.'); },
     orga_collecte:       () => { const don=Math.floor(Math.random()*500)+200; orga.caisse=(orga.caisse||0)+don; showToast('Collecte réussie !','+'+don+' '+cur+' dans la caisse.',true); addJournalEntry('Collecte "'+orga.nom+'". +'+don+' '+cur+'.','event-good'); },
-    orga_dividendes:     () => { const part=Math.floor((orga.caisse||0)*0.3); if(part<10){showToast('Caisse vide','Pas assez de fonds à distribuer.',false);return;} orga.caisse-=part; state.arg+=part; showToast('Dividendes versés !','+'+part+' '+cur+'.',true); addJournalEntry('Dividendes reçus de "'+orga.nom+'". +'+part+' '+cur+'.','event-good'); },
+    orga_dividendes:     () => { const part=Math.floor((orga.caisse||0)*0.3); if(part<10){showToast('Caisse vide','Pas assez de fonds à distribuer.',false);return;} orga.caisse-=part; crediterFondsOrdinaires(part); showToast('Dividendes versés !','+'+part+' '+cur+'.',true); addJournalEntry('Dividendes reçus de "'+orga.nom+'". +'+part+' '+cur+'.','event-good'); },
     orga_benediction:    () => { state.moral=Math.min(100,(state.moral||50)+10); state.pop=Math.min(100,(state.pop||0)+5); showToast('Bénédiction !','Cérémonie en votre honneur. +10 Moral +5 POP.',true,true); addJournalEntry('Bénédiction de "'+orga.nom+'".','event-good'); addExternalEvent('✨ "'+orga.nom+'" organise une cérémonie de bénédiction.'); },
     orga_anatheme:       () => { state.moral=Math.max(0,(state.moral||50)-15); state.pop=Math.max(0,(state.pop||0)-10); showToast('Anathème !','Cérémonie contre un PJ. -15 Moral -10 POP à la cible.',false); addJournalEntry('Anathème prononcé par "'+orga.nom+'".','event-bad'); addExternalEvent('⛧ "'+orga.nom+'" prononce un anathème public.'); },
     orga_pelerinage:     () => { state.pop=Math.min(100,(state.pop||0)+8); showToast('Pèlerinage !','+8 POP. Grand rassemblement.',true,true); addExternalEvent('🕊 "'+orga.nom+'" organise un grand pèlerinage.'); },
@@ -3342,10 +3342,11 @@ function doSponsoriserClub(pa, cost) {
 async function confirmerSponsoring(montant, label, inf, pa, cost) {
   const clubLocal = getClubLocal();
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
+  if (getFondsDisponiblesOrdinaires() < montant) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
-  state.arg -= montant;
+  const debitSponsoring = await debiterFondsOrdinaires(montant);
+  if (!debitSponsoring.ok) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
   state.inf = Math.min(100, (state.inf || 0) + inf);
   clubLocal.sponsorActuel = state.char?.name || null;
   updateUI();
@@ -3902,7 +3903,7 @@ async function repondreTransfertJoueur(transfertId, accepte) {
   if (state.char?.name === t.joueur) {
     const saison = await chargerOuInitialiserSaison();
     state.char.licenceSportive = { clubId: t.clubArriveeId, dateAchat: state.day || 1, statut: 'active', derniereSaisonTraitee: saison?.numero || 1, nonRenouvellement: false };
-    state.arg += (t.prixJoueur || 0);
+    crediterFondsOrdinaires(t.prixJoueur || 0);
     updateUI();
   }
   await crediterBudgetClub(t.clubDepartId, t.prixClub, 'Transfert de ' + t.joueur);
@@ -3980,10 +3981,11 @@ function doChoisirAccessoireClub(pa, cost) {
 async function confirmerAchatAccessoireClub(id, label, prix, pa, cost) {
   const clubLocal = getClubLocal();
   document.getElementById('modal-postes').classList.remove('open');
-  if (state.arg < prix) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
+  if (getFondsDisponiblesOrdinaires() < prix) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
-  state.arg -= prix;
+  const debitAccessoire = await debiterFondsOrdinaires(prix);
+  if (!debitAccessoire.ok) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
   if (!state.inventory) state.inventory = [];
   state.inventory.push({ type:'accessoire_sport', name: label + ' — ' + clubLocal.nom, icon:'ti-shirt', legal:true });
   updateUI();
