@@ -85,6 +85,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(pa, cost); return; }
   if (fn === 'acheter_bombe_mil') { doObtenirExplosifsMilitaires(pa, cost); return; }
+  if (fn === 'acheter_arme_militaire') { doObtenirEquipementMilitaire(pa, cost); return; }
   if (fn === 'se_justifier') { doSeJustifier(pa, cost); return; }
   if (fn === 'observer_match') { doObserverMatch(); return; }
   if (fn === 'consulter_palmares') { doConsulterPalmares(); return; }
@@ -333,7 +334,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'etat_nation')          { ouvrirEtatNation(); return; }
 
   // Handlers complementaires v17
-  if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_journaliste') { doCorruption(fn, cost); return; }
+  // corrompre_gardien (QHS, cellules) ajoute le 27 aout 2026 (audit architecture) : defini
+  // dans data.js mais jamais routee -- meme mecanique generique que ses homologues (desc
+  // "Obtenir des privileges ou informations" = meme resultat generique que doCorruption,
+  // aucun effet specifique distinct trouve pour aucun des fn de ce groupe).
+  if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_journaliste' || fn === 'corrompre_gardien') { doCorruption(fn, cost); return; }
   if (fn === 'se_reposer' || fn === 'se_nourrir') { doSeReposer(fn); return; }
   if (fn === 'requete_avocat') { doRequeteAvocat(pa, cost); return; }
   if (fn === 'greve_faim') { doGreveFaim(); return; }

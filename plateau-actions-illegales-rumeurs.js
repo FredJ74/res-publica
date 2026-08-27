@@ -1293,6 +1293,30 @@ async function doObtenirExplosifsMilitaires(pa, cost) {
   addJournalEntry('Explosifs militaires réglementaires obtenus (Ministère de la Défense).', 'event-info');
 }
 
+// Meme bug, meme cause, meme piece que ci-dessus (acheter_arme_militaire, Armurerie Militaire) :
+// ordre defini dans data.js mais jamais routee. Corrige le 27 aout 2026 (audit architecture).
+// Objet generique volontairement sans sousType (blanche/poing/carabine) : rien dans data.js
+// n'indique quel tier du catalogue ARMES_CATALOGUE serait vise, donc aucun choix arbitraire
+// fait ici -- reste un objet type:'arme' reconnu par les mecanismes existants (vol, controle
+// douanier) sans debloquer une option d'assassinat specifique.
+async function doObtenirEquipementMilitaire(pa, cost) {
+  if (state.poste?.id !== 'min_def') {
+    showToast('Accès refusé', 'Réservé au Ministre de la Défense.', false);
+    return;
+  }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({
+    type: 'arme', name: 'Équipement militaire réglementaire', icon: 'ti-shield', legal: true,
+    desc: 'Équipement traçable, obtenu légalement par le Ministère de la Défense.',
+    imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/caserne-luthecia-armurerie-militaire.png'
+  });
+  updateUI();
+  showToast('Équipement obtenu', 'Équipement militaire réglementaire ajouté à votre inventaire.', true, true);
+  addJournalEntry('Équipement militaire réglementaire obtenu (Ministère de la Défense).', 'event-info');
+}
+
 // =====================
 // MARCHE NOIR — regroupe, a l'endroit ou il se trouve deja pour chaque empire (Armurerie pour
 // republic/soviet, Marche pour narco/khalija — meme vendeur, pas de deplacement de lieu),
