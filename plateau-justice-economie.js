@@ -1121,9 +1121,18 @@ async function doDefense(pa, cost) {
   updateUI();
 }
 
-function doCorruption(fn, cost) {
+// pa desormais reellement preleve (reprise ciblee audit, 27 aout 2026) : le cout PA affiche par
+// chaque ordre corrompre_* (2 ou 3 selon la piece) n'etait jamais deduit, quel que soit le
+// resultat -- divergence factuelle entre cout affiche et cout reel, sur les 4 fn partageant ce
+// handler (corrompre_fonct/police/journaliste/gardien). Prelevement PA desormais inconditionnel
+// et prealable au jet (meme convention que executerOrdreGenerique) ; le cout en argent reste
+// inchange, deduit uniquement en cas de reussite (comportement d'origine, non signale comme
+// anomalie, non touche).
+async function doCorruption(fn, pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const roll = Math.floor(Math.random() * 100) + 1;
   const taux = Math.max(5, 65 - getMalusISN());
   if (roll <= taux) {

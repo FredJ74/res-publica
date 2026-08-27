@@ -326,7 +326,15 @@ const ACTES_ILLEGAUX = {
   // contrebande_port -> memes type/detectRate que acheter_arme_illegale (acquisition/detention
   // de marchandise prohibee via un canal semi-legitime, pas un acte violent).
   corrompre_douanier: { type: 'delit_mineur',  detectRate: 35 },
-  contrebande_port:   { type: 'delit_mineur',  detectRate: 20 }
+  contrebande_port:   { type: 'delit_mineur',  detectRate: 20 },
+  // corrompre_gardien ajoute le 27 aout 2026 (reprise ciblee audit architecture) : meme trou que
+  // corrompre_douanier ci-dessus avant son propre correctif du 25 aout -- fn deja routee vers
+  // doCorruption() (qui appelle checkDetection(fn, resultType) sans condition), mais absente
+  // d'ici, rendait la corruption d'un gardien du QHS totalement indetectable. Memes type/
+  // detectRate que corrompre_police (agent d'autorite/de securite soudoye, le plus proche
+  // thematiquement parmi les corruptions existantes -- meme raisonnement deja retenu pour
+  // corrompre_douanier).
+  corrompre_gardien:  { type: 'delit_mineur',  detectRate: 35 }
 };
 
 const BUDGET_DEFAULT = {
