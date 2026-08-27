@@ -6470,14 +6470,10 @@ const CAP_ENTRAINEMENT_PAR_SESSION = 12;
 // achat institutionnel puis une dotation reelle.
 const CATEGORIES_ARME_STOCK = ['arme_de_poing', 'mitraillette'];
 
-// Prix d'achat institutionnel par unite, volontairement NON FIXES : aucune valeur n'a pu etre
-// derivee sans arbitraire du reste de l'economie militaire existante (COUT_COMPAGNIE/
-// COUT_SECTION financent des effectifs, COUT_RECHERCHE finance un coefficient technologique --
-// aucun des trois ne donne un prix unitaire d'arme defendable). L'achat institutionnel
-// (ouvrirAchatArmureMilitaire) reste explicitement bloque tant que ces deux valeurs ne sont pas
-// fixees par une decision de game design. Le reste de la chaine (stock, dotation de section,
-// equipement individuel, combat) est deja pleinement fonctionnel independamment de ce blocage.
-const PRIX_ARME_MILITAIRE = { arme_de_poing: null, mitraillette: null };
+// Prix d'achat institutionnel par unite, fixes le 27 aout 2026 (decision de game design,
+// finalisation du chantier logistique armement du 576f7b5). corps_a_corps reste hors stock,
+// gratuit, inchange.
+const PRIX_ARME_MILITAIRE = { arme_de_poing: 300, mitraillette: 800 };
 
 // Stock national de l'Armurerie Militaire : porte par budgetNat (meme rail que
 // coefficientsArmesAcquis/rechercheMilitaire, deja persiste sans schema fixe via
