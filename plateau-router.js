@@ -85,18 +85,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   if (fn === 'acheter_bombe_illegale') { doAcheterExplosifs(pa, cost); return; }
   if (fn === 'acheter_bombe_mil') { doObtenirExplosifsMilitaires(pa, cost); return; }
-  // Revu le 27 aout 2026 (reprise ciblee audit) : NE cree PAS d'objet dans l'inventaire personnel
-  // (retire, c'etait le mauvais raccordement du 26 aout). acheter_arme_militaire est un
-  // investissement institutionnel dans l'equipement collectif de l'armee (qualite/efficacite,
-  // distinct des effectifs/solde) -- mecanisme deja existant et deja fonctionnel :
-  // budgetNat.coefficientsArmesAcquis, alimente par la recherche militaire (confirmerRechercheMilitaire*),
-  // reellement consomme en combat (calculerPointsGroupe/getCoefsArmesPays, plateau-politique.js).
-  // Redirige vers le point d'entree deja reserve au Ministre de la Defense pour financer cette
-  // recherche depuis sa propre caisse (ouvrirRechercheMilitaireDepuisMinistere, deja utilise par
-  // gerer_budget_caserne) plutot que d'inventer un second mecanisme parallele. pa/cost déclarés
-  // dans data.js pour cet ordre ne sont pas utilisés ici (la fonction cible ne les accepte pas) --
-  // meme convention deja en vigueur pour gerer_budget_caserne juste en dessous.
-  if (fn === 'acheter_arme_militaire') { ouvrirRechercheMilitaireDepuisMinistere(); return; }
+  // Revu le 27 aout 2026 (chantier logistique armement, remplace le raccordement temporaire du
+  // 883fb4c) : achat institutionnel reel de stock d'armes (Armurerie Militaire), distinct de la
+  // recherche militaire (technologie, ouvrirRechercheMilitaireDepuisMinistere, inchangee et
+  // toujours utilisee par gerer_budget_caserne juste en dessous). Voir plateau-politique.js
+  // (PRIX_ARME_MILITAIRE, chargerStockArmurerieMilitaire, ouvrirAchatArmureMilitaire).
+  if (fn === 'acheter_arme_militaire') { ouvrirAchatArmureMilitaire(); return; }
+  if (fn === 'repartir_armement') { ouvrirRepartirArmement(); return; }
   if (fn === 'se_justifier') { doSeJustifier(pa, cost); return; }
   if (fn === 'observer_match') { doObserverMatch(); return; }
   if (fn === 'consulter_palmares') { doConsulterPalmares(); return; }

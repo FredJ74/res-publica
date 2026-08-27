@@ -4956,7 +4956,8 @@ async function confirmerRenseignement(empireCible, nomCible, pa, cost) {
 
   const demiSection = [...section.soldats].sort(() => Math.random() - 0.5).slice(0, 12);
   let contenu = 'Section identifiée : Lieutenant ' + section.lieutenantNom + ' (' + nomCible + '). Indices du Lieutenant adverse — Perception : ' + (leurLt.per??'?') + ' · Intelligence : ' + (leurLt.int??'?') + '.<br><br>';
-  demiSection.forEach(s => { contenu += s.matricule + ' — FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + '<br>'; });
+  const armesLabelsRenseignement = { corps_a_corps: 'Aucun', arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
+  demiSection.forEach(s => { contenu += s.matricule + ' — FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + ' · Équipement : ' + (armesLabelsRenseignement[s.arme] || 'Aucun') + '<br>'; });
 
   if (typeof sbCreerRapportRenseignement === 'function') {
     await sbCreerRapportRenseignement({ pays, lieutenantNom: notreLieutenantNom, empireCible, nomCible, contenu, remonte: false });
@@ -6462,6 +6463,31 @@ const PA_MAX_SOLDAT = 12;
 const PA_BASE_ROUND = 2;
 const CAP_ENTRAINEMENT_PAR_SESSION = 12;
 
+// ---- LOGISTIQUE ARMEMENT (chantier 27 aout 2026 : Armurerie -> Section -> Soldat) ----
+// corps_a_corps reste hors stock : etat par defaut gratuit et illimite de tout soldat recrute
+// (creerSoldatsSection), simple combat a mains nues, coefficient de base (1) inchange -- ce
+// n'est pas une "arme" au sens de cette logistique. Seules ces deux categories necessitent un
+// achat institutionnel puis une dotation reelle.
+const CATEGORIES_ARME_STOCK = ['arme_de_poing', 'mitraillette'];
+
+// Prix d'achat institutionnel par unite, volontairement NON FIXES : aucune valeur n'a pu etre
+// derivee sans arbitraire du reste de l'economie militaire existante (COUT_COMPAGNIE/
+// COUT_SECTION financent des effectifs, COUT_RECHERCHE finance un coefficient technologique --
+// aucun des trois ne donne un prix unitaire d'arme defendable). L'achat institutionnel
+// (ouvrirAchatArmureMilitaire) reste explicitement bloque tant que ces deux valeurs ne sont pas
+// fixees par une decision de game design. Le reste de la chaine (stock, dotation de section,
+// equipement individuel, combat) est deja pleinement fonctionnel independamment de ce blocage.
+const PRIX_ARME_MILITAIRE = { arme_de_poing: null, mitraillette: null };
+
+// Stock national de l'Armurerie Militaire : porte par budgetNat (meme rail que
+// coefficientsArmesAcquis/rechercheMilitaire, deja persiste sans schema fixe via
+// sbGetBudgetNational/sbSaveBudgetNational -- aucune migration).
+async function chargerStockArmurerieMilitaire(pays) {
+  const budgetNat = await chargerBudgetNational(pays);
+  if (!budgetNat.stockArmurerieMilitaire) budgetNat.stockArmurerieMilitaire = { arme_de_poing: 0, mitraillette: 0 };
+  return budgetNat;
+}
+
 function genererMatriculesSection(numeroSection) {
   const now = new Date();
   const aaaamm = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0');
@@ -6837,6 +6863,131 @@ async function payerSoldeQuotidienne(pays) {
   }
 }
 
+// ---- ACHAT INSTITUTIONNEL D'ARMEMENT (Armurerie Militaire, reserve au Ministre de la Defense) ----
+async function ouvrirAchatArmureMilitaire() {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  const prixManquant = CATEGORIES_ARME_STOCK.some(cat => PRIX_ARME_MILITAIRE[cat] == null);
+  document.getElementById('postes-modal-title').textContent = 'Achat d\'armement — Armurerie Militaire';
+  if (prixManquant) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;font-size:.82rem;color:#8a8060;font-style:italic">Le prix d\'achat de l\'armement institutionnel n\'a pas encore été fixé. L\'achat reste indisponible en attendant cette décision.</div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+  const pays = state.country || 'republic';
+  const budgetNat = await chargerStockArmurerieMilitaire(pays);
+  const stock = budgetNat.stockArmurerieMilitaire;
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const labels = { arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
+
+  let html = '<div style="padding:1rem">';
+  CATEGORIES_ARME_STOCK.forEach(cat => {
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.3rem">' + labels[cat] + ' — Stock actuel : ' + (stock[cat]||0) + '</div>';
+    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">' + PRIX_ARME_MILITAIRE[cat].toLocaleString('fr-FR') + ' ' + cur + ' / unité</div>';
+    html += '<input id="qte-achat-' + cat + '" type="number" min="0" value="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.4rem"/>';
+    html += '<button onclick="confirmerAchatArmureMilitaire(\'' + cat + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Acheter</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerAchatArmureMilitaire(categorie) {
+  if (state.poste?.id !== 'min_def') { showToast('Réservé au Ministre de la Défense', '', false); return; }
+  const qte = parseInt(document.getElementById('qte-achat-' + categorie)?.value || '0');
+  if (qte <= 0) return;
+  const prixUnitaire = PRIX_ARME_MILITAIRE[categorie];
+  if (prixUnitaire == null) return;
+  const pays = state.country || 'republic';
+  const cur = COUNTRIES[pays]?.cur || 'FR';
+  const total = qte * prixUnitaire;
+
+  // Debit institutionnel atomique (tout ou rien, meme primitive que confirmerRechercheMilitaireDepuisMinistere)
+  // AVANT toute augmentation de stock : un echec ici ne cree jamais de stock non paye.
+  const montantVerse = await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_def', total);
+  if (montantVerse < total) { showToast('Budget insuffisant', 'Votre caisse ministérielle ne couvre pas ' + total.toLocaleString('fr-FR') + ' ' + cur + '.', false); return; }
+
+  const budgetNat = await chargerStockArmurerieMilitaire(pays);
+  budgetNat.stockArmurerieMilitaire[categorie] = (budgetNat.stockArmurerieMilitaire[categorie] || 0) + qte;
+  await sbSaveBudgetNational(pays, budgetNat);
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Armement acheté', qte + ' unité(s) ajoutée(s) au stock de l\'Armurerie Militaire (-' + total.toLocaleString('fr-FR') + ' ' + cur + ').', true, true);
+  addJournalEntry('Achat institutionnel : ' + qte + ' ' + categorie.replace(/_/g,' ') + ' (-' + total.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-info');
+}
+
+// ---- DOTATION DES SECTIONS (reservee au Capitaine) : transfere de l'armement entre le stock
+// national de l'Armurerie Militaire et le stock libre d'une section de sa compagnie. ----
+async function ouvrirRepartirArmement() {
+  if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
+  const pays = state.country || 'republic';
+  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === state.poste.compagnieId);
+  if (!compagnie) return;
+  const budgetNat = await chargerStockArmurerieMilitaire(pays);
+  const stockArmurerie = budgetNat.stockArmurerieMilitaire;
+  const labels = { arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
+
+  document.getElementById('postes-modal-title').textContent = 'Répartir l\'armement';
+  let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Stock Armurerie Militaire — Arme de poing : ' + (stockArmurerie.arme_de_poing||0) + ' · Mitraillette : ' + (stockArmurerie.mitraillette||0) + '</div>';
+  (compagnie.sections || []).forEach(s => {
+    const stockSection = s.stockArmes || { arme_de_poing: 0, mitraillette: 0 };
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem;margin-bottom:.5rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.4rem">Section ' + s.numero + (s.lieutenantNom ? (' — Lt. ' + s.lieutenantNom) : ' (sans lieutenant)') + ' · ' + s.soldats.length + ' soldats</div>';
+    CATEGORIES_ARME_STOCK.forEach(cat => {
+      const portees = s.soldats.filter(sol => sol.arme === cat).length;
+      const libres = stockSection[cat] || 0;
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:.75rem;color:#a89870;margin-bottom:.35rem;gap:.4rem">';
+      html += '<span>' + labels[cat] + ' — dotation : ' + (libres + portees) + ' (' + libres + ' libres, ' + portees + ' portées)</span>';
+      html += '<span style="display:flex;align-items:center;gap:.25rem">';
+      html += '<input id="qte-' + s.id + '-' + cat + '" type="number" min="0" value="0" style="width:52px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.2rem;font-size:.72rem"/>';
+      html += '<button onclick="confirmerTransfertArmement(\'' + compagnie.id + '\',\'' + s.id + '\',\'' + cat + '\',\'vers_section\')" style="font-size:.66rem;padding:.2rem .35rem;border:1px solid #4a7a3a;background:transparent;color:#7ab868;cursor:pointer">→ Section</button>';
+      html += '<button onclick="confirmerTransfertArmement(\'' + compagnie.id + '\',\'' + s.id + '\',\'' + cat + '\',\'vers_armurerie\')" style="font-size:.66rem;padding:.2rem .35rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer">→ Armurerie</button>';
+      html += '</span></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerTransfertArmement(compagnieId, sectionId, categorie, sens) {
+  if (state.poste?.id !== 'capitaine') { showToast('Réservé à un Capitaine', '', false); return; }
+  const qte = parseInt(document.getElementById('qte-' + sectionId + '-' + categorie)?.value || '0');
+  if (qte <= 0) return;
+  const pays = state.country || 'republic';
+  const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  if (!compagnie || !section) return;
+  if (!section.stockArmes) section.stockArmes = { arme_de_poing: 0, mitraillette: 0 };
+
+  if (sens === 'vers_section') {
+    const budgetNat = await chargerStockArmurerieMilitaire(pays);
+    const dispo = budgetNat.stockArmurerieMilitaire[categorie] || 0;
+    if (dispo < qte) { showToast('Stock insuffisant', 'L\'Armurerie Militaire ne dispose que de ' + dispo + ' unité(s).', false); return; }
+    // Retrait de l'armurerie AVANT credit a la section : jamais de double-compte si le
+    // deuxieme enregistrement echoue (au pire l'armement disparait temporairement, jamais duplique).
+    budgetNat.stockArmurerieMilitaire[categorie] = dispo - qte;
+    await sbSaveBudgetNational(pays, budgetNat);
+    section.stockArmes[categorie] = (section.stockArmes[categorie] || 0) + qte;
+    await sbSaveCompagnie(compagnieId, compagnie);
+    showToast('Armement transféré', qte + ' unité(s) transférée(s) vers la section.', true, true);
+  } else {
+    const libres = section.stockArmes[categorie] || 0;
+    if (libres < qte) { showToast('Stock section insuffisant', 'Seules ' + libres + ' unité(s) sont libres dans cette section (le reste est porté par des soldats — voir Gérer l\'équipement).', false); return; }
+    section.stockArmes[categorie] = libres - qte;
+    await sbSaveCompagnie(compagnieId, compagnie);
+    const budgetNat = await chargerStockArmurerieMilitaire(pays);
+    budgetNat.stockArmurerieMilitaire[categorie] = (budgetNat.stockArmurerieMilitaire[categorie] || 0) + qte;
+    await sbSaveBudgetNational(pays, budgetNat);
+    showToast('Armement récupéré', qte + ' unité(s) récupérée(s) vers l\'Armurerie.', true, true);
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  ouvrirRepartirArmement();
+}
+
 // ---- FICHE DE SECTION (reservee au lieutenant) ----
 async function ouvrirRecruterSection(pa, cost) {
   if (state.poste?.id !== 'commandant') { showToast('Réservé au Commandant', '', false); return; }
@@ -6870,12 +7021,13 @@ async function doVoirMaSection() {
 
   document.getElementById('postes-modal-title').textContent = 'Ma section — ' + section.soldats.length + ' soldats';
   let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
-  const armesLabels = { corps_a_corps: 'Corps à corps', arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
+  const armesLabels = { corps_a_corps: 'Aucun', arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
   section.soldats.forEach(s => {
     const localisation = s.roomId === ROOM_AVEC_LIEUTENANT ? 'Avec vous' : (s.buildingId ? (BUILDINGS[s.buildingId]?.name || s.buildingId) : 'Caserne');
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.35rem;font-size:.75rem">';
     html += '<div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
-    html += '<div style="color:#a89870">FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + ' · ' + armesLabels[s.arme] + ' · PA ' + s.pa + '/' + PA_MAX_SOLDAT + ' · ' + localisation + '</div>';
+    html += '<div style="color:#a89870">FOR ' + s.formation.force + ' · END ' + s.formation.endurance + ' · TIR ' + s.formation.tir + ' · PA ' + s.pa + '/' + PA_MAX_SOLDAT + ' · ' + localisation + '</div>';
+    html += '<div style="color:#8a8060">Équipement : ' + (armesLabels[s.arme] || 'Aucun') + '</div>';
     html += '</div>';
   });
   html += '</div>';
@@ -6917,37 +7069,91 @@ async function confirmerEntrainementSection(compagnieId, sectionId, stat, pa, co
   addJournalEntry('Entraînement de la section "' + section.lieutenantNom + '" en ' + stat + ' (' + tries.length + ' soldats).', 'event-good');
 }
 
-// ---- EQUIPEMENT INDIVIDUEL ----
+// ---- EQUIPEMENT INDIVIDUEL (revu 27 aout 2026, chantier logistique armement) ----
+// Remplace l'ancienne assignation groupee/gratuite/illimitee (limitee aux soldats presents
+// dans la piece) par une gestion homme par homme, contrainte par le stock reel de la section
+// (section.stockArmes, alimente par le Capitaine via ouvrirRepartirArmement). Reutilise la
+// structure d'affichage deja etablie par doVoirMaSection (meme calcul de localisation, memes
+// libelles) -- la section entiere est presentee, pas seulement les soldats presents ici,
+// puisque le lieutenant peut deja disperser ses hommes (deposerSoldats/recupererSoldats) et
+// doit pouvoir gerer l'equipement de tous, ou qu'ils se trouvent. Le cout PA/argent declare
+// par l'ordre reste preleve une seule fois a l'ouverture (acces a la session de gestion),
+// jamais par soldat individuellement.
 async function doEquiperSection(pa, cost) {
   if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === state.poste.compagnieId);
   const section = getSectionDuLieutenant(compagnie);
-  const ici = section?.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom) || [];
-  if (ici.length === 0) { showToast('Aucun soldat ici', '', false); return; }
+  if (!section) return;
+  if (pa || cost) {
+    const r = await deduireCoutOrdre({ pa, cost });
+    if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  }
+  await ouvrirGestionEquipementSection(compagnie.id, section.id);
+}
 
-  document.getElementById('postes-modal-title').textContent = 'Équiper les soldats présents ici';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">' + ici.length + ' soldats présents ici recevront cet équipement.</div>';
-  const armes = [{id:'corps_a_corps',label:'Corps à corps (coef. 1)'},{id:'arme_de_poing',label:'Arme de poing (coef. 2,5)'},{id:'mitraillette',label:'Mitraillette (coef. 4)'}];
-  armes.forEach(a => {
-    html += '<button onclick="confirmerEquipementSection(\'' + compagnie.id + '\',\'' + section.id + '\',\'' + a.id + '\',' + pa + ',' + cost + ')" style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.82rem">' + a.label + '</button>';
+async function ouvrirGestionEquipementSection(compagnieId, sectionId) {
+  const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
+  const section = compagnie?.sections.find(s => s.id === sectionId);
+  if (!section) return;
+  const stock = section.stockArmes || { arme_de_poing: 0, mitraillette: 0 };
+  const armesLabels = { corps_a_corps: 'Aucun', arme_de_poing: 'Arme de poing', mitraillette: 'Mitraillette' };
+
+  document.getElementById('postes-modal-title').textContent = 'Gérer l\'équipement de ma section';
+  let html = '<div style="padding:1rem;max-height:60vh;overflow-y:auto">';
+  html += '<div style="font-size:.75rem;color:#8a8060;margin-bottom:.8rem">Stock libre de la section — Arme de poing : ' + (stock.arme_de_poing||0) + ' · Mitraillette : ' + (stock.mitraillette||0) + '</div>';
+  section.soldats.forEach(s => {
+    const localisation = s.roomId === ROOM_AVEC_LIEUTENANT ? 'Avec vous' : (s.buildingId ? (BUILDINGS[s.buildingId]?.name || s.buildingId) : 'Caserne');
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .7rem;margin-bottom:.35rem;font-size:.75rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem">';
+    html += '<div><div style="color:#e0d5b8;font-family:monospace">' + s.matricule + '</div>';
+    html += '<div style="color:#a89870">' + localisation + '</div>';
+    html += '<div style="color:#8a8060">Équipement : ' + (armesLabels[s.arme] || 'Aucun') + '</div></div>';
+    html += '<div style="display:flex;gap:.25rem;flex-wrap:wrap;justify-content:flex-end">';
+    CATEGORIES_ARME_STOCK.forEach(cat => {
+      if (s.arme !== cat) {
+        const dispo = (stock[cat] || 0) > 0;
+        html += '<button onclick="confirmerEquipementIndividuel(\'' + compagnieId + '\',\'' + sectionId + '\',\'' + s.matricule + '\',\'' + cat + '\')" ' +
+          (dispo ? 'style="cursor:pointer;color:#5a8ad0;' : 'disabled style="opacity:.4;cursor:not-allowed;color:#5a8ad0;') +
+          'font-size:.66rem;padding:.2rem .4rem;border:1px solid #4a6a8a;background:transparent">' + armesLabels[cat] + '</button>';
+      }
+    });
+    if (s.arme && s.arme !== 'corps_a_corps') {
+      html += '<button onclick="confirmerEquipementIndividuel(\'' + compagnieId + '\',\'' + sectionId + '\',\'' + s.matricule + '\',\'corps_a_corps\')" style="font-size:.66rem;padding:.2rem .4rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer">Déséquiper</button>';
+    }
+    html += '</div></div>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerEquipementSection(compagnieId, sectionId, arme, pa, cost) {
-  document.getElementById('modal-postes')?.classList.remove('open');
+async function confirmerEquipementIndividuel(compagnieId, sectionId, matricule, categorie) {
+  if (state.poste?.id !== 'lieutenant') { showToast('Réservé à un Lieutenant', '', false); return; }
   const compagnie = (await sbGetCompagnies(state.country).catch(() => [])).find(c => c.id === compagnieId);
   const section = compagnie?.sections.find(s => s.id === sectionId);
-  if (!section) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
-  const ici = section.soldats.filter(s => s.buildingId === state.currentBuilding && s.roomId === state.currentRoom);
-  ici.forEach(s => { s.arme = arme; });
+  const soldat = section?.soldats.find(s => s.matricule === matricule);
+  if (!compagnie || !section || !soldat) return;
+  if (!section.stockArmes) section.stockArmes = { arme_de_poing: 0, mitraillette: 0 };
+
+  const ancienneArme = soldat.arme || 'corps_a_corps';
+  if (ancienneArme === categorie) return;
+
+  if (categorie !== 'corps_a_corps') {
+    const dispo = section.stockArmes[categorie] || 0;
+    if (dispo <= 0) { showToast('Stock insuffisant', 'Aucune unité disponible dans le stock de la section — voir le Capitaine pour une dotation.', false); return; }
+    section.stockArmes[categorie] = dispo - 1;
+  }
+  // L'arme quittee retourne au stock LIBRE DE LA SECTION (jamais a l'Armurerie centrale --
+  // seul le Capitaine peut rapatrier vers l'Armurerie, voir confirmerTransfertArmement).
+  if (ancienneArme !== 'corps_a_corps') {
+    section.stockArmes[ancienneArme] = (section.stockArmes[ancienneArme] || 0) + 1;
+  }
+  soldat.arme = categorie;
+  // Ecriture unique (un seul document JSON) : la transition A->B est atomique par construction,
+  // pas de risque d'etat intermediaire incoherent entre stock et soldat.
   await sbSaveCompagnie(compagnieId, compagnie);
-  showToast('Équipement distribué', ici.length + ' soldats équipés.', true, true);
+  const armesLabels = { corps_a_corps: 'déséquipé', arme_de_poing: 'arme de poing', mitraillette: 'mitraillette' };
+  showToast('Équipement mis à jour', soldat.matricule + ' : ' + armesLabels[categorie] + '.', true, true);
+  await ouvrirGestionEquipementSection(compagnieId, sectionId);
 }
 
 // ---- COMBAT AUTOMATIQUE ENTRE TROUPES DE PAYS EN GUERRE ----
