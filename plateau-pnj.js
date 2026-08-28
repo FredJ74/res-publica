@@ -2874,6 +2874,15 @@ function terrainOrdreDisponible(fn, buildingId) {
   if (fn === 'negocier_squatteurs' && pnj !== 'squatter_agr' && pnj !== 'squatter_cool')
     return { ok: false, raison: 'Aucun squatteur à négocier.' };
 
+  // Chantier H2A (28 aout 2026) : un terrain deja possede (par un joueur ou par Helvetia apres
+  // saisie, biens_saisis_helvetia) ne doit jamais etre achetable en direct (acheter_terrain,
+  // parcours sans RPC dediee) -- seul le compromis (signer_compromis, correctement route vers
+  // signer_compromis_bien_helvetia pour un bien Helvetia) est la voie valide pour un bien qui a
+  // deja un proprietaire.
+  if (fn === 'acheter_terrain' && ts.proprietaire) {
+    return { ok: false, raison: 'Ce terrain a déjà un propriétaire. Passez par un compromis de vente.' };
+  }
+
   // Terrain verrouille pour les autres joueurs tant qu'un compromis est actif (non expire)
   const compromisActif = ts.compromis && ts.compromisExpireAt && Date.now() < ts.compromisExpireAt;
   if (compromisActif && ts.compromisPar !== state.char?.name) {
@@ -3169,6 +3178,12 @@ const PLAFOND_PRET_COMPROMIS = 150000;
 async function doSignerCompromis(pa, cost) {
   const id = state.currentBuilding;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+  // Chantier H2A (28 aout 2026) : un terrain saisi par Helvetia (proprietaire==='Helvetia', voir
+  // biens_saisis_helvetia) reste visible et achetable dans ce meme ecran notarial, jamais un
+  // marche separe -- seul le traitement financier de la confirmation differe (RPC dediee, voir
+  // doConfirmerCompromis). Terrain + construction deja existants : pas de clause "permis" ici.
+  const ts = getTerrainState(id);
+  const estHelvetia = ts.proprietaire === 'Helvetia';
 
   const dispo = terrainOrdreDisponible('signer_compromis', id);
   if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
@@ -3178,7 +3193,9 @@ async function doSignerCompromis(pa, cost) {
   }
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Le compromis réserve ce terrain 7 jours. À l\'échéance, les clauses ci-dessous sont tranchées automatiquement (banque, mairie).</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">' + (estHelvetia
+    ? 'Bien saisi par la Banque Privée Helvetia, terrain et construction intacts. Le compromis réserve ce bien 7 jours. Aucun frais de notaire, aucun rabais.'
+    : 'Le compromis réserve ce terrain 7 jours. À l\'échéance, les clauses ci-dessous sont tranchées automatiquement (banque, mairie).') + '</div>';
 
   html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.6rem">';
   html += '<div style="font-size:.85rem;color:#c0b090">✓ Versement de l\'acompte</div>';
@@ -3195,16 +3212,18 @@ async function doSignerCompromis(pa, cost) {
   html += '</div>';
   html += '</div>';
 
-  html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem">';
-  html += '<label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:#c0b090;cursor:pointer"><input type="checkbox" id="compromis-permis-check" onchange="document.getElementById(\'compromis-permis-champs\').style.display=this.checked?\'block\':\'none\'" /> Demander un permis de construire</label>';
-  html += '<div id="compromis-permis-champs" style="display:none;margin-top:.5rem">';
-  html += '<select id="compromis-permis-type" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-size:.78rem;outline:none">';
-  Object.entries(NIVEAUX_CONSTRUCTION || {}).forEach(function([key, niv]) {
-    html += '<option value="' + key + '">' + niv.label + ' (' + niv.cout.toLocaleString('fr-FR') + ' ' + cur + ')</option>';
-  });
-  html += '</select>';
-  html += '</div>';
-  html += '</div>';
+  if (!estHelvetia) {
+    html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.8rem">';
+    html += '<label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:#c0b090;cursor:pointer"><input type="checkbox" id="compromis-permis-check" onchange="document.getElementById(\'compromis-permis-champs\').style.display=this.checked?\'block\':\'none\'" /> Demander un permis de construire</label>';
+    html += '<div id="compromis-permis-champs" style="display:none;margin-top:.5rem">';
+    html += '<select id="compromis-permis-type" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-size:.78rem;outline:none">';
+    Object.entries(NIVEAUX_CONSTRUCTION || {}).forEach(function([key, niv]) {
+      html += '<option value="' + key + '">' + niv.label + ' (' + niv.cout.toLocaleString('fr-FR') + ' ' + cur + ')</option>';
+    });
+    html += '</select>';
+    html += '</div>';
+    html += '</div>';
+  }
 
   html += '<button class="pnj-action-btn" onclick="doConfirmerCompromis(' + pa + ',' + cost + ')">Signer le compromis</button>';
   html += '</div>';
@@ -3219,6 +3238,9 @@ async function doConfirmerCompromis(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Signer un compromis')) return;
 
+  const ts = getTerrainState(id);
+  const estHelvetia = ts.proprietaire === 'Helvetia';
+
   const demandePret = document.getElementById('compromis-pret-check')?.checked;
   const montantPret = parseInt(document.getElementById('compromis-pret-montant')?.value || 0);
   const dureePret = parseInt(document.getElementById('compromis-pret-duree')?.value || 30);
@@ -3229,6 +3251,46 @@ async function doConfirmerCompromis(pa, cost) {
     showToast('Montant invalide', 'Entre 1000 et ' + PLAFOND_PRET_COMPROMIS.toLocaleString('fr-FR') + ' ' + cur + '.', false);
     return;
   }
+
+  if (estHelvetia) {
+    // Chantier H2A (28 aout 2026) : bien saisi par Helvetia -- l'acompte (1000 FR, fonds
+    // ordinaires) est debite ATOMIQUEMENT par signer_compromis_bien_helvetia (RPC installee),
+    // jamais par deduireCoutOrdre/setTerrainState local -- la RPC reste la seule source de
+    // verite financiere. RPC d'abord, PA ensuite (meme principe que le pret Helvetia).
+    if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+    const resultatHelvetia = (typeof sbSignerCompromisBienHelvetia === 'function')
+      ? await sbSignerCompromisBienHelvetia(state.char?.name, id).catch(() => null)
+      : null;
+    if (!resultatHelvetia) { showToast('Compromis refusé', 'Fonds ordinaires insuffisants pour l\'acompte, ou bien déjà sous compromis.', false); return; }
+    if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
+
+    // La RPC a deja persiste compromis/compromisPar/acompte/compromisAt/compromisExpireAt cote
+    // serveur -- on recharge le cache local avant d'y fusionner, le cas echeant, la demande de
+    // pret national (champ purement client, lu plus tard par resoudre_compromis_helvetia_expire).
+    await chargerTerrainState(id);
+    if (demandePret) {
+      const taux = typeof getTauxPret === 'function' ? getTauxPret('nationale') : 5;
+      const montantTotal = Math.round(montantPret * (1 + taux / 100));
+      const nouvelEtat = setTerrainState(id, {
+        pretDemande: {
+          demandeur: state.char?.name,
+          montant: montantPret,
+          montantTotal: montantTotal,
+          duree: dureePret,
+          mensualite: Math.ceil(montantTotal / dureePret),
+          statut: 'attente_validation'
+        }
+      });
+      if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+    }
+
+    document.getElementById('modal-postes')?.classList.remove('open');
+    updateUI();
+    addJournalEntry('Compromis signé sur un bien Helvetia pour ' + ACOMPTE_COMPROMIS + ' ' + cur + '. Valable 7 jours.' + (demandePret ? ' Prêt demandé.' : ''), 'event-good');
+    showToast('Compromis signé !', 'Bien réservé 7 jours auprès d\'Helvetia. -' + ACOMPTE_COMPROMIS + ' ' + cur, true);
+    return;
+  }
+
   const rCompromis = await deduireCoutOrdre({ pa, cost });
   if (!rCompromis.ok) { showToast('PA insuffisants', '', false); return; }
 

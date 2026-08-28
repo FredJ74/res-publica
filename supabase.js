@@ -2290,20 +2290,51 @@ async function sbCreerPlacementNational(personnage, montant, intSnapshot, ville)
 
 // RPC Helvetia H1 (chantier Banque Privee) -- signatures confirmees par sondage en lecture
 // seule contre les RPC reelles avant integration : ouvrir_compte_helvetia(text),
-// deposer_helvetia(text,numeric), retirer_helvetia(text,numeric),
 // creer_placement_helvetia(text,numeric,text). resoudre_placement_helvetia (text) n'a pas de
 // wrapper client : appelee uniquement cote cron (api/cron-minuit.js, copie locale de sbRpc).
 async function sbOuvrirCompteHelvetia(personnage) {
   return sbRpc('ouvrir_compte_helvetia', { p_personnage: personnage });
 }
-async function sbDeposerHelvetia(personnage, montant) {
-  return sbRpc('deposer_helvetia', { p_personnage: personnage, p_montant: montant });
+// deposer_helvetia/retirer_helvetia (chantier H2A, migration consolidee installee) exigent
+// desormais un 3e parametre p_source_type/p_destination_type ('liquide' ou 'national') --
+// signature elargie par rapport a H1, plus jamais de source/destination implicite. Le joueur
+// choisit explicitement dans l'interface (voir confirmerDepotHelvetia/confirmerRetraitHelvetia).
+async function sbDeposerHelvetia(personnage, montant, sourceType) {
+  return sbRpc('deposer_helvetia', { p_personnage: personnage, p_montant: montant, p_source_type: sourceType });
 }
-async function sbRetirerHelvetia(personnage, montant) {
-  return sbRpc('retirer_helvetia', { p_personnage: personnage, p_montant: montant });
+async function sbRetirerHelvetia(personnage, montant, destinationType) {
+  return sbRpc('retirer_helvetia', { p_personnage: personnage, p_montant: montant, p_destination_type: destinationType });
 }
 async function sbCreerPlacementHelvetia(personnage, montant, type) {
   return sbRpc('creer_placement_helvetia', { p_personnage: personnage, p_montant: montant, p_type: type });
+}
+
+// RPC Helvetia H2A (chantier pret/contentieux/saisie/notaire, migration consolidee installee
+// manuellement dans Supabase le 28 aout 2026, jamais rejouee par ce commit) -- signatures lues
+// directement dans .scratch/h2a_migration_consolidee.sql, jamais devinees.
+async function sbFermerCompteHelvetia(personnage, destinationType) {
+  return sbRpc('fermer_compte_helvetia', { p_personnage: personnage, p_destination_type: destinationType });
+}
+async function sbCreerPretHelvetia(personnage, montant, dureeJours) {
+  return sbRpc('creer_pret_helvetia', { p_personnage: personnage, p_montant: montant, p_duree_jours: dureeJours });
+}
+async function sbRembourserPretHelvetiaIntegral(personnage, pretId, sources) {
+  return sbRpc('rembourser_pret_helvetia_integral', { p_personnage: personnage, p_pret_id: pretId, p_sources: sources });
+}
+async function sbAccepterAccordHelvetia(personnage, pretId) {
+  return sbRpc('accepter_accord_helvetia', { p_personnage: personnage, p_pret_id: pretId });
+}
+async function sbSignerCompromisBienHelvetia(personnage, terrainId) {
+  return sbRpc('signer_compromis_bien_helvetia', { p_personnage: personnage, p_terrain_id: terrainId });
+}
+async function sbFinaliserAchatBienHelvetia(personnage, terrainId) {
+  return sbRpc('finaliser_achat_bien_helvetia', { p_personnage: personnage, p_terrain_id: terrainId });
+}
+// Pret Helvetia actif du personnage (statut en_cours OU contentieux -- un seul possible a la
+// fois, cf. creer_pret_helvetia). Meme convention que sbGetPretsEnCours : pas de FK dure.
+async function sbGetPretHelvetiaActif(personnage) {
+  const rows = await sbGet('prets', `emprunteur=eq.${encodeURIComponent(personnage)}&type_banque=eq.helvetia&statut=in.(en_cours,contentieux)`);
+  return (rows && rows[0]) || null;
 }
 
 // NOTE : sbGetTerrainsAvecLotsLoues a ete retiree — le paiement des loyers de lots se fait

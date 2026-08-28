@@ -210,10 +210,14 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     ouvrirModalPretBancaire(typeBanque, null, pa);
     return;
   }
-  // emprunter_prive (Banque Privee, "sans verification, taux eleve") n'avait aucun handler —
-  // corrige le 9 aout 2026 (audit Ordres) en le routant directement vers le type de pret
-  // 'consommation' deja existant (meme profil : petite somme, remboursement rapide, taux eleve).
-  if (fn === 'emprunter_prive') { ouvrirModalPretBancaire('privee', 'consommation', pa); return; }
+  // emprunter_prive (Banque Privee Helvetia, "sans verification") -- chantier H2A (28 aout
+  // 2026) : route desormais vers le parcours dedie creer_pret_helvetia (compte Helvetia requis,
+  // 1000-150000, 5-30j, 12% fixe, aucune verification, versement sur le compte Helvetia, arg+=
+  // capital, refinancement BNR automatique cote RPC). Ne route plus jamais vers
+  // ouvrirModalPretBancaire('privee',...) : ce chemin legacy inserait un pret type_banque='privee'
+  // brut (sbCreerPret), totalement hors du systeme Helvetia (compte, contentieux, saisie).
+  // ouvrirModalPretBancaire reste utilise tel quel par emprunter_construction (Banque Nationale).
+  if (fn === 'emprunter_prive') { ouvrirModalPretHelvetia(pa); return; }
   if (fn === 'diviser_construction') { doOuvrirDivisionTerrain(); return; }
   if (fn === 'louer_lot_ici') { doOuvrirLouerLot(pa, cost); return; }
   if (fn === 'gerer_lot_loue') { doGererLotLoue(); return; }

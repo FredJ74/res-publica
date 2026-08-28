@@ -3042,16 +3042,29 @@ async function ouvrirGestionHelvetia(pa, cost) {
   }
 
   const placementActif = (state.placementsBancaires || []).find(p => p.banque === 'helvetia' && p.statut === 'actif');
+  // Chantier H2A (28 aout 2026) : le pret Helvetia actif (s'il existe) est affiche dans ce meme
+  // ecran de gestion -- pas d'ecran separe, source unique de verite (table prets, RPC dediees).
+  const pretActif = (typeof sbGetPretHelvetiaActif === 'function' && state.char?.name)
+    ? await sbGetPretHelvetiaActif(state.char.name).catch(() => null)
+    : null;
 
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.7rem;color:#6a5a30;font-family:\'Bebas Neue\',sans-serif;letter-spacing:.1em;margin-bottom:.2rem">SOLDE HELVETIA</div>';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:#C9A84C;margin-bottom:.6rem">' + (compte.solde || 0).toLocaleString('fr-FR') + ' ' + cur + '</div>';
   html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:1rem">Minimum permanent : 10 000 ' + cur + '. Un retrait qui passerait sous ce seuil est refusé.</div>';
 
-  html += '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem">';
+  // Choix explicite de la source (depot) / destination (retrait) -- H2A exige desormais ce choix,
+  // jamais une source/destination deduite automatiquement (deposer_helvetia/retirer_helvetia
+  // prennent un 3e parametre p_source_type/p_destination_type : 'liquide' ou 'national').
+  html += '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem">';
   html += '<input id="helvetia-amount-input" type="number" min="1" placeholder="Montant" style="flex:1;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box"/>';
-  html += '<button onclick="confirmerDepotHelvetia(' + pa + ',' + cost + ')" style="padding:.4rem .7rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Déposer</button>';
-  html += '<button onclick="confirmerRetraitHelvetia(' + pa + ',' + cost + ')" style="padding:.4rem .7rem;border:1px solid #8a4a4a;background:transparent;color:#ca6a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Retirer</button>';
+  html += '<select id="helvetia-source-dest" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .3rem;font-size:.75rem;outline:none">';
+  html += '<option value="liquide">Liquide</option><option value="national">Cpte National</option>';
+  html += '</select>';
+  html += '</div>';
+  html += '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem">';
+  html += '<button onclick="confirmerDepotHelvetia(' + pa + ',' + cost + ')" style="flex:1;padding:.4rem .7rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Déposer (depuis la source)</button>';
+  html += '<button onclick="confirmerRetraitHelvetia(' + pa + ',' + cost + ')" style="flex:1;padding:.4rem .7rem;border:1px solid #8a4a4a;background:transparent;color:#ca6a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Retirer (vers la destination)</button>';
   html += '</div>';
 
   html += '<div style="border-top:1px solid #2a2010;padding-top:.8rem;margin-top:.4rem">';
@@ -3068,17 +3081,35 @@ async function ouvrirGestionHelvetia(pa, cost) {
     html += '<button onclick="confirmerPlacementHelvetia(' + pa + ',' + cost + ',\'offshore\')" style="flex:1;padding:.5rem;border:1px solid #8a6a4a;background:transparent;color:#caa96a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Placement offshore</button>';
     html += '</div>';
   }
+  html += '</div>';
+
+  html += renderPretHelvetiaSection(pretActif, cur, pa, cost);
+
+  html += '<div style="border-top:1px solid #2a2010;padding-top:.8rem;margin-top:.8rem">';
+  html += '<div style="font-size:.7rem;color:#6a5a30;font-family:\'Bebas Neue\',sans-serif;letter-spacing:.1em;margin-bottom:.4rem">FERMETURE DU COMPTE</div>';
+  html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.5rem">Solde et placements liquidés, dette éventuelle réglée en priorité, le solde net vous est restitué. Le compte disparaît.</div>';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<select id="helvetia-fermeture-dest" style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .3rem;font-size:.75rem;outline:none">';
+  html += '<option value="liquide">Restitution en liquide</option><option value="national">Restitution sur Cpte National</option>';
+  html += '</select>';
+  html += '<button onclick="confirmerFermerCompteHelvetia(' + pa + ',' + cost + ')" style="padding:.4rem .7rem;border:1px solid #6a4a4a;background:transparent;color:#a06a6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Fermer</button>';
   html += '</div></div>';
+
+  html += '</div>';
 
   document.getElementById('postes-modal-title').textContent = 'Banque Privée Helvetia';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Chantier H2A (28 aout 2026) : pour toute operation financiere Helvetia adossee a une RPC
+// (depot/retrait/fermeture/pret/remboursement/accord/notaire), l'ordre est desormais RPC
+// d'abord, PA ensuite -- jamais l'inverse. Si la RPC echoue, aucun PA n'est consomme ; si elle
+// reussit, le PA est deduit immediatement apres (jamais duplique/invente cote client : la RPC
+// reste la seule source de verite financiere, ce garde-fou ne fait que sequencer l'appel).
 async function confirmerOuvertureHelvetia(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
 
   const resultat = (typeof sbOuvrirCompteHelvetia === 'function')
     ? await sbOuvrirCompteHelvetia(state.char.name).catch(() => null)
@@ -3087,6 +3118,7 @@ async function confirmerOuvertureHelvetia(pa, cost) {
     showToast('Ouverture refusée', 'Fonds ordinaires insuffisants (10 000 ' + cur + ' requis) ou compte déjà existant.', false);
     return;
   }
+  if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
   showToast('Compte ouvert !', 'Bienvenue chez Helvetia. Solde : 10 000 ' + cur + '.', true, true);
@@ -3098,18 +3130,18 @@ async function confirmerOuvertureHelvetia(pa, cost) {
 async function confirmerDepotHelvetia(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
+  const source = document.getElementById('helvetia-source-dest')?.value || 'liquide';
   if (!montant || montant <= 0) { showToast('Montant invalide', '', false); return; }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
 
   const resultat = (typeof sbDeposerHelvetia === 'function')
-    ? await sbDeposerHelvetia(state.char.name, montant).catch(() => null)
+    ? await sbDeposerHelvetia(state.char.name, montant, source).catch(() => null)
     : null;
-  if (!resultat) { showToast('Dépôt refusé', 'Fonds ordinaires insuffisants.', false); return; }
+  if (!resultat) { showToast('Dépôt refusé', 'Fonds insuffisants sur la source choisie.', false); return; }
+  if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
-  showToast('Dépôt effectué', montant.toLocaleString('fr-FR') + ' ' + cur + ' déposés chez Helvetia.', true, true);
+  showToast('Dépôt effectué', montant.toLocaleString('fr-FR') + ' ' + cur + ' déposés chez Helvetia (' + (source === 'liquide' ? 'liquide' : 'Cpte National') + ').', true, true);
   addJournalEntry('Dépôt Helvetia : ' + montant.toLocaleString('fr-FR') + ' ' + cur + '.', '');
   updateUI();
   ouvrirGestionHelvetia(pa, cost);
@@ -3118,6 +3150,7 @@ async function confirmerDepotHelvetia(pa, cost) {
 async function confirmerRetraitHelvetia(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
+  const destination = document.getElementById('helvetia-source-dest')?.value || 'liquide';
   if (!montant || montant <= 0) { showToast('Montant invalide', '', false); return; }
 
   const soldeActuel = state.comptesBancaires?.helvetia?.solde || 0;
@@ -3125,20 +3158,44 @@ async function confirmerRetraitHelvetia(pa, cost) {
     showToast('Retrait refusé', 'Le compte Helvetia doit conserver au moins 10 000 ' + cur + '.', false);
     return;
   }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
 
   const resultat = (typeof sbRetirerHelvetia === 'function')
-    ? await sbRetirerHelvetia(state.char.name, montant).catch(() => null)
+    ? await sbRetirerHelvetia(state.char.name, montant, destination).catch(() => null)
     : null;
   if (!resultat) { showToast('Retrait refusé', 'Le compte Helvetia doit conserver au moins 10 000 ' + cur + '.', false); return; }
+  if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
 
   await rafraichirRuntimeHelvetia();
-  showToast('Retrait effectué', montant.toLocaleString('fr-FR') + ' ' + cur + ' retirés en liquide.', true, true);
+  showToast('Retrait effectué', montant.toLocaleString('fr-FR') + ' ' + cur + ' retirés (' + (destination === 'liquide' ? 'en liquide' : 'sur le Cpte National') + ').', true, true);
   addJournalEntry('Retrait Helvetia : ' + montant.toLocaleString('fr-FR') + ' ' + cur + '.', '');
   updateUI();
   ouvrirGestionHelvetia(pa, cost);
+}
+
+async function confirmerFermerCompteHelvetia(pa, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const destination = document.getElementById('helvetia-fermeture-dest')?.value || 'liquide';
+  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+
+  const resultat = (typeof sbFermerCompteHelvetia === 'function')
+    ? await sbFermerCompteHelvetia(state.char.name, destination).catch(() => null)
+    : null;
+  if (!resultat) { showToast('Fermeture refusée', 'Le compte est introuvable ou déjà fermé.', false); return; }
+  if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
+
+  await rafraichirRuntimeHelvetia();
+  const dette = resultat.dette_restante || 0;
+  if (dette > 0) {
+    showToast('Compte fermé', 'Solde et placements insuffisants pour couvrir la dette : ' + dette.toLocaleString('fr-FR') + ' ' + cur + ' restent dus, le prêt passe en contentieux.', true, true);
+    addJournalEntry('Fermeture du compte Helvetia : dette restante ' + dette.toLocaleString('fr-FR') + ' ' + cur + ', prêt en contentieux.', 'event-bad');
+  } else {
+    const restitution = resultat.restitution || 0;
+    showToast('Compte fermé', restitution > 0 ? (restitution.toLocaleString('fr-FR') + ' ' + cur + ' restitués.') : 'Aucun solde à restituer.', true, true);
+    addJournalEntry('Fermeture du compte Helvetia. Restitution : ' + restitution.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
+  }
+  updateUI();
+  document.getElementById('modal-postes')?.classList.remove('open');
 }
 
 async function confirmerPlacementHelvetia(pa, cost, type) {
@@ -3165,6 +3222,151 @@ async function confirmerPlacementHelvetia(pa, cost, type) {
   addJournalEntry('Placement Helvetia ' + (type === 'declare' ? 'déclaré' : 'offshore') + ' de ' + montant.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
   updateUI();
   ouvrirGestionHelvetia(pa, cost);
+}
+
+// Rendu de la section PRET dans l'ecran de gestion Helvetia (ouvrirGestionHelvetia ci-dessus) --
+// pas d'ecran separe, table 'prets' (type_banque='helvetia') via sbGetPretHelvetiaActif comme
+// seule source de verite. pa/cost sont ceux de l'ordre d'entree (gerer_finances/compte_offshore,
+// toujours 0/0 en pratique) et sont simplement propages aux boutons pour re-ouvrir cet ecran
+// apres une action, jamais reinventes.
+function renderPretHelvetiaSection(pret, cur, pa, cost) {
+  let html = '<div style="border-top:1px solid #2a2010;padding-top:.8rem;margin-top:.4rem">';
+  html += '<div style="font-size:.7rem;color:#6a5a30;font-family:\'Bebas Neue\',sans-serif;letter-spacing:.1em;margin-bottom:.5rem">PRÊT</div>';
+
+  if (!pret) {
+    html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic">Aucun prêt Helvetia en cours.</div></div>';
+    return html;
+  }
+
+  const statutLabel = { en_cours: 'En cours', contentieux: 'Contentieux', rembourse: 'Remboursé', perte_absorbee: 'Perte absorbée par Helvetia' }[pret.statut] || pret.statut;
+  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7">';
+  html += 'Capital emprunté : ' + (pret.montant_initial || 0).toLocaleString('fr-FR') + ' ' + cur + '<br/>';
+  html += 'Dette restante : ' + (pret.montant_restant || 0).toLocaleString('fr-FR') + ' ' + cur + '<br/>';
+  html += 'Durée : ' + pret.duree_jours + ' jours · Mensualité : ' + (pret.mensualite || 0).toLocaleString('fr-FR') + ' ' + cur + '/jour<br/>';
+  html += 'Statut : ' + statutLabel + (pret.jours_impayes > 0 ? ' (' + pret.jours_impayes + ' jour(s) impayé(s))' : '') + '<br/>';
+  if (pret.accord_actif) {
+    html += '<span style="color:#9aca6a">Accord en cours — dette gelée jusqu\'au ' + new Date(pret.accord_fin_le).toLocaleDateString('fr-FR') + '. Aucun prélèvement pendant le gel. Remboursement intégral volontaire toujours possible.</span><br/>';
+  } else if (pret.proposition_en_attente) {
+    html += '<span style="color:#ca8a6a">Une proposition d\'accord amiable est en attente' + (pret.bien_cible_id ? ' (bien ciblé pour saisie : ' + pret.bien_cible_id + ')' : '') + '.</span><br/>';
+  }
+  html += '</div>';
+
+  if (pret.proposition_en_attente && !pret.accord_actif) {
+    html += '<button onclick="confirmerAccepterAccordHelvetia(\'' + pret.id + '\',' + pa + ',' + cost + ')" style="width:100%;margin:.4rem 0;padding:.4rem;border:1px solid #6a8a4a;background:transparent;color:#9aca6a;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Accepter l\'accord (+20% de la dette, gel 10 jours)</button>';
+    html += '<div style="font-size:.68rem;color:#6a5a30;font-style:italic;margin-bottom:.6rem">Pour refuser : ne rien faire. La procédure normale reprend d\'elle-même.</div>';
+  }
+
+  html += '<div style="font-size:.72rem;color:#6a5a30;margin:.4rem 0">Remboursement intégral uniquement (aucun partiel, aucun intérêt économisé). Combinez les sources si besoin — leur somme doit égaler exactement ' + (pret.montant_restant || 0).toLocaleString('fr-FR') + ' ' + cur + ' (le compte Helvetia ne peut fournir que ce qui dépasse son minimum de 10 000 ' + cur + ').</div>';
+  html += '<div style="display:flex;gap:.3rem;margin-bottom:.4rem">';
+  html += '<input id="helvetia-remb-liquide" type="number" min="0" placeholder="Liquide" style="flex:1;min-width:0;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.3rem .4rem;font-size:.75rem;box-sizing:border-box"/>';
+  html += '<input id="helvetia-remb-national" type="number" min="0" placeholder="Cpte National" style="flex:1;min-width:0;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.3rem .4rem;font-size:.75rem;box-sizing:border-box"/>';
+  html += '<input id="helvetia-remb-helvetia" type="number" min="0" placeholder="Cpte Helvetia" style="flex:1;min-width:0;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.3rem .4rem;font-size:.75rem;box-sizing:border-box"/>';
+  html += '</div>';
+  html += '<button onclick="confirmerRembourserPretHelvetiaIntegral(\'' + pret.id + '\',' + pa + ',' + cost + ')" style="width:100%;padding:.4rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem">Rembourser intégralement</button>';
+
+  html += '</div>';
+  return html;
+}
+
+async function confirmerAccepterAccordHelvetia(pretId, pa, cost) {
+  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+
+  const resultat = (typeof sbAccepterAccordHelvetia === 'function')
+    ? await sbAccepterAccordHelvetia(state.char.name, pretId).catch(() => null)
+    : null;
+  if (!resultat) { showToast('Accord refusé', 'Aucune proposition en attente ou accord déjà actif.', false); return; }
+  if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
+
+  await rafraichirRuntimeHelvetia();
+  showToast('Accord accepté', 'Dette majorée de 20%, gel de 10 jours. Aucun prélèvement pendant le gel.', true, true);
+  addJournalEntry('Accord amiable accepté avec Helvetia (dette +20%, gel 10 jours).', 'event-info');
+  updateUI();
+  ouvrirGestionHelvetia(pa, cost);
+}
+
+async function confirmerRembourserPretHelvetiaIntegral(pretId, pa, cost) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const liquide = parseInt(document.getElementById('helvetia-remb-liquide')?.value || 0) || 0;
+  const national = parseInt(document.getElementById('helvetia-remb-national')?.value || 0) || 0;
+  const helvetia = parseInt(document.getElementById('helvetia-remb-helvetia')?.value || 0) || 0;
+
+  const sources = [];
+  if (liquide > 0) sources.push({ type: 'liquide', montant: liquide });
+  if (national > 0) sources.push({ type: 'national', montant: national });
+  if (helvetia > 0) sources.push({ type: 'helvetia', montant: helvetia });
+  if (sources.length === 0) { showToast('Aucune source', 'Indiquez au moins un montant.', false); return; }
+
+  const resultat = (typeof sbRembourserPretHelvetiaIntegral === 'function')
+    ? await sbRembourserPretHelvetiaIntegral(state.char.name, pretId, sources).catch(() => null)
+    : null;
+  if (!resultat) { showToast('Remboursement refusé', 'La somme des sources doit égaler exactement la dette restante, et chaque source doit être suffisante.', false); return; }
+
+  await rafraichirRuntimeHelvetia();
+  showToast('Prêt remboursé !', 'Le prêt Helvetia est intégralement soldé.', true, true);
+  addJournalEntry('Prêt Helvetia remboursé intégralement (' + sources.map(s => s.montant.toLocaleString('fr-FR') + ' ' + cur + ' ' + s.type).join(' + ') + ').', 'event-good');
+  updateUI();
+  ouvrirGestionHelvetia(pa, cost);
+}
+
+// Chantier H2A (28 aout 2026) : parcours dedie de l'ordre "Emprunter (sans verification)"
+// (Banque Privee Helvetia, fn='emprunter_prive', voir plateau-router.js) -- adosse a
+// creer_pret_helvetia. Remplace l'ancien routage vers ouvrirModalPretBancaire('privee',
+// 'consommation', pa)/confirmerPretBancaire/sbCreerPret, qui inserait un pret type_banque='privee'
+// brut, calcule cote client, jamais lie au compte Helvetia ni au contentieux H2A.
+// ouvrirModalPretBancaire/confirmerPretBancaire/sbCreerPret restent inchanges par ailleurs :
+// toujours utilises par emprunter_construction (Banque Nationale, travaux) et le bouton "Faire un
+// pret travaux" -- ne pas les supprimer.
+async function ouvrirModalPretHelvetia(pa) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (!state.comptesBancaires?.helvetia) {
+    document.getElementById('postes-modal-title').textContent = 'Prêt — Banque Privée Helvetia';
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1rem"><div style="font-size:.82rem;color:#a09070;font-style:italic">Un compte Helvetia est requis avant de pouvoir emprunter. Ouvrez-en un via « Gérer mon compte ».</div></div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#aa7a30;font-style:italic;margin-bottom:.8rem;padding:.5rem;background:#0f0d05;border:1px solid #3a2810">Aucune vérification. Aucun projet requis. Taux fixe 12% du capital sur la durée totale. En cas d\'impayé prolongé, la méthode de recouvrement est... directe.</div>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">MONTANT EMPRUNTÉ (1 000 à 150 000 ' + cur + ')</div>';
+  html += '<input id="helvetia-pret-montant" type="number" min="1000" max="150000" step="1000" placeholder="Montant en ' + cur + '..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem"/>';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">DURÉE (5 à 30 jours)</div>';
+  html += '<select id="helvetia-pret-duree" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;margin-bottom:.8rem">';
+  [5, 10, 15, 20, 25, 30].forEach(d => { html += '<option value="' + d + '">' + d + ' jours</option>'; });
+  html += '</select>';
+  html += '<button onclick="confirmerPretHelvetia(' + pa + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #4a6a8a;background:transparent;color:#6a9aca;cursor:pointer">Contracter le prêt</button>';
+  html += '</div>';
+
+  document.getElementById('postes-modal-title').textContent = 'Prêt — Banque Privée Helvetia';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerPretHelvetia(pa) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const montant = parseInt(document.getElementById('helvetia-pret-montant')?.value || 0);
+  const duree = parseInt(document.getElementById('helvetia-pret-duree')?.value || 5);
+
+  if (!montant || montant < 1000 || montant > 150000) { showToast('Montant invalide', 'Entre 1 000 et 150 000 ' + cur + '.', false); return; }
+  if (!duree || duree < 5 || duree > 30) { showToast('Durée invalide', 'Entre 5 et 30 jours.', false); return; }
+  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+
+  // RPC d'abord, PA ensuite (voir note plus haut sur confirmerOuvertureHelvetia) : un pret
+  // refuse (compte absent, pret Helvetia deja actif, liquidite Helvetia insuffisante meme apres
+  // refinancement BNR) ne consomme jamais le PA.
+  const resultat = (typeof sbCreerPretHelvetia === 'function')
+    ? await sbCreerPretHelvetia(state.char.name, montant, duree).catch(() => null)
+    : null;
+  if (!resultat) {
+    showToast('Prêt refusé', 'Compte Helvetia requis, prêt Helvetia déjà actif, ou liquidité Helvetia insuffisante.', false);
+    return;
+  }
+  if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - pa);
+
+  await rafraichirRuntimeHelvetia();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Prêt accordé !', '+' + montant.toLocaleString('fr-FR') + ' ' + cur + ' versés sur votre compte Helvetia.', true, true);
+  addJournalEntry('Prêt Helvetia (sans vérification) de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' sur ' + duree + ' jours (taux fixe 12%).', 'event-info');
 }
 
 function doSocieteEcran() {
@@ -3468,6 +3670,32 @@ async function traiterActeVente(candidat) {
   }
 
   // Compromis
+  // Chantier H2A (28 aout 2026) : bien saisi par Helvetia -- finalisation deleguee integralement
+  // a finaliser_achat_bien_helvetia (RPC installee), jamais a finaliserAchatTerrain/deduireCoutOrdre
+  // (solde + transfert de propriete + credit caisse Helvetia + eventuelles obligations envers un
+  // copropriétaire sont tous geres, atomiquement, DANS la RPC). RPC d'abord, PA ensuite.
+  if (ts.proprietaire === 'Helvetia') {
+    const pretEnAttenteH = ts.pretDemande && ts.pretDemande.statut === 'attente_validation';
+    const refuseH = ts.pretDemande && ts.pretDemande.statut === 'refuse';
+    if (refuseH) { showToast('Compromis caduc', 'Le prêt demandé a été refusé. Votre acompte a normalement déjà été remboursé.', false); return; }
+    if (pretEnAttenteH) { showToast('Prêt en attente', 'La demande de prêt n\'est pas encore tranchée. Revenez après sa décision.', false); return; }
+
+    if (!TEST_MODE && (state.pa || 0) < 1) { showToast('PA insuffisants', '1 PA requis.', false); return; }
+    const resultatFinalisation = (typeof sbFinaliserAchatBienHelvetia === 'function')
+      ? await sbFinaliserAchatBienHelvetia(state.char?.name, id).catch(() => null)
+      : null;
+    if (!resultatFinalisation) { showToast('Finalisation refusée', 'Fonds ordinaires insuffisants pour le solde, ou compromis expiré/invalide.', false); return; }
+    if (!TEST_MODE) state.pa = Math.max(0, (state.pa || 0) - 1);
+
+    await chargerTerrainState(id);
+    if (typeof rafraichirRuntimeHelvetia === 'function') await rafraichirRuntimeHelvetia();
+    document.getElementById('modal-postes')?.classList.remove('open');
+    updateUI();
+    addJournalEntry('Acte signé chez le notaire pour un bien Helvetia. Propriétaire de ' + (BUILDINGS[id]?.shortName || id) + '.', 'event-good');
+    showToast('Acte signé !', 'Propriétaire de ' + (BUILDINGS[id]?.shortName || id) + ' (bien Helvetia). Acompte inclus dans le prix.', true, true);
+    return;
+  }
+
   const permisOk = !ts.permis || ts.permis.statut === 'valide';
   const pretOk = !ts.pretDemande || ts.pretDemande.statut === 'accorde' || ts.pretDemande.statut === undefined;
   const pretEnAttente = ts.pretDemande && ts.pretDemande.statut === 'attente_validation';

@@ -279,7 +279,7 @@ async function preleverTaxeFonciere() {
 // = le compromis arrive simplement a echeance sans que le joueur ait acheté = acompte perdu.
 // Chaque resolution est archivee dans compromis_historique.
 async function resoudreCompromisExpires() {
-  const resultats = { resolus: 0, rembourses: 0, perdus: 0, pretsEnAttenteFinalisation: 0 };
+  const resultats = { resolus: 0, rembourses: 0, perdus: 0, pretsEnAttenteFinalisation: 0, helvetiaDelegues: 0 };
   try {
     const terrains = await sbGet('terrains_etat', '');
     if (!terrains) return resultats;
@@ -289,6 +289,17 @@ async function resoudreCompromisExpires() {
       try { etat = JSON.parse(row.data); } catch(e) { continue; }
       if (!etat.compromis || !etat.compromisExpireAt) continue;
       if (Date.now() < etat.compromisExpireAt) continue; // pas encore echu
+
+      // Bien Helvetia (chantier H2A, 28 aout 2026) : delegue integralement a la RPC dediee,
+      // jamais au chemin legacy ci-dessous -- resoudre_compromis_helvetia_expire porte sa propre
+      // decision (verrouillage FOR UPDATE, remboursement/perte d'acompte, evaluation d'un
+      // pretDemande en attente) que ce cron ne doit pas reimplementer cote client.
+      if (etat.proprietaire === 'Helvetia') {
+        const res = await sbRpc('resoudre_compromis_helvetia_expire', { p_terrain_id: row.id });
+        if (res === null) console.error('resoudre_compromis_helvetia_expire a echoue pour ' + row.id + ' -- retente au prochain cron.');
+        else resultats.helvetiaDelegues++;
+        continue;
+      }
 
       // Fix du 10 aout 2026 : un pret deja accorde lors d'une precedente passe gele le
       // compromis indefiniment (pas de nouvelle echeance a fixer) -- en attente que le joueur
@@ -900,7 +911,11 @@ async function avancerChantiersQuotidien() {
 async function preleverPretsBancairesServeur() {
   const resultats = { preleves: 0, impayes: 0, saisies: 0 };
   try {
-    const prets = await sbGet('prets', 'statut=eq.en_cours');
+    // type_banque=neq.helvetia (chantier H2A, 28 aout 2026) : les prets Helvetia ont leur propre
+    // contentieux dedie (traiter_prets_helvetia_quotidien, echeancier J+1 a J+9, saisie en
+    // cascade puis saisie de bien) -- ce chemin legacy (penalite 10% J+2, saisie terrain directe
+    // J+4) ne doit plus jamais les voir, sous peine de double traitement contradictoire.
+    const prets = await sbGet('prets', 'statut=eq.en_cours&type_banque=neq.helvetia');
     if (!prets) return resultats;
 
     for (const pret of prets) {
@@ -2478,6 +2493,46 @@ async function resoudrePlacementsHelvetiaExpires() {
   return resultats;
 }
 
+// Traitement quotidien du contentieux des prets Helvetia (chantier H2A, migration consolidee
+// installee manuellement dans Supabase le 28 aout 2026, jamais rejouee par ce commit). Toute la
+// logique (echeancier J+1 avertissement / J+2 mise en demeure + saisie financiere en cascade
+// (Helvetia -> national -> liquide) / J+3 ciblage puis saisie d'un bien / J+4 avertissement +
+// proposition d'accord / accord accepte : +20%, gel 10 jours, avertissement J+9) vit DANS la RPC
+// -- ce cron ne fait qu'appeler traiter_prets_helvetia_quotidien() une fois pour tous les pays
+// (fonction sans parametre, balaie tous les prets type_banque='helvetia' actifs/en contentieux).
+// Fail-closed : un echec de la RPC (sbRpc renvoie null, deja logge par sbRpc) n'est jamais
+// masque -- reporte explicitement dans le resultat au lieu d'un simple objet vide, pour qu'une
+// panne financiere H2A reste visible dans la reponse du cron plutot que silencieusement ignoree.
+async function traiterPretsHelvetiaServeur() {
+  const res = await sbRpc('traiter_prets_helvetia_quotidien', {});
+  if (res === null) {
+    console.error('traiter_prets_helvetia_quotidien a echoue -- aucun pret Helvetia traite ce passage, retente au prochain cron.');
+    return { ok: false, traites: 0, actions: [] };
+  }
+  return { ok: true, traites: res.length, actions: res };
+}
+
+// Reglement chronologique des creances Helvetia (obligations envers un copropriétaire/surplus de
+// saisie + tranches BNR exigibles), chantier H2A -- regler_creances_helvetia_quotidien(p_pays)
+// prend un pays a la fois (caisse '{pays}_banque-privee' propre a chaque pays), meme liste de
+// pays codee en dur que le reste de ce cron (voir alimenterBudgets plus haut). Meme doctrine
+// fail-closed que traiterPretsHelvetiaServeur ci-dessus : un echec sur un pays est signale, pas
+// masque, et n'empeche pas de tenter les autres pays.
+async function reglerCreancesHelvetiaServeur() {
+  const resultats = { ok: true, traites: 0, actions: [] };
+  for (const pays of ['republic', 'narco', 'soviet', 'khalija']) {
+    const res = await sbRpc('regler_creances_helvetia_quotidien', { p_pays: pays });
+    if (res === null) {
+      console.error('regler_creances_helvetia_quotidien a echoue pour ' + pays + ' -- retente au prochain cron.');
+      resultats.ok = false;
+      continue;
+    }
+    resultats.actions.push(...res.map(r => Object.assign({}, r, { pays })));
+  }
+  resultats.traites = resultats.actions.length;
+  return resultats;
+}
+
 // =====================
 // FRET MARITIME INTERNATIONAL (lot du 24 aout 2026) — passage en_transit -> arrivee
 // =====================
@@ -2714,6 +2769,10 @@ export default async function handler(req, res) {
     // 9. Mensualites des prets bancaires (a heure fixe, que le joueur dorme ou non)
     const prets = await preleverPretsBancairesServeur();
 
+    // 9b. Contentieux des prets Helvetia (chantier H2A, 28 aout 2026) : echeancier dedie
+    // J+1..J+9, exclu du chemin legacy ci-dessus (voir preleverPretsBancairesServeur).
+    const pretsHelvetia = await traiterPretsHelvetiaServeur();
+
     // 10. Expiration des blocus syndicaux non renouveles
     const blocusExpires = await nettoyerBlocusExpires();
 
@@ -2750,6 +2809,10 @@ export default async function handler(req, res) {
     // 15c. Placements Helvetia arrives a echeance (chantier "Helvetia H1").
     const placementsHelvetia = await resoudrePlacementsHelvetiaExpires();
 
+    // 15d. Creances Helvetia (chantier H2A, 28 aout 2026) : obligations copropriete/surplus de
+    // saisie + tranches BNR exigibles, ordre chronologique, un pays a la fois.
+    const creancesHelvetia = await reglerCreancesHelvetiaServeur();
+
     // 16. Remboursement quotidien des prets de preemption d'Etat (Ministre des Finances)
     const preemptions = await preleverPreemptionsServeur();
 
@@ -2785,7 +2848,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });
