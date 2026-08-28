@@ -125,8 +125,11 @@
    quel element (ex. l'overlay illustre, qui porte deja sa propre transform inline de zoom/pan). */
 .live-realisateur-vibration-appliquee { animation: live-realisateur-vibration .28s ease-in-out 2; }
 
-.live-insert-bd { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .3s; text-align: center; padding: .6rem; }
+.live-insert-bd { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .3s; text-align: center; padding: .6rem; overflow: hidden; }
 .live-insert-bd-fond { position: absolute; inset: 0; background: radial-gradient(circle, rgba(10,8,5,.94), rgba(10,8,5,.98)); }
+/* Premier vrai asset du realisateur (29 aout 2026) : plein cadre, jamais deforme (object-fit:cover),
+   contenue par l'overflow:hidden ci-dessus quand la choregraphie zoome/pan/tilt au-dela du cadre. */
+.live-insert-bd-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; display: none; }
 .live-insert-bd-action { position: relative; font-size: 2.6rem; margin-bottom: .3rem; }
 .live-insert-bd-portrait { position: relative; margin-bottom: .3rem; }
 .live-insert-bd-texte { position: relative; font-family: 'Bebas Neue', sans-serif; font-size: .82rem; letter-spacing: .04em; color: #f0ead6; max-width: 90%; }

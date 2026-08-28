@@ -3488,13 +3488,17 @@ const COUCHE_ILLUSTRE_FIXE_DEFAUT = [{ nom: 'placeholder', mouvement: 'fixe' }];
 // 1 a 1.5s (dureeBase+dureeVariable = [1000,1400]). Reserve aux micro-actions decoratives neutres
 // (duel/course/remise) -- jamais associe a frappe/but/carton/blessure, donc jamais un signal
 // annoncant un evenement canonique. Ne lit AUCUNE donnee sportive (meme garantie que le reste du
-// realisateur).
+// realisateur). `asset` (29 aout 2026) : premier vrai visuel du realisateur -- SEULE couche a
+// porter ce champ dans tout le fichier ; appliquerPlanIllustreRealisation bascule sur le rendu
+// image UNIQUEMENT quand couche.asset est present, donc les autres gabarits illustre (couches
+// sans asset, cf. COUCHE_ILLUSTRE_FIXE_DEFAUT) gardent exactement leur rendu pictogramme actuel.
 const GABARIT_CRASH_TEST_RAS_DU_SOL = [
   {
     type: 'illustre', dureeBase: 1000, dureeVariable: 400,
     transitionEntree: 'cut', transitionSortie: 'cut',
     couches: [{
       nom: 'placeholder',
+      asset: 'images/football-plan-ras-du-sol-01.png',
       mouvement: 'dynamique',
       etapes: [
         { t: 0,   cadrage: { scale: 1,    x: 0, y: 0,  rotation: 0 },    easing: 'linear' },
@@ -3647,10 +3651,12 @@ function jouerChoreographieCouche(couche, overlay, dureeMs) {
 // systematiquement le cadrage du terrain a plat pour que l'insert ne soit jamais deforme par un
 // zoom/travelling laisse par un plan terrain precedent de la MEME sequence. transition==='cut' :
 // apparition instantanee (classe live-insert-bd-instant, desactive le fondu d'entree existant) ;
-// sinon fondu existant inchange. La choregraphie de la couche (zoom/pan/tilt/vibration) est jouee
-// APRES l'affichage de l'overlay, jamais avant (le futur asset remplacera juste le contenu de
-// #live-realisateur-illustre -- ni la logique d'entree/sortie ni jouerChoreographieCouche n'auront
-// besoin d'etre modifies).
+// sinon fondu existant inchange. Premier vrai asset (29 aout 2026) : si couche.asset est present,
+// la choregraphie s'applique a l'<img> dediee (object-fit:cover, jamais de deformation, contenue
+// par l'overflow:hidden de .live-insert-bd) plutot qu'a l'overlay entier, et le pictogramme est
+// masque -- sinon (toutes les autres couches illustre, aucune ne porte `asset`) comportement
+// STRICTEMENT inchange : pictogramme + choregraphie sur l'overlay comme avant. jouerChoreographieCouche
+// lui-meme n'est pas modifie, seule sa CIBLE varie.
 function appliquerPlanIllustreRealisation(plan, instant, def, club) {
   const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
   if (pelouse) pelouse.style.transform = 'scale(1)';
@@ -3658,18 +3664,31 @@ function appliquerPlanIllustreRealisation(plan, instant, def, club) {
   if (!overlay) return;
   const actionEl = overlay.querySelector('.live-insert-bd-action');
   const texteEl = overlay.querySelector('.live-insert-bd-texte');
-  if (actionEl) actionEl.textContent = ICONES_MICRO_ACTION_REALISATEUR[instant.type] || 'ℹ️';
-  if (texteEl) texteEl.textContent = (def.label || '') + ' — ' + club.nom;
-  overlay.className = 'live-insert-bd live-insert-bd-visible' + (plan.transition === 'cut' ? ' live-insert-bd-instant' : '');
+  const imageEl = document.getElementById('live-realisateur-illustre-image');
   const couche = (plan.couches && plan.couches[0]) || null;
-  jouerChoreographieCouche(couche, overlay, plan.dureeMs);
+
+  if (couche && couche.asset) {
+    if (imageEl) { imageEl.src = couche.asset; imageEl.style.display = 'block'; }
+    if (actionEl) actionEl.textContent = ''; // l'asset reel remplace le pictogramme-placeholder
+  } else {
+    if (imageEl) { imageEl.style.display = 'none'; imageEl.removeAttribute('src'); }
+    if (actionEl) actionEl.textContent = ICONES_MICRO_ACTION_REALISATEUR[instant.type] || 'ℹ️';
+  }
+  if (texteEl) texteEl.textContent = (def.label || '') + ' — ' + club.nom;
+
+  overlay.className = 'live-insert-bd live-insert-bd-visible' + (plan.transition === 'cut' ? ' live-insert-bd-instant' : '');
+  const cible = (couche && couche.asset && imageEl) ? imageEl : overlay;
+  jouerChoreographieCouche(couche, cible, plan.dureeMs);
 }
 
 // sortieCut=true : masque instantanement (aucun fondu de sortie), pour un plan dont
 // transitionSortie==='cut' (ex. crash-test ras du sol). Par defaut (false/undefined) : fondu
-// existant inchange (transition CSS .3s deja definie sur .live-insert-bd).
+// existant inchange (transition CSS .3s deja definie sur .live-insert-bd). Reinitialise aussi
+// l'<img> (transform/affichage/src) pour ne jamais laisser un cadrage ou une image residuelle
+// avant le prochain plan illustre de la MEME session de live.
 function masquerPlanIllustreRealisation(sortieCut) {
   const overlay = document.getElementById('live-realisateur-illustre');
+  const imageEl = document.getElementById('live-realisateur-illustre-image');
   if (!overlay) return;
   if (sortieCut) {
     overlay.style.transition = 'none';
@@ -3680,6 +3699,10 @@ function masquerPlanIllustreRealisation(sortieCut) {
     overlay.className = 'live-insert-bd';
   }
   overlay.style.transform = '';
+  if (imageEl) {
+    imageEl.style.transition = ''; imageEl.style.transform = '';
+    imageEl.style.display = 'none'; imageEl.removeAttribute('src');
+  }
 }
 
 // Remet la scene a plat a la fin d'une sequence de realisation -- strictement equivalent a
@@ -4172,6 +4195,10 @@ function construireSceneMiniTerrain(matchKey, home, away) {
   // reste seul proprietaire de #live-insert-bd, intouche par ce chantier).
   html += '<div class="live-insert-bd" id="live-realisateur-illustre">';
   html += '<div class="live-insert-bd-fond"></div>';
+  // Premier vrai asset du realisateur (29 aout 2026) : <img> persistante, masquee par defaut
+  // (display:none) et sans src -- appliquerPlanIllustreRealisation ne la montre que pour les
+  // couches qui portent explicitement `asset` (aujourd'hui : uniquement GABARIT_CRASH_TEST_RAS_DU_SOL).
+  html += '<img class="live-insert-bd-image" id="live-realisateur-illustre-image" alt="" />';
   html += '<div class="live-insert-bd-action"></div>';
   html += '<div class="live-insert-bd-texte"></div>';
   html += '</div>';
