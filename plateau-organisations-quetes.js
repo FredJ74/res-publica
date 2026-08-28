@@ -3415,6 +3415,216 @@ const CATALOGUE_MICRO_ACTIONS = {
 };
 const CLES_TYPES_MICRO_ACTION = Object.keys(CATALOGUE_MICRO_ACTIONS);
 
+// =====================================================================
+// REALISATEUR AUTOMATIQUE — premiere passe (chantier "realisateur automatique", 28 aout 2026)
+// =====================================================================
+// Couche STRICTEMENT decorative, branchee UNIQUEMENT sur les micro-actions narratives locales
+// (jouerMicroAction). Ne touche ni live.evenements ni afficherInsertCanonique. Deux familles de
+// plans distinctes, jamais confondues :
+//  - 'terrain' : pilote le mini-terrain DOM deja existant (cadrage/zoom/travelling/vitesse via
+//    transform + transition-duration, purement CSS/JS leger, aucun asset) ;
+//  - 'illustre' : pilote une zone d'insert separee (#live-realisateur-illustre, meme langage
+//    visuel que le placeholder canonique #live-insert-bd mais un id distinct -- jamais le meme
+//    element, pour ne jamais interferer avec un insert d'evenement canonique en cours ou a venir).
+// Une sequence = 1 a 3 plans, generes une seule fois par instant deterministe (meme seed que
+// genererScenarioNarratifPhase : matchKey+phase+instant.t) donc identiques pour tous les
+// spectateurs. Ne lit JAMAIS live.evenements : le montage ne peut donc jamais "trahir" un
+// evenement canonique futur (meme garantie que le scenario narratif lui-meme).
+// =====================================================================
+
+const CADRAGE_SCALE_REALISATEUR = { large: 1, moyen: 1.12, serre: 1.26 };
+const ICONES_MICRO_ACTION_REALISATEUR = {
+  circulation: '🔄', duel: '⚔️', interception: '🛡️', course: '🏃', degagement: '👢',
+  sortie: '↪️', touche: '🥅', remise: '🤾', centre: '➰', frappe: '🎯', arret: '🧤'
+};
+
+// Gabarits de montage (section F) : plusieurs rythmes possibles, tires au hasard deterministe --
+// jamais le meme enchainement a chaque micro-action. Duree courtes (rythme du live). "large"
+// apparait deux fois (frequence legerement plus elevee, cas le plus simple/sur).
+const GABARITS_MONTAGE_REALISATEUR = [
+  [{ type: 'terrain', cadrage: 'large', dureeBase: 900, dureeVariable: 500, effets: ['travelling', 'accelere'], probaEffet: .35 }],
+  [{ type: 'terrain', cadrage: 'large', dureeBase: 800, dureeVariable: 400, effets: null, probaEffet: 0 }],
+  [
+    { type: 'terrain', cadrage: 'moyen', dureeBase: 650, dureeVariable: 350, effets: ['zoom'], probaEffet: .4 },
+    { type: 'terrain', cadrage: 'serre', dureeBase: 550, dureeVariable: 350, effets: ['ralenti', 'vibration'], probaEffet: .35 }
+  ],
+  [
+    { type: 'terrain', cadrage: 'moyen', dureeBase: 550, dureeVariable: 300, effets: ['accelere'], probaEffet: .3 },
+    { type: 'illustre', dureeBase: 850, dureeVariable: 400 },
+    { type: 'terrain', cadrage: 'large', dureeBase: 450, dureeVariable: 250, effets: null, probaEffet: 0 }
+  ],
+  [
+    { type: 'terrain', cadrage: 'moyen', dureeBase: 650, dureeVariable: 300, effets: ['zoom', 'travelling'], probaEffet: .4 },
+    { type: 'illustre', dureeBase: 950, dureeVariable: 450 }
+  ],
+  [
+    { type: 'terrain', cadrage: 'large', dureeBase: 450, dureeVariable: 200, effets: null, probaEffet: 0 },
+    { type: 'terrain', cadrage: 'serre', dureeBase: 600, dureeVariable: 350, effets: ['vibration', 'ralenti'], probaEffet: .4 },
+    { type: 'terrain', cadrage: 'large', dureeBase: 450, dureeVariable: 200, effets: null, probaEffet: 0 }
+  ]
+];
+
+// Fonction PURE et deterministe (section B) : meme (seed, contexte) => toujours la meme sequence.
+// Le seed est construit par l'appelant a partir de la meme identite stable que le scenario
+// narratif (jamais recalcule differemment ici) -- donc tous les spectateurs d'un match obtiennent
+// la meme sequence pour le meme instant, sans aucune ecriture reseau. Ne lit ni live ni contexte
+// sportif : contexte se limite a {microAction, cote}, deja purement decoratifs.
+function genererSequenceRealisation(seed, contexte) {
+  const rng = creerPRNGDeterministe(hashChaineVersUint32('realisateur-' + seed));
+  const gabarit = GABARITS_MONTAGE_REALISATEUR[Math.floor(rng() * GABARITS_MONTAGE_REALISATEUR.length)];
+  const plans = gabarit.map((squelette, i) => {
+    const dureeMs = Math.round(squelette.dureeBase + rng() * squelette.dureeVariable);
+    const plan = { type: squelette.type, dureeMs, transition: i === 0 ? 'cut' : (rng() < .5 ? 'fondu' : 'cut') };
+    if (squelette.type === 'terrain') {
+      plan.cadrage = squelette.cadrage;
+      plan.effet = (squelette.effets && rng() < squelette.probaEffet)
+        ? squelette.effets[Math.floor(rng() * squelette.effets.length)]
+        : null;
+      if (plan.effet === 'travelling') plan.travellingDx = rng() < .5 ? -3 : 3; // sens deterministe, jamais Math.random
+    } else {
+      plan.variante = Math.floor(rng() * 3); // reserve pour de futures variantes graphiques (section 4), non rendu en V1
+    }
+    return plan;
+  });
+  return { plans, microAction: contexte.microAction, cote: contexte.cote };
+}
+
+// Reechantillonne le trajet (relatif au point de vue de l'equipe qui agit) sur le nombre de plans
+// "terrain" de la sequence -- un point par plan terrain, dans l'ordre, mirroir applique pour
+// l'equipe away (meme convention que l'ancien code : zoneAbsolue = idxRel pour home, 6-idxRel
+// pour away).
+function zonesTerrainPourSequence(trajetRelatif, cote, nbPlansTerrain) {
+  const n = Math.max(1, nbPlansTerrain);
+  const zones = [];
+  for (let k = 0; k < n; k++) {
+    const idxRel = n === 1
+      ? trajetRelatif[trajetRelatif.length - 1]
+      : trajetRelatif[Math.round(k * (trajetRelatif.length - 1) / (n - 1))];
+    zones.push(cote === 'home' ? idxRel : (6 - idxRel));
+  }
+  return zones;
+}
+
+// Applique le cadrage/l'effet d'UN plan terrain sur le mini-terrain deja existant : transform
+// (scale/translate) sur .live-pelouse (jamais un redimensionnement reel, jamais de reflow) +
+// transition-duration sur ballon/joueurs pour accelere/ralenti. Toujours reinitialise en entier
+// (jamais d'accumulation d'un plan a l'autre).
+function appliquerCadrageTerrain(plan) {
+  const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
+  if (pelouse) {
+    let scale = CADRAGE_SCALE_REALISATEUR[plan.cadrage] || 1;
+    if (plan.effet === 'zoom') scale *= 1.08;
+    let transform = 'scale(' + scale.toFixed(3) + ')';
+    if (plan.effet === 'travelling') transform += ' translateX(' + plan.travellingDx + '%)';
+    pelouse.style.transition = 'transform .4s ease';
+    pelouse.style.transform = transform;
+    pelouse.classList.remove('live-pelouse--vibration');
+    if (plan.effet === 'vibration') {
+      void pelouse.offsetWidth; // force le reflow pour pouvoir rejouer l'animation (meme patron que afficherMessageTribune)
+      pelouse.classList.add('live-pelouse--vibration');
+    }
+  }
+  const dureeMs = plan.effet === 'accelere' ? 250 : (plan.effet === 'ralenti' ? 1100 : null);
+  ['live-ballon', 'live-joueur-home', 'live-joueur-away'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.transitionDuration = dureeMs ? dureeMs + 'ms' : '';
+  });
+}
+
+// Affiche UN plan illustre : reutilise le placeholder existant (memes classes CSS que
+// #live-insert-bd, id different -- jamais le meme element qu'un insert canonique). Remet
+// systematiquement le cadrage du terrain a plat pour que l'insert ne soit jamais deforme par un
+// zoom/travelling laisse par un plan terrain precedent de la MEME sequence.
+function appliquerPlanIllustreRealisation(plan, instant, def, club) {
+  const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
+  if (pelouse) pelouse.style.transform = 'scale(1)';
+  const overlay = document.getElementById('live-realisateur-illustre');
+  if (!overlay) return;
+  const actionEl = overlay.querySelector('.live-insert-bd-action');
+  const texteEl = overlay.querySelector('.live-insert-bd-texte');
+  if (actionEl) actionEl.textContent = ICONES_MICRO_ACTION_REALISATEUR[instant.type] || 'ℹ️';
+  if (texteEl) texteEl.textContent = (def.label || '') + ' — ' + club.nom;
+  overlay.className = 'live-insert-bd live-insert-bd-visible';
+}
+function masquerPlanIllustreRealisation() {
+  const overlay = document.getElementById('live-realisateur-illustre');
+  if (overlay) overlay.className = 'live-insert-bd';
+}
+
+// Remet la scene a plat a la fin d'une sequence de realisation -- strictement equivalent a
+// l'ancien retour a l'etat neutre de jouerMicroAction (meme positions, meme label vide), plus la
+// remise a plat du cadrage/de la vitesse/de l'insert illustre introduits par ce chantier.
+function reinitialiserSceneApresSequenceRealisation() {
+  masquerPlanIllustreRealisation();
+  const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
+  if (pelouse) { pelouse.style.transform = 'scale(1)'; pelouse.classList.remove('live-pelouse--vibration'); }
+  ['live-ballon', 'live-joueur-home', 'live-joueur-away'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.transitionDuration = '';
+  });
+  positionnerBallon(3); positionnerJoueur('home', 2); positionnerJoueur('away', 4);
+  const l = document.getElementById('live-action-label');
+  if (l) l.textContent = '';
+}
+
+// Executeur commun (section D) : enchaine 1 a 3 plans deja generes, purement par affichage.
+// A CHAQUE callback, verifie qu'aucun insert canonique n'est en cours (_liveViewerAfficheCanoniqueEnCours,
+// deja utilise par tickVisuelScene) -- si un evenement canonique a pris la priorite entre-temps, ce
+// plan est simplement saute, jamais de conflit visuel avec afficherInsertCanonique. Tous les
+// setTimeout sont pousses dans _liveViewerTimeoutsAnimation (meme tableau que le reste du moteur
+// visuel) donc nettoyes par fermerLiveMatchReel comme n'importe quel autre timer -- aucun timer
+// residuel possible a la fermeture.
+function executerSequenceRealisation(sequence, instant, def, club) {
+  const terrainPlans = sequence.plans.filter(p => p.type === 'terrain');
+  const zonesTerrain = zonesTerrainPourSequence(def.trajet, instant.cote, terrainPlans.length);
+  const planTerrainUnique = terrainPlans.length === 1;
+  let offset = 0;
+  let kTerrain = 0;
+  sequence.plans.forEach(plan => {
+    const debutPlan = offset;
+    if (plan.type === 'terrain') {
+      const zoneCible = zonesTerrain[kTerrain];
+      const idT = setTimeout(() => {
+        if (_liveViewerAfficheCanoniqueEnCours) return;
+        masquerPlanIllustreRealisation();
+        appliquerCadrageTerrain(plan);
+        if (planTerrainUnique && def.trajet.length > 1) {
+          // Sequence a un seul plan terrain (cas le plus frequent) : on conserve la marche fluide
+          // historique en sous-etapant le trajet complet DANS la fenetre de ce plan.
+          const pas = plan.dureeMs / def.trajet.length;
+          def.trajet.forEach((idxRel, i) => {
+            const idSub = setTimeout(() => {
+              if (_liveViewerAfficheCanoniqueEnCours) return;
+              const zoneAbs = instant.cote === 'home' ? idxRel : (6 - idxRel);
+              positionnerBallon(zoneAbs);
+              positionnerJoueur(instant.cote, zoneAbs);
+            }, i * pas);
+            _liveViewerTimeoutsAnimation.push(idSub);
+          });
+        } else if (plan.effet !== 'pause') {
+          positionnerBallon(zoneCible);
+          positionnerJoueur(instant.cote, zoneCible);
+        }
+      }, debutPlan);
+      _liveViewerTimeoutsAnimation.push(idT);
+      kTerrain++;
+    } else {
+      const idT = setTimeout(() => {
+        if (_liveViewerAfficheCanoniqueEnCours) return;
+        appliquerPlanIllustreRealisation(plan, instant, def, club);
+      }, debutPlan);
+      _liveViewerTimeoutsAnimation.push(idT);
+    }
+    offset += plan.dureeMs;
+  });
+
+  const idFin = setTimeout(() => {
+    if (_liveViewerAfficheCanoniqueEnCours) return;
+    reinitialiserSceneApresSequenceRealisation();
+  }, offset);
+  _liveViewerTimeoutsAnimation.push(idFin);
+}
+
 // Genere UNE FOIS (puis met en cache) la chronologie deterministe d'une phase de jeu (mt1/mt2) --
 // jamais un metronome fixe (intervalles irreguliers), jamais recalculee differemment pour deux
 // spectateurs (seed = identite stable matchKey+phase, jamais une tranche de temps arrondie).
@@ -3508,10 +3718,11 @@ function positionnerJoueur(cote, indexZoneAbsolu) {
   el.style.left = pct + '%';
 }
 
-// Joue UNE sequence narrative locale : deplace le ballon/les jetons joueurs a travers le trajet
-// de la micro-action, affiche son libelle, puis revient a une position neutre. Purement visuel --
-// aucune donnee sportive lue ni ecrite ici.
-function jouerMicroAction(instant, home, away) {
+// Joue UNE sequence narrative locale : delegue desormais au realisateur automatique (premiere
+// passe, chantier du 28 aout 2026) -- genere une sequence de 1 a 3 plans terrain/illustre,
+// deterministe (seed = matchKey+phase+instant.t, identite stable partagee par tous les
+// spectateurs), puis l'execute. Purement visuel -- aucune donnee sportive lue ni ecrite ici.
+function jouerMicroAction(instant, home, away, matchKey, phaseKey) {
   const def = CATALOGUE_MICRO_ACTIONS[instant.type];
   if (!def) return;
   const club = instant.cote === 'home' ? home : away;
@@ -3521,22 +3732,9 @@ function jouerMicroAction(instant, home, away) {
   const scene = document.getElementById('live-mini-terrain');
   if (scene) { scene.classList.add('live-mini-terrain--actif'); scene.classList.remove('live-mini-terrain--echauffement', 'live-mini-terrain--mitemps'); }
 
-  const pas = def.duree / Math.max(1, def.trajet.length);
-  def.trajet.forEach((idxZone, i) => {
-    const idT = setTimeout(() => {
-      const zoneAbsolue = instant.cote === 'home' ? idxZone : (6 - idxZone);
-      positionnerBallon(zoneAbsolue);
-      positionnerJoueur(instant.cote, zoneAbsolue);
-    }, i * pas);
-    _liveViewerTimeoutsAnimation.push(idT);
-  });
-  const idFin = setTimeout(() => {
-    positionnerBallon(3);
-    positionnerJoueur('home', 2); positionnerJoueur('away', 4);
-    const l = document.getElementById('live-action-label');
-    if (l) l.textContent = '';
-  }, def.duree + 900);
-  _liveViewerTimeoutsAnimation.push(idFin);
+  const seed = matchKey + '-' + phaseKey + '-' + instant.t;
+  const sequence = genererSequenceRealisation(seed, { microAction: instant.type, cote: instant.cote });
+  executerSequenceRealisation(sequence, instant, def, club);
 }
 
 // Ambiance hors phase de jeu (section 13) : echauffement calme, mi-temps arretee (aucune
@@ -3590,7 +3788,7 @@ function tickVisuelScene() {
   const instant = trouverInstantNarratifActuel(scenario, tEcouleSec);
   if (instant && instant !== _liveViewerDernierInstantAffiche) {
     _liveViewerDernierInstantAffiche = instant;
-    jouerMicroAction(instant, home, away);
+    jouerMicroAction(instant, home, away, matchKey, phaseInfo.statut);
   }
 }
 
@@ -3831,6 +4029,15 @@ function construireSceneMiniTerrain(matchKey, home, away) {
   html += '<div class="live-insert-bd-action" id="live-insert-bd-action"></div>';
   html += '<div class="live-insert-bd-portrait" id="live-insert-bd-portrait"></div>';
   html += '<div class="live-insert-bd-texte" id="live-insert-bd-texte"></div>';
+  html += '</div>';
+  // Plan illustre du realisateur automatique (chantier "premiere passe du realisateur", 28 aout
+  // 2026) : meme langage visuel que l'insert canonique ci-dessus, id DISTINCT expres -- jamais le
+  // meme element, pour ne jamais interferer avec un insert d'evenement canonique (afficherInsertCanonique
+  // reste seul proprietaire de #live-insert-bd, intouche par ce chantier).
+  html += '<div class="live-insert-bd" id="live-realisateur-illustre">';
+  html += '<div class="live-insert-bd-fond"></div>';
+  html += '<div class="live-insert-bd-action"></div>';
+  html += '<div class="live-insert-bd-texte"></div>';
   html += '</div>';
   html += '</div>';
   html += '<div class="live-action-label" id="live-action-label"></div>';

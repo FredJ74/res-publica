@@ -116,6 +116,12 @@
 .live-ballon { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; line-height: 16px; font-size: 12px; text-align: center; transform: translate(-50%, -50%); transition: left .5s ease, top .5s ease; filter: drop-shadow(0 0 2px #000); }
 .live-action-label { min-height: 1.4em; text-align: center; font-size: .74rem; font-style: italic; color: #9a8a60; margin: .4rem 0 .6rem; }
 
+/* Realisateur automatique (chantier "premiere passe du realisateur", 28 aout 2026) : seul ajout
+   CSS necessaire -- le zoom/travelling se pilotent par transform inline (JS), l'impact/vibration
+   a besoin d'une keyframe. Purement decoratif, aucun asset. */
+@keyframes live-realisateur-vibration { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+.live-pelouse--vibration { animation: live-realisateur-vibration .28s ease-in-out 2; }
+
 .live-insert-bd { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .3s; text-align: center; padding: .6rem; }
 .live-insert-bd-fond { position: absolute; inset: 0; background: radial-gradient(circle, rgba(10,8,5,.94), rgba(10,8,5,.98)); }
 .live-insert-bd-action { position: relative; font-size: 2.6rem; margin-bottom: .3rem; }
