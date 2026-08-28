@@ -3464,17 +3464,80 @@ const GABARITS_MONTAGE_REALISATEUR = [
   ]
 ];
 
+// =====================================================================
+// CHOREGRAPHIE DES PLAN_ILLUSTRE (crash-test "ras du sol", 28 aout 2026)
+// =====================================================================
+// Un plan illustre porte desormais plan.couches (tableau -- V1 : toujours une seule entree, le
+// placeholder actuel). Chaque couche a un `nom` (reserve pour une future distinction
+// fond/sujet/premier_plan -- section "parallaxe future" : ajouter une couche = ajouter une entree
+// ici + une cible DOM dediee, l'executeur/jouerChoreographieCouche ne changent pas) et :
+//  - mouvement: 'fixe' (aucune transformation, l'image reste immobile pendant dureeMs -- le
+//    roman-photo est un choix de realisation a part entiere, pas un defaut) ou 'dynamique' ;
+//  - etapes (uniquement si 'dynamique') : cadrages successifs {t (0..1 du plan), cadrage:
+//    {scale,x,y,rotation}, easing}, enchaines par des transitions CSS independantes (une par
+//    segment) -- permet un mouvement en plusieurs temps (ex. acceleration puis bref ralenti) sans
+//    aucune bibliotheque d'animation ;
+//  - vibrationAuMoment (0..1, optionnel) : impact ponctuel a un instant du plan.
+// COUCHE_ILLUSTRE_FIXE_DEFAUT est exactement ce que produisent aujourd'hui les deux gabarits
+// "illustre" existants ci-dessus (aucun changement de comportement pour eux).
+const COUCHE_ILLUSTRE_FIXE_DEFAUT = [{ nom: 'placeholder', mouvement: 'fixe' }];
+
+// Gabarit EXPERIMENTAL clairement identifie (section "crash-test ras du sol") : cadrage large ->
+// zoom+pan avant simulant une vitesse rapide (acceleration, easing ease-in) -> tres bref
+// ralentissement final (easing ease-out) -> micro-vibration d'impact -> sortie CUT. Duree cible
+// 1 a 1.5s (dureeBase+dureeVariable = [1000,1400]). Reserve aux micro-actions decoratives neutres
+// (duel/course/remise) -- jamais associe a frappe/but/carton/blessure, donc jamais un signal
+// annoncant un evenement canonique. Ne lit AUCUNE donnee sportive (meme garantie que le reste du
+// realisateur).
+const GABARIT_CRASH_TEST_RAS_DU_SOL = [
+  {
+    type: 'illustre', dureeBase: 1000, dureeVariable: 400,
+    transitionEntree: 'cut', transitionSortie: 'cut',
+    couches: [{
+      nom: 'placeholder',
+      mouvement: 'dynamique',
+      etapes: [
+        { t: 0,   cadrage: { scale: 1,    x: 0, y: 0,  rotation: 0 },    easing: 'linear' },
+        { t: .78, cadrage: { scale: 1.5,  x: 0, y: -4, rotation: -1.5 }, easing: 'ease-in' },
+        { t: 1,   cadrage: { scale: 1.62, x: 0, y: -5, rotation: -1.5 }, easing: 'ease-out' }
+      ],
+      vibrationAuMoment: .92
+    }]
+  }
+];
+
+// Pool pondere + filtrable par micro-action : les 6 gabarits existants restent equiprobables
+// (poids 1 chacun) ; le crash-test est rare PAR CONSTRUCTION (poids tres faible ET reserve a un
+// sous-ensemble de micro-actions) -- jamais mele au reste sans discipline de rythme (section
+// "IMPORTANT POUR LE RYTHME").
+const POOL_GABARITS_REALISATEUR = GABARITS_MONTAGE_REALISATEUR
+  .map(gabarit => ({ gabarit, poids: 1, microActionsCompatibles: null }))
+  .concat([{ gabarit: GABARIT_CRASH_TEST_RAS_DU_SOL, poids: .3, microActionsCompatibles: ['duel', 'course', 'remise'] }]);
+
+// Clone superficiel-suffisant (donnees plates, jamais de fonction/Date) : chaque plan genere garde
+// sa PROPRE copie de couches, jamais une reference partagee vers la constante du gabarit.
+function clonerCouches(couches) {
+  return JSON.parse(JSON.stringify(couches));
+}
+
 // Fonction PURE et deterministe (section B) : meme (seed, contexte) => toujours la meme sequence.
 // Le seed est construit par l'appelant a partir de la meme identite stable que le scenario
 // narratif (jamais recalcule differemment ici) -- donc tous les spectateurs d'un match obtiennent
 // la meme sequence pour le meme instant, sans aucune ecriture reseau. Ne lit ni live ni contexte
-// sportif : contexte se limite a {microAction, cote}, deja purement decoratifs.
+// sportif : contexte se limite a {microAction, cote}, deja purement decoratifs -- le filtrage du
+// pool par micro-action (crash-test) est donc lui aussi sans aucune connaissance de la verite
+// sportive, juste de l'identite deja connue de l'instant narratif local.
 function genererSequenceRealisation(seed, contexte) {
   const rng = creerPRNGDeterministe(hashChaineVersUint32('realisateur-' + seed));
-  const gabarit = GABARITS_MONTAGE_REALISATEUR[Math.floor(rng() * GABARITS_MONTAGE_REALISATEUR.length)];
-  const plans = gabarit.map((squelette, i) => {
+  const poolEligible = POOL_GABARITS_REALISATEUR.filter(e =>
+    !e.microActionsCompatibles || e.microActionsCompatibles.includes(contexte.microAction));
+  const totalPoids = poolEligible.reduce((s, e) => s + e.poids, 0);
+  let r = rng() * totalPoids;
+  let entree = poolEligible[poolEligible.length - 1];
+  for (const e of poolEligible) { r -= e.poids; if (r <= 0) { entree = e; break; } }
+  const plans = entree.gabarit.map((squelette, i) => {
     const dureeMs = Math.round(squelette.dureeBase + rng() * squelette.dureeVariable);
-    const plan = { type: squelette.type, dureeMs, transition: i === 0 ? 'cut' : (rng() < .5 ? 'fondu' : 'cut') };
+    const plan = { type: squelette.type, dureeMs, transition: squelette.transitionEntree || (i === 0 ? 'cut' : (rng() < .5 ? 'fondu' : 'cut')) };
     if (squelette.type === 'terrain') {
       plan.cadrage = squelette.cadrage;
       plan.effet = (squelette.effets && rng() < squelette.probaEffet)
@@ -3483,6 +3546,8 @@ function genererSequenceRealisation(seed, contexte) {
       if (plan.effet === 'travelling') plan.travellingDx = rng() < .5 ? -3 : 3; // sens deterministe, jamais Math.random
     } else {
       plan.variante = Math.floor(rng() * 3); // reserve pour de futures variantes graphiques (section 4), non rendu en V1
+      plan.transitionSortie = squelette.transitionSortie || (rng() < .5 ? 'fondu' : 'cut');
+      plan.couches = clonerCouches(squelette.couches || COUCHE_ILLUSTRE_FIXE_DEFAUT);
     }
     return plan;
   });
@@ -3531,10 +3596,61 @@ function appliquerCadrageTerrain(plan) {
   });
 }
 
+// Formate un cadrage {scale,x,y,rotation} en chaine CSS transform (x/y en %, rotation en degres).
+function transformCssDepuisCadrage(cadrage) {
+  return 'scale(' + cadrage.scale + ') translate(' + cadrage.x + '%, ' + cadrage.y + '%) rotate(' + cadrage.rotation + 'deg)';
+}
+
+// Joue la choregraphie d'UNE couche sur l'overlay illustre (V1 : toujours la seule couche du
+// placeholder actuel -- une future couche 'fond'/'sujet'/'premier_plan' ajouterait juste une
+// entree ici + sa propre cible DOM, cette fonction n'a pas besoin d'etre reecrite). 'fixe' :
+// aucune transformation (immobilite assumee, cut/fondu d'entree-sortie restent independants).
+// 'dynamique' : enchaine les etapes via le patron reflow-puis-transition deja utilise ailleurs
+// dans ce fichier (afficherMessageTribune) -- une transition CSS par segment, chacune avec son
+// propre easing, jamais de requestAnimationFrame ni de nouveau mecanisme de timer : les segments
+// suivants (i>=1) sont de simples setTimeout, geres comme tous les autres timers d'animation.
+function jouerChoreographieCouche(couche, overlay, dureeMs) {
+  if (!couche || couche.mouvement !== 'dynamique' || !couche.etapes || couche.etapes.length < 2) {
+    overlay.style.transition = 'none';
+    overlay.style.transform = (couche && couche.etapes && couche.etapes[0]) ? transformCssDepuisCadrage(couche.etapes[0].cadrage) : '';
+    return;
+  }
+  const etapes = couche.etapes;
+  overlay.style.transition = 'none';
+  overlay.style.transform = transformCssDepuisCadrage(etapes[0].cadrage);
+  void overlay.offsetWidth; // force le reflow : le cadrage initial est peint avant toute transition
+  for (let i = 1; i < etapes.length; i++) {
+    const etapePrecedente = etapes[i - 1];
+    const etape = etapes[i];
+    const segMs = Math.max(30, Math.round((etape.t - etapePrecedente.t) * dureeMs));
+    const idEtape = setTimeout(() => {
+      if (_liveViewerAfficheCanoniqueEnCours) return;
+      overlay.style.transition = 'transform ' + (segMs / 1000).toFixed(3) + 's ' + (etape.easing || 'linear');
+      overlay.style.transform = transformCssDepuisCadrage(etape.cadrage);
+    }, Math.round(etapePrecedente.t * dureeMs));
+    _liveViewerTimeoutsAnimation.push(idEtape);
+  }
+  if (couche.vibrationAuMoment != null) {
+    const idVib = setTimeout(() => {
+      if (_liveViewerAfficheCanoniqueEnCours) return;
+      void overlay.offsetWidth;
+      overlay.classList.add('live-realisateur-vibration-appliquee');
+      const idVibFin = setTimeout(() => overlay.classList.remove('live-realisateur-vibration-appliquee'), 300);
+      _liveViewerTimeoutsAnimation.push(idVibFin);
+    }, Math.round(couche.vibrationAuMoment * dureeMs));
+    _liveViewerTimeoutsAnimation.push(idVib);
+  }
+}
+
 // Affiche UN plan illustre : reutilise le placeholder existant (memes classes CSS que
 // #live-insert-bd, id different -- jamais le meme element qu'un insert canonique). Remet
 // systematiquement le cadrage du terrain a plat pour que l'insert ne soit jamais deforme par un
-// zoom/travelling laisse par un plan terrain precedent de la MEME sequence.
+// zoom/travelling laisse par un plan terrain precedent de la MEME sequence. transition==='cut' :
+// apparition instantanee (classe live-insert-bd-instant, desactive le fondu d'entree existant) ;
+// sinon fondu existant inchange. La choregraphie de la couche (zoom/pan/tilt/vibration) est jouee
+// APRES l'affichage de l'overlay, jamais avant (le futur asset remplacera juste le contenu de
+// #live-realisateur-illustre -- ni la logique d'entree/sortie ni jouerChoreographieCouche n'auront
+// besoin d'etre modifies).
 function appliquerPlanIllustreRealisation(plan, instant, def, club) {
   const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
   if (pelouse) pelouse.style.transform = 'scale(1)';
@@ -3544,18 +3660,35 @@ function appliquerPlanIllustreRealisation(plan, instant, def, club) {
   const texteEl = overlay.querySelector('.live-insert-bd-texte');
   if (actionEl) actionEl.textContent = ICONES_MICRO_ACTION_REALISATEUR[instant.type] || 'ℹ️';
   if (texteEl) texteEl.textContent = (def.label || '') + ' — ' + club.nom;
-  overlay.className = 'live-insert-bd live-insert-bd-visible';
+  overlay.className = 'live-insert-bd live-insert-bd-visible' + (plan.transition === 'cut' ? ' live-insert-bd-instant' : '');
+  const couche = (plan.couches && plan.couches[0]) || null;
+  jouerChoreographieCouche(couche, overlay, plan.dureeMs);
 }
-function masquerPlanIllustreRealisation() {
+
+// sortieCut=true : masque instantanement (aucun fondu de sortie), pour un plan dont
+// transitionSortie==='cut' (ex. crash-test ras du sol). Par defaut (false/undefined) : fondu
+// existant inchange (transition CSS .3s deja definie sur .live-insert-bd).
+function masquerPlanIllustreRealisation(sortieCut) {
   const overlay = document.getElementById('live-realisateur-illustre');
-  if (overlay) overlay.className = 'live-insert-bd';
+  if (!overlay) return;
+  if (sortieCut) {
+    overlay.style.transition = 'none';
+    overlay.className = 'live-insert-bd';
+    void overlay.offsetWidth;
+    overlay.style.transition = '';
+  } else {
+    overlay.className = 'live-insert-bd';
+  }
+  overlay.style.transform = '';
 }
 
 // Remet la scene a plat a la fin d'une sequence de realisation -- strictement equivalent a
 // l'ancien retour a l'etat neutre de jouerMicroAction (meme positions, meme label vide), plus la
 // remise a plat du cadrage/de la vitesse/de l'insert illustre introduits par ce chantier.
-function reinitialiserSceneApresSequenceRealisation() {
-  masquerPlanIllustreRealisation();
+// sortieCut : transmis a masquerPlanIllustreRealisation si le DERNIER plan illustre programme de
+// la sequence demandait une sortie en cut (jamais un fondu par defaut dans ce cas).
+function reinitialiserSceneApresSequenceRealisation(sortieCut) {
+  masquerPlanIllustreRealisation(sortieCut);
   const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
   if (pelouse) { pelouse.style.transform = 'scale(1)'; pelouse.classList.remove('live-pelouse--vibration'); }
   ['live-ballon', 'live-joueur-home', 'live-joueur-away'].forEach(id => {
@@ -3580,13 +3713,15 @@ function executerSequenceRealisation(sequence, instant, def, club) {
   const planTerrainUnique = terrainPlans.length === 1;
   let offset = 0;
   let kTerrain = 0;
+  let sortieCutAttendue = false; // sortie du DERNIER plan illustre programme -- lue par le plan suivant, ou par idFin
   sequence.plans.forEach(plan => {
     const debutPlan = offset;
     if (plan.type === 'terrain') {
       const zoneCible = zonesTerrain[kTerrain];
+      const sortiePrecedente = sortieCutAttendue;
       const idT = setTimeout(() => {
         if (_liveViewerAfficheCanoniqueEnCours) return;
-        masquerPlanIllustreRealisation();
+        masquerPlanIllustreRealisation(sortiePrecedente);
         appliquerCadrageTerrain(plan);
         if (planTerrainUnique && def.trajet.length > 1) {
           // Sequence a un seul plan terrain (cas le plus frequent) : on conserve la marche fluide
@@ -3609,6 +3744,7 @@ function executerSequenceRealisation(sequence, instant, def, club) {
       _liveViewerTimeoutsAnimation.push(idT);
       kTerrain++;
     } else {
+      sortieCutAttendue = plan.transitionSortie === 'cut';
       const idT = setTimeout(() => {
         if (_liveViewerAfficheCanoniqueEnCours) return;
         appliquerPlanIllustreRealisation(plan, instant, def, club);
@@ -3620,7 +3756,7 @@ function executerSequenceRealisation(sequence, instant, def, club) {
 
   const idFin = setTimeout(() => {
     if (_liveViewerAfficheCanoniqueEnCours) return;
-    reinitialiserSceneApresSequenceRealisation();
+    reinitialiserSceneApresSequenceRealisation(sortieCutAttendue);
   }, offset);
   _liveViewerTimeoutsAnimation.push(idFin);
 }

@@ -121,6 +121,9 @@
    a besoin d'une keyframe. Purement decoratif, aucun asset. */
 @keyframes live-realisateur-vibration { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
 .live-pelouse--vibration { animation: live-realisateur-vibration .28s ease-in-out 2; }
+/* Crash-test "ras du sol" (28 aout 2026) : meme keyframe de vibration, reutilisable sur n'importe
+   quel element (ex. l'overlay illustre, qui porte deja sa propre transform inline de zoom/pan). */
+.live-realisateur-vibration-appliquee { animation: live-realisateur-vibration .28s ease-in-out 2; }
 
 .live-insert-bd { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .3s; text-align: center; padding: .6rem; }
 .live-insert-bd-fond { position: absolute; inset: 0; background: radial-gradient(circle, rgba(10,8,5,.94), rgba(10,8,5,.98)); }
@@ -129,6 +132,9 @@
 .live-insert-bd-texte { position: relative; font-family: 'Bebas Neue', sans-serif; font-size: .82rem; letter-spacing: .04em; color: #f0ead6; max-width: 90%; }
 @keyframes live-insert-bd-entree { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
 .live-insert-bd-visible { opacity: 1; pointer-events: auto; animation: live-insert-bd-entree .35s ease-out; }
+/* Entree CUT (chorégraphie PLAN_ILLUSTRE, crash-test "ras du sol", 28 aout 2026) : plus specifique
+   que .live-insert-bd-visible seule, desactive le fondu/scale-in par defaut -- apparition instantanee. */
+.live-insert-bd-instant.live-insert-bd-visible { animation: none; opacity: 1; }
 .live-insert-bd-but .live-insert-bd-texte { color: #C9A84C; font-size: 1rem; }
 .live-insert-bd-carton .live-insert-bd-texte { color: #d4c04a; }
 .live-insert-bd-blessure .live-insert-bd-texte { color: #cc9a80; }
