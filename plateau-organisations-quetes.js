@@ -3810,6 +3810,69 @@ function trouverSequenceCrashTestRasDuSol(instant) {
   return null; // ne devrait jamais arriver (~4.7% de chances par tirage, 500 essais tres largement suffisants)
 }
 
+// Sequence B "3 angles" (test de montage, 29 aout 2026) : hypothese testee, le spectaculaire
+// vient du montage/changement d'angle plus que du seul mouvement dans une image fixe.
+// EXCLUSIVEMENT dans la preview -- volontairement absente de GABARITS_MONTAGE_REALISATEUR/
+// POOL_GABARITS_REALISATEUR, donc jamais selectionnable en match reel par genererSequenceRealisation.
+// Construite DIRECTEMENT avec les memes champs qu'un plan produit par genererSequenceRealisation
+// (type/dureeMs/transition/transitionSortie/couches), executee par la VRAIE
+// executerSequenceRealisation -- aucun second moteur d'animation. Chaque plan coupe EN PLEIN
+// MOUVEMENT (derniere etape jamais "posee"), sauf le dernier (C) qui suspend brievement + vibre
+// juste avant le cut de sortie -- pour donner l'illusion d'une action continue malgre le
+// changement brutal d'angle/d'image. Duree totale : 450+400+400 = 1250ms (cible 1,2-1,4s).
+// executerSequenceRealisation/jouerChoreographieCouche ne lisent jamais ces objets, ils sont en
+// lecture seule pour ce chantier -- reutilisable tel quel sans clonage entre deux relances.
+const SEQUENCE_PREVIEW_3_ANGLES = {
+  plans: [
+    { // PLAN A -- camera ras-du-sol frontale, mouvement rapide vers l'action, cut en plein mouvement.
+      type: 'illustre', dureeMs: 450, transition: 'cut', transitionSortie: 'cut',
+      couches: [{
+        nom: 'placeholder', asset: 'images/football-plan-ras-du-sol-01.png', mouvement: 'dynamique',
+        etapes: [
+          { t: 0, cadrage: { scale: 1,    x: 0, y: 0,  rotation: 0 },  easing: 'linear' },
+          { t: 1, cadrage: { scale: 1.35, x: 0, y: -3, rotation: -1 }, easing: 'ease-in' }
+        ]
+      }]
+    },
+    { // PLAN B -- angle lateral tres bas, travelling horizontal rapide, part deja "en mouvement"
+      // (scale/pan de depart superieurs a l'etat neutre) pour prolonger la sensation du plan A.
+      type: 'illustre', dureeMs: 400, transition: 'cut', transitionSortie: 'cut',
+      couches: [{
+        nom: 'placeholder', asset: 'images/football-duel-angle-02.png', mouvement: 'dynamique',
+        etapes: [
+          { t: 0, cadrage: { scale: 1.15, x: -4, y: 0, rotation: 0 },  easing: 'linear' },
+          { t: 1, cadrage: { scale: 1.3,  x: 10, y: 0, rotation: .5 }, easing: 'ease-in' }
+        ]
+      }]
+    },
+    { // PLAN C -- tres proche du ballon/des jambes, mouvement plus court, tres bref ralentissement/
+      // suspension (ease-out sur le dernier segment) + micro-vibration d'impact avant le cut de sortie.
+      type: 'illustre', dureeMs: 400, transition: 'cut', transitionSortie: 'cut',
+      couches: [{
+        nom: 'placeholder', asset: 'images/football-duel-angle-03.png', mouvement: 'dynamique',
+        etapes: [
+          { t: 0,  cadrage: { scale: 1.4,  x: 0, y: -2, rotation: 0 },   easing: 'linear' },
+          { t: .7, cadrage: { scale: 1.55, x: 0, y: -3, rotation: -.5 }, easing: 'ease-in' },
+          { t: 1,  cadrage: { scale: 1.6,  x: 0, y: -3, rotation: -.5 }, easing: 'ease-out' }
+        ],
+        vibrationAuMoment: .9
+      }]
+    }
+  ]
+};
+
+// Declenche une sequence (A ou B) via la VRAIE executerSequenceRealisation, avec le meme
+// nettoyage-avant-relance que fermerLiveMatchReel (jamais de timer orphelin entre deux clics,
+// quel que soit le bouton). Factorise entre les deux boutons -- aucune duplication de logique.
+function lancerSequencePreview(sequence, def, club, instant) {
+  if (!sequence) return;
+  _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
+  _liveViewerTimeoutsAnimation = [];
+  const label = document.getElementById('live-action-label');
+  if (label) label.textContent = def.label + ' — ' + club.nom; // meme habillage que jouerMicroAction
+  executerSequenceRealisation(sequence, instant, def, club);
+}
+
 function initPreviewRealisateur() {
   if (new URLSearchParams(window.location.search).get('footballPreview') !== '1') return;
   if (document.getElementById('live-mini-terrain')) return; // un live reel est deja monte sur cette page, on n'interfere pas
@@ -3823,22 +3886,20 @@ function initPreviewRealisateur() {
   panneau.id = 'preview-realisateur-panneau';
   panneau.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:500;width:340px;max-width:90vw;background:#0d0b05;border:1px solid #8a6a20;padding:.9rem;font-family:inherit;box-shadow:0 4px 20px rgba(0,0,0,.6)';
   panneau.innerHTML =
-    '<div style="font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:.85rem;margin-bottom:.6rem">🎬 PREVIEW RÉALISATEUR — plan ras du sol</div>' +
+    '<div style="font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:.85rem;margin-bottom:.6rem">🎬 PREVIEW RÉALISATEUR — comparaison A / B</div>' +
     '<div id="preview-realisateur-mont"></div>' +
-    '<button id="preview-realisateur-btn" style="width:100%;margin-top:.6rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">▶ Rejouer le plan</button>' +
-    '<div style="font-size:.68rem;color:#7a6a48;margin-top:.5rem">Outil de mise au point — aucune écriture championnat, aucun PA, aucun effet canonique.</div>';
+    '<button id="preview-realisateur-btn-a" style="width:100%;margin-top:.6rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">▶ A — Plan unique</button>' +
+    '<button id="preview-realisateur-btn-b" style="width:100%;margin-top:.4rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #6a9aca;background:transparent;color:#6a9aca;cursor:pointer">▶ B — Séquence 3 angles</button>' +
+    '<div style="font-size:.68rem;color:#7a6a48;margin-top:.5rem">Outil de mise au point — aucune écriture championnat, aucun PA, aucun effet canonique. B n\'apparaît jamais en match réel.</div>';
   document.body.appendChild(panneau);
 
   document.getElementById('preview-realisateur-mont').innerHTML = construireSceneMiniTerrain('preview-crash-test', home, away);
 
-  document.getElementById('preview-realisateur-btn').addEventListener('click', () => {
-    // Meme nettoyage que fermerLiveMatchReel : jamais de timer orphelin entre deux declenchements.
-    _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
-    _liveViewerTimeoutsAnimation = [];
-    const label = document.getElementById('live-action-label');
-    if (label) label.textContent = def.label + ' — ' + home.nom; // meme habillage que jouerMicroAction
-    const sequence = trouverSequenceCrashTestRasDuSol(instant);
-    if (sequence) executerSequenceRealisation(sequence, instant, def, home);
+  document.getElementById('preview-realisateur-btn-a').addEventListener('click', () => {
+    lancerSequencePreview(trouverSequenceCrashTestRasDuSol(instant), def, home, instant);
+  });
+  document.getElementById('preview-realisateur-btn-b').addEventListener('click', () => {
+    lancerSequencePreview(SEQUENCE_PREVIEW_3_ANGLES, def, home, instant);
   });
 }
 window.addEventListener('DOMContentLoaded', initPreviewRealisateur);
