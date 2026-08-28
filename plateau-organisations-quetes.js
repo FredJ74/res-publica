@@ -3819,13 +3819,17 @@ function trouverSequenceCrashTestRasDuSol(instant) {
 // executerSequenceRealisation -- aucun second moteur d'animation. Chaque plan coupe EN PLEIN
 // MOUVEMENT (derniere etape jamais "posee"), sauf le dernier (C) qui suspend brievement + vibre
 // juste avant le cut de sortie -- pour donner l'illusion d'une action continue malgre le
-// changement brutal d'angle/d'image. Duree totale : 450+400+400 = 1250ms (cible 1,2-1,4s).
+// changement brutal d'angle/d'image. Duree totale : 700+650+900 = 2250ms (ajustee le 29 aout
+// 2026 -- rythme initial de 1250ms juge trop rapide ; les etapes de choregraphie sont deja
+// exprimees en fractions relatives (t: 0..1), donc elles s'adaptent naturellement a ces nouvelles
+// durees sans aucune autre modification : A reste en acceleration au cut, B reste en travelling
+// au cut, C conserve son ralentissement/suspension final + micro-impact).
 // executerSequenceRealisation/jouerChoreographieCouche ne lisent jamais ces objets, ils sont en
 // lecture seule pour ce chantier -- reutilisable tel quel sans clonage entre deux relances.
 const SEQUENCE_PREVIEW_3_ANGLES = {
   plans: [
     { // PLAN A -- camera ras-du-sol frontale, mouvement rapide vers l'action, cut en plein mouvement.
-      type: 'illustre', dureeMs: 450, transition: 'cut', transitionSortie: 'cut',
+      type: 'illustre', dureeMs: 700, transition: 'cut', transitionSortie: 'cut',
       couches: [{
         nom: 'placeholder', asset: 'images/football-plan-ras-du-sol-01.png', mouvement: 'dynamique',
         etapes: [
@@ -3836,7 +3840,7 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
     },
     { // PLAN B -- angle lateral tres bas, travelling horizontal rapide, part deja "en mouvement"
       // (scale/pan de depart superieurs a l'etat neutre) pour prolonger la sensation du plan A.
-      type: 'illustre', dureeMs: 400, transition: 'cut', transitionSortie: 'cut',
+      type: 'illustre', dureeMs: 650, transition: 'cut', transitionSortie: 'cut',
       couches: [{
         nom: 'placeholder', asset: 'images/football-duel-angle-02.png', mouvement: 'dynamique',
         etapes: [
@@ -3847,7 +3851,7 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
     },
     { // PLAN C -- tres proche du ballon/des jambes, mouvement plus court, tres bref ralentissement/
       // suspension (ease-out sur le dernier segment) + micro-vibration d'impact avant le cut de sortie.
-      type: 'illustre', dureeMs: 400, transition: 'cut', transitionSortie: 'cut',
+      type: 'illustre', dureeMs: 900, transition: 'cut', transitionSortie: 'cut',
       couches: [{
         nom: 'placeholder', asset: 'images/football-duel-angle-03.png', mouvement: 'dynamique',
         etapes: [
