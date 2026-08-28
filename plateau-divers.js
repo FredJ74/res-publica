@@ -240,6 +240,25 @@ function getIndiceNationalCalcule(pays, cle) {
 
 const NOMS_VILLES_REPUBLIA = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
 
+// Correctif d'identite ville/club (28 aout 2026) : generalise NOMS_VILLES_REPUBLIA (conservee
+// telle quelle, encore utilisee directement par son nom a plusieurs endroits) aux 3 autres
+// empires -- jusqu'ici sans nom de ville canonique pour ville_a/ville_b, uniquement les noms de
+// capitale (COUNTRIES[pays].capitaleName). Additif uniquement : ne remplace ni ne renomme
+// NOMS_VILLES_REPUBLIA, n'ajoute aucune nouvelle mecanique, juste la donnee + un petit resolveur
+// generique reutilisable partout ou un code de ville (capitale/ville_a/ville_b) doit s'afficher.
+const NOMS_VILLES_PAR_PAYS = {
+  republic: NOMS_VILLES_REPUBLIA,
+  soviet:   { capitale: 'Novomirsk', ville_a: 'Starovka', ville_b: 'Krasnov' },
+  narco:    { capitale: 'Ciudad Roja', ville_a: 'Puerto Negro', ville_b: 'Villa Sangre' },
+  khalija:  { capitale: 'Al Madina', ville_a: 'Oasis City', ville_b: 'Al-Petrol' }
+};
+// Renvoie le nom reel d'une ville pour un pays donne -- jamais le code brut (capitale/ville_a/
+// ville_b) si une correspondance existe ; repli sur le code lui-meme sinon (memes garanties que
+// les usages existants de NOMS_VILLES_REPUBLIA[v] || v).
+function resoudreNomVille(pays, ville) {
+  return (NOMS_VILLES_PAR_PAYS[pays] && NOMS_VILLES_PAR_PAYS[pays][ville]) || ville;
+}
+
 function rendreGrilleIndices(idx, col) {
   let html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem">';
   [['ISN','Securite','#4a8a4a'],['IE','Eco','#C9A84C'],['ID','Diplo','#4a6aaa'],['IS','Social','#aa6a4a'],['IP','Piété','#8a4a8a']].forEach(([k,label,c]) => {

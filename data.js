@@ -6545,19 +6545,25 @@ const TYPES_ORGANISATIONS = {
 // =====================
 // CHAMPIONNAT SPORTIF — 12 clubs, un par ville
 // =====================
+// Correctif d'identite ville/club (28 aout 2026) : seuls les libelles affiches (nom) sont
+// corriges ici pour correspondre aux villes/empires canoniques desormais fixes -- id/country/
+// city/stadeBuilding/valeurBase/vedettes INCHANGES (cles persistees dans championnat.data,
+// budgets_clubs, presidents_clubs, licence_sportive.clubId, paris_sportifs -- voir l'audit
+// prealable). Independiente de Villa Sangre porte le surnom d'univers "Los Sangrilleros" --
+// donnee de lore uniquement, aucune mecanique associee dans ce lot.
 const CLUBS_SPORTIFS = [
-  { id:'olympique-luthecia',    nom:'Olympique de Luthécia',        country:'republic', city:'capitale', stadeBuilding:'stade', valeurBase:72, vedettes:['Marco Frappesec','Julien Contrapied'] },
-  { id:'brise-mariannaise',     nom:'La Brise Mariannaise',         country:'republic', city:'ville_a',  stadeBuilding:'stade', valeurBase:60, vedettes:['Yann Ecume','Loic Maree'] },
-  { id:'cheminote-montrouge',   nom:'Union Cheminote de Montrouge', country:'republic', city:'ville_b',  stadeBuilding:'stade', valeurBase:63, vedettes:['Momo Charbon','Sami Rail'] },
-  { id:'rojos-cartel',          nom:'Rojos del Cartel',             country:'narco',    city:'capitale', stadeBuilding:'stade', valeurBase:68, vedettes:['El Pistolero','Diego Gatillo'] },
-  { id:'fronterizos-unidos',    nom:'Fronterizos Unidos',           country:'narco',    city:'ville_a',  stadeBuilding:'stade', valeurBase:58, vedettes:['Chuy Frontera','Beto Contrabando'] },
-  { id:'jaguares-selva',        nom:'Jaguares de la Selva',         country:'narco',    city:'ville_b',  stadeBuilding:'stade', valeurBase:61, vedettes:['Jaguar Rios','Tigre Verde'] },
-  { id:'dynamo-novomirsk',      nom:'Dynamo Novomirsk',             country:'soviet',   city:'capitale', stadeBuilding:'stade', valeurBase:74, vedettes:['Ivan Marteau','Boris Faucille'] },
-  { id:'spartak-sibirsk',       nom:'Spartak Sibirsk-9',            country:'soviet',   city:'ville_a',  stadeBuilding:'stade', valeurBase:57, vedettes:['Yuri Glacon','Piotr Frimas'] },
-  { id:'kolkhoze-ouvrier',      nom:'Kolkhoze Ouvrier FC',          country:'soviet',   city:'ville_b',  stadeBuilding:'stade', valeurBase:59, vedettes:['Sacha Tracteur','Vania Recolte'] },
-  { id:'nadi-al-madina',        nom:'Nadi Al-Madina',               country:'khalija',  city:'capitale', stadeBuilding:'stade', valeurBase:70, vedettes:['Karim Falcon','Youssef Sable'] },
-  { id:'al-baraka-fc',          nom:'Al-Baraka FC',                 country:'khalija',  city:'ville_a',  stadeBuilding:'stade', valeurBase:56, vedettes:['Malik Oasis','Rashid Caravane'] },
-  { id:'sharq-al-nour',         nom:'Sharq Al-Nour',                country:'khalija',  city:'ville_b',  stadeBuilding:'stade', valeurBase:62, vedettes:['Tarek Petrole','Hamza Tanker'] }
+  { id:'olympique-luthecia',    nom:'Olympique de Luthécia',            country:'republic', city:'capitale', stadeBuilding:'stade', valeurBase:72, vedettes:['Marco Frappesec','Julien Contrapied'] },
+  { id:'brise-mariannaise',     nom:'La Brise Mariannaise',             country:'republic', city:'ville_a',  stadeBuilding:'stade', valeurBase:60, vedettes:['Yann Ecume','Loic Maree'] },
+  { id:'cheminote-montrouge',   nom:'Union Cheminote de Montrouge',     country:'republic', city:'ville_b',  stadeBuilding:'stade', valeurBase:63, vedettes:['Momo Charbon','Sami Rail'] },
+  { id:'rojos-cartel',          nom:'Estudiantes de la Ciudad',         country:'narco',    city:'capitale', stadeBuilding:'stade', valeurBase:68, vedettes:['El Pistolero','Diego Gatillo'] },
+  { id:'fronterizos-unidos',    nom:'Atlético Puerto Negro',            country:'narco',    city:'ville_a',  stadeBuilding:'stade', valeurBase:58, vedettes:['Chuy Frontera','Beto Contrabando'] },
+  { id:'jaguares-selva',        nom:'Independiente de Villa Sangre',    country:'narco',    city:'ville_b',  stadeBuilding:'stade', valeurBase:61, vedettes:['Jaguar Rios','Tigre Verde'] },
+  { id:'dynamo-novomirsk',      nom:'Dynamo Novomirsk',                 country:'soviet',   city:'capitale', stadeBuilding:'stade', valeurBase:74, vedettes:['Ivan Marteau','Boris Faucille'] },
+  { id:'spartak-sibirsk',       nom:'Partizan de Starovka',             country:'soviet',   city:'ville_a',  stadeBuilding:'stade', valeurBase:57, vedettes:['Yuri Glacon','Piotr Frimas'] },
+  { id:'kolkhoze-ouvrier',      nom:'Étoile Rouge de Krasnov',          country:'soviet',   city:'ville_b',  stadeBuilding:'stade', valeurBase:59, vedettes:['Sacha Tracteur','Vania Recolte'] },
+  { id:'nadi-al-madina',        nom:'Shabab Al Madina',                 country:'khalija',  city:'capitale', stadeBuilding:'stade', valeurBase:70, vedettes:['Karim Falcon','Youssef Sable'] },
+  { id:'al-baraka-fc',          nom:'Oasis City FC',                    country:'khalija',  city:'ville_a',  stadeBuilding:'stade', valeurBase:56, vedettes:['Malik Oasis','Rashid Caravane'] },
+  { id:'sharq-al-nour',         nom:'Al-Petrol United FC',              country:'khalija',  city:'ville_b',  stadeBuilding:'stade', valeurBase:62, vedettes:['Tarek Petrole','Hamza Tanker'] }
 ];
 
 const ORGA_ORDRE_RANG_MIN = {
