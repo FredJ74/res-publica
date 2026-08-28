@@ -69,6 +69,29 @@
 .live-event-marqueur { justify-content: center; text-align: center; border-left: none; border-top: 1px solid #2a2010; border-bottom: 1px solid #2a2010; font-family: 'Bebas Neue', sans-serif; letter-spacing: .08em; color: #C9A84C; padding: .6rem; margin: .3rem 0; }
 @keyframes live-event-entree { from { opacity: 0; transform: translateX(-8px); background-color: rgba(201,168,76,.35); } to { opacity: 1; transform: translateX(0); } }
 .live-event-nouveau { animation: live-event-entree .6s ease-out; }
+
+/* ===== TRIBUNES ACTIVES (chantier "supporters", 28 aout 2026) ===== */
+.live-choix-camp { border: 1px solid #C9A84C; background: rgba(201,168,76,.06); padding: .8rem; margin-bottom: .9rem; text-align: center; }
+.live-choix-camp-titre { font-family: 'Bebas Neue', sans-serif; font-size: .82rem; letter-spacing: .08em; color: #C9A84C; margin-bottom: .6rem; }
+.live-choix-camp-boutons { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; }
+.live-choix-camp-boutons button { font-family: 'Bebas Neue', sans-serif; font-size: .74rem; letter-spacing: .06em; padding: .5rem .9rem; border: 1px solid #4a6a8a; background: transparent; color: #6a9aca; cursor: pointer; flex: 1; min-width: 100px; }
+.live-choix-camp-boutons button:hover { background: rgba(106,154,202,.12); }
+
+.live-panneau { border: 1px solid #2a2010; background: #0a0805; padding: .7rem; margin-bottom: .8rem; }
+.live-panneau-titre { font-family: 'Bebas Neue', sans-serif; font-size: .72rem; letter-spacing: .12em; color: #8a6a20; margin-bottom: .5rem; }
+
+.live-tribunes-grille { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.live-tribune-camp { border: 1px solid #2a2010; padding: .5rem; }
+.live-tribune-entete { display: flex; justify-content: space-between; align-items: baseline; font-size: .78rem; color: #c0b090; margin-bottom: .4rem; }
+.live-tribune-entete b { color: #C9A84C; font-family: 'Bebas Neue', sans-serif; letter-spacing: .04em; }
+.live-tribune-noms { display: flex; flex-wrap: wrap; gap: .3rem; }
+.live-tribune-nom { font-size: .68rem; color: #9a8a60; border: 1px solid #2a2010; padding: .1rem .4rem; background: #121005; }
+
+.live-terrain-equipes { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.live-terrain-club { font-family: 'Bebas Neue', sans-serif; font-size: .74rem; letter-spacing: .06em; color: #8a8060; margin-bottom: .35rem; border-bottom: 1px solid #2a2010; padding-bottom: .25rem; }
+.live-terrain-joueur { font-size: .74rem; color: #b0a080; padding: .15rem 0; }
+@keyframes live-terrain-actif-pulse { 0%,100% { color: #C9A84C; } 50% { color: #f0ead6; } }
+.live-terrain-joueur-actif { animation: live-terrain-actif-pulse 1.4s ease-in-out 2; font-weight: 600; }
 </style>
   <link rel="stylesheet" href="rue-centrale.css?v=126">
 </head>
@@ -279,6 +302,7 @@
           <div class="rules-tab piece-tab" data-section="politique" onclick="renderRulesContent('politique');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Politique</div>
           <div class="rules-tab piece-tab" data-section="interactions" onclick="renderRulesContent('interactions');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Interactions</div>
           <div class="rules-tab piece-tab" data-section="economie" onclick="renderRulesContent('economie');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Économie</div>
+          <div class="rules-tab piece-tab" data-section="sport" onclick="renderRulesContent('sport');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">⚽ Football</div>
           <div class="rules-tab piece-tab" data-section="religion" onclick="renderRulesContent('religion');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Religions</div>
         </div>
       </div>

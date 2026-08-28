@@ -2115,11 +2115,88 @@ function tenterBlessureLive(live, cote, club, titulaires, minute) {
 // jamais genere pour une minute non encore atteinte par l'horloge reelle (voir phaseMatchActuelle) :
 // meme lors d'un rattrapage tardif (client revenu apres la fin du match), les evenements des
 // minutes intermediaires sont tires ICI, au moment du rattrapage -- jamais pre-decides avant.
-function avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible) {
+// =====================================================================
+// TRIBUNES ACTIVES (chantier "supporters", 28 aout 2026)
+// =====================================================================
+// Choix de camp : PERSISTANT pour un match donne (live.supportersChoix[nom] = 'home'|'away'|
+// 'neutre'), ecrit une seule fois via CAS (choisirCampSupporter), jamais modifiable ensuite --
+// aucun mecanisme de changement de camp n'existe. Presence ACTIVE : jamais persistee comme telle,
+// toujours recalculee a la volee depuis le systeme de presence deja existant du jeu
+// (sbGetPresencesInRoom, rafraichi automatiquement toutes les 30s par tout client present --
+// plateau-core.js). Un supporter ne compte donc que si les DEUX conditions sont vraies au moment
+// du calcul : un choix de camp enregistre pour CE match, et une presence active dans le Stade/
+// Terrain de la ville hote. Fermer la modale du live ne touche ni l'un ni l'autre.
+// =====================================================================
+
+// Ecrit le choix de camp d'UN joueur pour UN match, une seule fois (immuable ensuite). CAS avec
+// quelques tentatives bornees -- action rare (une fois par joueur par match), aucune file
+// d'attente necessaire contrairement au moteur de match lui-meme.
+async function choisirCampSupporter(journeeNumero, matchIdx, choix) {
+  const nom = state.char?.name;
+  if (!nom) return false;
+  for (let tentative = 0; tentative < 5; tentative++) {
+    const charge = await chargerChampionnatAvecVersion();
+    if (!charge) return false;
+    const { saison, version } = charge;
+    const journee = saison.calendrier.find(j => j.numero === journeeNumero);
+    const m = journee?.matchs?.[matchIdx];
+    if (!m || !m.live || m.played) return false;
+    if (!m.live.supportersChoix) m.live.supportersChoix = {};
+    if (m.live.supportersChoix[nom]) return true; // deja choisi pour ce match -- immuable, rien a faire
+    m.live.supportersChoix[nom] = choix;
+    const cas = await ecrireChampionnatCAS(saison, version);
+    if (cas.ok) return true;
+    // course perdue -- retente sur l'etat frais (un autre client a ecrit entre-temps)
+  }
+  return false;
+}
+
+// Effectif ACTIF de chaque camp a l'instant present : choix persistant ET presence active ET
+// jamais un titulaire (deja engage sportivement, section 12 -- pas de double comptage). Une seule
+// lecture reseau (presence), reutilisable pour le calcul du bonus ET pour l'affichage (compteurs +
+// noms, jamais la formule -- voir rendu du live).
+async function compterSupportersActifs(clubHome, clubAway, live) {
+  const vide = { home: { count: 0, noms: [] }, away: { count: 0, noms: [] } };
+  if (!live?.supportersChoix || typeof sbGetPresencesInRoom !== 'function') return vide;
+  const presents = await sbGetPresencesInRoom(clubHome.country, clubHome.city, clubHome.stadeBuilding || 'stade', 'terrain').catch(() => []);
+  const nomsPresents = new Set((presents || []).map(p => p.name));
+  const titulaires = new Set([
+    ...((live.compositionFigee?.home?.titulaires || []).map(t => t.nom)),
+    ...((live.compositionFigee?.away?.titulaires || []).map(t => t.nom))
+  ]);
+  const homeNoms = [], awayNoms = [];
+  for (const [nom, choix] of Object.entries(live.supportersChoix)) {
+    if (!nomsPresents.has(nom) || titulaires.has(nom)) continue;
+    if (choix === 'home') homeNoms.push(nom);
+    else if (choix === 'away') awayNoms.push(nom);
+  }
+  return { home: { count: homeNoms.length, noms: homeNoms }, away: { count: awayNoms.length, noms: awayNoms } };
+}
+
+// Ecart GLOBAL maximal entre les deux equipes (regle validee) : D = supporters domicile -
+// exterieur, impactGlobal = 5*tanh(D/6) -- D=0 -> 0, D=5 -> ~3.4, D=10 -> ~4.7, jamais plus de 5.
+// Positif favorise le domicile. Correctif du 28 aout 2026 : appliquer +impactGlobal a domicile ET
+// -impactGlobal a l'exterieur DOUBLE l'ecart reel (jusqu'a ~9.4 a D=10 au lieu du plafond de 5
+// specifie) -- l'appelant (avancerEvenementsJusqua) doit repartir la moitie de cette valeur de
+// chaque cote pour que l'ECART TOTAL entre les deux equipes reste plafonne a ~5, jamais chaque
+// cote individuellement. Repli sans Math.tanh (deja standard, mais defensif).
+function bonusTribunes(countHome, countAway) {
+  const d = countHome - countAway;
+  const t = (typeof Math.tanh === 'function') ? Math.tanh(d / 6) : (Math.exp(d / 3) - 1) / (Math.exp(d / 3) + 1);
+  return 5 * t;
+}
+
+function avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible, impactGlobalTribunes) {
   const titHome = live.compositionFigee.home.titulaires;
   const titAway = live.compositionFigee.away.titulaires;
-  const tauxButHome = (live.forceHome || 0) / 28; // meme formule que l'ancien simulerMatch (buts = round(force/28 + bruit))
-  const tauxButAway = (live.forceAway || 0) / 28;
+  // Bonus tribunes (deja calcule pour cet appel, voir progresserMatchLive) applique au TAUX,
+  // jamais retroactivement : seuls les evenements generes a partir de maintenant en tiennent
+  // compte -- ceux deja dans live.evenements restent inchanges. La MOITIE de l'ecart global est
+  // appliquee de chaque cote (+ a domicile, - a l'exterieur) afin que l'ECART TOTAL entre les deux
+  // equipes reste plafonne a la valeur calibree (~5), jamais le double.
+  const b = (impactGlobalTribunes || 0) / 2;
+  const tauxButHome = Math.max(0, (live.forceHome || 0) + b) / 28; // meme formule que l'ancien simulerMatch (buts = round(force/28 + bruit))
+  const tauxButAway = Math.max(0, (live.forceAway || 0) - b) / 28;
   while (live.minuteGeneree < minuteCible) {
     live.minuteGeneree++;
     const m = live.minuteGeneree;
@@ -2143,7 +2220,7 @@ async function progresserMatchLive(clubHome, clubAway, match, kickoff, phaseInfo
     match.live = {
       kickoffAt: kickoff.toISOString(), statut: 'a_venir', compositionFigee: null,
       forceHome: null, forceAway: null, scoreHome: 0, scoreAway: 0, minuteGeneree: 0,
-      evenements: [], blessures: [], effetsRestants: []
+      evenements: [], blessures: [], effetsRestants: [], supportersChoix: {}
     };
   }
   const live = match.live;
@@ -2171,6 +2248,7 @@ async function progresserMatchLive(clubHome, clubAway, match, kickoff, phaseInfo
     modifie = true;
   }
   if (!live.compositionFigee) return modifie; // trop tot (a_venir)
+  if (!live.supportersChoix) live.supportersChoix = {}; // retro-compat : matchs deja commences avant ce chantier
 
   const ordre = ['echauffement', 'mt1', 'mitemps', 'mt2', 'termine'];
   const idxCible = ordre.indexOf(phaseInfo.statut === 'a_venir' ? 'echauffement' : phaseInfo.statut);
@@ -2180,9 +2258,18 @@ async function progresserMatchLive(clubHome, clubAway, match, kickoff, phaseInfo
     live.statut = 'mt1';
     modifie = true;
   }
+  // Effectifs des tribunes releves juste avant CHAQUE generation d'evenements (pas de precision a
+  // la milliseconde requise, section 19 -- mais recalcule separement pour mt1 et pour mt2 au cas
+  // ou les deux transitions seraient rattrapees dans le meme appel, pour ne jamais utiliser un
+  // effectif perime). Aucun evenement sportif pendant l'echauffement/la mi-temps, donc aucun
+  // bonus a calculer a ces moments (section 5).
   if (live.statut === 'mt1') {
     const minuteCible = idxCible >= ordre.indexOf('mitemps') ? 45 : (phaseInfo.minuteFictive || 0);
-    if (minuteCible > live.minuteGeneree) { avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible); modifie = true; }
+    if (minuteCible > live.minuteGeneree) {
+      const supportersActuels = await compterSupportersActifs(clubHome, clubAway, live);
+      avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible, bonusTribunes(supportersActuels.home.count, supportersActuels.away.count));
+      modifie = true;
+    }
     if (idxCible >= ordre.indexOf('mitemps')) {
       live.evenements.push({
         minute: 45, atRealTime: maintenant, type: 'mitemps', club: null, joueur: null,
@@ -2199,7 +2286,11 @@ async function progresserMatchLive(clubHome, clubAway, match, kickoff, phaseInfo
   }
   if (live.statut === 'mt2') {
     const minuteCible = idxCible >= ordre.indexOf('termine') ? 90 : (phaseInfo.minuteFictive || 45);
-    if (minuteCible > live.minuteGeneree) { avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible); modifie = true; }
+    if (minuteCible > live.minuteGeneree) {
+      const supportersActuels = await compterSupportersActifs(clubHome, clubAway, live);
+      avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible, bonusTribunes(supportersActuels.home.count, supportersActuels.away.count));
+      modifie = true;
+    }
     if (idxCible >= ordre.indexOf('termine')) {
       live.statut = 'termine';
       live.evenements.push({
@@ -3393,14 +3484,100 @@ async function rafraichirLiveMatchReel() {
   const kickoff = new Date(live.kickoffAt);
   const phaseInfo = phaseMatchActuelle(kickoff, new Date());
 
+  // Dernier joueur mis en evidence : le plus recent evenement NOUVEAU (jamais encore rendu) qui
+  // implique un vrai PJ -- purement cosmetique, section 9.
+  let joueurEnEvidence = null;
+  for (let i = live.evenements.length - 1; i >= _liveViewerNbEvenementsConnus; i--) {
+    if (live.evenements[i].joueur) { joueurEnEvidence = live.evenements[i].joueur; break; }
+  }
+
   document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
   let html = '<div class="live-container">';
   html += renderEnTeteLive(home, away, live.scoreHome, live.scoreAway, phaseInfo);
+
+  // Choix de camp : propose uniquement a un vrai spectateur (jamais a un titulaire, deja engage
+  // sportivement) n'ayant pas encore choisi pour CE match -- immuable une fois fait.
+  const moi = state.char?.name;
+  const jeSuisTitulaire = moi && (
+    live.compositionFigee.home.titulaires.some(t => t.nom === moi) ||
+    live.compositionFigee.away.titulaires.some(t => t.nom === moi)
+  );
+  if (moi && !jeSuisTitulaire && !(live.supportersChoix && live.supportersChoix[moi])) {
+    html += renderChoixCamp(_liveViewerRef.journeeNumero, _liveViewerRef.matchIdx, home, away);
+  }
+
+  const supporters = await compterSupportersActifs(home, away, live).catch(() => ({ home: { count: 0, noms: [] }, away: { count: 0, noms: [] } }));
+  html += renderPanneauTribunes(supporters, home, away);
+  html += renderPanneauTerrain(live, home, away, joueurEnEvidence);
+
   html += '<div class="live-fil-evenements" id="live-fil-evenements">';
   live.evenements.forEach((e, i) => { html += renderCarteEvenementLive(e, i >= _liveViewerNbEvenementsConnus); });
   html += '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
   _liveViewerNbEvenementsConnus = live.evenements.length;
+}
+
+function renderChoixCamp(journeeNumero, matchIdx, home, away) {
+  let html = '<div class="live-choix-camp">';
+  html += '<div class="live-choix-camp-titre">Quel camp soutenez-vous ?</div>';
+  html += '<div class="live-choix-camp-boutons">';
+  html += '<button onclick="confirmerChoixCampSupporter(' + journeeNumero + ',' + matchIdx + ',\'home\')">' + home.nom + '</button>';
+  html += '<button onclick="confirmerChoixCampSupporter(' + journeeNumero + ',' + matchIdx + ',\'away\')">' + away.nom + '</button>';
+  html += '<button onclick="confirmerChoixCampSupporter(' + journeeNumero + ',' + matchIdx + ',\'neutre\')">Spectateur neutre</button>';
+  html += '</div></div>';
+  return html;
+}
+
+async function confirmerChoixCampSupporter(journeeNumero, matchIdx, choix) {
+  await choisirCampSupporter(journeeNumero, matchIdx, choix);
+  await rafraichirLiveMatchReel();
+}
+
+// Effectifs des tribunes -- affiche les NOMBRES ET LES NOMS (jamais la formule/le calcul interne,
+// section 7/8).
+function renderPanneauTribunes(supporters, home, away) {
+  let html = '<div class="live-panneau">';
+  html += '<div class="live-panneau-titre">TRIBUNES</div>';
+  html += '<div class="live-tribunes-grille">';
+  [{ club: home, s: supporters.home }, { club: away, s: supporters.away }].forEach(cote => {
+    html += '<div class="live-tribune-camp">';
+    html += '<div class="live-tribune-entete"><span>' + cote.club.nom + '</span><b>' + cote.s.count + ' supporter' + (cote.s.count > 1 ? 's' : '') + '</b></div>';
+    if (cote.s.noms.length) {
+      html += '<div class="live-tribune-noms">' + cote.s.noms.map(n => '<span class="live-tribune-nom">' + n + '</span>').join('') + '</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+// Vrais titulaires de la composition figee, identifiables par leur nom -- jamais de caracteristique
+// privee affichee, uniquement les evenements du match auquel ils ont deja ete meles (section 9).
+function renderPanneauTerrain(live, home, away, joueurEnEvidence) {
+  function icones(nom) {
+    let but = 0, carton = 0, blessure = 0;
+    (live.evenements || []).forEach(e => {
+      if (e.joueur !== nom) return;
+      if (e.type === 'but') but++; else if (e.type === 'carton') carton++; else if (e.type === 'blessure') blessure++;
+    });
+    let s = '';
+    if (but) s += ' ' + '⚽'.repeat(Math.min(but, 3));
+    if (carton) s += ' 🟨';
+    if (blessure) s += ' 🚑';
+    return s;
+  }
+  function listeCote(titulaires) {
+    return (titulaires || []).map(t =>
+      '<div class="live-terrain-joueur' + (t.nom === joueurEnEvidence ? ' live-terrain-joueur-actif' : '') + '">' + t.nom + icones(t.nom) + '</div>'
+    ).join('');
+  }
+  let html = '<div class="live-panneau">';
+  html += '<div class="live-panneau-titre">SUR LE TERRAIN</div>';
+  html += '<div class="live-terrain-equipes">';
+  html += '<div class="live-terrain-camp"><div class="live-terrain-club">' + home.nom + '</div>' + listeCote(live.compositionFigee.home.titulaires) + '</div>';
+  html += '<div class="live-terrain-camp"><div class="live-terrain-club">' + away.nom + '</div>' + listeCote(live.compositionFigee.away.titulaires) + '</div>';
+  html += '</div></div>';
+  return html;
 }
 
 // "SOIR DE MATCH !" (chantier "football live", 28 aout 2026, section 9) -- ouverte automatiquement
@@ -3449,7 +3626,43 @@ async function tickFootballLive() {
     state._soirDeMatchAffichePour = null;
   }
 
+  verifierPopupRepriseStade(saison);
   renderBadgeFootballLive(verrou, saison);
+}
+
+// "LE MATCH REPREND !" (section 6, chantier "supporters", 28 aout 2026) -- des que la seconde
+// periode commence, tout PJ actuellement dans l'enceinte du Stade (n'importe quelle piece : la
+// buvette y compris, section 5) de la ville hote reçoit cette pop-up une seule fois par match
+// (garde state._repriseAffichePour). Fermer la fenetre ne bloque rien -- juste une invitation.
+function verifierPopupRepriseStade(saison) {
+  const actuel = trouverJourneeLiveActuelle(saison);
+  if (!actuel || actuel.phaseInfo.statut !== 'mt2') return;
+  if (!state.char?.name || !state.currentBuilding || !state.currentCity) return;
+
+  for (let idx = 0; idx < actuel.journee.matchs.length; idx++) {
+    const m = actuel.journee.matchs[idx];
+    if (m.played || !m.live || m.live.statut !== 'mt2') continue;
+    const clubHome = getClub(m.home);
+    const matchKey = actuel.journee.numero + '-' + m.home + '-' + m.away;
+    if (state._repriseAffichePour === matchKey) continue;
+    const dansEnceinte = state.country === clubHome.country && state.currentCity === clubHome.city
+      && state.currentBuilding === (clubHome.stadeBuilding || 'stade');
+    if (!dansEnceinte) continue;
+    state._repriseAffichePour = matchKey;
+    ouvrirPopupRepriseStade(actuel.journee.numero, idx);
+    return;
+  }
+}
+
+function ouvrirPopupRepriseStade(journeeNumero, matchIdx) {
+  document.getElementById('postes-modal-title').textContent = 'Football';
+  let html = '<div class="soir-de-match">';
+  html += '<div class="soir-de-match-titre" style="font-size:1.5rem">LE MATCH REPREND !</div>';
+  html += '<div class="soir-de-match-texte">Videz vos verres, le match reprend.<br>On a besoin de vous !</div>';
+  html += '<button onclick="ouvrirLiveMatchReel(' + journeeNumero + ',' + matchIdx + ')" class="soir-de-match-bouton">Retourner en tribune</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 // Badge persistant (topbar) -- accessible, jamais cache/obscur (section 10) : visible pour un
@@ -4701,10 +4914,12 @@ function doAcheterAccessoirePersonnalise() {
   showToast('Bientôt disponible', 'La personnalisation (nom, numéro) sera réservée aux comptes premium.', false);
 }
 
+// Reutilise calculerKickoffJournee (source canonique unique de l'heure des matchs, deja utilisee
+// par le moteur live) -- jamais une deuxieme source d'heure recalculee independamment (section 14).
 function formatDateJournee(saison, numero) {
-  const debut = new Date(saison.dateDebut);
-  const dateMatch = new Date(debut.getTime() + (numero - 1) * 7 * 86400000);
-  return dateMatch.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const kickoff = calculerKickoffJournee(saison, numero);
+  return kickoff.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+    ' à ' + kickoff.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
 async function doObserverMatch() {

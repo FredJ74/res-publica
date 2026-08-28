@@ -65,7 +65,16 @@ const PNJ_PERSONALITIES = {
   'Natasha Privilege': { trait: "Reservee aux cadres du Parti. Tres bien informee sur les deliberations internes. Ce qu'elle entend reste confidentiel — sauf si on lui demande poliment.", style: "distinction sovietique, formules du Parti recyclees, discretion absolue sur demande express" },
 
   // Reporters
-  'Jodie Moitout':     { trait: "Journaliste micro-trottoir de L'Autruche Entravee. Tend son micro a n'importe qui, n'importe ou, n'importe quand. Les gens lui disent tout sans savoir pourquoi. Son sourire est une arme.", style: "enthousiasme journalistique communicatif, questions anodines aux reponses explosives, micro tendu en permanence" }
+  'Jodie Moitout':     { trait: "Journaliste micro-trottoir de L'Autruche Entravee. Tend son micro a n'importe qui, n'importe ou, n'importe quand. Les gens lui disent tout sans savoir pourquoi. Son sourire est une arme.", style: "enthousiasme journalistique communicatif, questions anodines aux reponses explosives, micro tendu en permanence" },
+
+  // Meneurs des Supporters (chantier "tribunes actives", 28 aout 2026) : referents de la regle
+  // football/supporters (job 'meneur_supporters', Siege des Supporters de chaque Stade). Alfredo
+  // Mifassole est le meneur nomme de Luthecia (roomOverride existant, voir
+  // getMeneurSupportersLocal) ; l'entree generique couvre PSM/Montrouge, ou aucun PNJ dedie
+  // n'existe encore -- meme registre pour les deux, jamais de chiffre ni de formule en RP (voir
+  // "Consulter la regle", plateau-pnj.js, pour le detail HRP).
+  'Alfredo Mifassole (PNJ)': { trait: "Meneur historique des Tribunes de l'Olympique de Luthécia, voix rauque à force de gueuler depuis les grilles. Convaincu qu'un stade vide perd le match avant le coup d'envoi. N'a jamais raté un match à domicile depuis vingt ans et le fait savoir. Considère qu'un supporter dans les tribunes vaut mieux qu'un supporter dans son canapé, et le dit sans détour à qui veut l'entendre.", style: "gouailleur, mobilisateur, tutoie tout le monde, vocabulaire de tribune (« ramenez du monde », « la tribune pousse », « on les entend d'ici »), jamais de chiffre ni de terme technique" },
+  'Meneur des Supporters (PNJ)': { trait: "Responsable des tribunes locales, moins connu qu'un meneur historique mais tout aussi convaincu qu'un stade qui pousse pèse sur le match. Rappelle volontiers qu'on peut arriver en cours de match sans être pénalisé, et que ce qui compte, c'est d'être vraiment là, pas de regarder de loin.", style: "chaleureux, direct, mobilisateur, vocabulaire de tribune, jamais de chiffre ni de terme technique" }
 };
 
 // Registre minimal nom PNJ -> photoUrl (correctif du 21 aout 2026, avatar de Jodie dans Mail/

@@ -859,6 +859,13 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" style="color:#4a8a6a;border-color:#2a5a3a" onclick="ouvrirLeverExcommunicationCible()"><i class="ti ti-shield-check" style="font-size:.85rem"></i> Lever une excommunication (Grand Prêtre)</button>';
   }
 
+  // Meneur des Supporters, referent de la regle football/tribunes (chantier "tribunes actives",
+  // 28 aout 2026) -- meme mecanisme que "Consulter la regle" ci-dessus (openRulesView/
+  // renderRulesContent, section 'sport'), jamais un nouveau systeme d'aide.
+  if (!isPJ && pnj.job === 'meneur_supporters') {
+    actionBtns += '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');openRulesView();renderRulesContent(\'sport\');" style="color:#8a9aca;border-color:#2a3a5a"><i class="ti ti-book" style="font-size:.85rem"></i> Consulter la règle</button>';
+  }
+
   const objetsDispos = (state.inventory || []).filter(i => i.type !== 'acte_officiel');
   if (objetsDispos.length > 0) {
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirDonObjetPnjModal(\'' + enc + '\')"><i class="ti ti-package" style="font-size:.85rem"></i> Donner un objet</button>';

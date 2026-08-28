@@ -242,6 +242,35 @@ LE FORUM — Accessible depuis le bouton "Forum" en haut. C'est l'espace de comm
 • Forum Syndical — Réservé aux syndicalistes
 Pour créer un sujet : bouton "Nouveau sujet". Pour répondre : bouton "Répondre" dans le sujet. L'éditeur permet la mise en forme (gras, souligné, centrage) et l'insertion d'images. Les sujets créés sont visibles de tous les membres du forum concerné.`
   },
+  sport: {
+    titre: '⚽ Football — Matchs en direct',
+    contenu: `Le championnat de football est un vrai rendez-vous en temps réel, pas un simple tableau de résultats.
+
+DURÉE RÉELLE D'UN MATCH
+• Échauffement — 5 minutes réelles avant le coup d'envoi
+• Première période — 10 minutes réelles (0' à 45')
+• Mi-temps — 5 minutes réelles, aucun événement sportif ne se produit
+• Seconde période — 10 minutes réelles (45' à 90')
+Un titulaire est automatiquement engagé dans le match dès le début de l'échauffement, connecté ou non — inutile de garder une fenêtre ouverte pendant 30 minutes. Le personnage reste indisponible pour toute autre démarche le temps du match.
+
+SUIVRE LE MATCH
+• « Suivre le foot », au Stade, ouvre le direct si un match est en cours, sinon le résumé du dernier match joué. Gratuit, aucun coût en PA.
+• Arriver en cours de match ne pénalise jamais : vous rejoignez directement la phase, le score et les événements déjà survenus, jamais depuis le début.
+• Fermer la fenêtre ne fait perdre ni le direct ni votre soutien — un bouton visible permet de la rouvrir à tout moment.
+
+CHOISIR SON CAMP
+• La première fois que vous rejoignez le direct d'un match, on vous demande quelle équipe vous soutenez — domicile, extérieur, ou simple spectateur neutre. Choix totalement libre, sans aucune obligation liée à votre ville, votre pays ou vos organisations.
+• Ce choix vaut uniquement pour ce match, et n'est plus modifiable une fois fait — impossible de changer de camp parce que l'adversaire prend l'avantage.
+
+LES TRIBUNES PÈSENT SUR LE MATCH
+• Seuls les supporters réellement présents dans les tribunes du Stade, au moment où le match se joue, comptent pour leur équipe.
+• Si vous quittez les tribunes, votre soutien cesse temporairement de compter ; si vous revenez, il recompte aussitôt, sans délai ni pénalité.
+• Plus une équipe rassemble de supporters actifs par rapport à l'autre, plus elle est avantagée — mais cet effet reste toujours limité, même face à une tribune très largement dominante : il ne garantit jamais la victoire. La qualité sportive des joueurs reste le facteur principal.
+• Les effectifs des deux tribunes, ainsi que les noms des supporters présents, sont affichés dans le direct.
+• Un titulaire sur le terrain compte comme joueur, jamais en plus comme supporter.
+
+Le Meneur des Supporters, au Siège des Supporters du Stade, peut vous en dire plus.`
+  },
   religion: {
     titre: 'Les Religions',
     contenu: `Chaque empire possède sa propre religion officielle, source de cohésion sociale et de pouvoir politique.
