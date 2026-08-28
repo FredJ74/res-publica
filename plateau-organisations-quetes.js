@@ -3784,6 +3784,65 @@ function executerSequenceRealisation(sequence, instant, def, club) {
   _liveViewerTimeoutsAnimation.push(idFin);
 }
 
+// =====================================================================
+// PREVIEW REALISATEUR (outil de mise au point, 29 aout 2026)
+// =====================================================================
+// Outil de developpement STRICTEMENT local/decoratif, actif UNIQUEMENT si l'URL contient
+// ?footballPreview=1 (une seule verification a DOMContentLoaded, aucun autre branchement --
+// absent du parametre, cette section entiere ne fait strictement rien). Reutilise TEL QUEL le
+// vrai executeur (executerSequenceRealisation) et le vrai generateur (genererSequenceRealisation)
+// -- aucune imitation parallele. Le shell DOM est construit via la VRAIE construireSceneMiniTerrain
+// (memes ids/classes que le live reel), avec deux clubs REELS (getClub), jamais de donnee
+// fictive. Aucune lecture/ecriture championnat, aucun appel Supabase, aucun PA, aucun effet
+// canonique -- tout se joue en memoire/DOM, exactement comme la couche decorative existante.
+function trouverSequenceCrashTestRasDuSol(instant) {
+  // genererSequenceRealisation est pure (aucun effet de bord) : on peut l'appeler a blanc autant
+  // de fois que necessaire pour retomber sur le gabarit qui porte un `asset` reel -- jamais une
+  // modification du pool ni de ses probabilites, seulement une recherche du seed adequat parmi
+  // ceux deja possibles en production.
+  for (let i = 0; i < 500; i++) {
+    const sequence = genererSequenceRealisation('preview-crash-test-' + i, { microAction: instant.type, cote: instant.cote });
+    const p = sequence.plans[0];
+    if (sequence.plans.length === 1 && p.type === 'illustre' && p.couches && p.couches[0] && p.couches[0].asset) {
+      return sequence;
+    }
+  }
+  return null; // ne devrait jamais arriver (~4.7% de chances par tirage, 500 essais tres largement suffisants)
+}
+
+function initPreviewRealisateur() {
+  if (new URLSearchParams(window.location.search).get('footballPreview') !== '1') return;
+  if (document.getElementById('live-mini-terrain')) return; // un live reel est deja monte sur cette page, on n'interfere pas
+
+  const home = getClub('olympique-luthecia');
+  const away = getClub('cheminote-montrouge');
+  const def = CATALOGUE_MICRO_ACTIONS['duel'];
+  const instant = { type: 'duel', cote: 'home' };
+
+  const panneau = document.createElement('div');
+  panneau.id = 'preview-realisateur-panneau';
+  panneau.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:500;width:340px;max-width:90vw;background:#0d0b05;border:1px solid #8a6a20;padding:.9rem;font-family:inherit;box-shadow:0 4px 20px rgba(0,0,0,.6)';
+  panneau.innerHTML =
+    '<div style="font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:.85rem;margin-bottom:.6rem">🎬 PREVIEW RÉALISATEUR — plan ras du sol</div>' +
+    '<div id="preview-realisateur-mont"></div>' +
+    '<button id="preview-realisateur-btn" style="width:100%;margin-top:.6rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">▶ Rejouer le plan</button>' +
+    '<div style="font-size:.68rem;color:#7a6a48;margin-top:.5rem">Outil de mise au point — aucune écriture championnat, aucun PA, aucun effet canonique.</div>';
+  document.body.appendChild(panneau);
+
+  document.getElementById('preview-realisateur-mont').innerHTML = construireSceneMiniTerrain('preview-crash-test', home, away);
+
+  document.getElementById('preview-realisateur-btn').addEventListener('click', () => {
+    // Meme nettoyage que fermerLiveMatchReel : jamais de timer orphelin entre deux declenchements.
+    _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
+    _liveViewerTimeoutsAnimation = [];
+    const label = document.getElementById('live-action-label');
+    if (label) label.textContent = def.label + ' — ' + home.nom; // meme habillage que jouerMicroAction
+    const sequence = trouverSequenceCrashTestRasDuSol(instant);
+    if (sequence) executerSequenceRealisation(sequence, instant, def, home);
+  });
+}
+window.addEventListener('DOMContentLoaded', initPreviewRealisateur);
+
 // Genere UNE FOIS (puis met en cache) la chronologie deterministe d'une phase de jeu (mt1/mt2) --
 // jamais un metronome fixe (intervalles irreguliers), jamais recalculee differemment pour deux
 // spectateurs (seed = identite stable matchKey+phase, jamais une tranche de temps arrondie).
