@@ -3331,10 +3331,259 @@ let _liveViewerInterval = null;
 let _liveViewerRef = null; // {journeeNumero, matchIdx}
 let _liveViewerNbEvenementsConnus = 0;
 
+// =====================================================================
+// MOTEUR VISUEL DU MATCH (chantier "V1 moteur visuel", 28 aout 2026)
+// =====================================================================
+// Couche STRICTEMENT locale/decorative. N'ecrit jamais dans championnat.data, ne modifie jamais
+// live.scoreHome/Away/evenements/compositionFigee, ne relit jamais une donnee sportive qui
+// n'existe pas deja cote client. avancerFootballLive/avancerEvenementsJusqua/progresserMatchLive
+// ne sont ni appeles differemment ni modifies par ce chantier -- uniquement leurs SORTIES deja
+// lues par rafraichirLiveMatchReel (live.evenements, live.scoreHome/Away, live.compositionFigee,
+// live.kickoffAt, live.statut) et les fonctions pures deja existantes (phaseMatchActuelle,
+// calculerKickoffJournee, DUREE_*) sont reutilisees en LECTURE SEULE pour deriver l'horloge et
+// les limites de phase -- jamais une deuxieme horloge sportive.
+// =====================================================================
+let _liveViewerTickVisuel = null;          // setInterval 500ms, purement local
+let _liveViewerSceneEtat = null;           // {live, home, away, matchKey} -- alimente par rafraichirLiveMatchReel, lu par le tick visuel
+let _liveViewerSceneMatchKey = null;       // matchKey du shell DOM actuellement monte (pour savoir s'il faut le reconstruire)
+let _liveViewerScenarioCache = {};         // { 'matchKey-phase': [...instants deterministes] }
+let _liveViewerDernierInstantAffiche = null;
+let _liveViewerFileCanonique = [];         // evenements canoniques nouveaux, en attente d'affichage prioritaire
+let _liveViewerAfficheCanoniqueEnCours = false;
+let _liveViewerPremierRafraichissement = true; // evite de "rejouer" en insert tous les evenements deja passes a l'ouverture
+let _liveViewerTimeoutsAnimation = [];     // setTimeout d'animation en cours, nettoyes a la fermeture
+let _liveViewerPortraitsCache = {};        // { matchKey: { nom: photoUrl|null } }
+let _liveViewerNomsSupportersConnus = { home: [], away: [] };
+
 function fermerLiveMatchReel() {
   if (_liveViewerInterval) { clearInterval(_liveViewerInterval); _liveViewerInterval = null; }
+  arreterTickVisuel();
+  _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
+  _liveViewerTimeoutsAnimation = [];
   _liveViewerRef = null;
   _liveViewerNbEvenementsConnus = 0;
+  _liveViewerSceneEtat = null;
+  _liveViewerSceneMatchKey = null;
+  _liveViewerDernierInstantAffiche = null;
+  _liveViewerFileCanonique = [];
+  _liveViewerAfficheCanoniqueEnCours = false;
+  _liveViewerPremierRafraichissement = true;
+  _liveViewerNomsSupportersConnus = { home: [], away: [] };
+}
+
+// ---- Generateur deterministe (mulberry32) -- jamais utilise pour un calcul sportif, uniquement
+// pour choisir QUAND et QUEL TYPE de micro-action decorative afficher. ----
+function hashChaineVersUint32(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function creerPRNGDeterministe(seedUint32) {
+  let a = seedUint32 >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// ---- Catalogue V1 des micro-actions narratives (section 7) -- purement visuel, jamais ecrit. ----
+// trajet : indices dans ZONES_TERRAIN (0=but de l'equipe agissante, 6=but adverse), toujours
+// exprimes du point de vue de l'equipe qui agit (miroir applique a l'affichage selon le cote).
+const CLES_ZONES_TERRAIN = ['but-propre', 'defense', 'milieu-recul', 'centre', 'milieu-avance', 'attaque', 'but-adverse'];
+const CATALOGUE_MICRO_ACTIONS = {
+  circulation:  { label: 'Circulation du ballon', trajet: [2, 3, 4],    duree: 2400 },
+  duel:         { label: 'Duel au sol',           trajet: [3],          duree: 1700 },
+  interception: { label: 'Interception',          trajet: [3, 2],       duree: 1500 },
+  course:       { label: 'Course offensive',      trajet: [3, 4, 5],    duree: 2600 },
+  degagement:   { label: 'Dégagement',            trajet: [1, 2, 3],    duree: 1400 },
+  sortie:       { label: 'Ballon sorti',          trajet: [4],          duree: 1100 },
+  touche:       { label: 'Touche',                trajet: [4],          duree: 1500 },
+  remise:       { label: 'Remise en jeu',         trajet: [4, 3],       duree: 1800 },
+  centre:       { label: 'Centre',                trajet: [5, 6],       duree: 1700 },
+  frappe:       { label: 'Frappe !',              trajet: [6],          duree: 1300 },
+  arret:        { label: 'Arrêt du gardien',      trajet: [6],          duree: 1300 }
+};
+const CLES_TYPES_MICRO_ACTION = Object.keys(CATALOGUE_MICRO_ACTIONS);
+
+// Genere UNE FOIS (puis met en cache) la chronologie deterministe d'une phase de jeu (mt1/mt2) --
+// jamais un metronome fixe (intervalles irreguliers), jamais recalculee differemment pour deux
+// spectateurs (seed = identite stable matchKey+phase, jamais une tranche de temps arrondie).
+// Un spectateur qui ouvre en cours de periode calcule EXACTEMENT la meme chronologie et se
+// positionne simplement a l'instant present -- jamais une animation qui repart de zero.
+function genererScenarioNarratifPhase(matchKey, phaseKey, dureePhaseSec) {
+  const cle = matchKey + '-' + phaseKey;
+  if (_liveViewerScenarioCache[cle]) return _liveViewerScenarioCache[cle];
+  const rng = creerPRNGDeterministe(hashChaineVersUint32(cle));
+  const scenario = [];
+  let t = 1 + rng() * 3;
+  while (t < dureePhaseSec - 2) {
+    const cote = rng() < 0.5 ? 'home' : 'away';
+    const type = CLES_TYPES_MICRO_ACTION[Math.floor(rng() * CLES_TYPES_MICRO_ACTION.length)];
+    scenario.push({ t, type, cote });
+    // Une remise en jeu se raconte en plusieurs temps (section 7) : ballon sorti -> touche ->
+    // remise, enchaines naturellement plutot que trois tirages independants.
+    if (type === 'sortie') {
+      t += 1.1 + rng() * 0.6; scenario.push({ t, type: 'touche', cote });
+      t += 1.4 + rng() * 0.8; scenario.push({ t, type: 'remise', cote });
+    }
+    // Une frappe narrative peut se resoudre par un arret local -- jamais garanti, jamais un signal
+    // fiable qu'un but canonique va suivre (section 8 : pas de "grammaire qui trahit le futur").
+    if (type === 'frappe' && rng() < 0.6) {
+      t += 0.9 + rng() * 0.5; scenario.push({ t, type: 'arret', cote: cote === 'home' ? 'away' : 'home' });
+    }
+    t += 2 + rng() * 7; // intervalle irregulier avant la sequence suivante
+  }
+  _liveViewerScenarioCache[cle] = scenario;
+  return scenario;
+}
+
+// Dernier instant du scenario dont le temps ecoule (t) est deja atteint -- purement une lecture
+// de l'horloge reelle, jamais un evenement futur montre en avance.
+function trouverInstantNarratifActuel(scenario, tEcouleSec) {
+  let courant = null;
+  for (const instant of scenario) {
+    if (instant.t > tEcouleSec) break;
+    courant = instant;
+  }
+  return courant;
+}
+
+// Limites reelles d'une phase, deduites UNIQUEMENT de live.kickoffAt (horloge canonique unique)
+// et des constantes de duree deja existantes (DUREE_ECHAUFFEMENT_MS/DUREE_MT1_MS/DUREE_PAUSE_MS/
+// DUREE_MT2_MS, definies plus haut dans ce fichier pour le moteur -- jamais redefinies ici).
+function calculerLimitesPhase(kickoffAtDate, statut) {
+  const k = kickoffAtDate.getTime();
+  if (statut === 'echauffement') return { debut: k - DUREE_ECHAUFFEMENT_MS, duree: DUREE_ECHAUFFEMENT_MS };
+  if (statut === 'mt1') return { debut: k, duree: DUREE_MT1_MS };
+  if (statut === 'mitemps') return { debut: k + DUREE_MT1_MS, duree: DUREE_PAUSE_MS };
+  if (statut === 'mt2') return { debut: k + DUREE_MT1_MS + DUREE_PAUSE_MS, duree: DUREE_MT2_MS };
+  return { debut: k + DUREE_MT1_MS + DUREE_PAUSE_MS + DUREE_MT2_MS, duree: 0 };
+}
+
+// ---- Tick visuel (section 3) : intervalle local uniquement, jamais un appel reseau -- fait
+// progresser le chrono affiche et la narration entre deux refresh de rafraichirLiveMatchReel
+// (6s). Demarre/arrete avec la fenetre de live, jamais laisse tourner apres fermeture. ----
+function demarrerTickVisuel() {
+  arreterTickVisuel();
+  _liveViewerTickVisuel = setInterval(tickVisuelScene, 500);
+  tickVisuelScene();
+}
+function arreterTickVisuel() {
+  if (_liveViewerTickVisuel) { clearInterval(_liveViewerTickVisuel); _liveViewerTickVisuel = null; }
+}
+
+function formaterChronoLive(phaseInfo) {
+  if (phaseInfo.statut === 'echauffement') return 'ÉCHAUFFEMENT';
+  if (phaseInfo.statut === 'mitemps') return 'MI-TEMPS';
+  if (phaseInfo.statut === 'termine') return 'TERMINÉ';
+  const m = phaseInfo.minuteFictive != null ? phaseInfo.minuteFictive : 0;
+  return m + "'";
+}
+
+// Positions (%) des 7 zones le long du terrain, du but propre (0%) au but adverse (100%) --
+// purement decoratif.
+const POSITIONS_ZONES_POURCENT = [8, 22, 36, 50, 64, 78, 92];
+
+function positionnerBallon(indexZoneAbsolu) {
+  const ballon = document.getElementById('live-ballon');
+  if (!ballon) return;
+  const pct = POSITIONS_ZONES_POURCENT[Math.max(0, Math.min(6, indexZoneAbsolu))];
+  ballon.style.left = pct + '%';
+  ballon.style.top = (28 + Math.random() * 44) + '%'; // leger flottement vertical, purement esthetique
+}
+function positionnerJoueur(cote, indexZoneAbsolu) {
+  const el = document.getElementById('live-joueur-' + cote);
+  if (!el) return;
+  const pct = POSITIONS_ZONES_POURCENT[Math.max(0, Math.min(6, indexZoneAbsolu))];
+  el.style.left = pct + '%';
+}
+
+// Joue UNE sequence narrative locale : deplace le ballon/les jetons joueurs a travers le trajet
+// de la micro-action, affiche son libelle, puis revient a une position neutre. Purement visuel --
+// aucune donnee sportive lue ni ecrite ici.
+function jouerMicroAction(instant, home, away) {
+  const def = CATALOGUE_MICRO_ACTIONS[instant.type];
+  if (!def) return;
+  const club = instant.cote === 'home' ? home : away;
+  const label = document.getElementById('live-action-label');
+  if (label) label.textContent = def.label + ' — ' + club.nom;
+
+  const scene = document.getElementById('live-mini-terrain');
+  if (scene) { scene.classList.add('live-mini-terrain--actif'); scene.classList.remove('live-mini-terrain--echauffement', 'live-mini-terrain--mitemps'); }
+
+  const pas = def.duree / Math.max(1, def.trajet.length);
+  def.trajet.forEach((idxZone, i) => {
+    const idT = setTimeout(() => {
+      const zoneAbsolue = instant.cote === 'home' ? idxZone : (6 - idxZone);
+      positionnerBallon(zoneAbsolue);
+      positionnerJoueur(instant.cote, zoneAbsolue);
+    }, i * pas);
+    _liveViewerTimeoutsAnimation.push(idT);
+  });
+  const idFin = setTimeout(() => {
+    positionnerBallon(3);
+    positionnerJoueur('home', 2); positionnerJoueur('away', 4);
+    const l = document.getElementById('live-action-label');
+    if (l) l.textContent = '';
+  }, def.duree + 900);
+  _liveViewerTimeoutsAnimation.push(idFin);
+}
+
+// Ambiance hors phase de jeu (section 13) : echauffement calme, mi-temps arretee (aucune
+// narration sportive, n'interfere ni avec la buvette ni avec le systeme supporters), fin figee.
+function afficherAmbiancePhase(statut) {
+  const label = document.getElementById('live-action-label');
+  const scene = document.getElementById('live-mini-terrain');
+  if (!scene) return;
+  scene.classList.remove('live-mini-terrain--actif');
+  if (statut === 'echauffement') {
+    scene.classList.add('live-mini-terrain--echauffement');
+    scene.classList.remove('live-mini-terrain--mitemps');
+    if (label) label.textContent = "Échauffement…";
+    positionnerBallon(3); positionnerJoueur('home', 2); positionnerJoueur('away', 4);
+  } else if (statut === 'mitemps') {
+    scene.classList.add('live-mini-terrain--mitemps');
+    scene.classList.remove('live-mini-terrain--echauffement');
+    if (label) label.textContent = 'Pause — les joueurs regagnent les vestiaires.';
+  } else if (statut === 'termine') {
+    if (label) label.textContent = 'Match terminé.';
+  }
+}
+
+// Point d'entree du tick 500ms. File d'attente des evenements canoniques TOUJOURS prioritaire sur
+// la narration locale (section 8/9) -- jamais l'inverse, jamais de melange des deux en meme temps.
+function tickVisuelScene() {
+  if (!_liveViewerRef || !_liveViewerSceneEtat) return;
+  const { live, home, away, matchKey } = _liveViewerSceneEtat;
+  const kickoff = new Date(live.kickoffAt);
+  const phaseInfo = phaseMatchActuelle(kickoff, new Date());
+
+  const chronoEl = document.getElementById('live-chrono');
+  if (chronoEl) chronoEl.textContent = formaterChronoLive(phaseInfo);
+
+  if (_liveViewerFileCanonique.length && !_liveViewerAfficheCanoniqueEnCours) {
+    const ev = _liveViewerFileCanonique.shift();
+    afficherInsertCanonique(ev, matchKey);
+    return;
+  }
+  if (_liveViewerAfficheCanoniqueEnCours) return; // laisse l'insert en cours se terminer avant toute narration
+
+  if (phaseInfo.statut !== 'mt1' && phaseInfo.statut !== 'mt2') {
+    afficherAmbiancePhase(phaseInfo.statut);
+    return;
+  }
+
+  const limites = calculerLimitesPhase(kickoff, phaseInfo.statut);
+  const tEcouleSec = (Date.now() - limites.debut) / 1000;
+  if (tEcouleSec < 0) return; // pas encore dans cette phase
+  const scenario = genererScenarioNarratifPhase(matchKey, phaseInfo.statut, limites.duree / 1000);
+  const instant = trouverInstantNarratifActuel(scenario, tEcouleSec);
+  if (instant && instant !== _liveViewerDernierInstantAffiche) {
+    _liveViewerDernierInstantAffiche = instant;
+    jouerMicroAction(instant, home, away);
+  }
 }
 
 const LABELS_PHASE_LIVE = {
@@ -3344,6 +3593,100 @@ const ICONES_EVENEMENT_LIVE = {
   composition: '📋', debut: '🟢', but: '⚽', occasion: '💥', carton: '🟨', action: 'ℹ️',
   blessure: '🚑', mitemps: '⏸️', reprise: '🔄', fin: '🏁'
 };
+
+// ---- Portraits PJ (section 11) : reutilise personnages.photo_url (colonne existante, deja lue
+// ailleurs dans le jeu -- getPnjAvatar/sbSavePersonnage). Meme patron que sbListJoueursLicencies
+// (lecture large filtree cote client, jamais un champ prive comme performance_sportive). Cache
+// par match : une seule lecture reseau, jamais relue a chaque tick 6s. ----
+async function chargerPortraitsMatch(matchKey, live) {
+  if (_liveViewerPortraitsCache[matchKey]) return _liveViewerPortraitsCache[matchKey];
+  const cache = {};
+  const noms = [
+    ...(live.compositionFigee?.home?.titulaires || []).map(t => t.nom),
+    ...(live.compositionFigee?.away?.titulaires || []).map(t => t.nom)
+  ];
+  if (typeof sbGet === 'function' && noms.length) {
+    // Correctif du 28 aout 2026 : cible desormais UNIQUEMENT les ~22 titulaires de CE match (OR de
+    // name.eq., chaque valeur encodee individuellement -- meme patron que name=eq.${encodeURIComponent(...)}
+    // deja utilise partout ailleurs dans ce fichier, jamais un in.() quote a la main), au lieu de
+    // lire tous les joueurs licencies puis filtrer cote client. select limite a name,photo_url.
+    const filtre = 'or=(' + noms.map(n => 'name.eq.' + encodeURIComponent(n)).join(',') + ')&select=name,photo_url';
+    const rows = await sbGet('personnages', filtre).catch(() => []);
+    (rows || []).forEach(r => { cache[r.name] = r.photo_url || null; });
+  }
+  _liveViewerPortraitsCache[matchKey] = cache;
+  return cache;
+}
+
+// Rendu d'un portrait -- fallback generique propre si aucune photo, jamais de tentative
+// d'attribuer une photo a un nom fictif (club.vedettes) : ces noms n'apparaissent jamais dans le
+// cache (construit uniquement a partir de compositionFigee, jamais des vedettes de repli).
+function rendrePortraitJoueur(nom, matchKey, taillePx) {
+  const taille = taillePx || 32;
+  const url = (_liveViewerPortraitsCache[matchKey] || {})[nom];
+  if (url) {
+    return '<img src="' + url + '" class="live-portrait-joueur" style="width:' + taille + 'px;height:' + taille + 'px" alt="' + nom.replace(/"/g, '') + '"/>';
+  }
+  return '<div class="live-portrait-joueur live-portrait-fallback" style="width:' + taille + 'px;height:' + taille + 'px"><i class="ti ti-user"></i></div>';
+}
+
+// ---- Insert "BD" (section 10) : conteneur en couches (fond/action/portrait/texte), CACHE par
+// defaut. Affiche un PLACEHOLDER esthetique et clairement identifiable par type d'evenement
+// canonique -- aucune illustration definitive ; le futur asset remplacera le fond/l'action sans
+// changement de structure (mêmes ids, mêmes couches). ----
+function afficherInsertCanonique(evenement, matchKey) {
+  _liveViewerAfficheCanoniqueEnCours = true;
+  const insert = document.getElementById('live-insert-bd');
+  if (!insert) { _liveViewerAfficheCanoniqueEnCours = false; return; }
+  const actionEl = document.getElementById('live-insert-bd-action');
+  const portraitEl = document.getElementById('live-insert-bd-portrait');
+  const texteEl = document.getElementById('live-insert-bd-texte');
+
+  const icone = ICONES_EVENEMENT_LIVE[evenement.type] || '⚽';
+  if (actionEl) actionEl.textContent = icone;
+  if (texteEl) texteEl.textContent = evenement.texte || '';
+  if (portraitEl) portraitEl.innerHTML = evenement.joueur ? rendrePortraitJoueur(evenement.joueur, matchKey, 64) : '';
+
+  const label = document.getElementById('live-action-label');
+  if (label) label.textContent = '';
+
+  insert.className = 'live-insert-bd live-insert-bd-visible live-insert-bd-' + evenement.type;
+
+  const idT = setTimeout(() => {
+    insert.classList.remove('live-insert-bd-visible');
+    insert.className = 'live-insert-bd';
+    _liveViewerAfficheCanoniqueEnCours = false;
+  }, 3400);
+  _liveViewerTimeoutsAnimation.push(idT);
+}
+
+// ---- Tribunes visuelles (section 12) : densite + message discret d'arrivee, purement
+// decoratifs. compterSupportersActifs() reste l'unique source (deja existante, mecanique
+// sportive inchangee) -- ici uniquement un diff LOCAL de deux instantanes successifs pour
+// detecter une arrivee, jamais une nouvelle persistance. ----
+function mettreAJourTribunesVisuelles(supporters) {
+  ['home', 'away'].forEach(cote => {
+    const dotsEl = document.getElementById('live-tribune-' + cote + '-dots');
+    if (dotsEl) {
+      const n = Math.min(supporters[cote].count, 24);
+      dotsEl.innerHTML = '<span class="live-tribune-dot"></span>'.repeat(n);
+    }
+    if (!_liveViewerPremierRafraichissement) {
+      const anciens = _liveViewerNomsSupportersConnus[cote] || [];
+      const arrivee = supporters[cote].noms.find(n => !anciens.includes(n));
+      if (arrivee) afficherMessageTribune(arrivee + ' rejoint les tribunes ' + (cote === 'home' ? 'domicile' : 'extérieur') + ' !');
+    }
+    _liveViewerNomsSupportersConnus[cote] = supporters[cote].noms;
+  });
+}
+function afficherMessageTribune(texte) {
+  const el = document.getElementById('live-message-tribune');
+  if (!el) return;
+  el.textContent = texte;
+  el.classList.remove('live-message-tribune-visible');
+  void el.offsetWidth; // force le reflow pour pouvoir rejouer l'animation d'entree
+  el.classList.add('live-message-tribune-visible');
+}
 
 function classeEvenementLive(type) {
   if (type === 'but') return 'live-event live-event-but';
@@ -3440,6 +3783,45 @@ function ouvrirResumeMatch(numeroJournee, matchIdx) {
   });
 }
 
+// Construit UNE FOIS le shell persistant du mini-terrain (section 5) : pelouse, ballon, jetons
+// joueurs, tribunes symboliques, insert BD (placeholder), chrono/libelle d'action. N'est plus
+// jamais recree tant que le match regarde reste le meme -- rafraichirLiveMatchReel ne fait ensuite
+// que des mises a jour CIBLEES de ses sous-elements (textContent/className/style), jamais un
+// remplacement d'innerHTML de ce bloc.
+function construireSceneMiniTerrain(matchKey, home, away) {
+  let html = '<div class="live-mini-terrain" id="live-mini-terrain">';
+  html += '<div class="live-mini-terrain-entete">';
+  html += '<div class="live-phase-badge" id="live-phase-badge"></div>';
+  html += '<div class="live-chrono" id="live-chrono"></div>';
+  html += '</div>';
+  html += '<div class="live-mini-terrain-score">';
+  html += '<span class="live-club-nom">' + home.nom + '</span>';
+  html += '<span class="live-score" id="live-score-mini">0 - 0</span>';
+  html += '<span class="live-club-nom">' + away.nom + '</span>';
+  html += '</div>';
+  html += '<div class="live-pelouse">';
+  html += '<div class="live-pelouse-lignes"></div>';
+  html += '<div class="live-but live-but-home"></div><div class="live-but live-but-away"></div>';
+  html += '<div class="live-joueur live-joueur-home" id="live-joueur-home"></div>';
+  html += '<div class="live-joueur live-joueur-away" id="live-joueur-away"></div>';
+  html += '<div class="live-ballon" id="live-ballon">⚽</div>';
+  html += '<div class="live-insert-bd" id="live-insert-bd">';
+  html += '<div class="live-insert-bd-fond"></div>';
+  html += '<div class="live-insert-bd-action" id="live-insert-bd-action"></div>';
+  html += '<div class="live-insert-bd-portrait" id="live-insert-bd-portrait"></div>';
+  html += '<div class="live-insert-bd-texte" id="live-insert-bd-texte"></div>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="live-action-label" id="live-action-label"></div>';
+  html += '<div class="live-tribunes-symboliques">';
+  html += '<div class="live-tribune-symbolique"><div class="live-tribune-dots" id="live-tribune-home-dots"></div><div class="live-tribune-symbolique-nom">' + home.nom + '</div></div>';
+  html += '<div class="live-tribune-symbolique"><div class="live-tribune-dots" id="live-tribune-away-dots"></div><div class="live-tribune-symbolique-nom">' + away.nom + '</div></div>';
+  html += '</div>';
+  html += '<div class="live-message-tribune" id="live-message-tribune"></div>';
+  html += '</div>';
+  return html;
+}
+
 // VRAI live, synchronise pour tous les spectateurs : chaque rafraichissement relit (et fait
 // avancer, si personne d'autre ne l'a deja fait) l'etat AUTORITAIRE persiste -- jamais de
 // pre-calcul local, jamais d'evenement invente cote client. Un joueur qui ouvre en cours de match
@@ -3466,6 +3848,7 @@ async function rafraichirLiveMatchReel() {
   if (!m) { fermerLiveMatchReel(); return; }
 
   const home = getClub(m.home), away = getClub(m.away);
+  const matchKey = _liveViewerRef.journeeNumero + '-' + m.home + '-' + m.away;
 
   if (m.played) {
     // Le match vient de se terminer (ou etait deja termine) : bascule silencieusement sur le
@@ -3477,12 +3860,38 @@ async function rafraichirLiveMatchReel() {
 
   const live = m.live;
   if (!live || !live.compositionFigee) {
+    arreterTickVisuel();
+    _liveViewerSceneMatchKey = null;
     document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
     document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Les compositions ne sont pas encore annoncées. Revenez juste avant l\'échauffement.</div>';
     return;
   }
   const kickoff = new Date(live.kickoffAt);
   const phaseInfo = phaseMatchActuelle(kickoff, new Date());
+
+  document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
+
+  // Shell PERSISTANT construit une seule fois (a l'ouverture, ou si on bascule sur un autre
+  // match) -- jamais recree a chaque refresh 6s (section 5).
+  if (_liveViewerSceneMatchKey !== matchKey) {
+    document.getElementById('postes-body').innerHTML =
+      '<div class="live-container">' + construireSceneMiniTerrain(matchKey, home, away) + '<div id="live-donnees-dynamiques"></div></div>';
+    _liveViewerSceneMatchKey = matchKey;
+    _liveViewerDernierInstantAffiche = null;
+    demarrerTickVisuel();
+  }
+  _liveViewerSceneEtat = { live, home, away, matchKey };
+
+  // Detection des evenements canoniques NOUVEAUX -- jamais ceux deja connus a l'ouverture (pas de
+  // rejeu en insert de tout l'historique quand on rejoint en cours de match, section 2/9).
+  if (!_liveViewerPremierRafraichissement) {
+    for (let i = _liveViewerNbEvenementsConnus; i < live.evenements.length; i++) {
+      const e = live.evenements[i];
+      if (['but', 'occasion', 'carton', 'blessure', 'debut', 'mitemps', 'reprise', 'fin'].includes(e.type)) {
+        _liveViewerFileCanonique.push(e);
+      }
+    }
+  }
 
   // Dernier joueur mis en evidence : le plus recent evenement NOUVEAU (jamais encore rendu) qui
   // implique un vrai PJ -- purement cosmetique, section 9.
@@ -3491,9 +3900,16 @@ async function rafraichirLiveMatchReel() {
     if (live.evenements[i].joueur) { joueurEnEvidence = live.evenements[i].joueur; break; }
   }
 
-  document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
-  let html = '<div class="live-container">';
-  html += renderEnTeteLive(home, away, live.scoreHome, live.scoreAway, phaseInfo);
+  await chargerPortraitsMatch(matchKey, live);
+
+  // Mises a jour CIBLEES du shell persistant (jamais un remplacement complet de son innerHTML).
+  const badge = document.getElementById('live-phase-badge');
+  if (badge) { badge.textContent = LABELS_PHASE_LIVE[phaseInfo.statut] || ''; badge.className = 'live-phase-badge live-phase-' + phaseInfo.statut; }
+  const scoreMini = document.getElementById('live-score-mini');
+  if (scoreMini) scoreMini.textContent = live.scoreHome + ' - ' + live.scoreAway;
+
+  const supporters = await compterSupportersActifs(home, away, live).catch(() => ({ home: { count: 0, noms: [] }, away: { count: 0, noms: [] } }));
+  mettreAJourTribunesVisuelles(supporters);
 
   // Choix de camp : propose uniquement a un vrai spectateur (jamais a un titulaire, deja engage
   // sportivement) n'ayant pas encore choisi pour CE match -- immuable une fois fait.
@@ -3502,19 +3918,20 @@ async function rafraichirLiveMatchReel() {
     live.compositionFigee.home.titulaires.some(t => t.nom === moi) ||
     live.compositionFigee.away.titulaires.some(t => t.nom === moi)
   );
+  let htmlDonnees = '';
   if (moi && !jeSuisTitulaire && !(live.supportersChoix && live.supportersChoix[moi])) {
-    html += renderChoixCamp(_liveViewerRef.journeeNumero, _liveViewerRef.matchIdx, home, away);
+    htmlDonnees += renderChoixCamp(_liveViewerRef.journeeNumero, _liveViewerRef.matchIdx, home, away);
   }
+  htmlDonnees += renderPanneauTribunes(supporters, home, away);
+  htmlDonnees += renderPanneauTerrain(live, home, away, joueurEnEvidence);
+  htmlDonnees += '<div class="live-fil-evenements" id="live-fil-evenements">';
+  live.evenements.forEach((e, i) => { htmlDonnees += renderCarteEvenementLive(e, i >= _liveViewerNbEvenementsConnus); });
+  htmlDonnees += '</div>';
+  const zoneDynamique = document.getElementById('live-donnees-dynamiques');
+  if (zoneDynamique) zoneDynamique.innerHTML = htmlDonnees;
 
-  const supporters = await compterSupportersActifs(home, away, live).catch(() => ({ home: { count: 0, noms: [] }, away: { count: 0, noms: [] } }));
-  html += renderPanneauTribunes(supporters, home, away);
-  html += renderPanneauTerrain(live, home, away, joueurEnEvidence);
-
-  html += '<div class="live-fil-evenements" id="live-fil-evenements">';
-  live.evenements.forEach((e, i) => { html += renderCarteEvenementLive(e, i >= _liveViewerNbEvenementsConnus); });
-  html += '</div></div>';
-  document.getElementById('postes-body').innerHTML = html;
   _liveViewerNbEvenementsConnus = live.evenements.length;
+  _liveViewerPremierRafraichissement = false;
 }
 
 function renderChoixCamp(journeeNumero, matchIdx, home, away) {

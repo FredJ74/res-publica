@@ -92,6 +92,57 @@
 .live-terrain-joueur { font-size: .74rem; color: #b0a080; padding: .15rem 0; }
 @keyframes live-terrain-actif-pulse { 0%,100% { color: #C9A84C; } 50% { color: #f0ead6; } }
 .live-terrain-joueur-actif { animation: live-terrain-actif-pulse 1.4s ease-in-out 2; font-weight: 600; }
+
+/* ===== MOTEUR VISUEL DU MATCH -- mini-terrain (chantier "V1 moteur visuel", 28 aout 2026) ===== */
+.live-mini-terrain { position: relative; border: 1px solid #2a2010; background: #090805; padding: .7rem; margin-bottom: .9rem; overflow: hidden; transition: border-color .4s; }
+.live-mini-terrain--actif { border-color: #C9A84C; }
+.live-mini-terrain--echauffement, .live-mini-terrain--mitemps { opacity: .82; }
+.live-mini-terrain-entete { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
+.live-mini-terrain-entete .live-phase-badge { margin-bottom: 0; }
+.live-chrono { font-family: 'Bebas Neue', sans-serif; font-size: .95rem; letter-spacing: .06em; color: #f0ead6; }
+.live-mini-terrain-score { display: flex; align-items: center; justify-content: center; gap: .8rem; margin-bottom: .6rem; }
+.live-mini-terrain-score .live-club-nom { font-size: .78rem; }
+.live-mini-terrain-score .live-score { font-size: 1.3rem; }
+
+.live-pelouse { position: relative; width: 100%; aspect-ratio: 16 / 6.5; background: repeating-linear-gradient(90deg, #16401e, #16401e 8%, #133a1a 8%, #133a1a 16%); border: 1px solid #2a4a2a; border-radius: 3px; overflow: hidden; }
+.live-pelouse-lignes { position: absolute; inset: 0; border-left: 1px dashed rgba(240,234,214,.25); left: 50%; width: 0; }
+.live-pelouse-lignes::before { content: ''; position: absolute; top: 50%; left: -18px; width: 36px; height: 36px; margin-top: -18px; border: 1px dashed rgba(240,234,214,.25); border-radius: 50%; }
+.live-but { position: absolute; top: 38%; width: 6px; height: 24%; background: rgba(240,234,214,.35); }
+.live-but-home { left: 0; }
+.live-but-away { right: 0; }
+.live-joueur { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); transition: left .55s ease; box-shadow: 0 0 4px rgba(0,0,0,.6); }
+.live-joueur-home { left: 36%; background: #C9A84C; }
+.live-joueur-away { left: 64%; background: #6a9aca; }
+.live-ballon { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; line-height: 16px; font-size: 12px; text-align: center; transform: translate(-50%, -50%); transition: left .5s ease, top .5s ease; filter: drop-shadow(0 0 2px #000); }
+.live-action-label { min-height: 1.4em; text-align: center; font-size: .74rem; font-style: italic; color: #9a8a60; margin: .4rem 0 .6rem; }
+
+.live-insert-bd { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .3s; text-align: center; padding: .6rem; }
+.live-insert-bd-fond { position: absolute; inset: 0; background: radial-gradient(circle, rgba(10,8,5,.94), rgba(10,8,5,.98)); }
+.live-insert-bd-action { position: relative; font-size: 2.6rem; margin-bottom: .3rem; }
+.live-insert-bd-portrait { position: relative; margin-bottom: .3rem; }
+.live-insert-bd-texte { position: relative; font-family: 'Bebas Neue', sans-serif; font-size: .82rem; letter-spacing: .04em; color: #f0ead6; max-width: 90%; }
+@keyframes live-insert-bd-entree { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+.live-insert-bd-visible { opacity: 1; pointer-events: auto; animation: live-insert-bd-entree .35s ease-out; }
+.live-insert-bd-but .live-insert-bd-texte { color: #C9A84C; font-size: 1rem; }
+.live-insert-bd-carton .live-insert-bd-texte { color: #d4c04a; }
+.live-insert-bd-blessure .live-insert-bd-texte { color: #cc9a80; }
+
+.live-tribunes-symboliques { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .6rem; }
+.live-tribune-symbolique { border: 1px solid #2a2010; background: #0e0c07; padding: .4rem; text-align: center; }
+.live-tribune-symbolique-nom { font-size: .66rem; color: #7a6a48; margin-top: .3rem; }
+.live-tribune-dots { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; min-height: 10px; }
+.live-tribune-dot { width: 6px; height: 6px; border-radius: 50%; background: #C9A84C; opacity: .75; }
+.live-message-tribune { text-align: center; font-size: .68rem; color: #9aca8a; min-height: 1.2em; margin-top: .35rem; opacity: 0; }
+@keyframes live-message-tribune-anim { 0% { opacity: 0; transform: translateY(4px); } 15% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+.live-message-tribune-visible { animation: live-message-tribune-anim 3.2s ease-out; }
+
+.live-portrait-joueur { border-radius: 50%; object-fit: cover; border: 1px solid #3a2a10; display: inline-block; vertical-align: middle; }
+.live-portrait-fallback { display: flex; align-items: center; justify-content: center; background: #1a1508; color: #8a6a20; }
+
+@media (max-width: 480px) {
+  .live-pelouse { aspect-ratio: 16 / 8.5; }
+  .live-mini-terrain-score .live-score { font-size: 1.1rem; }
+}
 </style>
   <link rel="stylesheet" href="rue-centrale.css?v=126">
 </head>
