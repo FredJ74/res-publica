@@ -1434,6 +1434,14 @@ function genererCalendrierSaison() {
 
 function getClub(id) { return CLUBS_SPORTIFS.find(c => c.id === id); }
 
+// Source de verite unique pour l'identite visuelle d'un club, a partir de son id stable
+// (chantier animations football, 28 aout 2026). Ne fabrique aucune donnee : renvoie
+// exactement le champ `identite` deja porte par CLUBS_SPORTIFS, ou null si absent.
+function identiteVisuelleClub(id) {
+  const club = getClub(id);
+  return (club && club.identite) || null;
+}
+
 function genererEvenementsMatch(home, away, scoreHome, scoreAway) {
   const events = [];
   const minutesUtilisees = new Set();
@@ -3664,12 +3672,15 @@ function afficherInsertCanonique(evenement, matchKey) {
 // decoratifs. compterSupportersActifs() reste l'unique source (deja existante, mecanique
 // sportive inchangee) -- ici uniquement un diff LOCAL de deux instantanes successifs pour
 // detecter une arrivee, jamais une nouvelle persistance. ----
-function mettreAJourTribunesVisuelles(supporters) {
+function mettreAJourTribunesVisuelles(supporters, home, away) {
+  const identites = { home: home ? identiteVisuelleClub(home.id) : null, away: away ? identiteVisuelleClub(away.id) : null };
   ['home', 'away'].forEach(cote => {
     const dotsEl = document.getElementById('live-tribune-' + cote + '-dots');
     if (dotsEl) {
       const n = Math.min(supporters[cote].count, 24);
-      dotsEl.innerHTML = '<span class="live-tribune-dot"></span>'.repeat(n);
+      const identite = identites[cote];
+      const styleDot = identite ? ' style="background:' + identite.colorPrimaire + '"' : '';
+      dotsEl.innerHTML = ('<span class="live-tribune-dot"' + styleDot + '></span>').repeat(n);
     }
     if (!_liveViewerPremierRafraichissement) {
       const anciens = _liveViewerNomsSupportersConnus[cote] || [];
@@ -3789,6 +3800,16 @@ function ouvrirResumeMatch(numeroJournee, matchIdx) {
 // que des mises a jour CIBLEES de ses sous-elements (textContent/className/style), jamais un
 // remplacement d'innerHTML de ce bloc.
 function construireSceneMiniTerrain(matchKey, home, away) {
+  // Habillage automatique par match (section 4, chantier identites visuelles) : les jetons
+  // joueurs reprennent la couleur principale du club reellement domicile/exterieur de CETTE
+  // rencontre (resolue via identiteVisuelleClub(home.id)/identiteVisuelleClub(away.id)), jamais
+  // une couleur fixe Luthecia/Republia. Repli sur les couleurs generiques existantes (CSS) si un
+  // club n'a exceptionnellement pas d'identite definie.
+  const identiteHome = identiteVisuelleClub(home.id);
+  const identiteAway = identiteVisuelleClub(away.id);
+  const styleJoueurHome = identiteHome ? ' style="background:' + identiteHome.colorPrimaire + '"' : '';
+  const styleJoueurAway = identiteAway ? ' style="background:' + identiteAway.colorPrimaire + '"' : '';
+
   let html = '<div class="live-mini-terrain" id="live-mini-terrain">';
   html += '<div class="live-mini-terrain-entete">';
   html += '<div class="live-phase-badge" id="live-phase-badge"></div>';
@@ -3802,8 +3823,8 @@ function construireSceneMiniTerrain(matchKey, home, away) {
   html += '<div class="live-pelouse">';
   html += '<div class="live-pelouse-lignes"></div>';
   html += '<div class="live-but live-but-home"></div><div class="live-but live-but-away"></div>';
-  html += '<div class="live-joueur live-joueur-home" id="live-joueur-home"></div>';
-  html += '<div class="live-joueur live-joueur-away" id="live-joueur-away"></div>';
+  html += '<div class="live-joueur live-joueur-home" id="live-joueur-home"' + styleJoueurHome + '></div>';
+  html += '<div class="live-joueur live-joueur-away" id="live-joueur-away"' + styleJoueurAway + '></div>';
   html += '<div class="live-ballon" id="live-ballon">⚽</div>';
   html += '<div class="live-insert-bd" id="live-insert-bd">';
   html += '<div class="live-insert-bd-fond"></div>';
@@ -3909,7 +3930,7 @@ async function rafraichirLiveMatchReel() {
   if (scoreMini) scoreMini.textContent = live.scoreHome + ' - ' + live.scoreAway;
 
   const supporters = await compterSupportersActifs(home, away, live).catch(() => ({ home: { count: 0, noms: [] }, away: { count: 0, noms: [] } }));
-  mettreAJourTribunesVisuelles(supporters);
+  mettreAJourTribunesVisuelles(supporters, home, away);
 
   // Choix de camp : propose uniquement a un vrai spectateur (jamais a un titulaire, deja engage
   // sportivement) n'ayant pas encore choisi pour CE match -- immuable une fois fait.

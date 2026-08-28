@@ -6551,19 +6551,42 @@ const TYPES_ORGANISATIONS = {
 // budgets_clubs, presidents_clubs, licence_sportive.clubId, paris_sportifs -- voir l'audit
 // prealable). Independiente de Villa Sangre porte le surnom d'univers "Los Sangrilleros" --
 // donnee de lore uniquement, aucune mecanique associee dans ce lot.
+//
+// Identite visuelle (28 aout 2026, chantier animations football) : champ `identite` ajoute a
+// chacun des 12 clubs -- couleurs principale/secondaire, eventuel accent, type de maillot
+// (uni / rayures_verticales), finition visuelle si pertinente (mate / metallique / irisee).
+// Republia : reprend les couleurs deja canoniques des produits derives/boutiques de stade
+// existants (produit-tshirt-luthecia.png, produit-casquette-luthecia.png,
+// produits-casquette-echarpe-montrouge.png, produit-polo-mariannaise.png, logo du club de
+// supporters de Luthecia) -- aucune couleur inventee. Etrangers : reprend exactement les
+// couleurs/elements specifies pour ce lot. Aucun champ rempli par une valeur fictive quand
+// l'information n'a pas ete fournie (ex. pas de colorSecondaire pour Oasis City FC, pas
+// d'accent pour les clubs ou aucune touche supplementaire n'a ete decrite).
 const CLUBS_SPORTIFS = [
-  { id:'olympique-luthecia',    nom:'Olympique de Luthécia',            country:'republic', city:'capitale', stadeBuilding:'stade', valeurBase:72, vedettes:['Marco Frappesec','Julien Contrapied'] },
-  { id:'brise-mariannaise',     nom:'La Brise Mariannaise',             country:'republic', city:'ville_a',  stadeBuilding:'stade', valeurBase:60, vedettes:['Yann Ecume','Loic Maree'] },
-  { id:'cheminote-montrouge',   nom:'Union Cheminote de Montrouge',     country:'republic', city:'ville_b',  stadeBuilding:'stade', valeurBase:63, vedettes:['Momo Charbon','Sami Rail'] },
-  { id:'rojos-cartel',          nom:'Estudiantes de la Ciudad',         country:'narco',    city:'capitale', stadeBuilding:'stade', valeurBase:68, vedettes:['El Pistolero','Diego Gatillo'] },
-  { id:'fronterizos-unidos',    nom:'Atlético Puerto Negro',            country:'narco',    city:'ville_a',  stadeBuilding:'stade', valeurBase:58, vedettes:['Chuy Frontera','Beto Contrabando'] },
-  { id:'jaguares-selva',        nom:'Independiente de Villa Sangre',    country:'narco',    city:'ville_b',  stadeBuilding:'stade', valeurBase:61, vedettes:['Jaguar Rios','Tigre Verde'] },
-  { id:'dynamo-novomirsk',      nom:'Dynamo Novomirsk',                 country:'soviet',   city:'capitale', stadeBuilding:'stade', valeurBase:74, vedettes:['Ivan Marteau','Boris Faucille'] },
-  { id:'spartak-sibirsk',       nom:'Partizan de Starovka',             country:'soviet',   city:'ville_a',  stadeBuilding:'stade', valeurBase:57, vedettes:['Yuri Glacon','Piotr Frimas'] },
-  { id:'kolkhoze-ouvrier',      nom:'Étoile Rouge de Krasnov',          country:'soviet',   city:'ville_b',  stadeBuilding:'stade', valeurBase:59, vedettes:['Sacha Tracteur','Vania Recolte'] },
-  { id:'nadi-al-madina',        nom:'Shabab Al Madina',                 country:'khalija',  city:'capitale', stadeBuilding:'stade', valeurBase:70, vedettes:['Karim Falcon','Youssef Sable'] },
-  { id:'al-baraka-fc',          nom:'Oasis City FC',                    country:'khalija',  city:'ville_a',  stadeBuilding:'stade', valeurBase:56, vedettes:['Malik Oasis','Rashid Caravane'] },
-  { id:'sharq-al-nour',         nom:'Al-Petrol United FC',              country:'khalija',  city:'ville_b',  stadeBuilding:'stade', valeurBase:62, vedettes:['Tarek Petrole','Hamza Tanker'] }
+  { id:'olympique-luthecia',    nom:'Olympique de Luthécia',            country:'republic', city:'capitale', stadeBuilding:'stade', valeurBase:72, vedettes:['Marco Frappesec','Julien Contrapied'],
+    identite: { colorPrimaire:'#182544', colorSecondaire:'#C9A84C', colorAccent:'#b3312c', maillot:'uni' } },
+  { id:'brise-mariannaise',     nom:'La Brise Mariannaise',             country:'republic', city:'ville_a',  stadeBuilding:'stade', valeurBase:60, vedettes:['Yann Ecume','Loic Maree'],
+    identite: { colorPrimaire:'#3d5a74', colorSecondaire:'#eee6d2', colorAccent:'#2f7d6b', maillot:'uni' } },
+  { id:'cheminote-montrouge',   nom:'Union Cheminote de Montrouge',     country:'republic', city:'ville_b',  stadeBuilding:'stade', valeurBase:63, vedettes:['Momo Charbon','Sami Rail'],
+    identite: { colorPrimaire:'#28395c', colorSecondaire:'#C9A84C', colorAccent:'#7a1f24', maillot:'uni' } },
+  { id:'rojos-cartel',          nom:'Estudiantes de la Ciudad',         country:'narco',    city:'capitale', stadeBuilding:'stade', valeurBase:68, vedettes:['El Pistolero','Diego Gatillo'],
+    identite: { colorPrimaire:'#4a90d9', colorSecondaire:'#ffffff', colorAccent:'#1a3a6b', maillot:'rayures_verticales' } },
+  { id:'fronterizos-unidos',    nom:'Atlético Puerto Negro',            country:'narco',    city:'ville_a',  stadeBuilding:'stade', valeurBase:58, vedettes:['Chuy Frontera','Beto Contrabando'],
+    identite: { colorPrimaire:'#111111', colorSecondaire:'#ffffff', maillot:'rayures_verticales' } },
+  { id:'jaguares-selva',        nom:'Independiente de Villa Sangre',    country:'narco',    city:'ville_b',  stadeBuilding:'stade', valeurBase:61, vedettes:['Jaguar Rios','Tigre Verde'],
+    identite: { colorPrimaire:'#8b0000', colorSecondaire:'#111111', maillot:'rayures_verticales' } },
+  { id:'dynamo-novomirsk',      nom:'Dynamo Novomirsk',                 country:'soviet',   city:'capitale', stadeBuilding:'stade', valeurBase:74, vedettes:['Ivan Marteau','Boris Faucille'],
+    identite: { colorPrimaire:'#0047ab', colorSecondaire:'#ffffff', maillot:'uni' } },
+  { id:'spartak-sibirsk',       nom:'Partizan de Starovka',             country:'soviet',   city:'ville_a',  stadeBuilding:'stade', valeurBase:57, vedettes:['Yuri Glacon','Piotr Frimas'],
+    identite: { colorPrimaire:'#111111', colorSecondaire:'#ffffff', colorAccent:'#c0392b', maillot:'rayures_verticales' } },
+  { id:'kolkhoze-ouvrier',      nom:'Étoile Rouge de Krasnov',          country:'soviet',   city:'ville_b',  stadeBuilding:'stade', valeurBase:59, vedettes:['Sacha Tracteur','Vania Recolte'],
+    identite: { colorPrimaire:'#8b0000', colorSecondaire:'#ffffff', colorAccent:'#d4af37', maillot:'uni' } },
+  { id:'nadi-al-madina',        nom:'Shabab Al Madina',                 country:'khalija',  city:'capitale', stadeBuilding:'stade', valeurBase:70, vedettes:['Karim Falcon','Youssef Sable'],
+    identite: { colorPrimaire:'#0b1220', colorSecondaire:'#708090', maillot:'uni', finition:'mate' } },
+  { id:'al-baraka-fc',          nom:'Oasis City FC',                    country:'khalija',  city:'ville_a',  stadeBuilding:'stade', valeurBase:56, vedettes:['Malik Oasis','Rashid Caravane'],
+    identite: { colorPrimaire:'#046a52', maillot:'uni', finition:'irisee' } },
+  { id:'sharq-al-nour',         nom:'Al-Petrol United FC',              country:'khalija',  city:'ville_b',  stadeBuilding:'stade', valeurBase:62, vedettes:['Tarek Petrole','Hamza Tanker'],
+    identite: { colorPrimaire:'#d4af37', colorSecondaire:'#0b1a1a', maillot:'uni', finition:'metallique' } }
 ];
 
 const ORGA_ORDRE_RANG_MIN = {
