@@ -30,6 +30,45 @@
 .mtt-desc { font-size: .72rem; color: #9a8a60; line-height: 1.5; margin-bottom: .4rem; }
 .mtt-pnj { margin-bottom: .35rem; }
 .mtt-actions { font-size: .67rem; color: #4a7a4a; border-top: 1px solid #2a2010; padding-top: .3rem; margin-top: .2rem; line-height: 1.5; }
+
+/* ===== FOOTBALL LIVE (chantier "match reel 30 minutes", 28 aout 2026) ===== */
+@keyframes football-badge-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(201,168,76,.55); } 50% { box-shadow: 0 0 0 6px rgba(201,168,76,0); } }
+.football-live-badge { border-color: #C9A84C !important; color: #C9A84C !important; animation: football-badge-pulse 2s infinite; }
+
+@keyframes soir-de-match-entree { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: scale(1); } }
+@keyframes soir-de-match-glow { 0%,100% { text-shadow: 0 0 12px rgba(201,168,76,.55); } 50% { text-shadow: 0 0 28px rgba(201,168,76,.9); } }
+.soir-de-match { padding: 1.4rem 1.2rem; text-align: center; animation: soir-de-match-entree .5s ease-out; }
+.soir-de-match-titre { font-family: 'Bebas Neue', sans-serif; font-size: 2.1rem; letter-spacing: .12em; color: #C9A84C; animation: soir-de-match-glow 2.2s ease-in-out infinite; margin-bottom: .6rem; }
+.soir-de-match-texte { font-size: .95rem; color: #e8ddc0; margin-bottom: .3rem; }
+.soir-de-match-infos { font-size: .78rem; color: #8a8060; font-style: italic; margin-bottom: 1.1rem; }
+.soir-de-match-animation-zone { width: 180px; height: 180px; margin: 0 auto 1.2rem; border-radius: 50%; border: 2px solid #3a2a10; background: radial-gradient(circle, rgba(201,168,76,.12), transparent 70%); display: flex; align-items: center; justify-content: center; }
+@keyframes soir-de-match-ballon { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(15deg); } }
+.soir-de-match-animation-placeholder { font-size: 4rem; animation: soir-de-match-ballon 2.4s ease-in-out infinite; }
+.soir-de-match-bouton { font-family: 'Bebas Neue', sans-serif; font-size: .85rem; letter-spacing: .1em; padding: .65rem 1.6rem; border: 1px solid #C9A84C; background: transparent; color: #C9A84C; cursor: pointer; }
+.soir-de-match-bouton:hover { background: rgba(201,168,76,.12); }
+
+.live-container { padding: 1rem; }
+.live-resume-etiquette { text-align: center; font-family: 'Bebas Neue', sans-serif; font-size: .68rem; letter-spacing: .12em; color: #6a5a30; border: 1px solid #2a2010; padding: .25rem; margin-bottom: .8rem; }
+.live-entete { text-align: center; margin-bottom: 1rem; }
+.live-phase-badge { display: inline-block; font-family: 'Bebas Neue', sans-serif; font-size: .72rem; letter-spacing: .1em; padding: .25rem .8rem; border-radius: 2px; margin-bottom: .5rem; }
+.live-phase-echauffement { background: rgba(154,138,96,.18); color: #c0a870; }
+.live-phase-mt1, .live-phase-mt2 { background: rgba(106,184,88,.18); color: #6ab858; animation: football-badge-pulse 2s infinite; }
+.live-phase-mitemps { background: rgba(201,168,76,.18); color: #C9A84C; }
+.live-phase-termine { background: rgba(138,96,96,.18); color: #a08080; }
+.live-score-ligne { display: flex; align-items: center; justify-content: center; gap: 1rem; }
+.live-club-nom { font-family: 'Bebas Neue', sans-serif; font-size: .95rem; letter-spacing: .04em; color: #c0b090; flex: 1; text-align: center; }
+.live-score { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: #f0ead6; letter-spacing: .06em; }
+.live-fil-evenements { display: flex; flex-direction: column; gap: .45rem; max-height: 360px; overflow-y: auto; }
+.live-event { display: flex; align-items: baseline; gap: .5rem; font-size: .82rem; color: #b0a080; padding: .35rem .5rem; border-left: 2px solid #2a2010; }
+.live-event-minute { font-family: 'Bebas Neue', sans-serif; font-size: .72rem; color: #6a5a30; min-width: 2.2em; }
+.live-event-icone { font-size: .9rem; }
+.live-event-but { border-left-color: #C9A84C; background: rgba(201,168,76,.08); color: #f0ead6; font-weight: 600; }
+.live-event-carton { border-left-color: #d4c04a; color: #d4c04a; }
+.live-event-blessure { border-left-color: #cc6a44; color: #cc9a80; }
+.live-event-occasion { border-left-color: #6a9aca; }
+.live-event-marqueur { justify-content: center; text-align: center; border-left: none; border-top: 1px solid #2a2010; border-bottom: 1px solid #2a2010; font-family: 'Bebas Neue', sans-serif; letter-spacing: .08em; color: #C9A84C; padding: .6rem; margin: .3rem 0; }
+@keyframes live-event-entree { from { opacity: 0; transform: translateX(-8px); background-color: rgba(201,168,76,.35); } to { opacity: 1; transform: translateX(0); } }
+.live-event-nouveau { animation: live-event-entree .6s ease-out; }
 </style>
   <link rel="stylesheet" href="rue-centrale.css?v=126">
 </head>
@@ -76,6 +115,7 @@
     <button class="forum-btn" onclick="ouvrirCalendrierElectoral()" title="Calendrier électoral" style="color:#6ada6a">
       <i class="ti ti-calendar-event" style="font-size:.8rem;vertical-align:-1px"></i> Élections
     </button>
+    <button class="forum-btn football-live-badge" id="football-live-badge" style="display:none" title="Rejoindre le match en direct"></button>
     </button>
     <button class="world-btn" onclick="openWorldMap()">
       <i class="ti ti-map" style="font-size:.8rem;vertical-align:-1px"></i> Carte

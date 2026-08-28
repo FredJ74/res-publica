@@ -1631,28 +1631,42 @@ async function verifierNotificationsAvantMatch(saison) {
   const dateResolution = (prochaine.numero - 1) * 7;
   if (joursEcoules !== dateResolution - 1) return; // on notifie seulement la veille exacte
 
+  const kickoff = calculerKickoffJournee(saison, prochaine.numero);
   for (const m of prochaine.matchs) {
     const clubHome = getClub(m.home), clubAway = getClub(m.away);
     const [contribHome, contribAway] = await Promise.all([calculerContributionEquipe(clubHome), calculerContributionEquipe(clubAway)]);
-    await notifierConvocationAnticipee(clubHome, contribHome, clubAway);
-    await notifierConvocationAnticipee(clubAway, contribAway, clubHome);
+    await notifierConvocationAnticipee(clubHome, contribHome, clubAway, kickoff);
+    await notifierConvocationAnticipee(clubAway, contribAway, clubHome, kickoff);
   }
   prochaine.notifie24h = true;
   if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(saison).catch(() => {});
 }
 
-async function notifierConvocationAnticipee(club, contrib, adversaire) {
+// Chantier "football live" (28 aout 2026) : le message n'entretient plus l'idee d'une presence
+// physique volontaire au stade -- le personnage est automatiquement engage dans le match, hors
+// ligne ou non (regle validee, section 17). Donne l'heure exacte d'echauffement/coup d'envoi/fin
+// prevue, calculee depuis calculerKickoffJournee (meme calendrier que la resolution reelle,
+// jamais une heure inventee separement).
+async function notifierConvocationAnticipee(club, contrib, adversaire, kickoff) {
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  const dateTxt = kickoff.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const heureEchauffement = new Date(kickoff.getTime() - DUREE_ECHAUFFEMENT_MS);
+  const heureFin = finPrevueMatch(kickoff);
+  const fmtH = (d) => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   for (const t of contrib.titulaires) {
     if (typeof sbSendMail === 'function') {
       await sbSendMail('Ligue Officielle', t.nom, 'Convocation — ' + club.nom,
-        'Vous êtes titulaire pour le match de demain face à ' + adversaire.nom + '. Dernière chance de vous entraîner avant le coup d\'envoi !', time).catch(() => {});
+        'Vous êtes titulaire pour le match du ' + dateTxt + ' face à ' + adversaire.nom + '.<br><br>' +
+        'Échauffement à ' + fmtH(heureEchauffement) + '.<br>Coup d\'envoi à ' + fmtH(kickoff) + '.<br>Fin prévue à ' + fmtH(heureFin) + '.<br><br>' +
+        'Vous serez automatiquement engagé(e) dans le match dès le début de l\'échauffement — aucune présence physique n\'est nécessaire, et cela ne dépend pas de votre connexion. ' +
+        'Vous serez en revanche indisponible pour toute autre démarche pendant cette période. Dernière chance de vous entraîner avant le coup d\'envoi !',
+        time).catch(() => {});
     }
   }
   for (const r of contrib.remplacants) {
     if (typeof sbSendMail === 'function') {
       await sbSendMail('Ligue Officielle', r.nom, 'Convocation — ' + club.nom,
-        'Vous êtes remplaçant pour le match de demain face à ' + adversaire.nom + '.', time).catch(() => {});
+        'Vous êtes remplaçant(e) pour le match du ' + dateTxt + ' face à ' + adversaire.nom + ', échauffement à ' + fmtH(heureEchauffement) + '.', time).catch(() => {});
     }
   }
 }
@@ -1748,57 +1762,25 @@ async function progresserPlayoffs(saison) {
 }
 
 async function verifierEtJouerJournees() {
-  const saison = await chargerOuInitialiserSaison();
+  let saison = await chargerOuInitialiserSaison();
   if (!saison || saison.phase === 'terminee') return saison;
 
   await verifierNotificationsAvantMatch(saison);
 
-  const joursEcoules = joursEcoulesDepuis(saison.dateDebut);
-  const journeeCible = Math.min(Math.floor(joursEcoules / 7), saison.calendrier.length - 1);
+  // Chantier "football live" (28 aout 2026) : la resolution des matchs de la journee courante de
+  // saison reguliere est entierement deleguee a avancerFootballLive() (echauffement 5min + 2x10min
+  // + mitemps 5min, evenements progressifs, verrou d'immobilisation, recompenses idempotentes --
+  // voir son entete). Cette fonction (verifierEtJouerJournees) ne reste responsable que du cycle
+  // de vie de la saison elle-meme (init, transition vers les phases finales, progression des
+  // phases finales) -- les playoffs restent geres a l'identique par jouerMatchsTour/
+  // progresserPlayoffs, hors perimetre de ce chantier (resolution instantanee, inchangee).
+  if (saison.phase === 'reguliere') {
+    const avancee = await avancerFootballLive();
+    if (avancee) saison = avancee;
+    else saison = await chargerOuInitialiserSaison() || saison; // relit un etat pousse par un AUTRE client entre-temps
+  }
+
   let modifie = false;
-  const journeesNouvellementJouees = [];
-
-  for (let i = 0; i <= journeeCible; i++) {
-    const journee = saison.calendrier[i];
-    if (!journee) continue;
-    let journeeVientDetreJouee = false;
-    for (const m of journee.matchs) {
-      if (!m.played) {
-        const demandeMatch = m.demandeManifId ? await sbGetDemandeManifestationParId(m.demandeManifId).catch(() => null) : null;
-        const clubHome = getClub(m.home), clubAway = getClub(m.away);
-
-        if (demandeMatch?.statut === 'interdite') {
-          Object.assign(m, { scoreHome: 0, scoreAway: 1, recit: 'Match interdit par le Ministère de l\'Intérieur — victoire par forfait de ' + clubAway.nom + ' (0-1).', evenements: [], played: true });
-          modifie = true;
-          journeeVientDetreJouee = true;
-          addExternalEvent('🚫 Le match ' + clubHome.nom + ' vs ' + clubAway.nom + ' est interdit par le Ministère de l\'Intérieur. Victoire par forfait de ' + clubAway.nom + '.');
-          continue;
-        }
-
-        const [contribHome, contribAway] = await Promise.all([
-          calculerContributionEquipe(clubHome),
-          calculerContributionEquipe(clubAway)
-        ]);
-        const res = simulerMatch(m.home, m.away, contribHome.bonus, contribAway.bonus, m.boycotte);
-        Object.assign(m, { scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit, evenements: res.evenements, played: true,
-          compositions: {
-            home: { titulaires: contribHome.titulaires.map(t=>t.nom), remplacants: contribHome.remplacants.map(t=>t.nom) },
-            away: { titulaires: contribAway.titulaires.map(t=>t.nom), remplacants: contribAway.remplacants.map(t=>t.nom) }
-          }
-        });
-        modifie = true;
-        journeeVientDetreJouee = true;
-        await notifierCompositionsEtBlessures(clubHome, contribHome, m.scoreHome, m.scoreAway);
-        await notifierCompositionsEtBlessures(clubAway, contribAway, m.scoreAway, m.scoreHome);
-      }
-    }
-    if (journeeVientDetreJouee) journeesNouvellementJouees.push(journee);
-  }
-
-  for (const journee of journeesNouvellementJouees) {
-    await publierResultatsJourneeSurForum(saison.numero, journee);
-    await resoudreParisJournee(saison.numero, journee);
-  }
 
   // Une fois la phase reguliere entierement jouee, on enchaine les phases finales,
   // etalees sur plusieurs semaines (une semaine par manche), comme la phase reguliere.
@@ -1981,6 +1963,523 @@ async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsCont
         'Vous n\'avez pas été retenu(e) pour le dernier match. Entraînez-vous pour retrouver votre place.', formatDateHeureJeu()).catch(() => {});
     }
   }
+}
+
+// =====================================================================
+// FOOTBALL LIVE (chantier "match reel 30 minutes", 28 aout 2026)
+// =====================================================================
+// Architecture : AUCUNE nouvelle table/colonne/RPC. Tout vit dans le meme document unique
+// championnat.data (jsonb, une seule ligne id=1) deja utilise par le systeme existant -- un
+// sous-objet `live` est ajoute a chaque match, additif et retro-compatible (les anciens matchs
+// joues avant ce chantier n'ont jamais ce champ et continuent de se lire exactement comme avant,
+// via played/scoreHome/scoreAway/recit/evenements/compositions, inchanges).
+//
+// Concurrence : plusieurs clients peuvent executer ce moteur simultanement (meme principe que
+// l'ancien verifierEtJouerJournees). Toute ecriture passe par ecrireChampionnatCAS, un
+// compare-and-swap PostgREST natif (PATCH conditionne sur l'updated_at lu au debut du tick) --
+// si un autre client a deja ecrit entre-temps, la condition ne correspond plus a aucune ligne,
+// PostgREST renvoie un tableau vide (aucune ligne modifiee), et CE client abandonne son tick sans
+// avoir rien persiste. Les effets de bord EXTERNES (salaire, popularite, blessure reelle, mail --
+// tout ce qui touche une autre table que championnat) ne sont JAMAIS appliques avant d'avoir
+// remporte ce compare-and-swap : ils sont d'abord decides localement (phase pure), puis
+// uniquement executes APRES un CAS gagnant (phase d'effets). Un tick perdant n'a donc RIEN
+// applique nulle part, jamais de salaire/popularite/blessure en double, jamais de mail en double.
+//
+// Non-anticipation : aucun evenement futur n'est jamais precalcule puis simplement cache/differe.
+// Seuls forceHome/forceAway (un TAUX, deja reconstituable a partir de donnees publiques -- stats
+// des titulaires, indices de ville) sont fixes a la composition figee ; le nombre, l'instant et
+// l'auteur de chaque but/action/blessure sont tires minute par minute, uniquement au moment ou
+// cette minute est effectivement atteinte par l'horloge reelle (voir avancerEvenementsJusqua).
+// =====================================================================
+
+const HEURE_MATCH = 20; // Coup d'envoi fixe a 20h00 (heure de jeu), calendrier existant inchange.
+const DUREE_ECHAUFFEMENT_MS = 5 * 60000;
+const DUREE_MT1_MS = 10 * 60000;
+const DUREE_PAUSE_MS = 5 * 60000;
+const DUREE_MT2_MS = 10 * 60000;
+const TAUX_BLESSURE_PAR_TITULAIRE = 0.08; // identique au taux historique (notifierCompositionsEtBlessures)
+
+function calculerKickoffJournee(saison, numeroJournee) {
+  const debut = new Date(saison.dateDebut);
+  const d = new Date(debut.getTime() + (numeroJournee - 1) * 7 * 86400000);
+  d.setHours(HEURE_MATCH, 0, 0, 0);
+  return d;
+}
+
+// Pure fonction du temps reel ecoule depuis kickoffAt -- jamais dependante d'un etat client.
+// echauffement [-5,0) -> mt1 [0,10) (minutes fictives 0->45) -> mitemps [10,15) -> mt2 [15,25)
+// (minutes fictives 45->90) -> termine [25,+inf).
+function phaseMatchActuelle(kickoffAt, maintenant) {
+  const t = maintenant.getTime() - kickoffAt.getTime();
+  if (t < -DUREE_ECHAUFFEMENT_MS) return { statut: 'a_venir', minuteFictive: null };
+  if (t < 0) return { statut: 'echauffement', minuteFictive: null };
+  if (t < DUREE_MT1_MS) return { statut: 'mt1', minuteFictive: Math.min(45, Math.floor((t / DUREE_MT1_MS) * 45)) };
+  if (t < DUREE_MT1_MS + DUREE_PAUSE_MS) return { statut: 'mitemps', minuteFictive: 45 };
+  if (t < DUREE_MT1_MS + DUREE_PAUSE_MS + DUREE_MT2_MS) {
+    const t2 = t - DUREE_MT1_MS - DUREE_PAUSE_MS;
+    return { statut: 'mt2', minuteFictive: 45 + Math.min(45, Math.floor((t2 / DUREE_MT2_MS) * 45)) };
+  }
+  return { statut: 'termine', minuteFictive: 90 };
+}
+
+function finPrevueMatch(kickoffAt) {
+  return new Date(kickoffAt.getTime() + DUREE_MT1_MS + DUREE_PAUSE_MS + DUREE_MT2_MS);
+}
+
+// Tirage pondere generique. pool = [{item, poids}], poids > 0. Renvoie null si pool vide (jamais
+// d'invention de faux joueur -- l'appelant doit alors se rabattre sur club.vedettes).
+function tirerPondere(pool) {
+  if (!pool || pool.length === 0) return null;
+  const total = pool.reduce((s, p) => s + p.poids, 0);
+  if (total <= 0) return pool[Math.floor(Math.random() * pool.length)].item;
+  let r = Math.random() * total;
+  for (const p of pool) { r -= p.poids; if (r <= 0) return p.item; }
+  return pool[pool.length - 1].item;
+}
+
+// Pondere par la stat pertinente + un leger effet Endurance (plus marque en seconde periode,
+// regle validee : "Endurance peut notamment conserver davantage d'influence en seconde periode").
+// titulaires : tableau {nom, perf:{defense,technique,endurance}} (compositionFigee.home/away.titulaires).
+function poolPondereeParStat(titulaires, statKey, phase) {
+  return (titulaires || []).map(t => {
+    const perf = t.perf || {};
+    let poids = 1 + (perf[statKey] || 0);
+    poids *= phase === 'mt2' ? (1 + (perf.endurance || 0) / 50) : (1 + (perf.endurance || 0) / 150);
+    return { item: t.nom, poids };
+  });
+}
+
+const TEMPLATES_COULEUR_LIVE = [
+  { type: 'occasion', offensif: true,  texte: (c) => `Frappe cadrée de ${c}, à côté !` },
+  { type: 'occasion', offensif: true,  texte: (c) => `Grosse occasion pour ${c}, seul(e) face au gardien !` },
+  { type: 'occasion', offensif: true,  texte: (c) => `Corner obtenu par ${c}, dangereux.` },
+  { type: 'carton',   offensif: false, texte: (c) => `Carton jaune pour ${c}.` },
+  { type: 'action',   offensif: false, texte: (c) => `Bel arrêt du gardien devant ${c}.` },
+  { type: 'action',   offensif: false, texte: (c) => `Interception décisive de ${c}.` },
+  { type: 'action',   offensif: false, texte: (c) => `Tacle appuyé de ${c}, l'arbitre laisse jouer.` },
+  { type: 'action',   offensif: false, texte: (c) => `Faute sifflée contre ${c}.` }
+];
+
+function genererBut(live, cote, club, titulaires, minute, phase) {
+  const buteur = tirerPondere(poolPondereeParStat(titulaires, 'technique', phase))
+    || club.vedettes[Math.floor(Math.random() * club.vedettes.length)];
+  if (cote === 'home') live.scoreHome++; else live.scoreAway++;
+  live.evenements.push({
+    minute, atRealTime: new Date().toISOString(), type: 'but', club: cote, joueur: buteur,
+    texte: 'BUT ! ' + buteur + ' fait trembler les filets pour ' + club.nom + ' ! (' + live.scoreHome + '-' + live.scoreAway + ')'
+  });
+}
+
+function genererEvenementCouleurLive(live, clubHome, clubAway, titHome, titAway, minute, phase) {
+  const cote = Math.random() < 0.5 ? 'home' : 'away';
+  const club = cote === 'home' ? clubHome : clubAway;
+  const titulaires = cote === 'home' ? titHome : titAway;
+  const tpl = TEMPLATES_COULEUR_LIVE[Math.floor(Math.random() * TEMPLATES_COULEUR_LIVE.length)];
+  const statKey = tpl.offensif ? 'technique' : 'defense';
+  const joueur = tirerPondere(poolPondereeParStat(titulaires, statKey, phase))
+    || club.vedettes[Math.floor(Math.random() * club.vedettes.length)];
+  live.evenements.push({ minute, atRealTime: new Date().toISOString(), type: tpl.type, club: cote, joueur, texte: tpl.texte(joueur) });
+}
+
+// Meme taux agrege que l'ancien systeme post-match (8% par titulaire, reparti ici minute par
+// minute sur les 90 minutes fictives) -- meme repartition grave/legere, meme duree, memes PV.
+// PURE : ne mute jamais personnages directement. La blessure decidee est deposee comme un
+// "effet en attente" (live.effetsRestants) plutot qu'appliquee en ligne -- voir
+// appliquerEffetRestant/drainerEffetsRestants, qui garantissent qu'elle sera appliquee
+// EXACTEMENT une fois meme si le client qui gagne le CAS de ce tick disparait avant d'avoir pu
+// l'appliquer (correctif du 28 aout 2026, cf. entete "REPRISE POST-CAS" plus bas).
+function tenterBlessureLive(live, cote, club, titulaires, minute) {
+  if (!titulaires || titulaires.length === 0) return; // aucun PJ reel titulaire -> pas de blessure reelle possible
+  const proba = (TAUX_BLESSURE_PAR_TITULAIRE * titulaires.length) / 90;
+  if (Math.random() >= proba) return;
+  const joueur = titulaires[Math.floor(Math.random() * titulaires.length)].nom;
+  const grave = Math.random() < 0.3;
+  const duree = grave ? (7 + Math.floor(Math.random() * 4)) : (2 + Math.floor(Math.random() * 2));
+  const degatsPV = grave ? 30 : 15;
+  live.evenements.push({
+    minute, atRealTime: new Date().toISOString(), type: 'blessure', club: cote, joueur,
+    texte: '⚠️ ' + joueur + ' se blesse (' + (grave ? 'gravement' : 'légèrement') + ') et doit sortir.'
+  });
+  const detail = { joueur, grave, duree, degatsPV, minute };
+  if (!live.blessures) live.blessures = [];
+  live.blessures.push(detail);
+  if (!live.effetsRestants) live.effetsRestants = [];
+  live.effetsRestants.push({
+    id: 'blessure-' + joueur + '-' + minute + '-' + Date.now() + '-' + Math.floor(Math.random() * 1e6),
+    type: 'blessure', joueur, blessure: { jusquauJour: (state.day || 1) + duree, gravite: grave ? 'grave' : 'legere' }, degatsPV
+  });
+}
+
+// Genere, de facon purement synchrone, tous les evenements dus entre live.minuteGeneree (exclu)
+// et minuteCible (inclus) -- boucle bornee a 90 iterations au pire, aucun cout reseau. Rien n'est
+// jamais genere pour une minute non encore atteinte par l'horloge reelle (voir phaseMatchActuelle) :
+// meme lors d'un rattrapage tardif (client revenu apres la fin du match), les evenements des
+// minutes intermediaires sont tires ICI, au moment du rattrapage -- jamais pre-decides avant.
+function avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible) {
+  const titHome = live.compositionFigee.home.titulaires;
+  const titAway = live.compositionFigee.away.titulaires;
+  const tauxButHome = (live.forceHome || 0) / 28; // meme formule que l'ancien simulerMatch (buts = round(force/28 + bruit))
+  const tauxButAway = (live.forceAway || 0) / 28;
+  while (live.minuteGeneree < minuteCible) {
+    live.minuteGeneree++;
+    const m = live.minuteGeneree;
+    if (m === 45) continue; // la mi-temps a son propre evenement dedie, pas de tir a la 45e minute pile
+    const phase = m <= 45 ? 'mt1' : 'mt2';
+    if (Math.random() < tauxButHome / 90) genererBut(live, 'home', clubHome, titHome, m, phase);
+    if (Math.random() < tauxButAway / 90) genererBut(live, 'away', clubAway, titAway, m, phase);
+    if (Math.random() < 0.12) genererEvenementCouleurLive(live, clubHome, clubAway, titHome, titAway, m, phase);
+    tenterBlessureLive(live, 'home', clubHome, titHome, m);
+    tenterBlessureLive(live, 'away', clubAway, titAway, m);
+  }
+}
+
+// Fait progresser UN match vers la phase cible (phaseInfo, deja calculee depuis l'horloge reelle).
+// Phase PURE cote effets externes (les blessures decidees sont deposees dans live.effetsRestants,
+// jamais appliquees ici) -- la seule chose "impure" ici est la lecture (jamais l'ecriture) de sbListJoueursLicencies
+// via calculerContributionEquipe, au moment de la composition figee. Renvoie true si `match.live`
+// a ete modifie (donc s'il faut tenter une ecriture).
+async function progresserMatchLive(clubHome, clubAway, match, kickoff, phaseInfo) {
+  if (!match.live) {
+    match.live = {
+      kickoffAt: kickoff.toISOString(), statut: 'a_venir', compositionFigee: null,
+      forceHome: null, forceAway: null, scoreHome: 0, scoreAway: 0, minuteGeneree: 0,
+      evenements: [], blessures: [], effetsRestants: []
+    };
+  }
+  const live = match.live;
+  const maintenant = new Date().toISOString();
+  let modifie = false;
+
+  // Composition figee UNE SEULE FOIS, des que l'echauffement (ou une phase ulterieure atteinte
+  // directement, ex. rattrapage tardif) est constate.
+  if (!live.compositionFigee && phaseInfo.statut !== 'a_venir') {
+    const [contribHome, contribAway] = await Promise.all([calculerContributionEquipe(clubHome), calculerContributionEquipe(clubAway)]);
+    live.compositionFigee = {
+      home: { titulaires: contribHome.titulaires.map(t => ({ nom: t.nom, perf: t.perf })), remplacants: contribHome.remplacants.map(t => t.nom) },
+      away: { titulaires: contribAway.titulaires.map(t => ({ nom: t.nom, perf: t.perf })), remplacants: contribAway.remplacants.map(t => t.nom) }
+    };
+    const avantageDomicile = match.boycotte ? -5 : 5;
+    const pieteHome = typeof getIndiceVille === 'function' ? getIndiceVille(clubHome.country, clubHome.city, 'piete') : 50;
+    const pieteAway = typeof getIndiceVille === 'function' ? getIndiceVille(clubAway.country, clubAway.city, 'piete') : 50;
+    live.forceHome = (clubHome.valeurBase + avantageDomicile + contribHome.bonus) * multiplicateurPiete(pieteHome);
+    live.forceAway = (clubAway.valeurBase + contribAway.bonus) * multiplicateurPiete(pieteAway);
+    live.statut = 'echauffement';
+    live.evenements.push({
+      minute: 0, atRealTime: maintenant, type: 'composition', club: null, joueur: null,
+      texte: 'Compositions officielles : ' + clubHome.nom + ' vs ' + clubAway.nom + '.'
+    });
+    modifie = true;
+  }
+  if (!live.compositionFigee) return modifie; // trop tot (a_venir)
+
+  const ordre = ['echauffement', 'mt1', 'mitemps', 'mt2', 'termine'];
+  const idxCible = ordre.indexOf(phaseInfo.statut === 'a_venir' ? 'echauffement' : phaseInfo.statut);
+
+  if (live.statut === 'echauffement' && idxCible >= ordre.indexOf('mt1')) {
+    live.evenements.push({ minute: 0, atRealTime: maintenant, type: 'debut', club: null, joueur: null, texte: "Coup d'envoi !" });
+    live.statut = 'mt1';
+    modifie = true;
+  }
+  if (live.statut === 'mt1') {
+    const minuteCible = idxCible >= ordre.indexOf('mitemps') ? 45 : (phaseInfo.minuteFictive || 0);
+    if (minuteCible > live.minuteGeneree) { avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible); modifie = true; }
+    if (idxCible >= ordre.indexOf('mitemps')) {
+      live.evenements.push({
+        minute: 45, atRealTime: maintenant, type: 'mitemps', club: null, joueur: null,
+        texte: 'Mi-temps : ' + clubHome.nom + ' ' + live.scoreHome + ' - ' + live.scoreAway + ' ' + clubAway.nom
+      });
+      live.statut = 'mitemps';
+      modifie = true;
+    }
+  }
+  if (live.statut === 'mitemps' && idxCible >= ordre.indexOf('mt2')) {
+    live.evenements.push({ minute: 45, atRealTime: maintenant, type: 'reprise', club: null, joueur: null, texte: 'Coup d\'envoi de la seconde période !' });
+    live.statut = 'mt2';
+    modifie = true;
+  }
+  if (live.statut === 'mt2') {
+    const minuteCible = idxCible >= ordre.indexOf('termine') ? 90 : (phaseInfo.minuteFictive || 45);
+    if (minuteCible > live.minuteGeneree) { avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible); modifie = true; }
+    if (idxCible >= ordre.indexOf('termine')) {
+      live.statut = 'termine';
+      live.evenements.push({
+        minute: 90, atRealTime: maintenant, type: 'fin', club: null, joueur: null,
+        texte: 'Coup de sifflet final ! ' + clubHome.nom + ' ' + live.scoreHome + ' - ' + live.scoreAway + ' ' + clubAway.nom + '.'
+      });
+      modifie = true;
+    }
+  }
+  return modifie;
+}
+
+// =====================================================================
+// REPRISE POST-CAS (correctif du 28 aout 2026)
+// =====================================================================
+// Probleme corrige : gagner le CAS de finalisation (m.played devient true, persiste) puis
+// disparaitre (crash/refresh/perte reseau) AVANT d'avoir fini d'appliquer les effets externes
+// (salaire/POP/blessure/mail, plusieurs dizaines d'appels sequentiels) laissait ces effets
+// DEFINITIVEMENT perdus : m.played bloque toute nouvelle tentative de finalisation, donc plus
+// personne ne rappelait jamais la fonction qui les appliquait.
+//
+// Correction : chaque effet individuel (une recompense de titulaire/remplacant, un credit de
+// caisse de club, une blessure reelle) devient un ELEMENT PERSISTE dans live.effetsRestants
+// (construit pendant la phase PURE, donc ecrit par le MEME CAS qui pose played:true -- jamais
+// perdu). Son application se fait ensuite par petites revendications independantes : on relit
+// l'etat frais, on retire CET ELEMENT PRECIS de la liste (CAS), et seulement APRES avoir gagne
+// CE CAS localise-t-on l'effet externe correspondant. Un crash au milieu ne peut donc jamais
+// faire perdre plus qu'UN SEUL element (deja retire de la liste mais pas encore applique a
+// l'exterieur) -- fenetre de quelques centaines de ms par element, du meme ordre que le residu
+// deja accepte pour la persistance du PA (autosave debounce). drainerEffetsRestants est rappelee
+// a CHAQUE tick (voir avancerFootballLive), meme quand rien d'autre ne change ce tick-la : elle
+// reprend donc automatiquement tout effet laisse en attente par un client disparu, sans action du
+// joueur, sans mecanique de gameplay nouvelle.
+// =====================================================================
+
+// PURE : construit la liste des effets dus a la fin d'un match (jamais d'appel reseau externe
+// autre que des LECTURES -- chargerBudgetClub). Appelee dans la phase pure d'avancerFootballLive,
+// AVANT le CAS, pour que la liste soit ecrite atomiquement avec played:true.
+async function construireEffetsRestantsMatch(match, clubHome, clubAway) {
+  const live = match.live;
+  const victoireHome = live.scoreHome > live.scoreAway;
+  const victoireAway = live.scoreAway > live.scoreHome;
+  const nul = live.scoreHome === live.scoreAway;
+  const budgetHome = await chargerBudgetClub(clubHome.id);
+  const budgetAway = await chargerBudgetClub(clubAway.id);
+  const items = [];
+  const uid = () => Date.now() + '-' + Math.floor(Math.random() * 1e6);
+
+  function ajouterCote(club, compo, victoire, budget) {
+    const salaires = budget.salaires;
+    const resultatLabel = victoire ? 'victoire' : (nul ? 'match nul' : 'défaite');
+    const gainPop = victoire ? 30 : 20; // regle validee : +20 pour avoir dispute le match (defaite/nul), +30 au total si victoire (jamais +20 puis +30)
+    let totalSalaires = 0;
+    for (const t of compo.titulaires) {
+      const montant = salaires.titulaire + (victoire ? salaires.primeVictoire : 0);
+      const blessureJoueur = (live.blessures || []).find(b => b.joueur === t.nom);
+      const msgBlessure = blessureJoueur
+        ? '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (blessureJoueur.grave ? 'gravement' : 'légèrement') + '). Indisponible ' + blessureJoueur.duree + ' jour(s), -' + blessureJoueur.degatsPV + ' PV.'
+        : '';
+      items.push({
+        id: 'recomp-' + t.nom + '-' + uid(), type: 'recompense', nom: t.nom, montant, gainPop,
+        sujet: 'Vous étiez titulaire — ' + club.nom,
+        corps: 'Vous avez disputé le match (' + resultatLabel + ', ' + live.scoreHome + '-' + live.scoreAway + '). Salaire perçu : ' + montant.toLocaleString('fr-FR') + ' FR. +' + gainPop + ' Popularité.' + msgBlessure
+      });
+      totalSalaires += montant;
+    }
+    for (const nomRemp of compo.remplacants) {
+      items.push({
+        id: 'recomp-' + nomRemp + '-' + uid(), type: 'recompense', nom: nomRemp, montant: salaires.remplacant, gainPop: 0,
+        sujet: 'Vous étiez remplaçant — ' + club.nom,
+        corps: 'Vous étiez remplaçant(e) lors du dernier match (' + live.scoreHome + '-' + live.scoreAway + '). Salaire perçu : ' + salaires.remplacant.toLocaleString('fr-FR') + ' FR.'
+      });
+      totalSalaires += salaires.remplacant;
+    }
+    if (totalSalaires > 0) items.push({ id: 'budget-' + club.id + '-' + uid(), type: 'budget_club', clubId: club.id, montant: totalSalaires, motif: 'Salaires des joueurs (' + resultatLabel + ')' });
+  }
+
+  ajouterCote(clubHome, live.compositionFigee.home, victoireHome, budgetHome);
+  ajouterCote(clubAway, live.compositionFigee.away, victoireAway, budgetAway);
+  if (!live.effetsRestants) live.effetsRestants = [];
+  live.effetsRestants.push(...items);
+}
+
+// Applique UN effet externe deja revendique (retire de la liste par un CAS gagnant -- voir
+// drainerEffetsRestants). Jamais appelee avant cette revendication.
+async function appliquerEffetRestant(item) {
+  if (item.type === 'blessure') {
+    if (typeof sbAppliquerBlessureSportive === 'function') await sbAppliquerBlessureSportive(item.joueur, item.blessure, item.degatsPV).catch(() => {});
+    return;
+  }
+  if (item.type === 'recompense') {
+    if (item.montant > 0 && typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(item.nom, item.montant).catch(() => {});
+    if (item.gainPop && typeof sbAjusterPopularite === 'function') await sbAjusterPopularite(item.nom, item.gainPop).catch(() => {});
+    if (typeof sbSendMail === 'function') await sbSendMail('Ligue Officielle', item.nom, item.sujet, item.corps, formatDateHeureJeu()).catch(() => {});
+    return;
+  }
+  if (item.type === 'budget_club') {
+    if (typeof crediterBudgetClub === 'function') await crediterBudgetClub(item.clubId, -item.montant, item.motif).catch(() => {});
+    return;
+  }
+}
+
+// Localise, dans une saison DEJA CHARGEE, le tout premier effet en attente (n'importe quel match,
+// n'importe quelle journee -- couvre aussi bien le match qui vient d'etre finalise ce tick qu'un
+// effet laisse en plan par un client disparu il y a plusieurs ticks).
+function trouverProchainEffetRestant(saison) {
+  for (const j of saison.calendrier) {
+    for (let i = 0; i < j.matchs.length; i++) {
+      const m = j.matchs[i];
+      if (m.live?.effetsRestants?.length) return { journeeNumero: j.numero, matchIdx: i, item: m.live.effetsRestants[0] };
+    }
+  }
+  return null;
+}
+
+// Revendique puis applique, un par un, jusqu'a maxItems effets en attente. Chaque iteration relit
+// l'etat frais (un autre client a pu progresser entre-temps), ce qui rend la fonction sure a
+// rappeler depuis n'importe quel tick, par n'importe quel client, aussi souvent que necessaire.
+async function drainerEffetsRestants(maxItems) {
+  let traites = 0;
+  while (traites < maxItems) {
+    const charge = await chargerChampionnatAvecVersion();
+    if (!charge) break;
+    const { saison, version } = charge;
+    const cible = trouverProchainEffetRestant(saison);
+    if (!cible) break;
+    const journee = saison.calendrier.find(j => j.numero === cible.journeeNumero);
+    const m = journee.matchs[cible.matchIdx];
+    m.live.effetsRestants = m.live.effetsRestants.filter(it => it.id !== cible.item.id);
+    const cas = await ecrireChampionnatCAS(saison, version);
+    if (!cas.ok) continue; // un autre client vient d'ecrire -- retente immediatement sur l'etat frais
+    await appliquerEffetRestant(cible.item);
+    traites++;
+  }
+  return traites;
+}
+
+async function chargerChampionnatAvecVersion() {
+  const rows = await sbGet('championnat', 'id=eq.1').catch(() => null);
+  if (!rows || !rows.length) return null;
+  return { saison: rows[0].data, version: rows[0].updated_at };
+}
+
+// Compare-and-swap PostgREST natif : PATCH conditionne sur l'updated_at lu au debut du tick.
+// Si un autre client a ecrit entre-temps, la clause WHERE ne correspond plus a aucune ligne --
+// PostgREST (Prefer: return=representation) renvoie alors un tableau VIDE, jamais une erreur.
+async function ecrireChampionnatCAS(saison, versionAttendue) {
+  const nouvelleVersion = new Date().toISOString();
+  const res = await sbUpdate('championnat', 'id=eq.1&updated_at=eq.' + encodeURIComponent(versionAttendue), { data: saison, updated_at: nouvelleVersion }).catch(() => null);
+  return (res && res.length > 0) ? { ok: true } : { ok: false };
+}
+
+// Point d'entree unique du moteur live regulier (journee courante uniquement -- les playoffs
+// restent geres a l'identique par jouerMatchsTour/progresserPlayoffs, hors perimetre de ce
+// chantier, voir rapport final). Idempotent, rejouable par n'importe quel client, aussi souvent
+// que necessaire : deux phases strictement separees (PURE puis EFFETS), voir commentaire d'entete.
+async function avancerFootballLive() {
+  const charge = await chargerChampionnatAvecVersion();
+  if (!charge || !charge.saison) return null;
+  const { saison, version } = charge;
+  if (saison.phase !== 'reguliere') return null;
+
+  const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
+  if (!prochaine) return null;
+
+  const kickoff = calculerKickoffJournee(saison, prochaine.numero);
+  const phaseInfo = phaseMatchActuelle(kickoff, new Date());
+  if (phaseInfo.statut === 'a_venir') return null;
+
+  const finalisationsLegacy = [];
+  let modifie = false;
+
+  for (const m of prochaine.matchs) {
+    if (m.played) continue;
+    const clubHome = getClub(m.home), clubAway = getClub(m.away);
+
+    // Interdiction ministerielle (systeme existant, genererDemandesManifestationMatchs) :
+    // forfait immediat, prioritaire sur tout le pipeline live -- inchange par ce chantier.
+    const demandeMatch = m.demandeManifId ? await sbGetDemandeManifestationParId(m.demandeManifId).catch(() => null) : null;
+    if (demandeMatch?.statut === 'interdite') {
+      Object.assign(m, { scoreHome: 0, scoreAway: 1, recit: 'Match interdit par le Ministère de l\'Intérieur — victoire par forfait de ' + clubAway.nom + ' (0-1).', evenements: [], played: true });
+      modifie = true;
+      if (typeof addExternalEvent === 'function') addExternalEvent('🚫 Le match ' + clubHome.nom + ' vs ' + clubAway.nom + ' est interdit par le Ministère de l\'Intérieur. Victoire par forfait de ' + clubAway.nom + '.');
+      continue;
+    }
+
+    if (phaseInfo.statut === 'termine' && !m.live) {
+      // Fenetre de 30 minutes entierement ecoulee sans qu'aucun client ne l'ait jamais tickee --
+      // repli garanti sur l'ancienne resolution instantanee (aucun match ne reste jamais bloque).
+      // Chemin historique, hors perimetre du correctif "reprise post-CAS" (voir rapport).
+      const [contribHome, contribAway] = await Promise.all([calculerContributionEquipe(clubHome), calculerContributionEquipe(clubAway)]);
+      const res = simulerMatch(m.home, m.away, contribHome.bonus, contribAway.bonus, m.boycotte);
+      Object.assign(m, {
+        scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit, evenements: res.evenements, played: true,
+        compositions: {
+          home: { titulaires: contribHome.titulaires.map(t => t.nom), remplacants: contribHome.remplacants.map(t => t.nom) },
+          away: { titulaires: contribAway.titulaires.map(t => t.nom), remplacants: contribAway.remplacants.map(t => t.nom) }
+        }
+      });
+      modifie = true;
+      finalisationsLegacy.push({ club: clubHome, contrib: contribHome, butsPour: res.scoreHome, butsContre: res.scoreAway });
+      finalisationsLegacy.push({ club: clubAway, contrib: contribAway, butsPour: res.scoreAway, butsContre: res.scoreHome });
+      continue;
+    }
+
+    const chg = await progresserMatchLive(clubHome, clubAway, m, kickoff, phaseInfo);
+    if (chg) modifie = true;
+    if (m.live && m.live.statut === 'termine' && !m.played) {
+      const home = clubHome, away = clubAway;
+      const recit = m.live.scoreHome > m.live.scoreAway
+        ? home.nom + ' s\'impose ' + m.live.scoreHome + '-' + m.live.scoreAway + ' face à ' + away.nom
+        : (m.live.scoreAway > m.live.scoreHome
+          ? away.nom + ' s\'impose ' + m.live.scoreAway + '-' + m.live.scoreHome + ' sur la pelouse de ' + home.nom
+          : 'Match nul ' + m.live.scoreHome + '-' + m.live.scoreAway + ' entre ' + home.nom + ' et ' + away.nom);
+      // Construit la liste des effets dus (PURE, lectures seules) AVANT le CAS -- voir
+      // construireEffetsRestantsMatch : elle sera ainsi ecrite atomiquement avec played:true,
+      // jamais perdue meme si ce client disparait juste apres avoir gagne le CAS ci-dessous.
+      await construireEffetsRestantsMatch(m, clubHome, clubAway);
+      Object.assign(m, {
+        scoreHome: m.live.scoreHome, scoreAway: m.live.scoreAway, recit, evenements: m.live.evenements, played: true,
+        compositions: {
+          home: { titulaires: m.live.compositionFigee.home.titulaires.map(t => t.nom), remplacants: m.live.compositionFigee.home.remplacants },
+          away: { titulaires: m.live.compositionFigee.away.titulaires.map(t => t.nom), remplacants: m.live.compositionFigee.away.remplacants }
+        }
+      });
+    }
+  }
+
+  let casGagne = !modifie; // rien a revendiquer -> ne bloque pas la reprise ci-dessous
+  if (modifie) {
+    // Revendication (CAS) AVANT tout effet externe -- voir commentaire d'entete du chantier.
+    const cas = await ecrireChampionnatCAS(saison, version);
+    casGagne = cas.ok;
+    if (cas.ok) {
+      for (const f of finalisationsLegacy) {
+        await notifierCompositionsEtBlessures(f.club, f.contrib, f.butsPour, f.butsContre).catch(() => {});
+      }
+      if (prochaine.matchs.every(m => m.played)) {
+        await publierResultatsJourneeSurForum(saison.numero, prochaine).catch(() => {});
+        await resoudreParisJournee(saison.numero, prochaine).catch(() => {});
+      }
+    }
+    // course perdue (cas.ok===false) : un autre client a deja avance l'etat -- ne pas retenter
+    // cette progression precise ici, mais NE JAMAIS sauter la reprise ci-dessous pour autant, elle
+    // est independante de ce qui vient d'echouer.
+  }
+
+  // Reprise post-CAS (toujours tentee, meme si rien d'autre n'a change ce tick, meme si le CAS de
+  // progression ci-dessus a ete perdu) : un client precedent a pu gagner un CAS de finalisation
+  // puis disparaitre avant d'avoir applique tous les
+  // effets externes dus (POP/salaire/blessure/mail) -- voir entete "REPRISE POST-CAS" plus haut.
+  await drainerEffetsRestants(40);
+
+  // saison n'est fiable a renvoyer que si CE client a reellement gagne l'ecriture de sa propre
+  // progression (ou n'avait rien a ecrire) -- une course perdue laisse cette copie locale perimee.
+  return casGagne ? saison : null;
+}
+
+// Determine, de facon SYNCHRONE, si `nomJoueur` est actuellement titulaire d'un match en fenetre
+// [kickoff-5min, kickoff+25min] dans une saison DEJA CHARGEE (aucun appel reseau ici -- reserve a
+// une consommation depuis un cache recent, voir rafraichirVerrouFootball/tickFootballLive).
+function trouverVerrouMatchPourJoueur(saison, nomJoueur) {
+  if (!saison || saison.phase !== 'reguliere' || !nomJoueur) return null;
+  const maintenant = new Date();
+  for (const j of saison.calendrier) {
+    for (const m of j.matchs) {
+      if (m.played || !m.live || !m.live.compositionFigee) continue;
+      const kickoff = new Date(m.live.kickoffAt);
+      const phaseInfo = phaseMatchActuelle(kickoff, maintenant);
+      if (phaseInfo.statut === 'a_venir' || phaseInfo.statut === 'termine') continue;
+      const estHome = m.live.compositionFigee.home.titulaires.some(t => t.nom === nomJoueur);
+      const estAway = !estHome && m.live.compositionFigee.away.titulaires.some(t => t.nom === nomJoueur);
+      if (!estHome && !estAway) continue;
+      const club = getClub(estHome ? m.home : m.away);
+      const adversaire = getClub(estHome ? m.away : m.home);
+      return { matchKey: j.numero + '-' + m.home + '-' + m.away, journeeNumero: j.numero, matchIdx: j.matchs.indexOf(m),
+        club, adversaire, kickoffAt: kickoff, finPrevue: finPrevueMatch(kickoff), statutPhase: phaseInfo.statut };
+    }
+  }
+  return null;
 }
 
 // Sauvegarde immediate de state.char (local + Supabase) — necessaire pour tout changement qui
@@ -2728,12 +3227,85 @@ function getClubLocal() {
   return CLUBS_SPORTIFS.find(c => c.country === pays && c.city === ville);
 }
 
-async function doRegarderLive() {
-  document.getElementById('postes-modal-title').textContent = 'Choisir un match à suivre';
+// =====================================================================
+// FOOTBALL LIVE — INTERFACE (chantier "match reel 30 minutes", 28 aout 2026)
+// Remplace l'ancien doRegarderLive/afficherLiveMatch (replay statique d'un match deja termine,
+// 1 PA). Desormais : A) un match reellement en cours (echauffement/mt1/mitemps/mt2) ouvre le VRAI
+// live, synchronise pour tous les spectateurs via l'etat persiste (championnat.data) -- jamais un
+// simple affichage local ; B) un match termine ouvre un resume clairement etiquete comme tel.
+// Gratuit (0 PA) dans les deux cas : regarder un evenement sportif ne consomme plus de PA.
+// =====================================================================
+
+let _liveViewerInterval = null;
+let _liveViewerRef = null; // {journeeNumero, matchIdx}
+let _liveViewerNbEvenementsConnus = 0;
+
+function fermerLiveMatchReel() {
+  if (_liveViewerInterval) { clearInterval(_liveViewerInterval); _liveViewerInterval = null; }
+  _liveViewerRef = null;
+  _liveViewerNbEvenementsConnus = 0;
+}
+
+const LABELS_PHASE_LIVE = {
+  echauffement: 'ÉCHAUFFEMENT', mt1: '1ʳᵉ PÉRIODE', mitemps: 'MI-TEMPS', mt2: '2ᵉ PÉRIODE', termine: 'TERMINÉ'
+};
+const ICONES_EVENEMENT_LIVE = {
+  composition: '📋', debut: '🟢', but: '⚽', occasion: '💥', carton: '🟨', action: 'ℹ️',
+  blessure: '🚑', mitemps: '⏸️', reprise: '🔄', fin: '🏁'
+};
+
+function classeEvenementLive(type) {
+  if (type === 'but') return 'live-event live-event-but';
+  if (type === 'carton') return 'live-event live-event-carton';
+  if (type === 'blessure') return 'live-event live-event-blessure';
+  if (type === 'mitemps' || type === 'reprise' || type === 'fin' || type === 'debut') return 'live-event live-event-marqueur';
+  if (type === 'occasion') return 'live-event live-event-occasion';
+  return 'live-event';
+}
+
+function renderCarteEvenementLive(e, estNouveau) {
+  const icone = ICONES_EVENEMENT_LIVE[e.type] || '•';
+  const cls = classeEvenementLive(e.type) + (estNouveau ? ' live-event-nouveau' : '');
+  const minuteTxt = (e.minute != null && e.type !== 'composition') ? '<span class="live-event-minute">' + e.minute + "'</span>" : '';
+  return '<div class="' + cls + '">' + minuteTxt + '<span class="live-event-icone">' + icone + '</span><span class="live-event-texte">' + e.texte + '</span></div>';
+}
+
+function renderEnTeteLive(home, away, scoreHome, scoreAway, phaseInfo) {
+  let html = '<div class="live-entete">';
+  html += '<div class="live-phase-badge live-phase-' + phaseInfo.statut + '">' + (LABELS_PHASE_LIVE[phaseInfo.statut] || '') + (phaseInfo.minuteFictive != null ? ' · ' + phaseInfo.minuteFictive + "'" : '') + '</div>';
+  html += '<div class="live-score-ligne">';
+  html += '<span class="live-club-nom">' + home.nom + '</span>';
+  html += '<span class="live-score">' + scoreHome + ' - ' + scoreAway + '</span>';
+  html += '<span class="live-club-nom">' + away.nom + '</span>';
+  html += '</div></div>';
+  return html;
+}
+
+// Trouve, dans la saison DEJA CHARGEE, la journee dont le coup d'envoi est en fenetre "live"
+// (echauffement -> termine inclus, pour laisser le temps a l'ecran de detecter la toute fin) --
+// utilise a la fois par le badge et par doRegarderLiveOuResume.
+function trouverJourneeLiveActuelle(saison) {
+  if (!saison || saison.phase !== 'reguliere') return null;
+  const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
+  if (!prochaine) return null;
+  const kickoff = calculerKickoffJournee(saison, prochaine.numero);
+  const phaseInfo = phaseMatchActuelle(kickoff, new Date());
+  if (phaseInfo.statut === 'a_venir') return null;
+  return { journee: prochaine, kickoff, phaseInfo };
+}
+
+async function doRegarderLiveOuResume() {
+  document.getElementById('postes-modal-title').textContent = 'Football';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const saison = await verifierEtJouerJournees();
+  const saison = await chargerOuInitialiserSaison();
+  const actuel = trouverJourneeLiveActuelle(saison);
+  if (actuel && actuel.phaseInfo.statut !== 'termine') {
+    const idx = actuel.journee.matchs.findIndex(m => !m.played);
+    if (idx >= 0) { ouvrirLiveMatchReel(actuel.journee.numero, idx); return; }
+  }
+
   let derniereJournee = null;
   for (let i = saison.calendrier.length - 1; i >= 0; i--) {
     if (saison.calendrier[i].matchs.every(m => m.played)) { derniereJournee = saison.calendrier[i]; break; }
@@ -2744,34 +3316,165 @@ async function doRegarderLive() {
   }
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Journée ' + derniereJournee.numero + '</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Résumés — Journée ' + derniereJournee.numero + '</div>';
   derniereJournee.matchs.forEach((m, idx) => {
-    html += '<button onclick="afficherLiveMatch(' + derniereJournee.numero + ',' + idx + ')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + getClub(m.home).nom + ' <b style="color:#C9A84C">' + m.scoreHome + ' - ' + m.scoreAway + '</b> ' + getClub(m.away).nom + '</button>';
+    html += '<button onclick="ouvrirResumeMatch(' + derniereJournee.numero + ',' + idx + ')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + getClub(m.home).nom + ' <b style="color:#C9A84C">' + m.scoreHome + ' - ' + m.scoreAway + '</b> ' + getClub(m.away).nom + '</button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function afficherLiveMatch(numeroJournee, matchIdx) {
+// Resume d'un match DEJA TERMINE (played:true) -- ancien afficherLiveMatch, renomme et clairement
+// etiquete comme tel (jamais presente comme un live). Fonctionne a l'identique pour un match
+// resolu par l'ancien systeme (evenements generes en bloc) ou par le nouveau moteur live
+// (evenements deja tous presents, car m.evenements est copie depuis m.live.evenements a la
+// finalisation) -- aucune distinction necessaire cote affichage, retro-compatibilite totale.
+function ouvrirResumeMatch(numeroJournee, matchIdx) {
+  fermerLiveMatchReel();
+  chargerOuInitialiserSaison().then(saison => {
+    const journee = saison.calendrier.find(j => j.numero === numeroJournee);
+    const m = journee?.matchs?.[matchIdx];
+    if (!m) return;
+    const home = getClub(m.home), away = getClub(m.away);
+    const evenements = m.evenements || genererEvenementsMatch(home, away, m.scoreHome, m.scoreAway);
+
+    document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
+    let html = '<div class="live-container">';
+    html += '<div class="live-resume-etiquette">RÉSUMÉ DU MATCH</div>';
+    html += renderEnTeteLive(home, away, m.scoreHome, m.scoreAway, { statut: 'termine', minuteFictive: null });
+    html += '<div class="live-fil-evenements">';
+    evenements.forEach(e => { html += renderCarteEvenementLive(e, false); });
+    html += '</div></div>';
+    document.getElementById('postes-body').innerHTML = html;
+  });
+}
+
+// VRAI live, synchronise pour tous les spectateurs : chaque rafraichissement relit (et fait
+// avancer, si personne d'autre ne l'a deja fait) l'etat AUTORITAIRE persiste -- jamais de
+// pre-calcul local, jamais d'evenement invente cote client. Un joueur qui ouvre en cours de match
+// recoit directement la phase/le score/les evenements deja survenus ; fermer puis rouvrir relit
+// simplement le meme etat, rien n'est jamais rejoue depuis le debut.
+async function ouvrirLiveMatchReel(numeroJournee, matchIdx) {
+  fermerLiveMatchReel();
+  _liveViewerRef = { journeeNumero: numeroJournee, matchIdx };
+  _liveViewerNbEvenementsConnus = 0;
+  document.getElementById('postes-modal-title').textContent = 'Live';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Connexion au direct...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  await rafraichirLiveMatchReel();
+  _liveViewerInterval = setInterval(rafraichirLiveMatchReel, 6000);
+}
+
+async function rafraichirLiveMatchReel() {
+  if (!_liveViewerRef) return;
+  if (typeof avancerFootballLive === 'function') await avancerFootballLive().catch(() => {});
   const saison = await chargerOuInitialiserSaison();
-  const journee = saison.calendrier.find(j => j.numero === numeroJournee);
-  const m = journee?.matchs?.[matchIdx];
-  if (!m) return;
+  const journee = saison?.calendrier?.find(j => j.numero === _liveViewerRef.journeeNumero);
+  const m = journee?.matchs?.[_liveViewerRef.matchIdx];
+  if (!m) { fermerLiveMatchReel(); return; }
 
   const home = getClub(m.home), away = getClub(m.away);
-  // Repli pour les matchs joues avant l'ajout des evenements synchronises
-  const evenements = m.evenements || genererEvenementsMatch(home, away, m.scoreHome, m.scoreAway);
+
+  if (m.played) {
+    // Le match vient de se terminer (ou etait deja termine) : bascule silencieusement sur le
+    // resume, meme fenetre, jamais de rechargement de la page.
+    fermerLiveMatchReel();
+    ouvrirResumeMatch(_liveViewerRef ? _liveViewerRef.journeeNumero : journee.numero, journee.matchs.indexOf(m));
+    return;
+  }
+
+  const live = m.live;
+  if (!live || !live.compositionFigee) {
+    document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Les compositions ne sont pas encore annoncées. Revenez juste avant l\'échauffement.</div>';
+    return;
+  }
+  const kickoff = new Date(live.kickoffAt);
+  const phaseInfo = phaseMatchActuelle(kickoff, new Date());
 
   document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.8rem">' + home.nom + ' ' + m.scoreHome + ' - ' + m.scoreAway + ' ' + away.nom + '</div>';
-  html += '<div style="max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:.5rem">';
-  evenements.forEach(e => {
-    const couleur = e.type === 'but' ? '#6ab858' : (e.type === 'fin' ? '#C9A84C' : '#b0a080');
-    html += '<div style="font-size:.8rem;color:' + couleur + '"><b style="color:#8a6a20">' + e.minute + '\'</b> ' + e.texte + '</div>';
-  });
+  let html = '<div class="live-container">';
+  html += renderEnTeteLive(home, away, live.scoreHome, live.scoreAway, phaseInfo);
+  html += '<div class="live-fil-evenements" id="live-fil-evenements">';
+  live.evenements.forEach((e, i) => { html += renderCarteEvenementLive(e, i >= _liveViewerNbEvenementsConnus); });
   html += '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
+  _liveViewerNbEvenementsConnus = live.evenements.length;
+}
+
+// "SOIR DE MATCH !" (chantier "football live", 28 aout 2026, section 9) -- ouverte automatiquement
+// (voir tickFootballLive) au tout debut de l'echauffement pour un PJ effectivement titulaire et
+// connecte a cet instant. Fermer cette fenetre ne change rien a l'immobilisation (voir le verrou
+// central dans doOrder, plateau-router.js) : #soir-de-match-animation-zone est un point d'insertion
+// prepare pour une future animation/media personnalise (chantier separe, non traite ici) --
+// actuellement un simple accessoire CSS generique, jamais une "personnalisation" au sens demande.
+function ouvrirSoirDeMatch(verrou) {
+  const heureFin = verrou.finPrevue.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('postes-modal-title').textContent = 'Football';
+  let html = '<div class="soir-de-match">';
+  html += '<div class="soir-de-match-titre">SOIR DE MATCH !</div>';
+  html += '<div class="soir-de-match-texte">Vous êtes titulaire et vous vous échauffez.</div>';
+  html += '<div class="soir-de-match-infos">' + verrou.club.nom + ' vs ' + verrou.adversaire.nom + ' — fin prévue à ' + heureFin + '.</div>';
+  html += '<div id="soir-de-match-animation-zone" class="soir-de-match-animation-zone"><div class="soir-de-match-animation-placeholder">⚽</div></div>';
+  html += '<button onclick="ouvrirLiveDepuisVerrou()" class="soir-de-match-bouton">Rejoindre le direct</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function ouvrirLiveDepuisVerrou() {
+  if (!state.matchEnCoursTitulaire) return;
+  ouvrirLiveMatchReel(state.matchEnCoursTitulaire.journeeNumero, state.matchEnCoursTitulaire.matchIdx);
+}
+
+// Point d'entree unique du "tick" football rapide (voir plateau-core.js, intervalle dedie) :
+// fait avancer le moteur live, rafraichit le verrou d'immobilisation du joueur courant, declenche
+// "SOIR DE MATCH !" une seule fois par match, et met a jour le badge persistant de reouverture.
+async function tickFootballLive() {
+  if (typeof avancerFootballLive === 'function') await avancerFootballLive().catch(() => {});
+  if (typeof chargerOuInitialiserSaison !== 'function') return;
+  const saison = await chargerOuInitialiserSaison().catch(() => null);
+  if (!saison) return;
+
+  const verrou = state.char?.name ? trouverVerrouMatchPourJoueur(saison, state.char.name) : null;
+  state.matchEnCoursTitulaire = verrou;
+
+  if (verrou && verrou.statutPhase === 'echauffement') {
+    if (state._soirDeMatchAffichePour !== verrou.matchKey) {
+      state._soirDeMatchAffichePour = verrou.matchKey;
+      ouvrirSoirDeMatch(verrou);
+    }
+  } else if (!verrou) {
+    state._soirDeMatchAffichePour = null;
+  }
+
+  renderBadgeFootballLive(verrou, saison);
+}
+
+// Badge persistant (topbar) -- accessible, jamais cache/obscur (section 10) : visible pour un
+// titulaire immobilise (rejoint directement SON match) OU pour n'importe quel spectateur des
+// qu'un match est en cours (le live reste consultable sans etre titulaire, section 19).
+function renderBadgeFootballLive(verrou, saison) {
+  const badge = document.getElementById('football-live-badge');
+  if (!badge) return;
+  if (verrou) {
+    badge.style.display = '';
+    badge.textContent = '⚽ ' + verrou.club.nom + ' — ' + (LABELS_PHASE_LIVE[verrou.statutPhase] || '');
+    badge.onclick = function () { ouvrirLiveMatchReel(verrou.journeeNumero, verrou.matchIdx); };
+    return;
+  }
+  const actuel = trouverJourneeLiveActuelle(saison);
+  if (actuel && actuel.phaseInfo.statut !== 'termine') {
+    const idx = actuel.journee.matchs.findIndex(m => !m.played);
+    if (idx >= 0) {
+      badge.style.display = '';
+      badge.textContent = '⚽ Match en direct';
+      badge.onclick = function () { ouvrirLiveMatchReel(actuel.journee.numero, idx); };
+      return;
+    }
+  }
+  badge.style.display = 'none';
 }
 
 // Correctif du 25 aout 2026 (audit comparatif des 3 clubs, anomalie §1) : le chef/fondateur par

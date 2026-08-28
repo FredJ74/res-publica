@@ -11,6 +11,21 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   successRate = successRate || 70;
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
 
+  // Verrou central "match de football en cours" (chantier "football live", 28 aout 2026) : un
+  // titulaire est immobilise pendant l'echauffement + les 20 minutes de jeu + la mi-temps, que son
+  // navigateur soit ouvert ou non -- meme principe que le blocus syndical juste en dessous (lecture
+  // SYNCHRONE d'un cache pose par tickFootballLive/rafraichirVerrouFootball, jamais un appel reseau
+  // ici). Fermer la modale "Soir de match" ou le live ne touche jamais ce cache : seule l'horloge
+  // reelle (kickoff/finPrevue, persistee dans championnat.data) le fait expirer. Le joueur garde
+  // acces au badge de reouverture du live (hors doOrder) et a toute navigation/consultation qui ne
+  // passe pas par un ordre.
+  if (typeof state !== 'undefined' && state.matchEnCoursTitulaire) {
+    const v = state.matchEnCoursTitulaire;
+    const heureFin = v.finPrevue instanceof Date ? v.finPrevue : new Date(v.finPrevue);
+    showToast('Vous disputez un match !', 'Vous disputez actuellement un match avec ' + (v.club?.nom || 'votre club') + '. Vous serez de nouveau disponible à ' + heureFin.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) + '.', false);
+    return;
+  }
+
   // Blocus syndical : lecture SYNCHRONE d'un cache pose a l'entree dans la piece
   // (verifierBlocusEntree, plateau-organisations-quetes.js) — doOrder ne peut pas attendre
   // un appel reseau, donc on ne consulte jamais Supabase ici directement.
@@ -116,7 +131,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'observer_match') { doObserverMatch(); return; }
   if (fn === 'consulter_palmares') { doConsulterPalmares(); return; }
   if (fn === 'parier_match') { doParierMatch(pa, cost); return; }
-  if (fn === 'regarder_live') { doRegarderLive(); return; }
+  if (fn === 'regarder_live') { doRegarderLiveOuResume(); return; }
   if (fn === 'prendre_licence_sportive') { doPrendreLicenceSportive(pa, cost); return; }
   if (fn === 'demander_non_renouvellement_licence') { doDemanderNonRenouvellementLicence(pa, cost); return; }
   if (fn === 'annuler_non_renouvellement_licence') { doAnnulerNonRenouvellementLicence(); return; }

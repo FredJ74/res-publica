@@ -677,6 +677,18 @@ async function sbAppliquerSalaire(nomJoueur, montant) {
   await sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { arg: argActuel + montant });
 }
 
+// Ajuste a distance la popularite d'UN AUTRE personnage (chantier "football live", 28 aout 2026) --
+// meme principe de lecture/ecriture directe que sbAppliquerSalaire/sbAppliquerBlessureSportive
+// ci-dessus (aucune RPC dediee necessaire, resources est deja une colonne jsonb existante,
+// meme forme que celle geree par sbSavePersonnage : {inf,pop,dis}). Borne 0-100, meme convention
+// que partout ailleurs dans le jeu (Math.max(0,Math.min(100,...))).
+async function sbAjusterPopularite(nomJoueur, delta) {
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomJoueur)}&select=resources`);
+  const res = rows?.[0]?.resources || { inf: 0, pop: 30, dis: 50 };
+  const nouveauPop = Math.max(0, Math.min(100, (res.pop || 0) + delta));
+  return sbUpdate('personnages', `name=eq.${encodeURIComponent(nomJoueur)}`, { resources: { ...res, pop: nouveauPop } });
+}
+
 async function sbAppliquerRachatEntreprise(nomAcheteur, montant) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomAcheteur)}&select=arg`);
   const argActuel = rows?.[0]?.arg ?? 0;

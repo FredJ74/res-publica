@@ -2209,7 +2209,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'observer_match', label:'Consulter le calendrier et le classement', pa:0, cost:0, type:'legal', icon:'ti-eye', successRate:100, desc:'Calendrier complet de la saison, resultats, et classement du championnat.'},
-          {fn:'regarder_live', label:'Regarder le live', pa:1, cost:0, type:'legal', icon:'ti-device-tv', successRate:100, desc:'Suivre le deroule minute par minute du match de votre choix parmi la derniere journee jouee.'}
+          {fn:'regarder_live', label:'Suivre le foot', pa:0, cost:0, type:'legal', icon:'ti-device-tv', successRate:100, desc:'Match en cours : rejoint le direct, synchronise pour tous les spectateurs. Sinon : resume du dernier match joue. Gratuit.'}
         ]
       },
       vestiaires: {
