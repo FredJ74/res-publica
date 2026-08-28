@@ -3416,7 +3416,8 @@ const CATALOGUE_MICRO_ACTIONS = {
 const CLES_TYPES_MICRO_ACTION = Object.keys(CATALOGUE_MICRO_ACTIONS);
 
 // =====================================================================
-// REALISATEUR AUTOMATIQUE — premiere passe (chantier "realisateur automatique", 28 aout 2026)
+// REALISATEUR AUTOMATIQUE (chantier "realisateur automatique" du 28 aout 2026, architecture
+// multi-plans/signatures de ville du 29 aout 2026)
 // =====================================================================
 // Couche STRICTEMENT decorative, branchee UNIQUEMENT sur les micro-actions narratives locales
 // (jouerMicroAction). Ne touche ni live.evenements ni afficherInsertCanonique. Deux familles de
@@ -3426,9 +3427,12 @@ const CLES_TYPES_MICRO_ACTION = Object.keys(CATALOGUE_MICRO_ACTIONS);
 //  - 'illustre' : pilote une zone d'insert separee (#live-realisateur-illustre, meme langage
 //    visuel que le placeholder canonique #live-insert-bd mais un id distinct -- jamais le meme
 //    element, pour ne jamais interferer avec un insert d'evenement canonique en cours ou a venir).
-// Une sequence = 1 a 3 plans, generes une seule fois par instant deterministe (meme seed que
-// genererScenarioNarratifPhase : matchKey+phase+instant.t) donc identiques pour tous les
-// spectateurs. Ne lit JAMAIS live.evenements : le montage ne peut donc jamais "trahir" un
+// Une sequence = un NOMBRE QUELCONQUE de plans (1, 2, 3, 4... aucune branche speciale dans
+// executerSequenceRealisation selon leur nombre -- la sequence experimentale a 3 angles,
+// SEQUENCE_PREVIEW_3_ANGLES plus bas, sert de preuve que l'architecture generique sait deja
+// executer plusieurs assets/angles successifs), generes une seule fois par instant deterministe
+// (meme seed que genererScenarioNarratifPhase : matchKey+phase+instant.t) donc identiques pour
+// tous les spectateurs. Ne lit JAMAIS live.evenements : le montage ne peut donc jamais "trahir" un
 // evenement canonique futur (meme garantie que le scenario narratif lui-meme).
 // =====================================================================
 
@@ -3513,10 +3517,51 @@ const GABARIT_CRASH_TEST_RAS_DU_SOL = [
 // Pool pondere + filtrable par micro-action : les 6 gabarits existants restent equiprobables
 // (poids 1 chacun) ; le crash-test est rare PAR CONSTRUCTION (poids tres faible ET reserve a un
 // sous-ensemble de micro-actions) -- jamais mele au reste sans discipline de rythme (section
-// "IMPORTANT POUR LE RYTHME").
+// "IMPORTANT POUR LE RYTHME"). `id` (chantier "architecture multi-plans / signatures de ville",
+// 29 aout 2026) : chaque entree porte desormais un identifiant stable -- c'est ce qui permet a
+// UNE MEME famille d'action (ex. 'duel', deja compatible avec les 6 gabarits par defaut ET le
+// crash-test, soit 7 gabarits disponibles) de recevoir plusieurs gabarits differents ; ajouter un
+// futur gabarit a une famille = ajouter une entree ici avec le bon `microActionsCompatibles`,
+// jamais une modification de genererSequenceRealisation/executerSequenceRealisation.
 const POOL_GABARITS_REALISATEUR = GABARITS_MONTAGE_REALISATEUR
-  .map(gabarit => ({ gabarit, poids: 1, microActionsCompatibles: null }))
-  .concat([{ gabarit: GABARIT_CRASH_TEST_RAS_DU_SOL, poids: .3, microActionsCompatibles: ['duel', 'course', 'remise'] }]);
+  .map((gabarit, i) => ({ id: 'gabarit_montage_' + i, gabarit, poids: 1, microActionsCompatibles: null }))
+  .concat([{ id: 'crash_test_ras_du_sol', gabarit: GABARIT_CRASH_TEST_RAS_DU_SOL, poids: .3, microActionsCompatibles: ['duel', 'course', 'remise'] }]);
+
+// =====================================================================
+// PROFIL DE REALISATION PAR VILLE HOTE (chantier "architecture multi-plans / signatures de
+// ville", 29 aout 2026)
+// =====================================================================
+// Reserve UNIQUEMENT l'architecture -- AUCUN style artistique n'est arbitre ici (pas de manga, pas
+// d'Acid Ink, pas de BD europeenne, rien). PROFILS_REALISATION_VILLE est volontairement VIDE :
+// tant qu'aucune entree n'y est ajoutee, profilRealisationVille() renvoie toujours
+// PROFIL_REALISATION_DEFAUT, dont le `pool` contient EXACTEMENT les memes entrees que
+// POOL_GABARITS_REALISATEUR (memes objets gabarit/poids/microActionsCompatibles, memes
+// probabilites) -- donc AUCUN changement de comportement du live reel tant que ce chantier reste
+// en l'etat (section 17 : "aucun changement artistique visible du match reel"). `.slice()`
+// (correctif du 29 aout 2026) : le TABLEAU lui-meme est une copie distincte de
+// POOL_GABARITS_REALISATEUR, pour qu'un futur profil de ville ne puisse jamais, par une simple
+// mutation en place (push/splice/etc. sur profil.pool), corrompre le pool global partage -- les
+// entrees qu'il contient restent des references partagees (jamais mutees nulle part dans ce
+// fichier), donc aucun cout, aucun changement de probabilite.
+// Cle de resolution : country+'.'+city de la ville HOTE, TOUJOURS celle du club home (un club
+// joue toujours dans sa propre ville) -- concept STRICTEMENT separe de l'identite visuelle des
+// clubs (identiteVisuelleClub reste couleurs/maillot/finition, jamais camera/montage/rythme,
+// section "distinction identite club / realisation ville").
+const PROFIL_REALISATION_DEFAUT = {
+  id: 'defaut',
+  pool: POOL_GABARITS_REALISATEUR.slice(),
+  rythmeMoyen: 1,                // multiplicateur neutre -- 1 = comportement actuel, jamais applique tant qu'inutilise
+  frequenceFixe: null,           // reserve : biais futur vers mouvement:'fixe'
+  frequenceMultiAngle: null,     // reserve : biais futur vers les sequences multi-plans/angles
+  transitionsPrivilegiees: null, // reserve : ex. forcer davantage de cuts/fondus selon la ville
+  amplitudeCameraMax: null,      // reserve : ex. limiter/etendre le scale max des cadrages
+  plansSignature: [],            // reserve : futurs gabarits exclusifs a une ville
+  traitement: null               // reserve : futur filtre/texture visuel -- jamais applique aujourd'hui
+};
+const PROFILS_REALISATION_VILLE = {}; // volontairement vide -- aucune signature de ville arbitree pour l'instant
+function profilRealisationVille(country, city) {
+  return PROFILS_REALISATION_VILLE[country + '.' + city] || PROFIL_REALISATION_DEFAUT;
+}
 
 // Clone superficiel-suffisant (donnees plates, jamais de fonction/Date) : chaque plan genere garde
 // sa PROPRE copie de couches, jamais une reference partagee vers la constante du gabarit.
@@ -3524,16 +3569,30 @@ function clonerCouches(couches) {
   return JSON.parse(JSON.stringify(couches));
 }
 
-// Fonction PURE et deterministe (section B) : meme (seed, contexte) => toujours la meme sequence.
-// Le seed est construit par l'appelant a partir de la meme identite stable que le scenario
-// narratif (jamais recalcule differemment ici) -- donc tous les spectateurs d'un match obtiennent
-// la meme sequence pour le meme instant, sans aucune ecriture reseau. Ne lit ni live ni contexte
-// sportif : contexte se limite a {microAction, cote}, deja purement decoratifs -- le filtrage du
-// pool par micro-action (crash-test) est donc lui aussi sans aucune connaissance de la verite
+// Duree totale d'une sequence (section 4, "duree totale calculable"), a partir de n'importe quelle
+// liste de plans -- reutilisable aussi bien par genererSequenceRealisation que par une sequence
+// construite a la main (ex. SEQUENCE_PREVIEW_3_ANGLES, plus bas).
+function dureeTotaleSequence(sequence) {
+  return sequence.plans.reduce((s, p) => s + p.dureeMs, 0);
+}
+
+// Fonction PURE et deterministe (section B) : meme (seed, contexte, profil) => toujours la meme
+// sequence. Le seed est construit par l'appelant a partir de la meme identite stable que le
+// scenario narratif (jamais recalcule differemment ici) -- donc tous les spectateurs d'un match
+// obtiennent la meme sequence pour le meme instant, sans aucune ecriture reseau. Ne lit ni live ni
+// contexte sportif : contexte se limite a {microAction, cote}, deja purement decoratifs -- le
+// filtrage du pool par micro-action est donc lui aussi sans aucune connaissance de la verite
 // sportive, juste de l'identite deja connue de l'instant narratif local.
-function genererSequenceRealisation(seed, contexte) {
+// `profil` (chantier "architecture multi-plans / signatures de ville", 29 aout 2026) : parametre
+// OPTIONNEL -- absent (tous les appels existants), il vaut PROFIL_REALISATION_DEFAUT dont le pool
+// est exactement POOL_GABARITS_REALISATEUR (meme reference) : comportement rigoureusement
+// identique a avant ce chantier. Un futur profil de ville n'aura qu'a fournir son propre `pool`
+// (memes gabarits reutilises, filtres/reponderes, ou nouveaux gabarits exclusifs) -- aucune autre
+// ligne de cette fonction n'a besoin de changer.
+function genererSequenceRealisation(seed, contexte, profil) {
+  const poolActif = (profil || PROFIL_REALISATION_DEFAUT).pool;
   const rng = creerPRNGDeterministe(hashChaineVersUint32('realisateur-' + seed));
-  const poolEligible = POOL_GABARITS_REALISATEUR.filter(e =>
+  const poolEligible = poolActif.filter(e =>
     !e.microActionsCompatibles || e.microActionsCompatibles.includes(contexte.microAction));
   const totalPoids = poolEligible.reduce((s, e) => s + e.poids, 0);
   let r = rng() * totalPoids;
@@ -3541,7 +3600,15 @@ function genererSequenceRealisation(seed, contexte) {
   for (const e of poolEligible) { r -= e.poids; if (r <= 0) { entree = e; break; } }
   const plans = entree.gabarit.map((squelette, i) => {
     const dureeMs = Math.round(squelette.dureeBase + rng() * squelette.dureeVariable);
-    const plan = { type: squelette.type, dureeMs, transition: squelette.transitionEntree || (i === 0 ? 'cut' : (rng() < .5 ? 'fondu' : 'cut')) };
+    const plan = {
+      type: squelette.type, dureeMs,
+      transition: squelette.transitionEntree || (i === 0 ? 'cut' : (rng() < .5 ? 'fondu' : 'cut')),
+      // Section 3 : "equipe/joueur mis en valeur si utile" -- champs reserves, non consommes par le
+      // rendu aujourd'hui (aucun gabarit actuel ne cible un joueur precis en decoratif -- seuls les
+      // evenements canoniques le font, via evenement.joueur, deja gere ailleurs/inchangeant).
+      equipeMiseEnValeur: contexte.cote || 'neutre',
+      joueurMisEnValeur: null
+    };
     if (squelette.type === 'terrain') {
       plan.cadrage = squelette.cadrage;
       plan.effet = (squelette.effets && rng() < squelette.probaEffet)
@@ -3555,7 +3622,14 @@ function genererSequenceRealisation(seed, contexte) {
     }
     return plan;
   });
-  return { plans, microAction: contexte.microAction, cote: contexte.cote };
+  // Section 4 : metadonnees de sequence (identifiant de gabarit, duree totale calculable, joueur
+  // eventuel, caractere decoratif) -- genererSequenceRealisation ne produit AUJOURD'HUI que des
+  // sequences decoratives (`decoratif: true` toujours) ; une sequence canonique n'existe pas et
+  // n'est pas construite par ce chantier (section 12/13).
+  return {
+    gabaritId: entree.id, plans, microAction: contexte.microAction, cote: contexte.cote,
+    dureeMs: dureeTotaleSequence({ plans }), joueur: null, decoratif: true
+  };
 }
 
 // Reechantillonne le trajet (relatif au point de vue de l'equipe qui agit) sur le nombre de plans
@@ -3723,7 +3797,9 @@ function reinitialiserSceneApresSequenceRealisation(sortieCut) {
   if (l) l.textContent = '';
 }
 
-// Executeur commun (section D) : enchaine 1 a 3 plans deja generes, purement par affichage.
+// Executeur commun (section D) : enchaine un nombre QUELCONQUE de plans deja generes (sequence.plans.forEach,
+// aucune branche speciale pour 1, 2, 3 ou 4 plans -- verifie explicitement dans le chantier
+// "architecture multi-plans" du 29 aout 2026), purement par affichage.
 // A CHAQUE callback, verifie qu'aucun insert canonique n'est en cours (_liveViewerAfficheCanoniqueEnCours,
 // deja utilise par tickVisuelScene) -- si un evenement canonique a pris la priorite entre-temps, ce
 // plan est simplement saute, jamais de conflit visuel avec afficherInsertCanonique. Tous les
@@ -3797,15 +3873,13 @@ function executerSequenceRealisation(sequence, instant, def, club) {
 // canonique -- tout se joue en memoire/DOM, exactement comme la couche decorative existante.
 function trouverSequenceCrashTestRasDuSol(instant) {
   // genererSequenceRealisation est pure (aucun effet de bord) : on peut l'appeler a blanc autant
-  // de fois que necessaire pour retomber sur le gabarit qui porte un `asset` reel -- jamais une
-  // modification du pool ni de ses probabilites, seulement une recherche du seed adequat parmi
-  // ceux deja possibles en production.
+  // de fois que necessaire pour retomber sur le gabarit voulu -- jamais une modification du pool
+  // ni de ses probabilites, seulement une recherche du seed adequat parmi ceux deja possibles en
+  // production. Identification par gabaritId (stable, chantier "architecture multi-plans" du 29
+  // aout 2026) plutot que par sniffing structurel.
   for (let i = 0; i < 500; i++) {
     const sequence = genererSequenceRealisation('preview-crash-test-' + i, { microAction: instant.type, cote: instant.cote });
-    const p = sequence.plans[0];
-    if (sequence.plans.length === 1 && p.type === 'illustre' && p.couches && p.couches[0] && p.couches[0].asset) {
-      return sequence;
-    }
+    if (sequence.gabaritId === 'crash_test_ras_du_sol') return sequence;
   }
   return null; // ne devrait jamais arriver (~4.7% de chances par tirage, 500 essais tres largement suffisants)
 }
@@ -3826,10 +3900,13 @@ function trouverSequenceCrashTestRasDuSol(instant) {
 // au cut, C conserve son ralentissement/suspension final + micro-impact).
 // executerSequenceRealisation/jouerChoreographieCouche ne lisent jamais ces objets, ils sont en
 // lecture seule pour ce chantier -- reutilisable tel quel sans clonage entre deux relances.
+// Metadonnees de sequence (section 4) ajoutees pour coherence de schema avec genererSequenceRealisation
+// -- non lues par l'executeur, purement documentaires/preuve de la grammaire commune.
 const SEQUENCE_PREVIEW_3_ANGLES = {
+  gabaritId: 'preview_3_angles', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
   plans: [
     { // PLAN A -- camera ras-du-sol frontale, mouvement rapide vers l'action, cut en plein mouvement.
-      type: 'illustre', dureeMs: 700, transition: 'cut', transitionSortie: 'cut',
+      type: 'illustre', dureeMs: 700, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
       couches: [{
         nom: 'placeholder', asset: 'images/football-plan-ras-du-sol-01.png', mouvement: 'dynamique',
         etapes: [
@@ -3840,7 +3917,7 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
     },
     { // PLAN B -- angle lateral tres bas, travelling horizontal rapide, part deja "en mouvement"
       // (scale/pan de depart superieurs a l'etat neutre) pour prolonger la sensation du plan A.
-      type: 'illustre', dureeMs: 650, transition: 'cut', transitionSortie: 'cut',
+      type: 'illustre', dureeMs: 650, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
       couches: [{
         nom: 'placeholder', asset: 'images/football-duel-angle-02.png', mouvement: 'dynamique',
         etapes: [
@@ -3851,7 +3928,7 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
     },
     { // PLAN C -- tres proche du ballon/des jambes, mouvement plus court, tres bref ralentissement/
       // suspension (ease-out sur le dernier segment) + micro-vibration d'impact avant le cut de sortie.
-      type: 'illustre', dureeMs: 900, transition: 'cut', transitionSortie: 'cut',
+      type: 'illustre', dureeMs: 900, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
       couches: [{
         nom: 'placeholder', asset: 'images/football-duel-angle-03.png', mouvement: 'dynamique',
         etapes: [
@@ -3864,10 +3941,14 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
     }
   ]
 };
+SEQUENCE_PREVIEW_3_ANGLES.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_3_ANGLES); // 700+650+900 = 2250ms
 
-// Declenche une sequence (A ou B) via la VRAIE executerSequenceRealisation, avec le meme
-// nettoyage-avant-relance que fermerLiveMatchReel (jamais de timer orphelin entre deux clics,
-// quel que soit le bouton). Factorise entre les deux boutons -- aucune duplication de logique.
+// Declenche une sequence (A, B, ou une future sequence de test) via la VRAIE
+// executerSequenceRealisation, avec le meme nettoyage-avant-relance que fermerLiveMatchReel
+// (jamais de timer orphelin entre deux clics, quel que soit le bouton). Deja generique (prend
+// n'importe quelle `sequence` conforme au schema plan/couches) : ajouter une future sequence de
+// test (section 16) ne demande qu'une nouvelle constante + un bouton + un addEventListener
+// reutilisant cette meme fonction -- jamais un nouveau moteur de preview.
 function lancerSequencePreview(sequence, def, club, instant) {
   if (!sequence) return;
   _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
@@ -4001,10 +4082,11 @@ function positionnerJoueur(cote, indexZoneAbsolu) {
   el.style.left = pct + '%';
 }
 
-// Joue UNE sequence narrative locale : delegue desormais au realisateur automatique (premiere
-// passe, chantier du 28 aout 2026) -- genere une sequence de 1 a 3 plans terrain/illustre,
-// deterministe (seed = matchKey+phase+instant.t, identite stable partagee par tous les
-// spectateurs), puis l'execute. Purement visuel -- aucune donnee sportive lue ni ecrite ici.
+// Joue UNE sequence narrative locale : delegue au realisateur automatique -- genere une sequence
+// d'un nombre quelconque de plans terrain/illustre (l'executeur n'a aucune branche speciale selon
+// le nombre de plans, chantier "architecture multi-plans" du 29 aout 2026), deterministe (seed =
+// matchKey+phase+instant.t, identite stable partagee par tous les spectateurs), puis l'execute.
+// Purement visuel -- aucune donnee sportive lue ni ecrite ici.
 function jouerMicroAction(instant, home, away, matchKey, phaseKey) {
   const def = CATALOGUE_MICRO_ACTIONS[instant.type];
   if (!def) return;
@@ -4015,8 +4097,15 @@ function jouerMicroAction(instant, home, away, matchKey, phaseKey) {
   const scene = document.getElementById('live-mini-terrain');
   if (scene) { scene.classList.add('live-mini-terrain--actif'); scene.classList.remove('live-mini-terrain--echauffement', 'live-mini-terrain--mitemps'); }
 
+  // Ville HOTE = toujours celle du club home (un club joue toujours dans sa propre ville) --
+  // signature de realisation resolue ici, jamais melangee a l'identite visuelle des clubs
+  // (identiteVisuelleClub reste couleurs/maillot, un concept totalement separe). Aucun profil de
+  // ville n'etant encore defini (PROFILS_REALISATION_VILLE vide), ceci renvoie toujours
+  // PROFIL_REALISATION_DEFAUT -- zero changement de comportement tant qu'aucun profil artistique
+  // n'est configure.
+  const profil = profilRealisationVille(home.country, home.city);
   const seed = matchKey + '-' + phaseKey + '-' + instant.t;
-  const sequence = genererSequenceRealisation(seed, { microAction: instant.type, cote: instant.cote });
+  const sequence = genererSequenceRealisation(seed, { microAction: instant.type, cote: instant.cote }, profil);
   executerSequenceRealisation(sequence, instant, def, club);
 }
 
