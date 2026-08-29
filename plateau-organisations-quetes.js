@@ -4333,15 +4333,29 @@ function initPreviewRealisateur() {
     '<button id="preview-realisateur-grand-btn-' + s.id + '" style="font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">▶ ' + s.label + '</button>'
   ).join('');
 
+  // Robustesse ergonomique (correctif du 29 aout 2026) : la fenetre n'est pas deplacable, et la
+  // liste de scenarios grandit au fil des chantiers -- sans plafond, elle finirait par pousser le
+  // bouton Grand ecran hors du viewport. Plutot qu'un overflow:auto global (qui ferait defiler le
+  // bouton lui-meme hors champ), le panneau devient une colonne flex a 4 zones : titre (flex:0,
+  // toujours visible), petit ecran/mont (flex:0, taille fixe -- ce n'est pas la liste qui grandit),
+  // SEULEMENT la liste de boutons de scenarios dans #preview-realisateur-liste-scroll (flex:1,
+  // min-height:0, overflow-y:auto -- seule zone qui defile), puis le bloc commandes (flex:0,
+  // toujours visible en bas, contient le bouton Grand ecran). max-height:calc(100vh - 2rem) est
+  // relatif au viewport (jamais une hauteur fixe arbitraire) -- reste utilisable sur un ecran moins
+  // haut. Aucun changement d'apparence des boutons/textes eux-memes, uniquement leur conteneur.
   const panneau = document.createElement('div');
   panneau.id = 'preview-realisateur-panneau';
-  panneau.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:500;width:340px;max-width:90vw;background:#0d0b05;border:1px solid #8a6a20;padding:.9rem;font-family:inherit;box-shadow:0 4px 20px rgba(0,0,0,.6)';
+  panneau.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:500;width:340px;max-width:90vw;background:#0d0b05;border:1px solid #8a6a20;padding:.9rem;font-family:inherit;box-shadow:0 4px 20px rgba(0,0,0,.6);box-sizing:border-box;display:flex;flex-direction:column;max-height:calc(100vh - 2rem);overflow:hidden';
   panneau.innerHTML =
-    '<div style="font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:.85rem;margin-bottom:.6rem">🎬 PREVIEW RÉALISATEUR — banc d\'essai</div>' +
-    '<div id="preview-realisateur-mont"></div>' +
+    '<div style="flex:0 0 auto;font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:.85rem;margin-bottom:.6rem">🎬 PREVIEW RÉALISATEUR — banc d\'essai</div>' +
+    '<div id="preview-realisateur-mont" style="flex:0 0 auto"></div>' +
+    '<div id="preview-realisateur-liste-scroll" style="flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden">' +
     boutonsHtml +
+    '</div>' +
+    '<div style="flex:0 0 auto">' +
     '<button id="preview-realisateur-btn-grand-ecran" style="width:100%;margin-top:.6rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #7a6a48;background:transparent;color:#c0b090;cursor:pointer">⛶ Grand écran</button>' +
-    '<div style="font-size:.68rem;color:#7a6a48;margin-top:.5rem">Outil de mise au point — aucune écriture championnat, aucun PA, aucun effet canonique. Aucun scénario de preview n\'apparaît en match réel.</div>';
+    '<div style="font-size:.68rem;color:#7a6a48;margin-top:.5rem">Outil de mise au point — aucune écriture championnat, aucun PA, aucun effet canonique. Aucun scénario de preview n\'apparaît en match réel.</div>' +
+    '</div>';
   document.body.appendChild(panneau);
 
   // Overlay grand format (chantier "grand ecran", 29 aout 2026) : NE construit PAS un second
