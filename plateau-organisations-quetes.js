@@ -3999,6 +3999,40 @@ const SEQUENCE_PREVIEW_STOP_MOTION = {
 };
 SEQUENCE_PREVIEW_STOP_MOTION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_STOP_MOTION); // 450+280+220+190+320+800+540+700 = 3500ms (ralenti le 29 aout 2026, tempo initial juge trop rapide)
 
+// Sequence D "tension" (premier test, 29 aout 2026) : grammaire OPPOSEE a C -- dilatation
+// temporelle (plans 01-10, cadrages/regards/attente, aucun effet) puis rupture nette de rythme
+// (plans 11-13, cuts tres rapides "presque stop motion" au moment du contact). Coup franc de La
+// Brise Mariannaise contre l'Olympique de Luthecia a Port-Sainte-Marie -- s'arrete
+// DELIBEREMENT avant toute resolution sportive (aucun but/arret/tir/resultat montre, la frame 13
+// ne montre que le tout debut du depart du ballon). 13 poses FIXES (mouvement:'fixe' partout,
+// aucun zoom/pan/vibration pour ce premier test -- meme discipline que C : CUT franc, aucun
+// cartouche). EXCLUSIVEMENT dans la preview, comme B/C -- jamais ajoutee a
+// GABARITS_MONTAGE_REALISATEUR/POOL_GABARITS_REALISATEUR.
+const FRAMES_TENSION_COUP_FRANC = [
+  { asset: 'images/football-tension-coup-franc-frame-01.png', dureeMs: 1300 }, // situation generale
+  { asset: 'images/football-tension-coup-franc-frame-02.png', dureeMs: 900 },  // gros plan ballon
+  { asset: 'images/football-tension-coup-franc-frame-03.png', dureeMs: 900 },  // regard du tireur
+  { asset: 'images/football-tension-coup-franc-frame-04.png', dureeMs: 1000 }, // Taclojnou, entraineur Luthecia
+  { asset: 'images/football-tension-coup-franc-frame-05.png', dureeMs: 900 },  // gardien de Luthecia
+  { asset: 'images/football-tension-coup-franc-frame-06.png', dureeMs: 1000 }, // Ehault, entraineur La Brise
+  { asset: 'images/football-tension-coup-franc-frame-07.png', dureeMs: 1500 }, // public sous tension
+  { asset: 'images/football-tension-coup-franc-frame-08.png', dureeMs: 1400 }, // chaussure / ballon
+  { asset: 'images/football-tension-coup-franc-frame-09.png', dureeMs: 1000 }, // reprise de l'elan
+  { asset: 'images/football-tension-coup-franc-frame-10.png', dureeMs: 850 },  // joueur arme sa frappe
+  { asset: 'images/football-tension-coup-franc-frame-11.png', dureeMs: 300 },  // pied droit au contact -- rupture de rythme
+  { asset: 'images/football-tension-coup-franc-frame-12.png', dureeMs: 180 },  // impact maximal
+  { asset: 'images/football-tension-coup-franc-frame-13.png', dureeMs: 260 }   // le ballon commence a partir -- s'arrete la
+];
+const SEQUENCE_PREVIEW_TENSION = {
+  gabaritId: 'preview_tension', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_TENSION_COUP_FRANC.map(frame => ({
+    type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe' }]
+  }))
+};
+SEQUENCE_PREVIEW_TENSION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TENSION); // 1300+900+900+1000+900+1000+1500+1400+1000+850+300+180+260 = 11490ms
+
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
 // visuel", 29 aout 2026, complete avec le scenario stop motion le meme jour)
@@ -4039,6 +4073,12 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'C — Stop motion',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_STOP_MOTION
+  },
+  {
+    id: 'tension',
+    label: 'D — Tension',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_TENSION
   }
 ];
 
