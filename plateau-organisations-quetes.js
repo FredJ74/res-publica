@@ -3951,28 +3951,39 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
 };
 SEQUENCE_PREVIEW_3_ANGLES.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_3_ANGLES); // 700+650+900 = 2250ms
 
-// Sequence C "stop motion" (premier vrai test, 29 aout 2026) : 8 poses fixes distinctes, cut franc
-// entre chacune -- AUCUNE animation continue (mouvement:'fixe' partout, aucun cadrage/zoom, pour
-// eviter que la sequence ne se lise comme un montage multi-angle façon B). Le mouvement perçu doit
-// venir UNIQUEMENT du changement brutal de pose, jamais d'un deplacement de camera. Rythme
-// volontairement irregulier (approche lisible -> acceleration du tacle -> succession rapide ->
-// leger accent sur le contact -> chute -> respiration au sol -> relevage plus lisible) : ce sont
-// des durees de mise en scene, pas des evenements sportifs. EXCLUSIVEMENT dans la preview --
-// volontairement absente de GABARITS_MONTAGE_REALISATEUR/POOL_GABARITS_REALISATEUR, comme B.
-// Vibration sur la frame 05 (contact) volontairement OMISE : jouerChoreographieCouche ne declenche
-// vibrationAuMoment que pour une couche mouvement:'dynamique' a >=2 etapes (retour anticipe sinon,
-// voir plus haut dans ce fichier) -- l'appliquer a une pose fixe aurait exige soit de modifier ce
-// mecanisme partage, soit de simuler un mouvement quasi-invisible juste pour passer la condition,
-// ce qui n'est pas "le mecanisme existant qui le permet deja proprement".
+// Sequence C "stop motion" (premier test le 29 aout 2026, mise en scene "rupture frame 06" le meme
+// jour) : 7 poses fixes distinctes (01-05, 07-08) cut franc entre chacune -- AUCUNE animation
+// continue sur ces 7-la (mouvement:'fixe', aucun cadrage/zoom, pour eviter que la sequence ne se
+// lise comme un montage multi-angle façon B). Le mouvement perçu y vient UNIQUEMENT du changement
+// brutal de pose, jamais d'un deplacement de camera. La frame 06 (projection/arret visuel) est la
+// SEULE rupture de langage : couche mouvement:'dynamique', memes primitives que le plan A/crash-
+// test ras-du-sol (etapes scale/pan/rotation + vibrationAuMoment) -- aucun nouveau mecanisme, la
+// vibration y est reutilisable proprement (contrairement a une pose fixe, cf. l'historique de ce
+// fichier) puisque mouvement:'dynamique' a bien >=2 etapes. Aucun effet graphique supplementaire
+// (flash/radiales) ajoute : aurait exige du code neuf specifique a C, hors perimetre demande --
+// zoom + vibration existante suffisent au test. Rythme volontairement irregulier et asymetrique :
+// ce sont des durees de mise en scene, pas des evenements sportifs. EXCLUSIVEMENT dans la preview
+// -- volontairement absente de GABARITS_MONTAGE_REALISATEUR/POOL_GABARITS_REALISATEUR, comme B.
 const FRAMES_STOP_MOTION_DUEL = [
-  { asset: 'images/football-stopmotion-duel-frame-01.png', dureeMs: 320 }, // duel / approche
-  { asset: 'images/football-stopmotion-duel-frame-02.png', dureeMs: 180 }, // declenchement du tacle
-  { asset: 'images/football-stopmotion-duel-frame-03.png', dureeMs: 140 }, // tacle engage
-  { asset: 'images/football-stopmotion-duel-frame-04.png', dureeMs: 120 }, // glissade avancee
-  { asset: 'images/football-stopmotion-duel-frame-05.png', dureeMs: 220 }, // contact / rupture
-  { asset: 'images/football-stopmotion-duel-frame-06.png', dureeMs: 160 }, // projection / chute
-  { asset: 'images/football-stopmotion-duel-frame-07.png', dureeMs: 360 }, // joueurs au sol
-  { asset: 'images/football-stopmotion-duel-frame-08.png', dureeMs: 480 }  // debut du relevage
+  { asset: 'images/football-stopmotion-duel-frame-01.png', dureeMs: 380 }, // duel / approche
+  { asset: 'images/football-stopmotion-duel-frame-02.png', dureeMs: 220 }, // declenchement du tacle
+  { asset: 'images/football-stopmotion-duel-frame-03.png', dureeMs: 170 }, // tacle engage
+  { asset: 'images/football-stopmotion-duel-frame-04.png', dureeMs: 150 }, // glissade avancee
+  { asset: 'images/football-stopmotion-duel-frame-05.png', dureeMs: 260 }, // contact / rupture
+  {
+    asset: 'images/football-stopmotion-duel-frame-06.png', dureeMs: 750, // projection / arret visuel -- seule rupture animee
+    couche: {
+      mouvement: 'dynamique',
+      etapes: [
+        { t: 0,   cadrage: { scale: 1,    x: 0, y: 0,  rotation: 0 },  easing: 'linear' },
+        { t: .55, cadrage: { scale: 1.55, x: 0, y: -4, rotation: -1 }, easing: 'ease-in' },
+        { t: 1,   cadrage: { scale: 1.68, x: 0, y: -5, rotation: -1 }, easing: 'ease-out' }
+      ],
+      vibrationAuMoment: .88
+    }
+  },
+  { asset: 'images/football-stopmotion-duel-frame-07.png', dureeMs: 420 }, // joueurs au sol
+  { asset: 'images/football-stopmotion-duel-frame-08.png', dureeMs: 520 }  // debut du relevage
 ];
 const SEQUENCE_PREVIEW_STOP_MOTION = {
   gabaritId: 'preview_stop_motion', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
@@ -3981,10 +3992,12 @@ const SEQUENCE_PREVIEW_STOP_MOTION = {
     // narratif ne doit recouvrir les 8 poses -- voir appliquerPlanIllustreRealisation.
     type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
     cartouche: false,
-    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe' }]
+    // frame.couche (uniquement frame 06) surcharge mouvement/etapes/vibrationAuMoment sur la base
+    // par defaut {nom, asset, mouvement:'fixe'} -- les 7 autres frames restent inchangees.
+    couches: [Object.assign({ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe' }, frame.couche || {})]
   }))
 };
-SEQUENCE_PREVIEW_STOP_MOTION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_STOP_MOTION); // 320+180+140+120+220+160+360+480 = 1980ms
+SEQUENCE_PREVIEW_STOP_MOTION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_STOP_MOTION); // 380+220+170+150+260+750+420+520 = 2870ms
 
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
