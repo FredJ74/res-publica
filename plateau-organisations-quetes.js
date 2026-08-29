@@ -4140,8 +4140,8 @@ SEQUENCE_PREVIEW_TRAJECTOIRE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TRAJ
 // 4085,986 ms / 4,087 s), pas une valeur arbitraire -- 4100ms (leger surplus technique au-dessus de
 // la mesure, pour ne jamais couper la video une milliseconde avant sa fin naturelle via le timer du plan).
 const FRAMES_ARRET_COUP_FRANC = [
+  { asset: 'images/football-coup-franc-arret-gardien-capture.png', dureeMs: 700 }, // gardien en plein plongeon avec le ballon (correctif ordre du 29 aout 2026 : passe en premier)
   { asset: 'images/football-coup-franc-arret-gardien.png', dureeMs: 900 },         // le gardien intercepte le ballon -- resolution de l'action
-  { asset: 'images/football-coup-franc-arret-gardien-capture.png', dureeMs: 700 }, // prolongement immediat -- gardien en plein plongeon avec le ballon
   { asset: 'images/football-coup-franc-arret-gardien-releve.png', dureeMs: 1200 }  // le gardien est en possession du ballon, sourit
 ];
 const SEQUENCE_PREVIEW_ARRET = {
