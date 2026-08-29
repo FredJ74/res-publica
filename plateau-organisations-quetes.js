@@ -3748,7 +3748,12 @@ function appliquerPlanIllustreRealisation(plan, instant, def, club) {
     if (imageEl) { imageEl.style.display = 'none'; imageEl.removeAttribute('src'); }
     if (actionEl) actionEl.textContent = ICONES_MICRO_ACTION_REALISATEUR[instant.type] || 'ℹ️';
   }
-  if (texteEl) texteEl.textContent = (def.label || '') + ' — ' + club.nom;
+  // plan.cartouche (correctif du 29 aout 2026, defaut true -- absent sur tous les plans existants
+  // donc aucun changement de comportement pour A/B/le vrai live) : un plan illustre peut demander
+  // explicitement `cartouche:false` pour rester PUREMENT visuel, sans texte narratif superpose --
+  // reutilisable plus tard par le realisateur reel pour distinguer un plan narratif (cartouche) d'un
+  // plan de mise en scene pure (sans cartouche), sans hack CSS ni structure parallele.
+  if (texteEl) texteEl.textContent = (plan.cartouche === false) ? '' : (def.label || '') + ' — ' + club.nom;
 
   overlay.className = 'live-insert-bd live-insert-bd-visible' + (plan.transition === 'cut' ? ' live-insert-bd-instant' : '');
   const cible = (couche && couche.asset && imageEl) ? imageEl : overlay;
@@ -3972,7 +3977,10 @@ const FRAMES_STOP_MOTION_DUEL = [
 const SEQUENCE_PREVIEW_STOP_MOTION = {
   gabaritId: 'preview_stop_motion', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
   plans: FRAMES_STOP_MOTION_DUEL.map(frame => ({
+    // cartouche:false (correctif du 29 aout 2026) : sequence purement visuelle, aucun texte
+    // narratif ne doit recouvrir les 8 poses -- voir appliquerPlanIllustreRealisation.
     type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
     couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe' }]
   }))
 };
