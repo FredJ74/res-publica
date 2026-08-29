@@ -3007,13 +3007,13 @@ const BUILDINGS = {
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
-      salle_dynasties: {
-        name: "Salle des Grandes Dynasties Mariannaises",
-        imageBg: "linear-gradient(135deg,#181410,#241c14)",
-        desc: "Arbre genealogique vivant des familles historiques de Port-Sainte-Marie, dont les Le Gall et les Le Roux. Contenu a venir.",
-        persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
-        orders: []
-      },
+      // salle_dynasties retiree du parcours (chantier "integration images/audio PSM", 30 aout
+      // 2026, decision de game design de Fred) : le theme Le Gall/Le Roux est deja suffisamment
+      // present ailleurs (tombe de Yann Le Goff, PNJ Le Gall du musee, etc.). Aucune reference a
+      // 'salle_dynasties' trouvee ailleurs dans le depot (grep exhaustif avant retrait) -- aucune
+      // mecanique/enigme externe n'y etait accrochee (orders:[] deja vide). L'asset graphique
+      // (aucune image PSM-specifique n'existait de toute facon pour cette salle -- gradient seul)
+      // n'est pas supprime du disque, seule l'entree de code est retiree.
       salle_scandales: {
         name: "Salle des Scandales et Affaires",
         imageBg: "linear-gradient(135deg,#100c10,#181018)",
