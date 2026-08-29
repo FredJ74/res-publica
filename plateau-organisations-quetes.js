@@ -4018,20 +4018,38 @@ SEQUENCE_PREVIEW_STOP_MOTION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_STOP
 // aucun zoom/pan/vibration pour ce premier test -- meme discipline que C : CUT franc, aucun
 // cartouche). EXCLUSIVEMENT dans la preview, comme B/C -- jamais ajoutee a
 // GABARITS_MONTAGE_REALISATEUR/POOL_GABARITS_REALISATEUR.
+// Zooms 03/05/07 (correctif du 29 aout 2026) : memes primitives que le plan A/crash-test ras-du-sol
+// (etapes scale/x/y/rotation/easing, mouvement:'dynamique') -- aucune vibration, aucun pan, aucune
+// rotation, cadrage initial identique a un plan fixe (scale 1), easing 'linear' du debut a la fin
+// pour eviter tout mouvement brutal. Intensite volontairement croissante 03 < 05 < 07 ("tension qui
+// se resserre progressivement") ; 04/06 restent des couches par defaut (fixe), contraste assume.
+const ZOOM_TIRE_LEGER = { mouvement: 'dynamique', etapes: [
+  { t: 0, cadrage: { scale: 1,    x: 0, y: 0, rotation: 0 }, easing: 'linear' },
+  { t: 1, cadrage: { scale: 1.05, x: 0, y: 0, rotation: 0 }, easing: 'linear' }
+] };
+const ZOOM_GARDIEN_LEGER = { mouvement: 'dynamique', etapes: [
+  { t: 0, cadrage: { scale: 1,    x: 0, y: 0, rotation: 0 }, easing: 'linear' },
+  { t: 1, cadrage: { scale: 1.08, x: 0, y: 0, rotation: 0 }, easing: 'linear' }
+] };
+const ZOOM_PUBLIC_LEGER = { mouvement: 'dynamique', etapes: [
+  { t: 0, cadrage: { scale: 1,    x: 0, y: 0, rotation: 0 }, easing: 'linear' },
+  { t: 1, cadrage: { scale: 1.12, x: 0, y: 0, rotation: 0 }, easing: 'linear' }
+] };
+
 const FRAMES_TENSION_COUP_FRANC = [
   { asset: 'images/football-tension-coup-franc-frame-01.png', dureeMs: 1300 }, // situation generale
   { asset: 'images/football-tension-coup-franc-frame-02.png', dureeMs: 900 },  // gros plan ballon
-  { asset: 'images/football-tension-coup-franc-frame-03.png', dureeMs: 900 },  // regard du tireur
-  { asset: 'images/football-tension-coup-franc-frame-04.png', dureeMs: 1000 }, // Taclojnou, entraineur Luthecia
-  { asset: 'images/football-tension-coup-franc-frame-05.png', dureeMs: 900 },  // gardien de Luthecia
-  { asset: 'images/football-tension-coup-franc-frame-06.png', dureeMs: 1000 }, // Ehault, entraineur La Brise
-  { asset: 'images/football-tension-coup-franc-frame-07.png', dureeMs: 1500 }, // public sous tension
+  { asset: 'images/football-tension-coup-franc-frame-03.png', dureeMs: 900, couche: ZOOM_TIRE_LEGER },    // regard du tireur -- zoom subtil
+  { asset: 'images/football-tension-coup-franc-frame-04.png', dureeMs: 1000 }, // Taclojnou, entraineur Luthecia -- parfaitement fixe
+  { asset: 'images/football-tension-coup-franc-frame-05.png', dureeMs: 900, couche: ZOOM_GARDIEN_LEGER }, // gardien de Luthecia -- zoom un peu plus perceptible
+  { asset: 'images/football-tension-coup-franc-frame-06.png', dureeMs: 1000 }, // Ehault, entraineur La Brise -- parfaitement fixe
+  { asset: 'images/football-tension-coup-franc-frame-07.png', dureeMs: 1500, couche: ZOOM_PUBLIC_LEGER }, // public sous tension -- zoom lent
   { asset: 'images/football-tension-coup-franc-frame-08.png', dureeMs: 1400 }, // chaussure / ballon
-  { asset: 'images/football-tension-coup-franc-frame-09.png', dureeMs: 1000 }, // reprise de l'elan
-  { asset: 'images/football-tension-coup-franc-frame-10.png', dureeMs: 850 },  // joueur arme sa frappe
-  { asset: 'images/football-tension-coup-franc-frame-11.png', dureeMs: 300 },  // pied droit au contact -- rupture de rythme
-  { asset: 'images/football-tension-coup-franc-frame-12.png', dureeMs: 180 },  // impact maximal
-  { asset: 'images/football-tension-coup-franc-frame-13.png', dureeMs: 260 }   // le ballon commence a partir -- s'arrete la
+  { asset: 'images/football-tension-coup-franc-frame-09.png', dureeMs: 1050 }, // reprise de l'elan (acceleration progressive, 29 aout 2026)
+  { asset: 'images/football-tension-coup-franc-frame-10.png', dureeMs: 750 },  // joueur arme sa frappe
+  { asset: 'images/football-tension-coup-franc-frame-11.png', dureeMs: 500 },  // pied droit au contact
+  { asset: 'images/football-tension-coup-franc-frame-12.png', dureeMs: 320 },  // impact maximal
+  { asset: 'images/football-tension-coup-franc-frame-13.png', dureeMs: 220 }   // le ballon commence a partir -- s'arrete la
 ];
 const SEQUENCE_PREVIEW_TENSION = {
   gabaritId: 'preview_tension', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
@@ -4040,10 +4058,12 @@ const SEQUENCE_PREVIEW_TENSION = {
     cartouche: false,
     // ajustement:'contain' (correctif du 29 aout 2026) : les 13 assets de D ont des ratios tres
     // variables (plans larges vs gros plans quasi carres) -- affichage integral, jamais rogne.
-    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe', ajustement: 'contain' }]
+    // frame.couche (03/05/07 uniquement) surcharge mouvement/etapes par-dessus la base fixe -- les
+    // 10 autres plans restent inchanges (fixe, aucun mouvement).
+    couches: [Object.assign({ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe', ajustement: 'contain' }, frame.couche || {})]
   }))
 };
-SEQUENCE_PREVIEW_TENSION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TENSION); // 1300+900+900+1000+900+1000+1500+1400+1000+850+300+180+260 = 11490ms
+SEQUENCE_PREVIEW_TENSION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TENSION); // 1300+900+900+1000+900+1000+1500+1400+1050+750+500+320+220 = 11740ms (acceleration 08-13 progressive, 29 aout 2026)
 
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
