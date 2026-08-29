@@ -3739,9 +3739,32 @@ function appliquerPlanIllustreRealisation(plan, instant, def, club) {
   const actionEl = overlay.querySelector('.live-insert-bd-action');
   const texteEl = overlay.querySelector('.live-insert-bd-texte');
   const imageEl = document.getElementById('live-realisateur-illustre-image');
+  const videoEl = document.getElementById('live-realisateur-illustre-video');
   const couche = (plan.couches && plan.couches[0]) || null;
 
-  if (couche && couche.asset) {
+  // Neutralise systematiquement la couche video AVANT d'appliquer le nouveau plan, qu'il soit
+  // lui-meme video ou non (chantier "support video du realisateur preview", 29 aout 2026) --
+  // jamais de son residuel d'un plan video precedent quel que soit le plan qui le suit.
+  if (videoEl) { videoEl.pause(); videoEl.currentTime = 0; videoEl.style.display = 'none'; }
+
+  if (couche && couche.asset && couche.media === 'video') {
+    if (imageEl) { imageEl.style.display = 'none'; imageEl.removeAttribute('src'); }
+    if (videoEl) {
+      videoEl.src = couche.asset;
+      videoEl.style.display = 'block';
+      // Meme champ declaratif couche.ajustement que pour une image (contain evite un rognage
+      // destructeur quand le ratio source -- souvent proche du carre pour un clip reaction -- ne
+      // correspond pas au cadre large de la pelouse).
+      videoEl.style.objectFit = couche.ajustement === 'contain' ? 'contain' : '';
+      videoEl.loop = false;
+      videoEl.muted = false; // audio conserve
+      videoEl.playsInline = true;
+      videoEl.currentTime = 0; // relecture systematique depuis 0 a chaque declenchement
+      const lecture = videoEl.play();
+      if (lecture && typeof lecture.catch === 'function') lecture.catch(() => {});
+    }
+    if (actionEl) actionEl.textContent = '';
+  } else if (couche && couche.asset) {
     if (imageEl) {
       imageEl.src = couche.asset; imageEl.style.display = 'block';
       // couche.ajustement (correctif du 29 aout 2026, defaut 'cover' -- absent sur toutes les
@@ -3766,7 +3789,9 @@ function appliquerPlanIllustreRealisation(plan, instant, def, club) {
   if (texteEl) texteEl.textContent = (plan.cartouche === false) ? '' : (def.label || '') + ' — ' + club.nom;
 
   overlay.className = 'live-insert-bd live-insert-bd-visible' + (plan.transition === 'cut' ? ' live-insert-bd-instant' : '');
-  const cible = (couche && couche.asset && imageEl) ? imageEl : overlay;
+  const cible = (couche && couche.asset && couche.media === 'video' && videoEl) ? videoEl
+    : (couche && couche.asset && imageEl) ? imageEl
+    : overlay;
   jouerChoreographieCouche(couche, cible, plan.dureeMs);
 }
 
@@ -3774,10 +3799,13 @@ function appliquerPlanIllustreRealisation(plan, instant, def, club) {
 // transitionSortie==='cut' (ex. crash-test ras du sol). Par defaut (false/undefined) : fondu
 // existant inchange (transition CSS .3s deja definie sur .live-insert-bd). Reinitialise aussi
 // l'<img> (transform/affichage/src) pour ne jamais laisser un cadrage ou une image residuelle
-// avant le prochain plan illustre de la MEME session de live.
+// avant le prochain plan illustre de la MEME session de live. Reinitialise aussi la <video> --
+// pause + retour a 0 + masquage -- pour ne jamais laisser un son residuel apres la fin d'une
+// sequence (chantier "support video du realisateur preview", 29 aout 2026).
 function masquerPlanIllustreRealisation(sortieCut) {
   const overlay = document.getElementById('live-realisateur-illustre');
   const imageEl = document.getElementById('live-realisateur-illustre-image');
+  const videoEl = document.getElementById('live-realisateur-illustre-video');
   if (!overlay) return;
   if (sortieCut) {
     overlay.style.transition = 'none';
@@ -3791,6 +3819,10 @@ function masquerPlanIllustreRealisation(sortieCut) {
   if (imageEl) {
     imageEl.style.transition = ''; imageEl.style.transform = ''; imageEl.style.objectFit = '';
     imageEl.style.display = 'none'; imageEl.removeAttribute('src');
+  }
+  if (videoEl) {
+    videoEl.pause(); videoEl.currentTime = 0; videoEl.style.transition = ''; videoEl.style.transform = '';
+    videoEl.style.objectFit = ''; videoEl.style.display = 'none'; videoEl.removeAttribute('src');
   }
 }
 
@@ -4093,6 +4125,35 @@ const SEQUENCE_PREVIEW_TRAJECTOIRE = {
 };
 SEQUENCE_PREVIEW_TRAJECTOIRE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TRAJECTOIRE); // 650+700+1000 = 2350ms
 
+// Scenario F1 -- Arret (29 aout 2026) : resolution visuelle de l'action (le gardien intercepte),
+// plans 1/2 illustres classiques (aucun mouvement ajoute), plan 3 = premier plan VIDEO du banc
+// d'essai (reaction de Taclojnou, son conserve). Les deux images ont un ratio proche de 1.5:1 (tres
+// eloigne du cadre large 16/6.5 ~= 2.46:1) -- en 'cover' le rognage vertical (~19,5% en haut ET en
+// bas) coupe le haut du crane/les gants sur l'image 1 et le haut de la tete/les crampons sur
+// l'image 2 -- ajustement:'contain' obligatoire sur les deux, meme raisonnement que D/E. La video
+// (640x1024... en realite 640x640, ratio 1:1) serait rognee de ~30% de chaque cote en 'cover' --
+// contain egalement.
+// dureeMs du plan 3 : duree REELLE mesuree du fichier (afinfo/mdls concordants : 4085,986 ms /
+// 4,087 s), pas une valeur arbitraire -- 4100ms (leger surplus technique au-dessus de la mesure,
+// pour ne jamais couper la video une milliseconde avant sa fin naturelle via le timer du plan).
+const FRAMES_ARRET_COUP_FRANC = [
+  { asset: 'images/football-coup-franc-arret-gardien.png', dureeMs: 900 },        // le gardien intercepte le ballon -- resolution de l'action
+  { asset: 'images/football-coup-franc-arret-gardien-releve.png', dureeMs: 1200 } // le gardien est en possession du ballon, sourit
+];
+const SEQUENCE_PREVIEW_ARRET = {
+  gabaritId: 'preview_arret', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_ARRET_COUP_FRANC.map(frame => ({
+    type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe', ajustement: 'contain' }]
+  })).concat([{
+    type: 'illustre', dureeMs: 4100, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: 'images/football-reaction-taclojnou-arret.mp4', mouvement: 'fixe', ajustement: 'contain', media: 'video' }]
+  }])
+};
+SEQUENCE_PREVIEW_ARRET.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_ARRET); // 900+1200+4100 = 6200ms
+
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
 // visuel", 29 aout 2026, complete avec le scenario stop motion le meme jour)
@@ -4145,6 +4206,12 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'E — Trajectoire',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_TRAJECTOIRE
+  },
+  {
+    id: 'arret',
+    label: 'F1 — Arrêt',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_ARRET
   }
 ];
 
@@ -4157,6 +4224,12 @@ function lancerSequencePreview(sequence, def, club, instant) {
   if (!sequence) return;
   _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
   _liveViewerTimeoutsAnimation = [];
+  // Coupe immediatement toute video du scenario precedent -- les timers ci-dessus empechent de
+  // NOUVEAUX changements de plan, mais une video deja lancee par un plan passe continuerait sinon
+  // de jouer (et de faire du son) pendant tout le nouveau scenario (chantier "support video du
+  // realisateur preview", 29 aout 2026).
+  const videoEnCours = document.getElementById('live-realisateur-illustre-video');
+  if (videoEnCours) { videoEnCours.pause(); videoEnCours.currentTime = 0; videoEnCours.style.display = 'none'; }
   const label = document.getElementById('live-action-label');
   if (label) label.textContent = def.label + ' — ' + club.nom; // meme habillage que jouerMicroAction
   executerSequenceRealisation(sequence, instant, def, club);
@@ -4676,6 +4749,14 @@ function construireSceneMiniTerrain(matchKey, home, away) {
   // (display:none) et sans src -- appliquerPlanIllustreRealisation ne la montre que pour les
   // couches qui portent explicitement `asset` (aujourd'hui : uniquement GABARIT_CRASH_TEST_RAS_DU_SOL).
   html += '<img class="live-insert-bd-image" id="live-realisateur-illustre-image" alt="" />';
+  // Support video du realisateur preview (chantier F1 -- Arret, 29 aout 2026) : <video> persistante,
+  // meme classe CSS que l'<img> ci-dessus (object-fit herite, aucune regle CSS ajoutee), masquee et
+  // sans src par defaut. appliquerPlanIllustreRealisation ne l'active QUE pour une couche declarant
+  // `media:'video'` -- generique et reutilisable pour de futurs micro-clips, aucun cas particulier
+  // Taclojnou code ici. playsinline (lecture in-place mobile), pas de loop, pas de muted (audio
+  // conserve) -- la lecture elle-meme est declenchee par appliquerPlanIllustreRealisation, jamais
+  // en autoplay HTML (toujours dans le contexte d'une interaction utilisateur : clic banc d'essai).
+  html += '<video class="live-insert-bd-image" id="live-realisateur-illustre-video" playsinline preload="auto"></video>';
   html += '<div class="live-insert-bd-action"></div>';
   html += '<div class="live-insert-bd-texte"></div>';
   html += '</div>';
