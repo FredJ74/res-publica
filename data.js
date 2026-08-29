@@ -397,6 +397,17 @@ const WORLD = {
           }
         },
         'centre-affaires': {
+          // Visuels propres a PSM (chantier "integration images/audio PSM", 30 aout 2026) : meme
+          // mecanisme roomOverrides que Montrouge (voir plus bas dans ce fichier) sur ce meme
+          // batiment partage -- uniquement imageUrl, aucune mecanique de location/presse/economie
+          // touchee, aucun PNJ ajoute/modifie.
+          roomOverrides: {
+            hall: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-accueil.png" },
+            bureau_prestige: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-bureau-prestige.png" },
+            bureau_standard: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-bureau-standard.png" },
+            open_space:      { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-open-space.png" },
+            tribune_republia: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-tribune-republia.png" }
+          },
           // Annexe du Bureau National de l'Emploi, propre a PSM (voir roomsExtra,
           // plateau-navigation.js). Simple salle, pas de mecanique dediee pour l'instant.
           roomsExtra: {
@@ -2948,11 +2959,17 @@ const BUILDINGS = {
         ],
         orders: []
       },
+      // audioUrl (chantier "integration images/audio PSM", 30 aout 2026) : assets recuperes
+      // depuis le dossier Telechargements de Fred (deja produits, jamais re-generes), copies dans
+      // le depot sans toucher aux images deja en place (comparees octet pour octet -- identiques,
+      // aucun remplacement necessaire). Bouton "Ecouter l'audioguide" deja generique
+      // (plateau-politique.js, room.audioUrl) -- aucune nouvelle mecanique.
       salle_criminels: {
         name: "Salle des Grands Criminels Mariannais",
         imageBg: "linear-gradient(135deg,#1a0d0d,#241010)",
         desc: "Portraits et affaires des malfrats les plus tristement celebres de Port-Sainte-Marie. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-criminels-musee-psm.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-criminels-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
@@ -2961,6 +2978,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181408,#221c0c)",
         desc: "L'histoire municipale de la ville, ses meilleurs et ses pires edeciles reunis dans la meme salle. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-maires-musee-psm.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-maires-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
@@ -2969,6 +2987,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#14181c,#1c2228)",
         desc: "Les figures les plus populaires et aimees de la ville, toutes generations confondues. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-personnalites-musee-psm.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-personnalites-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
@@ -2976,6 +2995,8 @@ const BUILDINGS = {
         name: "Salle des Grands Entrepreneurs Mariannais",
         imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
         desc: "Les batisseurs economiques de Port-Sainte-Marie, du petit commerce a l'empire industriel. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-entrepreneurs-musee-psm.png",
+        // Aucun audio retrouve pour cette salle dans Telechargements -- signale dans le rapport, non invente.
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
@@ -2983,6 +3004,8 @@ const BUILDINGS = {
         name: "Salle des Organisations Mariannaises",
         imageBg: "linear-gradient(135deg,#0e1418,#141c22)",
         desc: "Clubs, syndicats et organisations locales : leurs plus grands representants, toutes disciplines confondues. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-organisations-musee-psm.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-organisations-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
@@ -2990,6 +3013,8 @@ const BUILDINGS = {
         name: "Salle des Plumes Mariannaises",
         imageBg: "linear-gradient(135deg,#181018,#221824)",
         desc: "Les plus belles diatribes, lettres ouvertes et recits qui ont marque la vie forumiale de Port-Sainte-Marie. Contenu a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-plumes-musee-psm.png",
+        // Aucun audio retrouve pour cette salle dans Telechargements -- signale dans le rapport, non invente.
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
@@ -2997,6 +3022,8 @@ const BUILDINGS = {
         name: "Salle d'Honneur Militaire",
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les faits d'armes et les soldats les plus decores originaires de Port-Sainte-Marie. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-honneur-militaire-musee-psm.png",
+        // Aucun audio retrouve pour cette salle dans Telechargements -- signale dans le rapport, non invente.
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
@@ -3004,20 +3031,19 @@ const BUILDINGS = {
         name: "Salle des Unions Celebres",
         imageBg: "linear-gradient(135deg,#1c1414,#281c1c)",
         desc: "Les mariages et alliances les plus marquants de l'histoire de la ville. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-unions-musee-psm.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-unions-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
-      // salle_dynasties retiree du parcours (chantier "integration images/audio PSM", 30 aout
-      // 2026, decision de game design de Fred) : le theme Le Gall/Le Roux est deja suffisamment
-      // present ailleurs (tombe de Yann Le Goff, PNJ Le Gall du musee, etc.). Aucune reference a
-      // 'salle_dynasties' trouvee ailleurs dans le depot (grep exhaustif avant retrait) -- aucune
-      // mecanique/enigme externe n'y etait accrochee (orders:[] deja vide). L'asset graphique
-      // (aucune image PSM-specifique n'existait de toute facon pour cette salle -- gradient seul)
-      // n'est pas supprime du disque, seule l'entree de code est retiree.
+      // salle_dynasties retiree du parcours (commit b202acd, 30 aout 2026, decision de game
+      // design de Fred) : le theme Le Gall/Le Roux est deja suffisamment present ailleurs.
       salle_scandales: {
         name: "Salle des Scandales et Affaires",
         imageBg: "linear-gradient(135deg,#100c10,#181018)",
         desc: "Les grandes crises politiques et affaires qui ont secoue Port-Sainte-Marie. Classement a venir.",
+        imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-scandales-musee-psm.png",
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-scandales-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       }
