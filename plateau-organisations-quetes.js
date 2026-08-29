@@ -4375,6 +4375,12 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'Réalisateur — Freeze sélectif + Follow Ball',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL
+  },
+  {
+    id: 'orbit_freeze',
+    label: 'Réalisateur — Orbit Freeze',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_ORBIT_FREEZE
   }
 ];
 
@@ -5336,7 +5342,14 @@ function appliquerCameraSpectaculairePreview(cadrage) {
   const cx = Math.max(50 - panLimit, Math.min(50 + panLimit, cadrage.cx));
   const cy = Math.max(50 - panLimit, Math.min(50 + panLimit, cadrage.cy));
   pelouse.style.transition = 'transform ' + (cadrage.dureeMs / 1000).toFixed(2) + 's ' + (cadrage.easing || 'ease');
-  pelouse.style.transform = 'scale(' + scale.toFixed(3) + ') translate(' + (-(cx - 50)).toFixed(2) + '%, ' + (-(cy - 50)).toFixed(2) + '%)';
+  // cadrage.rotation (chantier "Orbit Freeze", 30 aout 2026) : DEGRE OPTIONNEL, absent des cadrages
+  // du bac a sable #1 (Drone Dive) et #2 (Follow Ball) -- extension purement ADDITIVE, jamais
+  // appelee par eux (verifie par regression : leur transform reste caractere pour caractere
+  // identique, aucun `rotate()` n'est jamais ajoute a leur chaine puisque cadrage.rotation y est
+  // toujours absent/falsy). N'ajoute le terme `rotate()` QUE si une valeur non nulle est fournie.
+  let transform = 'scale(' + scale.toFixed(3) + ') translate(' + (-(cx - 50)).toFixed(2) + '%, ' + (-(cy - 50)).toFixed(2) + '%)';
+  if (cadrage.rotation) transform += ' rotate(' + cadrage.rotation.toFixed(2) + 'deg)';
+  pelouse.style.transform = transform;
 }
 
 // Amplitudes choisies experimentalement (section 2/11.3-11.4 du rapport) :
@@ -5567,6 +5580,120 @@ const SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL = {
   plans: FRAMES_FREEZE_FOLLOW_BALL.map(frame => ({ type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel }))
 };
 SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL); // 2400+2200+1000+1100+2000+2400 = 11100ms (~11,1s)
+
+// =====================================================================
+// BAC A SABLE "REALISATEUR" #3 -- ORBIT FREEZE / FAUX BULLET TIME (chantier "orbit freeze / faux
+// bullet time", 30 aout 2026). Scenario preview ISOLE, bouton DISTINCT -- n'affecte pas et ne
+// remplace pas Drone Dive + Impact Freeze ni Freeze selectif + Follow Ball (les deux restent
+// strictement inchanges, verifie en non-regression).
+//
+// DIFFERENCE avec le bac a sable #2 (section 1/3 de la demande) : cette fois le BALLON est
+// egalement fige (jamais detache du porteur -- c'est un DUEL, pas un tir, le ballon reste
+// naturellement a ses pieds pendant tout l'effet). SEULE la camera reste active.
+//
+// TECHNIQUE RETENUE POUR L'ILLUSION "ORBIT" (section 4/5) : 3 MICRO-CADRAGES SUCCESSIFS
+// (orbit_a -> orbit_b -> orbit_c), chacun son propre plan 'terrain' avec la MEME reference
+// acteurs+ballonXY que duel_impact_of (aucune nouvelle valeur, donc aucune transition sur le monde
+// -- prouve par comparaison de valeurs dans le rapport, pas seulement par absence d'ecriture), mais
+// un cameraSpectaculaire DIFFERENT a chaque fois : translateX alterne cote gauche (orbit_a) -> cote
+// droit, au-dela de l'axe du duel (orbit_b) -> recomposition centree/plus ouverte (orbit_c), combine
+// a une PULSATION DE ZOOM (scale 1.55 -> 1.65 -> 1.48) et une ROTATION TRES LEGERE alternee
+// (-2deg -> +2deg -> 0deg, cf. ORBIT_ROTATION_MAX_DEG) -- c'est la combinaison simultanee
+// translation+zoom+rotation qui vise l'impression de contournement (un pan seul n'aurait donne que
+// "le terrain glisse", section 4). transform-origin volontairement LAISSE PAR DEFAUT (50% 50%,
+// jamais touche) : a une amplitude de rotation aussi faible (+/-2deg), deplacer le pivot n'aurait
+// change le rendu que de facon marginale, et le laisser au centre permet de REUTILISER TEL QUEL le
+// clamp geometrique deja demontre sur (panLimit=50*(1-1/scale)) sans nouvelle demonstration
+// -- choix documente dans le rapport (limite honnete plutot que sur-ingenierie, section 14).
+// CONTINUITE (section 6) : chaque cameraSpectaculaire.dureeMs INTERIEUR est deliberement PLUS LONG
+// que la duree de son propre sous-plan (ORBIT_SOUS_PLAN_MS=500, transitions 650-900ms) --
+// EXACTEMENT le meme principe de continuite deja demontre pour Camera V1.5/le drone dive/follow
+// ball : la camera est encore en mouvement quand le sous-plan suivant la redirige, donc jamais
+// d'arret perceptible entre les 3 micro-cadrages, un seul geste continu.
+// REPRISE (section 8) : orbit_c utilise une duree ENCORE PLUS longue (900ms sur un sous-plan de
+// 500ms) -- la camera est donc TOUJOURS en train de s'installer sur son cadrage final quand
+// reprise_of demarre et que les acteurs repartent : "PLAY pendant que la camera est encore
+// cinematographique", jamais un retour mecanique instantane. reprise_of n'a PAS de
+// cameraSpectaculaire -- Camera V1.5 automatique redirige alors cette transition encore en cours
+// vers son propre calcul, ramenant progressivement le cadrage a la normale (memes garanties que le
+// bac a sable #2).
+const ORBIT_SOUS_PLAN_MS = 500; // total freeze = 3*500 = 1500ms, dans la fourchette 1200-1800ms demandee (section 3)
+const ORBIT_ROTATION_MAX_DEG = 2; // amplitude "tres faible" demandee (section 5)
+
+const ETATS_ORBIT_FREEZE = {
+  vue_normale_of: etatDd('porteur_of', [
+    acteurDd('gardien_home_of', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_of', 'home', 32, 50, 'milieu', 'actif'),
+    acteurDd('soutien_of', 'home', 46, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_of', 'away', 58, 40, 'defenseur', 'peripherique'),
+    acteurDd('gardien_away_of', 'away', 92, 50, 'gardien', 'peripherique')
+  ]),
+  progression_of: etatDd('porteur_of', [
+    acteurDd('gardien_home_of', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_of', 'home', 46, 49, 'milieu', 'actif'),
+    acteurDd('soutien_of', 'home', 54, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_of', 'away', 54, 44, 'defenseur', 'actif'),
+    acteurDd('gardien_away_of', 'away', 91, 50, 'gardien', 'peripherique')
+  ]),
+  duel_impact_of: etatDd('porteur_of', [
+    acteurDd('gardien_home_of', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_of', 'home', 56, 48, 'milieu', 'actif'),
+    acteurDd('soutien_of', 'home', 58, 62, 'attaquant', 'actif'),
+    acteurDd('defenseur_of', 'away', 58, 48, 'defenseur', 'actif'),
+    acteurDd('gardien_away_of', 'away', 90, 50, 'gardien', 'peripherique')
+  ]),
+  reprise_of: etatDd('porteur_of', [
+    acteurDd('gardien_home_of', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_of', 'home', 62, 50, 'milieu', 'actif'),
+    acteurDd('soutien_of', 'home', 64, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_of', 'away', 60, 46, 'defenseur', 'actif'),
+    acteurDd('gardien_away_of', 'away', 89, 50, 'gardien', 'peripherique')
+  ]),
+  retour_normal_of: etatDd('porteur_of', [
+    acteurDd('gardien_home_of', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_of', 'home', 70, 52, 'milieu', 'actif'),
+    acteurDd('soutien_of', 'home', 72, 62, 'attaquant', 'actif'),
+    acteurDd('defenseur_of', 'away', 68, 48, 'defenseur', 'actif'),
+    acteurDd('gardien_away_of', 'away', 88, 50, 'gardien', 'peripherique')
+  ])
+};
+// orbit_a/b/c (section 3/9) : MEMES acteurs ET MEME ballonXY que duel_impact_of (reference
+// identique -- jamais de nouvelle valeur x/y) : le MONDE ENTIER (acteurs + ballon, contrairement au
+// bac a sable #2) reste reellement immobile sur toute la duree des 3 sous-plans -- seule
+// cameraSpectaculaire differe a chaque etape.
+['orbit_a', 'orbit_b', 'orbit_c'].forEach(function(id, i) {
+  ETATS_ORBIT_FREEZE[id] = {
+    porteur: 'porteur_of',
+    acteurs: ETATS_ORBIT_FREEZE.duel_impact_of.acteurs,
+    ballonXY: ETATS_ORBIT_FREEZE.duel_impact_of.ballonXY,
+    vitesseBallonMs: ETATS_ORBIT_FREEZE.duel_impact_of.vitesseBallonMs
+  };
+});
+ETATS_ORBIT_FREEZE.orbit_a.cameraSpectaculaire = { scale: 1.55, cx: 51, cy: 46, rotation: -ORBIT_ROTATION_MAX_DEG, dureeMs: 650, easing: 'ease-in-out' };
+ETATS_ORBIT_FREEZE.orbit_b.cameraSpectaculaire = { scale: 1.65, cx: 63, cy: 50, rotation: ORBIT_ROTATION_MAX_DEG, dureeMs: 650, easing: 'ease-in-out' };
+ETATS_ORBIT_FREEZE.orbit_c.cameraSpectaculaire = { scale: 1.48, cx: 57, cy: 48, rotation: 0, dureeMs: 900, easing: 'ease-out' };
+Object.assign(ETATS_VISUELS_TERRAIN_PREVIEW, ETATS_ORBIT_FREEZE);
+
+const FRAMES_ORBIT_FREEZE = [
+  { etatVisuel: 'vue_normale_of', dureeMs: 2200 },
+  { etatVisuel: 'progression_of', dureeMs: 2000 },
+  { etatVisuel: 'duel_impact_of', dureeMs: 800 },
+  // FREEZE COMPLET + ORBIT (section 3/4) : voir les etats ci-dessus.
+  { etatVisuel: 'orbit_a', dureeMs: ORBIT_SOUS_PLAN_MS },
+  { etatVisuel: 'orbit_b', dureeMs: ORBIT_SOUS_PLAN_MS },
+  { etatVisuel: 'orbit_c', dureeMs: ORBIT_SOUS_PLAN_MS },
+  // REPRISE (section 8) : nouvelles positions (jamais les memes que duel_impact_of), ballon
+  // TOUJOURS attache au porteur (etatDd) -- coherent avec un duel (jamais detache comme un tir),
+  // aucun saut brutal. Camera SANS cameraSpectaculaire -- Camera V1.5 automatique reprend la main,
+  // redirigeant en douceur la transition d'orbit_c encore en cours (section 6/8/9 du rapport).
+  { etatVisuel: 'reprise_of', dureeMs: 2000 },
+  { etatVisuel: 'retour_normal_of', dureeMs: 2400 }
+];
+const SEQUENCE_PREVIEW_ORBIT_FREEZE = {
+  gabaritId: 'preview_orbit_freeze', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_ORBIT_FREEZE.map(frame => ({ type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel }))
+};
+SEQUENCE_PREVIEW_ORBIT_FREEZE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_ORBIT_FREEZE); // 2200+2000+800+500+500+500+2000+2400 = 10900ms (~10,9s)
 
 // Joue UNE sequence narrative locale : delegue au realisateur automatique -- genere une sequence
 // d'un nombre quelconque de plans terrain/illustre (l'executeur n'a aucune branche speciale selon
