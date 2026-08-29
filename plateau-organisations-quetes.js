@@ -4126,19 +4126,23 @@ const SEQUENCE_PREVIEW_TRAJECTOIRE = {
 SEQUENCE_PREVIEW_TRAJECTOIRE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TRAJECTOIRE); // 650+700+1000 = 2350ms
 
 // Scenario F1 -- Arret (29 aout 2026) : resolution visuelle de l'action (le gardien intercepte),
-// plans 1/2 illustres classiques (aucun mouvement ajoute), plan 3 = premier plan VIDEO du banc
-// d'essai (reaction de Taclojnou, son conserve). Les deux images ont un ratio proche de 1.5:1 (tres
+// plans 1/2/3 illustres classiques (aucun mouvement ajoute), plan 4 = premier plan VIDEO du banc
+// d'essai (reaction de Taclojnou, son conserve). Les trois images ont un ratio proche de 1.5:1 (tres
 // eloigne du cadre large 16/6.5 ~= 2.46:1) -- en 'cover' le rognage vertical (~19,5% en haut ET en
-// bas) coupe le haut du crane/les gants sur l'image 1 et le haut de la tete/les crampons sur
-// l'image 2 -- ajustement:'contain' obligatoire sur les deux, meme raisonnement que D/E. La video
-// (640x1024... en realite 640x640, ratio 1:1) serait rognee de ~30% de chaque cote en 'cover' --
-// contain egalement.
-// dureeMs du plan 3 : duree REELLE mesuree du fichier (afinfo/mdls concordants : 4085,986 ms /
-// 4,087 s), pas une valeur arbitraire -- 4100ms (leger surplus technique au-dessus de la mesure,
-// pour ne jamais couper la video une milliseconde avant sa fin naturelle via le timer du plan).
+// bas) coupe le haut du crane/les gants sur l'image 1, le plongeon complet sur l'image 2 (capture)
+// et le haut de la tete/les crampons sur l'image 3 -- ajustement:'contain' obligatoire sur les
+// trois, meme raisonnement que D/E. La video (640x640, ratio 1:1) serait rognee de ~30% de chaque
+// cote en 'cover' -- contain egalement.
+// Plan 2 (capture, correctif du 29 aout 2026) : prolongement immediat de l'arret, gardien en plein
+// plongeon avec le ballon -- insere entre l'instant de l'arret et le gardien releve, aucun autre
+// plan modifie.
+// dureeMs du plan video (le dernier) : duree REELLE mesuree du fichier (afinfo/mdls concordants :
+// 4085,986 ms / 4,087 s), pas une valeur arbitraire -- 4100ms (leger surplus technique au-dessus de
+// la mesure, pour ne jamais couper la video une milliseconde avant sa fin naturelle via le timer du plan).
 const FRAMES_ARRET_COUP_FRANC = [
-  { asset: 'images/football-coup-franc-arret-gardien.png', dureeMs: 900 },        // le gardien intercepte le ballon -- resolution de l'action
-  { asset: 'images/football-coup-franc-arret-gardien-releve.png', dureeMs: 1200 } // le gardien est en possession du ballon, sourit
+  { asset: 'images/football-coup-franc-arret-gardien.png', dureeMs: 900 },         // le gardien intercepte le ballon -- resolution de l'action
+  { asset: 'images/football-coup-franc-arret-gardien-capture.png', dureeMs: 700 }, // prolongement immediat -- gardien en plein plongeon avec le ballon
+  { asset: 'images/football-coup-franc-arret-gardien-releve.png', dureeMs: 1200 }  // le gardien est en possession du ballon, sourit
 ];
 const SEQUENCE_PREVIEW_ARRET = {
   gabaritId: 'preview_arret', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
@@ -4152,7 +4156,7 @@ const SEQUENCE_PREVIEW_ARRET = {
     couches: [{ nom: 'placeholder', asset: 'images/football-reaction-taclojnou-arret.mp4', mouvement: 'fixe', ajustement: 'contain', media: 'video' }]
   }])
 };
-SEQUENCE_PREVIEW_ARRET.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_ARRET); // 900+1200+4100 = 6200ms
+SEQUENCE_PREVIEW_ARRET.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_ARRET); // 900+700+1200+4100 = 6900ms
 
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
