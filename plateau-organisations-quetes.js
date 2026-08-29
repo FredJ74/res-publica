@@ -3842,6 +3842,10 @@ function reinitialiserSceneApresSequenceRealisation(sortieCut) {
   positionnerBallon(3); positionnerJoueur('home', 2); positionnerJoueur('away', 4);
   const l = document.getElementById('live-action-label');
   if (l) l.textContent = '';
+  // Remet a plat le score local du preview (chantier "raccord mini-terrain <-> D/E/F", 29 aout
+  // 2026) -- jamais lu/ecrit ailleurs que dans ce fichier, jamais Supabase/championnat.data.
+  const scoreEl = document.getElementById('live-score-mini');
+  if (scoreEl) scoreEl.textContent = '0 - 0';
 }
 
 // Executeur commun (section D) : enchaine un nombre QUELCONQUE de plans deja generes (sequence.plans.forEach,
@@ -3869,7 +3873,14 @@ function executerSequenceRealisation(sequence, instant, def, club) {
         if (_liveViewerAfficheCanoniqueEnCours) return;
         masquerPlanIllustreRealisation(sortiePrecedente);
         appliquerCadrageTerrain(plan);
-        if (planTerrainUnique && def.trajet.length > 1) {
+        // plan.etatVisuel (chantier "raccord mini-terrain <-> D/E/F", 29 aout 2026, defaut absent --
+        // aucun changement de comportement pour un plan terrain existant, reel ou preview) : un etat
+        // visuel FIGE preview-only (ballon + LES DEUX marqueurs a la fois), prioritaire sur la marche
+        // fluide habituelle -- necessaire ici car le fallback ci-dessous ne repositionne jamais que
+        // le marqueur de instant.cote, jamais les deux cotes a la fois.
+        if (plan.etatVisuel) {
+          appliquerEtatVisuelTerrainPreview(plan.etatVisuel);
+        } else if (planTerrainUnique && def.trajet.length > 1) {
           // Sequence a un seul plan terrain (cas le plus frequent) : on conserve la marche fluide
           // historique en sous-etapant le trajet complet DANS la fenetre de ce plan.
           const pas = plan.dureeMs / def.trajet.length;
@@ -4211,6 +4222,39 @@ const SEQUENCE_PREVIEW_COUP_FRANC_BUT = {
 };
 SEQUENCE_PREVIEW_COUP_FRANC_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_COUP_FRANC_BUT); // 11740+2350+6200 = 20290ms
 
+// Raccord mini-terrain <-> D/E/F (29 aout 2026) : encadre les demonstrations D-E-F1/D-E-F2 DEJA
+// VALIDEES (reutilisees ici par simple .concat() de leurs .plans -- memes objets, jamais recopies
+// ni modifies) avec un bref passage par le mini-terrain avant et apres, pour tester la continuite
+// visuelle terrain -> illustre -> terrain. Les 3 nouveaux plans de terrain (PHASE_TERRAIN_*) sont
+// des plans 'terrain' RESOLUS a la main (comme tous les plans preview de ce fichier), utilisant le
+// nouveau champ declaratif plan.etatVisuel (voir executerSequenceRealisation) -- aucune touche a
+// D/E/F1/F2 eux-memes, aucun second moteur de terrain.
+//
+// PHASE 2 (rapprochement) : reutilise TEL QUEL le mecanisme de zoom deja existant pour les plans
+// terrain reels (appliquerCadrageTerrain, effet:'zoom' + cadrage:'moyen', transition CSS .4s deja
+// en place) -- aucune infrastructure nouvelle. `etatVisuel` y est repete (memes positions que la
+// phase 1) uniquement pour eviter que ce plan retombe dans le fallback generique a un seul cote.
+const PHASE_TERRAIN_COUP_FRANC_PREPARE = { type: 'terrain', dureeMs: 1500, cadrage: 'large', etatVisuel: 'coup_franc_prepare' };
+const PHASE_TERRAIN_RAPPROCHEMENT = { type: 'terrain', dureeMs: 500, cadrage: 'moyen', effet: 'zoom', etatVisuel: 'coup_franc_prepare' };
+const PHASE_TERRAIN_APRES_ARRET = { type: 'terrain', dureeMs: 1200, cadrage: 'large', etatVisuel: 'apres_arret' };
+const PHASE_TERRAIN_ENGAGEMENT_APRES_BUT = { type: 'terrain', dureeMs: 1200, cadrage: 'large', etatVisuel: 'engagement_apres_but' };
+
+const SEQUENCE_PREVIEW_RACCORD_ARRETE = {
+  gabaritId: 'preview_raccord_arrete', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: [PHASE_TERRAIN_COUP_FRANC_PREPARE, PHASE_TERRAIN_RAPPROCHEMENT]
+    .concat(SEQUENCE_PREVIEW_COUP_FRANC_ARRETE.plans)
+    .concat([PHASE_TERRAIN_APRES_ARRET])
+};
+SEQUENCE_PREVIEW_RACCORD_ARRETE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_RACCORD_ARRETE); // 1500+500+20990+1200 = 24190ms
+
+const SEQUENCE_PREVIEW_RACCORD_BUT = {
+  gabaritId: 'preview_raccord_but', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: [PHASE_TERRAIN_COUP_FRANC_PREPARE, PHASE_TERRAIN_RAPPROCHEMENT]
+    .concat(SEQUENCE_PREVIEW_COUP_FRANC_BUT.plans)
+    .concat([PHASE_TERRAIN_ENGAGEMENT_APRES_BUT])
+};
+SEQUENCE_PREVIEW_RACCORD_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_RACCORD_BUT); // 1500+500+20290+1200 = 23490ms
+
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
 // visuel", 29 aout 2026, complete avec le scenario stop motion le meme jour)
@@ -4287,6 +4331,18 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'D-E-F2 — Coup franc but',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_COUP_FRANC_BUT
+  },
+  {
+    id: 'raccord_coup_franc_arrete',
+    label: 'Raccord — Coup franc arrêté',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_RACCORD_ARRETE
+  },
+  {
+    id: 'raccord_coup_franc_but',
+    label: 'Raccord — Coup franc but',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_RACCORD_BUT
   }
 ];
 
@@ -4305,6 +4361,12 @@ function lancerSequencePreview(sequence, def, club, instant) {
   // realisateur preview", 29 aout 2026).
   const videoEnCours = document.getElementById('live-realisateur-illustre-video');
   if (videoEnCours) { videoEnCours.pause(); videoEnCours.currentTime = 0; videoEnCours.style.display = 'none'; }
+  // Remet a plat le score local du preview avant tout nouveau scenario -- meme discipline que la
+  // video (chantier "raccord mini-terrain <-> D/E/F", 29 aout 2026) : un changement de scenario en
+  // plein "Raccord -- Coup franc but" ne doit jamais laisser "1 - 0" affiche sur un scenario suivant
+  // qui n'a rien a voir.
+  const scoreEnCours = document.getElementById('live-score-mini');
+  if (scoreEnCours) scoreEnCours.textContent = '0 - 0';
   const label = document.getElementById('live-action-label');
   if (label) label.textContent = def.label + ' — ' + club.nom; // meme habillage que jouerMicroAction
   executerSequenceRealisation(sequence, instant, def, club);
@@ -4506,6 +4568,31 @@ function positionnerJoueur(cote, indexZoneAbsolu) {
   if (!el) return;
   const pct = POSITIONS_ZONES_POURCENT[Math.max(0, Math.min(6, indexZoneAbsolu))];
   el.style.left = pct + '%';
+}
+
+// Etats visuels du mini-terrain, PREVIEW UNIQUEMENT (chantier "raccord mini-terrain <-> D/E/F",
+// 29 aout 2026) : positions FIGEES reutilisant tel quel positionnerBallon/positionnerJoueur --
+// aucune nouvelle mecanique sportive, aucune simulation tactique, purement decoratif (meme niveau
+// d'abstraction que le reste du moteur : le mini-terrain ne porte qu'UN marqueur par cote, jamais
+// de distinction individuelle tireur/mur/gardien). `score` (uniquement sur engagement_apres_but) :
+// texte purement local au DOM du preview (#live-score-mini), jamais lu/ecrit ailleurs, jamais
+// connecte a championnat.data/Supabase -- reinitialise a '0 - 0' par
+// reinitialiserSceneApresSequenceRealisation et par lancerSequencePreview, comme la video.
+const ETATS_VISUELS_TERRAIN_PREVIEW = {
+  coup_franc_prepare:   { ballon: 5, home: 5, away: 6 },              // ballon+tireur en zone offensive, mur/gardien pres de leur but
+  apres_arret:          { ballon: 6, home: 4, away: 6 },              // ballon aupres du gardien, tireurs replies -- aucun tir rejoue
+  engagement_apres_but: { ballon: 3, home: 4, away: 3, score: '1 - 0' } // engagement au centre, equipe qui encaisse reprend le jeu
+};
+function appliquerEtatVisuelTerrainPreview(id) {
+  const etat = ETATS_VISUELS_TERRAIN_PREVIEW[id];
+  if (!etat) return;
+  positionnerBallon(etat.ballon);
+  positionnerJoueur('home', etat.home);
+  positionnerJoueur('away', etat.away);
+  if (etat.score) {
+    const scoreEl = document.getElementById('live-score-mini');
+    if (scoreEl) scoreEl.textContent = etat.score;
+  }
 }
 
 // Joue UNE sequence narrative locale : delegue au realisateur automatique -- genere une sequence
