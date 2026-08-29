@@ -4381,6 +4381,12 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'Réalisateur — Orbit Freeze',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_ORBIT_FREEZE
+  },
+  {
+    id: 'time_ramp',
+    label: 'Réalisateur — Time Ramp',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_TIME_RAMP
   }
 ];
 
@@ -5694,6 +5700,155 @@ const SEQUENCE_PREVIEW_ORBIT_FREEZE = {
   plans: FRAMES_ORBIT_FREEZE.map(frame => ({ type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel }))
 };
 SEQUENCE_PREVIEW_ORBIT_FREEZE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_ORBIT_FREEZE); // 2200+2000+800+500+500+500+2000+2400 = 10900ms (~10,9s)
+
+// =====================================================================
+// BAC A SABLE "REALISATEUR" #4 -- TIME RAMP (chantier "time ramp -- acceleration/ralenti/reprise",
+// 30 aout 2026). Scenario preview ISOLE, bouton DISTINCT -- n'affecte pas et ne remplace aucun
+// scenario existant (les 3 bacs a sable precedents restent strictement inchanges, verifie en
+// non-regression).
+//
+// PRINCIPE ABSOLU (section 1) : AUCUN FREEZE. Chaque plan assigne une NOUVELLE position a chaque
+// acteur implique -- jamais la meme reference que le plan precedent (a l'oppose des bacs a sable
+// #1/#2/#3). La sensation de vitesse vient UNIQUEMENT de deux leviers COMBINES par regime :
+// - la duree de transition CSS de l'acteur (vitesseMs, ex-VITESSE_ACTIF_PAR_ROLE mais des valeurs
+//   PROPRES a ce scenario -- TR_VITESSE_NORMAL/FAST/SLOW -- puisque les bandes partagees
+//   1500-3400ms ne couvrent pas l'amplitude demandee ici) ;
+// - la DISTANCE parcourue par plan (plus grande en FAST, plus petite en SLOW) -- car la vitesse
+//   PERCUE est distance/duree, pas la duree seule : un ralenti obtenu SEULEMENT en allongeant la
+//   duree se heurte a la contrainte de continuite camera ci-dessous, alors qu'une distance reduite
+//   en plus d'une duree modestement allongee restitue le ratio demande (~0,35-0,55x) sans ce
+//   compromis (section 3, "cibles perceptuelles, pas obligations mathematiques").
+//
+// AUCUN NOUVEL EFFET CAMERA (section 7/15, "on teste le TEMPS, pas un nouvel effet camera") : ce
+// scenario n'utilise JAMAIS cameraSpectaculaire -- CHAQUE etat porte un ballonXY normal, donc
+// appliquerEtatVisuelTerrainPreview retombe systematiquement sur Camera V1.5 automatique
+// (calculerCadrageCameraMatchMiniature), rigoureusement INCHANGEE, exactement comme n'importe quel
+// etat "normal" de match_miniature_v2. C'est la premiere reutilisation de la VRAIE formule V1.5 sur
+// des acteurs construits hors de acteurMatchMiniature -- possible car calculerCadrageCameraMatchMiniature
+// ne lit que etat.acteurs/etat.porteur/etat.ballonXY, generiquement, sans dependre de leur origine.
+//
+// CONTRAINTE DECOUVERTE ET DOCUMENTEE (section 4/16.14 du rapport) : Camera V1.5 utilise une
+// CAMERA_TRANSITION_MS FIXE de 2600ms (jamais modifiee ici). Pour que la camera ne s'immobilise
+// JAMAIS entre deux plans (elle doit toujours etre "encore en train d'arriver" quand le plan suivant
+// la redirige -- meme principe de continuite que partout ailleurs dans ce fichier), la duree de
+// CHAQUE plan doit rester strictement sous 2600ms. C'est cette contrainte -- pas un choix
+// artistique -- qui fixe TR_VITESSE_SLOW a 2400ms plutot qu'a une valeur plus longue qui aurait
+// mieux isole le ratio de vitesse demande mais aurait laisse la camera immobile jusqu'a 450-1000ms
+// entre deux plans lents. Documente honnetement plutot que masque par un freeze (interdiction
+// explicite de la demande).
+const TR_OVERLAP_MS = 150; // avance de redirection (meme principe que AVANCE_CONTINUITE_PORTEUR_MS de Camera V1.5, chantier 2fea1af)
+function dureeAvecChevauchementTr(vitesseMs) { return Math.max(200, vitesseMs - TR_OVERLAP_MS); }
+const TR_VITESSE_NORMAL = 1800; // rythme comparable a VITESSE_ACTIF_PAR_ROLE.milieu (locomotion V2 validee), section 3
+const TR_VITESSE_FAST = 1100;   // combine a une distance plus grande par plan -- ratio percu ~1,9x (cible 1,5-2x)
+const TR_VITESSE_SLOW = 2400;   // plafonne sous CAMERA_TRANSITION_MS (2600ms, voir ci-dessus) ; combine a une distance
+                                 // reduite par plan -- ratio percu ~0,37x (cible 0,35-0,55x)
+const TR_VITESSE_REPRISE = 1400; // "CLAC" (section 9) : plus vif que TR_VITESSE_NORMAL, contraste net avec le ralenti qui precede
+const TR_VITESSE_PERIPHERIQUE = 3200; // acteurs non directement impliques (gardiens) -- modere, jamais fige (section 6)
+
+// acteurTimeRamp (section 10, "petite abstraction reutilisable si cela simplifie reellement") :
+// meme forme que acteurDd (bacs a sable #1-3) mais vitesse EXPLICITE (jamais deduite d'un role/une
+// intensite -- c'est le regime NORMAL/FAST/SLOW qui la determine ici, pas le poste). delay
+// systematiquement nul -- ce scenario porte sur la VITESSE, pas sur un etalement/decalage de depart
+// (a l'oppose de match_miniature_v2).
+function acteurTimeRamp(id, cote, x, y, vitesseMs, intensite, role) {
+  const acteur = { id: id, cote: cote, x: x, y: y, vitesse: vitesseMs, delay: 0, intensite: intensite };
+  if (role) acteur.role = role;
+  return acteur;
+}
+// etatTimeRamp : meme principe que etatDd (ballon lie au porteur, AVANCE_BALLON_PORTEUR_POURCENT
+// partage, jamais reimplemente differemment) mais AUCUN champ cameraSpectaculaire -- Camera V1.5
+// automatique systematiquement.
+function etatTimeRamp(porteurId, acteurs) {
+  const porteur = acteurs.find(function(a) { return a.id === porteurId; });
+  return { porteur: porteurId, acteurs: acteurs, ballonXY: { x: porteur.x + AVANCE_BALLON_PORTEUR_POURCENT, y: porteur.y }, vitesseBallonMs: porteur.vitesse };
+}
+
+const ETATS_TIME_RAMP = {
+  normal_1_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 8, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 26, 50, TR_VITESSE_NORMAL, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 38, 60, TR_VITESSE_PERIPHERIQUE, 'peripherique'),
+    acteurTimeRamp('defenseur_tr', 'away', 60, 38, TR_VITESSE_PERIPHERIQUE, 'peripherique'),
+    acteurTimeRamp('gardien_away_tr', 'away', 92, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  normal_2_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 8, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 36, 49, TR_VITESSE_NORMAL, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 44, 60, TR_VITESSE_PERIPHERIQUE, 'peripherique'),
+    acteurTimeRamp('defenseur_tr', 'away', 58, 40, TR_VITESSE_PERIPHERIQUE, 'peripherique'),
+    acteurTimeRamp('gardien_away_tr', 'away', 91, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  fast_1_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 46, 48, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 50, 60, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 62, 42, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 90, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  fast_2_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 58, 47, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 60, 60, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 66, 44, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 89, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  // slow_1/slow_2 (section 3/8) : DISTANCE volontairement REDUITE (5% vs 10-12% en NORMAL/FAST) --
+  // c'est cette reduction, COMBINEE a TR_VITESSE_SLOW (2400ms), qui restitue le ratio de vitesse
+  // percue cible (~0,35-0,55x) tout en gardant chaque plan sous les 2600ms de CAMERA_TRANSITION_MS
+  // (voir le commentaire d'architecture en tete de ce bloc).
+  slow_1_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 63, 46, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 64, 60, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 68, 46, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 89, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  slow_2_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 68, 45, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 68, 60, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 70, 46, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 88, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  reprise_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 76, 44, TR_VITESSE_REPRISE, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 76, 60, TR_VITESSE_REPRISE, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 76, 48, TR_VITESSE_REPRISE, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 87, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  retour_normal_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 80, 45, TR_VITESSE_NORMAL, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 80, 60, TR_VITESSE_NORMAL, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 80, 48, TR_VITESSE_NORMAL, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 86, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ])
+};
+Object.assign(ETATS_VISUELS_TERRAIN_PREVIEW, ETATS_TIME_RAMP);
+
+const FRAMES_TIME_RAMP = [
+  { etatVisuel: 'normal_1_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_NORMAL) },
+  { etatVisuel: 'normal_2_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_NORMAL) },
+  { etatVisuel: 'fast_1_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_FAST) },
+  { etatVisuel: 'fast_2_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_FAST) },
+  // FAST -> SLOW (section 8) : la frontiere de plan tombe alors que le porteur/soutien/defenseur
+  // sont encore visiblement en train d'arriver sur leur cible FAST (dureeAvecChevauchementTr laisse
+  // TR_OVERLAP_MS de marge) -- rupture de rythme perceptible SANS jamais d'arret, la redirection se
+  // fait en plein mouvement (meme principe de continuite que Camera V1.5).
+  { etatVisuel: 'slow_1_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_SLOW) },
+  { etatVisuel: 'slow_2_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_SLOW) },
+  // SLOW -> NORMAL (section 9) : "CLAC" -- TR_VITESSE_REPRISE (1400ms) nettement plus vif que
+  // TR_VITESSE_SLOW (2400ms), rupture nette mesurable, toujours sans saut (memes acteurs, nouvelle
+  // destination seulement).
+  { etatVisuel: 'reprise_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_REPRISE) },
+  { etatVisuel: 'retour_normal_tr', dureeMs: 2200 }
+];
+const SEQUENCE_PREVIEW_TIME_RAMP = {
+  gabaritId: 'preview_time_ramp', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_TIME_RAMP.map(frame => ({ type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel }))
+};
+SEQUENCE_PREVIEW_TIME_RAMP.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TIME_RAMP);
 
 // Joue UNE sequence narrative locale : delegue au realisateur automatique -- genere une sequence
 // d'un nombre quelconque de plans terrain/illustre (l'executeur n'a aucune branche speciale selon
