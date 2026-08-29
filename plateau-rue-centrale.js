@@ -292,10 +292,18 @@ const RUE_CENTRALE_NOEUDS = {
           { xPct: [38, 60],  nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
           { xPct: [78, 100], nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' }
         ],
+        // Corrige le 30 aout 2026 (audit factuel, "carrefour central depuis le phare") : les
+        // trois destinations etaient decalees d'un cran par rapport aux batiments reellement
+        // dessines sur rue-carrefour-musee-depuis-phare.png (verifie visuellement -- meme ordre
+        // gauche->droite Musee/Centre Commercial/Centre d'Affaires que la variante de reference
+        // 'psm-carrefour-artisanal-scierie', qui elle etait deja correcte). Les xPct ne
+        // changent PAS : l'audit a etabli que les zones etaient deja correctement positionnees
+        // sur les batiments, seules les etiquettes nom/buildingId associees a chaque position
+        // etaient permutees (jamais un probleme de coordonnees ni d'image).
         'psm-ecole-phare': [
-          { xPct: [0, 35],   nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' },
-          { xPct: [42, 58],  nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
-          { xPct: [65, 100], nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' }
+          { xPct: [0, 35],   nom: 'Musée de Port Sainte Marie', type: 'batiment', buildingId: 'musee-port-sainte-marie' },
+          { xPct: [42, 58],  nom: 'Centre Commercial',          type: 'batiment', buildingId: 'centre-commercial' },
+          { xPct: [65, 100], nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' }
         ],
         'psm-eglise-cimetiere': [
           { xPct: [0, 35],   nom: 'Centre d\'Affaires',         type: 'batiment', buildingId: 'centre-affaires' },
