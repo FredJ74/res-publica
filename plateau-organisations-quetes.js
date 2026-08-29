@@ -4369,6 +4369,12 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'Réalisateur — Drone Dive + Impact Freeze',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE
+  },
+  {
+    id: 'freeze_follow_ball',
+    label: 'Réalisateur — Freeze sélectif + Follow Ball',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL
   }
 ];
 
@@ -5439,6 +5445,128 @@ const SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE = {
   })
 };
 SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE); // 2200+2200+1700+400+1800+2500 = 10800ms (~10,8s)
+
+// =====================================================================
+// BAC A SABLE "REALISATEUR" #2 -- FREEZE SELECTIF + BALLON AU RALENTI + FOLLOW BALL (chantier
+// "freeze selectif + ballon au ralenti + follow ball", 30 aout 2026). Scenario preview ISOLE
+// (bouton DISTINCT, n'affecte pas et ne remplace pas Drone Dive + Impact Freeze -- SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE
+// et son bouton restent strictement inchanges ci-dessus).
+//
+// TROIS HORLOGES VISUELLES DECOUPLEES (section 1/7 de la demande -- "independance REELLE", pas une
+// simulation par coordonnees identiques pour le ballon) :
+// A. ACTEURS fige : meme mecanisme QUE le bac a sable #1 (memes objets acteurs -- reference tableau
+//    partagee entre le plan "frappe" et le plan "freeze/ralenti" -- aucune nouvelle valeur x/y donc
+//    aucune transition CSS declenchee, prouve empiriquement dans le rapport par comparaison de
+//    valeurs, pas seulement par absence d'ecriture).
+// B. BALLON PAS fige : contrairement au bac a sable #1 (ou le ballon partageait aussi le meme
+//    ballonXY que les acteurs pendant le freeze), ICI le plan "freeze/ralenti" declare un ballonXY
+//    MANUEL DIFFERENT (detache du porteur -- etatDd() n'est PAS utilise pour ce plan precis, car
+//    cette fonction attache toujours le ballon au porteur) avec sa PROPRE vitesseBallonMs longue
+//    (FB_FREEZE_DUREE_MS, alignee sur la duree du plan) : positionnerBallonPreview() joue alors UNE
+//    SEULE transition continue sur toute la fenetre -- jamais de teleportation, jamais de sous-etape.
+// C. CAMERA PAS figee : cameraSpectaculaire (MEME primitive que le bac a sable #1,
+//    appliquerCameraSpectaculairePreview, aucune duplication ni modification) suit le ballon avec sa
+//    propre duree/cible, decouplee des deux autres horloges.
+//
+// Reutilise intentionnellement acteurDd/ballonDd/etatDd/appliquerCameraSpectaculairePreview du bac a
+// sable #1 (fonctions deja generiques, aucune donnee/etat mutable partage) -- "reutiliser
+// intelligemment les primitives existantes" (section 7), sans construire un moteur temporel
+// generique (chaque plan reste un simple etat statique joue par le pipeline existant, comme partout
+// ailleurs dans ce fichier).
+const FB_FOLLOW_SCALE = 1.48; // zoom modere, delibolement plus doux que le drone dive (1.85-1.92, chantier precedent) -- section 5 "mouvement extremement doux"
+const FB_FREEZE_DUREE_MS = 1100; // dans la fourchette 900-1300ms demandee (section 3)
+
+const ETATS_FREEZE_FOLLOW_BALL = {
+  vue_normale_fb: etatDd('porteur_fb', [
+    acteurDd('gardien_home_fb', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_fb', 'home', 35, 50, 'milieu', 'actif'),
+    acteurDd('attaquant_fb', 'home', 48, 56, 'attaquant', 'actif'),
+    acteurDd('defenseur_fb', 'away', 60, 44, 'defenseur', 'peripherique'),
+    acteurDd('gardien_away_fb', 'away', 92, 50, 'gardien', 'peripherique')
+  ]),
+  preparation_frappe_fb: etatDd('attaquant_fb', [
+    acteurDd('gardien_home_fb', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_fb', 'home', 50, 48, 'milieu', 'actif'),
+    acteurDd('attaquant_fb', 'home', 55, 52, 'attaquant', 'actif'),
+    acteurDd('defenseur_fb', 'away', 62, 46, 'defenseur', 'actif'),
+    acteurDd('gardien_away_fb', 'away', 91, 50, 'gardien', 'peripherique')
+  ]),
+  frappe_fb: etatDd('attaquant_fb', [
+    acteurDd('gardien_home_fb', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_fb', 'home', 52, 47, 'milieu', 'actif'),
+    acteurDd('attaquant_fb', 'home', 58, 50, 'attaquant', 'actif'),
+    acteurDd('defenseur_fb', 'away', 63, 47, 'defenseur', 'actif'),
+    acteurDd('gardien_away_fb', 'away', 90, 50, 'gardien', 'peripherique')
+  ]),
+  // reprise_fb/retour_normal_fb (section 6/section J du rapport) : ballonXY MANUEL ici aussi
+  // (jamais etatDd) -- le ballon continue la MEME trajectoire, EXACTEMENT depuis le point ou
+  // ballon_ralenti_fb l'a laisse (72,44), a vitesse redevenue normale. Le reattacher au porteur
+  // via etatDd aurait provoque un saut brutal (retour aux pieds de l'attaquant) au moment meme ou
+  // la demande interdit explicitement tout saut de position (section 6/J).
+  reprise_fb: {
+    porteur: 'attaquant_fb',
+    acteurs: [
+      acteurDd('gardien_home_fb', 'home', 8, 50, 'gardien', 'peripherique'),
+      acteurDd('porteur_fb', 'home', 56, 48, 'milieu', 'actif'),
+      acteurDd('attaquant_fb', 'home', 64, 52, 'attaquant', 'actif'),
+      acteurDd('defenseur_fb', 'away', 66, 48, 'defenseur', 'actif'),
+      acteurDd('gardien_away_fb', 'away', 89, 50, 'gardien', 'peripherique')
+    ],
+    ballonXY: { x: 80, y: 43 },
+    vitesseBallonMs: VITESSE_ACTIF_PAR_ROLE.attaquant // vitesse NORMALE retrouvee (contraste net avec le ralenti qui precede -- section 6 "reprise perceptible")
+  },
+  retour_normal_fb: {
+    porteur: 'attaquant_fb',
+    acteurs: [
+      acteurDd('gardien_home_fb', 'home', 8, 50, 'gardien', 'peripherique'),
+      acteurDd('porteur_fb', 'home', 60, 50, 'milieu', 'actif'),
+      acteurDd('attaquant_fb', 'home', 70, 54, 'attaquant', 'actif'),
+      acteurDd('defenseur_fb', 'away', 72, 50, 'defenseur', 'actif'),
+      acteurDd('gardien_away_fb', 'away', 88, 50, 'gardien', 'peripherique')
+    ],
+    // Toujours EN L'AIR, loin de la ligne de but (94%) et du gardien -- le scenario s'arrete ici,
+    // avant toute resolution sportive (section 2 : "pas de but, pas d'arret, pas de sortie").
+    ballonXY: { x: 86, y: 41 },
+    vitesseBallonMs: VITESSE_ACTIF_PAR_ROLE.attaquant
+  }
+};
+// Plan "ballon_ralenti_fb" (section 3/4/5) : MEMES acteurs (meme reference tableau) que frappe_fb --
+// figes -- mais ballonXY MANUEL (jamais etatDd, qui l'attacherait au porteur) : le ballon quitte le
+// pied de l'attaquant (58,50) vers une trajectoire lisible (72,44), sur SA PROPRE vitesseBallonMs
+// longue (FB_FREEZE_DUREE_MS) -- nettement plus lent que son debit normal (1500-2200ms deja pour un
+// deplacement typiquement 2 a 3 fois plus grand ailleurs dans ce fichier) pour une DISTANCE bien plus
+// courte : impression de ralenti par construction, jamais une physique simulee. cameraSpectaculaire
+// suit le ballon (cx/cy entre le point de depart et la cible, biaise vers la destination -- "espace
+// devant la trajectoire", section 5) avec la MEME duree que le ballon -- decouplage total des trois
+// horloges, chacune sa propre transition/duree sur EXACTEMENT la meme fenetre temporelle.
+ETATS_FREEZE_FOLLOW_BALL.ballon_ralenti_fb = {
+  porteur: 'attaquant_fb',
+  acteurs: ETATS_FREEZE_FOLLOW_BALL.frappe_fb.acteurs,
+  ballonXY: { x: 72, y: 44 },
+  vitesseBallonMs: FB_FREEZE_DUREE_MS,
+  cameraSpectaculaire: { scale: FB_FOLLOW_SCALE, cx: 66, cy: 46, dureeMs: FB_FREEZE_DUREE_MS, easing: 'ease-in-out' }
+};
+Object.assign(ETATS_VISUELS_TERRAIN_PREVIEW, ETATS_FREEZE_FOLLOW_BALL);
+
+const FRAMES_FREEZE_FOLLOW_BALL = [
+  { etatVisuel: 'vue_normale_fb', dureeMs: 2400 },
+  { etatVisuel: 'preparation_frappe_fb', dureeMs: 2200 },
+  { etatVisuel: 'frappe_fb', dureeMs: 1000 },
+  // FREEZE SELECTIF + RALENTI (section 3/4) : voir etat ci-dessus -- acteurs figes, ballon et
+  // camera actifs sur EXACTEMENT cette fenetre.
+  { etatVisuel: 'ballon_ralenti_fb', dureeMs: FB_FREEZE_DUREE_MS },
+  // REPRISE (section 6) : nouvelles positions (jamais les memes que frappe_fb -- une vraie
+  // transition repart, a la vitesse normale des acteurs, jamais artificiellement acceleree) ; le
+  // ballon continue sa trajectoire (toujours pas de resultat sportif -- il ne touche ni but ni
+  // gardien) ; camera SANS cameraSpectaculaire -- retombe automatiquement sur Camera V1.5.
+  { etatVisuel: 'reprise_fb', dureeMs: 2000 },
+  { etatVisuel: 'retour_normal_fb', dureeMs: 2400 }
+];
+const SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL = {
+  gabaritId: 'preview_freeze_follow_ball', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_FREEZE_FOLLOW_BALL.map(frame => ({ type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel }))
+};
+SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL); // 2400+2200+1000+1100+2000+2400 = 11100ms (~11,1s)
 
 // Joue UNE sequence narrative locale : delegue au realisateur automatique -- genere une sequence
 // d'un nombre quelconque de plans terrain/illustre (l'executeur n'a aucune branche speciale selon
