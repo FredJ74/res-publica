@@ -4070,6 +4070,29 @@ const SEQUENCE_PREVIEW_TENSION = {
 };
 SEQUENCE_PREVIEW_TENSION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TENSION); // 1300+900+900+1000+900+1000+1500+1400+1050+750+500+320+220 = 11740ms (acceleration 08-13 progressive, 29 aout 2026)
 
+// Scenario E -- Trajectoire (29 aout 2026) : suite immediate de D, meme grammaire que B (3 plans,
+// cuts francs, angles differents, aucun mouvement ajoute -- "les images contiennent deja leur
+// sensation de mouvement"). Extrait d'un triptyque source unique (football-coup franc
+// tryptique.png) decoupe mecaniquement en 3 fichiers independants, aucun contenu modifie. Les
+// trois plans ont un ratio tres large (~4:1) par rapport au conteneur (16/6.5 ~= 2.46:1) --
+// ajustement:'contain' obligatoire (comme pour D) pour ne rien rogner (ballon/pied/plongeon du
+// gardien seraient coupes en 'cover'). Sequence preview-only : pas de chainage automatique
+// depuis D, pas de branche but/arret, jamais ajoutee a POOL_GABARITS_REALISATEUR.
+const FRAMES_TRAJECTOIRE_COUP_FRANC = [
+  { asset: 'images/football-coup-franc-trajectoire-01.png', dureeMs: 650 },  // gros plan pied/ballon, effets de vitesse -- suite directe de l'impact de D
+  { asset: 'images/football-coup-franc-trajectoire-02.png', dureeMs: 700 },  // le ballon passe au-dessus du mur Luthecia
+  { asset: 'images/football-coup-franc-trajectoire-03.png', dureeMs: 1000 } // le ballon degage le mur, le gardien commence sa detente -- aucun but/arret affirme
+];
+const SEQUENCE_PREVIEW_TRAJECTOIRE = {
+  gabaritId: 'preview_trajectoire', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_TRAJECTOIRE_COUP_FRANC.map(frame => ({
+    type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe', ajustement: 'contain' }]
+  }))
+};
+SEQUENCE_PREVIEW_TRAJECTOIRE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TRAJECTOIRE); // 650+700+1000 = 2350ms
+
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
 // visuel", 29 aout 2026, complete avec le scenario stop motion le meme jour)
@@ -4116,6 +4139,12 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'D — Tension',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_TENSION
+  },
+  {
+    id: 'trajectoire',
+    label: 'E — Trajectoire',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_TRAJECTOIRE
   }
 ];
 
