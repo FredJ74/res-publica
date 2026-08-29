@@ -3965,13 +3965,13 @@ SEQUENCE_PREVIEW_3_ANGLES.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_3_ANGLE
 // ce sont des durees de mise en scene, pas des evenements sportifs. EXCLUSIVEMENT dans la preview
 // -- volontairement absente de GABARITS_MONTAGE_REALISATEUR/POOL_GABARITS_REALISATEUR, comme B.
 const FRAMES_STOP_MOTION_DUEL = [
-  { asset: 'images/football-stopmotion-duel-frame-01.png', dureeMs: 380 }, // duel / approche
-  { asset: 'images/football-stopmotion-duel-frame-02.png', dureeMs: 220 }, // declenchement du tacle
-  { asset: 'images/football-stopmotion-duel-frame-03.png', dureeMs: 170 }, // tacle engage
-  { asset: 'images/football-stopmotion-duel-frame-04.png', dureeMs: 150 }, // glissade avancee
-  { asset: 'images/football-stopmotion-duel-frame-05.png', dureeMs: 260 }, // contact / rupture
+  { asset: 'images/football-stopmotion-duel-frame-01.png', dureeMs: 450 }, // duel / approche
+  { asset: 'images/football-stopmotion-duel-frame-02.png', dureeMs: 280 }, // declenchement du tacle
+  { asset: 'images/football-stopmotion-duel-frame-03.png', dureeMs: 220 }, // tacle engage
+  { asset: 'images/football-stopmotion-duel-frame-04.png', dureeMs: 190 }, // glissade avancee
+  { asset: 'images/football-stopmotion-duel-frame-05.png', dureeMs: 320 }, // contact / rupture
   {
-    asset: 'images/football-stopmotion-duel-frame-06.png', dureeMs: 750, // projection / arret visuel -- seule rupture animee
+    asset: 'images/football-stopmotion-duel-frame-06.png', dureeMs: 800, // projection / arret visuel -- seule rupture animee
     couche: {
       mouvement: 'dynamique',
       etapes: [
@@ -3982,8 +3982,8 @@ const FRAMES_STOP_MOTION_DUEL = [
       vibrationAuMoment: .88
     }
   },
-  { asset: 'images/football-stopmotion-duel-frame-07.png', dureeMs: 420 }, // joueurs au sol
-  { asset: 'images/football-stopmotion-duel-frame-08.png', dureeMs: 520 }  // debut du relevage
+  { asset: 'images/football-stopmotion-duel-frame-07.png', dureeMs: 540 }, // joueurs au sol
+  { asset: 'images/football-stopmotion-duel-frame-08.png', dureeMs: 700 }  // debut du relevage
 ];
 const SEQUENCE_PREVIEW_STOP_MOTION = {
   gabaritId: 'preview_stop_motion', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
@@ -3997,7 +3997,7 @@ const SEQUENCE_PREVIEW_STOP_MOTION = {
     couches: [Object.assign({ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe' }, frame.couche || {})]
   }))
 };
-SEQUENCE_PREVIEW_STOP_MOTION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_STOP_MOTION); // 380+220+170+150+260+750+420+520 = 2870ms
+SEQUENCE_PREVIEW_STOP_MOTION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_STOP_MOTION); // 450+280+220+190+320+800+540+700 = 3500ms (ralenti le 29 aout 2026, tempo initial juge trop rapide)
 
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
