@@ -4188,6 +4188,29 @@ const SEQUENCE_PREVIEW_BUT = {
 };
 SEQUENCE_PREVIEW_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_BUT); // 700+1400+4100 = 6200ms
 
+// Demonstrations completes du coup franc (29 aout 2026) : simple CONCATENATION des tableaux .plans
+// deja valides de D/E/F1 et D/E/F2 -- aucun plan recopie ni modifie, les memes objets plan/couche
+// sont reutilises par reference (Array.concat cree un nouveau tableau, jamais de nouveaux plans).
+// executerSequenceRealisation ne fait deja RIEN de special entre deux plans 'illustre' consecutifs
+// (masquerPlanIllustreRealisation n'est appele qu'a la fin de la sequence ou avant un plan
+// 'terrain', qu'aucun des 4 scenarios sources ne contient) -- le raccord D->E, E->F1 et E->F2 est
+// donc deja un cut naturel, exactement comme les raccords internes de D/F1/F2 eux-memes. Aucun
+// changement necessaire au moteur : cette section ne fait qu'assembler des sequences existantes.
+// D/E/F1/F2 restent intacts et selectionnables individuellement (leurs constantes ne sont ni
+// modifiees ni retirees) -- ces deux nouvelles constantes sont de simples compositions preview,
+// jamais ajoutees a POOL_GABARITS_REALISATEUR.
+const SEQUENCE_PREVIEW_COUP_FRANC_ARRETE = {
+  gabaritId: 'preview_coup_franc_arrete', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: SEQUENCE_PREVIEW_TENSION.plans.concat(SEQUENCE_PREVIEW_TRAJECTOIRE.plans, SEQUENCE_PREVIEW_ARRET.plans)
+};
+SEQUENCE_PREVIEW_COUP_FRANC_ARRETE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_COUP_FRANC_ARRETE); // 11740+2350+6900 = 20990ms
+
+const SEQUENCE_PREVIEW_COUP_FRANC_BUT = {
+  gabaritId: 'preview_coup_franc_but', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: SEQUENCE_PREVIEW_TENSION.plans.concat(SEQUENCE_PREVIEW_TRAJECTOIRE.plans, SEQUENCE_PREVIEW_BUT.plans)
+};
+SEQUENCE_PREVIEW_COUP_FRANC_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_COUP_FRANC_BUT); // 11740+2350+6200 = 20290ms
+
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
 // visuel", 29 aout 2026, complete avec le scenario stop motion le meme jour)
@@ -4252,6 +4275,18 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'F2 — But',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_BUT
+  },
+  {
+    id: 'coup_franc_arrete',
+    label: 'D-E-F1 — Coup franc arrêté',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_COUP_FRANC_ARRETE
+  },
+  {
+    id: 'coup_franc_but',
+    label: 'D-E-F2 — Coup franc but',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_COUP_FRANC_BUT
   }
 ];
 
