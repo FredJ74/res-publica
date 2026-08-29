@@ -3742,7 +3742,17 @@ function appliquerPlanIllustreRealisation(plan, instant, def, club) {
   const couche = (plan.couches && plan.couches[0]) || null;
 
   if (couche && couche.asset) {
-    if (imageEl) { imageEl.src = couche.asset; imageEl.style.display = 'block'; }
+    if (imageEl) {
+      imageEl.src = couche.asset; imageEl.style.display = 'block';
+      // couche.ajustement (correctif du 29 aout 2026, defaut 'cover' -- absent sur toutes les
+      // couches A/B/C existantes, donc aucun changement de comportement pour elles) : 'contain'
+      // affiche l'image ENTIERE (ratio preserve, bandes du fond sombre existant autour si le ratio
+      // source ne correspond pas au cadre) au lieu de la rogner -- utile pour des assets dont le
+      // ratio varie fortement d'un plan a l'autre (ex. D -- tension). CSS de classe (.live-insert-bd-image)
+      // garde object-fit:cover comme reglage PAR DEFAUT ; seule une surcharge inline explicite change ce
+      // rendu, jamais une modification globale de la regle partagee.
+      imageEl.style.objectFit = couche.ajustement === 'contain' ? 'contain' : '';
+    }
     if (actionEl) actionEl.textContent = ''; // l'asset reel remplace le pictogramme-placeholder
   } else {
     if (imageEl) { imageEl.style.display = 'none'; imageEl.removeAttribute('src'); }
@@ -3779,7 +3789,7 @@ function masquerPlanIllustreRealisation(sortieCut) {
   }
   overlay.style.transform = '';
   if (imageEl) {
-    imageEl.style.transition = ''; imageEl.style.transform = '';
+    imageEl.style.transition = ''; imageEl.style.transform = ''; imageEl.style.objectFit = '';
     imageEl.style.display = 'none'; imageEl.removeAttribute('src');
   }
 }
@@ -4028,7 +4038,9 @@ const SEQUENCE_PREVIEW_TENSION = {
   plans: FRAMES_TENSION_COUP_FRANC.map(frame => ({
     type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
     cartouche: false,
-    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe' }]
+    // ajustement:'contain' (correctif du 29 aout 2026) : les 13 assets de D ont des ratios tres
+    // variables (plans larges vs gros plans quasi carres) -- affichage integral, jamais rogne.
+    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe', ajustement: 'contain' }]
   }))
 };
 SEQUENCE_PREVIEW_TENSION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TENSION); // 1300+900+900+1000+900+1000+1500+1400+1000+850+300+180+260 = 11490ms
