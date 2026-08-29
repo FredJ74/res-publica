@@ -4018,22 +4018,27 @@ SEQUENCE_PREVIEW_STOP_MOTION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_STOP
 // aucun zoom/pan/vibration pour ce premier test -- meme discipline que C : CUT franc, aucun
 // cartouche). EXCLUSIVEMENT dans la preview, comme B/C -- jamais ajoutee a
 // GABARITS_MONTAGE_REALISATEUR/POOL_GABARITS_REALISATEUR.
-// Zooms 03/05/07 (correctif du 29 aout 2026) : memes primitives que le plan A/crash-test ras-du-sol
-// (etapes scale/x/y/rotation/easing, mouvement:'dynamique') -- aucune vibration, aucun pan, aucune
-// rotation, cadrage initial identique a un plan fixe (scale 1), easing 'linear' du debut a la fin
-// pour eviter tout mouvement brutal. Intensite volontairement croissante 03 < 05 < 07 ("tension qui
-// se resserre progressivement") ; 04/06 restent des couches par defaut (fixe), contraste assume.
+// Zooms 03/05/07 (correctif du 29 aout 2026, approfondi le meme jour) : memes primitives que le
+// plan A/crash-test ras-du-sol (etapes scale/x/y/rotation/easing, mouvement:'dynamique') -- aucune
+// vibration, aucun pan, aucune rotation, cadrage initial identique a un plan fixe (scale 1). Un
+// seul segment t:0->t:1 couvre deja TOUTE la duree du plan (segMs = dureeMs complet dans
+// jouerChoreographieCouche) -- l'ajustement porte donc sur la PERCEPTION du mouvement, pas sur sa
+// duree reelle : easing 'ease-in' (au lieu de 'linear') pour une immobilite apparente en debut de
+// plan qui se resout en mouvement net et perceptible en fin de plan, et amplitude de zoom
+// nettement augmentee pour que le resserrement final soit sensible. Intensite volontairement
+// croissante 03 < 05 < 07 ("tension qui se resserre progressivement") ; 04/06 restent des couches
+// par defaut (fixe), contraste assume.
 const ZOOM_TIRE_LEGER = { mouvement: 'dynamique', etapes: [
   { t: 0, cadrage: { scale: 1,    x: 0, y: 0, rotation: 0 }, easing: 'linear' },
-  { t: 1, cadrage: { scale: 1.05, x: 0, y: 0, rotation: 0 }, easing: 'linear' }
+  { t: 1, cadrage: { scale: 1.16, x: 0, y: 0, rotation: 0 }, easing: 'ease-in' }
 ] };
 const ZOOM_GARDIEN_LEGER = { mouvement: 'dynamique', etapes: [
   { t: 0, cadrage: { scale: 1,    x: 0, y: 0, rotation: 0 }, easing: 'linear' },
-  { t: 1, cadrage: { scale: 1.08, x: 0, y: 0, rotation: 0 }, easing: 'linear' }
+  { t: 1, cadrage: { scale: 1.22, x: 0, y: 0, rotation: 0 }, easing: 'ease-in' }
 ] };
 const ZOOM_PUBLIC_LEGER = { mouvement: 'dynamique', etapes: [
   { t: 0, cadrage: { scale: 1,    x: 0, y: 0, rotation: 0 }, easing: 'linear' },
-  { t: 1, cadrage: { scale: 1.12, x: 0, y: 0, rotation: 0 }, easing: 'linear' }
+  { t: 1, cadrage: { scale: 1.30, x: 0, y: 0, rotation: 0 }, easing: 'ease-in' }
 ] };
 
 const FRAMES_TENSION_COUP_FRANC = [
