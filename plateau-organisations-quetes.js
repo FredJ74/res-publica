@@ -4396,6 +4396,13 @@ function lancerSequencePreview(sequence, def, club, instant) {
   const joueurAwayEnCours = document.getElementById('live-joueur-away');
   if (joueurHomeEnCours) joueurHomeEnCours.style.display = '';
   if (joueurAwayEnCours) joueurAwayEnCours.style.display = '';
+  // Remet a plat la duree de transition du ballon avant tout nouveau scenario (chantier
+  // "choregraphie spatiale coherente", 29 aout 2026) -- sans ce reset, une transition preview
+  // ralentie (positionnerBallonPreview, 1,5-4s) laissee par "V2 -- Match miniature continu"
+  // contaminerait le ballon des scenarios A/B/C/D-E-F1/D-E-F2/raccords, qui s'attendent tous a la
+  // transition CSS par defaut (.5s) de positionnerBallon, jamais touchee par ailleurs.
+  const ballonEnCours = document.getElementById('live-ballon');
+  if (ballonEnCours) ballonEnCours.style.transitionDuration = '';
   const label = document.getElementById('live-action-label');
   if (label) label.textContent = def.label + ' — ' + club.nom; // meme habillage que jouerMicroAction
   executerSequenceRealisation(sequence, instant, def, club);
@@ -4592,6 +4599,25 @@ function positionnerBallon(indexZoneAbsolu) {
   ballon.style.left = pct + '%';
   ballon.style.top = (28 + Math.random() * 44) + '%'; // leger flottement vertical, purement esthetique
 }
+
+// Positionnement PREVIEW du ballon en coordonnees CONTINUES (x/y%), chantier "choregraphie spatiale
+// coherente" (29 aout 2026). NE REMPLACE PAS positionnerBallon (index de zone discret, transition
+// CSS fixe .5s, utilise par A/B/C/D-E-F1/D-E-F2/raccords/moteur reel -- intouche) : fonction
+// STRICTEMENT separee et preview-only, pour les cas ou le ballon doit suivre un "porteur visuel"
+// dont le rythme (1,5-4s) est tres eloigne de la transition fixe de .live-ballon. `dureeMs`
+// (optionnel) surcharge la duree de transition PROPRE a cet appel, exactement comme
+// appliquerSceneActeursPreview le fait deja pour un acteur -- jamais une modification de la regle
+// CSS partagee. reinitialiserSceneApresSequenceRealisation reinitialise deja transitionDuration ET
+// repositionne le ballon via l'ancien positionnerBallon(3) a la fin de toute sequence -- aucun
+// nettoyage supplementaire necessaire cote fin de sequence ; lancerSequencePreview le reinitialise
+// aussi de maniere defensive au demarrage d'un nouveau scenario (voir plus bas).
+function positionnerBallonPreview(xPourcent, yPourcent, dureeMs) {
+  const ballon = document.getElementById('live-ballon');
+  if (!ballon) return;
+  ballon.style.transitionDuration = dureeMs ? (dureeMs + 'ms') : '';
+  ballon.style.left = xPourcent + '%';
+  ballon.style.top = yPourcent + '%';
+}
 function positionnerJoueur(cote, indexZoneAbsolu) {
   const el = document.getElementById('live-joueur-' + cote);
   if (!el) return;
@@ -4731,7 +4757,16 @@ const ETATS_VISUELS_TERRAIN_PREVIEW = {
 function appliquerEtatVisuelTerrainPreview(id) {
   const etat = ETATS_VISUELS_TERRAIN_PREVIEW[id];
   if (!etat) return;
-  if (etat.ballon != null) positionnerBallon(etat.ballon);
+  // etat.ballonXY (chantier "choregraphie spatiale coherente", 29 aout 2026) : coordonnees
+  // continues liees a un porteur visuel -- prioritaire sur etat.ballon (index de zone) quand
+  // present. Aucun etat existant (coup_franc_prepare/apres_arret/engagement_apres_but/etc.) ne
+  // porte ce champ : comportement rigoureusement inchange pour eux (etat.ballon reste lu comme
+  // avant, positionnerBallon jamais touche).
+  if (etat.ballonXY != null) {
+    positionnerBallonPreview(etat.ballonXY.x, etat.ballonXY.y, etat.vitesseBallonMs);
+  } else if (etat.ballon != null) {
+    positionnerBallon(etat.ballon);
+  }
   const joueurHomeEl = document.getElementById('live-joueur-home');
   const joueurAwayEl = document.getElementById('live-joueur-away');
   if (etat.acteurs) {
@@ -4751,181 +4786,245 @@ function appliquerEtatVisuelTerrainPreview(id) {
   }
 }
 
-// Deux allures declaratives (chantier "banc d'essai V2 en continu", 29 aout 2026) -- reference :
-// transition CSS actuelle de .live-acteur (1.3s). PORTEES PAR LA SCENE/LE PLAN PREVIEW, jamais une
-// constante globale du moteur reel (aucune touche a plateau.html, aucune touche a positionnerBallon/
-// positionnerJoueur). Reutilisables telles quelles par un futur realisateur reel via `etat.vitesseMs`
-// ou `acteur.vitesse` -- deja le mecanisme generique de appliquerSceneActeursPreview, rien de neuf.
-const VITESSE_MARCHE_MS = 1500; // replacement / marche : mouvement pose (reference, non utilisee directement -- voir VITESSE_MARCHE_PAR_ROLE)
-const VITESSE_COURSE_MS = 750;  // course / action : sensiblement plus rapide (reference, non utilisee directement -- voir VITESSE_COURSE_PAR_ROLE)
+// Deux allures declaratives (chantier "banc d'essai V2 en continu", 29 aout 2026) -- reference
+// historique, non utilisee directement (voir VITESSE_MARCHE_PAR_ROLE/VITESSE_COURSE_PAR_ROLE plus
+// bas pour les valeurs reellement appliquees). PORTEES PAR LA SCENE/LE PLAN PREVIEW, jamais une
+// constante globale du moteur reel.
+const VITESSE_MARCHE_MS = 1500;
+const VITESSE_COURSE_MS = 750;
 
-// Chantier "lissage du mini-terrain V2 en continu" (29 aout 2026). RETOUR UTILISATEUR : mouvement
-// trop saccade et surtout trop REGULIER (deplacement -> arret collectif -> attente -> deplacement,
-// a rythme previsible -- effet "metronome").
+// Chantier "choregraphie spatiale coherente" (29 aout 2026). RETOUR UTILISATEUR apres le lissage
+// precedent (9916dd2) : deplacements encore trop rapides, et surtout le BALLON ne semble pas
+// coherent avec les acteurs -- persistance de l'effet "Smarties".
 //
-// DIAGNOSTIC FACTUEL (inspection de appliquerSceneActeursPreview et du plan terrain ci-dessus) --
-// TROIS causes exactes, cumulatives :
-// 1. DEPART PARFAITEMENT SYNCHRONE : les 8 acteurs d'une phase etaient tous mis a jour dans LA MEME
-//    boucle forEach synchrone (un seul appel a appliquerEtatVisuelTerrainPreview par plan terrain) --
-//    aucun n'avait de retard individuel, tous demarraient leur transition CSS a l'identique milliseconde.
-// 2. TEMPS MORT DISPROPORTIONNE : dureeMs du plan terrain (3200ms "marche", 2600ms "course") etait
-//    tres superieur a la duree de transition CSS reellement utilisee (vitesseMs unique : 1500 ou 750)
-//    -- ex. phase marche : ~1700ms d'immobilite TOTALE et SIMULTANEE de tous les acteurs avant le
-//    plan suivant. C'est ce long temps mort partage, plus que la vitesse elle-meme, qui produit
-//    l'impression d'arret collectif regulier.
-// 3. VALEUR UNIQUE ET FIXE : vitesseMs (1500 ou 750) etait rigoureusement identique a chaque
-//    occurrence de "marche"/"course" -- aucune variation, donc un rythme parfaitement previsible.
+// DIAGNOSTIC FACTUEL (inspection de positionnerBallon, appliquerSceneActeursPreview et des 9 phases
+// de 9916dd2) :
+// 1. LE BALLON ET LES ACTEURS SONT POSITIONNES DE MANIERE TOTALEMENT INDEPENDANTE. positionnerBallon
+//    prend un INDEX DE ZONE discret (0-6, 7 positions x possibles seulement) avec un flottement
+//    vertical ALEATOIRE (Math.random) a chaque appel -- les acteurs, eux, ont des coordonnees x/y
+//    CONTINUES choisies a la main. Rien dans le code ne relie jamais la position du ballon a celle
+//    d'un acteur precis : la coherence n'existait que quand j'avais, par hasard, choisi des valeurs
+//    approximativement voisines en ecrivant les 9 phases -- jamais garantie, jamais un porteur
+//    explicite.
+// 2. LE BALLON A UNE TRANSITION CSS FIXE DE .5s (regle partagee .live-ballon dans plateau.html),
+//    totalement INDEPENDANTE de la vitesse (1,45-1,8s) des acteurs -- le ballon arrive donc
+//    TOUJOURS plusieurs fois plus vite que n'importe quel joueur, quel que soit son rythme :
+//    incoherence spatiale garantie des que les acteurs ralentissent.
+// 3. Les vitesses actuelles (VITESSE_MARCHE_PAR_ROLE ~1,45-1,8s, VITESSE_COURSE_PAR_ROLE ~0,75-0,95s)
+//    restent EN DECA des nouvelles bandes demandees (marche 2,5-4s, course 1,5-2,5s) -- le ressenti
+//    "pions qui bondissent" vient aussi de la, pas seulement du ballon.
 //
-// SOLUTION RETENUE (aucune camera, aucun changement du moteur sportif, aucune physique complexe) :
-// 1. `a.delay` (nouveau champ optionnel de appliquerSceneActeursPreview, retrocompatible -- voir plus
-//    haut) : chaque acteur programme MAINTENANT sa propre mise a jour via son propre setTimeout,
-//    jamais un depart groupe. Decalage EXPLICITE et DETERMINISTE par role (DELAY_PAR_ROLE_MATCH_MINIATURE
-//    ci-dessous), jamais Math.random -- porteur/attaquant demarre en premier (0ms), partenaire proche
-//    100-250ms apres, defenseur reagit encore un peu apres.
-// 2. Duree de transition EXPLICITE PAR ROLE (VITESSE_MARCHE_PAR_ROLE / VITESSE_COURSE_PAR_ROLE
-//    ci-dessous) au lieu d'une valeur unique -- variee dans les bandes demandees (marche ~1,3-1,8s,
-//    course ~0,65-0,95s), valeurs deterministes explicites, jamais de hasard non deterministe.
-// 3. Le temps mort residuel est mecaniquement reduit SANS toucher dureeMs pour les phases "marche"
-//    (le mouvement, desormais plus long -- jusqu'a 1800ms de transition + 240ms de retard defenseur --
-//    occupe une part sensiblement plus grande des 3200ms du plan) ; pour les phases "course", dureeMs
-//    est resserre de 2600 a 2300ms (le mouvement y etait proportionnellement le plus court par rapport
-//    au temps mort). Duree totale quasi inchangee (25,2s contre 26,4s avant), permettant une
-//    comparaison directe avant/apres -- seule la CADENCE change, ni les positions, ni les acteurs, ni
-//    le nombre de phases.
-const DELAY_PAR_ROLE_MATCH_MINIATURE = { attaquant: 0, milieu: 150, gardien: 90, defenseur: 240 };
-const VITESSE_MARCHE_PAR_ROLE = { gardien: 1700, defenseur: 1800, milieu: 1600, attaquant: 1450 }; // bande ~1,3-1,8s
-const VITESSE_COURSE_PAR_ROLE = { gardien: 900, defenseur: 950, milieu: 850, attaquant: 750 };     // bande ~0,65-0,95s
+// SOLUTION RETENUE (aucune camera, aucun changement du moteur sportif, aucune physique de dribble/
+// interception) :
+// 1. NOTION DE PORTEUR VISUEL (section 3) : chaque phase peut declarer `porteur` (l'id d'un
+//    acteur). phaseMatchMiniature() calcule ALORS la position du ballon comme un simple decalage
+//    fixe par rapport a CE porteur (ballon = porteur.x +/- avanceBallon, porteur.y) -- aucune donnee
+//    sportive, aucune decision, une pure relation spatiale figee comme tout le reste de ce fichier.
+// 2. NOUVELLE FONCTION positionnerBallonPreview(x, y, dureeMs) (voir plus haut, pres de
+//    positionnerBallon) : positionnement en coordonnees CONTINUES avec une duree de transition
+//    PROPRE au preview -- jamais positionnerBallon, jamais la regle CSS partagee. Le ballon d'une
+//    phase avec porteur recoit la MEME duree de transition que ce porteur (vitesseBallonMs =
+//    porteur.vitesse) : il suit visuellement son rythme au lieu d'arriver 3-4x plus vite.
+// 3. "PASSE" VISUELLE (section 4) : simplement un CHANGEMENT du champ `porteur` d'une phase a la
+//    suivante -- le ballon glisse alors du decalage de l'ancien porteur vers celui du nouveau, sur
+//    sa propre transition. Aucune resolution, aucun echec possible : le scenario preview connait
+//    deja la destination et se contente de la jouer (exactement la consigne).
+// 4. VITESSES REVUES A LA HAUSSE : VITESSE_MARCHE_PAR_ROLE desormais dans la bande ~2,5-4s,
+//    VITESSE_COURSE_PAR_ROLE dans la bande ~1,5-2,5s (valeurs exactes ci-dessous).
+// 5. TEMPS MORT ENCORE RESSERRE : la duree des plans est recalculee pour coller de pres au
+//    mouvement le plus long de chaque phase (~150-200ms de marge, contre ~1150ms avant) --
+//    "une nouvelle destination arrive des que le mouvement precedent vient de se terminer".
+// 6. ORIENTATION (section 10) : acteurMatchMiniature calcule desormais automatiquement
+//    `orientation` a partir du DEPLACEMENT reel de chaque acteur entre la phase precedente et la
+//    phase courante (angle du vecteur de deplacement) -- reutilise le champ `orientation` deja
+//    supporte par appliquerSceneActeursPreview depuis le chantier V2 initial, AUCUN changement du
+//    renderer necessaire. Simple calcul a la construction des donnees, aucune architecture lourde.
+const DELAY_PAR_ROLE_MATCH_MINIATURE = { attaquant: 0, milieu: 200, gardien: 120, defenseur: 320 };
+const VITESSE_MARCHE_PAR_ROLE = { attaquant: 2600, milieu: 3000, gardien: 3200, defenseur: 3400 }; // bande ~2,5-4s
+const VITESSE_COURSE_PAR_ROLE = { attaquant: 1500, milieu: 1800, gardien: 2000, defenseur: 2200 }; // bande ~1,5-2,5s
+const AVANCE_BALLON_PORTEUR_POURCENT = 3; // decalage fixe ballon/porteur (devant lui, sens d'attaque de son equipe)
 function categorieActeurMatchMiniature(id) {
   if (id.indexOf('gardien_') === 0) return 'gardien';
   if (id.indexOf('def_') === 0) return 'defenseur';
   if (id.indexOf('mid_') === 0) return 'milieu';
   return 'attaquant';
 }
+// Memorise, PENDANT LA CONSTRUCTION du dictionnaire ETATS_MATCH_MINIATURE_V2 ci-dessous (evaluee
+// dans l'ordre d'ecriture des phases, donc chronologique), la derniere position connue de chaque
+// acteur -- sert uniquement a calculer `orientation` (angle du deplacement reel), jamais lu au
+// runtime, jamais partage avec le moteur reel.
+let _positionsPrecedentesMatchMiniature = {};
 // Construit UN acteur avec vitesse/retard deterministes derives de son role (extrait de son id) et
-// de l'allure demandee pour CETTE phase ('marche' ou 'course') -- positions (x,y) et cote inchanges,
-// seule la cadence de deplacement est calculee ici.
+// de l'allure demandee pour CETTE phase ('marche' ou 'course'), PLUS une orientation calculee a
+// partir de son propre deplacement depuis la phase precedente (section 10 -- aucun changement du
+// renderer, `orientation` est deja lu par appliquerSceneActeursPreview).
 function acteurMatchMiniature(id, cote, x, y, tempo) {
   const categorie = categorieActeurMatchMiniature(id);
   const vitesse = (tempo === 'course' ? VITESSE_COURSE_PAR_ROLE : VITESSE_MARCHE_PAR_ROLE)[categorie];
   const acteur = { id: id, cote: cote, x: x, y: y, vitesse: vitesse, delay: DELAY_PAR_ROLE_MATCH_MINIATURE[categorie] };
   if (categorie === 'gardien') acteur.role = 'gardien';
+  const precedent = _positionsPrecedentesMatchMiniature[id];
+  if (precedent && (precedent.x !== x || precedent.y !== y)) {
+    acteur.orientation = Math.round(Math.atan2(y - precedent.y, x - precedent.x) * 180 / Math.PI);
+  }
+  _positionsPrecedentesMatchMiniature[id] = { x: x, y: y };
   return acteur;
 }
+// Assemble UNE phase : calcule la position/vitesse du ballon a partir du porteur visuel designe
+// (section 3) -- `ballonManuel` (optionnel, {x,y}) permet une phase SANS porteur (ex. replacement
+// collectif final, ballon simplement pose au centre).
+function phaseMatchMiniature(porteurId, acteurs, ballonManuel, vitesseBallonManuelle) {
+  let ballonXY = ballonManuel || null;
+  let vitesseBallonMs = vitesseBallonManuelle;
+  if (porteurId) {
+    const p = acteurs.find(function(a) { return a.id === porteurId; });
+    if (p) {
+      vitesseBallonMs = p.vitesse;
+      if (!ballonXY) ballonXY = { x: p.x + (p.cote === 'home' ? AVANCE_BALLON_PORTEUR_POURCENT : -AVANCE_BALLON_PORTEUR_POURCENT), y: p.y };
+    }
+  }
+  return { porteur: porteurId || null, ballonXY: ballonXY, vitesseBallonMs: vitesseBallonMs, acteurs: acteurs };
+}
 
-// Banc d'essai "V2 -- Match miniature continu" (29 aout 2026, cadence lissee le meme jour) :
-// demonstration preview-only du plateau multi-acteurs SEUL pendant ~25-30s, aucune image D/E/F,
-// aucune video, cadrage terrain normal (aucune camera V1 -- section 7). 8 acteurs (4 par cote dont 1
-// gardien chacun) : suffisant pour une impression credible de football miniature sans viser 22
-// joueurs. 9 phases, chacune un etat visuel FIGE (comme coup_franc_prepare/apres_arret), enchainees
-// par la sequence comme n'importe quelle suite de plans terrain -- aucun nouveau mecanisme de
-// sequencement. Situations PUREMENT visuelles (aucun but/carton/blessure/evenement canonique),
-// destinees exclusivement a juger le rythme. MEMES positions x/y et MEME repartition marche/course
-// par phase qu'avant le lissage -- seules les valeurs de vitesse/delay ont change (voir diagnostic
-// ci-dessus).
+// Banc d'essai "V2 -- Match miniature continu" (29 aout 2026, choregraphie spatiale revue le meme
+// jour) : demonstration preview-only du plateau multi-acteurs SEUL pendant ~25-35s, aucune image
+// D/E/F, aucune video, cadrage terrain normal (aucune camera V1 -- section 11). 8 acteurs (4 par
+// cote dont 1 gardien chacun) + le ballon (toujours l'element #live-ballon existant, jamais un
+// acteur). MEME scenario qu'avant (comparaison directe possible) mais rechoregraphie en 10 phases
+// (au lieu de 9) suivant UNE possession continue et comprehensible : construction lente au milieu
+// -> soutien des partenaires -> defense qui coulisse -> passe laterale -> nouveau porteur qui
+// progresse -> perte de balle predeterminee (aucune probabilite, juste le scenario qui l'a decide)
+// -> contre-attaque adverse -> replacement collectif. Chaque phase part des positions ou la
+// precedente s'est arretee (section 8, "A evolue vers B, B continue vers C") -- aucun "tableau independant".
+const ACTEURS_POSSESSION_HOME_MILIEU = [
+  acteurMatchMiniature('gardien_home', 'home', 6,  50, 'marche'),
+  acteurMatchMiniature('def_home_1',   'home', 20, 50, 'marche'),
+  acteurMatchMiniature('mid_home_1',   'home', 42, 48, 'marche'), // porteur
+  acteurMatchMiniature('att_home_1',   'home', 58, 55, 'marche'),
+  acteurMatchMiniature('gardien_away', 'away', 94, 50, 'marche'),
+  acteurMatchMiniature('def_away_1',   'away', 78, 50, 'marche'),
+  acteurMatchMiniature('mid_away_1',   'away', 62, 50, 'marche'),
+  acteurMatchMiniature('att_away_1',   'away', 46, 45, 'marche')
+];
+const ACTEURS_PROGRESSION_LENTE = [
+  acteurMatchMiniature('gardien_home', 'home', 8,  50, 'marche'),
+  acteurMatchMiniature('def_home_1',   'home', 24, 49, 'marche'),
+  acteurMatchMiniature('mid_home_1',   'home', 52, 45, 'marche'), // porteur, progresse lentement
+  acteurMatchMiniature('att_home_1',   'home', 64, 56, 'marche'),
+  acteurMatchMiniature('gardien_away', 'away', 94, 50, 'marche'),
+  acteurMatchMiniature('def_away_1',   'away', 76, 50, 'marche'),
+  acteurMatchMiniature('mid_away_1',   'away', 60, 48, 'marche'),
+  acteurMatchMiniature('att_away_1',   'away', 48, 44, 'marche')
+];
+const ACTEURS_PARTENAIRES_ACCOMPAGNENT = [
+  acteurMatchMiniature('gardien_home', 'home', 9,  50, 'marche'),
+  acteurMatchMiniature('def_home_1',   'home', 28, 50, 'marche'),
+  acteurMatchMiniature('mid_home_1',   'home', 60, 42, 'marche'), // porteur, continue
+  acteurMatchMiniature('att_home_1',   'home', 72, 62, 'marche'), // appel/ecartement large
+  acteurMatchMiniature('gardien_away', 'away', 93, 50, 'marche'),
+  acteurMatchMiniature('def_away_1',   'away', 74, 50, 'marche'),
+  acteurMatchMiniature('mid_away_1',   'away', 58, 46, 'marche'),
+  acteurMatchMiniature('att_away_1',   'away', 50, 44, 'marche')
+];
+const ACTEURS_DEFENSE_COULISSE = [
+  acteurMatchMiniature('gardien_home', 'home', 9,  50, 'course'),
+  acteurMatchMiniature('def_home_1',   'home', 30, 50, 'course'),
+  acteurMatchMiniature('mid_home_1',   'home', 64, 40, 'course'), // porteur
+  acteurMatchMiniature('att_home_1',   'home', 76, 64, 'course'),
+  acteurMatchMiniature('gardien_away', 'away', 90, 50, 'course'),
+  acteurMatchMiniature('def_away_1',   'away', 68, 48, 'course'), // coulisse vers le ballon
+  acteurMatchMiniature('mid_away_1',   'away', 56, 44, 'course'), // recule aider la defense
+  acteurMatchMiniature('att_away_1',   'away', 50, 42, 'course')
+];
+const ACTEURS_PASSE_LATERALE = [
+  acteurMatchMiniature('gardien_home', 'home', 9,  50, 'course'),
+  acteurMatchMiniature('def_home_1',   'home', 32, 50, 'course'),
+  acteurMatchMiniature('mid_home_1',   'home', 66, 38, 'course'), // vient de passer, n'est plus porteur
+  acteurMatchMiniature('att_home_1',   'home', 78, 58, 'course'), // NOUVEAU porteur, recoit la passe
+  acteurMatchMiniature('gardien_away', 'away', 90, 50, 'course'),
+  acteurMatchMiniature('def_away_1',   'away', 66, 50, 'course'),
+  acteurMatchMiniature('mid_away_1',   'away', 54, 42, 'course'),
+  acteurMatchMiniature('att_away_1',   'away', 52, 40, 'course')
+];
+const ACTEURS_NOUVEAU_PORTEUR = [
+  acteurMatchMiniature('gardien_home', 'home', 9,  50, 'marche'),
+  acteurMatchMiniature('def_home_1',   'home', 34, 50, 'marche'),
+  acteurMatchMiniature('mid_home_1',   'home', 68, 38, 'marche'),
+  acteurMatchMiniature('att_home_1',   'home', 84, 60, 'marche'), // porteur, s'installe
+  acteurMatchMiniature('gardien_away', 'away', 88, 50, 'marche'),
+  acteurMatchMiniature('def_away_1',   'away', 64, 52, 'marche'),
+  acteurMatchMiniature('mid_away_1',   'away', 52, 44, 'marche'),
+  acteurMatchMiniature('att_away_1',   'away', 54, 40, 'marche')
+];
+const ACTEURS_NOUVELLE_PROGRESSION = [
+  acteurMatchMiniature('gardien_home', 'home', 9,  50, 'course'),
+  acteurMatchMiniature('def_home_1',   'home', 36, 50, 'course'),
+  acteurMatchMiniature('mid_home_1',   'home', 70, 40, 'course'),
+  acteurMatchMiniature('att_home_1',   'home', 89, 62, 'course'), // porteur, pousse profond
+  acteurMatchMiniature('gardien_away', 'away', 86, 50, 'course'),
+  acteurMatchMiniature('def_away_1',   'away', 62, 54, 'course'),
+  acteurMatchMiniature('mid_away_1',   'away', 50, 46, 'course'),
+  acteurMatchMiniature('att_away_1',   'away', 56, 42, 'course')
+];
+const ACTEURS_CHANGEMENT_POSSESSION = [
+  acteurMatchMiniature('gardien_home', 'home', 9,  50, 'course'),
+  acteurMatchMiniature('def_home_1',   'home', 38, 50, 'course'),
+  acteurMatchMiniature('mid_home_1',   'home', 66, 42, 'course'),
+  acteurMatchMiniature('att_home_1',   'home', 80, 58, 'course'), // n'est plus porteur, perte de balle
+  acteurMatchMiniature('gardien_away', 'away', 84, 50, 'course'),
+  acteurMatchMiniature('def_away_1',   'away', 58, 54, 'course'), // NOUVEAU porteur -- purement predetermine
+  acteurMatchMiniature('mid_away_1',   'away', 46, 48, 'course'),
+  acteurMatchMiniature('att_away_1',   'away', 60, 44, 'course')
+];
+const ACTEURS_AWAY_REPART = [
+  acteurMatchMiniature('gardien_home', 'home', 10, 50, 'marche'),
+  acteurMatchMiniature('def_home_1',   'home', 34, 52, 'marche'), // recupere/revient
+  acteurMatchMiniature('mid_home_1',   'home', 58, 46, 'marche'),
+  acteurMatchMiniature('att_home_1',   'home', 70, 56, 'marche'),
+  acteurMatchMiniature('gardien_away', 'away', 84, 50, 'marche'),
+  acteurMatchMiniature('def_away_1',   'away', 50, 55, 'marche'), // vient de passer
+  acteurMatchMiniature('mid_away_1',   'away', 34, 48, 'marche'), // NOUVEAU porteur, porte le contre
+  acteurMatchMiniature('att_away_1',   'away', 66, 42, 'marche')
+];
+const ACTEURS_REPLACEMENT_COLLECTIF = [
+  acteurMatchMiniature('gardien_home', 'home', 8,  50, 'marche'),
+  acteurMatchMiniature('def_home_1',   'home', 24, 50, 'marche'),
+  acteurMatchMiniature('mid_home_1',   'home', 42, 48, 'marche'),
+  acteurMatchMiniature('att_home_1',   'home', 56, 52, 'marche'),
+  acteurMatchMiniature('gardien_away', 'away', 92, 50, 'marche'),
+  acteurMatchMiniature('def_away_1',   'away', 76, 50, 'marche'),
+  acteurMatchMiniature('mid_away_1',   'away', 58, 50, 'marche'),
+  acteurMatchMiniature('att_away_1',   'away', 44, 48, 'marche')
+];
 const ETATS_MATCH_MINIATURE_V2 = {
-  circulation_initiale: { ballon: 3, acteurs: [
-    acteurMatchMiniature('gardien_home', 'home', 6,  50, 'marche'),
-    acteurMatchMiniature('def_home_1',   'home', 20, 50, 'marche'),
-    acteurMatchMiniature('mid_home_1',   'home', 38, 45, 'marche'),
-    acteurMatchMiniature('att_home_1',   'home', 55, 55, 'marche'),
-    acteurMatchMiniature('gardien_away', 'away', 94, 50, 'marche'),
-    acteurMatchMiniature('def_away_1',   'away', 80, 50, 'marche'),
-    acteurMatchMiniature('mid_away_1',   'away', 62, 55, 'marche'),
-    acteurMatchMiniature('att_away_1',   'away', 45, 45, 'marche')
-  ] },
-  progression_home: { ballon: 4, acteurs: [
-    acteurMatchMiniature('gardien_home', 'home', 8,  50, 'marche'),
-    acteurMatchMiniature('def_home_1',   'home', 25, 48, 'marche'),
-    acteurMatchMiniature('mid_home_1',   'home', 50, 40, 'course'),
-    acteurMatchMiniature('att_home_1',   'home', 68, 58, 'course'),
-    acteurMatchMiniature('gardien_away', 'away', 94, 50, 'marche'),
-    acteurMatchMiniature('def_away_1',   'away', 78, 52, 'marche'),
-    acteurMatchMiniature('mid_away_1',   'away', 64, 42, 'marche'),
-    acteurMatchMiniature('att_away_1',   'away', 50, 50, 'marche')
-  ] },
-  defense_away_recule: { ballon: 4, acteurs: [
-    acteurMatchMiniature('gardien_home', 'home', 8,  50, 'course'),
-    acteurMatchMiniature('def_home_1',   'home', 28, 46, 'course'),
-    acteurMatchMiniature('mid_home_1',   'home', 52, 38, 'course'),
-    acteurMatchMiniature('att_home_1',   'home', 74, 60, 'course'),
-    acteurMatchMiniature('gardien_away', 'away', 92, 50, 'course'),
-    acteurMatchMiniature('def_away_1',   'away', 72, 48, 'course'),
-    acteurMatchMiniature('mid_away_1',   'away', 58, 40, 'course'),
-    acteurMatchMiniature('att_away_1',   'away', 48, 52, 'course')
-  ] },
-  changement_zone_home: { ballon: 5, acteurs: [
-    acteurMatchMiniature('gardien_home', 'home', 8,  50, 'course'),
-    acteurMatchMiniature('def_home_1',   'home', 30, 30, 'course'),
-    acteurMatchMiniature('mid_home_1',   'home', 55, 25, 'course'),
-    acteurMatchMiniature('att_home_1',   'home', 80, 30, 'course'),
-    acteurMatchMiniature('gardien_away', 'away', 92, 50, 'course'),
-    acteurMatchMiniature('def_away_1',   'away', 70, 32, 'course'),
-    acteurMatchMiniature('mid_away_1',   'away', 56, 35, 'course'),
-    acteurMatchMiniature('att_away_1',   'away', 42, 60, 'course')
-  ] },
-  repli_away: { ballon: 3, acteurs: [
-    acteurMatchMiniature('gardien_home', 'home', 8,  50, 'marche'),
-    acteurMatchMiniature('def_home_1',   'home', 22, 52, 'marche'),
-    acteurMatchMiniature('mid_home_1',   'home', 40, 50, 'marche'),
-    acteurMatchMiniature('att_home_1',   'home', 52, 50, 'marche'),
-    acteurMatchMiniature('gardien_away', 'away', 94, 50, 'marche'),
-    acteurMatchMiniature('def_away_1',   'away', 76, 50, 'marche'),
-    acteurMatchMiniature('mid_away_1',   'away', 60, 48, 'course'),
-    acteurMatchMiniature('att_away_1',   'away', 48, 46, 'course')
-  ] },
-  progression_away: { ballon: 2, acteurs: [
-    acteurMatchMiniature('gardien_home', 'home', 8,  50, 'marche'),
-    acteurMatchMiniature('def_home_1',   'home', 25, 50, 'marche'),
-    acteurMatchMiniature('mid_home_1',   'home', 38, 55, 'marche'),
-    acteurMatchMiniature('att_home_1',   'home', 50, 50, 'marche'),
-    acteurMatchMiniature('gardien_away', 'away', 94, 50, 'marche'),
-    acteurMatchMiniature('def_away_1',   'away', 70, 50, 'marche'),
-    acteurMatchMiniature('mid_away_1',   'away', 48, 45, 'course'),
-    acteurMatchMiniature('att_away_1',   'away', 32, 55, 'course')
-  ] },
-  defense_home_recule: { ballon: 2, acteurs: [
-    acteurMatchMiniature('gardien_home', 'home', 8,  50, 'course'),
-    acteurMatchMiniature('def_home_1',   'home', 20, 48, 'course'),
-    acteurMatchMiniature('mid_home_1',   'home', 35, 52, 'course'),
-    acteurMatchMiniature('att_home_1',   'home', 48, 48, 'course'),
-    acteurMatchMiniature('gardien_away', 'away', 92, 50, 'course'),
-    acteurMatchMiniature('def_away_1',   'away', 66, 50, 'course'),
-    acteurMatchMiniature('mid_away_1',   'away', 42, 40, 'course'),
-    acteurMatchMiniature('att_away_1',   'away', 26, 58, 'course')
-  ] },
-  replacement_general: { ballon: 3, acteurs: [
-    acteurMatchMiniature('gardien_home', 'home', 6,  50, 'marche'),
-    acteurMatchMiniature('def_home_1',   'home', 22, 50, 'marche'),
-    acteurMatchMiniature('mid_home_1',   'home', 40, 48, 'marche'),
-    acteurMatchMiniature('att_home_1',   'home', 55, 52, 'marche'),
-    acteurMatchMiniature('gardien_away', 'away', 94, 50, 'marche'),
-    acteurMatchMiniature('def_away_1',   'away', 78, 50, 'marche'),
-    acteurMatchMiniature('mid_away_1',   'away', 60, 52, 'marche'),
-    acteurMatchMiniature('att_away_1',   'away', 45, 48, 'marche')
-  ] },
-  nouvelle_progression: { ballon: 4, acteurs: [
-    acteurMatchMiniature('gardien_home', 'home', 8,  50, 'course'),
-    acteurMatchMiniature('def_home_1',   'home', 24, 46, 'course'),
-    acteurMatchMiniature('mid_home_1',   'home', 46, 40, 'course'),
-    acteurMatchMiniature('att_home_1',   'home', 66, 52, 'course'),
-    acteurMatchMiniature('gardien_away', 'away', 94, 50, 'course'),
-    acteurMatchMiniature('def_away_1',   'away', 74, 50, 'course'),
-    acteurMatchMiniature('mid_away_1',   'away', 58, 42, 'course'),
-    acteurMatchMiniature('att_away_1',   'away', 40, 55, 'course')
-  ] }
+  possession_home_milieu:   phaseMatchMiniature('mid_home_1', ACTEURS_POSSESSION_HOME_MILIEU),
+  progression_lente:        phaseMatchMiniature('mid_home_1', ACTEURS_PROGRESSION_LENTE),
+  partenaires_accompagnent: phaseMatchMiniature('mid_home_1', ACTEURS_PARTENAIRES_ACCOMPAGNENT),
+  defense_coulisse:         phaseMatchMiniature('mid_home_1', ACTEURS_DEFENSE_COULISSE),
+  passe_laterale:           phaseMatchMiniature('att_home_1', ACTEURS_PASSE_LATERALE),
+  nouveau_porteur:          phaseMatchMiniature('att_home_1', ACTEURS_NOUVEAU_PORTEUR),
+  nouvelle_progression:     phaseMatchMiniature('att_home_1', ACTEURS_NOUVELLE_PROGRESSION),
+  changement_possession:    phaseMatchMiniature('def_away_1', ACTEURS_CHANGEMENT_POSSESSION),
+  away_repart:              phaseMatchMiniature('mid_away_1', ACTEURS_AWAY_REPART),
+  replacement_collectif:    phaseMatchMiniature(null, ACTEURS_REPLACEMENT_COLLECTIF, { x: 50, y: 50 }, VITESSE_MARCHE_PAR_ROLE.milieu)
 };
 Object.assign(ETATS_VISUELS_TERRAIN_PREVIEW, ETATS_MATCH_MINIATURE_V2);
 
+// Duree des plans : marge resserree a ~150-200ms au-dessus du deplacement le plus long de chaque
+// phase (delay du defenseur + sa vitesse, le dernier a finir) -- contre ~1150ms avant ce chantier.
+// Marche : 320 (delay defenseur) + 3400 (vitesse defenseur) = 3720 -> 3900ms (marge 180ms).
+// Course : 320 + 2200 = 2520 -> 2700ms (marge 180ms).
 const FRAMES_MATCH_MINIATURE_V2 = [
-  { etatVisuel: 'circulation_initiale',  dureeMs: 3200 }, // circulation/replacement -- marche (inchange)
-  { etatVisuel: 'progression_home',      dureeMs: 3200 }, // progression d'une equipe -- marche + porteur plus vif (inchange)
-  { etatVisuel: 'defense_away_recule',   dureeMs: 2300 }, // defense qui recule -- course (resserre de 2600 a 2300)
-  { etatVisuel: 'changement_zone_home',  dureeMs: 2300 }, // changement de zone -- course (resserre)
-  { etatVisuel: 'repli_away',            dureeMs: 3200 }, // ballon qui change de cote -- marche + regain plus vif (inchange)
-  { etatVisuel: 'progression_away',      dureeMs: 3200 }, // progression de l'autre equipe -- marche + porteur plus vif (inchange)
-  { etatVisuel: 'defense_home_recule',   dureeMs: 2300 }, // defense qui recule -- course (resserre)
-  { etatVisuel: 'replacement_general',   dureeMs: 3200 }, // replacement general -- marche (inchange)
-  { etatVisuel: 'nouvelle_progression',  dureeMs: 2300 }  // nouvelle progression -- course (resserre)
+  { etatVisuel: 'possession_home_milieu',   dureeMs: 3900 }, // 1. possession home au milieu -- marche
+  { etatVisuel: 'progression_lente',        dureeMs: 3900 }, // 2. progression lente du porteur -- marche
+  { etatVisuel: 'partenaires_accompagnent', dureeMs: 3900 }, // 3. partenaires accompagnent -- marche
+  { etatVisuel: 'defense_coulisse',         dureeMs: 2700 }, // 4. defense coulisse -- course
+  { etatVisuel: 'passe_laterale',           dureeMs: 2700 }, // 5. passe laterale -- course
+  { etatVisuel: 'nouveau_porteur',          dureeMs: 3900 }, // 6. nouveau porteur -- marche
+  { etatVisuel: 'nouvelle_progression',     dureeMs: 2700 }, // 7. nouvelle progression -- course
+  { etatVisuel: 'changement_possession',    dureeMs: 2700 }, // 8. changement de possession visuel -- course
+  { etatVisuel: 'away_repart',              dureeMs: 3900 }, // 9. away repart dans l'autre sens -- marche
+  { etatVisuel: 'replacement_collectif',    dureeMs: 3900 }  // 10. replacement collectif -- marche
 ];
 const SEQUENCE_PREVIEW_MATCH_MINIATURE_V2 = {
   gabaritId: 'preview_match_miniature_v2', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
@@ -4933,7 +5032,7 @@ const SEQUENCE_PREVIEW_MATCH_MINIATURE_V2 = {
     type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel
   }))
 };
-SEQUENCE_PREVIEW_MATCH_MINIATURE_V2.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_MATCH_MINIATURE_V2); // 3200+3200+2300+2300+3200+3200+2300+3200+2300 = 25200ms (~25,2s)
+SEQUENCE_PREVIEW_MATCH_MINIATURE_V2.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_MATCH_MINIATURE_V2); // 3900*6+2700*4 = 23400+10800 = 34200ms (~34,2s)
 
 // Joue UNE sequence narrative locale : delegue au realisateur automatique -- genere une sequence
 // d'un nombre quelconque de plans terrain/illustre (l'executeur n'a aucune branche speciale selon
