@@ -4799,6 +4799,43 @@ const CAMERA_SPREAD_TIGHT_POURCENT = 16;
 const CAMERA_SPREAD_WIDE_POURCENT = 42;
 const CAMERA_TRANSITION_MS = 2600;
 const CAMERA_POIDS_PORTEUR = 0.6;
+// Camera V1.5 -- travelling anticipatif (chantier "travelling anticipatif du porteur", 29 aout
+// 2026) : la camera V1 (ci-dessus) suit deja le porteur/groupe actif mais le CENTRE exactement --
+// aucune impression de direction d'attaque. Ajoute ICI un DECALAGE supplementaire dans le sens du
+// deplacement du porteur, en reutilisant SA SEULE donnee deja declaree (acteur.orientation +
+// acteur.deplacement, calcules par acteurMatchMiniature a partir du delta avec la phase precedente
+// -- jamais une nouvelle inference football, exactement l'option de repli explicitement autorisee
+// par la demande : "delta entre position precedente et position cible actuelle"). Absent sur la
+// toute premiere phase de la demo (mid_home_1 n'a encore aucun precedent) -- anticipation nulle par
+// construction, comportement correct (aucune direction connue).
+// AMPLITUDE (section 3) : CAMERA_ANTICIPATION_MAX_POURCENT (8, dans la fourchette 5-10% demandee),
+// module lineairement par le deplacement du porteur CETTE phase rapporte a
+// CAMERA_ANTICIPATION_DEPLACEMENT_REF_POURCENT (10, deplacement mesure au-dela duquel l'anticipation
+// est deja pleine) -- un replacement quasi immobile (deplacement proche de 0) donne une anticipation
+// quasi nulle, un grand deplacement (ex. contre-attaque away_repart, 12%) sature au maximum.
+// INTERACTION AVEC LE MELANGE 60/40 (section 6) ET CLAMP EN DEUX TEMPS -- CONSTAT FACTUEL fait en
+// testant ce chantier : sur la choregraphie reelle, la cible porteur/groupe (brutX/Y) depasse DEJA
+// tres souvent, a elle seule, le panLimit de Camera V1 (le cadrage reste modere -- section 6 --
+// c'est PRECISEMENT ce qui le rend sobre) -- un simple ADDITIF anticipation+clamp final unique
+// s'est donc revele INVISIBLE dans la quasi-totalite des phases mesurees (la cible de base sature
+// deja seule le clamp, l'anticipation ajoutee par-dessus ne fait alors plus AUCUNE difference apres
+// clamp). CORRECTIF : une fraction du budget de pan (panLimit) est RESERVEE a l'anticipation --
+// la cible de base porteur/groupe est d'abord clampee a un panLimitBase reduit (panLimit moins la
+// reserve), PUIS l'anticipation est ajoutee et le tout reclampe au panLimit COMPLET (jamais
+// depasse, meme garantie qu'avant, test F). La reserve elle-meme est plafonnee a
+// CAMERA_ANTICIPATION_RESERVE_FRACTION (40%) du panLimit total -- jamais toute la place disponible,
+// le cadrage de base porteur/groupe reste TOUJOURS majoritaire (section 5, "ne doit jamais devenir
+// un simple suivi individuel"). Reutilise aussi CAMERA_TRANSITION_MS tel quel (section 4) :
+// l'anticipation reste un simple ingredient de plus dans le MEME calcul de cx/cy final joue une
+// seule fois par phase, donc beneficie automatiquement de la meme redirection en plein mouvement a
+// chaque frontiere, y compris lors d'un changement de sens (ex. changement de possession) -- aucun
+// mecanisme de lissage separe necessaire.
+// RECUPERATION FACILE DE CAMERA V1 SANS ANTICIPATION (test A) : mettre CAMERA_ANTICIPATION_MAX_POURCENT
+// a 0 desactive entierement ce terme (reserve nulle, cadrage de base clampe au panLimit complet
+// exactement comme avant) et reproduit exactement le cadrage V1 d'origine (2fea1af/0150801).
+const CAMERA_ANTICIPATION_MAX_POURCENT = 8;
+const CAMERA_ANTICIPATION_DEPLACEMENT_REF_POURCENT = 10;
+const CAMERA_ANTICIPATION_RESERVE_FRACTION = 0.4;
 function calculerCadrageCameraMatchMiniature(etat) {
   const reference = etat.acteurs.filter(function(a) { return a.intensite === 'actif'; });
   const groupe = reference.length ? reference : etat.acteurs;
@@ -4810,12 +4847,50 @@ function calculerCadrageCameraMatchMiniature(etat) {
   const porteur = etat.porteur ? etat.acteurs.find(function(a) { return a.id === etat.porteur; }) : null;
   const brutX = porteur ? (CAMERA_POIDS_PORTEUR * porteur.x + (1 - CAMERA_POIDS_PORTEUR) * centreGroupeX) : centreGroupeX;
   const brutY = porteur ? (CAMERA_POIDS_PORTEUR * porteur.y + (1 - CAMERA_POIDS_PORTEUR) * centreGroupeY) : centreGroupeY;
+  let anticipationX = 0, anticipationY = 0, amplitudeAnticipation = 0;
+  if (porteur && porteur.deplacement) {
+    const fractionAnticipation = Math.max(0, Math.min(1, porteur.deplacement / CAMERA_ANTICIPATION_DEPLACEMENT_REF_POURCENT));
+    const rad = porteur.orientation * Math.PI / 180;
+    amplitudeAnticipation = fractionAnticipation * CAMERA_ANTICIPATION_MAX_POURCENT;
+    anticipationX = Math.cos(rad) * amplitudeAnticipation;
+    anticipationY = Math.sin(rad) * amplitudeAnticipation;
+  }
   const spread = maxX - minX;
   const t = Math.max(0, Math.min(1, (CAMERA_SPREAD_WIDE_POURCENT - spread) / (CAMERA_SPREAD_WIDE_POURCENT - CAMERA_SPREAD_TIGHT_POURCENT)));
   const scale = CAMERA_SCALE_MIN + t * (CAMERA_SCALE_MAX - CAMERA_SCALE_MIN);
   const panLimit = 50 * (1 - 1 / scale);
-  const cx = Math.max(50 - panLimit, Math.min(50 + panLimit, brutX));
-  const cy = Math.max(50 - panLimit, Math.min(50 + panLimit, brutY));
+  // La reserve est calculee INDEPENDAMMENT PAR AXE, a partir de la seule COMPOSANTE d'anticipation
+  // de cet axe (jamais de la magnitude totale du vecteur) : nulle des qu'il n'y a aucune
+  // anticipation a loger sur cet axe (ex. phase 1, aucun deplacement connu -- panLimitBase redevient
+  // alors identique au panLimit complet de Camera V1, reproduction exacte, test A). Une premiere
+  // version reservait sur la magnitude 2D complete du vecteur -- BUG mesure empiriquement (assertions
+  // B) : des qu'un deplacement n'etait pas parfaitement horizontal (ex. -72deg, passe_laterale), la
+  // reserve "consommait" plus de budget X que ce que la composante X de l'anticipation ne redonnait
+  // ensuite, produisant un decalage cx dans le sens INVERSE du deplacement reel -- exactement ce que
+  // la demande interdit ("jamais l'inverse"). Le calcul PAR AXE elimine ce biais par construction :
+  // reserveX/Y ne peut jamais depasser |anticipationX|/|anticipationY|, donc le decalage final ne
+  // peut jamais etre pire (plus en arriere) que Camera V1 pur sur cet axe.
+  const reserveX = Math.min(Math.abs(anticipationX), panLimit * CAMERA_ANTICIPATION_RESERVE_FRACTION);
+  const reserveY = Math.min(Math.abs(anticipationY), panLimit * CAMERA_ANTICIPATION_RESERVE_FRACTION);
+  const panLimitBaseX = panLimit - reserveX;
+  const panLimitBaseY = panLimit - reserveY;
+  const cxBase = Math.max(50 - panLimitBaseX, Math.min(50 + panLimitBaseX, brutX));
+  const cyBase = Math.max(50 - panLimitBaseY, Math.min(50 + panLimitBaseY, brutY));
+  let cx = Math.max(50 - panLimit, Math.min(50 + panLimit, cxBase + anticipationX));
+  let cy = Math.max(50 - panLimit, Math.min(50 + panLimit, cyBase + anticipationY));
+  // Filet de securite final (teste par fuzzing) : le groupe actif (donc le porteur, toujours actif)
+  // doit rester dans la fenetre visible MEME dans un cas adversaire ou l'anticipation pousserait cx
+  // loin du groupe qu'elle est censee accompagner. Reclampe cx/cy dans l'intervalle qui garantit que
+  // [cx-demiChamp, cx+demiChamp] couvre bien [minX,maxX] (et l'equivalent en Y) -- intersecte avec le
+  // clamp terrain deja applique ci-dessus, jamais en le remplacant (un groupe legitimement dans les
+  // bornes CAMERA_SPREAD_TIGHT/WIDE tient toujours dans les deux a la fois, verifie par fuzzing).
+  const demiChamp = 50 / scale;
+  if (maxX - minX <= 2 * demiChamp) {
+    cx = Math.max(maxX - demiChamp, Math.min(minX + demiChamp, cx));
+  }
+  if (maxY - minY <= 2 * demiChamp) {
+    cy = Math.max(maxY - demiChamp, Math.min(minY + demiChamp, cy));
+  }
   return { scale: scale, cx: cx, cy: cy };
 }
 function appliquerCameraMatchMiniaturePreview(etat) {
@@ -4992,6 +5067,12 @@ function acteurMatchMiniature(id, cote, x, y, intensite) {
   const precedent = _positionsPrecedentesMatchMiniature[id];
   if (precedent && (precedent.x !== x || precedent.y !== y)) {
     acteur.orientation = Math.round(Math.atan2(y - precedent.y, x - precedent.x) * 180 / Math.PI);
+    // `deplacement` (chantier "Camera V1.5 -- travelling anticipatif", 29 aout 2026) : magnitude en
+    // % du deplacement x/y depuis la phase precedente, meme delta que celui deja utilise pour
+    // `orientation` ci-dessus -- jamais une nouvelle donnee, jamais lu par le renderer d'acteurs
+    // (appliquerSceneActeursPreview), uniquement par la camera preview pour moduler l'amplitude de
+    // son anticipation (aucun impact sur la choregraphie/locomotion validees).
+    acteur.deplacement = Math.hypot(x - precedent.x, y - precedent.y);
   }
   _positionsPrecedentesMatchMiniature[id] = { x: x, y: y };
   return acteur;
