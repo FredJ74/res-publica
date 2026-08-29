@@ -3946,26 +3946,53 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
 };
 SEQUENCE_PREVIEW_3_ANGLES.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_3_ANGLES); // 700+650+900 = 2250ms
 
+// Sequence C "stop motion" (premier vrai test, 29 aout 2026) : 8 poses fixes distinctes, cut franc
+// entre chacune -- AUCUNE animation continue (mouvement:'fixe' partout, aucun cadrage/zoom, pour
+// eviter que la sequence ne se lise comme un montage multi-angle façon B). Le mouvement perçu doit
+// venir UNIQUEMENT du changement brutal de pose, jamais d'un deplacement de camera. Rythme
+// volontairement irregulier (approche lisible -> acceleration du tacle -> succession rapide ->
+// leger accent sur le contact -> chute -> respiration au sol -> relevage plus lisible) : ce sont
+// des durees de mise en scene, pas des evenements sportifs. EXCLUSIVEMENT dans la preview --
+// volontairement absente de GABARITS_MONTAGE_REALISATEUR/POOL_GABARITS_REALISATEUR, comme B.
+// Vibration sur la frame 05 (contact) volontairement OMISE : jouerChoreographieCouche ne declenche
+// vibrationAuMoment que pour une couche mouvement:'dynamique' a >=2 etapes (retour anticipe sinon,
+// voir plus haut dans ce fichier) -- l'appliquer a une pose fixe aurait exige soit de modifier ce
+// mecanisme partage, soit de simuler un mouvement quasi-invisible juste pour passer la condition,
+// ce qui n'est pas "le mecanisme existant qui le permet deja proprement".
+const FRAMES_STOP_MOTION_DUEL = [
+  { asset: 'images/football-stopmotion-duel-frame-01.png', dureeMs: 320 }, // duel / approche
+  { asset: 'images/football-stopmotion-duel-frame-02.png', dureeMs: 180 }, // declenchement du tacle
+  { asset: 'images/football-stopmotion-duel-frame-03.png', dureeMs: 140 }, // tacle engage
+  { asset: 'images/football-stopmotion-duel-frame-04.png', dureeMs: 120 }, // glissade avancee
+  { asset: 'images/football-stopmotion-duel-frame-05.png', dureeMs: 220 }, // contact / rupture
+  { asset: 'images/football-stopmotion-duel-frame-06.png', dureeMs: 160 }, // projection / chute
+  { asset: 'images/football-stopmotion-duel-frame-07.png', dureeMs: 360 }, // joueurs au sol
+  { asset: 'images/football-stopmotion-duel-frame-08.png', dureeMs: 480 }  // debut du relevage
+];
+const SEQUENCE_PREVIEW_STOP_MOTION = {
+  gabaritId: 'preview_stop_motion', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_STOP_MOTION_DUEL.map(frame => ({
+    type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe' }]
+  }))
+};
+SEQUENCE_PREVIEW_STOP_MOTION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_STOP_MOTION); // 320+180+140+120+220+160+360+480 = 1980ms
+
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
-// visuel", 29 aout 2026)
+// visuel", 29 aout 2026, complete avec le scenario stop motion le meme jour)
 // =====================================================================
 // Le panneau construit ses boutons a partir de CETTE liste (aucun bouton code en dur) --
 // ajouter un futur scenario = ajouter une entree ici, jamais toucher initPreviewRealisateur.
 // `disponible` (defaut true) : un scenario dont les assets ne sont pas encore livres peut etre
 // declare avec `disponible:false`, le panneau ne l'affiche alors pas -- "le panneau ne doit
 // afficher que les scenarios disposant reellement de leurs assets" (section 6). Aucun scenario
-// factice n'est ajoute ici : seuls A et B existent aujourd'hui, tous deux avec de vrais assets.
+// factice n'est ajoute ici : A, B et desormais C disposent tous de vrais assets.
 //
-// STOP MOTION / MIXTE (section 4/6, PAS implemente ici -- aucun asset, donc aucun scenario) :
-// l'architecture plan.couches existante suffit deja a representer une micro-sequence "stop
-// motion" a durees irregulieres SANS aucun nouveau concept moteur -- il s'agit simplement de
-// plusieurs plans 'illustre' consecutifs, chacun avec sa propre couche `{asset, mouvement:'fixe'}`
-// et sa propre `dureeMs` (ex. 120/100/140/90/180ms), exactement le meme patron que
-// SEQUENCE_PREVIEW_3_ANGLES ci-dessus mais avec mouvement:'fixe' au lieu de 'dynamique' et des
-// plans plus courts/plus nombreux. Un futur scenario "mixte" (terrain -> illustre fixe -> stop
-// motion -> illustre anime -> terrain) est donc, lui aussi, une simple sequence.plans plus longue
-// -- aucune reecriture d'executerSequenceRealisation/jouerChoreographieCouche necessaire.
+// MIXTE (section 6, PAS implemente ici -- pas encore demande) : un futur scenario "mixte"
+// (terrain -> illustre fixe -> stop motion -> illustre anime -> terrain) resterait, lui aussi, une
+// simple sequence.plans plus longue -- aucune reecriture d'executerSequenceRealisation/
+// jouerChoreographieCouche necessaire, exactement comme B et C le demontrent deja.
 //
 // MICRO-ANIMATION COURTE (GIF/WebP anime, section 5, PAS implemente -- aucun asset) : verifie,
 // aucune adaptation necessaire. appliquerPlanIllustreRealisation assigne l'asset via
@@ -3985,6 +4012,12 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'B — Multi-angle — ' + (SEQUENCE_PREVIEW_3_ANGLES.dureeMs / 1000).toFixed(2).replace('.', ',') + ' s',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_3_ANGLES
+  },
+  {
+    id: 'stop_motion',
+    label: 'C — Stop motion',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_STOP_MOTION
   }
 ];
 
