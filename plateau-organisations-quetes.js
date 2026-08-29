@@ -4363,6 +4363,12 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'V2 — Match miniature continu',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_MATCH_MINIATURE_V2
+  },
+  {
+    id: 'drone_dive_impact_freeze',
+    label: 'Réalisateur — Drone Dive + Impact Freeze',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE
   }
 ];
 
@@ -4917,7 +4923,16 @@ function appliquerEtatVisuelTerrainPreview(id) {
     // meme plan, cadrage:'large'/scale(1) fige) : ecrit .live-pelouse.style.transform en dernier,
     // de facon synchrone avant tout repaint, donc sans flash intermediaire (meme garantie que
     // appliquerPlanIllustreRealisation qui remet deja `scale(1)` selon exactement ce principe).
-    appliquerCameraMatchMiniaturePreview(etat);
+    // etat.cameraSpectaculaire (chantier "Drone Dive + Impact Freeze", 30 aout 2026) : champ
+    // OPTIONNEL, absent de tous les etats existants (V1/V1.5, raccords) -- quand present, remplace
+    // ICI la Camera V1.5 automatique par un cadrage explicite {scale,cx,cy,dureeMs,easing} pour CE
+    // seul plan (voir appliquerCameraSpectaculairePreview). Camera V1.5 (calculerCadrageCameraMatchMiniature)
+    // reste totalement intouchee -- ce n'est qu'un AIGUILLAGE, jamais une modification de sa formule.
+    if (etat.cameraSpectaculaire) {
+      appliquerCameraSpectaculairePreview(etat.cameraSpectaculaire);
+    } else {
+      appliquerCameraMatchMiniaturePreview(etat);
+    }
   } else if (etat.ballon != null) {
     positionnerBallon(etat.ballon);
   }
@@ -5278,6 +5293,152 @@ SEQUENCE_PREVIEW_MATCH_MINIATURE_V2.dureeMs = dureeTotaleSequence(SEQUENCE_PREVI
 // mecaniquement plus courte qu'avant ce correctif (29,2s) : consequence DIRECTE et ATTENDUE du
 // calage de dureeMs sur le porteur (rapide) plutot que sur le defenseur/gardien actif le plus lent
 // -- documente et assume dans le rapport du chantier "continuite de la zone active".
+
+// =====================================================================
+// PREMIER BAC A SABLE "REALISATEUR" -- DRONE DIVE + IMPACT FREEZE (chantier "drone dive + impact
+// freeze", 30 aout 2026). Scenario preview ISOLE, laboratoire d'un effet ponctuel/spectaculaire --
+// n'utilise, ne modifie et n'etend AUCUNE donnee de Camera V1/V1.5 (calculerCadrageCameraMatchMiniature,
+// CAMERA_*), aucune donnee de la choregraphie match_miniature_v2 (ids d'acteurs, tableaux ACTEURS_*,
+// _positionsPrecedentesMatchMiniature -- delibolement des IDS DISTINCTS ci-dessous pour ne jamais
+// partager cet etat mutable). Reutilise seulement, EN LECTURE SEULE, les constantes de vitesse/role
+// deja partagees (VITESSE_ACTIF_PAR_ROLE, DELAY_PAR_ROLE_MATCH_MINIATURE, AVANCE_BALLON_PORTEUR_POURCENT).
+//
+// PRINCIPE (section 1 de la demande) : reutilise TEL QUEL le pipeline generique existant
+// (executerSequenceRealisation/lancerSequencePreview/SCENARIOS_PREVIEW_REALISATEUR) pour tout ce qui
+// est deja robuste et valide (cleanup, Grand ecran, boutons) -- AUCUNE modification de ces fonctions.
+// La SEULE piece nouvelle est le champ optionnel `etat.cameraSpectaculaire` (voir
+// appliquerEtatVisuelTerrainPreview ci-dessus) + la primitive appliquerCameraSpectaculairePreview
+// ci-dessous : un cadrage EXPLICITE {scale,cx,cy,dureeMs,easing}, decouple de la formule Camera V1.5.
+// Les beats SANS ce champ (vue generale, retour normal) utilisent Camera V1.5 sans modification --
+// c'est ce qui donne le "retour progressif au cadrage dynamique normal" (section 5) gratuitement.
+//
+// IMPACT FREEZE (section 4) : le monde (acteurs+ballon) est "fige" simplement en NE PROGRAMMANT
+// AUCUN nouveau changement de position pour ce beat -- meme mecanisme deja valide pour les acteurs
+// peripheriques immobiles de match_miniature_v2 ("si x/y sont IDENTIQUES a la phase precedente,
+// aucune transition ne se declenche"). La camera, elle, RECOIT un nouveau cadrage `cameraSpectaculaire`
+// pour ce meme beat -- DECOUPLAGE monde/camera prouve empiriquement dans le rapport (timestamps).
+function appliquerCameraSpectaculairePreview(cadrage) {
+  const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
+  if (!pelouse) return;
+  const scale = cadrage.scale;
+  // Meme securite geometrique que Camera V1.5 (jamais reveler de zone hors terrain), plafond de
+  // zoom volontairement PLUS HAUT ici (effet ponctuel, section 2 de la demande autorise a depasser
+  // le 1.32 de Camera V1.5) -- formule dupliquee a dessein (2 lignes) plutot que factorisee avec
+  // calculerCadrageCameraMatchMiniature, pour NE JAMAIS toucher au code de Camera V1.5 (interdiction
+  // explicite de la demande).
+  const panLimit = 50 * (1 - 1 / scale);
+  const cx = Math.max(50 - panLimit, Math.min(50 + panLimit, cadrage.cx));
+  const cy = Math.max(50 - panLimit, Math.min(50 + panLimit, cadrage.cy));
+  pelouse.style.transition = 'transform ' + (cadrage.dureeMs / 1000).toFixed(2) + 's ' + (cadrage.easing || 'ease');
+  pelouse.style.transform = 'scale(' + scale.toFixed(3) + ') translate(' + (-(cx - 50)).toFixed(2) + '%, ' + (-(cy - 50)).toFixed(2) + '%)';
+}
+
+// Amplitudes choisies experimentalement (section 2/11.3-11.4 du rapport) :
+// DIVE_SCALE=1.85 (nettement au-dela du plafond 1.32 de Camera V1.5, Smarties clairement plus
+// presents sans remplir l'ecran), FREEZE_SCALE=1.92 (leger sursaut supplementaire PENDANT le gel,
+// section 4 -- "elle doit poursuivre un tres leger mouvement").
+const DD_DIVE_SCALE = 1.85;
+const DD_FREEZE_SCALE = 1.92;
+const DD_ZONE_CONTACT = { x: 67, y: 45 }; // milieu porteur/defenseur au moment de l'impact
+const DD_ZONE_CONTACT_FREEZE = { x: 68, y: 44 }; // leger glissement lateral pendant le freeze (section 4)
+const DD_FREEZE_DUREE_MS = 400; // dans la fourchette 300-500ms demandee (section 4)
+const DD_DIVE_EASING = 'cubic-bezier(0.55,0.05,0.15,0.95)'; // accel/decel marquee, sensation de plongee (section 2)
+
+// Acteurs du bac a sable -- IDS DISTINCTS de match_miniature_v2 (prefixe `_dd`), litteraux directs
+// (jamais acteurMatchMiniature/_positionsPrecedentesMatchMiniature -- aucun etat mutable partage).
+// 5 acteurs seulement : suffisant pour une scene lisible (porteur, defenseur qui converge, un
+// partenaire, deux gardiens en arriere-plan), pas 8 -- ce scenario est un laboratoire de camera, pas
+// une nouvelle choregraphie.
+function acteurDd(id, cote, x, y, categorie, intensite) {
+  const vitesse = (intensite === 'actif' ? VITESSE_ACTIF_PAR_ROLE : VITESSE_PERIPHERIQUE_PAR_ROLE)[categorie];
+  const acteur = { id: id, cote: cote, x: x, y: y, vitesse: vitesse, delay: DELAY_PAR_ROLE_MATCH_MINIATURE[categorie], intensite: intensite };
+  if (categorie === 'gardien') acteur.role = 'gardien';
+  return acteur;
+}
+function ballonDd(porteur) {
+  return { x: porteur.x + AVANCE_BALLON_PORTEUR_POURCENT, y: porteur.y };
+}
+function etatDd(porteurId, acteurs, cameraSpectaculaire) {
+  const porteur = acteurs.find(function(a) { return a.id === porteurId; });
+  const etat = { porteur: porteurId, acteurs: acteurs, ballonXY: ballonDd(porteur), vitesseBallonMs: porteur.vitesse };
+  if (cameraSpectaculaire) etat.cameraSpectaculaire = cameraSpectaculaire;
+  return etat;
+}
+
+const ETATS_DRONE_DIVE_IMPACT_FREEZE = {
+  vue_generale_dd: etatDd('porteur_dd', [
+    acteurDd('gardien_home_dd', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_dd', 'home', 40, 50, 'milieu', 'actif'),
+    acteurDd('soutien_dd', 'home', 55, 65, 'attaquant', 'actif'),
+    acteurDd('defenseur_dd', 'away', 70, 30, 'defenseur', 'peripherique'),
+    acteurDd('gardien_away_dd', 'away', 92, 50, 'gardien', 'peripherique')
+  ]),
+  progression_dd: etatDd('porteur_dd', [
+    acteurDd('gardien_home_dd', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_dd', 'home', 55, 48, 'milieu', 'actif'),
+    acteurDd('soutien_dd', 'home', 62, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_dd', 'away', 62, 38, 'defenseur', 'actif'),
+    acteurDd('gardien_away_dd', 'away', 91, 50, 'gardien', 'peripherique')
+  ]),
+  approche_contact_dd: etatDd('porteur_dd', [
+    acteurDd('gardien_home_dd', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_dd', 'home', 66, 46, 'milieu', 'actif'),
+    acteurDd('soutien_dd', 'home', 64, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_dd', 'away', 68, 44, 'defenseur', 'actif'),
+    acteurDd('gardien_away_dd', 'away', 90, 50, 'gardien', 'peripherique')
+  ]),
+  reprise_dd: etatDd('porteur_dd', [
+    acteurDd('gardien_home_dd', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_dd', 'home', 74, 50, 'milieu', 'actif'),
+    acteurDd('soutien_dd', 'home', 70, 62, 'attaquant', 'actif'),
+    acteurDd('defenseur_dd', 'away', 70, 46, 'defenseur', 'actif'),
+    acteurDd('gardien_away_dd', 'away', 89, 50, 'gardien', 'peripherique')
+  ]),
+  retour_normal_dd: etatDd('porteur_dd', [
+    acteurDd('gardien_home_dd', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_dd', 'home', 80, 52, 'milieu', 'actif'),
+    acteurDd('soutien_dd', 'home', 76, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_dd', 'away', 74, 48, 'defenseur', 'actif'),
+    acteurDd('gardien_away_dd', 'away', 88, 50, 'gardien', 'peripherique')
+  ])
+};
+// L'etat du freeze REUTILISE EXACTEMENT les positions ET le ballonXY de approche_contact_dd (memes
+// objets/valeurs) -- aucune nouvelle valeur x/y, donc aucune transition CSS ne se DECLENCHE sur les
+// acteurs/le ballon pendant ce beat (section 4) : la valeur ecrite est identique a la precedente, un
+// navigateur reel ne demarre alors aucune animation (aucun changement de style calcule). Seule sa
+// camera differe (DD_ZONE_CONTACT_FREEZE, leger sursaut).
+ETATS_DRONE_DIVE_IMPACT_FREEZE.impact_freeze_dd = { porteur: 'porteur_dd', acteurs: ETATS_DRONE_DIVE_IMPACT_FREEZE.approche_contact_dd.acteurs, ballonXY: ETATS_DRONE_DIVE_IMPACT_FREEZE.approche_contact_dd.ballonXY, vitesseBallonMs: ETATS_DRONE_DIVE_IMPACT_FREEZE.approche_contact_dd.vitesseBallonMs };
+Object.assign(ETATS_VISUELS_TERRAIN_PREVIEW, ETATS_DRONE_DIVE_IMPACT_FREEZE);
+
+const FRAMES_DRONE_DIVE_IMPACT_FREEZE = [
+  { etatVisuel: 'vue_generale_dd', dureeMs: 2200 },
+  { etatVisuel: 'progression_dd', dureeMs: 2200 },
+  // DRONE DIVE (section 2) : la camera plonge vers la zone de contact PENDANT que le monde progresse
+  // vers approche_contact_dd -- UN SEUL mouvement continu combinant scale+translate (jamais un zoom
+  // puis un pan separes), duree alignee sur celle du beat pour que l'"arrivee" de la plongee
+  // coincide avec le debut du freeze (sensation d'impact).
+  { etatVisuel: 'approche_contact_dd', dureeMs: 1700, camera: { scale: DD_DIVE_SCALE, cx: DD_ZONE_CONTACT.x, cy: DD_ZONE_CONTACT.y, dureeMs: 1700, easing: DD_DIVE_EASING } },
+  // IMPACT FREEZE (section 4) : le monde ne recoit AUCUNE nouvelle position (voir plus haut) --
+  // seule la camera bouge, sur EXACTEMENT la duree du freeze (elle est donc en mouvement du debut a
+  // la fin du gel, jamais figee elle aussi).
+  { etatVisuel: 'impact_freeze_dd', dureeMs: DD_FREEZE_DUREE_MS, camera: { scale: DD_FREEZE_SCALE, cx: DD_ZONE_CONTACT_FREEZE.x, cy: DD_ZONE_CONTACT_FREEZE.y, dureeMs: DD_FREEZE_DUREE_MS, easing: 'ease-out' } },
+  // REPRISE (section 5) : le monde repart immediatement (nouvelles positions), la camera n'a PAS de
+  // cadrage explicite ici -- elle retombe sur Camera V1.5 automatique (etat.ballonXY present, pas de
+  // cameraSpectaculaire), qui la ramene naturellement vers son amplitude normale (<=1.32).
+  { etatVisuel: 'reprise_dd', dureeMs: 1800 },
+  { etatVisuel: 'retour_normal_dd', dureeMs: 2500 }
+];
+const SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE = {
+  gabaritId: 'preview_drone_dive_impact_freeze', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_DRONE_DIVE_IMPACT_FREEZE.map(frame => {
+    // camera:{...} (section 11.2 du rapport) : transporte jusqu'a l'etat via cameraSpectaculaire --
+    // jamais lu directement par executerSequenceRealisation/appliquerCadrageTerrain (aucune
+    // modification de ces fonctions), seulement par appliquerEtatVisuelTerrainPreview via l'etat.
+    if (frame.camera) ETATS_VISUELS_TERRAIN_PREVIEW[frame.etatVisuel].cameraSpectaculaire = frame.camera;
+    return { type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel };
+  })
+};
+SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE); // 2200+2200+1700+400+1800+2500 = 10800ms (~10,8s)
 
 // Joue UNE sequence narrative locale : delegue au realisateur automatique -- genere une sequence
 // d'un nombre quelconque de plans terrain/illustre (l'executeur n'a aucune branche speciale selon
