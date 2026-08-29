@@ -4917,26 +4917,46 @@ function acteurMatchMiniature(id, cote, x, y, intensite) {
   _positionsPrecedentesMatchMiniature[id] = { x: x, y: y };
   return acteur;
 }
-// Assemble UNE phase : calcule la position/vitesse du ballon a partir du porteur visuel designe
-// (section 3) -- `ballonManuel` (optionnel, {x,y}) permet une phase SANS porteur (ex. replacement
-// collectif final, ballon simplement pose au centre). `dureeMs` (chantier "intensite de mouvement",
-// 29 aout 2026) est calcule automatiquement a partir des SEULS acteurs 'actif' de cette phase
-// (+ MARGE_TRANSITION_MS) -- jamais des acteurs peripheriques, qui peuvent legitimement rester en
-// retard ou immobiles sans que cela ne retarde l'enchainement de l'action. Repli sur tous les
-// acteurs si aucun n'est 'actif' (ex. replacement_collectif).
+// Chantier "continuite de la zone active" (29 aout 2026) -- CORRECTIF CIBLE issu de l'audit
+// instrumente factuel du meme jour (commit 28ed14b) : la mesure a etabli que dureeMs, calcule
+// jusqu'ici comme max(delay+vitesse) sur TOUT le groupe 'actif', etait systematiquement dicte par
+// le membre le PLUS LENT de ce groupe (un defenseur/gardien actif, ~2520ms) -- jamais par le
+// porteur (plus rapide, attaquant/milieu). Consequence mesuree : le porteur -- et donc le ballon,
+// qui lui est spatialement lie -- terminait sa propre transition puis restait immobile entre 600ms
+// et 1300ms (21 a 46% de chaque phase de 2800ms) a chaque occurrence sur les 9 phases d'action.
+// Un gel collectif de 280ms de TOUT le groupe actif se produisait en outre en fin de chaque phase
+// (9 occurrences mesurees, une par phase, exactement = MARGE_TRANSITION_MS).
+// AVANCE_CONTINUITE_PORTEUR_MS : quand un porteur est designe, dureeMs est desormais calcule a
+// partir de SA SEULE vitesse (jamais de son delay, qui ne fait que retarder le DEBUT de son propre
+// mouvement -- pas la duree de la phase), MOINS cette avance -- le porteur (et le ballon) recoivent
+// donc leur destination suivante legerement AVANT la fin theorique de leur propre transition :
+// une redirection CSS en plein mouvement, jamais une arrivee suivie d'une attente (section 1/2).
+// Les autres acteurs actifs (soutien/defenseur proche) peuvent, eux, ponctuellement patienter un
+// peu si leur propre transition est plus longue que celle du porteur (section 3, explicitement
+// tolere) -- mais puisque le porteur (toujours 'actif') n'est desormais quasiment jamais immobile,
+// la condition "TOUS les acteurs actifs simultanement immobiles" ne peut plus se produire (section
+// 8/10C), sans avoir touche la position, la vitesse ou le delay d'AUCUN acteur.
+// Repli INCHANGE (ancien calcul base sur max(delay+vitesse) du groupe actif, ou de tous les
+// acteurs si aucun n'est actif) pour toute phase SANS porteur (ex. replacement_collectif, seul
+// beat de fin de demo -- comportement de cloture normal, hors perimetre de ce correctif).
+const AVANCE_CONTINUITE_PORTEUR_MS = 100;
 function phaseMatchMiniature(porteurId, acteurs, ballonManuel, vitesseBallonManuelle) {
   let ballonXY = ballonManuel || null;
   let vitesseBallonMs = vitesseBallonManuelle;
+  let dureeMs = null;
   if (porteurId) {
     const p = acteurs.find(function(a) { return a.id === porteurId; });
     if (p) {
       vitesseBallonMs = p.vitesse;
       if (!ballonXY) ballonXY = { x: p.x + (p.cote === 'home' ? AVANCE_BALLON_PORTEUR_POURCENT : -AVANCE_BALLON_PORTEUR_POURCENT), y: p.y };
+      dureeMs = Math.max(400, p.vitesse - AVANCE_CONTINUITE_PORTEUR_MS);
     }
   }
-  const acteursActifs = acteurs.filter(function(a) { return a.intensite === 'actif'; });
-  const reference = acteursActifs.length ? acteursActifs : acteurs;
-  const dureeMs = Math.max.apply(null, reference.map(function(a) { return a.delay + a.vitesse; })) + MARGE_TRANSITION_MS;
+  if (dureeMs == null) {
+    const acteursActifs = acteurs.filter(function(a) { return a.intensite === 'actif'; });
+    const reference = acteursActifs.length ? acteursActifs : acteurs;
+    dureeMs = Math.max.apply(null, reference.map(function(a) { return a.delay + a.vitesse; })) + MARGE_TRANSITION_MS;
+  }
   return { porteur: porteurId || null, ballonXY: ballonXY, vitesseBallonMs: vitesseBallonMs, acteurs: acteurs, dureeMs: dureeMs };
 }
 
@@ -5094,7 +5114,10 @@ const SEQUENCE_PREVIEW_MATCH_MINIATURE_V2 = {
     type: 'terrain', dureeMs: ETATS_MATCH_MINIATURE_V2[frame.etatVisuel].dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel
   }))
 };
-SEQUENCE_PREVIEW_MATCH_MINIATURE_V2.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_MATCH_MINIATURE_V2); // 2800*9+4000 = 25200+4000 = 29200ms (~29,2s)
+SEQUENCE_PREVIEW_MATCH_MINIATURE_V2.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_MATCH_MINIATURE_V2); // 1700*4+1400*3+2100+1700+4000 = 6800+4200+2100+1700+4000 = 18800ms (~18,8s -- duree
+// mecaniquement plus courte qu'avant ce correctif (29,2s) : consequence DIRECTE et ATTENDUE du
+// calage de dureeMs sur le porteur (rapide) plutot que sur le defenseur/gardien actif le plus lent
+// -- documente et assume dans le rapport du chantier "continuite de la zone active".
 
 // Joue UNE sequence narrative locale : delegue au realisateur automatique -- genere une sequence
 // d'un nombre quelconque de plans terrain/illustre (l'executeur n'a aucune branche speciale selon
