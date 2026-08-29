@@ -3840,6 +3840,13 @@ function reinitialiserSceneApresSequenceRealisation(sortieCut) {
     if (el) el.style.transitionDuration = '';
   });
   positionnerBallon(3); positionnerJoueur('home', 2); positionnerJoueur('away', 4);
+  const joueurHomeEl = document.getElementById('live-joueur-home');
+  const joueurAwayEl = document.getElementById('live-joueur-away');
+  if (joueurHomeEl) joueurHomeEl.style.display = '';
+  if (joueurAwayEl) joueurAwayEl.style.display = '';
+  // Masque tout acteur V2 residuel (chantier "mini-terrain V2", 29 aout 2026) -- jamais d'acteur
+  // laisse visible apres la fin d'une sequence ou une fermeture Grand ecran.
+  appliquerSceneActeursPreview([]);
   const l = document.getElementById('live-action-label');
   if (l) l.textContent = '';
   // Remet a plat le score local du preview (chantier "raccord mini-terrain <-> D/E/F", 29 aout
@@ -4222,38 +4229,45 @@ const SEQUENCE_PREVIEW_COUP_FRANC_BUT = {
 };
 SEQUENCE_PREVIEW_COUP_FRANC_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_COUP_FRANC_BUT); // 11740+2350+6200 = 20290ms
 
-// Raccord mini-terrain <-> D/E/F (29 aout 2026) : encadre les demonstrations D-E-F1/D-E-F2 DEJA
-// VALIDEES (reutilisees ici par simple .concat() de leurs .plans -- memes objets, jamais recopies
-// ni modifies) avec un bref passage par le mini-terrain avant et apres, pour tester la continuite
-// visuelle terrain -> illustre -> terrain. Les 3 nouveaux plans de terrain (PHASE_TERRAIN_*) sont
-// des plans 'terrain' RESOLUS a la main (comme tous les plans preview de ce fichier), utilisant le
-// nouveau champ declaratif plan.etatVisuel (voir executerSequenceRealisation) -- aucune touche a
-// D/E/F1/F2 eux-memes, aucun second moteur de terrain.
+// Raccord mini-terrain <-> D/E/F (29 aout 2026, etendu au plateau multi-acteurs V2 le meme jour) :
+// encadre les demonstrations D-E-F1/D-E-F2 DEJA VALIDEES (reutilisees ici par simple .concat() de
+// leurs .plans -- memes objets, jamais recopies ni modifies) avec un bref passage par le
+// mini-terrain avant et apres, pour tester la continuite visuelle terrain -> illustre -> terrain.
+// Les plans de terrain (PHASE_TERRAIN_*) sont des plans 'terrain' RESOLUS a la main (comme tous les
+// plans preview de ce fichier), utilisant le champ declaratif plan.etatVisuel (voir
+// executerSequenceRealisation) -- aucune touche a D/E/F1/F2 eux-memes, aucun second moteur de terrain.
+//
+// PHASE 1b (mise en place, V2 section 6 "petite vie de la scene") : MEME etatVisuel-famille que la
+// phase 1a mais avec des positions legerement ajustees (memes ids d'acteurs) -- le mur se resserre,
+// le gardien se decale, le tireur recule d'un pas. Aucun tir simule, aucune nouvelle verite
+// sportive : juste la transition CSS .live-acteur (1.3s) qui joue naturellement entre deux etats
+// voisins.
 //
 // PHASE 2 (rapprochement) : reutilise TEL QUEL le mecanisme de zoom deja existant pour les plans
 // terrain reels (appliquerCadrageTerrain, effet:'zoom' + cadrage:'moyen', transition CSS .4s deja
-// en place) -- aucune infrastructure nouvelle. `etatVisuel` y est repete (memes positions que la
-// phase 1) uniquement pour eviter que ce plan retombe dans le fallback generique a un seul cote.
-const PHASE_TERRAIN_COUP_FRANC_PREPARE = { type: 'terrain', dureeMs: 1500, cadrage: 'large', etatVisuel: 'coup_franc_prepare' };
-const PHASE_TERRAIN_RAPPROCHEMENT = { type: 'terrain', dureeMs: 500, cadrage: 'moyen', effet: 'zoom', etatVisuel: 'coup_franc_prepare' };
+// en place) -- aucune infrastructure nouvelle. `etatVisuel` y reprend l'etat "mise en place" (deja
+// stabilise) uniquement pour eviter que ce plan retombe dans le fallback generique a un seul cote.
+const PHASE_TERRAIN_COUP_FRANC_PREPARE = { type: 'terrain', dureeMs: 1400, cadrage: 'large', etatVisuel: 'coup_franc_prepare' };
+const PHASE_TERRAIN_MISE_EN_PLACE = { type: 'terrain', dureeMs: 800, cadrage: 'large', etatVisuel: 'coup_franc_prepare_mise_en_place' };
+const PHASE_TERRAIN_RAPPROCHEMENT = { type: 'terrain', dureeMs: 500, cadrage: 'moyen', effet: 'zoom', etatVisuel: 'coup_franc_prepare_mise_en_place' };
 const PHASE_TERRAIN_APRES_ARRET = { type: 'terrain', dureeMs: 1200, cadrage: 'large', etatVisuel: 'apres_arret' };
 const PHASE_TERRAIN_ENGAGEMENT_APRES_BUT = { type: 'terrain', dureeMs: 1200, cadrage: 'large', etatVisuel: 'engagement_apres_but' };
 
 const SEQUENCE_PREVIEW_RACCORD_ARRETE = {
   gabaritId: 'preview_raccord_arrete', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
-  plans: [PHASE_TERRAIN_COUP_FRANC_PREPARE, PHASE_TERRAIN_RAPPROCHEMENT]
+  plans: [PHASE_TERRAIN_COUP_FRANC_PREPARE, PHASE_TERRAIN_MISE_EN_PLACE, PHASE_TERRAIN_RAPPROCHEMENT]
     .concat(SEQUENCE_PREVIEW_COUP_FRANC_ARRETE.plans)
     .concat([PHASE_TERRAIN_APRES_ARRET])
 };
-SEQUENCE_PREVIEW_RACCORD_ARRETE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_RACCORD_ARRETE); // 1500+500+20990+1200 = 24190ms
+SEQUENCE_PREVIEW_RACCORD_ARRETE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_RACCORD_ARRETE); // 1400+800+500+20990+1200 = 24890ms
 
 const SEQUENCE_PREVIEW_RACCORD_BUT = {
   gabaritId: 'preview_raccord_but', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
-  plans: [PHASE_TERRAIN_COUP_FRANC_PREPARE, PHASE_TERRAIN_RAPPROCHEMENT]
+  plans: [PHASE_TERRAIN_COUP_FRANC_PREPARE, PHASE_TERRAIN_MISE_EN_PLACE, PHASE_TERRAIN_RAPPROCHEMENT]
     .concat(SEQUENCE_PREVIEW_COUP_FRANC_BUT.plans)
     .concat([PHASE_TERRAIN_ENGAGEMENT_APRES_BUT])
 };
-SEQUENCE_PREVIEW_RACCORD_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_RACCORD_BUT); // 1500+500+20290+1200 = 23490ms
+SEQUENCE_PREVIEW_RACCORD_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_RACCORD_BUT); // 1400+800+500+20290+1200 = 24190ms
 
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
@@ -4367,6 +4381,15 @@ function lancerSequencePreview(sequence, def, club, instant) {
   // qui n'a rien a voir.
   const scoreEnCours = document.getElementById('live-score-mini');
   if (scoreEnCours) scoreEnCours.textContent = '0 - 0';
+  // Masque tout acteur V2 residuel et restaure les marqueurs V1 avant tout nouveau scenario
+  // (chantier "mini-terrain V2", 29 aout 2026) -- meme discipline que le score/la video : un
+  // changement de scenario en plein "Raccord" ne doit jamais laisser une silhouette affichee sur
+  // un scenario V1 (A/B/C/D/E/F1/F2) qui n'a rien a voir.
+  appliquerSceneActeursPreview([]);
+  const joueurHomeEnCours = document.getElementById('live-joueur-home');
+  const joueurAwayEnCours = document.getElementById('live-joueur-away');
+  if (joueurHomeEnCours) joueurHomeEnCours.style.display = '';
+  if (joueurAwayEnCours) joueurAwayEnCours.style.display = '';
   const label = document.getElementById('live-action-label');
   if (label) label.textContent = def.label + ' — ' + club.nom; // meme habillage que jouerMicroAction
   executerSequenceRealisation(sequence, instant, def, club);
@@ -4570,25 +4593,130 @@ function positionnerJoueur(cote, indexZoneAbsolu) {
   el.style.left = pct + '%';
 }
 
-// Etats visuels du mini-terrain, PREVIEW UNIQUEMENT (chantier "raccord mini-terrain <-> D/E/F",
-// 29 aout 2026) : positions FIGEES reutilisant tel quel positionnerBallon/positionnerJoueur --
-// aucune nouvelle mecanique sportive, aucune simulation tactique, purement decoratif (meme niveau
-// d'abstraction que le reste du moteur : le mini-terrain ne porte qu'UN marqueur par cote, jamais
-// de distinction individuelle tireur/mur/gardien). `score` (uniquement sur engagement_apres_but) :
-// texte purement local au DOM du preview (#live-score-mini), jamais lu/ecrit ailleurs, jamais
-// connecte a championnat.data/Supabase -- reinitialise a '0 - 0' par
-// reinitialiserSceneApresSequenceRealisation et par lancerSequencePreview, comme la video.
+// Rendu du plateau multi-acteurs V2, PREVIEW UNIQUEMENT (chantier "mini-terrain V2", 29 aout
+// 2026). Un acteur = pure mise en scene ({id, cote, role, x, y, orientation, visible}) -- AUCUNE
+// intelligence footballistique, AUCUNE collision, AUCUNE statistique, AUCUN calcul de possession :
+// les etats visuels DECRIVENT une scene, cette fonction se contente de POSITIONNER les silhouettes
+// qui la representent. Identite stable (id) prete pour un futur ciblage camera (focus/follow/orbit/
+// freeze cible par id ou par role, ex. document.getElementById('live-acteur-tireur') ou
+// document.querySelectorAll('.live-acteur-role-mur')) -- non implemente ici, juste non bloque.
+// Cree/met a jour SUR PLACE (jamais de rebuild systematique) : deux appels successifs avec les
+// memes ids ne font que repositionner les memes elements DOM -- c'est ce qui permet la transition
+// CSS .live-acteur (1.3s, "petite vie de la scene") de jouer naturellement entre deux etats voisins
+// (ex. coup_franc_prepare -> coup_franc_prepare_mise_en_place). Un acteur absent de la liste courante
+// est simplement masque (jamais supprime), pour une reapparition propre si un futur etat le
+// reintroduit. `vitesseMs` (optionnel) : duree de transition PROPRE a cet appel, sans jamais toucher
+// la regle CSS partagee -- absent, la vitesse par defaut (1.3s, definie dans plateau.html) s'applique.
+function appliquerSceneActeursPreview(acteurs, vitesseMs) {
+  const conteneur = document.getElementById('live-acteurs');
+  if (!conteneur) return;
+  const idsVus = {};
+  (acteurs || []).forEach(a => {
+    idsVus[a.id] = true;
+    let el = document.getElementById('live-acteur-' + a.id);
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'live-acteur-' + a.id;
+      el.innerHTML = '<div class="live-acteur-tete"></div><div class="live-acteur-corps"></div>';
+      conteneur.appendChild(el);
+    }
+    el.className = 'live-acteur live-acteur-' + a.cote + (a.role ? ' live-acteur-role-' + a.role : '');
+    el.style.left = a.x + '%';
+    el.style.top = a.y + '%';
+    el.style.transitionDuration = vitesseMs ? (vitesseMs + 'ms') : '';
+    el.style.setProperty('--acteur-rotation', (a.orientation || 0) + 'deg');
+    el.style.display = a.visible === false ? 'none' : '';
+  });
+  Array.prototype.forEach.call(conteneur.children, el => {
+    if (!idsVus[el.id.replace('live-acteur-', '')]) el.style.display = 'none';
+  });
+}
+
+// Etats visuels du mini-terrain, PREVIEW UNIQUEMENT (chantier "raccord mini-terrain <-> D/E/F" du
+// 29 aout 2026, etendu au plateau multi-acteurs V2 le meme jour) : positions FIGEES, aucune
+// nouvelle mecanique sportive, aucune simulation tactique -- purement decoratif. `acteurs` (V2) :
+// delegue a appliquerSceneActeursPreview et masque les marqueurs V1 (#live-joueur-home/away,
+// desormais redondants avec les silhouettes). Sans `acteurs` (V1, conserve pour compatibilite),
+// repli sur positionnerJoueur (un seul marqueur par cote) et les marqueurs V1 restent affiches.
+// `ballon` reste positionne par l'UNIQUE mecanisme existant (positionnerBallon) dans les deux cas
+// -- le ballon n'est jamais un acteur, il reste distinct et immediatement identifiable (l'emoji
+// existant). `score` (uniquement sur engagement_apres_but) : texte purement local au DOM du preview
+// (#live-score-mini), jamais lu/ecrit ailleurs, jamais connecte a championnat.data/Supabase --
+// reinitialise a '0 - 0' par reinitialiserSceneApresSequenceRealisation et lancerSequencePreview.
 const ETATS_VISUELS_TERRAIN_PREVIEW = {
-  coup_franc_prepare:   { ballon: 5, home: 5, away: 6 },              // ballon+tireur en zone offensive, mur/gardien pres de leur but
-  apres_arret:          { ballon: 6, home: 4, away: 6 },              // ballon aupres du gardien, tireurs replies -- aucun tir rejoue
-  engagement_apres_but: { ballon: 3, home: 4, away: 3, score: '1 - 0' } // engagement au centre, equipe qui encaisse reprend le jeu
+  // Coup franc prepare (V2) -- tireur + 2 partenaires Brise, mur de 3 + 1 defenseur + gardien
+  // distinct (couleur role, aucun asset) cote Luthecia. Nombre minimal juge lisible, pas 22 joueurs.
+  coup_franc_prepare: {
+    ballon: 5,
+    acteurs: [
+      { id: 'tireur',       cote: 'home', role: 'tireur',      x: 72, y: 54, orientation: 90 },
+      { id: 'partenaire_1', cote: 'home',                      x: 63, y: 40 },
+      { id: 'partenaire_2', cote: 'home',                      x: 60, y: 66 },
+      { id: 'mur_1',        cote: 'away', role: 'mur',         x: 87, y: 42 },
+      { id: 'mur_2',        cote: 'away', role: 'mur',         x: 88, y: 50 },
+      { id: 'mur_3',        cote: 'away', role: 'mur',         x: 87, y: 58 },
+      { id: 'defenseur_1',  cote: 'away',                      x: 80, y: 28 },
+      { id: 'gardien',      cote: 'away', role: 'gardien',     x: 95, y: 50, orientation: 270 }
+    ]
+  },
+  // "Petite vie de la scene" (section 6) : MEMES ids, positions legerement ajustees -- le mur se
+  // resserre, le gardien se decale lateralement, le tireur recule d'un pas. Jamais un tir simule.
+  coup_franc_prepare_mise_en_place: {
+    ballon: 5,
+    acteurs: [
+      { id: 'tireur',       cote: 'home', role: 'tireur',      x: 70, y: 52, orientation: 90 },
+      { id: 'partenaire_1', cote: 'home',                      x: 62, y: 38 },
+      { id: 'partenaire_2', cote: 'home',                      x: 59, y: 68 },
+      { id: 'mur_1',        cote: 'away', role: 'mur',         x: 89, y: 41 },
+      { id: 'mur_2',        cote: 'away', role: 'mur',         x: 89, y: 50 },
+      { id: 'mur_3',        cote: 'away', role: 'mur',         x: 89, y: 59 },
+      { id: 'defenseur_1',  cote: 'away',                      x: 81, y: 27 },
+      { id: 'gardien',      cote: 'away', role: 'gardien',     x: 95, y: 47, orientation: 270 }
+    ]
+  },
+  // Apres l'arret (V2) : ballon aupres du gardien, mur dissous (repositionne, plus en formation),
+  // Brise repliee -- aucun tir rejoue, aucune nouvelle verite sportive.
+  apres_arret: {
+    ballon: 6,
+    acteurs: [
+      { id: 'gardien',      cote: 'away', role: 'gardien', x: 93, y: 50 },
+      { id: 'mur_1',        cote: 'away',                  x: 78, y: 40 },
+      { id: 'mur_2',        cote: 'away',                  x: 76, y: 60 },
+      { id: 'tireur',       cote: 'home',                  x: 62, y: 50 },
+      { id: 'partenaire_1', cote: 'home',                  x: 58, y: 35 }
+    ]
+  },
+  // Engagement apres but (V2) : ballon au centre, Luthecia (qui encaisse) reprend le jeu, Brise
+  // repliee dans sa moitie de terrain -- score local uniquement (jamais Supabase/championnat.data).
+  engagement_apres_but: {
+    ballon: 3,
+    score: '1 - 0',
+    acteurs: [
+      { id: 'gardien', cote: 'away', role: 'gardien', x: 94, y: 50 },
+      { id: 'mur_1',   cote: 'away',                  x: 48, y: 46 },
+      { id: 'mur_2',   cote: 'away',                  x: 46, y: 58 },
+      { id: 'tireur',  cote: 'home',                  x: 40, y: 42 },
+      { id: 'partenaire_1', cote: 'home',              x: 38, y: 60 }
+    ]
+  }
 };
 function appliquerEtatVisuelTerrainPreview(id) {
   const etat = ETATS_VISUELS_TERRAIN_PREVIEW[id];
   if (!etat) return;
-  positionnerBallon(etat.ballon);
-  positionnerJoueur('home', etat.home);
-  positionnerJoueur('away', etat.away);
+  if (etat.ballon != null) positionnerBallon(etat.ballon);
+  const joueurHomeEl = document.getElementById('live-joueur-home');
+  const joueurAwayEl = document.getElementById('live-joueur-away');
+  if (etat.acteurs) {
+    appliquerSceneActeursPreview(etat.acteurs, etat.vitesseMs);
+    if (joueurHomeEl) joueurHomeEl.style.display = 'none';
+    if (joueurAwayEl) joueurAwayEl.style.display = 'none';
+  } else {
+    if (etat.home != null) positionnerJoueur('home', etat.home);
+    if (etat.away != null) positionnerJoueur('away', etat.away);
+    if (joueurHomeEl) joueurHomeEl.style.display = '';
+    if (joueurAwayEl) joueurAwayEl.style.display = '';
+    appliquerSceneActeursPreview([]);
+  }
   if (etat.score) {
     const scoreEl = document.getElementById('live-score-mini');
     if (scoreEl) scoreEl.textContent = etat.score;
@@ -4906,6 +5034,10 @@ function construireSceneMiniTerrain(matchKey, home, away) {
   html += '<div class="live-pelouse">';
   html += '<div class="live-pelouse-lignes"></div>';
   html += '<div class="live-but live-but-home"></div><div class="live-but live-but-away"></div>';
+  // Conteneur des acteurs V2 (chantier "mini-terrain V2", 29 aout 2026) : vide par defaut, jamais
+  // touche par le mini-terrain V1 ni par le moteur reel -- seul appliquerSceneActeursPreview y
+  // ecrit. Place AVANT les marqueurs V1 (ballon en dernier dans le DOM = toujours au-dessus).
+  html += '<div class="live-acteurs" id="live-acteurs"></div>';
   html += '<div class="live-joueur live-joueur-home" id="live-joueur-home"' + styleJoueurHome + '></div>';
   html += '<div class="live-joueur live-joueur-away" id="live-joueur-away"' + styleJoueurAway + '></div>';
   html += '<div class="live-ballon" id="live-ballon">⚽</div>';

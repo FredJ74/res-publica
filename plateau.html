@@ -116,6 +116,21 @@
 .live-ballon { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; line-height: 16px; font-size: 12px; text-align: center; transform: translate(-50%, -50%); transition: left .5s ease, top .5s ease; filter: drop-shadow(0 0 2px #000); }
 .live-action-label { min-height: 1.4em; text-align: center; font-size: .74rem; font-style: italic; color: #9a8a60; margin: .4rem 0 .6rem; }
 
+/* Acteurs visuels V2 -- plateau multi-acteurs PREVIEW UNIQUEMENT (chantier "mini-terrain V2", 29
+   aout 2026). Silhouettes CSS pures (tete + corps, aucun asset genere) -- langage graphique de
+   miniature, jamais un portrait. Transition PROPRE au renderer (1.3s), volontairement distincte
+   de .live-joueur (.55s) et .live-ballon (.5s -- inchangees, jamais touchees) : "ralentir les
+   deplacements de la V2" ne doit jamais affecter le mini-terrain V1 ni le moteur reel. #live-acteurs
+   est un conteneur neutre (pointer-events:none, aucune interaction) place AVANT #live-ballon dans le
+   DOM pour que le ballon reste visuellement au-dessus, sans z-index. */
+#live-acteurs { position: absolute; inset: 0; pointer-events: none; }
+.live-acteur { position: absolute; width: 14px; height: 20px; transform: translate(-50%, -50%) rotate(var(--acteur-rotation, 0deg)); transition: left 1.3s ease, top 1.3s ease; }
+.live-acteur-corps { position: absolute; left: 50%; top: 55%; width: 11px; height: 13px; border-radius: 45% 45% 50% 50%; transform: translate(-50%, -50%); box-shadow: 0 1px 2px rgba(0,0,0,.55); }
+.live-acteur-tete { position: absolute; left: 50%; top: 8%; width: 6px; height: 6px; border-radius: 50%; background: #e8d9b0; transform: translate(-50%, -50%); }
+.live-acteur-home .live-acteur-corps { background: #C9A84C; }
+.live-acteur-away .live-acteur-corps { background: #6a9aca; }
+.live-acteur-role-gardien .live-acteur-corps { background: #4CC98A; }
+
 /* Realisateur automatique (chantier "premiere passe du realisateur", 28 aout 2026) : seul ajout
    CSS necessaire -- le zoom/travelling se pilotent par transform inline (JS), l'impact/vibration
    a besoin d'une keyframe. Purement decoratif, aucun asset. */
