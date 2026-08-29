@@ -4073,6 +4073,12 @@ function initPreviewRealisateur() {
     '<button id="preview-realisateur-btn-' + s.id + '" style="width:100%;margin-top:.4rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">▶ ' + s.label + '</button>'
   ).join('');
 
+  // Boutons du mode grand ecran (memes scenarios, memes ids de gabarit, prefixe "grand" pour
+  // eviter toute collision avec les boutons du petit panneau).
+  const boutonsGrandHtml = scenariosVisibles.map(s =>
+    '<button id="preview-realisateur-grand-btn-' + s.id + '" style="font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">▶ ' + s.label + '</button>'
+  ).join('');
+
   const panneau = document.createElement('div');
   panneau.id = 'preview-realisateur-panneau';
   panneau.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:500;width:340px;max-width:90vw;background:#0d0b05;border:1px solid #8a6a20;padding:.9rem;font-family:inherit;box-shadow:0 4px 20px rgba(0,0,0,.6)';
@@ -4080,8 +4086,27 @@ function initPreviewRealisateur() {
     '<div style="font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:.85rem;margin-bottom:.6rem">🎬 PREVIEW RÉALISATEUR — banc d\'essai</div>' +
     '<div id="preview-realisateur-mont"></div>' +
     boutonsHtml +
+    '<button id="preview-realisateur-btn-grand-ecran" style="width:100%;margin-top:.6rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #7a6a48;background:transparent;color:#c0b090;cursor:pointer">⛶ Grand écran</button>' +
     '<div style="font-size:.68rem;color:#7a6a48;margin-top:.5rem">Outil de mise au point — aucune écriture championnat, aucun PA, aucun effet canonique. Aucun scénario de preview n\'apparaît en match réel.</div>';
   document.body.appendChild(panneau);
+
+  // Overlay grand format (chantier "grand ecran", 29 aout 2026) : NE construit PAS un second
+  // moteur de preview -- au clic, le shell DOM existant (#live-mini-terrain, construit UNE SEULE
+  // FOIS ci-dessus par construireSceneMiniTerrain) est simplement DEPLACE (Node.appendChild sur un
+  // noeud deja existant le detache et le rattache, sans clone ni nouveaux ids) depuis le petit
+  // support vers ce grand support, puis inversement a la fermeture. executerSequenceRealisation/
+  // jouerChoreographieCouche continuent de cibler les memes ids partout ou se trouve le noeud.
+  const grandEcran = document.createElement('div');
+  grandEcran.id = 'preview-realisateur-grand-ecran';
+  grandEcran.style.cssText = 'display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.96);flex-direction:column;align-items:center;justify-content:center;padding:2rem;box-sizing:border-box';
+  grandEcran.innerHTML =
+    '<div style="width:100%;max-width:1600px;display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">' +
+    '<div style="font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:1rem">🎬 GRAND ÉCRAN — banc d\'essai</div>' +
+    '<button id="preview-realisateur-grand-fermer" style="font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.4rem .9rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">✕ Fermer (Échap)</button>' +
+    '</div>' +
+    '<div id="preview-realisateur-grand-mont" style="width:min(92vw,1600px);max-height:76vh;overflow:auto"></div>' +
+    '<div style="display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap;justify-content:center">' + boutonsGrandHtml + '</div>';
+  document.body.appendChild(grandEcran);
 
   document.getElementById('preview-realisateur-mont').innerHTML = construireSceneMiniTerrain('preview-crash-test', home, away);
 
@@ -4089,7 +4114,36 @@ function initPreviewRealisateur() {
     document.getElementById('preview-realisateur-btn-' + s.id).addEventListener('click', () => {
       lancerSequencePreview(s.construireSequence(instant), def, home, instant);
     });
+    document.getElementById('preview-realisateur-grand-btn-' + s.id).addEventListener('click', () => {
+      lancerSequencePreview(s.construireSequence(instant), def, home, instant);
+    });
   });
+
+  // Deplace le shell existant (jamais de clone) du petit support vers le grand, et inversement --
+  // ouverture ne touche jamais aux timers en cours (la sequence en train de jouer continue) ;
+  // fermeture nettoie systematiquement (memes primitives que lancerSequencePreview) pour ne
+  // jamais laisser un cadrage/zoom fige avant la prochaine ouverture.
+  function ouvrirGrandEcran() {
+    const scene = document.getElementById('live-mini-terrain');
+    const grandMont = document.getElementById('preview-realisateur-grand-mont');
+    if (!scene || !grandMont) return;
+    grandMont.appendChild(scene);
+    document.getElementById('preview-realisateur-grand-ecran').style.display = 'flex';
+  }
+  function fermerGrandEcran() {
+    const overlay = document.getElementById('preview-realisateur-grand-ecran');
+    if (!overlay || overlay.style.display === 'none') return;
+    _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
+    _liveViewerTimeoutsAnimation = [];
+    reinitialiserSceneApresSequenceRealisation(true);
+    const scene = document.getElementById('live-mini-terrain');
+    const petitMont = document.getElementById('preview-realisateur-mont');
+    if (scene && petitMont) petitMont.appendChild(scene);
+    overlay.style.display = 'none';
+  }
+  document.getElementById('preview-realisateur-btn-grand-ecran').addEventListener('click', ouvrirGrandEcran);
+  document.getElementById('preview-realisateur-grand-fermer').addEventListener('click', fermerGrandEcran);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') fermerGrandEcran(); });
 }
 window.addEventListener('DOMContentLoaded', initPreviewRealisateur);
 
