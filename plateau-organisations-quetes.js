@@ -4754,6 +4754,77 @@ const ETATS_VISUELS_TERRAIN_PREVIEW = {
     ]
   }
 };
+
+// Camera V1 (chantier "camera virtuelle sur mini-terrain continu", 29 aout 2026) : experience
+// visuelle isolee au preview, aucune reecriture de la choregraphie/locomotion V2 deja validee
+// (2fea1af). PRINCIPE (section 1 de la demande) : la scene miniature reste le "monde" (positions
+// x/y des acteurs, jamais recalculees) ; .live-pelouse devient le "viewport" pilote par
+// transform:scale()+translate() -- EXACTEMENT le meme mecanisme que celui deja utilise par
+// appliquerCadrageTerrain pour les plans D/E/F1/F2/A/B/C (cadrage large/moyen/serre), jamais une
+// nouvelle infrastructure. .live-mini-terrain (le parent, overflow:hidden, jamais transforme) agit
+// comme le cadre fixe qui decoupe la pelouse agrandie/deplacee -- aucune coordonnee d'acteur n'est
+// jamais touchee.
+// CIBLE (section 2) : centre = melange 60% position du porteur / 40% centre de la boite englobante
+// du groupe 'actif' -- accompagne PRINCIPALEMENT le porteur/ballon (poids majoritaire) sans jamais
+// centrer au pixel pres (les 40% restants gardent plusieurs acteurs dans le cadrage). Repli sur le
+// centre de TOUS les acteurs si aucun porteur (seul cas : replacement_collectif, plan de cloture
+// large).
+// ZOOM (section 4) : proportionnel a l'etalement horizontal (spread) du groupe actif -- groupe
+// resserre (duel/passe) => zoom module vers CAMERA_SCALE_MAX (1.32, delibere modere, "les Smarties
+// ne doivent pas devenir enormes") ; groupe etale (transition/repli) => reste pres de
+// CAMERA_SCALE_MIN (1, vue generale). Bornes choisies (16/42% d'etalement) pour rester TOUJOURS tres
+// en-deca du champ visible reellement couvert a ce niveau de zoom (jamais d'acteur hors cadre, voir
+// le rapport du chantier pour les valeurs mesurees).
+// CLAMP anti-debordement (section 5, EXIGENCE DURE "jamais de zone vide hors du terrain") : a
+// scale=1 aucun pan n'est possible (la pelouse remplit deja exactement le cadre) -- au-dela, le pan
+// maximal sans reveler de bord est PANLIMIT=50*(1-1/scale) (pourcentage, demontre par la geometrie
+// de transform:scale() translate(), pivot centre par defaut). cx/cy sont systematiquement clampes
+// dans cette fenetre AVANT d'etre convertis en transform -- aucune configuration ne peut jamais
+// sortir la pelouse de son cadre.
+// CONTINUITE (section 3, coeur du chantier -- exactement le probleme deja resolu pour les acteurs en
+// 2fea1af, applique maintenant a la camera) : CAMERA_TRANSITION_MS (2600ms) est DELIBEREMENT plus
+// long que la duree de la quasi-totalite des phases 1-9 (1400-2100ms) -- la camera est donc encore
+// EN MOUVEMENT quand la phase suivante lui assigne une nouvelle cible, et une transition CSS
+// retablie en cours de route repart TOUJOURS de la valeur interpolee courante (jamais de saut,
+// comportement standard du moteur de rendu) : aucun arret programme, aucune frontiere de phase
+// perceptible, une seule courbe continue. Phase 10 (4000ms, plus longue que 2600ms) est la seule ou
+// la camera acheve reellement son mouvement -- plan de cloture large volontairement stable.
+// PAS D'ANTICIPATION DE TRAJECTOIRE (section 4, explicitement optionnelle) : ecartee ici -- le
+// simple fait que CAMERA_TRANSITION_MS depasse la duree de phase suffit deja a garantir la continuite
+// demandee (section 3/8), une anticipation aurait ajoute une dependance supplementaire (prochaine
+// destination) sans necessite averee pour ce V1 ("extension minimale", section 5 de la demande).
+const CAMERA_SCALE_MIN = 1;
+const CAMERA_SCALE_MAX = 1.32;
+const CAMERA_SPREAD_TIGHT_POURCENT = 16;
+const CAMERA_SPREAD_WIDE_POURCENT = 42;
+const CAMERA_TRANSITION_MS = 2600;
+const CAMERA_POIDS_PORTEUR = 0.6;
+function calculerCadrageCameraMatchMiniature(etat) {
+  const reference = etat.acteurs.filter(function(a) { return a.intensite === 'actif'; });
+  const groupe = reference.length ? reference : etat.acteurs;
+  const xs = groupe.map(function(a) { return a.x; });
+  const ys = groupe.map(function(a) { return a.y; });
+  const minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+  const minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+  const centreGroupeX = (minX + maxX) / 2, centreGroupeY = (minY + maxY) / 2;
+  const porteur = etat.porteur ? etat.acteurs.find(function(a) { return a.id === etat.porteur; }) : null;
+  const brutX = porteur ? (CAMERA_POIDS_PORTEUR * porteur.x + (1 - CAMERA_POIDS_PORTEUR) * centreGroupeX) : centreGroupeX;
+  const brutY = porteur ? (CAMERA_POIDS_PORTEUR * porteur.y + (1 - CAMERA_POIDS_PORTEUR) * centreGroupeY) : centreGroupeY;
+  const spread = maxX - minX;
+  const t = Math.max(0, Math.min(1, (CAMERA_SPREAD_WIDE_POURCENT - spread) / (CAMERA_SPREAD_WIDE_POURCENT - CAMERA_SPREAD_TIGHT_POURCENT)));
+  const scale = CAMERA_SCALE_MIN + t * (CAMERA_SCALE_MAX - CAMERA_SCALE_MIN);
+  const panLimit = 50 * (1 - 1 / scale);
+  const cx = Math.max(50 - panLimit, Math.min(50 + panLimit, brutX));
+  const cy = Math.max(50 - panLimit, Math.min(50 + panLimit, brutY));
+  return { scale: scale, cx: cx, cy: cy };
+}
+function appliquerCameraMatchMiniaturePreview(etat) {
+  const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
+  if (!pelouse) return;
+  const cadrage = calculerCadrageCameraMatchMiniature(etat);
+  pelouse.style.transition = 'transform ' + (CAMERA_TRANSITION_MS / 1000).toFixed(2) + 's ease';
+  pelouse.style.transform = 'scale(' + cadrage.scale.toFixed(3) + ') translate(' + (-(cadrage.cx - 50)).toFixed(2) + '%, ' + (-(cadrage.cy - 50)).toFixed(2) + '%)';
+}
 function appliquerEtatVisuelTerrainPreview(id) {
   const etat = ETATS_VISUELS_TERRAIN_PREVIEW[id];
   if (!etat) return;
@@ -4764,6 +4835,14 @@ function appliquerEtatVisuelTerrainPreview(id) {
   // avant, positionnerBallon jamais touche).
   if (etat.ballonXY != null) {
     positionnerBallonPreview(etat.ballonXY.x, etat.ballonXY.y, etat.vitesseBallonMs);
+    // Camera V1 (section 1 de la demande) : appelee ICI, dans la MEME condition que
+    // positionnerBallonPreview (deja le signal etabli "etat V2 moderne base sur un porteur",
+    // jamais vrai pour coup_franc_prepare/apres_arret/engagement_apres_but) -- volontairement APRES
+    // appliquerCadrageTerrain (deja execute plus haut dans executerSequenceRealisation pour ce
+    // meme plan, cadrage:'large'/scale(1) fige) : ecrit .live-pelouse.style.transform en dernier,
+    // de facon synchrone avant tout repaint, donc sans flash intermediaire (meme garantie que
+    // appliquerPlanIllustreRealisation qui remet deja `scale(1)` selon exactement ce principe).
+    appliquerCameraMatchMiniaturePreview(etat);
   } else if (etat.ballon != null) {
     positionnerBallon(etat.ballon);
   }
