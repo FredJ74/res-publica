@@ -4158,6 +4158,36 @@ const SEQUENCE_PREVIEW_ARRET = {
 };
 SEQUENCE_PREVIEW_ARRET.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_ARRET); // 900+700+1200+4100 = 6900ms
 
+// Scenario F2 -- But (29 aout 2026) : seconde resolution possible apres E -- Trajectoire (F1 =
+// arret, F2 = but), meme grammaire que F1 (plans illustres fixes + dernier plan video). Reutilise
+// EXACTEMENT la meme infrastructure video generique introduite pour F1 (couche.media:'video' sur
+// <video id="live-realisateur-illustre-video">) -- aucun second systeme video, aucun cas
+// particulier Ehault code dans l'executeur. Les deux images ont le meme ratio ~1.5:1 que les
+// assets F1 (tres eloigne du cadre large 16/6.5 ~= 2.46:1) -- en 'cover' le rognage vertical
+// (~19,5% en haut ET en bas) couperait la main/le pied du gardien plongeant sur l'image 1 et les
+// joueurs a genoux/la tribune sur l'image 2 -- ajustement:'contain' obligatoire sur les deux. La
+// video (640x640, ratio 1:1) serait rognee de ~30% de chaque cote en 'cover' -- contain egalement.
+// dureeMs du plan video : duree REELLE mesuree du fichier (afinfo/mdls concordants : 4085,986 ms /
+// 4,087 s, identique au format de F1), pas une valeur arbitraire -- 4100ms (meme marge technique
+// que F1, pour ne jamais couper la video avant sa fin naturelle).
+const FRAMES_BUT_COUP_FRANC = [
+  { asset: 'images/football-coup-franc-echec-gardien.png', dureeMs: 700 },  // le ballon a deja depasse les mains du gardien
+  { asset: 'images/football-coup-franc-but-celebration.png', dureeMs: 1400 } // plan large : La Brise celebre, Luthecia abattue, tribune en fete
+];
+const SEQUENCE_PREVIEW_BUT = {
+  gabaritId: 'preview_but', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_BUT_COUP_FRANC.map(frame => ({
+    type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe', ajustement: 'contain' }]
+  })).concat([{
+    type: 'illustre', dureeMs: 4100, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: 'images/football-reaction-ehault-but.mp4', mouvement: 'fixe', ajustement: 'contain', media: 'video' }]
+  }])
+};
+SEQUENCE_PREVIEW_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_BUT); // 700+1400+4100 = 6200ms
+
 // =====================================================================
 // BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
 // visuel", 29 aout 2026, complete avec le scenario stop motion le meme jour)
@@ -4216,6 +4246,12 @@ const SCENARIOS_PREVIEW_REALISATEUR = [
     label: 'F1 — Arrêt',
     disponible: true,
     construireSequence: () => SEQUENCE_PREVIEW_ARRET
+  },
+  {
+    id: 'but',
+    label: 'F2 — But',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_BUT
   }
 ];
 
