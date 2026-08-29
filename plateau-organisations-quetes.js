@@ -3861,7 +3861,8 @@ function executerSequenceRealisation(sequence, instant, def, club) {
 }
 
 // =====================================================================
-// PREVIEW REALISATEUR (outil de mise au point, 29 aout 2026)
+// PREVIEW REALISATEUR -- BANC D'ESSAI VISUEL (outil de mise au point, 29 aout 2026, etendu en
+// banc d'essai declaratif le meme jour)
 // =====================================================================
 // Outil de developpement STRICTEMENT local/decoratif, actif UNIQUEMENT si l'URL contient
 // ?footballPreview=1 (une seule verification a DOMContentLoaded, aucun autre branchement --
@@ -3870,7 +3871,9 @@ function executerSequenceRealisation(sequence, instant, def, club) {
 // -- aucune imitation parallele. Le shell DOM est construit via la VRAIE construireSceneMiniTerrain
 // (memes ids/classes que le live reel), avec deux clubs REELS (getClub), jamais de donnee
 // fictive. Aucune lecture/ecriture championnat, aucun appel Supabase, aucun PA, aucun effet
-// canonique -- tout se joue en memoire/DOM, exactement comme la couche decorative existante.
+// canonique -- tout se joue en memoire/DOM, exactement comme la couche decorative existante. Les
+// scenarios de test sont declares dans SCENARIOS_PREVIEW_REALISATEUR (plus bas) -- le panneau
+// construit ses boutons depuis cette liste, jamais de bouton code en dur.
 function trouverSequenceCrashTestRasDuSol(instant) {
   // genererSequenceRealisation est pure (aucun effet de bord) : on peut l'appeler a blanc autant
   // de fois que necessaire pour retomber sur le gabarit voulu -- jamais une modification du pool
@@ -3943,12 +3946,53 @@ const SEQUENCE_PREVIEW_3_ANGLES = {
 };
 SEQUENCE_PREVIEW_3_ANGLES.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_3_ANGLES); // 700+650+900 = 2250ms
 
-// Declenche une sequence (A, B, ou une future sequence de test) via la VRAIE
+// =====================================================================
+// BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
+// visuel", 29 aout 2026)
+// =====================================================================
+// Le panneau construit ses boutons a partir de CETTE liste (aucun bouton code en dur) --
+// ajouter un futur scenario = ajouter une entree ici, jamais toucher initPreviewRealisateur.
+// `disponible` (defaut true) : un scenario dont les assets ne sont pas encore livres peut etre
+// declare avec `disponible:false`, le panneau ne l'affiche alors pas -- "le panneau ne doit
+// afficher que les scenarios disposant reellement de leurs assets" (section 6). Aucun scenario
+// factice n'est ajoute ici : seuls A et B existent aujourd'hui, tous deux avec de vrais assets.
+//
+// STOP MOTION / MIXTE (section 4/6, PAS implemente ici -- aucun asset, donc aucun scenario) :
+// l'architecture plan.couches existante suffit deja a representer une micro-sequence "stop
+// motion" a durees irregulieres SANS aucun nouveau concept moteur -- il s'agit simplement de
+// plusieurs plans 'illustre' consecutifs, chacun avec sa propre couche `{asset, mouvement:'fixe'}`
+// et sa propre `dureeMs` (ex. 120/100/140/90/180ms), exactement le meme patron que
+// SEQUENCE_PREVIEW_3_ANGLES ci-dessus mais avec mouvement:'fixe' au lieu de 'dynamique' et des
+// plans plus courts/plus nombreux. Un futur scenario "mixte" (terrain -> illustre fixe -> stop
+// motion -> illustre anime -> terrain) est donc, lui aussi, une simple sequence.plans plus longue
+// -- aucune reecriture d'executerSequenceRealisation/jouerChoreographieCouche necessaire.
+//
+// MICRO-ANIMATION COURTE (GIF/WebP anime, section 5, PAS implemente -- aucun asset) : verifie,
+// aucune adaptation necessaire. appliquerPlanIllustreRealisation assigne l'asset via
+// `imageEl.src = couche.asset` sur un <img> standard (voir plus haut) -- un navigateur anime
+// nativement un GIF/WebP anime affecte a `<img src>`, independamment du transform CSS de
+// jouerChoreographieCouche (camera et animation intrinseque du fichier sont orthogonales). Rien a
+// changer ici tant qu'aucun tel asset n'existe.
+const SCENARIOS_PREVIEW_REALISATEUR = [
+  {
+    id: 'plan_unique',
+    label: 'A — Plan unique',
+    disponible: true,
+    construireSequence: instant => trouverSequenceCrashTestRasDuSol(instant)
+  },
+  {
+    id: 'multi_angle',
+    label: 'B — Multi-angle — ' + (SEQUENCE_PREVIEW_3_ANGLES.dureeMs / 1000).toFixed(2).replace('.', ',') + ' s',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_3_ANGLES
+  }
+];
+
+// Declenche une sequence (n'importe quel scenario du banc d'essai) via la VRAIE
 // executerSequenceRealisation, avec le meme nettoyage-avant-relance que fermerLiveMatchReel
-// (jamais de timer orphelin entre deux clics, quel que soit le bouton). Deja generique (prend
-// n'importe quelle `sequence` conforme au schema plan/couches) : ajouter une future sequence de
-// test (section 16) ne demande qu'une nouvelle constante + un bouton + un addEventListener
-// reutilisant cette meme fonction -- jamais un nouveau moteur de preview.
+// (jamais de timer orphelin entre deux clics, quel que soit le scenario). Deja generique (prend
+// n'importe quelle `sequence` conforme au schema plan/couches) : ajouter un futur scenario de test
+// ne demande qu'une entree dans SCENARIOS_PREVIEW_REALISATEUR -- jamais un nouveau moteur de preview.
 function lancerSequencePreview(sequence, def, club, instant) {
   if (!sequence) return;
   _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
@@ -3967,24 +4011,30 @@ function initPreviewRealisateur() {
   const def = CATALOGUE_MICRO_ACTIONS['duel'];
   const instant = { type: 'duel', cote: 'home' };
 
+  // Boutons construits depuis SCENARIOS_PREVIEW_REALISATEUR (banc d'essai, section 2/6) -- seuls
+  // les scenarios `disponible !== false` sont affiches (aucun placeholder pour un scenario dont
+  // les assets ne sont pas encore livres).
+  const scenariosVisibles = SCENARIOS_PREVIEW_REALISATEUR.filter(s => s.disponible !== false);
+  const boutonsHtml = scenariosVisibles.map(s =>
+    '<button id="preview-realisateur-btn-' + s.id + '" style="width:100%;margin-top:.4rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">▶ ' + s.label + '</button>'
+  ).join('');
+
   const panneau = document.createElement('div');
   panneau.id = 'preview-realisateur-panneau';
   panneau.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:500;width:340px;max-width:90vw;background:#0d0b05;border:1px solid #8a6a20;padding:.9rem;font-family:inherit;box-shadow:0 4px 20px rgba(0,0,0,.6)';
   panneau.innerHTML =
-    '<div style="font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:.85rem;margin-bottom:.6rem">🎬 PREVIEW RÉALISATEUR — comparaison A / B</div>' +
+    '<div style="font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:.85rem;margin-bottom:.6rem">🎬 PREVIEW RÉALISATEUR — banc d\'essai</div>' +
     '<div id="preview-realisateur-mont"></div>' +
-    '<button id="preview-realisateur-btn-a" style="width:100%;margin-top:.6rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">▶ A — Plan unique</button>' +
-    '<button id="preview-realisateur-btn-b" style="width:100%;margin-top:.4rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #6a9aca;background:transparent;color:#6a9aca;cursor:pointer">▶ B — Séquence 3 angles</button>' +
-    '<div style="font-size:.68rem;color:#7a6a48;margin-top:.5rem">Outil de mise au point — aucune écriture championnat, aucun PA, aucun effet canonique. B n\'apparaît jamais en match réel.</div>';
+    boutonsHtml +
+    '<div style="font-size:.68rem;color:#7a6a48;margin-top:.5rem">Outil de mise au point — aucune écriture championnat, aucun PA, aucun effet canonique. Aucun scénario de preview n\'apparaît en match réel.</div>';
   document.body.appendChild(panneau);
 
   document.getElementById('preview-realisateur-mont').innerHTML = construireSceneMiniTerrain('preview-crash-test', home, away);
 
-  document.getElementById('preview-realisateur-btn-a').addEventListener('click', () => {
-    lancerSequencePreview(trouverSequenceCrashTestRasDuSol(instant), def, home, instant);
-  });
-  document.getElementById('preview-realisateur-btn-b').addEventListener('click', () => {
-    lancerSequencePreview(SEQUENCE_PREVIEW_3_ANGLES, def, home, instant);
+  scenariosVisibles.forEach(s => {
+    document.getElementById('preview-realisateur-btn-' + s.id).addEventListener('click', () => {
+      lancerSequencePreview(s.construireSequence(instant), def, home, instant);
+    });
   });
 }
 window.addEventListener('DOMContentLoaded', initPreviewRealisateur);
