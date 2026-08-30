@@ -1274,7 +1274,10 @@ const TRANSFORMATEURS = [
 // filet de securite (10% du volume d'origine, 80 -> 8) ; les 90% restants sont censes venir
 // du travail remunere des joueurs.
 const VOLUME_MATIERE_PAR_CHAINE_JOUR = 8; // -> 16 unites produites (ratio 1:2)
-const PART_REDISTRIBUTION_ENTREPOTS = 0.6; // 20% a chacun des 3 entrepots
+// 25% a chacun des 3 entrepots + 25% vente directe (decision de Fred, 30 aout 2026, remplace
+// l'ancienne regle 20/20/20/40 -- confirmee reelle dans le code avant modification, voir
+// PART_REDISTRIBUTION_ENTREPOTS ci-dessous et son usage dans produireTransformateursQuotidien).
+const PART_REDISTRIBUTION_ENTREPOTS = 0.75;
 const PLAFOND_VENTE_DIRECTE = 50;
 
 // Redirection d'une partie de chaque livraison quotidienne vers le stock physique de matiere
@@ -1293,9 +1296,18 @@ const PART_REDIRECTION_USINE = 0.20;
 // Production quotidienne automatique (mode PNJ, filet de securite) de chaque transformateur :
 // consomme sa matiere premiere depuis son propre stock physique (usine.stockMatieres, alimente
 // par livrerEntrepotsQuotidien ci-dessous -- plus d'achat instantane sur caisse depuis le 10
-// aout 2026), produit le bien fini au ratio 1:2, redistribue 60% aux 3 entrepots (20% chacun,
-// perdu si un entrepot est deja plein sur ce produit), garde 40% en vente directe sur place
-// (mini-stock propre, plafonne, prix dynamique comme un entrepot).
+// aout 2026), produit le bien fini au ratio 1:2, redistribue 75% aux 3 entrepots (25% chacun,
+// perdu si un entrepot est deja plein sur ce produit), garde 25% en vente directe sur place
+// (mini-stock propre, plafonne, prix dynamique comme un entrepot). Ancienne regle reelle
+// confirmee dans le code avant modification (30 aout 2026) : 60%/20-20-20/40, remplacee par
+// 75%/25-25-25/25 (decision de Fred). Repartition entre les 3 entrepots via
+// repartirSelonPourcentages() (methode du plus fort reste/Hamilton, deja utilisee et validee pour
+// la logistique portuaire plus haut dans ce fichier) -- corrige au passage une perte par arrondi
+// reelle de l'ancien Math.floor(versEntrepots/3) (jusqu'a 2 unites silencieusement jamais
+// creditees nulle part quand versEntrepots n'etait pas divisible par 3), decouverte en
+// implementant cette regle. venteDirecteQte reste calcule par soustraction exacte (uniteesProduites
+// - versEntrepots), donc la conservation totale (entrepots + vente directe = uniteesProduites)
+// est garantie quel que soit le reste.
 async function produireTransformateursQuotidien() {
   const resultats = { transformateurs: 0, uniteesProduites: 0 };
   try {
@@ -1307,7 +1319,7 @@ async function produireTransformateursQuotidien() {
       const usine = etat.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
       const venteDirecte = usine.venteDirecte || {};
       const stockMatieres = usine.stockMatieres || {};
-      // Reglable par le directeur PJ en poste (tableau de bord, aout 2026) — 0.6 par defaut (mode PNJ)
+      // Reglable par le directeur PJ en poste (tableau de bord, aout 2026) — 0.75 par defaut (mode PNJ)
       const partEntrepots = usine.repartitionEntrepots != null ? usine.repartitionEntrepots : PART_REDISTRIBUTION_ENTREPOTS;
 
       for (const chaine of transfo.chaines) {
@@ -1321,9 +1333,12 @@ async function produireTransformateursQuotidien() {
         const uniteesProduites = VOLUME_MATIERE_PAR_CHAINE_JOUR * 2; // 1 matiere = 2 produits
         const versEntrepots = Math.round(uniteesProduites * partEntrepots);
         const venteDirecteQte = uniteesProduites - versEntrepots;
-        const parEntrepot = Math.floor(versEntrepots / ENTREPOTS_VILLES.length);
+        const villesIds = ENTREPOTS_VILLES.map(e => e.city);
+        const partsEgales = Object.fromEntries(villesIds.map(v => [v, 100 / villesIds.length]));
+        const repartitionEntrepots = repartirSelonPourcentages(versEntrepots, partsEgales, villesIds);
 
-        // Redistribution 20% a chaque entrepot, perdu si deja plein sur ce produit
+        // Redistribution en parts egales entre les 3 entrepots (Hamilton, aucune unite perdue par
+        // arrondi), perdu uniquement si un entrepot est deja plein sur ce produit
         for (const cible of ENTREPOTS_VILLES) {
           const etatCible = await sbGetBatimentEtat('republic', cible.city, cible.buildingId).catch(() => null);
           if (!etatCible) continue;
@@ -1331,7 +1346,7 @@ async function produireTransformateursQuotidien() {
           const stockCible = entrepotCible.stock || {};
           const plafondProduit = RESSOURCES_ECONOMIE_SERVEUR[chaine.produit].plafond;
           const placeRestante = Math.max(0, plafondProduit - (stockCible[chaine.produit] || 0));
-          const qteStockee = Math.min(parEntrepot, placeRestante);
+          const qteStockee = Math.min(repartitionEntrepots[cible.city], placeRestante);
           stockCible[chaine.produit] = (stockCible[chaine.produit] || 0) + qteStockee;
           await sbSetBatimentEtat('republic', cible.city, cible.buildingId, { ...etatCible, entrepot: { ...entrepotCible, stock: stockCible } }).catch(() => {});
         }

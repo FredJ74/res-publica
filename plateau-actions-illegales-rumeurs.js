@@ -2562,6 +2562,22 @@ const RECETTES_ALIMENTAIRES = {
     effets: { hp: 8, moral: 2 },
     typesAutorises: ['cafe', 'brasserie'], villesAutorisees: null, buildingsAutorises: null
   },
+  // Sandwich jambon-beurre-cornichon (Cafe/Bar des Cheminots, 30 aout 2026) : identite propre
+  // distincte du boeuf bourguignon du Cafe de la Gare (demande explicite de Fred). Le cornichon
+  // n'a pas de filiere economique dediee -- reste volontairement abstrait au niveau des
+  // ingredients techniques (memes 2 matieres deja utilisees par les recettes voisines : cereales
+  // = pain, viande = jambon), aucune nouvelle matiere premiere creee. buildingsAutorises verrouille
+  // cette recette au seul Cafe/Bar des Cheminots (meme mecanisme deja utilise par carbonade_frites/
+  // villesAutorisees ou les menus du Republica/buildingsAutorises), meme si son type 'cafe' est
+  // partage avec le Cafe de la Gare. Prix fixe a 10 FR (demande explicite), jamais recalcule par
+  // prixVenteAutoPNJ (meme convention que les menus du Republica/le sandwich du marche).
+  sandwich_cheminots: {
+    id: 'sandwich_cheminots', label: 'Sandwich jambon-beurre-cornichon', categorie: 'plat', image: null,
+    materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 5,
+    effets: { hp: 5, moral: 1 },
+    typesAutorises: ['cafe'], villesAutorisees: null, buildingsAutorises: ['cafe-tabac-cheminots-montrouge'],
+    prixFixe: true
+  },
 
   // Brasserie des Voyageurs (Montrouge, lot 4/6) : vraie restauration, 3 plats. Carbonade-frites
   // est une specialite reellement verrouillee a Montrouge (decision ferme de Fred, tourisme
@@ -3041,6 +3057,9 @@ const BUILDING_COMMERCE_TYPE = {
   // sont migres plus tard"). Cle room-scopee (hotel-republica heberge 2 commerces distincts,
   // meme principe que le stade) -- les autres pieces de l'hotel (accueil/chambres/suites) ne
   // sont pas concernees, resoudreCommerceActuel() n'a pas de repli buildingId seul ici.
+  // (Unification en un seul commerce economique preparee/testee le 30 aout 2026 -- non deployee
+  // tant que la fusion Supabase des 2 entreprises existantes n'est pas validee par Fred, voir
+  // rapport dedie.)
   'hotel-republica|restaurant': 'brasserie',
   'hotel-republica|bar': 'bar',
   // Lot Marche de Luthecia (21 aout 2026) : cle buildingId seule (commerce mono-piece, une seule
@@ -3369,10 +3388,12 @@ const DOTATIONS_COMMERCE_PILOTE = {
     data.caisse = 2000;
     data.stockMatieres = { cereales: 10, viande: 10, fruits_legumes: 10, produits_exotiques: 10 };
     data.coutMoyenMatieres = { cereales: 3, viande: 5, fruits_legumes: 4, produits_exotiques: 6 };
-    data.carte = ['boeuf_bourguignon', 'cafe_boisson', 'jus_de_fruits', 'vin', 'biere_pression'];
-    data.parametres.stockMax = { boeuf_bourguignon: 20, cafe_boisson: 20, jus_de_fruits: 20, vin: 20, biere_pression: 20 };
+    // sandwich_cheminots remplace boeuf_bourguignon (30 aout 2026, identite propre demandee par
+    // Fred) -- Cafe de la Gare non touche, garde boeuf_bourguignon tel quel.
+    data.carte = ['sandwich_cheminots', 'cafe_boisson', 'jus_de_fruits', 'vin', 'biere_pression'];
+    data.parametres.stockMax = { sandwich_cheminots: 20, cafe_boisson: 20, jus_de_fruits: 20, vin: 20, biere_pression: 20 };
     data.parametres.prixVente = {
-      boeuf_bourguignon: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boeuf_bourguignon)),
+      sandwich_cheminots: 10,
       cafe_boisson: 7,
       jus_de_fruits: 7,
       vin: 7,
