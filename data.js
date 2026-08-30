@@ -425,6 +425,17 @@ const WORLD = {
             }
           }
         },
+        // Hall du Centre Commercial de PSM (complement au chantier images/audio PSM, 30 aout
+        // 2026) : meme mecanisme roomOverrides que Montrouge sur ce meme batiment partage (voir
+        // ville_b.buildingContext['centre-commercial'] plus bas dans ce fichier) -- uniquement
+        // imageUrl sur le hall d'entree, aucune mecanique de location/economie touchee, aucun PNJ
+        // ajoute/modifie. Les 4 locaux a louer (vitrine_principale/boutique_milieu/
+        // arriere_boutique/cave_reserve) restent sur les visuels de la base partagee.
+        'centre-commercial': {
+          roomOverrides: {
+            hall: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-commercial-hall.png" }
+          }
+        },
         'stade': {
           name: "Stade de La Brise Mariannaise",
           desc: "Face a l'ocean. Le vent du large emporte parfois plus que les ballons.",
@@ -3014,10 +3025,10 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181018,#221824)",
         desc: "Les plus belles diatribes, lettres ouvertes et recits qui ont marque la vie forumiale de Port-Sainte-Marie. Contenu a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-plumes-musee-psm.png",
-        // Audio trouve dans Telechargements le 30 aout 2026 ("PSM musee salle plumes.mp3") MAIS
-        // fichier de 0 octet (echec d'ouverture audio, AudioFileOpenURL) -- pas de version valide
-        // alternative trouvee. Non raccorde volontairement : signale a Fred, jamais invente/
-        // remplace par un autre fichier. A reintegrer des qu'un export valide sera disponible.
+        // Premier export ("PSM musee salle plumes.mp3", 30 aout 2026) etait un fichier de 0 octet
+        // (echec AudioFileOpenURL) -- non raccorde a l'epoque, signale a Fred. Remplace le meme
+        // jour par un nouvel export valide (152s, verifie via afinfo), copie et raccorde ci-dessous.
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-plumes-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
