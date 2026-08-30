@@ -2318,6 +2318,12 @@ async function doReserverChambreHotel(pa) {
   // categorie stable 'hotel', ville reelle du batiment) -- une caisse DISTINCTE par ville, y
   // compris pour hotel-mineur qui partage son buildingId entre plusieurs villes/empires.
   // Reutilise caisses_batiments, deja existante : aucune nouvelle table.
+  //
+  // EXCEPTION Le Republica (unification du 30 aout 2026, decision de Fred) : la reservation de
+  // chambre est une des 3 activites (hotel/restaurant/bar) censees partager UNE seule caisse
+  // privee (l'entreprise du commerce), pas la caisse institutionnelle 'hotel' partagee par Hotel
+  // du Port/Hotel de la Victoire (non touches, toujours sur crediterCaisseBatiment ci-dessous).
+  // NE PAS DEPLOYER avant execution de la migration SQL de fusion (voir rapport dedie).
   if (cout > 0) {
     const pays = state.country || 'republic';
     const ville = state.currentCity || 'capitale';
@@ -2326,7 +2332,16 @@ async function doReserverChambreHotel(pa) {
       const t = await appliquerTaxeTransaction(cout);
       net = t.net;
     }
-    if (typeof crediterCaisseBatiment === 'function' && typeof getCaisseLocaleId === 'function') {
+    if (state.currentBuilding === 'hotel-republica' && typeof chargerCommerce === 'function') {
+      const data = await chargerCommerce('brasserie', pays, ville, 'hotel-republica', null);
+      if (data) {
+        data.caisse = (data.caisse || 0) + net;
+        if (typeof ajouterHistoriqueEntreprise === 'function') {
+          ajouterHistoriqueEntreprise(data, net, 'Reservation de chambre — ' + (state.char?.name || 'Anonyme'));
+        }
+        if (typeof sbSaveEntreprise === 'function') await sbSaveEntreprise(data.id, data).catch(() => {});
+      }
+    } else if (typeof crediterCaisseBatiment === 'function' && typeof getCaisseLocaleId === 'function') {
       await crediterCaisseBatiment(pays, getCaisseLocaleId('hotel', ville), net).catch(() => {});
     }
   }

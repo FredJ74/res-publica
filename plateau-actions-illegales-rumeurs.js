@@ -2629,7 +2629,10 @@ const RECETTES_ALIMENTAIRES = {
     id: 'biere_pression', label: 'Bière', categorie: 'boisson', image: null,
     materiaux: { cereales: 1 }, pa: 1, portions: 15,
     effets: { moral: 2 },
-    typesAutorises: ['buvette', 'bar', 'cafe'], villesAutorisees: null, buildingsAutorises: null
+    // 'brasserie' ajoute (unification Le Republica, 30 aout 2026) : n'active la recette que si
+    // elle figure aussi dans data.carte du commerce concerne -- aucun impact sur la Brasserie des
+    // Voyageurs/Capitaine Sauvage (leur carte n'est pas modifiee).
+    typesAutorises: ['buvette', 'bar', 'cafe', 'brasserie'], villesAutorisees: null, buildingsAutorises: null
   },
   boisson_sans_alcool: {
     id: 'boisson_sans_alcool', label: 'Boisson sans alcool', categorie: 'boisson', image: null,
@@ -2647,7 +2650,8 @@ const RECETTES_ALIMENTAIRES = {
     id: 'snack_buvette', label: 'Cacahuètes salées', categorie: 'snack', image: null,
     materiaux: { cereales: 1 }, pa: 1, portions: 15,
     effets: { hp: 2, moral: 1 },
-    typesAutorises: ['buvette', 'bar'], villesAutorisees: null, buildingsAutorises: null
+    // 'brasserie' ajoute (unification Le Republica, 30 aout 2026), meme principe que biere_pression.
+    typesAutorises: ['buvette', 'bar', 'brasserie'], villesAutorisees: null, buildingsAutorises: null
   },
 
   // Lot boissons - Cafe de la Gare (20 aout 2026) : 3 nouvelles recettes, memes regles pour les
@@ -2663,7 +2667,8 @@ const RECETTES_ALIMENTAIRES = {
     // (type 'bar') doit pouvoir vendre du cafe, meme principe deja applique a 'vin' ci-dessous
     // pour la brasserie -- n'active la recette que si elle figure aussi dans data.carte du
     // commerce concerne (DOTATIONS_COMMERCE_PILOTE), aucun autre commerce 'bar' n'existe a ce jour.
-    typesAutorises: ['cafe', 'bar'], villesAutorisees: null, buildingsAutorises: null
+    // 'brasserie' ajoute (unification Le Republica, 30 aout 2026), meme principe.
+    typesAutorises: ['cafe', 'bar', 'brasserie'], villesAutorisees: null, buildingsAutorises: null
   },
   jus_de_fruits: {
     id: 'jus_de_fruits', label: 'Jus de fruits', categorie: 'boisson', image: null,
@@ -3052,16 +3057,14 @@ const BUILDING_COMMERCE_TYPE = {
   'brasserie-voyageurs-montrouge': 'brasserie',
   'hotel-mineur': 'cafe',
   'stade|buvette': 'buvette',
-  // Lot Le Republica (21 aout 2026) : migration anticipee par le commentaire de
-  // RECETTES_ALIMENTAIRES.biere_pression (20 aout 2026, "si le Bar des Pecheurs/Hotel Republica
-  // sont migres plus tard"). Cle room-scopee (hotel-republica heberge 2 commerces distincts,
-  // meme principe que le stade) -- les autres pieces de l'hotel (accueil/chambres/suites) ne
-  // sont pas concernees, resoudreCommerceActuel() n'a pas de repli buildingId seul ici.
-  // (Unification en un seul commerce economique preparee/testee le 30 aout 2026 -- non deployee
-  // tant que la fusion Supabase des 2 entreprises existantes n'est pas validee par Fred, voir
-  // rapport dedie.)
-  'hotel-republica|restaurant': 'brasserie',
-  'hotel-republica|bar': 'bar',
+  // UNIFICATION LE REPUBLICA (30 aout 2026, decision de Fred) : remplace les 2 cles room-scopees
+  // par UNE seule cle buildingId-seule -- restaurant ET bar (rooms visuellement/fonctionnellement
+  // distinctes, economie desormais unique) resolvent vers le MEME id de commerce, meme stock/
+  // meme caisse, exactement comme cafe-gare-montrouge. Type 'brasserie' conserve (deja utilise
+  // par les 3 menus gastronomiques du Republica, deja scopes buildingsAutorises:['hotel-republica']).
+  // NE PAS DEPLOYER avant execution de la migration SQL de fusion (voir rapport dedie) : ce code
+  // cree une entreprise par defaut au premier acces si la ligne unifiee n'existe pas encore.
+  'hotel-republica': 'brasserie',
   // Lot Marche de Luthecia (21 aout 2026) : cle buildingId seule (commerce mono-piece, une seule
   // room 'marche_ext' dans le template BUILDINGS['marche']). Ce buildingId est PARTAGE par
   // plusieurs villes/empires (Montrouge, Souk d'Al-Khalija...) -- resoudreCommerceActuel() n'a
@@ -3447,48 +3450,27 @@ const DOTATIONS_COMMERCE_PILOTE = {
       snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
     };
   },
-  // Lot carte gastronomique Le Republica (21 aout 2026) -- remplace la carte provisoire
-  // (boeuf_bourguignon/plat_de_poisson/saucisse_puree, plats generalistes reutilises tels quels
-  // au lot precedent) par les 3 vrais menus gastronomiques (RECETTES_ALIMENTAIRES.menu_gastro-
-  // nomique_1/2/3 ci-dessus) + 'vin' (recette deja existante, typesAutorises etendu a 'brasserie'
-  // ci-dessus pour ce seul usage). fruits_legumes ajoute au stock de depart (necessaire au vin et
-  // au Menu 3), memes ordres de grandeur que les autres commerces alimentaires.
-  'hotel-republica|restaurant': function(data) {
-    data.caisse = 3000;
-    data.stockMatieres = { cereales: 15, viande: 15, poisson: 10, fruits_legumes: 10 };
-    data.coutMoyenMatieres = { cereales: 3, viande: 5, poisson: 4, fruits_legumes: 4 };
-    data.carte = ['menu_gastronomique_1', 'menu_gastronomique_2', 'menu_gastronomique_3', 'vin'];
-    data.parametres.stockMax = { menu_gastronomique_1: 20, menu_gastronomique_2: 20, menu_gastronomique_3: 20, vin: 20 }; // vin plafonne (lot plafonds, 21 aout 2026, etait 30)
+  // UNIFICATION LE REPUBLICA (30 aout 2026) -- dotation par defaut si la ligne unifiee n'existe
+  // PAS ENCORE (creation paresseuse standard, chargerEntreprise). ATTENTION : ce n'est PAS la
+  // migration des donnees reelles d'Arnie (caisse 4900, stock/historique reels) -- celle-ci est
+  // faite une seule fois par la migration SQL dediee (voir rapport). Cette dotation par defaut
+  // (caisse 5000 = somme des 2 anciennes dotations par defaut, jamais les valeurs reelles
+  // actuelles) ne doit JAMAIS s'executer en pratique si l'ordre de bascule (SQL avant code) est
+  // respecte -- elle reste neanmoins correcte et coherente si elle devait un jour s'executer
+  // (nouvel empire/nouvelle partie, pas seulement Republia).
+  'hotel-republica': function(data) {
+    data.caisse = 5000;
+    data.stockMatieres = { cereales: 25, viande: 15, poisson: 10, fruits_legumes: 20, produits_exotiques: 10 };
+    data.coutMoyenMatieres = { cereales: 3, viande: 5, poisson: 4, fruits_legumes: 4, produits_exotiques: 6 };
+    data.carte = ['menu_gastronomique_1', 'menu_gastronomique_2', 'menu_gastronomique_3', 'vin', 'cafe_boisson', 'biere_pression', 'snack_buvette'];
+    data.parametres.stockMax = { menu_gastronomique_1: 20, menu_gastronomique_2: 20, menu_gastronomique_3: 20, vin: 20, cafe_boisson: 20, biere_pression: 20, snack_buvette: 20 };
     data.parametres.prixVente = {
-      // Prix fixe demande (les 3 menus valent volontairement la meme chose, aucun n'est
-      // statistiquement superieur) -- PAS calcule via prixVenteAutoPNJ malgre le proprietaire PNJ
-      // par defaut, meme convention que les boissons du Cafe de la Gare (prix initial fixe a 7 FR
-      // le 20 aout 2026). A noter (comme pour tout commerce PNJ) : produireRecetteCommerce()
-      // recalculera ce prix automatiquement des la premiere production de chaque menu, vers son
-      // propre cout de revient x2 -- il ne restera pas fige a 120 indefiniment. Signale au rapport.
       menu_gastronomique_1: 120,
       menu_gastronomique_2: 120,
       menu_gastronomique_3: 120,
-      vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin))
-    };
-  },
-  // Bar de Luthecia (correctif boucle nourriture, 22 aout 2026) : catalogue restreint a Cafe/
-  // Biere/Vin (decision deja actee), boisson_sans_alcool retiree (hors de cette liste). cafe_boisson
-  // et vin existent deja (RECETTES_ALIMENTAIRES, lot boissons du Cafe de la Gare) -- 'bar' ajoute a
-  // leur typesAutorises ci-dessous, aucune recette recreee. snack_buvette conserve : ce n'est pas
-  // une boisson, hors du perimetre de cette restriction. produits_exotiques/fruits_legumes ajoutes
-  // au stock de depart avec les memes valeurs deja utilisees pour ces matieres au Cafe de la Gare
-  // (coherence des couts moyens de depart entre les deux commerces qui vendent du cafe).
-  'hotel-republica|bar': function(data) {
-    data.caisse = 2000;
-    data.stockMatieres = { cereales: 10, produits_exotiques: 10, fruits_legumes: 10 };
-    data.coutMoyenMatieres = { cereales: 3, produits_exotiques: 6, fruits_legumes: 4 };
-    data.carte = ['cafe_boisson', 'biere_pression', 'vin', 'snack_buvette'];
-    data.parametres.stockMax = { cafe_boisson: 20, biere_pression: 20, vin: 20, snack_buvette: 20 }; // plafonne (lot plafonds, 21 aout 2026, etait 30)
-    data.parametres.prixVente = {
+      vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin)),
       cafe_boisson: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.cafe_boisson)),
       biere_pression: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.biere_pression)),
-      vin: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.vin)),
       snack_buvette: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.snack_buvette))
     };
   },
@@ -4993,12 +4975,17 @@ function getVillesAvecArmurerie(country) {
 // (Le Republica) volontairement absent : combine 2 commerces room-scopes distincts (restaurant +
 // bar), la resolution actuelle de cette table ne prendrait que le premier des deux -- signale au
 // rapport, pas ajoute tant qu'aucune decision d'architecture n'est prise.
+// 'hotel-republica' (Le Republica, 380000 FR) : achat de l'etablissement entier (restaurant+bar+
+// hotel), jamais du bar ou du restaurant separement -- garanti par la cle buildingId-seule dans
+// BUILDING_COMMERCE_TYPE ci-dessus (un seul id de commerce pour tout le batiment). NE PAS
+// DEPLOYER avant execution de la migration SQL de fusion (voir rapport dedie).
 const PRIX_RACHAT_COMMERCE = {
   'cafe-gare-montrouge': 180000,
   'brasserie-voyageurs-montrouge': 120000,
   'hotel-mineur': 80000,
   'cafe-tabac-cheminots-montrouge': 180000,
-  'bar-des-pecheurs': 180000
+  'bar-des-pecheurs': 180000,
+  'hotel-republica': 380000
 };
 
 // Resout type + roomId d'un commerce a partir de son seul buildingId, avec la MEME priorite que
