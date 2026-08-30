@@ -2996,7 +2996,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#141c14,#1c2818)",
         desc: "Les batisseurs economiques de Port-Sainte-Marie, du petit commerce a l'empire industriel. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-entrepreneurs-musee-psm.png",
-        // Aucun audio retrouve pour cette salle dans Telechargements -- signale dans le rapport, non invente.
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-entrepreneurs-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
@@ -3014,7 +3014,10 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#181018,#221824)",
         desc: "Les plus belles diatribes, lettres ouvertes et recits qui ont marque la vie forumiale de Port-Sainte-Marie. Contenu a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-plumes-musee-psm.png",
-        // Aucun audio retrouve pour cette salle dans Telechargements -- signale dans le rapport, non invente.
+        // Audio trouve dans Telechargements le 30 aout 2026 ("PSM musee salle plumes.mp3") MAIS
+        // fichier de 0 octet (echec d'ouverture audio, AudioFileOpenURL) -- pas de version valide
+        // alternative trouvee. Non raccorde volontairement : signale a Fred, jamais invente/
+        // remplace par un autre fichier. A reintegrer des qu'un export valide sera disponible.
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
@@ -3023,7 +3026,7 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#141410,#201f18)",
         desc: "Les faits d'armes et les soldats les plus decores originaires de Port-Sainte-Marie. Classement a venir.",
         imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/salle-honneur-militaire-musee-psm.png",
-        // Aucun audio retrouve pour cette salle dans Telechargements -- signale dans le rapport, non invente.
+        audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-honneur-militaire-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/marcel-kermeur-guide-musee.png', photoPos:'50% 25%'} ],
         orders: []
       },
