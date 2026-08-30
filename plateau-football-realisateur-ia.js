@@ -1120,6 +1120,7 @@ const RealisateurIA = {
   PARAMETRES_RARETE_REALISATEUR: PARAMETRES_RARETE_REALISATEUR,
   PARAMETRES_RACCORD: PARAMETRES_RACCORD,
   ID_RESPIRATION: ID_RESPIRATION,
+  DUREE_DEFAUT_RESPIRATION_MS: DUREE_DEFAUT_RESPIRATION_MS,
   intentionsAutoriseesPourSituation: intentionsAutoriseesPourSituation,
   formeSituation: formeSituation,
   validerCompatibiliteGrammaire: validerCompatibiliteGrammaire,

@@ -249,6 +249,197 @@ function jouerMatchHeadless(profil, seedMatch) {
 }
 
 // ---------------------------------------------------------------------
+// 2bis. MODE HEADLESS NARRATIF (chantier "du jukebox a la narration", 30 aout 2026, section 21)
+// ---------------------------------------------------------------------
+// Meme generation de matchs synthetiques que jouerMatchHeadless (genererMatchSynthetique,
+// INCHANGEE) mais route chaque situation decisionnelle par construireArcNarratif au lieu de
+// selectionnerRealisation seul -- mesure les FAMILLES/ARCS/BEATS, pas seulement les grammaires
+// individuelles. "Temps mini-terrain" vs "temps sequence" est une ESTIMATION (aucun timer reel en
+// mode headless) : une situation dont l'arc ne joue QUE de la respiration (ou aucun beat) est
+// comptee comme du temps mini-terrain (TEMPS_MINITERRAIN_BASE_MS, moyenne grossiere des durees
+// reelles de CATALOGUE_MICRO_ACTIONS, 1100-2600ms) ; une situation dont l'arc joue au moins un
+// beat visuel reel est comptee pour son dureeMsTotaleApprox (LOT 18).
+const TEMPS_MINITERRAIN_BASE_MS = 1800;
+
+function jouerMatchNarratifHeadless(profil, seedMatch) {
+  const rngGeneration = RealisateurIA.creerPRNGDeterministeRia(RealisateurIA.hashChaineVersUint32Ria('gen-' + seedMatch));
+  const situations = genererMatchSynthetique(profil, rngGeneration);
+  const memoire = RealisateurIA.creerMemoireRealisateur();
+
+  const resultat = {
+    profil: profil, seedMatch: seedMatch, situations: 0, evenementsCanoniquesObserves: 0,
+    sequencesNarratives: 0, situationsSansBeat: 0, situationsImpossibles: 0,
+    tempsMiniTerrainMs: 0, tempsSequencesMs: 0, tempsMsParFamille: {},
+    tempsEcranMiniTerrainMs: 0, tempsEcranCoupureMs: 0,
+    parFamille: {}, parLongueurArc: {}, beatsSpectaculaires: 0, beatsTotal: 0,
+    violationsCanoniques: [], violationsWhitelist: [],
+    repetitionsImmediatesGrammaire: [], dernierIdJoue: null,
+    grammairesVuesZeroZero: {}
+  };
+
+  // IMPORTANT (trouve par diagnostic AVANT toute correction, jamais suppose) : le compteur interne
+  // du selecteur (memoire.situationsDepuisSpectaculaire, MR1) avance de UN PAR APPEL A
+  // selectionnerRealisation -- soit UN PAR BEAT TENTE (trace.beatsPrevus.length), PAS un par
+  // situation exterieure. Un arc a 5 beats consomme 5 "ticks" internes en une seule situation. Un
+  // premier re-controle base sur l'index de situation (comme dans jouerMatchHeadless, correct
+  // LA-BAS car 1 situation = 1 appel) produisait ici ~130 "violations" sur 20 matchs des qu'un arc
+  // multi-beats etait implique -- verifie manuellement (node -e, memoire.situationsDepuisSpectaculaire
+  // observe apres chaque arc) : le selecteur respectait deja correctement son propre compteur
+  // interne, c'etait le RE-CONTROLE qui mesurait la mauvaise unite. Corrige en faisant avancer
+  // compteurTicks du meme pas que le vrai compteur (trace.beatsPrevus.length), jamais de l'index de
+  // situation.
+  let compteurTicks = 0;
+  let tickDernierSpectaculaire = -Infinity;
+
+  situations.forEach(function (situation, idx) {
+    if (situation.nonDecisionnelle) { resultat.evenementsCanoniquesObserves++; return; }
+    resultat.situations++;
+
+    const { arcPlan, trace } = RealisateurIA.construireArcNarratif({ situation: situation, seed: seedMatch + '-arc-' + idx, memoire: memoire });
+    resultat.parFamille[trace.famille] = (resultat.parFamille[trace.famille] || 0) + 1;
+    const tickDebutSituation = compteurTicks;
+    compteurTicks += trace.beatsPrevus.length;
+
+    const longueur = arcPlan.beats.length;
+    resultat.parLongueurArc[longueur] = (resultat.parLongueurArc[longueur] || 0) + 1;
+
+    if (longueur === 0) {
+      resultat.situationsSansBeat++;
+      // EVENEMENT_CANONIQUE nu (but/occasion/carton/blessure/debut/mitemps/fin) : arc vide ATTENDU
+      // (aucune grammaire ne couvre ces situations, cf. audit du 30 aout) -- jamais compte comme
+      // "impossible", c'est le comportement CORRECT et voulu (section 4 : rien invente).
+      if (trace.famille !== 'EVENEMENT_CANONIQUE') resultat.situationsImpossibles++;
+      resultat.tempsMiniTerrainMs += TEMPS_MINITERRAIN_BASE_MS;
+      resultat.tempsEcranMiniTerrainMs += TEMPS_MINITERRAIN_BASE_MS;
+      return;
+    }
+
+    const seulementRespiration = arcPlan.beats.every(function (b) { return b.plan.isRespiration; });
+    if (seulementRespiration) {
+      resultat.tempsMiniTerrainMs += TEMPS_MINITERRAIN_BASE_MS;
+      resultat.tempsEcranMiniTerrainMs += TEMPS_MINITERRAIN_BASE_MS;
+      return;
+    }
+
+    resultat.sequencesNarratives++;
+    resultat.tempsSequencesMs += arcPlan.dureeMsTotaleApprox;
+    // Ventilation du temps sequence PAR FAMILLE (LOT 21) : necessaire pour comprendre QUI pese
+    // dans la proportion globale mini-terrain/sequences -- une moyenne unique masquerait que
+    // COUP_FRANC (D-E-F, durees deja validees et volontairement NON touchees) pese tres lourd a
+    // lui seul par rapport a sa frequence (voir rapport, section 14).
+    resultat.tempsMsParFamille[trace.famille] = (resultat.tempsMsParFamille[trace.famille] || 0) + arcPlan.dureeMsTotaleApprox;
+
+    // METRIQUE PLUS FIDELE (ajoutee apres diagnostic : la premiere version comptait
+    // match_miniature_v2 et les 4 effets camera-only comme "hors mini-terrain" alors qu'ils
+    // restent VISUELLEMENT sur la camera CSS du terrain, cf. etatSortie.medium -- seul un beat
+    // dont le medium N'EST PAS 'miniature' (illustre_image/illustre_pictogram/illustre_video)
+    // fait reellement quitter l'ecran du mini-terrain, section 12 de la consigne).
+    arcPlan.beats.forEach(function (b) {
+      const dureeBeat = b.plan.isRespiration ? RealisateurIA.DUREE_DEFAUT_RESPIRATION_MS : RealisateurIA.dureeApproxDepuisRegistre(b.plan.selectedGrammar);
+      const g = RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.find(function (x) { return x.id === b.plan.selectedGrammar; });
+      const medium = b.plan.isRespiration ? 'miniature' : (g && g.etatSortie ? g.etatSortie.medium : 'inconnu');
+      if (medium === 'miniature') resultat.tempsEcranMiniTerrainMs += dureeBeat;
+      else resultat.tempsEcranCoupureMs += dureeBeat;
+    });
+
+    if (profil === 'zero_zero') {
+      arcPlan.beats.forEach(function (b) { resultat.grammairesVuesZeroZero[b.plan.selectedGrammar] = true; });
+    }
+
+    // Parcourt trace.beatsPrevus (TOUS les appels tentes, y compris les beats retombes a
+    // plan:null) plutot que arcPlan.beats (seulement les jouables) : c'est la SEULE facon de
+    // retrouver le tick exact de chaque appel reel a selectionnerRealisation (position i dans ce
+    // tableau = tickDebutSituation + i), condition necessaire pour comparer a la bonne unite.
+    trace.beatsPrevus.forEach(function (bp, i) {
+      if (!bp.plan || bp.plan.isRespiration) return;
+      const tick = tickDebutSituation + i;
+      const b = bp;
+      resultat.beatsTotal++;
+      const g = RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.find(function (x) { return x.id === b.plan.selectedGrammar; });
+      if (!g || !RealisateurIA.estAutoriseAutomatiquement(g)) {
+        resultat.violationsWhitelist.push({ idx: idx, motif: 'beat "' + b.role + '" a choisi une grammaire hors whitelist : ' + b.plan.selectedGrammar });
+        return;
+      }
+      if (g.resultatCanoniqueRequis) {
+        const resolu = situation.coupFrancResultat || (situation.canonique && situation.canonique.type === 'but' ? 'but' : null);
+        if (resolu !== g.resultatCanoniqueRequis) resultat.violationsCanoniques.push({ idx: idx, motif: 'beat "' + b.role + '" : "' + g.id + '" sans resultat canonique confirme' });
+      }
+      if (situation.canonique && (situation.canonique.type === 'carton' || situation.canonique.type === 'blessure')) {
+        resultat.violationsCanoniques.push({ idx: idx, motif: 'beat non-vide sur un carton/blessure' });
+      }
+      if (g.spectaculaire) {
+        resultat.beatsSpectaculaires++;
+        if ((tick - tickDernierSpectaculaire) <= RealisateurIA.PARAMETRES_RACCORD.respirationApresSpectaculaireNb) {
+          resultat.violationsWhitelist.push({ idx: idx, motif: 'MR1 : spectacle "' + g.id + '" trop rapproche du precedent (' + (tick - tickDernierSpectaculaire) + ' ticks, arc)' });
+        }
+        tickDernierSpectaculaire = tick;
+      }
+      if (resultat.dernierIdJoue === g.id) resultat.repetitionsImmediatesGrammaire.push({ idx: idx, id: g.id });
+      resultat.dernierIdJoue = g.id;
+    });
+  });
+
+  return resultat;
+}
+
+function executerCampagneNarrative(nbMatchs, seedBase) {
+  const t0 = Date.now();
+  const stats = {
+    matchs: 0, situations: 0, sequencesNarratives: 0, situationsSansBeat: 0, situationsImpossibles: 0,
+    tempsMiniTerrainMs: 0, tempsSequencesMs: 0, tempsMsParFamille: {},
+    tempsEcranMiniTerrainMs: 0, tempsEcranCoupureMs: 0, beatsTotal: 0, beatsSpectaculaires: 0,
+    parFamille: {}, parLongueurArc: {}, violationsCanoniques: [], violationsWhitelist: [],
+    repetitionsImmediatesGrammaire: 0, erreurs: [], seedsNonReproductibles: [],
+    diversiteZeroZero: {}
+  };
+  for (let m = 0; m < nbMatchs; m++) {
+    const profil = PROFILS_MATCH_SYNTHETIQUE[m % PROFILS_MATCH_SYNTHETIQUE.length];
+    const seedMatch = seedBase + '-m' + m + '-' + profil;
+    let resultat;
+    try { resultat = jouerMatchNarratifHeadless(profil, seedMatch); }
+    catch (e) { stats.erreurs.push({ match: m, profil: profil, message: e.message }); continue; }
+
+    let rejoue;
+    try {
+      rejoue = jouerMatchNarratifHeadless(profil, seedMatch);
+      if (JSON.stringify(rejoue) !== JSON.stringify(resultat)) stats.seedsNonReproductibles.push(seedMatch);
+    } catch (e) { stats.erreurs.push({ match: m, profil: profil, message: 'rejoue: ' + e.message }); }
+
+    stats.matchs++;
+    stats.situations += resultat.situations;
+    stats.sequencesNarratives += resultat.sequencesNarratives;
+    stats.situationsSansBeat += resultat.situationsSansBeat;
+    stats.situationsImpossibles += resultat.situationsImpossibles;
+    stats.tempsMiniTerrainMs += resultat.tempsMiniTerrainMs;
+    stats.tempsSequencesMs += resultat.tempsSequencesMs;
+    stats.tempsEcranMiniTerrainMs += resultat.tempsEcranMiniTerrainMs;
+    stats.tempsEcranCoupureMs += resultat.tempsEcranCoupureMs;
+    fusionnerCompteur(stats.tempsMsParFamille, resultat.tempsMsParFamille);
+    stats.beatsTotal += resultat.beatsTotal;
+    stats.beatsSpectaculaires += resultat.beatsSpectaculaires;
+    fusionnerCompteur(stats.parFamille, resultat.parFamille);
+    fusionnerCompteur(stats.parLongueurArc, resultat.parLongueurArc);
+    stats.violationsCanoniques = stats.violationsCanoniques.concat(resultat.violationsCanoniques.map(function (v) { return Object.assign({ match: m }, v); }));
+    stats.violationsWhitelist = stats.violationsWhitelist.concat(resultat.violationsWhitelist.map(function (v) { return Object.assign({ match: m }, v); }));
+    stats.repetitionsImmediatesGrammaire += resultat.repetitionsImmediatesGrammaire.length;
+    if (profil === 'zero_zero') {
+      Object.keys(resultat.grammairesVuesZeroZero).forEach(function (id) { stats.diversiteZeroZero[id] = (stats.diversiteZeroZero[id] || 0) + 1; });
+    }
+  }
+  stats.dureeMs = Date.now() - t0;
+  stats.dureeMsParMatch = stats.matchs ? +(stats.dureeMs / stats.matchs).toFixed(3) : null;
+  stats.proportionTempsMiniTerrain = (stats.tempsMiniTerrainMs + stats.tempsSequencesMs) > 0
+    ? +(stats.tempsMiniTerrainMs / (stats.tempsMiniTerrainMs + stats.tempsSequencesMs)).toFixed(4) : null;
+  // Metrique PLUS FIDELE (voir commentaire dans jouerMatchNarratifHeadless) : proportion du temps
+  // ou l'ecran reste VISUELLEMENT sur la camera du mini-terrain (gabarits/4 effets/
+  // match_miniature_v2/respiration inclus, medium==='miniature') contre le temps ou il en sort
+  // reellement (illustre_image/illustre_pictogram/illustre_video).
+  const tempsEcranTotal = stats.tempsEcranMiniTerrainMs + stats.tempsEcranCoupureMs;
+  stats.proportionEcranMiniTerrain = tempsEcranTotal > 0 ? +(stats.tempsEcranMiniTerrainMs / tempsEcranTotal).toFixed(4) : null;
+  return stats;
+}
+
+// ---------------------------------------------------------------------
 // 3. CAMPAGNE MASSIVE (LOT 12/23) + REPRODUCTIBILITE DES SEEDS
 // ---------------------------------------------------------------------
 function fusionnerCompteur(cible, source) {
@@ -323,19 +514,54 @@ function executerCampagne(nbMatchs, seedBase, jsonSeul) {
 // 4. CLI
 // ---------------------------------------------------------------------
 function parseArgs(argv) {
-  const out = { matchs: 200, seed: 'campagne-defaut', json: false };
+  const out = { matchs: 200, seed: 'campagne-defaut', json: false, narratif: false };
   argv.forEach(function (a) {
     const mMatchs = a.match(/^--matchs=(\d+)$/);
     const mSeed = a.match(/^--seed=(.+)$/);
     if (mMatchs) out.matchs = parseInt(mMatchs[1], 10);
     if (mSeed) out.seed = mSeed[1];
     if (a === '--json') out.json = true;
+    if (a === '--narratif') out.narratif = true;
   });
   return out;
 }
 
 if (require.main === module) {
   const args = parseArgs(process.argv.slice(2));
+
+  if (args.narratif) {
+    const statsN = executerCampagneNarrative(args.matchs, args.seed);
+    if (args.json) {
+      console.log(JSON.stringify(statsN, null, 2));
+    } else {
+      console.log('=== CAMPAGNE REALISATEUR NARRATIF (headless) ===');
+      console.log('matchs synthetiques      :', statsN.matchs, '(' + statsN.dureeMs + ' ms, ' + statsN.dureeMsParMatch + ' ms/match)');
+      console.log('situations totales       :', statsN.situations);
+      console.log('sequences narratives      :', statsN.sequencesNarratives);
+      console.log('situations sans beat      :', statsN.situationsSansBeat, '(dont impossibles reelles :', statsN.situationsImpossibles, ')');
+      console.log('proportion temps mini-terrain (estimee brute, sequence vs pas-sequence):', (statsN.proportionTempsMiniTerrain * 100).toFixed(1) + '%');
+      console.log('proportion ECRAN reellement sur le mini-terrain (medium==miniature, gabarits/effets/ambiance inclus):', (statsN.proportionEcranMiniTerrain * 100).toFixed(1) + '%');
+      console.log('beats joues / spectaculaires:', statsN.beatsTotal, '/', statsN.beatsSpectaculaires, '(' + (100 * statsN.beatsSpectaculaires / (statsN.beatsTotal || 1)).toFixed(1) + '%)');
+      console.log('repetitions immediates (grammaire):', statsN.repetitionsImmediatesGrammaire);
+      console.log('violations canoniques     :', statsN.violationsCanoniques.length);
+      if (statsN.violationsCanoniques.length) console.log(JSON.stringify(statsN.violationsCanoniques.slice(0, 10), null, 2));
+      console.log('violations whitelist/MR1  :', statsN.violationsWhitelist.length);
+      if (statsN.violationsWhitelist.length) console.log(JSON.stringify(statsN.violationsWhitelist.slice(0, 10), null, 2));
+      console.log('erreurs                   :', statsN.erreurs.length);
+      if (statsN.erreurs.length) console.log(JSON.stringify(statsN.erreurs.slice(0, 10), null, 2));
+      console.log('seeds non reproductibles  :', statsN.seedsNonReproductibles.length);
+      console.log('--- par famille ---');
+      console.log(statsN.parFamille);
+      console.log('--- par longueur d\'arc (nb de beats joues) ---');
+      console.log(statsN.parLongueurArc);
+      console.log('--- temps sequence (ms) PAR FAMILLE (explique la proportion globale) ---');
+      console.log(statsN.tempsMsParFamille);
+      console.log('--- diversite des grammaires vues sur les matchs 0-0 ---');
+      console.log(statsN.diversiteZeroZero);
+    }
+    process.exit(0);
+  }
+
   const stats = executerCampagne(args.matchs, args.seed, args.json);
   if (args.json) {
     console.log(JSON.stringify(stats, null, 2));
@@ -372,5 +598,7 @@ module.exports = {
   genererMatchSynthetique: genererMatchSynthetique,
   jouerMatchHeadless: jouerMatchHeadless,
   executerCampagne: executerCampagne,
+  jouerMatchNarratifHeadless: jouerMatchNarratifHeadless,
+  executerCampagneNarrative: executerCampagneNarrative,
   PROFILS_MATCH_SYNTHETIQUE: PROFILS_MATCH_SYNTHETIQUE
 };
