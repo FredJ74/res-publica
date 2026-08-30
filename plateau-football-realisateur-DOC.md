@@ -21,12 +21,35 @@ Inchangée et non touchée par ce chantier : `_liveViewerAfficheCanoniqueEnCours
 - **`plateau-football-realisateur-simulateur.js`** — outil de dev (jamais chargé par
   `plateau.html`), génère des matchs synthétiques et exécute le vrai sélecteur en mode headless.
   `node plateau-football-realisateur-simulateur.js --matchs=1000 --seed=xxx [--json]`.
-- **`plateau-football-realisateur-tests.js`** — 23 assertions Node (règles dures, déterminisme,
-  anti-répétition, raccord MR1/MR2/MR3, respiration, performance, campagne 1200 matchs).
-  `node plateau-football-realisateur-tests.js`.
-- **`plateau-organisations-quetes.js`** — deux ajouts additifs :
+- **`plateau-football-realisateur-tests.js`** — 25 assertions Node (règles dures, déterminisme,
+  anti-répétition, raccord MR1/MR2/MR3, respiration, whitelist R0, performance, campagne 1200
+  matchs). `node plateau-football-realisateur-tests.js`.
+- **`plateau-organisations-quetes.js`** — additifs :
   1. hooks sprites (`acteurMatchMiniature` / `appliquerSceneActeursPreview`, voir plus bas) ;
-  2. pont debug dans `initPreviewRealisateur` (bouton "🤖 Sélection IA (debug)").
+  2. pont debug dans `initPreviewRealisateur` (bouton "🤖 Sélection IA (debug)" + TEST A/B/C) ;
+  3. `trouverSequenceProductionAvecGabaritId` (résolution des gabarits de production) ;
+  4. correctif MR4 dans `reinitialiserSceneApresSequenceRealisation`.
+
+## Whitelist et statut (audit du catalogue, 30 août 2026)
+
+Chaque grammaire porte un `statut` (`VALIDATED_PRODUCTION` / `VALIDATED_BANC_ESSAI` /
+`VALIDATED_A_CONFIRMER`) et `nbPlansAttendu`/`dureeMsAttendueApprox`, vérifiés contre le code
+source réel. `estAutoriseAutomatiquement()` est la porte unique du pool automatique (gate R0,
+en tête de `validerCompatibiliteGrammaire`) — **exister dans le registre ne signifie pas être
+autorisé** : toute future entrée non `VALIDATED_*` en serait exclue par défaut. Aujourd'hui les
+22 entrées sont toutes validées (aucune `INTERNAL`/`DEBUG`/`LEGACY` trouvée lors de l'audit).
+
+**A/B/C ne sont pas absents du registre — ils sont rares par construction** (poids 0.3–0.5 contre
+1 pour les 6 gabarits, en concurrence avec la respiration et les cooldowns MR1/MR2) : sur 3000
+clics simulant exactement la rotation du bouton debug, A choisi 10 fois, B 53 fois, C 4 fois.
+Ne pas augmenter leurs poids sans décision explicite de Fred (voir rapport).
+
+**Cause de "C vu comme une seule image"** : établie par test à timers réels — un second
+déclenchement (n'importe lequel des 16+ boutons du banc d'essai, comportement pré-existant, pas
+introduit par ce chantier) efface tous les timers en attente du précédent. `resoudreSequenceDepuisGrammaire`
+retourne toujours l'objet complet (vérifié sur les 22 grammaires) ; la troncature se produit à
+l'exécution si un second clic arrive avant la fin naturelle. `window.__debugRealisateurEnCours`
+rend maintenant cette interruption visible dans la trace (observationnel, aucun verrou ajouté).
 
 ## Pipeline
 
