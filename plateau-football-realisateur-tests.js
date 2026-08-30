@@ -250,6 +250,87 @@ test('les 4 effets valides sont bien atteignables par le selecteur (LOT 15)', fu
   });
 });
 
+// ---- LOT "montage narratif" (30 aout 2026) : tests structurels demandes section 20 ----
+test('narratif : meme seed + meme memoire fraiche => meme arc (determinisme, 300 situations)', function () {
+  const situations = [
+    { microAction: 'circulation', cote: 'home', minute: 10, ecartScore: 0, pressionRecente: 0 },
+    { microAction: 'duel', cote: 'home', minute: 20, ecartScore: 0, pressionRecente: 2 },
+    { microAction: 'frappe', cote: 'away', minute: 30, ecartScore: 1, pressionRecente: 3 },
+    { coupFrancEtape: 'tension', minute: 40 }
+  ];
+  for (let i = 0; i < 300; i++) {
+    const situation = situations[i % situations.length];
+    const a = RealisateurIA.construireArcNarratif({ situation: situation, seed: 'det-arc-' + i, memoire: RealisateurIA.creerMemoireRealisateur() });
+    const b = RealisateurIA.construireArcNarratif({ situation: situation, seed: 'det-arc-' + i, memoire: RealisateurIA.creerMemoireRealisateur() });
+    assert.deepStrictEqual(a.arcPlan, b.arcPlan);
+  }
+});
+test('narratif : aucun evenement canonique invente -- but/carton/blessure canoniques nus ne produisent jamais de beat jouable', function () {
+  ['but', 'carton', 'blessure', 'occasion', 'debut', 'mitemps', 'fin'].forEach(function (type) {
+    for (let i = 0; i < 50; i++) {
+      const r = RealisateurIA.construireArcNarratif({ situation: { canonique: { type: type, joueur: 'Quelquun' }, minute: 30 }, seed: 'canon-' + type + '-' + i, memoire: RealisateurIA.creerMemoireRealisateur() });
+      assert.strictEqual(r.arcPlan.beats.length, 0, type + ' a produit un beat jouable, cf. ' + JSON.stringify(r.arcPlan));
+    }
+  });
+});
+test('narratif : aucun plan ne porte jamais un nom de joueur (auteur canonique jamais invente/reattribue)', function () {
+  const memoire = RealisateurIA.creerMemoireRealisateur();
+  for (let i = 0; i < 500; i++) {
+    const situation = { microAction: ['duel', 'frappe', 'centre', 'course'][i % 4], cote: 'home', minute: i % 45, ecartScore: 0, pressionRecente: i % 4 };
+    const r = RealisateurIA.construireArcNarratif({ situation: situation, seed: 'auteur-' + i, memoire: memoire });
+    r.arcPlan.beats.forEach(function (b) { assert.ok(!b.plan.joueur && !b.plan.auteur, JSON.stringify(b)); });
+  }
+});
+test('narratif : aucune grammaire hors whitelist (gabarit_montage_4/⚔️ compris) n\'apparait jamais dans un arc (2000 situations)', function () {
+  const memoire = RealisateurIA.creerMemoireRealisateur();
+  for (let i = 0; i < 2000; i++) {
+    const situation = { microAction: ['circulation', 'duel', 'frappe', 'centre', 'course', 'interception', 'degagement'][i % 7], cote: 'home', minute: i % 45, ecartScore: 0, pressionRecente: i % 4 };
+    const r = RealisateurIA.construireArcNarratif({ situation: situation, seed: 'whitelist-arc-' + i, memoire: memoire });
+    r.arcPlan.beats.forEach(function (b) {
+      assert.notStrictEqual(b.plan.selectedGrammar, 'gabarit_montage_4');
+      if (!b.plan.isRespiration) {
+        const g = RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.find(function (x) { return x.id === b.plan.selectedGrammar; });
+        assert.ok(g && RealisateurIA.estAutoriseAutomatiquement(g), b.plan.selectedGrammar + ' hors whitelist dans un arc');
+      }
+    });
+  }
+});
+test('narratif : D-E-F reste une unite intacte -- famille COUP_FRANC produit toujours exactement 1 beat, jamais decompose', function () {
+  const memoire = RealisateurIA.creerMemoireRealisateur();
+  ['tension', 'trajectoire'].forEach(function (etape) {
+    for (let i = 0; i < 50; i++) {
+      const r = RealisateurIA.construireArcNarratif({ situation: { coupFrancEtape: etape, minute: 40 }, seed: 'def-' + etape + '-' + i, memoire: memoire });
+      assert.deepStrictEqual(r.arcPlan.arc, ['COUP_FRANC_UNITE']);
+      assert.ok(r.arcPlan.beats.length <= 1);
+    }
+  });
+});
+test('narratif : sequences courtes (<=2 beats) disponibles et frequentes pour les familles non-coup-franc', function () {
+  const memoire = RealisateurIA.creerMemoireRealisateur();
+  let courtes = 0, total = 0;
+  for (let i = 0; i < 1000; i++) {
+    const situation = { microAction: ['circulation', 'duel', 'course', 'interception'][i % 4], cote: 'home', minute: i % 45, ecartScore: 0, pressionRecente: i % 3 };
+    const r = RealisateurIA.construireArcNarratif({ situation: situation, seed: 'court-' + i, memoire: memoire });
+    total++;
+    if (r.arcPlan.arc.length <= 2) courtes++;
+  }
+  assert.ok(courtes / total > 0.5, 'les arcs courts devraient rester majoritaires pour ces familles, observe : ' + courtes + '/' + total);
+});
+test('narratif : robustesse -- situation partielle/inconnue (club/acteur absent) ne fait jamais planter construireArcNarratif', function () {
+  const situationsAtypiques = [
+    { microAction: 'duel' }, // sans cote/minute/ecartScore
+    { microAction: 'frappe', cote: 'club-inconnu-xyz', minute: 999, pressionRecente: 50 },
+    { canonique: { type: 'but' } }, // sans joueur
+    { coupFrancEtape: 'arret', coupFrancResultat: 'arret' }, // sans minute
+    {} // situation totalement vide
+  ];
+  situationsAtypiques.forEach(function (situation, i) {
+    assert.doesNotThrow(function () {
+      RealisateurIA.construireArcNarratif({ situation: situation, seed: 'atypique-' + i, memoire: RealisateurIA.creerMemoireRealisateur() });
+    }, 'situation atypique #' + i + ' a fait planter le monteur : ' + JSON.stringify(situation));
+  });
+});
+
 // ---- LOT 20 : performance ----
 test('performance : le selecteur reste sous 0.05ms/appel en moyenne sur 20000 appels', function () {
   const memoire = RealisateurIA.creerMemoireRealisateur();
