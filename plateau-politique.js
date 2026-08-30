@@ -1681,63 +1681,140 @@ function texteArticleHtml(texte) {
   return escapeHtmlText(nettoyerMarkdownResiduel(texte));
 }
 
-function renderArticleJournal(art) {
-  if (!art) return '';
-  const ville = art.ville ? `<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.1rem">${escapeHtmlText(art.ville)}</div>` : '';
-  const titre = art.titre ? `<h4 style="font-family:'Playfair Display',serif;font-size:.98rem;color:#d8c8a0;margin:0 0 .3rem">${texteArticleHtml(art.titre)}</h4>` : '';
-  const texte = art.texte ? `<p>${texteArticleHtml(art.texte)}</p>` : '';
-  return `<div style="margin-bottom:.9rem">${ville}${titre}${texte}</div>`;
+// =====================
+// LA TRIBUNE DE RÉPUBLIA — identité visuelle (refonte 31 aout 2026, remplace l'ancien rendu
+// sombre/or "Journal du jour"). Résout les images en cherchant le fait/déclaration cité
+// (image.ref_id, déjà validé cote serveur -- voir validerEdition/_journal-generation.js) dans
+// faits_sources.FACTS/PUBLIC_STATEMENTS archivés avec l'édition : photo_url pour un portrait de
+// PJ, club_image pour un lieu (stade). Jamais de générique/fallback avec une image inventée --
+// ces types n'ont simplement pas d'image.
+// =====================
+function construireIndexFaitsJournal(edition) {
+  const index = {};
+  const fs = edition.faits_sources || {};
+  (fs.FACTS || []).forEach(f => { index[f.id] = f; });
+  (fs.PUBLIC_STATEMENTS || []).forEach(s => { index[s.id] = s; });
+  return index;
 }
 
-function renderRubriqueJournal(titreSection, articles) {
-  if (!Array.isArray(articles) || articles.length === 0) return '';
-  const titreHtml = `<div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:1.2rem 0 .5rem;border-bottom:1px solid #2a2010;padding-bottom:.2rem">${escapeHtmlText(titreSection)}</div>`;
-  return titreHtml + articles.map(renderArticleJournal).join('');
+function resoudreImageJournal(image, index) {
+  if (!image || !image.ref_id) return null;
+  const source = index[image.ref_id];
+  if (!source) return null;
+  if (image.type === 'personnage' && source.estPJ && source.photo_url) return source.photo_url;
+  if (image.type === 'lieu' && source.club_image) return source.club_image;
+  return null;
+}
+
+function renderImageJournal(image, index, cls) {
+  const url = resoudreImageJournal(image, index);
+  if (!url) return '';
+  return `<img class="${cls}" src="${escapeHtmlText(url)}" loading="lazy" alt="">`;
+}
+
+function renderArticleJournal(art, index) {
+  if (!art) return '';
+  const image = renderImageJournal(art.image, index, 'tribune-article-image');
+  const ville = art.ville ? `<div class="tribune-article-ville">${escapeHtmlText(art.ville)}</div>` : '';
+  const titre = art.titre ? `<h3 class="tribune-article-titre">${texteArticleHtml(art.titre)}</h3>` : '';
+  const texte = art.texte ? `<p>${texteArticleHtml(art.texte)}</p>` : '';
+  return `<article class="tribune-article">${image}${ville}${titre}${texte}</article>`;
+}
+
+// Regroupe par rubrique dans l'ordre d'APPARITION (jamais une liste fixe de rubriques : une
+// rubrique n'existe que si l'IA a réellement écrit un article dedans, voir §10 du cahier des
+// charges refonte).
+function grouperArticlesParRubrique(articles) {
+  const ordre = [];
+  const parRubrique = {};
+  (articles || []).forEach(art => {
+    const cle = (art && art.rubrique) || 'Actualité';
+    if (!parRubrique[cle]) { parRubrique[cle] = []; ordre.push(cle); }
+    parRubrique[cle].push(art);
+  });
+  return ordre.map(rubrique => ({ rubrique, articles: parRubrique[rubrique] }));
+}
+
+function renderJodieJournal(page) {
+  if (!page || !page.texte) return '';
+  const portrait = page.photo_url ? `<img class="tribune-jodie-portrait" src="${escapeHtmlText(page.photo_url)}" loading="lazy" alt="">` : '';
+  return `<section class="tribune-jodie">
+    <div class="tribune-jodie-label">Un jour, un portrait — par Jodie Moitout</div>
+    ${portrait}
+    <div class="tribune-jodie-nom">${texteArticleHtml(page.nom || '')}</div>
+    <p>${texteArticleHtml(page.texte)}</p>
+  </section>`;
+}
+
+function renderDernierePageJournal(dp) {
+  if (!dp) return '';
+  const blocs = [];
+  if (Array.isArray(dp.indices_economiques) && dp.indices_economiques.length > 0) {
+    const lignes = dp.indices_economiques.map(i =>
+      `<div class="tribune-indice-ligne"><span>${escapeHtmlText(i.ressource)} — ${escapeHtmlText(i.ville || '')}</span><span>${i.prix != null ? i.prix + ' FR' : '—'} · stock ${i.stock}</span></div>`
+    ).join('');
+    blocs.push(`<div class="tribune-derniere-bloc"><h4>Indices</h4>${lignes}</div>`);
+  }
+  if (Array.isArray(dp.carnet) && dp.carnet.length > 0) {
+    blocs.push(`<div class="tribune-derniere-bloc"><h4>Carnet</h4><ul>${dp.carnet.map(t => `<li>${texteArticleHtml(t)}</li>`).join('')}</ul></div>`);
+  }
+  if (Array.isArray(dp.chiens_ecrases) && dp.chiens_ecrases.length > 0) {
+    blocs.push(`<div class="tribune-derniere-bloc"><h4>En bref</h4><ul>${dp.chiens_ecrases.map(t => `<li>${texteArticleHtml(t)}</li>`).join('')}</ul></div>`);
+  }
+  if (Array.isArray(dp.petites_annonces) && dp.petites_annonces.length > 0) {
+    blocs.push(`<div class="tribune-derniere-bloc"><h4>Petites annonces</h4><ul>${dp.petites_annonces.map(t => `<li>${texteArticleHtml(t)}</li>`).join('')}</ul></div>`);
+  }
+  if (blocs.length === 0) return '';
+  return `<section class="tribune-derniere">
+    <div class="tribune-derniere-titre">Dernière page</div>
+    <div class="tribune-derniere-grille">${blocs.join('')}</div>
+  </section>`;
 }
 
 function construireHtmlJournalDuJour(edition) {
-  const co = COUNTRIES[edition.country];
-  const nomPays = escapeHtmlText((co?.n || edition.country || '').toUpperCase());
   const dateFr = escapeHtmlText(formaterDateEditionFr(edition.date_edition));
+  const index = construireIndexFaitsJournal(edition);
 
   const une = edition.une || {};
   const dp = edition.double_page_centrale || {};
   const eco = edition.page_economie_societe || {};
+  const articles = Array.isArray(dp.articles) ? dp.articles : [];
 
-  let html = `<div class="lecture-longue lecture-longue-page" style="padding:.8rem 1rem">`;
-  html += `<div style="font-size:.7rem;color:#6a5a30;margin-bottom:.8rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em">${nomPays} · ${dateFr}</div>`;
+  let html = `<div class="tribune-republia">`;
+  html += `<div class="tribune-fronton">
+    <div class="tribune-fronton-titre">La Tribune de Républia</div>
+    <div class="tribune-fronton-sub">Quotidien national · Édition du ${dateFr}</div>
+  </div>`;
+  html += `<div class="tribune-contenu">`;
 
-  // A/B : Une
-  if (une.titre_principal) {
-    html += `<h2 style="font-family:'Playfair Display',serif;color:#E8D880;margin:0 0 .5rem;font-size:1.3rem">${texteArticleHtml(une.titre_principal)}</h2>`;
-  }
-  if (une.chapeau) {
-    html += `<p style="font-style:italic;color:#c0b090">${texteArticleHtml(une.chapeau)}</p>`;
-  }
+  // Une
+  html += `<section class="tribune-une">`;
+  html += renderImageJournal(une.image, index, 'tribune-une-image');
+  if (une.titre_principal) html += `<h1 class="tribune-une-titre">${texteArticleHtml(une.titre_principal)}</h1>`;
+  if (une.chapeau) html += `<p class="tribune-une-chapeau">${texteArticleHtml(une.chapeau)}</p>`;
   if (Array.isArray(une.accroches) && une.accroches.length > 0) {
-    html += '<ul style="margin:.4rem 0 1rem;padding-left:1.1rem">';
-    une.accroches.forEach(acc => {
-      if (acc && acc.texte) html += `<li>${texteArticleHtml(acc.texte)}</li>`;
-    });
+    html += '<ul class="tribune-une-accroches">';
+    une.accroches.forEach(acc => { if (acc && acc.texte) html += `<li>${texteArticleHtml(acc.texte)}</li>`; });
     html += '</ul>';
   }
+  html += `</section>`;
 
-  // C : Actualités
-  html += renderRubriqueJournal('Villes', dp.villes);
-  html += renderRubriqueJournal('Actualité nationale', dp.nationale);
-  html += renderRubriqueJournal('International', dp.internationale);
+  // Rubriques (nombre et ordre libres, jamais fixés à l'avance)
+  grouperArticlesParRubrique(articles).forEach(({ rubrique, articles: liste }) => {
+    html += `<section class="tribune-rubrique">
+      <div class="tribune-rubrique-titre">${escapeHtmlText(rubrique)}</div>
+      ${liste.map(a => renderArticleJournal(a, index)).join('')}
+    </section>`;
+  });
 
-  // D : Économie & société
-  html += renderRubriqueJournal('Statistiques', eco.statistiques);
-  html += renderRubriqueJournal('Absences notables', eco.absences_notables);
-  const rp = eco.rubrique_pedagogique;
-  if (rp && rp.texte) {
-    html += `<div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin:1.2rem 0 .5rem;border-bottom:1px solid #2a2010;padding-bottom:.2rem">Rubrique pédagogique</div>`;
-    if (rp.titre) html += `<h4 style="font-family:'Playfair Display',serif;font-size:.98rem;color:#d8c8a0;margin:0 0 .3rem">${texteArticleHtml(rp.titre)}</h4>`;
-    html += `<p>${texteArticleHtml(rp.texte)}</p>`;
-  }
+  // Avant-dernière page : interview Jodie Moitout, si disponible (jamais réinventée par l'IA,
+  // texte assemblé côté serveur -- voir _journal-generation.js, assemblerAvantDernierePage()).
+  html += renderJodieJournal(eco.avant_derniere_page);
 
-  html += '</div>';
+  // Dernière page : indices/carnet/chiens écrasés/petites annonces, assemblés côté serveur.
+  html += renderDernierePageJournal(eco.derniere_page);
+
+  html += `</div></div>`;
   return html;
 }
 

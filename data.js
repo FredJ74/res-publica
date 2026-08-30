@@ -205,7 +205,12 @@ const WORLD = {
           roomOverrides: {
             accueil_tribune: {
               orders: [
-                {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:0, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + bois en stock personnel.'}
+                {fn:'imprimer_tracts_calomnieux', label:'Imprimer des tracts calomnieux', pa:1, cost:0, type:'illegal', icon:'ti-eye-off', successRate:100, desc:'Choisir une cible (répertoire). Campagne mensongère clandestine. Produit un lot de 10 tracts calomnieux. Coût : 1 PA + bois en stock personnel.'},
+                // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : gere en
+                // dehors du pipeline PA/argent generique (doOrder), voir ouvrirFormulairePetiteAnnonce
+                // (plateau-communication.js) -- cost:0 ici, le debit reel (30 FR) et la verification
+                // "une annonce active a la fois" ont lieu dans ce flux dedie, jamais dans un jet.
+                {fn:'deposer_petite_annonce', label:'Déposer une petite annonce', pa:1, cost:0, type:'legal', icon:'ti-ad', successRate:100, desc:"30 FR pour une parution de 3 jours dans La Tribune de Républia. Une seule annonce active à la fois."}
               ]
             }
           }
@@ -406,7 +411,16 @@ const WORLD = {
             bureau_prestige: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-bureau-prestige.png" },
             bureau_standard: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-bureau-standard.png" },
             open_space:      { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-open-space.png" },
-            tribune_republia: { imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-tribune-republia.png" }
+            tribune_republia: {
+              imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-tribune-republia.png",
+              // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : additif au
+              // template partage BUILDINGS['centre-affaires'].rooms.tribune_republia (produire_fuite/
+              // interview/article, inchanges) -- scope Republic uniquement (WORLD.republic.ville_a),
+              // jamais narco/soviet/khalija qui partagent pourtant le meme buildingId.
+              orders: [
+                {fn:'deposer_petite_annonce', label:'Déposer une petite annonce', pa:1, cost:0, type:'legal', icon:'ti-ad', successRate:100, desc:"30 FR pour une parution de 3 jours dans La Tribune de Républia. Une seule annonce active à la fois."}
+              ]
+            }
           },
           // Annexe du Bureau National de l'Emploi, propre a PSM (voir roomsExtra,
           // plateau-navigation.js). Simple salle, pas de mecanique dediee pour l'instant.
@@ -727,7 +741,14 @@ const WORLD = {
             // Antenne locale de La Tribune de Republia (pas L'Autruche Entravee, un autre
             // journal) : image seule, aucune salle/ordre/PNJ ajoute, roomId deja existant
             // et unique dans tout le depot (seul le template generique le definit).
-            tribune_republia: { imageUrl: "images/montrouge/tribune-redaction.jpg" }
+            tribune_republia: {
+              imageUrl: "images/montrouge/tribune-redaction.jpg",
+              // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : meme ajout
+              // additif que PSM ci-dessus (WORLD.republic.ville_b), meme raison.
+              orders: [
+                {fn:'deposer_petite_annonce', label:'Déposer une petite annonce', pa:1, cost:0, type:'legal', icon:'ti-ad', successRate:100, desc:"30 FR pour une parution de 3 jours dans La Tribune de Républia. Une seule annonce active à la fois."}
+              ]
+            }
           },
           roomsExtra: {
             bureau_emploi_annexe: {

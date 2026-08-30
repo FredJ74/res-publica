@@ -1559,6 +1559,39 @@ async function sbGetToutesLesNaissances(country) {
   return rows || [];
 }
 
+// =====================
+// PETITES ANNONCES — La Tribune de Republia (chantier "refonte Journal du jour", 31 aout 2026).
+// Table dediee (petites_annonces, migration executee manuellement par Fred). Expiration TOUJOURS
+// sur expire_at (horodatage reel), jamais sur state.day -- meme doctrine que le Journal lui-meme
+// (state.day est personnel/non fiable comme horloge partagee). "statut" ne prend que 2 valeurs
+// utiles cote app : 'active' (deposee, non retiree) ou 'retiree' (retrait volontaire, sans
+// remboursement) -- une annonce 'active' mais expiree (expire_at depasse) n'est simplement plus
+// comptee comme valide par ces requetes, aucun cron de nettoyage necessaire.
+async function sbGetAnnonceActiveDuJoueur(nom) {
+  const nowIso = new Date().toISOString();
+  const rows = await sbGet('petites_annonces',
+    `auteur=eq.${encodeURIComponent(nom)}&statut=eq.active&expire_at=gt.${encodeURIComponent(nowIso)}&order=created_at.desc&limit=1`).catch(() => null);
+  return (rows && rows[0]) || null;
+}
+
+async function sbDeposerPetiteAnnonce(nom, pays, ville, categorie, texte, dureeJours, coutPaye) {
+  const maintenant = new Date();
+  const expire = new Date(maintenant.getTime() + dureeJours * 24 * 60 * 60 * 1000);
+  const res = await sbInsert('petites_annonces', {
+    id: 'annonce-' + Date.now() + '-' + Math.floor(Math.random() * 1e6),
+    country: pays, ville_depot: ville || 'capitale', auteur: nom,
+    categorie: categorie || null, texte,
+    cout_paye: coutPaye, duree_jours: dureeJours,
+    expire_at: expire.toISOString(), statut: 'active'
+  }).catch(() => null);
+  return !!res;
+}
+
+async function sbRetirerPetiteAnnonce(id) {
+  const res = await sbUpdate('petites_annonces', `id=eq.${encodeURIComponent(id)}`, { statut: 'retiree' }).catch(() => null);
+  return !!res;
+}
+
 async function sbGetGuerresPays(pays) {
   const rows = await sbGet('guerres', 'statut=neq.terminee&select=id,data');
   if (!rows) return [];

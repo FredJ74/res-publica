@@ -86,6 +86,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     return;
   }
   if (fn === 'compte_offshore') { ouvrirGestionHelvetia(pa, cost); return; }
+  // Petites annonces (La Tribune de Republia, 31 aout 2026) : flux dedie (voir
+  // ouvrirFormulairePetiteAnnonce, plateau-communication.js) -- jamais le pipeline PA/argent
+  // generique ci-dessous, la verification "une annonce active a la fois" doit avoir lieu AVANT
+  // tout debit, cost:0 declare dans data.js pour cette raison.
+  if (fn === 'deposer_petite_annonce') { ouvrirFormulairePetiteAnnonce(); return; }
   if (fn === 'blanchiment' || fn === 'societe_ecran') {
     showToast('Service à l\'étude', 'Ce service Helvetia n\'est pas encore disponible.', false);
     return;

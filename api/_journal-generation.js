@@ -1,16 +1,36 @@
 // =====================
-// JOURNAL DU JOUR — LOT B : GÉNÉRATION IA + VALIDATION DÉTERMINISTE + PUBLICATION
+// LA TRIBUNE DE RÉPUBLIA — LOT B : GÉNÉRATION IA + VALIDATION DÉTERMINISTE + PUBLICATION
 // =====================
-// Module serveur interne, PAS un endpoint Vercel (préfixe "_", même convention que
+// Module serveur interne, PAS un endpoint Vercel (prefixe "_", même convention que
 // _journal-collecte.js, Lot A). Orchestré depuis api/cron-minuit.js, en toute dernière étape,
 // dans son propre try/catch — jamais appelé par le navigateur du joueur.
 //
-// Consomme _journal-collecte.js (Lot A) tel quel, SANS AUCUNE MODIFICATION de ce fichier.
+// Consomme _journal-collecte.js (Lot A) tel quel.
 //
-// Doctrine éditoriale absolue : « Le journal peut interpréter les faits à sa façon. Il ne peut
-// pas inventer les faits. » Toute violation détectable déterministiquement (voir validerEdition)
-// invalide l'édition ENTIÈRE — jamais de publication partielle, jamais de suppression silencieuse
-// du seul bloc fautif (décision explicitement validée).
+// Doctrine éditoriale absolue, inchangée par la refonte : « Le journal peut interpréter les faits
+// à sa façon. Il ne peut pas inventer les faits. » Toute violation détectable déterministiquement
+// (voir validerEdition) invalide l'édition ENTIÈRE — jamais de publication partielle.
+//
+// REFONTE (31 aout 2026, "La Tribune de Republia") — ce que ce lot change par rapport à l'ancien
+// Journal du jour, et pourquoi (voir audit complet de la même date pour le détail) :
+//   1. Une PJ obligatoire : si le paquet contient ne serait-ce qu'un fait/déclaration estPJ:true
+//      (n'importe quel poids, même "mineur" — décision explicite, 31 aout 2026 : le poids choisit
+//      la MEILLEURE actualité PJ, il n'autorise jamais une actualité non-PJ à prendre la Une), la
+//      Une DOIT s'ancrer sur une source PJ — voir hasPJMaterial() et la vérification dédiée dans
+//      validerEdition(). Sinon (aucune matière PJ du tout), la Une reste libre (y compris "journée
+//      calme"), jamais fabriquée artificiellement.
+//   2. Schéma de sortie radicalement allégé : l'IA ne produit plus que "une" + "articles" (liste
+//      plate, rubrique libre). La "dernière page" (indices économiques, carnet, chiens écrasés) et
+//      l'interview de Jodie Moitout sont assemblées ICI, par du code déterministe, JAMAIS par
+//      l'IA : zéro risque d'invention sur ces sections, zéro appel IA supplémentaire (voir §20 du
+//      cahier des charges : un seul appel IA par pays et par jour, non négociable).
+//   3. Économie ordinaire : les indicateurs prix/stock bruts ne sont plus envoyés à l'IA du tout
+//      (seuls les événements "economie_remarquable" qualifiés par le Lot A le sont) — l'IA ne peut
+//      donc plus transformer un stock banal en article, par construction, pas par consigne.
+//   4. Mécanisme "absence = actualité" supprimé : plus aucune fabrication de "zéro naissance,
+//      pour la Neme édition consécutive" (voir Lot A, calculerComparaisons entièrement retiré).
+//
+// import { genererToutesLesEditions } from './_journal-generation.js';
 
 import {
   determinerPaysEligibles,
@@ -52,12 +72,8 @@ async function sbUpdate(table, filtre, data) {
   return { ok: true };
 }
 
-const PROMPT_VERSION = 'v1';
+const PROMPT_VERSION = 'v2-la-tribune';
 
-// Fuseau éditorial par pays (nom IANA explicite, jamais un décalage fixe — l'heure d'été/hiver
-// est gérée nativement par Intl). Les 4 pays pointent aujourd'hui vers la même valeur ; cette
-// table (plutôt qu'une constante unique) laisse la porte ouverte à une convention distincte par
-// pays plus tard, sans réécrire le mécanisme.
 const TIMEZONE_PAR_PAYS = {
   republic: 'Europe/Paris',
   narco: 'Europe/Paris',
@@ -65,105 +81,52 @@ const TIMEZONE_PAR_PAYS = {
   khalija: 'Europe/Paris'
 };
 
-// Noms lisibles par pays (18 aout 2026, hierarchie geographique) -- duplique de COUNTRIES
-// (data.js), meme convention d'isolation serveur que le reste de ce module. Utilise uniquement
-// pour nommer le pays dans le prompt -- n'affecte jamais l'identifiant technique "pays".
 const NOMS_PAYS = {
-  republic: 'Republia',
+  republic: 'Républia',
   narco: 'El Estado',
   soviet: 'Sovarka',
   khalija: 'Al-Khalija'
 };
 
-// Budget interne par appel Anthropic (indépendant du maxDuration global du cron, 120s) : assez
-// large pour une génération normale de 4 pages, assez borné pour qu'un pays lent ne puisse
-// jamais, même avec les 4 pays en parallèle (Promise.allSettled), épuiser le budget des tâches
-// déjà exécutées avant le Journal dans le cron. Point de départ 60s (18 août 2026) après mesure
-// réelle : le paquet non compacté de Républia (85 indicateurs prix/stock) dépassait déjà 30s
-// sans même parler de sortie complète — voir construireAiInput ci-dessous pour la compaction
-// qui vise justement à ne pas avoir besoin d'aller plus loin que cette valeur.
+// Budget interne par appel Anthropic (indépendant du maxDuration global du cron, 120s).
 const ANTHROPIC_TIMEOUT_MS = 60000;
-const ANTHROPIC_MODEL = 'claude-sonnet-4-5'; // cohérent avec tous les appels IA déjà existants du projet (api/chat.js et ses appelants)
+const ANTHROPIC_MODEL = 'claude-sonnet-4-5'; // cohérent avec tous les appels IA existants du projet
 
 function dateEditionPourPays(pays, momentDate) {
   const tz = TIMEZONE_PAR_PAYS[pays] || 'Europe/Paris';
   const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' });
-  return fmt.format(momentDate); // locale 'en-CA' -> format YYYY-MM-DD directement
+  return fmt.format(momentDate);
 }
 
 // =====================
-// COMPACTION DU PAQUET ENVOYÉ À L'IA — 100% déterministe, aucune perte d'information.
+// CONSTRUCTION DE L'ENTRÉE IA — allégée par rapport à l'ancien Journal (voir en-tête de fichier,
+// point 3) : les indicateurs économiques ordinaires ne sont PLUS transmis du tout ; seuls les
+// FACTS "economie_remarquable" qualifiés par le Lot A (pénurie, rupture, variation forte, caisse
+// dans le rouge) peuvent devenir un article. Les indicateurs population/classement restent
+// transmis : un franchissement de seuil démographique ou une place au classement restent des
+// informations légitimes, jamais un prétexte à "réciter une base de données".
 // =====================
-// Le paquet complet du Lot A (_journal-collecte.js, INCHANGÉ) reste la source d'archive/
-// historique/comparaisons — voir genererEditionPays plus bas, faits_sources conserve toujours
-// le paquet Lot A intact à sa racine. AI_INPUT est un DEUXIÈME niveau, dérivé du premier par
-// pure restructuration de FORME (regroupement par ville/bâtiment, suppression de clés
-// redondantes), jamais un résumé interprétatif : chaque prix, chaque stock, chaque identifiant
-// source reste présent, seulement organisé différemment. Motif mesuré en production (18 août
-// 2026) : le paquet plat de Républia (85 indicateurs prix/stock, un objet verbeux par valeur)
-// dépassait 30s de traitement côté Anthropic avant même de générer la moindre sortie.
 function construireAiInput(paquet, dateEdition) {
-  const nonEco = [];
-  const ecoParVille = {};
-
-  (paquet.INDICATORS || []).forEach(ind => {
-    const cle = ind.cle || '';
-    const estPrix = cle.indexOf('prix_') === 0 && ind.disponible === true && ind.ville;
-    const estStock = cle.indexOf('stock_') === 0 && ind.disponible === true && ind.ville;
-    if (!estPrix && !estStock) { nonEco.push(ind); return; }
-    const ville = ind.ville;
-    const ressource = cle.replace(/^prix_|^stock_/, '');
-    ecoParVille[ville] = ecoParVille[ville] || {};
-    ecoParVille[ville][ressource] = ecoParVille[ville][ressource] || { ressource };
-    if (estPrix) {
-      ecoParVille[ville][ressource].prix = ind.valeur;
-      ecoParVille[ville][ressource].prix_id = ind.id;
-      if (ind.prix_manuel === true) ecoParVille[ville][ressource].prix_manuel = true;
-    } else {
-      ecoParVille[ville][ressource].stock = ind.valeur;
-      ecoParVille[ville][ressource].stock_id = ind.id;
-    }
-  });
-
-  const INDICATORS_ECO_PAR_VILLE = Object.keys(ecoParVille).map(ville => ({
-    ville,
-    ressources: Object.values(ecoParVille[ville])
-  }));
-
+  const indicateursPertinents = (paquet.INDICATORS || []).filter(i =>
+    i.cle === 'population_totale' || i.cle === 'population_par_ville' || i.cle === 'classement_clubs_nationaux'
+  );
   return {
-    // Pays cible et date humaine officielle du numero (18 aout 2026, hierarchie geographique +
-    // correctif de date) : deja calcules par genererEditionPays, jamais recalcules ici -- paquet.country
-    // vient du Lot A (INCHANGE), dateEdition vient de dateEditionPourPays (Lot B). Ces deux champs
-    // etaient auparavant silencieusement perdus lors de la compaction -- c'est ce qui permettait
-    // a un fait etranger de devenir la Une, et a l'IA de citer la date UTC brute de "periode.fin"
-    // au lieu de la date civile reelle du numero.
     country: paquet.country,
     date_edition: dateEdition,
     periode: paquet.periode,
     FACTS: paquet.FACTS,
     PUBLIC_STATEMENTS: paquet.PUBLIC_STATEMENTS,
-    INDICATORS: nonEco,
-    INDICATORS_ECO_PAR_VILLE,
-    COMPARISONS: paquet.COMPARISONS,
-    EDUCATIONAL_REFERENCE: paquet.EDUCATIONAL_REFERENCE
+    INDICATORS: indicateursPertinents
   };
 }
 
-// Index id -> {disponible, valeur, extrait, ...} construit à partir de EXACTEMENT ce qui a été
-// envoyé à l'IA (aiInput) — jamais à partir du paquet complet Lot A. C'est la garantie demandée :
-// un source_id n'est validé que s'il était réellement accessible dans ce que l'IA a reçu.
+// Index id -> fait/déclaration/indicateur, construit à partir d'EXACTEMENT ce qui a été envoyé à
+// l'IA (aiInput) — jamais à partir du paquet complet Lot A.
 function indexerAiInput(aiInput) {
   const index = {};
   (aiInput.FACTS || []).forEach(f => { index[f.id] = f; });
   (aiInput.PUBLIC_STATEMENTS || []).forEach(s => { index[s.id] = s; });
   (aiInput.INDICATORS || []).forEach(i => { index[i.id] = i; });
-  (aiInput.COMPARISONS || []).forEach(c => { index[c.id] = c; });
-  (aiInput.INDICATORS_ECO_PAR_VILLE || []).forEach(bloc => {
-    (bloc.ressources || []).forEach(r => {
-      if (r.prix_id) index[r.prix_id] = { id: r.prix_id, disponible: true, valeur: r.prix, ville: bloc.ville };
-      if (r.stock_id) index[r.stock_id] = { id: r.stock_id, disponible: true, valeur: r.stock, ville: bloc.ville };
-    });
-  });
   return index;
 }
 
@@ -174,72 +137,75 @@ const SCHEMA_JSON_TEXTE = `{
   "une": {
     "titre_principal": "string",
     "chapeau": "string",
-    "article_principal_ref": "string|null (id d'un article existant et domestique ; null si la Une n'est ancrée sur aucun article précis, ex. journée calme)",
+    "article_principal_ref": "string|null (id d'un article existant et domestique ; null UNIQUEMENT si aucune matière PJ n'existe nulle part dans le paquet, voir règle de Une)",
     "accroches": [ { "texte": "string", "article_ref": "string (id d'un article existant et domestique)" } ],
     "image": { "type": "personnage|lieu|generique|fallback", "ref_id": "string|null" }
   },
-  "double_page_centrale": {
-    "villes": [ article ],
-    "nationale": [ article ],
-    "internationale": [ article ]
-  },
-  "page_economie_societe": {
-    "statistiques": [ article ],
-    "absences_notables": [ article ],
-    "rubrique_pedagogique": { "fiche_id": "string|null", "titre": "string|null", "texte": "string|null" }
-  }
-}
-// article = { "id": "string", "type": "actualite|declaration|statistique|absence_remarquable",
-//   "titre": "string", "texte": "string", "ville": "string|null", "pays_source": "string|null",
-//   "source_ids": ["string", ...] }`;
+  "articles": [
+    {
+      "id": "string",
+      "rubrique": "string (libre : Politique, Justice, Société, Économie, Sport, Vie locale, International, ou toute autre étiquette pertinente — n'en crée que si tu as un article à y mettre)",
+      "type": "actualite|declaration",
+      "titre": "string",
+      "texte": "string",
+      "ville": "string|null",
+      "pays_source": "string|null",
+      "source_ids": ["string", ...],
+      "image": { "type": "personnage|lieu|generique|fallback", "ref_id": "string|null" }
+    }
+  ]
+}`;
 
-function construirePromptSysteme(pays, dateEdition) {
+function construirePromptSysteme(pays, dateEdition, hasPJMaterial) {
   const nomPays = NOMS_PAYS[pays] || pays;
-  return `Tu es la rédaction du "Journal du jour" de ${nomPays}, un quotidien national fictif du jeu Res Publica.
+  return `Tu es la rédaction de "La Tribune de ${nomPays}", le quotidien national de ${nomPays}, un pays fictif du jeu Res Publica.
 
-Cette édition porte la date du ${dateEdition} — c'est la date humaine officielle de ce numéro, celle que le lecteur voit. Les données "periode" (debut/fin) fournies plus bas sont des bornes techniques réelles qui peuvent parler d'un instant légèrement différent : tu peux évoquer "les dernières 24 heures", "la veille", "la période écoulée", mais tu ne dois JAMAIS présenter une autre date civile que le ${dateEdition} comme étant "la journée" ou la date de ce numéro.
+Cette édition porte la date du ${dateEdition} — c'est la date humaine officielle de ce numéro. Les données "periode" (debut/fin) sont des bornes techniques réelles qui peuvent parler d'un instant légèrement différent : tu peux évoquer "les dernières 24 heures", "la veille", mais ne présente jamais une autre date civile que le ${dateEdition} comme étant celle de ce numéro.
 
-RÈGLE ABSOLUE, NON NÉGOCIABLE : « Tu peux interpréter les faits à ta façon. Tu ne peux JAMAIS inventer les faits. »
+PRINCIPE ÉDITORIAL FONDAMENTAL : « Le journal doit raconter ce qui s'est passé dans Res Publica, pas réciter l'état de ses bases de données. » Un fait mérite un article parce qu'il s'est PASSÉ quelque chose, jamais parce qu'un chiffre existe.
 
-Tu reçois un paquet de données structurées (FACTS, PUBLIC_STATEMENTS, INDICATORS, COMPARISONS, EDUCATIONAL_REFERENCE). C'est la SEULE réalité que tu connais. N'utilise jamais une connaissance générale du monde réel, ni des mécaniques de jeu, au-delà de ce paquet.
+RÈGLE ABSOLUE, NON NÉGOCIABLE : « Tu peux interpréter les faits à ta façon. Tu ne peux JAMAIS inventer les faits. » Tu reçois un paquet de données structurées (FACTS, PUBLIC_STATEMENTS, INDICATORS). C'est la SEULE réalité que tu connais. N'utilise jamais une connaissance générale du monde réel au-delà de ce paquet.
 
-TU PEUX : hiérarchiser l'information, choisir un angle, commenter, ironiser, adopter un ton partisan ou de mauvaise foi, dramatiser prudemment (jamais présenter une causalité comme certaine si elle n'est pas prouvée par les données), rapprocher plusieurs faits réellement présents dans le paquet.
+TU PEUX : hiérarchiser l'information, choisir un angle, commenter, ironiser, adopter un ton partisan ou de mauvaise foi, dramatiser prudemment (jamais présenter une causalité comme certaine si elle n'est pas prouvée), rapprocher plusieurs faits réellement présents dans le paquet.
 
-TU NE PEUX JAMAIS : inventer un événement, une personne, une déclaration, une citation, un chiffre, une transaction, une causalité certaine non démontrée, une comparaison/série historique non fournie, ou une règle de fonctionnement du jeu. Si les données sont pauvres, écris PLUS COURT — ne remplis jamais artificiellement une rubrique. Une rubrique peut légitimement être courte ou signaler qu'il ne s'est rien passé.
+TU NE PEUX JAMAIS : inventer un événement, une personne, une déclaration, une citation, un chiffre, une causalité certaine non démontrée. Si les données sont pauvres, écris PLUS COURT — une édition honnête et courte vaut toujours mieux qu'une édition remplie artificiellement. Ne produis un article ou une rubrique QUE s'il existe un contenu réel derrière : ne crée jamais de rubrique pour combler un vide.
 
-HIÉRARCHIE GÉOGRAPHIQUE : ce journal est celui de ${nomPays} (pays "${pays}"). Pour la Une (titre principal ET accroches), la rubrique "villes" et la rubrique "nationale" : priorité ABSOLUE aux faits, déclarations et indicateurs dont le champ "pays"/"pays_source" correspond à "${pays}". Une information provenant d'un autre pays peut alimenter UNIQUEMENT la rubrique "internationale", présentée clairement comme étrangère ("à l'étranger...", "dans tel autre pays..."). Elle ne doit JAMAIS devenir le titre principal de la Une, ni une accroche de Une — même si l'actualité intérieure est pauvre ce jour-là. Ne cherche jamais à combler un manque d'actualité domestique en promouvant un sujet étranger au rang de sujet principal.
+RÈGLE DE UNE — « Les personnages de Res Publica font l'actualité de Res Publica » (règle STRICTE, non négociable) :
+${hasPJMaterial
+    ? `Chaque fait et chaque déclaration du paquet porte un champ "estPJ". Il existe dans ce paquet AU MOINS un fait ou une déclaration impliquant un personnage joueur (PJ) — QUEL QUE SOIT SON POIDS, même "mineur". La grande Une (titre_principal, chapeau, article_principal_ref) DOIT donc s'ancrer sur un fait ou une déclaration où estPJ vaut true : ce n'est pas une préférence, c'est une obligation dès qu'une seule matière PJ existe, aussi mince soit-elle. Le champ "poids" ne sert QU'À choisir la MEILLEURE actualité PJ disponible parmi celles qui existent — il ne t'autorise jamais à laisser une actualité automatique ou non-PJ (un stock, un indicateur, un fait purement institutionnel sans PJ) prendre la Une à la place d'un fait PJ, même si ce fait PJ te semble mineur en comparaison. Un PJ peut faire la Une pour n'importe quelle raison : victorieux, humilié, arrêté, accusé, soupçonné, controversé, victime, auteur d'un exploit ou d'un scandale, ou même simplement un événement ordinaire qui le concerne s'il n'y a rien de plus fort — la Une n'est PAS un tableau d'honneur. Ne fabrique jamais un événement PJ qui n'existe pas dans le paquet : choisis parmi ceux qui existent réellement, aussi modestes soient-ils.`
+    : `Aucun fait ni déclaration impliquant un personnage joueur n'existe nulle part dans ce paquet pour cette période (aucun "estPJ":true, à aucun poids). C'est SEULEMENT dans ce cas que la Une reste libre : un fait national notable, ou une Une "journée calme" honnête (article_principal_ref:null) si rien de notable ne s'est produit. Ne fabrique jamais un événement PJ qui n'existe pas.`}
 
-JOURNÉE CALME : si aucune actualité domestique notable n'existe, assume-le honnêtement plutôt que d'importer un sujet étranger pour la Une. « Pas d'information » est aussi une information : une Une du type "Journée calme à ${nomPays}" est parfaitement légitime, avec "article_principal_ref":null si elle ne s'appuie sur aucun article précis. Les INDICATORS/COMPARISONS peuvent enrichir cette Une lorsqu'ils apportent réellement quelque chose de pertinent, mais ne sont JAMAIS obligatoires pour la justifier — tu n'es pas tenu de fabriquer un sujet principal à partir d'un indicateur économique juste pour remplir la Une. Une information étrangère intéressante reste toujours possible dans "internationale", quel que soit le calme du jour.
+PRIORITÉ ÉDITORIALE GÉNÉRALE (à l'intérieur de ce cadre, c'est toi qui hiérarchises) :
+1. événements significatifs impliquant des PJ (champ "estPJ":true, poids "important" ou "majeur") ;
+2. événements nationaux importants ;
+3. événements locaux significatifs ;
+4. informations institutionnelles, sociales, économiques ou sportives réellement notables (déjà pré-qualifiées "economie_remarquable" ou "performance_sportive" par le système — les indicateurs économiques ordinaires ne te sont volontairement PAS transmis, ils n'ont pas leur place ici) ;
+5. informations secondaires.
+Le champ "poids" (mineur/secondaire/important/majeur) sur chaque fait reflète déjà cette hiérarchie telle que le système la calcule — sers-t'en, mais l'angle et la mise en récit restent les tiens.
 
-FAITS vs DÉCLARATIONS : FACTS est établi par le système lui-même. PUBLIC_STATEMENTS prouve seulement que son auteur a publiquement écrit quelque chose — JAMAIS que c'est vrai. Tout contenu tiré de PUBLIC_STATEMENTS doit être attribué explicitement à son auteur avec un verbe déclaratif ("X affirme...", "X accuse...", "X annonce..."), jamais présenté comme un fait acquis.
+DIVERSITÉ DES PJ EXPOSÉS : certains faits portent "expositionRecente":true (le même PJ a déjà eu un article "majeur" dans une des 2 dernières éditions). La vérité factuelle reste toujours prioritaire — si ce PJ produit réellement le plus gros événement aujourd'hui encore, il peut refaire la Une. Mais à intérêt éditorial comparable entre deux sujets secondaires, préfère celui qui n'a pas "expositionRecente":true.
 
-CITATIONS : n'utilise JAMAIS de guillemets (« » ou " ") sauf pour reproduire une sous-chaîne du champ "extrait" d'un PUBLIC_STATEMENT que tu cites en source, CARACTÈRE POUR CARACTÈRE — même casse (y compris la toute première lettre de la citation), mêmes accents, même ponctuation, sans aucun ajout ni suppression, et SANS JAMAIS corriger une faute d'orthographe, de frappe ou d'accent présente dans l'original, même si tu es certain qu'il s'agit d'une coquille. Une citation entre guillemets n'est jamais "améliorée" : soit elle est recopiée à l'identique, caractère pour caractère, soit ce n'est pas une citation. Si tu veux reformuler, résumer, adapter la casse pour l'intégrer dans ta phrase, ou corriger une coquille apparente : fais-le SANS guillemets, en paraphrase attribuée ("X affirme que...", sans guillemets).
+FOOTBALL — PERFORMANCES INDIVIDUELLES : un fait "performance_sportive" indique le nombre de buts ("buts") inscrits par un même joueur dans un même match, déjà agrégé. 1 but est une information sportive mineure ; 2 buts (doublé) sont plus notables ; 3 buts (triplé) ou plus sont un événement sportif majeur, a fortiori si "estPJ" vaut true — un tel fait peut légitimement devenir la Une.
 
-CHIFFRES : dans un bloc de type "statistique", le chiffre écrit doit être la valeur EXACTE de l'unique indicateur cité, recopiée telle quelle dans le texte. N'utilise JAMAIS un indicateur dont "disponible" vaut false comme s'il te donnait une valeur connue — "indisponible" ne signifie jamais "zéro" ou "aucun".
+HIÉRARCHIE GÉOGRAPHIQUE : ce journal est celui de ${nomPays} (pays "${pays}"). Pour la Une et tout article dont la "rubrique" n'est pas explicitement internationale : priorité ABSOLUE aux faits dont le pays correspond à "${pays}". Une information étrangère va UNIQUEMENT dans un article de rubrique internationale, présentée clairement comme telle. Elle ne peut JAMAIS devenir le titre principal de la Une ni une accroche, même si l'actualité intérieure est pauvre.
 
-ABSENCES ET COMPARAISONS : tu ne peux écrire "aucun/aucune...", "pour la Xème fois consécutive", "en hausse/baisse par rapport à..." QUE si une entrée COMPARISONS te le fournit déjà calculée — tu ne calcules jamais toi-même une série ou une tendance historique. Un bloc "absence_remarquable" doit citer exactement une comparaison.
+FAITS vs DÉCLARATIONS : FACTS est établi par le système lui-même. PUBLIC_STATEMENTS prouve seulement que son auteur a publiquement écrit quelque chose — JAMAIS que c'est vrai. Tout article de type "declaration" doit attribuer explicitement le contenu à son auteur avec un verbe déclaratif ("X affirme...", "X accuse..."), jamais le présenter comme un fait acquis. Une rumeur reste une rumeur : "selon une rumeur...", "une rumeur met en cause...", jamais présentée comme un fait établi. Si un PJ a publiquement répondu à une rumeur ou une accusation le concernant (present aussi dans PUBLIC_STATEMENTS), cette réponse est elle-même une information légitime, à attribuer de la même façon.
 
-RUBRIQUE PÉDAGOGIQUE : ne produis du contenu dans "rubrique_pedagogique" QUE si EDUCATIONAL_REFERENCE.fiche_id n'est pas null — vulgarise alors "contenu_valide" dans ton ton éditorial, sans ajouter la moindre information technique de ton cru. Si EDUCATIONAL_REFERENCE.fiche_id est null, "rubrique_pedagogique" doit être exactement {"fiche_id":null,"titre":null,"texte":null}.
+CITATIONS : n'utilise JAMAIS de guillemets sauf pour reproduire une sous-chaîne du champ "extrait" d'un PUBLIC_STATEMENT cité en source, CARACTÈRE POUR CARACTÈRE, sans aucune correction. Si tu veux reformuler ou résumer, fais-le sans guillemets, en paraphrase attribuée.
 
-IMAGE DE UNE : choisis "type":"personnage" ou "lieu" UNIQUEMENT si "ref_id" correspond à une entité réellement nommée dans une source que tu cites en Une. Le type "organisation" est actuellement INTERDIT (aucune source fiable n'existe). Sinon utilise "generique" ou "fallback", avec "ref_id":null.
+TRAÇABILITÉ OBLIGATOIRE ET COMPLÈTE : chaque article doit avoir "source_ids" non vide, contenant UNIQUEMENT des identifiants qui existent réellement dans le paquet fourni, et TOUS les identifiants réellement utilisés dans le texte (pas seulement celui qui a inspiré le titre).
 
-TRAÇABILITÉ OBLIGATOIRE : chaque article (type "actualite", "declaration", "statistique" ou "absence_remarquable") doit avoir "source_ids" non vide, contenant UNIQUEMENT des identifiants qui existent réellement dans le paquet fourni — jamais un identifiant inventé, jamais un identifiant approximatif. Un bloc "statistique" cite exactement un identifiant "indicateur:...". Un bloc "absence_remarquable" cite exactement un identifiant "comparaison:...".
-
-TRAÇABILITÉ COMPLÈTE, PAS SEULEMENT PARTIELLE : "source_ids" doit contenir l'identifiant de CHAQUE fait, déclaration, indicateur ou comparaison que tu utilises RÉELLEMENT dans le texte de l'article — pas seulement celui qui a inspiré le titre. Si un article mentionne plusieurs faits (par exemple une déclaration ET un chiffre économique, ou plusieurs événements), TOUS leurs identifiants doivent apparaître dans "source_ids". N'utilise jamais, même dans une phrase secondaire ou une remarque en passant, un fait ou un chiffre du paquet sans citer son identifiant correspondant.
-
-INDICATEURS ÉCONOMIQUES REGROUPÉS : les prix et stocks de matières premières te sont fournis dans "INDICATORS_ECO_PAR_VILLE" (un bloc par ville, une entrée par ressource avec son prix actuel et son stock actuel) plutôt qu'en longue liste plate — c'est la même donnée, seulement regroupée. Chaque valeur y porte son propre identifiant ("prix_id"/"stock_id", même format "indicateur:...") : cite-le exactement comme n'importe quel autre identifiant "indicateur:..." dans "source_ids".
+IMAGES : choisis "type":"personnage" UNIQUEMENT si "ref_id" est l'identifiant (déjà présent dans tes "source_ids") d'un fait ou d'une déclaration où "estPJ" vaut true — ce sera alors le portrait de ce PJ. Choisis "type":"lieu" UNIQUEMENT si "ref_id" est l'identifiant d'un fait de football déjà cité (ce sera l'image du stade concerné). Sinon utilise "generique" ou "fallback", avec "ref_id":null. N'invente jamais un ref_id qui ne serait pas déjà dans tes source_ids.
 
 FORMAT DE SORTIE STRICT — réponds UNIQUEMENT avec un objet JSON valide respectant EXACTEMENT ce schéma, sans aucun texte avant/après, sans balises markdown, sans commentaire :
 ${SCHEMA_JSON_TEXTE}
 
-Toute violation de ces règles rendra l'édition entière rejetée et non publiée. Une édition honnête et courte vaut toujours mieux qu'une édition inventée ou remplie artificiellement.`;
+Toute violation de ces règles rendra l'édition entière rejetée et non publiée.`;
 }
 
 // =====================
-// APPEL ANTHROPIC — direct, jamais via api/chat.js (ce proxy existe pour le navigateur, pas
-// pour un appel serveur-à-serveur). Clé jamais loggée, jamais stockée dans journal_editions.
-// Préremplissage de la réponse par "{" (technique standard Anthropic) pour maximiser la fiabilité
-// du JSON, avec repli défensif (retrait d'éventuelles balises markdown) avant parsing.
+// APPEL ANTHROPIC — direct, jamais via api/chat.js. Préremplissage de la réponse par "{" pour
+// maximiser la fiabilité du JSON, avec repli défensif avant parsing.
 // =====================
 async function appelAnthropic(systemPrompt, paquetFactuel, timeoutMs) {
   const controller = new AbortController();
@@ -271,7 +237,6 @@ async function appelAnthropic(systemPrompt, paquetFactuel, timeoutMs) {
     const texte = data.content && data.content[0] && data.content[0].text;
     if (!texte) return { ok: false, erreur: 'Réponse Anthropic sans contenu texte' };
     let brut = ('{' + texte).trim();
-    // Repli defensif si l'IA a malgre tout entoure sa reponse de balises markdown.
     brut = brut.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '');
     return { ok: true, texte: brut };
   } catch (e) {
@@ -283,21 +248,11 @@ async function appelAnthropic(systemPrompt, paquetFactuel, timeoutMs) {
 }
 
 // =====================
-// VALIDATION DÉTERMINISTE — voir doctrine en tête de fichier. Toute violation -> rejet total.
+// VALIDATION DÉTERMINISTE
 // =====================
-const TYPES_ARTICLE_VALIDES = ['actualite', 'declaration', 'statistique', 'absence_remarquable'];
+const TYPES_ARTICLE_VALIDES = ['actualite', 'declaration'];
 const TYPES_IMAGE_VALIDES = ['personnage', 'lieu', 'generique', 'fallback'];
 
-// Reconnaissance deterministe d'une valeur numerique dans un texte (18 aout 2026, suite a deux
-// faux positifs reels en production) :
-// - une valeur exactement egale a 0 peut etre exprimee par le chiffre litteral OU par une
-//   formulation naturelle d'absence ("aucune naissance...", "zero arrestation...", "pas de
-//   mariage...") -- jamais exigee sous une seule forme desormais. Ne s'applique QUE si la valeur
-//   source vaut reellement 0 : un indicateur disponible:false ne passe jamais par cette fonction
-//   (deja ecarte plus haut, avant meme d'atteindre ce controle).
-// - un nombre decimal est accepte sous sa forme JS (point, "557.5") OU sous sa forme francaise
-//   courante (virgule, "557,5") -- seule la notation change, jamais la valeur elle-meme : aucune
-//   tolerance d'arrondi, aucune valeur differente acceptee.
 const MOTS_ZERO = ['aucun', 'aucune', 'aucuns', 'aucunes', 'zéro', 'zero', 'pas de'];
 function valeurRepresenteeDansTexte(valeur, texte) {
   if (valeur === 0) {
@@ -324,81 +279,102 @@ function extraireCitations(texte) {
   return citations;
 }
 
-// Hiérarchie géographique (18 août 2026) : détermine si un article s'appuie EXCLUSIVEMENT sur
-// des sources étrangères au pays cible. Un article "statistique"/"absence_remarquable" est
-// toujours implicitement domestique — INDICATORS/COMPARISONS ne sont jamais collectés que pour
-// le pays cible lui-même (_journal-collecte.js, Lot A, inchangé). Pour "actualite"/"declaration",
-// on regarde le pays réel de CHAQUE source citée (un match de championnat peut concerner deux
-// pays à la fois) : l'article n'est jugé étranger QUE si AUCUNE de ses sources ne concerne le
-// pays cible — jamais de faux positif si l'information géographique est simplement absente.
+// Hiérarchie géographique : un article est étranger si TOUTES ses sources ont un pays différent
+// du pays cible (un match de championnat peut concerner deux pays à la fois : jamais de faux
+// positif si l'un des deux est le pays cible).
 function paysDeSource(source) {
   if (!source) return [];
   if (Array.isArray(source.pays)) return source.pays;
   return source.pays != null ? [source.pays] : [];
 }
 function articleEstEtranger(article, paysCible, index) {
-  if (!article || article.type === 'statistique' || article.type === 'absence_remarquable') return false;
+  if (!article) return false;
   if (!Array.isArray(article.source_ids) || article.source_ids.length === 0) return false;
   const paysCites = article.source_ids.reduce((acc, sid) => acc.concat(paysDeSource(index[sid])), []);
   if (paysCites.length === 0) return false;
   return !paysCites.includes(paysCible);
 }
 
-function validerArticle(art, index, erreurs, contexte, idsVus, articlesParId) {
-  if (!art || typeof art !== 'object') { erreurs.push(`${contexte} : article invalide (non objet)`); return; }
-  if (typeof art.id !== 'string' || !art.id) { erreurs.push(`${contexte} : id manquant`); return; }
+function validerImage(image, contexte, sourceIdsArticle, index, erreurs) {
+  if (!image || typeof image !== 'object') { erreurs.push(`${contexte} : image manquante`); return; }
+  if (!TYPES_IMAGE_VALIDES.includes(image.type)) { erreurs.push(`${contexte} : image.type invalide "${image.type}"`); return; }
+  if ((image.type === 'generique' || image.type === 'fallback')) {
+    if (image.ref_id != null) erreurs.push(`${contexte} : image.ref_id doit être null pour generique/fallback`);
+    return;
+  }
+  if (!image.ref_id || !sourceIdsArticle.includes(image.ref_id)) {
+    erreurs.push(`${contexte} : image.ref_id "${image.ref_id}" doit être un des source_ids déjà cités`);
+    return;
+  }
+  const source = index[image.ref_id];
+  if (image.type === 'personnage' && (!source || !source.estPJ || !source.photo_url)) {
+    erreurs.push(`${contexte} : image "personnage" (${image.ref_id}) ne correspond pas à un PJ avec portrait connu`);
+  }
+  if (image.type === 'lieu' && (!source || !source.club_image)) {
+    erreurs.push(`${contexte} : image "lieu" (${image.ref_id}) ne correspond à aucun lieu identifiable`);
+  }
+}
+
+function validerArticle(art, index, erreurs, idsVus, articlesParId) {
+  if (!art || typeof art !== 'object') { erreurs.push('article invalide (non objet)'); return; }
+  if (typeof art.id !== 'string' || !art.id) { erreurs.push('id manquant sur un article'); return; }
   if (idsVus.has(art.id)) erreurs.push(`id d'article dupliqué : "${art.id}"`);
   idsVus.add(art.id);
-  if (articlesParId) articlesParId[art.id] = art;
-  if (!TYPES_ARTICLE_VALIDES.includes(art.type)) { erreurs.push(`${contexte} (${art.id}) : type invalide "${art.type}"`); return; }
-  if (typeof art.titre !== 'string' || !art.titre) { erreurs.push(`${contexte} (${art.id}) : titre manquant`); return; }
-  if (typeof art.texte !== 'string' || !art.texte) { erreurs.push(`${contexte} (${art.id}) : texte manquant`); return; }
-  if (!Array.isArray(art.source_ids) || art.source_ids.length === 0) { erreurs.push(`${contexte} (${art.id}) : source_ids vide ou absent`); return; }
+  articlesParId[art.id] = art;
+  if (typeof art.rubrique !== 'string' || !art.rubrique) { erreurs.push(`article (${art.id}) : rubrique manquante`); return; }
+  if (!TYPES_ARTICLE_VALIDES.includes(art.type)) { erreurs.push(`article (${art.id}) : type invalide "${art.type}"`); return; }
+  if (typeof art.titre !== 'string' || !art.titre) { erreurs.push(`article (${art.id}) : titre manquant`); return; }
+  if (typeof art.texte !== 'string' || !art.texte) { erreurs.push(`article (${art.id}) : texte manquant`); return; }
+  if (!Array.isArray(art.source_ids) || art.source_ids.length === 0) { erreurs.push(`article (${art.id}) : source_ids vide ou absent`); return; }
 
   const sourcesResolues = [];
   for (const sid of art.source_ids) {
-    if (typeof sid !== 'string') { erreurs.push(`${contexte} (${art.id}) : source_id non-chaîne`); return; }
+    if (typeof sid !== 'string') { erreurs.push(`article (${art.id}) : source_id non-chaîne`); return; }
     const source = index[sid];
-    if (!source) { erreurs.push(`${contexte} (${art.id}) : source_id inconnu ou absent de AI_INPUT "${sid}"`); return; }
+    if (!source) { erreurs.push(`article (${art.id}) : source_id inconnu ou absent de l'entrée IA "${sid}"`); return; }
     sourcesResolues.push({ id: sid, source });
   }
 
-  if (art.type === 'statistique') {
-    const indicateurs = art.source_ids.filter(id => id.indexOf('indicateur:') === 0);
-    if (indicateurs.length === 0) { erreurs.push(`${contexte} (${art.id}) : "statistique" doit citer au moins un indicateur (trouvé 0)`); return; }
-    indicateurs.forEach(sid => {
-      const indic = sourcesResolues.find(s => s.id === sid).source;
-      if (indic.disponible !== true) { erreurs.push(`${contexte} (${art.id}) : indicateur cité non disponible (${sid}, disponible=${indic.disponible})`); return; }
-      if (indic.valeur != null && typeof indic.valeur !== 'object') {
-        if (!valeurRepresenteeDansTexte(indic.valeur, art.texte)) {
-          erreurs.push(`${contexte} (${art.id}) : la valeur de l'indicateur ${sid} (${indic.valeur}) n'apparaît pas dans le texte (ni en chiffres, ni sous forme d'absence si applicable)`);
-        }
-      }
-    });
+  if (art.type === 'declaration') {
+    const declarations = art.source_ids.filter(id => id.indexOf('forum_topics:') === 0 || id.indexOf('forum_posts:') === 0);
+    if (declarations.length === 0) erreurs.push(`article (${art.id}) : type "declaration" doit citer au moins une déclaration publique`);
   }
 
-  if (art.type === 'absence_remarquable') {
-    const comparaisons = art.source_ids.filter(id => id.indexOf('comparaison:') === 0);
-    if (comparaisons.length !== 1) erreurs.push(`${contexte} (${art.id}) : "absence_remarquable" doit citer exactement une comparaison (trouvé ${comparaisons.length})`);
-  }
-
-  // Interdiction transversale : un indicateur indisponible ne peut jamais fonder un contenu,
-  // quel que soit le type de bloc qui le cite.
+  // Anti-invention chiffrée : tout indicateur numérique cité doit voir sa valeur reproduite
+  // fidèlement dans le texte (jamais un chiffre modifié ou arrondi différemment).
   sourcesResolues.forEach(({ id, source }) => {
-    if (id.indexOf('indicateur:') === 0 && source.disponible === false) {
-      erreurs.push(`${contexte} (${art.id}) : cite un indicateur indisponible (${id}) comme s'il était connu`);
+    if (id.indexOf('indicateur:') === 0) {
+      if (source.disponible === false) { erreurs.push(`article (${art.id}) : cite un indicateur indisponible (${id}) comme s'il était connu`); return; }
+      if (source.valeur != null && typeof source.valeur !== 'object' && !valeurRepresenteeDansTexte(source.valeur, art.texte)) {
+        erreurs.push(`article (${art.id}) : la valeur de l'indicateur ${id} (${source.valeur}) n'apparaît pas dans le texte`);
+      }
     }
   });
 
-  // Citations : verifiees UNIQUEMENT contre les extraits des PUBLIC_STATEMENTS cites par CET
-  // article (jamais contre l'ensemble du paquet) — coherent avec l'attribution exigee.
+  // Citations : vérifiées uniquement contre les extraits des PUBLIC_STATEMENTS cités par CET article.
   const extraitsAutorises = sourcesResolues
     .filter(s => s.id.indexOf('forum_topics:') === 0 || s.id.indexOf('forum_posts:') === 0)
     .map(s => s.source.extrait || '');
   extraireCitations(art.texte).forEach(cit => {
     const trouve = extraitsAutorises.some(ex => ex.indexOf(cit) !== -1);
-    if (!trouve) erreurs.push(`${contexte} (${art.id}) : citation non retrouvée telle quelle dans un extrait autorisé -> "${cit.slice(0, 60)}"`);
+    if (!trouve) erreurs.push(`article (${art.id}) : citation non retrouvée telle quelle dans un extrait autorisé -> "${cit.slice(0, 60)}"`);
   });
+
+  validerImage(art.image, `article (${art.id})`, art.source_ids, index, erreurs);
+}
+
+// Règle de Une PJ (voir en-tête de fichier et prompt) : si le paquet contient de la matière PJ
+// exploitable, la Une doit s'ancrer sur une source estPJ:true.
+//
+// CORRECTIF ÉDITORIAL (31 aout 2026, décision explicite de Fred) : AUCUN seuil de poids ici. Dès
+// qu'un seul fait ou déclaration porte estPJ:true, quel que soit son poids (même "mineur"), la
+// règle de Une s'applique. Le poids ne sert qu'à choisir la MEILLEURE actualité PJ parmi celles
+// disponibles (voir prompt) -- il ne sert JAMAIS à autoriser une actualité non-PJ à prendre la
+// Une. Une Une non-PJ / "journée calme" n'est légitime que si aucune matière PJ n'existe DU TOUT
+// dans le paquet, pas seulement si elle est jugée trop faible.
+function hasPJMaterial(aiInput) {
+  const check = f => f.estPJ === true;
+  return (aiInput.FACTS || []).some(check) || (aiInput.PUBLIC_STATEMENTS || []).some(check);
 }
 
 function validerEdition(reponseTexte, aiInput) {
@@ -411,10 +387,9 @@ function validerEdition(reponseTexte, aiInput) {
   }
   if (!json || typeof json !== 'object') return { valide: false, erreurs: ['Réponse JSON racine invalide'] };
 
-  const { une, double_page_centrale, page_economie_societe } = json;
+  const { une, articles } = json;
   if (!une || typeof une !== 'object') erreurs.push('une manquante');
-  if (!double_page_centrale || typeof double_page_centrale !== 'object') erreurs.push('double_page_centrale manquante');
-  if (!page_economie_societe || typeof page_economie_societe !== 'object') erreurs.push('page_economie_societe manquante');
+  if (!Array.isArray(articles)) erreurs.push('articles doit être un tableau');
   if (erreurs.length) return { valide: false, erreurs };
 
   const index = indexerAiInput(aiInput);
@@ -422,49 +397,36 @@ function validerEdition(reponseTexte, aiInput) {
   const articlesParId = {};
   const paysCible = aiInput.country;
 
-  ['villes', 'nationale', 'internationale'].forEach(rubrique => {
-    const liste = double_page_centrale[rubrique];
-    if (!Array.isArray(liste)) { erreurs.push(`double_page_centrale.${rubrique} doit être un tableau`); return; }
-    liste.forEach(art => validerArticle(art, index, erreurs, `double_page_centrale.${rubrique}`, idsVus, articlesParId));
-  });
+  articles.forEach(art => validerArticle(art, index, erreurs, idsVus, articlesParId));
 
-  ['statistiques', 'absences_notables'].forEach(rubrique => {
-    const liste = page_economie_societe[rubrique];
-    if (!Array.isArray(liste)) { erreurs.push(`page_economie_societe.${rubrique} doit être un tableau`); return; }
-    const typeAttendu = rubrique === 'statistiques' ? 'statistique' : 'absence_remarquable';
-    liste.forEach(art => {
-      validerArticle(art, index, erreurs, `page_economie_societe.${rubrique}`, idsVus, articlesParId);
-      if (art && art.type && art.type !== typeAttendu) erreurs.push(`page_economie_societe.${rubrique} (${art.id}) : type "${art.type}" incohérent avec la rubrique (attendu "${typeAttendu}")`);
-    });
-  });
-
-  // Rubrique pédagogique — vide obligatoire tant qu'aucune EDUCATIONAL_REFERENCE n'est autorisée.
-  const rp = page_economie_societe.rubrique_pedagogique;
-  const ficheAutorisee = aiInput.EDUCATIONAL_REFERENCE && aiInput.EDUCATIONAL_REFERENCE.fiche_id;
-  if (!rp || typeof rp !== 'object') {
-    erreurs.push('rubrique_pedagogique manquante');
-  } else if (!ficheAutorisee) {
-    if (rp.fiche_id !== null || rp.titre !== null || rp.texte !== null) {
-      erreurs.push('rubrique_pedagogique non vide alors qu\'aucune EDUCATIONAL_REFERENCE n\'est autorisée');
+  articles.forEach(art => {
+    if (!art || !art.rubrique) return;
+    const estInternational = /international/i.test(art.rubrique);
+    if (!estInternational && articleEstEtranger(art, paysCible, index)) {
+      erreurs.push(`article (${art.id}) : entièrement fondé sur des sources étrangères mais rubrique "${art.rubrique}" non internationale`);
     }
-  } else if (rp.fiche_id !== ficheAutorisee) {
-    erreurs.push('rubrique_pedagogique.fiche_id ne correspond pas à EDUCATIONAL_REFERENCE.fiche_id');
-  }
+  });
 
-  // Une : titre/chapeau/article_principal_ref/accroches/image.
   if (typeof une.titre_principal !== 'string' || !une.titre_principal) erreurs.push('une.titre_principal manquant');
   if (typeof une.chapeau !== 'string') erreurs.push('une.chapeau manquant');
 
-  // Hiérarchie géographique (18 août 2026) : le sujet principal de la Une ne peut jamais être
-  // une information exclusivement étrangère — null est explicitement autorisé (journée calme,
-  // Une non ancrée sur un article précis, voir prompt).
   if (une.article_principal_ref != null) {
     if (typeof une.article_principal_ref !== 'string') {
       erreurs.push('une.article_principal_ref doit être une chaîne ou null');
     } else if (!idsVus.has(une.article_principal_ref)) {
       erreurs.push(`une.article_principal_ref inconnu "${une.article_principal_ref}"`);
     } else if (articleEstEtranger(articlesParId[une.article_principal_ref], paysCible, index)) {
-      erreurs.push(`une.article_principal_ref "${une.article_principal_ref}" repose exclusivement sur une source étrangère — interdit comme sujet principal de Une (hiérarchie géographique)`);
+      erreurs.push(`une.article_principal_ref "${une.article_principal_ref}" repose exclusivement sur une source étrangère`);
+    }
+  }
+
+  // Règle de Une PJ — vérification déterministe du principe "les personnages font l'actualité".
+  if (hasPJMaterial(aiInput)) {
+    const principal = une.article_principal_ref && articlesParId[une.article_principal_ref];
+    const ancreSurPJ = !!principal && Array.isArray(principal.source_ids) &&
+      principal.source_ids.some(sid => index[sid] && index[sid].estPJ);
+    if (!ancreSurPJ) {
+      erreurs.push('une.article_principal_ref : le paquet contient de la matière PJ exploitable mais la Une ne s\'ancre sur aucune source estPJ:true (règle de Une obligatoire)');
     }
   }
 
@@ -475,25 +437,83 @@ function validerEdition(reponseTexte, aiInput) {
       if (!acc || typeof acc.texte !== 'string' || typeof acc.article_ref !== 'string') { erreurs.push(`une.accroches[${i}] invalide`); return; }
       if (!idsVus.has(acc.article_ref)) { erreurs.push(`une.accroches[${i}] : article_ref inconnu "${acc.article_ref}"`); return; }
       if (articleEstEtranger(articlesParId[acc.article_ref], paysCible, index)) {
-        erreurs.push(`une.accroches[${i}] : article_ref "${acc.article_ref}" repose exclusivement sur une source étrangère — interdit en accroche de Une (hiérarchie géographique)`);
+        erreurs.push(`une.accroches[${i}] : article_ref "${acc.article_ref}" repose exclusivement sur une source étrangère`);
       }
     });
   }
-  if (!une.image || typeof une.image !== 'object') {
-    erreurs.push('une.image manquante');
-  } else {
-    if (!TYPES_IMAGE_VALIDES.includes(une.image.type)) erreurs.push(`une.image.type invalide ou interdit "${une.image.type}"`);
-    if ((une.image.type === 'generique' || une.image.type === 'fallback') && une.image.ref_id != null) erreurs.push('une.image.ref_id doit être null pour generique/fallback');
-    if ((une.image.type === 'personnage' || une.image.type === 'lieu') && !une.image.ref_id) erreurs.push('une.image.ref_id manquant pour ce type d\'image');
-  }
+
+  // L'image de Une cite un source_id de FAIT (comme une image d'article), jamais un id d'article :
+  // on rassemble donc les source_ids de l'article principal ET de chaque accroche, pas leurs ids.
+  const sourceIdsAccessiblesUne = [
+    ...(une.article_principal_ref && articlesParId[une.article_principal_ref] ? articlesParId[une.article_principal_ref].source_ids : []),
+    ...((une.accroches || []).reduce((acc, a) => {
+      const art = a && articlesParId[a.article_ref];
+      return art ? acc.concat(art.source_ids) : acc;
+    }, []))
+  ];
+  validerImage(une.image, 'une', sourceIdsAccessiblesUne, index, erreurs);
 
   return { valide: erreurs.length === 0, erreurs };
 }
 
 // =====================
+// ASSEMBLAGE DÉTERMINISTE DE LA DERNIÈRE PAGE ET DE L'AVANT-DERNIÈRE PAGE — jamais par l'IA (voir
+// en-tête de fichier, point 2). Le "carnet" et les "chiens écrasés" réutilisent verbatim le champ
+// "resume" déjà écrit par le Lot A pour tout fait que l'IA n'a cité dans aucun article : aucune
+// information n'est donc silencieusement perdue, sans coût IA supplémentaire.
+// =====================
+const LIMITE_CHIENS_ECRASES = 15;
+
+function collecterSourceIdsCites(une, articles) {
+  const cites = new Set();
+  articles.forEach(a => (a.source_ids || []).forEach(id => cites.add(id)));
+  if (une.article_principal_ref) cites.add(une.article_principal_ref);
+  (une.accroches || []).forEach(a => a && a.article_ref && cites.add(a.article_ref));
+  return cites;
+}
+
+function assemblerDernierePage(paquet, une, articles) {
+  const cites = collecterSourceIdsCites(une, articles);
+
+  const indices_economiques = (paquet.INDICATORS || [])
+    .filter(i => i.cle.indexOf('stock_') === 0 && i.disponible)
+    .map(i => {
+      const ressource = i.cle.replace('stock_', '');
+      const prix = (paquet.INDICATORS || []).find(p => p.cle === `prix_${ressource}` && p.ville === i.ville);
+      return { ressource, ville: i.ville, stock: i.valeur, prix: prix ? prix.valeur : null };
+    });
+
+  const carnet = (paquet.FACTS || [])
+    .filter(f => f.type === 'deces' && !cites.has(f.id))
+    .map(f => f.resume);
+
+  const chiens_ecrases = (paquet.FACTS || [])
+    .filter(f => !cites.has(f.id) && f.type !== 'deces' && f.domaine !== 'economie')
+    .filter(f => f.poids === 'mineur' || f.poids === 'secondaire')
+    .slice(0, LIMITE_CHIENS_ECRASES)
+    .map(f => f.resume);
+
+  // Petites annonces (31 aout 2026) : lecture pure de paquet.PETITES_ANNONCES (Lot A,
+  // collecterPetitesAnnoncesActives) -- jamais vues par l'IA, jamais reformulées, aucune
+  // invention possible.
+  const petites_annonces = (paquet.PETITES_ANNONCES || []).map(a =>
+    (a.categorie ? `[${a.categorie}] ` : '') + a.texte + (a.ville ? ` — ${a.ville}` : '')
+  );
+
+  return { indices_economiques, carnet, chiens_ecrases, petites_annonces };
+}
+
+function assemblerAvantDernierePage(paquet) {
+  if (!paquet.INTERVIEW_JODIE) return null;
+  return {
+    nom: paquet.INTERVIEW_JODIE.nom,
+    texte: paquet.INTERVIEW_JODIE.texte,
+    photo_url: paquet.INTERVIEW_JODIE.photo_url || null
+  };
+}
+
+// =====================
 // ORCHESTRATION PAR PAYS — INSERT (verrou) -> collecte -> IA -> validation -> publication/echec.
-// Cycle de vie strictement limité à en_cours -> publiee OU en_cours -> echec (décision validée) :
-// aucune ligne déjà terminée (publiee/echec) n'est jamais relue ni réécrite ici.
 // =====================
 async function genererEditionPays(pays) {
   const maintenant = new Date();
@@ -511,13 +531,10 @@ async function genererEditionPays(pays) {
   try {
     const periode = await calculerPeriode(pays);
     const paquet = await construirePaquetFactuel(pays, periode);
-    // AI_INPUT : restructuration purement formelle du paquet Lot A (regroupement des
-    // indicateurs prix/stock par ville, voir construireAiInput) — le paquet Lot A complet reste
-    // intact ci-dessus pour l'archive/historique/comparaisons, jamais modifié ni raccourci.
     const aiInput = construireAiInput(paquet, dateEdition);
     const faitsSourcesArchive = { ...paquet, AI_INPUT: aiInput };
 
-    const systemPrompt = construirePromptSysteme(pays, dateEdition);
+    const systemPrompt = construirePromptSysteme(pays, dateEdition, hasPJMaterial(aiInput));
     const appel = await appelAnthropic(systemPrompt, aiInput, ANTHROPIC_TIMEOUT_MS);
 
     if (!appel.ok) {
@@ -527,8 +544,6 @@ async function genererEditionPays(pays) {
       return { pays, dateEdition, statut: 'echec', raison: appel.erreur };
     }
 
-    // Validation contre EXACTEMENT ce qui a été envoyé (aiInput), jamais contre le paquet
-    // complet Lot A -- un source_id n'est valide que s'il était réellement accessible par l'IA.
     const validation = validerEdition(appel.texte, aiInput);
     if (!validation.valide) {
       await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
@@ -538,21 +553,26 @@ async function genererEditionPays(pays) {
     }
 
     const contenu = JSON.parse(appel.texte);
+    const derniere_page = assemblerDernierePage(paquet, contenu.une, contenu.articles);
+    const avant_derniere_page = assemblerAvantDernierePage(paquet);
+
+    // Aucune colonne Supabase nouvelle (doctrine "pas de migration si évitable", validée pour ce
+    // chantier) : les deux colonnes jsonb existantes de journal_editions (double_page_centrale,
+    // page_economie_societe) sont réutilisées telles quelles, avec un contenu interne restructuré
+    // -- un jsonb accepte n'importe quelle forme, seul le NOM de colonne est figé par le schéma.
+    // Lecture cote client : edition.double_page_centrale.articles / edition.page_economie_societe.
+    // {avant_derniere_page, derniere_page}. Voir plateau-politique.js, construireHtmlJournalDuJour().
     await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
       statut: 'publiee',
       une: contenu.une,
-      double_page_centrale: contenu.double_page_centrale,
-      page_economie_societe: contenu.page_economie_societe,
+      double_page_centrale: { articles: contenu.articles },
+      page_economie_societe: { avant_derniere_page, derniere_page },
       faits_sources: faitsSourcesArchive,
       prompt_version: PROMPT_VERSION,
       generated_at: maintenant.toISOString()
     });
     return { pays, dateEdition, statut: 'publiee' };
   } catch (e) {
-    // Filet de sécurité local (couvre toute exception JS interceptable) : marque l'édition en
-    // échec plutôt que de la laisser bloquée en_cours indéfiniment. Le seul cas non couvrable
-    // est un arrêt brutal de la fonction par la plateforme (dépassement du budget global) —
-    // documenté dans le rapport, aucune tentative de le "réparer" ici.
     await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
       statut: 'echec', validation_erreurs: ['Exception inattendue : ' + e.message], generated_at: maintenant.toISOString(), prompt_version: PROMPT_VERSION
     }).catch(() => {});
@@ -577,6 +597,9 @@ export {
   construireAiInput,
   indexerAiInput,
   validerEdition,
+  hasPJMaterial,
   articleEstEtranger,
+  assemblerDernierePage,
+  assemblerAvantDernierePage,
   appelAnthropic
 };

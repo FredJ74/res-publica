@@ -1955,6 +1955,103 @@ async function jodiePortraitPublier() {
 }
 
 // =====================
+// PETITES ANNONCES — La Tribune de Republia (chantier "refonte Journal du jour", 31 aout 2026).
+// Flux dedie, HORS du pipeline PA/argent generique de doOrder()/executerOrdreGenerique() (comme
+// gerer_finances/compte_offshore) : la verification "une annonce active a la fois" doit avoir
+// lieu AVANT tout debit, ce que le pipeline generique (qui deduit PA/cout puis tire un resultat)
+// ne permet pas proprement. Reutilise le modal generique #modal-postes/#postes-body (meme
+// convention que ouvrirGestionHelvetia, plateau-justice-economie.js).
+// =====================
+const PETITE_ANNONCE_COUT_FR = 30;
+const PETITE_ANNONCE_DUREE_JOURS = 3;
+const PETITE_ANNONCE_PA = 1;
+
+async function ouvrirFormulairePetiteAnnonce() {
+  const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+  document.getElementById('postes-modal-title').textContent = 'Petite annonce — La Tribune de Républia';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.2rem 1rem;font-style:italic;color:#8a8060">Chargement…</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const active = typeof sbGetAnnonceActiveDuJoueur === 'function'
+    ? await sbGetAnnonceActiveDuJoueur(state.char?.name).catch(() => null)
+    : null;
+
+  if (active) {
+    const expireLe = new Date(active.expire_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+    document.getElementById('postes-body').innerHTML = `
+      <div style="padding:1rem">
+        <div style="font-size:.82rem;color:#8a8060;margin-bottom:1rem;line-height:1.6">Vous avez déjà une annonce active, publiée jusqu'au ${escapeHtmlText(expireLe)}. Une seule annonce à la fois est autorisée.</div>
+        <div class="lecture-longue" style="background:#141008;border:1px solid #2a2010;padding:.8rem;margin-bottom:1.2rem;font-size:.85rem;color:#c0b090">${escapeHtmlText(active.texte)}</div>
+        <button onclick="retirerPetiteAnnonce('${active.id}')" style="width:100%;font-family:'Bebas Neue',sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.6rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Retirer mon annonce (sans remboursement)</button>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('postes-body').innerHTML = `
+    <div style="padding:1rem">
+      <div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem;line-height:1.6">${PETITE_ANNONCE_COUT_FR} ${cur} pour une parution de ${PETITE_ANNONCE_DUREE_JOURS} jours dans La Tribune de Républia. Une seule annonce active à la fois.</div>
+      <select id="annonce-categorie" style="width:100%;margin-bottom:.6rem;background:#141008;color:#c0b090;border:1px solid #2a2010;padding:.5rem;font-family:inherit">
+        <option value="">Catégorie (facultatif)</option>
+        <option value="Emploi">Emploi</option>
+        <option value="Commerce">Commerce</option>
+        <option value="Immobilier">Immobilier</option>
+        <option value="Services">Services</option>
+        <option value="Divers">Divers</option>
+      </select>
+      <textarea id="annonce-texte" maxlength="400" placeholder="Texte de votre annonce…" style="width:100%;min-height:100px;background:#141008;color:#c0b090;border:1px solid #2a2010;padding:.6rem;font-family:inherit;margin-bottom:.8rem;resize:vertical"></textarea>
+      <button onclick="confirmerDepotPetiteAnnonce()" style="width:100%;font-family:'Bebas Neue',sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.6rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Publier (${PETITE_ANNONCE_COUT_FR} ${cur}, ${PETITE_ANNONCE_PA} PA)</button>
+    </div>`;
+}
+
+async function confirmerDepotPetiteAnnonce() {
+  const texte = (document.getElementById('annonce-texte')?.value || '').trim();
+  const categorie = document.getElementById('annonce-categorie')?.value || null;
+  if (!texte) { showToast('Texte manquant', 'Écrivez le texte de votre annonce.', false); return; }
+  if (!TEST_MODE && state.pa < PETITE_ANNONCE_PA) {
+    showToast('PA insuffisants', `Il vous manque ${PETITE_ANNONCE_PA - state.pa} PA.`, false); return;
+  }
+  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : state.arg;
+  if (fondsDisponibles < PETITE_ANNONCE_COUT_FR) {
+    showToast('Fonds insuffisants', `Cette annonce coûte ${PETITE_ANNONCE_COUT_FR} FR.`, false); return;
+  }
+
+  // Reverification anti-doublon juste avant l'ecriture (meme doctrine que
+  // jodiePortraitPublier() : la fenetre entre l'ouverture du formulaire et la confirmation ne
+  // doit jamais permettre une seconde annonce active).
+  const dejaActive = typeof sbGetAnnonceActiveDuJoueur === 'function'
+    ? await sbGetAnnonceActiveDuJoueur(state.char?.name).catch(() => null)
+    : null;
+  if (dejaActive) {
+    showToast('Déjà publiée', 'Vous avez déjà une annonce active.', false);
+    ouvrirFormulairePetiteAnnonce();
+    return;
+  }
+
+  const ok = await sbDeposerPetiteAnnonce(
+    state.char.name, state.char?.country || 'republic', state.currentCity || 'capitale',
+    categorie, texte, PETITE_ANNONCE_DUREE_JOURS, PETITE_ANNONCE_COUT_FR
+  ).catch(() => false);
+  if (!ok) { showToast('Erreur', "L'annonce n'a pas pu être enregistrée. Réessayez plus tard.", false); return; }
+
+  if (!TEST_MODE) state.pa = Math.max(0, state.pa - PETITE_ANNONCE_PA);
+  if (typeof debiterFondsOrdinaires === 'function') debiterFondsOrdinaires(PETITE_ANNONCE_COUT_FR);
+  else state.arg = Math.max(0, state.arg - PETITE_ANNONCE_COUT_FR);
+
+  showToast('Annonce publiée', `Votre petite annonce paraîtra dans La Tribune de Républia pendant ${PETITE_ANNONCE_DUREE_JOURS} jours.`, true);
+  addJournalEntry('📰 Petite annonce déposée à La Tribune de Républia.', 'event-good');
+  document.getElementById('modal-postes').classList.remove('open');
+  if (typeof advanceTime === 'function') advanceTime(PETITE_ANNONCE_PA);
+  if (typeof updateUI === 'function') updateUI();
+}
+
+async function retirerPetiteAnnonce(id) {
+  const ok = await sbRetirerPetiteAnnonce(id).catch(() => false);
+  if (!ok) { showToast('Erreur', "Le retrait n'a pas pu être enregistré. Réessayez plus tard.", false); return; }
+  showToast('Annonce retirée', 'Votre annonce a été retirée (aucun remboursement).', true);
+  document.getElementById('modal-postes').classList.remove('open');
+}
+
+// =====================
 // FINANCES MODAL
 // =====================
 function openFinancesModal(pa, cost) {
