@@ -1116,33 +1116,53 @@ async function appliquerEffetsBlocusActifs() {
 
 // Table dupliquee cote serveur (voir RESSOURCES_ECONOMIE, data.js — si modifiee cote
 // client, repercuter ici aussi).
+// prixBase ajoute a toute la table (30 aout 2026, lot achat inter-usines) -- miroir exact de
+// RESSOURCES_ECONOMIE.<cle>.prixBase, data.js. Necessaire pour calculer server-side le prix de
+// vente directe d'une usine (getPrixRessourceServeur ci-dessous, meme formule que
+// getPrixRessource() cote client, data.js). ATTENTION point verifie avant d'ecrire ceci :
+// api/_journal-collecte.js possede DEJA une table RESSOURCES_ECONOMIE + getPrixRessource, mais
+// son champ 'prixBase' contient en realite prixAchatFournisseur (donc la moitie de la vraie
+// valeur pour toutes les entrees, verifie une a une contre data.js) -- non reutilisee ici pour
+// cette raison, valeurs reprises directement et correctement depuis data.js.
 const RESSOURCES_ECONOMIE_SERVEUR = {
-  cereales:     { plafond: 150, prixAchatFournisseur: 1.5, source: 'livraison' },
-  poisson:      { plafond: 125, prixAchatFournisseur: 2,   source: 'livraison' },
-  viande:       { plafond: 125, prixAchatFournisseur: 2.5, source: 'livraison' },
-  bois:         { plafond: 750, prixAchatFournisseur: 2.5, source: 'livraison' },
-  charbon:      { plafond: 400, prixAchatFournisseur: 3.5, source: 'livraison' }, // valeurs miroir de RESSOURCES_ECONOMIE.charbon, data.js (17 aout 2026)
-  petrole:      { plafond: 200, prixAchatFournisseur: 4,   source: 'livraison' },
-  minerai:      { plafond: 500, prixAchatFournisseur: 5,   source: 'livraison' },
-  metal:        { plafond: 200, prixAchatFournisseur: 7.5, source: 'livraison' },
-  plantes:      { plafond: 300, prixAchatFournisseur: 3,   source: 'livraison' },
+  cereales:     { plafond: 150, prixBase: 3,  prixAchatFournisseur: 1.5, source: 'livraison' },
+  poisson:      { plafond: 125, prixBase: 4,  prixAchatFournisseur: 2,   source: 'livraison' },
+  viande:       { plafond: 125, prixBase: 5,  prixAchatFournisseur: 2.5, source: 'livraison' },
+  bois:         { plafond: 750, prixBase: 5,  prixAchatFournisseur: 2.5, source: 'livraison' },
+  charbon:      { plafond: 400, prixBase: 7,  prixAchatFournisseur: 3.5, source: 'livraison' }, // valeurs miroir de RESSOURCES_ECONOMIE.charbon, data.js (17 aout 2026)
+  petrole:      { plafond: 200, prixBase: 8,  prixAchatFournisseur: 4,   source: 'livraison' },
+  minerai:      { plafond: 500, prixBase: 10, prixAchatFournisseur: 5,   source: 'livraison' },
+  metal:        { plafond: 200, prixBase: 15, prixAchatFournisseur: 7.5, source: 'livraison' },
+  plantes:      { plafond: 300, prixBase: 6,  prixAchatFournisseur: 3,   source: 'livraison' },
   // Textile (correctif dedie, 30 aout 2026) : omission corrigee -- RESSOURCES_ECONOMIE.textile
   // (data.js) existe cote client avec source:'livraison' depuis un certain temps, mais n'avait
   // jamais ete reporte dans ce miroir serveur, rendant sa livraison structurellement impossible
   // (audit dedie). Valeurs miroir exactes de RESSOURCES_ECONOMIE.textile (plafond:125,
   // prixAchatFournisseur:2.5) -- aucune configuration inventee.
-  textile:      { plafond: 125, prixAchatFournisseur: 2.5, source: 'livraison' },
+  textile:      { plafond: 125, prixBase: 5,  prixAchatFournisseur: 2.5, source: 'livraison' },
   // Lot boissons (20 aout 2026) : valeurs miroir de RESSOURCES_ECONOMIE.fruits_legumes/
   // produits_exotiques, data.js.
-  fruits_legumes:     { plafond: 150, prixAchatFournisseur: 2, source: 'livraison' },
-  produits_exotiques: { plafond: 125, prixAchatFournisseur: 3, source: 'livraison' },
-  medicaments:  { plafond: 100, prixAchatFournisseur: 11,  source: 'transformation' },
-  alcool:       { plafond: 100, prixAchatFournisseur: 7,   source: 'transformation' },
-  tabac:        { plafond: 100, prixAchatFournisseur: 9,   source: 'transformation' },
-  carburant:    { plafond: 100, prixAchatFournisseur: 10,  source: 'transformation' },
+  fruits_legumes:     { plafond: 150, prixBase: 4, prixAchatFournisseur: 2, source: 'livraison' },
+  produits_exotiques: { plafond: 125, prixBase: 6, prixAchatFournisseur: 3, source: 'livraison' },
+  medicaments:  { plafond: 100, prixBase: 22, prixAchatFournisseur: 11,  source: 'transformation' },
+  alcool:       { plafond: 100, prixBase: 14, prixAchatFournisseur: 7,   source: 'transformation' },
+  tabac:        { plafond: 100, prixBase: 18, prixAchatFournisseur: 9,   source: 'transformation' },
+  carburant:    { plafond: 100, prixBase: 20, prixAchatFournisseur: 10,  source: 'transformation' },
   // Filiere alcool->desinfectant (20 aout 2026) : valeurs miroir de RESSOURCES_ECONOMIE.desinfectant, data.js.
-  desinfectant: { plafond: 100, prixAchatFournisseur: 9,   source: 'transformation' }
+  desinfectant: { plafond: 100, prixBase: 18, prixAchatFournisseur: 9,   source: 'transformation' }
 };
+
+// Prix de vente directe d'une usine, cote serveur -- MEME FORMULE que getPrixRessource() (client,
+// data.js:6741) : stock eleve = prix bas, stock faible = prix haut, +/-40% autour de prixBase a
+// 50% de remplissage. Necessaire ici (achat inter-usines automatique) car ce calcul devait
+// jusqu'ici toujours etre fait cote client (achat PJ uniquement) -- jamais execute par le cron.
+function getPrixRessourceServeur(cle, quantiteEnStock) {
+  const res = RESSOURCES_ECONOMIE_SERVEUR[cle];
+  if (!res || res.prixBase == null) return 0;
+  const tauxRemplissage = Math.max(0, Math.min(1, quantiteEnStock / res.plafond));
+  const variation = (0.5 - tauxRemplissage) * 0.8;
+  return Math.round(res.prixBase * (1 + variation) * 100) / 100;
+}
 
 const ENTREPOTS_VILLES = [
   { buildingId: 'entrepot-logistique-luthecia', city: 'capitale' },
@@ -1293,6 +1313,141 @@ const USINE_LOCALE_PAR_VILLE = {
 };
 const PART_REDIRECTION_USINE = 0.20;
 
+// =====================
+// ACHAT AUTOMATIQUE INTER-USINES (30 aout 2026) -- quand une usine a besoin, comme matiere
+// premiere, d'un produit fabrique par une AUTRE usine (jamais un transfert depuis un entrepot).
+// Verifie dans le code reel avant d'ecrire cette liste (TRANSFORMATEURS ci-dessus) : la seule
+// chaine aujourd'hui dans ce cas est usine-pharmaceutique-luthecia (alcool -> desinfectant),
+// l'alcool etant produit par pole-tabac-alcools-psm (cereales -> alcool), PSM et non Luthecia.
+// Liste generique (pas de code specifique a alcool/desinfectant) : un ajout futur (une autre
+// usine ayant besoin du produit d'une autre) tient dans une seule entree supplementaire.
+const ACHATS_INTER_USINES = [
+  { buildingIdAcheteur: 'usine-pharmaceutique-luthecia', villeAcheteur: 'capitale',
+    produit: 'alcool',
+    buildingIdFournisseur: 'pole-tabac-alcools-psm', villeFournisseur: 'ville_a' }
+];
+// 12,5% de la production REELLE DU JOUR du fournisseur (decision de Fred, 30 aout 2026) -- la
+// moitie des 25% qui restent normalement en vente directe chez le fournisseur apres la
+// redistribution 25/25/25/25 ci-dessus. Meme convention d'arrondi que versEntrepots
+// (Math.round) : avec le volume reel actuel (16 unites/jour/chaine), 16*0.125=2 exactement,
+// aucune ambiguite d'arrondi en pratique aujourd'hui.
+const PART_ACHAT_INTER_USINES = 0.125;
+
+function chaineDependDUnAchatInterUsine(buildingId, matiere) {
+  return ACHATS_INTER_USINES.some(a => a.buildingIdAcheteur === buildingId && a.produit === matiere);
+}
+
+// Produit UNE chaine (matiere -> produit) d'un transformateur : consomme sa matiere premiere,
+// produit au ratio 1:2, redistribue 25/25/25/25. Extrait de produireTransformateursQuotidien()
+// (30 aout 2026, lot achat inter-usines) pour etre rejouable une seconde fois, apres l'achat
+// automatique, sur les chaines qui en dependent (ex. alcool -> desinfectant) -- meme code
+// exact dans les deux cas, aucune duplication. Mute stockMatieres/venteDirecte en place (memes
+// objets que l'appelant), retourne les unites produites (0 si pas assez de matiere en stock).
+async function produireUneChaine(transfo, chaine, usine, stockMatieres, venteDirecte) {
+  const matiereCfg = RESSOURCES_ECONOMIE_SERVEUR[chaine.matiere];
+  if (!matiereCfg) return 0;
+
+  const stockDispo = stockMatieres[chaine.matiere] || 0;
+  if (stockDispo < VOLUME_MATIERE_PAR_CHAINE_JOUR) return 0; // pas assez de matiere en stock aujourd'hui
+  stockMatieres[chaine.matiere] = stockDispo - VOLUME_MATIERE_PAR_CHAINE_JOUR;
+
+  const uniteesProduites = VOLUME_MATIERE_PAR_CHAINE_JOUR * 2; // 1 matiere = 2 produits
+  // Reglable par le directeur PJ en poste (tableau de bord, aout 2026) — 0.75 par defaut (mode PNJ)
+  const partEntrepots = usine.repartitionEntrepots != null ? usine.repartitionEntrepots : PART_REDISTRIBUTION_ENTREPOTS;
+  const versEntrepots = Math.round(uniteesProduites * partEntrepots);
+  const venteDirecteQte = uniteesProduites - versEntrepots;
+  const villesIds = ENTREPOTS_VILLES.map(e => e.city);
+  const partsEgales = Object.fromEntries(villesIds.map(v => [v, 100 / villesIds.length]));
+  const repartitionEntrepots = repartirSelonPourcentages(versEntrepots, partsEgales, villesIds);
+
+  // Redistribution en parts egales entre les 3 entrepots (Hamilton, aucune unite perdue par
+  // arrondi), perdu uniquement si un entrepot est deja plein sur ce produit
+  for (const cible of ENTREPOTS_VILLES) {
+    const etatCible = await sbGetBatimentEtat('republic', cible.city, cible.buildingId).catch(() => null);
+    if (!etatCible) continue;
+    const entrepotCible = etatCible.entrepot || { stock: {}, caisse: 8500 };
+    const stockCible = entrepotCible.stock || {};
+    const plafondProduit = RESSOURCES_ECONOMIE_SERVEUR[chaine.produit].plafond;
+    const placeRestante = Math.max(0, plafondProduit - (stockCible[chaine.produit] || 0));
+    const qteStockee = Math.min(repartitionEntrepots[cible.city], placeRestante);
+    stockCible[chaine.produit] = (stockCible[chaine.produit] || 0) + qteStockee;
+    await sbSetBatimentEtat('republic', cible.city, cible.buildingId, { ...etatCible, entrepot: { ...entrepotCible, stock: stockCible } }).catch(() => {});
+  }
+
+  // Le reste part en vente directe, plafonne sur place
+  const placeRestanteLocal = Math.max(0, PLAFOND_VENTE_DIRECTE - (venteDirecte[chaine.produit] || 0));
+  venteDirecte[chaine.produit] = (venteDirecte[chaine.produit] || 0) + Math.min(venteDirecteQte, placeRestanteLocal);
+
+  return uniteesProduites;
+}
+
+// Achat automatique quotidien d'une usine aupres d'une autre (jamais depuis un entrepot).
+// productionReelleDuJour : { produit: unitesProduitesCeJourLa } -- calculee et transmise par
+// produireTransformateursQuotidien() dans la MEME execution (jamais persistee, jamais deduite
+// d'un stock courant, conformement a la demande -- elle n'existe nulle part ailleurs, seulement
+// en memoire pendant ce passage du cron). Transaction reelle : debit caisse acheteur, credit
+// caisse fournisseur (meme montant, aucune creation/destruction d'argent), retrait du stock de
+// vente directe du fournisseur, ajout dans stockMatieres de l'acheteur. Traite sequentiellement
+// (boucle for...of avec await, comme le reste de ce cron) : si plusieurs entrees ciblaient un
+// jour le meme fournisseur/produit, la premiere traitee consommerait le stock avant la seconde
+// (premier arrivee, premier servi) -- jamais une simultaneite artificielle sur une architecture
+// qui ne l'est pas.
+async function traiterAchatsInterUsinesQuotidien(productionReelleDuJour) {
+  const resultats = [];
+  for (const achat of ACHATS_INTER_USINES) {
+    const production = productionReelleDuJour[achat.produit] || 0;
+    if (production <= 0) { resultats.push({ ...achat, qte: 0, raison: 'production_nulle' }); continue; }
+
+    const etatFournisseur = await sbGetBatimentEtat('republic', achat.villeFournisseur, achat.buildingIdFournisseur).catch(() => null);
+    const etatAcheteur = await sbGetBatimentEtat('republic', achat.villeAcheteur, achat.buildingIdAcheteur).catch(() => null);
+    if (!etatFournisseur || !etatAcheteur) { resultats.push({ ...achat, qte: 0, raison: 'batiment_indisponible' }); continue; }
+
+    const usineFournisseur = etatFournisseur.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
+    const usineAcheteur = etatAcheteur.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
+    const venteDirecteFournisseur = usineFournisseur.venteDirecte || {};
+    const stockMatieresAcheteur = usineAcheteur.stockMatieres || {};
+
+    const stockDispoFournisseur = venteDirecteFournisseur[achat.produit] || 0;
+    const plafondProduit = RESSOURCES_ECONOMIE_SERVEUR[achat.produit]?.plafond || 0;
+    const placeRestanteAcheteur = Math.max(0, plafondProduit - (stockMatieresAcheteur[achat.produit] || 0));
+    const quotaJournalier = Math.round(production * PART_ACHAT_INTER_USINES);
+
+    // Plafonds cumules (section 2 du cahier des charges) : quota 12,5%, stock reellement
+    // disponible chez le fournisseur, place restante chez l'acheteur -- jamais plus que ce que
+    // le fournisseur possede reellement.
+    const qteVisee = Math.min(quotaJournalier, stockDispoFournisseur, placeRestanteAcheteur);
+    if (qteVisee <= 0) {
+      const raison = stockDispoFournisseur <= 0 ? 'fournisseur_sans_stock' : (placeRestanteAcheteur <= 0 ? 'acheteur_deja_plein' : 'quota_nul');
+      resultats.push({ ...achat, qte: 0, raison });
+      continue;
+    }
+
+    // Prix = exactement le prix de vente directe du fournisseur (prix manuel du directeur PJ
+    // s'il en a fixe un, sinon la meme formule dynamique que confirmerVenteDirecteUsine cote
+    // client -- getPrixRessourceServeur ci-dessus).
+    const prixManuelFournisseur = (usineFournisseur.prixManuel || {})[achat.produit];
+    const prixUnitaire = prixManuelFournisseur != null ? prixManuelFournisseur : getPrixRessourceServeur(achat.produit, stockDispoFournisseur);
+
+    const caisseAcheteur = usineAcheteur.caisse || 0;
+    const qteAchetable = prixUnitaire > 0 ? Math.floor(caisseAcheteur / prixUnitaire) : qteVisee;
+    const qte = Math.min(qteVisee, qteAchetable);
+    if (qte <= 0) { resultats.push({ ...achat, qte: 0, raison: 'caisse_insuffisante' }); continue; }
+
+    const montant = Math.round(qte * prixUnitaire * 100) / 100;
+
+    venteDirecteFournisseur[achat.produit] = stockDispoFournisseur - qte;
+    usineFournisseur.caisse = (usineFournisseur.caisse || 0) + montant;
+    stockMatieresAcheteur[achat.produit] = (stockMatieresAcheteur[achat.produit] || 0) + qte;
+    usineAcheteur.caisse = caisseAcheteur - montant;
+
+    await sbSetBatimentEtat('republic', achat.villeFournisseur, achat.buildingIdFournisseur, { ...etatFournisseur, usine: { ...usineFournisseur, venteDirecte: venteDirecteFournisseur } }).catch(() => {});
+    await sbSetBatimentEtat('republic', achat.villeAcheteur, achat.buildingIdAcheteur, { ...etatAcheteur, usine: { ...usineAcheteur, stockMatieres: stockMatieresAcheteur } }).catch(() => {});
+
+    resultats.push({ ...achat, qte, prixUnitaire, montant, raison: qte < quotaJournalier ? 'partiel' : 'complet' });
+  }
+  return resultats;
+}
+
 // Production quotidienne automatique (mode PNJ, filet de securite) de chaque transformateur :
 // consomme sa matiere premiere depuis son propre stock physique (usine.stockMatieres, alimente
 // par livrerEntrepotsQuotidien ci-dessous -- plus d'achat instantane sur caisse depuis le 10
@@ -1308,8 +1463,17 @@ const PART_REDIRECTION_USINE = 0.20;
 // implementant cette regle. venteDirecteQte reste calcule par soustraction exacte (uniteesProduites
 // - versEntrepots), donc la conservation totale (entrepots + vente directe = uniteesProduites)
 // est garantie quel que soit le reste.
+//
+// 3 passes (30 aout 2026, lot achat inter-usines) : (1) toutes les chaines SAUF celles qui
+// dependent d'un achat inter-usines (ex. alcool -> desinfectant), en enregistrant la production
+// REELLE DU JOUR de chaque produit au passage (disponible seulement ici, jamais persistee
+// ailleurs) ; (2) achat automatique inter-usines, base sur cette production reelle ; (3) les
+// chaines mises de cote en (1), rejouees maintenant que leur matiere premiere externe a pu
+// arriver dans stockMatieres -- meme fonction produireUneChaine() dans les 2 cas, aucun code
+// parallele.
 async function produireTransformateursQuotidien() {
   const resultats = { transformateurs: 0, uniteesProduites: 0 };
+  const productionReelleDuJour = {};
   try {
     for (const transfo of TRANSFORMATEURS) {
       const etat = await sbGetBatimentEtat('republic', transfo.city, transfo.buildingId).catch(() => null);
@@ -1319,48 +1483,37 @@ async function produireTransformateursQuotidien() {
       const usine = etat.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
       const venteDirecte = usine.venteDirecte || {};
       const stockMatieres = usine.stockMatieres || {};
-      // Reglable par le directeur PJ en poste (tableau de bord, aout 2026) — 0.75 par defaut (mode PNJ)
-      const partEntrepots = usine.repartitionEntrepots != null ? usine.repartitionEntrepots : PART_REDISTRIBUTION_ENTREPOTS;
 
       for (const chaine of transfo.chaines) {
-        const matiereCfg = RESSOURCES_ECONOMIE_SERVEUR[chaine.matiere];
-        if (!matiereCfg) continue;
-
-        const stockDispo = stockMatieres[chaine.matiere] || 0;
-        if (stockDispo < VOLUME_MATIERE_PAR_CHAINE_JOUR) continue; // pas assez de matiere en stock aujourd'hui
-        stockMatieres[chaine.matiere] = stockDispo - VOLUME_MATIERE_PAR_CHAINE_JOUR;
-
-        const uniteesProduites = VOLUME_MATIERE_PAR_CHAINE_JOUR * 2; // 1 matiere = 2 produits
-        const versEntrepots = Math.round(uniteesProduites * partEntrepots);
-        const venteDirecteQte = uniteesProduites - versEntrepots;
-        const villesIds = ENTREPOTS_VILLES.map(e => e.city);
-        const partsEgales = Object.fromEntries(villesIds.map(v => [v, 100 / villesIds.length]));
-        const repartitionEntrepots = repartirSelonPourcentages(versEntrepots, partsEgales, villesIds);
-
-        // Redistribution en parts egales entre les 3 entrepots (Hamilton, aucune unite perdue par
-        // arrondi), perdu uniquement si un entrepot est deja plein sur ce produit
-        for (const cible of ENTREPOTS_VILLES) {
-          const etatCible = await sbGetBatimentEtat('republic', cible.city, cible.buildingId).catch(() => null);
-          if (!etatCible) continue;
-          const entrepotCible = etatCible.entrepot || { stock: {}, caisse: 8500 };
-          const stockCible = entrepotCible.stock || {};
-          const plafondProduit = RESSOURCES_ECONOMIE_SERVEUR[chaine.produit].plafond;
-          const placeRestante = Math.max(0, plafondProduit - (stockCible[chaine.produit] || 0));
-          const qteStockee = Math.min(repartitionEntrepots[cible.city], placeRestante);
-          stockCible[chaine.produit] = (stockCible[chaine.produit] || 0) + qteStockee;
-          await sbSetBatimentEtat('republic', cible.city, cible.buildingId, { ...etatCible, entrepot: { ...entrepotCible, stock: stockCible } }).catch(() => {});
+        if (chaineDependDUnAchatInterUsine(transfo.buildingId, chaine.matiere)) continue; // traitee en passe 3
+        const u = await produireUneChaine(transfo, chaine, usine, stockMatieres, venteDirecte);
+        if (u > 0) {
+          productionReelleDuJour[chaine.produit] = (productionReelleDuJour[chaine.produit] || 0) + u;
+          resultats.uniteesProduites += u;
         }
-
-        // Le reste part en vente directe, plafonne sur place
-        const plafondLocal = PLAFOND_VENTE_DIRECTE;
-        const placeRestanteLocal = Math.max(0, plafondLocal - (venteDirecte[chaine.produit] || 0));
-        venteDirecte[chaine.produit] = (venteDirecte[chaine.produit] || 0) + Math.min(venteDirecteQte, placeRestanteLocal);
-
-        resultats.uniteesProduites += uniteesProduites;
       }
 
       await sbSetBatimentEtat('republic', transfo.city, transfo.buildingId, { ...etat, usine: { ...usine, venteDirecte, stockMatieres } }).catch(() => {});
       resultats.transformateurs++;
+    }
+
+    resultats.achatsInterUsines = await traiterAchatsInterUsinesQuotidien(productionReelleDuJour);
+
+    // Passe 3 : chaines dependantes d'un achat inter-usines, rejouees maintenant que
+    // stockMatieres a potentiellement ete complete par la passe 2 ci-dessus.
+    for (const transfo of TRANSFORMATEURS) {
+      const chainesDependantes = transfo.chaines.filter(c => chaineDependDUnAchatInterUsine(transfo.buildingId, c.matiere));
+      if (chainesDependantes.length === 0) continue;
+      const etat = await sbGetBatimentEtat('republic', transfo.city, transfo.buildingId).catch(() => null);
+      if (!etat) continue;
+      const usine = etat.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
+      const venteDirecte = usine.venteDirecte || {};
+      const stockMatieres = usine.stockMatieres || {};
+      for (const chaine of chainesDependantes) {
+        const u = await produireUneChaine(transfo, chaine, usine, stockMatieres, venteDirecte);
+        if (u > 0) resultats.uniteesProduites += u;
+      }
+      await sbSetBatimentEtat('republic', transfo.city, transfo.buildingId, { ...etat, usine: { ...usine, venteDirecte, stockMatieres } }).catch(() => {});
     }
   } catch(e) { console.error('produireTransformateursQuotidien error', e); }
   return resultats;
