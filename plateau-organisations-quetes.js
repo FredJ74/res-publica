@@ -4534,6 +4534,59 @@ function initPreviewRealisateur() {
   document.getElementById('preview-realisateur-btn-grand-ecran').addEventListener('click', ouvrirGrandEcran);
   document.getElementById('preview-realisateur-grand-fermer').addEventListener('click', fermerGrandEcran);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') fermerGrandEcran(); });
+
+  // ---------------------------------------------------------------------------
+  // PONT INTEGRATION IA -> EXECUTEUR EXISTANT (LOTS 8/9/14/15, chantier "industrialisation du
+  // realisateur", 30 aout 2026)
+  // ---------------------------------------------------------------------------
+  // Additif PUR : un bouton + un panneau de trace en plus, AUCUN bouton/scenario existant
+  // modifie. Route TOUJOURS vers la MEME executerSequenceRealisation/lancerSequencePreview que les
+  // boutons ci-dessus (jamais un second moteur d'execution) -- seule la SELECTION en amont change
+  // (RealisateurIA.selectionnerRealisation, cf. plateau-football-realisateur-ia.js, module pur sans
+  // DOM) au lieu d'un clic manuel sur un scenario precis. `jouerMicroAction` (point d'entree du
+  // vrai match live) N'EST PAS touche par ce pont -- bascule volontairement laissee de cote cette
+  // nuit (voir rapport du chantier, section "points a arbitrer").
+  if (window.RealisateurIA) {
+    const memoireDebugIA = RealisateurIA.creerMemoireRealisateur();
+    // Rotation de situations REPRESENTATIVES (micro-actions variees + chaine coup franc D/E/F1/F2
+    // + un carton adversarial) -- couvre les cas essentiels sans faire tourner un vrai match.
+    const situationsDebugIA = [
+      { microAction: 'circulation', cote: 'home', minute: 12, ecartScore: 0, pressionRecente: 0 },
+      { microAction: 'duel', cote: 'home', minute: 14, ecartScore: 0, pressionRecente: 1 },
+      { microAction: 'course', cote: 'away', minute: 18, ecartScore: 0, pressionRecente: 1 },
+      { microAction: 'centre', cote: 'home', minute: 22, ecartScore: 0, pressionRecente: 2 },
+      { microAction: 'frappe', cote: 'home', minute: 23, ecartScore: 0, pressionRecente: 3 },
+      { microAction: 'interception', cote: 'away', minute: 30, ecartScore: 0, pressionRecente: 1 },
+      { microAction: 'degagement', cote: 'away', minute: 35, ecartScore: -1, pressionRecente: 0 },
+      { coupFrancEtape: 'tension', minute: 40 },
+      { coupFrancEtape: 'trajectoire', minute: 40 },
+      { coupFrancEtape: 'arret', coupFrancResultat: 'arret', minute: 40 },
+      { coupFrancEtape: 'but', coupFrancResultat: 'but', minute: 41 },
+      { canonique: { type: 'carton', joueur: null }, minute: 44 }
+    ];
+    let indexDebugIA = 0;
+
+    const blocDebugIA = document.createElement('div');
+    blocDebugIA.style.cssText = 'flex:0 0 auto;margin-top:.6rem;padding-top:.6rem;border-top:1px dashed #4a3c22';
+    blocDebugIA.innerHTML =
+      '<button id="preview-realisateur-ia-btn" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:.06em;padding:.45rem;border:1px dashed #6a9aca;background:transparent;color:#6a9aca;cursor:pointer">🤖 Sélection IA (debug, situation suivante)</button>' +
+      '<pre id="preview-realisateur-ia-trace" style="margin-top:.4rem;max-height:180px;overflow:auto;font-size:.62rem;line-height:1.35;color:#8a9aa8;background:#05070a;padding:.4rem;border:1px solid #2a3038;white-space:pre-wrap"></pre>';
+    panneau.appendChild(blocDebugIA);
+
+    document.getElementById('preview-realisateur-ia-btn').addEventListener('click', function () {
+      const situation = situationsDebugIA[indexDebugIA % situationsDebugIA.length];
+      indexDebugIA++;
+      const { plan, trace } = RealisateurIA.selectionnerRealisation({
+        situation: situation, seed: 'debug-panneau-' + Date.now(), memoire: memoireDebugIA
+      });
+      const traceEl = document.getElementById('preview-realisateur-ia-trace');
+      if (traceEl) traceEl.textContent = JSON.stringify({ situation: situation, plan: plan, trace: trace }, null, 2);
+      if (!plan) return; // aucune realisation disponible pour cette situation -- trace affichee, rien a jouer (cas legitime, LOT 11)
+      const scenario = SCENARIOS_PREVIEW_REALISATEUR.find(function (s) { return s.id === plan.selectedGrammar; });
+      if (!scenario) return; // grammaire de production (gabarit_montage_*/crash_test) : deja demontree en match reel, rien a rejouer ici
+      lancerSequencePreview(scenario.construireSequence(instant), def, home, instant);
+    });
+  }
 }
 window.addEventListener('DOMContentLoaded', initPreviewRealisateur);
 
