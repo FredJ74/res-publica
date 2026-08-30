@@ -319,16 +319,25 @@ function intentionsAutoriseesPourSituation(situation) {
 // intervalle documente pour les gabarits a duree variable, aleatoire par construction) -- sert la
 // verification d'identite SELECTED -> RESOLVED (section 11 de la consigne) : un ecart entre
 // resolution.sequence.plans.length et nbPlansAttendu signale une resolution vers la mauvaise unite.
+// `rolesNarratifs` (chantier "montage narratif", 30 aout 2026) : sous-ensemble de
+// ROLES_NARRATIFS (section suivante) que cette grammaire peut remplir au sein d'un ARC -- champ
+// PUREMENT DESCRIPTIF, jamais lu par la choregraphie reelle, jamais une nouvelle contrainte sur
+// les regles R0-R5/MR1-MR3 deja existantes (une grammaire reste d'abord filtree par TOUTES ces
+// regles, le role narratif est un filtre SUPPLEMENTAIRE, jamais un remplacement). Assignation
+// groundee sur ce qui est deja documente (etatSortie/familleRarete/microActionsCompatibles),
+// jamais une nouvelle affirmation visuelle.
 const REGISTRE_GRAMMAIRES_REALISATEUR = [
   // ---- Gabarits deja utilises en match reel (POOL_GABARITS_REALISATEUR) ----
   { id: 'gabarit_montage_0', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 1, dureeMsAttendueApprox: '900-1400 (variable)',
+    rolesNarratifs: ['SETUP', 'ACTION'],
     primitives: ['TRACK', 'FAST', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['NEUTRE', 'CONSTRUCTION', 'PRESSION', 'ACCELERATION'], poidsBase: 1, spectaculaire: false,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_1', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 1, dureeMsAttendueApprox: '800-1200 (variable)',
+    rolesNarratifs: ['SETUP', 'ACTION', 'RETURN'],
     primitives: ['FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     // Gabarit generique "simple suivi" -- seul gabarit production a couvrir SOULAGEMENT/REACTION
@@ -340,19 +349,31 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_2', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 2, dureeMsAttendueApprox: '1200-1900 (variable)',
+    rolesNarratifs: ['ACTION', 'RESOLUTION'],
     primitives: ['ZOOM', 'SLOW', 'SHAKE', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['DUEL', 'TENSION', 'DANGER'], poidsBase: 1, spectaculaire: false,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_3', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 3, dureeMsAttendueApprox: '1850-2800 (variable)',
+    rolesNarratifs: ['SETUP', 'ACTION'],
     primitives: ['FAST', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['ACCELERATION', 'CONSTRUCTION'], poidsBase: 1, spectaculaire: false,
     // 3 plans (terrain -> illustre pictogramme -> terrain) : revient DEJA au terrain lui-meme.
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_4', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
-    statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 2, dureeMsAttendueApprox: '1600-2350 (variable)',
+    // EXCLU du pool automatique (chantier "montage narratif", 30 aout 2026, decision de direction
+    // artistique de Fred, section 10) : ce gabarit reste TECHNIQUEMENT documente et INCHANGE (il
+    // continue de servir le match reel via jouerMicroAction/POOL_GABARITS_REALISATEUR, code non
+    // touche par ce chantier -- "ne pas supprimer aveuglement, il sert ailleurs") mais son statut
+    // n'est PLUS dans STATUTS_AUTORISES_POOL_AUTOMATIQUE : R0 le rejette desormais TOUJOURS pour
+    // le nouveau selecteur/monteur narratif, donc son pictogramme de repli '⚔️' (glaives croises,
+    // voir commentaire etatSortie ci-dessous) ne peut plus jamais y apparaitre. Correction MINIMALE
+    // : un seul champ change (statut), rien d'autre n'est retire ni recode.
+    statut: 'REJECTED_VISUEL_PICTOGRAMME_NON_APPROUVE',
+    nbPlansAttendu: 2, dureeMsAttendueApprox: '1600-2350 (variable)',
+    rolesNarratifs: [],
     primitives: ['ZOOM', 'TRACK', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['PRESSION', 'CONSTRUCTION', 'DANGER'], poidsBase: 1, spectaculaire: false,
@@ -362,17 +383,20 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     // AVANT tout chantier de cette semaine). Comportement PRE-EXISTANT et documente comme accepte
     // dans le code source ("aucune adaptation necessaire" tant qu'aucun asset n'existe) -- jamais
     // introduit par le nouveau selecteur, seulement rendu ATTEIGNABLE par le pont debug depuis la
-    // correction du 30 aout 2026 (trouverSequenceProductionAvecGabaritId). Ne revient PAS au
-    // terrain lui-meme, compte entierement sur le reset universel.
+    // correction du 30 aout 2026 (trouverSequenceProductionAvecGabaritId), puis EXCLU par la
+    // decision de direction artistique du meme jour (section 10). Ne revient PAS au terrain
+    // lui-meme, compte entierement sur le reset universel.
     etatSortie: { medium: 'illustre_pictogram', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
   { id: 'gabarit_montage_5', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 3, dureeMsAttendueApprox: '1500-2250 (variable)',
+    rolesNarratifs: ['ACTION', 'RESOLUTION'],
     primitives: ['SHAKE', 'SLOW', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['TENSION', 'DUEL', 'NEUTRE'], poidsBase: 1, spectaculaire: false,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'crash_test_ras_du_sol', source: 'production', familleRarete: 'crash_test', declencheurs: ['micro'],
     statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 1, dureeMsAttendueApprox: '1000-1400 (variable)',
+    rolesNarratifs: ['ACTION', 'CLIMAX'],
     // Meme visuel EXACT que le bouton preview 'A -- Plan unique' (trouverSequenceCrashTestRasDuSol
     // force ce meme gabaritId par recherche de seed) -- deux points d'entree, une seule grammaire.
     primitives: ['ZOOM', 'TRACK', 'SHAKE', 'CUT'], microActionsCompatibles: ['duel', 'course', 'remise'],
@@ -383,12 +407,14 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
   // ---- Banc d'essai preview -- jamais dans le pool de production (cf. cartographie §5.2) ----
   { id: 'multi_angle', source: 'preview-demo', familleRarete: 'multi_angle', declencheurs: ['micro'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 3, dureeMsAttendueApprox: 2250,
+    rolesNarratifs: ['ACTION', 'CLIMAX'],
     primitives: ['CUT', 'ZOOM', 'FOLLOW'], microActionsCompatibles: ['duel', 'frappe', 'centre'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['DUEL', 'DANGER', 'TENSION'], poidsBase: 0.5, spectaculaire: true,
     etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
   { id: 'stop_motion', source: 'preview-demo', familleRarete: 'stop_motion', declencheurs: ['micro'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 8, dureeMsAttendueApprox: 3500,
+    rolesNarratifs: ['ACTION', 'CLIMAX', 'RESOLUTION'],
     primitives: ['CUT', 'FREEZE'], microActionsCompatibles: ['duel'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['DUEL', 'IMPACT'], poidsBase: 0.4, spectaculaire: true,
@@ -396,6 +422,7 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
 
   { id: 'tension', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 13, dureeMsAttendueApprox: 11740,
+    rolesNarratifs: ['SETUP'],
     primitives: ['ZOOM', 'SLOW', 'FOCUS'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['tension'], resultatCanoniqueRequis: null,
     intentionsCompatibles: ['TENSION'], poidsBase: 1, spectaculaire: false,
@@ -404,6 +431,7 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false, suiteNaturelle: 'trajectoire' } },
   { id: 'trajectoire', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 3, dureeMsAttendueApprox: 2350,
+    rolesNarratifs: ['ACTION'],
     primitives: ['TRACK', 'FOLLOW_BALL'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['trajectoire'], resultatCanoniqueRequis: null,
     intentionsCompatibles: ['TENSION', 'DANGER'], poidsBase: 1, spectaculaire: false,
@@ -411,6 +439,7 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
   { id: 'arret', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 4, dureeMsAttendueApprox: 6900,
+    rolesNarratifs: ['RESOLUTION', 'REACTION'],
     primitives: ['CUT', 'FOCUS'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['arret'], resultatCanoniqueRequis: 'arret',
     intentionsCompatibles: ['SOULAGEMENT', 'REACTION'], poidsBase: 1, spectaculaire: false,
@@ -418,6 +447,7 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     etatSortie: { medium: 'illustre_video', reactionTerminale: true, resolutionAssumee: true, retourTerrainInclus: false } },
   { id: 'but', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 3, dureeMsAttendueApprox: 6200,
+    rolesNarratifs: ['RESOLUTION', 'REACTION'],
     primitives: ['CUT', 'FOCUS'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['but'], resultatCanoniqueRequis: 'but',
     intentionsCompatibles: ['EXPLOSION', 'REACTION'], poidsBase: 1, spectaculaire: false,
@@ -432,6 +462,7 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
   // variante raccordee n'etait pas dans le pool eligible.
   { id: 'coup_franc_arrete', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 20, dureeMsAttendueApprox: 20990,
+    rolesNarratifs: ['SETUP', 'ACTION', 'RESOLUTION', 'REACTION'],
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'arret',
     intentionsCompatibles: ['TENSION', 'SOULAGEMENT'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
@@ -439,6 +470,7 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     deprioriserSiRaccordDisponible: 'raccord_coup_franc_arrete' },
   { id: 'coup_franc_but', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 19, dureeMsAttendueApprox: 20290,
+    rolesNarratifs: ['SETUP', 'ACTION', 'RESOLUTION', 'REACTION'],
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'but',
     intentionsCompatibles: ['TENSION', 'EXPLOSION'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
@@ -446,6 +478,7 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     deprioriserSiRaccordDisponible: 'raccord_coup_franc_but' },
   { id: 'raccord_coup_franc_arrete', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 24, dureeMsAttendueApprox: 24890,
+    rolesNarratifs: ['SETUP', 'ACTION', 'RESOLUTION', 'REACTION', 'RETURN'],
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT', 'FOLLOW'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'arret',
     intentionsCompatibles: ['TENSION', 'SOULAGEMENT'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
@@ -454,6 +487,7 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: true, retourTerrainInclus: true } },
   { id: 'raccord_coup_franc_but', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 23, dureeMsAttendueApprox: 24190,
+    rolesNarratifs: ['SETUP', 'ACTION', 'RESOLUTION', 'REACTION', 'RETURN'],
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT', 'FOLLOW'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'but',
     intentionsCompatibles: ['TENSION', 'EXPLOSION'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
@@ -461,6 +495,7 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
 
   { id: 'match_miniature_v2', source: 'preview-demo', familleRarete: 'ambiance_continue', declencheurs: ['micro'],
     statut: 'VALIDATED_A_CONFIRMER', nbPlansAttendu: 10, dureeMsAttendueApprox: 18800,
+    rolesNarratifs: ['SETUP', 'RETURN'],
     primitives: ['FOLLOW', 'LEAD'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['NEUTRE', 'CONSTRUCTION', 'RETOUR_CALME'], poidsBase: 1, spectaculaire: false,
@@ -469,24 +504,28 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
   // ---- Les 4 effets valides (camera-only, jamais d'overlay illustre -- cf. cartographie) ----
   { id: 'drone_dive_impact_freeze', source: 'preview-demo', familleRarete: 'effet_camera_lourd', declencheurs: ['micro'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 6, dureeMsAttendueApprox: 10800,
+    rolesNarratifs: ['CLIMAX'],
     primitives: ['DRONE_DIVE', 'IMPACT_FREEZE', 'FOLLOW'], microActionsCompatibles: ['duel', 'frappe', 'interception'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['IMPACT', 'DUEL', 'DANGER'], poidsBase: 0.35, spectaculaire: true,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'freeze_follow_ball', source: 'preview-demo', familleRarete: 'effet_camera_lourd', declencheurs: ['micro'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 6, dureeMsAttendueApprox: 11100,
+    rolesNarratifs: ['CLIMAX', 'RESOLUTION'],
     primitives: ['FREEZE_SELECTIVE', 'FOLLOW_BALL', 'SLOW'], microActionsCompatibles: ['frappe', 'centre'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['TENSION', 'DANGER', 'IMPACT'], poidsBase: 0.35, spectaculaire: true,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'orbit_freeze', source: 'preview-demo', familleRarete: 'effet_camera_lourd', declencheurs: ['micro'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 8, dureeMsAttendueApprox: 10900,
+    rolesNarratifs: ['CLIMAX'],
     primitives: ['ORBIT_FREEZE', 'FREEZE'], microActionsCompatibles: ['duel', 'interception'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['DUEL', 'TENSION'], poidsBase: 0.3, spectaculaire: true,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'time_ramp', source: 'preview-demo', familleRarete: 'time_ramp', declencheurs: ['micro'],
     statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 8, dureeMsAttendueApprox: 13150,
+    rolesNarratifs: ['ACTION'],
     primitives: ['TIME_RAMP', 'FAST', 'SLOW', 'FOLLOW'], microActionsCompatibles: ['course', 'circulation', 'interception'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['ACCELERATION', 'CONSTRUCTION', 'PRESSION'], poidsBase: 0.5, spectaculaire: true,
@@ -546,12 +585,20 @@ function formeSituation(situation) {
   return null;
 }
 
-function validerCompatibiliteGrammaire(grammaire, situation, intention) {
+function validerCompatibiliteGrammaire(grammaire, situation, intention, roleNarratifRequis) {
   // R0 (chantier "audit du catalogue visuel", 30 aout 2026) : whitelist EXPLICITE, verifiee EN
   // PREMIER -- une grammaire non VALIDATED_* n'entre jamais dans la suite du raisonnement, jamais
   // un filtre implicite ailleurs. Voir estAutoriseAutomatiquement() et le commentaire du registre.
   if (!estAutoriseAutomatiquement(grammaire)) {
     return { ok: false, motif: 'statut "' + grammaire.statut + '" non autorise dans le pool automatique (R0)' };
+  }
+  // R6 (chantier "montage narratif", 30 aout 2026) : filtre SUPPLEMENTAIRE, jamais un remplacement
+  // des regles R1-R5 ci-dessous -- une grammaire doit d'abord passer TOUTES les regles existantes,
+  // puis en plus remplir le role narratif demande par le beat courant (si l'appelant en demande
+  // un ; un appel sans roleNarratifRequis, cf. usages historiques, se comporte exactement comme
+  // avant ce chantier).
+  if (roleNarratifRequis && !(grammaire.rolesNarratifs || []).includes(roleNarratifRequis)) {
+    return { ok: false, motif: 'role narratif "' + roleNarratifRequis + '" non rempli par cette grammaire (R6)' };
   }
   if (situation.canonique && (situation.canonique.type === 'carton' || situation.canonique.type === 'blessure')) {
     return { ok: false, motif: 'carton/blessure : jamais mis en scene par le realisateur decoratif (R1)' };
@@ -585,11 +632,11 @@ function validerCompatibiliteGrammaire(grammaire, situation, intention) {
   return { ok: true, motif: null };
 }
 
-function grammairesEligibles(situation, intention) {
+function grammairesEligibles(situation, intention, roleNarratifRequis) {
   const candidats = [];
   const rejets = [];
   REGISTRE_GRAMMAIRES_REALISATEUR.forEach(function (g) {
-    const verdict = validerCompatibiliteGrammaire(g, situation, intention);
+    const verdict = validerCompatibiliteGrammaire(g, situation, intention, roleNarratifRequis);
     if (verdict.ok) candidats.push(g); else rejets.push({ id: g.id, motif: verdict.motif });
   });
   return { candidats: candidats, rejets: rejets };
@@ -798,7 +845,9 @@ function selectionnerRealisation(entree) {
   });
   trace.intensite = intensite;
 
-  const eligibilite = grammairesEligibles(situation, intention);
+  const roleNarratifRequis = entree.roleNarratifRequis || null;
+  trace.roleNarratifRequis = roleNarratifRequis;
+  const eligibilite = grammairesEligibles(situation, intention, roleNarratifRequis);
   trace.rejets = eligibilite.rejets;
 
   let candidats = eligibilite.candidats;
@@ -809,11 +858,15 @@ function selectionnerRealisation(entree) {
     if (sansRepetition.length) candidats = sansRepetition;
   }
 
-  // Injection de la respiration (chantier "montage continu") : uniquement pour une situation de
-  // forme 'micro' -- interrompre un coup franc en cours par du vide serait, lui, un vrai defaut de
-  // montage. Poids contextuel : plus fort juste apres une reaction terminale ou un spectacle
+  // Injection de la respiration (chantier "montage continu", etendue au chantier "montage
+  // narratif" du 30 aout 2026 au beat RETURN) : uniquement pour une situation de forme 'micro' --
+  // interrompre un coup franc en cours par du vide serait, lui, un vrai defaut de montage. Un beat
+  // demandant explicitement un role narratif AUTRE que RETURN ne doit jamais se degrader en
+  // respiration (un ACTION qui ne trouve rien doit rester un ACTION manquant, pas devenir un
+  // retour au calme deguise -- l'orchestrateur d'arc gere lui-meme l'absence de beat, section
+  // suivante). Poids contextuel : plus fort juste apres une reaction terminale ou un spectacle
   // recent (section 6 de la consigne : "le mini-terrain est la couche de continuite").
-  if (formeSituation(situation) === 'micro') {
+  if (formeSituation(situation) === 'micro' && (!roleNarratifRequis || roleNarratifRequis === 'RETURN')) {
     let poidsRespiration = POIDS_RESPIRATION_BASE;
     if (etatSortiePrecedent && etatSortiePrecedent.reactionTerminale) poidsRespiration = PARAMETRES_RACCORD.poidsRespirationApresReaction;
     else if (spectaculaireRecenceAvant <= PARAMETRES_RACCORD.respirationApresSpectaculaireNb) poidsRespiration = PARAMETRES_RACCORD.poidsRespirationApresSpectaculaire;
@@ -882,6 +935,181 @@ function selectionnerRealisation(entree) {
 }
 
 // =====================================================================
+// 7bis. MONTAGE NARRATIF (chantier "du jukebox a la narration", 30 aout 2026)
+// =====================================================================
+// Reponse au constat de Fred : le selecteur (section 7) choisit deja correctement des
+// realisations COMPLETES (audit du catalogue, 30 aout), mais s'enchaine encore comme un jukebox
+// d'effets independants -- rien ne represente "la situation en train d'etre racontee". Cette
+// section ajoute l'etage manquant SANS reecrire le selecteur ni le raccord : elle les appelle,
+// UNE FOIS PAR BEAT, avec un filtre de role supplementaire (R6, section 4). D-E-F (famille
+// COUP_FRANC) n'est PAS reecrit en beats : c'est deja une unite narrative complete et validee
+// (chaine ou etapes individuelles), simplement etiquetee et passee telle quelle (voir
+// construireArcNarratif ci-dessous, branche COUP_FRANC).
+//
+// 6 ROLES DE BEAT (section 6 de la consigne) -- jamais tous obligatoires dans un arc.
+const ROLES_NARRATIFS = ['SETUP', 'ACTION', 'CLIMAX', 'RESOLUTION', 'REACTION', 'RETURN'];
+
+// 6 FAMILLES V1 MAXIMUM (section 7 de la consigne).
+const FAMILLES_NARRATIVES = [
+  'CONSTRUCTION_ATTAQUE', 'DUEL_RECUPERATION', 'OCCASION_TIR',
+  'COUP_FRANC', 'EVENEMENT_CANONIQUE', 'RESPIRATION_AMBIANCE'
+];
+
+// Classification par micro-action (groundee sur CATALOGUE_MICRO_ACTIONS, jamais une nouvelle
+// donnee de situation). 'remise' et 'degagement' rejoignent RESPIRATION_AMBIANCE : ce sont par
+// nature de tres courtes remises en jeu (section 3 de la consigne, exemple explicite "remise en
+// jeu -> 2 a 4s -> retour"), pas des situations construites.
+const MAPPING_FAMILLE_PAR_MICRO_ACTION = {
+  circulation: 'RESPIRATION_AMBIANCE', touche: 'RESPIRATION_AMBIANCE', sortie: 'RESPIRATION_AMBIANCE',
+  remise: 'RESPIRATION_AMBIANCE', degagement: 'RESPIRATION_AMBIANCE',
+  course: 'CONSTRUCTION_ATTAQUE',
+  duel: 'DUEL_RECUPERATION', interception: 'DUEL_RECUPERATION',
+  centre: 'OCCASION_TIR', frappe: 'OCCASION_TIR', arret: 'OCCASION_TIR'
+};
+
+// Situation deja connue (jamais le futur) -> famille. coupFrancEtape et canonique priment
+// toujours sur microAction (une situation ne porte jamais les deux a la fois en pratique, cf.
+// formeSituation, mais l'ordre de test reste explicite et sans ambiguite).
+function classifierFamilleNarrative(situation) {
+  if (situation.coupFrancEtape) return 'COUP_FRANC';
+  if (situation.canonique) return 'EVENEMENT_CANONIQUE';
+  if (situation.microAction) return MAPPING_FAMILLE_PAR_MICRO_ACTION[situation.microAction] || 'RESPIRATION_AMBIANCE';
+  return 'RESPIRATION_AMBIANCE';
+}
+
+// Formes d'arc possibles par famille (poids de PROTOTYPE, ajustables sans toucher au reste --
+// section 22, "minimum d'abstraction necessaire"). COUP_FRANC et EVENEMENT_CANONIQUE-carton/
+// blessure n'ont PAS de table : ce sont des passe-plats directs (voir construireArcNarratif).
+// EVENEMENT_CANONIQUE (bare, hors coup franc : but en jeu ouvert/occasion/debut/mitemps/fin)
+// garde un arc [RETURN] uniquement -- aucune grammaire du registre ne couvre aujourd'hui les
+// situations canoniques nues (audit du 30 aout : "gere par afficherInsertCanonique, hors
+// perimetre du selecteur"), donc ce beat se resoudra honnetement a `plan:null` -- jamais un but/
+// carton/blessure invente pour "faire joli" (section 4, regle fondamentale).
+const ARCS_PAR_FAMILLE = {
+  RESPIRATION_AMBIANCE: [
+    { beats: ['RETURN'], poids: 1 }
+  ],
+  CONSTRUCTION_ATTAQUE: [
+    { beats: ['ACTION', 'RETURN'], poids: 3 },
+    { beats: ['SETUP', 'ACTION', 'RETURN'], poids: 1 }
+  ],
+  DUEL_RECUPERATION: [
+    { beats: ['ACTION', 'RETURN'], poids: 3 },
+    { beats: ['SETUP', 'ACTION', 'RESOLUTION', 'RETURN'], poids: 1 }
+  ],
+  OCCASION_TIR: [
+    { beats: ['ACTION', 'RESOLUTION', 'RETURN'], poids: 2 },
+    { beats: ['SETUP', 'ACTION', 'CLIMAX', 'RESOLUTION', 'RETURN'], poids: 1 },
+    { beats: ['SETUP', 'ACTION', 'CLIMAX', 'RESOLUTION', 'REACTION', 'RETURN'], poids: 0.4 }
+  ],
+  EVENEMENT_CANONIQUE: [
+    { beats: ['RETURN'], poids: 1 }
+  ]
+};
+
+// Poids d'une forme d'arc pondere par l'intensite (jamais le futur, memes signaux que
+// calculerIntensiteRealisation) : favorise les arcs courts a faible intensite, les arcs longs a
+// forte intensite, neutre entre les deux -- heuristique de PROTOTYPE explicitement documentee
+// comme telle (section 22), pas un equilibrage definitif.
+function poidsArcSelonIntensite(forme, intensite) {
+  const n = forme.beats.length;
+  if (n <= 2) return forme.poids * (1.4 - 0.6 * intensite);
+  if (n >= 5) return forme.poids * (0.3 + 1.2 * intensite);
+  return forme.poids;
+}
+
+function choisirFormeArc(famille, intensite, rng) {
+  const formes = ARCS_PAR_FAMILLE[famille];
+  if (!formes || !formes.length) return null;
+  const pondere = formes.map(function (f) { return { f: f, poids: Math.max(0.001, poidsArcSelonIntensite(f, intensite)) }; });
+  const total = pondere.reduce(function (s, p) { return s + p.poids; }, 0);
+  let r = rng() * total, choisi = pondere[pondere.length - 1].f;
+  for (let i = 0; i < pondere.length; i++) { r -= pondere[i].poids; if (r <= 0) { choisi = pondere[i].f; break; } }
+  return choisi;
+}
+
+// Extrait une duree approximative NUMERIQUE de dureeMsAttendueApprox (nombre fixe, ou chaine
+// "900-1400 (variable)" pour les gabarits a duree aleatoire -- on retient alors la borne basse,
+// jamais une invention) -- usage OBSERVABILITE/orchestration du retour a l'etat normal, jamais
+// une donnee lue par la choregraphie reelle.
+function dureeApproxDepuisRegistre(idGrammaire) {
+  const g = REGISTRE_GRAMMAIRES_REALISATEUR.find(function (x) { return x.id === idGrammaire; });
+  if (!g) return 0;
+  if (typeof g.dureeMsAttendueApprox === 'number') return g.dureeMsAttendueApprox;
+  const m = /\d+/.exec(String(g.dureeMsAttendueApprox));
+  return m ? parseInt(m[0], 10) : 0;
+}
+const DUREE_DEFAUT_RESPIRATION_MS = 400; // simple continuite du mini-terrain, jamais un nouveau plan
+
+// Construit un ARC NARRATIF complet pour UNE situation : famille -> forme d'arc -> un appel a
+// selectionnerRealisation PAR BEAT (memoire partagee, donc rarete/raccord/MR1-MR3 continuent de
+// s'appliquer NORMALEMENT y compris ENTRE deux beats du meme arc -- jamais un passe-droit interne
+// a l'arc). Un beat dont l'appel renvoie `plan:null` (role non disponible pour cette situation,
+// cf. LOT 11 "plan impossible", cas legitime) est simplement OMIS de la sequence jouable -- jamais
+// un blocage de l'arc entier (section 20, "absence d'acteur/de brique ne bloque jamais").
+// Entree : { situation, seed, memoire }. Sortie : { arcPlan, trace } -- arcPlan.beats est la liste
+// des beats REELLEMENT jouables (plan non-null), dans l'ordre ; trace.beatsPrevus conserve la
+// liste THEORIQUE complete (y compris les beats tombes a plan:null) pour l'observabilite (LOT 18).
+function construireArcNarratif(entree) {
+  const situation = entree.situation;
+  const memoire = entree.memoire || creerMemoireRealisateur();
+  const seedBase = entree.seed != null ? String(entree.seed) : String(Math.random());
+  const rng = creerPRNGDeterministeRia(hashChaineVersUint32Ria('arc-narratif-' + seedBase));
+
+  const famille = classifierFamilleNarrative(situation);
+  const intensite = calculerIntensiteRealisation({
+    microAction: situation.microAction, canoniqueType: situation.canonique && situation.canonique.type,
+    coupFrancEtape: situation.coupFrancEtape, pressionRecente: situation.pressionRecente,
+    ecartScore: situation.ecartScore, minute: situation.minute
+  });
+
+  const trace = { situation: situation, famille: famille, intensite: intensite, seed: seedBase, beatsPrevus: [] };
+
+  // COUP_FRANC : PASSE-PLAT DIRECT -- D-E-F (etapes individuelles ou chaines/raccords deja
+  // composes) est une unite narrative complete et validee, jamais reecrite en beats generiques
+  // (consigne section 9/10 : "ne pas rejouer D-E-F s'il fonctionne"). Un seul appel, identique a
+  // avant ce chantier.
+  if (famille === 'COUP_FRANC') {
+    const resultat = selectionnerRealisation({ situation: situation, seed: seedBase, memoire: memoire });
+    trace.beatsPrevus.push({ role: 'COUP_FRANC_UNITE', plan: resultat.plan, sousTrace: resultat.trace });
+    const beats = resultat.plan ? [{ role: 'COUP_FRANC_UNITE', plan: resultat.plan }] : [];
+    return {
+      arcPlan: {
+        famille: famille, arc: ['COUP_FRANC_UNITE'], beats: beats,
+        dureeMsTotaleApprox: resultat.plan ? dureeApproxDepuisRegistre(resultat.plan.selectedGrammar) : 0
+      },
+      trace: trace
+    };
+  }
+
+  const formeArc = choisirFormeArc(famille, intensite, rng);
+  trace.arcChoisi = formeArc ? formeArc.beats.slice() : null;
+  if (!formeArc) {
+    trace.rejetGlobal = 'aucune forme d\'arc definie pour la famille "' + famille + '"';
+    return { arcPlan: { famille: famille, arc: [], beats: [], dureeMsTotaleApprox: 0 }, trace: trace };
+  }
+
+  const beatsJouables = [];
+  let dureeMsTotaleApprox = 0;
+  formeArc.beats.forEach(function (role, idx) {
+    const seedBeat = seedBase + '-beat' + idx + '-' + role;
+    const resultatBeat = selectionnerRealisation({ situation: situation, seed: seedBeat, memoire: memoire, roleNarratifRequis: role });
+    trace.beatsPrevus.push({ role: role, plan: resultatBeat.plan, sousTrace: resultatBeat.trace });
+    if (resultatBeat.plan) {
+      beatsJouables.push({ role: role, plan: resultatBeat.plan });
+      dureeMsTotaleApprox += resultatBeat.plan.isRespiration ? DUREE_DEFAUT_RESPIRATION_MS : dureeApproxDepuisRegistre(resultatBeat.plan.selectedGrammar);
+    }
+    // beat sans plan : omis de beatsJouables, conserve dans trace.beatsPrevus (LOT 18,
+    // "raison d'un fallback eventuel" -- resultatBeat.trace.rejetGlobal/rejets porte le motif).
+  });
+
+  return {
+    arcPlan: { famille: famille, arc: formeArc.beats.slice(), beats: beatsJouables, dureeMsTotaleApprox: dureeMsTotaleApprox },
+    trace: trace
+  };
+}
+
+// =====================================================================
 // 8. EXPORT (compatible Node ET navigateur, sans dependance croisee)
 // =====================================================================
 const RealisateurIA = {
@@ -904,6 +1132,14 @@ const RealisateurIA = {
   ponderationRarete: ponderationRarete,
   enregistrerRealisationMemoire: enregistrerRealisationMemoire,
   selectionnerRealisation: selectionnerRealisation,
+  ROLES_NARRATIFS: ROLES_NARRATIFS,
+  FAMILLES_NARRATIVES: FAMILLES_NARRATIVES,
+  MAPPING_FAMILLE_PAR_MICRO_ACTION: MAPPING_FAMILLE_PAR_MICRO_ACTION,
+  ARCS_PAR_FAMILLE: ARCS_PAR_FAMILLE,
+  classifierFamilleNarrative: classifierFamilleNarrative,
+  choisirFormeArc: choisirFormeArc,
+  dureeApproxDepuisRegistre: dureeApproxDepuisRegistre,
+  construireArcNarratif: construireArcNarratif,
   hashChaineVersUint32Ria: hashChaineVersUint32Ria,
   creerPRNGDeterministeRia: creerPRNGDeterministeRia
 };

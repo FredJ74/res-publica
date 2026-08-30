@@ -23,11 +23,28 @@ test('registre : aucune grammaire ne nomme un joueur precis', function () {
   });
 });
 // ---- LOT "audit du catalogue visuel" (30 aout 2026) : whitelist et identite SELECTED/RESOLVED ----
-test('registre : chaque grammaire a un statut whitelistable et un nbPlansAttendu positif', function () {
+// Corrige le 30 aout 2026 (chantier "montage narratif", section 10) : gabarit_montage_4 est
+// desormais VOLONTAIREMENT hors whitelist (decision de direction artistique -- glaives ⚔️ jamais
+// autorises) -- seule exception explicite et nommee, jamais un relachement general du test.
+test('registre : chaque grammaire a un nbPlansAttendu positif ; toutes SAUF gabarit_montage_4 (exclusion volontaire ⚔️) ont un statut whitelistable', function () {
   RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.forEach(function (g) {
-    assert.ok(RealisateurIA.STATUTS_AUTORISES_POOL_AUTOMATIQUE.includes(g.statut), g.id + ' : statut "' + g.statut + '" absent de la whitelist');
+    if (g.id !== 'gabarit_montage_4') {
+      assert.ok(RealisateurIA.STATUTS_AUTORISES_POOL_AUTOMATIQUE.includes(g.statut), g.id + ' : statut "' + g.statut + '" absent de la whitelist');
+    }
     assert.ok(Number.isInteger(g.nbPlansAttendu) && g.nbPlansAttendu > 0, g.id + ' : nbPlansAttendu invalide');
   });
+});
+test('gabarit_montage_4 (glaives ⚔️) : statut explicitement REJETE, jamais autorise automatiquement', function () {
+  const g = RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.find(function (x) { return x.id === 'gabarit_montage_4'; });
+  assert.strictEqual(RealisateurIA.estAutoriseAutomatiquement(g), false);
+  assert.ok(!RealisateurIA.STATUTS_AUTORISES_POOL_AUTOMATIQUE.includes(g.statut));
+});
+test('gabarit_montage_4 (glaives ⚔️) : jamais selectionne sur 500 situations qui l\'auraient rendu eligible avant sa mise a l\'ecart', function () {
+  for (let i = 0; i < 500; i++) {
+    const situation = { microAction: 'duel', cote: 'home', minute: 30, ecartScore: 0, pressionRecente: 2 };
+    const r = RealisateurIA.selectionnerRealisation({ situation: situation, seed: 'glaive-' + i, memoire: RealisateurIA.creerMemoireRealisateur() });
+    if (r.plan) assert.notStrictEqual(r.plan.selectedGrammar, 'gabarit_montage_4');
+  }
 });
 test('R0 whitelist : une grammaire au statut non autorise (ex. INTERNAL) est toujours rejetee, quel que soit le reste', function () {
   const g = Object.assign({}, RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.find(function (x) { return x.id === 'gabarit_montage_0'; }), { statut: 'INTERNAL' });
