@@ -62,6 +62,15 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 
 /* ===========================
+   SELECTEUR DE LANGUE (I18N LOT 1)
+   =========================== */
+#lang-switcher{position:fixed;top:1rem;right:1.2rem;z-index:50;display:flex;align-items:center;gap:.35rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.78rem}
+#lang-switcher button{background:transparent;border:none;color:var(--text4);cursor:pointer;padding:.2rem .3rem;font:inherit;letter-spacing:inherit;transition:color .2s}
+#lang-switcher button:hover{color:var(--text2)}
+#lang-switcher button.lang-actif{color:var(--gold)}
+#lang-switcher .lang-sep{color:var(--text5)}
+
+/* ===========================
    CREATION DE PERSONNAGE
    =========================== */
 .screen{display:none;min-height:100vh;flex-direction:column;align-items:center;padding:2.5rem 1.5rem;animation:fi 0.5s ease}
