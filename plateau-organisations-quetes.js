@@ -3834,7 +3834,20 @@ function masquerPlanIllustreRealisation(sortieCut) {
 function reinitialiserSceneApresSequenceRealisation(sortieCut) {
   masquerPlanIllustreRealisation(sortieCut);
   const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
-  if (pelouse) { pelouse.style.transform = 'scale(1)'; pelouse.classList.remove('live-pelouse--vibration'); }
+  // Correctif MR4 (chantier "montage continu", 30 aout 2026, cause factuelle identifiee par audit
+  // du code -- jamais corrigee sur simple supposition) : AVANT ce correctif, cette ligne fixait
+  // `transform:scale(1)` sans jamais reinitialiser `transition`, qui restait donc celle laissee par
+  // le TOUT DERNIER plan joue -- 2600ms cubic-bezier apres un Drone Dive/Orbit Freeze, .4s ease
+  // apres un gabarit normal, ou aucune transition du tout apres un plan illustre. Le retour a l'etat
+  // neutre entre deux realisations n'avait donc jamais la MEME vitesse/courbe d'une fois sur
+  // l'autre -- source concrete du raccord "pas naturel" signale en production. Desormais TOUJOURS
+  // la meme transition de retour (identique a la transition normale d'un gabarit de production,
+  // appliquerCadrageTerrain), quel que soit l'effet qui vient de se jouer.
+  if (pelouse) {
+    pelouse.style.transition = 'transform .4s ease';
+    pelouse.style.transform = 'scale(1)';
+    pelouse.classList.remove('live-pelouse--vibration');
+  }
   ['live-ballon', 'live-joueur-home', 'live-joueur-away'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.transitionDuration = '';
@@ -3950,6 +3963,24 @@ function trouverSequenceCrashTestRasDuSol(instant) {
     if (sequence.gabaritId === 'crash_test_ras_du_sol') return sequence;
   }
   return null; // ne devrait jamais arriver (~4.7% de chances par tirage, 500 essais tres largement suffisants)
+}
+
+// Generalisation de trouverSequenceCrashTestRasDuSol (chantier "instrumentation des clics debug",
+// 30 aout 2026) : MEME principe (genererSequenceRealisation est pure, on peut la rappeler a blanc
+// jusqu'a retomber sur le gabaritId voulu), etendu a N'IMPORTE QUEL gabarit de
+// POOL_GABARITS_REALISATEUR -- jamais un nouveau moteur, jamais une modification du pool. Sert
+// UNIQUEMENT le pont debug IA (voir plus bas) : permet de rejouer visuellement un gabarit de
+// PRODUCTION (deja utilise en match reel via jouerMicroAction) depuis le banc d'essai preview,
+// alors qu'aucun scenario dedie n'existe pour eux dans SCENARIOS_PREVIEW_REALISATEUR (ils ne sont
+// normalement demontres qu'en direct). `contexte` doit deja satisfaire les
+// microActionsCompatibles du gabarit vise (sinon aucun tirage ne peut jamais l'atteindre, boucle
+// epuisee normalement -- pas un bug).
+function trouverSequenceProductionAvecGabaritId(gabaritId, contexte) {
+  for (let i = 0; i < 500; i++) {
+    const sequence = genererSequenceRealisation('debug-pont-ia-' + gabaritId + '-' + i, contexte);
+    if (sequence.gabaritId === gabaritId) return sequence;
+  }
+  return null;
 }
 
 // Sequence B "3 angles" (test de montage, 29 aout 2026) : hypothese testee, le spectaculaire
@@ -4537,17 +4568,35 @@ function initPreviewRealisateur() {
 
   // ---------------------------------------------------------------------------
   // PONT INTEGRATION IA -> EXECUTEUR EXISTANT (LOTS 8/9/14/15, chantier "industrialisation du
-  // realisateur", 30 aout 2026)
+  // realisateur", 30 aout 2026 -- corrige le meme jour, chantier "instrumentation des clics debug
+  // + montage continu", suite au retour de Fred en production)
   // ---------------------------------------------------------------------------
   // Additif PUR : un bouton + un panneau de trace en plus, AUCUN bouton/scenario existant
   // modifie. Route TOUJOURS vers la MEME executerSequenceRealisation/lancerSequencePreview que les
   // boutons ci-dessus (jamais un second moteur d'execution) -- seule la SELECTION en amont change
   // (RealisateurIA.selectionnerRealisation, cf. plateau-football-realisateur-ia.js, module pur sans
   // DOM) au lieu d'un clic manuel sur un scenario precis. `jouerMicroAction` (point d'entree du
-  // vrai match live) N'EST PAS touche par ce pont -- bascule volontairement laissee de cote cette
-  // nuit (voir rapport du chantier, section "points a arbitrer").
+  // vrai match live) N'EST PAS touche par ce pont.
+  //
+  // CAUSE FACTUELLE DES "CLICS QUI NE REAGISSENT PAS TOUJOURS" (identifiee par instrumentation +
+  // mesure headless AVANT tout correctif, jamais par supposition -- voir rapport du chantier) :
+  // la version precedente de ce pont resolvait `plan.selectedGrammar` UNIQUEMENT via
+  // SCENARIOS_PREVIEW_REALISATEUR.find(...) puis faisait un `return` silencieux si rien n'etait
+  // trouve. Or (a) les gabarits de PRODUCTION (gabarit_montage_0..5, poids 1 chacun -- les plus
+  // FREQUEMMENT choisis pour une micro-action) n'ont JAMAIS d'entree dans cette liste (ils ne sont
+  // demontres qu'en match reel), et (b) le gabarit crash_test_ras_du_sol porte un id DIFFERENT de
+  // son bouton preview ('plan_unique'). Mesure factuelle sur 2000 clics simules AVANT correctif :
+  // 51.4% resolus, 39.5% silencieux (gabarit production sans scenario preview), 8.3% silencieux
+  // mais LEGITIMES (plan null sur un carton adversarial de la rotation), 0.8% silencieux par id
+  // mismatch -- soit environ un clic sur deux sans aucune reaction visible. Correctif applique :
+  // resoudre les grammaires `source==='production'` via trouverSequenceProductionAvecGabaritId
+  // (meme principe que trouverSequenceCrashTestRasDuSol, deja valide) au lieu de les ignorer.
   if (window.RealisateurIA) {
     const memoireDebugIA = RealisateurIA.creerMemoireRealisateur();
+    // Compteurs inspectables (console navigateur : window.__debugRealisateurClics) -- permettent de
+    // distinguer un clic non recu (recus n'augmente pas) d'un clic recu mais sans reaction visible
+    // (recus augmente, lancements n'augmente pas).
+    window.__debugRealisateurClics = { recus: 0, respirations: 0, planNul: 0, resolutionEchouee: 0, lancements: 0 };
     // Rotation de situations REPRESENTATIVES (micro-actions variees + chaine coup franc D/E/F1/F2
     // + un carton adversarial) -- couvre les cas essentiels sans faire tourner un vrai match.
     const situationsDebugIA = [
@@ -4567,24 +4616,98 @@ function initPreviewRealisateur() {
     let indexDebugIA = 0;
 
     const blocDebugIA = document.createElement('div');
-    blocDebugIA.style.cssText = 'flex:0 0 auto;margin-top:.6rem;padding-top:.6rem;border-top:1px dashed #4a3c22';
+    blocDebugIA.style.cssText = 'margin-top:.6rem;padding-top:.6rem;border-top:1px dashed #4a3c22';
     blocDebugIA.innerHTML =
       '<button id="preview-realisateur-ia-btn" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:.06em;padding:.45rem;border:1px dashed #6a9aca;background:transparent;color:#6a9aca;cursor:pointer">🤖 Sélection IA (debug, situation suivante)</button>' +
-      '<pre id="preview-realisateur-ia-trace" style="margin-top:.4rem;max-height:180px;overflow:auto;font-size:.62rem;line-height:1.35;color:#8a9aa8;background:#05070a;padding:.4rem;border:1px solid #2a3038;white-space:pre-wrap"></pre>';
-    panneau.appendChild(blocDebugIA);
+      '<pre id="preview-realisateur-ia-trace" style="margin-top:.4rem;max-height:280px;overflow:auto;font-size:.62rem;line-height:1.35;color:#8a9aa8;background:#05070a;padding:.4rem;border:1px solid #2a3038;white-space:pre-wrap"></pre>';
+    // Placement DANS la zone deja scrollable (correctif "risque de mise en page", 30 aout 2026) --
+    // le panneau grandit a chaque chantier (commentaire d'origine du 29 aout 2026 sur ce meme
+    // risque pour les boutons de scenario) ; un bloc ajoute en sibling FIXE de `panneau` pouvait,
+    // sur un viewport bas, se retrouver partiellement/totalement hors de `max-height` (overflow
+    // hidden, pas de scroll) et donc injoignable au clic -- cause plausible supplementaire des
+    // "clics non recus". En le mettant a la fin de la liste deja scrollable, il reste TOUJOURS
+    // atteignable, exactement comme les boutons de scenario eux-memes.
+    const zoneScroll = document.getElementById('preview-realisateur-liste-scroll');
+    (zoneScroll || panneau).appendChild(blocDebugIA);
+
+    // Resout une grammaire choisie par le selecteur vers une VRAIE sequence DOM. Retourne
+    // {sequence, methode} ou {sequence:null, methode} si aucune resolution n'est possible --
+    // JAMAIS d'exception, toujours une reponse inspectable (LOT 14).
+    function resoudreSequenceDepuisGrammaire(plan, situation) {
+      const grammaire = RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.find(function (g) { return g.id === plan.selectedGrammar; });
+      if (grammaire && grammaire.source === 'production') {
+        const contexte = { microAction: situation.microAction, cote: situation.cote || 'home' };
+        const sequence = trouverSequenceProductionAvecGabaritId(plan.selectedGrammar, contexte);
+        return { sequence: sequence, methode: 'production (trouverSequenceProductionAvecGabaritId)' };
+      }
+      const scenario = SCENARIOS_PREVIEW_REALISATEUR.find(function (s) { return s.id === plan.selectedGrammar; });
+      if (scenario) return { sequence: scenario.construireSequence(instant), methode: 'preview-demo (SCENARIOS_PREVIEW_REALISATEUR)' };
+      return { sequence: null, methode: 'aucune (id "' + plan.selectedGrammar + '" introuvable dans les deux registres)' };
+    }
 
     document.getElementById('preview-realisateur-ia-btn').addEventListener('click', function () {
+      // ETAPE 1/9 : reception du clic (compteur inspectable -- si ce nombre n'augmente jamais au
+      // clic reel, la cause est "clic non recu", ex. element hors-viewport/recouvert).
+      window.__debugRealisateurClics.recus++;
       const situation = situationsDebugIA[indexDebugIA % situationsDebugIA.length];
       indexDebugIA++;
+
+      // ETAPE 2-6/9 : generation de situation (deja faite ci-dessus) -> selectionnerRealisation ->
+      // plan obtenu/refuse -> resolution -> demande de lancement. Chaque etape est tracee.
+      const etapes = ['clic_recu', 'situation_generee'];
       const { plan, trace } = RealisateurIA.selectionnerRealisation({
         situation: situation, seed: 'debug-panneau-' + Date.now(), memoire: memoireDebugIA
       });
+      etapes.push('selection_terminee');
+
+      let resolution = null, etatExecuteur = 'aucune tentative de lancement';
+      if (!plan) {
+        window.__debugRealisateurClics.planNul++;
+        etapes.push('selection_sans_plan');
+        etatExecuteur = 'aucun lancement -- ' + (trace.rejetGlobal || 'raison inconnue');
+      } else if (plan.isRespiration) {
+        window.__debugRealisateurClics.respirations++;
+        etapes.push('respiration_choisie');
+        etatExecuteur = 'aucun lancement (volontaire) -- respiration : le mini-terrain courant continue tel quel';
+      } else {
+        resolution = resoudreSequenceDepuisGrammaire(plan, situation);
+        etapes.push('plan_resolu:' + resolution.methode);
+        if (!resolution.sequence) {
+          window.__debugRealisateurClics.resolutionEchouee++;
+          etapes.push('resolution_echouee');
+          etatExecuteur = 'aucun lancement -- resolution DOM introuvable malgre un plan valide (a signaler si persistant)';
+        } else {
+          etapes.push('lancement_demande');
+          // etat de l'executeur juste avant lancement -- lancerSequencePreview n'a AUCUN verrou
+          // (verifie par lecture directe du code, jamais suppose) : un lancement precedent encore
+          // en cours est toujours proprement interrompu puis remplace, jamais bloque.
+          etatExecuteur = 'lancement via lancerSequencePreview (aucun verrou dans l’executeur -- toute sequence en cours est interrompue proprement puis remplacee)';
+          lancerSequencePreview(resolution.sequence, def, home, instant);
+          window.__debugRealisateurClics.lancements++;
+          etapes.push('sequence_lancee');
+        }
+      }
+      etapes.push('fin_traitement_clic');
+
       const traceEl = document.getElementById('preview-realisateur-ia-trace');
-      if (traceEl) traceEl.textContent = JSON.stringify({ situation: situation, plan: plan, trace: trace }, null, 2);
-      if (!plan) return; // aucune realisation disponible pour cette situation -- trace affichee, rien a jouer (cas legitime, LOT 11)
-      const scenario = SCENARIOS_PREVIEW_REALISATEUR.find(function (s) { return s.id === plan.selectedGrammar; });
-      if (!scenario) return; // grammaire de production (gabarit_montage_*/crash_test) : deja demontree en match reel, rien a rejouer ici
-      lancerSequencePreview(scenario.construireSequence(instant), def, home, instant);
+      if (traceEl) {
+        traceEl.textContent = JSON.stringify({
+          etapesPipeline: etapes,
+          compteursSession: window.__debugRealisateurClics,
+          situation: situation,
+          realisationPrecedente: trace.realisationPrecedente,
+          etatVisuelSortiePrecedent: trace.etatSortiePrecedent,
+          intention: trace.intention,
+          intensite: trace.intensite,
+          candidatsRejetesCompatibilite: trace.rejets,
+          candidatsRejetesRaccord: trace.rejetsRaccord,
+          candidatsPonderes: trace.candidatsPonderes,
+          realisationChoisie: trace.choisi || null,
+          resolutionMethode: resolution ? resolution.methode : null,
+          etatExecuteur: etatExecuteur,
+          nouvelEtatVisuelSortie: trace.etatSortieChoisi || null
+        }, null, 2);
+      }
     });
   }
 }
