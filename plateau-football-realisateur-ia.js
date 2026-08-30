@@ -282,12 +282,34 @@ function intentionsAutoriseesPourSituation(situation) {
 // (silence du garde-fou plutot qu'un rejet), exactement le genre de frontiere implicite que LOT 4
 // est cense interdire. Verifie par le simulateur headless (LOT 12, "violations canoniques" +
 // diagnostic manuel qui a revele la fuite) avant d'ecrire cette version.
+// `etatSortie` (LOT "montage continu", 30 aout 2026 -- ajoute apres retour utilisateur : "le
+// systeme varie bien les realisations mais les enchainements ne paraissent pas naturels"):
+// descripteur LEGER et GROUNDE (audit direct des sequences reelles dans
+// plateau-organisations-quetes.js, jamais invente) de ce que montre la DERNIERE portion de la
+// grammaire avant que le reset universel (reinitialiserSceneApresSequenceRealisation, partage par
+// TOUTES les sequences) ne remette la scene a plat :
+//  - medium : 'miniature' (reste sur la camera CSS du terrain) | 'illustre_image' (bascule sur
+//    l'overlay illustre, pictogramme ou photo fixe) | 'illustre_pictogram' (overlay SANS asset --
+//    COUCHE_ILLUSTRE_FIXE_DEFAUT, rendu emoji, cf. gabarit_montage_4) | 'illustre_video' (dernier
+//    plan est une <video>, avec son).
+//  - reactionTerminale : true si le DERNIER plan est assume comme un plan de reaction/aftermath
+//    (uniquement les 2 videos F1/F2 et les chaines qui se terminent dessus -- jamais suppose pour
+//    une simple pose fixe).
+//  - resolutionAssumee : true si la grammaire MONTRE une resolution (contrairement a D/E qui
+//    s'arretent deliberement avant, cf. commentaires "s'arrete DELIBEREMENT avant toute resolution
+//    sportive" / "aucun but/arret affirme" dans le fichier source).
+//  - retourTerrainInclus : true si la grammaire elle-meme ramene la camera au mini-terrain avant sa
+//    propre fin (raccord_coup_franc_*, tous les gabarits sauf gabarit_montage_4, match_miniature_v2,
+//    les 4 effets) plutot que de compter uniquement sur le reset universel.
+// Champ POUR TESTS UNIQUEMENT (jamais lu par la choregraphie reelle) -- sert la matrice de raccord
+// (section suivante), pas une nouvelle verite visuelle.
 const REGISTRE_GRAMMAIRES_REALISATEUR = [
   // ---- Gabarits deja utilises en match reel (POOL_GABARITS_REALISATEUR) ----
   { id: 'gabarit_montage_0', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     primitives: ['TRACK', 'FAST', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['NEUTRE', 'CONSTRUCTION', 'PRESSION', 'ACCELERATION'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['NEUTRE', 'CONSTRUCTION', 'PRESSION', 'ACCELERATION'], poidsBase: 1, spectaculaire: false,
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_1', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     primitives: ['FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
@@ -296,94 +318,144 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     // intentions n'auraient AUCUNE realisation compatible pour une micro-action, cf. commentaire
     // du simulateur (LOT 11, "plan impossible" par lacune de vocabulaire plutot que par
     // conception -- corrige ici, jamais en truquant les poids).
-    intentionsCompatibles: ['NEUTRE', 'RETOUR_CALME', 'CONSTRUCTION', 'SOULAGEMENT', 'REACTION'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['NEUTRE', 'RETOUR_CALME', 'CONSTRUCTION', 'SOULAGEMENT', 'REACTION'], poidsBase: 1, spectaculaire: false,
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_2', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     primitives: ['ZOOM', 'SLOW', 'SHAKE', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['DUEL', 'TENSION', 'DANGER'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['DUEL', 'TENSION', 'DANGER'], poidsBase: 1, spectaculaire: false,
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_3', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     primitives: ['FAST', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['ACCELERATION', 'CONSTRUCTION'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['ACCELERATION', 'CONSTRUCTION'], poidsBase: 1, spectaculaire: false,
+    // 3 plans (terrain -> illustre pictogramme -> terrain) : revient DEJA au terrain lui-meme.
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_4', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     primitives: ['ZOOM', 'TRACK', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['PRESSION', 'CONSTRUCTION', 'DANGER'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['PRESSION', 'CONSTRUCTION', 'DANGER'], poidsBase: 1, spectaculaire: false,
+    // SEUL gabarit dont le DERNIER plan est 'illustre' (GABARITS_MONTAGE_REALISATEUR index 4,
+    // sans asset -> pictogramme COUCHE_ILLUSTRE_FIXE_DEFAUT) : ne revient PAS au terrain lui-meme,
+    // compte entierement sur le reset universel -- audit factuel, pas une supposition.
+    etatSortie: { medium: 'illustre_pictogram', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
   { id: 'gabarit_montage_5', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
     primitives: ['SHAKE', 'SLOW', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['TENSION', 'DUEL', 'NEUTRE'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['TENSION', 'DUEL', 'NEUTRE'], poidsBase: 1, spectaculaire: false,
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'crash_test_ras_du_sol', source: 'production', familleRarete: 'crash_test', declencheurs: ['micro'],
     primitives: ['ZOOM', 'TRACK', 'SHAKE', 'CUT'], microActionsCompatibles: ['duel', 'course', 'remise'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['DUEL', 'ACCELERATION', 'IMPACT'], poidsBase: 0.3, spectaculaire: true },
+    intentionsCompatibles: ['DUEL', 'ACCELERATION', 'IMPACT'], poidsBase: 0.3, spectaculaire: true,
+    etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
 
   // ---- Banc d'essai preview -- jamais dans le pool de production (cf. cartographie §5.2) ----
   { id: 'multi_angle', source: 'preview-demo', familleRarete: 'multi_angle', declencheurs: ['micro'],
     primitives: ['CUT', 'ZOOM', 'FOLLOW'], microActionsCompatibles: ['duel', 'frappe', 'centre'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['DUEL', 'DANGER', 'TENSION'], poidsBase: 0.5, spectaculaire: true },
+    intentionsCompatibles: ['DUEL', 'DANGER', 'TENSION'], poidsBase: 0.5, spectaculaire: true,
+    etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
   { id: 'stop_motion', source: 'preview-demo', familleRarete: 'stop_motion', declencheurs: ['micro'],
     primitives: ['CUT', 'FREEZE'], microActionsCompatibles: ['duel'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['DUEL', 'IMPACT'], poidsBase: 0.4, spectaculaire: true },
+    intentionsCompatibles: ['DUEL', 'IMPACT'], poidsBase: 0.4, spectaculaire: true,
+    etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
 
   { id: 'tension', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
     primitives: ['ZOOM', 'SLOW', 'FOCUS'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['tension'], resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['TENSION'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['TENSION'], poidsBase: 1, spectaculaire: false,
+    // "s'arrete DELIBEREMENT avant toute resolution sportive" (commentaire source) -- cliffhanger
+    // assume, continuation naturelle = 'trajectoire'.
+    etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false, suiteNaturelle: 'trajectoire' } },
   { id: 'trajectoire', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
     primitives: ['TRACK', 'FOLLOW_BALL'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['trajectoire'], resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['TENSION', 'DANGER'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['TENSION', 'DANGER'], poidsBase: 1, spectaculaire: false,
+    // "aucun but/arret affirme" (commentaire source) -- cliffhanger assume egalement.
+    etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
   { id: 'arret', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
     primitives: ['CUT', 'FOCUS'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['arret'], resultatCanoniqueRequis: 'arret',
-    intentionsCompatibles: ['SOULAGEMENT', 'REACTION'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['SOULAGEMENT', 'REACTION'], poidsBase: 1, spectaculaire: false,
+    // Dernier plan = VIDEO (reaction de Taclojnou, son) -- reactionTerminale grounde dans le code.
+    etatSortie: { medium: 'illustre_video', reactionTerminale: true, resolutionAssumee: true, retourTerrainInclus: false } },
   { id: 'but', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
     primitives: ['CUT', 'FOCUS'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['but'], resultatCanoniqueRequis: 'but',
-    intentionsCompatibles: ['EXPLOSION', 'REACTION'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['EXPLOSION', 'REACTION'], poidsBase: 1, spectaculaire: false,
+    etatSortie: { medium: 'illustre_video', reactionTerminale: true, resolutionAssumee: true, retourTerrainInclus: false } },
+  // coup_franc_arrete/but (chaine BRUTE, sans bookend terrain) : se termine sur la meme video que
+  // F1/F2 puis retombe directement sur le reset universel -- exactement le raccord que Fred a
+  // signale comme peu naturel. raccord_coup_franc_arrete/but couvrent le MEME contenu (memes
+  // .plans, simple concat, cf. source) avec un retour terrain explicite en plus : deprioriser=true
+  // (LOT montage, regle MR3) fait que le selecteur automatique prefere TOUJOURS la variante
+  // raccordee quand elle est egalement eligible -- la chaine brute reste choisissable a la main
+  // (bouton preview existant, inchange) et par le selecteur si, pour une raison quelconque, la
+  // variante raccordee n'etait pas dans le pool eligible.
   { id: 'coup_franc_arrete', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'arret',
-    intentionsCompatibles: ['TENSION', 'SOULAGEMENT'], poidsBase: 1, spectaculaire: false, estChaineComplete: true },
+    intentionsCompatibles: ['TENSION', 'SOULAGEMENT'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
+    etatSortie: { medium: 'illustre_video', reactionTerminale: true, resolutionAssumee: true, retourTerrainInclus: false },
+    deprioriserSiRaccordDisponible: 'raccord_coup_franc_arrete' },
   { id: 'coup_franc_but', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'but',
-    intentionsCompatibles: ['TENSION', 'EXPLOSION'], poidsBase: 1, spectaculaire: false, estChaineComplete: true },
+    intentionsCompatibles: ['TENSION', 'EXPLOSION'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
+    etatSortie: { medium: 'illustre_video', reactionTerminale: true, resolutionAssumee: true, retourTerrainInclus: false },
+    deprioriserSiRaccordDisponible: 'raccord_coup_franc_but' },
   { id: 'raccord_coup_franc_arrete', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT', 'FOLLOW'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'arret',
-    intentionsCompatibles: ['TENSION', 'SOULAGEMENT'], poidsBase: 1, spectaculaire: false, estChaineComplete: true },
+    intentionsCompatibles: ['TENSION', 'SOULAGEMENT'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
+    // Se termine sur PHASE_TERRAIN_APRES_ARRET (type 'terrain', cf. source) -- retour terrain
+    // DEJA ecrit dans la sequence elle-meme, pas seulement par le reset universel.
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: true, retourTerrainInclus: true } },
   { id: 'raccord_coup_franc_but', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT', 'FOLLOW'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'but',
-    intentionsCompatibles: ['TENSION', 'EXPLOSION'], poidsBase: 1, spectaculaire: false, estChaineComplete: true },
+    intentionsCompatibles: ['TENSION', 'EXPLOSION'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: true, retourTerrainInclus: true } },
 
   { id: 'match_miniature_v2', source: 'preview-demo', familleRarete: 'ambiance_continue', declencheurs: ['micro'],
     primitives: ['FOLLOW', 'LEAD'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['NEUTRE', 'CONSTRUCTION', 'RETOUR_CALME'], poidsBase: 1, spectaculaire: false },
+    intentionsCompatibles: ['NEUTRE', 'CONSTRUCTION', 'RETOUR_CALME'], poidsBase: 1, spectaculaire: false,
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
 
-  // ---- Les 4 effets valides ----
+  // ---- Les 4 effets valides (camera-only, jamais d'overlay illustre -- cf. cartographie) ----
   { id: 'drone_dive_impact_freeze', source: 'preview-demo', familleRarete: 'effet_camera_lourd', declencheurs: ['micro'],
     primitives: ['DRONE_DIVE', 'IMPACT_FREEZE', 'FOLLOW'], microActionsCompatibles: ['duel', 'frappe', 'interception'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['IMPACT', 'DUEL', 'DANGER'], poidsBase: 0.35, spectaculaire: true },
+    intentionsCompatibles: ['IMPACT', 'DUEL', 'DANGER'], poidsBase: 0.35, spectaculaire: true,
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'freeze_follow_ball', source: 'preview-demo', familleRarete: 'effet_camera_lourd', declencheurs: ['micro'],
     primitives: ['FREEZE_SELECTIVE', 'FOLLOW_BALL', 'SLOW'], microActionsCompatibles: ['frappe', 'centre'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['TENSION', 'DANGER', 'IMPACT'], poidsBase: 0.35, spectaculaire: true },
+    intentionsCompatibles: ['TENSION', 'DANGER', 'IMPACT'], poidsBase: 0.35, spectaculaire: true,
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'orbit_freeze', source: 'preview-demo', familleRarete: 'effet_camera_lourd', declencheurs: ['micro'],
     primitives: ['ORBIT_FREEZE', 'FREEZE'], microActionsCompatibles: ['duel', 'interception'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['DUEL', 'TENSION'], poidsBase: 0.3, spectaculaire: true },
+    intentionsCompatibles: ['DUEL', 'TENSION'], poidsBase: 0.3, spectaculaire: true,
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'time_ramp', source: 'preview-demo', familleRarete: 'time_ramp', declencheurs: ['micro'],
     primitives: ['TIME_RAMP', 'FAST', 'SLOW', 'FOLLOW'], microActionsCompatibles: ['course', 'circulation', 'interception'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
-    intentionsCompatibles: ['ACCELERATION', 'CONSTRUCTION', 'PRESSION'], poidsBase: 0.5, spectaculaire: true }
+    intentionsCompatibles: ['ACCELERATION', 'CONSTRUCTION', 'PRESSION'], poidsBase: 0.5, spectaculaire: true,
+    etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } }
 ];
+
+// Candidat synthetique "RESPIRATION" (section 6 de la consigne : "le mini-terrain est la couche
+// de continuite, les inserts/effets sont des ponctuations") -- PAS une grammaire visuelle, un
+// troisieme type d'issue a part entiere du selecteur : "ne rien lancer, laisser le mini-terrain
+// courant continuer". Seulement propose pour une situation de forme 'micro' (interrompre un coup
+// franc en cours par du vide serait, lui, un vrai defaut). Poids BOOSTE dynamiquement dans
+// ponderationRaccord selon l'etat de sortie precedent (reaction terminale ou spectaculaire recent).
+const POIDS_RESPIRATION_BASE = 0.6;
+const ID_RESPIRATION = '__respiration__';
 
 // Invariant teste explicitement (LOT 4, "un joueur ne doit pas recevoir visuellement le merite
 // d'un but marque par un autre") : aucune grammaire du registre ne doit porter de champ nommant
@@ -503,7 +575,11 @@ const PARAMETRES_RARETE_REALISATEUR = {
 };
 
 function creerMemoireRealisateur() {
-  return { historique: [] }; // [{id, familleRarete, spectaculaire}], plus recent en fin de tableau
+  // dernierEtatSortie (chantier "montage continu") : etatSortie de la DERNIERE grammaire reellement
+  // jouee (jamais mis a jour par une respiration ou un plan null -- "rien montre" ne change pas ce
+  // que le spectateur regarde encore a l'ecran). situationsDepuisSpectaculaire : compteur d'appels
+  // au selecteur depuis la derniere realisation spectaculaire, Infinity tant qu'aucune n'a eu lieu.
+  return { historique: [], dernierEtatSortie: null, situationsDepuisSpectaculaire: Infinity };
 }
 
 function ponderationRarete(memoire, grammaire, params) {
@@ -533,11 +609,86 @@ function ponderationRarete(memoire, grammaire, params) {
   return Math.max(0, poids);
 }
 
-function enregistrerRealisationMemoire(memoire, grammaire) {
+function enregistrerRealisationMemoire(memoire, grammaire, etatSortie) {
   memoire.historique.push({ id: grammaire.id, familleRarete: grammaire.familleRarete, spectaculaire: !!grammaire.spectaculaire });
   if (memoire.historique.length > PARAMETRES_RARETE_REALISATEUR.memoireTailleMax * 3) {
     memoire.historique = memoire.historique.slice(-PARAMETRES_RARETE_REALISATEUR.memoireTailleMax * 3);
   }
+  memoire.dernierEtatSortie = etatSortie;
+}
+
+// =====================================================================
+// 6bis. RACCORD / MONTAGE CONTINU (chantier "montage continu", 30 aout 2026)
+// =====================================================================
+// Ajoute apres retour utilisateur en production : le selecteur varie bien les realisations, mais
+// enchaine deux realisations sans savoir ce que la precedente vient de montrer -- exactement le
+// "il manque un etage entre CHOISIR et JOUER" decrit dans la consigne. Cette section n'invente
+// AUCUN nouvel effet/asset : elle choisit UNIQUEMENT, parmi les grammaires deja eligibles (matrice
+// LOT 4 inchangee), lesquelles constituent un enchainement acceptable compte tenu de
+// `memoire.dernierEtatSortie` (calcule a partir du champ etatSortie, deja grounde dans l'audit des
+// sequences reelles, section precedente).
+//
+// Regles de montage (jamais des regles sportives) :
+//  MR1 -- spectacle -> spectacle sans respiration : si la derniere realisation etait spectaculaire
+//         ET intervenue recemment (moins de PARAMETRES_RACCORD.respirationApresSpectaculaireNb
+//         situations), les candidats spectaculaires sont ecartes -- SAUF si cela viderait
+//         entierement la liste (jamais un blocage total, meme philosophie que LOT 6).
+//  MR2 -- reaction terminale non respiree : si la derniere realisation se terminait sur un plan de
+//         reaction assumee (etatSortie.reactionTerminale), la situation SUIVANTE de forme 'micro'
+//         doit d'abord passer par une respiration ou une famille douce ('standard',
+//         'ambiance_continue') -- les candidats spectaculaires sont ecartes (meme filet de
+//         securite anti-blocage que MR1).
+//  MR3 -- chaine coup-franc brute vs raccordee : si une grammaire porte
+//         `deprioriserSiRaccordDisponible` et que l'id qu'elle designe est LUI AUSSI dans le pool
+//         eligible courant, la variante brute est retiree (la variante raccordee, strictement
+//         superieure car elle revient au terrain au lieu de couper sec sur le reset universel, est
+//         seule conservee).
+// Aucune regle ne bloque le tirage si elle viderait le pool -- cf. `retenus.length` teste apres
+// chaque etape, jamais avant.
+const PARAMETRES_RACCORD = {
+  respirationApresSpectaculaireNb: 3,   // nb de situations pendant lesquelles un spectacle recent decourage un nouveau spectacle
+  poidsRespirationApresReaction: POIDS_RESPIRATION_BASE * 4,
+  poidsRespirationApresSpectaculaire: POIDS_RESPIRATION_BASE * 2.5
+};
+
+function appliquerReglesRaccord(candidats, dernierEtatSortie) {
+  const rejetsRaccord = [];
+  let retenus = candidats;
+
+  // MR3 (avant tout : c'est une preference de CONTENU, pas de rythme -- s'applique toujours).
+  const idsPresents = retenus.map(function (g) { return g.id; });
+  const apresMR3 = retenus.filter(function (g) {
+    if (g.deprioriserSiRaccordDisponible && idsPresents.includes(g.deprioriserSiRaccordDisponible)) {
+      rejetsRaccord.push({ id: g.id, motif: 'variante raccordee "' + g.deprioriserSiRaccordDisponible + '" disponible et preferee (MR3)' });
+      return false;
+    }
+    return true;
+  });
+  if (apresMR3.length) retenus = apresMR3;
+
+  if (dernierEtatSortie) {
+    // MR2 -- priorite sur MR1 (une reaction terminale est un signal plus fort qu'un simple
+    // cooldown de famille spectaculaire).
+    if (dernierEtatSortie.reactionTerminale) {
+      const apresMR2 = retenus.filter(function (g) { return !g.spectaculaire; });
+      if (apresMR2.length) {
+        retenus.filter(function (g) { return g.spectaculaire; }).forEach(function (g) {
+          rejetsRaccord.push({ id: g.id, motif: 'realisation precedente terminee sur une reaction assumee -- respiration attendue avant un nouveau spectacle (MR2)' });
+        });
+        retenus = apresMR2;
+      }
+    } else if (dernierEtatSortie.spectaculaireRecence != null && dernierEtatSortie.spectaculaireRecence <= PARAMETRES_RACCORD.respirationApresSpectaculaireNb) {
+      const apresMR1 = retenus.filter(function (g) { return !g.spectaculaire; });
+      if (apresMR1.length) {
+        retenus.filter(function (g) { return g.spectaculaire; }).forEach(function (g) {
+          rejetsRaccord.push({ id: g.id, motif: 'spectacle recent (il y a ' + dernierEtatSortie.spectaculaireRecence + ' situation(s)) -- pas de spectacle -> spectacle sans respiration (MR1)' });
+        });
+        retenus = apresMR1;
+      }
+    }
+  }
+
+  return { retenus: retenus, rejetsRaccord: rejetsRaccord };
 }
 
 // =====================================================================
@@ -556,7 +707,17 @@ function selectionnerRealisation(entree) {
   const seed = entree.seed != null ? String(entree.seed) : String(Math.random());
   const rng = creerPRNGDeterministeRia(hashChaineVersUint32Ria('selecteur-realisateur-' + seed));
 
-  const trace = { situation: situation, seed: seed, rejets: [], candidatsPonderes: [] };
+  // Snapshot AVANT toute decision de cet appel -- c'est ce que le spectateur regarde encore a cet
+  // instant (LOT "montage continu", section 9 : "etat visuel de sortie precedent").
+  const dernierReel = memoire.historique[memoire.historique.length - 1] || null;
+  const etatSortiePrecedent = memoire.dernierEtatSortie;
+  const spectaculaireRecenceAvant = memoire.situationsDepuisSpectaculaire == null ? Infinity : memoire.situationsDepuisSpectaculaire;
+  memoire.situationsDepuisSpectaculaire = spectaculaireRecenceAvant === Infinity ? Infinity : spectaculaireRecenceAvant + 1;
+
+  const trace = {
+    situation: situation, seed: seed, rejets: [], rejetsRaccord: [], candidatsPonderes: [],
+    realisationPrecedente: dernierReel ? dernierReel.id : null, etatSortiePrecedent: etatSortiePrecedent
+  };
 
   if (situation.canonique && (situation.canonique.type === 'carton' || situation.canonique.type === 'blessure')) {
     trace.rejetGlobal = 'carton/blessure jamais mis en scene par le realisateur decoratif -- route directe vers afficherInsertCanonique (R1)';
@@ -582,14 +743,35 @@ function selectionnerRealisation(entree) {
   let candidats = eligibilite.candidats;
   // Repetition immediate : on la retire si une alternative existe (LOT 6, "eviter deux
   // realisations identiques successives lorsque des alternatives compatibles existent").
-  const dernier = memoire.historique[memoire.historique.length - 1];
-  if (dernier && candidats.length > 1) {
-    const sansRepetition = candidats.filter(function (g) { return g.id !== dernier.id; });
+  if (dernierReel && candidats.length > 1) {
+    const sansRepetition = candidats.filter(function (g) { return g.id !== dernierReel.id; });
     if (sansRepetition.length) candidats = sansRepetition;
+  }
+
+  // Injection de la respiration (chantier "montage continu") : uniquement pour une situation de
+  // forme 'micro' -- interrompre un coup franc en cours par du vide serait, lui, un vrai defaut de
+  // montage. Poids contextuel : plus fort juste apres une reaction terminale ou un spectacle
+  // recent (section 6 de la consigne : "le mini-terrain est la couche de continuite").
+  if (formeSituation(situation) === 'micro') {
+    let poidsRespiration = POIDS_RESPIRATION_BASE;
+    if (etatSortiePrecedent && etatSortiePrecedent.reactionTerminale) poidsRespiration = PARAMETRES_RACCORD.poidsRespirationApresReaction;
+    else if (spectaculaireRecenceAvant <= PARAMETRES_RACCORD.respirationApresSpectaculaireNb) poidsRespiration = PARAMETRES_RACCORD.poidsRespirationApresSpectaculaire;
+    candidats = candidats.concat([{ id: ID_RESPIRATION, familleRarete: 'respiration', spectaculaire: false, poidsBase: poidsRespiration, primitives: ['FOLLOW'], source: 'respiration' }]);
   }
 
   if (!candidats.length) {
     trace.rejetGlobal = 'aucune grammaire eligible pour cette situation/intention';
+    return { plan: null, trace: trace };
+  }
+
+  // Regles de raccord/montage (MR1/MR2/MR3) -- appliquees APRES la matrice de compatibilite (LOT
+  // 4, jamais touchee), jamais un blocage total si elles videraient le pool.
+  const raccord = appliquerReglesRaccord(candidats, { reactionTerminale: etatSortiePrecedent && etatSortiePrecedent.reactionTerminale, spectaculaireRecence: spectaculaireRecenceAvant });
+  trace.rejetsRaccord = raccord.rejetsRaccord;
+  candidats = raccord.retenus;
+
+  if (!candidats.length) {
+    trace.rejetGlobal = 'aucune grammaire eligible apres application des regles de raccord';
     return { plan: null, trace: trace };
   }
 
@@ -606,7 +788,21 @@ function selectionnerRealisation(entree) {
   }
   trace.choisi = choisi.id;
 
-  enregistrerRealisationMemoire(memoire, choisi);
+  if (choisi.id === ID_RESPIRATION) {
+    // Respiration : rien de nouveau montre -- ne touche NI memoire.historique (pas une grammaire a
+    // rarefier) NI memoire.dernierEtatSortie (le spectateur regarde toujours la meme chose).
+    trace.etatSortieChoisi = 'respiration (mini-terrain courant inchange)';
+    const plan = {
+      intention: intention, intensity: intensite, selectedGrammar: ID_RESPIRATION, isRespiration: true,
+      primitives: ['FOLLOW'], source: 'respiration', familleRarete: 'respiration', spectaculaire: false,
+      insert: null, reaction: null, returnMode: 'respiration-miniature'
+    };
+    return { plan: plan, trace: trace };
+  }
+
+  enregistrerRealisationMemoire(memoire, choisi, choisi.etatSortie);
+  if (choisi.spectaculaire) memoire.situationsDepuisSpectaculaire = 0;
+  trace.etatSortieChoisi = choisi.etatSortie;
 
   const plan = {
     intention: intention,
@@ -616,6 +812,7 @@ function selectionnerRealisation(entree) {
     source: choisi.source,
     familleRarete: choisi.familleRarete,
     spectaculaire: !!choisi.spectaculaire,
+    etatSortie: choisi.etatSortie,
     insert: situation.canonique ? 'canonique-existant' : null,
     reaction: (intention === 'EXPLOSION' || intention === 'REACTION') ? 'reaction-generique' : null,
     returnMode: 'retour-mini-terrain-standard'
@@ -632,10 +829,13 @@ const RealisateurIA = {
   INTENTIONS_AUTORISEES_PAR_EVENEMENT: INTENTIONS_AUTORISEES_PAR_EVENEMENT,
   REGISTRE_GRAMMAIRES_REALISATEUR: REGISTRE_GRAMMAIRES_REALISATEUR,
   PARAMETRES_RARETE_REALISATEUR: PARAMETRES_RARETE_REALISATEUR,
+  PARAMETRES_RACCORD: PARAMETRES_RACCORD,
+  ID_RESPIRATION: ID_RESPIRATION,
   intentionsAutoriseesPourSituation: intentionsAutoriseesPourSituation,
   formeSituation: formeSituation,
   validerCompatibiliteGrammaire: validerCompatibiliteGrammaire,
   grammairesEligibles: grammairesEligibles,
+  appliquerReglesRaccord: appliquerReglesRaccord,
   calculerIntensiteRealisation: calculerIntensiteRealisation,
   creerMemoireRealisateur: creerMemoireRealisateur,
   ponderationRarete: ponderationRarete,

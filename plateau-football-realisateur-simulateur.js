@@ -157,13 +157,21 @@ function jouerMatchHeadless(profil, seedMatch) {
 
   const resultatMatch = {
     profil: profil, seedMatch: seedMatch, situations: 0, evenementsCanoniquesObserves: 0,
-    plans: 0, plansImpossibles: 0, rejetsCarton: 0,
+    plans: 0, respirations: 0, plansImpossibles: 0, rejetsCarton: 0,
     parFamille: {}, parPrimitive: {}, parIntensiteBucket: { basse: 0, moyenne: 0, haute: 0 },
     effetsValides: { drone_dive_impact_freeze: 0, freeze_follow_ball: 0, orbit_freeze: 0, time_ramp: 0 },
     repetitionsImmediates: 0, repetitionsFenetreCourte: 0,
-    violationsCanoniques: [],
+    violationsCanoniques: [], violationsRaccord: [],
     dernierId: null, historiqueCourt: []
   };
+
+  // Re-controle INDEPENDANT des regles de raccord (memes principes que les violations canoniques
+  // ci-dessous : ne fait jamais confiance a la propre comptabilite du selecteur). idxDernierSpectaculaire
+  // et attenteRespirationApresReaction sont recalcules ici a partir des PLANS REELLEMENT choisis
+  // (jamais a partir de memoire.situationsDepuisSpectaculaire, pour detecter un bug du selecteur et
+  // non le confirmer aveuglement).
+  let idxDernierSpectaculaire = -Infinity;
+  let attenteRespirationApresReaction = false;
 
   situations.forEach(function (situation, idx) {
     // Evenement canonique nu (but en jeu ouvert, occasion, debut/mitemps/reprise/fin) : deja pris
@@ -174,6 +182,13 @@ function jouerMatchHeadless(profil, seedMatch) {
     resultatMatch.situations++;
     const seed = seedMatch + '-' + idx;
     const { plan, trace } = RealisateurIA.selectionnerRealisation({ situation: situation, seed: seed, memoire: memoire });
+
+    if (plan && plan.isRespiration) {
+      resultatMatch.plans++;
+      resultatMatch.respirations++;
+      attenteRespirationApresReaction = false; // la respiration EST la pause attendue
+      return;
+    }
 
     // VERIFICATION INDEPENDANTE anti-violation canonique (LOT 12) : re-controle, en dehors du
     // selecteur lui-meme, que le plan choisi respecte les regles dures -- detecte un futur bug
@@ -192,6 +207,23 @@ function jouerMatchHeadless(profil, seedMatch) {
         if (situation.canonique && (situation.canonique.type === 'carton' || situation.canonique.type === 'blessure')) {
           resultatMatch.violationsCanoniques.push({ idx: idx, motif: 'plan non-null sur un carton/blessure' });
         }
+        // MR1 re-controle : spectacle -> spectacle sans respiration suffisante.
+        if (g.spectaculaire && (idx - idxDernierSpectaculaire) <= RealisateurIA.PARAMETRES_RACCORD.respirationApresSpectaculaireNb) {
+          resultatMatch.violationsRaccord.push({ idx: idx, motif: 'spectacle "' + g.id + '" choisi ' + (idx - idxDernierSpectaculaire) + ' situation(s) apres un spectacle precedent, sans respiration (MR1)' });
+        }
+        // MR2 re-controle : spectacle choisi juste apres une reaction terminale non respiree.
+        if (g.spectaculaire && attenteRespirationApresReaction) {
+          resultatMatch.violationsRaccord.push({ idx: idx, motif: 'spectacle "' + g.id + '" choisi immediatement apres une reaction terminale, sans respiration (MR2)' });
+        }
+        // MR3 re-controle : chaine brute choisie alors que sa variante raccordee etait eligible.
+        if (g.deprioriserSiRaccordDisponible) {
+          const eligibiliteMR3 = RealisateurIA.grammairesEligibles(situation, plan.intention).candidats;
+          if (eligibiliteMR3.some(function (c) { return c.id === g.deprioriserSiRaccordDisponible; })) {
+            resultatMatch.violationsRaccord.push({ idx: idx, motif: 'chaine brute "' + g.id + '" choisie alors que "' + g.deprioriserSiRaccordDisponible + '" etait eligible (MR3)' });
+          }
+        }
+        if (g.spectaculaire) idxDernierSpectaculaire = idx;
+        attenteRespirationApresReaction = !!(g.etatSortie && g.etatSortie.reactionTerminale);
       }
       resultatMatch.plans++;
       if (plan.spectaculaire) resultatMatch.spectaculaires = (resultatMatch.spectaculaires || 0) + 1;
@@ -226,11 +258,11 @@ function fusionnerCompteur(cible, source) {
 function executerCampagne(nbMatchs, seedBase, jsonSeul) {
   const t0 = Date.now();
   const stats = {
-    matchs: 0, situations: 0, evenementsCanoniquesObserves: 0, plans: 0, plansImpossibles: 0, rejetsCarton: 0,
+    matchs: 0, situations: 0, evenementsCanoniquesObserves: 0, plans: 0, respirations: 0, plansImpossibles: 0, rejetsCarton: 0,
     repetitionsImmediates: 0, repetitionsFenetreCourte: 0,
     parFamille: {}, parPrimitive: {}, parIntensiteBucket: { basse: 0, moyenne: 0, haute: 0 },
     effetsValides: { drone_dive_impact_freeze: 0, freeze_follow_ball: 0, orbit_freeze: 0, time_ramp: 0 },
-    violationsCanoniques: [], erreurs: [], seedsNonReproductibles: [],
+    violationsCanoniques: [], violationsRaccord: [], erreurs: [], seedsNonReproductibles: [],
     parProfil: {}
   };
 
@@ -261,6 +293,7 @@ function executerCampagne(nbMatchs, seedBase, jsonSeul) {
     stats.situations += resultat.situations;
     stats.evenementsCanoniquesObserves += resultat.evenementsCanoniquesObserves;
     stats.plans += resultat.plans;
+    stats.respirations += resultat.respirations;
     stats.plansImpossibles += resultat.plansImpossibles;
     stats.rejetsCarton += resultat.rejetsCarton;
     stats.repetitionsImmediates += resultat.repetitionsImmediates;
@@ -272,6 +305,7 @@ function executerCampagne(nbMatchs, seedBase, jsonSeul) {
     stats.parIntensiteBucket.haute += resultat.parIntensiteBucket.haute;
     fusionnerCompteur(stats.effetsValides, resultat.effetsValides);
     stats.violationsCanoniques = stats.violationsCanoniques.concat(resultat.violationsCanoniques.map(function (v) { return Object.assign({ match: m, profil: profil }, v); }));
+    stats.violationsRaccord = stats.violationsRaccord.concat(resultat.violationsRaccord.map(function (v) { return Object.assign({ match: m, profil: profil }, v); }));
 
     if (!stats.parProfil[profil]) stats.parProfil[profil] = { matchs: 0, plans: 0, plansImpossibles: 0, spectaculaires: 0 };
     stats.parProfil[profil].matchs++;
@@ -309,13 +343,15 @@ if (require.main === module) {
     console.log('=== CAMPAGNE REALISATEUR (headless) ===');
     console.log('matchs synthetiques   :', stats.matchs, '(' + stats.dureeMs + ' ms, ' + stats.dureeMsParMatch + ' ms/match)');
     console.log('situations totales    :', stats.situations);
-    console.log('plans generes         :', stats.plans);
+    console.log('plans generes         :', stats.plans, '(dont respirations:', stats.respirations, ')');
     console.log('plans impossibles     :', stats.plansImpossibles);
     console.log('rejets carton/blessure:', stats.rejetsCarton, '(attendu : > 0, jamais mis en scene)');
     console.log('repetitions immediates:', stats.repetitionsImmediates);
     console.log('repetitions fenetre   :', stats.repetitionsFenetreCourte);
     console.log('violations canoniques :', stats.violationsCanoniques.length);
     if (stats.violationsCanoniques.length) console.log(JSON.stringify(stats.violationsCanoniques.slice(0, 10), null, 2));
+    console.log('violations raccord    :', stats.violationsRaccord.length, '(MR1/MR2/MR3, re-controle independant du selecteur)');
+    if (stats.violationsRaccord.length) console.log(JSON.stringify(stats.violationsRaccord.slice(0, 10), null, 2));
     console.log('erreurs               :', stats.erreurs.length);
     if (stats.erreurs.length) console.log(JSON.stringify(stats.erreurs.slice(0, 10), null, 2));
     console.log('seeds non reproductibles:', stats.seedsNonReproductibles.length);

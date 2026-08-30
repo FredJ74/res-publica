@@ -107,19 +107,101 @@ test('intensite : signature fermee, jamais NaN/hors-bornes sur un balayage large
 });
 
 // ---- LOT 6 : rareté / anti-repetition ----
-test('anti-repetition : pas de repetition immediate quand une alternative existe (1000 tirages)', function () {
+// Corrige le 30 aout 2026 (chantier "montage continu") : la respiration (__respiration__) est
+// INTENTIONNELLEMENT exemptee de cette regle -- repeter "ne rien montrer de nouveau" n'est jamais
+// un defaut de montage, contrairement a repeter une VRAIE grammaire. Seules les grammaires reelles
+// (r.plan.isRespiration !== true) sont soumises au test.
+test('anti-repetition : pas de repetition immediate de grammaire REELLE quand une alternative existe (1000 tirages)', function () {
   const memoire = RealisateurIA.creerMemoireRealisateur();
-  let dernier = null, repetitionsAlorsQuAlternativeExistait = 0;
+  let dernierReel = null, repetitionsAlorsQuAlternativeExistait = 0;
   for (let i = 0; i < 1000; i++) {
     const situation = { microAction: 'duel', cote: 'home', minute: i % 45, ecartScore: 0, pressionRecente: 1 };
     const r = RealisateurIA.selectionnerRealisation({ situation: situation, seed: 'rar-' + i, memoire: memoire });
-    if (r.plan) {
+    if (r.plan && !r.plan.isRespiration) {
       const nbCandidats = RealisateurIA.grammairesEligibles(situation, r.trace.intention).candidats.length;
-      if (dernier === r.plan.selectedGrammar && nbCandidats > 1) repetitionsAlorsQuAlternativeExistait++;
-      dernier = r.plan.selectedGrammar;
+      if (dernierReel === r.plan.selectedGrammar && nbCandidats > 1) repetitionsAlorsQuAlternativeExistait++;
+      dernierReel = r.plan.selectedGrammar;
     }
   }
   assert.strictEqual(repetitionsAlorsQuAlternativeExistait, 0);
+});
+
+// ---- LOT "montage continu" (30 aout 2026) : regles de raccord MR1/MR2/MR3 ----
+test('registre : chaque grammaire declare un etatSortie complet (medium/reactionTerminale/resolutionAssumee/retourTerrainInclus)', function () {
+  RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.forEach(function (g) {
+    assert.ok(g.etatSortie, g.id + ' : etatSortie manquant');
+    ['medium', 'reactionTerminale', 'resolutionAssumee', 'retourTerrainInclus'].forEach(function (champ) {
+      assert.ok(g.etatSortie[champ] !== undefined, g.id + '.etatSortie.' + champ + ' manquant');
+    });
+  });
+});
+test('MR1 : jamais deux realisations spectaculaires sans respiration suffisante entre elles (2000 tirages)', function () {
+  const memoire = RealisateurIA.creerMemoireRealisateur();
+  let idxDernierSpectaculaire = -Infinity, violations = 0;
+  for (let i = 0; i < 2000; i++) {
+    const situation = { microAction: ['duel', 'frappe', 'centre', 'interception'][i % 4], cote: 'home', minute: i % 45, ecartScore: 0, pressionRecente: 3 };
+    const r = RealisateurIA.selectionnerRealisation({ situation: situation, seed: 'mr1-' + i, memoire: memoire });
+    if (r.plan && !r.plan.isRespiration && r.plan.spectaculaire) {
+      if ((i - idxDernierSpectaculaire) <= RealisateurIA.PARAMETRES_RACCORD.respirationApresSpectaculaireNb) violations++;
+      idxDernierSpectaculaire = i;
+    }
+  }
+  assert.strictEqual(violations, 0);
+});
+test('MR2 : jamais une realisation spectaculaire immediatement apres une reaction terminale (2000 tirages)', function () {
+  const memoire = RealisateurIA.creerMemoireRealisateur();
+  let attenteRespiration = false, violations = 0;
+  for (let i = 0; i < 2000; i++) {
+    const situation = { microAction: ['duel', 'frappe', 'centre', 'interception'][i % 4], cote: 'home', minute: i % 45, ecartScore: 0, pressionRecente: 2 };
+    const r = RealisateurIA.selectionnerRealisation({ situation: situation, seed: 'mr2-' + i, memoire: memoire });
+    if (r.plan && r.plan.isRespiration) { attenteRespiration = false; continue; }
+    if (r.plan) {
+      if (r.plan.spectaculaire && attenteRespiration) violations++;
+      attenteRespiration = !!(r.plan.etatSortie && r.plan.etatSortie.reactionTerminale);
+    }
+  }
+  assert.strictEqual(violations, 0);
+});
+test('MR3 : la chaine coup franc BRUTE (video puis reset sec) n\'est jamais choisie quand sa variante raccordee (retour terrain explicite) est eligible', function () {
+  const situationArret = { coupFrancEtape: 'arret', coupFrancResultat: 'arret', minute: 40 };
+  for (let i = 0; i < 300; i++) {
+    const r = RealisateurIA.selectionnerRealisation({ situation: situationArret, seed: 'mr3-' + i, memoire: RealisateurIA.creerMemoireRealisateur() });
+    if (r.plan) assert.notStrictEqual(r.plan.selectedGrammar, 'coup_franc_arrete', 'raccord_coup_franc_arrete etait eligible, la chaine brute n\'aurait pas du etre choisie');
+  }
+  const situationBut = { coupFrancEtape: 'but', coupFrancResultat: 'but', minute: 41 };
+  for (let i = 0; i < 300; i++) {
+    const r = RealisateurIA.selectionnerRealisation({ situation: situationBut, seed: 'mr3b-' + i, memoire: RealisateurIA.creerMemoireRealisateur() });
+    if (r.plan) assert.notStrictEqual(r.plan.selectedGrammar, 'coup_franc_but');
+  }
+});
+test('respiration : jamais proposee pour une situation de forme coupfranc ou canonique', function () {
+  for (let i = 0; i < 200; i++) {
+    const r1 = RealisateurIA.selectionnerRealisation({ situation: { coupFrancEtape: 'tension', minute: 40 }, seed: 'resp-cf-' + i });
+    if (r1.plan) assert.notStrictEqual(r1.plan.selectedGrammar, RealisateurIA.ID_RESPIRATION);
+  }
+});
+// Test COMPARATIF (jamais un seuil absolu arbitraire) : le poids de respiration change reellement
+// selon le contexte (PARAMETRES_RACCORD.poidsRespirationApresReaction = 4x le poids de base) --
+// verifie que le taux observe AVEC reaction terminale est nettement superieur au taux SANS,
+// plutot que de fixer un pourcentage absolu qui dependrait du nombre de candidats concurrents
+// (ici NEUTRE/circulation a 4 gabarits concurrents a poids 1 -- la math exacte est documentee
+// dans le commentaire de POIDS_RESPIRATION_BASE, pas re-derivee ici).
+test('respiration : taux nettement plus eleve juste apres une reaction terminale que sans (comparatif, 500+500 tirages)', function () {
+  function tauxRespiration(dernierEtatSortie) {
+    let n = 0;
+    for (let i = 0; i < 500; i++) {
+      const memoire = RealisateurIA.creerMemoireRealisateur();
+      memoire.dernierEtatSortie = dernierEtatSortie;
+      if (dernierEtatSortie) memoire.historique.push({ id: 'arret', familleRarete: 'coup_franc', spectaculaire: false });
+      const r = RealisateurIA.selectionnerRealisation({ situation: { microAction: 'circulation', cote: 'home', minute: 41 }, seed: 'resp-cmp-' + i, memoire: memoire });
+      if (r.plan && r.plan.isRespiration) n++;
+    }
+    return n;
+  }
+  const avecReaction = tauxRespiration({ medium: 'illustre_video', reactionTerminale: true, resolutionAssumee: true, retourTerrainInclus: false });
+  const sansReaction = tauxRespiration(null);
+  console.log('     (respiration avec reaction terminale : ' + avecReaction + '/500, sans : ' + sansReaction + '/500)');
+  assert.ok(avecReaction > sansReaction * 2, 'le boost de respiration apres reaction terminale devrait au moins doubler le taux de base -- observe avec=' + avecReaction + ' sans=' + sansReaction);
 });
 
 // ---- LOT 12 : campagne massive (execution reelle, pas simulee sur papier) ----
