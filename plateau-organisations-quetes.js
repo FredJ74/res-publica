@@ -4697,6 +4697,13 @@ function appliquerSceneActeursPreview(acteurs, vitesseMs) {
       el.style.transitionDuration = vitesseEffective ? (vitesseEffective + 'ms') : '';
       el.style.setProperty('--acteur-rotation', (a.orientation || 0) + 'deg');
       el.style.display = a.visible === false ? 'none' : '';
+      // Hooks sprites (LOT 16/17) : attributs data-* INERTES -- aucune regle CSS ne les lit
+      // aujourd'hui (rendu Smartie actif inchange), prepares pour un futur renderer sprite raster.
+      if (a.directionArt) el.dataset.direction = a.directionArt;
+      if (a.mirrored != null) el.dataset.mirrored = String(!!a.mirrored);
+      if (a.animation) el.dataset.animation = a.animation;
+      if (a.animationSpeed != null) el.dataset.animationSpeed = String(a.animationSpeed);
+      if (a.frozen != null) el.dataset.frozen = String(!!a.frozen);
     };
     if (a.delay) {
       const idDelai = setTimeout(appliquerActeur, a.delay);
@@ -5079,6 +5086,19 @@ function categorieActeurMatchMiniature(id) {
   if (id.indexOf('mid_') === 0) return 'milieu';
   return 'attaquant';
 }
+// ---- HOOKS SPRITES FUTURS (LOT 16, chantier "industrialisation du realisateur", 30 aout 2026) ----
+// PROTOTYPE, aucun asset : prepare uniquement l'INTERFACE pour qu'un futur rendu sprite raster
+// puisse un jour remplacer le rendu CSS "Smartie" SANS reecrire acteurMatchMiniature ni
+// appliquerSceneActeursPreview. Le rendu CSS actif reste inchange -- aucune de ces metadonnees
+// n'est lue par une regle CSS aujourd'hui (verifie : aucun selecteur `[data-*]` dans plateau.html
+// avant ce chantier). Convention retenue (direction artistique deja validee, voir consigne du
+// chantier) : 8 directions logiques, 5 arts reels prevus (S, SE, E, NE, N) + mirroir horizontal
+// pour W/SW/NW -- DIRECTIONS_MIROIR_SPRITE ci-dessous encode exactement cette convention.
+const DIRECTIONS_MIROIR_SPRITE = { W: 'E', SW: 'SE', NW: 'NE' };
+function direction8DepuisAngleSprite(angleDeg) {
+  const norm = ((angleDeg % 360) + 360) % 360;
+  return ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'][Math.round(norm / 45) % 8];
+}
 // Memorise, PENDANT LA CONSTRUCTION du dictionnaire ETATS_MATCH_MINIATURE_V2 ci-dessous (evaluee
 // dans l'ordre d'ecriture des phases, donc chronologique), la derniere position connue de chaque
 // acteur -- sert uniquement a calculer `orientation` (angle du deplacement reel), jamais lu au
@@ -5097,6 +5117,11 @@ function acteurMatchMiniature(id, cote, x, y, intensite) {
   const vitesse = (intensite === 'actif' ? VITESSE_ACTIF_PAR_ROLE : VITESSE_PERIPHERIQUE_PAR_ROLE)[categorie];
   const acteur = { id: id, cote: cote, x: x, y: y, vitesse: vitesse, delay: DELAY_PAR_ROLE_MATCH_MINIATURE[categorie], intensite: intensite };
   if (categorie === 'gardien') acteur.role = 'gardien';
+  // Hooks sprites (LOT 16/17) : toujours presents, jamais lus par le rendu CSS actif -- valeurs
+  // par defaut neutres (aucun effet tant qu'aucun futur renderer sprite ne les consomme).
+  acteur.animation = 'idle';
+  acteur.animationSpeed = 1;
+  acteur.frozen = false;
   const precedent = _positionsPrecedentesMatchMiniature[id];
   if (precedent && (precedent.x !== x || precedent.y !== y)) {
     acteur.orientation = Math.round(Math.atan2(y - precedent.y, x - precedent.x) * 180 / Math.PI);
@@ -5106,6 +5131,10 @@ function acteurMatchMiniature(id, cote, x, y, intensite) {
     // (appliquerSceneActeursPreview), uniquement par la camera preview pour moduler l'amplitude de
     // son anticipation (aucun impact sur la choregraphie/locomotion validees).
     acteur.deplacement = Math.hypot(x - precedent.x, y - precedent.y);
+    acteur.animation = 'run';
+    acteur.direction = direction8DepuisAngleSprite(acteur.orientation);
+    acteur.mirrored = DIRECTIONS_MIROIR_SPRITE.hasOwnProperty(acteur.direction);
+    acteur.directionArt = DIRECTIONS_MIROIR_SPRITE[acteur.direction] || acteur.direction;
   }
   _positionsPrecedentesMatchMiniature[id] = { x: x, y: y };
   return acteur;
