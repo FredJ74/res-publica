@@ -3542,8 +3542,11 @@ const BUILDINGS = {
           // pa/cost/successRate/desc) -- meme principe que marche-psm : un nouveau point d'acces
           // au meme ordre, aucune variante specifique au bar (audit dedie, 30 aout 2026).
           {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'},
-          {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
-          {fn:'contrebande',label:'Contacter reseau',pa:2, cost:100, type:'illegal',icon:'ti-package', successRate:55}
+          {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'}
+          // "Contacter reseau" (fn:'contrebande') retire (30 aout 2026, ordre abandonne sur
+          // demande de Fred). Handler generique (executerOrdreGenerique) et entree ORDER_EFFECTS.
+          // contrebande (data.js, table ORDER_EFFECTS) laisses en place : signales comme code mort
+          // dans le rapport, hors perimetre de ce lot (pas de nettoyage transversal demande).
         ]
       }
     }
@@ -5535,7 +5538,18 @@ const BUILDINGS = {
     // lancer_rumeur_cible repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext
     // (meme pa/cost/successRate/desc) -- nouveau point d'acces au meme ordre, audit dedie du
     // 30 aout 2026 (duplication du marche vers les bars de Republia).
+    // Ordres commerciaux (30 aout 2026, alignement sur le Cafe de la Gare) : repris a l'identique
+    // (fn/label/pa/cost/type/icon/successRate/desc inchanges) du template BUILDINGS['cafe-gare-
+    // montrouge'].rooms.salle.orders -- meme moteur generique (BUILDING_COMMERCE_TYPE/
+    // DOTATIONS_COMMERCE_PILOTE, plateau-actions-illegales-rumeurs.js), stock et caisse
+    // independants du Cafe de la Gare car scopes par ce buildingId distinct (getCommerceId()).
     rooms: { salle: { name: "Salle", desc: "Comptoir, tabac, quelques tables.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-bar-tabac-interieur.jpg", persons: [], orders: [
+      {fn:'produire_commerce', label:'Produire', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Choisir un plat ou une boisson de la carte a preparer pour le service (consomme les matieres en stock, remunere en FR).'},
+      {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats et boissons disponibles et commander.'},
+      {fn:'consommer_boisson', label:'Consommer une boisson', pa:0, cost:0, type:'legal', icon:'ti-glass', successRate:100, desc:'Choisir une boisson de la carte a consommer sur place.'},
+      {fn:'offrir_tournee', label:'Offrir une tournée', pa:0, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Offrez une tournee (une seule boisson de la carte) a plusieurs personnes presentes, a vos frais. Chacun accepte ou refuse independamment ; vous ne buvez et ne payez que si au moins une personne accepte. Cout reel : 1 PA + le prix de la boisson x (nombre d\'acceptants + vous).'},
+      {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
+      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
       {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
     ] } }
   },

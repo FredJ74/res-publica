@@ -3085,7 +3085,13 @@ const BUILDING_COMMERCE_TYPE = {
   // commerce a Port-Sainte-Marie (ville_a), entierement distinct de l'Hotel des Mineurs de
   // Montrouge (id different : cafe-republic-ville_a-hotel-port-hall_port vs
   // cafe-republic-ville_b-hotel-mineur, aucune caisse/stock/carte partagee).
-  'hotel-port|hall_port': 'cafe'
+  'hotel-port|hall_port': 'cafe',
+  // Cafe des Cheminots -- Bar-Tabac (Montrouge, 30 aout 2026, alignement sur le Cafe de la Gare) :
+  // meme type 'cafe' que cafe-gare-montrouge (reference fonctionnelle demandee par Fred), cle
+  // buildingId seule (commerce mono-piece, une seule room 'salle', meme convention que
+  // cafe-gare-montrouge ci-dessus). getCommerceId() integre deja buildingId : ce commerce est
+  // entierement distinct du Cafe de la Gare (stock/caisse propres) des sa premiere creation.
+  'cafe-tabac-cheminots-montrouge': 'cafe'
 };
 
 // Types de commerce sans caisse autonome (paiement client/salaire de production routes vers la
@@ -3345,6 +3351,26 @@ const DOTATIONS_COMMERCE_PILOTE = {
     // boeuf_bourguignon juste en dessous) : 7 FR ne restera donc affiche que jusqu'a la toute
     // premiere production de chaque boisson, puis convergera vers le cout de revient reel x2
     // (~7,07 FR biere, ~7,20 FR jus/vin, ~7,47 FR cafe avec les couts moyens ci-dessus).
+    data.parametres.prixVente = {
+      boeuf_bourguignon: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boeuf_bourguignon)),
+      cafe_boisson: 7,
+      jus_de_fruits: 7,
+      vin: 7,
+      biere_pression: 7
+    };
+  },
+  // Cafe des Cheminots -- Bar-Tabac (Montrouge, 30 aout 2026) : dotation copiee a l'identique de
+  // cafe-gare-montrouge ci-dessus (meme caisse de depart, meme stock, meme carte, memes prix de
+  // depart) -- Fred a demande une reprise exacte du Cafe de la Gare comme reference fonctionnelle.
+  // Objet independant (pas une reference partagee) : chargerCommerce()/rattraperDotationCommerce()
+  // l'appliquent a la ligne 'entreprises' propre a ce buildingId (getCommerceId()), donc stock/
+  // caisse/carte restent entierement distincts de ceux du Cafe de la Gare des la premiere creation.
+  'cafe-tabac-cheminots-montrouge': function(data) {
+    data.caisse = 2000;
+    data.stockMatieres = { cereales: 10, viande: 10, fruits_legumes: 10, produits_exotiques: 10 };
+    data.coutMoyenMatieres = { cereales: 3, viande: 5, fruits_legumes: 4, produits_exotiques: 6 };
+    data.carte = ['boeuf_bourguignon', 'cafe_boisson', 'jus_de_fruits', 'vin', 'biere_pression'];
+    data.parametres.stockMax = { boeuf_bourguignon: 20, cafe_boisson: 20, jus_de_fruits: 20, vin: 20, biere_pression: 20 };
     data.parametres.prixVente = {
       boeuf_bourguignon: prixVenteAutoPNJ(coutRevientPortionRecette(data, RECETTES_ALIMENTAIRES.boeuf_bourguignon)),
       cafe_boisson: 7,
@@ -4929,11 +4955,34 @@ function getVillesAvecArmurerie(country) {
 // l'armurerie (130000 FR, un commerce autrement plus etabli). Valeurs de lancement, ajustables.
 // La buvette de stade (type 'buvette') est volontairement absente : institution municipale sans
 // caisse propre (doctrine du lot 5), pas un commerce a proprietaire prive.
+// cafe-gare-montrouge/cafe-tabac-cheminots-montrouge/bar-des-pecheurs repasses a 180000 FR
+// (decision de Fred, 30 aout 2026, doctrine "maximum de commerces geres par des PJ") -- aucun
+// autre prix de cette table modifie.
 const PRIX_RACHAT_COMMERCE = {
-  'cafe-gare-montrouge': 18000,
+  'cafe-gare-montrouge': 180000,
   'brasserie-voyageurs-montrouge': 28000,
-  'hotel-mineur': 15000
+  'hotel-mineur': 15000,
+  'cafe-tabac-cheminots-montrouge': 180000,
+  'bar-des-pecheurs': 180000
 };
+
+// Resout type + roomId d'un commerce a partir de son seul buildingId, avec la MEME priorite que
+// resoudreCommerceActuel() ci-dessus (cle room-scopee 'buildingId|roomId' d'abord, repli sur la
+// cle buildingId seul) -- necessaire ici car getCommercesAlimentairesRachetables() liste des
+// commerces a distance (Bureau des Contrats), sans state.currentBuilding/currentRoom disponibles
+// pour designer la cible (contrairement a resoudreCommerceActuel(), qui ne peut donc pas etre
+// appelee telle quelle). Cle room-scopee retrouvee par prefixe (un seul commerce par buildingId
+// dans BUILDING_COMMERCE_TYPE, donc au plus une correspondance). Correctif cible (30 aout 2026) :
+// avant ce correctif, un buildingId enregistre uniquement sous forme room-scopee (ex.
+// 'bar-des-pecheurs|salle_bar') resolvait un type undefined ici, produisant un id de commerce
+// ('undefined-pays-ville-buildingId') deconnecte du vrai stock/caisse -- jamais utilise en
+// pratique jusqu'ici car aucun commerce room-scope n'etait present dans PRIX_RACHAT_COMMERCE.
+function resoudreTypeEtRoomCommercePourRachat(buildingId) {
+  const cleRoom = Object.keys(BUILDING_COMMERCE_TYPE).find(k => k.startsWith(buildingId + '|'));
+  if (cleRoom) return { type: BUILDING_COMMERCE_TYPE[cleRoom], roomId: cleRoom.slice(buildingId.length + 1) };
+  if (BUILDING_COMMERCE_TYPE[buildingId]) return { type: BUILDING_COMMERCE_TYPE[buildingId], roomId: null };
+  return { type: undefined, roomId: null };
+}
 
 // Meme forme {id,label,prix,charger} que l'armurerie ci-dessous -- doRachatEntreprise/
 // traiterActeRachatEntreprise/ouvrirPreemptionEntreprise n'ont jamais suppose le type
@@ -4945,8 +4994,8 @@ function getCommercesAlimentairesRachetables() {
     .map(([buildingId, prix]) => {
       const villeReelle = Object.keys(WORLD[pays] || {}).find(v => WORLD[pays][v]?.buildings?.includes(buildingId));
       if (!villeReelle) return null; // batiment non construit dans ce pays (pilotes Republic-only pour l'instant)
-      const type = BUILDING_COMMERCE_TYPE[buildingId];
-      const id = getCommerceId(type, pays, villeReelle, buildingId, null);
+      const { type, roomId } = resoudreTypeEtRoomCommercePourRachat(buildingId);
+      const id = getCommerceId(type, pays, villeReelle, buildingId, roomId);
       // Nom affiche : override de la ville reelle (villeReelle, pas forcement la ville courante
       // du joueur) en priorite, sinon nom canonique -- meme resolution que getBuildingContext()
       // (plateau-navigation.js) mais parametree par ville plutot que par state.currentCity,
@@ -4954,7 +5003,7 @@ function getCommercesAlimentairesRachetables() {
       // du commerce (ex. Hotel de Montrouge "hotel-mineur", nomme differemment selon la ville --
       // corrige le 20 aout 2026 sans toucher au nom canonique, qui reste partage par 7 villes).
       const nomAffiche = WORLD[pays]?.[villeReelle]?.buildingContext?.[buildingId]?.name || BUILDINGS[buildingId]?.name || buildingId;
-      return { id, label: nomAffiche, prix, charger: () => chargerCommerce(type, pays, villeReelle, buildingId, null) };
+      return { id, label: nomAffiche, prix, charger: () => chargerCommerce(type, pays, villeReelle, buildingId, roomId) };
     })
     .filter(Boolean);
 }
