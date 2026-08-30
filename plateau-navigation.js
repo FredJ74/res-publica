@@ -466,7 +466,13 @@ function enterBuilding(buildingId, skipAutoRoom) {
     return `<div class="piece-tab ${i === 0 ? 'active' : ''}" onclick="enterRoom('${buildingId}','${roomId}',this)" style="${style}">
       ${icon}${tabName}
     </div>`;
-  }).join('');
+  }).join('')
+  // Onglet visible "Chambre" (finalisation chambres clinique, 31 aout 2026) : materialise la
+  // zone hospitaliere sans jamais exposer chambre_1..chambre_10 comme onglets bruts (ces 10
+  // rooms restent filtrees juste au-dessus). Comportement conditionnel gere par
+  // ouvrirOngletChambreClinique() (plateau-personnage.js), qui reutilise integralement
+  // getChambreAttribueeClinique/rejoindreChambreClinique -- aucun second systeme d'attribution.
+  + (buildingId === 'clinique-privee' ? '<div class="piece-tab" onclick="ouvrirOngletChambreClinique()">🛏️ Chambre</div>' : '');
 
   // Entrer dans la premiere piece — sauf si on s'apprete a restaurer une position precise juste apres
   // (sinon cette navigation automatique ecrase la bonne piece dans localStorage avant qu'on ait pu la restaurer)

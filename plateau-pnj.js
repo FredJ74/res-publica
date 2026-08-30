@@ -1225,6 +1225,17 @@ function verifierSuccesMaxence(cle) {
     }
   }
 
+  // Sophie Stiquay (infirmiere, accueil de la clinique privee de Luthecia) : reponse scriptee sur
+  // les visites/chambres (finalisation chambres clinique, 31 aout 2026) -- meme mecanisme deja
+  // utilise pour Jeremy/Maxence/les temoins de l'enigme (nom court + regex sur l'action), jamais
+  // un second moteur de dialogue. Volontairement hors-IA pour garantir un message toujours exact,
+  // sans ID technique ni mention de locations_actives.
+  const nomCourtSophie = (pnj.name || '').replace(' (PNJ)', '').trim();
+  if (nomCourtSophie === 'Sophie Stiquay' && /voir|visiter|visite|rendre visite|chambre|patient/i.test(action)) {
+    speech.textContent = "Les chambres sont privées, on n'y entre pas comme ça. Passez par l'ordre « Chambres » ici même, à l'accueil : si vous êtes vous-même hospitalisé(e), vous rejoindrez directement votre chambre. Sinon, vous y verrez la liste des patients qui acceptent actuellement des visites — un patient reste toujours libre de les refuser, question de tranquillité.";
+    return;
+  }
+
   // Quete d'accueil : reponse scriptee du Secretaire Municipal Petit quand un nouveau joueur se presente.
   // Reponse fixe (pas d'IA) pour garantir la progression de la quete a ce moment charniere.
   if (pnj.name === 'Secretaire Municipal Petit'

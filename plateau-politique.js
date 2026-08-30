@@ -1931,6 +1931,15 @@ function renderRoomActions(room, buildingId, roomId) {
         suiteTooltip = 'Vous n\'êtes pas locataire de ce local';
       }
     }
+    // Garde UI pour les soins de chambre de la clinique privee (finalisation chambres clinique,
+    // 31 aout 2026) : meme principe que les gardes ci-dessus, grise le bouton pour un visiteur
+    // qui n'est pas le patient de cette chambre -- ne remplace jamais le blocage reel de doOrder
+    // (plateau-router.js), qui reutilise la meme fonction estOrdreMedicalReserveAuPatient.
+    let needsPatientChambre = false;
+    const patientChambreTooltip = 'Réservé au patient auquel cette chambre est attribuée.';
+    if (typeof estOrdreMedicalReserveAuPatient === 'function' && estOrdreMedicalReserveAuPatient(buildingId, roomId, o.fn)) {
+      needsPatientChambre = true;
+    }
     // Garde UI pour "Prendre le pouls" (pouls_populaire, Marche, chantier 27 aout 2026) : meme
     // principe que les gardes ci-dessus, grise le bouton avec une infobulle explicite des
     // qu'aucune election locale (maire/depute) n'est actuellement en cours dans la ville
@@ -2037,6 +2046,8 @@ function renderRoomActions(room, buildingId, roomId) {
       onclickFn = "showToast('Indisponible', " + JSON.stringify(suiteTooltip) + ", false)";
     } else if (needsElectionIndisponible) {
       onclickFn = "showToast('Aucune élection', " + JSON.stringify(electionTooltip) + ", false)";
+    } else if (needsPatientChambre) {
+      onclickFn = "showToast('Réservé au patient', " + JSON.stringify(patientChambreTooltip) + ", false)";
     } else if (o.fn === 'plainte_police') {
       onclickFn = 'openPlainteModal(' + o.pa + ',' + o.cost + ')';
     } else if (o.fn === 'gerer_finances') {
@@ -2050,9 +2061,9 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
-    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible) ? ' blocked' : '';
+    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
-    const tooltipFinal = needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : tooltip));
+    const tooltipFinal = needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : tooltip)));
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 

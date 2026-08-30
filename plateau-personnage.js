@@ -1781,6 +1781,39 @@ function trouverChambreLibreClinique() {
   return null;
 }
 
+// Finalisation chambres clinique (31 aout 2026) : les 5 soins deplaces de reception_clinique vers
+// les 10 chambres (voir data.js) doivent rester utilisables UNIQUEMENT par le patient auquel la
+// chambre est attribuee -- un visiteur autorise peut entrer (enterRoom, plateau-navigation.js)
+// mais jamais se soigner a la place du patient. Point de controle UNIQUE, reutilise a la fois par
+// renderRoomActions (plateau-politique.js, grise le bouton -- meme principe que needsChefSyndicat/
+// needsSuiteIndisponible) et par doOrder (plateau-router.js, blocage reel avant tout debit) :
+// aucune duplication de la logique medicale elle-meme (doSoinCliniquePrivee/doCentreAntiPoison/
+// executerOrdreGenerique restent intacts).
+const ORDRES_MEDICAUX_CHAMBRE_CLINIQUE = ['soins', 'soins_urgence', 'soins_discrets', 'centre_anti_poison', 'se_nourrir'];
+
+function estOrdreMedicalReserveAuPatient(buildingId, roomId, fn) {
+  if (buildingId !== 'clinique-privee' || !/^chambre_(?:[1-9]|10)$/.test(roomId || '')) return false;
+  if (!ORDRES_MEDICAUX_CHAMBRE_CLINIQUE.includes(fn)) return false;
+  const loc = (typeof getLocationPourRoom === 'function') ? getLocationPourRoom('clinique-privee', roomId, 'capitale') : null;
+  return !loc || loc.locataire !== state.char?.name;
+}
+
+// Onglet visible "Chambre" (finalisation chambres clinique, 31 aout 2026) : point d'entree
+// materialisant la zone hospitaliere dans la barre d'onglets de la clinique (voir enterBuilding,
+// plateau-navigation.js). Reutilise integralement le mecanisme existant -- getChambreAttribueeClinique
+// et rejoindreChambreClinique (deja definis ci-dessus/plus haut dans ce fichier) -- aucun second
+// systeme d'attribution. Un joueur sans chambre attribuee reste bloque avec une explication,
+// jamais d'acces arbitraire a chambre_1..chambre_10.
+function ouvrirOngletChambreClinique() {
+  const moi = state.char?.name;
+  const maChambre = moi ? getChambreAttribueeClinique(moi) : null;
+  if (maChambre) {
+    rejoindreChambreClinique(moi);
+    return;
+  }
+  showToast('Accès restreint', "Les chambres de la clinique sont réservées aux patients et à leurs visiteurs autorisés. Adressez-vous à Sophie Stiquay à l'accueil pour savoir comment rendre visite à un patient.", false);
+}
+
 async function doTransfertCliniquePrivee(pa, cost) {
   if (!state.hospitalisation) { showToast('Indisponible', 'Vous n\'êtes pas hospitalisé(e).', false); return; }
   if (state.hospitalisation.lieu === 'clinique') { showToast('Déjà en clinique privée', '', false); return; }

@@ -11,6 +11,15 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   successRate = successRate || 70;
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
 
+  // Verrou chambres de la clinique privee (finalisation chambres clinique, 31 aout 2026) : les
+  // soins deplaces de reception_clinique vers les 10 chambres restent reserves au patient
+  // auquel la chambre est attribuee -- un visiteur autorise peut entrer mais jamais se soigner
+  // a la place du patient. Verifie EN PREMIER, avant tout debit PA/FR (garantie explicite).
+  if (typeof estOrdreMedicalReserveAuPatient === 'function' && estOrdreMedicalReserveAuPatient(state.currentBuilding, state.currentRoom, fn)) {
+    showToast('Réservé au patient', 'Ces soins sont réservés au patient auquel cette chambre est attribuée.', false);
+    return;
+  }
+
   // Verrou central "match de football en cours" (chantier "football live", 28 aout 2026) : un
   // titulaire est immobilise pendant l'echauffement + les 20 minutes de jeu + la mi-temps, que son
   // navigateur soit ouvert ou non -- meme principe que le blocus syndical juste en dessous (lecture
