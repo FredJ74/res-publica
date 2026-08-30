@@ -3538,6 +3538,10 @@ const BUILDINGS = {
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
           {fn:'ecouter_rumeurs', label:'Ecouter le patron', pa:0, cost:0, type:'grey', icon:'ti-ear', successRate:85, desc:'Marin Dulac entend tout ce qui se dit au bar. Revele une rumeur vraie ou generee selon le contexte.', sourceOverride:'Marin Dulac'},
+          // Repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext (meme
+          // pa/cost/successRate/desc) -- meme principe que marche-psm : un nouveau point d'acces
+          // au meme ordre, aucune variante specifique au bar (audit dedie, 30 aout 2026).
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'},
           {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
           {fn:'contrebande',label:'Contacter reseau',pa:2, cost:100, type:'illegal',icon:'ti-package', successRate:55}
         ]
@@ -5338,7 +5342,10 @@ const BUILDINGS = {
       {fn:'consommer_boisson', label:'Consommer une boisson', pa:0, cost:0, type:'legal', icon:'ti-glass', successRate:100, desc:'Choisir une boisson de la carte a consommer sur place.'},
       {fn:'offrir_tournee', label:'Offrir une tournée', pa:0, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Offrez une tournee (une seule boisson de la carte) a plusieurs personnes presentes, a vos frais. Chacun accepte ou refuse independamment ; vous ne buvez et ne payez que si au moins une personne accepte. Cout reel : 1 PA + le prix de la boisson x (nombre d\'acceptants + vous).'},
       {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
+      // Repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext (audit dedie, 30
+      // aout 2026 -- duplication du marche vers les bars de Republia).
+      {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
     ] } }
   },
   'brasserie-voyageurs-montrouge': {
@@ -5352,7 +5359,10 @@ const BUILDINGS = {
       {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
       {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:1, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
       {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
-      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'}
+      {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
+      // Repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext (audit dedie, 30
+      // aout 2026 -- duplication du marche vers les bars de Republia).
+      {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
     ] } }
   },
   // Structure a 6 salles + accueil (17 aout 2026, implantation des images preparees) --
@@ -5522,7 +5532,12 @@ const BUILDINGS = {
     icon: "ti-cigarette",
     bgColor: "#100c08",
     desc: "Le café-tabac des cheminots de Montrouge. Un seul et même établissement.",
-    rooms: { salle: { name: "Salle", desc: "Comptoir, tabac, quelques tables.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-bar-tabac-interieur.jpg", persons: [], orders: [] } }
+    // lancer_rumeur_cible repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext
+    // (meme pa/cost/successRate/desc) -- nouveau point d'acces au meme ordre, audit dedie du
+    // 30 aout 2026 (duplication du marche vers les bars de Republia).
+    rooms: { salle: { name: "Salle", desc: "Comptoir, tabac, quelques tables.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-bar-tabac-interieur.jpg", persons: [], orders: [
+      {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
+    ] } }
   },
 
   // ---- PORTS ----
