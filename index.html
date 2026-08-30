@@ -46,98 +46,98 @@
 
 <!-- SCREEN 1: COUNTRY -->
 <div id="s1" class="screen">
-  <div class="sh"><div class="sn">Etape 1 / 7</div><div class="st playfair">Choisissez votre empire</div><div class="sd">Chaque empire a ses regles, ses codes, sa facon particuliere de corrompre.</div></div>
+  <div class="sh"><div class="sn" data-i18n="creation.steps.country.step">Etape 1 / 7</div><div class="st playfair" data-i18n="creation.steps.country.title">Choisissez votre empire</div><div class="sd" data-i18n="creation.steps.country.subtitle">Chaque empire a ses regles, ses codes, sa facon particuliere de corrompre.</div></div>
   <div class="grid2" id="country-grid"></div>
   <div id="modal-city" class="modal-overlay">
     <div class="modal-box modal-wide">
       <div class="modal-header">
-        <div class="modal-title">Choisissez votre ville de domiciliation</div>
+        <div class="modal-title" data-i18n="creation.city.modalTitle">Choisissez votre ville de domiciliation</div>
       </div>
       <div id="city-grid" style="padding:1rem;display:flex;flex-direction:column;gap:.7rem"></div>
     </div>
   </div>
-  <div class="nav"><button class="nbtn" onclick="goTo(0)">Retour</button><div class="dots" id="dots1"></div><button class="nbtn nnext" id="n1" disabled onclick="goTo(2)">Suivant</button></div>
+  <div class="nav"><button class="nbtn" data-i18n="creation.nav.back" onclick="goTo(0)">Retour</button><div class="dots" id="dots1"></div><button class="nbtn nnext" id="n1" disabled data-i18n="creation.nav.next" onclick="goTo(2)">Suivant</button></div>
 </div>
 
 <!-- SCREEN 2: ORIGIN -->
 <div id="s2" class="screen">
-  <div class="sh"><div class="sn">Etape 2 / 7</div><div class="st playfair">Origine sociale</div><div class="sd">Le milieu dans lequel vous etes ne determine votre capital de depart.</div></div>
+  <div class="sh"><div class="sn" data-i18n="creation.steps.origin.step">Etape 2 / 7</div><div class="st playfair" data-i18n="creation.steps.origin.title">Origine sociale</div><div class="sd" data-i18n="creation.steps.origin.subtitle">Le milieu dans lequel vous etes ne determine votre capital de depart.</div></div>
   <div class="grid4" id="origin-grid"></div>
-  <div class="nav"><button class="nbtn" onclick="goTo(1)">Retour</button><div class="dots" id="dots2"></div><button class="nbtn nnext" id="n2" disabled onclick="goTo(3)">Suivant</button></div>
+  <div class="nav"><button class="nbtn" data-i18n="creation.nav.back" onclick="goTo(1)">Retour</button><div class="dots" id="dots2"></div><button class="nbtn nnext" id="n2" disabled data-i18n="creation.nav.next" onclick="goTo(3)">Suivant</button></div>
 </div>
 
 <!-- SCREEN 3: SCHOOL -->
 <div id="s3" class="screen">
-  <div class="sh"><div class="sn">Etape 3 / 7</div><div class="st playfair">Parcours scolaire</div><div class="sd">L'education forge les competences et ouvre ou ferme des portes.</div></div>
+  <div class="sh"><div class="sn" data-i18n="creation.steps.school.step">Etape 3 / 7</div><div class="st playfair" data-i18n="creation.steps.school.title">Parcours scolaire</div><div class="sd" data-i18n="creation.steps.school.subtitle">L'education forge les competences et ouvre ou ferme des portes.</div></div>
   <div class="grid4" id="school-grid"></div>
-  <p class="infomsg">Certaines carrieres sont reservees aux diplomes. D'autres sont inaccessibles pour qui a trop etudie.</p>
-  <div class="nav"><button class="nbtn" onclick="goTo(2)">Retour</button><div class="dots" id="dots3"></div><button class="nbtn nnext" id="n3" disabled onclick="goTo(4)">Suivant</button></div>
+  <p class="infomsg" data-i18n="creation.steps.school.info">Certaines carrieres sont reservees aux diplomes. D'autres sont inaccessibles pour qui a trop etudie.</p>
+  <div class="nav"><button class="nbtn" data-i18n="creation.nav.back" onclick="goTo(2)">Retour</button><div class="dots" id="dots3"></div><button class="nbtn nnext" id="n3" disabled data-i18n="creation.nav.next" onclick="goTo(4)">Suivant</button></div>
 </div>
 
 <!-- SCREEN 4: ARCHETYPE -->
 <div id="s4" class="screen">
-  <div class="sh"><div class="sn">Etape 4 / 7</div><div class="st playfair">Nature profonde</div><div class="sd">Qui etes-vous vraiment, independamment de votre parcours ?</div></div>
+  <div class="sh"><div class="sn" data-i18n="creation.steps.archetype.step">Etape 4 / 7</div><div class="st playfair" data-i18n="creation.steps.archetype.title">Nature profonde</div><div class="sd" data-i18n="creation.steps.archetype.subtitle">Qui etes-vous vraiment, independamment de votre parcours ?</div></div>
   <div class="grid3" id="arch-grid"></div>
-  <p class="infomsg">L'archetype definit votre personnalite fondamentale, pas votre metier.</p>
-  <div class="nav"><button class="nbtn" onclick="goTo(3)">Retour</button><div class="dots" id="dots4"></div><button class="nbtn nnext" id="n4" disabled onclick="goTo(5)">Suivant</button></div>
+  <p class="infomsg" data-i18n="creation.steps.archetype.info">L'archetype definit votre personnalite fondamentale, pas votre metier.</p>
+  <div class="nav"><button class="nbtn" data-i18n="creation.nav.back" onclick="goTo(3)">Retour</button><div class="dots" id="dots4"></div><button class="nbtn nnext" id="n4" disabled data-i18n="creation.nav.next" onclick="goTo(5)">Suivant</button></div>
 </div>
 
 <!-- SCREEN 5: CAREER -->
 <div id="s5" class="screen">
-  <div class="sh"><div class="sn">Etape 5 / 7</div><div class="st playfair">Carriere</div><div class="sd">Votre parcours professionnel avant d'entrer dans le grand jeu.</div></div>
+  <div class="sh"><div class="sn" data-i18n="creation.steps.career.step">Etape 5 / 7</div><div class="st playfair" data-i18n="creation.steps.career.title">Carriere</div><div class="sd" data-i18n="creation.steps.career.subtitle">Votre parcours professionnel avant d'entrer dans le grand jeu.</div></div>
   <div class="grid3" id="career-grid"></div>
   <p class="infomsg" id="career-info"></p>
-  <div class="nav"><button class="nbtn" onclick="goTo(4)">Retour</button><div class="dots" id="dots5"></div><button class="nbtn nnext" id="n5" disabled onclick="goTo(6)">Suivant</button></div>
+  <div class="nav"><button class="nbtn" data-i18n="creation.nav.back" onclick="goTo(4)">Retour</button><div class="dots" id="dots5"></div><button class="nbtn nnext" id="n5" disabled data-i18n="creation.nav.next" onclick="goTo(6)">Suivant</button></div>
 </div>
 
 <!-- SCREEN 6: STATS -->
 <div id="s6" class="screen">
-  <div class="sh"><div class="sn">Etape 6 / 7</div><div class="st playfair">Caracteristiques</div><div class="sd">Distribuez vos points libres. Les bonus acquis sont deja integres.</div></div>
-  <div style="text-align:center;margin-bottom:1rem"><div class="pool"><div class="pnum" id="pts-left">30</div><div class="plbl">Points a distribuer</div></div></div>
+  <div class="sh"><div class="sn" data-i18n="creation.steps.stats.step">Etape 6 / 7</div><div class="st playfair" data-i18n="creation.steps.stats.title">Caracteristiques</div><div class="sd" data-i18n="creation.steps.stats.subtitle">Distribuez vos points libres. Les bonus acquis sont deja integres.</div></div>
+  <div style="text-align:center;margin-bottom:1rem"><div class="pool"><div class="pnum" id="pts-left">30</div><div class="plbl" data-i18n="creation.steps.stats.pointsLabel">Points a distribuer</div></div></div>
   <div style="width:100%;max-width:680px" id="stats-wrap"></div>
-  <p class="infomsg">Au-dela de 12, chaque point coute 2. Plafond : 16 a la creation. Les niveaux 17-20 se debloquent en jeu.</p>
+  <p class="infomsg" data-i18n="creation.steps.stats.info">Au-dela de 12, chaque point coute 2. Plafond : 16 a la creation. Les niveaux 17-20 se debloquent en jeu.</p>
   <p class="infomsg" id="pts-warning" style="display:none;color:#C9A84C"></p>
-  <div class="nav"><button class="nbtn" onclick="goTo(5)">Retour</button><div class="dots" id="dots6"></div><button class="nbtn nnext" id="n6" onclick="goTo(7)">Suivant</button></div>
+  <div class="nav"><button class="nbtn" data-i18n="creation.nav.back" onclick="goTo(5)">Retour</button><div class="dots" id="dots6"></div><button class="nbtn nnext" id="n6" data-i18n="creation.nav.next" onclick="goTo(7)">Suivant</button></div>
 </div>
 
 <!-- SCREEN 7: IDENTITY -->
 <div id="s7" class="screen">
-  <div class="sh"><div class="sn">Etape 7 / 7</div><div class="st playfair">Identite du personnage</div><div class="sd">Donnez un visage, un nom et une histoire a votre alter ego.</div></div>
+  <div class="sh"><div class="sn" data-i18n="creation.steps.identity.step">Etape 7 / 7</div><div class="st playfair" data-i18n="creation.steps.identity.title">Identite du personnage</div><div class="sd" data-i18n="creation.steps.identity.subtitle">Donnez un visage, un nom et une histoire a votre alter ego.</div></div>
   <div class="iform">
-    <label class="flbl">Photo de profil</label>
+    <label class="flbl" data-i18n="creation.steps.identity.photoLabel">Photo de profil</label>
     <div class="pup">
       <input type="file" accept="image/*" onchange="handlePhoto(this)"/>
       <div id="pprev">
         <i class="ti ti-mask" style="font-size:2.5rem;color:#4a4030;display:block;margin-bottom:.4rem"></i>
-        <div class="phint">Telechargez une image &middot; Parodie de personnage reel bienvenue</div>
+        <div class="phint" data-i18n="creation.steps.identity.photoHint">Telechargez une image &middot; Parodie de personnage reel bienvenue</div>
       </div>
     </div>
-    <label class="flbl">Nom du personnage</label>
-    <input class="finp" id="cname" type="text" placeholder="Ex: Arnold Governator, Jean-Marie Dupont-Moreau..." oninput="chkId()"/>
-    <label class="flbl">Biographie</label>
-    <textarea class="finp" id="cbio" rows="5" placeholder="L'histoire de votre personnage, son passe, ses motivations..." oninput="chkId()"></textarea>
-    <label class="flbl">Devise personnelle <span style="color:#3a3020;font-size:.78rem">(optionnel)</span></label>
-    <input class="finp" id="cmotto" type="text" placeholder="Ex: Le pouvoir ne se prend pas, il se merite... ou pas."/>
+    <label class="flbl" data-i18n="creation.steps.identity.nameLabel">Nom du personnage</label>
+    <input class="finp" id="cname" type="text" placeholder="Ex: Arnold Governator, Jean-Marie Dupont-Moreau..." data-i18n-placeholder="creation.steps.identity.namePlaceholder" oninput="chkId()"/>
+    <label class="flbl" data-i18n="creation.steps.identity.bioLabel">Biographie</label>
+    <textarea class="finp" id="cbio" rows="5" placeholder="L'histoire de votre personnage, son passe, ses motivations..." data-i18n-placeholder="creation.steps.identity.bioPlaceholder" oninput="chkId()"></textarea>
+    <label class="flbl" data-i18n="creation.steps.identity.mottoLabel">Devise personnelle <span style="color:#3a3020;font-size:.78rem" data-i18n="creation.steps.identity.mottoOptional">(optionnel)</span></label>
+    <input class="finp" id="cmotto" type="text" placeholder="Ex: Le pouvoir ne se prend pas, il se merite... ou pas." data-i18n-placeholder="creation.steps.identity.mottoPlaceholder"/>
   </div>
-  <div class="nav"><button class="nbtn" onclick="goTo(6)">Retour</button><div class="dots" id="dots7"></div><button class="nbtn nnext" id="n7" disabled onclick="goTo(8)">Voir ma fiche</button></div>
+  <div class="nav"><button class="nbtn" data-i18n="creation.nav.back" onclick="goTo(6)">Retour</button><div class="dots" id="dots7"></div><button class="nbtn nnext" id="n7" disabled data-i18n="creation.nav.seeSheet" onclick="goTo(8)">Voir ma fiche</button></div>
 </div>
 
 <!-- SCREEN 8: REVIEW -->
 <div id="s8" class="screen">
-  <div class="sh"><div class="sn">Recapitulatif</div><div class="st playfair">Votre fiche de personnage</div></div>
+  <div class="sh"><div class="sn" data-i18n="creation.steps.review.step">Recapitulatif</div><div class="st playfair" data-i18n="creation.steps.review.title">Votre fiche de personnage</div></div>
   <div class="rcard" id="rcard"></div>
   <div style="max-width:640px;width:100%;margin-top:1.2rem;display:flex;gap:.8rem">
-    <button class="nbtn" style="flex:1" onclick="goTo(7)">Modifier</button>
-    <button class="nbtn nnext" style="flex:2" onclick="validateChar()">Valider et entrer dans le jeu</button>
+    <button class="nbtn" style="flex:1" data-i18n="creation.nav.edit" onclick="goTo(7)">Modifier</button>
+    <button class="nbtn nnext" style="flex:2" data-i18n="creation.nav.validate" onclick="validateChar()">Valider et entrer dans le jeu</button>
   </div>
 </div>
 
 <!-- SCREEN 9: SUCCESS -->
 <div id="s9" class="screen" style="justify-content:center;text-align:center">
   <div style="color:#C9A84C;margin-bottom:1.2rem;animation:pulse 2s ease infinite"><i class="ti ti-trophy" style="font-size:4rem"></i></div>
-  <div class="bebas" style="font-size:2.8rem;letter-spacing:.15em;color:#C9A84C;margin-bottom:.8rem">Bienvenue dans le Grand Jeu</div>
-  <div class="playfair" style="font-style:italic;font-size:1rem;color:#8a8060;max-width:460px;line-height:1.7;margin:0 auto 1.5rem" id="sctext">Votre personnage est pret.</div>
-  <button class="ibtn" onclick="window.location.href='plateau.html'"><span>Entrer dans le jeu</span></button>
+  <div class="bebas" style="font-size:2.8rem;letter-spacing:.15em;color:#C9A84C;margin-bottom:.8rem" data-i18n="creation.success.title">Bienvenue dans le Grand Jeu</div>
+  <div class="playfair" style="font-style:italic;font-size:1rem;color:#8a8060;max-width:460px;line-height:1.7;margin:0 auto 1.5rem" id="sctext" data-i18n="creation.success.ready">Votre personnage est pret.</div>
+  <button class="ibtn" onclick="window.location.href='plateau.html'"><span data-i18n="creation.nav.enter">Entrer dans le jeu</span></button>
 </div>
 
 <!-- I18N LOT 1 : charges avant data.js/creation.js -- ne dependent de rien d'autre, et permettent

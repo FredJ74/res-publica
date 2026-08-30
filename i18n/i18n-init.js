@@ -56,10 +56,20 @@ function appliquerTraductionsRP() {
 // Changement manuel de langue (section 11) : met a jour i18next, reapplique les traductions,
 // enregistre la preference, met a jour visuellement le selecteur -- reutilisable sur d'autres
 // pages plus tard sans modification.
+//
+// Hook de rafraichissement dynamique (Lot 2, i18n creation de personnage) : appliquerTraductionsRP()
+// ne retraduit que le DOM STATIQUE (attributs data-i18n deja presents) -- elle ignore tout ce
+// qu'une page genere dynamiquement en JS (ex. les grilles de creation.js). window.RP_I18N_ON_LANGUAGE_CHANGE
+// est un point d'extension OPTIONNEL, jamais defini par ce fichier lui-meme (qui reste generique
+// et reutilisable sur n'importe quelle page) : une page qui a du contenu dynamique a retraduire
+// peut y assigner sa propre fonction de rafraichissement (voir creation.js,
+// rafraichirEcranCreationApresChangementLangue) ; les pages qui n'en ont pas besoin n'ont rien a
+// faire, l'appel est un simple no-op silencieux.
 function changerLangueRP(langue) {
   if (RP_I18N_LANGUES_SUPPORTEES.indexOf(langue) === -1) return;
   i18next.changeLanguage(langue, function () {
     appliquerTraductionsRP();
+    if (typeof window.RP_I18N_ON_LANGUAGE_CHANGE === 'function') window.RP_I18N_ON_LANGUAGE_CHANGE();
     try { localStorage.setItem(RP_I18N_STORAGE_KEY, langue); }
     catch (e) { console.warn('Preference de langue non sauvegardee (localStorage indisponible)', e); }
   });
