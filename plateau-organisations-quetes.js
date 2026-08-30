@@ -4784,6 +4784,143 @@ function initPreviewRealisateur() {
       window.__debugRealisateurClics.recus++;
       traiterSelection(situationTestDuel, 'stop_motion', null, null);
     });
+
+    // ---------------------------------------------------------------------------
+    // TEST MATCH NARRATIF (chantier "du jukebox a la narration", 30 aout 2026, section 17)
+    // ---------------------------------------------------------------------------
+    // Demonstrateur : joue une SUITE de situations synthetiques a travers la VRAIE API du monteur
+    // (RealisateurIA.construireArcNarratif -- jamais un scenario fige code a la main pour "faire
+    // joli"). L'orchestrateur attend la fin PREVUE de chaque beat (dureeMsAttendueApprox du
+    // registre) avant de lancer le suivant -- aucun chevauchement volontaire (section 19).
+    const blocMatchNarratif = document.createElement('div');
+    blocMatchNarratif.style.cssText = 'margin-top:.6rem;padding-top:.6rem;border-top:1px dashed #4a3c22';
+    blocMatchNarratif.innerHTML =
+      '<button id="preview-match-narratif-btn" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.78rem;letter-spacing:.06em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🎬 TEST MATCH NARRATIF</button>' +
+      '<button id="preview-match-narratif-stop" style="width:100%;margin-top:.3rem;font-size:.68rem;padding:.35rem;border:1px solid #7a4a4a;background:transparent;color:#c08080;cursor:pointer">⏹ Stop</button>' +
+      '<div id="preview-match-narratif-statut" style="font-size:.65rem;color:#8a9aa8;margin-top:.35rem;min-height:1.2em"></div>' +
+      '<pre id="preview-match-narratif-trace" style="margin-top:.3rem;max-height:260px;overflow:auto;font-size:.6rem;line-height:1.35;color:#8a9aa8;background:#05070a;padding:.4rem;border:1px solid #2a3038;white-space:pre-wrap"></pre>';
+    (zoneScroll || panneau).appendChild(blocMatchNarratif);
+
+    // Generateur de situations DEMO : meme forme de situation que genererMatchSynthetique du
+    // simulateur headless (plateau-football-realisateur-simulateur.js), reecrit ici sans
+    // dependance Node -- mix delibere de phases calmes/vives/pression + UNE chaine coup franc +
+    // UN but canonique en jeu ouvert (montre honnetement le pass-through, rien invente) + UN
+    // carton adversarial (prouve R1 en direct). Seed base sur Date.now() : chaque lancement
+    // montre une variante differente, jamais une demo figee.
+    function genererSituationsMatchNarratifDemo(seedBase) {
+      const rng = RealisateurIA.creerPRNGDeterministeRia(RealisateurIA.hashChaineVersUint32Ria('demo-match-narratif-' + seedBase));
+      const MICRO_ACTIONS_CALMES = ['circulation', 'degagement', 'sortie', 'touche', 'remise'];
+      const MICRO_ACTIONS_VIVES = ['duel', 'interception', 'course', 'centre', 'frappe'];
+      const TOUTES = MICRO_ACTIONS_CALMES.concat(MICRO_ACTIONS_VIVES);
+      const situations = [];
+      let pression = 0;
+      function ajouterPhase(n, listeActions, minuteDebut) {
+        for (let i = 0; i < n; i++) {
+          pression = rng() < 0.4 ? Math.min(3, pression + 1) : Math.max(0, pression - 1);
+          situations.push({
+            microAction: listeActions[Math.floor(rng() * listeActions.length)],
+            cote: rng() < 0.5 ? 'home' : 'away',
+            minute: minuteDebut + i, ecartScore: 0, pressionRecente: pression
+          });
+          if (listeActions === TOUTES && rng() < 0.1) situations.push({ canonique: { type: 'occasion', joueur: null }, minute: minuteDebut + i });
+        }
+      }
+      ajouterPhase(6, MICRO_ACTIONS_CALMES, 1);
+      ajouterPhase(10, TOUTES, 7);
+      situations.push({ coupFrancEtape: 'tension', minute: 18 });
+      situations.push({ coupFrancEtape: 'trajectoire', minute: 18 });
+      const resolutionCoupFranc = rng() < 0.5 ? 'arret' : 'but';
+      situations.push({ coupFrancEtape: resolutionCoupFranc, coupFrancResultat: resolutionCoupFranc, minute: 18 });
+      ajouterPhase(8, TOUTES, 19);
+      situations.push({ canonique: { type: 'but', joueur: 'Joueur Demo' }, minute: 28 });
+      ajouterPhase(6, MICRO_ACTIONS_CALMES, 29);
+      situations.push({ canonique: { type: 'carton', joueur: 'Joueur Demo Adverse' }, minute: 35 });
+      ajouterPhase(10, TOUTES, 36);
+      return situations;
+    }
+
+    let _matchNarratifEnCours = false;
+    let _matchNarratifTimeoutIds = [];
+    function arreterMatchNarratif(messageStatut) {
+      _matchNarratifEnCours = false;
+      _matchNarratifTimeoutIds.forEach(function (id) { clearTimeout(id); });
+      _matchNarratifTimeoutIds = [];
+      const statutEl = document.getElementById('preview-match-narratif-statut');
+      if (statutEl && messageStatut) statutEl.textContent = messageStatut;
+    }
+
+    function tracerMatchNarratif(indexSituation, total, situation, trace, arcPlan, beatEnCours) {
+      const traceEl = document.getElementById('preview-match-narratif-trace');
+      if (!traceEl) return;
+      traceEl.textContent = JSON.stringify({
+        situationIndex: (indexSituation + 1) + '/' + total,
+        situation: situation,
+        famille: trace.famille,
+        intensite: trace.intensite,
+        arcPrevu: trace.arcChoisi || (arcPlan ? arcPlan.arc : null),
+        beatsPrevus: trace.beatsPrevus,
+        beatEnCours: beatEnCours || null,
+        dureeMsTotaleApproxArc: arcPlan ? arcPlan.dureeMsTotaleApprox : null,
+        evenementCanonique: situation.canonique || null
+      }, null, 2);
+    }
+
+    function jouerBeatEtContinuer(situation, arcPlan, trace, indexSituation, total, indexBeat, onArcTermine) {
+      if (!_matchNarratifEnCours) return;
+      if (indexBeat >= arcPlan.beats.length) { onArcTermine(); return; }
+      const b = arcPlan.beats[indexBeat];
+      let dureeAttenteMs = 900; // respiration / plan sans lancement : simple pause, mini-terrain courant inchange
+      if (!b.plan.isRespiration) {
+        const resolution = resoudreSequenceDepuisGrammaire(b.plan.selectedGrammar, situation);
+        if (resolution.sequence) {
+          lancerSequencePreview(resolution.sequence, def, home, instant);
+          dureeAttenteMs = RealisateurIA.dureeApproxDepuisRegistre(b.plan.selectedGrammar) || 1500;
+        }
+      }
+      tracerMatchNarratif(indexSituation, total, situation, trace, arcPlan, { role: b.role, selectedGrammar: b.plan.selectedGrammar, dureeMsAttendue: dureeAttenteMs });
+      // Marge de 150ms (jamais un chevauchement volontaire, section 19) : le beat suivant n'est
+      // programme qu'APRES la duree prevue du beat courant, jamais en parallele.
+      const idT = setTimeout(function () {
+        jouerBeatEtContinuer(situation, arcPlan, trace, indexSituation, total, indexBeat + 1, onArcTermine);
+      }, dureeAttenteMs + 150);
+      _matchNarratifTimeoutIds.push(idT);
+    }
+
+    function jouerSituationSuivante(situations, indexSituation, memoire) {
+      if (!_matchNarratifEnCours) return;
+      if (indexSituation >= situations.length) { arreterMatchNarratif('Match narratif termine (' + situations.length + ' situations).'); return; }
+      const situation = situations[indexSituation];
+      const { arcPlan, trace } = RealisateurIA.construireArcNarratif({
+        situation: situation, seed: 'match-narratif-' + Date.now() + '-' + indexSituation, memoire: memoire
+      });
+      const statutEl = document.getElementById('preview-match-narratif-statut');
+      if (statutEl) statutEl.textContent = 'Situation ' + (indexSituation + 1) + '/' + situations.length + ' — famille ' + trace.famille + ' — arc [' + (arcPlan.arc || []).join(' → ') + ']';
+      if (!arcPlan.beats.length) {
+        tracerMatchNarratif(indexSituation, situations.length, situation, trace, arcPlan, null);
+        const idT = setTimeout(function () { jouerSituationSuivante(situations, indexSituation + 1, memoire); }, 900);
+        _matchNarratifTimeoutIds.push(idT);
+        return;
+      }
+      jouerBeatEtContinuer(situation, arcPlan, trace, indexSituation, situations.length, 0, function () {
+        jouerSituationSuivante(situations, indexSituation + 1, memoire);
+      });
+    }
+
+    document.getElementById('preview-match-narratif-btn').addEventListener('click', function () {
+      arreterMatchNarratif(); // toute execution narrative precedente est proprement stoppee avant d'en lancer une nouvelle -- jamais de chevauchement (section 19)
+      _liveViewerTimeoutsAnimation.forEach(function (id) { clearTimeout(id); });
+      _liveViewerTimeoutsAnimation = [];
+      reinitialiserSceneApresSequenceRealisation(true);
+      _matchNarratifEnCours = true;
+      const memoire = RealisateurIA.creerMemoireRealisateur();
+      const situations = genererSituationsMatchNarratifDemo(Date.now());
+      const statutEl = document.getElementById('preview-match-narratif-statut');
+      if (statutEl) statutEl.textContent = 'Demarrage — ' + situations.length + ' situations synthetiques.';
+      jouerSituationSuivante(situations, 0, memoire);
+    });
+    document.getElementById('preview-match-narratif-stop').addEventListener('click', function () {
+      arreterMatchNarratif('Arrete manuellement.');
+    });
   }
 }
 window.addEventListener('DOMContentLoaded', initPreviewRealisateur);
