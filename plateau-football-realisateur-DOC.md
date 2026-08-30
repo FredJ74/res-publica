@@ -21,8 +21,9 @@ Inchangée et non touchée par ce chantier : `_liveViewerAfficheCanoniqueEnCours
 - **`plateau-football-realisateur-simulateur.js`** — outil de dev (jamais chargé par
   `plateau.html`), génère des matchs synthétiques et exécute le vrai sélecteur en mode headless.
   `node plateau-football-realisateur-simulateur.js --matchs=1000 --seed=xxx [--json]`.
-- **`plateau-football-realisateur-tests.js`** — 17 assertions Node (règles dures, déterminisme,
-  anti-répétition, performance, campagne 1200 matchs). `node plateau-football-realisateur-tests.js`.
+- **`plateau-football-realisateur-tests.js`** — 23 assertions Node (règles dures, déterminisme,
+  anti-répétition, raccord MR1/MR2/MR3, respiration, performance, campagne 1200 matchs).
+  `node plateau-football-realisateur-tests.js`.
 - **`plateau-organisations-quetes.js`** — deux ajouts additifs :
   1. hooks sprites (`acteurMatchMiniature` / `appliquerSceneActeursPreview`, voir plus bas) ;
   2. pont debug dans `initPreviewRealisateur` (bouton "🤖 Sélection IA (debug)").
@@ -43,14 +44,54 @@ grammairesEligibles()  →  validerCompatibiliteGrammaire() par entrée du regis
         │  (règles dures : carton/blessure jamais mis en scène, résultat canonique requis avant
         │   sélection d'une grammaire "but"/"arrêt", forme de situation stricte, intention requise)
         │
++ injection de la respiration (id __respiration__, forme 'micro' uniquement) → concurrent normal
+        │
+appliquerReglesRaccord()  →  MR1 (spectacle→spectacle sans respiration), MR2 (spectacle juste
+        │   après une réaction terminale), MR3 (chaîne coup-franc brute déprioritisée si sa
+        │   variante raccordée est éligible) — jamais un blocage total du pool
+        │
 ponderationRarete()  →  malus par répétition récente + cooldown de famille spectaculaire
         │
-tirage pondéré (PRNG seedé)  →  plan { intention, intensity, selectedGrammar, primitives, ... }
+tirage pondéré (PRNG seedé)  →  plan { intention, intensity, selectedGrammar, primitives,
+        │   etatSortie, isRespiration?, ... } — memoire.dernierEtatSortie mis à jour (sauf
+        │   respiration/plan nul, qui ne changent pas ce que le spectateur regarde encore)
         │
-[côté navigateur uniquement] résolution de selectedGrammar → SCENARIOS_PREVIEW_REALISATEUR
+[côté navigateur uniquement] résolution de selectedGrammar :
+        │   source==='production' → trouverSequenceProductionAvecGabaritId (rejoue
+        │     genererSequenceRealisation jusqu'au bon gabaritId, même principe que
+        │     trouverSequenceCrashTestRasDuSol) ; sinon → SCENARIOS_PREVIEW_REALISATEUR
         │
 lancerSequencePreview / executerSequenceRealisation (INCHANGÉS)
 ```
+
+## Montage continu / raccord (ajouté suite au retour "les enchaînements ne paraissent pas
+## naturels" en production)
+
+Chaque grammaire déclare un `etatSortie` léger, audité directement dans les sequences réelles
+(jamais inventé) : `medium` ('miniature'/'illustre_image'/'illustre_pictogram'/'illustre_video'),
+`reactionTerminale` (dernier plan = vidéo/aftermath assumée — seulement vrai pour F1/F2 et leurs
+chaînes), `resolutionAssumee`, `retourTerrainInclus`. `memoire.dernierEtatSortie` porte cet état
+d'un appel du sélecteur à l'autre.
+
+**Respiration** (`RealisateurIA.ID_RESPIRATION`) est une troisième issue de premier ordre, à côté
+d'un plan réel ou d'un rejet : "ne rien montrer de nouveau, laisser le mini-terrain continuer".
+Boostée après une réaction terminale (×4) ou un spectacle récent (×2.5) — paramètres dans
+`PARAMETRES_RACCORD`. Sur la campagne de référence (2500 matchs), 72679/153000 sélections
+(~47%) sont des respirations : le mini-terrain est redevenu la couche de continuité dominante.
+
+**Cause factuelle des clics sans réaction** (mesurée, pas supposée) : avant correctif, le pont
+debug ne savait résoudre que les grammaires du banc d'essai preview — 48,6% des clics simulés ne
+produisaient aucune réaction visible (39,5% gabarit de production sans scénario preview dédié,
+8,3% carton adversarial légitime, 0,8% id mismatch `crash_test_ras_du_sol`/`plan_unique`).
+Corrigé : les grammaires `source==='production'` sont maintenant résolues via
+`trouverSequenceProductionAvecGabaritId`. 0% de résolution échouée sur 3000 clics simulés après
+correctif (voir rapport pour le détail).
+
+**MR4** : `reinitialiserSceneApresSequenceRealisation` fixe désormais explicitement
+`pelouse.style.transition = 'transform .4s ease'` avant `scale(1)`, au lieu d'hériter la
+transition laissée par le dernier plan joué (source concrète des retours à l'état neutre
+incohérents d'un enchaînement à l'autre). Fonction partagée avec le vrai match live — amélioration
+de cohérence visuelle mineure, pas une bascule de sélection.
 
 ## Ce qui est branché ce soir, et ce qui ne l'est pas
 
@@ -58,9 +99,10 @@ lancerSequencePreview / executerSequenceRealisation (INCHANGÉS)
   le nouveau sélecteur puis appelle la même fonction d'exécution que les boutons manuels. Le
   simulateur headless tourne en conditions réelles (2000+ matchs, voir rapport).
 - **PAS branché** : `jouerMicroAction` (le vrai match live) continue d'utiliser
-  `genererSequenceRealisation` telle quelle. Basculer le match réel sur le nouveau sélecteur est
-  un choix réversible mais visible par les joueurs — laissé à l'arbitrage de Fred (voir rapport
-  final, section "points à arbitrer"), faute de pouvoir l'inspecter visuellement cette nuit.
+  `genererSequenceRealisation` telle quelle. **Consigne explicite de Fred (30 août 2026, après
+  test visuel du bouton debug en production) : ne pas brancher `jouerMicroAction` sur le nouveau
+  Réalisateur tant que les raccords n'ont pas été validés visuellement.** Ce chantier reste donc
+  strictement additif/preview jusqu'à nouvel ordre.
 
 ## Registre de grammaires — comment en ajouter une
 
