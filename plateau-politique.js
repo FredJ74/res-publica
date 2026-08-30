@@ -2704,6 +2704,26 @@ async function soumettreProjetLoi(pa, cost) {
 
 // ASSEMBLEE NATIONALE
 // =====================
+
+// I18N LOT 0 -- neutralisation des identifiants de vote de loi (audit dedie, 30 aout 2026).
+// Separe l'identifiant metier neutre (FOR/AGAINST/ABSTAIN, desormais persiste dans
+// lois_assemblee.data.votes[].choix pour tout NOUVEAU vote) du libelle affiche au joueur
+// (francais pour l'instant -- remplacable plus tard par un t()/i18next sans toucher a
+// enregistrerVoteLoi ni aux comparaisons de couleur, qui ne travaillent plus que sur le code).
+// Aucune migration : normaliserChoixVoteLoi() fait ici, au point de lecture, toute la
+// compatibilite avec les votes deja persistes sous leur ancien libelle francais brut ('Pour'/
+// 'Contre'/'Abstention') -- ne touche jamais les lignes deja en base. Les couleurs de chaque
+// site d'affichage restent des ternaires locales (elles different deja legerement d'un site a
+// l'autre dans le code existant) : seul le libelle est centralise ici, pas la presentation.
+const LIBELLES_CHOIX_VOTE_LOI = { FOR: 'Pour', AGAINST: 'Contre', ABSTAIN: 'Abstention' };
+const ANCIENS_CHOIX_VOTE_LOI = { 'Pour': 'FOR', 'Contre': 'AGAINST', 'Abstention': 'ABSTAIN' };
+function normaliserChoixVoteLoi(choix) {
+  return ANCIENS_CHOIX_VOTE_LOI[choix] || choix;
+}
+function libelleChoixVoteLoi(choix) {
+  return LIBELLES_CHOIX_VOTE_LOI[normaliserChoixVoteLoi(choix)] || choix;
+}
+
 async function observerDebats(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
@@ -2724,8 +2744,9 @@ async function observerDebats(pa, cost) {
       if (loi.votes && loi.votes.length > 0) {
         html += '<div style="font-size:.68rem;color:#8a6a20;margin-bottom:.2rem">Votes exprimés (députés réels) :</div>';
         loi.votes.forEach(v => {
-          const col = v.choix === 'Pour' ? '#4a8a4a' : v.choix === 'Contre' ? '#8a3a2a' : '#6a6040';
-          html += '<div style="font-size:.72rem;color:#c0b090">' + v.depute + ' : <span style="color:' + col + '">' + v.choix + '</span></div>';
+          const choixNorm = normaliserChoixVoteLoi(v.choix);
+          const col = choixNorm === 'FOR' ? '#4a8a4a' : choixNorm === 'AGAINST' ? '#8a3a2a' : '#6a6040';
+          html += '<div style="font-size:.72rem;color:#c0b090">' + v.depute + ' : <span style="color:' + col + '">' + libelleChoixVoteLoi(v.choix) + '</span></div>';
         });
       } else {
         html += '<div style="font-size:.7rem;color:#5a5030;font-style:italic;margin-bottom:.2rem">Aucun vote reel exprime pour l\'instant.</div>';
@@ -2769,12 +2790,12 @@ function ouvrirVoteLoi(pa, cost) {
       html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">' + loi.titre + '</div>';
       html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">Depose par ' + loi.auteur + '</div>';
       if (dejaVote) {
-        html += '<div style="font-size:.78rem;color:#4a6a4a">Vote exprime : <strong>' + dejaVote + '</strong></div>';
+        html += '<div style="font-size:.78rem;color:#4a6a4a">Vote exprime : <strong>' + libelleChoixVoteLoi(dejaVote) + '</strong></div>';
       } else {
         html += '<div style="display:flex;gap:.5rem">';
-        ['Pour', 'Contre', 'Abstention'].forEach(choix => {
-          const col = choix === 'Pour' ? '#4a8a4a' : choix === 'Contre' ? '#8a2020' : '#6a6040';
-          html += '<button onclick="enregistrerVoteLoi(' + i + ',\'' + choix + '\',' + pa + ',' + cost + ')" style="flex:1;padding:.4rem;border:1px solid ' + col + ';background:transparent;color:' + col + ';cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">' + choix + '</button>';
+        ['FOR', 'AGAINST', 'ABSTAIN'].forEach(code => {
+          const col = code === 'FOR' ? '#4a8a4a' : code === 'AGAINST' ? '#8a2020' : '#6a6040';
+          html += '<button onclick="enregistrerVoteLoi(' + i + ',\'' + code + '\',' + pa + ',' + cost + ')" style="flex:1;padding:.4rem;border:1px solid ' + col + ';background:transparent;color:' + col + ';cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em">' + libelleChoixVoteLoi(code) + '</button>';
         });
         html += '</div>';
       }
@@ -2804,8 +2825,8 @@ async function enregistrerVoteLoi(loiIdx, choix, pa, cost) {
     }).catch(() => {});
   }
   document.getElementById('modal-postes').classList.remove('open');
-  showToast('Vote enregistre', choix + ' pour : ' + loi.titre, true, true);
-  addJournalEntry('Vote : ' + choix + ' — ' + loi.titre, 'event-info');
+  showToast('Vote enregistre', libelleChoixVoteLoi(choix) + ' pour : ' + loi.titre, true, true);
+  addJournalEntry('Vote : ' + libelleChoixVoteLoi(choix) + ' — ' + loi.titre, 'event-info');
 }
 
 async function ouvrirArchivesLois() {
@@ -2845,9 +2866,10 @@ function ouvrirDetailLoi(idx) {
   if (loi.votes?.length > 0) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">VOTES NOMINATIFS</div>';
     loi.votes.forEach(v => {
-      const vc = v.choix === 'Pour' ? '#4a8a4a' : v.choix === 'Contre' ? '#8a2020' : '#5a5040';
+      const choixNorm = normaliserChoixVoteLoi(v.choix);
+      const vc = choixNorm === 'FOR' ? '#4a8a4a' : choixNorm === 'AGAINST' ? '#8a2020' : '#5a5040';
       html += '<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:.2rem 0;border-bottom:1px solid #1a1810">';
-      html += '<span style="color:#c0b090">' + v.depute + '</span><span style="color:' + vc + '">' + v.choix + '</span></div>';
+      html += '<span style="color:#c0b090">' + v.depute + '</span><span style="color:' + vc + '">' + libelleChoixVoteLoi(v.choix) + '</span></div>';
     });
   }
   html += '</div>';
