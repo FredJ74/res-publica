@@ -301,16 +301,34 @@ function intentionsAutoriseesPourSituation(situation) {
 //  - retourTerrainInclus : true si la grammaire elle-meme ramene la camera au mini-terrain avant sa
 //    propre fin (raccord_coup_franc_*, tous les gabarits sauf gabarit_montage_4, match_miniature_v2,
 //    les 4 effets) plutot que de compter uniquement sur le reset universel.
-// Champ POUR TESTS UNIQUEMENT (jamais lu par la choregraphie reelle) -- sert la matrice de raccord
-// (section suivante), pas une nouvelle verite visuelle.
+// `statut` (chantier "audit du catalogue visuel", 30 aout 2026, suite au retour de Fred : "A/B
+// jamais vus, C vu une seule fois comme une image, deux glaives croises jamais valides") :
+// EXISTER dans le registre NE SIGNIFIE PAS etre automatiquement autorise -- estAutoriseAutomatiquement()
+// (section suivante) est la SEULE porte d'entree du pool automatique, jamais un filtre implicite
+// ailleurs. Valeurs possibles, jamais declarees arbitrairement :
+//  - VALIDATED_PRODUCTION : deja live en match reel via jouerMicroAction (gabarits + crash-test),
+//    validation implicite par l'usage continu depuis le chantier du 28 aout 2026 -- PAS nommes
+//    explicitement dans la liste "A/B/C/D/E/F/effets" de Fred (lignage de validation distinct).
+//  - VALIDATED_BANC_ESSAI : nomme EXPLICITEMENT par Fred comme demonstration complete validee
+//    (A/B/C/D/E/F1/F2/chaines/4 effets).
+//  - VALIDATED_A_CONFIRMER : existe et fonctionne (match_miniature_v2), jamais nomme explicitement
+//    par Fred -- reste autorise (rien de factuellement casse ne justifie de le retirer) mais
+//    signale pour confirmation explicite plutot que suppose valide silencieusement.
+// `nbPlansAttendu` / `dureeMsAttendueApprox` : mesures directement sur les constantes source
+// (dureeTotaleSequence deja calculee et commentee dans le fichier pour les sequences fixes ;
+// intervalle documente pour les gabarits a duree variable, aleatoire par construction) -- sert la
+// verification d'identite SELECTED -> RESOLVED (section 11 de la consigne) : un ecart entre
+// resolution.sequence.plans.length et nbPlansAttendu signale une resolution vers la mauvaise unite.
 const REGISTRE_GRAMMAIRES_REALISATEUR = [
   // ---- Gabarits deja utilises en match reel (POOL_GABARITS_REALISATEUR) ----
   { id: 'gabarit_montage_0', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
+    statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 1, dureeMsAttendueApprox: '900-1400 (variable)',
     primitives: ['TRACK', 'FAST', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['NEUTRE', 'CONSTRUCTION', 'PRESSION', 'ACCELERATION'], poidsBase: 1, spectaculaire: false,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_1', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
+    statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 1, dureeMsAttendueApprox: '800-1200 (variable)',
     primitives: ['FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     // Gabarit generique "simple suivi" -- seul gabarit production a couvrir SOULAGEMENT/REACTION
@@ -321,30 +339,42 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     intentionsCompatibles: ['NEUTRE', 'RETOUR_CALME', 'CONSTRUCTION', 'SOULAGEMENT', 'REACTION'], poidsBase: 1, spectaculaire: false,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_2', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
+    statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 2, dureeMsAttendueApprox: '1200-1900 (variable)',
     primitives: ['ZOOM', 'SLOW', 'SHAKE', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['DUEL', 'TENSION', 'DANGER'], poidsBase: 1, spectaculaire: false,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_3', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
+    statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 3, dureeMsAttendueApprox: '1850-2800 (variable)',
     primitives: ['FAST', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['ACCELERATION', 'CONSTRUCTION'], poidsBase: 1, spectaculaire: false,
     // 3 plans (terrain -> illustre pictogramme -> terrain) : revient DEJA au terrain lui-meme.
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'gabarit_montage_4', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
+    statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 2, dureeMsAttendueApprox: '1600-2350 (variable)',
     primitives: ['ZOOM', 'TRACK', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['PRESSION', 'CONSTRUCTION', 'DANGER'], poidsBase: 1, spectaculaire: false,
     // SEUL gabarit dont le DERNIER plan est 'illustre' (GABARITS_MONTAGE_REALISATEUR index 4,
-    // sans asset -> pictogramme COUCHE_ILLUSTRE_FIXE_DEFAUT) : ne revient PAS au terrain lui-meme,
-    // compte entierement sur le reset universel -- audit factuel, pas une supposition.
+    // sans asset -> pictogramme COUCHE_ILLUSTRE_FIXE_DEFAUT, ex. le glaives croises '⚔️' pour
+    // instant.type==='duel' -- ICONES_MICRO_ACTION_REALISATEUR, commit c0c93283 du 28 aout 2026,
+    // AVANT tout chantier de cette semaine). Comportement PRE-EXISTANT et documente comme accepte
+    // dans le code source ("aucune adaptation necessaire" tant qu'aucun asset n'existe) -- jamais
+    // introduit par le nouveau selecteur, seulement rendu ATTEIGNABLE par le pont debug depuis la
+    // correction du 30 aout 2026 (trouverSequenceProductionAvecGabaritId). Ne revient PAS au
+    // terrain lui-meme, compte entierement sur le reset universel.
     etatSortie: { medium: 'illustre_pictogram', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
   { id: 'gabarit_montage_5', source: 'production', familleRarete: 'standard', declencheurs: ['micro'],
+    statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 3, dureeMsAttendueApprox: '1500-2250 (variable)',
     primitives: ['SHAKE', 'SLOW', 'FOLLOW'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['TENSION', 'DUEL', 'NEUTRE'], poidsBase: 1, spectaculaire: false,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'crash_test_ras_du_sol', source: 'production', familleRarete: 'crash_test', declencheurs: ['micro'],
+    statut: 'VALIDATED_PRODUCTION', nbPlansAttendu: 1, dureeMsAttendueApprox: '1000-1400 (variable)',
+    // Meme visuel EXACT que le bouton preview 'A -- Plan unique' (trouverSequenceCrashTestRasDuSol
+    // force ce meme gabaritId par recherche de seed) -- deux points d'entree, une seule grammaire.
     primitives: ['ZOOM', 'TRACK', 'SHAKE', 'CUT'], microActionsCompatibles: ['duel', 'course', 'remise'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['DUEL', 'ACCELERATION', 'IMPACT'], poidsBase: 0.3, spectaculaire: true,
@@ -352,17 +382,20 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
 
   // ---- Banc d'essai preview -- jamais dans le pool de production (cf. cartographie §5.2) ----
   { id: 'multi_angle', source: 'preview-demo', familleRarete: 'multi_angle', declencheurs: ['micro'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 3, dureeMsAttendueApprox: 2250,
     primitives: ['CUT', 'ZOOM', 'FOLLOW'], microActionsCompatibles: ['duel', 'frappe', 'centre'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['DUEL', 'DANGER', 'TENSION'], poidsBase: 0.5, spectaculaire: true,
     etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
   { id: 'stop_motion', source: 'preview-demo', familleRarete: 'stop_motion', declencheurs: ['micro'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 8, dureeMsAttendueApprox: 3500,
     primitives: ['CUT', 'FREEZE'], microActionsCompatibles: ['duel'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['DUEL', 'IMPACT'], poidsBase: 0.4, spectaculaire: true,
     etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
 
   { id: 'tension', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 13, dureeMsAttendueApprox: 11740,
     primitives: ['ZOOM', 'SLOW', 'FOCUS'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['tension'], resultatCanoniqueRequis: null,
     intentionsCompatibles: ['TENSION'], poidsBase: 1, spectaculaire: false,
@@ -370,18 +403,21 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     // assume, continuation naturelle = 'trajectoire'.
     etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false, suiteNaturelle: 'trajectoire' } },
   { id: 'trajectoire', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 3, dureeMsAttendueApprox: 2350,
     primitives: ['TRACK', 'FOLLOW_BALL'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['trajectoire'], resultatCanoniqueRequis: null,
     intentionsCompatibles: ['TENSION', 'DANGER'], poidsBase: 1, spectaculaire: false,
     // "aucun but/arret affirme" (commentaire source) -- cliffhanger assume egalement.
     etatSortie: { medium: 'illustre_image', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: false } },
   { id: 'arret', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 4, dureeMsAttendueApprox: 6900,
     primitives: ['CUT', 'FOCUS'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['arret'], resultatCanoniqueRequis: 'arret',
     intentionsCompatibles: ['SOULAGEMENT', 'REACTION'], poidsBase: 1, spectaculaire: false,
     // Dernier plan = VIDEO (reaction de Taclojnou, son) -- reactionTerminale grounde dans le code.
     etatSortie: { medium: 'illustre_video', reactionTerminale: true, resolutionAssumee: true, retourTerrainInclus: false } },
   { id: 'but', source: 'preview-demo', familleRarete: 'coup_franc', declencheurs: ['coupfranc'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 3, dureeMsAttendueApprox: 6200,
     primitives: ['CUT', 'FOCUS'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: ['but'], resultatCanoniqueRequis: 'but',
     intentionsCompatibles: ['EXPLOSION', 'REACTION'], poidsBase: 1, spectaculaire: false,
@@ -395,18 +431,21 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
   // (bouton preview existant, inchange) et par le selecteur si, pour une raison quelconque, la
   // variante raccordee n'etait pas dans le pool eligible.
   { id: 'coup_franc_arrete', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 20, dureeMsAttendueApprox: 20990,
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'arret',
     intentionsCompatibles: ['TENSION', 'SOULAGEMENT'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
     etatSortie: { medium: 'illustre_video', reactionTerminale: true, resolutionAssumee: true, retourTerrainInclus: false },
     deprioriserSiRaccordDisponible: 'raccord_coup_franc_arrete' },
   { id: 'coup_franc_but', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 19, dureeMsAttendueApprox: 20290,
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'but',
     intentionsCompatibles: ['TENSION', 'EXPLOSION'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
     etatSortie: { medium: 'illustre_video', reactionTerminale: true, resolutionAssumee: true, retourTerrainInclus: false },
     deprioriserSiRaccordDisponible: 'raccord_coup_franc_but' },
   { id: 'raccord_coup_franc_arrete', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 24, dureeMsAttendueApprox: 24890,
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT', 'FOLLOW'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'arret',
     intentionsCompatibles: ['TENSION', 'SOULAGEMENT'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
@@ -414,12 +453,14 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
     // DEJA ecrit dans la sequence elle-meme, pas seulement par le reset universel.
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: true, retourTerrainInclus: true } },
   { id: 'raccord_coup_franc_but', source: 'preview-demo', familleRarete: 'coup_franc_chaine', declencheurs: ['coupfranc'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 23, dureeMsAttendueApprox: 24190,
     primitives: ['ZOOM', 'SLOW', 'FOCUS', 'TRACK', 'FOLLOW_BALL', 'CUT', 'FOLLOW'], microActionsCompatibles: null,
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: 'but',
     intentionsCompatibles: ['TENSION', 'EXPLOSION'], poidsBase: 1, spectaculaire: false, estChaineComplete: true,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: true, retourTerrainInclus: true } },
 
   { id: 'match_miniature_v2', source: 'preview-demo', familleRarete: 'ambiance_continue', declencheurs: ['micro'],
+    statut: 'VALIDATED_A_CONFIRMER', nbPlansAttendu: 10, dureeMsAttendueApprox: 18800,
     primitives: ['FOLLOW', 'LEAD'], microActionsCompatibles: null, canoniquesCompatibles: null,
     coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['NEUTRE', 'CONSTRUCTION', 'RETOUR_CALME'], poidsBase: 1, spectaculaire: false,
@@ -427,26 +468,40 @@ const REGISTRE_GRAMMAIRES_REALISATEUR = [
 
   // ---- Les 4 effets valides (camera-only, jamais d'overlay illustre -- cf. cartographie) ----
   { id: 'drone_dive_impact_freeze', source: 'preview-demo', familleRarete: 'effet_camera_lourd', declencheurs: ['micro'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 6, dureeMsAttendueApprox: 10800,
     primitives: ['DRONE_DIVE', 'IMPACT_FREEZE', 'FOLLOW'], microActionsCompatibles: ['duel', 'frappe', 'interception'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['IMPACT', 'DUEL', 'DANGER'], poidsBase: 0.35, spectaculaire: true,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'freeze_follow_ball', source: 'preview-demo', familleRarete: 'effet_camera_lourd', declencheurs: ['micro'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 6, dureeMsAttendueApprox: 11100,
     primitives: ['FREEZE_SELECTIVE', 'FOLLOW_BALL', 'SLOW'], microActionsCompatibles: ['frappe', 'centre'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['TENSION', 'DANGER', 'IMPACT'], poidsBase: 0.35, spectaculaire: true,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'orbit_freeze', source: 'preview-demo', familleRarete: 'effet_camera_lourd', declencheurs: ['micro'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 8, dureeMsAttendueApprox: 10900,
     primitives: ['ORBIT_FREEZE', 'FREEZE'], microActionsCompatibles: ['duel', 'interception'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['DUEL', 'TENSION'], poidsBase: 0.3, spectaculaire: true,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } },
   { id: 'time_ramp', source: 'preview-demo', familleRarete: 'time_ramp', declencheurs: ['micro'],
+    statut: 'VALIDATED_BANC_ESSAI', nbPlansAttendu: 8, dureeMsAttendueApprox: 13150,
     primitives: ['TIME_RAMP', 'FAST', 'SLOW', 'FOLLOW'], microActionsCompatibles: ['course', 'circulation', 'interception'],
     canoniquesCompatibles: null, coupFrancEtapesCompatibles: null, resultatCanoniqueRequis: null,
     intentionsCompatibles: ['ACCELERATION', 'CONSTRUCTION', 'PRESSION'], poidsBase: 0.5, spectaculaire: true,
     etatSortie: { medium: 'miniature', reactionTerminale: false, resolutionAssumee: false, retourTerrainInclus: true } }
 ];
+
+// Whitelist EXPLICITE (section 9 de la consigne du 30 aout 2026) : EXISTER dans le registre ne
+// signifie pas etre autorise dans le pool automatique. Aujourd'hui, les 22 entrees ont TOUTES un
+// statut VALIDATED_* (aucune n'a ete factuellement identifiee comme INTERNAL/DEBUG/LEGACY lors de
+// l'audit -- voir rapport, section H/I) -- cette fonction n'exclut donc rien MAINTENANT, mais
+// devient la porte unique pour toute FUTURE entree qui ne serait pas encore validee.
+const STATUTS_AUTORISES_POOL_AUTOMATIQUE = ['VALIDATED_PRODUCTION', 'VALIDATED_BANC_ESSAI', 'VALIDATED_A_CONFIRMER'];
+function estAutoriseAutomatiquement(grammaire) {
+  return STATUTS_AUTORISES_POOL_AUTOMATIQUE.includes(grammaire.statut);
+}
 
 // Candidat synthetique "RESPIRATION" (section 6 de la consigne : "le mini-terrain est la couche
 // de continuite, les inserts/effets sont des ponctuations") -- PAS une grammaire visuelle, un
@@ -492,6 +547,12 @@ function formeSituation(situation) {
 }
 
 function validerCompatibiliteGrammaire(grammaire, situation, intention) {
+  // R0 (chantier "audit du catalogue visuel", 30 aout 2026) : whitelist EXPLICITE, verifiee EN
+  // PREMIER -- une grammaire non VALIDATED_* n'entre jamais dans la suite du raisonnement, jamais
+  // un filtre implicite ailleurs. Voir estAutoriseAutomatiquement() et le commentaire du registre.
+  if (!estAutoriseAutomatiquement(grammaire)) {
+    return { ok: false, motif: 'statut "' + grammaire.statut + '" non autorise dans le pool automatique (R0)' };
+  }
   if (situation.canonique && (situation.canonique.type === 'carton' || situation.canonique.type === 'blessure')) {
     return { ok: false, motif: 'carton/blessure : jamais mis en scene par le realisateur decoratif (R1)' };
   }
@@ -835,6 +896,8 @@ const RealisateurIA = {
   formeSituation: formeSituation,
   validerCompatibiliteGrammaire: validerCompatibiliteGrammaire,
   grammairesEligibles: grammairesEligibles,
+  estAutoriseAutomatiquement: estAutoriseAutomatiquement,
+  STATUTS_AUTORISES_POOL_AUTOMATIQUE: STATUTS_AUTORISES_POOL_AUTOMATIQUE,
   appliquerReglesRaccord: appliquerReglesRaccord,
   calculerIntensiteRealisation: calculerIntensiteRealisation,
   creerMemoireRealisateur: creerMemoireRealisateur,

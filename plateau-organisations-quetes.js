@@ -4619,6 +4619,12 @@ function initPreviewRealisateur() {
     blocDebugIA.style.cssText = 'margin-top:.6rem;padding-top:.6rem;border-top:1px dashed #4a3c22';
     blocDebugIA.innerHTML =
       '<button id="preview-realisateur-ia-btn" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:.06em;padding:.45rem;border:1px dashed #6a9aca;background:transparent;color:#6a9aca;cursor:pointer">🤖 Sélection IA (debug, situation suivante)</button>' +
+      '<div style="display:flex;gap:.3rem;margin-top:.35rem">' +
+      '<button id="preview-realisateur-test-a" style="flex:1;font-size:.68rem;padding:.35rem;border:1px solid #4a3c22;background:transparent;color:#8a9aa8;cursor:pointer">TEST A</button>' +
+      '<button id="preview-realisateur-test-b" style="flex:1;font-size:.68rem;padding:.35rem;border:1px solid #4a3c22;background:transparent;color:#8a9aa8;cursor:pointer">TEST B</button>' +
+      '<button id="preview-realisateur-test-c" style="flex:1;font-size:.68rem;padding:.35rem;border:1px solid #4a3c22;background:transparent;color:#8a9aa8;cursor:pointer">TEST C</button>' +
+      '</div>' +
+      '<div style="font-size:.6rem;color:#5a5040;margin-top:.25rem">TEST A/B/C : force directement la grammaire (contournent le tirage pondere) -- QA uniquement, ne modifient AUCUNE probabilite du selecteur automatique.</div>' +
       '<pre id="preview-realisateur-ia-trace" style="margin-top:.4rem;max-height:280px;overflow:auto;font-size:.62rem;line-height:1.35;color:#8a9aa8;background:#05070a;padding:.4rem;border:1px solid #2a3038;white-space:pre-wrap"></pre>';
     // Placement DANS la zone deja scrollable (correctif "risque de mise en page", 30 aout 2026) --
     // le panneau grandit a chaque chantier (commentaire d'origine du 29 aout 2026 sur ce meme
@@ -4630,37 +4636,68 @@ function initPreviewRealisateur() {
     const zoneScroll = document.getElementById('preview-realisateur-liste-scroll');
     (zoneScroll || panneau).appendChild(blocDebugIA);
 
-    // Resout une grammaire choisie par le selecteur vers une VRAIE sequence DOM. Retourne
-    // {sequence, methode} ou {sequence:null, methode} si aucune resolution n'est possible --
-    // JAMAIS d'exception, toujours une reponse inspectable (LOT 14).
-    function resoudreSequenceDepuisGrammaire(plan, situation) {
-      const grammaire = RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.find(function (g) { return g.id === plan.selectedGrammar; });
+    // Resout une grammaire choisie (par le selecteur OU force par TEST A/B/C) vers une VRAIE
+    // sequence DOM. Retourne {sequence, methode} ou {sequence:null, methode} si aucune resolution
+    // n'est possible -- JAMAIS d'exception, toujours une reponse inspectable (LOT 14).
+    function resoudreSequenceDepuisGrammaire(selectedGrammar, situation) {
+      const grammaire = RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.find(function (g) { return g.id === selectedGrammar; });
       if (grammaire && grammaire.source === 'production') {
         const contexte = { microAction: situation.microAction, cote: situation.cote || 'home' };
-        const sequence = trouverSequenceProductionAvecGabaritId(plan.selectedGrammar, contexte);
-        return { sequence: sequence, methode: 'production (trouverSequenceProductionAvecGabaritId)' };
+        const sequence = trouverSequenceProductionAvecGabaritId(selectedGrammar, contexte);
+        return { sequence: sequence, methode: 'production (trouverSequenceProductionAvecGabaritId)', grammaire: grammaire };
       }
-      const scenario = SCENARIOS_PREVIEW_REALISATEUR.find(function (s) { return s.id === plan.selectedGrammar; });
-      if (scenario) return { sequence: scenario.construireSequence(instant), methode: 'preview-demo (SCENARIOS_PREVIEW_REALISATEUR)' };
-      return { sequence: null, methode: 'aucune (id "' + plan.selectedGrammar + '" introuvable dans les deux registres)' };
+      const scenario = SCENARIOS_PREVIEW_REALISATEUR.find(function (s) { return s.id === selectedGrammar; });
+      if (scenario) return { sequence: scenario.construireSequence(instant), methode: 'preview-demo (SCENARIOS_PREVIEW_REALISATEUR)', grammaire: grammaire };
+      return { sequence: null, methode: 'aucune (id "' + selectedGrammar + '" introuvable dans les deux registres)', grammaire: grammaire };
     }
 
-    document.getElementById('preview-realisateur-ia-btn').addEventListener('click', function () {
-      // ETAPE 1/9 : reception du clic (compteur inspectable -- si ce nombre n'augmente jamais au
-      // clic reel, la cause est "clic non recu", ex. element hors-viewport/recouvert).
-      window.__debugRealisateurClics.recus++;
-      const situation = situationsDebugIA[indexDebugIA % situationsDebugIA.length];
-      indexDebugIA++;
+    // ETAT "EN COURS" (chantier "audit du catalogue visuel", 30 aout 2026) : cause factuelle
+    // etablie par test instrumente (timers reels, voir rapport) de "C vu comme une seule image" --
+    // lancerSequencePreview n'a AUCUN verrou (verifie par lecture directe du code) : un second
+    // lancement, quel qu'il soit (bouton debug, TEST A/B/C, OU N'IMPORTE LEQUEL des 16 boutons
+    // manuels existants -- comportement PRE-EXISTANT, pas introduit par ce chantier), efface tous
+    // les timers en attente du lancement precedent et le remplace, silencieusement. Ce chantier ne
+    // change PAS ce mecanisme (portee du diagnostic = catalogue/resolution, pas redesign de
+    // l'interaction du banc d'essai) -- il rend seulement l'interruption VISIBLE dans la trace.
+    window.__debugRealisateurEnCours = null;
+    function signalerLancement(selectedGrammar, sequence, grammaire) {
+      window.__debugRealisateurEnCours = {
+        selectedGrammar: selectedGrammar,
+        nbPlans: sequence.plans.length,
+        lanceA: Date.now(),
+        dureeAttendueMs: (grammaire && typeof grammaire.dureeMsAttendueApprox === 'number') ? grammaire.dureeMsAttendueApprox : null
+      };
+    }
+    function detecterInterruptionPrecedente() {
+      const p = window.__debugRealisateurEnCours;
+      if (!p || p.dureeAttendueMs == null) return null;
+      const msEcoules = Date.now() - p.lanceA;
+      if (msEcoules < p.dureeAttendueMs) {
+        return { id: p.selectedGrammar, nbPlans: p.nbPlans, msEcoules: msEcoules, msRestants: p.dureeAttendueMs - msEcoules,
+          motif: 'interrompue par ce nouveau clic avant sa fin naturelle -- comportement du banc d\'essai (aucun verrou), pas une resolution partielle' };
+      }
+      return null;
+    }
 
-      // ETAPE 2-6/9 : generation de situation (deja faite ci-dessus) -> selectionnerRealisation ->
-      // plan obtenu/refuse -> resolution -> demande de lancement. Chaque etape est tracee.
+    // Verification d'identite SELECTED -> RESOLVED (section 11) : compare le nombre de plans
+    // reellement obtenus au nombre attendu declare dans le registre (nbPlansAttendu, mesure sur les
+    // vraies constantes source). Un ecart signalerait une resolution vers la mauvaise unite --
+    // jamais observe en pratique (voir rapport), mais verifie a CHAQUE clic, pas seulement en test.
+    function vererifierIdentiteResolution(grammaire, sequence) {
+      if (!grammaire || !sequence) return null;
+      const attendu = grammaire.nbPlansAttendu;
+      const obtenu = sequence.plans.length;
+      return { attendu: attendu, obtenu: obtenu, identite: attendu === obtenu ? 'OK' : 'MISMATCH -- a investiguer' };
+    }
+
+    function traiterSelection(situation, selectedGrammarForce, memoire, planEtTrace) {
+      const interruptionPrecedente = detecterInterruptionPrecedente();
       const etapes = ['clic_recu', 'situation_generee'];
-      const { plan, trace } = RealisateurIA.selectionnerRealisation({
-        situation: situation, seed: 'debug-panneau-' + Date.now(), memoire: memoireDebugIA
-      });
-      etapes.push('selection_terminee');
+      let plan, trace;
+      if (planEtTrace) { plan = planEtTrace.plan; trace = planEtTrace.trace; etapes.push('selection_terminee'); }
+      else { plan = { selectedGrammar: selectedGrammarForce, intention: null, intensity: null, isRespiration: false, forceParTest: true }; trace = { rejets: [], rejetsRaccord: [] }; etapes.push('selection_forcee_test_qa'); }
 
-      let resolution = null, etatExecuteur = 'aucune tentative de lancement';
+      let resolution = null, etatExecuteur = 'aucune tentative de lancement', identiteResolution = null;
       if (!plan) {
         window.__debugRealisateurClics.planNul++;
         etapes.push('selection_sans_plan');
@@ -4670,19 +4707,18 @@ function initPreviewRealisateur() {
         etapes.push('respiration_choisie');
         etatExecuteur = 'aucun lancement (volontaire) -- respiration : le mini-terrain courant continue tel quel';
       } else {
-        resolution = resoudreSequenceDepuisGrammaire(plan, situation);
+        resolution = resoudreSequenceDepuisGrammaire(plan.selectedGrammar, situation);
         etapes.push('plan_resolu:' + resolution.methode);
         if (!resolution.sequence) {
           window.__debugRealisateurClics.resolutionEchouee++;
           etapes.push('resolution_echouee');
           etatExecuteur = 'aucun lancement -- resolution DOM introuvable malgre un plan valide (a signaler si persistant)';
         } else {
+          identiteResolution = vererifierIdentiteResolution(resolution.grammaire, resolution.sequence);
           etapes.push('lancement_demande');
-          // etat de l'executeur juste avant lancement -- lancerSequencePreview n'a AUCUN verrou
-          // (verifie par lecture directe du code, jamais suppose) : un lancement precedent encore
-          // en cours est toujours proprement interrompu puis remplace, jamais bloque.
           etatExecuteur = 'lancement via lancerSequencePreview (aucun verrou dans l’executeur -- toute sequence en cours est interrompue proprement puis remplacee)';
           lancerSequencePreview(resolution.sequence, def, home, instant);
+          signalerLancement(plan.selectedGrammar, resolution.sequence, resolution.grammaire);
           window.__debugRealisateurClics.lancements++;
           etapes.push('sequence_lancee');
         }
@@ -4694,20 +4730,55 @@ function initPreviewRealisateur() {
         traceEl.textContent = JSON.stringify({
           etapesPipeline: etapes,
           compteursSession: window.__debugRealisateurClics,
+          interruptionDeLaRealisationPrecedente: interruptionPrecedente,
           situation: situation,
-          realisationPrecedente: trace.realisationPrecedente,
-          etatVisuelSortiePrecedent: trace.etatSortiePrecedent,
-          intention: trace.intention,
-          intensite: trace.intensite,
+          realisationPrecedente: trace.realisationPrecedente || null,
+          etatVisuelSortiePrecedent: trace.etatSortiePrecedent || null,
+          intention: trace.intention || null,
+          intensite: trace.intensite != null ? trace.intensite : null,
           candidatsRejetesCompatibilite: trace.rejets,
           candidatsRejetesRaccord: trace.rejetsRaccord,
-          candidatsPonderes: trace.candidatsPonderes,
-          realisationChoisie: trace.choisi || null,
+          candidatsPonderes: trace.candidatsPonderes || null,
+          selected: plan ? plan.selectedGrammar : null,
+          selectedForceParTestQA: !!(plan && plan.forceParTest),
+          statutGrammaire: resolution && resolution.grammaire ? resolution.grammaire.statut : null,
           resolutionMethode: resolution ? resolution.methode : null,
+          identiteSelectedResolved: identiteResolution,
+          dureeAttendueMs: resolution && resolution.grammaire ? resolution.grammaire.dureeMsAttendueApprox : null,
           etatExecuteur: etatExecuteur,
-          nouvelEtatVisuelSortie: trace.etatSortieChoisi || null
+          nouvelEtatVisuelSortie: (trace.etatSortieChoisi) || null
         }, null, 2);
       }
+    }
+
+    document.getElementById('preview-realisateur-ia-btn').addEventListener('click', function () {
+      // ETAPE 1 : reception du clic (compteur inspectable -- si ce nombre n'augmente jamais au clic
+      // reel, la cause est "clic non recu", ex. element hors-viewport/recouvert).
+      window.__debugRealisateurClics.recus++;
+      const situation = situationsDebugIA[indexDebugIA % situationsDebugIA.length];
+      indexDebugIA++;
+      const resultat = RealisateurIA.selectionnerRealisation({
+        situation: situation, seed: 'debug-panneau-' + Date.now(), memoire: memoireDebugIA
+      });
+      traiterSelection(situation, null, memoireDebugIA, resultat);
+    });
+
+    // TEST A/B/C (section 15 de la consigne du 30 aout 2026, QA uniquement) : force directement la
+    // grammaire, CONTOURNE entierement le tirage pondere -- jamais un changement des probabilites
+    // normales du selecteur automatique, seulement un moyen de verifier l'integrite d'une
+    // realisation precise a la demande.
+    const situationTestDuel = { microAction: 'duel', cote: 'home', minute: 30, ecartScore: 0, pressionRecente: 1 };
+    document.getElementById('preview-realisateur-test-a').addEventListener('click', function () {
+      window.__debugRealisateurClics.recus++;
+      traiterSelection(situationTestDuel, 'crash_test_ras_du_sol', null, null);
+    });
+    document.getElementById('preview-realisateur-test-b').addEventListener('click', function () {
+      window.__debugRealisateurClics.recus++;
+      traiterSelection(situationTestDuel, 'multi_angle', null, null);
+    });
+    document.getElementById('preview-realisateur-test-c').addEventListener('click', function () {
+      window.__debugRealisateurClics.recus++;
+      traiterSelection(situationTestDuel, 'stop_motion', null, null);
     });
   }
 }

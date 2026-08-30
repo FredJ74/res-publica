@@ -22,6 +22,19 @@ test('registre : aucune grammaire ne nomme un joueur precis', function () {
     assert.ok(!g.joueur && !g.joueurCible, g.id);
   });
 });
+// ---- LOT "audit du catalogue visuel" (30 aout 2026) : whitelist et identite SELECTED/RESOLVED ----
+test('registre : chaque grammaire a un statut whitelistable et un nbPlansAttendu positif', function () {
+  RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.forEach(function (g) {
+    assert.ok(RealisateurIA.STATUTS_AUTORISES_POOL_AUTOMATIQUE.includes(g.statut), g.id + ' : statut "' + g.statut + '" absent de la whitelist');
+    assert.ok(Number.isInteger(g.nbPlansAttendu) && g.nbPlansAttendu > 0, g.id + ' : nbPlansAttendu invalide');
+  });
+});
+test('R0 whitelist : une grammaire au statut non autorise (ex. INTERNAL) est toujours rejetee, quel que soit le reste', function () {
+  const g = Object.assign({}, RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.find(function (x) { return x.id === 'gabarit_montage_0'; }), { statut: 'INTERNAL' });
+  const verdict = RealisateurIA.validerCompatibiliteGrammaire(g, { microAction: 'duel', cote: 'home' }, 'NEUTRE');
+  assert.strictEqual(verdict.ok, false);
+  assert.ok(verdict.motif.indexOf('R0') !== -1, verdict.motif);
+});
 test('registre : chaque grammaire declare au moins un declencheur et une intention', function () {
   RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.forEach(function (g) {
     assert.ok(Array.isArray(g.declencheurs) && g.declencheurs.length > 0, g.id + ' declencheurs');
