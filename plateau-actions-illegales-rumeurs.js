@@ -4941,12 +4941,22 @@ async function confirmerVenteMatiere(matiere) {
 // production/l'achat/la gestion, actions qui se font physiquement sur place). La liste est donc
 // generee dynamiquement, une entree par ville du pays courant possedant reellement une
 // armurerie navigable -- generique pour tous les empires, aucune liste figee par pays.
+// PSM n'a pas de batiment 'armurerie' (buildingId partage Luthecia/Montrouge) : son equivalent
+// est 'chasse-peche-psm' ("Maison Le Gall — Chasse et Pêche"), deja raccorde au meme moteur
+// economique generique (entreprise 'armurerie-<pays>-<ville>', audit dedie du 24 aout 2026,
+// confirme par le code de data.js) -- seul getVillesAvecArmurerie() ne la reconnaissait pas
+// encore, faute de porter le buildingId litteral 'armurerie'. Correctif cible (30 aout 2026) :
+// aucune nouvelle mecanique, on etend juste la reconnaissance a la variante deja fonctionnelle.
+const BUILDING_ID_ARMURERIE_PAR_VILLE_ALT = { ville_a: 'chasse-peche-psm' };
+
 function getVillesAvecArmurerie(country) {
   const monde = WORLD[country];
   if (!monde) return [];
   return Object.keys(monde).filter(v => {
     const c = monde[v];
-    return c && Array.isArray(c.buildings) && c.buildings.includes('armurerie');
+    if (!c || !Array.isArray(c.buildings)) return false;
+    const buildingIdAttendu = BUILDING_ID_ARMURERIE_PAR_VILLE_ALT[v] || 'armurerie';
+    return c.buildings.includes(buildingIdAttendu);
   });
 }
 
@@ -4956,12 +4966,16 @@ function getVillesAvecArmurerie(country) {
 // La buvette de stade (type 'buvette') est volontairement absente : institution municipale sans
 // caisse propre (doctrine du lot 5), pas un commerce a proprietaire prive.
 // cafe-gare-montrouge/cafe-tabac-cheminots-montrouge/bar-des-pecheurs repasses a 180000 FR
-// (decision de Fred, 30 aout 2026, doctrine "maximum de commerces geres par des PJ") -- aucun
-// autre prix de cette table modifie.
+// (decision de Fred, 30 aout 2026, doctrine "maximum de commerces geres par des PJ").
+// hotel-mineur (Hotel de la Victoire, Montrouge -- confirme par buildingContext.name) et
+// brasserie-voyageurs-montrouge ajustes le meme jour (80000 FR / 120000 FR). 'hotel-republica'
+// (Le Republica) volontairement absent : combine 2 commerces room-scopes distincts (restaurant +
+// bar), la resolution actuelle de cette table ne prendrait que le premier des deux -- signale au
+// rapport, pas ajoute tant qu'aucune decision d'architecture n'est prise.
 const PRIX_RACHAT_COMMERCE = {
   'cafe-gare-montrouge': 180000,
-  'brasserie-voyageurs-montrouge': 28000,
-  'hotel-mineur': 15000,
+  'brasserie-voyageurs-montrouge': 120000,
+  'hotel-mineur': 80000,
   'cafe-tabac-cheminots-montrouge': 180000,
   'bar-des-pecheurs': 180000
 };
@@ -5012,9 +5026,16 @@ function getEntreprisesRachetables() {
   const pays = state.country || 'republic';
   const armureries = getVillesAvecArmurerie(pays).map(city => {
     const id = getEntrepriseIdArmurerie(pays, city);
+    // Label specifique si la ville utilise une variante (PSM : "Maison Le Gall — Chasse et
+    // Pêche", pas une "Armurerie") -- comportement des autres villes strictement inchange
+    // (meme expression qu'avant ce correctif).
+    const buildingIdAlt = BUILDING_ID_ARMURERIE_PAR_VILLE_ALT[city];
+    const label = buildingIdAlt
+      ? (BUILDINGS[buildingIdAlt]?.name || 'l\'Armurerie de ' + (WORLD[pays]?.[city]?.name || city))
+      : 'l\'Armurerie de ' + (WORLD[pays]?.[city]?.name || city);
     return {
       id,
-      label: 'l\'Armurerie de ' + (WORLD[pays]?.[city]?.name || city),
+      label,
       prix: PRIX_RACHAT_ARMURERIE,
       charger: () => chargerEntrepriseParId(id, pays, city)
     };

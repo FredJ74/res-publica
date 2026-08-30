@@ -1709,7 +1709,7 @@ const BUILDINGS = {
           {name:'Isidore Trébien (PNJ)', role:'Bagagiste', rel:'neutral', job:'bagagiste'}
         ],
         orders: [
-          {fn:'reserver_chambre_hotel', label:'Reserver une chambre', pa:1, cost:80,  type:'legal',   icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
+          {fn:'reserver_chambre_hotel', label:'Reserver une chambre', pa:0, cost:80,  type:'legal',   icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
           {fn:'choisir_suite', label:'Louer une suite', pa:1, cost:0, type:'legal', icon:'ti-crown', successRate:100, desc:'Choisir parmi les suites disponibles de l\'hotel.'}
         ]
       },
@@ -5342,7 +5342,10 @@ const BUILDINGS = {
     rooms: { salle: { name: "Salle", desc: "Quelques tables, l'odeur du café.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-cafe-gare-interieur.jpg", persons: [], orders: [
       {fn:'produire_commerce', label:'Produire', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Choisir un plat ou une boisson de la carte a preparer pour le service (consomme les matieres en stock, remunere en FR).'},
       {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats et boissons disponibles et commander.'},
-      {fn:'consommer_boisson', label:'Consommer une boisson', pa:0, cost:0, type:'legal', icon:'ti-glass', successRate:100, desc:'Choisir une boisson de la carte a consommer sur place.'},
+      // 'consommer_boisson' retire (30 aout 2026, audit dedie) : redondant avec 'Consulter la
+      // carte', qui liste deja toutes les boissons avec un bouton Commander (meme mecanisme,
+      // commanderProduitCommerce). doConsommerBoisson/confirmerConsommerBoissonUI laisses en
+      // place (partages/inoffensifs), simplement plus exposes ici.
       {fn:'offrir_tournee', label:'Offrir une tournée', pa:0, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Offrez une tournee (une seule boisson de la carte) a plusieurs personnes presentes, a vos frais. Chacun accepte ou refuse independamment ; vous ne buvez et ne payez que si au moins une personne accepte. Cout reel : 1 PA + le prix de la boisson x (nombre d\'acceptants + vous).'},
       {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
       {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
@@ -5546,7 +5549,8 @@ const BUILDINGS = {
     rooms: { salle: { name: "Salle", desc: "Comptoir, tabac, quelques tables.", imageBg: "linear-gradient(135deg,#100c08,#181008)", imageUrl: "images/montrouge/montrouge-bar-tabac-interieur.jpg", persons: [], orders: [
       {fn:'produire_commerce', label:'Produire', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Choisir un plat ou une boisson de la carte a preparer pour le service (consomme les matieres en stock, remunere en FR).'},
       {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats et boissons disponibles et commander.'},
-      {fn:'consommer_boisson', label:'Consommer une boisson', pa:0, cost:0, type:'legal', icon:'ti-glass', successRate:100, desc:'Choisir une boisson de la carte a consommer sur place.'},
+      // 'consommer_boisson' retire (30 aout 2026, meme audit que le Cafe de la Gare) : redondant
+      // avec 'Consulter la carte'.
       {fn:'offrir_tournee', label:'Offrir une tournée', pa:0, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Offrez une tournee (une seule boisson de la carte) a plusieurs personnes presentes, a vos frais. Chacun accepte ou refuse independamment ; vous ne buvez et ne payez que si au moins une personne accepte. Cout reel : 1 PA + le prix de la boisson x (nombre d\'acceptants + vous).'},
       {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
       {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},

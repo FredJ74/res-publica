@@ -1126,6 +1126,12 @@ const RESSOURCES_ECONOMIE_SERVEUR = {
   minerai:      { plafond: 500, prixAchatFournisseur: 5,   source: 'livraison' },
   metal:        { plafond: 200, prixAchatFournisseur: 7.5, source: 'livraison' },
   plantes:      { plafond: 300, prixAchatFournisseur: 3,   source: 'livraison' },
+  // Textile (correctif dedie, 30 aout 2026) : omission corrigee -- RESSOURCES_ECONOMIE.textile
+  // (data.js) existe cote client avec source:'livraison' depuis un certain temps, mais n'avait
+  // jamais ete reporte dans ce miroir serveur, rendant sa livraison structurellement impossible
+  // (audit dedie). Valeurs miroir exactes de RESSOURCES_ECONOMIE.textile (plafond:125,
+  // prixAchatFournisseur:2.5) -- aucune configuration inventee.
+  textile:      { plafond: 125, prixAchatFournisseur: 2.5, source: 'livraison' },
   // Lot boissons (20 aout 2026) : valeurs miroir de RESSOURCES_ECONOMIE.fruits_legumes/
   // produits_exotiques, data.js.
   fruits_legumes:     { plafond: 150, prixAchatFournisseur: 2, source: 'livraison' },
