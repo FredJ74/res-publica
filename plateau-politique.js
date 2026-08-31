@@ -1818,6 +1818,87 @@ function construireHtmlJournalDuJour(edition) {
   return html;
 }
 
+// =====================
+// FENÊTRE DÉPLAÇABLE — Journal du jour (correctif UX, 31 aout 2026)
+// =====================
+// Aucun mécanisme générique de fenêtre déplaçable trouvé dans le dépôt (recherche mousedown/
+// mousemove/pointerdown/draggable) : forum-canvas.js implémente un drag, mais pour des objets de
+// composition d'image dans le forum, sans rapport avec les modales de plateau.html. Mécanisme
+// local minimal, scopé STRICTEMENT au moment où #modal-postes affiche le Journal (classe
+// journal-drag-active posée/retirée ici uniquement) -- jamais applique aux autres usages partagés
+// de cette même modale générique (postes disponibles, Helvetia, petites annonces...), pour ne rien
+// changer à leur comportement. Souris uniquement (mousedown/mousemove/mouseup, même idiome que
+// forum-canvas.js) : aucun support tactile ajouté, pour ne jamais interferer avec le scroll
+// mobile du contenu (voir §6 du correctif -- limite volontaire, pas un oubli).
+let _journalDragCleanup = null;
+
+function activerDragJournal() {
+  desactiverDragJournal(); // jamais deux ecouteurs empiles sur des ouvertures successives
+  const header = document.querySelector('#modal-postes .modal-header');
+  const box = document.querySelector('#modal-postes .modal-box');
+  if (!header || !box) return;
+  header.classList.add('journal-drag-active');
+
+  let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+  const MARGE_MIN_VISIBLE = 160; // largeur minimale de la barre toujours accessible a l'ecran (§4)
+
+  function onMouseDown(e) {
+    if (e.target.closest('.modal-close')) return; // la croix ferme, ne demarre jamais un drag
+    if (typeof e.button === 'number' && e.button !== 0) return; // clic gauche uniquement
+    const rect = box.getBoundingClientRect();
+    // Bascule d'un positionnement centre (flex, .modal-overlay) vers un positionnement fixe
+    // explicite, fige sur la position visuelle ACTUELLE -- jamais de saut au premier mousedown.
+    box.style.position = 'fixed';
+    box.style.margin = '0';
+    box.style.left = rect.left + 'px';
+    box.style.top = rect.top + 'px';
+    startLeft = rect.left; startTop = rect.top;
+    startX = e.clientX; startY = e.clientY;
+    dragging = true;
+    header.classList.add('dragging');
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    e.preventDefault();
+  }
+  function onMouseMove(e) {
+    if (!dragging) return;
+    const rect = box.getBoundingClientRect();
+    let left = startLeft + (e.clientX - startX);
+    let top = startTop + (e.clientY - startY);
+    // Bornes passives (§4) : toujours au moins MARGE_MIN_VISIBLE px de la fenetre accessibles sur
+    // chaque axe, jamais de docking/snap -- une simple limite, pas un comportement complexe.
+    left = Math.max(MARGE_MIN_VISIBLE - rect.width, Math.min(left, window.innerWidth - MARGE_MIN_VISIBLE));
+    top = Math.max(0, Math.min(top, window.innerHeight - 48));
+    box.style.left = left + 'px';
+    box.style.top = top + 'px';
+  }
+  function onMouseUp() {
+    dragging = false;
+    header.classList.remove('dragging');
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+
+  header.addEventListener('mousedown', onMouseDown);
+  _journalDragCleanup = function () {
+    header.removeEventListener('mousedown', onMouseDown);
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    header.classList.remove('journal-drag-active', 'dragging');
+    // Reinitialise la position (§5 : pas de persistance demandee, comportement normal a la
+    // reouverture) -- retire les styles inline, .modal-overlay/.modal-box reprennent leur
+    // centrage flex habituel des l'ouverture suivante, Journal ou non.
+    box.style.position = '';
+    box.style.margin = '';
+    box.style.left = '';
+    box.style.top = '';
+  };
+}
+
+function desactiverDragJournal() {
+  if (_journalDragCleanup) { _journalDragCleanup(); _journalDragCleanup = null; }
+}
+
 async function afficherJournalDuJour() {
   const today = state.day || 1;
   const sessionKey = 'journal_dujour_day_' + today;
@@ -1829,6 +1910,7 @@ async function afficherJournalDuJour() {
     '<div style="padding:1.2rem 1rem;font-style:italic;color:#8a8060">Chargement…</div>';
   document.querySelector('#modal-postes .modal-box')?.classList.add('modal-wide');
   document.getElementById('modal-postes').classList.add('open');
+  activerDragJournal();
 
   let edition = null;
   if (typeof sbGet === 'function') {

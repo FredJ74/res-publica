@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=149">
+<link rel="stylesheet" href="style.css?v=150">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -560,7 +560,7 @@
   <div class="modal-box">
     <div class="modal-header">
       <div class="modal-title" id="postes-modal-title">Postes disponibles</div>
-      <button class="modal-close" onclick="if (typeof arreterAudioguide === 'function') arreterAudioguide(); document.getElementById('modal-postes').classList.remove('open'); document.querySelector('#modal-postes .modal-box')?.classList.remove('modal-wide')"><i class="ti ti-x"></i></button>
+      <button class="modal-close" onclick="if (typeof arreterAudioguide === 'function') arreterAudioguide(); if (typeof desactiverDragJournal === 'function') desactiverDragJournal(); document.getElementById('modal-postes').classList.remove('open'); document.querySelector('#modal-postes .modal-box')?.classList.remove('modal-wide')"><i class="ti ti-x"></i></button>
     </div>
     <div id="postes-body"></div>
   </div>
@@ -773,7 +773,7 @@
 <script src="plateau-pnj.js?v=178"></script>
 <script src="plateau-multijoueur.js?v=138"></script>
 <script src="plateau-communication.js?v=142"></script>
-<script src="plateau-politique.js?v=180"></script>
+<script src="plateau-politique.js?v=181"></script>
 <script src="plateau-justice-economie.js?v=199"></script>
 <script src="plateau-actions-illegales-rumeurs.js?v=177"></script>
 <script src="plateau-football-realisateur-ia.js?v=1"></script>
