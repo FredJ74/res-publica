@@ -1370,7 +1370,7 @@ async function confirmerAchatExplosifs(pa, cost) {
 
   const roll = Math.floor(Math.random() * 100) + 1;
   const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
-  const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
+  const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
   const taux = Math.max(5, Math.min(95, 35 + empMod + careerBonus - getMalusISN()));
 
   if (roll > taux) {
@@ -1432,7 +1432,7 @@ async function confirmerIncendier() {
   if (!rPa.ok) { showToast('PA insuffisants', '3 PA requis.', false); return; }
 
   const malusISN = getMalusISN();
-  const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
+  const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
   const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(buildingId) ? MALUS_CENTRE_POUVOIR : 0;
   const taux = Math.max(5, 30 + careerBonus - malusISN - malusCentre);
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -1516,7 +1516,7 @@ async function confirmerUtiliserExplosifs() {
   state.inventory.splice(explosifIdx, 1);
 
   const malusISN = getMalusISN();
-  const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
+  const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
   const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(buildingId) ? MALUS_CENTRE_POUVOIR : 0;
   const taux = Math.max(5, 35 + careerBonus - malusISN - malusCentre);
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -1705,7 +1705,7 @@ function confirmerAssassinat(cibleNom) {
   document.getElementById('modal-postes').classList.remove('open');
   const pays = state.country || 'republic';
   const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
-  const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
+  const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
   const perCible = 50; // Simulation PER cible - en vrai multijoueur on lirait le localStorage cible
   const taux = Math.max(5, 35 - Math.floor(perCible/10) + empMod + careerBonus - getMalusISN());
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -1782,7 +1782,7 @@ async function confirmerEmpoisonnement(cibleNom) {
   document.getElementById('modal-postes').classList.remove('open');
   const pays = state.country || 'republic';
   const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
-  const careerBonus = state.char?.career === 'criminel' ? 15 : 0;
+  const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
   const perCible = 50;
   const taux = Math.max(5, 40 - Math.floor(perCible/10) + empMod + careerBonus - getMalusISN());
   const roll = Math.floor(Math.random() * 100) + 1;
