@@ -26,24 +26,49 @@ const RP_I18N_STORAGE_KEY = 'respublica_language';
 const RP_I18N_LANGUES_SUPPORTEES = Object.keys(window.RP_I18N_LANGUAGES || { fr: 1 });
 const RP_I18N_LANGUE_DEFAUT = 'fr'; // francais = langue source/canonique du projet, jamais derive de la config
 
+// Resolution d'un code langue (navigateur ou stocke) vers l'un des codes reellement supportes
+// (LOT 2.6, ajout de zh-TW) : necessaire des qu'un code supporte devient COMPOSE (langue+region,
+// ex. "zh-TW") a cote de codes SIMPLES (ex. "fr"). Deux regles, jamais une cascade par langue :
+//  1) correspondance EXACTE (insensible a la casse) -- toujours prioritaire, quel que soit le code.
+//  2) a defaut, resolution GENERIQUE par sous-code primaire ("fr" de "fr-CA", "es" de "es-MX")
+//     -- mais UNIQUEMENT si le code supporte candidat est lui-meme simple (sans region). Un code
+//     supporte COMPOSE (ex. "zh-TW") n'accepte que les variantes qui partagent EXACTEMENT sa
+//     region terminale ("zh-Hant-TW" -> "zh-TW", region "TW" commune) -- jamais une simple
+//     correspondance de sous-code primaire ("zh-CN"/"zh-Hans-CN" ne partagent pas la region "TW",
+//     donc jamais renvoyes vers "zh-TW" : deux localisations chinoises pourront coexister plus
+//     tard, zh-TW et zh-CN, sans jamais se confondre). Un code source sans region du tout (simple
+//     "zh") ne correspond jamais a un candidat compose : ambigu par nature, il tombe proprement
+//     sur le fallback plutot que de deviner une region.
+function resoudreCodeLangueSupporte(code) {
+  const brut = ((code || '') + '').toLowerCase();
+  if (!brut) return null;
+  const partiesSource = brut.split('-');
+  const exact = RP_I18N_LANGUES_SUPPORTEES.find(function (s) { return s.toLowerCase() === brut; });
+  if (exact) return exact;
+  const generique = RP_I18N_LANGUES_SUPPORTEES.find(function (s) {
+    const partiesSupport = s.toLowerCase().split('-');
+    if (partiesSupport[0] !== partiesSource[0]) return false; // sous-code primaire different -> jamais
+    if (partiesSupport.length === 1) return true; // code supporte simple ("fr") -> generique suffit
+    // code supporte compose ("zh-tw") -> exige une region explicite ET identique cote source
+    return partiesSource.length > 1 && partiesSupport[partiesSupport.length - 1] === partiesSource[partiesSource.length - 1];
+  });
+  return generique || null;
+}
+
 // Priorite de detection initiale : preference explicitement enregistree > langue du navigateur
-// (uniquement son sous-code primaire -- 'fr' de 'fr-CA', 'es' de 'es-MX'... -- jamais l'IP ni le
-// pays reel, jamais l'empire choisi dans le jeu) > francais. Resolution GENERIQUE : le sous-code
-// primaire est simplement compare a la liste des langues supportees, quel que soit leur nombre --
-// aucune cascade if/else dediee a une langue precise. localStorage peut etre indisponible
-// (navigation privee stricte de certains navigateurs) -- repli silencieux sur la detection
-// navigateur dans ce cas ; une preference stockee mais devenue non supportee est ignoree proprement
-// (le controle RP_I18N_LANGUES_SUPPORTEES.includes(...) l'exclut naturellement, sans cas special).
+// (jamais l'IP ni le pays reel, jamais l'empire choisi dans le jeu) > francais. localStorage peut
+// etre indisponible (navigation privee stricte de certains navigateurs) -- repli silencieux sur
+// la detection navigateur dans ce cas ; une preference stockee mais devenue non supportee est
+// ignoree proprement (comparaison EXACTE contre RP_I18N_LANGUES_SUPPORTEES : une preference
+// stockee est toujours deja un code exact, jamais une variante regionale brute de navigateur).
 function detecterLangueInitialeRP() {
   try {
     const stockee = localStorage.getItem(RP_I18N_STORAGE_KEY);
     if (stockee && RP_I18N_LANGUES_SUPPORTEES.includes(stockee)) return stockee;
   } catch (e) { /* localStorage indisponible -- on continue sur la detection navigateur */ }
 
-  const langueNavigateur = ((navigator.language || navigator.userLanguage || '') + '').toLowerCase();
-  const sousCodePrimaire = langueNavigateur.split('-')[0]; // 'es-MX' -> 'es', 'fr-CA' -> 'fr', etc.
-  if (RP_I18N_LANGUES_SUPPORTEES.includes(sousCodePrimaire)) return sousCodePrimaire;
-  return RP_I18N_LANGUE_DEFAUT;
+  const langueNavigateur = navigator.language || navigator.userLanguage || '';
+  return resoudreCodeLangueSupporte(langueNavigateur) || RP_I18N_LANGUE_DEFAUT;
 }
 
 // Genere le contenu du selecteur de langue (#lang-switcher, index.html) a partir de la config

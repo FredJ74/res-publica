@@ -37,10 +37,16 @@
 // actif sont tous generiques, voir i18n-init.js).
 // nativeName : autonyme, toujours ecrit dans SA PROPRE langue, jamais traduit ni retraduit selon
 // la langue actuellement affichee (Français reste "Français" meme quand l'anglais est actif).
+// zh-TW (LOT 2.6) : code COMPOSE (langue-region), premier hors alphabet latin -- voir
+// i18n/i18n-init.js, resoudreCodeLangueSupporte(), pour la resolution regionale associee
+// (zh-Hant-TW accepte, zh-CN/zh-Hans-CN jamais confondus avec zh-TW). Autonyme complet avec
+// mention explicite du territoire (evite toute ambiguite future avec Hong Kong si zh-HK est
+// ajoute plus tard).
 window.RP_I18N_LANGUAGES = {
   fr: { nativeName: 'Français' },
   en: { nativeName: 'English' },
-  es: { nativeName: 'Español' }
+  es: { nativeName: 'Español' },
+  'zh-TW': { nativeName: '繁體中文（台灣）' }
 };
 
 window.RP_I18N_RESOURCES = {
@@ -622,6 +628,207 @@ window.RP_I18N_RESOURCES = {
           PER: { name: "Percepción", description: "Detectar lo que se te escapa: descubrir una mentira, seguir a un objetivo, no dejarte sorprender nunca." },
           DUP: { name: "Duplicidad", description: "Mentir, disimular, corromper: la especialidad de todos los que viven al margen de la ley." },
           ENT: { name: "Contactos", description: "Construir y mantener una red de contactos: poco vistoso en el momento, decisivo a largo plazo." }
+        }
+      }
+    }
+  },
+  // =====================
+  // zh-TW (LOT 2.6) : localisation en chinois traditionnel destinee a Taiwan -- pas une
+  // conversion mecanique d'un chinois simplifie, vocabulaire et formulations pensees pour Taiwan
+  // (ex. "軟體"/"網路" plutot que les equivalents du chinois continental). Noms propres de
+  // l'univers (Republia, El Estado, Sovarka, Al-Khalija, Luthecia...) volontairement conserves en
+  // toutes lettres latines dans le texte chinois -- identiques, reversibles, jamais transcrits en
+  // caracteres, memes IDs techniques inchanges que pour fr/en/es.
+  // =====================
+  'zh-TW': {
+    translation: {
+      home: {
+        subtitle: "權力的大遊戲",
+        tagline: "多人政治諷刺遊戲・4 個帝國・毫無底線",
+        createCharacter: "創建我的角色",
+        findCharacter: "找回我的角色",
+        findCharacterPlaceholder: "輸入你的角色名稱...",
+        loadCharacter: "載入此角色",
+        findCharacterEnterName: "請輸入你的角色名稱。",
+        findCharacterSearching: "搜尋中...",
+        findCharacterUnavailable: "目前無法連線至 Supabase。",
+        findCharacterNotFound: "找不到該角色，請確認拼寫是否正確。",
+        findCharacterFound: "已找到角色「{{name}}」！正在轉向...",
+        findCharacterConnectionError: "連線發生錯誤，請再試一次。"
+      },
+      creation: {
+        steps: {
+          country: {
+            step: "第 1 / 7 步",
+            title: "選擇你的帝國",
+            subtitle: "每個帝國都有自己的規則、潛規則，以及獨特的腐敗方式。"
+          },
+          origin: {
+            step: "第 2 / 7 步",
+            title: "社會出身",
+            subtitle: "你出身的環境決定了你的起始資金。"
+          },
+          school: {
+            step: "第 3 / 7 步",
+            title: "求學經歷",
+            subtitle: "教育造就能力，也決定了機會之門的開闔。",
+            info: "某些職業只保留給高學歷者，另一些職業則會拒絕書讀得太多的人。"
+          },
+          archetype: {
+            step: "第 4 / 7 步",
+            title: "內在本質",
+            subtitle: "拋開你的背景，你真正的樣子是什麼？",
+            info: "原型決定你的根本性格，而非你的職業。"
+          },
+          career: {
+            step: "第 5 / 7 步",
+            title: "職業",
+            subtitle: "在踏入這場大遊戲之前，你的職業生涯。"
+          },
+          stats: {
+            step: "第 6 / 7 步",
+            title: "能力值",
+            subtitle: "分配你的自由點數，已獲得的加成已經計入其中。",
+            pointsLabel: "可分配點數",
+            info: "超過 12 點後，每點需消耗 2 點數。創角上限為 16 點，17-20 級將在遊戲中解鎖。",
+            // 中文的基數詞在 CLDR 中只有 "other" 一種分類 -- 不需要（也不應該）為了模仿法文/英文
+            // 的單複數區分而人為製造「個(s)」之類的寫法，1 與 5 使用完全相同的句型。
+            warning_other: "你還剩下 {{count}} 點能力點數尚未分配，稍後可以在角色卡中重新分配。"
+          },
+          identity: {
+            step: "第 7 / 7 步",
+            title: "角色身份",
+            subtitle: "為你的另一個自己賦予一張臉、一個名字與一段故事。",
+            photoLabel: "大頭照",
+            photoHint: "上傳一張圖片・歡迎惡搞真實人物",
+            nameLabel: "角色名稱",
+            namePlaceholder: "例如：Arnold Governator、陳大文...",
+            bioLabel: "個人簡介",
+            bioPlaceholder: "你角色的故事、過去與動機...",
+            mottoLabel: "座右銘",
+            mottoOptional: "（選填）",
+            mottoPlaceholder: "例如：權力不是搶來的，是掙來的……或者根本不需要理由。"
+          },
+          review: {
+            step: "總覽",
+            title: "你的角色卡"
+          }
+        },
+        nav: {
+          back: "上一步",
+          next: "下一步",
+          seeSheet: "查看我的角色卡",
+          edit: "修改",
+          validate: "確認並進入遊戲",
+          enter: "進入遊戲"
+        },
+        city: {
+          modalTitle: "選擇你的居住城市",
+          capitalBadge: "（首都）"
+        },
+        common: {
+          capitalLabel: "資金",
+          traitLabel: "特質",
+          bonusSuffix: "加成",
+          malusSuffix: "減益"
+        },
+        career: {
+          info: "可選職業取決於你的學歷（{{school}}）。",
+          locked: "以你目前的學歷無法選擇"
+        },
+        review: {
+          lifePath: "人生歷程",
+          characteristics: "能力值",
+          startingResources: "起始資源",
+          biography: "個人簡介",
+          money: "金錢",
+          influence: "影響力",
+          popularity: "聲望",
+          discretion: "隱密度",
+          tier: "等級 {{tier}}",
+          maxInGame: "遊戲內上限 100",
+          wealthTier1: "1 - 赤貧",
+          wealthTier2: "2 - 小康",
+          wealthTier3: "3 - 富裕",
+          wealthTier4: "4 - 富豪",
+          wealthTier5: "5 - 寡頭"
+        },
+        success: {
+          title: "歡迎來到這場大遊戲",
+          ready: "你的角色已經準備就緒。",
+          text: "{{name}} 踏入了 {{country}} 的競技場。這場大遊戲正式展開：結盟、背叛、貪腐、把柄操控——讓最無情的人勝出。",
+          fallbackCountry: "這個世界"
+        },
+        countries: {
+          republic: { description: "Republia 是一個疲憊不堪的民主國家，權貴近親繁殖，把媒體醜聞當成全民運動。", tags: ["民主", "諷刺"] },
+          narco: { description: "El Estado 徒具形式的民主，販毒集團橫行，選舉可以用錢買到。暴力就是一種政治語言。", tags: ["暴力", "貪腐"] },
+          soviet: { description: "Sovarka 一黨專政，內部暗潮洶湧。改革派對抗保守派。", tags: ["一黨專政", "派系"] },
+          khalija: { description: "Al-Khalija 是絕對君主制，王室勢力無孔不入。王恩，是唯一通行的貨幣。", tags: ["君主制", "神權政治"] }
+        },
+        cities: {
+          republic: {
+            capitale: { description: "Republia 的首都，政治、司法與媒體權力的中心。" },
+            ville_a: { description: "西部的港口城市，貿易、走私與地方政治交織。" },
+            ville_b: { description: "北部的工業城市，工會勢力龐大，工廠林立，社會關係緊張。" }
+          },
+          narco: {
+            capitale: { description: "El Estado 的首都。悶熱難耐，貪腐無所不在，強人 Generalissimo Gordito 大權獨攬，無人能及。" },
+            ville_a: { description: "座落山區的邊境哨站。走私猖獗，海關人員可以收買，山間小路只有內行人才知道。" },
+            ville_b: { description: "叢林中的城市，實驗室一望無際，遍布四方。" }
+          },
+          soviet: {
+            capitale: { description: "Sovarka 的首都。鋼灰色調，蘇式建築林立，監控無所不在。黨，看著一切。" },
+            ville_a: { description: "帝國邊陲的酷寒礦業城市。寒風刺骨，煤炭卻鮮少匱乏。" },
+            ville_b: { description: "第七號集體農莊，為了黨的榮耀而生產的農業重鎮。" }
+          },
+          khalija: {
+            capitale: { description: "Al-Khalija 的首都。黃金、綠松石與黃沙交織。王宮凌駕一切，禮儀規範宛如信仰。" },
+            ville_a: { description: "沙漠深處的商隊綠洲。商人們在此停駐已有數個世紀，秘密也是。" },
+            ville_b: { description: "Al-Khalija 的石油港口，油輪與傳統帆船交錯往來。" }
+          }
+        },
+        origins: {
+          poor: { name: "弱勢家庭出身", trait: "堅韌到底，一無所有，也就無所畏懼" },
+          worker: { name: "勞工階級", trait: "重視團結，滿手厚繭，老實到不擅說謊" },
+          bourgeois: { name: "小資產階級", trait: "有點社會地位，野心恰到好處，只是人脈還不夠硬" },
+          elite: { name: "上流社會", trait: "祖傳的人脈網絡，卻從未真正嘗過艱難的滋味" }
+        },
+        schools: {
+          none: { name: "未受教育", blockLabel: "無法從事：司法、商業、知識專業" },
+          basic: { name: "基礎教育", blockLabel: "無法從事：司法、商業" },
+          higher: { name: "高等教育", blockLabel: "無法從事：知識專業（僅限頂尖名校）" },
+          elite: { name: "頂尖名校", blockLabel: "所有職業皆可選擇，並附加人脈加成" }
+        },
+        archetypes: {
+          politician: { name: "野心家", description: "魅力與說服力兼具，權力就是你的氧氣。" },
+          authoritarian: { name: "秩序與紀律", description: "階級與武力至上，秩序是唯一真正的價值。" },
+          oligarch: { name: "資本家", description: "金錢是衡量一切的標準。" },
+          informer: { name: "情報散播者", description: "情報是你的武器，也是你存在的理由。" },
+          legalist: { name: "法制派", description: "規則、條文、程序——你最清楚該怎麼鑽漏洞。" },
+          believer: { name: "信仰之人", description: "堅定的信念驅動著你，也能號召群眾。" },
+          shadow: { name: "幕後黑手", description: "滲透、操控、腳踏兩條船——你在檯面上根本不存在。" },
+          anticapitalist: { name: "反資本主義者", description: "你與體制對抗，社會正義是你高舉的旗幟。" },
+          criminal: { name: "罪犯", description: "逍遙法外，你自訂的規則反而更有效率。" }
+        },
+        careers: {
+          officer: { name: "軍旅 — 高階軍官／傭兵", comp: "統御、威嚇" },
+          business: { name: "商界 — 商人／說客", comp: "遊說、洗錢、談判" },
+          magistrat: { name: "司法 — 法官／律師", comp: "法律、司法程序、談判" },
+          press: { name: "媒體與傳播 — 資深記者／網路名人", comp: "把柄操作、宣傳、社群媒體" },
+          clergy: { name: "宗教 — 教派領袖", comp: "口才、動員" },
+          doctor: { name: "知識專業 — 醫師／學者", comp: "民間人脈、隱密行事、口才" },
+          worker: { name: "勞工階層 — 工人／工會幹部", comp: "體力、團結、動員" },
+          intel: { name: "情報 — 情報人員", comp: "監視、滲透" },
+          criminal_c: { name: "組織犯罪 — 幫派份子", comp: "私人武裝、洗錢" },
+          escort: { name: "性產業 — 陪侍人員", comp: "魅惑、把柄操作" }
+        },
+        stats: {
+          INT: { name: "智力", description: "理解、分析、預判：有助於調查、理財，並識破最精密的陷阱。" },
+          CHA: { name: "魅力", description: "說服、吸引、安撫：任何談判、辯護或演說的關鍵。" },
+          VOL: { name: "意志力", description: "咬牙撐住：抵抗壓力、逮捕與拷問，並在別無選擇時挺身而戰。" },
+          PER: { name: "洞察力", description: "察覺常人忽略之處：識破謊言、跟蹤目標，永遠不被出其不意。" },
+          DUP: { name: "詭詐", description: "說謊、隱瞞、收買人心：所有遊走法律邊緣者的看家本領。" },
+          ENT: { name: "人脈手腕", description: "建立並維繫人脈網絡：當下不起眼，長遠卻是決定性的關鍵。" }
         }
       }
     }
