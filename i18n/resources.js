@@ -49,12 +49,24 @@
 // ligne supplementaire. Premier test serieux du systeme de pluriels CLDR a 4 categories
 // (one/few/many/other, voir creation.steps.stats.warning_* ci-dessous) -- categories reelles
 // confirmees par execution (Intl.PluralRules('ru')), aucune regle codee a la main.
+// ko (LOT 2.8) : code simple egalement (comme fr/en/es/ru), aucune adaptation du resolveur --
+// ko-KR resout via la meme regle generique par sous-code primaire. Comme le chinois (Lot 2.6),
+// Intl.PluralRules('ko') ne renvoie QUE la categorie "other" (confirme par execution reelle sur
+// 0/1/2/5/10/21/100) -- aucune regle de pluriel a creer. Particules coreennes (은/는, 이/가, 을/를)
+// dependant de la consonne/voyelle finale d'un mot arbitraire (nom de personnage, nom de pays lu
+// depuis data.js) : jamais concatenees dynamiquement dans le code -- voir
+// creation.success.text/home.findCharacterFound ci-dessous, ou chaque variable est suivie d'un
+// nom coreen FIXE portant lui-meme la particule (jamais la variable), ou reliee par la particule
+// genitive "의" qui est invariante quelle que soit la syllabe precedente. Aucune ligne de code
+// (creation.js ou ailleurs) n'a ete necessaire pour ce lot, uniquement un choix de formulation
+// dans la ressource elle-meme.
 window.RP_I18N_LANGUAGES = {
   fr: { nativeName: 'Français' },
   en: { nativeName: 'English' },
   es: { nativeName: 'Español' },
   'zh-TW': { nativeName: '繁體中文（台灣）' },
-  ru: { nativeName: 'Русский' }
+  ru: { nativeName: 'Русский' },
+  ko: { nativeName: '한국어' }
 };
 
 window.RP_I18N_RESOURCES = {
@@ -1050,6 +1062,214 @@ window.RP_I18N_RESOURCES = {
           PER: { name: "Восприятие", description: "Замечать то, что ускользает от других: распознавать ложь, вести слежку за целью, никогда не быть застигнутым врасплох." },
           DUP: { name: "Двуличие", description: "Лгать, скрывать, подкупать: специализация всех, кто живёт вне закона." },
           ENT: { name: "Связи", description: "Строить и поддерживать сеть контактов: незаметно в моменте, но решающе в долгосрочной перспективе." }
+        }
+      }
+    }
+  },
+  // =====================
+  // ko (LOT 2.8) : localisation coreenne redigee directement depuis le francais canonique --
+  // premier hangul du projet. Registre unique et coherent sur tout le perimetre : poli-naturel
+  // (해요체), adapte a une interface de jeu moderne, sans multiplier les niveaux de politesse
+  // ecran par ecran. Noms propres de l'univers (Republia, El Estado, Sovarka, Al-Khalija,
+  // Luthecia...) conserves en toutes lettres latines dans le texte coreen -- meme convention que
+  // fr/en/es/zh-TW/ru, coherente avec le badge/nom affiche directement depuis data.js (jamais
+  // retraduit). "kompromat" translittere phonetiquement (콤프로마트, pas un mot d'origine
+  // coreenne contrairement au russe) ; "kolkhoze" rendu par son emprunt coreen etabli (콜호스) ;
+  // "Generalissimo Gordito" (texte narratif, pas un ID) rendu par 고르디토 대원수 -- 대원수 est le
+  // grade militaire coreen exact pour "generalissime", renforcant plutot qu'affaiblissant la
+  // satire (connotation immediatement reconnaissable). Particules dynamiques : voir commentaire
+  // sur RP_I18N_LANGUAGES plus haut pour la strategie retenue (nom fixe porteur de particule, ou
+  // particule invariante 의) dans home.findCharacterFound et creation.success.text.
+  ko: {
+    translation: {
+      home: {
+        subtitle: "위대한 권력 게임",
+        tagline: "멀티플레이어 정치 패러디 · 4개 제국 · 양심 제로",
+        createCharacter: "캐릭터 만들기",
+        findCharacter: "캐릭터 찾기",
+        findCharacterPlaceholder: "캐릭터 이름을 입력하세요...",
+        loadCharacter: "이 캐릭터 불러오기",
+        findCharacterEnterName: "캐릭터 이름을 입력해 주세요.",
+        findCharacterSearching: "검색 중...",
+        findCharacterUnavailable: "Supabase 연결을 사용할 수 없습니다.",
+        findCharacterNotFound: "캐릭터를 찾을 수 없습니다. 철자를 확인해 주세요.",
+        findCharacterFound: "\"{{name}}\" 캐릭터를 찾았습니다! 이동 중...",
+        findCharacterConnectionError: "연결 오류가 발생했습니다. 다시 시도해 주세요."
+      },
+      creation: {
+        steps: {
+          country: {
+            step: "1 / 7 단계",
+            title: "제국을 선택하세요",
+            subtitle: "각 제국마다 고유한 규칙과 불문율, 그리고 저마다의 독특한 부패 방식이 있습니다."
+          },
+          origin: {
+            step: "2 / 7 단계",
+            title: "사회적 출신",
+            subtitle: "당신이 태어난 환경이 시작 자본을 결정합니다."
+          },
+          school: {
+            step: "3 / 7 단계",
+            title: "학력",
+            subtitle: "교육은 역량을 만들고 기회의 문을 열거나 닫습니다.",
+            info: "일부 직업은 학위 소지자만 선택할 수 있고, 반대로 너무 많이 배운 사람에게는 닫혀 있는 직업도 있습니다."
+          },
+          archetype: {
+            step: "4 / 7 단계",
+            title: "내면의 본성",
+            subtitle: "지금까지의 이력과 상관없이, 당신은 진정 어떤 사람인가요?",
+            info: "원형은 당신의 직업이 아니라 근본적인 성격을 정의합니다."
+          },
+          career: {
+            step: "5 / 7 단계",
+            title: "직업",
+            subtitle: "대게임에 뛰어들기 전, 당신의 직업 경력입니다."
+          },
+          stats: {
+            step: "6 / 7 단계",
+            title: "능력치",
+            subtitle: "자유 포인트를 분배하세요. 이미 획득한 보너스는 반영되어 있습니다.",
+            pointsLabel: "분배할 포인트",
+            info: "12를 넘으면 포인트당 2씩 소모됩니다. 캐릭터 생성 시 상한은 16이며, 17~20 레벨은 게임 중에 해금됩니다.",
+            // 한국어는 CLDR상 "other" 한 가지 범주만 사용합니다 (중국어와 동일, Intl.PluralRules('ko')
+            // 로 확인) -- 프랑스어/영어의 단수·복수 구분이나 러시아어의 4개 범주를 인위적으로 흉내 낼
+            // 필요가 없으며, 숫자 뒤에 붙는 "점"은 어떤 수에도 형태가 바뀌지 않는 불변 단위 표현입니다.
+            warning_other: "아직 분배하지 않은 포인트가 {{count}}점 남아 있습니다. 나중에 캐릭터 시트에서 분배할 수 있습니다."
+          },
+          identity: {
+            step: "7 / 7 단계",
+            title: "캐릭터 정체성",
+            subtitle: "당신의 또 다른 자아에게 얼굴과 이름, 그리고 이야기를 부여하세요.",
+            photoLabel: "프로필 사진",
+            photoHint: "이미지를 업로드하세요 · 실존 인물 패러디 환영",
+            nameLabel: "캐릭터 이름",
+            namePlaceholder: "예: Arnold Governator, 김탐욕 의원...",
+            bioLabel: "약력",
+            bioPlaceholder: "캐릭터의 이야기, 과거, 그리고 동기를 적어주세요...",
+            mottoLabel: "개인 좌우명",
+            mottoOptional: "(선택 사항)",
+            mottoPlaceholder: "예: 권력은 빼앗는 것이 아니라 얻어내는 것이다... 어쩌면 아닐 수도 있고."
+          },
+          review: {
+            step: "요약",
+            title: "캐릭터 시트"
+          }
+        },
+        nav: {
+          back: "뒤로",
+          next: "다음",
+          seeSheet: "내 시트 보기",
+          edit: "수정",
+          validate: "확정하고 게임 시작하기",
+          enter: "게임 시작하기"
+        },
+        city: {
+          modalTitle: "거주할 도시를 선택하세요",
+          capitalBadge: "(수도)"
+        },
+        common: {
+          capitalLabel: "자본",
+          traitLabel: "특성",
+          bonusSuffix: "보너스",
+          malusSuffix: "패널티"
+        },
+        career: {
+          info: "학력 수준({{school}})에 따라 선택 가능한 직업이 달라집니다.",
+          locked: "현재 학력으로는 선택할 수 없음"
+        },
+        review: {
+          lifePath: "인생 여정",
+          characteristics: "능력치",
+          startingResources: "시작 자원",
+          biography: "약력",
+          money: "자금",
+          influence: "영향력",
+          popularity: "인기도",
+          discretion: "은밀함",
+          tier: "등급 {{tier}}",
+          maxInGame: "게임 내 최대치 100",
+          wealthTier1: "1 - 빈곤",
+          wealthTier2: "2 - 소박함",
+          wealthTier3: "3 - 여유로움",
+          wealthTier4: "4 - 부유함",
+          wealthTier5: "5 - 과두 재벌"
+        },
+        success: {
+          title: "대게임에 오신 것을 환영합니다",
+          ready: "캐릭터 준비가 완료되었습니다.",
+          text: "'{{name}}' 캐릭터가 {{country}}의 무대에 등장합니다. 이제 대게임이 시작됩니다. 동맹, 배신, 부패, 콤프로마트—가장 무자비한 자가 승리를 차지합니다.",
+          fallbackCountry: "이 세계"
+        },
+        countries: {
+          republic: { description: "지친 민주주의, 근친 교배하듯 얽힌 엘리트층, 그리고 국민 스포츠가 되어버린 언론 스캔들.", tags: ["민주주의", "풍자"] },
+          narco: { description: "겉치레뿐인 민주주의, 카르텔, 매수된 선거. 폭력이 곧 정치적 언어입니다.", tags: ["폭력", "부패"] },
+          soviet: { description: "내부 갈등에 휩싸인 일당 체제. 개혁파와 보수파가 대립합니다.", tags: ["일당 체제", "파벌"] },
+          khalija: { description: "절대 군주제, 곳곳에 뻗어 있는 왕실. 왕의 은총만이 유일한 화폐입니다.", tags: ["군주제", "신정정치"] }
+        },
+        cities: {
+          republic: {
+            capitale: { description: "Republia의 수도. 정치, 사법, 언론 권력의 중심지." },
+            ville_a: { description: "서부의 항구 도시. 무역과 밀수, 그리고 지역 정치가 얽혀 있습니다." },
+            ville_b: { description: "북부의 공업 도시. 강력한 노동조합, 공장, 그리고 사회적 긴장이 존재합니다." }
+          },
+          narco: {
+            capitale: { description: "El Estado의 수도. 숨 막히는 더위와 만연한 부패 속에서, 고르디토 대원수가 절대 권력을 휘두릅니다." },
+            ville_a: { description: "산 속에 자리한 국경 초소. 밀수와 매수 가능한 세관원들, 그리고 내부자만 아는 산길이 있습니다." },
+            ville_b: { description: "정글 속 도시. 실험실이 끝없이 펼쳐져 있습니다." }
+          },
+          soviet: {
+            capitale: { description: "Sovarka의 수도. 강철빛 잿빛 풍경과 소비에트식 아파트 단지, 그리고 끊임없는 감시. 당은 모든 것을 지켜봅니다." },
+            ville_a: { description: "제국 변방의 얼어붙은 광산 도시. 추위는 살을 에지만 석탄이 부족한 일은 드뭅니다." },
+            ville_b: { description: "제7 집단 콜호스. 당의 영광을 위한 농업 생산 기지입니다." }
+          },
+          khalija: {
+            capitale: { description: "Al-Khalija의 수도. 금과 터키석, 그리고 모래. 왕궁이 모든 것을 압도하며, 의전은 곧 종교와도 같습니다." },
+            ville_a: { description: "사막 한가운데 자리한 대상(隊商)의 오아시스. 상인들이 수백 년간 머물러 온 곳이며, 비밀들도 함께 머뭅니다." },
+            ville_b: { description: "Al-Khalija의 석유 항구. 유조선과 전통 범선 다우가 서로 스쳐 지나갑니다." }
+          }
+        },
+        origins: {
+          poor: { name: "빈곤층 출신", trait: "타고난 강인함, 잃을 것이 없음" },
+          worker: { name: "노동자 계급", trait: "공동체 의식, 굳은살 박인 손, 거짓말을 잘 못할 만큼 정직함" },
+          bourgeois: { name: "소시민 계급", trait: "사회적 체면, 적당한 야심, 아직 제대로 된 인맥은 없음" },
+          elite: { name: "상류층", trait: "대대로 물려받은 인맥, 그러나 진짜 고생은 겪어본 적 없음" }
+        },
+        schools: {
+          none: { name: "무학력", blockLabel: "제한: 사법, 사업, 지적 전문직" },
+          basic: { name: "기초 교육", blockLabel: "제한: 사법, 사업" },
+          higher: { name: "고등 교육", blockLabel: "제한: 지적 전문직 (명문 학교 출신 전용)" },
+          elite: { name: "명문 학교", blockLabel: "모든 직업 선택 가능 + 인맥 보너스" }
+        },
+        archetypes: {
+          politician: { name: "야심가", description: "매력과 설득력. 권력은 당신의 산소입니다." },
+          authoritarian: { name: "질서와 규율", description: "위계와 힘. 질서만이 유일한 진짜 가치입니다." },
+          oligarch: { name: "자본가", description: "돈이 모든 것의 척도입니다." },
+          informer: { name: "정보 유포자", description: "정보는 당신의 무기이자 존재 이유입니다." },
+          legalist: { name: "법치주의자", description: "규칙, 조문, 절차. 그것들을 어떻게 구부릴지 정확히 알고 있습니다." },
+          believer: { name: "신념의 사람", description: "깊은 신념이 당신을 움직이며, 그것이 대중을 움직입니다." },
+          shadow: { name: "그림자의 사람", description: "잠입, 조종, 이중 플레이. 공식적으로 당신은 존재하지 않습니다." },
+          anticapitalist: { name: "반자본주의자", description: "당신은 체제에 맞서 싸웁니다. 사회 정의가 당신의 깃발입니다." },
+          criminal: { name: "범죄자", description: "법의 바깥에서, 훨씬 더 효율적인 당신만의 규칙을 따릅니다." }
+        },
+        careers: {
+          officer: { name: "군대 — 고위 장교 / 용병", comp: "지휘, 위협" },
+          business: { name: "사업 — 사업가 / 로비스트", comp: "로비, 자금 세탁, 협상" },
+          magistrat: { name: "사법 — 판사 / 변호사", comp: "법률, 소송 절차, 협상" },
+          press: { name: "언론 & 커뮤니케이션 — 유명 언론인 / 인플루언서", comp: "콤프로마트, 선전, 소셜 미디어" },
+          clergy: { name: "종교 — 교주", comp: "화술, 동원력" },
+          doctor: { name: "지적 전문직 — 의사 / 학자", comp: "민간 인맥, 은밀함, 화술" },
+          worker: { name: "노동 현장 — 노동자 / 노조 활동가", comp: "힘, 연대, 동원력" },
+          intel: { name: "정보기관 — 요원", comp: "감시, 잠입" },
+          criminal_c: { name: "조직범죄 — 조직폭력배", comp: "사병 조직, 자금 세탁" },
+          escort: { name: "성매매 — 에스코트", comp: "유혹, 콤프로마트" }
+        },
+        stats: {
+          INT: { name: "지능", description: "이해하고 분석하고 예측하는 능력: 수사, 금융, 그리고 가장 교묘한 함정을 피하는 데 유용합니다." },
+          CHA: { name: "카리스마", description: "설득하고 매혹하고 진정시키는 능력: 모든 협상, 변론, 연설의 핵심입니다." },
+          VOL: { name: "의지", description: "굳건히 버티는 힘: 압박과 체포, 고문을 견디고, 더 이상 선택의 여지가 없을 때 맞서 싸우는 능력입니다." },
+          PER: { name: "지각력", description: "놓치기 쉬운 것을 알아채는 능력: 거짓말을 간파하고, 목표를 미행하며, 결코 허를 찔리지 않습니다." },
+          DUP: { name: "이중성", description: "거짓말하고 숨기고 매수하는 능력: 불법의 세계에서 살아가는 이들의 전문 분야입니다." },
+          ENT: { name: "인맥", description: "인맥을 쌓고 유지하는 능력: 당장은 눈에 띄지 않지만, 장기적으로는 결정적입니다." }
         }
       }
     }
