@@ -1,5 +1,5 @@
 // =====================
-// RES PUBLICA — SOCLE I18N (LOT 1)
+// RES PUBLICA — SOCLE I18N (LOT 1 + LOT 2.5 : architecture N langues)
 // i18next core vendorise localement (i18n/i18next.min.js, build UMD officiel v26.4.0, licence
 // MIT -- telecharge et verifie depuis le registre npm officiel, voir i18n/i18next.LICENSE.txt).
 // Aucune dependance CDN en production pour cette brique, aucun backend HTTP i18next (ressources
@@ -8,18 +8,32 @@
 // lignes suffisant au besoin decrit -- pas de dependance i18next-browser-languagedetector
 // supplementaire pour ca.
 //
+// LOT 2.5 (passage de 2 a N langues, ajout de l'espagnol) : plus AUCUNE hypothese "deux langues"
+// dans ce fichier -- la liste des langues supportees, la detection navigateur, le rendu du
+// selecteur et la mise en evidence du bouton actif sont tous pilotes par
+// window.RP_I18N_LANGUAGES (i18n/resources.js), jamais par une cascade if/else par langue.
+// Ajouter une langue (ex. portugais demain) = ajouter son entree a RP_I18N_LANGUAGES + son arbre
+// de traductions dans RP_I18N_RESOURCES -- aucune autre modification necessaire dans ce fichier
+// ni dans index.html.
+//
 // Reutilisable tel quel sur d'autres pages plus tard : appliquerTraductionsRP() et
 // changerLangueRP() ne dependent d'aucun element specifique a la page d'accueil.
 // =====================
 
 const RP_I18N_STORAGE_KEY = 'respublica_language';
-const RP_I18N_LANGUES_SUPPORTEES = ['fr', 'en'];
-const RP_I18N_LANGUE_DEFAUT = 'fr';
+// Derivee de la config centrale (i18n/resources.js) -- jamais une seconde liste maintenue a la
+// main ici. Charge AVANT ce fichier (voir index.html), donc toujours disponible a ce stade.
+const RP_I18N_LANGUES_SUPPORTEES = Object.keys(window.RP_I18N_LANGUAGES || { fr: 1 });
+const RP_I18N_LANGUE_DEFAUT = 'fr'; // francais = langue source/canonique du projet, jamais derive de la config
 
 // Priorite de detection initiale : preference explicitement enregistree > langue du navigateur
-// (uniquement son prefixe 'fr'/'en', jamais l'IP ni le pays reel, jamais l'empire choisi dans le
-// jeu) > francais. localStorage peut etre indisponible (navigation privee stricte de certains
-// navigateurs) -- repli silencieux sur la detection navigateur dans ce cas.
+// (uniquement son sous-code primaire -- 'fr' de 'fr-CA', 'es' de 'es-MX'... -- jamais l'IP ni le
+// pays reel, jamais l'empire choisi dans le jeu) > francais. Resolution GENERIQUE : le sous-code
+// primaire est simplement compare a la liste des langues supportees, quel que soit leur nombre --
+// aucune cascade if/else dediee a une langue precise. localStorage peut etre indisponible
+// (navigation privee stricte de certains navigateurs) -- repli silencieux sur la detection
+// navigateur dans ce cas ; une preference stockee mais devenue non supportee est ignoree proprement
+// (le controle RP_I18N_LANGUES_SUPPORTEES.includes(...) l'exclut naturellement, sans cas special).
 function detecterLangueInitialeRP() {
   try {
     const stockee = localStorage.getItem(RP_I18N_STORAGE_KEY);
@@ -27,9 +41,24 @@ function detecterLangueInitialeRP() {
   } catch (e) { /* localStorage indisponible -- on continue sur la detection navigateur */ }
 
   const langueNavigateur = ((navigator.language || navigator.userLanguage || '') + '').toLowerCase();
-  if (langueNavigateur.indexOf('fr') === 0) return 'fr';
-  if (langueNavigateur.indexOf('en') === 0) return 'en';
+  const sousCodePrimaire = langueNavigateur.split('-')[0]; // 'es-MX' -> 'es', 'fr-CA' -> 'fr', etc.
+  if (RP_I18N_LANGUES_SUPPORTEES.includes(sousCodePrimaire)) return sousCodePrimaire;
   return RP_I18N_LANGUE_DEFAUT;
+}
+
+// Genere le contenu du selecteur de langue (#lang-switcher, index.html) a partir de la config
+// centrale -- jamais de markup statique par langue a maintenir. Un bouton par langue supportee
+// (autonyme, jamais traduit), separateurs "|" entre eux. Reste le meme composant simple
+// (boutons + separateurs) qu'avant ce lot, seulement genere plutot qu'ecrit en dur -- pas de
+// nouveau composant UI, pas de <select> introduit sans raison.
+function genererSelecteurLangueRP() {
+  const conteneur = document.getElementById('lang-switcher');
+  if (!conteneur) return;
+  conteneur.innerHTML = RP_I18N_LANGUES_SUPPORTEES.map(function (code, i) {
+    const nom = (window.RP_I18N_LANGUAGES[code] && window.RP_I18N_LANGUAGES[code].nativeName) || code.toUpperCase();
+    const separateur = i > 0 ? '<span class="lang-sep">|</span>' : '';
+    return separateur + '<button id="lang-btn-' + code + '" onclick="changerLangueRP(\'' + code + '\')">' + nom + '</button>';
+  }).join('');
 }
 
 // Applique les traductions a tous les elements marques -- convention legere et generique
@@ -45,12 +74,12 @@ function appliquerTraductionsRP() {
   document.documentElement.lang = i18next.language;
   document.title = 'Res Publica — ' + i18next.t('home.subtitle');
 
-  const boutonFr = document.getElementById('lang-btn-fr');
-  const boutonEn = document.getElementById('lang-btn-en');
-  if (boutonFr && boutonEn) {
-    boutonFr.classList.toggle('lang-actif', i18next.language === 'fr');
-    boutonEn.classList.toggle('lang-actif', i18next.language === 'en');
-  }
+  // Mise en evidence du bouton actif -- generique sur TOUTES les langues supportees, jamais deux
+  // variables dediees fr/en : fonctionne a l'identique pour 2 langues ou pour 10.
+  RP_I18N_LANGUES_SUPPORTEES.forEach(function (code) {
+    const bouton = document.getElementById('lang-btn-' + code);
+    if (bouton) bouton.classList.toggle('lang-actif', i18next.language === code);
+  });
 }
 
 // Changement manuel de langue (section 11) : met a jour i18next, reapplique les traductions,
@@ -74,6 +103,8 @@ function changerLangueRP(langue) {
     catch (e) { console.warn('Preference de langue non sauvegardee (localStorage indisponible)', e); }
   });
 }
+
+genererSelecteurLangueRP();
 
 i18next.init({
   lng: detecterLangueInitialeRP(),

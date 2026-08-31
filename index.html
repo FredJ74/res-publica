@@ -10,14 +10,13 @@
 </head>
 <body>
 
-<!-- SELECTEUR DE LANGUE (I18N LOT 1) : utilisable avant connexion/creation de personnage,
-     discret (position fixe, coin superieur droit), n'affecte pas la mise en page centree
-     existante des ecrans .screen. -->
-<div id="lang-switcher">
-  <button id="lang-btn-fr" onclick="changerLangueRP('fr')">FR</button>
-  <span class="lang-sep">|</span>
-  <button id="lang-btn-en" onclick="changerLangueRP('en')">EN</button>
-</div>
+<!-- SELECTEUR DE LANGUE (I18N LOT 1, generique N langues depuis le LOT 2.5) : utilisable avant
+     connexion/creation de personnage, discret (position fixe, coin superieur droit), n'affecte
+     pas la mise en page centree existante des ecrans .screen. Contenu genere par
+     genererSelecteurLangueRP() (i18n/i18n-init.js) a partir de window.RP_I18N_LANGUAGES
+     (i18n/resources.js) -- jamais de bouton par langue code en dur ici : ajouter une langue ne
+     touche pas ce fichier. -->
+<div id="lang-switcher"></div>
 
 <!-- SCREEN 0: INTRO -->
 <div id="intro" class="screen active">

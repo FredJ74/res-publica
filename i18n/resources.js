@@ -27,6 +27,22 @@
 // fichier) : COUNTRIES[].n (Republia, El Estado, Sovarka, Al-Khalija), WORLD[pays][ville].name
 // (Luthecia, Montrouge, Port-Sainte-Marie...).
 // =====================
+// =====================
+// CONFIGURATION CENTRALE DES LANGUES (LOT 2.5, passage a N langues)
+// =====================
+// Source de verite UNIQUE de la liste des langues supportees -- i18n-init.js derive
+// RP_I18N_LANGUES_SUPPORTEES de Object.keys() de cet objet, plutot que de dupliquer la liste.
+// Ajouter une langue = ajouter une entree ici + son arbre dans RP_I18N_RESOURCES ci-dessous,
+// rien d'autre a modifier ailleurs (detection navigateur, selecteur, mise en evidence du bouton
+// actif sont tous generiques, voir i18n-init.js).
+// nativeName : autonyme, toujours ecrit dans SA PROPRE langue, jamais traduit ni retraduit selon
+// la langue actuellement affichee (Français reste "Français" meme quand l'anglais est actif).
+window.RP_I18N_LANGUAGES = {
+  fr: { nativeName: 'Français' },
+  en: { nativeName: 'English' },
+  es: { nativeName: 'Español' }
+};
+
 window.RP_I18N_RESOURCES = {
   fr: {
     translation: {
@@ -414,6 +430,198 @@ window.RP_I18N_RESOURCES = {
           PER: { name: "Perception", description: "Notice what escapes others: spot a lie, tail a target, never be caught off guard." },
           DUP: { name: "Duplicity", description: "Lie, conceal, corrupt: the specialty of everyone living outside the law." },
           ENT: { name: "Connections", description: "Build and maintain a network: unspectacular in the moment, decisive over time." }
+        }
+      }
+    }
+  },
+  es: {
+    translation: {
+      home: {
+        subtitle: "El Gran Juego del Poder",
+        tagline: "Sátira política multijugador · 4 imperios · Cero escrúpulos",
+        createCharacter: "Crear mi personaje",
+        findCharacter: "Recuperar mi personaje",
+        findCharacterPlaceholder: "El nombre de tu personaje...",
+        loadCharacter: "Cargar este personaje",
+        findCharacterEnterName: "Introduce el nombre de tu personaje.",
+        findCharacterSearching: "Buscando...",
+        findCharacterUnavailable: "Conexión con Supabase no disponible.",
+        findCharacterNotFound: "Personaje no encontrado. Comprueba la ortografía.",
+        findCharacterFound: "¡Personaje \"{{name}}\" encontrado! Redirigiendo...",
+        findCharacterConnectionError: "Error de conexión. Inténtalo de nuevo."
+      },
+      creation: {
+        steps: {
+          country: {
+            step: "Paso 1 / 7",
+            title: "Elige tu imperio",
+            subtitle: "Cada imperio tiene sus propias reglas, sus códigos, su manera particular de ser corrupto."
+          },
+          origin: {
+            step: "Paso 2 / 7",
+            title: "Origen social",
+            subtitle: "El entorno del que vienes determina tu capital inicial."
+          },
+          school: {
+            step: "Paso 3 / 7",
+            title: "Formación académica",
+            subtitle: "La educación forja las competencias y abre o cierra puertas.",
+            info: "Algunas carreras están reservadas a los titulados. Otras son inaccesibles para quien ha estudiado demasiado."
+          },
+          archetype: {
+            step: "Paso 4 / 7",
+            title: "Naturaleza profunda",
+            subtitle: "¿Quién eres realmente, más allá de tu trayectoria?",
+            info: "El arquetipo define tu personalidad fundamental, no tu profesión."
+          },
+          career: {
+            step: "Paso 5 / 7",
+            title: "Carrera",
+            subtitle: "Tu trayectoria profesional antes de entrar en el gran juego."
+          },
+          stats: {
+            step: "Paso 6 / 7",
+            title: "Atributos",
+            subtitle: "Reparte tus puntos libres. Las bonificaciones ya obtenidas están incluidas.",
+            pointsLabel: "Puntos por repartir",
+            info: "A partir de 12, cada punto cuesta 2. Límite: 16 en la creación. Los niveles 17-20 se desbloquean durante la partida.",
+            warning_one: "Te queda {{count}} punto sin repartir. Podrás asignarlo más adelante desde tu ficha de personaje.",
+            warning_other: "Te quedan {{count}} puntos sin repartir. Podrás asignarlos más adelante desde tu ficha de personaje."
+          },
+          identity: {
+            step: "Paso 7 / 7",
+            title: "Identidad del personaje",
+            subtitle: "Dale un rostro, un nombre y una historia a tu álter ego.",
+            photoLabel: "Foto de perfil",
+            photoHint: "Sube una imagen · Las parodias de personajes reales son bienvenidas",
+            nameLabel: "Nombre del personaje",
+            namePlaceholder: "Ej.: Arnold Governator, Juan Domínguez-Pérez...",
+            bioLabel: "Biografía",
+            bioPlaceholder: "La historia de tu personaje, su pasado, sus motivaciones...",
+            mottoLabel: "Lema personal",
+            mottoOptional: "(opcional)",
+            mottoPlaceholder: "Ej.: El poder no se toma, se merece... o no."
+          },
+          review: {
+            step: "Resumen",
+            title: "Tu ficha de personaje"
+          }
+        },
+        nav: {
+          back: "Atrás",
+          next: "Siguiente",
+          seeSheet: "Ver mi ficha",
+          edit: "Modificar",
+          validate: "Confirmar y entrar en el juego",
+          enter: "Entrar en el juego"
+        },
+        city: {
+          modalTitle: "Elige tu ciudad de residencia",
+          capitalBadge: "(Capital)"
+        },
+        common: {
+          capitalLabel: "Capital",
+          traitLabel: "Rasgo",
+          bonusSuffix: "bono",
+          malusSuffix: "penalización"
+        },
+        career: {
+          info: "Carreras disponibles según tu nivel de estudios ({{school}}).",
+          locked: "No disponible con tu nivel de estudios"
+        },
+        review: {
+          lifePath: "Trayectoria vital",
+          characteristics: "Atributos",
+          startingResources: "Recursos iniciales",
+          biography: "Biografía",
+          money: "Dinero",
+          influence: "Influencia",
+          popularity: "Popularidad",
+          discretion: "Discreción",
+          tier: "Nivel {{tier}}",
+          maxInGame: "Máx. 100 en la partida",
+          wealthTier1: "1 - Indigencia",
+          wealthTier2: "2 - Modesto",
+          wealthTier3: "3 - Acomodado",
+          wealthTier4: "4 - Rico",
+          wealthTier5: "5 - Oligarca"
+        },
+        success: {
+          title: "Bienvenido al Gran Juego",
+          ready: "Tu personaje está listo.",
+          text: "{{name}} entra en la arena de {{country}}. Comienza el Gran Juego. Alianzas, traiciones, corrupción, kompromat: que gane el más despiadado.",
+          fallbackCountry: "este mundo"
+        },
+        countries: {
+          republic: { description: "Una democracia agotada, élites endogámicas, el escándalo mediático como deporte nacional.", tags: ["Democracia", "Satírico"] },
+          narco: { description: "Una democracia de fachada, cárteles, elecciones compradas. La violencia es un idioma político.", tags: ["Violento", "Corrupción"] },
+          soviet: { description: "Partido único en tensión interna. Reformistas contra conservadores.", tags: ["Partido único", "Facciones"] },
+          khalija: { description: "Monarquía absoluta, una familia real omnipresente. El Favor Real es la única moneda que cuenta.", tags: ["Monarquía", "Teocracia"] }
+        },
+        cities: {
+          republic: {
+            capitale: { description: "Capital de Republia. Centro del poder político, judicial y mediático." },
+            ville_a: { description: "Ciudad portuaria al oeste. Comercio, contrabando y política local." },
+            ville_b: { description: "Ciudad industrial al norte. Sindicatos poderosos, fábricas y tensión social." }
+          },
+          narco: {
+            capitale: { description: "Capital de El Estado. Calor sofocante, corrupción omnipresente; el Generalísimo Gordito gobierna sin oposición." },
+            ville_a: { description: "Puesto fronterizo encaramado en las montañas. Contrabando, aduaneros corruptibles y senderos que solo conocen los iniciados." },
+            ville_b: { description: "Ciudad de la jungla. Los laboratorios se extienden hasta donde alcanza la vista." }
+          },
+          soviet: {
+            capitale: { description: "Capital de Sovarka. Gris acero, bloques soviéticos, vigilancia permanente. El Partido lo ve todo." },
+            ville_a: { description: "Ciudad minera helada en los confines del imperio. El frío muerde, el carbón rara vez escasea." },
+            ville_b: { description: "El koljós colectivo número 7. Producción agrícola para la gloria del Partido." }
+          },
+          khalija: {
+            capitale: { description: "Capital de Al-Khalija. Oro, turquesa y arena. El Palacio Real lo domina todo. El protocolo es una religión." },
+            ville_a: { description: "Oasis caravanero en pleno desierto. Los mercaderes llevan siglos deteniéndose aquí; los secretos también." },
+            ville_b: { description: "Puerto petrolero de Al-Khalija. Petroleros y dhows se cruzan en sus aguas." }
+          }
+        },
+        origins: {
+          poor: { name: "Entorno desfavorecido", trait: "Resiliencia a prueba de todo, nada que perder" },
+          worker: { name: "Clase obrera", trait: "Sentido colectivo, manos callosas, demasiado honesto para mentir bien" },
+          bourgeois: { name: "Pequeña burguesía", trait: "Barniz social, ambiciones moderadas, todavía sin la agenda de contactos adecuada" },
+          elite: { name: "Alta sociedad", trait: "Agenda de contactos ancestral, pero nunca ha conocido la verdadera dificultad" }
+        },
+        schools: {
+          none: { name: "Sin estudios", blockLabel: "Bloqueado: justicia, negocios, profesiones intelectuales" },
+          basic: { name: "Escuela básica", blockLabel: "Bloqueado: justicia, negocios" },
+          higher: { name: "Estudios superiores", blockLabel: "Bloqueado: profesiones intelectuales (reservadas a las grandes escuelas)" },
+          elite: { name: "Grandes escuelas", blockLabel: "Todas las carreras accesibles + bonificación de contactos" }
+        },
+        archetypes: {
+          politician: { name: "Ambicioso", description: "Seducción y persuasión. El poder es tu oxígeno." },
+          authoritarian: { name: "Orden y disciplina", description: "La jerarquía y la fuerza. El orden es el único valor verdadero." },
+          oligarch: { name: "Capitalista", description: "El dinero es la medida de todas las cosas." },
+          informer: { name: "Difusor de información", description: "La información es tu arma y tu razón de ser." },
+          legalist: { name: "Legalista", description: "Las normas, los textos, los procedimientos. Sabes exactamente cómo doblegarlos." },
+          believer: { name: "Hombre de fe", description: "Una convicción profunda te anima. Moviliza a las masas." },
+          shadow: { name: "Hombre de las sombras", description: "Infiltración, manipulación, doble juego. Oficialmente, no existes." },
+          anticapitalist: { name: "Anticapitalista", description: "Combates el sistema. La justicia social es tu bandera." },
+          criminal: { name: "Criminal", description: "Al margen de la ley. Tus propias reglas, mucho más eficaces." }
+        },
+        careers: {
+          officer: { name: "Ejército — Oficial superior / Mercenario", comp: "Mando, Intimidación" },
+          business: { name: "Negocios — Empresario / Lobista", comp: "Lobby, Blanqueo, Negociación" },
+          magistrat: { name: "Justicia — Magistrado / Abogado", comp: "Derecho, Procedimiento judicial, Negociación" },
+          press: { name: "Medios y Comunicación — Gran periodista / Influencer", comp: "Kompromat, Propaganda, Redes sociales" },
+          clergy: { name: "Religión — Líder de culto", comp: "Retórica, Movilización" },
+          doctor: { name: "Profesiones intelectuales — Médico / Académico", comp: "Red civil, Discreción, Retórica" },
+          worker: { name: "Mundo obrero — Obrero / Sindicalista", comp: "Fuerza, Solidaridad, Movilización" },
+          intel: { name: "Inteligencia — Agente de los servicios secretos", comp: "Vigilancia, Infiltración" },
+          criminal_c: { name: "Crimen organizado — Criminal organizado", comp: "Milicias, Blanqueo" },
+          escort: { name: "Trabajo sexual — Trabajador(a) sexual", comp: "Seducción, Kompromat" }
+        },
+        stats: {
+          INT: { name: "Inteligencia", description: "Comprender, analizar, anticipar: útil para la investigación, las finanzas y desbaratar las trampas más sutiles." },
+          CHA: { name: "Carisma", description: "Convencer, seducir, apaciguar: la clave de toda negociación, alegato o discurso." },
+          VOL: { name: "Voluntad", description: "Aguantar: resistir la presión, la detención, la tortura, y luchar cuando ya no queda otra opción." },
+          PER: { name: "Percepción", description: "Detectar lo que se te escapa: descubrir una mentira, seguir a un objetivo, no dejarte sorprender nunca." },
+          DUP: { name: "Duplicidad", description: "Mentir, disimular, corromper: la especialidad de todos los que viven al margen de la ley." },
+          ENT: { name: "Contactos", description: "Construir y mantener una red de contactos: poco vistoso en el momento, decisivo a largo plazo." }
         }
       }
     }
