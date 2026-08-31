@@ -1932,9 +1932,19 @@ async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsCont
   const budgetClub = await chargerBudgetClub(club.id);
   const salaires = budgetClub.salaires;
 
+  // Popularite (correctif audit football, 31 aout 2026) : cette fonction (voie de resolution
+  // instantanee -- match jamais tique en live, et TOUTES les phases finales, voir entete du
+  // chantier "football live") n'accordait jusqu'ici AUCUNE popularite, contrairement a la voie
+  // live (construireEffetsRestantsMatch) qui applique deja +20/+30 aux titulaires. Meme regle
+  // reprise a l'identique ici, jamais cumulative (jamais +20 puis +30) : le resultat en jeu doit
+  // etre identique, qu'un match ait ete regarde en direct ou non. Remplacants/non retenus : 0,
+  // inchange. Aucun bonus lie a une performance individuelle (but, triplé...) -- decision de
+  // game design separee, hors perimetre de ce correctif.
+  const gainPop = victoire ? 30 : 20;
   for (const t of contrib.titulaires) {
     const montant = salaires.titulaire + (victoire ? salaires.primeVictoire : 0);
     if (montant > 0 && typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(t.nom, montant).catch(() => {});
+    if (gainPop > 0 && typeof sbAjusterPopularite === 'function') await sbAjusterPopularite(t.nom, gainPop).catch(() => {});
   }
   for (const r of contrib.remplacants) {
     if (salaires.remplacant > 0 && typeof sbAppliquerSalaire === 'function') await sbAppliquerSalaire(r.nom, salaires.remplacant).catch(() => {});
@@ -3041,11 +3051,21 @@ function statutLicenceSportive() {
 // exactement le mecanisme qui a permis l'annulation d'un non-renouvellement a PSM alors que la
 // licence reelle etait a Luthecia. Echoue silencieusement vers l'etat local actuel en cas de
 // probleme reseau (jamais un blocage plus severe qu'avant ce correctif).
+// Etend desormais AUSSI la blessure sportive (correctif audit football, 31 aout 2026) : un match
+// (live ou resolu instantanement) ecrit blessure_sportive directement en base via
+// sbAppliquerBlessureSportive, sur la session de n'importe quel client -- jamais forcement celle
+// du joueur blesse. Sans ce rafraichissement, state.char.blessureSportive restait la copie locale
+// d'avant le match (souvent null) et les gardes ci-dessous (estIndisponiblePourSport) autorisaient
+// a tort un entrainement/une participation. Meme requete unique, un seul appel reseau ajoute,
+// aucune nouvelle architecture -- reutilise exactement l'idiome deja en place pour la licence.
 async function rafraichirLicenceSportiveDepuisServeur() {
   if (!state.char?.name || typeof sbGet !== 'function') return state.char?.licenceSportive || null;
   try {
-    const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=licence_sportive');
-    if (rows && rows[0] && state.char) state.char.licenceSportive = rows[0].licence_sportive || null;
+    const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=licence_sportive,blessure_sportive');
+    if (rows && rows[0] && state.char) {
+      state.char.licenceSportive = rows[0].licence_sportive || null;
+      state.char.blessureSportive = rows[0].blessure_sportive || null;
+    }
   } catch (e) {}
   return state.char?.licenceSportive || null;
 }
@@ -3213,6 +3233,14 @@ async function confirmerEntrainement(stat, pa, cost) {
     const degatsPV = grave ? 30 : 15;
     state.char.blessureSportive = { jusquauJour: (state.day||1) + duree, gravite: grave ? 'grave' : 'legere' };
     state.hp = Math.max(1, (state.hp||100) - degatsPV);
+    // Ecriture explicite via sbAppliquerBlessureSportive (correctif audit football, 31 aout 2026) :
+    // cette fonction est desormais la SEULE autorite d'ecriture de blessure_sportive (voir
+    // sbSavePersonnage, supabase.js, qui ne l'ecrit plus du tout) -- sauvegarderPersonnageImmediat()
+    // juste apres reste necessaire pour entrainementsJour/hp/etc., mais ne persiste plus la
+    // blessure elle-meme. Aucun changement de probabilite/gravite/duree/degats.
+    if (typeof sbAppliquerBlessureSportive === 'function') {
+      await sbAppliquerBlessureSportive(state.char.name, state.char.blessureSportive, degatsPV).catch(() => {});
+    }
     sauvegarderPersonnageImmediat();
     document.getElementById('modal-postes')?.classList.remove('open');
     updateUI();
@@ -3276,7 +3304,13 @@ async function doConseilEntraineurAdjoint() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-function doTenueMatch() {
+// Passee async (correctif audit football, 31 aout 2026) : meme rafraichissement que
+// doTenueEntrainement avant toute decision, pour ne jamais statuer sur une blessure_sportive
+// locale obsolete -- meme garde, memes deux causes corrigees, voir rafraichirLicenceSportiveDepuisServeur.
+// Appelant (plateau-router.js) n'attend deja aucune valeur de retour synchrone (doPrendreLicenceSportive/
+// doTenueEntrainement, deja async, suivent exactement le meme patron d'appel sans await).
+async function doTenueMatch() {
+  await rafraichirLicenceSportiveDepuisServeur();
   if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive.', false); return; }
   if (estIndisponiblePourSport()) {
     const reste = state.char.blessureSportive.jusquauJour - (state.day||1);

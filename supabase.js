@@ -159,7 +159,15 @@ async function sbSavePersonnage(charState) {
     motto:            charState.char?.motto || null,
     licence_sportive: charState.char?.licenceSportive || null,
     performance_sportive: charState.char?.performance || null,
-    blessure_sportive: charState.char?.blessureSportive || null,
+    // blessure_sportive delibrement absent de cette sauvegarde generale (correctif audit
+    // football, 31 aout 2026) : sbAppliquerBlessureSportive() (ci-dessous) est desormais la SEULE
+    // autorite d'ecriture de cette colonne, qu'une blessure vienne d'un match (live ou instantane)
+    // ou d'un entrainement (confirmerEntrainement, plateau-organisations-quetes.js). Verifie
+    // factuellement : ce champ n'a aucun autre auteur legitime passant par sbSavePersonnage --
+    // avant ce correctif, une sauvegarde generale ordinaire (state.char.blessureSportive local,
+    // potentiellement obsolete) pouvait ecraser une blessure fraichement ecrite par un match, y
+    // compris jusqu'a la remettre a null. Omettre la cle du payload PATCH/POST laisse la colonne
+    // intacte quel que soit l'appelant -- aucune nouvelle table, aucune migration.
     signature_html:   charState.char?.signatureHtml || null,
     signature_blocks: charState.char?.signatureBlocks || [],
     quete_accueil:    charState.char?.queteAccueil || null,
