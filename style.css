@@ -62,13 +62,25 @@ body.plateau-body{height:100vh;overflow:hidden;display:flex;flex-direction:colum
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 
 /* ===========================
-   SELECTEUR DE LANGUE (I18N LOT 1)
+   SELECTEUR DE LANGUE (I18N LOT 1 + correctif Lot 2 : visible pendant toute la creation)
    =========================== */
-#lang-switcher{position:fixed;top:1rem;right:1.2rem;z-index:50;display:flex;align-items:center;gap:.35rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.78rem}
+/* Correctif (test visuel reel, apres Lot 2) : le selecteur est un unique sibling place AVANT
+   tous les .screen (jamais imbrique dans #intro, deja un conteneur commun -- verifie) -- aucun
+   deplacement de markup necessaire, aucun doublon a creer par ecran. Deux renforts purement
+   defensifs pour garantir sa visibilite quel que soit le contenu affiche derriere lui :
+   - z-index releve tres au-dessus de tout ce qui existe dans ce fichier (aucune autre regle
+     d'index.html ne depasse #modal-city/.modal-overlay a 100 -- 1000 elimine toute ambiguite) ;
+   - un fond semi-transparent + un leger cadre, pour rester lisible meme superpose a une carte
+     claire ou une image de fond, sans jamais devenir un bandeau intrusif (toujours aussi discret
+     que l'original, juste jamais totalement invisible par contraste). */
+#lang-switcher{position:fixed;top:1rem;right:1.2rem;z-index:1000;display:flex;align-items:center;gap:.35rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em;font-size:.78rem;background:rgba(10,9,6,.55);border:1px solid rgba(138,106,32,.35);border-radius:3px;padding:.3rem .5rem}
 #lang-switcher button{background:transparent;border:none;color:var(--text4);cursor:pointer;padding:.2rem .3rem;font:inherit;letter-spacing:inherit;transition:color .2s}
 #lang-switcher button:hover{color:var(--text2)}
 #lang-switcher button.lang-actif{color:var(--gold)}
 #lang-switcher .lang-sep{color:var(--text5)}
+@media (max-width:420px){
+  #lang-switcher{top:.6rem;right:.6rem;font-size:.7rem;padding:.25rem .4rem}
+}
 
 /* ===========================
    CREATION DE PERSONNAGE
