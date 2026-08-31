@@ -42,11 +42,19 @@
 // (zh-Hant-TW accepte, zh-CN/zh-Hans-CN jamais confondus avec zh-TW). Autonyme complet avec
 // mention explicite du territoire (evite toute ambiguite future avec Hong Kong si zh-HK est
 // ajoute plus tard).
+// ru (LOT 2.7) : code simple (comme fr/en/es), aucune adaptation du resolveur necessaire --
+// resoudreCodeLangueSupporte() traite deja "ru" comme n'importe quel candidat simple (regle 2 :
+// candidat supporte sans region -> correspondance par sous-code primaire uniquement), donc
+// ru-RU/ru-BY/ru-KZ resolvent tous vers "ru" via le meme code que fr-CA/en-GB/es-MX, sans aucune
+// ligne supplementaire. Premier test serieux du systeme de pluriels CLDR a 4 categories
+// (one/few/many/other, voir creation.steps.stats.warning_* ci-dessous) -- categories reelles
+// confirmees par execution (Intl.PluralRules('ru')), aucune regle codee a la main.
 window.RP_I18N_LANGUAGES = {
   fr: { nativeName: 'Français' },
   en: { nativeName: 'English' },
   es: { nativeName: 'Español' },
-  'zh-TW': { nativeName: '繁體中文（台灣）' }
+  'zh-TW': { nativeName: '繁體中文（台灣）' },
+  ru: { nativeName: 'Русский' }
 };
 
 window.RP_I18N_RESOURCES = {
@@ -829,6 +837,219 @@ window.RP_I18N_RESOURCES = {
           PER: { name: "洞察力", description: "察覺常人忽略之處：識破謊言、跟蹤目標，永遠不被出其不意。" },
           DUP: { name: "詭詐", description: "說謊、隱瞞、收買人心：所有遊走法律邊緣者的看家本領。" },
           ENT: { name: "人脈手腕", description: "建立並維繫人脈網絡：當下不起眼，長遠卻是決定性的關鍵。" }
+        }
+      }
+    }
+  },
+  // =====================
+  // ru (LOT 2.7) : localisation russe redigee directement depuis le francais canonique --
+  // premier alphabet cyrillique du projet, premiere langue a systeme de pluriel CLDR a 4
+  // categories (one/few/many/other, ex. 1/21/101 -> one, 2-4/22/102 -> few, 0/5-20/25/111 ->
+  // many). Noms propres de l'univers (Republia, El Estado, Sovarka, Al-Khalija, Luthecia...)
+  // volontairement conserves en toutes lettres latines dans le texte russe -- meme convention que
+  // fr/en/es/zh-TW, pour rester coherent avec le badge/nom affiche directement depuis data.js
+  // (jamais retraduit) quelle que soit la langue active ; IDs techniques inchanges. "kompromat"
+  // et "kolkhoze" (careers.press/soviet.ville_b) sont en realite des mots d'origine russe --
+  // rendus par leur orthographe russe naturelle (компромат, колхоз), pas une translitteration
+  // artificielle. "Generalissimo Gordito" (texte narratif, pas un ID) translittere en cyrillique
+  // (генералиссимус Гордито) : lisible nativement, "генералиссимус" est un vrai grade militaire
+  // russe (celebre association avec Staline), renforce le ton satirique plutot que de l'affaiblir.
+  ru: {
+    translation: {
+      home: {
+        subtitle: "Большая игра за власть",
+        tagline: "Многопользовательская политическая пародия · 4 империи · Ноль совести",
+        createCharacter: "Создать персонажа",
+        findCharacter: "Найти своего персонажа",
+        findCharacterPlaceholder: "Имя вашего персонажа...",
+        loadCharacter: "Загрузить этого персонажа",
+        findCharacterEnterName: "Введите имя своего персонажа.",
+        findCharacterSearching: "Идёт поиск...",
+        findCharacterUnavailable: "Подключение к Supabase недоступно.",
+        findCharacterNotFound: "Персонаж не найден. Проверьте правильность написания.",
+        findCharacterFound: "Персонаж «{{name}}» найден! Перенаправление...",
+        findCharacterConnectionError: "Ошибка соединения. Попробуйте снова."
+      },
+      creation: {
+        steps: {
+          country: {
+            step: "Шаг 1 из 7",
+            title: "Выберите свою империю",
+            subtitle: "У каждой империи свои правила, свои негласные законы и свой особый способ коррумпировать."
+          },
+          origin: {
+            step: "Шаг 2 из 7",
+            title: "Социальное происхождение",
+            subtitle: "Среда, в которой вы родились, определяет ваш стартовый капитал."
+          },
+          school: {
+            step: "Шаг 3 из 7",
+            title: "Образование",
+            subtitle: "Образование формирует навыки и открывает или закрывает двери.",
+            info: "Некоторые карьеры доступны только дипломированным специалистам. Другие закрыты для тех, кто слишком много учился."
+          },
+          archetype: {
+            step: "Шаг 4 из 7",
+            title: "Истинная природа",
+            subtitle: "Кто вы на самом деле, независимо от вашего прошлого?",
+            info: "Архетип определяет вашу базовую личность, а не профессию."
+          },
+          career: {
+            step: "Шаг 5 из 7",
+            title: "Карьера",
+            subtitle: "Ваш профессиональный путь перед тем, как войти в большую игру."
+          },
+          stats: {
+            step: "Шаг 6 из 7",
+            title: "Характеристики",
+            subtitle: "Распределите свободные очки. Полученные бонусы уже учтены.",
+            pointsLabel: "Очки для распределения",
+            info: "После 12 каждое очко стоит 2. Максимум при создании персонажа — 16. Уровни 17-20 открываются в игре.",
+            // Pluriel russe reel : 4 categories CLDR (one/few/many/other), confirmees par
+            // execution reelle d'Intl.PluralRules('ru') -- 1/21/101 -> one, 2-4/22/102 -> few,
+            // 0/5-20/25/111 -> many, "other" reserve aux valeurs non entieres (jamais produites
+            // par ce compteur de points, mais fourni pour rester complet vis-a-vis d'i18next).
+            // Aucune regle codee a la main : la selection de categorie est entierement deleguee a
+            // i18next/Intl.PluralRules, jamais un if (lang==='ru').
+            warning_one: "У вас осталось ещё {{count}} нераспределённое очко. Вы сможете распределить его позже на странице персонажа.",
+            warning_few: "У вас осталось ещё {{count}} нераспределённых очка. Вы сможете распределить их позже на странице персонажа.",
+            warning_many: "У вас осталось ещё {{count}} нераспределённых очков. Вы сможете распределить их позже на странице персонажа.",
+            warning_other: "У вас осталось ещё {{count}} нераспределённого очка. Вы сможете распределить их позже на странице персонажа."
+          },
+          identity: {
+            step: "Шаг 7 из 7",
+            title: "Личность персонажа",
+            subtitle: "Дайте своему альтер эго лицо, имя и историю.",
+            photoLabel: "Фото профиля",
+            photoHint: "Загрузите изображение · Пародии на реальных людей приветствуются",
+            nameLabel: "Имя персонажа",
+            namePlaceholder: "Например: Arnold Governator, Иван Кумовской-Взяткин...",
+            bioLabel: "Биография",
+            bioPlaceholder: "История вашего персонажа, его прошлое, его мотивы...",
+            mottoLabel: "Личный девиз",
+            mottoOptional: "(необязательно)",
+            mottoPlaceholder: "Например: Власть не берут, её заслуживают... или нет."
+          },
+          review: {
+            step: "Итог",
+            title: "Ваша карточка персонажа"
+          }
+        },
+        nav: {
+          back: "Назад",
+          next: "Далее",
+          seeSheet: "Посмотреть карточку",
+          edit: "Изменить",
+          validate: "Подтвердить и войти в игру",
+          enter: "Войти в игру"
+        },
+        city: {
+          modalTitle: "Выберите город проживания",
+          capitalBadge: "(Столица)"
+        },
+        common: {
+          capitalLabel: "Капитал",
+          traitLabel: "Черта",
+          bonusSuffix: "бонус",
+          malusSuffix: "штраф"
+        },
+        career: {
+          info: "Доступные карьеры зависят от вашего уровня образования ({{school}}).",
+          locked: "Недоступно при вашем уровне образования"
+        },
+        review: {
+          lifePath: "Жизненный путь",
+          characteristics: "Характеристики",
+          startingResources: "Стартовые ресурсы",
+          biography: "Биография",
+          money: "Деньги",
+          influence: "Влияние",
+          popularity: "Популярность",
+          discretion: "Скрытность",
+          tier: "Уровень {{tier}}",
+          maxInGame: "Максимум 100 в игре",
+          wealthTier1: "1 - Нищета",
+          wealthTier2: "2 - Скромный достаток",
+          wealthTier3: "3 - Обеспеченный",
+          wealthTier4: "4 - Богатый",
+          wealthTier5: "5 - Олигарх"
+        },
+        success: {
+          title: "Добро пожаловать в Большую игру",
+          ready: "Ваш персонаж готов.",
+          text: "{{name}} выходит на арену страны {{country}}. Большая игра начинается. Союзы, предательства, коррупция, компромат — пусть победит самый безжалостный.",
+          fallbackCountry: "этот мир"
+        },
+        countries: {
+          republic: { description: "Уставшая демократия, элиты, погрязшие в кровосмешении, а медиаскандалы — национальный вид спорта.", tags: ["Демократия", "Сатира"] },
+          narco: { description: "Демократия для вида, картели, купленные выборы. Насилие — это язык политики.", tags: ["Насилие", "Коррупция"] },
+          soviet: { description: "Однопартийная система, раздираемая внутренними противоречиями. Реформисты против консерваторов.", tags: ["Однопартийность", "Фракции"] },
+          khalija: { description: "Абсолютная монархия, вездесущая королевская семья. Королевская милость — единственная настоящая валюта.", tags: ["Монархия", "Теократия"] }
+        },
+        cities: {
+          republic: {
+            capitale: { description: "Столица Republia. Центр политической, судебной и медийной власти." },
+            ville_a: { description: "Портовый город на западе. Торговля, контрабанда и местная политика." },
+            ville_b: { description: "Промышленный город на севере. Мощные профсоюзы, заводы и социальная напряжённость." }
+          },
+          narco: {
+            capitale: { description: "Столица El Estado. Удушающая жара, вездесущая коррупция; генералиссимус Гордито правит безраздельно." },
+            ville_a: { description: "Пограничная застава в горах. Контрабанда, продажные таможенники и тропы, известные только своим." },
+            ville_b: { description: "Город в джунглях. Лаборатории тянутся, куда ни глянь." }
+          },
+          soviet: {
+            capitale: { description: "Столица Sovarka. Стальной серый цвет, советские блочные дома, тотальная слежка. Партия видит всё." },
+            ville_a: { description: "Ледяной шахтёрский город на окраине империи. Мороз кусается, угля почти никогда не бывает мало." },
+            ville_b: { description: "Колхоз номер 7. Сельскохозяйственное производство во славу Партии." }
+          },
+          khalija: {
+            capitale: { description: "Столица Al-Khalija. Золото, бирюза и песок. Королевский дворец возвышается над всем. Протокол — это религия." },
+            ville_a: { description: "Караванный оазис в самом сердце пустыни. Торговцы останавливаются здесь веками, как и секреты." },
+            ville_b: { description: "Нефтяной порт Al-Khalija. Здесь пересекаются пути танкеров и доу." }
+          }
+        },
+        origins: {
+          poor: { name: "Неблагополучная среда", trait: "Природная стойкость, терять нечего" },
+          worker: { name: "Рабочий класс", trait: "Чувство коллективизма, мозолистые руки, слишком честен, чтобы хорошо врать" },
+          bourgeois: { name: "Мелкая буржуазия", trait: "Внешний лоск, скромные амбиции, пока не хватает нужных связей" },
+          elite: { name: "Высшее общество", trait: "Родовые связи, но никогда не знал настоящих трудностей" }
+        },
+        schools: {
+          none: { name: "Без образования", blockLabel: "Недоступно: юриспруденция, бизнес, интеллектуальные профессии" },
+          basic: { name: "Базовое образование", blockLabel: "Недоступно: юриспруденция, бизнес" },
+          higher: { name: "Высшее образование", blockLabel: "Недоступно: интеллектуальные профессии (только для выпускников элитных вузов)" },
+          elite: { name: "Элитные вузы", blockLabel: "Все карьеры доступны + бонус к связям" }
+        },
+        archetypes: {
+          politician: { name: "Честолюбец", description: "Обаяние и убеждение. Власть — ваш кислород." },
+          authoritarian: { name: "Порядок и дисциплина", description: "Иерархия и сила. Порядок — единственная настоящая ценность." },
+          oligarch: { name: "Капиталист", description: "Деньги — мера всех вещей." },
+          informer: { name: "Распространитель информации", description: "Информация — ваше оружие и смысл существования." },
+          legalist: { name: "Законник", description: "Правила, тексты, процедуры. Вы точно знаете, как их обойти." },
+          believer: { name: "Человек веры", description: "Вами движет глубокая убеждённость. Она поднимает толпы." },
+          shadow: { name: "Человек тени", description: "Внедрение, манипуляции, двойная игра. Официально вас не существует." },
+          anticapitalist: { name: "Антикапиталист", description: "Вы боретесь с системой. Социальная справедливость — ваше знамя." },
+          criminal: { name: "Преступник", description: "Вне закона. Ваши собственные правила гораздо эффективнее." }
+        },
+        careers: {
+          officer: { name: "Армия — Старший офицер / Наёмник", comp: "Командование, Запугивание" },
+          business: { name: "Бизнес — Бизнесмен / Лоббист", comp: "Лоббирование, Отмывание денег, Переговоры" },
+          magistrat: { name: "Юстиция — Судья / Адвокат", comp: "Право, Судебный процесс, Переговоры" },
+          press: { name: "СМИ и коммуникации — Известный журналист / Инфлюенсер", comp: "Компромат, Пропаганда, Социальные сети" },
+          clergy: { name: "Религия — Глава культа", comp: "Риторика, Мобилизация" },
+          doctor: { name: "Интеллектуальные профессии — Врач / Учёный", comp: "Гражданские связи, Скрытность, Риторика" },
+          worker: { name: "Рабочий мир — Рабочий / Профсоюзный активист", comp: "Сила, Солидарность, Мобилизация" },
+          intel: { name: "Разведка — Агент спецслужб", comp: "Слежка, Внедрение" },
+          criminal_c: { name: "Организованная преступность — Член ОПГ", comp: "Боевики, Отмывание денег" },
+          escort: { name: "Секс-индустрия — Работник(ца) эскорта", comp: "Обольщение, Компромат" }
+        },
+        stats: {
+          INT: { name: "Интеллект", description: "Понимать, анализировать, предвидеть: полезно для расследований, финансов и разоблачения самых хитрых ловушек." },
+          CHA: { name: "Харизма", description: "Убеждать, очаровывать, успокаивать: ключ к любым переговорам, защитной речи или выступлению." },
+          VOL: { name: "Воля", description: "Держаться до конца: выдерживать давление, аресты, пытки — и сражаться, когда выбора больше не остаётся." },
+          PER: { name: "Восприятие", description: "Замечать то, что ускользает от других: распознавать ложь, вести слежку за целью, никогда не быть застигнутым врасплох." },
+          DUP: { name: "Двуличие", description: "Лгать, скрывать, подкупать: специализация всех, кто живёт вне закона." },
+          ENT: { name: "Связи", description: "Строить и поддерживать сеть контактов: незаметно в моменте, но решающе в долгосрочной перспективе." }
         }
       }
     }
