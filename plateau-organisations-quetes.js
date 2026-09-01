@@ -1475,13 +1475,23 @@ function prochainDimanche20hParis(depuis) {
 }
 
 const UNE_SEMAINE_MS = 7 * 86400000;
-// Anti-cascade (section 4 du chantier) : jamais plus d'UNE journee de championnat reellement
-// resolue par semaine, meme si plusieurs dimanches ont ete manques d'affilee faute de client
-// connecte. 6 jours (et non 7 pleins) : marge de securite confortable sous le rythme normal
-// (~7 jours reels entre deux journees consecutives resolues a l'heure), tout en bloquant
-// efficacement une cascade de rattrapages a quelques minutes d'intervalle (le seul scenario que
-// ce garde-fou doit empecher).
-const COOLDOWN_ANTI_CASCADE_MS = 6 * 86400000;
+
+// Anti-cascade (revu le 1er septembre 2026 -- la 1ere version, une fenetre glissante de 6 jours
+// reels depuis la derniere resolution, avait un defaut reel : un rattrapage tardif (ex. samedi)
+// pouvait retarder a tort l'echeance NORMALE du dimanche suivant a peine 24h plus tard, ce qui
+// n'a jamais ete la regle metier souhaitee). Nouvelle regle, plus fidele a l'intention ("une seule
+// journee/tour rattrapee par passage de verification") : au plus une journee/tour reellement
+// resolu(e) par JOUR CALENDAIRE EUROPE/PARIS (et non par fenetre glissante de N jours). Une
+// echeance normale du dimanche suivant n'est JAMAIS bloquee par un rattrapage la veille ou plus
+// tot, puisqu'il s'agit toujours d'un jour calendaire different -- mais plusieurs journees
+// anciennes ne peuvent pas s'enchainer a quelques minutes d'intervalle (timer 5 min,
+// plateau-core.js) au cours d'une meme soiree de connexion, puisqu'elles tombent toutes le meme
+// jour calendaire.
+function memeJourCalendaireParis(instantA, instantB) {
+  const a = decomposerDateTimezone(instantA, 'Europe/Paris');
+  const b = decomposerDateTimezone(instantB, 'Europe/Paris');
+  return a.annee === b.annee && a.mois === b.mois && a.jour === b.jour;
+}
 
 // Migration paresseuse (section 3 du chantier) : toute saison ne possedant pas encore
 // d'ancrage sportif reel en recoit un au tout premier passage de verifierEtJouerJournees()
@@ -1815,7 +1825,7 @@ function determinerVainqueursAgrege(aller, retour) {
 // aller/retour, demies aller/retour, finale) se joue desormais au prochain dimanche 20h Europe/
 // Paris reel, jamais plus sur l'horloge PA personnelle d'un joueur (state.day) -- qui permettait
 // a n'importe quel joueur d'accelerer les playoffs POUR TOUT LE MONDE en avancant sa propre
-// horloge. Meme garde-fou anti-cascade que la saison reguliere (COOLDOWN_ANTI_CASCADE_MS,
+// horloge. Meme garde-fou anti-cascade que la saison reguliere (memeJourCalendaireParis,
 // saison.derniereJourneeResolueLe partage entre les deux : ils ne sont jamais actifs en meme
 // temps, les playoffs ne demarrant qu'apres la fin complete de la saison reguliere).
 async function progresserPlayoffs(saison) {
@@ -1823,9 +1833,13 @@ async function progresserPlayoffs(saison) {
   const maintenant = new Date();
   const kickoffTour = new Date(p.prochainKickoffISO);
   if (maintenant < kickoffTour) return false;
+  // Anti-cascade : voir le commentaire detaille dans avancerFootballLive() (meme regle exacte,
+  // partagee via derniereJourneeResolueLe).
   if (saison.derniereJourneeResolueLe) {
-    const depuisDerniereResolution = maintenant.getTime() - new Date(saison.derniereJourneeResolueLe).getTime();
-    if (depuisDerniereResolution < COOLDOWN_ANTI_CASCADE_MS) return false;
+    const dernierInstant = new Date(saison.derniereJourneeResolueLe);
+    if (kickoffTour.getTime() < dernierInstant.getTime() && memeJourCalendaireParis(dernierInstant, maintenant)) {
+      return false;
+    }
   }
   const marquerResoluEtProgrammerSuivant = () => {
     saison.derniereJourneeResolueLe = maintenant.toISOString();
@@ -2634,19 +2648,30 @@ async function avancerFootballLive() {
   const phaseInfo = phaseMatchActuelle(kickoff, new Date());
   if (phaseInfo.statut === 'a_venir') return null;
 
-  // Anti-cascade (chantier "calendrier dimanche 20h", section 4) : si plusieurs dimanches ont ete
-  // manques d'affilee, ne resout jamais plus d'une journee par semaine reelle -- sans ce garde-
-  // fou, chaque passage du timer 5 minutes (plateau-core.js) rattraperait la journee EN RETARD
-  // SUIVANTE des que la precedente est resolue, cascade de plusieurs journees a quelques minutes
-  // d'intervalle. Sans effet sur le rythme normal : l'ecart reel entre deux journees consecutives
-  // resolues a l'heure (~7 jours) reste largement au-dessus du cooldown (6 jours) -- voir preuve
-  // dans le rapport/les tests. Ce garde-fou ne peut jamais interrompre un match DEJA en cours de
-  // live-ticking legitime : pour qu'une journee arrive ici avec son coup d'envoi deja passe alors
-  // que la precedente a ete resolue il y a moins de 6 jours, elle n'a, par construction de
-  // l'ancrage (kickoffs espaces d'exactement 7 jours), jamais pu commencer a tickter normalement.
+  // Anti-cascade (revu le 1er septembre 2026, 2e revision -- voir memeJourCalendaireParis() plus
+  // haut pour l'historique de la 1ere version, une fenetre glissante de 6 jours qui retardait a
+  // tort une echeance normale du dimanche suivant apres un rattrapage tardif. Une 2e version,
+  // basee sur "le coup d'envoi de CETTE journee est en retard de plus d'une semaine", avait elle
+  // aussi un defaut reel : dans un retard de plusieurs semaines, la DERNIERE journee du lot
+  // (celle dont le propre retard finit par repasser sous une semaine) pouvait cascader juste
+  // apres celle qui la precede, le meme jour -- exactement ce que ce garde-fou doit empecher).
+  //
+  // Regle exacte, definitive : une journee est bloquee UNIQUEMENT si (a) son coup d'envoi etait
+  // DEJA depasse au moment ou la DERNIERE journee a ete resolue (preuve directe qu'elle faisait
+  // deja partie du meme retard, pas une echeance arrivee normalement APRES coup) ET (b) cette
+  // derniere resolution a eu lieu le MEME jour calendaire Europe/Paris. Des le jour calendaire
+  // suivant, ou des que le coup d'envoi de la journee consideree est POSTERIEUR a la derniere
+  // resolution (elle est arrivee a echeance normalement, apres coup, jamais simultanement en
+  // retard), plus aucun blocage. Une echeance normale du dimanche suivant n'est donc JAMAIS
+  // retardee par un rattrapage anterieur, quel que soit l'ecart reel entre les deux (quelques
+  // heures ou plusieurs jours) : son coup d'envoi est par definition posterieur a la resolution
+  // qui vient d'avoir lieu. Seules les journees deja simultanement en retard au moment du dernier
+  // rattrapage patientent jusqu'au jour calendaire suivant, une par une.
   if (saison.derniereJourneeResolueLe) {
-    const depuisDerniereResolution = Date.now() - new Date(saison.derniereJourneeResolueLe).getTime();
-    if (depuisDerniereResolution < COOLDOWN_ANTI_CASCADE_MS) return null;
+    const dernierInstant = new Date(saison.derniereJourneeResolueLe);
+    if (kickoff.getTime() < dernierInstant.getTime() && memeJourCalendaireParis(dernierInstant, new Date())) {
+      return null;
+    }
   }
 
   const finalisationsLegacy = [];
@@ -2710,7 +2735,7 @@ async function avancerFootballLive() {
 
   // Marque l'instant reel de fin de journee AVANT le CAS (chantier "calendrier dimanche 20h",
   // anti-cascade) : persiste atomiquement avec le reste de `saison` -- alimente le garde-fou
-  // COOLDOWN_ANTI_CASCADE_MS ci-dessus lors du PROCHAIN appel a cette fonction (une journee ne
+  // memeJourCalendaireParis() ci-dessus lors du PROCHAIN appel a cette fonction (une journee ne
   // peut jamais se marquer elle-meme comme "derniere resolue" avant d'etre complete).
   if (modifie && prochaine.matchs.every(m => m.played)) {
     saison.derniereJourneeResolueLe = new Date().toISOString();
