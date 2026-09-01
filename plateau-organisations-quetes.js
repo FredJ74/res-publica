@@ -1407,6 +1407,99 @@ function ouvrirForumDepuisOrga(orgaId) {
 // CHAMPIONNAT SPORTIF
 // =====================
 
+// =====================
+// CALENDRIER REEL DU CHAMPIONNAT — ANCRAGE DIMANCHE 20H EUROPE/PARIS
+// (chantier "calendrier dimanche 20h", 1er septembre 2026)
+// =====================
+// Audit prealable (rapport separe) : l'ancien systeme derivait CHAQUE journee de
+// saison.dateDebut (horodatage reel de creation de la saison, jamais garanti tomber un dimanche)
+// + (numero-1)*7 jours, avec l'heure fixee via Date.setHours(20,...) -- une methode LOCALE AU
+// NAVIGATEUR qui l'execute, jamais un fuseau horaire fixe. Resultat reel observe : la J1 de la
+// saison en cours a ete jouee un mardi (dateDebut = 2026-09-01T18:34:15Z, un mardi).
+//
+// Ce bloc centralise TOUT le calcul temporel lie au calendrier reel dans une seule fonction
+// (prochainDimanche20hParis), comme demande -- aucun autre endroit du fichier ne doit plus
+// calculer une heure de coup d'envoi a la main. Fuseau horaire de reference : Europe/Paris,
+// via Intl.DateTimeFormat avec timeZone explicite -- JAMAIS Date.getHours()/setHours() (qui
+// lisent/ecrivent l'heure locale de la machine qui execute le code, differente pour chaque
+// joueur). Gere nativement l'alternance heure d'ete/hiver (CEST/CET) : "20h heure de Paris"
+// reste 20h heure de Paris toute l'annee, jamais un decalage UTC fixe.
+function decomposerDateTimezone(date, timeZone) {
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  });
+  const parts = fmt.formatToParts(date).reduce((acc, p) => { acc[p.type] = p.value; return acc; }, {});
+  // "24" ne doit jamais fuiter en heure locale (minuit) -- normalise en 0, cas documente de
+  // hour12:false dans certains moteurs (heure "24:00" au lieu de "00:00").
+  const heure = parts.hour === '24' ? 0 : parseInt(parts.hour, 10);
+  return { annee: +parts.year, mois: +parts.month, jour: +parts.day, heure, minute: +parts.minute, seconde: +parts.second };
+}
+
+// Convertit une date/heure "murale" (annee/mois/jour/heure/minute) EXPRIMEE dans timeZone en
+// l'instant UTC absolu correspondant. Principe standard (une seule iteration suffit : aucune
+// des heures de coup d'envoi utilisees ici, 20h, ne tombe jamais dans l'heure ambigue/inexistante
+// du changement d'heure, qui se produit toujours autour de 2h-3h du matin) : on devine un instant
+// UTC candidat avec les memes chiffres, on relit quelle heure ca donne reellement dans timeZone,
+// et on corrige l'ecart constate.
+function heureMuraleVersInstantUTC(annee, mois, jour, heure, minute, timeZone) {
+  const candidatUTC = Date.UTC(annee, mois - 1, jour, heure, minute, 0);
+  const lu = decomposerDateTimezone(new Date(candidatUTC), timeZone);
+  const luCommeUTC = Date.UTC(lu.annee, lu.mois - 1, lu.jour, lu.heure, lu.minute, lu.seconde);
+  const ecartMs = luCommeUTC - candidatUTC;
+  return new Date(candidatUTC - ecartMs);
+}
+
+// Fonction UNIQUE et centrale : le prochain dimanche 20h00 Europe/Paris a partir de `depuis`
+// (un instant reel quelconque, independant du fuseau horaire du navigateur qui appelle cette
+// fonction -- deux joueurs dans des fuseaux differents obtiennent le MEME instant absolu).
+// Regle validee (section 2 du chantier) : si `depuis` tombe deja un dimanche AVANT 20h heure de
+// Paris, la meme journee (ce dimanche) est retenue ; a partir de 20h00 pile ce dimanche-la, ou
+// n'importe quel autre jour de la semaine, c'est le dimanche SUIVANT qui est retenu.
+function prochainDimanche20hParis(depuis) {
+  const d = decomposerDateTimezone(depuis, 'Europe/Paris');
+  // Jour de la semaine du dimanche calendaire "d" (0=dimanche...6=samedi) -- calcule sur un simple
+  // triplet annee/mois/jour via UTC, sans aucune notion d'heure/fuseau (getUTCDay() d'un minuit
+  // UTC reconstruit a partir d'un triplet calendaire donne toujours le bon jour de semaine civil,
+  // quel que soit le fuseau d'origine du triplet).
+  const jourSemaine = new Date(Date.UTC(d.annee, d.mois - 1, d.jour)).getUTCDay();
+  let joursAAjouter;
+  if (jourSemaine === 0) {
+    joursAAjouter = (d.heure < 20) ? 0 : 7;
+  } else {
+    joursAAjouter = 7 - jourSemaine;
+  }
+  // Date.UTC normalise automatiquement un jour hors bornes du mois (ex. jour 33 -> mois suivant) :
+  // pas besoin de gerer manuellement les fins de mois ici.
+  return heureMuraleVersInstantUTC(d.annee, d.mois, d.jour + joursAAjouter, 20, 0, 'Europe/Paris');
+}
+
+const UNE_SEMAINE_MS = 7 * 86400000;
+// Anti-cascade (section 4 du chantier) : jamais plus d'UNE journee de championnat reellement
+// resolue par semaine, meme si plusieurs dimanches ont ete manques d'affilee faute de client
+// connecte. 6 jours (et non 7 pleins) : marge de securite confortable sous le rythme normal
+// (~7 jours reels entre deux journees consecutives resolues a l'heure), tout en bloquant
+// efficacement une cascade de rattrapages a quelques minutes d'intervalle (le seul scenario que
+// ce garde-fou doit empecher).
+const COOLDOWN_ANTI_CASCADE_MS = 6 * 86400000;
+
+// Migration paresseuse (section 3 du chantier) : toute saison ne possedant pas encore
+// d'ancrage sportif reel en recoit un au tout premier passage de verifierEtJouerJournees()
+// suivant le deploiement de ce correctif -- "a partir de maintenant", l'option la plus robuste
+// explicitement validee (aucune donnee de match deja jouee n'est jamais touchee, uniquement le
+// point d'ancrage des journees pas encore jouees). Pas de migration SQL necessaire : ce
+// correctif s'applique de lui-meme des la premiere connexion d'un client apres deploiement.
+// Retourne true si une migration a reellement eu lieu (l'appelant doit alors persister `saison`).
+function assurerAncrageDimanche(saison) {
+  if (saison.ancrageDimanche || saison.phase !== 'reguliere') return false;
+  const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
+  // Aucune journee restante (cas theorique, la transition vers les playoffs suit juste apres
+  // dans verifierEtJouerJournees) : ancre quand meme sur le numero suivant, sans effet pratique.
+  const numero = prochaine ? prochaine.numero : (saison.calendrier[saison.calendrier.length - 1].numero + 1);
+  saison.ancrageDimanche = { numero, kickoffISO: prochainDimanche20hParis(new Date()).toISOString() };
+  return true;
+}
+
 // Calendrier en tour simple (methode du cercle) : 12 clubs -> 11 journees de 6 matchs
 function genererCalendrierSaison() {
   const clubs = CLUBS_SPORTIFS.map(c => c.id);
@@ -1557,6 +1650,11 @@ async function chargerOuInitialiserSaison() {
     saison = {
       numero: 1,
       dateDebut: new Date().toISOString(),
+      // Ancrage sportif reel (chantier "calendrier dimanche 20h") : la toute premiere journee
+      // d'une saison flambant neuve est TOUJOURS le prochain dimanche 20h Europe/Paris a partir
+      // de l'instant de creation -- dateDebut reste une simple metadonnee (horodatage de
+      // creation de la ligne), plus jamais la source du calendrier des journees.
+      ancrageDimanche: { numero: 1, kickoffISO: prochainDimanche20hParis(new Date()).toISOString() },
       phase: 'reguliere',
       calendrier: genererCalendrierSaison(),
       stadeFinaleClubId: choisirStadeFinale([]),
@@ -1575,10 +1673,17 @@ function joursEcoulesDepuis(dateISO) {
 
 // Fait avancer la saison selon le temps reel ecoule (1 journee par semaine).
 // Peut etre appelee par n'importe quel joueur au chargement — verifie avant de rejouer une journee deja faite.
-async function publierResultatsJourneeSurForum(numeroSaison, journee) {
+// dateSportiveTheorique (chantier "calendrier dimanche 20h", section 5) : libelle FR pre-formate
+// du dimanche theorique de cette journee (calculerKickoffJournee), fourni par l'appelant --
+// distinct de `time` (l'horodatage REEL de publication, formatDateHeureJeu(), qui peut tomber
+// un tout autre jour en cas de rattrapage). Sans cette distinction, un rattrapage du mardi
+// afficherait silencieusement le mardi comme etant la date du match alors que la journee
+// sportive theorique est le dimanche precedent.
+async function publierResultatsJourneeSurForum(numeroSaison, journee, dateSportiveTheorique) {
   if (typeof sbCreateTopic !== 'function' || typeof formatDateHeureJeu !== 'function') return;
   const time = formatDateHeureJeu();
-  const titre = 'Journée ' + journee.numero + ' — Saison ' + numeroSaison;
+  const suffixeDate = dateSportiveTheorique ? ' (journée du ' + dateSportiveTheorique + ')' : '';
+  const titre = 'Journée ' + journee.numero + ' — Saison ' + numeroSaison + suffixeDate;
   const contenu = journee.matchs.map(m => m.recit).join('<br>');
 
   const topicId = await sbCreateTopic('sport', titre, 'Ligue Officielle', state.country || 'republic', time).catch(() => null);
@@ -1632,14 +1737,18 @@ async function publierPhasesFinalesSurForum(numeroSaison, rf) {
 
 async function verifierNotificationsAvantMatch(saison) {
   if (saison.phase !== 'reguliere') return;
-  const joursEcoules = joursEcoulesDepuis(saison.dateDebut);
   const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
   if (!prochaine || prochaine.notifie24h) return;
 
-  const dateResolution = (prochaine.numero - 1) * 7;
-  if (joursEcoules !== dateResolution - 1) return; // on notifie seulement la veille exacte
-
+  // Reecrit (chantier "calendrier dimanche 20h") pour comparer directement au VRAI coup d'envoi
+  // (calculerKickoffJournee, ancrage reel) plutot qu'un decompte de jours entiers ecoules depuis
+  // dateDebut -- l'ancienne methode perdait toute precision d'heure et n'avait plus de sens des
+  // que l'ancrage n'est plus dateDebut lui-meme. Fenetre [0h, 24h[ avant le coup d'envoi,
+  // notifie24h garantit une notification unique par journee (inchange).
   const kickoff = calculerKickoffJournee(saison, prochaine.numero);
+  const heuresAvantCoupEnvoi = (kickoff.getTime() - Date.now()) / 3600000;
+  if (heuresAvantCoupEnvoi > 24 || heuresAvantCoupEnvoi <= 0) return;
+
   for (const m of prochaine.matchs) {
     const clubHome = getClub(m.home), clubAway = getClub(m.away);
     const [contribHome, contribAway] = await Promise.all([calculerContributionEquipe(clubHome), calculerContributionEquipe(clubAway)]);
@@ -1702,16 +1811,32 @@ function determinerVainqueursAgrege(aller, retour) {
   });
 }
 
+// Reecrit (chantier "calendrier dimanche 20h", section 6) : chaque tour de playoffs (quarts
+// aller/retour, demies aller/retour, finale) se joue desormais au prochain dimanche 20h Europe/
+// Paris reel, jamais plus sur l'horloge PA personnelle d'un joueur (state.day) -- qui permettait
+// a n'importe quel joueur d'accelerer les playoffs POUR TOUT LE MONDE en avancant sa propre
+// horloge. Meme garde-fou anti-cascade que la saison reguliere (COOLDOWN_ANTI_CASCADE_MS,
+// saison.derniereJourneeResolueLe partage entre les deux : ils ne sont jamais actifs en meme
+// temps, les playoffs ne demarrant qu'apres la fin complete de la saison reguliere).
 async function progresserPlayoffs(saison) {
   const p = saison.playoffs;
-  const jour = state.day || 1;
-  if (jour < p.prochaineDate) return false;
+  const maintenant = new Date();
+  const kickoffTour = new Date(p.prochainKickoffISO);
+  if (maintenant < kickoffTour) return false;
+  if (saison.derniereJourneeResolueLe) {
+    const depuisDerniereResolution = maintenant.getTime() - new Date(saison.derniereJourneeResolueLe).getTime();
+    if (depuisDerniereResolution < COOLDOWN_ANTI_CASCADE_MS) return false;
+  }
+  const marquerResoluEtProgrammerSuivant = () => {
+    saison.derniereJourneeResolueLe = maintenant.toISOString();
+    p.prochainKickoffISO = new Date(kickoffTour.getTime() + UNE_SEMAINE_MS).toISOString();
+  };
 
   if (p.etape === 'quarts_aller') {
     p.quarts.aller = await jouerMatchsTour(p.quarts.paires, false);
     await publierTourPlayoffSurForum(saison.numero, 'Quarts de finale (aller)', p.quarts.aller);
     p.etape = 'quarts_retour';
-    p.prochaineDate = jour + 7;
+    marquerResoluEtProgrammerSuivant();
     return true;
   }
   if (p.etape === 'quarts_retour') {
@@ -1721,14 +1846,14 @@ async function progresserPlayoffs(saison) {
     p.quarts.vainqueurs = determinerVainqueursAgrege(p.quarts.aller, p.quarts.retour);
     p.demies = { paires: [[p.quarts.vainqueurs[0], p.quarts.vainqueurs[3]], [p.quarts.vainqueurs[1], p.quarts.vainqueurs[2]]], aller: null, retour: null, vainqueurs: null };
     p.etape = 'demies_aller';
-    p.prochaineDate = jour + 7;
+    marquerResoluEtProgrammerSuivant();
     return true;
   }
   if (p.etape === 'demies_aller') {
     p.demies.aller = await jouerMatchsTour(p.demies.paires, false);
     await publierTourPlayoffSurForum(saison.numero, 'Demi-finales (aller)', p.demies.aller);
     p.etape = 'demies_retour';
-    p.prochaineDate = jour + 7;
+    marquerResoluEtProgrammerSuivant();
     return true;
   }
   if (p.etape === 'demies_retour') {
@@ -1738,7 +1863,7 @@ async function progresserPlayoffs(saison) {
     p.demies.vainqueurs = determinerVainqueursAgrege(p.demies.aller, p.demies.retour);
     p.finale = { paire: [p.demies.vainqueurs[0], p.demies.vainqueurs[1]], resultat: null };
     p.etape = 'finale';
-    p.prochaineDate = jour + 7;
+    marquerResoluEtProgrammerSuivant();
     return true;
   }
   if (p.etape === 'finale') {
@@ -1763,6 +1888,7 @@ async function progresserPlayoffs(saison) {
     });
     saison.phase = 'terminee';
     p.etape = 'termine';
+    saison.derniereJourneeResolueLe = maintenant.toISOString();
     await publierPhasesFinalesSurForum(saison.numero, saison.resultatsFinales);
     return true;
   }
@@ -1772,6 +1898,16 @@ async function progresserPlayoffs(saison) {
 async function verifierEtJouerJournees() {
   let saison = await chargerOuInitialiserSaison();
   if (!saison || saison.phase === 'terminee') return saison;
+
+  // Migration paresseuse de l'ancrage sportif (chantier "calendrier dimanche 20h", section 3) --
+  // voir assurerAncrageDimanche() : ne fait rien pour une saison deja migree ou fraichement creee
+  // (qui a deja son ancrage, voir chargerOuInitialiserSaison/demarrerNouvelleSaison). Persiste
+  // AVANT tout calcul de coup d'envoi plus bas, pour que verifierNotificationsAvantMatch() et
+  // avancerFootballLive() (qui relit sa propre copie depuis Supabase) voient tous deux le meme
+  // ancrage des ce tick.
+  if (assurerAncrageDimanche(saison) && typeof sbSaveChampionnat === 'function') {
+    await sbSaveChampionnat(saison).catch(() => {});
+  }
 
   await verifierNotificationsAvantMatch(saison);
 
@@ -1799,7 +1935,12 @@ async function verifierEtJouerJournees() {
     saison.playoffs = {
       top8,
       etape: 'quarts_aller',
-      prochaineDate: (state.day || 1) + 7,
+      // Chantier "calendrier dimanche 20h", section 6 : premier tour de playoffs = prochain
+      // dimanche 20h Europe/Paris a partir de la fin de la saison reguliere -- plus jamais
+      // state.day (horloge PA propre a chaque personnage, sans lien avec le calendrier reel ni
+      // avec les autres joueurs, qui permettait a un joueur d'accelerer les playoffs pour tous en
+      // avancant sa propre horloge).
+      prochainKickoffISO: prochainDimanche20hParis(new Date()).toISOString(),
       quarts: { paires: [[top8[0],top8[7]],[top8[3],top8[4]],[top8[1],top8[6]],[top8[2],top8[5]]], aller: null, retour: null, vainqueurs: null },
       demies: null,
       finale: null
@@ -1823,6 +1964,7 @@ async function demarrerNouvelleSaison(saisonPrecedente) {
   const nouvelle = {
     numero: (saisonPrecedente?.numero || 0) + 1,
     dateDebut: new Date().toISOString(),
+    ancrageDimanche: { numero: 1, kickoffISO: prochainDimanche20hParis(new Date()).toISOString() },
     phase: 'reguliere',
     calendrier: genererCalendrierSaison(),
     stadeFinaleClubId: choisirStadeFinale(saisonPrecedente?.stadesUtilises || []),
@@ -1835,12 +1977,12 @@ async function demarrerNouvelleSaison(saisonPrecedente) {
   return nouvelle;
 }
 
-// Cree automatiquement une demande de manifestation par match de la saison (dimanche 20h, calcule depuis dateDebut)
+// Cree automatiquement une demande de manifestation par match de la saison (dimanche 20h Europe/
+// Paris, reutilise calculerKickoffJournee -- meme ancrage reel que la resolution des matchs,
+// jamais un second calcul de date, voir chantier "calendrier dimanche 20h").
 async function genererDemandesManifestationMatchs(saison) {
-  const debut = new Date(saison.dateDebut);
   for (const j of saison.calendrier) {
-    const dateMatch = new Date(debut.getTime() + (j.numero - 1) * 7 * 86400000);
-    dateMatch.setHours(20, 0, 0, 0);
+    const dateMatch = calculerKickoffJournee(saison, j.numero);
     for (const m of j.matchs) {
       const clubHome = getClub(m.home), clubAway = getClub(m.away);
       const id = await sbCreerDemandeManifestation({
@@ -2010,17 +2152,31 @@ async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsCont
 // cette minute est effectivement atteinte par l'horloge reelle (voir avancerEvenementsJusqua).
 // =====================================================================
 
-const HEURE_MATCH = 20; // Coup d'envoi fixe a 20h00 (heure de jeu), calendrier existant inchange.
 const DUREE_ECHAUFFEMENT_MS = 5 * 60000;
 const DUREE_MT1_MS = 10 * 60000;
 const DUREE_PAUSE_MS = 5 * 60000;
 const DUREE_MT2_MS = 10 * 60000;
 const TAUX_BLESSURE_PAR_TITULAIRE = 0.08; // identique au taux historique (notifierCompositionsEtBlessures)
 
+// Reecrit (chantier "calendrier dimanche 20h") : source de verite = saison.ancrageDimanche
+// (numero de journee de reference + son coup d'envoi reel, voir prochainDimanche20hParis), jamais
+// plus dateDebut+setHours() local au navigateur. Chaque journee est simplement l'ancrage
+// decale de (numeroJournee - ancrage.numero) semaines completes -- une journee AVANT l'ancrage
+// (typiquement la J1 historique d'une saison migree, deja jouee un jour quelconque) obtient donc
+// une date theorique "avant l'ancrage", jamais utilisee pour la resoudre (elle est deja played),
+// seulement disponible si un affichage veut un jour theorique pour elle.
 function calculerKickoffJournee(saison, numeroJournee) {
+  const ancrage = saison.ancrageDimanche;
+  if (ancrage) {
+    return new Date(new Date(ancrage.kickoffISO).getTime() + (numeroJournee - ancrage.numero) * UNE_SEMAINE_MS);
+  }
+  // Repli defensif : ne devrait plus jamais se produire (assurerAncrageDimanche() migre toute
+  // saison des le premier passage de verifierEtJouerJournees(), voir plus haut) -- conserve
+  // uniquement pour ne jamais planter si ce cas imprevu survenait malgre tout. Ancienne formule,
+  // local au navigateur (ecart connu, c'est precisement le bug corrige par ce chantier).
   const debut = new Date(saison.dateDebut);
-  const d = new Date(debut.getTime() + (numeroJournee - 1) * 7 * 86400000);
-  d.setHours(HEURE_MATCH, 0, 0, 0);
+  const d = new Date(debut.getTime() + (numeroJournee - 1) * UNE_SEMAINE_MS);
+  d.setHours(20, 0, 0, 0);
   return d;
 }
 
@@ -2478,6 +2634,21 @@ async function avancerFootballLive() {
   const phaseInfo = phaseMatchActuelle(kickoff, new Date());
   if (phaseInfo.statut === 'a_venir') return null;
 
+  // Anti-cascade (chantier "calendrier dimanche 20h", section 4) : si plusieurs dimanches ont ete
+  // manques d'affilee, ne resout jamais plus d'une journee par semaine reelle -- sans ce garde-
+  // fou, chaque passage du timer 5 minutes (plateau-core.js) rattraperait la journee EN RETARD
+  // SUIVANTE des que la precedente est resolue, cascade de plusieurs journees a quelques minutes
+  // d'intervalle. Sans effet sur le rythme normal : l'ecart reel entre deux journees consecutives
+  // resolues a l'heure (~7 jours) reste largement au-dessus du cooldown (6 jours) -- voir preuve
+  // dans le rapport/les tests. Ce garde-fou ne peut jamais interrompre un match DEJA en cours de
+  // live-ticking legitime : pour qu'une journee arrive ici avec son coup d'envoi deja passe alors
+  // que la precedente a ete resolue il y a moins de 6 jours, elle n'a, par construction de
+  // l'ancrage (kickoffs espaces d'exactement 7 jours), jamais pu commencer a tickter normalement.
+  if (saison.derniereJourneeResolueLe) {
+    const depuisDerniereResolution = Date.now() - new Date(saison.derniereJourneeResolueLe).getTime();
+    if (depuisDerniereResolution < COOLDOWN_ANTI_CASCADE_MS) return null;
+  }
+
   const finalisationsLegacy = [];
   let modifie = false;
 
@@ -2537,6 +2708,14 @@ async function avancerFootballLive() {
     }
   }
 
+  // Marque l'instant reel de fin de journee AVANT le CAS (chantier "calendrier dimanche 20h",
+  // anti-cascade) : persiste atomiquement avec le reste de `saison` -- alimente le garde-fou
+  // COOLDOWN_ANTI_CASCADE_MS ci-dessus lors du PROCHAIN appel a cette fonction (une journee ne
+  // peut jamais se marquer elle-meme comme "derniere resolue" avant d'etre complete).
+  if (modifie && prochaine.matchs.every(m => m.played)) {
+    saison.derniereJourneeResolueLe = new Date().toISOString();
+  }
+
   let casGagne = !modifie; // rien a revendiquer -> ne bloque pas la reprise ci-dessous
   if (modifie) {
     // Revendication (CAS) AVANT tout effet externe -- voir commentaire d'entete du chantier.
@@ -2547,7 +2726,8 @@ async function avancerFootballLive() {
         await notifierCompositionsEtBlessures(f.club, f.contrib, f.butsPour, f.butsContre).catch(() => {});
       }
       if (prochaine.matchs.every(m => m.played)) {
-        await publierResultatsJourneeSurForum(saison.numero, prochaine).catch(() => {});
+        const dateSportiveTheorique = kickoff.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long' });
+        await publierResultatsJourneeSurForum(saison.numero, prochaine, dateSportiveTheorique).catch(() => {});
         await resoudreParisJournee(saison.numero, prochaine).catch(() => {});
       }
     }
