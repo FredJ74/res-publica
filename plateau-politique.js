@@ -1899,10 +1899,16 @@ function desactiverDragJournal() {
   if (_journalDragCleanup) { _journalDragCleanup(); _journalDragCleanup = null; }
 }
 
-async function afficherJournalDuJour() {
+// force=true (chantier "acces depuis le journal d'evenements", 1er septembre 2026) : contourne
+// le garde-fou "une seule fois par jour" ci-dessous, reserve a l'ouverture automatique au
+// chargement (plateau-core.js). Le lien "Lire le Journal du jour" pose dans le journal
+// d'evenements (voir plus bas) appelle TOUJOURS afficherJournalDuJour(true) -- sans ce parametre,
+// un clic sur ce lien apres la premiere ouverture automatique de la journee resterait sans effet
+// (return silencieux), ce qui aurait rendu le nouveau point d'acces inutilisable des le 2e clic.
+async function afficherJournalDuJour(force) {
   const today = state.day || 1;
   const sessionKey = 'journal_dujour_day_' + today;
-  if (sessionStorage.getItem(sessionKey)) return;
+  if (!force && sessionStorage.getItem(sessionKey)) return;
   sessionStorage.setItem(sessionKey, '1');
 
   document.getElementById('postes-modal-title').textContent = 'Journal du jour';
@@ -1926,7 +1932,19 @@ async function afficherJournalDuJour() {
     ? construireHtmlJournalDuJour(edition)
     : '<div style="padding:1.2rem 1rem;font-style:italic;color:#8a8060">Aucun numéro n\'est encore disponible pour aujourd\'hui.</div>';
 
-  if (edition) addJournalEntry('📰 Journal du jour disponible', 'event-info');
+  // Point d'acces depuis le journal d'evenements (chantier 1er septembre 2026) : reutilise
+  // exactement addJournalEntry() (jamais un second mecanisme de journal) et
+  // afficherJournalDuJour() elle-meme pour l'action -- aucune modale/logique de chargement
+  // dupliquee. "!force" est essentiel ici : sans lui, chaque clic sur "Lire le Journal du jour"
+  // (qui appelle afficherJournalDuJour(true), voir plus haut) republierait une NOUVELLE entree de
+  // notification a chaque reouverture -- verifie par execution reelle (WKWebView), c'etait le cas
+  // avant cet ajout. Avec !force, cette ligne n'est atteinte qu'une seule fois par edition
+  // (premiere decouverte automatique, jamais lors d'une reouverture manuelle) ; aucune entree si
+  // edition est null (aucune edition disponible).
+  if (!force && edition) addJournalEntry(
+    '📰 La nouvelle édition de La Tribune de Républia est disponible. <span class="journal-action-link" onclick="afficherJournalDuJour(true)">Lire le Journal du jour</span>',
+    'event-info'
+  );
 }
 
 // =====================

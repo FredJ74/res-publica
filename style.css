@@ -385,6 +385,11 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .journal-text.event-bad{color:#8a4a38}
 .journal-text.event-info{color:#5a6a8a}
 .journal-text.event-secret{color:#7a5a8a}
+/* Action inline dans une entree du journal d'evenements (acces au Journal du jour, 1er septembre
+   2026) -- premier lien actionnable dans ce panneau, sobre, meme code couleur "interactif" que le
+   reste de l'interface (var(--gold), deja utilise par .nbtn/.modal-close:hover). */
+.journal-action-link{color:var(--gold);text-decoration:underline;cursor:pointer}
+.journal-action-link:hover{color:var(--gold-light)}
 
 /* CONFORT DE LECTURE (18 aout 2026) : base partagee pour tout contenu destine a etre reellement
    lu (Journal du jour, Mail, Forum) -- eviter que chaque ecran reinvente sa propre taille/
