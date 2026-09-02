@@ -898,18 +898,35 @@ async function sbDeleteMail(mailId) {
 // =====================
 // ÉVÉNEMENTS GLOBAUX (journal partagé entre joueurs)
 // =====================
+// country peut valoir 'global' pour un evenement de portee MONDIALE (visible par les 4 empires,
+// voir sbGetEvenementsRecents) -- une seule ligne ecrite, jamais 4 lignes dupliquees par pays.
 async function sbAddEvenementGlobal(country, city, texte, jour) {
   const id = 'evt-' + Date.now();
   return sbInsert('evenements_globaux', { country, city, texte, jour });
 }
 
+// country='global' (chantier "refonte Lancer une rumeur", 2 septembre 2026) : sentinelle de
+// portée MONDIALE (visible dans les 4 empires), ajoutee cote lecture SANS migration de schema --
+// 'evenements_globaux.country' est deja une colonne texte libre (jamais une contrainte
+// enum/FK verifiee en base, deja utilisee avec n'importe quelle chaine de pays), donc une
+// 5e valeur possible ('global', a cote de 'republic'/'narco'/'soviet'/'khalija') s'y ecrit sans
+// aucune alteration de table. Deux lectures separees (jamais une seule requete OR fragile a
+// construire) puis fusion cote client, plutot que d'inserer 4 lignes identiques par empire a
+// chaque evenement mondial (explicitement exclu par la demande).
 async function sbGetEvenementsRecents(country, city) {
   // Récupère les événements nationaux (city null) + ceux de la ville courante, 50 derniers
   const filterCountry = `country=eq.${encodeURIComponent(country)}`;
-  const rows = await sbGet('evenements_globaux', `${filterCountry}&order=created_at.desc&limit=50`);
-  if (!rows) return [];
-  // Filtrer côté client : national (city null) OU ville du joueur
-  return rows.filter(r => !r.city || r.city === city);
+  const [rowsPays, rowsGlobal] = await Promise.all([
+    sbGet('evenements_globaux', `${filterCountry}&order=created_at.desc&limit=50`),
+    sbGet('evenements_globaux', `country=eq.global&order=created_at.desc&limit=50`)
+  ]);
+  const rows = [...(rowsPays || []), ...(rowsGlobal || [])];
+  if (rows.length === 0) return [];
+  // Filtrer côté client : national (city null) OU ville du joueur -- les lignes 'global' ont
+  // toujours city=null, donc deja incluses par la meme condition, aucun cas particulier requis.
+  return rows.filter(r => !r.city || r.city === city)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 50);
 }
 
 

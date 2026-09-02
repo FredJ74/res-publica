@@ -1750,7 +1750,7 @@ const BUILDINGS = {
         orders: [
           {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:300, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 vin du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'},
           {fn:'ecouter_rumeurs', label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
-          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:80, desc:'Sur un PJ de votre repertoire. Succes : -5 a -20 POP sur la cible. Echec : se retourne contre vous (-5 POP -5 DIS) + risque de detection.'},
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
           {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
@@ -2913,7 +2913,7 @@ const BUILDINGS = {
           {fn:'se_nourrir',          label:'Acheter a manger',          pa:0, cost:8,  type:'legal',   icon:'ti-shopping-cart', successRate:100, desc:'Repas economique. +5 Sante.'},
           {fn:'pouls_populaire',     label:'Prendre le pouls',          pa:0, cost:0,  type:'legal',   icon:'ti-ear',           successRate:100, desc:'Sondage sur l\'election locale en cours dans cette ville (maire/depute), a partir des votes reellement enregistres.'},
           {fn:'distribuer_tract',    label:'Distribuer un tract',       pa:1, cost:0,  type:'legal',   icon:'ti-file-description',successRate:70, desc:'Necessite un tract en inventaire. Donne un vote au candidat du tract.', requiresTract:true},
-          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur',         pa:1, cost:0,  type:'grey',    icon:'ti-messages',      successRate:50,  desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
         ]
       }
     }
@@ -3612,7 +3612,7 @@ const BUILDINGS = {
           // Repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext (meme
           // pa/cost/successRate/desc) -- meme principe que marche-psm : un nouveau point d'acces
           // au meme ordre, aucune variante specifique au bar (audit dedie, 30 aout 2026).
-          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'},
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
           {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'}
           // "Contacter reseau" (fn:'contrebande') retire (30 aout 2026, ordre abandonne sur
           // demande de Fred). Handler generique (executerOrdreGenerique) et entree ORDER_EFFECTS.
@@ -3935,7 +3935,7 @@ const BUILDINGS = {
           {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Nourriture \u00e0 emporter, souvenir local, cartes postales.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des mati\u00e8res au march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les mati\u00e8res premi\u00e8res de votre inventaire \u00e0 ce march\u00e9.'},
           {fn:'distribuer_tract', label:'Distribuer un tract', pa:1, cost:0, type:'legal', icon:'ti-file-description', successRate:70, desc:'Necessite un tract en inventaire. Donne un vote au candidat du tract.', requiresTract:true},
-          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
         ]
       }
     }
@@ -3971,7 +3971,7 @@ const BUILDINGS = {
         orders: [
           {fn:'diner_affaires', label:'Diner d\'affaires', pa:2, cost:150, type:'legal', icon:'ti-wine', successRate:100, desc:'Invitez un PJ present dans la piece a diner, a vos frais. Si accepte : consomme 2 menus + 1 vin du restaurant. +10 Sante, +2 Moral, +5 INF, +3 PA au prochain Dormir pour chacun. Aucun cout si refuse ou si le restaurant n\'a pas de quoi servir.'},
           {fn:'ecouter_rumeurs', label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
-          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:80, desc:'Sur un PJ de votre repertoire. Succes : -5 a -20 POP sur la cible. Echec : se retourne contre vous (-5 POP -5 DIS) + risque de detection.'},
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
           {fn:'produire_commerce', label:'Cuisiner', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Préparer un plat de la carte (consomme les matières en stock, rémunéré en FR).'},
           {fn:'consulter_carte_commerce', label:'Consulter la carte', pa:0, cost:0, type:'legal', icon:'ti-menu-2', successRate:100, desc:'Voir les plats disponibles et commander.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
@@ -5422,7 +5422,7 @@ const BUILDINGS = {
       {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
       // Repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext (audit dedie, 30
       // aout 2026 -- duplication du marche vers les bars de Republia).
-      {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
+      {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
     ] } }
   },
   'brasserie-voyageurs-montrouge': {
@@ -5439,7 +5439,7 @@ const BUILDINGS = {
       {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
       // Repris a l'identique du template BUILDINGS['marche'].rooms.marche_ext (audit dedie, 30
       // aout 2026 -- duplication du marche vers les bars de Republia).
-      {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
+      {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
     ] } }
   },
   // Structure a 6 salles + accueil (17 aout 2026, implantation des images preparees) --
@@ -5625,7 +5625,7 @@ const BUILDINGS = {
       {fn:'offrir_tournee', label:'Offrir une tournée', pa:0, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Offrez une tournee (une seule boisson de la carte) a plusieurs personnes presentes, a vos frais. Chacun accepte ou refuse independamment ; vous ne buvez et ne payez que si au moins une personne accepte. Cout reel : 1 PA + le prix de la boisson x (nombre d\'acceptants + vous).'},
       {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
       {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
-      {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:50, desc:'Sur une personne du repertoire. Succes : +/-5 POP sur la cible.'}
+      {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'}
     ] } }
   },
 

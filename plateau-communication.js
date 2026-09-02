@@ -989,10 +989,14 @@ function addExternalEvent(text, scope) {
   `;
   j.insertBefore(div, j.firstChild);
 
-  // Partager via Supabase — scope 'local' = visible uniquement dans la ville courante, sinon national
+  // Partager via Supabase — scope 'local' = visible uniquement dans la ville courante, 'mondial' =
+  // visible dans les 4 empires (sentinelle country:'global', voir sbGetEvenementsRecents), sinon national
   if (typeof sbAddEvenementGlobal === 'function') {
-    const city = scope === 'local' ? (state.currentCity || null) : null;
-    sbAddEvenementGlobal(state.country || 'republic', city, text, state.day || 1).catch(() => {});
+    let country = state.country || 'republic';
+    let city = null;
+    if (scope === 'local') city = state.currentCity || null;
+    else if (scope === 'mondial') country = 'global';
+    sbAddEvenementGlobal(country, city, text, state.day || 1).catch(() => {});
   }
 }
 

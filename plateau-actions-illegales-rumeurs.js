@@ -438,7 +438,17 @@ const FORMULATIONS_RUMEUR_VRAIE = {
   plainte_sans_suite:     (a, c) => 'Une rumeur evoque une plainte deposee par ' + a + ' contre ' + c + ', finalement classee sans suite.',
   plainte_enquete:        (a, c) => 'Une enquete viserait ' + c + ', dit-on, suite a une plainte deposee par ' + a + '.',
   plainte_confirmee:      (a, c) => 'La rumeur veut que ' + c + ' ait ete place en garde a vue suite a une plainte de ' + a + '.',
-  cellules_fragilisees:   (a, c) => 'On raconte que les cellules de garde a vue de ' + c + ' se fragiliseraient, suite a des incidents recents.'
+  cellules_fragilisees:   (a, c) => 'On raconte que les cellules de garde a vue de ' + c + ' se fragiliseraient, suite a des incidents recents.',
+  // Chantier "refonte Lancer une rumeur" (2 septembre 2026) : cle manquante corrigee -- avant ce
+  // correctif, une trace tracee de type 'fausse_rumeur' pouvait etre tiree au sort par
+  // ecouterRumeurs() (sbGetActionsTracables) mais ne trouvait aucun formulateur ici, et la
+  // fonction se rabattait silencieusement sur "Rien de croustillant..." sans jamais le signaler --
+  // la trace existait reellement en base (auteur/cible/pays/ville) mais ne pouvait jamais etre
+  // revelee par ce canal. `c` est ici deja une phrase complete prete a l'emploi (ex. "Jean Dupont",
+  // "l'organisation « XYZ »", "l'etablissement « Cafe de la Gare »", "le gouvernement de Sovarka",
+  // "Sovarka"), construite par confirmerLancerRumeur() selon le type de cible choisi -- jamais de
+  // detail supplementaire invente ici, meme principe evasif que les autres formulations.
+  fausse_rumeur: (a, c) => 'On raconte que ' + a + ' aurait lance une rumeur visant ' + c + '.'
 };
 
 async function ecouterRumeurs(successRate, pa, cost) {

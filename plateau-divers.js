@@ -238,6 +238,29 @@ function getIndiceNationalCalcule(pays, cle) {
   return (cleLegacy && typeof INDICES_NATIONAUX !== 'undefined') ? (INDICES_NATIONAUX[pays]?.[cleLegacy] ?? INDICE_VILLE_DEFAUT[cle] ?? 50) : (INDICE_VILLE_DEFAUT[cle] ?? 50);
 }
 
+// Villes REELLEMENT suivies individuellement pour un indice territorial, par pays -- 3 pour
+// Republia (VILLES_REPUBLIA), absent pour narco/soviet/khalija (qui n'ont aujourd'hui qu'UN SEUL
+// indice national partage, voir le repli pays!=='republic' de getIndiceVille/modifierIndiceVille
+// ci-dessus). SEUL point a mettre a jour le jour ou un de ces 3 empires recevra un decoupage par
+// ville reel : lui ajouter son entree ici (ex. soviet: ['capitale','ville_a','ville_b']) ET
+// generaliser le test `pays !== 'republic'` des deux fonctions ci-dessus en verifiant plutot
+// l'absence d'entree ici -- aucun appelant de appliquerDeltaIndiceVillesPays (ex. l'ordre "Lancer
+// une rumeur", plateau-pnj.js) n'aura besoin d'etre modifie, cette table etant sa seule source de
+// verite sur "combien de vraies valeurs ce pays possede".
+const VILLES_SUIVIES_PAR_PAYS = { republic: VILLES_REPUBLIA };
+
+// Applique le MEME delta a toutes les vraies valeurs distinctes d'un indice territorial pour un
+// pays donne, quel que soit leur nombre actuel (1 pour narco/soviet/khalija aujourd'hui, 3 pour
+// Republia) -- jamais applique plusieurs fois au meme chiffre. A utiliser par tout code voulant
+// un effet homogene "a l'echelle du pays" sans avoir a connaitre lui-meme l'etat d'avancement du
+// decoupage par ville de chaque empire (voir VILLES_SUIVIES_PAR_PAYS ci-dessus).
+async function appliquerDeltaIndiceVillesPays(pays, cle, delta) {
+  const villes = VILLES_SUIVIES_PAR_PAYS[pays] || ['capitale'];
+  for (const ville of villes) {
+    await modifierIndiceVille(pays, ville, cle, delta);
+  }
+}
+
 const NOMS_VILLES_REPUBLIA = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
 
 // Correctif d'identite ville/club (28 aout 2026) : generalise NOMS_VILLES_REPUBLIA (conservee

@@ -1671,80 +1671,351 @@ Génère UNE révélation compromettante, parodique et drôle (2 phrases max). S
   }
 }
 
+// =====================
+// LANCER UNE RUMEUR — refonte complete (chantier "refonte Lancer une rumeur", 2 septembre 2026)
+// =====================
+// Remplace l'ancien flux (choix direct d'un PJ du repertoire + generation IA via /api/chat) par
+// une vraie modale de creation : type de cible (PJ/Organisation/Local/Gouvernement/Pays), un
+// selecteur specifique par type, un texte libre redige par le joueur (aucune IA), et un bouton
+// de validation explicite -- rien n'est consomme/tire tant que ce bouton n'a pas ete clique.
+// Etat du brouillon en cours, remis a zero a chaque ouverture de la modale.
+let _rumeur = null;
+let _rumeurPjCache = null;
+
+// Postes nommes du gouvernement (meme convention que partout ailleurs dans le jeu, voir
+// plateau-organisations-quetes.js) -- PM + les 6 ministres, jamais le President (immunite totale
+// deja geree par checkDetection, hors perimetre ici) ni les postes non-gouvernementaux.
+const RUMEUR_POSTES_GOUVERNEMENT = ['pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
+
+// Zones parcourues pour la cible "Local" (revu suite a retour game design du 2 septembre 2026:
+// "Local, peu importe quel genre de local" -- plus aucune exclusion par categorie). Les 5 zones
+// a batiments de chaque empire, structure WORLD identique partout : capitale/ville_a/ville_b
+// (vraies villes) + caserne/qhs (zones speciales a un seul batiment chacune, mais toujours de
+// vrais lieux nommes -- caserne militaire, prison du QHS). Seul le prefixe 'terrain-a-batir' est
+// exclu : ce sont des parcelles NON construites (terrains a vendre), jamais de vrais locaux.
+const RUMEUR_LOCAUX_PREFIXE_EXCLU = 'terrain-a-batir';
+const RUMEUR_ZONES_LOCAL = ['capitale', 'ville_a', 'ville_b', 'caserne', 'qhs'];
+
 function ouvrirModalLancerRumeur(pa, cost, successRate) {
-  const pjContacts = (state.contacts || []).filter(c => c.isPJ || c.type === 'pj');
-  if (pjContacts.length === 0) {
-    showToast('Aucune cible', 'Vous devez avoir des PJ dans votre répertoire pour lancer une rumeur.', false);
-    return;
-  }
-  document.getElementById('postes-modal-title').textContent = '🗯 Choisir une cible';
+  _rumeur = {
+    pa, cost, successRate: successRate || 75,
+    type: 'pj',
+    cibleValue: null, cibleLabel: null,
+    texte: '', soumission: false
+  };
+  _rumeurPjCache = null;
+
+  document.getElementById('postes-modal-title').textContent = '🗯 Lancer une rumeur';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Sélectionnez le PJ visé par la rumeur. Acte illégal — un jet raté se retourne contre vous.</div>' +
-    pjContacts.map(c =>
-      '<div onclick="confirmerLancerRumeur(\'' + c.name.replace(/'/g,'') + '\',' + pa + ',' + cost + ',' + successRate + ')" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
-        '<i class="ti ti-user" style="font-size:.9rem;color:#8a6a20"></i>' +
-        '<div><div style="font-size:.82rem;color:#c0b090">' + c.name + '</div>' +
-        '<div style="font-size:.85rem;color:#9a8a68">' + (c.role||'PJ') + '</div></div>' +
-      '</div>'
-    ).join('') +
+    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Acte illégal — un jet raté se retourne contre vous. Rédigez votre propre texte ; il sera publié tel quel en cas de réussite.</div>' +
+    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">TYPE DE CIBLE</div>' +
+    '<select id="rumeur-type-select" onchange="changerTypeRumeur(this.value)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;margin-bottom:.7rem">' +
+      '<option value="pj">PJ</option>' +
+      '<option value="organisation">Organisation</option>' +
+      '<option value="local">Local</option>' +
+      '<option value="gouvernement">Gouvernement</option>' +
+      '<option value="pays">Pays</option>' +
+    '</select>' +
+    '<div id="rumeur-cible-zone" style="margin-bottom:.5rem"></div>' +
+    '<div id="rumeur-cible-recap" style="font-size:.72rem;color:#9a8a68;font-style:italic;margin-bottom:.8rem">Aucune cible sélectionnée.</div>' +
+    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">TEXTE DE LA RUMEUR</div>' +
+    '<textarea id="rumeur-texte-input" oninput="majTexteRumeur(this.value)" placeholder="Rédigez votre rumeur..." style="width:100%;min-height:90px;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.5rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;resize:vertical;margin-bottom:.9rem;box-sizing:border-box"></textarea>' +
+    '<button id="rumeur-btn-valider" onclick="validerLancementRumeur()" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer">Lancer la rumeur — 1 PA</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
+
+  changerTypeRumeur('pj');
 }
 
-async function confirmerLancerRumeur(nomCible, pa, cost, successRate) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+function majTexteRumeur(val) {
+  if (_rumeur) _rumeur.texte = val;
+}
 
+function majRecapCibleRumeur() {
+  const recap = document.getElementById('rumeur-cible-recap');
+  if (!recap || !_rumeur) return;
+  recap.textContent = _rumeur.cibleLabel ? ('Cible sélectionnée : ' + _rumeur.cibleLabel) : 'Aucune cible sélectionnée.';
+}
+
+async function chargerPjPourRumeur() {
+  if (_rumeurPjCache) return _rumeurPjCache;
+  _rumeurPjCache = (typeof sbListPersonnages === 'function') ? await sbListPersonnages().catch(() => []) : [];
+  return _rumeurPjCache || [];
+}
+
+async function chargerOrganisationsPourRumeur() {
+  const toutes = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
+  return (toutes || []).filter(o => o.visible).sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr'));
+}
+
+// Balaye les 4 empires x 5 zones a batiments (capitale/ville_a/ville_b/caserne/qhs, structure
+// WORLD identique partout) et construit la liste alphabetique des locaux ciblables, en
+// respectant les overrides de nom par ville (WORLD[pays][ville].buildingContext) sur le meme
+// batiment BUILDINGS partage.
+function construireListeLocauxCibles() {
+  const estExclu = (id) => id.startsWith(RUMEUR_LOCAUX_PREFIXE_EXCLU);
+  const resultats = [];
+  Object.keys(COUNTRIES).forEach(pays => {
+    const world = (typeof WORLD !== 'undefined') ? WORLD[pays] : null;
+    if (!world) return;
+    const nomPays = COUNTRIES[pays]?.n || pays;
+    RUMEUR_ZONES_LOCAL.forEach(villeId => {
+      const ville = world[villeId];
+      if (!ville || !Array.isArray(ville.buildings)) return;
+      const nomVille = ville.name || villeId;
+      ville.buildings.forEach(buildingId => {
+        if (estExclu(buildingId)) return;
+        const base = (typeof BUILDINGS !== 'undefined') ? BUILDINGS[buildingId] : null;
+        const override = ville.buildingContext?.[buildingId];
+        const nomCourt = override?.name || base?.name;
+        if (!nomCourt) return;
+        resultats.push({
+          value: pays + '|' + villeId + '|' + buildingId,
+          labelCourt: nomCourt,
+          labelListe: nomCourt + ' — ' + nomVille + ', ' + nomPays
+        });
+      });
+    });
+  });
+  resultats.sort((a, b) => a.labelListe.localeCompare(b.labelListe, 'fr'));
+  return resultats;
+}
+
+async function changerTypeRumeur(nouveauType) {
+  if (!_rumeur) return;
+  _rumeur.type = nouveauType;
+  _rumeur.cibleValue = null;
+  _rumeur.cibleLabel = null;
+  majRecapCibleRumeur();
+
+  const zone = document.getElementById('rumeur-cible-zone');
+  if (!zone) return;
+
+  if (nouveauType === 'pj') {
+    zone.innerHTML =
+      '<input type="text" id="rumeur-pj-search" autocomplete="off" oninput="rechercherPjRumeur(this.value)" placeholder="Rechercher un PJ par nom (2 caractères min)..." style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;box-sizing:border-box">' +
+      '<div id="rumeur-pj-suggestions" style="margin-top:.3rem"></div>';
+    chargerPjPourRumeur();
+    return;
+  }
+
+  if (nouveauType === 'organisation') {
+    zone.innerHTML = '<div style="font-size:.78rem;color:#9a8a68">Chargement des organisations...</div>';
+    const orgas = await chargerOrganisationsPourRumeur();
+    if (_rumeur.type !== 'organisation') return; // le joueur a change de type entre-temps
+    zone.innerHTML = '<select id="rumeur-cible-select" onchange="choisirCibleSimpleRumeur(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+      '<option value="">— Choisir une organisation —</option>' +
+      orgas.map(o => '<option value="' + o.id + '" data-label="' + escapeHtmlText(o.nom) + '">' + escapeHtmlText(o.nom) + ' (' + escapeHtmlText(COUNTRIES[o.country]?.n || o.country) + ')</option>').join('') +
+      '</select>';
+    return;
+  }
+
+  if (nouveauType === 'local') {
+    const locaux = construireListeLocauxCibles();
+    zone.innerHTML = '<select id="rumeur-cible-select" onchange="choisirCibleSimpleRumeur(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+      '<option value="">— Choisir un local —</option>' +
+      locaux.map(l => '<option value="' + l.value + '" data-label="' + escapeHtmlText(l.labelCourt) + '">' + escapeHtmlText(l.labelListe) + '</option>').join('') +
+      '</select>';
+    return;
+  }
+
+  // gouvernement / pays : meme liste de pays, seule la semantique de l'effet differe ensuite
+  const paysListe = Object.keys(COUNTRIES).sort((a, b) => (COUNTRIES[a].n || a).localeCompare(COUNTRIES[b].n || b, 'fr'));
+  zone.innerHTML = '<select id="rumeur-cible-select" onchange="choisirCibleSimpleRumeur(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+    '<option value="">— Choisir un pays —</option>' +
+    paysListe.map(p => '<option value="' + p + '" data-label="' + escapeHtmlText(COUNTRIES[p].n || p) + '">' + escapeHtmlText(COUNTRIES[p].n || p) + '</option>').join('') +
+    '</select>';
+}
+
+function rechercherPjRumeur(query) {
+  const suggestionsDiv = document.getElementById('rumeur-pj-suggestions');
+  if (!suggestionsDiv) return;
+  const q = (query || '').trim().toLowerCase();
+  if (q.length < 2) { suggestionsDiv.innerHTML = ''; return; }
+  const resultats = (_rumeurPjCache || []).filter(p => (p.name || '').toLowerCase().includes(q)).slice(0, 8);
+  if (resultats.length === 0) {
+    suggestionsDiv.innerHTML = '<div style="font-size:.75rem;color:#7a6a50;padding:.3rem">Aucun résultat.</div>';
+    return;
+  }
+  suggestionsDiv.innerHTML = resultats.map(p =>
+    '<div onclick="choisirCiblePjRumeur(\'' + p.name.replace(/'/g, "\\'") + '\')" style="padding:.4rem .6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.25rem;cursor:pointer;font-size:.8rem;color:#c0b090" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+      escapeHtmlText(p.name) + (p.country ? ' <span style="color:#7a6a50">(' + escapeHtmlText(COUNTRIES[p.country]?.n || p.country) + ')</span>' : '') +
+    '</div>'
+  ).join('');
+}
+
+function choisirCiblePjRumeur(nom) {
+  if (!_rumeur) return;
+  _rumeur.cibleValue = nom;
+  _rumeur.cibleLabel = nom;
+  const input = document.getElementById('rumeur-pj-search');
+  if (input) input.value = nom;
+  const suggestions = document.getElementById('rumeur-pj-suggestions');
+  if (suggestions) suggestions.innerHTML = '';
+  majRecapCibleRumeur();
+}
+
+function choisirCibleSimpleRumeur(selectEl) {
+  if (!_rumeur) return;
+  const opt = selectEl.selectedOptions[0];
+  _rumeur.cibleValue = selectEl.value || null;
+  _rumeur.cibleLabel = (opt && selectEl.value) ? opt.getAttribute('data-label') : null;
+  majRecapCibleRumeur();
+}
+
+// Prefixe sobre affiche dans le journal public (§10) -- toujours devant le texte du joueur,
+// jamais l'auteur reel.
+function construirePrefixeRumeur(type, cibleLabel) {
+  if (type === 'organisation') return 'Rumeur — Organisation ' + cibleLabel;
+  if (type === 'gouvernement') return 'Rumeur — Gouvernement de ' + cibleLabel;
+  return 'Rumeur — ' + cibleLabel; // pj, local, pays
+}
+
+// Phrase de cible utilisee UNIQUEMENT pour la trace judiciaire (actions_tracables.cible), lue
+// par le formulateur "fausse_rumeur" de FORMULATIONS_RUMEUR_VRAIE (ecouter les rumeurs) --
+// jamais affichee publiquement telle quelle.
+function construirePhraseCibleTracee(type, cibleLabel) {
+  if (type === 'organisation') return "l'organisation « " + cibleLabel + ' »';
+  if (type === 'local') return "l'établissement « " + cibleLabel + ' »';
+  if (type === 'gouvernement') return 'le gouvernement de ' + cibleLabel;
+  return cibleLabel; // pj, pays
+}
+
+// Effet applique en cas de succes (§5), selon le type de cible. Reutilise exclusivement les
+// mecanismes existants (POP joueur, INF organisation, IS ville/pays, titulaires de poste) --
+// aucune nouvelle jauge parallele. Retourne un texte descriptif pour le recap/journal prive.
+async function appliquerEffetRumeur(type, cibleValue, cibleLabel) {
+  if (type === 'pj') {
+    const perte = Math.floor(Math.random() * 16) + 5; // 5 a 20 inclus
+    if (typeof sbAjusterPopJoueur === 'function') await sbAjusterPopJoueur(cibleValue, -perte).catch(() => {});
+    return '-' + perte + ' POP sur ' + cibleLabel;
+  }
+
+  if (type === 'organisation') {
+    const perte = Math.floor(Math.random() * 10) + 1; // 1 a 10 inclus
+    // organisation.influence = jauge OFFICIELLE d'influence de l'organisation (0-100, confirme
+    // le 2 septembre 2026) -- distincte de state.inf (influence PERSONNELLE du joueur, jamais
+    // touchee ici). Un champ absent/invalide (donnees anciennes anterieures a cette regle) vaut
+    // 50 (valeur neutre), jamais undefined/NaN.
+    if (typeof sbGetOrganisationParId === 'function' && typeof sbSaveOrganisation === 'function') {
+      const orga = await sbGetOrganisationParId(cibleValue).catch(() => null);
+      if (orga) {
+        const influenceActuelle = Number.isFinite(orga.influence) ? orga.influence : 50;
+        orga.influence = Math.max(0, Math.min(100, influenceActuelle - perte));
+        await sbSaveOrganisation(orga).catch(() => {});
+      }
+    }
+    return '-' + perte + ' INF sur l\'organisation « ' + cibleLabel + ' »';
+  }
+
+  if (type === 'local') {
+    return 'aucun effet statistique (rumeur purement RP)';
+  }
+
+  if (type === 'gouvernement') {
+    const perte = Math.floor(Math.random() * 5) + 1; // 1 a 5 inclus, UN SEUL tirage pour tous
+    const membres = [];
+    if (typeof getTitulaireActuel === 'function') {
+      for (const posteId of RUMEUR_POSTES_GOUVERNEMENT) {
+        const titulaire = await getTitulaireActuel(posteId, null, cibleValue).catch(() => null);
+        if (titulaire?.nom) membres.push(titulaire.nom);
+      }
+    }
+    if (typeof sbAjusterPopJoueur === 'function') {
+      for (const nom of membres) await sbAjusterPopJoueur(nom, -perte).catch(() => {});
+    }
+    return membres.length > 0
+      ? ('-' + perte + ' POP sur ' + membres.length + ' membre(s) du gouvernement de ' + cibleLabel)
+      : ('aucun titulaire en poste actuellement dans le gouvernement de ' + cibleLabel);
+  }
+
+  if (type === 'pays') {
+    const perte = Math.floor(Math.random() * 5) + 1; // 1 a 5 inclus, UN SEUL tirage pour tout le pays
+    // appliquerDeltaIndiceVillesPays (plateau-divers.js) applique ce delta au bon nombre de
+    // vraies valeurs pour ce pays (3 pour Republia, 1 pour les 3 autres empires aujourd'hui) --
+    // aucune connaissance ici de l'etat d'avancement du decoupage par ville de chaque empire :
+    // le jour ou narco/soviet/khalija recevront un IS par ville, cette ligne restera correcte
+    // sans modification (voir VILLES_SUIVIES_PAR_PAYS, seul point a mettre a jour a ce moment-la).
+    if (typeof appliquerDeltaIndiceVillesPays === 'function') await appliquerDeltaIndiceVillesPays(cibleValue, 'social', -perte).catch(() => {});
+    return '-' + perte + ' IS sur ' + cibleLabel;
+  }
+
+  return '';
+}
+
+async function validerLancementRumeur() {
+  if (!_rumeur || _rumeur.soumission) return;
+
+  if (!_rumeur.cibleValue) { showToast('Cible requise', 'Sélectionnez une cible avant de lancer la rumeur.', false); return; }
+  const texte = (_rumeur.texte || '').trim();
+  if (!texte) { showToast('Texte requis', 'Rédigez le texte de votre rumeur.', false); return; }
+
+  _rumeur.soumission = true;
+  const btn = document.getElementById('rumeur-btn-valider');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = 'Lancement...'; }
+
+  const { pa, cost, successRate, type, cibleValue, cibleLabel } = _rumeur;
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) {
+    showToast('PA insuffisants', '', false);
+    _rumeur.soumission = false;
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'Lancer la rumeur — 1 PA'; }
+    return;
+  }
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const texteEchappe = (typeof escapeHtmlText === 'function') ? escapeHtmlText(texte) : texte;
   const roll = Math.floor(Math.random() * 100) + 1;
-  const succes = roll <= (successRate || 50);
+  const succes = roll <= (successRate || 75);
 
   if (succes) {
-    const perte = Math.floor(Math.random() * 16) + 5; // entre 5 et 20
-
-    let texteRumeur = nomCible + ' serait impliqué(e) dans une affaire compromettante.';
-    try {
-      const resp = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 150,
-          messages: [{
-            role: 'user',
-            content: 'Res Publica, jeu de rôle politique parodique et satirique. Une rumeur compromettante vient d\'être lancée contre ' + nomCible + '. Génère UNE phrase de rumeur courte (1-2 phrases max), diffamatoire mais crédible, ton satirique et cynique. Réponds UNIQUEMENT avec la rumeur, en texte brut sans markdown (pas de #, pas de **), sans introduction.'
-          }]
-        })
-      });
-      const data = await resp.json();
-      texteRumeur = data.content?.[0]?.text?.trim() || texteRumeur;
-    } catch(e) {}
-
-    if (typeof sbAjusterPopJoueur === 'function') {
-      sbAjusterPopJoueur(nomCible, -perte).catch(() => {});
-    }
+    const effetTexte = await appliquerEffetRumeur(type, cibleValue, cibleLabel);
+    const prefixe = construirePrefixeRumeur(type, cibleLabel);
+    const texteComplet = prefixe + ' — ' + texteEchappe;
 
     document.getElementById('postes-modal-title').textContent = '🗯 Rumeur lancée !';
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1.2rem">' +
-      '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:Crimson Pro,serif">"' + texteRumeur + '"</div>' +
-      '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">Cible : ' + nomCible + ' · -' + perte + ' POP</div>' +
+      '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:\'Crimson Pro\',serif">"' + texteEchappe + '"</div>' +
+      '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">Cible : ' + escapeHtmlText(cibleLabel) + '</div>' +
       '</div>';
     document.getElementById('modal-postes').classList.add('open');
 
-    addExternalEvent('🗯 ' + texteRumeur);
-    addJournalEntry('Rumeur lancée avec succès contre ' + nomCible + ' : "' + texteRumeur.substring(0,60) + '" (-' + perte + ' POP).', 'event-good');
-    if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('fausse_rumeur', nomCible);
+    // Portee mondiale (§9) : visible dans les 4 empires via la sentinelle country:'global'
+    // (sbGetEvenementsRecents, aucune migration de schema).
+    addExternalEvent('🗯 ' + texteComplet, 'mondial');
+    addJournalEntry('Rumeur lancée avec succès contre ' + escapeHtmlText(cibleLabel) + ' : ' + effetTexte + '.', 'event-good');
+
+    if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('fausse_rumeur', construirePhraseCibleTracee(type, cibleLabel));
     if (typeof checkDetection === 'function') checkDetection('fausse_rumeur', 'success');
   } else {
-    state.pop = Math.max(0, (state.pop || 0) - 5);
-    state.dis = Math.max(0, (state.dis || 50) - 5);
-    addJournalEntry('Tentative de rumeur contre ' + nomCible + ' ratée. Elle se retourne contre vous. -5 POP -5 DIS.', 'event-bad');
-    showToast('Rumeur ratée', 'Votre tentative échoue et se retourne contre vous. -5 POP -5 DIS.', false);
+    // Retour de baton (§6) : tirage entier 0-10 (borne 10 reellement atteignable, meme idiome
+    // que tous les autres jets du jeu) interprete directement comme un pourcentage 0-10% --
+    // <5% -> 0 ; 5-9% -> -1 ; 10% -> -2, sur POP et DIS a l'identique.
+    const rollRetour = Math.floor(Math.random() * 11); // 0 a 10 inclus
+    const perteRetour = rollRetour < 5 ? 0 : (rollRetour < 10 ? 1 : 2);
+    if (perteRetour > 0) {
+      state.pop = Math.max(0, (state.pop || 0) - perteRetour);
+      state.dis = Math.max(0, (state.dis || 50) - perteRetour);
+    }
+
+    addJournalEntry(
+      'Tentative de rumeur contre ' + escapeHtmlText(cibleLabel) + ' ratée.' +
+      (perteRetour > 0 ? ' Elle se retourne contre vous : -' + perteRetour + ' POP -' + perteRetour + ' DIS.' : ' Aucune conséquence pour vous cette fois.'),
+      'event-bad'
+    );
+    showToast(
+      'Rumeur ratée',
+      perteRetour > 0 ? ('Votre tentative échoue et se retourne contre vous. -' + perteRetour + ' POP -' + perteRetour + ' DIS.') : 'Votre tentative échoue, sans conséquence pour vous cette fois.',
+      false
+    );
+
     if (typeof checkDetection === 'function') checkDetection('fausse_rumeur', 'success');
   }
 
+  _rumeur = null;
   if (typeof advanceTime === 'function') advanceTime(Math.max(0, pa || 0));
   updateUI();
 }

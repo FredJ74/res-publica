@@ -661,6 +661,9 @@ function confirmerCreationOrga(type) {
     demandesAdhesion: [],
     bonusLocaux: { pop: 0, inf: 0, dis: 0 },
     caisse: 0,
+    // Jauge officielle d'influence de l'organisation (0-100, confirmee le 2 septembre 2026,
+    // chantier "refonte Lancer une rumeur") -- valeur neutre de depart, jamais undefined/NaN.
+    influence: 50,
     localId: state.currentBuilding + ':' + state.currentRoom,
     // Confidentialite entierement determinee par le type (def.secret), plus de choix joueur
     // dans ce parcours (game design arrete le 26 aout 2026) : les 6 types publics restent
@@ -7200,6 +7203,7 @@ async function doRejoindreClubSupporters(pa, cost) {
       creeLe: state.day || 1,
       membres: [], demandesAdhesion: [],
       bonusLocaux: { pop:0, inf:0, dis:0 }, caisse: 0,
+      influence: 50, // jauge officielle d'influence, valeur neutre de depart (2 septembre 2026)
       election: null,
       visible: true
     };
@@ -7260,6 +7264,7 @@ async function chargerOuCreerSyndicatDockersPSM() {
     creeLe: state.day || 1,
     membres: [], demandesAdhesion: [],
     bonusLocaux: { pop:0, inf:0, dis:0 }, caisse: 0,
+    influence: 50, // jauge officielle d'influence, valeur neutre de depart (2 septembre 2026)
     election: null,
     visible: true
   };
