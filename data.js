@@ -6548,6 +6548,18 @@ const TYPES_ORGANISATIONS = {
     maxAdhesion: 1,
     ordres: [
       { fn: 'demander_autorisation_manifester', label: 'Demander une autorisation de manifester', pa: 1, cost: 0, icon: 'ti-walk', desc: 'Reserve au chef. Depot 24h avant minimum, validee automatiquement 12h avant si le Ministre de l\'Interieur ne l\'a pas interdite.' },
+      { fn: 'greve_lancer', label: 'Lancer une grève', pa: 1, cost: 0, icon: 'ti-flag-3', chefOnly: true,
+        desc: 'Réservé au chef. Nécessite au moins ' + GREVE_MEMBRES_MIN + ' membres. Revendications libres, cible au choix (PJ, gouvernement, entreprise, organisation, pays). Reste active jusqu\'à ce que vous y mettiez fin.',
+        visibleSi: (orga) => !orga.greve?.actif },
+      { fn: 'greve_terminer', label: 'Mettre fin à la grève', pa: 0, cost: 0, icon: 'ti-flag-off', chefOnly: true,
+        desc: 'Arrêt immédiat de la grève en cours. Réservé au chef. Aucun vote, aucune fin automatique.',
+        visibleSi: (orga) => !!orga.greve?.actif },
+      { fn: 'greve_generale_appeler', label: 'Appeler à une grève générale', pa: 1, cost: 0, icon: 'ti-users-group', chefOnly: true,
+        desc: 'Réservé au chef. N\'engage aucune grève immédiatement : ouvre une consultation intersyndicale nationale (mail à chaque chef de syndicat éligible + sujet public sur le Forum National).',
+        visibleSi: (orga) => !orga.greveGeneraleEnCoursId },
+      { fn: 'greve_generale_retirer', label: 'Retirer le syndicat de la grève générale', pa: 0, cost: 0, icon: 'ti-door-exit', chefOnly: true,
+        desc: 'Retrait immédiat et définitif de la grève générale en cours. Réservé au chef. Vos adhérents cessent de compter dans sa puissance.',
+        visibleSi: (orga) => orga.greveGeneraleEnCoursId && orga.greveGeneraleStatut === 'actif' },
     ]
   },
 
@@ -6742,6 +6754,78 @@ const ORGA_ORDRE_RANG_MIN = {
   orga_blanchiment:   1, // Soldat minimum
   orga_hooliganisme:  3, // Meneur seulement
 };
+
+// =====================
+// GREVES, GREVE GENERALE ET CONTRE-POUVOIRS (audit valide + implementation, 3 septembre 2026)
+// =====================
+// "chefOnly" (nouveau, additif) : gate generique complementaire a ORGA_ORDRE_RANG_MIN ci-dessus
+// -- ORGA_ORDRE_RANG_MIN gate par grade/rang, jamais utilisable pour "chef seulement" (le chef
+// n'est pas forcement le membre au grade le plus eleve dans tous les cas). Verifie par
+// ouvrirOrdresOrga/executerOrdreOrga (plateau-organisations-quetes.js) via orga.chef ===
+// state.char?.name, meme doctrine que partout ailleurs dans ce fichier pour les organisations.
+const GREVE_MEMBRES_MIN = 5;
+
+// Paliers de la greve ORDINAIRE, par nombre de membres du syndicat greviste (cahier des charges
+// §2, valide 3 septembre 2026). Le malus Social reste fixe (-1) quel que soit le palier -- seuls
+// POP/pourcentage d'activite/INF scalent avec la taille du syndicat.
+const GREVE_PALIERS = [
+  { min: 5,   max: 24,       pop: 10, social: 1, entrepriseReduction: 0.10, orgaInf: 1 },
+  { min: 25,  max: 49,       pop: 20, social: 1, entrepriseReduction: 0.20, orgaInf: 2 },
+  { min: 50,  max: 74,       pop: 30, social: 1, entrepriseReduction: 0.30, orgaInf: 3 },
+  { min: 75,  max: 99,       pop: 40, social: 1, entrepriseReduction: 0.40, orgaInf: 4 },
+  { min: 100, max: Infinity, pop: 50, social: 1, entrepriseReduction: 0.50, orgaInf: 5 },
+];
+function palierGreveOrdinaire(nbMembres) {
+  return GREVE_PALIERS.find(p => nbMembres >= p.min && nbMembres <= p.max) || GREVE_PALIERS[0];
+}
+const GREVE_USURE_JOUR_DEBUT = 15; // a partir du 15e jour REEL de greve : usure INF du syndicat
+const GREVE_USURE_INF_JOUR = 2;    // -2 INF/jour a partir de ce seuil, plancher 0
+const GREVE_ACTIVITE_PLANCHER = 0.40; // une greve ne fait jamais tomber l'activite sous 40% du normal
+const GREVE_SOCIAL_PLANCHER = -10;    // plancher structurel specifique aux effets de greve (Social
+                                       // peut descendre sous 0 ici, a la difference du plancher 0
+                                       // habituel des autres indices -- decision validee, cahier §2/§6)
+
+// Entreprises reellement ciblables par une greve ("activite economique reelle" -- decision du
+// 3 septembre 2026 : restreint aux 3 transformateurs de Republia, qui ont une formule de
+// production isolee par batiment (VOLUME_MATIERE_PAR_CHAINE_JOUR, api/cron-minuit.js). Les
+// entrepots/le port sont exclus de cette premiere version : leur logique de redistribution est
+// partagee/proportionnelle entre les 3 villes a la fois (traiterExportationsPortQuotidien),
+// un coefficient par batiment isole n'y serait pas sur sans une refonte plus large. Les
+// commerces/armureries (moteur PJ pur, plateau-actions-illegales-rumeurs.js) n'ont pas de
+// production PNJ/cron de reference a reduire -- egalement hors perimetre de cette version.
+const GREVE_ENTREPRISES_CIBLABLES = [
+  { id: 'usine-pharmaceutique-luthecia', label: 'Usine Pharmaceutique (Luthécia)', country: 'republic', city: 'capitale', buildingId: 'usine-pharmaceutique-luthecia' },
+  { id: 'pole-tabac-alcools-psm',        label: 'Pôle Tabac & Alcools (Port-Sainte-Marie)', country: 'republic', city: 'ville_a', buildingId: 'pole-tabac-alcools-psm' },
+  { id: 'raffinerie-montrouge',          label: 'Raffinerie (Montrouge)', country: 'republic', city: 'ville_b', buildingId: 'raffinerie-montrouge' },
+];
+
+// Paliers de la greve GENERALE, par nombre d'adherents UNIQUES des syndicats participants
+// (cahier des charges §6). "autresElusPop" ne s'applique jamais aux membres du gouvernement
+// (voir appliquerEffetsGreveGenerale, api/cron-minuit.js -- pas de double comptage).
+const GREVE_GENERALE_NIVEAUX = [
+  { min: 100, max: 199,      niveau: 1, gouvernementPop: 2,  autresElusPop: 1, social: 1, economieReduction: 0.10, retournementJour: 11 },
+  { min: 200, max: 299,      niveau: 2, gouvernementPop: 4,  autresElusPop: 2, social: 1, economieReduction: 0.20, retournementJour: 9  },
+  { min: 300, max: 399,      niveau: 3, gouvernementPop: 6,  autresElusPop: 3, social: 1, economieReduction: 0.30, retournementJour: 7  },
+  { min: 400, max: 499,      niveau: 4, gouvernementPop: 8,  autresElusPop: 4, social: 2, economieReduction: 0.40, retournementJour: 6  },
+  { min: 500, max: Infinity, niveau: 5, gouvernementPop: 10, autresElusPop: 5, social: 2, economieReduction: 0.50, retournementJour: 5  },
+];
+function palierGreveGenerale(adherentsUniques) {
+  if (adherentsUniques < GREVE_GENERALE_ADHERENTS_MIN) return null;
+  return GREVE_GENERALE_NIVEAUX.find(p => adherentsUniques >= p.min && adherentsUniques <= p.max) || GREVE_GENERALE_NIVEAUX[GREVE_GENERALE_NIVEAUX.length - 1];
+}
+const GREVE_GENERALE_ADHERENTS_MIN = 100; // en-dessous : jamais adoptee, ou fin automatique si deja active
+const GREVE_GENERALE_RETOURNEMENT_INF_JOUR = 5; // -5 INF/jour/syndicat participant, a partir du retournement
+
+// Valeurs possibles pour organisations.data.corpsMetier (syndicats uniquement, optionnel,
+// declare par le fondateur a la creation -- §9 du cahier des charges : "ne jamais hardcoder un
+// nom du type Syndicat des policiers", d'ou un TAG STRUCTUREL plutot qu'une detection par nom.
+// Liste fermee (pas de texte libre) pour que la consequence mecanique associee (blocage de la
+// repression policiere, voir plateau-politique.js) reste un choix deliberement assume a la
+// creation, jamais un hasard de nommage.
+const GREVE_CORPS_METIER_OPTIONS = [
+  { id: '', label: 'Aucun (générique)' },
+  { id: 'police', label: 'Forces de l\'ordre (bloque la répression policière en cas de grève de ce syndicat)' },
+];
 
 // POSTES (table statique, holders codes en dur, jamais persistee) retiree le 9 aout 2026 —
 // refonte du systeme de postes. Remplacee par POSTES_ELECTIFS (postes elus) et

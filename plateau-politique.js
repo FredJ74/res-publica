@@ -2056,6 +2056,16 @@ function renderRoomActions(room, buildingId, roomId) {
       const chefReel = typeof getChefSyndicatDockersPSM === 'function' ? getChefSyndicatDockersPSM() : null;
       needsChefSyndicat = chefReel !== (state.char?.name || '');
     }
+    // §9 du cahier des charges "Greves" (3 septembre 2026) : la repression policiere devient
+    // INDISPONIBLE (pas un malus, pas un jet d'echec) des qu'un syndicat corpsMetier==='police'
+    // est en greve ou participe activement a une greve generale -- identification structurelle
+    // via syndicatPoliceEnGreve (plateau-organisations-quetes.js), jamais un nom d'organisation
+    // hardcode. Garde UI ici ; revalidee independamment dans confirmerReprimerManif ci-dessous.
+    let needsPoliceIndisponible = false;
+    const policeTooltip = 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.';
+    if (o.fn === 'reprimer_manif' && typeof syndicatPoliceEnGreve === 'function') {
+      needsPoliceIndisponible = syndicatPoliceEnGreve(state.country);
+    }
     // Garde UI dediee a "Prendre sa licence sportive" (correctif du 25 aout 2026, suite au bug
     // production v78) : grise le bouton avec une infobulle explicite des que le clic serait de
     // toute facon refuse par la garde fonctionnelle de doPrendreLicenceSportive
@@ -2223,6 +2233,8 @@ function renderRoomActions(room, buildingId, roomId) {
       onclickFn = "showToast('Aucun cadavre', 'Aucun cadavre a dissimuler sur ce terrain pour l\\'instant.', false)";
     } else if (needsChefSyndicat) {
       onclickFn = "showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut declencher un blocus portuaire.', false)";
+    } else if (needsPoliceIndisponible) {
+      onclickFn = "showToast('Répression impossible', " + JSON.stringify(policeTooltip) + ", false)";
     } else if (needsLicenceIndisponible) {
       onclickFn = "showToast('Licence indisponible', " + JSON.stringify(licenceTooltip) + ", false)";
     } else if (needsSuiteIndisponible) {
@@ -2244,9 +2256,9 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
-    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre) ? ' blocked' : '';
+    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsPoliceIndisponible || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
-    const tooltipFinal = needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : tooltip)));
+    const tooltipFinal = needsPoliceIndisponible ? policeTooltip.replace(/"/g, '&quot;') : (needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : tooltip))));
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
@@ -4934,6 +4946,13 @@ async function confirmerInterdireManif(pa, cost) {
 // une ville, Social local). Remplace l'ancien chemin mort reprimer_manif_cible.
 async function ouvrirReprimerManif(pa, cost) {
   const pays = state.country || 'republic';
+  // §9 "Greves" (3 septembre 2026) : garde UI deja postee dans le rendu generique des boutons
+  // (needsPoliceIndisponible) -- revalidee ici defensivement, ce modal pouvant en theorie etre
+  // ouvert par un autre chemin que ce bouton.
+  if (typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(pays)) {
+    showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false);
+    return;
+  }
   document.getElementById('postes-modal-title').textContent = 'Reprimer une manifestation';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Baisse le Social de la ville ciblee (bonus si une manifestation y a ete interdite dans les 72h). Blesse les PJ actuellement presents dans cette ville.</div>';
@@ -4957,6 +4976,12 @@ async function confirmerReprimerManif(pa, cost) {
   const sujet = document.getElementById('reprimer-manif-sujet')?.value?.trim() || 'Rassemblement non precise';
   const ville = document.getElementById('reprimer-manif-ville')?.value || state.currentCity || 'capitale';
   document.getElementById('modal-postes')?.classList.remove('open');
+  // §9 "Greves" : revalidation independante au moment de l'execution -- un syndicat de policiers
+  // a pu se mettre en greve entre l'ouverture du modal et ce clic.
+  if (typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(state.country || 'republic')) {
+    showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false);
+    return;
+  }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
   const pays = state.country || 'republic';
@@ -5761,12 +5786,22 @@ function doMobiliserPolice(fn) {
     { id: 'quartier', label: 'Renforcer un quartier sensible', isn: 5, pop: 0 },
     { id: 'reprimer', label: 'Réprimer un rassemblement par la force', isn: 10, pop: -15 }
   ];
+  // §9 "Greves" (3 septembre 2026) : l'option "reprimer" specifiquement devient indisponible
+  // (jamais un malus/jet d'echec) des qu'un syndicat de policiers est en greve -- voir
+  // syndicatPoliceEnGreve (plateau-organisations-quetes.js), identification structurelle.
+  const policeIndisponible = typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(state.country || 'republic');
   document.getElementById('postes-modal-title').textContent = "Faire intervenir les forces de l'ordre";
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Chaque type d\'intervention a un impact different sur la securite nationale et la popularite.</div>';
   options.forEach(o => {
-    html += '<button onclick="confirmerMobilisationPolice(\'' + o.id + '\',\'' + o.label.replace(/'/g,"\\'") + '\',' + o.isn + ',' + o.pop + ',\'' + fn + '\')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
-    html += '<span>' + o.label + '</span><span style="color:#8a8060">+' + o.isn + ' ISN · ' + (o.pop<=0?o.pop:'+'+o.pop) + ' POP</span></button>';
+    const bloque = o.id === 'reprimer' && policeIndisponible;
+    if (bloque) {
+      html += '<button disabled title="Un syndicat de policiers est en grève : la répression est impossible tant qu\'il n\'y met pas fin." style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#5a4a3a;opacity:.4;cursor:not-allowed;font-size:.78rem">';
+      html += '<span>' + o.label + '</span><span style="color:#5a4a3a">Indisponible (police en grève)</span></button>';
+    } else {
+      html += '<button onclick="confirmerMobilisationPolice(\'' + o.id + '\',\'' + o.label.replace(/'/g,"\\'") + '\',' + o.isn + ',' + o.pop + ',\'' + fn + '\')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
+      html += '<span>' + o.label + '</span><span style="color:#8a8060">+' + o.isn + ' ISN · ' + (o.pop<=0?o.pop:'+'+o.pop) + ' POP</span></button>';
+    }
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -5832,6 +5867,13 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
   // nourrit la cause plutot que de l'eteindre (sympathie pour les opprimes), sur demande
   // explicite de Fred le 5 aout 2026.
   if (id === 'reprimer') {
+    // §9 "Greves" : revalidation independante (un syndicat de policiers a pu se mettre en greve
+    // entre l'ouverture du modal et ce clic) -- preserve integralement le reste de cette branche
+    // (repressionsSubies/calculerPuissanceSyndicale), jamais touchee par ce lot.
+    if (typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(pays)) {
+      showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false);
+      return;
+    }
     const etatBatiment = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, state.currentCity, state.currentBuilding) : null;
     if (etatBatiment?.blocus) {
       const orgas = (typeof chargerOrgas === 'function') ? chargerOrgas() : (state.orgas || []);

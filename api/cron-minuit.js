@@ -1114,6 +1114,243 @@ async function appliquerEffetsBlocusActifs() {
   return resultats;
 }
 
+// =====================
+// GREVES, GREVE GENERALE ET CONTRE-POUVOIRS -- effets quotidiens (audit valide + implementation,
+// 3 septembre 2026). Duplique cote serveur (contexte isole, memes constantes que data.js/
+// plateau-organisations-quetes.js -- aucun acces possible aux fichiers client depuis ce cron).
+// =====================
+const GREVE_PALIERS_SERVEUR = [
+  { min: 5,   max: 24,       pop: 10, social: 1, entrepriseReduction: 0.10, orgaInf: 1 },
+  { min: 25,  max: 49,       pop: 20, social: 1, entrepriseReduction: 0.20, orgaInf: 2 },
+  { min: 50,  max: 74,       pop: 30, social: 1, entrepriseReduction: 0.30, orgaInf: 3 },
+  { min: 75,  max: 99,       pop: 40, social: 1, entrepriseReduction: 0.40, orgaInf: 4 },
+  { min: 100, max: Infinity, pop: 50, social: 1, entrepriseReduction: 0.50, orgaInf: 5 },
+];
+function palierGreveOrdinaireServeur(nbMembres) {
+  return GREVE_PALIERS_SERVEUR.find(p => nbMembres >= p.min && nbMembres <= p.max) || GREVE_PALIERS_SERVEUR[0];
+}
+const GREVE_USURE_JOUR_DEBUT_SERVEUR = 15;
+const GREVE_USURE_INF_JOUR_SERVEUR = 2;
+const GREVE_ACTIVITE_PLANCHER_SERVEUR = 0.40;
+const GREVE_SOCIAL_PLANCHER_SERVEUR = -10;
+// Entreprises reellement ciblables (voir GREVE_ENTREPRISES_CIBLABLES, data.js -- restreint aux 3
+// transformateurs de Republia pour cette premiere version, entrepots/port hors perimetre).
+const GREVE_ENTREPRISES_CIBLABLES_SERVEUR = {
+  'usine-pharmaceutique-luthecia': { city: 'capitale', country: 'republic' },
+  'pole-tabac-alcools-psm':        { city: 'ville_a',  country: 'republic' },
+  'raffinerie-montrouge':          { city: 'ville_b',  country: 'republic' },
+};
+// PM + 6 ministeres, jamais le President (meme convention que RUMEUR_POSTES_GOUVERNEMENT,
+// plateau-pnj.js -- "immunite totale deja geree ailleurs, hors perimetre ici").
+const GREVE_POSTES_GOUVERNEMENT_SERVEUR = ['pm', 'min_int', 'min_fin', 'min_just', 'min_def', 'min_info', 'min_ae'];
+
+const GREVE_GENERALE_NIVEAUX_SERVEUR = [
+  { min: 100, max: 199,      niveau: 1, gouvernementPop: 2,  autresElusPop: 1, social: 1, economieReduction: 0.10, retournementJour: 11 },
+  { min: 200, max: 299,      niveau: 2, gouvernementPop: 4,  autresElusPop: 2, social: 1, economieReduction: 0.20, retournementJour: 9  },
+  { min: 300, max: 399,      niveau: 3, gouvernementPop: 6,  autresElusPop: 3, social: 1, economieReduction: 0.30, retournementJour: 7  },
+  { min: 400, max: 499,      niveau: 4, gouvernementPop: 8,  autresElusPop: 4, social: 2, economieReduction: 0.40, retournementJour: 6  },
+  { min: 500, max: Infinity, niveau: 5, gouvernementPop: 10, autresElusPop: 5, social: 2, economieReduction: 0.50, retournementJour: 5  },
+];
+function niveauGreveGeneraleServeur(niveau) {
+  return GREVE_GENERALE_NIVEAUX_SERVEUR.find(n => n.niveau === niveau) || GREVE_GENERALE_NIVEAUX_SERVEUR[0];
+}
+const GREVE_GENERALE_ADHERENTS_MIN_SERVEUR = 100;
+const GREVE_GENERALE_RETOURNEMENT_INF_JOUR_SERVEUR = 5;
+const GREVE_VILLES_REPUBLIA_SERVEUR = ['capitale', 'ville_a', 'ville_b'];
+
+// organisations.data est un TEXT column (JSON.stringify), duplique de sbLoadOrganisations/
+// sbSaveOrganisation (supabase.js) -- contexte serveur isole, memes raisons que sbGetBatimentEtat.
+async function sbLoadOrganisationsServeur() {
+  const rows = await sbGet('organisations', 'select=*');
+  if (!rows) return [];
+  return rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
+}
+async function sbSaveOrganisationServeur(orga) {
+  await sbUpdate('organisations', `id=eq.${encodeURIComponent(orga.id)}`, { data: JSON.stringify(orga) }).catch(() => {});
+}
+
+async function ajusterPopJoueurServeur(nom, delta) {
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=resources`);
+  const resources = rows?.[0]?.resources || { inf: 0, pop: 50, dis: 50 };
+  const nouveauPop = Math.max(0, Math.min(100, (resources.pop ?? 50) + delta));
+  await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { resources: { ...resources, pop: nouveauPop } }).catch(() => {});
+}
+
+// PM+6 ministres (Gouvernement) vs tout autre titulaire de poste (Autres elus) -- une seule
+// requete par pays, jamais de double comptage (un titulaire du gouvernement ne peut jamais
+// apparaitre aussi dans "autres elus", voir la branche if/else ci-dessous).
+async function resoudrePostesPaysServeur(pays) {
+  const joueurs = await sbGet('personnages', `country=eq.${encodeURIComponent(pays)}&select=name,poste`) || [];
+  const gouvernement = [], autresElus = [];
+  for (const j of joueurs) {
+    let poste = j.poste;
+    if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
+    if (!poste || !poste.id) continue;
+    if (GREVE_POSTES_GOUVERNEMENT_SERVEUR.includes(poste.id)) gouvernement.push(j.name);
+    else autresElus.push(j.name);
+  }
+  return { gouvernement, autresElus };
+}
+
+// Republia : vraies valeurs persistees par ville (indices_villes, meme table que le reste du
+// jeu). Les 3 autres empires : AUCUNE persistance serveur n'existe aujourd'hui pour leurs
+// indices nationaux (INDICES_NATIONAUX est une constante EN MEMOIRE COTE CLIENT UNIQUEMENT,
+// jamais synchronisee en base -- ecart d'architecture identifie et sciemment non traite dans ce
+// chantier, decision de Fred le 3 septembre 2026 : "on finalise Republia", chantier dedie a
+// venir avant/durant la finalisation des 3 autres empires). "floor" parametrable (-10 pour le
+// Social d'une greve, jamais le plancher 0 habituel des autres indices).
+async function modifierIndiceVilleServeur(pays, ville, cle, delta, floor) {
+  if (pays !== 'republic') return;
+  const plancher = floor != null ? floor : 0;
+  const id = pays + '_' + ville;
+  const rows = await sbGet('indices_villes', `id=eq.${encodeURIComponent(id)}`);
+  const row = rows && rows[0];
+  const data = row ? row.data : { isn: 30, ie: 50, social: 45, piete: 40, moral: 50 };
+  data[cle] = Math.max(plancher, Math.min(100, (data[cle] ?? 50) + delta));
+  if (row) await sbUpdate('indices_villes', `id=eq.${encodeURIComponent(id)}`, { data }).catch(() => {});
+  else await sbInsert('indices_villes', { id, data }).catch(() => {});
+}
+async function appliquerDeltaSocialPaysServeur(pays, delta, floor) {
+  if (pays !== 'republic') return; // voir modifierIndiceVilleServeur
+  for (const ville of GREVE_VILLES_REPUBLIA_SERVEUR) {
+    await modifierIndiceVilleServeur(pays, ville, 'social', delta, floor);
+  }
+}
+
+// Effets QUOTIDIENS de la greve ORDINAIRE (cahier des charges §2) : paliers par nombre de
+// membres du syndicat greviste, usure INF a partir du 15e jour reel, coefficient d'activite
+// economique pour la cible "entreprise" (ecrit sur batiments_etat, lu par produireUneChaine ---
+// DOIT s'executer AVANT produireTransformateursQuotidien dans le handler principal, voir plus
+// bas). Idempotence par date (derniereApplicationJour) : protege contre un rejeu du cron le meme
+// jour, aucun verrou equivalent n'existant par ailleurs pour la production economique generale.
+async function appliquerEffetsGrevesOrdinaires() {
+  const resultats = { syndicatsTraites: 0 };
+  const aujourdHui = new Date().toISOString().slice(0, 10);
+  const coefficientsEntreprises = {};
+  try {
+    const organisations = await sbLoadOrganisationsServeur();
+
+    for (const orga of organisations) {
+      if (orga.type !== 'syndicale' || !orga.greve?.actif) continue;
+      if (orga.greve.derniereApplicationJour === aujourdHui) continue;
+
+      const nbMembres = orga.membres?.length || 0;
+      const palier = palierGreveOrdinaireServeur(nbMembres);
+      const type = orga.greve.type;
+      const cibleValue = orga.greve.cibleValue;
+
+      if (type === 'pj') {
+        await ajusterPopJoueurServeur(cibleValue, -palier.pop);
+      } else if (type === 'gouvernement') {
+        const { gouvernement } = await resoudrePostesPaysServeur(cibleValue);
+        for (const nom of gouvernement) await ajusterPopJoueurServeur(nom, -palier.pop);
+        await appliquerDeltaSocialPaysServeur(cibleValue, -palier.social, GREVE_SOCIAL_PLANCHER_SERVEUR);
+      } else if (type === 'entreprise') {
+        const coeff = Math.max(GREVE_ACTIVITE_PLANCHER_SERVEUR, 1 - palier.entrepriseReduction);
+        coefficientsEntreprises[cibleValue] = Math.min(coeff, coefficientsEntreprises[cibleValue] ?? 1);
+      } else if (type === 'organisation') {
+        const orgaCible = organisations.find(o => o.id === cibleValue);
+        if (orgaCible) {
+          const infActuelle = Number.isFinite(orgaCible.influence) ? orgaCible.influence : 50;
+          orgaCible.influence = Math.max(0, Math.min(100, infActuelle - palier.orgaInf));
+          await sbSaveOrganisationServeur(orgaCible);
+        }
+      } else if (type === 'pays') {
+        // "tous les elus" (§2) : gouvernement + tous les autres titulaires de poste, plus large
+        // que la seule cible "Gouvernement" ci-dessus.
+        const { gouvernement, autresElus } = await resoudrePostesPaysServeur(cibleValue);
+        for (const nom of [...gouvernement, ...autresElus]) await ajusterPopJoueurServeur(nom, -palier.pop);
+        await appliquerDeltaSocialPaysServeur(cibleValue, -palier.social, GREVE_SOCIAL_PLANCHER_SERVEUR);
+      }
+
+      orga.greve.joursActifs = (orga.greve.joursActifs || 0) + 1;
+      orga.greve.derniereApplicationJour = aujourdHui;
+      if (orga.greve.joursActifs >= GREVE_USURE_JOUR_DEBUT_SERVEUR) {
+        const infActuelle = Number.isFinite(orga.influence) ? orga.influence : 50;
+        orga.influence = Math.max(0, infActuelle - GREVE_USURE_INF_JOUR_SERVEUR);
+      }
+      await sbSaveOrganisationServeur(orga);
+      resultats.syndicatsTraites++;
+    }
+
+    // Coefficient d'activite des entreprises ciblees (le PIRE cas si plusieurs greves visent la
+    // meme entreprise le meme jour, jamais une composition) -- efface un coefficient residuel
+    // d'une greve d'hier deja terminee pour toute entreprise plus ciblee aujourd'hui.
+    for (const entrepriseId of Object.keys(GREVE_ENTREPRISES_CIBLABLES_SERVEUR)) {
+      const cfg = GREVE_ENTREPRISES_CIBLABLES_SERVEUR[entrepriseId];
+      const coeff = coefficientsEntreprises[entrepriseId];
+      if (coeff !== undefined) {
+        await sbSetBatimentEtat(cfg.country, cfg.city, entrepriseId, { greve: { coefficient: coeff, appliqueLe: aujourdHui } }).catch(() => {});
+      } else {
+        await sbSetBatimentEtat(cfg.country, cfg.city, entrepriseId, { greve: undefined }).catch(() => {});
+      }
+    }
+  } catch (e) { console.error('appliquerEffetsGrevesOrdinaires error', e); }
+  return resultats;
+}
+
+// Effets QUOTIDIENS de la greve GENERALE (cahier des charges §6/§7) : paliers de puissance +
+// retournement d'opinion (-5 INF/jour/syndicat participant a partir du seuil propre a chaque
+// niveau) -- le retournement NE diminue JAMAIS les effets eux-memes (les deux continuent en
+// parallele, cf. §7 "IMPORTANT"). Idempotence par date (derniere_application_jour), meme
+// doctrine que la greve ordinaire ci-dessus.
+async function appliquerEffetsGreveGenerale() {
+  const resultats = { traitees: 0 };
+  const aujourdHui = new Date().toISOString().slice(0, 10);
+  try {
+    const greves = await sbGet('greves_generales', 'statut=eq.active') || [];
+    for (const gg of greves) {
+      if (gg.derniere_application_jour === aujourdHui) continue;
+      const niveau = niveauGreveGeneraleServeur(gg.puissance_niveau || 1);
+      const participants = gg.participants || [];
+      const actifs = participants.filter(p => p.statut === 'accepte');
+      if (actifs.length === 0) continue;
+
+      const { gouvernement, autresElus } = await resoudrePostesPaysServeur(gg.country);
+      for (const nom of gouvernement) await ajusterPopJoueurServeur(nom, -niveau.gouvernementPop);
+      for (const nom of autresElus) await ajusterPopJoueurServeur(nom, -niveau.autresElusPop);
+      await appliquerDeltaSocialPaysServeur(gg.country, -niveau.social, GREVE_SOCIAL_PLANCHER_SERVEUR);
+      // Reduction economique nationale : meme doctrine que l'entreprise ciblee par une greve
+      // ordinaire (coefficient applique sur la valeur NOMINALE de reference, jamais compose) --
+      // ecrite sur les 3 transformateurs de Republia, seule infrastructure economique server-side
+      // existante aujourd'hui a l'echelle nationale (voir audit -- les 3 autres empires n'ont pas
+      // d'equivalent, meme limitation que le Social ci-dessus).
+      if (gg.country === 'republic') {
+        const coeffEco = Math.max(GREVE_ACTIVITE_PLANCHER_SERVEUR, 1 - niveau.economieReduction);
+        for (const entrepriseId of Object.keys(GREVE_ENTREPRISES_CIBLABLES_SERVEUR)) {
+          const cfg = GREVE_ENTREPRISES_CIBLABLES_SERVEUR[entrepriseId];
+          const etat = await sbGetBatimentEtat(cfg.country, cfg.city, entrepriseId).catch(() => ({}));
+          const coeffExistant = etat.greve?.coefficient;
+          const coeffFinal = coeffExistant !== undefined ? Math.min(coeffExistant, coeffEco) : coeffEco;
+          await sbSetBatimentEtat(cfg.country, cfg.city, entrepriseId, { greve: { coefficient: coeffFinal, appliqueLe: aujourdHui } }).catch(() => {});
+        }
+      }
+
+      const joursDepuisEntreeVigueur = (gg.jours_actifs || 0) + 1;
+      let retournementDeclenche = false;
+      if (joursDepuisEntreeVigueur >= niveau.retournementJour) {
+        retournementDeclenche = true;
+        const toutesOrgas = await sbLoadOrganisationsServeur();
+        for (const p of actifs) {
+          const orgaLive = toutesOrgas.find(o => o.id === p.orgaId);
+          if (!orgaLive) continue;
+          const infActuelle = Number.isFinite(orgaLive.influence) ? orgaLive.influence : 50;
+          orgaLive.influence = Math.max(0, infActuelle - GREVE_GENERALE_RETOURNEMENT_INF_JOUR_SERVEUR);
+          await sbSaveOrganisationServeur(orgaLive);
+        }
+      }
+
+      await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(gg.id)}`, {
+        jours_actifs: joursDepuisEntreeVigueur,
+        derniere_application_jour: aujourdHui
+      }).catch(() => {});
+      resultats.traitees++;
+      if (retournementDeclenche) resultats.retournements = (resultats.retournements || 0) + 1;
+    }
+  } catch (e) { console.error('appliquerEffetsGreveGenerale error', e); }
+  return resultats;
+}
+
 // Table dupliquee cote serveur (voir RESSOURCES_ECONOMIE, data.js — si modifiee cote
 // client, repercuter ici aussi).
 // prixBase ajoute a toute la table (30 aout 2026, lot achat inter-usines) -- miroir exact de
@@ -1343,15 +1580,24 @@ function chaineDependDUnAchatInterUsine(buildingId, matiere) {
 // automatique, sur les chaines qui en dependent (ex. alcool -> desinfectant) -- meme code
 // exact dans les deux cas, aucune duplication. Mute stockMatieres/venteDirecte en place (memes
 // objets que l'appelant), retourne les unites produites (0 si pas assez de matiere en stock).
-async function produireUneChaine(transfo, chaine, usine, stockMatieres, venteDirecte) {
+// coefficientActivite (greves, 3 septembre 2026, optionnel -- absent/1 = comportement inchange
+// pour tout appelant anterieur a ce lot) : reduit le volume nominal du jour, jamais une valeur
+// deja reduite la veille (VOLUME_MATIERE_PAR_CHAINE_JOUR reste la seule reference, relue a
+// l'identique chaque jour -- voir appliquerEffetsGrevesOrdinaires ci-dessous, aucune composition
+// multiplicative possible d'un jour sur l'autre).
+async function produireUneChaine(transfo, chaine, usine, stockMatieres, venteDirecte, coefficientActivite) {
   const matiereCfg = RESSOURCES_ECONOMIE_SERVEUR[chaine.matiere];
   if (!matiereCfg) return 0;
 
-  const stockDispo = stockMatieres[chaine.matiere] || 0;
-  if (stockDispo < VOLUME_MATIERE_PAR_CHAINE_JOUR) return 0; // pas assez de matiere en stock aujourd'hui
-  stockMatieres[chaine.matiere] = stockDispo - VOLUME_MATIERE_PAR_CHAINE_JOUR;
+  const coeff = coefficientActivite != null ? coefficientActivite : 1;
+  const volumeJour = Math.max(0, Math.round(VOLUME_MATIERE_PAR_CHAINE_JOUR * coeff));
+  if (volumeJour <= 0) return 0;
 
-  const uniteesProduites = VOLUME_MATIERE_PAR_CHAINE_JOUR * 2; // 1 matiere = 2 produits
+  const stockDispo = stockMatieres[chaine.matiere] || 0;
+  if (stockDispo < volumeJour) return 0; // pas assez de matiere en stock aujourd'hui
+  stockMatieres[chaine.matiere] = stockDispo - volumeJour;
+
+  const uniteesProduites = volumeJour * 2; // 1 matiere = 2 produits (ratio inchange)
   // Reglable par le directeur PJ en poste (tableau de bord, aout 2026) — 0.75 par defaut (mode PNJ)
   const partEntrepots = usine.repartitionEntrepots != null ? usine.repartitionEntrepots : PART_REDISTRIBUTION_ENTREPOTS;
   const versEntrepots = Math.round(uniteesProduites * partEntrepots);
@@ -1484,9 +1730,14 @@ async function produireTransformateursQuotidien() {
       const venteDirecte = usine.venteDirecte || {};
       const stockMatieres = usine.stockMatieres || {};
 
+      // Coefficient d'activite (greves, 3 septembre 2026) : ecrit par appliquerEffetsGrevesOrdinaires
+      // (appelee AVANT cette fonction dans le handler principal, voir plus bas) sur etat.greve --
+      // absent = 1 (aucune reduction), meme table/mecanisme que le blocus syndical.
+      const coefficientActivite = etat.greve?.coefficient;
+
       for (const chaine of transfo.chaines) {
         if (chaineDependDUnAchatInterUsine(transfo.buildingId, chaine.matiere)) continue; // traitee en passe 3
-        const u = await produireUneChaine(transfo, chaine, usine, stockMatieres, venteDirecte);
+        const u = await produireUneChaine(transfo, chaine, usine, stockMatieres, venteDirecte, coefficientActivite);
         if (u > 0) {
           productionReelleDuJour[chaine.produit] = (productionReelleDuJour[chaine.produit] || 0) + u;
           resultats.uniteesProduites += u;
@@ -1509,8 +1760,9 @@ async function produireTransformateursQuotidien() {
       const usine = etat.usine || { caisse: 3000, venteDirecte: {}, stockMatieres: {} };
       const venteDirecte = usine.venteDirecte || {};
       const stockMatieres = usine.stockMatieres || {};
+      const coefficientActivite = etat.greve?.coefficient;
       for (const chaine of chainesDependantes) {
-        const u = await produireUneChaine(transfo, chaine, usine, stockMatieres, venteDirecte);
+        const u = await produireUneChaine(transfo, chaine, usine, stockMatieres, venteDirecte, coefficientActivite);
         if (u > 0) resultats.uniteesProduites += u;
       }
       await sbSetBatimentEtat('republic', transfo.city, transfo.buildingId, { ...etat, usine: { ...usine, venteDirecte, stockMatieres } }).catch(() => {});
@@ -2953,6 +3205,13 @@ export default async function handler(req, res) {
     // 11. Effets quotidiens des blocus actifs (malus popularite du maire)
     const effetsBlocus = await appliquerEffetsBlocusActifs();
 
+    // 11b. Effets quotidiens des greves (ordinaires + generale) -- chantier "Greves, greve
+    // generale et contre-pouvoirs", 3 septembre 2026. DOIT s'executer AVANT l'etape 13
+    // (produireTransformateursQuotidien) : ecrit le coefficient d'activite economique lu par
+    // produireUneChaine pour les entreprises ciblees.
+    const effetsGrevesOrdinaires = await appliquerEffetsGrevesOrdinaires();
+    const effetsGreveGenerale = await appliquerEffetsGreveGenerale();
+
     // 12. Livraisons quotidiennes des entrepots logistiques (6 livraisons simulees en une
     // passe, limite du plan Vercel Hobby)
     const livraisons = await livrerEntrepotsQuotidien();
@@ -3022,7 +3281,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

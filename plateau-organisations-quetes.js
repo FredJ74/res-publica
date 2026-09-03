@@ -624,6 +624,17 @@ function ouvrirFormulaireOrga(type) {
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">DESCRIPTION (optionnel)</div>' +
     '<textarea id="orga-desc-input" maxlength="200" placeholder="Décrivez votre organisation en quelques mots..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;resize:none;height:60px;margin-bottom:.7rem"></textarea>' +
     (def.secret ? '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem">🔒 Confidentialité automatique : chef, siège et membres resteront cachés au public. L\'adhésion se fera uniquement sur invitation.</div>' : '') +
+    // corpsMetier (greves, 3 septembre 2026) : tag structurel optionnel, uniquement pour les
+    // syndicats -- §9 du cahier des charges ("ne jamais hardcoder un nom du type Syndicat des
+    // policiers"). Liste FERMEE (GREVE_CORPS_METIER_OPTIONS, data.js), jamais du texte libre :
+    // la consequence mecanique (blocage de la repression policiere) doit rester un choix
+    // deliberement assume a la creation, jamais un hasard de nommage.
+    (type === 'syndicale' ? (
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">CORPS DE MÉTIER REPRÉSENTÉ (optionnel)</div>' +
+      '<select id="orga-corps-metier-select" style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.7rem">' +
+      GREVE_CORPS_METIER_OPTIONS.map(o => '<option value="' + o.id + '">' + escapeHtmlText(o.label) + '</option>').join('') +
+      '</select>'
+    ) : '') +
     '<button onclick="confirmerCreationOrga(\'' + type + '\')" ' + (blocage ? 'disabled style="opacity:.4;cursor:not-allowed"' : '') + ' style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🏛 Fonder cette organisation</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -670,6 +681,13 @@ function confirmerCreationOrga(type) {
     // toujours publics ici, seule "criminelle" (Organisation Secrete) est automatiquement visible:false.
     visible: !def.secret,
   };
+
+  // corpsMetier (greves, 3 septembre 2026) : uniquement propose/lu pour un syndicat -- absent
+  // (undefined) pour tout autre type, jamais une chaine vide ecrite en base par defaut.
+  if (type === 'syndicale') {
+    const corpsMetier = document.getElementById('orga-corps-metier-select')?.value || '';
+    if (corpsMetier) nouvelleOrga.corpsMetier = corpsMetier;
+  }
 
   state.organisations.push(nouvelleOrga);
   if (typeof sbSaveOrganisation === 'function') sbSaveOrganisation(nouvelleOrga).catch(() => {});
@@ -1078,17 +1096,26 @@ function ouvrirOrdresOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
-  const ordres = def.ordres || [];
+  // visibleSi (greves, 3 septembre 2026) : filtre un ordre selon l'etat courant de CETTE
+  // organisation (ex. "Lancer une greve" disparait pendant qu'une greve est deja active, "Mettre
+  // fin" n'apparait que dans ce cas) -- generique, retro-compatible (absent = toujours visible,
+  // comportement inchange pour tous les ordres existants avant ce lot).
+  const ordres = (def.ordres || []).filter(o => !o.visibleSi || o.visibleSi(orga));
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const monMembre = orga.membres?.find(m => m.nom === state.char?.name);
   const monGradeIdx = monMembre?.gradeIdx || 0;
+  const estChef = orga.chef === state.char?.name;
 
   document.getElementById('postes-modal-title').textContent = '⚡ Actions — ' + orga.nom;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.6rem 1rem">' +
     ordres.map(ordre => {
       const rangMin = (typeof ORGA_ORDRE_RANG_MIN !== 'undefined' && ORGA_ORDRE_RANG_MIN[ordre.fn]) || 0;
-      const disabled = monGradeIdx < rangMin;
+      // chefOnly (greves, 3 septembre 2026) : gate complementaire a ORGA_ORDRE_RANG_MIN (base
+      // sur le grade) -- le chef n'est pas necessairement le membre au grade le plus eleve.
+      const rangInsuffisant = monGradeIdx < rangMin;
+      const chefRequisManquant = !!ordre.chefOnly && !estChef;
+      const disabled = rangInsuffisant || chefRequisManquant;
       return '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem .8rem;margin-bottom:.4rem' + (disabled ? ';opacity:.4' : '') + '">' +
         '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem">' +
           '<i class="ti ' + ordre.icon + '" style="font-size:.9rem;color:#C9A84C"></i>' +
@@ -1097,7 +1124,7 @@ function ouvrirOrdresOrga(orgaId) {
         '</div>' +
         '<div style="font-size:.68rem;color:#6a5a30;margin-bottom:.4rem">' + ordre.desc + '</div>' +
         (disabled ?
-          '<div style="font-size:.85rem;color:#5a3a2a">Rang insuffisant pour cet ordre.</div>' :
+          '<div style="font-size:.85rem;color:#5a3a2a">' + (chefRequisManquant ? 'Réservé au chef.' : 'Rang insuffisant pour cet ordre.') + '</div>' :
           '<button onclick="executerOrdreOrga(\'' + orgaId + '\',\'' + ordre.fn + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.25rem .6rem;border:1px solid #3a2a10;background:transparent;color:#C9A84C;cursor:pointer">Exécuter</button>'
         ) +
       '</div>';
@@ -1111,6 +1138,14 @@ async function executerOrdreOrga(orgaId, fn) {
   if (!orga) return;
 
   if (fn === 'demander_autorisation_manifester') { ouvrirDemandeAutorisationManifester(orgaId); return; }
+  // Greves (3 septembre 2026) : chacune ouvre son propre formulaire (cible/revendications) ou sa
+  // propre confirmation, avant toute deduction de PA -- meme doctrine que la manifestation
+  // ci-dessus, jamais le chemin generique effets{} plus bas (qui deduit AVANT de savoir si le
+  // joueur ira au bout du formulaire).
+  if (fn === 'greve_lancer') { ouvrirLancerGreve(orgaId); return; }
+  if (fn === 'greve_terminer') { confirmerTerminerGreve(orgaId); return; }
+  if (fn === 'greve_generale_appeler') { ouvrirAppelGreveGenerale(orgaId); return; }
+  if (fn === 'greve_generale_retirer') { confirmerRetraitGreveGenerale(orgaId); return; }
 
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const ordre = (def.ordres || []).find(o => o.fn === fn);
@@ -8566,4 +8601,514 @@ async function resoudreParisJournee(saisonNumero, journee) {
       await sbSendMail('Ligue Officielle', pari.joueur, gagne ? 'Pari gagné !' : 'Pari perdu', msg, time).catch(() => {});
     }
   }
+}
+
+// =====================
+// GREVES, GREVE GENERALE ET CONTRE-POUVOIRS (audit valide + implementation, 3 septembre 2026)
+// =====================
+// Grève ORDINAIRE : vit entièrement dans organisations.data.greve (comme election/caisse, déjà
+// inline sur l'organisation) -- aucune nouvelle table. Ciblage calqué sur "Lancer une rumeur"
+// (plateau-pnj.js, _rumeur) : PJ/Gouvernement/Entreprise/Organisation/Pays, texte libre pour les
+// revendications, aucune résolution automatique (le RP entre joueurs détermine un éventuel
+// accord -- seul le chef peut mettre fin à la grève, jamais un vote ni une fin automatique).
+let _greve = null;
+let _grevePjCache = null;
+
+function ouvrirLancerGreve(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) return;
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
+  if (orga.greve?.actif) { showToast('Grève déjà en cours', 'Ce syndicat est déjà en grève.', false); return; }
+  const nbMembres = orga.membres?.length || 0;
+  if (nbMembres < GREVE_MEMBRES_MIN) {
+    showToast('Syndicat trop petit', 'Au moins ' + GREVE_MEMBRES_MIN + ' membres sont nécessaires (' + nbMembres + ' actuellement).', false);
+    return;
+  }
+
+  _greve = { orgaId, type: 'pj', cibleValue: null, cibleLabel: null, revendications: '', soumission: false };
+  _grevePjCache = null;
+
+  document.getElementById('postes-modal-title').textContent = '✊ Lancer une grève';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">La grève reste active jusqu\'à ce que vous utilisiez « Mettre fin à la grève ». Aucune résolution automatique : le résultat se négocie entre joueurs.</div>' +
+    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">CIBLE</div>' +
+    '<select id="greve-type-select" onchange="changerTypeGreve(this.value)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;margin-bottom:.7rem">' +
+      '<option value="pj">PJ</option>' +
+      '<option value="gouvernement">Gouvernement</option>' +
+      '<option value="entreprise">Entreprise</option>' +
+      '<option value="organisation">Organisation</option>' +
+      '<option value="pays">Pays</option>' +
+    '</select>' +
+    '<div id="greve-cible-zone" style="margin-bottom:.5rem"></div>' +
+    '<div id="greve-cible-recap" style="font-size:.72rem;color:#9a8a68;font-style:italic;margin-bottom:.8rem">Aucune cible sélectionnée.</div>' +
+    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">REVENDICATIONS</div>' +
+    '<textarea id="greve-revendications-input" oninput="majRevendicationsGreve(this.value)" placeholder="Rédigez librement vos revendications..." style="width:100%;min-height:90px;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.5rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;resize:vertical;margin-bottom:.9rem;box-sizing:border-box"></textarea>' +
+    '<button id="greve-btn-valider" onclick="validerLancementGreve()" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Lancer la grève — 1 PA</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  changerTypeGreve('pj');
+}
+
+function majRevendicationsGreve(val) { if (_greve) _greve.revendications = val; }
+
+function majRecapCibleGreve() {
+  const recap = document.getElementById('greve-cible-recap');
+  if (!recap || !_greve) return;
+  recap.textContent = _greve.cibleLabel ? ('Cible sélectionnée : ' + _greve.cibleLabel) : 'Aucune cible sélectionnée.';
+}
+
+async function chargerPjPourGreve() {
+  if (_grevePjCache) return _grevePjCache;
+  _grevePjCache = (typeof sbListPersonnages === 'function') ? await sbListPersonnages().catch(() => []) : [];
+  return _grevePjCache || [];
+}
+
+async function changerTypeGreve(nouveauType) {
+  if (!_greve) return;
+  _greve.type = nouveauType;
+  _greve.cibleValue = null;
+  _greve.cibleLabel = null;
+  majRecapCibleGreve();
+
+  const zone = document.getElementById('greve-cible-zone');
+  if (!zone) return;
+
+  if (nouveauType === 'pj') {
+    zone.innerHTML =
+      '<input type="text" id="greve-pj-search" autocomplete="off" oninput="rechercherPjGreve(this.value)" placeholder="Rechercher un PJ par nom (2 caractères min)..." style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;box-sizing:border-box">' +
+      '<div id="greve-pj-suggestions" style="margin-top:.3rem"></div>';
+    chargerPjPourGreve();
+    return;
+  }
+
+  if (nouveauType === 'organisation') {
+    zone.innerHTML = '<div style="font-size:.78rem;color:#9a8a68">Chargement des organisations...</div>';
+    const orgas = (typeof chargerOrganisationsPourRumeur === 'function') ? await chargerOrganisationsPourRumeur() : [];
+    if (_greve.type !== 'organisation') return; // le joueur a change de type entre-temps
+    zone.innerHTML = '<select id="greve-cible-select" onchange="choisirCibleSimpleGreve(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+      '<option value="">— Choisir une organisation —</option>' +
+      orgas.map(o => '<option value="' + o.id + '" data-label="' + escapeHtmlText(o.nom) + '">' + escapeHtmlText(o.nom) + ' (' + escapeHtmlText(COUNTRIES[o.country]?.n || o.country) + ')</option>').join('') +
+      '</select>';
+    return;
+  }
+
+  if (nouveauType === 'entreprise') {
+    zone.innerHTML = '<select id="greve-cible-select" onchange="choisirCibleSimpleGreve(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+      '<option value="">— Choisir une entreprise —</option>' +
+      GREVE_ENTREPRISES_CIBLABLES.map(e => '<option value="' + e.id + '" data-label="' + escapeHtmlText(e.label) + '">' + escapeHtmlText(e.label) + '</option>').join('') +
+      '</select>';
+    return;
+  }
+
+  // gouvernement / pays : meme liste de pays, seule la semantique de l'effet differe ensuite
+  // (meme convention que _rumeur, plateau-pnj.js).
+  const paysListe = Object.keys(COUNTRIES).sort((a, b) => (COUNTRIES[a].n || a).localeCompare(COUNTRIES[b].n || b, 'fr'));
+  zone.innerHTML = '<select id="greve-cible-select" onchange="choisirCibleSimpleGreve(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+    '<option value="">— Choisir un pays —</option>' +
+    paysListe.map(p => '<option value="' + p + '" data-label="' + escapeHtmlText(COUNTRIES[p].n || p) + '">' + escapeHtmlText(COUNTRIES[p].n || p) + '</option>').join('') +
+    '</select>';
+}
+
+function rechercherPjGreve(query) {
+  const suggestionsDiv = document.getElementById('greve-pj-suggestions');
+  if (!suggestionsDiv) return;
+  const q = (query || '').trim().toLowerCase();
+  if (q.length < 2) { suggestionsDiv.innerHTML = ''; return; }
+  const resultats = (_grevePjCache || []).filter(p => (p.name || '').toLowerCase().includes(q)).slice(0, 8);
+  if (resultats.length === 0) {
+    suggestionsDiv.innerHTML = '<div style="font-size:.75rem;color:#7a6a50;padding:.3rem">Aucun résultat.</div>';
+    return;
+  }
+  suggestionsDiv.innerHTML = resultats.map(p =>
+    '<div onclick="choisirCiblePjGreve(\'' + p.name.replace(/'/g, "\\'") + '\')" style="padding:.4rem .6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.25rem;cursor:pointer;font-size:.8rem;color:#c0b090" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+      escapeHtmlText(p.name) + (p.country ? ' <span style="color:#7a6a50">(' + escapeHtmlText(COUNTRIES[p.country]?.n || p.country) + ')</span>' : '') +
+    '</div>'
+  ).join('');
+}
+
+function choisirCiblePjGreve(nom) {
+  if (!_greve) return;
+  _greve.cibleValue = nom;
+  _greve.cibleLabel = nom;
+  const input = document.getElementById('greve-pj-search');
+  if (input) input.value = nom;
+  const suggestions = document.getElementById('greve-pj-suggestions');
+  if (suggestions) suggestions.innerHTML = '';
+  majRecapCibleGreve();
+}
+
+function choisirCibleSimpleGreve(selectEl) {
+  if (!_greve) return;
+  const opt = selectEl.selectedOptions[0];
+  _greve.cibleValue = selectEl.value || null;
+  _greve.cibleLabel = (opt && selectEl.value) ? opt.getAttribute('data-label') : null;
+  majRecapCibleGreve();
+}
+
+async function validerLancementGreve() {
+  if (!_greve || _greve.soumission) return;
+  const orga = getOrgaById(_greve.orgaId);
+  if (!orga) { showToast('Syndicat introuvable', '', false); return; }
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
+  if (!_greve.cibleValue) { showToast('Cible requise', 'Sélectionnez une cible avant de lancer la grève.', false); return; }
+  const revendications = (_greve.revendications || '').trim();
+  if (!revendications) { showToast('Revendications requises', 'Rédigez vos revendications avant de lancer la grève.', false); return; }
+  const nbMembres = orga.membres?.length || 0;
+  if (nbMembres < GREVE_MEMBRES_MIN) { showToast('Syndicat trop petit', 'Au moins ' + GREVE_MEMBRES_MIN + ' membres sont nécessaires.', false); return; }
+  if (orga.greve?.actif) { showToast('Grève déjà en cours', '', false); return; }
+
+  _greve.soumission = true;
+  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); _greve.soumission = false; return; }
+
+  orga.greve = {
+    actif: true,
+    type: _greve.type,
+    cibleValue: _greve.cibleValue,
+    cibleLabel: _greve.cibleLabel,
+    revendications,
+    dateDebut: new Date().toISOString(),
+    joursActifs: 0,
+    derniereApplicationJour: null
+  };
+  sauvegarderOrga(orga);
+
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Grève lancée !', '"' + orga.nom + '" est en grève contre ' + _greve.cibleLabel + '.', true, true);
+  addJournalEntry('Grève lancée par "' + orga.nom + '" contre ' + _greve.cibleLabel + '. Revendications : ' + revendications, 'event-info');
+  addExternalEvent('✊ "' + orga.nom + '" se met en grève. Revendications : ' + revendications);
+  _greve = null;
+  updateUI();
+}
+
+function confirmerTerminerGreve(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) return;
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
+  if (!orga.greve?.actif) { showToast('Aucune grève en cours', '', false); return; }
+
+  const cibleLabel = orga.greve.cibleLabel;
+  orga.greve = null;
+  sauvegarderOrga(orga);
+
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Grève terminée', 'La grève de "' + orga.nom + '" contre ' + cibleLabel + ' a pris fin.', true);
+  addJournalEntry('Fin de la grève de "' + orga.nom + '" contre ' + cibleLabel + '.', 'event-info');
+  addExternalEvent('🏳 "' + orga.nom + '" met fin à sa grève.');
+  updateUI();
+}
+
+// =====================
+// GREVE GENERALE — consultation intersyndicale (table dediee greves_generales, cf.
+// migration_greves.sql -- coordonne PLUSIEURS organisations, ne peut pas vivre dans le jsonb
+// d'une seule d'entre elles, meme besoin structurel que demandes_manifestation en son temps).
+// =====================
+const GREVE_GENERALE_ACTIVITE_MAX_JOURS = 30;
+
+// §4 du cahier des charges : source fiable de "derniere activite reelle du chef" -- personnages.
+// updated_at, retouchee au minimum toutes les 30s de connexion active (filet de securite
+// periodique, voir sbVerifierEtSauvegarderPersonnage/supabase.js) ainsi qu'a chaque action de
+// jeu -- deja utilisee dans ce but exact ailleurs dans ce projet.
+async function chefActifRecemment(nomChef) {
+  if (!nomChef || typeof sbGet !== 'function') return false;
+  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nomChef)}&select=updated_at`).catch(() => null);
+  const updatedAt = rows?.[0]?.updated_at;
+  if (!updatedAt) return false;
+  const ecouleMs = Date.now() - new Date(updatedAt).getTime();
+  return ecouleMs <= GREVE_GENERALE_ACTIVITE_MAX_JOURS * 24 * 60 * 60 * 1000;
+}
+
+// Liste FIGEE au moment ou elle est appelee (au lancement de la consultation, jamais recalculee
+// apres coup -- §4 : "au lancement de la consultation, etablir la liste des syndicats actifs
+// eligibles"). Un syndicat qui ne remplit pas ces conditions ne compte pas dans le denominateur
+// et n'a aucun pouvoir de blocage.
+async function syndicatsEligiblesGreveGenerale(pays) {
+  const toutes = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
+  const syndicats = (toutes || []).filter(o =>
+    o.type === 'syndicale' && o.country_origine === pays && o.chef && (o.membres?.length || 0) >= GREVE_MEMBRES_MIN
+  );
+  const resultats = [];
+  for (const s of syndicats) {
+    if (await chefActifRecemment(s.chef)) resultats.push(s);
+  }
+  return resultats;
+}
+
+function compterAdherentsUniques(orgasListe) {
+  const noms = new Set();
+  (orgasListe || []).forEach(o => (o.membres || []).forEach(m => { if (m?.nom) noms.add(m.nom); }));
+  return noms.size;
+}
+
+// §9 du cahier des charges : identification STRUCTURELLE (jamais par nom d'organisation) --
+// tout syndicat declare corpsMetier==='police' a la creation (voir ouvrirFormulaireOrga/
+// confirmerCreationOrga) qui est ACTUELLEMENT en greve (ordinaire) ou participant actif d'une
+// greve generale rend la repression policiere indisponible (plateau-politique.js,
+// ouvrirReprimerManif/confirmerReprimerManif + l'option "reprimer" de mobiliser_police).
+// Redevient disponible des que ce syndicat met fin a sa greve ou se retire de la greve generale.
+function syndicatPoliceEnGreve(pays) {
+  return (state.organisations || []).some(o =>
+    o.type === 'syndicale' && o.country_origine === pays && o.corpsMetier === 'police' &&
+    (o.greve?.actif || o.greveGeneraleStatut === 'actif')
+  );
+}
+
+async function ouvrirAppelGreveGenerale(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) return;
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
+  if (orga.greveGeneraleEnCoursId) { showToast('Déjà engagé', 'Ce syndicat participe déjà à une consultation ou une grève générale en cours.', false); return; }
+  const nbMembres = orga.membres?.length || 0;
+  if (nbMembres < GREVE_MEMBRES_MIN) { showToast('Syndicat trop petit', 'Au moins ' + GREVE_MEMBRES_MIN + ' membres sont nécessaires.', false); return; }
+
+  const pays = orga.country_origine || state.country;
+  const existante = await sbGet('greves_generales', `country=eq.${encodeURIComponent(pays)}&statut=in.(consultation,active)`).catch(() => null);
+  if (existante && existante.length > 0) {
+    showToast('Grève générale déjà en cours', 'Une consultation ou une grève générale est déjà en cours dans ce pays.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = '📣 Appeler à une grève générale';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:.8rem 1rem">' +
+    '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Ceci n\'engage AUCUNE grève immédiatement. Un mail sera envoyé à chaque chef de syndicat actif éligible, et un sujet public sera créé sur le Forum National. La grève générale n\'entrera en vigueur que si au moins 2/3 des syndicats éligibles acceptent, pour un total d\'au moins ' + GREVE_GENERALE_ADHERENTS_MIN + ' adhérents uniques.</div>' +
+    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">REVENDICATIONS</div>' +
+    '<textarea id="greve-generale-revendications-input" placeholder="Rédigez librement vos revendications..." style="width:100%;min-height:90px;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.5rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;resize:vertical;margin-bottom:.9rem;box-sizing:border-box"></textarea>' +
+    '<button onclick="confirmerAppelGreveGenerale(\'' + orgaId + '\')" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Lancer la consultation — 1 PA</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerAppelGreveGenerale(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) return;
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
+  const revendications = (document.getElementById('greve-generale-revendications-input')?.value || '').trim();
+  if (!revendications) { showToast('Revendications requises', 'Rédigez vos revendications avant de lancer la consultation.', false); return; }
+  const nbMembres = orga.membres?.length || 0;
+  if (nbMembres < GREVE_MEMBRES_MIN) { showToast('Syndicat trop petit', '', false); return; }
+  if (orga.greveGeneraleEnCoursId) { showToast('Déjà engagé', '', false); return; }
+
+  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  const pays = orga.country_origine || state.country;
+  const eligibles = await syndicatsEligiblesGreveGenerale(pays);
+  // L'initiateur est toujours reput eligible (c'est son chef qui agit a l'instant meme).
+  if (!eligibles.some(s => s.id === orga.id)) eligibles.push(orga);
+
+  const ggId = 'greve_generale_' + Date.now();
+  const participants = eligibles.map(s => ({
+    orgaId: s.id,
+    orgaNom: s.nom,
+    chef: s.chef,
+    statut: s.id === orga.id ? 'accepte' : 'en_discussion'
+  }));
+
+  const inserted = (typeof sbInsert === 'function') ? await sbInsert('greves_generales', {
+    id: ggId, country: pays, statut: 'consultation',
+    initiateur: orga.chef, syndicat_initiateur_id: orga.id,
+    revendications, participants,
+    date_lancement: new Date().toISOString(), jours_actifs: 0
+  }).catch(() => null) : null;
+  if (!inserted) { showToast('Erreur', "La consultation n'a pas pu être lancée.", false); return; }
+
+  orga.greveGeneraleEnCoursId = ggId;
+  orga.greveGeneraleStatut = 'actif'; // l'initiateur soutient d'office son propre appel
+  sauvegarderOrga(orga);
+
+  // Mail a chaque chef eligible SAUF l'initiateur (deja acquis) -- boutons Accepter/Refuser en
+  // ligne, meme pattern que le vote de confiance (notifierDeputesPourVoteConfiance,
+  // plateau-politique.js).
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
+  const sujet = 'Appel à la grève générale — ' + orga.nom;
+  for (const s of eligibles) {
+    if (s.id === orga.id) continue;
+    const corps = orga.chef + ', chef du syndicat « ' + orga.nom + ' », appelle à une grève générale.<br><br>' +
+      '<i>Revendications :</i> ' + escapeHtmlText(revendications) + '<br><br>' +
+      '<button onclick="repondreAppelGreveGenerale(&quot;' + ggId + '&quot;,&quot;' + s.id + '&quot;,&quot;accepte&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer;margin-right:.5rem">✓ Accepter</button>' +
+      '<button onclick="repondreAppelGreveGenerale(&quot;' + ggId + '&quot;,&quot;' + s.id + '&quot;,&quot;refuse&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;padding:.4rem .8rem;border:1px solid #4a2010;background:transparent;color:#cc4444;cursor:pointer">✗ Refuser</button>';
+    await sbSendMail(orga.nom, s.chef, sujet, corps, time).catch(() => {});
+  }
+
+  // Sujet public sur le Forum National (pas 'presse', reserve aux journalistes -- pas
+  // 'gouvernement', prive aux ministres, voir audit).
+  if (typeof sbCreateTopic === 'function') {
+    const titre = 'Appel à la grève générale — ' + orga.nom;
+    const topicId = await sbCreateTopic('national', titre, orga.chef, pays, time, true, false, orga.chef, orga.id, orga.avatar || (TYPES_ORGANISATIONS.syndicale?.icon)).catch(() => null);
+    if (topicId) {
+      const corpsTopic = orga.chef + ', chef du syndicat « ' + orga.nom + ' », appelle à une grève générale.<br><br><i>Revendications :</i><br>' + escapeHtmlText(revendications);
+      await sbCreatePost(topicId, orga.chef, corpsTopic, time, true, false, [], null, orga.chef, orga.id, orga.avatar || null).catch(() => {});
+      await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { forum_topic_id: topicId }).catch(() => {});
+    }
+  }
+
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Consultation lancée !', eligibles.length + ' syndicat(s) éligible(s) consulté(s).', true, true);
+  addJournalEntry('Appel à la grève générale lancé par "' + orga.nom + '".', 'event-info');
+  addExternalEvent('📣 "' + orga.nom + '" appelle à une grève générale. Consultation intersyndicale en cours.');
+  updateUI();
+}
+
+// Appelee depuis les boutons du mail (meme pattern que voterConfiance, plateau-politique.js) --
+// verifie que le repondant est bien le chef ACTUEL du syndicat concerne, relit la ligne en
+// direct (jamais un cache), et applique la reponse via un CAS structurel sur la colonne jsonb
+// "participants" (meme doctrine que journal_editions.double_page_centrale) pour ne jamais
+// perdre une reponse concurrente d'un autre chef repondant au meme moment.
+async function repondreAppelGreveGenerale(ggId, orgaId, reponse) {
+  const orga = (typeof sbGetOrganisationParId === 'function') ? await sbGetOrganisationParId(orgaId).catch(() => null) : getOrgaById(orgaId);
+  if (!orga) { showToast('Syndicat introuvable', '', false); return; }
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef de ce syndicat.', false); return; }
+
+  let ggFinal = null;
+  for (let tentative = 0; tentative < 5 && !ggFinal; tentative++) {
+    const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
+    const gg = rows?.[0];
+    if (!gg) { showToast('Consultation introuvable', 'Cette grève générale n\'existe plus.', false); return; }
+    if (gg.statut !== 'consultation') { showToast('Trop tard', 'Cette consultation est déjà close.', false); return; }
+    const participants = gg.participants || [];
+    const idx = participants.findIndex(p => p.orgaId === orgaId);
+    if (idx === -1) { showToast('Non concerné', 'Votre syndicat ne fait pas partie de cette consultation.', false); return; }
+    if (participants[idx].statut !== 'en_discussion') { showToast('Déjà répondu', 'Votre syndicat a déjà répondu à cet appel.', false); return; }
+
+    const nouveauxParticipants = participants.map((p, i) => i === idx ? { ...p, statut: reponse } : p);
+    const filtreCAS = `id=eq.${encodeURIComponent(ggId)}&participants=eq.${encodeURIComponent(JSON.stringify(gg.participants))}`;
+    const res = await sbUpdate('greves_generales', filtreCAS, { participants: nouveauxParticipants }).catch(() => null);
+    if (res && res.length > 0) ggFinal = res[0];
+  }
+  if (!ggFinal) { showToast('Réponse non enregistrée', 'Une autre réponse a été traitée au même moment, réessayez.', false); return; }
+
+  orga.greveGeneraleStatut = reponse;
+  sauvegarderOrga(orga);
+
+  showToast(reponse === 'accepte' ? 'Grève générale acceptée' : 'Grève générale refusée', 'Votre syndicat "' + orga.nom + '" a répondu.', true);
+  addJournalEntry('"' + orga.nom + '" a ' + (reponse === 'accepte' ? 'accepté' : 'refusé') + ' l\'appel à la grève générale.', 'event-info');
+
+  await verifierAdoptionGreveGenerale(ggId);
+  updateUI();
+}
+
+// §5 du cahier des charges : adoption des que >= 2/3 des syndicats eligibles (arrondi superieur)
+// ont accepte ET que les syndicats ayant accepte representent ensemble >= 100 adherents uniques.
+// Verifiee apres CHAQUE reponse (jamais une seule fois par un cron) -- une reponse peut a tout
+// moment faire basculer le seuil.
+async function verifierAdoptionGreveGenerale(ggId) {
+  const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
+  const gg = rows?.[0];
+  if (!gg || gg.statut !== 'consultation') return;
+  const participants = gg.participants || [];
+  const eligibles = participants.length;
+  if (eligibles === 0) return;
+  const acceptes = participants.filter(p => p.statut === 'accepte');
+  const seuil = Math.ceil(eligibles * 2 / 3);
+  if (acceptes.length < seuil) return;
+
+  const toutesOrgas = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
+  const orgasAcceptees = acceptes.map(p => toutesOrgas.find(o => o.id === p.orgaId)).filter(Boolean);
+  const adherentsUniques = compterAdherentsUniques(orgasAcceptees);
+  if (adherentsUniques < GREVE_GENERALE_ADHERENTS_MIN) return; // pas encore assez d'adherents mobilises, la consultation reste ouverte
+
+  const palier = palierGreveGenerale(adherentsUniques);
+  const filtreCAS = `id=eq.${encodeURIComponent(ggId)}&statut=eq.consultation`;
+  const res = await sbUpdate('greves_generales', filtreCAS, {
+    statut: 'active',
+    date_entree_vigueur: new Date().toISOString(),
+    puissance_niveau: palier ? palier.niveau : 1
+  }).catch(() => null);
+  if (!res || res.length === 0) return; // deja adoptee entretemps par une autre reponse concurrente
+
+  // Syndicats non-acceptants : "ne sont associes a rien" (§5) -- detaches de la consultation.
+  // Syndicats acceptants : passent en participation active (visibleSi de greve_generale_retirer).
+  for (const p of participants) {
+    const orgaLive = toutesOrgas.find(o => o.id === p.orgaId);
+    if (!orgaLive) continue;
+    if (p.statut === 'accepte') {
+      orgaLive.greveGeneraleStatut = 'actif';
+    } else {
+      orgaLive.greveGeneraleEnCoursId = null;
+      orgaLive.greveGeneraleStatut = null;
+    }
+    if (typeof sbSaveOrganisation === 'function') await sbSaveOrganisation(orgaLive).catch(() => {});
+  }
+
+  showToast('Grève générale adoptée !', 'Niveau ' + (palier ? palier.niveau : 1) + ' — ' + adherentsUniques + ' adhérents mobilisés.', true, true);
+  addJournalEntry('La grève générale est entrée en vigueur (niveau ' + (palier ? palier.niveau : 1) + ').', 'event-info');
+  addExternalEvent('🔥 La grève générale entre en vigueur ! ' + adherentsUniques + ' adhérents mobilisés à travers le pays.');
+}
+
+// §8 du cahier des charges : pas de second vote collectif, chaque chef retire son syndicat
+// individuellement, definitivement, sans attendre le lendemain (recalcul immediat).
+async function confirmerRetraitGreveGenerale(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) return;
+  if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
+  if (!orga.greveGeneraleEnCoursId || orga.greveGeneraleStatut !== 'actif') {
+    showToast('Non concerné', 'Ce syndicat ne participe à aucune grève générale active.', false);
+    return;
+  }
+  const ggId = orga.greveGeneraleEnCoursId;
+
+  let retireOk = false;
+  for (let tentative = 0; tentative < 5 && !retireOk; tentative++) {
+    const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
+    const gg = rows?.[0];
+    if (!gg || gg.statut !== 'active') {
+      orga.greveGeneraleEnCoursId = null; orga.greveGeneraleStatut = null; sauvegarderOrga(orga);
+      showToast('Grève générale déjà terminée', '', false);
+      return;
+    }
+    const participants = gg.participants || [];
+    const idx = participants.findIndex(p => p.orgaId === orgaId);
+    if (idx === -1 || participants[idx].statut !== 'accepte') { showToast('Non concerné', '', false); return; }
+    const nouveauxParticipants = participants.map((p, i) => i === idx ? { ...p, statut: 'retire' } : p);
+    const filtreCAS = `id=eq.${encodeURIComponent(ggId)}&participants=eq.${encodeURIComponent(JSON.stringify(gg.participants))}`;
+    const res = await sbUpdate('greves_generales', filtreCAS, { participants: nouveauxParticipants }).catch(() => null);
+    if (res && res.length > 0) retireOk = true;
+  }
+  if (!retireOk) { showToast('Retrait non enregistré', 'Réessayez.', false); return; }
+
+  orga.greveGeneraleEnCoursId = null;
+  orga.greveGeneraleStatut = null;
+  sauvegarderOrga(orga);
+
+  document.getElementById('modal-postes').classList.remove('open');
+  showToast('Syndicat retiré', '"' + orga.nom + '" ne participe plus à la grève générale.', true);
+  addJournalEntry('"' + orga.nom + '" se retire de la grève générale.', 'event-info');
+  addExternalEvent('🚪 "' + orga.nom + '" se retire de la grève générale.');
+
+  await recalculerPuissanceApresRetraitGreveGenerale(ggId);
+  updateUI();
+}
+
+// Recalcul IMMEDIAT (jamais differe au cron du lendemain) sur les adherents uniques des
+// syndicats ENCORE participants -- exemple du cahier des charges §8 (500 -> niveau 5, retrait de
+// 130 -> 370 restants -> niveau 3). En-dessous de 100 adherents uniques restants : fin
+// automatique de la grève générale.
+async function recalculerPuissanceApresRetraitGreveGenerale(ggId) {
+  const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
+  const gg = rows?.[0];
+  if (!gg || gg.statut !== 'active') return;
+  const participants = gg.participants || [];
+  const restants = participants.filter(p => p.statut === 'accepte');
+
+  const toutesOrgas = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
+  const orgasRestantes = restants.map(p => toutesOrgas.find(o => o.id === p.orgaId)).filter(Boolean);
+  const adherentsUniques = compterAdherentsUniques(orgasRestantes);
+
+  if (adherentsUniques < GREVE_GENERALE_ADHERENTS_MIN) {
+    await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { statut: 'terminee' }).catch(() => {});
+    for (const orgaLive of orgasRestantes) {
+      orgaLive.greveGeneraleEnCoursId = null;
+      orgaLive.greveGeneraleStatut = null;
+      if (typeof sbSaveOrganisation === 'function') await sbSaveOrganisation(orgaLive).catch(() => {});
+    }
+    addExternalEvent('🏳 La grève générale s\'effondre : moins de ' + GREVE_GENERALE_ADHERENTS_MIN + ' adhérents mobilisés.');
+    addJournalEntry('La grève générale a pris fin (effondrement de la mobilisation).', 'event-info');
+    return;
+  }
+
+  const palier = palierGreveGenerale(adherentsUniques);
+  await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { puissance_niveau: palier ? palier.niveau : 1 }).catch(() => {});
 }
