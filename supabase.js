@@ -2443,6 +2443,32 @@ async function sbEnregistrerEvenementPublic(country, type, options) {
   });
 }
 
+// Etouffement d'article (chantier "lobbying presse", 4 septembre 2026) : etat persistant 7 JOURS
+// REELS (jamais des jours de jeu -- meme doctrine que journal_articles_en_attente.expire_le) qui
+// abaisse UNIQUEMENT la base de reussite de "Placer un article favorable" pour la MEME cible
+// (cible_type+cible_value, meme convention d'identifiant que "Lancer une rumeur" : nom de PJ, id
+// d'organisation, "pays|ville|batiment" pour un local, code pays pour gouvernement/pays). N'ecrit
+// jamais dans chronique_nationale : l'etouffement doit rester invisible, jamais un evenement
+// public. Lu UNIQUEMENT par validerLobbyingPresse (plateau-pnj.js) avant son propre jet -- jamais
+// par la collecte/generation du Journal, qui ignore totalement l'existence de cette table.
+async function sbVerifierEtouffementActif(cibleType, cibleValue) {
+  const filtre = 'cible_type=eq.' + encodeURIComponent(cibleType) +
+    '&cible_value=eq.' + encodeURIComponent(cibleValue) +
+    '&expire_le=gt.' + encodeURIComponent(new Date().toISOString()) +
+    '&order=expire_le.desc&limit=1';
+  const rows = await sbGet('tribune_articles_etouffes', filtre);
+  return !!(rows && rows[0]);
+}
+
+async function sbEnregistrerEtouffement(cibleType, cibleValue, cibleLabel, country) {
+  const expireLe = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  return sbInsert('tribune_articles_etouffes', {
+    id: 'etouffement-' + cibleType + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
+    cible_type: cibleType, cible_value: cibleValue, cible_label: cibleLabel || null,
+    country: country || null, expire_le: expireLe.toISOString()
+  });
+}
+
 async function sbGetHistoriqueTerrain(country, buildingId) {
   const rows = await sbGet('terrains_historique_ventes', `country=eq.${encodeURIComponent(country)}&building_id=eq.${encodeURIComponent(buildingId)}&order=created_at.asc`);
   return rows || [];

@@ -540,14 +540,23 @@ async function collecterGrevesGenerales(periode, pays, personnagesConnus) {
 // greve ordinaire, rachat d'entreprise) -- jamais de texte invente ni de notification privee. Le
 // "libelle" est deja construit en toutes lettres au point d'ecriture (sbEnregistrerEvenementPublic,
 // supabase.js) : il sert directement de resume ici, aucune reconstruction cote collecte.
+// lobbying_article_favorable (chantier "lobbying presse", 4 septembre 2026) : depose par
+// validerLobbyingPresse (plateau-pnj.js) quand "Placer un article favorable" reussit. Le
+// "libelle" decrit alors un FAIT reellement vrai (une sollicitation editoriale a reussi), jamais
+// le contenu invente de l'article lui-meme -- c'est a La Tribune, lors de sa propre generation,
+// de rediger un article reellement favorable sur cet angle sans jamais inventer de nouveau fait
+// verifiable (regle dediee dans le prompt, voir _journal-generation.js). Poids plafonne sous
+// 'majeur' meme pour un PJ (contrairement a nomination/election) : une couverture obtenue par
+// lobbying reste structurellement plus faible qu'un vrai evenement politique.
 const TYPES_CHRONIQUE = {
-  nomination:               { domaine: 'politique',      poidsBase: 'secondaire', cransPJ: 2 },
-  election_resultat:        { domaine: 'politique',      poidsBase: 'secondaire', cransPJ: 2 },
-  greve_ordinaire_debut:    { domaine: 'greve_ordinaire', poidsBase: 'secondaire', cransPJ: 2 },
-  greve_ordinaire_fin:      { domaine: 'greve_ordinaire', poidsBase: 'mineur',     cransPJ: 1 },
-  organisation_dissolution: { domaine: 'organisations',  poidsBase: 'mineur',     cransPJ: 1 },
-  organisation_chef_change: { domaine: 'organisations',  poidsBase: 'mineur',     cransPJ: 1 },
-  entreprise_rachat:        { domaine: 'economie',       poidsBase: 'mineur',     cransPJ: 1 }
+  nomination:                  { domaine: 'politique',      poidsBase: 'secondaire',  cransPJ: 2 },
+  election_resultat:           { domaine: 'politique',      poidsBase: 'secondaire',  cransPJ: 2 },
+  greve_ordinaire_debut:       { domaine: 'greve_ordinaire', poidsBase: 'secondaire', cransPJ: 2 },
+  greve_ordinaire_fin:         { domaine: 'greve_ordinaire', poidsBase: 'mineur',     cransPJ: 1 },
+  organisation_dissolution:    { domaine: 'organisations',  poidsBase: 'mineur',      cransPJ: 1 },
+  organisation_chef_change:    { domaine: 'organisations',  poidsBase: 'mineur',      cransPJ: 1 },
+  entreprise_rachat:           { domaine: 'economie',       poidsBase: 'mineur',      cransPJ: 1 },
+  lobbying_article_favorable:  { domaine: 'presse',         poidsBase: 'secondaire',  cransPJ: 1 }
 };
 async function collecterChroniqueNationale(periode, pays, personnagesConnus) {
   const f = filtrePeriode(periode);

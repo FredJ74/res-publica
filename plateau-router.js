@@ -416,8 +416,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'se_renseigner') { doSeRenseigner(); return; }
   if (fn === 'reserver') { doReserver(); return; }
   if (fn === 'interview') { ouvrirInterviewJodie(pa, cost); return; }
-  if (fn === 'article') { doArticle(); return; }
-  if (fn === 'etouffer') { doEtouffer(); return; }
+  // Lobbying presse (chantier "lobbying presse", refonte Tribune, 4 septembre 2026) : doArticle()/
+  // doEtouffer() n'existaient nulle part avant ce chantier (ReferenceError silencieuse au clic,
+  // meme bug de fond que distribuer_tract avant sa propre implementation) -- ouvrirModalLobbyingPresse
+  // (plateau-pnj.js) reutilise le composant de selection de cible de lancer_rumeur_cible ci-dessous.
+  if (fn === 'article') { ouvrirModalLobbyingPresse('article', pa, cost, successRate); return; }
+  if (fn === 'etouffer') { ouvrirModalLobbyingPresse('etouffer', pa, cost, successRate); return; }
   if (fn === 'archives') { ouvrirArchivesTribunal(); return; }
   if (fn === 'consulter_dossiers_gouv') { doConsulterDossiersGouv(pa, cost); return; }
   if (fn === 'se_former') { doSeFormer(pa, cost); return; }

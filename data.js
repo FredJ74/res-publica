@@ -415,10 +415,16 @@ const WORLD = {
               imageUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/images/port-sainte-marie-centre-affaires-tribune-republia.png",
               // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : additif au
               // template partage BUILDINGS['centre-affaires'].rooms.tribune_republia (produire_fuite/
-              // interview/article, inchanges) -- scope Republic uniquement (WORLD.republic.ville_a),
+              // interview, inchanges) -- scope Republic uniquement (WORLD.republic.ville_a),
               // jamais narco/soviet/khalija qui partagent pourtant le meme buildingId.
+              // article/etouffer (chantier "lobbying presse", 4 septembre 2026) : reinjectes ici a
+              // l'identique (memes mecaniques, voir BUILDINGS['la-tribune'].rooms.redaction a
+              // Luthecia) -- cette antenne est explicitement "La Tribune de Republia", contrairement
+              // au journal local distinct de Montrouge/narco/soviet/khalija.
               orders: [
-                {fn:'deposer_petite_annonce', label:'Déposer une petite annonce', pa:1, cost:0, type:'legal', icon:'ti-ad', successRate:100, desc:"30 FR pour une parution de 3 jours dans La Tribune de Républia. Une seule annonce active à la fois."}
+                {fn:'deposer_petite_annonce', label:'Déposer une petite annonce', pa:1, cost:0, type:'legal', icon:'ti-ad', successRate:100, desc:"30 FR pour une parution de 3 jours dans La Tribune de Républia. Une seule annonce active à la fois."},
+                {fn:'article', label:'Placer un article favorable', pa:1, cost:500, type:'grey', icon:'ti-pencil', successRate:75, desc:'Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l\'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n\'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves. Echec : la redaction refuse, aucun frais.'},
+                {fn:'etouffer', label:'Etouffer un article', pa:1, cost:1000, type:'illegal', icon:'ti-eye-off', successRate:70, desc:'Contre-lobbying preventif visant une cible (PJ, organisation, local, gouvernement ou pays) : pendant 7 jours, un futur "Placer un article favorable" contre cette meme cible devient beaucoup plus difficile (base 10% au lieu de 75%). N\'affecte jamais l\'actualite reelle (scandales, condamnations, elections...). Reussite (70% + modificateurs) : 1000 FR preleves. Echec : aucun frais.'}
               ]
             }
           },
@@ -650,7 +656,13 @@ const WORLD = {
           persons: [{"name": "Rédacteur Calame (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}],
           roomOverrides: {
             accueil_tribune: { imageUrl: "images/montrouge/montrouge-lci-accueil.jpg" },
-            redaction:       { imageUrl: "images/montrouge/montrouge-lci-redaction.jpg" }
+            // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : "Le Cheminot
+            // Informe (LCI)" est un journal local DISTINCT de La Tribune de Republia (voir desc
+            // ci-dessus, "journal syndical de Montrouge") -- ces deux ordres n'ont de sens qu'aupres
+            // de La Tribune elle-meme (Luthecia) ou de sa propre antenne locale (buildingContext
+            // ['centre-affaires'].roomOverrides.tribune_republia juste plus bas dans ce fichier).
+            // produire_fuite/fabriquer_scandale/interview/corrompre_journaliste restent inchanges ici.
+            redaction:       { imageUrl: "images/montrouge/montrouge-lci-redaction.jpg", excludeOrders: ['article', 'etouffer'] }
           },
           roomsExtra: {
             // Tracts calomnieux (24 aout 2026) : ajoute dans cette room (deja creee, jusqu'ici
@@ -745,8 +757,15 @@ const WORLD = {
               imageUrl: "images/montrouge/tribune-redaction.jpg",
               // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : meme ajout
               // additif que PSM ci-dessus (WORLD.republic.ville_b), meme raison.
+              // article/etouffer (chantier "lobbying presse", 4 septembre 2026) : voir commentaire
+              // jumeau sur l'antenne PSM ci-dessus -- cette antenne EST La Tribune de Republia,
+              // contrairement au "Cheminot Informe (LCI)" (BUILDINGS['la-tribune'] renomme pour
+              // Montrouge juste au-dessus dans ce fichier), qui reste un journal local distinct et
+              // n'expose donc plus ces deux ordres (voir son roomOverrides.redaction.excludeOrders).
               orders: [
-                {fn:'deposer_petite_annonce', label:'Déposer une petite annonce', pa:1, cost:0, type:'legal', icon:'ti-ad', successRate:100, desc:"30 FR pour une parution de 3 jours dans La Tribune de Républia. Une seule annonce active à la fois."}
+                {fn:'deposer_petite_annonce', label:'Déposer une petite annonce', pa:1, cost:0, type:'legal', icon:'ti-ad', successRate:100, desc:"30 FR pour une parution de 3 jours dans La Tribune de Républia. Une seule annonce active à la fois."},
+                {fn:'article', label:'Placer un article favorable', pa:1, cost:500, type:'grey', icon:'ti-pencil', successRate:75, desc:'Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l\'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n\'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves. Echec : la redaction refuse, aucun frais.'},
+                {fn:'etouffer', label:'Etouffer un article', pa:1, cost:1000, type:'illegal', icon:'ti-eye-off', successRate:70, desc:'Contre-lobbying preventif visant une cible (PJ, organisation, local, gouvernement ou pays) : pendant 7 jours, un futur "Placer un article favorable" contre cette meme cible devient beaucoup plus difficile (base 10% au lieu de 75%). N\'affecte jamais l\'actualite reelle (scandales, condamnations, elections...). Reussite (70% + modificateurs) : 1000 FR preleves. Echec : aucun frais.'}
               ]
             }
           },
@@ -1038,7 +1057,15 @@ const WORLD = {
         'la-tribune': {
           name: "Imprenta Local",
           desc: "Tracts politiques et menus de restaurant.",
-          persons: [{"name": "Impresor Manchado (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}]
+          persons: [{"name": "Impresor Manchado (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}],
+          // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : ce journal
+          // local d'El Estado est distinct de La Tribune de Republia (Republic uniquement) -- ces
+          // deux ordres n'ont de sens qu'aupres de cette derniere. Le reste (produire_fuite/
+          // fabriquer_scandale/interview/corrompre_journaliste) reste inchange. NB : cette entree
+          // 'la-tribune' est la version reellement active du buildingContext de Ciudad Roja (cle
+          // dupliquee plus haut dans ce meme buildingContext sous le nom "El Narco Times", qui ne
+          // s'applique donc jamais -- bug preexistant hors perimetre de ce chantier, non corrige).
+          roomOverrides: { redaction: { excludeOrders: ['article', 'etouffer'] } }
         },
         'marche': {
           name: "Mercado del Puerto",
@@ -1274,7 +1301,15 @@ const WORLD = {
         'la-tribune': {
           name: "Bulletin du Parti Local",
           desc: "Nouvelles de production uniquement.",
-          persons: [{"name": "Correspondant Local (PNJ)", "role": "Correspondant", "rel": "neutral", "job": "journaliste"}]
+          persons: [{"name": "Correspondant Local (PNJ)", "role": "Correspondant", "rel": "neutral", "job": "journaliste"}],
+          // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : cet organe du
+          // Parti a Sovarka est distinct de La Tribune de Republia (Republic uniquement) -- ces deux
+          // ordres n'ont de sens qu'aupres de cette derniere. Le reste (produire_fuite/
+          // fabriquer_scandale/interview/corrompre_journaliste) reste inchange. NB : cette entree
+          // 'la-tribune' est la version reellement active du buildingContext de Novomirsk (cle
+          // dupliquee plus haut dans ce meme buildingContext sous le nom "La Pravdovka", qui ne
+          // s'applique donc jamais -- bug preexistant hors perimetre de ce chantier, non corrige).
+          roomOverrides: { redaction: { excludeOrders: ['article', 'etouffer'] } }
         },
         'marche': {
           name: "Distribution Collective",
@@ -1531,7 +1566,15 @@ const WORLD = {
         'la-tribune': {
           name: "Gazette de l'Oasis",
           desc: "Nouvelles de l'oasis et éloges royaux.",
-          persons: [{"name": "Journaliste Local (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}]
+          persons: [{"name": "Journaliste Local (PNJ)", "role": "Journaliste", "rel": "neutral", "job": "journaliste"}],
+          // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : cette gazette
+          // royale d'Al-Khalija est distincte de La Tribune de Republia (Republic uniquement) -- ces
+          // deux ordres n'ont de sens qu'aupres de cette derniere. Le reste (produire_fuite/
+          // fabriquer_scandale/interview/corrompre_journaliste) reste inchange. NB : cette entree
+          // 'la-tribune' est la version reellement active du buildingContext d'Al-Madina (cle
+          // dupliquee plus haut dans ce meme buildingContext sous le nom "Le Minaret Dore", qui ne
+          // s'applique donc jamais -- bug preexistant hors perimetre de ce chantier, non corrige).
+          roomOverrides: { redaction: { excludeOrders: ['article', 'etouffer'] } }
         },
         'marche': {
           name: "Souk de l'Oasis",
@@ -2727,9 +2770,9 @@ const BUILDINGS = {
           {fn:'produire_fuite',   label:'Produire une fuite',           pa:3, cost:0,   type:'illegal', icon:'ti-leak',           successRate:55,  desc:'Choisir une cible dans le repertoire. Rumeur IA dans journal. Mail a la cible. -10 INF -10 POP.'},
           {fn:'fabriquer_scandale', label:'Fabriquer un scandale',          pa:3, cost:800, type:'illegal', icon:'ti-alert-triangle',  successRate:35,  desc:'Choisir une cible. Rediger le contenu. Bonus journaliste +15%. Si decouvert : Recherche pour diffamation.'},
           {fn:'interview',             label:'Donner une interview',          pa:1, cost:0,   type:'legal',   icon:'ti-microphone', successRate:100, desc:'Impact sur la popularite.'},
-          {fn:'article',               label:'Placer un article favorable',   pa:2, cost:300, type:'grey',    icon:'ti-pencil',     successRate:70},
+          {fn:'article',               label:'Placer un article favorable',   pa:1, cost:500,  type:'grey',    icon:'ti-pencil',     successRate:75, desc:'Choisir une cible (PJ, organisation, local, gouvernement ou pays) et indiquer le sujet/l\'angle souhaite : la redaction redige elle-meme un veritable article favorable, vous n\'apparaissez jamais comme commanditaire. Reussite (75% + modificateurs) : 500 FR preleves, article integre a une prochaine edition de La Tribune. Echec : la redaction refuse, aucun frais.'},
           {fn:'corrompre_journaliste', label:'Corrompre un journaliste',      pa:2, cost:500, type:'illegal', icon:'ti-cash',       successRate:55},
-          {fn:'etouffer',              label:'Etouffer un article',           pa:3, cost:800, type:'illegal', icon:'ti-eye-off',    successRate:45}
+          {fn:'etouffer',              label:'Etouffer un article',           pa:1, cost:1000, type:'illegal', icon:'ti-eye-off',    successRate:70, desc:'Contre-lobbying preventif visant une cible (PJ, organisation, local, gouvernement ou pays) : pendant 7 jours, un futur "Placer un article favorable" contre cette meme cible devient beaucoup plus difficile (base 10% au lieu de 75%). N\'affecte jamais l\'actualite reelle (scandales, condamnations, elections...). Reussite (70% + modificateurs) : 1000 FR preleves. Echec : aucun frais.'}
         ]
       }
     }
@@ -3348,9 +3391,14 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'produire_fuite', label:'Produire une fuite', pa:3, cost:0, type:'illegal', icon:'ti-leak', successRate:55, desc:"Choisir une cible dans le répertoire. Rumeur IA dans le journal. Mail à la cible. -10 INF -10 POP."},
-          {fn:'interview', label:'Donner une interview', pa:1, cost:0, type:'legal', icon:'ti-microphone', successRate:100, desc:'Impact sur la popularité.'},
-          {fn:'article', label:'Placer un article favorable', pa:2, cost:300, type:'grey', icon:'ti-pencil', successRate:70}
+          {fn:'interview', label:'Donner une interview', pa:1, cost:0, type:'legal', icon:'ti-microphone', successRate:100, desc:'Impact sur la popularité.'}
         ]
+        // 'article'/'etouffer' retires du template partage (chantier "lobbying presse", 4 septembre
+        // 2026) : ces deux ordres appartiennent specifiquement a La Tribune de Republia, jamais aux
+        // journaux locaux distincts qui partagent pourtant ce meme buildingId 'centre-affaires' dans
+        // narco/soviet/khalija. Reinjectes uniquement via roomOverrides.tribune_republia.orders pour
+        // WORLD.republic.ville_a (PSM) et WORLD.republic.ville_b (Montrouge), meme convention deja
+        // etablie par deposer_petite_annonce (chantier "La Tribune de Republia", 31 aout 2026).
       }
     }
   },

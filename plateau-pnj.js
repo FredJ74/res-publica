@@ -2021,6 +2021,293 @@ async function validerLancementRumeur() {
 }
 
 // =====================
+// LOBBYING PRESSE — "Placer un article favorable" / "Etouffer un article" (chantier "lobbying
+// presse", refonte Tribune, 4 septembre 2026). doArticle()/doEtouffer() n'existaient nulle part
+// avant ce chantier (fn special-cases dans plateau-router.js pointant vers des fonctions
+// jamais definies -- ReferenceError silencieuse au clic).
+//
+// Reutilise INTEGRALEMENT le composant de selection de cible de "Lancer une rumeur" ci-dessus
+// (chargerPjPourRumeur/chargerOrganisationsPourRumeur/construireListeLocauxCibles/
+// construirePhraseCibleTracee) : memes 5 types de cible, memes listes, memes exclusions (orgas
+// secretes/criminelles jamais proposees). Etat modal totalement separe (_lobbyingPresse, jamais
+// _rumeur) : zero risque d'interference avec "Lancer une rumeur".
+//
+// Integration avec l'architecture editoriale actuelle (refonte Tribune, deployee 04/09/2026) :
+// - "Placer un article favorable", en cas de reussite, N'ECRIT JAMAIS un article directement --
+//   il depose un FAIT dans chronique_nationale (type 'lobbying_article_favorable', via
+//   sbEnregistrerEvenementPublic, deja utilisee par tous les autres hooks chronique_nationale),
+//   lu au prochain cycle par collecterChroniqueNationale (api/_journal-collecte.js) puis redige
+//   par La Tribune elle-meme lors de sa generation quotidienne -- aucun appel IA cote client,
+//   aucun contournement de la validation factuelle existante (validerArticle exige toujours un
+//   source_ids reel). Le joueur n'apparait jamais dans "personnages".
+// - "Etouffer un article" N'ECRIT RIEN dans chronique_nationale (doit rester invisible, jamais
+//   un evenement public) : seule une ligne dans la nouvelle table tribune_articles_etouffes est
+//   creee (voir supabase.js), lue UNIQUEMENT par validerLobbyingPresse ci-dessous avant son
+//   propre jet sur "article" -- aucune autre source d'article (Jodie, actualite organique,
+//   scandales, elections...) n'est jamais concernee.
+//
+// Cout FR "du seulement en cas de reussite" (arbitrage de jeu) : cost declare dans data.js
+// (500/1000) sert UNIQUEMENT a la garde amont standard de doOrder() (fonds suffisants avant
+// meme d'ouvrir la modale, meme garantie que pour tout autre ordre) -- jamais deduit ici. Seul
+// le PA est du au jet lui-meme (deduireCoutOrdre({pa,cost:0})) ; le montant reel (= cost recu,
+// donc 500 ou 1000 selon l'ordre) n'est preleve, via debiterFondsOrdinaires, que dans la branche
+// succes -- doctrine documentee par deduireCoutOrdre() elle-meme ("a l'interieur de la branche
+// succes si le cout n'est du qu'en cas de reussite").
+let _lobbyingPresse = null;
+
+const LOBBYING_PRESSE_CONFIG = {
+  article:  { titre: 'Placer un article favorable', verbe: "Placer l'article" },
+  etouffer: { titre: 'Étouffer un article',          verbe: 'Étouffer' }
+};
+
+function ouvrirModalLobbyingPresse(mode, pa, cost, successRate) {
+  const cfg = LOBBYING_PRESSE_CONFIG[mode];
+  if (!cfg) return;
+  _lobbyingPresse = {
+    mode, pa, cost, successRate: successRate || (mode === 'article' ? 75 : 70),
+    type: 'pj', cibleValue: null, cibleLabel: null, cibleCountry: null,
+    angle: '', soumission: false
+  };
+
+  document.getElementById('postes-modal-title').textContent = '📰 ' + cfg.titre;
+  let html = '<div style="padding:.8rem 1rem">';
+  html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' +
+    (mode === 'article'
+      ? "Vous fournissez le sujet/l'angle souhaité ; la rédaction rédige elle-même un véritable article, sans jamais vous citer comme commanditaire."
+      : "Contre-lobbying préventif. N'affecte jamais un article déjà publié ni l'actualité réelle : rend seulement plus difficile un futur « Placer un article favorable » contre cette cible, pendant 7 jours.") +
+    '</div>';
+  html += '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">TYPE DE CIBLE</div>';
+  html += '<select id="lobbying-type-select" onchange="changerTypeCibleLobbying(this.value)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;margin-bottom:.7rem">' +
+    '<option value="pj">PJ</option>' +
+    '<option value="organisation">Organisation</option>' +
+    '<option value="local">Local</option>' +
+    '<option value="gouvernement">Gouvernement</option>' +
+    '<option value="pays">Pays</option>' +
+    '</select>';
+  html += '<div id="lobbying-cible-zone" style="margin-bottom:.5rem"></div>';
+  html += '<div id="lobbying-cible-recap" style="font-size:.72rem;color:#9a8a68;font-style:italic;margin-bottom:.8rem">Aucune cible sélectionnée.</div>';
+  if (mode === 'article') {
+    html += '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">SUJET / ANGLE SOUHAITÉ</div>';
+    html += '<textarea id="lobbying-angle-input" oninput="majAngleLobbying(this.value)" placeholder="Ex. : mettre en avant son rôle dans la reprise économique locale..." style="width:100%;min-height:80px;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.5rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;resize:vertical;margin-bottom:.9rem;box-sizing:border-box"></textarea>';
+  }
+  html += '<button id="lobbying-btn-valider" onclick="validerLobbyingPresse()" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.6rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer">' + cfg.verbe + ' — ' + pa + ' PA</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+
+  changerTypeCibleLobbying('pj');
+}
+
+function majAngleLobbying(val) {
+  if (_lobbyingPresse) _lobbyingPresse.angle = val;
+}
+
+function majRecapCibleLobbying() {
+  const recap = document.getElementById('lobbying-cible-recap');
+  if (!recap || !_lobbyingPresse) return;
+  recap.textContent = _lobbyingPresse.cibleLabel ? ('Cible sélectionnée : ' + _lobbyingPresse.cibleLabel) : 'Aucune cible sélectionnée.';
+}
+
+async function changerTypeCibleLobbying(nouveauType) {
+  if (!_lobbyingPresse) return;
+  _lobbyingPresse.type = nouveauType;
+  _lobbyingPresse.cibleValue = null;
+  _lobbyingPresse.cibleLabel = null;
+  _lobbyingPresse.cibleCountry = null;
+  majRecapCibleLobbying();
+
+  const zone = document.getElementById('lobbying-cible-zone');
+  if (!zone) return;
+
+  if (nouveauType === 'pj') {
+    zone.innerHTML =
+      '<input type="text" id="lobbying-pj-search" autocomplete="off" oninput="rechercherPjLobbying(this.value)" placeholder="Rechercher un PJ par nom (2 caractères min)..." style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none;box-sizing:border-box">' +
+      '<div id="lobbying-pj-suggestions" style="margin-top:.3rem"></div>';
+    chargerPjPourRumeur();
+    return;
+  }
+
+  if (nouveauType === 'organisation') {
+    zone.innerHTML = '<div style="font-size:.78rem;color:#9a8a68">Chargement des organisations...</div>';
+    const orgas = await chargerOrganisationsPourRumeur();
+    if (_lobbyingPresse.type !== 'organisation') return; // le joueur a change de type entre-temps
+    zone.innerHTML = '<select id="lobbying-cible-select" onchange="choisirCibleSimpleLobbying(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+      '<option value="">— Choisir une organisation —</option>' +
+      orgas.map(o => '<option value="' + o.id + '" data-label="' + escapeHtmlText(o.nom) + '" data-country="' + o.country + '">' + escapeHtmlText(o.nom) + ' (' + escapeHtmlText(COUNTRIES[o.country]?.n || o.country) + ')</option>').join('') +
+      '</select>';
+    return;
+  }
+
+  if (nouveauType === 'local') {
+    const locaux = construireListeLocauxCibles();
+    zone.innerHTML = '<select id="lobbying-cible-select" onchange="choisirCibleSimpleLobbying(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+      '<option value="">— Choisir un local —</option>' +
+      locaux.map(l => '<option value="' + l.value + '" data-label="' + escapeHtmlText(l.labelCourt) + '">' + escapeHtmlText(l.labelListe) + '</option>').join('') +
+      '</select>';
+    return;
+  }
+
+  // gouvernement / pays : meme liste de pays, seule la semantique de l'effet differe ensuite
+  const paysListe = Object.keys(COUNTRIES).sort((a, b) => (COUNTRIES[a].n || a).localeCompare(COUNTRIES[b].n || b, 'fr'));
+  zone.innerHTML = '<select id="lobbying-cible-select" onchange="choisirCibleSimpleLobbying(this)" style="width:100%;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;padding:.4rem;font-family:\'Crimson Pro\',serif;font-size:.85rem;outline:none">' +
+    '<option value="">— Choisir un pays —</option>' +
+    paysListe.map(p => '<option value="' + p + '" data-label="' + escapeHtmlText(COUNTRIES[p].n || p) + '">' + escapeHtmlText(COUNTRIES[p].n || p) + '</option>').join('') +
+    '</select>';
+}
+
+function rechercherPjLobbying(query) {
+  const suggestionsDiv = document.getElementById('lobbying-pj-suggestions');
+  if (!suggestionsDiv) return;
+  const q = (query || '').trim().toLowerCase();
+  if (q.length < 2) { suggestionsDiv.innerHTML = ''; return; }
+  const resultats = (_rumeurPjCache || []).filter(p => (p.name || '').toLowerCase().includes(q)).slice(0, 8);
+  if (resultats.length === 0) {
+    suggestionsDiv.innerHTML = '<div style="font-size:.75rem;color:#7a6a50;padding:.3rem">Aucun résultat.</div>';
+    return;
+  }
+  suggestionsDiv.innerHTML = resultats.map(p =>
+    '<div onclick="choisirCiblePjLobbying(\'' + p.name.replace(/'/g, "\\'") + '\',\'' + (p.country || '') + '\')" style="padding:.4rem .6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.25rem;cursor:pointer;font-size:.8rem;color:#c0b090" onmouseover="this.style.background=\'#1a1005\'" onmouseout="this.style.background=\'#0f0d05\'">' +
+      escapeHtmlText(p.name) + (p.country ? ' <span style="color:#7a6a50">(' + escapeHtmlText(COUNTRIES[p.country]?.n || p.country) + ')</span>' : '') +
+    '</div>'
+  ).join('');
+}
+
+function choisirCiblePjLobbying(nom, country) {
+  if (!_lobbyingPresse) return;
+  _lobbyingPresse.cibleValue = nom;
+  _lobbyingPresse.cibleLabel = nom;
+  _lobbyingPresse.cibleCountry = country || null;
+  const input = document.getElementById('lobbying-pj-search');
+  if (input) input.value = nom;
+  const suggestions = document.getElementById('lobbying-pj-suggestions');
+  if (suggestions) suggestions.innerHTML = '';
+  majRecapCibleLobbying();
+}
+
+function choisirCibleSimpleLobbying(selectEl) {
+  if (!_lobbyingPresse) return;
+  const opt = selectEl.selectedOptions[0];
+  _lobbyingPresse.cibleValue = selectEl.value || null;
+  _lobbyingPresse.cibleLabel = (opt && selectEl.value) ? opt.getAttribute('data-label') : null;
+  _lobbyingPresse.cibleCountry = (opt && opt.getAttribute('data-country')) || null;
+  majRecapCibleLobbying();
+}
+
+// Pays de scope pour la Tribune concernee (celle qui, un jour, publiera reellement l'article) :
+// TOUJOURS le pays de la CIBLE, jamais celui du demandeur -- une meme regle que les collecteurs
+// FACTS existants (r.country, jamais state.country). local : premier segment de "pays|ville|
+// batiment" ; gouvernement/pays : la valeur EST deja le code pays ; pj/organisation : pays connu
+// de la cible elle-meme (repli sur state.country si absent, ex. PJ sans country renseigne).
+function resoudrePaysCibleLobbying(type, cibleValue, cibleCountry) {
+  if (type === 'local') return (cibleValue || '').split('|')[0] || state.country;
+  if (type === 'gouvernement' || type === 'pays') return cibleValue || state.country;
+  return cibleCountry || state.country;
+}
+
+async function validerLobbyingPresse() {
+  if (!_lobbyingPresse || _lobbyingPresse.soumission) return;
+  if (!_lobbyingPresse.cibleValue) { showToast('Cible requise', 'Sélectionnez une cible avant de continuer.', false); return; }
+  const cfg = LOBBYING_PRESSE_CONFIG[_lobbyingPresse.mode];
+  if (!cfg) return;
+  if (_lobbyingPresse.mode === 'article' && !(_lobbyingPresse.angle || '').trim()) {
+    showToast('Angle requis', "Indiquez le sujet/l'angle souhaité.", false);
+    return;
+  }
+
+  _lobbyingPresse.soumission = true;
+  const btn = document.getElementById('lobbying-btn-valider');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = 'En cours...'; }
+
+  const { pa, cost, type, cibleValue, cibleLabel, cibleCountry, angle, mode, successRate } = _lobbyingPresse;
+
+  // PA du au jet lui-meme, que la redaction accepte ou non ; l'argent (cost = 500 ou 1000) n'est
+  // preleve que dans la branche succes plus bas, jamais ici (voir doctrine deduireCoutOrdre()).
+  // Les fonds necessaires en cas de succes ont deja ete verifies EN AMONT par la garde standard
+  // de doOrder() (fondsOrdinairesDisponibles < cost, plateau-router.js) avant meme l'ouverture de
+  // cette modale : aucune verification redondante necessaire ici.
+  const r = await deduireCoutOrdre({ pa, cost: 0 });
+  if (!r.ok) {
+    showToast('PA insuffisants', '', false);
+    _lobbyingPresse.soumission = false;
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = cfg.verbe + ' — ' + pa + ' PA'; }
+    return;
+  }
+
+  document.getElementById('modal-postes').classList.remove('open');
+
+  const paysCible = resoudrePaysCibleLobbying(type, cibleValue, cibleCountry);
+  const etouffementActif = (mode === 'article' && typeof sbVerifierEtouffementActif === 'function')
+    ? await sbVerifierEtouffementActif(type, cibleValue).catch(() => false)
+    : false;
+
+  // Modificateur standard lie aux caracteristiques du demandeur (CHA) : meme formule que
+  // doDemanderBenediction()/calculerTauxNegociationSquatteurs() (base + 2*(CHA-13), clampee
+  // [5,95]) -- reutilisation explicite du mecanisme de reussite variable existant, jamais un
+  // systeme parallele. "avant application des modificateurs standards" (arbitrage) = la base
+  // (75/70, ou 10 si etouffement actif) change AVANT ce modificateur, jamais apres.
+  const cha = typeof getStatEffective === 'function' ? getStatEffective('CHA') : 8;
+  const base = etouffementActif ? 10 : (successRate || (mode === 'article' ? 75 : 70));
+  const taux = Math.max(5, Math.min(95, Math.round(base + 2 * (cha - 13))));
+  const roll = Math.floor(Math.random() * 100) + 1;
+  const succes = roll <= taux;
+
+  if (succes) {
+    if (typeof debiterFondsOrdinaires === 'function') await debiterFondsOrdinaires(cost).catch(() => {});
+    else state.arg = Math.max(0, (state.arg || 0) - cost);
+
+    if (mode === 'article') {
+      const angleTexte = (angle || '').trim();
+      const angleEchappe = (typeof escapeHtmlText === 'function') ? escapeHtmlText(angleTexte) : angleTexte;
+      const phraseCible = construirePhraseCibleTracee(type, cibleLabel);
+      let villeLibelle = null;
+      if (type === 'local') {
+        const segs = (cibleValue || '').split('|');
+        villeLibelle = (typeof WORLD !== 'undefined' && WORLD[segs[0]]?.[segs[1]]?.name) || null;
+      }
+      if (typeof sbEnregistrerEvenementPublic === 'function') {
+        await sbEnregistrerEvenementPublic(paysCible, 'lobbying_article_favorable', {
+          city: villeLibelle,
+          personnages: type === 'pj' ? [cibleLabel] : [],
+          libelle: 'La rédaction de La Tribune a été discrètement convaincue de mettre en avant ' + phraseCible + ' sous un angle favorable : « ' + angleEchappe + ' ».',
+          data: { cible_type: type, cible_value: cibleValue, angle: angleTexte }
+        }).catch(() => {});
+      }
+      document.getElementById('postes-modal-title').textContent = '📰 Article accepté';
+      document.getElementById('postes-body').innerHTML =
+        '<div style="padding:1.2rem">' +
+        '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:\'Crimson Pro\',serif">La rédaction accepte de traiter ' + escapeHtmlText(cibleLabel) + ' sous un angle favorable. L\'article paraîtra dans une prochaine édition de La Tribune.</div>' +
+        '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">-' + cost + ' FR · Vous n\'apparaissez pas comme commanditaire.</div>' +
+        '</div>';
+      addJournalEntry('Article favorable obtenu contre ' + escapeHtmlText(cibleLabel) + '. -' + cost + ' FR.', 'event-good');
+    } else {
+      if (typeof sbEnregistrerEtouffement === 'function') {
+        await sbEnregistrerEtouffement(type, cibleValue, cibleLabel, paysCible).catch(() => {});
+      }
+      document.getElementById('postes-modal-title').textContent = '📰 Article étouffé';
+      document.getElementById('postes-body').innerHTML =
+        '<div style="padding:1.2rem">' +
+        '<div style="font-size:.85rem;color:#c0b090;font-style:italic;line-height:1.7;font-family:\'Crimson Pro\',serif">Pendant 7 jours, il sera beaucoup plus difficile de placer un article favorable sur ' + escapeHtmlText(cibleLabel) + '. L\'actualité réelle (scandales, condamnations, élections...) n\'est jamais affectée.</div>' +
+        '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">-' + cost + ' FR</div>' +
+        '</div>';
+      addJournalEntry('Article étouffé contre ' + escapeHtmlText(cibleLabel) + '. -' + cost + ' FR.', 'event-good');
+    }
+    document.getElementById('modal-postes').classList.add('open');
+  } else {
+    document.getElementById('postes-modal-title').textContent = '📰 Refus de la rédaction';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.2rem">' +
+      '<div style="font-size:.85rem;color:#8a8060;font-style:italic;line-height:1.7;font-family:\'Crimson Pro\',serif">La rédaction refuse de rédiger un article en ce sens.</div>' +
+      '</div>';
+    document.getElementById('modal-postes').classList.add('open');
+    addJournalEntry((mode === 'article' ? "Tentative d'article favorable" : "Tentative d'étouffement") + ' refusée par la rédaction contre ' + escapeHtmlText(cibleLabel) + '.', 'event-bad');
+  }
+
+  _lobbyingPresse = null;
+  if (typeof advanceTime === 'function') advanceTime(Math.max(0, pa || 0));
+  updateUI();
+}
+
+// =====================
 // DISTRIBUER UN TRACT (9 aout 2026)
 // =====================
 // N'existait pas du tout avant ce soir : le routeur appelait doDistribuerTract() sans que la
