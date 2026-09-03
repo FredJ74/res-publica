@@ -2958,46 +2958,41 @@ function doImprimerLivre() {
 }
 
 // Placement Banque nationale : montant libre (min 500, pas de max), immobilise 7 jours, resolu
-// par le cron de minuit. Un seul investissement actif a la fois par joueur (verifie a
-// l'ouverture ET a la confirmation contre une double-soumission).
+// par le cron de minuit. Plusieurs investissements peuvent desormais coexister et s'additionnent
+// (chantier "Banque Nationale de Luthecia") : chaque placement reste une ligne independante dans
+// placements_bancaires, avec sa propre echeance/rendement -- aucune regle de taux/rendement
+// changee, seule la restriction artificielle "un seul actif a la fois" est levee.
 // Audit "PLACEMENT BANQUE NATIONALE", phase 2, chantier raccordement -- bascule sur
 // placements_bancaires (banque='nationale', type='terme'), la table
 // investissements devenant purement legacy : plus aucune nouvelle ligne n'y est creee. La ligne
 // active existante (Arnie, echeance 2026-09-03) n'est PAS migree (decision explicite) : elle
 // continue de vivre dans investissements et de suivre l'ancien mecanisme
 // (resoudreInvestissementsExpires, cron-minuit.js, strictement inchangee) jusqu'a sa resolution
-// naturelle -- tant qu'elle existe, sbGetInvestissementEnCours() continue d'etre interroge ici en
-// plus du nouveau systeme pour empecher un double placement pendant la transition.
+// naturelle -- tant qu'elle existe, sbGetInvestissementEnCours() continue d'etre interroge ici pour
+// empecher un nouveau placement de coexister avec la ligne legacy pendant la transition.
 async function ouvrirInvestir(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  const actifNational = (state.placementsBancaires || []).find(p => p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
   const actifLegacy = (typeof sbGetInvestissementEnCours === 'function' && state.char?.name)
     ? await sbGetInvestissementEnCours(state.char.name).catch(() => null)
     : null;
-
-  if (actifNational && actifLegacy) {
-    // Anomalie : ne devrait jamais arriver (un nouveau placement est refuse par
-    // confirmerInvestir tant que la ligne legacy existe) -- signale sans deviner lequel afficher.
-    console.error('Anomalie : placement Banque nationale actif simultanement dans les deux systemes pour ' + state.char?.name, { actifNational, actifLegacy });
-    showToast('Anomalie détectée', 'Deux placements actifs trouvés — contactez le support.', false);
-    return;
-  }
-  if (actifNational) {
-    const joursRestants = Math.max(0, Math.ceil((new Date(actifNational.prochaine_echeance).getTime() - Date.now()) / 86400000));
-    showToast('Investissement en cours', 'Vous avez déjà ' + (actifNational.montant || 0).toLocaleString('fr-FR') + ' ' + cur + ' placés depuis le ' + new Date(actifNational.date_placement).toLocaleDateString('fr-FR') + '. Capital immobilisé. Résultat dans ' + joursRestants + ' jour(s).', false);
-    return;
-  }
   if (actifLegacy) {
     const joursRestants = Math.max(0, Math.ceil((new Date(actifLegacy.jour_resolution_at).getTime() - Date.now()) / 86400000));
-    showToast('Investissement en cours', 'Vous avez déjà ' + actifLegacy.montant_initial.toLocaleString('fr-FR') + ' ' + cur + ' placés. Capital immobilisé. Résultat dans ' + joursRestants + ' jour(s).', false);
+    showToast('Investissement en cours', 'Vous avez déjà ' + actifLegacy.montant_initial.toLocaleString('fr-FR') + ' ' + cur + ' placés (ancien système). Capital immobilisé. Résultat dans ' + joursRestants + ' jour(s).', false);
     return;
   }
+
+  const placementsActifs = (state.placementsBancaires || []).filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
+  const totalActif = placementsActifs.reduce((s, p) => s + (p.montant || 0), 0);
+  const infoExistant = placementsActifs.length > 0
+    ? '<div style="font-size:.75rem;color:#8a6a20;margin-bottom:.6rem">Déjà placés : ' + totalActif.toLocaleString('fr-FR') + ' ' + cur + ' (' + placementsActifs.length + ' investissement(s) actif(s)).</div>'
+    : '';
 
   document.getElementById('postes-modal-title').textContent = 'Investir';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
-    '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Capital preleve sur votre compte Banque nationale, immobilise 7 jours. Rendement entre -12% et +12% selon la conjoncture economique locale a l\'echeance. Un seul investissement actif a la fois.</div>' +
+    '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Capital preleve sur votre compte Banque nationale, immobilise 7 jours. Rendement entre -12% et +12% selon la conjoncture economique locale a l\'echeance.</div>' +
+    infoExistant +
     '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">MONTANT (min. 500 ' + cur + ')</div>' +
     '<input id="investir-montant" type="number" min="500" step="100" placeholder="Montant en ' + cur + '..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.8rem"/>' +
     '<button onclick="confirmerInvestir(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Placer les fonds</button>' +
@@ -3010,12 +3005,9 @@ async function confirmerInvestir(pa, cost) {
   const montant = parseInt(document.getElementById('investir-montant')?.value || 0);
   if (!montant || montant < 500) { showToast('Montant invalide', 'Minimum 500 ' + cur + '.', false); return; }
 
-  const actifNational = (state.placementsBancaires || []).find(p => p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
-  if (actifNational) { showToast('Investissement refusé', 'Vous avez déjà un investissement Banque nationale en cours.', false); return; }
-
   if (typeof sbGetInvestissementEnCours === 'function' && state.char?.name) {
     const actifLegacy = await sbGetInvestissementEnCours(state.char.name).catch(() => null);
-    if (actifLegacy) { showToast('Investissement refusé', 'Vous avez déjà un investissement en cours.', false); return; }
+    if (actifLegacy) { showToast('Investissement refusé', 'Vous avez déjà un investissement en cours (ancien système).', false); return; }
   }
 
   // Source des fonds : exclusivement le compte Banque nationale -- jamais liquide, jamais

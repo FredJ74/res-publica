@@ -6,7 +6,7 @@
 // =====================
 // CHAR SHEET
 // =====================
-function openCharSheet() {
+async function openCharSheet() {
   const char = state.char;
   if (!char) return;
   const co = COUNTRIES[char.country];
@@ -14,6 +14,16 @@ function openCharSheet() {
   const ca = CAREERS.find(x => x.id === char.career);
   const or = ORIGINS.find(x => x.id === char.origin);
   const sc = SCHOOLS.find(x => x.id === char.school);
+
+  // Placements/emprunts (chantier "Banque Nationale de Luthecia") : lit exclusivement les memes
+  // donnees persistantes que Gerer mon compte (state.placementsBancaires deja hydrate au
+  // chargement du personnage ; prets via sbGetPretsEnCours, aucune donnee dupliquee/inventee).
+  const placementsActifs = (state.placementsBancaires || []).filter(p => p && p.statut === 'actif');
+  const totalPlacements = placementsActifs.reduce((s, p) => s + (p.montant || 0), 0);
+  const pretsEnCours = (typeof sbGetPretsEnCours === 'function' && char.name)
+    ? await sbGetPretsEnCours(char.name).catch(() => [])
+    : [];
+  const totalRestantPrets = pretsEnCours.reduce((s, p) => s + (p.montant_restant || 0), 0);
 
   const photo = char.photoUrl
     ? `<img src="${char.photoUrl}" style="width:70px;height:70px;border-radius:50%;border:2px solid #8a6a20;object-fit:cover">`
@@ -48,11 +58,17 @@ function openCharSheet() {
         <div class="cs-stat-row"><span class="cs-stat-name">Argent total</span><span class="cs-stat-val">${state.arg.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Liquide</span><span class="cs-stat-val">${state.liquide.toLocaleString('fr-FR')}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">En banque</span><span class="cs-stat-val">${totalComptesBancaires().toLocaleString('fr-FR')}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">Placements</span><span class="cs-stat-val">${totalPlacements.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">Emprunts en cours</span><span class="cs-stat-val">${pretsEnCours.length === 0 ? 'Aucun' : totalRestantPrets.toLocaleString('fr-FR') + ' ' + (co?.cur||'FR') + ' restant (' + pretsEnCours.length + ')'}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Influence</span><span class="cs-stat-val">${state.inf}/100</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Popularite</span><span class="cs-stat-val">${state.pop}/100</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Discretion</span><span class="cs-stat-val">${state.dis}/100</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Sante</span><span class="cs-stat-val">${state.hp}/100</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Moral</span><span class="cs-stat-val">${state.moral}/100</span></div>
+        ${pretsEnCours.length > 0 ? pretsEnCours.map(p => `
+          <div style="font-size:.72rem;color:#8a8060;padding:.15rem 0 .15rem .5rem;border-left:2px solid #3a2a10;margin-top:.3rem">
+            ${(TYPES_PRET?.[p.type_pret]?.label || p.type_pret || 'Prêt')} (${p.type_banque === 'privee' ? 'Helvetia' : 'Nationale'}) — ${(p.montant_restant||0).toLocaleString('fr-FR')} ${co?.cur||'FR'} restant, ${(p.mensualite||0).toLocaleString('fr-FR')} ${co?.cur||'FR'}/jour
+          </div>`).join('') : ''}
       </div>
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">

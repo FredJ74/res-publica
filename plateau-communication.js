@@ -2305,7 +2305,7 @@ async function retirerPetiteAnnonce(id) {
 // =====================
 // FINANCES MODAL
 // =====================
-function openFinancesModal(pa, cost) {
+async function openFinancesModal(pa, cost) {
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
   // Lot 3 (chantier fiscalite/Helvetia) : "En banque" affiche desormais le solde reel du compte
   // Banque nationale (comptes_bancaires), plus l'ancien champ plat state.banque (legacy, plus
@@ -2314,6 +2314,15 @@ function openFinancesModal(pa, cost) {
   // il continue donc, comme avant ce lot, a toujours montrer/manipuler le compte Banque
   // nationale quel que soit le batiment d'ou il est ouvert.
   const soldeNational = state.comptesBancaires?.nationale?.solde || 0;
+
+  // Placements/emprunts (chantier "Banque Nationale de Luthecia") : memes donnees persistantes
+  // que la Fiche personnage (state.placementsBancaires deja hydrate, sbGetPretsEnCours en lecture
+  // directe), filtrees sur la Banque nationale puisque ce modal ne gere que ce compte-la.
+  const placementsActifs = (state.placementsBancaires || []).filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
+  const totalPlacements = placementsActifs.reduce((s, p) => s + (p.montant || 0), 0);
+  const pretsNationale = (typeof sbGetPretsEnCours === 'function' && state.char?.name)
+    ? (await sbGetPretsEnCours(state.char.name).catch(() => [])).filter(p => (p.type_banque || 'nationale') === 'nationale')
+    : [];
 
   document.getElementById('finances-body').innerHTML = `
     <div class="finance-row">
@@ -2327,6 +2336,22 @@ function openFinancesModal(pa, cost) {
     <div class="finance-row">
       <div class="finance-label">En banque</div>
       <div class="finance-amount">${soldeNational.toLocaleString('fr-FR')} ${cur}</div>
+    </div>
+    <div style="padding:.6rem 1rem;border-bottom:1px solid #1a1810">
+      <div style="font-size:.75rem;color:#6a5a30;margin-bottom:.4rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em">PLACEMENTS</div>
+      ${placementsActifs.length === 0
+        ? '<div style="font-size:.78rem;color:#9a8a68;font-style:italic">Aucun placement en cours.</div>'
+        : `<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">${totalPlacements.toLocaleString('fr-FR')} ${cur} placés (${placementsActifs.length} investissement(s))</div>` +
+          placementsActifs.map(p => {
+            const joursRestants = p.prochaine_echeance ? Math.max(0, Math.ceil((new Date(p.prochaine_echeance).getTime() - Date.now()) / 86400000)) : null;
+            return `<div style="font-size:.72rem;color:#8a8060;padding:.1rem 0">${(p.montant||0).toLocaleString('fr-FR')} ${cur}${joursRestants !== null ? ' — résultat dans ' + joursRestants + ' jour(s)' : ''}</div>`;
+          }).join('')}
+    </div>
+    <div style="padding:.6rem 1rem;border-bottom:1px solid #1a1810">
+      <div style="font-size:.75rem;color:#6a5a30;margin-bottom:.4rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em">EMPRUNTS EN COURS</div>
+      ${pretsNationale.length === 0
+        ? '<div style="font-size:.78rem;color:#9a8a68;font-style:italic">Aucun emprunt en cours.</div>'
+        : pretsNationale.map(p => `<div style="font-size:.78rem;color:#c0b090;padding:.15rem 0">${(TYPES_PRET?.[p.type_pret]?.label || p.type_pret || 'Prêt')} — ${(p.montant_restant||0).toLocaleString('fr-FR')} ${cur} restant, ${(p.mensualite||0).toLocaleString('fr-FR')} ${cur}/jour${p.jours_impayes > 0 ? ' (' + p.jours_impayes + ' jour(s) impayé(s))' : ''}</div>`).join('')}
     </div>
     <div style="padding:.8rem 1rem;border-bottom:1px solid #1a1810">
       <div style="font-size:.75rem;color:#6a5a30;margin-bottom:.5rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em">DEPOT / RETRAIT</div>
