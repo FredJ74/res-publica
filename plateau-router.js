@@ -493,7 +493,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'projet_loi') { ouvrirDeposerProjet(pa, cost); return; }
   if (fn === 'greve') { doGrevePNJ(); return; }
   if (fn === 'recruter_etud') { doRecruterMilitants(pa, cost); return; }
-  if (fn === 'acte_officiel') { doActeOfficiel(); return; }
+  if (fn === 'acte_officiel') { doActeOfficiel(pa, cost); return; }
+  if (fn === 'acte_officiel_juge') { ouvrirActeOfficielJuge(pa, cost); return; }
+  if (fn === 'acte_officiel_notaire') { ouvrirActeOfficielNotaire(pa, cost); return; }
 
   if (fn === 'interdire_manif_cible')   { ouvrirModalTexteLibre('interdire_manif', 'Interdire une manifestation', 'Preciser le nom ou sujet de la manifestation a interdire...'); return; }
   if (fn === 'reprimer_manif_cible')    { ouvrirModalTexteLibre('reprimer_manif', 'Ordonner la repression', 'Preciser la manifestation ou le rassemblement cible...'); return; }

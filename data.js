@@ -2215,7 +2215,8 @@ const BUILDINGS = {
           {fn:'acte_rachat_entreprise_preemption', label:'Officialiser une preemption d\'Etat', pa:1, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_fin', desc:'Finalise une preemption en attente : transfert de propriete a l\'Etat. Aucun paiement ici, deja couvert par le pret.'},
           {fn:'transferer_compromis', label:'Transférer un compromis', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, desc:'Céder votre compromis en cours à un autre joueur, qui devra venir valider.'},
           {fn:'valider_transfert_compromis', label:'Valider un transfert de compromis', pa:1, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Accepter un compromis qu\'un autre joueur vous a proposé de reprendre.'},
-          {fn:'demander_divorce', label:'Demander le divorce', pa:1, cost:200, type:'legal', icon:'ti-heart-broken', successRate:100, desc:'Dissout votre mariage actuel. Votre conjoint en sera informé par mail.'}
+          {fn:'demander_divorce', label:'Demander le divorce', pa:1, cost:200, type:'legal', icon:'ti-heart-broken', successRate:100, desc:'Dissout votre mariage actuel. Votre conjoint en sera informé par mail.'},
+          {fn:'acte_officiel_notaire', label:'Demander un acte officiel', pa:1, cost:100, type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Rechercher une personne et obtenir l\'extrait d\'etat-civil/succession correspondant, authentifie par le notaire.'}
         ]
       },
       archives_notariales: {
@@ -3840,7 +3841,8 @@ const BUILDINGS = {
         orders: [
           {fn:'plainte',   label:'Consulter les affaires', pa:0, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir les affaires transmises par la police, en attente de jugement.'},
           {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:50, desc:'Taux : 50% de base + CHA - malus si preuve reelle contre vous. Reussite eclatante = affaire classee ; reussite simple = circonstance attenuante ; echec flagrant = aggravation.'},
-          {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire transmise par le commissariat. Amende, prison, amenagement ou QHS.'}
+          {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire transmise par le commissariat. Amende, prison, amenagement ou QHS.'},
+          {fn:'acte_officiel_juge', label:'Delivrer un acte officiel', pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'juge', desc:'Rechercher une personne et lui delivrer l\'extrait d\'etat-civil/succession correspondant.'}
         ]
       }
     }

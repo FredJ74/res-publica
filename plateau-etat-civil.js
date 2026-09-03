@@ -193,6 +193,157 @@ function etatCivilRechercher(nomQuery, decennieDebut) {
 }
 
 // =====================
+// ACTES OFFICIELS INDIVIDUELS ("Demander un acte officiel", chantier du 3 septembre 2026) --
+// distinct de la "Fiche d'état-civil" ci-dessus (synthese complete de tous les evenements) :
+// chaque acte est un document UNITAIRE (un type precis, une personne precise), materialise dans
+// l'inventaire, jamais un simple renommage de la fiche. Reutilise EXCLUSIVEMENT les donnees deja
+// chargees par etatCivilChargerJoueurs() ci-dessus -- aucune donnee inventee, aucun deuxieme
+// systeme de lecture d'etat-civil.
+// =====================
+
+// Actes REELLEMENT disponibles pour nomPersonne, a partir des seules donnees persistees. Chaque
+// entree : { type, id?, titre, texte } -- "texte" est le contenu integral pret a etre appose sur
+// l'objet d'inventaire. Un type absent des donnees reelles n'apparait simplement pas (jamais un
+// acte "vide" ou invente).
+async function etatCivilActesDisponibles(nomPersonne) {
+  await etatCivilChargerJoueurs();
+  const actes = [];
+
+  // --- Naissance : personnages.created_at (vivant) OU etat_civil_naissances seul (PJ disparu,
+  // seule trace persistante restante -- meme doctrine que etat_civil_deces, voir plus bas) ---
+  const joueurVivant = (ETAT_CIVIL_CACHE_JOUEURS || []).find(function(j) { return j.name === nomPersonne; });
+  const naissanceArchive = (ETAT_CIVIL_CACHE_NAISSANCES || []).find(function(x) { return x.nom === nomPersonne; });
+  const dateNaissanceSource = (joueurVivant && joueurVivant.created_at) ? joueurVivant.created_at : (naissanceArchive && naissanceArchive.created_at);
+  if (dateNaissanceSource) {
+    const d = new Date(dateNaissanceSource);
+    const ville = etatCivilNomVille(naissanceArchive?.city);
+    const dateTxt = d.getDate() + ' ' + ETAT_CIVIL_MOIS[d.getMonth()] + ' ' + d.getFullYear();
+    actes.push({
+      type: 'naissance',
+      titre: "Extrait d'acte de naissance",
+      texte: "EXTRAIT D'ACTE DE NAISSANCE\n\n" + nomPersonne + ', né(e) le ' + dateTxt + (ville ? ' à ' + ville : '') + '.'
+    });
+  }
+
+  // --- Mariage(s) reels : une entree par union trouvee dans "mariages", dissolution mentionnee
+  // le cas echeant (jamais masquee) ---
+  (ETAT_CIVIL_CACHE_MARIAGES || []).forEach(function(m) {
+    if (m.conjoint1 !== nomPersonne && m.conjoint2 !== nomPersonne) return;
+    if (!m.created_at) return;
+    const conjoint = m.conjoint1 === nomPersonne ? m.conjoint2 : m.conjoint1;
+    const dm = new Date(m.created_at);
+    const dateTxt = dm.getDate() + ' ' + ETAT_CIVIL_MOIS[dm.getMonth()] + ' ' + dm.getFullYear();
+    const ville = etatCivilNomVille(m.city);
+    let texte = "EXTRAIT D'ACTE DE MARIAGE\n\n" + nomPersonne + ' et ' + conjoint + ', union célébrée le ' + dateTxt + (ville ? ' à ' + ville : '') + '.';
+    if (m.statut === 'dissous') {
+      const motif = m.raison_dissolution === 'veuvage' ? 'veuvage' : 'divorce';
+      texte += '\n\nUnion dissoute (' + motif + ').';
+    }
+    actes.push({ type: 'mariage', id: m.id, titre: "Extrait d'acte de mariage — " + conjoint, texte: texte });
+  });
+
+  // --- Deces reel : recherche DIRECTE dans etat_civil_deces, jamais conditionnee a la presence
+  // d'une ligne "personnages" (un PJ decede est supprime de personnages -- etat_civil_deces est
+  // la SEULE trace qui persiste, voir supabase.js/sbCreerActeDeces). C'est la raison precise pour
+  // laquelle ce chantier ne reutilise pas etatCivilConstruireFiche telle quelle pour cet acte :
+  // elle exige un match "personnages" ou registre fictif, donc echoue silencieusement pour un PJ
+  // reellement decede -- limite documentee, contournee ici en lisant etat_civil_deces directement.
+  const deces = (ETAT_CIVIL_CACHE_DECES || []).find(function(x) { return x.nom === nomPersonne; });
+  if (deces && deces.created_at) {
+    const dd = new Date(deces.created_at);
+    const ville = etatCivilNomVille(deces.city);
+    const dateTxt = dd.getDate() + ' ' + ETAT_CIVIL_MOIS[dd.getMonth()] + ' ' + dd.getFullYear();
+    actes.push({
+      type: 'deces',
+      titre: "Extrait d'acte de décès",
+      texte: "EXTRAIT D'ACTE DE DÉCÈS\n\n" + nomPersonne + ', décédé(e) le ' + dateTxt + (ville ? ' à ' + ville : '') + '.'
+    });
+  }
+
+  // --- Succession(s) REGLEES ou nomPersonne figure comme beneficiaire d'une disposition --
+  // reutilise chargerSuccessionsReelles() (plateau-enigme-portrait.js), deja la seule source de
+  // verite pour "une succession publiquement constatable" (filtre statut==='resolue', jamais un
+  // dossier encore en_attente -- memes regles que les Archives Notariales publiques). Ne
+  // declenche, ne modifie et ne tranche RIEN : lecture seule d'un dossier deja definitivement
+  // regle par le systeme d'heritage existant.
+  if (typeof chargerSuccessionsReelles === 'function') {
+    const successionsReglees = await chargerSuccessionsReelles();
+    successionsReglees.forEach(function(s) {
+      const dispositionsPourMoi = (s.dispositions || []).filter(function(d) { return d.resultat && d.resultat.beneficiaire === nomPersonne; });
+      if (dispositionsPourMoi.length === 0) return;
+      const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[s.country]?.cur) || 'FR';
+      const lignes = dispositionsPourMoi.map(function(d) {
+        if (d.type === 'argent') return '- Somme nette perçue : ' + (d.part_nette || 0) + ' ' + cur;
+        return '- ' + (d.type === 'terrain' ? 'Terrain' : 'Entreprise') + ' : ' + (d.libelle || d.id);
+      });
+      actes.push({
+        type: 'succession',
+        id: s.id,
+        titre: 'Acte de succession — ' + s.defunt,
+        texte: 'ACTE DE SUCCESSION\n\nSuccession de ' + s.defunt + ', réglée.\nBénéficiaire : ' + nomPersonne + '\n\n' + lignes.join('\n')
+      });
+    });
+  }
+
+  return actes;
+}
+
+// Cle d'unicite d'un acte pour UNE personne concernee donnee -- sert a la fois d'anti-doublon
+// (ne jamais empiler deux fois le meme extrait) et de marqueur "quel acte precis est-ce" sur
+// l'objet d'inventaire (voir etatCivilDelivrerActe).
+function etatCivilCleActe(acte, nomConcerne) {
+  return 'acte-' + acte.type + '-' + nomConcerne.replace(/\s+/g, '-').toLowerCase() + (acte.id ? '-' + String(acte.id).replace(/\s+/g, '-').toLowerCase() : '');
+}
+
+function etatCivilActeDejaPossede(acte, nomConcerne) {
+  const cle = etatCivilCleActe(acte, nomConcerne);
+  return (state.inventory || []).some(function(item) { return item.acteCle === cle; });
+}
+
+// Ajoute l'acte a l'inventaire de CELUI QUI AGIT (state), jamais celui de nomConcerne -- pour le
+// citoyen demandant son propre acte, les deux sont la meme personne ; pour une fonction habilitee
+// (maire adjoint/juge) delivrant l'acte d'un tiers, l'extrait rejoint le classeur du fonctionnaire
+// qui l'a etabli, exactement le comportement deja existant de l'ancien delivrerActe(). Renvoie
+// false sans rien faire si deja possede (anti-doublon).
+function etatCivilDelivrerActe(acte, nomConcerne) {
+  if (etatCivilActeDejaPossede(acte, nomConcerne)) return false;
+  if (!state.inventory) state.inventory = [];
+  state.inventory.push({
+    id: etatCivilCleActe(acte, nomConcerne) + '-' + Date.now(),
+    acteCle: etatCivilCleActe(acte, nomConcerne),
+    type: 'acte_officiel_' + acte.type,
+    name: acte.titre,
+    icon: 'ti-file-certificate',
+    legal: true,
+    concerne: nomConcerne,
+    desc: acte.texte
+  });
+  return true;
+}
+
+// Recherche par nom pour les fonctions habilitees (maire adjoint/juge) : contrairement a
+// etatCivilRechercher() (registre fictif + vrais joueurs VIVANTS, pour "Consulter l'état-civil"),
+// celle-ci doit aussi retrouver une personne dont la seule trace restante est un deces/mariage
+// reel (PJ supprime de "personnages") -- jamais le registre fictif de l'enigme du Portrait
+// Disparu, hors de propos pour un acte officiel reel.
+function etatCivilRechercherPourActe(nomQuery) {
+  const nomLower = (nomQuery || '').trim().toLowerCase();
+  if (!nomLower) return [];
+  const noms = [];
+  const ajouter = function(nom) { if (nom && noms.indexOf(nom) === -1) noms.push(nom); };
+  (ETAT_CIVIL_CACHE_JOUEURS || []).forEach(function(j) {
+    if (j.country === state.country && j.name.toLowerCase().indexOf(nomLower) !== -1) ajouter(j.name);
+  });
+  (ETAT_CIVIL_CACHE_DECES || []).forEach(function(d) {
+    if (d.nom && d.nom.toLowerCase().indexOf(nomLower) !== -1) ajouter(d.nom);
+  });
+  (ETAT_CIVIL_CACHE_MARIAGES || []).forEach(function(m) {
+    [m.conjoint1, m.conjoint2].forEach(function(n) { if (n && n.toLowerCase().indexOf(nomLower) !== -1) ajouter(n); });
+  });
+  return noms;
+}
+
+// =====================
 // INTERFACE (reutilise le modal generique #modal-postes, comme l'organigramme des supporters)
 // =====================
 

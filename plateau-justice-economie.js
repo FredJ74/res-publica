@@ -1576,33 +1576,117 @@ async function doCampagneSecurite() {
   addExternalEvent('MAIRIE : Campagne de sécurité lancée par le Maire. +10 ISN.');
 }
 
-function ouvrirActeOfficielMairie(pa, cost) {
+// =====================
+// ACTES OFFICIELS ("Demander un acte officiel" + délivrance professionnelle, refonte du
+// 3 septembre 2026) -- remplace l'ancien systeme utilitaire/fictif (ACTES_OFFICIELS : acte de
+// naissance FICTIF, laissez-passer, extrait de casier vierge...), abandonne : ces documents ne
+// materialisent plus desormais que de VRAIS actes d'etat-civil/succession, a partir des seules
+// donnees reellement persistees (plateau-etat-civil.js, jamais une donnee inventee). L'ancienne
+// constante ACTES_OFFICIELS n'existe plus (perdue lors de la reorganisation en fichiers
+// thematiques, jamais restauree) -- toute reference orpheline est retiree ici, aucun bouton ne
+// pointe plus vers elle ni vers l'ancien delivrerActe(acteId).
+// =====================
+
+// ---- Ordre CITOYEN (Hall de l'Hotel de Ville, acte_officiel) : uniquement SES PROPRES actes,
+// jamais une recherche libre d'un autre PJ (aucune boite de recherche dans ce chemin). ----
+async function doActeOfficiel(pa, cost) {
+  const moi = state.char?.name;
+  if (!moi) return;
+  document.getElementById('postes-modal-title').textContent = 'Demander un acte officiel';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Consultation du registre...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+  const actes = (typeof etatCivilActesDisponibles === 'function') ? await etatCivilActesDisponibles(moi) : [];
+  ouvrirModalChoixActeOfficiel(actes, moi, { pa, cost, delivrancePro: false });
+}
+
+// ---- Fonctions habilitees (Maire Adjoint / Juge) : recherche libre + delivrance dans LEUR
+// PROPRE inventaire -- meme comportement que l'ancien delivrerActe() (jamais une livraison
+// distante dans l'inventaire du PJ recherche), desormais assume comme un choix de conception
+// (le fonctionnaire etablit sa propre copie/piece de dossier), pas un defaut. ----
+function ouvrirActeOfficielMairie(pa, cost) { ouvrirRechercheActeOfficielPro(pa, cost); }
+function ouvrirActeOfficielJuge(pa, cost) { ouvrirRechercheActeOfficielPro(pa, cost); }
+// Office notarial / PNJ notaire (aucun poste "notaire" occupable par un PJ n'existe -- confirme
+// par l'audit dedie -- ce canal est donc un SERVICE ouvert a tout PJ present dans ce bureau,
+// jamais gate par un requiresPost, exactement comme les autres ordres deja existants de cette
+// meme piece : acte_vente_terrain, demander_divorce, etc. Seul le cout (100 FR, contrairement
+// aux 0 FR de Maire Adjoint/Juge) le distingue du reste du mecanisme, entierement partage.
+function ouvrirActeOfficielNotaire(pa, cost) { ouvrirRechercheActeOfficielPro(pa, cost); }
+
+function ouvrirRechercheActeOfficielPro(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Délivrer un acte officiel';
-  let html = '<div style="padding:1rem"><div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisir l\'acte à délivrer :</div>';
-  ACTES_OFFICIELS.forEach(acte => {
-    html += '<div onclick="delivrerActe(\'' + acte.id + '\',' + pa + ',' + cost + ')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
-    html += '<div style="font-size:.82rem;color:#c0b090">' + acte.name + '</div>';
-    html += '<div style="font-size:.68rem;color:#5a4030">' + acte.desc + '</div>';
-    html += '</div>';
-  });
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">Rechercher la personne concernée par son nom (2 caractères min).</div>';
+  html += '<input type="text" id="acte-officiel-pro-search" autocomplete="off" oninput="rechercherActeOfficielPro(' + pa + ',' + cost + ')" placeholder="Nom..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.6rem">';
+  html += '<div id="acte-officiel-pro-resultats"></div>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+  if (typeof etatCivilChargerJoueurs === 'function') etatCivilChargerJoueurs();
+}
+
+function rechercherActeOfficielPro(pa, cost) {
+  const q = document.getElementById('acte-officiel-pro-search')?.value || '';
+  const zone = document.getElementById('acte-officiel-pro-resultats');
+  if (!zone) return;
+  if (q.trim().length < 2) { zone.innerHTML = ''; return; }
+  const noms = (typeof etatCivilRechercherPourActe === 'function') ? etatCivilRechercherPourActe(q) : [];
+  if (noms.length === 0) { zone.innerHTML = '<div style="font-size:.75rem;color:#7a6a50;padding:.3rem">Aucun résultat.</div>'; return; }
+  zone.innerHTML = noms.slice(0, 8).map(nom =>
+    '<div onclick="choisirPersonneActeOfficielPro(\'' + nom.replace(/'/g, "\\'") + '\',' + pa + ',' + cost + ')" style="padding:.4rem .6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.25rem;cursor:pointer;font-size:.8rem;color:#c0b090" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">' + escapeHtmlText(nom) + '</div>'
+  ).join('');
+}
+
+async function choisirPersonneActeOfficielPro(nom, pa, cost) {
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Consultation du registre...</div>';
+  const actes = (typeof etatCivilActesDisponibles === 'function') ? await etatCivilActesDisponibles(nom) : [];
+  ouvrirModalChoixActeOfficiel(actes, nom, { pa, cost, delivrancePro: true });
+}
+
+// ---- Etape commune : choix d'un acte parmi ceux reellement disponibles ----
+let _acteOfficielChoixCache = [];
+function ouvrirModalChoixActeOfficiel(actes, nomPersonne, opts) {
+  _acteOfficielChoixCache = actes;
+  const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
+  document.getElementById('postes-modal-title').textContent = opts.delivrancePro ? ('Actes disponibles — ' + nomPersonne) : 'Demander un acte officiel';
+  let html = '<div style="padding:1rem">';
+  // Affiche toujours le cout reel (jamais conditionne a "citoyen vs pro" -- le Notaire, une
+  // fonction habilitee comme Maire Adjoint/Juge, facture neanmoins 100 FR par acte, contrairement
+  // aux deux autres qui sont gratuites).
+  html += '<div style="font-size:.75rem;color:#8a6a20;margin-bottom:.7rem">Coût : ' + opts.pa + ' PA' + (opts.cost > 0 ? ' · ' + opts.cost + ' ' + cur : '') + '</div>';
+  if (actes.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun acte officiel disponible' + (opts.delivrancePro ? (' pour ' + escapeHtmlText(nomPersonne)) : ' vous concernant') + ' pour le moment.</div>';
+  } else {
+    actes.forEach((acte, i) => {
+      html += '<div onclick="confirmerActeOfficiel(' + i + ',\'' + nomPersonne.replace(/'/g, "\\'") + '\',' + opts.pa + ',' + opts.cost + ')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
+      html += '<div style="font-size:.82rem;color:#c0b090">' + escapeHtmlText(acte.titre) + '</div>';
+      html += '</div>';
+    });
+  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function delivrerActe(acteId, pa, cost) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const acte = ACTES_OFFICIELS.find(a => a.id === acteId);
+async function confirmerActeOfficiel(idx, nomPersonne, pa, cost) {
+  const acte = _acteOfficielChoixCache[idx];
   if (!acte) return;
+  if (typeof etatCivilActeDejaPossede === 'function' && etatCivilActeDejaPossede(acte, nomPersonne)) {
+    document.getElementById('modal-postes').classList.remove('open');
+    showToast('Déjà en poche', 'Vous avez déjà cet acte dans votre inventaire.', false);
+    return;
+  }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
-  if (!state.inventory) state.inventory = [];
-  // Supprimer l'ancien acte du meme type si existant
-  state.inventory = state.inventory.filter(i => i.acteId !== acteId);
-  state.inventory.push({ type:'acte_officiel', name:acte.name, icon:'ti-file-certificate', legal:true, acteId, desc:acte.desc });
+  if (!r.ok) {
+    const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
+    showToast(r.raison === 'fonds_insuffisants' ? 'Fonds insuffisants' : 'PA insuffisants', r.raison === 'fonds_insuffisants' ? cost + ' ' + cur + ' requis.' : pa + ' PA requis.', false);
+    return;
+  }
+  document.getElementById('modal-postes').classList.remove('open');
+  if (typeof etatCivilDelivrerActe === 'function') etatCivilDelivrerActe(acte, nomPersonne);
+  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
   updateUI();
-  showToast('Acte délivré', acte.name + ' ajouté à votre inventaire.', true, true);
-  addJournalEntry('Acte officiel délivré : ' + acte.name, 'event-info');
+  showToast('Acte délivré', acte.titre + ' ajouté à votre inventaire.', true, true);
+  addJournalEntry('Acte officiel obtenu : ' + acte.titre + (nomPersonne !== state.char?.name ? ' (' + nomPersonne + ')' : ''), 'event-info');
 }
 
 function ouvrirContesterResultats(pa, cost) {
