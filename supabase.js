@@ -2545,3 +2545,14 @@ async function sbEnregistrerEvenementEscort(client, escort, typeEvenement) {
     return await res.json();
   } catch (e) { return null; }
 }
+
+// =====================
+// INTERVIEW DE JODIE MOITOUT — "Donner une interview" (La Tribune de Republia, chantier du
+// 3 septembre 2026). Revision de securite du meme jour (audit identite/falsification) : ce
+// client ne touche plus JAMAIS interviews_jodie directement (RLS verrouillee, zero policy, voir
+// migration_interviews_jodie.sql) -- les anciennes fonctions sbGetDerniereInterviewJodie/
+// sbEnregistrerInterviewJodie sont retirees ici (auraient de toute facon echoue une fois cette
+// migration executee). Tout le cycle de vie de l'interview (cooldown, lancement, dialogue,
+// publication) passe desormais par l'endpoint securise api/journal-interview.js -- voir
+// jodieAppelApi()/ouvrirInterviewJodie() dans plateau-communication.js.
+// =====================

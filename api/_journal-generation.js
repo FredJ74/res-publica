@@ -46,10 +46,24 @@ const SB_HEADERS = {
   'Authorization': `Bearer ${SUPABASE_ANON}`
 };
 
-async function sbInsert(table, data) {
+// SERVICE_ROLE (securisation journal_editions, 3 septembre 2026, voir migration_journal_editions_
+// securisation.sql) : journal_editions n'accepte plus d'ecriture anon une fois cette migration
+// executee (RLS active, seule une policy SELECT publique existe) -- le cron doit desormais ecrire
+// avec la cle privilegiee, UNIQUEMENT via cette variable d'environnement Vercel, jamais exposee au
+// client, meme convention que api/upload-org-avatar.js/api/renseignements.js. La lecture des
+// AUTRES tables (personnages, forum_topics, etc., via _journal-collecte.js) reste sur la cle anon,
+// deja publique -- seules les 4 ecritures sur journal_editions basculent ici.
+const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
+const SB_HEADERS_SERVICE = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_SERVICE_ROLE,
+  'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`
+};
+
+async function sbInsert(table, data, headers) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
-    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+    headers: { ...(headers || SB_HEADERS), 'Prefer': 'return=representation' },
     body: JSON.stringify(data)
   });
   if (!res.ok) {
@@ -59,10 +73,10 @@ async function sbInsert(table, data) {
   return { ok: true };
 }
 
-async function sbUpdate(table, filtre, data) {
+async function sbUpdate(table, filtre, data, headers) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filtre}`, {
     method: 'PATCH',
-    headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+    headers: { ...(headers || SB_HEADERS), 'Prefer': 'return=representation' },
     body: JSON.stringify(data)
   });
   if (!res.ok) {
@@ -70,6 +84,14 @@ async function sbUpdate(table, filtre, data) {
     return { ok: false, status: res.status, detail };
   }
   return { ok: true };
+}
+
+async function sbGet(table, filtre, headers) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filtre}`, {
+    headers: (headers || SB_HEADERS)
+  });
+  if (!res.ok) return [];
+  return res.json();
 }
 
 const PROMPT_VERSION = 'v2-la-tribune';
@@ -515,6 +537,35 @@ function assemblerAvantDernierePage(paquet) {
 // =====================
 // ORCHESTRATION PAR PAYS — INSERT (verrou) -> collecte -> IA -> validation -> publication/echec.
 // =====================
+// Articles deja rediges par api/journal-interview.js (interview de Jodie Moitout terminee AVANT
+// qu'une edition du jour n'existe), en attente d'integration -- assemblage deterministe, ZERO
+// appel IA ici, meme doctrine que assemblerAvantDernierePage/assemblerDernierePage. Retourne les
+// articles au format attendu par double_page_centrale.articles ET les lignes source (pour les
+// marquer integrees apres publication reussie, jamais avant).
+async function recupererArticlesEnAttente(pays) {
+  if (!SUPABASE_SERVICE_ROLE) return { articles: [], lignes: [] };
+  const rows = await sbGet(
+    'journal_articles_en_attente',
+    `country=eq.${encodeURIComponent(pays)}&integree_le=is.null&order=created_at.asc`,
+    SB_HEADERS_SERVICE
+  );
+  const lignes = rows || [];
+  const articles = lignes.map(r => {
+    const art = { rubrique: r.rubrique || 'Portraits', titre: r.titre, texte: r.texte };
+    if (r.ville) art.ville = r.ville;
+    if (r.image_url) art.image = { type: 'url', url: r.image_url };
+    return art;
+  });
+  return { articles, lignes };
+}
+
+async function marquerArticlesEnAttenteIntegres(lignes, maintenant) {
+  if (!lignes || lignes.length === 0) return;
+  await Promise.all(lignes.map(l =>
+    sbUpdate('journal_articles_en_attente', `id=eq.${encodeURIComponent(l.id)}`, { integree_le: maintenant.toISOString() }, SB_HEADERS_SERVICE).catch(() => {})
+  ));
+}
+
 async function genererEditionPays(pays) {
   const maintenant = new Date();
   const dateEdition = dateEditionPourPays(pays, maintenant);
@@ -522,7 +573,7 @@ async function genererEditionPays(pays) {
 
   const reservation = await sbInsert('journal_editions', {
     id, country: pays, date_edition: dateEdition, statut: 'en_cours'
-  });
+  }, SB_HEADERS_SERVICE);
   if (!reservation.ok) {
     const dejaExistante = reservation.status === 409;
     return { pays, dateEdition, statut: dejaExistante ? 'ignoree_deja_existante' : 'echec_reservation', detail: reservation.detail };
@@ -540,7 +591,7 @@ async function genererEditionPays(pays) {
     if (!appel.ok) {
       await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
         statut: 'echec', validation_erreurs: [appel.erreur], generated_at: maintenant.toISOString(), prompt_version: PROMPT_VERSION, faits_sources: faitsSourcesArchive
-      });
+      }, SB_HEADERS_SERVICE);
       return { pays, dateEdition, statut: 'echec', raison: appel.erreur };
     }
 
@@ -548,13 +599,20 @@ async function genererEditionPays(pays) {
     if (!validation.valide) {
       await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
         statut: 'echec', validation_erreurs: validation.erreurs, generated_at: maintenant.toISOString(), prompt_version: PROMPT_VERSION, faits_sources: faitsSourcesArchive
-      });
+      }, SB_HEADERS_SERVICE);
       return { pays, dateEdition, statut: 'echec', raison: validation.erreurs };
     }
 
     const contenu = JSON.parse(appel.texte);
     const derniere_page = assemblerDernierePage(paquet, contenu.une, contenu.articles);
     const avant_derniere_page = assemblerAvantDernierePage(paquet);
+
+    // Interviews de Jodie terminees avant que cette edition n'existe (voir api/journal-
+    // interview.js) : integrees ICI, deterministe, sans nouvel appel IA -- jamais une 2e base
+    // d'articles ni un 2e systeme de journal, simplement ajoutees a la MEME liste que l'IA vient
+    // de rediger.
+    const { articles: articlesEnAttente, lignes: lignesEnAttente } = await recupererArticlesEnAttente(pays);
+    const tousLesArticles = [...contenu.articles, ...articlesEnAttente];
 
     // Aucune colonne Supabase nouvelle (doctrine "pas de migration si évitable", validée pour ce
     // chantier) : les deux colonnes jsonb existantes de journal_editions (double_page_centrale,
@@ -565,17 +623,20 @@ async function genererEditionPays(pays) {
     await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
       statut: 'publiee',
       une: contenu.une,
-      double_page_centrale: { articles: contenu.articles },
+      double_page_centrale: { articles: tousLesArticles },
       page_economie_societe: { avant_derniere_page, derniere_page },
       faits_sources: faitsSourcesArchive,
       prompt_version: PROMPT_VERSION,
       generated_at: maintenant.toISOString()
-    });
+    }, SB_HEADERS_SERVICE);
+    // Marquage APRES la publication reussie seulement (jamais avant) : si l'ecriture ci-dessus
+    // echouait, ces lignes resteraient en_attente pour la prochaine tentative -- aucune perte.
+    await marquerArticlesEnAttenteIntegres(lignesEnAttente, maintenant);
     return { pays, dateEdition, statut: 'publiee' };
   } catch (e) {
     await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
       statut: 'echec', validation_erreurs: ['Exception inattendue : ' + e.message], generated_at: maintenant.toISOString(), prompt_version: PROMPT_VERSION
-    }).catch(() => {});
+    }, SB_HEADERS_SERVICE).catch(() => {});
     return { pays, dateEdition, statut: 'echec', raison: e.message };
   }
 }

@@ -1698,7 +1698,13 @@ function construireIndexFaitsJournal(edition) {
 }
 
 function resoudreImageJournal(image, index) {
-  if (!image || !image.ref_id) return null;
+  if (!image) return null;
+  // type:'url' (interview de Jodie Moitout, chantier du 3 septembre 2026) : image connue
+  // directement par l'appelant au moment de la publication (avatar du PJ interviewe), jamais issue
+  // d'un fait archive dans faits_sources -- ref_id n'a donc aucun sens pour ce cas, traite avant
+  // le reste de la fonction (inchange).
+  if (image.type === 'url' && image.url) return image.url;
+  if (!image.ref_id) return null;
   const source = index[image.ref_id];
   if (!source) return null;
   if (image.type === 'personnage' && source.estPJ && source.photo_url) return source.photo_url;

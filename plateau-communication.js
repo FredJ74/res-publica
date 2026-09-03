@@ -1959,6 +1959,253 @@ async function jodiePortraitPublier() {
 }
 
 // =====================
+// DONNER UNE INTERVIEW — ordre reel du PJ (chantier du 3 septembre 2026, reparation de l'ordre
+// 'interview' de La Tribune de Republia, jusqu'ici routé vers doInterview(), fonction inexistante ;
+// REVISE le meme jour suite a un audit dedie identite/falsification)
+// =====================
+// Pendant VOLONTAIRE du systeme "Un jour, un portrait" ci-dessus : ici c'est le joueur qui
+// sollicite Jodie (jamais l'inverse). Systemes INDEPENDANTS -- aucune donnee/etat partage.
+//
+// SECURISE DE BOUT EN BOUT (revision du 3 septembre 2026) : ce client ne construit plus JAMAIS le
+// dossier public, le prompt, ni l'appel IA lui-meme -- tout le dialogue (questions ET
+// enregistrement des reponses) passe desormais par api/journal-interview.js (actions 'cooldown',
+// 'lancer', 'question', 'publier'), qui est seul a connaitre interviews_jodie (RLS verrouillee,
+// voir migration_interviews_jodie.sql) et a construire le transcript qui fait foi. Ce client
+// n'envoie jamais plus qu'un nom de personnage, un identifiant d'interview, et le texte brut de
+// LA reponse qu'il vient de donner -- jamais un entretien entier reconstitue a posteriori (c'est
+// precisement la faille corrigee par cette revision : un client ne peut plus remplacer le contenu
+// reel de l'entretien par des Q/R inventees, le serveur etant desormais temoin de chaque tour).
+//
+// Cooldown 10 JOURS REELS persistant, cote serveur uniquement desormais. Arme DES le vrai
+// lancement (action 'lancer', PA deja consomme juste avant cote client) -- un entretien abandonne
+// en cours de route consomme quand meme son PA et son cooldown, comme n'importe quel autre ordre
+// du jeu. Fermer la pop-up ou perdre la connexion en plein entretien ne cree jamais d'article
+// orphelin ni de double publication : l'article n'existe qu'a la toute derniere action
+// ('publier'), qui relit le transcript accumule cote serveur, jamais un etat client.
+//
+// Publication : alimente le VRAI Journal du jour (journal_editions.double_page_centrale), jamais
+// Presse & Medias (reserve au portrait ci-dessus) ni un journal personnel ou evenementiel seul.
+
+let _jodieInterview = null;
+
+// Point d'entree, appele par le router (fn === 'interview'). Verifie le cooldown AVANT toute
+// consommation de PA (cahier des charges §2), puis deduit le PA et arme le cooldown (action
+// 'lancer') au meme instant.
+async function ouvrirInterviewJodie(pa, cost) {
+  const nom = state.char?.name;
+  if (!nom) return;
+
+  const cooldown = await jodieAppelApi({ action: 'cooldown', personnage: nom });
+  if (!cooldown || !cooldown.ok) {
+    showToast('Jodie est indisponible', "Impossible de vérifier la disponibilité de Jodie pour le moment. Réessayez plus tard.", false);
+    return;
+  }
+  if (cooldown.joursRestants > 0) {
+    showToast('Jodie est déjà passée', 'Vous l\'avez sollicitée récemment. Revenez dans ' + cooldown.joursRestants + ' jour(s).', false);
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = '🎙 Interview avec Jodie Moitout';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Jodie s\'installe...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const lancement = await jodieAppelApi({ action: 'lancer', personnage: nom });
+  if (!lancement || !lancement.ok) {
+    // PA deja engage (comme documente ci-dessus) : l'echec ici est rarissime (le cooldown vient
+    // d'etre confirme OK a l'instant) -- on ne rembourse pas, coherent avec la doctrine du jeu,
+    // mais on informe clairement le joueur plutot que de laisser une modale muette.
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#cc6a5a">Jodie n\'a pas pu commencer l\'entretien pour le moment. Réessayez plus tard.</div>';
+    return;
+  }
+
+  _jodieInterview = {
+    pa, cost, nom, interviewId: lancement.interviewId,
+    questions: [], reponses: [],
+    soumission: false, chargement: false, enAttenteReponse: false,
+    termine: false, clotureTexte: null, erreur: null, etapeErreur: null,
+    articlePublie: false, articleTitre: null, articleTexte: null
+  };
+
+  await jodieGenererProchaineQuestion();
+}
+
+// Appel generique vers l'endpoint securise -- centralise ici pour que toutes les actions
+// partagent le meme comportement reseau (jamais de logique dupliquee par action).
+async function jodieAppelApi(payload) {
+  try {
+    const resp = await fetch('/api/journal-interview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json().catch(() => null);
+    if (!resp.ok) return { ok: false, status: resp.status, error: (data && data.error) || ('HTTP ' + resp.status) };
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
+function jodieRenderInterviewModal() {
+  const it = _jodieInterview;
+  if (!it) return;
+  let html = '<div style="padding:1rem;max-height:65vh;overflow-y:auto" id="jodie-interview-scroll">';
+  html += '<div style="font-size:.72rem;color:#8a8060;font-style:italic;margin-bottom:.9rem">Jodie Moitout, journaliste à L\'Autruche Entravée, vous interviewe pour La Tribune de Républia.</div>';
+
+  it.questions.forEach((q, i) => {
+    html += '<div style="margin-bottom:.8rem"><div style="font-size:.65rem;color:#8a6a20;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.15rem">Jodie</div>';
+    html += '<div style="font-size:.85rem;color:#e0d8c0;font-style:italic">« ' + escapeHtmlText(q) + ' »</div></div>';
+    if (it.reponses[i] !== undefined) {
+      html += '<div style="margin-bottom:.8rem;padding-left:.8rem;border-left:2px solid #3a2a10"><div style="font-size:.65rem;color:#6a8aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.15rem">Vous</div>';
+      html += '<div style="font-size:.85rem;color:#c0b090">' + escapeHtmlText(it.reponses[i]) + '</div></div>';
+    }
+  });
+
+  if (it.clotureTexte) {
+    html += '<div style="margin-bottom:.8rem"><div style="font-size:.65rem;color:#8a6a20;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.15rem">Jodie</div>';
+    html += '<div style="font-size:.85rem;color:#e0d8c0;font-style:italic">« ' + escapeHtmlText(it.clotureTexte) + ' »</div></div>';
+  }
+
+  if (it.erreur) {
+    html += '<div style="margin:.8rem 0;padding:.6rem;border:1px solid #6a2a20;background:#1a0d08;color:#cc6a5a;font-size:.8rem">' + escapeHtmlText(it.erreur) + '</div>';
+    html += '<button class="pnj-action-btn" onclick="jodieReessayerEtape()"><i class="ti ti-refresh"></i> Réessayer</button>';
+  } else if (it.chargement) {
+    html += '<div style="font-style:italic;color:#8a8060;padding:.6rem 0">' + (it.articlePublie === false && it.termine ? 'Jodie rédige son article…' : 'Jodie réfléchit…') + '</div>';
+  } else if (it.enAttenteReponse && !it.termine) {
+    html += '<div style="margin-top:.8rem">';
+    html += '<textarea id="jodie-reponse-input" rows="3" maxlength="600" placeholder="Votre réponse..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem .6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:vertical;box-sizing:border-box"></textarea>';
+    html += '<button id="jodie-envoyer-btn" class="pnj-action-btn" style="margin-top:.5rem" onclick="jodieEnvoyerReponse()"><i class="ti ti-send"></i> Répondre</button>';
+    html += '</div>';
+  } else if (it.articlePublie) {
+    html += '<div style="margin-top:1rem;padding:.8rem;border:1px solid #3a2a10;background:#0f0d05">';
+    html += '<div style="font-size:.65rem;color:#8a6a20;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem">Publié dans La Tribune de Républia</div>';
+    html += '<div style="font-family:Playfair Display,serif;font-size:1rem;color:#E8D880;margin-bottom:.4rem">' + escapeHtmlText(it.articleTitre || '') + '</div>';
+    html += '<div style="font-size:.82rem;color:#c0b090;white-space:pre-wrap">' + escapeHtmlText(it.articleTexte || '') + '</div>';
+    html += '</div>';
+    html += '<button class="pnj-action-btn" style="margin-top:.8rem" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')"><i class="ti ti-check"></i> Fermer</button>';
+  }
+
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  const scrollEl = document.getElementById('jodie-interview-scroll');
+  if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
+}
+
+// Enregistre la reponse au tour precedent (le cas echeant) et obtient la prochaine question OU
+// la cloture -- entierement decide cote serveur (action 'question', transcript accumule dans
+// interviews_jodie, jamais reconstruit a partir d'un etat client). Garde anti double-soumission
+// via it.soumission, verifiee AVANT tout appel reseau.
+async function jodieGenererProchaineQuestion(reponseATransmettre) {
+  const it = _jodieInterview;
+  if (!it || it.soumission) return;
+
+  it.soumission = true;
+  it.chargement = true;
+  it.erreur = null;
+  it.enAttenteReponse = false;
+  jodieRenderInterviewModal();
+
+  const payload = { action: 'question', personnage: it.nom, interviewId: it.interviewId };
+  if (reponseATransmettre !== undefined) payload.reponse = reponseATransmettre;
+  const data = await jodieAppelApi(payload);
+
+  it.chargement = false;
+  it.soumission = false;
+
+  if (!data || !data.ok) {
+    it.erreur = "Jodie n'arrive pas à mettre ses idées en ordre pour le moment (problème réseau). Vous pouvez réessayer.";
+    it.etapeErreur = 'question';
+    jodieRenderInterviewModal();
+    return;
+  }
+
+  if (data.termine) {
+    it.clotureTexte = data.clotureTexte;
+    it.termine = true;
+    jodieRenderInterviewModal();
+    await jodieTerminerEtPublier();
+    return;
+  }
+
+  it.questions.push(data.question);
+  it.enAttenteReponse = true;
+  jodieRenderInterviewModal();
+}
+
+function jodieEnvoyerReponse() {
+  const it = _jodieInterview;
+  if (!it || it.soumission || !it.enAttenteReponse) return;
+  const input = document.getElementById('jodie-reponse-input');
+  const texte = (input?.value || '').trim();
+  if (!texte) { showToast('Réponse requise', 'Écrivez une réponse avant de continuer.', false); return; }
+  it.reponses[it.questions.length - 1] = texte;
+  it.enAttenteReponse = false;
+  jodieGenererProchaineQuestion(texte);
+}
+
+function jodieReessayerEtape() {
+  const it = _jodieInterview;
+  if (!it) return;
+  it.erreur = null;
+  if (it.etapeErreur === 'article') jodieTerminerEtPublier();
+  // Reessai d'une question : ne retransmet PAS la derniere reponse (deja enregistree cote
+  // serveur au premier essai reussi le cas echeant, ou jamais envoyee si c'est l'appel lui-meme
+  // qui a echoue -- dans les deux cas, rejouer sans "reponse" est sans danger : le serveur
+  // renvoie simplement la meme question si aucune n'etait en attente de reponse chez lui).
+  else jodieGenererProchaineQuestion();
+}
+
+// Publication finale -- SECURISE (3 septembre 2026) : le client n'envoie plus ni pays, ni
+// dossier, ni Q/R -- uniquement le nom du PJ et l'identifiant d'interview. Le serveur relit LUI-
+// MEME le transcript qu'il a accumule tour par tour (interviews_jodie.transcript) : le contenu
+// publie est ainsi garanti identique a l'echange reellement suivi, jamais a une reconstruction
+// cote client.
+async function jodieTerminerEtPublier() {
+  const it = _jodieInterview;
+  if (!it || it.soumission) return;
+  it.soumission = true;
+  it.chargement = true;
+  it.erreur = null;
+  jodieRenderInterviewModal();
+
+  const data = await jodieAppelApi({ action: 'publier', personnage: it.nom, interviewId: it.interviewId });
+
+  it.chargement = false;
+  it.soumission = false;
+
+  // status 409 = deja publiee/en cours (idempotence serveur) : traite comme un succes silencieux
+  // plutot qu'une erreur a reessayer indefiniment.
+  const dejaPubliee = data && data.status === 409;
+
+  if (!dejaPubliee && (!data || !data.ok)) {
+    it.erreur = "Jodie n'arrive pas à finaliser son article pour le moment (problème réseau). Vous pouvez réessayer -- vos réponses sont conservées.";
+    it.etapeErreur = 'article';
+    jodieRenderInterviewModal();
+    return;
+  }
+
+  it.articleTitre = dejaPubliee ? null : data.titre;
+  it.articleTexte = dejaPubliee ? null : data.texte;
+  it.articlePublie = true;
+
+  if (dejaPubliee) {
+    addJournalEntry('Votre interview avec Jodie Moitout a déjà été publiée.', 'event-info');
+    showToast('Déjà publiée', 'Cette interview a déjà été traitée.', true);
+  } else if (data.statut === 'publiee') {
+    addJournalEntry('Vous avez donné une interview à Jodie Moitout, publiée dans La Tribune de Républia : « ' + data.titre + ' ».', 'event-good');
+    showToast('Interview publiée !', 'Votre interview est parue dans La Tribune de Républia.', true, true);
+  } else if (data.statut === 'en_attente') {
+    addJournalEntry('Vous avez donné une interview à Jodie Moitout. Elle paraîtra dans La Tribune de Républia dès la prochaine édition.', 'event-good');
+    showToast('Interview enregistrée !', "L'édition du jour n'est pas encore disponible ; votre interview paraîtra dans la prochaine édition de La Tribune de Républia.", true, true);
+  }
+
+  jodieRenderInterviewModal();
+}
+
+// =====================
 // PETITES ANNONCES — La Tribune de Republia (chantier "refonte Journal du jour", 31 aout 2026).
 // Flux dedie, HORS du pipeline PA/argent generique de doOrder()/executerOrdreGenerique() (comme
 // gerer_finances/compte_offshore) : la verification "une annonce active a la fois" doit avoir

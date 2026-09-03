@@ -413,7 +413,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'visiter_prisonnier') { ouvrirVisiterPrisonnier(pa, cost); return; }
   if (fn === 'se_renseigner') { doSeRenseigner(); return; }
   if (fn === 'reserver') { doReserver(); return; }
-  if (fn === 'interview') { doInterview(); return; }
+  if (fn === 'interview') { ouvrirInterviewJodie(pa, cost); return; }
   if (fn === 'article') { doArticle(); return; }
   if (fn === 'etouffer') { doEtouffer(); return; }
   if (fn === 'archives') { ouvrirArchivesTribunal(); return; }
