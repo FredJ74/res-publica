@@ -6477,6 +6477,13 @@ const HISTORIQUE_ELECTIONS = {};
 // Stockée dans state.domicile = { country, city, depuis (jour) }
 // Modifiable à la mairie
 
+// GREVE_MEMBRES_MIN declaree ici (avant TYPES_ORGANISATIONS) car referencee des la ligne
+// greve_lancer ci-dessous -- un const plus bas dans le fichier (voir section GREVES) provoquait
+// un ReferenceError "Cannot access before initialization" a l'evaluation de cet objet litteral,
+// interrompant tout le chargement de data.js. Valeur inchangee, definition canonique toujours
+// dans la section GREVES plus bas.
+const GREVE_MEMBRES_MIN = 5;
+
 // =====================
 // ORGANISATIONS
 // =====================
@@ -6760,7 +6767,8 @@ const ORGA_ORDRE_RANG_MIN = {
 // n'est pas forcement le membre au grade le plus eleve dans tous les cas). Verifie par
 // ouvrirOrdresOrga/executerOrdreOrga (plateau-organisations-quetes.js) via orga.chef ===
 // state.char?.name, meme doctrine que partout ailleurs dans ce fichier pour les organisations.
-const GREVE_MEMBRES_MIN = 5;
+// GREVE_MEMBRES_MIN : declaration deplacee avant TYPES_ORGANISATIONS (voir plus haut) car
+// referencee dans cet objet -- valeur inchangee (5).
 
 // Paliers de la greve ORDINAIRE, par nombre de membres du syndicat greviste (cahier des charges
 // §2, valide 3 septembre 2026). Le malus Social reste fixe (-1) quel que soit le palier -- seuls
