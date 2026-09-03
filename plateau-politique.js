@@ -626,6 +626,29 @@ async function initCycleElectoral(country, posteId, city) {
   }
 }
 
+// Meme forme exacte que le corps de initCycleElectoral ci-dessus (memes champs, memes delais),
+// mais SANS sa garde "si deja existant, ne rien faire" -- necessaire pour forcer un cycle frais
+// meme quand un mandat est deja en cours (dissolution de l'Assemblee, doDissoudreAssemblee).
+// Meme nom/signature que son miroir deja existant cote serveur (api/cron-minuit.js,
+// construireNouveauCycleElectoral) -- duplique ici car ce fichier n'a jamais acces au contexte
+// serveur, meme doctrine que le reste du projet (POSTES_NOMMES_EXCLUSIFS_SERVEUR, etc.).
+function construireNouveauCycleElectoral(posteId, city, now) {
+  const semaine = 7 * 24 * 60 * 60 * 1000;
+  return {
+    posteId, city: posteEstLocal(posteId) ? (city || null) : null,
+    phase: PHASES_ELECTORALES.CANDIDATURES,
+    dateDebutCandidatures: now,
+    dateDebutCampagne: now + semaine,
+    dateVote: now + 2 * semaine,
+    dateResultats: now + 2 * semaine + 24 * 60 * 60 * 1000,
+    candidats: [],
+    votes: {},
+    votesPNJ: {},
+    tour: 1,
+    eluId: null,
+  };
+}
+
 // Obtenir la phase actuelle d'un cycle
 function getPhaseActuelle(country, posteId, city) {
   const cle = getCleCycle(posteId, city);
@@ -3792,6 +3815,100 @@ async function reconcilierPosteElu(posteId, city) {
     showToast('Mandat terminé', 'Votre mandat de ' + nomPoste + (villeNom ? ' de ' + villeNom : '') + ' a pris fin.', false);
     addJournalEntry('Fin de mandat : ' + nomPoste + (villeNom ? ' de ' + villeNom : '') + '.', 'event-info');
   }
+}
+
+// =====================
+// DISSOUDRE L'ASSEMBLEE (audit valide + implementation, 3 septembre 2026)
+// =====================
+// Reutilise le moteur electoral existant tel quel (construireNouveauCycleElectoral/
+// initCycleElectoral, table cycles_electoraux, PHASES_ELECTORALES) -- aucun systeme electoral
+// parallele. Ne touche jamais president/PM/ministres : uniquement les circonscriptions de
+// depute du pays du President agissant. Le probleme preexistant nbParVille:3/eluId unique
+// (un seul elu par cycle malgre 3 sieges annonces) N'EST PAS corrige ici, deliberement --
+// dette technique deja identifiee, hors perimetre de ce lot.
+async function doDissoudreAssemblee(pa, cost) {
+  if (state.poste?.id !== 'president') {
+    showToast('Accès refusé', 'Seul le Président peut dissoudre l\'Assemblée.', false);
+    return;
+  }
+  const pays = state.country || 'republic';
+
+  // Verification au moment REEL de l'execution (jamais seulement l'affichage du bouton) :
+  // relit le cycle presidentiel FRAIS depuis Supabase, jamais un cache local potentiellement
+  // perime (ex. un autre onglet/une autre session ayant deja dissous entretemps).
+  const cyclesFrais = (typeof sbLoadCyclesElectoraux === 'function') ? await sbLoadCyclesElectoraux(pays).catch(() => null) : null;
+  if (cyclesFrais) CYCLES_ELECTORAUX[pays] = { ...(CYCLES_ELECTORAUX[pays] || {}), ...cyclesFrais };
+  const cyclePresident = CYCLES_ELECTORAUX[pays]?.['president'];
+  if (!cyclePresident) {
+    showToast('Erreur', 'Impossible de vérifier votre mandat présidentiel pour le moment. Réessayez.', false);
+    return;
+  }
+  if (cyclePresident.dissolutionUtilisee) {
+    showToast('Dissolution déjà utilisée', 'Vous avez déjà dissous l\'Assemblée pendant ce mandat présidentiel.', false);
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  // Marque la limite AVANT le reste (fail-closed) : meme si une etape suivante echoue
+  // partiellement (reseau), une 2e dissolution pendant ce mandat reste refusee. Le flag vit sur
+  // le cycle PRESIDENTIEL lui-meme : un nouveau mandat (construireNouveauCycleElectoral/
+  // initCycleElectoral produisent un objet neuf) repart naturellement sans ce champ, aucune
+  // reinitialisation manuelle necessaire.
+  const cyclePresidentMaj = { ...cyclePresident, dissolutionUtilisee: true };
+  CYCLES_ELECTORAUX[pays]['president'] = cyclePresidentMaj;
+  if (typeof sbSaveCycleElectoral === 'function') await sbSaveCycleElectoral(pays, 'president', cyclePresidentMaj, null).catch(() => {});
+
+  // 1. Vider IMMEDIATEMENT poste_depute pour tous les deputes en fonction de ce pays -- lecture
+  // fiable (poste_depute?.id === 'depute'), jamais le filtre errone preexistant de
+  // notifierDeputesPourVoteConfiance (lit poste au lieu de poste_depute, motif 'depute_' avec un
+  // suffixe qui n'existe pas -- dette technique deja identifiee, non touchee ici).
+  let nbDeputesRevoques = 0;
+  if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
+    try {
+      const joueursPays = await sbGet('personnages', `country=eq.${encodeURIComponent(pays)}&select=name,poste_depute`) || [];
+      for (const j of joueursPays) {
+        let pd = j.poste_depute;
+        if (typeof pd === 'string') { try { pd = JSON.parse(pd); } catch (e) { pd = null; } }
+        if (pd?.id === 'depute') {
+          await sbUpdate('personnages', `name=eq.${encodeURIComponent(j.name)}`, { poste_depute: null }).catch(() => {});
+          nbDeputesRevoques++;
+        }
+      }
+    } catch (e) {}
+  }
+  // Reconciliation locale immediate pour le President agissant lui-meme, s'il cumulait aussi un
+  // mandat de depute (posteDepute distinct de poste, cumul possible) -- sa propre session doit
+  // refleter la perte tout de suite, sans attendre une reconnexion.
+  if (state.posteDepute) {
+    state.posteDepute = null;
+    if (state.char) state.char.posteDepute = null;
+  }
+
+  // 2. Relancer immediatement un cycle electoral frais pour CHAQUE circonscription de depute
+  // EXISTANTE de ce pays (lues directement dans cycles_electoraux, jamais une liste de villes
+  // devinee) -- candidatures -> campagne -> vote -> resultats -> mandat, exactement le moteur
+  // normal, repris par le cron quotidien comme n'importe quel autre cycle.
+  let nbCirconscriptionsRelancees = 0;
+  if (typeof sbGet === 'function') {
+    try {
+      const lignesDepute = await sbGet('cycles_electoraux', `country=eq.${encodeURIComponent(pays)}&poste_id=eq.depute`) || [];
+      for (const ligne of lignesDepute) {
+        const ville = ligne.city || null;
+        const cycleFrais = construireNouveauCycleElectoral('depute', ville, Date.now());
+        const cle = getCleCycle('depute', ville);
+        CYCLES_ELECTORAUX[pays][cle] = cycleFrais;
+        if (typeof sbSaveCycleElectoral === 'function') await sbSaveCycleElectoral(pays, 'depute', cycleFrais, ville).catch(() => {});
+        nbCirconscriptionsRelancees++;
+      }
+    } catch (e) {}
+  }
+
+  updateUI();
+  showToast('Assemblée dissoute !', nbDeputesRevoques + ' député(s) ont immédiatement perdu leur mandat. Élections législatives anticipées lancées (' + nbCirconscriptionsRelancees + ' circonscription(s)).', true, true);
+  addJournalEntry('Dissolution de l\'Assemblée nationale. Élections législatives anticipées convoquées.', 'event-info');
+  addExternalEvent('🏛 Le Président ' + (state.char?.name || '') + ' dissout l\'Assemblée nationale ! Élections législatives anticipées dans tout le pays.');
 }
 
 // =====================

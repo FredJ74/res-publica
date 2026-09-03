@@ -418,7 +418,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'etouffer') { doEtouffer(); return; }
   if (fn === 'archives') { ouvrirArchivesTribunal(); return; }
   if (fn === 'consulter_dossiers_gouv') { doConsulterDossiersGouv(pa, cost); return; }
-  if (fn === 'demander_info_loge') { doLogeInfo(); return; }
   if (fn === 'se_former') { doSeFormer(pa, cost); return; }
   if (fn === 'recruter_info') { doRecruterInfo(); return; }
   if (fn === 'mobiliser_police') { doMobiliserPolice(fn); return; }
@@ -486,7 +485,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'renseignement') { ouvrirModalRenseignement(pa, cost); return; }
   if (fn === 'planifier_operation') { ouvrirModalTexteLibre('planifier_operation', 'Planifier une operation', 'Decrivez l\'operation...'); return; }
   if (fn === 'mobiliser') { doMobiliserPolice(fn); return; }
-  if (fn === 'dissoudre_assemblee') { doDissoudreAssemblee(); return; }
+  if (fn === 'dissoudre_assemblee') { doDissoudreAssemblee(pa, cost); return; }
   if (fn === 'negocier') { showToast('Ordre contact', 'Utilisez les ordres contact en cliquant sur le personnage cible.', false); return; }
   if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); return; }
   if (fn === 'plainte') { ouvrirPorterPlainte(pa, cost); return; }

@@ -2785,7 +2785,6 @@ const BUILDINGS = {
           {name:'Venerable Maitre Duval', role:'PNJ - Chef de la Loge', rel:'neutral', job:'venerable'}
         ],
         orders: [
-          {fn:'demander_info_loge', label:'Demander des informations', pa:2, cost:0,   type:'legal',   icon:'ti-info-circle',successRate:70},
           {fn:'recruter_informateur_2', label:'Recruter un informateur (Niv.2)', pa:1, cost:400, type:'grey', icon:'ti-user-search', successRate:100, desc:'400 FR/jour. Localisation précise, intentions vote, voyages récents.'},
           {fn:'recruter_info_4', label:'Recruter une Taupe N4', pa:3, cost:0, type:'grey', icon:'ti-spy', successRate:50, desc:'1500 FR/jour. Confessions, transactions, ordres passés 24h.'},
           {fn:'consulter_info_4', label:'Consulter la Taupe N4', pa:1, cost:0, type:'grey', icon:'ti-eye', successRate:100, desc:'Obtenir une information de votre taupe niveau 4.'},
