@@ -249,28 +249,28 @@ function extraireTitreCorps(texteBrut, nom) {
   return { titre, corps };
 }
 
-async function tenterPublicationImmediate(pays, article, tentatives) {
+// Retargete (chantier refonte Tribune, 4 septembre 2026) : l'interview n'est plus inseree comme
+// un article de 2e page (double_page_centrale.articles) mais comme une entree compacte de
+// l'avant-derniere page ("4 dernieres interviews"), plafonnee a 4, la plus recente en tete. Meme
+// mecanisme de compare-and-swap qu'avant (retente sur conflit d'ecriture concurrente).
+const MAX_INTERVIEWS_AVANT_DERNIERE_PAGE = 4;
+
+async function tenterPublicationImmediate(pays, entreeCompacte, tentatives) {
   for (let i = 0; i < (tentatives || 3); i++) {
     const editions = await sbGet('journal_editions', `country=eq.${encodeURIComponent(pays)}&statut=eq.publiee&order=date_edition.desc&limit=1`, SB_HEADERS_SERVICE);
     const edition = editions && editions[0];
     if (!edition) return { ok: false, raison: 'aucune_edition' };
 
-    const dpcActuelle = edition.double_page_centrale || { articles: [] };
-    const articlesActuels = Array.isArray(dpcActuelle.articles) ? dpcActuelle.articles : [];
-    const nouvelleDpc = { articles: [...articlesActuels, article] };
-    const filtreCAS = `id=eq.${encodeURIComponent(edition.id)}&double_page_centrale=eq.${encodeURIComponent(JSON.stringify(dpcActuelle))}`;
-    const res = await sbUpdate('journal_editions', filtreCAS, { double_page_centrale: nouvelleDpc }, SB_HEADERS_SERVICE);
+    const pageActuelle = edition.page_economie_societe || {};
+    const avantDerniereActuelle = pageActuelle.avant_derniere_page || { interviews: [] };
+    const interviewsActuelles = Array.isArray(avantDerniereActuelle.interviews) ? avantDerniereActuelle.interviews : [];
+    const nouvellesInterviews = [entreeCompacte, ...interviewsActuelles].slice(0, MAX_INTERVIEWS_AVANT_DERNIERE_PAGE);
+    const nouvellePage = { ...pageActuelle, avant_derniere_page: { interviews: nouvellesInterviews } };
+    const filtreCAS = `id=eq.${encodeURIComponent(edition.id)}&page_economie_societe=eq.${encodeURIComponent(JSON.stringify(pageActuelle))}`;
+    const res = await sbUpdate('journal_editions', filtreCAS, { page_economie_societe: nouvellePage }, SB_HEADERS_SERVICE);
     if (res.ok && res.rows && res.rows.length > 0) return { ok: true };
   }
   return { ok: false, raison: 'conflit_persistant' };
-}
-
-async function mettreEnAttente(pays, article) {
-  const id = 'article_attente_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
-  const data = { id, country: pays, rubrique: article.rubrique, titre: article.titre, texte: article.texte };
-  if (article.ville) data.ville = article.ville;
-  if (article.image && article.image.url) data.image_url = article.image.url;
-  return sbInsert('journal_articles_en_attente', data, SB_HEADERS_SERVICE);
 }
 
 // =====================
@@ -407,17 +407,24 @@ async function handlePublier(body) {
   if (!appel.ok) return relacherEtEchouer(502, appel.erreur);
 
   const { titre, corps } = extraireTitreCorps(appel.texte, personnage);
-  const article = { rubrique: 'Portraits', titre, texte: corps };
-  if (perso.current_city) article.ville = perso.current_city;
-  if (perso.photo_url) article.image = { type: 'url', url: perso.photo_url };
+  const maintenant = new Date().toISOString();
 
-  const publication = await tenterPublicationImmediate(pays, article, 3);
-  if (publication.ok) return { status: 200, json: { ok: true, statut: 'publiee', titre, texte: corps } };
+  // Persistance sur la ligne interviews_jodie elle-meme (chantier refonte, 4 septembre 2026) :
+  // c'est desormais la SEULE source de verite pour "les 4 dernieres interviews publiees" -- une
+  // generation ulterieure la relit directement, sans dependre d'une file separee ni du succes de
+  // la publication immediate ci-dessous.
+  await sbUpdate('interviews_jodie', `id=eq.${encodeURIComponent(interviewId)}`, {
+    article_titre: titre, article_texte: corps, article_ville: perso.current_city || null, publie_le: maintenant
+  }, SB_HEADERS_SERVICE).catch(() => {});
 
-  const attente = await mettreEnAttente(pays, article);
-  if (!attente.ok) return relacherEtEchouer(502, "L'article n'a pas pu être publié ni mis en attente.");
+  const entreeCompacte = { nom: personnage, titre, texte: corps, photo_url: perso.photo_url || null, publie_le: maintenant };
+  // Bonus de visibilite immediate si une edition est deja publiee aujourd'hui -- jamais bloquant :
+  // que ceci reussisse ou non, l'interview apparaitra de toute facon dans la prochaine generation
+  // (lecture directe de interviews_jodie ci-dessus), donc plus de file d'attente ni de perte
+  // possible ici. Le statut retourne au client reste honnete sur le delai reel d'apparition.
+  const immediat = await tenterPublicationImmediate(pays, entreeCompacte, 3).catch(() => ({ ok: false }));
 
-  return { status: 200, json: { ok: true, statut: 'en_attente', titre, texte: corps } };
+  return { status: 200, json: { ok: true, statut: immediat.ok ? 'publiee' : 'en_attente', titre, texte: corps } };
 }
 
 export default async function handler(req, res) {

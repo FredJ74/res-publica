@@ -1764,14 +1764,27 @@ function grouperArticlesParRubrique(articles) {
   return ordre.map(rubrique => ({ rubrique, articles: parRubrique[rubrique] }));
 }
 
+// Avant-dernière page : "4 dernières interviews" (chantier refonte, 4 septembre 2026), format
+// compact -- remplace l'ancien portrait unique. page.interviews est déjà trié/plafonné à 4 côté
+// serveur (assemblerAvantDernierePage), le client se contente d'afficher tel quel.
 function renderJodieJournal(page) {
-  if (!page || !page.texte) return '';
-  const portrait = page.photo_url ? `<img class="tribune-jodie-portrait" src="${escapeHtmlText(page.photo_url)}" loading="lazy" alt="">` : '';
+  const interviews = (page && Array.isArray(page.interviews)) ? page.interviews : [];
+  if (interviews.length === 0) return '';
+  const entrees = interviews.map(iv => {
+    const portrait = iv.photo_url ? `<img class="tribune-jodie-portrait" src="${escapeHtmlText(iv.photo_url)}" loading="lazy" alt="">` : '';
+    const titre = iv.titre ? `<div class="tribune-jodie-titre">${texteArticleHtml(iv.titre)}</div>` : '';
+    return `<div class="tribune-jodie-entree">
+      ${portrait}
+      <div>
+        <div class="tribune-jodie-nom">${texteArticleHtml(iv.nom || '')}</div>
+        ${titre}
+        <p>${texteArticleHtml(iv.texte || '')}</p>
+      </div>
+    </div>`;
+  }).join('');
   return `<section class="tribune-jodie">
-    <div class="tribune-jodie-label">Un jour, un portrait — par Jodie Moitout</div>
-    ${portrait}
-    <div class="tribune-jodie-nom">${texteArticleHtml(page.nom || '')}</div>
-    <p>${texteArticleHtml(page.texte)}</p>
+    <div class="tribune-jodie-label">Les interviews de Jodie Moitout</div>
+    ${entrees}
   </section>`;
 }
 
@@ -1783,6 +1796,9 @@ function renderDernierePageJournal(dp) {
       `<div class="tribune-indice-ligne"><span>${escapeHtmlText(i.ressource)} — ${escapeHtmlText(i.ville || '')}</span><span>${i.prix != null ? i.prix + ' FR' : '—'} · stock ${i.stock}</span></div>`
     ).join('');
     blocs.push(`<div class="tribune-derniere-bloc"><h4>Indices</h4>${lignes}</div>`);
+  }
+  if (Array.isArray(dp.arrivees) && dp.arrivees.length > 0) {
+    blocs.push(`<div class="tribune-derniere-bloc"><h4>Journal des arrivées</h4><ul>${dp.arrivees.map(t => `<li>${texteArticleHtml(t)}</li>`).join('')}</ul></div>`);
   }
   if (Array.isArray(dp.carnet) && dp.carnet.length > 0) {
     blocs.push(`<div class="tribune-derniere-bloc"><h4>Carnet</h4><ul>${dp.carnet.map(t => `<li>${texteArticleHtml(t)}</li>`).join('')}</ul></div>`);
@@ -1816,19 +1832,29 @@ function construireHtmlJournalDuJour(edition) {
   </div>`;
   html += `<div class="tribune-contenu">`;
 
-  // Une
-  html += `<section class="tribune-une">`;
+  // Une — 1 ou 2 sujets (partagée si 2), plus jusqu'à 3 appels de Une (chantier refonte, 4
+  // septembre 2026). "tribune-une-partagee" ajuste la mise en page CSS quand il y a 2 sujets.
+  const sujets = Array.isArray(une.sujets) ? une.sujets : [];
+  html += `<section class="tribune-une${sujets.length > 1 ? ' tribune-une-partagee' : ''}">`;
   html += renderImageJournal(une.image, index, 'tribune-une-image');
-  if (une.titre_principal) html += `<h1 class="tribune-une-titre">${texteArticleHtml(une.titre_principal)}</h1>`;
-  if (une.chapeau) html += `<p class="tribune-une-chapeau">${texteArticleHtml(une.chapeau)}</p>`;
-  if (Array.isArray(une.accroches) && une.accroches.length > 0) {
+  sujets.forEach(suj => {
+    if (!suj) return;
+    html += '<div class="tribune-une-sujet">';
+    if (suj.titre) html += `<h1 class="tribune-une-titre">${texteArticleHtml(suj.titre)}</h1>`;
+    if (suj.chapeau) html += `<p class="tribune-une-chapeau">${texteArticleHtml(suj.chapeau)}</p>`;
+    html += '</div>';
+  });
+  if (Array.isArray(une.appels) && une.appels.length > 0) {
     html += '<ul class="tribune-une-accroches">';
-    une.accroches.forEach(acc => { if (acc && acc.texte) html += `<li>${texteArticleHtml(acc.texte)}</li>`; });
+    une.appels.forEach(acc => { if (acc && acc.texte) html += `<li>${texteArticleHtml(acc.texte)}</li>`; });
     html += '</ul>';
   }
   html += `</section>`;
 
-  // Rubriques (nombre et ordre libres, jamais fixés à l'avance)
+  // Rubriques (nombre et ordre libres, jamais fixés à l'avance) — séparateur visuel léger
+  // marquant le passage à la "deuxième page" (chantier refonte interface, 4 septembre 2026),
+  // uniquement s'il existe au moins un article à y montrer.
+  if (articles.length > 0) html += `<div class="tribune-separateur">Deuxième page</div>`;
   grouperArticlesParRubrique(articles).forEach(({ rubrique, articles: liste }) => {
     html += `<section class="tribune-rubrique">
       <div class="tribune-rubrique-titre">${escapeHtmlText(rubrique)}</div>
@@ -1836,11 +1862,14 @@ function construireHtmlJournalDuJour(edition) {
     </section>`;
   });
 
-  // Avant-dernière page : interview Jodie Moitout, si disponible (jamais réinventée par l'IA,
-  // texte assemblé côté serveur -- voir _journal-generation.js, assemblerAvantDernierePage()).
+  // Avant-dernière page : les dernières interviews de Jodie Moitout, si disponibles (jamais
+  // réinventées par l'IA, texte assemblé côté serveur -- voir _journal-generation.js,
+  // assemblerAvantDernierePage()). Séparation visuelle déjà assurée par .tribune-jodie (bordure +
+  // libellé internes), aucun séparateur supplémentaire nécessaire.
   html += renderJodieJournal(eco.avant_derniere_page);
 
-  // Dernière page : indices/carnet/chiens écrasés/petites annonces, assemblés côté serveur.
+  // Dernière page : arrivées/carnet/chiens écrasés/indices/petites annonces, assemblés côté
+  // serveur. Même remarque : .tribune-derniere porte déjà sa propre bordure et son propre titre.
   html += renderDernierePageJournal(eco.derniere_page);
 
   html += `</div></div>`;
@@ -3482,6 +3511,14 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
     }
     addExternalEvent('🏛 ' + destinataire + ' (PNJ) a ete nomme(e) ' + regle.label + (villeNom ? ' de ' + villeNom : '') + ' par ' + nommeurNom + '.', villeNom ? 'local' : 'national');
     addJournalEntry('Nomination de ' + destinataire + ' (PNJ) au poste de ' + regle.label + '.', 'event-good');
+    if (typeof sbEnregistrerEvenementPublic === 'function') {
+      sbEnregistrerEvenementPublic(state.country, 'nomination', {
+        city: villeNom ? state.currentCity : null,
+        personnages: [destinataire, nommeurNom].filter(Boolean),
+        libelle: destinataire + ' (PNJ) est nommé(e) ' + regle.label + (villeNom ? ' de ' + villeNom : '') + ' par ' + nommeurNom + '.',
+        data: { poste: posteId, nomme: destinataire, nomme_pnj: true, nommeur: nommeurNom }
+      }).catch(() => {});
+    }
     showToast('Nomination effectuee', destinataire + ' occupe desormais le poste de ' + regle.label + '.', true, true);
     return;
   }
@@ -3560,6 +3597,14 @@ async function accepterNominationPosteNomme(posteId, city, country, nommeurNom) 
   showToast('Poste accepté !', 'Vous êtes désormais ' + regle.label + (city ? ' de ' + (WORLD[country]?.[city]?.name || city) : '') + '.', true, true);
   addJournalEntry('Vous avez accepté le poste de ' + regle.label + '.', 'event-good');
   addExternalEvent('🏛 ' + (state.char?.name || 'Anonyme') + ' est nommé(e) ' + regle.label + (city ? ' de ' + (WORLD[country]?.[city]?.name || city) : '') + '.', city ? 'local' : 'national');
+  if (typeof sbEnregistrerEvenementPublic === 'function') {
+    sbEnregistrerEvenementPublic(country, 'nomination', {
+      city: city || null,
+      personnages: [state.char?.name, nommeurNom].filter(Boolean),
+      libelle: (state.char?.name || 'Anonyme') + ' est nommé(e) ' + regle.label + (city ? ' de ' + (WORLD[country]?.[city]?.name || city) : '') + '.',
+      data: { poste: posteId, nomme: state.char?.name, nommeur: nommeurNom }
+    }).catch(() => {});
+  }
 
   // Notifier le nommeur
   if (typeof sbSendMail === 'function' && nommeurNom) {
@@ -4960,6 +5005,13 @@ function executerOrdreContact(action, nomCible) {
     envoyerNotificationVraiJoueur(nomCible, 'Nomination au poste de Premier Ministre',
       'Par decision presidentielle, vous etes nomme(e) Premier Ministre. Prenez vos fonctions immediatement au Palais du Gouvernement.');
     addExternalEvent('NOMINATION : ' + nomCible + ' est nomme(e) Premier Ministre par le President.');
+    if (typeof sbEnregistrerEvenementPublic === 'function') {
+      sbEnregistrerEvenementPublic(state.country, 'nomination', {
+        personnages: [nomCible, state.char?.name].filter(Boolean),
+        libelle: nomCible + ' est nommé(e) Premier Ministre par le Président ' + (state.char?.name || '') + '.',
+        data: { poste: 'pm', nomme: nomCible, nommeur: state.char?.name }
+      }).catch(() => {});
+    }
     showToast('PM nomme', nomCible + ' est le nouveau Premier Ministre.', true, true);
   } else if (action === 'redressement_fiscal') {
     const montant = 2000;
@@ -5678,6 +5730,13 @@ async function confirmerAmbassadeur(pa, cost) {
   }
   envoyerNotificationVraiJoueur(contact, 'Nomination comme ambassadeur', 'Vous avez ete nomme(e) ambassadeur(rice) aupres de ' + empireName + ' par le Ministre des Affaires Etrangeres.');
   addExternalEvent('NOMINATION : ' + contact + ' nomme(e) ambassadeur(rice) aupres de ' + empireName + '.');
+  if (typeof sbEnregistrerEvenementPublic === 'function') {
+    sbEnregistrerEvenementPublic(state.country, 'nomination', {
+      personnages: [contact].filter(Boolean),
+      libelle: contact + ' est nommé(e) ambassadeur(rice) auprès de ' + empireName + '.',
+      data: { poste: 'ambassadeur', empire_cible: empireId, nomme: contact }
+    }).catch(() => {});
+  }
   showToast('Ambassadeur nomme', contact + ' → ' + empireName, true);
 }
 

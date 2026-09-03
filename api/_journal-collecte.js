@@ -3,7 +3,7 @@
 // =====================
 // Module partagé, PAS un endpoint Vercel (prefixe "_" -> exclu du routage automatique de
 // api/, meme convention que documentee par Vercel pour les fichiers internes non-route).
-// Construit le paquet factuel FACTS/PUBLIC_STATEMENTS/INDICATORS/INTERVIEW_JODIE et determine
+// Construit le paquet factuel FACTS/PUBLIC_STATEMENTS/INDICATORS et determine
 // les pays eligibles a une edition. AUCUN appel IA, AUCUNE ecriture de ligne journal_editions ici
 // -- reserve au Lot B (generation).
 //
@@ -412,6 +412,163 @@ async function collecterFootball(periode, personnagesConnus) {
   return facts;
 }
 
+// Nom de terrain lisible a partir de son buildingId technique (ex. "terrain-a-batir-3" ->
+// "Terrain a batir 3") -- aucune table de libelles humains n'existe cote serveur (BUILDINGS,
+// data.js, n'est pas accessible dans ce module isole, voir en-tete de fichier). Purement
+// cosmetique, jamais une invention de fait : le nom technique reste toujours reconnaissable.
+function formaterNomTerrain(buildingId) {
+  if (!buildingId) return 'un terrain';
+  return buildingId.replace(/-/g, ' ');
+}
+
+// Ventes de terrain — table PERMANENTE et deliberement publique (base des Archives Notariales,
+// voir sbEnregistrerVenteTerrain/consulter_archives_notariales), simplement jamais lue par ce
+// module jusqu'ici (audit refonte Tribune, 4 septembre 2026).
+async function collecterVentesTerrains(periode, personnagesConnus) {
+  const f = filtrePeriode(periode);
+  const rows = await sbGet('terrains_historique_ventes', `${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
+  return (rows || []).map(r => {
+    const acteur = identifierActeur(r.proprietaire, personnagesConnus);
+    return {
+      id: idSource('terrains_historique_ventes', r), domaine: 'immobilier', type: 'vente_terrain',
+      ville: null, pays: r.country,
+      resume: `${r.proprietaire} a acquis ${formaterNomTerrain(r.building_id)} pour ${r.prix} FR`,
+      acteur: r.proprietaire, estPJ: acteur.estPJ, photo_url: acteur.photo_url,
+      poids: bumpPoids('mineur', acteur.estPJ ? 1 : 0),
+      created_at: r.created_at
+    };
+  });
+}
+
+// Successions REGLEES uniquement (statut='resolue') -- une succession encore en_attente reste
+// privee aux heritiers convoques, jamais publique (meme garde que enigme-portrait.js cote
+// client). Table deja utilisee comme archive notariale publique une fois resolue.
+async function collecterSuccessions(periode, personnagesConnus) {
+  const f = filtrePeriode(periode);
+  const rows = await sbGet('successions', `${f}&statut=eq.resolue&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
+  return (rows || []).map(r => {
+    const acteurDefunt = identifierActeur(r.defunt, personnagesConnus);
+    const beneficiaires = (r.dispositions || [])
+      .map(d => d.resultat && d.resultat.beneficiaire)
+      .filter(Boolean);
+    const estPJ = acteurDefunt.estPJ || beneficiaires.some(b => identifierActeur(b, personnagesConnus).estPJ);
+    return {
+      id: idSource('successions', r), domaine: 'succession', type: 'succession',
+      ville: null, pays: r.country,
+      resume: `Succession de ${r.defunt} réglée` + (beneficiaires.length ? ` (bénéficiaire(s) : ${beneficiaires.join(', ')})` : ' (dévolution à l\'État)'),
+      acteur: r.defunt, estPJ, photo_url: acteurDefunt.photo_url,
+      poids: bumpPoids('mineur', estPJ ? 1 : 0),
+      created_at: r.created_at
+    };
+  });
+}
+
+// Creations d'organisations PUBLIQUES uniquement -- filtre applique cote code (jamais une
+// requete PostgREST sur le champ jsonb "visible", plus fragile) : une organisation "criminelle"
+// (visible:false) ne doit JAMAIS pouvoir remonter jusqu'a l'IA, quelle que soit la periode.
+async function collecterOrganisationsPubliques(periode, pays, personnagesConnus) {
+  const f = filtrePeriode(periode);
+  const rows = await sbGet('organisations', `country_origine=eq.${encodeURIComponent(pays)}&${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`).catch(() => null);
+  const facts = [];
+  (rows || []).forEach(r => {
+    const orga = parseBlob(r.data);
+    if (!orga || !orga.visible) return; // exclusion stricte : orgas secretes/criminelles jamais publiees
+    const acteur = identifierActeur(orga.fondateur, personnagesConnus);
+    const def = TYPES_ORGANISATIONS_LABELS[orga.type] || orga.type;
+    facts.push({
+      id: idSource('organisations', r), domaine: 'organisations', type: 'organisation_creation',
+      ville: null, pays,
+      resume: `${orga.fondateur || 'Un fondateur'} fonde "${orga.nom}", une nouvelle ${def}`,
+      acteur: orga.fondateur || null, estPJ: acteur.estPJ, photo_url: acteur.photo_url,
+      poids: bumpPoids('mineur', acteur.estPJ ? 1 : 0),
+      created_at: r.created_at
+    });
+  });
+  return facts;
+}
+// Duplique volontairement des libelles humains de TYPES_ORGANISATIONS (data.js) -- seul le label
+// est necessaire ici, jamais la structure complete (grades, ordres...).
+const TYPES_ORGANISATIONS_LABELS = {
+  politique: 'organisation politique', religieuse: 'organisation religieuse',
+  sportive: 'organisation sportive', supporters: "association de supporters",
+  syndicale: 'organisation syndicale', mediatique: 'organisation médiatique'
+  // 'criminelle' delibarement absent : ne doit jamais etre resolu en libelle public.
+};
+
+// Greve generale — table dediee greves_generales (migration_greves.sql), jamais lue par ce
+// module jusqu'ici. Calcule un signal deterministe "evolution" (statut/puissance/participants
+// changes depuis la derniere edition PUBLIEE) : c'est ce signal, jamais une appreciation de l'IA,
+// qui distingue un traitement fort d'un traitement reduit en Une (regle validee du 4 septembre
+// 2026 -- une grève generale en cours reste toujours en Une, mais sous une forme reduite tant
+// qu'il n'y a pas d'evolution reelle).
+async function collecterGrevesGenerales(periode, pays, personnagesConnus) {
+  const rows = await sbGet('greves_generales', `country=eq.${encodeURIComponent(pays)}&statut=in.(consultation,active)&order=date_lancement.desc&limit=5`);
+  if (!rows || rows.length === 0) return [];
+  const precedentes = await sbGet('journal_editions',
+    `country=eq.${encodeURIComponent(pays)}&statut=eq.publiee&order=date_edition.desc&limit=1&select=faits_sources`).catch(() => null);
+  const precedent = precedentes && precedentes[0];
+  const grevesPrecedentes = ((precedent && precedent.faits_sources && precedent.faits_sources.FACTS) || [])
+    .filter(fp => fp.type === 'greve_generale');
+
+  return rows.map(r => {
+    const nbParticipants = Array.isArray(r.participants) ? r.participants.filter(p => p.statut === 'accepte').length : 0;
+    const etatAnterieur = grevesPrecedentes.find(fp => fp.greve_generale_id === r.id);
+    const evolution = !etatAnterieur
+      || etatAnterieur.statut_greve !== r.statut
+      || etatAnterieur.puissance_niveau !== (r.puissance_niveau || null)
+      || etatAnterieur.nb_participants !== nbParticipants;
+    const acteur = identifierActeur(r.initiateur, personnagesConnus);
+    return {
+      id: idSource('greves_generales', r), domaine: 'greve_generale', type: 'greve_generale',
+      greve_generale_id: r.id, statut_greve: r.statut, puissance_niveau: r.puissance_niveau || null, nb_participants: nbParticipants,
+      ville: null, pays,
+      resume: r.statut === 'active'
+        ? `Grève générale en vigueur (${nbParticipants} syndicat(s), niveau ${r.puissance_niveau || 1}). Revendications : ${r.revendications}`
+        : `Consultation intersyndicale en cours pour une grève générale. Revendications : ${r.revendications}`,
+      acteur: r.initiateur, estPJ: acteur.estPJ, photo_url: acteur.photo_url,
+      evolution, // false = traitement reduit (statu quo), true = traitement fort (lancement/evolution)
+      poids: 'majeur', // toujours Une-eligible, que le traitement soit fort ou reduit
+      created_at: r.date_lancement
+    };
+  });
+}
+
+// chronique_nationale — journal d'evenements public dedie (migration "refonte Tribune", 4 septembre
+// 2026), deliberement distinct d'evenements_globaux (voir commentaire d'en-tete de ce fichier) :
+// n'est alimentee QUE par des points d'ecriture cotes serveur/client bien identifies (nominations,
+// resultats d'election, dissolution/changement de chef d'une organisation VISIBLE, debut/fin de
+// greve ordinaire, rachat d'entreprise) -- jamais de texte invente ni de notification privee. Le
+// "libelle" est deja construit en toutes lettres au point d'ecriture (sbEnregistrerEvenementPublic,
+// supabase.js) : il sert directement de resume ici, aucune reconstruction cote collecte.
+const TYPES_CHRONIQUE = {
+  nomination:               { domaine: 'politique',      poidsBase: 'secondaire', cransPJ: 2 },
+  election_resultat:        { domaine: 'politique',      poidsBase: 'secondaire', cransPJ: 2 },
+  greve_ordinaire_debut:    { domaine: 'greve_ordinaire', poidsBase: 'secondaire', cransPJ: 2 },
+  greve_ordinaire_fin:      { domaine: 'greve_ordinaire', poidsBase: 'mineur',     cransPJ: 1 },
+  organisation_dissolution: { domaine: 'organisations',  poidsBase: 'mineur',     cransPJ: 1 },
+  organisation_chef_change: { domaine: 'organisations',  poidsBase: 'mineur',     cransPJ: 1 },
+  entreprise_rachat:        { domaine: 'economie',       poidsBase: 'mineur',     cransPJ: 1 }
+};
+async function collecterChroniqueNationale(periode, pays, personnagesConnus) {
+  const f = filtrePeriode(periode);
+  const rows = await sbGet('chronique_nationale', `country=eq.${encodeURIComponent(pays)}&${f}&order=created_at.asc&limit=${LIMITE_PAR_DOMAINE}`);
+  return (rows || []).map(r => {
+    const def = TYPES_CHRONIQUE[r.type];
+    if (!def) return null; // type non mappe (ex. futur point d'ecriture) : ignore plutot que devine
+    const noms = Array.isArray(r.personnages) ? r.personnages : [];
+    const acteurs = noms.map(n => identifierActeur(n, personnagesConnus));
+    const estPJ = acteurs.some(a => a.estPJ);
+    const photo_url = (acteurs.find(a => a.estPJ) || {}).photo_url || null;
+    return {
+      id: r.id, domaine: def.domaine, type: r.type,
+      ville: r.city || null, pays,
+      resume: r.libelle, acteur: noms[0] || null, estPJ, photo_url,
+      poids: bumpPoids(def.poidsBase, estPJ ? def.cransPJ : 0),
+      created_at: r.created_at
+    };
+  }).filter(Boolean);
+}
+
 // =====================
 // 4. PUBLIC_STATEMENTS — forum uniquement, catégories publiques seulement.
 // =====================
@@ -465,33 +622,6 @@ async function collecterDeclarationsPubliques(periode, personnagesConnus) {
     });
   }
   return statements;
-}
-
-// =====================
-// 4bis. INTERVIEW JODIE MOITOUT — double une publication qui existe déjà (forum_id "presse",
-// author "Jodie Moitout"), jamais un second circuit d'interview (voir plateau-communication.js :
-// jodiePortraitPublier()). "presse" est un forum PRIVATE au sens de estForumPublic() (exclu de
-// collecterDeclarationsPubliques ci-dessus) -- cette collecte est donc volontairement séparée et
-// ne réutilise pas ce filtre : seul le contenu de Jodie doit franchir cette porte, rien d'autre.
-// Contenu transmis TEL QUEL (titre + texte du post) : l'IA ne doit jamais le reformuler, voir
-// prompt Lot B -- Lot B recopie ce texte verbatim dans l'edition, en dehors de tout appel IA.
-// =====================
-const JODIE_PORTRAIT_TITRE_PREFIXE = 'Un jour, un portrait : ';
-
-async function collecterInterviewJodie(periode, pays, personnagesConnus) {
-  const f = filtrePeriode(periode);
-  const topics = await sbGet('forum_topics',
-    `${f}&forum_id=eq.presse&author=eq.${encodeURIComponent('Jodie Moitout')}&country=eq.${encodeURIComponent(pays)}&order=created_at.desc&limit=1&select=id,title,created_at`);
-  const topic = topics && topics[0];
-  if (!topic) return null;
-  const posts = await sbGet('forum_posts', `topic_id=eq.${encodeURIComponent(topic.id)}&order=created_at.asc&limit=1&select=content`);
-  const texte = posts && posts[0] && posts[0].content;
-  if (!texte) return null;
-  const nom = topic.title.indexOf(JODIE_PORTRAIT_TITRE_PREFIXE) === 0
-    ? topic.title.slice(JODIE_PORTRAIT_TITRE_PREFIXE.length)
-    : topic.title;
-  const acteur = identifierActeur(nom, personnagesConnus);
-  return { nom, titre: topic.title, texte, photo_url: acteur.photo_url, created_at: topic.created_at };
 }
 
 // =====================
@@ -705,14 +835,19 @@ async function construirePaquetFactuel(pays, periode) {
   const personnagesConnus = await chargerPersonnagesConnus(pays);
   const expositionRecente = await chargerExpositionRecente(pays);
 
-  const [etatCivil, justice, candidatures, football, declarations, interviewJodie, petitesAnnonces] = await Promise.all([
+  const [etatCivil, justice, candidatures, football, declarations, petitesAnnonces,
+         ventesTerrains, successions, organisationsPubliques, grevesGenerales, chroniqueNationale] = await Promise.all([
     collecterEtatCivil(periode, personnagesConnus),
     collecterJustice(periode, personnagesConnus),
     collecterCandidatures(periode, personnagesConnus),
     collecterFootball(periode, personnagesConnus),
     collecterDeclarationsPubliques(periode, personnagesConnus),
-    collecterInterviewJodie(periode, pays, personnagesConnus),
-    collecterPetitesAnnoncesActives(pays)
+    collecterPetitesAnnoncesActives(pays),
+    collecterVentesTerrains(periode, personnagesConnus),
+    collecterSuccessions(periode, personnagesConnus),
+    collecterOrganisationsPubliques(periode, pays, personnagesConnus),
+    collecterGrevesGenerales(periode, pays, personnagesConnus),
+    collecterChroniqueNationale(periode, pays, personnagesConnus)
   ]);
 
   const [indicPopulation, indicEcoBrut, indicCaisses, indicClassement] = await Promise.all([
@@ -727,7 +862,8 @@ async function construirePaquetFactuel(pays, periode) {
     Promise.resolve(calculerCaissesRemarquables(pays, indicCaisses))
   ]);
 
-  const FACTS = [...etatCivil, ...justice, ...candidatures, ...football, ...economieRemarquable, ...caissesRemarquables]
+  const FACTS = [...etatCivil, ...justice, ...candidatures, ...football, ...economieRemarquable, ...caissesRemarquables,
+                 ...ventesTerrains, ...successions, ...organisationsPubliques, ...grevesGenerales, ...chroniqueNationale]
     .map(f => ({ ...f, expositionRecente: !!(f.estPJ && f.acteur && expositionRecente.has(f.acteur)) }));
 
   const factsDuPays = f => (Array.isArray(f.pays) ? f.pays.includes(pays) : f.pays === pays);
@@ -756,7 +892,6 @@ async function construirePaquetFactuel(pays, periode) {
     FACTS,
     PUBLIC_STATEMENTS: declarations,
     INDICATORS,
-    INTERVIEW_JODIE: interviewJodie,
     PETITES_ANNONCES: petitesAnnonces,
     EDUCATIONAL_REFERENCE: collecterReferencePedagogique()
   };
@@ -777,5 +912,11 @@ export {
   bumpPoids,
   chargerPersonnagesConnus,
   identifierActeur,
-  qualifierPerformanceSportive
+  qualifierPerformanceSportive,
+  collecterVentesTerrains,
+  collecterSuccessions,
+  collecterOrganisationsPubliques,
+  collecterGrevesGenerales,
+  collecterChroniqueNationale,
+  formaterNomTerrain
 };

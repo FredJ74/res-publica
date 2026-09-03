@@ -128,7 +128,7 @@ function dateEditionPourPays(pays, momentDate) {
 // transmis : un franchissement de seuil démographique ou une place au classement restent des
 // informations légitimes, jamais un prétexte à "réciter une base de données".
 // =====================
-function construireAiInput(paquet, dateEdition) {
+function construireAiInput(paquet, dateEdition, dejaCouvert) {
   const indicateursPertinents = (paquet.INDICATORS || []).filter(i =>
     i.cle === 'population_totale' || i.cle === 'population_par_ville' || i.cle === 'classement_clubs_nationaux'
   );
@@ -138,8 +138,38 @@ function construireAiInput(paquet, dateEdition) {
     periode: paquet.periode,
     FACTS: paquet.FACTS,
     PUBLIC_STATEMENTS: paquet.PUBLIC_STATEMENTS,
-    INDICATORS: indicateursPertinents
+    INDICATORS: indicateursPertinents,
+    DEJA_COUVERT: dejaCouvert || []
   };
+}
+
+// Digest anti-repetition (chantier refonte, 4 septembre 2026) : resume, en donnees, ce qui a deja
+// ete publie lors des editions RECENTES (par defaut les 5 dernieres) -- jamais laisse a la
+// "memoire" de l'IA (un seul appel par jour, aucune memoire persistante reelle). Reconstruit a
+// partir de faits_sources.FACTS des editions publiees, en ne retenant QUE les faits qui ont
+// reellement ete cites dans un article (une simple presence dans FACTS, jamais citee, ne compte
+// pas comme "deja couverte"). Cle de suivi = l'id du fait lui-meme (idSource, deja unique par
+// ligne source) -- suffisant pour tout evenement "one-shot" (election, nomination, condamnation...
+// une ligne = un evenement reel qui ne se reproduit jamais a l'identique). Le cas particulier de la
+// greve generale (meme id qui reapparait plusieurs jours de suite tant qu'elle dure) est deja gere
+// separement par le diff deterministe "evolution" du Lot A, jamais par ce digest generique.
+async function chargerDigestDejaCouvert(pays, dateEditionActuelle) {
+  const editions = await sbGet('journal_editions',
+    `country=eq.${encodeURIComponent(pays)}&statut=eq.publiee&date_edition=lt.${encodeURIComponent(dateEditionActuelle)}&order=date_edition.desc&limit=5&select=date_edition,faits_sources,double_page_centrale`,
+    SB_HEADERS_SERVICE
+  ).catch(() => []);
+  const digest = [];
+  (editions || []).forEach(ed => {
+    const facts = (ed.faits_sources && ed.faits_sources.FACTS) || [];
+    const articles = (ed.double_page_centrale && ed.double_page_centrale.articles) || [];
+    const idsCites = new Set();
+    articles.forEach(a => (a.source_ids || []).forEach(id => idsCites.add(id)));
+    facts.forEach(f => {
+      if (f.type === 'greve_generale' || !idsCites.has(f.id)) return;
+      digest.push({ id: f.id, resume: f.resume, date_edition: ed.date_edition });
+    });
+  });
+  return digest;
 }
 
 // Index id -> fait/déclaration/indicateur, construit à partir d'EXACTEMENT ce qui a été envoyé à
@@ -157,10 +187,14 @@ function indexerAiInput(aiInput) {
 // =====================
 const SCHEMA_JSON_TEXTE = `{
   "une": {
-    "titre_principal": "string",
-    "chapeau": "string",
-    "article_principal_ref": "string|null (id d'un article existant et domestique ; null UNIQUEMENT si aucune matière PJ n'existe nulle part dans le paquet, voir règle de Une)",
-    "accroches": [ { "texte": "string", "article_ref": "string (id d'un article existant et domestique)" } ],
+    "sujets": [
+      {
+        "titre": "string",
+        "chapeau": "string",
+        "article_ref": "string|null (id d'un article existant et domestique ; null UNIQUEMENT si le tableau FACTS est entièrement vide, voir règle de Une)"
+      }
+    ],
+    "appels": [ { "texte": "string", "article_ref": "string (id d'un article existant et domestique)" } ],
     "image": { "type": "personnage|lieu|generique|fallback", "ref_id": "string|null" }
   },
   "articles": [
@@ -172,11 +206,28 @@ const SCHEMA_JSON_TEXTE = `{
       "texte": "string",
       "ville": "string|null",
       "pays_source": "string|null",
+      "personnages_concernes": ["string", ...],
+      "interview_suggeree": "boolean (true UNIQUEMENT si un PJ nommé dans cet article mériterait qu'on le sollicite pour une interview de suivi)",
       "source_ids": ["string", ...],
       "image": { "type": "personnage|lieu|generique|fallback", "ref_id": "string|null" }
     }
+  ],
+  "sujets_differes": [
+    {
+      "source_id": "string (id d'un FACT ou d'une PUBLIC_STATEMENT du paquet, jamais un id inventé)",
+      "priorite": "chaude|differable",
+      "raison": "string (pourquoi ce sujet mérite un traitement complet plus tard plutôt qu'aujourd'hui)"
+    }
   ]
 }`;
+
+// Hierarchie editoriale validee (chantier refonte, 4 septembre 2026) -- un GUIDE de priorite pour
+// l'IA, jamais une grille mecanique : elle sert a choisir la Une quand plusieurs domaines sont en
+// concurrence, et a descendre dans la liste si les categories superieures sont vides.
+const HIERARCHIE_EDITORIALE = [
+  'Politique nationale', 'Crises sociales', 'Justice / criminalité', 'Politique locale',
+  'Économie', 'Organisations', 'Sport', 'Société / état civil'
+];
 
 function construirePromptSysteme(pays, dateEdition, hasPJMaterial) {
   const nomPays = NOMS_PAYS[pays] || pays;
@@ -186,36 +237,66 @@ Cette édition porte la date du ${dateEdition} — c'est la date humaine officie
 
 PRINCIPE ÉDITORIAL FONDAMENTAL : « Le journal doit raconter ce qui s'est passé dans Res Publica, pas réciter l'état de ses bases de données. » Un fait mérite un article parce qu'il s'est PASSÉ quelque chose, jamais parce qu'un chiffre existe.
 
-RÈGLE ABSOLUE, NON NÉGOCIABLE : « Tu peux interpréter les faits à ta façon. Tu ne peux JAMAIS inventer les faits. » Tu reçois un paquet de données structurées (FACTS, PUBLIC_STATEMENTS, INDICATORS). C'est la SEULE réalité que tu connais. N'utilise jamais une connaissance générale du monde réel au-delà de ce paquet.
+RÈGLE ABSOLUE, NON NÉGOCIABLE : « Tu peux interpréter les faits à ta façon. Tu ne peux JAMAIS inventer les faits. » Tu reçois un paquet de données structurées (FACTS, PUBLIC_STATEMENTS, INDICATORS, DEJA_COUVERT). C'est la SEULE réalité que tu connais. N'utilise jamais une connaissance générale du monde réel au-delà de ce paquet.
 
 TU PEUX : hiérarchiser l'information, choisir un angle, commenter, ironiser, adopter un ton partisan ou de mauvaise foi, dramatiser prudemment (jamais présenter une causalité comme certaine si elle n'est pas prouvée), rapprocher plusieurs faits réellement présents dans le paquet.
 
 TU NE PEUX JAMAIS : inventer un événement, une personne, une déclaration, une citation, un chiffre, une causalité certaine non démontrée. Si les données sont pauvres, écris PLUS COURT — une édition honnête et courte vaut toujours mieux qu'une édition remplie artificiellement. Ne produis un article ou une rubrique QUE s'il existe un contenu réel derrière : ne crée jamais de rubrique pour combler un vide.
 
+TON DE LA TRIBUNE : sérieux et journalistique par défaut. Tu peux être acerbe, mordante, ironique ou drôle lorsque le contexte réel s'y prête — mais JAMAIS en insérant un fait : l'ironie doit venir des faits eux-mêmes, de leur contradiction, de leur contextualisation, ou de leur juxtaposition. Ne force jamais l'humour.
+
+HIÉRARCHIE ÉDITORIALE (guide de priorité pour la Une, pas une grille mécanique — tu restes rédactrice en chef à l'intérieur de ce cadre) :
+${HIERARCHIE_EDITORIALE.map((h, i) => `${i + 1}. ${h}`).join('\n')}
+S'il n'existe aucune actualité notable dans les catégories les plus hautes, descends dans cette liste jusqu'à trouver la meilleure information réellement disponible — une information sportive, économique ou de société peut parfaitement devenir la Une du jour si rien de plus fort n'existe au-dessus. Le champ "domaine" de chaque fait t'indique sa catégorie.
+
 RÈGLE DE UNE — « Les personnages de Res Publica font l'actualité de Res Publica » (règle STRICTE, non négociable) :
 ${hasPJMaterial
-    ? `Chaque fait et chaque déclaration du paquet porte un champ "estPJ". Il existe dans ce paquet AU MOINS un fait ou une déclaration impliquant un personnage joueur (PJ) — QUEL QUE SOIT SON POIDS, même "mineur". La grande Une (titre_principal, chapeau, article_principal_ref) DOIT donc s'ancrer sur un fait ou une déclaration où estPJ vaut true : ce n'est pas une préférence, c'est une obligation dès qu'une seule matière PJ existe, aussi mince soit-elle. Le champ "poids" ne sert QU'À choisir la MEILLEURE actualité PJ disponible parmi celles qui existent — il ne t'autorise jamais à laisser une actualité automatique ou non-PJ (un stock, un indicateur, un fait purement institutionnel sans PJ) prendre la Une à la place d'un fait PJ, même si ce fait PJ te semble mineur en comparaison. Un PJ peut faire la Une pour n'importe quelle raison : victorieux, humilié, arrêté, accusé, soupçonné, controversé, victime, auteur d'un exploit ou d'un scandale, ou même simplement un événement ordinaire qui le concerne s'il n'y a rien de plus fort — la Une n'est PAS un tableau d'honneur. Ne fabrique jamais un événement PJ qui n'existe pas dans le paquet : choisis parmi ceux qui existent réellement, aussi modestes soient-ils.`
-    : `Aucun fait ni déclaration impliquant un personnage joueur n'existe nulle part dans ce paquet pour cette période (aucun "estPJ":true, à aucun poids). C'est SEULEMENT dans ce cas que la Une reste libre : un fait national notable, ou une Une "journée calme" honnête (article_principal_ref:null) si rien de notable ne s'est produit. Ne fabrique jamais un événement PJ qui n'existe pas.`}
+    ? `Chaque fait et chaque déclaration du paquet porte un champ "estPJ". Il existe dans ce paquet AU MOINS un fait ou une déclaration impliquant un personnage joueur (PJ) — QUEL QUE SOIT SON POIDS, même "mineur". AU MOINS UN des 1 ou 2 sujets de la Une (voir "MAXIMUM DEUX SUJETS EN UNE" ci-dessous) DOIT donc s'ancrer sur un fait ou une déclaration où estPJ vaut true : ce n'est pas une préférence, c'est une obligation dès qu'une seule matière PJ existe, aussi mince soit-elle. Le champ "poids" ne sert QU'À choisir la MEILLEURE actualité PJ disponible parmi celles qui existent — il ne t'autorise jamais à laisser une actualité automatique ou non-PJ (un stock, un indicateur, un fait purement institutionnel sans PJ) occuper TOUS les sujets de Une à la place d'un fait PJ, même si ce fait PJ te semble mineur en comparaison. Un PJ peut faire la Une pour n'importe quelle raison : victorieux, humilié, arrêté, accusé, soupçonné, controversé, victime, auteur d'un exploit ou d'un scandale, ou même simplement un événement ordinaire qui le concerne s'il n'y a rien de plus fort — la Une n'est PAS un tableau d'honneur. Ne fabrique jamais un événement PJ qui n'existe pas dans le paquet : choisis parmi ceux qui existent réellement, aussi modestes soient-ils.`
+    : `Aucun fait ni déclaration impliquant un personnage joueur n'existe nulle part dans ce paquet pour cette période (aucun "estPJ":true, à aucun poids). La Une reste alors libre parmi les faits non-PJ disponibles.`}
 
-PRIORITÉ ÉDITORIALE GÉNÉRALE (à l'intérieur de ce cadre, c'est toi qui hiérarchises) :
-1. événements significatifs impliquant des PJ (champ "estPJ":true, poids "important" ou "majeur") ;
-2. événements nationaux importants ;
-3. événements locaux significatifs ;
-4. informations institutionnelles, sociales, économiques ou sportives réellement notables (déjà pré-qualifiées "economie_remarquable" ou "performance_sportive" par le système — les indicateurs économiques ordinaires ne te sont volontairement PAS transmis, ils n'ont pas leur place ici) ;
-5. informations secondaires.
-Le champ "poids" (mineur/secondaire/important/majeur) sur chaque fait reflète déjà cette hiérarchie telle que le système la calcule — sers-t'en, mais l'angle et la mise en récit restent les tiens.
+MAXIMUM DEUX SUJETS EN UNE : le tableau "une.sujets" contient AU PLUS 2 éléments. Un seul sujet suffit la plupart du temps ; deux sujets ne se justifient que si deux informations méritent réellement toutes les deux un traitement de Une le même jour (elles se "partagent" alors la Une). Ne remplis jamais un deuxième sujet artificiellement s'il n'y a qu'un seul vrai sujet de Une.
+
+MAXIMUM TROIS APPELS DE UNE : le tableau "une.appels" contient AU PLUS 3 éléments (0 est parfaitement valide s'il n'y a rien d'autre à signaler). Ce sont de petits titres renvoyant vers un article de deuxième page qui ne fait pas partie des sujets principaux (ex. "Luthécia champion ! — p. 2"). N'en crée que pour des informations réellement notables.
+
+"JOURNÉE CALME" — CONDITION STRICTE : une Une où tous les sujets ont "article_ref":null n'est autorisée QUE si le tableau FACTS transmis est ENTIÈREMENT VIDE. Dès qu'un seul FACT existe, quelle que soit sa catégorie ou son poids, tu DOIS choisir le meilleur d'entre eux pour au moins un sujet de Une — descends dans la hiérarchie éditoriale si besoin, mais ne déclare jamais une "journée calme" tant qu'un fait réel est disponible.
+
+RÈGLES PAR TYPE D'ÉVÉNEMENT (destination éditoriale par défaut — un fait non cité dans un article part automatiquement en dernière page selon son type ; ces règles t'indiquent quand un fait mérite mieux) :
+- Arrivée d'un nouveau PJ ("type":"arrivee") : jamais un article, part en "Journal des arrivées" en dernière page. Ne parle JAMAIS de "naissance" pour la création d'un personnage.
+- Mariage : carnet par défaut ; article de deuxième page si les personnes concernées sont suffisamment importantes.
+- Décès : carnet par défaut ; article si le défunt est une personnalité importante ; Une possible pour une personnalité majeure.
+- Candidature électorale ("type":"candidature") : article de deuxième page SYSTÉMATIQUEMENT.
+- Résultat d'élection ("type":"election_resultat") : article de deuxième page SYSTÉMATIQUEMENT ; Une possible selon l'importance.
+- Nomination (Premier Ministre, ministre, ambassadeur — "type":"nomination") : article de deuxième page SYSTÉMATIQUEMENT, que la personne nommée soit un PJ ou un PNJ ; Une possible selon l'importance.
+- Grève générale ("type":"greve_generale") : DOIT apparaître en Une. Le champ "evolution" du fait te dit si son statut/sa puissance ont changé depuis la dernière édition : "evolution":true → traitement fort (nouveau sujet développé) ; "evolution":false → elle reste en Une mais sous une forme visiblement plus réduite qu'un vrai sujet du jour (par exemple via un appel de Une plutôt qu'un sujet développé, ou une mention courte).
+- Grève ordinaire (un seul syndicat, "type" absent des FACTS actuels — géré via chronique_nationale ultérieurement) : déclenchement et fin en article de deuxième page.
+- Condamnation ("type":"condamnation") ou arrestation ("type":"arrestation") : article de deuxième page SYSTÉMATIQUEMENT ; Une si la personne est une personnalité importante.
+- Vente de terrain ("type":"vente_terrain") : brève par défaut ; article si l'opération est manifestement importante (montant élevé, acteur notable).
+- Rachat/vente d'entreprise ou de commerce : brève par défaut ; article si la transaction ou le commerce est manifestement important.
+- Création d'organisation publique ("type":"organisation_creation") : brève par défaut. Les organisations secrètes/criminelles n'existent JAMAIS dans ce paquet — si tu n'en vois aucune trace, c'est normal, ne les évoque jamais.
+- Football, match ordinaire ("type":"resultat_match") : brève. Match important ou "performance_sportive" à 2+ buts : article. 3 buts ou plus (triplé), ou titre de champion : article, Une possible s'il n'existe pas d'actualité politique/sociale suffisamment forte.
+- Succession résolue ("type":"succession") : brève par défaut.
+- Indicateurs économiques ("type":"economie_remarquable") : brève par défaut ; article si l'impact est fort ; une crise véritablement majeure peut remonter dans la hiérarchie si l'actualité supérieure est faible.
+- Déclaration publique sur le forum : ne devient un article QUE si elle présente un véritable intérêt journalistique (annonce politique, accusation, prise de position importante, réaction à une affaire...). Ne génère JAMAIS automatiquement un article pour chaque message du forum.
+
+PERSONNALITÉ « IMPORTANTE » : cette appréciation t'est laissée entièrement — fonction, importance politique, actualité récente, notoriété, rôle dans l'événement. Ne crée et n'invente jamais une notoriété ou des faits pour justifier ce choix ; base-toi uniquement sur ce que le paquet te montre réellement (poste occupé, présence répétée dans l'actualité récente via DEJA_COUVERT, etc.).
+
+SUIVI DE L'ACTUALITÉ — NE PAS RÉPÉTER MÉCANIQUEMENT : le bloc "DEJA_COUVERT" liste les sujets déjà publiés lors des éditions récentes (avec leur "dedup_key" et leur ancienneté). Si un FACT ou une PUBLIC_STATEMENT correspond à un sujet déjà couvert, NE RÉÉCRIS PAS la même annonce comme une nouvelle ("X nommé ministre" ne doit pas être republié tel quel le lendemain). Tu peux en revanche chercher un PROLONGEMENT réel et présent dans le paquet (première action, déclaration, réaction, décision, conséquence, interview) et en faire un article de suivi — jamais un prolongement inventé. Exception validée : une grève générale déjà couverte reste normalement en Une chaque jour (voir règle dédiée ci-dessus), ce n'est pas une répétition interdite.
+
+REPORT ÉDITORIAL : si l'actualité du jour est trop abondante pour rester lisible, tu peux choisir de ne PAS rédiger d'article pour un sujet pourtant réel et intéressant, et le lister dans "sujets_differes" avec son "source_id" (un id de FACT ou de PUBLIC_STATEMENT du paquet), une "priorite" ("chaude" si le sujet reste pertinent seulement 1 jour de plus, "differable" s'il reste pertinent jusqu'à 5 jours), et une "raison" courte. N'utilise ce mécanisme que pour des sujets réels que tu choisis sciemment de ne pas traiter aujourd'hui — jamais pour un sujet que tu as déjà traité dans un article.
 
 DIVERSITÉ DES PJ EXPOSÉS : certains faits portent "expositionRecente":true (le même PJ a déjà eu un article "majeur" dans une des 2 dernières éditions). La vérité factuelle reste toujours prioritaire — si ce PJ produit réellement le plus gros événement aujourd'hui encore, il peut refaire la Une. Mais à intérêt éditorial comparable entre deux sujets secondaires, préfère celui qui n'a pas "expositionRecente":true.
 
 FOOTBALL — PERFORMANCES INDIVIDUELLES : un fait "performance_sportive" indique le nombre de buts ("buts") inscrits par un même joueur dans un même match, déjà agrégé. 1 but est une information sportive mineure ; 2 buts (doublé) sont plus notables ; 3 buts (triplé) ou plus sont un événement sportif majeur, a fortiori si "estPJ" vaut true — un tel fait peut légitimement devenir la Une.
 
-HIÉRARCHIE GÉOGRAPHIQUE : ce journal est celui de ${nomPays} (pays "${pays}"). Pour la Une et tout article dont la "rubrique" n'est pas explicitement internationale : priorité ABSOLUE aux faits dont le pays correspond à "${pays}". Une information étrangère va UNIQUEMENT dans un article de rubrique internationale, présentée clairement comme telle. Elle ne peut JAMAIS devenir le titre principal de la Une ni une accroche, même si l'actualité intérieure est pauvre.
+HIÉRARCHIE GÉOGRAPHIQUE : ce journal est celui de ${nomPays} (pays "${pays}"). Pour la Une et tout article dont la "rubrique" n'est pas explicitement internationale : priorité ABSOLUE aux faits dont le pays correspond à "${pays}". Une information étrangère va UNIQUEMENT dans un article de rubrique internationale, présentée clairement comme telle. Elle ne peut JAMAIS devenir un sujet de Une ni un appel, même si l'actualité intérieure est pauvre.
 
 FAITS vs DÉCLARATIONS : FACTS est établi par le système lui-même. PUBLIC_STATEMENTS prouve seulement que son auteur a publiquement écrit quelque chose — JAMAIS que c'est vrai. Tout article de type "declaration" doit attribuer explicitement le contenu à son auteur avec un verbe déclaratif ("X affirme...", "X accuse..."), jamais le présenter comme un fait acquis. Une rumeur reste une rumeur : "selon une rumeur...", "une rumeur met en cause...", jamais présentée comme un fait établi. Si un PJ a publiquement répondu à une rumeur ou une accusation le concernant (present aussi dans PUBLIC_STATEMENTS), cette réponse est elle-même une information légitime, à attribuer de la même façon.
 
 CITATIONS : n'utilise JAMAIS de guillemets sauf pour reproduire une sous-chaîne du champ "extrait" d'un PUBLIC_STATEMENT cité en source, CARACTÈRE POUR CARACTÈRE, sans aucune correction. Si tu veux reformuler ou résumer, fais-le sans guillemets, en paraphrase attribuée.
 
-TRAÇABILITÉ OBLIGATOIRE ET COMPLÈTE : chaque article doit avoir "source_ids" non vide, contenant UNIQUEMENT des identifiants qui existent réellement dans le paquet fourni, et TOUS les identifiants réellement utilisés dans le texte (pas seulement celui qui a inspiré le titre).
+TRAÇABILITÉ OBLIGATOIRE ET COMPLÈTE : chaque article doit avoir "source_ids" non vide, contenant UNIQUEMENT des identifiants qui existent réellement dans le paquet fourni, et TOUS les identifiants réellement utilisés dans le texte (pas seulement celui qui a inspiré le titre). Le champ "personnages_concernes" doit lister tous les PJ/PNJ réellement nommés dans l'article, tels qu'ils apparaissent dans les faits sources — jamais un nom inventé.
+
+INTERVIEW SUGGÉRÉE : mets "interview_suggeree":true sur un article UNIQUEMENT si un PJ qui y est nommé vient de vivre quelque chose d'assez marquant (victoire électorale, accession à une fonction, scandale, affaire judiciaire, événement majeur) pour justifier qu'on le sollicite pour un entretien de suivi. N'en abuse pas : ce doit rester rare et réellement justifié par l'article lui-même.
 
 IMAGES : choisis "type":"personnage" UNIQUEMENT si "ref_id" est l'identifiant (déjà présent dans tes "source_ids") d'un fait ou d'une déclaration où "estPJ" vaut true — ce sera alors le portrait de ce PJ. Choisis "type":"lieu" UNIQUEMENT si "ref_id" est l'identifiant d'un fait de football déjà cité (ce sera l'image du stade concerné). Sinon utilise "generique" ou "fallback", avec "ref_id":null. N'invente jamais un ref_id qui ne serait pas déjà dans tes source_ids.
 
@@ -362,6 +443,16 @@ function validerArticle(art, index, erreurs, idsVus, articlesParId) {
     if (declarations.length === 0) erreurs.push(`article (${art.id}) : type "declaration" doit citer au moins une déclaration publique`);
   }
 
+  // personnages_concernes / interview_suggeree (chantier refonte, 4 septembre 2026) : champs
+  // additifs, absents = tableau vide / false, jamais une erreur bloquante en soi -- seule une
+  // valeur de type incorrect ou un booleen manquant sont rejetes.
+  if (art.personnages_concernes != null && !Array.isArray(art.personnages_concernes)) {
+    erreurs.push(`article (${art.id}) : personnages_concernes doit être un tableau`);
+  }
+  if (art.interview_suggeree != null && typeof art.interview_suggeree !== 'boolean') {
+    erreurs.push(`article (${art.id}) : interview_suggeree doit être un booléen`);
+  }
+
   // Anti-invention chiffrée : tout indicateur numérique cité doit voir sa valeur reproduite
   // fidèlement dans le texte (jamais un chiffre modifié ou arrondi différemment).
   sourcesResolues.forEach(({ id, source }) => {
@@ -399,6 +490,17 @@ function hasPJMaterial(aiInput) {
   return (aiInput.FACTS || []).some(check) || (aiInput.PUBLIC_STATEMENTS || []).some(check);
 }
 
+// "Journée calme" élargie (chantier refonte, 4 septembre 2026, arbitrage validé) : une Une "calme"
+// n'est légitime QUE si le paquet FACTS est entièrement vide, quelle que soit la catégorie
+// (politique, sport, économie, société...) -- plus seulement en l'absence de matière PJ. Les
+// PUBLIC_STATEMENTS ne comptent volontairement PAS ici : leur intérêt journalistique reste un
+// jugement de l'IA (règle 5 du cahier des charges), jamais une obligation déterministe.
+function hasAnyExploitableFact(aiInput) {
+  return (aiInput.FACTS || []).length > 0;
+}
+
+const PRIORITES_REPORT_VALIDES = ['chaude', 'differable'];
+
 function validerEdition(reponseTexte, aiInput) {
   const erreurs = [];
   let json;
@@ -409,7 +511,7 @@ function validerEdition(reponseTexte, aiInput) {
   }
   if (!json || typeof json !== 'object') return { valide: false, erreurs: ['Réponse JSON racine invalide'] };
 
-  const { une, articles } = json;
+  const { une, articles, sujets_differes } = json;
   if (!une || typeof une !== 'object') erreurs.push('une manquante');
   if (!Array.isArray(articles)) erreurs.push('articles doit être un tableau');
   if (erreurs.length) return { valide: false, erreurs };
@@ -429,51 +531,93 @@ function validerEdition(reponseTexte, aiInput) {
     }
   });
 
-  if (typeof une.titre_principal !== 'string' || !une.titre_principal) erreurs.push('une.titre_principal manquant');
-  if (typeof une.chapeau !== 'string') erreurs.push('une.chapeau manquant');
+  // une.sujets : 1 a 2 elements (remplace titre_principal/chapeau/article_principal_ref).
+  if (!Array.isArray(une.sujets) || une.sujets.length === 0) {
+    erreurs.push('une.sujets doit être un tableau non vide');
+  } else if (une.sujets.length > 2) {
+    erreurs.push(`une.sujets : maximum 2 sujets autorisés, ${une.sujets.length} reçus`);
+  } else {
+    une.sujets.forEach((suj, i) => {
+      if (!suj || typeof suj !== 'object') { erreurs.push(`une.sujets[${i}] invalide`); return; }
+      if (typeof suj.titre !== 'string' || !suj.titre) erreurs.push(`une.sujets[${i}].titre manquant`);
+      if (typeof suj.chapeau !== 'string') erreurs.push(`une.sujets[${i}].chapeau manquant`);
+      if (suj.article_ref != null) {
+        if (typeof suj.article_ref !== 'string') {
+          erreurs.push(`une.sujets[${i}].article_ref doit être une chaîne ou null`);
+        } else if (!idsVus.has(suj.article_ref)) {
+          erreurs.push(`une.sujets[${i}].article_ref inconnu "${suj.article_ref}"`);
+        } else if (articleEstEtranger(articlesParId[suj.article_ref], paysCible, index)) {
+          erreurs.push(`une.sujets[${i}].article_ref "${suj.article_ref}" repose exclusivement sur une source étrangère`);
+        }
+      }
+    });
+  }
 
-  if (une.article_principal_ref != null) {
-    if (typeof une.article_principal_ref !== 'string') {
-      erreurs.push('une.article_principal_ref doit être une chaîne ou null');
-    } else if (!idsVus.has(une.article_principal_ref)) {
-      erreurs.push(`une.article_principal_ref inconnu "${une.article_principal_ref}"`);
-    } else if (articleEstEtranger(articlesParId[une.article_principal_ref], paysCible, index)) {
-      erreurs.push(`une.article_principal_ref "${une.article_principal_ref}" repose exclusivement sur une source étrangère`);
-    }
+  const sujetsValides = Array.isArray(une.sujets) ? une.sujets : [];
+  const sujetsAvecArticle = sujetsValides.filter(s => s && s.article_ref);
+
+  // "Journée calme" élargie : tous les sujets à article_ref:null n'est légitime QUE si FACTS est
+  // entièrement vide (voir hasAnyExploitableFact) -- plus seulement en l'absence de matière PJ.
+  if (sujetsAvecArticle.length === 0 && hasAnyExploitableFact(aiInput)) {
+    erreurs.push('une.sujets : aucun sujet ne s\'ancre sur un article alors que le paquet FACTS contient au moins un fait exploitable ("journée calme" non autorisée ici)');
   }
 
   // Règle de Une PJ — vérification déterministe du principe "les personnages font l'actualité".
+  // Adaptée aux sujets multiples (4 septembre 2026) : AU MOINS UN sujet doit s'ancrer sur du PJ
+  // dès que de la matière PJ existe -- pas nécessairement tous, un deuxième sujet partagé peut
+  // rester non-PJ.
   if (hasPJMaterial(aiInput)) {
-    const principal = une.article_principal_ref && articlesParId[une.article_principal_ref];
-    const ancreSurPJ = !!principal && Array.isArray(principal.source_ids) &&
-      principal.source_ids.some(sid => index[sid] && index[sid].estPJ);
+    const ancreSurPJ = sujetsAvecArticle.some(s => {
+      const art = articlesParId[s.article_ref];
+      return !!art && Array.isArray(art.source_ids) && art.source_ids.some(sid => index[sid] && index[sid].estPJ);
+    });
     if (!ancreSurPJ) {
-      erreurs.push('une.article_principal_ref : le paquet contient de la matière PJ exploitable mais la Une ne s\'ancre sur aucune source estPJ:true (règle de Une obligatoire)');
+      erreurs.push('une.sujets : le paquet contient de la matière PJ exploitable mais aucun sujet de Une ne s\'ancre sur une source estPJ:true (règle de Une obligatoire)');
     }
   }
 
-  if (!Array.isArray(une.accroches)) {
-    erreurs.push('une.accroches doit être un tableau');
+  // une.appels (renomme de "accroches", plafonne a 3).
+  if (!Array.isArray(une.appels)) {
+    erreurs.push('une.appels doit être un tableau');
+  } else if (une.appels.length > 3) {
+    erreurs.push(`une.appels : maximum 3 appels autorisés, ${une.appels.length} reçus`);
   } else {
-    une.accroches.forEach((acc, i) => {
-      if (!acc || typeof acc.texte !== 'string' || typeof acc.article_ref !== 'string') { erreurs.push(`une.accroches[${i}] invalide`); return; }
-      if (!idsVus.has(acc.article_ref)) { erreurs.push(`une.accroches[${i}] : article_ref inconnu "${acc.article_ref}"`); return; }
+    une.appels.forEach((acc, i) => {
+      if (!acc || typeof acc.texte !== 'string' || typeof acc.article_ref !== 'string') { erreurs.push(`une.appels[${i}] invalide`); return; }
+      if (!idsVus.has(acc.article_ref)) { erreurs.push(`une.appels[${i}] : article_ref inconnu "${acc.article_ref}"`); return; }
       if (articleEstEtranger(articlesParId[acc.article_ref], paysCible, index)) {
-        erreurs.push(`une.accroches[${i}] : article_ref "${acc.article_ref}" repose exclusivement sur une source étrangère`);
+        erreurs.push(`une.appels[${i}] : article_ref "${acc.article_ref}" repose exclusivement sur une source étrangère`);
       }
     });
   }
 
   // L'image de Une cite un source_id de FAIT (comme une image d'article), jamais un id d'article :
-  // on rassemble donc les source_ids de l'article principal ET de chaque accroche, pas leurs ids.
+  // on rassemble donc les source_ids de tous les sujets ET de chaque appel, pas leurs ids.
   const sourceIdsAccessiblesUne = [
-    ...(une.article_principal_ref && articlesParId[une.article_principal_ref] ? articlesParId[une.article_principal_ref].source_ids : []),
-    ...((une.accroches || []).reduce((acc, a) => {
+    ...sujetsAvecArticle.reduce((acc, s) => {
+      const art = articlesParId[s.article_ref];
+      return art ? acc.concat(art.source_ids) : acc;
+    }, []),
+    ...((une.appels || []).reduce((acc, a) => {
       const art = a && articlesParId[a.article_ref];
       return art ? acc.concat(art.source_ids) : acc;
     }, []))
   ];
   validerImage(une.image, 'une', sourceIdsAccessiblesUne, index, erreurs);
+
+  // sujets_differes (report editorial, 4 septembre 2026) : optionnel, chaque entree doit referencer
+  // un id REEL du paquet envoye a l'IA (jamais un id invente), avec une priorite valide.
+  if (sujets_differes != null) {
+    if (!Array.isArray(sujets_differes)) {
+      erreurs.push('sujets_differes doit être un tableau');
+    } else {
+      sujets_differes.forEach((sd, i) => {
+        if (!sd || typeof sd.source_id !== 'string' || !sd.source_id) { erreurs.push(`sujets_differes[${i}] : source_id manquant`); return; }
+        if (!index[sd.source_id]) { erreurs.push(`sujets_differes[${i}] : source_id inconnu "${sd.source_id}"`); return; }
+        if (!PRIORITES_REPORT_VALIDES.includes(sd.priorite)) { erreurs.push(`sujets_differes[${i}] : priorite invalide "${sd.priorite}"`); }
+      });
+    }
+  }
 
   return { valide: erreurs.length === 0, erreurs };
 }
@@ -489,10 +633,17 @@ const LIMITE_CHIENS_ECRASES = 15;
 function collecterSourceIdsCites(une, articles) {
   const cites = new Set();
   articles.forEach(a => (a.source_ids || []).forEach(id => cites.add(id)));
-  if (une.article_principal_ref) cites.add(une.article_principal_ref);
-  (une.accroches || []).forEach(a => a && a.article_ref && cites.add(a.article_ref));
+  (une.sujets || []).forEach(s => s && s.article_ref && cites.add(s.article_ref));
+  (une.appels || []).forEach(a => a && a.article_ref && cites.add(a.article_ref));
   return cites;
 }
+
+// Types systematiquement ranges en dernière page (arrivées/carnet) quand non cités dans un
+// article -- jamais transformes en article par ce code, seul le choix editorial de l'IA (via une
+// citation reelle dans articles[]) peut les faire remonter en 2e page/Une (regles par type,
+// chantier refonte, 4 septembre 2026).
+const TYPES_ARRIVEE = ['arrivee'];
+const TYPES_CARNET = ['mariage', 'deces'];
 
 function assemblerDernierePage(paquet, une, articles) {
   const cites = collecterSourceIdsCites(une, articles);
@@ -505,12 +656,19 @@ function assemblerDernierePage(paquet, une, articles) {
       return { ressource, ville: i.ville, stock: i.valeur, prix: prix ? prix.valeur : null };
     });
 
+  // Journal des arrivées (chantier refonte, 4 septembre 2026) : jamais "naissance", toujours sa
+  // propre rubrique, distincte du carnet -- une arrivee n'est par construction jamais citee dans
+  // un article (poids toujours "mineur", voir Lot A), mais le filtre reste explicite par securite.
+  const arrivees = (paquet.FACTS || [])
+    .filter(f => TYPES_ARRIVEE.includes(f.type) && !cites.has(f.id))
+    .map(f => f.resume);
+
   const carnet = (paquet.FACTS || [])
-    .filter(f => f.type === 'deces' && !cites.has(f.id))
+    .filter(f => TYPES_CARNET.includes(f.type) && !cites.has(f.id))
     .map(f => f.resume);
 
   const chiens_ecrases = (paquet.FACTS || [])
-    .filter(f => !cites.has(f.id) && f.type !== 'deces' && f.domaine !== 'economie')
+    .filter(f => !cites.has(f.id) && !TYPES_ARRIVEE.includes(f.type) && !TYPES_CARNET.includes(f.type) && f.domaine !== 'economie')
     .filter(f => f.poids === 'mineur' || f.poids === 'secondaire')
     .slice(0, LIMITE_CHIENS_ECRASES)
     .map(f => f.resume);
@@ -522,16 +680,34 @@ function assemblerDernierePage(paquet, une, articles) {
     (a.categorie ? `[${a.categorie}] ` : '') + a.texte + (a.ville ? ` — ${a.ville}` : '')
   );
 
-  return { indices_economiques, carnet, chiens_ecrases, petites_annonces };
+  return { indices_economiques, arrivees, carnet, chiens_ecrases, petites_annonces };
 }
 
-function assemblerAvantDernierePage(paquet) {
-  if (!paquet.INTERVIEW_JODIE) return null;
-  return {
-    nom: paquet.INTERVIEW_JODIE.nom,
-    texte: paquet.INTERVIEW_JODIE.texte,
-    photo_url: paquet.INTERVIEW_JODIE.photo_url || null
-  };
+// Refonte "4 dernieres interviews" (4 septembre 2026) : recalculee a CHAQUE generation par lecture
+// directe de interviews_jodie (jamais reportee depuis une edition precedente ni depuis une file --
+// voir api/journal-interview.js, qui persiste desormais article_titre/article_texte/publie_le sur
+// la ligne elle-meme). Remplace l'ancienne page a interview unique (paquet.INTERVIEW_JODIE, systeme
+// "Un jour, un portrait" par mail -- laisse intact, continue de publier sur le forum "presse", mais
+// ne double plus jamais dans le Journal a partir de cette refonte).
+const MAX_INTERVIEWS_AVANT_DERNIERE_PAGE = 4;
+
+async function assemblerAvantDernierePage(pays) {
+  if (!SUPABASE_SERVICE_ROLE) return { interviews: [] };
+  const rows = await sbGet(
+    'interviews_jodie',
+    `country=eq.${encodeURIComponent(pays)}&publie=eq.true&article_texte=not.is.null&order=publie_le.desc.nullslast&limit=${MAX_INTERVIEWS_AVANT_DERNIERE_PAGE}`,
+    SB_HEADERS_SERVICE
+  ).catch(() => []);
+  if (!rows || rows.length === 0) return { interviews: [] };
+  const noms = [...new Set(rows.map(r => r.personnage))];
+  const persos = await sbGet('personnages', `name=in.(${noms.map(encodeURIComponent).join(',')})&select=name,photo_url`).catch(() => []);
+  const photoParNom = {};
+  (persos || []).forEach(p => { photoParNom[p.name] = p.photo_url || null; });
+  const interviews = rows.map(r => ({
+    nom: r.personnage, titre: r.article_titre || null, texte: r.article_texte,
+    photo_url: photoParNom[r.personnage] || null, publie_le: r.publie_le || null
+  }));
+  return { interviews };
 }
 
 // =====================
@@ -566,6 +742,109 @@ async function marquerArticlesEnAttenteIntegres(lignes, maintenant) {
   ));
 }
 
+// =====================
+// REPORT ÉDITORIAL (chantier refonte, 4 septembre 2026) — réutilise journal_articles_en_attente
+// avec origine='report_ia' : stocke un SNAPSHOT du FAIT (fait_json), jamais un article pré-rédigé
+// -- réinjecté tel quel dans le paquet d'une génération ultérieure pour que l'IA écrive un article
+// à jour ce jour-là, jamais un texte figé republié tel quel plusieurs jours plus tard. Une ligne
+// périmée passe à statut='expire', jamais supprimée : aucune perte silencieuse.
+// =====================
+const JOURS_REPORT = { chaude: 1, differable: 5 };
+
+async function chargerFaitsDifferesEnAttente(pays, maintenant) {
+  if (!SUPABASE_SERVICE_ROLE) return [];
+  const rows = await sbGet(
+    'journal_articles_en_attente',
+    `country=eq.${encodeURIComponent(pays)}&origine=eq.report_ia&statut=eq.attente&order=created_at.asc`,
+    SB_HEADERS_SERVICE
+  );
+  const actifs = [];
+  const perimes = [];
+  (rows || []).forEach(r => {
+    if (r.expire_le && new Date(r.expire_le).getTime() <= maintenant.getTime()) { perimes.push(r); return; }
+    if (!r.fait_json) return;
+    const jours = Math.max(0, Math.round((maintenant.getTime() - new Date(r.created_at).getTime()) / 86400000));
+    actifs.push({ ...r.fait_json, report_differe: true, jours_depuis_fait: jours, _report_row_id: r.id });
+  });
+  if (perimes.length > 0) {
+    await Promise.all(perimes.map(r =>
+      sbUpdate('journal_articles_en_attente', `id=eq.${encodeURIComponent(r.id)}`, { statut: 'expire' }, SB_HEADERS_SERVICE).catch(() => {})
+    ));
+  }
+  return actifs;
+}
+
+// Id deterministe (jamais Date.now()) : re-soumettre le meme fait different (IA qui le re-differe
+// un jour de plus) ne cree jamais de doublon, echoue silencieusement sur la contrainte PRIMARY KEY
+// (409, deja en file -- comportement attendu, jamais une erreur a traiter).
+async function mettreEnAttenteSujetsDifferes(pays, sujetsDifferes, index, maintenant) {
+  if (!sujetsDifferes || sujetsDifferes.length === 0 || !SUPABASE_SERVICE_ROLE) return;
+  for (const sd of sujetsDifferes) {
+    const fait = index[sd.source_id];
+    if (!fait) continue;
+    const dureeJours = JOURS_REPORT[sd.priorite] || JOURS_REPORT.differable;
+    const expireLe = new Date(maintenant.getTime() + dureeJours * 86400000);
+    const id = `report-${fait.id}`;
+    await sbInsert('journal_articles_en_attente', {
+      id, country: pays, rubrique: fait.domaine || 'Suivi',
+      titre: sd.raison || fait.resume, texte: fait.resume,
+      statut: 'attente', priorite: sd.priorite, origine: 'report_ia',
+      expire_le: expireLe.toISOString(), fait_json: fait
+    }, SB_HEADERS_SERVICE);
+  }
+}
+
+async function marquerReportsIntegres(faitsDifferes, cites) {
+  const aMarquer = (faitsDifferes || []).filter(f => f._report_row_id && cites.has(f.id));
+  if (aMarquer.length === 0) return;
+  await Promise.all(aMarquer.map(f =>
+    sbUpdate('journal_articles_en_attente', `id=eq.${encodeURIComponent(f._report_row_id)}`, { statut: 'integre' }, SB_HEADERS_SERVICE).catch(() => {})
+  ));
+}
+
+// =====================
+// JODIE PROACTIVE (chantier refonte, 4 septembre 2026) — réutilise intégralement l'ordre "Donner
+// une interview" existant (aucun nouveau mécanisme joueur) : le cron envoie seulement un mail de
+// sollicitation quand un article fraîchement publié porte "interview_suggeree":true pour un PJ.
+// Garde-fous anti-spam : cooldown réel (10 jours, même règle que l'ordre manuel), aucune interview
+// déjà en cours pour ce PJ, et pas de mail de sollicitation déjà envoyé dans les 3 derniers jours
+// réels (évite une relance quotidienne si le joueur ignore Jodie).
+// =====================
+const JODIE_COOLDOWN_JOURS = 10;
+const JODIE_RELANCE_MIN_JOURS = 3;
+const JODIE_SUJET_SOLLICITATION = 'Jodie Moitout aimerait vous interviewer';
+
+async function solliciterInterviewsProactives(pays, contenu, index, maintenant) {
+  if (!SUPABASE_SERVICE_ROLE) return;
+  const candidats = new Set();
+  (contenu.articles || []).forEach(art => {
+    if (!art || !art.interview_suggeree) return;
+    const source = (art.source_ids || []).map(sid => index[sid]).find(s => s && s.estPJ && s.acteur);
+    if (source) candidats.add(source.acteur);
+  });
+  for (const nom of candidats) {
+    const derniereRows = await sbGet('interviews_jodie', `personnage=eq.${encodeURIComponent(nom)}&order=created_at.desc&limit=1`, SB_HEADERS_SERVICE).catch(() => []);
+    const derniere = derniereRows && derniereRows[0];
+    if (derniere && !derniere.publie) continue; // interview deja en cours pour ce PJ
+    if (derniere && (maintenant.getTime() - new Date(derniere.created_at).getTime()) < JODIE_COOLDOWN_JOURS * 86400000) continue; // cooldown reel non ecoule
+
+    const seuilRelance = new Date(maintenant.getTime() - JODIE_RELANCE_MIN_JOURS * 86400000).toISOString();
+    const relanceRecente = await sbGet('mails',
+      `from_player=eq.${encodeURIComponent('Jodie Moitout')}&to_player=eq.${encodeURIComponent(nom)}&subject=eq.${encodeURIComponent(JODIE_SUJET_SOLLICITATION)}&created_at=gt.${encodeURIComponent(seuilRelance)}`,
+      SB_HEADERS_SERVICE
+    ).catch(() => []);
+    if (relanceRecente && relanceRecente.length > 0) continue; // deja sollicite recemment
+
+    await sbInsert('mails', {
+      id: 'mail-jodie-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
+      from_player: 'Jodie Moitout', to_player: nom,
+      subject: JODIE_SUJET_SOLLICITATION,
+      body: "Jodie Moitout de L'Autruche Entravée aimerait vous interviewer suite à l'actualité récente vous concernant. Rendez-vous auprès d'elle pour « Donner une interview » si vous acceptez.",
+      time: dateEditionPourPays(pays, maintenant), read: false
+    }, SB_HEADERS_SERVICE).catch(() => {});
+  }
+}
+
 async function genererEditionPays(pays) {
   const maintenant = new Date();
   const dateEdition = dateEditionPourPays(pays, maintenant);
@@ -582,7 +861,15 @@ async function genererEditionPays(pays) {
   try {
     const periode = await calculerPeriode(pays);
     const paquet = await construirePaquetFactuel(pays, periode);
-    const aiInput = construireAiInput(paquet, dateEdition);
+
+    // Sujets differes des jours precedents : reinjectes tels quels dans FACTS (memes ids, meme
+    // forme) pour que l'IA puisse leur ecrire un vrai article aujourd'hui si elle le souhaite --
+    // jamais un texte fige republie, toujours une nouvelle redaction a partir du meme fait reel.
+    const faitsDifferesEnAttente = await chargerFaitsDifferesEnAttente(pays, maintenant);
+    if (faitsDifferesEnAttente.length > 0) paquet.FACTS = [...paquet.FACTS, ...faitsDifferesEnAttente];
+
+    const dejaCouvert = await chargerDigestDejaCouvert(pays, dateEdition);
+    const aiInput = construireAiInput(paquet, dateEdition, dejaCouvert);
     const faitsSourcesArchive = { ...paquet, AI_INPUT: aiInput };
 
     const systemPrompt = construirePromptSysteme(pays, dateEdition, hasPJMaterial(aiInput));
@@ -605,7 +892,7 @@ async function genererEditionPays(pays) {
 
     const contenu = JSON.parse(appel.texte);
     const derniere_page = assemblerDernierePage(paquet, contenu.une, contenu.articles);
-    const avant_derniere_page = assemblerAvantDernierePage(paquet);
+    const avant_derniere_page = await assemblerAvantDernierePage(pays);
 
     // Interviews de Jodie terminees avant que cette edition n'existe (voir api/journal-
     // interview.js) : integrees ICI, deterministe, sans nouvel appel IA -- jamais une 2e base
@@ -632,6 +919,19 @@ async function genererEditionPays(pays) {
     // Marquage APRES la publication reussie seulement (jamais avant) : si l'ecriture ci-dessus
     // echouait, ces lignes resteraient en_attente pour la prochaine tentative -- aucune perte.
     await marquerArticlesEnAttenteIntegres(lignesEnAttente, maintenant);
+
+    // Report editorial : nouveaux sujets differes mis en file, anciens sujets differes desormais
+    // cites dans un article marques integres (jamais avant la publication reussie, meme doctrine
+    // que les articles Jodie ci-dessus).
+    const index = indexerAiInput(aiInput);
+    await mettreEnAttenteSujetsDifferes(pays, contenu.sujets_differes, index, maintenant);
+    const citesFinal = collecterSourceIdsCites(contenu.une, contenu.articles);
+    await marquerReportsIntegres(faitsDifferesEnAttente, citesFinal);
+
+    // Best-effort, jamais bloquant pour la publication elle-meme : une sollicitation Jodie ratee
+    // ne doit jamais faire echouer une edition par ailleurs valide et deja publiee.
+    await solliciterInterviewsProactives(pays, contenu, index, maintenant).catch(() => {});
+
     return { pays, dateEdition, statut: 'publiee' };
   } catch (e) {
     await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
@@ -659,8 +959,15 @@ export {
   indexerAiInput,
   validerEdition,
   hasPJMaterial,
+  hasAnyExploitableFact,
   articleEstEtranger,
   assemblerDernierePage,
   assemblerAvantDernierePage,
+  collecterSourceIdsCites,
+  chargerDigestDejaCouvert,
+  chargerFaitsDifferesEnAttente,
+  mettreEnAttenteSujetsDifferes,
+  marquerReportsIntegres,
+  solliciterInterviewsProactives,
   appelAnthropic
 };

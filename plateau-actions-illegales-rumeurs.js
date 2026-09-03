@@ -5296,6 +5296,14 @@ async function traiterActeRachatEntreprise(candidat, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Acte signé !', 'Vous êtes désormais propriétaire de ' + def.label + '.', true, true);
   addJournalEntry('Rachat de ' + def.label + ' officialisé — ' + solde.toLocaleString('fr-FR') + ' ' + cur + ' de solde payé.', 'event-good');
+  if (typeof sbEnregistrerEvenementPublic === 'function') {
+    sbEnregistrerEvenementPublic(state.country, 'entreprise_rachat', {
+      personnages: [state.char?.name].filter(Boolean),
+      libelle: (state.char?.name || 'Un acheteur') + ' est devenu(e) propriétaire de ' + def.label + ' pour ' + def.prix.toLocaleString('fr-FR') + ' ' + cur + '.',
+      data: { entreprise_id: def.id, entreprise_label: def.label, prix: def.prix, acheteur: state.char?.name },
+      sourceRef: def.id
+    }).catch(() => {});
+  }
 }
 
 // =====================

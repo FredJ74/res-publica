@@ -1382,6 +1382,17 @@ function toggleVisibiliteOrga(orgaId) {
 function dissoudreOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
+  // Historisation AVANT suppression (chronique_nationale) -- uniquement si l'organisation etait
+  // publique : une organisation criminelle/secrete dissoute ne doit jamais laisser de trace
+  // publique de son existence passee.
+  if (orga.visible && typeof sbEnregistrerEvenementPublic === 'function') {
+    sbEnregistrerEvenementPublic(orga.country, 'organisation_dissolution', {
+      personnages: [orga.chef].filter(Boolean),
+      libelle: '"' + orga.nom + '" a été dissoute.',
+      data: { orga_id: orga.id, type: orga.type, nom: orga.nom, chef: orga.chef },
+      sourceRef: orga.id
+    }).catch(() => {});
+  }
   state.organisations = (state.organisations || []).filter(o => o.id !== orgaId);
   if (typeof sbDeleteOrganisation === 'function') sbDeleteOrganisation(orgaId).catch(() => {});
   document.getElementById('modal-postes').classList.remove('open');
@@ -7477,6 +7488,7 @@ function verifierElectionsOrganisations() {
       });
 
       if (vainqueur) {
+        const ancienChef = orga.chef;
         orga.chef = vainqueur;
         orga.chefEstPnj = false;
         const def = TYPES_ORGANISATIONS[orga.type];
@@ -7484,6 +7496,14 @@ function verifierElectionsOrganisations() {
         const membre = orga.membres.find(m => m.nom === vainqueur);
         if (membre && grades.length) { membre.grade = grades[grades.length - 1]; membre.gradeIdx = grades.length - 1; }
         addExternalEvent('🗳 ' + vainqueur + ' remporte l\'élection à la présidence de "' + orga.nom + '".');
+        if (orga.visible && typeof sbEnregistrerEvenementPublic === 'function') {
+          sbEnregistrerEvenementPublic(orga.country, 'organisation_chef_change', {
+            personnages: [vainqueur, ancienChef].filter(Boolean),
+            libelle: vainqueur + ' remporte l\'élection à la présidence de "' + orga.nom + '".',
+            data: { orga_id: orga.id, type: orga.type, nom: orga.nom, nouveau_chef: vainqueur, ancien_chef: ancienChef },
+            sourceRef: orga.id
+          }).catch(() => {});
+        }
       }
 
       orga.election = { enCours: false, phase: null, derniereElection: jour, candidats: [], votes: {} };
@@ -8779,6 +8799,14 @@ async function validerLancementGreve() {
   showToast('Grève lancée !', '"' + orga.nom + '" est en grève contre ' + _greve.cibleLabel + '.', true, true);
   addJournalEntry('Grève lancée par "' + orga.nom + '" contre ' + _greve.cibleLabel + '. Revendications : ' + revendications, 'event-info');
   addExternalEvent('✊ "' + orga.nom + '" se met en grève. Revendications : ' + revendications);
+  if (typeof sbEnregistrerEvenementPublic === 'function') {
+    sbEnregistrerEvenementPublic(orga.country, 'greve_ordinaire_debut', {
+      personnages: [orga.chef].filter(Boolean),
+      libelle: '"' + orga.nom + '" se met en grève contre ' + orga.greve.cibleLabel + '. Revendications : ' + revendications,
+      data: { orga_id: orga.id, orga_nom: orga.nom, chef: orga.chef, cible: orga.greve.cibleLabel, revendications },
+      sourceRef: orga.id
+    }).catch(() => {});
+  }
   _greve = null;
   updateUI();
 }
@@ -8790,6 +8818,7 @@ function confirmerTerminerGreve(orgaId) {
   if (!orga.greve?.actif) { showToast('Aucune grève en cours', '', false); return; }
 
   const cibleLabel = orga.greve.cibleLabel;
+  const revendicationsFin = orga.greve.revendications;
   orga.greve = null;
   sauvegarderOrga(orga);
 
@@ -8797,6 +8826,14 @@ function confirmerTerminerGreve(orgaId) {
   showToast('Grève terminée', 'La grève de "' + orga.nom + '" contre ' + cibleLabel + ' a pris fin.', true);
   addJournalEntry('Fin de la grève de "' + orga.nom + '" contre ' + cibleLabel + '.', 'event-info');
   addExternalEvent('🏳 "' + orga.nom + '" met fin à sa grève.');
+  if (typeof sbEnregistrerEvenementPublic === 'function') {
+    sbEnregistrerEvenementPublic(orga.country, 'greve_ordinaire_fin', {
+      personnages: [orga.chef].filter(Boolean),
+      libelle: 'Fin de la grève de "' + orga.nom + '" contre ' + cibleLabel + '.',
+      data: { orga_id: orga.id, orga_nom: orga.nom, chef: orga.chef, cible: cibleLabel, revendications: revendicationsFin },
+      sourceRef: orga.id
+    }).catch(() => {});
+  }
   updateUI();
 }
 

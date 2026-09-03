@@ -3120,11 +3120,25 @@ export default async function handler(req, res) {
         cycle.dateFinMandat = now.getTime() + MANDAT_SEMAINES * SEMAINE_MS;
 
         const villeLabel = row.city ? ` (${row.city})` : '';
-        const texte = `🗳️ RÉSULTATS : ${resultat.elu} est élu(e) ${posteNom}${villeLabel} avec ${Math.round((resultat.scores[resultat.elu]/resultat.totalVoix)*100)}% des voix.`;
+        const pourcentageVoix = Math.round((resultat.scores[resultat.elu]/resultat.totalVoix)*100);
+        const texte = `🗳️ RÉSULTATS : ${resultat.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.`;
         await sbInsert('evenements_globaux', {
           country, city: scope === 'local' ? (row.city || null) : null,
           texte, jour: null
         });
+        // chronique_nationale (chantier "refonte Tribune", 4 septembre 2026) : historisation
+        // permanente du resultat -- cycles_electoraux ecrase l'etat precedent au cycle suivant,
+        // seule cette ligne d'historique survit pour le Journal (source cle stable
+        // country+poste_id+city+row.id pour eviter tout doublon si ce passage de cron est rejoue).
+        await sbInsert('chronique_nationale', {
+          id: `election-${row.id}-${cycle.dateResultats}`,
+          country, city: scope === 'local' ? (row.city || null) : null,
+          type: 'election_resultat',
+          personnages: [resultat.elu],
+          libelle: `${resultat.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.`,
+          data: { poste_id: posteId, elu: resultat.elu, pourcentage_voix: pourcentageVoix, cycle_row_id: row.id },
+          source_ref: row.id
+        }).catch(e => console.error('chronique_nationale (election_resultat) error', e));
         results.push({ poste: posteId, country, city: row.city || null, statut: 'elu', gagnant: resultat.elu });
       } else if (resultat.secondTour.length >= 2) {
         // Second tour

@@ -1454,7 +1454,7 @@ async function sbGetMariageActif(nom) {
 // Dissout un mariage (divorce ou veuvage) sans jamais supprimer la ligne — la memoire de
 // l'union reste consultable pour toujours (etat-civil).
 async function sbDissoudreMariage(id, raison) {
-  return sbUpdate('mariages', `id=eq.${encodeURIComponent(id)}`, { statut: 'dissous', raison_dissolution: raison || 'divorce' });
+  return sbUpdate('mariages', `id=eq.${encodeURIComponent(id)}`, { statut: 'dissous', raison_dissolution: raison || 'divorce', dissous_at: new Date().toISOString() });
 }
 
 // Recense tous les mariages (actifs ou dissous) impliquant un nom donne, pour l'etat-civil.
@@ -2422,6 +2422,24 @@ async function sbEnregistrerVenteTerrain(country, buildingId, proprietaire, prix
   return sbInsert('terrains_historique_ventes', {
     id: 'vente-' + buildingId + '-' + Date.now(),
     country, building_id: buildingId, proprietaire, prix
+  });
+}
+
+// chronique_nationale (chantier "refonte Tribune", 4 septembre 2026) : historisation publique
+// generique -- nominations, fin de greve ordinaire, dissolution/changement de chef d'organisation,
+// rachat d'entreprise. Ecriture cle anon, meme doctrine que mariages/jugements/detentions/
+// terrains_historique_ventes -- jamais de donnee secrete/criminelle par construction des
+// appelants (voir chaque site d'appel). Append-only, jamais mise a jour ni supprimee.
+async function sbEnregistrerEvenementPublic(country, type, options) {
+  options = options || {};
+  return sbInsert('chronique_nationale', {
+    id: 'chronique-' + type + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
+    country, type,
+    city: options.city || null,
+    personnages: options.personnages || [],
+    libelle: options.libelle,
+    data: options.data || null,
+    source_ref: options.sourceRef || null
   });
 }
 

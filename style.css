@@ -435,6 +435,12 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .tribune-une-chapeau{font-size:1.05rem;color:var(--tr-ink2);font-style:italic;margin:0 0 .7rem}
 .tribune-une-accroches{margin:0;padding-left:1.1rem}
 .tribune-une-accroches li{margin-bottom:.3rem;color:var(--tr-ink2)}
+/* Une partagée (2 sujets, chantier refonte 4 septembre 2026) : côte à côte sur écran large,
+   empilés sur mobile -- séparés par un simple filet vertical, jamais une double mise en page. */
+.tribune-une-partagee{display:grid;grid-template-columns:1fr 1fr;gap:0 1.4rem}
+.tribune-une-partagee .tribune-une-sujet:first-child{border-right:1px solid var(--tr-rule);padding-right:1.4rem}
+.tribune-une-partagee .tribune-une-image{grid-column:1/-1}
+.tribune-separateur{font-family:'Playfair Display',serif;font-weight:700;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;text-align:center;color:var(--tr-ink3);margin:1.6rem 0 1rem;padding-top:.2rem;border-top:1px solid var(--tr-rule)}
 .tribune-rubrique{margin-top:1.6rem}
 .tribune-rubrique-titre{font-family:'Playfair Display',serif;font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tr-accent);border-bottom:1px solid var(--tr-rule);padding-bottom:.3rem;margin-bottom:.9rem}
 .tribune-article{margin-bottom:1.3rem}
@@ -443,10 +449,16 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .tribune-article-titre{font-family:'Playfair Display',serif;font-weight:700;font-size:1.15rem;margin:0 0 .35rem;color:var(--tr-ink)}
 .tribune-article p{margin:0 0 .85rem;color:var(--tr-ink)}
 .tribune-article p:last-child{margin-bottom:0}
-.tribune-jodie{margin-top:2rem;padding-top:1.3rem;border-top:3px double var(--tr-ink);overflow:auto}
-.tribune-jodie-label{font-family:'Playfair Display',serif;font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tr-accent);margin-bottom:.6rem}
-.tribune-jodie-portrait{width:64px;height:64px;border-radius:50%;object-fit:cover;float:left;margin:0 .8rem .4rem 0;border:1px solid var(--tr-rule)}
-.tribune-jodie-nom{font-family:'Playfair Display',serif;font-weight:700;font-size:1.05rem;margin-bottom:.3rem}
+.tribune-jodie{margin-top:2rem;padding-top:1.3rem;border-top:3px double var(--tr-ink)}
+.tribune-jodie-label{font-family:'Playfair Display',serif;font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tr-accent);margin-bottom:.8rem}
+/* Entrées compactes (4 dernières interviews, chantier refonte 4 septembre 2026) : remplace
+   l'ancien portrait unique -- une entrée par interview, empilées verticalement. */
+.tribune-jodie-entree{display:flex;gap:.8rem;margin-bottom:1.1rem;overflow:auto}
+.tribune-jodie-entree:last-child{margin-bottom:0}
+.tribune-jodie-portrait{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;border:1px solid var(--tr-rule)}
+.tribune-jodie-nom{font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;margin-bottom:.15rem}
+.tribune-jodie-titre{font-size:.8rem;font-style:italic;color:var(--tr-ink2);margin-bottom:.3rem}
+.tribune-jodie-entree p{margin:0;font-size:.88rem;color:var(--tr-ink)}
 .tribune-derniere{margin-top:2rem;padding-top:1.3rem;border-top:3px double var(--tr-ink)}
 .tribune-derniere-titre{font-family:'Playfair Display',serif;font-weight:700;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--tr-accent);margin-bottom:.8rem}
 .tribune-derniere-grille{display:grid;grid-template-columns:1fr 1fr;gap:0 1.5rem}
@@ -459,6 +471,8 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
   .tribune-derniere-grille{grid-template-columns:1fr}
   .tribune-fronton-titre{font-size:1.4rem}
   .tribune-une-titre{font-size:1.5rem}
+  .tribune-une-partagee{grid-template-columns:1fr}
+  .tribune-une-partagee .tribune-une-sujet:first-child{border-right:none;padding-right:0;border-bottom:1px solid var(--tr-rule);padding-bottom:1rem;margin-bottom:1rem}
 }
 
 /* MODALS */
