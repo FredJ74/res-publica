@@ -3674,6 +3674,19 @@ async function refuserSiGele(type, id, libelleAction) {
   return true;
 }
 
+// Regroupement UX (chantier "finition Office notarial") : un seul ordre visible
+// (officialiser_transaction) ouvre ce menu, porte d'entree commune vers les deux mecanismes
+// existants ci-dessous, strictement inchanges et independants derriere cette entree.
+function ouvrirMenuOfficialiserTransaction(pa, cost) {
+  document.getElementById('postes-modal-title').textContent = 'Officialiser une transaction';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;display:flex;flex-direction:column;gap:.6rem">' +
+    '<button class="pnj-action-btn" onclick="doActeVenteTerrain()">Vente de terrain</button>' +
+    '<button class="pnj-action-btn" onclick="doActeRachatEntreprise(' + pa + ',' + cost + ')">Rachat d\'une entreprise</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
 async function doActeVenteTerrain() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const nom = state.char?.name;
@@ -3693,12 +3706,12 @@ async function doActeVenteTerrain() {
     return;
   }
 
-  if (candidats.length === 1) { traiterActeVente(candidats[0]); return; }
+  if (candidats.length === 1) { afficherRecapActeVente(candidats[0]); return; }
 
   let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
   candidats.forEach(function(c, i) {
     const nomBatiment = BUILDINGS[c.id]?.shortName || c.id;
-    html += '<div onclick="traiterActeVenteParIndex(' + i + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">' + nomBatiment + ' (' + (c.type === 'compromis' ? 'compromis' : 'rendez-vous notarial') + ')</div>';
+    html += '<div onclick="afficherRecapActeVenteParIndex(' + i + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">' + nomBatiment + ' (' + (c.type === 'compromis' ? 'compromis' : 'rendez-vous notarial') + ')</div>';
   });
   html += '</div></div>';
   window._candidatsActeVente = candidats;
@@ -3707,8 +3720,65 @@ async function doActeVenteTerrain() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function traiterActeVenteParIndex(i) {
-  traiterActeVente(window._candidatsActeVente[i]);
+function afficherRecapActeVenteParIndex(i) {
+  afficherRecapActeVente(window._candidatsActeVente[i]);
+}
+
+// Recapitulatif avant validation (chantier "finition Office notarial") : porte d'entree UX
+// inseree devant traiterActeVente, qui reste l'unique fonction d'execution reelle (compromis,
+// controles d'eligibilite, RPC Helvetia, transfert de propriete) -- strictement inchangee, jamais
+// dupliquee ici. N'affiche que des donnees deja presentes dans candidat.ts, jamais inventees.
+function afficherRecapActeVente(candidat) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const id = candidat.id;
+  const ts = candidat.ts;
+  const nomBatiment = BUILDINGS[id]?.shortName || BUILDINGS[id]?.name || id;
+  const acheteur = state.char?.name || '';
+
+  let vendeur, prixTotal, acompte;
+  let financementTxt = null;
+  let permisTxt = null;
+
+  if (candidat.type === 'achatDirect') {
+    const ad = ts.achatDirect || {};
+    vendeur = "L'État";
+    prixTotal = ad.prix || 0;
+    acompte = ad.acompte || 0;
+  } else {
+    vendeur = ts.proprietaire === 'Helvetia' ? 'Banque Privée Helvetia' : "L'État";
+    prixTotal = ts.valeur_totale || 0;
+    acompte = ts.acompte || 0;
+    if (ts.pretDemande) {
+      const pd = ts.pretDemande;
+      financementTxt = 'Prêt bancaire : ' + (pd.montant || 0).toLocaleString('fr-FR') + ' ' + cur + ' (statut : ' + pd.statut + ')';
+    }
+    if (ts.permis) {
+      const p = ts.permis;
+      const labelPermis = (typeof NIVEAUX_CONSTRUCTION !== 'undefined' && NIVEAUX_CONSTRUCTION[p.palierDemande]?.label) || p.palierDemande;
+      permisTxt = 'Permis de construire (' + labelPermis + ') : ' + p.statut;
+    }
+  }
+  const solde = prixTotal - acompte;
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem">';
+  html += '<div style="font-size:.85rem;color:#c0b090"><strong>Bien :</strong> ' + escapeHtmlText(nomBatiment) + '</div>';
+  html += '<div style="font-size:.85rem;color:#c0b090"><strong>Vendeur :</strong> ' + escapeHtmlText(vendeur) + '</div>';
+  html += '<div style="font-size:.85rem;color:#c0b090"><strong>Acheteur :</strong> ' + escapeHtmlText(acheteur) + '</div>';
+  html += '<div style="font-size:.85rem;color:#c0b090"><strong>Prix total :</strong> ' + prixTotal.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  if (acompte > 0) html += '<div style="font-size:.85rem;color:#c0b090"><strong>Acompte déjà versé :</strong> ' + acompte.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  html += '<div style="font-size:.85rem;color:#C9A84C"><strong>Solde restant à payer :</strong> ' + solde.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  if (financementTxt) html += '<div style="font-size:.8rem;color:#8a8060">' + financementTxt + '</div>';
+  if (permisTxt) html += '<div style="font-size:.8rem;color:#8a8060">' + permisTxt + '</div>';
+  html += '</div>';
+  html += '<button onclick="traiterActeVente(window._candidatActeVenteAConfirmer)" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;margin-right:.5rem">Confirmer la transaction</button>';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer">Annuler</button>';
+  html += '</div>';
+
+  window._candidatActeVenteAConfirmer = candidat;
+  document.getElementById('postes-modal-title').textContent = 'Confirmer la transaction';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 async function traiterActeVente(candidat) {
@@ -3921,7 +3991,20 @@ async function rechercherDossierNotarial() {
 // detenteur initie, le destinataire doit lui-meme venir valider). Le delai restant se
 // poursuit (pas de remise a 7 jours). L'acompte suit le compromis ; le remboursement entre
 // joueurs se negocie hors mecanique automatique.
+// Regroupement UX (chantier "finition Office notarial") : un seul ordre visible
+// (transfert_compromis) ouvre ce menu, qui n'est qu'une porte d'entree vers les deux fonctions
+// existantes ci-dessous, strictement inchangees (memes controles, memes couts, memes effets).
 // =====================
+
+function ouvrirMenuTransfertCompromis(pa, cost) {
+  document.getElementById('postes-modal-title').textContent = 'Transfert de compromis';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;display:flex;flex-direction:column;gap:.6rem">' +
+    '<button class="pnj-action-btn" onclick="doOuvrirTransfertCompromis(' + pa + ',' + cost + ')">Transférer un compromis</button>' +
+    '<button class="pnj-action-btn" onclick="doValiderTransfertCompromis(' + pa + ',' + cost + ')">Accepter un transfert</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
 
 async function doOuvrirTransfertCompromis(pa, cost) {
   const nom = state.char?.name;

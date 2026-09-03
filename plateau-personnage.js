@@ -1246,27 +1246,27 @@ function renderTestamentActif(testament, pa, cost) {
   const contenu = testament.contenu || {};
   let html = '<div style="padding:1rem">';
   const dateTxt = (typeof formaterHorodatageJournal === 'function') ? formaterHorodatageJournal(testament.created_at) : (testament.created_at || '');
-  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Testament rédigé le ' + dateTxt + '.</div>';
+  html += '<div style="font-size:.9rem;color:#8a8060;margin-bottom:.8rem">Testament rédigé le ' + dateTxt + '.</div>';
 
   const biens = contenu.biens || [];
   if (biens.length > 0) {
-    html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em">Biens</div>';
+    html += '<div style="font-size:.86rem;color:#6a5a30;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em">Biens</div>';
     biens.forEach(b => {
       const nomBien = BUILDINGS[b.id]?.shortName || BUILDINGS[b.id]?.name || (typeof getEntrepriseRachetable === 'function' ? getEntrepriseRachetable(b.id)?.label : null) || b.id;
       const remplacantTxt = b.remplacant ? ' <span style="color:#8a8060">(remplaçant : ' + escapeHtmlText(b.remplacant) + ')</span>' : '';
-      html += '<div style="font-size:.85rem;color:#e0d8c0;margin-bottom:.3rem">• ' + escapeHtmlText(nomBien) + ' → ' + escapeHtmlText(b.beneficiaire) + remplacantTxt + '</div>';
+      html += '<div style="font-size:.95rem;color:#e0d8c0;margin-bottom:.3rem">• ' + escapeHtmlText(nomBien) + ' → ' + escapeHtmlText(b.beneficiaire) + remplacantTxt + '</div>';
     });
   }
   const argent = contenu.argent || [];
   if (argent.length > 0) {
-    html += '<div style="font-size:.78rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Argent</div>';
+    html += '<div style="font-size:.86rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Argent</div>';
     argent.forEach(p => {
       const remplacantTxt = p.remplacant ? ' <span style="color:#8a8060">(remplaçant : ' + escapeHtmlText(p.remplacant) + ')</span>' : '';
-      html += '<div style="font-size:.85rem;color:#e0d8c0;margin-bottom:.3rem">• ' + p.pourcentage + '% → ' + escapeHtmlText(p.beneficiaire) + remplacantTxt + '</div>';
+      html += '<div style="font-size:.95rem;color:#e0d8c0;margin-bottom:.3rem">• ' + p.pourcentage + '% → ' + escapeHtmlText(p.beneficiaire) + remplacantTxt + '</div>';
     });
   }
   if (biens.length === 0 && argent.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune disposition particulière — la dévolution par défaut s\'appliquera à tout le patrimoine.</div>';
+    html += '<div style="font-size:.95rem;color:#8a8060;font-style:italic">Aucune disposition particulière — la dévolution par défaut s\'appliquera à tout le patrimoine.</div>';
   }
 
   html += '<div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">';
@@ -1294,38 +1294,38 @@ async function ouvrirFormulaireTestament(testamentExistant, pa, cost) {
   window._testamentArgentRows = (contenuExistant.argent || []).map(p => ({ beneficiaire: p.beneficiaire, pourcentage: p.pourcentage, remplacant: p.remplacant || '' }));
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Choisissez un bénéficiaire pour chaque bien (facultatif — sans choix, la dévolution par défaut s\'appliquera : conjoint survivant si valide, sinon retour au marché). Un remplaçant facultatif peut être désigné, appelé seulement si le bénéficiaire principal renonce ou ne répond pas. Les noms doivent correspondre à des personnages existants.</div>';
+  html += '<div style="font-size:.9rem;color:#8a8060;margin-bottom:.8rem">Choisissez un bénéficiaire pour chaque bien (facultatif — sans choix, la dévolution par défaut s\'appliquera : conjoint survivant si valide, sinon retour au marché). Un remplaçant facultatif peut être désigné, appelé seulement si le bénéficiaire principal renonce ou ne répond pas. Les noms doivent correspondre à des personnages existants.</div>';
 
   if (patrimoine.terrains.length > 0) {
-    html += '<div style="font-size:.78rem;color:#6a5a30;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em">Terrains, bâtiments et locaux</div>';
+    html += '<div style="font-size:.86rem;color:#6a5a30;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em">Terrains, bâtiments et locaux</div>';
     patrimoine.terrains.forEach(t => {
       html += '<div style="display:flex;gap:.4rem;align-items:center;margin-bottom:.4rem">';
-      html += '<span style="flex:1;font-size:.82rem;color:#c0b090">' + escapeHtmlText(t.label) + '</span>';
-      html += '<input id="testament-bien-' + t.buildingId + '" type="text" placeholder="Bénéficiaire (facultatif)" value="' + escapeHtmlText(beneficiairesBiens[t.buildingId] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />';
-      html += '<input id="testament-remplacant-' + t.buildingId + '" type="text" placeholder="Remplaçant (facultatif)" value="' + escapeHtmlText(remplacantsBiens[t.buildingId] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />';
+      html += '<span style="flex:1;font-size:.92rem;color:#c0b090">' + escapeHtmlText(t.label) + '</span>';
+      html += '<input id="testament-bien-' + t.buildingId + '" type="text" placeholder="Bénéficiaire (facultatif)" value="' + escapeHtmlText(beneficiairesBiens[t.buildingId] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.86rem;outline:none" />';
+      html += '<input id="testament-remplacant-' + t.buildingId + '" type="text" placeholder="Remplaçant (facultatif)" value="' + escapeHtmlText(remplacantsBiens[t.buildingId] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.86rem;outline:none" />';
       html += '</div>';
     });
   }
 
   if (patrimoine.entreprises.length > 0) {
-    html += '<div style="font-size:.78rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Entreprises</div>';
+    html += '<div style="font-size:.86rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Entreprises</div>';
     patrimoine.entreprises.forEach(e => {
       html += '<div style="display:flex;gap:.4rem;align-items:center;margin-bottom:.4rem">';
-      html += '<span style="flex:1;font-size:.82rem;color:#c0b090">' + escapeHtmlText(e.label) + '</span>';
-      html += '<input id="testament-bien-' + e.id + '" type="text" placeholder="Bénéficiaire (facultatif)" value="' + escapeHtmlText(beneficiairesBiens[e.id] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />';
-      html += '<input id="testament-remplacant-' + e.id + '" type="text" placeholder="Remplaçant (facultatif)" value="' + escapeHtmlText(remplacantsBiens[e.id] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />';
+      html += '<span style="flex:1;font-size:.92rem;color:#c0b090">' + escapeHtmlText(e.label) + '</span>';
+      html += '<input id="testament-bien-' + e.id + '" type="text" placeholder="Bénéficiaire (facultatif)" value="' + escapeHtmlText(beneficiairesBiens[e.id] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.86rem;outline:none" />';
+      html += '<input id="testament-remplacant-' + e.id + '" type="text" placeholder="Remplaçant (facultatif)" value="' + escapeHtmlText(remplacantsBiens[e.id] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.86rem;outline:none" />';
       html += '</div>';
     });
   }
 
   if (patrimoine.terrains.length === 0 && patrimoine.entreprises.length === 0) {
-    html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">Aucun terrain, bâtiment ou entreprise à votre nom pour l\'instant.</div>';
+    html += '<div style="font-size:.92rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">Aucun terrain, bâtiment ou entreprise à votre nom pour l\'instant.</div>';
   }
 
-  html += '<div style="font-size:.78rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Argent (' + (patrimoine.argentBanque || 0).toLocaleString('fr-FR') + ' FR en banque actuellement)</div>';
+  html += '<div style="font-size:.86rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Argent (' + (patrimoine.argentBanque || 0).toLocaleString('fr-FR') + ' FR en banque actuellement)</div>';
   html += '<div id="testament-argent-rows"></div>';
-  html += '<button type="button" onclick="ajouterLigneArgentTestament()" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.3rem .6rem;border:1px solid #6a5a30;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:.8rem">+ Ajouter un bénéficiaire</button>';
-  html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.8rem">Sans bénéficiaire désigné, l\'argent suit la dévolution par défaut. Si plusieurs bénéficiaires sont désignés, le total doit faire exactement 100%.</div>';
+  html += '<button type="button" onclick="ajouterLigneArgentTestament()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.08em;padding:.3rem .6rem;border:1px solid #6a5a30;background:transparent;color:#8a8060;cursor:pointer;margin-bottom:.8rem">+ Ajouter un bénéficiaire</button>';
+  html += '<div style="font-size:.8rem;color:#6a5a30;font-style:italic;margin-bottom:.8rem">Sans bénéficiaire désigné, l\'argent suit la dévolution par défaut. Si plusieurs bénéficiaires sont désignés, le total doit faire exactement 100%.</div>';
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   html += '<button class="pnj-action-btn" onclick="soumettreTestament(' + pa + ',' + cost + ')">Enregistrer le testament (' + pa + ' PA, ' + cost + ' ' + cur + ')</button>';
@@ -1350,10 +1350,10 @@ function rerenderLignesArgentTestament() {
   if (!el) return;
   el.innerHTML = rows.map((r, i) => (
     '<div style="display:flex;gap:.4rem;align-items:center;margin-bottom:.4rem;flex-wrap:wrap">' +
-    '<input type="text" placeholder="Nom du bénéficiaire" value="' + escapeHtmlText(r.beneficiaire || '') + '" oninput="_testamentArgentRowsGet()[' + i + '].beneficiaire=this.value" style="flex:1;min-width:140px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />' +
-    '<input type="number" min="1" max="100" placeholder="%" value="' + (r.pourcentage || '') + '" oninput="_testamentArgentRowsGet()[' + i + '].pourcentage=parseInt(this.value)||0" style="width:60px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />' +
-    '<input type="text" placeholder="Remplaçant (facultatif)" value="' + escapeHtmlText(r.remplacant || '') + '" oninput="_testamentArgentRowsGet()[' + i + '].remplacant=this.value" style="width:150px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.78rem;outline:none" />' +
-    '<button type="button" onclick="retirerLigneArgentTestament(' + i + ')" style="border:none;background:transparent;color:#8a3a2a;cursor:pointer;font-size:.9rem"><i class="ti ti-x"></i></button>' +
+    '<input type="text" placeholder="Nom du bénéficiaire" value="' + escapeHtmlText(r.beneficiaire || '') + '" oninput="_testamentArgentRowsGet()[' + i + '].beneficiaire=this.value" style="flex:1;min-width:140px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.86rem;outline:none" />' +
+    '<input type="number" min="1" max="100" placeholder="%" value="' + (r.pourcentage || '') + '" oninput="_testamentArgentRowsGet()[' + i + '].pourcentage=parseInt(this.value)||0" style="width:60px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.86rem;outline:none" />' +
+    '<input type="text" placeholder="Remplaçant (facultatif)" value="' + escapeHtmlText(r.remplacant || '') + '" oninput="_testamentArgentRowsGet()[' + i + '].remplacant=this.value" style="width:150px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.86rem;outline:none" />' +
+    '<button type="button" onclick="retirerLigneArgentTestament(' + i + ')" style="border:none;background:transparent;color:#8a3a2a;cursor:pointer;font-size:.98rem"><i class="ti ti-x"></i></button>' +
     '</div>'
   )).join('');
 }
@@ -1436,9 +1436,9 @@ function confirmerRevocationTestament(id) {
   document.getElementById('postes-modal-title').textContent = 'Révoquer le testament';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' +
-    '<div style="font-size:.85rem;color:#c0b090;margin-bottom:1rem">Révoquer votre testament actif ? Sans testament, la dévolution par défaut s\'appliquera à l\'ensemble de votre patrimoine.</div>' +
-    '<button onclick="executerRevocationTestament(\'' + id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer;margin-right:.5rem">Révoquer définitivement</button>' +
-    '<button onclick="doGererTestament()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer">Annuler</button>' +
+    '<div style="font-size:.95rem;color:#c0b090;margin-bottom:1rem">Révoquer votre testament actif ? Sans testament, la dévolution par défaut s\'appliquera à l\'ensemble de votre patrimoine.</div>' +
+    '<button onclick="executerRevocationTestament(\'' + id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.82rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer;margin-right:.5rem">Révoquer définitivement</button>' +
+    '<button onclick="doGererTestament()" style="font-family:Bebas Neue,sans-serif;font-size:.82rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer">Annuler</button>' +
     '</div>';
 }
 
@@ -1452,6 +1452,12 @@ async function executerRevocationTestament(id) {
   addJournalEntry('📜 Testament révoqué chez le notaire.', 'event-info');
 }
 
+// Divorce unilateral assume (chantier "finition Office notarial", arbitrage valide) : un mariage
+// exige le consentement des deux personnes, mais chacun doit pouvoir y mettre fin seul, sans
+// dependre de l'accord ou de la disponibilite de l'autre. La mecanique (1 PA, 200 FR, dissolution
+// immediate, raison_dissolution:'divorce', mail informatif sans acceptation/refus) reste
+// strictement inchangee -- seul un ecran de confirmation est insere avant l'execution, pour que le
+// joueur comprenne AVANT de valider que le divorce sera immediat et irreversible.
 async function doDemanderDivorce(pa, cost) {
   const nom = state.char?.name;
   if (typeof sbGetMariageActif !== 'function') return;
@@ -1459,6 +1465,33 @@ async function doDemanderDivorce(pa, cost) {
   const mariage = await sbGetMariageActif(nom);
   if (!mariage) {
     showToast('Non marié(e)', "Vous n'êtes pas marié(e) actuellement.", false);
+    return;
+  }
+  const conjoint = mariage.conjoint1 === nom ? mariage.conjoint2 : mariage.conjoint1;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  document.getElementById('postes-modal-title').textContent = 'Divorcer';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' +
+    '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.8rem">Vous êtes marié(e) à ' + escapeHtmlText(conjoint) + '.</div>' +
+    '<div style="font-size:.82rem;color:#cc6a44;margin-bottom:1rem">Le divorce sera <strong>immédiat et irréversible</strong>. ' + escapeHtmlText(conjoint) + ' ne sera pas consulté(e) et ne peut pas s\'y opposer — un mail purement informatif lui sera envoyé après coup.</div>' +
+    '<div style="font-size:.78rem;color:#8a8060;margin-bottom:1rem">Coût : ' + pa + ' PA · ' + cost + ' ' + cur + '</div>' +
+    '<button onclick="confirmerDivorce(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #6a2a20;background:transparent;color:#cc4444;cursor:pointer;margin-right:.5rem">Divorcer maintenant</button>' +
+    '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer">Annuler</button>' +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDivorce(pa, cost) {
+  const nom = state.char?.name;
+  if (typeof sbGetMariageActif !== 'function') return;
+
+  // Relecture fraiche au moment de la confirmation (evite tout etat perime si la fenetre est
+  // restee ouverte) -- meme doctrine que traiterActeVente/traiterActeRachatEntreprise.
+  const mariage = await sbGetMariageActif(nom);
+  if (!mariage) {
+    document.getElementById('modal-postes')?.classList.remove('open');
+    showToast('Non marié(e)', "Vous n'êtes plus marié(e).", false);
     return;
   }
   const conjoint = mariage.conjoint1 === nom ? mariage.conjoint2 : mariage.conjoint1;
@@ -1470,6 +1503,7 @@ async function doDemanderDivorce(pa, cost) {
     await sbDissoudreMariage(mariage.id, 'divorce').catch(() => {});
   }
 
+  document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
   showToast('Divorce prononcé', 'Vous êtes désormais divorcé(e) de ' + conjoint + '.', true, true);
   addJournalEntry('💔 Divorce prononcé avec ' + conjoint + '.', 'event-info');

@@ -2209,13 +2209,11 @@ const BUILDINGS = {
           {name:'Notaire Fontenelle (PNJ)', role:'Notaire Officiel', rel:'neutral', job:'notaire'}
         ],
         orders: [
-          {fn:'acte_vente_terrain', label:'Officialiser une vente de terrain', pa:1, cost:300, type:'legal', icon:'ti-home-check', successRate:100, desc:'Le notaire authentifie la transaction. Acte de propriete delivre.'},
+          {fn:'officialiser_transaction', label:'Officialiser une transaction', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, desc:'Finaliser une vente de terrain ou un rachat d\'entreprise avec compromis actif. Le notaire authentifie la transaction.'},
           {fn:'racheter_entreprise', label:'Racheter une entreprise', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Signer un compromis (1000 FR d\'acompte, 7 jours) sur une entreprise encore tenue par un PNJ (Armurerie, et d\'autres a l\'avenir).'},
-          {fn:'acte_rachat_entreprise', label:'Officialiser le rachat d\'une entreprise', pa:1, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Finalise un compromis de rachat actif : paiement du solde, transfert de propriete. Acte authentifie par le notaire.'},
           {fn:'acte_rachat_entreprise_preemption', label:'Officialiser une preemption d\'Etat', pa:1, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_fin', desc:'Finalise une preemption en attente : transfert de propriete a l\'Etat. Aucun paiement ici, deja couvert par le pret.'},
-          {fn:'transferer_compromis', label:'Transférer un compromis', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, desc:'Céder votre compromis en cours à un autre joueur, qui devra venir valider.'},
-          {fn:'valider_transfert_compromis', label:'Valider un transfert de compromis', pa:1, cost:0, type:'legal', icon:'ti-checkbox', successRate:100, desc:'Accepter un compromis qu\'un autre joueur vous a proposé de reprendre.'},
-          {fn:'demander_divorce', label:'Demander le divorce', pa:1, cost:200, type:'legal', icon:'ti-heart-broken', successRate:100, desc:'Dissout votre mariage actuel. Votre conjoint en sera informé par mail.'},
+          {fn:'transfert_compromis', label:'Transfert de compromis', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, desc:'Céder un compromis en cours à un autre joueur, ou accepter un transfert qui vous est proposé.'},
+          {fn:'demander_divorce', label:'Divorcer', pa:1, cost:200, type:'legal', icon:'ti-heart-broken', successRate:100, desc:'Dissout immédiatement votre mariage, sans l\'accord de votre conjoint. Il/elle en sera informé(e) par mail. Action instantanée et irréversible.'},
           {fn:'acte_officiel_notaire', label:'Demander un acte officiel', pa:1, cost:100, type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Rechercher une personne et obtenir l\'extrait d\'etat-civil/succession correspondant, authentifie par le notaire.'}
         ]
       },

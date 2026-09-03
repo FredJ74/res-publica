@@ -5206,11 +5206,11 @@ async function doActeRachatEntreprise(pa, cost) {
     return;
   }
 
-  if (candidats.length === 1) { traiterActeRachatEntreprise(candidats[0], pa, cost); return; }
+  if (candidats.length === 1) { afficherRecapActeRachatEntreprise(candidats[0], pa, cost); return; }
 
   let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
   candidats.forEach((c, i) => {
-    html += '<div onclick="traiterActeRachatEntrepriseParIndex(' + i + ',' + pa + ',' + cost + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">' + c.def.label + '</div>';
+    html += '<div onclick="afficherRecapActeRachatEntrepriseParIndex(' + i + ',' + pa + ',' + cost + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">' + c.def.label + '</div>';
   });
   html += '</div></div>';
   window._candidatsActeRachatEntreprise = candidats;
@@ -5219,8 +5219,47 @@ async function doActeRachatEntreprise(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function traiterActeRachatEntrepriseParIndex(i, pa, cost) {
-  traiterActeRachatEntreprise(window._candidatsActeRachatEntreprise[i], pa, cost);
+function afficherRecapActeRachatEntrepriseParIndex(i, pa, cost) {
+  afficherRecapActeRachatEntreprise(window._candidatsActeRachatEntreprise[i], pa, cost);
+}
+
+// Recapitulatif avant validation (chantier "finition Office notarial") : porte d'entree UX
+// inseree devant traiterActeRachatEntreprise, qui reste l'unique fonction d'execution reelle
+// (controles d'eligibilite, transfert de propriete) -- strictement inchangee, jamais dupliquee
+// ici. Relit def.charger() (meme lecture fraiche que traiterActeRachatEntreprise) car candidat ne
+// porte pas encore acompte/pretDemande -- n'affiche que des donnees reellement persistees.
+async function afficherRecapActeRachatEntreprise(candidat, pa, cost) {
+  const def = candidat.def;
+  const cur = COUNTRIES[state.country || 'republic']?.cur || 'FR';
+  const data = await def.charger();
+  const acheteur = state.char?.name || '';
+  const prixTotal = def.prix || 0;
+  const acompte = data?.acompte || 0;
+  const solde = prixTotal - acompte;
+  let financementTxt = null;
+  if (data?.pretDemande) {
+    const pd = data.pretDemande;
+    financementTxt = 'Prêt bancaire : ' + (pd.montant || 0).toLocaleString('fr-FR') + ' ' + cur + ' (statut : ' + pd.statut + ')';
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem">';
+  html += '<div style="font-size:.85rem;color:#c0b090"><strong>Entreprise :</strong> ' + escapeHtmlText(def.label) + '</div>';
+  html += '<div style="font-size:.85rem;color:#c0b090"><strong>Vendeur :</strong> PNJ</div>';
+  html += '<div style="font-size:.85rem;color:#c0b090"><strong>Acheteur :</strong> ' + escapeHtmlText(acheteur) + '</div>';
+  html += '<div style="font-size:.85rem;color:#c0b090"><strong>Prix total :</strong> ' + prixTotal.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  if (acompte > 0) html += '<div style="font-size:.85rem;color:#c0b090"><strong>Acompte déjà versé :</strong> ' + acompte.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  html += '<div style="font-size:.85rem;color:#C9A84C"><strong>Solde restant à payer :</strong> ' + solde.toLocaleString('fr-FR') + ' ' + cur + '</div>';
+  if (financementTxt) html += '<div style="font-size:.8rem;color:#8a8060">' + financementTxt + '</div>';
+  html += '</div>';
+  html += '<button onclick="traiterActeRachatEntreprise(window._candidatActeRachatEntrepriseAConfirmer,' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;margin-right:.5rem">Confirmer la transaction</button>';
+  html += '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #3a2a10;background:transparent;color:#8a8060;cursor:pointer">Annuler</button>';
+  html += '</div>';
+
+  window._candidatActeRachatEntrepriseAConfirmer = candidat;
+  document.getElementById('postes-modal-title').textContent = 'Confirmer la transaction';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 async function traiterActeRachatEntreprise(candidat, pa, cost) {
