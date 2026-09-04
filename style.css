@@ -373,7 +373,15 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .action-btn.illegal{border-color:#3a1a10;color:#9a5040}
 .action-btn.illegal:hover{border-color:#6a2a10;color:#c07050}
 .pa-cost{font-family:'Bebas Neue',sans-serif;font-size:.76rem;color:var(--green);margin-left:.2rem}
-.action-btn.blocked{opacity:.4;cursor:not-allowed;pointer-events:none;border-color:#2a2010}
+/* pointer-events:none retire (correctif du 4 septembre 2026, chantier finition Hotel de Ville) :
+   desactivait aussi le survol, empechant l'infobulle native (attribut title) de tout bouton
+   .blocked de s'afficher -- bug global, jamais decouvert jusqu'ici. Sans risque sur le clic :
+   chaque condition qui pose .blocked (needsPost/needsSquat/needsCadavre/needsChefSyndicat/
+   needsPoliceIndisponible/needsLicenceIndisponible/needsSuiteIndisponible/
+   needsElectionIndisponible/needsPatientChambre, voir renderRoomActions, plateau-politique.js)
+   remplace deja onclickFn par un showToast/showPostRequired explicatif, jamais l'action reelle --
+   cursor:not-allowed suffit a communiquer visuellement l'indisponibilite. */
+.action-btn.blocked{opacity:.4;cursor:not-allowed;border-color:#2a2010}
 
 /* RIGHT */
 #right{background:var(--bg2);border-left:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden}

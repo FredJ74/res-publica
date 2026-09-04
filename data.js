@@ -2987,11 +2987,16 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
-          {fn:'consulter_elections', label:'Consulter les elections',     pa:0, cost:0,   type:'legal', icon:'ti-chart-bar',  successRate:100, desc:'Voir les elections en cours et les candidats declares.'},
-          {fn:'acte_officiel',       label:'Demander un acte officiel',  pa:1, cost:50,  type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.'},
-          {fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, type:'legal', icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.'},
-          {fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, type:'legal', icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.'},
-          {fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.'},
+          // etat_civil (chantier finition ergonomique Hotel de Ville, 4 septembre 2026) : regroupe
+          // les 4 anciens boutons separes (acte_officiel/demander_naturalisation/demander_mariage/
+          // officialiser_mariage, retires de cette liste) derriere un seul point d'entree -- voir
+          // ouvrirEtatCivil() (plateau-politique.js), qui appelle doOrder() avec exactement les
+          // memes fn/pa/cost/desc qu'auparavant : aucun handler/workflow reimplemente, uniquement
+          // un regroupement visuel. consulter_elections (label "Consulter les elections") retire
+          // egalement ici : redondant avec "Voir les candidats" de la Salle des Elections --
+          // fn/handler consulter_elections/ouvrirTableauElectoral restent intacts, toujours
+          // utilises par cette salle (data.js, 3 occurrences villes, non touchees).
+          {fn:'etat_civil', label:'État civil', pa:0, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Acte officiel, naturalisation, demande en mariage, officialisation.'},
           {fn:'consulter_indices_locaux', label:'Consulter les caisses communales', pa:0, cost:0, type:'legal', icon:'ti-chart-histogram', successRate:100, desc:'Voir le solde reel des caisses du Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal.'},
           {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'},
           {fn:'consulter_organigramme_mairie', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Organigramme national ou municipal, en temps reel. Public et gratuit, aucun poste requis.'}
@@ -3527,9 +3532,12 @@ const BUILDINGS = {
           {fn:'postuler',      label:'Postuler a un poste',   pa:2, cost:0,  type:'legal', icon:'ti-id-badge',   successRate:100},
           {fn:'gerer_finances',label:'Gerer les finances locales',pa:1,cost:0,type:'legal', icon:'ti-chart-bar',  successRate:100, requiresPost:true},
           {fn:'corrompre_fonct',label:'Corrompre un employ',   pa:2, cost:200,type:'illegal',icon:'ti-coins',     successRate:65},
-          {fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, type:'legal', icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.'},
-          {fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, type:'legal', icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.'},
-          {fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.'},
+          // etat_civil (chantier finition ergonomique Hotel de Ville, 4 septembre 2026) : regroupe
+          // les 3 anciens boutons separes (demander_naturalisation/demander_mariage/
+          // officialiser_mariage, retires de cette liste -- Montrouge/PSM n'ont jamais eu
+          // acte_officiel dans cet accueil, jamais invente ici) derriere le meme point d'entree
+          // que Luthecia -- voir ouvrirEtatCivil() (plateau-politique.js).
+          {fn:'etat_civil', label:'État civil', pa:0, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Naturalisation, demande en mariage, officialisation.'},
           {fn:'consulter_indices_locaux', label:'Consulter les caisses communales', pa:0, cost:0, type:'legal', icon:'ti-chart-histogram', successRate:100, desc:'Voir le solde reel des caisses du Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal.'},
           {fn:'consulter_organigramme_mairie', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Organigramme national ou municipal, en temps reel. Public et gratuit, aucun poste requis.'}
         ]

@@ -266,6 +266,60 @@ async function demanderNominationPoste(posteId, posteName) {
 
 
 // =====================
+// ÉTAT CIVIL — regroupement ergonomique (chantier finition Hotel de Ville, 4 septembre 2026)
+// =====================
+// Remplace 4 boutons separes de l'accueil de l'Hotel de Ville de Luthecia (demander un acte
+// officiel/la naturalisation/en mariage/officialiser un mariage) -- et les 3 equivalents partages
+// par l'accueil de la mairie de Montrouge/PSM (meme gabarit 'mairie', pas d'acte_officiel la-bas,
+// jamais invente ici) -- par un seul point d'entree "État civil". Les 4/3 demarches d'origine ont
+// ete RETIREES de data.js (sinon elles resteraient visibles EN PLUS du nouveau bouton) : leurs
+// fn/label/pa/cost/desc/icon sont donc repris ICI, verbatim, comme unique source pour construire
+// la pop-up -- plus aucun autre endroit du code ne les declare, aucune duplication/derive
+// possible. Chaque clic appelle doOrder() a l'IDENTIQUE de ce que l'ancien bouton individuel
+// appelait : aucun handler/workflow reimplemente, memes conditions d'acces, memes controles,
+// memes couts, memes effets, meme persistance, memes messages -- uniquement un regroupement
+// visuel, cle par buildingId (mairie-capitale = Luthecia, mairie = Montrouge/PSM).
+const DEMARCHES_ETAT_CIVIL_PAR_BATIMENT = {
+  'mairie-capitale': [
+    { fn:'acte_officiel', label:'Demander un acte officiel', pa:1, cost:50, icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.' },
+    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.' },
+    { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
+    { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
+  ],
+  'mairie': [
+    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.' },
+    { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
+    { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
+  ]
+};
+
+function ouvrirEtatCivil() {
+  const demarches = DEMARCHES_ETAT_CIVIL_PAR_BATIMENT[state.currentBuilding] || [];
+  const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+
+  document.getElementById('postes-modal-title').textContent = 'État civil';
+  let html = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.5rem">';
+  if (demarches.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune démarche d\'état civil disponible ici.</div>';
+  }
+  demarches.forEach(d => {
+    const safeLabel = d.label.replace(/'/g, ' ');
+    const safeDesc = (d.desc || '').replace(/'/g, ' ');
+    const rate = d.successRate || 100;
+    const coutParts = [];
+    if (d.cost) coutParts.push(d.cost.toLocaleString('fr-FR') + ' ' + cur);
+    coutParts.push((d.pa || 0) + ' PA');
+    html += '<button onclick="doOrder(\'' + d.fn + '\',' + d.pa + ',' + d.cost + ",'" + safeLabel + "','" + safeDesc + "'," + rate + ')" style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.7rem 1rem;border:1px solid #4a3a20;background:transparent;color:#c0b090;cursor:pointer;font-size:.85rem;text-align:left">' +
+      '<span><i class="ti ' + (d.icon || 'ti-file-certificate') + '" style="font-size:1rem;margin-right:.5rem"></i> ' + d.label + '</span>' +
+      '<span style="font-size:.75rem;color:#8a8060;white-space:nowrap">' + coutParts.join(' · ') + '</span>' +
+    '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// =====================
 // =====================
 // CALENDRIER ÉLECTORAL
 // =====================
@@ -285,19 +339,21 @@ async function ouvrirCalendrierElectoral() {
   const now = Date.now();
   const villeNom = WORLD[country]?.[villeCourante]?.name || villeCourante;
 
-  const formatDate = ts => {
+  // Date+heure complete, fuseau LOCAL du navigateur (comportement deja existant de cet ecran
+  // avant ce correctif, volontairement conserve -- jamais state.day, jamais un fuseau fictif :
+  // les cycles sont des timestamps epoch-ms reels, Date() les restitue tels quels quel que soit
+  // le joueur qui consulte). Chantier "finition ergonomique Hotel de Ville", 4 septembre 2026.
+  const formatDateHeure = ts => {
     const d = new Date(ts);
-    return d.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' }) +
+    return d.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }) +
       ' à ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
   };
-
-  const diffJours = ts => {
+  const diffCourt = ts => {
     const diff = ts - now;
-    if (diff < 0) return '<span style="color:#8a3a2a">Passé</span>';
+    if (diff < 0) return '';
     const j = Math.floor(diff / 86400000);
     const h = Math.floor((diff % 86400000) / 3600000);
-    if (j > 0) return '<span style="color:#4a8a4a">Dans ' + j + 'j ' + h + 'h</span>';
-    return '<span style="color:#C9A84C">Dans ' + h + 'h</span>';
+    return j > 0 ? ('dans ' + j + 'j ' + h + 'h') : ('dans ' + h + 'h');
   };
 
   const postes = [
@@ -314,6 +370,85 @@ async function ouvrirCalendrierElectoral() {
     if (!CYCLES_ELECTORAUX[country][cle]) await initCycleElectoral(country, p.id, city);
   }
 
+  // Ventilation calendaire honnete d'un cycle (correctif du 4 septembre 2026, chantier finition
+  // ergonomique). Regle absolue : jamais de date inventee pour une etape dont le resultat n'est
+  // pas encore connu -- un eventuel second tour/departage tant que le premier tour n'a pas ete
+  // depouille reste annonce SANS date ("connues uniquement apres le depouillement"). cycle.tour===2
+  // ou cycle.phase===SECOND_TOUR detecte un vrai second tour (president/maire/chef_syndicat) ;
+  // cycle.phase===VOTE3E_SIEGE est le marqueur persistant du departage legislatif du 3e siege
+  // (pose une fois pour la duree entiere du departage, campagne ET vote -- voir getPhaseActuelle
+  // plus haut dans ce fichier) -- dans les deux cas, dateDebutCampagne/dateVote/dateResultats du
+  // cycle ont ete REECRITS par le cron pour representer ce tour supplementaire (dateDebutCandidatures
+  // seul survit intact, jamais reecrit), donc afficher "Candidatures" avec ces dates a ce stade
+  // serait faux -- volontairement omis dans cette branche.
+  function detailCalendrierCycle(cycle, phase, posteId) {
+    const enSecondTour = cycle.phase === PHASES_ELECTORALES.SECOND_TOUR || cycle.tour === 2;
+    const enRunoffSiege = cycle.phase === PHASES_ELECTORALES.VOTE3E_SIEGE;
+    const dansTourSupplementaire = enSecondTour || enRunoffSiege;
+    const lignes = [];
+
+    if (phase === PHASES_ELECTORALES.MANDAT) {
+      lignes.push({ label: 'Mandat en cours', texte: cycle.dateFinMandat ? ('jusqu\'au ' + formatDateHeure(cycle.dateFinMandat)) : 'durée en cours' });
+      const prochaine = (cycle.dateFinMandat && cycle.dateFinMandat > now) ? { label: 'Fin du mandat', date: cycle.dateFinMandat } : null;
+      return { lignes, prochaine };
+    }
+    if (phase === PHASES_ELECTORALES.VACANT) {
+      lignes.push({ label: 'Poste vacant', texte: cycle.relancePossibleApres ? ('nouvelle candidature possible à partir du ' + formatDateHeure(cycle.relancePossibleApres)) : 'en attente de relance' });
+      const prochaine = (cycle.relancePossibleApres && cycle.relancePossibleApres > now) ? { label: 'Réouverture des candidatures', date: cycle.relancePossibleApres } : null;
+      return { lignes, prochaine };
+    }
+
+    const libelleTour = enRunoffSiege ? 'Départage du 3e siège' : 'Second tour';
+
+    if (!dansTourSupplementaire) {
+      if (cycle.dateDebutCandidatures && cycle.dateDebutCampagne) lignes.push({ label: 'Candidatures', debut: cycle.dateDebutCandidatures, fin: cycle.dateDebutCampagne });
+      if (cycle.dateDebutCampagne && cycle.dateVote) lignes.push({ label: 'Campagne', debut: cycle.dateDebutCampagne, fin: cycle.dateVote });
+      if (cycle.dateVote && cycle.dateResultats) lignes.push({ label: 'Vote', debut: cycle.dateVote, fin: cycle.dateResultats });
+      if (cycle.dateResultats) lignes.push({ label: 'Proclamation', debut: cycle.dateResultats, fin: null });
+      if (phase === PHASES_ELECTORALES.CANDIDATURES || phase === PHASES_ELECTORALES.CAMPAGNE || phase === PHASES_ELECTORALES.VOTE) {
+        lignes.push({
+          label: (posteId === 'depute' ? 'Départage éventuel du 3e siège' : 'Second tour éventuel'),
+          texte: 'dates connues uniquement après le dépouillement, si nécessaire'
+        });
+      }
+    } else {
+      if (cycle.dateDebutCampagne && cycle.dateVote) lignes.push({ label: libelleTour + ' — Campagne', debut: cycle.dateDebutCampagne, fin: cycle.dateVote });
+      if (cycle.dateVote && cycle.dateResultats) lignes.push({ label: libelleTour + ' — Vote', debut: cycle.dateVote, fin: cycle.dateResultats });
+      if (cycle.dateResultats) lignes.push({ label: 'Proclamation', debut: cycle.dateResultats, fin: null });
+    }
+
+    const echeancesFutures = [];
+    if (cycle.dateDebutCandidatures > now) echeancesFutures.push({ label: 'Ouverture des candidatures', date: cycle.dateDebutCandidatures });
+    if (cycle.dateDebutCampagne > now) echeancesFutures.push({ label: dansTourSupplementaire ? ('Début de la campagne (' + libelleTour.toLowerCase() + ')') : 'Début de la campagne', date: cycle.dateDebutCampagne });
+    if (cycle.dateVote > now) echeancesFutures.push({ label: 'Ouverture du vote', date: cycle.dateVote });
+    if (cycle.dateResultats > now) echeancesFutures.push({ label: 'Proclamation des résultats', date: cycle.dateResultats });
+
+    return { lignes, prochaine: echeancesFutures[0] || null };
+  }
+
+  const phaseLabelCourt = {
+    [PHASES_ELECTORALES.MANDAT]:            'Mandat en cours',
+    [PHASES_ELECTORALES.CANDIDATURES]:      'Candidatures',
+    [PHASES_ELECTORALES.CAMPAGNE]:          'Campagne',
+    [PHASES_ELECTORALES.VOTE]:              '🗳 Vote en cours',
+    [PHASES_ELECTORALES.SECOND_TOUR]:       'Campagne — second tour',
+    [PHASES_ELECTORALES.VOTE2]:             '🗳 Vote — second tour',
+    [PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE]: 'Campagne — départage 3e siège',
+    [PHASES_ELECTORALES.VOTE3E_SIEGE]:      '🗳 Vote — départage 3e siège',
+    [PHASES_ELECTORALES.VACANT]:            'Vacant',
+  };
+  const phaseCouleurCourt = {
+    [PHASES_ELECTORALES.MANDAT]:            '#4a8a4a',
+    [PHASES_ELECTORALES.CANDIDATURES]:      '#4a6aaa',
+    [PHASES_ELECTORALES.CAMPAGNE]:          '#aa8a4a',
+    [PHASES_ELECTORALES.VOTE]:              '#4a8a4a',
+    [PHASES_ELECTORALES.SECOND_TOUR]:       '#8a6a4a',
+    [PHASES_ELECTORALES.VOTE2]:             '#4a8a4a',
+    [PHASES_ELECTORALES.CAMPAGNE_3E_SIEGE]: '#8a6a4a',
+    [PHASES_ELECTORALES.VOTE3E_SIEGE]:      '#4a8a4a',
+    [PHASES_ELECTORALES.VACANT]:            '#8a3a2a',
+  };
+
   const lignes = postes.map(p => {
     const estLocal = posteEstLocal(p.id);
     const city = estLocal ? villeCourante : null;
@@ -323,30 +458,22 @@ async function ouvrirCalendrierElectoral() {
     const nbCandidats = cycle?.candidats?.length || 0;
     const titulaire = cycle ? libelleTitulaireCycle(cycle, p.id) : null;
     const labelPoste = p.name + (estLocal ? ' — ' + villeNom : '');
+    const detail = cycle ? detailCalendrierCycle(cycle, phase, p.id) : { lignes: [], prochaine: null };
 
-    const phaseStyle = {
-      [PHASES_ELECTORALES.MANDAT]:       { col: '#4a8a4a', label: 'Mandat en cours' },
-      [PHASES_ELECTORALES.CANDIDATURES]: { col: '#4a6aaa', label: 'Candidatures' },
-      [PHASES_ELECTORALES.CAMPAGNE]:     { col: '#aa8a4a', label: 'Campagne' },
-      [PHASES_ELECTORALES.VOTE]:         { col: '#4a8a4a', label: '🗳 Vote' },
-      [PHASES_ELECTORALES.SECOND_TOUR]:  { col: '#8a6a4a', label: 'Campagne 2nd tour' },
-      [PHASES_ELECTORALES.VOTE2]:        { col: '#4a8a4a', label: '🗳 2nd tour' },
-      [PHASES_ELECTORALES.VACANT]:       { col: '#8a3a2a', label: 'Vacant' },
-    }[phase] || { col: '#6a5a30', label: '?' };
+    const renderLigneDetail = l => {
+      const contenu = l.texte ? l.texte : (l.fin ? ('du ' + formatDateHeure(l.debut) + ' au ' + formatDateHeure(l.fin)) : formatDateHeure(l.debut));
+      return '<div style="font-size:.75rem;color:#a89870;padding:.15rem 0"><span style="color:#c0b090">' + l.label + '</span> : ' + contenu + '</div>';
+    };
 
-    // Prochaines échéances
-    const echeances = [];
-    if (cycle) {
-      if (cycle.dateDebutCandidatures && cycle.dateDebutCandidatures > now)
-        echeances.push({ label: 'Ouverture candidatures', date: cycle.dateDebutCandidatures });
-      if (cycle.dateDebutCampagne && cycle.dateDebutCampagne > now)
-        echeances.push({ label: 'Début campagne', date: cycle.dateDebutCampagne });
-      if (cycle.dateVote && cycle.dateVote > now)
-        echeances.push({ label: '🗳 Vote', date: cycle.dateVote });
-      if (cycle.dateResultats && cycle.dateResultats > now)
-        echeances.push({ label: 'Résultats', date: cycle.dateResultats });
-    }
-    const prochaine = echeances.length > 0 ? echeances[0] : null;
+    // Mise en evidence de la prochaine echeance utile (demande explicite du chantier) : la
+    // variable equivalente existait deja dans l'ancienne version de cet ecran mais n'etait
+    // jamais affichee -- corrige ici.
+    const prochaineHtml = detail.prochaine
+      ? '<div style="margin-top:.35rem;padding:.35rem .5rem;background:#161206;border:1px solid #3a2a10;border-radius:3px;font-size:.75rem;color:#E8C97A">' +
+          '➜ ' + detail.prochaine.label + ' le ' + formatDateHeure(detail.prochaine.date) +
+          (diffCourt(detail.prochaine.date) ? ' <span style="color:#8a7a50">(' + diffCourt(detail.prochaine.date) + ')</span>' : '') +
+        '</div>'
+      : '';
 
     return '<div style="padding:.6rem .4rem;border-bottom:1px solid #1a1810">' +
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.3rem">' +
@@ -357,24 +484,20 @@ async function ouvrirCalendrierElectoral() {
           '</div>' +
         '</div>' +
         '<div style="text-align:right">' +
-          '<div style="font-size:.75rem;font-family:Bebas Neue,sans-serif;color:' + phaseStyle.col + ';letter-spacing:.06em">' + phaseStyle.label + '</div>' +
+          '<div style="font-size:.75rem;font-family:Bebas Neue,sans-serif;color:' + (phaseCouleurCourt[phase] || '#6a5a30') + ';letter-spacing:.06em">' + (phaseLabelCourt[phase] || phase || '?') + '</div>' +
           '<div style="font-size:.72rem;color:#a89870">' + nbCandidats + ' candidat(s)</div>' +
         '</div>' +
       '</div>' +
       (nbCandidats > 0
         ? '<div style="font-size:.72rem;color:#c0b090;margin-bottom:.3rem">Candidats : ' + cycle.candidats.map(c => c.nom).join(', ') + '</div>'
         : '') +
-      // Échéances
-      (echeances.length > 0
-        ? '<div style="background:#0a0907;border:1px solid #1a1810;border-radius:3px;padding:.35rem .5rem;margin-top:.3rem">' +
-          echeances.slice(0,3).map(e =>
-            '<div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:.15rem">' +
-              '<span style="color:#b0a080">' + e.label + '</span>' +
-              '<span style="color:#d0c5a8">' + diffJours(e.date) + ' <span style="color:#8a8060">(' + formatDate(e.date) + ')</span></span>' +
-            '</div>'
-          ).join('') +
+      // Détail calendaire réel (dates/heures) — plus un jargon de phase abstrait seul
+      (detail.lignes.length > 0
+        ? '<div style="background:#0a0907;border:1px solid #1a1810;border-radius:3px;padding:.3rem .5rem;margin-top:.3rem">' +
+          detail.lignes.map(renderLigneDetail).join('') +
           '</div>'
         : '') +
+      prochaineHtml +
       // Boutons action
       '<div style="display:flex;gap:.4rem;margin-top:.4rem">' +
         '<button onclick="ouvrirBureauDeVoteBtn(this)" data-poste="' + p.id + '" data-country="' + country + '" data-city="' + (city||'') + '" style="font-size:.7rem;font-family:Bebas Neue,sans-serif;padding:.25rem .6rem;border:1px solid #4a3a20;background:transparent;color:#b0a080;cursor:pointer">Détails →</button>' +
@@ -389,7 +512,7 @@ async function ouvrirCalendrierElectoral() {
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.2rem .4rem;min-width:540px;max-width:680px">' +
     '<div style="font-size:.72rem;color:#8a8060;padding:.3rem .4rem;margin-bottom:.3rem;font-style:italic">' +
-      'Mandat : 5-6 semaines · Candidatures : J-7 avant campagne · Second tour si aucun candidat ne dépasse 50%+1' +
+      'Candidatures : 7 jours · Campagne : 7 jours · Vote : 24h · Second tour ou départage (si nécessaire) : campagne 7 jours + vote 24h' +
     '</div>' +
     lignes +
     '</div>';
@@ -3113,7 +3236,7 @@ function renderRoomActions(room, buildingId, roomId) {
     // pres de getPhaseActuelle), seule source de verite, lecture synchrone du cache
     // CYCLES_ELECTORAUX deja tenu a jour ailleurs -- jamais de nouvel appel reseau ici.
     let needsElectionIndisponible = false;
-    const electionTooltip = 'Aucune élection n\'est actuellement en cours dans cette ville.';
+    const electionTooltip = 'Disponible seulement en période électorale.';
     if (o.fn === 'pouls_populaire' && typeof electionsLocalesEnCours === 'function') {
       const actives = electionsLocalesEnCours(state.country || 'republic', state.currentCity || 'capitale');
       needsElectionIndisponible = actives.length === 0;

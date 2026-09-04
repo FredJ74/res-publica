@@ -382,6 +382,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
   if (fn === 'porter_plainte')          { ouvrirPorterPlainte(); return; }
   if (fn === 'rendre_sentence')         { ouvrirRendreSentence(pa, cost); return; }
+  if (fn === 'etat_civil') { ouvrirEtatCivil(); return; }
   if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(pa, cost); return; }
   if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(pa, cost); return; }
   if (fn === 'marche_noir') { doMarcheNoir(); return; }
