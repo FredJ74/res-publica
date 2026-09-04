@@ -183,11 +183,55 @@ function doConsulterResumesMandats() {
   html += '</div>';
   html += '<button class="pnj-action-btn" onclick="enigme1LancerRechercheMandats()"><i class="ti ti-search" style="font-size:.85rem"></i> Rechercher</button>';
   html += '<div id="mandats-resultats" style="margin-top:.9rem"></div>';
+  html += '<button class="pnj-action-btn" onclick="enigme1AfficherArchivesReelles()" style="margin-top:1.2rem;opacity:.85"><i class="ti ti-clock-history" style="font-size:.85rem"></i> Archives officielles (mandats récents)</button>';
   html += '</div>';
 
   document.getElementById('postes-modal-title').textContent = 'Résumés de mandats';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// Historique REEL des mandats de maire de Luthecia (chantier "Hotel de Ville / elections",
+// 4 septembre 2026) — distinct du registre romance ENIGME1_REGISTRE_MANDATS ci-dessus, qui
+// reste intact. Alimente uniquement par archiverMandatMaireTermine (api/cron-minuit.js) a
+// partir d'indicateurs reellement persistes (budgets_municipaux) ; n'invente aucune donnee.
+async function enigme1AfficherArchivesReelles() {
+  document.getElementById('postes-modal-title').textContent = 'Archives officielles — Maires de Luthécia';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;font-size:.85rem;color:#8a8060;font-style:italic">Chargement des archives...</div>';
+
+  const mandats = (typeof sbGetArchivesMandatsMaires === 'function')
+    ? await sbGetArchivesMandatsMaires('republic', 'capitale').catch(() => [])
+    : [];
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Bilans officiels des mandats municipaux achevés, tenus par l\'administration de la ville.</div>';
+
+  if (!mandats || mandats.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a3a20;font-style:italic">Aucun mandat achevé n\'est encore consigné dans ces archives.</div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:.6rem">';
+    mandats.forEach(function(m) {
+      const debut = new Date(m.debut_ts).toLocaleDateString('fr-FR');
+      const fin = new Date(m.fin_ts).toLocaleDateString('fr-FR');
+      const iDebut = m.indicateurs_debut || {};
+      const iFin = m.indicateurs_fin || {};
+      html += '<div style="padding:.6rem .7rem;border:1px solid #2a2010">';
+      html += '<div style="font-size:.9rem;color:#C9A84C">' + (m.maire || 'Maire inconnu') + (m.est_pj ? '' : ' (nommé)') + '</div>';
+      html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.4rem">Mandat du ' + debut + ' au ' + fin + '</div>';
+      html += '<div style="font-size:.82rem;color:#c0b090">Taux d\'imposition locale : ' +
+        (typeof iDebut.taux_impots_locaux === 'number' ? iDebut.taux_impots_locaux + '%' : 'non disponible') + ' → ' +
+        (typeof iFin.taux_impots_locaux === 'number' ? iFin.taux_impots_locaux + '%' : 'non disponible') + '</div>';
+      html += '<div style="font-size:.82rem;color:#c0b090">Caisse municipale : ' +
+        (typeof iDebut.caisse_municipale === 'number' ? iDebut.caisse_municipale + ' FR' : 'non disponible') + ' → ' +
+        (typeof iFin.caisse_municipale === 'number' ? iFin.caisse_municipale + ' FR' : 'non disponible') + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<button class="pnj-action-btn" onclick="doConsulterResumesMandats()" style="margin-top:1rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Retour</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
 }
 
 function enigme1LancerRechercheMandats() {

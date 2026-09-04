@@ -313,8 +313,12 @@ const WORLD = {
               persons: [],
               orders: [
                 {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
-                {fn:'contester_resultats',  label:'Contester des resultats',    pa:3, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:40,  desc:'Contester le resultat d\'une election. Long processus.'},
-                {fn:'falsifier_docs',       label:'Falsifier une liste',        pa:3, cost:500,  type:'illegal', icon:'ti-file-x',        successRate:35,  desc:'Manipuler les listes electorales. Tres risque.'}
+                {fn:'voter_election',       label:'Voter',                      pa:0, cost:0,    type:'legal',   icon:'ti-checkbox',      successRate:100, desc:'Presidentielle, legislatives, municipales : accès direct au vote si un scrutin est ouvert.'},
+                {fn:'se_porter_candidat',   label:'Se porter candidat',         pa:0, cost:0,    type:'legal',   icon:'ti-user-plus',     successRate:100, desc:'Presidentielle, legislatives, municipales : deposer sa candidature si les candidatures sont ouvertes.'},
+                {fn:'contester_resultats',  label:'Contester des resultats',    pa:2, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:60,  desc:'Dans les 24h suivant la proclamation, pour tout electeur habilite pour ce scrutin. Peut reveler une fraude.'},
+                {fn:'falsifier_listes_electorales', label:'Falsifier les listes electorales', pa:2, cost:0, type:'illegal', icon:'ti-file-x', successRate:70, desc:'Reserve au maire ou a l\'adjoint au maire sortant de cette ville. Ajoute 1 a 10 voix frauduleuses a un candidat.'},
+                {fn:'bourrer_urnes',        label:'Bourrer les urnes',          pa:1, cost:0,    type:'illegal', icon:'ti-ballot',        successRate:60, desc:'Pendant les 24h de vote, pour tout electeur inscrit sur ce scrutin. Ajoute 1 a 3 voix frauduleuses.'},
+                {fn:'truquer_depouillement', label:'Truquer le depouillement',  pa:2, cost:0,    type:'illegal', icon:'ti-scale',         successRate:75, desc:'Reserve au commissaire ou au juge. Ajoute ou retire 1 a 10 voix a un candidat.'}
               ]
             },
             salle_archives: {
@@ -822,8 +826,12 @@ const WORLD = {
               ],
               orders: [
                 {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
-                {fn:'contester_resultats',  label:'Contester des resultats',    pa:3, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:40,  desc:'Contester le resultat d\'une election. Long processus.'},
-                {fn:'falsifier_docs',       label:'Falsifier une liste',        pa:3, cost:500,  type:'illegal', icon:'ti-file-x',        successRate:35,  desc:'Manipuler les listes electorales. Tres risque.'}
+                {fn:'voter_election',       label:'Voter',                      pa:0, cost:0,    type:'legal',   icon:'ti-checkbox',      successRate:100, desc:'Presidentielle, legislatives, municipales : accès direct au vote si un scrutin est ouvert.'},
+                {fn:'se_porter_candidat',   label:'Se porter candidat',         pa:0, cost:0,    type:'legal',   icon:'ti-user-plus',     successRate:100, desc:'Presidentielle, legislatives, municipales : deposer sa candidature si les candidatures sont ouvertes.'},
+                {fn:'contester_resultats',  label:'Contester des resultats',    pa:2, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:60,  desc:'Dans les 24h suivant la proclamation, pour tout electeur habilite pour ce scrutin. Peut reveler une fraude.'},
+                {fn:'falsifier_listes_electorales', label:'Falsifier les listes electorales', pa:2, cost:0, type:'illegal', icon:'ti-file-x', successRate:70, desc:'Reserve au maire ou a l\'adjoint au maire sortant de cette ville. Ajoute 1 a 10 voix frauduleuses a un candidat.'},
+                {fn:'bourrer_urnes',        label:'Bourrer les urnes',          pa:1, cost:0,    type:'illegal', icon:'ti-ballot',        successRate:60, desc:'Pendant les 24h de vote, pour tout electeur inscrit sur ce scrutin. Ajoute 1 a 3 voix frauduleuses.'},
+                {fn:'truquer_depouillement', label:'Truquer le depouillement',  pa:2, cost:0,    type:'illegal', icon:'ti-scale',         successRate:75, desc:'Reserve au commissaire ou au juge. Ajoute ou retire 1 a 10 voix a un candidat.'}
               ]
             },
             // Archives : consulter_mandats_maires volontairement EXCLU (contenu reel mais
@@ -1963,8 +1971,7 @@ const BUILDINGS = {
           {name:'Secretaire Dupuis', role:'PNJ - Accueil officiel', rel:'neutral', job:'secretaire'}
         ],
         orders: [
-          {fn:'postuler', label:'Postuler a un poste', pa:2, cost:0, type:'legal', icon:'ti-id-badge', successRate:100, desc:'Postes electifs (calendrier) et postes nommes (candidature aupres de l\'autorite competente).'},
-          {fn:'organigramme', label:'Organigramme du pays', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Voir qui occupe chaque poste dans votre empire.'}
+          {fn:'postuler', label:'Postuler a un poste', pa:2, cost:0, type:'legal', icon:'ti-id-badge', successRate:100, desc:'Postes electifs (calendrier) et postes nommes (candidature aupres de l\'autorite competente).'}
         ]
       },
       bureaux: {
@@ -2150,8 +2157,7 @@ const BUILDINGS = {
           {name:'Agent Entretien (PNJ)', role:'PNJ - Femme de menage', rel:'neutral', job:'femme_menage', photoUrl:'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/agent-entretien-assemblee.png'}
         ],
         orders: [
-          {fn:'calendrier_elections', label:'Calendrier electoral', pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
-          {fn:'consulter_annuaire_deputes', label:'Consulter l\'annuaire des deputes', pa:0, cost:0, type:'legal', icon:'ti-address-book', successRate:100, desc:'Liste des 25 sieges et de leurs titulaires actuels (PJ ou PNJ).'}
+          {fn:'calendrier_elections', label:'Calendrier electoral', pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'}
         ]
       },
       hemicycle: {
@@ -2981,8 +2987,6 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
-          {fn:'organigramme', label:'Organigramme du pays', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Voir qui occupe chaque poste dans votre empire. PJ en vert, PNJ en gris.'},
-          {fn:'deposer_candidature', label:'Deposer une candidature',    pa:2, cost:0,   type:'legal', icon:'ti-id-badge',   successRate:100, desc:'Vous inscrire comme candidat a une election en cours.'},
           {fn:'consulter_elections', label:'Consulter les elections',     pa:0, cost:0,   type:'legal', icon:'ti-chart-bar',  successRate:100, desc:'Voir les elections en cours et les candidats declares.'},
           {fn:'acte_officiel',       label:'Demander un acte officiel',  pa:1, cost:50,  type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.'},
           {fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, type:'legal', icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.'},
@@ -3005,7 +3009,6 @@ const BUILDINGS = {
           {fn:'fixer_impots_locaux',   label:'Fixer les impôts locaux',       pa:2, cost:0, type:'legal', icon:'ti-receipt-tax',  successRate:100, requiresPost:'maire', desc:'Definir le taux de taxation locale. Impact direct sur les recettes et la popularite.'},
           {fn:'repartition_budget_local', label:'Repartir le budget municipal', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Repartir les recettes fiscales locales entre Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal. Applique chaque nuit, credite directement leur caisse reelle.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Deploiement de forces de l\'ordre supplementaires. Preleve sur budget mairie.'},
-          {fn:'contester_resultats',   label:'Contester des resultats',       pa:2, cost:0, type:'legal', icon:'ti-alert-triangle', successRate:70, desc:'Deposer un recours dans le sous-forum Tribunal. Delai 48h. Decision du juge.'},
           {fn:'nommer_commissaire',    label:'Nommer un commissaire',         pa:3, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Nommer un PJ habitant de la ville comme commissaire. Poste exclusif (sauf depute).'},
           {fn:'revoquer_commissaire',   label:'Revoquer le commissaire',      pa:1, cost:0, type:'legal', icon:'ti-shield-x', successRate:100, requiresPost:'maire', desc:'Retirer le poste de commissaire au titulaire actuel de la ville.'},
           {fn:'gerer_candidature_maire_adjoint', label:'Gérer les candidatures au Maire Adjoint', pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire', desc:'Candidatures reçues pour le poste de Maire Adjoint de cette ville — sans se déplacer.'}
@@ -3036,8 +3039,12 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
-          {fn:'contester_resultats',  label:'Contester des resultats',    pa:3, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:40,  desc:'Contester le resultat d\'une election. Long processus.'},
-          {fn:'falsifier_docs',       label:'Falsifier une liste',        pa:3, cost:500,  type:'illegal', icon:'ti-file-x',        successRate:35,  desc:'Manipuler les listes electorales. Tres risque.'}
+          {fn:'voter_election',       label:'Voter',                      pa:0, cost:0,    type:'legal',   icon:'ti-checkbox',      successRate:100, desc:'Presidentielle, legislatives, municipales : accès direct au vote si un scrutin est ouvert.'},
+          {fn:'se_porter_candidat',   label:'Se porter candidat',         pa:0, cost:0,    type:'legal',   icon:'ti-user-plus',     successRate:100, desc:'Presidentielle, legislatives, municipales : deposer sa candidature si les candidatures sont ouvertes.'},
+          {fn:'contester_resultats',  label:'Contester des resultats',    pa:2, cost:200,  type:'legal',   icon:'ti-alert-triangle',successRate:60,  desc:'Dans les 24h suivant la proclamation, pour tout electeur habilite pour ce scrutin. Peut reveler une fraude.'},
+          {fn:'falsifier_listes_electorales', label:'Falsifier les listes electorales', pa:2, cost:0, type:'illegal', icon:'ti-file-x', successRate:70, desc:'Reserve au maire ou a l\'adjoint au maire sortant de cette ville. Ajoute 1 a 10 voix frauduleuses a un candidat.'},
+          {fn:'bourrer_urnes',        label:'Bourrer les urnes',          pa:1, cost:0,    type:'illegal', icon:'ti-ballot',        successRate:60, desc:'Pendant les 24h de vote, pour tout electeur inscrit sur ce scrutin. Ajoute 1 a 3 voix frauduleuses.'},
+          {fn:'truquer_depouillement', label:'Truquer le depouillement',  pa:2, cost:0,    type:'illegal', icon:'ti-scale',         successRate:75, desc:'Reserve au commissaire ou au juge. Ajoute ou retire 1 a 10 voix a un candidat.'}
         ]
       },
       salle_archives: {
@@ -6510,10 +6517,12 @@ const PHASES_ELECTORALES = {
   MANDAT:        'mandat',        // Poste occupé, mandat en cours
   CANDIDATURES:  'candidatures',  // Ouverture des candidatures (J-7 avant campagne)
   CAMPAGNE:      'campagne',      // Campagne électorale (1 semaine)
-  VOTE:          'vote',          // Jour du vote (dimanche 20h-24h)
+  VOTE:          'vote',          // Fenetre de vote : 24h pleines a partir de dateVote (jamais un creneau "dimanche 20h-24h", corrige le 4 septembre 2026 -- le code n'a jamais applique cette contrainte, seul le commentaire etait trompeur)
   SECOND_TOUR:   'second_tour',   // Campagne second tour (1 semaine)
-  VOTE2:         'vote2',         // Second tour
-  VACANT:        'vacant',        // Poste vacant — PNJ administrateur nommé
+  VOTE2:         'vote2',         // Second tour (24h)
+  CAMPAGNE_3E_SIEGE: 'campagne_3e_siege', // Legislatives uniquement : campagne du second tour partiel entre candidats ex aequo pour le 3e siege d'une ville (1 semaine -- correctif du 4 septembre 2026, la premiere version sautait directement au vote sans campagne)
+  VOTE3E_SIEGE:  'vote_3e_siege', // Legislatives uniquement : vote du second tour partiel ci-dessus (24h)
+  VACANT:        'vacant',        // Poste vacant — PNJ administrateur nomme (jamais pour chef_syndicat, voir doctrine dediee)
 };
 
 // Résultats électoraux archivés

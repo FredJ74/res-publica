@@ -135,32 +135,118 @@ function construireNouveauCycleElectoral(posteId, city, now) {
   };
 }
 
-function calculerResultatsServer(cycle) {
+// =====================
+// MOTEUR DE DEPOUILLEMENT PARTAGE (chantier "Hotel de Ville / elections", 4 septembre 2026).
+// Duplique VERBATIM cote client (plateau-politique.js, calculerScoresBaseCycle/
+// resoudreScrutinSimple/resoudreScrutinDepute) -- meme doctrine que construireNouveauCycleElectoral
+// deja duplique : ce fichier serveur n'a jamais acces au contexte client, et plateau-politique.js
+// n'a jamais acces a ce contexte serveur. Les DEUX copies doivent rester identiques ; testees
+// (26/26 assertions) sur la copie client avant duplication ici.
+// =====================
+function calculerScoresBaseCycle(cycle, fraudesActives) {
+  const scores = {};
+  (cycle.candidats || []).forEach(c => { scores[c.nom] = 0; });
+  let blancs = 0;
+  Object.values(cycle.votes || {}).forEach(nom => {
+    if (nom === 'BLANC') { blancs++; return; }
+    if (scores[nom] !== undefined) scores[nom]++;
+  });
+  Object.values(cycle.votesPNJ || {}).forEach(nom => {
+    if (nom === 'BLANC') { blancs++; return; }
+    if (scores[nom] !== undefined) scores[nom]++;
+  });
+  (fraudesActives || []).forEach(f => {
+    if (scores[f.candidat] !== undefined) scores[f.candidat] = Math.max(0, scores[f.candidat] + f.delta_voix);
+  });
+  const totalCandidats = Object.values(scores).reduce((s, v) => s + v, 0);
+  return { scores, blancs, totalExprimes: totalCandidats + blancs };
+}
+
+function resoudreScrutinSimple(cycle, fraudesActives) {
   const candidats = cycle.candidats || [];
   if (candidats.length === 0) return null;
-
-  const scores = {};
-  candidats.forEach(c => { scores[c.nom] = 0; });
-
-  // Bug corrige le 9 aout 2026 : cette fonction lisait cycle.votes_pj/votes_pnj, des champs
-  // qui n'existent nulle part ailleurs dans le jeu (toujours undefined -> totalVoix restait
-  // a 0 -> aucune election traitee par ce cron n'a jamais pu declarer d'elu, meme a l'unanimite).
-  // Les vrais champs, ecrits partout ailleurs (plateau-politique.js, construireNouveauCycleElectoral
-  // ci-dessus), sont cycle.votes (objet votant -> nom candidat) et cycle.votesPNJ (objet pnjId -> nom candidat).
-  Object.values(cycle.votes || {}).forEach(nom => { if (scores[nom] !== undefined) scores[nom]++; });
-  Object.values(cycle.votesPNJ || {}).forEach(nom => { if (scores[nom] !== undefined) scores[nom]++; });
-
-  const totalVoix = Object.values(scores).reduce((s, v) => s + v, 0);
-  if (totalVoix === 0) return { scores, totalVoix: 0, elu: null, secondTour: [] };
+  const { scores, blancs, totalExprimes } = calculerScoresBaseCycle(cycle, fraudesActives);
+  if (totalExprimes === 0) return { scores, blancs, totalExprimes: 0, elu: null, secondTour: [], blancMajoritaire: false };
+  if (blancs > totalExprimes / 2) return { scores, blancs, totalExprimes, elu: null, secondTour: [], blancMajoritaire: true };
 
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   const premier = sorted[0];
-
-  if (premier[1] > totalVoix / 2) {
-    return { scores, totalVoix, elu: premier[0], secondTour: [] };
+  if (premier[1] > totalExprimes / 2) {
+    return { scores, blancs, totalExprimes, elu: premier[0], secondTour: [], blancMajoritaire: false };
   }
-  const qualifies = sorted.filter(([, v]) => v / totalVoix >= 0.15).map(([n]) => n);
-  return { scores, totalVoix, elu: null, secondTour: qualifies };
+  const qualifies = sorted.filter(([, v]) => v / totalExprimes >= 0.15).map(([n]) => n);
+  return { scores, blancs, totalExprimes, elu: null, secondTour: qualifies, blancMajoritaire: false };
+}
+
+function resoudreScrutinDepute(cycle, fraudesActives) {
+  const candidats = cycle.candidats || [];
+  if (candidats.length === 0) return null;
+  const { scores, blancs, totalExprimes } = calculerScoresBaseCycle(cycle, fraudesActives);
+  if (totalExprimes === 0) return { scores, blancs, totalExprimes: 0, elus: [], egalite3eSiege: null, blancMajoritaire: false };
+  if (blancs > totalExprimes / 2) return { scores, blancs, totalExprimes, elus: [], egalite3eSiege: null, blancMajoritaire: true };
+
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  if (sorted.length <= 3) {
+    return { scores, blancs, totalExprimes, elus: sorted.map(([n]) => n), egalite3eSiege: null, blancMajoritaire: false };
+  }
+
+  const seuilSiege3 = sorted[2][1];
+  const elusSurs = sorted.filter(([, v]) => v > seuilSiege3).map(([n]) => n);
+  const exAequoSeuil = sorted.filter(([, v]) => v === seuilSiege3).map(([n]) => n);
+  const siegesRestants = 3 - elusSurs.length;
+
+  if (exAequoSeuil.length <= siegesRestants) {
+    return { scores, blancs, totalExprimes, elus: [...elusSurs, ...exAequoSeuil], egalite3eSiege: null, blancMajoritaire: false };
+  }
+  return { scores, blancs, totalExprimes, elus: elusSurs, egalite3eSiege: { candidats: exAequoSeuil, siegesRestants }, blancMajoritaire: false };
+}
+
+// Charge les fraudes NON REVELEES d'un scrutin precis (cycle_debut = cycle.dateDebutCandidatures
+// AU MOMENT DE LA FRAUDE -- cle stable a travers les renouvellements, puisque cycles_electoraux
+// ecrase la meme ligne a chaque nouveau cycle). Une fraude revelee ne doit plus jamais compter.
+async function chargerFraudesActivesServer(country, posteId, city, cycleDebut) {
+  const filtreCity = city ? `&city=eq.${encodeURIComponent(city)}` : '&city=is.null';
+  const rows = await sbGet('fraudes_electorales',
+    `country=eq.${encodeURIComponent(country)}&poste_id=eq.${encodeURIComponent(posteId)}${filtreCity}&cycle_debut=eq.${cycleDebut}&etat=eq.non_revelee`
+  ).catch(() => []);
+  return rows || [];
+}
+
+// =====================
+// ARCHIVES DES MANDATS MUNICIPAUX (chantier "Hotel de Ville / elections", 4 septembre 2026).
+// Capture UNIQUEMENT des indicateurs reellement partages/persistes cote serveur (jamais
+// state.indicesLocaux, qui n'est qu'une illusion cote client, propre a chaque joueur, jamais une
+// verite municipale partagee) : taux d'imposition locale + tresorerie municipale
+// (budgets_municipaux, deja lu par preleverTaxeFonciere ci-dessus). Aucun indice economique/social
+// LOCAL persiste n'existe ailleurs dans le jeu (seul INDICES_NATIONAUX existe, et il est national,
+// jamais par ville) -- volontairement absent d'ici, conformement a la consigne "ne jamais inventer
+// une statistique que le jeu ne possede pas".
+// =====================
+async function capturerIndicateursMunicipaux(country, city) {
+  const villeKey = country + '_' + city;
+  const rows = await sbGet('budgets_municipaux', `id=eq.${encodeURIComponent(villeKey)}`).catch(() => []);
+  const budget = (rows && rows[0]) ? rows[0].data : null;
+  return {
+    taux_impots_locaux: (budget && typeof budget.tauxLocal === 'number') ? budget.tauxLocal : null,
+    caisse_municipale: (budget && typeof budget.caisse === 'number') ? budget.caisse : null
+  };
+}
+
+// Ecrit un bilan de mandat termine -- appele UNIQUEMENT au renouvellement naturel d'un mandat
+// echu (voir boucle principale). Une demission anticipee ou une autre sortie de poste n'est PAS
+// archivee ici (hors perimetre de ce lot, signale au rapport) : seul le cas dominant (mandat
+// arrive a echeance normale) est couvert, jamais une invention pour combler les autres cas.
+async function archiverMandatMaireTermine(country, city, maire, estPJ, debutTs, finTs, indicateursDebut) {
+  if (!maire) return;
+  const indicateursFin = await capturerIndicateursMunicipaux(country, city).catch(() => null);
+  await sbInsert('mandats_maires_archives', {
+    id: 'mandat-' + country + '-' + city + '-' + debutTs,
+    country, city, maire, est_pj: estPJ !== false,
+    debut_ts: new Date(debutTs).toISOString(),
+    fin_ts: new Date(finTs).toISOString(),
+    indicateurs_debut: indicateursDebut || null,
+    indicateurs_fin: indicateursFin
+  }).catch(e => console.error('archiverMandatMaireTermine error', e));
 }
 
 async function purgerVieuxMails() {
@@ -2502,6 +2588,17 @@ const PNJ_DIRECTEUR_ENTREPOT_PAR_VILLE = {
   ville_b:  'Norbert Charton (PNJ)'
 };
 
+// Deputes PNJ de secours (chantier "Hotel de Ville / elections", 4 septembre 2026) : 3 sieges
+// reels par ville (voir resoudreScrutinDepute) -- si moins de 3 PJ occupent les sieges a l'issue
+// du depouillement, les sieges manquants sont completes par ces PNJ (jamais pour chef_syndicat,
+// qui peut rester vacant par arbitrage explicite). Noms distincts des PNJ deja en poste ailleurs
+// (aucune collision avec PNJ_PAR_DEFAUT_POSTE), un pool de 3 par ville jamais epuisable.
+const PNJ_DEPUTES_PAR_VILLE = {
+  capitale: ['Député Marchand (PNJ)', 'Députée Fontaine (PNJ)', 'Député Rousseau (PNJ)'],
+  ville_a:  ['Député Lecoq (PNJ)', 'Députée Girard (PNJ)', 'Député Ambroise (PNJ)'],
+  ville_b:  ['Député Ferraille (PNJ)', 'Députée Charbonnier (PNJ)', 'Député Houiller (PNJ)']
+};
+
 // Cascade des postes nommes nationaux, dans l'ordre de dependance (chaque poste ne peut etre
 // auto-pourvu qu'une fois celui qui le nomme deja resolu, PJ ou PNJ)
 const CASCADE_NATIONALE = [
@@ -2761,7 +2858,15 @@ async function verifierPostesVacantsEtAutoPourvoir() {
       if (!cycle.resultatsTraites || cycle.eluId) return; // pas encore echu, ou deja pourvu
       cycle.eluId = PNJ_PAR_DEFAUT_POSTE[posteId];
       cycle.phase = 'mandat';
+      cycle.dateDebutMandatTs = now;
       cycle.dateFinMandat = now + MANDAT_SEMAINES * SEMAINE_MS;
+      // Archives des mandats (chantier "Hotel de Ville / elections", 4 septembre 2026) : un
+      // mandat de maire PNJ de secours suit desormais la meme tracabilite dateDebutMandatTs/
+      // indicateursDebutMandat qu'un mandat PJ, pour que le renouvellement futur (boucle
+      // principale) puisse l'archiver correctement lui aussi.
+      if (posteId === 'maire') {
+        cycle.indicateursDebutMandat = await capturerIndicateursMunicipaux(PAYS_CASCADE, ville).catch(() => null);
+      }
       await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(cycle), updated_at: new Date().toISOString() });
       occupePJ.add(cle(posteId, ville));
       resultats.pourvus.push({ poste: posteId, city: ville || null, pnj: PNJ_PAR_DEFAUT_POSTE[posteId] });
@@ -3063,6 +3168,151 @@ async function verifierConflitsEmploiBNE() {
   return resultats;
 }
 
+// =====================
+// VOTE DE CONFIANCE — RÉSOLUTION SERVEUR (chantier "Hotel de Ville / elections", 4 septembre
+// 2026). N'existait nulle part avant ce chantier (cloturerVoteConfiance, cote client, n'avait
+// aucun appelant -- confirme par l'audit). Adapte a l'Assemblee reelle (9 sieges, 3 par ville,
+// jamais 25) : les deputes PJ reellement en poste (personnages.poste_depute.id==='depute')
+// votent s'ils l'ont fait ; tout siege restant (PJ n'ayant pas vote OU siege tenu par un PNJ de
+// secours) est tranche par un tirage pondere par l'ISN, exactement comme avant, recalibre sur 9.
+// =====================
+async function resoudreVotesConfianceEchusServeur(nowMs) {
+  const resultats = [];
+  try {
+    const votes = await sbGet('votes_confiance', 'statut=eq.en_cours') || [];
+    for (const vote of votes) {
+      if (nowMs < new Date(vote.cloture_ts).getTime()) continue; // pas encore echu
+
+      const joueurs = await sbGet('personnages', `country=eq.${encodeURIComponent(vote.country)}&select=name,poste_depute`) || [];
+      const deputesPJ = joueurs.filter(j => {
+        let pd = j.poste_depute;
+        if (typeof pd === 'string') { try { pd = JSON.parse(pd); } catch(e) { pd = null; } }
+        return pd?.id === 'depute';
+      }).map(j => j.name);
+
+      const bulletins = vote.bulletins || {};
+      let pour = 0, contre = 0;
+      const votantsPJ = new Set();
+      deputesPJ.forEach(nom => {
+        if (bulletins[nom]) {
+          votantsPJ.add(nom);
+          if (bulletins[nom] === 'pour') pour++; else contre++;
+        }
+      });
+
+      // Pas d'ISN "national" persiste cote serveur (INDICES_NATIONAUX est une constante en
+      // memoire CLIENT uniquement -- voir commentaire de modifierIndiceVilleServeur plus haut
+      // dans ce fichier, ecart d'architecture deja identifie et sciemment non traite). Utilise
+      // l'ISN de la capitale (indices_villes, Republic uniquement) comme meilleur proxy
+      // disponible ; repli sur 30 (meme valeur neutre que le reste du fichier) sinon.
+      let isn = 30;
+      if (vote.country === 'republic') {
+        const isnRows = await sbGet('indices_villes', `id=eq.${encodeURIComponent(vote.country + '_capitale')}`).catch(() => []);
+        const isnRow = isnRows && isnRows[0];
+        if (isnRow && isnRow.data && typeof isnRow.data.isn === 'number') isn = isnRow.data.isn;
+      }
+      const chanceContrePnj = Math.min(85, 30 + isn / 2);
+      const NB_SIEGES_ASSEMBLEE = 9; // 3 sieges reels par ville (chantier legislatives, 4 septembre 2026)
+      const siegesRestants = Math.max(0, NB_SIEGES_ASSEMBLEE - votantsPJ.size);
+      for (let i = 0; i < siegesRestants; i++) {
+        if (Math.random() * 100 < chanceContrePnj) contre++; else pour++;
+      }
+
+      const confianceAccordee = pour > contre;
+      const resultat = confianceAccordee ? 'confiance' : 'censure';
+
+      await sbUpdate('votes_confiance', `id=eq.${encodeURIComponent(vote.id)}`, {
+        statut: 'termine', resultat,
+        // Delai politique de 48h reelles (arbitrage du 4 septembre 2026) : le PM n'est PLUS
+        // destitue automatiquement -- seule une consequence differee (POP=0) s'applique s'il
+        // n'a toujours pas demissionne a l'echeance (voir bloc dedie plus bas dans le handler).
+        demission_limite_ts: confianceAccordee ? null : new Date(nowMs + 48 * 60 * 60 * 1000).toISOString()
+      }).catch(() => {});
+
+      await sbInsert('evenements_globaux', {
+        country: vote.country, city: null,
+        texte: `🏛 Vote de confiance : ${pour} POUR / ${contre} CONTRE. ` +
+          (confianceAccordee
+            ? `Le gouvernement de ${vote.pm_nom} obtient la confiance.`
+            : `Le gouvernement de ${vote.pm_nom} est CENSURÉ. Le Premier Ministre est politiquement appelé à démissionner sous 48h.`),
+        jour: null
+      }).catch(() => {});
+
+      if (!confianceAccordee) {
+        await sbInsert('mails', {
+          id: 'mail-censure-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+          from_player: 'Assemblée Nationale', to_player: vote.pm_nom,
+          subject: 'Motion de censure adoptée',
+          body: `L'Assemblée Nationale a retiré sa confiance à votre gouvernement (${pour} pour / ${contre} contre). Vous êtes politiquement appelé(e) à démissionner sous 48h réelles. Passé ce délai sans démission, votre popularité et celle de tout le gouvernement tomberont à zéro -- vos postes ne seront cependant jamais retirés automatiquement.`,
+          time: new Date(nowMs).toLocaleDateString('fr-FR'), read: false
+        }).catch(() => {});
+      }
+
+      resultats.push({ vote_id: vote.id, country: vote.country, resultat, pour, contre });
+    }
+  } catch(e) { console.error('resoudreVotesConfianceEchusServeur error', e); }
+  return resultats;
+}
+
+// Consequence differee de la censure (arbitrage du 4 septembre 2026) : si le PM n'a toujours pas
+// demissionne 48h reelles apres la censure, POP=0 pour le PM, tous les ministres et le president
+// -- jamais de destitution automatique, les consequences politiques doivent ensuite emerger du
+// jeu (motion de defiance suivante, election, etc.). Idempotent (consequence_appliquee).
+async function appliquerConsequencesCensureEchues(nowMs) {
+  const resultats = [];
+  try {
+    const votes = await sbGet('votes_confiance',
+      `statut=eq.termine&resultat=eq.censure&consequence_appliquee=eq.false&demission_limite_ts=not.is.null`) || [];
+    for (const vote of votes) {
+      if (nowMs < new Date(vote.demission_limite_ts).getTime()) continue;
+
+      const pmRows = await sbGet('personnages', `name=eq.${encodeURIComponent(vote.pm_nom)}&select=name,poste,resources`) || [];
+      const pm = pmRows[0];
+      let pmToujours = false;
+      if (pm) {
+        let poste = pm.poste;
+        if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
+        pmToujours = poste?.id === 'pm';
+      }
+
+      if (pmToujours) {
+        const cibles = [vote.pm_nom];
+        // Ministres + president du meme pays (postes nommes exclusifs, deja lus ailleurs dans ce
+        // fichier -- POSTES_NOMMES_EXCLUSIFS_SERVEUR -- + president via cycles_electoraux).
+        const ministresRows = await sbGet('personnages', `country=eq.${encodeURIComponent(vote.country)}&select=name,poste`) || [];
+        ministresRows.forEach(j => {
+          let poste = j.poste;
+          if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
+          if (poste?.id && (poste.id === 'pm' || poste.id.startsWith('min_'))) cibles.push(j.name);
+        });
+        const presCycle = (await sbGet('cycles_electoraux', `country=eq.${encodeURIComponent(vote.country)}&poste_id=eq.president`) || [])[0];
+        if (presCycle) {
+          const cyclePres = JSON.parse(presCycle.data);
+          if (cyclePres.eluId) cibles.push(cyclePres.eluId);
+        }
+        for (const nom of [...new Set(cibles)]) {
+          const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=resources`) || [];
+          const perso = rows[0];
+          if (!perso) continue;
+          const resourcesMaj = { ...(perso.resources || {}), pop: 0 };
+          await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { resources: resourcesMaj }).catch(() => {});
+        }
+        await sbInsert('evenements_globaux', {
+          country: vote.country, city: null,
+          texte: `🏛 Le Premier Ministre ${vote.pm_nom} n'a pas démissionné dans le délai de 48h suivant sa censure. Le gouvernement tout entier voit sa popularité s'effondrer.`,
+          jour: null
+        }).catch(() => {});
+        resultats.push({ vote_id: vote.id, pm: vote.pm_nom, consequence: 'pop_zero_appliquee' });
+      } else {
+        resultats.push({ vote_id: vote.id, pm: vote.pm_nom, consequence: 'pm_deja_demissionnaire' });
+      }
+
+      await sbUpdate('votes_confiance', `id=eq.${encodeURIComponent(vote.id)}`, { consequence_appliquee: true }).catch(() => {});
+    }
+  } catch(e) { console.error('appliquerConsequencesCensureEchues error', e); }
+  return resultats;
+}
+
 export default async function handler(req, res) {
   // Securite FAIL CLOSED (18 aout 2026, correctif suite a un declenchement accidentel reel en
   // production) : si CRON_SECRET n'est pas configure, aucune tache ne demarre -- l'ancien
@@ -3089,13 +3339,40 @@ export default async function handler(req, res) {
       let cycle;
       try { cycle = JSON.parse(row.data); } catch(e) { continue; }
 
+      const posteId = row.poste_id;
+      const country = row.country;
+      const ville = row.city || null;
+      const posteNom = POSTE_NOMS[posteId] || posteId;
+      const scope = POSTE_SCOPE[posteId] || 'national';
+
       // Renouvellement d'un mandat echu (titulaire PJ ou PNJ) — rouvre un cycle de
       // candidatures frais. C'etait la piece manquante du systeme electoral : sans ca,
       // un cycle resolu restait fige indefiniment (bug remonte le 8 aout 2026).
       if (cycle.phase === 'mandat' && cycle.dateFinMandat && now.getTime() >= cycle.dateFinMandat) {
-        const nouveauCycle = construireNouveauCycleElectoral(row.poste_id, row.city, now.getTime());
+        // Archive du mandat de maire (chantier "Hotel de Ville / elections", 4 septembre 2026) --
+        // seul le cas dominant (mandat arrive naturellement a echeance) est archive ici.
+        if (posteId === 'maire' && cycle.eluId) {
+          const estPJ = cycle.eluId !== PNJ_PAR_DEFAUT_POSTE.maire;
+          const debutTs = cycle.dateDebutMandatTs || (cycle.dateFinMandat - MANDAT_SEMAINES * SEMAINE_MS);
+          await archiverMandatMaireTermine(country, ville, cycle.eluId, estPJ, debutTs, cycle.dateFinMandat, cycle.indicateursDebutMandat);
+        }
+        const nouveauCycle = construireNouveauCycleElectoral(posteId, ville, now.getTime());
         await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycle), updated_at: now.toISOString() });
-        results.push({ poste: row.poste_id, country: row.country, city: row.city || null, statut: 'nouveau_cycle' });
+        results.push({ poste: posteId, country, city: ville, statut: 'nouveau_cycle' });
+        continue;
+      }
+
+      // Correctif P0 "cycle a 0 candidat bloque indefiniment" (audit du 4 septembre 2026) : un
+      // cycle 'vacant' (0 candidat OU 0 vote) ne restait auparavant jamais relance -- ni par ce
+      // bloc (qui ne verifiait que phase==='mandat'), ni par la cascade PNJ (qui exige
+      // resultatsTraites+pas d'eluId, mais ne couvre que president/maire). relancePossibleApres
+      // (pose plus bas au moment de la vacance, +24h) laisse une nuit complete a la cascade PNJ
+      // pour tenter de pourvoir le poste (president/maire) avant de relancer un cycle frais --
+      // jamais le meme soir que la vacance elle-meme, pour ne jamais court-circuiter cette cascade.
+      if (cycle.phase === 'vacant' && cycle.resultatsTraites && cycle.relancePossibleApres && now.getTime() >= cycle.relancePossibleApres) {
+        const nouveauCycleVacant = construireNouveauCycleElectoral(posteId, ville, now.getTime());
+        await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycleVacant), updated_at: now.toISOString() });
+        results.push({ poste: posteId, country, city: ville, statut: 'nouveau_cycle_apres_vacance' });
         continue;
       }
 
@@ -3103,67 +3380,159 @@ export default async function handler(req, res) {
       if (!dateResultats || now.getTime() < dateResultats) continue; // Pas encore échu
       if (cycle.resultatsTraites) continue; // Déjà traité
 
-      const posteId = row.poste_id;
-      const country = row.country;
-      const posteNom = POSTE_NOMS[posteId] || posteId;
-      const scope = POSTE_SCOPE[posteId] || 'national';
+      // Fraudes non revelees de CE scrutin precis (cle = date de creation du cycle, stable a
+      // travers les renouvellements -- voir chargerFraudesActivesServer).
+      const cycleDebutCle = cycle.dateDebutCandidatures || row.id;
+      const fraudesActives = await chargerFraudesActivesServer(country, posteId, ville, cycleDebutCle);
 
-      const resultat = calculerResultatsServer(cycle);
-      if (!resultat) continue;
-
-      if (resultat.elu) {
-        // Élu au tour actuel — mandat de MANDAT_SEMAINES semaines, renouvelle automatiquement
-        // a echeance (voir le bloc de renouvellement plus haut dans cette meme boucle).
-        cycle.eluId = resultat.elu;
-        cycle.resultatsTraites = true;
-        cycle.phase = 'mandat';
-        cycle.dateFinMandat = now.getTime() + MANDAT_SEMAINES * SEMAINE_MS;
-
-        const villeLabel = row.city ? ` (${row.city})` : '';
-        const pourcentageVoix = Math.round((resultat.scores[resultat.elu]/resultat.totalVoix)*100);
-        const texte = `🗳️ RÉSULTATS : ${resultat.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.`;
-        await sbInsert('evenements_globaux', {
-          country, city: scope === 'local' ? (row.city || null) : null,
-          texte, jour: null
-        });
-        // chronique_nationale (chantier "refonte Tribune", 4 septembre 2026) : historisation
-        // permanente du resultat -- cycles_electoraux ecrase l'etat precedent au cycle suivant,
-        // seule cette ligne d'historique survit pour le Journal (source cle stable
-        // country+poste_id+city+row.id pour eviter tout doublon si ce passage de cron est rejoue).
-        await sbInsert('chronique_nationale', {
-          id: `election-${row.id}-${cycle.dateResultats}`,
-          country, city: scope === 'local' ? (row.city || null) : null,
-          type: 'election_resultat',
-          personnages: [resultat.elu],
-          libelle: `${resultat.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.`,
-          data: { poste_id: posteId, elu: resultat.elu, pourcentage_voix: pourcentageVoix, cycle_row_id: row.id },
-          source_ref: row.id
-        }).catch(e => console.error('chronique_nationale (election_resultat) error', e));
-        results.push({ poste: posteId, country, city: row.city || null, statut: 'elu', gagnant: resultat.elu });
-      } else if (resultat.secondTour.length >= 2) {
-        // Second tour
-        const semaine = 7 * 24 * 60 * 60 * 1000;
-        cycle.tour = 2;
-        cycle.candidats = resultat.secondTour.map(nom => ({ nom, voix: 0 }));
-        cycle.votes = {};
-        cycle.votesPNJ = {};
-        cycle.dateDebutCampagne = now.getTime();
-        cycle.dateVote = now.getTime() + semaine;
-        cycle.dateResultats = now.getTime() + semaine + 24*60*60*1000;
-        cycle.phase = 'second_tour';
-
-        const villeLabel2 = row.city ? ` (${row.city})` : '';
-        const texte = `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}${villeLabel2}. Second tour entre ${resultat.secondTour.join(' et ')}.`;
-        await sbInsert('evenements_globaux', {
-          country, city: scope === 'local' ? (row.city || null) : null,
-          texte, jour: null
-        });
-        results.push({ poste: posteId, country, city: row.city || null, statut: 'second_tour', candidats: resultat.secondTour });
+      if (posteId === 'depute') {
+        // ================= LEGISLATIVES : 3 sieges reels par ville =================
+        if (cycle.phase === 'vote_3e_siege') {
+          // Resolution du second tour PARTIEL (candidats deja restreints aux ex aequo) : simple
+          // classement par voix parmi le pool restreint, top N = sieges encore a attribuer.
+          const scoresRunoff = {};
+          (cycle.candidats || []).forEach(c => { scoresRunoff[c.nom] = 0; });
+          Object.values(cycle.votes || {}).forEach(n => { if (n !== 'BLANC' && scoresRunoff[n] !== undefined) scoresRunoff[n]++; });
+          Object.values(cycle.votesPNJ || {}).forEach(n => { if (n !== 'BLANC' && scoresRunoff[n] !== undefined) scoresRunoff[n]++; });
+          fraudesActives.forEach(f => { if (scoresRunoff[f.candidat] !== undefined) scoresRunoff[f.candidat] = Math.max(0, scoresRunoff[f.candidat] + f.delta_voix); });
+          const sortedRunoff = Object.entries(scoresRunoff).sort((a, b) => b[1] - a[1]);
+          const gagnantsRunoff = sortedRunoff.slice(0, cycle.siegesRestantsRunoff || 1).map(([n]) => n);
+          let elusFinaux = [...(cycle.elusPartiels || []), ...gagnantsRunoff];
+          if (elusFinaux.length < 3) {
+            const pool = (PNJ_DEPUTES_PAR_VILLE[ville] || []).filter(n => !elusFinaux.includes(n));
+            while (elusFinaux.length < 3 && pool.length) elusFinaux.push(pool.shift());
+          }
+          cycle.elus = elusFinaux;
+          cycle.elusPartiels = null;
+          cycle.siegesRestantsRunoff = null;
+          cycle.resultatsTraites = true;
+          cycle.phase = 'mandat';
+          cycle.dateDebutMandatTs = now.getTime();
+          cycle.dateFinMandat = now.getTime() + MANDAT_SEMAINES * SEMAINE_MS;
+          const texte3 = `🗳️ RÉSULTATS (3e siège, égalité tranchée) : ${gagnantsRunoff.join(', ') || 'aucun candidat'} — Assemblée de ${ville}.`;
+          await sbInsert('evenements_globaux', { country, city: ville, texte: texte3, jour: null }).catch(() => {});
+          await sbInsert('chronique_nationale', {
+            id: `election-${row.id}-${cycle.dateResultats}-3e`,
+            country, city: ville, type: 'election_resultat',
+            personnages: elusFinaux,
+            libelle: `Assemblée de ${ville} : ${elusFinaux.join(', ')} sont élu(e)s député(e)s (3 sièges).`,
+            data: { poste_id: 'depute', elus: elusFinaux, cycle_row_id: row.id }, source_ref: row.id
+          }).catch(() => {});
+          results.push({ poste: 'depute', country, city: ville, statut: 'elu_3e_siege', elus: elusFinaux });
+        } else {
+          const resultatDepute = resoudreScrutinDepute(cycle, fraudesActives);
+          if (!resultatDepute || resultatDepute.totalExprimes === 0) {
+            cycle.resultatsTraites = true;
+            cycle.phase = 'vacant';
+            cycle.relancePossibleApres = now.getTime() + 24 * 60 * 60 * 1000;
+            results.push({ poste: 'depute', country, city: ville, statut: 'vacant' });
+          } else if (resultatDepute.blancMajoritaire) {
+            const nouveauCycleBlanc = construireNouveauCycleElectoral('depute', ville, now.getTime());
+            await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycleBlanc), updated_at: now.toISOString() });
+            await sbInsert('evenements_globaux', { country, city: ville, texte: `🗳️ VOTE BLANC MAJORITAIRE : les élections législatives de ${ville} sont invalidées, un nouveau cycle est lancé.`, jour: null }).catch(() => {});
+            results.push({ poste: 'depute', country, city: ville, statut: 'invalide_vote_blanc' });
+            continue;
+          } else if (resultatDepute.egalite3eSiege) {
+            const candidatsExistants = cycle.candidats || [];
+            cycle.elusPartiels = resultatDepute.elus;
+            cycle.siegesRestantsRunoff = resultatDepute.egalite3eSiege.siegesRestants;
+            cycle.candidats = resultatDepute.egalite3eSiege.candidats.map(nom => ({
+              nom, programme: (candidatsExistants.find(c => c.nom === nom) || {}).programme || ''
+            }));
+            cycle.votes = {};
+            cycle.votesPNJ = {};
+            // Marqueur persiste "ceci est un second tour partiel 3e siege" -- la phase AFFICHEE
+            // (campagne vs vote) est recalculee dynamiquement par date dans getPhaseActuelle,
+            // exactement comme pour le second tour normal (cycle.phase='second_tour' -> SECOND_TOUR
+            // puis VOTE2). Correctif du 4 septembre 2026 : la premiere version posait dateVote=now,
+            // sautant directement au vote sans les 7 jours de campagne pourtant prevus par le
+            // cahier des charges -- memes durees que le second tour normal desormais (SEMAINE_MS
+            // de campagne puis 24h de vote), seuls les candidats ex aequo participent.
+            cycle.phase = 'vote_3e_siege';
+            cycle.dateDebutCampagne = now.getTime();
+            cycle.dateVote = now.getTime() + SEMAINE_MS;
+            cycle.dateResultats = now.getTime() + SEMAINE_MS + 24 * 60 * 60 * 1000;
+            await sbInsert('evenements_globaux', { country, city: ville, texte: `🗳️ ÉGALITÉ pour le dernier siège de député de ${ville} : second tour entre ${resultatDepute.egalite3eSiege.candidats.join(' et ')} (campagne d'une semaine, puis 24h de vote).`, jour: null }).catch(() => {});
+            results.push({ poste: 'depute', country, city: ville, statut: 'egalite_3e_siege', candidats: resultatDepute.egalite3eSiege.candidats });
+          } else {
+            let elusFinaux2 = resultatDepute.elus.slice();
+            if (elusFinaux2.length < 3) {
+              const pool2 = (PNJ_DEPUTES_PAR_VILLE[ville] || []).filter(n => !elusFinaux2.includes(n));
+              while (elusFinaux2.length < 3 && pool2.length) elusFinaux2.push(pool2.shift());
+            }
+            cycle.elus = elusFinaux2;
+            cycle.resultatsTraites = true;
+            cycle.phase = 'mandat';
+            cycle.dateDebutMandatTs = now.getTime();
+            cycle.dateFinMandat = now.getTime() + MANDAT_SEMAINES * SEMAINE_MS;
+            const texte2 = `🗳️ RÉSULTATS : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s de ${ville} (3 sièges).`;
+            await sbInsert('evenements_globaux', { country, city: ville, texte: texte2, jour: null }).catch(() => {});
+            await sbInsert('chronique_nationale', {
+              id: `election-${row.id}-${cycle.dateResultats}`,
+              country, city: ville, type: 'election_resultat',
+              personnages: elusFinaux2,
+              libelle: `Assemblée de ${ville} : ${elusFinaux2.join(', ')} sont élu(e)s député(e)s (3 sièges).`,
+              data: { poste_id: 'depute', elus: elusFinaux2, cycle_row_id: row.id }, source_ref: row.id
+            }).catch(() => {});
+            results.push({ poste: 'depute', country, city: ville, statut: 'elu', elus: elusFinaux2 });
+          }
+        }
       } else {
-        // Pas de résultat exploitable (0 candidat ou 0 vote) — poste vacant
-        cycle.resultatsTraites = true;
-        cycle.phase = 'vacant';
-        results.push({ poste: posteId, country, statut: 'vacant' });
+        // ================= PRESIDENT / MAIRE / CHEF SYNDICAL : siege unique =================
+        const resultatSimple = resoudreScrutinSimple(cycle, fraudesActives);
+        if (!resultatSimple || resultatSimple.totalExprimes === 0) {
+          cycle.resultatsTraites = true;
+          cycle.phase = 'vacant';
+          cycle.relancePossibleApres = now.getTime() + 24 * 60 * 60 * 1000;
+          results.push({ poste: posteId, country, city: ville, statut: 'vacant' });
+        } else if (resultatSimple.blancMajoritaire) {
+          const nouveauCycleBlanc2 = construireNouveauCycleElectoral(posteId, ville, now.getTime());
+          await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(nouveauCycleBlanc2), updated_at: now.toISOString() });
+          await sbInsert('evenements_globaux', { country, city: scope === 'local' ? ville : null, texte: `🗳️ VOTE BLANC MAJORITAIRE : l'élection de ${posteNom} est invalidée, un nouveau cycle est lancé.`, jour: null }).catch(() => {});
+          results.push({ poste: posteId, country, city: ville, statut: 'invalide_vote_blanc' });
+          continue;
+        } else if (resultatSimple.elu) {
+          cycle.eluId = resultatSimple.elu;
+          cycle.resultatsTraites = true;
+          cycle.phase = 'mandat';
+          cycle.dateDebutMandatTs = now.getTime();
+          cycle.dateFinMandat = now.getTime() + MANDAT_SEMAINES * SEMAINE_MS;
+          if (posteId === 'maire') {
+            cycle.indicateursDebutMandat = await capturerIndicateursMunicipaux(country, ville).catch(() => null);
+          }
+          const villeLabel = ville ? ` (${ville})` : '';
+          const pourcentageVoix = Math.round((resultatSimple.scores[resultatSimple.elu] / resultatSimple.totalExprimes) * 100);
+          const texte = `🗳️ RÉSULTATS : ${resultatSimple.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.`;
+          await sbInsert('evenements_globaux', { country, city: scope === 'local' ? ville : null, texte, jour: null });
+          // chronique_nationale (chantier "refonte Tribune", 4 septembre 2026) : historisation
+          // permanente du resultat -- cycles_electoraux ecrase l'etat precedent au cycle suivant,
+          // seule cette ligne d'historique survit pour le Journal (source cle stable
+          // country+poste_id+city+row.id pour eviter tout doublon si ce passage de cron est rejoue).
+          await sbInsert('chronique_nationale', {
+            id: `election-${row.id}-${cycle.dateResultats}`,
+            country, city: scope === 'local' ? ville : null,
+            type: 'election_resultat',
+            personnages: [resultatSimple.elu],
+            libelle: `${resultatSimple.elu} est élu(e) ${posteNom}${villeLabel} avec ${pourcentageVoix}% des voix.`,
+            data: { poste_id: posteId, elu: resultatSimple.elu, pourcentage_voix: pourcentageVoix, cycle_row_id: row.id },
+            source_ref: row.id
+          }).catch(e => console.error('chronique_nationale (election_resultat) error', e));
+          results.push({ poste: posteId, country, city: ville, statut: 'elu', gagnant: resultatSimple.elu });
+        } else if (resultatSimple.secondTour.length >= 2) {
+          const candidatsExistantsSimple = cycle.candidats || [];
+          cycle.tour = 2;
+          cycle.candidats = resultatSimple.secondTour.map(nom => ({ nom, voix: 0, programme: (candidatsExistantsSimple.find(c => c.nom === nom) || {}).programme || '' }));
+          cycle.votes = {};
+          cycle.votesPNJ = {};
+          cycle.dateDebutCampagne = now.getTime();
+          cycle.dateVote = now.getTime() + SEMAINE_MS;
+          cycle.dateResultats = now.getTime() + SEMAINE_MS + 24 * 60 * 60 * 1000;
+          cycle.phase = 'second_tour';
+          const villeLabel2 = ville ? ` (${ville})` : '';
+          const texteST = `🗳️ SECOND TOUR : Aucune majorité absolue pour ${posteNom}${villeLabel2}. Second tour entre ${resultatSimple.secondTour.join(' et ')}.`;
+          await sbInsert('evenements_globaux', { country, city: scope === 'local' ? ville : null, texte: texteST, jour: null });
+          results.push({ poste: posteId, country, city: ville, statut: 'second_tour', candidats: resultatSimple.secondTour });
+        }
       }
 
       // Sauvegarder le cycle mis à jour
@@ -3180,6 +3549,12 @@ export default async function handler(req, res) {
     // 1c. Priorite PJ sur postes nommes : candidatures ayant depasse leur fenetre de decision
     // de 48h (lot du 25 aout 2026, apres audit dedie) — tirage au sort + sanction eventuelle.
     const candidaturesPostesExpirees = await traiterCandidaturesPostesExpirees();
+
+    // 1d. Vote de confiance — resolution des votes echus (48h reelles) + consequence differee
+    // de la censure (chantier "Hotel de Ville / elections", 4 septembre 2026 : mecanique
+    // entierement cassee auparavant, aucune fonction de persistance/cloture n'existait).
+    const votesConfianceResolus = await resoudreVotesConfianceEchusServeur(now.getTime());
+    const consequencesCensure = await appliquerConsequencesCensureEchues(now.getTime());
 
     // 2. Purger les mails de plus de 14 jours, non archives (recus ET envoyes)
     const mailsSuppres = await purgerVieuxMails();
@@ -3295,7 +3670,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

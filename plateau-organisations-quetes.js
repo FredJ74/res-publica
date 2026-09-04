@@ -47,12 +47,18 @@ async function getTitulaireActuel(posteId, city, pays) {
   // joueurs, qui ne se met a jour qu'a LEUR prochaine connexion, voir appliquerVictoireElectorale).
   const villeCycle = (posteId === 'maire' || posteId === 'depute') ? (city || state.currentCity) : null;
   const cle = typeof getCleCycle === 'function' ? getCleCycle(posteId, villeCycle) : posteId;
-  let eluId = CYCLES_ELECTORAUX?.[country]?.[cle]?.eluId;
+  // Depute (chantier "Hotel de Ville / elections", 4 septembre 2026) : 3 sieges reels par ville,
+  // stockes dans cycle.elus (tableau), jamais cycle.eluId (reserve aux postes a siege unique).
+  // Cette fonction ne retourne jamais qu'UN SEUL titulaire par contrat -- repli defensif sur le
+  // premier siege pourvu du tableau pour tout appelant generique ; l'organigramme national (qui a
+  // besoin des 3 sieges) lit cycle.elus directement, sans passer par ici.
+  const lireEluDuCycle = c => posteId === 'depute' ? (Array.isArray(c?.elus) ? c.elus.find(Boolean) : undefined) : c?.eluId;
+  let eluId = lireEluDuCycle(CYCLES_ELECTORAUX?.[country]?.[cle]);
   if (eluId === undefined && typeof sbLoadCyclesElectoraux === 'function') {
     const cycles = await sbLoadCyclesElectoraux(country).catch(() => null);
     if (cycles) {
       CYCLES_ELECTORAUX[country] = { ...(CYCLES_ELECTORAUX[country]||{}), ...cycles };
-      eluId = cycles[cle]?.eluId;
+      eluId = lireEluDuCycle(cycles[cle]);
     }
   }
   if (!eluId) return null;

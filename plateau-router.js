@@ -285,7 +285,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'prendre_train')          { ouvrirModalTransport('train'); return; }
   if (fn === 'taxi_caserne')           { doTaxiSpecial('caserne', pa, cost); return; }
   if (fn === 'passer_douanes_aeroport'){ doPasserDouanesAeroport(); return; }
-  if (fn === 'organigramme')           { ouvrirOrganigramme(); return; }
   if (fn === 'consulter_organigramme_mairie') { ouvrirOrganigrammeMairie(); return; }
   if (fn === 'louer_local')              { ouvrirModalLouerLocal(pa, cost); return; }
   if (fn === 'gerer_local')              { ouvrirModalGererLocal(); return; }
@@ -315,7 +314,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'decret_inutile')         { signerDecretInutile(pa, cost); return; }
   if (fn === 'elections_tableau')      { ouvrirTableauElectoral(); return; }
   if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
-  if (fn === 'deposer_candidature')    { deposerCandidature('maire', state.country, state.currentCity); return; }
   if (fn === 'escort_infos')           { doEscortInfos(); return; }
   if (fn === 'escort_piege')           { doEscortPiege(pa, cost); return; }
   if (fn === 'recruter_informateur_1') { consulterInformateur(1); return; }
@@ -360,11 +358,18 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_indices_locaux'){ doConsulterIndicesLocaux(); return; }
   if (fn === 'campagne_securite')      { doCampagneSecurite(); return; }
   if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(pa, cost); return; }
-  if (fn === 'contester_resultats')    { ouvrirContesterResultats(pa, cost); return; }
   if (fn === 'calendrier_elections')   { ouvrirCalendrierElectoral(); return; }
   if (fn === 'observer_debats')         { observerDebats(pa, cost); return; }
-  if (fn === 'consulter_annuaire_deputes') { consulterAnnuaireDeputes(); return; }
   if (fn === 'objet_trouve')            { reclamerObjetTrouve(pa, cost); return; }
+  // Salle des elections centralisee (chantier "Hotel de Ville / elections", 4 septembre 2026) :
+  // remplace l'ancien "Deposer une candidature" (code en dur sur 'maire') et unifie les 2
+  // versions incoherentes de contester_resultats -- voir plateau-politique.js.
+  if (fn === 'voter_election')          { ouvrirVoterElection(); return; }
+  if (fn === 'se_porter_candidat')      { ouvrirSePorterCandidat(); return; }
+  if (fn === 'contester_resultats')     { ouvrirContesterResultatsElection(pa, cost); return; }
+  if (fn === 'falsifier_listes_electorales') { ouvrirFalsifierListesElectorales(pa, cost); return; }
+  if (fn === 'bourrer_urnes')           { ouvrirBourrerUrnes(pa, cost); return; }
+  if (fn === 'truquer_depouillement')   { ouvrirTruquerDepouillement(pa, cost); return; }
   if (fn === 'voter_loi')              { ouvrirVoteLoi(pa, cost); return; }
   if (fn === 'deposer_projet')         { ouvrirDeposerProjet(); return; }
   if (fn === 'ecouter_rumeurs')        { ecouterRumeurs(successRate, pa, cost); return; }

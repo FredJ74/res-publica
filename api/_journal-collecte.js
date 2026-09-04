@@ -556,7 +556,9 @@ const TYPES_CHRONIQUE = {
   organisation_dissolution:    { domaine: 'organisations',  poidsBase: 'mineur',      cransPJ: 1 },
   organisation_chef_change:    { domaine: 'organisations',  poidsBase: 'mineur',      cransPJ: 1 },
   entreprise_rachat:           { domaine: 'economie',       poidsBase: 'mineur',      cransPJ: 1 },
-  lobbying_article_favorable:  { domaine: 'presse',         poidsBase: 'secondaire',  cransPJ: 1 }
+  lobbying_article_favorable:  { domaine: 'presse',         poidsBase: 'secondaire',  cransPJ: 1 },
+  fraude_electorale_dejouee:   { domaine: 'politique',      poidsBase: 'majeur',      cransPJ: 2 },
+  fraude_electorale_revelee:   { domaine: 'politique',      poidsBase: 'majeur',      cransPJ: 2 }
 };
 async function collecterChroniqueNationale(periode, pays, personnagesConnus) {
   const f = filtrePeriode(periode);
