@@ -424,10 +424,26 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 }
 .tribune-fronton{
   position:sticky; top:0; z-index:5; background:var(--tr-bg); border-bottom:2px solid var(--tr-ink);
-  padding:.9rem 1.2rem .7rem; text-align:center;
+  padding:.9rem 3rem .7rem; text-align:center;
 }
 .tribune-fronton-titre{font-family:'Playfair Display',serif;font-weight:700;font-size:1.7rem;letter-spacing:.02em;color:var(--tr-ink)}
 .tribune-fronton-sub{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tr-ink3);margin-top:.15rem}
+/* Fermeture portee par le fronton lui-meme (correctif UX du 4 septembre 2026, diagnostic
+   production "fenetre dans une fenetre") : .tribune-fronton devient LE seul en-tete visuel du
+   lecteur, jamais un second bandeau empile sur .modal-header generique (voir .journal-mode
+   ci-dessous) -- une seule hierarchie visuelle, fermeture toujours visible en coin superieur
+   droit du masthead. Delegue au vrai bouton .modal-close existant (voir construireHtmlJournalDuJour,
+   plateau-politique.js) : jamais de logique de fermeture dupliquee. */
+.tribune-fronton-close{
+  position:absolute; top:.7rem; right:.9rem; width:2rem; height:2rem; display:flex;
+  align-items:center; justify-content:center; background:transparent; border:1px solid var(--tr-rule);
+  border-radius:50%; color:var(--tr-ink2); cursor:pointer; font-size:1rem; line-height:1;
+}
+.tribune-fronton-close:hover{color:var(--tr-accent); border-color:var(--tr-accent)}
+@media (max-width:480px){
+  .tribune-fronton{padding-left:2.4rem; padding-right:2.4rem}
+  .tribune-fronton-close{width:1.7rem; height:1.7rem; font-size:.85rem; top:.6rem; right:.6rem}
+}
 .tribune-contenu{padding:1.2rem 1.3rem 2rem}
 .tribune-une{padding-bottom:1.1rem;margin-bottom:1.1rem;border-bottom:3px double var(--tr-ink)}
 .tribune-une-image{width:100%;max-height:220px;object-fit:cover;margin-bottom:.8rem;border:1px solid var(--tr-rule)}
@@ -496,6 +512,16 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 #modal-postes .modal-header.journal-drag-active{cursor:grab;user-select:none}
 #modal-postes .modal-header.journal-drag-active .modal-close{cursor:pointer}
 #modal-postes .modal-header.journal-drag-active.dragging{cursor:grabbing}
+/* Hierarchie visuelle unique -- Journal du jour uniquement (correctif UX du 4 septembre 2026,
+   diagnostic production "fenetre dans une fenetre") : posee/retiree par afficherJournalDuJour()
+   (plateau-politique.js) UNIQUEMENT quand une vraie edition s'affiche. Masque le bandeau
+   generique (titre "Journal du jour" + croix) : .tribune-fronton porte alors seul le role
+   d'en-tete (identite du journal + fermeture, voir .tribune-fronton-close), plus jamais deux
+   bandeaux sticky empiles. Jamais appliquee aux autres usages de #modal-postes. */
+.modal-box.journal-mode .modal-header{display:none}
+#modal-postes .tribune-fronton.journal-drag-active{cursor:grab;user-select:none}
+#modal-postes .tribune-fronton.journal-drag-active .tribune-fronton-close{cursor:pointer}
+#modal-postes .tribune-fronton.journal-drag-active.dragging{cursor:grabbing}
 .modal-body{padding:1rem 1.1rem}
 
 /* PNJ MODAL */

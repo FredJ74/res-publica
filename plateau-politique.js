@@ -2698,7 +2698,12 @@ function construireHtmlJournalDuJour(edition) {
   const articles = Array.isArray(dp.articles) ? dp.articles : [];
 
   let html = `<div class="tribune-republia">`;
+  // Fermeture portee par le fronton lui-meme (correctif UX du 4 septembre 2026) : delegue au VRAI
+  // bouton .modal-close existant (jamais de logique de fermeture dupliquee) -- .modal-header est
+  // masque quand une edition s'affiche (voir .journal-mode, style.css), donc ce bouton devient
+  // l'unique moyen de fermer visible.
   html += `<div class="tribune-fronton">
+    <button type="button" class="tribune-fronton-close" onclick="document.querySelector('#modal-postes .modal-close')?.click()" aria-label="Fermer">✕</button>
     <div class="tribune-fronton-titre">La Tribune de Républia</div>
     <div class="tribune-fronton-sub">Quotidien national · Édition du ${dateFr}</div>
   </div>`;
@@ -2762,9 +2767,14 @@ function construireHtmlJournalDuJour(edition) {
 // mobile du contenu (voir §6 du correctif -- limite volontaire, pas un oubli).
 let _journalDragCleanup = null;
 
-function activerDragJournal() {
+// headerSelector (correctif UX du 4 septembre 2026) : quand une vraie edition s'affiche,
+// .modal-header generique est masque (.journal-mode, voir style.css) et .tribune-fronton devient
+// le seul en-tete visuel -- la poignee de glisser-deposer doit donc suivre, sous peine de rendre
+// la fenetre non deplacable par un en-tete devenu invisible. Repli sur '.modal-header' par defaut
+// (etat de chargement, ou message "aucun numero disponible" ou aucun .tribune-fronton n'existe).
+function activerDragJournal(headerSelector) {
   desactiverDragJournal(); // jamais deux ecouteurs empiles sur des ouvertures successives
-  const header = document.querySelector('#modal-postes .modal-header');
+  const header = document.querySelector('#modal-postes ' + (headerSelector || '.modal-header'));
   const box = document.querySelector('#modal-postes .modal-box');
   if (!header || !box) return;
   header.classList.add('journal-drag-active');
@@ -2773,7 +2783,7 @@ function activerDragJournal() {
   const MARGE_MIN_VISIBLE = 160; // largeur minimale de la barre toujours accessible a l'ecran (§4)
 
   function onMouseDown(e) {
-    if (e.target.closest('.modal-close')) return; // la croix ferme, ne demarre jamais un drag
+    if (e.target.closest('.modal-close, .tribune-fronton-close')) return; // la croix ferme, ne demarre jamais un drag
     if (typeof e.button === 'number' && e.button !== 0) return; // clic gauche uniquement
     const rect = box.getBoundingClientRect();
     // Bascule d'un positionnement centre (flex, .modal-overlay) vers un positionnement fixe
@@ -2829,6 +2839,25 @@ function desactiverDragJournal() {
   if (_journalDragCleanup) { _journalDragCleanup(); _journalDragCleanup = null; }
 }
 
+// Date d'edition du jour, au sens du Journal (correctif du 4 septembre 2026, diagnostic
+// production) : reproduit EXACTEMENT dateEditionPourPays() cote serveur (api/_journal-
+// generation.js) -- meme fuseau (TIMEZONE_PAR_PAYS, Europe/Paris pour tous les pays actuels),
+// meme format 'YYYY-MM-DD' (Intl.DateTimeFormat('en-CA', ...)). Ne JAMAIS utiliser state.day ici
+// (compteur de jours de jeu personnel au joueur, sans rapport avec la date calendaire reelle a
+// laquelle une edition a ete generee) -- doctrine deja etablie ailleurs dans ce fichier pour les
+// memes raisons (cycles electoraux, votes de confiance...).
+function dateEditionAujourdhui(country) {
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' });
+  return fmt.format(new Date());
+}
+
+// Version de schema editorial attendue par construireHtmlJournalDuJour() -- DOIT rester
+// synchronisee avec PROMPT_VERSION cote serveur (api/_journal-generation.js). Une edition dont le
+// prompt_version differe (ex. 'v1', ancien format villes/nationale/internationale) n'est jamais
+// selectionnee ici : correctif du 4 septembre 2026, le renderer actuel ne sait pas lire ce format
+// (confirme par diagnostic : rendu a 304 caracteres, quasiment vide, sur une vraie edition v1).
+const PROMPT_VERSION_JOURNAL_ATTENDU = 'v2-la-tribune';
+
 // force=true (chantier "acces depuis le journal d'evenements", 1er septembre 2026) : contourne
 // le garde-fou "une seule fois par jour" ci-dessous, reserve a l'ouverture automatique au
 // chargement (plateau-core.js). Le lien "Lire le Journal du jour" pose dans le journal
@@ -2846,14 +2875,24 @@ async function afficherJournalDuJour(force) {
     '<div style="padding:1.2rem 1rem;font-style:italic;color:#8a8060">Chargement…</div>';
   document.querySelector('#modal-postes .modal-box')?.classList.add('modal-wide');
   document.getElementById('modal-postes').classList.add('open');
-  activerDragJournal();
+  activerDragJournal(); // etat de chargement : poignee sur .modal-header, seul en-tete existant a cet instant
 
+  // Selection STRICTE : edition publiee, DATEE d'aujourd'hui (jamais "la derniere connue, aussi
+  // ancienne soit-elle"), ET dans le format attendu par le renderer actuel -- correctif du 4
+  // septembre 2026 (diagnostic production : l'ancienne requete remontait silencieusement une
+  // edition v1 vieille de 9 jours, faute de filtre sur la date ou le format). Aucune tolerance
+  // "N jours d'anciennete" : soit l'edition du jour existe et correspond au format actuel, soit
+  // aucun numero n'est affiche.
   let edition = null;
   if (typeof sbGet === 'function') {
     try {
+      const dateAujourdhui = dateEditionAujourdhui(state.country);
       const rows = await sbGet('journal_editions',
         'country=eq.' + encodeURIComponent(state.country) +
-        '&statut=eq.publiee&order=date_edition.desc&limit=1');
+        '&statut=eq.publiee' +
+        '&date_edition=eq.' + encodeURIComponent(dateAujourdhui) +
+        '&prompt_version=eq.' + encodeURIComponent(PROMPT_VERSION_JOURNAL_ATTENDU) +
+        '&limit=1');
       edition = (rows && rows[0]) || null;
     } catch(e) { console.warn('afficherJournalDuJour error', e); }
   }
@@ -2861,6 +2900,16 @@ async function afficherJournalDuJour(force) {
   document.getElementById('postes-body').innerHTML = edition
     ? construireHtmlJournalDuJour(edition)
     : '<div style="padding:1.2rem 1rem;font-style:italic;color:#8a8060">Aucun numéro n\'est encore disponible pour aujourd\'hui.</div>';
+
+  // Hierarchie visuelle unique (correctif UX du 4 septembre 2026, diagnostic production "fenetre
+  // dans une fenetre") : uniquement quand une vraie edition s'affiche, .tribune-fronton devient LE
+  // seul en-tete visuel -- .modal-header generique est masque (voir .journal-mode, style.css) et la
+  // poignee de glisser-deposer est re-armee sur .tribune-fronton (seul element visible portant
+  // desormais le role d'en-tete). Jamais applique pour le message de repli "aucun numero
+  // disponible" : il n'existe alors aucun .tribune-fronton, .modal-header doit rester visible et
+  // porter la fermeture/le drag comme avant.
+  document.querySelector('#modal-postes .modal-box')?.classList.toggle('journal-mode', !!edition);
+  activerDragJournal(edition ? '.tribune-fronton' : '.modal-header');
 
   // Point d'acces depuis le journal d'evenements (chantier 1er septembre 2026) : reutilise
   // exactement addJournalEntry() (jamais un second mecanisme de journal) et

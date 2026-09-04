@@ -143,6 +143,21 @@ function construireAiInput(paquet, dateEdition, dejaCouvert) {
   };
 }
 
+// Copie ALLEGEE de aiInput pour le SEUL appel reel a l'IA (correctif du 4 septembre 2026, apres
+// diagnostic d'une panne de generation en production) : photo_url (portrait d'un PJ, attache a
+// chaque FACT/PUBLIC_STATEMENT par identifierActeur) peut etre une image encodee en base64 -- 200
+// Ko releves sur un seul personnage -- qui n'apporte RIEN au modele (il ecrit du texte, il ne
+// "voit" jamais l'image) mais avait fait gonfler le prompt jusqu'a 964k-1,1M tokens (limite reelle :
+// 200k), en echec total depuis le 1er septembre. Ne JAMAIS utiliser cette version allegee pour
+// indexerAiInput/validerEdition : validerImage() a besoin de savoir si un photo_url REEL existe pour
+// valider qu'un choix d'image "personnage" fait par l'IA correspond a un PJ avec portrait connu --
+// aiInput (complet, avec photo_url) reste donc l'unique source de verite pour la validation et
+// l'archivage ; seul le texte effectivement envoye au modele est allege ici.
+function retirerPhotosPourAppelIA(aiInput) {
+  const alleger = items => (items || []).map(({ photo_url, ...reste }) => reste);
+  return { ...aiInput, FACTS: alleger(aiInput.FACTS), PUBLIC_STATEMENTS: alleger(aiInput.PUBLIC_STATEMENTS) };
+}
+
 // Digest anti-repetition (chantier refonte, 4 septembre 2026) : resume, en donnees, ce qui a deja
 // ete publie lors des editions RECENTES (par defaut les 5 dernieres) -- jamais laisse a la
 // "memoire" de l'IA (un seul appel par jour, aucune memoire persistante reelle). Reconstruit a
@@ -873,10 +888,16 @@ async function genererEditionPays(pays) {
 
     const dejaCouvert = await chargerDigestDejaCouvert(pays, dateEdition);
     const aiInput = construireAiInput(paquet, dateEdition, dejaCouvert);
-    const faitsSourcesArchive = { ...paquet, AI_INPUT: aiInput };
+    // AI_INPUT n'est archive nulle part ici (correctif du 4 septembre 2026) : jamais lu par aucun
+    // mecanisme (renderer client, digest anti-repetition, validation) -- confirme par recherche
+    // exhaustive avant suppression -- c'etait un doublon integral de FACTS/PUBLIC_STATEMENTS
+    // (avec leurs photo_url), doublant inutilement la taille de chaque ligne journal_editions.
+    // paquet.FACTS/PUBLIC_STATEMENTS (avec photo_url intact) restent archives normalement ci-dessous
+    // pour le rendu client (construireIndexFaitsJournal) et l'anti-repetition (chargerDigestDejaCouvert).
+    const faitsSourcesArchive = { ...paquet };
 
     const systemPrompt = construirePromptSysteme(pays, dateEdition, hasPJMaterial(aiInput));
-    const appel = await appelAnthropic(systemPrompt, aiInput, ANTHROPIC_TIMEOUT_MS);
+    const appel = await appelAnthropic(systemPrompt, retirerPhotosPourAppelIA(aiInput), ANTHROPIC_TIMEOUT_MS);
 
     if (!appel.ok) {
       await sbUpdate('journal_editions', `id=eq.${encodeURIComponent(id)}`, {
