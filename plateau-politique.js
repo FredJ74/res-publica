@@ -3099,6 +3099,13 @@ function renderRoomActions(room, buildingId, roomId) {
       if (o.requiresPost === true) {
         // Juste avoir un poste
         needsPost = !state.poste;
+      } else if (Array.isArray(o.requiresPost)) {
+        // Plusieurs postes valides (OR) -- chantier "Inspecter les troupes", 4 septembre 2026 :
+        // premier ordre du jeu ouvert a deux postes distincts (min_def ET commandant). Jamais de
+        // verification nominative supplementaire ici (idem tout requiresPost simple, revalidee
+        // cote handler).
+        const posteId = state.poste?.id || '';
+        needsPost = !o.requiresPost.includes(posteId);
       } else {
         // Verifier le poste specifique
         const posteId = state.poste?.id || '';
@@ -3319,9 +3326,12 @@ function renderRoomActions(room, buildingId, roomId) {
         min_def: 'Ministre de la Défense',
         min_info: "Ministre de l'Information",
         min_ae: 'Ministre des AE',
-        ambassadeur_local: "l'ambassadeur nommé pour ce bureau"
+        ambassadeur_local: "l'ambassadeur nommé pour ce bureau",
+        commandant: 'Commandant de la Caserne'
       };
-      const posteRequisNom = o.requiresPost === true ? 'un poste institutionnel' : (postesNoms[o.requiresPost] || o.requiresPost);
+      const posteRequisNom = o.requiresPost === true ? 'un poste institutionnel'
+        : Array.isArray(o.requiresPost) ? o.requiresPost.map(p => postesNoms[p] || p).join(' ou ')
+        : (postesNoms[o.requiresPost] || o.requiresPost);
       onclickFn = 'showPostRequired(' + JSON.stringify(posteRequisNom) + ')';
     } else if (needsSquat) {
       onclickFn = "showToast('Aucun squatteur', 'Aucun squatteur a negocier sur ce terrain pour l\\'instant.', false)";
@@ -8445,6 +8455,196 @@ async function payerSoldeQuotidienne(pays) {
   if (montantVerse < totalDu) {
     addExternalEvent('⚠️ La solde des troupes de ' + (COUNTRIES[pays]?.n||pays) + ' n\'a pu être versée qu\'en partie faute de budget suffisant.');
   }
+}
+
+// ---- INSPECTION DES TROUPES (chantier "Inspecter les troupes", 4 septembre 2026) : remplace
+// l'ancien ordre unique (fn dispatche vers doInspecterTroupes, jamais defini nulle part dans le
+// code -- le bouton etait casse en production, tout clic levait une ReferenceError sans jamais
+// debiter de PA ni accorder d'INF). Deux niveaux desormais, ouverts au Ministre de la Defense ET
+// au Commandant de la Caserne (arbitrage valide le 4 septembre 2026 : le Commandant porte la
+// responsabilite operationnelle de l'armee et n'avait jusqu'ici aucun outil de vue d'ensemble,
+// contrairement au Capitaine/Lieutenant qui gardent leurs fiches existantes a leur propre
+// echelle -- voir_ma_section, repartir_armement). Lecture pure de l'etat militaire reel deja
+// persiste (sbGetCompagnies, stock Armurerie, caisse de la caserne) : aucune nouvelle donnee
+// persistee, aucune statistique inventee (pas de moral/loyaute/discipline/puissance/bonus de
+// combat), aucun champ INF parallele (state.inf existant, meme plafond 100 que partout ailleurs).
+const NIVEAUX_INSPECTION_TROUPES = {
+  revue:     { label: 'Passer les troupes en revue', pa: 1, inf: 3, desc: 'Vue synthetique : effectif total, organisation, postes d\'officiers, stock et equipement.' },
+  detaillee: { label: 'Inspecter les unités',         pa: 2, inf: 5, desc: 'Vue synthetique + detail par compagnie/section (officiers, moyennes Force/Endurance/Tir, equipement, mission) et budget de la caserne.' }
+};
+
+function accesInspectionTroupes() {
+  return ['min_def', 'commandant'].includes(state.poste?.id);
+}
+
+async function ouvrirInspecterTroupes() {
+  if (!accesInspectionTroupes()) { showToast('Réservé au Ministre de la Défense ou au Commandant', '', false); return; }
+  document.getElementById('postes-modal-title').textContent = 'Inspecter les troupes';
+  let html = '<div style="padding:1rem">';
+  Object.entries(NIVEAUX_INSPECTION_TROUPES).forEach(([niveau, cfg]) => {
+    html += '<button onclick="confirmerInspectionTroupes(\'' + niveau + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.6rem;padding:.7rem .8rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#e0d5b8;letter-spacing:.05em">' + cfg.label + ' — ' + cfg.pa + ' PA</div>';
+    html += '<div style="font-size:.72rem;color:#8a8060;margin:.3rem 0">' + cfg.desc + '</div>';
+    html += '<div style="font-size:.72rem;color:#C9A84C">+' + cfg.inf + ' INF</div>';
+    html += '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerInspectionTroupes(niveau) {
+  if (!accesInspectionTroupes()) { showToast('Réservé au Ministre de la Défense ou au Commandant', '', false); return; }
+  const cfg = NIVEAUX_INSPECTION_TROUPES[niveau];
+  if (!cfg) return;
+  const r = await deduireCoutOrdre({ pa: cfg.pa, cost: 0 });
+  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+
+  // Gain deterministe (pas de jet) : coherent avec l'ancien successRate:100 declare dans
+  // data.js, jamais garanti par le moteur generique (doOrder) faute d'etre dans son alwaysSuccess
+  // -- comme les autres ordres a effet garanti du jeu (voir stage_caserne, applyEffects
+  // court-circuite), cette action n'emprunte jamais le chemin generique. state.inf plafonne a
+  // 100 exactement comme applyEffects() le fait pour tous les autres ordres du jeu.
+  state.inf = Math.min(100, (state.inf || 0) + cfg.inf);
+  updateUI();
+
+  const pays = state.country || 'republic';
+  const etat = await construireEtatArmee(pays);
+  document.getElementById('postes-modal-title').textContent = cfg.label;
+  document.getElementById('postes-body').innerHTML = niveau === 'detaillee' ? renderInspectionDetaillee(etat) : renderInspectionRevue(etat);
+  document.getElementById('modal-postes').classList.add('open');
+  showToast(cfg.label, 'Inspection effectuée (+' + cfg.inf + ' INF).', true, true);
+  addJournalEntry(cfg.label + ' (+' + cfg.inf + ' INF).', 'event-good');
+}
+
+// Lecture consolidee de l'etat militaire reel du pays -- aucune mutation, aucune ecriture.
+// Reutilise integralement les structures existantes (sbGetCompagnies, chargerStockArmurerieMilitaire,
+// chargerCaisseBatiment, getTitulaireActuel) : pas de deuxieme representation de l'armee.
+async function construireEtatArmee(pays) {
+  const compagnies = await sbGetCompagnies(pays).catch(() => []);
+  const budgetNat = await chargerStockArmurerieMilitaire(pays).catch(() => null) || {};
+  const stockArmurerie = budgetNat.stockArmurerieMilitaire || { arme_de_poing: 0, mitraillette: 0 };
+  const caisseCaserne = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'caserne-militaire').catch(() => ({ solde: 0 })) : { solde: 0 };
+  const commandantInfo = await getTitulaireActuel('commandant', null, pays).catch(() => null);
+
+  let effectifTotal = 0;
+  let capitainesPourvus = 0, capitainesVacants = 0;
+  let lieutenantsPourvus = 0, lieutenantsVacants = 0;
+  const armesAssignees = { arme_de_poing: 0, mitraillette: 0 };
+  const armesLibresSections = { arme_de_poing: 0, mitraillette: 0 };
+
+  const compagniesDetail = compagnies.map(c => {
+    if (c.capitaineNom) capitainesPourvus++; else capitainesVacants++;
+    const sections = (c.sections || []).map(s => {
+      const soldats = s.soldats || [];
+      effectifTotal += soldats.length;
+      if (s.lieutenantNom) lieutenantsPourvus++; else lieutenantsVacants++;
+
+      let sommeForce = 0, sommeEndurance = 0, sommeTir = 0;
+      const armesUnite = { arme_de_poing: 0, mitraillette: 0 };
+      soldats.forEach(sol => {
+        sommeForce += sol.formation?.force || 0;
+        sommeEndurance += sol.formation?.endurance || 0;
+        sommeTir += sol.formation?.tir || 0;
+        if (sol.arme && armesUnite[sol.arme] !== undefined) { armesUnite[sol.arme]++; armesAssignees[sol.arme]++; }
+      });
+      const stockLibre = s.stockArmes || { arme_de_poing: 0, mitraillette: 0 };
+      CATEGORIES_ARME_STOCK.forEach(cat => { armesLibresSections[cat] += stockLibre[cat] || 0; });
+      const nbArmesUnite = CATEGORIES_ARME_STOCK.reduce((sum, cat) => sum + armesUnite[cat], 0);
+
+      return {
+        numero: s.numero, lieutenantNom: s.lieutenantNom || null,
+        effectif: soldats.length, capacite: EFFECTIF_SECTION,
+        // null (jamais 0) si section vide : une moyenne/un taux ne se calcule que sur des membres
+        // reels, jamais fabrique pour remplir une case (voir renderInspectionDetaillee, affiche "—").
+        moyenneForce: soldats.length ? sommeForce / soldats.length : null,
+        moyenneEndurance: soldats.length ? sommeEndurance / soldats.length : null,
+        moyenneTir: soldats.length ? sommeTir / soldats.length : null,
+        armesUnite, stockLibre,
+        tauxEquipement: soldats.length ? nbArmesUnite / soldats.length : null,
+        mission: s.mission || null, cibleEscorte: s.cibleEscorte || null
+      };
+    });
+    return { capitaineNom: c.capitaineNom || null, sections };
+  });
+
+  const armesAssigneesTotal = CATEGORIES_ARME_STOCK.reduce((sum, cat) => sum + armesAssignees[cat], 0);
+
+  return {
+    effectifTotal, nbCompagnies: compagnies.length,
+    commandantNom: commandantInfo?.nom || null,
+    capitainesPourvus, capitainesVacants, lieutenantsPourvus, lieutenantsVacants,
+    stockArmurerie, armesAssignees, armesLibresSections,
+    tauxEquipementGlobal: effectifTotal ? armesAssigneesTotal / effectifTotal : null,
+    caisseCaserne: caisseCaserne.solde || 0,
+    virementJournalier: budgetNat.virementJournalierCaserne || 0,
+    compagnies: compagniesDetail
+  };
+}
+
+function renderBlocVueEnsembleArmee(etat) {
+  const labelsArme = { arme_de_poing: 'Armes de poing', mitraillette: 'Mitraillettes' };
+  let html = '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.7rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#e0d5b8;margin-bottom:.5rem">VUE D\'ENSEMBLE</div>';
+  html += '<div style="color:#a89870;margin-bottom:.3rem">Effectif total : ' + etat.effectifTotal + ' soldats, répartis en ' + etat.nbCompagnies + ' compagnie(s).</div>';
+  html += '<div style="color:#a89870;margin-bottom:.3rem">Commandant de la Caserne : ' + (etat.commandantNom || 'poste vacant') + '.</div>';
+  html += '<div style="color:#a89870;margin-bottom:.3rem">Capitaines : ' + etat.capitainesPourvus + ' en poste, ' + etat.capitainesVacants + ' vacant(s).</div>';
+  html += '<div style="color:#a89870">Lieutenants : ' + etat.lieutenantsPourvus + ' en poste, ' + etat.lieutenantsVacants + ' vacant(s).</div>';
+  html += '</div>';
+
+  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem">';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#e0d5b8;margin-bottom:.5rem">ARMEMENT</div>';
+  CATEGORIES_ARME_STOCK.forEach(cat => {
+    html += '<div style="color:#a89870;margin-bottom:.3rem">' + labelsArme[cat] + ' — stock Armurerie : ' + (etat.stockArmurerie[cat]||0) + ' · attribuées aux unités : ' + (etat.armesAssignees[cat]||0) + ' · libres en section : ' + (etat.armesLibresSections[cat]||0) + '</div>';
+  });
+  html += '<div style="color:#C9A84C;margin-top:.4rem">Taux d\'équipement global : ' + (etat.tauxEquipementGlobal == null ? 'non calculable (aucun soldat)' : Math.round(etat.tauxEquipementGlobal*100) + '%') + '</div>';
+  html += '</div>';
+  return html;
+}
+
+function renderInspectionRevue(etat) {
+  return '<div style="padding:1rem;max-height:65vh;overflow-y:auto;font-size:.8rem">' + renderBlocVueEnsembleArmee(etat) + '</div>';
+}
+
+function renderInspectionDetaillee(etat) {
+  const labelsMission = {};
+  MISSIONS_DETACHEMENT.forEach(m => { labelsMission[m.id] = m.label; });
+
+  let html = '<div style="padding:1rem;max-height:70vh;overflow-y:auto;font-size:.8rem">';
+  html += renderBlocVueEnsembleArmee(etat);
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#e0d5b8;margin:.9rem 0 .5rem">DÉTAIL PAR UNITÉ</div>';
+  if (etat.compagnies.length === 0) {
+    html += '<div style="color:#8a8060;font-style:italic">Aucune compagnie recrutée actuellement.</div>';
+  }
+  etat.compagnies.forEach((c, ic) => {
+    html += '<div style="border:1px solid #4a3a1a;background:#0d0b04;padding:.6rem .7rem;margin-bottom:.6rem">';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.82rem;color:#C9A84C;margin-bottom:.5rem">Compagnie ' + (ic+1) + ' — Capitaine : ' + (c.capitaineNom || 'poste vacant') + '</div>';
+    if (c.sections.length === 0) {
+      html += '<div style="color:#8a8060;font-style:italic;font-size:.75rem">Aucune section.</div>';
+    }
+    c.sections.forEach(s => {
+      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.5rem .6rem;margin-bottom:.4rem;font-size:.74rem">';
+      html += '<div style="color:#e0d5b8;margin-bottom:.25rem">Section ' + s.numero + ' — Lieutenant : ' + (s.lieutenantNom || 'poste vacant') + '</div>';
+      html += '<div style="color:#a89870;margin-bottom:.2rem">Effectif : ' + s.effectif + '/' + s.capacite + '</div>';
+      html += '<div style="color:#a89870;margin-bottom:.2rem">Moyennes — Force : ' + (s.moyenneForce==null?'—':s.moyenneForce.toFixed(1)) + ' · Endurance : ' + (s.moyenneEndurance==null?'—':s.moyenneEndurance.toFixed(1)) + ' · Tir : ' + (s.moyenneTir==null?'—':s.moyenneTir.toFixed(1)) + '</div>';
+      html += '<div style="color:#a89870;margin-bottom:.2rem">Armes attribuées — Arme de poing : ' + (s.armesUnite.arme_de_poing||0) + ' · Mitraillette : ' + (s.armesUnite.mitraillette||0) + ' (stock libre non distribué : ' + (s.stockLibre.arme_de_poing||0) + ' / ' + (s.stockLibre.mitraillette||0) + ')</div>';
+      html += '<div style="color:#a89870;margin-bottom:.2rem">Taux d\'équipement : ' + (s.tauxEquipement==null?'non calculable (section vide)':Math.round(s.tauxEquipement*100)+'%') + '</div>';
+      html += '<div style="color:#a89870">Mission : ' + (s.mission ? ((labelsMission[s.mission]||s.mission) + (s.cibleEscorte?(' ('+s.cibleEscorte+')'):'')) : 'aucune mission assignée') + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.85rem;color:#e0d5b8;margin:.9rem 0 .5rem">BUDGET DE LA CASERNE</div>';
+  html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;font-size:.76rem;color:#a89870">';
+  html += '<div style="margin-bottom:.3rem">Caisse de la Caserne : ' + etat.caisseCaserne.toLocaleString('fr-FR') + ' FR.</div>';
+  html += '<div style="margin-bottom:.3rem">Virement journalier automatique configuré : ' + etat.virementJournalier.toLocaleString('fr-FR') + ' FR/jour.</div>';
+  html += '<div style="font-style:italic;color:#8a8060">Aucun historique détaillé des dépenses/mouvements n\'est actuellement conservé pour la caserne : seuls le solde courant et le virement configuré existent réellement dans le système.</div>';
+  html += '</div>';
+
+  html += '</div>';
+  return html;
 }
 
 // ---- ACHAT INSTITUTIONNEL D'ARMEMENT (Armurerie Militaire, reserve au Ministre de la Defense) ----

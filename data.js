@@ -4470,7 +4470,7 @@ const BUILDINGS = {
           {fn:'entrainer_section',   label:'Entrainer la section',       pa:2, cost:0,    type:'legal',   icon:'ti-barbell',       successRate:100, requiresPost:'lieutenant', desc:'Force, Endurance ou Tir. 12 soldats max par session.'},
           {fn:'equiper_section',     label:'Gerer l\'equipement de ma section', pa:1, cost:0, type:'legal', icon:'ti-sword', successRate:100, requiresPost:'lieutenant', desc:'Equiper ou desequiper individuellement les soldats de sa section, selon le stock d\'armes attribue par le Capitaine.'},
           {fn:'remonter_renseignement', label:'Faire remonter un renseignement', pa:1, cost:0, type:'legal', icon:'ti-report', successRate:100, requiresPost:'lieutenant', desc:'Transmettre un rapport de renseignement recu a votre Capitaine.'},
-          {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:1, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:'min_def', desc:'+INF aupres de l\'armee. Renforce la loyaute.'},
+          {fn:'inspecter_troupes',   label:'Inspecter les troupes',      pa:0, cost:0,    type:'legal',   icon:'ti-eye',           successRate:100, requiresPost:['min_def','commandant'], desc:'Deux niveaux : passer les troupes en revue ou inspecter les unites en detail (effectifs, officiers, equipement, budget reels).'},
           {fn:'gerer_budget_caserne', label:'Gérer le budget militaire', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_def', desc:'Virement journalier ou ponctuel vers la caserne, ou financer directement la recherche militaire.'}
         ]
       },
@@ -7249,7 +7249,6 @@ Object.assign(ORDER_EFFECTS, {
   greve_faim:         {hp:-5,  pop:3,   successRate:100},
   visiter_prisonnier: {inf:2,           successRate:70},
   interroger:         {inf:5,           successRate:75},
-  inspecter_troupes:  {inf:3,           successRate:100},
   planifier_operation:{inf:4,           successRate:80},
   reception_etat:     {pop:10, inf:8,   successRate:100},
   banquet_diplo:      {inf:12, pop:5,   successRate:100}

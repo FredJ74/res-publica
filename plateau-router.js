@@ -435,7 +435,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'mobiliser_police') { doMobiliserPolice(fn); return; }
   if (fn === 'mobiliser_armee') { doMobiliserArmee(pa, cost); return; }
   if (fn === 'etat_urgence') { doEtatUrgence(pa, cost); return; }
-  if (fn === 'inspecter_troupes') { doInspecterTroupes(); return; }
+  if (fn === 'inspecter_troupes') { ouvrirInspecterTroupes(); return; }
   if (fn === 'ouvrir_enquete') { ouvrirChoixTypeCibleFiscale('ouvrir_enquete', 'Ouvrir une enquête sur'); return; }
   if (fn === 'proposer_grace') { ouvrirProposerGrace(pa, cost); return; }
   if (fn === 'gestion_qhs') { ouvrirGestionQHS(); return; }
