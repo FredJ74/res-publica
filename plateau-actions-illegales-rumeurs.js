@@ -2918,6 +2918,39 @@ const PRODUITS_MARCHE = {
     bonusIntegrationVille: 'capitale',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   },
+  // Souvenirs collectionnables du Marche de Luthecia (chantier du 4 septembre 2026) : meme famille
+  // 'integration_locale' que l'echarpe ci-dessus (audit prealable -- aucun autre systeme de
+  // "souvenir collectionnable" n'existe reellement dans le jeu ; l'Armoire a souvenirs/
+  // LISTES_SOUVENIRS, plateau-justice-economie.js, n'a jamais eu de mecanique d'achat/insertion
+  // des souvenirs individuels, explicitement hors perimetre du lot qui l'a creee -- decision de
+  // Fred de reutiliser cette famille-ci plutot que d'en construire une nouvelle). bonusIntegrationVille
+  // volontairement OMIS sur les 3 : ce champ est optionnel (recette.bonusIntegrationVille || null
+  // dans le pont d'achat) et n'a de sens que pour un vetement porte -- ces 3 objets restent de
+  // simples collectibles, sans effet, jamais consommes. Materiau 'metal' (seul choisi existant
+  // pertinent pour un porte-cle/une figurine en plomb) a la meme quantite/pa/portions que
+  // l'echarpe pour rester sur la meme echelle de prix (prixVenteAutoPNJ(coutRevientPortionRecette)
+  // -- meme moteur, aucun prix invente a la main).
+  porte_cle_palais_luthecia: {
+    id: 'porte_cle_palais_luthecia', label: 'Porte-clé du Palais présidentiel', familleProduitMarche: 'integration_locale',
+    categorie: 'objet', image: 'images/luthecia-souvenir-porte-cle-palais.png', icon: 'ti-key',
+    desc: 'Souvenir représentant le Palais présidentiel de Luthécia en miniature.',
+    materiaux: { metal: 1 }, pa: 1, portions: 6,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
+  },
+  garde_republien_plomb: {
+    id: 'garde_republien_plomb', label: 'Garde républien en plomb', familleProduitMarche: 'integration_locale',
+    categorie: 'objet', image: 'images/luthecia-souvenir-garde-republien.png', icon: 'ti-chess-knight',
+    desc: 'Petite figurine de collection représentant un garde républien en uniforme.',
+    materiaux: { metal: 1 }, pa: 1, portions: 6,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
+  },
+  figurine_maxence_monfils: {
+    id: 'figurine_maxence_monfils', label: 'Figurine de Maxence Monfils', familleProduitMarche: 'integration_locale',
+    categorie: 'objet', image: 'images/luthecia-souvenir-maxence-monfils.png', icon: 'ti-user',
+    desc: 'Figurine représentant Maxence Monfils enfant, avec une loupe et une sauterelle.',
+    materiaux: { metal: 1 }, pa: 1, portions: 6,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
+  },
   // Lot 3 (23 aout 2026) : 3 aliments a emporter, noms/matieres/rendement valides par Fred
   // (audit dedie -- aucune matiere/prix invente). pa:1/portions:8 pour les 3, prix jamais fixe a
   // la main : ~15 FR Montrouge / ~14 FR PSM / ~16 FR Luthecia attendus une fois dotes (marches
@@ -3528,9 +3561,15 @@ const DOTATIONS_COMMERCE_PILOTE = {
       data.carte = ['casse_croute_cheminot', 'casquette_montrouge', 'carte_montrouge_place_rail', 'carte_montrouge_touristique', 'carte_montrouge_musee_rail'];
     } else {
       // Luthecia (capitale) -- comportement par defaut historique de cette cle
-      data.stockMatieres = { cereales: 10, viande: 10, fruits_legumes: 10, textile: 10, produits_exotiques: 10, bois: 10 };
-      data.coutMoyenMatieres = { cereales: 3, viande: 5, fruits_legumes: 4, textile: 5, produits_exotiques: 6, bois: 5 };
-      data.carte = ['croque_monsieur_luthecia', 'echarpe_luthecia', 'carte_luthecia_institutions', 'carte_luthecia_internationale', 'carte_luthecia_culture'];
+      // metal ajoute (chantier souvenirs Luthecia, 4 septembre 2026) : seule nouvelle matiere
+      // necessaire aux 3 souvenirs (porte-cle/figurine en plomb/figurine), coutMoyen initial =
+      // RESSOURCES_ECONOMIE.metal.prixBase (15), meme convention que les 5 autres matieres de
+      // cette ville (chacune = son propre prixBase). rattraperDotationCommerce (deja existant,
+      // purement additif) backfillera cette cle sur la ligne 'entreprises' deja persistee en
+      // production, sans toucher au stock/prix/caisse deja reels -- aucune migration necessaire.
+      data.stockMatieres = { cereales: 10, viande: 10, fruits_legumes: 10, textile: 10, produits_exotiques: 10, bois: 10, metal: 10 };
+      data.coutMoyenMatieres = { cereales: 3, viande: 5, fruits_legumes: 4, textile: 5, produits_exotiques: 6, bois: 5, metal: 15 };
+      data.carte = ['croque_monsieur_luthecia', 'echarpe_luthecia', 'carte_luthecia_institutions', 'carte_luthecia_internationale', 'carte_luthecia_culture', 'porte_cle_palais_luthecia', 'garde_republien_plomb', 'figurine_maxence_monfils'];
     }
     // Stock/prix generes generiquement pour les 5 produits de la ville courante -- jamais de
     // valeur ecrite a la main : prixVenteAutoPNJ(coutRevientPortionRecette(...)) exactement comme
@@ -3983,6 +4022,12 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
         // ignore, meme une fois renseigne dans PRODUITS_MARCHE. Simple recopie, jamais de mecanique
         // ajoutee.
         imageUrl: recette.image || null,
+        // desc (chantier souvenirs Luthecia, 4 septembre 2026) : recopiee telle quelle si la
+        // recette en fournit une (aucune n'en avait besoin jusqu'ici) -- deja lue generiquement
+        // par ouvrirDetailObjetInventaire ('(item.desc || '')'), jamais affichee auparavant faute
+        // d'etre posee ici. Reste 'null' pour toute recette sans description (T-shirt/Casquette/
+        // Echarpe existantes inchangees, comportement identique a avant : chaine vide affichee).
+        desc: recette.desc || null,
         villeOrigine: ville,
         familleProduitMarche: recette.familleProduitMarche,
         bonusIntegrationVille: recette.bonusIntegrationVille || null
