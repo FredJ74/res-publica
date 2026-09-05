@@ -310,7 +310,7 @@ HIÉRARCHIE GÉOGRAPHIQUE : ce journal est celui de ${nomPays} (pays "${pays}").
 
 FAITS vs DÉCLARATIONS : FACTS est établi par le système lui-même. PUBLIC_STATEMENTS prouve seulement que son auteur a publiquement écrit quelque chose — JAMAIS que c'est vrai. Tout article de type "declaration" doit attribuer explicitement le contenu à son auteur avec un verbe déclaratif ("X affirme...", "X accuse..."), jamais le présenter comme un fait acquis. Une rumeur reste une rumeur : "selon une rumeur...", "une rumeur met en cause...", jamais présentée comme un fait établi. Si un PJ a publiquement répondu à une rumeur ou une accusation le concernant (present aussi dans PUBLIC_STATEMENTS), cette réponse est elle-même une information légitime, à attribuer de la même façon.
 
-CITATIONS : n'utilise JAMAIS de guillemets sauf pour reproduire une sous-chaîne du champ "extrait" d'un PUBLIC_STATEMENT cité en source, CARACTÈRE POUR CARACTÈRE, sans aucune correction. Si tu veux reformuler ou résumer, fais-le sans guillemets, en paraphrase attribuée.
+CITATIONS : n'utilise JAMAIS de guillemets sauf pour reproduire une sous-chaîne du champ "extrait" d'un PUBLIC_STATEMENT cité en source, CARACTÈRE POUR CARACTÈRE, sans aucune correction. Si tu veux reformuler ou résumer, fais-le sans guillemets, en paraphrase attribuée. Une citation doit reprendre EXACTEMENT les mots de la source, dans le même ordre et d'un seul tenant. Sont formellement interdits, même s'ils sont d'usage courant en presse : les crochets éditoriaux ([s]es, [le ministre], [sic]), les points de suspension internes pour abréger un passage, la correction d'une faute ou d'une maladresse, le changement de temps, d'accord, de pronom ou de ponctuation, et la modification volontaire de la casse pour insérer la citation dans ta phrase. Si un passage ne peut pas être cité tel quel, ne le cite pas : passe en paraphrase attribuée, sans guillemets. Une citation qui ne se retrouve pas mot pour mot dans un "extrait" autorisé fait rejeter l'édition entière.
 
 TRAÇABILITÉ OBLIGATOIRE ET COMPLÈTE : chaque article doit avoir "source_ids" non vide, contenant UNIQUEMENT des identifiants qui existent réellement dans le paquet fourni, et TOUS les identifiants réellement utilisés dans le texte (pas seulement celui qui a inspiré le titre). Le champ "personnages_concernes" doit lister tous les PJ/PNJ réellement nommés dans l'article, tels qu'ils apparaissent dans les faits sources — jamais un nom inventé.
 
@@ -400,6 +400,30 @@ function extraireCitations(texte) {
   return citations;
 }
 
+// Normalisation appliquee AUX DEUX COTES avant la verification de citation (correctif du
+// 5 septembre 2026). Strictement typographique : espaces compactes, apostrophes et guillemets
+// unifies, casse ignoree. Rien d'autre.
+//
+// Ce que cela NE FAIT PAS, volontairement : aucun rapprochement approximatif, aucune correction
+// lexicale, aucune comparaison semantique, aucune suppression de ponctuation ni d'accents. Une
+// citation reellement alteree ou inventee reste rejetee -- verifie sur donnees reelles : le
+// modele avait ecrit "Confederacion Anarchisto del Trabajo" la ou la source dit "Federacion
+// Anarchisto del Trabajo", et cette citation continue d'etre refusee apres normalisation.
+// La garantie anti-fabrication est donc intacte ; seuls disparaissent les faux negatifs dus a la
+// forme (un <br> devenu espace, une apostrophe courbe, une majuscule de debut de phrase).
+function normaliserPourCitation(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/[‘’‛ʼ]/g, "'")   // apostrophes courbes -> droite
+    .replace(/[“”„«»]/g, '"') // guillemets courbes/francais -> droit
+    .replace(/…/g, '...')                      // points de suspension
+    .replace(/[‐-―]/g, '-')               // tirets typographiques
+    .replace(/[   ]/g, ' ')          // espaces insecables/fines
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
 // Hiérarchie géographique : un article est étranger si TOUTES ses sources ont un pays différent
 // du pays cible (un match de championnat peut concerner deux pays à la fois : jamais de faux
 // positif si l'un des deux est le pays cible).
@@ -485,9 +509,10 @@ function validerArticle(art, index, erreurs, idsVus, articlesParId) {
   // Citations : vérifiées uniquement contre les extraits des PUBLIC_STATEMENTS cités par CET article.
   const extraitsAutorises = sourcesResolues
     .filter(s => s.id.indexOf('forum_topics:') === 0 || s.id.indexOf('forum_posts:') === 0)
-    .map(s => s.source.extrait || '');
+    .map(s => normaliserPourCitation(s.source.extrait || ''));
   extraireCitations(art.texte).forEach(cit => {
-    const trouve = extraitsAutorises.some(ex => ex.indexOf(cit) !== -1);
+    const citNorm = normaliserPourCitation(cit);
+    const trouve = citNorm !== '' && extraitsAutorises.some(ex => ex.indexOf(citNorm) !== -1);
     if (!trouve) erreurs.push(`article (${art.id}) : citation non retrouvée telle quelle dans un extrait autorisé -> "${cit.slice(0, 60)}"`);
   });
 

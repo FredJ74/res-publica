@@ -407,7 +407,12 @@ async function collecterFootball(periode, personnagesConnus) {
       butsParJoueur.forEach((buts, joueur) => {
         const acteur = identifierActeur(joueur, personnagesConnus);
         performances.push({
-          id: idSource('championnat', { id: `${matchId}-but-${joueur}` }),
+          // matchId porte DEJA le prefixe 'championnat:' (idSource ci-dessus) : le repasser dans
+          // idSource produisait 'championnat:championnat:j2-...-but-X' (correctif du 5 septembre
+          // 2026). Aucun identifiant deja en base n'est modifie et rien n'est republie : une
+          // journee n'est collectee que si son resolueLe tombe dans la fenetre de 24h, donc les
+          // journees passees ne peuvent plus etre re-collectees, quel que soit leur id.
+          id: `${matchId}-but-${joueur}`,
           domaine: 'sport', type: 'performance_sportive',
           ville: null, pays: [clubHome && clubHome.country, clubAway && clubAway.country].filter(Boolean),
           resume: `${joueur} inscrit ${buts === 1 ? 'un but' : buts + ' buts'} lors de ${(clubHome && clubHome.nom) || m.home} ${m.scoreHome} - ${m.scoreAway} ${(clubAway && clubAway.nom) || m.away}`,
@@ -609,6 +614,50 @@ async function collecterChroniqueNationale(periode, pays, personnagesConnus) {
 // 4. PUBLIC_STATEMENTS — forum uniquement, catégories publiques seulement.
 // =====================
 
+// =====================
+// EXTRAITS FORUM — TEXTE BRUT (correctif du 5 septembre 2026)
+// =====================
+// Le contenu des posts est du HTML d'editeur riche. Il etait jusqu'ici transmis TEL QUEL a l'IA,
+// simplement tronque a 400 caracteres. Consequence mesuree : le modele cite naturellement le
+// texte RENDU ("... baby ! Ahah, j'ai ..."), alors que l'extrait autorise contient un <br> entre
+// les deux phrases -- la verification de citation (validerEdition, _journal-generation.js) fait
+// une recherche de sous-chaine stricte et echouait donc systematiquement. 17 extraits sur 23
+// contenaient du HTML dans l'edition republic du 5 septembre : 11 erreurs de validation, edition
+// rejetee. On normalise donc A LA SOURCE : le modele ne voit plus une seule balise, il ne peut
+// donc plus en citer.
+//
+// Effet de bord utile : les <img> (y compris d'eventuelles images collees en data:base64 dans le
+// corps d'un post) disparaissent completement de l'extrait au lieu d'en occuper la quasi-totalite.
+const EXTRAIT_FORUM_MAX = 1200; // porte de 400 a 1200 : le prompt reel est ~6k tokens, la marge
+                                // sous la limite de 200k est enorme, et une citation un peu
+                                // longue ne doit plus tomber au-dela de la troncature.
+
+// Decodage volontairement limite aux entites que produit reellement l'editeur du jeu, plus les
+// formes numeriques. Aucune table exhaustive : ce qui n'est pas reconnu est laisse tel quel,
+// jamais remplace par une approximation.
+const ENTITES_HTML = {
+  '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&apos;': "'",
+  '&nbsp;': ' ', '&#39;': "'", '&#x27;': "'", '&hellip;': '…', '&mdash;': '—', '&ndash;': '–'
+};
+
+function texteBrutDepuisHtml(html) {
+  if (!html) return '';
+  let s = String(html);
+  // Sauts de ligne structurels -> espace, AVANT la suppression des balises : sans cela
+  // "<p>Phrase A</p><p>Phrase B</p>" deviendrait "Phrase APhrase B".
+  s = s.replace(/<br\s*\/?>/gi, ' ')
+       .replace(/<\/(p|div|li|h[1-6]|blockquote|tr)\s*>/gi, ' ');
+  // Blocs dont le CONTENU n'est pas du texte lisible : retires entierement.
+  s = s.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, ' ');
+  s = s.replace(/<[^>]+>/g, '');                       // toutes les autres balises
+  s = s.replace(/&#x([0-9a-f]+);/gi, (m, h) => String.fromCodePoint(parseInt(h, 16)));
+  s = s.replace(/&#(\d+);/g, (m, d) => String.fromCodePoint(parseInt(d, 10)));
+  s = s.replace(/&[a-z]+;/gi, e => (ENTITES_HTML[e.toLowerCase()] !== undefined ? ENTITES_HTML[e.toLowerCase()] : e));
+  // Espaces insecables et variantes unicode ramenes a l'espace ordinaire, puis compactage.
+  s = s.replace(/[   ]/g, ' ').replace(/\s+/g, ' ');
+  return s.trim();
+}
+
 function estForumPublic(forumId) {
   if (!forumId) return false;
   if (forumId === 'gouvernement' || forumId === 'presse') return false;
@@ -627,7 +676,9 @@ async function collecterDeclarationsPubliques(periode, personnagesConnus) {
       id: idSource('forum_topics', t), domaine: 'forum', type: 'sujet',
       auteur: t.author, auteur_est_organisation: !!t.author_is_org,
       forum_id: t.forum_id, pays: t.country,
-      extrait: t.title, created_at: t.created_at,
+      // Un titre est deja du texte, mais il peut porter des entites (&amp;, &#39;) : meme
+      // normalisation, pour que la comparaison de citation se fasse sur une base homogene.
+      extrait: texteBrutDepuisHtml(t.title).slice(0, EXTRAIT_FORUM_MAX), created_at: t.created_at,
       acteur: t.author, estPJ: acteur.estPJ, photo_url: acteur.photo_url,
       poids: bumpPoids('secondaire', acteur.estPJ ? 1 : 0)
     };
@@ -651,7 +702,9 @@ async function collecterDeclarationsPubliques(periode, personnagesConnus) {
         id: idSource('forum_posts', p), domaine: 'forum', type: 'reponse',
         auteur: p.author, auteur_est_organisation: !!p.author_is_org,
         forum_id: parent.forum_id, pays: parent.country,
-        extrait: (p.content || '').slice(0, 400), created_at: p.created_at,
+        // Texte brut AVANT troncature : les 1200 caracteres sont donc 1200 caracteres de texte
+        // reellement lisible, et non un fragment de balisage coupe au milieu d'un attribut.
+        extrait: texteBrutDepuisHtml(p.content).slice(0, EXTRAIT_FORUM_MAX), created_at: p.created_at,
         acteur: p.author, estPJ: acteur.estPJ, photo_url: acteur.photo_url,
         poids: bumpPoids('secondaire', acteur.estPJ ? 1 : 0)
       });
