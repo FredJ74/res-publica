@@ -2296,16 +2296,23 @@ const CLUBS_SPORTIFS_SERVEUR = [
   { id:'olympique-luthecia',    country:'republic', city:'capitale', nom:'Olympique de Luthécia' },
   { id:'brise-mariannaise',     country:'republic', city:'ville_a',  nom:'La Brise Mariannaise' },
   { id:'cheminote-montrouge',   country:'republic', city:'ville_b',  nom:'Union Cheminote de Montrouge' },
-  { id:'rojos-cartel',          country:'narco',    city:'capitale', nom:'Rojos del Cartel' },
-  { id:'fronterizos-unidos',    country:'narco',    city:'ville_a',  nom:'Fronterizos Unidos' },
-  { id:'jaguares-selva',        country:'narco',    city:'ville_b',  nom:'Jaguares de la Selva' },
+  // Noms alignes sur CLUBS_SPORTIFS (data.js), source canonique, le 5 septembre 2026 -- ils
+  // partent en clair dans les mails de licences sportives (traiterLicencesSportivesSaison).
+  // IDs techniques inchanges (cles de budgets_clubs, licences, transferts).
+  { id:'rojos-cartel',          country:'narco',    city:'capitale', nom:'Estudiantes de la Ciudad' },
+  { id:'fronterizos-unidos',    country:'narco',    city:'ville_a',  nom:'Atlético Puerto Negro' },
+  { id:'jaguares-selva',        country:'narco',    city:'ville_b',  nom:'Independiente de Villa Sangre' },
   { id:'dynamo-novomirsk',      country:'soviet',   city:'capitale', nom:'Dynamo Novomirsk' },
-  { id:'spartak-sibirsk',       country:'soviet',   city:'ville_a',  nom:'Spartak Sibirsk-9' },
-  { id:'kolkhoze-ouvrier',      country:'soviet',   city:'ville_b',  nom:'Kolkhoze Ouvrier FC' },
-  { id:'nadi-al-madina',        country:'khalija',  city:'capitale', nom:'Nadi Al-Madina' },
-  { id:'al-baraka-fc',          country:'khalija',  city:'ville_a',  nom:'Al-Baraka FC' },
-  { id:'sharq-al-nour',         country:'khalija',  city:'ville_b',  nom:'Sharq Al-Nour' }
+  { id:'spartak-sibirsk',       country:'soviet',   city:'ville_a',  nom:'Partizan de Starovka' },
+  { id:'kolkhoze-ouvrier',      country:'soviet',   city:'ville_b',  nom:'Étoile Rouge de Krasnov' },
+  { id:'nadi-al-madina',        country:'khalija',  city:'capitale', nom:'Shabab Al Madina' },
+  { id:'al-baraka-fc',          country:'khalija',  city:'ville_a',  nom:'Oasis City FC' },
+  { id:'sharq-al-nour',         country:'khalija',  city:'ville_b',  nom:'Al-Petrol United FC' }
 ];
+
+// Ligne canonique du championnat -- doit rester synchronisee avec CHAMPIONNAT_ROW_ID
+// (supabase.js). Deplacee de id=1 vers id=2 le 5 septembre 2026, voir supabase.js.
+const CHAMPIONNAT_FILTRE_ID = 'id=eq.2';
 
 async function crediterBudgetClubServeur(clubId, montant, motif) {
   const rows = await sbGet('budgets_clubs', `id=eq.${encodeURIComponent(clubId)}`);
@@ -2324,7 +2331,7 @@ async function renouvellerCotisationsOrganisations() {
   try {
     const rows = await sbGet('organisations', 'select=*');
     if (!rows) return resultats;
-    const saisonRows = await sbGet('championnat', 'id=eq.1&select=data');
+    const saisonRows = await sbGet('championnat', CHAMPIONNAT_FILTRE_ID + '&select=data');
     let saisonActuelle = null;
     if (saisonRows && saisonRows[0]) {
       try { saisonActuelle = JSON.parse(saisonRows[0].data); } catch(e) { saisonActuelle = null; }
@@ -2435,7 +2442,7 @@ const LICENCE_SPORTIVE_MONTANT = 150;
 async function traiterLicencesSportivesSaison() {
   const resultats = { renouvellements: 0, impayes: 0, nonRenouvellements: 0, finsAnneeBlanche: 0, migrations: 0 };
   try {
-    const saisonRows = await sbGet('championnat', 'id=eq.1&select=data');
+    const saisonRows = await sbGet('championnat', CHAMPIONNAT_FILTRE_ID + '&select=data');
     let saisonActuelle = null;
     if (saisonRows && saisonRows[0]) {
       try { saisonActuelle = JSON.parse(saisonRows[0].data); } catch(e) { saisonActuelle = null; }

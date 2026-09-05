@@ -78,12 +78,21 @@ const PAYS_JEU = ['republic', 'narco', 'soviet', 'khalija'];
 
 // Duplique de VILLES_PAR_EMPIRE (plateau-navigation.js) -- meme convention que les autres
 // constantes de ce fichier (module serverless isole, sans acces au code client).
+// Libelles alignes sur NOMS_VILLES_PAR_PAYS (plateau-divers.js), source canonique, le
+// 5 septembre 2026 -- le correctif d'identite du 28 aout 2026 n'avait pas ete propage a ce
+// module serverless, qui publiait donc encore Puerto Oscuro / La Selva / Stalinova / Kolkhoz-7 /
+// Oasis Al-Zafar / Port Al-Nour dans le Journal. Cles (capitale/ville_a/ville_b) inchangees.
 const NOMS_VILLES = {
   republic: { capitale: 'Luthécia',       ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' },
-  narco:    { capitale: 'Ciudad Roja',    ville_a: 'Puerto Oscuro',     ville_b: 'La Selva' },
-  soviet:   { capitale: 'Novomirsk',      ville_a: 'Stalinova',         ville_b: 'Kolkhoz-7' },
-  khalija:  { capitale: 'Al-Madina',      ville_a: 'Oasis Al-Zafar',    ville_b: 'Port Al-Nour' }
+  narco:    { capitale: 'Ciudad Roja',    ville_a: 'Puerto Negro',      ville_b: 'Villa Sangre' },
+  soviet:   { capitale: 'Novomirsk',      ville_a: 'Starovka',          ville_b: 'Krasnov' },
+  khalija:  { capitale: 'Al Madina',      ville_a: 'Oasis City',        ville_b: 'Al-Petrol' }
 };
+
+// Ligne canonique du championnat -- doit rester synchronisee avec CHAMPIONNAT_ROW_ID
+// (supabase.js). Le championnat a ete deplace de id=1 vers id=2 le 5 septembre 2026 pour couper
+// l'acces des anciens onglets clients, qui ont "id=eq.1" code en dur (voir supabase.js).
+const CHAMPIONNAT_FILTRE_ID = 'id=eq.2';
 
 function resoudreNomVille(pays, villeId) {
   if (!villeId) return null;
@@ -98,15 +107,20 @@ const CLUBS_SPORTIFS = [
   { id: 'olympique-luthecia',  nom: 'Olympique de Luthécia',        country: 'republic', city: 'capitale', imageStade: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-olympique-luthecia.png' },
   { id: 'brise-mariannaise',   nom: 'La Brise Mariannaise',         country: 'republic', city: 'ville_a',  imageStade: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/stade-brise-mariannaise.png' },
   { id: 'cheminote-montrouge', nom: 'Union Cheminote de Montrouge', country: 'republic', city: 'ville_b',  imageStade: 'images/montrouge/montrouge-stade-pelouse-accueil.jpg' },
-  { id: 'rojos-cartel',        nom: 'Rojos del Cartel',             country: 'narco', city: 'capitale', imageStade: null },
-  { id: 'fronterizos-unidos',  nom: 'Fronterizos Unidos',           country: 'narco', city: 'ville_a',  imageStade: null },
-  { id: 'jaguares-selva',      nom: 'Jaguares de la Selva',         country: 'narco', city: 'ville_b',  imageStade: null },
+  // Noms alignes sur CLUBS_SPORTIFS (data.js), source canonique, le 5 septembre 2026 : le
+  // renommage du 28 aout 2026 (commit 58eea96) n'avait touche que data.js et plateau-divers.js,
+  // ce module continuait donc de publier les anciennes appellations dans le Journal. IDs
+  // techniques strictement inchanges (ce sont les cles de toutes les donnees persistees :
+  // paris, licences, budgets_clubs, transferts, calendrier du championnat).
+  { id: 'rojos-cartel',        nom: 'Estudiantes de la Ciudad',     country: 'narco', city: 'capitale', imageStade: null },
+  { id: 'fronterizos-unidos',  nom: 'Atlético Puerto Negro',        country: 'narco', city: 'ville_a',  imageStade: null },
+  { id: 'jaguares-selva',      nom: 'Independiente de Villa Sangre', country: 'narco', city: 'ville_b',  imageStade: null },
   { id: 'dynamo-novomirsk',    nom: 'Dynamo Novomirsk',             country: 'soviet', city: 'capitale', imageStade: null },
-  { id: 'spartak-sibirsk',     nom: 'Spartak Sibirsk-9',            country: 'soviet', city: 'ville_a',  imageStade: null },
-  { id: 'kolkhoze-ouvrier',    nom: 'Kolkhoze Ouvrier FC',          country: 'soviet', city: 'ville_b',  imageStade: null },
-  { id: 'nadi-al-madina',      nom: 'Nadi Al-Madina',               country: 'khalija', city: 'capitale', imageStade: null },
-  { id: 'al-baraka-fc',        nom: 'Al-Baraka FC',                 country: 'khalija', city: 'ville_a',  imageStade: null },
-  { id: 'sharq-al-nour',       nom: 'Sharq Al-Nour',                country: 'khalija', city: 'ville_b',  imageStade: null }
+  { id: 'spartak-sibirsk',     nom: 'Partizan de Starovka',         country: 'soviet', city: 'ville_a',  imageStade: null },
+  { id: 'kolkhoze-ouvrier',    nom: 'Étoile Rouge de Krasnov',      country: 'soviet', city: 'ville_b',  imageStade: null },
+  { id: 'nadi-al-madina',      nom: 'Shabab Al Madina',             country: 'khalija', city: 'capitale', imageStade: null },
+  { id: 'al-baraka-fc',        nom: 'Oasis City FC',                country: 'khalija', city: 'ville_a',  imageStade: null },
+  { id: 'sharq-al-nour',       nom: 'Al-Petrol United FC',          country: 'khalija', city: 'ville_b',  imageStade: null }
 ];
 
 // Duplique de RESSOURCES_ECONOMIE (data.js, plafond+prixBase seulement) et de sa formule
@@ -354,7 +368,7 @@ function qualifierPerformanceSportive(buts, estPJ) {
 }
 
 async function collecterFootball(periode, personnagesConnus) {
-  const rows = await sbGet('championnat', 'id=eq.1&select=data');
+  const rows = await sbGet('championnat', CHAMPIONNAT_FILTRE_ID + '&select=data');
   if (!rows || !rows[0]) return [];
   const data = parseBlob(rows[0].data);
   if (!data.dateDebut || !Array.isArray(data.calendrier)) return [];
@@ -363,7 +377,18 @@ async function collecterFootball(periode, personnagesConnus) {
   const finMs = new Date(periode.fin).getTime();
   const facts = [];
   data.calendrier.forEach(journee => {
-    const dateJournee = dateDebut + (journee.numero - 1) * 7 * 24 * 60 * 60 * 1000;
+    // Correctif du 5 septembre 2026 : `journee.resolueLe` (instant REEL de resolution, ecrit
+    // atomiquement avec played:true par avancerFootballLive) fait desormais autorite. L'ancienne
+    // formule `dateDebut + (numero-1) x 7 jours` etait une SECONDE source de calendrier,
+    // divergente de l'ancrage canonique (saison.ancrageDimanche) des qu'une journee etait
+    // rattrapee un autre jour que son dimanche : sa date theorique tombait alors dans une fenetre
+    // de collecte ou elle n'etait pas encore jouee, et elle n'etait donc JAMAIS couverte par le
+    // Journal. Repli sur l'ancienne formule uniquement pour les journees anterieures a ce
+    // correctif, qui ne portent pas encore resolueLe (retro-compatibilite stricte).
+    const dateJournee = journee.resolueLe
+      ? new Date(journee.resolueLe).getTime()
+      : dateDebut + (journee.numero - 1) * 7 * 24 * 60 * 60 * 1000;
+    if (!Number.isFinite(dateJournee)) return;
     if (dateJournee < debutMs || dateJournee >= finMs) return;
     (journee.matchs || []).forEach(m => {
       if (!m.played) return;
@@ -790,7 +815,7 @@ function calculerCaissesRemarquables(pays, indicateursCaisses) {
 
 // Classement — snapshot recalculé (pas d'historique de progression).
 async function collecterIndicateurClassement(pays) {
-  const rows = await sbGet('championnat', 'id=eq.1&select=data');
+  const rows = await sbGet('championnat', CHAMPIONNAT_FILTRE_ID + '&select=data');
   if (!rows || !rows[0]) return [];
   const data = parseBlob(rows[0].data);
   if (!Array.isArray(data.calendrier)) return [];

@@ -1361,26 +1361,32 @@ const TRANSPORT_CONFIG = {
   bateau: { pa:5, cost:100, label:'Bateau', icon:'ti-ship',  type:'inter',  desc:'Inter-empire. Moins cher, plus lent.' }
 };
 
+// Libelles alignes sur la source canonique NOMS_VILLES_PAR_PAYS (plateau-divers.js) le
+// 5 septembre 2026 : le correctif d'identite du 28 aout 2026 n'avait pas ete propage ici, cette
+// table affichait donc encore Puerto Oscuro / La Selva / Stalinova / Kolkhoz-7 / Oasis Al-Zafar /
+// Port Al-Nour. Seul le champ `name` (pur libelle) change -- les `id` (capitale/ville_a/ville_b),
+// qui sont les seules cles de recherche utilisees (voir .find(v => v.id === villeId)) et les
+// seules valeurs persistees, sont strictement inchanges.
 const VILLES_PAR_EMPIRE = {
   republic: [
-    { id:'capitale',  name:'Luthecia',          type:'capitale' },
+    { id:'capitale',  name:'Luthécia',          type:'capitale' },
     { id:'ville_a',   name:'Port-Sainte-Marie',  type:'ville' },
     { id:'ville_b',   name:'Montrouge',           type:'ville' }
   ],
   narco: [
     { id:'capitale',  name:'Ciudad Roja',         type:'capitale' },
-    { id:'ville_a',   name:'Puerto Oscuro',        type:'ville' },
-    { id:'ville_b',   name:'La Selva',             type:'ville' }
+    { id:'ville_a',   name:'Puerto Negro',         type:'ville' },
+    { id:'ville_b',   name:'Villa Sangre',         type:'ville' }
   ],
   soviet: [
     { id:'capitale',  name:'Novomirsk',            type:'capitale' },
-    { id:'ville_a',   name:'Stalinova',             type:'ville' },
-    { id:'ville_b',   name:'Kolkhoz-7',             type:'ville' }
+    { id:'ville_a',   name:'Starovka',              type:'ville' },
+    { id:'ville_b',   name:'Krasnov',               type:'ville' }
   ],
   khalija: [
-    { id:'capitale',  name:'Al-Madina',            type:'capitale' },
-    { id:'ville_a',   name:'Oasis Al-Zafar',       type:'ville' },
-    { id:'ville_b',   name:'Port Al-Nour',          type:'ville' }
+    { id:'capitale',  name:'Al Madina',            type:'capitale' },
+    { id:'ville_a',   name:'Oasis City',           type:'ville' },
+    { id:'ville_b',   name:'Al-Petrol',             type:'ville' }
   ]
 };
 

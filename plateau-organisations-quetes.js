@@ -1531,22 +1531,87 @@ function prochainDimanche20hParis(depuis) {
 
 const UNE_SEMAINE_MS = 7 * 86400000;
 
-// Anti-cascade (revu le 1er septembre 2026 -- la 1ere version, une fenetre glissante de 6 jours
-// reels depuis la derniere resolution, avait un defaut reel : un rattrapage tardif (ex. samedi)
-// pouvait retarder a tort l'echeance NORMALE du dimanche suivant a peine 24h plus tard, ce qui
-// n'a jamais ete la regle metier souhaitee). Nouvelle regle, plus fidele a l'intention ("une seule
-// journee/tour rattrapee par passage de verification") : au plus une journee/tour reellement
-// resolu(e) par JOUR CALENDAIRE EUROPE/PARIS (et non par fenetre glissante de N jours). Une
-// echeance normale du dimanche suivant n'est JAMAIS bloquee par un rattrapage la veille ou plus
-// tot, puisqu'il s'agit toujours d'un jour calendaire different -- mais plusieurs journees
-// anciennes ne peuvent pas s'enchainer a quelques minutes d'intervalle (timer 5 min,
-// plateau-core.js) au cours d'une meme soiree de connexion, puisqu'elles tombent toutes le meme
-// jour calendaire.
-function memeJourCalendaireParis(instantA, instantB) {
-  const a = decomposerDateTimezone(instantA, 'Europe/Paris');
-  const b = decomposerDateTimezone(instantB, 'Europe/Paris');
-  return a.annee === b.annee && a.mois === b.mois && a.jour === b.jour;
+// =====================================================================
+// CADENCE HEBDOMADAIRE (chantier "durabilite championnat", 5 septembre 2026)
+// =====================================================================
+// Regle de game design VALIDEE, definitive : UNE SEULE journee de championnat par SEMAINE
+// CALENDAIRE, programmee le dimanche 20h Europe/Paris. Si personne n'est connecte le dimanche,
+// la journee est resolue au premier passage ulterieur -- mais elle consomme alors le quota de la
+// semaine calendaire OU CE RATTRAPAGE A LIEU, et aucune autre journee ne peut etre resolue avant
+// la semaine suivante. Jamais de cascade (J3 mardi, J4 mercredi, J5 jeudi : impossible).
+//
+// Remplace le garde-fou precedent, base sur le JOUR calendaire (memeJourCalendaireParis, retiree
+// avec ce chantier) : celui-ci autorisait deux journees dans une meme semaine reelle (un
+// rattrapage le lundi n'empechait pas l'echeance normale du dimanche suivant), ce qui contredit
+// la regle metier ci-dessus.
+//
+// Deux mecanismes complementaires, indissociables :
+//  1. VERROU  : saison.derniereSemaineResolue (cle ISO "YYYY-Www" Europe/Paris de l'instant de
+//               resolution). Une resolution est refusee si la semaine courante porte deja ce
+//               marqueur. Partage saison reguliere <-> playoffs (ils ne coexistent jamais).
+//  2. REANCRAGE : a chaque journee finalisee, l'ancrage saute au prochain dimanche 20h situe dans
+//               une semaine ISO STRICTEMENT POSTERIEURE a celle de la resolution (voir
+//               prochainDimanche20hSemaineSuivante). Sans lui, un rattrapage du mardi laisserait
+//               la journee suivante ancree au dimanche de la MEME semaine ISO, que le verrou (1)
+//               bloquerait, la repoussant au lundi -- puis au lundi suivant, etc. : le championnat
+//               boiterait definitivement d'un jour. Avec lui, la cadence retombe TOUJOURS sur un
+//               dimanche 20h, et un retard de plusieurs semaines ne peut jamais etre rattrape
+//               autrement qu'a raison d'une journee par semaine reelle.
+
+// Cle de semaine ISO-8601 (lundi -> dimanche) dans le fuseau canonique Europe/Paris, ex.
+// "2026-W36". Independante du fuseau du navigateur : deux joueurs a Tokyo et Montreal obtiennent
+// la meme cle pour le meme instant. Le dimanche est le DERNIER jour de sa semaine ISO -- un
+// coup d'envoi du dimanche 20h et un rattrapage du mardi suivant tombent donc bien dans deux
+// semaines ISO differentes, ce qui est exactement la semantique voulue.
+function semaineIsoParis(instant) {
+  const d = decomposerDateTimezone(instant, 'Europe/Paris');
+  // Arithmetique de date civile pure (aucune heure, aucun fuseau) sur un minuit UTC reconstruit.
+  const jour = new Date(Date.UTC(d.annee, d.mois - 1, d.jour));
+  const jourSemaineLundi0 = (jour.getUTCDay() + 6) % 7; // 0=lundi ... 6=dimanche
+  // Jeudi de la meme semaine ISO : son annee civile EST l'annee ISO de la semaine (definition).
+  const jeudi = new Date(jour.getTime() + (3 - jourSemaineLundi0) * 86400000);
+  const anneeIso = jeudi.getUTCFullYear();
+  const premierJanvier = Date.UTC(anneeIso, 0, 1);
+  const numero = Math.floor((jeudi.getTime() - premierJanvier) / 86400000 / 7) + 1;
+  return anneeIso + '-W' + String(numero).padStart(2, '0');
 }
+
+// Prochain dimanche 20h Europe/Paris situe dans une semaine ISO STRICTEMENT POSTERIEURE a celle
+// de `depuis`. Utilisee UNIQUEMENT pour reancrer apres une resolution (voir ci-dessus) -- la
+// programmation initiale d'une saison continue d'utiliser prochainDimanche20hParis(), qui donne
+// bien le dimanche de la semaine en cours quand on est avant 20h ce dimanche-la.
+function prochainDimanche20hSemaineSuivante(depuis) {
+  let candidat = prochainDimanche20hParis(depuis);
+  if (semaineIsoParis(candidat) === semaineIsoParis(depuis)) {
+    candidat = prochainDimanche20hParis(new Date(candidat.getTime() + 1000));
+  }
+  return candidat;
+}
+
+// Verrou (1) ci-dessus. `saison` peut ne pas encore porter le marqueur (saison d'avant ce
+// chantier) : dans ce cas aucune resolution n'a encore ete comptabilisee, donc rien ne bloque.
+function resolutionDejaFaiteCetteSemaine(saison, maintenant) {
+  if (!saison || !saison.derniereSemaineResolue) return false;
+  return saison.derniereSemaineResolue === semaineIsoParis(maintenant);
+}
+
+// Marque la semaine consommee ET reancre la journee suivante. Appelee UNIQUEMENT sur l'objet
+// `saison` local, juste avant le CAS qui le persiste -- jamais en dehors d'une ecriture atomique.
+function marquerResolutionEtReancrer(saison, numeroJourneeSuivante, maintenant) {
+  saison.derniereSemaineResolue = semaineIsoParis(maintenant);
+  saison.derniereJourneeResolueLe = maintenant.toISOString(); // conserve : informatif/affichage
+  saison.ancrageDimanche = {
+    numero: numeroJourneeSuivante,
+    kickoffISO: prochainDimanche20hSemaineSuivante(maintenant).toISOString()
+  };
+}
+
+// Historique du garde-fou anti-cascade, conserve pour memoire : v1 = fenetre glissante de 6 jours
+// (retardait a tort l'echeance normale du dimanche suivant apres un rattrapage du samedi) ; v2 =
+// "coup d'envoi en retard de plus d'une semaine" (laissait cascader la derniere journee d'un lot)
+// ; v3 = un jour calendaire Europe/Paris (memeJourCalendaireParis, RETIREE le 5 septembre 2026 :
+// elle autorisait deux journees dans une meme semaine reelle, contraire a la regle metier).
+// v4 = verrou de SEMAINE ISO + reancrage, voir semaineIsoParis/marquerResolutionEtReancrer.
 
 // Migration paresseuse (section 3 du chantier) : toute saison ne possedant pas encore
 // d'ancrage sportif reel en recoit un au tout premier passage de verifierEtJouerJournees()
@@ -1708,28 +1773,79 @@ function simulerTourElimination(clubsQualifies) {
   });
 }
 
+// =====================================================================
+// VERROU DE VERSION DU PROTOCOLE D'ECRITURE (C4, 5 septembre 2026)
+// =====================================================================
+// Estampille portee par le blob lui-meme. Regle : un client dont la version est INFERIEURE a
+// celle deja inscrite dans le blob n'a le droit d'ecrire NULLE PART dans le championnat (init,
+// ancrage, match, journee, nouvelle saison, boycott, notifications). Il continue de lire et
+// d'afficher normalement.
+//
+// PORTEE REELLE, a ne pas surestimer : cette constante vit dans le JavaScript. Elle protege donc
+// contre les clients deployes A PARTIR DE MAINTENANT (un client v2 sera bloque par un futur blob
+// v3), mais elle ne peut RIEN contre un bundle deja charge en memoire avant ce chantier, qui ne
+// contient tout simplement pas ce test. La barriere efficace contre CES onglets-la est le
+// deplacement de la ligne canonique vers championnat id=2 (voir CHAMPIONNAT_ROW_ID, supabase.js) :
+// leur `id=eq.1` est code en dur dans leur propre copie du code. Les deux mecanismes sont
+// complementaires, aucun ne remplace l'autre.
+const CHAMPIONNAT_SCHEMA_VERSION = 2;
+
+// Gate UNIQUE de toutes les ecritures du championnat. Centralisee ici pour qu'aucun futur chemin
+// d'ecriture ne puisse l'oublier : ecrireChampionnatCAS() l'applique lui-meme, en dernier recours.
+function peutEcrireChampionnat(saison) {
+  const versionBlob = (saison && typeof saison.schemaVersion === 'number') ? saison.schemaVersion : 1;
+  return CHAMPIONNAT_SCHEMA_VERSION >= versionBlob;
+}
+
+// Modele d'une saison neuve. Extrait pour etre partage entre la creation initiale et
+// demarrerNouvelleSaison() -- une seule definition de la forme du blob.
+function construireSaisonNeuve(saisonPrecedente) {
+  return {
+    schemaVersion: CHAMPIONNAT_SCHEMA_VERSION,
+    numero: (saisonPrecedente?.numero || 0) + 1,
+    dateDebut: new Date().toISOString(),
+    // Ancrage sportif reel (chantier "calendrier dimanche 20h") : la toute premiere journee
+    // d'une saison flambant neuve est TOUJOURS le prochain dimanche 20h Europe/Paris a partir
+    // de l'instant de creation -- dateDebut reste une simple metadonnee (horodatage de
+    // creation de la ligne), plus jamais la source du calendrier des journees.
+    ancrageDimanche: { numero: 1, kickoffISO: prochainDimanche20hParis(new Date()).toISOString() },
+    phase: 'reguliere',
+    calendrier: genererCalendrierSaison(),
+    stadeFinaleClubId: choisirStadeFinale(saisonPrecedente?.stadesUtilises || []),
+    stadesUtilises: [...(saisonPrecedente?.stadesUtilises || []), saisonPrecedente?.stadeFinaleClubId].filter(Boolean),
+    resultatsFinales: null,
+    palmares: saisonPrecedente?.palmares || [],
+    // Aucune semaine consommee : la J1 sera jouable des son coup d'envoi.
+    derniereSemaineResolue: null,
+    derniereJourneeResolueLe: null
+  };
+}
+
+// Reecrite (C1 + C2, 5 septembre 2026). Ne cree PLUS JAMAIS une saison sur une lecture ratee :
+// c'etait la cause directe des reinitialisations parasites des 1er et 4 septembre 2026 (une
+// erreur reseau etait interpretee comme "aucun championnat n'existe", puis ecrasait la saison
+// reelle par une J1 neuve). Renvoie null aussi bien sur erreur que sur absence non creable --
+// TOUS les appelants doivent donc tolerer null (ils le font, voir les gardes ajoutees).
 async function chargerOuInitialiserSaison() {
-  if (typeof sbGetChampionnat !== 'function') return null;
-  let saison = await sbGetChampionnat().catch(() => null);
-  if (!saison) {
-    saison = {
-      numero: 1,
-      dateDebut: new Date().toISOString(),
-      // Ancrage sportif reel (chantier "calendrier dimanche 20h") : la toute premiere journee
-      // d'une saison flambant neuve est TOUJOURS le prochain dimanche 20h Europe/Paris a partir
-      // de l'instant de creation -- dateDebut reste une simple metadonnee (horodatage de
-      // creation de la ligne), plus jamais la source du calendrier des journees.
-      ancrageDimanche: { numero: 1, kickoffISO: prochainDimanche20hParis(new Date()).toISOString() },
-      phase: 'reguliere',
-      calendrier: genererCalendrierSaison(),
-      stadeFinaleClubId: choisirStadeFinale([]),
-      stadesUtilises: [],
-      resultatsFinales: null,
-      palmares: []
-    };
-    if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(saison).catch(() => {});
+  if (typeof sbLireChampionnat !== 'function') return null;
+  const lu = await sbLireChampionnat();
+
+  // Cas B -- ERREUR (reseau, timeout, non-2xx, corps inexploitable, data corrompue) :
+  // abandon propre du tick. Aucune creation, aucune ecriture, aucune donnee existante touchee.
+  // Le prochain tick (20s / 5min) retentera ; rien n'est perdu.
+  if (!lu.ok) return null;
+
+  // Cas A -- ligne REELLEMENT absente (HTTP 2xx, zero ligne) : seul cas ou creer est legitime.
+  if (lu.saison === null) {
+    const neuve = construireSaisonNeuve(null);
+    const apres = await sbCreerChampionnatSiAbsent(neuve); // INSERT ignore-duplicates + relecture
+    // On repart TOUJOURS de l'etat effectivement present apres l'INSERT, jamais de notre copie
+    // locale : si un autre client a gagne la course, c'est SA saison qui fait autorite.
+    if (!apres.ok || !apres.saison) return null;
+    return apres.saison;
   }
-  return saison;
+
+  return lu.saison;
 }
 
 function joursEcoulesDepuis(dateISO) {
@@ -1811,8 +1927,25 @@ async function verifierNotificationsAvantMatch(saison) {
   // que l'ancrage n'est plus dateDebut lui-meme. Fenetre [0h, 24h[ avant le coup d'envoi,
   // notifie24h garantit une notification unique par journee (inchange).
   const kickoff = calculerKickoffJournee(saison, prochaine.numero);
+  if (!kickoff) return; // C5 : ancrage absent/corrompu -- abandon, jamais d'horaire local fabrique
   const heuresAvantCoupEnvoi = (kickoff.getTime() - Date.now()) / 3600000;
   if (heuresAvantCoupEnvoi > 24 || heuresAvantCoupEnvoi <= 0) return;
+
+  // C3 + doctrine "effets externes APRES revendication" (5 septembre 2026) : le drapeau
+  // notifie24h est desormais REVENDIQUE PAR CAS AVANT l'envoi des mails, au lieu d'etre sauve en
+  // aveugle apres. Avant ce correctif, deux clients simultanes envoyaient chacun la vague
+  // complete de convocations (mails en double), et le sbSaveChampionnat() final ecrasait par
+  // ailleurs tout le blob. Desormais un seul client remporte le drapeau et envoie les mails ;
+  // les perdants sortent sans rien envoyer.
+  const revendication = await majChampionnatCAS((fraiche) => {
+    if (fraiche.phase !== 'reguliere') return false;
+    const cible = fraiche.calendrier.find(j => j.numero === prochaine.numero);
+    if (!cible || cible.notifie24h) return false; // deja revendique par un autre client
+    cible.notifie24h = true;
+    return true;
+  });
+  if (!revendication.ok) return;
+  prochaine.notifie24h = true; // reflete la revendication sur la copie de l'appelant
 
   for (const m of prochaine.matchs) {
     const clubHome = getClub(m.home), clubAway = getClub(m.away);
@@ -1820,8 +1953,6 @@ async function verifierNotificationsAvantMatch(saison) {
     await notifierConvocationAnticipee(clubHome, contribHome, clubAway, kickoff);
     await notifierConvocationAnticipee(clubAway, contribAway, clubHome, kickoff);
   }
-  prochaine.notifie24h = true;
-  if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(saison).catch(() => {});
 }
 
 // Chantier "football live" (28 aout 2026) : le message n'entretient plus l'idee d'une presence
@@ -1853,17 +1984,34 @@ async function notifierConvocationAnticipee(club, contrib, adversaire, kickoff) 
   }
 }
 
-async function jouerMatchsTour(paires, avecRetour) {
-  const resultats = [];
+// Scission de l'ancien jouerMatchsTour() (5 septembre 2026, correctif "double effet playoffs").
+// Avant, une seule fonction simulait ET appliquait immediatement les effets externes
+// (salaires, primes, popularite, blessures reelles, PV, mails, caisse du club) -- ces effets
+// partaient donc AVANT que le resultat du tour ne soit persiste. Si le CAS de report echouait
+// ensuite, le tour restait a la meme etape en base et etait REJOUE la semaine suivante :
+// salaires, popularite, blessures, mails et publication etaient alors appliques DEUX FOIS.
+//
+// Desormais, meme doctrine que le moteur live : PHASE PURE (aucune ecriture, aucun effet, que
+// des lectures) -> CAS -> PHASE D'EFFETS, executee uniquement par le client qui a gagne le CAS.
+// simulerTourPur ne fait que des lectures (calculerContributionEquipe) et du calcul (simulerMatch).
+async function simulerTourPur(paires) {
+  const resultats = [], effets = [];
   for (const [a, b] of paires) {
     const clubA = getClub(a), clubB = getClub(b);
     const [contribA, contribB] = await Promise.all([calculerContributionEquipe(clubA), calculerContributionEquipe(clubB)]);
     const res = simulerMatch(a, b, contribA.bonus, contribB.bonus);
     resultats.push({ home: a, away: b, scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit });
-    await notifierCompositionsEtBlessures(clubA, contribA, res.scoreHome, res.scoreAway);
-    await notifierCompositionsEtBlessures(clubB, contribB, res.scoreAway, res.scoreHome);
+    effets.push({ club: clubA, contrib: contribA, butsPour: res.scoreHome, butsContre: res.scoreAway });
+    effets.push({ club: clubB, contrib: contribB, butsPour: res.scoreAway, butsContre: res.scoreHome });
   }
-  return resultats;
+  return { resultats, effets };
+}
+
+// PHASE D'EFFETS : n'est appelee qu'apres un CAS gagnant (voir verifierEtJouerJournees).
+async function appliquerEffetsTour(effets) {
+  for (const e of effets || []) {
+    await notifierCompositionsEtBlessures(e.club, e.contrib, e.butsPour, e.butsContre).catch(() => {});
+  }
 }
 
 function determinerVainqueursAgrege(aller, retour) {
@@ -1880,70 +2028,86 @@ function determinerVainqueursAgrege(aller, retour) {
 // aller/retour, demies aller/retour, finale) se joue desormais au prochain dimanche 20h Europe/
 // Paris reel, jamais plus sur l'horloge PA personnelle d'un joueur (state.day) -- qui permettait
 // a n'importe quel joueur d'accelerer les playoffs POUR TOUT LE MONDE en avancant sa propre
-// horloge. Meme garde-fou anti-cascade que la saison reguliere (memeJourCalendaireParis,
-// saison.derniereJourneeResolueLe partage entre les deux : ils ne sont jamais actifs en meme
+// horloge. Meme garde-fou que la saison reguliere (verrou hebdomadaire semaineIsoParis /
+// saison.derniereSemaineResolue, partage entre les deux : ils ne sont jamais actifs en meme
 // temps, les playoffs ne demarrant qu'apres la fin complete de la saison reguliere).
 async function progresserPlayoffs(saison) {
   const p = saison.playoffs;
   const maintenant = new Date();
   const kickoffTour = new Date(p.prochainKickoffISO);
-  if (maintenant < kickoffTour) return false;
-  // Anti-cascade : voir le commentaire detaille dans avancerFootballLive() (meme regle exacte,
-  // partagee via derniereJourneeResolueLe).
-  if (saison.derniereJourneeResolueLe) {
-    const dernierInstant = new Date(saison.derniereJourneeResolueLe);
-    if (kickoffTour.getTime() < dernierInstant.getTime() && memeJourCalendaireParis(dernierInstant, maintenant)) {
-      return false;
-    }
-  }
+  // Garde defensive (5 septembre 2026) : sans elle, un prochainKickoffISO absent ou corrompu
+  // donnait une Invalid Date, dont toute comparaison est false -- le tour se serait donc joue
+  // IMMEDIATEMENT. Meme doctrine que calculerKickoffJournee (C5) : on abandonne, jamais de repli.
+  if (!Number.isFinite(kickoffTour.getTime())) return null;
+  if (maintenant < kickoffTour) return null;
+  // Verrou hebdomadaire (5 septembre 2026) : meme regle exacte que la saison reguliere, partagee
+  // via derniereSemaineResolue (les deux phases ne coexistent jamais). Un tour de playoffs
+  // consomme la semaine calendaire au meme titre qu'une journee.
+  if (resolutionDejaFaiteCetteSemaine(saison, maintenant)) return null;
+
+  // PHASE PURE (5 septembre 2026, correctif "double effet playoffs"). Cette fonction ne fait plus
+  // AUCUNE ecriture ni AUCUN effet externe : elle calcule le tour, mute la copie locale de
+  // `saison`, et RENVOIE la liste des effets et des publications a emettre. C'est l'appelant
+  // (verifierEtJouerJournees) qui persiste par CAS, puis n'emet ces effets QUE s'il a gagne.
+  //
+  // Ce que cela corrige exactement : auparavant les effets partaient pendant le calcul, donc
+  // AVANT la persistance. Un CAS de report perdu ou echoue laissait l'etape inchangee en base ;
+  // le tour etait rejoue la semaine suivante et TOUS ses effets etaient appliques une 2e fois
+  // (salaires + primes, popularite, blessures reelles et PV, mails, caisse du club, publication
+  // forum). Desormais : CAS perdu = rien de persiste ET rien d'emis ; CAS gagne = etape avancee
+  // en base, donc jamais de rejeu. Les deux branches sont sures.
+  //
+  // Renvoie null s'il n'y a rien a faire, sinon { effets, publications }.
   const marquerResoluEtProgrammerSuivant = () => {
+    saison.derniereSemaineResolue = semaineIsoParis(maintenant);
     saison.derniereJourneeResolueLe = maintenant.toISOString();
-    p.prochainKickoffISO = new Date(kickoffTour.getTime() + UNE_SEMAINE_MS).toISOString();
+    // Reancrage identique a la saison reguliere : le tour suivant tombe sur le prochain dimanche
+    // 20h Europe/Paris d'une semaine ISO strictement posterieure -- jamais "kickoff + 7 jours",
+    // qui apres un rattrapage tardif aurait pu retomber dans la semaine deja consommee.
+    p.prochainKickoffISO = prochainDimanche20hSemaineSuivante(maintenant).toISOString();
   };
 
   if (p.etape === 'quarts_aller') {
-    p.quarts.aller = await jouerMatchsTour(p.quarts.paires, false);
-    await publierTourPlayoffSurForum(saison.numero, 'Quarts de finale (aller)', p.quarts.aller);
+    const tour = await simulerTourPur(p.quarts.paires);
+    p.quarts.aller = tour.resultats;
     p.etape = 'quarts_retour';
     marquerResoluEtProgrammerSuivant();
-    return true;
+    return { effets: tour.effets, publications: [{ type: 'tour', titre: 'Quarts de finale (aller)', resultats: tour.resultats }] };
   }
   if (p.etape === 'quarts_retour') {
     const pairesRetour = p.quarts.paires.map(([a, b]) => [b, a]);
-    p.quarts.retour = await jouerMatchsTour(pairesRetour, true);
-    await publierTourPlayoffSurForum(saison.numero, 'Quarts de finale (retour)', p.quarts.retour);
+    const tour = await simulerTourPur(pairesRetour);
+    p.quarts.retour = tour.resultats;
     p.quarts.vainqueurs = determinerVainqueursAgrege(p.quarts.aller, p.quarts.retour);
     p.demies = { paires: [[p.quarts.vainqueurs[0], p.quarts.vainqueurs[3]], [p.quarts.vainqueurs[1], p.quarts.vainqueurs[2]]], aller: null, retour: null, vainqueurs: null };
     p.etape = 'demies_aller';
     marquerResoluEtProgrammerSuivant();
-    return true;
+    return { effets: tour.effets, publications: [{ type: 'tour', titre: 'Quarts de finale (retour)', resultats: tour.resultats }] };
   }
   if (p.etape === 'demies_aller') {
-    p.demies.aller = await jouerMatchsTour(p.demies.paires, false);
-    await publierTourPlayoffSurForum(saison.numero, 'Demi-finales (aller)', p.demies.aller);
+    const tour = await simulerTourPur(p.demies.paires);
+    p.demies.aller = tour.resultats;
     p.etape = 'demies_retour';
     marquerResoluEtProgrammerSuivant();
-    return true;
+    return { effets: tour.effets, publications: [{ type: 'tour', titre: 'Demi-finales (aller)', resultats: tour.resultats }] };
   }
   if (p.etape === 'demies_retour') {
     const pairesRetour = p.demies.paires.map(([a, b]) => [b, a]);
-    p.demies.retour = await jouerMatchsTour(pairesRetour, true);
-    await publierTourPlayoffSurForum(saison.numero, 'Demi-finales (retour)', p.demies.retour);
+    const tour = await simulerTourPur(pairesRetour);
+    p.demies.retour = tour.resultats;
     p.demies.vainqueurs = determinerVainqueursAgrege(p.demies.aller, p.demies.retour);
     p.finale = { paire: [p.demies.vainqueurs[0], p.demies.vainqueurs[1]], resultat: null };
     p.etape = 'finale';
     marquerResoluEtProgrammerSuivant();
-    return true;
+    return { effets: tour.effets, publications: [{ type: 'tour', titre: 'Demi-finales (retour)', resultats: tour.resultats }] };
   }
   if (p.etape === 'finale') {
     const [a, b] = p.finale.paire;
-    const [contribA, contribB] = await Promise.all([calculerContributionEquipe(getClub(a)), calculerContributionEquipe(getClub(b))]);
-    const res = simulerMatch(a, b, contribA.bonus, contribB.bonus);
-    p.finale.resultat = { home:a, away:b, scoreHome:res.scoreHome, scoreAway:res.scoreAway, recit:res.recit };
-    await notifierCompositionsEtBlessures(getClub(a), contribA, res.scoreHome, res.scoreAway);
-    await notifierCompositionsEtBlessures(getClub(b), contribB, res.scoreAway, res.scoreHome);
+    const tour = await simulerTourPur([[a, b]]);
+    const r = tour.resultats[0];
+    p.finale.resultat = { home: a, away: b, scoreHome: r.scoreHome, scoreAway: r.scoreAway, recit: r.recit };
 
-    const champion = res.scoreHome >= res.scoreAway ? a : b;
+    const champion = r.scoreHome >= r.scoreAway ? a : b;
     const finaliste = champion === a ? b : a;
     const classementFinal = calculerClassement(saison.calendrier);
 
@@ -1957,15 +2121,16 @@ async function progresserPlayoffs(saison) {
     });
     saison.phase = 'terminee';
     p.etape = 'termine';
-    saison.derniereJourneeResolueLe = maintenant.toISOString();
-    await publierPhasesFinalesSurForum(saison.numero, saison.resultatsFinales);
-    return true;
+    marquerResoluEtProgrammerSuivant();
+    return { effets: tour.effets, publications: [{ type: 'finale' }] };
   }
-  return false;
+  return null;
 }
 
 async function verifierEtJouerJournees() {
   let saison = await chargerOuInitialiserSaison();
+  // null = lecture Supabase en erreur (C1) OU creation impossible : on abandonne le tick sans
+  // rien ecrire. Les appelants (UI comprise) doivent tolerer null, voir leurs gardes.
   if (!saison || saison.phase === 'terminee') return saison;
 
   // Migration paresseuse de l'ancrage sportif (chantier "calendrier dimanche 20h", section 3) --
@@ -1973,9 +2138,15 @@ async function verifierEtJouerJournees() {
   // (qui a deja son ancrage, voir chargerOuInitialiserSaison/demarrerNouvelleSaison). Persiste
   // AVANT tout calcul de coup d'envoi plus bas, pour que verifierNotificationsAvantMatch() et
   // avancerFootballLive() (qui relit sa propre copie depuis Supabase) voient tous deux le meme
-  // ancrage des ce tick.
-  if (assurerAncrageDimanche(saison) && typeof sbSaveChampionnat === 'function') {
-    await sbSaveChampionnat(saison).catch(() => {});
+  // ancrage des ce tick. Desormais par CAS (C3) : l'ancien sbSaveChampionnat() reecrivait ici le
+  // blob ENTIER a partir d'une copie potentiellement perimee, ce qui pouvait effacer une journee
+  // que le moteur live venait de finaliser depuis un autre onglet.
+  if (!saison.ancrageDimanche) {
+    const r = await majChampionnatCAS((fraiche) => assurerAncrageDimanche(fraiche));
+    // majChampionnatCAS renvoie l'etat frais qu'il a lu, y compris quand il n'avait rien a
+    // ecrire (ancrage deja pose par un autre client) -- on l'exploite plutot que de relire.
+    if (r.saison) saison = r.saison;
+    else { const relu = await chargerOuInitialiserSaison(); if (relu) saison = relu; }
   }
 
   await verifierNotificationsAvantMatch(saison);
@@ -1985,74 +2156,132 @@ async function verifierEtJouerJournees() {
   // + mitemps 5min, evenements progressifs, verrou d'immobilisation, recompenses idempotentes --
   // voir son entete). Cette fonction (verifierEtJouerJournees) ne reste responsable que du cycle
   // de vie de la saison elle-meme (init, transition vers les phases finales, progression des
-  // phases finales) -- les playoffs restent geres a l'identique par jouerMatchsTour/
-  // progresserPlayoffs, hors perimetre de ce chantier (resolution instantanee, inchangee).
+  // phases finales) -- les playoffs restent geres par progresserPlayoffs (resolution instantanee),
+  // desormais lui aussi en phase pure -> CAS -> effets (correctif du 5 septembre 2026).
   if (saison.phase === 'reguliere') {
     const avancee = await avancerFootballLive();
     if (avancee) saison = avancee;
     else saison = await chargerOuInitialiserSaison() || saison; // relit un etat pousse par un AUTRE client entre-temps
   }
 
-  let modifie = false;
-
   // Une fois la phase reguliere entierement jouee, on enchaine les phases finales,
   // etalees sur plusieurs semaines (une semaine par manche), comme la phase reguliere.
+  // Calcul PUREMENT local (calculerClassement) : aucun effet externe, donc rejouable sans risque
+  // par majChampionnatCAS si la course est perdue.
   if (saison.phase === 'reguliere' && saison.calendrier.every(j => j.matchs.every(m => m.played))) {
-    const classement = calculerClassement(saison.calendrier);
-    const top8 = classement.slice(0, 8).map(c => c.id);
-    saison.phase = 'quarts';
-    saison.playoffs = {
-      top8,
-      etape: 'quarts_aller',
-      // Chantier "calendrier dimanche 20h", section 6 : premier tour de playoffs = prochain
-      // dimanche 20h Europe/Paris a partir de la fin de la saison reguliere -- plus jamais
-      // state.day (horloge PA propre a chaque personnage, sans lien avec le calendrier reel ni
-      // avec les autres joueurs, qui permettait a un joueur d'accelerer les playoffs pour tous en
-      // avancant sa propre horloge).
-      prochainKickoffISO: prochainDimanche20hParis(new Date()).toISOString(),
-      quarts: { paires: [[top8[0],top8[7]],[top8[3],top8[4]],[top8[1],top8[6]],[top8[2],top8[5]]], aller: null, retour: null, vainqueurs: null },
-      demies: null,
-      finale: null
-    };
-    modifie = true;
+    const r = await majChampionnatCAS((fraiche) => {
+      if (fraiche.phase !== 'reguliere') return false; // un autre client a deja fait la transition
+      if (!fraiche.calendrier.every(j => j.matchs.every(m => m.played))) return false;
+      const classement = calculerClassement(fraiche.calendrier);
+      const top8 = classement.slice(0, 8).map(c => c.id);
+      fraiche.phase = 'quarts';
+      fraiche.playoffs = {
+        top8,
+        etape: 'quarts_aller',
+        // Chantier "calendrier dimanche 20h", section 6 : premier tour de playoffs = dimanche 20h
+        // Europe/Paris -- plus jamais state.day (horloge PA propre a chaque personnage, sans lien
+        // avec le calendrier reel ni avec les autres joueurs, qui permettait a un joueur
+        // d'accelerer les playoffs pour tous en avancant sa propre horloge). SemaineSuivante
+        // (5 septembre 2026) : la derniere journee de saison reguliere vient de consommer la
+        // semaine calendaire courante, le premier tour ne peut donc pas tomber dedans.
+        prochainKickoffISO: prochainDimanche20hSemaineSuivante(new Date()).toISOString(),
+        quarts: { paires: [[top8[0],top8[7]],[top8[3],top8[4]],[top8[1],top8[6]],[top8[2],top8[5]]], aller: null, retour: null, vainqueurs: null },
+        demies: null,
+        finale: null
+      };
+      return true;
+    });
+    if (r.saison) saison = r.saison;
+    else { const relu = await chargerOuInitialiserSaison(); if (relu) saison = relu; }
   }
 
   if (saison.playoffs && saison.phase !== 'terminee') {
-    const rejoue = await progresserPlayoffs(saison);
-    if (rejoue) modifie = true;
-  }
-
-  if (modifie && typeof sbSaveChampionnat === 'function') {
-    await sbSaveChampionnat(saison).catch(() => {});
+    const etapeAvant = saison.playoffs.etape;
+    const maintenantTour = new Date();
+    // PHASE PURE : calcule le tour et mute la copie locale, sans emettre le moindre effet.
+    const tour = await progresserPlayoffs(saison);
+    if (tour) {
+      const instantane = {
+        playoffs: saison.playoffs, phase: saison.phase,
+        resultatsFinales: saison.resultatsFinales, palmares: saison.palmares,
+        derniereSemaineResolue: saison.derniereSemaineResolue,
+        derniereJourneeResolueLe: saison.derniereJourneeResolueLe
+      };
+      // CAS : c'est LUI qui tranche entre clients concurrents. Les gardes rejouent les memes
+      // conditions sur l'etat frais, pour ne jamais ecraser un tour deja avance par un autre.
+      const r = await majChampionnatCAS((fraiche) => {
+        if (!fraiche.playoffs || fraiche.phase === 'terminee') return false;
+        if (fraiche.playoffs.etape !== etapeAvant) return false;                    // deja avance ailleurs
+        if (resolutionDejaFaiteCetteSemaine(fraiche, maintenantTour)) return false; // semaine deja consommee
+        Object.assign(fraiche, instantane);
+        return true;
+      }, 3);
+      // PHASE D'EFFETS : uniquement pour le gagnant du CAS. Un perdant n'a rien persiste et
+      // n'emet donc rien -- ni salaire, ni popularite, ni blessure, ni mail, ni publication.
+      if (r.ok) {
+        await appliquerEffetsTour(tour.effets);
+        for (const pub of tour.publications) {
+          if (pub.type === 'finale') await publierPhasesFinalesSurForum(saison.numero, saison.resultatsFinales).catch(() => {});
+          else await publierTourPlayoffSurForum(saison.numero, pub.titre, pub.resultats).catch(() => {});
+        }
+        if (r.saison) saison = r.saison;
+      } else {
+        // Rien n'a ete persiste et rien n'a ete emis : on repart de l'etat reellement en base.
+        const relu = await chargerOuInitialiserSaison();
+        if (relu) saison = relu;
+      }
+    }
   }
   return saison;
 }
 
 // Demarre une toute nouvelle saison (appelee automatiquement une fois la precedente terminee et consultee)
+// Reecrite (Lot G, 5 septembre 2026). Avant : construisait une saison neuve a partir de la copie
+// que l'appelant avait sous la main, puis l'ecrivait en AVEUGLE -- deux joueurs ouvrant la modale
+// "Observer le match" au meme instant creaient donc deux saisons differentes, la seconde
+// reinitialisant la premiere (calendrier et stade de finale sont tires independamment).
+// Desormais : etat frais + verification `phase === 'terminee'` + ecriture CAS. Le second client
+// constate que la phase n'est plus 'terminee' et n'ecrit rien.
+// Renvoie la saison effectivement en base (la sienne ou celle du gagnant), ou null.
 async function demarrerNouvelleSaison(saisonPrecedente) {
-  const nouvelle = {
-    numero: (saisonPrecedente?.numero || 0) + 1,
-    dateDebut: new Date().toISOString(),
-    ancrageDimanche: { numero: 1, kickoffISO: prochainDimanche20hParis(new Date()).toISOString() },
-    phase: 'reguliere',
-    calendrier: genererCalendrierSaison(),
-    stadeFinaleClubId: choisirStadeFinale(saisonPrecedente?.stadesUtilises || []),
-    stadesUtilises: [...(saisonPrecedente?.stadesUtilises || []), saisonPrecedente?.stadeFinaleClubId].filter(Boolean),
-    resultatsFinales: null,
-    palmares: saisonPrecedente?.palmares || []
-  };
-  if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(nouvelle).catch(() => {});
-  await genererDemandesManifestationMatchs(nouvelle);
-  return nouvelle;
+  let creee = false;
+  const r = await majChampionnatCAS((fraiche) => {
+    // Seule une saison reellement terminee peut etre remplacee. Toute autre phase = un autre
+    // client a deja relance, ou la saison est en cours : on n'ecrit rien.
+    if (fraiche.phase !== 'terminee') return false;
+    const nouvelle = construireSaisonNeuve(fraiche); // reprend numero/palmares/stadesUtilises
+    // Remplacement integral du contenu de l'objet qui sera persiste (on ne peut pas reaffecter la
+    // reference elle-meme depuis le muteur) -- aucun residu de l'ancienne saison ne subsiste.
+    Object.keys(fraiche).forEach(k => { delete fraiche[k]; });
+    Object.assign(fraiche, nouvelle);
+    creee = true;
+    return true;
+  });
+  if (!r.ok || !r.saison) {
+    // Course perdue ou saison deja relancee : on renvoie l'etat courant, jamais une saison locale
+    // fantome que l'appelant afficherait alors qu'elle n'existe nulle part.
+    return r.saison || await chargerOuInitialiserSaison();
+  }
+  if (creee) await genererDemandesManifestationMatchs(r.saison);
+  return r.saison;
 }
 
 // Cree automatiquement une demande de manifestation par match de la saison (dimanche 20h Europe/
 // Paris, reutilise calculerKickoffJournee -- meme ancrage reel que la resolution des matchs,
 // jamais un second calcul de date, voir chantier "calendrier dimanche 20h").
+// Reecrite (5 septembre 2026) : les demandes (effets EXTERNES, table demandes_manifestation) sont
+// creees d'abord, puis leurs identifiants sont reportes dans le blob par CAS -- plus de
+// sbSaveChampionnat() aveugle qui reecrivait toute la saison depuis une copie locale. Le drapeau
+// manifestationsGenerees rend l'appel idempotent : jamais deux vagues de demandes pour une meme
+// saison, meme si deux clients y arrivent.
 async function genererDemandesManifestationMatchs(saison) {
+  if (!saison || saison.manifestationsGenerees) return;
+  const idsParMatch = {}; // "<journee>-<index>" -> id de la demande creee
   for (const j of saison.calendrier) {
     const dateMatch = calculerKickoffJournee(saison, j.numero);
-    for (const m of j.matchs) {
+    if (!dateMatch) continue; // C5 : ancrage absent/corrompu -- aucune date inventee
+    for (let i = 0; i < j.matchs.length; i++) {
+      const m = j.matchs[i];
       const clubHome = getClub(m.home), clubAway = getClub(m.away);
       const id = await sbCreerDemandeManifestation({
         orgaId: null, orgaNom: 'Ligue Officielle', orgaType: 'sportive',
@@ -2064,10 +2293,18 @@ async function genererDemandesManifestationMatchs(saison) {
         dateDepot: new Date().toISOString(),
         auto: true
       }).catch(() => null);
-      m.demandeManifId = id;
+      if (id) idsParMatch[j.numero + '-' + i] = id;
     }
   }
-  if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(saison).catch(() => {});
+  await majChampionnatCAS((fraiche) => {
+    if (fraiche.manifestationsGenerees) return false;
+    fraiche.calendrier.forEach(j => j.matchs.forEach((m, i) => {
+      const id = idsParMatch[j.numero + '-' + i];
+      if (id) m.demandeManifId = id;
+    }));
+    fraiche.manifestationsGenerees = true;
+    return true;
+  });
 }
 
 // =====================
@@ -2234,19 +2471,20 @@ const TAUX_BLESSURE_PAR_TITULAIRE = 0.08; // identique au taux historique (notif
 // (typiquement la J1 historique d'une saison migree, deja jouee un jour quelconque) obtient donc
 // une date theorique "avant l'ancrage", jamais utilisee pour la resoudre (elle est deja played),
 // seulement disponible si un affichage veut un jour theorique pour elle.
+// C5 (5 septembre 2026) : l'ancien repli `dateDebut + setHours(20,0,0,0)` est SUPPRIME. Il
+// calculait 20h dans le fuseau du NAVIGATEUR -- un joueur a Tokyo et un joueur a Montreal en
+// tiraient deux instants absolus differents pour la meme journee, et pouvaient donc la resoudre a
+// deux moments distincts. Il n'existe plus qu'une seule source de calendrier : l'ancrage
+// canonique (dimanche 20h Europe/Paris). En son absence ou s'il est incoherent, cette fonction
+// renvoie null et TOUS ses appelants abandonnent proprement -- jamais d'horaire fabrique
+// silencieusement. Le cas ne doit de toute facon plus se produire : assurerAncrageDimanche()
+// migre toute saison au premier passage de verifierEtJouerJournees().
 function calculerKickoffJournee(saison, numeroJournee) {
-  const ancrage = saison.ancrageDimanche;
-  if (ancrage) {
-    return new Date(new Date(ancrage.kickoffISO).getTime() + (numeroJournee - ancrage.numero) * UNE_SEMAINE_MS);
-  }
-  // Repli defensif : ne devrait plus jamais se produire (assurerAncrageDimanche() migre toute
-  // saison des le premier passage de verifierEtJouerJournees(), voir plus haut) -- conserve
-  // uniquement pour ne jamais planter si ce cas imprevu survenait malgre tout. Ancienne formule,
-  // local au navigateur (ecart connu, c'est precisement le bug corrige par ce chantier).
-  const debut = new Date(saison.dateDebut);
-  const d = new Date(debut.getTime() + (numeroJournee - 1) * UNE_SEMAINE_MS);
-  d.setHours(20, 0, 0, 0);
-  return d;
+  const ancrage = saison && saison.ancrageDimanche;
+  if (!ancrage || typeof ancrage.numero !== 'number' || !ancrage.kickoffISO) return null;
+  const base = new Date(ancrage.kickoffISO).getTime();
+  if (!Number.isFinite(base)) return null; // kickoffISO corrompu -> abandon, jamais de repli local
+  return new Date(base + (numeroJournee - ancrage.numero) * UNE_SEMAINE_MS);
 }
 
 // Pure fonction du temps reel ecoule depuis kickoffAt -- jamais dependante d'un etat client.
@@ -2671,23 +2909,63 @@ async function drainerEffetsRestants(maxItems) {
   return traites;
 }
 
+// Reecrite (5 septembre 2026) : delegue a sbLireChampionnat(), qui distingue erreur et absence et
+// vise la ligne canonique (CHAMPIONNAT_ROW_ID). Renvoie null dans les DEUX cas -- ici c'est sans
+// ambiguite, tous les appelants sont des chemins d'ecriture qui doivent alors simplement
+// abandonner leur tick sans rien creer ni ecrire.
 async function chargerChampionnatAvecVersion() {
-  const rows = await sbGet('championnat', 'id=eq.1').catch(() => null);
-  if (!rows || !rows.length) return null;
-  return { saison: rows[0].data, version: rows[0].updated_at };
+  if (typeof sbLireChampionnat !== 'function') return null;
+  const lu = await sbLireChampionnat();
+  if (!lu.ok || !lu.saison) return null;
+  return { saison: lu.saison, version: lu.version };
 }
 
 // Compare-and-swap PostgREST natif : PATCH conditionne sur l'updated_at lu au debut du tick.
 // Si un autre client a ecrit entre-temps, la clause WHERE ne correspond plus a aucune ligne --
 // PostgREST (Prefer: return=representation) renvoie alors un tableau VIDE, jamais une erreur.
+// POINT D'ECRITURE UNIQUE du championnat (C3, 5 septembre 2026) : plus aucun chemin fonctionnel
+// ne fait de PATCH aveugle. Deux gardes avant d'ecrire :
+//  - verrou de version (C4) : un client plus ancien que le blob n'ecrit jamais ;
+//  - estampille : le blob repart toujours avec la version du client qui vient de l'ecrire, ce qui
+//    permet au verrou de fonctionner pour les deploiements suivants.
 async function ecrireChampionnatCAS(saison, versionAttendue) {
+  if (!peutEcrireChampionnat(saison)) {
+    console.warn('[championnat] ecriture refusee : client v' + CHAMPIONNAT_SCHEMA_VERSION +
+      ' plus ancien que le blob v' + saison.schemaVersion + ' -- rechargez la page.');
+    return { ok: false, raison: 'version-client-obsolete' };
+  }
+  if (!versionAttendue) return { ok: false, raison: 'version-attendue-absente' };
+  saison.schemaVersion = CHAMPIONNAT_SCHEMA_VERSION;
   const nouvelleVersion = new Date().toISOString();
-  const res = await sbUpdate('championnat', 'id=eq.1&updated_at=eq.' + encodeURIComponent(versionAttendue), { data: saison, updated_at: nouvelleVersion }).catch(() => null);
-  return (res && res.length > 0) ? { ok: true } : { ok: false };
+  const res = await sbUpdate('championnat', CHAMPIONNAT_FILTRE_ID + '&updated_at=eq.' + encodeURIComponent(versionAttendue), { data: saison, updated_at: nouvelleVersion }).catch(() => null);
+  return (res && res.length > 0) ? { ok: true } : { ok: false, raison: 'course-perdue' };
+}
+
+// Helper commun a tous les chemins d'ecriture "hors moteur live" (ancrage, notifications,
+// boycott, transition playoffs, nouvelle saison). Relit l'etat frais, laisse l'appelant le muter,
+// puis ecrit en CAS -- avec quelques tentatives bornees, car ces actions sont rares et non
+// concurrentes entre elles (contrairement au moteur de match, qui a sa propre boucle).
+// `muter(saison)` doit renvoyer true pour demander l'ecriture, false pour abandonner sans ecrire.
+async function majChampionnatCAS(muter, tentatives) {
+  const max = tentatives || 4;
+  for (let i = 0; i < max; i++) {
+    const charge = await chargerChampionnatAvecVersion();
+    if (!charge) return { ok: false, raison: 'lecture-impossible' };
+    if (!peutEcrireChampionnat(charge.saison)) return { ok: false, raison: 'version-client-obsolete' };
+    let demande;
+    try { demande = await muter(charge.saison); }
+    catch (e) { return { ok: false, raison: 'mutation-echouee' }; }
+    if (!demande) return { ok: false, raison: 'rien-a-ecrire', saison: charge.saison };
+    const cas = await ecrireChampionnatCAS(charge.saison, charge.version);
+    if (cas.ok) return { ok: true, saison: charge.saison };
+    if (cas.raison === 'version-client-obsolete') return cas;
+    // course perdue : on relit l'etat frais et on retente
+  }
+  return { ok: false, raison: 'trop-de-courses-perdues' };
 }
 
 // Point d'entree unique du moteur live regulier (journee courante uniquement -- les playoffs
-// restent geres a l'identique par jouerMatchsTour/progresserPlayoffs, hors perimetre de ce
+// restent geres par progresserPlayoffs, hors perimetre de ce
 // chantier, voir rapport final). Idempotent, rejouable par n'importe quel client, aussi souvent
 // que necessaire : deux phases strictement separees (PURE puis EFFETS), voir commentaire d'entete.
 async function avancerFootballLive() {
@@ -2699,35 +2977,25 @@ async function avancerFootballLive() {
   const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
   if (!prochaine) return null;
 
+  // Verrou de version (C4) : un client plus ancien que le blob ne fait meme pas tourner le
+  // moteur, il ne pourrait de toute facon rien persister.
+  if (!peutEcrireChampionnat(saison)) return null;
+
   const kickoff = calculerKickoffJournee(saison, prochaine.numero);
-  const phaseInfo = phaseMatchActuelle(kickoff, new Date());
+  if (!kickoff) return null; // C5 : ancrage absent/corrompu -- abandon, jamais d'horaire local
+  const maintenant = new Date();
+  const phaseInfo = phaseMatchActuelle(kickoff, maintenant);
   if (phaseInfo.statut === 'a_venir') return null;
 
-  // Anti-cascade (revu le 1er septembre 2026, 2e revision -- voir memeJourCalendaireParis() plus
-  // haut pour l'historique de la 1ere version, une fenetre glissante de 6 jours qui retardait a
-  // tort une echeance normale du dimanche suivant apres un rattrapage tardif. Une 2e version,
-  // basee sur "le coup d'envoi de CETTE journee est en retard de plus d'une semaine", avait elle
-  // aussi un defaut reel : dans un retard de plusieurs semaines, la DERNIERE journee du lot
-  // (celle dont le propre retard finit par repasser sous une semaine) pouvait cascader juste
-  // apres celle qui la precede, le meme jour -- exactement ce que ce garde-fou doit empecher).
-  //
-  // Regle exacte, definitive : une journee est bloquee UNIQUEMENT si (a) son coup d'envoi etait
-  // DEJA depasse au moment ou la DERNIERE journee a ete resolue (preuve directe qu'elle faisait
-  // deja partie du meme retard, pas une echeance arrivee normalement APRES coup) ET (b) cette
-  // derniere resolution a eu lieu le MEME jour calendaire Europe/Paris. Des le jour calendaire
-  // suivant, ou des que le coup d'envoi de la journee consideree est POSTERIEUR a la derniere
-  // resolution (elle est arrivee a echeance normalement, apres coup, jamais simultanement en
-  // retard), plus aucun blocage. Une echeance normale du dimanche suivant n'est donc JAMAIS
-  // retardee par un rattrapage anterieur, quel que soit l'ecart reel entre les deux (quelques
-  // heures ou plusieurs jours) : son coup d'envoi est par definition posterieur a la resolution
-  // qui vient d'avoir lieu. Seules les journees deja simultanement en retard au moment du dernier
-  // rattrapage patientent jusqu'au jour calendaire suivant, une par une.
-  if (saison.derniereJourneeResolueLe) {
-    const dernierInstant = new Date(saison.derniereJourneeResolueLe);
-    if (kickoff.getTime() < dernierInstant.getTime() && memeJourCalendaireParis(dernierInstant, new Date())) {
-      return null;
-    }
-  }
+  // VERROU HEBDOMADAIRE (5 septembre 2026) -- remplace l'ancien garde-fou "un jour calendaire
+  // Europe/Paris", qui autorisait deux journees dans une meme semaine reelle (un rattrapage le
+  // lundi n'empechait pas l'echeance normale du dimanche suivant), contrairement a la regle
+  // metier validee. Regle appliquee ici : AU PLUS UNE journee resolue par SEMAINE ISO
+  // Europe/Paris. Combine au reancrage effectue a la finalisation (marquerResolutionEtReancrer),
+  // il rend structurellement impossible toute cascade -- il n'existe jamais plus d'une journee en
+  // retard a la fois, puisque la suivante est reprogrammee au dimanche de la semaine d'apres des
+  // que la precedente est resolue.
+  if (resolutionDejaFaiteCetteSemaine(saison, maintenant)) return null;
 
   const finalisationsLegacy = [];
   let modifie = false;
@@ -2788,12 +3056,24 @@ async function avancerFootballLive() {
     }
   }
 
-  // Marque l'instant reel de fin de journee AVANT le CAS (chantier "calendrier dimanche 20h",
-  // anti-cascade) : persiste atomiquement avec le reste de `saison` -- alimente le garde-fou
-  // memeJourCalendaireParis() ci-dessus lors du PROCHAIN appel a cette fonction (une journee ne
-  // peut jamais se marquer elle-meme comme "derniere resolue" avant d'etre complete).
+  // Marque la fin de journee AVANT le CAS : persiste atomiquement avec le reste de `saison` --
+  // alimente le verrou hebdomadaire ci-dessus lors des PROCHAINS appels a cette fonction (une
+  // journee ne peut jamais se marquer elle-meme comme resolue avant d'etre complete).
   if (modifie && prochaine.matchs.every(m => m.played)) {
-    saison.derniereJourneeResolueLe = new Date().toISOString();
+    // Consomme la semaine calendaire ET reancre la journee suivante au dimanche 20h de la semaine
+    // ISO suivante (5 septembre 2026) -- les deux dans la MEME ecriture atomique que played:true,
+    // donc jamais l'un sans l'autre. C'est ce reancrage qui empeche le championnat de "boiter"
+    // apres un rattrapage : sans lui, la journee suivante resterait ancree au dimanche de la
+    // semaine deja consommee, que le verrou hebdomadaire bloquerait, la repoussant au lundi, puis
+    // au lundi suivant, indefiniment.
+    marquerResolutionEtReancrer(saison, prochaine.numero + 1, new Date());
+    // Instant REEL de resolution de cette journee (additif, 5 septembre 2026). Necessaire au
+    // Journal : collecterFootball() (api/_journal-collecte.js) datait jusqu'ici chaque journee par
+    // `dateDebut + (numero-1) x 7 jours`, une SECONDE formule de calendrier, divergente de
+    // l'ancrage canonique des qu'un rattrapage decale une journee -- une journee rattrapee
+    // pouvait donc n'etre jamais collectee (sa date theorique tombait dans une fenetre ou elle
+    // n'etait pas encore jouee). On persiste donc la date reelle, seule source fiable.
+    prochaine.resolueLe = new Date().toISOString();
   }
 
   let casGagne = !modifie; // rien a revendiquer -> ne bloque pas la reprise ci-dessous
@@ -6783,6 +7063,7 @@ function trouverJourneeLiveActuelle(saison) {
   const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
   if (!prochaine) return null;
   const kickoff = calculerKickoffJournee(saison, prochaine.numero);
+  if (!kickoff) return null; // C5 : pas d'ancrage canonique -> aucun live a afficher
   const phaseInfo = phaseMatchActuelle(kickoff, new Date());
   if (phaseInfo.statut === 'a_venir') return null;
   return { journee: prochaine, kickoff, phaseInfo };
@@ -6826,6 +7107,7 @@ async function doRegarderLiveOuResume() {
 function ouvrirResumeMatch(numeroJournee, matchIdx) {
   fermerLiveMatchReel();
   chargerOuInitialiserSaison().then(saison => {
+    if (!saison) return; // lecture Supabase en erreur (C1) : on n'affiche rien plutot que de planter
     const journee = saison.calendrier.find(j => j.numero === numeroJournee);
     const m = journee?.matchs?.[matchIdx];
     if (!m) return;
@@ -7262,7 +7544,10 @@ async function doRejoindreClubSupporters(pa, cost) {
     state.organisations.push(orga);
   }
 
-  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1, derniereCotisationSaison: saison.numero });
+  // saison peut etre null si la lecture Supabase a echoue (C1) -- les PA ont deja ete debites
+  // ici, on ne bloque donc pas l'adhesion : repli sur la saison 1, meme convention que
+  // doPrendreLicenceSportive/accepterTransfert.
+  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1, derniereCotisationSaison: saison?.numero || 1 });
   sauvegarderOrga(orga);
 
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -7816,13 +8101,23 @@ async function doOrganiserBoycott(pa, cost) {
   if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut décider d\'un boycott.', false); return; }
 
   const saison = await chargerOuInitialiserSaison();
+  if (!saison) { showToast('Championnat indisponible', 'Impossible de lire le championnat pour le moment. Réessayez dans un instant.', false); return; }
   const prochaineJournee = saison.calendrier.find(j => j.matchs.some(m => !m.played && m.home === clubLocal.id));
   if (!prochaineJournee) { showToast('Aucun match à domicile', 'Pas de prochain match à domicile pour ce club.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('PA insuffisants', '', false); return; }
-  const match = prochaineJournee.matchs.find(m => !m.played && m.home === clubLocal.id);
-  match.boycotte = true;
-  if (typeof sbSaveChampionnat === 'function') await sbSaveChampionnat(saison).catch(() => {});
+  // C3 : le boycott est desormais pose par CAS sur l'etat frais. L'ancien sbSaveChampionnat()
+  // reecrivait ici le blob ENTIER a partir d'une copie lue plusieurs secondes plus tot (le temps
+  // d'ouvrir la modale et de payer les PA) -- il pouvait donc effacer un match que le moteur live
+  // venait de finaliser entre-temps.
+  const ecriture = await majChampionnatCAS((fraiche) => {
+    const jc = fraiche.calendrier.find(j => j.numero === prochaineJournee.numero);
+    const mc = jc && jc.matchs.find(m => !m.played && m.home === clubLocal.id);
+    if (!mc || mc.boycotte) return false; // match deja joue ou deja boycotte entre-temps
+    mc.boycotte = true;
+    return true;
+  });
+  if (!ecriture.ok) { showToast('Boycott non enregistré', 'Le match vient de commencer ou une autre action a eu lieu. Réessayez.', false); return; }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Boycott décidé', 'Le prochain match à domicile de ' + clubLocal.nom + ' sera boycotté par ses supporters.', true, true);
@@ -8065,7 +8360,7 @@ async function doPostulerPresidentClub(pa, cost) {
   if (data.president && data.president !== state.char?.name) {
     const jour = state.day || 1;
     const saison = await chargerOuInitialiserSaison();
-    const midSaison = (saison.dateDebut ? joursEcoulesDepuis(saison.dateDebut) : 0) ;
+    const midSaison = (saison?.dateDebut ? joursEcoulesDepuis(saison.dateDebut) : 0) ;
     if (data.dateElection && (jour - data.dateElection) < 8) { // ~mi-saison (saison=11 journees, protection ~ 5-6 sem)
       showToast('Poste protégé', 'Le président en poste ne peut pas être remis en question avant la mi-saison.', false);
       return;
@@ -8441,8 +8736,11 @@ function doAcheterAccessoirePersonnalise() {
 // par le moteur live) -- jamais une deuxieme source d'heure recalculee independamment (section 14).
 function formatDateJournee(saison, numero) {
   const kickoff = calculerKickoffJournee(saison, numero);
-  return kickoff.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
-    ' à ' + kickoff.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  if (!kickoff) return 'date à confirmer'; // C5 : jamais une date fabriquee en heure locale
+  // Affichage explicitement rendu dans le fuseau canonique : deux joueurs dans deux fuseaux
+  // differents lisent la meme heure officielle de coup d'envoi (20h00), et non leur heure locale.
+  return kickoff.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit', year: 'numeric' }) +
+    ' à ' + kickoff.toLocaleTimeString('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' }) + ' (Paris)';
 }
 
 async function doObserverMatch() {
@@ -8451,6 +8749,11 @@ async function doObserverMatch() {
   document.getElementById('modal-postes').classList.add('open');
 
   let saison = await verifierEtJouerJournees();
+  if (!saison) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Championnat momentanément indisponible (connexion). Réessayez dans un instant.</div>';
+    return;
+  }
   const clubLocal = getClubLocal();
 
   let html = '<div style="padding:1rem">';
@@ -8462,7 +8765,11 @@ async function doObserverMatch() {
     html += '<div style="font-size:.75rem;color:#8a8060;margin-top:.3rem">Champion de la saison ' + saison.numero + ' — finale au ' + getClub(rf.stadeClubId).nom + '</div>';
     html += '<div style="font-size:.72rem;color:#6a5a30;margin-top:.3rem">' + rf.finale.recit + '</div>';
     html += '</div>';
-    demarrerNouvelleSaison(saison);
+    // Lot G (5 septembre 2026) : desormais ATTENDU, et concurrent-safe (etat frais + verification
+    // phase==='terminee' + CAS, voir demarrerNouvelleSaison). L'appel non-await precedent laissait
+    // deux joueurs ouvrant cette modale en meme temps creer deux saisons differentes, la seconde
+    // ecrasant la premiere.
+    await demarrerNouvelleSaison(saison);
   } else if (clubLocal) {
     let prochain = null, dernier = null;
     for (const j of saison.calendrier) {
@@ -8519,6 +8826,11 @@ async function doConsulterPalmares() {
   document.getElementById('modal-postes').classList.add('open');
 
   const saison = await chargerOuInitialiserSaison();
+  if (!saison) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Palmarès momentanément indisponible (connexion). Réessayez dans un instant.</div>';
+    return;
+  }
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Historique complet et permanent des saisons passées.</div>';
 
@@ -8540,6 +8852,7 @@ async function doConsulterPalmares() {
 
 async function doParierMatch(pa, cost) {
   const saison = await verifierEtJouerJournees();
+  if (!saison) { showToast('Paris indisponibles', 'Impossible de lire le championnat pour le moment. Réessayez dans un instant.', false); return; }
 
   const prochaineJournee = saison.calendrier.find(j => j.matchs.some(m => !m.played));
   if (!prochaineJournee) { showToast('Aucun pari disponible', 'Plus aucun match à venir cette saison.', false); return; }

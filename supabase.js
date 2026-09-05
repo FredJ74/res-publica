@@ -581,19 +581,74 @@ async function sbChargerBatimentsFermes(pays, ville) {
 // =====================
 // CHAMPIONNAT SPORTIF (etat partage, une seule ligne)
 // =====================
-async function sbGetChampionnat() {
-  const rows = await sbGet('championnat', 'id=eq.1');
-  if (!rows || rows.length === 0) return null;
-  return rows[0].data;
+// Chantier "durabilite championnat" (5 septembre 2026). Contexte : deux reinitialisations
+// parasites (1er et 4 septembre 2026) ont detruit la saison reelle. Cause etablie par l'audit :
+// (a) l'ancien sbGetChampionnat() renvoyait `null` aussi bien pour "ligne absente" que pour
+// "lecture echouee", et chargerOuInitialiserSaison() creait alors une saison neuve ;
+// (b) l'ancien sbSaveChampionnat() faisait un PATCH AVEUGLE (aucune condition) qui ecrasait la
+// ligne existante ; (c) des onglets restes ouverts plusieurs jours continuaient d'executer un
+// ancien moteur ecrivant dans cette meme ligne.
+//
+// LIGNE CANONIQUE (protection C4, volet reellement efficace) : la saison ne vit plus dans
+// `championnat id=1` mais dans une NOUVELLE ligne, id=2. Les anciens bundles ont `id=eq.1` code
+// en dur dans LEUR copie de supabase.js -- ils ne peuvent donc plus atteindre l'etat canonique,
+// quelle que soit la fonction qu'ils appellent. C'est la seule barriere efficace contre un
+// JavaScript deja charge, qui par construction ne contient aucune de nos nouvelles verifications
+// (voir CHAMPIONNAT_SCHEMA_VERSION, plateau-organisations-quetes.js, qui ne protege lui que
+// contre les clients DEPLOYES A PARTIR DE MAINTENANT).
+//
+// /!\ Ce basculement n'est actif qu'une fois la ligne id=2 REELLEMENT creee en production, et la
+// ligne id=1 neutralisee (phase:'terminee', resultatsFinales:null) pour rendre les vieux onglets
+// inertes. Voir le script de reparation prepare : .scratch/reparation-championnat-J1-J2.mjs
+// (NON EXECUTE). Tant qu'il n'a pas tourne, ce code creera une saison NEUVE en id=2 : l'ordre
+// reparation-puis-deploiement est imperatif.
+const CHAMPIONNAT_ROW_ID = 2;
+const CHAMPIONNAT_FILTRE_ID = 'id=eq.' + CHAMPIONNAT_ROW_ID;
+
+// Lecture EXPLICITE : ne masque plus jamais une erreur sous un `null` ambigu (C1).
+//   { ok:true,  saison:<obj>, version:<updated_at> } -> ligne presente et exploitable
+//   { ok:true,  saison:null }                        -> ligne REELLEMENT absente (HTTP 2xx, 0 ligne)
+//   { ok:false, raison:'...' }                       -> erreur : reseau, timeout, non-2xx,
+//                                                       corps inexploitable, data corrompue.
+// Dans le cas ok:false, l'appelant a INTERDICTION de creer ou d'ecrire quoi que ce soit.
+async function sbLireChampionnat() {
+  let rows;
+  try {
+    rows = await sbGet('championnat', CHAMPIONNAT_FILTRE_ID);
+  } catch (e) {
+    return { ok: false, raison: 'exception-reseau' }; // fetch rejete (hors ligne, DNS, CORS, onglet reveille de veille)
+  }
+  // sbGet() renvoie null UNIQUEMENT sur !res.ok (voir son implementation) : c'est une erreur
+  // HTTP (401/404/5xx, projet Supabase en pause...), jamais une absence de ligne.
+  if (rows === null) return { ok: false, raison: 'http-non-2xx' };
+  if (!Array.isArray(rows)) return { ok: false, raison: 'corps-inexploitable' };
+  if (rows.length === 0) return { ok: true, saison: null }; // seul cas d'absence REELLE
+  const row = rows[0];
+  // Ligne presente mais data absente/non-objet : anomalie, jamais une invitation a recreer.
+  if (!row || typeof row.data !== 'object' || row.data === null) return { ok: false, raison: 'data-invalide' };
+  return { ok: true, saison: row.data, version: row.updated_at };
 }
 
-async function sbSaveChampionnat(data) {
-  const existing = await sbGet('championnat', 'id=eq.1');
-  if (existing && existing.length > 0) {
-    return sbUpdate('championnat', 'id=eq.1', { data, updated_at: new Date().toISOString() });
+// Creation ATOMIQUE (C2) : INSERT protege contre le doublon (resolution=ignore-duplicates,
+// equivalent PostgREST de ON CONFLICT DO NOTHING sur la cle primaire id). Jamais un PATCH.
+// Deux clients qui initialisent simultanement ne peuvent donc pas s'ecraser : le perdant voit son
+// INSERT ignore, et TOUS relisent ensuite l'etat effectivement present, sur lequel seul ils
+// continuent. Renvoie le meme contrat que sbLireChampionnat().
+async function sbCreerChampionnatSiAbsent(data) {
+  try {
+    await sbInsert('championnat', { id: CHAMPIONNAT_ROW_ID, data, updated_at: new Date().toISOString() }, 'ignore-duplicates');
+  } catch (e) {
+    // Course perdue ou reseau : on ne propage pas, la relecture ci-dessous fait autorite.
   }
-  return sbInsert('championnat', { id: 1, data, updated_at: new Date().toISOString() });
+  return sbLireChampionnat();
 }
+
+// sbSaveChampionnat() est VOLONTAIREMENT SUPPRIMEE (C3) : c'etait un PATCH aveugle sur la ligne
+// partagee, la cause directe de l'ecrasement des journees des 22 et 29 aout 2026. Toute ecriture
+// du championnat passe desormais par ecrireChampionnatCAS() (compare-and-swap sur updated_at,
+// plateau-organisations-quetes.js). Ne pas la reintroduire : les appels du moteur football sont
+// tous gardes par `typeof ... === 'function'`, une redefinition accidentelle les reactiverait
+// silencieusement.
 
 async function sbCreerPari(data) {
   const id = 'pari-' + Date.now() + '-' + Math.floor(Math.random()*10000);
