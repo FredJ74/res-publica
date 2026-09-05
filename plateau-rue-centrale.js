@@ -215,11 +215,24 @@ const RUE_CENTRALE_NOEUDS = {
     'luthecia-terrains-lots': {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-terrains-lots-detail.png',
       zones: [
+        // Correctif du 5 septembre 2026 : ces 5 zones ouvraient -1, -4, -5, -6, -7 alors que
+        // Luthecia declare -1 a -5 (WORLD.republic.capitale.buildings) et que le plan SVG
+        // positionne lui aussi -1 a -5 (plateau-navigation.js). Consequences : le lot 3 de la
+        // Chataigneraie n'etait atteignable depuis AUCUNE ville, le lot 2 ne l'etait que depuis
+        // Port-Sainte-Marie, et les zones ouvraient deux terrains (-6, -7) qui n'appartiennent
+        // pas a Republia -- alors que terrains_etat est keye sur country + buildingId, donc sans
+        // distinction de ville a l'interieur d'un meme empire.
+        //
+        // Le mapping correct est etabli FACTUELLEMENT, sans choix arbitraire : les surfaces deja
+        // annoncees par ces libelles (2150, 2300, 2300, 1850, 2750) sont exactement, et dans cet
+        // ordre, celles des lots 1, 2, 3, 4 et 5 de la Chataigneraie declarees dans data.js. Ce
+        // noeud avait donc bien ete ecrit pour les lots 1 a 5 ; seuls les buildingId etaient faux.
+        // Aucun identifiant technique n'est renumerote, aucune donnee n'est migree.
         { xPct: [0, 20],   nom: 'Lot 1 (2150 m²)', type: 'batiment', buildingId: 'terrain-a-batir-1' },
-        { xPct: [20, 40],  nom: 'Lot 2 (2300 m²)', type: 'batiment', buildingId: 'terrain-a-batir-4' },
-        { xPct: [40, 60],  nom: 'Lot 3 (2300 m²)', type: 'batiment', buildingId: 'terrain-a-batir-5' },
-        { xPct: [60, 80],  nom: 'Lot 4 (1850 m²)', type: 'batiment', buildingId: 'terrain-a-batir-6' },
-        { xPct: [80, 100], nom: 'Lot 5 (2750 m²)', type: 'batiment', buildingId: 'terrain-a-batir-7' }
+        { xPct: [20, 40],  nom: 'Lot 2 (2300 m²)', type: 'batiment', buildingId: 'terrain-a-batir-2' },
+        { xPct: [40, 60],  nom: 'Lot 3 (2300 m²)', type: 'batiment', buildingId: 'terrain-a-batir-3' },
+        { xPct: [60, 80],  nom: 'Lot 4 (1850 m²)', type: 'batiment', buildingId: 'terrain-a-batir-4' },
+        { xPct: [80, 100], nom: 'Lot 5 (2750 m²)', type: 'batiment', buildingId: 'terrain-a-batir-5' }
       ],
       liens: { gauche: null, droite: null, toutDroit: null, arriere: 'luthecia-terrains-artisanal' }
     },
@@ -495,11 +508,21 @@ const RUE_CENTRALE_NOEUDS = {
     'psm-terrains-lots': {
       image: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/rue-terrains-lots-detail-psm.png',
       zones: [
-        { xPct: [10, 25], nom: 'Lot 1 (1650 m²)', type: 'batiment', buildingId: 'terrain-a-batir-2' },
-        { xPct: [30, 45], nom: 'Lot 2 (2200 m²)', type: 'batiment', buildingId: 'terrain-a-batir-8' },
-        { xPct: [58, 68], nom: 'Lot 3 (3100 m²)', type: 'batiment', buildingId: 'terrain-a-batir-9' },
-        { xPct: [48, 58], nom: 'Lot 4 (4200 m²)', type: 'batiment', buildingId: 'terrain-a-batir-10' },
-        { xPct: [78, 92], nom: 'Lot 5 (5500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-11' }
+        // Correctif du 5 septembre 2026 (arbitrage valide) : Port-Sainte-Marie a QUATRE terrains,
+        // ceux reellement declares dans WORLD.republic.ville_a (-8 a -11). Une 5e zone ouvrait
+        // 'terrain-a-batir-2', qui est le lot 2 de la Chataigneraie, terrain de LUTHECIA (et deja
+        // possede par un joueur) : incoherence ancienne, la zone est supprimee. Aucun 5e terrain
+        // n'est cree, aucun identifiant n'est renumerote.
+        //
+        // Les surfaces annoncees ici (1650 / 2200 / 3100 / 4200 / 5500 m²) ne correspondaient a
+        // AUCUNE donnee : les quatre terrains de PSM sont declares a 1500 m² chacun dans data.js.
+        // Les libelles sont donc alignes sur la donnee canonique, et nommes d'apres le terrain
+        // qu'ils ouvrent reellement. Les xPct des 4 zones conservees sont INCHANGEES (aucune
+        // modification de zone cliquable dans ce lot).
+        { xPct: [30, 45], nom: 'Lot 8 (1500 m²)',  type: 'batiment', buildingId: 'terrain-a-batir-8' },
+        { xPct: [58, 68], nom: 'Lot 9 (1500 m²)',  type: 'batiment', buildingId: 'terrain-a-batir-9' },
+        { xPct: [48, 58], nom: 'Lot 10 (1500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-10' },
+        { xPct: [78, 92], nom: 'Lot 11 (1500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-11' }
       ],
       liens: { arriere: 'psm-terrains-vente' }
     },

@@ -998,7 +998,11 @@ const PLAN_LAYOUTS = {
     // (meme principe qu'a Luthecia). Positions fideles au plan, a affiner en jouant si besoin.
 
     // --- Quadrant Nord-Ouest : terrains, chantier naval, front de mer ---
-    'terrain-a-batir-2':           [150,  20,  56,  85],
+    // 'terrain-a-batir-2' retire le 5 septembre 2026 : c'est le lot 2 de la Chataigneraie, un
+    // terrain de LUTHECIA (WORLD.republic.capitale), jamais de Port-Sainte-Marie. L'entree etait
+    // de toute facon morte -- le plan ne dessine que les batiments presents dans la liste WORLD
+    // de la ville (voir buildings.map(id => layout[id]).filter(Boolean) plus bas), et ville_a ne
+    // declare que -8 a -11. Aucun changement visuel, mise en coherence de la donnee.
     'terrain-a-batir-8':           [206,  20,  56,  85],
     'terrain-a-batir-9':           [262,  20,  56,  85],
     'terrain-a-batir-10':          [318,  20,  56,  85],
