@@ -235,7 +235,7 @@ async function confirmerImpression(pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   document.getElementById('modal-postes').classList.remove('open');
   state.arg -= cout;
@@ -332,7 +332,7 @@ async function confirmerImprimerTractsElectoraux(pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   lot.qty -= BOIS_PAR_LOT_TRACTS_PSM;
   if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
@@ -390,7 +390,7 @@ async function confirmerImprimerTractsCalomnieux(pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   lot.qty -= BOIS_PAR_LOT_TRACTS_PSM;
   if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
@@ -691,7 +691,7 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName) {
 
 async function doLogePortail(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= 95) {
     // Trouver le portier de la loge
@@ -1335,7 +1335,7 @@ const ENIGME1_ARCHIVES_HISTORIQUES = [
 
 async function doArchivesPolice(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('postes-modal-title').textContent = 'Archives de Police';
   document.getElementById('postes-body').innerHTML = enigme1HtmlRechercheArchivesPolice();
   document.getElementById('modal-postes').classList.add('open');
@@ -2006,7 +2006,7 @@ async function ouvrirInterviewJodie(pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   document.getElementById('postes-modal-title').textContent = '🎙 Interview avec Jodie Moitout';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Jodie s\'installe...</div>';
@@ -2383,7 +2383,7 @@ async function deposerArgent(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   if (!state.comptesBancaires) state.comptesBancaires = {};
   if (!state.comptesBancaires.nationale) state.comptesBancaires.nationale = { solde: 0 };
@@ -2413,7 +2413,7 @@ async function retirerArgent(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   state.comptesBancaires.nationale.solde -= amount;
   state.liquide += amount;

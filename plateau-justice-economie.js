@@ -56,7 +56,7 @@ async function confirmerDonArgent(pa, cost) {
   if (!montant || montant <= 0) { showToast('Montant invalide', 'Entrez un montant.', false); return; }
   if (state.arg < montant) { showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false); return; }
   const rDon = await deduireCoutOrdre({ pa, cost });
-  if (!rDon.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rDon.ok) { signalerRefusCout(rDon); return; }
 
   const dup = getStatEffective('DUP');
   const dis = state.dis || 50;
@@ -257,7 +257,7 @@ async function confirmerRachat(btn, pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   // Envoyer un mail au propriétaire
   const from = state.char?.name || 'Anonyme';
@@ -340,7 +340,7 @@ async function confirmerArrestation(pa, cost) {
   if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne de votre repertoire.', false); return; }
   if (!motif) { showToast('Motif requis', 'Precisez le motif du dossier.', false); return; }
   const rArret = await deduireCoutOrdre({ pa, cost });
-  if (!rArret.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rArret.ok) { signalerRefusCout(rArret); return; }
   const cible = cibleInput.value;
   document.getElementById('modal-postes').classList.remove('open');
 
@@ -413,7 +413,7 @@ function openPlainteModal(pa, cost) {
 
 async function soumettrePlaynte(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const cible = document.querySelector('input[name="plainte-cible"]:checked')?.value || 'X';
   const motif = document.getElementById('plainte-motif')?.value?.trim() || 'Motif non precise';
   document.getElementById('modal-postes').classList.remove('open');
@@ -1007,7 +1007,7 @@ function ouvrirDetailJugement(idx) {
 
 async function ouvrirPorterPlainte(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   document.getElementById('postes-modal-title').textContent = 'Affaires en cours — ' + ville;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
@@ -1132,7 +1132,7 @@ async function doCorruption(fn, pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   if (state.arg < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const roll = Math.floor(Math.random() * 100) + 1;
   const taux = Math.max(5, 65 - getMalusISN());
   if (roll <= taux) {
@@ -1197,7 +1197,7 @@ async function confirmerRequeteAvocat(pa, cost) {
   const cout = 800;
   if (state.arg < cout) { showToast('Fonds insuffisants', cout.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
   const rAvocat = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!rAvocat.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rAvocat.ok) { signalerRefusCout(rAvocat); return; }
 
   state.arg -= cout;
   state.estEmprisonne.avocatUtilise = true;
@@ -1288,7 +1288,7 @@ async function doTentativeEvasion(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   state.estEmprisonne.dernierJourEvasion = jourActuel;
 
   const pays = state.country;
@@ -1365,7 +1365,7 @@ async function doSeRebeller(pa, cost) {
     return;
   }
   const rDeduc = await deduireCoutOrdre({ pa, cost });
-  if (!rDeduc.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rDeduc.ok) { signalerRefusCout(rDeduc); return; }
 
   const pays = state.country;
   const ville = state.currentCity;
@@ -1467,7 +1467,7 @@ async function confirmerVisitePrisonnier(prisonnierId, pa, cost) {
   if (!row || row.statut !== 'detenu') { showToast('Détenu introuvable', 'Ce détenu n\'est plus détenu au QHS.', false); return; }
   const p = row.data;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Visite effectuée', 'Vous avez rendu visite à ' + p.nom + ' au QHS.', true, true);
   addJournalEntry('Visite à ' + p.nom + ' au QHS.', 'event-info');
@@ -1716,7 +1716,7 @@ async function soumettreConte(idx, pa, cost) {
   const motif = document.getElementById('motif-contestation-' + idx)?.value?.trim();
   if (!motif) { showToast('Motif requis', '', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes').classList.remove('open');
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const forumKey = 'tribunal_' + state.currentCity;
@@ -1808,7 +1808,7 @@ async function confirmerFalsification(docId, pa, cost) {
   if (!doc) return;
 
   const rPa = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rPa.ok) { signalerRefusCout(rPa); return; }
 
   const roll = Math.floor(Math.random() * 100) + 1;
   const taux = Math.max(5, 45 - getMalusISN());
@@ -1896,7 +1896,7 @@ async function appliquerSentence(affaireId, type, pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   affaire.status = 'jugee';
   if (typeof sbSavePlainte === 'function') sbSavePlainte(affaire).catch(() => {});
 
@@ -2142,7 +2142,7 @@ async function confirmerLocation(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const debitLoyer = await debiterFondsOrdinaires(loc.prix);
   if (!debitLoyer.ok) { showToast('Fonds insuffisants', loc.prix + ' ' + cur + ' requis pour le premier loyer.', false); return; }
@@ -2583,7 +2583,7 @@ async function confirmerLocationBox(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const debitBox = await debiterFondsOrdinaires(TARIF_BOX_PORTUAIRE_JOUR);
   if (!debitBox.ok) { showToast('Fonds insuffisants', TARIF_BOX_PORTUAIRE_JOUR + ' FR requis pour le premier loyer.', false); return; }
@@ -3020,7 +3020,7 @@ async function confirmerInvestir(pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const intSnapshot = getStatEffective('INT'); // fige au moment de la mise (equipe actuelle)
   // Ville figee au moment du placement (micro-correctif IE) -- jamais recalculee a l'echeance :
@@ -3185,7 +3185,7 @@ async function ouvrirGestionHelvetia(pa, cost) {
 // reste la seule source de verite financiere, ce garde-fou ne fait que sequencer l'appel).
 async function confirmerOuvertureHelvetia(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+  if (!TEST_MODE && (state.pa || 0) < pa) { signalerRefusPa(pa); return; }
 
   const resultat = (typeof sbOuvrirCompteHelvetia === 'function')
     ? await sbOuvrirCompteHelvetia(state.char.name).catch(() => null)
@@ -3208,7 +3208,7 @@ async function confirmerDepotHelvetia(pa, cost) {
   const montant = parseInt(document.getElementById('helvetia-amount-input')?.value || 0);
   const source = document.getElementById('helvetia-source-dest')?.value || 'liquide';
   if (!montant || montant <= 0) { showToast('Montant invalide', '', false); return; }
-  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+  if (!TEST_MODE && (state.pa || 0) < pa) { signalerRefusPa(pa); return; }
 
   const resultat = (typeof sbDeposerHelvetia === 'function')
     ? await sbDeposerHelvetia(state.char.name, montant, source).catch(() => null)
@@ -3234,7 +3234,7 @@ async function confirmerRetraitHelvetia(pa, cost) {
     showToast('Retrait refusé', 'Le compte Helvetia doit conserver au moins 10 000 ' + cur + '.', false);
     return;
   }
-  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+  if (!TEST_MODE && (state.pa || 0) < pa) { signalerRefusPa(pa); return; }
 
   const resultat = (typeof sbRetirerHelvetia === 'function')
     ? await sbRetirerHelvetia(state.char.name, montant, destination).catch(() => null)
@@ -3252,7 +3252,7 @@ async function confirmerRetraitHelvetia(pa, cost) {
 async function confirmerFermerCompteHelvetia(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const destination = document.getElementById('helvetia-fermeture-dest')?.value || 'liquide';
-  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+  if (!TEST_MODE && (state.pa || 0) < pa) { signalerRefusPa(pa); return; }
 
   const resultat = (typeof sbFermerCompteHelvetia === 'function')
     ? await sbFermerCompteHelvetia(state.char.name, destination).catch(() => null)
@@ -3286,7 +3286,7 @@ async function confirmerPlacementHelvetia(pa, cost, type) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const resultat = (typeof sbCreerPlacementHelvetia === 'function')
     ? await sbCreerPlacementHelvetia(state.char.name, montant, type).catch(() => null)
@@ -3345,7 +3345,7 @@ function renderPretHelvetiaSection(pret, cur, pa, cost) {
 }
 
 async function confirmerAccepterAccordHelvetia(pretId, pa, cost) {
-  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+  if (!TEST_MODE && (state.pa || 0) < pa) { signalerRefusPa(pa); return; }
 
   const resultat = (typeof sbAccepterAccordHelvetia === 'function')
     ? await sbAccepterAccordHelvetia(state.char.name, pretId).catch(() => null)
@@ -3424,7 +3424,7 @@ async function confirmerPretHelvetia(pa) {
 
   if (!montant || montant < 1000 || montant > 150000) { showToast('Montant invalide', 'Entre 1 000 et 150 000 ' + cur + '.', false); return; }
   if (!duree || duree < 5 || duree > 30) { showToast('Durée invalide', 'Entre 5 et 30 jours.', false); return; }
-  if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+  if (!TEST_MODE && (state.pa || 0) < pa) { signalerRefusPa(pa); return; }
 
   // RPC d'abord, PA ensuite (voir note plus haut sur confirmerOuvertureHelvetia) : un pret
   // refuse (compte absent, pret Helvetia deja actif, liquidite Helvetia insuffisante meme apres
@@ -4044,7 +4044,7 @@ async function doInitierTransfertCompromis(id, pa, cost) {
   if (!destinataire) { showToast('Nom manquant', 'Indiquez le nom du nouveau détenteur.', false); return; }
   if (destinataire === state.char?.name) { showToast('Impossible', 'Vous ne pouvez pas vous transférer un compromis à vous-même.', false); return; }
   const rTransfert = await deduireCoutOrdre({ pa, cost });
-  if (!rTransfert.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rTransfert.ok) { signalerRefusCout(rTransfert); return; }
 
   const ts = getTerrainState(id);
   const nouvelEtat = setTerrainState(id, { transfertPropose: destinataire, transfertProposePar: state.char?.name });
@@ -4091,7 +4091,7 @@ async function doValiderTransfertCompromis(pa, cost) {
 async function doAccepterTransfertCompromis(id, pa, cost) {
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Accepter ce transfert')) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const ts = getTerrainState(id);
   const nouveauDetenteur = state.char?.name;
@@ -4185,7 +4185,7 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   // Deuxieme passe : appliquer (deduire argent+stock, crediter l'inventaire du joueur —
   // plafonne globalement a 100 objets, voir addToInventory/plateau-divers.js). Si la place
@@ -4274,7 +4274,7 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const montantPaye = Math.round(qteAchetable * prixUnitaire * 100) / 100;
 
@@ -4375,7 +4375,7 @@ async function confirmerFixerPrixAchatEntrepot(buildingId, pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   for (const cle of Object.keys(RESSOURCES_ECONOMIE)) {
     const valeur = document.getElementById('prix-fixe-entrepot-' + cle)?.value;
@@ -4505,7 +4505,7 @@ async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   let totalReellementPaye = 0;
   for (const [cle, { prix }] of Object.entries(achats)) {
@@ -5228,7 +5228,7 @@ async function confirmerVirementUsineMinistere(pa, cost) {
   const cur = COUNTRIES[pays]?.cur || 'FR';
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   // Debit atomique de la caisse de l'usine EN PREMIER (jamais de decouvert) ; le credit au
   // Ministere n'est tente que si ce debit a reellement reussi.
@@ -5313,7 +5313,7 @@ async function confirmerFixerPrixVenteDirecte(buildingId, pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   for (const cle of cfg.produits) {
     const valeur = document.getElementById('prix-fixe-' + cle)?.value;
@@ -5364,7 +5364,7 @@ async function confirmerFixerRepartitionProduction(buildingId, pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId);
   const nouvelEtat = { ...etat, usine: { ...(etat.usine || {}), repartitionEntrepots: valeur / 100 } };
   if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, buildingId, nouvelEtat).catch(() => {});
@@ -5671,7 +5671,7 @@ async function doLouerCeLot(lotId, pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   state.arg -= lot.loyer;
   lot.locataire = state.char?.name;
@@ -5978,7 +5978,7 @@ async function confirmerPretBancaire(typeBanque, typePret, pa) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const taux = estConso ? infosType.tauxFixe : getTauxPret(typeBanque);
   const montantTotal = Math.round(montant * (1 + taux / 100));
@@ -6056,7 +6056,7 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
   const duree = DUREE_INSTRUCTION_PERMIS[palierDemande];
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const nouvelEtat = setTerrainState(id, {
     permis: {
@@ -6162,7 +6162,7 @@ async function traiterPermis(buildingId, valide, pa, cost) {
   const etat = await sbGetTerrainState(state.country, buildingId).catch(() => null);
   if (!etat?.permis) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const zoneOk = typeof palierAutorise === 'function' ? palierAutorise(state.country, state.currentCity, etat.permis.palierDemande) : true;
   etat.permis.statut = valide ? 'valide' : 'refuse';
@@ -6193,7 +6193,7 @@ async function doPlainteObstruction(pa, cost) {
   if (ts.permis.plainteDeposee) { showToast('Plainte déjà déposée', '', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const maireInfoObstruction = await getTitulaireActuel('maire', state.currentCity);
   const maireNom = maireInfoObstruction?.estPJ ? maireInfoObstruction.nom : null;
@@ -6381,7 +6381,7 @@ async function doRecruterPolicier(pa, cost) {
   const pays = state.country || 'republic';
   const ville = check.ville;
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const effectifs = await chargerEffectifsPolice(pays, ville);
   const matricule = 'POL-' + ville + '-' + Date.now();
@@ -6420,7 +6420,7 @@ async function doRecruterPolicierCynophile(pa, cost) {
   const pays = state.country || 'republic';
   const ville = check.ville;
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const effectifs = await chargerEffectifsPolice(pays, ville);
   const matricule = 'POL-CYNO-' + ville + '-' + Date.now();
@@ -6724,7 +6724,7 @@ async function doRecruterDouanier(pa, cost) {
   if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
   const pays = state.country || 'republic';
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const effectifs = await chargerEffectifsDouane(pays);
   const matricule = 'DOU-' + Date.now();
@@ -6749,7 +6749,7 @@ async function doRecruterDouanierCynophile(pa, cost) {
   if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
   const pays = state.country || 'republic';
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const effectifs = await chargerEffectifsDouane(pays);
   const matricule = 'DOU-CYNO-' + Date.now();
@@ -7075,7 +7075,7 @@ async function confirmerModifierRepartitionPort(cle) {
   // production, fixer_prix_achat_entrepot, fixer_prix_vente_directe) -- reutilise plutot
   // qu'invente, la consultation elle-meme (consulter_administration_port) restant gratuite.
   const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const etat = await sbGetBatimentEtat('republic', VILLE_ID_PORT, BUILDING_ID_PORT).catch(() => ({}));
   const port = (etat && etat.port) || { stock: {}, repartition: {}, arrivages: [], exportations: {} };
@@ -7161,7 +7161,7 @@ async function confirmerAcheterCriee(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   let totalReellementPaye = 0;
   for (const [cle, { qte, prix }] of Object.entries(achats)) {
@@ -7716,7 +7716,7 @@ async function confirmerControleCaisseFret(caisseId, pa) {
   if (!cibleValide) { showToast('Cible invalide', 'Cette caisse n\'est plus contrôlable (déjà expédiée, retirée, ou introuvable).', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const pays = state.country || 'republic';
   const effectifs = await chargerEffectifsDouane(pays);
@@ -7964,7 +7964,7 @@ async function dedouanerCaisseFret(caisseId, pa) {
   const total = douane + gardiennage;
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   if ((state.arg || 0) < total) { showToast('Fonds insuffisants', 'Il vous faut ' + total + ' FR (douane + gardiennage).', false); return; }
 
   // Filtre &dedouanee=eq.false : evite un double paiement en cas de double-clic rapide (le
@@ -8005,7 +8005,7 @@ async function retirerDeCaisseFret(caisseId, contenuId, pa) {
   if (placeDisponible < qte) { showToast('Inventaire plein', 'Libérez de la place avant de retirer.', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   // Verrouillage optimiste (compare-and-swap applicatif) : le PATCH ne reussit que si
   // 'quantite' vaut toujours EXACTEMENT ce qu'on vient de lire. Si un autre PJ a deja retire
@@ -8426,7 +8426,7 @@ async function confirmerFinancementCommunal(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   budgetMuni.caisse -= montant;
   if (typeof sbSaveBudgetMunicipal === 'function') await sbSaveBudgetMunicipal(budgetMuni.key, budgetMuni).catch(() => {});
   await crediterCaisseBatiment(state.country, buildingId, montant);
@@ -8477,7 +8477,7 @@ async function confirmerSubventionMinInt(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   if (!buildingId || montant <= 0) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const montantVerse = await debiterCaisseBatimentPlafonne(state.country, 'gouvernement-min_int', montant);
   if (montantVerse <= 0) {
@@ -9208,7 +9208,7 @@ async function doVolerMaterielChantier(pa, cost) {
   if (!ts.chantier) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   const dup = getStatEffective('DUP');
@@ -9625,7 +9625,7 @@ async function ouvrirFixerImpotsLocauxReel(pa, cost) {
 async function validerImpotsLocauxReel(key, pa, cost) {
   const nouveauTaux = parseInt(document.getElementById('taux-local-input')?.value || '5');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const budgetMuni = await sbGetBudgetMunicipal(key);
   budgetMuni.tauxLocal = nouveauTaux;
   await sbSaveBudgetMunicipal(key, budgetMuni);
@@ -9655,7 +9655,7 @@ async function ouvrirFixerImpotNational(pa, cost) {
 async function validerImpotNational(pays, pa, cost) {
   const nouveauTaux = parseInt(document.getElementById('taux-national-input')?.value || '5');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const budgetNat = await chargerBudgetNational(pays);
   budgetNat.tauxNational = nouveauTaux;
   await sbSaveBudgetNational(pays, budgetNat);
@@ -9717,7 +9717,7 @@ async function rafraichirCacheEmploiBNE() {
 
 async function doInscrireDemandeurEmploi(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   state.demandeurEmploi = true;
   showToast('Inscription enregistrée', 'Vous êtes désormais demandeur d\'emploi. Consultez les offres disponibles.', true);
   addJournalEntry('Inscription comme demandeur d\'emploi au Bureau National de l\'Emploi.', 'event-info');

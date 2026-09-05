@@ -1148,7 +1148,7 @@ function ouvrirConferenceIndice(pa, cost) {
 
 async function confirmerConferenceIndice(themeId, pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes').classList.remove('open');
   state.char.derniereConferenceJour = state.day;
   sauvegarderPersonnageImmediat();
@@ -1176,7 +1176,7 @@ async function confirmerConference(cle, candidatNom, pa, cost) {
   const candidat = cycle.candidats.find(c => c.nom === candidatNom);
   if (!candidat || candidat.aideConference) { showToast('Indisponible', 'Ce candidat a déjà bénéficié d\'une conférence.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   candidat.aideConference = true;
   state.char.derniereConferenceJour = state.day;
@@ -1905,7 +1905,7 @@ async function confirmerFalsifierListes(posteId, city, candidatNom) {
     return;
   }
   const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const taux = tauxAvecDIS(70);
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -1971,7 +1971,7 @@ async function confirmerBourrerUrnes(posteId, city, candidatNom) {
     return;
   }
   const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const taux = tauxAvecDIS(60);
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -2065,7 +2065,7 @@ async function confirmerTruquerDepouillement(posteId, city, candidatNom, sens) {
     return;
   }
   const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const taux = tauxAvecDIS(75);
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -3469,7 +3469,7 @@ async function signerDecretInutile(pa, cost) {
 
 async function publierDecret(texte, popEffect, infEffect, pa, cost, sujet) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes').classList.remove('open');
   state.pop = Math.max(0, Math.min(100, (state.pop || 50) + popEffect));
   state.inf = Math.min(100, (state.inf || 0) + infEffect);
@@ -3844,7 +3844,7 @@ async function publierMessagePresidentiel(type, pa, cost) {
     const duree = parseInt(document.getElementById('pres-ref-duree')?.value || '5');
     if (!titre || !rep1 || !rep2) { showToast('Champs requis', 'Question et au moins 2 réponses.', false); return; }
     const rRef = await deduireCoutOrdre({ pa, cost });
-    if (!rRef.ok) { showToast('PA insuffisants', '', false); return; }
+    if (!rRef.ok) { signalerRefusCout(rRef); return; }
     const reponses = [rep1, rep2, ...(rep3 ? [rep3] : [])].map(r => ({ label: r, voix: 0 }));
     if (!state.referendums) state.referendums = [];
     state.referendums.push({ question: titre, reponses, jourFin: state.day + duree, clos: false });
@@ -3854,7 +3854,7 @@ async function publierMessagePresidentiel(type, pa, cost) {
     contenu = document.getElementById('pres-msg-contenu')?.value?.trim();
     if (!titre || !contenu) { showToast('Champs requis', 'Titre et contenu obligatoires.', false); return; }
     const rMsg = await deduireCoutOrdre({ pa, cost });
-    if (!rMsg.ok) { showToast('PA insuffisants', '', false); return; }
+    if (!rMsg.ok) { signalerRefusCout(rMsg); return; }
   }
 
   const titrePrefixe = '[' + (type === 'referendum' ? 'RÉFÉRENDUM' : type.toUpperCase()) + '] ' + titre;
@@ -3985,7 +3985,7 @@ async function soumettreProjetLoi(pa, cost) {
   const impact = document.getElementById('projet-impact')?.value?.trim();
   if (!titre || !contenu) { showToast('Champs requis', 'Titre et exposé obligatoires.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const jourDepot = state.day;
   const jourVoteMin = jourDepot + 5;
@@ -4064,7 +4064,7 @@ function libelleChoixVoteLoi(choix) {
 
 async function observerDebats(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const deputes = ['Depute Marchand (PNJ)', 'Depute Fontaine (PNJ)', 'Depute Rousseau (PNJ)', 'Depute Girard (PNJ)'];
   const positions = ['Pour', 'Contre', 'Abstention'];
   const loisEnCours = state.loisEnCours || [];
@@ -4149,7 +4149,7 @@ async function enregistrerVoteLoi(loiIdx, choix, pa, cost) {
   const loi = (state.loisEnCours || []).filter(l => Date.now() < l.dateCloture)[loiIdx];
   if (!loi) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   if (!state.votesLois) state.votesLois = {};
   state.votesLois[loi.id] = choix;
   if (!loi.votes) loi.votes = [];
@@ -4263,7 +4263,7 @@ async function confirmerDemandeNaturalisation(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   state.arg -= cout;
   updateUI();
@@ -4485,7 +4485,7 @@ async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, c
 
   document.getElementById('modal-postes').classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   if (estPJ) {
     if (typeof sbUpdate === 'function') {
@@ -4577,7 +4577,7 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
   const estPJNomme = estPJRawNomme === '1';
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   document.getElementById('modal-postes').classList.remove('open');
 
@@ -4849,7 +4849,7 @@ async function ouvrirGestionCandidatures(posteIds, pa, cost) {
 async function nommerDepuisCandidature(posteId, posteName, candidatNom, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   await accepterCandidaturePoste(posteId, posteName, candidatNom);
 }
 
@@ -4984,7 +4984,7 @@ async function doDissoudreAssemblee(pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   // Marque la limite AVANT le reste (fail-closed) : meme si une etape suivante echoue
   // partiellement (reseau), une 2e dissolution pendant ce mandat reste refusee. Le flag vit sur
@@ -5104,7 +5104,7 @@ async function confirmerDemandeMariage(pa, cost) {
   const [destinataire, estPJRaw] = rawSelect.split('|');
   const estPJ = estPJRaw === '1';
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   if (!estPJ) {
     const estDansMonGroupeMariage = typeof getMonGroupePNJ === 'function' && getMonGroupePNJ().some(g => g.nom === destinataire);
@@ -5223,7 +5223,7 @@ async function confirmerOfficialisationMariage(pa, cost) {
   const cout = 200;
   if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' requis.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   // city (17 aout 2026, mini-lot etat-civil) : ville de la ceremonie -- les deux epoux doivent
@@ -5283,7 +5283,7 @@ async function doEtatUrgence(pa, cost) {
 async function confirmerEtatUrgence(activer, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country;
   const from = state.char?.name || 'Le President';
 
@@ -5407,7 +5407,7 @@ async function proposerDiplomatie(type, empireCibleId, empireCibleName, details,
   const config = DIPLOMATIE_CONFIG[type];
   if (!config) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const proposeur = state.char?.name || 'Le Ministre';
   const empireProposeurNom = COUNTRIES[pays]?.n || pays;
@@ -5485,7 +5485,7 @@ async function repondreDiplomatie(propositionId, accepte, pa, cost) {
   const p = rows?.[0]?.data;
   if (!p) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const config = DIPLOMATIE_CONFIG[p.type] || { gainAccepte: 0, perteRefus: 0, label: p.type };
 
   if (typeof sbMajPropositionDiplomatique === 'function') {
@@ -5628,7 +5628,7 @@ async function confirmerPropositionGrace(idx, pa, cost) {
   if (!condamne) return;
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const pays = state.country || 'republic';
   const cout = 300;
@@ -5677,7 +5677,7 @@ async function ouvrirModalGracier(pa, cost) {
 async function confirmerGrace(demandeId, nomCondamne, accepte, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   await sbMajDemandeGrace(demandeId, accepte ? 'acceptee' : 'refusee');
 
   if (accepte) {
@@ -5996,7 +5996,7 @@ async function confirmerVirementMinistereUsine(pa, cost) {
   const cur = COUNTRIES[pays]?.cur || 'FR';
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   // Debit atomique de la caisse du Ministere EN PREMIER (jamais de decouvert) ; le credit a
   // l'usine n'est tente que si ce debit a reellement reussi.
@@ -6185,7 +6185,7 @@ async function confirmerInterdireManif(pa, cost) {
   const ville = document.getElementById('interdire-manif-ville')?.value || state.currentCity || 'capitale';
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
 
@@ -6242,7 +6242,7 @@ async function confirmerReprimerManif(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const nomVille = (typeof NOMS_VILLES_REPUBLIA !== 'undefined' && NOMS_VILLES_REPUBLIA[ville]) || ville;
 
@@ -6375,7 +6375,7 @@ async function annulerAffaire(refId, mode, pa, cost) {
     const affaire = (state.plaintesEnCours||[]).find(p => p.id === refId);
     if (affaire) {
       const r = await deduireCoutOrdre({ pa, cost });
-      if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+      if (!r.ok) { signalerRefusCout(r); return; }
       const pays = state.country || 'republic';
       const cout = 250;
       const montantVerse = typeof debiterCaisseBatimentAtomique === 'function' ? await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_just', cout) : 0;
@@ -6592,7 +6592,7 @@ function ouvrirModalMedia(pa, cost) {
 async function censurer(media, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   INDICES_NATIONAUX[state.country].IS = Math.max(0, INDICES_NATIONAUX[state.country].IS - 8);
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= 30) {
@@ -6734,7 +6734,7 @@ async function doReserverSalleReception(pa, cost) {
     return;
   }
   const rDeduc = await deduireCoutOrdre({ pa, cost });
-  if (!rDeduc.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rDeduc.ok) { signalerRefusCout(rDeduc); return; }
   const res = typeof sbReserverSalleReception === 'function'
     ? await sbReserverSalleReception(state.country, jour, monAmbassade.empire, state.char?.name).catch(() => ({ ok: false }))
     : { ok: false };
@@ -6763,7 +6763,7 @@ async function doFinancerOeuvreCulturelle(pa, cost) {
 // Ordres de l'accueil, ouverts a tous (pas reserves a l'ambassadeur)
 async function doDemanderAudienceAmbassadeur(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const roll = Math.random() * 100;
   if (roll < 70) {
     const pnj = { name: 'L\'Ambassadeur', role: 'PNJ - Ambassadeur', rel: 'neutral', job: 'ambassadeur' };
@@ -6777,7 +6777,7 @@ async function doDemanderAudienceAmbassadeur(pa, cost) {
 async function doDemanderAsilePolitique(pa, cost) {
   if (!state.char) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   state.char.asilePolitique = { pays: state.country, jour: state.day || 1 };
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   showToast('Demande déposée', 'Votre demande d\'asile politique a été enregistrée.', true);
@@ -6811,7 +6811,7 @@ async function confirmerAmbassadeur(pa, cost) {
   const empireId = document.getElementById('amb-empire')?.value;
   document.getElementById('modal-postes').classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const empireName = COUNTRIES[empireId]?.n || empireId;
   // Persistance partagee : la nomination doit etre visible de tous, dans le Quartier des
   // Ambassades du pays cible (empireId), pour restreindre les ordres du bureau a cette personne.
@@ -6865,7 +6865,7 @@ async function ouvrirModalDemettreAmbassadeur(pa, cost) {
 async function confirmerDemissionAmbassadeur(empireId, pa, cost) {
   const empireName = COUNTRIES[empireId]?.n || empireId;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const rows = typeof sbGet === 'function' ? await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(empireId + '-' + state.country)}`).catch(() => []) : [];
   const ancienAmbassadeur = rows?.[0]?.data?.ambassadeur;
   if (typeof sbNommerAmbassadeur === 'function') {
@@ -6909,7 +6909,7 @@ async function ouvrirModalExpulserAmbassadeur(pa, cost) {
 async function confirmerExpulsionAmbassadeur(empireId, pa, cost) {
   const empireName = COUNTRIES[empireId]?.n || empireId;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const echeance = Date.now() + 24 * 60 * 60 * 1000; // 24h reelles, comme les autres delais du jeu (couvre-feu, recherche militaire)
   if (typeof sbFixerEcheanceExpulsion === 'function') {
     await sbFixerEcheanceExpulsion(state.country, empireId, echeance).catch(() => {});
@@ -6948,7 +6948,7 @@ async function confirmerBanquetDiplomatique(pa, cost) {
   const invites = Array.from(document.querySelectorAll('.banquet-invite:checked')).map(el => el.value);
   if (invites.length === 0) { showToast('Aucun invité sélectionné', '', false); return; }
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
 
   if (!verifierBudgetInstitution('presidence')) return;
@@ -7034,7 +7034,7 @@ const DOSSIERS_GOUVERNEMENTAUX = [
 
 async function doConsulterDossiersGouv(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const dossier = DOSSIERS_GOUVERNEMENTAUX[Math.floor(Math.random() * DOSSIERS_GOUVERNEMENTAUX.length)];
   document.getElementById('postes-modal-title').textContent = 'Dossier confidentiel';
   const html = '<div style="padding:1rem;font-size:.85rem;color:#c0b090;line-height:1.6;font-style:italic">« ' + dossier + ' »</div>';
@@ -7205,7 +7205,7 @@ async function traiterDemandeManifestation(id, autorise, pa, cost) {
   const demande = await sbGetDemandeManifestationParId(id);
   if (!demande) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
 
   await sbMajDemandeManifestation(id, autorise ? 'autorisee' : 'interdite', {});
@@ -7318,7 +7318,7 @@ async function doDementiOfficiel(pa, cost) {
 async function confirmerDementi(rumeurId, cible, popPerdu, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const roll = Math.floor(Math.random() * 100) + 1;
   const taux = 80; // successRate declare sur l'ordre
 
@@ -7414,7 +7414,7 @@ async function validerCreationPoste(type, pa, cost) {
   const nom = document.getElementById('custom-poste-nom')?.value?.trim();
   if (!nom) { showToast('Nom requis', 'Donnez un nom a ce poste.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   if (!state.postesCustom) state.postesCustom = { ministre: null, comite: null };
   state.postesCustom[type] = { nom, salaire: 2800, createur: state.char?.name, jour: state.day };
   document.getElementById('modal-postes').classList.remove('open');
@@ -7493,7 +7493,7 @@ async function ouvrirDeclencherVoteConfiance(pa, cost) {
 async function confirmerDeclenchementVoteConfiance(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   // Correctif "clôture jamais appelée" (audit du 4 septembre 2026) : cloture_ts en temps REEL
   // (Date.now(), jamais state.day -- personnel, non fiable comme horloge partagee, meme doctrine
@@ -7758,7 +7758,7 @@ async function confirmerRepartitionBudget(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const data = await sbGetBudgetMunicipal(key).catch(() => null) || await chargerBudgetMunicipal();
   data.allocation = allocation;
   await sbSaveBudgetMunicipal(key, data).catch(() => {});
@@ -7803,7 +7803,7 @@ async function ouvrirModalGuerreEmpire(pa, cost) {
 async function confirmerGuerreEmpire(empireId, empireName, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   await sbCreerGuerre({ attaquant: pays, attaque: empireId, jourDebut: state.day || 1, ceasefire: null });
   state.pop = Math.max(0, (state.pop||0) - 20);
@@ -7843,7 +7843,7 @@ async function ouvrirProposerTreve(pa, cost) {
 async function confirmerPropositionTreve(guerreId, adversaire, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const maeAdversaireInfo = await getTitulaireActuel('min_ae', null, adversaire);
   const maeAdversaire = maeAdversaireInfo?.estPJ ? maeAdversaireInfo.nom : null;
   if (typeof sbSendMail === 'function') {
@@ -7897,7 +7897,7 @@ async function confirmerActivationCessezLeFeu(guerreId, adversaire, pa, cost) {
   const g = rows?.[0]?.data;
   if (!g) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const actifPar = { ...(g.ceasefire?.actifPar || {}), [pays]: true };
   const tousActifs = actifPar[g.attaquant] && actifPar[g.attaque];
   await sbMajGuerre(guerreId, { ceasefire: { ...g.ceasefire, actifPar }, statut: tousActifs ? 'terminee' : 'active' });
@@ -7941,7 +7941,7 @@ async function envoyerNominationCommandant(pa, cost) {
   const destinataire = document.getElementById('nomme-commandant')?.value;
   if (!destinataire) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const corps = (state.char?.name||'Le Ministre') + ' vous propose le poste de <strong>Commandant de la Caserne</strong>.<br><br>' +
@@ -7980,7 +7980,7 @@ async function envoyerNominationCapitaine(pa, cost) {
   const destinataire = document.getElementById('nomme-capitaine-nom')?.value;
   if (!compagnieId || !destinataire) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const corps = (state.char?.name||'Le Commandant') + ' vous propose le poste de <strong>Capitaine</strong> de la compagnie ' + compagnieId + '.<br><br>' +
@@ -8031,7 +8031,7 @@ async function envoyerNominationLieutenant(compagnieId, pa, cost) {
   const destinataire = document.getElementById('nomme-lieutenant-nom')?.value;
   if (!sectionId || !destinataire) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   const corps = (state.char?.name||'Le Capitaine') + ' vous propose le poste de <strong>Lieutenant</strong> de la section ' + sectionId + '.<br><br>' +
@@ -8124,7 +8124,7 @@ async function doRecruterSection(compagnieId, sectionId, pa, cost) {
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section || section.soldats.length > 0) { showToast('Section non vide ou introuvable', '', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const montantVerse = await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', COUT_SECTION);
   if (montantVerse < COUT_SECTION) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le recomplètement (' + COUT_SECTION.toLocaleString('fr-FR') + ' FR).', false); return; }
@@ -8246,7 +8246,7 @@ async function confirmerMission(compagnieId, sectionId, missionId, pa, cost) {
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   section.mission = missionId;
   section.cibleEscorte = missionId === 'escorter' ? cibleEscorte : null;
   await sbSaveCompagnie(compagnieId, compagnie);
@@ -8280,7 +8280,7 @@ async function confirmerMobilisation(pa, cost) {
   if (!empireCible || !villeCible || !route) { showToast('Champs requis', '', false); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const pays = state.country || 'republic';
   INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 10);
@@ -8498,7 +8498,7 @@ async function confirmerInspectionTroupes(niveau) {
   const cfg = NIVEAUX_INSPECTION_TROUPES[niveau];
   if (!cfg) return;
   const r = await deduireCoutOrdre({ pa: cfg.pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   // Gain deterministe (pas de jet) : coherent avec l'ancien successRate:100 declare dans
   // data.js, jamais garanti par le moteur generique (doOrder) faute d'etre dans son alwaysSuccess
@@ -8844,7 +8844,7 @@ async function confirmerEntrainementSection(compagnieId, sectionId, stat, pa, co
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const tries = [...section.soldats].sort((a, b) => a.formation[stat] - b.formation[stat]).slice(0, CAP_ENTRAINEMENT_PAR_SESSION);
   tries.forEach(s => { s.formation[stat] = Math.min(100, s.formation[stat] + 3); });
@@ -8870,7 +8870,7 @@ async function doEquiperSection(pa, cost) {
   if (!section) return;
   if (pa || cost) {
     const r = await deduireCoutOrdre({ pa, cost });
-    if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+    if (!r.ok) { signalerRefusCout(r); return; }
   }
   await ouvrirGestionEquipementSection(compagnie.id, section.id);
 }
@@ -9117,7 +9117,7 @@ async function confirmerDemissionLieutenant(compagnieId, sectionId, pa, cost) {
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const ancien = section.lieutenantNom;
   section.lieutenantNom = null;
   await sbSaveCompagnie(compagnieId, compagnie);
@@ -9183,7 +9183,7 @@ async function ouvrirGererCouvreFeu(pa, cost) {
 async function confirmerCouvreFeu(activer, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const budgetNat = await chargerBudgetNational(pays);
   if (activer) {
@@ -9284,7 +9284,7 @@ async function ouvrirRechercheMilitaire(pa, cost) {
 async function confirmerRechercheMilitaire(arme, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const montantVerse = await debiterCaisseBatimentAtomique(pays, 'caserne-militaire', COUT_RECHERCHE);
   if (montantVerse < COUT_RECHERCHE) { showToast('Budget insuffisant', 'La caisse de la caserne ne couvre pas le coût de la recherche.', false); return; }
@@ -9379,7 +9379,7 @@ async function confirmerRequisitionCivile(compagnieId, sectionId, pa, cost) {
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   let civils = [];
   if (typeof sbListPersonnages === 'function') {
@@ -9416,7 +9416,7 @@ async function doSePresenterAffectation(pa, cost) {
   if (state.currentBuilding !== 'caserne-militaire') { showToast('Présentez-vous à la caserne', '', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const pays = state.country || 'republic';
   const compagnie = (await sbGetCompagnies(pays).catch(() => [])).find(c => c.id === req.compagnieId);
@@ -9481,7 +9481,7 @@ async function confirmerRemonteeRenseignement(rapportId, pa, cost) {
   const capitaineNom = compagnie?.capitaineNom;
   if (!capitaineNom) { showToast('Aucun Capitaine en poste', 'Impossible de transmettre pour l\'instant.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const rows = await sbGet('rapports_renseignement', `id=eq.${encodeURIComponent(rapportId)}`).catch(() => []);
   const rapport = rows?.[0]?.data;
@@ -9513,7 +9513,7 @@ async function doEngagerOfficier(pa, cost) {
   // PA preleves au vrai point de commit, juste avant la creation reelle de la candidature --
   // si insuffisants, rien n'est cree (deduireCoutOrdre est atomique, verification+prelevement).
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const id = await sbCreerEngagement({ pays, nom: state.char?.name, jour: state.day || 1 });
   const commandantInfoEng = await getTitulaireActuel('commandant', null, pays);
@@ -9566,7 +9566,7 @@ async function confirmerAffectationCompagnie(engagementId, pa, cost) {
   const engagement = rows?.[0]?.data;
   if (!engagement) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   await sbMajEngagement(engagementId, 'attente_capitaine', { compagnieId });
   if (compagnie?.capitaineNom && typeof sbSendMail === 'function') {
@@ -9622,7 +9622,7 @@ async function confirmerAffectationSection(engagementId, pa, cost) {
   const section = compagnie?.sections.find(s => s.id === sectionId);
   if (!section) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   section.lieutenantNom = engagement.nom;
   await sbSaveCompagnie(engagement.compagnieId, compagnie);
   await sbMajEngagement(engagementId, 'affecte', {});

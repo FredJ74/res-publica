@@ -1958,7 +1958,7 @@ async function validerLancementRumeur() {
   const { pa, cost, successRate, type, cibleValue, cibleLabel } = _rumeur;
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) {
-    showToast('PA insuffisants', '', false);
+    signalerRefusCout(r);
     _rumeur.soumission = false;
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'Lancer la rumeur — 1 PA'; }
     return;
@@ -2227,7 +2227,7 @@ async function validerLobbyingPresse() {
   // cette modale : aucune verification redondante necessaire ici.
   const r = await deduireCoutOrdre({ pa, cost: 0 });
   if (!r.ok) {
-    showToast('PA insuffisants', '', false);
+    signalerRefusCout(r);
     _lobbyingPresse.soumission = false;
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = cfg.verbe + ' — ' + pa + ' PA'; }
     return;
@@ -2349,7 +2349,7 @@ async function confirmerDistribuerTract(cible, tractType, pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   lot.quantite -= 1;
   if (lot.quantite <= 0) {
     state.inventory = state.inventory.filter(i => i !== lot);
@@ -3115,7 +3115,7 @@ async function confirmerEscortPiege(nomCible, pa, cost) {
 
   if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   // Stats commanditaire
   const dup = getStatEffective('DUP');
@@ -3587,7 +3587,7 @@ async function doFaireDisparaitreCadavre(pa, cost) {
   const dispo = typeof terrainOrdreDisponible === 'function' ? terrainOrdreDisponible('faire_disparaitre_cadavre', id) : { ok: true };
   if (!dispo.ok) { showToast('Aucun cadavre', dispo.raison || 'Aucun cadavre a dissimuler.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const ts = getTerrainState(id);
   const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30, ID: 40 };
   const isn = indices.ISN || 30;
@@ -3717,7 +3717,7 @@ async function confirmerNegociation(pa, cost) {
     return;
   }
   const rNegoc = await deduireCoutOrdre({ pa, cost });
-  if (!rNegoc.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rNegoc.ok) { signalerRefusCout(rNegoc); return; }
 
   // La benediction ne se consomme qu'ici, a la resolution reelle -- pas dans
   // calculerTauxNegociationSquatteurs, appelee aussi par l'apercu en direct du modal (elle
@@ -3833,7 +3833,7 @@ async function doConfirmerCompromis(pa, cost) {
     // ordinaires) est debite ATOMIQUEMENT par signer_compromis_bien_helvetia (RPC installee),
     // jamais par deduireCoutOrdre/setTerrainState local -- la RPC reste la seule source de
     // verite financiere. RPC d'abord, PA ensuite (meme principe que le pret Helvetia).
-    if (!TEST_MODE && (state.pa || 0) < pa) { showToast('PA insuffisants', '', false); return; }
+    if (!TEST_MODE && (state.pa || 0) < pa) { signalerRefusPa(pa); return; }
     const resultatHelvetia = (typeof sbSignerCompromisBienHelvetia === 'function')
       ? await sbSignerCompromisBienHelvetia(state.char?.name, id).catch(() => null)
       : null;
@@ -3868,7 +3868,7 @@ async function doConfirmerCompromis(pa, cost) {
   }
 
   const rCompromis = await deduireCoutOrdre({ pa, cost });
-  if (!rCompromis.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rCompromis.ok) { signalerRefusCout(rCompromis); return; }
 
   const patch = {
     compromis: true,

@@ -1693,7 +1693,7 @@ async function doCorrompreDoanier(pa, cost) {
 
 async function doContrebandePort(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   // DIS fantome corrige (bêta) : voir plateau-navigation.js:703 pour le detail.
   const dis = state.dis || 8;
@@ -1735,7 +1735,7 @@ async function doBlocusPortuaire(pa, cost) {
     }
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const vol = getStatEffective('VOL');
   const ent = getStatEffective('ENT');
   const taux = Math.max(5, 60 + Math.floor(vol/10) + Math.floor(ent/10) - getMalusISN());
@@ -1745,7 +1745,11 @@ async function doBlocusPortuaire(pa, cost) {
   if (roll <= taux) {
     if (INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE - 5);
     updateUI();
-    showToast('Blocus déclenché !', 'Le port est paralysé pour 24h. -5 IE.', false);
+    // Etait affiche en ECHEC (3e argument false) alors que cette branche est celle du SUCCES du
+    // jet (if (roll <= taux) juste au-dessus) : le blocus a bien ete declenche. Corrige en succes
+    // (lot ergonomique 1, 5 septembre 2026). Aucun effet de jeu modifie, uniquement la couleur et
+    // le cadre du toast.
+    showToast('Blocus déclenché !', 'Le port est paralysé pour 24h. -5 IE.', true);
     addExternalEvent('GRÈVE : Blocus portuaire déclenché ! Importations/exportations suspendues 24h. -5 IE.');
     addJournalEntry('Blocus portuaire initié.', 'event-info');
   } else {
@@ -1758,7 +1762,7 @@ async function doBlocusPortuaire(pa, cost) {
 
 async function doInspecterCargaisons(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const int_ = getStatEffective('INT');
   const pays = state.country || 'republic';
   const isBonus = pays === 'soviet';

@@ -83,7 +83,7 @@ async function confirmerDemandeLogementSocial(typeSouhaite, pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   let deposee = false;
   if (typeof sbDeposerDemandeLogement === 'function') {
@@ -212,7 +212,7 @@ async function attribuerLogementSocial(demandeId, demandeurName, roomId, pa, cos
   if (!loc?.logementSocial) return; // garde-fou : jamais utilisable sur une room non prevue pour ca
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const autorite = state.char?.name || 'Adjoint au maire';
   const entree = {

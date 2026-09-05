@@ -1236,7 +1236,10 @@ function advanceTime(pa) {
 async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur' } = {}) {
   // A. PA : toujours personnels, ignores sous TEST_MODE (comme partout ailleurs dans le jeu)
   if (!TEST_MODE && (state.pa || 0) < pa) {
-    return { ok: false, raison: 'pa_insuffisants' };
+    // pa/cost joints au resultat (lot ergonomique 1) : purement additif, permet a
+    // signalerRefusCout() d'afficher un message chiffre sans que l'appelant ait a le recalculer.
+    // Aucun appelant existant ne lit ces champs, aucun comportement n'est modifie.
+    return { ok: false, raison: 'pa_insuffisants', pa, cost };
   }
 
   // B. Cout financier : jamais ignore par TEST_MODE (convention existante de doOrder())
@@ -1247,7 +1250,7 @@ async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur' } = {}) {
     if (payeur === 'joueur') {
       const fondsDispo = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
       if (fondsDispo < cost) {
-        return { ok: false, raison: 'fonds_insuffisants' };
+        return { ok: false, raison: 'fonds_insuffisants', pa, cost, fondsDisponibles: fondsDispo };
       }
     } else if (payeur && payeur.type === 'institution') {
       // Verification + prelevement atomique en un seul appel : si la caisse ne couvre pas le
@@ -1257,7 +1260,7 @@ async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur' } = {}) {
         ? await debiterCaisseBatimentAtomique(payeur.pays, payeur.buildingId, cost)
         : 0;
       if (montantVerse < cost) {
-        return { ok: false, raison: 'caisse_institution_insuffisante' };
+        return { ok: false, raison: 'caisse_institution_insuffisante', pa, cost, montantVerse };
       }
     }
   }
@@ -1281,7 +1284,7 @@ async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur' } = {}) {
       const debit = await debiterFondsOrdinaires(cost);
       if (!debit.ok) {
         console.error('debiterFondsOrdinaires a echoue apres verification de suffisance -- etat incoherent possible', { cost, fondsDisponibles: typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : null });
-        return { ok: false, raison: 'fonds_insuffisants' };
+        return { ok: false, raison: 'fonds_insuffisants', pa, cost };
       }
     } else {
       state.arg = Math.max(0, (state.arg || 0) - cost);
@@ -1445,6 +1448,71 @@ function showToast(result, msg, success, isCrit) {
   t.style.display = 'block';
   clearTimeout(window._toastTimer);
   window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3800);
+}
+
+// =====================
+// FEEDBACK DE REFUS (lot ergonomique 1, 5 septembre 2026)
+// =====================
+// showPostRequired : referencee depuis renderRoomActions (plateau-politique.js) comme onclick de
+// TOUT bouton grise par requiresPost, mais elle n'avait JAMAIS ete definie -- ni ici, ni ailleurs,
+// ni dans le bundle servi en production. Le clic levait une ReferenceError et n'affichait donc
+// rien du tout : 108 des 429 boutons de Luthecia (Bureau du President, les 6 ministeres, Maire,
+// Commissaire, ambassadeurs...) restaient totalement muets, sans jamais dire au joueur quel poste
+// etait requis. Le nom du poste etait pourtant deja calcule correctement par renderRoomActions
+// (table postesNoms) et passe en argument ; il n'atteignait simplement jamais l'ecran.
+// Correctif minimal : on reutilise showToast, le systeme de feedback existant. Aucune regle
+// d'acces n'est touchee -- cette fonction n'est appelee QUE sur un bouton deja grise.
+function showPostRequired(posteRequisNom) {
+  const nom = (typeof posteRequisNom === 'string' && posteRequisNom.trim()) ? posteRequisNom.trim() : '';
+  showToast(
+    'Action réservée',
+    nom ? ('Cette action est réservée à : ' + nom + '.')
+        : 'Cette action est réservée à un poste que vous n\'occupez pas.',
+    false
+  );
+}
+
+// Traduit un echec de deduireCoutOrdre() en message JUSTE. Auparavant, 170 sites affichaient tous
+// showToast('PA insuffisants', '', false) quelle que soit la cause reelle : un joueur a qui il
+// manquait de l'ARGENT lisait « PA insuffisants », et le sous-texte etait toujours vide (aucun
+// chiffre, aucun solde). La raison exacte etait pourtant deja renvoyee par deduireCoutOrdre.
+// Ne modifie aucun debit ni aucune regle : purement un message.
+function signalerRefusCout(resultat) {
+  const r = resultat || {};
+  const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+  const fmt = (n) => Number(n || 0).toLocaleString('fr-FR');
+
+  if (r.raison === 'fonds_insuffisants') {
+    const dispo = (typeof r.fondsDisponibles === 'number') ? r.fondsDisponibles
+      : (typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0));
+    const requis = Number(r.cost || 0);
+    showToast('Fonds insuffisants',
+      requis > 0 ? (fmt(requis) + ' ' + cur + ' requis — vous disposez de ' + fmt(dispo) + ' ' + cur + '.')
+                 : 'Vos fonds ne couvrent pas cette action.', false);
+    return;
+  }
+  if (r.raison === 'caisse_institution_insuffisante') {
+    const requis = Number(r.cost || 0);
+    showToast('Caisse insuffisante',
+      requis > 0 ? ('Cette action est financée par une caisse institutionnelle, qui ne couvre pas les ' + fmt(requis) + ' ' + cur + ' nécessaires.')
+                 : 'La caisse institutionnelle ne couvre pas cette action.', false);
+    return;
+  }
+  if (r.raison === 'pa_insuffisants') {
+    signalerRefusPa(r.pa);
+    return;
+  }
+  // Raison absente/inconnue : on ne fabrique aucun chiffre.
+  showToast('Action impossible', 'Cette action n\'a pas pu être effectuée.', false);
+}
+
+// Manque de PA verifie directement par un appelant (sans passer par deduireCoutOrdre).
+function signalerRefusPa(paRequis) {
+  const requis = Number(paRequis || 0);
+  const dispo = Number(state.pa || 0);
+  showToast('PA insuffisants',
+    requis > 0 ? (requis + ' PA requis — il vous en reste ' + dispo + '.')
+               : 'Vous n\'avez pas assez de PA pour cette action.', false);
 }
 
 const MOIS_FR_JOURNAL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];

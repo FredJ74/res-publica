@@ -630,7 +630,7 @@ async function ouvrirLeverExcommunicationCible() {
 
 async function doPrier(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const religion = RELIGIONS[pays];
@@ -665,7 +665,7 @@ async function doPrier(pa, cost) {
 
 async function doSeConfeser(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const religion = RELIGIONS[pays];
   state.moral = Math.min(100, state.moral + 5);
@@ -755,7 +755,7 @@ function consommerBonusBenediction(taux) {
 // arbitres moraux.
 async function doDemanderBenediction(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const religion = RELIGIONS[pays];
@@ -790,7 +790,7 @@ async function doDemanderBenediction(pa, cost) {
 
 async function doPelerin(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   state.dis = Math.min(100, state.dis + 10);
   if (!state.pelerinExpire) state.pelerinExpire = state.day + 1;
   updateUI();
@@ -842,7 +842,7 @@ function ouvrirModalChoixConfession(pnjNom, eligibles) {
 async function confirmerConfession(pnjNom, actionId) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   if (typeof sbDelete === 'function') {
     await sbDelete('actions_tracables', 'id=eq.' + encodeURIComponent(actionId)).catch(() => {});
   }
@@ -863,7 +863,7 @@ async function doDemanderBenedictionContact(pnjNom) {
     return;
   }
   const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= 80) {
     state.char.benediction = { actif: true, expire: (state.day || 1) + 1 };
@@ -879,7 +879,7 @@ async function doDemanderBenedictionContact(pnjNom) {
 
 async function doBenedictionEtat(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   modifierIP(10);
   state.pop = Math.min(100, state.pop + 5);
   updateUI();
@@ -889,7 +889,7 @@ async function doBenedictionEtat(pa, cost) {
 
 async function doConsulterConfessions(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const confessions = [
     'Un haut fonctionnaire a avoué détourner des fonds depuis 3 ans.',
     'Un ministre a confessé ses contacts avec un empire étranger.',
@@ -936,7 +936,7 @@ async function reclamerObjetTrouve(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   state.dernierObjetTrouveJour = state.day;
 
   const reussite = Math.random() < 0.5;

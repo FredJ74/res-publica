@@ -619,7 +619,7 @@ function enigme1AfficherArticlePresse(idx) {
 
 async function doDemanderJugeInstruction(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const dossier = (state.char && state.char.enigme1 && state.char.enigme1.dossier) || {};
   const clesArchives = ['mairie', 'commissariat', 'notaire', 'presse'];
   const clesEhpad = ['ehpad_dubois', 'ehpad_chevillard', 'ehpad_chauchay'];
@@ -654,7 +654,7 @@ async function doDemanderJugeInstruction(pa, cost) {
 
 async function doPresenterAutorisationCoffre(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const autorise = state.char && state.char.enigme1 && state.char.enigme1.autorisationCoffre;
 
   let html = '<div style="padding:1.2rem">';

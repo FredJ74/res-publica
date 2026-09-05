@@ -3230,7 +3230,7 @@ function doSeFormer(pa, cost) {
 async function appliquerFormation(stat, pa, cost) {
   if (!state.char) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes').classList.remove('open');
   state.char.dernierFormationJour = state.day;
   state.char.bonusFormation = { stat, valeur: 2 };
@@ -3302,7 +3302,7 @@ async function doRecruterMilitants(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const noms = ['Sacha Fervent', 'Lila Combattante', 'Noé Insurgé', 'Maya Debout', 'Théo Rebelle', 'Zoé Militante'];
   const nomPnj = noms[Math.floor(Math.random() * noms.length)] + ' (PNJ)';
 
@@ -3679,7 +3679,7 @@ async function doDemanderNonRenouvellementLicence(pa, cost) {
   if (state.char.licenceSportive.nonRenouvellement) { showToast('Déjà demandé', 'Vous avez déjà demandé à ne pas renouveler votre licence.', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   state.char.licenceSportive.nonRenouvellement = true;
   sauvegarderPersonnageImmediat();
@@ -3763,7 +3763,7 @@ async function confirmerEntrainement(stat, pa, cost) {
   verifierEtResetEntrainementsJour();
   if ((state.char.entrainementsJour?.nb || 0) >= 2) { showToast('Limite atteinte', 'Maximum 2 entraînements par jour.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   state.char.entrainementsJour.nb = (state.char.entrainementsJour.nb || 0) + 1;
 
   const blesse = Math.random() < 0.05;
@@ -7704,7 +7704,7 @@ async function confirmerDeclenchementElection(orgaId, pa, cost) {
   const motivation = document.getElementById('election-motivation')?.value?.trim();
   if (!motivation) { showToast('Motivation requise', '', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const jour = state.day || 1;
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
@@ -8068,7 +8068,7 @@ async function confirmerSponsoring(montant, label, inf, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   if (getFondsDisponiblesOrdinaires() < montant) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const debitSponsoring = await debiterFondsOrdinaires(montant);
   if (!debitSponsoring.ok) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
   state.inf = Math.min(100, (state.inf || 0) + inf);
@@ -8105,7 +8105,7 @@ async function doOrganiserBoycott(pa, cost) {
   const prochaineJournee = saison.calendrier.find(j => j.matchs.some(m => !m.played && m.home === clubLocal.id));
   if (!prochaineJournee) { showToast('Aucun match à domicile', 'Pas de prochain match à domicile pour ce club.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   // C3 : le boycott est desormais pose par CAS sur l'etat frais. L'ancien sbSaveChampionnat()
   // reecrivait ici le blob ENTIER a partir d'une copie lue plusieurs secondes plus tot (le temps
   // d'ouvrir la modale et de payer les PA) -- il pouvait donc effacer un match que le moteur live
@@ -8368,7 +8368,7 @@ async function doPostulerPresidentClub(pa, cost) {
   }
 
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const electeurs = await getElecteursClub(clubLocal);
   const jour = state.day || 1;
@@ -8506,7 +8506,7 @@ async function confirmerPropositionTransfert(clubAchatId, pa, cost) {
   const dataVente = await chargerPresidentClub(clubVenteId);
   if (!dataVente.president) { showToast('Club sans président', 'Impossible de négocier avec un club sans président désigné.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const transfertId = await sbCreerTransfert({
     joueur: nomJoueur, clubDepartId: clubVenteId, clubArriveeId: clubAchatId,
@@ -8717,7 +8717,7 @@ async function confirmerAchatAccessoireClub(id, label, prix, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   if (getFondsDisponiblesOrdinaires() < prix) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const debitAccessoire = await debiterFondsOrdinaires(prix);
   if (!debitAccessoire.ok) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
   if (!state.inventory) state.inventory = [];
@@ -8896,7 +8896,7 @@ async function confirmerPariMatch(homeId, awayId, journeeNumero, saisonNumero, p
   if (!mise || mise < 10) { showToast('Mise invalide', 'Minimum 10 FR.', false); return; }
   if (state.arg < mise) { showToast('Fonds insuffisants', '', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   state.arg -= mise;
@@ -9100,7 +9100,7 @@ async function validerLancementGreve() {
 
   _greve.soumission = true;
   const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); _greve.soumission = false; return; }
+  if (!r.ok) { signalerRefusCout(r); _greve.soumission = false; return; }
 
   orga.greve = {
     actif: true,
@@ -9248,7 +9248,7 @@ async function confirmerAppelGreveGenerale(orgaId) {
   if (orga.greveGeneraleEnCoursId) { showToast('Déjà engagé', '', false); return; }
 
   const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const pays = orga.country_origine || state.country;
   const eligibles = await syndicatsEligiblesGreveGenerale(pays);

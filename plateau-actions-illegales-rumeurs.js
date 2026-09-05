@@ -453,7 +453,7 @@ const FORMULATIONS_RUMEUR_VRAIE = {
 
 async function ecouterRumeurs(successRate, pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const char = state.char;
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
@@ -554,7 +554,7 @@ async function confirmerFuite(pa, cost) {
   const cible = document.getElementById('fuite-cible')?.value;
   if (!cible) return;
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -630,7 +630,7 @@ async function confirmerScandale(taux, pa, cost) {
   const contenu = document.getElementById('scandale-contenu')?.value?.trim();
   if (!cible || !contenu) { showToast('Champs requis', '', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   document.getElementById('modal-postes').classList.remove('open');
 
   const roll = Math.floor(Math.random() * 100) + 1;
@@ -1291,7 +1291,7 @@ async function doObtenirExplosifsMilitaires(pa, cost) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
     type: 'explosif', name: 'Explosifs militaires réglementaires', icon: 'ti-bomb', legal: true,
@@ -1376,7 +1376,7 @@ async function confirmerAchatExplosifs(pa, cost) {
   if (getFondsDisponiblesOrdinaires() < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const roll = Math.floor(Math.random() * 100) + 1;
   const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
@@ -1660,7 +1660,7 @@ async function confirmerAchatPoison(type, pa, cost) {
   if (getFondsDisponiblesOrdinaires() < obj.cout) { showToast('Fonds insuffisants', obj.cout + ' ' + cur + ' requis.', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   const debit = await debiterFondsOrdinaires(obj.cout);
   if (!debit.ok) { showToast('Fonds insuffisants', obj.cout + ' ' + cur + ' requis.', false); return; }
@@ -2002,7 +2002,7 @@ async function consulterInformateur(niveau, pa) {
     return;
   }
   const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
 
   // Premier paiement immédiat
   state.arg -= config.cout;
@@ -5326,7 +5326,7 @@ async function traiterActeRachatEntreprise(candidat, pa, cost) {
     return;
   }
   const rRachat = await deduireCoutOrdre({ pa, cost });
-  if (!rRachat.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rRachat.ok) { signalerRefusCout(rRachat); return; }
 
   state.arg -= solde;
   data.proprietaire = state.char?.name;
@@ -5511,7 +5511,7 @@ async function traiterActeRachatEntreprisePreemption(candidat, pa, cost) {
     return;
   }
   const rPreemption = await deduireCoutOrdre({ pa, cost });
-  if (!rPreemption.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!rPreemption.ok) { signalerRefusCout(rPreemption); return; }
   const pays = state.country || 'republic';
   data.proprietaire = 'État (' + (COUNTRIES[pays]?.n || pays) + ')';
   delete data.preemptionEtat;
@@ -5620,7 +5620,7 @@ async function confirmerRecolte(matiere, pa, cost) {
   verifierEtResetRecoltesJour();
   if ((state.char.recoltesJour?.nb || 0) >= 2) { showToast('Limite atteinte', 'Maximum 2 récoltes par jour.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   state.char.recoltesJour.nb = (state.char.recoltesJour.nb || 0) + 1;
 
   const quantite = 1 + Math.floor(Math.random() * 2); // 1 a 2 unites
@@ -5652,7 +5652,7 @@ async function doConsommerBuvette(pa, cost) {
   const cout = 50;
   if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
   const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('PA insuffisants', '', false); return; }
+  if (!r.ok) { signalerRefusCout(r); return; }
   state.pop = Math.min(100, (state.pop || 0) + 2);
 
   if (typeof appliquerTaxeTransaction === 'function' && typeof crediterCaisseBatiment === 'function') {
