@@ -5483,9 +5483,15 @@ async function verifierSalaireDirecteur() {
 // =====================
 // SUBDIVISION DES COMMERCES PREMIUM / BUILDING
 // =====================
-const SURFACE_MIN_SUBDIVISION = { commerce_premium: 600, building: 300 };
+// Lot 1.5.1 : SURFACE_MIN_SUBDIVISION ({ commerce_premium: 600, building: 300 }) a ete retiree.
+// Le modele de surface est desormais porte par plateau-immobilier.js (SURFACES_MIN_LOT,
+// surfaceLibre/surfaceDisponible, verdictAjoutLot), ou il distingue les destinations -- ce que
+// l'ancienne table ne savait pas faire. La laisser en place aurait cree deux minima concurrents.
+// peutDiviser delegue a batimentDivisible pour la meme raison : une seule liste de paliers
+// divisibles, jamais deux. Repli conservateur si le module n'est pas charge.
 
 function peutDiviser(ts) {
+  if (typeof batimentDivisible === 'function') return batimentDivisible(ts && ts.niveau_construction);
   return ts.niveau_construction === 'commerce_premium' || ts.niveau_construction === 'building';
 }
 
@@ -5503,13 +5509,23 @@ async function doOuvrirDivisionTerrain() {
     return;
   }
 
-  const surfaceMin = SURFACE_MIN_SUBDIVISION[ts.niveau_construction];
+  // Lot 1.5.1 : surface inconnue (aucune superficie officielle n'a jamais ete fixee pour ce
+  // terrain) -- on refuse explicitement au lieu de l'afficher comme un terrain plein a 0 m².
+  if (!surfaceTerrainConnue(ts)) {
+    showToast('Surface inconnue', "La surface exploitable de ce terrain n'est pas connue : sa division est impossible.", false);
+    return;
+  }
+
   const subdivisions = ts.subdivisions || [];
-  const surfaceUtilisee = subdivisions.reduce(function(s, l) { return s + l.surface; }, 0);
-  const surfaceRestante = (ts.surface || 0) - surfaceUtilisee;
+  const dispo = surfaceDisponible(ts);
+  const destinations = destinationsAutorisees(ts.niveau_construction);
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Surface totale : ' + (ts.surface || 0) + ' m² · Surface restante à diviser : ' + surfaceRestante + ' m² · Minimum par lot : ' + surfaceMin + ' m².</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Surface exploitable : ' + surfaceTotale(ts) + ' m² · Déjà attribuée : ' + surfaceAllouee(ts) + ' m² · Disponible : ' + dispo + ' m².<br>'
+       + destinations.map(function(d) {
+           return (d === 'appartement' ? 'Appartement' : 'Commerce') + ' : minimum ' + surfaceMinimaleLot(ts.niveau_construction, d) + ' m²';
+         }).join(' · ')
+       + '. La division est facultative : la surface non attribuée vous reste, sans justification.</div>';
 
   if (subdivisions.length > 0) {
     html += '<div style="display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem">';
@@ -5517,7 +5533,8 @@ async function doOuvrirDivisionTerrain() {
     subdivisions.forEach(function(l, i) {
       html += '<div style="padding:.5rem .6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
       const locataireLot = locataireDuLot(id, l);
-      html += '<span style="font-size:.82rem;color:#c0b090">' + l.label + ' — ' + l.surface + ' m²' + (locataireLot ? ' (loué par ' + locataireLot + ')' : ' (libre)') + '</span>';
+      const destLot = destinationDuLot(l) === 'appartement' ? 'appartement' : 'commerce';
+      html += '<span style="font-size:.82rem;color:#c0b090">' + l.label + ' — ' + l.surface + ' m² · ' + destLot + (locataireLot ? ' (loué par ' + locataireLot + ')' : ' (libre)') + '</span>';
       html += '<div style="display:flex;gap:.5rem">';
       if (locataireLot && yATilDesLotsVides) {
         html += '<button onclick="doOuvrirAgrandirLot(' + i + ')" style="font-size:.68rem;color:#4a9a6a;background:transparent;border:none;cursor:pointer">Agrandir</button>';
@@ -5530,6 +5547,15 @@ async function doOuvrirDivisionTerrain() {
   }
 
   html += '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">';
+  // Selecteur de destination : affiche seulement si le palier en propose plusieurs (building).
+  // En commerce premium, la seule destination possible est imposee sans encombrer l'ecran.
+  if (destinations.length > 1) {
+    html += '<select id="subdiv-destination" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
+    destinations.forEach(function(d) {
+      html += '<option value="' + d + '">' + (d === 'appartement' ? 'Appartement' : 'Commerce') + '</option>';
+    });
+    html += '</select>';
+  }
   html += '<input id="subdiv-label" type="text" placeholder="Nom du lot..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
   html += '<input id="subdiv-surface" type="number" placeholder="Surface m²..." style="width:120px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
   html += '<input id="subdiv-loyer" type="number" placeholder="Loyer/jour..." style="width:120px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
@@ -5546,23 +5572,29 @@ async function doAjouterSubdivision() {
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Diviser ce bien')) return;
   const ts = getTerrainState(id);
-  const surfaceMin = SURFACE_MIN_SUBDIVISION[ts.niveau_construction];
   const label = (document.getElementById('subdiv-label')?.value || '').trim();
   const surface = parseInt(document.getElementById('subdiv-surface')?.value || 0);
   const loyer = parseInt(document.getElementById('subdiv-loyer')?.value || 0);
+  // Une seule destination possible (commerce premium) : le selecteur n'est pas affiche, la valeur
+  // vient alors du palier lui-meme et non d'un champ absent.
+  const destinationsPalier = destinationsAutorisees(ts.niveau_construction);
+  const destination = document.getElementById('subdiv-destination')?.value || destinationsPalier[0];
 
   if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
-  if (!surface || surface < surfaceMin) { showToast('Surface trop petite', 'Chaque lot doit faire au moins ' + surfaceMin + ' m².', false); return; }
+
+  // Lot 1.5.1 : verdict unique (plateau-immobilier.js) -- palier divisible, surface connue,
+  // destination autorisee, minimum respecte, surface disponible suffisante. Aucune de ces regles
+  // n'est reecrite ici, pour qu'il n'en existe qu'une seule version.
+  const verdict = verdictAjoutLot(ts, { destination: destination, surface: surface });
+  if (!verdict.ok) {
+    showToast(verdict.raison === 'surface_indisponible' ? 'Surface insuffisante' : 'Lot refusé', verdict.message, false);
+    return;
+  }
   if (!loyer || loyer < 1) { showToast('Loyer manquant', 'Indiquez un loyer journalier.', false); return; }
 
   const subdivisions = ts.subdivisions || [];
-  const surfaceUtilisee = subdivisions.reduce(function(s, l) { return s + l.surface; }, 0);
-  if (surfaceUtilisee + surface > (ts.surface || 0)) {
-    showToast('Surface insuffisante', 'Il ne reste que ' + ((ts.surface || 0) - surfaceUtilisee) + ' m² disponibles.', false);
-    return;
-  }
-
-  subdivisions.push({ id: 'lot-' + Date.now(), label: label, surface: surface, locataire: null, loyer: loyer });
+  subdivisions.push({ id: 'lot-' + Date.now(), label: label, surface: verdict.surface,
+                      destination: verdict.destination, locataire: null, loyer: loyer });
   const nouvelEtat = setTerrainState(id, { subdivisions: subdivisions });
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(function() {});
 

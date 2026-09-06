@@ -396,6 +396,152 @@ function orgaAutoriseeDuBail(bail) {
   return orgaAutoriseePourLocal(bail.buildingId, bail.roomId);
 }
 
+// =====================================================================
+// MODELE DE SURFACE (Lot 1.5.1)
+// =====================================================================
+// ts.surface est la surface CONSTRUCTIBLE/EXPLOITABLE totale mise a disposition du projet.
+// Ce n'est pas la superficie cadastrale, pas l'emprise au sol, pas une surface de plancher :
+// le jeu abstrait volontairement etages, parkings, circulations, halls, cages d'escalier et
+// locaux techniques. Un terrain de 2300 m² offre donc au plus 2300 m² a repartir en lots, y
+// compris pour un building -- aucun coefficient d'etage, aucun multiplicateur.
+//
+// Une seule grandeur est PERSISTEE (subdivisions[].surface) ; tout le reste est DERIVE ici, pour
+// qu'il n'existe jamais deux comptes de la meme surface pouvant diverger.
+//
+// La division reste entierement facultative : la surface non allouee n'a pas a etre justifiee,
+// c'est simplement de la surface libre appartenant au proprietaire.
+
+const DESTINATIONS_LOT = ['commerce', 'appartement'];
+
+// LECTURE DEFENSIVE DES LOTS ANTERIEURS. Les lots crees avant ce lot ne portent pas de
+// destination. Les considerer comme 'commerce' n'est pas un choix arbitraire : ils ont ete crees
+// sous l'ancien SURFACE_MIN_SUBDIVISION (600 en premium, 300 en building), qui sont exactement
+// les minima COMMERCIAUX du modele cible -- un lot ancien est donc commercial par construction.
+const DESTINATION_LOT_DEFAUT = 'commerce';
+
+// Minima par palier et par destination. Un palier absent de cette table est indivisible
+// (hangar, commerce_standard) ; une destination absente du palier y est interdite (pas
+// d'appartement dans un commerce premium).
+const SURFACES_MIN_LOT = {
+  commerce_premium: { commerce: 600 },
+  building:         { commerce: 300, appartement: 150 }
+};
+
+function batimentDivisible(niveauConstruction) {
+  return !!SURFACES_MIN_LOT[niveauConstruction];
+}
+
+// Destinations réellement ouvertes pour ce palier, dans l'ordre de DESTINATIONS_LOT.
+function destinationsAutorisees(niveauConstruction) {
+  const mins = SURFACES_MIN_LOT[niveauConstruction];
+  if (!mins) return [];
+  return DESTINATIONS_LOT.filter(function (d) { return typeof mins[d] === 'number'; });
+}
+
+function destinationDuLot(lot) {
+  if (lot && DESTINATIONS_LOT.indexOf(lot.destination) !== -1) return lot.destination;
+  return DESTINATION_LOT_DEFAUT;
+}
+
+// Minimum applicable, ou null si cette destination n'est pas autorisee sur ce palier.
+function surfaceMinimaleLot(niveauConstruction, destination) {
+  const mins = SURFACES_MIN_LOT[niveauConstruction];
+  if (!mins) return null;
+  const min = mins[destination];
+  return (typeof min === 'number') ? min : null;
+}
+
+// SURFACE INCONNUE. Certains terrains n'ont pas de surface : terrain-a-batir-6 n'a
+// volontairement aucune entree dans SURFACE_TERRAINS (sa superficie n'a jamais ete fixee), et
+// terrain-a-batir-4 existe en base sans ce champ. On ne leur en invente pas une : la surface
+// vaut null, et toutes les grandeurs derivees valent null a leur tour. C'est aux appelants de
+// refuser explicitement l'operation, jamais de traiter l'inconnu comme un zero -- un zero
+// laisserait croire que le terrain est plein alors qu'on ignore simplement sa taille.
+function surfaceTerrainConnue(ts) {
+  return !!ts && typeof ts.surface === 'number' && isFinite(ts.surface) && ts.surface >= 0;
+}
+
+function surfaceTotale(ts) {
+  return surfaceTerrainConnue(ts) ? ts.surface : null;
+}
+
+// Somme des surfaces des lots existants. Toujours un nombre : sans lot, zero.
+function surfaceAllouee(ts) {
+  const lots = (ts && Array.isArray(ts.subdivisions)) ? ts.subdivisions : [];
+  return lots.reduce(function (somme, lot) {
+    const s = lot && Number(lot.surface);
+    return somme + (isFinite(s) && s > 0 ? s : 0);
+  }, 0);
+}
+
+// Surface immobilisee par un chantier de reamenagement en cours. Lecture seule : le reamenagement
+// n'existe pas encore (Lot 1.5.14), donc cette fonction renvoie 0 partout aujourd'hui. Elle est
+// definie ici pour que surfaceDisponible ait sa forme definitive des maintenant et n'ait pas a
+// changer plus tard.
+function surfaceImmobilisee(ts) {
+  const ch = ts && ts.chantierReamenagement;
+  const s = ch && Number(ch.surfaceLibreImmobilisee);
+  return (isFinite(s) && s > 0) ? s : 0;
+}
+
+// Surface non allouee. null si la surface du terrain est inconnue.
+function surfaceLibre(ts) {
+  const totale = surfaceTotale(ts);
+  if (totale === null) return null;
+  return Math.max(0, totale - surfaceAllouee(ts));
+}
+
+// Surface reellement allouable maintenant. null si la surface du terrain est inconnue.
+function surfaceDisponible(ts) {
+  const libre = surfaceLibre(ts);
+  if (libre === null) return null;
+  return Math.max(0, libre - surfaceImmobilisee(ts));
+}
+
+// VERDICT UNIQUE D'AJOUT D'UN LOT. Meme doctrine que verdictRoleOrdre (Lot 1.2) : une seule
+// fonction dit oui ou non, et l'interface comme tout futur controle serveur s'y referent, pour
+// qu'il n'existe jamais deux regles de validation divergentes.
+function verdictAjoutLot(ts, lot) {
+  const l = lot || {};
+  const niveau = ts && ts.niveau_construction;
+
+  if (!batimentDivisible(niveau)) {
+    return { ok: false, raison: 'batiment_indivisible',
+             message: 'Seuls les Commerces Premium et les Buildings peuvent être divisés.' };
+  }
+  if (!surfaceTerrainConnue(ts)) {
+    return { ok: false, raison: 'surface_inconnue',
+             message: "La surface exploitable de ce terrain n'est pas connue : sa division est impossible." };
+  }
+
+  const destination = destinationDuLot(l);
+  const min = surfaceMinimaleLot(niveau, destination);
+  if (min === null) {
+    return { ok: false, raison: 'destination_interdite',
+             message: destination === 'appartement'
+               ? "Un Commerce Premium n'accueille que des lots commerciaux."
+               : "Cette destination n'est pas autorisée dans ce bâtiment." };
+  }
+
+  const surface = Number(l.surface);
+  if (!isFinite(surface) || surface <= 0) {
+    return { ok: false, raison: 'surface_invalide', message: 'Indiquez une surface en m².' };
+  }
+  if (surface < min) {
+    return { ok: false, raison: 'surface_sous_minimum',
+             message: 'Un lot ' + (destination === 'appartement' ? "d'habitation" : 'commercial')
+                      + ' doit faire au moins ' + min + ' m².' };
+  }
+
+  const dispo = surfaceDisponible(ts);
+  if (surface > dispo) {
+    return { ok: false, raison: 'surface_indisponible',
+             message: 'Il ne reste que ' + dispo + ' m² disponibles.' };
+  }
+
+  return { ok: true, raison: null, message: '', destination: destination, surface: surface };
+}
+
 // RESOLVEUR UNIQUE. Tous les consommateurs passent par ici : il n'existe plus qu'un seul chemin
 // pour repondre a "ce local est-il loue, et par qui ?".
 //
