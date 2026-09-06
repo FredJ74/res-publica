@@ -777,9 +777,7 @@ function planifierApprovisionnement(besoin, stockChantier, stockEntrepot, tresor
 
 function chantierAccepteMateriaux(chantier) {
   if (!chantier) return false;
-  const duree = Math.max(0, nombreFini(chantier.dureeJours, 0));
-  if (duree > 0 && Math.max(0, nombreFini(chantier.progressionJours, 0)) >= duree) return false;
-  return true;
+  return !chantierTermine(chantier);
 }
 
 // Verdict d'une vente. Renvoie la quantite REELLEMENT transferable et le montant correspondant,
@@ -825,3 +823,127 @@ function enregistrerVenteMateriauxPJ(chantier, vendeur, matiere, quantite, prixU
   });
   return { chantier: maj, quantite: v.quantite, montant: v.montant, raison: null };
 }
+
+// ---------------------------------------------------------------------------
+// VERROU DU PLAN AUX DEUX TIERS (Lot 1.5.11)
+// ---------------------------------------------------------------------------
+// Tant que le chantier n'a pas REELLEMENT atteint les deux tiers, le proprietaire remanie son plan
+// librement et gratuitement. Au premier franchissement, le plan est fige pour de bon.
+//
+// POURQUOI DEUX SOURCES CONCORDANTES ET NON UNE SEULE. Le verrou est a la fois DERIVE de la
+// progression reelle et PERSISTE dans un drapeau. Ce n'est pas une redondance de confort :
+//   - derive seul, il serait reversible -- une regression de financement ramenant la progression
+//     sous les 2/3 rouvrirait le plan, ce que le GD interdit explicitement ;
+//   - persiste seul, il serait faillible -- un chantier ancien, ou une ecriture perdue, laisserait
+//     modifiable un plan pourtant depasse par les travaux.
+// Les deux ensemble donnent la seule regle voulue : le verrou se POSE des que le seuil est atteint
+// et ne se retire JAMAIS. Il n'y a pas pour autant deux verites concurrentes -- planEstVerrouille
+// est l'unique lecture autorisee, et elle prend le OU des deux.
+//
+// La progression de reference est celle du moteur generique (progressionJours), jamais un delai
+// calendaire : un chantier ouvert depuis trois semaines mais bloque a 10 % reste modifiable.
+
+// Le seuil est-il REELLEMENT atteint maintenant ? Lecture instantanee, sans memoire.
+function progressionAtteintDeuxTiers(chantier) {
+  if (!chantier) return false;
+  const duree = Math.max(0, nombreFini(chantier.dureeJours, 0));
+  if (duree <= 0) return false;
+  return Math.max(0, nombreFini(chantier.progressionJours, 0)) >= seuilDeuxTiers(duree);
+}
+
+// LECTURE UNIQUE du verrou. Tout controle -- interface, confirmation, futur controle serveur --
+// passe par ici.
+function planEstVerrouille(chantier) {
+  if (!chantier) return false;
+  return chantier.planVerrouille === true || progressionAtteintDeuxTiers(chantier);
+}
+
+// POSE du verrou. Appelee apres CHAQUE modification de la progression, d'ou qu'elle vienne (cron
+// quotidien, acceleration par corruption). Ne retire jamais un verrou existant, et ne le pose que
+// si le seuil est reellement atteint. Pure : renvoie un nouveau chantier.
+function appliquerVerrouPlan(chantier, jour) {
+  if (!chantier) return chantier;
+  if (chantier.planVerrouille === true) return chantier;      // deja verrouille : rien a refaire
+  if (!progressionAtteintDeuxTiers(chantier)) return chantier;
+  const maj = Object.assign({}, chantier);
+  maj.planVerrouille = true;
+  maj.jourVerrouPlan = (jour === undefined || jour === null) ? null : jour;
+  return maj;
+}
+
+// Verdict unique sur la modification du plan initial. Ne connait ni proprietaire ni PA : la
+// propriete est verifiee par l'appelant, avec le mecanisme existant (estTitulaire).
+function verdictModificationPlan(chantier) {
+  if (!chantier) return { ok: false, raison: 'chantier_absent' };
+  if (chantierTermine(chantier)) return { ok: false, raison: 'chantier_livre' };
+  if (planEstVerrouille(chantier)) return { ok: false, raison: 'plan_verrouille' };
+  return { ok: true, raison: null };
+}
+
+// ---------------------------------------------------------------------------
+// LIVRAISON DU BATIMENT (Lot 1.5.12)
+// ---------------------------------------------------------------------------
+// A 100 % de progression reelle, le chantier de construction se solde : le batiment existe, le
+// plan verrouille devient les VRAIS lots de l'architecture immobiliere (terrains_etat.subdivisions,
+// Lot 1.1), et le chantier quitte la place vivante qu'il occupait.
+//
+// ETAT RETENU. etat.chantier reste ce qu'il a toujours ete : le chantier VIVANT, et lui seul. Un
+// chantier livre en sort et devient etat.chantierAcheve, que rien dans le moteur ne lit. Deux
+// consequences, obtenues sans toucher a un seul appelant :
+//   - toute activite de chantier cesse d'elle-meme -- vente de materiaux, travail PJ, travail NPC,
+//     offre BNE, approvisionnement automatique et vol testent tous etat.chantier, qui n'existe
+//     plus ;
+//   - l'historique est integralement conserve -- evenements, travauxPJ, ventesMateriauxPJ et
+//     dimensionnement figé restent lisibles, simplement inertes.
+// C'est un DEPLACEMENT, pas une duplication : le chantier n'existe jamais aux deux endroits a la
+// fois, donc aucune seconde source de verite.
+//
+// LE PLAN N'EST PAS RECOPIE AVANT L'HEURE. Les lots naissent de permis.decoupageInitial au moment
+// meme de la livraison. C'est licite precisement parce que le verrou des 2/3 garantit que ce plan
+// ne peut plus bouger depuis longtemps : le figer une seconde fois dans le chantier creerait deux
+// exemplaires du meme plan, donc deux verites possibles.
+
+function chantierTermine(chantier) {
+  if (!chantier) return false;
+  const duree = Math.max(0, nombreFini(chantier.dureeJours, 0));
+  if (duree <= 0) return false;
+  return Math.max(0, nombreFini(chantier.progressionJours, 0)) >= duree;
+}
+
+// Traduit le plan administratif en lots reels. Meme forme exactement que les lots crees a la main
+// par doAjouterSubdivision (id, label, surface, destination, locataire, loyer) : aucune structure
+// parallele, les lots livres sont indiscernables des lots ajoutes ensuite.
+// LOYER : le plan de permis n'en porte pas -- le GD n'en a jamais demande au depot. On n'en invente
+// donc aucun : le lot nait a 0, et son proprietaire le fixe ensuite comme pour tout autre lot.
+function lotsLivrablesDepuisPlan(plan) {
+  const lots = Array.isArray(plan) ? plan : [];
+  const vus = {};
+  const sortie = [];
+  lots.forEach(function (l, i) {
+    if (!l || typeof l !== 'object') return;
+    const surface = Math.max(0, nombreFini(l.surface, 0));
+    if (surface <= 0) return;                          // un lot sans surface n'est pas un local
+    // Identite : celle du plan si elle est exploitable, sinon une identite de secours DETERMINISTE
+    // (jamais Date.now : deux livraisons du meme plan doivent donner exactement les memes lots).
+    let id = (typeof l.id === 'string' && l.id.trim()) ? l.id.trim() : ('lot-livre-' + (i + 1));
+    if (vus[id]) id = id + '-' + (i + 1);
+    vus[id] = true;
+    sortie.push({
+      id: id,
+      label: (typeof l.label === 'string' && l.label.trim()) ? l.label.trim() : ('Lot ' + (i + 1)),
+      surface: surface,
+      destination: (l.destination === 'appartement') ? 'appartement' : 'commerce',
+      locataire: null,
+      loyer: 0
+    });
+  });
+  return sortie;
+}
+
+// La LIVRAISON elle-meme n'est pas ici : elle n'a qu'un seul point d'execution, le traitement
+// quotidien (livrerChantierServeur, api/cron-minuit.js), parce qu'elle ecrit dans terrains_etat et
+// qu'aucun chemin client ne peut mener un chantier a son terme -- l'acceleration par corruption
+// avance de la moitie du travail restant, donc approche le terme sans jamais l'atteindre. Poser ici
+// une seconde implementation donnerait deux facons de livrer un batiment pour aucun usage reel.
+// Seule la traduction du plan en lots, elle, est ecrite des deux cotes et verrouillee par un test
+// d'egalite : c'est la partie ou une divergence produirait des lots differents selon l'endroit.

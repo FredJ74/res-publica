@@ -6068,14 +6068,208 @@ async function doCorrompreChantier(pa, cost) {
   const gain = progressionAutorisee(ch.progressionJours, restantJours / 2, ch.totalVerse, ch.dureeJours, ch.coutTotal);
   ch.progressionJours = Math.min(ch.dureeJours, ch.progressionJours + gain);
 
-  const nouvelEtat = setTerrainState(id, { chantier: ch });
+  // Lot 1.5.11 : la corruption est le SECOND point du jeu qui fait bouger progressionJours, avec
+  // le cron. Le verrou des 2/3 s'y applique donc exactement pareil -- il decoule de la progression
+  // reelle, jamais de la maniere dont elle a ete obtenue.
+  //
+  // Elle ne peut en revanche jamais LIVRER : elle avance de la moitie du travail restant, donc
+  // approche le terme sans jamais l'atteindre (et l'ecran refuse deja d'agir sur un chantier
+  // arrive a son terme). La livraison reste le fait du seul traitement quotidien -- un unique
+  // point d'arrivee, pas deux.
+  const chVerrouille = appliquerVerrouPlan(ch, state.day || 1);
+  const avancement = chVerrouille.progressionJours;
+  const nouvelEtat = setTerrainState(id, { chantier: chVerrouille });
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
 
   updateUI();
-  const reste = Math.max(0, ch.dureeJours - ch.progressionJours);
+  const reste = Math.max(0, ch.dureeJours - avancement);
   addJournalEntry('Chantier accéléré par corruption (-' + cost + ' ' + cur + '). Avancement : '
-    + ch.progressionJours.toFixed(1) + ' / ' + ch.dureeJours + ' jours.', 'event-info');
+    + avancement.toFixed(1) + ' / ' + ch.dureeJours + ' jours.', 'event-info');
   showToast('Chantier accéléré', reste.toFixed(1) + ' jours de travail restants.', true);
+}
+
+// =====================================================================
+// MODIFICATION DU PLAN INITIAL (Lot 1.5.11)
+// =====================================================================
+// Tant que le chantier n'a pas reellement atteint les deux tiers, le proprietaire remanie son plan
+// autant qu'il veut : ajouter, retirer, redimensionner, changer une destination, ou tout retirer
+// pour revenir a un batiment indivis. Gratuit, 0 PA, sans nouveau chantier ni nouveau permis.
+//
+// AUCUNE REGLE DE SURFACE N'EST REECRITE ICI. Le plan modifie repasse par verdictPlanPermis, donc
+// par verdictAjoutLot applique au terrain PROJETE -- exactement le chemin du depot (Lot 1.5.2).
+// Minima commerce premium / commerce d'immeuble / appartement et somme bornee par la surface
+// exploitable s'appliquent donc sans qu'aucune d'elles n'existe en double.
+let _planModificationEnCours = { buildingId: null, lots: [] };
+
+// Verdict d'ouverture, partage par l'ecran et par la confirmation : l'ecran n'est qu'une
+// anticipation contournable par un appel direct, la confirmation le rejoue integralement.
+function verdictOuvertureModificationPlan(ts) {
+  if (!estTitulaire(ts && ts.proprietaire)) return { ok: false, message: "Vous n'êtes pas propriétaire de ce terrain." };
+  const v = verdictModificationPlan(ts && ts.chantier);
+  if (!v.ok) {
+    return { ok: false, message:
+      v.raison === 'chantier_absent'   ? "Aucun chantier en cours sur ce terrain."
+    : v.raison === 'chantier_livre'    ? "Le bâtiment est livré : son plan ne se modifie plus ici."
+    : "Les travaux ont dépassé les deux tiers : le plan est définitivement arrêté." };
+  }
+  const palier = (ts.permis && ts.permis.palierDemande) || (ts.chantier && ts.chantier.niveau);
+  if (!palier) return { ok: false, message: "Aucun permis ne rattache un plan à ce chantier." };
+  if (!batimentDivisible(palier)) {
+    return { ok: false, message: 'Une construction de type « '
+      + ((typeof NIVEAUX_CONSTRUCTION !== 'undefined' && NIVEAUX_CONSTRUCTION[palier]) ? NIVEAUX_CONSTRUCTION[palier].label : palier)
+      + ' » ne se divise pas en lots.' };
+  }
+  if (!surfaceTerrainConnue(ts)) {
+    return { ok: false, message: "La surface exploitable de ce terrain n'est pas connue : aucun découpage n'est possible." };
+  }
+  return { ok: true, palier: palier };
+}
+
+async function doModifierPlanChantier(pa, cost) {
+  const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Modifier le plan')) return;
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+
+  const v = verdictOuvertureModificationPlan(ts);
+  if (!v.ok) { showToast('Modification impossible', v.message, false); return; }
+
+  // Brouillon initialise sur le plan REELLEMENT en vigueur, pas sur un plan vide : modifier, c'est
+  // partir de l'existant. snapshotPlanPermis en fait une copie -- le brouillon abandonne ne doit
+  // jamais avoir touche au permis.
+  _planModificationEnCours = { buildingId: id, lots: snapshotPlanPermis(ts.permis && ts.permis.decoupageInitial) };
+  renderModificationPlan();
+}
+
+function renderModificationPlan() {
+  const id = _planModificationEnCours.buildingId;
+  const ts = getTerrainState(id);
+  const palier = (ts.permis && ts.permis.palierDemande) || (ts.chantier && ts.chantier.niveau);
+  const lots = _planModificationEnCours.lots;
+  const projection = projectionPermis(ts, palier, lots);
+  const dispo = surfaceDisponible(projection);
+  const destinations = destinationsAutorisees(palier);
+  const ch = ts.chantier || {};
+  const pct = (ch.dureeJours > 0) ? Math.floor(progressionNormalisee(ch.progressionJours, ch.dureeJours) * 100) : 0;
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Le plan reste modifiable <b>gratuitement</b> tant que les travaux n\'ont pas atteint les deux tiers. Avancement réel : '
+       + pct + ' % — verrouillage à 67 %. Au-delà, seul un chantier de réaménagement pourra encore changer quoi que ce soit.</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Surface exploitable : ' + surfaceTotale(ts) + ' m² · Inscrite au plan : ' + surfaceAllouee(projection) + ' m² · Reste : ' + dispo + ' m².<br>'
+       + destinations.map(function (d) {
+           return (d === 'appartement' ? 'Appartement' : 'Commerce') + ' : minimum ' + surfaceMinimaleLot(palier, d) + ' m²';
+         }).join(' · ') + '.</div>';
+
+  if (lots.length > 0) {
+    html += '<div style="display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem">';
+    lots.forEach(function (l, i) {
+      html += '<div style="padding:.5rem .6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
+      html += '<span style="font-size:.82rem;color:#c0b090">' + l.label + ' — ' + l.surface + ' m² · ' + (destinationDuLot(l) === 'appartement' ? 'appartement' : 'commerce') + '</span>';
+      html += '<button onclick="doRetirerLotModificationPlan(' + i + ')" style="font-size:.68rem;color:#cc5540;background:transparent;border:none;cursor:pointer">Retirer</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic;margin-bottom:.8rem">Aucun lot au plan : le bâtiment sera livré indivis.</div>';
+  }
+
+  html += '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">';
+  if (destinations.length > 1) {
+    html += '<select id="modplan-destination" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
+    destinations.forEach(function (d) {
+      html += '<option value="' + d + '">' + (d === 'appartement' ? 'Appartement' : 'Commerce') + '</option>';
+    });
+    html += '</select>';
+  }
+  html += '<input id="modplan-label" type="text" placeholder="Nom du lot..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '<input id="modplan-surface" type="number" placeholder="Surface m²..." style="width:120px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '</div>';
+  html += '<button class="pnj-action-btn" onclick="doAjouterLotModificationPlan()">+ Ajouter ce lot au plan</button>';
+  html += '<button class="pnj-action-btn" style="margin-top:.6rem" onclick="confirmerModificationPlan()">Enregistrer ce plan'
+       + (lots.length > 0 ? ' (' + lots.length + ' lot' + (lots.length > 1 ? 's' : '') + ')' : ' sans découpage') + '</button>';
+  html += '</div>';
+
+  document.getElementById('postes-modal-title').textContent = 'Modifier le plan de découpage';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function doAjouterLotModificationPlan() {
+  const id = _planModificationEnCours.buildingId;
+  const ts = getTerrainState(id);
+  const palier = (ts.permis && ts.permis.palierDemande) || (ts.chantier && ts.chantier.niveau);
+  const label = (document.getElementById('modplan-label')?.value || '').trim();
+  const surface = parseInt(document.getElementById('modplan-surface')?.value || 0);
+  const destinationsPalier = destinationsAutorisees(palier);
+  const destination = document.getElementById('modplan-destination')?.value || destinationsPalier[0];
+
+  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
+
+  const verdict = verdictAjoutLotPlan(ts, palier, _planModificationEnCours.lots, { destination, surface });
+  if (!verdict.ok) {
+    showToast(verdict.raison === 'surface_indisponible' ? 'Surface insuffisante' : 'Lot refusé', verdict.message, false);
+    return;
+  }
+
+  _planModificationEnCours.lots.push({
+    id: 'lot-' + Date.now() + '-' + _planModificationEnCours.lots.length,
+    label, surface: verdict.surface, destination: verdict.destination
+  });
+  renderModificationPlan();
+}
+
+function doRetirerLotModificationPlan(index) {
+  _planModificationEnCours.lots.splice(index, 1);
+  renderModificationPlan();
+}
+
+async function confirmerModificationPlan() {
+  const id = _planModificationEnCours.buildingId || state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Modifier le plan')) return;
+
+  // RELECTURE AVANT ECRITURE. L'ecran a pu rester ouvert pendant que le chantier franchissait les
+  // deux tiers -- au passage de minuit, ou par une acceleration. Le verrou est donc reevalue sur
+  // l'etat frais, jamais sur celui qui a servi a dessiner l'ecran.
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+  const v = verdictOuvertureModificationPlan(ts);
+  if (!v.ok) { showToast('Modification impossible', v.message, false); return; }
+
+  const nouveauPlan = _planModificationEnCours.lots;
+  const verdictPlan = verdictPlanPermis(ts, v.palier, nouveauPlan);
+  if (!verdictPlan.ok) { showToast('Plan refusé', verdictPlan.message, false); return; }
+  const decoupage = snapshotPlanPermis(nouveauPlan);
+
+  // Meme doctrine qu'au depot et qu'a la decision (Lot 1.5.5) : l'archive municipale COMMANDE. Si
+  // elle n'enregistre pas la modification, le plan en vigueur ne bouge pas d'un metre carre.
+  // Le document nomme celui qui modifie -- le proprietaire d'aujourd'hui -- et non le demandeur
+  // d'origine, qui peut ne plus rien avoir a voir avec ce terrain. L'en-tete du dossier, lui, reste
+  // lu sur l'evenement de depot (regrouperDossiersUrbanisme) : l'histoire n'est pas reecrite.
+  const permisModifie = Object.assign({}, ts.permis || {}, {
+    decoupageInitial: decoupage,
+    demandeur: state.char?.name || (ts.permis && ts.permis.demandeur) || null
+  });
+  const emis = (typeof emettreDocumentUrbanisme === 'function')
+    ? await emettreDocumentUrbanisme({ ...ts, city: ts.city || state.currentCity }, permisModifie, 'modification_plan',
+        { buildingId: id, pays: state.country, ville: ts.city || state.currentCity, jour: state.day || 1 })
+    : null;
+  if (!emis) {
+    showToast('Modification impossible', "Les archives municipales n'ont pas pu enregistrer cette modification. Le plan précédent reste en vigueur.", false);
+    return;
+  }
+
+  const permis = Object.assign({}, ts.permis || {}, { decoupageInitial: decoupage });
+  const nouvelEtat = setTerrainState(id, { permis: permis });
+  _planModificationEnCours = { buildingId: null, lots: [] };
+  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  const resume = decoupage.length > 0
+    ? decoupage.length + ' lot' + (decoupage.length > 1 ? 's' : '')
+    : 'aucun lot — livraison indivise';
+  showToast('Plan modifié', 'Nouveau plan enregistré : ' + resume + '.', true, true);
+  addJournalEntry('Plan de découpage modifié en cours de chantier : ' + resume + '.', 'event-good');
 }
 
 // =====================

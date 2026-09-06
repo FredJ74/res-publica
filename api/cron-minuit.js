@@ -1020,8 +1020,130 @@ function fractionMateriauxServeur(stock, besoin) {
   return contrainte ? Math.max(0, Math.min(1, f)) : 1;
 }
 
+// VERROU DU PLAN ET LIVRAISON (Lots 1.5.11 / 1.5.12). Memes formules que plateau-chantiers.js,
+// dupliquees ici pour la meme raison que les materiaux et le travail -- le cron est un module
+// serverless isole qui ne peut pas charger un script de navigateur -- et verrouillees par le meme
+// test d'egalite, qui compare les deux implementations sur les memes entrees.
+function seuilDeuxTiersServeur(dureeJours) {
+  return Math.max(0, Number(dureeJours) || 0) * 2 / 3;
+}
+
+function progressionAtteintDeuxTiersServeur(ch) {
+  const d = Math.max(0, Number(ch && ch.dureeJours) || 0);
+  if (d <= 0) return false;
+  return Math.max(0, Number(ch.progressionJours) || 0) >= seuilDeuxTiersServeur(d);
+}
+
+// Pose le verrou, ne le retire jamais. Mute le chantier en place, comme tout le reste de cette
+// boucle (le cron travaille sur l'objet qu'il vient de parser, pas sur des copies).
+function appliquerVerrouPlanServeur(ch, jour) {
+  if (!ch || ch.planVerrouille === true) return false;
+  if (!progressionAtteintDeuxTiersServeur(ch)) return false;
+  ch.planVerrouille = true;
+  ch.jourVerrouPlan = (jour === undefined || jour === null) ? null : jour;
+  return true;
+}
+
+function chantierTermineServeur(ch) {
+  const d = Math.max(0, Number(ch && ch.dureeJours) || 0);
+  if (d <= 0) return false;
+  return Math.max(0, Number(ch.progressionJours) || 0) >= d;
+}
+
+function lotsLivrablesDepuisPlanServeur(plan) {
+  const lots = Array.isArray(plan) ? plan : [];
+  const vus = {}, sortie = [];
+  lots.forEach(function (l, i) {
+    if (!l || typeof l !== 'object') return;
+    const surface = Math.max(0, Number(l.surface) || 0);
+    if (surface <= 0) return;
+    let id = (typeof l.id === 'string' && l.id.trim()) ? l.id.trim() : ('lot-livre-' + (i + 1));
+    if (vus[id]) id = id + '-' + (i + 1);
+    vus[id] = true;
+    sortie.push({
+      id: id,
+      label: (typeof l.label === 'string' && l.label.trim()) ? l.label.trim() : ('Lot ' + (i + 1)),
+      surface: surface,
+      destination: (l.destination === 'appartement') ? 'appartement' : 'commerce',
+      locataire: null, loyer: 0
+    });
+  });
+  return sortie;
+}
+
+// RELIQUATS A LA LIVRAISON. Ce qui reste dans le chantier a l'instant ou il se solde -- tresorerie
+// non depensee, materiaux non consommes. Ce n'est pas un cas rare : un proprietaire qui sur-finance,
+// ou un PJ qui livre plus de matieres que la journee n'en consomme, en laissent forcement.
+function reliquatsDuChantierServeur(ch) {
+  const stock = (ch && ch.stockMateriaux) || {};
+  const materiaux = {};
+  let total = 0;
+  MATERIAUX_SERVEUR.forEach(function (cle) {
+    const q = Math.max(0, Math.floor(Number(stock[cle]) || 0));
+    if (q > 0) { materiaux[cle] = q; total += q; }
+  });
+  const tresorerie = Math.max(0, Math.floor(Number(ch && ch.tresorerie) || 0));
+  return { tresorerie: tresorerie, materiaux: materiaux, unites: total,
+           aRestituer: tresorerie > 0 || total > 0 };
+}
+
+// Livraison IDEMPOTENTE : elle retire etat.chantier, donc un cron rejoue ne trouve plus rien a
+// livrer. Les lots ne sont ecrits que si le batiment n'en a aucun.
+//
+// RELIQUATS (arbitrage GD du 7 septembre 2026). Tresorerie et materiaux restants reviennent au
+// PROPRIETAIRE ACTUEL DES MURS -- pas a celui qui a lance ou finance le chantier. La livraison les
+// SORT du chantier -- chantierAcheve.tresorerie et chantierAcheve.stockMateriaux tombent a zero,
+// plus rien n'y est disponible -- et les inscrit dans chantierAcheve.reliquats, qui est a la fois
+// la trace historique de ce qui a ete rendu et l'ordre de paiement a executer.
+// Le versement lui-meme n'a pas lieu ici : il touche trois tables et doit etre atomique, donc il
+// passe par la RPC restituer_reliquats_chantier, appelee juste apres l'ecriture du terrain. Tant
+// que restitue vaut false, la nuit suivante rejouera -- rien ne peut etre perdu, et le marqueur
+// pose dans la meme transaction que les paiements interdit de payer deux fois.
+function livrerChantierServeur(etat, jour) {
+  const ch = etat && etat.chantier;
+  if (!ch) return { livre: false, raison: 'chantier_absent', lots: 0 };
+  if (!chantierTermineServeur(ch)) return { livre: false, raison: 'chantier_en_cours', lots: 0 };
+
+  const plan = (etat.permis && Array.isArray(etat.permis.decoupageInitial)) ? etat.permis.decoupageInitial : [];
+  const dejaDivise = Array.isArray(etat.subdivisions) && etat.subdivisions.length > 0;
+  if (!etat.niveau_construction) etat.niveau_construction = ch.niveau || null;
+  const lots = dejaDivise ? [] : lotsLivrablesDepuisPlanServeur(plan);
+  if (lots.length > 0) etat.subdivisions = lots;
+
+  const reliquats = reliquatsDuChantierServeur(ch);
+  etat.chantierAcheve = { ...ch, planVerrouille: true, livre: true,
+                          jourLivraison: (jour === undefined || jour === null) ? null : jour,
+                          // Plus rien n'est disponible dans le chantier livre : les valeurs sont
+                          // parties, et ne subsistent que dans reliquats, a titre historique.
+                          tresorerie: 0,
+                          stockMateriaux: { bois: 0, minerai: 0, metal: 0 },
+                          reliquats: {
+                            tresorerie: reliquats.tresorerie,
+                            materiaux: reliquats.materiaux,
+                            beneficiaire: etat.proprietaire || null,
+                            restitue: !reliquats.aRestituer,     // rien a rendre = rien a attendre
+                            jourLivraison: (jour === undefined || jour === null) ? null : jour
+                          } };
+  delete etat.chantier;
+  return { livre: true, raison: null, lots: lots.length, indivis: lots.length === 0,
+           reliquats: reliquats };
+}
+
+// Execute l'ordre de paiement depose par la livraison. Rejouable sans risque : la RPC verifie le
+// marqueur sous verrou et ne paie qu'une fois. Renvoie true si la restitution est desormais faite
+// (ou n'avait rien a faire), false si elle reste en attente -- auquel cas la nuit suivante rejouera.
+async function restituerReliquatsServeur(terrainId, etat) {
+  const rel = etat && etat.chantierAcheve && etat.chantierAcheve.reliquats;
+  if (!rel || rel.restitue === true) return true;
+  if (!etat.proprietaire) return false;               // sans proprietaire, aucun beneficiaire legitime
+  const rows = await sbRpc('restituer_reliquats_chantier',
+    { p_beneficiaire: etat.proprietaire, p_terrain_id: terrainId }).catch(() => null);
+  const verdict = Array.isArray(rows) ? rows[0] : rows;
+  return !!(verdict && verdict.ok);
+}
+
 async function avancerChantiersQuotidien() {
-  const resultats = { livraisons: 0, avances: 0, partielles: 0, bloques_financement: 0, penuries: 0, approvisionnements: 0, reprises: 0, heures_npc: 0, ignores: 0, erreurs: 0 };
+  const resultats = { livraisons: 0, avances: 0, partielles: 0, bloques_financement: 0, penuries: 0, approvisionnements: 0, reprises: 0, heures_npc: 0, ignores: 0, erreurs: 0, verrous_plan: 0, lots_livres: 0, reliquats_restitues: 0, reliquats_en_attente: 0 };
   try {
     const terrains = await sbGet('terrains_etat', '');
     if (!terrains) return resultats;
@@ -1030,6 +1152,18 @@ async function avancerChantiersQuotidien() {
     for (const row of terrains) {
       let etat;
       try { etat = JSON.parse(row.data); } catch(e) { continue; }
+
+      // RATTRAPAGE DES RESTITUTIONS EN ATTENTE. Une livraison d'une nuit precedente a pu inscrire
+      // des reliquats sans reussir a les verser (RPC absente, reseau). Ils sont repris ici, avant
+      // toute autre chose : c'est ce rattrapage qui garantit qu'aucun FR et aucun materiau ne peut
+      // rester indefiniment en instance. La RPC etant idempotente, ce passage est sans effet quand
+      // il n'y a rien a rattraper.
+      if (etat.chantierAcheve && etat.chantierAcheve.reliquats
+          && etat.chantierAcheve.reliquats.restitue !== true) {
+        if (await restituerReliquatsServeur(row.id, etat)) resultats.reliquats_restitues++;
+        else resultats.reliquats_en_attente++;
+      }
+
       const ch = etat.chantier;
       if (!ch) continue;
 
@@ -1069,9 +1203,15 @@ async function avancerChantiersQuotidien() {
       // sa ville, dans la limite de sa tresorerie ET du stock reellement disponible la-bas. Aucun
       // materiau ne sort de nulle part : ce qui est achete est retire de l'entrepot et paye dans
       // sa caisse.
+      // Un chantier deja arrive a son terme n'a plus de journee a vivre : il ne s'approvisionne
+      // plus et n'emploie plus personne, il se solde. Sans cette garde, la derniere nuit
+      // depenserait la tresorerie qui doit revenir au proprietaire et rachetes des materiaux
+      // qu'aucun travail ne consommera.
+      const auTerme = chantierTermineServeur(ch);
+
       const villeChantier = etat.city || 'capitale';
       const idEntrepot = ENTREPOTS_PAR_VILLE_SERVEUR[villeChantier];
-      if (idEntrepot) {
+      if (idEntrepot && !auTerme) {
         const etatEnt = await sbGetBatimentEtat(row.country, villeChantier, idEntrepot);
         const stockEnt = (etatEnt.entrepot && etatEnt.entrepot.stock) || {};
         const plan = planifierApprovisionnementServeur(besoin, ch.stockMateriaux, stockEnt, ch.tresorerie);
@@ -1095,7 +1235,7 @@ async function avancerChantiersQuotidien() {
       // TRAVAIL : le reliquat UTILE de la journee est effectue par des NPC, payes par la tresorerie
       // du chantier. Cet argent va dans la caisse REELLE du ministere des Finances, jamais dans
       // budgets_nationaux.reserveJour qui n'est qu'un accumulateur temporaire.
-      const npc = reliquatNPCServeur(ch, fMat);
+      const npc = auTerme ? { heures: 0, montant: 0 } : reliquatNPCServeur(ch, fMat);
       if (npc.heures > 0) {
         ch.tresorerie = Math.max(0, (Number(ch.tresorerie) || 0) - npc.montant);
         const caisseKey = row.country + '_gouvernement-min_fin';
@@ -1130,6 +1270,12 @@ async function avancerChantiersQuotidien() {
       ch.progressionJours = apres;
       ch.jourTraite = jour;
       ch.heuresFaites = 0;            // nouvelle journee : le compteur d'heures repart a zero
+
+      // VERROU DU PLAN (Lot 1.5.11). Pose immediatement apres l'ecriture de la progression, donc
+      // quelle qu'en soit la cause -- heures PJ, heures NPC, ou simple disponibilite des materiaux.
+      // Une regression ulterieure du financement ne le retirera pas : appliquerVerrouPlan ne sait
+      // que poser.
+      if (appliquerVerrouPlanServeur(ch, jour)) resultats.verrous_plan++;
       // Motif d'arret : la penurie n'est jamais un alea, c'est le constat qu'aucun progres n'est
       // possible. Le financement prime dans le message s'il bloque aussi.
       const bloqueFinance = !(progressionMaxFinanceeServeur(ch.totalVerse, duree, ch.coutTotal) > avant);
@@ -1171,22 +1317,43 @@ async function avancerChantiersQuotidien() {
         }).catch(() => {});
       }
 
-      // LIVRAISON : la structure finale (Lot 1.5.11) n'est pas dans ce lot. On se contente de
-      // constater le terme et de le journaliser -- aucun batiment n'est livre ici.
-      if (duree > 0 && apres >= duree && !ch.termineSignale) {
-        ch.termineSignale = true;
+      // LIVRAISON REELLE (Lot 1.5.12). Le batiment existe, le plan verrouille devient les vrais
+      // lots, et le chantier quitte etat.chantier -- ce qui suffit a eteindre toute activite de
+      // chantier (vente, travail, BNE, approvisionnement, vol testent tous ce champ).
+      etat.chantier = ch;
+      const livraison = livrerChantierServeur(etat, jour);
+      if (livraison.livre) {
         resultats.livraisons++;
+        resultats.lots_livres += livraison.lots;
+        const rel = livraison.reliquats;
+        const detailReliquats = !rel.aRestituer ? ''
+          : '\n\nReliquats de chantier restitues : '
+            + (rel.tresorerie > 0 ? rel.tresorerie + ' FR' : '')
+            + (rel.tresorerie > 0 && rel.unites > 0 ? ' et ' : '')
+            + (rel.unites > 0 ? Object.keys(rel.materiaux).map(function (m) { return rel.materiaux[m] + ' ' + m; }).join(', ') : '')
+            + '. Les materiaux vous seront remis a votre prochaine connexion.';
         await sbInsert('mails', {
           destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-          sujet: 'Travaux acheves',
-          corps: 'Les travaux sont acheves. La remise des cles sera traitee prochainement.',
+          sujet: 'Remise des cles',
+          corps: (livraison.indivis
+            ? 'Les travaux sont acheves et le batiment vous est remis. Aucun decoupage n\'ayant ete depose, il vous est livre indivis : vous pourrez le diviser plus tard si vous le souhaitez.'
+            : 'Les travaux sont acheves et le batiment vous est remis, divise en ' + livraison.lots
+              + ' lot' + (livraison.lots > 1 ? 's' : '') + ' conformement au plan depose.') + detailReliquats,
           archived: false
         }).catch(() => {});
       }
 
-      etat.chantier = ch;
       await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`,
         { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
+
+      // VERSEMENT DES RELIQUATS, apres l'ecriture du terrain : l'ordre de paiement doit exister en
+      // base avant d'etre execute, sans quoi un echec entre les deux le ferait disparaitre. La RPC
+      // relit ce qu'elle doit payer dans cette ligne meme, et pose son marqueur dans la meme
+      // transaction que les paiements.
+      if (livraison.livre && livraison.reliquats.aRestituer) {
+        if (await restituerReliquatsServeur(row.id, etat)) resultats.reliquats_restitues++;
+        else resultats.reliquats_en_attente++;
+      }
     }
   } catch(e) { console.error('avancerChantiersQuotidien error', e); }
   return resultats;
