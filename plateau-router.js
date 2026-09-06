@@ -20,6 +20,21 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     return;
   }
 
+  // Droits generiques sur un local (Lot 1.2) : murs / locataire / fonds. C'est ICI qu'est la
+  // securite reelle -- le grisage de renderRoomActions n'est qu'une anticipation, contournable
+  // par un appel direct a doOrder(). Verifie AVANT tout debit PA/FR, sur la meme definition
+  // d'ordre que celle reellement affichee (definitionOrdreDansPiece reproduit la fusion
+  // room.orders + ctx.orders + ctx.roomOverrides, pour qu'un ordre declare dans un
+  // buildingContext ne puisse pas echapper a la garde). Aucun ordre du jeu ne declare
+  // requiresRole a ce jour : strictement no-op sur l'existant.
+  if (typeof verdictRoleOrdre === 'function') {
+    const verdictRoleOrdreCourant = verdictRoleOrdre(state.currentBuilding, state.currentRoom, fn);
+    if (verdictRoleOrdreCourant.bloque) {
+      showToast('Accès refusé', verdictRoleOrdreCourant.message, false);
+      return;
+    }
+  }
+
   // Verrou central "match de football en cours" (chantier "football live", 28 aout 2026) : un
   // titulaire est immobilise pendant l'echauffement + les 20 minutes de jeu + la mi-temps, que son
   // navigateur soit ouvert ou non -- meme principe que le blocus syndical juste en dessous (lecture

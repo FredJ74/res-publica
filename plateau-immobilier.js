@@ -181,3 +181,123 @@ async function restaurerPieceDynamiqueDifferee(buildingId, roomId) {
   if (typeof enterRoom === 'function') enterRoom(buildingId, roomId, null);
   return true;
 }
+
+// =====================
+// DROITS GENERIQUES SUR UN LOCAL — murs / locataire / fonds (Lot 1.2, 6 septembre 2026)
+// =====================
+// Remplace la perspective "chaque ordre reverifie lui-meme si je suis le proprietaire" par trois
+// roles nommes, resolus a UN SEUL endroit :
+//   'murs'      : proprietaire du bien immobilier (terrains_etat.proprietaire du terrain porteur)
+//   'locataire' : titulaire du bail/de la location rattache a CE local precis
+//   'fonds'     : proprietaire/exploitant du fonds de commerce installe dans ce local
+//
+// Le role 'fonds' est PREPARE mais jamais attribue dans ce lot : aucun fonds de commerce
+// generique n'existe encore (Lot 2.0). resoudreRoleFonds() renvoie donc toujours false, et
+// n'essaie surtout pas de faire passer les commerces historiques (table 'entreprises') pour des
+// fonds deja migres -- ils relevent d'une autre architecture, hors perimetre.
+//
+// Toute comparaison de titularite passe par estTitulaire() (Lot 1.0 bis), donc la compatibilite
+// avec les proprietaires/locataires historiques stockes en nom brut est acquise, et aucune donnee
+// n'est basculee vers 'pj:'/'orga:'.
+//
+// ORGANISATIONS : une reference 'orga:<id>' ne confere aucun role tant que
+// peutAgirPourOrganisation() est ferme -- estTitulaire('orga:X') est faux pour un PJ, y compris
+// le chef de cette organisation. Aucune gouvernance n'est inventee ici.
+
+const ROLES_LOCAL = ['murs', 'locataire', 'fonds'];
+
+// Proprietaire des murs. Aujourd'hui, seuls les terrains a batir portent une notion de propriete
+// immobiliere (terrains_etat) : tout autre batiment n'a pas de "murs" attribuables, la reponse est
+// donc negative, jamais inventee.
+function resoudreRoleMurs(buildingId) {
+  if (typeof buildingId !== 'string' || !buildingId.startsWith('terrain-a-batir')) return false;
+  if (typeof getTerrainState !== 'function' || typeof estTitulaire !== 'function') return false;
+  let ts = null;
+  try { ts = getTerrainState(buildingId); } catch (e) { return false; }
+  return !!(ts && estTitulaire(ts.proprietaire));
+}
+
+// Titulaire du bail sur CE local precis. Deux supports coexistent aujourd'hui, sans etre unifies
+// (l'unification est le Lot 1.3) :
+//   - piece de lot (Lot 1.1)  -> subdivisions[].locataire du terrain porteur, retrouve par _lotId
+//   - piece de location statique -> locations_actives, via getLocationPourRoom (buildingId +
+//     roomId + city, la cle exacte corrigee au Lot 1.0)
+function resoudreRoleLocataire(buildingId, roomId, city) {
+  if (typeof estTitulaire !== 'function') return false;
+  if (estPieceDynamiqueLot(roomId)) {
+    const lotId = lotIdDepuisRoomId(roomId);
+    const lot = lotsDuTerrain(buildingId).find(function (l) {
+      return roomIdDepuisLot(l.id) === roomId || l.id === lotId;
+    });
+    return !!(lot && estTitulaire(lot.locataire));
+  }
+  if (typeof getLocationPourRoom !== 'function') return false;
+  let location = null;
+  try { location = getLocationPourRoom(buildingId, roomId, city); } catch (e) { return false; }
+  return !!(location && estTitulaire(location.locataire));
+}
+
+// Fonds de commerce : volontairement toujours negatif dans ce lot. Point d'extension unique --
+// c'est ici, et uniquement ici, que le Lot 2.0 branchera la resolution reelle.
+function resoudreRoleFonds(buildingId, roomId, city) { // eslint-disable-line no-unused-vars
+  return false;
+}
+
+// Roles reellement detenus par le joueur courant sur ce local. Retourne toujours un tableau,
+// jamais null : un local sans propriete ni bail renvoie simplement [].
+function roleSurLocal(buildingId, roomId, city) {
+  const ville = city || (typeof state !== 'undefined' ? state.currentCity : null);
+  const roles = [];
+  if (resoudreRoleMurs(buildingId)) roles.push('murs');
+  if (resoudreRoleLocataire(buildingId, roomId, ville)) roles.push('locataire');
+  if (resoudreRoleFonds(buildingId, roomId, ville)) roles.push('fonds');
+  return roles;
+}
+
+function aRoleSurLocal(role, buildingId, roomId, city) {
+  if (ROLES_LOCAL.indexOf(role) === -1) return false;
+  return roleSurLocal(buildingId, roomId, city).indexOf(role) !== -1;
+}
+
+// Retrouve la definition d'un ordre tel que le joueur le voit reellement. Reproduit EXACTEMENT la
+// fusion de renderRoomActions (room.orders + ctx.orders + ctx.roomOverrides[roomId].orders, moins
+// excludeOrders) : sans cela, un ordre declare dans un buildingContext echapperait a la garde
+// d'execution alors qu'il serait bien filtre a l'affichage -- exactement le contournement que la
+// defense en profondeur doit interdire.
+function definitionOrdreDansPiece(buildingId, roomId, fn) {
+  if (typeof BUILDINGS === 'undefined' || !buildingId || !roomId || !fn) return null;
+  const b = BUILDINGS[buildingId];
+  if (!b) return null;
+  const ctx = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId) : null;
+  const room = (b.rooms && b.rooms[roomId]) || (ctx && ctx.roomsExtra && ctx.roomsExtra[roomId]);
+  const exclus = (ctx && ctx.roomOverrides && ctx.roomOverrides[roomId] && ctx.roomOverrides[roomId].excludeOrders) || [];
+  if (exclus.indexOf(fn) !== -1) return null;
+  const sources = []
+    .concat((room && room.orders) || [])
+    .concat((ctx && ctx.orders) || [])
+    .concat((ctx && ctx.roomOverrides && ctx.roomOverrides[roomId] && ctx.roomOverrides[roomId].orders) || []);
+  return sources.find(function (o) { return o && o.fn === fn; }) || null;
+}
+
+// Libelles des refus, volontairement neutres : ils disent le role requis, jamais QUI le detient
+// (ne jamais transformer une garde de droits en fuite d'information sur autrui).
+const MESSAGES_ROLE_LOCAL = {
+  murs:      'Action réservée au propriétaire de ce bien.',
+  locataire: 'Action réservée au locataire de ce local.',
+  fonds:     'Action réservée à l\'exploitant du commerce de ce local.'
+};
+
+function messageRoleLocal(role) {
+  return MESSAGES_ROLE_LOCAL[role] || 'Vous n\'avez pas le rôle requis pour cette action ici.';
+}
+
+// Verdict unique, partage par le rendu (grisage + infobulle) et par doOrder (blocage reel).
+// { bloque:false } des qu'un ordre ne declare aucun requiresRole -- heritage strict : tout ordre
+// existant continue de se comporter exactement comme avant ce lot.
+function verdictRoleOrdre(buildingId, roomId, fn, ordreDef) {
+  const def = ordreDef || definitionOrdreDansPiece(buildingId, roomId, fn);
+  const role = def && def.requiresRole;
+  if (!role || ROLES_LOCAL.indexOf(role) === -1) return { bloque: false, role: null, message: '' };
+  if (aRoleSurLocal(role, buildingId, roomId)) return { bloque: false, role: role, message: '' };
+  return { bloque: true, role: role, message: messageRoleLocal(role) };
+}

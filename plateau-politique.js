@@ -3236,6 +3236,19 @@ function renderRoomActions(room, buildingId, roomId) {
     if (typeof estOrdreMedicalReserveAuPatient === 'function' && estOrdreMedicalReserveAuPatient(buildingId, roomId, o.fn)) {
       needsPatientChambre = true;
     }
+    // Droits generiques sur un local (Lot 1.2) : un ordre peut declarer requiresRole
+    // 'murs'|'locataire'|'fonds'. Contrairement aux gardes ci-dessus, ce n'est PAS un
+    // special-case par o.fn : une seule condition declarative couvre tous les ordres presents et
+    // futurs. La definition de l'ordre est passee directement (o), donc aucune relecture de la
+    // piece ici. Absent de tout ordre existant a ce jour : strictement no-op sur l'existant.
+    // Ce grisage n'est qu'une anticipation -- le blocage reel est dans doOrder (plateau-router.js),
+    // qui reutilise le MEME verdict.
+    let needsRoleLocal = false;
+    let roleLocalTooltip = '';
+    if (typeof verdictRoleOrdre === 'function' && o.requiresRole) {
+      const verdictRole = verdictRoleOrdre(buildingId, roomId, o.fn, o);
+      if (verdictRole.bloque) { needsRoleLocal = true; roleLocalTooltip = verdictRole.message; }
+    }
     // Garde UI pour "Prendre le pouls" (pouls_populaire, Marche, chantier 27 aout 2026) : meme
     // principe que les gardes ci-dessus, grise le bouton avec une infobulle explicite des
     // qu'aucune election locale (maire/depute) n'est actuellement en cours dans la ville
@@ -3349,6 +3362,8 @@ function renderRoomActions(room, buildingId, roomId) {
       onclickFn = "showToast('Aucune élection', " + JSON.stringify(electionTooltip) + ", false)";
     } else if (needsPatientChambre) {
       onclickFn = "showToast('Réservé au patient', " + JSON.stringify(patientChambreTooltip) + ", false)";
+    } else if (needsRoleLocal) {
+      onclickFn = "showToast('Accès refusé', " + JSON.stringify(roleLocalTooltip) + ", false)";
     } else if (o.fn === 'plainte_police') {
       onclickFn = 'openPlainteModal(' + o.pa + ',' + o.cost + ')';
     } else if (o.fn === 'gerer_finances') {
@@ -3362,9 +3377,9 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
-    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsPoliceIndisponible || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre) ? ' blocked' : '';
+    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsPoliceIndisponible || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre || needsRoleLocal) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
-    const tooltipFinal = needsPoliceIndisponible ? policeTooltip.replace(/"/g, '&quot;') : (needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : tooltip))));
+    const tooltipFinal = needsPoliceIndisponible ? policeTooltip.replace(/"/g, '&quot;') : (needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : (needsRoleLocal ? roleLocalTooltip.replace(/"/g, '&quot;') : tooltip)))));
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
