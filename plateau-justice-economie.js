@@ -222,7 +222,7 @@ function doRacheterTerrain(pa, cost) {
     showToast('Terrain libre', 'Ce terrain n\'est pas encore propriété privée. Vous pouvez l\'acheter directement.', false);
     return;
   }
-  if (proprietaire === state.char?.name) {
+  if (estTitulaire(proprietaire)) {
     showToast('Votre terrain', 'Ce terrain vous appartient déjà.', false);
     return;
   }
@@ -2104,7 +2104,7 @@ function ouvrirModalLouerLocal(pa, cost) {
   // Vérifier si déjà loué par quelqu'un
   const dejaLoue = getLocationPourRoom(buildingId, roomId);
   if (dejaLoue) {
-    if (dejaLoue.locataire === state.char?.name) {
+    if (estTitulaire(dejaLoue.locataire)) {
       ouvrirModalGererLocal();
     } else {
       showToast('Déjà loué', 'Ce local est occupé par ' + dejaLoue.locataire + '.', false);
@@ -2241,7 +2241,7 @@ function ouvrirModalChoixSuite() {
     html += '<div style="font-size:.75rem;color:#a09060;margin:.2rem 0">' + (descSuite || '') + '</div>';
     html += '<div style="font-size:.78rem;color:#9a8a68">' + loc.prix.toLocaleString('fr-FR') + ' ' + cur + '/jour \u00b7 ' + (bonusParts.join(' \u00b7 ') || 'Aucun bonus') + '</div>';
     if (dejaLoue) {
-      html += '<div style="font-size:.72rem;color:#8a6a20;margin-top:.4rem">D\u00e9j\u00e0 lou\u00e9e' + (dejaLoue.locataire === state.char?.name ? ' (par vous)' : '') + '.</div>';
+      html += '<div style="font-size:.72rem;color:#8a6a20;margin-top:.4rem">D\u00e9j\u00e0 lou\u00e9e' + (estTitulaire(dejaLoue.locataire) ? ' (par vous)' : '') + '.</div>';
     } else {
       html += '<button onclick="entrerEtLouerSuite(\'' + buildingId + '\',\'' + roomId + '\')" style="margin-top:.4rem;width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">\ud83d\udd11 Louer cette suite</button>';
     }
@@ -2263,7 +2263,7 @@ function ouvrirModalGererLocal() {
   const roomId = state.currentRoom;
   const location = getLocationPourRoom(buildingId, roomId);
 
-  if (!location || location.locataire !== state.char?.name) {
+  if (!location || !estTitulaire(location.locataire)) {
     showToast('Non locataire', 'Vous ne louez pas ce local.', false);
     return;
   }
@@ -2340,7 +2340,7 @@ async function changerOrgaLocation() {
   // l'ecriture atteint Supabase, cette garde empeche d'ecraser la domiciliation d'un autre
   // joueur depuis son local. ouvrirModalGererLocal() fait deja ce controle en amont : c'est une
   // deuxieme barriere sur le chemin d'ecriture lui-meme, pas un doublon inutile.
-  if (location.locataire !== state.char?.name) {
+  if (!estTitulaire(location.locataire)) {
     showToast('Non locataire', 'Vous ne louez pas ce local.', false);
     return;
   }
@@ -2422,7 +2422,7 @@ function payerLocations() {
   const aTraiter = []; // { i, action: 'expulse' | 'legacyEntrepot' }
 
   locations.forEach((loc, i) => {
-    if (loc.locataire !== state.char?.name) return; // Pas notre location
+    if (!estTitulaire(loc.locataire)) return; // Pas notre location
     // Chambres de la clinique privee (lot chambres, 20 aout 2026) : attribution medicale, pas une
     // location payante -- prix:0 est deja conserve pour la compatibilite du schema, mais on
     // l'exclut ici explicitement pour ne produire ni prelevement, ni message de loyer, ni
@@ -2527,7 +2527,7 @@ function expulserLocataire(idx) {
 }
 
 function ouvrirMesLocations() {
-  const locations = (state.locationsActives || []).filter(l => l.locataire === state.char?.name);
+  const locations = (state.locationsActives || []).filter(l => estTitulaire(l.locataire));
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   document.getElementById('postes-modal-title').textContent = '🏢 Mes Locations';
@@ -5475,7 +5475,7 @@ async function doOuvrirDivisionTerrain() {
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
 
-  if (ts.proprietaire !== state.char?.name) {
+  if (!estTitulaire(ts.proprietaire)) {
     showToast('Accès refusé', "Vous n'êtes pas propriétaire de ce terrain.", false);
     return;
   }
@@ -5681,7 +5681,7 @@ async function doOuvrirLouerLot(pa, cost) {
   const subdivisions = ts.subdivisions || [];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  if (ts.proprietaire === state.char?.name) {
+  if (estTitulaire(ts.proprietaire)) {
     showToast('Impossible', "Vous êtes déjà propriétaire de ce terrain — utilisez « Diviser / gérer les lots ».", false);
     return;
   }
@@ -5742,7 +5742,7 @@ async function doGererLotLoue() {
 
   const mesLots = subdivisions
     .map(function(l, i) { return { l: l, i: i }; })
-    .filter(function(x) { return x.l.locataire === state.char?.name; });
+    .filter(function(x) { return estTitulaire(x.l.locataire); });
 
   if (mesLots.length === 0) {
     showToast('Aucun local', "Vous ne louez aucun lot sur ce terrain.", false);
@@ -5785,7 +5785,7 @@ async function ouvrirModalConstruire() {
   const ts = getTerrainState(id);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  if (ts.proprietaire !== state.char?.name) {
+  if (!estTitulaire(ts.proprietaire)) {
     showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false);
     return;
   }
@@ -6079,7 +6079,7 @@ async function doDeposerDemandePermis(pa, cost) {
   const id = state.currentBuilding;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
-  if (ts.proprietaire !== state.char?.name) { showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false); return; }
+  if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false); return; }
   if (ts.niveau_construction) { showToast('Déjà construit', '', false); return; }
   if (ts.permis?.statut === 'instruction' || ts.permis?.statut === 'attente_validation') { showToast('Demande en cours', 'Une demande de permis est déjà en instruction.', false); return; }
 
@@ -9271,7 +9271,7 @@ async function doVolerMaterielChantier(pa, cost) {
 
   if (roll <= taux) {
     const montant = Math.floor(ts.chantier.montantTotal * 0.10);
-    const estAutoVol = ts.proprietaire === state.char?.name;
+    const estAutoVol = estTitulaire(ts.proprietaire);
 
     state.arg = (state.arg || 0) + montant;
     if (estAutoVol) {

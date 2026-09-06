@@ -1054,6 +1054,110 @@ function verifierCoherenceFortune() {
 }
 
 // =====================
+// TITULAIRES — REFERENCES TYPEES (Lot 1.0 bis, chantier immobilier, 6 septembre 2026)
+// =====================
+// Socle d'identite du futur modele immobilier : un titulaire (proprietaire des murs, locataire,
+// plus tard proprietaire d'un fonds) doit pouvoir designer un PJ *ou* une organisation, sans que
+// le code compare partout des noms de personnages sous forme de chaines ambigues.
+//
+// FORME CANONIQUE : 'pj:<nom>' | 'orga:<orgaId>'. Le separateur est le PREMIER ':' seulement --
+// un nom de personnage contenant lui-meme ':' reste donc valide ('pj:Jean:Paul' -> 'Jean:Paul').
+// Types volontairement limites a ces deux valeurs dans ce lot : 'ville:'/'etat:' sont prevus par
+// l'audit mais NON implementes ici, et parserTitulaire() les rejettera comme n'importe quelle
+// autre chaine typee inconnue plutot que de leur inventer une semantique.
+//
+// COMPATIBILITE ASCENDANTE : la production ne contient aujourd'hui QUE des chaines non typees
+// ('Jean Dupont'). Une chaine sans prefixe connu est donc interpretee comme un nom de PJ, avec
+// legacy:true. C'est la seule regle de compatibilite, elle vit ici et nulle part ailleurs.
+//
+// AUCUNE ECRITURE TYPEE DANS CE LOT (constat d'audit, voir rapport) : terrains_etat.proprietaire
+// et terrains_etat.data.subdivisions[].locataire sont relus tels quels par le cron serveur
+// (api/cron-minuit.js) comme des personnages.name dans des filtres PostgREST et comme
+// destinataires de mails, et proprietaire est en plus une colonne plate filtree par
+// sbGetTerrainsPossedesPar. Y ecrire 'pj:<nom>' casserait taxe fonciere, loyers de lots, mails de
+// chantier et succession -- tous hors perimetre de ce lot. Cette couche sert donc pour l'instant
+// exclusivement a LIRE et COMPARER ; le basculement des ecritures appartient au lot qui migrera
+// aussi le cron.
+//
+// SENTINELLES INSTITUTIONNELLES : 'PNJ', 'Helvetia', 'Etat (...)' occupent deja ces memes champs.
+// Elles sont volontairement traitees comme des chaines legacy ordinaires -- elles ne peuvent
+// jamais egaler le nom du joueur courant, donc estTitulaire() les rejette naturellement. Leur
+// donner un type dedie serait une decision de game design, non prise ici.
+
+const TITULAIRE_PREFIXE_PJ = 'pj:';
+const TITULAIRE_PREFIXE_ORGA = 'orga:';
+
+// Normalise n'importe quelle valeur stockee en { type, id, legacy } -- ou null si inexploitable.
+// Ne jette jamais : null/undefined/nombre/objet/chaine vide/prefixe sans identifiant renvoient
+// tous null, pour qu'un etat historique abime ne puisse pas casser un ecran.
+function parserTitulaire(ref) {
+  if (typeof ref !== 'string') return null;
+  const brut = ref.trim();
+  if (!brut) return null;
+  if (brut.slice(0, TITULAIRE_PREFIXE_PJ.length) === TITULAIRE_PREFIXE_PJ) {
+    const id = brut.slice(TITULAIRE_PREFIXE_PJ.length).trim();
+    return id ? { type: 'pj', id, legacy: false } : null;
+  }
+  if (brut.slice(0, TITULAIRE_PREFIXE_ORGA.length) === TITULAIRE_PREFIXE_ORGA) {
+    const id = brut.slice(TITULAIRE_PREFIXE_ORGA.length).trim();
+    return id ? { type: 'orga', id, legacy: false } : null;
+  }
+  // Chaine non typee : donnee historique, toujours un nom de personnage aujourd'hui.
+  return { type: 'pj', id: brut, legacy: true };
+}
+
+function refTitulairePJ(nom) {
+  const n = (typeof nom === 'string') ? nom.trim() : '';
+  return n ? TITULAIRE_PREFIXE_PJ + n : null;
+}
+
+function refTitulaireOrga(orgaId) {
+  const id = (typeof orgaId === 'string') ? orgaId.trim() : '';
+  return id ? TITULAIRE_PREFIXE_ORGA + id : null;
+}
+
+// Titulaire que represente le joueur courant. Renvoie TOUJOURS son PJ, jamais une organisation :
+// agir au nom d'une organisation supposerait une gouvernance interne qui n'est pas decidee
+// (voir peutAgirPourOrganisation ci-dessous).
+function titulaireCourant() {
+  return refTitulairePJ(typeof state !== 'undefined' ? state.char?.name : null);
+}
+
+// Deux references designent-elles le meme titulaire ? refAttendue vaut par defaut le joueur
+// courant, ce qui couvre les ~15 controles "suis-je le proprietaire/locataire ?" existants.
+// La comparaison se fait sur (type, id) apres normalisation : 'Jean Dupont' et 'pj:Jean Dupont'
+// sont donc reconnus comme un seul et meme titulaire, ce qui est exactement la compatibilite
+// demandee. Deux references inexploitables ne sont jamais "egales".
+function estTitulaire(ref, refAttendue) {
+  const a = parserTitulaire(ref);
+  if (!a) return false;
+  const b = parserTitulaire(refAttendue === undefined ? titulaireCourant() : refAttendue);
+  if (!b) return false;
+  return a.type === b.type && a.id === b.id;
+}
+
+// Libelle affichable. Pour une organisation, resout son nom si le cache des organisations est
+// disponible, sinon retombe sur l'identifiant brut -- jamais d'exception, jamais de "undefined".
+function libelleTitulaire(ref) {
+  const t = parserTitulaire(ref);
+  if (!t) return '';
+  if (t.type === 'orga') {
+    const orga = (typeof getOrgaById === 'function') ? getOrgaById(t.id) : null;
+    return (orga && orga.nom) ? orga.nom : t.id;
+  }
+  return t.id;
+}
+
+// Point d'extension SCELLE (Lot 1.0 bis) : le modele doit pouvoir representer une organisation
+// titulaire, mais la gouvernance interne -- qui, dans une organisation, a le droit d'acheter,
+// louer, vendre ou gerer -- n'est PAS decidee. Tant qu'elle ne l'est pas, cette fonction refuse
+// systematiquement : aucun droit economique nouveau n'est accorde a une organisation par ce lot.
+// C'est ici, et uniquement ici, que la future regle devra etre branchee.
+function peutAgirPourOrganisation(orgaId, action) { // eslint-disable-line no-unused-vars
+  return false;
+}
+
+// =====================
 // FONDS ORDINAIRES (Lot 3, chantier fiscalite/Helvetia) — primitives canoniques pour les
 // depenses/revenus courants du joueur. "Ordinaire" = liquide + compte Banque nationale
 // UNIQUEMENT, jamais Helvetia, jamais un placement, jamais automatiquement (regle validee).

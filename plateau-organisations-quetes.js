@@ -709,7 +709,7 @@ function confirmerCreationOrga(type) {
   // consequence tant que rien n'etait persiste, mais ecrit desormais reellement en base.
   const location = (state.locationsActives || []).find(l =>
     l.buildingId === state.currentBuilding && l.roomId === state.currentRoom &&
-    l.locataire === state.char?.name && l.city === state.currentCity
+    estTitulaire(l.locataire) && l.city === state.currentCity
   );
   if (location) {
     location.orgaId = id;
