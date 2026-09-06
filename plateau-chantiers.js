@@ -764,3 +764,64 @@ function planifierApprovisionnement(besoin, stockChantier, stockEntrepot, tresor
   });
   return { achats: achats, depense: depense, stockChantier: nouveauChantier, stockEntrepot: nouvelEntrepot };
 }
+
+// ---------------------------------------------------------------------------
+// VENTE DE MATERIAUX PAR LES PJ (Lot 1.5.10)
+// ---------------------------------------------------------------------------
+// Un PJ present sur un chantier actif peut lui vendre ses materiaux, AU PRIX QU'IL VEUT. Le moteur
+// n'impose aucun plafond : le prix de l'entrepot n'est pas une reference, et un proprietaire peut
+// deliberement surpayer. La seule borne est reelle -- la tresorerie du chantier.
+//
+// Le stock du chantier est un VRAI stock : on peut constituer des reserves bien au-dela du besoin
+// du jour. Seul un chantier inexistant ou termine refuse la marchandise.
+
+function chantierAccepteMateriaux(chantier) {
+  if (!chantier) return false;
+  const duree = Math.max(0, nombreFini(chantier.dureeJours, 0));
+  if (duree > 0 && Math.max(0, nombreFini(chantier.progressionJours, 0)) >= duree) return false;
+  return true;
+}
+
+// Verdict d'une vente. Renvoie la quantite REELLEMENT transferable et le montant correspondant,
+// bornes par ce que le PJ possede, ce qu'il demande, et ce que la tresorerie peut payer. Ne cree
+// jamais de matiere ni d'argent.
+function verdictVenteMateriaux(chantier, matiere, quantiteVoulue, prixUnitaire, stockPJ) {
+  if (!chantier) return { ok: false, raison: 'chantier_absent', quantite: 0, montant: 0 };
+  if (!chantierAccepteMateriaux(chantier)) return { ok: false, raison: 'chantier_termine', quantite: 0, montant: 0 };
+  if (MATERIAUX_CHANTIER.indexOf(matiere) === -1) return { ok: false, raison: 'matiere_invalide', quantite: 0, montant: 0 };
+
+  const prix = Math.floor(nombreFini(prixUnitaire, 0));
+  if (prix <= 0) return { ok: false, raison: 'prix_invalide', quantite: 0, montant: 0 };
+
+  const voulue = Math.floor(nombreFini(quantiteVoulue, 0));
+  if (voulue <= 0) return { ok: false, raison: 'quantite_invalide', quantite: 0, montant: 0 };
+
+  const possede = Math.max(0, Math.floor(nombreFini(stockPJ, 0)));
+  if (possede <= 0) return { ok: false, raison: 'stock_insuffisant', quantite: 0, montant: 0 };
+
+  const tresorerie = Math.max(0, nombreFini(chantier.tresorerie, 0));
+  const payables = Math.floor(tresorerie / prix);
+  const quantite = Math.min(voulue, possede, payables);
+  if (quantite <= 0) return { ok: false, raison: 'tresorerie_insuffisante', quantite: 0, montant: 0 };
+
+  return { ok: true, raison: null, quantite: quantite, montant: quantite * prix, prixUnitaire: prix };
+}
+
+// Applique la vente sur le chantier : stock credite, tresorerie debitee, journal NOMINATIF -- ici
+// le vendeur est connu, contrairement au journal d'un vol. Pure : renvoie un nouveau chantier,
+// c'est a l'appelant de retirer la marchandise de l'inventaire et de payer le joueur.
+function enregistrerVenteMateriauxPJ(chantier, vendeur, matiere, quantite, prixUnitaire, jour) {
+  const v = verdictVenteMateriaux(chantier, matiere, quantite, prixUnitaire, quantite);
+  if (!v.ok) return { chantier: chantier, quantite: 0, montant: 0, raison: v.raison };
+  const stock = Object.assign({ bois: 0, minerai: 0, metal: 0 }, chantier.stockMateriaux || {});
+  stock[matiere] = Math.max(0, nombreFini(stock[matiere], 0)) + v.quantite;
+  const maj = Object.assign({}, chantier, {
+    stockMateriaux: stock,
+    tresorerie: Math.max(0, nombreFini(chantier.tresorerie, 0) - v.montant),
+    ventesMateriauxPJ: (chantier.ventesMateriauxPJ || []).concat([{
+      vendeur: vendeur || null, matiere: matiere, quantite: v.quantite,
+      prixUnitaire: v.prixUnitaire, montant: v.montant, jour: jour || null
+    }])
+  });
+  return { chantier: maj, quantite: v.quantite, montant: v.montant, raison: null };
+}

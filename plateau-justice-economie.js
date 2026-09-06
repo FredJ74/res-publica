@@ -9743,6 +9743,128 @@ async function confirmerTravailChantier() {
     + res.montant.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
 }
 
+// VENTE DE MATERIAUX AU CHANTIER (Lot 1.5.10)
+// Le PJ doit etre PHYSIQUEMENT sur le terrain : l'ordre n'existe que dans la piece du terrain et
+// state.currentBuilding est relu ici. Vendre n'est pas travailler : 0 PA.
+async function doVendreMateriauxChantier(pa, cost) {
+  const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Fournir le chantier')) return;
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+  const ch = ts.chantier;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (!ch) { showToast('Aucun chantier', "Aucun chantier en cours sur ce terrain.", false); return; }
+  if (!chantierAccepteMateriaux(ch)) { showToast('Chantier terminé', "Ce chantier n'a plus besoin de matériaux.", false); return; }
+
+  // Matieres reellement possedees par le joueur, lues sur son inventaire empilable.
+  const possede = {};
+  ['bois', 'minerai', 'metal'].forEach(function (m) {
+    const ligne = (state.inventory || []).find(function (i) { return i.stackable && i.stackKey === m; });
+    possede[m] = ligne ? Math.max(0, Math.floor(ligne.qty || 0)) : 0;
+  });
+  const dispo = ['bois', 'minerai', 'metal'].filter(function (m) { return possede[m] > 0; });
+  if (dispo.length === 0) { showToast('Rien à vendre', "Vous ne transportez aucun matériau de construction.", false); return; }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Trésorerie du chantier : '
+       + Math.floor(ch.tresorerie || 0).toLocaleString('fr-FR') + ' ' + cur
+       + '. Vous fixez librement votre prix — le chantier paiera tant qu\'il en a les moyens.</div>';
+  html += '<div style="display:flex;gap:.4rem;margin-bottom:.6rem">';
+  html += '<select id="vente-matiere" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
+  dispo.forEach(function (m) {
+    const res = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) || {};
+    html += '<option value="' + m + '">' + (res.label || m) + ' (' + possede[m] + ')</option>';
+  });
+  html += '</select>';
+  html += '<input id="vente-quantite" type="number" min="1" placeholder="Quantité..." style="width:110px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '<input id="vente-prix" type="number" min="1" placeholder="Prix/unité..." style="width:110px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '</div>';
+  html += '<button class="pnj-action-btn" onclick="confirmerVenteMateriauxChantier()">Vendre au chantier</button>';
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Fournir le chantier';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVenteMateriauxChantier() {
+  const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Fournir le chantier')) return;
+  const ts = getTerrainState(id);
+  const ch = ts.chantier;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (!ch) { showToast('Aucun chantier', '', false); return; }
+
+  const matiere = document.getElementById('vente-matiere')?.value || 'bois';
+  const quantite = parseInt(document.getElementById('vente-quantite')?.value || 0);
+  const prix = parseInt(document.getElementById('vente-prix')?.value || 0);
+
+  // PREVISUALISATION SEULEMENT. verdictVenteMateriaux sert a refuser tout de suite une saisie
+  // manifestement invalide et a afficher un message utile ; il n'a AUCUNE autorite. La quantite
+  // reellement transferee est recalculee par la RPC, sous verrou, sur les donnees serveur.
+  const ligne = (state.inventory || []).find(function (i) { return i.stackable && i.stackKey === matiere; });
+  const possede = ligne ? Math.max(0, Math.floor(ligne.qty || 0)) : 0;
+  const apercu = verdictVenteMateriaux(ch, matiere, quantite, prix, possede);
+  if (!apercu.ok) {
+    const messages = {
+      chantier_termine: "Ce chantier n'a plus besoin de matériaux.",
+      matiere_invalide: "Ce matériau n'entre pas dans la construction.",
+      prix_invalide: 'Indiquez un prix unitaire positif.',
+      quantite_invalide: 'Indiquez une quantité positive.',
+      stock_insuffisant: "Vous ne transportez pas ce matériau.",
+      tresorerie_insuffisante: "La trésorerie du chantier ne permet pas d'acheter une seule unité à ce prix."
+    };
+    showToast('Vente refusée', messages[apercu.raison] || 'Vente impossible.', false);
+    return;
+  }
+
+  // TRANSACTION SERVEUR. Une seule ecriture, tout ou rien : inventaire, argent, stock, tresorerie
+  // et journal sont valides ensemble ou pas du tout. Il n'existe plus aucun chemin client capable
+  // de muter l'un sans l'autre -- l'ancien mecanisme en memoire avec filet de restitution a ete
+  // supprime, pour qu'il n'y ait jamais deux chemins concurrents.
+  if (typeof sbVendreMateriauxChantier !== 'function') {
+    showToast('Vente indisponible', "Le service de vente n'est pas disponible pour le moment.", false);
+    return;
+  }
+  const verdict = await sbVendreMateriauxChantier(state.char?.name, state.country, id, matiere, quantite, prix)
+    .catch(function () { return null; });
+
+  // FAIL-CLOSED : null = appel echoue = transaction annulee cote serveur, donc rien n'a bouge.
+  if (!verdict) {
+    showToast('Vente impossible', "La transaction n'a pas pu aboutir. Rien n'a été échangé — réessayez.", false);
+    return;
+  }
+  if (!verdict.ok) {
+    const messagesServeur = {
+      pas_sur_place: "Vous devez être physiquement sur le chantier.",
+      chantier_absent: "Aucun chantier en cours sur ce terrain.",
+      chantier_termine: "Ce chantier n'a plus besoin de matériaux.",
+      stock_insuffisant: "Vous ne transportez plus ce matériau.",
+      tresorerie_insuffisante: "La trésorerie du chantier ne suffit plus à ce prix.",
+      vendeur_absent: "Votre personnage est introuvable."
+    };
+    showToast('Vente refusée', messagesServeur[verdict.raison] || 'Vente impossible.', false);
+    return;
+  }
+
+  // Le serveur fait foi : on realigne l'etat local sur ce qu'il a reellement applique.
+  if (ligne) {
+    ligne.qty = Math.max(0, possede - verdict.quantite);
+    if (ligne.qty <= 0) state.inventory = state.inventory.filter(function (i) { return i !== ligne; });
+  }
+  state.arg = (state.arg || 0) + Number(verdict.montant || 0);
+  await chargerTerrainState(id).catch(function () {});
+
+  const labelRes = ((typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) || {}).label || matiere;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof renderInventory === 'function') renderInventory();
+  updateUI();
+  showToast('Vente conclue', verdict.quantite + ' ' + labelRes + ' → +'
+    + Number(verdict.montant).toLocaleString('fr-FR') + ' ' + cur + '.', true, true);
+  addJournalEntry('Vous avez fourni ' + verdict.quantite + ' ' + labelRes + ' à un chantier pour '
+    + Number(verdict.montant).toLocaleString('fr-FR') + ' ' + cur + ' ('
+    + verdict.prixUnitaire + ' ' + cur + '/unité).', 'event-good');
+}
+
 // VOL DE MATERIAUX SUR UN CHANTIER (refondu au Lot 1.5.8)
 // Le vol ne porte plus sur une valeur monetaire abstraite mais sur des UNITES REELLES du stock du
 // chantier. Le joueur choisit la matiere ; seules celles reellement presentes sont proposees.

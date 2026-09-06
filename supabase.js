@@ -2566,6 +2566,19 @@ async function sbArchiverEvenementUrbanisme(ligne) {
   return sbInsert('dossiers_urbanisme', ligne);
 }
 
+// VENTE DE MATERIAUX A UN CHANTIER (Lot 1.5.10). Autorite transactionnelle unique : la RPC relit
+// tout sous verrou et recalcule la quantite transferable -- rien de ce que le client annonce n'est
+// cru. Renvoie l'objet verdict, ou null si l'appel a echoue (RPC absente, reseau) : dans ce cas
+// AUCUNE ecriture n'a eu lieu, la transaction serveur ayant ete annulee en bloc.
+async function sbVendreMateriauxChantier(vendeur, country, buildingId, matiere, quantite, prix) {
+  const rows = await sbRpc('vendre_materiaux_chantier', {
+    p_vendeur: vendeur, p_country: country, p_building_id: buildingId,
+    p_matiere: matiere, p_quantite: quantite, p_prix: prix
+  });
+  if (!rows) return null;
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+
 async function sbGetEvenementsUrbanisme(country, city, types) {
   let filtre = `country=eq.${encodeURIComponent(country)}`;
   if (city) filtre += `&city=eq.${encodeURIComponent(city)}`;
