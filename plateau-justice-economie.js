@@ -2432,7 +2432,7 @@ function payerLocations() {
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const pays = state.country || 'republic';
-  const aTraiter = []; // { i, action: 'expulse' | 'legacyEntrepot' }
+  const aTraiter = []; // { i, action: 'legacyEntrepot' } -- l'expulsion est passee au cron (Lot 1.4)
 
   locations.forEach((loc, i) => {
     if (!estTitulaire(loc.locataire)) return; // Pas notre location
@@ -2457,31 +2457,27 @@ function payerLocations() {
       return;
     }
 
-    if (state.arg >= loc.prix) {
-      state.arg -= loc.prix;
-      addJournalEntry('Loyer payé : ' + loc.localLabel + ' -' + loc.prix + ' ' + cur, 'event-info');
-
-      // Appliquer les bonus à l'organisation associée
-      if (loc.orgaId) {
-        appliquerBonusLocation(loc);
-      }
-      // Box portuaire : le loyer alimente reellement la caisse du port (§14), contrairement aux
-      // ~15 autres locations (loyer purement en pure perte, aucune caisse creditee -- confirme
-      // par audit avant ce lot, comportement volontairement inchange pour elles).
-      if (loc.isBox && typeof crediterCaisseBatiment === 'function') {
-        crediterCaisseBatiment(loc.country || pays, loc.buildingId, loc.prix).catch(() => {});
-      }
-    } else {
-      // Fonds insuffisants — mail d'avertissement J1, expulsion J2
-      if (!loc.avertissement) {
-        loc.avertissement = true;
-        addMailNotification('Gestionnaire immobilier', 'Loyer impayé — ' + loc.localLabel,
-          'Votre loyer de ' + loc.prix + ' ' + cur + ' pour ' + loc.localLabel + ' n\'a pas pu etre preleve. Regularisez sous 24h ou vous serez expulse(e).');
-        addJournalEntry('⚠️ Loyer impayé : ' + loc.localLabel + '. Avertissement envoyé.', 'event-bad');
-      } else {
-        // Deuxième défaut → expulsion
-        aTraiter.push({ i, action: 'expulse' });
-      }
+    // Lot 1.4 : cette fonction n'est PLUS un moteur financier. Le prelevement, le credit de la
+    // destination, l'avertissement et l'expulsion sont desormais assures une fois par jour reel
+    // par preleverLoyersBaux() (api/cron-minuit.js), de facon atomique et pour TOUS les baux --
+    // y compris ceux des joueurs qui ne se connectent pas. Laisser le moindre debit ici
+    // produirait un DOUBLE PRELEVEMENT.
+    //
+    // Ne subsistent que les effets non financiers, qui n'ont de sens que cote client :
+    // le bonus de l'organisation domiciliee, et le compte rendu au joueur.
+    //
+    // Le bonus reste conditionne au paiement du loyer : le cron pose 'avertissement' sur le bail
+    // en cas d'impaye et le retire des qu'il est regle. Un bail en avertissement ne rapporte donc
+    // aucun bonus -- meme couplage qu'avant, simplement lu au lieu d'etre decide ici.
+    if (loc.avertissement) {
+      addJournalEntry('⚠️ Loyer impayé : ' + loc.localLabel + '. Régularisez sous peine d\'expulsion.', 'event-bad');
+      return;
+    }
+    if (loc.prix > 0) {
+      addJournalEntry('Loyer prélevé : ' + loc.localLabel + ' -' + loc.prix + ' ' + cur + '/jour', 'event-info');
+    }
+    if (loc.orgaId) {
+      appliquerBonusLocation(loc);
     }
   });
 
@@ -2494,8 +2490,6 @@ function payerLocations() {
       addMailNotification('Administration Portuaire', 'Entrepôt reconverti',
         'L\'entrepôt portuaire a été réorganisé en box individuels. Votre ancien bail (' + (loc.localLabel || 'Entrepôt Portuaire') + ') est résilié sans frais, avec ses bonus associés ; un service de box est désormais disponible sur place.');
       addJournalEntry('Ancien bail de l\'entrepôt résilié sans frais (reconversion en box individuels).', 'event-info');
-    } else {
-      expulserLocataire(i);
     }
   });
 }

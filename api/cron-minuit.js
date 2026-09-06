@@ -17,6 +17,22 @@ const HEADERS = {
   'Authorization': `Bearer ${SUPABASE_ANON}`
 };
 
+// IDENTITE SERVEUR (Lot 1.4, 6 septembre 2026). La cle anon ci-dessus est publique : elle est
+// committee dans supabase.js et lisible par n'importe quel navigateur. Tout ce qu'elle autorise
+// est donc declenchable par n'importe qui. Pour la RPC de prelevement des loyers, ce serait une
+// nouvelle capacite offerte au joueur (precipiter un avertissement ou une expulsion en appelant
+// la RPC lui-meme), inacceptable -- on l'execute donc sous une identite serveur.
+// MEME CONVENTION que api/_journal-generation.js (securisation de journal_editions, 3 septembre
+// 2026), api/journal-interview.js et api/upload-org-avatar.js : variable d'environnement Vercel
+// jamais exposee au client. Elle n'est utilisee ICI que pour prelever_loyer_bail ; tous les
+// autres appels du cron restent sur la cle anon, inchanges.
+const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
+const HEADERS_SERVICE = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_SERVICE_ROLE,
+  'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`
+};
+
 async function sbGet(table, filters = '') {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filters}`, { headers: HEADERS });
   if (!res.ok) { console.error('sbGet error', table, await res.text()); return null; }
@@ -60,10 +76,12 @@ async function sbDelete(table, filters) {
 // raccordement du placement Banque nationale) : la RPC est l'autorite transactionnelle unique
 // (credit compte + ajustement arg + statut resolu + mail), jamais rejouee via des UPDATE separes
 // depuis ce fichier.
-async function sbRpc(fn, params) {
+// headers optionnel : les RPC existantes (Helvetia, placements) continuent d'utiliser la cle anon
+// par defaut -- seul l'appelant qui exige une identite serveur passe HEADERS_SERVICE.
+async function sbRpc(fn, params, headers) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
-    headers: { ...HEADERS, 'Prefer': 'return=representation' },
+    headers: { ...(headers || HEADERS), 'Prefer': 'return=representation' },
     body: JSON.stringify(params || {})
   });
   if (!res.ok) { console.error('sbRpc error', fn, await res.text()); return null; }
@@ -355,9 +373,9 @@ async function preleverTaxeFonciere() {
   return resultats;
 }
 
-// Prelevement quotidien des loyers de lots subdivises — le locataire paie, le proprietaire
-// est credite directement, meme si aucun des deux ne s'est connecte. Avertissement puis
-// expulsion en cas d'impaye (meme principe que payerLocations cote client, transpose au cron).
+// (Commentaire historique orphelin : il decrivait preleverLoyersLots, qui vivait ~1850 lignes
+// plus bas et a ete remplacee par preleverLoyersBaux au Lot 1.4 -- voir sa documentation sur
+// place. Laisse ici pour ne pas toucher a du code sans rapport.)
 // Resolution ATOMIQUE d'un compromis de vente arrive a echeance (J+7). Tranche en un seul
 // passage, dans le meme calcul, le permis ET le pret eventuellement demandes — pas de
 // minuteurs separes qui pourraient se decaler. Regle : refus explicite (maire ou tirage
@@ -2210,65 +2228,116 @@ async function nettoyerAchatsDirectsManques() {
   return resultats;
 }
 
-async function preleverLoyersLots() {
-  const resultats = { collecte: 0, expulsions: 0 };
+// =====================================================================
+// MOTEUR UNIFIE DES LOYERS (Lot 1.4, 6 septembre 2026)
+// =====================================================================
+// Remplace preleverLoyersLots(), qui lisait terrains_etat.data.subdivisions[].locataire/.loyer.
+// Depuis le Lot 1.3, locations_actives est la source canonique des baux : un lot loue y possede
+// une ligne comme n'importe quel local. Les champs de subdivision restent la description
+// PHYSIQUE du lot (prix demande, base de l'indemnite d'eviction) mais ne sont plus une source de
+// verite FINANCIERE -- ils ne sont plus lus ici.
+//
+// Ce moteur est aussi celui des baux jusqu'ici preleves cote client par payerLocations() (locaux
+// de centres, suites, box, logements sociaux). CONSEQUENCE ASSUMEE ET SIGNALEE : ces baux
+// passaient au reveil du joueur, donc jamais s'il ne se connectait pas ; ils passent desormais
+// une fois par jour reel, connecte ou non. C'est deja la doctrine retenue pour les lots ("pour ne
+// pas defavoriser le proprietaire si le locataire ne se connecte jamais", doDormir/
+// plateau-personnage.js) et la seule frequence unifiable : un moteur client ne peut pas prelever
+// un joueur absent.
+//
+// ATOMICITE : chaque prelevement est delegue a la RPC prelever_loyer_bail (une transaction
+// Postgres : verrou du bail, verrou du locataire, credit de la destination, debit, marqueur
+// anti-rejeu). Le moteur historique faisait deux UPDATE separes et ne creditait personne si le
+// proprietaire avait disparu -- l'argent etait detruit. FAIL-CLOSED : si la RPC n'est pas
+// installee, sbRpc renvoie null et RIEN n'est preleve.
+async function preleverLoyersBaux() {
+  const resultats = { examines: 0, payes: 0, collecte: 0, avertissements: 0, expulsions: 0,
+                      ignores: 0, erreurs: 0 };
+  // FAIL-CLOSED sur l'identite serveur : la RPC n'est executable que par service_role (voir
+  // migration_loyers_unifies_lot14.sql). Sans la variable d'environnement, on n'envoie meme pas
+  // la requete -- elle echouerait en 401 de toute facon, mais on trace la cause exacte plutot
+  // qu'un compteur d'erreurs opaque. Aucun argent ne bouge : rien n'est prelevé, rien n'est perdu.
+  if (!SUPABASE_SERVICE_ROLE) {
+    console.error('preleverLoyersBaux : SUPABASE_SERVICE_ROLE_KEY absente, aucun loyer preleve');
+    resultats.erreurs++;
+    return resultats;
+  }
   try {
-    const terrains = await sbGet('terrains_etat', '');
-    if (!terrains) return resultats;
+    const baux = await sbGet('locations_actives', '');
+    if (!baux) return resultats;
 
-    for (const row of terrains) {
-      let etat;
-      try { etat = JSON.parse(row.data); } catch(e) { continue; }
-      const subdivisions = etat.subdivisions || [];
-      if (subdivisions.length === 0) continue;
+    for (const row of baux) {
+      const data = row.data || {};
+      resultats.examines++;
 
-      let modifie = false;
-
-      for (const lot of subdivisions) {
-        if (!lot.locataire || !lot.loyer) continue;
-
-        const locRows = await sbGet('personnages', `name=eq.${encodeURIComponent(lot.locataire)}`);
-        const locataire = locRows && locRows[0];
-        if (!locataire) continue;
-
-        const argLocataire = locataire.arg || 0;
-
-        if (argLocataire >= lot.loyer) {
-          await sbUpdate('personnages', `name=eq.${encodeURIComponent(lot.locataire)}`, { arg: argLocataire - lot.loyer });
-          if (etat.proprietaire) {
-            const propRows = await sbGet('personnages', `name=eq.${encodeURIComponent(etat.proprietaire)}`);
-            const proprio = propRows && propRows[0];
-            if (proprio) {
-              await sbUpdate('personnages', `name=eq.${encodeURIComponent(etat.proprietaire)}`, { arg: (proprio.arg || 0) + lot.loyer });
-              resultats.collecte += lot.loyer;
-            }
-          }
-          if (lot.avertissement) { delete lot.avertissement; modifie = true; }
-        } else {
-          modifie = true;
-          if (!lot.avertissement) {
-            lot.avertissement = true;
-            await sbInsert('mails', {
-              destinataire: lot.locataire, expediteur: 'Gestionnaire immobilier',
-              sujet: 'Loyer impayé — ' + lot.label,
-              corps: 'Votre loyer de ' + lot.loyer + ' FR pour ' + lot.label + " n'a pas pu être prélevé. Régularisez sous 24h ou vous serez expulsé(e).",
-              archived: false
-            }).catch(() => {});
-          } else {
-            lot.locataire = null;
-            delete lot.avertissement;
-            resultats.expulsions++;
-          }
-        }
+      // Ancien bail exclusif de l'entrepot portuaire : resilie sans frais par le client
+      // (payerLocations, traitement one-shot). Jamais preleve ici.
+      if (data.buildingId === 'port-sainte-marie' && data.roomId === 'entrepot' && data.isBox !== true) {
+        resultats.ignores++;
+        continue;
       }
 
-      if (modifie) {
-        etat.subdivisions = subdivisions;
-        await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
+      const verdictRows = await sbRpc('prelever_loyer_bail', { p_bail_id: row.id }, HEADERS_SERVICE);
+      // sbRpc renvoie null en cas d'echec HTTP (RPC absente, exception PL/pgSQL). Une exception
+      // signifie que la transaction a ete ANNULEE : ni debit, ni credit.
+      if (verdictRows === null) { resultats.erreurs++; continue; }
+      const verdict = Array.isArray(verdictRows) ? verdictRows[0] : verdictRows;
+
+      if (verdict === 'paye') {
+        resultats.payes++;
+        resultats.collecte += Number(data.prix) || 0;
+      } else if (verdict === 'avertissement') {
+        resultats.avertissements++;
+        await sbInsert('mails', {
+          destinataire: data.locataire, expediteur: 'Gestionnaire immobilier',
+          sujet: 'Loyer impayé — ' + (data.localLabel || 'votre local'),
+          corps: 'Votre loyer de ' + (data.prix || 0) + ' FR pour ' + (data.localLabel || 'votre local')
+                 + " n'a pas pu être prélevé. Régularisez sous 24h ou vous serez expulsé(e).",
+          archived: false
+        }).catch(() => {});
+      } else if (verdict === 'expulsion_requise') {
+        // Fin du BAIL uniquement (Lot 1.4). La recuperation du fonds, du stock et de la caisse
+        // appartient au Lot 3.0 et n'est pas amorcee ici.
+        const supprime = await sbDelete('locations_actives', `id=eq.${encodeURIComponent(row.id)}`).catch(() => null);
+        if (supprime !== null) {
+          resultats.expulsions++;
+          // Miroir transitoire : un lot expulse ne doit pas rester "occupe" cote terrain.
+          if (data.lotId && data.buildingId) await libererMiroirSubdivision(data.country, data.buildingId, data.lotId);
+          await sbInsert('mails', {
+            destinataire: data.locataire, expediteur: 'Gestionnaire immobilier',
+            sujet: 'Expulsion — ' + (data.localLabel || 'votre local'),
+            corps: 'Faute de régularisation, votre bail sur ' + (data.localLabel || 'votre local')
+                   + ' a été résilié et le local a été libéré.',
+            archived: false
+          }).catch(() => {});
+        } else {
+          resultats.erreurs++;
+        }
+      } else {
+        resultats.ignores++;
       }
     }
-  } catch(e) { console.error('preleverLoyersLots error', e); }
+  } catch(e) { console.error('preleverLoyersBaux error', e); }
   return resultats;
+}
+
+
+async function libererMiroirSubdivision(country, buildingId, lotId) {
+  try {
+    const rows = await sbGet('terrains_etat',
+      `country=eq.${encodeURIComponent(country)}&building_id=eq.${encodeURIComponent(buildingId)}`);
+    const row = rows && rows[0];
+    if (!row) return false;
+    let etat; try { etat = JSON.parse(row.data); } catch(e) { return false; }
+    const subdivisions = Array.isArray(etat.subdivisions) ? etat.subdivisions : [];
+    const lot = subdivisions.find(l => l && l.id === lotId);
+    if (!lot || !lot.locataire) return false;
+    lot.locataire = null;
+    etat.subdivisions = subdivisions;
+    await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`,
+      { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
+    return true;
+  } catch(e) { return false; }
 }
 
 // =====================
@@ -3572,8 +3641,9 @@ export default async function handler(req, res) {
     // 4. Taxe fonciere quotidienne sur tous les terrains possedes
     const taxeFonciere = await preleverTaxeFonciere();
 
-    // 5. Loyers des lots subdivises (locataire -> proprietaire directement)
-    const loyersLots = await preleverLoyersLots();
+    // 5. Loyers de TOUS les baux (Lot 1.4) -- source unique locations_actives, destination
+    //    portee par le bail, chaque prelevement atomique via la RPC prelever_loyer_bail.
+    const loyersLots = await preleverLoyersBaux();
 
     // 6. Resolution atomique des compromis arrives a echeance (permis + pret, ensemble)
     const compromisResolus = await resoudreCompromisExpires();
