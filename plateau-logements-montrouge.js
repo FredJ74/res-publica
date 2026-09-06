@@ -298,7 +298,7 @@ function resilierLogementSocialSiDepartMontrouge(ancienDomicile, nouveauCountry,
   const bail = state.locationsActives[idx];
   state.locationsActives.splice(idx, 1);
   if (typeof sbSupprimerLocation === 'function') {
-    sbSupprimerLocation(bail.buildingId, bail.roomId, bail.city).catch(() => {});
+    sbSupprimerLocation(bail.country || LOGEMENTS_SOCIAUX_MONTROUGE_PAYS, bail.buildingId, bail.roomId, bail.city).catch(() => {});
   }
   addJournalEntry('Départ de Montrouge : bail du logement social résilié automatiquement (' + bail.localLabel + ').', 'event-info');
 }

@@ -1932,7 +1932,7 @@ function libererChambreCliniquePatient(nomPatient) {
   if (idx < 0) return;
   const bail = state.locationsActives[idx];
   state.locationsActives.splice(idx, 1);
-  if (typeof sbSupprimerLocation === 'function') sbSupprimerLocation(bail.buildingId, bail.roomId, bail.city).catch(() => {});
+  if (typeof sbSupprimerLocation === 'function') sbSupprimerLocation(bail.country || state.country, bail.buildingId, bail.roomId, bail.city).catch(() => {});
 }
 
 // =====================

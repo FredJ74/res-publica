@@ -1865,15 +1865,49 @@ async function sbAMessagesNonLus(membre) {
 // LOCATIONS ACTIVES (bail de salle/local) — n'avait jusqu'ici AUCUNE sauvegarde Supabase,
 // purement local et perdu au rafraichissement (contrairement aux organisations qui l'ont deja).
 // =====================
-// Cle id : cause racine du bug multi-ville corrigee le 2026-08-16. Un batiment generique
-// (ex. 'centre-affaires') est partage par plusieurs villes du meme pays -- l'ancienne cle
-// 'buildingId:roomId' faisait qu'une location a Montrouge ecrasait la MEME ligne qu'une
-// location a Luthecia. Les 7 locations qui existaient encore sous l'ancienne cle (sans
-// city) ont ete migrees individuellement (INSERT nouvelle cle + verification + DELETE
-// ancienne cle) vers 'buildingId:roomId:city' -- plus aucune ligne sans city en base,
-// donc plus besoin de repli conditionnel ici ni dans getLocationPourRoom.
+// IDENTITE D'UNE LIGNE (Lot 1.3 bis, 6 septembre 2026) -- 'country:buildingId:roomId:city'.
+//
+// Historique du defaut, corrige ici. Le 2026-08-16, la cle 'buildingId:roomId' a recu la ville
+// pour cause de bug multi-ville : un batiment generique ('centre-affaires') est partage par
+// plusieurs villes, et une location a Montrouge ecrasait celle de Luthecia. Mais le pays n'a
+// jamais ete ajoute -- or les QUATRE empires utilisent EXACTEMENT les memes cles de ville
+// ('capitale', 'ville_a', 'ville_b') ET les memes buildingId : 'centre-affaires',
+// 'centre-commercial' et 'centre-artisanal' sont chacun declares dans 12 listes buildings[]
+// (4 empires x 3 villes). 'centre-affaires:bureau_prestige:capitale' etait donc LA MEME CHAINE
+// en Republia, a El Estado, a Sovarka et a Al-Khalija.
+//
+// Consequences reelles avant ce correctif : un joueur d'un autre empire louant "le meme" local
+// voyait sbSaveLocation ECRASER le bail republien (country compris), et sbClaimerLocation lui
+// aurait repondu "deja loue" a cause d'un bail etranger. Aucune collision ne s'etait encore
+// produite en production uniquement parce que les 7 baux existants sont tous 'republic' -- une
+// coincidence d'usage, jamais un invariant.
+//
+// Le pays entre donc desormais dans l'id, qui coincide enfin avec l'identite logique mondiale du
+// local (localKey, plateau-immobilier.js : country|city|buildingId|roomId -- memes quatre
+// dimensions, simple difference d'ordre et de separateur, l'id restant historiquement en ':').
+// La contrainte PRIMARY KEY locations_actives_pkey (verifiee en base) porte donc maintenant sur
+// une cle complete, ce qui rend l'atomicite de sbClaimerLocation reellement mondiale.
+//
+// Les 7 lignes historiques sont reprefixees par migration_locations_actives_country.sql
+// (idempotente, contenu des lignes strictement inchange). Aucun repli sur l'ancien format n'est
+// laisse ici : un bail dont l'id ne serait pas migre deviendrait introuvable en ecriture, ce qui
+// est un echec visible et reparable -- alors qu'un repli silencieux reintroduirait exactement la
+// collision inter-empires que ce correctif supprime.
+function idLocation(location) {
+  if (!location || !location.buildingId || !location.roomId) return null;
+  return (location.country || 'republic') + ':' + location.buildingId + ':' + location.roomId + ':' + location.city;
+}
+
+// Variante box portuaire : le locataire complete l'id, plusieurs baux etant legitimes sur la
+// meme piece (multi-tenant).
+function idLocationBox(location) {
+  const base = idLocation(location);
+  return base ? base + ':' + location.locataire : null;
+}
+
 async function sbSaveLocation(location) {
-  const id = location.buildingId + ':' + location.roomId + ':' + location.city;
+  const id = idLocation(location);
+  if (!id) return null;
   const data = { id, country: location.country, data: location };
   const existing = await sbGet('locations_actives', `id=eq.${encodeURIComponent(id)}`);
   if (existing && existing.length > 0) {
@@ -1887,25 +1921,45 @@ async function sbLoadLocations(country) {
   return (rows || []).map(r => r.data);
 }
 
-// Aucun appelant actuellement dans le code (verifie) -- signature alignee sur sbSaveLocation
-// par coherence si elle est reutilisee un jour.
-async function sbSupprimerLocation(buildingId, roomId, city) {
-  const id = buildingId + ':' + roomId + (city ? ':' + city : '');
+// Prise de bail ATOMIQUE (Lot 1.3) -- distincte de sbSaveLocation, qui fait un read-then-write non
+// atomique (correct pour METTRE A JOUR un bail dont on est deja titulaire, dangereux pour en
+// CREER un : deux joueurs signant simultanement verraient tous deux "libre" puis s'ecraseraient).
+//
+// C'est la contrainte PRIMARY KEY locations_actives_pkey (id) qui arbitre, cote Postgres, en une
+// seule instruction : resolution=ignore-duplicates transforme le conflit en non-evenement plutot
+// qu'en erreur, et return=representation fait la difference --
+//   tableau non vide  = la ligne vient d'etre creee, le bail est a nous ;
+//   tableau vide      = quelqu'un l'avait deja, on n'a rien ecrase.
+// Aucune RPC n'est necessaire : l'invariant "jamais deux baux actifs sur le meme local" est porte
+// par le schema, et depuis le Lot 1.3 bis cet invariant est mondial (le pays est dans la cle).
+//
+// Ne convient PAS aux box portuaires multi-tenants : ceux-la gardent sbSaveLocationBox.
+async function sbClaimerLocation(location) {
+  const id = idLocation(location);
+  if (!id) return false;
+  const rows = await sbInsert('locations_actives',
+    { id, country: location.country, data: location }, 'ignore-duplicates');
+  return !!(rows && rows.length > 0);
+}
+
+// country ajoute a la signature au Lot 1.3 bis : sans lui, une resiliation en Republia aurait
+// supprime le bail homonyme d'un autre empire. Tous les appelants disposent deja de bail.country
+// ou de state.country.
+async function sbSupprimerLocation(country, buildingId, roomId, city) {
+  const id = idLocation({ country, buildingId, roomId, city });
+  if (!id) return null;
   return sbDelete('locations_actives', `id=eq.${encodeURIComponent(id)}`);
 }
 
 // ---- BOX PORTUAIRE MULTI-TENANT (lot du 25 aout 2026, §13-14) ----
-// sbSaveLocation/sbSupprimerLocation ci-dessus construisent un id 'buildingId:roomId:city' SANS
-// le locataire -- correct pour les ~15 locations exclusives existantes (un seul bail possible par
-// piece), mais dangereux pour un box multi-tenant : deux PJ louant un box dans la MEME piece
-// ecraseraient la meme ligne Supabase l'un apres l'autre. Ces deux fonctions dediees ajoutent le
-// locataire a l'id, sans toucher sbSaveLocation/sbSupprimerLocation/sbLoadLocations (qui restent
-// inchangees et continuent de servir les ~15 autres pieces) -- meme table locations_actives,
-// meme forme de ligne {id,country,data}, chargee par le meme sbLoadLocations (qui recupere deja
-// TOUTES les lignes du pays sans hypothese d'unicite, donc aucune modification necessaire cote
-// lecture pour supporter plusieurs box).
+// sbSaveLocation/sbSupprimerLocation ci-dessus construisent un id SANS le locataire -- correct
+// pour les baux exclusifs (un seul possible par piece), mais dangereux pour un box multi-tenant :
+// deux PJ louant un box dans la MEME piece ecraseraient la meme ligne l'un apres l'autre. Ces deux
+// fonctions dediees ajoutent le locataire a l'id -- meme table, meme forme de ligne, chargee par
+// le meme sbLoadLocations (qui ne suppose aucune unicite par piece).
 async function sbSaveLocationBox(location) {
-  const id = location.buildingId + ':' + location.roomId + ':' + location.city + ':' + location.locataire;
+  const id = idLocationBox(location);
+  if (!id) return null;
   const data = { id, country: location.country, data: location };
   const existing = await sbGet('locations_actives', `id=eq.${encodeURIComponent(id)}`);
   if (existing && existing.length > 0) {
@@ -1914,8 +1968,9 @@ async function sbSaveLocationBox(location) {
   return sbInsert('locations_actives', data);
 }
 
-async function sbSupprimerLocationBox(buildingId, roomId, city, locataire) {
-  const id = buildingId + ':' + roomId + ':' + city + ':' + locataire;
+async function sbSupprimerLocationBox(country, buildingId, roomId, city, locataire) {
+  const id = idLocationBox({ country, buildingId, roomId, city, locataire });
+  if (!id) return null;
   return sbDelete('locations_actives', `id=eq.${encodeURIComponent(id)}`);
 }
 

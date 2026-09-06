@@ -2191,6 +2191,15 @@ async function confirmerLocation(pa, cost) {
     // le meme local qu'a Luthecia/PSM. Les anciennes locations persistees (sans city) restent
     // gerees par un repli de compatibilite dans getLocationPourRoom -- voir ce commentaire la.
     city: state.currentCity,
+    // Modele de bail unifie (Lot 1.3) : identite canonique du local, destination du loyer et
+    // autorisation de domiciliation. Les 7 baux historiques ne les portent pas -- ils sont
+    // DERIVES a la lecture (localKeyDuBail / destinationLoyerDuBail / orgaAutoriseeDuBail,
+    // plateau-immobilier.js), donc aucune migration n'est necessaire.
+    localKey: typeof localKeyDe === 'function' ? localKeyDe(state.country, state.currentCity, buildingId, roomId) : null,
+    lotId: null,
+    destinationLoyer: typeof destinationLoyerPourLocal === 'function'
+      ? destinationLoyerPourLocal(buildingId, roomId, state.currentCity, state.country, {}) : null,
+    orgaAutorisee: typeof orgaAutoriseePourLocal === 'function' ? orgaAutoriseePourLocal(buildingId, roomId) : true,
     depuis: state.day || 1,
     visible: true
   });
@@ -2405,8 +2414,12 @@ function confirmerResiliation(idx) {
   // chargerLocations(). sbSupprimerLocation() existait deja (introduite pour la resiliation
   // automatique des logements sociaux) mais n'etait jusque-la jamais appelee ici.
   if (typeof sbSupprimerLocation === 'function') {
-    sbSupprimerLocation(location.buildingId, location.roomId, location.city).catch(() => {});
+    sbSupprimerLocation(location.country || state.country, location.buildingId, location.roomId, location.city).catch(() => {});
   }
+  // Lot 1.3 : bail de lot -> nettoie aussi le miroir subdivision.locataire, sans quoi le cron
+  // continuerait de prelever un loyer pour un bail resilie et le lot resterait "occupe" pour le
+  // proprietaire des murs (locataire fantome). No-op pour un bail de piece statique.
+  if (typeof libererMiroirLot === 'function') libererMiroirLot(location);
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Bail résilié', location.localLabel + ' libéré.', false);
   addJournalEntry('Bail résilié : ' + location.localLabel + '.', 'event-info');
@@ -2477,7 +2490,7 @@ function payerLocations() {
     if (action === 'legacyEntrepot') {
       const loc = state.locationsActives[i];
       state.locationsActives.splice(i, 1);
-      if (typeof sbSupprimerLocation === 'function') sbSupprimerLocation(loc.buildingId, loc.roomId, loc.city).catch(() => {});
+      if (typeof sbSupprimerLocation === 'function') sbSupprimerLocation(loc.country || pays, loc.buildingId, loc.roomId, loc.city).catch(() => {});
       addMailNotification('Administration Portuaire', 'Entrepôt reconverti',
         'L\'entrepôt portuaire a été réorganisé en box individuels. Votre ancien bail (' + (loc.localLabel || 'Entrepôt Portuaire') + ') est résilié sans frais, avec ses bonus associés ; un service de box est désormais disponible sur place.');
       addJournalEntry('Ancien bail de l\'entrepôt résilié sans frais (reconversion en box individuels).', 'event-info');
@@ -2521,6 +2534,9 @@ function expulserLocataire(idx) {
   };
 
   state.locationsActives.splice(idx, 1);
+  // Lot 1.3 : meme nettoyage du miroir que la resiliation volontaire -- une expulsion ne doit
+  // jamais laisser un locataire fantome sur la subdivision.
+  if (typeof libererMiroirLot === 'function') libererMiroirLot(loc);
   addMailNotification('Gestionnaire immobilier', 'Expulsion — ' + loc.localLabel, msgs[pays] || msgs.republic);
   addExternalEvent('🏢 ' + (state.char?.name || 'Anonyme') + ' a été expulsé(e) de "' + loc.localLabel + '" pour loyer impayé.');
   addJournalEntry('Expulsion : ' + loc.localLabel + ' perdu pour loyer impayé.', 'event-bad');
@@ -2690,7 +2706,7 @@ function resilierBox() {
   if (idx < 0) return;
   const box = state.locationsActives[idx];
   state.locationsActives.splice(idx, 1);
-  if (typeof sbSupprimerLocationBox === 'function') sbSupprimerLocationBox(box.buildingId, box.roomId, box.city, moi).catch(() => {});
+  if (typeof sbSupprimerLocationBox === 'function') sbSupprimerLocationBox(box.country || state.country, box.buildingId, box.roomId, box.city, moi).catch(() => {});
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Box résilié', 'Box portuaire libéré.', false);
   addJournalEntry('Box portuaire résilié.', 'event-info');
@@ -5494,12 +5510,13 @@ async function doOuvrirDivisionTerrain() {
 
   if (subdivisions.length > 0) {
     html += '<div style="display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem">';
-    const yATilDesLotsVides = subdivisions.some(function(l) { return !l.locataire; });
+    const yATilDesLotsVides = subdivisions.some(function(l) { return !lotEstLoue(id, l); });
     subdivisions.forEach(function(l, i) {
       html += '<div style="padding:.5rem .6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
-      html += '<span style="font-size:.82rem;color:#c0b090">' + l.label + ' — ' + l.surface + ' m²' + (l.locataire ? ' (loué par ' + l.locataire + ')' : ' (libre)') + '</span>';
+      const locataireLot = locataireDuLot(id, l);
+      html += '<span style="font-size:.82rem;color:#c0b090">' + l.label + ' — ' + l.surface + ' m²' + (locataireLot ? ' (loué par ' + locataireLot + ')' : ' (libre)') + '</span>';
       html += '<div style="display:flex;gap:.5rem">';
-      if (l.locataire && yATilDesLotsVides) {
+      if (locataireLot && yATilDesLotsVides) {
         html += '<button onclick="doOuvrirAgrandirLot(' + i + ')" style="font-size:.68rem;color:#4a9a6a;background:transparent;border:none;cursor:pointer">Agrandir</button>';
       }
       html += '<button onclick="doSupprimerSubdivision(' + i + ')" style="font-size:.68rem;color:#cc5540;background:transparent;border:none;cursor:pointer">Retirer</button>';
@@ -5558,7 +5575,9 @@ async function doSupprimerSubdivision(idx) {
   const lot = subdivisions[idx];
   if (!lot) return;
 
-  if (lot.locataire) {
+  // Lot 1.3 : l'occupant est lu sur le bail unifie, jamais plus sur le miroir subdivision.
+  const occupantLot = locataireDuLot(id, lot);
+  if (occupantLot) {
     const indemnite = (lot.loyer || 0) * 365;
     if (state.arg < indemnite) {
       showToast('Fonds insuffisants', "L'indemnité d'éviction (1 an de loyer, " + indemnite.toLocaleString('fr-FR') + " FR) doit être payée pour retirer ce lot.", false);
@@ -5566,17 +5585,21 @@ async function doSupprimerSubdivision(idx) {
     }
     state.arg -= indemnite;
     if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
-      const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(lot.locataire)}`).catch(function() { return null; });
+      const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(occupantLot)}`).catch(function() { return null; });
       const locPerso = rows && rows[0];
       if (locPerso) {
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(lot.locataire)}`, { arg: (locPerso.arg || 0) + indemnite }).catch(function() {});
+        await sbUpdate('personnages', `name=eq.${encodeURIComponent(occupantLot)}`, { arg: (locPerso.arg || 0) + indemnite }).catch(function() {});
       }
     }
     if (typeof sendMail === 'function') {
-      await sendMail(lot.locataire, "Éviction — indemnité versée", "Le propriétaire a repris le lot « " + lot.label + " ». Une indemnité d'éviction d'un an de loyer (" + indemnite.toLocaleString('fr-FR') + " FR) vous a été versée.");
+      await sendMail(occupantLot, "Éviction — indemnité versée", "Le propriétaire a repris le lot « " + lot.label + " ». Une indemnité d'éviction d'un an de loyer (" + indemnite.toLocaleString('fr-FR') + " FR) vous a été versée.");
     }
-    showToast('Indemnité versée', indemnite.toLocaleString('fr-FR') + ' FR versés à ' + lot.locataire + '.', true);
+    showToast('Indemnité versée', indemnite.toLocaleString('fr-FR') + ' FR versés à ' + occupantLot + '.', true);
   }
+
+  // Lot 1.3 : le lot disparait, donc son bail aussi -- sans quoi locations_actives porterait un
+  // bail actif sur un local qui n'existe plus (et la piece dynamique ne serait plus hydratee).
+  if (typeof supprimerBailDuLot === 'function') await supprimerBailDuLot(id, lot);
 
   subdivisions.splice(idx, 1);
   const nouvelEtat = setTerrainState(id, { subdivisions: subdivisions });
@@ -5593,10 +5616,10 @@ function doOuvrirAgrandirLot(idxOccupe) {
 
   const lotsVides = subdivisions
     .map(function(l, i) { return { l: l, i: i }; })
-    .filter(function(x) { return !x.l.locataire && x.i !== idxOccupe; });
+    .filter(function(x) { return !lotEstLoue(id, x.l) && x.i !== idxOccupe; });
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Agrandir « ' + lotOccupe.label + ' » (' + lotOccupe.surface + ' m², loué par ' + lotOccupe.locataire + ') en y fusionnant un lot vide. Le locataire n\'est pas affecté.</div>';
+  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.8rem">Agrandir « ' + lotOccupe.label + ' » (' + lotOccupe.surface + ' m², loué par ' + (locataireDuLot(id, lotOccupe) || 'un locataire') + ') en y fusionnant un lot vide. Le locataire n\'est pas affecté.</div>';
   html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
   lotsVides.forEach(function(x) {
     html += '<div onclick="doFusionnerLot(' + idxOccupe + ',' + x.i + ')" style="cursor:pointer;padding:.5rem .6rem;border:1px solid #2a2010;background:#0f0d05">';
@@ -5620,18 +5643,18 @@ async function doFusionnerLot(idxOccupe, idxVide) {
   const subdivisions = ts.subdivisions || [];
   const lotOccupe = subdivisions[idxOccupe];
   const lotVide = subdivisions[idxVide];
-  if (!lotOccupe || !lotVide || lotVide.locataire) return;
+  if (!lotOccupe || !lotVide || lotEstLoue(id, lotVide)) return;
 
   lotOccupe.propositionAgrandissement = { idxVide: idxVide, surfaceAjoutee: lotVide.surface, labelVide: lotVide.label };
   const nouvelEtat = setTerrainState(id, { subdivisions: subdivisions });
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(function() {});
 
   if (typeof sendMail === 'function') {
-    await sendMail(lotOccupe.locataire, "Proposition d'agrandissement — " + lotOccupe.label,
+    await sendMail(locataireDuLot(id, lotOccupe), "Proposition d'agrandissement — " + lotOccupe.label,
       "Le propriétaire vous propose d'agrandir votre local « " + lotOccupe.label + " » de " + lotVide.surface + " m² (" + lotVide.label + "), sans changement de loyer. Rendez-vous sur place, rubrique « Gérer mon local loué », pour accepter ou refuser.");
   }
 
-  showToast('Proposition envoyée', lotOccupe.locataire + ' doit accepter avant que la fusion ne soit effective.', true);
+  showToast('Proposition envoyée', (locataireDuLot(id, lotOccupe) || 'Le locataire') + ' doit accepter avant que la fusion ne soit effective.', true);
   doOuvrirDivisionTerrain();
 }
 
@@ -5685,7 +5708,7 @@ async function doOuvrirLouerLot(pa, cost) {
     showToast('Impossible', "Vous êtes déjà propriétaire de ce terrain — utilisez « Diviser / gérer les lots ».", false);
     return;
   }
-  const lotsLibres = subdivisions.filter(function(l) { return !l.locataire; });
+  const lotsLibres = subdivisions.filter(function(l) { return !lotEstLoue(id, l); });
   if (lotsLibres.length === 0) {
     showToast('Aucun lot disponible', "Ce terrain n'a pas (encore) été divisé, ou tous les lots sont déjà loués.", false);
     return;
@@ -5711,7 +5734,7 @@ async function doLouerCeLot(lotId, pa, cost) {
   const ts = getTerrainState(id);
   const subdivisions = ts.subdivisions || [];
   const lot = subdivisions.find(function(l) { return l.id === lotId; });
-  if (!lot || lot.locataire) { showToast('Indisponible', 'Ce lot vient d\'être loué par quelqu\'un d\'autre.', false); return; }
+  if (!lot || lotEstLoue(id, lot)) { showToast('Indisponible', 'Ce lot vient d\'être loué par quelqu\'un d\'autre.', false); return; }
 
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   if (state.arg < lot.loyer) {
@@ -5721,9 +5744,25 @@ async function doLouerCeLot(lotId, pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  state.arg -= lot.loyer;
-  lot.locataire = state.char?.name;
+  // Lot 1.3 : le bail est la source unique. Prise ATOMIQUE avant tout debit -- c'est la cle
+  // primaire de locations_actives qui arbitre cote Postgres, donc deux joueurs signant en meme
+  // temps ne peuvent pas obtenir le meme local (sbClaimerLocation, supabase.js). L'ancien test
+  // "lot.locataire est vide" ne protegeait de rien : les deux clients lisaient "libre".
+  const bail = construireBailLot(id, lot, state.currentCity, state.country);
+  const obtenu = (typeof sbClaimerLocation === 'function') ? await sbClaimerLocation(bail).catch(function() { return false; }) : false;
+  if (!obtenu) {
+    showToast('Indisponible', 'Ce lot vient d\'être loué par quelqu\'un d\'autre.', false);
+    return;
+  }
+  if (!state.locationsActives) state.locationsActives = [];
+  state.locationsActives.push(bail);
 
+  state.arg -= lot.loyer;
+
+  // Miroir transitoire vers subdivision.locataire : n'est PLUS la verite metier (plus aucun
+  // lecteur client ne s'en sert), mais preleverLoyersLots (api/cron-minuit.js, Lot 1.4) preleve
+  // encore les loyers de lots depuis ce champ. Le retirer maintenant arreterait les loyers.
+  lot.locataire = state.char?.name;
   const nouvelEtat = setTerrainState(id, { subdivisions: subdivisions });
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(function() {});
 
@@ -5742,7 +5781,7 @@ async function doGererLotLoue() {
 
   const mesLots = subdivisions
     .map(function(l, i) { return { l: l, i: i }; })
-    .filter(function(x) { return estTitulaire(x.l.locataire); });
+    .filter(function(x) { return estTitulaire(locataireDuLot(id, x.l)); });
 
   if (mesLots.length === 0) {
     showToast('Aucun local', "Vous ne louez aucun lot sur ce terrain.", false);

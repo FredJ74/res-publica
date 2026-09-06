@@ -224,17 +224,11 @@ function resoudreRoleMurs(buildingId) {
 //     roomId + city, la cle exacte corrigee au Lot 1.0)
 function resoudreRoleLocataire(buildingId, roomId, city) {
   if (typeof estTitulaire !== 'function') return false;
-  if (estPieceDynamiqueLot(roomId)) {
-    const lotId = lotIdDepuisRoomId(roomId);
-    const lot = lotsDuTerrain(buildingId).find(function (l) {
-      return roomIdDepuisLot(l.id) === roomId || l.id === lotId;
-    });
-    return !!(lot && estTitulaire(lot.locataire));
-  }
-  if (typeof getLocationPourRoom !== 'function') return false;
-  let location = null;
-  try { location = getLocationPourRoom(buildingId, roomId, city); } catch (e) { return false; }
-  return !!(location && estTitulaire(location.locataire));
+  // Lot 1.3 : source unique. Cette fonction ne choisit plus entre locations_actives et
+  // subdivisions[].locataire -- elle interroge le resolveur de bail, qui fait seul autorite
+  // (bailPourLocal, plus bas dans ce fichier).
+  const bail = bailPourLocal(buildingId, roomId, city);
+  return !!(bail && estTitulaire(bail.locataire));
 }
 
 // Fonds de commerce : volontairement toujours negatif dans ce lot. Point d'extension unique --
@@ -300,4 +294,211 @@ function verdictRoleOrdre(buildingId, roomId, fn, ordreDef) {
   if (!role || ROLES_LOCAL.indexOf(role) === -1) return { bloque: false, role: null, message: '' };
   if (aRoleSurLocal(role, buildingId, roomId)) return { bloque: false, role: role, message: '' };
   return { bloque: true, role: role, message: messageRoleLocal(role) };
+}
+
+// =====================
+// BAIL UNIFIE — locations_actives comme source unique (Lot 1.3, 6 septembre 2026)
+// =====================
+// AVANT ce lot, deux systemes locatifs coexistaient reellement :
+//   A. locations_actives                          -> pieces statiques louables (centres, suites,
+//      box portuaires, logements sociaux, chambres de clinique)
+//   B. terrains_etat.data.subdivisions[].locataire -> lots issus d'une division de batiment
+// resoudreRoleLocataire (Lot 1.2) devait donc choisir entre deux verites. Ce lot fait de
+// locations_actives LA source unique : un lot loue est desormais un bail comme un autre.
+//
+// MIROIR TRANSITOIRE, assume et documente : subdivision.locataire/loyer continuent d'etre ECRITS
+// mais ne sont plus LUS comme verite metier. Motif verifie a l'audit : preleverLoyersLots
+// (api/cron-minuit.js) preleve encore les loyers de lots depuis ces champs, et le cron est
+// explicitement hors perimetre (Lot 1.4). Supprimer le miroir maintenant arreterait les loyers.
+// Le Lot 1.4 lira le bail et le miroir disparaitra.
+//
+// ETAT REEL DE LA PRODUCTION AU MOMENT DE CE LOT (releve en lecture seule) : 4 lignes
+// terrains_etat, ZERO subdivision, donc AUCUN bail de lot a migrer ; et 7 baux statiques, tous
+// dans des locaux de centres, sans les nouveaux champs. Ces 7 baux ne sont pas migres : les
+// champs manquants sont DERIVES a la lecture (meme doctrine que la compatibilite titulaires du
+// Lot 1.0 bis), donc aucune migration n'est requise pour que ce lot fonctionne.
+
+// Identite canonique d'un local, unique dans tout le jeu. Couvre le pays, la ville, le batiment
+// et la piece -- et donc le lot, puisque la piece d'un lot porte deja son _lotId dans son roomId
+// ('lot_dyn_<lotId>', Lot 1.1). Ne depend JAMAIS du label visible du lot ni du locataire.
+function localKeyDe(country, city, buildingId, roomId) {
+  if (!buildingId || !roomId) return null;
+  return (country || 'republic') + '|' + (city || 'capitale') + '|' + buildingId + '|' + roomId;
+}
+
+function decomposerLocalKey(localKey) {
+  if (typeof localKey !== 'string') return null;
+  const p = localKey.split('|');
+  if (p.length !== 4 || !p[2] || !p[3]) return null;
+  return { country: p[0], city: p[1], buildingId: p[2], roomId: p[3] };
+}
+
+// localKey d'un bail : lu s'il est present, DERIVE sinon. C'est ce qui permet aux 7 baux
+// historiques de fonctionner sans migration.
+function localKeyDuBail(bail) {
+  if (!bail) return null;
+  if (typeof bail.localKey === 'string' && bail.localKey) return bail.localKey;
+  return localKeyDe(bail.country, bail.city, bail.buildingId, bail.roomId);
+}
+
+// DESTINATION DU LOYER (Lot 1.3 : le bail la PORTE ; le versement reel reste au Lot 1.4).
+// Trois valeurs, volontairement explicites plutot que deduites plus tard d'un test de type :
+//   'municipal'      -> budgets_municipaux[<pays>_<ville>].data.caisse, la Caisse municipale
+//                       disponible et depensable par le pouvoir municipal (arbitrage valide).
+//                       JAMAIS caisses_batiments. C'est le cas des locaux de centres
+//                       (commercial/artisanal/affaires) et des autres locaux publics existants.
+//   'titulaire_murs' -> le proprietaire du bien, porte par terrains_etat.proprietaire du terrain.
+//                       C'est le cas d'un lot issu de la division d'un batiment prive.
+//   'caisse_batiment'-> caisse institutionnelle du batiment. Uniquement le box portuaire, seul
+//                       bail dont le loyer alimente deja reellement une caisse (celle du port) --
+//                       valeur ajoutee pour DECRIRE l'existant, pas pour le changer.
+// Un bail sans loyer reel (chambre de clinique, prix 0) n'a pas de destination : null.
+function destinationLoyerPourLocal(buildingId, roomId, city, country, options) {
+  const opt = options || {};
+  if (opt.chambreClinique) return null;
+  if (opt.isBox) return { type: 'caisse_batiment', buildingId: buildingId };
+  if (estPieceDynamiqueLot(roomId)) {
+    let proprietaire = null;
+    if (typeof getTerrainState === 'function') {
+      try { proprietaire = getTerrainState(buildingId).proprietaire || null; } catch (e) { proprietaire = null; }
+    }
+    return { type: 'titulaire_murs', titulaire: proprietaire };
+  }
+  return { type: 'municipal', pays: country || 'republic', ville: city || 'capitale' };
+}
+
+function destinationLoyerDuBail(bail) {
+  if (!bail) return null;
+  if (bail.destinationLoyer && bail.destinationLoyer.type) return bail.destinationLoyer;
+  return destinationLoyerPourLocal(bail.buildingId, bail.roomId, bail.city, bail.country,
+    { isBox: bail.isBox === true, chambreClinique: bail.chambreClinique === true });
+}
+
+// DOMICILIATION. Decision metier : un appartement prive peut heberger le siege d'une
+// organisation, un logement social ne le peut pas. La source de verite reste la definition
+// statique de la piece (locationData.orgaAutorisee), deja utilisee par ouvrirModalGererLocal --
+// le bail ne fait que la porter, jamais l'inventer. Un lot est un local prive : autorise.
+function orgaAutoriseePourLocal(buildingId, roomId) {
+  if (estPieceDynamiqueLot(roomId)) return true;
+  const room = (typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingId] && BUILDINGS[buildingId].rooms)
+    ? BUILDINGS[buildingId].rooms[roomId] : null;
+  return !(room && room.locationData && room.locationData.orgaAutorisee === false);
+}
+
+function orgaAutoriseeDuBail(bail) {
+  if (!bail) return false;
+  if (typeof bail.orgaAutorisee === 'boolean') return bail.orgaAutorisee;
+  return orgaAutoriseePourLocal(bail.buildingId, bail.roomId);
+}
+
+// RESOLVEUR UNIQUE. Tous les consommateurs passent par ici : il n'existe plus qu'un seul chemin
+// pour repondre a "ce local est-il loue, et par qui ?".
+//
+// L'adaptateur legacy ci-dessous n'est PAS une deuxieme verite active : c'est une vue en lecture
+// seule d'un lot historique encore porteur d'un locataire mais pas encore de bail (cas
+// aujourd'hui inexistant en production, conserve pour qu'aucun locataire ne puisse disparaitre si
+// un lot etait loue entre ce lot et l'execution de la migration). Il disparait des que le bail
+// existe, et le drapeau _legacy le rend identifiable partout.
+function bailPourLocal(buildingId, roomId, city) {
+  const ville = (city === undefined) ? (typeof state !== 'undefined' ? state.currentCity : null) : city;
+  if (typeof getLocationPourRoom === 'function') {
+    let bail = null;
+    try { bail = getLocationPourRoom(buildingId, roomId, ville); } catch (e) { bail = null; }
+    if (bail) return bail;
+  }
+  if (!estPieceDynamiqueLot(roomId)) return null;
+  const lotId = lotIdDepuisRoomId(roomId);
+  const lot = lotsDuTerrain(buildingId).find(function (l) { return roomIdDepuisLot(l.id) === roomId || l.id === lotId; });
+  if (!lot || !lot.locataire) return null;
+  return {
+    buildingId: buildingId, roomId: roomId, city: ville,
+    country: (typeof state !== 'undefined' ? state.country : 'republic'),
+    localKey: localKeyDe(typeof state !== 'undefined' ? state.country : 'republic', ville, buildingId, roomId),
+    lotId: lot.id, locataire: lot.locataire, prix: lot.loyer || 0,
+    localLabel: lot.label || 'Lot', orgaId: '',
+    _legacy: true
+  };
+}
+
+// Un lot est-il loue ? Question posee partout dans l'UI de division/location. Passe par le
+// resolveur unique, donc le bail fait foi et le champ subdivision.locataire n'est plus consulte
+// comme verite (il ne sert plus que d'entree a l'adaptateur legacy ci-dessus).
+function lotEstLoue(buildingId, lot) {
+  if (!lot || !lot.id) return false;
+  const roomId = roomIdDepuisLot(lot.id);
+  return !!(roomId && bailPourLocal(buildingId, roomId));
+}
+
+function locataireDuLot(buildingId, lot) {
+  if (!lot || !lot.id) return null;
+  const roomId = roomIdDepuisLot(lot.id);
+  const bail = roomId ? bailPourLocal(buildingId, roomId) : null;
+  return bail ? (bail.locataire || null) : null;
+}
+
+// Construit l'entree de bail canonique. Meme forme que celle de confirmerLocation (schema
+// historique integralement conserve : prix, bonus*, orgaId, depuis, visible...), plus les trois
+// champs du modele unifie.
+function construireBailLot(buildingId, lot, city, country) {
+  const roomId = roomIdDepuisLot(lot.id);
+  const ville = city || (typeof state !== 'undefined' ? state.currentCity : 'capitale');
+  const pays = country || (typeof state !== 'undefined' ? state.country : 'republic');
+  return {
+    buildingId: buildingId, roomId: roomId, city: ville, country: pays,
+    localKey: localKeyDe(pays, ville, buildingId, roomId),
+    lotId: lot.id,
+    localLabel: lot.label || 'Lot',
+    batimentLabel: (typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingId])
+      ? (BUILDINGS[buildingId].shortName || BUILDINGS[buildingId].name || buildingId) : buildingId,
+    prix: lot.loyer || 0,
+    bonusPOP: 0, bonusINF: 0, bonusDIS: 0,
+    orgaId: '',
+    orgaAutorisee: orgaAutoriseePourLocal(buildingId, roomId),
+    destinationLoyer: destinationLoyerPourLocal(buildingId, roomId, ville, pays, {}),
+    locataire: (typeof state !== 'undefined' ? state.char && state.char.name : null),
+    depuis: (typeof state !== 'undefined' ? state.day : 1) || 1,
+    visible: true
+  };
+}
+
+// Libere le miroir subdivision.locataire quand un bail de lot prend fin (resiliation volontaire
+// ou expulsion pour impaye). Sans cela, le cron continuerait a prelever un loyer sur un bail
+// resilie et le proprietaire des murs verrait son lot eternellement "occupe" -- exactement le
+// locataire fantome que ce lot doit rendre impossible. No-op pour un bail de piece statique.
+function libererMiroirLot(bail) {
+  if (!bail || !estPieceDynamiqueLot(bail.roomId)) return false;
+  if (typeof getTerrainState !== 'function' || typeof setTerrainState !== 'function') return false;
+  const buildingId = bail.buildingId;
+  let ts = null;
+  try { ts = getTerrainState(buildingId); } catch (e) { return false; }
+  const subdivisions = (ts && Array.isArray(ts.subdivisions)) ? ts.subdivisions : [];
+  const lotId = bail.lotId || lotIdDepuisRoomId(bail.roomId);
+  const lot = subdivisions.find(function (l) { return l && (l.id === lotId || roomIdDepuisLot(l.id) === bail.roomId); });
+  if (!lot || !lot.locataire) return false;
+  lot.locataire = null;
+  const nouvelEtat = setTerrainState(buildingId, { subdivisions: subdivisions });
+  if (typeof sbSetTerrainState === 'function') {
+    sbSetTerrainState(bail.country || (typeof state !== 'undefined' ? state.country : 'republic'), buildingId, nouvelEtat).catch(function () {});
+  }
+  return true;
+}
+
+// Supprime le bail attache a un lot que l'on s'apprete a retirer. Garantit l'invariant "jamais de
+// bail actif sans local" -- symetrique de libererMiroirLot, qui garantit "jamais de local occupe
+// sans bail".
+async function supprimerBailDuLot(buildingId, lot) {
+  if (!lot || !lot.id) return false;
+  const roomId = roomIdDepuisLot(lot.id);
+  if (!roomId) return false;
+  const bail = bailPourLocal(buildingId, roomId);
+  if (!bail || bail._legacy) return false;
+  if (typeof state !== 'undefined' && Array.isArray(state.locationsActives)) {
+    const idx = state.locationsActives.indexOf(bail);
+    if (idx > -1) state.locationsActives.splice(idx, 1);
+  }
+  if (typeof sbSupprimerLocation === 'function') {
+    await sbSupprimerLocation(bail.country || (typeof state !== 'undefined' ? state.country : 'republic'),
+      bail.buildingId, bail.roomId, bail.city).catch(function () {});
+  }
+  return true;
 }
