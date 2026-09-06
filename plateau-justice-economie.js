@@ -6320,6 +6320,14 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
   _planPermisEnCours = { palier: null, lots: [] };   // brouillon consomme
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
 
+  // Lot 1.5.3 : recepisse de depot, remis immediatement et quelle que soit la decision a venir.
+  // Emis APRES la persistance : le document n'est qu'un souvenir, jamais une condition du dossier
+  // -- un echec de delivrance ne doit pas empecher le permis d'exister.
+  if (typeof emettreDocumentUrbanisme === 'function') {
+    await emettreDocumentUrbanisme(nouvelEtat, nouvelEtat.permis, 'depot',
+      { buildingId: id, pays: state.country, ville: nouvelEtat.city || state.currentCity, jour: jour }).catch(() => {});
+  }
+
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Demande déposée', 'Instruction en cours (' + duree + ' jour(s)).', true, true);
   addJournalEntry('Demande de permis de construire déposée (' + NIVEAUX_CONSTRUCTION[palierDemande].label + ')'
@@ -6429,6 +6437,16 @@ async function traiterPermis(buildingId, valide, pa, cost) {
       ? 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été validé. Vous pouvez construire.'
       : 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été refusé' + (zoneOk ? ' sans motif de zonage — un recours pour obstruction est possible.' : ' (zonage non conforme, refus légitime).');
     await sbSendMail('Mairie', etat.permis.demandeur, valide ? 'Permis validé' : 'Permis refusé', msg, time).catch(() => {});
+  }
+
+  // Lot 1.5.3 : decision physique remise au DEMANDEUR, jamais au maire adjoint qui statue -- via
+  // objets_recus s'il n'est pas connecte. Document distinct du recepisse de depot, qu'il ne
+  // remplace jamais. Le motif ecrit n'est repris que s'il existe dans le dossier (aucune saisie
+  // de motif n'est ajoutee ici : ce chemin appartient au lot administratif dedie).
+  if (typeof emettreDocumentUrbanisme === 'function') {
+    await emettreDocumentUrbanisme(etat, etat.permis, valide ? 'acceptation' : 'refus',
+      { buildingId: buildingId, pays: state.country, ville: etat.city || state.currentCity,
+        jour: state.day || 1 }).catch(() => {});
   }
 
   document.getElementById('modal-postes')?.classList.remove('open');

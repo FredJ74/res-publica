@@ -608,6 +608,154 @@ function numeroDossierUrbanisme(country, buildingId, horodatage) {
   return 'URB-' + (country || 'republic') + '-' + (buildingId || 'terrain') + '-' + (horodatage || Date.now());
 }
 
+// =====================================================================
+// DOCUMENTS PHYSIQUES D'URBANISME (Lot 1.5.3)
+// =====================================================================
+// Les documents administratifs sont de VRAIS objets d'inventaire, destines a devenir des
+// souvenirs du personnage. Trois consequences directes sur leur conception :
+//
+//   1. Ce sont des SNAPSHOTS. Un document fige l'etat du dossier a l'instant de son emission et
+//      ne pointe jamais vers `ts.permis`, qui continuera de vivre (decision, modifications de
+//      plan, verrou). Copie profonde systematique, jamais de reference partagee.
+//   2. Ils ne se REMPLACENT jamais. Chaque emission cree un document distinct ; les precedents
+//      restent intacts, meme s'ils sont devenus obsoletes. Aucun anti-doublon, contrairement a
+//      etatCivilDelivrerActe dont ce lot reprend par ailleurs la mecanique.
+//   3. Ils sont DECORATIFS au sens strict : aucun etat de jeu ne depend de leur presence. Le
+//      joueur peut detruire son recepisse sans que le permis, le chantier ou les futures archives
+//      municipales en soient affectes.
+
+const NATURES_DOCUMENT_URBANISME = {
+  depot:             { titre: 'Récépissé de dépôt de permis',        icone: 'ti-file-text' },
+  acceptation:       { titre: 'Décision — permis accordé',           icone: 'ti-file-certificate' },
+  refus:             { titre: 'Décision — permis refusé',            icone: 'ti-file-x' },
+  // Preparees ici pour que les lots suivants n'aient qu'a les emettre, sans retoucher ce modele.
+  accord_tacite:     { titre: 'Attestation d\'accord tacite',        icone: 'ti-file-certificate' }, // Lot 1.5.13
+  modification_plan: { titre: 'Récépissé de modification du plan',   icone: 'ti-file-text' }        // Lot 1.5.12
+};
+
+function natureDocumentConnue(nature) {
+  return Object.prototype.hasOwnProperty.call(NATURES_DOCUMENT_URBANISME, nature);
+}
+
+// Construit le snapshot administratif. Aucune ecriture, aucune dependance a l'inventaire : cette
+// fonction peut etre appelee pour previsualiser un document sans le delivrer.
+//
+// LECTURE DEFENSIVE DES DOSSIERS ANTERIEURS : les permis deposes avant le Lot 1.5.2 ne portent ni
+// numeroDossier ni decoupageInitial. On ne leur en fabrique pas -- inventer un numero donnerait a
+// un document l'apparence d'une reference officielle qui n'a jamais existe. numeroDossier vaut
+// alors null et le document l'indique en toutes lettres.
+function construireDocumentUrbanisme(ts, permis, nature, options) {
+  const opt = options || {};
+  const p = permis || {};
+  const terrain = ts || {};
+  const buildingId = opt.buildingId || null;
+
+  return {
+    id: (p.numeroDossier || 'URB-SANS-NUMERO') + '-' + nature + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+    nature: nature,
+    numeroDossier: p.numeroDossier || null,
+    jour: (typeof opt.jour === 'number') ? opt.jour : null,          // jour de jeu de l'EMISSION
+    jourDepot: (typeof p.dateDepot === 'number') ? p.dateDepot : null,
+    demandeur: p.demandeur || null,
+    pays: opt.pays || null,
+    ville: terrain.city || opt.ville || null,
+    buildingId: buildingId,
+    batimentLabel: (typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingId])
+      ? (BUILDINGS[buildingId].shortName || BUILDINGS[buildingId].name || buildingId) : buildingId,
+    palier: p.palierDemande || null,
+    palierLabel: (typeof NIVEAUX_CONSTRUCTION !== 'undefined' && NIVEAUX_CONSTRUCTION[p.palierDemande])
+      ? NIVEAUX_CONSTRUCTION[p.palierDemande].label : (p.palierDemande || null),
+    // surfaceTotale renvoie null si la surface n'est pas connue -- on ne comble pas ce trou.
+    surfaceExploitable: surfaceTotale(terrain),
+    // Copie profonde du plan : une modification ulterieure de permis.decoupageInitial ne doit
+    // jamais alterer un document deja delivre.
+    decoupage: snapshotPlanPermis(p.decoupageInitial),
+    motifRefus: (nature === 'refus' && typeof p.motifRefus === 'string' && p.motifRefus.trim())
+      ? p.motifRefus.trim() : null
+  };
+}
+
+// Rendu lisible, fige lui aussi dans l'objet d'inventaire.
+function texteDocumentUrbanisme(doc) {
+  const lignes = [];
+  lignes.push('Dossier n° ' + (doc.numeroDossier || 'non attribué (dossier antérieur à la numérotation)'));
+  if (doc.jour !== null) lignes.push('Établi le jour ' + doc.jour + (doc.jourDepot !== null && doc.jourDepot !== doc.jour ? ' (dépôt : jour ' + doc.jourDepot + ')' : ''));
+  else if (doc.jourDepot !== null) lignes.push('Dépôt : jour ' + doc.jourDepot);
+  lignes.push('Demandeur : ' + (doc.demandeur || 'inconnu'));
+  lignes.push('Commune : ' + (doc.ville || 'non précisée') + ' (' + (doc.pays || 'non précisé') + ')');
+  lignes.push('Terrain : ' + (doc.batimentLabel || doc.buildingId || 'non précisé'));
+  lignes.push('Nature des travaux : ' + (doc.palierLabel || 'non précisée'));
+  lignes.push('Surface exploitable : ' + (doc.surfaceExploitable !== null ? doc.surfaceExploitable + ' m²' : 'non connue'));
+  if (doc.decoupage.length === 0) {
+    lignes.push('Découpage déclaré : aucun — le bâtiment sera livré indivis.');
+  } else {
+    lignes.push('Découpage déclaré (' + doc.decoupage.length + ' lot' + (doc.decoupage.length > 1 ? 's' : '') + ') :');
+    doc.decoupage.forEach(function (l) {
+      lignes.push('  — ' + l.label + ' : ' + l.surface + ' m² (' + (l.destination === 'appartement' ? 'appartement' : 'commerce') + ')');
+    });
+  }
+  if (doc.nature === 'refus') {
+    lignes.push('Motif du refus : ' + (doc.motifRefus || 'aucun motif écrit n\'a été enregistré.'));
+  }
+  return lignes.join('\n');
+}
+
+// Objet d'inventaire. Meme forme que les actes d'etat-civil (etatCivilDelivrerActe) : type
+// prefixe, icone de document, legal. Le snapshot structure est conserve a cote du texte, pour que
+// les lots suivants puissent le relire sans le reparser.
+function objetInventaireDocumentUrbanisme(doc) {
+  const nat = NATURES_DOCUMENT_URBANISME[doc.nature] || { titre: 'Document d\'urbanisme', icone: 'ti-file-text' };
+  return {
+    id: doc.id,
+    type: 'document_urbanisme_' + doc.nature,
+    name: nat.titre + (doc.batimentLabel ? ' — ' + doc.batimentLabel : ''),
+    icon: nat.icone,
+    legal: true,
+    desc: texteDocumentUrbanisme(doc),
+    documentUrbanisme: doc
+  };
+}
+
+// Remet le document a son destinataire.
+//
+// DEUX CANAUX, tous deux preexistants, aucun invente ici :
+//   - destinataire = le joueur courant  -> push direct dans state.inventory, exactement comme
+//     etatCivilDelivrerActe (plateau-etat-civil.js) pour les actes officiels ;
+//   - destinataire = un autre joueur    -> objets_recus (sbDonnerObjetJoueur), collecte a sa
+//     prochaine connexion par verifierObjetsRecus.
+//
+// CAPACITE D'INVENTAIRE : volontairement NON traitee ici. Le canal objets_recus passe par
+// addToInventory, qui refuse au-dela de 100 objets ; l'objet n'est alors pas perdu (la ligne
+// objets_recus n'est supprimee qu'en cas d'ajout reussi) mais il reste en attente, invisible. Ce
+// defaut est celui que le Lot 1.5.4 traitera par l'etat de Surcharge -- on ne lui oppose ici
+// aucune rustine concurrente.
+async function delivrerDocumentUrbanisme(doc, destinataire) {
+  const objet = objetInventaireDocumentUrbanisme(doc);
+  const pourMoi = (typeof estTitulaire === 'function') && destinataire && estTitulaire(destinataire);
+
+  if (pourMoi) {
+    if (typeof state === 'undefined') return objet;
+    if (!state.inventory) state.inventory = [];
+    state.inventory.push(objet);                      // jamais addToInventory : voir ci-dessus
+    if (typeof renderInventory === 'function') renderInventory();
+    return objet;
+  }
+
+  if (destinataire && typeof sbDonnerObjetJoueur === 'function') {
+    await sbDonnerObjetJoueur(objet, destinataire, 'Services d\'urbanisme').catch(function () {});
+  }
+  return objet;
+}
+
+// Porte d'entree unique : construit puis delivre. Les appelants ne manipulent jamais la forme du
+// document, seulement sa nature et son contexte.
+async function emettreDocumentUrbanisme(ts, permis, nature, options) {
+  if (!natureDocumentConnue(nature)) return null;
+  const doc = construireDocumentUrbanisme(ts, permis, nature, options);
+  await delivrerDocumentUrbanisme(doc, (permis && permis.demandeur) || null);
+  return doc;
+}
+
 // RESOLVEUR UNIQUE. Tous les consommateurs passent par ici : il n'existe plus qu'un seul chemin
 // pour repondre a "ce local est-il loue, et par qui ?".
 //
