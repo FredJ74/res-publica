@@ -699,12 +699,35 @@ function confirmerCreationOrga(type) {
   if (typeof sbSaveOrganisation === 'function') sbSaveOrganisation(nouvelleOrga).catch(() => {});
 
   // Lier au local en cours si on vient de gerer_local (scope ville ajoute le 2026-08-16 ;
-  // les 7 locations sans city ont ete migrees, plus de repli de compatibilite necessaire)
+  // les 7 locations sans city ont ete migrees, plus de repli de compatibilite necessaire).
+  //
+  // roomId ajoute le 6 septembre 2026 (Lot 1.0) : ouvrirCreerOrga() n'a qu'UN seul appelant, le
+  // bouton "Creer une organisation ici" de la modale "Gerer mon local"
+  // (plateau-justice-economie.js), donc toujours une piece precise. Sans le roomId, un joueur
+  // louant deux locaux dans le MEME batiment et la meme ville voyait l'organisation rattachee au
+  // premier bail trouve dans le tableau, pas a celui d'ou il venait de cliquer -- sans
+  // consequence tant que rien n'etait persiste, mais ecrit desormais reellement en base.
   const location = (state.locationsActives || []).find(l =>
-    l.buildingId === state.currentBuilding && l.locataire === state.char?.name &&
-    l.city === state.currentCity
+    l.buildingId === state.currentBuilding && l.roomId === state.currentRoom &&
+    l.locataire === state.char?.name && l.city === state.currentCity
   );
-  if (location) location.orgaId = id;
+  if (location) {
+    location.orgaId = id;
+    // Persistance reelle (Lot 1.0) : sans cet appel, orgaId ne vivait qu'en memoire et
+    // disparaissait au prochain chargerLocations(). Fire-and-forget assume, comme
+    // sbSaveOrganisation juste au-dessus : confirmerCreationOrga reste synchrone (son unique
+    // appelant est un onclick inline), l'organisation elle-meme est deja creee et valide, et un
+    // echec d'ecriture du bail ne doit jamais annuler la fondation. En cas d'echec on restaure
+    // la valeur precedente en memoire et on dit exactement au joueur quoi faire.
+    if (typeof persisterLocation === 'function') {
+      persisterLocation(location).then(ok => {
+        if (ok) return;
+        location.orgaId = '';
+        showToast('Domiciliation non enregistrée',
+          'L\'organisation a bien été créée, mais sa domiciliation dans ce local n\'a pas pu être enregistrée. Associez-la depuis « Gérer mon local ».', false);
+      }).catch(() => {});
+    }
+  }
 
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();

@@ -2060,6 +2060,33 @@ async function chargerLocations() {
   } catch (e) { console.warn('chargerLocations error', e); }
 }
 
+// Persistance d'UNE entree de state.locationsActives (Lot 1.0, 6 septembre 2026) -- point unique
+// pour toute mutation posterieure a la signature du bail. confirmerLocation() persistait deja son
+// entree a la creation, mais les deux seuls sites qui modifient ensuite une location
+// (changerOrgaLocation ci-dessous et confirmerCreationOrga, plateau-organisations-quetes.js) ne
+// le faisaient pas : la modification ne vivait qu'en memoire et disparaissait au prochain
+// chargerLocations(), qui remplace integralement state.locationsActives par les lignes Supabase.
+//
+// Dispatch box/bail : sbSaveLocation construit un id 'buildingId:roomId:city' SANS le locataire --
+// correct pour les ~15 baux exclusifs, mais il creerait une ligne parallele erronee pour un box
+// portuaire multi-tenant, dont l'id inclut le locataire (sbSaveLocationBox, supabase.js). Aucun
+// appelant actuel ne peut atteindre un box par ce chemin (la room 'box_a_louer' declare
+// louer_box/gerer_box, jamais gerer_local) : ce dispatch est purement defensif, il garantit qu'un
+// futur appelant ne puisse pas se tromper de primitive.
+//
+// Retourne true si l'ecriture Supabase a reellement abouti, false sinon -- jamais un succes
+// fictif : les appelants restaurent la valeur precedente en memoire sur false, pour ne jamais
+// afficher au joueur un etat qui n'existe pas en base.
+async function persisterLocation(loc) {
+  if (!loc) return false;
+  const primitive = loc.isBox
+    ? (typeof sbSaveLocationBox === 'function' ? sbSaveLocationBox : null)
+    : (typeof sbSaveLocation === 'function' ? sbSaveLocation : null);
+  if (!primitive) return false;
+  const r = await primitive(loc).catch(() => null);
+  return !!r;
+}
+
 function ouvrirModalLouerLocal(pa, cost) {
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;
@@ -2301,13 +2328,34 @@ function ouvrirModalGererLocal() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function changerOrgaLocation() {
+async function changerOrgaLocation() {
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;
   const location = getLocationPourRoom(buildingId, roomId);
   if (!location) return;
+
+  // Garde de titularite (Lot 1.0) : state.locationsActives contient les baux de TOUT le pays
+  // (chargerLocations les charge tous, sans filtrer sur le joueur). Tant que rien n'etait
+  // persiste, ecrire dans l'entree d'un tiers restait sans consequence ; maintenant que
+  // l'ecriture atteint Supabase, cette garde empeche d'ecraser la domiciliation d'un autre
+  // joueur depuis son local. ouvrirModalGererLocal() fait deja ce controle en amont : c'est une
+  // deuxieme barriere sur le chemin d'ecriture lui-meme, pas un doublon inutile.
+  if (location.locataire !== state.char?.name) {
+    showToast('Non locataire', 'Vous ne louez pas ce local.', false);
+    return;
+  }
+
   const newOrgaId = document.getElementById('gerer-orga-select')?.value || '';
+  const ancienOrgaId = location.orgaId || '';
   location.orgaId = newOrgaId;
+
+  const persiste = await persisterLocation(location);
+  if (!persiste) {
+    location.orgaId = ancienOrgaId; // jamais d'etat affiche non confirme en base
+    showToast('Enregistrement impossible', "L'organisation associée à ce local n'a pas pu être enregistrée. Réessayez.", false);
+    return;
+  }
+
   const orga = getOrgaById(newOrgaId);
   showToast('Organisation mise à jour', orga ? orga.nom + ' associée à ce local.' : 'Aucune organisation associée.', true);
   addJournalEntry('Organisation du local ' + location.localLabel + ' mise à jour.', '');
