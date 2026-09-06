@@ -15,6 +15,8 @@ function travelToCity(cityId) {
     forceRenderCity(cityId);
     return;
   }
+  // Surcharge (Lot 1.5.4) : aucun changement de ville au-dela de 100 objets.
+  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Changer de ville')) return;
   // Villes spéciales (caserne, QHS) — accès conditionné sur place, pas depuis la carte
   const specialCities = ['caserne', 'qhs'];
   if (specialCities.includes(cityId)) {
@@ -266,6 +268,14 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // Verrou : hospitalisation — jour 1 uniquement, aucun deplacement sauf transfert vers la clinique privee
   if (state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation() && buildingId !== 'clinique-privee') {
     showToast('Hospitalisé(e)', 'Vous êtes encore trop faible pour vous déplacer aujourd\'hui. Seul un transfert vers une clinique privée est possible.', false);
+    return;
+  }
+
+  // Verrou : surcharge d'inventaire (Lot 1.5.4) — au-dela de 100 objets, plus aucun changement de
+  // batiment. Place ici, avec les autres verrous d'etat du personnage, et jamais dans enterRoom :
+  // le joueur doit pouvoir continuer a circuler dans le batiment ou il se trouve pour se delester.
+  if (typeof refuserSiSurcharge === 'function' && buildingId !== state.currentBuilding
+      && refuserSiSurcharge('Changer de bâtiment')) {
     return;
   }
 
@@ -1479,6 +1489,10 @@ function ouvrirModalTransport(mode) {
 async function executerVoyage(mode, empireId, villeId) {
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+  // Surcharge (Lot 1.5.4) : dernier verrou avant le debit et le deplacement reel. confirmerTransport
+  // a deja refuse en amont, mais cette fonction est appelable directement depuis le bouton de
+  // confirmation des douanes -- la garde d'ecran ne suffirait pas.
+  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Prendre un transport')) return;
   // Debit atomique unique (PA + FR revalides ici, au point reel du debit -- correctif du
   // 24 aout 2026 : auparavant seuls les PA etaient revalides ici, les FR n'etaient verifies
   // qu'en amont dans confirmerTransport puis debites sans nouvelle verification, un ecart de
@@ -1546,6 +1560,10 @@ async function confirmerTransport(mode, empireId, villeId) {
   document.getElementById('modal-postes').classList.remove('open');
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  // Surcharge (Lot 1.5.4) : refus AVANT les douanes et tout debit, pour que le joueur sache
+  // immediatement pourquoi. executerVoyage porte le meme verrou en dernier ressort.
+  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Prendre un transport')) return;
 
   if (getFondsDisponiblesOrdinaires() < config.cost) {
     showToast('Fonds insuffisants', 'Il vous faut ' + config.cost + ' ' + cur, false);

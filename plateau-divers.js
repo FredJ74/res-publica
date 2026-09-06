@@ -1059,10 +1059,20 @@ function getTotalInventaire() {
 // <= 0) puis verification specifique juste avant le push, sans toucher au comportement des
 // objets qui n'ont jamais defini encombrement (qteVoulue reste alors 1, strictement identique
 // a avant ce lot).
-function addToInventory(item) {
+//
+// options.automatique (Lot 1.5.4) : reception AUTOMATIQUE, jamais refusee. Un objet qu'on n'a pas
+// choisi de prendre -- document administratif, restitution, don recu hors ligne -- ne doit ni etre
+// perdu ni rester bloque parce que l'inventaire est deja plein. Il entre, quitte a faire passer le
+// joueur en Surcharge (voir enSurcharge ci-dessous). Le plafond de 100 reste integralement
+// applicable a toutes les acquisitions VOLONTAIRES : achat, ramassage, transfert, fabrication.
+// Aucun appelant existant ne passe ce parametre -- comportement byte-identique pour eux.
+function addToInventory(item, options) {
+  const automatique = !!(options && options.automatique);
   const dejaEnStock = getTotalInventaire();
   const qteVoulue = item.stackable ? (item.qty || 1) : (item.encombrement || 1);
-  const placeDisponible = Math.max(0, PLAFOND_INVENTAIRE_EMPILABLE - dejaEnStock);
+  // En reception automatique la place est reputee suffisante : c'est le seul point ou le plafond
+  // ne s'applique pas, et il n'existe pas de second chemin d'ajout ailleurs dans le jeu.
+  const placeDisponible = automatique ? qteVoulue : Math.max(0, PLAFOND_INVENTAIRE_EMPILABLE - dejaEnStock);
   if (placeDisponible <= 0) {
     if (typeof showToast === 'function') showToast('Inventaire plein', 'Plafond de ' + PLAFOND_INVENTAIRE_EMPILABLE + ' objets atteint.', false);
     return 0;
@@ -1087,6 +1097,58 @@ function addToInventory(item) {
   state.inventory.push(item);
   renderInventory();
   return 1;
+}
+
+// =====================================================================
+// SURCHARGE D'INVENTAIRE (Lot 1.5.4)
+// =====================================================================
+// Un objet recu automatiquement peut faire depasser la capacite normale de 100. Le joueur passe
+// alors en Surcharge : il ne peut plus se deplacer tant qu'il n'est pas redescendu a 100 ou moins.
+//
+// L'etat est DERIVE de l'inventaire reel a chaque interrogation, jamais stocke ni compte a part :
+// un drapeau persiste pourrait diverger de son contenu (objet detruit sans que le drapeau tombe,
+// ou l'inverse) et il faudrait alors le resynchroniser partout. Ici, detruire un objet suffit --
+// la surcharge disparait au calcul suivant, sans qu'aucun code n'ait a la lever.
+
+function recevoirObjetAutomatique(item) {
+  return addToInventory(item, { automatique: true });
+}
+
+function enSurcharge() {
+  return getTotalInventaire() > PLAFOND_INVENTAIRE_EMPILABLE;
+}
+
+// Verdict unique du blocage de deplacement, meme doctrine que verdictRoleOrdre (Lot 1.2) et
+// verdictAjoutLot (Lot 1.5.1) : une seule autorite, consultee par tous les points d'entree, pour
+// qu'il n'existe jamais deux regles de surcharge divergentes.
+function verdictDeplacementSurcharge() {
+  const total = getTotalInventaire();
+  if (total <= PLAFOND_INVENTAIRE_EMPILABLE) {
+    return { bloque: false, total: total, plafond: PLAFOND_INVENTAIRE_EMPILABLE, excedent: 0, message: '' };
+  }
+  const excedent = total - PLAFOND_INVENTAIRE_EMPILABLE;
+  return {
+    bloque: true, total: total, plafond: PLAFOND_INVENTAIRE_EMPILABLE, excedent: excedent,
+    message: 'Vous portez ' + total + ' objets pour une capacité de ' + PLAFOND_INVENTAIRE_EMPILABLE
+             + '. Débarrassez-vous de ' + excedent + ' objet' + (excedent > 1 ? 's' : '')
+             + ' avant de vous déplacer.'
+  };
+}
+
+// A appeler en tete de tout point d'entree de DEPLACEMENT (changement de batiment, de ville,
+// transport). Renvoie true si l'action doit etre bloquee, le toast ayant deja ete affiche --
+// meme convention d'appel que refuserSiGele (plateau-justice-economie.js).
+//
+// N'est deliberement PAS pose sur enterRoom : le joueur surcharge doit pouvoir circuler dans le
+// batiment ou il se trouve pour atteindre de quoi se delester. L'immobiliser sur place le
+// priverait du seul moyen de sortir de la surcharge.
+function refuserSiSurcharge(libelleAction) {
+  const verdict = verdictDeplacementSurcharge();
+  if (!verdict.bloque) return false;
+  if (typeof showToast === 'function') {
+    showToast('Surcharge', (libelleAction ? libelleAction + ' est impossible. ' : '') + verdict.message, false);
+  }
+  return true;
 }
 
 function renderInventory() {

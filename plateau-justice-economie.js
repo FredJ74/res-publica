@@ -1756,6 +1756,8 @@ async function soumettreConte(idx, pa, cost) {
 // nulle part dans le depot et faisaient planter systematiquement doTaxiSpecial des le premier
 // appel, pour taxi_caserne ET taxi_qhs (bug preexistant, sans rapport avec la migration Phase K).
 async function doTaxiSpecial(destination, pa, cost) {
+  // Surcharge (Lot 1.5.4) : le taxi vers la Caserne/le QHS est un vrai changement de ville.
+  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Prendre un taxi')) return;
   const label = destination === 'caserne' ? 'la Caserne' : 'le QHS';
   const cityKey = destination === 'caserne' ? 'caserne' : 'qhs';
 

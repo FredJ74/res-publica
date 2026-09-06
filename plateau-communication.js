@@ -419,7 +419,14 @@ async function verifierObjetsRecus() {
     if (!objets || objets.length === 0) return;
 
     for (const { id, expediteur, objet } of objets) {
-      const qteAjoutee = typeof addToInventory === 'function' ? addToInventory(objet) : 0;
+      // Lot 1.5.4 : RECEPTION AUTOMATIQUE. L'objet n'a pas ete choisi par le joueur -- document
+      // administratif, don recu hors ligne, restitution -- il ne doit donc jamais etre perdu ni
+      // rester indefiniment en attente parce que l'inventaire est plein. Il entre quitte a faire
+      // passer son destinataire en Surcharge, et la ligne objets_recus est alors normalement
+      // supprimee juste en dessous. Avant ce lot, addToInventory renvoyait 0 au-dela de 100 et
+      // l'objet restait bloque dans la file, invisible.
+      const qteAjoutee = typeof recevoirObjetAutomatique === 'function' ? recevoirObjetAutomatique(objet)
+                       : (typeof addToInventory === 'function' ? addToInventory(objet) : 0);
       if (qteAjoutee > 0) {
         if (typeof sbSupprimerObjetRecu === 'function') await sbSupprimerObjetRecu(id).catch(() => {});
         // Carte postale (Lot 4, 23 aout 2026) : message fixe, jamais de nom d'expediteur ni de

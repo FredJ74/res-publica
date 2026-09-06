@@ -724,19 +724,24 @@ function objetInventaireDocumentUrbanisme(doc) {
 //   - destinataire = un autre joueur    -> objets_recus (sbDonnerObjetJoueur), collecte a sa
 //     prochaine connexion par verifierObjetsRecus.
 //
-// CAPACITE D'INVENTAIRE : volontairement NON traitee ici. Le canal objets_recus passe par
-// addToInventory, qui refuse au-dela de 100 objets ; l'objet n'est alors pas perdu (la ligne
-// objets_recus n'est supprimee qu'en cas d'ajout reussi) mais il reste en attente, invisible. Ce
-// defaut est celui que le Lot 1.5.4 traitera par l'etat de Surcharge -- on ne lui oppose ici
-// aucune rustine concurrente.
+// CAPACITE D'INVENTAIRE (resolu au Lot 1.5.4) : les deux canaux passent desormais par la reception
+// automatique, qui ignore le plafond de 100. Un document administratif n'est donc jamais perdu ni
+// bloque dans la file objets_recus ; il entre, et son destinataire passe en Surcharge tant qu'il
+// n'est pas redescendu a 100. Aucune regle propre aux documents d'urbanisme : c'est le mecanisme
+// generique de tout objet recu automatiquement.
 async function delivrerDocumentUrbanisme(doc, destinataire) {
   const objet = objetInventaireDocumentUrbanisme(doc);
   const pourMoi = (typeof estTitulaire === 'function') && destinataire && estTitulaire(destinataire);
 
   if (pourMoi) {
+    // Lot 1.5.4 : on passe desormais par le mecanisme GENERIQUE de reception automatique, au lieu
+    // du push direct qu'imposait le Lot 1.5.3 faute de mieux. Un document d'urbanisme n'a plus
+    // aucun traitement particulier : il beneficie de la meme regle que tout objet recu
+    // automatiquement -- il entre meme au-dela de 100, et son destinataire passe en Surcharge.
+    if (typeof recevoirObjetAutomatique === 'function') { recevoirObjetAutomatique(objet); return objet; }
     if (typeof state === 'undefined') return objet;
-    if (!state.inventory) state.inventory = [];
-    state.inventory.push(objet);                      // jamais addToInventory : voir ci-dessus
+    if (!state.inventory) state.inventory = [];       // repli si le module n'est pas charge
+    state.inventory.push(objet);
     if (typeof renderInventory === 'function') renderInventory();
     return objet;
   }
