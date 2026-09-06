@@ -5965,6 +5965,37 @@ async function confirmerConstruction(niveauKey) {
   if (!r.ok) { signalerRefusCout(r); return; }
 
   chantier = verserAuChantier(chantier, apport);
+
+  // APPROVISIONNEMENT IMMEDIAT (Lot 1.5.9). Un chantier ne doit pas attendre minuit pour pouvoir
+  // employer quelqu'un. Memes regles exactement que l'approvisionnement quotidien du cron --
+  // meme fonction de decision, planifierApprovisionnement -- avec les entrees/sorties d'ici.
+  // Si l'entrepot ou la tresorerie ne suivent pas, la penurie reste reelle : rien n'est invente.
+  const villeTerrain = ts.city || state.currentCity || 'capitale';
+  const idEntrepot = (typeof ENTREPOT_PAR_VILLE !== 'undefined') ? ENTREPOT_PAR_VILLE[villeTerrain] : null;
+  if (idEntrepot && typeof sbGetBatimentEtat === 'function') {
+    const etatEnt = await sbGetBatimentEtat(state.country, villeTerrain, idEntrepot).catch(() => ({}));
+    const besoinJ1 = besoinMateriauxJourChantier(chantier, 1);
+    const prix = {};
+    ['bois', 'minerai', 'metal'].forEach(function (m) {
+      prix[m] = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].prixBase : 0;
+    });
+    const plan = planifierApprovisionnement(besoinJ1, chantier.stockMateriaux,
+      (etatEnt.entrepot && etatEnt.entrepot.stock) || {}, chantier.tresorerie, prix);
+    if (plan.depense > 0) {
+      chantier = Object.assign({}, chantier, {
+        stockMateriaux: plan.stockChantier,
+        tresorerie: Math.max(0, chantier.tresorerie - plan.depense),
+        evenements: (chantier.evenements || []).concat([{ cle: 'approvisionnement', jour: state.day || 1, achats: plan.achats, cout: plan.depense }])
+      });
+      if (typeof sbSetBatimentEtat === 'function') {
+        await sbSetBatimentEtat(state.country, villeTerrain, idEntrepot, {
+          entrepot: Object.assign({}, etatEnt.entrepot || {}, { stock: plan.stockEntrepot,
+            caisse: ((etatEnt.entrepot && etatEnt.entrepot.caisse) || 0) + plan.depense })
+        }).catch(() => {});
+      }
+    }
+  }
+
   const nouvelEtat = setTerrainState(id, { chantier: chantier });
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
 
@@ -9633,6 +9664,85 @@ async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
 // caisse). Le proprietaire lui-meme peut voler son propre chantier (auto-victimisation
 // parodique) : l'argent se neutralise financierement, seul le bonus de sympathie publique
 // et le RP restent un vrai gain. Toujours tracable sur enquete, meme en cas de reussite.
+// TRAVAIL SUR UN CHANTIER (Lot 1.5.9)
+// Le PJ doit etre PHYSIQUEMENT sur le terrain : l'ordre n'existe que dans la piece du terrain, et
+// state.currentBuilding est relu ici -- la BNE ne fait qu'annoncer, elle ne permet pas de
+// travailler a distance. 1 heure = 1 PA = 70 FR, payes par la tresorerie du chantier.
+async function doTravaillerChantier(pa, cost) {
+  const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Travailler ici')) return;
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+  const ch = ts.chantier;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (!ch) { showToast('Aucun chantier', "Aucun chantier en cours sur ce terrain.", false); return; }
+
+  // Heures UTILES : bornees par les materiaux disponibles. Sans materiaux, aucune heure n'est
+  // travaillable -- ni pour un PJ, ni pour un NPC, ni annoncee a la BNE.
+  const restantes = heuresUtilesRestantes(ch);
+  if (restantes <= 0) {
+    const fMat = fractionMateriauxChantier(ch);
+    showToast(fMat <= 0 ? 'Chantier sans matériaux' : 'Journée terminée',
+      fMat <= 0 ? "Le chantier n'a pas les matériaux nécessaires : aucun travail n'est possible aujourd'hui."
+                : "Toutes les heures utiles d'aujourd'hui ont déjà été effectuées.", false);
+    return;
+  }
+  const paDispo = TEST_MODE ? restantes : Math.max(0, state.pa || 0);
+  const maxi = heuresTravaillablesPar(ch, restantes, paDispo);
+  if (maxi <= 0) {
+    const payables = Math.floor(Math.max(0, ch.tresorerie || 0) / CHANTIER_TAUX_HORAIRE);
+    showToast(payables <= 0 ? 'Chantier sans trésorerie' : 'PA insuffisants',
+      payables <= 0 ? "Le chantier ne peut pas vous payer : sa trésorerie est vide."
+                    : "Il vous faut au moins 1 PA pour travailler une heure.", false);
+    return;
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">' + restantes + ' heure(s) restante(s) aujourd\'hui sur ce chantier · '
+       + CHANTIER_TAUX_HORAIRE + ' ' + cur + '/heure. Chaque heure vous coûte 1 PA. Vous pouvez en prendre jusqu\'à ' + maxi + '.</div>';
+  html += '<div style="display:flex;gap:.4rem;margin-bottom:.6rem">';
+  html += '<input id="chantier-heures" type="number" min="1" max="' + maxi + '" value="' + maxi + '" style="width:110px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '<span style="font-size:.78rem;color:#8a8060;align-self:center">heure(s)</span>';
+  html += '</div>';
+  html += '<button class="pnj-action-btn" onclick="confirmerTravailChantier()">Travailler</button>';
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Travailler sur le chantier';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerTravailChantier() {
+  const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Travailler ici')) return;
+  const ts = getTerrainState(id);
+  const ch = ts.chantier;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (!ch) { showToast('Aucun chantier', '', false); return; }
+
+  const voulues = parseInt(document.getElementById('chantier-heures')?.value || 0);
+  const paDispo = TEST_MODE ? voulues : Math.max(0, state.pa || 0);
+  const heures = heuresTravaillablesPar(ch, voulues, paDispo);
+  if (heures <= 0) { showToast('Impossible', "Aucune heure ne peut être travaillée maintenant.", false); return; }
+
+  // 1 heure = 1 PA. Le cout financier est nul pour le joueur : c'est lui qui est PAYE.
+  const r = await deduireCoutOrdre({ pa: heures, cost: 0 });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  const res = enregistrerTravailPJ(ch, state.char?.name, heures, state.day || 1);
+  const nouvelEtat = setTerrainState(id, { chantier: res.chantier });
+  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+
+  // Remuneration reelle du joueur.
+  if (typeof crediterFondsOrdinaires === 'function') await crediterFondsOrdinaires(res.montant).catch(() => {});
+  else state.arg = (state.arg || 0) + res.montant;
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Journée de travail', '+' + res.montant.toLocaleString('fr-FR') + ' ' + cur + ' pour ' + res.heures + ' heure(s).', true, true);
+  addJournalEntry('Vous avez travaillé ' + res.heures + ' heure(s) sur un chantier. +'
+    + res.montant.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
+}
+
 // VOL DE MATERIAUX SUR UN CHANTIER (refondu au Lot 1.5.8)
 // Le vol ne porte plus sur une valeur monetaire abstraite mais sur des UNITES REELLES du stock du
 // chantier. Le joueur choisit la matiere ; seules celles reellement presentes sont proposees.
@@ -10186,6 +10296,26 @@ async function doInscrireDemandeurEmploi(pa, cost) {
   addJournalEntry('Inscription comme demandeur d\'emploi au Bureau National de l\'Emploi.', 'event-info');
 }
 
+// Chantiers de la ville proposant du travail aujourd'hui. Lecture seule, aucune persistance.
+async function offresChantiersBNE(pays, ville) {
+  if (typeof sbGet !== 'function' || typeof offreBNEChantier !== 'function') return [];
+  const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(pays)}`).catch(() => []);
+  const offres = [];
+  (rows || []).forEach(function (r) {
+    let etat; try { etat = JSON.parse(r.data); } catch (e) { return; }
+    if (!etat || (etat.city || 'capitale') !== ville) return;
+    const o = offreBNEChantier(etat.chantier);
+    if (!o) return;
+    const niv = (typeof NIVEAUX_CONSTRUCTION !== 'undefined' && NIVEAUX_CONSTRUCTION[o.niveau]) || {};
+    offres.push({
+      libelle: 'Ouvrier de chantier — ' + (niv.label || o.niveau || 'construction'),
+      ville: ville, terrain: (BUILDINGS[r.building_id]?.shortName || r.building_id),
+      tauxHoraire: o.tauxHoraire, heuresRestantes: o.heuresRestantes
+    });
+  });
+  return offres;
+}
+
 async function ouvrirOffresEmploiBNE() {
   if (!state.demandeurEmploi) {
     showToast('Inscription requise', 'Inscrivez-vous comme demandeur d\'emploi avant de consulter les offres.', false);
@@ -10206,12 +10336,32 @@ async function ouvrirOffresEmploiBNE() {
     o.portee !== 'locale' || o.ville === villeCourante
   );
 
+  // Lot 1.5.9 : un chantier ouvert s'annonce automatiquement tant qu'il lui reste des heures a
+  // effectuer aujourd'hui ET que sa tresorerie peut les payer. Offres DERIVEES, jamais persistees,
+  // recalculees a chaque ouverture de l'ecran -- le catalogue statique OFFRES_EMPLOI_BNE n'est pas
+  // touche, et aucun systeme generique de BNE n'est introduit.
+  const offresChantiers = await offresChantiersBNE(state.country, villeCourante).catch(() => []);
+
   const portéeLabel = { locale: 'Locale', nationale: 'Nationale', internationale: 'Internationale' };
 
   let html = '<div style="padding:1rem">';
   if (reservationEnAttente) {
     html += '<div style="font-size:.78rem;color:#c08a3a;font-style:italic;margin-bottom:.8rem;border:1px solid #6a4a1a;padding:.5rem">Une candidature est en attente d\'arbitrage — consultez votre messagerie pour trancher avant d\'en déposer une nouvelle.</div>';
   }
+  if (offresChantiers.length > 0) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">CHANTIERS DE LA VILLE</div>';
+    offresChantiers.forEach(function (c) {
+      html += '<div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
+      html += '<div style="font-size:.85rem;color:#c0b090">' + c.libelle + '</div>';
+      // Aucun PA affiche : l'annonce est un contrat de travail, pas une fiche technique.
+      html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + c.ville + ' · ' + c.terrain
+           + ' · ' + c.tauxHoraire + ' ' + cur + '/heure · ' + c.heuresRestantes + ' heure(s) disponible(s) aujourd\'hui</div>';
+      html += '<div style="font-size:.68rem;color:#6a5a30;font-style:italic;margin-top:.2rem">Présentez-vous sur place pour travailler.</div>';
+      html += '</div>';
+    });
+    html += '<div style="height:.6rem"></div>';
+  }
+
   html += offresVisibles.map(([offreId, o]) => {
     const placesPrises = compterPlacesPrisesBNE(etat.offres, offreId);
     const complet = placesPrises >= o.places;

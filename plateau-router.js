@@ -229,6 +229,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'valider_transfert_compromis') { doValiderTransfertCompromis(pa, cost); return; }
   if (fn === 'transfert_compromis') { ouvrirMenuTransfertCompromis(pa, cost); return; }
   if (fn === 'payer_versement_chantier') { doPayerVersementChantier(); return; }
+  if (fn === 'travailler_chantier')    { doTravaillerChantier(pa, cost); return; }
   if (fn === 'corrompre_chantier') { doCorrompreChantier(pa, cost); return; }
   if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(pa, cost); return; }
   if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(pa, cost); return; }

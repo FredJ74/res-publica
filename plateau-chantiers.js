@@ -607,3 +607,160 @@ function quantiteVolMateriaux(score, matiere, jourNumero, stockPresent) {
   const fraction = (v.score - 50) / 50;
   return Math.min(plafond, enStock, Math.max(1, Math.round(fraction * plafond)));
 }
+
+// ---------------------------------------------------------------------------
+// TRAVAIL PJ ET NPC (Lot 1.5.9)
+// ---------------------------------------------------------------------------
+// Une heure RP coute 1 PA au joueur et vaut 70 FR, payes par la tresorerie du chantier. Le travail
+// PJ REMPLACE du travail NPC : il n'accelere jamais au-dela de la capacite quotidienne. Ce qui
+// reste a minuit est effectue par des NPC, si la tresorerie permet de les payer -- et cet argent
+// va dans la caisse reelle du ministere des Finances, jamais dans un accumulateur temporaire.
+
+// Capacite de travail d'une journee, en heures. Derivee du dimensionnement fige du chantier :
+// coutTravail / duree / taux horaire, soit 50 h/jour en construction.
+function capaciteHeuresJourChantier(chantier) {
+  if (!chantier) return 0;
+  const duree = Math.max(0, nombreFini(chantier.dureeJours, 0));
+  if (duree <= 0) return 0;
+  return heuresPourCoutTravail(nombreFini(chantier.coutTravail, 0)) / duree;
+}
+
+// Heures encore disponibles aujourd'hui. C'est cette valeur, et rien d'autre, qui borne le travail
+// d'un PJ : aucun plafond individuel artificiel n'existe, un seul joueur peut prendre toutes les
+// heures restantes s'il a les PA.
+function heuresRestantesJour(chantier) {
+  const cap = capaciteHeuresJourChantier(chantier);
+  const faites = Math.max(0, nombreFini(chantier && chantier.heuresFaites, 0));
+  return Math.max(0, cap - faites);
+}
+
+function coutHeuresTravail(heures) {
+  return Math.max(0, nombreFini(heures, 0)) * CHANTIER_TAUX_HORAIRE;
+}
+
+// Combien d'heures un PJ peut-il REELLEMENT prendre ? Le minimum entre ce qu'il demande, ce qu'il
+// reste a faire aujourd'hui, ce que ses PA permettent, et ce que la tresorerie peut payer.
+function heuresTravaillablesPar(chantier, heuresVoulues, paDisponibles) {
+  const voulues = Math.max(0, Math.floor(nombreFini(heuresVoulues, 0)));
+  const pa = Math.max(0, Math.floor(nombreFini(paDisponibles, 0)));
+  const tresorerie = Math.max(0, nombreFini(chantier && chantier.tresorerie, 0));
+  const payables = Math.floor(tresorerie / CHANTIER_TAUX_HORAIRE);
+  // Borne materiaux : identique pour les PJ et les NPC. Sans materiaux, aucune heure n'est
+  // travaillable -- un joueur ne peut pas etre paye pour un travail qui ne fera rien avancer.
+  return Math.max(0, Math.min(voulues, heuresUtilesRestantes(chantier), pa, payables));
+}
+
+// Heures encore utiles aujourd'hui : capacite bornee par les materiaux, moins ce qui est deja fait.
+function heuresUtilesRestantes(chantier) {
+  const utiles = Math.floor(heuresUtilesJour(chantier, fractionMateriauxChantier(chantier)));
+  const faites = Math.max(0, nombreFini(chantier && chantier.heuresFaites, 0));
+  return Math.max(0, utiles - faites);
+}
+
+// Enregistre le travail d'un PJ : heures faites, tresorerie debitee, log NOMINATIF. Pure : renvoie
+// un nouveau chantier, ne paie personne (c'est a l'appelant de crediter le joueur).
+function enregistrerTravailPJ(chantier, nom, heures, jour) {
+  if (!chantier) return { chantier: chantier, heures: 0, montant: 0 };
+  const h = Math.max(0, Math.floor(nombreFini(heures, 0)));
+  if (h <= 0) return { chantier: chantier, heures: 0, montant: 0 };
+  const montant = coutHeuresTravail(h);
+  const maj = Object.assign({}, chantier);
+  maj.heuresFaites = Math.max(0, nombreFini(chantier.heuresFaites, 0)) + h;
+  maj.tresorerie = Math.max(0, nombreFini(chantier.tresorerie, 0) - montant);
+  maj.travauxPJ = (chantier.travauxPJ || []).concat([{ nom: nom || null, heures: h, montant: montant, jour: jour || null }]);
+  return { chantier: maj, heures: h, montant: montant };
+}
+
+// Fraction de materiaux du chantier a cet instant, calculee sur son stock courant et le besoin de
+// la journee en cours. Sert de borne COMMUNE au travail PJ, au travail NPC et a l'offre BNE : une
+// heure qui ne peut pas contribuer a la progression ne doit etre ni effectuee, ni payee, ni
+// proposee.
+function fractionMateriauxChantier(chantier) {
+  if (!chantier) return 0;
+  const besoin = besoinMateriauxJourChantier(chantier, numeroJourChantier(chantier));
+  return fractionMateriaux(chantier.stockMateriaux, besoin);
+}
+
+// Heures UTILES de la journee : la capacite ne vaut que si les materiaux suivent. Avec 40 % de
+// materiaux, une journee de 50 h ne peut produire que 20 h de travail utile -- au-dela, on paierait
+// des ouvriers pour un progres qui ne viendra pas.
+function heuresUtilesJour(chantier, fractionDesMateriaux) {
+  return capaciteHeuresJourChantier(chantier) * borner(fractionDesMateriaux, 0, 1);
+}
+
+// Reliquat NPC de la journee. Respecte SIMULTANEMENT quatre bornes : la capacite quotidienne, les
+// heures deja faites par des PJ, la fraction de materiaux reellement disponible, et la tresorerie.
+// Rien n'est avance a credit, et surtout rien n'est paye pour du travail qui ne peut pas contribuer
+// a la progression du jour : 0 % de materiaux -> 0 heure NPC, 0 FR verse.
+function reliquatNPC(chantier, fractionDesMateriaux) {
+  const utiles = Math.floor(heuresUtilesJour(chantier, fractionDesMateriaux === undefined ? 1 : fractionDesMateriaux));
+  const faites = Math.max(0, nombreFini(chantier && chantier.heuresFaites, 0));
+  const restantesUtiles = Math.max(0, utiles - faites);
+  const tresorerie = Math.max(0, nombreFini(chantier && chantier.tresorerie, 0));
+  const payables = Math.floor(tresorerie / CHANTIER_TAUX_HORAIRE);
+  const heures = Math.max(0, Math.min(restantesUtiles, payables));
+  return { heures: heures, montant: coutHeuresTravail(heures) };
+}
+
+// Fraction travail REELLE du jour : heures effectivement faites (PJ + NPC) sur la capacite.
+// Remplace la fraction provisoire du Lot 1.5.7.
+function fractionTravailChantier(chantier, heuresNPC) {
+  const cap = capaciteHeuresJourChantier(chantier);
+  if (cap <= 0) return 1;                                   // aucun besoin de travail : pas une contrainte
+  const faites = Math.max(0, nombreFini(chantier && chantier.heuresFaites, 0))
+               + Math.max(0, nombreFini(heuresNPC, 0));
+  return borner(faites / cap, 0, 1);
+}
+
+// Un chantier apparait dans la BNE tant qu'il reste des heures a effectuer aujourd'hui ET que sa
+// tresorerie peut les payer -- on n'affiche jamais une offre qu'on ne pourrait pas honorer.
+function offreBNEChantier(chantier) {
+  if (!chantier || chantier.arrete === 'financement') return null;
+  // Bornee par les MATERIAUX comme le travail lui-meme : on ne propose jamais une heure qui ne
+  // pourrait pas contribuer a la progression.
+  const restantes = heuresUtilesRestantes(chantier);
+  if (restantes <= 0) return null;
+  const payables = Math.floor(Math.max(0, nombreFini(chantier.tresorerie, 0)) / CHANTIER_TAUX_HORAIRE);
+  const heures = Math.min(restantes, payables);
+  if (heures <= 0) return null;
+  return { heuresRestantes: heures, tauxHoraire: CHANTIER_TAUX_HORAIRE, type: chantier.type, niveau: chantier.niveau };
+}
+
+// Remise a zero des heures du jour, appelee par le traitement quotidien apres consolidation.
+function reinitialiserHeuresJour(chantier) {
+  if (!chantier) return chantier;
+  const maj = Object.assign({}, chantier);
+  maj.heuresFaites = 0;
+  return maj;
+}
+
+// ---------------------------------------------------------------------------
+// APPROVISIONNEMENT (Lot 1.5.9, factorise)
+// ---------------------------------------------------------------------------
+// DECISION PURE d'achat, partagee par le lancement d'un chantier et par le cron quotidien : une
+// seule regle, jamais deux. Les appelants font les entrees/sorties (lire l'entrepot, ecrire les
+// deux etats) ; ici on se contente de dire quoi acheter et a quel prix.
+// Aucun materiau n'est cree : on n'achete jamais plus que le besoin, plus que le stock reellement
+// present dans l'entrepot, ni plus que la tresorerie ne peut payer.
+function planifierApprovisionnement(besoin, stockChantier, stockEntrepot, tresorerie, prixParMatiere) {
+  const achats = {};
+  const nouveauChantier = {};
+  const nouvelEntrepot = Object.assign({}, stockEntrepot || {});
+  let depense = 0;
+  MATERIAUX_CHANTIER.forEach(function (cle) {
+    const enChantier = Math.max(0, nombreFini((stockChantier || {})[cle], 0));
+    nouveauChantier[cle] = enChantier;
+    const manque = Math.max(0, Math.max(0, nombreFini((besoin || {})[cle], 0)) - enChantier);
+    if (manque <= 0) return;
+    const prix = Math.max(0, nombreFini((prixParMatiere || {})[cle], prixMateriau(cle)));
+    const dispo = Math.max(0, Math.floor(nombreFini(nouvelEntrepot[cle], 0)));
+    const abordable = prix > 0 ? Math.floor(Math.max(0, nombreFini(tresorerie, 0) - depense) / prix) : 0;
+    const qte = Math.min(manque, dispo, abordable);
+    if (qte <= 0) return;
+    achats[cle] = qte;
+    depense += qte * prix;
+    nouveauChantier[cle] = enChantier + qte;
+    nouvelEntrepot[cle] = dispo - qte;
+  });
+  return { achats: achats, depense: depense, stockChantier: nouveauChantier, stockEntrepot: nouvelEntrepot };
+}

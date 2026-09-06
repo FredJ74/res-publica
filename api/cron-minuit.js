@@ -933,8 +933,37 @@ function progressionMaxFinanceeServeur(totalVerse, dureeJours, coutTotal) {
 // TRANSITION PROVISOIRE DU LOT 1.5.7, a remplacer aux Lots 1.5.8 (materiaux) et 1.5.9 (travail) :
 // en l'absence de ces sous-systemes, la capacite du jour est reputee complete. Isolee ici, comme
 // capaciteProvisoireCompleteLot157 cote client.
-// TRAVAIL : toujours provisoirement complet -- le travail reel est le Lot 1.5.9.
-function fractionTravailProvisoireServeur() { return 1; }
+// TRAVAIL REEL (Lot 1.5.9). Memes formules que plateau-chantiers.js, dupliquees ici pour la meme
+// raison que les materiaux, et verrouillees par le meme test d'egalite.
+const TAUX_HORAIRE_SERVEUR = 70;
+
+function capaciteHeuresJourServeur(ch) {
+  const d = Math.max(0, Number(ch && ch.dureeJours) || 0);
+  if (d <= 0) return 0;
+  return (Math.max(0, Number(ch.coutTravail) || 0) / TAUX_HORAIRE_SERVEUR) / d;
+}
+
+// Reliquat NPC. Quatre bornes simultanees : capacite quotidienne, heures deja faites par des PJ,
+// fraction de materiaux reellement disponible APRES approvisionnement, et tresorerie. On ne paie
+// jamais des ouvriers pour un travail qui ne peut pas contribuer a la progression du jour --
+// 0 % de materiaux, 0 heure NPC, 0 FR verse au ministere.
+function reliquatNPCServeur(ch, fMat) {
+  const cap = capaciteHeuresJourServeur(ch);
+  const f = Math.max(0, Math.min(1, fMat === undefined ? 1 : (Number(fMat) || 0)));
+  const utiles = Math.floor(cap * f);
+  const faites = Math.max(0, Number(ch && ch.heuresFaites) || 0);
+  const restantesUtiles = Math.max(0, utiles - faites);
+  const payables = Math.floor(Math.max(0, Number(ch && ch.tresorerie) || 0) / TAUX_HORAIRE_SERVEUR);
+  const heures = Math.max(0, Math.min(restantesUtiles, payables));
+  return { heures: heures, montant: heures * TAUX_HORAIRE_SERVEUR };
+}
+
+function fractionTravailServeur(ch, heuresNPC) {
+  const cap = capaciteHeuresJourServeur(ch);
+  if (cap <= 0) return 1;
+  const faites = Math.max(0, Number(ch && ch.heuresFaites) || 0) + Math.max(0, Number(heuresNPC) || 0);
+  return Math.max(0, Math.min(1, faites / cap));
+}
 
 // MATERIAUX REELS (Lot 1.5.8). Memes formules que plateau-chantiers.js, dupliquees ici parce que
 // le cron est un module serverless isole ; l'egalite des deux implementations est verrouillee par
@@ -958,6 +987,28 @@ function numeroJourChantierServeur(ch) {
 }
 
 // La matiere la plus manquante commande. Un besoin nul n'est pas une contrainte.
+// Miroir serveur de planifierApprovisionnement (plateau-chantiers.js) -- meme raison que les
+// autres duplications du cron, et meme verrou : un test compare les deux sur les memes entrees.
+function planifierApprovisionnementServeur(besoin, stockChantier, stockEntrepot, tresorerie) {
+  const achats = {}, nouveauChantier = {}, nouvelEntrepot = { ...(stockEntrepot || {}) };
+  let depense = 0;
+  MATERIAUX_SERVEUR.forEach(function (cle) {
+    const enChantier = Math.max(0, Number((stockChantier || {})[cle]) || 0);
+    nouveauChantier[cle] = enChantier;
+    const manque = Math.max(0, (Number((besoin || {})[cle]) || 0) - enChantier);
+    if (manque <= 0) return;
+    const prix = (RESSOURCES_ECONOMIE_SERVEUR[cle] && RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase) || 0;
+    const dispo = Math.max(0, Math.floor(Number(nouvelEntrepot[cle]) || 0));
+    const abordable = prix > 0 ? Math.floor(Math.max(0, (Number(tresorerie) || 0) - depense) / prix) : 0;
+    const qte = Math.min(manque, dispo, abordable);
+    if (qte <= 0) return;
+    achats[cle] = qte; depense += qte * prix;
+    nouveauChantier[cle] = enChantier + qte;
+    nouvelEntrepot[cle] = dispo - qte;
+  });
+  return { achats, depense, stockChantier: nouveauChantier, stockEntrepot: nouvelEntrepot };
+}
+
 function fractionMateriauxServeur(stock, besoin) {
   let f = 1, contrainte = false;
   MATERIAUX_SERVEUR.forEach(function (cle) {
@@ -970,7 +1021,7 @@ function fractionMateriauxServeur(stock, besoin) {
 }
 
 async function avancerChantiersQuotidien() {
-  const resultats = { livraisons: 0, avances: 0, partielles: 0, bloques_financement: 0, penuries: 0, approvisionnements: 0, reprises: 0, ignores: 0, erreurs: 0 };
+  const resultats = { livraisons: 0, avances: 0, partielles: 0, bloques_financement: 0, penuries: 0, approvisionnements: 0, reprises: 0, heures_npc: 0, ignores: 0, erreurs: 0 };
   try {
     const terrains = await sbGet('terrains_etat', '');
     if (!terrains) return resultats;
@@ -1023,23 +1074,12 @@ async function avancerChantiersQuotidien() {
       if (idEntrepot) {
         const etatEnt = await sbGetBatimentEtat(row.country, villeChantier, idEntrepot);
         const stockEnt = (etatEnt.entrepot && etatEnt.entrepot.stock) || {};
-        let depense = 0;
-        const achats = {};
-        for (const cle of MATERIAUX_SERVEUR) {
-          const manque = Math.max(0, (Number(besoin[cle]) || 0) - (Number(ch.stockMateriaux[cle]) || 0));
-          if (manque <= 0) continue;
-          const prix = (RESSOURCES_ECONOMIE_SERVEUR[cle] && RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase) || 0;
-          const dispoEnt = Math.max(0, Math.floor(Number(stockEnt[cle]) || 0));
-          const abordable = prix > 0 ? Math.floor(Math.max(0, (Number(ch.tresorerie) || 0) - depense) / prix) : 0;
-          const qte = Math.min(manque, dispoEnt, abordable);
-          if (qte <= 0) continue;
-          achats[cle] = qte; depense += qte * prix;
-          ch.stockMateriaux[cle] = (Number(ch.stockMateriaux[cle]) || 0) + qte;
-          stockEnt[cle] = dispoEnt - qte;
-        }
+        const plan = planifierApprovisionnementServeur(besoin, ch.stockMateriaux, stockEnt, ch.tresorerie);
+        const achats = plan.achats, depense = plan.depense;
         if (depense > 0) {
+          ch.stockMateriaux = plan.stockChantier;
           ch.tresorerie = Math.max(0, (Number(ch.tresorerie) || 0) - depense);
-          etatEnt.entrepot = { ...(etatEnt.entrepot || {}), stock: stockEnt,
+          etatEnt.entrepot = { ...(etatEnt.entrepot || {}), stock: plan.stockEntrepot,
                                caisse: ((etatEnt.entrepot && etatEnt.entrepot.caisse) || 0) + depense };
           await sbSetBatimentEtat(row.country, villeChantier, idEntrepot, { entrepot: etatEnt.entrepot }).catch(() => {});
           ch.evenements = (ch.evenements || []).concat([{ cle: 'approvisionnement', jour: jour, achats: achats, cout: depense }]);
@@ -1047,8 +1087,32 @@ async function avancerChantiersQuotidien() {
         }
       }
 
+      // La fraction materiaux est calculee AVANT le travail NPC : elle borne le travail utile de
+      // la journee. Payer 50 h d'ouvriers quand les materiaux n'en permettent que 20 reviendrait a
+      // remunerer un progres qui ne viendra pas.
       const fMat = fractionMateriauxServeur(ch.stockMateriaux, besoin);
-      const brut = Math.min(fractionTravailProvisoireServeur(), fMat);     // progression du jour, 0..1
+
+      // TRAVAIL : le reliquat UTILE de la journee est effectue par des NPC, payes par la tresorerie
+      // du chantier. Cet argent va dans la caisse REELLE du ministere des Finances, jamais dans
+      // budgets_nationaux.reserveJour qui n'est qu'un accumulateur temporaire.
+      const npc = reliquatNPCServeur(ch, fMat);
+      if (npc.heures > 0) {
+        ch.tresorerie = Math.max(0, (Number(ch.tresorerie) || 0) - npc.montant);
+        const caisseKey = row.country + '_gouvernement-min_fin';
+        const caisseRows = await sbGet('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`).catch(() => null);
+        const caisse = (caisseRows && caisseRows[0] && caisseRows[0].data) || { solde: 0 };
+        caisse.solde = Math.max(0, (Number(caisse.solde) || 0) + npc.montant);
+        if (caisseRows && caisseRows[0]) {
+          await sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`, { data: caisse, updated_at: new Date().toISOString() }).catch(() => {});
+        } else {
+          await sbInsert('caisses_batiments', { id: caisseKey, data: caisse, updated_at: new Date().toISOString() }).catch(() => {});
+        }
+        ch.evenements = (ch.evenements || []).concat([{ cle: 'travail_npc', jour: jour, heures: npc.heures, montant: npc.montant }]);
+        resultats.heures_npc += npc.heures;
+      }
+
+      const fTrav = fractionTravailServeur(ch, npc.heures);
+      const brut = Math.min(fTrav, fMat);                                  // progression du jour, 0..1
       const plafond = progressionMaxFinanceeServeur(ch.totalVerse, duree, ch.coutTotal);
       const apres = Math.min(duree, Math.max(avant, Math.min(avant + brut, plafond)));
       const gain = apres - avant;
@@ -1065,6 +1129,7 @@ async function avancerChantiersQuotidien() {
 
       ch.progressionJours = apres;
       ch.jourTraite = jour;
+      ch.heuresFaites = 0;            // nouvelle journee : le compteur d'heures repart a zero
       // Motif d'arret : la penurie n'est jamais un alea, c'est le constat qu'aucun progres n'est
       // possible. Le financement prime dans le message s'il bloque aussi.
       const bloqueFinance = !(progressionMaxFinanceeServeur(ch.totalVerse, duree, ch.coutTotal) > avant);
