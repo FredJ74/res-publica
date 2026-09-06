@@ -890,7 +890,20 @@ function loadCharacter() {
 // ci-dessus, avant de rendre la main -- le callback differe n'utilise plus jamais char directement.
 function restaurerPositionApresChargement(char) {
   if (!char.currentBuilding || !char.currentRoom) return;
-  if (!BUILDINGS[char.currentBuilding] || !BUILDINGS[char.currentBuilding].rooms?.[char.currentRoom]) return;
+  if (!BUILDINGS[char.currentBuilding] || !BUILDINGS[char.currentBuilding].rooms?.[char.currentRoom]) {
+    // Piece dynamique de lot (Lot 1.1) : elle n'existe pas encore a cet instant -- cette fonction
+    // s'execute a partir du SEUL localStorage, avant tout chargement Supabase, donc avant que
+    // l'etat du terrain (et ses subdivisions) ne soit connu. On ne conclut donc pas a une piece
+    // invalide : une UNIQUE tentative differee est lancee apres chargement reel de l'etat du
+    // terrain (restaurerPieceDynamiqueDifferee, plateau-immobilier.js, protegee contre tout
+    // rejeu). Si elle echoue, la navigation normale reprend la main sans insister.
+    if (typeof estPieceDynamiqueLot === 'function' && estPieceDynamiqueLot(char.currentRoom)
+        && typeof restaurerPieceDynamiqueDifferee === 'function') {
+      const bDiff = char.currentBuilding, rDiff = char.currentRoom;
+      setTimeout(() => { restaurerPieceDynamiqueDifferee(bDiff, rDiff).catch(() => {}); }, 300);
+    }
+    return;
+  }
   const buildingCible = char.currentBuilding, roomCible = char.currentRoom;
   setTimeout(() => {
     try {

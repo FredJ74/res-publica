@@ -444,9 +444,39 @@ function enterBuilding(buildingId, skipAutoRoom) {
     elDirecteur.style.display = 'none';
   }
 
-  // Onglets pieces — fusionne les pieces de base avec d'eventuelles pieces supplementaires
-  // propres a une ville (ctx.roomsExtra), sans jamais les ajouter aux autres villes qui
-  // partagent la meme definition de batiment globale (ex: centre-affaires).
+  // Pieces dynamiques des lots immobiliers (Lot 1.1) : purge puis injection dans b.rooms AVANT
+  // la construction des onglets, pour que les lots soient des pieces ordinaires du batiment.
+  // Synchrone, depuis le cache terrain deja charge ; l'arrivee de donnees fraiches est traitee a
+  // la fin de enterRoom (rafraichirPiecesDynamiques). No-op total hors terrains subdivises.
+  if (typeof hydraterPiecesDynamiques === 'function') hydraterPiecesDynamiques(buildingId);
+
+  const rooms = renderOngletsPieces(buildingId);
+
+  // Entrer dans la premiere piece — sauf si on s'apprete a restaurer une position precise juste apres
+  // (sinon cette navigation automatique ecrase la bonne piece dans localStorage avant qu'on ait pu la restaurer)
+  if (!skipAutoRoom && rooms.length > 0) {
+    enterRoom(buildingId, rooms[0][0], null);
+  }
+
+  updateLocationDisplay();
+  addJournalEntry(`Vous entrez dans ${displayName}.`, '');
+}
+
+// Onglets pieces — fusionne les pieces de base avec d'eventuelles pieces supplementaires
+// propres a une ville (ctx.roomsExtra), sans jamais les ajouter aux autres villes qui
+// partagent la meme definition de batiment globale (ex: centre-affaires).
+// Extrait de enterBuilding le 6 septembre 2026 (Lot 1.1) SANS changement de comportement :
+// l'arrivee differee des lots d'un terrain doit pouvoir reconstruire les seuls onglets, sans
+// rejouer les verrous, mails et effets de bord de enterBuilding. Retourne la liste [roomId, room]
+// reellement affichee, dont enterBuilding a besoin pour ouvrir la premiere piece.
+//
+// roomActifId : NON fourni par enterBuilding, qui construit les onglets AVANT que enterRoom n'ait
+// pose state.currentRoom -- le premier onglet est alors actif, comportement d'origine strictement
+// conserve. Fourni uniquement par le rafraichissement differe, ou le joueur est deja dans une
+// piece precise qui doit rester surlignee apres reconstruction.
+function renderOngletsPieces(buildingId, roomActifId) {
+  const b = BUILDINGS[buildingId];
+  if (!b) return [];
   const ctxForTabs = getBuildingContext(buildingId);
   const roomsBrutes = Object.entries({ ...(b.rooms || {}), ...(ctxForTabs?.roomsExtra || {}) });
   // Chambres individuelles de la clinique privee (arbitrage UX, 20 aout 2026) : jamais des
@@ -457,31 +487,27 @@ function enterBuilding(buildingId, skipAutoRoom) {
   const rooms = buildingId === 'clinique-privee'
     ? roomsBrutes.filter(([roomId]) => !/^chambre_(?:[1-9]|10)$/.test(roomId))
     : roomsBrutes;
-  document.getElementById('pieces-tabs').innerHTML = rooms.map(([roomId, room], i) => {
-    const isZoneEmb = roomId === 'zone_embarquement';
-    const locked = isZoneEmb && !state.douanePassee;
-    const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : '';
-    const icon = locked ? '🔒 ' : '';
-    const tabName = ctxForTabs?.roomOverrides?.[roomId]?.name || room.name;
-    return `<div class="piece-tab ${i === 0 ? 'active' : ''}" onclick="enterRoom('${buildingId}','${roomId}',this)" style="${style}">
-      ${icon}${tabName}
-    </div>`;
-  }).join('')
-  // Onglet visible "Chambre" (finalisation chambres clinique, 31 aout 2026) : materialise la
-  // zone hospitaliere sans jamais exposer chambre_1..chambre_10 comme onglets bruts (ces 10
-  // rooms restent filtrees juste au-dessus). Comportement conditionnel gere par
-  // ouvrirOngletChambreClinique() (plateau-personnage.js), qui reutilise integralement
-  // getChambreAttribueeClinique/rejoindreChambreClinique -- aucun second systeme d'attribution.
-  + (buildingId === 'clinique-privee' ? '<div class="piece-tab" onclick="ouvrirOngletChambreClinique()">🛏️ Chambre</div>' : '');
-
-  // Entrer dans la premiere piece — sauf si on s'apprete a restaurer une position precise juste apres
-  // (sinon cette navigation automatique ecrase la bonne piece dans localStorage avant qu'on ait pu la restaurer)
-  if (!skipAutoRoom && rooms.length > 0) {
-    enterRoom(buildingId, rooms[0][0], null);
+  const conteneur = document.getElementById('pieces-tabs');
+  if (conteneur) {
+    conteneur.innerHTML = rooms.map(([roomId, room], i) => {
+      const isZoneEmb = roomId === 'zone_embarquement';
+      const locked = isZoneEmb && !state.douanePassee;
+      const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : '';
+      const icon = locked ? '🔒 ' : '';
+      const tabName = ctxForTabs?.roomOverrides?.[roomId]?.name || room.name;
+      const actif = roomActifId ? (roomId === roomActifId) : (i === 0);
+      return `<div class="piece-tab ${actif ? 'active' : ''}" onclick="enterRoom('${buildingId}','${roomId}',this)" style="${style}">
+        ${icon}${tabName}
+      </div>`;
+    }).join('')
+    // Onglet visible "Chambre" (finalisation chambres clinique, 31 aout 2026) : materialise la
+    // zone hospitaliere sans jamais exposer chambre_1..chambre_10 comme onglets bruts (ces 10
+    // rooms restent filtrees juste au-dessus). Comportement conditionnel gere par
+    // ouvrirOngletChambreClinique() (plateau-personnage.js), qui reutilise integralement
+    // getChambreAttribueeClinique/rejoindreChambreClinique -- aucun second systeme d'attribution.
+    + (buildingId === 'clinique-privee' ? '<div class="piece-tab" onclick="ouvrirOngletChambreClinique()">🛏️ Chambre</div>' : '');
   }
-
-  updateLocationDisplay();
-  addJournalEntry(`Vous entrez dans ${displayName}.`, '');
+  return rooms;
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
@@ -696,8 +722,12 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   let displayPersons = roomOverride?.persons?.length > 0 ? roomOverride.persons : ((isFirstRoom && ctx?.persons?.length > 0) ? ctx.persons : (room.persons || []));
 
-  // Injecter PNJ terrain si applicable
-  if (buildingId?.startsWith('terrain-a-batir')) {
+  // Injecter PNJ terrain si applicable — jamais dans une piece de lot (Lot 1.1) : un cadavre ou
+  // des squatteurs se trouvent sur le terrain lui-meme, pas dans chacun des locaux du batiment
+  // qui y est construit. No-op strict sur les donnees actuelles (aucune piece de lot n'existait
+  // avant ce lot), donc aucun changement de comportement pour les terrains existants.
+  if (buildingId?.startsWith('terrain-a-batir')
+      && !(typeof estPieceDynamiqueLot === 'function' && estPieceDynamiqueLot(roomId))) {
     const stored = sessionStorage.getItem('terrain_pnj_' + buildingId);
     if (stored) {
       try {
@@ -793,6 +823,11 @@ function enterRoom(buildingId, roomId, tabEl) {
   // etait redevenu libre. Re-affiche les ordres une fois la donnee fraiche disponible.
   if (buildingId?.startsWith('terrain-a-batir') && typeof chargerTerrainState === 'function') {
     chargerTerrainState(buildingId).then(function() {
+      // Lot 1.1 : l'etat frais peut contenir des lots absents du cache au moment ou les onglets
+      // ont ete construits (premiere visite, lot cree par un autre joueur). On ne reconstruit les
+      // onglets que si l'ensemble des lots a REELLEMENT change (rafraichirPiecesDynamiques
+      // compare avant/apres et ne fait rien sinon).
+      if (typeof rafraichirPiecesDynamiques === 'function') rafraichirPiecesDynamiques(buildingId);
       if (state.currentBuilding === buildingId && state.currentRoom === roomId) {
         renderRoomActions(room, buildingId, roomId);
       }
