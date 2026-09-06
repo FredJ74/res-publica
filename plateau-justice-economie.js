@@ -3866,8 +3866,14 @@ async function traiterActeVente(candidat) {
     const rAd = await deduireCoutOrdre({ pa: 1, cost: solde });
     if (!rAd.ok) { showToast(rAd.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rAd.raison === 'pa_insuffisants' ? '1 PA requis.' : solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false); return; }
     await finaliserAchatTerrain(id, ad.prix, ad.surface, false);
-    setTerrainState(id, { achatDirect: null });
-    if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, { achatDirect: null }).catch(() => {});
+    // Lot 1.5.0 : sbSetTerrainState ECRIT LE BLOB ENTIER (data = JSON.stringify(etat)), ce n'est
+    // pas un patch. Passer { achatDirect: null } ecrasait donc tout l'etat du terrain -- proprietaire
+    // (remis a null par la colonne), surface, valeur, permis, subdivisions, chantier -- juste apres
+    // que finaliserAchatTerrain venait de l'ecrire. On envoie desormais l'etat COMPLET fusionne
+    // renvoye par setTerrainState. Le cache local est frais et complet a ce point : doActeVenteTerrain
+    // a appele chargerTerrainState(id) sur chaque terrain avant de construire les candidats.
+    const etatApresAchatDirect = setTerrainState(id, { achatDirect: null });
+    if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, etatApresAchatDirect).catch(() => {});
     document.getElementById('modal-postes')?.classList.remove('open');
     showToast('Acte signé !', 'Propriétaire de ' + (BUILDINGS[id]?.shortName || id) + '.', true, true);
     return;
@@ -3925,9 +3931,12 @@ async function traiterActeVente(candidat) {
   const rCompromis = await deduireCoutOrdre({ pa: 1, cost: solde });
   if (!rCompromis.ok) { showToast(rCompromis.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rCompromis.raison === 'pa_insuffisants' ? '1 PA requis.' : solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false); return; }
   await finaliserAchatTerrain(id, ts.valeur_totale, ts.surface, ts.constructionAutorisee);
+  // Lot 1.5.0 : meme correction que pour l'achat direct ci-dessus -- `clear` est un patch destine a
+  // setTerrainState, jamais un etat complet. L'envoyer tel quel a sbSetTerrainState remplacait
+  // l'integralite du terrain par ces cinq cles nulles.
   const clear = { compromis: null, compromisPar: null, acompte: null, compromisAt: null, compromisExpireAt: null };
-  setTerrainState(id, clear);
-  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, clear).catch(() => {});
+  const etatApresCompromis = setTerrainState(id, clear);
+  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, etatApresCompromis).catch(() => {});
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Acte signé !', 'Propriétaire de ' + (BUILDINGS[id]?.shortName || id) + '. Acompte déduit du prix.', true, true);
 }

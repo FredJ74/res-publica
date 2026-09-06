@@ -349,6 +349,17 @@ function localKeyDuBail(bail) {
 //                       (commercial/artisanal/affaires) et des autres locaux publics existants.
 //   'titulaire_murs' -> le proprietaire du bien, porte par terrains_etat.proprietaire du terrain.
 //                       C'est le cas d'un lot issu de la division d'un batiment prive.
+//                       Lot 1.5.0 : le champ `titulaire` n'est PLUS ecrit pour ces lots. Il l'etait,
+//                       et figeait donc le proprietaire au jour de la signature du bail : apres une
+//                       vente des murs, les loyers continuaient d'aller a l'ANCIEN proprietaire,
+//                       indefiniment. Le loyer appartient au proprietaire ACTUEL. On laisse donc la
+//                       destination vide de titulaire et c'est prelever_loyer_bail (autorite
+//                       transactionnelle, Lot 1.4) qui resout terrains_etat.proprietaire au moment
+//                       du prelevement -- chemin de repli qui existe deja et qui est deja teste.
+//                       Fonctionne a l'identique pour un proprietaire organisation ('orga:<id>'),
+//                       la RPC lisant la meme reference typee du Lot 1.0 bis. Aucun format
+//                       persistant nouveau, aucune migration : les baux existants qui portent
+//                       encore un `titulaire` restent lus en priorite par la RPC.
 //   'caisse_batiment'-> caisse institutionnelle du batiment. Uniquement le box portuaire, seul
 //                       bail dont le loyer alimente deja reellement une caisse (celle du port) --
 //                       valeur ajoutee pour DECRIRE l'existant, pas pour le changer.
@@ -357,13 +368,7 @@ function destinationLoyerPourLocal(buildingId, roomId, city, country, options) {
   const opt = options || {};
   if (opt.chambreClinique) return null;
   if (opt.isBox) return { type: 'caisse_batiment', buildingId: buildingId };
-  if (estPieceDynamiqueLot(roomId)) {
-    let proprietaire = null;
-    if (typeof getTerrainState === 'function') {
-      try { proprietaire = getTerrainState(buildingId).proprietaire || null; } catch (e) { proprietaire = null; }
-    }
-    return { type: 'titulaire_murs', titulaire: proprietaire };
-  }
+  if (estPieceDynamiqueLot(roomId)) return { type: 'titulaire_murs' };
   return { type: 'municipal', pays: country || 'republic', ville: city || 'capitale' };
 }
 
