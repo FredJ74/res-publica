@@ -3521,11 +3521,15 @@ function doSocieteEcran() {
 // SYSTEME DE CONSTRUCTION (sur un terrain deja achete avec permis)
 // =====================
 const PRIX_TERRAIN = 25000;
+// Lot 1.5.7 : `cout` n'est plus une table autonome. Il est DERIVE de coutTotalConstruction
+// (plateau-chantiers.js, charge avant ce fichier), seule source de verite des durees et des couts.
+// L'ancien bareme (30/50/70/100 k) devient 30/60/90/120 k, conformement a la regle "un jour
+// theorique = 5 000 FR". Deux tables ne pouvaient pas coexister sans finir par diverger.
 const NIVEAUX_CONSTRUCTION = {
-  hangar:            { label: 'Hangar',             cout: 30000,  imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hangar-construction-terrain.png' },
-  commerce_standard: { label: 'Commerce standard',  cout: 50000,  imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commerce-standard-construction-terrain.png' },
-  commerce_premium:  { label: 'Commerce premium',   cout: 70000,  imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commerce-premium-construction-terrain.png' },
-  building:          { label: 'Building',           cout: 100000, imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/building-construction-terrain.png' }
+  hangar:            { label: 'Hangar',             cout: coutTotalConstruction('hangar'),            imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/hangar-construction-terrain.png' },
+  commerce_standard: { label: 'Commerce standard',  cout: coutTotalConstruction('commerce_standard'), imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commerce-standard-construction-terrain.png' },
+  commerce_premium:  { label: 'Commerce premium',   cout: coutTotalConstruction('commerce_premium'),  imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/commerce-premium-construction-terrain.png' },
+  building:          { label: 'Building',           cout: coutTotalConstruction('building'),          imageUrl: 'https://raw.githubusercontent.com/FredJ74/res-publica/main/images/building-construction-terrain.png' }
 };
 
 // Zonage fixe par ville — verrouille des la conception, pour que la justice ait un critere
@@ -5885,13 +5889,22 @@ async function ouvrirModalConstruire() {
     showToast('Chantier en cours', 'Un chantier est déjà en cours sur ce terrain.', false);
     return;
   }
+  // Lot 1.5.7 : cadavre / squatteurs. On ne reinvente aucune regle -- on interroge le contrat
+  // existant terrainOrdreDisponible (plateau-pnj.js), deja utilise par le compromis et l'achat,
+  // en lui ajoutant simplement 'construire_sur_terrain' a ses listes de blocage.
+  const dispoChantier = (typeof terrainOrdreDisponible === 'function')
+    ? terrainOrdreDisponible('construire_sur_terrain', id) : { ok: true };
+  if (!dispoChantier.ok) { showToast('Impossible', dispoChantier.raison, false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Construire sur ce terrain';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le type de construction. Le coût s\'ajoute à la valeur de votre terrain (' + PRIX_TERRAIN.toLocaleString('fr-FR') + ' ' + cur + ').</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le type de construction. Vous versez librement ce que vous voulez dans la trésorerie du chantier, au minimum 35 % pour le lancer, et vous complétez ensuite à votre rythme : 70 % pour franchir le premier tiers, 100 % pour les deux tiers.</div>';
   Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
     html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
-    html += '<div><div style="font-size:.85rem;color:#c0b090">' + niv.label + '</div><div style="font-size:.68rem;color:#6a5a30">' + niv.cout.toLocaleString('fr-FR') + ' ' + cur + '</div></div>';
+    const mini = montantMinimalLancement(niv.cout);
+    html += '<div><div style="font-size:.85rem;color:#c0b090">' + niv.label + '</div>'
+         + '<div style="font-size:.68rem;color:#6a5a30">' + niv.cout.toLocaleString('fr-FR') + ' ' + cur
+         + ' · ' + dureeConstruction(key) + ' jours · apport minimum ' + mini.toLocaleString('fr-FR') + ' ' + cur + ' (35 %)</div></div>';
     html += '<button onclick="confirmerConstruction(&quot;' + key + '&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Construire</button>';
     html += '</div>';
   });
@@ -5901,87 +5914,100 @@ async function ouvrirModalConstruire() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// Duree de chantier (jours) par niveau — nombres pairs pour un vrai palier de mi-chantier.
-const DUREE_CHANTIER_JOURS = { hangar: 6, commerce_standard: 12, commerce_premium: 18, building: 24 };
+// Lot 1.5.7 : DUREE_CHANTIER_JOURS a ete retiree. Les durees sont portees par
+// DUREES_CONSTRUCTION / dureeConstruction (plateau-chantiers.js), avec les couts et les seuils --
+// une seule table, jamais deux.
 
 async function confirmerConstruction(niveauKey) {
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Construire ici')) return;
-  const niveau = NIVEAUX_CONSTRUCTION[niveauKey];
+  const ts = getTerrainState(id);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (!niveau) return;
+  if (ts.chantier) { showToast('Chantier en cours', 'Un chantier est déjà en cours sur ce terrain.', false); return; }
 
-  const dureeJours = DUREE_CHANTIER_JOURS[niveauKey] || 6;
-  const montant35 = Math.round(niveau.cout * 0.35);
-  const montant30 = niveau.cout - 2 * montant35; // reste, evite les arrondis qui derapent
+  // Cadavre / squatteurs : meme contrat que l'ecran, revalide ici -- l'ecran n'est qu'une
+  // anticipation, contournable par un appel direct (meme doctrine qu'au Lot 1.2).
+  const dispo = (typeof terrainOrdreDisponible === 'function')
+    ? terrainOrdreDisponible('construire_sur_terrain', id) : { ok: true };
+  if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
 
-  if (state.arg < montant35) {
-    showToast('Fonds insuffisants', montant35.toLocaleString('fr-FR') + ' ' + cur + ' requis pour le premier versement (35%). Pensez au prêt de construction.', false);
+  // PERMIS EXACT : le permis accorde doit porter sur CE palier. constructionAutorisee seule ne
+  // suffit pas -- elle ne dit pas pour quel type de construction l'autorisation a ete donnee.
+  if (!ts.constructionAutorisee) { showToast('Permis requis', "La construction n'est pas autorisée sur ce terrain.", false); return; }
+  const palierAccorde = ts.permis && ts.permis.palierDemande;
+  if (palierAccorde && palierAccorde !== niveauKey) {
+    showToast('Permis non conforme',
+      'Votre permis porte sur « ' + (NIVEAUX_CONSTRUCTION[palierAccorde]?.label || palierAccorde) + ' », pas sur ce projet.', false);
     return;
   }
 
-  state.arg -= montant35;
-  const maintenant = Date.now();
-  const dateFinTheorique = maintenant + dureeJours * 86400000;
+  // Chantier dimensionne et FIGE au lancement (plateau-chantiers.js).
+  let chantier = creerChantierConstruction(niveauKey, state.day || 1);
+  if (!chantier) { showToast('Projet inconnu', '', false); return; }
 
-  const nouvelEtat = setTerrainState(id, {
-    chantier: {
-      niveau: niveauKey,
-      dureeJours: dureeJours,
-      dateDebut: maintenant,
-      dateFinTheorique: dateFinTheorique, // fixe — reference pour le demarrage du remboursement du pret
-      dateFinPrevue: dateFinTheorique,     // evolue avec les aleas/corruption
-      montantTotal: niveau.cout,
-      montant35: montant35,
-      montant30: montant30,
-      palierPaye: 1,
-      enAttentePaiement: false,
-      joursImpayes: 0,
-      evenements: []
-    }
-  });
-
-  if (typeof sbSetTerrainState === 'function') {
-    await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+  // Apport initial LIBRE, au minimum 35 % du cout total. Aucun echeancier : le proprietaire peut
+  // verser davantage, jusqu'a 100 % des maintenant, et completera ensuite a son rythme.
+  const mini = montantMinimalLancement(chantier.coutTotal);
+  const saisi = parseInt(document.getElementById('chantier-apport')?.value || 0);
+  const apport = (saisi && saisi > 0) ? saisi : mini;
+  if (apport < mini) {
+    showToast('Apport insuffisant', 'Il faut verser au moins ' + mini.toLocaleString('fr-FR') + ' ' + cur + ' (35 %) pour lancer ce chantier.', false);
+    return;
+  }
+  const fonds = (typeof getFondsDisponiblesOrdinaires === 'function') ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (fonds < apport) {
+    showToast('Fonds insuffisants', apport.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
+    return;
   }
 
-  document.getElementById('modal-postes').classList.remove('open');
+  // Lancement a 0 PA (l'ordre le declare deja), le cout est l'apport lui-meme.
+  const r = await deduireCoutOrdre({ pa: 0, cost: apport });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  chantier = verserAuChantier(chantier, apport);
+  const nouvelEtat = setTerrainState(id, { chantier: chantier });
+  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  const dateTxt = new Date(dateFinTheorique).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-  addJournalEntry('Chantier démarré : ' + niveau.label + '. Premier versement (35%, ' + montant35.toLocaleString('fr-FR') + ' ' + cur + ') payé. Livraison prévue le ' + dateTxt + '.', 'event-good');
-  showToast('Chantier démarré !', 'Livraison prévue le ' + dateTxt + '.', true, true);
+  const pct = Math.floor(chantier.totalVerse * 100 / chantier.coutTotal);
+  addJournalEntry('Chantier ouvert : ' + NIVEAUX_CONSTRUCTION[niveauKey].label + '. Apport de '
+    + apport.toLocaleString('fr-FR') + ' ' + cur + ' (' + pct + ' % du coût). Durée théorique : '
+    + chantier.dureeJours + ' jours de travail effectif.', 'event-good');
+  showToast('Chantier ouvert !', chantier.dureeJours + ' jours de travail à financer et à réaliser.', true, true);
 }
 
+// Apport libre a tout moment : n'importe quel montant positif, autant de fois qu'on veut.
+// Remplace l'ancien "payer le versement du palier" : il n'existe plus de versement impose.
 async function doPayerVersementChantier() {
   const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Payer le versement')) return;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Financer le chantier')) return;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const ch = ts.chantier;
+  if (!ch) { showToast('Aucun chantier', "Aucun chantier en cours sur ce terrain.", false); return; }
 
-  if (!ch || !ch.enAttentePaiement) {
-    showToast('Rien à payer', "Aucun versement n'est en attente sur ce chantier.", false);
-    return;
-  }
+  const saisi = parseInt(document.getElementById('chantier-versement')?.value || 0);
+  const restant = Math.max(0, ch.coutTotal - ch.totalVerse);
+  const montant = (saisi && saisi > 0) ? saisi : restant;
+  if (montant <= 0) { showToast('Déjà financé', 'Ce chantier est intégralement financé.', false); return; }
 
-  const montantDu = ch.palierPaye === 1 ? ch.montant35 : ch.montant30;
-  if (state.arg < montantDu) {
-    showToast('Fonds insuffisants', montantDu.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
-    return;
-  }
+  const fonds = (typeof getFondsDisponiblesOrdinaires === 'function') ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (fonds < montant) { showToast('Fonds insuffisants', montant.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
 
-  state.arg -= montantDu;
-  ch.palierPaye += 1;
-  ch.enAttentePaiement = false;
-  ch.joursImpayes = 0;
+  const r = await deduireCoutOrdre({ pa: 0, cost: montant });
+  if (!r.ok) { signalerRefusCout(r); return; }
 
-  const nouvelEtat = setTerrainState(id, { chantier: ch });
+  const maj = verserAuChantier(ch, montant);
+  const nouvelEtat = setTerrainState(id, { chantier: maj });
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
 
   updateUI();
-  addJournalEntry('Versement de chantier payé (' + montantDu.toLocaleString('fr-FR') + ' ' + cur + '). Le chantier reprend.', 'event-good');
-  showToast('Versement payé !', 'Le chantier reprend.', true);
+  const pct = Math.floor(maj.totalVerse * 100 / maj.coutTotal);
+  addJournalEntry('Chantier financé : +' + montant.toLocaleString('fr-FR') + ' ' + cur
+    + ' (total versé : ' + pct + ' %).', 'event-good');
+  showToast('Versement effectué', 'Financement cumulé : ' + pct + ' %.', true);
 }
 
 async function doCorrompreChantier(pa, cost) {
@@ -5993,23 +6019,32 @@ async function doCorrompreChantier(pa, cost) {
   const ch = ts.chantier;
 
   if (!ch) { showToast('Impossible', "Aucun chantier en cours ici.", false); return; }
-  if (ch.enAttentePaiement) { showToast('Impossible', 'Un versement est en attente — payez-le avant d\'accélérer.', false); return; }
+  // Lot 1.5.7 : il n'existe plus de "versement en attente" -- le financement est libre. La seule
+  // limite reste le plafond finance, applique plus bas par progressionAutorisee.
+  if (!peutProgresser(ch.totalVerse, ch.progressionJours, ch.dureeJours, ch.coutTotal)) {
+    showToast('Financement insuffisant', 'Complétez le financement avant d\'accélérer le chantier.', false); return;
+  }
 
-  const maintenant = Date.now();
-  const restant = ch.dateFinPrevue - maintenant;
-  if (restant <= 0) { showToast('Inutile', 'Le chantier est déjà arrivé à échéance.', false); return; }
+  // Lot 1.5.7 : dateFinPrevue n'existe plus -- la progression est la seule verite. L'ancien effet
+  // "diviser par deux le temps restant" se traduit fidelement par "avancer de la moitie du travail
+  // restant", plafonne par le financement comme n'importe quelle progression. Aucune faveur : la
+  // corruption ne permet pas de franchir un seuil non finance.
+  const restantJours = Math.max(0, ch.dureeJours - ch.progressionJours);
+  if (restantJours <= 0) { showToast('Inutile', 'Le chantier est déjà arrivé à son terme.', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  ch.dateFinPrevue = maintenant + Math.floor(restant / 2);
+  const gain = progressionAutorisee(ch.progressionJours, restantJours / 2, ch.totalVerse, ch.dureeJours, ch.coutTotal);
+  ch.progressionJours = Math.min(ch.dureeJours, ch.progressionJours + gain);
 
   const nouvelEtat = setTerrainState(id, { chantier: ch });
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
 
-  const dateTxt = new Date(ch.dateFinPrevue).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
   updateUI();
-  addJournalEntry('Chantier accéléré par corruption (-' + cost + ' ' + cur + '). Nouvelle livraison prévue le ' + dateTxt + '.', 'event-info');
-  showToast('Chantier accéléré', 'Nouvelle livraison : ' + dateTxt + '.', true);
+  const reste = Math.max(0, ch.dureeJours - ch.progressionJours);
+  addJournalEntry('Chantier accéléré par corruption (-' + cost + ' ' + cur + '). Avancement : '
+    + ch.progressionJours.toFixed(1) + ' / ' + ch.dureeJours + ' jours.', 'event-info');
+  showToast('Chantier accéléré', reste.toFixed(1) + ' jours de travail restants.', true);
 }
 
 // =====================
@@ -9624,7 +9659,9 @@ async function doVolerMaterielChantier(pa, cost) {
   const roll = Math.floor(Math.random() * 100) + 1;
 
   if (roll <= taux) {
-    const montant = Math.floor(ts.chantier.montantTotal * 0.10);
+    // Lot 1.5.7 : montantTotal etait un champ de l'ancien moteur, disparu avec lui -- il valait
+    // desormais undefined, donc le butin valait NaN. Le cout total fige au lancement le remplace.
+    const montant = Math.floor((Number(ts.chantier.coutTotal) || 0) * 0.10);
     const estAutoVol = estTitulaire(ts.proprietaire);
 
     state.arg = (state.arg || 0) + montant;
@@ -9636,7 +9673,12 @@ async function doVolerMaterielChantier(pa, cost) {
       if (proprio) await sbUpdate('personnages', `name=eq.${encodeURIComponent(ts.proprietaire)}`, { arg: (proprio.arg || 0) - montant }).catch(() => {});
     }
 
-    ts.chantier.dateFinPrevue += 2 * 86400000;
+    // Lot 1.5.7 : l'ancien effet "+2 jours de calendrier" est SUPPRIME, et n'est traduit par aucune
+    // perte artificielle de progression. Un vol ne fait pas reculer un travail deja accompli.
+    // Au Lot 1.5.8 il retirera une quantite REELLE de chantier.stockMateriaux, remise au voleur ;
+    // si ce prelevement cree une insuffisance, le chantier ralentira ou s'arretera de lui-meme par
+    // le moteur de disponibilite reelle (fractionMateriaux), sans qu'aucun retard soit inflige ici.
+    // progressionJours n'est donc PAS touche par ce mecanisme.
     if (typeof modifierIndiceVille === 'function') modifierIndiceVille(pays, ville, 'social', -1);
     if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
       INDICES_NATIONAUX[pays].IS = Math.max(0, (INDICES_NATIONAUX[pays].IS || 45) - 1);

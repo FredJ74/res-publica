@@ -365,3 +365,119 @@ function coutTravailReamenagement(surfaceConcernee) {
 function heuresTotalesReamenagement(surfaceConcernee) {
   return heuresPourCoutTravail(coutTravailReamenagement(surfaceConcernee));
 }
+
+// ---------------------------------------------------------------------------
+// CYCLE DE VIE D'UN CHANTIER (Lot 1.5.7)
+// ---------------------------------------------------------------------------
+// Structure generique unique, partagee a terme par 'construction' et 'reamenagement'. Toujours
+// pure : ces fonctions fabriquent ou transforment un objet, elles n'ecrivent nulle part.
+
+// SNAPSHOT DE LANCEMENT. dureeJours, coutTotal, coutMateriaux, coutTravail et heuresTotales sont
+// figes ici et ne sont JAMAIS recalcules ensuite : faire evoluer une constante ne doit pas
+// modifier retroactivement un chantier deja commence.
+function creerChantierConstruction(palier, jour) {
+  const duree = dureeConstruction(palier);
+  if (duree <= 0) return null;                       // palier inconnu : aucun chantier
+  const coutTotal = coutTotalConstruction(palier);
+  return {
+    type: 'construction',
+    niveau: palier,
+    jourDebut: Math.max(0, Math.floor(nombreFini(jour, 0))),
+
+    // --- dimensionnement fige
+    dureeJours: duree,
+    coutTotal: coutTotal,
+    coutMateriaux: coutMateriauxDe(coutTotal),
+    coutTravail: coutTravailDe(coutTotal),
+    heuresTotales: heuresPourCoutTravail(coutTravailDe(coutTotal)),
+
+    // --- economie
+    totalVerse: 0,                                   // cumul des apports, jamais decremente
+    tresorerie: 0,                                   // argent encore present dans le chantier
+    stockMateriaux: { bois: 0, minerai: 0, metal: 0 },
+
+    // --- avancement
+    heuresFaites: 0,
+    jourTraite: null,                                // marqueur anti-double-traitement quotidien
+    progressionJours: 0,                             // SEULE verite d'avancement
+    arrete: null,                                    // null | 'financement' | 'penurie_materiaux'
+
+    // --- journaux
+    evenements: [],
+    travauxPJ: [],
+    ventesMateriauxPJ: []
+  };
+}
+
+// Apport libre du proprietaire. Aucun echeancier : n'importe quel montant positif, autant de fois
+// qu'on veut, y compris 100 % des le premier jour. Renvoie un NOUVEAU chantier.
+function verserAuChantier(chantier, montant) {
+  if (!chantier) return chantier;
+  const m = Math.max(0, nombreFini(montant, 0));
+  if (m <= 0) return chantier;
+  const maj = Object.assign({}, chantier);
+  maj.totalVerse = Math.max(0, nombreFini(chantier.totalVerse, 0)) + m;
+  maj.tresorerie = Math.max(0, nombreFini(chantier.tresorerie, 0)) + m;
+  return maj;
+}
+
+// Le chantier peut-il DEMARRER ? Seule condition financiere : 35 % du cout total deja verses.
+// Les conditions non financieres (propriete, permis, cadavre, squatteurs) restent portees par
+// leurs mecanismes existants -- ce module ne les connait pas.
+function financementSuffisantPourLancer(coutTotal, totalVerse) {
+  const total = Math.max(0, nombreFini(coutTotal, 0));
+  const verse = Math.max(0, nombreFini(totalVerse, 0));
+  if (total <= 0) return true;
+  return verse * 100 >= SEUILS_FINANCEMENT_CONSTRUCTION.demarrage * total;
+}
+
+function montantMinimalLancement(coutTotal) {
+  return Math.ceil(Math.max(0, nombreFini(coutTotal, 0)) * SEUILS_FINANCEMENT_CONSTRUCTION.demarrage / 100);
+}
+
+// TRANSITION PROVISOIRE DU LOT 1.5.7 -- A REMPLACER.
+// Les materiaux reels (Lot 1.5.8) et le travail reel (Lot 1.5.9) ne sont pas encore branches. En
+// leur absence, la capacite du jour est reputee COMPLETE : fractions travail et materiaux a 1.
+// C'est le SEUL endroit ou cette hypothese est faite, et elle est volontairement isolee dans une
+// fonction dediee pour qu'il suffise de la remplacer -- jamais une seconde logique de progression.
+// La progression passe deja par les fonctions generiques : seules les deux fractions sont
+// provisoirement forcees.
+function capaciteProvisoireCompleteLot157() {
+  return { fractionTravail: 1, fractionMateriaux: 1, provisoire: true };
+}
+
+// AVANCEE D'UNE JOURNEE. Pure : renvoie un nouveau chantier et un verdict, n'ecrit rien.
+// La progression n'est jamais deduite du calendrier : elle vaut min(fractions), puis est plafonnee
+// par le financement cumule, puis par la duree theorique. Un seuil ne peut donc jamais etre
+// franchi sans le financement requis.
+function avancerChantierUnJour(chantier, capacite) {
+  if (!chantier) return { chantier: chantier, avance: 0, arrete: 'chantier_absent', verrouAtteint: null };
+  const cap = capacite || capaciteProvisoireCompleteLot157();
+  const avant = Math.max(0, nombreFini(chantier.progressionJours, 0));
+  const duree = Math.max(0, nombreFini(chantier.dureeJours, 0));
+
+  const brut = progressionDuJour(cap.fractionTravail, cap.fractionMateriaux);
+  const autorisee = progressionAutorisee(avant, brut, chantier.totalVerse, duree, chantier.coutTotal);
+  const apres = Math.min(duree, avant + autorisee);   // jamais au-dela du terme
+  const gain = Math.max(0, apres - avant);
+
+  let arrete = null;
+  if (gain <= 0 && avant < duree) {
+    // Distinguer la cause : financement insuffisant, ou capacite du jour nulle.
+    arrete = peutProgresser(chantier.totalVerse, avant, duree, chantier.coutTotal)
+      ? 'capacite' : 'financement';
+  }
+
+  const maj = Object.assign({}, chantier);
+  maj.progressionJours = apres;
+  maj.arrete = arrete;
+
+  return {
+    chantier: maj,
+    avance: gain,
+    arrete: arrete,
+    termine: duree > 0 && apres >= duree,
+    franchitPremierTiers: franchitPremierTiers(avant, apres, duree),
+    franchitDeuxTiers: franchitDeuxTiers(avant, apres, duree)
+  };
+}

@@ -3433,13 +3433,19 @@ function terrainOrdreDisponible(fn, buildingId) {
 
   // Ordres bloqués si cadavre présent
   if (pnj === 'cadavre') {
-    const bloques = ['signer_compromis', 'permis_construire', 'permis_corrompu', 'acheter_terrain'];
+    // Lot 1.5.7 : 'construire_sur_terrain' rejoint la liste -- on ne lance pas un chantier sur un
+    // terrain ou gît un cadavre non resolu. Meme contrat, meme message, aucune regle nouvelle.
+    const bloques = ['signer_compromis', 'permis_construire', 'permis_corrompu', 'acheter_terrain', 'construire_sur_terrain'];
     if (bloques.includes(fn)) return { ok: false, raison: 'Un cadavre bloque les démarches administratives. Résolvez la situation d\'abord.' };
   }
 
   // Ordres bloqués si squatteurs présents
   if (pnj === 'squatter_agr' || pnj === 'squatter_cool') {
-    if (fn === 'signer_compromis') return { ok: false, raison: 'Des squatteurs occupent le terrain. Faites intervenir la police ou négociez leur départ.' };
+    // Lot 1.5.7 : le lancement d'un chantier rejoint le compromis -- des squatteurs sur place
+    // empechent d'ouvrir le chantier. Meme message que l'existant.
+    if (fn === 'signer_compromis' || fn === 'construire_sur_terrain') {
+      return { ok: false, raison: 'Des squatteurs occupent le terrain. Faites intervenir la police ou négociez leur départ.' };
+    }
   }
 
   // Ordre cadavre seulement si cadavre présent

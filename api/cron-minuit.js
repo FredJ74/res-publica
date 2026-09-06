@@ -908,11 +908,39 @@ const ALEAS_CHANTIER = [
 // gere les impayes (relance J+2, perte de l'acompte + recul d'un palier a J+3), tire les
 // aleas (intemperies/canicule pour l'instant), et livre le batiment quand tout est paye et
 // la date de fin prevue atteinte.
+// MOTEUR DE CHANTIER — PROGRESSION EFFECTIVE (Lot 1.5.7)
+// Remplace integralement l'ancien moteur calendaire (dateFinPrevue / palierPaye / versements
+// imposes) : il n'existe plus qu'UN seul moteur, celui-ci. La progression n'est jamais deduite
+// d'une duree ecoulee ; le calendrier ne sert qu'a savoir qu'une nouvelle journee doit etre
+// traitee (marqueur jourTraite, meme doctrine anti-rejeu que jourPaiement au Lot 1.4).
+//
+// DUPLICATION ASSUMEE ET VERROUILLEE PAR TEST : ce fichier est un module serverless isole, il ne
+// peut pas charger plateau-chantiers.js (script classique du navigateur). Les quelques formules
+// necessaires sont donc reecrites ici -- meme convention que sbGet/sbInsert, deja dupliques. Un
+// test compare les DEUX implementations sur les memes entrees et echoue a la moindre divergence.
+const CHANTIER_SEUILS_SERVEUR = { demarrage: 35, premierTiers: 70, deuxTiers: 100 };
+
+function progressionMaxFinanceeServeur(totalVerse, dureeJours, coutTotal) {
+  const d = Number(dureeJours) || 0, total = Number(coutTotal) || 0, verse = Math.max(0, Number(totalVerse) || 0);
+  if (d <= 0) return 0;
+  if (total <= 0) return d;
+  if (verse * 100 >= CHANTIER_SEUILS_SERVEUR.deuxTiers * total) return d;
+  if (verse * 100 >= CHANTIER_SEUILS_SERVEUR.premierTiers * total) return d * 2 / 3;
+  if (verse * 100 >= CHANTIER_SEUILS_SERVEUR.demarrage * total) return d / 3;
+  return 0;
+}
+
+// TRANSITION PROVISOIRE DU LOT 1.5.7, a remplacer aux Lots 1.5.8 (materiaux) et 1.5.9 (travail) :
+// en l'absence de ces sous-systemes, la capacite du jour est reputee complete. Isolee ici, comme
+// capaciteProvisoireCompleteLot157 cote client.
+function capaciteProvisoireCompleteServeur() { return { fractionTravail: 1, fractionMateriaux: 1 }; }
+
 async function avancerChantiersQuotidien() {
-  const resultats = { livraisons: 0, impayes: 0, expulsions_palier: 0, aleas: 0 };
+  const resultats = { livraisons: 0, avances: 0, bloques_financement: 0, ignores: 0, erreurs: 0 };
   try {
     const terrains = await sbGet('terrains_etat', '');
     if (!terrains) return resultats;
+    const jour = new Date().toISOString().slice(0, 10);
 
     for (const row of terrains) {
       let etat;
@@ -920,88 +948,72 @@ async function avancerChantiersQuotidien() {
       const ch = etat.chantier;
       if (!ch) continue;
 
-      const maintenant = Date.now();
-      const cur = 'FR';
-      let modifie = true;
+      // LECTURE DEFENSIVE DES CHANTIERS ANCIENS. Un chantier de l'ancien moteur n'a ni type ni
+      // progressionJours. On ne lui INVENTE aucune progression a partir de son calendrier : il est
+      // repris a 0 jour de travail effectif, avec ses versements deja faits convertis en
+      // totalVerse. Aucun chantier de ce genre n'existe en production (verifie), cette branche est
+      // un filet de securite.
+      if (!ch.type) {
+        const verseAncien = (Number(ch.montant35) || 0) * Math.max(0, (Number(ch.palierPaye) || 1));
+        etat.chantier = {
+          type: 'construction', niveau: ch.niveau,
+          jourDebut: 0,
+          dureeJours: Number(ch.dureeJours) || 0,
+          coutTotal: Number(ch.montantTotal) || 0,
+          totalVerse: Math.min(verseAncien, Number(ch.montantTotal) || 0),
+          tresorerie: 0, stockMateriaux: { bois: 0, minerai: 0, metal: 0 },
+          heuresFaites: 0, jourTraite: null, progressionJours: 0, arrete: null,
+          evenements: [{ cle: 'reprise_ancien_moteur', jour: jour }],
+          travauxPJ: [], ventesMateriauxPJ: []
+        };
+        await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`,
+          { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
+        resultats.ignores++;
+        continue;                                    // reprise le lendemain, jamais d'avance le jour de la migration
+      }
 
-      if (ch.enAttentePaiement) {
-        ch.joursImpayes = (ch.joursImpayes || 0) + 1;
+      if (ch.jourTraite === jour) { resultats.ignores++; continue; }   // anti-rejeu quotidien
 
-        if (ch.joursImpayes === 2) {
-          const montantDu = ch.palierPaye === 1 ? ch.montant35 : ch.montant30;
-          await sbInsert('mails', {
-            destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-            sujet: 'Relance — versement impayé',
-            corps: 'Dernier rappel : le versement de ' + montantDu + ' ' + cur + ' n\'est toujours pas réglé. Sans paiement demain, le chantier régressera et l\'acompte déjà versé pour ce palier sera perdu.',
-            archived: false
-          }).catch(() => {});
-        } else if (ch.joursImpayes >= 3) {
-          ch.palierPaye = Math.max(1, ch.palierPaye - 1);
-          ch.dateFinPrevue += 3 * 86400000;
-          ch.enAttentePaiement = false;
-          ch.joursImpayes = 0;
-          resultats.expulsions_palier++;
-          await sbInsert('mails', {
-            destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-            sujet: 'Chantier régressé — acompte perdu',
-            corps: 'Faute de paiement, le chantier a régressé d\'un palier. L\'acompte déjà versé pour ce palier est perdu. Il faudra le repayer pour reprendre les travaux.',
-            archived: false
-          }).catch(() => {});
-        }
-      } else if (ch.palierPaye === 1 && maintenant >= ch.dateDebut + Math.floor(ch.dureeJours / 2) * 86400000) {
-        ch.enAttentePaiement = true;
-        ch.joursImpayes = 0;
+      const duree = Number(ch.dureeJours) || 0;
+      const avant = Math.max(0, Number(ch.progressionJours) || 0);
+      const cap = capaciteProvisoireCompleteServeur();
+      const brut = Math.min(cap.fractionTravail, cap.fractionMateriaux);   // progression du jour, 0..1
+      const plafond = progressionMaxFinanceeServeur(ch.totalVerse, duree, ch.coutTotal);
+      const apres = Math.min(duree, Math.max(avant, Math.min(avant + brut, plafond)));
+      const gain = apres - avant;
+
+      ch.progressionJours = apres;
+      ch.jourTraite = jour;
+      ch.arrete = (gain <= 0 && avant < duree) ? 'financement' : null;
+
+      if (gain > 0) resultats.avances++;
+      else if (avant < duree) {
+        resultats.bloques_financement++;
+        const manque = Math.max(0, Math.ceil(ch.coutTotal * (avant < duree / 3 ? 35 : avant < duree * 2 / 3 ? 70 : 100) / 100) - (Number(ch.totalVerse) || 0));
         await sbInsert('mails', {
           destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-          sujet: 'Versement de mi-chantier dû',
-          corps: 'Le chantier a atteint la moitié de son avancement. Un versement de ' + ch.montant35 + ' ' + cur + ' est attendu pour continuer.',
+          sujet: 'Chantier a l\'arret — financement',
+          corps: 'Les travaux sont a l\'arret faute de financement. Il manque ' + manque + ' FR pour reprendre.',
           archived: false
         }).catch(() => {});
-      } else if (ch.palierPaye === 2 && maintenant >= ch.dateFinPrevue) {
-        ch.enAttentePaiement = true;
-        ch.joursImpayes = 0;
-        await sbInsert('mails', {
-          destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-          sujet: 'Solde du chantier dû',
-          corps: 'Le chantier est prêt à être livré. Le solde de ' + ch.montant30 + ' ' + cur + ' est attendu pour la remise des clés.',
-          archived: false
-        }).catch(() => {});
-      } else if (ch.palierPaye >= 3 && maintenant >= ch.dateFinPrevue) {
-        // Livraison
-        const niveau = NIVEAUX_CONSTRUCTION_SERVEUR[ch.niveau];
-        etat.niveau_construction = ch.niveau;
-        etat.constructionAutorisee = true;
-        delete etat.chantier;
+      }
+
+      // LIVRAISON : la structure finale (Lot 1.5.11) n'est pas dans ce lot. On se contente de
+      // constater le terme et de le journaliser -- aucun batiment n'est livre ici.
+      if (duree > 0 && apres >= duree && !ch.termineSignale) {
+        ch.termineSignale = true;
         resultats.livraisons++;
         await sbInsert('mails', {
           destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-          sujet: 'Chantier livré !',
-          corps: 'Le chantier est terminé : ' + (niveau ? niveau.label : ch.niveau) + ' livré. Les clés vous attendent sur place.',
+          sujet: 'Travaux acheves',
+          corps: 'Les travaux sont acheves. La remise des cles sera traitee prochainement.',
           archived: false
         }).catch(() => {});
-        await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
-        continue;
-      } else if (Math.random() < 0.08) {
-        const alea = ALEAS_CHANTIER[Math.floor(Math.random() * ALEAS_CHANTIER.length)];
-        const joursAjoutes = 1 + Math.floor(Math.random() * 2);
-        ch.dateFinPrevue += joursAjoutes * 86400000;
-        ch.evenements = ch.evenements || [];
-        ch.evenements.push({ cle: alea.cle, date: maintenant, joursAjoutes });
-        resultats.aleas++;
-        await sbInsert('mails', {
-          destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-          sujet: 'Retard de chantier',
-          corps: alea.texte + ' Retard : +' + joursAjoutes + ' jour(s).',
-          archived: false
-        }).catch(() => {});
-      } else {
-        modifie = false;
       }
 
-      if (modifie) {
-        etat.chantier = ch;
-        await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
-      }
+      etat.chantier = ch;
+      await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`,
+        { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
     }
   } catch(e) { console.error('avancerChantiersQuotidien error', e); }
   return resultats;
