@@ -6298,37 +6298,56 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
   }
   const decoupageInitial = snapshotPlanPermis(planCandidat);
 
+  // Lot 1.5.5 : l'archive municipale est la source historique OFFICIELLE. Un depot ne peut donc
+  // pas etre repute traite si elle n'a pas ete ecrite. On archive AVANT de prelever le cout et
+  // AVANT d'ecrire le permis : si l'archivage echoue, rien ne se passe du tout -- aucun cout, aucun
+  // permis, aucun document -- et le joueur peut simplement recommencer.
+  //
+  // Pre-controle du cout avant l'archivage (jamais un prelevement) : deduireCoutOrdre est la seule
+  // primitive atomique de debit, mais elle n'a pas d'inverse. Verifier d'abord la disponibilite
+  // reduit a une course impossible en pratique le cas "archive ecrite, cout refuse", qui laisserait
+  // une ligne d'archive sans permis. L'append-only rend cette ligne inoffensive, mais autant ne
+  // jamais la produire.
+  const paDispo = TEST_MODE || (state.pa || 0) >= (pa || 0);
+  const fondsDispo = (cost || 0) <= 0
+    || (typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() >= cost : true);
+  if (!paDispo || !fondsDispo) {
+    signalerRefusCout({ ok: false, raison: paDispo ? 'fonds_insuffisants' : 'pa_insuffisants', pa, cost });
+    return;
+  }
+
+  const permisACreer = {
+    demandeur: state.char?.name,
+    palierDemande,
+    dateDepot: jour,
+    dureeInstruction: duree,
+    dateInstructionTerminee: jour + duree,
+    statut: 'instruction',
+    // Numero de dossier fige au depot : identite de ce dossier d'urbanisme, reprise par
+    // l'historique municipal et par les documents delivres.
+    numeroDossier: numeroDossierUrbanisme(state.country, id, Date.now()),
+    // SNAPSHOT du decoupage demande. Tableau vide = permis sans decoupage, cas parfaitement
+    // legitime (le batiment sera alors livre indivis). Ce plan n'est PAS ecrit dans
+    // ts.subdivisions : les lots ne naitront qu'a la livraison du chantier -- sans quoi le Lot
+    // 1.1 hydraterait des pieces louables dans un batiment qui n'existe pas encore.
+    decoupageInitial: decoupageInitial
+  };
+
+  const emis = (typeof emettreDocumentUrbanisme === 'function')
+    ? await emettreDocumentUrbanisme({ ...ts, city: ts.city || state.currentCity }, permisACreer, 'depot',
+        { buildingId: id, pays: state.country, ville: ts.city || state.currentCity, jour: jour })
+    : null;
+  if (!emis) {
+    showToast('Dépôt impossible', "Les archives municipales n'ont pas pu enregistrer votre demande. Aucun frais n'a été prélevé — réessayez.", false);
+    return;
+  }
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  const nouvelEtat = setTerrainState(id, {
-    permis: {
-      demandeur: state.char?.name,
-      palierDemande,
-      dateDepot: jour,
-      dureeInstruction: duree,
-      dateInstructionTerminee: jour + duree,
-      statut: 'instruction',
-      // Numero de dossier fige au depot : identite de ce dossier d'urbanisme, reprise plus tard
-      // par l'historique municipal et par les documents delivres.
-      numeroDossier: numeroDossierUrbanisme(state.country, id, Date.now()),
-      // SNAPSHOT du decoupage demande. Tableau vide = permis sans decoupage, cas parfaitement
-      // legitime (le batiment sera alors livre indivis). Ce plan n'est PAS ecrit dans
-      // ts.subdivisions : les lots ne naitront qu'a la livraison du chantier -- sans quoi le Lot
-      // 1.1 hydraterait des pieces louables dans un batiment qui n'existe pas encore.
-      decoupageInitial: decoupageInitial
-    }
-  });
+  const nouvelEtat = setTerrainState(id, { permis: permisACreer });
   _planPermisEnCours = { palier: null, lots: [] };   // brouillon consomme
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
-
-  // Lot 1.5.3 : recepisse de depot, remis immediatement et quelle que soit la decision a venir.
-  // Emis APRES la persistance : le document n'est qu'un souvenir, jamais une condition du dossier
-  // -- un echec de delivrance ne doit pas empecher le permis d'exister.
-  if (typeof emettreDocumentUrbanisme === 'function') {
-    await emettreDocumentUrbanisme(nouvelEtat, nouvelEtat.permis, 'depot',
-      { buildingId: id, pays: state.country, ville: nouvelEtat.city || state.currentCity, jour: jour }).catch(() => {});
-  }
 
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Demande déposée', 'Instruction en cours (' + duree + ' jour(s)).', true, true);
@@ -6424,6 +6443,32 @@ async function traiterPermis(buildingId, valide, pa, cost) {
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', buildingId, 'Traiter ce permis')) return;
   const etat = await sbGetTerrainState(state.country, buildingId).catch(() => null);
   if (!etat?.permis) return;
+  // Lot 1.5.5 : la decision est archivee AVANT toute mutation du permis et avant le prelevement.
+  // Si l'archive municipale n'enregistre pas l'acte, la decision n'a pas lieu : le permis reste
+  // EXACTEMENT dans l'etat ou il etait -- rien n'est perdu, le maire adjoint peut retrancher plus
+  // tard -- et aucun cout n'est preleve. Meme pre-controle du cout qu'au depot, pour ne pas laisser
+  // une ligne d'archive sans decision.
+  const paDispoDecision = TEST_MODE || (state.pa || 0) >= (pa || 0);
+  const fondsDispoDecision = (cost || 0) <= 0
+    || (typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() >= cost : true);
+  if (!paDispoDecision || !fondsDispoDecision) {
+    signalerRefusCout({ ok: false, raison: paDispoDecision ? 'fonds_insuffisants' : 'pa_insuffisants', pa, cost });
+    return;
+  }
+
+  // Le snapshot archive porte la decision : on le construit sur une COPIE du permis, sans encore
+  // toucher a l'etat vivant.
+  const permisDecide = { ...etat.permis, statut: valide ? 'valide' : 'refuse' };
+  const emisDecision = (typeof emettreDocumentUrbanisme === 'function')
+    ? await emettreDocumentUrbanisme(etat, permisDecide, valide ? 'acceptation' : 'refus',
+        { buildingId: buildingId, pays: state.country, ville: etat.city || state.currentCity,
+          jour: state.day || 1 })
+    : null;
+  if (!emisDecision) {
+    showToast('Décision impossible', "Les archives municipales n'ont pas pu enregistrer cette décision. Le dossier reste en l'état — réessayez.", false);
+    return;
+  }
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
@@ -6441,19 +6486,103 @@ async function traiterPermis(buildingId, valide, pa, cost) {
     await sbSendMail('Mairie', etat.permis.demandeur, valide ? 'Permis validé' : 'Permis refusé', msg, time).catch(() => {});
   }
 
-  // Lot 1.5.3 : decision physique remise au DEMANDEUR, jamais au maire adjoint qui statue -- via
-  // objets_recus s'il n'est pas connecte. Document distinct du recepisse de depot, qu'il ne
-  // remplace jamais. Le motif ecrit n'est repris que s'il existe dans le dossier (aucune saisie
-  // de motif n'est ajoutee ici : ce chemin appartient au lot administratif dedie).
-  if (typeof emettreDocumentUrbanisme === 'function') {
-    await emettreDocumentUrbanisme(etat, etat.permis, valide ? 'acceptation' : 'refus',
-      { buildingId: buildingId, pays: state.country, ville: etat.city || state.currentCity,
-        jour: state.day || 1 }).catch(() => {});
-  }
-
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast(valide ? 'Permis validé' : 'Permis refusé', '', true, true);
   addJournalEntry((valide ? 'Permis de construire validé' : 'Permis de construire refusé') + ' pour ' + etat.permis.demandeur + '.', valide ? 'event-good' : 'event-bad');
+}
+
+// =====================
+// DOSSIERS D'URBANISME — CONSULTATION MUNICIPALE (Lot 1.5.5)
+// =====================
+// Consultation pure : aucune decision, aucun cout, aucune mecanique politique nouvelle. L'archive
+// est lue telle qu'elle a ete ecrite, jamais reconstruite depuis l'etat courant des terrains.
+//
+// DROITS : reserves au maire adjoint, comme les autres entrees de son bureau (requiresPost dans
+// data.js). Choix deliberement conservateur -- aucun systeme de permissions nouveau n'est introduit
+// dans ce lot. Le demandeur, lui, conserve ses propres documents physiques (Lot 1.5.3).
+async function doConsulterDossiersUrbanisme() {
+  document.getElementById('postes-modal-title').textContent = "Dossiers d'urbanisme";
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Consultation des archives...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const lignes = (typeof sbGetEvenementsUrbanisme === 'function')
+    ? await sbGetEvenementsUrbanisme(state.country, state.currentCity, TOUS_TYPES_EVENEMENT_URBANISME()).catch(() => [])
+    : [];
+  const dossiers = regrouperDossiersUrbanisme(lignes);
+  window._dossiersUrbanismeCache = dossiers;
+
+  let html = '<div style="padding:1rem">';
+  if (dossiers.length === 0) {
+    html += '<div style="font-size:.8rem;color:#5a5040;font-style:italic">Aucun dossier d\'urbanisme archivé pour cette commune.</div>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">' + dossiers.length + ' dossier'
+         + (dossiers.length > 1 ? 's' : '') + ' archivé' + (dossiers.length > 1 ? 's' : '') + '. Archives municipales — consultation seule.</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
+    dossiers.forEach(function (d, i) {
+      html += '<div onclick="ouvrirDossierUrbanisme(' + i + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
+      html += '<div style="font-size:.82rem;color:#c0b090">' + (d.batimentLabel || 'Terrain inconnu')
+           + ' — ' + (d.palierLabel || 'type non précisé') + '</div>';
+      html += '<div style="font-size:.72rem;color:#8a8060;margin-top:.15rem">' + (d.demandeur || 'demandeur inconnu')
+           + ' · ' + libelleStatutDossierUrbanisme(d.statut)
+           + ' · ' + d.evenements.length + ' événement' + (d.evenements.length > 1 ? 's' : '') + '</div>';
+      html += '<div style="font-size:.68rem;color:#6a5a30;margin-top:.15rem">Dossier n° '
+           + (d.numeroDossier || 'non attribué (dossier ancien)') + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+function libelleStatutDossierUrbanisme(statut) {
+  if (statut === 'accorde') return 'accordé';
+  if (statut === 'accorde_tacitement') return 'accordé tacitement';
+  if (statut === 'refuse') return 'refusé';
+  return 'en instruction';
+}
+
+function ouvrirDossierUrbanisme(index) {
+  const d = (window._dossiersUrbanismeCache || [])[index];
+  if (!d) return;
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.6rem">Dossier n° ' + (d.numeroDossier || 'non attribué (dossier ancien)') + '</div>';
+  html += '<div style="font-size:.8rem;color:#c0b090;line-height:1.6;margin-bottom:.8rem">';
+  html += 'Demandeur : ' + (d.demandeur || 'inconnu') + '<br>';
+  html += 'Commune : ' + (d.ville || 'non précisée') + ' (' + (d.pays || 'non précisé') + ')<br>';
+  html += 'Terrain : ' + (d.batimentLabel || 'non précisé') + '<br>';
+  html += 'Nature des travaux : ' + (d.palierLabel || 'non précisée') + '<br>';
+  html += 'Surface exploitable au dépôt : ' + (d.surfaceExploitable !== null ? d.surfaceExploitable + ' m²' : 'non connue') + '<br>';
+  html += 'Dépôt : ' + (d.jourDepot !== null ? 'jour ' + d.jourDepot : 'date inconnue') + '<br>';
+  html += 'Statut : ' + libelleStatutDossierUrbanisme(d.statut);
+  html += '</div>';
+
+  if (d.decoupageInitial.length > 0) {
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">DÉCOUPAGE DÉCLARÉ AU DÉPÔT</div>';
+    html += '<div style="font-size:.78rem;color:#a09070;margin-bottom:.8rem">';
+    d.decoupageInitial.forEach(function (l) {
+      html += '— ' + l.label + ' : ' + l.surface + ' m² (' + (l.destination === 'appartement' ? 'appartement' : 'commerce') + ')<br>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#a09070;margin-bottom:.8rem">Aucun découpage déclaré au dépôt — livraison indivise.</div>';
+  }
+
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.3rem">HISTORIQUE</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
+  d.evenements.forEach(function (e) {
+    html += '<div style="padding:.5rem .6rem;border-left:2px solid #3a2a10;background:#0f0d05">';
+    html += '<div style="font-size:.68rem;color:#6a5a30">' + (e.jour !== null ? 'Jour ' + e.jour : 'date inconnue') + '</div>';
+    html += '<div style="font-size:.78rem;color:#c0b090">' + (e.libelle || e.nature) + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '<button class="pnj-action-btn" style="margin-top:1rem;opacity:.8" onclick="doConsulterDossiersUrbanisme()">← Retour à la liste</button>';
+  html += '</div>';
+
+  document.getElementById('postes-modal-title').textContent = 'Dossier — ' + (d.batimentLabel || 'urbanisme');
+  document.getElementById('postes-body').innerHTML = html;
 }
 
 async function doPlainteObstruction(pa, cost) {

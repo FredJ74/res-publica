@@ -3027,6 +3027,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
+          {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
           {fn:'gerer_candidature_directeur_entrepot', label:"Gérer les candidatures au Directeur d'Entrepôt", pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire_adjoint', desc:"Candidatures reçues pour le Directeur de l'Entrepôt Logistique de cette ville — sans se déplacer."},
@@ -3569,6 +3570,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
+          {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
           {fn:'gerer_candidature_directeur_entrepot', label:"Gérer les candidatures au Directeur d'Entrepôt", pa:1, cost:0, type:'legal', icon:'ti-user-search', successRate:100, requiresPost:'maire_adjoint', desc:"Candidatures reçues pour le Directeur de l'Entrepôt Logistique de cette ville — sans se déplacer."},

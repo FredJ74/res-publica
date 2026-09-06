@@ -2553,6 +2553,29 @@ async function sbEnregistrerEvenementPublic(country, type, options) {
   });
 }
 
+// ARCHIVE MUNICIPALE DES DOSSIERS D'URBANISME (Lot 1.5.5) — table dediee dossiers_urbanisme,
+// voir migration_dossiers_urbanisme.sql. Une ligne PAR EVENEMENT : aucun cycle lecture/reecriture,
+// donc deux actes concurrents ne peuvent pas s'ecraser. L'append-only n'est pas une convention de
+// code mais une propriete de la base : RLS active avec une policy SELECT et une policy INSERT, et
+// AUCUNE policy UPDATE ni DELETE -- une ligne archivee ne peut donc etre ni reecrite ni supprimee,
+// meme par un appel direct a l'API REST avec la cle publique.
+//
+// Renvoie les lignes inserees, ou null si l'ecriture a echoue (table absente, RLS, reseau). Cette
+// valeur de retour est CONTRACTUELLE : l'appelant doit la tester, l'archivage etant bloquant.
+async function sbArchiverEvenementUrbanisme(ligne) {
+  return sbInsert('dossiers_urbanisme', ligne);
+}
+
+async function sbGetEvenementsUrbanisme(country, city, types) {
+  let filtre = `country=eq.${encodeURIComponent(country)}`;
+  if (city) filtre += `&city=eq.${encodeURIComponent(city)}`;
+  if (Array.isArray(types) && types.length) {
+    filtre += `&type_evenement=in.(${types.map(encodeURIComponent).join(',')})`;
+  }
+  filtre += '&order=created_at.asc';
+  return (await sbGet('dossiers_urbanisme', filtre)) || [];
+}
+
 // Etouffement d'article (chantier "lobbying presse", 4 septembre 2026) : etat persistant 7 JOURS
 // REELS (jamais des jours de jeu -- meme doctrine que journal_articles_en_attente.expire_le) qui
 // abaisse UNIQUEMENT la base de reussite de "Placer un article favorable" pour la MEME cible

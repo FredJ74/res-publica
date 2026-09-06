@@ -752,12 +752,168 @@ async function delivrerDocumentUrbanisme(doc, destinataire) {
   return objet;
 }
 
-// Porte d'entree unique : construit puis delivre. Les appelants ne manipulent jamais la forme du
-// document, seulement sa nature et son contexte.
+// =====================================================================
+// ARCHIVE MUNICIPALE DES DOSSIERS D'URBANISME (Lot 1.5.5)
+// =====================================================================
+// L'archive est la SOURCE HISTORIQUE ; le document remis au joueur n'en est qu'une copie. Detruire
+// un document ne touche donc rien, et perdre l'archive ne serait pas rattrapable par les documents.
+//
+// L'histoire n'est jamais RECONSTRUITE depuis l'etat courant : chaque evenement est archive au
+// moment ou il survient, avec le snapshot du dossier a cet instant. Le permis vivant continuera
+// d'evoluer (decision, modifications de plan, verrou des 2/3) sans qu'aucune ligne deja ecrite ne
+// bouge -- une ligne par evenement, jamais de relecture-reecriture.
+//
+// SUPPORT : table dediee dossiers_urbanisme (migration_dossiers_urbanisme.sql), append-only
+// garanti PAR LA BASE -- RLS active, une policy SELECT, une policy INSERT, et aucune policy UPDATE
+// ni DELETE. Une ligne archivee ne peut donc etre ni reecrite ni supprimee, meme par un appel
+// direct a l'API REST. Aucune pollution de chronique_nationale, qui reste le journal des
+// evenements PUBLICS du pays lu par La Tribune.
+//
+// ARCHIVAGE BLOQUANT : archiverEvenementUrbanisme renvoie true/false et ses appelants DOIVENT
+// tester ce retour. Un acte administratif ne peut pas etre repute traite si l'archive officielle
+// n'a pas ete ecrite -- voir confirmerDepotPermis et traiterPermis (plateau-justice-economie.js).
+
+const TYPES_EVENEMENT_URBANISME = {
+  depot:             'depot',
+  acceptation:       'acceptation',
+  refus:             'refus',
+  accord_tacite:     'accord_tacite',       // Lot 1.5.13 : type reserve, jamais emis ici
+  modification_plan: 'modification_plan'    // Lot 1.5.12 : idem
+};
+
+function TOUS_TYPES_EVENEMENT_URBANISME() {
+  return Object.keys(TYPES_EVENEMENT_URBANISME).map(function (n) { return TYPES_EVENEMENT_URBANISME[n]; });
+}
+
+// Libelle factuel de l'evenement, ecrit en toutes lettres au moment du depot -- meme convention
+// que les autres points d'ecriture de chronique_nationale, dont le libelle sert directement de
+// resume sans reconstruction ulterieure.
+function libelleEvenementUrbanisme(doc) {
+  const terrain = doc.batimentLabel || doc.buildingId || 'un terrain';
+  const palier = doc.palierLabel ? (' (' + doc.palierLabel + ')') : '';
+  const plan = doc.decoupage.length > 0
+    ? (', plan de ' + doc.decoupage.length + ' lot' + (doc.decoupage.length > 1 ? 's' : ''))
+    : ', sans découpage';
+  switch (doc.nature) {
+    case 'depot':             return (doc.demandeur || 'Un demandeur') + ' dépose une demande de permis pour ' + terrain + palier + plan + '.';
+    case 'acceptation':       return 'Permis accordé à ' + (doc.demandeur || 'un demandeur') + ' pour ' + terrain + palier + '.';
+    case 'refus':             return 'Permis refusé à ' + (doc.demandeur || 'un demandeur') + ' pour ' + terrain + palier
+                                     + (doc.motifRefus ? ' — motif : ' + doc.motifRefus : '') + '.';
+    case 'accord_tacite':     return 'Accord tacite au bénéfice de ' + (doc.demandeur || 'un demandeur') + ' pour ' + terrain + palier + '.';
+    case 'modification_plan': return (doc.demandeur || 'Un demandeur') + ' modifie le plan de découpage de ' + terrain + plan + '.';
+    default:                  return 'Événement d\'urbanisme sur ' + terrain + '.';
+  }
+}
+
+// Archive un evenement. Le snapshot passe est celui-la meme qui sera remis au joueur : la copie ne
+// peut donc pas diverger de la source. numeroDossier absent (dossier anterieur au Lot 1.5.2) ->
+// source_ref null : on n'invente aucune reference historique officielle.
+// Renvoie TRUE si et seulement si la ligne a reellement ete ecrite en base. Aucun echec n'est
+// avale : ni type inconnu, ni couche d'acces absente, ni erreur reseau/RLS. C'est cette valeur que
+// les appelants utilisent pour decider s'ils peuvent poursuivre.
+async function archiverEvenementUrbanisme(doc) {
+  const type = TYPES_EVENEMENT_URBANISME[doc && doc.nature];
+  if (!type || typeof sbArchiverEvenementUrbanisme !== 'function') return false;
+  let rows = null;
+  try {
+    rows = await sbArchiverEvenementUrbanisme({
+      id: 'urb-' + type + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
+      country: doc.pays || 'republic',
+      city: doc.ville || null,
+      building_id: doc.buildingId || null,
+      numero_dossier: doc.numeroDossier || null,   // null assume pour un dossier anterieur au 1.5.2
+      type_evenement: type,
+      demandeur: doc.demandeur || null,
+      jour: (typeof doc.jour === 'number') ? doc.jour : null,
+      libelle: libelleEvenementUrbanisme(doc),
+      data: doc                                    // snapshot fige, deja copie en profondeur
+    });
+  } catch (e) { return false; }
+  return !!(rows && rows.length > 0);
+}
+
+// Regroupe des lignes d'evenements en DOSSIERS. L'en-tete d'un dossier est lu sur son evenement de
+// DEPOT (jamais sur l'etat courant du terrain, qui a pu changer de proprietaire, de surface ou de
+// plan depuis) ; a defaut de depot archive, sur le premier evenement connu.
+//
+// Les dossiers anterieurs au Lot 1.5.2 n'ont pas de numero : ils sont regroupes par terrain sous
+// une clef technique explicitement marquee, jamais sous un faux numero.
+function regrouperDossiersUrbanisme(lignes) {
+  const parDossier = {};
+  (Array.isArray(lignes) ? lignes : []).forEach(function (r) {
+    const doc = r && r.data;
+    if (!doc) return;
+    const cle = r.numero_dossier || ('sans-numero:' + (doc.buildingId || r.building_id || 'inconnu'));
+    if (!parDossier[cle]) {
+      parDossier[cle] = {
+        cle: cle,
+        numeroDossier: r.numero_dossier || null,
+        pays: doc.pays || r.country || null,
+        ville: doc.ville || r.city || null,
+        buildingId: doc.buildingId || r.building_id || null,
+        batimentLabel: doc.batimentLabel || doc.buildingId || null,
+        demandeur: doc.demandeur || null,
+        palier: doc.palier || null,
+        palierLabel: doc.palierLabel || null,
+        surfaceExploitable: (typeof doc.surfaceExploitable === 'number') ? doc.surfaceExploitable : null,
+        decoupageInitial: Array.isArray(doc.decoupage) ? doc.decoupage : [],
+        jourDepot: (typeof doc.jourDepot === 'number') ? doc.jourDepot : null,
+        evenements: []
+      };
+    }
+    const dossier = parDossier[cle];
+    dossier.evenements.push({
+      id: r.id, nature: doc.nature, type: r.type_evenement, libelle: r.libelle,
+      jour: (typeof doc.jour === 'number') ? doc.jour : null,
+      created_at: r.created_at || null,
+      motifRefus: doc.motifRefus || null,
+      decoupage: Array.isArray(doc.decoupage) ? doc.decoupage : [],
+      snapshot: doc
+    });
+    // L'en-tete fait autorite depuis le DEPOT des qu'il est connu, quel que soit l'ordre d'arrivee.
+    if (doc.nature === 'depot') {
+      dossier.demandeur = doc.demandeur || dossier.demandeur;
+      dossier.palier = doc.palier || dossier.palier;
+      dossier.palierLabel = doc.palierLabel || dossier.palierLabel;
+      dossier.surfaceExploitable = (typeof doc.surfaceExploitable === 'number') ? doc.surfaceExploitable : dossier.surfaceExploitable;
+      dossier.decoupageInitial = Array.isArray(doc.decoupage) ? doc.decoupage : dossier.decoupageInitial;
+      dossier.jourDepot = (typeof doc.jourDepot === 'number') ? doc.jourDepot : dossier.jourDepot;
+    }
+  });
+
+  return Object.keys(parDossier).map(function (k) { return parDossier[k]; })
+    .map(function (d) {
+      d.statut = statutDossierUrbanisme(d.evenements);
+      return d;
+    });
+}
+
+// Statut LU sur l'historique, jamais sur le permis vivant : c'est ce que la mairie a reellement
+// acte. Le dernier evenement decisionnel fait foi.
+function statutDossierUrbanisme(evenements) {
+  let statut = 'depose';
+  (evenements || []).forEach(function (e) {
+    if (e.nature === 'acceptation') statut = 'accorde';
+    else if (e.nature === 'refus') statut = 'refuse';
+    else if (e.nature === 'accord_tacite') statut = 'accorde_tacitement';
+  });
+  return statut;
+}
+
+// Porte d'entree unique : construit le snapshot, l'ARCHIVE (source historique), puis en remet une
+// copie physique au demandeur. Les deux operations sont independantes : l'echec de l'une ne doit
+// jamais empecher l'autre, et aucune ne conditionne l'existence du permis lui-meme.
+// L'ARCHIVE COMMANDE. Si elle echoue, on renvoie null et AUCUN document n'est remis : le joueur ne
+// doit jamais detenir un recepisse d'un acte que la mairie n'a pas enregistre, et l'appelant doit
+// pouvoir renoncer proprement. Si l'archive reussit mais que la remise echoue, on renvoie quand
+// meme le document : la source historique existe, seule la copie manque, et l'acte est valable.
 async function emettreDocumentUrbanisme(ts, permis, nature, options) {
   if (!natureDocumentConnue(nature)) return null;
   const doc = construireDocumentUrbanisme(ts, permis, nature, options);
-  await delivrerDocumentUrbanisme(doc, (permis && permis.demandeur) || null);
+  const archive = await archiverEvenementUrbanisme(doc);
+  if (!archive) return null;
+  try { await delivrerDocumentUrbanisme(doc, (permis && permis.demandeur) || null); }
+  catch (e) { doc.documentRemis = false; }
   return doc;
 }
 
