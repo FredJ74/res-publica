@@ -326,6 +326,10 @@ const ACTES_ILLEGAUX = {
   se_rebeller:        { type: 'delit_mineur',  detectRate: 60 },
   fausse_rumeur:      { type: 'delit_mineur',  detectRate: 35 },
   vol:                { type: 'delit_mineur',  detectRate: 30 },
+  // Lot 1.5.8 : le vol de materiaux sur un chantier rejoint la meme categorie que le vol
+  // ordinaire. Aucune peine propre n'est creee -- getPeineParActe lit simplement ce type et
+  // applique le bareme generique PEINES.delit_mineur, deja arbitre.
+  vol_materiel_chantier: { type: 'delit_mineur', detectRate: 30 },
   assassiner_mains:   { type: 'crime',         detectRate: 30 },
   assassiner_arme:    { type: 'crime',         detectRate: 40 },
   assassiner_feu:     { type: 'crime',         detectRate: 60 },

@@ -933,10 +933,44 @@ function progressionMaxFinanceeServeur(totalVerse, dureeJours, coutTotal) {
 // TRANSITION PROVISOIRE DU LOT 1.5.7, a remplacer aux Lots 1.5.8 (materiaux) et 1.5.9 (travail) :
 // en l'absence de ces sous-systemes, la capacite du jour est reputee complete. Isolee ici, comme
 // capaciteProvisoireCompleteLot157 cote client.
-function capaciteProvisoireCompleteServeur() { return { fractionTravail: 1, fractionMateriaux: 1 }; }
+// TRAVAIL : toujours provisoirement complet -- le travail reel est le Lot 1.5.9.
+function fractionTravailProvisoireServeur() { return 1; }
+
+// MATERIAUX REELS (Lot 1.5.8). Memes formules que plateau-chantiers.js, dupliquees ici parce que
+// le cron est un module serverless isole ; l'egalite des deux implementations est verrouillee par
+// test, comme pour progressionMaxFinancee.
+const ENTREPOTS_PAR_VILLE_SERVEUR = {
+  capitale: 'entrepot-logistique-luthecia',
+  ville_a:  'entrepot-logistique-psm',
+  ville_b:  'entrepot-logistique-montrouge'
+};
+const SEQUENCE_METAL_SERVEUR = [33, 33, 34];
+const MATERIAUX_SERVEUR = ['bois', 'minerai', 'metal'];
+
+function materiauxDuJourServeur(jour) {
+  const n = Math.floor(Number(jour) || 0);
+  return { bois: 100, minerai: 50,
+           metal: n < 1 ? 0 : SEQUENCE_METAL_SERVEUR[(n - 1) % SEQUENCE_METAL_SERVEUR.length] };
+}
+
+function numeroJourChantierServeur(ch) {
+  return Math.floor(Math.max(0, Number(ch && ch.progressionJours) || 0)) + 1;
+}
+
+// La matiere la plus manquante commande. Un besoin nul n'est pas une contrainte.
+function fractionMateriauxServeur(stock, besoin) {
+  let f = 1, contrainte = false;
+  MATERIAUX_SERVEUR.forEach(function (cle) {
+    const r = Math.max(0, Number(besoin[cle]) || 0);
+    if (r <= 0) return;
+    contrainte = true;
+    f = Math.min(f, Math.min(1, Math.max(0, Number((stock || {})[cle]) || 0) / r));
+  });
+  return contrainte ? Math.max(0, Math.min(1, f)) : 1;
+}
 
 async function avancerChantiersQuotidien() {
-  const resultats = { livraisons: 0, avances: 0, bloques_financement: 0, ignores: 0, erreurs: 0 };
+  const resultats = { livraisons: 0, avances: 0, partielles: 0, bloques_financement: 0, penuries: 0, approvisionnements: 0, reprises: 0, ignores: 0, erreurs: 0 };
   try {
     const terrains = await sbGet('terrains_etat', '');
     if (!terrains) return resultats;
@@ -976,18 +1010,92 @@ async function avancerChantiersQuotidien() {
 
       const duree = Number(ch.dureeJours) || 0;
       const avant = Math.max(0, Number(ch.progressionJours) || 0);
-      const cap = capaciteProvisoireCompleteServeur();
-      const brut = Math.min(cap.fractionTravail, cap.fractionMateriaux);   // progression du jour, 0..1
+      const numJour = numeroJourChantierServeur(ch);
+      const besoin = materiauxDuJourServeur(numJour);
+      if (!ch.stockMateriaux) ch.stockMateriaux = { bois: 0, minerai: 0, metal: 0 };
+
+      // APPROVISIONNEMENT AUTOMATIQUE : le chantier complete son stock a l'entrepot logistique de
+      // sa ville, dans la limite de sa tresorerie ET du stock reellement disponible la-bas. Aucun
+      // materiau ne sort de nulle part : ce qui est achete est retire de l'entrepot et paye dans
+      // sa caisse.
+      const villeChantier = etat.city || 'capitale';
+      const idEntrepot = ENTREPOTS_PAR_VILLE_SERVEUR[villeChantier];
+      if (idEntrepot) {
+        const etatEnt = await sbGetBatimentEtat(row.country, villeChantier, idEntrepot);
+        const stockEnt = (etatEnt.entrepot && etatEnt.entrepot.stock) || {};
+        let depense = 0;
+        const achats = {};
+        for (const cle of MATERIAUX_SERVEUR) {
+          const manque = Math.max(0, (Number(besoin[cle]) || 0) - (Number(ch.stockMateriaux[cle]) || 0));
+          if (manque <= 0) continue;
+          const prix = (RESSOURCES_ECONOMIE_SERVEUR[cle] && RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase) || 0;
+          const dispoEnt = Math.max(0, Math.floor(Number(stockEnt[cle]) || 0));
+          const abordable = prix > 0 ? Math.floor(Math.max(0, (Number(ch.tresorerie) || 0) - depense) / prix) : 0;
+          const qte = Math.min(manque, dispoEnt, abordable);
+          if (qte <= 0) continue;
+          achats[cle] = qte; depense += qte * prix;
+          ch.stockMateriaux[cle] = (Number(ch.stockMateriaux[cle]) || 0) + qte;
+          stockEnt[cle] = dispoEnt - qte;
+        }
+        if (depense > 0) {
+          ch.tresorerie = Math.max(0, (Number(ch.tresorerie) || 0) - depense);
+          etatEnt.entrepot = { ...(etatEnt.entrepot || {}), stock: stockEnt,
+                               caisse: ((etatEnt.entrepot && etatEnt.entrepot.caisse) || 0) + depense };
+          await sbSetBatimentEtat(row.country, villeChantier, idEntrepot, { entrepot: etatEnt.entrepot }).catch(() => {});
+          ch.evenements = (ch.evenements || []).concat([{ cle: 'approvisionnement', jour: jour, achats: achats, cout: depense }]);
+          resultats.approvisionnements++;
+        }
+      }
+
+      const fMat = fractionMateriauxServeur(ch.stockMateriaux, besoin);
+      const brut = Math.min(fractionTravailProvisoireServeur(), fMat);     // progression du jour, 0..1
       const plafond = progressionMaxFinanceeServeur(ch.totalVerse, duree, ch.coutTotal);
       const apres = Math.min(duree, Math.max(avant, Math.min(avant + brut, plafond)));
       const gain = apres - avant;
 
+      // CONSOMMATION PROPORTIONNELLE a l'avancee reelle : avancer d'un demi-jour ne consomme que
+      // la moitie des materiaux du jour. Jamais plus que le stock present.
+      if (gain > 0) {
+        for (const cle of MATERIAUX_SERVEUR) {
+          const voulu = Math.floor((Number(besoin[cle]) || 0) * gain);
+          const pris = Math.min(Math.max(0, Number(ch.stockMateriaux[cle]) || 0), voulu);
+          ch.stockMateriaux[cle] = (Number(ch.stockMateriaux[cle]) || 0) - pris;
+        }
+      }
+
       ch.progressionJours = apres;
       ch.jourTraite = jour;
-      ch.arrete = (gain <= 0 && avant < duree) ? 'financement' : null;
+      // Motif d'arret : la penurie n'est jamais un alea, c'est le constat qu'aucun progres n'est
+      // possible. Le financement prime dans le message s'il bloque aussi.
+      const bloqueFinance = !(progressionMaxFinanceeServeur(ch.totalVerse, duree, ch.coutTotal) > avant);
+      ch.arrete = (gain <= 0 && avant < duree)
+        ? (bloqueFinance ? 'financement' : 'penurie_materiaux') : null;
+
+      if (gain > 0 && gain < 1) {
+        ch.evenements = (ch.evenements || []).concat([{ cle: 'progression_partielle', jour: jour, fraction: gain }]);
+        resultats.partielles++;
+      }
+      if (ch.arrete === 'penurie_materiaux') {
+        resultats.penuries++;
+        if (ch.dernierePenurieSignalee !== jour) {
+          ch.dernierePenurieSignalee = jour;
+          ch.evenements = (ch.evenements || []).concat([{ cle: 'penurie_materiaux', jour: jour, besoin: besoin }]);
+          await sbInsert('mails', {
+            destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
+            sujet: 'Chantier a l\'arret — materiaux',
+            corps: 'Les travaux sont a l\'arret faute de materiaux. Approvisionnez le chantier ou creditez sa tresorerie pour qu\'il puisse acheter a l\'entrepot.',
+            archived: false
+          }).catch(() => {});
+        }
+      } else if (gain > 0 && ch.dernierePenurieSignalee) {
+        // REPRISE NATURELLE : rien a declencher, l'approvisionnement redevenu suffisant a suffi.
+        ch.dernierePenurieSignalee = null;
+        ch.evenements = (ch.evenements || []).concat([{ cle: 'reprise', jour: jour }]);
+        resultats.reprises++;
+      }
 
       if (gain > 0) resultats.avances++;
-      else if (avant < duree) {
+      else if (avant < duree && ch.arrete === 'financement') {
         resultats.bloques_financement++;
         const manque = Math.max(0, Math.ceil(ch.coutTotal * (avant < duree / 3 ? 35 : avant < duree * 2 / 3 ? 70 : 100) / 100) - (Number(ch.totalVerse) || 0));
         await sbInsert('mails', {

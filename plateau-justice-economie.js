@@ -9633,109 +9633,128 @@ async function confirmerCambriolerCaisse(buildingId, buildingLabel) {
 // caisse). Le proprietaire lui-meme peut voler son propre chantier (auto-victimisation
 // parodique) : l'argent se neutralise financierement, seul le bonus de sympathie publique
 // et le RP restent un vrai gain. Toujours tracable sur enquete, meme en cas de reussite.
+// VOL DE MATERIAUX SUR UN CHANTIER (refondu au Lot 1.5.8)
+// Le vol ne porte plus sur une valeur monetaire abstraite mais sur des UNITES REELLES du stock du
+// chantier. Le joueur choisit la matiere ; seules celles reellement presentes sont proposees.
 async function doVolerMaterielChantier(pa, cost) {
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Voler du matériel')) return;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const pays = state.country;
-  const ville = state.currentCity || 'capitale';
+  const ch = ts.chantier;
+  if (!ch) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
 
-  if (!ts.chantier) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
+  const stock = ch.stockMateriaux || {};
+  const dispo = ['bois', 'minerai', 'metal'].filter(function (m) { return (Number(stock[m]) || 0) > 0; });
+  if (dispo.length === 0) { showToast('Rien à voler', "Le chantier n'a aucun matériau en stock.", false); return; }
+
+  const jourNum = numeroJourChantier(ch);
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Choisissez la matière à dérober. La quantité dépendra de votre discrétion' + (vigilesDuChantier(ch) > 0 ? ' — et des vigiles présents sur le chantier' : '') + '.</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
+  dispo.forEach(function (m) {
+    const label = m === 'bois' ? 'Bois' : (m === 'minerai' ? 'Minerai' : 'Métal');
+    html += '<div onclick="confirmerVolMateriaux(\'' + m + '\',' + pa + ',' + cost + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
+    html += '<span style="font-size:.85rem;color:#c0b090">' + label + '</span> — ' + (Number(stock[m]) || 0)
+         + ' en stock <span style="color:#6a5a30">(au plus ' + plafondVolMatiere(m, jourNum) + ' dérobables)</span>';
+    html += '</div>';
+  });
+  html += '</div></div>';
+  document.getElementById('postes-modal-title').textContent = 'Voler du matériel';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerVolMateriaux(matiere, pa, cost) {
+  const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Voler du matériel')) return;
+  const ts = getTerrainState(id);
+  const ch = ts.chantier;
+  if (!ch) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
+  const pays = state.country, ville = state.currentCity || 'capitale';
 
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
-
   document.getElementById('modal-postes')?.classList.remove('open');
+
+  // Bonus/malus de discretion du voleur : exactement les termes deja utilises par l'ancien jet,
+  // simplement rebases sur 50 au lieu de 60. Aucune formule de discretion nouvelle.
   const dup = getStatEffective('DUP');
-  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
-  const bonusReputation = typeof getBonusReputationCriminelle === 'function' ? getBonusReputationCriminelle() : 0;
+  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn')
+            : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
+  let bonus = (dup - 10) * 2 - (isn - 45) / 3
+            + (typeof getBonusReputationCriminelle === 'function' ? getBonusReputationCriminelle() : 0);
+  if (typeof consommerBonusBenediction === 'function') bonus = consommerBonusBenediction(50 + bonus) - 50;
 
-  let taux = 60 + (dup - 10) * 2 - (isn - 45) / 3 + bonusReputation;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(15, Math.min(90, Math.round(taux)));
+  // UN SEUL JET. La detection decoule du meme score final, jamais d'un second tirage.
+  const jet = (Math.floor(Math.random() * 100) + 1) - 50;
+  const score = scoreVolMateriaux(bonus, vigilesDuChantier(ch), jet);
+  const verdict = verdictVolMateriaux(score);
 
-  const roll = Math.floor(Math.random() * 100) + 1;
+  if (verdict.reussite) {
+    const jourNum = numeroJourChantier(ch);
+    const stock = ch.stockMateriaux || { bois: 0, minerai: 0, metal: 0 };
+    const qte = quantiteVolMateriaux(score, matiere, jourNum, stock[matiere]);
+    if (qte <= 0) { showToast('Rien à emporter', "Le stock a été vidé entre-temps.", false); return; }
 
-  if (roll <= taux) {
-    // Lot 1.5.7 : montantTotal etait un champ de l'ancien moteur, disparu avec lui -- il valait
-    // desormais undefined, donc le butin valait NaN. Le cout total fige au lancement le remplace.
-    const montant = Math.floor((Number(ts.chantier.coutTotal) || 0) * 0.10);
-    const estAutoVol = estTitulaire(ts.proprietaire);
-
-    state.arg = (state.arg || 0) + montant;
-    if (estAutoVol) {
-      state.arg -= montant; // s'annule financierement : seul le bonus de sympathie compte
-    } else if (typeof sbGet === 'function' && typeof sbUpdate === 'function') {
-      const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(ts.proprietaire)}`).catch(() => null);
-      const proprio = rows && rows[0];
-      if (proprio) await sbUpdate('personnages', `name=eq.${encodeURIComponent(ts.proprietaire)}`, { arg: (proprio.arg || 0) - montant }).catch(() => {});
-    }
-
-    // Lot 1.5.7 : l'ancien effet "+2 jours de calendrier" est SUPPRIME, et n'est traduit par aucune
-    // perte artificielle de progression. Un vol ne fait pas reculer un travail deja accompli.
-    // Au Lot 1.5.8 il retirera une quantite REELLE de chantier.stockMateriaux, remise au voleur ;
-    // si ce prelevement cree une insuffisance, le chantier ralentira ou s'arretera de lui-meme par
-    // le moteur de disponibilite reelle (fractionMateriaux), sans qu'aucun retard soit inflige ici.
-    // progressionJours n'est donc PAS touche par ce mecanisme.
-    if (typeof modifierIndiceVille === 'function') modifierIndiceVille(pays, ville, 'social', -1);
-    if (typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]) {
-      INDICES_NATIONAUX[pays].IS = Math.max(0, (INDICES_NATIONAUX[pays].IS || 45) - 1);
-    }
-
-    const nouvelEtat = setTerrainState(id, { chantier: ts.chantier });
+    stock[matiere] = Math.max(0, (Number(stock[matiere]) || 0) - qte);
+    ch.stockMateriaux = stock;
+    // Evenement du chantier : le fait est consigne, JAMAIS l'identite du voleur.
+    ch.evenements = (ch.evenements || []).concat([{ cle: 'vol_materiaux', jour: state.day || 1, matiere: matiere, quantite: qte }]);
+    // Aucun retard, aucune regression : si ce prelevement cree une insuffisance, le chantier
+    // ralentira de lui-meme par fractionMateriaux au prochain passage du cron.
+    const nouvelEtat = setTerrainState(id, { chantier: ch });
     if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(pays, id, nouvelEtat).catch(() => {});
 
-    // Toujours tracable, meme en cas de reussite (Fred : "reste detectable sur enquete")
+    const res = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) || {};
+    if (typeof addToInventory === 'function') {
+      addToInventory({ name: res.label || matiere, icon: res.icon, stackable: true, stackKey: matiere,
+                       qty: qte, desc: 'Dérobé sur un chantier.' });
+    }
+    if (typeof modifierIndiceVille === 'function') modifierIndiceVille(pays, ville, 'social', -1);
+    // Toujours tracable sur enquete, meme reussi -- mecanique existante, inchangee.
     if (typeof sbTracerAction === 'function') {
-      await sbTracerAction({
-        id: 'vol-chantier-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      await sbTracerAction({ id: 'vol-chantier-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
         auteur: state.char?.name, cible: ts.proprietaire, type_action: 'vol_materiel_chantier',
-        country: pays, city: ville,
-        jour: state.day || 1, jour_expiration: (state.day || 1) + 15
-      }).catch(() => {});
+        country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15 }).catch(() => {});
     }
     if (typeof addExternalEvent === 'function') {
-      addExternalEvent('Du matériel a disparu sur un chantier de la ville. Les curieux s\'interrogent sur qui a bien pu faire le coup.', 'local');
+      addExternalEvent('Des matériaux ont disparu sur un chantier de la ville.', 'local');
     }
-    if (typeof sendMail === 'function' && !estAutoVol) {
-      await sendMail(ts.proprietaire, 'Chef de Chantier', 'Vol de matériel !',
-        'Du matériel a été volé sur votre chantier cette nuit. Perte estimée : ' + montant.toLocaleString('fr-FR') + ' ' + cur + '. Le chantier a pris 2 jours de retard. L\'opinion publique semble vous soutenir face à cette épreuve.');
-    }
-
     updateUI();
-    showToast('Vol réussi !', '+' + montant.toLocaleString('fr-FR') + ' ' + cur + (estAutoVol ? ' (auto-annulé financièrement, mais sympathie publique gagnée)' : ''), true, true);
-    addJournalEntry((estAutoVol ? 'Vous mettez en scène le vol de votre propre chantier' : 'Vol de matériel sur un chantier réussi') + '. +' + montant.toLocaleString('fr-FR') + ' ' + cur + '. Chantier retardé de 2 jours.', 'event-good');
+    showToast('Vol réussi !', '+' + qte + ' ' + (res.label || matiere) + '.', true, true);
+    addJournalEntry('Vol de matériaux réussi sur un chantier : ' + qte + ' ' + (res.label || matiere) + '.', 'event-good');
     return;
   }
 
-  const critique = (Math.floor(Math.random() * 100) + 1) <= 25;
-  if (critique) {
+  // ECHEC. Detecte ou non selon le MEME score, sans second jet.
+  if (verdict.detecte) {
+    // Trace judiciaire existante, a l'identique : avis de recherche, jamais une sanction ad hoc.
     if (!state.recherche) state.recherche = [];
-    state.recherche.push({ acte: 'vol_materiel_chantier', type: 'delit', jour: state.day || 1, peineMaxJours: 2 });
+    // Trace generique, meme forme que les autres actes illegaux (cambriolage_caisse, etc.) :
+    // { acte, type, jour }. AUCUNE peine ad hoc : peineMaxJours n'etait lu par personne et le
+    // type 'delit' n'existait dans aucune typologie. getPeineParActe lit ACTES_ILLEGAUX puis
+    // applique le bareme generique du type -- ici delit_mineur, comme le vol ordinaire.
+    const typeActe = (typeof ACTES_ILLEGAUX !== 'undefined' && ACTES_ILLEGAUX.vol_materiel_chantier)
+      ? ACTES_ILLEGAUX.vol_materiel_chantier.type : 'delit_mineur';
+    state.recherche.push({ acte: 'vol_materiel_chantier', type: typeActe, jour: state.day || 1 });
     if (typeof addExternalEvent === 'function') {
       addExternalEvent((state.char?.name || 'Quelqu\'un') + ' a été pris en flagrant délit de vol de matériel sur un chantier !', 'local');
     }
     addJournalEntry('Vol raté et découvert immédiatement. Avis de recherche émis contre vous (peine max 2 jours).', 'event-bad');
     showToast('Démasqué !', 'Avis de recherche émis (peine max 2 jours).', false);
-  } else {
-    if (typeof sbTracerAction === 'function') {
-      await sbTracerAction({
-        id: 'voltentative-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-        auteur: state.char?.name, cible: ts.proprietaire, type_action: 'tentative_vol_materiel_chantier',
-        country: pays, city: ville,
-        jour: state.day || 1, jour_expiration: (state.day || 1) + 15
-      }).catch(() => {});
-    }
-    addJournalEntry('Tentative de vol de matériel ratée sur un chantier.', 'event-info');
-    showToast('Vol échoué', "Vous avez échappé à la détection pour l'instant.", false);
+    return;
   }
-}
 
-function doCambriolerCaisseCommissariat() {
-  const buildingId = typeof getBuildingIdCommissariat === 'function' ? getBuildingIdCommissariat(state.currentCity) : 'commissariat';
-  doCambriolerCaisse(buildingId, 'Commissariat');
+  // Echec discret : aucun transfert, aucune identification. La tentative reste tracable sur
+  // enquete, comme avant, mais rien ne designe le voleur.
+  if (typeof sbTracerAction === 'function') {
+    await sbTracerAction({ id: 'voltentative-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      auteur: state.char?.name, cible: ts.proprietaire, type_action: 'tentative_vol_materiel_chantier',
+      country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15 }).catch(() => {});
+  }
+  addJournalEntry('Tentative de vol de matériaux manquée. Personne ne vous a vu.', 'event-info');
+  showToast('Échec', 'Vous repartez les mains vides, mais personne ne vous a repéré.', false);
 }
 
 async function doConsulterCaisseBatimentGenerique(buildingId, buildingLabel) {

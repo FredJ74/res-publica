@@ -481,3 +481,129 @@ function avancerChantierUnJour(chantier, capacite) {
     franchitDeuxTiers: franchitDeuxTiers(avant, apres, duree)
   };
 }
+
+// ---------------------------------------------------------------------------
+// MATERIAUX REELS ET PENURIE (Lot 1.5.8)
+// ---------------------------------------------------------------------------
+// La fraction materiaux cesse d'etre forcee a 1 : elle est desormais calculee sur le stock
+// reellement present dans le chantier. La matiere la plus manquante commande, et la pénurie n'est
+// jamais un tirage aleatoire -- c'est le constat "aucun progres possible aujourd'hui".
+
+// Besoin du jour N pour un chantier de construction, en unites entieres.
+function besoinMateriauxJourChantier(chantier, jourNumero) {
+  if (!chantier || chantier.type !== 'construction') return { bois: 0, minerai: 0, metal: 0 };
+  return materiauxDuJourConstruction(jourNumero);
+}
+
+// Numero de la journee de travail a venir : 1 pour la premiere. Fonde sur la progression deja
+// acquise, jamais sur le calendrier -- un chantier arrete trois jours reprend a la meme journee.
+function numeroJourChantier(chantier) {
+  const p = Math.max(0, nombreFini(chantier && chantier.progressionJours, 0));
+  return Math.floor(p) + 1;
+}
+
+// Consommation PROPORTIONNELLE a l'avancee reelle. Avancer d'un demi-jour ne consomme que la
+// moitie des materiaux du jour. Les quantites retirees sont arrondies a l'entier inferieur et
+// bornees par le stock : on ne peut jamais consommer ce qu'on n'a pas.
+function consommerMateriaux(stock, besoin, fraction) {
+  const f = borner(fraction, 0, 1);
+  const dispo = stock || {};
+  const restant = {};
+  const consomme = {};
+  MATERIAUX_CHANTIER.forEach(function (cle) {
+    const enStock = Math.max(0, nombreFini(dispo[cle], 0));
+    const voulu = Math.floor(Math.max(0, nombreFini(besoin && besoin[cle], 0)) * f);
+    const pris = Math.min(enStock, voulu);
+    consomme[cle] = pris;
+    restant[cle] = enStock - pris;
+  });
+  return { stock: restant, consomme: consomme };
+}
+
+// Manque a acheter pour couvrir le besoin du jour, matiere par matiere.
+function manqueMateriaux(stock, besoin) {
+  const dispo = stock || {};
+  const manque = {};
+  MATERIAUX_CHANTIER.forEach(function (cle) {
+    const b = Math.max(0, nombreFini(besoin && besoin[cle], 0));
+    const s = Math.max(0, nombreFini(dispo[cle], 0));
+    manque[cle] = Math.max(0, b - s);
+  });
+  return manque;
+}
+
+// ---------------------------------------------------------------------------
+// VOL DE MATERIAUX (Lot 1.5.8)
+// ---------------------------------------------------------------------------
+// Base neutre de 50, a laquelle s'ajoutent les bonus/malus de discretion du voleur et le malus
+// des vigiles du chantier. Un seul jet : la detection decoule du MEME score final, jamais d'un
+// second tirage.
+
+// Malus cumulatif des vigiles : -20 pour le premier, -10 pour chacun des suivants. Deux vigiles
+// atteignent -30, soit exactement l'echelle de MALUS_CENTRE_POUVOIR deja arbitree ailleurs.
+const MALUS_VIGILE_PREMIER = 20;
+const MALUS_VIGILE_SUIVANT = 10;
+
+function malusVigiles(nombreVigiles) {
+  const n = Math.max(0, Math.floor(nombreFini(nombreVigiles, 0)));
+  if (n <= 0) return 0;
+  return MALUS_VIGILE_PREMIER + (n - 1) * MALUS_VIGILE_SUIVANT;
+}
+
+// Nombre de vigiles affectes au chantier. Leur recrutement n'existe pas encore (hors perimetre) :
+// la structure est simplement lue si elle est presente, et vaut 0 sinon.
+function vigilesDuChantier(chantier) {
+  if (!chantier) return 0;
+  if (Array.isArray(chantier.vigiles)) return chantier.vigiles.length;
+  return Math.max(0, Math.floor(nombreFini(chantier.vigiles, 0)));
+}
+
+// Score final, borne 0..100.
+function scoreVolMateriaux(bonusVoleur, nombreVigiles, jet) {
+  const base = 50;
+  const b = nombreFini(bonusVoleur, 0);
+  const d = nombreFini(jet, 0);                       // ecart de tirage, 0 si non fourni
+  return borner(base + b - malusVigiles(nombreVigiles) + d, 0, 100);
+}
+
+// Resolution : un seul score, trois issues.
+function verdictVolMateriaux(score) {
+  const s = borner(score, 0, 100);
+  if (s < 20) return { reussite: false, detecte: true,  score: s };
+  if (s < 50) return { reussite: false, detecte: false, score: s };
+  return { reussite: true, detecte: false, score: s };
+}
+
+// Plafond volable d'une matiere : 20 % du besoin QUOTIDIEN de cette matiere. Le metal suit la
+// sequence 33/33/34, son plafond vaut donc 6 / 6 / 7 -- soit exactement 20 unites volables pour
+// 100 consommees sur trois jours, sans derive.
+// Le metal ne peut pas se deduire d'un simple arrondi de 20 % jour par jour : floor(33x0,2)=6 et
+// floor(34x0,2)=6 donneraient 6/6/6, round donnerait 7/7/7. La sequence est donc calee sur le
+// CUMUL : 20 % de la consommation cumulee, arrondi a l'entier, ce qui donne 6 / 13 / 20 apres
+// J1 / J2 / J3 -- soit des increments de 6, 7 puis 7, et exactement 20 unites volables pour 100
+// consommees sur trois jours. Alignee sur les memes jours que la consommation 33 / 33 / 34.
+const PLAFOND_VOL_METAL = [6, 7, 7];
+
+function plafondVolMatiere(matiere, jourNumero) {
+  if (matiere === 'metal') {
+    const n = Math.floor(nombreFini(jourNumero, 0));
+    if (n < 1) return 0;
+    return PLAFOND_VOL_METAL[(n - 1) % PLAFOND_VOL_METAL.length];
+  }
+  const besoin = materiauxDuJourConstruction(jourNumero);
+  const b = Math.max(0, nombreFini(besoin[matiere], 0));
+  return Math.floor(b * 0.2);
+}
+
+// Quantite volee : proportionnelle a la qualite du succes au-dessus de 50. Un succes de justesse
+// rapporte 1 unite, un score parfait approche le plafond. Jamais 0 sur une reussite, jamais plus
+// que le plafond, jamais plus que le stock reellement present.
+function quantiteVolMateriaux(score, matiere, jourNumero, stockPresent) {
+  const v = verdictVolMateriaux(score);
+  if (!v.reussite) return 0;
+  const plafond = plafondVolMatiere(matiere, jourNumero);
+  const enStock = Math.max(0, Math.floor(nombreFini(stockPresent, 0)));
+  if (plafond <= 0 || enStock <= 0) return 0;
+  const fraction = (v.score - 50) / 50;
+  return Math.min(plafond, enStock, Math.max(1, Math.round(fraction * plafond)));
+}
