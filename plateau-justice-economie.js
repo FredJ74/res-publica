@@ -6162,12 +6162,115 @@ async function doDeposerDemandePermis(pa, cost) {
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Le permis est toujours obtenu à terme — seule la durée d\'instruction varie selon l\'ampleur du projet.</div>';
   Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
     const duree = DUREE_INSTRUCTION_PERMIS[key];
-    html += '<button onclick="confirmerDepotPermis(\'' + key + '\',' + pa + ',' + cost + ')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
+    // Lot 1.5.2 : un palier divisible passe d'abord par l'ecran de plan (ou le decoupage reste
+    // facultatif) ; hangar et commerce standard, indivisibles, sont deposes directement -- aucun
+    // formulaire de decoupage ne leur est propose, conformement au GD.
+    const action = planPermisPossible(ts, key)
+      ? 'ouvrirPlanPermis(\'' + key + '\',' + pa + ',' + cost + ')'
+      : 'confirmerDepotPermis(\'' + key + '\',' + pa + ',' + cost + ')';
+    html += '<button onclick="' + action + '" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
     html += '<span>' + niv.label + '</span><span style="color:#8a8060">' + duree + ' jour(s) d\'instruction</span></button>';
   });
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// PLAN DE DECOUPAGE JOINT A LA DEMANDE (Lot 1.5.2)
+// Brouillon en memoire uniquement, jamais persiste tant que le permis n'est pas depose. Il porte
+// son palier : si le demandeur revient en arriere et choisit un autre type de construction, le
+// plan devenu sans objet est ignore au lieu de contaminer la nouvelle demande (voir
+// confirmerDepotPermis).
+let _planPermisEnCours = { palier: null, lots: [] };
+
+async function ouvrirPlanPermis(palierDemande, pa, cost) {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  if (!planPermisPossible(ts, palierDemande)) {
+    // Ne devrait pas etre atteignable depuis l'ecran precedent : filet en cas d'appel direct.
+    confirmerDepotPermis(palierDemande, pa, cost);
+    return;
+  }
+  if (_planPermisEnCours.palier !== palierDemande) _planPermisEnCours = { palier: palierDemande, lots: [] };
+  renderPlanPermis(pa, cost);
+}
+
+function renderPlanPermis(pa, cost) {
+  const id = state.currentBuilding;
+  const ts = getTerrainState(id);
+  const palier = _planPermisEnCours.palier;
+  const lots = _planPermisEnCours.lots;
+  const projection = projectionPermis(ts, palier, lots);
+  const dispo = surfaceDisponible(projection);
+  const destinations = destinationsAutorisees(palier);
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Plan de découpage joint à la demande — <b>facultatif</b>. Vous pouvez déposer sans aucun lot : le bâtiment sera alors livré indivis, et la surface non attribuée vous restera.</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Surface exploitable : ' + surfaceTotale(ts) + ' m² · Inscrite au plan : ' + surfaceAllouee(projection) + ' m² · Reste : ' + dispo + ' m².<br>'
+       + destinations.map(function(d) {
+           return (d === 'appartement' ? 'Appartement' : 'Commerce') + ' : minimum ' + surfaceMinimaleLot(palier, d) + ' m²';
+         }).join(' · ') + '.</div>';
+
+  if (lots.length > 0) {
+    html += '<div style="display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem">';
+    lots.forEach(function(l, i) {
+      html += '<div style="padding:.5rem .6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
+      html += '<span style="font-size:.82rem;color:#c0b090">' + l.label + ' — ' + l.surface + ' m² · ' + (destinationDuLot(l) === 'appartement' ? 'appartement' : 'commerce') + '</span>';
+      html += '<button onclick="doRetirerLotPlanPermis(' + i + ',' + pa + ',' + cost + ')" style="font-size:.68rem;color:#cc5540;background:transparent;border:none;cursor:pointer">Retirer</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">';
+  if (destinations.length > 1) {
+    html += '<select id="plan-destination" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
+    destinations.forEach(function(d) {
+      html += '<option value="' + d + '">' + (d === 'appartement' ? 'Appartement' : 'Commerce') + '</option>';
+    });
+    html += '</select>';
+  }
+  html += '<input id="plan-label" type="text" placeholder="Nom du lot..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '<input id="plan-surface" type="number" placeholder="Surface m²..." style="width:120px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '</div>';
+  html += '<button class="pnj-action-btn" onclick="doAjouterLotPlanPermis(' + pa + ',' + cost + ')">+ Ajouter ce lot au plan</button>';
+  html += '<button class="pnj-action-btn" style="margin-top:.6rem" onclick="confirmerDepotPermis(\'' + palier + '\',' + pa + ',' + cost + ')">Déposer la demande'
+       + (lots.length > 0 ? ' avec ce plan (' + lots.length + ' lot' + (lots.length > 1 ? 's' : '') + ')' : ' sans découpage') + '</button>';
+  html += '</div>';
+
+  document.getElementById('postes-modal-title').textContent = 'Découpage joint à la demande';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function doAjouterLotPlanPermis(pa, cost) {
+  const ts = getTerrainState(state.currentBuilding);
+  const palier = _planPermisEnCours.palier;
+  const label = (document.getElementById('plan-label')?.value || '').trim();
+  const surface = parseInt(document.getElementById('plan-surface')?.value || 0);
+  const destinationsPalier = destinationsAutorisees(palier);
+  const destination = document.getElementById('plan-destination')?.value || destinationsPalier[0];
+
+  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
+
+  // Meme verdict que la division d'un batiment livre, applique au terrain PROJETE : aucune regle
+  // de surface n'est reecrite ici.
+  const verdict = verdictAjoutLotPlan(ts, palier, _planPermisEnCours.lots, { destination, surface });
+  if (!verdict.ok) {
+    showToast(verdict.raison === 'surface_indisponible' ? 'Surface insuffisante' : 'Lot refusé', verdict.message, false);
+    return;
+  }
+
+  _planPermisEnCours.lots.push({
+    id: 'lot-' + Date.now() + '-' + _planPermisEnCours.lots.length,   // unique meme en cas d'ajouts dans la meme milliseconde
+    label, surface: verdict.surface, destination: verdict.destination
+  });
+  renderPlanPermis(pa, cost);
+}
+
+function doRetirerLotPlanPermis(index, pa, cost) {
+  _planPermisEnCours.lots.splice(index, 1);
+  renderPlanPermis(pa, cost);
 }
 
 async function confirmerDepotPermis(palierDemande, pa, cost) {
@@ -6176,6 +6279,22 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
   const ts = getTerrainState(id);
   const jour = state.day || 1;
   const duree = DUREE_INSTRUCTION_PERMIS[palierDemande];
+
+  // Lot 1.5.2 : le plan n'est retenu que s'il a ete compose POUR CE PALIER (un retour en arriere
+  // vers un autre type de construction ne doit pas trainer un decoupage devenu sans objet), et
+  // seulement si ce palier accepte un decoupage sur ce terrain.
+  const planCandidat = (_planPermisEnCours.palier === palierDemande && planPermisPossible(ts, palierDemande))
+    ? _planPermisEnCours.lots : [];
+
+  // Defense en profondeur : le plan est revalide ENTIER avant enregistrement, meme si l'ecran a
+  // deja valide chaque ajout. Un plan invalide n'annule pas la demande -- il est simplement
+  // refuse, le demandeur restant libre de deposer sans decoupage.
+  const verdictPlan = verdictPlanPermis(ts, palierDemande, planCandidat);
+  if (!verdictPlan.ok) {
+    showToast('Plan refusé', verdictPlan.message, false);
+    return;
+  }
+  const decoupageInitial = snapshotPlanPermis(planCandidat);
 
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
@@ -6187,14 +6306,26 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
       dateDepot: jour,
       dureeInstruction: duree,
       dateInstructionTerminee: jour + duree,
-      statut: 'instruction'
+      statut: 'instruction',
+      // Numero de dossier fige au depot : identite de ce dossier d'urbanisme, reprise plus tard
+      // par l'historique municipal et par les documents delivres.
+      numeroDossier: numeroDossierUrbanisme(state.country, id, Date.now()),
+      // SNAPSHOT du decoupage demande. Tableau vide = permis sans decoupage, cas parfaitement
+      // legitime (le batiment sera alors livre indivis). Ce plan n'est PAS ecrit dans
+      // ts.subdivisions : les lots ne naitront qu'a la livraison du chantier -- sans quoi le Lot
+      // 1.1 hydraterait des pieces louables dans un batiment qui n'existe pas encore.
+      decoupageInitial: decoupageInitial
     }
   });
+  _planPermisEnCours = { palier: null, lots: [] };   // brouillon consomme
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
 
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Demande déposée', 'Instruction en cours (' + duree + ' jour(s)).', true, true);
-  addJournalEntry('Demande de permis de construire déposée (' + NIVEAUX_CONSTRUCTION[palierDemande].label + ').', 'event-good');
+  addJournalEntry('Demande de permis de construire déposée (' + NIVEAUX_CONSTRUCTION[palierDemande].label + ')'
+    + (decoupageInitial.length > 0
+        ? ', avec un plan de découpage de ' + decoupageInitial.length + ' lot' + (decoupageInitial.length > 1 ? 's' : '') + '.'
+        : ', sans découpage.'), 'event-good');
 }
 
 // A appeler en entrant sur le terrain : fait passer une demande en instruction vers l'attente de validation du maire

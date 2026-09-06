@@ -542,6 +542,72 @@ function verdictAjoutLot(ts, lot) {
   return { ok: true, raison: null, message: '', destination: destination, surface: surface };
 }
 
+// =====================================================================
+// PLAN DE DECOUPAGE D'UNE DEMANDE DE PERMIS (Lot 1.5.2)
+// =====================================================================
+// Au moment du depot, le batiment n'existe pas encore : ts.niveau_construction est null et
+// ts.subdivisions est vide. Les regles de surface s'appliquent pourtant au palier DEMANDE et aux
+// lots DEJA inscrits au plan. Plutot que de reecrire ces regles pour le permis -- ce qui creerait
+// une seconde logique de validation, exactement ce que le Lot 1.5.1 a supprime -- on construit un
+// terrain PROJETE (le bien tel qu'il sera livre) et on lui applique verdictAjoutLot tel quel.
+//
+// Rien de tout cela n'est persiste : le plan reste un snapshot dans ts.permis.decoupageInitial et
+// n'est JAMAIS ecrit dans ts.subdivisions avant la livraison du chantier.
+function projectionPermis(ts, palierDemande, lotsDuPlan) {
+  const projection = Object.assign({}, ts || {});
+  projection.niveau_construction = palierDemande;
+  projection.subdivisions = Array.isArray(lotsDuPlan) ? lotsDuPlan : [];
+  delete projection.chantierReamenagement;   // un bien non construit n'a pas de reamenagement
+  return projection;
+}
+
+// Le palier demande autorise-t-il un plan de decoupage ? Faux pour hangar/commerce_standard
+// (indivisibles) et pour un terrain dont la surface exploitable n'est pas connue -- dans ce
+// dernier cas on ne devine aucune superficie, on n'offre simplement pas de plan.
+function planPermisPossible(ts, palierDemande) {
+  return batimentDivisible(palierDemande) && surfaceTerrainConnue(ts);
+}
+
+// Verdict d'ajout d'un lot AU PLAN, a partir des lots deja inscrits.
+function verdictAjoutLotPlan(ts, palierDemande, lotsDuPlan, lot) {
+  return verdictAjoutLot(projectionPermis(ts, palierDemande, lotsDuPlan), lot);
+}
+
+// Verdict sur un plan ENTIER, rejoue lot par lot dans l'ordre : chaque lot est valide contre les
+// precedents, donc la somme des surfaces ne peut jamais depasser ts.surface. Sert de controle a
+// l'enregistrement, meme apres que l'interface a deja valide chaque ajout -- meme defense en
+// profondeur qu'au Lot 1.2, l'ecran n'etant qu'une anticipation contournable.
+function verdictPlanPermis(ts, palierDemande, lotsDuPlan) {
+  const lots = Array.isArray(lotsDuPlan) ? lotsDuPlan : [];
+  if (lots.length === 0) return { ok: true, raison: null, message: '', index: -1 };   // plan vide : toujours valide
+  if (!batimentDivisible(palierDemande)) {
+    return { ok: false, raison: 'batiment_indivisible', index: 0,
+             message: 'Ce type de construction ne peut pas être divisé en lots.' };
+  }
+  const retenus = [];
+  for (let i = 0; i < lots.length; i++) {
+    const v = verdictAjoutLotPlan(ts, palierDemande, retenus, lots[i]);
+    if (!v.ok) return { ok: false, raison: v.raison, message: v.message, index: i };
+    retenus.push({ id: lots[i].id, label: lots[i].label, surface: v.surface, destination: v.destination });
+  }
+  return { ok: true, raison: null, message: '', index: -1, lots: retenus };
+}
+
+// Snapshot fige du plan, tel qu'il sera conserve dans ts.permis.decoupageInitial. Ne contient que
+// ce que le GD exige de figer : identite, libelle, surface, destination. Renvoie [] pour un plan
+// vide -- un permis sans decoupage est parfaitement legitime.
+function snapshotPlanPermis(lotsDuPlan) {
+  return (Array.isArray(lotsDuPlan) ? lotsDuPlan : []).map(function (l) {
+    return { id: l.id, label: l.label, surface: Number(l.surface), destination: destinationDuLot(l) };
+  });
+}
+
+// Identifiant unique et lisible du dossier d'urbanisme, fige au depot. Il servira de clef de
+// regroupement a l'historique municipal (Lot 1.5.5) et figure sur chaque document delivre.
+function numeroDossierUrbanisme(country, buildingId, horodatage) {
+  return 'URB-' + (country || 'republic') + '-' + (buildingId || 'terrain') + '-' + (horodatage || Date.now());
+}
+
 // RESOLVEUR UNIQUE. Tous les consommateurs passent par ici : il n'existe plus qu'un seul chemin
 // pour repondre a "ce local est-il loue, et par qui ?".
 //
