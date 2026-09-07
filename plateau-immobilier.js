@@ -609,6 +609,201 @@ function numeroDossierUrbanisme(country, buildingId, horodatage) {
 }
 
 // =====================================================================
+// RECONFIGURATION DES LOTS D'UN BATIMENT LIVRE (Lot 1.5.14)
+// =====================================================================
+// Redecouper un batiment deja livre passe par un chantier reel (plateau-chantiers.js). Ce bloc
+// porte les regles IMMOBILIERES de ce chantier : ce qu'on a le droit de dessiner, ce qu'on n'a pas
+// le droit de toucher, et ce qui reste utilisable pendant les travaux.
+//
+// AUCUNE REGLE DE SURFACE N'EST REECRITE. Le plan cible est valide par verdictPlanPermis, donc par
+// verdictAjoutLot applique au batiment PROJETE -- exactement le chemin du plan initial. Minima
+// commerce premium (600), commerce d'immeuble (300), appartement (150), et somme bornee par la
+// surface exploitable : une seule version de ces regles existe, et la reconfiguration s'y plie.
+
+// PROTECTION DES LOCATAIRES. Invariant absolu : aucun metre carre couvert par un bail actif ne peut
+// etre touche. Pas de derogation -- ni accord du proprietaire, ni accord du locataire, ni identite
+// des deux. Le bail doit d'abord prendre fin par les mecanismes normaux.
+// Elle s'evalue sur les lots REELLEMENT concernes : un immeuble n'est jamais bloque en entier parce
+// qu'un lot qu'on ne touche pas est loue.
+function lotsLouesParmiConcernes(buildingId, planSource, lotsConcernes) {
+  const ids = Array.isArray(lotsConcernes) ? lotsConcernes : [];
+  const source = Array.isArray(planSource) ? planSource : [];
+  const loues = [];
+  ids.forEach(function (id) {
+    const lot = source.find(function (l) { return l && l.id === id; });
+    if (!lot) return;
+    if (typeof lotEstLoue === 'function' && lotEstLoue(buildingId, lot)) loues.push(lot);
+  });
+  return loues;
+}
+
+// Verdict unique du lancement. L'ecran et la confirmation s'y referent tous les deux : l'ecran
+// n'est qu'une anticipation contournable par un appel direct.
+function verdictLancementReconfiguration(ts, buildingId, planCible) {
+  const etat = ts || {};
+  if (!etat.niveau_construction) return { ok: false, raison: 'batiment_absent' };
+  if (etat.chantier) return { ok: false, raison: 'construction_en_cours' };
+  if (etat.chantierReamenagement) return { ok: false, raison: 'reconfiguration_en_cours' };
+  if (!surfaceTerrainConnue(etat)) return { ok: false, raison: 'surface_inconnue' };
+
+  const planSource = Array.isArray(etat.subdivisions) ? etat.subdivisions : [];
+  const cible = Array.isArray(planCible) ? planCible : [];
+
+  // Le plan cible obeit aux memes regles structurelles que n'importe quel plan.
+  const vPlan = verdictPlanPermis(etat, etat.niveau_construction, cible);
+  if (!vPlan.ok) return { ok: false, raison: vPlan.raison, message: vPlan.message, index: vPlan.index };
+
+  const diff = differencePlans(planSource, cible);
+  if (diff.identique) return { ok: false, raison: 'aucun_changement' };
+
+  const loues = lotsLouesParmiConcernes(buildingId, planSource, diff.lotsConcernes);
+  if (loues.length > 0) {
+    return { ok: false, raison: 'lot_loue', lots: loues,
+             message: 'Ce chantier toucherait ' + loues.length + ' local' + (loues.length > 1 ? 'aux' : '')
+                      + ' sous bail (' + loues.map(function (l) { return l.label; }).join(', ')
+                      + '). Un bail en cours ne peut pas être interrompu par des travaux.' };
+  }
+
+  return { ok: true, raison: null, surfaceConcernee: diff.surfaceConcernee,
+           lotsConcernes: diff.lotsConcernes, operations: diff.detail,
+           cout: coutTotalReamenagement(diff.surfaceConcernee),
+           duree: dureeReamenagement(diff.surfaceConcernee) };
+}
+
+// DISPONIBILITE PARTIELLE PENDANT LES TRAVAUX. Seuls les lots reellement touches sont fermes ; les
+// autres continuent de vivre normalement -- on ne ferme jamais l'immeuble entier.
+// L'indisponibilite est DERIVEE du chantier en cours, jamais recopiee dans un drapeau porte par le
+// lot : un drapeau pourrait survivre au chantier qui l'a pose.
+function lotIndisponiblePourTravaux(ts, lotId) {
+  const ch = ts && ts.chantierReamenagement;
+  if (!ch) return false;
+  return lotConcerneParReamenagement(ch, lotId);
+}
+
+function lotsDisponiblesALaLocation(ts, buildingId) {
+  const lots = (ts && Array.isArray(ts.subdivisions)) ? ts.subdivisions : [];
+  return lots.filter(function (l) {
+    if (!l || !l.id) return false;
+    if (lotIndisponiblePourTravaux(ts, l.id)) return false;
+    return !(typeof lotEstLoue === 'function' && lotEstLoue(buildingId, l));
+  });
+}
+
+// =====================================================================
+// INSTRUCTION DU PERMIS, SUSPENSION ET ACCORD TACITE (Lot 1.5.13)
+// =====================================================================
+// Un permis n'attend plus indefiniment une signature. Le delai d'instruction ecoule, l'absence de
+// decision VAUT decision : le permis est accorde tacitement. Le maire adjoint garde tout son
+// pouvoir -- accepter, refuser -- mais seulement tant que le dossier est ouvert.
+//
+// LE DELAI N'EST PAS CALENDAIRE. Comme la progression d'un chantier, il se compte en journees
+// REELLEMENT instruites : permis.joursInstructionFaits, incremente une fois par passage du
+// traitement quotidien. Une date-cible figee au depot (l'ancien dateInstructionTerminee)
+// continuerait de courir pendant qu'une enquete suspend le terrain -- exactement ce que le cahier
+// des charges interdit. Elle est conservee en lecture pour les dossiers anterieurs et pour
+// l'affichage, mais elle ne fait plus autorite.
+//
+// POURQUOI DES PASSAGES DE CRON ET NON state.day : state.day est un compteur PROPRE A CHAQUE
+// JOUEUR (un joueur qui ne dort pas ne le fait pas avancer). Le serveur n'en a aucune notion, et
+// deux demandeurs auraient des delais differents. Le passage quotidien est la seule horloge
+// commune du jeu.
+
+const PERMIS_STATUT_INSTRUCTION = 'instruction';
+// Etat de l'ancien moteur : le delai etait ecoule et le dossier attendait une signature humaine
+// qui pouvait ne jamais venir. Plus jamais produit ; lu defensivement ci-dessous.
+const PERMIS_STATUT_LEGACY_ATTENTE = 'attente_validation';
+
+// Un refus ferme la porte trois jours. Delai de decence, pas une sanction : le demandeur peut
+// revenir, mais pas harceler le service d'urbanisme le jour meme.
+const PERMIS_COOLDOWN_REFUS_JOURS = 3;
+
+function permisEnInstruction(permis) {
+  const s = permis && permis.statut;
+  return s === PERMIS_STATUT_INSTRUCTION || s === PERMIS_STATUT_LEGACY_ATTENTE;
+}
+
+function dureeInstructionPermis(permis) {
+  const d = permis && Number(permis.dureeInstruction);
+  return (isFinite(d) && d > 0) ? Math.floor(d) : 0;
+}
+
+// Journees d'instruction deja consommees.
+// REPRISE DES DOSSIERS ANTERIEURS, sans migration ni reecriture : un dossier reste en
+// 'attente_validation' PRECISEMENT parce que son delai etait deja ecoule sous l'ancien moteur et
+// que personne n'a signe. Le compter comme integralement instruit n'est donc pas une faveur, c'est
+// la lecture fidele de ce que cet etat signifie -- et c'est exactement le cas que l'accord tacite
+// existe pour resoudre. Un dossier 'instruction' sans compteur repart de zero : on ne lui invente
+// pas un passe que rien en base ne permet de reconstituer.
+function joursInstructionFaits(permis) {
+  const n = permis && Number(permis.joursInstructionFaits);
+  if (isFinite(n) && n >= 0) return Math.floor(n);
+  if (permis && permis.statut === PERMIS_STATUT_LEGACY_ATTENTE) return dureeInstructionPermis(permis);
+  return 0;
+}
+
+function instructionAchevee(permis) {
+  const duree = dureeInstructionPermis(permis);
+  if (duree <= 0) return false;
+  return joursInstructionFaits(permis) >= duree;
+}
+
+function joursInstructionRestants(permis) {
+  return Math.max(0, dureeInstructionPermis(permis) - joursInstructionFaits(permis));
+}
+
+// SUSPENSION ADMINISTRATIVE. Deux causes, toutes deux preexistantes et lues telles quelles :
+// un cadavre non resolu sur le terrain (ts.pnj), et le gel d'une succession en cours. Tant qu'elle
+// dure, l'instruction ne consomme aucune journee -- elle ne recule pas non plus.
+function terrainSuspenduAdministrativement(etat) {
+  if (!etat) return false;
+  return etat.pnj === 'cadavre' || !!etat.succession_gel;
+}
+
+// Verdict unique de l'accord tacite. Ne connait ni date ni cron : il repond a "ce dossier doit-il
+// basculer maintenant ?".
+function verdictAccordTacite(etat) {
+  const permis = etat && etat.permis;
+  if (!permis) return { ok: false, raison: 'aucun_permis' };
+  if (!permisEnInstruction(permis)) return { ok: false, raison: 'deja_decide' };
+  if (terrainSuspenduAdministrativement(etat)) return { ok: false, raison: 'suspendu' };
+  if (!instructionAchevee(permis)) return { ok: false, raison: 'delai_non_ecoule' };
+  return { ok: true, raison: null };
+}
+
+// Le refus ouvre un delai de carence. Compte en jours de jeu du demandeur, seule echelle dont
+// dispose l'ecran de depot ; un dossier ancien sans jourRefus n'oppose aucune carence.
+function cooldownRefusActif(permis, jourCourant) {
+  if (!permis || permis.statut !== 'refuse') return { actif: false, restant: 0 };
+  const refus = Number(permis.jourRefus);
+  if (!isFinite(refus)) return { actif: false, restant: 0 };
+  const ecoules = Math.max(0, Math.floor(Number(jourCourant) || 0) - Math.floor(refus));
+  const restant = Math.max(0, PERMIS_COOLDOWN_REFUS_JOURS - ecoules);
+  return { actif: restant > 0, restant: restant };
+}
+
+// Peut-on deposer une nouvelle demande sur ce terrain ?
+function verdictNouvelleDemandePermis(etat, jourCourant) {
+  const ts = etat || {};
+  if (ts.niveau_construction) return { ok: false, raison: 'deja_construit' };
+  if (permisEnInstruction(ts.permis)) return { ok: false, raison: 'instruction_en_cours' };
+  const cd = cooldownRefusActif(ts.permis, jourCourant);
+  if (cd.actif) return { ok: false, raison: 'cooldown_refus', restant: cd.restant };
+  return { ok: true, raison: null };
+}
+
+// Une decision explicite du maire adjoint. Le refus EXIGE un motif ecrit : une decision
+// defavorable qui ne se justifie pas n'est pas une decision, c'est une obstruction -- et
+// l'obstruction n'a plus de mecanique dediee depuis que le silence vaut accord.
+function verdictDecisionPermis(permis, valide, motif) {
+  if (!permis) return { ok: false, raison: 'aucun_permis' };
+  if (!permisEnInstruction(permis)) return { ok: false, raison: 'deja_decide' };
+  if (valide) return { ok: true, raison: null, motif: null };
+  const texte = (typeof motif === 'string') ? motif.trim() : '';
+  if (texte.length < 10) return { ok: false, raison: 'motif_requis' };
+  return { ok: true, raison: null, motif: texte };
+}
+
+// =====================================================================
 // DOCUMENTS PHYSIQUES D'URBANISME (Lot 1.5.3)
 // =====================================================================
 // Les documents administratifs sont de VRAIS objets d'inventaire, destines a devenir des

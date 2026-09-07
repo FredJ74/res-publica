@@ -140,7 +140,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'recolter_matiere') { doRecolterMatiere(pa, cost); return; }
   if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(pa, cost); return; }
   if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(pa, cost); return; }
-  if (fn === 'plainte_obstruction_permis') { doPlainteObstruction(pa, cost); return; }
   if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(pa, cost); return; }
   if (fn === 'consulter_dossiers_urbanisme') { doConsulterDossiersUrbanisme(); return; }
   if (fn === 'demander_logement_social') { demanderLogementSocial(pa, cost); return; }
@@ -232,6 +231,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'travailler_chantier')    { doTravaillerChantier(pa, cost); return; }
   if (fn === 'vendre_materiaux_chantier') { doVendreMateriauxChantier(pa, cost); return; }
   if (fn === 'modifier_plan_chantier') { doModifierPlanChantier(pa, cost); return; }
+  if (fn === 'reconfigurer_lots') { doOuvrirReconfiguration(pa, cost); return; }
   if (fn === 'corrompre_chantier') { doCorrompreChantier(pa, cost); return; }
   if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(pa, cost); return; }
   if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(pa, cost); return; }

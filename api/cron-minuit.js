@@ -986,6 +986,28 @@ function numeroJourChantierServeur(ch) {
   return Math.floor(Math.max(0, Number(ch && ch.progressionJours) || 0)) + 1;
 }
 
+// Panier du jour d'une reconfiguration (Lot 1.5.14) : un tiers du budget quotidien dans chaque
+// matiere, aux prix de reference. Miroir de materiauxDuJourReamenagement (plateau-chantiers.js).
+function materiauxDuJourReamenagementServeur(ch) {
+  const duree = Math.max(0, Number(ch && ch.dureeJours) || 0);
+  const budget = duree > 0 ? Math.max(0, Number(ch.coutMateriaux) || 0) / duree : 0;
+  const parMatiere = budget / MATERIAUX_SERVEUR.length;
+  const panier = {};
+  MATERIAUX_SERVEUR.forEach(function (cle) {
+    const prix = (RESSOURCES_ECONOMIE_SERVEUR[cle] && RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase) || 0;
+    panier[cle] = prix > 0 ? Math.round(parMatiere / prix) : 0;
+  });
+  return panier;
+}
+
+// Besoin du jour, quel que soit le type de chantier. Miroir de besoinMateriauxJourChantier.
+function besoinMateriauxJourServeur(ch, jourNumero) {
+  if (!ch) return { bois: 0, minerai: 0, metal: 0 };
+  if (ch.type === 'construction') return materiauxDuJourServeur(jourNumero);
+  if (ch.type === 'reamenagement') return materiauxDuJourReamenagementServeur(ch);
+  return { bois: 0, minerai: 0, metal: 0 };
+}
+
 // La matiere la plus manquante commande. Un besoin nul n'est pas une contrainte.
 // Miroir serveur de planifierApprovisionnement (plateau-chantiers.js) -- meme raison que les
 // autres duplications du cron, et meme verrou : un test compare les deux sur les memes entrees.
@@ -1018,6 +1040,216 @@ function fractionMateriauxServeur(stock, besoin) {
     f = Math.min(f, Math.min(1, Math.max(0, Number((stock || {})[cle]) || 0) / r));
   });
   return contrainte ? Math.max(0, Math.min(1, f)) : 1;
+}
+
+// =====================================================================
+// INSTRUCTION DES PERMIS ET ACCORD TACITE (Lot 1.5.13)
+// =====================================================================
+// Le delai d'instruction se compte en journees REELLEMENT instruites, pas en date-cible : c'est ce
+// traitement, et lui seul, qui les compte. Passe le delai sans decision, le silence vaut accord.
+//
+// POURQUOI ICI ET PAS DANS LE NAVIGATEUR : state.day est un compteur propre a chaque joueur, que
+// seul le fait de dormir fait avancer. Deux demandeurs auraient des delais differents, et un
+// dossier dont le proprietaire ne se connecte pas n'aboutirait jamais. Le passage quotidien est la
+// seule horloge commune.
+//
+// Miroirs des fonctions pures de plateau-immobilier.js, dupliques pour la meme raison que tous les
+// autres miroirs de ce fichier -- module serverless isole -- et verrouilles par test d'egalite.
+const PERMIS_STATUT_LEGACY_ATTENTE_SERVEUR = 'attente_validation';
+
+function permisEnInstructionServeur(p) {
+  const s = p && p.statut;
+  return s === 'instruction' || s === PERMIS_STATUT_LEGACY_ATTENTE_SERVEUR;
+}
+
+function dureeInstructionPermisServeur(p) {
+  const d = p && Number(p.dureeInstruction);
+  return (isFinite(d) && d > 0) ? Math.floor(d) : 0;
+}
+
+function joursInstructionFaitsServeur(p) {
+  const n = p && Number(p.joursInstructionFaits);
+  if (isFinite(n) && n >= 0) return Math.floor(n);
+  if (p && p.statut === PERMIS_STATUT_LEGACY_ATTENTE_SERVEUR) return dureeInstructionPermisServeur(p);
+  return 0;
+}
+
+function instructionAcheveeServeur(p) {
+  const d = dureeInstructionPermisServeur(p);
+  return d > 0 && joursInstructionFaitsServeur(p) >= d;
+}
+
+function terrainSuspenduServeur(etat) {
+  if (!etat) return false;
+  return etat.pnj === 'cadavre' || !!etat.succession_gel;
+}
+
+function verdictAccordTaciteServeur(etat) {
+  const p = etat && etat.permis;
+  if (!p) return { ok: false, raison: 'aucun_permis' };
+  if (!permisEnInstructionServeur(p)) return { ok: false, raison: 'deja_decide' };
+  if (terrainSuspenduServeur(etat)) return { ok: false, raison: 'suspendu' };
+  if (!instructionAcheveeServeur(p)) return { ok: false, raison: 'delai_non_ecoule' };
+  return { ok: true, raison: null };
+}
+
+// Miroir compact de construireDocumentUrbanisme (plateau-immobilier.js). Memes champs, memes
+// valeurs ; les libelles lisibles (batimentLabel, palierLabel) retombent sur les identifiants,
+// exactement comme le fait la version client quand BUILDINGS et NIVEAUX_CONSTRUCTION ne sont pas
+// charges. Aucune regle ici : un snapshot administratif fige, rien d'autre.
+function construireDocumentUrbanismeServeur(etat, permis, nature, opt) {
+  const o = opt || {}, p = permis || {}, t = etat || {};
+  const plan = Array.isArray(p.decoupageInitial) ? p.decoupageInitial : [];
+  return {
+    id: (p.numeroDossier || 'URB-SANS-NUMERO') + '-' + nature + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+    nature: nature,
+    numeroDossier: p.numeroDossier || null,
+    jour: (typeof o.jour === 'number') ? o.jour : null,
+    jourDepot: (typeof p.dateDepot === 'number') ? p.dateDepot : null,
+    demandeur: p.demandeur || null,
+    pays: o.pays || null,
+    ville: t.city || o.ville || null,
+    buildingId: o.buildingId || null,
+    batimentLabel: o.buildingId || null,
+    palier: p.palierDemande || null,
+    palierLabel: p.palierDemande || null,
+    surfaceExploitable: (typeof t.surface === 'number' && isFinite(t.surface) && t.surface >= 0) ? t.surface : null,
+    decoupage: plan.map(function (l) {
+      return { id: l.id, label: l.label, surface: Number(l.surface),
+               destination: (l.destination === 'appartement') ? 'appartement' : 'commerce' };
+    }),
+    motifRefus: null
+  };
+}
+
+function libelleAccordTaciteServeur(doc) {
+  const terrain = doc.batimentLabel || doc.buildingId || 'un terrain';
+  const palier = doc.palierLabel ? (' (' + doc.palierLabel + ')') : '';
+  return 'Accord tacite au bénéfice de ' + (doc.demandeur || 'un demandeur') + ' pour ' + terrain + palier + '.';
+}
+
+// Texte du document physique. Miroir volontairement resserre de texteDocumentUrbanisme : meme
+// contenu factuel, sans les fioritures qui dependent des catalogues client.
+function texteAccordTaciteServeur(doc) {
+  const l = [];
+  l.push('Dossier n° ' + (doc.numeroDossier || 'non attribué (dossier antérieur à la numérotation)'));
+  l.push('Demandeur : ' + (doc.demandeur || 'inconnu'));
+  l.push('Commune : ' + (doc.ville || 'non précisée') + ' (' + (doc.pays || 'non précisé') + ')');
+  l.push('Terrain : ' + (doc.batimentLabel || doc.buildingId || 'non précisé'));
+  l.push('Nature des travaux : ' + (doc.palierLabel || 'non précisée'));
+  l.push('Surface exploitable : ' + (doc.surfaceExploitable !== null ? doc.surfaceExploitable + ' m²' : 'non connue'));
+  if (doc.decoupage.length === 0) {
+    l.push('Découpage déclaré : aucun — le bâtiment sera livré indivis.');
+  } else {
+    l.push('Découpage déclaré (' + doc.decoupage.length + ' lot' + (doc.decoupage.length > 1 ? 's' : '') + ') :');
+    doc.decoupage.forEach(function (x) {
+      l.push('  — ' + x.label + ' : ' + x.surface + ' m² (' + (x.destination === 'appartement' ? 'appartement' : 'commerce') + ')');
+    });
+  }
+  l.push('');
+  l.push("Le délai d'instruction s'est écoulé sans décision du service d'urbanisme.");
+  l.push("Conformément au droit applicable, l'autorisation est réputée ACCORDÉE.");
+  return l.join('\n');
+}
+
+// Archive municipale, ecrite par le serveur. Meme table et meme forme de ligne
+// qu'archiverEvenementUrbanisme (plateau-immobilier.js) : append-only, une ligne par evenement.
+// Renvoie true seulement si la ligne existe reellement -- c'est elle qui COMMANDE.
+async function archiverEvenementUrbanismeServeur(doc) {
+  const rows = await sbInsert('dossiers_urbanisme', {
+    id: 'urb-' + doc.nature + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
+    country: doc.pays || 'republic',
+    city: doc.ville || null,
+    building_id: doc.buildingId || null,
+    numero_dossier: doc.numeroDossier || null,
+    type_evenement: doc.nature,
+    demandeur: doc.demandeur || null,
+    jour: (typeof doc.jour === 'number') ? doc.jour : null,
+    libelle: libelleAccordTaciteServeur(doc),
+    data: doc
+  }).catch(() => null);
+  return !!(rows && rows.length > 0);
+}
+
+// TRAITEMENT QUOTIDIEN DE L'INSTRUCTION.
+// Une journee par passage, jamais deux (marqueur jourInstruction), jamais pendant une suspension.
+// L'accord tacite n'est prononce qu'une fois : des que le permis passe a 'valide', il sort du
+// verdict. L'archive municipale COMMANDE -- si elle n'est pas ecrite, l'accord n'a pas lieu et sera
+// retente la nuit suivante.
+async function traiterInstructionsPermis() {
+  const resultats = { instruits: 0, suspendus: 0, accords_tacites: 0, echecs_archive: 0, ignores: 0 };
+  try {
+    const terrains = await sbGet('terrains_etat', '');
+    if (!terrains) return resultats;
+    const jour = new Date().toISOString().slice(0, 10);
+
+    for (const row of terrains) {
+      let etat;
+      try { etat = JSON.parse(row.data); } catch (e) { continue; }
+      const p = etat.permis;
+      if (!permisEnInstructionServeur(p)) continue;
+      if (p.jourInstruction === jour) { resultats.ignores++; continue; }   // anti-rejeu quotidien
+
+      p.jourInstruction = jour;
+      const suspendu = terrainSuspenduServeur(etat);
+      if (suspendu) {
+        // L'enquete GELE le compteur : aucune journee consommee, aucune perdue non plus.
+        resultats.suspendus++;
+      } else if (!instructionAcheveeServeur(p)) {
+        p.joursInstructionFaits = joursInstructionFaitsServeur(p) + 1;
+        resultats.instruits++;
+      }
+
+      const verdict = verdictAccordTaciteServeur(etat);
+      if (verdict.ok) {
+        const doc = construireDocumentUrbanismeServeur(etat, p, 'accord_tacite',
+          { buildingId: row.building_id, pays: row.country, ville: etat.city, jour: null });
+        const archive = await archiverEvenementUrbanismeServeur(doc);
+        if (!archive) {
+          // Rien n'est decide sans acte municipal. On n'ecrit meme pas le compteur : la nuit
+          // suivante reprendra exactement au meme point.
+          resultats.echecs_archive++;
+          continue;
+        }
+
+        p.statut = 'valide';
+        p.accordTacite = true;
+        p.jourDecision = jour;
+        etat.constructionAutorisee = true;
+
+        // Copie physique du document, par le canal de reception automatique (Lot 1.5.4) : elle
+        // entre meme si l'inventaire est plein, quitte a mettre le demandeur en Surcharge.
+        // Identifiant deterministe : un rejeu ne peut pas produire deux exemplaires.
+        if (p.demandeur) {
+          await sbInsert('objets_recus', {
+            id: 'urb-tacite-' + row.id + '-' + (p.numeroDossier || 'sansnumero'),
+            destinataire: p.demandeur,
+            expediteur: "Services d'urbanisme",
+            data: JSON.stringify({
+              id: doc.id,
+              type: 'document_urbanisme_accord_tacite',
+              name: "Attestation d'accord tacite" + (doc.batimentLabel ? ' — ' + doc.batimentLabel : ''),
+              icon: 'ti-file-certificate',
+              legal: true,
+              desc: texteAccordTaciteServeur(doc),
+              documentUrbanisme: doc
+            })
+          }).catch(() => {});
+          await sbInsert('mails', {
+            destinataire: p.demandeur, expediteur: "Services d'urbanisme",
+            sujet: 'Permis accorde tacitement',
+            corps: "Le delai d'instruction de votre demande s'est ecoule sans decision. Votre permis de construire est donc ACCORDE TACITEMENT : vous pouvez construire. L'attestation vous sera remise a votre prochaine connexion.",
+            archived: false
+          }).catch(() => {});
+        }
+        resultats.accords_tacites++;
+      }
+
+      await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`,
+        { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
+    }
+  } catch (e) { console.error('traiterInstructionsPermis error', e); }
+  return resultats;
 }
 
 // VERROU DU PLAN ET LIVRAISON (Lots 1.5.11 / 1.5.12). Memes formules que plateau-chantiers.js,
@@ -1129,6 +1361,69 @@ function livrerChantierServeur(etat, jour) {
            reliquats: reliquats };
 }
 
+// APPLICATION DE LA RECONFIGURATION (Lot 1.5.14).
+//
+// ATOMICITE. Le plan cible ne remplace le plan reel qu'a 100 %, et JAMAIS progressivement. Cette
+// substitution, l'archivage du chantier et la liberation des surfaces sont trois mutations du MEME
+// objet JSON, ecrit ensuite par un seul UPDATE d'une seule ligne : il n'existe aucun instant ou la
+// base contiendrait la moitie de l'ancien plan et la moitie du nouveau, ni un chantier reput
+// termine dont le plan ne serait pas applique. Aucune RPC n'est necessaire pour cela -- le seul
+// mouvement qui traverse plusieurs tables est le versement des reliquats, qui a deja la sienne.
+//
+// UN SEUL EMPLACEMENT D'ARCHIVE EN ATTENTE. chantierAcheve est le dernier chantier livre, et le
+// seul qui puisse porter une restitution non encore versee. Une reconfiguration qui se solde y
+// prend la place de la construction, laquelle rejoint chantiersArchives -- l'historique est
+// integralement conserve, et la RPC de restitution continue de lire un emplacement unique, sans
+// migration ni seconde doctrine. Tant qu'une restitution precedente n'est pas versee, on ne
+// deplace rien : la nuit suivante reprendra.
+function appliquerReconfigurationServeur(etat, jour) {
+  const ch = etat && etat.chantierReamenagement;
+  if (!ch) return { livre: false, raison: 'chantier_absent', lots: 0 };
+  if (!chantierTermineServeur(ch)) return { livre: false, raison: 'chantier_en_cours', lots: 0 };
+
+  const enAttente = etat.chantierAcheve && etat.chantierAcheve.reliquats
+                    && etat.chantierAcheve.reliquats.restitue !== true;
+  if (enAttente) return { livre: false, raison: 'restitution_precedente_en_attente', lots: 0 };
+
+  // LE PLAN CIBLE DEVIENT LE PLAN REEL, en une seule affectation. Un plan cible vide est un
+  // resultat legitime : toutes les surfaces ont ete reunifiees, le batiment redevient indivis.
+  const cible = Array.isArray(ch.planCible) ? ch.planCible : [];
+  etat.subdivisions = cible.map(function (l, i) {
+    return {
+      id: (typeof l.id === 'string' && l.id.trim()) ? l.id.trim() : ('lot-recfg-' + (i + 1)),
+      label: (typeof l.label === 'string' && l.label.trim()) ? l.label.trim() : ('Lot ' + (i + 1)),
+      surface: Math.max(0, Number(l.surface) || 0),
+      destination: (l.destination === 'appartement') ? 'appartement' : 'commerce',
+      locataire: null,
+      loyer: 0
+    };
+  }).filter(function (l) { return l.surface > 0; });
+
+  const reliquats = reliquatsDuChantierServeur(ch);
+  if (etat.chantierAcheve) {
+    etat.chantiersArchives = (etat.chantiersArchives || []).concat([etat.chantierAcheve]);
+  }
+  etat.chantierAcheve = { ...ch, livre: true,
+                          jourLivraison: (jour === undefined || jour === null) ? null : jour,
+                          tresorerie: 0,
+                          stockMateriaux: { bois: 0, minerai: 0, metal: 0 },
+                          // Les surfaces se liberent parce que le chantier n'est plus vivant :
+                          // surfaceImmobilisee et l'indisponibilite des lots derivent toutes deux
+                          // de etat.chantierReamenagement, qui disparait ci-dessous.
+                          surfaceLibreImmobilisee: 0,
+                          reliquats: {
+                            tresorerie: reliquats.tresorerie,
+                            materiaux: reliquats.materiaux,
+                            beneficiaire: etat.proprietaire || null,
+                            restitue: !reliquats.aRestituer,
+                            jourLivraison: (jour === undefined || jour === null) ? null : jour
+                          } };
+  delete etat.chantierReamenagement;
+
+  return { livre: true, raison: null, lots: etat.subdivisions.length,
+           indivis: etat.subdivisions.length === 0, reliquats: reliquats };
+}
+
 // Execute l'ordre de paiement depose par la livraison. Rejouable sans risque : la RPC verifie le
 // marqueur sous verrou et ne paie qu'une fois. Renvoie true si la restitution est desormais faite
 // (ou n'avait rien a faire), false si elle reste en attente -- auquel cas la nuit suivante rejouera.
@@ -1164,7 +1459,14 @@ async function avancerChantiersQuotidien() {
         else resultats.reliquats_en_attente++;
       }
 
-      const ch = etat.chantier;
+      // UN TERRAIN PEUT PORTER DEUX CHANTIERS VIVANTS AU FIL DE SA VIE : la construction initiale
+      // (etat.chantier) puis, une fois le batiment livre, une reconfiguration (Lot 1.5.14). Ils ne
+      // coexistent jamais -- on ne reconfigure pas un batiment qui n'existe pas encore -- mais ils
+      // partagent EXACTEMENT le meme moteur : approvisionnement, travail PJ et NPC, penurie,
+      // progression, verrou, livraison. La boucle passe donc sur les deux emplacements plutot que
+      // de dupliquer quatre-vingt-dix lignes de traitement quotidien.
+      for (const emplacement of ['chantier', 'chantierReamenagement']) {
+      const ch = etat[emplacement];
       if (!ch) continue;
 
       // LECTURE DEFENSIVE DES CHANTIERS ANCIENS. Un chantier de l'ancien moteur n'a ni type ni
@@ -1172,7 +1474,7 @@ async function avancerChantiersQuotidien() {
       // repris a 0 jour de travail effectif, avec ses versements deja faits convertis en
       // totalVerse. Aucun chantier de ce genre n'existe en production (verifie), cette branche est
       // un filet de securite.
-      if (!ch.type) {
+      if (!ch.type && emplacement === 'chantier') {
         const verseAncien = (Number(ch.montant35) || 0) * Math.max(0, (Number(ch.palierPaye) || 1));
         etat.chantier = {
           type: 'construction', niveau: ch.niveau,
@@ -1196,7 +1498,7 @@ async function avancerChantiersQuotidien() {
       const duree = Number(ch.dureeJours) || 0;
       const avant = Math.max(0, Number(ch.progressionJours) || 0);
       const numJour = numeroJourChantierServeur(ch);
-      const besoin = materiauxDuJourServeur(numJour);
+      const besoin = besoinMateriauxJourServeur(ch, numJour);
       if (!ch.stockMateriaux) ch.stockMateriaux = { bois: 0, minerai: 0, metal: 0 };
 
       // APPROVISIONNEMENT AUTOMATIQUE : le chantier complete son stock a l'entrepot logistique de
@@ -1317,11 +1619,14 @@ async function avancerChantiersQuotidien() {
         }).catch(() => {});
       }
 
-      // LIVRAISON REELLE (Lot 1.5.12). Le batiment existe, le plan verrouille devient les vrais
-      // lots, et le chantier quitte etat.chantier -- ce qui suffit a eteindre toute activite de
-      // chantier (vente, travail, BNE, approvisionnement, vol testent tous ce champ).
-      etat.chantier = ch;
-      const livraison = livrerChantierServeur(etat, jour);
+      // LIVRAISON REELLE (Lots 1.5.12 / 1.5.14). Le chantier quitte son emplacement vivant -- ce
+      // qui suffit a eteindre toute activite (vente, travail, BNE, approvisionnement, vol testent
+      // tous ce champ) -- et son resultat est applique : le batiment existe et ses lots naissent
+      // pour une construction, le plan cible devient le plan reel pour une reconfiguration.
+      etat[emplacement] = ch;
+      const livraison = (emplacement === 'chantierReamenagement')
+        ? appliquerReconfigurationServeur(etat, jour)
+        : livrerChantierServeur(etat, jour);
       if (livraison.livre) {
         resultats.livraisons++;
         resultats.lots_livres += livraison.lots;
@@ -1334,8 +1639,13 @@ async function avancerChantiersQuotidien() {
             + '. Les materiaux vous seront remis a votre prochaine connexion.';
         await sbInsert('mails', {
           destinataire: etat.proprietaire, expediteur: 'Chef de Chantier',
-          sujet: 'Remise des cles',
-          corps: (livraison.indivis
+          sujet: emplacement === 'chantierReamenagement' ? 'Travaux de reconfiguration acheves' : 'Remise des cles',
+          corps: (emplacement === 'chantierReamenagement'
+            ? 'Les travaux sont acheves. Le nouveau decoupage est en vigueur : '
+              + (livraison.lots > 0 ? livraison.lots + ' lot' + (livraison.lots > 1 ? 's' : '') + '.'
+                 : 'le batiment est desormais indivis.')
+              + ' Les locaux concernes redeviennent disponibles.'
+            : livraison.indivis
             ? 'Les travaux sont acheves et le batiment vous est remis. Aucun decoupage n\'ayant ete depose, il vous est livre indivis : vous pourrez le diviser plus tard si vous le souhaitez.'
             : 'Les travaux sont acheves et le batiment vous est remis, divise en ' + livraison.lots
               + ' lot' + (livraison.lots > 1 ? 's' : '') + ' conformement au plan depose.') + detailReliquats,
@@ -1354,6 +1664,7 @@ async function avancerChantiersQuotidien() {
         if (await restituerReliquatsServeur(row.id, etat)) resultats.reliquats_restitues++;
         else resultats.reliquats_en_attente++;
       }
+      }   // fin de la boucle sur les emplacements de chantier
     }
   } catch(e) { console.error('avancerChantiersQuotidien error', e); }
   return resultats;
@@ -4007,6 +4318,11 @@ export default async function handler(req, res) {
     // 7. Rendez-vous d'achat direct manques (depot perdu, terrain libere)
     const achatsDirectsManques = await nettoyerAchatsDirectsManques();
 
+    // 7b. Instruction des permis de construire et accord tacite (Lot 1.5.13). AVANT les chantiers :
+    // un permis accorde cette nuit doit pouvoir servir des le lendemain, et l'ordre inverse ferait
+    // simplement attendre un jour de plus sans raison.
+    const permis = await traiterInstructionsPermis();
+
     // 8. Progression quotidienne des chantiers (versements, alea, livraison)
     const chantiers = await avancerChantiersQuotidien();
 
@@ -4099,7 +4415,7 @@ export default async function handler(req, res) {
       journalDuJour = { erreur: e.message };
     }
 
-    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, journalDuJour });
+    return res.status(200).json({ ok: true, traites: results.length, details: results, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, journalDuJour });
   } catch (e) {
     console.error('Erreur cron-minuit', e);
     return res.status(500).json({ error: e.message });

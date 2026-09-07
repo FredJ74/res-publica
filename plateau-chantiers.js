@@ -489,10 +489,31 @@ function avancerChantierUnJour(chantier, capacite) {
 // reellement present dans le chantier. La matiere la plus manquante commande, et la pénurie n'est
 // jamais un tirage aleatoire -- c'est le constat "aucun progres possible aujourd'hui".
 
-// Besoin du jour N pour un chantier de construction, en unites entieres.
+// Budget materiaux d'une journee, DERIVE du dimensionnement fige du chantier. Vaut 1 500 FR pour
+// toutes les constructions (36 000 / 24 comme 9 000 / 6) et une valeur propre a chaque
+// reconfiguration, puisque son cout depend de la surface reellement concernee.
+function budgetMateriauxParJourChantier(chantier) {
+  const duree = Math.max(0, nombreFini(chantier && chantier.dureeJours, 0));
+  if (duree <= 0) return 0;
+  return Math.max(0, nombreFini(chantier.coutMateriaux, 0)) / duree;
+}
+
+// Panier du jour d'une reconfiguration : un tiers de la valeur dans chaque matiere, arrondi.
+// Pas de sequence deterministe pour le metal ici, contrairement a la construction : cette sequence
+// existe pour eviter une derive d'arrondi sur 24 journees identiques, alors qu'une reconfiguration
+// dure quelques jours et que son budget quotidien est deja un nombre quelconque.
+function materiauxDuJourReamenagement(chantier) {
+  const exact = panierMateriauxPourValeur(budgetMateriauxParJourChantier(chantier));
+  return { bois: Math.round(exact.bois), minerai: Math.round(exact.minerai), metal: Math.round(exact.metal) };
+}
+
+// Besoin du jour N, quel que soit le type de chantier. Point d'entree unique : le reste du moteur
+// (penurie, approvisionnement, consommation, borne des heures utiles) ne connait que celui-la.
 function besoinMateriauxJourChantier(chantier, jourNumero) {
-  if (!chantier || chantier.type !== 'construction') return { bois: 0, minerai: 0, metal: 0 };
-  return materiauxDuJourConstruction(jourNumero);
+  if (!chantier) return { bois: 0, minerai: 0, metal: 0 };
+  if (chantier.type === 'construction') return materiauxDuJourConstruction(jourNumero);
+  if (chantier.type === 'reamenagement') return materiauxDuJourReamenagement(chantier);
+  return { bois: 0, minerai: 0, metal: 0 };
 }
 
 // Numero de la journee de travail a venir : 1 pour la premiere. Fonde sur la progression deja
@@ -938,6 +959,160 @@ function lotsLivrablesDepuisPlan(plan) {
     });
   });
   return sortie;
+}
+
+// ---------------------------------------------------------------------------
+// RECONFIGURATION DES LOTS APRES LIVRAISON (Lot 1.5.14)
+// ---------------------------------------------------------------------------
+// Redecouper un batiment livre est un VRAI chantier, pas un formulaire. Il emprunte tout au moteur
+// generique -- stock propre, materiaux reels, approvisionnement, travail PJ et NPC, penurie,
+// historique -- et n'en differe que par trois points, tous portes par le dimensionnement :
+//   - il se mesure a la SURFACE REELLEMENT CONCERNEE, pas a la taille du batiment ;
+//   - il se finance INTEGRALEMENT avant de commencer (aucun palier 35/70/100) ;
+//   - il ne s'annule pas : le plan cible est fige au lancement.
+//
+// SURFACE REELLEMENT CONCERNEE. On compare le plan source et le plan cible lot par lot, par
+// identite. Un lot inchange ne coute rien. Ce qui coute, ce sont les murs qu'on touche :
+//   - lot supprime            -> toute sa surface (on la demolit) ;
+//   - lot cree                -> toute sa surface (on la construit) ;
+//   - surface modifiee        -> l'ECART seul (on deplace une cloison) ;
+//   - destination modifiee    -> toute la surface, au maximum des deux plans : transformer un
+//                               commerce en logements refait l'interieur en entier, meme si la
+//                               surface ne bouge pas d'un metre carre.
+// Une fusion et un redecoupage se decrivent naturellement dans ce vocabulaire : les lots d'origine
+// disparaissent, les nouveaux apparaissent.
+
+// Etat lisible d'un lot du plan, tolerant aux entrees degradees.
+function lotNormalise(lot) {
+  if (!lot || typeof lot !== 'object') return null;
+  const id = (typeof lot.id === 'string' && lot.id.trim()) ? lot.id.trim() : null;
+  if (!id) return null;
+  return {
+    id: id,
+    label: (typeof lot.label === 'string' && lot.label.trim()) ? lot.label.trim() : 'Lot',
+    surface: Math.max(0, nombreFini(lot.surface, 0)),
+    destination: (lot.destination === 'appartement') ? 'appartement' : 'commerce'
+  };
+}
+
+function indexerPlan(plan) {
+  const index = {};
+  (Array.isArray(plan) ? plan : []).forEach(function (l) {
+    const n = lotNormalise(l);
+    if (n) index[n.id] = n;
+  });
+  return index;
+}
+
+// Detail du chantier a mener : surface concernee, et identite des lots SOURCE reellement touches
+// (ceux qu'il faudra rendre indisponibles pendant les travaux, et qu'aucun bail ne doit occuper).
+function differencePlans(planSource, planCible) {
+  const source = indexerPlan(planSource);
+  const cible = indexerPlan(planCible);
+  const touchesSource = [];
+  const detail = [];
+  let surface = 0;
+
+  Object.keys(source).forEach(function (id) {
+    const a = source[id];
+    const b = cible[id];
+    if (!b) {                                        // lot supprime
+      surface += a.surface; touchesSource.push(id);
+      detail.push({ id: id, operation: 'suppression', surface: a.surface });
+      return;
+    }
+    if (a.destination !== b.destination) {           // reaffectation : tout l'interieur est repris
+      const s = Math.max(a.surface, b.surface);
+      surface += s; touchesSource.push(id);
+      detail.push({ id: id, operation: 'destination', surface: s });
+      return;
+    }
+    const ecart = Math.abs(b.surface - a.surface);   // simple deplacement de cloison
+    if (ecart > 0) {
+      surface += ecart; touchesSource.push(id);
+      detail.push({ id: id, operation: b.surface > a.surface ? 'agrandissement' : 'reduction', surface: ecart });
+    }
+  });
+
+  Object.keys(cible).forEach(function (id) {
+    if (source[id]) return;
+    const b = cible[id];
+    surface += b.surface;                            // lot cree
+    detail.push({ id: id, operation: 'creation', surface: b.surface });
+  });
+
+  return { surfaceConcernee: surface, lotsConcernes: touchesSource, detail: detail,
+           identique: surface <= 0 };
+}
+
+// SNAPSHOT DE LANCEMENT d'une reconfiguration. Meme structure generique qu'une construction : tout
+// ce qui dimensionne le chantier est fige ici et n'est jamais recalcule ensuite.
+function creerChantierReamenagement(planSource, planCible, jour) {
+  const diff = differencePlans(planSource, planCible);
+  if (diff.identique) return null;                   // rien a faire n'est pas un chantier
+  const duree = dureeReamenagement(diff.surfaceConcernee);
+  const coutTotal = coutTotalReamenagement(diff.surfaceConcernee);
+  return {
+    type: 'reamenagement',
+    niveau: null,                                    // une reconfiguration ne change pas le palier
+    jourDebut: Math.max(0, Math.floor(nombreFini(jour, 0))),
+
+    // --- perimetre fige
+    planSource: (Array.isArray(planSource) ? planSource : []).map(lotNormalise).filter(Boolean),
+    planCible: (Array.isArray(planCible) ? planCible : []).map(lotNormalise).filter(Boolean),
+    surfaceConcernee: diff.surfaceConcernee,
+    lotsConcernes: diff.lotsConcernes,
+    operations: diff.detail,
+    // Lu par surfaceImmobilisee (plateau-immobilier.js) : pendant les travaux, cette surface n'est
+    // plus allouable a un nouveau lot.
+    surfaceLibreImmobilisee: diff.surfaceConcernee,
+
+    // --- dimensionnement fige
+    dureeJours: duree,
+    coutTotal: coutTotal,
+    coutMateriaux: coutMateriauxDe(coutTotal),
+    coutTravail: coutTravailDe(coutTotal),
+    heuresTotales: heuresPourCoutTravail(coutTravailDe(coutTotal)),
+
+    // --- economie
+    totalVerse: 0,
+    tresorerie: 0,
+    stockMateriaux: { bois: 0, minerai: 0, metal: 0 },
+
+    // --- avancement
+    heuresFaites: 0,
+    jourTraite: null,
+    progressionJours: 0,
+    arrete: null,
+
+    // --- journaux
+    evenements: [],
+    travauxPJ: [],
+    ventesMateriauxPJ: []
+  };
+}
+
+// FINANCEMENT INTEGRAL. Contrairement a une construction, une reconfiguration ne demarre pas a
+// 35 % : elle est payee avant d'ouvrir. Il n'y a donc aucun palier a franchir ensuite, et
+// progressionMaxFinancee ne la bride jamais.
+function financementSuffisantPourReamenagement(coutTotal, totalVerse) {
+  const total = Math.max(0, nombreFini(coutTotal, 0));
+  const verse = Math.max(0, nombreFini(totalVerse, 0));
+  return verse >= total;
+}
+
+// Un chantier de reconfiguration ne s'annule pas. La fonction existe pour que ce refus soit
+// EXPLICITE et testable, plutot que d'etre l'absence d'un bouton dans un ecran.
+function verdictAnnulationReamenagement() {
+  return { ok: false, raison: 'annulation_impossible' };
+}
+
+// Un lot est-il immobilise par la reconfiguration en cours ? DERIVE du chantier, jamais duplique
+// dans un drapeau porte par le lot : un drapeau pourrait survivre au chantier qui l'a pose.
+function lotConcerneParReamenagement(chantier, lotId) {
+  if (!chantier || !lotId) return false;
+  const ids = Array.isArray(chantier.lotsConcernes) ? chantier.lotsConcernes : [];
+  return ids.indexOf(lotId) !== -1;
 }
 
 // La LIVRAISON elle-meme n'est pas ici : elle n'a qu'un seul point d'execution, le traitement

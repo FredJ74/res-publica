@@ -5586,6 +5586,15 @@ async function doAjouterSubdivision() {
   const destinationsPalier = destinationsAutorisees(ts.niveau_construction);
   const destination = document.getElementById('subdiv-destination')?.value || destinationsPalier[0];
 
+  // Lot 1.5.14 : la distribution immobiliere d'un batiment LIVRE ne se modifie plus gratuitement.
+  // Abattre une cloison est un chantier -- materiaux, ouvriers, delai -- pas un formulaire. Cet
+  // ecran reste la vitrine des lots (voir qui occupe quoi) ; toute modification reelle passe
+  // desormais par l'ordre « Reconfigurer les lots ».
+  if (ts.niveau_construction) {
+    showToast('Chantier requis', "Modifier le découpage d'un bâtiment livré demande des travaux : utilisez « Reconfigurer les lots ».", false);
+    return;
+  }
+
   if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
 
   // Lot 1.5.1 : verdict unique (plateau-immobilier.js) -- palier divisible, surface connue,
@@ -5612,6 +5621,14 @@ async function doSupprimerSubdivision(idx) {
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Modifier ce lot')) return;
   const ts = getTerrainState(id);
+  // Lot 1.5.14 : la distribution immobiliere d'un batiment LIVRE ne se modifie plus gratuitement.
+  // Abattre une cloison est un chantier -- materiaux, ouvriers, delai -- pas un formulaire. Cet
+  // ecran reste la vitrine des lots (voir qui occupe quoi) ; toute modification reelle passe
+  // desormais par l'ordre « Reconfigurer les lots ».
+  if (ts.niveau_construction) {
+    showToast('Chantier requis', "Modifier le découpage d'un bâtiment livré demande des travaux : utilisez « Reconfigurer les lots ».", false);
+    return;
+  }
   const subdivisions = ts.subdivisions || [];
   const lot = subdivisions[idx];
   if (!lot) return;
@@ -5649,6 +5666,12 @@ async function doSupprimerSubdivision(idx) {
 }
 
 function doOuvrirAgrandirLot(idxOccupe) {
+  // Lot 1.5.14 : agrandir un lot en absorbant la surface d'un autre est une modification reelle du
+  // decoupage -- elle passe par le chantier de reconfiguration, comme toutes les autres.
+  if ((getTerrainState(state.currentBuilding) || {}).niveau_construction) {
+    showToast('Chantier requis', "Agrandir un local demande des travaux : utilisez « Reconfigurer les lots ».", false);
+    return;
+  }
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
   const subdivisions = ts.subdivisions || [];
@@ -5700,6 +5723,13 @@ async function doFusionnerLot(idxOccupe, idxVide) {
 }
 
 async function doAccepterFusionLot(idxOccupe) {
+  // Lot 1.5.14 : accepter une fusion modifie reellement des surfaces. Aucune nouvelle proposition
+  // ne peut plus naitre (doOuvrirAgrandirLot est ferme sur un batiment livre), mais une proposition
+  // anterieure ne doit pas rester un chemin de contournement du chantier.
+  if ((getTerrainState(state.currentBuilding) || {}).niveau_construction) {
+    showToast('Chantier requis', "Agrandir un local demande des travaux : le propriétaire doit passer par « Reconfigurer les lots ».", false);
+    return;
+  }
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, "Accepter l'agrandissement")) return;
   const ts = getTerrainState(id);
@@ -5749,7 +5779,11 @@ async function doOuvrirLouerLot(pa, cost) {
     showToast('Impossible', "Vous êtes déjà propriétaire de ce terrain — utilisez « Diviser / gérer les lots ».", false);
     return;
   }
-  const lotsLibres = subdivisions.filter(function(l) { return !lotEstLoue(id, l); });
+  // Lot 1.5.14 : un lot pris dans une reconfiguration en cours n'est pas louable -- c'est un
+  // chantier, pas un local. Les AUTRES lots du meme immeuble restent parfaitement louables : on ne
+  // ferme jamais le batiment entier. L'indisponibilite est derivee du chantier, jamais d'un
+  // drapeau porte par le lot.
+  const lotsLibres = lotsDisponiblesALaLocation(ts, id);
   if (lotsLibres.length === 0) {
     showToast('Aucun lot disponible', "Ce terrain n'a pas (encore) été divisé, ou tous les lots sont déjà loués.", false);
     return;
@@ -6272,6 +6306,213 @@ async function confirmerModificationPlan() {
   addJournalEntry('Plan de découpage modifié en cours de chantier : ' + resume + '.', 'event-good');
 }
 
+// =====================================================================
+// RECONFIGURATION DES LOTS D'UN BATIMENT LIVRE (Lot 1.5.14)
+// =====================================================================
+// Le proprietaire redessine les lots de son batiment. Ce n'est pas un formulaire : c'est un
+// chantier, avec ses materiaux, ses ouvriers, ses penuries et son historique -- le meme moteur que
+// la construction, dimensionne sur la SURFACE REELLEMENT CONCERNEE.
+//
+// TROIS DIFFERENCES, toutes portees par le dimensionnement et par ce seul ecran :
+//   - 10 FR par m2 concerne, et la journee traite 300 m2 ;
+//   - le chantier est finance INTEGRALEMENT avant d'ouvrir -- aucun palier ;
+//   - il ne s'annule pas : le plan cible est fige au lancement.
+let _planReconfigEnCours = { buildingId: null, lots: [] };
+
+async function doOuvrirReconfiguration(pa, cost) {
+  const id = state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Reconfigurer les lots')) return;
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+
+  if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', "Vous n'êtes pas propriétaire de ce bâtiment.", false); return; }
+  if (!ts.niveau_construction) { showToast('Aucun bâtiment', "Il n'y a rien à reconfigurer sur un terrain nu.", false); return; }
+  if (ts.chantier) { showToast('Construction en cours', 'Attendez la livraison du bâtiment.', false); return; }
+  if (ts.chantierReamenagement) { showToast('Travaux en cours', 'Une reconfiguration est déjà engagée ici — elle ne peut pas être annulée.', false); return; }
+  if (!batimentDivisible(ts.niveau_construction)) {
+    showToast('Bâtiment indivisible', 'Seuls les Commerces Premium et les Buildings se divisent en lots.', false); return;
+  }
+
+  // Brouillon initialise sur le plan REEL : reconfigurer, c'est partir de l'existant.
+  _planReconfigEnCours = { buildingId: id, lots: snapshotPlanPermis(ts.subdivisions) };
+  renderReconfiguration(pa, cost);
+}
+
+function renderReconfiguration(pa, cost) {
+  const id = _planReconfigEnCours.buildingId;
+  const ts = getTerrainState(id);
+  const palier = ts.niveau_construction;
+  const lots = _planReconfigEnCours.lots;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const projection = projectionPermis(ts, palier, lots);
+  const dispo = surfaceDisponible(projection);
+  const destinations = destinationsAutorisees(palier);
+  const diff = differencePlans(ts.subdivisions || [], lots);
+  const cout = coutTotalReamenagement(diff.surfaceConcernee);
+  const duree = dureeReamenagement(diff.surfaceConcernee);
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Dessinez le bâtiment tel que vous le voulez. Seule la <b>surface réellement touchée</b> est facturée : un lot que vous ne modifiez pas ne coûte rien. '
+       + REAMENAGEMENT_FR_PAR_M2 + ' ' + cur + ' par m², ' + REAMENAGEMENT_M2_PAR_JOUR + ' m² traités par jour, <b>payable intégralement au lancement</b>. Une fois engagés, les travaux ne peuvent plus être annulés.</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Surface exploitable : ' + surfaceTotale(ts) + ' m² · Inscrite au plan : ' + surfaceAllouee(projection) + ' m² · Reste : ' + dispo + ' m².<br>'
+       + destinations.map(function (d) {
+           return (d === 'appartement' ? 'Appartement' : 'Commerce') + ' : minimum ' + surfaceMinimaleLot(palier, d) + ' m²';
+         }).join(' · ') + '.</div>';
+
+  if (lots.length > 0) {
+    html += '<div style="display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem">';
+    lots.forEach(function (l, i) {
+      const loue = lotEstLoue(id, l);
+      html += '<div style="padding:.5rem .6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
+      html += '<span style="font-size:.82rem;color:#c0b090">' + l.label + ' — ' + l.surface + ' m² · '
+           + (destinationDuLot(l) === 'appartement' ? 'appartement' : 'commerce')
+           + (loue ? ' <span style="color:#cc8a44">(loué — intouchable)</span>' : '') + '</span>';
+      html += '<button onclick="doRetirerLotReconfiguration(' + i + ',' + pa + ',' + cost + ')" style="font-size:.68rem;color:#cc5540;background:transparent;border:none;cursor:pointer">Retirer</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div style="font-size:.78rem;color:#6a5a30;font-style:italic;margin-bottom:.8rem">Aucun lot : le bâtiment redeviendra indivis.</div>';
+  }
+
+  html += '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">';
+  if (destinations.length > 1) {
+    html += '<select id="recfg-destination" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
+    destinations.forEach(function (d) {
+      html += '<option value="' + d + '">' + (d === 'appartement' ? 'Appartement' : 'Commerce') + '</option>';
+    });
+    html += '</select>';
+  }
+  html += '<input id="recfg-label" type="text" placeholder="Nom du lot..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '<input id="recfg-surface" type="number" placeholder="Surface m²..." style="width:120px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
+  html += '</div>';
+  html += '<button class="pnj-action-btn" onclick="doAjouterLotReconfiguration(' + pa + ',' + cost + ')">+ Ajouter ce lot</button>';
+
+  html += '<div style="margin-top:.8rem;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
+  if (diff.identique) {
+    html += '<div style="font-size:.8rem;color:#6a5a30;font-style:italic">Plan inchangé — aucun chantier à lancer.</div>';
+  } else {
+    html += '<div style="font-size:.82rem;color:#c0b090">Surface réellement concernée : <b>' + diff.surfaceConcernee + ' m²</b></div>';
+    html += '<div style="font-size:.72rem;color:#8a8060;margin-top:.2rem">' + cout.toLocaleString('fr-FR') + ' ' + cur
+         + ' · ' + duree + ' jour' + (duree > 1 ? 's' : '') + ' de travaux · à verser en totalité maintenant</div>';
+  }
+  html += '</div>';
+  if (!diff.identique) {
+    html += '<button class="pnj-action-btn" style="margin-top:.6rem" onclick="confirmerReconfiguration()">Lancer les travaux (' + cout.toLocaleString('fr-FR') + ' ' + cur + ')</button>';
+  }
+  html += '</div>';
+
+  document.getElementById('postes-modal-title').textContent = 'Reconfigurer les lots';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function doAjouterLotReconfiguration(pa, cost) {
+  const id = _planReconfigEnCours.buildingId;
+  const ts = getTerrainState(id);
+  const palier = ts.niveau_construction;
+  const label = (document.getElementById('recfg-label')?.value || '').trim();
+  const surface = parseInt(document.getElementById('recfg-surface')?.value || 0);
+  const destinationsPalier = destinationsAutorisees(palier);
+  const destination = document.getElementById('recfg-destination')?.value || destinationsPalier[0];
+
+  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
+
+  const verdict = verdictAjoutLotPlan(ts, palier, _planReconfigEnCours.lots, { destination, surface });
+  if (!verdict.ok) {
+    showToast(verdict.raison === 'surface_indisponible' ? 'Surface insuffisante' : 'Lot refusé', verdict.message, false);
+    return;
+  }
+  _planReconfigEnCours.lots.push({
+    id: 'lot-' + Date.now() + '-' + _planReconfigEnCours.lots.length,
+    label, surface: verdict.surface, destination: verdict.destination
+  });
+  renderReconfiguration(pa, cost);
+}
+
+function doRetirerLotReconfiguration(index, pa, cost) {
+  _planReconfigEnCours.lots.splice(index, 1);
+  renderReconfiguration(pa, cost);
+}
+
+async function confirmerReconfiguration() {
+  const id = _planReconfigEnCours.buildingId || state.currentBuilding;
+  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Reconfigurer les lots')) return;
+  await chargerTerrainState(id);
+  const ts = getTerrainState(id);
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+
+  if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', "Vous n'êtes pas propriétaire de ce bâtiment.", false); return; }
+
+  // VERDICT UNIQUE, rejoue sur l'etat frais : plan structurellement valide, changement reel, et
+  // surtout AUCUN metre carre sous bail parmi les surfaces touchees.
+  const v = verdictLancementReconfiguration(ts, id, _planReconfigEnCours.lots);
+  if (!v.ok) {
+    showToast(
+      v.raison === 'lot_loue' ? 'Local sous bail'
+    : v.raison === 'aucun_changement' ? 'Plan inchangé'
+    : v.raison === 'reconfiguration_en_cours' ? 'Travaux en cours'
+    : 'Plan refusé',
+      v.message || (v.raison === 'aucun_changement' ? "Ce plan est identique à l'actuel." : 'Ce plan ne peut pas être retenu.'), false);
+    return;
+  }
+
+  const chantier = creerChantierReamenagement(ts.subdivisions || [], _planReconfigEnCours.lots, state.day || 1);
+  if (!chantier) { showToast('Plan inchangé', "Ce plan est identique à l'actuel.", false); return; }
+
+  // FINANCEMENT INTEGRAL AVANT OUVERTURE. Rien n'est engage tant que la totalite n'est pas versee :
+  // il n'existe donc jamais de reconfiguration a moitie financee, ni de paliers a franchir ensuite.
+  const fonds = (typeof getFondsDisponiblesOrdinaires === 'function') ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
+  if (fonds < chantier.coutTotal) {
+    showToast('Fonds insuffisants', chantier.coutTotal.toLocaleString('fr-FR') + ' ' + cur
+      + ' sont exigés en totalité pour engager ces travaux.', false);
+    return;
+  }
+  const r = await deduireCoutOrdre({ pa: 0, cost: chantier.coutTotal });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  let ch = verserAuChantier(chantier, chantier.coutTotal);
+  ch.evenements = [{ cle: 'lancement', jour: state.day || 1, surfaceConcernee: ch.surfaceConcernee,
+                     coutTotal: ch.coutTotal, dureeJours: ch.dureeJours, operations: ch.operations }];
+
+  // APPROVISIONNEMENT IMMEDIAT, par la MEME decision d'achat que la construction et que le cron.
+  const villeTerrain = ts.city || state.currentCity || 'capitale';
+  const idEntrepot = (typeof ENTREPOT_PAR_VILLE !== 'undefined') ? ENTREPOT_PAR_VILLE[villeTerrain] : null;
+  if (idEntrepot && typeof sbGetBatimentEtat === 'function') {
+    const etatEnt = await sbGetBatimentEtat(state.country, villeTerrain, idEntrepot).catch(() => ({}));
+    const besoinJ1 = besoinMateriauxJourChantier(ch, 1);
+    const prix = {};
+    ['bois', 'minerai', 'metal'].forEach(function (m) {
+      prix[m] = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) ? RESSOURCES_ECONOMIE[m].prixBase : 0;
+    });
+    const plan = planifierApprovisionnement(besoinJ1, ch.stockMateriaux,
+      (etatEnt.entrepot && etatEnt.entrepot.stock) || {}, ch.tresorerie, prix);
+    if (plan.depense > 0) {
+      ch = Object.assign({}, ch, {
+        stockMateriaux: plan.stockChantier,
+        tresorerie: Math.max(0, ch.tresorerie - plan.depense),
+        evenements: ch.evenements.concat([{ cle: 'approvisionnement', jour: state.day || 1, achats: plan.achats, cout: plan.depense }])
+      });
+      if (typeof sbSetBatimentEtat === 'function') {
+        await sbSetBatimentEtat(state.country, villeTerrain, idEntrepot, {
+          entrepot: Object.assign({}, etatEnt.entrepot || {}, { stock: plan.stockEntrepot,
+            caisse: ((etatEnt.entrepot && etatEnt.entrepot.caisse) || 0) + plan.depense })
+        }).catch(() => {});
+      }
+    }
+  }
+
+  const nouvelEtat = setTerrainState(id, { chantierReamenagement: ch });
+  _planReconfigEnCours = { buildingId: null, lots: [] };
+  if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, id, nouvelEtat).catch(() => {});
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Travaux engagés', ch.surfaceConcernee + ' m² concernés · ' + ch.dureeJours + ' jour(s). Aucune annulation possible.', true, true);
+  addJournalEntry('Reconfiguration engagée : ' + ch.surfaceConcernee + ' m² concernés, '
+    + ch.coutTotal.toLocaleString('fr-FR') + ' ' + cur + ' versés, ' + ch.dureeJours + ' jour(s) de travaux.', 'event-good');
+}
+
 // =====================
 // PRET BANCAIRE
 // =====================
@@ -6416,12 +6657,25 @@ async function doDeposerDemandePermis(pa, cost) {
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
   if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false); return; }
-  if (ts.niveau_construction) { showToast('Déjà construit', '', false); return; }
-  if (ts.permis?.statut === 'instruction' || ts.permis?.statut === 'attente_validation') { showToast('Demande en cours', 'Une demande de permis est déjà en instruction.', false); return; }
+
+  // Lot 1.5.13 : verdict unique (plateau-immobilier.js) -- deja construit, instruction en cours,
+  // ou carence de trois jours apres un refus. Aucune de ces regles n'est reecrite ici.
+  const vDepot = verdictNouvelleDemandePermis(ts, state.day || 1);
+  if (!vDepot.ok) {
+    showToast(
+      vDepot.raison === 'deja_construit'      ? 'Déjà construit'
+    : vDepot.raison === 'instruction_en_cours' ? 'Demande en cours'
+    : 'Refus récent',
+      vDepot.raison === 'deja_construit'      ? 'Un bâtiment existe déjà sur ce terrain.'
+    : vDepot.raison === 'instruction_en_cours' ? 'Une demande de permis est déjà en instruction.'
+    : 'Le service d\'urbanisme a refusé une demande récemment. Nouveau dépôt possible dans '
+      + vDepot.restant + ' jour' + (vDepot.restant > 1 ? 's' : '') + '.', false);
+    return;
+  }
 
   document.getElementById('postes-modal-title').textContent = 'Déposer une demande de permis';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Le permis est toujours obtenu à terme — seule la durée d\'instruction varie selon l\'ampleur du projet.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Passé le délai d\'instruction, l\'absence de décision vaut accord : le permis est accordé tacitement. Le service d\'urbanisme peut accepter ou refuser tant que le dossier est ouvert — un refus doit être motivé par écrit.</div>';
   Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
     const duree = DUREE_INSTRUCTION_PERMIS[key];
     // Lot 1.5.2 : un palier divisible passe d'abord par l'ecran de plan (ou le decoupage reste
@@ -6581,6 +6835,10 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
     palierDemande,
     dateDepot: jour,
     dureeInstruction: duree,
+    // Lot 1.5.13 : l'instruction se compte en journees REELLEMENT instruites, incrementees par le
+    // traitement quotidien et suspendues pendant une enquete. dateInstructionTerminee n'est plus
+    // qu'un reperage d'affichage, conserve pour les ecrans et les dossiers anterieurs.
+    joursInstructionFaits: 0,
     dateInstructionTerminee: jour + duree,
     statut: 'instruction',
     // Numero de dossier fige au depot : identite de ce dossier d'urbanisme, reprise par
@@ -6642,19 +6900,26 @@ async function verifierInstructionPermis(buildingId) {
   // joueur -- un permis ne doit simplement plus evoluer pendant le gel (section 2 du lot).
   if (ts.succession_gel) return;
   if (!ts.permis || ts.permis.statut !== 'instruction') return;
-  const jour = state.day || 1;
-  if (jour < ts.permis.dateInstructionTerminee) return;
 
-  ts.permis.statut = 'attente_validation';
-  ts.permis.dateEntreeAttente = Date.now();
+  // Lot 1.5.13 : cette fonction ne fait PLUS basculer le dossier en 'attente_validation'. Cet etat
+  // etait le defaut central de l'ancien moteur -- un dossier instruit qui attendait indefiniment
+  // une signature -- et il n'est plus jamais produit. L'instruction est desormais comptee, et
+  // achevee, par le traitement quotidien cote serveur (traiterInstructionsPermis), seul a disposer
+  // d'une horloge commune a tous les joueurs ; passe le delai, le silence vaut accord.
+  //
+  // Il reste utile de PREVENIR le service d'urbanisme : le maire adjoint doit savoir qu'un dossier
+  // arrive a son terme s'il veut encore se prononcer. Le courrier n'est envoye qu'une fois.
+  if (!instructionAchevee(ts.permis) || ts.permis.mairePrevenu) return;
+  ts.permis.mairePrevenu = true;
   if (typeof sbSetTerrainState === 'function') await sbSetTerrainState(state.country, buildingId, ts).catch(() => {});
 
   const maireInfo = await getTitulaireActuel('maire', state.currentCity);
   const maireNom = maireInfo?.estPJ ? maireInfo.nom : null;
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   if (maireNom && typeof sbSendMail === 'function') {
-    await sbSendMail('Services municipaux', maireNom, 'Permis de construire à valider',
-      ts.permis.demandeur + ' demande un permis de construire (' + NIVEAUX_CONSTRUCTION[ts.permis.palierDemande].label + '). Rendez-vous à la mairie pour traiter les demandes.', time).catch(() => {});
+    await sbSendMail('Services municipaux', maireNom, 'Permis de construire — délai expiré',
+      ts.permis.demandeur + ' demande un permis de construire (' + NIVEAUX_CONSTRUCTION[ts.permis.palierDemande].label
+      + '). Le délai d\'instruction est écoulé : sans décision de votre part, le permis sera accordé tacitement.', time).catch(() => {});
   }
 }
 
@@ -6676,7 +6941,9 @@ async function doTraiterDemandesPermis(pa, cost) {
     if (!terrainsVille.includes(r.building_id)) return; // filtre par ville
     try {
       const etat = JSON.parse(r.data);
-      if (etat.permis?.statut === 'attente_validation') demandes.push({ buildingId: r.building_id, etat });
+      // Lot 1.5.13 : le service d'urbanisme se prononce PENDANT l'instruction, pas apres. Les
+      // dossiers anterieurs restes en 'attente_validation' sont repris par le meme verdict.
+      if (permisEnInstruction(etat.permis)) demandes.push({ buildingId: r.building_id, etat });
     } catch(e) {}
   });
 
@@ -6687,11 +6954,17 @@ async function doTraiterDemandesPermis(pa, cost) {
     demandes.forEach(d => {
       const zoneOk = typeof palierAutorise === 'function' ? palierAutorise(state.country, state.currentCity, d.etat.permis.palierDemande) : true;
       html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.6rem">';
+      const restant = joursInstructionRestants(d.etat.permis);
+      const suspendu = terrainSuspenduAdministrativement(d.etat);
       html += '<div style="font-size:.8rem;color:#c0b090">' + d.etat.permis.demandeur + ' — ' + NIVEAUX_CONSTRUCTION[d.etat.permis.palierDemande].label + '</div>';
-      if (!zoneOk) html += '<div style="font-size:.7rem;color:#cc6a44;margin-top:.2rem">⚠ Hors zonage autorisé ici — un refus serait légitime.</div>';
+      html += '<div style="font-size:.7rem;color:#8a8060;margin-top:.2rem">'
+           + (suspendu ? '⏸ Instruction suspendue (enquête en cours) — ' + restant + ' jour(s) restants, figés.'
+             : restant > 0 ? restant + ' jour(s) d\'instruction restants avant accord tacite.'
+             : 'Délai écoulé — accord tacite imminent.') + '</div>';
+      if (!zoneOk) html += '<div style="font-size:.7rem;color:#cc6a44;margin-top:.2rem">⚠ Hors zonage autorisé ici — un refus serait aisément motivable.</div>';
       html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
       html += '<button onclick="traiterPermis(\'' + d.buildingId + '\',true,' + pa + ',' + cost + ')" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.7rem">Valider</button>';
-      html += '<button onclick="traiterPermis(\'' + d.buildingId + '\',false,' + pa + ',' + cost + ')" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-size:.7rem">Refuser</button>';
+      html += '<button onclick="doOuvrirRefusPermis(\'' + d.buildingId + '\',' + pa + ',' + cost + ')" style="flex:1;padding:.35rem;border:1px solid #8a4a4a;background:transparent;color:#cc6a44;cursor:pointer;font-size:.7rem">Refuser…</button>';
       html += '</div></div>';
     });
   }
@@ -6699,10 +6972,42 @@ async function doTraiterDemandesPermis(pa, cost) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function traiterPermis(buildingId, valide, pa, cost) {
+// REFUS MOTIVE (Lot 1.5.13). Le refus reste politiquement libre -- aucune condition de fond n'est
+// imposee au maire adjoint -- mais il doit etre ECRIT. Une decision defavorable qui ne se justifie
+// pas n'est pas une decision, c'est une obstruction ; et l'obstruction n'a plus lieu d'etre depuis
+// que le silence vaut accord. Le motif part dans l'archive municipale et dans le courrier du
+// demandeur : il est opposable.
+function doOuvrirRefusPermis(buildingId, pa, cost) {
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Un refus doit être motivé par écrit. Ce motif sera versé aux archives municipales et communiqué au demandeur — il vous engage.</div>';
+  html += '<textarea id="permis-motif-refus" rows="4" placeholder="Motif du refus (10 caractères minimum)..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none;resize:vertical"></textarea>';
+  html += '<button class="pnj-action-btn" style="margin-top:.6rem" onclick="traiterPermis(\'' + buildingId + '\',false,' + pa + ',' + cost + ')">Refuser ce permis</button>';
+  html += '<button class="pnj-action-btn" style="margin-top:.4rem" onclick="doTraiterDemandesPermis(' + pa + ',' + cost + ')">Revenir aux demandes</button>';
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Motiver le refus';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// motif : passe explicitement par l'appelant, ou lu dans l'ecran de refus a defaut. Le rendre
+// parametrable evite que la regle "un refus s'ecrit" ne dependance d'un champ de formulaire --
+// elle appartient a la decision, pas a l'interface qui la saisit.
+async function traiterPermis(buildingId, valide, pa, cost, motif) {
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', buildingId, 'Traiter ce permis')) return;
   const etat = await sbGetTerrainState(state.country, buildingId).catch(() => null);
   if (!etat?.permis) return;
+
+  // Verdict unique : dossier encore ouvert, et motif ecrit obligatoire en cas de refus.
+  const motifSaisi = valide ? null
+    : ((typeof motif === 'string' && motif) || document.getElementById('permis-motif-refus')?.value || '');
+  const vDecision = verdictDecisionPermis(etat.permis, valide, motifSaisi);
+  if (!vDecision.ok) {
+    showToast(vDecision.raison === 'motif_requis' ? 'Motif requis' : 'Dossier clos',
+      vDecision.raison === 'motif_requis'
+        ? 'Écrivez le motif du refus (10 caractères minimum) : il sera archivé et communiqué au demandeur.'
+        : 'Ce dossier a déjà été tranché.', false);
+    return;
+  }
   // Lot 1.5.5 : la decision est archivee AVANT toute mutation du permis et avant le prelevement.
   // Si l'archive municipale n'enregistre pas l'acte, la decision n'a pas lieu : le permis reste
   // EXACTEMENT dans l'etat ou il etait -- rien n'est perdu, le maire adjoint peut retrancher plus
@@ -6718,7 +7023,7 @@ async function traiterPermis(buildingId, valide, pa, cost) {
 
   // Le snapshot archive porte la decision : on le construit sur une COPIE du permis, sans encore
   // toucher a l'etat vivant.
-  const permisDecide = { ...etat.permis, statut: valide ? 'valide' : 'refuse' };
+  const permisDecide = { ...etat.permis, statut: valide ? 'valide' : 'refuse', motifRefus: vDecision.motif };
   const emisDecision = (typeof emettreDocumentUrbanisme === 'function')
     ? await emettreDocumentUrbanisme(etat, permisDecide, valide ? 'acceptation' : 'refus',
         { buildingId: buildingId, pays: state.country, ville: etat.city || state.currentCity,
@@ -6732,9 +7037,12 @@ async function traiterPermis(buildingId, valide, pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  const zoneOk = typeof palierAutorise === 'function' ? palierAutorise(state.country, state.currentCity, etat.permis.palierDemande) : true;
   etat.permis.statut = valide ? 'valide' : 'refuse';
-  etat.permis.refusLegitime = !valide ? zoneOk : null;
+  if (!valide) {
+    etat.permis.motifRefus = vDecision.motif;
+    // Jour du refus : point de depart de la carence de trois jours avant un nouveau depot.
+    etat.permis.jourRefus = state.day || 1;
+  }
   if (valide) etat.constructionAutorisee = true;
   await sbSetTerrainState(state.country, buildingId, etat).catch(() => {});
 
@@ -6742,7 +7050,8 @@ async function traiterPermis(buildingId, valide, pa, cost) {
   if (typeof sbSendMail === 'function') {
     const msg = valide
       ? 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été validé. Vous pouvez construire.'
-      : 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été refusé' + (zoneOk ? ' sans motif de zonage — un recours pour obstruction est possible.' : ' (zonage non conforme, refus légitime).');
+      : 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été refusé.\n\nMotif retenu par le service d\'urbanisme : '
+        + vDecision.motif + '\n\nVous pourrez déposer une nouvelle demande dans ' + PERMIS_COOLDOWN_REFUS_JOURS + ' jours.';
     await sbSendMail('Mairie', etat.permis.demandeur, valide ? 'Permis validé' : 'Permis refusé', msg, time).catch(() => {});
   }
 
@@ -6845,36 +7154,13 @@ function ouvrirDossierUrbanisme(index) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function doPlainteObstruction(pa, cost) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Contester ce refus')) return;
-  await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  if (!ts.permis || ts.permis.statut !== 'refuse') { showToast('Indisponible', 'Aucun refus de permis à contester ici.', false); return; }
-  if (ts.permis.refusLegitime) { showToast('Refus légitime', 'Le zonage justifiait ce refus — pas de recours possible.', false); return; }
-  if (ts.permis.plainteDeposee) { showToast('Plainte déjà déposée', '', false); return; }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const maireInfoObstruction = await getTitulaireActuel('maire', state.currentCity);
-  const maireNom = maireInfoObstruction?.estPJ ? maireInfoObstruction.nom : null;
-  if (maireNom && typeof sbGet === 'function') {
-    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(maireNom)}&select=pop,dis`).catch(() => []);
-    const pop = rows?.[0]?.pop ?? 50, dis = rows?.[0]?.dis ?? 50;
-    await sbUpdate('personnages', `name=eq.${encodeURIComponent(maireNom)}`, {
-      pop: Math.max(0, pop - 8), dis: Math.max(0, dis - 10)
-    }).catch(() => {});
-  }
-
-  ts.permis.plainteDeposee = true;
-  await sbSetTerrainState(state.country, id, ts).catch(() => {});
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Plainte déposée', 'La justice reconnaît l\'obstruction — le maire en subit les conséquences, mais le permis reste refusé.', true, true);
-  addJournalEntry('Plainte pour obstruction déposée contre le maire.', 'event-bad');
-  addExternalEvent('⚖️ Le maire est reconnu coupable d\'obstruction à un permis de construire légitime.');
-}
+// SUPPRIME AU LOT 1.5.13 : doPlainteObstruction.
+// Cette plainte etait la rustine de l'ancien moteur -- un refus pouvait n'avoir aucun motif, et un
+// dossier pouvait rester bloque indefiniment faute de signature. Le demandeur n'avait alors qu'un
+// recours symbolique : faire perdre POP et DIS au maire, sans jamais obtenir son permis. Les deux
+// causes ont disparu : le silence vaut desormais accord, et un refus doit etre motive par ecrit.
+// Une mecanique de justice ad hoc, qui court-circuitait le vrai systeme judiciaire du jeu pour
+// appliquer une sanction automatique, n'avait plus de raison de survivre.
 
 async function doCorrompreFonctionnairePermis(pa, cost) {
   const id = state.currentBuilding;
@@ -6897,8 +7183,13 @@ async function doCorrompreFonctionnairePermis(pa, cost) {
     return;
   }
 
+  // Lot 1.5.13 : l'acceleration agit sur la DUREE exigee, pas sur une date-cible -- l'instruction
+  // se compte desormais en journees reellement instruites (joursInstructionFaits). Raccourcir la
+  // duree rapproche donc reellement l'echeance, y compris pour l'accord tacite, et sans jamais
+  // faire "sauter" une journee d'enquete suspendue. dateInstructionTerminee est mise a jour pour
+  // l'affichage seul.
   ts.permis.dureeInstruction = Math.max(1, Math.floor(ts.permis.dureeInstruction / 2));
-  ts.permis.dateInstructionTerminee = ts.permis.dateDepot + ts.permis.dureeInstruction;
+  ts.permis.dateInstructionTerminee = (ts.permis.dateDepot || 0) + ts.permis.dureeInstruction;
   await sbSetTerrainState(state.country, id, ts).catch(() => {});
 
   updateUI();

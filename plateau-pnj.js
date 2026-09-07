@@ -3435,7 +3435,7 @@ function terrainOrdreDisponible(fn, buildingId) {
   if (pnj === 'cadavre') {
     // Lot 1.5.7 : 'construire_sur_terrain' rejoint la liste -- on ne lance pas un chantier sur un
     // terrain ou gît un cadavre non resolu. Meme contrat, meme message, aucune regle nouvelle.
-    const bloques = ['signer_compromis', 'permis_construire', 'permis_corrompu', 'acheter_terrain', 'construire_sur_terrain'];
+    const bloques = ['signer_compromis', 'deposer_demande_permis', 'corrompre_fonctionnaire_permis', 'acheter_terrain', 'construire_sur_terrain'];
     if (bloques.includes(fn)) return { ok: false, raison: 'Un cadavre bloque les démarches administratives. Résolvez la situation d\'abord.' };
   }
 
@@ -3897,11 +3897,24 @@ async function doConfirmerCompromis(pa, cost) {
     };
   }
   if (demandePermis && typePermis) {
+    // Lot 1.5.13 : ce raccourci creait un permis directement en 'attente_validation', sans duree
+    // ni numero de dossier -- un dossier qui, avec le moteur actuel, n'aurait jamais pu etre
+    // accorde tacitement (duree nulle) et serait reste suspendu a une signature. Il produit
+    // desormais un dossier ORDINAIRE, instruit comme n'importe quel autre.
+    const dureePermisCompromis = (typeof DUREE_INSTRUCTION_PERMIS !== 'undefined')
+      ? (DUREE_INSTRUCTION_PERMIS[typePermis] || 0) : 0;
+    const jourCompromis = state.day || 1;
     patch.permis = {
       demandeur: state.char?.name,
       palierDemande: typePermis,
-      statut: 'attente_validation',
-      dateEntreeAttente: Date.now()
+      dateDepot: jourCompromis,
+      dureeInstruction: dureePermisCompromis,
+      joursInstructionFaits: 0,
+      dateInstructionTerminee: jourCompromis + dureePermisCompromis,
+      statut: 'instruction',
+      numeroDossier: (typeof numeroDossierUrbanisme === 'function')
+        ? numeroDossierUrbanisme(state.country, id, Date.now()) : null,
+      decoupageInitial: []
     };
   }
 
