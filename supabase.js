@@ -1443,8 +1443,19 @@ async function sbCreerOeuvre(auteurRef, type, titre, country, jour, contenu, ext
 }
 
 // Reponse a une offre. L'acceptation cote serveur est la PREUVE de consentement qui manquait au
-// jeu : c'est elle qui pourra ouvrir la vente de fonds et l'accord amiable, restes hors de portee
-// du navigateur faute de pouvoir etablir l'accord de l'autre partie.
+// jeu, et depuis le Lot 4.1 elle EXECUTE l'operation dans la meme transaction : une acceptation de
+// vente de fonds transfere reellement le fonds, une resiliation amiable termine reellement le bail.
+//
+// DEUX AXES DANS LA REPONSE, a ne pas confondre :
+//   statut     'acceptee' | 'refusee' | 'annulee' | 'expiree'     ce que les parties ont voulu
+//   execution  'executee' | 'non_disponible' | 'sans_objet'       ce que le serveur a fait
+//
+// Un statut 'acceptee' avec execution 'non_disponible' (vente_objet, prestation) est un ACCORD
+// CONSTATE, pas une operation realisee : aucun FR n'a bouge. Ne jamais l'annoncer comme un
+// transfert. La raison rendue est alors 'execution_non_disponible'.
+//
+// Si l'operation echoue, l'offre RESTE OUVERTE et rien n'a bouge : ok vaut false, statut vaut
+// 'ouverte', et l'accord reste disponible si la cause disparait.
 async function sbRepondreOffre(offreId, acteurRef, acceptee) {
   return verdictRpc(await sbRpc('repondre_offre', {
     p_offre_id: offreId, p_acteur: acteurRef, p_acceptee: acceptee === true

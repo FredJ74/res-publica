@@ -511,3 +511,110 @@ function verdictAcceptationOffre(offre, refAcceptant, maintenantMs) {
   if (offre.destinataire !== refAcceptant) return { ok: false, raison: 'pas_destinataire' };
   return { ok: true, raison: null };
 }
+
+// ---------------------------------------------------------------------------
+// EXECUTION DES OFFRES ACCEPTEES (Lot 4.1)
+// ---------------------------------------------------------------------------
+// CONSENTEMENT ET OPERATION SONT DEUX CHOSES. Le Lot 4.0 ne savait dire que la premiere, et
+// 'acceptee' laissait croire a la seconde. Deux axes desormais :
+//
+//   statut     ouverte | acceptee | refusee | expiree | annulee     ce que les parties ont voulu
+//   execution  sans_objet | executee | non_disponible               ce que le serveur a fait
+//
+// Les quatre etats a distinguer se lisent directement, sans valeur composite a interpreter :
+//   1. ouverte                         statut 'ouverte'    execution 'sans_objet'
+//   2. refusee / annulee / expiree     statut ...          execution 'sans_objet'
+//   3. acceptee ET executee            statut 'acceptee'   execution 'executee'
+//   4. acceptee, moteur absent         statut 'acceptee'   execution 'non_disponible'
+//
+// Le cas 4 ne concerne que vente_objet et prestation. Une offre vente_fonds ou
+// resiliation_amiable acceptee est necessairement executee : si l'operation echoue, l'offre n'est
+// pas acceptee du tout et RESTE OUVERTE -- un echec ne doit pas consommer un accord.
+const OFFRE_EXECUTIONS = ['sans_objet', 'executee', 'non_disponible'];
+// Les seuls types dont le serveur sait executer l'operation. La liste grandira quand un moteur
+// existera ; le tableau est le seul endroit a changer.
+const TYPES_OFFRE_EXECUTABLES = ['vente_fonds', 'resiliation_amiable'];
+
+function executionOffre(offre) {
+  const e = (offre || {}).execution;
+  return OFFRE_EXECUTIONS.indexOf(e) === -1 ? 'sans_objet' : e;
+}
+
+// Un accord qui n'a rien produit : c'est la file d'attente du jour ou vente_objet et prestation
+// auront un moteur. A ne jamais presenter comme une operation realisee.
+function offreAccordSansExecution(offre) {
+  return !!offre && offre.statut === 'acceptee' && executionOffre(offre) === 'non_disponible';
+}
+
+function offreReellementExecutee(offre) {
+  return !!offre && offre.statut === 'acceptee' && executionOffre(offre) === 'executee';
+}
+
+// MIROIR EXACT de repondre_offre (migration Lot 4.1). Sert a l'interface pour anticiper le verdict
+// sans aller-retour, et de table de decision testable. NON AUTORITAIRE : c'est la RPC qui tranche,
+// sous verrou, sur l'etat reel de la base -- ce module lit un contexte que l'appelant lui donne et
+// qui peut deja etre perime. Toute divergence entre les deux est un defaut de ce module.
+//
+// contexte : { fonds: {proprietaire, statut}, bail: {locataireRef|locataire}, bailleur: ref }
+function verdictExecutionOffre(offre, refActeur, accepte, contexte, maintenantMs) {
+  const ctx = contexte || {};
+  if (!offre) return { ok: false, raison: 'offre_absente' };
+
+  if (offre.statut !== 'ouverte') {
+    return { ok: true, dejaResolue: true, statut: offre.statut, execution: executionOffre(offre) };
+  }
+  if (offreExpiree(offre, maintenantMs)) {
+    return { ok: false, raison: 'offre_expiree', statut: 'expiree', execution: 'sans_objet' };
+  }
+
+  // L'emetteur ne peut qu'annuler la sienne : accepter sa propre offre reviendrait a se donner le
+  // consentement de l'autre, c'est-a-dire a supprimer la seule chose que ce canal apporte.
+  if (refActeur === offre.emetteur) {
+    if (accepte === true) return { ok: false, raison: 'emetteur_ne_peut_accepter' };
+    return { ok: true, dejaResolue: false, statut: 'annulee', execution: 'sans_objet' };
+  }
+  if (refActeur !== offre.destinataire) return { ok: false, raison: 'pas_partie_a_l_offre' };
+
+  if (accepte !== true) {
+    return { ok: true, dejaResolue: false, statut: 'refusee', execution: 'sans_objet' };
+  }
+
+  // ---- Revalidation : l'offre a pu etre creee il y a trois jours, c'est l'etat d'AUJOURD'HUI qui
+  // ---- fait foi. Un echec laisse l'offre OUVERTE, il ne la consomme pas.
+  if (offre.type === 'vente_fonds') {
+    const f = ctx.fonds;
+    if (!offre.actif) return { ok: false, raison: 'fonds_requis', statut: 'ouverte' };
+    if (!f) return { ok: false, raison: 'fonds_absent', statut: 'ouverte' };
+    if (f.proprietaire !== offre.emetteur) {
+      return { ok: false, raison: 'vendeur_plus_proprietaire', statut: 'ouverte' };
+    }
+    if ((f.statut || 'actif') !== 'actif') {
+      return { ok: false, raison: 'fonds_non_vendable', statut: 'ouverte' };
+    }
+    return { ok: true, dejaResolue: false, statut: 'acceptee', execution: 'executee',
+             operation: 'vendre_fonds_commerce' };
+  }
+
+  if (offre.type === 'resiliation_amiable') {
+    const b = ctx.bail;
+    if (!offre.actif) return { ok: false, raison: 'bail_requis', statut: 'ouverte' };
+    if (!b) return { ok: false, raison: 'bail_deja_termine', statut: 'ouverte' };
+    const loc = b.locataireRef || ('pj:' + (b.locataire || ''));
+    // Proprietaire ACTUEL des murs : des murs vendus entre la creation et l'acceptation changent
+    // le bailleur, et l'accord ne vaut plus -- le nouveau proprietaire n'a rien signe.
+    const bai = ctx.bailleur;
+    const paire = (offre.emetteur === loc && offre.destinataire === bai)
+               || (offre.emetteur === bai && offre.destinataire === loc);
+    if (!paire) return { ok: false, raison: 'parties_ne_correspondent_plus', statut: 'ouverte' };
+    return { ok: true, dejaResolue: false, statut: 'acceptee', execution: 'executee',
+             operation: 'terminer_bail' };
+  }
+
+  // vente_objet et prestation : ACCORD CONSTATE, OPERATION INDISPONIBLE, ET AUCUN FR NE BOUGE.
+  // Un objet vit dans l'inventaire que le client reecrit entierement : le serveur ne peut ni
+  // prouver que le vendeur le detient encore, ni le lui retirer. Le remettre a l'acheteur le
+  // DUPLIQUERAIT. Deplacer l'argent en esperant que l'objet suive serait la creation de valeur que
+  // tout ce lot cherche a empecher.
+  return { ok: true, dejaResolue: false, statut: 'acceptee', execution: 'non_disponible',
+           raison: 'execution_non_disponible', operation: null };
+}
